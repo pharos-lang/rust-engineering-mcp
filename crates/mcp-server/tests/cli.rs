@@ -262,12 +262,16 @@ fn rust_runtime_options_require_a_complete_unique_approved_tuple() -> io::Result
 #[test]
 fn audit_snapshot_flags_require_unique_complete_valid_host_configuration() -> io::Result<()> {
     let fingerprint = format!("sha256:{:064x}", 42);
+    let snapshot = std::env::temp_dir().join("rust-mcp-nonexistent-trusted-snapshot.json");
+    let snapshot = snapshot
+        .to_str()
+        .ok_or_else(|| io::Error::other("temporary directory is not UTF-8"))?;
     let baseline = run(&["unknown"])?;
     let complete = [
         "serve",
         "--stdio",
         "--rustsec-snapshot",
-        "/nonexistent/trusted-snapshot.json",
+        snapshot,
         "--rustsec-sha256",
         fingerprint.as_str(),
     ];
