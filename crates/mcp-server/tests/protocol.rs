@@ -32,6 +32,7 @@ impl Server {
         Self::start_configured(None, args)
     }
 
+    #[cfg(unix)]
     fn start_with_output(output: Option<(Stdio, Box<dyn Read + Send>)>) -> io::Result<Self> {
         Self::start_configured(output, &[])
     }
