@@ -96,6 +96,9 @@ jobs:
       - name: Audit resolved dependencies
         run: cargo audit
 
+      - name: Provision cargo-deny advisory database
+        run: cargo deny fetch db
+
       - name: Enforce dependency policy
         run: >-
           cargo deny --all-features --locked --offline check
