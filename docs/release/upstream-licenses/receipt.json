@@ -1,0 +1,910 @@
+{
+  "approval": "none; source evidence only",
+  "base_inventory_sha256": "c0b8c7de88053f9efd7a50d2b03451a5b49c5ec4a8f420cedde39537143ab452",
+  "base_rebinding": "Package rows and exact candidate notice bytes verified unchanged after source revision/script provenance update",
+  "groups": [
+    {
+      "commit": "d74c030d9dc4f3cae02146d1f497ff62726ef09a",
+      "packages": [
+        {
+          "declared_license": "MIT",
+          "name": "uuid-simd",
+          "path_in_vcs": "crates/uuid-simd",
+          "repository_inference": null,
+          "vcs_info_sha256": "9235ab068fdb6b50a2b0fdad57df40ed34461ea3a81e7d3a1584962f3f84e5a9",
+          "version": "0.8.0"
+        },
+        {
+          "declared_license": "MIT",
+          "name": "vsimd",
+          "path_in_vcs": "crates/vsimd",
+          "repository_inference": null,
+          "vcs_info_sha256": "b6a479e65704d09745d31e0d86d23ca44ba673b01ddd0da81cc8ba619a92b2aa",
+          "version": "0.8.0"
+        }
+      ],
+      "pending": [],
+      "repository": "https://github.com/Nugine/simd",
+      "requests": [
+        {
+          "final_url": "https://api.github.com/repos/Nugine/simd/contents?ref=d74c030d9dc4f3cae02146d1f497ff62726ef09a",
+          "http_status": 200,
+          "sha256": "99f38b00b2a6f4c2cee65300fcc6fc8c338cc0ece5a9ad3b0d55e91b7ddd14d6",
+          "url": "https://api.github.com/repos/Nugine/simd/contents?ref=d74c030d9dc4f3cae02146d1f497ff62726ef09a"
+        },
+        {
+          "final_url": "https://raw.githubusercontent.com/Nugine/simd/d74c030d9dc4f3cae02146d1f497ff62726ef09a/LICENSE",
+          "http_status": 200,
+          "sha256": "71674605ec4c087fe9eb534e3e4f9e26eb2e4aabcd76a29fd156c6a844d44b3d",
+          "url": "https://raw.githubusercontent.com/Nugine/simd/d74c030d9dc4f3cae02146d1f497ff62726ef09a/LICENSE"
+        }
+      ],
+      "texts": [
+        {
+          "bytes": 1062,
+          "file": "docs/release/upstream-licenses/Nugine--simd--d74c030d9dc4/LICENSE",
+          "git_blob_sha": "2c7eabb59093ea117d73b20effdd0414f87b2af2",
+          "git_blob_sha_verified": true,
+          "scope": "Repository-root/monorepo text; applicability to listed crate inferred from path_in_vcs and license declaration, requires review.",
+          "sha256": "71674605ec4c087fe9eb534e3e4f9e26eb2e4aabcd76a29fd156c6a844d44b3d",
+          "source_path": "LICENSE",
+          "source_url": "https://raw.githubusercontent.com/Nugine/simd/d74c030d9dc4f3cae02146d1f497ff62726ef09a/LICENSE"
+        }
+      ]
+    },
+    {
+      "commit": "6af37d89619fdcb06d8ab82d02dbe6b3d1a4d1a7",
+      "packages": [
+        {
+          "declared_license": "MIT",
+          "name": "jsonschema-regex",
+          "path_in_vcs": "crates/jsonschema-regex",
+          "repository_inference": null,
+          "vcs_info_sha256": "28c47981d51ed98bcfdc639db9baa89f9684558de56870018a5695c99ee60580",
+          "version": "0.53.0"
+        },
+        {
+          "declared_license": "MIT",
+          "name": "jsonschema-value",
+          "path_in_vcs": "crates/jsonschema-value",
+          "repository_inference": null,
+          "vcs_info_sha256": "6ad2629702c7bbd5992d709ffe8e057c1981cc1d0c506a452beea479e2c3e7f6",
+          "version": "0.53.0"
+        }
+      ],
+      "pending": [],
+      "repository": "https://github.com/Stranger6667/jsonschema",
+      "requests": [
+        {
+          "final_url": "https://api.github.com/repos/Stranger6667/jsonschema/contents?ref=6af37d89619fdcb06d8ab82d02dbe6b3d1a4d1a7",
+          "http_status": 200,
+          "sha256": "e76a074be2306a82505baf6bf21b1c50fb14ac97d989f5cc09f3ef4aca6e05b7",
+          "url": "https://api.github.com/repos/Stranger6667/jsonschema/contents?ref=6af37d89619fdcb06d8ab82d02dbe6b3d1a4d1a7"
+        },
+        {
+          "final_url": "https://raw.githubusercontent.com/Stranger6667/jsonschema/6af37d89619fdcb06d8ab82d02dbe6b3d1a4d1a7/LICENSE",
+          "http_status": 200,
+          "sha256": "117829c3ca21efb132d81a44b55363d395ab8eea18526873bc828da4c0e5f038",
+          "url": "https://raw.githubusercontent.com/Stranger6667/jsonschema/6af37d89619fdcb06d8ab82d02dbe6b3d1a4d1a7/LICENSE"
+        }
+      ],
+      "texts": [
+        {
+          "bytes": 1075,
+          "file": "docs/release/upstream-licenses/Stranger6667--jsonschema--6af37d89619f/LICENSE",
+          "git_blob_sha": "20c070f6401feda6f47be1b158f4f5a4a9d14062",
+          "git_blob_sha_verified": true,
+          "scope": "Repository-root/monorepo text; applicability to listed crate inferred from path_in_vcs and license declaration, requires review.",
+          "sha256": "117829c3ca21efb132d81a44b55363d395ab8eea18526873bc828da4c0e5f038",
+          "source_path": "LICENSE",
+          "source_url": "https://raw.githubusercontent.com/Stranger6667/jsonschema/6af37d89619fdcb06d8ab82d02dbe6b3d1a4d1a7/LICENSE"
+        }
+      ]
+    },
+    {
+      "commit": "7e163021e59cca4f8e1e35a7c828b5c6b7915953",
+      "packages": [
+        {
+          "declared_license": "Apache-2.0",
+          "name": "flatbuffers",
+          "path_in_vcs": "rust/flatbuffers",
+          "repository_inference": null,
+          "vcs_info_sha256": "1db0f51ece68daeee7ee9e460509639772a51fab1c17f400adf406b744449724",
+          "version": "25.12.19"
+        }
+      ],
+      "pending": [],
+      "repository": "https://github.com/google/flatbuffers",
+      "requests": [
+        {
+          "final_url": "https://api.github.com/repos/google/flatbuffers/contents?ref=7e163021e59cca4f8e1e35a7c828b5c6b7915953",
+          "http_status": 200,
+          "sha256": "f2177088dda7692ef5ae6a7f6eb8206a19cc67d00b6cb2c18e159f09501589b4",
+          "url": "https://api.github.com/repos/google/flatbuffers/contents?ref=7e163021e59cca4f8e1e35a7c828b5c6b7915953"
+        },
+        {
+          "final_url": "https://raw.githubusercontent.com/google/flatbuffers/7e163021e59cca4f8e1e35a7c828b5c6b7915953/LICENSE",
+          "http_status": 200,
+          "sha256": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30",
+          "url": "https://raw.githubusercontent.com/google/flatbuffers/7e163021e59cca4f8e1e35a7c828b5c6b7915953/LICENSE"
+        }
+      ],
+      "texts": [
+        {
+          "bytes": 11358,
+          "file": "docs/release/upstream-licenses/google--flatbuffers--7e163021e59c/LICENSE",
+          "git_blob_sha": "d645695673349e3947e8e5ae42332d0ac3164cd7",
+          "git_blob_sha_verified": true,
+          "scope": "Repository-root/monorepo text; applicability to listed crate inferred from path_in_vcs and license declaration, requires review.",
+          "sha256": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30",
+          "source_path": "LICENSE",
+          "source_url": "https://raw.githubusercontent.com/google/flatbuffers/7e163021e59cca4f8e1e35a7c828b5c6b7915953/LICENSE"
+        }
+      ]
+    },
+    {
+      "commit": "4a8cdb44891ed57b8ff5a023b6bec7137c48708f",
+      "packages": [
+        {
+          "declared_license": "MIT OR Apache-2.0",
+          "name": "defmt-parser",
+          "path_in_vcs": "parser",
+          "repository_inference": null,
+          "vcs_info_sha256": "7ab8f01085721143c43db5db2528806f393df2058d03c5b8da20634e14886a05",
+          "version": "1.0.0"
+        }
+      ],
+      "pending": [],
+      "repository": "https://github.com/knurling-rs/defmt",
+      "requests": [
+        {
+          "final_url": "https://api.github.com/repos/knurling-rs/defmt/contents?ref=4a8cdb44891ed57b8ff5a023b6bec7137c48708f",
+          "http_status": 200,
+          "sha256": "400a9baab6d58ec9884c0fffe78f1e38f49f355d7e023e680bc84dc21628097a",
+          "url": "https://api.github.com/repos/knurling-rs/defmt/contents?ref=4a8cdb44891ed57b8ff5a023b6bec7137c48708f"
+        },
+        {
+          "final_url": "https://raw.githubusercontent.com/knurling-rs/defmt/4a8cdb44891ed57b8ff5a023b6bec7137c48708f/LICENSE-APACHE",
+          "http_status": 200,
+          "sha256": "8173d5c29b4f956d532781d2b86e4e30f83e6b7878dce18c919451d6ba707c90",
+          "url": "https://raw.githubusercontent.com/knurling-rs/defmt/4a8cdb44891ed57b8ff5a023b6bec7137c48708f/LICENSE-APACHE"
+        },
+        {
+          "final_url": "https://raw.githubusercontent.com/knurling-rs/defmt/4a8cdb44891ed57b8ff5a023b6bec7137c48708f/LICENSE-MIT",
+          "http_status": 200,
+          "sha256": "2710a622a896bba67356913d4d0492cab5465f61b2ecce6d880aeb483834fb50",
+          "url": "https://raw.githubusercontent.com/knurling-rs/defmt/4a8cdb44891ed57b8ff5a023b6bec7137c48708f/LICENSE-MIT"
+        }
+      ],
+      "texts": [
+        {
+          "bytes": 10850,
+          "file": "docs/release/upstream-licenses/knurling-rs--defmt--4a8cdb44891e/LICENSE-APACHE",
+          "git_blob_sha": "11069edd79019f7dafbe3138841cf289209270dd",
+          "git_blob_sha_verified": true,
+          "scope": "Repository-root/monorepo text; applicability to listed crate inferred from path_in_vcs and license declaration, requires review.",
+          "sha256": "8173d5c29b4f956d532781d2b86e4e30f83e6b7878dce18c919451d6ba707c90",
+          "source_path": "LICENSE-APACHE",
+          "source_url": "https://raw.githubusercontent.com/knurling-rs/defmt/4a8cdb44891ed57b8ff5a023b6bec7137c48708f/LICENSE-APACHE"
+        },
+        {
+          "bytes": 1053,
+          "file": "docs/release/upstream-licenses/knurling-rs--defmt--4a8cdb44891e/LICENSE-MIT",
+          "git_blob_sha": "e68a7ab37c8accca023db5f1505d48e4375d4324",
+          "git_blob_sha_verified": true,
+          "scope": "Repository-root/monorepo text; applicability to listed crate inferred from path_in_vcs and license declaration, requires review.",
+          "sha256": "2710a622a896bba67356913d4d0492cab5465f61b2ecce6d880aeb483834fb50",
+          "source_path": "LICENSE-MIT",
+          "source_url": "https://raw.githubusercontent.com/knurling-rs/defmt/4a8cdb44891ed57b8ff5a023b6bec7137c48708f/LICENSE-MIT"
+        }
+      ]
+    },
+    {
+      "commit": "15f2ff594a25b97f9bedd21a253b612ce14e39ec",
+      "packages": [
+        {
+          "declared_license": "Apache-2.0",
+          "name": "fsst",
+          "path_in_vcs": "rust/compression/fsst",
+          "repository_inference": null,
+          "vcs_info_sha256": "183c4bc70c33ef98e4bf16061047ae4ac4a371c2f1f8823e743bebff891cf8df",
+          "version": "8.0.0"
+        },
+        {
+          "declared_license": "Apache-2.0",
+          "name": "lance-arrow",
+          "path_in_vcs": "rust/lance-arrow",
+          "repository_inference": null,
+          "vcs_info_sha256": "72aeebfe14809d5162e4fcb204b17439f8eec925659140ec95c76ed0dad5f4a9",
+          "version": "8.0.0"
+        },
+        {
+          "declared_license": "Apache-2.0",
+          "name": "lance-bitpacking",
+          "path_in_vcs": "rust/compression/bitpacking",
+          "repository_inference": null,
+          "vcs_info_sha256": "75eba24b84efb0fa4965fce63cbc67c7e5dcce902e708bac7beacd192137d07f",
+          "version": "8.0.0"
+        },
+        {
+          "declared_license": "Apache-2.0",
+          "name": "lance-core",
+          "path_in_vcs": "rust/lance-core",
+          "repository_inference": null,
+          "vcs_info_sha256": "64acf04ec3818d0dd2342bfad8620ef9b358f6d77188af0d0138276ebbb56966",
+          "version": "8.0.0"
+        },
+        {
+          "declared_license": "Apache-2.0",
+          "name": "lance-datagen",
+          "path_in_vcs": "rust/lance-datagen",
+          "repository_inference": null,
+          "vcs_info_sha256": "9c58ff42bf2cfe97585ad45d5a516aa04c603834cfa318020c7213724594bcdc",
+          "version": "8.0.0"
+        },
+        {
+          "declared_license": "Apache-2.0",
+          "name": "lance-derive",
+          "path_in_vcs": "rust/lance-derive",
+          "repository_inference": null,
+          "vcs_info_sha256": "808e9280a8922ebe2572ad2b6ca4a1f4f4ab2eaea1303962e2b302996209fede",
+          "version": "8.0.0"
+        },
+        {
+          "declared_license": "Apache-2.0",
+          "name": "lance-io",
+          "path_in_vcs": "rust/lance-io",
+          "repository_inference": null,
+          "vcs_info_sha256": "798e1fb529bf65a5359c33050f59c8d0398d2eecdec5e3a44f3a2c687d87d088",
+          "version": "8.0.0"
+        },
+        {
+          "declared_license": "Apache-2.0",
+          "name": "lance-linalg",
+          "path_in_vcs": "rust/lance-linalg",
+          "repository_inference": null,
+          "vcs_info_sha256": "15c085211bdbe157ce9a7ba2ade4eb81e2b56574bcfe16ab456540e8fb557ce4",
+          "version": "8.0.0"
+        },
+        {
+          "declared_license": "Apache-2.0",
+          "name": "lance-namespace",
+          "path_in_vcs": "rust/lance-namespace",
+          "repository_inference": null,
+          "vcs_info_sha256": "8c2aed05730ece368b041328a074e73904a5bc3a6a1fabbbc0a6454e815f41e8",
+          "version": "8.0.0"
+        },
+        {
+          "declared_license": "Apache-2.0",
+          "name": "lance-namespace-impls",
+          "path_in_vcs": "rust/lance-namespace-impls",
+          "repository_inference": null,
+          "vcs_info_sha256": "94c0906085f3d5c862e52a450fdbf0919f46c63ccd4afc2ada80ea77eb82f0ae",
+          "version": "8.0.0"
+        },
+        {
+          "declared_license": "Apache-2.0",
+          "name": "lance-select",
+          "path_in_vcs": "rust/lance-select",
+          "repository_inference": null,
+          "vcs_info_sha256": "8aa64f69053bfeb89af1c13851d72ef881c2bbaa347066b440d800f363a6f685",
+          "version": "8.0.0"
+        },
+        {
+          "declared_license": "Apache-2.0",
+          "name": "lance-tokenizer",
+          "path_in_vcs": "rust/lance-tokenizer",
+          "repository_inference": null,
+          "vcs_info_sha256": "95c5d50271d10a3dacef6b20558e4c27b6871ccd2de5edcbeedd877dc6e75d7b",
+          "version": "8.0.0"
+        }
+      ],
+      "pending": [],
+      "repository": "https://github.com/lance-format/lance",
+      "requests": [
+        {
+          "final_url": "https://api.github.com/repos/lance-format/lance/contents?ref=15f2ff594a25b97f9bedd21a253b612ce14e39ec",
+          "http_status": 200,
+          "sha256": "ab71310459b7eaa8c4c0c14e253b65c3afe85fa2a64e4478b2b19dbdb77e8add",
+          "url": "https://api.github.com/repos/lance-format/lance/contents?ref=15f2ff594a25b97f9bedd21a253b612ce14e39ec"
+        },
+        {
+          "final_url": "https://raw.githubusercontent.com/lance-format/lance/15f2ff594a25b97f9bedd21a253b612ce14e39ec/LICENSE",
+          "http_status": 200,
+          "sha256": "3788e71aa43d61a457749d4aa070d9705c36d25ed978cd52c5766ec4bd361aa9",
+          "url": "https://raw.githubusercontent.com/lance-format/lance/15f2ff594a25b97f9bedd21a253b612ce14e39ec/LICENSE"
+        }
+      ],
+      "texts": [
+        {
+          "bytes": 12702,
+          "file": "docs/release/upstream-licenses/lance-format--lance--15f2ff594a25/LICENSE",
+          "git_blob_sha": "79de57d6670e0687f8aba0d97f4152eae6c1db1c",
+          "git_blob_sha_verified": true,
+          "scope": "Repository-root/monorepo text; applicability to listed crate inferred from path_in_vcs and license declaration, requires review.",
+          "sha256": "3788e71aa43d61a457749d4aa070d9705c36d25ed978cd52c5766ec4bd361aa9",
+          "source_path": "LICENSE",
+          "source_url": "https://raw.githubusercontent.com/lance-format/lance/15f2ff594a25b97f9bedd21a253b612ce14e39ec/LICENSE"
+        }
+      ]
+    },
+    {
+      "commit": "24d578702d5a1dd3cb0ee1e249b4eeacc1e3dc5c",
+      "packages": [
+        {
+          "declared_license": "Apache-2.0",
+          "name": "lance-arrow-scalar",
+          "path_in_vcs": "rust/arrow-scalar",
+          "repository_inference": null,
+          "vcs_info_sha256": "62fc1b43fcff0a0228343781e323eb3d7692ed76945a757f60fda2e48a0a5b4f",
+          "version": "58.0.0"
+        },
+        {
+          "declared_license": "Apache-2.0",
+          "name": "lance-arrow-stats",
+          "path_in_vcs": "rust/arrow-stats",
+          "repository_inference": null,
+          "vcs_info_sha256": "105d91b5bb14ad045cbf805bcfb8ada9904da8a29d95089c56b46bca8dbd1cd0",
+          "version": "58.0.0"
+        }
+      ],
+      "pending": [],
+      "repository": "https://github.com/lance-format/lance",
+      "requests": [
+        {
+          "final_url": "https://api.github.com/repos/lance-format/lance/contents?ref=24d578702d5a1dd3cb0ee1e249b4eeacc1e3dc5c",
+          "http_status": 200,
+          "sha256": "0252f6d3e33e89d5f8bbcfa8382c7f76e605ee5fe32478f18f4896dff94b90d4",
+          "url": "https://api.github.com/repos/lance-format/lance/contents?ref=24d578702d5a1dd3cb0ee1e249b4eeacc1e3dc5c"
+        },
+        {
+          "final_url": "https://raw.githubusercontent.com/lance-format/lance/24d578702d5a1dd3cb0ee1e249b4eeacc1e3dc5c/LICENSE",
+          "http_status": 200,
+          "sha256": "3788e71aa43d61a457749d4aa070d9705c36d25ed978cd52c5766ec4bd361aa9",
+          "url": "https://raw.githubusercontent.com/lance-format/lance/24d578702d5a1dd3cb0ee1e249b4eeacc1e3dc5c/LICENSE"
+        }
+      ],
+      "texts": [
+        {
+          "bytes": 12702,
+          "file": "docs/release/upstream-licenses/lance-format--lance--24d578702d5a/LICENSE",
+          "git_blob_sha": "79de57d6670e0687f8aba0d97f4152eae6c1db1c",
+          "git_blob_sha_verified": true,
+          "scope": "Repository-root/monorepo text; applicability to listed crate inferred from path_in_vcs and license declaration, requires review.",
+          "sha256": "3788e71aa43d61a457749d4aa070d9705c36d25ed978cd52c5766ec4bd361aa9",
+          "source_path": "LICENSE",
+          "source_url": "https://raw.githubusercontent.com/lance-format/lance/24d578702d5a1dd3cb0ee1e249b4eeacc1e3dc5c/LICENSE"
+        }
+      ]
+    },
+    {
+      "commit": "590a4eb7163a85f56e0622f9359efa33d5ad6941",
+      "packages": [
+        {
+          "declared_license": "Apache-2.0",
+          "name": "lance-namespace-reqwest-client",
+          "path_in_vcs": "rust/lance-namespace-reqwest-client",
+          "repository_inference": "Repository inferred from cached Cargo.toml.orig description official lancedb.github.io/lance-namespace URL; exact commit/path checked via GitHub contents API.",
+          "vcs_info_sha256": "e2ab77a99487adb2cae2ff4b2cf4241b1c57821d756cb782ff7a767c7493812c",
+          "version": "0.8.6"
+        }
+      ],
+      "pending": [],
+      "repository": "https://github.com/lancedb/lance-namespace",
+      "repository_identity_check": {
+        "cached_original_manifest_sha256": "ac7ba2255d5077b5d1c70e842db0c0742235027c1802aaf1a84c902c0e6f199e",
+        "upstream_manifest_matches_cached_original": true,
+        "url": "https://raw.githubusercontent.com/lancedb/lance-namespace/590a4eb7163a85f56e0622f9359efa33d5ad6941/rust/lance-namespace-reqwest-client/Cargo.toml"
+      },
+      "requests": [
+        {
+          "final_url": "https://api.github.com/repositories/956834799/contents?ref=590a4eb7163a85f56e0622f9359efa33d5ad6941",
+          "http_status": 200,
+          "sha256": "adf3e627f1ebf3c70eaf4bfaa0d343167403208637106c5220f1ff41b5a0ec57",
+          "url": "https://api.github.com/repos/lancedb/lance-namespace/contents?ref=590a4eb7163a85f56e0622f9359efa33d5ad6941"
+        },
+        {
+          "final_url": "https://raw.githubusercontent.com/lancedb/lance-namespace/590a4eb7163a85f56e0622f9359efa33d5ad6941/LICENSE",
+          "http_status": 200,
+          "sha256": "03c4e02af8cbe96dd3a9bfaac9ee27ec6a8e9a3ee38ed7b290d50495c11eea48",
+          "url": "https://raw.githubusercontent.com/lancedb/lance-namespace/590a4eb7163a85f56e0622f9359efa33d5ad6941/LICENSE"
+        },
+        {
+          "final_url": "https://raw.githubusercontent.com/lancedb/lance-namespace/590a4eb7163a85f56e0622f9359efa33d5ad6941/rust/lance-namespace-reqwest-client/Cargo.toml",
+          "http_status": 200,
+          "sha256": "ac7ba2255d5077b5d1c70e842db0c0742235027c1802aaf1a84c902c0e6f199e",
+          "url": "https://raw.githubusercontent.com/lancedb/lance-namespace/590a4eb7163a85f56e0622f9359efa33d5ad6941/rust/lance-namespace-reqwest-client/Cargo.toml"
+        }
+      ],
+      "texts": [
+        {
+          "bytes": 11902,
+          "file": "docs/release/upstream-licenses/lancedb--lance-namespace--590a4eb7163a/LICENSE",
+          "git_blob_sha": "ebf2963ef20c471eef931106ce9612a9b265e2dd",
+          "git_blob_sha_verified": true,
+          "scope": "Repository-root/monorepo text; applicability to listed crate inferred from path_in_vcs and license declaration, requires review.",
+          "sha256": "03c4e02af8cbe96dd3a9bfaac9ee27ec6a8e9a3ee38ed7b290d50495c11eea48",
+          "source_path": "LICENSE",
+          "source_url": "https://raw.githubusercontent.com/lancedb/lance-namespace/590a4eb7163a85f56e0622f9359efa33d5ad6941/LICENSE"
+        }
+      ]
+    },
+    {
+      "commit": "3f8d76817e6020ea344fba8a66c5de9ad8c82234",
+      "packages": [
+        {
+          "declared_license": "Apache-2.0",
+          "name": "lancedb",
+          "path_in_vcs": "rust/lancedb",
+          "repository_inference": null,
+          "vcs_info_sha256": "a21ac61e186efa057477b4695cbd7360a615b86bbe34596670e5f1b93d43b72e",
+          "version": "0.31.0"
+        }
+      ],
+      "pending": [],
+      "repository": "https://github.com/lancedb/lancedb",
+      "requests": [
+        {
+          "final_url": "https://api.github.com/repos/lancedb/lancedb/contents?ref=3f8d76817e6020ea344fba8a66c5de9ad8c82234",
+          "http_status": 200,
+          "sha256": "1648ac9841497d0b53224528727d532b757f2ba643dcbf1fb0e1e1ab231505a5",
+          "url": "https://api.github.com/repos/lancedb/lancedb/contents?ref=3f8d76817e6020ea344fba8a66c5de9ad8c82234"
+        },
+        {
+          "final_url": "https://raw.githubusercontent.com/lancedb/lancedb/3f8d76817e6020ea344fba8a66c5de9ad8c82234/LICENSE",
+          "http_status": 200,
+          "sha256": "58d1e17ffe5109a7ae296caafcadfdbe6a7d176f0bc4ab01e12a689b0499d8bd",
+          "url": "https://raw.githubusercontent.com/lancedb/lancedb/3f8d76817e6020ea344fba8a66c5de9ad8c82234/LICENSE"
+        }
+      ],
+      "texts": [
+        {
+          "bytes": 11357,
+          "file": "docs/release/upstream-licenses/lancedb--lancedb--3f8d76817e60/LICENSE",
+          "git_blob_sha": "7a4a3ea2424c09fbe48d455aed1eaa94d9124835",
+          "git_blob_sha_verified": true,
+          "scope": "Repository-root/monorepo text; applicability to listed crate inferred from path_in_vcs and license declaration, requires review.",
+          "sha256": "58d1e17ffe5109a7ae296caafcadfdbe6a7d176f0bc4ab01e12a689b0499d8bd",
+          "source_path": "LICENSE",
+          "source_url": "https://raw.githubusercontent.com/lancedb/lancedb/3f8d76817e6020ea344fba8a66c5de9ad8c82234/LICENSE"
+        }
+      ]
+    },
+    {
+      "commit": "d135c2821f65eb1becbbd4835cf2c1a5d0c2045e",
+      "packages": [
+        {
+          "declared_license": "MIT",
+          "name": "lindera",
+          "path_in_vcs": "lindera",
+          "repository_inference": null,
+          "vcs_info_sha256": "a0061c01687a749318409cb799c27cbb19f56e6a90b2921c0ff3f2649fc9c428",
+          "version": "3.0.7"
+        },
+        {
+          "declared_license": "MIT",
+          "name": "lindera-dictionary",
+          "path_in_vcs": "lindera-dictionary",
+          "repository_inference": null,
+          "vcs_info_sha256": "1499f1a4878b77f12f07aaaf1962079de2b6b4fb290f237fde9a36a537d65f09",
+          "version": "3.0.7"
+        }
+      ],
+      "pending": [],
+      "repository": "https://github.com/lindera/lindera",
+      "requests": [
+        {
+          "final_url": "https://api.github.com/repos/lindera/lindera/contents?ref=d135c2821f65eb1becbbd4835cf2c1a5d0c2045e",
+          "http_status": 200,
+          "sha256": "7cbdd7137762b4fc92c3470752cc26553c7884ba6583053326455082afa4b473",
+          "url": "https://api.github.com/repos/lindera/lindera/contents?ref=d135c2821f65eb1becbbd4835cf2c1a5d0c2045e"
+        },
+        {
+          "final_url": "https://raw.githubusercontent.com/lindera/lindera/d135c2821f65eb1becbbd4835cf2c1a5d0c2045e/LICENSE",
+          "http_status": 200,
+          "sha256": "d37249886de3136db31717f15f6ade215a36fbed1c782381e38b2bf6047e8ec4",
+          "url": "https://raw.githubusercontent.com/lindera/lindera/d135c2821f65eb1becbbd4835cf2c1a5d0c2045e/LICENSE"
+        }
+      ],
+      "texts": [
+        {
+          "bytes": 1080,
+          "file": "docs/release/upstream-licenses/lindera--lindera--d135c2821f65/LICENSE",
+          "git_blob_sha": "9b50cef40b03e44df754cea1540cba6aa9e94cdb",
+          "git_blob_sha_verified": true,
+          "scope": "Repository-root/monorepo text; applicability to listed crate inferred from path_in_vcs and license declaration, requires review.",
+          "sha256": "d37249886de3136db31717f15f6ade215a36fbed1c782381e38b2bf6047e8ec4",
+          "source_path": "LICENSE",
+          "source_url": "https://raw.githubusercontent.com/lindera/lindera/d135c2821f65eb1becbbd4835cf2c1a5d0c2045e/LICENSE"
+        }
+      ]
+    },
+    {
+      "commit": "c62e0df1f9dcc2cc1e014711c5aa4561ae260538",
+      "packages": [
+        {
+          "declared_license": "MIT",
+          "name": "jieba-macros",
+          "path_in_vcs": "jieba-macros",
+          "repository_inference": null,
+          "vcs_info_sha256": "4d1ef35a54481997dbd74a429cab75ffdc48089fe9e35daf9d5c7f1f7ec23f97",
+          "version": "0.10.3"
+        },
+        {
+          "declared_license": "MIT",
+          "name": "jieba-rs",
+          "path_in_vcs": "jieba",
+          "repository_inference": null,
+          "vcs_info_sha256": "472d836ceeefbc85445a21c645619d24e269b35996a3d199625436cf7e1f5462",
+          "version": "0.10.3"
+        }
+      ],
+      "pending": [],
+      "repository": "https://github.com/messense/jieba-rs",
+      "requests": [
+        {
+          "final_url": "https://api.github.com/repos/messense/jieba-rs/contents?ref=c62e0df1f9dcc2cc1e014711c5aa4561ae260538",
+          "http_status": 200,
+          "sha256": "d9246e5297674010ef1d766fd0f38ea07f28ad44070b6e9d9a0d0061d67bdf45",
+          "url": "https://api.github.com/repos/messense/jieba-rs/contents?ref=c62e0df1f9dcc2cc1e014711c5aa4561ae260538"
+        },
+        {
+          "final_url": "https://raw.githubusercontent.com/messense/jieba-rs/c62e0df1f9dcc2cc1e014711c5aa4561ae260538/LICENSE",
+          "http_status": 200,
+          "sha256": "92257c8d1c7a059fa02720b34fce017574a990bed14cee8f565597f4fbfb1f13",
+          "url": "https://raw.githubusercontent.com/messense/jieba-rs/c62e0df1f9dcc2cc1e014711c5aa4561ae260538/LICENSE"
+        }
+      ],
+      "texts": [
+        {
+          "bytes": 1101,
+          "file": "docs/release/upstream-licenses/messense--jieba-rs--c62e0df1f9dc/LICENSE",
+          "git_blob_sha": "a9c2c612173c333b8185dcbe20898c48c8837764",
+          "git_blob_sha_verified": true,
+          "scope": "Repository-root/monorepo text; applicability to listed crate inferred from path_in_vcs and license declaration, requires review.",
+          "sha256": "92257c8d1c7a059fa02720b34fce017574a990bed14cee8f565597f4fbfb1f13",
+          "source_path": "LICENSE",
+          "source_url": "https://raw.githubusercontent.com/messense/jieba-rs/c62e0df1f9dcc2cc1e014711c5aa4561ae260538/LICENSE"
+        }
+      ]
+    },
+    {
+      "commit": "51ccb42993d6eb5075399672ce7a0c21a0e55eea",
+      "packages": [
+        {
+          "declared_license": "Apache-2.0",
+          "name": "rmcp",
+          "path_in_vcs": "crates/rmcp",
+          "repository_inference": null,
+          "vcs_info_sha256": "96ce4be23ed174a8f228dd545aadcc53bd6c111d5b8d6d30dfa397ecc18a2e86",
+          "version": "3.2.0"
+        }
+      ],
+      "pending": [],
+      "repository": "https://github.com/modelcontextprotocol/rust-sdk",
+      "requests": [
+        {
+          "final_url": "https://api.github.com/repos/modelcontextprotocol/rust-sdk/contents?ref=51ccb42993d6eb5075399672ce7a0c21a0e55eea",
+          "http_status": 200,
+          "sha256": "79c718f54bc8e469dea1874d74f5a895d644611eb843dbcfe968b3c36c3f3348",
+          "url": "https://api.github.com/repos/modelcontextprotocol/rust-sdk/contents?ref=51ccb42993d6eb5075399672ce7a0c21a0e55eea"
+        },
+        {
+          "final_url": "https://raw.githubusercontent.com/modelcontextprotocol/rust-sdk/51ccb42993d6eb5075399672ce7a0c21a0e55eea/LICENSE",
+          "http_status": 200,
+          "sha256": "0382b0057770ca05e9c350a50aa3b1c1fea84da0bc81d723bf00b9aa841be58a",
+          "url": "https://raw.githubusercontent.com/modelcontextprotocol/rust-sdk/51ccb42993d6eb5075399672ce7a0c21a0e55eea/LICENSE"
+        }
+      ],
+      "texts": [
+        {
+          "bytes": 12227,
+          "file": "docs/release/upstream-licenses/modelcontextprotocol--rust-sdk--51ccb42993d6/LICENSE",
+          "git_blob_sha": "4a93985763241755401a10678395303de4e720ba",
+          "git_blob_sha_verified": true,
+          "scope": "Repository-root/monorepo text; applicability to listed crate inferred from path_in_vcs and license declaration, requires review.",
+          "sha256": "0382b0057770ca05e9c350a50aa3b1c1fea84da0bc81d723bf00b9aa841be58a",
+          "source_path": "LICENSE",
+          "source_url": "https://raw.githubusercontent.com/modelcontextprotocol/rust-sdk/51ccb42993d6eb5075399672ce7a0c21a0e55eea/LICENSE"
+        }
+      ]
+    },
+    {
+      "commit": "7e1b0322d31d625f81a5656096330934f9cd835d",
+      "packages": [
+        {
+          "declared_license": "MIT OR Apache-2.0 OR LGPL-2.1-or-later",
+          "name": "r-efi",
+          "path_in_vcs": "",
+          "repository_inference": null,
+          "vcs_info_sha256": "d8d0d853429b028d5e3c7b969f7c6b77b04e17486c57fac0759eb8083a359f3f",
+          "version": "6.0.0"
+        }
+      ],
+      "pending": [],
+      "repository": "https://github.com/r-efi/r-efi",
+      "requests": [
+        {
+          "final_url": "https://api.github.com/repos/r-efi/r-efi/contents?ref=7e1b0322d31d625f81a5656096330934f9cd835d",
+          "http_status": 200,
+          "sha256": "8b334b62f0745e0c9d65e5bfa3fd807b8af767daf4efe5e1b699eafe09a93f8f",
+          "url": "https://api.github.com/repos/r-efi/r-efi/contents?ref=7e1b0322d31d625f81a5656096330934f9cd835d"
+        },
+        {
+          "final_url": "https://raw.githubusercontent.com/r-efi/r-efi/7e1b0322d31d625f81a5656096330934f9cd835d/AUTHORS",
+          "http_status": 200,
+          "sha256": "d027e91dbc9cdbb2f1190068e498bd6b61cff022b6a032b191021ba658d96111",
+          "url": "https://raw.githubusercontent.com/r-efi/r-efi/7e1b0322d31d625f81a5656096330934f9cd835d/AUTHORS"
+        }
+      ],
+      "scope_note": "Exact-revision AUTHORS contains MIT permission/warranty text and copyright holders; Apache/LGPL are references/boilerplate, not complete alternative texts. No license alternative selected.",
+      "texts": [
+        {
+          "bytes": 3733,
+          "file": "docs/release/upstream-licenses/r-efi--r-efi--7e1b0322d31d/AUTHORS",
+          "kind": "license_notice",
+          "sha256": "d027e91dbc9cdbb2f1190068e498bd6b61cff022b6a032b191021ba658d96111",
+          "source_url": "https://raw.githubusercontent.com/r-efi/r-efi/7e1b0322d31d625f81a5656096330934f9cd835d/AUTHORS"
+        }
+      ]
+    },
+    {
+      "commit": "97b55bed1c2c91dcbf787674849f05337ff80b33",
+      "packages": [
+        {
+          "declared_license": "MIT OR Apache-2.0 OR LGPL-2.1-or-later",
+          "name": "r-efi",
+          "path_in_vcs": "",
+          "repository_inference": null,
+          "vcs_info_sha256": "50e0c72ee0164f182d7b5db0213cdb1626bad950f2443b05d006c28c7f0641b5",
+          "version": "5.3.0"
+        }
+      ],
+      "pending": [],
+      "repository": "https://github.com/r-efi/r-efi",
+      "requests": [
+        {
+          "final_url": "https://api.github.com/repos/r-efi/r-efi/contents?ref=97b55bed1c2c91dcbf787674849f05337ff80b33",
+          "http_status": 200,
+          "sha256": "ee3450b7f957dfa0989371bb97a14f1241a0e15b388bc2a7bf574b22c01344cd",
+          "url": "https://api.github.com/repos/r-efi/r-efi/contents?ref=97b55bed1c2c91dcbf787674849f05337ff80b33"
+        },
+        {
+          "final_url": "https://raw.githubusercontent.com/r-efi/r-efi/97b55bed1c2c91dcbf787674849f05337ff80b33/AUTHORS",
+          "http_status": 200,
+          "sha256": "ff92bed461f50338dd703a9ba9aee496a425957873df1d91192776e4bdf5dda7",
+          "url": "https://raw.githubusercontent.com/r-efi/r-efi/97b55bed1c2c91dcbf787674849f05337ff80b33/AUTHORS"
+        }
+      ],
+      "scope_note": "Exact-revision AUTHORS contains MIT permission/warranty text and copyright holders; Apache/LGPL are references/boilerplate, not complete alternative texts. No license alternative selected.",
+      "texts": [
+        {
+          "bytes": 3693,
+          "file": "docs/release/upstream-licenses/r-efi--r-efi--97b55bed1c2c/AUTHORS",
+          "kind": "license_notice",
+          "sha256": "ff92bed461f50338dd703a9ba9aee496a425957873df1d91192776e4bdf5dda7",
+          "source_url": "https://raw.githubusercontent.com/r-efi/r-efi/97b55bed1c2c91dcbf787674849f05337ff80b33/AUTHORS"
+        }
+      ]
+    },
+    {
+      "commit": "c994ccf06d179851a1c7c3285c3a408ccb6279ec",
+      "packages": [
+        {
+          "declared_license": "MIT",
+          "name": "kanaria",
+          "path_in_vcs": "",
+          "repository_inference": null,
+          "vcs_info_sha256": "b14b72e776c333fa0c9b3b98e993434ccd37b5b6ee472f7f77635dd9a490dad3",
+          "version": "0.2.0"
+        }
+      ],
+      "pending": [
+        "exact_commit_root_listing_unavailable",
+        "exact_commit_LICENSE_raw_HTTP404; no substitute text invented"
+      ],
+      "repository": "https://github.com/sam-osamu/com.kanaria",
+      "requests": [
+        {
+          "http_status": 404,
+          "url": "https://api.github.com/repos/sam-osamu/com.kanaria/contents?ref=c994ccf06d179851a1c7c3285c3a408ccb6279ec"
+        },
+        {
+          "http_status": 404,
+          "url": "https://raw.githubusercontent.com/sam-osamu/com.kanaria/c994ccf06d179851a1c7c3285c3a408ccb6279ec/LICENSE"
+        }
+      ],
+      "texts": []
+    },
+    {
+      "commit": "9efc29b6e58cef28f6566a47aa7e142a55fead77",
+      "packages": [
+        {
+          "declared_license": "MIT",
+          "name": "valuable",
+          "path_in_vcs": "valuable",
+          "repository_inference": null,
+          "vcs_info_sha256": "34111200d67ce91680f8c64c5bfd537fc251f7ed7bb3a4e6110cb9299dacc0b2",
+          "version": "0.1.1"
+        }
+      ],
+      "pending": [],
+      "repository": "https://github.com/tokio-rs/valuable",
+      "requests": [
+        {
+          "final_url": "https://api.github.com/repos/tokio-rs/valuable/contents?ref=9efc29b6e58cef28f6566a47aa7e142a55fead77",
+          "http_status": 200,
+          "sha256": "b9eaba07ec488aa94766965fb695ac6335f7caafeac2a5bd04414f5a9f16e103",
+          "url": "https://api.github.com/repos/tokio-rs/valuable/contents?ref=9efc29b6e58cef28f6566a47aa7e142a55fead77"
+        },
+        {
+          "final_url": "https://raw.githubusercontent.com/tokio-rs/valuable/9efc29b6e58cef28f6566a47aa7e142a55fead77/LICENSE",
+          "http_status": 200,
+          "sha256": "ed60d479b8fd1f64e9cbc3de449a16a53ac1b3d1b6aeb9bf9d190a8e93061b44",
+          "url": "https://raw.githubusercontent.com/tokio-rs/valuable/9efc29b6e58cef28f6566a47aa7e142a55fead77/LICENSE"
+        }
+      ],
+      "texts": [
+        {
+          "bytes": 1065,
+          "file": "docs/release/upstream-licenses/tokio-rs--valuable--9efc29b6e58c/LICENSE",
+          "git_blob_sha": "4ca822a5cb54142a14070f5be388e60497781615",
+          "git_blob_sha_verified": true,
+          "scope": "Repository-root/monorepo text; applicability to listed crate inferred from path_in_vcs and license declaration, requires review.",
+          "sha256": "ed60d479b8fd1f64e9cbc3de449a16a53ac1b3d1b6aeb9bf9d190a8e93061b44",
+          "source_path": "LICENSE",
+          "source_url": "https://raw.githubusercontent.com/tokio-rs/valuable/9efc29b6e58cef28f6566a47aa7e142a55fead77/LICENSE"
+        }
+      ]
+    }
+  ],
+  "method": "Cached manifest repository + .cargo_vcs_info exact git revision; bounded official root LICENSE/COPYING/NOTICE fetch; no code/model/runtime downloads",
+  "native_and_model": {
+    "e5_model": {
+      "commit": "614241f622f53c4eeff9890bdc4f31cfecc418b3",
+      "exact_revision_listing_paths": [
+        ".eval_results",
+        "1_Pooling",
+        "onnx",
+        "openvino",
+        ".eval_results/ArguAna.yaml",
+        ".eval_results/BrightAopsRetrieval.yaml",
+        ".eval_results/BrightBiologyLongRetrieval.yaml",
+        ".eval_results/BrightBiologyRetrieval.yaml",
+        ".eval_results/BrightEarthScienceLongRetrieval.yaml",
+        ".eval_results/BrightEarthScienceRetrieval.yaml",
+        ".eval_results/BrightEconomicsLongRetrieval.yaml",
+        ".eval_results/BrightEconomicsRetrieval.yaml",
+        ".eval_results/BrightLeetcodeRetrieval.yaml",
+        ".eval_results/BrightPonyLongRetrieval.yaml",
+        ".eval_results/BrightPonyRetrieval.yaml",
+        ".eval_results/BrightPsychologyLongRetrieval.yaml",
+        ".eval_results/BrightPsychologyRetrieval.yaml",
+        ".eval_results/BrightRoboticsLongRetrieval.yaml",
+        ".eval_results/BrightRoboticsRetrieval.yaml",
+        ".eval_results/BrightStackoverflowLongRetrieval.yaml",
+        ".eval_results/BrightStackoverflowRetrieval.yaml",
+        ".eval_results/BrightSustainableLivingLongRetrieval.yaml",
+        ".eval_results/BrightSustainableLivingRetrieval.yaml",
+        ".eval_results/BrightTheoremQAQuestionsRetrieval.yaml",
+        ".eval_results/BrightTheoremQATheoremsRetrieval.yaml",
+        ".gitattributes",
+        "1_Pooling/config.json",
+        "README.md",
+        "config.json",
+        "model.safetensors",
+        "modules.json",
+        "onnx/config.json",
+        "onnx/model.onnx",
+        "onnx/model_O4.onnx",
+        "onnx/model_qint8_avx512_vnni.onnx",
+        "onnx/sentencepiece.bpe.model",
+        "onnx/special_tokens_map.json",
+        "onnx/tokenizer.json",
+        "onnx/tokenizer_config.json",
+        "openvino/openvino_model.bin",
+        "openvino/openvino_model.xml",
+        "pytorch_model.bin",
+        "sentence_bert_config.json",
+        "sentencepiece.bpe.model",
+        "special_tokens_map.json",
+        "tokenizer.json",
+        "tokenizer_config.json"
+      ],
+      "license_named_files": [],
+      "pending": [
+        "No license-named file found in inspected exact-revision recursive listing; LICENSE endpoint HTTP404. MIT card declaration is preserved, not reconstructed into a license text.",
+        "Model weights/runtime files were not downloaded; redistribution approval remains unresolved."
+      ],
+      "repository": "https://huggingface.co/intfloat/multilingual-e5-small",
+      "requests": [
+        {
+          "final_url": "https://huggingface.co/api/models/intfloat/multilingual-e5-small/tree/614241f622f53c4eeff9890bdc4f31cfecc418b3?recursive=true",
+          "http_status": 200,
+          "sha256": "eb72ce6ceb25f9a554420334fc6a449489d8dd3219ef7903471f112258e34544",
+          "url": "https://huggingface.co/api/models/intfloat/multilingual-e5-small/tree/614241f622f53c4eeff9890bdc4f31cfecc418b3?recursive=true"
+        },
+        {
+          "http_status": 404,
+          "url": "https://huggingface.co/intfloat/multilingual-e5-small/raw/614241f622f53c4eeff9890bdc4f31cfecc418b3/LICENSE"
+        },
+        {
+          "final_url": "https://huggingface.co/intfloat/multilingual-e5-small/raw/614241f622f53c4eeff9890bdc4f31cfecc418b3/README.md",
+          "http_status": 200,
+          "sha256": "0038de97aee16258cecbad7ffda4b4febd6953e747a00e0ddbc8e6ed241e9c1c",
+          "url": "https://huggingface.co/intfloat/multilingual-e5-small/raw/614241f622f53c4eeff9890bdc4f31cfecc418b3/README.md"
+        }
+      ],
+      "texts": [
+        {
+          "bytes": 497538,
+          "file": "docs/release/upstream-licenses/intfloat--multilingual-e5-small--614241f622f5/README.md",
+          "kind": "model_card_license_declaration_only",
+          "sha256": "0038de97aee16258cecbad7ffda4b4febd6953e747a00e0ddbc8e6ed241e9c1c",
+          "source_url": "https://huggingface.co/intfloat/multilingual-e5-small/raw/614241f622f53c4eeff9890bdc4f31cfecc418b3/README.md"
+        }
+      ]
+    },
+    "onnxruntime": {
+      "commit": "058787ceead760166e3c50a0a4cba8a833a6f53f",
+      "pending": [
+        "Official tag texts do not establish components/options linked into the installed static archive; actual-link review remains."
+      ],
+      "repository": "https://github.com/microsoft/onnxruntime",
+      "requests": [
+        {
+          "final_url": "https://api.github.com/repos/microsoft/onnxruntime/git/ref/tags/v1.24.2",
+          "http_status": 200,
+          "sha256": "e86a85f48664375ba0baf6ba8d9a2ecef0bc39c61e1e1f88c7bc016b8e3e273e",
+          "url": "https://api.github.com/repos/microsoft/onnxruntime/git/ref/tags/v1.24.2"
+        },
+        {
+          "final_url": "https://raw.githubusercontent.com/microsoft/onnxruntime/058787ceead760166e3c50a0a4cba8a833a6f53f/LICENSE",
+          "http_status": 200,
+          "sha256": "2f07c72751aed99790b8a4869cf2311df85a860b22ded05fa22803587a48922c",
+          "url": "https://raw.githubusercontent.com/microsoft/onnxruntime/058787ceead760166e3c50a0a4cba8a833a6f53f/LICENSE"
+        },
+        {
+          "final_url": "https://raw.githubusercontent.com/microsoft/onnxruntime/058787ceead760166e3c50a0a4cba8a833a6f53f/ThirdPartyNotices.txt",
+          "http_status": 200,
+          "sha256": "0e07b95f3a8d6230037707c5c4a2b554d12c4cb67369669ac255635528ffcee2",
+          "url": "https://raw.githubusercontent.com/microsoft/onnxruntime/058787ceead760166e3c50a0a4cba8a833a6f53f/ThirdPartyNotices.txt"
+        }
+      ],
+      "tag": "v1.24.2",
+      "texts": [
+        {
+          "bytes": 1073,
+          "file": "docs/release/upstream-licenses/microsoft--onnxruntime--058787ceead7/LICENSE",
+          "kind": "license_notice",
+          "sha256": "2f07c72751aed99790b8a4869cf2311df85a860b22ded05fa22803587a48922c",
+          "source_url": "https://raw.githubusercontent.com/microsoft/onnxruntime/058787ceead760166e3c50a0a4cba8a833a6f53f/LICENSE"
+        },
+        {
+          "bytes": 325054,
+          "file": "docs/release/upstream-licenses/microsoft--onnxruntime--058787ceead7/ThirdPartyNotices.txt",
+          "kind": "license_notice",
+          "sha256": "0e07b95f3a8d6230037707c5c4a2b554d12c4cb67369669ac255635528ffcee2",
+          "source_url": "https://raw.githubusercontent.com/microsoft/onnxruntime/058787ceead760166e3c50a0a4cba8a833a6f53f/ThirdPartyNotices.txt"
+        }
+      ]
+    }
+  },
+  "original_base_inventory_sha256": "c2f265f0ce467ea8da880e50335784c65fec70b77e597e721936f0dfb9bfa382",
+  "retrieved_date": "2026-09-04",
+  "schema": "rust-mcp-upstream-license-supplement-v1",
+  "summary": {
+    "missing_third_party_packages_reviewed": 31,
+    "model_card_files": 1,
+    "packages_with_exact_revision_upstream_text": 30,
+    "packages_without_text": [
+      "kanaria 0.2.0"
+    ],
+    "upstream_text_files": 17
+  },
+  "validation": {
+    "all_saved_sha256_checked": true,
+    "git_contents_blob_sha1_recomputed_where_present": true,
+    "source_files_verified": 18
+  }
+}

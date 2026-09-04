@@ -1,0 +1,3 @@
+Fix the lifetime error in owned_label. Return an owned copy with leading and trailing Unicode whitespace removed, preserving interior content. Its result must remain valid after the input is dropped. Keep the public signature.
+
+Edit ONLY src/lib.rs. Do not add tests, change Cargo files, add dependencies, suppress lints, use unsafe code or access hidden/reference files. Validation is requested through the experiment controller; do not execute commands yourself.

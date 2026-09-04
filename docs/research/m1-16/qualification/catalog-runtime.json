@@ -1,0 +1,105 @@
+{
+  "binary_sha256": "7a99038be57429e1db32c91d01772e7efd104691828253f45ed3bbb0e9330417",
+  "host_network_profile": "(version 1) (allow default) (deny network*)",
+  "steps": [
+    {
+      "label": "import",
+      "seconds": 0.05508316610939801,
+      "exit_code": 0,
+      "output": {
+        "format_version": 1,
+        "status": "passed",
+        "operation": "import",
+        "error_code": null,
+        "message": "Authenticated local catalog generation verified",
+        "network_used": false,
+        "catalog": {
+          "semantics": "latest_known",
+          "publisher": "fixture-only",
+          "channel": "test",
+          "publisher_key_sha256": "b600306cfa76723fdec395e53a9b3d9fdb78b1e2d7a23c32fcbcd2dc6d0c4092",
+          "sequence": 1,
+          "floor_sequence": 1,
+          "floor_bundle_sha256": "a14f544539ba8e2b5bb501ddbed290e2678200107352cf172db158c3b6274fbb",
+          "reservation_pending": false,
+          "bundle_sha256": "a14f544539ba8e2b5bb501ddbed290e2678200107352cf172db158c3b6274fbb",
+          "catalog_sha256": "sha256:28106d773b9efe8b7bba2f4908559ce305b4637b78e1c0e62c21ec5443b08728",
+          "schema_version": 1,
+          "evidence": {
+            "provenance": {
+              "source_kind": "registry_snapshot",
+              "source_id": "researchprojection:m1-16:corpus-2026-09-04:selection-v1-draft",
+              "created_at": 1788539204,
+              "observed_at": 1788539204,
+              "integrity": "verified",
+              "network_used": false
+            },
+            "freshness": {
+              "state": "fresh",
+              "age_seconds": 682,
+              "assessed_at": 1788539886,
+              "policy": {
+                "id": "catalog-snapshot-v1",
+                "fresh_for_seconds": 86400,
+                "stale_after_seconds": 604800
+              }
+            }
+          },
+          "rustsec_available": false,
+          "semantic_index_available": false
+        }
+      }
+    },
+    {
+      "label": "rebuild",
+      "seconds": 0.9325490420451388,
+      "exit_code": 0,
+      "output": {
+        "format_version": 1,
+        "status": "passed",
+        "operation": "rebuild-index",
+        "error_code": null,
+        "message": "Authenticated local catalog generation verified",
+        "network_used": false,
+        "catalog": {
+          "semantics": "latest_known",
+          "publisher": "fixture-only",
+          "channel": "test",
+          "publisher_key_sha256": "b600306cfa76723fdec395e53a9b3d9fdb78b1e2d7a23c32fcbcd2dc6d0c4092",
+          "sequence": 1,
+          "floor_sequence": 1,
+          "floor_bundle_sha256": "a14f544539ba8e2b5bb501ddbed290e2678200107352cf172db158c3b6274fbb",
+          "reservation_pending": false,
+          "bundle_sha256": "a14f544539ba8e2b5bb501ddbed290e2678200107352cf172db158c3b6274fbb",
+          "catalog_sha256": "sha256:28106d773b9efe8b7bba2f4908559ce305b4637b78e1c0e62c21ec5443b08728",
+          "schema_version": 1,
+          "evidence": {
+            "provenance": {
+              "source_kind": "registry_snapshot",
+              "source_id": "researchprojection:m1-16:corpus-2026-09-04:selection-v1-draft",
+              "created_at": 1788539204,
+              "observed_at": 1788539204,
+              "integrity": "verified",
+              "network_used": false
+            },
+            "freshness": {
+              "state": "fresh",
+              "age_seconds": 683,
+              "assessed_at": 1788539887,
+              "policy": {
+                "id": "catalog-snapshot-v1",
+                "fresh_for_seconds": 86400,
+                "stale_after_seconds": 604800
+              }
+            }
+          },
+          "rustsec_available": false,
+          "semantic_index_available": true
+        }
+      }
+    }
+  ],
+  "rustsec_sha256": "sha256:966f74af605ffdaf70088a21ca432266098b998b90ef1118c805ed460a26f4ea",
+  "rustsec_scope": "one existing advisory fixture; zero third-party packages in immutable std-only corpus, not global advisory coverage",
+  "status": "passed"
+}

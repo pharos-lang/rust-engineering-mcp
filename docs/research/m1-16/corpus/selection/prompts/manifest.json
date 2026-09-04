@@ -1,0 +1,47 @@
+{
+  "status": "v2_draft_overlay_not_frozen",
+  "recipe": "render.py",
+  "identity_rule": "Require snapshot fingerprint and provenance source_id available identically in both arms; no mandatory raw README hash.",
+  "prompts": [
+    {
+      "file": "S01-en.txt",
+      "sha256": "f61ea277839f824b173bdb7b1c70d4fcebd157f20d325a101485630b97eab670",
+      "original_sha256": "11ae7315f967c45a98fd691016889b77e8d0c6ca2d5ab87c95b4552ff2d928eb"
+    },
+    {
+      "file": "S01-es.txt",
+      "sha256": "efb6328d14c2705ebe0f3e569413577d55e08f0c78f58d26d84d40a023723b12",
+      "original_sha256": "4e4a325b2e76377c81e0c473f76980cc6324acb1c10dea25e38cb40c40a6678b"
+    },
+    {
+      "file": "S02-en.txt",
+      "sha256": "679d66d35be18cd04613ebbc609712854f97b9ece66846f24955757d87b5aef9",
+      "original_sha256": "462f6cd70dbf251578bee98f9a66c7e0569968c311b23aabf356bd867bca8c2e"
+    },
+    {
+      "file": "S02-es.txt",
+      "sha256": "54342d0ab98009c82d60227cd1d413f5414313881d6bb4e587bd3925281373a7",
+      "original_sha256": "45e9979f9f3b00431a665e30a60eae64105a7db84e065888771dc33248f7cf2e"
+    },
+    {
+      "file": "S03-en.txt",
+      "sha256": "5a9761352af31865696d9ec6dbfc7bd6d17c2353fb8381fa3eba71fd7d15eeb1",
+      "original_sha256": "b697e0e836c24989da2b9319442bcec9549436c1112f0c94b4fa28fffda12a67"
+    },
+    {
+      "file": "S03-es.txt",
+      "sha256": "2085709c3e9b9d368b2ff7bdfe92581a88608ae57860454de296616c4ca1dd65",
+      "original_sha256": "4d44eaca82e87c4ab383fd41cc43d8764a6a5848e1ec45bd18addd288ee5965b"
+    },
+    {
+      "file": "S04-en.txt",
+      "sha256": "d54aa577061a648025430f83d2204090529abb9e8b0c88da55a9ee61d82d4260",
+      "original_sha256": "68f55fa3899b05e97a5814526b5b72141b617f941bf9db65a482039c773dc94a"
+    },
+    {
+      "file": "S04-es.txt",
+      "sha256": "f2a1838cab3717bae938e7a68900eae10b0fcb72ef11940821d0569a1d11a141",
+      "original_sha256": "24e81091b222165a9a2cc3f8dd42a76c880f03991fbf3c2e080fd005c424ac47"
+    }
+  ]
+}

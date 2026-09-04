@@ -1,0 +1,595 @@
+{
+  "purpose": "disjoint infrastructure calibration, not utility run",
+  "arm": "B",
+  "status": "completed",
+  "docker_before": {
+    "mode": "read_only_observation_no_cleanup",
+    "objects": {
+      "container": [],
+      "volume": []
+    },
+    "absent": true
+  },
+  "participant": {
+    "model_turns_sent": 1,
+    "requested_model": "gpt-5.6-sol",
+    "requested_effort": "medium",
+    "tool_calls": [
+      {
+        "name": "read_project_file",
+        "request_sha256": "a57c700ce3720b22b5994b93af2c19137c533689971ab1b21c1525a8bf614d34",
+        "request_bytes": 21,
+        "started_seconds": 4.896,
+        "response_sha256": "112c60787b07ffc19ea7dbc391f9ffc2ffdedd81e6ef9888e1d25c99d1e25f84",
+        "response_bytes": 67,
+        "cancellation_after_handler": false,
+        "finished_seconds": 4.897,
+        "wire_response_bytes": 142,
+        "wire_response_sha256": "4ac1904d7953386d255779f3325edef3722e8d39c5a1d57892c48f1ac661caf3"
+      },
+      {
+        "name": "submit_patch",
+        "request_sha256": "c6f7e2780cb2357e2420e6734fb9f5294e6c6abb57708c29cc216a0cfdf26a26",
+        "request_bytes": 49,
+        "started_seconds": 9.358,
+        "response_sha256": "d71e8ef7dfaae5eddd12a8152949ba596eff3ae91494e1cfd99db9a21b91da94",
+        "response_bytes": 117,
+        "cancellation_after_handler": false,
+        "finished_seconds": 9.36,
+        "wire_response_bytes": 193,
+        "wire_response_sha256": "450f3e6be712cae603bff148f9d1aa567adfa0190ed5e9788dcd25b06dcb34a6"
+      },
+      {
+        "name": "rust_project_open",
+        "request_sha256": "e7d1fb6509c43e1d9a28ec64d2437cb07ea631c1f49eada297b3052e2d8896b9",
+        "request_bytes": 148,
+        "started_seconds": 14.236,
+        "response_sha256": "9b4c6bc42dc29c9cbc2dbeb6c4f23fb2f0a03e4d50e5fd988a33f786da1700ed",
+        "response_bytes": 1370,
+        "cancellation_after_handler": false,
+        "finished_seconds": 14.239,
+        "wire_response_bytes": 1592,
+        "wire_response_sha256": "8dee02c3b814bd482e9897ccbbdc66964827406e0cee1f8d0d2fa99f96a71fd8"
+      },
+      {
+        "name": "rust_quality_gate",
+        "request_sha256": "fb6285d25570144bb4ab333b491dd2a240ea464e6f9858c20498d7dfafc606c7",
+        "request_bytes": 75,
+        "started_seconds": 18.736,
+        "response_sha256": "943341ff37a7a9c6b3e66088ac81d83e93816fd606b5896c6bf3fa27319a0041",
+        "response_bytes": 14938,
+        "cancellation_after_handler": false,
+        "finished_seconds": 33.969,
+        "wire_response_bytes": 16858,
+        "wire_response_sha256": "fc37e8e275b850625a7ff398aef2d5b314d2d1ed15eeb9143091bea6462d48f2"
+      }
+    ],
+    "usage": {
+      "total": {
+        "totalTokens": 25890,
+        "inputTokens": 25557,
+        "cachedInputTokens": 11392,
+        "cacheWriteInputTokens": 0,
+        "outputTokens": 333,
+        "reasoningOutputTokens": 69
+      },
+      "last": {
+        "totalTokens": 9772,
+        "inputTokens": 9723,
+        "cachedInputTokens": 4352,
+        "cacheWriteInputTokens": 0,
+        "outputTokens": 49,
+        "reasoningOutputTokens": 0
+      },
+      "modelContextWindow": 258400
+    },
+    "usage_coverage": "reported_total",
+    "text": "Updated `canary()` to return `2` with no additional functions or tests.\n\nStandard quality gate: **passed**. Formatting, Cargo check, strict Clippy, 30-second tests, and dependency audit all passed.",
+    "status": "completed",
+    "admission_stopped": false,
+    "stop_reason": "turn_completed",
+    "stop_reasons": [],
+    "neutral_cwd": "/private/tmp/m1-16-neutral-ss4uyn2g",
+    "prompt_sha256": "dd9688ceab192ea84dbe5f398e5e5adf7443bf8b0223fedec738c5ee30e8a195",
+    "tool_declarations_sha256": "01b7f2c9a2b40fb2275203feb2b712e9d864191db532db63321c7c2ef4ca83d1",
+    "effective_features_sha256": "61ff4008082b4085cc0dfefc02505ee8259789d649fcc9f3e07fde0d8864b2ed",
+    "effective_feature_keys": [
+      "apps",
+      "artifact",
+      "auth_elicitation",
+      "background_paginated_rollout_migration",
+      "browser_use",
+      "browser_use_external",
+      "code_mode",
+      "code_mode_host",
+      "code_mode_only",
+      "computer_use",
+      "current_time_reminder",
+      "deferred_executor",
+      "deferred_tool_world_state",
+      "goals",
+      "hooks",
+      "image_generation",
+      "in_app_browser",
+      "in_app_chat",
+      "in_app_dictation",
+      "in_app_local_automation",
+      "js_repl",
+      "mcp_2026_07_28",
+      "memories",
+      "mentions_v2",
+      "multi_agent",
+      "multi_agent_v2",
+      "network_proxy",
+      "plugins",
+      "realtime_conversation",
+      "remote_control",
+      "remote_plugin",
+      "shell_tool",
+      "skill_mcp_dependency_install",
+      "skill_search",
+      "skip_host_skill_discovery",
+      "sleep_tool",
+      "standalone_web_search",
+      "token_budget",
+      "tool_suggest",
+      "view_image",
+      "workspace_dependencies"
+    ],
+    "feature_guard_scope": "exact_config_keys_and_values_not_native_tool_inventory",
+    "effective_guard_checks": {
+      "agents.enabled": true,
+      "orchestrator.skills.enabled": true,
+      "orchestrator.mcp.enabled": true,
+      "skills.include_instructions": true,
+      "skills.bundled.enabled": true,
+      "shell_tool": true,
+      "apps": true,
+      "plugins": true,
+      "hooks": true,
+      "memories": true,
+      "multi_agent": true,
+      "multi_agent_v2": true,
+      "browser_use": true,
+      "browser_use_external": true,
+      "computer_use": true,
+      "code_mode": true,
+      "code_mode_only": true,
+      "image_generation": true,
+      "view_image": true,
+      "tool_suggest": true,
+      "remote_plugin": true,
+      "skill_search": true,
+      "skill_mcp_dependency_install": true,
+      "workspace_dependencies": true,
+      "goals": true,
+      "token_budget": true,
+      "sleep_tool": true,
+      "current_time_reminder": true,
+      "deferred_executor": true,
+      "deferred_tool_world_state": true,
+      "standalone_web_search": true,
+      "in_app_browser": true,
+      "in_app_chat": true,
+      "in_app_local_automation": true,
+      "in_app_dictation": true,
+      "realtime_conversation": true,
+      "artifact": true,
+      "auth_elicitation": true,
+      "background_paginated_rollout_migration": true,
+      "js_repl": true,
+      "mcp_2026_07_28": true,
+      "mentions_v2": true,
+      "remote_control": true,
+      "exact_feature_config": true,
+      "code_host": true,
+      "skip_host_skills": true,
+      "web_disabled": true,
+      "project_docs_disabled": true,
+      "mcp_disabled": true,
+      "instruction_config_empty": true
+    },
+    "identity": {
+      "model": "gpt-5.6-sol",
+      "reasoningEffort": "medium",
+      "modelProvider": "openai",
+      "runtimeWorkspaceRoots": []
+    },
+    "instruction_sources_count": 0,
+    "turn_status": "completed",
+    "turn_error": null,
+    "watchdog_joined": true,
+    "task_status": "completed",
+    "cleanup": {
+      "exit_code": 0,
+      "parent_joined": true,
+      "forced_parent_stop": false,
+      "forced_owned_host_stop": false,
+      "observed_processes": [
+        {
+          "pid": 4849,
+          "ppid": 4190,
+          "pgid": 4190,
+          "name": "codex",
+          "started": "Fri Sep 4 12:30:05 2026"
+        },
+        {
+          "pid": 4888,
+          "ppid": 4849,
+          "pgid": 4888,
+          "name": "codex-code-mode-host",
+          "started": "Fri Sep 4 12:30:10 2026"
+        }
+      ],
+      "remaining_observed_pids": [],
+      "reader_joined": true,
+      "inspection_complete": true,
+      "cleanup_errors": [],
+      "stderr_bytes": 0,
+      "stderr_prefix_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "transport_failure": null
+    },
+    "neutral_directory_disposition": "removed_empty_after_join",
+    "cleanup_failed": false,
+    "infrastructure_failed": false,
+    "elapsed_seconds": 36.531,
+    "logs_bytes": 24649
+  },
+  "source_final": "pub fn canary() -> u32 {\n    2\n}\n",
+  "broker": {
+    "arm": "B",
+    "admitted_requests": 4,
+    "observed_requests": 4,
+    "validation_requests": [
+      {
+        "request": 1,
+        "name": "rust.quality.gate",
+        "candidate": 1,
+        "stages": [],
+        "result": {
+          "content": [
+            {
+              "text": "{\"data\":{\"profile\":\"standard\",\"project_identity_fingerprint\":\"sha256:3ef450a8a32410ad6eaa9f877f5bcfd5238dbcf6dc08c02433dc2c7d8d3e0c52\",\"project_ref\":\"prj_f0c3410a49cb4b7c3b38d5f28843899d\",\"semantics\":\"latest_known\",\"source_fingerprint\":\"sha256:9fe06b7967d1dc209e91f712ff3ec32657574358da0f9c7876cb5217178283a3\",\"stages\":[{\"applied_selection\":\"format_all\",\"audit\":null,\"duration_ms\":12823,\"execution\":{\"diagnostics\":[],\"diagnostics_omitted\":0,\"exit_code\":0,\"runtime\":{\"cargo_version\":\"1.98.1\",\"configuration_fingerprint\":\"sha256:c0f599231fbe66caee9d8f6e0cdf1b8475c2b5c3107ffcde2c499bf8a838addf\",\"declared_toolchain\":null,\"execution_fingerprint\":\"sha256:3acce3461684a99c4bd84cf2a8893ddf363d0de31bf61556e58e4c0f47ddd121\",\"image_id\":\"sha256:8fac70723a8d04b6ec9633ab721806b8a55f4f083a1b3f988c61bf6a00fa1909\",\"platform\":\"linux/aarch64\",\"rust_version\":\"1.98.1\"},\"source_fingerprint\":\"sha256:9fe06b7967d1dc209e91f712ff3ec32657574358da0f9c7876cb5217178283a3\",\"stderr_truncated\":false,\"stdout_truncated\":false,\"termination\":\"exited\",\"validation_complete\":true},\"format\":{\"affected_files\":[],\"affected_files_omitted\":0,\"diff\":null,\"diff_omitted\":false},\"issue\":null,\"log\":{\"retention_remaining_seconds\":3600,\"sha256\":\"d089e3fd1b6af72738fef9c8184fde8091a1e32d01cca07029facb83bbf17ea1\",\"size_bytes\":31,\"truncated\":false,\"uri\":\"rust-artifact://prj_f0c3410a49cb4b7c3b38d5f28843899d/art_d4b096e8e2c4001108508c7fb02957a9\"},\"log_unavailable_reason\":null,\"stage\":\"format\",\"status\":\"passed\",\"test\":null},{\"applied_selection\":\"check_cargo_defaults\",\"audit\":null,\"duration_ms\":583,\"execution\":{\"diagnostics\":[],\"diagnostics_omitted\":0,\"exit_code\":0,\"runtime\":{\"cargo_version\":\"1.98.1\",\"configuration_fingerprint\":\"sha256:c0f599231fbe66caee9d8f6e0cdf1b8475c2b5c3107ffcde2c499bf8a838addf\",\"declared_toolchain\":null,\"execution_fingerprint\":\"sha256:af03493106631e53081346a200b1e29af2056b6ecd7d077f9a49618b4dc3aeb4\",\"image_id\":\"sha256:8fac70723a8d04b6ec9633ab721806b8a55f4f083a1b3f988c61bf6a00fa1909\",\"platform\":\"linux/aarch64\",\"rust_version\":\"1.98.1\"},\"source_fingerprint\":\"sha256:9fe06b7967d1dc209e91f712ff3ec32657574358da0f9c7876cb5217178283a3\",\"stderr_truncated\":false,\"stdout_truncated\":false,\"termination\":\"exited\",\"validation_complete\":true},\"format\":null,\"issue\":null,\"log\":{\"retention_remaining_seconds\":3600,\"sha256\":\"399790459662aab229a6b899de021067bc1a22dcf6163b81b767e090b783d937\",\"size_bytes\":739,\"truncated\":false,\"uri\":\"rust-artifact://prj_f0c3410a49cb4b7c3b38d5f28843899d/art_9c8a160f7ec0f85ad62faaceae0d4e0f\"},\"log_unavailable_reason\":null,\"stage\":\"check\",\"status\":\"passed\",\"test\":null},{\"applied_selection\":\"clippy_strict_cargo_defaults\",\"audit\":null,\"duration_ms\":590,\"execution\":{\"diagnostics\":[],\"diagnostics_omitted\":0,\"exit_code\":0,\"runtime\":{\"cargo_version\":\"1.98.1\",\"configuration_fingerprint\":\"sha256:c0f599231fbe66caee9d8f6e0cdf1b8475c2b5c3107ffcde2c499bf8a838addf\",\"declared_toolchain\":null,\"execution_fingerprint\":\"sha256:b188d507aba0f2e527f51720b744933150980cb44ecb29f89027cad92afb0a4a\",\"image_id\":\"sha256:8fac70723a8d04b6ec9633ab721806b8a55f4f083a1b3f988c61bf6a00fa1909\",\"platform\":\"linux/aarch64\",\"rust_version\":\"1.98.1\"},\"source_fingerprint\":\"sha256:9fe06b7967d1dc209e91f712ff3ec32657574358da0f9c7876cb5217178283a3\",\"stderr_truncated\":false,\"stdout_truncated\":false,\"termination\":\"exited\",\"validation_complete\":true},\"format\":null,\"issue\":null,\"log\":{\"retention_remaining_seconds\":3600,\"sha256\":\"3ed0fda91ccfc9f0ade12aa71ce7fe9c667eb305170fc94631811af2296db470\",\"size_bytes\":739,\"truncated\":false,\"uri\":\"rust-artifact://prj_f0c3410a49cb4b7c3b38d5f28843899d/art_c5592ae3dda7657ee0abe7efe3cddedd\"},\"log_unavailable_reason\":null,\"stage\":\"clippy\",\"status\":\"passed\",\"test\":null},{\"applied_selection\":\"test_cargo_defaults_30_seconds\",\"audit\":null,\"duration_ms\":681,\"execution\":{\"diagnostics\":[],\"diagnostics_omitted\":0,\"exit_code\":0,\"runtime\":{\"cargo_version\":\"1.98.1\",\"configuration_fingerprint\":\"sha256:c0f599231fbe66caee9d8f6e0cdf1b8475c2b5c3107ffcde2c499bf8a838addf\",\"declared_toolchain\":null,\"execution_fingerprint\":\"sha256:c4432dc894ebf6422982e7aadf448173924b4bab5bc8df44f6b9b8bd7404f625\",\"image_id\":\"sha256:8fac70723a8d04b6ec9633ab721806b8a55f4f083a1b3f988c61bf6a00fa1909\",\"platform\":\"linux/aarch64\",\"rust_version\":\"1.98.1\"},\"source_fingerprint\":\"sha256:9fe06b7967d1dc209e91f712ff3ec32657574358da0f9c7876cb5217178283a3\",\"stderr_truncated\":false,\"stdout_truncated\":false,\"termination\":\"exited\",\"validation_complete\":true},\"format\":null,\"issue\":null,\"log\":{\"retention_remaining_seconds\":3600,\"sha256\":\"d83fbea62d7f95e002f68ed325a76b5ba6db9f17ec67b6661007c0830c034996\",\"size_bytes\":1770,\"truncated\":false,\"uri\":\"rust-artifact://prj_f0c3410a49cb4b7c3b38d5f28843899d/art_e8b496798cb8e56de8fa5aef01a55621\"},\"log_unavailable_reason\":null,\"stage\":\"test\",\"status\":\"passed\",\"test\":{\"build_succeeded\":true}},{\"applied_selection\":\"audit_captured_lockfile\",\"audit\":{\"observation\":{\"crates_io_scanned\":0,\"findings\":[],\"findings_omitted\":0,\"informational\":[],\"issue\":null,\"lock_fingerprint\":\"sha256:e435d67831db66b88c22d3ac062d2b969967ddc95dfb963c70c777771f8dbc94\",\"packages_total\":1,\"snapshot\":{\"freshness\":{\"age_seconds\":3152,\"assessed_at\":1788543039,\"policy\":{\"fresh_for_seconds\":86400,\"id\":\"rustsec-host-snapshot-v1\",\"stale_after_seconds\":604800},\"state\":\"fresh\"},\"provenance\":{\"created_at\":1788539887,\"integrity\":\"verified\",\"network_used\":false,\"observed_at\":1788539887,\"source_id\":\"research-fixture-m1-16-std-only-audit-not-global-rustsec\",\"source_kind\":\"rustsec_snapshot\"}},\"snapshot_fingerprint\":\"sha256:966f74af605ffdaf70088a21ca432266098b998b90ef1118c805ed460a26f4ea\",\"snapshot_record_count\":1,\"snapshot_sequence\":1,\"state\":\"passed\",\"unsupported_packages\":[],\"validation_complete\":true,\"workspace_packages_excluded\":1},\"paths_omitted\":0,\"runtime\":{\"cargo_version\":\"1.98.1\",\"configuration_fingerprint\":\"sha256:c0f599231fbe66caee9d8f6e0cdf1b8475c2b5c3107ffcde2c499bf8a838addf\",\"declared_toolchain\":null,\"execution_fingerprint\":\"sha256:bdbc9238cd805cd2b8bc8e43e2fd8bbd992464c947c254e7d606d5f0855fcd38\",\"image_id\":\"sha256:8fac70723a8d04b6ec9633ab721806b8a55f4f083a1b3f988c61bf6a00fa1909\",\"platform\":\"linux/aarch64\",\"rust_version\":\"1.98.1\"},\"unsupported_packages_omitted\":0},\"duration_ms\":543,\"execution\":null,\"format\":null,\"issue\":null,\"log\":null,\"log_unavailable_reason\":null,\"stage\":\"audit\",\"status\":\"passed\",\"test\":null}]},\"diagnostics\":[],\"duration_ms\":15229,\"error_code\":null,\"error_message\":null,\"evidence\":{\"details\":{\"freshness\":{\"age_seconds\":15,\"assessed_at\":1788543039,\"policy\":{\"fresh_for_seconds\":60,\"id\":\"captured-project-v1\",\"stale_after_seconds\":300},\"state\":\"fresh\"},\"provenance\":{\"created_at\":1788543024,\"integrity\":\"verified\",\"network_used\":false,\"observed_at\":1788543024,\"source_id\":\"sha256:9fe06b7967d1dc209e91f712ff3ec32657574358da0f9c7876cb5217178283a3\",\"source_kind\":\"project_snapshot\"}},\"kind\":\"snapshot\"},\"status\":\"passed\",\"summary\":\"Every required quality stage passed with complete evidence\",\"truncation\":{\"affected_files_omitted\":0,\"diagnostics_omitted\":0,\"diffs_omitted\":0,\"findings_omitted\":0,\"paths_omitted\":0,\"stderr_truncated\":false,\"stdout_truncated\":false,\"unsupported_packages_omitted\":0}}",
+              "type": "text"
+            }
+          ],
+          "isError": false,
+          "structuredContent": {
+            "data": {
+              "profile": "standard",
+              "project_identity_fingerprint": "sha256:3ef450a8a32410ad6eaa9f877f5bcfd5238dbcf6dc08c02433dc2c7d8d3e0c52",
+              "project_ref": "prj_f0c3410a49cb4b7c3b38d5f28843899d",
+              "semantics": "latest_known",
+              "source_fingerprint": "sha256:9fe06b7967d1dc209e91f712ff3ec32657574358da0f9c7876cb5217178283a3",
+              "stages": [
+                {
+                  "applied_selection": "format_all",
+                  "audit": null,
+                  "duration_ms": 12823,
+                  "execution": {
+                    "diagnostics": [],
+                    "diagnostics_omitted": 0,
+                    "exit_code": 0,
+                    "runtime": {
+                      "cargo_version": "1.98.1",
+                      "configuration_fingerprint": "sha256:c0f599231fbe66caee9d8f6e0cdf1b8475c2b5c3107ffcde2c499bf8a838addf",
+                      "declared_toolchain": null,
+                      "execution_fingerprint": "sha256:3acce3461684a99c4bd84cf2a8893ddf363d0de31bf61556e58e4c0f47ddd121",
+                      "image_id": "sha256:8fac70723a8d04b6ec9633ab721806b8a55f4f083a1b3f988c61bf6a00fa1909",
+                      "platform": "linux/aarch64",
+                      "rust_version": "1.98.1"
+                    },
+                    "source_fingerprint": "sha256:9fe06b7967d1dc209e91f712ff3ec32657574358da0f9c7876cb5217178283a3",
+                    "stderr_truncated": false,
+                    "stdout_truncated": false,
+                    "termination": "exited",
+                    "validation_complete": true
+                  },
+                  "format": {
+                    "affected_files": [],
+                    "affected_files_omitted": 0,
+                    "diff": null,
+                    "diff_omitted": false
+                  },
+                  "issue": null,
+                  "log": {
+                    "retention_remaining_seconds": 3600,
+                    "sha256": "d089e3fd1b6af72738fef9c8184fde8091a1e32d01cca07029facb83bbf17ea1",
+                    "size_bytes": 31,
+                    "truncated": false,
+                    "uri": "rust-artifact://prj_f0c3410a49cb4b7c3b38d5f28843899d/art_d4b096e8e2c4001108508c7fb02957a9"
+                  },
+                  "log_unavailable_reason": null,
+                  "stage": "format",
+                  "status": "passed",
+                  "test": null
+                },
+                {
+                  "applied_selection": "check_cargo_defaults",
+                  "audit": null,
+                  "duration_ms": 583,
+                  "execution": {
+                    "diagnostics": [],
+                    "diagnostics_omitted": 0,
+                    "exit_code": 0,
+                    "runtime": {
+                      "cargo_version": "1.98.1",
+                      "configuration_fingerprint": "sha256:c0f599231fbe66caee9d8f6e0cdf1b8475c2b5c3107ffcde2c499bf8a838addf",
+                      "declared_toolchain": null,
+                      "execution_fingerprint": "sha256:af03493106631e53081346a200b1e29af2056b6ecd7d077f9a49618b4dc3aeb4",
+                      "image_id": "sha256:8fac70723a8d04b6ec9633ab721806b8a55f4f083a1b3f988c61bf6a00fa1909",
+                      "platform": "linux/aarch64",
+                      "rust_version": "1.98.1"
+                    },
+                    "source_fingerprint": "sha256:9fe06b7967d1dc209e91f712ff3ec32657574358da0f9c7876cb5217178283a3",
+                    "stderr_truncated": false,
+                    "stdout_truncated": false,
+                    "termination": "exited",
+                    "validation_complete": true
+                  },
+                  "format": null,
+                  "issue": null,
+                  "log": {
+                    "retention_remaining_seconds": 3600,
+                    "sha256": "399790459662aab229a6b899de021067bc1a22dcf6163b81b767e090b783d937",
+                    "size_bytes": 739,
+                    "truncated": false,
+                    "uri": "rust-artifact://prj_f0c3410a49cb4b7c3b38d5f28843899d/art_9c8a160f7ec0f85ad62faaceae0d4e0f"
+                  },
+                  "log_unavailable_reason": null,
+                  "stage": "check",
+                  "status": "passed",
+                  "test": null
+                },
+                {
+                  "applied_selection": "clippy_strict_cargo_defaults",
+                  "audit": null,
+                  "duration_ms": 590,
+                  "execution": {
+                    "diagnostics": [],
+                    "diagnostics_omitted": 0,
+                    "exit_code": 0,
+                    "runtime": {
+                      "cargo_version": "1.98.1",
+                      "configuration_fingerprint": "sha256:c0f599231fbe66caee9d8f6e0cdf1b8475c2b5c3107ffcde2c499bf8a838addf",
+                      "declared_toolchain": null,
+                      "execution_fingerprint": "sha256:b188d507aba0f2e527f51720b744933150980cb44ecb29f89027cad92afb0a4a",
+                      "image_id": "sha256:8fac70723a8d04b6ec9633ab721806b8a55f4f083a1b3f988c61bf6a00fa1909",
+                      "platform": "linux/aarch64",
+                      "rust_version": "1.98.1"
+                    },
+                    "source_fingerprint": "sha256:9fe06b7967d1dc209e91f712ff3ec32657574358da0f9c7876cb5217178283a3",
+                    "stderr_truncated": false,
+                    "stdout_truncated": false,
+                    "termination": "exited",
+                    "validation_complete": true
+                  },
+                  "format": null,
+                  "issue": null,
+                  "log": {
+                    "retention_remaining_seconds": 3600,
+                    "sha256": "3ed0fda91ccfc9f0ade12aa71ce7fe9c667eb305170fc94631811af2296db470",
+                    "size_bytes": 739,
+                    "truncated": false,
+                    "uri": "rust-artifact://prj_f0c3410a49cb4b7c3b38d5f28843899d/art_c5592ae3dda7657ee0abe7efe3cddedd"
+                  },
+                  "log_unavailable_reason": null,
+                  "stage": "clippy",
+                  "status": "passed",
+                  "test": null
+                },
+                {
+                  "applied_selection": "test_cargo_defaults_30_seconds",
+                  "audit": null,
+                  "duration_ms": 681,
+                  "execution": {
+                    "diagnostics": [],
+                    "diagnostics_omitted": 0,
+                    "exit_code": 0,
+                    "runtime": {
+                      "cargo_version": "1.98.1",
+                      "configuration_fingerprint": "sha256:c0f599231fbe66caee9d8f6e0cdf1b8475c2b5c3107ffcde2c499bf8a838addf",
+                      "declared_toolchain": null,
+                      "execution_fingerprint": "sha256:c4432dc894ebf6422982e7aadf448173924b4bab5bc8df44f6b9b8bd7404f625",
+                      "image_id": "sha256:8fac70723a8d04b6ec9633ab721806b8a55f4f083a1b3f988c61bf6a00fa1909",
+                      "platform": "linux/aarch64",
+                      "rust_version": "1.98.1"
+                    },
+                    "source_fingerprint": "sha256:9fe06b7967d1dc209e91f712ff3ec32657574358da0f9c7876cb5217178283a3",
+                    "stderr_truncated": false,
+                    "stdout_truncated": false,
+                    "termination": "exited",
+                    "validation_complete": true
+                  },
+                  "format": null,
+                  "issue": null,
+                  "log": {
+                    "retention_remaining_seconds": 3600,
+                    "sha256": "d83fbea62d7f95e002f68ed325a76b5ba6db9f17ec67b6661007c0830c034996",
+                    "size_bytes": 1770,
+                    "truncated": false,
+                    "uri": "rust-artifact://prj_f0c3410a49cb4b7c3b38d5f28843899d/art_e8b496798cb8e56de8fa5aef01a55621"
+                  },
+                  "log_unavailable_reason": null,
+                  "stage": "test",
+                  "status": "passed",
+                  "test": {
+                    "build_succeeded": true
+                  }
+                },
+                {
+                  "applied_selection": "audit_captured_lockfile",
+                  "audit": {
+                    "observation": {
+                      "crates_io_scanned": 0,
+                      "findings": [],
+                      "findings_omitted": 0,
+                      "informational": [],
+                      "issue": null,
+                      "lock_fingerprint": "sha256:e435d67831db66b88c22d3ac062d2b969967ddc95dfb963c70c777771f8dbc94",
+                      "packages_total": 1,
+                      "snapshot": {
+                        "freshness": {
+                          "age_seconds": 3152,
+                          "assessed_at": 1788543039,
+                          "policy": {
+                            "fresh_for_seconds": 86400,
+                            "id": "rustsec-host-snapshot-v1",
+                            "stale_after_seconds": 604800
+                          },
+                          "state": "fresh"
+                        },
+                        "provenance": {
+                          "created_at": 1788539887,
+                          "integrity": "verified",
+                          "network_used": false,
+                          "observed_at": 1788539887,
+                          "source_id": "research-fixture-m1-16-std-only-audit-not-global-rustsec",
+                          "source_kind": "rustsec_snapshot"
+                        }
+                      },
+                      "snapshot_fingerprint": "sha256:966f74af605ffdaf70088a21ca432266098b998b90ef1118c805ed460a26f4ea",
+                      "snapshot_record_count": 1,
+                      "snapshot_sequence": 1,
+                      "state": "passed",
+                      "unsupported_packages": [],
+                      "validation_complete": true,
+                      "workspace_packages_excluded": 1
+                    },
+                    "paths_omitted": 0,
+                    "runtime": {
+                      "cargo_version": "1.98.1",
+                      "configuration_fingerprint": "sha256:c0f599231fbe66caee9d8f6e0cdf1b8475c2b5c3107ffcde2c499bf8a838addf",
+                      "declared_toolchain": null,
+                      "execution_fingerprint": "sha256:bdbc9238cd805cd2b8bc8e43e2fd8bbd992464c947c254e7d606d5f0855fcd38",
+                      "image_id": "sha256:8fac70723a8d04b6ec9633ab721806b8a55f4f083a1b3f988c61bf6a00fa1909",
+                      "platform": "linux/aarch64",
+                      "rust_version": "1.98.1"
+                    },
+                    "unsupported_packages_omitted": 0
+                  },
+                  "duration_ms": 543,
+                  "execution": null,
+                  "format": null,
+                  "issue": null,
+                  "log": null,
+                  "log_unavailable_reason": null,
+                  "stage": "audit",
+                  "status": "passed",
+                  "test": null
+                }
+              ]
+            },
+            "diagnostics": [],
+            "duration_ms": 15229,
+            "error_code": null,
+            "error_message": null,
+            "evidence": {
+              "details": {
+                "freshness": {
+                  "age_seconds": 15,
+                  "assessed_at": 1788543039,
+                  "policy": {
+                    "fresh_for_seconds": 60,
+                    "id": "captured-project-v1",
+                    "stale_after_seconds": 300
+                  },
+                  "state": "fresh"
+                },
+                "provenance": {
+                  "created_at": 1788543024,
+                  "integrity": "verified",
+                  "network_used": false,
+                  "observed_at": 1788543024,
+                  "source_id": "sha256:9fe06b7967d1dc209e91f712ff3ec32657574358da0f9c7876cb5217178283a3",
+                  "source_kind": "project_snapshot"
+                }
+              },
+              "kind": "snapshot"
+            },
+            "status": "passed",
+            "summary": "Every required quality stage passed with complete evidence",
+            "truncation": {
+              "affected_files_omitted": 0,
+              "diagnostics_omitted": 0,
+              "diffs_omitted": 0,
+              "findings_omitted": 0,
+              "paths_omitted": 0,
+              "stderr_truncated": false,
+              "stdout_truncated": false,
+              "unsupported_packages_omitted": 0
+            }
+          }
+        },
+        "elapsed_ms": 15231.649
+      }
+    ],
+    "candidates": [
+      {
+        "candidate": 1,
+        "sha256": "4d80962aa68793293e1576faae59c113a6cbae0a9508f3c001e5de9debd95545",
+        "bytes": 33,
+        "kind": "patch"
+      }
+    ],
+    "selection_count": 0,
+    "final_selection": null,
+    "requests": [
+      {
+        "request": 1,
+        "name": "read_project_file",
+        "elapsed_ms": 0.366
+      },
+      {
+        "request": 2,
+        "name": "submit_patch",
+        "elapsed_ms": 1.461
+      },
+      {
+        "request": 3,
+        "name": "rust_project_open",
+        "elapsed_ms": 2.479
+      },
+      {
+        "request": 4,
+        "name": "rust_quality_gate",
+        "elapsed_ms": 15233.177
+      }
+    ]
+  },
+  "cleanup": {
+    "cancelled": false,
+    "forced_driver_stop": false,
+    "exit_code": 0,
+    "execution_joined": true,
+    "driver_execution_joined_claim": true,
+    "cleanup_verified": true,
+    "cleanup_failed": false,
+    "server_cleanup_verified": true,
+    "server_joined": true,
+    "cleanup_uncertain": false,
+    "terminal_error": null,
+    "observed_service_exit": {
+      "code": 0,
+      "signal": null,
+      "success": true
+    },
+    "stderr_bytes": 0,
+    "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "docker_after": {
+    "mode": "read_only_observation_no_cleanup",
+    "objects": {
+      "container": [],
+      "volume": []
+    },
+    "absent": true
+  },
+  "identities": {
+    "target/m1-16-controller/qualify-integrated.py": "0d6bbdfd6d50fd6ebcb7f633e16635d9bdf3e1a296207efeb621c39f74152f17",
+    "target/m1-16-controller/participant.py": "0e74293afb72843d169741206c24509796f650e53fbabb15d0efb2d302ceef8c",
+    "target/m1-16-controller/broker.py": "18aae41f75f9d676686c0e1e86f84b0dc2baa181b39e62a2d9b647dcde61ae5e",
+    "target/m1-16-controller/containment.py": "fdf07b80e798a4cfeba9cea7e3bd98539f32de49ba329f87410e37b2df4297f4",
+    "target/debug/m1-16-trusted-driver": "7da80655d7908d41ab0f9b6ebc0b78eaab692821a19990b3a005a5e11f8598a4"
+  }
+}

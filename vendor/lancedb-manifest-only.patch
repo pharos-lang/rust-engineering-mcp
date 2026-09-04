@@ -1,0 +1,29 @@
+--- published/Cargo.toml
++++ vendor/lancedb/Cargo.toml
+@@ -309,7 +309,7 @@
+ [dependencies.lance-table]
+ version = "=8.0.0"
+ 
+-[dependencies.lance-testing]
++[dev-dependencies.lance-testing]
+ version = "=8.0.0"
+ 
+ [dependencies.lazy_static]
+--- published/Cargo.toml.orig
++++ vendor/lancedb/Cargo.toml.orig
+@@ -44,7 +44,6 @@
+ lance-index = { workspace = true, features = ["tokenizer-jieba", "tokenizer-lindera"] }
+ lance-table = { workspace = true }
+ lance-linalg = { workspace = true }
+-lance-testing = { workspace = true }
+ lance-encoding = { workspace = true }
+ lance-arrow = { workspace = true }
+ lance-namespace = { workspace = true }
+@@ -92,6 +91,7 @@
+ semver = { workspace = true }
+ 
+ [dev-dependencies]
++lance-testing = { workspace = true }
+ anyhow = "1"
+ tempfile = "3.5.0"
+ random_word = { version = "0.4.3", features = ["en"] }

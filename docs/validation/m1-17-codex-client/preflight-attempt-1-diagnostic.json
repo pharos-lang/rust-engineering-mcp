@@ -1,0 +1,7 @@
+{
+  "status": "controller_incompatibility_confirmed",
+  "phase": "startup_before_initialize",
+  "exit_code": 1,
+  "stderr": "Error: unknown configuration field `update_plan_enabled` in -c/--config override",
+  "disposition": "Removed the unsupported override. Strict config remains enabled; the canonical execution plan did not change."
+}

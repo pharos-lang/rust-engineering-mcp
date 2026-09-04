@@ -1,0 +1,20 @@
+PASS published SHA256; 93 files; only two exact manifest edits; Rust sources unchanged
+PASS network positive controls IPv4/IPv6 bind; ORT SHA256 4d53c916ea95f09203324f9aad7b76f75c16d8a4bc98f8a949ea0ac73c07604d
+running 7 tests
+test index::tests::accepts_maximum_rows_dimension_and_name_length ... ok
+test index::tests::failed_rebuild_preserves_generation_and_success_replaces_it ... ok
+test index::tests::memory_generations_do_not_share_tables ... ok
+test index::tests::query_limits_and_vectors_are_validated_even_for_empty_table ... ok
+test index::tests::real_table_returns_only_bounded_ids_and_distances ... ok
+test index::tests::rejects_invalid_metadata_and_rows_before_generation ... ok
+test model::tests::rejects_absent_and_wrong_bytes_before_parsing ... ok
+test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.11s
+running 1 test
+test real_offline_e5_lance_sqlite_roundtrip ... ignored, Requires RUST_MCP_E5_DIR and explicit network-isolation calibration via scripts/test-semantic.py
+test result: ok. 0 passed; 0 failed; 1 ignored; 0 measured; 0 filtered out; finished in 0.00s
+running 1 test
+test real_offline_e5_lance_sqlite_roundtrip ... E5/Lance result for ownership: [SemanticCandidate { crate_name: "ownership", distance: 0.27902523 }, SemanticCandidate { crate_name: "serde_json", distance: 0.43071872 }, SemanticCandidate { crate_name: "tokio", distance: 0.43422505 }]
+E5/Lance result for serde_json: [SemanticCandidate { crate_name: "serde_json", distance: 0.23213457 }, SemanticCandidate { crate_name: "tokio", distance: 0.3243479 }, SemanticCandidate { crate_name: "ownership", distance: 0.36427516 }]
+PASS real E5 + LanceDB + authoritative SQLite + rebuild + mismatch fallback, network denied
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 5.11s
+PASS semantic gate: real model, index, SQLite, calibrated network deny, configured TMPDIR remains absent

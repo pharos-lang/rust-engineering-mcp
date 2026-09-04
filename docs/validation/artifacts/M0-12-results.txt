@@ -1,0 +1,67 @@
+GATE fmt
+GATE check
+GATE clippy
+GATE test
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+test result: ok. 12 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+test result: ok. 16 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.41s
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.14s
+test result: ok. 10 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.98s
+test result: ok. 8 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.04s
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+test result: ok. 20 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s
+test result: ok. 1 passed; 0 failed; 4 ignored; 0 measured; 0 filtered out; finished in 0.00s
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.08s
+test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.77s
+test result: ok. 10 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.05s
+test result: ok. 19 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.15s
+test result: ok. 12 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.07s
+test result: ok. 16 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.10s
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+GATE doctests
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.05s
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+GATE architecture
+PASS domain/application dependency and IO boundaries, sole process gateway, offline engine defaults, memory-only model adapter
+GATE vendor
+PASS published SHA256; 93 files; only two exact manifest edits; Rust sources unchanged
+GATE cargo-fixtures
+{"fixture": "vulnerable-dependency", "ok": true, "verification": "static pinned audit input only; no Cargo invocation"}
+{"command": "test", "diagnostic": null, "expected_failure": false, "fixture": "valid-basic", "flags": [], "ok": true}
+{"command": "check", "diagnostic": "E0502", "expected_failure": true, "fixture": "borrow-error", "flags": [], "ok": true}
+{"command": "check", "diagnostic": "E0597", "expected_failure": true, "fixture": "lifetime-error", "flags": [], "ok": true}
+{"command": "clippy", "diagnostic": "clippy::useless_vec", "expected_failure": false, "fixture": "clippy-warning", "flags": [], "ok": true}
+{"command": "check", "diagnostic": "unsafe_code", "expected_failure": true, "fixture": "unsafe", "flags": [], "ok": true}
+{"command": "test", "diagnostic": null, "expected_failure": false, "fixture": "workspace", "flags": [], "ok": true}
+{"command": "check", "diagnostic": null, "expected_failure": false, "fixture": "feature-conflict", "flags": [], "ok": true}
+{"command": "check", "diagnostic": null, "expected_failure": false, "fixture": "feature-conflict", "flags": ["--features", "left"], "ok": true}
+{"command": "check", "diagnostic": null, "expected_failure": false, "fixture": "feature-conflict", "flags": ["--features", "right"], "ok": true}
+{"command": "check", "diagnostic": "fixture mutually exclusive features", "expected_failure": true, "fixture": "feature-conflict", "flags": ["--features", "left,right"], "ok": true}
+{"command": "test", "diagnostic": null, "expected_failure": false, "fixture": "build-script", "flags": [], "ok": true}
+GATE audit
+GATE deny
+GATE docker-security
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 20 filtered out; finished in 0.00s
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 1 filtered out; finished in 14.54s
+GATE semantic
+PASS published SHA256; 93 files; only two exact manifest edits; Rust sources unchanged
+PASS network positive controls IPv4/IPv6 bind; ORT SHA256 4d53c916ea95f09203324f9aad7b76f75c16d8a4bc98f8a949ea0ac73c07604d
+test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.07s
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 7 filtered out; finished in 0.00s
+test result: ok. 0 passed; 0 failed; 1 ignored; 0 measured; 0 filtered out; finished in 0.00s
+E5/Lance result for serde_json: [SemanticCandidate { crate_name: "serde_json", distance: 0.23213457 }, SemanticCandidate { crate_name: "tokio", distance: 0.3243479 }, SemanticCandidate { crate_name: "ownership", distance: 0.36427516 }]
+PASS real E5 + LanceDB + authoritative SQLite + rebuild + mismatch fallback, network denied
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 5.15s
+PASS semantic gate: real model, index, SQLite, calibrated network deny, configured TMPDIR remains absent
+PASS full gate: target/M0-12-full.json

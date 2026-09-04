@@ -1,0 +1,130 @@
+{
+  "scope": "observed release-cache native build outputs and archive identities; not a complete final linked-object map",
+  "inputs": [
+    {
+      "build_directory": "target/semantic-compat/release/build/blake3-e5b158d39302f96c",
+      "link_directives": [
+        "cargo:rustc-link-lib=static=blake3_neon",
+        "cargo:rustc-link-search=native=<LOCAL_HOME>/Projects/rust-mcp/target/semantic-compat/release/build/blake3-e5b158d39302f96c/out"
+      ],
+      "build_output_sha256": "3b1bf2ca7925066765fb98836be9e2295dc0afc9d97ed3e4e00901ef90f73277",
+      "native_archives": [
+        {
+          "path": "target/semantic-compat/release/build/blake3-e5b158d39302f96c/out/libblake3_neon.a",
+          "bytes": 5976,
+          "sha256": "1b96fed8d80f6538c433f852c419bfa98891ba7c03fb541f5b734abc3a769059"
+        }
+      ]
+    },
+    {
+      "build_directory": "target/semantic-compat/release/build/libsqlite3-sys-38c108151b5dcd50",
+      "link_directives": [
+        "cargo:rustc-link-lib=static=sqlite3",
+        "cargo:rustc-link-search=native=<LOCAL_HOME>/Projects/rust-mcp/target/semantic-compat/release/build/libsqlite3-sys-38c108151b5dcd50/out"
+      ],
+      "build_output_sha256": "cc4ae220844771e92d3589225dfe2f912da3e55973623c0d3ff2a8591b9aeb43",
+      "native_archives": [
+        {
+          "path": "target/semantic-compat/release/build/libsqlite3-sys-38c108151b5dcd50/out/libsqlite3.a",
+          "bytes": 2470768,
+          "sha256": "538d996598e31c2fc090fb49094d2069f7a29b8a52cd288535f36caeb75a4a84"
+        }
+      ]
+    },
+    {
+      "build_directory": "target/semantic-compat/release/build/lz4-sys-ac3c0244ce4020f7",
+      "link_directives": [
+        "cargo:rustc-link-lib=static=lz4",
+        "cargo:rustc-link-search=native=<LOCAL_HOME>/Projects/rust-mcp/target/semantic-compat/release/build/lz4-sys-ac3c0244ce4020f7/out"
+      ],
+      "build_output_sha256": "645a920eed496cbe34a89c63b6d35abc107887b3089be8cf9cff9d43f6a3cb76",
+      "native_archives": [
+        {
+          "path": "target/semantic-compat/release/build/lz4-sys-ac3c0244ce4020f7/out/liblz4.a",
+          "bytes": 173832,
+          "sha256": "3c8df3bc95ec11c6f92793b9d9b1bf7211779fcb6723e48d318d81be4f5510c0"
+        }
+      ]
+    },
+    {
+      "build_directory": "target/semantic-compat/release/build/onig_sys-df846d2db4115f13",
+      "link_directives": [
+        "cargo:rustc-link-lib=static=onig",
+        "cargo:rustc-link-search=native=<LOCAL_HOME>/Projects/rust-mcp/target/semantic-compat/release/build/onig_sys-df846d2db4115f13/out"
+      ],
+      "build_output_sha256": "b0d120487462a97be6d85bbe508919aea87ea9a49ea0538fef0e5af8a6002aa3",
+      "native_archives": [
+        {
+          "path": "target/semantic-compat/release/build/onig_sys-df846d2db4115f13/out/libonig.a",
+          "bytes": 740616,
+          "sha256": "8e6b09e4f9783f853638b748f4660feb03cd9676f771153b8682769048c655ee"
+        }
+      ]
+    },
+    {
+      "build_directory": "target/semantic-compat/release/build/ort-sys-d4e6de5c989509c0",
+      "link_directives": [
+        "cargo:rustc-link-search=native=<LOCAL_HOME>/Library/Caches/ort.pyke.io/dfbin/aarch64-apple-darwin/612739f75438dc0a075461e1fb454226b4a1eb175e60a7271ba966bbbb972cd4",
+        "cargo:rustc-link-lib=static=onnxruntime",
+        "cargo:rustc-link-lib=c++",
+        "cargo:rustc-link-lib=framework=Foundation",
+        "cargo:rustc-link-lib=framework=CoreML",
+        "cargo:rustc-link-search=/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/21/lib/darwin",
+        "cargo:rustc-link-lib=clang_rt.osx"
+      ],
+      "build_output_sha256": "20cccafdfc6e2a5cbb47a35624a81aefc2f8b8fed0fefcb97ec906269e581dcd",
+      "native_archives": []
+    },
+    {
+      "build_directory": "target/semantic-compat/release/build/ring-3baa7dc1fc802ef1",
+      "link_directives": [
+        "cargo:rustc-link-lib=static=ring_core_0_17_14_",
+        "cargo:rustc-link-lib=static=ring_core_0_17_14__test",
+        "cargo:rustc-link-search=native=<LOCAL_HOME>/Projects/rust-mcp/target/semantic-compat/release/build/ring-3baa7dc1fc802ef1/out"
+      ],
+      "build_output_sha256": "3b33d0af53e2343717e97ac4e783520552495c048b813f462084165aa1f79b91",
+      "native_archives": [
+        {
+          "path": "target/semantic-compat/release/build/ring-3baa7dc1fc802ef1/out/libring_core_0_17_14_.a",
+          "bytes": 664912,
+          "sha256": "455658bf48fa6b29b94e4b5697b342a796a1922c4bacf6ae3a430a07eb0cc5fa"
+        },
+        {
+          "path": "target/semantic-compat/release/build/ring-3baa7dc1fc802ef1/out/libring_core_0_17_14__test.a",
+          "bytes": 12472,
+          "sha256": "046adfb55c5b37e345e43832ee35ea217f484d900652040d2a076108d3e75abd"
+        }
+      ]
+    },
+    {
+      "build_directory": "target/semantic-compat/release/build/zstd-sys-4fe2a454402f9cdd",
+      "link_directives": [
+        "cargo:rustc-link-lib=static=zstd",
+        "cargo:rustc-link-search=native=<LOCAL_HOME>/Projects/rust-mcp/target/semantic-compat/release/build/zstd-sys-4fe2a454402f9cdd/out"
+      ],
+      "build_output_sha256": "64b453255bd3934043aee0f6aa463ce12181df3a9081b7e0928949dd42ff090e",
+      "native_archives": [
+        {
+          "path": "target/semantic-compat/release/build/zstd-sys-4fe2a454402f9cdd/out/libzstd.a",
+          "bytes": 606472,
+          "sha256": "158cee4d21349bc26c0741e70db78123b5471d2bea7cd579df5ec7694f5bcf5e"
+        }
+      ]
+    },
+    {
+      "build_directory": "target/semantic-compat/release/build/zstd-sys-e2dec9fe70f98675",
+      "link_directives": [
+        "cargo:rustc-link-lib=static=zstd",
+        "cargo:rustc-link-search=native=<LOCAL_HOME>/Projects/rust-mcp/target/semantic-compat/release/build/zstd-sys-e2dec9fe70f98675/out"
+      ],
+      "build_output_sha256": "72fb558f11bf9c88d9099259859920750f5e18af15729b2f26ca8a99917d47be",
+      "native_archives": [
+        {
+          "path": "target/semantic-compat/release/build/zstd-sys-e2dec9fe70f98675/out/libzstd.a",
+          "bytes": 919616,
+          "sha256": "41a1032e120e0b29b0818703cc35c88b8c52a4f03f9b601ad02af6d14071923a"
+        }
+      ]
+    }
+  ]
+}

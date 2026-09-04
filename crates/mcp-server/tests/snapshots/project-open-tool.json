@@ -1,0 +1,251 @@
+{
+  "name": "rust.project.open",
+  "description": "Register an explicitly selected Rust package/workspace root authorized by the host. Reads bounded manifests and validates structural membership/path dependencies without running Cargo or project code. Returns a process-local opaque reference; no compilation or dependency resolution is certified.",
+  "inputSchema": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "additionalProperties": false,
+    "properties": {
+      "path": {
+        "maxLength": 4096,
+        "minLength": 1,
+        "type": "string"
+      }
+    },
+    "required": [
+      "path"
+    ],
+    "title": "OpenInput",
+    "type": "object"
+  },
+  "outputSchema": {
+    "$defs": {
+      "BlockedCode": {
+        "enum": [
+          "PROJECT_NOT_FOUND",
+          "INVALID_PROJECT",
+          "LOCKFILE_UPDATE_REQUIRED",
+          "COMMAND_TIMEOUT",
+          "SANDBOX_DENIED",
+          "NETWORK_DENIED",
+          "OUTPUT_LIMIT_EXCEEDED"
+        ],
+        "type": "string"
+      },
+      "LocalEvidence": {
+        "oneOf": [
+          {
+            "additionalProperties": false,
+            "properties": {
+              "kind": {
+                "const": "local",
+                "type": "string"
+              }
+            },
+            "required": [
+              "kind"
+            ],
+            "type": "object"
+          }
+        ]
+      },
+      "OpenData": {
+        "additionalProperties": false,
+        "properties": {
+          "fingerprint": {
+            "pattern": "^sha256:[0-9a-f]{64}$",
+            "type": "string"
+          },
+          "project_ref": {
+            "pattern": "^prj_[0-9a-f]{32}$",
+            "type": "string"
+          },
+          "validation": {
+            "$ref": "#/$defs/ValidationKind"
+          },
+          "workspace_root": {
+            "maxLength": 4096,
+            "minLength": 1,
+            "type": "string"
+          }
+        },
+        "required": [
+          "project_ref",
+          "workspace_root",
+          "fingerprint",
+          "validation"
+        ],
+        "type": "object"
+      },
+      "Truncation": {
+        "additionalProperties": false,
+        "properties": {
+          "diagnostics_omitted": {
+            "format": "uint64",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "stderr_truncated": {
+            "type": "boolean"
+          },
+          "stdout_truncated": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "stdout_truncated",
+          "stderr_truncated",
+          "diagnostics_omitted"
+        ],
+        "type": "object"
+      },
+      "UnavailableCode": {
+        "enum": [
+          "TOOL_NOT_INSTALLED",
+          "UNSUPPORTED_PLATFORM"
+        ],
+        "type": "string"
+      },
+      "ValidationKind": {
+        "enum": [
+          "structural"
+        ],
+        "type": "string"
+      }
+    },
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "oneOf": [
+      {
+        "properties": {
+          "data": {
+            "$ref": "#/$defs/OpenData"
+          },
+          "error_code": {
+            "type": "null"
+          },
+          "error_message": {
+            "type": "null"
+          },
+          "status": {
+            "const": "passed",
+            "type": "string"
+          }
+        },
+        "required": [
+          "status",
+          "error_code",
+          "error_message",
+          "data"
+        ],
+        "type": "object"
+      },
+      {
+        "properties": {
+          "data": {
+            "type": "null"
+          },
+          "error_code": {
+            "$ref": "#/$defs/BlockedCode"
+          },
+          "error_message": {
+            "type": "string"
+          },
+          "status": {
+            "const": "blocked",
+            "type": "string"
+          }
+        },
+        "required": [
+          "status",
+          "error_code",
+          "error_message",
+          "data"
+        ],
+        "type": "object"
+      },
+      {
+        "properties": {
+          "data": {
+            "type": "null"
+          },
+          "error_code": {
+            "$ref": "#/$defs/UnavailableCode"
+          },
+          "error_message": {
+            "type": "string"
+          },
+          "status": {
+            "const": "unavailable",
+            "type": "string"
+          }
+        },
+        "required": [
+          "status",
+          "error_code",
+          "error_message",
+          "data"
+        ],
+        "type": "object"
+      },
+      {
+        "properties": {
+          "data": {
+            "type": "null"
+          },
+          "error_code": {
+            "type": "null"
+          },
+          "error_message": {
+            "type": "null"
+          },
+          "status": {
+            "const": "cancelled",
+            "type": "string"
+          }
+        },
+        "required": [
+          "status",
+          "error_code",
+          "error_message",
+          "data"
+        ],
+        "type": "object"
+      }
+    ],
+    "properties": {
+      "diagnostics": {
+        "maxItems": 0,
+        "type": "array"
+      },
+      "duration_ms": {
+        "format": "uint64",
+        "minimum": 0,
+        "type": "integer"
+      },
+      "evidence": {
+        "$ref": "#/$defs/LocalEvidence"
+      },
+      "summary": {
+        "type": "string"
+      },
+      "truncation": {
+        "$ref": "#/$defs/Truncation"
+      }
+    },
+    "required": [
+      "summary",
+      "duration_ms",
+      "diagnostics",
+      "truncation",
+      "evidence"
+    ],
+    "title": "OpenOutput",
+    "type": "object",
+    "unevaluatedProperties": false
+  },
+  "annotations": {
+    "readOnlyHint": true,
+    "destructiveHint": false,
+    "idempotentHint": false,
+    "openWorldHint": false
+  }
+}

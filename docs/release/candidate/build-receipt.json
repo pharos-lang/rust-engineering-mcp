@@ -1,0 +1,66 @@
+{
+  "scope": "local-review-only-not-distribution",
+  "status": "passed",
+  "source_commit": "3bb9b8b31301140799242e51c9d51fb4c80f99c4",
+  "source_status": "M CHANGELOG.md\n M Cargo.toml\n M README.md\n M SECURITY.md\n M crates/mcp-server/src/capabilities.rs\n M crates/mcp-server/src/main.rs\n M crates/mcp-server/src/stdio.rs\n M crates/mcp-server/tests/capabilities_cli.rs\n M crates/mcp-server/tests/cli.rs\n M docs/architecture.md\n M docs/ci.md\n M docs/compatibility.md\n M docs/implementation-status.md\n M docs/security-model.md\n M docs/tools.md\n M scripts/gate.py\n?? crates/mcp-server/src/doctor.rs\n?? crates/mcp-server/src/doctor/\n?? crates/mcp-server/src/doctor_run.rs\n?? crates/mcp-server/src/host_config.rs\n?? crates/mcp-server/src/version.rs\n?? crates/mcp-server/tests/doctor.rs\n?? crates/mcp-server/tests/snapshots/doctor-report.json\n?? docs/adr/ADR-045-cli-doctor.md\n?? docs/validation/M1-14-active.json\n?? docs/validation/M1-14-core.json\n?? docs/validation/M1-14-review-disposition.md\n?? docs/validation/M1-14-review-followup.md\n?? docs/validation/M1-14-review-opus.md\n?? docs/validation/M1-14-source-receipt.json\n?? docs/validation/M1-14-summary.json\n?? docs/validation/M1-14.md\n?? scripts/test-doctor.py",
+  "source_manifest_sha256": "f142775240951dcd3390e186750e36f07d5c4ae12ad4e622eed2e3c3a8427115",
+  "cargo_lock_sha256": "6010970e368bbd49be0231227e99343b6ee302d96a4dc7462549c64f2a64ef73",
+  "cargo": "cargo 1.98.1 (797e8a9bc 2026-08-05)",
+  "rustc": "rustc 1.98.1 (48a229cea 2026-09-01)\nbinary: rustc\ncommit-hash: 48a229ceaefd4985c50990b14116b6d856af0985\ncommit-date: 2026-09-01\nhost: aarch64-apple-darwin\nrelease: 1.98.1\nLLVM version: 22.1.8",
+  "native_ort_sha256": "4d53c916ea95f09203324f9aad7b76f75c16d8a4bc98f8a949ea0ac73c07604d",
+  "native_ort_bytes": 73696536,
+  "builds": [
+    {
+      "feature": "core",
+      "command": [
+        "<LOCAL_HOME>/.rustup/toolchains/1.98.1-aarch64-apple-darwin/bin/cargo",
+        "build",
+        "--release",
+        "--locked",
+        "--offline",
+        "--no-default-features",
+        "-p",
+        "rust-engineering-mcp",
+        "--bin",
+        "rust-engineering-mcp",
+        "--jobs",
+        "2"
+      ],
+      "status": "passed",
+      "exit_code": 0,
+      "seconds": 16.842,
+      "log_total_bytes": 1155,
+      "log_truncated": false,
+      "binary": "core/bin/rust-engineering-mcp",
+      "bytes": 21049384,
+      "sha256": "32b7f921d8a0b4409581c66d8d2ff0756ba250d783f3e52e97392a062e7eeab1"
+    },
+    {
+      "feature": "local",
+      "command": [
+        "<LOCAL_HOME>/.rustup/toolchains/1.98.1-aarch64-apple-darwin/bin/cargo",
+        "build",
+        "--release",
+        "--locked",
+        "--offline",
+        "--no-default-features",
+        "-p",
+        "rust-engineering-mcp",
+        "--bin",
+        "rust-engineering-mcp",
+        "--jobs",
+        "2",
+        "--features",
+        "local"
+      ],
+      "status": "passed",
+      "exit_code": 0,
+      "seconds": 0.326,
+      "log_total_bytes": 1673,
+      "log_truncated": false,
+      "binary": "local/bin/rust-engineering-mcp",
+      "bytes": 271401656,
+      "sha256": "7a99038be57429e1db32c91d01772e7efd104691828253f45ed3bbb0e9330417"
+    }
+  ]
+}

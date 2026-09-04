@@ -1,0 +1,74 @@
+{
+  "execution": {
+    "model_usage": {
+      "claude-haiku-4-5-20251001": {
+        "cacheCreationInputTokens": 0,
+        "cacheReadInputTokens": 0,
+        "canonicalModel": "claude-haiku-4-5",
+        "contextWindow": 200000,
+        "costBasis": "list",
+        "costUSD": 0.053968,
+        "inputTokens": 53868,
+        "maxOutputTokens": 32000,
+        "outputTokens": 20,
+        "provider": "firstParty",
+        "thinkingTokens": 0,
+        "webSearchRequests": 0
+      },
+      "claude-opus-5": {
+        "cacheCreationInputTokens": 72660,
+        "cacheReadInputTokens": 15673,
+        "canonicalModel": "claude-opus-5",
+        "contextWindow": 1000000,
+        "costBasis": "list",
+        "costUSD": 1.2821215000000001,
+        "inputTokens": 2,
+        "maxOutputTokens": 64000,
+        "outputTokens": 21907,
+        "provider": "firstParty",
+        "thinkingTokens": 13084,
+        "webSearchRequests": 0
+      }
+    },
+    "permission_denials": [],
+    "status": "completed",
+    "stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "stop_reason": "end_turn"
+  },
+  "files": {
+    "review.json": {
+      "bytes": 24756,
+      "sha256": "19e979d1acbd287d026d468f377f3b6ea422c41bb08140d732c34b97c7d6daec"
+    },
+    "review.raw.json": {
+      "bytes": 27021,
+      "sha256": "287ee9aabc5f6f4ec7a1ef953717bde991ac991bae3a97fc27c9bc688d7f4db9"
+    }
+  },
+  "finding_counts": {
+    "P0": 1,
+    "P1": 4,
+    "P2": 4,
+    "P3": 4
+  },
+  "packet": {
+    "bytes": 153190,
+    "retention": "ignored target/m1-17-final-review/packet.md",
+    "sha256": "6feb9a9642470a2fb7f3395e9850ad2266b1a85896422f6c36321dc2c8eedd92"
+  },
+  "principal_disposition": "M1-17-review-disposition.md",
+  "review_verdict": "blocked",
+  "reviewer": {
+    "client": "Claude Code",
+    "client_version": "2.1.260",
+    "reasoning_effort": "high",
+    "requested_model": "claude-opus-5",
+    "subagents_spawned": 0,
+    "substantive_model_from_result": "claude-opus-5",
+    "tools": "disabled"
+  },
+  "scope": "independent-read-only-final-review"
+}

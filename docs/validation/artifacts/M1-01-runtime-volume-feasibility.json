@@ -1,0 +1,305 @@
+{
+  "image": "sha256:8fac70723a8d04b6ec9633ab721806b8a55f4f083a1b3f988c61bf6a00fa1909",
+  "trusted_generated_fixture": true,
+  "events": [
+    {
+      "args": [
+        "volume",
+        "ls",
+        "--filter",
+        "name=^rust-mcp-feasibility-79a1ea067fabc0e96e28127e45492b98$",
+        "--format",
+        "{{.Name}}"
+      ],
+      "code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "args": [
+        "volume",
+        "create",
+        "--driver=local",
+        "--label=org.rust-mcp.feasibility=79a1ea067fabc0e96e28127e45492b98",
+        "rust-mcp-feasibility-79a1ea067fabc0e96e28127e45492b98"
+      ],
+      "code": 0,
+      "stdout": "rust-mcp-feasibility-79a1ea067fabc0e96e28127e45492b98\n",
+      "stderr": ""
+    },
+    {
+      "args": [
+        "volume",
+        "inspect",
+        "rust-mcp-feasibility-79a1ea067fabc0e96e28127e45492b98"
+      ],
+      "code": 0,
+      "stdout": "[\n    {\n        \"CreatedAt\": \"2026-09-04T04:27:07Z\",\n        \"Driver\": \"local\",\n        \"Labels\": {\n            \"org.rust-mcp.feasibility\": \"79a1ea067fabc0e96e28127e45492b98\"\n        },\n        \"Mountpoint\": \"/var/lib/docker/volumes/rust-mcp-feasibility-79a1ea067fabc0e96e28127e45492b98/_data\",\n        \"Name\": \"rust-mcp-feasibility-79a1ea067fabc0e96e28127e45492b98\",\n        \"Options\": null,\n        \"Scope\": \"local\"\n    }\n]\n",
+      "stderr": ""
+    },
+    {
+      "args": [
+        "container",
+        "create",
+        "--name=rust-mcp-feasibility-79a1ea067fabc0e96e28127e45492b98-ingest",
+        "--interactive",
+        "--user=0:0",
+        "--pull=never",
+        "--runtime=runc",
+        "--init=false",
+        "--network=none",
+        "--read-only",
+        "--cap-drop=ALL",
+        "--security-opt=no-new-privileges=true",
+        "--security-opt=seccomp=<LOCAL_HOME>/Projects/rust-mcp/target/m1-runtime-provisioning/rust-seccomp.json",
+        "--ipc=private",
+        "--cgroupns=private",
+        "--pids-limit=128",
+        "--cpus=1",
+        "--memory=1g",
+        "--memory-swap=1g",
+        "--shm-size=1m",
+        "--log-driver=none",
+        "--no-healthcheck",
+        "--tmpfs=/work:rw,nosuid,nodev,size=512m,mode=1777",
+        "--tmpfs=/tmp:rw,nosuid,nodev,noexec,size=64m,mode=1777",
+        "--workdir=/source",
+        "--env=PATH=/opt/rust/bin:/usr/bin:/bin",
+        "--env=HOME=/work",
+        "--env=TMPDIR=/tmp",
+        "--env=CARGO_HOME=/work/cargo",
+        "--env=CARGO_TARGET_DIR=/work/target",
+        "--env=CARGO_INCREMENTAL=0",
+        "--env=CARGO_NET_OFFLINE=true",
+        "--env=RUSTC=/opt/rust/bin/rustc",
+        "--env=RUSTDOC=/opt/rust/bin/rustdoc",
+        "--mount=type=volume,source=rust-mcp-feasibility-79a1ea067fabc0e96e28127e45492b98,target=/source,volume-nocopy,volume-driver=local",
+        "--entrypoint=/usr/bin/tar",
+        "sha256:8fac70723a8d04b6ec9633ab721806b8a55f4f083a1b3f988c61bf6a00fa1909",
+        "--extract",
+        "--file=-",
+        "--directory=/source",
+        "--no-same-owner",
+        "--no-same-permissions",
+        "--keep-old-files"
+      ],
+      "code": 0,
+      "stdout": "852ee02ab56c16cb5c75cc11b1e1984d0676846fcc5bd78af7d718f788ab6b3f\n",
+      "stderr": ""
+    },
+    {
+      "args": [
+        "container",
+        "inspect",
+        "rust-mcp-feasibility-79a1ea067fabc0e96e28127e45492b98-ingest"
+      ],
+      "code": 0,
+      "stdout": "[\n    {\n        \"Id\": \"852ee02ab56c16cb5c75cc11b1e1984d0676846fcc5bd78af7d718f788ab6b3f\",\n        \"Created\": \"2026-09-04T04:27:07.078526881Z\",\n        \"Path\": \"/usr/bin/tar\",\n        \"Args\": [\n            \"--extract\",\n            \"--file=-\",\n            \"--directory=/source\",\n            \"--no-same-owner\",\n            \"--no-same-permissions\",\n            \"--keep-old-files\"\n        ],\n        \"State\": {\n            \"Status\": \"created\",\n            \"Running\": false,\n            \"Paused\": false,\n            \"Restarting\": false,\n            \"OOMKilled\": false,\n            \"Dead\": false,\n            \"Pid\": 0,\n            \"ExitCode\": 0,\n            \"Error\": \"\",\n            \"StartedAt\": \"0001-01-01T00:00:00Z\",\n            \"FinishedAt\": \"0001-01-01T00:00:00Z\"\n        },\n        \"Image\": \"sha256:8fac70723a8d04b6ec9633ab721806b8a55f4f083a1b3f988c61bf6a00fa1909\",\n        \"ResolvConfPath\": \"\",\n        \"HostnamePath\": \"\",\n        \"HostsPath\": \"\",\n        \"LogPath\": \"\",\n        \"Name\": \"/rust-mcp-feasibility-79a1ea067fabc0e96e28127e45492b98-ingest\",\n        \"RestartCount\": 0,\n        \"Driver\": \"overlayfs\",\n        \"Platform\": \"linux\",\n        \"MountLabel\": \"\",\n        \"ProcessLabel\": \"\",\n        \"AppArmorProfile\": \"\",\n        \"ExecIDs\": null,\n        \"HostConfig\": {\n            \"Binds\": null,\n            \"ContainerIDFile\": \"\",\n            \"LogConfig\": {\n                \"Type\": \"none\",\n                \"Config\": {}\n            },\n            \"NetworkMode\": \"none\",\n            \"PortBindings\": {},\n            \"RestartPolicy\": {\n                \"Name\": \"no\",\n                \"MaximumRetryCount\": 0\n            },\n            \"AutoRemove\": false,\n            \"VolumeDriver\": \"\",\n            \"VolumesFrom\": null,\n            \"ConsoleSize\": [\n                0,\n                0\n            ],\n            \"CapAdd\": null,\n            \"CapDrop\": [\n                \"ALL\"\n            ],\n            \"CgroupnsMode\": \"private\",\n            \"Dns\": null,\n            \"DnsOptions\": [],\n            \"DnsSearch\": [],\n            \"ExtraHosts\": null,\n            \"GroupAdd\": null,\n            \"IpcMode\": \"private\",\n            \"Cgroup\": \"\",\n            \"Links\": null,\n            \"OomScoreAdj\": 0,\n            \"PidMode\": \"\",\n            \"Privileged\": false,\n            \"PublishAllPorts\": false,\n            \"ReadonlyRootfs\": true,\n            \"SecurityOpt\": [\n                \"no-new-privileges=true\",\n                \"seccomp={\\\"defaultAction\\\":\\\"SCMP_ACT_ERRNO\\\",\\\"defaultErrnoRet\\\":1,\\\"archMap\\\":[{\\\"architecture\\\":\\\"SCMP_ARCH_AARCH64\\\",\\\"subArchitectures\\\":[]}],\\\"syscalls\\\":[{\\\"names\\\":[\\\"read\\\",\\\"write\\\",\\\"readv\\\",\\\"writev\\\",\\\"pread64\\\",\\\"pwrite64\\\",\\\"close\\\",\\\"openat\\\",\\\"newfstatat\\\",\\\"fstat\\\",\\\"statx\\\",\\\"lseek\\\",\\\"fcntl\\\",\\\"ioctl\\\",\\\"getdents64\\\",\\\"readlinkat\\\",\\\"readlink\\\",\\\"faccessat\\\",\\\"faccessat2\\\",\\\"mmap\\\",\\\"munmap\\\",\\\"mprotect\\\",\\\"madvise\\\",\\\"brk\\\",\\\"futex\\\",\\\"futex_waitv\\\",\\\"nanosleep\\\",\\\"clock_gettime\\\",\\\"clock_nanosleep\\\",\\\"gettimeofday\\\",\\\"getpid\\\",\\\"getppid\\\",\\\"gettid\\\",\\\"getuid\\\",\\\"geteuid\\\",\\\"getgid\\\",\\\"getegid\\\",\\\"getgroups\\\",\\\"set_tid_address\\\",\\\"set_robust_list\\\",\\\"rseq\\\",\\\"rt_sigaction\\\",\\\"rt_sigprocmask\\\",\\\"rt_sigreturn\\\",\\\"sigaltstack\\\",\\\"sched_getaffinity\\\",\\\"sched_yield\\\",\\\"sched_getparam\\\",\\\"sched_getscheduler\\\",\\\"sched_get_priority_max\\\",\\\"sched_get_priority_min\\\",\\\"uname\\\",\\\"prlimit64\\\",\\\"getrlimit\\\",\\\"getrusage\\\",\\\"getrandom\\\",\\\"exit\\\",\\\"exit_group\\\",\\\"execve\\\",\\\"execveat\\\",\\\"wait4\\\",\\\"waitid\\\",\\\"kill\\\",\\\"tgkill\\\",\\\"tkill\\\",\\\"dup\\\",\\\"dup2\\\",\\\"dup3\\\",\\\"pipe\\\",\\\"pipe2\\\",\\\"setsid\\\",\\\"getsid\\\",\\\"getpgid\\\",\\\"setpgid\\\",\\\"ftruncate\\\",\\\"truncate\\\",\\\"fsync\\\",\\\"fdatasync\\\",\\\"mkdir\\\",\\\"mkdirat\\\",\\\"rmdir\\\",\\\"unlink\\\",\\\"unlinkat\\\",\\\"rename\\\",\\\"renameat\\\",\\\"renameat2\\\",\\\"symlink\\\",\\\"symlinkat\\\",\\\"link\\\",\\\"linkat\\\",\\\"getcwd\\\",\\\"chdir\\\",\\\"fchdir\\\",\\\"chmod\\\",\\\"fchmod\\\",\\\"fchmodat\\\",\\\"fchown\\\",\\\"fchownat\\\",\\\"umask\\\",\\\"utimensat\\\",\\\"statfs\\\",\\\"fstatfs\\\",\\\"prctl\\\",\\\"epoll_create1\\\",\\\"epoll_ctl\\\",\\\"epoll_pwait\\\",\\\"epoll_pwait2\\\",\\\"eventfd2\\\",\\\"ppoll\\\",\\\"pselect6\\\",\\\"restart_syscall\\\",\\\"clock_getres\\\",\\\"flock\\\",\\\"sendto\\\",\\\"recvfrom\\\",\\\"sendmsg\\\",\\\"recvmsg\\\"],\\\"action\\\":\\\"SCMP_ACT_ALLOW\\\"},{\\\"names\\\":[\\\"clone\\\"],\\\"action\\\":\\\"SCMP_ACT_ALLOW\\\",\\\"args\\\":[{\\\"index\\\":0,\\\"value\\\":2114060288,\\\"valueTwo\\\":0,\\\"op\\\":\\\"SCMP_CMP_MASKED_EQ\\\"}]},{\\\"names\\\":[\\\"clone3\\\"],\\\"action\\\":\\\"SCMP_ACT_ERRNO\\\",\\\"errnoRet\\\":38},{\\\"names\\\":[\\\"socketpair\\\"],\\\"action\\\":\\\"SCMP_ACT_ALLOW\\\",\\\"args\\\":[{\\\"index\\\":0,\\\"value\\\":1,\\\"op\\\":\\\"SCMP_CMP_EQ\\\"},{\\\"index\\\":1,\\\"value\\\":15,\\\"valueTwo\\\":5,\\\"op\\\":\\\"SCMP_CMP_MASKED_EQ\\\"},{\\\"index\\\":2,\\\"value\\\":0,\\\"op\\\":\\\"SCMP_CMP_EQ\\\"}]}]}\"\n            ],\n            \"Tmpfs\": {\n                \"/tmp\": \"rw,nosuid,nodev,noexec,size=64m,mode=1777\",\n                \"/work\": \"rw,nosuid,nodev,size=512m,mode=1777\"\n            },\n            \"UTSMode\": \"\",\n            \"UsernsMode\": \"\",\n            \"ShmSize\": 1048576,\n            \"Runtime\": \"runc\",\n            \"Isolation\": \"\",\n            \"CpuShares\": 0,\n            \"Memory\": 1073741824,\n            \"NanoCpus\": 1000000000,\n            \"CgroupParent\": \"\",\n            \"BlkioWeight\": 0,\n            \"BlkioWeightDevice\": [],\n            \"BlkioDeviceReadBps\": [],\n            \"BlkioDeviceWriteBps\": [],\n            \"BlkioDeviceReadIOps\": [],\n            \"BlkioDeviceWriteIOps\": [],\n            \"CpuPeriod\": 0,\n            \"CpuQuota\": 0,\n            \"CpuRealtimePeriod\": 0,\n            \"CpuRealtimeRuntime\": 0,\n            \"CpusetCpus\": \"\",\n            \"CpusetMems\": \"\",\n            \"Devices\": [],\n            \"DeviceCgroupRules\": null,\n            \"DeviceRequests\": null,\n            \"MemoryReservation\": 0,\n            \"MemorySwap\": 1073741824,\n            \"MemorySwappiness\": null,\n            \"OomKillDisable\": false,\n            \"PidsLimit\": 128,\n            \"Ulimits\": [],\n            \"CpuCount\": 0,\n            \"CpuPercent\": 0,\n            \"IOMaximumIOps\": 0,\n            \"IOMaximumBandwidth\": 0,\n            \"Mounts\": [\n                {\n                    \"Type\": \"volume\",\n                    \"Source\": \"rust-mcp-feasibility-79a1ea067fabc0e96e28127e45492b98\",\n                    \"Target\": \"/source\",\n                    \"VolumeOptions\": {\n                        \"NoCopy\": true,\n                        \"DriverConfig\": {\n                            \"Name\": \"local\"\n                        }\n                    }\n                }\n            ],\n            \"MaskedPaths\": [\n                \"/proc/acpi\",\n                \"/proc/asound\",\n                \"/proc/interrupts\",\n                \"/proc/kcore\",\n                \"/proc/keys\",\n                \"/proc/latency_stats\",\n                \"/proc/sched_debug\",\n                \"/proc/scsi\",\n                \"/proc/timer_list\",\n                \"/proc/timer_stats\",\n                \"/sys/devices/virtual/powercap\",\n                \"/sys/firmware\"\n            ],\n            \"ReadonlyPaths\": [\n                \"/proc/bus\",\n                \"/proc/fs\",\n                \"/proc/irq\",\n                \"/proc/sys\",\n                \"/proc/sysrq-trigger\"\n            ],\n            \"Init\": false\n        },\n        \"Storage\": {\n            \"RootFS\": {\n                \"Snapshot\": {\n                    \"Name\": \"overlayfs\"\n                }\n            }\n        },\n        \"Mounts\": [\n            {\n                \"Type\": \"volume\",\n                \"Name\": \"rust-mcp-feasibility-79a1ea067fabc0e96e28127e45492b98\",\n                \"Source\": \"/var/lib/docker/volumes/rust-mcp-feasibility-79a1ea067fabc0e96e28127e45492b98/_data\",\n                \"Destination\": \"/source\",\n                \"Driver\": \"local\",\n                \"Mode\": \"z\",\n                \"RW\": true,\n                \"Propagation\": \"\"\n            }\n        ],\n        \"Config\": {\n            \"Hostname\": \"852ee02ab56c\",\n            \"Domainname\": \"\",\n            \"User\": \"0:0\",\n            \"AttachStdin\": true,\n            \"AttachStdout\": true,\n            \"AttachStderr\": true,\n            \"Tty\": false,\n            \"OpenStdin\": true,\n            \"StdinOnce\": true,\n            \"Env\": [\n                \"PATH=/opt/rust/bin:/usr/bin:/bin\",\n                \"HOME=/work\",\n                \"TMPDIR=/tmp\",\n                \"CARGO_HOME=/work/cargo\",\n                \"CARGO_TARGET_DIR=/work/target\",\n                \"CARGO_INCREMENTAL=0\",\n                \"CARGO_NET_OFFLINE=true\",\n                \"RUSTC=/opt/rust/bin/rustc\",\n                \"RUSTDOC=/opt/rust/bin/rustdoc\"\n            ],\n            \"Cmd\": [\n                \"--extract\",\n                \"--file=-\",\n                \"--directory=/source\",\n                \"--no-same-owner\",\n                \"--no-same-permissions\",\n                \"--keep-old-files\"\n            ],\n            \"Healthcheck\": {\n                \"Test\": [\n                    \"NONE\"\n                ]\n            },\n            \"Image\": \"sha256:8fac70723a8d04b6ec9633ab721806b8a55f4f083a1b3f988c61bf6a00fa1909\",\n            \"Volumes\": null,\n            \"WorkingDir\": \"/source\",\n            \"Entrypoint\": [\n                \"/usr/bin/tar\"\n            ],\n            \"Labels\": {}\n        },\n        \"NetworkSettings\": {\n            \"SandboxID\": \"\",\n            \"SandboxKey\": \"\",\n            \"Ports\": {},\n            \"Networks\": {\n                \"none\": {\n                    \"IPAMConfig\": null,\n                    \"Links\": null,\n                    \"Aliases\": null,\n                    \"DriverOpts\": null,\n                    \"GwPriority\": 0,\n                    \"NetworkID\": \"\",\n                    \"EndpointID\": \"\",\n                    \"Gateway\": \"\",\n                    \"IPAddress\": \"\",\n                    \"MacAddress\": \"\",\n                    \"IPPrefixLen\": 0,\n                    \"IPv6Gateway\": \"\",\n                    \"GlobalIPv6Address\": \"\",\n                    \"GlobalIPv6PrefixLen\": 0,\n                    \"DNSNames\": null\n                }\n            }\n        },\n        \"ImageManifestDescriptor\": {\n            \"mediaType\": \"application/vnd.oci.image.manifest.v1+json\",\n            \"digest\": \"sha256:c7ba4a32b6051a3183cc87a4095ff40a4ec0722323df807bb8bb2d1da9381220\",\n            \"size\": 669,\n            \"platform\": {\n                \"architecture\": \"arm64\",\n                \"os\": \"linux\"\n            }\n        }\n    }\n]\n",
+      "stderr": ""
+    },
+    {
+      "args": [
+        "container",
+        "start",
+        "--attach",
+        "--interactive",
+        "rust-mcp-feasibility-79a1ea067fabc0e96e28127e45492b98-ingest"
+      ],
+      "code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "args": [
+        "container",
+        "rm",
+        "rust-mcp-feasibility-79a1ea067fabc0e96e28127e45492b98-ingest"
+      ],
+      "code": 0,
+      "stdout": "rust-mcp-feasibility-79a1ea067fabc0e96e28127e45492b98-ingest\n",
+      "stderr": ""
+    },
+    {
+      "args": [
+        "container",
+        "ls",
+        "--all",
+        "--filter",
+        "name=^/rust-mcp-feasibility-79a1ea067fabc0e96e28127e45492b98-ingest$",
+        "--format",
+        "{{.ID}}"
+      ],
+      "code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "args": [
+        "container",
+        "create",
+        "--name=rust-mcp-feasibility-79a1ea067fabc0e96e28127e45492b98-check",
+        "--user=65534:65534",
+        "--pull=never",
+        "--runtime=runc",
+        "--init=false",
+        "--network=none",
+        "--read-only",
+        "--cap-drop=ALL",
+        "--security-opt=no-new-privileges=true",
+        "--security-opt=seccomp=<LOCAL_HOME>/Projects/rust-mcp/target/m1-runtime-provisioning/rust-seccomp.json",
+        "--ipc=private",
+        "--cgroupns=private",
+        "--pids-limit=128",
+        "--cpus=1",
+        "--memory=1g",
+        "--memory-swap=1g",
+        "--shm-size=1m",
+        "--log-driver=none",
+        "--no-healthcheck",
+        "--tmpfs=/work:rw,nosuid,nodev,size=512m,mode=1777",
+        "--tmpfs=/tmp:rw,nosuid,nodev,noexec,size=64m,mode=1777",
+        "--workdir=/source",
+        "--env=PATH=/opt/rust/bin:/usr/bin:/bin",
+        "--env=HOME=/work",
+        "--env=TMPDIR=/tmp",
+        "--env=CARGO_HOME=/work/cargo",
+        "--env=CARGO_TARGET_DIR=/work/target",
+        "--env=CARGO_INCREMENTAL=0",
+        "--env=CARGO_NET_OFFLINE=true",
+        "--env=RUSTC=/opt/rust/bin/rustc",
+        "--env=RUSTDOC=/opt/rust/bin/rustdoc",
+        "--mount=type=volume,source=rust-mcp-feasibility-79a1ea067fabc0e96e28127e45492b98,target=/source,readonly,volume-nocopy,volume-driver=local",
+        "--entrypoint=/opt/rust/bin/cargo",
+        "sha256:8fac70723a8d04b6ec9633ab721806b8a55f4f083a1b3f988c61bf6a00fa1909",
+        "check",
+        "--frozen",
+        "--message-format=json",
+        "--jobs=1"
+      ],
+      "code": 0,
+      "stdout": "4b91ffb4882d573c4b260ced7efef9f51612e8a20f335339a96cc794eb118135\n",
+      "stderr": ""
+    },
+    {
+      "args": [
+        "container",
+        "inspect",
+        "rust-mcp-feasibility-79a1ea067fabc0e96e28127e45492b98-check"
+      ],
+      "code": 0,
+      "stdout": "[\n    {\n        \"Id\": \"4b91ffb4882d573c4b260ced7efef9f51612e8a20f335339a96cc794eb118135\",\n        \"Created\": \"2026-09-04T04:27:07.220588965Z\",\n        \"Path\": \"/opt/rust/bin/cargo\",\n        \"Args\": [\n            \"check\",\n            \"--frozen\",\n            \"--message-format=json\",\n            \"--jobs=1\"\n        ],\n        \"State\": {\n            \"Status\": \"created\",\n            \"Running\": false,\n            \"Paused\": false,\n            \"Restarting\": false,\n            \"OOMKilled\": false,\n            \"Dead\": false,\n            \"Pid\": 0,\n            \"ExitCode\": 0,\n            \"Error\": \"\",\n            \"StartedAt\": \"0001-01-01T00:00:00Z\",\n            \"FinishedAt\": \"0001-01-01T00:00:00Z\"\n        },\n        \"Image\": \"sha256:8fac70723a8d04b6ec9633ab721806b8a55f4f083a1b3f988c61bf6a00fa1909\",\n        \"ResolvConfPath\": \"\",\n        \"HostnamePath\": \"\",\n        \"HostsPath\": \"\",\n        \"LogPath\": \"\",\n        \"Name\": \"/rust-mcp-feasibility-79a1ea067fabc0e96e28127e45492b98-check\",\n        \"RestartCount\": 0,\n        \"Driver\": \"overlayfs\",\n        \"Platform\": \"linux\",\n        \"MountLabel\": \"\",\n        \"ProcessLabel\": \"\",\n        \"AppArmorProfile\": \"\",\n        \"ExecIDs\": null,\n        \"HostConfig\": {\n            \"Binds\": null,\n            \"ContainerIDFile\": \"\",\n            \"LogConfig\": {\n                \"Type\": \"none\",\n                \"Config\": {}\n            },\n            \"NetworkMode\": \"none\",\n            \"PortBindings\": {},\n            \"RestartPolicy\": {\n                \"Name\": \"no\",\n                \"MaximumRetryCount\": 0\n            },\n            \"AutoRemove\": false,\n            \"VolumeDriver\": \"\",\n            \"VolumesFrom\": null,\n            \"ConsoleSize\": [\n                0,\n                0\n            ],\n            \"CapAdd\": null,\n            \"CapDrop\": [\n                \"ALL\"\n            ],\n            \"CgroupnsMode\": \"private\",\n            \"Dns\": null,\n            \"DnsOptions\": [],\n            \"DnsSearch\": [],\n            \"ExtraHosts\": null,\n            \"GroupAdd\": null,\n            \"IpcMode\": \"private\",\n            \"Cgroup\": \"\",\n            \"Links\": null,\n            \"OomScoreAdj\": 0,\n            \"PidMode\": \"\",\n            \"Privileged\": false,\n            \"PublishAllPorts\": false,\n            \"ReadonlyRootfs\": true,\n            \"SecurityOpt\": [\n                \"no-new-privileges=true\",\n                \"seccomp={\\\"defaultAction\\\":\\\"SCMP_ACT_ERRNO\\\",\\\"defaultErrnoRet\\\":1,\\\"archMap\\\":[{\\\"architecture\\\":\\\"SCMP_ARCH_AARCH64\\\",\\\"subArchitectures\\\":[]}],\\\"syscalls\\\":[{\\\"names\\\":[\\\"read\\\",\\\"write\\\",\\\"readv\\\",\\\"writev\\\",\\\"pread64\\\",\\\"pwrite64\\\",\\\"close\\\",\\\"openat\\\",\\\"newfstatat\\\",\\\"fstat\\\",\\\"statx\\\",\\\"lseek\\\",\\\"fcntl\\\",\\\"ioctl\\\",\\\"getdents64\\\",\\\"readlinkat\\\",\\\"readlink\\\",\\\"faccessat\\\",\\\"faccessat2\\\",\\\"mmap\\\",\\\"munmap\\\",\\\"mprotect\\\",\\\"madvise\\\",\\\"brk\\\",\\\"futex\\\",\\\"futex_waitv\\\",\\\"nanosleep\\\",\\\"clock_gettime\\\",\\\"clock_nanosleep\\\",\\\"gettimeofday\\\",\\\"getpid\\\",\\\"getppid\\\",\\\"gettid\\\",\\\"getuid\\\",\\\"geteuid\\\",\\\"getgid\\\",\\\"getegid\\\",\\\"getgroups\\\",\\\"set_tid_address\\\",\\\"set_robust_list\\\",\\\"rseq\\\",\\\"rt_sigaction\\\",\\\"rt_sigprocmask\\\",\\\"rt_sigreturn\\\",\\\"sigaltstack\\\",\\\"sched_getaffinity\\\",\\\"sched_yield\\\",\\\"sched_getparam\\\",\\\"sched_getscheduler\\\",\\\"sched_get_priority_max\\\",\\\"sched_get_priority_min\\\",\\\"uname\\\",\\\"prlimit64\\\",\\\"getrlimit\\\",\\\"getrusage\\\",\\\"getrandom\\\",\\\"exit\\\",\\\"exit_group\\\",\\\"execve\\\",\\\"execveat\\\",\\\"wait4\\\",\\\"waitid\\\",\\\"kill\\\",\\\"tgkill\\\",\\\"tkill\\\",\\\"dup\\\",\\\"dup2\\\",\\\"dup3\\\",\\\"pipe\\\",\\\"pipe2\\\",\\\"setsid\\\",\\\"getsid\\\",\\\"getpgid\\\",\\\"setpgid\\\",\\\"ftruncate\\\",\\\"truncate\\\",\\\"fsync\\\",\\\"fdatasync\\\",\\\"mkdir\\\",\\\"mkdirat\\\",\\\"rmdir\\\",\\\"unlink\\\",\\\"unlinkat\\\",\\\"rename\\\",\\\"renameat\\\",\\\"renameat2\\\",\\\"symlink\\\",\\\"symlinkat\\\",\\\"link\\\",\\\"linkat\\\",\\\"getcwd\\\",\\\"chdir\\\",\\\"fchdir\\\",\\\"chmod\\\",\\\"fchmod\\\",\\\"fchmodat\\\",\\\"fchown\\\",\\\"fchownat\\\",\\\"umask\\\",\\\"utimensat\\\",\\\"statfs\\\",\\\"fstatfs\\\",\\\"prctl\\\",\\\"epoll_create1\\\",\\\"epoll_ctl\\\",\\\"epoll_pwait\\\",\\\"epoll_pwait2\\\",\\\"eventfd2\\\",\\\"ppoll\\\",\\\"pselect6\\\",\\\"restart_syscall\\\",\\\"clock_getres\\\",\\\"flock\\\",\\\"sendto\\\",\\\"recvfrom\\\",\\\"sendmsg\\\",\\\"recvmsg\\\"],\\\"action\\\":\\\"SCMP_ACT_ALLOW\\\"},{\\\"names\\\":[\\\"clone\\\"],\\\"action\\\":\\\"SCMP_ACT_ALLOW\\\",\\\"args\\\":[{\\\"index\\\":0,\\\"value\\\":2114060288,\\\"valueTwo\\\":0,\\\"op\\\":\\\"SCMP_CMP_MASKED_EQ\\\"}]},{\\\"names\\\":[\\\"clone3\\\"],\\\"action\\\":\\\"SCMP_ACT_ERRNO\\\",\\\"errnoRet\\\":38},{\\\"names\\\":[\\\"socketpair\\\"],\\\"action\\\":\\\"SCMP_ACT_ALLOW\\\",\\\"args\\\":[{\\\"index\\\":0,\\\"value\\\":1,\\\"op\\\":\\\"SCMP_CMP_EQ\\\"},{\\\"index\\\":1,\\\"value\\\":15,\\\"valueTwo\\\":5,\\\"op\\\":\\\"SCMP_CMP_MASKED_EQ\\\"},{\\\"index\\\":2,\\\"value\\\":0,\\\"op\\\":\\\"SCMP_CMP_EQ\\\"}]}]}\"\n            ],\n            \"Tmpfs\": {\n                \"/tmp\": \"rw,nosuid,nodev,noexec,size=64m,mode=1777\",\n                \"/work\": \"rw,nosuid,nodev,size=512m,mode=1777\"\n            },\n            \"UTSMode\": \"\",\n            \"UsernsMode\": \"\",\n            \"ShmSize\": 1048576,\n            \"Runtime\": \"runc\",\n            \"Isolation\": \"\",\n            \"CpuShares\": 0,\n            \"Memory\": 1073741824,\n            \"NanoCpus\": 1000000000,\n            \"CgroupParent\": \"\",\n            \"BlkioWeight\": 0,\n            \"BlkioWeightDevice\": [],\n            \"BlkioDeviceReadBps\": [],\n            \"BlkioDeviceWriteBps\": [],\n            \"BlkioDeviceReadIOps\": [],\n            \"BlkioDeviceWriteIOps\": [],\n            \"CpuPeriod\": 0,\n            \"CpuQuota\": 0,\n            \"CpuRealtimePeriod\": 0,\n            \"CpuRealtimeRuntime\": 0,\n            \"CpusetCpus\": \"\",\n            \"CpusetMems\": \"\",\n            \"Devices\": [],\n            \"DeviceCgroupRules\": null,\n            \"DeviceRequests\": null,\n            \"MemoryReservation\": 0,\n            \"MemorySwap\": 1073741824,\n            \"MemorySwappiness\": null,\n            \"OomKillDisable\": false,\n            \"PidsLimit\": 128,\n            \"Ulimits\": [],\n            \"CpuCount\": 0,\n            \"CpuPercent\": 0,\n            \"IOMaximumIOps\": 0,\n            \"IOMaximumBandwidth\": 0,\n            \"Mounts\": [\n                {\n                    \"Type\": \"volume\",\n                    \"Source\": \"rust-mcp-feasibility-79a1ea067fabc0e96e28127e45492b98\",\n                    \"Target\": \"/source\",\n                    \"ReadOnly\": true,\n                    \"VolumeOptions\": {\n                        \"NoCopy\": true,\n                        \"DriverConfig\": {\n                            \"Name\": \"local\"\n                        }\n                    }\n                }\n            ],\n            \"MaskedPaths\": [\n                \"/proc/acpi\",\n                \"/proc/asound\",\n                \"/proc/interrupts\",\n                \"/proc/kcore\",\n                \"/proc/keys\",\n                \"/proc/latency_stats\",\n                \"/proc/sched_debug\",\n                \"/proc/scsi\",\n                \"/proc/timer_list\",\n                \"/proc/timer_stats\",\n                \"/sys/devices/virtual/powercap\",\n                \"/sys/firmware\"\n            ],\n            \"ReadonlyPaths\": [\n                \"/proc/bus\",\n                \"/proc/fs\",\n                \"/proc/irq\",\n                \"/proc/sys\",\n                \"/proc/sysrq-trigger\"\n            ],\n            \"Init\": false\n        },\n        \"Storage\": {\n            \"RootFS\": {\n                \"Snapshot\": {\n                    \"Name\": \"overlayfs\"\n                }\n            }\n        },\n        \"Mounts\": [\n            {\n                \"Type\": \"volume\",\n                \"Name\": \"rust-mcp-feasibility-79a1ea067fabc0e96e28127e45492b98\",\n                \"Source\": \"/var/lib/docker/volumes/rust-mcp-feasibility-79a1ea067fabc0e96e28127e45492b98/_data\",\n                \"Destination\": \"/source\",\n                \"Driver\": \"local\",\n                \"Mode\": \"z\",\n                \"RW\": false,\n                \"Propagation\": \"\"\n            }\n        ],\n        \"Config\": {\n            \"Hostname\": \"4b91ffb4882d\",\n            \"Domainname\": \"\",\n            \"User\": \"65534:65534\",\n            \"AttachStdin\": false,\n            \"AttachStdout\": true,\n            \"AttachStderr\": true,\n            \"Tty\": false,\n            \"OpenStdin\": false,\n            \"StdinOnce\": false,\n            \"Env\": [\n                \"HOME=/work\",\n                \"CARGO_HOME=/work/cargo\",\n                \"CARGO_INCREMENTAL=0\",\n                \"PATH=/opt/rust/bin:/usr/bin:/bin\",\n                \"TMPDIR=/tmp\",\n                \"CARGO_TARGET_DIR=/work/target\",\n                \"CARGO_NET_OFFLINE=true\",\n                \"RUSTC=/opt/rust/bin/rustc\",\n                \"RUSTDOC=/opt/rust/bin/rustdoc\"\n            ],\n            \"Cmd\": [\n                \"check\",\n                \"--frozen\",\n                \"--message-format=json\",\n                \"--jobs=1\"\n            ],\n            \"Healthcheck\": {\n                \"Test\": [\n                    \"NONE\"\n                ]\n            },\n            \"Image\": \"sha256:8fac70723a8d04b6ec9633ab721806b8a55f4f083a1b3f988c61bf6a00fa1909\",\n            \"Volumes\": null,\n            \"WorkingDir\": \"/source\",\n            \"Entrypoint\": [\n                \"/opt/rust/bin/cargo\"\n            ],\n            \"Labels\": {}\n        },\n        \"NetworkSettings\": {\n            \"SandboxID\": \"\",\n            \"SandboxKey\": \"\",\n            \"Ports\": {},\n            \"Networks\": {\n                \"none\": {\n                    \"IPAMConfig\": null,\n                    \"Links\": null,\n                    \"Aliases\": null,\n                    \"DriverOpts\": null,\n                    \"GwPriority\": 0,\n                    \"NetworkID\": \"\",\n                    \"EndpointID\": \"\",\n                    \"Gateway\": \"\",\n                    \"IPAddress\": \"\",\n                    \"MacAddress\": \"\",\n                    \"IPPrefixLen\": 0,\n                    \"IPv6Gateway\": \"\",\n                    \"GlobalIPv6Address\": \"\",\n                    \"GlobalIPv6PrefixLen\": 0,\n                    \"DNSNames\": null\n                }\n            }\n        },\n        \"ImageManifestDescriptor\": {\n            \"mediaType\": \"application/vnd.oci.image.manifest.v1+json\",\n            \"digest\": \"sha256:c7ba4a32b6051a3183cc87a4095ff40a4ec0722323df807bb8bb2d1da9381220\",\n            \"size\": 669,\n            \"platform\": {\n                \"architecture\": \"arm64\",\n                \"os\": \"linux\"\n            }\n        }\n    }\n]\n",
+      "stderr": ""
+    },
+    {
+      "args": [
+        "container",
+        "start",
+        "--attach",
+        "rust-mcp-feasibility-79a1ea067fabc0e96e28127e45492b98-check"
+      ],
+      "code": 0,
+      "stdout": "{\"reason\":\"compiler-artifact\",\"package_id\":\"path+file:///source#m1_probe@0.1.0\",\"manifest_path\":\"/source/Cargo.toml\",\"target\":{\"kind\":[\"lib\"],\"crate_types\":[\"lib\"],\"name\":\"m1_probe\",\"src_path\":\"/source/src/lib.rs\",\"edition\":\"2024\",\"doc\":true,\"doctest\":true,\"test\":true},\"profile\":{\"opt_level\":\"0\",\"debuginfo\":2,\"debug_assertions\":true,\"overflow_checks\":true,\"test\":false},\"features\":[],\"filenames\":[\"/work/target/debug/deps/libm1_probe-79e233154b26fa2d.rmeta\"],\"executable\":null,\"fresh\":false}\n{\"reason\":\"build-finished\",\"success\":true}\n",
+      "stderr": "    Checking m1_probe v0.1.0 (/source)\n    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.06s\n"
+    },
+    {
+      "args": [
+        "container",
+        "inspect",
+        "rust-mcp-feasibility-79a1ea067fabc0e96e28127e45492b98-check"
+      ],
+      "code": 0,
+      "stdout": "[\n    {\n        \"Id\": \"4b91ffb4882d573c4b260ced7efef9f51612e8a20f335339a96cc794eb118135\",\n        \"Created\": \"2026-09-04T04:27:07.220588965Z\",\n        \"Path\": \"/opt/rust/bin/cargo\",\n        \"Args\": [\n            \"check\",\n            \"--frozen\",\n            \"--message-format=json\",\n            \"--jobs=1\"\n        ],\n        \"State\": {\n            \"Status\": \"exited\",\n            \"Running\": false,\n            \"Paused\": false,\n            \"Restarting\": false,\n            \"OOMKilled\": false,\n            \"Dead\": false,\n            \"Pid\": 0,\n            \"ExitCode\": 0,\n            \"Error\": \"\",\n            \"StartedAt\": \"2026-09-04T04:27:07.269153465Z\",\n            \"FinishedAt\": \"2026-09-04T04:27:07.359914465Z\"\n        },\n        \"Image\": \"sha256:8fac70723a8d04b6ec9633ab721806b8a55f4f083a1b3f988c61bf6a00fa1909\",\n        \"ResolvConfPath\": \"/var/lib/docker/containers/4b91ffb4882d573c4b260ced7efef9f51612e8a20f335339a96cc794eb118135/resolv.conf\",\n        \"HostnamePath\": \"/var/lib/docker/containers/4b91ffb4882d573c4b260ced7efef9f51612e8a20f335339a96cc794eb118135/hostname\",\n        \"HostsPath\": \"/var/lib/docker/containers/4b91ffb4882d573c4b260ced7efef9f51612e8a20f335339a96cc794eb118135/hosts\",\n        \"LogPath\": \"\",\n        \"Name\": \"/rust-mcp-feasibility-79a1ea067fabc0e96e28127e45492b98-check\",\n        \"RestartCount\": 0,\n        \"Driver\": \"overlayfs\",\n        \"Platform\": \"linux\",\n        \"MountLabel\": \"\",\n        \"ProcessLabel\": \"\",\n        \"AppArmorProfile\": \"\",\n        \"ExecIDs\": null,\n        \"HostConfig\": {\n            \"Binds\": null,\n            \"ContainerIDFile\": \"\",\n            \"LogConfig\": {\n                \"Type\": \"none\",\n                \"Config\": {}\n            },\n            \"NetworkMode\": \"none\",\n            \"PortBindings\": {},\n            \"RestartPolicy\": {\n                \"Name\": \"no\",\n                \"MaximumRetryCount\": 0\n            },\n            \"AutoRemove\": false,\n            \"VolumeDriver\": \"\",\n            \"VolumesFrom\": null,\n            \"ConsoleSize\": [\n                0,\n                0\n            ],\n            \"CapAdd\": null,\n            \"CapDrop\": [\n                \"ALL\"\n            ],\n            \"CgroupnsMode\": \"private\",\n            \"Dns\": null,\n            \"DnsOptions\": [],\n            \"DnsSearch\": [],\n            \"ExtraHosts\": null,\n            \"GroupAdd\": null,\n            \"IpcMode\": \"private\",\n            \"Cgroup\": \"\",\n            \"Links\": null,\n            \"OomScoreAdj\": 0,\n            \"PidMode\": \"\",\n            \"Privileged\": false,\n            \"PublishAllPorts\": false,\n            \"ReadonlyRootfs\": true,\n            \"SecurityOpt\": [\n                \"no-new-privileges=true\",\n                \"seccomp={\\\"defaultAction\\\":\\\"SCMP_ACT_ERRNO\\\",\\\"defaultErrnoRet\\\":1,\\\"archMap\\\":[{\\\"architecture\\\":\\\"SCMP_ARCH_AARCH64\\\",\\\"subArchitectures\\\":[]}],\\\"syscalls\\\":[{\\\"names\\\":[\\\"read\\\",\\\"write\\\",\\\"readv\\\",\\\"writev\\\",\\\"pread64\\\",\\\"pwrite64\\\",\\\"close\\\",\\\"openat\\\",\\\"newfstatat\\\",\\\"fstat\\\",\\\"statx\\\",\\\"lseek\\\",\\\"fcntl\\\",\\\"ioctl\\\",\\\"getdents64\\\",\\\"readlinkat\\\",\\\"readlink\\\",\\\"faccessat\\\",\\\"faccessat2\\\",\\\"mmap\\\",\\\"munmap\\\",\\\"mprotect\\\",\\\"madvise\\\",\\\"brk\\\",\\\"futex\\\",\\\"futex_waitv\\\",\\\"nanosleep\\\",\\\"clock_gettime\\\",\\\"clock_nanosleep\\\",\\\"gettimeofday\\\",\\\"getpid\\\",\\\"getppid\\\",\\\"gettid\\\",\\\"getuid\\\",\\\"geteuid\\\",\\\"getgid\\\",\\\"getegid\\\",\\\"getgroups\\\",\\\"set_tid_address\\\",\\\"set_robust_list\\\",\\\"rseq\\\",\\\"rt_sigaction\\\",\\\"rt_sigprocmask\\\",\\\"rt_sigreturn\\\",\\\"sigaltstack\\\",\\\"sched_getaffinity\\\",\\\"sched_yield\\\",\\\"sched_getparam\\\",\\\"sched_getscheduler\\\",\\\"sched_get_priority_max\\\",\\\"sched_get_priority_min\\\",\\\"uname\\\",\\\"prlimit64\\\",\\\"getrlimit\\\",\\\"getrusage\\\",\\\"getrandom\\\",\\\"exit\\\",\\\"exit_group\\\",\\\"execve\\\",\\\"execveat\\\",\\\"wait4\\\",\\\"waitid\\\",\\\"kill\\\",\\\"tgkill\\\",\\\"tkill\\\",\\\"dup\\\",\\\"dup2\\\",\\\"dup3\\\",\\\"pipe\\\",\\\"pipe2\\\",\\\"setsid\\\",\\\"getsid\\\",\\\"getpgid\\\",\\\"setpgid\\\",\\\"ftruncate\\\",\\\"truncate\\\",\\\"fsync\\\",\\\"fdatasync\\\",\\\"mkdir\\\",\\\"mkdirat\\\",\\\"rmdir\\\",\\\"unlink\\\",\\\"unlinkat\\\",\\\"rename\\\",\\\"renameat\\\",\\\"renameat2\\\",\\\"symlink\\\",\\\"symlinkat\\\",\\\"link\\\",\\\"linkat\\\",\\\"getcwd\\\",\\\"chdir\\\",\\\"fchdir\\\",\\\"chmod\\\",\\\"fchmod\\\",\\\"fchmodat\\\",\\\"fchown\\\",\\\"fchownat\\\",\\\"umask\\\",\\\"utimensat\\\",\\\"statfs\\\",\\\"fstatfs\\\",\\\"prctl\\\",\\\"epoll_create1\\\",\\\"epoll_ctl\\\",\\\"epoll_pwait\\\",\\\"epoll_pwait2\\\",\\\"eventfd2\\\",\\\"ppoll\\\",\\\"pselect6\\\",\\\"restart_syscall\\\",\\\"clock_getres\\\",\\\"flock\\\",\\\"sendto\\\",\\\"recvfrom\\\",\\\"sendmsg\\\",\\\"recvmsg\\\"],\\\"action\\\":\\\"SCMP_ACT_ALLOW\\\"},{\\\"names\\\":[\\\"clone\\\"],\\\"action\\\":\\\"SCMP_ACT_ALLOW\\\",\\\"args\\\":[{\\\"index\\\":0,\\\"value\\\":2114060288,\\\"valueTwo\\\":0,\\\"op\\\":\\\"SCMP_CMP_MASKED_EQ\\\"}]},{\\\"names\\\":[\\\"clone3\\\"],\\\"action\\\":\\\"SCMP_ACT_ERRNO\\\",\\\"errnoRet\\\":38},{\\\"names\\\":[\\\"socketpair\\\"],\\\"action\\\":\\\"SCMP_ACT_ALLOW\\\",\\\"args\\\":[{\\\"index\\\":0,\\\"value\\\":1,\\\"op\\\":\\\"SCMP_CMP_EQ\\\"},{\\\"index\\\":1,\\\"value\\\":15,\\\"valueTwo\\\":5,\\\"op\\\":\\\"SCMP_CMP_MASKED_EQ\\\"},{\\\"index\\\":2,\\\"value\\\":0,\\\"op\\\":\\\"SCMP_CMP_EQ\\\"}]}]}\"\n            ],\n            \"Tmpfs\": {\n                \"/tmp\": \"rw,nosuid,nodev,noexec,size=64m,mode=1777\",\n                \"/work\": \"rw,nosuid,nodev,size=512m,mode=1777\"\n            },\n            \"UTSMode\": \"\",\n            \"UsernsMode\": \"\",\n            \"ShmSize\": 1048576,\n            \"Runtime\": \"runc\",\n            \"Isolation\": \"\",\n            \"CpuShares\": 0,\n            \"Memory\": 1073741824,\n            \"NanoCpus\": 1000000000,\n            \"CgroupParent\": \"\",\n            \"BlkioWeight\": 0,\n            \"BlkioWeightDevice\": [],\n            \"BlkioDeviceReadBps\": [],\n            \"BlkioDeviceWriteBps\": [],\n            \"BlkioDeviceReadIOps\": [],\n            \"BlkioDeviceWriteIOps\": [],\n            \"CpuPeriod\": 0,\n            \"CpuQuota\": 0,\n            \"CpuRealtimePeriod\": 0,\n            \"CpuRealtimeRuntime\": 0,\n            \"CpusetCpus\": \"\",\n            \"CpusetMems\": \"\",\n            \"Devices\": [],\n            \"DeviceCgroupRules\": null,\n            \"DeviceRequests\": null,\n            \"MemoryReservation\": 0,\n            \"MemorySwap\": 1073741824,\n            \"MemorySwappiness\": null,\n            \"OomKillDisable\": null,\n            \"PidsLimit\": 128,\n            \"Ulimits\": [],\n            \"CpuCount\": 0,\n            \"CpuPercent\": 0,\n            \"IOMaximumIOps\": 0,\n            \"IOMaximumBandwidth\": 0,\n            \"Mounts\": [\n                {\n                    \"Type\": \"volume\",\n                    \"Source\": \"rust-mcp-feasibility-79a1ea067fabc0e96e28127e45492b98\",\n                    \"Target\": \"/source\",\n                    \"ReadOnly\": true,\n                    \"VolumeOptions\": {\n                        \"NoCopy\": true,\n                        \"DriverConfig\": {\n                            \"Name\": \"local\"\n                        }\n                    }\n                }\n            ],\n            \"MaskedPaths\": [\n                \"/proc/acpi\",\n                \"/proc/asound\",\n                \"/proc/interrupts\",\n                \"/proc/kcore\",\n                \"/proc/keys\",\n                \"/proc/latency_stats\",\n                \"/proc/sched_debug\",\n                \"/proc/scsi\",\n                \"/proc/timer_list\",\n                \"/proc/timer_stats\",\n                \"/sys/devices/virtual/powercap\",\n                \"/sys/firmware\"\n            ],\n            \"ReadonlyPaths\": [\n                \"/proc/bus\",\n                \"/proc/fs\",\n                \"/proc/irq\",\n                \"/proc/sys\",\n                \"/proc/sysrq-trigger\"\n            ],\n            \"Init\": false\n        },\n        \"Storage\": {\n            \"RootFS\": {\n                \"Snapshot\": {\n                    \"Name\": \"overlayfs\"\n                }\n            }\n        },\n        \"Mounts\": [\n            {\n                \"Type\": \"volume\",\n                \"Name\": \"rust-mcp-feasibility-79a1ea067fabc0e96e28127e45492b98\",\n                \"Source\": \"/var/lib/docker/volumes/rust-mcp-feasibility-79a1ea067fabc0e96e28127e45492b98/_data\",\n                \"Destination\": \"/source\",\n                \"Driver\": \"local\",\n                \"Mode\": \"z\",\n                \"RW\": false,\n                \"Propagation\": \"\"\n            }\n        ],\n        \"Config\": {\n            \"Hostname\": \"4b91ffb4882d\",\n            \"Domainname\": \"\",\n            \"User\": \"65534:65534\",\n            \"AttachStdin\": false,\n            \"AttachStdout\": true,\n            \"AttachStderr\": true,\n            \"Tty\": false,\n            \"OpenStdin\": false,\n            \"StdinOnce\": false,\n            \"Env\": [\n                \"HOME=/work\",\n                \"CARGO_HOME=/work/cargo\",\n                \"CARGO_INCREMENTAL=0\",\n                \"PATH=/opt/rust/bin:/usr/bin:/bin\",\n                \"TMPDIR=/tmp\",\n                \"CARGO_TARGET_DIR=/work/target\",\n                \"CARGO_NET_OFFLINE=true\",\n                \"RUSTC=/opt/rust/bin/rustc\",\n                \"RUSTDOC=/opt/rust/bin/rustdoc\"\n            ],\n            \"Cmd\": [\n                \"check\",\n                \"--frozen\",\n                \"--message-format=json\",\n                \"--jobs=1\"\n            ],\n            \"Healthcheck\": {\n                \"Test\": [\n                    \"NONE\"\n                ]\n            },\n            \"Image\": \"sha256:8fac70723a8d04b6ec9633ab721806b8a55f4f083a1b3f988c61bf6a00fa1909\",\n            \"Volumes\": null,\n            \"WorkingDir\": \"/source\",\n            \"Entrypoint\": [\n                \"/opt/rust/bin/cargo\"\n            ],\n            \"Labels\": {}\n        },\n        \"NetworkSettings\": {\n            \"SandboxID\": \"\",\n            \"SandboxKey\": \"\",\n            \"Ports\": {},\n            \"Networks\": {\n                \"none\": {\n                    \"IPAMConfig\": null,\n                    \"Links\": null,\n                    \"Aliases\": null,\n                    \"DriverOpts\": null,\n                    \"GwPriority\": 0,\n                    \"NetworkID\": \"1234065d2cef6eb5d5c0350c25a3ba970d46ae05bb7a67ddc9a271c16c01c1ff\",\n                    \"EndpointID\": \"\",\n                    \"Gateway\": \"\",\n                    \"IPAddress\": \"\",\n                    \"MacAddress\": \"\",\n                    \"IPPrefixLen\": 0,\n                    \"IPv6Gateway\": \"\",\n                    \"GlobalIPv6Address\": \"\",\n                    \"GlobalIPv6PrefixLen\": 0,\n                    \"DNSNames\": null\n                }\n            }\n        },\n        \"ImageManifestDescriptor\": {\n            \"mediaType\": \"application/vnd.oci.image.manifest.v1+json\",\n            \"digest\": \"sha256:c7ba4a32b6051a3183cc87a4095ff40a4ec0722323df807bb8bb2d1da9381220\",\n            \"size\": 669,\n            \"platform\": {\n                \"architecture\": \"arm64\",\n                \"os\": \"linux\"\n            }\n        }\n    }\n]\n",
+      "stderr": ""
+    },
+    {
+      "args": [
+        "container",
+        "ls",
+        "--all",
+        "--filter",
+        "name=^/rust-mcp-feasibility-79a1ea067fabc0e96e28127e45492b98-check$",
+        "--format",
+        "{{.ID}}"
+      ],
+      "code": 0,
+      "stdout": "4b91ffb4882d\n",
+      "stderr": ""
+    },
+    {
+      "args": [
+        "container",
+        "rm",
+        "--force",
+        "rust-mcp-feasibility-79a1ea067fabc0e96e28127e45492b98-check"
+      ],
+      "code": 0,
+      "stdout": "rust-mcp-feasibility-79a1ea067fabc0e96e28127e45492b98-check\n",
+      "stderr": ""
+    },
+    {
+      "args": [
+        "container",
+        "ls",
+        "--all",
+        "--filter",
+        "name=^/rust-mcp-feasibility-79a1ea067fabc0e96e28127e45492b98-check$",
+        "--format",
+        "{{.ID}}"
+      ],
+      "code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "args": [
+        "container",
+        "ls",
+        "--all",
+        "--filter",
+        "name=^/rust-mcp-feasibility-79a1ea067fabc0e96e28127e45492b98-ingest$",
+        "--format",
+        "{{.ID}}"
+      ],
+      "code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "args": [
+        "container",
+        "ls",
+        "--all",
+        "--filter",
+        "name=^/rust-mcp-feasibility-79a1ea067fabc0e96e28127e45492b98-ingest$",
+        "--format",
+        "{{.ID}}"
+      ],
+      "code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "args": [
+        "volume",
+        "rm",
+        "rust-mcp-feasibility-79a1ea067fabc0e96e28127e45492b98"
+      ],
+      "code": 0,
+      "stdout": "rust-mcp-feasibility-79a1ea067fabc0e96e28127e45492b98\n",
+      "stderr": ""
+    },
+    {
+      "args": [
+        "volume",
+        "ls",
+        "--filter",
+        "name=^rust-mcp-feasibility-79a1ea067fabc0e96e28127e45492b98$",
+        "--format",
+        "{{.Name}}"
+      ],
+      "code": 0,
+      "stdout": "",
+      "stderr": ""
+    }
+  ]
+}

@@ -1,0 +1,14 @@
+{
+  "actual_compiler_borrow_explanation": true,
+  "cases": 10,
+  "cleanup": true,
+  "configuration_fingerprint": "sha256:487cef3409e76e7d9c37afad9454e565023a8f1c9cf7581bed76c6f8b143f62e",
+  "content_fingerprint": "sha256:2bf89338721f264f131d77a97d61094217c63ee31f0bfaf126ee45a412c227af",
+  "content_sha256_verified": 2,
+  "eof_cleanup": true,
+  "execution_fingerprint": "sha256:79dc496e9f5c94a0f773f18aba1e3f0672d64322d70155db95f03c0c40f6fe26",
+  "invalid_codes_rejected_before_work": 8,
+  "no_resources_created": true,
+  "no_roots_or_project_handle": true,
+  "unknown_code_unavailable_without_fabrication": true
+}

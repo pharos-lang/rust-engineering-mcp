@@ -1,0 +1,14 @@
+# MINIMAL AUDIT INPUT: intentionally omits RSA transitive dependencies.
+# Not a complete build lockfile; never pass this fixture to Cargo.
+version = 4
+
+[[package]]
+name = "fixture-vulnerable-dependency"
+version = "0.1.0"
+dependencies = ["rsa"]
+
+[[package]]
+name = "rsa"
+version = "0.9.6"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "5d0e5124fcb30e76a7e79bfee683a2746db83784b86289f6251b54b7950a0dfc"

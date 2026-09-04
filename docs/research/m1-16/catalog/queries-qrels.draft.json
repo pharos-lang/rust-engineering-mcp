@@ -1,0 +1,647 @@
+{
+  "judgment_scope": "Closed 16-version research corpus labels; no general package relevance claim.",
+  "queries": [
+    {
+      "accepted_identities": [
+        "toml@0.9.12+spec-1.1.0"
+      ],
+      "filters": {
+        "allow_yanked": false,
+        "include_prerelease": false,
+        "msrv_lte": "1.80"
+      },
+      "id": "S01-en",
+      "intent_id": "S01",
+      "language": "en",
+      "qrels": [
+        {
+          "identity": "serde@1.0.228",
+          "relevance": 0
+        },
+        {
+          "identity": "serde_json@1.0.150",
+          "relevance": 0
+        },
+        {
+          "identity": "toml@0.9.12+spec-1.1.0",
+          "relevance": 1
+        },
+        {
+          "identity": "toml@1.1.5+spec-1.1.0",
+          "relevance": 0
+        },
+        {
+          "identity": "toml_edit@0.25.12+spec-1.1.0",
+          "relevance": 0
+        },
+        {
+          "identity": "syn@2.0.118",
+          "relevance": 0
+        },
+        {
+          "identity": "regex@1.13.0",
+          "relevance": 0
+        },
+        {
+          "identity": "unicode-normalization@0.1.25",
+          "relevance": 0
+        },
+        {
+          "identity": "unicode-segmentation@1.13.3",
+          "relevance": 0
+        },
+        {
+          "identity": "unicode-ident@1.0.24",
+          "relevance": 0
+        },
+        {
+          "identity": "tokio@1.53.1",
+          "relevance": 0
+        },
+        {
+          "identity": "crossbeam-channel@0.5.16",
+          "relevance": 0
+        },
+        {
+          "identity": "flume@0.12.0",
+          "relevance": 0
+        },
+        {
+          "identity": "async-channel@2.5.0",
+          "relevance": 0
+        },
+        {
+          "identity": "bytes@1.12.1",
+          "relevance": 0
+        },
+        {
+          "identity": "prettyplease@0.2.37",
+          "relevance": 0
+        }
+      ],
+      "query": "TOML configuration Serde parsing"
+    },
+    {
+      "accepted_identities": [
+        "toml@0.9.12+spec-1.1.0"
+      ],
+      "filters": {
+        "allow_yanked": false,
+        "include_prerelease": false,
+        "msrv_lte": "1.80"
+      },
+      "id": "S01-es",
+      "intent_id": "S01",
+      "language": "es",
+      "qrels": [
+        {
+          "identity": "serde@1.0.228",
+          "relevance": 0
+        },
+        {
+          "identity": "serde_json@1.0.150",
+          "relevance": 0
+        },
+        {
+          "identity": "toml@0.9.12+spec-1.1.0",
+          "relevance": 1
+        },
+        {
+          "identity": "toml@1.1.5+spec-1.1.0",
+          "relevance": 0
+        },
+        {
+          "identity": "toml_edit@0.25.12+spec-1.1.0",
+          "relevance": 0
+        },
+        {
+          "identity": "syn@2.0.118",
+          "relevance": 0
+        },
+        {
+          "identity": "regex@1.13.0",
+          "relevance": 0
+        },
+        {
+          "identity": "unicode-normalization@0.1.25",
+          "relevance": 0
+        },
+        {
+          "identity": "unicode-segmentation@1.13.3",
+          "relevance": 0
+        },
+        {
+          "identity": "unicode-ident@1.0.24",
+          "relevance": 0
+        },
+        {
+          "identity": "tokio@1.53.1",
+          "relevance": 0
+        },
+        {
+          "identity": "crossbeam-channel@0.5.16",
+          "relevance": 0
+        },
+        {
+          "identity": "flume@0.12.0",
+          "relevance": 0
+        },
+        {
+          "identity": "async-channel@2.5.0",
+          "relevance": 0
+        },
+        {
+          "identity": "bytes@1.12.1",
+          "relevance": 0
+        },
+        {
+          "identity": "prettyplease@0.2.37",
+          "relevance": 0
+        }
+      ],
+      "query": "TOML configuración deserializar Serde"
+    },
+    {
+      "accepted_identities": [
+        "unicode-normalization@0.1.25"
+      ],
+      "filters": {
+        "allow_yanked": false,
+        "include_prerelease": false,
+        "msrv_lte": "1.70"
+      },
+      "id": "S02-en",
+      "intent_id": "S02",
+      "language": "en",
+      "qrels": [
+        {
+          "identity": "serde@1.0.228",
+          "relevance": 0
+        },
+        {
+          "identity": "serde_json@1.0.150",
+          "relevance": 0
+        },
+        {
+          "identity": "toml@0.9.12+spec-1.1.0",
+          "relevance": 0
+        },
+        {
+          "identity": "toml@1.1.5+spec-1.1.0",
+          "relevance": 0
+        },
+        {
+          "identity": "toml_edit@0.25.12+spec-1.1.0",
+          "relevance": 0
+        },
+        {
+          "identity": "syn@2.0.118",
+          "relevance": 0
+        },
+        {
+          "identity": "regex@1.13.0",
+          "relevance": 0
+        },
+        {
+          "identity": "unicode-normalization@0.1.25",
+          "relevance": 1
+        },
+        {
+          "identity": "unicode-segmentation@1.13.3",
+          "relevance": 0
+        },
+        {
+          "identity": "unicode-ident@1.0.24",
+          "relevance": 0
+        },
+        {
+          "identity": "tokio@1.53.1",
+          "relevance": 0
+        },
+        {
+          "identity": "crossbeam-channel@0.5.16",
+          "relevance": 0
+        },
+        {
+          "identity": "flume@0.12.0",
+          "relevance": 0
+        },
+        {
+          "identity": "async-channel@2.5.0",
+          "relevance": 0
+        },
+        {
+          "identity": "bytes@1.12.1",
+          "relevance": 0
+        },
+        {
+          "identity": "prettyplease@0.2.37",
+          "relevance": 0
+        }
+      ],
+      "query": "Unicode canonical composition NFC"
+    },
+    {
+      "accepted_identities": [
+        "unicode-normalization@0.1.25"
+      ],
+      "filters": {
+        "allow_yanked": false,
+        "include_prerelease": false,
+        "msrv_lte": "1.70"
+      },
+      "id": "S02-es",
+      "intent_id": "S02",
+      "language": "es",
+      "qrels": [
+        {
+          "identity": "serde@1.0.228",
+          "relevance": 0
+        },
+        {
+          "identity": "serde_json@1.0.150",
+          "relevance": 0
+        },
+        {
+          "identity": "toml@0.9.12+spec-1.1.0",
+          "relevance": 0
+        },
+        {
+          "identity": "toml@1.1.5+spec-1.1.0",
+          "relevance": 0
+        },
+        {
+          "identity": "toml_edit@0.25.12+spec-1.1.0",
+          "relevance": 0
+        },
+        {
+          "identity": "syn@2.0.118",
+          "relevance": 0
+        },
+        {
+          "identity": "regex@1.13.0",
+          "relevance": 0
+        },
+        {
+          "identity": "unicode-normalization@0.1.25",
+          "relevance": 1
+        },
+        {
+          "identity": "unicode-segmentation@1.13.3",
+          "relevance": 0
+        },
+        {
+          "identity": "unicode-ident@1.0.24",
+          "relevance": 0
+        },
+        {
+          "identity": "tokio@1.53.1",
+          "relevance": 0
+        },
+        {
+          "identity": "crossbeam-channel@0.5.16",
+          "relevance": 0
+        },
+        {
+          "identity": "flume@0.12.0",
+          "relevance": 0
+        },
+        {
+          "identity": "async-channel@2.5.0",
+          "relevance": 0
+        },
+        {
+          "identity": "bytes@1.12.1",
+          "relevance": 0
+        },
+        {
+          "identity": "prettyplease@0.2.37",
+          "relevance": 0
+        }
+      ],
+      "query": "Unicode composición canónica NFC"
+    },
+    {
+      "accepted_identities": [
+        "serde_json@1.0.150"
+      ],
+      "filters": {
+        "allow_yanked": false,
+        "include_prerelease": false,
+        "msrv_lte": "1.75"
+      },
+      "id": "S03-en",
+      "intent_id": "S03",
+      "language": "en",
+      "qrels": [
+        {
+          "identity": "serde@1.0.228",
+          "relevance": 0
+        },
+        {
+          "identity": "serde_json@1.0.150",
+          "relevance": 1
+        },
+        {
+          "identity": "toml@0.9.12+spec-1.1.0",
+          "relevance": 0
+        },
+        {
+          "identity": "toml@1.1.5+spec-1.1.0",
+          "relevance": 0
+        },
+        {
+          "identity": "toml_edit@0.25.12+spec-1.1.0",
+          "relevance": 0
+        },
+        {
+          "identity": "syn@2.0.118",
+          "relevance": 0
+        },
+        {
+          "identity": "regex@1.13.0",
+          "relevance": 0
+        },
+        {
+          "identity": "unicode-normalization@0.1.25",
+          "relevance": 0
+        },
+        {
+          "identity": "unicode-segmentation@1.13.3",
+          "relevance": 0
+        },
+        {
+          "identity": "unicode-ident@1.0.24",
+          "relevance": 0
+        },
+        {
+          "identity": "tokio@1.53.1",
+          "relevance": 0
+        },
+        {
+          "identity": "crossbeam-channel@0.5.16",
+          "relevance": 0
+        },
+        {
+          "identity": "flume@0.12.0",
+          "relevance": 0
+        },
+        {
+          "identity": "async-channel@2.5.0",
+          "relevance": 0
+        },
+        {
+          "identity": "bytes@1.12.1",
+          "relevance": 0
+        },
+        {
+          "identity": "prettyplease@0.2.37",
+          "relevance": 0
+        }
+      ],
+      "query": "JSON object sorted keys BTreeMap"
+    },
+    {
+      "accepted_identities": [
+        "serde_json@1.0.150"
+      ],
+      "filters": {
+        "allow_yanked": false,
+        "include_prerelease": false,
+        "msrv_lte": "1.75"
+      },
+      "id": "S03-es",
+      "intent_id": "S03",
+      "language": "es",
+      "qrels": [
+        {
+          "identity": "serde@1.0.228",
+          "relevance": 0
+        },
+        {
+          "identity": "serde_json@1.0.150",
+          "relevance": 1
+        },
+        {
+          "identity": "toml@0.9.12+spec-1.1.0",
+          "relevance": 0
+        },
+        {
+          "identity": "toml@1.1.5+spec-1.1.0",
+          "relevance": 0
+        },
+        {
+          "identity": "toml_edit@0.25.12+spec-1.1.0",
+          "relevance": 0
+        },
+        {
+          "identity": "syn@2.0.118",
+          "relevance": 0
+        },
+        {
+          "identity": "regex@1.13.0",
+          "relevance": 0
+        },
+        {
+          "identity": "unicode-normalization@0.1.25",
+          "relevance": 0
+        },
+        {
+          "identity": "unicode-segmentation@1.13.3",
+          "relevance": 0
+        },
+        {
+          "identity": "unicode-ident@1.0.24",
+          "relevance": 0
+        },
+        {
+          "identity": "tokio@1.53.1",
+          "relevance": 0
+        },
+        {
+          "identity": "crossbeam-channel@0.5.16",
+          "relevance": 0
+        },
+        {
+          "identity": "flume@0.12.0",
+          "relevance": 0
+        },
+        {
+          "identity": "async-channel@2.5.0",
+          "relevance": 0
+        },
+        {
+          "identity": "bytes@1.12.1",
+          "relevance": 0
+        },
+        {
+          "identity": "prettyplease@0.2.37",
+          "relevance": 0
+        }
+      ],
+      "query": "JSON objeto claves ordenadas BTreeMap"
+    },
+    {
+      "accepted_identities": [
+        "async-channel@2.5.0"
+      ],
+      "filters": {
+        "allow_yanked": false,
+        "include_prerelease": false,
+        "msrv_lte": "1.70"
+      },
+      "id": "S04-en",
+      "intent_id": "S04",
+      "language": "en",
+      "qrels": [
+        {
+          "identity": "serde@1.0.228",
+          "relevance": 0
+        },
+        {
+          "identity": "serde_json@1.0.150",
+          "relevance": 0
+        },
+        {
+          "identity": "toml@0.9.12+spec-1.1.0",
+          "relevance": 0
+        },
+        {
+          "identity": "toml@1.1.5+spec-1.1.0",
+          "relevance": 0
+        },
+        {
+          "identity": "toml_edit@0.25.12+spec-1.1.0",
+          "relevance": 0
+        },
+        {
+          "identity": "syn@2.0.118",
+          "relevance": 0
+        },
+        {
+          "identity": "regex@1.13.0",
+          "relevance": 0
+        },
+        {
+          "identity": "unicode-normalization@0.1.25",
+          "relevance": 0
+        },
+        {
+          "identity": "unicode-segmentation@1.13.3",
+          "relevance": 0
+        },
+        {
+          "identity": "unicode-ident@1.0.24",
+          "relevance": 0
+        },
+        {
+          "identity": "tokio@1.53.1",
+          "relevance": 0
+        },
+        {
+          "identity": "crossbeam-channel@0.5.16",
+          "relevance": 0
+        },
+        {
+          "identity": "flume@0.12.0",
+          "relevance": 0
+        },
+        {
+          "identity": "async-channel@2.5.0",
+          "relevance": 1
+        },
+        {
+          "identity": "bytes@1.12.1",
+          "relevance": 0
+        },
+        {
+          "identity": "prettyplease@0.2.37",
+          "relevance": 0
+        }
+      ],
+      "query": "async bounded channel MPMC clone receivers"
+    },
+    {
+      "accepted_identities": [
+        "async-channel@2.5.0"
+      ],
+      "filters": {
+        "allow_yanked": false,
+        "include_prerelease": false,
+        "msrv_lte": "1.70"
+      },
+      "id": "S04-es",
+      "intent_id": "S04",
+      "language": "es",
+      "qrels": [
+        {
+          "identity": "serde@1.0.228",
+          "relevance": 0
+        },
+        {
+          "identity": "serde_json@1.0.150",
+          "relevance": 0
+        },
+        {
+          "identity": "toml@0.9.12+spec-1.1.0",
+          "relevance": 0
+        },
+        {
+          "identity": "toml@1.1.5+spec-1.1.0",
+          "relevance": 0
+        },
+        {
+          "identity": "toml_edit@0.25.12+spec-1.1.0",
+          "relevance": 0
+        },
+        {
+          "identity": "syn@2.0.118",
+          "relevance": 0
+        },
+        {
+          "identity": "regex@1.13.0",
+          "relevance": 0
+        },
+        {
+          "identity": "unicode-normalization@0.1.25",
+          "relevance": 0
+        },
+        {
+          "identity": "unicode-segmentation@1.13.3",
+          "relevance": 0
+        },
+        {
+          "identity": "unicode-ident@1.0.24",
+          "relevance": 0
+        },
+        {
+          "identity": "tokio@1.53.1",
+          "relevance": 0
+        },
+        {
+          "identity": "crossbeam-channel@0.5.16",
+          "relevance": 0
+        },
+        {
+          "identity": "flume@0.12.0",
+          "relevance": 0
+        },
+        {
+          "identity": "async-channel@2.5.0",
+          "relevance": 1
+        },
+        {
+          "identity": "bytes@1.12.1",
+          "relevance": 0
+        },
+        {
+          "identity": "prettyplease@0.2.37",
+          "relevance": 0
+        }
+      ],
+      "query": "canal asíncrono acotado MPMC receptores clonables"
+    }
+  ],
+  "rank_unit": "crate; accepted exact version also required after authoritative filters",
+  "status": "draft_requires_principal_review_not_frozen"
+}

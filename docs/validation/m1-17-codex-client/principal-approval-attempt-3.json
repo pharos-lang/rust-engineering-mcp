@@ -1,0 +1,9 @@
+{
+  "decision": "approved_for_bounded_preflight_attempt_3",
+  "approved_at_unix": 1788547718,
+  "plan_canonical_sha256": "08319ae703db61675b60b1f9fe923dd67ec7f47cf9246fdf3d52dc5cc705ceff",
+  "prompt_sha256": "9c5461c4ba4a07019e936559d61717b372cae77bc5341816bee3d5034a4b6a26",
+  "controller_sha256": "d74060275e67b6b7dff3512ce8c878494b30b6e0b88f7cd77bf84d2f2e9e7a12",
+  "scope": "direct app-server preflight only; model phase requires a separate successful preflight receipt",
+  "review": "principal owner verified exact discovered host MCP servers node_repl and youtrack are explicitly disabled in the process-local effective config; strict config, closed plan, exact 13-tool target allowlist, bounded I/O, identity checks, fail-closed cleanup and no global config mutation remain enforced"
+}

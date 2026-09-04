@@ -1,0 +1,28 @@
+{
+  "status": "passed",
+  "core_tests": 540,
+  "workspace_all_features_all_targets_clippy": "passed",
+  "catalog_network_denied_tests": [
+    5,
+    1
+  ],
+  "catalog_real_proof": [
+    "test actual_cli_rebuild_reopens_native_index_without_network ... PASS real embedded native index import/restart status; signed corrupt native payload rejected before active/floor",
+    "PASS signed CLI import/status/restart/rollback and real E5 native index rebuild/reopen under network deny"
+  ],
+  "logs_sha256": {
+    "target/M1-10-core-final.log": "358db49fedc2fb1d32d172d5c871ccc6122af02c372882df51c111457982a3a5",
+    "target/M1-10-local-final.log": "c436e6715e067c64e13cb2f1b3e8ebdbb6649b1b8fd35a709e44f96a3298f418",
+    "target/M1-10-catalog-final.log": "7f96ec80199b01198d38c3d6e33dde5cf640f513ff56911473f04c40ec049878"
+  },
+  "changes_since_full": [
+    "crates/mcp-server/src/catalog_cli.rs",
+    "crates/mcp-server/src/catalog_cli/floor.rs",
+    "crates/mcp-server/src/catalog_sync.rs",
+    "crates/mcp-server/tests/catalog_cli.rs",
+    "crates/mcp-server/tests/catalog_cli/bundle_fixture.rs",
+    "scripts/test-catalog.py"
+  ],
+  "scope": "Current final core plus all-features Clippy and native CLI; integral Docker/native foundation runs refer to immutable full source receipt",
+  "human_output_verified": true
+}

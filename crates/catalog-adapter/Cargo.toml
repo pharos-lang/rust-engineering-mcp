@@ -1,0 +1,28 @@
+[package]
+name = "rust-engineering-catalog"
+description = "Bounded authoritative SQLite catalog snapshots"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+publish.workspace = true
+license.workspace = true
+authors.workspace = true
+repository.workspace = true
+
+[dependencies]
+ring.workspace = true
+zstd.workspace = true
+rustsec.workspace = true
+cargo-lock.workspace = true
+toml.workspace = true
+unicode-ident.workspace = true
+rust-engineering-domain.workspace = true
+rust-engineering-application.workspace = true
+rusqlite.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+sha2.workspace = true
+semver.workspace = true
+
+[lints]
+workspace = true

@@ -1,0 +1,90 @@
+{
+  "status": "captured",
+  "nextCursor": null,
+  "rows": [
+    {
+      "name": "node_repl",
+      "runtimeStatus": null,
+      "authStatus": "unsupported",
+      "tool_type": "dict",
+      "tool_names": [],
+      "serverInfo": {
+        "name": null,
+        "title": null,
+        "version": null
+      }
+    },
+    {
+      "name": "rust_engineering",
+      "runtimeStatus": null,
+      "authStatus": "unsupported",
+      "tool_type": "dict",
+      "tool_names": [
+        "rust.catalog.status",
+        "rust.check",
+        "rust.clippy",
+        "rust.crate.inspect",
+        "rust.crate.search",
+        "rust.dependencies.audit",
+        "rust.diagnostics.explain",
+        "rust.fmt.check",
+        "rust.project.inspect",
+        "rust.project.open",
+        "rust.quality.gate",
+        "rust.test",
+        "rust.toolchain.inspect"
+      ],
+      "serverInfo": {
+        "name": "rust-engineering-mcp",
+        "title": null,
+        "version": "0.1.0-dev.1"
+      }
+    },
+    {
+      "name": "youtrack",
+      "runtimeStatus": null,
+      "authStatus": "unsupported",
+      "tool_type": "dict",
+      "tool_names": [],
+      "serverInfo": {
+        "name": null,
+        "title": null,
+        "version": null
+      }
+    }
+  ],
+  "cleanup": {
+    "exit_code": 0,
+    "forced": false,
+    "reader_monitor_joined": true,
+    "remaining_observed_pids": [],
+    "observed_processes": [
+      {
+        "pid": 43990,
+        "ppid": 43989,
+        "pgid": 43990,
+        "started": "Fri Sep 4 13:51:01 2026",
+        "name": "codex"
+      },
+      {
+        "pid": 43991,
+        "ppid": 43990,
+        "pgid": 43991,
+        "started": "Fri Sep 4 13:51:01 2026",
+        "name": "rust-engineering-mcp"
+      },
+      {
+        "pid": 43992,
+        "ppid": 43990,
+        "pgid": 43992,
+        "started": "Fri Sep 4 13:51:01 2026",
+        "name": "(rust-engineering)"
+      }
+    ],
+    "errors": [],
+    "transport_failure": null,
+    "stderr_bytes": 0,
+    "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "cleanup_verified": true
+  }
+}

@@ -1,0 +1,80 @@
+{
+  "captured_at_utc": "2026-09-04T20:01:49.209307+00:00",
+  "cargo_lock_sha256": "6010970e368bbd49be0231227e99343b6ee302d96a4dc7462549c64f2a64ef73",
+  "commands": [
+    {
+      "command": [
+        "cargo",
+        "audit",
+        "--no-fetch"
+      ],
+      "exit_code": 0,
+      "stderr": {
+        "bytes": 183,
+        "sha256": "1c6eee2bbd3cdb0c00473c204c71b087d24ccd8117c9f2151c907fab241832e5"
+      },
+      "stdout": {
+        "bytes": 13275,
+        "sha256": "91b3d0d5003683100422870b8f470e0d8061c303ed7b9fa4ab5f449fcaec5828"
+      }
+    },
+    {
+      "command": [
+        "cargo",
+        "deny",
+        "--all-features",
+        "--locked",
+        "--offline",
+        "check",
+        "--disable-fetch",
+        "--hide-inclusion-graph",
+        "advisories",
+        "bans",
+        "sources"
+      ],
+      "exit_code": 0,
+      "stderr": {
+        "bytes": 15571,
+        "sha256": "af5dbe30ecc7ddf9904142a86fedc76705623a50ef9569f284697030f13c7efa"
+      },
+      "stdout": {
+        "bytes": 35,
+        "sha256": "9c97eff057dde47e35c90012f8ded8880f95791a27f0fe144f66200f66000342"
+      }
+    }
+  ],
+  "network_fetch": false,
+  "rustsec": {
+    "cargo_audit_version": "cargo-audit-audit 0.22.1",
+    "database_commit": "5a0ebedfe8bdd2e295b171f4162f8c977bcad9a5",
+    "database_commit_date": "2026-09-02T11:13:32+02:00",
+    "database_commit_subject": "Assigned RUSTSEC-2026-0278 to zbus_polkit",
+    "database_git_status": [
+      "?? crates/nostr-keyring/RUSTSEC-0000-0000.md",
+      "?? crates/nostr-relay-builder/RUSTSEC-0000-0000.md",
+      "?? crates/nostr-relay-pool/RUSTSEC-0000-0000.md"
+    ],
+    "interpretation": "The database is not clean. The three old untracked placeholder advisories were included in the local filesystem observed by cargo-audit; this receipt makes no remote-freshness claim.",
+    "untracked_file_identities": [
+      {
+        "bytes": 365,
+        "path": "crates/nostr-keyring/RUSTSEC-0000-0000.md",
+        "sha256": "8701b96e85bb1ad557f566f4ec090ef57301d752293b1c833984bff81cc20a7b"
+      },
+      {
+        "bytes": 556,
+        "path": "crates/nostr-relay-builder/RUSTSEC-0000-0000.md",
+        "sha256": "04db835beeba698df48f0733921c7d35513a3689903a4a33d8d5e36a20fe9f91"
+      },
+      {
+        "bytes": 547,
+        "path": "crates/nostr-relay-pool/RUSTSEC-0000-0000.md",
+        "sha256": "7021b19fc9cf4ff7d05bf6b86989d3de763132c07dd88da2a1da7d4a86271674"
+      }
+    ]
+  },
+  "scope": "focused-offline-audit-and-deny-with-input-identity",
+  "source_commit": "d024c7c72648206266f0d195ffc7040fb444eef6",
+  "source_tree_note": "The focused commands ran after documentation-only M1-17 edits; Cargo.lock and production inputs still matched source_commit.",
+  "status": "passed"
+}

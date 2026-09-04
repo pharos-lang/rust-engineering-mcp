@@ -1,0 +1,36 @@
+{
+  "scope": "candidate-binary-source-equivalence-without-rebuild",
+  "status": "passed",
+  "candidate_binary": {
+    "path": "target/m1-15-candidate/local/bin/rust-engineering-mcp",
+    "sha256": "7a99038be57429e1db32c91d01772e7efd104691828253f45ed3bbb0e9330417",
+    "manifest_logical_path": "local/bin/rust-engineering-mcp"
+  },
+  "original_build_source_commit": "01a90ab6dea32d94fec271139bff51847cdfb261",
+  "qualified_candidate_commit": "d024c7c72648206266f0d195ffc7040fb444eef6",
+  "source_manifest": {
+    "path": "docs/release/candidate/source-files.json",
+    "sha256": "f142775240951dcd3390e186750e36f07d5c4ae12ad4e622eed2e3c3a8427115",
+    "entry_count": 238
+  },
+  "checks": {
+    "candidate_commit_all_entries_match": true,
+    "candidate_commit_mismatches": [],
+    "working_tree_all_entries_match": true,
+    "working_tree_mismatches": [],
+    "selected_build_inputs_changed_between_source_commits": [],
+    "all_changed_paths_between_source_commits": {
+      "count": 683,
+      "sorted_list_sha256": "77f9d35c344568bc1af81338ee606fb41445aaffcc806969bd592422df825586",
+      "scope_summary": [
+        "repository metadata",
+        "documentation",
+        "release evidence",
+        "M1-16 research artifacts",
+        "validation evidence"
+      ]
+    }
+  },
+  "conclusion": "The accepted binary is byte-for-byte source-equivalent to every selected build input at the qualified candidate commit; intervening changes are documentation/evidence only.",
+  "limitation": "This receipt proves selected source-input equivalence; it does not claim a rebuild or reproducible-build equality."
+}

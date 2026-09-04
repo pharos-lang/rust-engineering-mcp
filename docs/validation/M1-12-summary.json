@@ -1,0 +1,28 @@
+{
+  "core_report": "M1-12-core.json",
+  "core_tests_including_doctests": 603,
+  "core_stages": 10,
+  "protocol_tests": 35,
+  "all_features_clippy": "passed",
+  "native_gate": "scripts/test-crate-search.py",
+  "native_ordinary_tests": 2,
+  "native_ignored_executed": 1,
+  "network_enforcement": "macOS sandbox-exec deny network*; positive IPv4/IPv6 controls outside and denied inside",
+  "full_rerun": false,
+  "full_rerun_reason": "Proportional read-only retrieval gate; final M1 candidate requires full17/17 including unchanged Docker stages",
+  "logs": {
+    "M1-12-core.log": {
+      "sha256": "16cbabda83542c5b224c7b317d5e71c35de9d50cf402e9aeed4e489483b6c526",
+      "bytes": 98305
+    },
+    "M1-12-native.log": {
+      "sha256": "f32dc72a6ce04ac57ccbf6cfd318969f843e63fc4ab603a702bbd6201595b364",
+      "bytes": 1040
+    },
+    "M1-12-all-features-clippy.log": {
+      "sha256": "02dde72cf4356a7856f3db8e6d9f7df6db3ba739a0ca6b99c94d56b6dc10403c",
+      "bytes": 562
+    }
+  },
+  "native_transcript": "M1-12-native.txt"
+}

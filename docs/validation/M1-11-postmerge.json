@@ -1,0 +1,13 @@
+{
+  "feature_commit": "261b0c4",
+  "merge_commit": "ae6cc83",
+  "branch_retained": "ai/m1-11-catalog-status",
+  "command": "CARGO_INCREMENTAL=0 cargo test --locked --offline -p rust-engineering-mcp --test catalog_status --test protocol",
+  "catalog_status_tests": 2,
+  "protocol_tests": 33,
+  "source_files_verified": 269,
+  "log_sha256": "3d95628302b8469c2594617ac4c41e2892b899ee4c5d3db3cd5a8df8aff3e334",
+  "log_bytes": 3905,
+  "status": "passed",
+  "main_clean_before_smoke": true
+}

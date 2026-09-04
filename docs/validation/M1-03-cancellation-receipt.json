@@ -1,0 +1,10 @@
+{
+  "active_build_scripts_observed": 2,
+  "calibrated_by_successful_check": true,
+  "cancelled_request_response_suppressed": true,
+  "cleanup": true,
+  "discovery_responsive_during_checks": true,
+  "eof_joined_shutdown": true,
+  "only_expected_source_mutations": true,
+  "worker_reused_after_observed_cleanup": true
+}

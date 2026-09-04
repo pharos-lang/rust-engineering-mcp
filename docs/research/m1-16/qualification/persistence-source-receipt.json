@@ -1,0 +1,12 @@
+[
+  {
+    "url": "https://raw.githubusercontent.com/openai/codex/rust-v0.153.0/codex-rs/core/src/session/session.rs",
+    "path": "target/m1-16-smoke/source/persistence-session.rs",
+    "sha256": "b84a57c59c7db19c5e91a0b08281bb564c2edad77a2403ae167639587d9f521c"
+  },
+  {
+    "url": "https://raw.githubusercontent.com/openai/codex/rust-v0.153.0/codex-rs/core/src/rollout.rs",
+    "path": "target/m1-16-smoke/source/persistence-rollout.rs",
+    "sha256": "1aa136709f80968ee68f4430efcffd6442a2837c34c7c7c78cc43bd83e738bf3"
+  }
+]

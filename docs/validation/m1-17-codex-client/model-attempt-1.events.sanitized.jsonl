@@ -1,0 +1,24 @@
+{"line":1,"method":"thread/status/changed","threadId":"01a06dc6-99c1-72f0-9f14-fcdb23574766"}
+{"line":2,"method":"turn/started","threadId":"01a06dc6-99c1-72f0-9f14-fcdb23574766","turn":{"id":"01a06dc6-9a5d-7892-968c-c8a2ff777b0a","status":"inProgress","error":null}}
+{"line":3,"method":"item/started","threadId":"01a06dc6-99c1-72f0-9f14-fcdb23574766","turnId":"01a06dc6-9a5d-7892-968c-c8a2ff777b0a","item":{"id":"01a06dc6-a395-7a42-b1b0-d74c064675c2","type":"userMessage"}}
+{"line":4,"method":"item/completed","threadId":"01a06dc6-99c1-72f0-9f14-fcdb23574766","turnId":"01a06dc6-9a5d-7892-968c-c8a2ff777b0a","item":{"id":"01a06dc6-a395-7a42-b1b0-d74c064675c2","type":"userMessage"}}
+{"line":5,"method":"item/started","threadId":"01a06dc6-99c1-72f0-9f14-fcdb23574766","turnId":"01a06dc6-9a5d-7892-968c-c8a2ff777b0a","item":{"id":"rs_098a91a96ff3af7e016a9b1422f8d887d2a96f46604ab9c3d1","type":"reasoning"}}
+{"line":6,"method":"item/completed","threadId":"01a06dc6-99c1-72f0-9f14-fcdb23574766","turnId":"01a06dc6-9a5d-7892-968c-c8a2ff777b0a","item":{"id":"rs_098a91a96ff3af7e016a9b1422f8d887d2a96f46604ab9c3d1","type":"reasoning"}}
+{"line":7,"method":"thread/tokenUsage/updated","threadId":"01a06dc6-99c1-72f0-9f14-fcdb23574766","turnId":"01a06dc6-9a5d-7892-968c-c8a2ff777b0a","tokenUsage":{"total":{"totalTokens":2686,"inputTokens":2414,"cachedInputTokens":0,"cacheWriteInputTokens":0,"outputTokens":272,"reasoningOutputTokens":81},"last":{"totalTokens":2686,"inputTokens":2414,"cachedInputTokens":0,"cacheWriteInputTokens":0,"outputTokens":272,"reasoningOutputTokens":81},"modelContextWindow":258400}}
+{"line":8,"method":"account/rateLimits/updated"}
+{"line":9,"method":"item/started","threadId":"01a06dc6-99c1-72f0-9f14-fcdb23574766","turnId":"01a06dc6-9a5d-7892-968c-c8a2ff777b0a","item":{"id":"rs_098a91a96ff3af7e016a9b142b522087d2825a6e9f4766a74b","type":"reasoning"}}
+{"line":10,"method":"item/completed","threadId":"01a06dc6-99c1-72f0-9f14-fcdb23574766","turnId":"01a06dc6-9a5d-7892-968c-c8a2ff777b0a","item":{"id":"rs_098a91a96ff3af7e016a9b142b522087d2825a6e9f4766a74b","type":"reasoning"}}
+{"line":11,"method":"item/started","threadId":"01a06dc6-99c1-72f0-9f14-fcdb23574766","turnId":"01a06dc6-9a5d-7892-968c-c8a2ff777b0a","item":{"id":"msg_098a91a96ff3af7e016a9b1432c74087d297bcab4472d96e93","type":"agentMessage","text":""}}
+{"line":12,"method":"item/agentMessage/delta","threadId":"01a06dc6-99c1-72f0-9f14-fcdb23574766","turnId":"01a06dc6-9a5d-7892-968c-c8a2ff777b0a"}
+{"line":13,"method":"item/agentMessage/delta","threadId":"01a06dc6-99c1-72f0-9f14-fcdb23574766","turnId":"01a06dc6-9a5d-7892-968c-c8a2ff777b0a"}
+{"line":14,"method":"item/agentMessage/delta","threadId":"01a06dc6-99c1-72f0-9f14-fcdb23574766","turnId":"01a06dc6-9a5d-7892-968c-c8a2ff777b0a"}
+{"line":15,"method":"item/agentMessage/delta","threadId":"01a06dc6-99c1-72f0-9f14-fcdb23574766","turnId":"01a06dc6-9a5d-7892-968c-c8a2ff777b0a"}
+{"line":16,"method":"item/agentMessage/delta","threadId":"01a06dc6-99c1-72f0-9f14-fcdb23574766","turnId":"01a06dc6-9a5d-7892-968c-c8a2ff777b0a"}
+{"line":17,"method":"item/agentMessage/delta","threadId":"01a06dc6-99c1-72f0-9f14-fcdb23574766","turnId":"01a06dc6-9a5d-7892-968c-c8a2ff777b0a"}
+{"line":18,"method":"item/agentMessage/delta","threadId":"01a06dc6-99c1-72f0-9f14-fcdb23574766","turnId":"01a06dc6-9a5d-7892-968c-c8a2ff777b0a"}
+{"line":19,"method":"item/agentMessage/delta","threadId":"01a06dc6-99c1-72f0-9f14-fcdb23574766","turnId":"01a06dc6-9a5d-7892-968c-c8a2ff777b0a"}
+{"line":20,"method":"item/completed","threadId":"01a06dc6-99c1-72f0-9f14-fcdb23574766","turnId":"01a06dc6-9a5d-7892-968c-c8a2ff777b0a","item":{"id":"msg_098a91a96ff3af7e016a9b1432c74087d297bcab4472d96e93","type":"agentMessage","text":"status: unavailable\nsnapshot fingerprint: unavailable"}}
+{"line":21,"method":"thread/tokenUsage/updated","threadId":"01a06dc6-99c1-72f0-9f14-fcdb23574766","turnId":"01a06dc6-9a5d-7892-968c-c8a2ff777b0a","tokenUsage":{"total":{"totalTokens":5740,"inputTokens":5115,"cachedInputTokens":0,"cacheWriteInputTokens":0,"outputTokens":625,"reasoningOutputTokens":420},"last":{"totalTokens":3054,"inputTokens":2701,"cachedInputTokens":0,"cacheWriteInputTokens":0,"outputTokens":353,"reasoningOutputTokens":339},"modelContextWindow":258400}}
+{"line":22,"method":"account/rateLimits/updated"}
+{"line":23,"method":"thread/status/changed","threadId":"01a06dc6-99c1-72f0-9f14-fcdb23574766"}
+{"line":24,"method":"turn/completed","threadId":"01a06dc6-99c1-72f0-9f14-fcdb23574766","turn":{"id":"01a06dc6-9a5d-7892-968c-c8a2ff777b0a","status":"completed","error":null}}

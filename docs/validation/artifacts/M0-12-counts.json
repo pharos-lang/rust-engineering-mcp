@@ -1,0 +1,18 @@
+{
+  "source": "M0-12-results.txt extracted from final full gate transcript",
+  "rust_tests_passed_by_stage": {
+    "test": 173,
+    "doctests": 1,
+    "docker-security": 4,
+    "semantic": 8
+  },
+  "rust_tests_executed": 186,
+  "semantic_duplicate_of_core": {
+    "count": 1,
+    "test": "bundle unit test; executed in core and feature-local binary"
+  },
+  "distinct_rust_tests": 185,
+  "cargo_compiler_cases": 11,
+  "static_audit_input_checks": 1,
+  "artifact_oracle_combinations_in_one_test": 229950
+}

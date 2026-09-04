@@ -1,0 +1,81 @@
+{
+  "status": "passed",
+  "workflow_receipt": "<LOCAL_HOME>/Projects/rust-mcp/target/m1-16-driver-qualification/run-1788540280968508000/workflow.json",
+  "tool_calls": 42,
+  "unique_tool_names": [
+    "rust.catalog.status",
+    "rust.check",
+    "rust.clippy",
+    "rust.crate.inspect",
+    "rust.crate.search",
+    "rust.dependencies.audit",
+    "rust.diagnostics.explain",
+    "rust.fmt.check",
+    "rust.project.inspect",
+    "rust.project.open",
+    "rust.quality.gate",
+    "rust.test",
+    "rust.toolchain.inspect"
+  ],
+  "resource_reads": 1,
+  "resource_payload_hash_verified": true,
+  "reference_audits": 4,
+  "third_party_packages_each": 0,
+  "workflow_server_joined": true,
+  "cancellation_receipts": {
+    "raw": {
+      "path": "<LOCAL_HOME>/Projects/rust-mcp/target/m1-16-driver-qualification/run-1788540340277729000/cancel-raw.json",
+      "signal": "SIGINT issued by broker after cancellation event",
+      "seconds": 0.32444150000810623,
+      "execution_joined": true,
+      "server_joined": false,
+      "docker_objects_absent": true,
+      "forced_stop": false
+    },
+    "mcp": {
+      "path": "<LOCAL_HOME>/Projects/rust-mcp/target/m1-16-driver-qualification/run-1788540340277729000/cancel-mcp.json",
+      "signal": "SIGINT issued by broker after cancellation event",
+      "seconds": 0.31854787503834814,
+      "execution_joined": true,
+      "server_joined": true,
+      "docker_objects_absent": true,
+      "forced_stop": false
+    }
+  },
+  "network_controls": "<LOCAL_HOME>/Projects/rust-mcp/target/m1-16-driver-qualification/run-1788540340277729000/network-controls.json",
+  "qualification_only": true,
+  "utility_inference": false,
+  "fixture_integrity_only_not_publisher_approval": true,
+  "sources_sha256": {
+    "<LOCAL_HOME>/Projects/rust-mcp/target/m1-16-driver-qualification.py": "a7d19385c296b9bb8ad88fea429d9c414038c37425512d427c3e819176e93011",
+    "<LOCAL_HOME>/Projects/rust-mcp/target/m1-16-controller/broker.py": "40e9a661cc34204bd0fd59f476933492599f72e6bb7d444ffb67c3bf16af6d23",
+    "<LOCAL_HOME>/Projects/rust-mcp/target/debug/m1-16-trusted-driver": "ed8560074a5c37bdbb71eaa959a1913a83f98de23bc9dd1fa849c48d56f74596",
+    "<LOCAL_HOME>/Projects/rust-mcp/target/m1-15-candidate/local/bin/rust-engineering-mcp": "7a99038be57429e1db32c91d01772e7efd104691828253f45ed3bbb0e9330417"
+  },
+  "workflow_input_files_sha256_postrun": {
+    "R01/Cargo.toml": "9176481c2b6127aca04f0513507a7fc5d5bd7845a9479d16dc52cfefc3ddb5dd",
+    "R01/Cargo.lock": "fb3fda1eec238a6009615dba20cc589a501f0b6057e87513301684b87cd46fff",
+    "R01initial/Cargo.toml": "9176481c2b6127aca04f0513507a7fc5d5bd7845a9479d16dc52cfefc3ddb5dd",
+    "R01initial/Cargo.lock": "fb3fda1eec238a6009615dba20cc589a501f0b6057e87513301684b87cd46fff",
+    "R02/Cargo.toml": "87a6c0efd7b66b3a18e17323c6e5915360674e75dff4add01a3a6267773e8115",
+    "R02/Cargo.lock": "b709a316752296214152825a90f411066285aadcf5ee5e45e1e01698a826193b",
+    "R04/Cargo.toml": "a128f43dd479bf5cda84d13cb08b42b51ed1d21ffea4e7c4061e0c4526b90690",
+    "R04/Cargo.lock": "7c89b1904bc9c1579fcf472972ece3611de4597c2218f4346a5e244037655dba",
+    "R03/Cargo.toml": "77ecf4bcdce1564183b4c2a6d7f836a8abb03f6739bc8a02bb67e2b328539137",
+    "R03/Cargo.lock": "ad81483b9bb453274ea9fce3fcc4590cd6bd28fc920d2070500e700157ff5770",
+    "R03/tests/behavior.rs": "ed57f8a9c7e984a448cc5f5a550bc9be36b5d68e2cc9e2c12b960a66b92c430c",
+    "R03/src/lib.rs": "2c983b7ecd8e83ff4a5ea67ef8acf9cdbecadbccc5cbf4bde323ff26c1503c3f",
+    "R04/tests/behavior.rs": "8702ce02e6443c4b053338e344bec930e96ee072a64d6923bcaa0915ddd921c3",
+    "R04/src/lib.rs": "bd5e13fbc07b0d6585eba6e4b5f43861261062cf6a83ef4f8dad2bec94529b9e",
+    "R02/tests/behavior.rs": "ab88eb8e98de1080ccbbbb535cf474ed9269223e549f2d12bf171551864b46a6",
+    "R02/src/lib.rs": "007e08be2c00e718ad779f839a1d0d47614dc2579035dbc66100f5e323f82d1c",
+    "R01initial/tests/behavior.rs": "d3b6e54d04bf411ed8eb6f5a619efbcdd24829395b216fa40283adbed7ea10e4",
+    "R01initial/src/lib.rs": "83d864530d2184e82fd66a24bfd89334d52d546897ce0c79e829790372592ff3",
+    "R01/tests/behavior.rs": "d3b6e54d04bf411ed8eb6f5a619efbcdd24829395b216fa40283adbed7ea10e4",
+    "R01/src/lib.rs": "23f02a5c3a0ef208a52498b49cfa72c70c31ce56e2ae19fdd8170f8a575dcf29"
+  },
+  "notes": [
+    "Discovery-only setup was preserved separately at directory root. Workflow and cancellation are separate actual successful runs.",
+    "Final replay script adds explicit assertions for zero audit counts and input hash recording; these same audit facts and Resource blob hashes were verified from retained actual outputs without rerunning execution."
+  ]
+}

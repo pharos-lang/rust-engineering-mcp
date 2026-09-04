@@ -1,0 +1,12 @@
+{
+  "Cargo.toml": "4c3f641150a404d71762cf7f3cf3a5f6f9de04b7bc3d5216085f49e366c4dded",
+  "Cargo.lock": "f3a8b742fe3b54c9297f9c1c618bfce883d4de222620539eff415382de849996",
+  "rust-toolchain.toml": "c910997cb152c6dc8ed13b1fdf9fa28a4ed30d6776123e27dd6170e5c66067a0",
+  "crates/mcp-server/src/stdio.rs": "9d435a2fcaadc8b86c51ad555ad11af45374395b4f99f04b7ef044e94bbf9885",
+  "crates/mcp-server/src/stdio/project.rs": "5fcc9d8fe2320f133009c595958874fec056bc3c6452e6967568d85a3c7ed2de",
+  "crates/mcp-server/src/stdio/workers.rs": "8cd8e8636bab13fd5da51bd3c9000133104336bcac36758ff93ce01157136521",
+  "crates/mcp-server/src/stdio/budget.rs": "db818c4ebd5d4f29ca7d4440feb2d860c9fa4b2d810b89e2c677588e7db7e937",
+  "crates/mcp-server/src/stdio/admission.rs": "1aa89b107c279a252af564312efb83feab717c60d84bdc237ef62385576bce52",
+  "crates/mcp-server/tests/protocol.rs": "a3bc74681d22203026b2534984fa5754d4ec18ae46d8418e53fdd3bc6a61050c",
+  "crates/mcp-server/tests/snapshots/project-open-tool.json": "bfab409498dc67517a96d4d034f403d24ad3ae31046df3afc09c1f3781148d9b"
+}

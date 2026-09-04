@@ -1,0 +1,31 @@
+{
+  "build_script_and_proc_macro_checks": true,
+  "calibration_cases": 6,
+  "calibration_verified": true,
+  "cases": 2,
+  "cleanup": true,
+  "configuration_fingerprint": "sha256:a98f414d408eec7c7cdf154437d7bf31c54322f6b342f275bc34df98e606a0a0",
+  "executions": [
+    {
+      "execution_fingerprint": "sha256:1c22d0995458dc1bbf5a0249f22399d24619b6b82cf8e7c68a9bd1b25711882c",
+      "exit_code": 0,
+      "joined_cleanup_verified": true,
+      "marker": "RUST_CONTAINMENT_BUILD_CHECKS_PASSED",
+      "scenario": "build_script",
+      "termination": "exited"
+    },
+    {
+      "execution_fingerprint": "sha256:b48b704a37976c5316520a9ef3931ca5d3f66afd173070a839991754facf1eb4",
+      "exit_code": 0,
+      "joined_cleanup_verified": true,
+      "marker": "RUST_CONTAINMENT_PROC_MACRO_CHECKS_PASSED",
+      "scenario": "proc_macro",
+      "termination": "exited"
+    }
+  ],
+  "fixture_fingerprint": "sha256:bb3aeb844ab9191652f44136b95538c9cec4b2249c82ecfc44cc008c988d0509",
+  "image_id": "sha256:8fac70723a8d04b6ec9633ab721806b8a55f4f083a1b3f988c61bf6a00fa1909",
+  "network_env_filesystem_process_cgroup_assertions": true,
+  "quarantined": false,
+  "status": "passed"
+}

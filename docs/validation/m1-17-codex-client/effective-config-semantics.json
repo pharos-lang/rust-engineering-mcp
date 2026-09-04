@@ -1,0 +1,26 @@
+{
+  "current_controller_field_names": {
+    "disabled_features": "effective_feature_values",
+    "disabled_host_servers": "effective_host_server_enabled",
+    "tools_sha256": "canonical_tools_sha256"
+  },
+  "current_controller_sha256": "26a7bf2fef71257d0d6fc64bab1e675492e62da63f92a2596cdde76469471321",
+  "field_semantics": {
+    "default_tools_approval_mode": {
+      "product_recommendation": false,
+      "reason": "The controller directly invoked an exact allowlist after independent plan approval; this setting is not a recommended client posture for code-execution tools.",
+      "recorded_value": "approve",
+      "scope": "qualification harness only"
+    },
+    "disabled_features": {
+      "false_means": "feature disabled",
+      "value_meaning": "recorded effective feature value"
+    },
+    "disabled_host_servers": {
+      "false_means": "server disabled",
+      "value_meaning": "recorded effective MCP server enabled value"
+    }
+  },
+  "historical_receipts_unchanged": true,
+  "scope": "interpretation-of-historical-stock-codex-effective-config-fields"
+}

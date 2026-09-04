@@ -1,0 +1,35 @@
+{
+  "e5_revision": "614241f622f53c4eeff9890bdc4f31cfecc418b3",
+  "files": [
+    {
+      "file": "model.onnx",
+      "size": 470268510,
+      "sha256": "ca456c06b3a9505ddfd9131408916dd79290368331e7d76bb621f1cba6bc8665"
+    },
+    {
+      "file": "tokenizer.json",
+      "size": 17082730,
+      "sha256": "0b44a9d7b51c3c62626640cda0e2c2f70fdacdc25bbbd68038369d14ebdf4c39"
+    },
+    {
+      "file": "config.json",
+      "size": 653,
+      "sha256": "bbb7c1333fc4b3e27fbc9cd5d2070aabcc1d4dfb99917c3633e772f97545a6b6"
+    },
+    {
+      "file": "special_tokens_map.json",
+      "size": 167,
+      "sha256": "d05497f1da52c5e09554c0cd874037a083e1dc1b9cfd48034d1c717f1afc07a7"
+    },
+    {
+      "file": "tokenizer_config.json",
+      "size": 443,
+      "sha256": "a1d6bc8734a6f635dc158508bef000f8e2e5a759c7d92f984b2c86e5ff53425b"
+    }
+  ],
+  "ort_sha256": "4d53c916ea95f09203324f9aad7b76f75c16d8a4bc98f8a949ea0ac73c07604d",
+  "acquired_or_refreshed": false,
+  "verification": "Rehashed M1-11 native status candidate against original M1-09/M1-10 identities; actual E5 loader also validates exact bytes",
+  "model_dir": "/private/tmp/rust-mcp-e5-m009/onnx",
+  "native_path": "<LOCAL_HOME>/Library/Caches/ort.pyke.io/dfbin/aarch64-apple-darwin/612739f75438dc0a075461e1fb454226b4a1eb175e60a7271ba966bbbb972cd4/libonnxruntime.a"
+}

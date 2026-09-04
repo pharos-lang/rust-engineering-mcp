@@ -1,0 +1,9 @@
+{
+  "decision": "approved_for_bounded_preflight_attempt_6",
+  "approved_at_unix": 1788549158,
+  "plan_canonical_sha256": "079f79f722b82d15821c78d88e7f2b21374ed0f958253bf07e65ca170bee6ac7",
+  "prompt_sha256": "55e1d85f5bd8c95b47b40be712d465dae34e170d6b14d1cd07159a4ac17cedf1",
+  "controller_sha256": "da1b904c3fe50feb02f47cc8596f1c50339cc77411588c7eb6d2277b02e3e0cb",
+  "scope": "direct app-server preflight only for plan v2; no model turn",
+  "review": "principal owner verified the only plan change is explicit use of Codex deferred-tool search before one rust.catalog.status call; experimentalRawEvents records raw API items but grants no capability. All closed server, feature, identity, I/O and cleanup controls remain."
+}

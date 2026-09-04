@@ -1,0 +1,827 @@
+{
+  "annotations": {
+    "destructiveHint": false,
+    "idempotentHint": true,
+    "openWorldHint": false,
+    "readOnlyHint": true
+  },
+  "description": "Inspect verified local catalog, model, semantic index and configured RustSec availability, identities and latest_known freshness. Reads the host-configured session generation only; no project paths, downloads or synchronization. Restart to load changed catalog/model/index; RustSec follows the audit source on each call.",
+  "inputSchema": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "additionalProperties": false,
+    "title": "Input",
+    "type": "object"
+  },
+  "name": "rust.catalog.status",
+  "outputSchema": {
+    "$defs": {
+      "CatalogComponentUnavailable": {
+        "enum": [
+          "not_configured",
+          "missing",
+          "invalid",
+          "identity_mismatch",
+          "unsupported_platform",
+          "feature_disabled",
+          "denied",
+          "io_unavailable",
+          "budget",
+          "dependency_unavailable"
+        ],
+        "type": "string"
+      },
+      "CatalogContextCatalogStatus": {
+        "additionalProperties": false,
+        "properties": {
+          "bundle_fingerprint": {
+            "$ref": "#/$defs/Fingerprint"
+          },
+          "bundled_rustsec_available": {
+            "type": "boolean"
+          },
+          "channel": {
+            "type": "string"
+          },
+          "crate_count": {
+            "format": "uint32",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "evidence": {
+            "$ref": "#/$defs/SnapshotEvidence"
+          },
+          "fingerprint": {
+            "$ref": "#/$defs/Fingerprint"
+          },
+          "publisher": {
+            "type": "string"
+          },
+          "publisher_key_fingerprint": {
+            "$ref": "#/$defs/Fingerprint"
+          },
+          "schema_version": {
+            "format": "uint32",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "sequence": {
+            "format": "uint64",
+            "minimum": 0,
+            "type": "integer"
+          }
+        },
+        "required": [
+          "publisher",
+          "channel",
+          "publisher_key_fingerprint",
+          "bundle_fingerprint",
+          "sequence",
+          "fingerprint",
+          "schema_version",
+          "crate_count",
+          "bundled_rustsec_available",
+          "evidence"
+        ],
+        "type": "object"
+      },
+      "CatalogContextStatus": {
+        "additionalProperties": false,
+        "properties": {
+          "catalog": {
+            "$ref": "#/$defs/Component"
+          },
+          "model": {
+            "$ref": "#/$defs/Component2"
+          },
+          "reservation": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/CatalogReservationStatus"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "rustsec": {
+            "$ref": "#/$defs/Component4"
+          },
+          "semantic_index": {
+            "$ref": "#/$defs/Component3"
+          }
+        },
+        "required": [
+          "catalog",
+          "reservation",
+          "model",
+          "semantic_index",
+          "rustsec"
+        ],
+        "type": "object"
+      },
+      "CatalogIndexObservation": {
+        "additionalProperties": false,
+        "properties": {
+          "documents": {
+            "format": "uint32",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "metadata": {
+            "$ref": "#/$defs/IndexMetadata"
+          }
+        },
+        "required": [
+          "metadata",
+          "documents"
+        ],
+        "type": "object"
+      },
+      "CatalogModelStatus": {
+        "additionalProperties": false,
+        "properties": {
+          "evidence": {
+            "$ref": "#/$defs/SnapshotEvidence"
+          },
+          "identity": {
+            "$ref": "#/$defs/EmbeddingIdentity"
+          }
+        },
+        "required": [
+          "identity",
+          "evidence"
+        ],
+        "type": "object"
+      },
+      "CatalogReservation": {
+        "additionalProperties": false,
+        "properties": {
+          "bundle_fingerprint": {
+            "$ref": "#/$defs/Fingerprint"
+          },
+          "channel": {
+            "type": "string"
+          },
+          "publisher": {
+            "type": "string"
+          },
+          "sequence": {
+            "format": "uint64",
+            "minimum": 0,
+            "type": "integer"
+          }
+        },
+        "required": [
+          "publisher",
+          "channel",
+          "sequence",
+          "bundle_fingerprint"
+        ],
+        "type": "object"
+      },
+      "CatalogReservationStatus": {
+        "additionalProperties": false,
+        "properties": {
+          "pending": {
+            "type": "boolean"
+          },
+          "reservation": {
+            "$ref": "#/$defs/CatalogReservation"
+          }
+        },
+        "required": [
+          "reservation",
+          "pending"
+        ],
+        "type": "object"
+      },
+      "CatalogRustsecStatus": {
+        "additionalProperties": false,
+        "properties": {
+          "evidence": {
+            "$ref": "#/$defs/SnapshotEvidence"
+          },
+          "fingerprint": {
+            "$ref": "#/$defs/Fingerprint"
+          },
+          "record_count": {
+            "format": "uint32",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "sequence": {
+            "format": "uint64",
+            "minimum": 0,
+            "type": "integer"
+          }
+        },
+        "required": [
+          "fingerprint",
+          "sequence",
+          "record_count",
+          "evidence"
+        ],
+        "type": "object"
+      },
+      "Code": {
+        "enum": [
+          "SANDBOX_DENIED",
+          "COMMAND_TIMEOUT",
+          "OUTPUT_LIMIT_EXCEEDED"
+        ],
+        "type": "string"
+      },
+      "Component": {
+        "oneOf": [
+          {
+            "additionalProperties": false,
+            "properties": {
+              "status": {
+                "const": "available",
+                "type": "string"
+              },
+              "value": {
+                "$ref": "#/$defs/CatalogContextCatalogStatus"
+              }
+            },
+            "required": [
+              "status",
+              "value"
+            ],
+            "type": "object"
+          },
+          {
+            "additionalProperties": false,
+            "properties": {
+              "reason": {
+                "$ref": "#/$defs/CatalogComponentUnavailable"
+              },
+              "status": {
+                "const": "unavailable",
+                "type": "string"
+              }
+            },
+            "required": [
+              "status",
+              "reason"
+            ],
+            "type": "object"
+          }
+        ]
+      },
+      "Component2": {
+        "oneOf": [
+          {
+            "additionalProperties": false,
+            "properties": {
+              "status": {
+                "const": "available",
+                "type": "string"
+              },
+              "value": {
+                "$ref": "#/$defs/CatalogModelStatus"
+              }
+            },
+            "required": [
+              "status",
+              "value"
+            ],
+            "type": "object"
+          },
+          {
+            "additionalProperties": false,
+            "properties": {
+              "reason": {
+                "$ref": "#/$defs/CatalogComponentUnavailable"
+              },
+              "status": {
+                "const": "unavailable",
+                "type": "string"
+              }
+            },
+            "required": [
+              "status",
+              "reason"
+            ],
+            "type": "object"
+          }
+        ]
+      },
+      "Component3": {
+        "oneOf": [
+          {
+            "additionalProperties": false,
+            "properties": {
+              "status": {
+                "const": "available",
+                "type": "string"
+              },
+              "value": {
+                "$ref": "#/$defs/CatalogIndexObservation"
+              }
+            },
+            "required": [
+              "status",
+              "value"
+            ],
+            "type": "object"
+          },
+          {
+            "additionalProperties": false,
+            "properties": {
+              "reason": {
+                "$ref": "#/$defs/CatalogComponentUnavailable"
+              },
+              "status": {
+                "const": "unavailable",
+                "type": "string"
+              }
+            },
+            "required": [
+              "status",
+              "reason"
+            ],
+            "type": "object"
+          }
+        ]
+      },
+      "Component4": {
+        "oneOf": [
+          {
+            "additionalProperties": false,
+            "properties": {
+              "status": {
+                "const": "available",
+                "type": "string"
+              },
+              "value": {
+                "$ref": "#/$defs/CatalogRustsecStatus"
+              }
+            },
+            "required": [
+              "status",
+              "value"
+            ],
+            "type": "object"
+          },
+          {
+            "additionalProperties": false,
+            "properties": {
+              "reason": {
+                "$ref": "#/$defs/CatalogComponentUnavailable"
+              },
+              "status": {
+                "const": "unavailable",
+                "type": "string"
+              }
+            },
+            "required": [
+              "status",
+              "reason"
+            ],
+            "type": "object"
+          }
+        ]
+      },
+      "Data": {
+        "additionalProperties": false,
+        "properties": {
+          "context": {
+            "$ref": "#/$defs/CatalogContextStatus"
+          },
+          "lifecycle": {
+            "$ref": "#/$defs/Lifecycle"
+          },
+          "network": {
+            "$ref": "#/$defs/Network"
+          },
+          "semantics": {
+            "$ref": "#/$defs/Semantics"
+          }
+        },
+        "required": [
+          "semantics",
+          "lifecycle",
+          "network",
+          "context"
+        ],
+        "type": "object"
+      },
+      "EmbeddingIdentity": {
+        "additionalProperties": false,
+        "properties": {
+          "artifact_fingerprint": {
+            "$ref": "#/$defs/Fingerprint"
+          },
+          "dimension": {
+            "format": "uint32",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "intra_threads": {
+            "format": "uint16",
+            "maximum": 65535,
+            "minimum": 0,
+            "type": "integer"
+          },
+          "max_tokens": {
+            "format": "uint32",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "model": {
+            "type": "string"
+          },
+          "normalization": {
+            "$ref": "#/$defs/Normalization"
+          },
+          "pooling": {
+            "$ref": "#/$defs/PoolingKind"
+          },
+          "provenance": {
+            "$ref": "#/$defs/Provenance"
+          },
+          "revision": {
+            "type": "string"
+          },
+          "runtime": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "model",
+          "revision",
+          "artifact_fingerprint",
+          "runtime",
+          "provenance",
+          "dimension",
+          "max_tokens",
+          "intra_threads",
+          "pooling",
+          "normalization"
+        ],
+        "type": "object"
+      },
+      "Enforcement": {
+        "enum": [
+          "runtime_api_disabled"
+        ],
+        "type": "string"
+      },
+      "Fingerprint": {
+        "pattern": "^sha256:[0-9a-f]{64}$",
+        "type": "string"
+      },
+      "Freshness": {
+        "additionalProperties": false,
+        "properties": {
+          "age_seconds": {
+            "format": "uint64",
+            "minimum": 0,
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "assessed_at": {
+            "format": "uint64",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "policy": {
+            "$ref": "#/$defs/FreshnessPolicy"
+          },
+          "state": {
+            "$ref": "#/$defs/FreshnessState"
+          }
+        },
+        "required": [
+          "state",
+          "age_seconds",
+          "assessed_at",
+          "policy"
+        ],
+        "type": "object"
+      },
+      "FreshnessPolicy": {
+        "additionalProperties": false,
+        "properties": {
+          "fresh_for_seconds": {
+            "format": "uint64",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "id": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "stale_after_seconds": {
+            "format": "uint64",
+            "minimum": 0,
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "fresh_for_seconds",
+          "stale_after_seconds"
+        ],
+        "type": "object"
+      },
+      "FreshnessState": {
+        "enum": [
+          "live",
+          "fresh",
+          "aging",
+          "stale",
+          "unknown"
+        ],
+        "type": "string"
+      },
+      "IndexMetadata": {
+        "additionalProperties": false,
+        "properties": {
+          "model": {
+            "$ref": "#/$defs/EmbeddingIdentity"
+          },
+          "schema_version": {
+            "format": "uint32",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "snapshot_fingerprint": {
+            "$ref": "#/$defs/Fingerprint"
+          }
+        },
+        "required": [
+          "schema_version",
+          "snapshot_fingerprint",
+          "model"
+        ],
+        "type": "object"
+      },
+      "IntegrityStatus": {
+        "enum": [
+          "verified",
+          "unverified",
+          "failed",
+          "unknown"
+        ],
+        "type": "string"
+      },
+      "Lifecycle": {
+        "enum": [
+          "session_generation_restart_to_reload"
+        ],
+        "type": "string"
+      },
+      "LocalEvidence": {
+        "oneOf": [
+          {
+            "additionalProperties": false,
+            "properties": {
+              "kind": {
+                "const": "local",
+                "type": "string"
+              }
+            },
+            "required": [
+              "kind"
+            ],
+            "type": "object"
+          }
+        ]
+      },
+      "Network": {
+        "additionalProperties": false,
+        "properties": {
+          "acquisition_allowed": {
+            "type": "boolean"
+          },
+          "enforcement": {
+            "$ref": "#/$defs/Enforcement"
+          }
+        },
+        "required": [
+          "acquisition_allowed",
+          "enforcement"
+        ],
+        "type": "object"
+      },
+      "Normalization": {
+        "enum": [
+          "l2"
+        ],
+        "type": "string"
+      },
+      "PoolingKind": {
+        "enum": [
+          "mean"
+        ],
+        "type": "string"
+      },
+      "Provenance": {
+        "additionalProperties": false,
+        "properties": {
+          "created_at": {
+            "format": "uint64",
+            "minimum": 0,
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "integrity": {
+            "$ref": "#/$defs/IntegrityStatus"
+          },
+          "network_used": {
+            "type": "boolean"
+          },
+          "observed_at": {
+            "format": "uint64",
+            "minimum": 0,
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "source_id": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "source_kind": {
+            "$ref": "#/$defs/SourceKind"
+          }
+        },
+        "required": [
+          "source_kind",
+          "source_id",
+          "created_at",
+          "observed_at",
+          "integrity",
+          "network_used"
+        ],
+        "type": "object"
+      },
+      "Semantics": {
+        "enum": [
+          "latest_known"
+        ],
+        "type": "string"
+      },
+      "SnapshotEvidence": {
+        "additionalProperties": false,
+        "properties": {
+          "freshness": {
+            "$ref": "#/$defs/Freshness"
+          },
+          "provenance": {
+            "$ref": "#/$defs/Provenance"
+          }
+        },
+        "required": [
+          "provenance",
+          "freshness"
+        ],
+        "type": "object"
+      },
+      "SourceKind": {
+        "enum": [
+          "registry_snapshot",
+          "project_snapshot",
+          "rustsec_snapshot",
+          "embedding_model",
+          "artifact"
+        ],
+        "type": "string"
+      },
+      "Truncation": {
+        "additionalProperties": false,
+        "properties": {
+          "diagnostics_omitted": {
+            "format": "uint64",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "stderr_truncated": {
+            "type": "boolean"
+          },
+          "stdout_truncated": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "stdout_truncated",
+          "stderr_truncated",
+          "diagnostics_omitted"
+        ],
+        "type": "object"
+      }
+    },
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "oneOf": [
+      {
+        "properties": {
+          "data": {
+            "$ref": "#/$defs/Data"
+          },
+          "error_code": {
+            "type": "null"
+          },
+          "error_message": {
+            "type": "null"
+          },
+          "status": {
+            "const": "passed",
+            "type": "string"
+          }
+        },
+        "required": [
+          "status",
+          "error_code",
+          "error_message",
+          "data"
+        ],
+        "type": "object"
+      },
+      {
+        "properties": {
+          "data": {
+            "type": "null"
+          },
+          "error_code": {
+            "$ref": "#/$defs/Code"
+          },
+          "error_message": {
+            "type": "string"
+          },
+          "status": {
+            "const": "blocked",
+            "type": "string"
+          }
+        },
+        "required": [
+          "status",
+          "error_code",
+          "error_message",
+          "data"
+        ],
+        "type": "object"
+      },
+      {
+        "properties": {
+          "data": {
+            "type": "null"
+          },
+          "error_code": {
+            "type": "null"
+          },
+          "error_message": {
+            "type": "null"
+          },
+          "status": {
+            "const": "cancelled",
+            "type": "string"
+          }
+        },
+        "required": [
+          "status",
+          "error_code",
+          "error_message",
+          "data"
+        ],
+        "type": "object"
+      }
+    ],
+    "properties": {
+      "diagnostics": {
+        "maxItems": 0,
+        "type": "array"
+      },
+      "duration_ms": {
+        "format": "uint64",
+        "minimum": 0,
+        "type": "integer"
+      },
+      "evidence": {
+        "$ref": "#/$defs/LocalEvidence"
+      },
+      "summary": {
+        "type": "string"
+      },
+      "truncation": {
+        "$ref": "#/$defs/Truncation"
+      }
+    },
+    "required": [
+      "summary",
+      "duration_ms",
+      "diagnostics",
+      "truncation",
+      "evidence"
+    ],
+    "title": "Output",
+    "type": "object",
+    "unevaluatedProperties": false
+  }
+}

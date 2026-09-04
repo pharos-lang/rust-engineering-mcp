@@ -1,0 +1,9 @@
+{
+  "Cargo.toml": "bbb8234940a71ad550af70e366bd473edd4554659a78ac1e524fde5062af57a4",
+  "Cargo.lock": "5b355f01b32fa4ad45c66fdbfca996fa95e02e20f8b09d97951a388ea7b8623f",
+  "README.md": "ca0c43a9999e6ac002bbc5100a4501aa31d7048c1327c8062ceedf1ce6aab68f",
+  "smoke_no_execution.py": "f6b04f6ebca5d02ef7759d2f10cc57b922370a8e6e8c47f31048b24d550ae669",
+  "src/bin/research-bundle.rs": "331f1353152ec22102278f7519fb9ed51121b7070e70e6f3536d3b822912a2d4",
+  "src/main.rs": "073890ec59c7697451df09e3b21793a37f512554fa1cf6eb834c91e2f6e86a08",
+  "src/tests.rs": "510f8d074332f3f53dcd4f1ab5b3c8efda10b54cd31c4c119cf59dbd824453b2"
+}

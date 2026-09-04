@@ -1,0 +1,26 @@
+   Compiling rust-engineering-application v0.1.0-dev.1 (<LOCAL_HOME>/Projects/rust-mcp/crates/application)
+   Compiling rust-engineering-execution v0.1.0-dev.1 (<LOCAL_HOME>/Projects/rust-mcp/crates/execution-adapter)
+   Compiling rust-engineering-semantic v0.1.0-dev.1 (<LOCAL_HOME>/Projects/rust-mcp/crates/semantic-adapter)
+   Compiling rust-engineering-catalog v0.1.0-dev.1 (<LOCAL_HOME>/Projects/rust-mcp/crates/catalog-adapter)
+   Compiling rust-engineering-artifact v0.1.0-dev.1 (<LOCAL_HOME>/Projects/rust-mcp/crates/artifact-adapter)
+   Compiling rust-engineering-project v0.1.0-dev.1 (<LOCAL_HOME>/Projects/rust-mcp/crates/project-adapter)
+   Compiling rust-engineering-mcp v0.1.0-dev.1 (<LOCAL_HOME>/Projects/rust-mcp/crates/mcp-server)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 5.74s
+
+running 3 tests
+test actual_wire_catalog_status_authenticates_fixture_and_schema ... ok
+test actual_wire_native_catalog_status_preserves_identity_and_degrades_independently ... ignored, full gate: pinned E5/ORT and inherited enforced macOS network deny
+test catalog_runtime_cli_rejects_incomplete_relative_and_duplicate_authority ... ok
+
+test result: ok. 2 passed; 0 failed; 1 ignored; 0 measured; 0 filtered out; finished in 7.40s
+
+
+
+running 1 test
+test actual_wire_native_catalog_status_preserves_identity_and_degrades_independently ... PASS real MCP E5/native index bindings, retained session, restart invalid/mismatched-index fallback and missing-model independence
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 2 filtered out; finished in 15.29s
+
+
+PASS MCP catalog status, real E5/native index, immutable session, corrupted index independence under network deny

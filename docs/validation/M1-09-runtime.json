@@ -1,0 +1,49 @@
+{
+  "tests_passed": 3,
+  "cases": 8,
+  "seconds": 79.15,
+  "receipts": [
+    {
+      "active_quality_test_binaries_observed": 2,
+      "cancelled_response_suppressed": true,
+      "cases": 3,
+      "cleanup": true,
+      "eof_joined_shutdown": true,
+      "initial_fast_pass": true,
+      "prior_log_group_survives_cancel": true,
+      "source_unchanged_between_explicit_mutations": true,
+      "worker_reused_after_joined_cleanup": true
+    },
+    {
+      "captured_source_write_denied": true,
+      "cases": 2,
+      "cleanup": true,
+      "configuration_fingerprint": "sha256:487cef3409e76e7d9c37afad9454e565023a8f1c9cf7581bed76c6f8b143f62e",
+      "format_diff_and_clippy_diagnostic_retained": true,
+      "logs_sha256_verified": 6,
+      "ordered_stages": 3,
+      "ordinary_failures_continue": true,
+      "prior_log_group_retained": true,
+      "profiles": [
+        "fast"
+      ],
+      "source_unchanged_between_explicit_mutations": true
+    },
+    {
+      "audit_after_failed_test": true,
+      "cases": 3,
+      "cleanup": true,
+      "configuration_fingerprint": "sha256:487cef3409e76e7d9c37afad9454e565023a8f1c9cf7581bed76c6f8b143f62e",
+      "logs_sha256_verified": 12,
+      "missing_snapshot_never_passes": true,
+      "nonmatching_real_rsa_snapshot": true,
+      "ordered_stages": 5,
+      "profiles": [
+        "standard"
+      ],
+      "real_test_failure_retained": true,
+      "snapshot_fingerprint": "sha256:bf2761cbaedad7b424224fec335427e9f5a1f8b6bbba3b5d43e22cf3e43ca8a3",
+      "source_unchanged_between_explicit_mutations": true
+    }
+  ]
+}

@@ -1,0 +1,796 @@
+{
+  "status": "passed",
+  "driver_binary_sha256": "ed8560074a5c37bdbb71eaa959a1913a83f98de23bc9dd1fa849c48d56f74596",
+  "cases": [
+    {
+      "task": "R01",
+      "variant": "initial",
+      "command": "check",
+      "passed": false,
+      "elapsed_seconds": 14.197812000056729,
+      "source_files": [
+        {
+          "path": "Cargo.toml",
+          "sha256": "9176481c2b6127aca04f0513507a7fc5d5bd7845a9479d16dc52cfefc3ddb5dd"
+        },
+        {
+          "path": "Cargo.lock",
+          "sha256": "fb3fda1eec238a6009615dba20cc589a501f0b6057e87513301684b87cd46fff"
+        },
+        {
+          "path": "src/lib.rs",
+          "sha256": "83d864530d2184e82fd66a24bfd89334d52d546897ce0c79e829790372592ff3"
+        },
+        {
+          "path": "tests/behavior.rs",
+          "sha256": "d3b6e54d04bf411ed8eb6f5a619efbcdd24829395b216fa40283adbed7ea10e4"
+        }
+      ],
+      "result": {
+        "duration_ms": 92,
+        "execution_fingerprint": "sha256:51c697dd39bd032e4adb039d5fcffdd5130acc9b29e787bdac7e9004bb682012",
+        "exit_code": 101,
+        "image_id": "sha256:8fac70723a8d04b6ec9633ab721806b8a55f4f083a1b3f988c61bf6a00fa1909",
+        "oom_killed": false,
+        "platform": "linux/aarch64",
+        "stderr": "    Checking m1_16_r01 v0.1.0 (/source)\nerror: could not compile `m1_16_r01` (lib) due to 1 previous error\n",
+        "stderr_truncated": false,
+        "stdout": "{\"reason\":\"compiler-message\",\"package_id\":\"path+file:///source#m1_16_r01@0.1.0\",\"manifest_path\":\"/source/Cargo.toml\",\"target\":{\"kind\":[\"lib\"],\"crate_types\":[\"lib\"],\"name\":\"m1_16_r01\",\"src_path\":\"/source/src/lib.rs\",\"edition\":\"2024\",\"doc\":true,\"doctest\":true,\"test\":true},\"message\":{\"rendered\":\"error[E0502]: cannot borrow `*values` as mutable because it is also borrowed as immutable\\n --> src/lib.rs:3:5\\n  |\\n2 |     let first = values.first()?;\\n  |                 ------ immutable borrow occurs here\\n3 |     values.push(first.clone());\\n  |     ^^^^^^^^^^^^^^^^^^^^^^^^^^ mutable borrow occurs here\\n4 |     Some(first.clone())\\n  |          ----- immutable borrow later used here\\n\\n\",\"$message_type\":\"diagnostic\",\"children\":[],\"level\":\"error\",\"message\":\"cannot borrow `*values` as mutable because it is also borrowed as immutable\",\"spans\":[{\"byte_end\":129,\"byte_start\":103,\"column_end\":31,\"column_start\":5,\"expansion\":null,\"file_name\":\"src/lib.rs\",\"is_primary\":true,\"label\":\"mutable borrow occurs here\",\"line_end\":3,\"line_start\":3,\"suggested_replacement\":null,\"suggestion_applicability\":null,\"text\":[{\"highlight_end\":31,\"highlight_start\":5,\"text\":\"    values.push(first.clone());\"}]},{\"byte_end\":88,\"byte_start\":82,\"column_end\":23,\"column_start\":17,\"expansion\":null,\"file_name\":\"src/lib.rs\",\"is_primary\":false,\"label\":\"immutable borrow occurs here\",\"line_end\":2,\"line_start\":2,\"suggested_replacement\":null,\"suggestion_applicability\":null,\"text\":[{\"highlight_end\":23,\"highlight_start\":17,\"text\":\"    let first = values.first()?;\"}]},{\"byte_end\":145,\"byte_start\":140,\"column_end\":15,\"column_start\":10,\"expansion\":null,\"file_name\":\"src/lib.rs\",\"is_primary\":false,\"label\":\"immutable borrow later used here\",\"line_end\":4,\"line_start\":4,\"suggested_replacement\":null,\"suggestion_applicability\":null,\"text\":[{\"highlight_end\":15,\"highlight_start\":10,\"text\":\"    Some(first.clone())\"}]}],\"code\":{\"code\":\"E0502\",\"explanation\":\"A variable already borrowed with a certain mutability (either mutable or\\nimmutable) was borrowed again with a different mutability.\\n\\nErroneous code example:\\n\\n```compile_fail,E0502\\nfn bar(x: &mut i32) {}\\nfn foo(a: &mut i32) {\\n    let y = &a; // a is borrowed as immutable.\\n    bar(a); // error: cannot borrow `*a` as mutable because `a` is also borrowed\\n            //        as immutable\\n    println!(\\\"{}\\\", y);\\n}\\n```\\n\\nTo fix this error, ensure that you don't have any other references to the\\nvariable before trying to access it with a different mutability:\\n\\n```\\nfn bar(x: &mut i32) {}\\nfn foo(a: &mut i32) {\\n    bar(a);\\n    let y = &a; // ok!\\n    println!(\\\"{}\\\", y);\\n}\\n```\\n\\nFor more information on Rust's ownership system, take a look at the\\n[References & Borrowing][references-and-borrowing] section of the Book.\\n\\n[references-and-borrowing]: https://doc.rust-lang.org/book/ch04-02-references-and-borrowing.html\\n\"}}}\n{\"reason\":\"compiler-message\",\"package_id\":\"path+file:///source#m1_16_r01@0.1.0\",\"manifest_path\":\"/source/Cargo.toml\",\"target\":{\"kind\":[\"lib\"],\"crate_types\":[\"lib\"],\"name\":\"m1_16_r01\",\"src_path\":\"/source/src/lib.rs\",\"edition\":\"2024\",\"doc\":true,\"doctest\":true,\"test\":true},\"message\":{\"rendered\":\"For more information about this error, try `rustc --explain E0502`.\\n\",\"$message_type\":\"diagnostic\",\"children\":[],\"level\":\"failure-note\",\"message\":\"For more information about this error, try `rustc --explain E0502`.\",\"spans\":[],\"code\":null}}\n{\"reason\":\"build-finished\",\"success\":false}\n",
+        "stdout_truncated": false,
+        "termination": "exited",
+        "total_duration_ms": 763
+      }
+    },
+    {
+      "task": "R01",
+      "variant": "reference",
+      "command": "fmt",
+      "passed": true,
+      "elapsed_seconds": 0.7347902500769123,
+      "source_files": [
+        {
+          "path": "Cargo.toml",
+          "sha256": "9176481c2b6127aca04f0513507a7fc5d5bd7845a9479d16dc52cfefc3ddb5dd"
+        },
+        {
+          "path": "Cargo.lock",
+          "sha256": "fb3fda1eec238a6009615dba20cc589a501f0b6057e87513301684b87cd46fff"
+        },
+        {
+          "path": "src/lib.rs",
+          "sha256": "23f02a5c3a0ef208a52498b49cfa72c70c31ce56e2ae19fdd8170f8a575dcf29"
+        },
+        {
+          "path": "tests/behavior.rs",
+          "sha256": "d3b6e54d04bf411ed8eb6f5a619efbcdd24829395b216fa40283adbed7ea10e4"
+        }
+      ],
+      "result": {
+        "duration_ms": 79,
+        "execution_fingerprint": "sha256:914fdcaf5230d00af23eb5960f69dec68b149e051091c1419c3ab90da55d407f",
+        "exit_code": 0,
+        "image_id": "sha256:8fac70723a8d04b6ec9633ab721806b8a55f4f083a1b3f988c61bf6a00fa1909",
+        "oom_killed": false,
+        "platform": "linux/aarch64",
+        "stderr": "",
+        "stderr_truncated": false,
+        "stdout": "",
+        "stdout_truncated": false,
+        "termination": "exited",
+        "total_duration_ms": 734
+      }
+    },
+    {
+      "task": "R01",
+      "variant": "reference",
+      "command": "check",
+      "passed": true,
+      "elapsed_seconds": 0.7586750839836895,
+      "source_files": [
+        {
+          "path": "Cargo.toml",
+          "sha256": "9176481c2b6127aca04f0513507a7fc5d5bd7845a9479d16dc52cfefc3ddb5dd"
+        },
+        {
+          "path": "Cargo.lock",
+          "sha256": "fb3fda1eec238a6009615dba20cc589a501f0b6057e87513301684b87cd46fff"
+        },
+        {
+          "path": "src/lib.rs",
+          "sha256": "23f02a5c3a0ef208a52498b49cfa72c70c31ce56e2ae19fdd8170f8a575dcf29"
+        },
+        {
+          "path": "tests/behavior.rs",
+          "sha256": "d3b6e54d04bf411ed8eb6f5a619efbcdd24829395b216fa40283adbed7ea10e4"
+        }
+      ],
+      "result": {
+        "duration_ms": 89,
+        "execution_fingerprint": "sha256:9a66624048e334652ac53dfacd950a90b1b4785ba4b3250a1fbf2f5c6710da28",
+        "exit_code": 0,
+        "image_id": "sha256:8fac70723a8d04b6ec9633ab721806b8a55f4f083a1b3f988c61bf6a00fa1909",
+        "oom_killed": false,
+        "platform": "linux/aarch64",
+        "stderr": "    Checking m1_16_r01 v0.1.0 (/source)\n    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.02s\n",
+        "stderr_truncated": false,
+        "stdout": "{\"reason\":\"compiler-artifact\",\"package_id\":\"path+file:///source#m1_16_r01@0.1.0\",\"manifest_path\":\"/source/Cargo.toml\",\"target\":{\"kind\":[\"lib\"],\"crate_types\":[\"lib\"],\"name\":\"m1_16_r01\",\"src_path\":\"/source/src/lib.rs\",\"edition\":\"2024\",\"doc\":true,\"doctest\":true,\"test\":true},\"profile\":{\"opt_level\":\"0\",\"debuginfo\":2,\"debug_assertions\":true,\"overflow_checks\":true,\"test\":false},\"features\":[],\"filenames\":[\"/work/target/debug/deps/libm1_16_r01-d95850f3c347ddf0.rmeta\"],\"executable\":null,\"fresh\":false}\n{\"reason\":\"build-finished\",\"success\":true}\n",
+        "stdout_truncated": false,
+        "termination": "exited",
+        "total_duration_ms": 758
+      }
+    },
+    {
+      "task": "R01",
+      "variant": "reference",
+      "command": "clippy",
+      "passed": true,
+      "elapsed_seconds": 0.7547097499482334,
+      "source_files": [
+        {
+          "path": "Cargo.toml",
+          "sha256": "9176481c2b6127aca04f0513507a7fc5d5bd7845a9479d16dc52cfefc3ddb5dd"
+        },
+        {
+          "path": "Cargo.lock",
+          "sha256": "fb3fda1eec238a6009615dba20cc589a501f0b6057e87513301684b87cd46fff"
+        },
+        {
+          "path": "src/lib.rs",
+          "sha256": "23f02a5c3a0ef208a52498b49cfa72c70c31ce56e2ae19fdd8170f8a575dcf29"
+        },
+        {
+          "path": "tests/behavior.rs",
+          "sha256": "d3b6e54d04bf411ed8eb6f5a619efbcdd24829395b216fa40283adbed7ea10e4"
+        }
+      ],
+      "result": {
+        "duration_ms": 98,
+        "execution_fingerprint": "sha256:245984e31ccb9fc154d71c1e2bcc3a71780146a80ce79ce06f343124785e15ea",
+        "exit_code": 0,
+        "image_id": "sha256:8fac70723a8d04b6ec9633ab721806b8a55f4f083a1b3f988c61bf6a00fa1909",
+        "oom_killed": false,
+        "platform": "linux/aarch64",
+        "stderr": "    Checking m1_16_r01 v0.1.0 (/source)\n    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.03s\n",
+        "stderr_truncated": false,
+        "stdout": "{\"reason\":\"compiler-artifact\",\"package_id\":\"path+file:///source#m1_16_r01@0.1.0\",\"manifest_path\":\"/source/Cargo.toml\",\"target\":{\"kind\":[\"lib\"],\"crate_types\":[\"lib\"],\"name\":\"m1_16_r01\",\"src_path\":\"/source/src/lib.rs\",\"edition\":\"2024\",\"doc\":true,\"doctest\":true,\"test\":true},\"profile\":{\"opt_level\":\"0\",\"debuginfo\":2,\"debug_assertions\":true,\"overflow_checks\":true,\"test\":false},\"features\":[],\"filenames\":[\"/work/target/debug/deps/libm1_16_r01-758eba6aee23b323.rmeta\"],\"executable\":null,\"fresh\":false}\n{\"reason\":\"build-finished\",\"success\":true}\n",
+        "stdout_truncated": false,
+        "termination": "exited",
+        "total_duration_ms": 754
+      }
+    },
+    {
+      "task": "R01",
+      "variant": "reference",
+      "command": "test",
+      "passed": true,
+      "elapsed_seconds": 0.9576048749731854,
+      "source_files": [
+        {
+          "path": "Cargo.toml",
+          "sha256": "9176481c2b6127aca04f0513507a7fc5d5bd7845a9479d16dc52cfefc3ddb5dd"
+        },
+        {
+          "path": "Cargo.lock",
+          "sha256": "fb3fda1eec238a6009615dba20cc589a501f0b6057e87513301684b87cd46fff"
+        },
+        {
+          "path": "src/lib.rs",
+          "sha256": "23f02a5c3a0ef208a52498b49cfa72c70c31ce56e2ae19fdd8170f8a575dcf29"
+        },
+        {
+          "path": "tests/behavior.rs",
+          "sha256": "d3b6e54d04bf411ed8eb6f5a619efbcdd24829395b216fa40283adbed7ea10e4"
+        }
+      ],
+      "result": {
+        "duration_ms": 303,
+        "execution_fingerprint": "sha256:5b394164b87e87e90d2e58686f5ba420757f448cfb5e99ee5fcec01ae7f3389c",
+        "exit_code": 0,
+        "image_id": "sha256:8fac70723a8d04b6ec9633ab721806b8a55f4f083a1b3f988c61bf6a00fa1909",
+        "oom_killed": false,
+        "platform": "linux/aarch64",
+        "stderr": "   Compiling m1_16_r01 v0.1.0 (/source)\n    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.22s\n     Running unittests src/lib.rs (/work/target/debug/deps/m1_16_r01-a739e06d2e41c93d)\n     Running tests/behavior.rs (/work/target/debug/deps/behavior-df98df7f3e8bd976)\n   Doc-tests m1_16_r01\n",
+        "stderr_truncated": false,
+        "stdout": "{\"reason\":\"compiler-artifact\",\"package_id\":\"path+file:///source#m1_16_r01@0.1.0\",\"manifest_path\":\"/source/Cargo.toml\",\"target\":{\"kind\":[\"lib\"],\"crate_types\":[\"lib\"],\"name\":\"m1_16_r01\",\"src_path\":\"/source/src/lib.rs\",\"edition\":\"2024\",\"doc\":true,\"doctest\":true,\"test\":true},\"profile\":{\"opt_level\":\"0\",\"debuginfo\":2,\"debug_assertions\":true,\"overflow_checks\":true,\"test\":false},\"features\":[],\"filenames\":[\"/work/target/debug/deps/libm1_16_r01-e2b04c3417cd72f6.rlib\",\"/work/target/debug/deps/libm1_16_r01-e2b04c3417cd72f6.rmeta\"],\"executable\":null,\"fresh\":false}\n{\"reason\":\"compiler-artifact\",\"package_id\":\"path+file:///source#m1_16_r01@0.1.0\",\"manifest_path\":\"/source/Cargo.toml\",\"target\":{\"kind\":[\"test\"],\"crate_types\":[\"bin\"],\"name\":\"behavior\",\"src_path\":\"/source/tests/behavior.rs\",\"edition\":\"2024\",\"doc\":false,\"doctest\":false,\"test\":true},\"profile\":{\"opt_level\":\"0\",\"debuginfo\":2,\"debug_assertions\":true,\"overflow_checks\":true,\"test\":true},\"features\":[],\"filenames\":[\"/work/target/debug/deps/behavior-df98df7f3e8bd976\"],\"executable\":\"/work/target/debug/deps/behavior-df98df7f3e8bd976\",\"fresh\":false}\n{\"reason\":\"compiler-artifact\",\"package_id\":\"path+file:///source#m1_16_r01@0.1.0\",\"manifest_path\":\"/source/Cargo.toml\",\"target\":{\"kind\":[\"lib\"],\"crate_types\":[\"lib\"],\"name\":\"m1_16_r01\",\"src_path\":\"/source/src/lib.rs\",\"edition\":\"2024\",\"doc\":true,\"doctest\":true,\"test\":true},\"profile\":{\"opt_level\":\"0\",\"debuginfo\":2,\"debug_assertions\":true,\"overflow_checks\":true,\"test\":true},\"features\":[],\"filenames\":[\"/work/target/debug/deps/m1_16_r01-a739e06d2e41c93d\"],\"executable\":\"/work/target/debug/deps/m1_16_r01-a739e06d2e41c93d\",\"fresh\":false}\n{\"reason\":\"build-finished\",\"success\":true}\n\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n\nrunning 1 test\ntest preserves_original_elements_and_returns_first ... ok\n\ntest result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n",
+        "stdout_truncated": false,
+        "termination": "exited",
+        "total_duration_ms": 957
+      }
+    },
+    {
+      "task": "R02",
+      "variant": "initial",
+      "command": "check",
+      "passed": false,
+      "elapsed_seconds": 0.7609719160245731,
+      "source_files": [
+        {
+          "path": "Cargo.toml",
+          "sha256": "87a6c0efd7b66b3a18e17323c6e5915360674e75dff4add01a3a6267773e8115"
+        },
+        {
+          "path": "Cargo.lock",
+          "sha256": "b709a316752296214152825a90f411066285aadcf5ee5e45e1e01698a826193b"
+        },
+        {
+          "path": "src/lib.rs",
+          "sha256": "314b27d960c1a5b6f4e76ee4adc1c1c93db3f7c41b4b37927d8b8a1823fe83a2"
+        },
+        {
+          "path": "tests/behavior.rs",
+          "sha256": "ab88eb8e98de1080ccbbbb535cf474ed9269223e549f2d12bf171551864b46a6"
+        }
+      ],
+      "result": {
+        "duration_ms": 90,
+        "execution_fingerprint": "sha256:af648792f1c4a714666c36398de3edc68ab2e722211bb5a64747f240613763a6",
+        "exit_code": 101,
+        "image_id": "sha256:8fac70723a8d04b6ec9633ab721806b8a55f4f083a1b3f988c61bf6a00fa1909",
+        "oom_killed": false,
+        "platform": "linux/aarch64",
+        "stderr": "    Checking m1_16_r02 v0.1.0 (/source)\nerror: could not compile `m1_16_r02` (lib) due to 1 previous error\n",
+        "stderr_truncated": false,
+        "stdout": "{\"reason\":\"compiler-message\",\"package_id\":\"path+file:///source#m1_16_r02@0.1.0\",\"manifest_path\":\"/source/Cargo.toml\",\"target\":{\"kind\":[\"lib\"],\"crate_types\":[\"lib\"],\"name\":\"m1_16_r02\",\"src_path\":\"/source/src/lib.rs\",\"edition\":\"2024\",\"doc\":true,\"doctest\":true,\"test\":true},\"message\":{\"rendered\":\"error[E0597]: `temporary` does not live long enough\\n --> src/lib.rs:5:20\\n  |\\n4 |         let temporary = input.trim().to_owned();\\n  |             --------- binding `temporary` declared here\\n5 |         borrowed = temporary.as_str();\\n  |                    ^^^^^^^^^ borrowed value does not live long enough\\n6 |     }\\n  |     - `temporary` dropped here while still borrowed\\n7 |     borrowed.to_owned()\\n  |     -------- borrow later used here\\n\\n\",\"$message_type\":\"diagnostic\",\"children\":[],\"level\":\"error\",\"message\":\"`temporary` does not live long enough\",\"spans\":[{\"byte_end\":145,\"byte_start\":136,\"column_end\":29,\"column_start\":20,\"expansion\":null,\"file_name\":\"src/lib.rs\",\"is_primary\":true,\"label\":\"borrowed value does not live long enough\",\"line_end\":5,\"line_start\":5,\"suggested_replacement\":null,\"suggestion_applicability\":null,\"text\":[{\"highlight_end\":29,\"highlight_start\":20,\"text\":\"        borrowed = temporary.as_str();\"}]},{\"byte_end\":161,\"byte_start\":160,\"column_end\":6,\"column_start\":5,\"expansion\":null,\"file_name\":\"src/lib.rs\",\"is_primary\":false,\"label\":\"`temporary` dropped here while still borrowed\",\"line_end\":6,\"line_start\":6,\"suggested_replacement\":null,\"suggestion_applicability\":null,\"text\":[{\"highlight_end\":6,\"highlight_start\":5,\"text\":\"    }\"}]},{\"byte_end\":89,\"byte_start\":80,\"column_end\":22,\"column_start\":13,\"expansion\":null,\"file_name\":\"src/lib.rs\",\"is_primary\":false,\"label\":\"binding `temporary` declared here\",\"line_end\":4,\"line_start\":4,\"suggested_replacement\":null,\"suggestion_applicability\":null,\"text\":[{\"highlight_end\":22,\"highlight_start\":13,\"text\":\"        let temporary = input.trim().to_owned();\"}]},{\"byte_end\":174,\"byte_start\":166,\"column_end\":13,\"column_start\":5,\"expansion\":null,\"file_name\":\"src/lib.rs\",\"is_primary\":false,\"label\":\"borrow later used here\",\"line_end\":7,\"line_start\":7,\"suggested_replacement\":null,\"suggestion_applicability\":null,\"text\":[{\"highlight_end\":13,\"highlight_start\":5,\"text\":\"    borrowed.to_owned()\"}]}],\"code\":{\"code\":\"E0597\",\"explanation\":\"This error occurs because a value was dropped while it was still borrowed.\\n\\nErroneous code example:\\n\\n```compile_fail,E0597\\nstruct Foo<'a> {\\n    x: Option<&'a u32>,\\n}\\n\\nlet mut x = Foo { x: None };\\n{\\n    let y = 0;\\n    x.x = Some(&y); // error: `y` does not live long enough\\n}\\nprintln!(\\\"{:?}\\\", x.x);\\n```\\n\\nHere, `y` is dropped at the end of the inner scope, but it is borrowed by\\n`x` until the `println`. To fix the previous example, just remove the scope\\nso that `y` isn't dropped until after the println\\n\\n```\\nstruct Foo<'a> {\\n    x: Option<&'a u32>,\\n}\\n\\nlet mut x = Foo { x: None };\\n\\nlet y = 0;\\nx.x = Some(&y);\\n\\nprintln!(\\\"{:?}\\\", x.x);\\n```\\n\"}}}\n{\"reason\":\"compiler-message\",\"package_id\":\"path+file:///source#m1_16_r02@0.1.0\",\"manifest_path\":\"/source/Cargo.toml\",\"target\":{\"kind\":[\"lib\"],\"crate_types\":[\"lib\"],\"name\":\"m1_16_r02\",\"src_path\":\"/source/src/lib.rs\",\"edition\":\"2024\",\"doc\":true,\"doctest\":true,\"test\":true},\"message\":{\"rendered\":\"For more information about this error, try `rustc --explain E0597`.\\n\",\"$message_type\":\"diagnostic\",\"children\":[],\"level\":\"failure-note\",\"message\":\"For more information about this error, try `rustc --explain E0597`.\",\"spans\":[],\"code\":null}}\n{\"reason\":\"build-finished\",\"success\":false}\n",
+        "stdout_truncated": false,
+        "termination": "exited",
+        "total_duration_ms": 760
+      }
+    },
+    {
+      "task": "R02",
+      "variant": "reference",
+      "command": "fmt",
+      "passed": true,
+      "elapsed_seconds": 0.7253057499183342,
+      "source_files": [
+        {
+          "path": "Cargo.toml",
+          "sha256": "87a6c0efd7b66b3a18e17323c6e5915360674e75dff4add01a3a6267773e8115"
+        },
+        {
+          "path": "Cargo.lock",
+          "sha256": "b709a316752296214152825a90f411066285aadcf5ee5e45e1e01698a826193b"
+        },
+        {
+          "path": "src/lib.rs",
+          "sha256": "007e08be2c00e718ad779f839a1d0d47614dc2579035dbc66100f5e323f82d1c"
+        },
+        {
+          "path": "tests/behavior.rs",
+          "sha256": "ab88eb8e98de1080ccbbbb535cf474ed9269223e549f2d12bf171551864b46a6"
+        }
+      ],
+      "result": {
+        "duration_ms": 75,
+        "execution_fingerprint": "sha256:cb52fba9a972b405d5215b5dc4e8fef19de6af0c03be44cd454ffd7508771e99",
+        "exit_code": 0,
+        "image_id": "sha256:8fac70723a8d04b6ec9633ab721806b8a55f4f083a1b3f988c61bf6a00fa1909",
+        "oom_killed": false,
+        "platform": "linux/aarch64",
+        "stderr": "",
+        "stderr_truncated": false,
+        "stdout": "",
+        "stdout_truncated": false,
+        "termination": "exited",
+        "total_duration_ms": 725
+      }
+    },
+    {
+      "task": "R02",
+      "variant": "reference",
+      "command": "check",
+      "passed": true,
+      "elapsed_seconds": 0.79208775004372,
+      "source_files": [
+        {
+          "path": "Cargo.toml",
+          "sha256": "87a6c0efd7b66b3a18e17323c6e5915360674e75dff4add01a3a6267773e8115"
+        },
+        {
+          "path": "Cargo.lock",
+          "sha256": "b709a316752296214152825a90f411066285aadcf5ee5e45e1e01698a826193b"
+        },
+        {
+          "path": "src/lib.rs",
+          "sha256": "007e08be2c00e718ad779f839a1d0d47614dc2579035dbc66100f5e323f82d1c"
+        },
+        {
+          "path": "tests/behavior.rs",
+          "sha256": "ab88eb8e98de1080ccbbbb535cf474ed9269223e549f2d12bf171551864b46a6"
+        }
+      ],
+      "result": {
+        "duration_ms": 96,
+        "execution_fingerprint": "sha256:036139508cbb9d31aea1300b41bf862f93e51c772e86b6f8a241f0b6b4e266cc",
+        "exit_code": 0,
+        "image_id": "sha256:8fac70723a8d04b6ec9633ab721806b8a55f4f083a1b3f988c61bf6a00fa1909",
+        "oom_killed": false,
+        "platform": "linux/aarch64",
+        "stderr": "    Checking m1_16_r02 v0.1.0 (/source)\n    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.02s\n",
+        "stderr_truncated": false,
+        "stdout": "{\"reason\":\"compiler-artifact\",\"package_id\":\"path+file:///source#m1_16_r02@0.1.0\",\"manifest_path\":\"/source/Cargo.toml\",\"target\":{\"kind\":[\"lib\"],\"crate_types\":[\"lib\"],\"name\":\"m1_16_r02\",\"src_path\":\"/source/src/lib.rs\",\"edition\":\"2024\",\"doc\":true,\"doctest\":true,\"test\":true},\"profile\":{\"opt_level\":\"0\",\"debuginfo\":2,\"debug_assertions\":true,\"overflow_checks\":true,\"test\":false},\"features\":[],\"filenames\":[\"/work/target/debug/deps/libm1_16_r02-089cd65969427232.rmeta\"],\"executable\":null,\"fresh\":false}\n{\"reason\":\"build-finished\",\"success\":true}\n",
+        "stdout_truncated": false,
+        "termination": "exited",
+        "total_duration_ms": 791
+      }
+    },
+    {
+      "task": "R02",
+      "variant": "reference",
+      "command": "clippy",
+      "passed": true,
+      "elapsed_seconds": 0.7533421670086682,
+      "source_files": [
+        {
+          "path": "Cargo.toml",
+          "sha256": "87a6c0efd7b66b3a18e17323c6e5915360674e75dff4add01a3a6267773e8115"
+        },
+        {
+          "path": "Cargo.lock",
+          "sha256": "b709a316752296214152825a90f411066285aadcf5ee5e45e1e01698a826193b"
+        },
+        {
+          "path": "src/lib.rs",
+          "sha256": "007e08be2c00e718ad779f839a1d0d47614dc2579035dbc66100f5e323f82d1c"
+        },
+        {
+          "path": "tests/behavior.rs",
+          "sha256": "ab88eb8e98de1080ccbbbb535cf474ed9269223e549f2d12bf171551864b46a6"
+        }
+      ],
+      "result": {
+        "duration_ms": 98,
+        "execution_fingerprint": "sha256:99af0d52ca34449be9a87ee16f02779b7d87ee8a95fff2ba29dca02d13c5e19f",
+        "exit_code": 0,
+        "image_id": "sha256:8fac70723a8d04b6ec9633ab721806b8a55f4f083a1b3f988c61bf6a00fa1909",
+        "oom_killed": false,
+        "platform": "linux/aarch64",
+        "stderr": "    Checking m1_16_r02 v0.1.0 (/source)\n    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.02s\n",
+        "stderr_truncated": false,
+        "stdout": "{\"reason\":\"compiler-artifact\",\"package_id\":\"path+file:///source#m1_16_r02@0.1.0\",\"manifest_path\":\"/source/Cargo.toml\",\"target\":{\"kind\":[\"lib\"],\"crate_types\":[\"lib\"],\"name\":\"m1_16_r02\",\"src_path\":\"/source/src/lib.rs\",\"edition\":\"2024\",\"doc\":true,\"doctest\":true,\"test\":true},\"profile\":{\"opt_level\":\"0\",\"debuginfo\":2,\"debug_assertions\":true,\"overflow_checks\":true,\"test\":false},\"features\":[],\"filenames\":[\"/work/target/debug/deps/libm1_16_r02-9502129d820ea723.rmeta\"],\"executable\":null,\"fresh\":false}\n{\"reason\":\"build-finished\",\"success\":true}\n",
+        "stdout_truncated": false,
+        "termination": "exited",
+        "total_duration_ms": 753
+      }
+    },
+    {
+      "task": "R02",
+      "variant": "reference",
+      "command": "test",
+      "passed": true,
+      "elapsed_seconds": 0.97168720792979,
+      "source_files": [
+        {
+          "path": "Cargo.toml",
+          "sha256": "87a6c0efd7b66b3a18e17323c6e5915360674e75dff4add01a3a6267773e8115"
+        },
+        {
+          "path": "Cargo.lock",
+          "sha256": "b709a316752296214152825a90f411066285aadcf5ee5e45e1e01698a826193b"
+        },
+        {
+          "path": "src/lib.rs",
+          "sha256": "007e08be2c00e718ad779f839a1d0d47614dc2579035dbc66100f5e323f82d1c"
+        },
+        {
+          "path": "tests/behavior.rs",
+          "sha256": "ab88eb8e98de1080ccbbbb535cf474ed9269223e549f2d12bf171551864b46a6"
+        }
+      ],
+      "result": {
+        "duration_ms": 289,
+        "execution_fingerprint": "sha256:b746ef5f3810324fb66684d1b2415c3868f08cad6afd0087b4504e6cc23608e4",
+        "exit_code": 0,
+        "image_id": "sha256:8fac70723a8d04b6ec9633ab721806b8a55f4f083a1b3f988c61bf6a00fa1909",
+        "oom_killed": false,
+        "platform": "linux/aarch64",
+        "stderr": "   Compiling m1_16_r02 v0.1.0 (/source)\n    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.21s\n     Running unittests src/lib.rs (/work/target/debug/deps/m1_16_r02-27a6294a631338cd)\n     Running tests/behavior.rs (/work/target/debug/deps/behavior-1cd74f42adc9b152)\n   Doc-tests m1_16_r02\n",
+        "stderr_truncated": false,
+        "stdout": "{\"reason\":\"compiler-artifact\",\"package_id\":\"path+file:///source#m1_16_r02@0.1.0\",\"manifest_path\":\"/source/Cargo.toml\",\"target\":{\"kind\":[\"lib\"],\"crate_types\":[\"lib\"],\"name\":\"m1_16_r02\",\"src_path\":\"/source/src/lib.rs\",\"edition\":\"2024\",\"doc\":true,\"doctest\":true,\"test\":true},\"profile\":{\"opt_level\":\"0\",\"debuginfo\":2,\"debug_assertions\":true,\"overflow_checks\":true,\"test\":false},\"features\":[],\"filenames\":[\"/work/target/debug/deps/libm1_16_r02-4aa532007b5b95f1.rlib\",\"/work/target/debug/deps/libm1_16_r02-4aa532007b5b95f1.rmeta\"],\"executable\":null,\"fresh\":false}\n{\"reason\":\"compiler-artifact\",\"package_id\":\"path+file:///source#m1_16_r02@0.1.0\",\"manifest_path\":\"/source/Cargo.toml\",\"target\":{\"kind\":[\"test\"],\"crate_types\":[\"bin\"],\"name\":\"behavior\",\"src_path\":\"/source/tests/behavior.rs\",\"edition\":\"2024\",\"doc\":false,\"doctest\":false,\"test\":true},\"profile\":{\"opt_level\":\"0\",\"debuginfo\":2,\"debug_assertions\":true,\"overflow_checks\":true,\"test\":true},\"features\":[],\"filenames\":[\"/work/target/debug/deps/behavior-1cd74f42adc9b152\"],\"executable\":\"/work/target/debug/deps/behavior-1cd74f42adc9b152\",\"fresh\":false}\n{\"reason\":\"compiler-artifact\",\"package_id\":\"path+file:///source#m1_16_r02@0.1.0\",\"manifest_path\":\"/source/Cargo.toml\",\"target\":{\"kind\":[\"lib\"],\"crate_types\":[\"lib\"],\"name\":\"m1_16_r02\",\"src_path\":\"/source/src/lib.rs\",\"edition\":\"2024\",\"doc\":true,\"doctest\":true,\"test\":true},\"profile\":{\"opt_level\":\"0\",\"debuginfo\":2,\"debug_assertions\":true,\"overflow_checks\":true,\"test\":true},\"features\":[],\"filenames\":[\"/work/target/debug/deps/m1_16_r02-27a6294a631338cd\"],\"executable\":\"/work/target/debug/deps/m1_16_r02-27a6294a631338cd\",\"fresh\":false}\n{\"reason\":\"build-finished\",\"success\":true}\n\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n\nrunning 1 test\ntest owned_trimmed_unicode_label_survives_input_drop ... ok\n\ntest result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n",
+        "stdout_truncated": false,
+        "termination": "exited",
+        "total_duration_ms": 971
+      }
+    },
+    {
+      "task": "R03",
+      "variant": "initial",
+      "command": "clippy",
+      "passed": false,
+      "elapsed_seconds": 0.7782297090161592,
+      "source_files": [
+        {
+          "path": "Cargo.toml",
+          "sha256": "77ecf4bcdce1564183b4c2a6d7f836a8abb03f6739bc8a02bb67e2b328539137"
+        },
+        {
+          "path": "Cargo.lock",
+          "sha256": "ad81483b9bb453274ea9fce3fcc4590cd6bd28fc920d2070500e700157ff5770"
+        },
+        {
+          "path": "src/lib.rs",
+          "sha256": "0cca21c05d2affc3cb7203dc921b08602a5c0e82ed0b3f48c746bd40b3e81801"
+        },
+        {
+          "path": "tests/behavior.rs",
+          "sha256": "ed57f8a9c7e984a448cc5f5a550bc9be36b5d68e2cc9e2c12b960a66b92c430c"
+        }
+      ],
+      "result": {
+        "duration_ms": 107,
+        "execution_fingerprint": "sha256:bb9366185c68dbad3bab932f99b927b37e6626faff353c59c78636f6a2adda41",
+        "exit_code": 101,
+        "image_id": "sha256:8fac70723a8d04b6ec9633ab721806b8a55f4f083a1b3f988c61bf6a00fa1909",
+        "oom_killed": false,
+        "platform": "linux/aarch64",
+        "stderr": "    Checking m1_16_r03 v0.1.0 (/source)\nerror: could not compile `m1_16_r03` (lib) due to 1 previous error\n",
+        "stderr_truncated": false,
+        "stdout": "{\"reason\":\"compiler-message\",\"package_id\":\"path+file:///source#m1_16_r03@0.1.0\",\"manifest_path\":\"/source/Cargo.toml\",\"target\":{\"kind\":[\"lib\"],\"crate_types\":[\"lib\"],\"name\":\"m1_16_r03\",\"src_path\":\"/source/src/lib.rs\",\"edition\":\"2024\",\"doc\":true,\"doctest\":true,\"test\":true},\"message\":{\"rendered\":\"error: useless use of `vec!`\\n --> src/lib.rs:2:18\\n  |\\n2 |     let values = vec![input, input + 1, input + 2];\\n  |                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: you can use an array directly: `[input, input + 1, input + 2]`\\n  |\\n  = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.98.0/index.html#useless_vec\\n  = note: `-D clippy::useless-vec` implied by `-D warnings`\\n  = help: to override `-D warnings` add `#[allow(clippy::useless_vec)]`\\n\\n\",\"$message_type\":\"diagnostic\",\"children\":[{\"children\":[],\"code\":null,\"level\":\"help\",\"message\":\"for further information visit https://rust-lang.github.io/rust-clippy/rust-1.98.0/index.html#useless_vec\",\"rendered\":null,\"spans\":[]},{\"children\":[],\"code\":null,\"level\":\"note\",\"message\":\"`-D clippy::useless-vec` implied by `-D warnings`\",\"rendered\":null,\"spans\":[]},{\"children\":[],\"code\":null,\"level\":\"help\",\"message\":\"to override `-D warnings` add `#[allow(clippy::useless_vec)]`\",\"rendered\":null,\"spans\":[]},{\"children\":[],\"code\":null,\"level\":\"help\",\"message\":\"you can use an array directly\",\"rendered\":null,\"spans\":[{\"byte_end\":93,\"byte_start\":60,\"column_end\":51,\"column_start\":18,\"expansion\":null,\"file_name\":\"src/lib.rs\",\"is_primary\":true,\"label\":null,\"line_end\":2,\"line_start\":2,\"suggested_replacement\":\"[input, input + 1, input + 2]\",\"suggestion_applicability\":\"MachineApplicable\",\"text\":[{\"highlight_end\":51,\"highlight_start\":18,\"text\":\"    let values = vec![input, input + 1, input + 2];\"}]}]}],\"level\":\"error\",\"message\":\"useless use of `vec!`\",\"spans\":[{\"byte_end\":93,\"byte_start\":60,\"column_end\":51,\"column_start\":18,\"expansion\":null,\"file_name\":\"src/lib.rs\",\"is_primary\":true,\"label\":null,\"line_end\":2,\"line_start\":2,\"suggested_replacement\":null,\"suggestion_applicability\":null,\"text\":[{\"highlight_end\":51,\"highlight_start\":18,\"text\":\"    let values = vec![input, input + 1, input + 2];\"}]}],\"code\":{\"code\":\"clippy::useless_vec\",\"explanation\":null}}}\n{\"reason\":\"build-finished\",\"success\":false}\n",
+        "stdout_truncated": false,
+        "termination": "exited",
+        "total_duration_ms": 777
+      }
+    },
+    {
+      "task": "R03",
+      "variant": "reference",
+      "command": "fmt",
+      "passed": true,
+      "elapsed_seconds": 0.7637993330135942,
+      "source_files": [
+        {
+          "path": "Cargo.toml",
+          "sha256": "77ecf4bcdce1564183b4c2a6d7f836a8abb03f6739bc8a02bb67e2b328539137"
+        },
+        {
+          "path": "Cargo.lock",
+          "sha256": "ad81483b9bb453274ea9fce3fcc4590cd6bd28fc920d2070500e700157ff5770"
+        },
+        {
+          "path": "src/lib.rs",
+          "sha256": "2c983b7ecd8e83ff4a5ea67ef8acf9cdbecadbccc5cbf4bde323ff26c1503c3f"
+        },
+        {
+          "path": "tests/behavior.rs",
+          "sha256": "ed57f8a9c7e984a448cc5f5a550bc9be36b5d68e2cc9e2c12b960a66b92c430c"
+        }
+      ],
+      "result": {
+        "duration_ms": 79,
+        "execution_fingerprint": "sha256:3477ba8b8d21bb1c8026ee86df60020c1cc28833c2a257e4e994f98631f48758",
+        "exit_code": 0,
+        "image_id": "sha256:8fac70723a8d04b6ec9633ab721806b8a55f4f083a1b3f988c61bf6a00fa1909",
+        "oom_killed": false,
+        "platform": "linux/aarch64",
+        "stderr": "",
+        "stderr_truncated": false,
+        "stdout": "",
+        "stdout_truncated": false,
+        "termination": "exited",
+        "total_duration_ms": 763
+      }
+    },
+    {
+      "task": "R03",
+      "variant": "reference",
+      "command": "check",
+      "passed": true,
+      "elapsed_seconds": 0.7508449170272797,
+      "source_files": [
+        {
+          "path": "Cargo.toml",
+          "sha256": "77ecf4bcdce1564183b4c2a6d7f836a8abb03f6739bc8a02bb67e2b328539137"
+        },
+        {
+          "path": "Cargo.lock",
+          "sha256": "ad81483b9bb453274ea9fce3fcc4590cd6bd28fc920d2070500e700157ff5770"
+        },
+        {
+          "path": "src/lib.rs",
+          "sha256": "2c983b7ecd8e83ff4a5ea67ef8acf9cdbecadbccc5cbf4bde323ff26c1503c3f"
+        },
+        {
+          "path": "tests/behavior.rs",
+          "sha256": "ed57f8a9c7e984a448cc5f5a550bc9be36b5d68e2cc9e2c12b960a66b92c430c"
+        }
+      ],
+      "result": {
+        "duration_ms": 96,
+        "execution_fingerprint": "sha256:3f3341141c787ee559f3874b5052ad8eab9aad3502e2800fef283196ddbaec06",
+        "exit_code": 0,
+        "image_id": "sha256:8fac70723a8d04b6ec9633ab721806b8a55f4f083a1b3f988c61bf6a00fa1909",
+        "oom_killed": false,
+        "platform": "linux/aarch64",
+        "stderr": "    Checking m1_16_r03 v0.1.0 (/source)\n    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.02s\n",
+        "stderr_truncated": false,
+        "stdout": "{\"reason\":\"compiler-artifact\",\"package_id\":\"path+file:///source#m1_16_r03@0.1.0\",\"manifest_path\":\"/source/Cargo.toml\",\"target\":{\"kind\":[\"lib\"],\"crate_types\":[\"lib\"],\"name\":\"m1_16_r03\",\"src_path\":\"/source/src/lib.rs\",\"edition\":\"2024\",\"doc\":true,\"doctest\":true,\"test\":true},\"profile\":{\"opt_level\":\"0\",\"debuginfo\":2,\"debug_assertions\":true,\"overflow_checks\":true,\"test\":false},\"features\":[],\"filenames\":[\"/work/target/debug/deps/libm1_16_r03-41ffca7511d7ce62.rmeta\"],\"executable\":null,\"fresh\":false}\n{\"reason\":\"build-finished\",\"success\":true}\n",
+        "stdout_truncated": false,
+        "termination": "exited",
+        "total_duration_ms": 750
+      }
+    },
+    {
+      "task": "R03",
+      "variant": "reference",
+      "command": "clippy",
+      "passed": true,
+      "elapsed_seconds": 0.7937789589632303,
+      "source_files": [
+        {
+          "path": "Cargo.toml",
+          "sha256": "77ecf4bcdce1564183b4c2a6d7f836a8abb03f6739bc8a02bb67e2b328539137"
+        },
+        {
+          "path": "Cargo.lock",
+          "sha256": "ad81483b9bb453274ea9fce3fcc4590cd6bd28fc920d2070500e700157ff5770"
+        },
+        {
+          "path": "src/lib.rs",
+          "sha256": "2c983b7ecd8e83ff4a5ea67ef8acf9cdbecadbccc5cbf4bde323ff26c1503c3f"
+        },
+        {
+          "path": "tests/behavior.rs",
+          "sha256": "ed57f8a9c7e984a448cc5f5a550bc9be36b5d68e2cc9e2c12b960a66b92c430c"
+        }
+      ],
+      "result": {
+        "duration_ms": 97,
+        "execution_fingerprint": "sha256:ad378ddfc7bcbe7b624fc57f1c41b3bea6a0bf52da0876790304cf8fcd684500",
+        "exit_code": 0,
+        "image_id": "sha256:8fac70723a8d04b6ec9633ab721806b8a55f4f083a1b3f988c61bf6a00fa1909",
+        "oom_killed": false,
+        "platform": "linux/aarch64",
+        "stderr": "    Checking m1_16_r03 v0.1.0 (/source)\n    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.02s\n",
+        "stderr_truncated": false,
+        "stdout": "{\"reason\":\"compiler-artifact\",\"package_id\":\"path+file:///source#m1_16_r03@0.1.0\",\"manifest_path\":\"/source/Cargo.toml\",\"target\":{\"kind\":[\"lib\"],\"crate_types\":[\"lib\"],\"name\":\"m1_16_r03\",\"src_path\":\"/source/src/lib.rs\",\"edition\":\"2024\",\"doc\":true,\"doctest\":true,\"test\":true},\"profile\":{\"opt_level\":\"0\",\"debuginfo\":2,\"debug_assertions\":true,\"overflow_checks\":true,\"test\":false},\"features\":[],\"filenames\":[\"/work/target/debug/deps/libm1_16_r03-e46b3133f06911aa.rmeta\"],\"executable\":null,\"fresh\":false}\n{\"reason\":\"build-finished\",\"success\":true}\n",
+        "stdout_truncated": false,
+        "termination": "exited",
+        "total_duration_ms": 793
+      }
+    },
+    {
+      "task": "R03",
+      "variant": "reference",
+      "command": "test",
+      "passed": true,
+      "elapsed_seconds": 0.9890269170282409,
+      "source_files": [
+        {
+          "path": "Cargo.toml",
+          "sha256": "77ecf4bcdce1564183b4c2a6d7f836a8abb03f6739bc8a02bb67e2b328539137"
+        },
+        {
+          "path": "Cargo.lock",
+          "sha256": "ad81483b9bb453274ea9fce3fcc4590cd6bd28fc920d2070500e700157ff5770"
+        },
+        {
+          "path": "src/lib.rs",
+          "sha256": "2c983b7ecd8e83ff4a5ea67ef8acf9cdbecadbccc5cbf4bde323ff26c1503c3f"
+        },
+        {
+          "path": "tests/behavior.rs",
+          "sha256": "ed57f8a9c7e984a448cc5f5a550bc9be36b5d68e2cc9e2c12b960a66b92c430c"
+        }
+      ],
+      "result": {
+        "duration_ms": 301,
+        "execution_fingerprint": "sha256:b3406f9b20550146a77112a529be5eef8495a20b97d3f38df877e0aeedcadda4",
+        "exit_code": 0,
+        "image_id": "sha256:8fac70723a8d04b6ec9633ab721806b8a55f4f083a1b3f988c61bf6a00fa1909",
+        "oom_killed": false,
+        "platform": "linux/aarch64",
+        "stderr": "   Compiling m1_16_r03 v0.1.0 (/source)\n    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.22s\n     Running unittests src/lib.rs (/work/target/debug/deps/m1_16_r03-cfeb11e82c688c2a)\n     Running tests/behavior.rs (/work/target/debug/deps/behavior-f53b6600715fa03c)\n   Doc-tests m1_16_r03\n",
+        "stderr_truncated": false,
+        "stdout": "{\"reason\":\"compiler-artifact\",\"package_id\":\"path+file:///source#m1_16_r03@0.1.0\",\"manifest_path\":\"/source/Cargo.toml\",\"target\":{\"kind\":[\"lib\"],\"crate_types\":[\"lib\"],\"name\":\"m1_16_r03\",\"src_path\":\"/source/src/lib.rs\",\"edition\":\"2024\",\"doc\":true,\"doctest\":true,\"test\":true},\"profile\":{\"opt_level\":\"0\",\"debuginfo\":2,\"debug_assertions\":true,\"overflow_checks\":true,\"test\":false},\"features\":[],\"filenames\":[\"/work/target/debug/deps/libm1_16_r03-0bb8a3a2220636de.rlib\",\"/work/target/debug/deps/libm1_16_r03-0bb8a3a2220636de.rmeta\"],\"executable\":null,\"fresh\":false}\n{\"reason\":\"compiler-artifact\",\"package_id\":\"path+file:///source#m1_16_r03@0.1.0\",\"manifest_path\":\"/source/Cargo.toml\",\"target\":{\"kind\":[\"test\"],\"crate_types\":[\"bin\"],\"name\":\"behavior\",\"src_path\":\"/source/tests/behavior.rs\",\"edition\":\"2024\",\"doc\":false,\"doctest\":false,\"test\":true},\"profile\":{\"opt_level\":\"0\",\"debuginfo\":2,\"debug_assertions\":true,\"overflow_checks\":true,\"test\":true},\"features\":[],\"filenames\":[\"/work/target/debug/deps/behavior-f53b6600715fa03c\"],\"executable\":\"/work/target/debug/deps/behavior-f53b6600715fa03c\",\"fresh\":false}\n{\"reason\":\"compiler-artifact\",\"package_id\":\"path+file:///source#m1_16_r03@0.1.0\",\"manifest_path\":\"/source/Cargo.toml\",\"target\":{\"kind\":[\"lib\"],\"crate_types\":[\"lib\"],\"name\":\"m1_16_r03\",\"src_path\":\"/source/src/lib.rs\",\"edition\":\"2024\",\"doc\":true,\"doctest\":true,\"test\":true},\"profile\":{\"opt_level\":\"0\",\"debuginfo\":2,\"debug_assertions\":true,\"overflow_checks\":true,\"test\":true},\"features\":[],\"filenames\":[\"/work/target/debug/deps/m1_16_r03-cfeb11e82c688c2a\"],\"executable\":\"/work/target/debug/deps/m1_16_r03-cfeb11e82c688c2a\",\"fresh\":false}\n{\"reason\":\"build-finished\",\"success\":true}\n\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n\nrunning 1 test\ntest preserves_sum_over_declared_domain ... ok\n\ntest result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n",
+        "stdout_truncated": false,
+        "termination": "exited",
+        "total_duration_ms": 988
+      }
+    },
+    {
+      "task": "R04",
+      "variant": "initial",
+      "command": "test",
+      "passed": false,
+      "elapsed_seconds": 0.8850643750047311,
+      "source_files": [
+        {
+          "path": "Cargo.toml",
+          "sha256": "a128f43dd479bf5cda84d13cb08b42b51ed1d21ffea4e7c4061e0c4526b90690"
+        },
+        {
+          "path": "Cargo.lock",
+          "sha256": "7c89b1904bc9c1579fcf472972ece3611de4597c2218f4346a5e244037655dba"
+        },
+        {
+          "path": "src/lib.rs",
+          "sha256": "719eb5d1ada58a8c6c2c78ace5a71407c6140ce37ca5e3663f6ec7252732d074"
+        },
+        {
+          "path": "tests/behavior.rs",
+          "sha256": "8702ce02e6443c4b053338e344bec930e96ee072a64d6923bcaa0915ddd921c3"
+        }
+      ],
+      "result": {
+        "duration_ms": 274,
+        "execution_fingerprint": "sha256:d406def1e51671c9ec318bc1ce624e02b52077f17fdb34b4088017843e7c3e40",
+        "exit_code": 101,
+        "image_id": "sha256:8fac70723a8d04b6ec9633ab721806b8a55f4f083a1b3f988c61bf6a00fa1909",
+        "oom_killed": false,
+        "platform": "linux/aarch64",
+        "stderr": "   Compiling m1_16_r04 v0.1.0 (/source)\n    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.21s\n     Running unittests src/lib.rs (/work/target/debug/deps/m1_16_r04-7ffea3faffac1a67)\n     Running tests/behavior.rs (/work/target/debug/deps/behavior-ce99668d4d3e393d)\nerror: test failed, to rerun pass `--test behavior`\n",
+        "stderr_truncated": false,
+        "stdout": "{\"reason\":\"compiler-artifact\",\"package_id\":\"path+file:///source#m1_16_r04@0.1.0\",\"manifest_path\":\"/source/Cargo.toml\",\"target\":{\"kind\":[\"lib\"],\"crate_types\":[\"lib\"],\"name\":\"m1_16_r04\",\"src_path\":\"/source/src/lib.rs\",\"edition\":\"2024\",\"doc\":true,\"doctest\":true,\"test\":true},\"profile\":{\"opt_level\":\"0\",\"debuginfo\":2,\"debug_assertions\":true,\"overflow_checks\":true,\"test\":false},\"features\":[],\"filenames\":[\"/work/target/debug/deps/libm1_16_r04-787d9e5f6b151ae2.rlib\",\"/work/target/debug/deps/libm1_16_r04-787d9e5f6b151ae2.rmeta\"],\"executable\":null,\"fresh\":false}\n{\"reason\":\"compiler-artifact\",\"package_id\":\"path+file:///source#m1_16_r04@0.1.0\",\"manifest_path\":\"/source/Cargo.toml\",\"target\":{\"kind\":[\"test\"],\"crate_types\":[\"bin\"],\"name\":\"behavior\",\"src_path\":\"/source/tests/behavior.rs\",\"edition\":\"2024\",\"doc\":false,\"doctest\":false,\"test\":true},\"profile\":{\"opt_level\":\"0\",\"debuginfo\":2,\"debug_assertions\":true,\"overflow_checks\":true,\"test\":true},\"features\":[],\"filenames\":[\"/work/target/debug/deps/behavior-ce99668d4d3e393d\"],\"executable\":\"/work/target/debug/deps/behavior-ce99668d4d3e393d\",\"fresh\":false}\n{\"reason\":\"compiler-artifact\",\"package_id\":\"path+file:///source#m1_16_r04@0.1.0\",\"manifest_path\":\"/source/Cargo.toml\",\"target\":{\"kind\":[\"lib\"],\"crate_types\":[\"lib\"],\"name\":\"m1_16_r04\",\"src_path\":\"/source/src/lib.rs\",\"edition\":\"2024\",\"doc\":true,\"doctest\":true,\"test\":true},\"profile\":{\"opt_level\":\"0\",\"debuginfo\":2,\"debug_assertions\":true,\"overflow_checks\":true,\"test\":true},\"features\":[],\"filenames\":[\"/work/target/debug/deps/m1_16_r04-7ffea3faffac1a67\"],\"executable\":\"/work/target/debug/deps/m1_16_r04-7ffea3faffac1a67\",\"fresh\":false}\n{\"reason\":\"build-finished\",\"success\":true}\n\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n\nrunning 1 test\ntest exact_ceiling_for_full_u32_boundary_cases ... FAILED\n\nfailures:\n\n---- exact_ceiling_for_full_u32_boundary_cases stdout ----\n\nthread 'exact_ceiling_for_full_u32_boundary_cases' (49) panicked at src/lib.rs:5:15:\nattempt to add with overflow\nnote: run with `RUST_BACKTRACE=1` environment variable to display a backtrace\n\n\nfailures:\n    exact_ceiling_for_full_u32_boundary_cases\n\ntest result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n",
+        "stdout_truncated": false,
+        "termination": "exited",
+        "total_duration_ms": 884
+      }
+    },
+    {
+      "task": "R04",
+      "variant": "reference",
+      "command": "fmt",
+      "passed": true,
+      "elapsed_seconds": 0.7366550000151619,
+      "source_files": [
+        {
+          "path": "Cargo.toml",
+          "sha256": "a128f43dd479bf5cda84d13cb08b42b51ed1d21ffea4e7c4061e0c4526b90690"
+        },
+        {
+          "path": "Cargo.lock",
+          "sha256": "7c89b1904bc9c1579fcf472972ece3611de4597c2218f4346a5e244037655dba"
+        },
+        {
+          "path": "src/lib.rs",
+          "sha256": "bd5e13fbc07b0d6585eba6e4b5f43861261062cf6a83ef4f8dad2bec94529b9e"
+        },
+        {
+          "path": "tests/behavior.rs",
+          "sha256": "8702ce02e6443c4b053338e344bec930e96ee072a64d6923bcaa0915ddd921c3"
+        }
+      ],
+      "result": {
+        "duration_ms": 77,
+        "execution_fingerprint": "sha256:0bb9e843467492feac6e84c425d546332a623c64ac512236a5c515acc7c3d02e",
+        "exit_code": 0,
+        "image_id": "sha256:8fac70723a8d04b6ec9633ab721806b8a55f4f083a1b3f988c61bf6a00fa1909",
+        "oom_killed": false,
+        "platform": "linux/aarch64",
+        "stderr": "",
+        "stderr_truncated": false,
+        "stdout": "",
+        "stdout_truncated": false,
+        "termination": "exited",
+        "total_duration_ms": 736
+      }
+    },
+    {
+      "task": "R04",
+      "variant": "reference",
+      "command": "check",
+      "passed": true,
+      "elapsed_seconds": 0.7583525829249993,
+      "source_files": [
+        {
+          "path": "Cargo.toml",
+          "sha256": "a128f43dd479bf5cda84d13cb08b42b51ed1d21ffea4e7c4061e0c4526b90690"
+        },
+        {
+          "path": "Cargo.lock",
+          "sha256": "7c89b1904bc9c1579fcf472972ece3611de4597c2218f4346a5e244037655dba"
+        },
+        {
+          "path": "src/lib.rs",
+          "sha256": "bd5e13fbc07b0d6585eba6e4b5f43861261062cf6a83ef4f8dad2bec94529b9e"
+        },
+        {
+          "path": "tests/behavior.rs",
+          "sha256": "8702ce02e6443c4b053338e344bec930e96ee072a64d6923bcaa0915ddd921c3"
+        }
+      ],
+      "result": {
+        "duration_ms": 92,
+        "execution_fingerprint": "sha256:a2123b06dab84df01c7ee2282b5b99031bae12fae825ae9ed0a41c36a0e2b312",
+        "exit_code": 0,
+        "image_id": "sha256:8fac70723a8d04b6ec9633ab721806b8a55f4f083a1b3f988c61bf6a00fa1909",
+        "oom_killed": false,
+        "platform": "linux/aarch64",
+        "stderr": "    Checking m1_16_r04 v0.1.0 (/source)\n    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.02s\n",
+        "stderr_truncated": false,
+        "stdout": "{\"reason\":\"compiler-artifact\",\"package_id\":\"path+file:///source#m1_16_r04@0.1.0\",\"manifest_path\":\"/source/Cargo.toml\",\"target\":{\"kind\":[\"lib\"],\"crate_types\":[\"lib\"],\"name\":\"m1_16_r04\",\"src_path\":\"/source/src/lib.rs\",\"edition\":\"2024\",\"doc\":true,\"doctest\":true,\"test\":true},\"profile\":{\"opt_level\":\"0\",\"debuginfo\":2,\"debug_assertions\":true,\"overflow_checks\":true,\"test\":false},\"features\":[],\"filenames\":[\"/work/target/debug/deps/libm1_16_r04-749eda4675123d56.rmeta\"],\"executable\":null,\"fresh\":false}\n{\"reason\":\"build-finished\",\"success\":true}\n",
+        "stdout_truncated": false,
+        "termination": "exited",
+        "total_duration_ms": 757
+      }
+    },
+    {
+      "task": "R04",
+      "variant": "reference",
+      "command": "clippy",
+      "passed": true,
+      "elapsed_seconds": 0.7850662079872563,
+      "source_files": [
+        {
+          "path": "Cargo.toml",
+          "sha256": "a128f43dd479bf5cda84d13cb08b42b51ed1d21ffea4e7c4061e0c4526b90690"
+        },
+        {
+          "path": "Cargo.lock",
+          "sha256": "7c89b1904bc9c1579fcf472972ece3611de4597c2218f4346a5e244037655dba"
+        },
+        {
+          "path": "src/lib.rs",
+          "sha256": "bd5e13fbc07b0d6585eba6e4b5f43861261062cf6a83ef4f8dad2bec94529b9e"
+        },
+        {
+          "path": "tests/behavior.rs",
+          "sha256": "8702ce02e6443c4b053338e344bec930e96ee072a64d6923bcaa0915ddd921c3"
+        }
+      ],
+      "result": {
+        "duration_ms": 102,
+        "execution_fingerprint": "sha256:6b47df4f0ccc3489b23c74ead57943e6bec091a498a20dd3887bb8c48bcd82ee",
+        "exit_code": 0,
+        "image_id": "sha256:8fac70723a8d04b6ec9633ab721806b8a55f4f083a1b3f988c61bf6a00fa1909",
+        "oom_killed": false,
+        "platform": "linux/aarch64",
+        "stderr": "    Checking m1_16_r04 v0.1.0 (/source)\n    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.02s\n",
+        "stderr_truncated": false,
+        "stdout": "{\"reason\":\"compiler-artifact\",\"package_id\":\"path+file:///source#m1_16_r04@0.1.0\",\"manifest_path\":\"/source/Cargo.toml\",\"target\":{\"kind\":[\"lib\"],\"crate_types\":[\"lib\"],\"name\":\"m1_16_r04\",\"src_path\":\"/source/src/lib.rs\",\"edition\":\"2024\",\"doc\":true,\"doctest\":true,\"test\":true},\"profile\":{\"opt_level\":\"0\",\"debuginfo\":2,\"debug_assertions\":true,\"overflow_checks\":true,\"test\":false},\"features\":[],\"filenames\":[\"/work/target/debug/deps/libm1_16_r04-b5fbca6fb1511152.rmeta\"],\"executable\":null,\"fresh\":false}\n{\"reason\":\"build-finished\",\"success\":true}\n",
+        "stdout_truncated": false,
+        "termination": "exited",
+        "total_duration_ms": 784
+      }
+    },
+    {
+      "task": "R04",
+      "variant": "reference",
+      "command": "test",
+      "passed": true,
+      "elapsed_seconds": 0.9407890419242904,
+      "source_files": [
+        {
+          "path": "Cargo.toml",
+          "sha256": "a128f43dd479bf5cda84d13cb08b42b51ed1d21ffea4e7c4061e0c4526b90690"
+        },
+        {
+          "path": "Cargo.lock",
+          "sha256": "7c89b1904bc9c1579fcf472972ece3611de4597c2218f4346a5e244037655dba"
+        },
+        {
+          "path": "src/lib.rs",
+          "sha256": "bd5e13fbc07b0d6585eba6e4b5f43861261062cf6a83ef4f8dad2bec94529b9e"
+        },
+        {
+          "path": "tests/behavior.rs",
+          "sha256": "8702ce02e6443c4b053338e344bec930e96ee072a64d6923bcaa0915ddd921c3"
+        }
+      ],
+      "result": {
+        "duration_ms": 284,
+        "execution_fingerprint": "sha256:2c89281d0220c09449391e5d45889d391b8f4038d0c09cb8514fe602c803ff44",
+        "exit_code": 0,
+        "image_id": "sha256:8fac70723a8d04b6ec9633ab721806b8a55f4f083a1b3f988c61bf6a00fa1909",
+        "oom_killed": false,
+        "platform": "linux/aarch64",
+        "stderr": "   Compiling m1_16_r04 v0.1.0 (/source)\n    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.21s\n     Running unittests src/lib.rs (/work/target/debug/deps/m1_16_r04-7ffea3faffac1a67)\n     Running tests/behavior.rs (/work/target/debug/deps/behavior-ce99668d4d3e393d)\n   Doc-tests m1_16_r04\n",
+        "stderr_truncated": false,
+        "stdout": "{\"reason\":\"compiler-artifact\",\"package_id\":\"path+file:///source#m1_16_r04@0.1.0\",\"manifest_path\":\"/source/Cargo.toml\",\"target\":{\"kind\":[\"lib\"],\"crate_types\":[\"lib\"],\"name\":\"m1_16_r04\",\"src_path\":\"/source/src/lib.rs\",\"edition\":\"2024\",\"doc\":true,\"doctest\":true,\"test\":true},\"profile\":{\"opt_level\":\"0\",\"debuginfo\":2,\"debug_assertions\":true,\"overflow_checks\":true,\"test\":false},\"features\":[],\"filenames\":[\"/work/target/debug/deps/libm1_16_r04-787d9e5f6b151ae2.rlib\",\"/work/target/debug/deps/libm1_16_r04-787d9e5f6b151ae2.rmeta\"],\"executable\":null,\"fresh\":false}\n{\"reason\":\"compiler-artifact\",\"package_id\":\"path+file:///source#m1_16_r04@0.1.0\",\"manifest_path\":\"/source/Cargo.toml\",\"target\":{\"kind\":[\"test\"],\"crate_types\":[\"bin\"],\"name\":\"behavior\",\"src_path\":\"/source/tests/behavior.rs\",\"edition\":\"2024\",\"doc\":false,\"doctest\":false,\"test\":true},\"profile\":{\"opt_level\":\"0\",\"debuginfo\":2,\"debug_assertions\":true,\"overflow_checks\":true,\"test\":true},\"features\":[],\"filenames\":[\"/work/target/debug/deps/behavior-ce99668d4d3e393d\"],\"executable\":\"/work/target/debug/deps/behavior-ce99668d4d3e393d\",\"fresh\":false}\n{\"reason\":\"compiler-artifact\",\"package_id\":\"path+file:///source#m1_16_r04@0.1.0\",\"manifest_path\":\"/source/Cargo.toml\",\"target\":{\"kind\":[\"lib\"],\"crate_types\":[\"lib\"],\"name\":\"m1_16_r04\",\"src_path\":\"/source/src/lib.rs\",\"edition\":\"2024\",\"doc\":true,\"doctest\":true,\"test\":true},\"profile\":{\"opt_level\":\"0\",\"debuginfo\":2,\"debug_assertions\":true,\"overflow_checks\":true,\"test\":true},\"features\":[],\"filenames\":[\"/work/target/debug/deps/m1_16_r04-7ffea3faffac1a67\"],\"executable\":\"/work/target/debug/deps/m1_16_r04-7ffea3faffac1a67\",\"fresh\":false}\n{\"reason\":\"build-finished\",\"success\":true}\n\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n\nrunning 1 test\ntest exact_ceiling_for_full_u32_boundary_cases ... ok\n\ntest result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n",
+        "stdout_truncated": false,
+        "termination": "exited",
+        "total_duration_ms": 940
+      }
+    }
+  ],
+  "driver_cleanup": {
+    "cancelled": false,
+    "forced_driver_stop": false,
+    "exit_code": 0,
+    "execution_joined": true,
+    "cleanup_failed": false,
+    "server_cleanup_verified": true,
+    "stderr_bytes": 0,
+    "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  }
+}

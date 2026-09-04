@@ -1,0 +1,24 @@
+{
+  "all_workspace_members": true,
+  "build_script_not_executed": true,
+  "cases": 7,
+  "cleanup": true,
+  "configuration_fingerprint": "sha256:8a7ab398ad1a12400579857bd03dfb10ec1c43ceb166bf0fc641af1071c9fe50",
+  "configured_style_honored": true,
+  "disable_all_overridden": true,
+  "execution_fingerprints": [
+    "sha256:ba5f3886d8452afb40300e542ff1c143c77ed4bc268bea8fcb94fc39ae867805",
+    "sha256:6526c1a043539e58f19c3ec8db183e7d749bf20638816545291e8ffc3ed2a448",
+    "sha256:538f6cd8c177f749bf68dc02d2658ba8a8648c608667849d9c2874c1cb5da1d9",
+    "sha256:31b5ef3003aee72fe4a12ef12610db41f5d0a86ba4848a8610bf2875882d341a",
+    "sha256:478b55e3998e3573d41ba3a6d95b1fe6e6ea247cf1fc885225c28b2279900862",
+    "sha256:c0f01b580a485de19ea5c6bac387cceae648d4d1fefcf18a597c58a67e667d84",
+    "sha256:9121fc427de23c079fc857f9f399988060ebfac2516b1a700050b98096f05217"
+  ],
+  "large_diff_omitted": true,
+  "logs_verified": 7,
+  "newline_only_difference": true,
+  "parse_failure_incomplete": true,
+  "source_unchanged": true,
+  "status": "passed"
+}

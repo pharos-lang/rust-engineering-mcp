@@ -1,0 +1,42 @@
+{
+  "reviewer": "Claude Code 2.1.259",
+  "requested_model": "claude-opus-5",
+  "effort": "high",
+  "read_only": true,
+  "tools": [],
+  "packet_sha256": "4484a6509cad9c5203d3e4025b6f9ab5e2fa881f2ebe409ca8baac332c9bceb6",
+  "raw_result_sha256": "8e84b0b88de4d3aa2d6e3739ebebff90fcd7ee1874850d2e76e4f83bd5e22a1d",
+  "model_usage": {
+    "claude-haiku-4-5-20251001": {
+      "inputTokens": 31628,
+      "outputTokens": 19,
+      "cacheReadInputTokens": 0,
+      "cacheCreationInputTokens": 0,
+      "webSearchRequests": 0,
+      "costUSD": 0.031723,
+      "contextWindow": 200000,
+      "maxOutputTokens": 32000,
+      "thinkingTokens": 0,
+      "canonicalModel": "claude-haiku-4-5",
+      "provider": "firstParty",
+      "costBasis": "list"
+    },
+    "claude-opus-5": {
+      "inputTokens": 2,
+      "outputTokens": 14511,
+      "cacheReadInputTokens": 2597,
+      "cacheCreationInputTokens": 40142,
+      "webSearchRequests": 0,
+      "costUSD": 0.7655035,
+      "contextWindow": 1000000,
+      "maxOutputTokens": 64000,
+      "thinkingTokens": 10701,
+      "canonicalModel": "claude-opus-5",
+      "provider": "firstParty",
+      "costBasis": "list"
+    }
+  },
+  "is_error": false,
+  "session_id": "dfeef33e-a5b0-4bf2-b3fd-c1fb972518f4",
+  "duration_ms": 205948
+}

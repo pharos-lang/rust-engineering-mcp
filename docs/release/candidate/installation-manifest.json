@@ -1,0 +1,109 @@
+{
+  "scope": "owned-private-installation",
+  "root": "<LOCAL_HOME>/Projects/rust-mcp/target/m1-15-candidate/installation",
+  "files": [
+    {
+      "path": "installation/core/bin/rust-engineering-mcp",
+      "bytes": 21049384,
+      "sha256": "32b7f921d8a0b4409581c66d8d2ff0756ba250d783f3e52e97392a062e7eeab1",
+      "mode": "0o700"
+    },
+    {
+      "path": "installation/core/catalog/active.bundle",
+      "bytes": 2058,
+      "sha256": "1b3aa5c89847b7db81229678e6e78766547f27d78c5c994d80ba2452cda69538",
+      "mode": "0o600"
+    },
+    {
+      "path": "installation/core/catalog/floor.record",
+      "bytes": 238,
+      "sha256": "dfbeed1fa43ee4f1b61ec3f0015f7c5cc161746df48b18311c07fa811a7f0db3",
+      "mode": "0o600"
+    },
+    {
+      "path": "installation/core/catalog/staging.bundle",
+      "bytes": 34,
+      "sha256": "3033dda03795fd8d134a86f3a618fbb81447f2ca774123715a30e249df854bd7",
+      "mode": "0o600"
+    },
+    {
+      "path": "installation/core/catalog/store.lock",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mode": "0o600"
+    },
+    {
+      "path": "installation/core/trust/fixture-trust.json",
+      "bytes": 138,
+      "sha256": "33932c6aff0aa1a5befcb5b03f40edf12525330ff848b5220967eaef05f571d7",
+      "mode": "0o600"
+    },
+    {
+      "path": "installation/local/bin/rust-engineering-mcp",
+      "bytes": 271401656,
+      "sha256": "7a99038be57429e1db32c91d01772e7efd104691828253f45ed3bbb0e9330417",
+      "mode": "0o700"
+    },
+    {
+      "path": "installation/local/catalog/active.bundle",
+      "bytes": 2058,
+      "sha256": "1b3aa5c89847b7db81229678e6e78766547f27d78c5c994d80ba2452cda69538",
+      "mode": "0o600"
+    },
+    {
+      "path": "installation/local/catalog/floor.record",
+      "bytes": 238,
+      "sha256": "dfbeed1fa43ee4f1b61ec3f0015f7c5cc161746df48b18311c07fa811a7f0db3",
+      "mode": "0o600"
+    },
+    {
+      "path": "installation/local/catalog/staging.bundle",
+      "bytes": 34,
+      "sha256": "3033dda03795fd8d134a86f3a618fbb81447f2ca774123715a30e249df854bd7",
+      "mode": "0o600"
+    },
+    {
+      "path": "installation/local/catalog/store.lock",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mode": "0o600"
+    },
+    {
+      "path": "installation/local/model/config.json",
+      "bytes": 653,
+      "sha256": "bbb7c1333fc4b3e27fbc9cd5d2070aabcc1d4dfb99917c3633e772f97545a6b6",
+      "mode": "0o600"
+    },
+    {
+      "path": "installation/local/model/model.onnx",
+      "bytes": 470268510,
+      "sha256": "ca456c06b3a9505ddfd9131408916dd79290368331e7d76bb621f1cba6bc8665",
+      "mode": "0o600"
+    },
+    {
+      "path": "installation/local/model/special_tokens_map.json",
+      "bytes": 167,
+      "sha256": "d05497f1da52c5e09554c0cd874037a083e1dc1b9cfd48034d1c717f1afc07a7",
+      "mode": "0o600"
+    },
+    {
+      "path": "installation/local/model/tokenizer.json",
+      "bytes": 17082730,
+      "sha256": "0b44a9d7b51c3c62626640cda0e2c2f70fdacdc25bbbd68038369d14ebdf4c39",
+      "mode": "0o600"
+    },
+    {
+      "path": "installation/local/model/tokenizer_config.json",
+      "bytes": 443,
+      "sha256": "a1d6bc8734a6f635dc158508bef000f8e2e5a759c7d92f984b2c86e5ff53425b",
+      "mode": "0o600"
+    },
+    {
+      "path": "installation/local/trust/fixture-trust.json",
+      "bytes": 138,
+      "sha256": "33932c6aff0aa1a5befcb5b03f40edf12525330ff848b5220967eaef05f571d7",
+      "mode": "0o600"
+    }
+  ],
+  "total_bytes": 779808479
+}

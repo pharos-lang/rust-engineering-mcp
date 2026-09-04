@@ -1,0 +1,42 @@
+{
+  "reviewer": "Claude Code 2.1.259",
+  "requested_model": "claude-sonnet-5",
+  "effort": "medium",
+  "read_only": true,
+  "tools": [],
+  "packet_sha256": "6af2033da2ddd838b5d76af38dda0c4ec7e124647e23da0267955c49c273e376",
+  "raw_result_sha256": "58d8f7e294cf21f2e8fe0781d401ae1448632a92c37892a0d4e9fe8209faa365",
+  "model_usage": {
+    "claude-haiku-4-5-20251001": {
+      "inputTokens": 15878,
+      "outputTokens": 16,
+      "cacheReadInputTokens": 0,
+      "cacheCreationInputTokens": 0,
+      "webSearchRequests": 0,
+      "costUSD": 0.015958,
+      "contextWindow": 200000,
+      "maxOutputTokens": 32000,
+      "thinkingTokens": 0,
+      "canonicalModel": "claude-haiku-4-5",
+      "provider": "firstParty",
+      "costBasis": "list"
+    },
+    "claude-sonnet-5": {
+      "inputTokens": 2,
+      "outputTokens": 10184,
+      "cacheReadInputTokens": 3289,
+      "cacheCreationInputTokens": 21689,
+      "webSearchRequests": 0,
+      "costUSD": 0.1892578,
+      "contextWindow": 1000000,
+      "maxOutputTokens": 64000,
+      "thinkingTokens": 8107,
+      "canonicalModel": "claude-sonnet-5",
+      "provider": "firstParty",
+      "costBasis": "list"
+    }
+  },
+  "is_error": false,
+  "session_id": "d0e6a172-f5a6-43b3-a07c-2da3fbc8d736",
+  "duration_ms": 113021
+}

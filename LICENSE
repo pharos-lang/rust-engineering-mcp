@@ -1,0 +1,10 @@
+Rust Engineering MCP is dual-licensed under your choice of:
+
+- Apache License, Version 2.0 (LICENSE-APACHE); or
+- MIT License (LICENSE-MIT).
+
+SPDX-License-Identifier: MIT OR Apache-2.0
+Copyright (c) 2026 IUMotion Labs
+
+Third-party components and data remain under their respective licenses. See
+THIRD_PARTY_NOTICES and the release-specific notice inventory when supplied.

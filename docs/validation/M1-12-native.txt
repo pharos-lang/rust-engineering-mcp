@@ -1,0 +1,20 @@
+   Compiling rust-engineering-mcp v0.1.0-dev.1 (<LOCAL_HOME>/Projects/rust-mcp/crates/mcp-server)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 5.19s
+
+running 3 tests
+test actual_wire_all_search_modes_and_native_fallback_are_bound_to_sqlite ... ignored, full gate: actual E5/native Lance objects and inherited macOS network deny
+test actual_wire_lexical_filters_and_semantic_fallback_use_identical_sqlite_facts ... ok
+test actual_wire_search_rejects_query_and_filter_authority_extensions ... ok
+
+test result: ok. 2 passed; 0 failed; 1 ignored; 0 measured; 0 filtered out; finished in 7.51s
+
+
+
+running 1 test
+test actual_wire_all_search_modes_and_native_fallback_are_bound_to_sqlite ... PASS actual E5/native lexical/semantic/hybrid ES+EN boundaries and SQLite-filtered fallbacks; no retrieval-quality claim
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 2 filtered out; finished in 11.23s
+
+
+PASS MCP crate search, real E5/native rankings, shared generation and explicit fallback under network deny

@@ -1,0 +1,22 @@
+{
+  "scope": "local-review-only-not-distribution",
+  "archives": [
+    {
+      "feature": "core",
+      "path": "core.local-review.tar.gz",
+      "compressed_bytes": 8799844,
+      "payload_bytes": 28312871,
+      "sha256": "ba2fc08989fffc4524dbb548e61b33d97b885be4ebb5e144a4ca0a77dc3bf631",
+      "archive_payload_hashes_verified": true
+    },
+    {
+      "feature": "local",
+      "path": "local.local-review.tar.gz",
+      "compressed_bytes": 387261136,
+      "payload_bytes": 766020750,
+      "sha256": "88886b38465d23d99f119265eca865b9ac1551de9557a7e0ecfd76238a8f9c2d",
+      "archive_payload_hashes_verified": true
+    }
+  ],
+  "installation_source": "hashed unpacked candidate directory; archive bytes separately verified"
+}

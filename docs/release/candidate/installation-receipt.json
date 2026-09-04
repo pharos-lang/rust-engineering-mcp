@@ -1,0 +1,91 @@
+{
+  "scope": "local-review-only-not-distribution",
+  "status": "passed",
+  "product_license": "owner_decision_pending",
+  "trust_identity": "public-forgeable-fixture-only/test; no publisher authorization",
+  "network_controls": "IPv4/IPv6 loopback bind positive outside and denied inside profile",
+  "runtime_network_profile": "(version 1) (allow default) (deny network*)",
+  "source_manifest_sha256": "f142775240951dcd3390e186750e36f07d5c4ae12ad4e622eed2e3c3a8427115",
+  "verification_script_sha256": "f9af370861cfc147c970927923a25fcae8e8a68be0128aa4565a15b66e776533",
+  "capture_helper_sha256": "3f8e2574fdeea0ab7c003d690e9115226abc848908c2fb7ad58a4fc0987f454c",
+  "features": [
+    {
+      "feature": "core",
+      "binary": {
+        "path": "installation/core/bin/rust-engineering-mcp",
+        "bytes": 21049384,
+        "sha256": "32b7f921d8a0b4409581c66d8d2ff0756ba250d783f3e52e97392a062e7eeab1",
+        "mode": "0o700"
+      },
+      "linkage": {
+        "architecture": "<LOCAL_HOME>/Projects/rust-mcp/target/m1-15-candidate/installation/core/bin/rust-engineering-mcp: Mach-O 64-bit executable arm64",
+        "dynamic_dependencies": [
+          "/usr/lib/libiconv.2.dylib",
+          "/usr/lib/libSystem.B.dylib"
+        ],
+        "local_codesign_verification": "passed",
+        "codesign_identity": [
+          "Signature=adhoc",
+          "TeamIdentifier=not set"
+        ],
+        "codesign_scope": "local integrity only; no publisher authorization or notarization claim",
+        "selected_static_symbols": [
+          "0000000100782878 T _sqlite3_libversion"
+        ],
+        "symbol_output_bytes_scanned": 475041,
+        "native_attribution_scope": "selected symbols plus recorded static build input; not complete object/license audit"
+      },
+      "offline_installation_checks": [
+        "version",
+        "passive-doctor",
+        "fixture-import",
+        "catalog-doctor-stale-evidence",
+        "passive-state-preservation",
+        "missing-asset-denial"
+      ]
+    },
+    {
+      "feature": "local",
+      "binary": {
+        "path": "installation/local/bin/rust-engineering-mcp",
+        "bytes": 271401656,
+        "sha256": "7a99038be57429e1db32c91d01772e7efd104691828253f45ed3bbb0e9330417",
+        "mode": "0o700"
+      },
+      "linkage": {
+        "architecture": "<LOCAL_HOME>/Projects/rust-mcp/target/m1-15-candidate/installation/local/bin/rust-engineering-mcp: Mach-O 64-bit executable arm64",
+        "dynamic_dependencies": [
+          "/System/Library/Frameworks/Security.framework/Versions/A/Security",
+          "/System/Library/Frameworks/CoreFoundation.framework/Versions/A/CoreFoundation",
+          "/usr/lib/libc++.1.dylib",
+          "/System/Library/Frameworks/Foundation.framework/Versions/C/Foundation",
+          "/System/Library/Frameworks/CoreML.framework/Versions/A/CoreML",
+          "/usr/lib/libiconv.2.dylib",
+          "/usr/lib/libSystem.B.dylib",
+          "/usr/lib/libobjc.A.dylib"
+        ],
+        "local_codesign_verification": "passed",
+        "codesign_identity": [
+          "Signature=adhoc",
+          "TeamIdentifier=not set"
+        ],
+        "codesign_scope": "local integrity only; no publisher authorization or notarization claim",
+        "selected_static_symbols": [
+          "00000001073d4dc8 T _OrtGetApiBase",
+          "00000001081f4a2c T _sqlite3_libversion"
+        ],
+        "symbol_output_bytes_scanned": 2808829,
+        "native_attribution_scope": "selected symbols plus recorded static build input; not complete object/license audit"
+      },
+      "model": "available_from_exact_five_installed_files",
+      "offline_installation_checks": [
+        "version",
+        "passive-doctor",
+        "fixture-import",
+        "catalog-doctor-stale-evidence",
+        "passive-state-preservation",
+        "missing-asset-denial"
+      ]
+    }
+  ]
+}

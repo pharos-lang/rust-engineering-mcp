@@ -1,0 +1,38 @@
+[
+  {
+    "id": "R01",
+    "family": "ownership",
+    "status": "draft_unexecuted",
+    "prompt": "repair/R01/prompt.txt",
+    "initial": "repair/R01/initial",
+    "reference": "repair/R01/reference/src/lib.rs",
+    "hidden": "repair/R01/hidden/behavior.rs"
+  },
+  {
+    "id": "R02",
+    "family": "lifetime",
+    "status": "draft_unexecuted",
+    "prompt": "repair/R02/prompt.txt",
+    "initial": "repair/R02/initial",
+    "reference": "repair/R02/reference/src/lib.rs",
+    "hidden": "repair/R02/hidden/behavior.rs"
+  },
+  {
+    "id": "R03",
+    "family": "clippy",
+    "status": "draft_unexecuted",
+    "prompt": "repair/R03/prompt.txt",
+    "initial": "repair/R03/initial",
+    "reference": "repair/R03/reference/src/lib.rs",
+    "hidden": "repair/R03/hidden/behavior.rs"
+  },
+  {
+    "id": "R04",
+    "family": "arithmetic",
+    "status": "draft_unexecuted",
+    "prompt": "repair/R04/prompt.txt",
+    "initial": "repair/R04/initial",
+    "reference": "repair/R04/reference/src/lib.rs",
+    "hidden": "repair/R04/hidden/behavior.rs"
+  }
+]

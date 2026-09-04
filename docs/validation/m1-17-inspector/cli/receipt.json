@@ -1,0 +1,210 @@
+{
+  "status": "passed",
+  "inspector_version": "2.5.0",
+  "sdk_client_version": "2.0.0",
+  "package_lock_sha256": "a39aea9797aa304b8639599616cf3ef18b3698569adecb1f6496d5f24272f783",
+  "inspector_cli_sha256": "1fcbc2c4d4324b85f75c0b4cf9f125ee1f74df90d14eb3fea4ca96d0a1885f4e",
+  "binary_sha256": "b2dfef5724ce09e9f362cbcb868ca4945ebe9c771c26d7a106304254fd979ee4",
+  "profile_sha256": "ed5f52f984625830cec9d7d85d333004feb2c3408dfed3f6aa18fa5396a43cd8",
+  "calls": [
+    {
+      "label": "initialize",
+      "method": "initialize",
+      "tool": null,
+      "exit_code": 0,
+      "stdout_sha256": "7c6cd500c218bce698f12c652bb21aac7eccd77a5c9e87f7c959c7199a63e224",
+      "runtime": false
+    },
+    {
+      "label": "discovery",
+      "method": "tools/list",
+      "tool": null,
+      "exit_code": 0,
+      "stdout_sha256": "a763d6631603b36699b7cda473891f92ba026bd04264add60b8aa9cdb4425458",
+      "runtime": false
+    },
+    {
+      "label": "open",
+      "method": "tools/call",
+      "tool": "rust.project.open",
+      "exit_code": 0,
+      "stdout_sha256": "32e1b0b7f0147a247748e12540c89f3932f655407e2d13b3db6630c4999eeeeb",
+      "runtime": false
+    },
+    {
+      "label": "status",
+      "method": "tools/call",
+      "tool": "rust.catalog.status",
+      "exit_code": 0,
+      "stdout_sha256": "41d78150a4083f9a83d3f44a65a723b3a4f474aece4e245fb4e6f59930f7dbd2",
+      "runtime": false
+    },
+    {
+      "label": "search",
+      "method": "tools/call",
+      "tool": "rust.crate.search",
+      "exit_code": 0,
+      "stdout_sha256": "734d6465b3b42d0c661e487c9e4a837bf1be16d066a0ab4ca46d4f15b53bebd4",
+      "runtime": false
+    },
+    {
+      "label": "inspect",
+      "method": "tools/call",
+      "tool": "rust.crate.inspect",
+      "exit_code": 0,
+      "stdout_sha256": "e1a8f1090138f9c3fa047a121e4b1c9211d71b6f5213717ddf97c7e4958ab0f6",
+      "runtime": false
+    },
+    {
+      "label": "versions",
+      "method": "tools/call",
+      "tool": "rust.crate.inspect",
+      "exit_code": 0,
+      "stdout_sha256": "35c70b1fb95c42c4fb8af28f646c29227993759bfbbbd5ca5124de3b0a9ede3e",
+      "runtime": false
+    },
+    {
+      "label": "unavailable-rust.project.inspect",
+      "method": "tools/call",
+      "tool": "rust.project.inspect",
+      "exit_code": 5,
+      "stdout_sha256": "55e271145469dced40777087ac3bb6a4078e1b69778e4bda99ada85ee9e17be8",
+      "runtime": false
+    },
+    {
+      "label": "unavailable-rust.toolchain.inspect",
+      "method": "tools/call",
+      "tool": "rust.toolchain.inspect",
+      "exit_code": 5,
+      "stdout_sha256": "55e271145469dced40777087ac3bb6a4078e1b69778e4bda99ada85ee9e17be8",
+      "runtime": false
+    },
+    {
+      "label": "unavailable-rust.check",
+      "method": "tools/call",
+      "tool": "rust.check",
+      "exit_code": 5,
+      "stdout_sha256": "55e271145469dced40777087ac3bb6a4078e1b69778e4bda99ada85ee9e17be8",
+      "runtime": false
+    },
+    {
+      "label": "unavailable-rust.fmt.check",
+      "method": "tools/call",
+      "tool": "rust.fmt.check",
+      "exit_code": 5,
+      "stdout_sha256": "55e271145469dced40777087ac3bb6a4078e1b69778e4bda99ada85ee9e17be8",
+      "runtime": false
+    },
+    {
+      "label": "unavailable-rust.clippy",
+      "method": "tools/call",
+      "tool": "rust.clippy",
+      "exit_code": 5,
+      "stdout_sha256": "55e271145469dced40777087ac3bb6a4078e1b69778e4bda99ada85ee9e17be8",
+      "runtime": false
+    },
+    {
+      "label": "unavailable-rust.test",
+      "method": "tools/call",
+      "tool": "rust.test",
+      "exit_code": 5,
+      "stdout_sha256": "55e271145469dced40777087ac3bb6a4078e1b69778e4bda99ada85ee9e17be8",
+      "runtime": false
+    },
+    {
+      "label": "unavailable-rust.dependencies.audit",
+      "method": "tools/call",
+      "tool": "rust.dependencies.audit",
+      "exit_code": 5,
+      "stdout_sha256": "deab501382f86b703c171c3aab516a626b5bf4d472ef8f20ef55d2a81f29948e",
+      "runtime": false
+    },
+    {
+      "label": "unavailable-rust.diagnostics.explain",
+      "method": "tools/call",
+      "tool": "rust.diagnostics.explain",
+      "exit_code": 5,
+      "stdout_sha256": "374b55c95ce5a385c4e5d98e747e0fe61563bd65f41600c1d6384d97925affb5",
+      "runtime": false
+    },
+    {
+      "label": "unavailable-rust.quality.gate",
+      "method": "tools/call",
+      "tool": "rust.quality.gate",
+      "exit_code": 5,
+      "stdout_sha256": "b7d583352217781f23804a4e733c9e143d3a9dd807206b8653734fce99c9d6d3",
+      "runtime": false
+    },
+    {
+      "label": "explain-approved-runtime",
+      "method": "tools/call",
+      "tool": "rust.diagnostics.explain",
+      "exit_code": 0,
+      "stdout_sha256": "9cb212b75d2bbaf4524c2a6e5a0c94480a263bb262bf80fa8135979ee983949b",
+      "runtime": true
+    },
+    {
+      "label": "resources-list",
+      "method": "resources/list",
+      "tool": null,
+      "exit_code": 0,
+      "stdout_sha256": "ddfd5165fc6736ee4f7ee65055546fde9b2517ff48eaeb0f8d3bd2bf83c06b69",
+      "runtime": false
+    }
+  ],
+  "network_controls": [
+    {
+      "family": 2,
+      "positive_exit": 0,
+      "denied_exit": 1
+    },
+    {
+      "family": 30,
+      "positive_exit": 0,
+      "denied_exit": 1
+    }
+  ],
+  "scope": "actual Inspector CLI one-shot; TCP outbound deny inherited by product; Unix Docker socket allowed; gateway enforces container network deny",
+  "initialization": {
+    "result": {
+      "serverInfo": {
+        "name": "rust-engineering-mcp",
+        "version": "0.1.0-dev.1"
+      },
+      "protocolVersion": "2025-11-25",
+      "capabilities": {
+        "resources": {},
+        "tools": {}
+      }
+    }
+  },
+  "tool_names": [
+    "rust.project.open",
+    "rust.project.inspect",
+    "rust.toolchain.inspect",
+    "rust.check",
+    "rust.fmt.check",
+    "rust.clippy",
+    "rust.test",
+    "rust.dependencies.audit",
+    "rust.diagnostics.explain",
+    "rust.quality.gate",
+    "rust.catalog.status",
+    "rust.crate.search",
+    "rust.crate.inspect"
+  ],
+  "positive_calls": 6,
+  "positive_distinct_tools": 5,
+  "remaining": [
+    "persistent project-reference workflow",
+    "resource read after same-session validation",
+    "all13 positive end-to-end",
+    "Inspector cancellation",
+    "GUI qualification"
+  ],
+  "package_lock_unchanged": true,
+  "cleanup": {
+    "container": "absent",
+    "volume": "absent"
+  }
+}

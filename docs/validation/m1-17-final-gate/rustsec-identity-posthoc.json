@@ -1,0 +1,20 @@
+{
+  "advisory_database": {
+    "commit_date": "2026-09-02T11:13:32+02:00",
+    "commit_subject": "Assigned RUSTSEC-2026-0278 to zbus_polkit",
+    "git_commit": "5a0ebedfe8bdd2e295b171f4162f8c977bcad9a5",
+    "git_status": [
+      "?? crates/nostr-keyring/RUSTSEC-0000-0000.md",
+      "?? crates/nostr-relay-builder/RUSTSEC-0000-0000.md",
+      "?? crates/nostr-relay-pool/RUSTSEC-0000-0000.md"
+    ],
+    "path": "$HOME/.cargo/advisory-db",
+    "working_tree_clean": false
+  },
+  "audit_binary_version": "cargo-audit-audit 0.22.1",
+  "capture_relation_to_gate": "Captured after the preserved full gate; this receipt does not prove that the database was unchanged during the earlier gate.",
+  "gate_behavior": "The full gate audit stage used the locally available database with --no-fetch. A clean result is bounded by that database revision and is not a claim about advisories published later.",
+  "network_fetch_during_gate": false,
+  "scope": "post-hoc-rustsec-input-identity",
+  "superseded_for_current_audit_claim_by": "audit-focused.json"
+}

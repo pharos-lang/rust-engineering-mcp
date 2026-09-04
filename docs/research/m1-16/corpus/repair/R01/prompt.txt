@@ -1,0 +1,3 @@
+Fix the ownership error in repeat_first. For an empty vector return None without changing it. Otherwise append one copy of its original first string, preserve every original element and return that first string as an owned value. Keep the public signature.
+
+Edit ONLY src/lib.rs. Do not add tests, change Cargo files, add dependencies, suppress lints, use unsafe code or access hidden/reference files. Validation is requested through the experiment controller; do not execute commands yourself.

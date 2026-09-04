@@ -1,0 +1,38 @@
+{
+  "mcpServers": {
+    "rust-mcp-ui": {
+      "command": "/usr/bin/sandbox-exec",
+      "args": [
+        "-p",
+        "(version 1) (allow default) (deny network-outbound (remote ip \"*:*\"))",
+        "<REPO>/target/m1-15-candidate/local/bin/rust-engineering-mcp",
+        "serve",
+        "--stdio",
+        "--root",
+        "<REPO>/target/m1-17-inspector-ui-resumed/root",
+        "--docker",
+        "/Applications/Docker.app/Contents/Resources/bin/docker",
+        "--docker-socket",
+        "<HOME>/.docker/run/docker.sock",
+        "--state-root",
+        "<REPO>/target/m1-17-inspector-ui-resumed/state",
+        "--rust-image",
+        "sha256:8fac70723a8d04b6ec9633ab721806b8a55f4f083a1b3f988c61bf6a00fa1909",
+        "--catalog-store",
+        "<REPO>/target/m1-16-runtime/catalog",
+        "--catalog-trust",
+        "<REPO>/target/m1-16-runtime/trust/trust.json",
+        "--catalog-model-dir",
+        "<APPROVED_MODEL_ROOT>/onnx",
+        "--catalog-index-store",
+        "<REPO>/target/m1-16-runtime/index",
+        "--rustsec-snapshot",
+        "<REPO>/target/m1-16-runtime/rustsec.json",
+        "--rustsec-sha256",
+        "sha256:966f74af605ffdaf70088a21ca432266098b998b90ef1118c805ed460a26f4ea"
+      ],
+      "env": {},
+      "type": "stdio"
+    }
+  }
+}

@@ -1,0 +1,512 @@
+{
+  "name": "rust.diagnostics.explain",
+  "description": "Explain one validated Rust compiler error code using the host-approved offline compiler. Returns bounded installed-compiler text with runtime identity and latest_known evidence. Requires completed discovery and explicit host runtime policy; no project reference or project code is used.",
+  "inputSchema": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "additionalProperties": false,
+    "properties": {
+      "code": {
+        "pattern": "^E[0-9]{4}$",
+        "type": "string"
+      }
+    },
+    "required": [
+      "code"
+    ],
+    "title": "Input",
+    "type": "object"
+  },
+  "outputSchema": {
+    "$defs": {
+      "Code": {
+        "enum": [
+          "DIAGNOSTIC_EXPLANATION_UNAVAILABLE",
+          "PROJECT_NOT_FOUND",
+          "INVALID_PROJECT",
+          "TOOL_NOT_INSTALLED",
+          "LOCKFILE_UPDATE_REQUIRED",
+          "COMMAND_TIMEOUT",
+          "SANDBOX_DENIED",
+          "NETWORK_DENIED",
+          "UNSUPPORTED_PLATFORM",
+          "OUTPUT_LIMIT_EXCEEDED"
+        ],
+        "type": "string"
+      },
+      "Data": {
+        "additionalProperties": false,
+        "properties": {
+          "observation": {
+            "$ref": "#/$defs/ExplainObservation"
+          },
+          "semantics": {
+            "$ref": "#/$defs/Semantics"
+          }
+        },
+        "required": [
+          "semantics",
+          "observation"
+        ],
+        "type": "object"
+      },
+      "Evidence": {
+        "oneOf": [
+          {
+            "additionalProperties": false,
+            "properties": {
+              "kind": {
+                "const": "local",
+                "type": "string"
+              }
+            },
+            "required": [
+              "kind"
+            ],
+            "type": "object"
+          },
+          {
+            "additionalProperties": false,
+            "properties": {
+              "details": {
+                "$ref": "#/$defs/SnapshotEvidence"
+              },
+              "kind": {
+                "const": "snapshot",
+                "type": "string"
+              }
+            },
+            "required": [
+              "kind",
+              "details"
+            ],
+            "type": "object"
+          }
+        ]
+      },
+      "ExecutionTermination": {
+        "enum": [
+          "exited",
+          "timed_out",
+          "cancelled",
+          "output_limit"
+        ],
+        "type": "string"
+      },
+      "ExplainObservation": {
+        "additionalProperties": false,
+        "properties": {
+          "code": {
+            "pattern": "^E[0-9]{4}$",
+            "type": "string"
+          },
+          "complete": {
+            "type": "boolean"
+          },
+          "content_fingerprint": {
+            "$ref": "#/$defs/Fingerprint"
+          },
+          "exit_code": {
+            "format": "int32",
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "explanation": {
+            "maxLength": 65536,
+            "minLength": 1,
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "runtime": {
+            "$ref": "#/$defs/RuntimeIdentity"
+          },
+          "stderr_truncated": {
+            "type": "boolean"
+          },
+          "stdout_truncated": {
+            "type": "boolean"
+          },
+          "termination": {
+            "$ref": "#/$defs/ExecutionTermination"
+          }
+        },
+        "required": [
+          "code",
+          "explanation",
+          "complete",
+          "termination",
+          "exit_code",
+          "stdout_truncated",
+          "stderr_truncated",
+          "content_fingerprint",
+          "runtime"
+        ],
+        "type": "object"
+      },
+      "Fingerprint": {
+        "pattern": "^sha256:[0-9a-f]{64}$",
+        "type": "string"
+      },
+      "Freshness": {
+        "additionalProperties": false,
+        "properties": {
+          "age_seconds": {
+            "format": "uint64",
+            "minimum": 0,
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "assessed_at": {
+            "format": "uint64",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "policy": {
+            "$ref": "#/$defs/FreshnessPolicy"
+          },
+          "state": {
+            "$ref": "#/$defs/FreshnessState"
+          }
+        },
+        "required": [
+          "state",
+          "age_seconds",
+          "assessed_at",
+          "policy"
+        ],
+        "type": "object"
+      },
+      "FreshnessPolicy": {
+        "additionalProperties": false,
+        "properties": {
+          "fresh_for_seconds": {
+            "format": "uint64",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "id": {
+            "maxLength": 128,
+            "minLength": 1,
+            "type": "string"
+          },
+          "stale_after_seconds": {
+            "format": "uint64",
+            "minimum": 0,
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "fresh_for_seconds",
+          "stale_after_seconds"
+        ],
+        "type": "object"
+      },
+      "FreshnessState": {
+        "enum": [
+          "live",
+          "fresh",
+          "aging",
+          "stale",
+          "unknown"
+        ],
+        "type": "string"
+      },
+      "IntegrityStatus": {
+        "enum": [
+          "verified",
+          "unverified",
+          "failed",
+          "unknown"
+        ],
+        "type": "string"
+      },
+      "Provenance": {
+        "additionalProperties": false,
+        "properties": {
+          "created_at": {
+            "format": "uint64",
+            "minimum": 0,
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "integrity": {
+            "$ref": "#/$defs/IntegrityStatus"
+          },
+          "network_used": {
+            "type": "boolean"
+          },
+          "observed_at": {
+            "format": "uint64",
+            "minimum": 0,
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "source_id": {
+            "pattern": "^sha256:[0-9a-f]{64}$",
+            "type": "string"
+          },
+          "source_kind": {
+            "$ref": "#/$defs/SourceKind"
+          }
+        },
+        "required": [
+          "source_kind",
+          "source_id",
+          "created_at",
+          "observed_at",
+          "integrity",
+          "network_used"
+        ],
+        "type": "object"
+      },
+      "RuntimeIdentity": {
+        "additionalProperties": false,
+        "properties": {
+          "cargo_version": {
+            "maxLength": 4096,
+            "type": "string"
+          },
+          "configuration_fingerprint": {
+            "pattern": "^sha256:[0-9a-f]{64}$",
+            "type": "string"
+          },
+          "declared_toolchain": {
+            "maxLength": 6,
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "execution_fingerprint": {
+            "pattern": "^sha256:[0-9a-f]{64}$",
+            "type": "string"
+          },
+          "image_id": {
+            "pattern": "^sha256:[0-9a-f]{64}$",
+            "type": "string"
+          },
+          "platform": {
+            "maxLength": 4096,
+            "type": "string"
+          },
+          "rust_version": {
+            "maxLength": 4096,
+            "type": "string"
+          }
+        },
+        "required": [
+          "platform",
+          "image_id",
+          "configuration_fingerprint",
+          "execution_fingerprint",
+          "rust_version",
+          "cargo_version",
+          "declared_toolchain"
+        ],
+        "type": "object"
+      },
+      "Semantics": {
+        "enum": [
+          "latest_known"
+        ],
+        "type": "string"
+      },
+      "SnapshotEvidence": {
+        "additionalProperties": false,
+        "properties": {
+          "freshness": {
+            "$ref": "#/$defs/Freshness"
+          },
+          "provenance": {
+            "$ref": "#/$defs/Provenance"
+          }
+        },
+        "required": [
+          "provenance",
+          "freshness"
+        ],
+        "type": "object"
+      },
+      "SourceKind": {
+        "enum": [
+          "artifact"
+        ],
+        "type": "string"
+      },
+      "Truncation": {
+        "additionalProperties": false,
+        "properties": {
+          "diagnostics_omitted": {
+            "format": "uint64",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "stderr_truncated": {
+            "type": "boolean"
+          },
+          "stdout_truncated": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "stdout_truncated",
+          "stderr_truncated",
+          "diagnostics_omitted"
+        ],
+        "type": "object"
+      }
+    },
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "oneOf": [
+      {
+        "properties": {
+          "data": {
+            "$ref": "#/$defs/Data"
+          },
+          "error_code": {
+            "type": "null"
+          },
+          "error_message": {
+            "type": "null"
+          },
+          "status": {
+            "const": "passed",
+            "type": "string"
+          }
+        },
+        "required": [
+          "status",
+          "error_code",
+          "error_message",
+          "data"
+        ],
+        "type": "object"
+      },
+      {
+        "properties": {
+          "data": {
+            "type": "null"
+          },
+          "error_code": {
+            "$ref": "#/$defs/Code"
+          },
+          "error_message": {
+            "type": "string"
+          },
+          "status": {
+            "const": "blocked",
+            "type": "string"
+          }
+        },
+        "required": [
+          "status",
+          "error_code",
+          "error_message",
+          "data"
+        ],
+        "type": "object"
+      },
+      {
+        "properties": {
+          "data": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/Data"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "error_code": {
+            "$ref": "#/$defs/Code"
+          },
+          "error_message": {
+            "type": "string"
+          },
+          "status": {
+            "const": "unavailable",
+            "type": "string"
+          }
+        },
+        "required": [
+          "status",
+          "error_code",
+          "error_message",
+          "data"
+        ],
+        "type": "object"
+      },
+      {
+        "properties": {
+          "data": {
+            "type": "null"
+          },
+          "error_code": {
+            "type": "null"
+          },
+          "error_message": {
+            "type": "null"
+          },
+          "status": {
+            "const": "cancelled",
+            "type": "string"
+          }
+        },
+        "required": [
+          "status",
+          "error_code",
+          "error_message",
+          "data"
+        ],
+        "type": "object"
+      }
+    ],
+    "properties": {
+      "diagnostics": {
+        "maxItems": 0,
+        "type": "array"
+      },
+      "duration_ms": {
+        "format": "uint64",
+        "minimum": 0,
+        "type": "integer"
+      },
+      "evidence": {
+        "$ref": "#/$defs/Evidence"
+      },
+      "summary": {
+        "type": "string"
+      },
+      "truncation": {
+        "$ref": "#/$defs/Truncation"
+      }
+    },
+    "required": [
+      "summary",
+      "duration_ms",
+      "diagnostics",
+      "truncation",
+      "evidence"
+    ],
+    "title": "Output",
+    "type": "object",
+    "unevaluatedProperties": false
+  },
+  "annotations": {
+    "readOnlyHint": true,
+    "destructiveHint": false,
+    "idempotentHint": true,
+    "openWorldHint": false
+  }
+}

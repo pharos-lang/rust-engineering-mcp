@@ -1,0 +1,40 @@
+{
+  "attempt": 4,
+  "observed_pid_44024_present": null,
+  "state_cleanup": {
+    "before": {
+      "rust-mcp-control-ec0c84146b9834b4134922f29b74d2c9": {
+        "type": "directory"
+      },
+      "rust-mcp-control-ec0c84146b9834b4134922f29b74d2c9/config.json": {
+        "type": "file",
+        "sha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+        "bytes": 2
+      },
+      "rust-mcp-control-ec0c84146b9834b4134922f29b74d2c9/seccomp-rust.json": {
+        "type": "file",
+        "sha256": "f9d31acb22989dc6ac37c02d4c73acfbbb3b74b5e08beff9983f3a811fd4e56d",
+        "bytes": 3379
+      },
+      "rust-mcp-control-ec0c84146b9834b4134922f29b74d2c9/seccomp-socket.json": {
+        "type": "file",
+        "sha256": "1f5dd6201d129405e1c48c64d796a46704f60bdd7eb2c4d82ffc1b6cf6b4ce31",
+        "bytes": 2869
+      },
+      "rust-mcp-control-ec0c84146b9834b4134922f29b74d2c9/seccomp.json": {
+        "type": "file",
+        "sha256": "aad227ba23e1bd6cde69b344b54fef09b0881b18654aacf5303929c8c14aa514",
+        "bytes": 2851
+      }
+    },
+    "removed": [
+      "rust-mcp-control-ec0c84146b9834b4134922f29b74d2c9/config.json",
+      "rust-mcp-control-ec0c84146b9834b4134922f29b74d2c9/seccomp-rust.json",
+      "rust-mcp-control-ec0c84146b9834b4134922f29b74d2c9/seccomp-socket.json",
+      "rust-mcp-control-ec0c84146b9834b4134922f29b74d2c9/seccomp.json",
+      "rust-mcp-control-ec0c84146b9834b4134922f29b74d2c9"
+    ],
+    "after": {}
+  },
+  "checked_at_unix": 1788548022
+}

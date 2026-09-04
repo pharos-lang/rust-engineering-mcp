@@ -1,0 +1,54 @@
+{
+  "status": "paused_for_host_restart",
+  "known_processes": [
+    {
+      "pid": 93692,
+      "state": "absent"
+    },
+    {
+      "pid": 93699,
+      "state": "absent"
+    },
+    {
+      "pid": 93700,
+      "state": "absent"
+    },
+    {
+      "pid": 93702,
+      "state": "absent"
+    },
+    {
+      "pid": 93933,
+      "state": "absent"
+    },
+    {
+      "pid": 93940,
+      "state": "absent"
+    },
+    {
+      "pid": 93941,
+      "state": "absent"
+    },
+    {
+      "pid": 93943,
+      "state": "absent"
+    },
+    {
+      "pid": 94006,
+      "state": "absent"
+    },
+    {
+      "pid": 94008,
+      "state": "absent"
+    }
+  ],
+  "product_ever_connected": false,
+  "docker_tools_called": false,
+  "ui_dom_obtained": false,
+  "chrome_protocol_obtained": true,
+  "latest_launch": "pre-sandbox stopped normally via Browser.close; inspector launcher SIGTERM exit0; Chrome exit0",
+  "earlier_preparation_chrome_forced": 93700,
+  "sandbox_profile_status": "write and executable negative controls passed; loopback exception failed closed, no sandboxed Chrome launched",
+  "unexpected_updater": "pre-sandbox Chrome spawned updater --install; own descendant terminated; no state rollback",
+  "next": "Use newly permitted CUA after restart; do not reuse unqualified network profile."
+}

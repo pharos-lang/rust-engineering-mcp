@@ -1,0 +1,21 @@
+{
+  "warnings": [
+    {
+      "feature": "core",
+      "cargo_exit": 0,
+      "debug_stripping_warning": true,
+      "missing_build_helper_library": true,
+      "large_compact_unwind_warning": false,
+      "build_log_sha256": "dfc49614a1ded99906887427e19e6b29cfbc9ec840b7614e96a4ed686b94ab5f"
+    },
+    {
+      "feature": "local",
+      "cargo_exit": 0,
+      "debug_stripping_warning": true,
+      "missing_build_helper_library": true,
+      "large_compact_unwind_warning": true,
+      "build_log_sha256": "30bd8e20cfac196930649d4f63a59a51c75636f8fb1ea2ef0a4fbca3e346b6e0"
+    }
+  ],
+  "disposition": "retained/reported, no host toolchain repair or altered build flags; executable linkage/startup separately verified"
+}

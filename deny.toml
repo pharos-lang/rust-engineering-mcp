@@ -1,0 +1,36 @@
+# Product code is MIT OR Apache-2.0. Third-party license/distribution approval
+# remains an explicit per-artifact M1 release gate.
+[graph]
+all-features = true
+
+[advisories]
+ignore = []
+yanked = "deny"
+# Direct unmaintained dependencies fail; transitive paste remains a visible
+# cargo-audit warning (ADR-027), not a vulnerability ignore.
+unmaintained = "workspace"
+maximum-db-staleness = "P30D"
+
+[bans]
+multiple-versions = "warn"
+wildcards = "deny"
+allow-wildcard-paths = true # Internal unpublished path crates intentionally omit versions.
+deny = ["hf-hub", "lance-testing", "pprof", "inferno", "quick-xml@0.26.0"]
+
+[[bans.features]]
+crate = "ort-sys"
+deny = ["download-binaries", "load-dynamic"]
+
+[[bans.features]]
+crate = "lancedb"
+deny = ["remote", "openai", "bedrock"]
+
+[[bans.features]]
+crate = "jsonschema"
+deny = ["resolve-http", "resolve-file"]
+
+[sources]
+unknown-registry = "deny"
+unknown-git = "deny"
+allow-registry = ["https://github.com/rust-lang/crates.io-index"]
+allow-git = []

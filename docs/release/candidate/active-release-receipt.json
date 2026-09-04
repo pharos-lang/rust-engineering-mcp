@@ -1,0 +1,582 @@
+{
+  "scope": "local-release-candidate-active-doctor",
+  "network_profile": "(version 1) (allow default) (deny network-outbound (remote ip \"*:*\"))",
+  "controls": "IPv4/IPv6 connect succeeds outside profile and PermissionError inside; Unix socket allowed",
+  "status": "passed",
+  "results": [
+    {
+      "feature": "core",
+      "exit_code": 0,
+      "elapsed_seconds": 14.338861458003521,
+      "binary_sha256": "32b7f921d8a0b4409581c66d8d2ff0756ba250d783f3e52e97392a062e7eeab1",
+      "report": {
+        "format_version": 1,
+        "operation": "doctor",
+        "mode": "active",
+        "status": "warning",
+        "duration_ms": 14296,
+        "checks": [
+          {
+            "id": "catalog",
+            "scope": "catalog_snapshot",
+            "status": "available",
+            "reason": "verified",
+            "component_reason": null,
+            "action": "none",
+            "severity": "passed"
+          },
+          {
+            "id": "model",
+            "scope": "local_model",
+            "status": "not_configured",
+            "reason": "not_configured",
+            "component_reason": "not_configured",
+            "action": "configure_optional",
+            "severity": "warning"
+          },
+          {
+            "id": "semantic_index",
+            "scope": "catalog_snapshot",
+            "status": "not_configured",
+            "reason": "not_configured",
+            "component_reason": "missing",
+            "action": "configure_optional",
+            "severity": "warning"
+          },
+          {
+            "id": "rustsec",
+            "scope": "catalog_snapshot",
+            "status": "not_configured",
+            "reason": "not_configured",
+            "component_reason": "not_configured",
+            "action": "configure_optional",
+            "severity": "warning"
+          },
+          {
+            "id": "catalog_freshness",
+            "scope": "catalog_snapshot",
+            "status": "warning",
+            "reason": "freshness_needs_review",
+            "component_reason": null,
+            "action": "refresh_snapshot_explicitly",
+            "severity": "warning"
+          },
+          {
+            "id": "filesystem_roots",
+            "scope": "host_filesystem",
+            "status": "not_configured",
+            "reason": "not_configured",
+            "component_reason": null,
+            "action": "configure_optional",
+            "severity": "warning"
+          },
+          {
+            "id": "rustc",
+            "scope": "approved_runtime",
+            "status": "available",
+            "reason": "verified",
+            "component_reason": null,
+            "action": "none",
+            "severity": "passed"
+          },
+          {
+            "id": "cargo",
+            "scope": "approved_runtime",
+            "status": "available",
+            "reason": "verified",
+            "component_reason": null,
+            "action": "none",
+            "severity": "passed"
+          },
+          {
+            "id": "rustfmt",
+            "scope": "approved_runtime",
+            "status": "available",
+            "reason": "verified",
+            "component_reason": null,
+            "action": "none",
+            "severity": "passed"
+          },
+          {
+            "id": "clippy",
+            "scope": "approved_runtime",
+            "status": "available",
+            "reason": "verified",
+            "component_reason": null,
+            "action": "none",
+            "severity": "passed"
+          },
+          {
+            "id": "sandbox",
+            "scope": "approved_runtime",
+            "status": "available",
+            "reason": "verified",
+            "component_reason": null,
+            "action": "none",
+            "severity": "passed"
+          },
+          {
+            "id": "host_tools",
+            "scope": "host",
+            "status": "not_checked",
+            "reason": "unknown",
+            "component_reason": null,
+            "action": "none",
+            "severity": "warning"
+          },
+          {
+            "id": "cargo_audit",
+            "scope": "approved_runtime",
+            "status": "not_used",
+            "reason": "owned_rustsec_engine",
+            "component_reason": null,
+            "action": "none",
+            "severity": "passed"
+          },
+          {
+            "id": "audit_engine",
+            "scope": "compiled_feature",
+            "status": "available",
+            "reason": "owned_rustsec_engine",
+            "component_reason": null,
+            "action": "none",
+            "severity": "passed"
+          },
+          {
+            "id": "optional_tools",
+            "scope": "host",
+            "status": "not_checked",
+            "reason": "unknown",
+            "component_reason": null,
+            "action": "none",
+            "severity": "warning"
+          }
+        ],
+        "catalog": {
+          "catalog": {
+            "status": "available",
+            "value": {
+              "publisher": "fixture-only",
+              "channel": "test",
+              "publisher_key_fingerprint": "sha256:b600306cfa76723fdec395e53a9b3d9fdb78b1e2d7a23c32fcbcd2dc6d0c4092",
+              "bundle_fingerprint": "sha256:1b3aa5c89847b7db81229678e6e78766547f27d78c5c994d80ba2452cda69538",
+              "sequence": 1,
+              "fingerprint": "sha256:8df87e8618db5a32b14c76c3fe6b3ab14eb84470ccb23119e8be3f432e6fbfb5",
+              "schema_version": 1,
+              "crate_count": 1,
+              "bundled_rustsec_available": false,
+              "evidence": {
+                "provenance": {
+                  "source_kind": "registry_snapshot",
+                  "source_id": "fixture-only-registry",
+                  "created_at": 100,
+                  "observed_at": 100,
+                  "integrity": "verified",
+                  "network_used": false
+                },
+                "freshness": {
+                  "state": "stale",
+                  "age_seconds": 1788539353,
+                  "assessed_at": 1788539453,
+                  "policy": {
+                    "id": "catalog-snapshot-v1",
+                    "fresh_for_seconds": 86400,
+                    "stale_after_seconds": 604800
+                  }
+                }
+              }
+            }
+          },
+          "reservation": {
+            "reservation": {
+              "publisher": "fixture-only",
+              "channel": "test",
+              "sequence": 1,
+              "bundle_fingerprint": "sha256:1b3aa5c89847b7db81229678e6e78766547f27d78c5c994d80ba2452cda69538"
+            },
+            "pending": false
+          },
+          "model": {
+            "status": "unavailable",
+            "reason": "not_configured"
+          },
+          "semantic_index": {
+            "status": "unavailable",
+            "reason": "missing"
+          },
+          "rustsec": {
+            "status": "unavailable",
+            "reason": "not_configured"
+          }
+        },
+        "runtime": {
+          "inventory": {
+            "rustc_version": "1.98.1",
+            "cargo_version": "1.98.1",
+            "channel": "stable",
+            "host_triple": "aarch64-unknown-linux-gnu",
+            "installed_targets": [
+              "aarch64-unknown-linux-gnu"
+            ],
+            "installed_components": [
+              {
+                "component": "cargo",
+                "target": null
+              },
+              {
+                "component": "clippy",
+                "target": null
+              },
+              {
+                "component": "rust_std",
+                "target": "aarch64-unknown-linux-gnu"
+              },
+              {
+                "component": "rustc",
+                "target": null
+              },
+              {
+                "component": "rustfmt",
+                "target": null
+              }
+            ]
+          },
+          "runtime": {
+            "platform": "linux/aarch64",
+            "image_id": "sha256:8fac70723a8d04b6ec9633ab721806b8a55f4f083a1b3f988c61bf6a00fa1909",
+            "configuration_fingerprint": "sha256:c0f599231fbe66caee9d8f6e0cdf1b8475c2b5c3107ffcde2c499bf8a838addf",
+            "executions": [
+              {
+                "command": "compiler_version",
+                "execution_fingerprint": "sha256:6fb2bbb90ec3e25c7f0a7dc6010084ae4a8f0943a70992c5dab15fccda38eb26"
+              },
+              {
+                "command": "cargo_version",
+                "execution_fingerprint": "sha256:2a75a817363f485ed3507e990de4476010f62b86a6da4e566f2bcc016588191f"
+              },
+              {
+                "command": "installed_components",
+                "execution_fingerprint": "sha256:36cb30a6051e93c5b7242a4dacdc4c3543dcc9cdeb94bbb1ba56fb2ac39694bb"
+              }
+            ]
+          },
+          "source_fingerprint": "sha256:591bdfdb4413c9179a5007c5ef076e245f267dbde16d827a61010eecd0e194e8",
+          "declared_toolchain": null
+        }
+      },
+      "cleanup": true
+    },
+    {
+      "feature": "local",
+      "exit_code": 0,
+      "elapsed_seconds": 15.153728708974086,
+      "binary_sha256": "7a99038be57429e1db32c91d01772e7efd104691828253f45ed3bbb0e9330417",
+      "report": {
+        "format_version": 1,
+        "operation": "doctor",
+        "mode": "active",
+        "status": "warning",
+        "duration_ms": 15076,
+        "checks": [
+          {
+            "id": "catalog",
+            "scope": "catalog_snapshot",
+            "status": "available",
+            "reason": "verified",
+            "component_reason": null,
+            "action": "none",
+            "severity": "passed"
+          },
+          {
+            "id": "model",
+            "scope": "local_model",
+            "status": "available",
+            "reason": "verified",
+            "component_reason": null,
+            "action": "none",
+            "severity": "passed"
+          },
+          {
+            "id": "semantic_index",
+            "scope": "catalog_snapshot",
+            "status": "not_configured",
+            "reason": "not_configured",
+            "component_reason": "missing",
+            "action": "configure_optional",
+            "severity": "warning"
+          },
+          {
+            "id": "rustsec",
+            "scope": "catalog_snapshot",
+            "status": "not_configured",
+            "reason": "not_configured",
+            "component_reason": "not_configured",
+            "action": "configure_optional",
+            "severity": "warning"
+          },
+          {
+            "id": "catalog_freshness",
+            "scope": "catalog_snapshot",
+            "status": "warning",
+            "reason": "freshness_needs_review",
+            "component_reason": null,
+            "action": "refresh_snapshot_explicitly",
+            "severity": "warning"
+          },
+          {
+            "id": "model_freshness",
+            "scope": "local_model",
+            "status": "warning",
+            "reason": "freshness_needs_review",
+            "component_reason": null,
+            "action": "refresh_snapshot_explicitly",
+            "severity": "warning"
+          },
+          {
+            "id": "filesystem_roots",
+            "scope": "host_filesystem",
+            "status": "not_configured",
+            "reason": "not_configured",
+            "component_reason": null,
+            "action": "configure_optional",
+            "severity": "warning"
+          },
+          {
+            "id": "rustc",
+            "scope": "approved_runtime",
+            "status": "available",
+            "reason": "verified",
+            "component_reason": null,
+            "action": "none",
+            "severity": "passed"
+          },
+          {
+            "id": "cargo",
+            "scope": "approved_runtime",
+            "status": "available",
+            "reason": "verified",
+            "component_reason": null,
+            "action": "none",
+            "severity": "passed"
+          },
+          {
+            "id": "rustfmt",
+            "scope": "approved_runtime",
+            "status": "available",
+            "reason": "verified",
+            "component_reason": null,
+            "action": "none",
+            "severity": "passed"
+          },
+          {
+            "id": "clippy",
+            "scope": "approved_runtime",
+            "status": "available",
+            "reason": "verified",
+            "component_reason": null,
+            "action": "none",
+            "severity": "passed"
+          },
+          {
+            "id": "sandbox",
+            "scope": "approved_runtime",
+            "status": "available",
+            "reason": "verified",
+            "component_reason": null,
+            "action": "none",
+            "severity": "passed"
+          },
+          {
+            "id": "host_tools",
+            "scope": "host",
+            "status": "not_checked",
+            "reason": "unknown",
+            "component_reason": null,
+            "action": "none",
+            "severity": "warning"
+          },
+          {
+            "id": "cargo_audit",
+            "scope": "approved_runtime",
+            "status": "not_used",
+            "reason": "owned_rustsec_engine",
+            "component_reason": null,
+            "action": "none",
+            "severity": "passed"
+          },
+          {
+            "id": "audit_engine",
+            "scope": "compiled_feature",
+            "status": "available",
+            "reason": "owned_rustsec_engine",
+            "component_reason": null,
+            "action": "none",
+            "severity": "passed"
+          },
+          {
+            "id": "optional_tools",
+            "scope": "host",
+            "status": "not_checked",
+            "reason": "unknown",
+            "component_reason": null,
+            "action": "none",
+            "severity": "warning"
+          }
+        ],
+        "catalog": {
+          "catalog": {
+            "status": "available",
+            "value": {
+              "publisher": "fixture-only",
+              "channel": "test",
+              "publisher_key_fingerprint": "sha256:b600306cfa76723fdec395e53a9b3d9fdb78b1e2d7a23c32fcbcd2dc6d0c4092",
+              "bundle_fingerprint": "sha256:1b3aa5c89847b7db81229678e6e78766547f27d78c5c994d80ba2452cda69538",
+              "sequence": 1,
+              "fingerprint": "sha256:8df87e8618db5a32b14c76c3fe6b3ab14eb84470ccb23119e8be3f432e6fbfb5",
+              "schema_version": 1,
+              "crate_count": 1,
+              "bundled_rustsec_available": false,
+              "evidence": {
+                "provenance": {
+                  "source_kind": "registry_snapshot",
+                  "source_id": "fixture-only-registry",
+                  "created_at": 100,
+                  "observed_at": 100,
+                  "integrity": "verified",
+                  "network_used": false
+                },
+                "freshness": {
+                  "state": "stale",
+                  "age_seconds": 1788539368,
+                  "assessed_at": 1788539468,
+                  "policy": {
+                    "id": "catalog-snapshot-v1",
+                    "fresh_for_seconds": 86400,
+                    "stale_after_seconds": 604800
+                  }
+                }
+              }
+            }
+          },
+          "reservation": {
+            "reservation": {
+              "publisher": "fixture-only",
+              "channel": "test",
+              "sequence": 1,
+              "bundle_fingerprint": "sha256:1b3aa5c89847b7db81229678e6e78766547f27d78c5c994d80ba2452cda69538"
+            },
+            "pending": false
+          },
+          "model": {
+            "status": "available",
+            "value": {
+              "identity": {
+                "model": "intfloat/multilingual-e5-small",
+                "revision": "614241f622f53c4eeff9890bdc4f31cfecc418b3",
+                "artifact_fingerprint": "sha256:97fe53cc433e3a9319d5cab19001deefc1f36225a69cc85fd3d61685c5466c5d",
+                "runtime": "fastembed6.0.2/ort2.0.0-rc.13/macos/aarch64/ORT Build Info: git-branch=rel-1.24.2, git-commit-id=058787c, build type=Release",
+                "provenance": {
+                  "source_kind": "embedding_model",
+                  "source_id": "local-verified-e5:614241f622f53c4eeff9890bdc4f31cfecc418b3",
+                  "created_at": null,
+                  "observed_at": null,
+                  "integrity": "verified",
+                  "network_used": false
+                },
+                "dimension": 384,
+                "max_tokens": 512,
+                "intra_threads": 2,
+                "pooling": "mean",
+                "normalization": "l2"
+              },
+              "evidence": {
+                "provenance": {
+                  "source_kind": "embedding_model",
+                  "source_id": "local-verified-e5:614241f622f53c4eeff9890bdc4f31cfecc418b3",
+                  "created_at": null,
+                  "observed_at": null,
+                  "integrity": "verified",
+                  "network_used": false
+                },
+                "freshness": {
+                  "state": "unknown",
+                  "age_seconds": null,
+                  "assessed_at": 1788539468,
+                  "policy": {
+                    "id": "catalog-model-v1",
+                    "fresh_for_seconds": 86400,
+                    "stale_after_seconds": 604800
+                  }
+                }
+              }
+            }
+          },
+          "semantic_index": {
+            "status": "unavailable",
+            "reason": "missing"
+          },
+          "rustsec": {
+            "status": "unavailable",
+            "reason": "not_configured"
+          }
+        },
+        "runtime": {
+          "inventory": {
+            "rustc_version": "1.98.1",
+            "cargo_version": "1.98.1",
+            "channel": "stable",
+            "host_triple": "aarch64-unknown-linux-gnu",
+            "installed_targets": [
+              "aarch64-unknown-linux-gnu"
+            ],
+            "installed_components": [
+              {
+                "component": "cargo",
+                "target": null
+              },
+              {
+                "component": "clippy",
+                "target": null
+              },
+              {
+                "component": "rust_std",
+                "target": "aarch64-unknown-linux-gnu"
+              },
+              {
+                "component": "rustc",
+                "target": null
+              },
+              {
+                "component": "rustfmt",
+                "target": null
+              }
+            ]
+          },
+          "runtime": {
+            "platform": "linux/aarch64",
+            "image_id": "sha256:8fac70723a8d04b6ec9633ab721806b8a55f4f083a1b3f988c61bf6a00fa1909",
+            "configuration_fingerprint": "sha256:c0f599231fbe66caee9d8f6e0cdf1b8475c2b5c3107ffcde2c499bf8a838addf",
+            "executions": [
+              {
+                "command": "compiler_version",
+                "execution_fingerprint": "sha256:6fb2bbb90ec3e25c7f0a7dc6010084ae4a8f0943a70992c5dab15fccda38eb26"
+              },
+              {
+                "command": "cargo_version",
+                "execution_fingerprint": "sha256:2a75a817363f485ed3507e990de4476010f62b86a6da4e566f2bcc016588191f"
+              },
+              {
+                "command": "installed_components",
+                "execution_fingerprint": "sha256:36cb30a6051e93c5b7242a4dacdc4c3543dcc9cdeb94bbb1ba56fb2ac39694bb"
+              }
+            ]
+          },
+          "source_fingerprint": "sha256:591bdfdb4413c9179a5007c5ef076e245f267dbde16d827a61010eecd0e194e8",
+          "declared_toolchain": null
+        }
+      },
+      "cleanup": true
+    }
+  ],
+  "script_sha256": "7354282fa445814c05964ea4521c17f32870c404046c6704d57d692d97addc2c"
+}

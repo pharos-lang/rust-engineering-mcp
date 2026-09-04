@@ -1,0 +1,224 @@
+{
+  "inspector_package_version": "2.5.0",
+  "wire_client_version": "0.0.0",
+  "negotiated_protocol": "2025-11-25",
+  "calls": [
+    {
+      "name": "rust.project.open",
+      "arguments": {
+        "path": "<REPO>/target/m1-17-inspector-ui-resumed/root"
+      },
+      "timestamp": "2026-09-04T17:12:52.272Z",
+      "duration_ms": 28,
+      "status": "passed",
+      "is_error": false,
+      "response_present": true
+    },
+    {
+      "name": "rust.project.inspect",
+      "arguments": {
+        "project_ref": "prj_11a92eb66b658ed312fd31e48fdf422e"
+      },
+      "timestamp": "2026-09-04T17:13:26.785Z",
+      "duration_ms": 13484,
+      "status": "passed",
+      "is_error": false,
+      "response_present": true
+    },
+    {
+      "name": "rust.toolchain.inspect",
+      "arguments": {
+        "project_ref": "prj_11a92eb66b658ed312fd31e48fdf422e"
+      },
+      "timestamp": "2026-09-04T17:13:58.402Z",
+      "duration_ms": 1820,
+      "status": "passed",
+      "is_error": false,
+      "response_present": true
+    },
+    {
+      "name": "rust.check",
+      "arguments": {
+        "all_features": false,
+        "all_targets": false,
+        "features": [],
+        "no_default_features": false,
+        "package": null,
+        "target": null,
+        "workspace": false,
+        "project_ref": "prj_11a92eb66b658ed312fd31e48fdf422e"
+      },
+      "timestamp": "2026-09-04T17:14:10.261Z",
+      "duration_ms": 665,
+      "status": "passed",
+      "is_error": false,
+      "response_present": true
+    },
+    {
+      "name": "rust.fmt.check",
+      "arguments": {
+        "project_ref": "prj_11a92eb66b658ed312fd31e48fdf422e"
+      },
+      "timestamp": "2026-09-04T17:14:20.335Z",
+      "duration_ms": 639,
+      "status": "passed",
+      "is_error": false,
+      "response_present": true
+    },
+    {
+      "name": "rust.clippy",
+      "arguments": {
+        "all_targets": false,
+        "features": [],
+        "lint_profile": "default",
+        "package": null,
+        "workspace": false,
+        "project_ref": "prj_11a92eb66b658ed312fd31e48fdf422e"
+      },
+      "timestamp": "2026-09-04T17:14:30.512Z",
+      "duration_ms": 669,
+      "status": "passed",
+      "is_error": false,
+      "response_present": true
+    },
+    {
+      "name": "rust.test",
+      "arguments": {
+        "all_features": false,
+        "features": [],
+        "package": null,
+        "target": null,
+        "test_filter": null,
+        "timeout": 30,
+        "project_ref": "prj_11a92eb66b658ed312fd31e48fdf422e"
+      },
+      "timestamp": "2026-09-04T17:14:41.044Z",
+      "duration_ms": 769,
+      "status": "passed",
+      "is_error": false,
+      "response_present": true
+    },
+    {
+      "name": "rust.dependencies.audit",
+      "arguments": {
+        "project_ref": "prj_11a92eb66b658ed312fd31e48fdf422e"
+      },
+      "timestamp": "2026-09-04T17:14:53.952Z",
+      "duration_ms": 631,
+      "status": "passed",
+      "is_error": false,
+      "response_present": true
+    },
+    {
+      "name": "rust.diagnostics.explain",
+      "arguments": {
+        "code": "E0502"
+      },
+      "timestamp": "2026-09-04T17:15:08.869Z",
+      "duration_ms": 626,
+      "status": "passed",
+      "is_error": false,
+      "response_present": true
+    },
+    {
+      "name": "rust.quality.gate",
+      "arguments": {
+        "project_ref": "prj_11a92eb66b658ed312fd31e48fdf422e",
+        "profile": "fast"
+      },
+      "timestamp": "2026-09-04T17:16:22.182Z",
+      "duration_ms": 1913,
+      "status": "passed",
+      "is_error": false,
+      "response_present": true
+    },
+    {
+      "name": "rust.catalog.status",
+      "arguments": {},
+      "timestamp": "2026-09-04T17:16:32.964Z",
+      "duration_ms": 712,
+      "status": "passed",
+      "is_error": false,
+      "response_present": true
+    },
+    {
+      "name": "rust.crate.search",
+      "arguments": {
+        "filters": {
+          "allow_yanked": false,
+          "include_prerelease": false,
+          "msrv_lte": null
+        },
+        "limit": 10,
+        "mode": "hybrid",
+        "query": "serde"
+      },
+      "timestamp": "2026-09-04T17:16:50.232Z",
+      "duration_ms": 43,
+      "status": "passed",
+      "is_error": false,
+      "response_present": true
+    },
+    {
+      "name": "rust.crate.inspect",
+      "arguments": {
+        "limit": 20,
+        "offset": 0,
+        "section": "overview",
+        "name": "serde"
+      },
+      "timestamp": "2026-09-04T17:16:59.638Z",
+      "duration_ms": 38,
+      "status": "passed",
+      "is_error": false,
+      "response_present": true
+    },
+    {
+      "name": "rust.quality.gate",
+      "arguments": {
+        "project_ref": "prj_11a92eb66b658ed312fd31e48fdf422e",
+        "profile": "standard"
+      },
+      "timestamp": "2026-09-04T17:18:31.749Z",
+      "duration_ms": null,
+      "status": null,
+      "is_error": null,
+      "response_present": false
+    }
+  ],
+  "cancel_notifications": [
+    {
+      "id": "bb592b82-5b0a-4ef8-8cc0-a46321fb1471",
+      "timestamp": "2026-09-04T17:18:32.031Z",
+      "direction": "notification",
+      "origin": "client",
+      "message": {
+        "jsonrpc": "2.0",
+        "method": "notifications/cancelled",
+        "params": {
+          "requestId": 18,
+          "reason": "Tool call cancelled by user"
+        }
+      }
+    }
+  ],
+  "discovery_names": [
+    "rust.project.open",
+    "rust.project.inspect",
+    "rust.toolchain.inspect",
+    "rust.check",
+    "rust.fmt.check",
+    "rust.clippy",
+    "rust.test",
+    "rust.dependencies.audit",
+    "rust.diagnostics.explain",
+    "rust.quality.gate",
+    "rust.catalog.status",
+    "rust.crate.search",
+    "rust.crate.inspect"
+  ],
+  "resource_read_qualified": false,
+  "resource_block": "Inspector UI only lists discovered URIs/templates; product intentionally resources/list=[]; no arbitrary URI entry surfaced. Edit/replay cannot change method. No bridge or substitute used.",
+  "provenance": "native Inspector UI Export downloaded via CUA and copied byte-for-byte",
+  "export_sha256": "6d479cdb8af653b906ed35065404a15ee15033674c5aaac55c4b472451276f50"
+}

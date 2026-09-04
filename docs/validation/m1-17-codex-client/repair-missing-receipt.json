@@ -1,0 +1,462 @@
+{
+  "agent_evidence_relation": "This run proves client-observed mechanics only. M1-16 separately proves bounded agent-authored patches; no stock-model repair claim is made.",
+  "client_binary_sha256": "a29d9e86eef88cbbd69f97ce8c590b1d0a287c8f77424f5eef226b883d7eaa22",
+  "docker_postcheck": {
+    "containers": [],
+    "label": "org.rust-mcp.execution=true",
+    "volumes": []
+  },
+  "external_edit_actor": "principal qualification harness",
+  "missing_external_tool_cli": {
+    "binary_sha256": "7a99038be57429e1db32c91d01772e7efd104691828253f45ed3bbb0e9330417",
+    "command_scope": "capabilities --json with an absolute nonexistent Docker executable and existing socket",
+    "exit_code": 1,
+    "result": {
+      "capabilities": {
+        "children_contained": false,
+        "cpu_quota": false,
+        "disk_limited": false,
+        "environment_isolated": false,
+        "filesystem_isolated": false,
+        "memory_limited": false,
+        "network_isolated": false,
+        "output_limited": false,
+        "pids_limited": false,
+        "wall_time_limited": false
+      },
+      "project_code_available": false,
+      "reason": "InvalidConfiguration",
+      "restricted_available": false,
+      "scope": "trusted_probe_image_only",
+      "status": "unavailable",
+      "strict_available": false
+    },
+    "stderr_bytes": 0,
+    "stdout_sha256": "4c569e907b0344c8d306779cf2fc62a6737fecb0ddd85d1eeeacf2fe287f92cf"
+  },
+  "missing_runtime": {
+    "configured_executable": "/private/tmp/m1-17-repair-fixture-an9_3e0h/definitely-missing-docker",
+    "error_code": "SANDBOX_DENIED",
+    "error_message": "Host runtime policy, failed calibration or current capacity denied check",
+    "exists": false,
+    "mcp_is_error": true,
+    "response_sha256": "fba500d4dc683227ccc7e8672ad295ec9cadd5818c366bc3f0a217785cafbc7d",
+    "status": "blocked"
+  },
+  "missing_runtime_cleanup": {
+    "state": {
+      "after": {},
+      "before": {},
+      "removed": []
+    },
+    "transport": {
+      "cleanup_verified": true,
+      "errors": [],
+      "exit_code": 0,
+      "forced": false,
+      "natural_settle_seconds": 0.029,
+      "observed_processes": [
+        {
+          "name": "codex",
+          "pgid": 57990,
+          "pid": 57990,
+          "ppid": 57615,
+          "started": "Fri Sep 4 14:58:34 2026"
+        },
+        {
+          "name": "rust-engineering-mcp",
+          "pgid": 57991,
+          "pid": 57991,
+          "ppid": 57990,
+          "started": "Fri Sep 4 14:58:34 2026"
+        }
+      ],
+      "reader_monitor_joined": true,
+      "remaining_observed_pids": [],
+      "stderr_bytes": 0,
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "transport_failure": null
+    }
+  },
+  "model_turns": 0,
+  "repair": {
+    "first_diagnostic_codes": [
+      "E0502"
+    ],
+    "first_status": "failed",
+    "fixed_source_sha256": "23f02a5c3a0ef208a52498b49cfa72c70c31ce56e2ae19fdd8170f8a575dcf29",
+    "initial_source_sha256": "83d864530d2184e82fd66a24bfd89334d52d546897ce0c79e829790372592ff3",
+    "project_ref_rotated": true,
+    "response_sha256": {
+      "check_failed": "86934ca7ce24799afbfad4a8a6d98334894e5db24e17b74f680f70aee8defdc1",
+      "check_passed": "5bdfb9086c486cceba9fd924b5534c8c3afaad29bac9be1ba6c112a0b6e8b5f3",
+      "open_fixed": "7613fbdaa470635c729a8e9598fb3b3c5fa5f98e61cf3cd0fadaa52533987061",
+      "open_initial": "1892c0d24be9c66eeb1a70e99cf1c61ed0d0ef3a7def3b27e756ca198bde53ce"
+    },
+    "second_status": "passed",
+    "source_changed": true
+  },
+  "repair_cleanup": {
+    "state": {
+      "after": {},
+      "before": {
+        "rust-mcp-control-f6d217731e887c119c87bd922971f247": {
+          "type": "directory"
+        },
+        "rust-mcp-control-f6d217731e887c119c87bd922971f247/config.json": {
+          "bytes": 2,
+          "sha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+          "type": "file"
+        },
+        "rust-mcp-control-f6d217731e887c119c87bd922971f247/seccomp-rust.json": {
+          "bytes": 3379,
+          "sha256": "f9d31acb22989dc6ac37c02d4c73acfbbb3b74b5e08beff9983f3a811fd4e56d",
+          "type": "file"
+        },
+        "rust-mcp-control-f6d217731e887c119c87bd922971f247/seccomp-socket.json": {
+          "bytes": 2869,
+          "sha256": "1f5dd6201d129405e1c48c64d796a46704f60bdd7eb2c4d82ffc1b6cf6b4ce31",
+          "type": "file"
+        },
+        "rust-mcp-control-f6d217731e887c119c87bd922971f247/seccomp.json": {
+          "bytes": 2851,
+          "sha256": "aad227ba23e1bd6cde69b344b54fef09b0881b18654aacf5303929c8c14aa514",
+          "type": "file"
+        }
+      },
+      "removed": [
+        "rust-mcp-control-f6d217731e887c119c87bd922971f247/config.json",
+        "rust-mcp-control-f6d217731e887c119c87bd922971f247/seccomp-rust.json",
+        "rust-mcp-control-f6d217731e887c119c87bd922971f247/seccomp-socket.json",
+        "rust-mcp-control-f6d217731e887c119c87bd922971f247/seccomp.json",
+        "rust-mcp-control-f6d217731e887c119c87bd922971f247"
+      ]
+    },
+    "transport": {
+      "cleanup_verified": true,
+      "errors": [],
+      "exit_code": 0,
+      "forced": false,
+      "natural_settle_seconds": 0.033,
+      "observed_processes": [
+        {
+          "name": "codex",
+          "pgid": 57621,
+          "pid": 57621,
+          "ppid": 57615,
+          "started": "Fri Sep 4 14:58:20 2026"
+        },
+        {
+          "name": "rust-engineering-mcp",
+          "pgid": 57622,
+          "pid": 57622,
+          "ppid": 57621,
+          "started": "Fri Sep 4 14:58:20 2026"
+        },
+        {
+          "name": "(docker)",
+          "pgid": 57622,
+          "pid": 57629,
+          "ppid": 57622,
+          "started": "Fri Sep 4 14:58:20 2026"
+        },
+        {
+          "name": "docker",
+          "pgid": 57622,
+          "pid": 57636,
+          "ppid": 57622,
+          "started": "Fri Sep 4 14:58:20 2026"
+        },
+        {
+          "name": "(docker)",
+          "pgid": 57622,
+          "pid": 57642,
+          "ppid": 57622,
+          "started": "Fri Sep 4 14:58:21 2026"
+        },
+        {
+          "name": "docker",
+          "pgid": 57622,
+          "pid": 57645,
+          "ppid": 57622,
+          "started": "Fri Sep 4 14:58:21 2026"
+        },
+        {
+          "name": "(docker)",
+          "pgid": 57622,
+          "pid": 57647,
+          "ppid": 57622,
+          "started": "Fri Sep 4 14:58:21 2026"
+        },
+        {
+          "name": "(docker)",
+          "pgid": 57622,
+          "pid": 57657,
+          "ppid": 57622,
+          "started": "Fri Sep 4 14:58:21 2026"
+        },
+        {
+          "name": "(docker)",
+          "pgid": 57622,
+          "pid": 57665,
+          "ppid": 57622,
+          "started": "Fri Sep 4 14:58:21 2026"
+        },
+        {
+          "name": "(docker)",
+          "pgid": 57622,
+          "pid": 57672,
+          "ppid": 57622,
+          "started": "Fri Sep 4 14:58:21 2026"
+        },
+        {
+          "name": "(docker)",
+          "pgid": 57622,
+          "pid": 57675,
+          "ppid": 57622,
+          "started": "Fri Sep 4 14:58:21 2026"
+        },
+        {
+          "name": "(docker)",
+          "pgid": 57622,
+          "pid": 57704,
+          "ppid": 57622,
+          "started": "Fri Sep 4 14:58:24 2026"
+        },
+        {
+          "name": "(docker)",
+          "pgid": 57622,
+          "pid": 57713,
+          "ppid": 57622,
+          "started": "Fri Sep 4 14:58:24 2026"
+        },
+        {
+          "name": "(docker)",
+          "pgid": 57622,
+          "pid": 57719,
+          "ppid": 57622,
+          "started": "Fri Sep 4 14:58:24 2026"
+        },
+        {
+          "name": "docker",
+          "pgid": 57622,
+          "pid": 57724,
+          "ppid": 57622,
+          "started": "Fri Sep 4 14:58:24 2026"
+        },
+        {
+          "name": "<defunct>",
+          "pgid": 57622,
+          "pid": 57740,
+          "ppid": 57622,
+          "started": "Fri Sep 4 14:58:25 2026"
+        },
+        {
+          "name": "<defunct>",
+          "pgid": 57622,
+          "pid": 57741,
+          "ppid": 57622,
+          "started": "Fri Sep 4 14:58:25 2026"
+        },
+        {
+          "name": "(docker)",
+          "pgid": 57622,
+          "pid": 57751,
+          "ppid": 57622,
+          "started": "Fri Sep 4 14:58:25 2026"
+        },
+        {
+          "name": "(docker)",
+          "pgid": 57622,
+          "pid": 57762,
+          "ppid": 57622,
+          "started": "Fri Sep 4 14:58:25 2026"
+        },
+        {
+          "name": "(docker)",
+          "pgid": 57622,
+          "pid": 57765,
+          "ppid": 57622,
+          "started": "Fri Sep 4 14:58:25 2026"
+        },
+        {
+          "name": "(docker)",
+          "pgid": 57622,
+          "pid": 57769,
+          "ppid": 57622,
+          "started": "Fri Sep 4 14:58:25 2026"
+        },
+        {
+          "name": "(docker)",
+          "pgid": 57622,
+          "pid": 57810,
+          "ppid": 57622,
+          "started": "Fri Sep 4 14:58:30 2026"
+        },
+        {
+          "name": "(docker)",
+          "pgid": 57622,
+          "pid": 57819,
+          "ppid": 57622,
+          "started": "Fri Sep 4 14:58:30 2026"
+        },
+        {
+          "name": "(docker)",
+          "pgid": 57622,
+          "pid": 57820,
+          "ppid": 57622,
+          "started": "Fri Sep 4 14:58:30 2026"
+        },
+        {
+          "name": "(docker)",
+          "pgid": 57622,
+          "pid": 57828,
+          "ppid": 57622,
+          "started": "Fri Sep 4 14:58:30 2026"
+        },
+        {
+          "name": "(docker)",
+          "pgid": 57622,
+          "pid": 57842,
+          "ppid": 57622,
+          "started": "Fri Sep 4 14:58:30 2026"
+        },
+        {
+          "name": "(docker)",
+          "pgid": 57622,
+          "pid": 57844,
+          "ppid": 57622,
+          "started": "Fri Sep 4 14:58:30 2026"
+        },
+        {
+          "name": "(docker)",
+          "pgid": 57622,
+          "pid": 57851,
+          "ppid": 57622,
+          "started": "Fri Sep 4 14:58:31 2026"
+        },
+        {
+          "name": "(docker)",
+          "pgid": 57622,
+          "pid": 57859,
+          "ppid": 57622,
+          "started": "Fri Sep 4 14:58:31 2026"
+        },
+        {
+          "name": "(docker)",
+          "pgid": 57622,
+          "pid": 57868,
+          "ppid": 57622,
+          "started": "Fri Sep 4 14:58:31 2026"
+        },
+        {
+          "name": "(docker)",
+          "pgid": 57622,
+          "pid": 57881,
+          "ppid": 57622,
+          "started": "Fri Sep 4 14:58:31 2026"
+        },
+        {
+          "name": "(docker)",
+          "pgid": 57622,
+          "pid": 57883,
+          "ppid": 57622,
+          "started": "Fri Sep 4 14:58:31 2026"
+        },
+        {
+          "name": "(docker)",
+          "pgid": 57622,
+          "pid": 57892,
+          "ppid": 57622,
+          "started": "Fri Sep 4 14:58:31 2026"
+        },
+        {
+          "name": "(docker)",
+          "pgid": 57622,
+          "pid": 57900,
+          "ppid": 57622,
+          "started": "Fri Sep 4 14:58:31 2026"
+        },
+        {
+          "name": "(docker)",
+          "pgid": 57622,
+          "pid": 57902,
+          "ppid": 57622,
+          "started": "Fri Sep 4 14:58:31 2026"
+        },
+        {
+          "name": "(docker)",
+          "pgid": 57622,
+          "pid": 57909,
+          "ppid": 57622,
+          "started": "Fri Sep 4 14:58:31 2026"
+        },
+        {
+          "name": "(docker)",
+          "pgid": 57622,
+          "pid": 57926,
+          "ppid": 57622,
+          "started": "Fri Sep 4 14:58:33 2026"
+        },
+        {
+          "name": "(docker)",
+          "pgid": 57622,
+          "pid": 57934,
+          "ppid": 57622,
+          "started": "Fri Sep 4 14:58:33 2026"
+        },
+        {
+          "name": "(docker)",
+          "pgid": 57622,
+          "pid": 57940,
+          "ppid": 57622,
+          "started": "Fri Sep 4 14:58:33 2026"
+        },
+        {
+          "name": "(docker)",
+          "pgid": 57622,
+          "pid": 57946,
+          "ppid": 57622,
+          "started": "Fri Sep 4 14:58:33 2026"
+        },
+        {
+          "name": "(docker)",
+          "pgid": 57622,
+          "pid": 57964,
+          "ppid": 57622,
+          "started": "Fri Sep 4 14:58:33 2026"
+        },
+        {
+          "name": "(docker)",
+          "pgid": 57622,
+          "pid": 57969,
+          "ppid": 57622,
+          "started": "Fri Sep 4 14:58:33 2026"
+        },
+        {
+          "name": "docker",
+          "pgid": 57622,
+          "pid": 57976,
+          "ppid": 57622,
+          "started": "Fri Sep 4 14:58:34 2026"
+        },
+        {
+          "name": "(docker)",
+          "pgid": 57622,
+          "pid": 57982,
+          "ppid": 57622,
+          "started": "Fri Sep 4 14:58:34 2026"
+        }
+      ],
+      "reader_monitor_joined": true,
+      "remaining_observed_pids": [],
+      "stderr_bytes": 0,
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "transport_failure": null
+    }
+  },
+  "scope": "candidate-bound-stock-codex-client-repair-mechanics-and-missing-runtime",
+  "server_binary_sha256": "7a99038be57429e1db32c91d01772e7efd104691828253f45ed3bbb0e9330417",
+  "status": "passed",
+  "temporary_fixture_removed": true
+}

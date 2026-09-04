@@ -1,0 +1,35 @@
+{
+  "cache_scope": "private",
+  "cleanup": true,
+  "configuration_fingerprint": "sha256:6e030696c487138fcf3ce4454e88346e6d1e5074b273b13286da76f46ad64df2",
+  "error_codes": [
+    "E0502",
+    "E0106"
+  ],
+  "execution_fingerprints": [
+    "sha256:dc565036fa82c8ed27b33df14e9eb2806757d4a5c2ba9444ed9e96a106493387",
+    "sha256:0b455847571ef0b3db25570368500e1a0f1485b9b02500b98b052271da4981e9",
+    "sha256:99843943629f26d54ff33fc17efca627371103bcaac50d8e81fdd93f9dff61b9"
+  ],
+  "failed": [
+    "failed",
+    "failed"
+  ],
+  "frozen_missing_and_stale_locks_blocked": true,
+  "logs_verified": 6,
+  "only_expected_source_mutations": true,
+  "passed": [
+    "passed",
+    "passed"
+  ],
+  "resource_reads_verified": 7,
+  "revoked_reference_denied": true,
+  "source_fingerprints": [
+    "sha256:47e6d97d971219870c975ad5ede806e41a80b125cbba330d601b6f8f90840383",
+    "sha256:d57361d021e9cd134c7aecd77945dbbf40c6647db742c9db0f03d44b4ecfa760",
+    "sha256:9e26b11c7e89ce29c7cb22d1e3df2818e0a80b14b60d6466040288e0f15a3094"
+  ],
+  "ttl_ms": 0,
+  "validation_complete": true,
+  "wrong_owner_denied": true
+}

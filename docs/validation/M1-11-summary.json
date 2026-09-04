@@ -1,0 +1,28 @@
+{
+  "core_report": "M1-11-core.json",
+  "core_tests_including_doctests": 572,
+  "core_stages": 10,
+  "protocol_tests": 33,
+  "all_features_clippy": "passed",
+  "native_gate": "scripts/test-catalog-status.py",
+  "native_ordinary_tests": 2,
+  "native_ignored_executed": 1,
+  "network_enforcement": "macOS sandbox-exec deny network*; positive IPv4/IPv6 controls outside and denied inside",
+  "full_rerun": false,
+  "full_rerun_reason": "Proportional M1-11 gate; unchanged Docker security stages not rerun. Final M1 candidate still requires full16/16.",
+  "logs": {
+    "M1-11-core.log": {
+      "sha256": "b865977ce54e40668891dedbd50bbf53a1967b9cbc0d4b33333b4beebebeb302",
+      "bytes": 96223
+    },
+    "M1-11-native.log": {
+      "sha256": "70a6485418729b0496ea22e515e508719976a4db6b88192aac5600791c22831c",
+      "bytes": 1735
+    },
+    "M1-11-all-features-clippy.log": {
+      "sha256": "d2b33f7c84b11281c5537d5431b671951767a6b7bca5c53c9135ae6e7be075f1",
+      "bytes": 1236
+    }
+  },
+  "native_transcript": "M1-11-native.txt"
+}

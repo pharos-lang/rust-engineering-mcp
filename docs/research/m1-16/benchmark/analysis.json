@@ -1,0 +1,8 @@
+{
+  "scope": "post-run filter/rank/identity consistency, no additional inference",
+  "all_returned_rows_pass_requested_filters": true,
+  "returned_row_checks": 243,
+  "rankings_identical_across_three_repetitions": true,
+  "baseline_snapshot_matches": true,
+  "receipt_sha256": "28a846bc2b76f68e621d8a19b770aa7e3facb63dc4df1d2a07daec4dc688602d"
+}

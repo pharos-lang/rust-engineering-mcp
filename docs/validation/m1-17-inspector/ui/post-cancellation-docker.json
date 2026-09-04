@@ -1,0 +1,36 @@
+{
+  "container": {
+    "command": [
+      "/Applications/Docker.app/Contents/Resources/bin/docker",
+      "--host",
+      "unix://<HOME>/.docker/run/docker.sock",
+      "container",
+      "ls",
+      "-a",
+      "--filter",
+      "label=org.rust-mcp.execution=true",
+      "--format",
+      "{{.Names}}"
+    ],
+    "exit_code": 0,
+    "stdout": "",
+    "stderr": ""
+  },
+  "volume": {
+    "command": [
+      "/Applications/Docker.app/Contents/Resources/bin/docker",
+      "--host",
+      "unix://<HOME>/.docker/run/docker.sock",
+      "volume",
+      "ls",
+      "--filter",
+      "label=org.rust-mcp.execution=true",
+      "--format",
+      "{{.Name}}"
+    ],
+    "exit_code": 0,
+    "stdout": "",
+    "stderr": ""
+  },
+  "observed_epoch": 1788542354.733623
+}

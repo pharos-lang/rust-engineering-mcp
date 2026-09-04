@@ -1,0 +1,818 @@
+[
+  {
+    "id": "S01",
+    "intent": "TOML configuration parsing",
+    "prompts": [
+      "selection/S01-en.txt",
+      "selection/S01-es.txt"
+    ],
+    "declared_msrv_lte": "1.80",
+    "accepted_identities": [
+      "toml@0.9.12+spec-1.1.0"
+    ],
+    "labels": [
+      {
+        "identity": "serde@1.0.228",
+        "label": "rejected",
+        "rationale": "Serialization framework alone does not provide the requested TOML decoder",
+        "source_sha256": [
+          "d7fc24e39691a0831eaa0eac677b46ecbae407a40fa816b904759822d10f42e8",
+          "0b7df7944cba2a0646daa431efdc9f8b200bc6beb586cd71e302a102d17c4c60",
+          "d40eb47c3c6e3780359df6fe40d40a35725c843df0e3b845e10ecf2a15048664",
+          "4151fe468ade28d0cf83d35ff170e90ba80be418a29eac86fa1a08b9ebd16d99"
+        ]
+      },
+      {
+        "identity": "serde_json@1.0.150",
+        "label": "rejected",
+        "rationale": "JSON format rather than TOML",
+        "source_sha256": [
+          "96f36f0d4419ce7ab53008df556017ef7b8891c1e913ac648e9b2b7f0537a472",
+          "81569187bb96cbf7d4f017eec614d475ffb351bf7a52d2953c283587b81b00e3",
+          "10cb8c14d9d29f29a031329747b352fc149a689b449ee5a8abb43712695aed72",
+          "b5a2fd1ee865e6cfd83ef2da0a2e1057f892465ac7ede8a78a11354a60526f33",
+          "800fdc5e09d5687cdff2a67789af684cfe8c10f882e65b93a02877a0dc5c2202"
+        ]
+      },
+      {
+        "identity": "toml@0.9.12+spec-1.1.0",
+        "label": "accepted",
+        "rationale": "Cached README describes Serde-compatible TOML decoding/encoding; manifest declares MSRV1.76 and MIT OR Apache-2.0.",
+        "source_sha256": [
+          "c7cd18a26f0a1e8129cf6f97e80c40d775ab0f940eac463194e5f7a914326fcb",
+          "c06debf28541bc9ac219a5fc57fc27006c8647114b34b940e279ae1b907a4923",
+          "10ec704dd3941c962949c6d0cc98ebcfccc8e76e8e03ccab5b49e3e4a2f42896",
+          "96414621a9758103fb0f14747562b66002fada2cbf75455c434d37a178345f3e"
+        ]
+      },
+      {
+        "identity": "toml@1.1.5+spec-1.1.0",
+        "label": "rejected",
+        "rationale": "Declared MSRV1.85 exceeds1.80",
+        "source_sha256": [
+          "77938c9a9688aec83cfa126f667a707ad43118502e4bff53f0125a63cf7cda94",
+          "90955c0a92c0789695ffd1455610628fd25e79717ece1ac36a04c882ebbbdfbd",
+          "10ec704dd3941c962949c6d0cc98ebcfccc8e76e8e03ccab5b49e3e4a2f42896",
+          "c9ee51f812d1dca5769132b9c8d815515b146cac7a5d23c0ec4502c44b571c1d"
+        ]
+      },
+      {
+        "identity": "toml_edit@0.25.12+spec-1.1.0",
+        "label": "rejected",
+        "rationale": "Declared MSRV1.85 exceeds1.80; editing is not required",
+        "source_sha256": [
+          "c71ba418832494a7d87418689ba40a797f40a0eb242cb5c5263c904ec6360d85",
+          "9fed53cf412ad0a2b72d2eaeda600c9d91cacc6800e3edad187a89f751589723",
+          "09b2dc2ff0ad374bdea85ad463c7f459d7b312c471f3732e910ddea8c04f92b2",
+          "c619b80f2ff28739222946d015e9314a705dad69fe493edd0748db60a1caf82a"
+        ]
+      },
+      {
+        "identity": "syn@2.0.118",
+        "label": "rejected",
+        "rationale": "Rust source parser rather than TOML",
+        "source_sha256": [
+          "1c16fbf1de1ba3bc6d8080b1dddc7c009ea067c78559557613c500b68923236c",
+          "cffcc7f5963ce46d46bd908785470e1f893ccee5494bf4c9fddb3ea3c73e13e4",
+          "4a050aa3ee831ad3d27ab15d9b612bb32712f86517fa2e6be0b1cac37137ebe5",
+          "f5a36a97529ff182a87468d355d1dba44175b8bf7fbe170c66784ff7afa19c54"
+        ]
+      },
+      {
+        "identity": "regex@1.13.0",
+        "label": "rejected",
+        "rationale": "Frozen manifest/README evidence describes a different primary function; it does not establish this exact requested capability.",
+        "source_sha256": [
+          "8e65901633c31baa66d5629ceef1ac7f2f8613ee0b4ef927d5204417e3a2fcd0",
+          "80dd53522a88309e3eb90a6b51f7c94c9f0711f305a67ddcd8e6739544f9cf56",
+          "ce1a8faf72cf8f0e28a28658c59033b02726e3caecd9a3d358b4c6f6cd3e6c24",
+          "4431f6b6283b3aa0137d45d022b43fa53b290a552f162d3fba4bd1f004eb72c2"
+        ]
+      },
+      {
+        "identity": "unicode-normalization@0.1.25",
+        "label": "rejected",
+        "rationale": "Frozen manifest/README evidence describes a different primary function; it does not establish this exact requested capability.",
+        "source_sha256": [
+          "5b133b15dd596c7deaae9c09f6049e643c4371f23aff58cb7a72f2b13134b5c5",
+          "39d19d80979b3c71708c1ee1191860aa77c52f3159629346bee75177ff74d838",
+          "91ee30b7c76b5a7dc2cd19252f5dda5a12d2855ea8a218c1ce05e4cc32f62138",
+          "4f0a176a2d164c986b1787101b8fbb30a9ceab85cc5922d51e1007747ae52c81"
+        ]
+      },
+      {
+        "identity": "unicode-segmentation@1.13.3",
+        "label": "rejected",
+        "rationale": "Frozen manifest/README evidence describes a different primary function; it does not establish this exact requested capability.",
+        "source_sha256": [
+          "86f0e8158aae32d3791f182cf50131f678462da65a713b18cab6c0b5638f1a50",
+          "af7b6699725f8ae6a3f4bed18b3dafd35e5f90c1851f09362b62f6354cb1d690",
+          "07caaad76a308821eee35087521f9c6d980657aec374db8e3e231fa548825d81",
+          "872b796098442da007517135d8cf090188f0da58e909d8b317607cb3b1d182fd"
+        ]
+      },
+      {
+        "identity": "unicode-ident@1.0.24",
+        "label": "rejected",
+        "rationale": "Frozen manifest/README evidence describes a different primary function; it does not establish this exact requested capability.",
+        "source_sha256": [
+          "0bb9c0e006a21355cb85c7df72e78dd8ba6fffbb7dc3f1e7a4c19af53cd354da",
+          "8d0abaf7ce10cb78f26edcd613dfe5a47faa4381e6e251c7d1c123608d2e037a",
+          "2fd3a0c6c9abd2c042fb319221f9ef2c95728a6e3725b0f067e4d315c5dbfe5a",
+          "cbafad943b2589a78a0d2de767db2f2b74f17302635af2d35a27d03c6495805e"
+        ]
+      },
+      {
+        "identity": "tokio@1.53.1",
+        "label": "rejected",
+        "rationale": "Frozen manifest/README evidence describes a different primary function; it does not establish this exact requested capability.",
+        "source_sha256": [
+          "e0194904acf8d55946b949cacca2b266051bb2a99844c606829fb0159c39cfb1",
+          "64efc8888a41b0a102b3abe463cf9f2bb4687895ae494b47487284bd23fd7455",
+          "d66d59d170ce56b4f80e16e7564fe91ca611daffffe82a8625a9a67bb85c8800",
+          "455441acb6e0fadf2ba5599d8459bd5eabe823aae8a84782cc0056fb1053f5dc",
+          "51b11811e4bd8d4a494b77fee959e9872c9f8181293fd2c8bfda1dcb12cb77d4"
+        ]
+      },
+      {
+        "identity": "crossbeam-channel@0.5.16",
+        "label": "rejected",
+        "rationale": "Frozen manifest/README evidence describes a different primary function; it does not establish this exact requested capability.",
+        "source_sha256": [
+          "29527fb88615c06cf0e5ebfa12e0cac447b653dc8110de5ca3fe515cab63b7fb",
+          "88fff79b3ce0f59afdbc463d3dae2d980602507d3c384738d0c5425aa3b43e14",
+          "5dfb91ebb498dec49948a440a53977109ec532388170e567c3c2a0339589aa4c",
+          "5b1c406fd1ce6140feae9000be361858da2aabe7fc9fffd0eafcb88020d2b268",
+          "1842dd01f8b9236d2dc232793565374a8199d6d0f5edffa6b67bec9a3c86258a"
+        ]
+      },
+      {
+        "identity": "flume@0.12.0",
+        "label": "rejected",
+        "rationale": "Frozen manifest/README evidence describes a different primary function; it does not establish this exact requested capability.",
+        "source_sha256": [
+          "55d58b649575430af87331d5ad11f7fa3077c7e8afa44b9ea9bacefc4f575603",
+          "070c80369b176e92452535250b77efda7bacac722d1d83bd0abd38933efdc12e",
+          "84bd3ddff0ded8622857a9452cf920b547936d7d79d38fe4fdb4d989da92f97e",
+          "6454f49f8e98f4dce13461b25fa877b871cdc64f26287a01615ad98e8372830e",
+          "0db47baf2d4ef0dc92c2567e5c9dea502fb6baf12ee82c2673d4ffec4d3c832d"
+        ]
+      },
+      {
+        "identity": "async-channel@2.5.0",
+        "label": "rejected",
+        "rationale": "Frozen manifest/README evidence describes a different primary function; it does not establish this exact requested capability.",
+        "source_sha256": [
+          "0d56b953fd80e91c2f60d92df14866dede9822a91fa2abccc618b76abbf1ea97",
+          "4b88d2c58ff7187b3d96b14b1d60fc7c01145aa946f2ce04c0e23d140e4a2463",
+          "a9ae50c2a6df06ff476c369d23553a7bbcb4c47f25a3353d168e05289acbb4ed",
+          "96d786959c66fc32a0181a8015ff9fd06b7a9955d878bfd7760b81304ee35223",
+          "cb94d000c1393c36fa32078e28ad375932f76268de2a360ed63c4e787c0fcae7"
+        ]
+      },
+      {
+        "identity": "bytes@1.12.1",
+        "label": "rejected",
+        "rationale": "Frozen manifest/README evidence describes a different primary function; it does not establish this exact requested capability.",
+        "source_sha256": [
+          "dc260d0d04b58aea819f8d6762c2feb51e66f8edd77e4e64cc1eac6f447a8143",
+          "4fc0d14d77a47a1fac1fbb445890db63e67360535c940dd47ffd69badc30cdc6",
+          "275ac7bc295e3cc659d28f05261645ac5bd6286476afe2ee3c1ed719f7b6df02",
+          "4acc909efcf4bca011c18a8c7c68d1d630efbf6ec863c12eef6a2415fe1a263f"
+        ]
+      },
+      {
+        "identity": "prettyplease@0.2.37",
+        "label": "rejected",
+        "rationale": "Frozen manifest/README evidence describes a different primary function; it does not establish this exact requested capability.",
+        "source_sha256": [
+          "fadc7182205c8cebaea0545496490a549f3d102d17d7b13ae26b2f6c24828a0b",
+          "1163b5012ba2567947bc3f662645c7769428f57f8ed033352579d46acfbe7b3f",
+          "a7e6d152cdc6ea603077e50b8d55af374d9d21fd9f62d08a008588b17d785e6e",
+          "ce0d0be77808bdcb21976ca07101aec743bc22c60c13336ca5e78e5d6e37be25"
+        ]
+      }
+    ],
+    "objective_oracle": {
+      "identity_in_accepted_set": true,
+      "exact_declared_msrv_and_license": true,
+      "source_hash_and_snapshot_date_required": true,
+      "capability_caveats_required": true,
+      "unknowns_not_promoted_to_facts": true,
+      "integration_claim_prohibited": true
+    },
+    "status": "draft_labels_require_principal_review"
+  },
+  {
+    "id": "S02",
+    "intent": "Unicode NFC normalization",
+    "prompts": [
+      "selection/S02-en.txt",
+      "selection/S02-es.txt"
+    ],
+    "declared_msrv_lte": "1.70",
+    "accepted_identities": [
+      "unicode-normalization@0.1.25"
+    ],
+    "labels": [
+      {
+        "identity": "serde@1.0.228",
+        "label": "rejected",
+        "rationale": "Frozen manifest/README evidence describes a different primary function; it does not establish this exact requested capability.",
+        "source_sha256": [
+          "d7fc24e39691a0831eaa0eac677b46ecbae407a40fa816b904759822d10f42e8",
+          "0b7df7944cba2a0646daa431efdc9f8b200bc6beb586cd71e302a102d17c4c60",
+          "d40eb47c3c6e3780359df6fe40d40a35725c843df0e3b845e10ecf2a15048664",
+          "4151fe468ade28d0cf83d35ff170e90ba80be418a29eac86fa1a08b9ebd16d99"
+        ]
+      },
+      {
+        "identity": "serde_json@1.0.150",
+        "label": "rejected",
+        "rationale": "Frozen manifest/README evidence describes a different primary function; it does not establish this exact requested capability.",
+        "source_sha256": [
+          "96f36f0d4419ce7ab53008df556017ef7b8891c1e913ac648e9b2b7f0537a472",
+          "81569187bb96cbf7d4f017eec614d475ffb351bf7a52d2953c283587b81b00e3",
+          "10cb8c14d9d29f29a031329747b352fc149a689b449ee5a8abb43712695aed72",
+          "b5a2fd1ee865e6cfd83ef2da0a2e1057f892465ac7ede8a78a11354a60526f33",
+          "800fdc5e09d5687cdff2a67789af684cfe8c10f882e65b93a02877a0dc5c2202"
+        ]
+      },
+      {
+        "identity": "toml@0.9.12+spec-1.1.0",
+        "label": "rejected",
+        "rationale": "Frozen manifest/README evidence describes a different primary function; it does not establish this exact requested capability.",
+        "source_sha256": [
+          "c7cd18a26f0a1e8129cf6f97e80c40d775ab0f940eac463194e5f7a914326fcb",
+          "c06debf28541bc9ac219a5fc57fc27006c8647114b34b940e279ae1b907a4923",
+          "10ec704dd3941c962949c6d0cc98ebcfccc8e76e8e03ccab5b49e3e4a2f42896",
+          "96414621a9758103fb0f14747562b66002fada2cbf75455c434d37a178345f3e"
+        ]
+      },
+      {
+        "identity": "toml@1.1.5+spec-1.1.0",
+        "label": "rejected",
+        "rationale": "Frozen manifest/README evidence describes a different primary function; it does not establish this exact requested capability.",
+        "source_sha256": [
+          "77938c9a9688aec83cfa126f667a707ad43118502e4bff53f0125a63cf7cda94",
+          "90955c0a92c0789695ffd1455610628fd25e79717ece1ac36a04c882ebbbdfbd",
+          "10ec704dd3941c962949c6d0cc98ebcfccc8e76e8e03ccab5b49e3e4a2f42896",
+          "c9ee51f812d1dca5769132b9c8d815515b146cac7a5d23c0ec4502c44b571c1d"
+        ]
+      },
+      {
+        "identity": "toml_edit@0.25.12+spec-1.1.0",
+        "label": "rejected",
+        "rationale": "Frozen manifest/README evidence describes a different primary function; it does not establish this exact requested capability.",
+        "source_sha256": [
+          "c71ba418832494a7d87418689ba40a797f40a0eb242cb5c5263c904ec6360d85",
+          "9fed53cf412ad0a2b72d2eaeda600c9d91cacc6800e3edad187a89f751589723",
+          "09b2dc2ff0ad374bdea85ad463c7f459d7b312c471f3732e910ddea8c04f92b2",
+          "c619b80f2ff28739222946d015e9314a705dad69fe493edd0748db60a1caf82a"
+        ]
+      },
+      {
+        "identity": "syn@2.0.118",
+        "label": "rejected",
+        "rationale": "Frozen manifest/README evidence describes a different primary function; it does not establish this exact requested capability.",
+        "source_sha256": [
+          "1c16fbf1de1ba3bc6d8080b1dddc7c009ea067c78559557613c500b68923236c",
+          "cffcc7f5963ce46d46bd908785470e1f893ccee5494bf4c9fddb3ea3c73e13e4",
+          "4a050aa3ee831ad3d27ab15d9b612bb32712f86517fa2e6be0b1cac37137ebe5",
+          "f5a36a97529ff182a87468d355d1dba44175b8bf7fbe170c66784ff7afa19c54"
+        ]
+      },
+      {
+        "identity": "regex@1.13.0",
+        "label": "rejected",
+        "rationale": "Regex matching evidence does not establish NFC normalization",
+        "source_sha256": [
+          "8e65901633c31baa66d5629ceef1ac7f2f8613ee0b4ef927d5204417e3a2fcd0",
+          "80dd53522a88309e3eb90a6b51f7c94c9f0711f305a67ddcd8e6739544f9cf56",
+          "ce1a8faf72cf8f0e28a28658c59033b02726e3caecd9a3d358b4c6f6cd3e6c24",
+          "4431f6b6283b3aa0137d45d022b43fa53b290a552f162d3fba4bd1f004eb72c2"
+        ]
+      },
+      {
+        "identity": "unicode-normalization@0.1.25",
+        "label": "accepted",
+        "rationale": "Cached README demonstrates UnicodeNormalization::nfc; manifest declares MSRV1.36 and MIT OR Apache-2.0.",
+        "source_sha256": [
+          "5b133b15dd596c7deaae9c09f6049e643c4371f23aff58cb7a72f2b13134b5c5",
+          "39d19d80979b3c71708c1ee1191860aa77c52f3159629346bee75177ff74d838",
+          "91ee30b7c76b5a7dc2cd19252f5dda5a12d2855ea8a218c1ce05e4cc32f62138",
+          "4f0a176a2d164c986b1787101b8fbb30a9ceab85cc5922d51e1007747ae52c81"
+        ]
+      },
+      {
+        "identity": "unicode-segmentation@1.13.3",
+        "label": "rejected",
+        "rationale": "UAX29 boundaries rather than NFC; declared MSRV1.85 exceeds1.70",
+        "source_sha256": [
+          "86f0e8158aae32d3791f182cf50131f678462da65a713b18cab6c0b5638f1a50",
+          "af7b6699725f8ae6a3f4bed18b3dafd35e5f90c1851f09362b62f6354cb1d690",
+          "07caaad76a308821eee35087521f9c6d980657aec374db8e3e231fa548825d81",
+          "872b796098442da007517135d8cf090188f0da58e909d8b317607cb3b1d182fd"
+        ]
+      },
+      {
+        "identity": "unicode-ident@1.0.24",
+        "label": "rejected",
+        "rationale": "XID properties rather than normalization; declared MSRV1.71 exceeds1.70",
+        "source_sha256": [
+          "0bb9c0e006a21355cb85c7df72e78dd8ba6fffbb7dc3f1e7a4c19af53cd354da",
+          "8d0abaf7ce10cb78f26edcd613dfe5a47faa4381e6e251c7d1c123608d2e037a",
+          "2fd3a0c6c9abd2c042fb319221f9ef2c95728a6e3725b0f067e4d315c5dbfe5a",
+          "cbafad943b2589a78a0d2de767db2f2b74f17302635af2d35a27d03c6495805e"
+        ]
+      },
+      {
+        "identity": "tokio@1.53.1",
+        "label": "rejected",
+        "rationale": "Frozen manifest/README evidence describes a different primary function; it does not establish this exact requested capability.",
+        "source_sha256": [
+          "e0194904acf8d55946b949cacca2b266051bb2a99844c606829fb0159c39cfb1",
+          "64efc8888a41b0a102b3abe463cf9f2bb4687895ae494b47487284bd23fd7455",
+          "d66d59d170ce56b4f80e16e7564fe91ca611daffffe82a8625a9a67bb85c8800",
+          "455441acb6e0fadf2ba5599d8459bd5eabe823aae8a84782cc0056fb1053f5dc",
+          "51b11811e4bd8d4a494b77fee959e9872c9f8181293fd2c8bfda1dcb12cb77d4"
+        ]
+      },
+      {
+        "identity": "crossbeam-channel@0.5.16",
+        "label": "rejected",
+        "rationale": "Frozen manifest/README evidence describes a different primary function; it does not establish this exact requested capability.",
+        "source_sha256": [
+          "29527fb88615c06cf0e5ebfa12e0cac447b653dc8110de5ca3fe515cab63b7fb",
+          "88fff79b3ce0f59afdbc463d3dae2d980602507d3c384738d0c5425aa3b43e14",
+          "5dfb91ebb498dec49948a440a53977109ec532388170e567c3c2a0339589aa4c",
+          "5b1c406fd1ce6140feae9000be361858da2aabe7fc9fffd0eafcb88020d2b268",
+          "1842dd01f8b9236d2dc232793565374a8199d6d0f5edffa6b67bec9a3c86258a"
+        ]
+      },
+      {
+        "identity": "flume@0.12.0",
+        "label": "rejected",
+        "rationale": "Frozen manifest/README evidence describes a different primary function; it does not establish this exact requested capability.",
+        "source_sha256": [
+          "55d58b649575430af87331d5ad11f7fa3077c7e8afa44b9ea9bacefc4f575603",
+          "070c80369b176e92452535250b77efda7bacac722d1d83bd0abd38933efdc12e",
+          "84bd3ddff0ded8622857a9452cf920b547936d7d79d38fe4fdb4d989da92f97e",
+          "6454f49f8e98f4dce13461b25fa877b871cdc64f26287a01615ad98e8372830e",
+          "0db47baf2d4ef0dc92c2567e5c9dea502fb6baf12ee82c2673d4ffec4d3c832d"
+        ]
+      },
+      {
+        "identity": "async-channel@2.5.0",
+        "label": "rejected",
+        "rationale": "Frozen manifest/README evidence describes a different primary function; it does not establish this exact requested capability.",
+        "source_sha256": [
+          "0d56b953fd80e91c2f60d92df14866dede9822a91fa2abccc618b76abbf1ea97",
+          "4b88d2c58ff7187b3d96b14b1d60fc7c01145aa946f2ce04c0e23d140e4a2463",
+          "a9ae50c2a6df06ff476c369d23553a7bbcb4c47f25a3353d168e05289acbb4ed",
+          "96d786959c66fc32a0181a8015ff9fd06b7a9955d878bfd7760b81304ee35223",
+          "cb94d000c1393c36fa32078e28ad375932f76268de2a360ed63c4e787c0fcae7"
+        ]
+      },
+      {
+        "identity": "bytes@1.12.1",
+        "label": "rejected",
+        "rationale": "Frozen manifest/README evidence describes a different primary function; it does not establish this exact requested capability.",
+        "source_sha256": [
+          "dc260d0d04b58aea819f8d6762c2feb51e66f8edd77e4e64cc1eac6f447a8143",
+          "4fc0d14d77a47a1fac1fbb445890db63e67360535c940dd47ffd69badc30cdc6",
+          "275ac7bc295e3cc659d28f05261645ac5bd6286476afe2ee3c1ed719f7b6df02",
+          "4acc909efcf4bca011c18a8c7c68d1d630efbf6ec863c12eef6a2415fe1a263f"
+        ]
+      },
+      {
+        "identity": "prettyplease@0.2.37",
+        "label": "rejected",
+        "rationale": "Frozen manifest/README evidence describes a different primary function; it does not establish this exact requested capability.",
+        "source_sha256": [
+          "fadc7182205c8cebaea0545496490a549f3d102d17d7b13ae26b2f6c24828a0b",
+          "1163b5012ba2567947bc3f662645c7769428f57f8ed033352579d46acfbe7b3f",
+          "a7e6d152cdc6ea603077e50b8d55af374d9d21fd9f62d08a008588b17d785e6e",
+          "ce0d0be77808bdcb21976ca07101aec743bc22c60c13336ca5e78e5d6e37be25"
+        ]
+      }
+    ],
+    "objective_oracle": {
+      "identity_in_accepted_set": true,
+      "exact_declared_msrv_and_license": true,
+      "source_hash_and_snapshot_date_required": true,
+      "capability_caveats_required": true,
+      "unknowns_not_promoted_to_facts": true,
+      "integration_claim_prohibited": true
+    },
+    "status": "draft_labels_require_principal_review"
+  },
+  {
+    "id": "S03",
+    "intent": "Deterministic JSON object serialization",
+    "prompts": [
+      "selection/S03-en.txt",
+      "selection/S03-es.txt"
+    ],
+    "declared_msrv_lte": "1.75",
+    "accepted_identities": [
+      "serde_json@1.0.150"
+    ],
+    "labels": [
+      {
+        "identity": "serde@1.0.228",
+        "label": "rejected",
+        "rationale": "Framework without a concrete JSON encoder/map representation",
+        "source_sha256": [
+          "d7fc24e39691a0831eaa0eac677b46ecbae407a40fa816b904759822d10f42e8",
+          "0b7df7944cba2a0646daa431efdc9f8b200bc6beb586cd71e302a102d17c4c60",
+          "d40eb47c3c6e3780359df6fe40d40a35725c843df0e3b845e10ecf2a15048664",
+          "4151fe468ade28d0cf83d35ff170e90ba80be418a29eac86fa1a08b9ebd16d99"
+        ]
+      },
+      {
+        "identity": "serde_json@1.0.150",
+        "label": "accepted",
+        "rationale": "Cached manifest identifies JSON format and MSRV1.71; src/map.rs documents default BTreeMap and opt-in preserve_order IndexMap.",
+        "source_sha256": [
+          "96f36f0d4419ce7ab53008df556017ef7b8891c1e913ac648e9b2b7f0537a472",
+          "81569187bb96cbf7d4f017eec614d475ffb351bf7a52d2953c283587b81b00e3",
+          "10cb8c14d9d29f29a031329747b352fc149a689b449ee5a8abb43712695aed72",
+          "b5a2fd1ee865e6cfd83ef2da0a2e1057f892465ac7ede8a78a11354a60526f33",
+          "800fdc5e09d5687cdff2a67789af684cfe8c10f882e65b93a02877a0dc5c2202"
+        ]
+      },
+      {
+        "identity": "toml@0.9.12+spec-1.1.0",
+        "label": "rejected",
+        "rationale": "TOML rather than JSON; MSRV1.76 exceeds1.75",
+        "source_sha256": [
+          "c7cd18a26f0a1e8129cf6f97e80c40d775ab0f940eac463194e5f7a914326fcb",
+          "c06debf28541bc9ac219a5fc57fc27006c8647114b34b940e279ae1b907a4923",
+          "10ec704dd3941c962949c6d0cc98ebcfccc8e76e8e03ccab5b49e3e4a2f42896",
+          "96414621a9758103fb0f14747562b66002fada2cbf75455c434d37a178345f3e"
+        ]
+      },
+      {
+        "identity": "toml@1.1.5+spec-1.1.0",
+        "label": "rejected",
+        "rationale": "TOML rather than JSON; MSRV1.85 exceeds1.75",
+        "source_sha256": [
+          "77938c9a9688aec83cfa126f667a707ad43118502e4bff53f0125a63cf7cda94",
+          "90955c0a92c0789695ffd1455610628fd25e79717ece1ac36a04c882ebbbdfbd",
+          "10ec704dd3941c962949c6d0cc98ebcfccc8e76e8e03ccab5b49e3e4a2f42896",
+          "c9ee51f812d1dca5769132b9c8d815515b146cac7a5d23c0ec4502c44b571c1d"
+        ]
+      },
+      {
+        "identity": "toml_edit@0.25.12+spec-1.1.0",
+        "label": "rejected",
+        "rationale": "Frozen manifest/README evidence describes a different primary function; it does not establish this exact requested capability.",
+        "source_sha256": [
+          "c71ba418832494a7d87418689ba40a797f40a0eb242cb5c5263c904ec6360d85",
+          "9fed53cf412ad0a2b72d2eaeda600c9d91cacc6800e3edad187a89f751589723",
+          "09b2dc2ff0ad374bdea85ad463c7f459d7b312c471f3732e910ddea8c04f92b2",
+          "c619b80f2ff28739222946d015e9314a705dad69fe493edd0748db60a1caf82a"
+        ]
+      },
+      {
+        "identity": "syn@2.0.118",
+        "label": "rejected",
+        "rationale": "Frozen manifest/README evidence describes a different primary function; it does not establish this exact requested capability.",
+        "source_sha256": [
+          "1c16fbf1de1ba3bc6d8080b1dddc7c009ea067c78559557613c500b68923236c",
+          "cffcc7f5963ce46d46bd908785470e1f893ccee5494bf4c9fddb3ea3c73e13e4",
+          "4a050aa3ee831ad3d27ab15d9b612bb32712f86517fa2e6be0b1cac37137ebe5",
+          "f5a36a97529ff182a87468d355d1dba44175b8bf7fbe170c66784ff7afa19c54"
+        ]
+      },
+      {
+        "identity": "regex@1.13.0",
+        "label": "rejected",
+        "rationale": "Frozen manifest/README evidence describes a different primary function; it does not establish this exact requested capability.",
+        "source_sha256": [
+          "8e65901633c31baa66d5629ceef1ac7f2f8613ee0b4ef927d5204417e3a2fcd0",
+          "80dd53522a88309e3eb90a6b51f7c94c9f0711f305a67ddcd8e6739544f9cf56",
+          "ce1a8faf72cf8f0e28a28658c59033b02726e3caecd9a3d358b4c6f6cd3e6c24",
+          "4431f6b6283b3aa0137d45d022b43fa53b290a552f162d3fba4bd1f004eb72c2"
+        ]
+      },
+      {
+        "identity": "unicode-normalization@0.1.25",
+        "label": "rejected",
+        "rationale": "Frozen manifest/README evidence describes a different primary function; it does not establish this exact requested capability.",
+        "source_sha256": [
+          "5b133b15dd596c7deaae9c09f6049e643c4371f23aff58cb7a72f2b13134b5c5",
+          "39d19d80979b3c71708c1ee1191860aa77c52f3159629346bee75177ff74d838",
+          "91ee30b7c76b5a7dc2cd19252f5dda5a12d2855ea8a218c1ce05e4cc32f62138",
+          "4f0a176a2d164c986b1787101b8fbb30a9ceab85cc5922d51e1007747ae52c81"
+        ]
+      },
+      {
+        "identity": "unicode-segmentation@1.13.3",
+        "label": "rejected",
+        "rationale": "Frozen manifest/README evidence describes a different primary function; it does not establish this exact requested capability.",
+        "source_sha256": [
+          "86f0e8158aae32d3791f182cf50131f678462da65a713b18cab6c0b5638f1a50",
+          "af7b6699725f8ae6a3f4bed18b3dafd35e5f90c1851f09362b62f6354cb1d690",
+          "07caaad76a308821eee35087521f9c6d980657aec374db8e3e231fa548825d81",
+          "872b796098442da007517135d8cf090188f0da58e909d8b317607cb3b1d182fd"
+        ]
+      },
+      {
+        "identity": "unicode-ident@1.0.24",
+        "label": "rejected",
+        "rationale": "Frozen manifest/README evidence describes a different primary function; it does not establish this exact requested capability.",
+        "source_sha256": [
+          "0bb9c0e006a21355cb85c7df72e78dd8ba6fffbb7dc3f1e7a4c19af53cd354da",
+          "8d0abaf7ce10cb78f26edcd613dfe5a47faa4381e6e251c7d1c123608d2e037a",
+          "2fd3a0c6c9abd2c042fb319221f9ef2c95728a6e3725b0f067e4d315c5dbfe5a",
+          "cbafad943b2589a78a0d2de767db2f2b74f17302635af2d35a27d03c6495805e"
+        ]
+      },
+      {
+        "identity": "tokio@1.53.1",
+        "label": "rejected",
+        "rationale": "Frozen manifest/README evidence describes a different primary function; it does not establish this exact requested capability.",
+        "source_sha256": [
+          "e0194904acf8d55946b949cacca2b266051bb2a99844c606829fb0159c39cfb1",
+          "64efc8888a41b0a102b3abe463cf9f2bb4687895ae494b47487284bd23fd7455",
+          "d66d59d170ce56b4f80e16e7564fe91ca611daffffe82a8625a9a67bb85c8800",
+          "455441acb6e0fadf2ba5599d8459bd5eabe823aae8a84782cc0056fb1053f5dc",
+          "51b11811e4bd8d4a494b77fee959e9872c9f8181293fd2c8bfda1dcb12cb77d4"
+        ]
+      },
+      {
+        "identity": "crossbeam-channel@0.5.16",
+        "label": "rejected",
+        "rationale": "Frozen manifest/README evidence describes a different primary function; it does not establish this exact requested capability.",
+        "source_sha256": [
+          "29527fb88615c06cf0e5ebfa12e0cac447b653dc8110de5ca3fe515cab63b7fb",
+          "88fff79b3ce0f59afdbc463d3dae2d980602507d3c384738d0c5425aa3b43e14",
+          "5dfb91ebb498dec49948a440a53977109ec532388170e567c3c2a0339589aa4c",
+          "5b1c406fd1ce6140feae9000be361858da2aabe7fc9fffd0eafcb88020d2b268",
+          "1842dd01f8b9236d2dc232793565374a8199d6d0f5edffa6b67bec9a3c86258a"
+        ]
+      },
+      {
+        "identity": "flume@0.12.0",
+        "label": "rejected",
+        "rationale": "Frozen manifest/README evidence describes a different primary function; it does not establish this exact requested capability.",
+        "source_sha256": [
+          "55d58b649575430af87331d5ad11f7fa3077c7e8afa44b9ea9bacefc4f575603",
+          "070c80369b176e92452535250b77efda7bacac722d1d83bd0abd38933efdc12e",
+          "84bd3ddff0ded8622857a9452cf920b547936d7d79d38fe4fdb4d989da92f97e",
+          "6454f49f8e98f4dce13461b25fa877b871cdc64f26287a01615ad98e8372830e",
+          "0db47baf2d4ef0dc92c2567e5c9dea502fb6baf12ee82c2673d4ffec4d3c832d"
+        ]
+      },
+      {
+        "identity": "async-channel@2.5.0",
+        "label": "rejected",
+        "rationale": "Frozen manifest/README evidence describes a different primary function; it does not establish this exact requested capability.",
+        "source_sha256": [
+          "0d56b953fd80e91c2f60d92df14866dede9822a91fa2abccc618b76abbf1ea97",
+          "4b88d2c58ff7187b3d96b14b1d60fc7c01145aa946f2ce04c0e23d140e4a2463",
+          "a9ae50c2a6df06ff476c369d23553a7bbcb4c47f25a3353d168e05289acbb4ed",
+          "96d786959c66fc32a0181a8015ff9fd06b7a9955d878bfd7760b81304ee35223",
+          "cb94d000c1393c36fa32078e28ad375932f76268de2a360ed63c4e787c0fcae7"
+        ]
+      },
+      {
+        "identity": "bytes@1.12.1",
+        "label": "rejected",
+        "rationale": "Frozen manifest/README evidence describes a different primary function; it does not establish this exact requested capability.",
+        "source_sha256": [
+          "dc260d0d04b58aea819f8d6762c2feb51e66f8edd77e4e64cc1eac6f447a8143",
+          "4fc0d14d77a47a1fac1fbb445890db63e67360535c940dd47ffd69badc30cdc6",
+          "275ac7bc295e3cc659d28f05261645ac5bd6286476afe2ee3c1ed719f7b6df02",
+          "4acc909efcf4bca011c18a8c7c68d1d630efbf6ec863c12eef6a2415fe1a263f"
+        ]
+      },
+      {
+        "identity": "prettyplease@0.2.37",
+        "label": "rejected",
+        "rationale": "Frozen manifest/README evidence describes a different primary function; it does not establish this exact requested capability.",
+        "source_sha256": [
+          "fadc7182205c8cebaea0545496490a549f3d102d17d7b13ae26b2f6c24828a0b",
+          "1163b5012ba2567947bc3f662645c7769428f57f8ed033352579d46acfbe7b3f",
+          "a7e6d152cdc6ea603077e50b8d55af374d9d21fd9f62d08a008588b17d785e6e",
+          "ce0d0be77808bdcb21976ca07101aec743bc22c60c13336ca5e78e5d6e37be25"
+        ]
+      }
+    ],
+    "objective_oracle": {
+      "identity_in_accepted_set": true,
+      "exact_declared_msrv_and_license": true,
+      "source_hash_and_snapshot_date_required": true,
+      "capability_caveats_required": true,
+      "unknowns_not_promoted_to_facts": true,
+      "integration_claim_prohibited": true
+    },
+    "status": "draft_labels_require_principal_review"
+  },
+  {
+    "id": "S04",
+    "intent": "Bounded asynchronous MPMC channel",
+    "prompts": [
+      "selection/S04-en.txt",
+      "selection/S04-es.txt"
+    ],
+    "declared_msrv_lte": "1.70",
+    "accepted_identities": [
+      "async-channel@2.5.0"
+    ],
+    "labels": [
+      {
+        "identity": "serde@1.0.228",
+        "label": "rejected",
+        "rationale": "Frozen manifest/README evidence describes a different primary function; it does not establish this exact requested capability.",
+        "source_sha256": [
+          "d7fc24e39691a0831eaa0eac677b46ecbae407a40fa816b904759822d10f42e8",
+          "0b7df7944cba2a0646daa431efdc9f8b200bc6beb586cd71e302a102d17c4c60",
+          "d40eb47c3c6e3780359df6fe40d40a35725c843df0e3b845e10ecf2a15048664",
+          "4151fe468ade28d0cf83d35ff170e90ba80be418a29eac86fa1a08b9ebd16d99"
+        ]
+      },
+      {
+        "identity": "serde_json@1.0.150",
+        "label": "rejected",
+        "rationale": "Frozen manifest/README evidence describes a different primary function; it does not establish this exact requested capability.",
+        "source_sha256": [
+          "96f36f0d4419ce7ab53008df556017ef7b8891c1e913ac648e9b2b7f0537a472",
+          "81569187bb96cbf7d4f017eec614d475ffb351bf7a52d2953c283587b81b00e3",
+          "10cb8c14d9d29f29a031329747b352fc149a689b449ee5a8abb43712695aed72",
+          "b5a2fd1ee865e6cfd83ef2da0a2e1057f892465ac7ede8a78a11354a60526f33",
+          "800fdc5e09d5687cdff2a67789af684cfe8c10f882e65b93a02877a0dc5c2202"
+        ]
+      },
+      {
+        "identity": "toml@0.9.12+spec-1.1.0",
+        "label": "rejected",
+        "rationale": "Frozen manifest/README evidence describes a different primary function; it does not establish this exact requested capability.",
+        "source_sha256": [
+          "c7cd18a26f0a1e8129cf6f97e80c40d775ab0f940eac463194e5f7a914326fcb",
+          "c06debf28541bc9ac219a5fc57fc27006c8647114b34b940e279ae1b907a4923",
+          "10ec704dd3941c962949c6d0cc98ebcfccc8e76e8e03ccab5b49e3e4a2f42896",
+          "96414621a9758103fb0f14747562b66002fada2cbf75455c434d37a178345f3e"
+        ]
+      },
+      {
+        "identity": "toml@1.1.5+spec-1.1.0",
+        "label": "rejected",
+        "rationale": "Frozen manifest/README evidence describes a different primary function; it does not establish this exact requested capability.",
+        "source_sha256": [
+          "77938c9a9688aec83cfa126f667a707ad43118502e4bff53f0125a63cf7cda94",
+          "90955c0a92c0789695ffd1455610628fd25e79717ece1ac36a04c882ebbbdfbd",
+          "10ec704dd3941c962949c6d0cc98ebcfccc8e76e8e03ccab5b49e3e4a2f42896",
+          "c9ee51f812d1dca5769132b9c8d815515b146cac7a5d23c0ec4502c44b571c1d"
+        ]
+      },
+      {
+        "identity": "toml_edit@0.25.12+spec-1.1.0",
+        "label": "rejected",
+        "rationale": "Frozen manifest/README evidence describes a different primary function; it does not establish this exact requested capability.",
+        "source_sha256": [
+          "c71ba418832494a7d87418689ba40a797f40a0eb242cb5c5263c904ec6360d85",
+          "9fed53cf412ad0a2b72d2eaeda600c9d91cacc6800e3edad187a89f751589723",
+          "09b2dc2ff0ad374bdea85ad463c7f459d7b312c471f3732e910ddea8c04f92b2",
+          "c619b80f2ff28739222946d015e9314a705dad69fe493edd0748db60a1caf82a"
+        ]
+      },
+      {
+        "identity": "syn@2.0.118",
+        "label": "rejected",
+        "rationale": "Frozen manifest/README evidence describes a different primary function; it does not establish this exact requested capability.",
+        "source_sha256": [
+          "1c16fbf1de1ba3bc6d8080b1dddc7c009ea067c78559557613c500b68923236c",
+          "cffcc7f5963ce46d46bd908785470e1f893ccee5494bf4c9fddb3ea3c73e13e4",
+          "4a050aa3ee831ad3d27ab15d9b612bb32712f86517fa2e6be0b1cac37137ebe5",
+          "f5a36a97529ff182a87468d355d1dba44175b8bf7fbe170c66784ff7afa19c54"
+        ]
+      },
+      {
+        "identity": "regex@1.13.0",
+        "label": "rejected",
+        "rationale": "Frozen manifest/README evidence describes a different primary function; it does not establish this exact requested capability.",
+        "source_sha256": [
+          "8e65901633c31baa66d5629ceef1ac7f2f8613ee0b4ef927d5204417e3a2fcd0",
+          "80dd53522a88309e3eb90a6b51f7c94c9f0711f305a67ddcd8e6739544f9cf56",
+          "ce1a8faf72cf8f0e28a28658c59033b02726e3caecd9a3d358b4c6f6cd3e6c24",
+          "4431f6b6283b3aa0137d45d022b43fa53b290a552f162d3fba4bd1f004eb72c2"
+        ]
+      },
+      {
+        "identity": "unicode-normalization@0.1.25",
+        "label": "rejected",
+        "rationale": "Frozen manifest/README evidence describes a different primary function; it does not establish this exact requested capability.",
+        "source_sha256": [
+          "5b133b15dd596c7deaae9c09f6049e643c4371f23aff58cb7a72f2b13134b5c5",
+          "39d19d80979b3c71708c1ee1191860aa77c52f3159629346bee75177ff74d838",
+          "91ee30b7c76b5a7dc2cd19252f5dda5a12d2855ea8a218c1ce05e4cc32f62138",
+          "4f0a176a2d164c986b1787101b8fbb30a9ceab85cc5922d51e1007747ae52c81"
+        ]
+      },
+      {
+        "identity": "unicode-segmentation@1.13.3",
+        "label": "rejected",
+        "rationale": "Frozen manifest/README evidence describes a different primary function; it does not establish this exact requested capability.",
+        "source_sha256": [
+          "86f0e8158aae32d3791f182cf50131f678462da65a713b18cab6c0b5638f1a50",
+          "af7b6699725f8ae6a3f4bed18b3dafd35e5f90c1851f09362b62f6354cb1d690",
+          "07caaad76a308821eee35087521f9c6d980657aec374db8e3e231fa548825d81",
+          "872b796098442da007517135d8cf090188f0da58e909d8b317607cb3b1d182fd"
+        ]
+      },
+      {
+        "identity": "unicode-ident@1.0.24",
+        "label": "rejected",
+        "rationale": "Frozen manifest/README evidence describes a different primary function; it does not establish this exact requested capability.",
+        "source_sha256": [
+          "0bb9c0e006a21355cb85c7df72e78dd8ba6fffbb7dc3f1e7a4c19af53cd354da",
+          "8d0abaf7ce10cb78f26edcd613dfe5a47faa4381e6e251c7d1c123608d2e037a",
+          "2fd3a0c6c9abd2c042fb319221f9ef2c95728a6e3725b0f067e4d315c5dbfe5a",
+          "cbafad943b2589a78a0d2de767db2f2b74f17302635af2d35a27d03c6495805e"
+        ]
+      },
+      {
+        "identity": "tokio@1.53.1",
+        "label": "rejected",
+        "rationale": "Declared MSRV1.71 exceeds1.70; inspected mpsc module has single consumer",
+        "source_sha256": [
+          "e0194904acf8d55946b949cacca2b266051bb2a99844c606829fb0159c39cfb1",
+          "64efc8888a41b0a102b3abe463cf9f2bb4687895ae494b47487284bd23fd7455",
+          "d66d59d170ce56b4f80e16e7564fe91ca611daffffe82a8625a9a67bb85c8800",
+          "455441acb6e0fadf2ba5599d8459bd5eabe823aae8a84782cc0056fb1053f5dc",
+          "51b11811e4bd8d4a494b77fee959e9872c9f8181293fd2c8bfda1dcb12cb77d4"
+        ]
+      },
+      {
+        "identity": "crossbeam-channel@0.5.16",
+        "label": "rejected",
+        "rationale": "Inspected API describes blocking/try/timeout operations, not awaitable channel operations",
+        "source_sha256": [
+          "29527fb88615c06cf0e5ebfa12e0cac447b653dc8110de5ca3fe515cab63b7fb",
+          "88fff79b3ce0f59afdbc463d3dae2d980602507d3c384738d0c5425aa3b43e14",
+          "5dfb91ebb498dec49948a440a53977109ec532388170e567c3c2a0339589aa4c",
+          "5b1c406fd1ce6140feae9000be361858da2aabe7fc9fffd0eafcb88020d2b268",
+          "1842dd01f8b9236d2dc232793565374a8199d6d0f5edffa6b67bec9a3c86258a"
+        ]
+      },
+      {
+        "identity": "flume@0.12.0",
+        "label": "rejected",
+        "rationale": "No declared rust-version in cached manifest; async capability alone cannot satisfy explicit declared-MSRV requirement",
+        "source_sha256": [
+          "55d58b649575430af87331d5ad11f7fa3077c7e8afa44b9ea9bacefc4f575603",
+          "070c80369b176e92452535250b77efda7bacac722d1d83bd0abd38933efdc12e",
+          "84bd3ddff0ded8622857a9452cf920b547936d7d79d38fe4fdb4d989da92f97e",
+          "6454f49f8e98f4dce13461b25fa877b871cdc64f26287a01615ad98e8372830e",
+          "0db47baf2d4ef0dc92c2567e5c9dea502fb6baf12ee82c2673d4ffec4d3c832d"
+        ]
+      },
+      {
+        "identity": "async-channel@2.5.0",
+        "label": "accepted",
+        "rationale": "Cached src/lib.rs documents async MPMC, bounded, cloneable ends and single delivery; manifest declares MSRV1.60 and Apache-2.0 OR MIT.",
+        "source_sha256": [
+          "0d56b953fd80e91c2f60d92df14866dede9822a91fa2abccc618b76abbf1ea97",
+          "4b88d2c58ff7187b3d96b14b1d60fc7c01145aa946f2ce04c0e23d140e4a2463",
+          "a9ae50c2a6df06ff476c369d23553a7bbcb4c47f25a3353d168e05289acbb4ed",
+          "96d786959c66fc32a0181a8015ff9fd06b7a9955d878bfd7760b81304ee35223",
+          "cb94d000c1393c36fa32078e28ad375932f76268de2a360ed63c4e787c0fcae7"
+        ]
+      },
+      {
+        "identity": "bytes@1.12.1",
+        "label": "rejected",
+        "rationale": "Frozen manifest/README evidence describes a different primary function; it does not establish this exact requested capability.",
+        "source_sha256": [
+          "dc260d0d04b58aea819f8d6762c2feb51e66f8edd77e4e64cc1eac6f447a8143",
+          "4fc0d14d77a47a1fac1fbb445890db63e67360535c940dd47ffd69badc30cdc6",
+          "275ac7bc295e3cc659d28f05261645ac5bd6286476afe2ee3c1ed719f7b6df02",
+          "4acc909efcf4bca011c18a8c7c68d1d630efbf6ec863c12eef6a2415fe1a263f"
+        ]
+      },
+      {
+        "identity": "prettyplease@0.2.37",
+        "label": "rejected",
+        "rationale": "Frozen manifest/README evidence describes a different primary function; it does not establish this exact requested capability.",
+        "source_sha256": [
+          "fadc7182205c8cebaea0545496490a549f3d102d17d7b13ae26b2f6c24828a0b",
+          "1163b5012ba2567947bc3f662645c7769428f57f8ed033352579d46acfbe7b3f",
+          "a7e6d152cdc6ea603077e50b8d55af374d9d21fd9f62d08a008588b17d785e6e",
+          "ce0d0be77808bdcb21976ca07101aec743bc22c60c13336ca5e78e5d6e37be25"
+        ]
+      }
+    ],
+    "objective_oracle": {
+      "identity_in_accepted_set": true,
+      "exact_declared_msrv_and_license": true,
+      "source_hash_and_snapshot_date_required": true,
+      "capability_caveats_required": true,
+      "unknowns_not_promoted_to_facts": true,
+      "integration_claim_prohibited": true
+    },
+    "status": "draft_labels_require_principal_review"
+  }
+]

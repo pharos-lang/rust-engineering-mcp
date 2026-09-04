@@ -1,0 +1,217 @@
+{
+  "scope": "local-review-only-not-distribution",
+  "product_license": "pending",
+  "files": [
+    {
+      "path": "core/bin/rust-engineering-mcp",
+      "bytes": 21049384,
+      "sha256": "32b7f921d8a0b4409581c66d8d2ff0756ba250d783f3e52e97392a062e7eeab1",
+      "mode": "0o700"
+    },
+    {
+      "path": "local/bin/rust-engineering-mcp",
+      "bytes": 271401656,
+      "sha256": "7a99038be57429e1db32c91d01772e7efd104691828253f45ed3bbb0e9330417",
+      "mode": "0o700"
+    },
+    {
+      "path": "assets/FIXTURE-ONLY.md",
+      "bytes": 1480,
+      "sha256": "bed141786eb6c13429d504e413e390fe2e726f8ec97cb30fe127e97f6ff4c3b0",
+      "mode": "0o600"
+    },
+    {
+      "path": "assets/LICENSE.product-pending.txt",
+      "bytes": 301,
+      "sha256": "d345d2498d6b1f0109e2ee3102d1b6c0dee547123b398da8025c827ecb57d83b",
+      "mode": "0o600"
+    },
+    {
+      "path": "assets/README.local-review.md",
+      "bytes": 2208,
+      "sha256": "288b1658a96f18f09e69217cb38ee5bdf9fb72909fa5adf6d31209198d7d8e13",
+      "mode": "0o600"
+    },
+    {
+      "path": "assets/fixture-1.tar.zst",
+      "bytes": 2058,
+      "sha256": "1b3aa5c89847b7db81229678e6e78766547f27d78c5c994d80ba2452cda69538",
+      "mode": "0o600"
+    },
+    {
+      "path": "assets/fixture-trust.json",
+      "bytes": 138,
+      "sha256": "33932c6aff0aa1a5befcb5b03f40edf12525330ff848b5220967eaef05f571d7",
+      "mode": "0o600"
+    },
+    {
+      "path": "assets/model/config.json",
+      "bytes": 653,
+      "sha256": "bbb7c1333fc4b3e27fbc9cd5d2070aabcc1d4dfb99917c3633e772f97545a6b6",
+      "mode": "0o600"
+    },
+    {
+      "path": "assets/model/model.onnx",
+      "bytes": 470268510,
+      "sha256": "ca456c06b3a9505ddfd9131408916dd79290368331e7d76bb621f1cba6bc8665",
+      "mode": "0o600"
+    },
+    {
+      "path": "assets/model/special_tokens_map.json",
+      "bytes": 167,
+      "sha256": "d05497f1da52c5e09554c0cd874037a083e1dc1b9cfd48034d1c717f1afc07a7",
+      "mode": "0o600"
+    },
+    {
+      "path": "assets/model/tokenizer.json",
+      "bytes": 17082730,
+      "sha256": "0b44a9d7b51c3c62626640cda0e2c2f70fdacdc25bbbd68038369d14ebdf4c39",
+      "mode": "0o600"
+    },
+    {
+      "path": "assets/model/tokenizer_config.json",
+      "bytes": 443,
+      "sha256": "a1d6bc8734a6f635dc158508bef000f8e2e5a759c7d92f984b2c86e5ff53425b",
+      "mode": "0o600"
+    },
+    {
+      "path": "assets/model-receipt.json",
+      "bytes": 3104,
+      "sha256": "864c0bcd2ce3ab9d39e29c0291cb0f1e5c6467842062f1928cac570690cdd6eb",
+      "mode": "0o600"
+    },
+    {
+      "path": "assets/notices/THIRD_PARTY_NOTICES.candidate.txt",
+      "bytes": 5266056,
+      "sha256": "2656a07517fbfcc6b278db7a3c850536944397d1d59d85e93ed9739e8660d5a5",
+      "mode": "0o600"
+    },
+    {
+      "path": "assets/notices/inventory.json",
+      "bytes": 1020472,
+      "sha256": "cbbca0d52613c341f55580088766c76f2c2be0b64df8a5ef672f1be0dd35948a",
+      "mode": "0o600"
+    },
+    {
+      "path": "assets/notices/upstream-licenses/Nugine--simd--d74c030d9dc4/LICENSE",
+      "bytes": 1062,
+      "sha256": "71674605ec4c087fe9eb534e3e4f9e26eb2e4aabcd76a29fd156c6a844d44b3d",
+      "mode": "0o600"
+    },
+    {
+      "path": "assets/notices/upstream-licenses/README.md",
+      "bytes": 7130,
+      "sha256": "344f720c8033202f592be867f703f6ca782bf0ce7a2ee556c425beed3af680b7",
+      "mode": "0o600"
+    },
+    {
+      "path": "assets/notices/upstream-licenses/Stranger6667--jsonschema--6af37d89619f/LICENSE",
+      "bytes": 1075,
+      "sha256": "117829c3ca21efb132d81a44b55363d395ab8eea18526873bc828da4c0e5f038",
+      "mode": "0o600"
+    },
+    {
+      "path": "assets/notices/upstream-licenses/google--flatbuffers--7e163021e59c/LICENSE",
+      "bytes": 11358,
+      "sha256": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30",
+      "mode": "0o600"
+    },
+    {
+      "path": "assets/notices/upstream-licenses/intfloat--multilingual-e5-small--614241f622f5/README.md",
+      "bytes": 497538,
+      "sha256": "0038de97aee16258cecbad7ffda4b4febd6953e747a00e0ddbc8e6ed241e9c1c",
+      "mode": "0o600"
+    },
+    {
+      "path": "assets/notices/upstream-licenses/knurling-rs--defmt--4a8cdb44891e/LICENSE-APACHE",
+      "bytes": 10850,
+      "sha256": "8173d5c29b4f956d532781d2b86e4e30f83e6b7878dce18c919451d6ba707c90",
+      "mode": "0o600"
+    },
+    {
+      "path": "assets/notices/upstream-licenses/knurling-rs--defmt--4a8cdb44891e/LICENSE-MIT",
+      "bytes": 1053,
+      "sha256": "2710a622a896bba67356913d4d0492cab5465f61b2ecce6d880aeb483834fb50",
+      "mode": "0o600"
+    },
+    {
+      "path": "assets/notices/upstream-licenses/lance-format--lance--15f2ff594a25/LICENSE",
+      "bytes": 12702,
+      "sha256": "3788e71aa43d61a457749d4aa070d9705c36d25ed978cd52c5766ec4bd361aa9",
+      "mode": "0o600"
+    },
+    {
+      "path": "assets/notices/upstream-licenses/lance-format--lance--24d578702d5a/LICENSE",
+      "bytes": 12702,
+      "sha256": "3788e71aa43d61a457749d4aa070d9705c36d25ed978cd52c5766ec4bd361aa9",
+      "mode": "0o600"
+    },
+    {
+      "path": "assets/notices/upstream-licenses/lancedb--lance-namespace--590a4eb7163a/LICENSE",
+      "bytes": 11902,
+      "sha256": "03c4e02af8cbe96dd3a9bfaac9ee27ec6a8e9a3ee38ed7b290d50495c11eea48",
+      "mode": "0o600"
+    },
+    {
+      "path": "assets/notices/upstream-licenses/lancedb--lancedb--3f8d76817e60/LICENSE",
+      "bytes": 11357,
+      "sha256": "58d1e17ffe5109a7ae296caafcadfdbe6a7d176f0bc4ab01e12a689b0499d8bd",
+      "mode": "0o600"
+    },
+    {
+      "path": "assets/notices/upstream-licenses/lindera--lindera--d135c2821f65/LICENSE",
+      "bytes": 1080,
+      "sha256": "d37249886de3136db31717f15f6ade215a36fbed1c782381e38b2bf6047e8ec4",
+      "mode": "0o600"
+    },
+    {
+      "path": "assets/notices/upstream-licenses/messense--jieba-rs--c62e0df1f9dc/LICENSE",
+      "bytes": 1101,
+      "sha256": "92257c8d1c7a059fa02720b34fce017574a990bed14cee8f565597f4fbfb1f13",
+      "mode": "0o600"
+    },
+    {
+      "path": "assets/notices/upstream-licenses/microsoft--onnxruntime--058787ceead7/LICENSE",
+      "bytes": 1073,
+      "sha256": "2f07c72751aed99790b8a4869cf2311df85a860b22ded05fa22803587a48922c",
+      "mode": "0o600"
+    },
+    {
+      "path": "assets/notices/upstream-licenses/microsoft--onnxruntime--058787ceead7/ThirdPartyNotices.txt",
+      "bytes": 325054,
+      "sha256": "0e07b95f3a8d6230037707c5c4a2b554d12c4cb67369669ac255635528ffcee2",
+      "mode": "0o600"
+    },
+    {
+      "path": "assets/notices/upstream-licenses/modelcontextprotocol--rust-sdk--51ccb42993d6/LICENSE",
+      "bytes": 12227,
+      "sha256": "0382b0057770ca05e9c350a50aa3b1c1fea84da0bc81d723bf00b9aa841be58a",
+      "mode": "0o600"
+    },
+    {
+      "path": "assets/notices/upstream-licenses/r-efi--r-efi--7e1b0322d31d/AUTHORS",
+      "bytes": 3733,
+      "sha256": "d027e91dbc9cdbb2f1190068e498bd6b61cff022b6a032b191021ba658d96111",
+      "mode": "0o600"
+    },
+    {
+      "path": "assets/notices/upstream-licenses/r-efi--r-efi--97b55bed1c2c/AUTHORS",
+      "bytes": 3693,
+      "sha256": "ff92bed461f50338dd703a9ba9aee496a425957873df1d91192776e4bdf5dda7",
+      "mode": "0o600"
+    },
+    {
+      "path": "assets/notices/upstream-licenses/receipt.json",
+      "bytes": 43019,
+      "sha256": "46c1876369945f0aab2a278ecf0455547f8e6e501b7541b0e74ae66ec07a0eb6",
+      "mode": "0o600"
+    },
+    {
+      "path": "assets/notices/upstream-licenses/tokio-rs--valuable--9efc29b6e58c/LICENSE",
+      "bytes": 1065,
+      "sha256": "ed60d479b8fd1f64e9cbc3de449a16a53ac1b3d1b6aeb9bf9d190a8e93061b44",
+      "mode": "0o600"
+    }
+  ],
+  "total_bytes": 787070134
+}

@@ -1,0 +1,66 @@
+{
+  "rustsec_features": [],
+  "new_locked_packages": [
+    {
+      "name": "cargo-lock",
+      "version": "11.0.1",
+      "source": "registry+https://github.com/rust-lang/crates.io-index",
+      "checksum": "63585cdf8572aa7adf0e30a253f988f2b77233bfac1973d52efb6dd53a75920e",
+      "dependencies": [
+        "semver",
+        "serde",
+        "toml",
+        "url"
+      ]
+    },
+    {
+      "name": "cvss",
+      "version": "2.2.0",
+      "source": "registry+https://github.com/rust-lang/crates.io-index",
+      "checksum": "f7fb220d3ce1b565af39cee5b89e47fd8dd1dab162900ee4363c8ee4169ee8a2",
+      "dependencies": [
+        "serde"
+      ]
+    },
+    {
+      "name": "fs-err",
+      "version": "3.3.1",
+      "source": "registry+https://github.com/rust-lang/crates.io-index",
+      "checksum": "b91aa448ca50d7e79433bdf3ee8d99215430d2ec02ade5aefab2a073a1822e8a",
+      "dependencies": [
+        "autocfg"
+      ]
+    },
+    {
+      "name": "platforms",
+      "version": "3.12.0",
+      "source": "registry+https://github.com/rust-lang/crates.io-index",
+      "checksum": "9245c6e7c5a6bcdd7977fdf6d1e1c67f4cc2d0d58c041df0ea5940953033e6ca",
+      "dependencies": [
+        "serde"
+      ]
+    },
+    {
+      "name": "rustsec",
+      "version": "0.32.0",
+      "source": "registry+https://github.com/rust-lang/crates.io-index",
+      "checksum": "5b4fa3512c10790d18e6cfdadc34fa753cc27cb2826d70c427baa9a69bbf11f3",
+      "dependencies": [
+        "cargo-lock",
+        "cvss",
+        "fs-err",
+        "platforms",
+        "semver",
+        "serde",
+        "thiserror",
+        "toml",
+        "url"
+      ]
+    }
+  ],
+  "removed_existing_packages": [],
+  "rustsec_version": "0.32.0",
+  "cargo_lock_version": "11.0.1",
+  "source": "crates.io",
+  "runtime_downloads": false
+}

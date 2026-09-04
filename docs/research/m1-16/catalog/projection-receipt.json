@@ -1,0 +1,11 @@
+{
+  "baseline_sha256": "d8aaedff65b3d390e5841b74190e45cffd884d3cf92307cb7ed9158271292847",
+  "crate_count": 15,
+  "max_description_utf8_bytes": 1736,
+  "provenance_sha256": "a2eb94b4a1dc2b60e6ac7cb97e162b63e597a6135c19d36f6b0a8b55de68eb2a",
+  "records_sha256": "5729e1feda4c4bfa890db2f8e84b9adf52b9779b4eef397527afe45f803bdb57",
+  "snapshot_fingerprint": "pending_actual_bundle_not_records_hash",
+  "source_rows_verified": 69,
+  "status": "draft_not_frozen",
+  "version_count": 16
+}

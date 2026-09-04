@@ -1,0 +1,3 @@
+Fix pages_needed for every u32 input. Return None for a zero page size, otherwise return the mathematical ceiling of items / page_size without overflow or panic. Zero items requires zero pages. Keep the public signature.
+
+Edit ONLY src/lib.rs. Do not add tests, change Cargo files, add dependencies, suppress lints, use unsafe code or access hidden/reference files. Validation is requested through the experiment controller; do not execute commands yourself.

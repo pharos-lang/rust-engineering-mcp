@@ -1,0 +1,9 @@
+{
+  "decision": "approved_for_bounded_preflight_attempt_5",
+  "approved_at_unix": 1788548064,
+  "plan_canonical_sha256": "08319ae703db61675b60b1f9fe923dd67ec7f47cf9246fdf3d52dc5cc705ceff",
+  "prompt_sha256": "9c5461c4ba4a07019e936559d61717b372cae77bc5341816bee3d5034a4b6a26",
+  "controller_sha256": "36dcaf64b40d2310706197dbe4196ff694d3c6d894605e1992ed4bb0d56a4aff",
+  "scope": "direct app-server preflight only; model phase requires this separate successful preflight receipt",
+  "review": "principal owner verified natural child-process settling without signals and exact owner-only cleanup of the four known sandbox configuration files; any unexpected state still fails closed. Prior strict-config, server isolation, identity and I/O controls remain enforced."
+}

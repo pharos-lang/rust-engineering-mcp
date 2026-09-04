@@ -1,0 +1,66 @@
+{
+  "mode": "mcp",
+  "signal": "SIGINT via broker cancellation",
+  "status": "running",
+  "source_hashes": {
+    "Cargo.toml": "9176481c2b6127aca04f0513507a7fc5d5bd7845a9479d16dc52cfefc3ddb5dd",
+    "Cargo.lock": "fb3fda1eec238a6009615dba20cc589a501f0b6057e87513301684b87cd46fff",
+    "src/lib.rs": "23f02a5c3a0ef208a52498b49cfa72c70c31ce56e2ae19fdd8170f8a575dcf29",
+    "tests/behavior.rs": "4cbf21285359d8aedcacbbdbd3306d5a0bed83e244e28797f03f329224b3036a"
+  },
+  "observed_running_cargo": {
+    "container": {
+      "Command": "\"/opt/rust/bin/cargo test --frozen --message-format=json --jobs=1 --color=never -- --test-threads=1 --color=never\"",
+      "CreatedAt": "2026-09-04 12:24:34 -0500 -05",
+      "HealthStatus": "none",
+      "ID": "16dfdee8d681c64dcfcbb254d515d7b67f618606446a9f755b1d4510741a9018",
+      "Image": "sha256:8fac70723a8d04b6ec9633ab721806b8a55f4f083a1b3f988c61bf6a00fa1909",
+      "Labels": "desktop.docker.io/ports.scheme=v2,org.rust-mcp.execution=true,org.rust-mcp.rust-job=0586dfacc849ae37842af7462d8faf12",
+      "LocalVolumes": "1",
+      "Mounts": "rust-mcp-source-0586dfacc849ae37842af7462d8faf12",
+      "Names": "rust-mcp-cargo-0586dfacc849ae37842af7462d8faf12",
+      "Networks": "none",
+      "Platform": {
+        "architecture": "arm64",
+        "os": "linux"
+      },
+      "Ports": "",
+      "RunningFor": "1 second ago",
+      "Size": "4.1kB (virtual 829MB)",
+      "State": "running",
+      "Status": "Up Less than a second"
+    },
+    "top": "PID                 COMMAND\n53388               /opt/rust/bin/cargo test --frozen --message-format=json --jobs=1 --color=never -- --test-threads=1 --color=never\n53419               /opt/rust/bin/rustc --crate-name behavior --edition=2024 tests/behavior.rs --error-format=json --json=diagnostic-rendered-ansi,artifacts,future-incompat --emit=dep-info,link -C embed-bitcode=no -C debuginfo=2 --test --check-cfg cfg(docsrs,test) --check-cfg cfg(feature, values()) -C metadata=2eb543a2c0425bde -C extra-filename=-df98df7f3e8bd976 --out-dir /work/target/debug/deps -L dependency=/work/target/debug/deps --extern m1_16_r01=/work/target/debug/deps/libm1_16_r01-e2b04c3417cd72f6.rlib\n"
+  },
+  "cancel_join_seconds": 0.3266462500905618,
+  "outcome": {
+    "failure": "BrokerError"
+  },
+  "cleanup": {
+    "cancelled": true,
+    "forced_driver_stop": false,
+    "exit_code": 1,
+    "execution_joined": true,
+    "driver_execution_joined_claim": true,
+    "cleanup_verified": false,
+    "cleanup_failed": true,
+    "server_cleanup_verified": false,
+    "server_joined": true,
+    "cleanup_uncertain": true,
+    "terminal_error": "child_failed",
+    "stderr_bytes": 0,
+    "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "driver_terminal_ack": {
+      "cleanup_uncertain": true,
+      "driver_error": "child_failed",
+      "execution_joined": true,
+      "server_exit": {
+        "code": 1,
+        "signal": null,
+        "success": false
+      },
+      "server_joined": true,
+      "success": false
+    }
+  }
+}

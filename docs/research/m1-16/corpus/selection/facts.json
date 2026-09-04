@@ -1,0 +1,849 @@
+{
+  "status": "draft_research_inputs_not_production_snapshot",
+  "source_kind": "installed_cargo_registry_cache_plus_explicit_crates_io_version_metadata",
+  "observed_date": "2026-09-04",
+  "facts": [
+    {
+      "name": "serde",
+      "version": "1.0.228",
+      "description": "A generic serialization/deserialization framework",
+      "declared_msrv": "1.56",
+      "license_expression": "MIT OR Apache-2.0",
+      "repository": "https://github.com/serde-rs/serde",
+      "documentation": "https://docs.rs/serde",
+      "features": [
+        "alloc",
+        "default",
+        "derive",
+        "rc",
+        "std",
+        "unstable"
+      ],
+      "yanked": false,
+      "published_at": 1758991895,
+      "unknown_fields": [
+        "transitive MSRV compatibility",
+        "working integration"
+      ],
+      "sources": [
+        {
+          "source_path": "<LOCAL_HOME>/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/Cargo.toml",
+          "corpus_path": "selection/sources/serde-1.0.228/Cargo.toml",
+          "sha256": "d7fc24e39691a0831eaa0eac677b46ecbae407a40fa816b904759822d10f42e8"
+        },
+        {
+          "source_path": "<LOCAL_HOME>/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/Cargo.toml.orig",
+          "corpus_path": "selection/sources/serde-1.0.228/Cargo.toml.orig",
+          "sha256": "0b7df7944cba2a0646daa431efdc9f8b200bc6beb586cd71e302a102d17c4c60"
+        },
+        {
+          "source_path": "<LOCAL_HOME>/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/README.md",
+          "corpus_path": "selection/sources/serde-1.0.228/README.md",
+          "sha256": "d40eb47c3c6e3780359df6fe40d40a35725c843df0e3b845e10ecf2a15048664"
+        }
+      ],
+      "registry_created_at": "2025-09-27T16:51:35.265429Z",
+      "registry_metadata": {
+        "url": "https://crates.io/api/v1/crates/serde/1.0.228",
+        "captured_utc": "2026-09-04T16:01:22.690402+00:00",
+        "sha256": "4151fe468ade28d0cf83d35ff170e90ba80be418a29eac86fa1a08b9ebd16d99",
+        "body_path": "selection/registry-responses/serde@1.0.228.json",
+        "license_expression": "MIT OR Apache-2.0",
+        "declared_msrv": "1.56",
+        "divergences": {}
+      }
+    },
+    {
+      "name": "serde_json",
+      "version": "1.0.150",
+      "description": "A JSON serialization file format",
+      "declared_msrv": "1.71",
+      "license_expression": "MIT OR Apache-2.0",
+      "repository": "https://github.com/serde-rs/json",
+      "documentation": "https://docs.rs/serde_json",
+      "features": [
+        "alloc",
+        "arbitrary_precision",
+        "default",
+        "float_roundtrip",
+        "preserve_order",
+        "raw_value",
+        "std",
+        "unbounded_depth"
+      ],
+      "yanked": false,
+      "published_at": 1779395169,
+      "unknown_fields": [
+        "transitive MSRV compatibility",
+        "working integration"
+      ],
+      "sources": [
+        {
+          "source_path": "<LOCAL_HOME>/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde_json-1.0.150/Cargo.toml",
+          "corpus_path": "selection/sources/serde_json-1.0.150/Cargo.toml",
+          "sha256": "96f36f0d4419ce7ab53008df556017ef7b8891c1e913ac648e9b2b7f0537a472"
+        },
+        {
+          "source_path": "<LOCAL_HOME>/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde_json-1.0.150/Cargo.toml.orig",
+          "corpus_path": "selection/sources/serde_json-1.0.150/Cargo.toml.orig",
+          "sha256": "81569187bb96cbf7d4f017eec614d475ffb351bf7a52d2953c283587b81b00e3"
+        },
+        {
+          "source_path": "<LOCAL_HOME>/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde_json-1.0.150/README.md",
+          "corpus_path": "selection/sources/serde_json-1.0.150/README.md",
+          "sha256": "10cb8c14d9d29f29a031329747b352fc149a689b449ee5a8abb43712695aed72"
+        },
+        {
+          "source_path": "<LOCAL_HOME>/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde_json-1.0.150/src/map.rs",
+          "corpus_path": "selection/sources/serde_json-1.0.150/src/map.rs",
+          "sha256": "b5a2fd1ee865e6cfd83ef2da0a2e1057f892465ac7ede8a78a11354a60526f33"
+        }
+      ],
+      "registry_created_at": "2026-05-21T20:26:09.944672Z",
+      "registry_metadata": {
+        "url": "https://crates.io/api/v1/crates/serde_json/1.0.150",
+        "captured_utc": "2026-09-04T16:01:23.973430+00:00",
+        "sha256": "800fdc5e09d5687cdff2a67789af684cfe8c10f882e65b93a02877a0dc5c2202",
+        "body_path": "selection/registry-responses/serde_json@1.0.150.json",
+        "license_expression": "MIT OR Apache-2.0",
+        "declared_msrv": "1.71",
+        "divergences": {}
+      }
+    },
+    {
+      "name": "toml",
+      "version": "0.9.12+spec-1.1.0",
+      "description": "A native Rust encoder and decoder of TOML-formatted files and streams. Provides\nimplementations of the standard Serialize/Deserialize traits for TOML data to\nfacilitate deserializing and serializing Rust structures.\n",
+      "declared_msrv": "1.76",
+      "license_expression": "MIT OR Apache-2.0",
+      "repository": "https://github.com/toml-rs/toml",
+      "documentation": null,
+      "features": [
+        "debug",
+        "default",
+        "display",
+        "fast_hash",
+        "parse",
+        "preserve_order",
+        "serde",
+        "std",
+        "unbounded"
+      ],
+      "yanked": false,
+      "published_at": 1770747032,
+      "unknown_fields": [
+        "transitive MSRV compatibility",
+        "working integration"
+      ],
+      "sources": [
+        {
+          "source_path": "<LOCAL_HOME>/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/toml-0.9.12+spec-1.1.0/Cargo.toml",
+          "corpus_path": "selection/sources/toml-0.9.12+spec-1.1.0/Cargo.toml",
+          "sha256": "c7cd18a26f0a1e8129cf6f97e80c40d775ab0f940eac463194e5f7a914326fcb"
+        },
+        {
+          "source_path": "<LOCAL_HOME>/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/toml-0.9.12+spec-1.1.0/Cargo.toml.orig",
+          "corpus_path": "selection/sources/toml-0.9.12+spec-1.1.0/Cargo.toml.orig",
+          "sha256": "c06debf28541bc9ac219a5fc57fc27006c8647114b34b940e279ae1b907a4923"
+        },
+        {
+          "source_path": "<LOCAL_HOME>/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/toml-0.9.12+spec-1.1.0/README.md",
+          "corpus_path": "selection/sources/toml-0.9.12+spec-1.1.0/README.md",
+          "sha256": "10ec704dd3941c962949c6d0cc98ebcfccc8e76e8e03ccab5b49e3e4a2f42896"
+        }
+      ],
+      "registry_created_at": "2026-02-10T18:10:32.779034Z",
+      "registry_metadata": {
+        "url": "https://crates.io/api/v1/crates/toml/0.9.12%2Bspec-1.1.0",
+        "captured_utc": "2026-09-04T16:01:25.244581+00:00",
+        "sha256": "96414621a9758103fb0f14747562b66002fada2cbf75455c434d37a178345f3e",
+        "body_path": "selection/registry-responses/toml@0.9.12+spec-1.1.0.json",
+        "license_expression": "MIT OR Apache-2.0",
+        "declared_msrv": "1.76",
+        "divergences": {}
+      }
+    },
+    {
+      "name": "toml",
+      "version": "1.1.5+spec-1.1.0",
+      "description": "A native Rust encoder and decoder of TOML-formatted files and streams. Provides\nimplementations of the standard Serialize/Deserialize traits for TOML data to\nfacilitate deserializing and serializing Rust structures.\n",
+      "declared_msrv": "1.85",
+      "license_expression": "MIT OR Apache-2.0",
+      "repository": "https://github.com/toml-rs/toml",
+      "documentation": null,
+      "features": [
+        "debug",
+        "default",
+        "display",
+        "fast_hash",
+        "parse",
+        "preserve_order",
+        "serde",
+        "std",
+        "unbounded"
+      ],
+      "yanked": false,
+      "published_at": 1788357128,
+      "unknown_fields": [
+        "transitive MSRV compatibility",
+        "working integration"
+      ],
+      "sources": [
+        {
+          "source_path": "<LOCAL_HOME>/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/toml-1.1.5+spec-1.1.0/Cargo.toml",
+          "corpus_path": "selection/sources/toml-1.1.5+spec-1.1.0/Cargo.toml",
+          "sha256": "77938c9a9688aec83cfa126f667a707ad43118502e4bff53f0125a63cf7cda94"
+        },
+        {
+          "source_path": "<LOCAL_HOME>/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/toml-1.1.5+spec-1.1.0/Cargo.toml.orig",
+          "corpus_path": "selection/sources/toml-1.1.5+spec-1.1.0/Cargo.toml.orig",
+          "sha256": "90955c0a92c0789695ffd1455610628fd25e79717ece1ac36a04c882ebbbdfbd"
+        },
+        {
+          "source_path": "<LOCAL_HOME>/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/toml-1.1.5+spec-1.1.0/README.md",
+          "corpus_path": "selection/sources/toml-1.1.5+spec-1.1.0/README.md",
+          "sha256": "10ec704dd3941c962949c6d0cc98ebcfccc8e76e8e03ccab5b49e3e4a2f42896"
+        }
+      ],
+      "registry_created_at": "2026-09-02T13:52:08.284086Z",
+      "registry_metadata": {
+        "url": "https://crates.io/api/v1/crates/toml/1.1.5%2Bspec-1.1.0",
+        "captured_utc": "2026-09-04T16:01:26.527377+00:00",
+        "sha256": "c9ee51f812d1dca5769132b9c8d815515b146cac7a5d23c0ec4502c44b571c1d",
+        "body_path": "selection/registry-responses/toml@1.1.5+spec-1.1.0.json",
+        "license_expression": "MIT OR Apache-2.0",
+        "declared_msrv": "1.85",
+        "divergences": {}
+      }
+    },
+    {
+      "name": "toml_edit",
+      "version": "0.25.12+spec-1.1.0",
+      "description": "Yet another format-preserving TOML parser.",
+      "declared_msrv": "1.85",
+      "license_expression": "MIT OR Apache-2.0",
+      "repository": "https://github.com/toml-rs/toml",
+      "documentation": null,
+      "features": [
+        "debug",
+        "default",
+        "display",
+        "parse",
+        "serde",
+        "unbounded"
+      ],
+      "yanked": false,
+      "published_at": 1779896057,
+      "unknown_fields": [
+        "transitive MSRV compatibility",
+        "working integration"
+      ],
+      "sources": [
+        {
+          "source_path": "<LOCAL_HOME>/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/toml_edit-0.25.12+spec-1.1.0/Cargo.toml",
+          "corpus_path": "selection/sources/toml_edit-0.25.12+spec-1.1.0/Cargo.toml",
+          "sha256": "c71ba418832494a7d87418689ba40a797f40a0eb242cb5c5263c904ec6360d85"
+        },
+        {
+          "source_path": "<LOCAL_HOME>/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/toml_edit-0.25.12+spec-1.1.0/Cargo.toml.orig",
+          "corpus_path": "selection/sources/toml_edit-0.25.12+spec-1.1.0/Cargo.toml.orig",
+          "sha256": "9fed53cf412ad0a2b72d2eaeda600c9d91cacc6800e3edad187a89f751589723"
+        },
+        {
+          "source_path": "<LOCAL_HOME>/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/toml_edit-0.25.12+spec-1.1.0/README.md",
+          "corpus_path": "selection/sources/toml_edit-0.25.12+spec-1.1.0/README.md",
+          "sha256": "09b2dc2ff0ad374bdea85ad463c7f459d7b312c471f3732e910ddea8c04f92b2"
+        }
+      ],
+      "registry_created_at": "2026-05-27T15:34:17.936505Z",
+      "registry_metadata": {
+        "url": "https://crates.io/api/v1/crates/toml_edit/0.25.12%2Bspec-1.1.0",
+        "captured_utc": "2026-09-04T16:01:27.816658+00:00",
+        "sha256": "c619b80f2ff28739222946d015e9314a705dad69fe493edd0748db60a1caf82a",
+        "body_path": "selection/registry-responses/toml_edit@0.25.12+spec-1.1.0.json",
+        "license_expression": "MIT OR Apache-2.0",
+        "declared_msrv": "1.85",
+        "divergences": {}
+      }
+    },
+    {
+      "name": "syn",
+      "version": "2.0.118",
+      "description": "Parser for Rust source code",
+      "declared_msrv": "1.71",
+      "license_expression": "MIT OR Apache-2.0",
+      "repository": "https://github.com/dtolnay/syn",
+      "documentation": "https://docs.rs/syn",
+      "features": [
+        "clone-impls",
+        "default",
+        "derive",
+        "extra-traits",
+        "fold",
+        "full",
+        "parsing",
+        "printing",
+        "proc-macro",
+        "test",
+        "visit",
+        "visit-mut"
+      ],
+      "yanked": false,
+      "published_at": 1781629721,
+      "unknown_fields": [
+        "transitive MSRV compatibility",
+        "working integration"
+      ],
+      "sources": [
+        {
+          "source_path": "<LOCAL_HOME>/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/syn-2.0.118/Cargo.toml",
+          "corpus_path": "selection/sources/syn-2.0.118/Cargo.toml",
+          "sha256": "1c16fbf1de1ba3bc6d8080b1dddc7c009ea067c78559557613c500b68923236c"
+        },
+        {
+          "source_path": "<LOCAL_HOME>/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/syn-2.0.118/Cargo.toml.orig",
+          "corpus_path": "selection/sources/syn-2.0.118/Cargo.toml.orig",
+          "sha256": "cffcc7f5963ce46d46bd908785470e1f893ccee5494bf4c9fddb3ea3c73e13e4"
+        },
+        {
+          "source_path": "<LOCAL_HOME>/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/syn-2.0.118/README.md",
+          "corpus_path": "selection/sources/syn-2.0.118/README.md",
+          "sha256": "4a050aa3ee831ad3d27ab15d9b612bb32712f86517fa2e6be0b1cac37137ebe5"
+        }
+      ],
+      "registry_created_at": "2026-06-16T17:08:41.479567Z",
+      "registry_metadata": {
+        "url": "https://crates.io/api/v1/crates/syn/2.0.118",
+        "captured_utc": "2026-09-04T16:01:29.101524+00:00",
+        "sha256": "f5a36a97529ff182a87468d355d1dba44175b8bf7fbe170c66784ff7afa19c54",
+        "body_path": "selection/registry-responses/syn@2.0.118.json",
+        "license_expression": "MIT OR Apache-2.0",
+        "declared_msrv": "1.71",
+        "divergences": {}
+      }
+    },
+    {
+      "name": "regex",
+      "version": "1.13.0",
+      "description": "An implementation of regular expressions for Rust. This implementation uses\nfinite automata and guarantees linear time matching on all inputs.\n",
+      "declared_msrv": "1.65",
+      "license_expression": "MIT OR Apache-2.0",
+      "repository": "https://github.com/rust-lang/regex",
+      "documentation": "https://docs.rs/regex",
+      "features": [
+        "default",
+        "logging",
+        "pattern",
+        "perf",
+        "perf-backtrack",
+        "perf-cache",
+        "perf-dfa",
+        "perf-dfa-full",
+        "perf-inline",
+        "perf-literal",
+        "perf-onepass",
+        "std",
+        "unicode",
+        "unicode-age",
+        "unicode-bool",
+        "unicode-case",
+        "unicode-gencat",
+        "unicode-perl",
+        "unicode-script",
+        "unicode-segment",
+        "unstable",
+        "use_std"
+      ],
+      "yanked": false,
+      "published_at": 1783598497,
+      "unknown_fields": [
+        "transitive MSRV compatibility",
+        "working integration"
+      ],
+      "sources": [
+        {
+          "source_path": "<LOCAL_HOME>/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/regex-1.13.0/Cargo.toml",
+          "corpus_path": "selection/sources/regex-1.13.0/Cargo.toml",
+          "sha256": "8e65901633c31baa66d5629ceef1ac7f2f8613ee0b4ef927d5204417e3a2fcd0"
+        },
+        {
+          "source_path": "<LOCAL_HOME>/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/regex-1.13.0/Cargo.toml.orig",
+          "corpus_path": "selection/sources/regex-1.13.0/Cargo.toml.orig",
+          "sha256": "80dd53522a88309e3eb90a6b51f7c94c9f0711f305a67ddcd8e6739544f9cf56"
+        },
+        {
+          "source_path": "<LOCAL_HOME>/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/regex-1.13.0/README.md",
+          "corpus_path": "selection/sources/regex-1.13.0/README.md",
+          "sha256": "ce1a8faf72cf8f0e28a28658c59033b02726e3caecd9a3d358b4c6f6cd3e6c24"
+        }
+      ],
+      "registry_created_at": "2026-07-09T12:01:37.396325Z",
+      "registry_metadata": {
+        "url": "https://crates.io/api/v1/crates/regex/1.13.0",
+        "captured_utc": "2026-09-04T16:01:30.257950+00:00",
+        "sha256": "4431f6b6283b3aa0137d45d022b43fa53b290a552f162d3fba4bd1f004eb72c2",
+        "body_path": "selection/registry-responses/regex@1.13.0.json",
+        "license_expression": "MIT OR Apache-2.0",
+        "declared_msrv": "1.65",
+        "divergences": {}
+      }
+    },
+    {
+      "name": "unicode-normalization",
+      "version": "0.1.25",
+      "description": "This crate provides functions for normalization of\nUnicode strings, including Canonical and Compatible\nDecomposition and Recomposition, as described in\nUnicode Standard Annex #15.\n",
+      "declared_msrv": "1.36",
+      "license_expression": "MIT OR Apache-2.0",
+      "repository": "https://github.com/unicode-rs/unicode-normalization",
+      "documentation": "https://docs.rs/unicode-normalization/",
+      "features": [
+        "default",
+        "std"
+      ],
+      "yanked": false,
+      "published_at": 1761840398,
+      "unknown_fields": [
+        "transitive MSRV compatibility",
+        "working integration"
+      ],
+      "sources": [
+        {
+          "source_path": "<LOCAL_HOME>/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/unicode-normalization-0.1.25/Cargo.toml",
+          "corpus_path": "selection/sources/unicode-normalization-0.1.25/Cargo.toml",
+          "sha256": "5b133b15dd596c7deaae9c09f6049e643c4371f23aff58cb7a72f2b13134b5c5"
+        },
+        {
+          "source_path": "<LOCAL_HOME>/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/unicode-normalization-0.1.25/Cargo.toml.orig",
+          "corpus_path": "selection/sources/unicode-normalization-0.1.25/Cargo.toml.orig",
+          "sha256": "39d19d80979b3c71708c1ee1191860aa77c52f3159629346bee75177ff74d838"
+        },
+        {
+          "source_path": "<LOCAL_HOME>/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/unicode-normalization-0.1.25/README.md",
+          "corpus_path": "selection/sources/unicode-normalization-0.1.25/README.md",
+          "sha256": "91ee30b7c76b5a7dc2cd19252f5dda5a12d2855ea8a218c1ce05e4cc32f62138"
+        }
+      ],
+      "registry_created_at": "2025-10-30T16:06:38.929447Z",
+      "registry_metadata": {
+        "url": "https://crates.io/api/v1/crates/unicode-normalization/0.1.25",
+        "captured_utc": "2026-09-04T16:01:31.524826+00:00",
+        "sha256": "4f0a176a2d164c986b1787101b8fbb30a9ceab85cc5922d51e1007747ae52c81",
+        "body_path": "selection/registry-responses/unicode-normalization@0.1.25.json",
+        "license_expression": "MIT OR Apache-2.0",
+        "declared_msrv": "1.36",
+        "divergences": {}
+      }
+    },
+    {
+      "name": "unicode-segmentation",
+      "version": "1.13.3",
+      "description": "This crate provides Grapheme Cluster, Word and Sentence boundaries\naccording to Unicode Standard Annex #29 rules.\n",
+      "declared_msrv": "1.85.0",
+      "license_expression": "MIT OR Apache-2.0",
+      "repository": "https://github.com/unicode-rs/unicode-segmentation",
+      "documentation": null,
+      "features": [
+        "no_std"
+      ],
+      "yanked": false,
+      "published_at": 1780329523,
+      "unknown_fields": [
+        "transitive MSRV compatibility",
+        "working integration"
+      ],
+      "sources": [
+        {
+          "source_path": "<LOCAL_HOME>/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/unicode-segmentation-1.13.3/Cargo.toml",
+          "corpus_path": "selection/sources/unicode-segmentation-1.13.3/Cargo.toml",
+          "sha256": "86f0e8158aae32d3791f182cf50131f678462da65a713b18cab6c0b5638f1a50"
+        },
+        {
+          "source_path": "<LOCAL_HOME>/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/unicode-segmentation-1.13.3/Cargo.toml.orig",
+          "corpus_path": "selection/sources/unicode-segmentation-1.13.3/Cargo.toml.orig",
+          "sha256": "af7b6699725f8ae6a3f4bed18b3dafd35e5f90c1851f09362b62f6354cb1d690"
+        },
+        {
+          "source_path": "<LOCAL_HOME>/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/unicode-segmentation-1.13.3/README.md",
+          "corpus_path": "selection/sources/unicode-segmentation-1.13.3/README.md",
+          "sha256": "07caaad76a308821eee35087521f9c6d980657aec374db8e3e231fa548825d81"
+        }
+      ],
+      "registry_created_at": "2026-06-01T15:58:43.979474Z",
+      "registry_metadata": {
+        "url": "https://crates.io/api/v1/crates/unicode-segmentation/1.13.3",
+        "captured_utc": "2026-09-04T16:01:32.816992+00:00",
+        "sha256": "872b796098442da007517135d8cf090188f0da58e909d8b317607cb3b1d182fd",
+        "body_path": "selection/registry-responses/unicode-segmentation@1.13.3.json",
+        "license_expression": "MIT OR Apache-2.0",
+        "declared_msrv": "1.85.0",
+        "divergences": {}
+      }
+    },
+    {
+      "name": "unicode-ident",
+      "version": "1.0.24",
+      "description": "Determine whether characters have the XID_Start or XID_Continue properties according to Unicode Standard Annex #31",
+      "declared_msrv": "1.71",
+      "license_expression": "(MIT OR Apache-2.0) AND Unicode-3.0",
+      "repository": "https://github.com/dtolnay/unicode-ident",
+      "documentation": "https://docs.rs/unicode-ident",
+      "features": [],
+      "yanked": false,
+      "published_at": 1771210004,
+      "unknown_fields": [
+        "transitive MSRV compatibility",
+        "working integration"
+      ],
+      "sources": [
+        {
+          "source_path": "<LOCAL_HOME>/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/unicode-ident-1.0.24/Cargo.toml",
+          "corpus_path": "selection/sources/unicode-ident-1.0.24/Cargo.toml",
+          "sha256": "0bb9c0e006a21355cb85c7df72e78dd8ba6fffbb7dc3f1e7a4c19af53cd354da"
+        },
+        {
+          "source_path": "<LOCAL_HOME>/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/unicode-ident-1.0.24/Cargo.toml.orig",
+          "corpus_path": "selection/sources/unicode-ident-1.0.24/Cargo.toml.orig",
+          "sha256": "8d0abaf7ce10cb78f26edcd613dfe5a47faa4381e6e251c7d1c123608d2e037a"
+        },
+        {
+          "source_path": "<LOCAL_HOME>/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/unicode-ident-1.0.24/README.md",
+          "corpus_path": "selection/sources/unicode-ident-1.0.24/README.md",
+          "sha256": "2fd3a0c6c9abd2c042fb319221f9ef2c95728a6e3725b0f067e4d315c5dbfe5a"
+        }
+      ],
+      "registry_created_at": "2026-02-16T02:46:44.304053Z",
+      "registry_metadata": {
+        "url": "https://crates.io/api/v1/crates/unicode-ident/1.0.24",
+        "captured_utc": "2026-09-04T16:01:34.209046+00:00",
+        "sha256": "cbafad943b2589a78a0d2de767db2f2b74f17302635af2d35a27d03c6495805e",
+        "body_path": "selection/registry-responses/unicode-ident@1.0.24.json",
+        "license_expression": "(MIT OR Apache-2.0) AND Unicode-3.0",
+        "declared_msrv": "1.71",
+        "divergences": {}
+      }
+    },
+    {
+      "name": "tokio",
+      "version": "1.53.1",
+      "description": "An event-driven, non-blocking I/O platform for writing asynchronous I/O\nbacked applications.\n",
+      "declared_msrv": "1.71",
+      "license_expression": "MIT",
+      "repository": "https://github.com/tokio-rs/tokio",
+      "documentation": null,
+      "features": [
+        "default",
+        "fs",
+        "full",
+        "io-std",
+        "io-uring",
+        "io-util",
+        "macros",
+        "net",
+        "process",
+        "rt",
+        "rt-multi-thread",
+        "schedule-latency",
+        "signal",
+        "sync",
+        "taskdump",
+        "test-util",
+        "time"
+      ],
+      "yanked": false,
+      "published_at": 1784567169,
+      "unknown_fields": [
+        "transitive MSRV compatibility",
+        "working integration"
+      ],
+      "sources": [
+        {
+          "source_path": "<LOCAL_HOME>/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.53.1/Cargo.toml",
+          "corpus_path": "selection/sources/tokio-1.53.1/Cargo.toml",
+          "sha256": "e0194904acf8d55946b949cacca2b266051bb2a99844c606829fb0159c39cfb1"
+        },
+        {
+          "source_path": "<LOCAL_HOME>/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.53.1/Cargo.toml.orig",
+          "corpus_path": "selection/sources/tokio-1.53.1/Cargo.toml.orig",
+          "sha256": "64efc8888a41b0a102b3abe463cf9f2bb4687895ae494b47487284bd23fd7455"
+        },
+        {
+          "source_path": "<LOCAL_HOME>/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.53.1/README.md",
+          "corpus_path": "selection/sources/tokio-1.53.1/README.md",
+          "sha256": "d66d59d170ce56b4f80e16e7564fe91ca611daffffe82a8625a9a67bb85c8800"
+        },
+        {
+          "source_path": "<LOCAL_HOME>/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.53.1/src/sync/mpsc/mod.rs",
+          "corpus_path": "selection/sources/tokio-1.53.1/src/sync/mpsc/mod.rs",
+          "sha256": "455441acb6e0fadf2ba5599d8459bd5eabe823aae8a84782cc0056fb1053f5dc"
+        }
+      ],
+      "registry_created_at": "2026-07-20T17:06:09.996426Z",
+      "registry_metadata": {
+        "url": "https://crates.io/api/v1/crates/tokio/1.53.1",
+        "captured_utc": "2026-09-04T16:01:35.345303+00:00",
+        "sha256": "51b11811e4bd8d4a494b77fee959e9872c9f8181293fd2c8bfda1dcb12cb77d4",
+        "body_path": "selection/registry-responses/tokio@1.53.1.json",
+        "license_expression": "MIT",
+        "declared_msrv": "1.71",
+        "divergences": {}
+      }
+    },
+    {
+      "name": "crossbeam-channel",
+      "version": "0.5.16",
+      "description": "Multi-producer multi-consumer channels for message passing",
+      "declared_msrv": "1.60",
+      "license_expression": "MIT OR Apache-2.0",
+      "repository": "https://github.com/crossbeam-rs/crossbeam",
+      "documentation": null,
+      "features": [
+        "default",
+        "std"
+      ],
+      "yanked": false,
+      "published_at": 1783353202,
+      "unknown_fields": [
+        "transitive MSRV compatibility",
+        "working integration"
+      ],
+      "sources": [
+        {
+          "source_path": "<LOCAL_HOME>/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/crossbeam-channel-0.5.16/Cargo.toml",
+          "corpus_path": "selection/sources/crossbeam-channel-0.5.16/Cargo.toml",
+          "sha256": "29527fb88615c06cf0e5ebfa12e0cac447b653dc8110de5ca3fe515cab63b7fb"
+        },
+        {
+          "source_path": "<LOCAL_HOME>/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/crossbeam-channel-0.5.16/Cargo.toml.orig",
+          "corpus_path": "selection/sources/crossbeam-channel-0.5.16/Cargo.toml.orig",
+          "sha256": "88fff79b3ce0f59afdbc463d3dae2d980602507d3c384738d0c5425aa3b43e14"
+        },
+        {
+          "source_path": "<LOCAL_HOME>/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/crossbeam-channel-0.5.16/README.md",
+          "corpus_path": "selection/sources/crossbeam-channel-0.5.16/README.md",
+          "sha256": "5dfb91ebb498dec49948a440a53977109ec532388170e567c3c2a0339589aa4c"
+        },
+        {
+          "source_path": "<LOCAL_HOME>/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/crossbeam-channel-0.5.16/src/lib.rs",
+          "corpus_path": "selection/sources/crossbeam-channel-0.5.16/src/lib.rs",
+          "sha256": "5b1c406fd1ce6140feae9000be361858da2aabe7fc9fffd0eafcb88020d2b268"
+        }
+      ],
+      "registry_created_at": "2026-07-06T15:53:22.889927Z",
+      "registry_metadata": {
+        "url": "https://crates.io/api/v1/crates/crossbeam-channel/0.5.16",
+        "captured_utc": "2026-09-04T16:01:36.631516+00:00",
+        "sha256": "1842dd01f8b9236d2dc232793565374a8199d6d0f5edffa6b67bec9a3c86258a",
+        "body_path": "selection/registry-responses/crossbeam-channel@0.5.16.json",
+        "license_expression": "MIT OR Apache-2.0",
+        "declared_msrv": "1.60",
+        "divergences": {}
+      }
+    },
+    {
+      "name": "flume",
+      "version": "0.12.0",
+      "description": "A blazingly fast multi-producer channel",
+      "declared_msrv": null,
+      "license_expression": "Apache-2.0/MIT",
+      "repository": "https://github.com/zesterer/flume",
+      "documentation": "https://docs.rs/flume",
+      "features": [
+        "async",
+        "default",
+        "eventual-fairness",
+        "select",
+        "spin"
+      ],
+      "yanked": false,
+      "published_at": 1765214551,
+      "unknown_fields": [
+        "transitive MSRV compatibility",
+        "working integration"
+      ],
+      "sources": [
+        {
+          "source_path": "<LOCAL_HOME>/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/flume-0.12.0/Cargo.toml",
+          "corpus_path": "selection/sources/flume-0.12.0/Cargo.toml",
+          "sha256": "55d58b649575430af87331d5ad11f7fa3077c7e8afa44b9ea9bacefc4f575603"
+        },
+        {
+          "source_path": "<LOCAL_HOME>/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/flume-0.12.0/Cargo.toml.orig",
+          "corpus_path": "selection/sources/flume-0.12.0/Cargo.toml.orig",
+          "sha256": "070c80369b176e92452535250b77efda7bacac722d1d83bd0abd38933efdc12e"
+        },
+        {
+          "source_path": "<LOCAL_HOME>/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/flume-0.12.0/README.md",
+          "corpus_path": "selection/sources/flume-0.12.0/README.md",
+          "sha256": "84bd3ddff0ded8622857a9452cf920b547936d7d79d38fe4fdb4d989da92f97e"
+        },
+        {
+          "source_path": "<LOCAL_HOME>/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/flume-0.12.0/src/lib.rs",
+          "corpus_path": "selection/sources/flume-0.12.0/src/lib.rs",
+          "sha256": "6454f49f8e98f4dce13461b25fa877b871cdc64f26287a01615ad98e8372830e"
+        }
+      ],
+      "registry_created_at": "2025-12-08T17:22:31.630716Z",
+      "registry_metadata": {
+        "url": "https://crates.io/api/v1/crates/flume/0.12.0",
+        "captured_utc": "2026-09-04T16:01:37.917629+00:00",
+        "sha256": "0db47baf2d4ef0dc92c2567e5c9dea502fb6baf12ee82c2673d4ffec4d3c832d",
+        "body_path": "selection/registry-responses/flume@0.12.0.json",
+        "license_expression": "Apache-2.0/MIT",
+        "declared_msrv": null,
+        "divergences": {}
+      }
+    },
+    {
+      "name": "async-channel",
+      "version": "2.5.0",
+      "description": "Async multi-producer multi-consumer channel",
+      "declared_msrv": "1.60",
+      "license_expression": "Apache-2.0 OR MIT",
+      "repository": "https://github.com/smol-rs/async-channel",
+      "documentation": null,
+      "features": [
+        "default",
+        "portable-atomic",
+        "std"
+      ],
+      "yanked": false,
+      "published_at": 1751785567,
+      "unknown_fields": [
+        "transitive MSRV compatibility",
+        "working integration"
+      ],
+      "sources": [
+        {
+          "source_path": "<LOCAL_HOME>/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/async-channel-2.5.0/Cargo.toml",
+          "corpus_path": "selection/sources/async-channel-2.5.0/Cargo.toml",
+          "sha256": "0d56b953fd80e91c2f60d92df14866dede9822a91fa2abccc618b76abbf1ea97"
+        },
+        {
+          "source_path": "<LOCAL_HOME>/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/async-channel-2.5.0/Cargo.toml.orig",
+          "corpus_path": "selection/sources/async-channel-2.5.0/Cargo.toml.orig",
+          "sha256": "4b88d2c58ff7187b3d96b14b1d60fc7c01145aa946f2ce04c0e23d140e4a2463"
+        },
+        {
+          "source_path": "<LOCAL_HOME>/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/async-channel-2.5.0/README.md",
+          "corpus_path": "selection/sources/async-channel-2.5.0/README.md",
+          "sha256": "a9ae50c2a6df06ff476c369d23553a7bbcb4c47f25a3353d168e05289acbb4ed"
+        },
+        {
+          "source_path": "<LOCAL_HOME>/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/async-channel-2.5.0/src/lib.rs",
+          "corpus_path": "selection/sources/async-channel-2.5.0/src/lib.rs",
+          "sha256": "96d786959c66fc32a0181a8015ff9fd06b7a9955d878bfd7760b81304ee35223"
+        }
+      ],
+      "registry_created_at": "2025-07-06T07:06:07.101546Z",
+      "registry_metadata": {
+        "url": "https://crates.io/api/v1/crates/async-channel/2.5.0",
+        "captured_utc": "2026-09-04T16:01:39.191475+00:00",
+        "sha256": "cb94d000c1393c36fa32078e28ad375932f76268de2a360ed63c4e787c0fcae7",
+        "body_path": "selection/registry-responses/async-channel@2.5.0.json",
+        "license_expression": "Apache-2.0 OR MIT",
+        "declared_msrv": "1.60",
+        "divergences": {}
+      }
+    },
+    {
+      "name": "bytes",
+      "version": "1.12.1",
+      "description": "Types and traits for working with bytes",
+      "declared_msrv": "1.57",
+      "license_expression": "MIT",
+      "repository": "https://github.com/tokio-rs/bytes",
+      "documentation": null,
+      "features": [
+        "default",
+        "std"
+      ],
+      "yanked": false,
+      "published_at": 1783504888,
+      "unknown_fields": [
+        "transitive MSRV compatibility",
+        "working integration"
+      ],
+      "sources": [
+        {
+          "source_path": "<LOCAL_HOME>/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/bytes-1.12.1/Cargo.toml",
+          "corpus_path": "selection/sources/bytes-1.12.1/Cargo.toml",
+          "sha256": "dc260d0d04b58aea819f8d6762c2feb51e66f8edd77e4e64cc1eac6f447a8143"
+        },
+        {
+          "source_path": "<LOCAL_HOME>/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/bytes-1.12.1/Cargo.toml.orig",
+          "corpus_path": "selection/sources/bytes-1.12.1/Cargo.toml.orig",
+          "sha256": "4fc0d14d77a47a1fac1fbb445890db63e67360535c940dd47ffd69badc30cdc6"
+        },
+        {
+          "source_path": "<LOCAL_HOME>/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/bytes-1.12.1/README.md",
+          "corpus_path": "selection/sources/bytes-1.12.1/README.md",
+          "sha256": "275ac7bc295e3cc659d28f05261645ac5bd6286476afe2ee3c1ed719f7b6df02"
+        }
+      ],
+      "registry_created_at": "2026-07-08T10:01:28.616466Z",
+      "registry_metadata": {
+        "url": "https://crates.io/api/v1/crates/bytes/1.12.1",
+        "captured_utc": "2026-09-04T16:01:40.467845+00:00",
+        "sha256": "4acc909efcf4bca011c18a8c7c68d1d630efbf6ec863c12eef6a2415fe1a263f",
+        "body_path": "selection/registry-responses/bytes@1.12.1.json",
+        "license_expression": "MIT",
+        "declared_msrv": "1.57",
+        "divergences": {}
+      }
+    },
+    {
+      "name": "prettyplease",
+      "version": "0.2.37",
+      "description": "A minimal `syn` syntax tree pretty-printer",
+      "declared_msrv": "1.62",
+      "license_expression": "MIT OR Apache-2.0",
+      "repository": "https://github.com/dtolnay/prettyplease",
+      "documentation": "https://docs.rs/prettyplease",
+      "features": [
+        "verbatim"
+      ],
+      "yanked": false,
+      "published_at": 1755563366,
+      "unknown_fields": [
+        "transitive MSRV compatibility",
+        "working integration"
+      ],
+      "sources": [
+        {
+          "source_path": "<LOCAL_HOME>/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/prettyplease-0.2.37/Cargo.toml",
+          "corpus_path": "selection/sources/prettyplease-0.2.37/Cargo.toml",
+          "sha256": "fadc7182205c8cebaea0545496490a549f3d102d17d7b13ae26b2f6c24828a0b"
+        },
+        {
+          "source_path": "<LOCAL_HOME>/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/prettyplease-0.2.37/Cargo.toml.orig",
+          "corpus_path": "selection/sources/prettyplease-0.2.37/Cargo.toml.orig",
+          "sha256": "1163b5012ba2567947bc3f662645c7769428f57f8ed033352579d46acfbe7b3f"
+        },
+        {
+          "source_path": "<LOCAL_HOME>/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/prettyplease-0.2.37/README.md",
+          "corpus_path": "selection/sources/prettyplease-0.2.37/README.md",
+          "sha256": "a7e6d152cdc6ea603077e50b8d55af374d9d21fd9f62d08a008588b17d785e6e"
+        }
+      ],
+      "registry_created_at": "2025-08-19T00:29:26.957436Z",
+      "registry_metadata": {
+        "url": "https://crates.io/api/v1/crates/prettyplease/0.2.37",
+        "captured_utc": "2026-09-04T16:01:41.602924+00:00",
+        "sha256": "ce0d0be77808bdcb21976ca07101aec743bc22c60c13336ca5e78e5d6e37be25",
+        "body_path": "selection/registry-responses/prettyplease@0.2.37.json",
+        "license_expression": "MIT OR Apache-2.0",
+        "declared_msrv": "1.62",
+        "divergences": {}
+      }
+    }
+  ],
+  "metadata_capture": {
+    "started_utc": "2026-09-04T16:01:22.351461+00:00",
+    "completed_utc": "2026-09-04T16:01:41.602924+00:00",
+    "live_only_at_acquisition": true,
+    "later_use": "frozen_research_snapshot",
+    "not_global_registry_snapshot": true,
+    "records": 16,
+    "identity_license_msrv_divergences": 0
+  }
+}

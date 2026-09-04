@@ -1,0 +1,19 @@
+{
+  "decision": "approved_for_single_native_model_turn_attempt_2",
+  "approved_at_unix": 1788549235,
+  "plan_canonical_sha256": "079f79f722b82d15821c78d88e7f2b21374ed0f958253bf07e65ca170bee6ac7",
+  "prompt_sha256": "55e1d85f5bd8c95b47b40be712d465dae34e170d6b14d1cd07159a4ac17cedf1",
+  "controller_sha256": "da1b904c3fe50feb02f47cc8596f1c50339cc77411588c7eb6d2277b02e3e0cb",
+  "preflight_receipt_sha256": "242f625be04e288260f5809c81c402078ccb73e5972e79701c416c88f532c056",
+  "preflight_checks": {
+    "status": true,
+    "plan": true,
+    "model_turns": true,
+    "tools": true,
+    "calls": true,
+    "docker": true,
+    "cleanup": true,
+    "state": true
+  },
+  "scope": "one ephemeral gpt-5.6-sol medium turn; exactly one built-in deferred-tool search and exactly one rust.catalog.status MCP call; no other tool; 180-second and 4000-output-token bounds"
+}

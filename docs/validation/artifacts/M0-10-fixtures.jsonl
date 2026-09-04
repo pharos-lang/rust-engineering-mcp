@@ -1,0 +1,13 @@
+{"fixture": "vulnerable-dependency", "ok": true, "verification": "static pinned audit input only; no Cargo invocation"}
+{"command": "test", "diagnostic": null, "expected_failure": false, "fixture": "valid-basic", "flags": [], "ok": true}
+{"command": "check", "diagnostic": "E0502", "expected_failure": true, "fixture": "borrow-error", "flags": [], "ok": true}
+{"command": "check", "diagnostic": "E0597", "expected_failure": true, "fixture": "lifetime-error", "flags": [], "ok": true}
+{"command": "clippy", "diagnostic": "clippy::useless_vec", "expected_failure": false, "fixture": "clippy-warning", "flags": [], "ok": true}
+{"command": "check", "diagnostic": "unsafe_code", "expected_failure": true, "fixture": "unsafe", "flags": [], "ok": true}
+{"command": "test", "diagnostic": null, "expected_failure": false, "fixture": "workspace", "flags": [], "ok": true}
+{"command": "check", "diagnostic": null, "expected_failure": false, "fixture": "feature-conflict", "flags": [], "ok": true}
+{"command": "check", "diagnostic": null, "expected_failure": false, "fixture": "feature-conflict", "flags": ["--features", "left"], "ok": true}
+{"command": "check", "diagnostic": null, "expected_failure": false, "fixture": "feature-conflict", "flags": ["--features", "right"], "ok": true}
+{"command": "check", "diagnostic": "fixture mutually exclusive features", "expected_failure": true, "fixture": "feature-conflict", "flags": ["--features", "left,right"], "ok": true}
+{"command": "test", "diagnostic": null, "expected_failure": false, "fixture": "build-script", "flags": [], "ok": true}
+{"compiler_cases": 11, "malicious_fixture_executed": false, "ok": true, "static_audit_inputs": 1}

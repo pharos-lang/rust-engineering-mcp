@@ -1,0 +1,35 @@
+   Compiling rust-engineering-domain v0.1.0-dev.1 (<LOCAL_HOME>/Projects/rust-mcp/crates/domain)
+   Compiling rust-engineering-application v0.1.0-dev.1 (<LOCAL_HOME>/Projects/rust-mcp/crates/application)
+   Compiling rust-engineering-execution v0.1.0-dev.1 (<LOCAL_HOME>/Projects/rust-mcp/crates/execution-adapter)
+   Compiling rust-engineering-project v0.1.0-dev.1 (<LOCAL_HOME>/Projects/rust-mcp/crates/project-adapter)
+   Compiling rust-engineering-mcp v0.1.0-dev.1 (<LOCAL_HOME>/Projects/rust-mcp/crates/mcp-server)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 2.23s
+     Running tests/protocol.rs (target/debug/deps/protocol-366a463baf3e22ce)
+
+running 19 tests
+test empty_eof_exits_cleanly_without_protocol_output ... ok
+test modern_request_bootstraps_without_discovery ... ok
+test eof_drains_complete_requests_already_written ... ok
+test fragmented_crlf_frames_and_coalesced_requests ... ok
+test invalid_json_syntax_is_ignored_and_invalid_shape_is_rejected ... ok
+test modern_discovery_and_deterministic_project_tool ... ok
+test eof_with_unterminated_frame_is_rejected ... ok
+test project_fixtures::project_open_missing_or_invalid_manifest_returns_tool_error_and_service_survives ... ok
+test unavailable_tool_and_unknown_cancellation_preserve_service ... ok
+test metadata_errors_after_bootstrap_are_recoverable ... ok
+test project_fixtures::deeply_nested_toml_is_rejected_without_aborting_the_server ... ok
+test oversized_frames_fail_without_waiting_for_eof_or_leaking_input ... ok
+test exact_frame_limit_accepts_lf_and_counts_cr ... ok
+test initial_metadata_errors_follow_sdk_lifecycle ... ok
+test legacy_versions_and_initialize_fallback ... ok
+test project_open_tool_contract_matches_snapshot_and_rejects_invalid_arguments ... ok
+test project_open_without_host_authority_is_a_structured_operational_failure ... ok
+test closed_stdout_exits_even_when_stdin_remains_open ... ok
+test project_fixtures::project_open_succeeds_with_host_root_in_modern_and_all_legacy_versions ... ok
+
+test result: ok. 19 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.74s
+
+PASS domain/application dependency and IO boundaries, sole process gateway, offline engine defaults, memory-only model adapter
+PASS published SHA256; 93 files; only two exact manifest edits; Rust sources unchanged
+
+PASS post-merge source identity: 122 files match full gate

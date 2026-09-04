@@ -1,0 +1,36 @@
+{
+  "main_commit": "93023bec37a433e2bacb1de59f9fd63a19778ef4",
+  "status": "passed",
+  "source_receipt": "docs/release/candidate/accepted-source-receipt.json",
+  "versions": [
+    {
+      "feature": "core",
+      "version": {
+        "format_version": 1,
+        "operation": "version",
+        "package": "rust-engineering-mcp",
+        "version": "0.1.0-dev.1",
+        "compiled_local": false,
+        "target_os": "macos",
+        "target_arch": "aarch64"
+      },
+      "binary_sha256": "32b7f921d8a0b4409581c66d8d2ff0756ba250d783f3e52e97392a062e7eeab1"
+    },
+    {
+      "feature": "local",
+      "version": {
+        "format_version": 1,
+        "operation": "version",
+        "package": "rust-engineering-mcp",
+        "version": "0.1.0-dev.1",
+        "compiled_local": true,
+        "target_os": "macos",
+        "target_arch": "aarch64"
+      },
+      "binary_sha256": "7a99038be57429e1db32c91d01772e7efd104691828253f45ed3bbb0e9330417"
+    }
+  ],
+  "compiled_source_files_verified": 238,
+  "source_inputs_match": true,
+  "main_clean": false
+}

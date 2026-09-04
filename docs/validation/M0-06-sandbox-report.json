@@ -1,0 +1,317 @@
+{
+  "status": "verified",
+  "scope": "trusted_probe_image_only",
+  "observed_at_unix_ms": 1788479924197,
+  "engine": {
+    "ID": "01e8e3b3-4876-40c5-bae5-396de46f9511",
+    "ServerVersion": "29.7.2",
+    "DefaultRuntime": "runc",
+    "OSType": "linux",
+    "Architecture": "aarch64",
+    "CgroupVersion": "2",
+    "SecurityOptions": [
+      "name=seccomp,profile=builtin",
+      "name=cgroupns"
+    ],
+    "MemoryLimit": true,
+    "SwapLimit": true,
+    "CpuCfsQuota": true,
+    "PidsLimit": true
+  },
+  "image_id": "sha256:79e023e73994b328dc8e7a0946419f1c8ec05114ff7ac9e28ffe3f95fef09c06",
+  "capabilities": {
+    "filesystem_isolated": true,
+    "network_isolated": true,
+    "environment_isolated": true,
+    "children_contained": true,
+    "wall_time_limited": true,
+    "output_limited": true,
+    "cpu_quota": true,
+    "memory_limited": true,
+    "pids_limited": true,
+    "disk_limited": true
+  },
+  "configuration_fingerprint": "sha256:13ac156f48d1301460e972cac97fc294fc60f05acccdbd15722e7d12583b7e45",
+  "strict_available": true,
+  "restricted_available": true,
+  "project_code_available": false,
+  "observations": [
+    {
+      "scenario": "environment",
+      "control": false,
+      "limits": {
+        "wall_ms": 10000,
+        "output_bytes": 65536
+      },
+      "memory_bytes": 67108864,
+      "execution": {
+        "termination": "exited",
+        "exit_code": 0,
+        "oom_killed": false,
+        "stdout": "{\"scenario\":\"environment\",\"event\":\"environment\",\"pid\":1,\"details\":{\"entries\":[\"GOMAXPROCS=2\",\"HOME=/work\",\"HOSTNAME=sandbox\",\"PATH=/nonexistent\",\"TMPDIR=/tmp\"]}}\n",
+        "stderr": "",
+        "stdout_truncated": false,
+        "stderr_truncated": false,
+        "duration_ms": 73,
+        "total_duration_ms": 193,
+        "execution_fingerprint": "sha256:56aad27d18ef6ab494e584285deeba4307ca1a60d10938aaef5debd00e1e9689",
+        "platform": "linux/aarch64",
+        "image_id": "sha256:79e023e73994b328dc8e7a0946419f1c8ec05114ff7ac9e28ffe3f95fef09c06"
+      }
+    },
+    {
+      "scenario": "network",
+      "control": false,
+      "limits": {
+        "wall_ms": 10000,
+        "output_bytes": 65536
+      },
+      "memory_bytes": 67108864,
+      "execution": {
+        "termination": "exited",
+        "exit_code": 0,
+        "oom_killed": false,
+        "stdout": "{\"scenario\":\"network\",\"event\":\"socket\",\"pid\":1,\"details\":{\"family\":\"ipv4\",\"operation\":\"socket_only\",\"purpose\":\"loopback\",\"result\":{\"allowed\":false,\"errno\":1,\"error\":\"operation not permitted\"},\"transport\":\"tcp\"}}\n{\"scenario\":\"network\",\"event\":\"socket\",\"pid\":1,\"details\":{\"family\":\"ipv4\",\"operation\":\"socket_only\",\"purpose\":\"dns\",\"result\":{\"allowed\":false,\"errno\":1,\"error\":\"operation not permitted\"},\"transport\":\"tcp\"}}\n{\"scenario\":\"network\",\"event\":\"socket\",\"pid\":1,\"details\":{\"family\":\"ipv4\",\"operation\":\"socket_only\",\"purpose\":\"loopback\",\"result\":{\"allowed\":false,\"errno\":1,\"error\":\"operation not permitted\"},\"transport\":\"udp\"}}\n{\"scenario\":\"network\",\"event\":\"socket\",\"pid\":1,\"details\":{\"family\":\"ipv4\",\"operation\":\"socket_only\",\"purpose\":\"dns\",\"result\":{\"allowed\":false,\"errno\":1,\"error\":\"operation not permitted\"},\"transport\":\"udp\"}}\n{\"scenario\":\"network\",\"event\":\"socket\",\"pid\":1,\"details\":{\"family\":\"ipv6\",\"operation\":\"socket_only\",\"purpose\":\"loopback\",\"result\":{\"allowed\":false,\"errno\":1,\"error\":\"operation not permitted\"},\"transport\":\"tcp\"}}\n{\"scenario\":\"network\",\"event\":\"socket\",\"pid\":1,\"details\":{\"family\":\"ipv6\",\"operation\":\"socket_only\",\"purpose\":\"dns\",\"result\":{\"allowed\":false,\"errno\":1,\"error\":\"operation not permitted\"},\"transport\":\"tcp\"}}\n{\"scenario\":\"network\",\"event\":\"socket\",\"pid\":1,\"details\":{\"family\":\"ipv6\",\"operation\":\"socket_only\",\"purpose\":\"loopback\",\"result\":{\"allowed\":false,\"errno\":1,\"error\":\"operation not permitted\"},\"transport\":\"udp\"}}\n{\"scenario\":\"network\",\"event\":\"socket\",\"pid\":1,\"details\":{\"family\":\"ipv6\",\"operation\":\"socket_only\",\"purpose\":\"dns\",\"result\":{\"allowed\":false,\"errno\":1,\"error\":\"operation not permitted\"},\"transport\":\"udp\"}}\n{\"scenario\":\"network\",\"event\":\"socket\",\"pid\":1,\"details\":{\"family\":\"unix\",\"operation\":\"socket_only\",\"purpose\":\"local\",\"result\":{\"allowed\":false,\"errno\":1,\"error\":\"operation not permitted\"},\"transport\":\"stream\"}}\n{\"scenario\":\"network\",\"event\":\"socket\",\"pid\":1,\"details\":{\"family\":\"netlink\",\"operation\":\"socket_only\",\"purpose\":\"local\",\"result\":{\"allowed\":false,\"errno\":1,\"error\":\"operation not permitted\"},\"transport\":\"raw\"}}\n",
+        "stderr": "",
+        "stdout_truncated": false,
+        "stderr_truncated": false,
+        "duration_ms": 56,
+        "total_duration_ms": 176,
+        "execution_fingerprint": "sha256:7f36080794b15dace4a933453f1d2a859c7a9042186a86e2dca20f06184d1b2c",
+        "platform": "linux/aarch64",
+        "image_id": "sha256:79e023e73994b328dc8e7a0946419f1c8ec05114ff7ac9e28ffe3f95fef09c06"
+      }
+    },
+    {
+      "scenario": "network",
+      "control": true,
+      "limits": {
+        "wall_ms": 10000,
+        "output_bytes": 65536
+      },
+      "memory_bytes": 67108864,
+      "execution": {
+        "termination": "exited",
+        "exit_code": 0,
+        "oom_killed": false,
+        "stdout": "{\"scenario\":\"network\",\"event\":\"socket\",\"pid\":1,\"details\":{\"family\":\"ipv4\",\"operation\":\"socket_only\",\"purpose\":\"loopback\",\"result\":{\"allowed\":true,\"errno\":0,\"error\":\"\"},\"transport\":\"tcp\"}}\n{\"scenario\":\"network\",\"event\":\"socket\",\"pid\":1,\"details\":{\"family\":\"ipv4\",\"operation\":\"socket_only\",\"purpose\":\"dns\",\"result\":{\"allowed\":true,\"errno\":0,\"error\":\"\"},\"transport\":\"tcp\"}}\n{\"scenario\":\"network\",\"event\":\"socket\",\"pid\":1,\"details\":{\"family\":\"ipv4\",\"operation\":\"socket_only\",\"purpose\":\"loopback\",\"result\":{\"allowed\":true,\"errno\":0,\"error\":\"\"},\"transport\":\"udp\"}}\n{\"scenario\":\"network\",\"event\":\"socket\",\"pid\":1,\"details\":{\"family\":\"ipv4\",\"operation\":\"socket_only\",\"purpose\":\"dns\",\"result\":{\"allowed\":true,\"errno\":0,\"error\":\"\"},\"transport\":\"udp\"}}\n{\"scenario\":\"network\",\"event\":\"socket\",\"pid\":1,\"details\":{\"family\":\"ipv6\",\"operation\":\"socket_only\",\"purpose\":\"loopback\",\"result\":{\"allowed\":true,\"errno\":0,\"error\":\"\"},\"transport\":\"tcp\"}}\n{\"scenario\":\"network\",\"event\":\"socket\",\"pid\":1,\"details\":{\"family\":\"ipv6\",\"operation\":\"socket_only\",\"purpose\":\"dns\",\"result\":{\"allowed\":true,\"errno\":0,\"error\":\"\"},\"transport\":\"tcp\"}}\n{\"scenario\":\"network\",\"event\":\"socket\",\"pid\":1,\"details\":{\"family\":\"ipv6\",\"operation\":\"socket_only\",\"purpose\":\"loopback\",\"result\":{\"allowed\":true,\"errno\":0,\"error\":\"\"},\"transport\":\"udp\"}}\n{\"scenario\":\"network\",\"event\":\"socket\",\"pid\":1,\"details\":{\"family\":\"ipv6\",\"operation\":\"socket_only\",\"purpose\":\"dns\",\"result\":{\"allowed\":true,\"errno\":0,\"error\":\"\"},\"transport\":\"udp\"}}\n{\"scenario\":\"network\",\"event\":\"socket\",\"pid\":1,\"details\":{\"family\":\"unix\",\"operation\":\"socket_only\",\"purpose\":\"local\",\"result\":{\"allowed\":true,\"errno\":0,\"error\":\"\"},\"transport\":\"stream\"}}\n{\"scenario\":\"network\",\"event\":\"socket\",\"pid\":1,\"details\":{\"family\":\"netlink\",\"operation\":\"socket_only\",\"purpose\":\"local\",\"result\":{\"allowed\":true,\"errno\":0,\"error\":\"\"},\"transport\":\"raw\"}}\n",
+        "stderr": "",
+        "stdout_truncated": false,
+        "stderr_truncated": false,
+        "duration_ms": 59,
+        "total_duration_ms": 170,
+        "execution_fingerprint": "sha256:e80f497f53161c3d7e59d2f97f2b3a55b6bf71449eab992fe880d699dea5a8a3",
+        "platform": "linux/aarch64",
+        "image_id": "sha256:79e023e73994b328dc8e7a0946419f1c8ec05114ff7ac9e28ffe3f95fef09c06"
+      }
+    },
+    {
+      "scenario": "filesystem",
+      "control": false,
+      "limits": {
+        "wall_ms": 10000,
+        "output_bytes": 65536
+      },
+      "memory_bytes": 67108864,
+      "execution": {
+        "termination": "exited",
+        "exit_code": 0,
+        "oom_killed": false,
+        "stdout": "{\"scenario\":\"filesystem\",\"event\":\"rootfs_canary\",\"pid\":1,\"details\":{\"path\":\"/rootfs-canary\",\"read_result\":{\"allowed\":true,\"errno\":0,\"error\":\"\"},\"stat_result\":{\"allowed\":true,\"errno\":0,\"error\":\"\"},\"world_writable\":true}}\n{\"scenario\":\"filesystem\",\"event\":\"write\",\"pid\":1,\"details\":{\"path\":\"/mcp-probe\",\"result\":{\"allowed\":false,\"errno\":13,\"error\":\"permission denied\"}}}\n{\"scenario\":\"filesystem\",\"event\":\"write\",\"pid\":1,\"details\":{\"path\":\"/rootfs-canary\",\"result\":{\"allowed\":false,\"errno\":30,\"error\":\"read-only file system\"}}}\n{\"scenario\":\"filesystem\",\"event\":\"write\",\"pid\":1,\"details\":{\"path\":\"/work/positive\",\"result\":{\"allowed\":true,\"errno\":0,\"error\":\"\"}}}\n{\"scenario\":\"filesystem\",\"event\":\"host_canary\",\"pid\":1,\"details\":{\"absent\":true,\"path\":\"/etc/host-canary\",\"result\":{\"allowed\":false,\"errno\":2,\"error\":\"no such file or directory\"}}}\n{\"scenario\":\"filesystem\",\"event\":\"symlink\",\"pid\":1,\"details\":{\"path\":\"/work/probe-link\",\"result\":{\"allowed\":true,\"errno\":0,\"error\":\"\"},\"target\":\"/rootfs-canary\"}}\n{\"scenario\":\"filesystem\",\"event\":\"symlink_write\",\"pid\":1,\"details\":{\"path\":\"/work/probe-link\",\"result\":{\"allowed\":false,\"errno\":30,\"error\":\"read-only file system\"}}}\n{\"scenario\":\"filesystem\",\"event\":\"symlink_swap\",\"pid\":1,\"details\":{\"swaps\":256,\"attempts\":512,\"positive_writes\":250,\"readonly_denials\":262,\"unexpected_root_writes\":0,\"other_errors\":0}}\n{\"scenario\":\"filesystem\",\"event\":\"filesystem_assertions\",\"pid\":1,\"details\":{\"canary_read_result\":{\"allowed\":true,\"errno\":0,\"error\":\"\"},\"passed\":true,\"rootfs_unchanged\":true,\"unexpected_root_writes\":0}}\n",
+        "stderr": "",
+        "stdout_truncated": false,
+        "stderr_truncated": false,
+        "duration_ms": 62,
+        "total_duration_ms": 172,
+        "execution_fingerprint": "sha256:5171a5a956f0029917ff1cc421939fe70587aa4fd5a59a10c03a3a174666ea7c",
+        "platform": "linux/aarch64",
+        "image_id": "sha256:79e023e73994b328dc8e7a0946419f1c8ec05114ff7ac9e28ffe3f95fef09c06"
+      }
+    },
+    {
+      "scenario": "filesystem",
+      "control": true,
+      "limits": {
+        "wall_ms": 10000,
+        "output_bytes": 65536
+      },
+      "memory_bytes": 67108864,
+      "execution": {
+        "termination": "exited",
+        "exit_code": 1,
+        "oom_killed": false,
+        "stdout": "{\"scenario\":\"filesystem\",\"event\":\"rootfs_canary\",\"pid\":1,\"details\":{\"path\":\"/rootfs-canary\",\"read_result\":{\"allowed\":true,\"errno\":0,\"error\":\"\"},\"stat_result\":{\"allowed\":true,\"errno\":0,\"error\":\"\"},\"world_writable\":true}}\n{\"scenario\":\"filesystem\",\"event\":\"write\",\"pid\":1,\"details\":{\"path\":\"/mcp-probe\",\"result\":{\"allowed\":false,\"errno\":13,\"error\":\"permission denied\"}}}\n{\"scenario\":\"filesystem\",\"event\":\"write\",\"pid\":1,\"details\":{\"path\":\"/rootfs-canary\",\"result\":{\"allowed\":true,\"errno\":0,\"error\":\"\"}}}\n{\"scenario\":\"filesystem\",\"event\":\"write\",\"pid\":1,\"details\":{\"path\":\"/work/positive\",\"result\":{\"allowed\":true,\"errno\":0,\"error\":\"\"}}}\n{\"scenario\":\"filesystem\",\"event\":\"host_canary\",\"pid\":1,\"details\":{\"absent\":true,\"path\":\"/etc/host-canary\",\"result\":{\"allowed\":false,\"errno\":2,\"error\":\"no such file or directory\"}}}\n{\"scenario\":\"filesystem\",\"event\":\"symlink\",\"pid\":1,\"details\":{\"path\":\"/work/probe-link\",\"result\":{\"allowed\":true,\"errno\":0,\"error\":\"\"},\"target\":\"/rootfs-canary\"}}\n{\"scenario\":\"filesystem\",\"event\":\"symlink_write\",\"pid\":1,\"details\":{\"path\":\"/work/probe-link\",\"result\":{\"allowed\":true,\"errno\":0,\"error\":\"\"}}}\n{\"scenario\":\"filesystem\",\"event\":\"symlink_swap\",\"pid\":1,\"details\":{\"swaps\":256,\"attempts\":512,\"positive_writes\":380,\"readonly_denials\":0,\"unexpected_root_writes\":132,\"other_errors\":0}}\n{\"scenario\":\"filesystem\",\"event\":\"filesystem_assertions\",\"pid\":1,\"details\":{\"canary_read_result\":{\"allowed\":true,\"errno\":0,\"error\":\"\"},\"passed\":false,\"rootfs_unchanged\":false,\"unexpected_root_writes\":132}}\n",
+        "stderr": "",
+        "stdout_truncated": false,
+        "stderr_truncated": false,
+        "duration_ms": 59,
+        "total_duration_ms": 168,
+        "execution_fingerprint": "sha256:2e848119de63dcccec4b7e83a8659db7ac6b0a878701410d352b03e4c5f70004",
+        "platform": "linux/aarch64",
+        "image_id": "sha256:79e023e73994b328dc8e7a0946419f1c8ec05114ff7ac9e28ffe3f95fef09c06"
+      }
+    },
+    {
+      "scenario": "descendants",
+      "control": false,
+      "limits": {
+        "wall_ms": 1500,
+        "output_bytes": 65536
+      },
+      "memory_bytes": 67108864,
+      "execution": {
+        "termination": "timed_out",
+        "exit_code": null,
+        "oom_killed": null,
+        "stdout": "{\"scenario\":\"descendants\",\"event\":\"descendant_started\",\"pid\":10,\"details\":{\"child_pid\":13,\"double_fork\":true,\"duration_seconds\":60,\"intermediate_pid\":10,\"original_parent_pid\":1,\"parent_process_group\":1,\"setsid\":true}}\n{\"scenario\":\"descendants\",\"event\":\"intermediate_exited\",\"pid\":1,\"details\":{\"duration_seconds\":60,\"intermediate_pid\":10,\"parent_process_group\":1}}\n{\"scenario\":\"heartbeat\",\"event\":\"heartbeat\",\"pid\":13,\"details\":{\"parent_pid\":1,\"process_group\":13,\"tick\":0}}\n{\"scenario\":\"heartbeat\",\"event\":\"heartbeat\",\"pid\":13,\"details\":{\"parent_pid\":1,\"process_group\":13,\"tick\":1}}\n{\"scenario\":\"heartbeat\",\"event\":\"heartbeat\",\"pid\":13,\"details\":{\"parent_pid\":1,\"process_group\":13,\"tick\":2}}\n{\"scenario\":\"heartbeat\",\"event\":\"heartbeat\",\"pid\":13,\"details\":{\"parent_pid\":1,\"process_group\":13,\"tick\":3}}\n{\"scenario\":\"heartbeat\",\"event\":\"heartbeat\",\"pid\":13,\"details\":{\"parent_pid\":1,\"process_group\":13,\"tick\":4}}\n{\"scenario\":\"heartbeat\",\"event\":\"heartbeat\",\"pid\":13,\"details\":{\"parent_pid\":1,\"process_group\":13,\"tick\":5}}\n{\"scenario\":\"heartbeat\",\"event\":\"heartbeat\",\"pid\":13,\"details\":{\"parent_pid\":1,\"process_group\":13,\"tick\":6}}\n{\"scenario\":\"heartbeat\",\"event\":\"heartbeat\",\"pid\":13,\"details\":{\"parent_pid\":1,\"process_group\":13,\"tick\":7}}\n{\"scenario\":\"heartbeat\",\"event\":\"heartbeat\",\"pid\":13,\"details\":{\"parent_pid\":1,\"process_group\":13,\"tick\":8}}\n{\"scenario\":\"heartbeat\",\"event\":\"heartbeat\",\"pid\":13,\"details\":{\"parent_pid\":1,\"process_group\":13,\"tick\":9}}\n{\"scenario\":\"heartbeat\",\"event\":\"heartbeat\",\"pid\":13,\"details\":{\"parent_pid\":1,\"process_group\":13,\"tick\":10}}\n{\"scenario\":\"heartbeat\",\"event\":\"heartbeat\",\"pid\":13,\"details\":{\"parent_pid\":1,\"process_group\":13,\"tick\":11}}\n{\"scenario\":\"heartbeat\",\"event\":\"heartbeat\",\"pid\":13,\"details\":{\"parent_pid\":1,\"process_group\":13,\"tick\":12}}\n{\"scenario\":\"heartbeat\",\"event\":\"heartbeat\",\"pid\":13,\"details\":{\"parent_pid\":1,\"process_group\":13,\"tick\":13}}\n",
+        "stderr": "",
+        "stdout_truncated": false,
+        "stderr_truncated": false,
+        "duration_ms": 1507,
+        "total_duration_ms": 1657,
+        "execution_fingerprint": "sha256:0317f8f755c26c0bbf85e80639a8965bf579012556e24c18311a503d07ff1a73",
+        "platform": "linux/aarch64",
+        "image_id": "sha256:79e023e73994b328dc8e7a0946419f1c8ec05114ff7ac9e28ffe3f95fef09c06"
+      }
+    },
+    {
+      "scenario": "output",
+      "control": false,
+      "limits": {
+        "wall_ms": 10000,
+        "output_bytes": 4096
+      },
+      "memory_bytes": 67108864,
+      "execution": {
+        "termination": "output_limit",
+        "exit_code": null,
+        "oom_killed": null,
+        "stdout": "{\"scenario\":\"output\",\"event\":\"output\",\"pid\":1,\"details\":{\"index\":0,\"payload\":\"xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+        "stderr": "{\"scenario\":\"output\",\"event\":\"output\",\"pid\":1,\"details\":{\"index\":0,\"payload\":\"xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+        "stdout_truncated": true,
+        "stderr_truncated": true,
+        "duration_ms": 47,
+        "total_duration_ms": 140,
+        "execution_fingerprint": "sha256:f4143ceb5a7833d9f2622f149b289e047222ea5becfc2d786414fc88a268f952",
+        "platform": "linux/aarch64",
+        "image_id": "sha256:79e023e73994b328dc8e7a0946419f1c8ec05114ff7ac9e28ffe3f95fef09c06"
+      }
+    },
+    {
+      "scenario": "cgroups",
+      "control": false,
+      "limits": {
+        "wall_ms": 10000,
+        "output_bytes": 65536
+      },
+      "memory_bytes": 67108864,
+      "execution": {
+        "termination": "exited",
+        "exit_code": 0,
+        "oom_killed": false,
+        "stdout": "{\"scenario\":\"cgroups\",\"event\":\"cgroups\",\"pid\":1,\"details\":{\"cpu.max\":{\"result\":{\"allowed\":true,\"errno\":0,\"error\":\"\"},\"value\":\"50000 100000\"},\"memory.events\":{\"result\":{\"allowed\":true,\"errno\":0,\"error\":\"\"},\"value\":\"low 0\\nhigh 0\\nmax 0\\noom 0\\noom_kill 0\\noom_group_kill 0\\nsock_throttled 0\"},\"memory.max\":{\"result\":{\"allowed\":true,\"errno\":0,\"error\":\"\"},\"value\":\"67108864\"},\"pids.current\":{\"result\":{\"allowed\":true,\"errno\":0,\"error\":\"\"},\"value\":\"4\"},\"pids.events\":{\"result\":{\"allowed\":true,\"errno\":0,\"error\":\"\"},\"value\":\"max 0\"},\"pids.max\":{\"result\":{\"allowed\":true,\"errno\":0,\"error\":\"\"},\"value\":\"64\"}}}\n",
+        "stderr": "",
+        "stdout_truncated": false,
+        "stderr_truncated": false,
+        "duration_ms": 56,
+        "total_duration_ms": 162,
+        "execution_fingerprint": "sha256:2f163c8771443ddb3c302a15ab21ffde064e83c20256facef08d3a62e6bca6f3",
+        "platform": "linux/aarch64",
+        "image_id": "sha256:79e023e73994b328dc8e7a0946419f1c8ec05114ff7ac9e28ffe3f95fef09c06"
+      }
+    },
+    {
+      "scenario": "pids",
+      "control": false,
+      "limits": {
+        "wall_ms": 10000,
+        "output_bytes": 65536
+      },
+      "memory_bytes": 268435456,
+      "execution": {
+        "termination": "exited",
+        "exit_code": 0,
+        "oom_killed": false,
+        "stdout": "{\"scenario\":\"pids\",\"event\":\"spawn_failed\",\"pid\":1,\"details\":{\"attempt\":21,\"eagain\":true,\"result\":{\"allowed\":false,\"errno\":11,\"error\":\"resource temporarily unavailable\"}}}\n{\"scenario\":\"pids\",\"event\":\"pids\",\"pid\":1,\"details\":{\"cgroups\":{\"cpu.max\":{\"result\":{\"allowed\":true,\"errno\":0,\"error\":\"\"},\"value\":\"50000 100000\"},\"memory.events\":{\"result\":{\"allowed\":true,\"errno\":0,\"error\":\"\"},\"value\":\"low 0\\nhigh 0\\nmax 0\\noom 0\\noom_kill 0\\noom_group_kill 0\\nsock_throttled 0\"},\"memory.max\":{\"result\":{\"allowed\":true,\"errno\":0,\"error\":\"\"},\"value\":\"268435456\"},\"pids.current\":{\"result\":{\"allowed\":true,\"errno\":0,\"error\":\"\"},\"value\":\"64\"},\"pids.events\":{\"result\":{\"allowed\":true,\"errno\":0,\"error\":\"\"},\"value\":\"max 1\"},\"pids.max\":{\"result\":{\"allowed\":true,\"errno\":0,\"error\":\"\"},\"value\":\"64\"}},\"eagain\":true,\"maximum_attempts\":80,\"started\":21}}\n",
+        "stderr": "",
+        "stdout_truncated": false,
+        "stderr_truncated": false,
+        "duration_ms": 63,
+        "total_duration_ms": 171,
+        "execution_fingerprint": "sha256:354e3f7ba07cf2e51cc0ec517e7526bc854b1b7a6f56dafc9d68f8d1abad14d0",
+        "platform": "linux/aarch64",
+        "image_id": "sha256:79e023e73994b328dc8e7a0946419f1c8ec05114ff7ac9e28ffe3f95fef09c06"
+      }
+    },
+    {
+      "scenario": "memory",
+      "control": false,
+      "limits": {
+        "wall_ms": 10000,
+        "output_bytes": 65536
+      },
+      "memory_bytes": 67108864,
+      "execution": {
+        "termination": "exited",
+        "exit_code": 137,
+        "oom_killed": true,
+        "stdout": "{\"scenario\":\"memory\",\"event\":\"memory_started\",\"pid\":1,\"details\":{\"maximum_bytes\":201326592}}\n{\"scenario\":\"memory\",\"event\":\"memory_allocated\",\"pid\":1,\"details\":{\"bytes\":8388608}}\n{\"scenario\":\"memory\",\"event\":\"memory_allocated\",\"pid\":1,\"details\":{\"bytes\":16777216}}\n{\"scenario\":\"memory\",\"event\":\"memory_allocated\",\"pid\":1,\"details\":{\"bytes\":25165824}}\n{\"scenario\":\"memory\",\"event\":\"memory_allocated\",\"pid\":1,\"details\":{\"bytes\":33554432}}\n{\"scenario\":\"memory\",\"event\":\"memory_allocated\",\"pid\":1,\"details\":{\"bytes\":41943040}}\n{\"scenario\":\"memory\",\"event\":\"memory_allocated\",\"pid\":1,\"details\":{\"bytes\":50331648}}\n{\"scenario\":\"memory\",\"event\":\"memory_allocated\",\"pid\":1,\"details\":{\"bytes\":58720256}}\n",
+        "stderr": "",
+        "stdout_truncated": false,
+        "stderr_truncated": false,
+        "duration_ms": 65,
+        "total_duration_ms": 173,
+        "execution_fingerprint": "sha256:f1879b2848c94dfcbc57445c49220d4a5e1d78e679efe657b82a03d620e6d516",
+        "platform": "linux/aarch64",
+        "image_id": "sha256:79e023e73994b328dc8e7a0946419f1c8ec05114ff7ac9e28ffe3f95fef09c06"
+      }
+    },
+    {
+      "scenario": "disk",
+      "control": false,
+      "limits": {
+        "wall_ms": 10000,
+        "output_bytes": 65536
+      },
+      "memory_bytes": 67108864,
+      "execution": {
+        "termination": "exited",
+        "exit_code": 0,
+        "oom_killed": false,
+        "stdout": "{\"scenario\":\"disk\",\"event\":\"disk\",\"pid\":1,\"details\":{\"bytes_written\":8388608,\"enospc\":true,\"result\":{\"allowed\":false,\"errno\":28,\"error\":\"no space left on device\"}}}\n",
+        "stderr": "",
+        "stdout_truncated": false,
+        "stderr_truncated": false,
+        "duration_ms": 59,
+        "total_duration_ms": 173,
+        "execution_fingerprint": "sha256:62de0fcb6e243b648b1ca5235be2d000cf2cab418cadf638eab5d5fdb6ec5a84",
+        "platform": "linux/aarch64",
+        "image_id": "sha256:79e023e73994b328dc8e7a0946419f1c8ec05114ff7ac9e28ffe3f95fef09c06"
+      }
+    },
+    {
+      "scenario": "cpu",
+      "control": false,
+      "limits": {
+        "wall_ms": 10000,
+        "output_bytes": 65536
+      },
+      "memory_bytes": 67108864,
+      "execution": {
+        "termination": "exited",
+        "exit_code": 0,
+        "oom_killed": false,
+        "stdout": "{\"scenario\":\"cpu\",\"event\":\"cpu\",\"pid\":1,\"details\":{\"after\":{\"result\":{\"allowed\":true,\"errno\":0,\"error\":\"\"},\"value\":\"usage_usec 1521722\\nuser_usec 1510719\\nsystem_usec 11003\\nnice_usec 0\\nnr_periods 30\\nnr_throttled 30\\nthrottled_usec 1506227\\nnr_bursts 0\\nburst_usec 0\"},\"before\":{\"result\":{\"allowed\":true,\"errno\":0,\"error\":\"\"},\"value\":\"usage_usec 5438\\nuser_usec 0\\nsystem_usec 5438\\nnice_usec 0\\nnr_periods 0\\nnr_throttled 0\\nthrottled_usec 0\\nnr_bursts 0\\nburst_usec 0\"},\"checksum\":12151875147235131393,\"cpu.max\":{\"result\":{\"allowed\":true,\"errno\":0,\"error\":\"\"},\"value\":\"50000 100000\"},\"elapsed_milliseconds\":3000,\"iterations\":18929}}\n",
+        "stderr": "",
+        "stdout_truncated": false,
+        "stderr_truncated": false,
+        "duration_ms": 3065,
+        "total_duration_ms": 3184,
+        "execution_fingerprint": "sha256:eb3e91767b217ee9a00414323e59813df88244946531244ffaf19fa7d89615bb",
+        "platform": "linux/aarch64",
+        "image_id": "sha256:79e023e73994b328dc8e7a0946419f1c8ec05114ff7ac9e28ffe3f95fef09c06"
+      }
+    }
+  ],
+  "invalid_evidence": []
+}

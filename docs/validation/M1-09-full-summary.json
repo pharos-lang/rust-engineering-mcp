@@ -1,0 +1,28 @@
+{
+  "full_log_sha256": "d274c631915ff321759f33fbb3f0acecee46f5421d4fbf312f046ba2c6b9a4af",
+  "core_tests_including_doctest": 498,
+  "m0_docker_tests": 4,
+  "rust_security_exact_tests": 20,
+  "audit_data_exact_tests": 1,
+  "semantic_test_invocations": [
+    7,
+    0,
+    0,
+    1
+  ],
+  "semantic_proof_lines": [
+    "PASS published SHA256; 93 files; only two exact manifest edits; Rust sources unchanged",
+    "PASS network positive controls IPv4/IPv6 bind; ORT SHA256 4d53c916ea95f09203324f9aad7b76f75c16d8a4bc98f8a949ea0ac73c07604d",
+    "test real_offline_e5_lance_sqlite_roundtrip ... ignored, Requires RUST_MCP_E5_DIR and explicit network-isolation calibration via scripts/test-semantic.py",
+    "test real_offline_e5_lance_sqlite_roundtrip ... E5/Lance result for ownership: [SemanticCandidate { crate_name: \"ownership\", distance: 0.27902523 }, SemanticCandidate { crate_name: \"serde_json\", distance: 0.43071872 }, SemanticCandidate { crate_name: \"tokio\", distance: 0.43422505 }]",
+    "E5/Lance result for serde_json: [SemanticCandidate { crate_name: \"serde_json\", distance: 0.23213457 }, SemanticCandidate { crate_name: \"tokio\", distance: 0.3243479 }, SemanticCandidate { crate_name: \"ownership\", distance: 0.36427516 }]",
+    "PASS real E5 + LanceDB + authoritative SQLite + rebuild + mismatch fallback, network denied",
+    "PASS semantic gate: real model, index, SQLite, calibrated network deny, configured TMPDIR remains absent",
+    "PASS full gate: target/M1-09-full.json"
+  ],
+  "warnings": [
+    "paste1.0.15 maintenance advisory remains visible",
+    "LanceDB0.31 dependency unused resolve_arrow_field_path warning; no gate modification"
+  ],
+  "scope": "Counts describe separate gate stages; semantic ordinary tests overlap the core and are not added as unique tests."
+}

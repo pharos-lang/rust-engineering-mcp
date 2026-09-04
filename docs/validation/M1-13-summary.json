@@ -1,0 +1,28 @@
+{
+  "core_report": "M1-13-core.json",
+  "core_tests_including_doctests": 629,
+  "core_stages": 10,
+  "protocol_tests": 37,
+  "all_features_clippy": "passed",
+  "native_gate": "scripts/test-crate-inspect.py",
+  "local_feature_ordinary_tests": 2,
+  "embedding_inference_required": false,
+  "network_enforcement": "macOS sandbox-exec deny network*; positive IPv4/IPv6 controls outside and denied inside",
+  "full_rerun": false,
+  "full_rerun_reason": "Proportional read-only inspection gate; final M1 candidate requires full18/18 including unchanged Docker/native search stages",
+  "logs": {
+    "M1-13-core.log": {
+      "sha256": "365d6ff21c81649885fa5ead163edf64969b69ac76248428fb9b2b4b09f4c5fc",
+      "bytes": 102736
+    },
+    "M1-13-native.log": {
+      "sha256": "1ea4d73af4903f403a847c8bf10b5c335af5aeead4985de19f054897a76ba5fd",
+      "bytes": 577
+    },
+    "M1-13-all-features-clippy.log": {
+      "sha256": "b3e447164122250f75ce1d3c197c7bdc4407e2d5a5d0cda6b967b790b1e6cba2",
+      "bytes": 1337
+    }
+  },
+  "native_transcript": "M1-13-native.txt"
+}

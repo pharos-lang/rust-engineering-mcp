@@ -1,0 +1,9 @@
+{
+  "decision": "approved_for_bounded_preflight_attempt_2",
+  "approved_at_unix": 1788547599,
+  "plan_canonical_sha256": "08319ae703db61675b60b1f9fe923dd67ec7f47cf9246fdf3d52dc5cc705ceff",
+  "prompt_sha256": "9c5461c4ba4a07019e936559d61717b372cae77bc5341816bee3d5034a4b6a26",
+  "controller_sha256": "2fe6b11a63a0d782980c77459a95588cd9e99799027d6a834d07e8772102fcac",
+  "scope": "direct app-server preflight only; model phase requires a separate successful preflight receipt",
+  "review": "principal owner verified removal of one unsupported Codex override; closed plan, strict config, one MCP server, exact 13-tool allowlist, bounded I/O, identity checks, fail-closed cleanup and no global config mutation remain enforced"
+}

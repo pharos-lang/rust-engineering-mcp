@@ -1,0 +1,70 @@
+{
+  "canonical_tools_sha256": "7c83911d4a75f693bb661e4b93535af32c2fb5c90f0bdf781821cf0be3b57136",
+  "cleanup": {
+    "all_state_empty_after": true,
+    "all_transport_cleanup_verified": true
+  },
+  "client": {
+    "binary_sha256": "a29d9e86eef88cbbd69f97ce8c590b1d0a287c8f77424f5eef226b883d7eaa22",
+    "name": "Codex app-server"
+  },
+  "deep_structural_equality": true,
+  "interpretation": "The historical tools_sha256 fields hashed insertion-order JSON and therefore were not canonical contract digests. The two full tool maps are structurally equal and have the same canonical digest.",
+  "model_turns": 0,
+  "per_tool_canonical_sha256": {
+    "rust.catalog.status": "c075bbb21e1cd6cc394ff65733d4016cf90d61d0c085acbbb206d4a88b6524dc",
+    "rust.check": "6d16c69a5c782828717a45d7e7a7271b34e2376323dcfcfb3d0cc049b02b8385",
+    "rust.clippy": "5a87e39711ad006c11951ea27d23950111f1011f66f4412181a9c54809750b9b",
+    "rust.crate.inspect": "6cc9ab735e48fb865213386a606702b7f22b576cbf1b0f7d36f6196a9d1d8ce1",
+    "rust.crate.search": "0788868ed18a7ed2d8b3002017a312f1adea5b90ea3430d8bfbfd516b693a83c",
+    "rust.dependencies.audit": "1f8d62f3949f565fc8aabdacce61dab65919c6f0cf0c4cecccf4f03389d5d1cc",
+    "rust.diagnostics.explain": "861e1b4ff08196f35ced4f07dbb69a2135f5a4e0720ebf73d2766d726c5376f4",
+    "rust.fmt.check": "1c17b28a27063f0d4e7cbd4837d72c958b6a9d022f248a0d53474ba209146f45",
+    "rust.project.inspect": "7f424a454332475212a4f06ec1ac945cfe600cdf382a3ed238bda70212139f4a",
+    "rust.project.open": "84b9ceb750351eb803a461d05e2383bce441d5dc059c591f1e91a9f5c4c3d128",
+    "rust.quality.gate": "fcd2b3058e9b19aecaee84a28ea90b04a234598609613a569bcc02b817dd1ee3",
+    "rust.test": "0104d39a86b2f1a3881fa0f2f458750fa71b3fc6688a76584471da67d7321525",
+    "rust.toolchain.inspect": "c821fcfd1d94ba65580364f27280f18d2b439e38215526dc0e7181c10832db3d"
+  },
+  "product_tool_calls": 0,
+  "raw_map_retention": "Full session maps remain under ignored target/m1-17-codex-client; this repo-visible receipt retains names and canonical per-tool digests.",
+  "scope": "stock-codex-two-session-tool-inventory-canonicalization",
+  "server": {
+    "binary_sha256": "7a99038be57429e1db32c91d01772e7efd104691828253f45ed3bbb0e9330417",
+    "name": "rust-engineering-mcp"
+  },
+  "sessions": [
+    {
+      "canonical_tools_sha256": "7c83911d4a75f693bb661e4b93535af32c2fb5c90f0bdf781821cf0be3b57136",
+      "cleanup_verified": true,
+      "session": 1,
+      "state_empty_after": true,
+      "tool_count": 13,
+      "wire_order_sha256": "58b1b530dece9a503c0bfafad42ea71e96e44716b83b415cfef812582c1767ac"
+    },
+    {
+      "canonical_tools_sha256": "7c83911d4a75f693bb661e4b93535af32c2fb5c90f0bdf781821cf0be3b57136",
+      "cleanup_verified": true,
+      "session": 2,
+      "state_empty_after": true,
+      "tool_count": 13,
+      "wire_order_sha256": "32cf6f2bbc52af796cf8b98137412ac2d926da97d36a23bbd59f6825037d0b74"
+    }
+  ],
+  "status": "passed",
+  "tool_names": [
+    "rust.catalog.status",
+    "rust.check",
+    "rust.clippy",
+    "rust.crate.inspect",
+    "rust.crate.search",
+    "rust.dependencies.audit",
+    "rust.diagnostics.explain",
+    "rust.fmt.check",
+    "rust.project.inspect",
+    "rust.project.open",
+    "rust.quality.gate",
+    "rust.test",
+    "rust.toolchain.inspect"
+  ]
+}

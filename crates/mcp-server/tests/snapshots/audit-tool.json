@@ -1,0 +1,856 @@
+{
+  "name": "rust.dependencies.audit",
+  "description": "Audit the captured Cargo.lock with a host-configured, integrity-verified offline RustSec snapshot. Returns resolved package/version findings, patched requirements, bounded workspace paths, source coverage and latest_known project/RustSec evidence. Uses approved offline metadata; performs no advisory downloads or installs. Requires a live project_ref and completed discovery. Paths are one shortest representative per workspace root; the captured lock is not proof of active feature resolution. Integrity is relative to the host-expected checksum, not publisher authentication. Incomplete or stale evidence never passes.",
+  "inputSchema": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "additionalProperties": false,
+    "properties": {
+      "project_ref": {
+        "pattern": "^prj_[0-9a-f]{32}$",
+        "type": "string"
+      }
+    },
+    "required": [
+      "project_ref"
+    ],
+    "title": "Input",
+    "type": "object"
+  },
+  "outputSchema": {
+    "$defs": {
+      "AuditFinding": {
+        "additionalProperties": false,
+        "properties": {
+          "advisory_id": {
+            "type": "string"
+          },
+          "informational": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "package": {
+            "$ref": "#/$defs/AuditPackage"
+          },
+          "patched_requirements": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "paths": {
+            "items": {
+              "$ref": "#/$defs/AuditPath"
+            },
+            "type": "array"
+          },
+          "paths_omitted": {
+            "format": "uint64",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "severity": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/AuditSeverity"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "title": {
+            "type": "string"
+          },
+          "unaffected_requirements": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "url": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "advisory_id",
+          "url",
+          "title",
+          "package",
+          "patched_requirements",
+          "unaffected_requirements",
+          "severity",
+          "informational",
+          "paths",
+          "paths_omitted"
+        ],
+        "type": "object"
+      },
+      "AuditIssue": {
+        "enum": [
+          "snapshot_unavailable",
+          "snapshot_stale",
+          "snapshot_unknown_age",
+          "unsupported_sources",
+          "output_budget"
+        ],
+        "type": "string"
+      },
+      "AuditObservation": {
+        "additionalProperties": false,
+        "properties": {
+          "crates_io_scanned": {
+            "format": "uint32",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "findings": {
+            "items": {
+              "$ref": "#/$defs/AuditFinding"
+            },
+            "type": "array"
+          },
+          "findings_omitted": {
+            "format": "uint64",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "informational": {
+            "items": {
+              "$ref": "#/$defs/AuditFinding"
+            },
+            "type": "array"
+          },
+          "issue": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/AuditIssue"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "lock_fingerprint": {
+            "pattern": "^sha256:[0-9a-f]{64}$",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "packages_total": {
+            "format": "uint32",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "snapshot": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/RustSecEvidence"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "snapshot_fingerprint": {
+            "pattern": "^sha256:[0-9a-f]{64}$",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "snapshot_record_count": {
+            "format": "uint32",
+            "minimum": 0,
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "snapshot_sequence": {
+            "format": "uint64",
+            "minimum": 0,
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "state": {
+            "$ref": "#/$defs/AuditState"
+          },
+          "unsupported_packages": {
+            "items": {
+              "$ref": "#/$defs/AuditPackage"
+            },
+            "type": "array"
+          },
+          "validation_complete": {
+            "type": "boolean"
+          },
+          "workspace_packages_excluded": {
+            "format": "uint32",
+            "minimum": 0,
+            "type": "integer"
+          }
+        },
+        "required": [
+          "state",
+          "issue",
+          "validation_complete",
+          "lock_fingerprint",
+          "snapshot_fingerprint",
+          "snapshot",
+          "snapshot_record_count",
+          "snapshot_sequence",
+          "packages_total",
+          "crates_io_scanned",
+          "workspace_packages_excluded",
+          "unsupported_packages",
+          "findings",
+          "informational",
+          "findings_omitted"
+        ],
+        "type": "object"
+      },
+      "AuditPackage": {
+        "additionalProperties": false,
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "source": {
+            "$ref": "#/$defs/AuditSource"
+          },
+          "source_fingerprint": {
+            "pattern": "^sha256:[0-9a-f]{64}$",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "version": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "name",
+          "version",
+          "source",
+          "source_fingerprint"
+        ],
+        "type": "object"
+      },
+      "AuditPath": {
+        "additionalProperties": false,
+        "properties": {
+          "packages": {
+            "description": "Includes workspace root and affected package; represents one captured lock path.",
+            "items": {
+              "$ref": "#/$defs/AuditPackage"
+            },
+            "type": "array"
+          },
+          "workspace_root": {
+            "$ref": "#/$defs/AuditPackage"
+          }
+        },
+        "required": [
+          "workspace_root",
+          "packages"
+        ],
+        "type": "object"
+      },
+      "AuditSeverity": {
+        "enum": [
+          "none",
+          "low",
+          "medium",
+          "high",
+          "critical"
+        ],
+        "type": "string"
+      },
+      "AuditSource": {
+        "enum": [
+          "crates_io",
+          "workspace",
+          "unverified"
+        ],
+        "type": "string"
+      },
+      "AuditState": {
+        "enum": [
+          "passed",
+          "failed",
+          "incomplete",
+          "unavailable"
+        ],
+        "type": "string"
+      },
+      "Code": {
+        "enum": [
+          "AUDIT_SNAPSHOT_UNAVAILABLE",
+          "AUDIT_SNAPSHOT_STALE",
+          "AUDIT_SNAPSHOT_UNKNOWN_AGE",
+          "AUDIT_SNAPSHOT_INVALID",
+          "AUDIT_INTEGRITY_FAILED",
+          "AUDIT_LOCKFILE_MISSING",
+          "AUDIT_LOCKFILE_INVALID",
+          "AUDIT_BUDGET_EXCEEDED",
+          "AUDIT_INCOMPLETE",
+          "PROJECT_NOT_FOUND",
+          "INVALID_PROJECT",
+          "TOOL_NOT_INSTALLED",
+          "LOCKFILE_UPDATE_REQUIRED",
+          "COMMAND_TIMEOUT",
+          "SANDBOX_DENIED",
+          "NETWORK_DENIED",
+          "UNSUPPORTED_PLATFORM",
+          "OUTPUT_LIMIT_EXCEEDED"
+        ],
+        "type": "string"
+      },
+      "Data": {
+        "additionalProperties": false,
+        "properties": {
+          "observation": {
+            "$ref": "#/$defs/AuditObservation"
+          },
+          "project_identity_fingerprint": {
+            "pattern": "^sha256:[0-9a-f]{64}$",
+            "type": "string"
+          },
+          "project_ref": {
+            "pattern": "^prj_[0-9a-f]{32}$",
+            "type": "string"
+          },
+          "runtime": {
+            "$ref": "#/$defs/RuntimeIdentity"
+          },
+          "semantics": {
+            "$ref": "#/$defs/Semantics"
+          },
+          "source_fingerprint": {
+            "pattern": "^sha256:[0-9a-f]{64}$",
+            "type": "string"
+          }
+        },
+        "required": [
+          "project_ref",
+          "project_identity_fingerprint",
+          "semantics",
+          "source_fingerprint",
+          "runtime",
+          "observation"
+        ],
+        "type": "object"
+      },
+      "Evidence": {
+        "oneOf": [
+          {
+            "additionalProperties": false,
+            "properties": {
+              "kind": {
+                "const": "local",
+                "type": "string"
+              }
+            },
+            "required": [
+              "kind"
+            ],
+            "type": "object"
+          },
+          {
+            "additionalProperties": false,
+            "properties": {
+              "details": {
+                "$ref": "#/$defs/SnapshotEvidence"
+              },
+              "kind": {
+                "const": "snapshot",
+                "type": "string"
+              }
+            },
+            "required": [
+              "kind",
+              "details"
+            ],
+            "type": "object"
+          }
+        ]
+      },
+      "Freshness": {
+        "additionalProperties": false,
+        "properties": {
+          "age_seconds": {
+            "format": "uint64",
+            "minimum": 0,
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "assessed_at": {
+            "format": "uint64",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "policy": {
+            "$ref": "#/$defs/FreshnessPolicy"
+          },
+          "state": {
+            "$ref": "#/$defs/FreshnessState"
+          }
+        },
+        "required": [
+          "state",
+          "age_seconds",
+          "assessed_at",
+          "policy"
+        ],
+        "type": "object"
+      },
+      "FreshnessPolicy": {
+        "additionalProperties": false,
+        "properties": {
+          "fresh_for_seconds": {
+            "format": "uint64",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "id": {
+            "maxLength": 128,
+            "minLength": 1,
+            "type": "string"
+          },
+          "stale_after_seconds": {
+            "format": "uint64",
+            "minimum": 0,
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "fresh_for_seconds",
+          "stale_after_seconds"
+        ],
+        "type": "object"
+      },
+      "FreshnessState": {
+        "enum": [
+          "live",
+          "fresh",
+          "aging",
+          "stale",
+          "unknown"
+        ],
+        "type": "string"
+      },
+      "IntegrityStatus": {
+        "enum": [
+          "verified",
+          "unverified",
+          "failed",
+          "unknown"
+        ],
+        "type": "string"
+      },
+      "Provenance": {
+        "additionalProperties": false,
+        "properties": {
+          "created_at": {
+            "format": "uint64",
+            "minimum": 0,
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "integrity": {
+            "$ref": "#/$defs/IntegrityStatus"
+          },
+          "network_used": {
+            "type": "boolean"
+          },
+          "observed_at": {
+            "format": "uint64",
+            "minimum": 0,
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "source_id": {
+            "pattern": "^sha256:[0-9a-f]{64}$",
+            "type": "string"
+          },
+          "source_kind": {
+            "$ref": "#/$defs/SourceKind"
+          }
+        },
+        "required": [
+          "source_kind",
+          "source_id",
+          "created_at",
+          "observed_at",
+          "integrity",
+          "network_used"
+        ],
+        "type": "object"
+      },
+      "RuntimeIdentity": {
+        "additionalProperties": false,
+        "properties": {
+          "cargo_version": {
+            "maxLength": 4096,
+            "type": "string"
+          },
+          "configuration_fingerprint": {
+            "pattern": "^sha256:[0-9a-f]{64}$",
+            "type": "string"
+          },
+          "declared_toolchain": {
+            "maxLength": 6,
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "execution_fingerprint": {
+            "pattern": "^sha256:[0-9a-f]{64}$",
+            "type": "string"
+          },
+          "image_id": {
+            "pattern": "^sha256:[0-9a-f]{64}$",
+            "type": "string"
+          },
+          "platform": {
+            "maxLength": 4096,
+            "type": "string"
+          },
+          "rust_version": {
+            "maxLength": 4096,
+            "type": "string"
+          }
+        },
+        "required": [
+          "platform",
+          "image_id",
+          "configuration_fingerprint",
+          "execution_fingerprint",
+          "rust_version",
+          "cargo_version",
+          "declared_toolchain"
+        ],
+        "type": "object"
+      },
+      "RustSecEvidence": {
+        "additionalProperties": false,
+        "properties": {
+          "freshness": {
+            "$ref": "#/$defs/Freshness"
+          },
+          "provenance": {
+            "$ref": "#/$defs/RustSecProvenance"
+          }
+        },
+        "required": [
+          "provenance",
+          "freshness"
+        ],
+        "type": "object"
+      },
+      "RustSecProvenance": {
+        "additionalProperties": false,
+        "properties": {
+          "created_at": {
+            "format": "uint64",
+            "minimum": 0,
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "integrity": {
+            "$ref": "#/$defs/IntegrityStatus"
+          },
+          "network_used": {
+            "type": "boolean"
+          },
+          "observed_at": {
+            "format": "uint64",
+            "minimum": 0,
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "source_id": {
+            "type": "string"
+          },
+          "source_kind": {
+            "$ref": "#/$defs/RustSecSourceKind"
+          }
+        },
+        "required": [
+          "source_kind",
+          "source_id",
+          "created_at",
+          "observed_at",
+          "integrity",
+          "network_used"
+        ],
+        "type": "object"
+      },
+      "RustSecSourceKind": {
+        "enum": [
+          "rustsec_snapshot"
+        ],
+        "type": "string"
+      },
+      "Semantics": {
+        "enum": [
+          "latest_known"
+        ],
+        "type": "string"
+      },
+      "SnapshotEvidence": {
+        "additionalProperties": false,
+        "properties": {
+          "freshness": {
+            "$ref": "#/$defs/Freshness"
+          },
+          "provenance": {
+            "$ref": "#/$defs/Provenance"
+          }
+        },
+        "required": [
+          "provenance",
+          "freshness"
+        ],
+        "type": "object"
+      },
+      "SourceKind": {
+        "enum": [
+          "project_snapshot"
+        ],
+        "type": "string"
+      },
+      "Truncation": {
+        "additionalProperties": false,
+        "properties": {
+          "diagnostics_omitted": {
+            "format": "uint64",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "findings_omitted": {
+            "format": "uint64",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "paths_omitted": {
+            "format": "uint64",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "stderr_truncated": {
+            "type": "boolean"
+          },
+          "stdout_truncated": {
+            "type": "boolean"
+          },
+          "unsupported_packages_omitted": {
+            "format": "uint64",
+            "minimum": 0,
+            "type": "integer"
+          }
+        },
+        "required": [
+          "stdout_truncated",
+          "stderr_truncated",
+          "diagnostics_omitted",
+          "findings_omitted",
+          "paths_omitted",
+          "unsupported_packages_omitted"
+        ],
+        "type": "object"
+      }
+    },
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "oneOf": [
+      {
+        "properties": {
+          "data": {
+            "$ref": "#/$defs/Data"
+          },
+          "error_code": {
+            "type": "null"
+          },
+          "error_message": {
+            "type": "null"
+          },
+          "status": {
+            "const": "passed",
+            "type": "string"
+          }
+        },
+        "required": [
+          "status",
+          "error_code",
+          "error_message",
+          "data"
+        ],
+        "type": "object"
+      },
+      {
+        "properties": {
+          "data": {
+            "$ref": "#/$defs/Data"
+          },
+          "error_code": {
+            "type": "null"
+          },
+          "error_message": {
+            "type": "null"
+          },
+          "status": {
+            "const": "failed",
+            "type": "string"
+          }
+        },
+        "required": [
+          "status",
+          "error_code",
+          "error_message",
+          "data"
+        ],
+        "type": "object"
+      },
+      {
+        "properties": {
+          "data": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/Data"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "error_code": {
+            "$ref": "#/$defs/Code"
+          },
+          "error_message": {
+            "type": "string"
+          },
+          "status": {
+            "const": "blocked",
+            "type": "string"
+          }
+        },
+        "required": [
+          "status",
+          "error_code",
+          "error_message",
+          "data"
+        ],
+        "type": "object"
+      },
+      {
+        "properties": {
+          "data": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/Data"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "error_code": {
+            "$ref": "#/$defs/Code"
+          },
+          "error_message": {
+            "type": "string"
+          },
+          "status": {
+            "const": "unavailable",
+            "type": "string"
+          }
+        },
+        "required": [
+          "status",
+          "error_code",
+          "error_message",
+          "data"
+        ],
+        "type": "object"
+      },
+      {
+        "properties": {
+          "data": {
+            "type": "null"
+          },
+          "error_code": {
+            "type": "null"
+          },
+          "error_message": {
+            "type": "null"
+          },
+          "status": {
+            "const": "cancelled",
+            "type": "string"
+          }
+        },
+        "required": [
+          "status",
+          "error_code",
+          "error_message",
+          "data"
+        ],
+        "type": "object"
+      }
+    ],
+    "properties": {
+      "diagnostics": {
+        "maxItems": 0,
+        "type": "array"
+      },
+      "duration_ms": {
+        "format": "uint64",
+        "minimum": 0,
+        "type": "integer"
+      },
+      "evidence": {
+        "$ref": "#/$defs/Evidence"
+      },
+      "summary": {
+        "type": "string"
+      },
+      "truncation": {
+        "$ref": "#/$defs/Truncation"
+      }
+    },
+    "required": [
+      "summary",
+      "duration_ms",
+      "diagnostics",
+      "truncation",
+      "evidence"
+    ],
+    "title": "Output",
+    "type": "object",
+    "unevaluatedProperties": false
+  },
+  "annotations": {
+    "readOnlyHint": true,
+    "destructiveHint": false,
+    "idempotentHint": true,
+    "openWorldHint": false
+  }
+}

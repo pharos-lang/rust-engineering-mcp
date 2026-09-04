@@ -1,0 +1,35 @@
+{
+  "scope": "Full run before final CLI floor observability/error refinements; see final followup gates and source receipt",
+  "full_log_sha256": "0a802600523ddde857a8d40dfcfbdbcc3bb21f70977e688a1d9c86582d8c0676",
+  "core_tests_including_doctest": 539,
+  "rust_security_exact_tests": 20,
+  "m0_docker_tests": 4,
+  "audit_data_exact_tests": 1,
+  "semantic_test_invocations": [
+    16,
+    0,
+    0,
+    1
+  ],
+  "catalog_test_invocations": [
+    4,
+    1
+  ],
+  "proof_lines": [
+    "PASS domain/application dependency and IO boundaries, sole process gateway, offline engine defaults, memory-only model adapter",
+    "PASS published SHA256; 93 files; only two exact manifest edits; Rust sources unchanged",
+    "PASS actual Rust containment, MCP inspection/check/format/clippy/test/audit/explain/quality/Resources and joined cleanup: <LOCAL_HOME>/Projects/rust-mcp/target/rust-security",
+    "PASS owned RustSec/SQLite under actual macOS test-process network deny; no temp writes",
+    "PASS published SHA256; 93 files; only two exact manifest edits; Rust sources unchanged",
+    "PASS network positive controls IPv4/IPv6 bind; ORT SHA256 4d53c916ea95f09203324f9aad7b76f75c16d8a4bc98f8a949ea0ac73c07604d",
+    "PASS real E5 + LanceDB + authoritative SQLite + rebuild + mismatch fallback, network denied",
+    "PASS semantic gate: real model, index, SQLite, calibrated network deny, configured TMPDIR remains absent",
+    "PASS signed CLI import/status/restart/rollback and real E5 native index rebuild/reopen under network deny",
+    "PASS full gate: target/M1-10-full.json"
+  ],
+  "warnings": [
+    "paste1.0.15 maintenance remains",
+    "LanceDB unused resolve_arrow_field_path remains"
+  ],
+  "counts_note": "Stage counts overlap; not a sum of unique tests"
+}

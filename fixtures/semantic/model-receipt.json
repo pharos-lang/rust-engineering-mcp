@@ -1,0 +1,66 @@
+{
+  "schema": "rust-mcp-development-model-artifact-v1",
+  "repository": "intfloat/multilingual-e5-small",
+  "revision": "614241f622f53c4eeff9890bdc4f31cfecc418b3",
+  "license": "mit",
+  "provenance": {
+    "metadata_url": "https://huggingface.co/api/models/intfloat/multilingual-e5-small/revision/614241f622f53c4eeff9890bdc4f31cfecc418b3",
+    "download_method": "explicit-development-provisioning; HTTPS official Hugging Face repository/CDN; no runtime download",
+    "downloaded_utc": "2026-09-04T00:17:22Z"
+  },
+  "files": [
+    {
+      "path": "onnx/model.onnx",
+      "bytes": 470268510,
+      "sha256": "ca456c06b3a9505ddfd9131408916dd79290368331e7d76bb621f1cba6bc8665",
+      "source_url": "https://huggingface.co/intfloat/multilingual-e5-small/resolve/614241f622f53c4eeff9890bdc4f31cfecc418b3/onnx/model.onnx?download=true",
+      "expected_bytes": 470268510,
+      "expected_sha256_lfs": "ca456c06b3a9505ddfd9131408916dd79290368331e7d76bb621f1cba6bc8665"
+    },
+    {
+      "path": "onnx/tokenizer.json",
+      "bytes": 17082730,
+      "sha256": "0b44a9d7b51c3c62626640cda0e2c2f70fdacdc25bbbd68038369d14ebdf4c39",
+      "source_url": "https://huggingface.co/intfloat/multilingual-e5-small/resolve/614241f622f53c4eeff9890bdc4f31cfecc418b3/onnx/tokenizer.json?download=true",
+      "expected_bytes": 17082730,
+      "expected_sha256_lfs": "0b44a9d7b51c3c62626640cda0e2c2f70fdacdc25bbbd68038369d14ebdf4c39"
+    },
+    {
+      "path": "onnx/config.json",
+      "bytes": 653,
+      "sha256": "bbb7c1333fc4b3e27fbc9cd5d2070aabcc1d4dfb99917c3633e772f97545a6b6",
+      "source_url": "https://huggingface.co/intfloat/multilingual-e5-small/resolve/614241f622f53c4eeff9890bdc4f31cfecc418b3/onnx/config.json?download=true",
+      "expected_bytes": 653,
+      "expected_sha256_lfs": null
+    },
+    {
+      "path": "onnx/special_tokens_map.json",
+      "bytes": 167,
+      "sha256": "d05497f1da52c5e09554c0cd874037a083e1dc1b9cfd48034d1c717f1afc07a7",
+      "source_url": "https://huggingface.co/intfloat/multilingual-e5-small/resolve/614241f622f53c4eeff9890bdc4f31cfecc418b3/onnx/special_tokens_map.json?download=true",
+      "expected_bytes": 167,
+      "expected_sha256_lfs": null
+    },
+    {
+      "path": "onnx/tokenizer_config.json",
+      "bytes": 443,
+      "sha256": "a1d6bc8734a6f635dc158508bef000f8e2e5a759c7d92f984b2c86e5ff53425b",
+      "source_url": "https://huggingface.co/intfloat/multilingual-e5-small/resolve/614241f622f53c4eeff9890bdc4f31cfecc418b3/onnx/tokenizer_config.json?download=true",
+      "expected_bytes": 443,
+      "expected_sha256_lfs": null
+    }
+  ],
+  "license_provenance": {
+    "publisher_declared_spdx": "MIT",
+    "source_url": "https://huggingface.co/intfloat/multilingual-e5-small/blob/614241f622f53c4eeff9890bdc4f31cfecc418b3/README.md",
+    "verification": "cardData.license in official revision metadata; no separate license file was present in inspected repository listing"
+  },
+  "embedding": {
+    "dimension": 384,
+    "pooling": "mean",
+    "normalization": "l2",
+    "max_length": 512,
+    "query_prefix": "query: ",
+    "document_prefix": "passage: "
+  }
+}

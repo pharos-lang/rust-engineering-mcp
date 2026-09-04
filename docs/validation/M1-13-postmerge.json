@@ -1,0 +1,12 @@
+{
+  "feature_commit": "08e41f3",
+  "merge_commit": "392a8f2",
+  "clean_main_before_after": true,
+  "source_hashes_verified": 296,
+  "tests": {
+    "crate_inspect": 2,
+    "protocol": 37
+  },
+  "command": "CARGO_INCREMENTAL=0 cargo test --locked --offline -p rust-engineering-mcp --test protocol --test crate_inspect",
+  "log_sha256": "6b60141ee2f99d444b848bce3643323724dae69e5c4629a5bbbd32345375f940"
+}

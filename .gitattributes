@@ -1,0 +1,12 @@
+# Unified-diff context deliberately contains a single space on empty lines.
+vendor/lancedb-manifest-only.patch -whitespace
+
+# Preserve original license/notice bytes and receipt offsets across checkouts.
+docs/release/THIRD_PARTY_NOTICES.candidate.txt -text -whitespace
+docs/release/upstream-licenses/** -text -whitespace
+
+# Preserve captured third-party source bytes used by research provenance hashes.
+docs/research/m1-16/corpus/selection/sources/** -text -whitespace
+
+# Preserve exact measured research receipts and reviewer packet bytes.
+docs/research/m1-16/measurement/results/** -text -whitespace

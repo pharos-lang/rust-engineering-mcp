@@ -1,0 +1,13 @@
+{
+  "commit": "9f28179",
+  "merge": "8c3869c",
+  "status": "passed",
+  "command": "CARGO_INCREMENTAL=0 cargo test -p rust-engineering-mcp --test catalog_cli --test protocol --locked --offline",
+  "test_counts": {
+    "catalog_cli": 5,
+    "protocol": 31
+  },
+  "log_sha256": "126d2963c35434cfc53e230baaf0401140f8fd292dd037c726336747ff0482b9",
+  "source_hashes_verified": 256,
+  "scope": "Actual CLI import/restart/rollback/key rotation/human status and MCP five-version protocol smoke; no network acquisition or native rebuild required in this smoke"
+}

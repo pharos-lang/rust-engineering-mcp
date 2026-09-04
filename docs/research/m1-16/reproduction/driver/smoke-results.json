@@ -1,0 +1,14 @@
+{
+  "status": "passed",
+  "no_valid_execution_requests": true,
+  "cases": [
+    {
+      "case": "closed_ipc_denials",
+      "status": "passed"
+    },
+    {
+      "case": "signal_permanent_cancel",
+      "status": "passed"
+    }
+  ]
+}

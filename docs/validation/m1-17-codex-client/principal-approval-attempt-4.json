@@ -1,0 +1,9 @@
+{
+  "decision": "approved_for_bounded_preflight_attempt_4",
+  "approved_at_unix": 1788547921,
+  "plan_canonical_sha256": "08319ae703db61675b60b1f9fe923dd67ec7f47cf9246fdf3d52dc5cc705ceff",
+  "prompt_sha256": "9c5461c4ba4a07019e936559d61717b372cae77bc5341816bee3d5034a4b6a26",
+  "controller_sha256": "12c18fd1aa375b039e02d1b5a0dca42ec80ac5065d77c9674c5eeb77ceb40a58",
+  "scope": "direct app-server preflight only; model phase requires a separate successful preflight receipt",
+  "review": "principal owner verified Codex 0.153.0 status shape: target tools are a 13-key map, while process-locally disabled node_repl and youtrack have empty maps and no serverInfo; all previous closed-plan, strict-config, identity, bounded-I/O, cleanup and no-global-mutation controls remain enforced"
+}

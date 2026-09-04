@@ -1,0 +1,11 @@
+{
+  "decision": "approved_for_single_native_model_turn",
+  "approved_at_unix": 1788548126,
+  "plan_canonical_sha256": "08319ae703db61675b60b1f9fe923dd67ec7f47cf9246fdf3d52dc5cc705ceff",
+  "prompt_sha256": "9c5461c4ba4a07019e936559d61717b372cae77bc5341816bee3d5034a4b6a26",
+  "controller_sha256": "53deac4bdbe84f49e1174ecb262ba40b07878837cfc4dbcea3fd87bf5b28c934",
+  "preflight_receipt_sha256": "699c92a1e500e9fdee142b3d2a0b71f72e9c5256e7f7b7f321ba47c3f2ade71a",
+  "preflight_status": "passed",
+  "scope": "one ephemeral gpt-5.6-sol medium turn; exactly one rust.catalog.status MCP call with empty arguments; no other model tool; 180-second and 4000-output-token bounds",
+  "review": "principal owner verified the passed direct preflight, exact prompt, native mcpToolCall observer, disabled host servers and capabilities, cleanup, identity and Docker checks; model phase may proceed once"
+}

@@ -1,0 +1,25 @@
+{
+  "schema_version": 1,
+  "kind": "M1-16-postmerge-smoke",
+  "commit": "34ca69f3fc043d6646c8fb9b46e1185c171109b0",
+  "branch": "main",
+  "platform": "macOS-26.6.2-arm64-arm-64bit-Mach-O",
+  "manifest_files": 417,
+  "manifest_verified": true,
+  "reviewed_evaluations": 24,
+  "all_final_success": true,
+  "planned_runs": 24,
+  "recorded_runs": 24,
+  "verified_infrastructure_runs": 24,
+  "reviewed_runs": 24,
+  "paired_counts": {
+    "first": {
+      "both_pass": 12
+    },
+    "final": {
+      "both_pass": 12
+    }
+  },
+  "analyzer_tests": 8,
+  "status": "passed"
+}

@@ -1,0 +1,23 @@
+{
+  "cases": 6,
+  "cleanup": true,
+  "configuration_fingerprint": "sha256:a98f414d408eec7c7cdf154437d7bf31c54322f6b342f275bc34df98e606a0a0",
+  "default_warning_passed": true,
+  "execution_fingerprints": [
+    "sha256:b94c3f84a1d4d31fad95d26f6269ef84bf6d6925eb7125f1edaf91923f5ec1c2",
+    "sha256:b09c520de95bc5fcf6c26eefaa8720fd045129e13598783e78aa59a32ac6bdb1",
+    "sha256:8e7c07b569f3ca839be5230f7a5bfed009aa9a7644dbd12c1a272f29657c7fe6",
+    "sha256:ec0bd5c853e4f9d64e8647fa0346bb4c67186b4f0fe65bbbb337f8adeb741f52",
+    "sha256:5f7babd10b4dcd70758afaee64f22c92cea4e6eee5074db86fb9c91fcc418f0a",
+    "sha256:cc6ee16c307aa97b979aa6d7a0b152ca538cf81cc39f16ff5ca8cfaa4ac50c83"
+  ],
+  "logs_verified": 6,
+  "package_features_all_targets_verified": true,
+  "pedantic_opt_in": true,
+  "project_alias_verified": true,
+  "source_unchanged": true,
+  "status": "passed",
+  "strict_warning_failed": true,
+  "structured_findings_suggestions": true,
+  "workspace_verified": true
+}

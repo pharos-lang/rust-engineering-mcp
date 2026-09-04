@@ -1,0 +1,87 @@
+{
+  "status": "passed",
+  "mode": "full",
+  "source_commit": "d024c7c72648206266f0d195ffc7040fb444eef6",
+  "source_branch": "ai/m1-17-release-qualification",
+  "source_dirty_state": [
+    "M docs/validation/M1-17-matrix.md",
+    "?? docs/validation/M1-17-inspector.md",
+    "?? docs/validation/m1-17-inspector/"
+  ],
+  "scope_note": "Dirty paths were documentation/evidence only; no production source, manifest, tests, CI or gate script changes were present.",
+  "command": [
+    "python3",
+    "scripts/gate.py",
+    "full",
+    "--report",
+    "target/m1-17-final-full-report.json"
+  ],
+  "environment": {
+    "RUST_MCP_TEST_SOCKET": "<LOCAL_HOME>/.docker/run/docker.sock",
+    "RUST_MCP_E5_DIR": "/private/tmp/rust-mcp-e5-m009/onnx",
+    "ORT_LIB_LOCATION": "<LOCAL_HOME>/Library/Caches/ort.pyke.io/dfbin/aarch64-apple-darwin/612739f75438dc0a075461e1fb454226b4a1eb175e60a7271ba966bbbb972cd4",
+    "CARGO_INCREMENTAL": "0"
+  },
+  "recorded_stage_seconds": 757.737,
+  "start_time_limit": "The wrapper did not record an exact start timestamp; no exact start is claimed.",
+  "platform": "macOS-26.6.2-arm64-arm-64bit-Mach-O",
+  "machine": "arm64",
+  "rustc": "rustc 1.98.1 (48a229cea 2026-09-01)",
+  "cargo": "cargo 1.98.1 (797e8a9bc 2026-08-05)",
+  "stages": 19,
+  "stage_statuses": {
+    "fmt": "passed",
+    "check": "passed",
+    "clippy": "passed",
+    "test": "passed",
+    "doctests": "passed",
+    "architecture": "passed",
+    "vendor": "passed",
+    "cargo-fixtures": "passed",
+    "audit": "passed",
+    "deny": "passed",
+    "docker-security": "passed",
+    "rust-security": "passed",
+    "audit-data": "passed",
+    "semantic": "passed",
+    "catalog": "passed",
+    "catalog-status": "passed",
+    "crate-search": "passed",
+    "crate-inspect": "passed",
+    "doctor": "passed"
+  },
+  "docker_postcheck": {
+    "org.rust-mcp.execution": {
+      "containers": [],
+      "volumes": []
+    },
+    "org.rust-engineering-mcp.managed": {
+      "containers": [],
+      "volumes": []
+    }
+  },
+  "files": {
+    "full-report.json": {
+      "sha256": "7c2d8f467df3d80321a6a40bc72c889bafb643988bc82c813dd5d7d2568e7baa",
+      "bytes": 4984
+    },
+    "full.log": {
+      "sha256": "25c2312a629bf6d7e65ebc36ead7f36027d20eda5121bcb78726e8709accc289",
+      "bytes": 147687
+    }
+  },
+  "secret_pattern_scan": {
+    "openai_key": 0,
+    "bearer": 0,
+    "private_key": 0
+  },
+  "completed_at_from_original_report_mtime": "2026-09-04T18:37:16.544201+00:00",
+  "source_branch_note": "The qualified commit was checked out on ai/m1-17-release-qualification and was also the main branch tip at gate time.",
+  "post_gate_evidence_note": "M1-17 gate documentation and follow-up receipts were added after the preserved run; no claim is made that they were present during it.",
+  "followup_receipts": [
+    "counts-derived-from-log.json",
+    "rustsec-identity-posthoc.json",
+    "audit-focused.json",
+    "secret-scan-followup.json"
+  ]
+}

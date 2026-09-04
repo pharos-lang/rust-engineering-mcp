@@ -1,0 +1,896 @@
+{
+  "name": "rust.clippy",
+  "description": "Lint captured Rust source with Clippy using host-approved offline Cargo. Can execute build scripts and proc macros inside the calibrated sandbox. Accepts bounded closed selections and default, strict, pedantic or project lint profiles. Default and project honor native captured lint policy; strict denies warnings and pedantic opts into warning-level pedantic lints. Source allows may suppress lints. Returns normalized diagnostics and an ephemeral owner-authorized log Resource. Project code may write the diagnostic stream; normalization does not authenticate its origin. Requires a live project_ref and completed discovery; installs nothing.",
+  "inputSchema": {
+    "$defs": {
+      "Feature": {
+        "maxLength": 128,
+        "minLength": 1,
+        "pattern": "^[A-Za-z0-9_][A-Za-z0-9_-]*(/[A-Za-z0-9_][A-Za-z0-9_-]*)?$",
+        "type": "string"
+      },
+      "LintProfile": {
+        "enum": [
+          "default",
+          "strict",
+          "pedantic",
+          "project"
+        ],
+        "type": "string"
+      }
+    },
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "additionalProperties": false,
+    "properties": {
+      "all_targets": {
+        "default": false,
+        "type": "boolean"
+      },
+      "features": {
+        "default": [],
+        "items": {
+          "$ref": "#/$defs/Feature"
+        },
+        "maxItems": 32,
+        "type": "array"
+      },
+      "lint_profile": {
+        "$ref": "#/$defs/LintProfile",
+        "default": "default"
+      },
+      "package": {
+        "default": null,
+        "maxLength": 128,
+        "minLength": 1,
+        "pattern": "^[A-Za-z0-9_][A-Za-z0-9_-]*$",
+        "type": [
+          "string",
+          "null"
+        ]
+      },
+      "project_ref": {
+        "pattern": "^prj_[0-9a-f]{32}$",
+        "type": "string"
+      },
+      "workspace": {
+        "default": false,
+        "type": "boolean"
+      }
+    },
+    "required": [
+      "project_ref"
+    ],
+    "title": "Input",
+    "type": "object"
+  },
+  "outputSchema": {
+    "$defs": {
+      "Applicability": {
+        "enum": [
+          "machine_applicable",
+          "maybe_incorrect",
+          "has_placeholders",
+          "unspecified"
+        ],
+        "type": "string"
+      },
+      "ByteRange": {
+        "additionalProperties": false,
+        "properties": {
+          "end": {
+            "format": "uint64",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "start": {
+            "format": "uint64",
+            "minimum": 0,
+            "type": "integer"
+          }
+        },
+        "required": [
+          "start",
+          "end"
+        ],
+        "type": "object"
+      },
+      "ClippyOptions": {
+        "additionalProperties": false,
+        "properties": {
+          "all_targets": {
+            "type": "boolean"
+          },
+          "features": {
+            "items": {
+              "$ref": "#/$defs/Feature"
+            },
+            "maxItems": 32,
+            "type": "array"
+          },
+          "lint_profile": {
+            "$ref": "#/$defs/LintProfile"
+          },
+          "package": {
+            "maxLength": 128,
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9_][A-Za-z0-9_-]*$",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "workspace": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "package",
+          "workspace",
+          "features",
+          "all_targets",
+          "lint_profile"
+        ],
+        "type": "object"
+      },
+      "Code": {
+        "enum": [
+          "PROJECT_NOT_FOUND",
+          "INVALID_PROJECT",
+          "TOOL_NOT_INSTALLED",
+          "LOCKFILE_UPDATE_REQUIRED",
+          "COMMAND_TIMEOUT",
+          "SANDBOX_DENIED",
+          "NETWORK_DENIED",
+          "UNSUPPORTED_PLATFORM",
+          "OUTPUT_LIMIT_EXCEEDED"
+        ],
+        "type": "string"
+      },
+      "Data": {
+        "additionalProperties": false,
+        "properties": {
+          "exit_code": {
+            "format": "int32",
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "log": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/Log"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "log_unavailable_reason": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/LogUnavailableReason"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "options": {
+            "$ref": "#/$defs/ClippyOptions"
+          },
+          "project_identity_fingerprint": {
+            "pattern": "^sha256:[0-9a-f]{64}$",
+            "type": "string"
+          },
+          "project_ref": {
+            "pattern": "^prj_[0-9a-f]{32}$",
+            "type": "string"
+          },
+          "runtime": {
+            "$ref": "#/$defs/RuntimeIdentity"
+          },
+          "semantics": {
+            "$ref": "#/$defs/Semantics"
+          },
+          "source_fingerprint": {
+            "pattern": "^sha256:[0-9a-f]{64}$",
+            "type": "string"
+          },
+          "termination": {
+            "$ref": "#/$defs/ExecutionTermination"
+          },
+          "validation_complete": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "project_ref",
+          "project_identity_fingerprint",
+          "semantics",
+          "options",
+          "validation_complete",
+          "termination",
+          "exit_code",
+          "runtime",
+          "source_fingerprint",
+          "log",
+          "log_unavailable_reason"
+        ],
+        "type": "object"
+      },
+      "Diagnostic": {
+        "additionalProperties": false,
+        "properties": {
+          "code": {
+            "maxLength": 128,
+            "minLength": 1,
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "message": {
+            "maxLength": 4096,
+            "minLength": 1,
+            "type": "string"
+          },
+          "rendered": {
+            "maxLength": 4096,
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "severity": {
+            "$ref": "#/$defs/Severity"
+          },
+          "source": {
+            "$ref": "#/$defs/DiagnosticSource"
+          },
+          "spans": {
+            "items": {
+              "$ref": "#/$defs/SourceSpan"
+            },
+            "maxItems": 32,
+            "type": "array"
+          },
+          "suggestions": {
+            "items": {
+              "$ref": "#/$defs/Suggestion"
+            },
+            "maxItems": 16,
+            "type": "array"
+          },
+          "truncated": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "source",
+          "severity",
+          "code",
+          "message",
+          "spans",
+          "rendered",
+          "suggestions",
+          "truncated"
+        ],
+        "type": "object"
+      },
+      "DiagnosticSource": {
+        "enum": [
+          "rustc",
+          "cargo",
+          "clippy",
+          "rustfmt",
+          "rustsec"
+        ],
+        "type": "string"
+      },
+      "Evidence": {
+        "oneOf": [
+          {
+            "additionalProperties": false,
+            "properties": {
+              "kind": {
+                "const": "local",
+                "type": "string"
+              }
+            },
+            "required": [
+              "kind"
+            ],
+            "type": "object"
+          },
+          {
+            "additionalProperties": false,
+            "properties": {
+              "details": {
+                "$ref": "#/$defs/SnapshotEvidence"
+              },
+              "kind": {
+                "const": "snapshot",
+                "type": "string"
+              }
+            },
+            "required": [
+              "kind",
+              "details"
+            ],
+            "type": "object"
+          }
+        ]
+      },
+      "ExecutionTermination": {
+        "enum": [
+          "exited",
+          "timed_out",
+          "cancelled",
+          "output_limit"
+        ],
+        "type": "string"
+      },
+      "Feature": {
+        "maxLength": 128,
+        "minLength": 1,
+        "pattern": "^[A-Za-z0-9_][A-Za-z0-9_-]*(/[A-Za-z0-9_][A-Za-z0-9_-]*)?$",
+        "type": "string"
+      },
+      "Freshness": {
+        "additionalProperties": false,
+        "properties": {
+          "age_seconds": {
+            "format": "uint64",
+            "minimum": 0,
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "assessed_at": {
+            "format": "uint64",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "policy": {
+            "$ref": "#/$defs/FreshnessPolicy"
+          },
+          "state": {
+            "$ref": "#/$defs/FreshnessState"
+          }
+        },
+        "required": [
+          "state",
+          "age_seconds",
+          "assessed_at",
+          "policy"
+        ],
+        "type": "object"
+      },
+      "FreshnessPolicy": {
+        "additionalProperties": false,
+        "properties": {
+          "fresh_for_seconds": {
+            "format": "uint64",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "id": {
+            "maxLength": 128,
+            "minLength": 1,
+            "type": "string"
+          },
+          "stale_after_seconds": {
+            "format": "uint64",
+            "minimum": 0,
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "fresh_for_seconds",
+          "stale_after_seconds"
+        ],
+        "type": "object"
+      },
+      "FreshnessState": {
+        "enum": [
+          "live",
+          "fresh",
+          "aging",
+          "stale",
+          "unknown"
+        ],
+        "type": "string"
+      },
+      "IntegrityStatus": {
+        "enum": [
+          "verified",
+          "unverified",
+          "failed",
+          "unknown"
+        ],
+        "type": "string"
+      },
+      "LintProfile": {
+        "enum": [
+          "default",
+          "strict",
+          "pedantic",
+          "project"
+        ],
+        "type": "string"
+      },
+      "Log": {
+        "additionalProperties": false,
+        "properties": {
+          "retention_remaining_seconds": {
+            "format": "uint64",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "sha256": {
+            "pattern": "^[0-9a-f]{64}$",
+            "type": "string"
+          },
+          "size_bytes": {
+            "format": "uint32",
+            "maximum": 262144,
+            "minimum": 0,
+            "type": "integer"
+          },
+          "truncated": {
+            "type": "boolean"
+          },
+          "uri": {
+            "pattern": "^rust-artifact://prj_[0-9a-f]{32}/art_[0-9a-f]{32}$",
+            "type": "string"
+          }
+        },
+        "required": [
+          "uri",
+          "sha256",
+          "size_bytes",
+          "truncated",
+          "retention_remaining_seconds"
+        ],
+        "type": "object"
+      },
+      "LogUnavailableReason": {
+        "enum": [
+          "retention_capacity"
+        ],
+        "type": "string"
+      },
+      "Position": {
+        "additionalProperties": false,
+        "properties": {
+          "column": {
+            "format": "uint32",
+            "minimum": 1,
+            "type": "integer"
+          },
+          "line": {
+            "format": "uint32",
+            "minimum": 1,
+            "type": "integer"
+          }
+        },
+        "required": [
+          "line",
+          "column"
+        ],
+        "type": "object"
+      },
+      "Provenance": {
+        "additionalProperties": false,
+        "properties": {
+          "created_at": {
+            "format": "uint64",
+            "minimum": 0,
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "integrity": {
+            "$ref": "#/$defs/IntegrityStatus"
+          },
+          "network_used": {
+            "type": "boolean"
+          },
+          "observed_at": {
+            "format": "uint64",
+            "minimum": 0,
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "source_id": {
+            "pattern": "^sha256:[0-9a-f]{64}$",
+            "type": "string"
+          },
+          "source_kind": {
+            "$ref": "#/$defs/SourceKind"
+          }
+        },
+        "required": [
+          "source_kind",
+          "source_id",
+          "created_at",
+          "observed_at",
+          "integrity",
+          "network_used"
+        ],
+        "type": "object"
+      },
+      "Replacement": {
+        "additionalProperties": false,
+        "properties": {
+          "replacement": {
+            "maxLength": 4096,
+            "type": "string"
+          },
+          "span": {
+            "$ref": "#/$defs/SourceSpan"
+          }
+        },
+        "required": [
+          "span",
+          "replacement"
+        ],
+        "type": "object"
+      },
+      "RuntimeIdentity": {
+        "additionalProperties": false,
+        "properties": {
+          "cargo_version": {
+            "maxLength": 4096,
+            "type": "string"
+          },
+          "configuration_fingerprint": {
+            "pattern": "^sha256:[0-9a-f]{64}$",
+            "type": "string"
+          },
+          "declared_toolchain": {
+            "maxLength": 6,
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "execution_fingerprint": {
+            "pattern": "^sha256:[0-9a-f]{64}$",
+            "type": "string"
+          },
+          "image_id": {
+            "pattern": "^sha256:[0-9a-f]{64}$",
+            "type": "string"
+          },
+          "platform": {
+            "maxLength": 4096,
+            "type": "string"
+          },
+          "rust_version": {
+            "maxLength": 4096,
+            "type": "string"
+          }
+        },
+        "required": [
+          "platform",
+          "image_id",
+          "configuration_fingerprint",
+          "execution_fingerprint",
+          "rust_version",
+          "cargo_version",
+          "declared_toolchain"
+        ],
+        "type": "object"
+      },
+      "Semantics": {
+        "enum": [
+          "latest_known"
+        ],
+        "type": "string"
+      },
+      "Severity": {
+        "enum": [
+          "error",
+          "warning",
+          "note",
+          "help"
+        ],
+        "type": "string"
+      },
+      "SnapshotEvidence": {
+        "additionalProperties": false,
+        "properties": {
+          "freshness": {
+            "$ref": "#/$defs/Freshness"
+          },
+          "provenance": {
+            "$ref": "#/$defs/Provenance"
+          }
+        },
+        "required": [
+          "provenance",
+          "freshness"
+        ],
+        "type": "object"
+      },
+      "SourceKind": {
+        "enum": [
+          "project_snapshot"
+        ],
+        "type": "string"
+      },
+      "SourceSpan": {
+        "additionalProperties": false,
+        "properties": {
+          "bytes": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/ByteRange"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "end": {
+            "$ref": "#/$defs/Position"
+          },
+          "file": {
+            "maxLength": 100,
+            "minLength": 1,
+            "type": "string"
+          },
+          "is_primary": {
+            "type": "boolean"
+          },
+          "label": {
+            "maxLength": 4096,
+            "minLength": 1,
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "start": {
+            "$ref": "#/$defs/Position"
+          }
+        },
+        "required": [
+          "file",
+          "start",
+          "end",
+          "bytes",
+          "is_primary",
+          "label"
+        ],
+        "type": "object"
+      },
+      "Suggestion": {
+        "additionalProperties": false,
+        "properties": {
+          "applicability": {
+            "$ref": "#/$defs/Applicability"
+          },
+          "edits": {
+            "items": {
+              "$ref": "#/$defs/Replacement"
+            },
+            "maxItems": 16,
+            "minItems": 1,
+            "type": "array"
+          },
+          "message": {
+            "maxLength": 4096,
+            "minLength": 1,
+            "type": "string"
+          }
+        },
+        "required": [
+          "message",
+          "applicability",
+          "edits"
+        ],
+        "type": "object"
+      },
+      "Truncation": {
+        "additionalProperties": false,
+        "properties": {
+          "diagnostics_omitted": {
+            "format": "uint64",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "stderr_truncated": {
+            "type": "boolean"
+          },
+          "stdout_truncated": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "stdout_truncated",
+          "stderr_truncated",
+          "diagnostics_omitted"
+        ],
+        "type": "object"
+      }
+    },
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "oneOf": [
+      {
+        "properties": {
+          "data": {
+            "$ref": "#/$defs/Data"
+          },
+          "error_code": {
+            "type": "null"
+          },
+          "error_message": {
+            "type": "null"
+          },
+          "status": {
+            "const": "passed",
+            "type": "string"
+          }
+        },
+        "required": [
+          "status",
+          "error_code",
+          "error_message",
+          "data"
+        ],
+        "type": "object"
+      },
+      {
+        "properties": {
+          "data": {
+            "$ref": "#/$defs/Data"
+          },
+          "error_code": {
+            "type": "null"
+          },
+          "error_message": {
+            "type": "null"
+          },
+          "status": {
+            "const": "failed",
+            "type": "string"
+          }
+        },
+        "required": [
+          "status",
+          "error_code",
+          "error_message",
+          "data"
+        ],
+        "type": "object"
+      },
+      {
+        "properties": {
+          "data": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/Data"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "error_code": {
+            "$ref": "#/$defs/Code"
+          },
+          "error_message": {
+            "type": "string"
+          },
+          "status": {
+            "const": "blocked",
+            "type": "string"
+          }
+        },
+        "required": [
+          "status",
+          "error_code",
+          "error_message",
+          "data"
+        ],
+        "type": "object"
+      },
+      {
+        "properties": {
+          "data": {
+            "type": "null"
+          },
+          "error_code": {
+            "$ref": "#/$defs/Code"
+          },
+          "error_message": {
+            "type": "string"
+          },
+          "status": {
+            "const": "unavailable",
+            "type": "string"
+          }
+        },
+        "required": [
+          "status",
+          "error_code",
+          "error_message",
+          "data"
+        ],
+        "type": "object"
+      },
+      {
+        "properties": {
+          "data": {
+            "type": "null"
+          },
+          "error_code": {
+            "type": "null"
+          },
+          "error_message": {
+            "type": "null"
+          },
+          "status": {
+            "const": "cancelled",
+            "type": "string"
+          }
+        },
+        "required": [
+          "status",
+          "error_code",
+          "error_message",
+          "data"
+        ],
+        "type": "object"
+      }
+    ],
+    "properties": {
+      "diagnostics": {
+        "description": "Normalized project-writable Cargo output; compiler origin is not authenticated.",
+        "items": {
+          "$ref": "#/$defs/Diagnostic"
+        },
+        "maxItems": 128,
+        "type": "array"
+      },
+      "duration_ms": {
+        "format": "uint64",
+        "minimum": 0,
+        "type": "integer"
+      },
+      "evidence": {
+        "$ref": "#/$defs/Evidence"
+      },
+      "summary": {
+        "type": "string"
+      },
+      "truncation": {
+        "$ref": "#/$defs/Truncation"
+      }
+    },
+    "required": [
+      "summary",
+      "duration_ms",
+      "diagnostics",
+      "truncation",
+      "evidence"
+    ],
+    "title": "Output",
+    "type": "object",
+    "unevaluatedProperties": false
+  },
+  "annotations": {
+    "readOnlyHint": true,
+    "destructiveHint": false,
+    "idempotentHint": false,
+    "openWorldHint": false
+  }
+}

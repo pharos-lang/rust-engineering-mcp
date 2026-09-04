@@ -1,0 +1,26 @@
+{
+  "status": "passed",
+  "controls": [
+    {
+      "family": 2,
+      "outside": {
+        "connected": true
+      },
+      "inside": {
+        "connected": false,
+        "errno": 1
+      }
+    },
+    {
+      "family": 30,
+      "outside": {
+        "connected": true
+      },
+      "inside": {
+        "connected": false,
+        "errno": 1
+      }
+    }
+  ],
+  "profile": "(version 1) (allow default) (deny network-outbound (remote ip \"*:*\"))"
+}

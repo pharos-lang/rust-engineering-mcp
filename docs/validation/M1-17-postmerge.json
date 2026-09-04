@@ -1,0 +1,50 @@
+{
+  "captured_at_utc": "2026-09-04T20:24:02.611247+00:00",
+  "scope": "postmerge-evidence-integrity-and-cleanup",
+  "status": "passed",
+  "branch": "ai/m1-17-postmerge-evidence",
+  "qualification_commit": "84d927d",
+  "qualification_merge_commit": "06491a8edae1da3d71daf6e8ede39338be4c1ec3",
+  "full_gate_repeated": false,
+  "full_gate_reference": "docs/validation/m1-17-final-gate/receipt.json",
+  "rationale": "The qualification merge changes documentation and preserved evidence only; selected production build inputs remain byte-identical, so this smoke does not repeat the 19-stage full gate.",
+  "checks": {
+    "worktree_clean_before_receipt": true,
+    "repo_visible_json_parsed": 459,
+    "qualification_markdown_files_checked": 16,
+    "local_links_checked_and_indexed": 197,
+    "preserved_evidence_files_checked": 93,
+    "controller_tests": {
+      "passed": 11,
+      "failed": 0,
+      "command": [
+        "python3",
+        "docs/validation/m1-17-codex-client/test_controller.py"
+      ]
+    },
+    "candidate_binary": {
+      "path": "target/m1-15-candidate/local/bin/rust-engineering-mcp",
+      "sha256": "7a99038be57429e1db32c91d01772e7efd104691828253f45ed3bbb0e9330417"
+    },
+    "source_manifest": {
+      "path": "docs/release/candidate/source-files.json",
+      "sha256": "f142775240951dcd3390e186750e36f07d5c4ae12ad4e622eed2e3c3a8427115",
+      "entries_verified": 238,
+      "mismatches": []
+    },
+    "state_root_entry_counts": {
+      "target/m1-17-codex-client/state": 0
+    },
+    "python_cache_removed": true,
+    "managed_docker_objects": {
+      "socket": "<LOCAL_HOME>/.docker/run/docker.sock",
+      "available": true,
+      "containers": [],
+      "networks": [],
+      "volumes": []
+    }
+  },
+  "errors": [],
+  "release_status": "Blocked",
+  "remaining_blockers_reference": "docs/validation/M1-17-matrix.md"
+}

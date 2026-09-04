@@ -1,0 +1,29 @@
+{
+  "status": "passed",
+  "feature_commit": "983e5adbbdd490443d3daafeeed8a43c2394df16",
+  "integration_merge": "cc04f0cc83d22e5385564ce778ee25e37377c274",
+  "clean_main_before_smoke": true,
+  "test": "quality_runtime::quality_standard_distinguishes_pass_test_failure_and_unavailable_audit",
+  "exact_tests": 1,
+  "seconds": 39.58,
+  "runtime_receipt": {
+    "audit_after_failed_test": true,
+    "cases": 3,
+    "cleanup": true,
+    "configuration_fingerprint": "sha256:487cef3409e76e7d9c37afad9454e565023a8f1c9cf7581bed76c6f8b143f62e",
+    "logs_sha256_verified": 12,
+    "missing_snapshot_never_passes": true,
+    "nonmatching_real_rsa_snapshot": true,
+    "ordered_stages": 5,
+    "profiles": [
+      "standard"
+    ],
+    "real_test_failure_retained": true,
+    "snapshot_fingerprint": "sha256:0a0315e547b6950fa5b6c0c966c7e3acdf8079cdc01310ba6d364c7f2da0b1d5",
+    "source_unchanged_between_explicit_mutations": true
+  },
+  "log": "target/M1-09-postmerge.log",
+  "log_sha256": "5eeeaecf2228a2eb43617e3e763eb5a9d291bf5062ad34fae80dedc80fed7e25",
+  "source_tree_sha256": "87088bdd4b05839d669139824b3669586953012cacc732c8676778c1b81ca3c5",
+  "source_matches_integral_gate": true
+}

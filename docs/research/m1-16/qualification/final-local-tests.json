@@ -1,0 +1,48 @@
+{
+  "status": "passed",
+  "participant": 33,
+  "broker": 26,
+  "evaluator": 15,
+  "analyzer": 8,
+  "driver": 13,
+  "bundle": 1,
+  "executions": [
+    {
+      "command": [
+        "python3",
+        "target/m1-16-controller/broker_tests.py"
+      ],
+      "exit_code": 0,
+      "seconds": 0.083,
+      "log": "final-python-1.log",
+      "sha256": "5491ed2140dd7f01cbd671f22a864a005ca81341f5079ddae4bbba88bcdb1983"
+    },
+    {
+      "command": [
+        "python3",
+        "target/m1-16-controller/evaluate.py",
+        "--self-test"
+      ],
+      "exit_code": 0,
+      "seconds": 0.063,
+      "log": "final-python-2.log",
+      "sha256": "0aef0e2dc1948aa03d85ad7e7fcab0993c225e9841f3f5ddefb44e369ed57739"
+    },
+    {
+      "command": [
+        "python3",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "target/m1-16-controller",
+        "-p",
+        "test_analyze.py"
+      ],
+      "exit_code": 0,
+      "seconds": 0.1,
+      "log": "final-python-3.log",
+      "sha256": "e6b0816a4f65782b559ab0314abfb5a3aeac46bbcdb35d138daff401fd927d29"
+    }
+  ]
+}

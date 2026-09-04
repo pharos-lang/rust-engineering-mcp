@@ -1,0 +1,16 @@
+{
+  "supervisor_pid": 99093,
+  "inspector_pid": 99100,
+  "browser": "CUA iab 1",
+  "url": "http://127.0.0.1:53538",
+  "started_epoch": 1788541915.1173031,
+  "deadline_seconds": 1800,
+  "product_sha256": "7a99038be57429e1db32c91d01772e7efd104691828253f45ed3bbb0e9330417",
+  "inspector_launcher_sha256": "21ca6e6e031713e5ae040ecf71f8fd0b0ef9a4ece4131fd03d3b01aeae5415f4",
+  "status": "stopped",
+  "scope": "CUA iab browser; default Inspector API authentication; memory-only secret store; no user credentials",
+  "cleanup": "UI disconnect must join product; process stops below alone are not qualification pass",
+  "exit_codes": [
+    0
+  ]
+}

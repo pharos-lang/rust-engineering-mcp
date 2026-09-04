@@ -1,0 +1,112 @@
+[
+  {
+    "arm": "A",
+    "status": "completed",
+    "participant_status": "completed",
+    "model": {
+      "model": "gpt-5.6-sol",
+      "reasoningEffort": "medium",
+      "modelProvider": "openai",
+      "runtimeWorkspaceRoots": []
+    },
+    "source_final": "pub fn canary() -> u32 {\n    2\n}\n",
+    "validation_count": 1,
+    "candidate_count": 1,
+    "cleanup": {
+      "cancelled": false,
+      "forced_driver_stop": false,
+      "exit_code": 0,
+      "execution_joined": true,
+      "driver_execution_joined_claim": true,
+      "cleanup_verified": true,
+      "cleanup_failed": false,
+      "server_cleanup_verified": null,
+      "server_joined": false,
+      "cleanup_uncertain": false,
+      "terminal_error": null,
+      "observed_service_exit": null,
+      "stderr_bytes": 0,
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "docker_before": {
+      "mode": "read_only_observation_no_cleanup",
+      "objects": {
+        "container": [],
+        "volume": []
+      },
+      "absent": true
+    },
+    "docker_after": {
+      "mode": "read_only_observation_no_cleanup",
+      "objects": {
+        "container": [],
+        "volume": []
+      },
+      "absent": true
+    },
+    "identities": {
+      "target/m1-16-controller/qualify-integrated.py": "0d6bbdfd6d50fd6ebcb7f633e16635d9bdf3e1a296207efeb621c39f74152f17",
+      "target/m1-16-controller/participant.py": "0e74293afb72843d169741206c24509796f650e53fbabb15d0efb2d302ceef8c",
+      "target/m1-16-controller/broker.py": "18aae41f75f9d676686c0e1e86f84b0dc2baa181b39e62a2d9b647dcde61ae5e",
+      "target/m1-16-controller/containment.py": "fdf07b80e798a4cfeba9cea7e3bd98539f32de49ba329f87410e37b2df4297f4",
+      "target/debug/m1-16-trusted-driver": "7da80655d7908d41ab0f9b6ebc0b78eaab692821a19990b3a005a5e11f8598a4"
+    }
+  },
+  {
+    "arm": "B",
+    "status": "completed",
+    "participant_status": "completed",
+    "model": {
+      "model": "gpt-5.6-sol",
+      "reasoningEffort": "medium",
+      "modelProvider": "openai",
+      "runtimeWorkspaceRoots": []
+    },
+    "source_final": "pub fn canary() -> u32 {\n    2\n}\n",
+    "validation_count": 1,
+    "candidate_count": 1,
+    "cleanup": {
+      "cancelled": false,
+      "forced_driver_stop": false,
+      "exit_code": 0,
+      "execution_joined": true,
+      "driver_execution_joined_claim": true,
+      "cleanup_verified": true,
+      "cleanup_failed": false,
+      "server_cleanup_verified": true,
+      "server_joined": true,
+      "cleanup_uncertain": false,
+      "terminal_error": null,
+      "observed_service_exit": {
+        "code": 0,
+        "signal": null,
+        "success": true
+      },
+      "stderr_bytes": 0,
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "docker_before": {
+      "mode": "read_only_observation_no_cleanup",
+      "objects": {
+        "container": [],
+        "volume": []
+      },
+      "absent": true
+    },
+    "docker_after": {
+      "mode": "read_only_observation_no_cleanup",
+      "objects": {
+        "container": [],
+        "volume": []
+      },
+      "absent": true
+    },
+    "identities": {
+      "target/m1-16-controller/qualify-integrated.py": "0d6bbdfd6d50fd6ebcb7f633e16635d9bdf3e1a296207efeb621c39f74152f17",
+      "target/m1-16-controller/participant.py": "0e74293afb72843d169741206c24509796f650e53fbabb15d0efb2d302ceef8c",
+      "target/m1-16-controller/broker.py": "18aae41f75f9d676686c0e1e86f84b0dc2baa181b39e62a2d9b647dcde61ae5e",
+      "target/m1-16-controller/containment.py": "fdf07b80e798a4cfeba9cea7e3bd98539f32de49ba329f87410e37b2df4297f4",
+      "target/debug/m1-16-trusted-driver": "7da80655d7908d41ab0f9b6ebc0b78eaab692821a19990b3a005a5e11f8598a4"
+    }
+  }
+]

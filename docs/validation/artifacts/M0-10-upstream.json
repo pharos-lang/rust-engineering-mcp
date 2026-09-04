@@ -1,0 +1,8 @@
+{
+  "advisory_source": "https://raw.githubusercontent.com/RustSec/advisory-db/d674d8e9e6f78117229abdb7501452ac6c3cf322/crates/rsa/RUSTSEC-2023-0071.md",
+  "advisory_sha256": "8538ebf5d6ad7c749a63dd43a725ea0000aff574cfddecc8e4ef52736831328a",
+  "registry_source": "https://index.crates.io/3/r/rsa",
+  "registry_checksum": "5d0e5124fcb30e76a7e79bfee683a2746db83784b86289f6251b54b7950a0dfc",
+  "network_used": true,
+  "result": "independent principal re-fetch matched fixture"
+}

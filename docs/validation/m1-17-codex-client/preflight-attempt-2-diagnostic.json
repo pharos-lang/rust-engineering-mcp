@@ -1,0 +1,18 @@
+{
+  "result_keys": [
+    "config",
+    "origins"
+  ],
+  "config_key_style": {
+    "snake_mcp_servers": true,
+    "camel_mcp_servers": false
+  },
+  "server_names": [
+    "node_repl",
+    "rust_engineering",
+    "youtrack"
+  ],
+  "server_count": 3,
+  "feature_key_count": 37,
+  "exit_code": 0
+}

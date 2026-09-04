@@ -1,0 +1,477 @@
+{
+  "principal_approved": true,
+  "scope": "M1-16 blinded candidate review",
+  "freeze_sha256": "80a751b391f49460b555e8fabd71f8c68f593bf0f2a3fba0341357d02a1478c6",
+  "external_reviewer": {
+    "requested_model": "claude-sonnet-5",
+    "requested_effort": "medium",
+    "subtype": "success",
+    "raw_sha256": "80f5280c88f00bd5b61a331520c198e6cfeedd0f98b85b260038585dd0db4de1",
+    "packet_sha256": "cf352b5622aeec3d7065589ad653590b88563c75d72197f47ea6112b77d69c3d",
+    "mapping_sha256": "31026e2d95b343bf1a7403ac7b65ef665b3f569391f65a93a236a235cc3d285d",
+    "exact_hashes_covered": 20,
+    "expected_hashes": 21,
+    "limitations": "Review performed by static/masked inspection only, without executing rustc, cargo, clippy, or the hidden test binaries; correctness of R01-R04 patches was checked by manual trace against the frozen hidden/behavior.rs test cases and the frozen initial/src/lib.rs, not by running them. Only the src/lib.rs function body shown for each patch candidate was reviewable; full-file diffs, Cargo.toml/Cargo.lock modifications, and whether edits were confined to src/lib.rs could not be independently confirmed beyond what each candidate disclosed. For selection candidates, all quantitative facts (MSRV, license, features, fingerprint, provenance id) were cross-checked against the supplied AUTHORITATIVE PROJECTION RECORD blocks; a few candidates append minor provenance descriptors (e.g. 'network_used=false', 'source_kind registry_snapshot') not literally present in the record excerpts shown here, flagged as low-severity (P3) since they are plausible standard experiment metadata fields rather than demonstrably false claims. No arm/order inference or ranking across duplicate candidates for the same task was performed, per instructions.",
+    "model_usage": {
+      "claude-haiku-4-5-20251001": {
+        "inputTokens": 72653,
+        "outputTokens": 17,
+        "cacheReadInputTokens": 0,
+        "cacheCreationInputTokens": 0,
+        "webSearchRequests": 0,
+        "costUSD": 0.072738,
+        "contextWindow": 200000,
+        "maxOutputTokens": 32000,
+        "thinkingTokens": 0,
+        "canonicalModel": "claude-haiku-4-5",
+        "provider": "firstParty",
+        "costBasis": "list"
+      },
+      "claude-sonnet-5": {
+        "inputTokens": 2,
+        "outputTokens": 9330,
+        "cacheReadInputTokens": 3289,
+        "cacheCreationInputTokens": 92198,
+        "webSearchRequests": 0,
+        "costUSD": 0.4627538,
+        "contextWindow": 1000000,
+        "maxOutputTokens": 64000,
+        "thinkingTokens": 5011,
+        "canonicalModel": "claude-sonnet-5",
+        "provider": "firstParty",
+        "costBasis": "list"
+      }
+    }
+  },
+  "principal_notes": [
+    "The external JSON duplicated C008's hash in row C007 and omitted the expected C007 hash; that candidate received an explicit principal review.",
+    "Four external P3 observations were preserved but not confirmed: the frozen authoritative projection explicitly contains both provenance fields cited by those candidates.",
+    "No arm or within-pair order was available in the external packet; the private mapping was opened only for principal disposition after the external result completed."
+  ],
+  "candidates": [
+    {
+      "sha256": "007e08be2c00e718ad779f839a1d0d47614dc2579035dbc66100f5e323f82d1c",
+      "external_id": "C001",
+      "external_hash_matched": true,
+      "checks": {
+        "public_signature": true,
+        "required_behavior": true,
+        "no_unsafe": true,
+        "no_lint_suppression": true,
+        "no_source_tests": true,
+        "no_hardcoded_oracle_cases": true,
+        "authorized_edits": true
+      },
+      "external_findings": [],
+      "principal_disposition": {
+        "status": "accepted",
+        "reason": "external_review_and_principal_check_agree"
+      }
+    },
+    {
+      "sha256": "1497acc55b01c1d9e2c9b0d408bbee4467f7b1c1845c8f5fcabc2fa95068cc09",
+      "external_id": "C002",
+      "external_hash_matched": true,
+      "checks": {
+        "api_feature_caveat": true,
+        "unknowns_not_promoted": true,
+        "no_integration_claim": true,
+        "no_safety_or_legal_claim": true,
+        "accurate_evidence_interpretation": true
+      },
+      "external_findings": [],
+      "principal_disposition": {
+        "status": "accepted",
+        "reason": "external_review_and_principal_check_agree"
+      }
+    },
+    {
+      "sha256": "23f02a5c3a0ef208a52498b49cfa72c70c31ce56e2ae19fdd8170f8a575dcf29",
+      "external_id": "C003",
+      "external_hash_matched": true,
+      "checks": {
+        "public_signature": true,
+        "required_behavior": true,
+        "no_unsafe": true,
+        "no_lint_suppression": true,
+        "no_source_tests": true,
+        "no_hardcoded_oracle_cases": true,
+        "authorized_edits": true
+      },
+      "external_findings": [],
+      "principal_disposition": {
+        "status": "accepted",
+        "reason": "external_review_and_principal_check_agree"
+      }
+    },
+    {
+      "sha256": "2e0eb8e66b239852e70f45ebf37e0b62a208e9f32963d314d3618ac0fc7d9698",
+      "external_id": "C004",
+      "external_hash_matched": true,
+      "checks": {
+        "api_feature_caveat": true,
+        "unknowns_not_promoted": true,
+        "no_integration_claim": true,
+        "no_safety_or_legal_claim": true,
+        "accurate_evidence_interpretation": true
+      },
+      "external_findings": [
+        {
+          "severity": "P3",
+          "claim": "evidence adds 'network_used=false' provenance detail",
+          "source_evidence": "candidate C004 evidence field; not literally present in the supplied AUTHORITATIVE PROJECTION RECORD excerpt shown for cross-check"
+        }
+      ],
+      "principal_disposition": {
+        "status": "not_confirmed",
+        "reason": "frozen_authoritative_projection_explicitly_records source_kind=registry_snapshot and network_used=false",
+        "projection_provenance": {
+          "created_at": 1788539204,
+          "integrity": "verified",
+          "network_used": false,
+          "observed_at": 1788539204,
+          "source_id": "researchprojection:m1-16:corpus-2026-09-04:selection-v1-draft",
+          "source_kind": "registry_snapshot"
+        }
+      }
+    },
+    {
+      "sha256": "337555e6a60517a4e02f5e111083c3eaf49126ccc22d2552df09e6551c13584c",
+      "external_id": "C005",
+      "external_hash_matched": true,
+      "checks": {
+        "api_feature_caveat": true,
+        "unknowns_not_promoted": true,
+        "no_integration_claim": true,
+        "no_safety_or_legal_claim": true,
+        "accurate_evidence_interpretation": true
+      },
+      "external_findings": [],
+      "principal_disposition": {
+        "status": "accepted",
+        "reason": "external_review_and_principal_check_agree"
+      }
+    },
+    {
+      "sha256": "55de64a7288d0b1b99b503fb381c319ffbe026ad54646392b872255d56a84efb",
+      "external_id": "C006",
+      "external_hash_matched": true,
+      "checks": {
+        "api_feature_caveat": true,
+        "unknowns_not_promoted": true,
+        "no_integration_claim": true,
+        "no_safety_or_legal_claim": true,
+        "accurate_evidence_interpretation": true
+      },
+      "external_findings": [],
+      "principal_disposition": {
+        "status": "accepted",
+        "reason": "external_review_and_principal_check_agree"
+      }
+    },
+    {
+      "sha256": "651b4c26af463d3db5d18662431650077e8cfb5007e7688c0a664054ca895a02",
+      "external_id": "C007",
+      "external_hash_matched": false,
+      "checks": {
+        "api_feature_caveat": true,
+        "unknowns_not_promoted": true,
+        "no_integration_claim": true,
+        "no_safety_or_legal_claim": true,
+        "accurate_evidence_interpretation": true
+      },
+      "external_findings": [],
+      "principal_disposition": {
+        "status": "principal_review_completed",
+        "reason": "external_reviewer_duplicated_C008_hash_in_C007_row",
+        "evidence": "candidate selection text, frozen projection, and deterministic predicate"
+      }
+    },
+    {
+      "sha256": "7a39ca1dc9365a08e2ef99ffb4469f515bfbf9231d1da2140a8e4a14521415a7",
+      "external_id": "C008",
+      "external_hash_matched": true,
+      "checks": {
+        "api_feature_caveat": true,
+        "unknowns_not_promoted": true,
+        "no_integration_claim": true,
+        "no_safety_or_legal_claim": true,
+        "accurate_evidence_interpretation": true
+      },
+      "external_findings": [],
+      "principal_disposition": {
+        "status": "accepted",
+        "reason": "external_review_and_principal_check_agree"
+      }
+    },
+    {
+      "sha256": "7b69ecfc21ff237b5dd64fe545ee754947bf0c17472841aa1ead56da7edcc7a1",
+      "external_id": "C009",
+      "external_hash_matched": true,
+      "checks": {
+        "api_feature_caveat": true,
+        "unknowns_not_promoted": true,
+        "no_integration_claim": true,
+        "no_safety_or_legal_claim": true,
+        "accurate_evidence_interpretation": true
+      },
+      "external_findings": [
+        {
+          "severity": "P3",
+          "claim": "evidence adds 'source_kind registry_snapshot, sin red' detail",
+          "source_evidence": "candidate C009 evidence field; not literally present in the supplied AUTHORITATIVE PROJECTION RECORD excerpt shown for cross-check"
+        }
+      ],
+      "principal_disposition": {
+        "status": "not_confirmed",
+        "reason": "frozen_authoritative_projection_explicitly_records source_kind=registry_snapshot and network_used=false",
+        "projection_provenance": {
+          "created_at": 1788539204,
+          "integrity": "verified",
+          "network_used": false,
+          "observed_at": 1788539204,
+          "source_id": "researchprojection:m1-16:corpus-2026-09-04:selection-v1-draft",
+          "source_kind": "registry_snapshot"
+        }
+      }
+    },
+    {
+      "sha256": "8e16cc1e2ec1db81c38c158c84c4bda7b750d4cfd4ba17e5dec16b9c37e6fbaf",
+      "external_id": "C010",
+      "external_hash_matched": true,
+      "checks": {
+        "api_feature_caveat": true,
+        "unknowns_not_promoted": true,
+        "no_integration_claim": true,
+        "no_safety_or_legal_claim": true,
+        "accurate_evidence_interpretation": true
+      },
+      "external_findings": [],
+      "principal_disposition": {
+        "status": "accepted",
+        "reason": "external_review_and_principal_check_agree"
+      }
+    },
+    {
+      "sha256": "9ad17b50305bebb334bff9753cb8a53780ec0f70c1bc2ce5379639471e6fcab5",
+      "external_id": "C011",
+      "external_hash_matched": true,
+      "checks": {
+        "api_feature_caveat": true,
+        "unknowns_not_promoted": true,
+        "no_integration_claim": true,
+        "no_safety_or_legal_claim": true,
+        "accurate_evidence_interpretation": true
+      },
+      "external_findings": [],
+      "principal_disposition": {
+        "status": "accepted",
+        "reason": "external_review_and_principal_check_agree"
+      }
+    },
+    {
+      "sha256": "a92355a16f4dc953bebd0b34e6964d5c1379810eac8e9500db47f159d1a2d1f7",
+      "external_id": "C012",
+      "external_hash_matched": true,
+      "checks": {
+        "public_signature": true,
+        "required_behavior": true,
+        "no_unsafe": true,
+        "no_lint_suppression": true,
+        "no_source_tests": true,
+        "no_hardcoded_oracle_cases": true,
+        "authorized_edits": true
+      },
+      "external_findings": [],
+      "principal_disposition": {
+        "status": "accepted",
+        "reason": "external_review_and_principal_check_agree"
+      }
+    },
+    {
+      "sha256": "b4c789ced008595e07f55ff562acf71b9488f77bb235c4c17d446c543eb3ee87",
+      "external_id": "C013",
+      "external_hash_matched": true,
+      "checks": {
+        "api_feature_caveat": true,
+        "unknowns_not_promoted": true,
+        "no_integration_claim": true,
+        "no_safety_or_legal_claim": true,
+        "accurate_evidence_interpretation": true
+      },
+      "external_findings": [],
+      "principal_disposition": {
+        "status": "accepted",
+        "reason": "external_review_and_principal_check_agree"
+      }
+    },
+    {
+      "sha256": "bd5e13fbc07b0d6585eba6e4b5f43861261062cf6a83ef4f8dad2bec94529b9e",
+      "external_id": "C014",
+      "external_hash_matched": true,
+      "checks": {
+        "public_signature": true,
+        "required_behavior": true,
+        "no_unsafe": true,
+        "no_lint_suppression": true,
+        "no_source_tests": true,
+        "no_hardcoded_oracle_cases": true,
+        "authorized_edits": true
+      },
+      "external_findings": [],
+      "principal_disposition": {
+        "status": "accepted",
+        "reason": "external_review_and_principal_check_agree"
+      }
+    },
+    {
+      "sha256": "d52f2343c3514dfe1db711f83df38b734a33df0b729e4d268107475a8971167b",
+      "external_id": "C015",
+      "external_hash_matched": true,
+      "checks": {
+        "api_feature_caveat": true,
+        "unknowns_not_promoted": true,
+        "no_integration_claim": true,
+        "no_safety_or_legal_claim": true,
+        "accurate_evidence_interpretation": true
+      },
+      "external_findings": [],
+      "principal_disposition": {
+        "status": "accepted",
+        "reason": "external_review_and_principal_check_agree"
+      }
+    },
+    {
+      "sha256": "dde77ee10371c1f06b8b0582c9a0952a7869d8324104a553cd3963247a74be42",
+      "external_id": "C016",
+      "external_hash_matched": true,
+      "checks": {
+        "api_feature_caveat": true,
+        "unknowns_not_promoted": true,
+        "no_integration_claim": true,
+        "no_safety_or_legal_claim": true,
+        "accurate_evidence_interpretation": true
+      },
+      "external_findings": [
+        {
+          "severity": "P3",
+          "claim": "evidence adds 'network_used false' provenance detail",
+          "source_evidence": "candidate C016 evidence field; not literally present in the supplied AUTHORITATIVE PROJECTION RECORD excerpt shown for cross-check"
+        }
+      ],
+      "principal_disposition": {
+        "status": "not_confirmed",
+        "reason": "frozen_authoritative_projection_explicitly_records source_kind=registry_snapshot and network_used=false",
+        "projection_provenance": {
+          "created_at": 1788539204,
+          "integrity": "verified",
+          "network_used": false,
+          "observed_at": 1788539204,
+          "source_id": "researchprojection:m1-16:corpus-2026-09-04:selection-v1-draft",
+          "source_kind": "registry_snapshot"
+        }
+      }
+    },
+    {
+      "sha256": "e732c690e1b05b08a4d6d9e24692558133630956ed5875a44e1f2acbdedbe3d7",
+      "external_id": "C017",
+      "external_hash_matched": true,
+      "checks": {
+        "api_feature_caveat": true,
+        "unknowns_not_promoted": true,
+        "no_integration_claim": true,
+        "no_safety_or_legal_claim": true,
+        "accurate_evidence_interpretation": true
+      },
+      "external_findings": [],
+      "principal_disposition": {
+        "status": "accepted",
+        "reason": "external_review_and_principal_check_agree"
+      }
+    },
+    {
+      "sha256": "f4285ff8669507c3c96807c40e117d726b907b42c793281c34deafa3cf6db855",
+      "external_id": "C018",
+      "external_hash_matched": true,
+      "checks": {
+        "api_feature_caveat": true,
+        "unknowns_not_promoted": true,
+        "no_integration_claim": true,
+        "no_safety_or_legal_claim": true,
+        "accurate_evidence_interpretation": true
+      },
+      "external_findings": [],
+      "principal_disposition": {
+        "status": "accepted",
+        "reason": "external_review_and_principal_check_agree"
+      }
+    },
+    {
+      "sha256": "f761735733389bb958d8acabfa349e87b1f8a2e76fa6f62574d6db23bc089c21",
+      "external_id": "C019",
+      "external_hash_matched": true,
+      "checks": {
+        "api_feature_caveat": true,
+        "unknowns_not_promoted": true,
+        "no_integration_claim": true,
+        "no_safety_or_legal_claim": true,
+        "accurate_evidence_interpretation": true
+      },
+      "external_findings": [
+        {
+          "severity": "P3",
+          "claim": "evidence adds 'source_kind registry_snapshot, network_used false' provenance detail",
+          "source_evidence": "candidate C019 evidence field; not literally present in the supplied AUTHORITATIVE PROJECTION RECORD excerpt shown for cross-check"
+        }
+      ],
+      "principal_disposition": {
+        "status": "not_confirmed",
+        "reason": "frozen_authoritative_projection_explicitly_records source_kind=registry_snapshot and network_used=false",
+        "projection_provenance": {
+          "created_at": 1788539204,
+          "integrity": "verified",
+          "network_used": false,
+          "observed_at": 1788539204,
+          "source_id": "researchprojection:m1-16:corpus-2026-09-04:selection-v1-draft",
+          "source_kind": "registry_snapshot"
+        }
+      }
+    },
+    {
+      "sha256": "f808be6d4a8fa9d95793cc041f5d13c081c0cec06ac699ca08dfe9f0ead096cc",
+      "external_id": "C020",
+      "external_hash_matched": true,
+      "checks": {
+        "public_signature": true,
+        "required_behavior": true,
+        "no_unsafe": true,
+        "no_lint_suppression": true,
+        "no_source_tests": true,
+        "no_hardcoded_oracle_cases": true,
+        "authorized_edits": true
+      },
+      "external_findings": [],
+      "principal_disposition": {
+        "status": "accepted",
+        "reason": "external_review_and_principal_check_agree"
+      }
+    },
+    {
+      "sha256": "fe07013907a4cce5212b732a0930a9157eb26527b75b094a1e9a9c6abf8a4d77",
+      "external_id": "C021",
+      "external_hash_matched": true,
+      "checks": {
+        "api_feature_caveat": true,
+        "unknowns_not_promoted": true,
+        "no_integration_claim": true,
+        "no_safety_or_legal_claim": true,
+        "accurate_evidence_interpretation": true
+      },
+      "external_findings": [],
+      "principal_disposition": {
+        "status": "accepted",
+        "reason": "external_review_and_principal_check_agree"
+      }
+    }
+  ]
+}

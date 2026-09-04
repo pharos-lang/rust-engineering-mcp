@@ -1,0 +1,25 @@
+{
+  "status": "qualified_before_freeze",
+  "expected_initial_fault": "E0597 expected by source review; gateway confirmation pending",
+  "allowed_edit": "src/lib.rs",
+  "public_signature_unchanged": true,
+  "no_tests_in_src": true,
+  "hidden_test_mount": "tests/behavior.rs at final oracle only",
+  "gateway_checks": [
+    "fmt --check",
+    "check --locked --offline",
+    "clippy --locked --offline -- -D warnings",
+    "test --locked --offline"
+  ],
+  "reference_is_example_not_only_accepted_patch": true,
+  "security_constraints": [
+    "no unsafe",
+    "no lint suppression",
+    "no external dependencies",
+    "no unauthorized writes"
+  ],
+  "reference_validation": "passed_actual_gateway_fmt_check_strict_clippy_test",
+  "initial_fault_validation": "expected_failure_reproduced_actual_gateway",
+  "qualification_receipt_path": "target/m1-16-oracles/receipt.json",
+  "qualification_receipt_sha256": "ae4c335ae3266f4fb76624c530e3d5b0215354786e5675a335cd034c1bfb61cf"
+}

@@ -1,0 +1,946 @@
+{
+  "scope": "Current full M1-09 run; 20 exact serial Rust security tests, after review corrections",
+  "status": "passed",
+  "logs": [
+    {
+      "index": 0,
+      "path": "target/rust-security/0.log",
+      "sha256": "abea8a9ab70dcefcd4d7a94a151c7e3cbec8991dd43cad5b2cd7fc8a224363bc",
+      "seconds": 1.09
+    },
+    {
+      "index": 1,
+      "path": "target/rust-security/1.log",
+      "sha256": "c30fff27967ce5e5541288f336caa2ee8536944f6d55ed9b5187290d81a7e91b",
+      "seconds": 14.0
+    },
+    {
+      "index": 2,
+      "path": "target/rust-security/2.log",
+      "sha256": "943279458eecb92864d4d7d94213484dc224b666e5b423c41ad015dcdf678dd6",
+      "seconds": 17.13
+    },
+    {
+      "index": 3,
+      "path": "target/rust-security/3.log",
+      "sha256": "7dcaa1be4ea8875f731d9708dd697478cfc1bc46adfefcee06a3f65da15f73b2",
+      "seconds": 2.94
+    },
+    {
+      "index": 4,
+      "path": "target/rust-security/4.log",
+      "sha256": "4477d95f424324777c6eb452b0496d659e036b116970564875b733c5b0c3ee1b",
+      "seconds": 18.97
+    },
+    {
+      "index": 5,
+      "path": "target/rust-security/5.log",
+      "sha256": "dce5197e252a4d121e7f811c79e1433a8cbae271df47c1db0355d3cfd8b736d2",
+      "seconds": 16.75
+    },
+    {
+      "index": 6,
+      "path": "target/rust-security/6.log",
+      "sha256": "5d20102cc9c24c3f168cfbd15e255958e46d54ff38c95d71849eb5f4c594cbc5",
+      "seconds": 19.79
+    },
+    {
+      "index": 7,
+      "path": "target/rust-security/7.log",
+      "sha256": "334986354ff20128762e492cc9214d472370d1131abb186d82dc64b153e113ed",
+      "seconds": 15.14
+    },
+    {
+      "index": 8,
+      "path": "target/rust-security/8.log",
+      "sha256": "32d820ba7c18b62e0446d3df4104be701d7b64dfe4db0299171274a6df249849",
+      "seconds": 19.38
+    },
+    {
+      "index": 9,
+      "path": "target/rust-security/9.log",
+      "sha256": "d74fb6b341edff2daff2487557db26f7a322ed1dba763ebb8aa5bb75472d039e",
+      "seconds": 0.0
+    },
+    {
+      "index": 10,
+      "path": "target/rust-security/10.log",
+      "sha256": "ad10c94358aff7d51eaa0e318ebeb866ded8705315c0fe6a17a96d106fb0635f",
+      "seconds": 36.94
+    },
+    {
+      "index": 11,
+      "path": "target/rust-security/11.log",
+      "sha256": "5130943b1457b3d97b57cf6b92e22787c7f0882b6ccb5db56069799bb10bdb6f",
+      "seconds": 17.23
+    },
+    {
+      "index": 12,
+      "path": "target/rust-security/12.log",
+      "sha256": "63558cdf328373bf70dcef0378eede576c68da3e4092afb19a7022d76da79073",
+      "seconds": 14.27
+    },
+    {
+      "index": 13,
+      "path": "target/rust-security/13.log",
+      "sha256": "2c101947aa534674d31853cde29dbc0f2789c19aa5cc1373e621b174b564194e",
+      "seconds": 17.39
+    },
+    {
+      "index": 14,
+      "path": "target/rust-security/14.log",
+      "sha256": "42fee760047beaa8e329f8486a53d329461fc63cec85001aff1bfe9ef3e89709",
+      "seconds": 86.24
+    },
+    {
+      "index": 15,
+      "path": "target/rust-security/15.log",
+      "sha256": "f9968b1e840712801fc3e92bbea53ea8457daccb30c2d60d40191beb806f0d11",
+      "seconds": 72.03
+    },
+    {
+      "index": 16,
+      "path": "target/rust-security/16.log",
+      "sha256": "d99f19585eda2879a232afba9343600f870c372966c2a18556c7fbb5a22938b3",
+      "seconds": 16.5
+    },
+    {
+      "index": 17,
+      "path": "target/rust-security/17.log",
+      "sha256": "fb2f8393dc0e88089a8751e2b76b50566568429011bed4acfb76886105f5956c",
+      "seconds": 19.39
+    },
+    {
+      "index": 18,
+      "path": "target/rust-security/18.log",
+      "sha256": "c5b3ac6db76cadaf0c87fdcfa6106dd1402b7e8c892f14c37058a0a132a6e62c",
+      "seconds": 39.36
+    },
+    {
+      "index": 19,
+      "path": "target/rust-security/19.log",
+      "sha256": "088e12f2817b2cec4db81a9060915ef2f4b41a86732e444900ac6bd3149f757c",
+      "seconds": 22.77
+    }
+  ],
+  "receipts": {
+    "calibration.json": {
+      "scope": "rust-cargo-source-profile-v1",
+      "image_id": "sha256:8fac70723a8d04b6ec9633ab721806b8a55f4f083a1b3f988c61bf6a00fa1909",
+      "observed_at_unix_ms": 1788515176712,
+      "fixture_fingerprint": "sha256:bb3aeb844ab9191652f44136b95538c9cec4b2249c82ecfc44cc008c988d0509",
+      "configuration_fingerprint": "sha256:487cef3409e76e7d9c37afad9454e565023a8f1c9cf7581bed76c6f8b143f62e",
+      "observations": [
+        {
+          "scenario": "build_script",
+          "execution": {
+            "termination": "exited",
+            "exit_code": 0,
+            "oom_killed": false,
+            "stdout": "{\"reason\":\"compiler-artifact\",\"package_id\":\"path+file:///source#rust_calibration@0.1.0\",\"manifest_path\":\"/source/Cargo.toml\",\"target\":{\"kind\":[\"custom-build\"],\"crate_types\":[\"bin\"],\"name\":\"build-script-build\",\"src_path\":\"/source/build.rs\",\"edition\":\"2024\",\"doc\":false,\"doctest\":false,\"test\":false},\"profile\":{\"opt_level\":\"0\",\"debuginfo\":0,\"debug_assertions\":true,\"overflow_checks\":true,\"test\":false},\"features\":[],\"filenames\":[\"/work/target/debug/build/rust_calibration-7eec5a0146a82b77/build-script-build\"],\"executable\":null,\"fresh\":false}\n{\"reason\":\"build-script-executed\",\"package_id\":\"path+file:///source#rust_calibration@0.1.0\",\"linked_libs\":[],\"linked_paths\":[],\"cfgs\":[],\"env\":[],\"out_dir\":\"/work/target/debug/build/rust_calibration-6a77d2cf9cb57c73/out\"}\n{\"reason\":\"compiler-artifact\",\"package_id\":\"path+file:///source#rust_calibration@0.1.0\",\"manifest_path\":\"/source/Cargo.toml\",\"target\":{\"kind\":[\"lib\"],\"crate_types\":[\"lib\"],\"name\":\"rust_calibration\",\"src_path\":\"/source/src/lib.rs\",\"edition\":\"2024\",\"doc\":true,\"doctest\":true,\"test\":true},\"profile\":{\"opt_level\":\"0\",\"debuginfo\":2,\"debug_assertions\":true,\"overflow_checks\":true,\"test\":false},\"features\":[],\"filenames\":[\"/work/target/debug/deps/librust_calibration-e7d00739c90114c5.rmeta\"],\"executable\":null,\"fresh\":false}\n{\"reason\":\"build-finished\",\"success\":true}\n",
+            "stderr": "   Compiling rust_calibration v0.1.0 (/source)\nwarning: rust_calibration@0.1.0: RUST_CONTAINMENT_BUILD_CHECKS_PASSED\n    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.14s\n",
+            "stdout_truncated": false,
+            "stderr_truncated": false,
+            "duration_ms": 211,
+            "total_duration_ms": 880,
+            "execution_fingerprint": "sha256:0b2ba3b3f7e8a9b57bd06642ec3c975d055858fd3d891490a445d06973912fe8",
+            "platform": "linux/aarch64",
+            "image_id": "sha256:8fac70723a8d04b6ec9633ab721806b8a55f4f083a1b3f988c61bf6a00fa1909"
+          },
+          "detached_processes": null
+        },
+        {
+          "scenario": "resources",
+          "execution": {
+            "termination": "exited",
+            "exit_code": 0,
+            "oom_killed": true,
+            "stdout": "{\"reason\":\"compiler-artifact\",\"package_id\":\"path+file:///source#rust_calibration@0.1.0\",\"manifest_path\":\"/source/Cargo.toml\",\"target\":{\"kind\":[\"custom-build\"],\"crate_types\":[\"bin\"],\"name\":\"build-script-build\",\"src_path\":\"/source/build.rs\",\"edition\":\"2024\",\"doc\":false,\"doctest\":false,\"test\":false},\"profile\":{\"opt_level\":\"0\",\"debuginfo\":0,\"debug_assertions\":true,\"overflow_checks\":true,\"test\":false},\"features\":[],\"filenames\":[\"/work/target/debug/build/rust_calibration-7eec5a0146a82b77/build-script-build\"],\"executable\":null,\"fresh\":false}\n{\"reason\":\"build-script-executed\",\"package_id\":\"path+file:///source#rust_calibration@0.1.0\",\"linked_libs\":[],\"linked_paths\":[],\"cfgs\":[],\"env\":[],\"out_dir\":\"/work/target/debug/build/rust_calibration-6a77d2cf9cb57c73/out\"}\n{\"reason\":\"compiler-artifact\",\"package_id\":\"path+file:///source#rust_calibration@0.1.0\",\"manifest_path\":\"/source/Cargo.toml\",\"target\":{\"kind\":[\"lib\"],\"crate_types\":[\"lib\"],\"name\":\"rust_calibration\",\"src_path\":\"/source/src/lib.rs\",\"edition\":\"2024\",\"doc\":true,\"doctest\":true,\"test\":true},\"profile\":{\"opt_level\":\"0\",\"debuginfo\":2,\"debug_assertions\":true,\"overflow_checks\":true,\"test\":false},\"features\":[],\"filenames\":[\"/work/target/debug/deps/librust_calibration-e7d00739c90114c5.rmeta\"],\"executable\":null,\"fresh\":false}\n{\"reason\":\"build-finished\",\"success\":true}\n",
+            "stderr": "   Compiling rust_calibration v0.1.0 (/source)\nwarning: rust_calibration@0.1.0: RUST_CONTAINMENT_RESOURCE tmp ENOSPC bytes=67108864\nwarning: rust_calibration@0.1.0: RUST_CONTAINMENT_RESOURCE work ENOSPC bytes=531775488\nwarning: rust_calibration@0.1.0: RUST_CONTAINMENT_RESOURCE pids EAGAIN helpers=123 max_delta=1\nwarning: rust_calibration@0.1.0: RUST_CONTAINMENT_RESOURCE memory SIGKILL oom_kill_delta=1\nwarning: rust_calibration@0.1.0: RUST_CONTAINMENT_RESOURCE cpu nr_throttled_delta=13\nwarning: rust_calibration@0.1.0: RUST_CONTAINMENT_RESOURCES_PASSED\n    Finished `dev` profile [unoptimized + debuginfo] target(s) in 2.47s\n",
+            "stdout_truncated": false,
+            "stderr_truncated": false,
+            "duration_ms": 2545,
+            "total_duration_ms": 3247,
+            "execution_fingerprint": "sha256:668c02469b95f0dd46b747f53adef8bcd10581f886355fec0616c5ddfabec8e0",
+            "platform": "linux/aarch64",
+            "image_id": "sha256:8fac70723a8d04b6ec9633ab721806b8a55f4f083a1b3f988c61bf6a00fa1909"
+          },
+          "detached_processes": null
+        },
+        {
+          "scenario": "proc_macro",
+          "execution": {
+            "termination": "exited",
+            "exit_code": 0,
+            "oom_killed": false,
+            "stdout": "{\"reason\":\"compiler-artifact\",\"package_id\":\"path+file:///source/macros#calibration_macro@0.1.0\",\"manifest_path\":\"/source/macros/Cargo.toml\",\"target\":{\"kind\":[\"proc-macro\"],\"crate_types\":[\"proc-macro\"],\"name\":\"calibration_macro\",\"src_path\":\"/source/macros/src/lib.rs\",\"edition\":\"2024\",\"doc\":true,\"doctest\":true,\"test\":true},\"profile\":{\"opt_level\":\"0\",\"debuginfo\":0,\"debug_assertions\":true,\"overflow_checks\":true,\"test\":false},\"features\":[],\"filenames\":[\"/work/target/debug/deps/libcalibration_macro-09de0f91c1fabf5b.so\"],\"executable\":null,\"fresh\":false}\n{\"reason\":\"compiler-artifact\",\"package_id\":\"path+file:///source#rust_calibration@0.1.0\",\"manifest_path\":\"/source/Cargo.toml\",\"target\":{\"kind\":[\"lib\"],\"crate_types\":[\"lib\"],\"name\":\"rust_calibration\",\"src_path\":\"/source/src/lib.rs\",\"edition\":\"2024\",\"doc\":true,\"doctest\":true,\"test\":true},\"profile\":{\"opt_level\":\"0\",\"debuginfo\":2,\"debug_assertions\":true,\"overflow_checks\":true,\"test\":false},\"features\":[],\"filenames\":[\"/work/target/debug/deps/librust_calibration-96fcc43dfd02c761.rmeta\"],\"executable\":null,\"fresh\":false}\n{\"reason\":\"build-finished\",\"success\":true}\n",
+            "stderr": "   Compiling calibration_macro v0.1.0 (/source/macros)\n    Checking rust_calibration v0.1.0 (/source)\nRUST_CONTAINMENT_PROC_MACRO_CHECKS_PASSED\n    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.16s\n",
+            "stdout_truncated": false,
+            "stderr_truncated": false,
+            "duration_ms": 226,
+            "total_duration_ms": 900,
+            "execution_fingerprint": "sha256:462fa76b43f254c1140390d3506fc6d318818e56ea85a5f87093e98e822c4e7f",
+            "platform": "linux/aarch64",
+            "image_id": "sha256:8fac70723a8d04b6ec9633ab721806b8a55f4f083a1b3f988c61bf6a00fa1909"
+          },
+          "detached_processes": null
+        },
+        {
+          "scenario": "timeout",
+          "execution": {
+            "termination": "timed_out",
+            "exit_code": null,
+            "oom_killed": null,
+            "stdout": "{\"reason\":\"compiler-artifact\",\"package_id\":\"path+file:///source#rust_calibration@0.1.0\",\"manifest_path\":\"/source/Cargo.toml\",\"target\":{\"kind\":[\"custom-build\"],\"crate_types\":[\"bin\"],\"name\":\"build-script-build\",\"src_path\":\"/source/build.rs\",\"edition\":\"2024\",\"doc\":false,\"doctest\":false,\"test\":false},\"profile\":{\"opt_level\":\"0\",\"debuginfo\":0,\"debug_assertions\":true,\"overflow_checks\":true,\"test\":false},\"features\":[],\"filenames\":[\"/work/target/debug/build/rust_calibration-7eec5a0146a82b77/build-script-build\"],\"executable\":null,\"fresh\":false}\n",
+            "stderr": "   Compiling rust_calibration v0.1.0 (/source)\n",
+            "stdout_truncated": false,
+            "stderr_truncated": false,
+            "duration_ms": 4522,
+            "total_duration_ms": 5238,
+            "execution_fingerprint": "sha256:c16f135b45ec5bedc77bf17e325ec89d357cb3960f565594a3fc773ebf286795",
+            "platform": "linux/aarch64",
+            "image_id": "sha256:8fac70723a8d04b6ec9633ab721806b8a55f4f083a1b3f988c61bf6a00fa1909"
+          },
+          "detached_processes": "PID                 PPID                PGID                SID                 COMMAND\n9763                9740                9763                9763                /opt/rust/bin/cargo check --frozen --message-format=json --jobs=1\n9819                9763                9763                9763                /work/target/debug/build/rust_calibration-7eec5a0146a82b77/build-script-build\n9822                9763                9821                9821                /work/target/debug/build/rust_calibration-7eec5a0146a82b77/build-script-build\n"
+        },
+        {
+          "scenario": "cancel",
+          "execution": {
+            "termination": "cancelled",
+            "exit_code": null,
+            "oom_killed": null,
+            "stdout": "{\"reason\":\"compiler-artifact\",\"package_id\":\"path+file:///source#rust_calibration@0.1.0\",\"manifest_path\":\"/source/Cargo.toml\",\"target\":{\"kind\":[\"custom-build\"],\"crate_types\":[\"bin\"],\"name\":\"build-script-build\",\"src_path\":\"/source/build.rs\",\"edition\":\"2024\",\"doc\":false,\"doctest\":false,\"test\":false},\"profile\":{\"opt_level\":\"0\",\"debuginfo\":0,\"debug_assertions\":true,\"overflow_checks\":true,\"test\":false},\"features\":[],\"filenames\":[\"/work/target/debug/build/rust_calibration-7eec5a0146a82b77/build-script-build\"],\"executable\":null,\"fresh\":false}\n",
+            "stderr": "   Compiling rust_calibration v0.1.0 (/source)\n",
+            "stdout_truncated": false,
+            "stderr_truncated": false,
+            "duration_ms": 220,
+            "total_duration_ms": 881,
+            "execution_fingerprint": "sha256:c16f135b45ec5bedc77bf17e325ec89d357cb3960f565594a3fc773ebf286795",
+            "platform": "linux/aarch64",
+            "image_id": "sha256:8fac70723a8d04b6ec9633ab721806b8a55f4f083a1b3f988c61bf6a00fa1909"
+          },
+          "detached_processes": "PID                 PPID                PGID                SID                 COMMAND\n9957                9934                9957                9957                /opt/rust/bin/cargo check --frozen --message-format=json --jobs=1\n10012               9957                9957                9957                /work/target/debug/build/rust_calibration-7eec5a0146a82b77/build-script-build\n10015               9957                10014               10014               /work/target/debug/build/rust_calibration-7eec5a0146a82b77/build-script-build\n"
+        },
+        {
+          "scenario": "overflow",
+          "execution": {
+            "termination": "output_limit",
+            "exit_code": null,
+            "oom_killed": null,
+            "stdout": "{\"reason\":\"compiler-artifact\",\"package_id\":\"path+file:///source#rust_calibration@0.1.0\",\"manifest_path\":\"/source/Cargo.toml\",\"target\":{\"kind\":[\"custom-build\"],\"crate_types\":[\"bin\"],\"name\":\"build-script-build\",\"src_path\":\"/source/build.rs\",\"edition\":\"2024\",\"doc\":false,\"doctest\":false,\"test\":false},\"profile\":{\"opt_level\":\"0\",\"debuginfo\":0,\"debug_assertions\":true,\"overflow_checks\":true,\"test\":false},\"features\":[],\"filenames\":[\"/work/target/debug/build/rust_calibration-7eec5a0146a82b77/build-script-build\"],\"executable\":null,\"fresh\":false}\n{\"reason\":\"build-script-executed\",\"package_id\":\"path+file:///source#rust_calibration@0.1.0\",\"linked_libs\":[],\"linked_paths\":[],\"cfgs\":[],\"env\":[],\"out_dir\":\"/work/target/debug/build/rust_calibration-6a77d2cf9cb57c73/out\"}\n",
+            "stderr": "   Compiling rust_calibration v0.1.0 (/source)\nwarning: rust_calibration@0.1.0: RUST_CONTAINMENT_DESCENDANT phase=overflow pid=39 sid=38 marker=/work/rust-containment-descendant-overflow-36.pid\nwarning: rust_calibration@0.1.0: RUST_CONTAINMENT_OVERFLOW 0000 xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\nwarning: rust_calibration@0.1.0: RUST_CONTAINMENT_OVERFLOW 0001 xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\nwarning: rust_calibration@0.1.0: RUST_CONTAINMENT_OVERFLOW 0002 xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\nwarning: rust_calibration@0.1.0: RUST_CONTAINMENT_OVERFLOW 0003 xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\nwarning: rust_calibration@0.1.0: RUST_CONTAINMENT_OVERFLOW 0004 xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\nwarning: rust_calibration@0.1.0: RUST_CONTAINMENT_OVERFLOW 0005 xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\nwarning: rust_calibration@0.1.0: RUST_CONTAINMENT_OVERFLOW 0006 xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\nwarning: rust_calibration@0.1.0: RUST_CONTAINMENT_OVERFLOW 0007 xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\nwarning: rust_calibration@0.1.0: RUST_CONTAINMENT_OVERFLOW 0008 xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\nwarning: rust_calibration@0.1.0: RUST_CONTAINMENT_OVERFLOW 0009 xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\nwarning: rust_calibration@0.1.0: RUST_CONTAINMENT_OVERFLOW 0010 xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\nwarning: rust_calibration@0.1.0: RUST_CONTAINMENT_OVERFLOW 0011 xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\nwarning: rust_calibration@0.1.0: RUST_CONTAINMENT_OVERFLOW 0012 xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\nwarning: rust_calibration@0.1.0: RUST_CONTAINMENT_OVERFLOW 0013 xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\nwarning: rust_calibration@0.1.0: RUST_CONTAINMENT_OVERFLOW 0014 xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\nwarning: rust_calibration@0.1.0: RUST_CONTAINMENT_OVERFLOW 0015 xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+            "stdout_truncated": false,
+            "stderr_truncated": true,
+            "duration_ms": 1236,
+            "total_duration_ms": 1872,
+            "execution_fingerprint": "sha256:0feb9d11793f80daa6453d52e636a39ea7802b802ae245018660b067e632e63e",
+            "platform": "linux/aarch64",
+            "image_id": "sha256:8fac70723a8d04b6ec9633ab721806b8a55f4f083a1b3f988c61bf6a00fa1909"
+          },
+          "detached_processes": "PID                 PPID                PGID                SID                 COMMAND\n10151               10127               10151               10151               /opt/rust/bin/cargo check --frozen --message-format=json --jobs=1\n10213               10151               10151               10151               /work/target/debug/build/rust_calibration-7eec5a0146a82b77/build-script-build\n10216               10151               10215               10215               /work/target/debug/build/rust_calibration-7eec5a0146a82b77/build-script-build\n"
+        }
+      ],
+      "verified": true
+    },
+    "clippy-containment.json": {
+      "build_script_and_proc_macro_checks": true,
+      "calibration_cases": 6,
+      "calibration_verified": true,
+      "cases": 2,
+      "cleanup": true,
+      "configuration_fingerprint": "sha256:487cef3409e76e7d9c37afad9454e565023a8f1c9cf7581bed76c6f8b143f62e",
+      "executions": [
+        {
+          "execution_fingerprint": "sha256:3650110550af6559c6209d5d5e1331b7cf9031f7b135bb065421e7979fb78106",
+          "exit_code": 0,
+          "joined_cleanup_verified": true,
+          "marker": "RUST_CONTAINMENT_BUILD_CHECKS_PASSED",
+          "scenario": "build_script",
+          "termination": "exited"
+        },
+        {
+          "execution_fingerprint": "sha256:d0de31354eae2dfa7a93cc6f5854afa3072c53c53ecaa1675fadfa506a83f98d",
+          "exit_code": 0,
+          "joined_cleanup_verified": true,
+          "marker": "RUST_CONTAINMENT_PROC_MACRO_CHECKS_PASSED",
+          "scenario": "proc_macro",
+          "termination": "exited"
+        }
+      ],
+      "fixture_fingerprint": "sha256:bb3aeb844ab9191652f44136b95538c9cec4b2249c82ecfc44cc008c988d0509",
+      "image_id": "sha256:8fac70723a8d04b6ec9633ab721806b8a55f4f083a1b3f988c61bf6a00fa1909",
+      "network_env_filesystem_process_cgroup_assertions": true,
+      "quarantined": false,
+      "status": "passed"
+    },
+    "mcp-audit-denials.json": {
+      "bad_sha256_record_path_and_source_symlink_blocked": true,
+      "cases": 5,
+      "cleanup": true,
+      "configured_missing_file_unavailable": true,
+      "configured_runtime_missing_snapshot_unavailable": true,
+      "project_source_unchanged": true,
+      "snapshot_source_unchanged": true
+    },
+    "mcp-audit-freshness.json": {
+      "cases": 6,
+      "cleanup": true,
+      "configuration_fingerprints": [
+        "sha256:487cef3409e76e7d9c37afad9454e565023a8f1c9cf7581bed76c6f8b143f62e",
+        "sha256:487cef3409e76e7d9c37afad9454e565023a8f1c9cf7581bed76c6f8b143f62e",
+        "sha256:487cef3409e76e7d9c37afad9454e565023a8f1c9cf7581bed76c6f8b143f62e",
+        "sha256:487cef3409e76e7d9c37afad9454e565023a8f1c9cf7581bed76c6f8b143f62e",
+        "sha256:487cef3409e76e7d9c37afad9454e565023a8f1c9cf7581bed76c6f8b143f62e",
+        "sha256:487cef3409e76e7d9c37afad9454e565023a8f1c9cf7581bed76c6f8b143f62e"
+      ],
+      "fixture_identity_not_publisher_authentication": true,
+      "snapshot_and_lock_sha256_verified": 6,
+      "source_unchanged": true,
+      "stale_and_unknown_never_pass": true,
+      "stale_findings_retained_with_unavailable_state": true,
+      "synthetic_patched_clean": true,
+      "withdrawn_and_informational_distinct": true
+    },
+    "mcp-audit-rsa.json": {
+      "cases": 4,
+      "cleanup": true,
+      "configuration_fingerprint": "sha256:487cef3409e76e7d9c37afad9454e565023a8f1c9cf7581bed76c6f8b143f62e",
+      "invalid_and_ambiguous_lock_blocked": true,
+      "lock_generations_sha256_verified": 2,
+      "no_invented_patch": true,
+      "project_build_script_not_executed": true,
+      "real_rsa_finding": true,
+      "root_path_verified": true,
+      "severity": "medium",
+      "snapshot_fingerprint": "sha256:603d6a1a2f4f98352cfaeb5b6f9134c30c370a2b3993dbc8d0078972b6f83690",
+      "source_unchanged_between_explicit_mutations": true
+    },
+    "mcp-check.json": {
+      "cache_scope": "private",
+      "cleanup": true,
+      "configuration_fingerprint": "sha256:487cef3409e76e7d9c37afad9454e565023a8f1c9cf7581bed76c6f8b143f62e",
+      "error_codes": [
+        "E0502",
+        "E0106"
+      ],
+      "execution_fingerprints": [
+        "sha256:a8d6b1f6fb1732965be50b594e65194b86ce2602d933e0869e1ee970d7ce3302",
+        "sha256:77303d3ad5d533541e42097938d0776c1e14fdbd51e9e14b073a5ad488a2f9e2",
+        "sha256:4010846c8c7efcc0295e90bf83afb5b6b43687a783fd71cb8cd99b13770f532a"
+      ],
+      "failed": [
+        "failed",
+        "failed"
+      ],
+      "frozen_missing_and_stale_locks_blocked": true,
+      "logs_verified": 6,
+      "only_expected_source_mutations": true,
+      "passed": [
+        "passed",
+        "passed"
+      ],
+      "resource_reads_verified": 7,
+      "revoked_reference_denied": true,
+      "source_fingerprints": [
+        "sha256:47e6d97d971219870c975ad5ede806e41a80b125cbba330d601b6f8f90840383",
+        "sha256:d57361d021e9cd134c7aecd77945dbbf40c6647db742c9db0f03d44b4ecfa760",
+        "sha256:9e26b11c7e89ce29c7cb22d1e3df2818e0a80b14b60d6466040288e0f15a3094"
+      ],
+      "ttl_ms": 0,
+      "validation_complete": true,
+      "wrong_owner_denied": true
+    },
+    "mcp-clippy.json": {
+      "cases": 6,
+      "cleanup": true,
+      "configuration_fingerprint": "sha256:487cef3409e76e7d9c37afad9454e565023a8f1c9cf7581bed76c6f8b143f62e",
+      "default_warning_passed": true,
+      "execution_fingerprints": [
+        "sha256:e63cdb8faafe270676a0c8dd498efedd8656e535c02fdc89da5aafe1159427bd",
+        "sha256:8b5ce823898c9bfe2863e1072fb18baf306cca0e278c04bbe42b4492d4bbcdb5",
+        "sha256:b989d223c47a5277f323e6789632e534046dd480efaac1201c5cdc81d3dd9591",
+        "sha256:825af9bc7e961ad2c05120e5645c64de54203d880841ed90342266a94f9d49ef",
+        "sha256:2868d3780b3d5cbedf86a105959f568618f26db1e45183339ae08a1622fa36ce",
+        "sha256:40fc3c596b424c69df4ce3ba62d187179fcdf9a2c0622f1d551674cb5b438fda"
+      ],
+      "logs_verified": 6,
+      "package_features_all_targets_verified": true,
+      "pedantic_opt_in": true,
+      "project_alias_verified": true,
+      "source_unchanged": true,
+      "status": "passed",
+      "strict_warning_failed": true,
+      "structured_findings_suggestions": true,
+      "workspace_verified": true
+    },
+    "mcp-explain.json": {
+      "actual_compiler_borrow_explanation": true,
+      "cases": 10,
+      "cleanup": true,
+      "configuration_fingerprint": "sha256:487cef3409e76e7d9c37afad9454e565023a8f1c9cf7581bed76c6f8b143f62e",
+      "content_fingerprint": "sha256:2bf89338721f264f131d77a97d61094217c63ee31f0bfaf126ee45a412c227af",
+      "content_sha256_verified": 2,
+      "eof_cleanup": true,
+      "execution_fingerprint": "sha256:79dc496e9f5c94a0f773f18aba1e3f0672d64322d70155db95f03c0c40f6fe26",
+      "invalid_codes_rejected_before_work": 8,
+      "no_resources_created": true,
+      "no_roots_or_project_handle": true,
+      "unknown_code_unavailable_without_fabrication": true
+    },
+    "mcp-format.json": {
+      "all_workspace_members": true,
+      "build_script_not_executed": true,
+      "cases": 7,
+      "cleanup": true,
+      "configuration_fingerprint": "sha256:487cef3409e76e7d9c37afad9454e565023a8f1c9cf7581bed76c6f8b143f62e",
+      "configured_style_honored": true,
+      "disable_all_overridden": true,
+      "execution_fingerprints": [
+        "sha256:f68bbb3bd72fbf3a1b4ffd184f7b8c853144d4c852d270486e06186b4f9ca2cc",
+        "sha256:c93ebca9ea17518291a6daf49aaec101964b3b2bd047a47b64ad90268f85a50a",
+        "sha256:f0563165106ad387dfb6ce147c1316128b8a2895eab38b4d70c3b87d68903cbc",
+        "sha256:ef4b3e615081414259b5839192f73ae292af61f6e889321913433d49544b3b15",
+        "sha256:e06fbda577341373c182340bae74be1b5cc2d94dc752bf2ed2222236047a0234",
+        "sha256:855610e49f418081ebfca7f10afe5ba2c5f8007ce74da8a8d6deb5053fbb524a",
+        "sha256:0173e60fa9d41aebf04369b2b06666f0b7c2cd9e0d0f5dbcbcd92a954a3f6a67"
+      ],
+      "large_diff_omitted": true,
+      "logs_verified": 7,
+      "newline_only_difference": true,
+      "parse_failure_incomplete": true,
+      "source_unchanged": true,
+      "status": "passed"
+    },
+    "mcp-inspection.json": {
+      "data": {
+        "project_identity_fingerprint": "sha256:70ada6fc20556e5e0ea42c99df6142f05d347ef9e5b53d9d8fe38ab12ad4d01b",
+        "project_ref": "prj_4dcf96defa94c8f7ace9bbd8922d3f87",
+        "semantics": "latest_known",
+        "structure": {
+          "cargo_configuration": {
+            "frozen": true,
+            "incremental": false,
+            "offline": true,
+            "project_config_policy": "rejected",
+            "target_directory_ephemeral": true
+          },
+          "packages": [
+            {
+              "direct_dependencies": [
+                {
+                  "features": [
+                    "extra"
+                  ],
+                  "kind": "normal",
+                  "name": "helper",
+                  "optional": false,
+                  "origin": {
+                    "identity": "sha256:8011cd9cb2aeba37531bf60960d5ac1bf860527f13be34cd3a973ce7a2bbd8b7",
+                    "kind": "path",
+                    "relative_path": "helper"
+                  },
+                  "rename": "renamed",
+                  "target_condition": null,
+                  "uses_default_features": false,
+                  "version_requirement": "*"
+                },
+                {
+                  "features": [
+                    "extra"
+                  ],
+                  "kind": "build",
+                  "name": "helper",
+                  "optional": false,
+                  "origin": {
+                    "identity": "sha256:8011cd9cb2aeba37531bf60960d5ac1bf860527f13be34cd3a973ce7a2bbd8b7",
+                    "kind": "path",
+                    "relative_path": "helper"
+                  },
+                  "rename": "renamed",
+                  "target_condition": "cfg(unix)",
+                  "uses_default_features": false,
+                  "version_requirement": "*"
+                },
+                {
+                  "features": [
+                    "extra"
+                  ],
+                  "kind": "dev",
+                  "name": "helper",
+                  "optional": false,
+                  "origin": {
+                    "identity": "sha256:8011cd9cb2aeba37531bf60960d5ac1bf860527f13be34cd3a973ce7a2bbd8b7",
+                    "kind": "path",
+                    "relative_path": "helper"
+                  },
+                  "rename": "renamed",
+                  "target_condition": null,
+                  "uses_default_features": false,
+                  "version_requirement": "*"
+                }
+              ],
+              "edition": "2024",
+              "features": [
+                {
+                  "activations": [
+                    "extra"
+                  ],
+                  "name": "default"
+                },
+                {
+                  "activations": [
+                    "renamed/extra"
+                  ],
+                  "name": "extra"
+                }
+              ],
+              "manifest_path": "app/Cargo.toml",
+              "name": "app",
+              "package_index": 0,
+              "rust_version": null,
+              "targets": [
+                {
+                  "crate_types": [
+                    "lib"
+                  ],
+                  "doctest": true,
+                  "edition": "2024",
+                  "kinds": [
+                    "lib"
+                  ],
+                  "name": "app",
+                  "required_features": [],
+                  "source_path": "app/src/lib.rs",
+                  "test": true
+                }
+              ],
+              "version": "0.1.0"
+            },
+            {
+              "direct_dependencies": [],
+              "edition": "2024",
+              "features": [
+                {
+                  "activations": [],
+                  "name": "extra"
+                }
+              ],
+              "manifest_path": "helper/Cargo.toml",
+              "name": "helper",
+              "package_index": 1,
+              "rust_version": null,
+              "targets": [
+                {
+                  "crate_types": [
+                    "lib"
+                  ],
+                  "doctest": true,
+                  "edition": "2024",
+                  "kinds": [
+                    "lib"
+                  ],
+                  "name": "helper",
+                  "required_features": [],
+                  "source_path": "helper/src/lib.rs",
+                  "test": true
+                }
+              ],
+              "version": "0.1.0"
+            }
+          ],
+          "profiles": [
+            {
+              "build_override": [],
+              "inherits": null,
+              "name": "dev",
+              "package_overrides": [],
+              "settings": [
+                {
+                  "name": "incremental",
+                  "value": {
+                    "kind": "boolean",
+                    "value": true
+                  }
+                },
+                {
+                  "name": "opt-level",
+                  "value": {
+                    "kind": "integer",
+                    "value": 1
+                  }
+                }
+              ]
+            },
+            {
+              "build_override": [],
+              "inherits": null,
+              "name": "release",
+              "package_overrides": [
+                {
+                  "package": "helper",
+                  "settings": [
+                    {
+                      "name": "opt-level",
+                      "value": {
+                        "kind": "integer",
+                        "value": 2
+                      }
+                    }
+                  ]
+                }
+              ],
+              "settings": [
+                {
+                  "name": "lto",
+                  "value": {
+                    "kind": "text",
+                    "value": "thin"
+                  }
+                }
+              ]
+            }
+          ],
+          "runtime": {
+            "cargo_version": "1.98.1",
+            "configuration_fingerprint": "sha256:487cef3409e76e7d9c37afad9454e565023a8f1c9cf7581bed76c6f8b143f62e",
+            "declared_toolchain": null,
+            "execution_fingerprint": "sha256:f2b931b05031c094973976089edf2872788dadf3a6c8599d38e8b1bac778abd6",
+            "image_id": "sha256:8fac70723a8d04b6ec9633ab721806b8a55f4f083a1b3f988c61bf6a00fa1909",
+            "platform": "linux/aarch64",
+            "rust_version": "1.98.1"
+          },
+          "source_fingerprint": "sha256:a60dab0b2eb8b8f2c0d4163402aea16e42ea94ebb68202d42a8d795f07850715",
+          "workspace_default_members": [
+            0
+          ],
+          "workspace_members": [
+            0,
+            1
+          ]
+        }
+      },
+      "diagnostics": [],
+      "duration_ms": 13946,
+      "error_code": null,
+      "error_message": null,
+      "evidence": {
+        "details": {
+          "freshness": {
+            "age_seconds": 14,
+            "assessed_at": 1788515192,
+            "policy": {
+              "fresh_for_seconds": 60,
+              "id": "captured-project-v1",
+              "stale_after_seconds": 300
+            },
+            "state": "fresh"
+          },
+          "provenance": {
+            "created_at": 1788515178,
+            "integrity": "verified",
+            "network_used": false,
+            "observed_at": 1788515192,
+            "source_id": "sha256:a60dab0b2eb8b8f2c0d4163402aea16e42ea94ebb68202d42a8d795f07850715",
+            "source_kind": "project_snapshot"
+          }
+        },
+        "kind": "snapshot"
+      },
+      "status": "passed",
+      "summary": "Captured project declarations inspected with the approved offline Linux runtime",
+      "truncation": {
+        "diagnostics_omitted": 0,
+        "stderr_truncated": false,
+        "stdout_truncated": false
+      }
+    },
+    "mcp-quality-cancellation.json": {
+      "active_quality_test_binaries_observed": 2,
+      "cancelled_response_suppressed": true,
+      "cases": 3,
+      "cleanup": true,
+      "eof_joined_shutdown": true,
+      "initial_fast_pass": true,
+      "prior_log_group_survives_cancel": true,
+      "source_unchanged_between_explicit_mutations": true,
+      "worker_reused_after_joined_cleanup": true
+    },
+    "mcp-quality-fast.json": {
+      "captured_source_write_denied": true,
+      "cases": 2,
+      "cleanup": true,
+      "configuration_fingerprint": "sha256:487cef3409e76e7d9c37afad9454e565023a8f1c9cf7581bed76c6f8b143f62e",
+      "format_diff_and_clippy_diagnostic_retained": true,
+      "logs_sha256_verified": 6,
+      "ordered_stages": 3,
+      "ordinary_failures_continue": true,
+      "prior_log_group_retained": true,
+      "profiles": [
+        "fast"
+      ],
+      "source_unchanged_between_explicit_mutations": true
+    },
+    "mcp-quality-standard.json": {
+      "audit_after_failed_test": true,
+      "cases": 3,
+      "cleanup": true,
+      "configuration_fingerprint": "sha256:487cef3409e76e7d9c37afad9454e565023a8f1c9cf7581bed76c6f8b143f62e",
+      "logs_sha256_verified": 12,
+      "missing_snapshot_never_passes": true,
+      "nonmatching_real_rsa_snapshot": true,
+      "ordered_stages": 5,
+      "profiles": [
+        "standard"
+      ],
+      "real_test_failure_retained": true,
+      "snapshot_fingerprint": "sha256:0521dd57528919f1b0484a128dd269cc19db67134a85a3e2d28590d7039d26f0",
+      "source_unchanged_between_explicit_mutations": true
+    },
+    "mcp-test-cancellation.json": {
+      "active_test_binaries_observed": 2,
+      "calibrated_by_successful_test": true,
+      "cancelled_request_response_suppressed": true,
+      "cleanup": true,
+      "discovery_responsive_during_tests": true,
+      "eof_joined_shutdown": true,
+      "only_expected_source_mutations": true,
+      "worker_reused_after_observed_cleanup": true
+    },
+    "mcp-test.json": {
+      "cases": 9,
+      "cleanup": true,
+      "execution_fingerprints": [
+        "sha256:d5037e94db188764b6612fe0ea0546b7755b174b2e86d55b787dcf6794bc45c9",
+        "sha256:abd5c82723f2d201d32bf495755dfe544833bb00df1ae3ff1d2def9dc2c8b274",
+        "sha256:f613fb7f0ada7752df8647babfb62f3cd73bbe1772d74bd69e1e5728a11b7f4a",
+        "sha256:3246a31b780d39afc27661566fa822b967b131f87b930bdc25460486ad75e52e",
+        "sha256:c87621693ff4fb6c6e4cda195ad966009bb8f520fd69e3822ccf6ef90089cefa",
+        "sha256:b5a4783adbaea262b24888d794999cfca1eaca1080f798e827842693dec6f23b",
+        "sha256:6ff4538ae016e12f409beb71a7880e2647a673dc74193f17a47c66fb49da1fb1",
+        "sha256:fbafbf2c7b512aedf950df81c14fdc3fb93d85dfa56921ae76f03b5a80bd95d7",
+        "sha256:877d45369b38df60d257335b6a293218aa5e30db8905a59299a6a5b5b9989d39"
+      ],
+      "logs_sha256_verified": 9,
+      "package_filter_features_all_features_target_timeout_verified": true,
+      "passed_failed_compile_failed_distinguished": true,
+      "raw_harness_tail_retained": true,
+      "source_unchanged_between_explicit_mutations": true,
+      "timeout_partial_build_evidence": true
+    },
+    "mcp-toolchain.json": {
+      "data": {
+        "observation": {
+          "declared_toolchain": null,
+          "inventory": {
+            "cargo_version": "1.98.1",
+            "channel": "stable",
+            "host_triple": "aarch64-unknown-linux-gnu",
+            "installed_components": [
+              {
+                "component": "cargo",
+                "target": null
+              },
+              {
+                "component": "clippy",
+                "target": null
+              },
+              {
+                "component": "rust_std",
+                "target": "aarch64-unknown-linux-gnu"
+              },
+              {
+                "component": "rustc",
+                "target": null
+              },
+              {
+                "component": "rustfmt",
+                "target": null
+              }
+            ],
+            "installed_targets": [
+              "aarch64-unknown-linux-gnu"
+            ],
+            "rustc_version": "1.98.1"
+          },
+          "runtime": {
+            "configuration_fingerprint": "sha256:487cef3409e76e7d9c37afad9454e565023a8f1c9cf7581bed76c6f8b143f62e",
+            "executions": [
+              {
+                "command": "compiler_version",
+                "execution_fingerprint": "sha256:fef33a19673b625ebc7d105dd500e19121ef1cebd3d1cb8a5d84fb1c7372b0c9"
+              },
+              {
+                "command": "cargo_version",
+                "execution_fingerprint": "sha256:14426e039d23fd41fc238c46ed968a7832e22db37d7fd7cef8d94a6403f25018"
+              },
+              {
+                "command": "installed_components",
+                "execution_fingerprint": "sha256:072efb6d30b5a494954631972847044d689c22f2a9aba77d24ac9c41329d150b"
+              }
+            ],
+            "image_id": "sha256:8fac70723a8d04b6ec9633ab721806b8a55f4f083a1b3f988c61bf6a00fa1909",
+            "platform": "linux/aarch64"
+          },
+          "source_fingerprint": "sha256:a60dab0b2eb8b8f2c0d4163402aea16e42ea94ebb68202d42a8d795f07850715"
+        },
+        "project_identity_fingerprint": "sha256:70ada6fc20556e5e0ea42c99df6142f05d347ef9e5b53d9d8fe38ab12ad4d01b",
+        "project_ref": "prj_4dcf96defa94c8f7ace9bbd8922d3f87",
+        "semantics": "latest_known"
+      },
+      "diagnostics": [],
+      "duration_ms": 2145,
+      "error_code": null,
+      "error_message": null,
+      "evidence": {
+        "details": {
+          "freshness": {
+            "age_seconds": 2,
+            "assessed_at": 1788515194,
+            "policy": {
+              "fresh_for_seconds": 60,
+              "id": "captured-project-v1",
+              "stale_after_seconds": 300
+            },
+            "state": "fresh"
+          },
+          "provenance": {
+            "created_at": 1788515192,
+            "integrity": "verified",
+            "network_used": false,
+            "observed_at": 1788515194,
+            "source_id": "sha256:a60dab0b2eb8b8f2c0d4163402aea16e42ea94ebb68202d42a8d795f07850715",
+            "source_kind": "project_snapshot"
+          }
+        },
+        "kind": "snapshot"
+      },
+      "status": "passed",
+      "summary": "Installed toolchain observed in the approved offline Linux runtime",
+      "truncation": {
+        "diagnostics_omitted": 0,
+        "stderr_truncated": false,
+        "stdout_truncated": false
+      }
+    },
+    "test-containment.json": {
+      "cleanup": true,
+      "image_id": "sha256:8fac70723a8d04b6ec9633ab721806b8a55f4f083a1b3f988c61bf6a00fa1909",
+      "observations": [
+        {
+          "execution": {
+            "duration_ms": 278,
+            "execution_fingerprint": "sha256:efd33b0b6c24b000de4822172690ca242b2a52edf4296351179ba0c3da35d119",
+            "exit_code": 0,
+            "image_id": "sha256:8fac70723a8d04b6ec9633ab721806b8a55f4f083a1b3f988c61bf6a00fa1909",
+            "oom_killed": false,
+            "platform": "linux/aarch64",
+            "stderr": "   Compiling r2_test v0.1.0 (/source)\n    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.20s\n     Running unittests src/lib.rs (/work/target/debug/deps/r2_test-637595ed75a343f5)\n   Doc-tests r2_test\n",
+            "stderr_truncated": false,
+            "stdout": "{\"reason\":\"compiler-artifact\",\"package_id\":\"path+file:///source#r2_test@0.1.0\",\"manifest_path\":\"/source/Cargo.toml\",\"target\":{\"kind\":[\"lib\"],\"crate_types\":[\"lib\"],\"name\":\"r2_test\",\"src_path\":\"/source/src/lib.rs\",\"edition\":\"2024\",\"doc\":true,\"doctest\":true,\"test\":true},\"profile\":{\"opt_level\":\"0\",\"debuginfo\":2,\"debug_assertions\":true,\"overflow_checks\":true,\"test\":false},\"features\":[],\"filenames\":[\"/work/target/debug/deps/libr2_test-1db73d47069868e3.rlib\",\"/work/target/debug/deps/libr2_test-1db73d47069868e3.rmeta\"],\"executable\":null,\"fresh\":false}\n{\"reason\":\"compiler-artifact\",\"package_id\":\"path+file:///source#r2_test@0.1.0\",\"manifest_path\":\"/source/Cargo.toml\",\"target\":{\"kind\":[\"lib\"],\"crate_types\":[\"lib\"],\"name\":\"r2_test\",\"src_path\":\"/source/src/lib.rs\",\"edition\":\"2024\",\"doc\":true,\"doctest\":true,\"test\":true},\"profile\":{\"opt_level\":\"0\",\"debuginfo\":2,\"debug_assertions\":true,\"overflow_checks\":true,\"test\":true},\"features\":[],\"filenames\":[\"/work/target/debug/deps/r2_test-637595ed75a343f5\"],\"executable\":\"/work/target/debug/deps/r2_test-637595ed75a343f5\",\"fresh\":false}\n{\"reason\":\"build-finished\",\"success\":true}\n\nrunning 1 test\ntest actual_runtime ... R2_TEST_CONTAINMENT_PASSED\nok\n\ntest result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n",
+            "stdout_truncated": false,
+            "termination": "exited",
+            "total_duration_ms": 975
+          },
+          "scenario": "normal"
+        },
+        {
+          "actual_test_processes": "PID                 PPID                PGID                SID                 COMMAND\n23821               23798               23821               23821               /opt/rust/bin/cargo test --frozen --message-format=json --jobs=1 --color=never -- --test-threads=1 --color=never\n23880               23821               23821               23821               /work/target/debug/deps/r2_test-637595ed75a343f5 --test-threads=1 --color=never\n23883               23821               23882               23882               /work/target/debug/deps/r2_test-637595ed75a343f5 --test-threads=1 --color=never\n",
+          "cleanup": true,
+          "execution": {
+            "duration_ms": 19513,
+            "execution_fingerprint": "sha256:cd18c108938d5d318166378c2993d7934a0cff35cb58fea3908bc2266c3cc78b",
+            "exit_code": null,
+            "image_id": "sha256:8fac70723a8d04b6ec9633ab721806b8a55f4f083a1b3f988c61bf6a00fa1909",
+            "oom_killed": null,
+            "platform": "linux/aarch64",
+            "stderr": "   Compiling r2_test v0.1.0 (/source)\n    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.13s\n     Running unittests src/lib.rs (/work/target/debug/deps/r2_test-637595ed75a343f5)\n",
+            "stderr_truncated": false,
+            "stdout": "{\"reason\":\"compiler-artifact\",\"package_id\":\"path+file:///source#r2_test@0.1.0\",\"manifest_path\":\"/source/Cargo.toml\",\"target\":{\"kind\":[\"lib\"],\"crate_types\":[\"lib\"],\"name\":\"r2_test\",\"src_path\":\"/source/src/lib.rs\",\"edition\":\"2024\",\"doc\":true,\"doctest\":true,\"test\":true},\"profile\":{\"opt_level\":\"0\",\"debuginfo\":2,\"debug_assertions\":true,\"overflow_checks\":true,\"test\":false},\"features\":[],\"filenames\":[\"/work/target/debug/deps/libr2_test-1db73d47069868e3.rlib\",\"/work/target/debug/deps/libr2_test-1db73d47069868e3.rmeta\"],\"executable\":null,\"fresh\":false}\n{\"reason\":\"compiler-artifact\",\"package_id\":\"path+file:///source#r2_test@0.1.0\",\"manifest_path\":\"/source/Cargo.toml\",\"target\":{\"kind\":[\"lib\"],\"crate_types\":[\"lib\"],\"name\":\"r2_test\",\"src_path\":\"/source/src/lib.rs\",\"edition\":\"2024\",\"doc\":true,\"doctest\":true,\"test\":true},\"profile\":{\"opt_level\":\"0\",\"debuginfo\":2,\"debug_assertions\":true,\"overflow_checks\":true,\"test\":true},\"features\":[],\"filenames\":[\"/work/target/debug/deps/r2_test-637595ed75a343f5\"],\"executable\":\"/work/target/debug/deps/r2_test-637595ed75a343f5\",\"fresh\":false}\n{\"reason\":\"build-finished\",\"success\":true}\n\nrunning 1 test\ntest actual_runtime ... R2_DESCENDANT_STARTED\n",
+            "stdout_truncated": false,
+            "termination": "timed_out",
+            "total_duration_ms": 20214
+          },
+          "quarantined": false,
+          "scenario": "timeout"
+        },
+        {
+          "actual_test_processes": "PID                 PPID                PGID                SID                 COMMAND\n24019               23998               24019               24019               /opt/rust/bin/cargo test --frozen --message-format=json --jobs=1 --color=never -- --test-threads=1 --color=never\n24081               24019               24019               24019               /work/target/debug/deps/r2_test-637595ed75a343f5 --test-threads=1 --color=never\n24084               24019               24083               24083               /work/target/debug/deps/r2_test-637595ed75a343f5 --test-threads=1 --color=never\n",
+          "cleanup": true,
+          "execution": {
+            "duration_ms": 253,
+            "execution_fingerprint": "sha256:9aadf63fb51679d2d6240d9b6aa13b656ebcb1406f144860132deb4f0380d854",
+            "exit_code": null,
+            "image_id": "sha256:8fac70723a8d04b6ec9633ab721806b8a55f4f083a1b3f988c61bf6a00fa1909",
+            "oom_killed": null,
+            "platform": "linux/aarch64",
+            "stderr": "   Compiling r2_test v0.1.0 (/source)\n    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.13s\n     Running unittests src/lib.rs (/work/target/debug/deps/r2_test-637595ed75a343f5)\n",
+            "stderr_truncated": false,
+            "stdout": "{\"reason\":\"compiler-artifact\",\"package_id\":\"path+file:///source#r2_test@0.1.0\",\"manifest_path\":\"/source/Cargo.toml\",\"target\":{\"kind\":[\"lib\"],\"crate_types\":[\"lib\"],\"name\":\"r2_test\",\"src_path\":\"/source/src/lib.rs\",\"edition\":\"2024\",\"doc\":true,\"doctest\":true,\"test\":true},\"profile\":{\"opt_level\":\"0\",\"debuginfo\":2,\"debug_assertions\":true,\"overflow_checks\":true,\"test\":false},\"features\":[],\"filenames\":[\"/work/target/debug/deps/libr2_test-1db73d47069868e3.rlib\",\"/work/target/debug/deps/libr2_test-1db73d47069868e3.rmeta\"],\"executable\":null,\"fresh\":false}\n{\"reason\":\"compiler-artifact\",\"package_id\":\"path+file:///source#r2_test@0.1.0\",\"manifest_path\":\"/source/Cargo.toml\",\"target\":{\"kind\":[\"lib\"],\"crate_types\":[\"lib\"],\"name\":\"r2_test\",\"src_path\":\"/source/src/lib.rs\",\"edition\":\"2024\",\"doc\":true,\"doctest\":true,\"test\":true},\"profile\":{\"opt_level\":\"0\",\"debuginfo\":2,\"debug_assertions\":true,\"overflow_checks\":true,\"test\":true},\"features\":[],\"filenames\":[\"/work/target/debug/deps/r2_test-637595ed75a343f5\"],\"executable\":\"/work/target/debug/deps/r2_test-637595ed75a343f5\",\"fresh\":false}\n{\"reason\":\"build-finished\",\"success\":true}\n\nrunning 1 test\ntest actual_runtime ... R2_DESCENDANT_STARTED\n",
+            "stdout_truncated": false,
+            "termination": "cancelled",
+            "total_duration_ms": 888
+          },
+          "quarantined": false,
+          "scenario": "cancel"
+        },
+        {
+          "actual_test_processes": "PID                 PPID                PGID                SID                 COMMAND\n24222               24199               24222               24222               /opt/rust/bin/cargo test --frozen --message-format=json --jobs=1 --color=never -- --test-threads=1 --color=never\n24282               24222               24222               24222               /work/target/debug/deps/r2_test-637595ed75a343f5 --test-threads=1 --color=never\n24285               24222               24284               24284               /work/target/debug/deps/r2_test-637595ed75a343f5 --test-threads=1 --color=never\n",
+          "cleanup": true,
+          "execution": {
+            "duration_ms": 5214,
+            "execution_fingerprint": "sha256:9cf7b78e1009a22d211b5647fbcca7e9b0e189b616e9bae49fa3c5ce37bacab7",
+            "exit_code": null,
+            "image_id": "sha256:8fac70723a8d04b6ec9633ab721806b8a55f4f083a1b3f988c61bf6a00fa1909",
+            "oom_killed": null,
+            "platform": "linux/aarch64",
+            "stderr": "   Compiling r2_test v0.1.0 (/source)\n    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.14s\n     Running unittests src/lib.rs (/work/target/debug/deps/r2_test-637595ed75a343f5)\n",
+            "stderr_truncated": false,
+            "stdout": "{\"reason\":\"compiler-artifact\",\"package_id\":\"path+file:///source#r2_test@0.1.0\",\"manifest_path\":\"/source/Cargo.toml\",\"target\":{\"kind\":[\"lib\"],\"crate_types\":[\"lib\"],\"name\":\"r2_test\",\"src_path\":\"/source/src/lib.rs\",\"edition\":\"2024\",\"doc\":true,\"doctest\":true,\"test\":true},\"profile\":{\"opt_level\":\"0\",\"debuginfo\":2,\"debug_assertions\":true,\"overflow_checks\":true,\"test\":false},\"features\":[],\"filenames\":[\"/work/target/debug/deps/libr2_test-1db73d47069868e3.rlib\",\"/work/target/debug/deps/libr2_test-1db73d47069868e3.rmeta\"],\"executable\":null,\"fresh\":false}\n{\"reason\":\"compiler-artifact\",\"package_id\":\"path+file:///source#r2_test@0.1.0\",\"manifest_path\":\"/source/Cargo.toml\",\"target\":{\"kind\":[\"lib\"],\"crate_types\":[\"lib\"],\"name\":\"r2_test\",\"src_path\":\"/source/src/lib.rs\",\"edition\":\"2024\",\"doc\":true,\"doctest\":true,\"test\":true},\"profile\":{\"opt_level\":\"0\",\"debuginfo\":2,\"debug_assertions\":true,\"overflow_checks\":true,\"test\":true},\"features\":[],\"filenames\":[\"/work/target/debug/deps/r2_test-637595ed75a343f5\"],\"executable\":\"/work/target/debug/deps/r2_test-637595ed75a343f5\",\"fresh\":false}\n{\"reason\":\"build-finished\",\"success\":true}\n\nrunning 1 test\ntest actual_runtime ... R2_DESCENDANT_STARTED\nxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+            "stdout_truncated": true,
+            "termination": "output_limit",
+            "total_duration_ms": 5912
+          },
+          "quarantined": false,
+          "scenario": "overflow"
+        }
+      ],
+      "scope": "actual_libtest_R2"
+    },
+    "test-forgery.json": {
+      "cleanup": true,
+      "execution": {
+        "duration_ms": 169,
+        "execution_fingerprint": "sha256:55faeb60bc3101234098a66af93c1745ec1baca68832a8d8651e22779470f624",
+        "exit_code": 101,
+        "image_id": "sha256:8fac70723a8d04b6ec9633ab721806b8a55f4f083a1b3f988c61bf6a00fa1909",
+        "oom_killed": false,
+        "platform": "linux/aarch64",
+        "stderr": "   Compiling forgery_macro v0.1.0 (/source/macros)\n   Compiling forgery_consumer v0.1.0 (/source)\nerror: could not compile `forgery_consumer` (lib) due to 1 previous error\n",
+        "stderr_truncated": false,
+        "stdout": "{\"reason\":\"compiler-artifact\",\"package_id\":\"path+file:///source/macros#forgery_macro@0.1.0\",\"manifest_path\":\"/source/macros/Cargo.toml\",\"target\":{\"kind\":[\"proc-macro\"],\"crate_types\":[\"proc-macro\"],\"name\":\"forgery_macro\",\"src_path\":\"/source/macros/src/lib.rs\",\"edition\":\"2024\",\"doc\":true,\"doctest\":true,\"test\":true},\"profile\":{\"opt_level\":\"0\",\"debuginfo\":0,\"debug_assertions\":true,\"overflow_checks\":true,\"test\":false},\"features\":[],\"filenames\":[\"/work/target/debug/deps/libforgery_macro-99696f8a9fe821ab.so\"],\"executable\":null,\"fresh\":false}\n{\"reason\":\"build-finished\",\"success\":true}\n{\"reason\":\"compiler-message\",\"package_id\":\"path+file:///source#forgery_consumer@0.1.0\",\"manifest_path\":\"/source/Cargo.toml\",\"target\":{\"kind\":[\"lib\"],\"crate_types\":[\"lib\"],\"name\":\"forgery_consumer\",\"src_path\":\"/source/src/lib.rs\",\"edition\":\"2024\",\"doc\":true,\"doctest\":true,\"test\":true},\"message\":{\"rendered\":\"error[E0308]: mismatched types\\n --> src/lib.rs:4:43\\n  |\\n4 | pub fn consumer_compile_failure() -> u8 { \\\"ACTUAL_CONSUMER_TYPE_ERROR\\\" }\\n  |                                      --   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^ expected `u8`, found `&str`\\n  |                                      |\\n  |                                      expected `u8` because of return type\\n\\n\",\"$message_type\":\"diagnostic\",\"children\":[],\"level\":\"error\",\"message\":\"mismatched types\",\"spans\":[{\"byte_end\":212,\"byte_start\":184,\"column_end\":71,\"column_start\":43,\"expansion\":null,\"file_name\":\"src/lib.rs\",\"is_primary\":true,\"label\":\"expected `u8`, found `&str`\",\"line_end\":4,\"line_start\":4,\"suggested_replacement\":null,\"suggestion_applicability\":null,\"text\":[{\"highlight_end\":71,\"highlight_start\":43,\"text\":\"pub fn consumer_compile_failure() -> u8 { \\\"ACTUAL_CONSUMER_TYPE_ERROR\\\" }\"}]},{\"byte_end\":181,\"byte_start\":179,\"column_end\":40,\"column_start\":38,\"expansion\":null,\"file_name\":\"src/lib.rs\",\"is_primary\":false,\"label\":\"expected `u8` because of return type\",\"line_end\":4,\"line_start\":4,\"suggested_replacement\":null,\"suggestion_applicability\":null,\"text\":[{\"highlight_end\":40,\"highlight_start\":38,\"text\":\"pub fn consumer_compile_failure() -> u8 { \\\"ACTUAL_CONSUMER_TYPE_ERROR\\\" }\"}]}],\"code\":{\"code\":\"E0308\",\"explanation\":\"Expected type did not match the received type.\\n\\nErroneous code examples:\\n\\n```compile_fail,E0308\\nfn plus_one(x: i32) -> i32 {\\n    x + 1\\n}\\n\\nplus_one(\\\"Not a number\\\");\\n//       ^^^^^^^^^^^^^^ expected `i32`, found `&str`\\n\\nif \\\"Not a bool\\\" {\\n// ^^^^^^^^^^^^ expected `bool`, found `&str`\\n}\\n\\nlet x: f32 = \\\"Not a float\\\";\\n//     ---   ^^^^^^^^^^^^^ expected `f32`, found `&str`\\n//     |\\n//     expected due to this\\n```\\n\\nThis error occurs when an expression was used in a place where the compiler\\nexpected an expression of a different type. It can occur in several cases, the\\nmost common being when calling a function and passing an argument which has a\\ndifferent type than the matching type in the function declaration.\\n\"}}}\n{\"reason\":\"compiler-message\",\"package_id\":\"path+file:///source#forgery_consumer@0.1.0\",\"manifest_path\":\"/source/Cargo.toml\",\"target\":{\"kind\":[\"lib\"],\"crate_types\":[\"lib\"],\"name\":\"forgery_consumer\",\"src_path\":\"/source/src/lib.rs\",\"edition\":\"2024\",\"doc\":true,\"doctest\":true,\"test\":true},\"message\":{\"rendered\":\"For more information about this error, try `rustc --explain E0308`.\\n\",\"$message_type\":\"diagnostic\",\"children\":[],\"level\":\"failure-note\",\"message\":\"For more information about this error, try `rustc --explain E0308`.\",\"spans\":[],\"code\":null}}\n{\"reason\":\"build-finished\",\"success\":false}\n",
+        "stdout_truncated": false,
+        "termination": "exited",
+        "total_duration_ms": 848
+      },
+      "forged_success_forwarded": true,
+      "image_id": "sha256:8fac70723a8d04b6ec9633ab721806b8a55f4f083a1b3f988c61bf6a00fa1909",
+      "later_cargo_build_failed": true,
+      "later_consumer_diagnostic": "E0308",
+      "parser_build_finished": null,
+      "parser_complete": false,
+      "quarantined": false,
+      "scope": "actual_proc_macro_stdout_forgery"
+    }
+  },
+  "audit_data": {
+    "actual_rustsec_sqlite_finding": true,
+    "lock_fingerprint": "sha256:bd6ccdbaa1a6a5c3d0d5b4fa6b3c923b43e780325d4c0f84c825a8cf7fece84c",
+    "network_deny_scope": "macos_test_process_only",
+    "scope": "owned-rustsec-sqlite-data",
+    "snapshot_fingerprint": "sha256:de5bf2923d43c38c44aa0d841726730932b5140bc0920c7bb122c6f6a2d68e30",
+    "tcp_ipv4_ipv6_denied": true,
+    "udp_ipv4_ipv6_denied": true,
+    "positive_tcp_udp_ipv4_ipv6_controls": true,
+    "runtime_temp_absent": true
+  }
+}

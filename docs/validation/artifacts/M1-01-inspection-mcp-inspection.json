@@ -1,0 +1,243 @@
+{
+  "data": {
+    "project_identity_fingerprint": "sha256:922dc433a9f33c367f4c7e2b8d60231b97786569f891cf3aa09f7ce591a5d9e7",
+    "project_ref": "prj_4f0e79de8c32660bccee7ac53c61e511",
+    "semantics": "latest_known",
+    "structure": {
+      "cargo_configuration": {
+        "frozen": true,
+        "incremental": false,
+        "offline": true,
+        "project_config_policy": "rejected",
+        "target_directory_ephemeral": true
+      },
+      "packages": [
+        {
+          "direct_dependencies": [
+            {
+              "features": [
+                "extra"
+              ],
+              "kind": "normal",
+              "name": "helper",
+              "optional": false,
+              "origin": {
+                "identity": "sha256:8011cd9cb2aeba37531bf60960d5ac1bf860527f13be34cd3a973ce7a2bbd8b7",
+                "kind": "path",
+                "relative_path": "helper"
+              },
+              "rename": "renamed",
+              "target_condition": null,
+              "uses_default_features": false,
+              "version_requirement": "*"
+            },
+            {
+              "features": [
+                "extra"
+              ],
+              "kind": "build",
+              "name": "helper",
+              "optional": false,
+              "origin": {
+                "identity": "sha256:8011cd9cb2aeba37531bf60960d5ac1bf860527f13be34cd3a973ce7a2bbd8b7",
+                "kind": "path",
+                "relative_path": "helper"
+              },
+              "rename": "renamed",
+              "target_condition": "cfg(unix)",
+              "uses_default_features": false,
+              "version_requirement": "*"
+            },
+            {
+              "features": [
+                "extra"
+              ],
+              "kind": "dev",
+              "name": "helper",
+              "optional": false,
+              "origin": {
+                "identity": "sha256:8011cd9cb2aeba37531bf60960d5ac1bf860527f13be34cd3a973ce7a2bbd8b7",
+                "kind": "path",
+                "relative_path": "helper"
+              },
+              "rename": "renamed",
+              "target_condition": null,
+              "uses_default_features": false,
+              "version_requirement": "*"
+            }
+          ],
+          "edition": "2024",
+          "features": [
+            {
+              "activations": [
+                "extra"
+              ],
+              "name": "default"
+            },
+            {
+              "activations": [
+                "renamed/extra"
+              ],
+              "name": "extra"
+            }
+          ],
+          "manifest_path": "app/Cargo.toml",
+          "name": "app",
+          "package_index": 0,
+          "rust_version": null,
+          "targets": [
+            {
+              "crate_types": [
+                "lib"
+              ],
+              "doctest": true,
+              "edition": "2024",
+              "kinds": [
+                "lib"
+              ],
+              "name": "app",
+              "required_features": [],
+              "source_path": "app/src/lib.rs",
+              "test": true
+            }
+          ],
+          "version": "0.1.0"
+        },
+        {
+          "direct_dependencies": [],
+          "edition": "2024",
+          "features": [
+            {
+              "activations": [],
+              "name": "extra"
+            }
+          ],
+          "manifest_path": "helper/Cargo.toml",
+          "name": "helper",
+          "package_index": 1,
+          "rust_version": null,
+          "targets": [
+            {
+              "crate_types": [
+                "lib"
+              ],
+              "doctest": true,
+              "edition": "2024",
+              "kinds": [
+                "lib"
+              ],
+              "name": "helper",
+              "required_features": [],
+              "source_path": "helper/src/lib.rs",
+              "test": true
+            }
+          ],
+          "version": "0.1.0"
+        }
+      ],
+      "profiles": [
+        {
+          "build_override": [],
+          "inherits": null,
+          "name": "dev",
+          "package_overrides": [],
+          "settings": [
+            {
+              "name": "incremental",
+              "value": {
+                "kind": "boolean",
+                "value": true
+              }
+            },
+            {
+              "name": "opt-level",
+              "value": {
+                "kind": "integer",
+                "value": 1
+              }
+            }
+          ]
+        },
+        {
+          "build_override": [],
+          "inherits": null,
+          "name": "release",
+          "package_overrides": [
+            {
+              "package": "helper",
+              "settings": [
+                {
+                  "name": "opt-level",
+                  "value": {
+                    "kind": "integer",
+                    "value": 2
+                  }
+                }
+              ]
+            }
+          ],
+          "settings": [
+            {
+              "name": "lto",
+              "value": {
+                "kind": "text",
+                "value": "thin"
+              }
+            }
+          ]
+        }
+      ],
+      "runtime": {
+        "cargo_version": "1.98.1",
+        "configuration_fingerprint": "sha256:57b0de897d8678c7b0a38ed647a08538c1d33f91230f1cad734a1a88138e27cb",
+        "declared_toolchain": null,
+        "execution_fingerprint": "sha256:f792529cd72e6cc88893ffe441697e4e17f3732a4e5cdfa645e986879f2b5e9d",
+        "image_id": "sha256:8fac70723a8d04b6ec9633ab721806b8a55f4f083a1b3f988c61bf6a00fa1909",
+        "platform": "linux/aarch64",
+        "rust_version": "1.98.1"
+      },
+      "source_fingerprint": "sha256:a60dab0b2eb8b8f2c0d4163402aea16e42ea94ebb68202d42a8d795f07850715",
+      "workspace_default_members": [
+        0
+      ],
+      "workspace_members": [
+        0,
+        1
+      ]
+    }
+  },
+  "diagnostics": [],
+  "duration_ms": 14159,
+  "error_code": null,
+  "error_message": null,
+  "evidence": {
+    "details": {
+      "freshness": {
+        "age_seconds": 14,
+        "assessed_at": 1788502141,
+        "policy": {
+          "fresh_for_seconds": 60,
+          "id": "captured-project-v1",
+          "stale_after_seconds": 300
+        },
+        "state": "fresh"
+      },
+      "provenance": {
+        "created_at": 1788502127,
+        "integrity": "verified",
+        "network_used": false,
+        "observed_at": 1788502141,
+        "source_id": "sha256:a60dab0b2eb8b8f2c0d4163402aea16e42ea94ebb68202d42a8d795f07850715",
+        "source_kind": "project_snapshot"
+      }
+    },
+    "kind": "snapshot"
+  },
+  "status": "passed",
+  "summary": "Captured project declarations inspected with the approved offline Linux runtime",
+  "truncation": {
+    "diagnostics_omitted": 0,
+    "stderr_truncated": false,
+    "stdout_truncated": false
+  }
+}

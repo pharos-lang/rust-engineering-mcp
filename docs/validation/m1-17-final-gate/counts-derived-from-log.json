@@ -1,0 +1,80 @@
+{
+  "counts": {
+    "catalog": {
+      "failed": 0,
+      "filtered_out": 5,
+      "ignored": 1,
+      "measured": 0,
+      "passed": 6,
+      "result_rows": 2
+    },
+    "catalog-status": {
+      "failed": 0,
+      "filtered_out": 2,
+      "ignored": 1,
+      "measured": 0,
+      "passed": 3,
+      "result_rows": 2
+    },
+    "crate-inspect": {
+      "failed": 0,
+      "filtered_out": 0,
+      "ignored": 0,
+      "measured": 0,
+      "passed": 2,
+      "result_rows": 1
+    },
+    "crate-search": {
+      "failed": 0,
+      "filtered_out": 2,
+      "ignored": 1,
+      "measured": 0,
+      "passed": 3,
+      "result_rows": 2
+    },
+    "docker-security": {
+      "failed": 0,
+      "filtered_out": 1,
+      "ignored": 0,
+      "measured": 0,
+      "passed": 4,
+      "result_rows": 1
+    },
+    "doctests": {
+      "failed": 0,
+      "filtered_out": 0,
+      "ignored": 0,
+      "measured": 0,
+      "passed": 1,
+      "result_rows": 7
+    },
+    "semantic": {
+      "failed": 0,
+      "filtered_out": 16,
+      "ignored": 1,
+      "measured": 0,
+      "passed": 17,
+      "result_rows": 4
+    },
+    "test": {
+      "failed": 0,
+      "filtered_out": 0,
+      "ignored": 31,
+      "measured": 0,
+      "passed": 644,
+      "result_rows": 51
+    }
+  },
+  "interpretation": {
+    "doctest_stage": "1 passed across 7 Cargo result rows",
+    "no_combined_core_test_claim": "The two stages are reported separately; 645 is not described as a single core-test count.",
+    "workspace_test_stage": "644 passed and 31 ignored across 51 Cargo result rows"
+  },
+  "parser": "Anchored Cargo test-result rows partitioned by GATE stage headings; passed counts are sums over result rows.",
+  "scope": "counts-derived-from-preserved-full-gate-log",
+  "source": {
+    "path": "docs/validation/m1-17-final-gate/full.log",
+    "sha256": "25c2312a629bf6d7e65ebc36ead7f36027d20eda5121bcb78726e8709accc289"
+  },
+  "status": "passed"
+}

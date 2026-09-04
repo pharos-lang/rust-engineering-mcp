@@ -1,0 +1,144 @@
+{
+  "mode": "core",
+  "platform": "macOS-26.6.2-arm64-arm-64bit-Mach-O",
+  "machine": "arm64",
+  "steps": [
+    {
+      "name": "fmt",
+      "command": [
+        "cargo",
+        "fmt",
+        "--all",
+        "--check"
+      ],
+      "status": "passed",
+      "exit_code": 0,
+      "seconds": 0.287
+    },
+    {
+      "name": "check",
+      "command": [
+        "cargo",
+        "check",
+        "--workspace",
+        "--all-targets",
+        "--locked",
+        "--offline"
+      ],
+      "status": "passed",
+      "exit_code": 0,
+      "seconds": 1.442
+    },
+    {
+      "name": "clippy",
+      "command": [
+        "cargo",
+        "clippy",
+        "--workspace",
+        "--all-targets",
+        "--locked",
+        "--offline",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "status": "passed",
+      "exit_code": 0,
+      "seconds": 1.556
+    },
+    {
+      "name": "test",
+      "command": [
+        "cargo",
+        "test",
+        "--workspace",
+        "--all-targets",
+        "--locked",
+        "--offline"
+      ],
+      "status": "passed",
+      "exit_code": 0,
+      "seconds": 23.279
+    },
+    {
+      "name": "doctests",
+      "command": [
+        "cargo",
+        "test",
+        "--workspace",
+        "--doc",
+        "--locked",
+        "--offline"
+      ],
+      "status": "passed",
+      "exit_code": 0,
+      "seconds": 0.655
+    },
+    {
+      "name": "architecture",
+      "command": [
+        "/opt/homebrew/opt/python@3.14/bin/python3.14",
+        "scripts/check-architecture.py"
+      ],
+      "status": "passed",
+      "exit_code": 0,
+      "seconds": 0.047
+    },
+    {
+      "name": "vendor",
+      "command": [
+        "/opt/homebrew/opt/python@3.14/bin/python3.14",
+        "scripts/verify-vendor.py"
+      ],
+      "status": "passed",
+      "exit_code": 0,
+      "seconds": 0.057
+    },
+    {
+      "name": "cargo-fixtures",
+      "command": [
+        "/opt/homebrew/opt/python@3.14/bin/python3.14",
+        "scripts/test-fixtures.py",
+        "<LOCAL_HOME>/Projects/rust-mcp",
+        "--cargo",
+        "<LOCAL_HOME>/.rustup/toolchains/1.98.1-aarch64-apple-darwin/bin/cargo"
+      ],
+      "status": "passed",
+      "exit_code": 0,
+      "seconds": 1.96
+    },
+    {
+      "name": "audit",
+      "command": [
+        "cargo",
+        "audit",
+        "--no-fetch"
+      ],
+      "status": "passed",
+      "exit_code": 0,
+      "seconds": 0.276
+    },
+    {
+      "name": "deny",
+      "command": [
+        "cargo",
+        "deny",
+        "--all-features",
+        "--locked",
+        "--offline",
+        "check",
+        "--disable-fetch",
+        "--hide-inclusion-graph",
+        "advisories",
+        "bans",
+        "sources"
+      ],
+      "status": "passed",
+      "exit_code": 0,
+      "seconds": 0.497
+    }
+  ],
+  "status": "passed",
+  "cargo": "cargo 1.98.1 (797e8a9bc 2026-08-05)",
+  "rustc": "rustc 1.98.1 (48a229cea 2026-09-01)"
+}

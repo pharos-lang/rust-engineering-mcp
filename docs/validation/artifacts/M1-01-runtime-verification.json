@@ -1,0 +1,124 @@
+{
+  "observed_at": "2026-09-04T04:36:00.710598+00:00",
+  "image_id": "sha256:8fac70723a8d04b6ec9633ab721806b8a55f4f083a1b3f988c61bf6a00fa1909",
+  "run_prefix": [
+    "/Applications/Docker.app/Contents/Resources/bin/docker",
+    "--host",
+    "unix://<LOCAL_HOME>/.docker/run/docker.sock",
+    "run",
+    "--rm",
+    "--pull",
+    "never",
+    "--platform",
+    "linux/arm64",
+    "--network",
+    "none",
+    "--read-only",
+    "--cap-drop",
+    "ALL",
+    "--security-opt",
+    "no-new-privileges",
+    "--user",
+    "65534:65534",
+    "--pids-limit",
+    "64",
+    "--memory",
+    "256m",
+    "--memory-swap",
+    "256m",
+    "--cpus",
+    "1",
+    "--log-driver",
+    "none",
+    "--no-healthcheck",
+    "--workdir",
+    "/work",
+    "--tmpfs",
+    "/tmp:size=64m,noexec,nosuid,nodev",
+    "--entrypoint",
+    "/usr/bin/env",
+    "sha256:8fac70723a8d04b6ec9633ab721806b8a55f4f083a1b3f988c61bf6a00fa1909",
+    "-i",
+    "PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+  ],
+  "results": [
+    {
+      "command": [
+        "/opt/rust/bin/rustc",
+        "--version",
+        "--verbose"
+      ],
+      "exit_code": 0,
+      "stdout": "rustc 1.98.1 (48a229cea 2026-09-01)\nbinary: rustc\ncommit-hash: 48a229ceaefd4985c50990b14116b6d856af0985\ncommit-date: 2026-09-01\nhost: aarch64-unknown-linux-gnu\nrelease: 1.98.1\nLLVM version: 22.1.8\n",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "/opt/rust/bin/cargo",
+        "--version",
+        "--verbose"
+      ],
+      "exit_code": 0,
+      "stdout": "cargo 1.98.1 (797e8a9bc 2026-08-05)\nrelease: 1.98.1\ncommit-hash: 797e8a9bca276c1c9f9f738d2a20f484fa4eea9d\ncommit-date: 2026-08-05\nhost: aarch64-unknown-linux-gnu\nlibgit2: 1.9.4 (sys:0.21.0 vendored)\nlibcurl: 8.21.0-DEV (sys:0.4.90+curl-8.21.0 vendored ssl:OpenSSL/3.6.3)\nssl: OpenSSL 3.6.3 9 Jun 2026\nos: Debian 12.0.0 (bookworm) [64-bit]\n",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "/opt/rust/bin/rustfmt",
+        "--version"
+      ],
+      "exit_code": 0,
+      "stdout": "rustfmt 1.9.0-stable (48a229ceae 2026-09-01)\n",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "/opt/rust/bin/clippy-driver",
+        "--version"
+      ],
+      "exit_code": 0,
+      "stdout": "clippy 0.1.98 (48a229ceae 2026-09-01)\n",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "/opt/rust/bin/cargo-clippy",
+        "--version"
+      ],
+      "exit_code": 0,
+      "stdout": "clippy 0.1.98 (48a229ceae 2026-09-01)\n",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "/usr/bin/gcc",
+        "--version"
+      ],
+      "exit_code": 0,
+      "stdout": "gcc (Debian 12.2.0-14+deb12u1) 12.2.0\nCopyright (C) 2022 Free Software Foundation, Inc.\nThis is free software; see the source for copying conditions.  There is NO\nwarranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.\n\n",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "/usr/bin/sha256sum",
+        "/opt/rust/bin/rustc",
+        "/opt/rust/bin/cargo",
+        "/opt/rust/bin/rustfmt",
+        "/opt/rust/bin/clippy-driver",
+        "/opt/rust/bin/cargo-clippy"
+      ],
+      "exit_code": 0,
+      "stdout": "d4217a981a778bfe445c0a29c408f5a25a92e9bb5222701579ad5a35bd913e8f  /opt/rust/bin/rustc\n2101d7104b91a013912c94275dcd31c2b41061ef7f6e8530df11cdad55b8fbc5  /opt/rust/bin/cargo\n7aa230a4c704fb7b0e2fbccb90688b5b62d932cf9663805d26bbbe7a99ebae8b  /opt/rust/bin/rustfmt\n3bb746414d10f2b96655d9dc36bf3acc9c914ae7ea882ffa74a2c841924aa282  /opt/rust/bin/clippy-driver\n44ad53b58a0fb84fc09c31c09799a1236f03160ea80549820c881a6e734df806  /opt/rust/bin/cargo-clippy\n",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "/usr/bin/dpkg-query",
+        "-W"
+      ],
+      "exit_code": 0,
+      "stdout": "adduser\t3.134\napt\t2.6.1\nbase-files\t12.4+deb12u15\nbase-passwd\t3.6.1\nbash\t5.2.15-2+b13\nbinutils\t2.40-2\nbinutils-aarch64-linux-gnu\t2.40-2\nbinutils-common:arm64\t2.40-2\nbsdutils\t1:2.38.1-5+deb12u3\nca-certificates\t20250419~deb12u1\ncoreutils\t9.1-1\ncpp\t4:12.2.0-3\ncpp-12\t12.2.0-14+deb12u1\ndash\t0.5.12-2\ndebconf\t1.5.82\ndebian-archive-keyring\t2023.3+deb12u2\ndebianutils\t5.7-0.5~deb12u1\ndiffutils\t1:3.8-4\ndpkg\t1.21.23\ne2fsprogs\t1.47.0-2+b2\nfindutils\t4.9.0-4\ngcc\t4:12.2.0-3\ngcc-12\t12.2.0-14+deb12u1\ngcc-12-base:arm64\t12.2.0-14+deb12u1\ngpgv\t2.2.40-1.1+deb12u2\ngrep\t3.8-5\ngzip\t1.12-1\nhostname\t3.23+nmu1\ninit-system-helpers\t1.65.2+deb12u1\nlibacl1:arm64\t2.3.1-3\nlibapt-pkg6.0:arm64\t2.6.1\nlibasan8:arm64\t12.2.0-14+deb12u1\nlibatomic1:arm64\t12.2.0-14+deb12u1\nlibattr1:arm64\t1:2.5.1-4\nlibaudit-common\t1:3.0.9-1\nlibaudit1:arm64\t1:3.0.9-1\nlibbinutils:arm64\t2.40-2\nlibblkid1:arm64\t2.38.1-5+deb12u3\nlibbz2-1.0:arm64\t1.0.8-5+b1\nlibc-bin\t2.36-9+deb12u14\nlibc-dev-bin\t2.36-9+deb12u14\nlibc6:arm64\t2.36-9+deb12u14\nlibc6-dev:arm64\t2.36-9+deb12u14\nlibcap-ng0:arm64\t0.8.3-1+b3\nlibcap2:arm64\t1:2.66-4+deb12u3+b1\nlibcc1-0:arm64\t12.2.0-14+deb12u1\nlibcom-err2:arm64\t1.47.0-2+b2\nlibcrypt-dev:arm64\t1:4.4.33-2\nlibcrypt1:arm64\t1:4.4.33-2\nlibctf-nobfd0:arm64\t2.40-2\nlibctf0:arm64\t2.40-2\nlibdb5.3:arm64\t5.3.28+dfsg2-1\nlibdebconfclient0:arm64\t0.270\nlibext2fs2:arm64\t1.47.0-2+b2\nlibffi8:arm64\t3.4.4-1\nlibgcc-12-dev:arm64\t12.2.0-14+deb12u1\nlibgcc-s1:arm64\t12.2.0-14+deb12u1\nlibgcrypt20:arm64\t1.10.1-3+deb12u1\nlibgmp10:arm64\t2:6.2.1+dfsg1-1.1\nlibgnutls30:arm64\t3.7.9-2+deb12u7\nlibgomp1:arm64\t12.2.0-14+deb12u1\nlibgpg-error0:arm64\t1.46-1\nlibgprofng0:arm64\t2.40-2\nlibgssapi-krb5-2:arm64\t1.20.1-2+deb12u5\nlibhogweed6:arm64\t3.8.1-2\nlibhwasan0:arm64\t12.2.0-14+deb12u1\nlibidn2-0:arm64\t2.3.3-1+b1\nlibisl23:arm64\t0.25-1.1\nlibitm1:arm64\t12.2.0-14+deb12u1\nlibjansson4:arm64\t2.14-2\nlibk5crypto3:arm64\t1.20.1-2+deb12u5\nlibkeyutils1:arm64\t1.6.3-2\nlibkrb5-3:arm64\t1.20.1-2+deb12u5\nlibkrb5support0:arm64\t1.20.1-2+deb12u5\nliblsan0:arm64\t12.2.0-14+deb12u1\nliblz4-1:arm64\t1.9.4-1\nliblzma5:arm64\t5.4.1-1+deb12u1\nlibmd0:arm64\t1.0.4-2\nlibmount1:arm64\t2.38.1-5+deb12u3\nlibmpc3:arm64\t1.3.1-1\nlibmpfr6:arm64\t4.2.0-1\nlibnettle8:arm64\t3.8.1-2\nlibnsl-dev:arm64\t1.3.0-2\nlibnsl2:arm64\t1.3.0-2\nlibp11-kit0:arm64\t0.24.1-2\nlibpam-modules:arm64\t1.5.2-6+deb12u2\nlibpam-modules-bin\t1.5.2-6+deb12u2\nlibpam-runtime\t1.5.2-6+deb12u2\nlibpam0g:arm64\t1.5.2-6+deb12u2\nlibpcre2-8-0:arm64\t10.42-1\nlibseccomp2:arm64\t2.5.4-1+deb12u1\nlibselinux1:arm64\t3.4-1+b6\nlibsemanage-common\t3.4-1\nlibsemanage2:arm64\t3.4-1+b5\nlibsepol2:arm64\t3.4-2.1\nlibsmartcols1:arm64\t2.38.1-5+deb12u3\nlibss2:arm64\t1.47.0-2+b2\nlibssl3:arm64\t3.0.20-1~deb12u2\nlibstdc++6:arm64\t12.2.0-14+deb12u1\nlibsystemd0:arm64\t252.39-1~deb12u2\nlibtasn1-6:arm64\t4.19.0-2+deb12u1\nlibtinfo6:arm64\t6.4-4\nlibtirpc-common\t1.3.3+ds-1\nlibtirpc-dev:arm64\t1.3.3+ds-1\nlibtirpc3:arm64\t1.3.3+ds-1\nlibtsan2:arm64\t12.2.0-14+deb12u1\nlibubsan1:arm64\t12.2.0-14+deb12u1\nlibudev1:arm64\t252.39-1~deb12u2\nlibunistring2:arm64\t1.0-2\nlibuuid1:arm64\t2.38.1-5+deb12u3\nlibxxhash0:arm64\t0.8.1-1\nlibzstd1:arm64\t1.5.4+dfsg2-5\nlinux-libc-dev:arm64\t6.1.180-1\nlogin\t1:4.13+dfsg1-1+deb12u2\nlogsave\t1.47.0-2+b2\nmawk\t1.3.4.20200120-3.1\nmount\t2.38.1-5+deb12u3\nncurses-base\t6.4-4\nncurses-bin\t6.4-4\nopenssl\t3.0.20-1~deb12u2\npasswd\t1:4.13+dfsg1-1+deb12u2\nperl-base\t5.36.0-7+deb12u3\nrpcsvc-proto\t1.4.3-1\nsed\t4.9-1+deb12u1\nsysvinit-utils\t3.06-4\ntar\t1.34+dfsg-1.2+deb12u1\ntzdata\t2026b-0+deb12u1\nusr-is-merged\t37~deb12u1\nutil-linux\t2.38.1-5+deb12u3\nutil-linux-extra\t2.38.1-5+deb12u3\nxz-utils\t5.4.1-1+deb12u1\nzlib1g:arm64\t1:1.2.13.dfsg-1\n",
+      "stderr": ""
+    }
+  ]
+}

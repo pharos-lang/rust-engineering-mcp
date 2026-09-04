@@ -1,0 +1,32 @@
+{
+  "core_tests_including_doctests": 645,
+  "core_stages": 10,
+  "protocol_tests": 37,
+  "all_features_all_targets_clippy": "passed on final source",
+  "doctor_active_cases": 4,
+  "doctor_cli_tests": 3,
+  "capabilities_cli_tests": 9,
+  "doctor_report_snapshot": "crates/mcp-server/tests/snapshots/doctor-report.json",
+  "active_gate": "scripts/test-doctor.py",
+  "full_rerun": false,
+  "full_rerun_reason": "Final candidate full19 planned after integration; current proportional core and actual active calibration/cancellation gate passed",
+  "logs": {
+    "M1-14-core.log": {
+      "sha256": "6873d75e5c020808812ddfdd1418d8452b2634ed800e0c8f260afb3f744505a8",
+      "bytes": 102048
+    },
+    "M1-14-active.log": {
+      "sha256": "b148d4d387aa72ecaf394260ee67c82049c09a6b36b98ab9dce55077a4e770a0",
+      "bytes": 568
+    },
+    "M1-14-native-clippy.log": {
+      "sha256": "40a5e3b853c9fe98aa301268e651bfa6a2417a6a2d3728f0f01f34c5f58f4714",
+      "bytes": 1337
+    },
+    "M1-14-final-native-clippy.log": {
+      "sha256": "4363ca616a012d7c6be9881b1dee3c3facfe659e41e37bb10456abfd8f0a9eb7",
+      "bytes": 1337
+    }
+  },
+  "doctor_stalled_output_cases": 2
+}

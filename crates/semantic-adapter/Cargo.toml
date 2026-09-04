@@ -1,0 +1,33 @@
+[package]
+name = "rust-engineering-semantic"
+description = "Verified local E5 embeddings and derived LanceDB index"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+publish.workspace = true
+license.workspace = true
+authors.workspace = true
+repository.workspace = true
+
+[features]
+default = []
+local = ["dep:ort", "dep:lancedb", "dep:fastembed", "dep:arrow-array", "dep:arrow-schema", "dep:futures"]
+
+[dependencies]
+serde_json.workspace = true
+rust-engineering-domain.workspace = true
+rust-engineering-application.workspace = true
+sha2.workspace = true
+ort = { workspace = true, optional = true }
+lancedb = { workspace = true, optional = true }
+fastembed = { workspace = true, optional = true }
+arrow-array = { workspace = true, optional = true }
+arrow-schema = { workspace = true, optional = true }
+futures = { workspace = true, optional = true }
+
+[dev-dependencies]
+rust-engineering-catalog.workspace = true
+tokio = { workspace = true, features = ["macros"] }
+
+[lints]
+workspace = true

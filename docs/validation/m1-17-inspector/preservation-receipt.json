@@ -1,0 +1,509 @@
+{
+  "policy": "Raw target files preserved. Export copies replace local absolute path prefixes only. No auth token or credential field present; progressToken is public MCP correlation metadata. Hashes distinguish raw and sanitized bytes.",
+  "files": [
+    {
+      "source": "target/m1-17-inspector-ui-resumed/protocol-export.json",
+      "retained": "ui/protocol-export.json",
+      "source_sha256": "6d479cdb8af653b906ed35065404a15ee15033674c5aaac55c4b472451276f50",
+      "retained_sha256": "b3f67d508a7e9f50ebe06acae4bd8f75f7b576d607778f700c42fe5834e6faeb",
+      "source_bytes": 490361,
+      "retained_bytes": 490277,
+      "paths_redacted": true
+    },
+    {
+      "source": "target/m1-17-inspector-ui-resumed/summary.json",
+      "retained": "ui/summary.json",
+      "source_sha256": "bfad51ffb20bbffe960c5bb7e73e2bef63448f65eec75fe02dde7496b0ed1651",
+      "retained_sha256": "e015337020346d619d2e8892061cc7de99d8ebdfc313725f6385e61854f83773",
+      "source_bytes": 6102,
+      "retained_bytes": 6074,
+      "paths_redacted": true
+    },
+    {
+      "source": "target/m1-17-inspector-ui-resumed/cleanup.json",
+      "retained": "ui/cleanup.json",
+      "source_sha256": "034539a19d2e144ef2b681402ed4d9c13110a55da59d077b645740425457f158",
+      "retained_sha256": "034539a19d2e144ef2b681402ed4d9c13110a55da59d077b645740425457f158",
+      "source_bytes": 147,
+      "retained_bytes": 147,
+      "paths_redacted": false
+    },
+    {
+      "source": "target/m1-17-inspector-ui-resumed/session.json",
+      "retained": "ui/session.json",
+      "source_sha256": "bfe595539e5e36e64ca87c5ddb21d6979850ac87782ba27002070c4aca35f7de",
+      "retained_sha256": "bfe595539e5e36e64ca87c5ddb21d6979850ac87782ba27002070c4aca35f7de",
+      "source_bytes": 639,
+      "retained_bytes": 639,
+      "paths_redacted": false
+    },
+    {
+      "source": "target/m1-17-inspector-ui-resumed/post-cancellation-docker.json",
+      "retained": "ui/post-cancellation-docker.json",
+      "source_sha256": "94c7194e75d272622b64b037799ec15c1b80a464fccca1469ed35ac534e35f80",
+      "retained_sha256": "1d5eb07af24953341f5e39cdc1f38c451a1e6301e348f4fb2acf2ba57a397cf5",
+      "source_bytes": 780,
+      "retained_bytes": 760,
+      "paths_redacted": true
+    },
+    {
+      "source": "target/m1-17-inspector-ui-resumed/hashes.json",
+      "retained": "ui/hashes.json",
+      "source_sha256": "a8b321d769deec802a67c3211a6b15e1fb78f78767fe6cbb790b34796d03b047",
+      "retained_sha256": "95feb73cdb866b3bd454c5925c17535be78570439583386dfccd91a387933db3",
+      "source_bytes": 1490,
+      "retained_bytes": 1238,
+      "paths_redacted": true
+    },
+    {
+      "source": "target/m1-17-inspector-ui-resumed/config.json",
+      "retained": "ui/config.json",
+      "source_sha256": "28fe7c270bfc1debbd6eb12a928c1633e80a1fce5af61825daa622dc7ec0e3ba",
+      "retained_sha256": "773f2a017764fd8180faf3f8d997eb1ab5b83dfb01bdb38a2abd30fe88edcfe6",
+      "source_bytes": 1492,
+      "retained_bytes": 1278,
+      "paths_redacted": true
+    },
+    {
+      "source": "target/m1-17-inspector/results-1788538305987947000/network-positive-2.stdout.log",
+      "retained": "cli/network-positive-2.stdout.log",
+      "source_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "retained_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "source_bytes": 0,
+      "retained_bytes": 0,
+      "paths_redacted": false
+    },
+    {
+      "source": "target/m1-17-inspector/results-1788538305987947000/discovery.stderr.log",
+      "retained": "cli/discovery.stderr.log",
+      "source_sha256": "2822cb3c751131316d3828636a35f54b67aaa689ee1a5af20134f982328bc0ce",
+      "retained_sha256": "2822cb3c751131316d3828636a35f54b67aaa689ee1a5af20134f982328bc0ce",
+      "source_bytes": 63424,
+      "retained_bytes": 63424,
+      "paths_redacted": false
+    },
+    {
+      "source": "target/m1-17-inspector/results-1788538305987947000/unavailable-rust.project.inspect.stdout.log",
+      "retained": "cli/unavailable-rust.project.inspect.stdout.log",
+      "source_sha256": "55e271145469dced40777087ac3bb6a4078e1b69778e4bda99ada85ee9e17be8",
+      "retained_sha256": "55e271145469dced40777087ac3bb6a4078e1b69778e4bda99ada85ee9e17be8",
+      "source_bytes": 773,
+      "retained_bytes": 773,
+      "paths_redacted": false
+    },
+    {
+      "source": "target/m1-17-inspector/results-1788538305987947000/unavailable-rust.test.stdout.log",
+      "retained": "cli/unavailable-rust.test.stdout.log",
+      "source_sha256": "55e271145469dced40777087ac3bb6a4078e1b69778e4bda99ada85ee9e17be8",
+      "retained_sha256": "55e271145469dced40777087ac3bb6a4078e1b69778e4bda99ada85ee9e17be8",
+      "source_bytes": 773,
+      "retained_bytes": 773,
+      "paths_redacted": false
+    },
+    {
+      "source": "target/m1-17-inspector/results-1788538305987947000/unavailable-rust.dependencies.audit.stderr.log",
+      "retained": "cli/unavailable-rust.dependencies.audit.stderr.log",
+      "source_sha256": "fae65fb32c4ea3c47a90359773bd215465ede2ac40f176452b8d3ed2aa55a4c5",
+      "retained_sha256": "fae65fb32c4ea3c47a90359773bd215465ede2ac40f176452b8d3ed2aa55a4c5",
+      "source_bytes": 3589,
+      "retained_bytes": 3589,
+      "paths_redacted": false
+    },
+    {
+      "source": "target/m1-17-inspector/results-1788538305987947000/unavailable-rust.quality.gate.stdout.log",
+      "retained": "cli/unavailable-rust.quality.gate.stdout.log",
+      "source_sha256": "b7d583352217781f23804a4e733c9e143d3a9dd807206b8653734fce99c9d6d3",
+      "retained_sha256": "b7d583352217781f23804a4e733c9e143d3a9dd807206b8653734fce99c9d6d3",
+      "source_bytes": 1155,
+      "retained_bytes": 1155,
+      "paths_redacted": false
+    },
+    {
+      "source": "target/m1-17-inspector/results-1788538305987947000/network-denied-2.stdout.log",
+      "retained": "cli/network-denied-2.stdout.log",
+      "source_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "retained_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "source_bytes": 0,
+      "retained_bytes": 0,
+      "paths_redacted": false
+    },
+    {
+      "source": "target/m1-17-inspector/results-1788538305987947000/unavailable-rust.check.stderr.log",
+      "retained": "cli/unavailable-rust.check.stderr.log",
+      "source_sha256": "79e8a3ad836aedadeba185a31492421320fd00f976051d6e804961a3c37b4756",
+      "retained_sha256": "79e8a3ad836aedadeba185a31492421320fd00f976051d6e804961a3c37b4756",
+      "source_bytes": 2894,
+      "retained_bytes": 2894,
+      "paths_redacted": false
+    },
+    {
+      "source": "target/m1-17-inspector/results-1788538305987947000/resources-list.stdout.log",
+      "retained": "cli/resources-list.stdout.log",
+      "source_sha256": "ddfd5165fc6736ee4f7ee65055546fde9b2517ff48eaeb0f8d3bd2bf83c06b69",
+      "retained_sha256": "ddfd5165fc6736ee4f7ee65055546fde9b2517ff48eaeb0f8d3bd2bf83c06b69",
+      "source_bytes": 28,
+      "retained_bytes": 28,
+      "paths_redacted": false
+    },
+    {
+      "source": "target/m1-17-inspector/results-1788538305987947000/initialize.stderr.log",
+      "retained": "cli/initialize.stderr.log",
+      "source_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "retained_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "source_bytes": 0,
+      "retained_bytes": 0,
+      "paths_redacted": false
+    },
+    {
+      "source": "target/m1-17-inspector/results-1788538305987947000/catalog-import.stderr.log",
+      "retained": "cli/catalog-import.stderr.log",
+      "source_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "retained_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "source_bytes": 0,
+      "retained_bytes": 0,
+      "paths_redacted": false
+    },
+    {
+      "source": "target/m1-17-inspector/results-1788538305987947000/unavailable-rust.fmt.check.stderr.log",
+      "retained": "cli/unavailable-rust.fmt.check.stderr.log",
+      "source_sha256": "616e32ae18889e4131af5a3d4a41bee57afa13e34f51d41b0781a33a34a77673",
+      "retained_sha256": "616e32ae18889e4131af5a3d4a41bee57afa13e34f51d41b0781a33a34a77673",
+      "source_bytes": 3074,
+      "retained_bytes": 3074,
+      "paths_redacted": false
+    },
+    {
+      "source": "target/m1-17-inspector/results-1788538305987947000/unavailable-rust.toolchain.inspect.stdout.log",
+      "retained": "cli/unavailable-rust.toolchain.inspect.stdout.log",
+      "source_sha256": "55e271145469dced40777087ac3bb6a4078e1b69778e4bda99ada85ee9e17be8",
+      "retained_sha256": "55e271145469dced40777087ac3bb6a4078e1b69778e4bda99ada85ee9e17be8",
+      "source_bytes": 773,
+      "retained_bytes": 773,
+      "paths_redacted": false
+    },
+    {
+      "source": "target/m1-17-inspector/results-1788538305987947000/network-denied-30.stderr.log",
+      "retained": "cli/network-denied-30.stderr.log",
+      "source_sha256": "3a5231402e31c31d2b206e4d2e8ee803eb1b90d1281a4aabb765e45a48b00764",
+      "retained_sha256": "3a5231402e31c31d2b206e4d2e8ee803eb1b90d1281a4aabb765e45a48b00764",
+      "source_bytes": 327,
+      "retained_bytes": 327,
+      "paths_redacted": false
+    },
+    {
+      "source": "target/m1-17-inspector/results-1788538305987947000/unavailable-rust.clippy.stderr.log",
+      "retained": "cli/unavailable-rust.clippy.stderr.log",
+      "source_sha256": "f1433e4054276a4babc5724619207553bee1a38851a842965395efe17d9216d7",
+      "retained_sha256": "f1433e4054276a4babc5724619207553bee1a38851a842965395efe17d9216d7",
+      "source_bytes": 2895,
+      "retained_bytes": 2895,
+      "paths_redacted": false
+    },
+    {
+      "source": "target/m1-17-inspector/results-1788538305987947000/network-positive-30.stdout.log",
+      "retained": "cli/network-positive-30.stdout.log",
+      "source_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "retained_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "source_bytes": 0,
+      "retained_bytes": 0,
+      "paths_redacted": false
+    },
+    {
+      "source": "target/m1-17-inspector/results-1788538305987947000/unavailable-rust.diagnostics.explain.stderr.log",
+      "retained": "cli/unavailable-rust.diagnostics.explain.stderr.log",
+      "source_sha256": "f135a7ed1e02db4cba84b8c0b1530d272ec308f0772fb6d0e6cbdcb947020f22",
+      "retained_sha256": "f135a7ed1e02db4cba84b8c0b1530d272ec308f0772fb6d0e6cbdcb947020f22",
+      "source_bytes": 1498,
+      "retained_bytes": 1498,
+      "paths_redacted": false
+    },
+    {
+      "source": "target/m1-17-inspector/results-1788538305987947000/inspect.stderr.log",
+      "retained": "cli/inspect.stderr.log",
+      "source_sha256": "e3a550d879791d4619daed430bd73101ce4233d275005030c63c19f717ddd087",
+      "retained_sha256": "e3a550d879791d4619daed430bd73101ce4233d275005030c63c19f717ddd087",
+      "source_bytes": 6878,
+      "retained_bytes": 6878,
+      "paths_redacted": false
+    },
+    {
+      "source": "target/m1-17-inspector/results-1788538305987947000/status.stdout.log",
+      "retained": "cli/status.stdout.log",
+      "source_sha256": "41d78150a4083f9a83d3f44a65a723b3a4f474aece4e245fb4e6f59930f7dbd2",
+      "retained_sha256": "41d78150a4083f9a83d3f44a65a723b3a4f474aece4e245fb4e6f59930f7dbd2",
+      "source_bytes": 3522,
+      "retained_bytes": 3522,
+      "paths_redacted": false
+    },
+    {
+      "source": "target/m1-17-inspector/results-1788538305987947000/open.stderr.log",
+      "retained": "cli/open.stderr.log",
+      "source_sha256": "847b6d06095ddbd390cec3b9d26a7015d61e300cd29458b338a653faa69bcc8a",
+      "retained_sha256": "847b6d06095ddbd390cec3b9d26a7015d61e300cd29458b338a653faa69bcc8a",
+      "source_bytes": 358,
+      "retained_bytes": 358,
+      "paths_redacted": false
+    },
+    {
+      "source": "target/m1-17-inspector/results-1788538305987947000/versions.stdout.log",
+      "retained": "cli/versions.stdout.log",
+      "source_sha256": "35c70b1fb95c42c4fb8af28f646c29227993759bfbbbd5ca5124de3b0a9ede3e",
+      "retained_sha256": "35c70b1fb95c42c4fb8af28f646c29227993759bfbbbd5ca5124de3b0a9ede3e",
+      "source_bytes": 3578,
+      "retained_bytes": 3578,
+      "paths_redacted": false
+    },
+    {
+      "source": "target/m1-17-inspector/results-1788538305987947000/explain-approved-runtime.stdout.log",
+      "retained": "cli/explain-approved-runtime.stdout.log",
+      "source_sha256": "9cb212b75d2bbaf4524c2a6e5a0c94480a263bb262bf80fa8135979ee983949b",
+      "retained_sha256": "9cb212b75d2bbaf4524c2a6e5a0c94480a263bb262bf80fa8135979ee983949b",
+      "source_bytes": 4847,
+      "retained_bytes": 4847,
+      "paths_redacted": false
+    },
+    {
+      "source": "target/m1-17-inspector/results-1788538305987947000/search.stderr.log",
+      "retained": "cli/search.stderr.log",
+      "source_sha256": "07522ca2628cb7ca2ec2b6cb0b2aace3da3dd94c771072065b544890a97642fd",
+      "retained_sha256": "07522ca2628cb7ca2ec2b6cb0b2aace3da3dd94c771072065b544890a97642fd",
+      "source_bytes": 4532,
+      "retained_bytes": 4532,
+      "paths_redacted": false
+    },
+    {
+      "source": "target/m1-17-inspector/results-1788538305987947000/cleanup-container.log",
+      "retained": "cli/cleanup-container.log",
+      "source_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "retained_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "source_bytes": 0,
+      "retained_bytes": 0,
+      "paths_redacted": false
+    },
+    {
+      "source": "target/m1-17-inspector/results-1788538305987947000/discovery.stdout.log",
+      "retained": "cli/discovery.stdout.log",
+      "source_sha256": "a763d6631603b36699b7cda473891f92ba026bd04264add60b8aa9cdb4425458",
+      "retained_sha256": "a763d6631603b36699b7cda473891f92ba026bd04264add60b8aa9cdb4425458",
+      "source_bytes": 201121,
+      "retained_bytes": 201121,
+      "paths_redacted": false
+    },
+    {
+      "source": "target/m1-17-inspector/results-1788538305987947000/cleanup-volume.log",
+      "retained": "cli/cleanup-volume.log",
+      "source_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "retained_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "source_bytes": 0,
+      "retained_bytes": 0,
+      "paths_redacted": false
+    },
+    {
+      "source": "target/m1-17-inspector/results-1788538305987947000/unavailable-rust.project.inspect.stderr.log",
+      "retained": "cli/unavailable-rust.project.inspect.stderr.log",
+      "source_sha256": "97f739ed9925caf2843d2479c29a5b26003ae0ac7e18e9b99da42909cb4402c7",
+      "retained_sha256": "97f739ed9925caf2843d2479c29a5b26003ae0ac7e18e9b99da42909cb4402c7",
+      "source_bytes": 2220,
+      "retained_bytes": 2220,
+      "paths_redacted": false
+    },
+    {
+      "source": "target/m1-17-inspector/results-1788538305987947000/network-positive-2.stderr.log",
+      "retained": "cli/network-positive-2.stderr.log",
+      "source_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "retained_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "source_bytes": 0,
+      "retained_bytes": 0,
+      "paths_redacted": false
+    },
+    {
+      "source": "target/m1-17-inspector/results-1788538305987947000/resources-list.stderr.log",
+      "retained": "cli/resources-list.stderr.log",
+      "source_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "retained_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "source_bytes": 0,
+      "retained_bytes": 0,
+      "paths_redacted": false
+    },
+    {
+      "source": "target/m1-17-inspector/results-1788538305987947000/initialize.stdout.log",
+      "retained": "cli/initialize.stdout.log",
+      "source_sha256": "7c6cd500c218bce698f12c652bb21aac7eccd77a5c9e87f7c959c7199a63e224",
+      "retained_sha256": "7c6cd500c218bce698f12c652bb21aac7eccd77a5c9e87f7c959c7199a63e224",
+      "source_bytes": 156,
+      "retained_bytes": 156,
+      "paths_redacted": false
+    },
+    {
+      "source": "target/m1-17-inspector/results-1788538305987947000/unavailable-rust.dependencies.audit.stdout.log",
+      "retained": "cli/unavailable-rust.dependencies.audit.stdout.log",
+      "source_sha256": "deab501382f86b703c171c3aab516a626b5bf4d472ef8f20ef55d2a81f29948e",
+      "retained_sha256": "deab501382f86b703c171c3aab516a626b5bf4d472ef8f20ef55d2a81f29948e",
+      "source_bytes": 923,
+      "retained_bytes": 923,
+      "paths_redacted": false
+    },
+    {
+      "source": "target/m1-17-inspector/results-1788538305987947000/unavailable-rust.test.stderr.log",
+      "retained": "cli/unavailable-rust.test.stderr.log",
+      "source_sha256": "3fa9f969a7d133448c62ac8d24339eab3670f9af57b8e4056fd0ed28b9a79155",
+      "retained_sha256": "3fa9f969a7d133448c62ac8d24339eab3670f9af57b8e4056fd0ed28b9a79155",
+      "source_bytes": 3039,
+      "retained_bytes": 3039,
+      "paths_redacted": false
+    },
+    {
+      "source": "target/m1-17-inspector/results-1788538305987947000/unavailable-rust.quality.gate.stderr.log",
+      "retained": "cli/unavailable-rust.quality.gate.stderr.log",
+      "source_sha256": "5d3e8253514e970603dfcdb895b16c9cd690953e48d8b970c38ee4bfc2157741",
+      "retained_sha256": "5d3e8253514e970603dfcdb895b16c9cd690953e48d8b970c38ee4bfc2157741",
+      "source_bytes": 6281,
+      "retained_bytes": 6281,
+      "paths_redacted": false
+    },
+    {
+      "source": "target/m1-17-inspector/results-1788538305987947000/unavailable-rust.check.stdout.log",
+      "retained": "cli/unavailable-rust.check.stdout.log",
+      "source_sha256": "55e271145469dced40777087ac3bb6a4078e1b69778e4bda99ada85ee9e17be8",
+      "retained_sha256": "55e271145469dced40777087ac3bb6a4078e1b69778e4bda99ada85ee9e17be8",
+      "source_bytes": 773,
+      "retained_bytes": 773,
+      "paths_redacted": false
+    },
+    {
+      "source": "target/m1-17-inspector/results-1788538305987947000/network-denied-2.stderr.log",
+      "retained": "cli/network-denied-2.stderr.log",
+      "source_sha256": "17e179e4beb1425a47aee2c907e11adaaf9576ca959c36610e9cb724ac56dec6",
+      "retained_sha256": "17e179e4beb1425a47aee2c907e11adaaf9576ca959c36610e9cb724ac56dec6",
+      "source_bytes": 337,
+      "retained_bytes": 337,
+      "paths_redacted": false
+    },
+    {
+      "source": "target/m1-17-inspector/results-1788538305987947000/network-denied-30.stdout.log",
+      "retained": "cli/network-denied-30.stdout.log",
+      "source_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "retained_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "source_bytes": 0,
+      "retained_bytes": 0,
+      "paths_redacted": false
+    },
+    {
+      "source": "target/m1-17-inspector/results-1788538305987947000/unavailable-rust.toolchain.inspect.stderr.log",
+      "retained": "cli/unavailable-rust.toolchain.inspect.stderr.log",
+      "source_sha256": "575f56053c5802c282b332369207d405005765a78fe28778fb779c6100ada077",
+      "retained_sha256": "575f56053c5802c282b332369207d405005765a78fe28778fb779c6100ada077",
+      "source_bytes": 1496,
+      "retained_bytes": 1496,
+      "paths_redacted": false
+    },
+    {
+      "source": "target/m1-17-inspector/results-1788538305987947000/unavailable-rust.fmt.check.stdout.log",
+      "retained": "cli/unavailable-rust.fmt.check.stdout.log",
+      "source_sha256": "55e271145469dced40777087ac3bb6a4078e1b69778e4bda99ada85ee9e17be8",
+      "retained_sha256": "55e271145469dced40777087ac3bb6a4078e1b69778e4bda99ada85ee9e17be8",
+      "source_bytes": 773,
+      "retained_bytes": 773,
+      "paths_redacted": false
+    },
+    {
+      "source": "target/m1-17-inspector/results-1788538305987947000/catalog-import.stdout.log",
+      "retained": "cli/catalog-import.stdout.log",
+      "source_sha256": "85361e1f827c7583ff87d7f8d5774c5b165bae72feb72bf06c5f9048b66046b4",
+      "retained_sha256": "85361e1f827c7583ff87d7f8d5774c5b165bae72feb72bf06c5f9048b66046b4",
+      "source_bytes": 1083,
+      "retained_bytes": 1083,
+      "paths_redacted": false
+    },
+    {
+      "source": "target/m1-17-inspector/results-1788538305987947000/open.stdout.log",
+      "retained": "cli/open.stdout.log",
+      "source_sha256": "32e1b0b7f0147a247748e12540c89f3932f655407e2d13b3db6630c4999eeeeb",
+      "retained_sha256": "9fa835ad6166b2f29db30983594ff83fd5cf3a8f65f9380ae3c055bd95effffe",
+      "source_bytes": 1288,
+      "retained_bytes": 1232,
+      "paths_redacted": true
+    },
+    {
+      "source": "target/m1-17-inspector/results-1788538305987947000/status.stderr.log",
+      "retained": "cli/status.stderr.log",
+      "source_sha256": "8941535b934d345f6eefd1ce697257dc0da537549733e3d011bc9453e0e50bd9",
+      "retained_sha256": "8941535b934d345f6eefd1ce697257dc0da537549733e3d011bc9453e0e50bd9",
+      "source_bytes": 3080,
+      "retained_bytes": 3080,
+      "paths_redacted": false
+    },
+    {
+      "source": "target/m1-17-inspector/results-1788538305987947000/versions.stderr.log",
+      "retained": "cli/versions.stderr.log",
+      "source_sha256": "e3a550d879791d4619daed430bd73101ce4233d275005030c63c19f717ddd087",
+      "retained_sha256": "e3a550d879791d4619daed430bd73101ce4233d275005030c63c19f717ddd087",
+      "source_bytes": 6878,
+      "retained_bytes": 6878,
+      "paths_redacted": false
+    },
+    {
+      "source": "target/m1-17-inspector/results-1788538305987947000/search.stdout.log",
+      "retained": "cli/search.stdout.log",
+      "source_sha256": "734d6465b3b42d0c661e487c9e4a837bf1be16d066a0ab4ca46d4f15b53bebd4",
+      "retained_sha256": "734d6465b3b42d0c661e487c9e4a837bf1be16d066a0ab4ca46d4f15b53bebd4",
+      "source_bytes": 3584,
+      "retained_bytes": 3584,
+      "paths_redacted": false
+    },
+    {
+      "source": "target/m1-17-inspector/results-1788538305987947000/explain-approved-runtime.stderr.log",
+      "retained": "cli/explain-approved-runtime.stderr.log",
+      "source_sha256": "cf56569714084cb22f879c1f1edb79c77dd7fc6162023066e10c7040e1cd4b1a",
+      "retained_sha256": "cf56569714084cb22f879c1f1edb79c77dd7fc6162023066e10c7040e1cd4b1a",
+      "source_bytes": 1396,
+      "retained_bytes": 1396,
+      "paths_redacted": false
+    },
+    {
+      "source": "target/m1-17-inspector/results-1788538305987947000/receipt.json",
+      "retained": "cli/receipt.json",
+      "source_sha256": "6d976d35312d750b578925c0161a2502b8b1319a970e493db5b5a6c5f523d296",
+      "retained_sha256": "6d976d35312d750b578925c0161a2502b8b1319a970e493db5b5a6c5f523d296",
+      "source_bytes": 6299,
+      "retained_bytes": 6299,
+      "paths_redacted": false
+    },
+    {
+      "source": "target/m1-17-inspector/results-1788538305987947000/inspect.stdout.log",
+      "retained": "cli/inspect.stdout.log",
+      "source_sha256": "e1a8f1090138f9c3fa047a121e4b1c9211d71b6f5213717ddf97c7e4958ab0f6",
+      "retained_sha256": "e1a8f1090138f9c3fa047a121e4b1c9211d71b6f5213717ddf97c7e4958ab0f6",
+      "source_bytes": 3256,
+      "retained_bytes": 3256,
+      "paths_redacted": false
+    },
+    {
+      "source": "target/m1-17-inspector/results-1788538305987947000/unavailable-rust.clippy.stdout.log",
+      "retained": "cli/unavailable-rust.clippy.stdout.log",
+      "source_sha256": "55e271145469dced40777087ac3bb6a4078e1b69778e4bda99ada85ee9e17be8",
+      "retained_sha256": "55e271145469dced40777087ac3bb6a4078e1b69778e4bda99ada85ee9e17be8",
+      "source_bytes": 773,
+      "retained_bytes": 773,
+      "paths_redacted": false
+    },
+    {
+      "source": "target/m1-17-inspector/results-1788538305987947000/unavailable-rust.diagnostics.explain.stdout.log",
+      "retained": "cli/unavailable-rust.diagnostics.explain.stdout.log",
+      "source_sha256": "374b55c95ce5a385c4e5d98e747e0fe61563bd65f41600c1d6384d97925affb5",
+      "retained_sha256": "374b55c95ce5a385c4e5d98e747e0fe61563bd65f41600c1d6384d97925affb5",
+      "source_bytes": 919,
+      "retained_bytes": 919,
+      "paths_redacted": false
+    },
+    {
+      "source": "target/m1-17-inspector/results-1788538305987947000/network-positive-30.stderr.log",
+      "retained": "cli/network-positive-30.stderr.log",
+      "source_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "retained_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "source_bytes": 0,
+      "retained_bytes": 0,
+      "paths_redacted": false
+    }
+  ]
+}

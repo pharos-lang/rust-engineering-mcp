@@ -1,0 +1,221 @@
+{
+  "scope": "local-candidate-native-license-evidence-not-legal-approval",
+  "product_license": "owner_pending",
+  "packages": [
+    {
+      "package": "blake3",
+      "version": "1.8.7",
+      "declared_license": "CC0-1.0 OR Apache-2.0 OR Apache-2.0 WITH LLVM-exception",
+      "verified_local_texts": [
+        {
+          "path": "$CARGO_REGISTRY_SRC/index.crates.io-1949cf8c6b5b557f/blake3-1.8.7/LICENSE_A2",
+          "sha256": "00fcc7a934ddbc9ece2a7cc063ac788e284b703b1d705ccbba72d462aa97921e",
+          "bytes": 11361
+        },
+        {
+          "path": "$CARGO_REGISTRY_SRC/index.crates.io-1949cf8c6b5b557f/blake3-1.8.7/LICENSE_A2LLVM",
+          "sha256": "a5695f57ea0c221e0e8b7d784ff774c35e88c3d3270353646a925880bb3492cc",
+          "bytes": 12267
+        },
+        {
+          "path": "$CARGO_REGISTRY_SRC/index.crates.io-1949cf8c6b5b557f/blake3-1.8.7/LICENSE_CC0",
+          "sha256": "a2010f343487d3f7618affe54f789f5487602331c0a8d03f49e9a7c547cf0499",
+          "bytes": 7048
+        }
+      ],
+      "scope": "source declaration/text, final linked-object obligations not approved"
+    },
+    {
+      "package": "libsqlite3-sys",
+      "version": "0.38.2",
+      "declared_license": "MIT",
+      "verified_local_texts": [
+        {
+          "path": "$CARGO_REGISTRY_SRC/index.crates.io-1949cf8c6b5b557f/libsqlite3-sys-0.38.2/LICENSE",
+          "sha256": "c10c1f27337546471e5f7e4e97fdd398b35b9d4e126115dcd22de8d8e65abf6f",
+          "bytes": 1067
+        },
+        {
+          "path": "$CARGO_REGISTRY_SRC/index.crates.io-1949cf8c6b5b557f/libsqlite3-sys-0.38.2/sqlcipher/LICENSE",
+          "sha256": "ea4fcb309f14a22065e1ea45362d494d320012249ed865fe9c7c0946db754131",
+          "bytes": 1467
+        }
+      ],
+      "scope": "source declaration/text, final linked-object obligations not approved"
+    },
+    {
+      "package": "lz4-sys",
+      "version": "1.11.1+lz4-1.10.0",
+      "declared_license": "MIT",
+      "verified_local_texts": [
+        {
+          "path": "$CARGO_REGISTRY_SRC/index.crates.io-1949cf8c6b5b557f/lz4-sys-1.11.1+lz4-1.10.0/LICENSE",
+          "sha256": "77633124ac69bf094e06cf9f3157c54d6e51d6b58a38d4f28141947815ecadfa",
+          "bytes": 1087
+        },
+        {
+          "path": "$CARGO_REGISTRY_SRC/index.crates.io-1949cf8c6b5b557f/lz4-sys-1.11.1+lz4-1.10.0/liblz4/LICENSE",
+          "sha256": "4bc9c403f6b679cc076dee210e0e21c27b4e8f6d3fb43d85364c76657bfaaac5",
+          "bytes": 646
+        },
+        {
+          "path": "$CARGO_REGISTRY_SRC/index.crates.io-1949cf8c6b5b557f/lz4-sys-1.11.1+lz4-1.10.0/liblz4/contrib/djgpp/LICENSE",
+          "sha256": "d011d1e02cb32b71c1ce2922ab41a2e2ad30f4ecf8de22c078d53618205abc05",
+          "bytes": 1292
+        },
+        {
+          "path": "$CARGO_REGISTRY_SRC/index.crates.io-1949cf8c6b5b557f/lz4-sys-1.11.1+lz4-1.10.0/liblz4/examples/COPYING",
+          "sha256": "609b910ef05c9c855ecc1da155a36ed0f57514eac452cf93446530b5ea4b3bc3",
+          "bytes": 14901
+        },
+        {
+          "path": "$CARGO_REGISTRY_SRC/index.crates.io-1949cf8c6b5b557f/lz4-sys-1.11.1+lz4-1.10.0/liblz4/lib/LICENSE",
+          "sha256": "8b58c446121a109ccf32edc094bba3010a3d85e4ee3702950db55e4d3e87736c",
+          "bytes": 1311
+        },
+        {
+          "path": "$CARGO_REGISTRY_SRC/index.crates.io-1949cf8c6b5b557f/lz4-sys-1.11.1+lz4-1.10.0/liblz4/programs/COPYING",
+          "sha256": "609b910ef05c9c855ecc1da155a36ed0f57514eac452cf93446530b5ea4b3bc3",
+          "bytes": 14901
+        },
+        {
+          "path": "$CARGO_REGISTRY_SRC/index.crates.io-1949cf8c6b5b557f/lz4-sys-1.11.1+lz4-1.10.0/liblz4/tests/COPYING",
+          "sha256": "609b910ef05c9c855ecc1da155a36ed0f57514eac452cf93446530b5ea4b3bc3",
+          "bytes": 14901
+        }
+      ],
+      "scope": "source declaration/text, final linked-object obligations not approved"
+    },
+    {
+      "package": "onig_sys",
+      "version": "69.9.3",
+      "declared_license": "MIT",
+      "verified_local_texts": [
+        {
+          "path": "$CARGO_REGISTRY_SRC/index.crates.io-1949cf8c6b5b557f/onig_sys-69.9.3/LICENSE.md",
+          "sha256": "71f321038b088358004bee991635ac09e4c703bec467d3c30c06992c0595f189",
+          "bytes": 1511
+        },
+        {
+          "path": "$CARGO_REGISTRY_SRC/index.crates.io-1949cf8c6b5b557f/onig_sys-69.9.3/oniguruma/COPYING",
+          "sha256": "70ba5469ea0bab6e18a32d7009068f996503168d27be57747e08da34337ff26f",
+          "bytes": 1340
+        }
+      ],
+      "scope": "source declaration/text, final linked-object obligations not approved"
+    },
+    {
+      "package": "ort-sys",
+      "version": "2.0.0-rc.13",
+      "declared_license": "MIT OR Apache-2.0",
+      "verified_local_texts": [
+        {
+          "path": "$CARGO_REGISTRY_SRC/index.crates.io-1949cf8c6b5b557f/ort-sys-2.0.0-rc.13/LICENSE-APACHE",
+          "sha256": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30",
+          "bytes": 11358
+        },
+        {
+          "path": "$CARGO_REGISTRY_SRC/index.crates.io-1949cf8c6b5b557f/ort-sys-2.0.0-rc.13/LICENSE-MIT",
+          "sha256": "6bba08de46289c40986a2e6b310e2da61fcea33b3c112c8320f6093f8f9cb71b",
+          "bytes": 1107
+        }
+      ],
+      "scope": "source declaration/text, final linked-object obligations not approved"
+    },
+    {
+      "package": "ring",
+      "version": "0.17.14",
+      "declared_license": "Apache-2.0 AND ISC",
+      "verified_local_texts": [
+        {
+          "path": "$CARGO_REGISTRY_SRC/index.crates.io-1949cf8c6b5b557f/ring-0.17.14/LICENSE",
+          "sha256": "b3d734001a94efff3579978d953391aa7115f877657d25eb54037a43875d078a",
+          "bytes": 499
+        },
+        {
+          "path": "$CARGO_REGISTRY_SRC/index.crates.io-1949cf8c6b5b557f/ring-0.17.14/LICENSE-BoringSSL",
+          "sha256": "005fc765ddc5115da796cca915baa9557abae13ff35e0a47c47affc56f6c414d",
+          "bytes": 14870
+        },
+        {
+          "path": "$CARGO_REGISTRY_SRC/index.crates.io-1949cf8c6b5b557f/ring-0.17.14/LICENSE-other-bits",
+          "sha256": "f025ccfb7dfb6bdfedc75ca0f67acc69e6fb4998143d834f7c2f38a29989680f",
+          "bytes": 731
+        },
+        {
+          "path": "$CARGO_REGISTRY_SRC/index.crates.io-1949cf8c6b5b557f/ring-0.17.14/src/polyfill/once_cell/LICENSE-APACHE",
+          "sha256": "a60eea817514531668d7e00765731449fe14d059d3249e0bc93b36de45f759f2",
+          "bytes": 10847
+        },
+        {
+          "path": "$CARGO_REGISTRY_SRC/index.crates.io-1949cf8c6b5b557f/ring-0.17.14/src/polyfill/once_cell/LICENSE-MIT",
+          "sha256": "6ee2ed6c77710de911761acd5fc1ad1da00f476beb1a7ef27e78c2d1858deafc",
+          "bytes": 1022
+        },
+        {
+          "path": "$CARGO_REGISTRY_SRC/index.crates.io-1949cf8c6b5b557f/ring-0.17.14/third_party/fiat/LICENSE",
+          "sha256": "9eacbcb81be660840c714a560a9d65ba07913db98dd4baf969f78dd499fdd60f",
+          "bytes": 638
+        }
+      ],
+      "scope": "source declaration/text, final linked-object obligations not approved"
+    },
+    {
+      "package": "zstd-sys",
+      "version": "2.0.16+zstd.1.5.7",
+      "declared_license": "MIT/Apache-2.0",
+      "verified_local_texts": [
+        {
+          "path": "$CARGO_REGISTRY_SRC/index.crates.io-1949cf8c6b5b557f/zstd-sys-2.0.16+zstd.1.5.7/LICENSE",
+          "sha256": "a77b7cfeaf911ed410ffbe76f0cb2b24ad8a4d94e7ead5727e914425c416cc63",
+          "bytes": 18
+        },
+        {
+          "path": "$CARGO_REGISTRY_SRC/index.crates.io-1949cf8c6b5b557f/zstd-sys-2.0.16+zstd.1.5.7/LICENSE.Apache-2.0",
+          "sha256": "0d542e0c8804e39aa7f37eb00da5a762149dc682d7829451287e11b938e94594",
+          "bytes": 10174
+        },
+        {
+          "path": "$CARGO_REGISTRY_SRC/index.crates.io-1949cf8c6b5b557f/zstd-sys-2.0.16+zstd.1.5.7/LICENSE.BSD-3-Clause",
+          "sha256": "48341f685c87304089aa099b23c386f8bacc519ef555aa7a13e239908907b3fd",
+          "bytes": 1595
+        },
+        {
+          "path": "$CARGO_REGISTRY_SRC/index.crates.io-1949cf8c6b5b557f/zstd-sys-2.0.16+zstd.1.5.7/LICENSE.Mit",
+          "sha256": "129e8edef29e9abcd2ebabe252f4ef1b1289cdca356bf0040284a2fbccfb96c8",
+          "bytes": 1080
+        },
+        {
+          "path": "$CARGO_REGISTRY_SRC/index.crates.io-1949cf8c6b5b557f/zstd-sys-2.0.16+zstd.1.5.7/zstd/COPYING",
+          "sha256": "f9c375a1be4a41f7b70301dd83c91cb89e41567478859b77eef375a52d782505",
+          "bytes": 18091
+        },
+        {
+          "path": "$CARGO_REGISTRY_SRC/index.crates.io-1949cf8c6b5b557f/zstd-sys-2.0.16+zstd.1.5.7/zstd/LICENSE",
+          "sha256": "7055266497633c9025b777c78eb7235af13922117480ed5c674677adc381c9d8",
+          "bytes": 1549
+        }
+      ],
+      "scope": "source declaration/text, final linked-object obligations not approved"
+    }
+  ],
+  "onnxruntime_upstream_texts": [
+    {
+      "path": "docs/release/upstream-licenses/microsoft--onnxruntime--058787ceead7/LICENSE",
+      "bytes": 1073,
+      "sha256": "2f07c72751aed99790b8a4869cf2311df85a860b22ded05fa22803587a48922c"
+    },
+    {
+      "path": "docs/release/upstream-licenses/microsoft--onnxruntime--058787ceead7/ThirdPartyNotices.txt",
+      "bytes": 325054,
+      "sha256": "0e07b95f3a8d6230037707c5c4a2b554d12c4cb67369669ac255635528ffcee2"
+    }
+  ],
+  "onnxruntime_native_directory_has_no_license_files": true,
+  "open_issues": [
+    "static archive object/build-option coverage not fully reconstructed",
+    "Kanaria missing license text",
+    "E5 license text packaging unresolved",
+    "production distribution identity and publisher approval absent"
+  ]
+}
