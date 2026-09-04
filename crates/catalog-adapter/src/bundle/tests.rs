@@ -106,6 +106,11 @@ fn tar(entries: &[(String, Vec<u8>, u8)]) -> Vec<u8> {
 fn compressed(entries: &[(String, Vec<u8>, u8)]) -> Result<Vec<u8>, std::io::Error> {
     zstd::stream::encode_all(tar(entries).as_slice(), 1)
 }
+pub(super) fn fixture_bundle(
+    sequence: u64,
+) -> Result<(PublisherTrust, Vec<u8>), Box<dyn std::error::Error>> {
+    Ok((trust()?, compressed(&entries(sequence)?)?))
+}
 fn entries(sequence: u64) -> Result<ArchiveEntries, Box<dyn std::error::Error>> {
     let s = snapshot(sequence)?;
     let m = serde_json::to_vec(&manifest(sequence, &s.bytes)?)?;

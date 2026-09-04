@@ -110,25 +110,24 @@ impl SequenceFloor {
 
 #[cfg(test)]
 mod tests {
+    use super::super::tests::fixture_bundle;
     use super::*;
-    const TRUST: &[u8] = include_bytes!("../../../../fixtures/catalog/fixture-trust.json");
-    const ONE: &[u8] = include_bytes!("../../../../fixtures/catalog/fixture-1.tar.zst");
-    const TWO: &[u8] = include_bytes!("../../../../fixtures/catalog/fixture-2.tar.zst");
     type TestResult = Result<(), Box<dyn std::error::Error>>;
 
     #[test]
     fn original_cli_wire_format_and_rotation_identity_are_preserved() -> TestResult {
-        let trust = PublisherTrust::parse(TRUST)?;
-        let bundle = super::super::verify(ONE, &trust)?;
+        let (trust, one) = fixture_bundle(1)?;
+        let (_, two) = fixture_bundle(2)?;
+        let bundle = super::super::verify(&one, &trust)?;
         let floor = SequenceFloor::new(&bundle);
-        let hash = sha256(ONE);
+        let hash = sha256(&one);
         let checksum =
             sha256(format!("catalog-floor-v1\0fixture-only\0test\0{}\0{hash}", 1).as_bytes());
         let expected = format!(
             "{{\"format_version\":1,\"publisher\":\"fixture-only\",\"channel\":\"test\",\"sequence\":1,\"bundle_sha256\":\"{hash}\",\"checksum\":\"{checksum}\"}}"
         );
         assert_eq!(floor.bytes()?, expected.as_bytes());
-        let mut rotated = PublisherTrust::parse(TRUST)?;
+        let mut rotated = trust.clone();
         rotated.public_key = "01".repeat(32);
         let reopened = SequenceFloor::parse(&floor.bytes()?, &rotated)?;
         assert_eq!(
@@ -141,19 +140,19 @@ mod tests {
             ("fixture-only", "test", 1, hash.as_str())
         );
         assert!(reopened.matches(&bundle));
-        assert!(reopened.permits(&super::super::verify(TWO, &trust)?));
-        let newer = SequenceFloor::new(&super::super::verify(TWO, &trust)?);
+        assert!(reopened.permits(&super::super::verify(&two, &trust)?));
+        let newer = SequenceFloor::new(&super::super::verify(&two, &trust)?);
         assert!(!newer.permits(&bundle));
         Ok(())
     }
 
     #[test]
     fn mismatch_corruption_noncanonical_and_oversized_records_fail_closed() -> TestResult {
-        let trust = PublisherTrust::parse(TRUST)?;
-        let floor = SequenceFloor::new(&super::super::verify(ONE, &trust)?);
+        let (trust, one) = fixture_bundle(1)?;
+        let floor = SequenceFloor::new(&super::super::verify(&one, &trust)?);
         let bytes = floor.bytes()?;
         for field in ["publisher", "channel"] {
-            let mut other = PublisherTrust::parse(TRUST)?;
+            let mut other = trust.clone();
             if field == "publisher" {
                 other.publisher = "other".into();
             } else {
