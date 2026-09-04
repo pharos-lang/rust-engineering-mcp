@@ -28,3 +28,9 @@ GitHub OIDC signs the build-provenance statement without a repository-held priva
 key. Signed catalog snapshots use a separate Ed25519 protocol defined by ADR-041;
 their production key and operational custodian remain undecided because no catalog
 distribution is authorized.
+
+The public source snapshot and portable CI qualification are recorded in
+[`docs/validation/public-source-publication.json`](validation/public-source-publication.json).
+The cited GitHub run passed on Linux x86_64, macOS ARM64 and Windows x86_64 together
+with the supply-chain job. This is source-portability evidence only; native sandbox,
+filesystem, model, catalog and per-target notice gates remain separate.

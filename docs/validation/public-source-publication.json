@@ -1,0 +1,72 @@
+{
+  "schema": "rust-engineering-mcp-public-source-publication-v1",
+  "captured_at_utc": "2026-09-04T23:15:07Z",
+  "status": "passed",
+  "publisher": "IUMotion Labs",
+  "repository": {
+    "url": "https://github.com/pharos-lang/rust-engineering-mcp",
+    "visibility": "public",
+    "default_branch": "main",
+    "source_commit": "ef0d5f6b3528b10fb20e607b62b4a36d36a1461d",
+    "public_commit": "3310b021d099a6a9a5bbc5e337041a3f1c4ed83a"
+  },
+  "license": {
+    "spdx_expression": "MIT OR Apache-2.0",
+    "copyright_holder": "IUMotion Labs"
+  },
+  "snapshot": {
+    "manifest": "PUBLICATION-SNAPSHOT.json",
+    "exported_files_before_manifest": 1419,
+    "local_path_redacted_files": 123,
+    "credential_scan_findings": []
+  },
+  "github_actions": {
+    "run_id": 33928437393,
+    "url": "https://github.com/pharos-lang/rust-engineering-mcp/actions/runs/33928437393",
+    "head_sha": "3310b021d099a6a9a5bbc5e337041a3f1c4ed83a",
+    "conclusion": "success",
+    "jobs": [
+      {
+        "name": "portable / x86_64-unknown-linux-gnu",
+        "job_id": 101201950402,
+        "conclusion": "success"
+      },
+      {
+        "name": "portable / x86_64-pc-windows-msvc",
+        "job_id": 101201950676,
+        "conclusion": "success"
+      },
+      {
+        "name": "portable / aarch64-apple-darwin",
+        "job_id": 101201950706,
+        "conclusion": "success"
+      },
+      {
+        "name": "supply chain",
+        "job_id": 101201950752,
+        "conclusion": "success"
+      }
+    ]
+  },
+  "repository_controls": {
+    "actions_default_workflow_permissions": "read",
+    "actions_can_approve_pull_request_reviews": false,
+    "secret_scanning": "enabled",
+    "secret_scanning_push_protection": "enabled",
+    "secret_scanning_non_provider_patterns": "enabled",
+    "secret_scanning_validity_checks": "enabled",
+    "dependabot_security_updates": "enabled",
+    "open_dependabot_alerts": 0
+  },
+  "delivery": {
+    "source_channel": "GitHub",
+    "binary_channel": "GitHub Releases after release gates pass",
+    "crates_io_publish": false,
+    "binary_release_created": false
+  },
+  "qualification_limits": [
+    "Hosted portable CI does not qualify native filesystem or sandbox capabilities.",
+    "No M1 binary, model, catalog, or stable release was published.",
+    "M1-15 and M1-17 remain Blocked pending target notices, native evidence, model gates, and production catalog-key operations."
+  ]
+}

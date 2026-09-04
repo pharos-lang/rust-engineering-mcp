@@ -24,7 +24,7 @@ Fuente principal: [`spec/rust-engineering-mcp-propuesta-v0.3.md`](spec/rust-engi
 | Seguridad | I/O propio macOS/APFS no-follow; gateway Docker Linux ARM64 de probes y camino Rust ADR-031 revisado. | M0-04/05/06; [calibración Rust](validation/M1-01-rust-gateway.md), integración MCP ADR-032 validada. |
 | Datos locales | SQLite/FTS5 autoritativo, E5 verificado/LanceDB derivado con persistencia verificada, ArtifactStore efímero. | M0-08/09/10a, fixtures y tests reales. |
 | Pruebas/fixtures | Gate candidato M1-17: full19/19; 644 workspace tests y un doctest en etapas separadas, además de seguridad, catálogo, semántica y doctor. | [M1-17 full actual](validation/M1-17-final-gate.md); [conteos](validation/m1-17-final-gate/counts-derived-from-log.json). |
-| CI/release | CI local core/full y GitHub CI/CD implementadas; full19 candidato pasó en macOS ARM64; sin release binaria. | scripts/gate.py, `.github/workflows/`, [recibo M1-17](validation/M1-17-final-gate.md); notices y matriz nativa pendientes. |
+| CI/release | CI local core/full y GitHub CI/CD implementadas; CI portable pública verde en Linux x86_64, macOS ARM64 y Windows x86_64; full19 candidato pasó en macOS ARM64; sin release binaria. | scripts/gate.py, `.github/workflows/`, [recibo de publicación](validation/public-source-publication.json), [run público](https://github.com/pharos-lang/rust-engineering-mcp/actions/runs/33928437393) y [recibo M1-17](validation/M1-17-final-gate.md); capabilities nativas y notices siguen pendientes. |
 | Toolchain | Rust/Cargo1.98.1, edition2024, rustfmt/Clippy; host aarch64-apple-darwin. | rust-toolchain.toml y reporte de gate. |
 | Configuración local | YouTrack deshabilitado para este repositorio. | .codex/config.toml; no afecta el producto. |
 
@@ -77,9 +77,9 @@ y catálogo. M2+ permanece fuera de alcance.
 | M1-12 | `rust.crate.search` | M0-08,09 | Done | ADR-043; core603/10stages, wire35, Clippy all-features y native E5/index2+1 bajo network deny; filtros SQLite, ranks y fallback explícitos, budget MCP512KiB. Sonnet5/revisión principal; [evidencia](validation/M1-12.md). |
 | M1-13 | `rust.crate.inspect` | M0-08 | Done | ADR-044; core629, wire37, Clippy all-features y2 CLI/MCP bajo network deny; pages por versión/fingerprint, unknown explícitos y budget512KiB. Sonnet5/revisión principal; [evidencia](validation/M1-13.md). |
 | M1-14 | CLI y doctor | M0/M1 anteriores | Done | ADR-045; core645/10stages,37 protocolo,4 casos activos con SIGINT/TERM/HUP y cleanup,2 stdout bloqueados. JSON/humano y parser host compartido; Opus5 y disposición. [Evidencia](validation/M1-14.md). |
-| M1-15 | Documentación/release | Todos | **Blocked** | ADR-047: fuente pública `MIT OR Apache-2.0`, IUMotion Labs y GitHub resueltos. Candidatos/instalación/doctor locales verificados. Kanaria/E5/ORT, notices finales por target, runners y clave Ed25519 de catálogo aún bloquean binarios/catálogos. |
+| M1-15 | Documentación/release | Todos | **Blocked** | ADR-047: fuente pública `MIT OR Apache-2.0`, IUMotion Labs y GitHub resueltos. Candidatos/instalación/doctor locales verificados. Kanaria/E5/ORT, notices finales por target, capabilities/recibos nativos y clave Ed25519 de catálogo aún bloquean binarios/catálogos. |
 | M1-16 | Experimento de utilidad | M1-01..15 | Done | [Piloto v2 medido](validation/M1-16.md): 24/24 runs, ambos brazos12/12 y12 pares both-pass. Endpoint saturado sin poder discriminante ni evidencia de equivalencia; B observó más solicitudes/tiempo/tokens. Sin inferencia causal/poblacional. |
-| M1-17 | Gate 0.1.0 | Todos | **Blocked** | [Evidencia y matriz](validation/M1-17.md): full19 macOS ARM64, Inspector13/13, stock Codex directo y revisión Opus5 completados. Linux/Windows/x86, notices y clave Ed25519 de catálogo bloquean M1; uso model-driven en stock Codex no se probó. |
+| M1-17 | Gate 0.1.0 | Todos | **Blocked** | [Evidencia y matriz](validation/M1-17.md): full19 macOS ARM64, Inspector13/13, stock Codex directo, revisión Opus5 y [CI portable pública](https://github.com/pharos-lang/rust-engineering-mcp/actions/runs/33928437393) completados. Las capabilities nativas Linux/Windows/x86, notices y clave Ed25519 de catálogo bloquean M1; uso model-driven en stock Codex no se probó. |
 
 ## Backlog inmediato
 
@@ -87,13 +87,15 @@ y catálogo. M2+ permanece fuera de alcance.
 
 ## In Progress
 
-No hay vertical de implementación activa. M1-17 conserva evidencia local completa y
-un cierre formalmente bloqueado; M1 no está cerrado.
+No hay vertical de implementación activa. La fuente y su CI portable están públicas
+con [recibo verificable](validation/public-source-publication.json). M1-17 conserva
+evidencia local completa y un cierre formalmente bloqueado; M1 no está cerrado.
 
 ## Blocked
 
-Ningún bloqueo de foundation pendiente. M1-15/M1-17 están bloqueados por runners
-nativos Linux/Windows/x86 aplicables; Kanaria/E5/ORT/notices finales; y custodia,
+Ningún bloqueo de foundation pendiente. La matriz portable de GitHub está verde,
+pero M1-15/M1-17 siguen bloqueados por capabilities y recibos nativos
+Linux/Windows/x86 aplicables; Kanaria/E5/ORT/notices finales; y custodia,
 rotación/revocación de la clave Ed25519 de catálogos de producción. La
 [matriz M1-17](validation/M1-17-matrix.md) mantiene cada categoría separada.
 
@@ -126,7 +128,7 @@ el cierre histórico de M0. El handoff M1 sustituye los prompts antiguos.
 | Soporte fuerte de sandbox por OS | Antes de habilitar R1/R2 en cada target | Security tests reales por plataforma y tabla de capabilities. |
 | Distribución estable y benchmark del modelo | Antes de RC M1 | E5 revision/hashes locales fijados en M0-09; falta calidad ES/EN, CPU/RAM/startup, recibos nativos por target y licencia de distribución. |
 | Fuente/licencia del snapshot global | Antes de `catalog sync` público | Revisión de términos del registry, formato firmado y provenance. |
-| Matriz mínima de CI ARM64/x86_64 | Antes del RC 0.1.0 | Runners disponibles y limitaciones de LanceDB/ONNX documentadas. |
+| Matriz mínima nativa ARM64/x86_64 | Antes del RC 0.1.0 | CI portable pública completa; faltan recibos de runtime/capabilities y limitaciones de LanceDB/ONNX por target. |
 
 ## Riesgos activos
 
