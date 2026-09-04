@@ -2,6 +2,7 @@
 
 pub mod catalog_store;
 mod filesystem;
+#[cfg(target_os = "macos")]
 mod manifest;
 
 use std::path::{Path, PathBuf};
