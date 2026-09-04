@@ -7,7 +7,7 @@ GitHub CI/CD sin convertir sus runners alojados en evidencia automática de sand
 `.github/workflows/ci.yml` usa actions oficiales fijadas por commit, permisos
 `contents: read` y cancelación por concurrencia. Aprovisiona explícitamente el
 toolchain1.98.1 y dependencias locked, y ejecuta fmt/check/Clippy/tests/doctests y
-fronteras arquitectónicas en Linux x86_64, macOS ARM64 y Windows x86_64. Un job
+fronteras arquitectónicas en Linux x86_64, macOS 26 ARM64 y Windows x86_64. Un job
 Linux separado instala versiones fijadas de cargo-audit/cargo-deny y aplica
 advisories/bans/sources. Los pull requests no reciben secretos ni permisos de
 escritura. Este workflow puede descargar dependencias y advisory data durante su
