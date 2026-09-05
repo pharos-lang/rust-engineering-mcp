@@ -1,0 +1,293 @@
+{
+  "observed_at_utc": "2026-09-05T07:36:50.798860+00:00",
+  "base_commit": "aa61bce44834df3154441f75bfbab726097ad0ff",
+  "result": "passed",
+  "local_links_checked": 257,
+  "numeric_headings": 215,
+  "root_sections": 124,
+  "decision_ids": 26,
+  "cut_ids": 46,
+  "dag": {
+    "edges": [
+      [
+        "M2-01",
+        "M2-02"
+      ],
+      [
+        "M2-02",
+        "M2-03"
+      ],
+      [
+        "M2-03",
+        "M2-04"
+      ],
+      [
+        "M2-04",
+        "M2-05"
+      ],
+      [
+        "M2-05",
+        "M2-06"
+      ],
+      [
+        "M2-06",
+        "M2-07"
+      ],
+      [
+        "M3-01",
+        "M3-02"
+      ],
+      [
+        "M3-02",
+        "M3-03"
+      ],
+      [
+        "M3-03",
+        "M3-04"
+      ],
+      [
+        "M3-04",
+        "M3-05"
+      ],
+      [
+        "M3-05",
+        "M3-06"
+      ],
+      [
+        "M4-01",
+        "M4-02"
+      ],
+      [
+        "M4-02",
+        "M4-03"
+      ],
+      [
+        "M4-03",
+        "M4-04"
+      ],
+      [
+        "M4-04",
+        "M4-05"
+      ],
+      [
+        "M4-05",
+        "M4-06"
+      ],
+      [
+        "M5-01",
+        "M5-02"
+      ],
+      [
+        "M5-02",
+        "M5-03"
+      ],
+      [
+        "M5-03",
+        "M5-04"
+      ],
+      [
+        "M5-04",
+        "M5-05"
+      ],
+      [
+        "M6-01",
+        "M6-02"
+      ],
+      [
+        "M6-02",
+        "M6-03"
+      ],
+      [
+        "M6-03",
+        "M6-04"
+      ],
+      [
+        "M6-04",
+        "M6-05"
+      ],
+      [
+        "M6-05",
+        "M6-06"
+      ],
+      [
+        "M7-01",
+        "M7-02"
+      ],
+      [
+        "M7-02",
+        "M7-03"
+      ],
+      [
+        "M7-03",
+        "M7-04"
+      ],
+      [
+        "M7-04",
+        "M7-05"
+      ],
+      [
+        "M7-05",
+        "M7-06"
+      ],
+      [
+        "M8-01",
+        "M8-02"
+      ],
+      [
+        "M8-02",
+        "M8-03"
+      ],
+      [
+        "M8-03",
+        "M8-04"
+      ],
+      [
+        "M8-04",
+        "M8-05"
+      ],
+      [
+        "M8-05",
+        "M8-06"
+      ],
+      [
+        "M8-06",
+        "M8-07"
+      ],
+      [
+        "M8-07",
+        "M8-08"
+      ],
+      [
+        "M8-08",
+        "M8-09"
+      ],
+      [
+        "M2-07",
+        "M3-01"
+      ],
+      [
+        "M3-06",
+        "M4-01"
+      ],
+      [
+        "M4-06",
+        "M5-01"
+      ],
+      [
+        "M5-05",
+        "M6-01"
+      ],
+      [
+        "M6-06",
+        "M7-G0"
+      ],
+      [
+        "M7-G0",
+        "M7-01"
+      ],
+      [
+        "M7-G0",
+        "M8-01"
+      ],
+      [
+        "M7-06",
+        "M8-01"
+      ],
+      [
+        "M2-07",
+        "M6-05"
+      ],
+      [
+        "M3-06",
+        "M6-01"
+      ],
+      [
+        "M5-05",
+        "M8-05"
+      ]
+    ],
+    "topological_order": [
+      "M2-01",
+      "M2-02",
+      "M2-03",
+      "M2-04",
+      "M2-05",
+      "M2-06",
+      "M2-07",
+      "M3-01",
+      "M3-02",
+      "M3-03",
+      "M3-04",
+      "M3-05",
+      "M3-06",
+      "M4-01",
+      "M4-02",
+      "M4-03",
+      "M4-04",
+      "M4-05",
+      "M4-06",
+      "M5-01",
+      "M5-02",
+      "M5-03",
+      "M5-04",
+      "M5-05",
+      "M6-01",
+      "M6-02",
+      "M6-03",
+      "M6-04",
+      "M6-05",
+      "M6-06",
+      "M7-G0",
+      "M7-01",
+      "M7-02",
+      "M7-03",
+      "M7-04",
+      "M7-05",
+      "M7-06",
+      "M8-01",
+      "M8-02",
+      "M8-03",
+      "M8-04",
+      "M8-05",
+      "M8-06",
+      "M8-07",
+      "M8-08",
+      "M8-09"
+    ],
+    "m7_01_to_06_conditional_on_go": true,
+    "m7_06_to_m8_01_only_if_go": true
+  },
+  "status_outside_backlog": "byte-identical",
+  "allowed_scope_only": true,
+  "scope_phase": "planning, no M2 implementation",
+  "limitations": [
+    "heading equality alone does not prove all normative text covered; owner and model review inspect content",
+    "external URLs recorded as primary sources; no indiscriminate link crawling",
+    "native Rust gates are not applicable to documentation-only diff"
+  ],
+  "input_hashes": {
+    "docs/roadmap/adr-backlog-m2-m8.md": "c442d105a6e94279efe7f8e0d03dc2e61c9a9a7236eb727a4ecdf9d31af697d7",
+    "docs/roadmap/baseline-2026-09-05.md": "efd511035e0270ee63883c5bb484591fc0a13e0c6082e140caf809d1d880d805",
+    "docs/roadmap/m2-d02-host-preconditions.md": "682e1c28070075aff850464314dc8e80a1ec756874ec2f1fe8af0f40561f3b7b",
+    "docs/roadmap/m2-m8.md": "722d573acca910583d218814d48e6907779da07b4166e4f6612408d2e9b0cbec",
+    "docs/roadmap/m2-safe-mutation.md": "c7e1dc2419be70d6a075a8dbafb37c2276d0b9e74b56e647cee7f2ec75bfa1c8",
+    "docs/roadmap/m3-quality.md": "2d7516874f844580afa2e8f0a68d55681f820a268e181c8adf53401e09013fdb",
+    "docs/roadmap/m4-security.md": "938d5af23d51f2a12ddd40eba707098ad413ceb0d1528a06eeb22fcfb0202948",
+    "docs/roadmap/m5-performance.md": "86506318267e62988176ca996edf760ae33d6bffe7e94de594f260fab443e3d7",
+    "docs/roadmap/m6-analyzer.md": "eec40a07c8fc6a1a09e1327c722cca55410e0eec382d9220d3e00843a41c7610",
+    "docs/roadmap/m7-remote.md": "b79a1f9aa1462d9847c97fb245269f04785261500d32209f23dd0d4c726f0738",
+    "docs/roadmap/m8-stabilization.md": "3fb3b8ba619f06063a7a4ad3da6ee5d8f2843417e60fe36d839780412c0c899a",
+    "docs/roadmap/traceability-m2-m8.md": "56bdd9e0d9718d750d9be75de9cb162ec97e0fcb2e1f250856d0b6f1a6d7a84b",
+    "docs/prompts/implement-m2.md": "9478473021cb5e9ad93f73d8f45221ad367cacb7f134844cb85b03e8c0086d2a",
+    "docs/prompts/implement-m3.md": "341401c7eb276119d06b41b8524a1fad547096f36ec0ca148c23530731db68b5",
+    "docs/prompts/implement-m4.md": "c0875184da8867a95ca7d376093ffd8726a112eec712535ebe7a104c1813f51d",
+    "docs/prompts/implement-m5.md": "def9987dc123c6f5ed99de22efbbc426bae5ad4c417f70ccb8131ec4bc9c61ae",
+    "docs/prompts/implement-m6.md": "782fc34c9083ae61f62b15836ad67f0b1ec741843b099579aac85fb2b36cd7cc",
+    "docs/prompts/implement-m7.md": "306fb575f38959b86568e03426f149cc3af98258c825fd0cee0a71fd1b06681b",
+    "docs/prompts/implement-m8.md": "55ce6c40dc246e3b3dd8b7953d7e1bad256b4c3112ad59d7ab16c828d09232b1",
+    "docs/implementation-status.md": "f0001413513d48a08a73687bb3d040f1aae680deb5d8715f4433fab14e3187e8"
+  },
+  "traceability_contiguous_tables": true,
+  "architecture_validator": "passed",
+  "git_diff_check": "passed"
+}

@@ -1,0 +1,14 @@
+[
+  {
+    "path": "docs/spec/rust-engineering-mcp-propuesta-v0.3.md",
+    "sha256": "3c83b3c9a95163a757f17d23962aaf73cee8a0f82188cb111481b22235163755"
+  },
+  {
+    "path": "docs/roadmap/traceability-m2-m8.md",
+    "sha256": "4b98d50db420b5fbde3f05da346633689050d56d8c031e50f03a2d7b7aec1fcc"
+  },
+  {
+    "path": "docs/roadmap/m2-m8.md",
+    "sha256": "d7ced4894a3dc74603930477075ae7ef143e4093c9dd4b4cf5afd1a2d761a543"
+  }
+]

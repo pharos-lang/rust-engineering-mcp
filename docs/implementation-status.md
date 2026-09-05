@@ -89,8 +89,24 @@ fixtures, Docker ni toolchain; no existe catálogo oficial ni clave Ed25519 de p
 
 ## Backlog inmediato
 
-M0/M1 están cerradas. El siguiente trabajo autorizado es únicamente planificar M2–M8
-mediante [el prompt de handoff](prompts/plan-m2-m8.md); este cierre no implementa M2.
+M0/M1 conservan Done. La [baseline live](roadmap/baseline-2026-09-05.md) distingue
+la release histórica del HEAD público actual. La planificación [M2–M8](roadmap/m2-m8.md)
+contiene [trazabilidad](roadmap/traceability-m2-m8.md), [decisiones Proposed](roadmap/adr-backlog-m2-m8.md)
+y [validación/reviews](roadmap/planning-validation.md).
+
+| Milestone | Estado de planificación | Plan / prompt de ejecución separado |
+| --- | --- | --- |
+| M2 / 0.2.x | Planned | [Safe Mutation](roadmap/m2-safe-mutation.md) · [prompt M2](prompts/implement-m2.md) |
+| M3 / 0.3.x | Planned | [Quality](roadmap/m3-quality.md) · [prompt M3](prompts/implement-m3.md) |
+| M4 / 0.4.x | Planned | [Security](roadmap/m4-security.md) · [prompt M4](prompts/implement-m4.md) |
+| M5 / 0.5.x | Planned | [Performance](roadmap/m5-performance.md) · [prompt M5](prompts/implement-m5.md) |
+| M6 / 0.6.x | Planned | [Analyzer](roadmap/m6-analyzer.md) · [prompt M6](prompts/implement-m6.md) |
+| M7 / 0.7.x | Conditional; ejecución Deferred sin Go | [Remote](roadmap/m7-remote.md) · [prompt M7](prompts/implement-m7.md) |
+| M8 / 0.8–0.9 / readiness 1.0 | Planned | [Stabilization](roadmap/m8-stabilization.md) · [prompt M8](prompts/implement-m8.md) |
+
+El owner autoriza cerrar e integrar primero esta planificación y después implementar
+solo M2. Esta tabla registra la fase documental; no acredita implementación nueva
+ni autoriza avanzar a M3 o publicar otra release.
 
 ## In Progress
 
