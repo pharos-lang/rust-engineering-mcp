@@ -1,7 +1,8 @@
 # Tools
 
-`rust.project.open`, `rust.project.inspect`, `rust.toolchain.inspect`, `rust.check`, `rust.fmt.check`, `rust.clippy`, `rust.test`, `rust.dependencies.audit`, `rust.diagnostics.explain`, `rust.quality.gate`, `rust.catalog.status`, `rust.crate.search` y `rust.crate.inspect` están implementadas en este checkout; los gates de [M1-11](validation/M1-11.md) y [M1-12](validation/M1-12.md) están registrados; M1-13 tiene [gate aprobado](validation/M1-13.md). rmcp 3.2.0 gestiona discovery,
-negociación y dispatch; `tools/list` devuelve trece definiciones sin cursor.
+`rust.project.open`, `rust.project.inspect`, `rust.toolchain.inspect`, `rust.check`, `rust.fmt.check`, `rust.clippy`, `rust.test`, `rust.dependencies.audit`, `rust.diagnostics.explain`, `rust.quality.gate`, `rust.catalog.status`, `rust.crate.search` y `rust.crate.inspect` están implementadas en este checkout; los gates de [M1-11](validation/M1-11.md) y [M1-12](validation/M1-12.md) están registrados; M1-13 tiene [gate aprobado](validation/M1-13.md). rmcp 3.2.0 gestiona discovery, negociación y dispatch. La release `0.1.0`
+devuelve trece definiciones sin cursor; este checkout de desarrollo devuelve 18 al
+añadir las cinco tools M2 descritas al final.
 
 ## rust.project.open
 
@@ -587,81 +588,255 @@ continúa siendo M1 y se califica separadamente desde fuente según ADR-048.
 
 ## Escritura local M2 en desarrollo
 
-[ADR-050](adr/ADR-050-local-coordinated-mutation.md) fija edición local
-coordinada para M2: permiso de escritura del host configurado una vez, preview/diff,
-precondiciones, locks entre instancias MCP, journal y recuperación conservadora.
-No exige servicios privilegiados, sudo, cuentas ni cambios de ownership del proyecto.
-El host mantiene estables las roots y evita editar simultáneamente los archivos
-afectados durante el commit breve. El MCP no bloquea al IDE ni promete CAS o atomicidad
-visible multiarchivo. Conflictos observados detienen la operación; los posteriores
-pueden requerir recuperación conservando evidencia y sin pisar bytes desconocidos.
-La rama de desarrollo incorpora `rust.manifest.patch` para lints del `Cargo.toml`
-raíz e integra `rust.fmt.apply` para archivos Rust existentes. Ambos usan
-preview/commit/receipt, con grants separados `--allow-manifest-write WORKSPACE_ROOT`
-y `--allow-fmt-write WORKSPACE_ROOT`. La calificación conjunta sigue en curso;
-estas capacidades no forman parte de la release `0.1.0`. Las trece tools M1 y su
-sandbox se conservan. Fix, dependencias y las demás familias de patch siguen
-pendientes; el tablero enlaza la evidencia sin anunciar M2 terminado.
+La release `0.1.0` conserva exactamente las trece tools M1 anteriores. El checkout
+`0.2.0-dev` añade cinco definiciones [calificadas localmente](validation/M2-07.md): `rust.manifest.patch`,
+`rust.fmt.apply`, `rust.fix.apply`, `rust.dependency.add` y
+`rust.dependency.remove`. Todas usan input cerrado, un worker joined con deadline
+de 240 s, respuesta MCP completa de 512 KiB y el ciclo `preview` → `commit` →
+`receipt`. Sus annotations son readOnly false, destructive true, idempotent false
+y openWorld false; el peer debe tratar commit y recovery como operaciones
+destructivas dentro del grant.
 
-### Contrato inicial de `rust.manifest.patch` (M2-01)
+Cada tool exige un permiso host distinto sobre la raíz exacta del workspace:
 
-Entrada cerrada `{project_ref, action}`. `action.mode` selecciona:
+| Tool | Grant |
+| --- | --- |
+| `rust.manifest.patch` | `--allow-manifest-write WORKSPACE_ROOT` |
+| `rust.fmt.apply` | `--allow-fmt-write WORKSPACE_ROOT` |
+| `rust.fix.apply` | `--allow-fix-write WORKSPACE_ROOT` |
+| `rust.dependency.add` | `--allow-dependency-add WORKSPACE_ROOT` |
+| `rust.dependency.remove` | `--allow-dependency-remove WORKSPACE_ROOT` |
 
-- `preview`: `expected_project_fingerprint` de `project.open` y `edit` tipado.
-  `edit.operation` es `lint_set` (scope package/workspace, tool rust/clippy,
-  name, level allow/warn/deny/forbid, priority opcional) o `lint_remove`
-  (scope/tool/name). No acepta paths, punteros JSON ni flags Cargo.
-- `commit`: `plan_id`, `plan_digest` exactos del preview y `idempotency_key`
-  ASCII alfanumérica, guion o underscore, de 1–64 caracteres.
-- `receipt`: `operation_id` original y `recover` booleano. Requiere referencia
-  viva obtenida al reabrir y grant vigente; el ID no concede acceso.
+Un grant, `project_ref`, plan o receipt no autoriza otra clase de operación. La
+raíz debe estar dentro de una `--root` de lectura, el runtime Docker completo debe
+estar configurado y `--state-root` debe quedar fuera de todas las roots. Los planes
+vencen a los 600 s y comparten un máximo de cuatro entradas/64 MiB. El diff tiene
+un límite de 128 KiB; una respuesta que no cabe se rechaza antes de retener el plan.
+Source y candidato admiten 16 MiB totales, 4096 entradas, 1 MiB por archivo, paths
+de 100 bytes y profundidad 32. El store admite 128 journals/256 MiB, con 48 MiB
+por journal y reserva para recovery; al llenarse rechaza trabajo nuevo.
 
-Preview devuelve el diff completo autorizado, hashes before/after, validación Cargo
-y duración del plan (600 s); no publica source. Commit revalida el source completo,
-no vuelve a generar el candidato aprobado. El recibo separa intended_after de
-el efecto terminal registrado: committed acredita after; no_change y aborted
-acreditan before; recovery_required deja effect_after desconocido. Es evidencia
-histórica latest_known, con freshness unknown, no lectura actual del filesystem.
-Un candidato inválido observado por Cargo es failed con isError=false; conflicto,
-permiso denegado, recuperación y aborto son resultados operacionales isError=true.
+### Ciclo común preview/commit/receipt
 
-Límites iniciales: cuatro planes/64 MiB agregados, Cargo.toml 256 KiB, diff128 KiB,
-respuesta MCP completa512 KiB,128journals/256MiB store. Se rechaza una salida excesiva
-antes de retener un plan. Solo tablas TOML estándar, package/workspace rust/clippy;
-las demás familias se incorporarán en M2-06. Rechaza mixed newlines si la edición
-cambia bytes y preserve los bytes exactos para un no-op. El source capturado y el
-candidato se validan con el runtime aprobado y la política frozen de M1.
+Preview recibe la identidad devuelta por `rust.project.open`, captura y valida un
+candidato completo, y no modifica el host. Por ejemplo, commit consume exactamente
+el plan y digest recibidos. `idempotency_key` admite 1–64 caracteres ASCII
+alfanuméricos, guion o underscore:
 
+```json
+{
+  "project_ref": "prj_0123456789abcdef0123456789abcdef",
+  "action": {
+    "mode": "commit",
+    "plan_id": "mut_0123456789abcdef0123456789abcdef",
+    "plan_digest": "sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+    "idempotency_key": "agent-step-17"
+  }
+}
+```
 
-### `rust.fmt.apply` (M2-02 en integración)
+Tras commit se debe reabrir el proyecto y usar el nuevo `data.project_ref` en
+TODAS las llamadas posteriores, incluidos receipt y recovery del `operation_id`. `recover: true` solicita recuperación conservadora; el ID por sí mismo
+no concede acceso:
 
-Entrada cerrada `{project_ref, action}`. Preview exige únicamente
-`expected_project_fingerprint`; no admite paths, flags, comando ni configuración
-aportados por el peer. Commit/receipt tienen los mismos campos que manifest.patch,
-pero los planes y receipts quedan ligados al grant de formato.
+```json
+{
+  "project_ref": "prj_fedcba9876543210fedcba9876543210",
+  "action": {
+    "mode": "receipt",
+    "operation_id": "mut_0123456789abcdef0123456789abcdef",
+    "recover": false
+  }
+}
+```
 
-El runtime produce un candidato completo en tmpfs acotado y hace fmt.check en otro
-job read-only antes de aprobarlo. La validación registra ambos fingerprints de
- ejecución y el hash del candidato. Solo se admiten reemplazos de hasta 128 `.rs`
-existentes; Cargo.toml, Cargo.lock, directorios y otros archivos permanecen exactos.
-La configuración rustfmt admitida ya presente forma parte del snapshot aprobado;
-la configuración Cargo del proyecto continúa prohibida. No se aceptan altas/bajas.
+Preview devuelve `kind: "preview"`, plan, expiración, lista de archivos, diff y
+validación. Receipt devuelve estado `committed`, `no_change`, `aborted` o
+`recovery_required`, fingerprints de efecto y la validación ligada al plan. La
+semántica de evidencia es `latest_known`: un receipt no es una lectura actual del
+filesystem. Un candidato rechazado por Cargo es un resultado `failed`; conflictos,
+permisos, plan vencido, recovery y datos offline ausentes son resultados
+operacionales con `isError: true`. La ausencia de dataset/crate offline es `unavailable` con `offline_data_missing`; datos adulterados son `blocked` con `offline_data_invalid`.
 
-La publicación usa journal v2 y puede ser parcialmente visible durante el commit.
-Recovery de un prefijo publicado solo completa el sufijo aprobado cuando toda la
-generación lógica, incluidos archivos no editados, sigue siendo la conocida. En
-caso contrario conserva bytes/evidencia y devuelve recovery_required. No ejecuta
-rustfmt otra vez ni recalcula el diff. Los cuatro planes y 64 MiB en memoria se
-comparten entre las tools M2. El no-op también tiene un receipt verificable.
+El modo es `local_coordinated`. El commit vuelve a comprobar proyecto y source y
+publica los bytes aprobados mediante handles no-follow y journal. Los locks
+coordinan instancias que comparten state root; no excluyen al IDE, Git u otros
+writers. No hay CAS ni atomicidad visible multiarchivo. Los cambios externos pueden
+causar `conflict` o `recovery_required`.
 
-### CLI `cargo-vendor inspect`
+La CLI `mutation list/prune` administra journals terminales, pero el checkout no
+incluye un updater o downgrade gestionado. Los journals pendientes deben
+reconciliarse antes de ejecutar un binario anterior; `0.1.0` no conoce su formato.
 
-`cargo-vendor inspect --directory PATH [--json]` inspecciona un directorio absoluto
-del host, con captura protegida y checksum de cada archivo. No ejecuta Cargo,
-modifica archivos ni descarga. JSON format_version1 contiene status, error_code,
-message, tree_fingerprint, file_count, total_bytes y packages (nombre, versión,
-checksum de paquete). Éxito sale0, rechazo operacional sale1 y sintaxis inválida
-sale2. No incluye source. La salida completa está limitada a512KiB; captura tiene
-deadline cooperativo30s y la entrega a un pipe bloqueado5s. Los límites de datos
-son16MiB/4096entries/1MiBarchivo y paths portables100bytes. Soporte positivo requiere
-el adapter macOS ARM64/APFS; en otros targets se rechaza antes del filesystem.
+### `rust.manifest.patch`
+
+Solo edita el `Cargo.toml` raíz mediante una operación semántica. Ejemplo de profile:
+
+```json
+{
+  "project_ref": "prj_0123456789abcdef0123456789abcdef",
+  "action": {
+    "mode": "preview",
+    "expected_project_fingerprint": "sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+    "edit": {
+      "operation": "profile_set",
+      "profile": "release",
+      "setting": { "name": "lto", "value": "thin" }
+    }
+  }
+}
+```
+
+Las familias cerradas son:
+
+- `lint_set/remove`: scope `package|workspace`, tool `rust|clippy`, nombre y, para
+  set, level `allow|warn|deny|forbid` y `priority` opcional;
+- `feature_set/remove`: nombre y, para set, hasta 128 valores Cargo;
+- `profile_set/remove`: profile `dev|release|test|bench`; settings `opt-level`,
+  `debug`, `strip`, `debug-assertions`, `overflow-checks`, `lto`, `panic`,
+  `incremental` y `codegen-units`, con valores tipados por schema;
+- `workspace_dependency_set/remove`: dependencia crates.io con requirement
+  explícito, package alias opcional, features, `default_features` y `optional=false`.
+
+Lints y profiles usan metadata frozen no-deps. Features y workspace dependencies
+cambian resolución y requieren el dataset vendor aprobado descrito abajo. No se
+aceptan punteros TOML/JSON, path/git/registry alternativo, tablas patch/replace ni
+flags Cargo. El manifest se limita a 256 KiB y un no-op conserva sus bytes.
+`opt-level` acepta 0–3, `s` o `z`; `debug` acepta `none`, `limited`, `full`,
+`line-tables-only` o `line-directives-only`; `strip` acepta `none`, `debuginfo` o
+`symbols`; `lto`, boolean o `off|thin|fat`; `panic`, `unwind|abort`;
+`debug-assertions`, `overflow-checks` e `incremental` son booleanos, y
+`codegen-units` es un entero mayor o igual a uno.
+
+### `rust.fmt.apply`
+
+Preview no acepta paths, flags ni configuración suministrada por el peer:
+
+```json
+{
+  "project_ref": "prj_0123456789abcdef0123456789abcdef",
+  "action": {
+    "mode": "preview",
+    "expected_project_fingerprint": "sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
+  }
+}
+```
+
+El gateway ejecuta rustfmt sobre staging y `fmt.check` sobre el candidato completo
+en otro job. Solo puede reemplazar hasta 128 `.rs` existentes; no crea/elimina
+paths ni modifica manifests, lock o directorios. La configuración rustfmt ya
+capturada puede influir en el resultado; la configuración Cargo continúa prohibida.
+La validación conserva los fingerprints de ambas ejecuciones.
+
+### `rust.fix.apply`
+
+Usa la misma forma preview/commit/receipt que fmt. El comando fijo selecciona
+workspace, todos los targets y features por defecto, en modo frozen/offline; no
+acepta edition migration, broken-code, selección arbitraria ni flags. Requiere un
+Cargo.lock existente. Tras fix, un `cargo check` frozen independiente valida el
+candidato completo. Build scripts y proc macros pueden influir en cualquier `.rs`
+permitido: el caller debe revisar el diff exacto.
+
+El dataset vendor de resolución no se proporciona a fix. El camino calificado no
+promete workspaces arbitrarios con dependencias externas; si el input frozen del
+runtime no basta, la operación falla cerrada sin candidato.
+
+El perfil Docker dedicado conserva `network=none`, pero permite TCP loopback dentro
+del namespace para la coordinación interna de Cargo. Esa excepción no se extiende
+a M1, fmt, ingest, export ni resolución, y no debe describirse como denegación
+absoluta de sockets.
+
+### `rust.dependency.add` y `rust.dependency.remove`
+
+Add recibe requirement explícito y opciones tipadas. Este ejemplo añade un alias a
+un package miembro:
+
+```json
+{
+  "project_ref": "prj_0123456789abcdef0123456789abcdef",
+  "action": {
+    "mode": "preview",
+    "expected_project_fingerprint": "sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+    "manifest_path": "crates/app/Cargo.toml",
+    "dependency_kind": "normal",
+    "target": null,
+    "name": "unicode",
+    "requirement": "=1.0.24",
+    "package": "unicode-ident",
+    "features": [],
+    "optional": false,
+    "default_features": true
+  }
+}
+```
+
+Remove usa el mismo selector sin spec:
+
+```json
+{
+  "project_ref": "prj_0123456789abcdef0123456789abcdef",
+  "action": {
+    "mode": "preview",
+    "expected_project_fingerprint": "sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+    "manifest_path": "crates/app/Cargo.toml",
+    "dependency_kind": "dev",
+    "target": "cfg(unix)",
+    "name": "test-helper"
+  }
+}
+```
+
+`manifest_path` por defecto es `Cargo.toml`, pero Cargo debe corroborarlo como
+package miembro; un workspace virtual exige seleccionar un manifest miembro.
+Kind es `normal|dev|build`. Target es una clave TOML validada, no un argumento
+Cargo. Add no reemplaza silenciosamente una definición diferente. Remove elimina
+solo la clave seleccionada, incluida una forma dotted `renamed.workspace = true` o
+una tabla propia de esa entrada, sin cambiar la definición global. Contenedores
+inline/dotted que exigirían reescribir campos vecinos se rechazan como layout no
+soportado. Ambas tools siempre requieren resolución offline aprobada.
+
+### Datos Cargo offline y policy de lock
+
+El operador prepara los datos fuera del servidor y después fija su identidad:
+
+```text
+cargo vendor --locked --versioned-dirs /ruta/privada/vendor
+rust-engineering-mcp cargo-vendor inspect --directory /ruta/privada/vendor --json
+```
+
+La primera orden usa el Cargo del operador y puede requerir que este haya preparado
+sus datos; nunca la ejecuta una tool MCP. Configura juntos:
+
+```text
+--cargo-vendor-dir /ruta/privada/vendor
+--cargo-vendor-tree-sha256 sha256:DIGEST
+```
+
+La ruta debe ser absoluta, quedar separada de las project roots y acompañarse del
+fingerprint exacto producido por inspect. Es una fuente selectiva crates.io de hasta
+16 MiB, 4096 entradas y 1 MiB por archivo. El servidor la captura una vez mediante
+handles no-follow durante el preview, verifica checksums/layout y usa esos bytes
+inmutables en un tmpfs separado read-only. No importa CARGO_HOME, configuración,
+cachés, credenciales ni registries alternativos; tampoco instala o descarga durante
+runtime.
+
+Cargo ejecuta metadata offline sobre staging escribible y después metadata frozen
+sobre la resolución. La validación informa `cargo_metadata_offline_then_frozen`,
+dataset, ejecución de resolución, lock resuelto, manifest seleccionado y
+`lock_policy: "preserve_presence"`. Un lock existente se actualiza en el mismo
+plan (`updated_existing`). Sin lock, se valida con uno transitorio y se excluye del
+candidato (`transient_unpublished`). Datos ausentes/corruptos o resolución fallida
+no producen un candidato manifest-only.
+
+La CLI `cargo-vendor inspect --directory PATH [--json]` solo inspecciona: no ejecuta
+Cargo, no modifica el árbol y no descarga. Su JSON format_version1 incluye estado,
+fingerprint, conteos y paquetes. Éxito sale 0, rechazo operacional 1 y sintaxis
+inválida 2; salida máxima 512 KiB. La captura comparte los límites anteriores,
+deadline cooperativo de 30 s y soporte positivo macOS ARM64/APFS.
+
+El límite de cuatro planes aplica a propuestas pendientes: los planes terminales
+dejan capacidad para nuevas propuestas en la siguiente admisión. Un commit con
+plan ausente/expirado solo puede repetir un journal existente con ID, digest y key
+exactos, bajo grant vivo e identidad física original. No inicia efectos nuevos sin
+preview vigente. Prune retira ese replay; un receipt terminal describe historia,
+no el source actual. Véase [ADR-059](adr/ADR-059-terminal-plan-retirement-and-durable-replay.md).

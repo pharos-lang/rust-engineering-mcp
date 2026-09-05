@@ -116,6 +116,44 @@ Prune elimina evidencia e idempotencia durable de ese ID; antes de usarlo el ope
 debe haber consumido el recibo y descartado sus planes. Reintentar una mutación
 purgada requiere otro preview. La CLI debe calificarse antes de M2-01 Done.
 
+La admisión reserva además espacio global para reescribir cualquier journal
+existente: el total retenido después de admitir el nuevo registro no supera
+207 MiB: 256 MiB menos 48 MiB para un staging máximo y 1 MiB para crecimiento de metadata de hasta 128 registros (8 KiB por registro, incluida conversión legacy). Esta reserva cubre la copia staging
+de recovery aun si registros pequeños llenan después el store. La reserva de dos
+records de peor caso por commit sigue aplicando; se cumplen ambas condiciones.
+No se borra evidencia para recuperar capacidad. El techo no es retroactivo: stores
+de checkouts 0.2.0-dev poblados bajo el techo anterior de 208 MiB no adquieren
+automáticamente esta holgura; no se migran ni purgan. Recovery por ID permanece
+separado del scan global, que puede rechazar un máximo transitorio.
+
+Un journal parcial o corrupto no es un sucesor validado. Se conserva y puede
+bloquear todo el store compartido: list/prune y commits nuevos fallan cerrados;
+receipt/recovery del ID afectado no garantizan convergencia automática. Esto también
+puede ocurrir por interrupción propia durante escritura, sin actor externo. La
+recuperación por ID de otros registros íntegros no escanea el store completo.
+
+Remediación soportada ante corrupción persistente: detener TODAS las instancias
+que comparten ese state root; preservar sin cambios el store original y todos los
+workspaces afectados, incluyendo temporales. Preparar un workspace físicamente
+nuevo en otra ruta a partir de contenido cuya generación el operador haya revisado,
+sin trasladar temporales reservados ni tratar bytes dudosos como resultado aprobado.
+Configurar un state root privado NUEVO y grants explícitos únicamente para las
+nuevas copias; nunca apuntar el store nuevo a los workspaces originales aún en
+cuarentena. Reabrir y generar previews nuevos. Los originales siguen disponibles
+para reconciliación manual; no se elimina ni edita un journal corrupto, no se fuerza
+prune y no se transfiere idempotencia a la identidad física nueva. Esta salida
+restaura operación en la copia, NO repara ni certifica el registro original.
+El procedimiento se aplica por cada workspace que deba continuar, incluidos los
+que solo estaban bloqueados: sus recibos e idempotencia permanecen en el store
+en cuarentena.
+
+Esta limitación de disponibilidad se acepta como P2 residual antes de M2 Done
+solo con prueba reproducible de propagación del bloqueo y de continuación aislada,
+publicación del procedimiento y revisión independiente de la disposición. Evita
+un borrado automático o nueva CLI de salvage que convierta bytes incompletos en
+autoridad. Mejorar convergencia requiere otro diseño explícito de conservación y
+clasificación de evidencia; no queda oculto como recuperación universal.
+
 ## Alternatives considered
 
 - IDs bearer: simplifican lookup pero conceden autoridad por conocimiento del ID.
@@ -129,11 +167,17 @@ purgada requiere otro preview. La CLI debe calificarse antes de M2-01 Done.
 La configuración por usuario debe compartir state root. Un store lleno rechaza
 antes del source; no se elimina evidencia para conseguir espacio. Los receipts
 durables y los artifacts efímeros M1 tienen lifecycle distinto. La creación de
-Cargo.lock requerirá ampliar y calificar la primitiva antes de dependency.add.
+ADR-054/055/057 califican el reemplazo conjunto de manifests y un Cargo.lock
+ya existente; la creación de Cargo.lock en el host queda fuera de M2.
 
 ## Status
 
 Primera calificación nativa: macOS 26 ARM64/APFS; otros hosts rechazan antes de I/O.
 El límite de 256 KiB del editor se aplica a manifests antes del límite general 1 MiB.
 
-Accepted por el Technical Owner para M2-01. Implementación y calificación pendientes.
+Accepted por el Technical Owner para M2. M2-01/02 calificados en `331d163`;
+la ampliación M2 y su gate final se registran en docs/validation/M2-matrix.md.
+
+ADR-059 precisa la retención: los planes terminales se retiran de resolve y la
+próxima admisión libera sus buffers. El TTL gobierna efectos nuevos; replay de un
+journal existente compara ID/digest/key bajo autoridad viva, incluso tras reinicio.

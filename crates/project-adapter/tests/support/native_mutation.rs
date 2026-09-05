@@ -3,7 +3,7 @@ use rust_engineering_application::ProjectBackend;
 use rust_engineering_domain::{
     IdempotencyKey, MutationCandidate, MutationCommit, MutationId, MutationKind, SourceFile,
 };
-use std::os::unix::fs::PermissionsExt;
+use std::os::unix::fs::{MetadataExt, PermissionsExt};
 
 const CRASH_PROJECT: &str = "RUST_MCP_NATIVE_CRASH_PROJECT";
 const CRASH_STATE: &str = "RUST_MCP_NATIVE_CRASH_STATE";
@@ -147,6 +147,102 @@ impl Drop for Fixture {
     }
 }
 
+fn snapshot_tree(root: &Path) -> Result<BTreeMap<PathBuf, Option<Vec<u8>>>, String> {
+    fn visit(
+        root: &Path,
+        relative: &Path,
+        snapshot: &mut BTreeMap<PathBuf, Option<Vec<u8>>>,
+    ) -> Result<(), String> {
+        let mut entries = std::fs::read_dir(root.join(relative))
+            .map_err(|error| error.to_string())?
+            .collect::<Result<Vec<_>, _>>()
+            .map_err(|error| error.to_string())?;
+        entries.sort_by_key(std::fs::DirEntry::file_name);
+        for entry in entries {
+            let child = relative.join(entry.file_name());
+            let kind = entry.file_type().map_err(|error| error.to_string())?;
+            if kind.is_dir() {
+                snapshot.insert(child.clone(), None);
+                visit(root, &child, snapshot)?;
+            } else if kind.is_file() {
+                snapshot.insert(
+                    child.clone(),
+                    Some(std::fs::read(root.join(&child)).map_err(|error| error.to_string())?),
+                );
+            } else {
+                return Err(format!("unsupported snapshot entry: {}", child.display()));
+            }
+        }
+        Ok(())
+    }
+
+    let mut snapshot = BTreeMap::new();
+    visit(root, Path::new(""), &mut snapshot)?;
+    Ok(snapshot)
+}
+
+fn write_reviewed_bundle(root: &Path, bundle: &SourceBundle) -> Result<(), String> {
+    for directory in bundle.directories() {
+        std::fs::create_dir_all(root.join(directory)).map_err(|error| error.to_string())?;
+    }
+    for file in bundle.files() {
+        let path = root.join(file.path());
+        if let Some(parent) = path.parent() {
+            std::fs::create_dir_all(parent).map_err(|error| error.to_string())?;
+        }
+        std::fs::write(path, file.bytes()).map_err(|error| error.to_string())?;
+    }
+    Ok(())
+}
+
+fn manifest_lock_request(
+    fixture: &Fixture,
+    suffix: u128,
+) -> Result<(SecureProjects, ProjectLease, MutationCommit), String> {
+    std::fs::write(
+        fixture.project.join("Cargo.lock"),
+        b"# before lock\nversion = 4\n",
+    )
+    .map_err(|error| error.to_string())?;
+    let backend = SecureProjects::new(std::slice::from_ref(&fixture.project))
+        .map_err(|error| format!("{error:?}"))?;
+    let opened = backend
+        .open(fixture.project.to_str().ok_or("utf8")?, &Continue)
+        .map_err(|error| format!("{error:?}"))?;
+    let before = backend
+        .source(&opened.lease, &Continue)
+        .map_err(|error| format!("{error:?}"))?;
+    let files = before
+        .files()
+        .iter()
+        .map(|file| {
+            let bytes = match file.path() {
+                "Cargo.lock" => b"# after lock\nversion = 4\n".to_vec(),
+                "Cargo.toml" => b"[package]\nname = \"fixture\"\nversion = \"0.1.0\"\nedition = \"2024\"\n\n[features]\ndefault = [\"dep:serde\"]\n".to_vec(),
+                _ => file.bytes().to_vec(),
+            };
+            SourceFile::new(file.path().to_owned(), bytes)
+        })
+        .collect::<Result<Vec<_>, _>>()
+        .map_err(|error| format!("{error:?}"))?;
+    let after = SourceBundle::with_directories(files, before.directories().to_vec())
+        .map_err(|error| format!("{error:?}"))?;
+    let candidate = MutationCandidate {
+        kind: MutationKind::ManifestPatch,
+        before,
+        after,
+        validation: "unit-manifest-lock-checkpoint".to_owned(),
+    };
+    let request = MutationCommit {
+        id: MutationId::new(format!("mut_{suffix:032x}")).map_err(|error| format!("{error:?}"))?,
+        digest: mutation_digest(&candidate).map_err(|error| format!("{error:?}"))?,
+        key: IdempotencyKey::new(format!("manifest-lock-checkpoint-{suffix}"))
+            .map_err(|error| format!("{error:?}"))?,
+        candidate,
+    };
+    Ok((backend, opened.lease, request))
+}
+
 fn encode_legacy_v1(body: &JournalBody) -> Result<Vec<u8>, String> {
     let file = body.files.first().ok_or("file")?;
     let phase = match body.phase {
@@ -187,6 +283,70 @@ fn encode_legacy_v1(body: &JournalBody) -> Result<Vec<u8>, String> {
         body: legacy,
     })
     .map_err(|error| error.to_string())
+}
+
+fn encode_v2_buffered_reference(mut body: JournalBody) -> Result<Vec<u8>, String> {
+    body.format = JournalFormat::V2;
+    let canonical = serde_json::to_vec(&body).map_err(|error| error.to_string())?;
+    serde_json::to_vec(&JournalRecordV2 {
+        format: "rust-engineering-mcp-mutation-journal-v2".to_owned(),
+        checksum: sha256(&canonical),
+        body,
+    })
+    .map_err(|error| error.to_string())
+}
+
+#[test]
+fn streamed_checksums_preserve_buffered_v1_and_v2_bytes() -> Result<(), String> {
+    let fixture = Fixture::new("streamed-checksum-compatibility")?;
+    let (_backend, lease, request) = fixture.request(147)?;
+    let store = NativeMutationStore::open(&fixture.state, std::slice::from_ref(&fixture.project))
+        .map_err(|error| format!("{error:?}"))?;
+    let interrupted = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+        let _ = store.commit_checked(&lease, &request, &Continue, |phase| {
+            if phase == CommitCheckpoint::Prepared {
+                std::panic::resume_unwind(Box::new("capture prepared journal"));
+            }
+            Ok(())
+        });
+    }));
+    assert!(interrupted.is_err());
+    let raw = std::fs::read(fixture.state.join(journal_name(&request.id)))
+        .map_err(|error| error.to_string())?;
+    let mut body = decode(&raw).map_err(|error| format!("{error:?}"))?;
+    body.sequence = u64::MAX;
+    body.phase = JournalPhase::RecoveryRequired;
+    body.files[0].staged_node = Some(JournalNode {
+        device: i32::MIN,
+        inode: u64::MAX,
+    });
+    let canonical = serde_json::to_vec(&body).map_err(|error| error.to_string())?;
+    assert_eq!(
+        canonical_checksum(&body).map_err(|error| format!("{error:?}"))?,
+        sha256(&canonical)
+    );
+    assert_eq!(
+        encode(&body).map_err(|error| format!("{error:?}"))?,
+        encode_v2_buffered_reference(body.clone())?
+    );
+
+    body.sequence = 7;
+    body.phase = JournalPhase::Staged;
+    let legacy = encode_legacy_v1(&body)?;
+    let parsed: LegacyJournalRecordV1 =
+        serde_json::from_slice(&legacy).map_err(|error| error.to_string())?;
+    let legacy_canonical = serde_json::to_vec(&parsed.body).map_err(|error| error.to_string())?;
+    assert_eq!(
+        canonical_checksum(&parsed.body).map_err(|error| format!("{error:?}"))?,
+        sha256(&legacy_canonical)
+    );
+    assert_eq!(
+        decode(&legacy)
+            .map_err(|error| format!("{error:?}"))?
+            .format,
+        JournalFormat::V1
+    );
+    Ok(())
 }
 
 #[test]
@@ -249,6 +409,48 @@ fn legacy_v1_receipt_is_read_only_and_explicit_recovery_migrates_to_v2() -> Resu
 }
 
 #[test]
+fn terminal_legacy_v1_replay_migrates_only_after_exact_binding() -> Result<(), String> {
+    let fixture = Fixture::new("legacy-v1-terminal-replay")?;
+    let (_backend, lease, request) = fixture.request(149)?;
+    let store = NativeMutationStore::open(&fixture.state, std::slice::from_ref(&fixture.project))
+        .map_err(|error| format!("{error:?}"))?;
+    let committed = store
+        .commit(&lease, &request, &Continue)
+        .map_err(|error| format!("{error:?}"))?;
+    let name = journal_name(&request.id);
+    let raw = std::fs::read(fixture.state.join(&name)).map_err(|error| error.to_string())?;
+    let body = decode(&raw).map_err(|error| format!("{error:?}"))?;
+    let legacy = encode_legacy_v1(&body)?;
+    std::fs::write(fixture.state.join(&name), &legacy).map_err(|error| error.to_string())?;
+
+    let wrong_key =
+        IdempotencyKey::new("wrong-legacy-key".to_owned()).map_err(|error| format!("{error:?}"))?;
+    assert_eq!(
+        store.replay(&lease, &request.id, &request.digest, &wrong_key, &Continue,),
+        Err(MutationError::Conflict)
+    );
+    assert_eq!(
+        std::fs::read(fixture.state.join(&name)).map_err(|error| error.to_string())?,
+        legacy
+    );
+    assert_eq!(
+        store.replay(
+            &lease,
+            &request.id,
+            &request.digest,
+            &request.key,
+            &Continue,
+        ),
+        Ok(committed)
+    );
+    let migrated = std::fs::read(fixture.state.join(name)).map_err(|error| error.to_string())?;
+    let format: JournalFormatProbe =
+        serde_json::from_slice(&migrated).map_err(|error| error.to_string())?;
+    assert_eq!(format.format, "rust-engineering-mcp-mutation-journal-v2");
+    Ok(())
+}
+
+#[test]
 fn unknown_journal_format_never_cleans_or_changes_source() -> Result<(), String> {
     let fixture = Fixture::new("unknown-v3")?;
     let (_backend, lease, request) = fixture.request(145)?;
@@ -277,6 +479,8 @@ fn unknown_journal_format_never_cleans_or_changes_source() -> Result<(), String>
         .ok_or("before")?
         .bytes()
         .to_vec();
+    let state_snapshot = snapshot_tree(&fixture.state)?;
+    let project_snapshot = snapshot_tree(&fixture.project)?;
     assert_eq!(
         store.receipt(&lease, &request.id),
         Err(MutationError::RecoveryRequired)
@@ -285,10 +489,189 @@ fn unknown_journal_format_never_cleans_or_changes_source() -> Result<(), String>
         store.recover(&lease, &request.id),
         Err(MutationError::RecoveryRequired)
     );
+    assert_eq!(
+        store.replay(
+            &lease,
+            &request.id,
+            &request.digest,
+            &request.key,
+            &Continue,
+        ),
+        Err(MutationError::RecoveryRequired)
+    );
     assert!(temp.exists());
     assert_eq!(
         std::fs::read(fixture.project.join("Cargo.toml")).map_err(|error| error.to_string())?,
         before
+    );
+    assert_eq!(snapshot_tree(&fixture.state)?, state_snapshot);
+    assert_eq!(snapshot_tree(&fixture.project)?, project_snapshot);
+    Ok(())
+}
+
+#[test]
+fn terminal_replay_requires_the_exact_binding_and_never_reapplies_source() -> Result<(), String> {
+    let fixture = Fixture::new("terminal-durable-replay")?;
+    let (_backend, lease, request) = fixture.request(146)?;
+    let store = NativeMutationStore::open(&fixture.state, std::slice::from_ref(&fixture.project))
+        .map_err(|error| format!("{error:?}"))?;
+    let committed = store
+        .commit(&lease, &request, &Continue)
+        .map_err(|error| format!("{error:?}"))?;
+    assert_eq!(committed.state, MutationState::Committed);
+
+    let external = b"[package]\nname = \"fixture\"\nversion = \"0.1.0\"\nedition = \"2024\"\n# later user edit\n";
+    std::fs::write(fixture.project.join("Cargo.toml"), external)
+        .map_err(|error| error.to_string())?;
+    let state_snapshot = snapshot_tree(&fixture.state)?;
+    let project_snapshot = snapshot_tree(&fixture.project)?;
+    assert_eq!(
+        store.replay(
+            &lease,
+            &request.id,
+            &request.digest,
+            &request.key,
+            &Continue,
+        ),
+        Ok(committed)
+    );
+
+    let wrong_digest: SourceFingerprint = format!("sha256:{}", "0".repeat(64))
+        .parse()
+        .map_err(|error| format!("{error:?}"))?;
+    assert_ne!(wrong_digest, request.digest);
+    assert_eq!(
+        store.replay(&lease, &request.id, &wrong_digest, &request.key, &Continue,),
+        Err(MutationError::Conflict)
+    );
+    let wrong_key =
+        IdempotencyKey::new("wrong-replay-key".to_owned()).map_err(|error| format!("{error:?}"))?;
+    assert_eq!(
+        store.replay(&lease, &request.id, &request.digest, &wrong_key, &Continue,),
+        Err(MutationError::Conflict)
+    );
+
+    let other = Fixture::new("terminal-durable-replay-other")?;
+    let (_other_backend, other_lease, _) = other.request(147)?;
+    assert_eq!(
+        store.replay(
+            &other_lease,
+            &request.id,
+            &request.digest,
+            &request.key,
+            &Continue,
+        ),
+        Err(MutationError::PermissionDenied)
+    );
+    let wrong_kind = NativeMutationStore::open_for_kind(
+        &fixture.state,
+        std::slice::from_ref(&fixture.project),
+        MutationKind::FormatApply,
+    )
+    .map_err(|error| format!("{error:?}"))?;
+    assert_eq!(
+        wrong_kind.replay(
+            &lease,
+            &request.id,
+            &request.digest,
+            &request.key,
+            &Continue,
+        ),
+        Err(MutationError::PermissionDenied)
+    );
+    assert_eq!(snapshot_tree(&fixture.state)?, state_snapshot);
+    assert_eq!(snapshot_tree(&fixture.project)?, project_snapshot);
+    Ok(())
+}
+
+#[test]
+fn pending_replay_uses_existing_recovery_and_pruned_replay_is_not_found() -> Result<(), String> {
+    struct Cancel;
+    impl OperationControl for Cancel {
+        fn check(&self) -> Result<(), ProjectError> {
+            Err(ProjectError::Cancelled)
+        }
+    }
+
+    let fixture = Fixture::new("pending-durable-replay")?;
+    let (_backend, lease, request) = fixture.request(148)?;
+    let store = NativeMutationStore::open(&fixture.state, std::slice::from_ref(&fixture.project))
+        .map_err(|error| format!("{error:?}"))?;
+    assert_eq!(
+        store.commit_checked(&lease, &request, &Continue, |phase| {
+            if phase == CommitCheckpoint::Published {
+                Err(MutationError::Io)
+            } else {
+                Ok(())
+            }
+        }),
+        Err(MutationError::RecoveryRequired)
+    );
+    let pending_state = snapshot_tree(&fixture.state)?;
+    let pending_project = snapshot_tree(&fixture.project)?;
+    assert_eq!(
+        store.replay(&lease, &request.id, &request.digest, &request.key, &Cancel,),
+        Err(MutationError::Cancelled)
+    );
+    assert_eq!(snapshot_tree(&fixture.state)?, pending_state);
+    assert_eq!(snapshot_tree(&fixture.project)?, pending_project);
+
+    let source_after = source_file(&request.candidate.after, "Cargo.toml")
+        .ok_or("after")?
+        .bytes()
+        .to_vec();
+    let recovered = store
+        .replay(
+            &lease,
+            &request.id,
+            &request.digest,
+            &request.key,
+            &Continue,
+        )
+        .map_err(|error| format!("{error:?}"))?;
+    assert_eq!(recovered.state, MutationState::Committed);
+    assert_eq!(
+        std::fs::read(fixture.project.join("Cargo.toml")).map_err(|error| error.to_string())?,
+        source_after
+    );
+    assert!(!fixture.project.join(temp_name(&request.id, 0)).exists());
+
+    store
+        .prune_record(&request.id, &request.digest)
+        .map_err(|error| format!("{error:?}"))?;
+    assert_eq!(
+        store.replay(
+            &lease,
+            &request.id,
+            &request.digest,
+            &request.key,
+            &Continue,
+        ),
+        Err(MutationError::NotFound)
+    );
+    assert_eq!(
+        std::fs::read(fixture.project.join("Cargo.toml")).map_err(|error| error.to_string())?,
+        source_after
+    );
+    let orphan = fixture.project.join(temp_name(&request.id, 0));
+    std::fs::write(&orphan, b"unbound reserved leaf").map_err(|error| error.to_string())?;
+    assert_eq!(
+        store.replay(
+            &lease,
+            &request.id,
+            &request.digest,
+            &request.key,
+            &Continue,
+        ),
+        Err(MutationError::RecoveryRequired)
+    );
+    assert_eq!(
+        std::fs::read(&orphan).map_err(|error| error.to_string())?,
+        b"unbound reserved leaf"
+    );
+    assert_eq!(
+        std::fs::read(fixture.project.join("Cargo.toml")).map_err(|error| error.to_string())?,
+        source_after
     );
     Ok(())
 }
@@ -572,6 +955,104 @@ fn unknown_untouched_bytes_stop_format_recovery_without_advancing_suffix() -> Re
 }
 
 #[test]
+fn manifest_and_lock_first_swap_crash_rolls_forward_only_known_bytes() -> Result<(), String> {
+    let fixture = Fixture::new("manifest-lock-prefix")?;
+    let (_backend, lease, request) = manifest_lock_request(&fixture, 240)?;
+    let store = NativeMutationStore::open(&fixture.state, std::slice::from_ref(&fixture.project))
+        .map_err(|error| format!("{error:?}"))?;
+    let interrupted = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+        let _ = store.commit_checked(&lease, &request, &Continue, |phase| {
+            if phase == CommitCheckpoint::FileSwapped(0) {
+                std::panic::resume_unwind(Box::new("manifest lock prefix crash"));
+            }
+            Ok(())
+        });
+    }));
+    assert!(interrupted.is_err());
+    assert_eq!(
+        std::fs::read(fixture.project.join("Cargo.lock")).map_err(|error| error.to_string())?,
+        source_file(&request.candidate.after, "Cargo.lock")
+            .ok_or("after lock")?
+            .bytes()
+    );
+    assert_eq!(
+        std::fs::read(fixture.project.join("Cargo.toml")).map_err(|error| error.to_string())?,
+        source_file(&request.candidate.before, "Cargo.toml")
+            .ok_or("before manifest")?
+            .bytes()
+    );
+    drop(store);
+    let restarted =
+        NativeMutationStore::open(&fixture.state, std::slice::from_ref(&fixture.project))
+            .map_err(|error| format!("{error:?}"))?;
+    assert_eq!(
+        restarted
+            .receipt(&lease, &request.id)
+            .map_err(|error| format!("{error:?}"))?
+            .state,
+        MutationState::RecoveryRequired
+    );
+    assert_eq!(
+        restarted
+            .recover(&lease, &request.id)
+            .map_err(|error| format!("{error:?}"))?
+            .state,
+        MutationState::Committed
+    );
+    for path in ["Cargo.lock", "Cargo.toml"] {
+        assert_eq!(
+            std::fs::read(fixture.project.join(path)).map_err(|error| error.to_string())?,
+            source_file(&request.candidate.after, path)
+                .ok_or("after file")?
+                .bytes()
+        );
+    }
+    Ok(())
+}
+
+#[test]
+fn manifest_and_lock_recovery_preserves_unknown_untouched_manifest() -> Result<(), String> {
+    let fixture = Fixture::new("manifest-lock-unknown")?;
+    let (_backend, lease, request) = manifest_lock_request(&fixture, 241)?;
+    let store = NativeMutationStore::open(&fixture.state, std::slice::from_ref(&fixture.project))
+        .map_err(|error| format!("{error:?}"))?;
+    let interrupted = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+        let _ = store.commit_checked(&lease, &request, &Continue, |phase| {
+            if phase == CommitCheckpoint::FileSwapped(0) {
+                std::panic::resume_unwind(Box::new("manifest lock unknown crash"));
+            }
+            Ok(())
+        });
+    }));
+    assert!(interrupted.is_err());
+    let unknown = b"[package]\nname = \"external-edit\"\nversion = \"9.9.9\"\n";
+    std::fs::write(fixture.project.join("Cargo.toml"), unknown)
+        .map_err(|error| error.to_string())?;
+    drop(store);
+    let restarted =
+        NativeMutationStore::open(&fixture.state, std::slice::from_ref(&fixture.project))
+            .map_err(|error| format!("{error:?}"))?;
+    assert_eq!(
+        restarted
+            .recover(&lease, &request.id)
+            .map_err(|error| format!("{error:?}"))?
+            .state,
+        MutationState::RecoveryRequired
+    );
+    assert_eq!(
+        std::fs::read(fixture.project.join("Cargo.toml")).map_err(|error| error.to_string())?,
+        unknown
+    );
+    assert_eq!(
+        std::fs::read(fixture.project.join("Cargo.lock")).map_err(|error| error.to_string())?,
+        source_file(&request.candidate.after, "Cargo.lock")
+            .ok_or("after lock")?
+            .bytes()
+    );
+    Ok(())
+}
+
+#[test]
 fn lost_temp_and_out_of_order_generation_remain_recovery_required() -> Result<(), String> {
     let lost = Fixture::new("format-lost-temp")?;
     let (_backend, lease, request) = lost.format_request(142)?;
@@ -827,6 +1308,315 @@ fn partial_scratch_and_sync_boundary_failures_abort_without_source_effect() -> R
 }
 
 #[test]
+fn short_journal_writes_fail_closed_at_every_commit_phase() -> Result<(), String> {
+    for (index, phase) in [
+        JournalPhase::Prepared,
+        JournalPhase::Scratch,
+        JournalPhase::Staged,
+        JournalPhase::Applying,
+        JournalPhase::Published,
+        JournalPhase::Committed,
+    ]
+    .into_iter()
+    .enumerate()
+    {
+        let fixture = Fixture::new(&format!("short-journal-{phase:?}"))?;
+        let (_backend, lease, request) = fixture.request(300 + index as u128)?;
+        let store =
+            NativeMutationStore::open(&fixture.state, std::slice::from_ref(&fixture.project))
+                .map_err(|error| format!("{error:?}"))?;
+        let _fault = inject_test_io_fault(
+            IoFaultPoint::JournalWrite(phase),
+            TestIoFaultMode::ShortWriteThenNoSpace,
+        );
+        let result = store.commit(&lease, &request, &Continue);
+        assert_eq!(
+            result,
+            Err(if phase == JournalPhase::Prepared {
+                MutationError::Io
+            } else {
+                MutationError::RecoveryRequired
+            }),
+            "phase {phase:?}"
+        );
+
+        let partial = if phase == JournalPhase::Prepared {
+            fixture.state.join(journal_name(&request.id))
+        } else {
+            fixture
+                .state
+                .join(format!(".{}.staging", journal_name(&request.id)))
+        };
+        let partial_bytes = std::fs::read(&partial).map_err(|error| error.to_string())?;
+        assert!(!partial_bytes.is_empty(), "phase {phase:?}");
+        assert_eq!(decode(&partial_bytes), Err(MutationError::RecoveryRequired));
+        assert_eq!(
+            store.receipt(&lease, &request.id),
+            Err(MutationError::RecoveryRequired),
+            "phase {phase:?}"
+        );
+        assert_eq!(
+            store.recover(&lease, &request.id),
+            Err(MutationError::RecoveryRequired),
+            "phase {phase:?}"
+        );
+        assert_eq!(
+            store.replay(
+                &lease,
+                &request.id,
+                &request.digest,
+                &request.key,
+                &Continue,
+            ),
+            Err(MutationError::RecoveryRequired),
+            "phase {phase:?}"
+        );
+        assert_eq!(
+            std::fs::read(&partial).map_err(|error| error.to_string())?,
+            partial_bytes,
+            "phase {phase:?}"
+        );
+
+        let expected = if matches!(phase, JournalPhase::Published | JournalPhase::Committed) {
+            &request.candidate.after
+        } else {
+            &request.candidate.before
+        };
+        assert_eq!(
+            std::fs::read(fixture.project.join("Cargo.toml")).map_err(|error| error.to_string())?,
+            source_file(expected, "Cargo.toml")
+                .ok_or("Cargo.toml")?
+                .bytes(),
+            "phase {phase:?}"
+        );
+    }
+    Ok(())
+}
+
+#[test]
+fn short_staging_content_write_recovers_known_before_generation() -> Result<(), String> {
+    let fixture = Fixture::new("short-staging-content")?;
+    let (_backend, lease, request) = fixture.request(306)?;
+    let store = NativeMutationStore::open(&fixture.state, std::slice::from_ref(&fixture.project))
+        .map_err(|error| format!("{error:?}"))?;
+    let _fault = inject_test_io_fault(
+        IoFaultPoint::TempContentWrite,
+        TestIoFaultMode::ShortWriteThenNoSpace,
+    );
+    assert_eq!(
+        store.commit(&lease, &request, &Continue),
+        Err(MutationError::Io)
+    );
+    let receipt = store
+        .receipt(&lease, &request.id)
+        .map_err(|error| format!("{error:?}"))?;
+    assert_eq!(receipt.state, MutationState::Aborted);
+    assert_eq!(
+        receipt.files[0].effect_after,
+        Some(receipt.files[0].before.clone())
+    );
+    assert!(!fixture.project.join(temp_name(&request.id, 0)).exists());
+    assert_eq!(
+        std::fs::read(fixture.project.join("Cargo.toml")).map_err(|error| error.to_string())?,
+        source_file(&request.candidate.before, "Cargo.toml")
+            .ok_or("Cargo.toml")?
+            .bytes()
+    );
+    Ok(())
+}
+
+#[test]
+fn post_swap_durability_enospc_recovers_known_after_generation() -> Result<(), String> {
+    let fixture = Fixture::new("post-swap-enospc")?;
+    let (_backend, lease, request) = fixture.request(307)?;
+    let store = NativeMutationStore::open(&fixture.state, std::slice::from_ref(&fixture.project))
+        .map_err(|error| format!("{error:?}"))?;
+    let _fault = inject_test_io_fault(
+        IoFaultPoint::PostSwapDurability,
+        TestIoFaultMode::NoSpaceBefore,
+    );
+    assert_eq!(
+        store.commit(&lease, &request, &Continue),
+        Err(MutationError::RecoveryRequired)
+    );
+    assert_eq!(
+        std::fs::read(fixture.project.join("Cargo.toml")).map_err(|error| error.to_string())?,
+        source_file(&request.candidate.after, "Cargo.toml")
+            .ok_or("Cargo.toml")?
+            .bytes()
+    );
+    let recovered = store
+        .recover(&lease, &request.id)
+        .map_err(|error| format!("{error:?}"))?;
+    assert_eq!(recovered.state, MutationState::Committed);
+    assert_eq!(
+        recovered.files[0].effect_after,
+        Some(recovered.files[0].after.clone())
+    );
+    assert!(!fixture.project.join(temp_name(&request.id, 0)).exists());
+    Ok(())
+}
+
+#[test]
+fn recovery_terminal_journal_short_write_preserves_known_after_and_evidence() -> Result<(), String>
+{
+    let fixture = Fixture::new("recovery-terminal-journal-short")?;
+    let (_backend, lease, request) = fixture.request(308)?;
+    let store = NativeMutationStore::open(&fixture.state, std::slice::from_ref(&fixture.project))
+        .map_err(|error| format!("{error:?}"))?;
+    assert_eq!(
+        store.commit_checked(&lease, &request, &Continue, |phase| {
+            if phase == CommitCheckpoint::Published {
+                Err(MutationError::Io)
+            } else {
+                Ok(())
+            }
+        }),
+        Err(MutationError::RecoveryRequired)
+    );
+    let _fault = inject_test_io_fault(
+        IoFaultPoint::JournalWrite(JournalPhase::Committed),
+        TestIoFaultMode::ShortWriteThenNoSpace,
+    );
+    assert_eq!(store.recover(&lease, &request.id), Err(MutationError::Io));
+    assert!(!fixture.project.join(temp_name(&request.id, 0)).exists());
+    assert_eq!(
+        std::fs::read(fixture.project.join("Cargo.toml")).map_err(|error| error.to_string())?,
+        source_file(&request.candidate.after, "Cargo.toml")
+            .ok_or("Cargo.toml")?
+            .bytes()
+    );
+    let staging = fixture
+        .state
+        .join(format!(".{}.staging", journal_name(&request.id)));
+    assert!(
+        !std::fs::read(&staging)
+            .map_err(|error| error.to_string())?
+            .is_empty()
+    );
+    assert_eq!(
+        store.receipt(&lease, &request.id),
+        Err(MutationError::RecoveryRequired)
+    );
+    assert_eq!(
+        store.recover(&lease, &request.id),
+        Err(MutationError::RecoveryRequired)
+    );
+    Ok(())
+}
+
+#[test]
+fn corrupt_store_is_quarantined_while_a_new_physical_workspace_and_store_continue()
+-> Result<(), String> {
+    let original = Fixture::new("remediation-original")?;
+    let other = Fixture::new("remediation-other")?;
+    let roots = [original.project.clone(), other.project.clone()];
+    let store =
+        NativeMutationStore::open(&original.state, &roots).map_err(|error| format!("{error:?}"))?;
+
+    let (_other_backend, other_lease, intact_request) = other.request(309)?;
+    let intact = store
+        .commit(&other_lease, &intact_request, &Continue)
+        .map_err(|error| format!("{error:?}"))?;
+    assert_eq!(intact.state, MutationState::Committed);
+    let (_other_backend, other_lease, blocked_request) = other.request(310)?;
+
+    let (_original_backend, original_lease, damaged_request) = original.request(311)?;
+    let _fault = inject_test_io_fault(
+        IoFaultPoint::JournalWrite(JournalPhase::Scratch),
+        TestIoFaultMode::ShortWriteThenNoSpace,
+    );
+    assert_eq!(
+        store.commit(&original_lease, &damaged_request, &Continue),
+        Err(MutationError::RecoveryRequired)
+    );
+    let reserved_temp = original.project.join(temp_name(&damaged_request.id, 0));
+    assert!(reserved_temp.exists());
+
+    let original_project_snapshot = snapshot_tree(&original.project)?;
+    let other_project_snapshot = snapshot_tree(&other.project)?;
+    let original_state_snapshot = snapshot_tree(&original.state)?;
+    assert_eq!(store.list_records(), Err(MutationError::RecoveryRequired));
+    assert_eq!(
+        store.prune_record(&damaged_request.id, &damaged_request.digest),
+        Err(MutationError::RecoveryRequired)
+    );
+    assert_eq!(
+        store.commit(&other_lease, &blocked_request, &Continue),
+        Err(MutationError::RecoveryRequired)
+    );
+    assert_eq!(
+        store.receipt(&original_lease, &damaged_request.id),
+        Err(MutationError::RecoveryRequired)
+    );
+    assert_eq!(
+        store.recover(&original_lease, &damaged_request.id),
+        Err(MutationError::RecoveryRequired)
+    );
+    assert_eq!(
+        store
+            .receipt(&other_lease, &intact_request.id)
+            .map_err(|error| format!("{error:?}"))?
+            .state,
+        MutationState::Committed
+    );
+    assert_eq!(
+        store.replay(
+            &other_lease,
+            &intact_request.id,
+            &intact_request.digest,
+            &intact_request.key,
+            &Continue,
+        ),
+        Ok(intact)
+    );
+    assert_eq!(snapshot_tree(&original.project)?, original_project_snapshot);
+    assert_eq!(snapshot_tree(&other.project)?, other_project_snapshot);
+    assert_eq!(snapshot_tree(&original.state)?, original_state_snapshot);
+
+    let replacement = Fixture::new("remediation-replacement")?;
+    write_reviewed_bundle(&replacement.project, &damaged_request.candidate.before)?;
+    assert_ne!(
+        std::fs::metadata(&replacement.project)
+            .map_err(|error| error.to_string())?
+            .ino(),
+        std::fs::metadata(&original.project)
+            .map_err(|error| error.to_string())?
+            .ino()
+    );
+    assert!(
+        !snapshot_tree(&replacement.project)?
+            .keys()
+            .any(|path| path.to_string_lossy().starts_with(".rust-mcp-mut-"))
+    );
+    let replacement_store = NativeMutationStore::open(
+        &replacement.state,
+        std::slice::from_ref(&replacement.project),
+    )
+    .map_err(|error| format!("{error:?}"))?;
+    assert_eq!(
+        replacement_store.authorize(&original_lease),
+        Err(MutationError::PermissionDenied)
+    );
+    let (_replacement_backend, replacement_lease, replacement_request) =
+        replacement.request(312)?;
+    let replacement_receipt = replacement_store
+        .commit(&replacement_lease, &replacement_request, &Continue)
+        .map_err(|error| format!("{error:?}"))?;
+    assert_eq!(replacement_receipt.state, MutationState::Committed);
+    assert_eq!(
+        replacement_receipt.files[0].effect_after,
+        Some(replacement_receipt.files[0].after.clone())
+    );
+
+    assert_eq!(snapshot_tree(&original.project)?, original_project_snapshot);
+    assert_eq!(snapshot_tree(&other.project)?, other_project_snapshot);
+    assert_eq!(snapshot_tree(&original.state)?, original_state_snapshot);
+    assert!(reserved_temp.exists());
+    Ok(())
+}
+
+#[test]
 fn newer_staged_record_left_by_persist_failure_is_recovered() -> Result<(), String> {
     let fixture = Fixture::new("staged-persist-failure")?;
     let (_backend, lease, request) = fixture.request(130)?;
@@ -845,7 +1635,7 @@ fn newer_staged_record_left_by_persist_failure_is_recovered() -> Result<(), Stri
                     .checked_add(1)
                     .ok_or(MutationError::LimitExceeded)?;
                 staged.phase = JournalPhase::Staged;
-                std::fs::write(fixture.state.join(&staging_name), encode(staged)?)
+                std::fs::write(fixture.state.join(&staging_name), encode(&staged)?)
                     .map_err(|_| MutationError::Io)?;
                 std::fs::set_permissions(
                     fixture.state.join(&staging_name),
@@ -900,7 +1690,13 @@ fn exact_query_and_recovery_ignore_unrelated_store_damage() -> Result<(), String
     assert_eq!(pending.files[0].effect_after_bytes, None);
     assert_eq!(
         store
-            .recover(&lease, &request.id)
+            .replay(
+                &lease,
+                &request.id,
+                &request.digest,
+                &request.key,
+                &Continue,
+            )
             .map_err(|error| format!("{error:?}"))?
             .state,
         MutationState::Committed
@@ -953,7 +1749,7 @@ fn receipt_is_read_only_and_staging_sequence_must_increase() -> Result<(), Strin
     let mut staged = decode(&final_bytes).map_err(|error| format!("{error:?}"))?;
     staged.sequence += 1;
     let staging_name = format!(".{final_name}.staging");
-    let staging_bytes = encode(staged).map_err(|error| format!("{error:?}"))?;
+    let staging_bytes = encode(&staged).map_err(|error| format!("{error:?}"))?;
     std::fs::write(fixture.state.join(&staging_name), &staging_bytes)
         .map_err(|error| error.to_string())?;
     std::fs::set_permissions(
@@ -996,7 +1792,7 @@ fn receipt_is_read_only_and_staging_sequence_must_increase() -> Result<(), Strin
     let bytes =
         std::fs::read(invalid.state.join(&final_name)).map_err(|error| error.to_string())?;
     let staging_name = format!(".{final_name}.staging");
-    std::fs::write(invalid.state.join(&staging_name), bytes).map_err(|error| error.to_string())?;
+    std::fs::write(invalid.state.join(&staging_name), &bytes).map_err(|error| error.to_string())?;
     std::fs::set_permissions(
         invalid.state.join(&staging_name),
         std::fs::Permissions::from_mode(0o600),
@@ -1006,7 +1802,26 @@ fn receipt_is_read_only_and_staging_sequence_must_increase() -> Result<(), Strin
         store.receipt(&lease, &request.id),
         Err(MutationError::RecoveryRequired)
     );
-    assert!(invalid.state.join(staging_name).exists());
+    let source_snapshot = snapshot_tree(&invalid.project)?;
+    assert_eq!(
+        store.replay(
+            &lease,
+            &request.id,
+            &request.digest,
+            &request.key,
+            &Continue,
+        ),
+        Err(MutationError::RecoveryRequired)
+    );
+    assert_eq!(
+        std::fs::read(invalid.state.join(&final_name)).map_err(|error| error.to_string())?,
+        bytes
+    );
+    assert_eq!(
+        std::fs::read(invalid.state.join(&staging_name)).map_err(|error| error.to_string())?,
+        bytes
+    );
+    assert_eq!(snapshot_tree(&invalid.project)?, source_snapshot);
     Ok(())
 }
 
@@ -1221,7 +2036,7 @@ fn operator_lists_and_prunes_only_exact_terminal_records() -> Result<(), String>
     let staging_name = format!(".{final_name}.staging");
     std::fs::write(
         staged.state.join(&staging_name),
-        encode(body).map_err(|error| format!("{error:?}"))?,
+        encode(&body).map_err(|error| format!("{error:?}"))?,
     )
     .map_err(|error| error.to_string())?;
     std::fs::set_permissions(
@@ -1853,7 +2668,7 @@ fn maximum_format_journal_cost_is_bounded_per_global_phase() -> Result<(), Strin
     ] {
         body.phase = phase;
         body.sequence += 1;
-        let encoded = encode(body.clone()).map_err(|error| format!("{error:?}"))?;
+        let encoded = encode(&body).map_err(|error| format!("{error:?}"))?;
         assert!(encoded.len() <= worst_case_len);
         total_encoded += encoded.len() as u64;
         if encoded.len() > maximum_encoded.len() {
@@ -1864,6 +2679,20 @@ fn maximum_format_journal_cost_is_bounded_per_global_phase() -> Result<(), Strin
     let decode_started = Instant::now();
     let decoded = decode(&maximum_encoded).map_err(|error| format!("{error:?}"))?;
     let decode_millis = decode_started.elapsed().as_millis();
+    let empty_index = StoreIndex {
+        journal_count: 0,
+        bytes: 0,
+        bodies: Vec::new(),
+        summaries: Vec::new(),
+    };
+    ensure_new_record_quota(
+        &empty_index,
+        (worst_case_len as u64)
+            .checked_mul(2)
+            .ok_or("reservation overflow")?,
+        worst_case_len as u64,
+    )
+    .map_err(|error| format!("{error:?}"))?;
     assert_eq!(decoded.files.len(), FILES);
     assert_eq!(
         decoded
@@ -1891,13 +2720,135 @@ fn maximum_format_journal_cost_is_bounded_per_global_phase() -> Result<(), Strin
 }
 
 #[test]
-#[ignore = "explicit release-profile APFS ceiling measurement"]
-fn measure_real_format_commit_replay_recovery_and_index_ceiling() -> Result<(), String> {
+fn heterogeneous_records_leave_one_maximum_recovery_copy_before_new_admission() {
+    let mebibyte = 1024_u64 * 1024;
+    assert_eq!(RETAINED_METADATA_GROWTH_BYTES, mebibyte);
+    assert_eq!(RECOVERY_STAGING_HEADROOM_BYTES, 48 * mebibyte);
+    let retained_records = [48, 47, 46, 39, 27].map(|value| value * mebibyte);
+    assert!(
+        retained_records
+            .iter()
+            .all(|bytes| *bytes <= MAX_JOURNAL_BYTES as u64)
+    );
+    let retained_total = retained_records.iter().sum::<u64>();
+    assert_eq!(retained_total, MAX_STORE_BYTES - RECOVERY_HEADROOM_BYTES);
+
+    let index = StoreIndex {
+        journal_count: retained_records.len(),
+        bytes: retained_total,
+        bodies: Vec::new(),
+        summaries: Vec::new(),
+    };
+    let small_prepared_record = 1024_u64;
+    let small_worst_case = 2048_u64;
+    let old_transient_reservation = small_worst_case * 2;
+    assert!(retained_total + old_transient_reservation <= MAX_STORE_BYTES);
+    assert_eq!(
+        ensure_new_record_quota(&index, old_transient_reservation, small_worst_case),
+        Err(MutationError::LimitExceeded)
+    );
+
+    let boundary = StoreIndex {
+        journal_count: index.journal_count,
+        bytes: retained_total - small_worst_case,
+        bodies: Vec::new(),
+        summaries: Vec::new(),
+    };
+    assert_eq!(
+        ensure_new_record_quota(&boundary, old_transient_reservation, small_worst_case),
+        Ok(())
+    );
+    assert_eq!(
+        boundary.bytes + small_worst_case + RECOVERY_HEADROOM_BYTES,
+        MAX_STORE_BYTES
+    );
+    assert!(small_prepared_record < small_worst_case);
+}
+
+#[test]
+fn metadata_growth_reservation_covers_maximum_v2_and_legacy_conversion() -> Result<(), String> {
+    const CHANGED_FILES: usize = 128;
+    const PER_RECORD_GROWTH: usize = 8 * 1024;
+    let id = MutationId::new("mut_ffffffffffffffffffffffffffffffff".to_owned())
+        .map_err(|error| format!("{error:?}"))?;
+    let mut bundle_files = Vec::with_capacity(CHANGED_FILES);
+    let mut files = Vec::with_capacity(CHANGED_FILES);
+    for index in 0..CHANGED_FILES {
+        let path = format!("p{index:03}/{}", "x".repeat(95));
+        assert_eq!(path.len(), rust_engineering_domain::SOURCE_MAX_PATH_BYTES);
+        bundle_files.push(JournalFile {
+            path: path.clone(),
+            bytes: STANDARD.encode(b"x"),
+        });
+        files.push(JournalMutationFile {
+            path,
+            temp_path: temp_name(&id, index),
+            source_node: JournalNode {
+                device: i32::MIN,
+                inode: u64::MAX,
+            },
+            staged_node: None,
+        });
+    }
+    let bundle = JournalBundle {
+        directories: Vec::new(),
+        files: bundle_files,
+    };
+    let body = JournalBody {
+        id: id.as_str().to_owned(),
+        digest: format!("sha256:{}", "f".repeat(64)),
+        key: "k".repeat(64),
+        operation: "format_apply".to_owned(),
+        workspace_path: format!("/private/tmp/{}", "w".repeat(95)),
+        workspace_device: i32::MIN,
+        workspace_inode: u64::MAX,
+        files,
+        validation: "v".repeat(128),
+        sequence: 0,
+        phase: JournalPhase::Prepared,
+        before: bundle.clone(),
+        after: bundle,
+        legacy_v1: false,
+        format: JournalFormat::V2,
+    };
+    let current_v2 = encode(&body).map_err(|error| format!("{error:?}"))?.len();
+    let worst_v2 = worst_case_record_len(&body).map_err(|error| format!("{error:?}"))?;
+    let v2_growth = worst_v2.checked_sub(current_v2).ok_or("v2 shrank")?;
+    assert!(v2_growth <= PER_RECORD_GROWTH, "v2 growth {v2_growth}");
+
+    let mut legacy_body = body;
+    legacy_body.files.truncate(1);
+    legacy_body.operation = "manifest_patch".to_owned();
+    legacy_body.format = JournalFormat::V1;
+    legacy_body.legacy_v1 = true;
+    let legacy_current = encode_legacy_v1(&legacy_body)?.len();
+    let decoded_legacy =
+        decode_envelope(&encode_legacy_v1(&legacy_body)?).map_err(|error| format!("{error:?}"))?;
+    let converted_worst =
+        worst_case_record_len(&decoded_legacy).map_err(|error| format!("{error:?}"))?;
+    let legacy_growth = converted_worst.saturating_sub(legacy_current);
+    assert!(
+        legacy_growth <= PER_RECORD_GROWTH,
+        "legacy conversion growth {legacy_growth}"
+    );
+    eprintln!(
+        "M2_METADATA_GROWTH v2_bytes={v2_growth} legacy_v1_to_v2_bytes={legacy_growth} per_record_reservation={PER_RECORD_GROWTH}"
+    );
+    assert_eq!(
+        (PER_RECORD_GROWTH * MAX_JOURNALS) as u64,
+        RETAINED_METADATA_GROWTH_BYTES
+    );
+    Ok(())
+}
+
+fn maximum_format_request(
+    label: &str,
+    suffix: u128,
+) -> Result<(Fixture, SecureProjects, ProjectLease, MutationCommit), String> {
     use rust_engineering_domain::SOURCE_MAX_TOTAL_BYTES;
-    use std::time::Instant;
 
     const FILES: usize = 128;
-    let fixture = Fixture::new("format-real-ceiling")?;
+    let fixture = Fixture::new(label)?;
     std::fs::remove_dir_all(fixture.project.join("src")).map_err(|error| error.to_string())?;
     std::fs::create_dir(fixture.project.join("src")).map_err(|error| error.to_string())?;
     let manifest_bytes = std::fs::metadata(fixture.project.join("Cargo.toml"))
@@ -1955,13 +2906,49 @@ fn measure_real_format_commit_replay_recovery_and_index_ceiling() -> Result<(), 
         validation: "real-format-ceiling".to_owned(),
     };
     let request = MutationCommit {
-        id: MutationId::new("mut_eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee".to_owned())
-            .map_err(|error| format!("{error:?}"))?,
+        id: MutationId::new(format!("mut_{suffix:032x}")).map_err(|error| format!("{error:?}"))?,
         digest: mutation_digest(&candidate).map_err(|error| format!("{error:?}"))?,
         key: IdempotencyKey::new("real-format-ceiling".to_owned())
             .map_err(|error| format!("{error:?}"))?,
         candidate,
     };
+    Ok((fixture, backend, opened.lease, request))
+}
+
+#[test]
+#[ignore = "explicit release-profile APFS commit-only memory measurement"]
+fn measure_real_format_commit_only() -> Result<(), String> {
+    use std::time::Instant;
+
+    let (fixture, _backend, lease, request) = maximum_format_request(
+        "format-real-commit-only",
+        0xdddddddddddddddddddddddddddddddd,
+    )?;
+    let store = NativeMutationStore::open_for_kind(
+        &fixture.state,
+        std::slice::from_ref(&fixture.project),
+        MutationKind::FormatApply,
+    )
+    .map_err(|error| format!("{error:?}"))?;
+    let started = Instant::now();
+    let committed = store
+        .commit(&lease, &request, &Continue)
+        .map_err(|error| format!("{error:?}"))?;
+    let commit_millis = started.elapsed().as_millis();
+    assert_eq!(committed.state, MutationState::Committed);
+    assert_eq!(committed.files.len(), 128);
+    eprintln!("M2_07_COMMIT_ONLY commit_ms={commit_millis}");
+    Ok(())
+}
+
+#[test]
+#[ignore = "explicit release-profile APFS ceiling measurement"]
+fn measure_real_format_commit_replay_recovery_and_index_ceiling() -> Result<(), String> {
+    use std::time::Instant;
+
+    const FILES: usize = 128;
+    let (fixture, _backend, lease, request) =
+        maximum_format_request("format-real-ceiling", 0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee)?;
     let store = NativeMutationStore::open_for_kind(
         &fixture.state,
         std::slice::from_ref(&fixture.project),
@@ -1970,7 +2957,7 @@ fn measure_real_format_commit_replay_recovery_and_index_ceiling() -> Result<(), 
     .map_err(|error| format!("{error:?}"))?;
     let commit_started = Instant::now();
     let committed = store
-        .commit(&opened.lease, &request, &Continue)
+        .commit(&lease, &request, &Continue)
         .map_err(|error| format!("{error:?}"))?;
     let commit_millis = commit_started.elapsed().as_millis();
     assert_eq!(committed.state, MutationState::Committed);
@@ -1978,7 +2965,7 @@ fn measure_real_format_commit_replay_recovery_and_index_ceiling() -> Result<(), 
     let replay_started = Instant::now();
     assert_eq!(
         store
-            .commit(&opened.lease, &request, &Continue)
+            .commit(&lease, &request, &Continue)
             .map_err(|error| format!("{error:?}"))?
             .state,
         MutationState::Committed
@@ -1987,7 +2974,7 @@ fn measure_real_format_commit_replay_recovery_and_index_ceiling() -> Result<(), 
     let recovery_started = Instant::now();
     assert_eq!(
         store
-            .recover(&opened.lease, &request.id)
+            .recover(&lease, &request.id)
             .map_err(|error| format!("{error:?}"))?
             .state,
         MutationState::Committed
@@ -2037,7 +3024,8 @@ fn measure_real_format_commit_replay_recovery_and_index_ceiling() -> Result<(), 
             .state
             .write_new(
                 &journal_name(&id),
-                &encode(body).map_err(|error| format!("{error:?}"))?,
+                &encode(&body).map_err(|error| format!("{error:?}"))?,
+                body.phase,
             )
             .map_err(|error| format!("{error:?}"))?;
     }

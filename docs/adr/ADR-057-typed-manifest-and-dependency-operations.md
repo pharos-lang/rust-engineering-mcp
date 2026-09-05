@@ -46,6 +46,14 @@ del paquete/kind/target seleccionado; puede retirar una referencia heredada
 `workspace=true` sin modificar su definición global. Ausencia es no-op validado.
 No limpiar features, tablas ajenas ni dependencias transitivas por heurística.
 
+Excepción acotada a ADR-051: remove puede retirar una entrada de dependencia
+completa representada por valor, tabla propia o claves dotted (por ejemplo
+`renamed.workspace = true`) dentro de una tabla de dependencias estándar.
+No edita campos dentro de esos layouts: retira exclusivamente la clave elegida,
+con roundtrip exacto previo y pruebas byte a byte de las zonas restantes.
+Las tablas contenedoras inline/dotted siguen rechazadas; add/set no adquieren
+soporte implícito para editar esos layouts.
+
 Las dos tools tienen permisos host separados `--allow-dependency-add` y
 `--allow-dependency-remove`. Los candidatos se ligan respectivamente a tipos
 `dependency_add` y `dependency_remove`, nunca intercambiables con manifest patch.
@@ -91,4 +99,4 @@ targets, herencia, workspace virtual, no-op y errores Cargo antes de Done.
 
 ## Status
 
-Accepted para implementar M2-04/05/06. M3 y edición arbitraria siguen fuera de scope.
+Accepted. M2-04/05/06 calificados en [M2](../validation/M2-07.md). M3 y edición arbitraria siguen fuera de scope.

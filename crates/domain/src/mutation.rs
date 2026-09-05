@@ -5,6 +5,9 @@ use crate::{SourceBundle, SourceFingerprint};
 pub enum MutationKind {
     ManifestPatch,
     FormatApply,
+    FixApply,
+    DependencyAdd,
+    DependencyRemove,
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]

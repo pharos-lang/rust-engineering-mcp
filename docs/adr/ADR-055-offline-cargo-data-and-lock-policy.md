@@ -56,7 +56,9 @@ Se exige `package` checksum SHA-256 no nulo para paquetes crates.io; Git y regis
 alternativos quedan fuera de este corte. Nombre/version de Cargo.toml deben ser
 válidos, únicos como pareja, y coincidir con el directorio versionado. El digest
 de árbol cubre paths ordenados y bytes con longitud u64 little-endian, igual al
-probe D05. Checksum es control de integridad; la autorización de esos bytes procede
+probe D05. Se rechazan directorios no implícitos en los paths de archivos: así la
+topología autorizada queda determinada por esos paths, sin directorios vacíos
+adicionales fuera del digest. Checksum es control de integridad; la autorización de esos bytes procede
 del fingerprint esperado por el host, no del checksum autoafirmado por el paquete.
 
 El gateway ingiere los bytes aprobados en un volumen tmpfs separado acotado, con
@@ -73,10 +75,30 @@ con los manifests en el mismo plan. Si no existe, usar un lock transitorio duran
 resolución/validación y excluirlo explícitamente del candidato publicable, dejando
 constancia de ese hecho y de su hash. Se conserva la elección observable del repo;
 no se infiere application/library de targets ni se crean archivos host nuevos.
+La forma de exportación agrega una entrada esperada para el lock transitorio;
+un source sin lock que ya ocupe las 4096 entradas falla cerrado por límite antes
+del job. Metadata completa tiene límite de salida de 1 MiB por stream; truncación
+impide validar y nunca produce candidato parcial.
+Cargo crea el lock nuevo con modo 0644. La entrada de decoder específica de
+resolución admite ese modo únicamente para el Cargo.lock raíz transitorio, con
+los mismos controles de nombre/tipo/UID/GID/checksum/límites; ese archivo se retira
+del candidato antes de publicar. Un lock preexistente y todos los demás archivos
+siguen exigiendo 0600. No se amplía el decoder de fmt/fix ni se normalizan permisos
+de bytes desconocidos en el host.
 El preview/receipt declara esta policy. La validación no promete que una futura
 lectura M1 frozen sin lock pueda resolver; los comandos M1 conservan su contrato.
 No se permite manifest-only silencioso cuando faltan datos: devolver un resultado
-operacional claro de datos offline ausentes y no publicar.
+operacional `unavailable` con razón `offline_data_missing` e `isError: true` y no publicar. Datos corruptos permanecen `blocked` con `offline_data_invalid`; un fallo Cargo del candidato permanece `failed`. Esto concreta la distinción de disponibilidad de D01 sin cambiar enums ni schemas M1.
+
+La validación de ambos documentos metadata acredita cada manifest de paquete
+contra bytes capturados bajo `/source` o el dataset aprobado bajo `/rust-mcp-vendor`.
+Las identidades de paquetes vendor deben coincidir con el inventario verificado;
+paquetes locales y patches dentro del source siguen ligados al fingerprint completo
+del proyecto. No se describe todo el grafo como procedente del vendor. Se compara
+la resolución con la revalidación frozen y sus documentos quedan ligados por SHA
+al fingerprint de ejecución, junto al decoder de export. La ausencia identificable
+de un crate/versión en el directorio offline devuelve un motivo de datos ausentes;
+no dispara descargas ni acepta un lock sin ese oráculo.
 
 ## Alternatives considered
 
@@ -107,5 +129,5 @@ verificar sus bytes no lo convierte en confiable fuera del sandbox.
 
 ## Status
 
-Accepted para implementar M2-04/05; contrato, captura nativa, gateway, límites y
-publicación conjunta requieren evidencia de producción antes de Done.
+Accepted. M2-04/05, captura nativa, gateway, límites y publicación conjunta
+calificados en [M2](../validation/M2-07.md).

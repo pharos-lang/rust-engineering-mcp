@@ -1,6 +1,7 @@
 //! Native APFS mutation writer. All source I/O remains rooted in host authority.
 use super::*;
 use crate::mutation_store::mutation_digest;
+use crate::semantic_delta::{DependencyDelta, validate_dependency_delta, validate_manifest_patch};
 use base64::{Engine as _, engine::general_purpose::STANDARD};
 use rust_engineering_application::{OperationControl, ProjectSourceBackend};
 use rust_engineering_domain::{
@@ -22,6 +23,10 @@ const GLOBAL_LOCK: &str = "mutation-store.lock";
 const MAX_JOURNALS: usize = 128;
 const MAX_STORE_BYTES: u64 = 256 * 1024 * 1024;
 const MAX_JOURNAL_BYTES: usize = 48 * 1024 * 1024;
+const RECOVERY_STAGING_HEADROOM_BYTES: u64 = MAX_JOURNAL_BYTES as u64;
+const RETAINED_METADATA_GROWTH_BYTES: u64 = MAX_JOURNALS as u64 * 8 * 1024;
+const RECOVERY_HEADROOM_BYTES: u64 =
+    RECOVERY_STAGING_HEADROOM_BYTES + RETAINED_METADATA_GROWTH_BYTES;
 // XNU renameatx_np: SWAP | NOFOLLOW_ANY | RESOLVE_BENEATH.
 const RENAME_SAFE_SWAP: u32 = 2 | 16 | 32;
 const CLONE_SAFE_METADATA: u32 = 1 | 4 | 8 | 16;
@@ -44,6 +49,111 @@ fn mutation_io(error: Errno) -> MutationError {
     } else {
         MutationError::Io
     }
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+enum IoFaultPoint {
+    JournalWrite(JournalPhase),
+    TempContentWrite,
+    PostSwapDurability,
+}
+
+#[cfg(test)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+enum TestIoFaultMode {
+    NoSpaceBefore,
+    ShortWriteThenNoSpace,
+}
+
+#[cfg(test)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+struct TestIoFault {
+    point: IoFaultPoint,
+    mode: TestIoFaultMode,
+}
+
+#[cfg(test)]
+std::thread_local! {
+    static TEST_IO_FAULT: std::cell::RefCell<Option<TestIoFault>> = const {
+        std::cell::RefCell::new(None)
+    };
+}
+
+#[cfg(test)]
+struct TestIoFaultGuard;
+
+#[cfg(test)]
+impl Drop for TestIoFaultGuard {
+    fn drop(&mut self) {
+        TEST_IO_FAULT.with(|slot| *slot.borrow_mut() = None);
+    }
+}
+
+#[cfg(test)]
+fn inject_test_io_fault(point: IoFaultPoint, mode: TestIoFaultMode) -> TestIoFaultGuard {
+    TEST_IO_FAULT.with(|slot| {
+        assert!(slot.borrow().is_none(), "test I/O fault already installed");
+        *slot.borrow_mut() = Some(TestIoFault { point, mode });
+    });
+    TestIoFaultGuard
+}
+
+#[cfg(test)]
+fn take_test_io_fault(point: IoFaultPoint) -> Option<TestIoFaultMode> {
+    TEST_IO_FAULT.with(|slot| {
+        let mut fault = slot.borrow_mut();
+        if fault.as_ref().is_some_and(|fault| fault.point == point) {
+            fault.take().map(|fault| fault.mode)
+        } else {
+            None
+        }
+    })
+}
+
+#[cfg(test)]
+fn test_nospace() -> MutationError {
+    mutation_io(Errno::NOSPC)
+}
+
+#[cfg(test)]
+fn write_all_with_test_fault(
+    file: &mut File,
+    bytes: &[u8],
+    point: IoFaultPoint,
+) -> Result<(), MutationError> {
+    match take_test_io_fault(point) {
+        Some(TestIoFaultMode::NoSpaceBefore) => Err(test_nospace()),
+        Some(TestIoFaultMode::ShortWriteThenNoSpace) => {
+            let prefix = bytes.len() / 2;
+            file.write_all(&bytes[..prefix])
+                .map_err(|_| MutationError::Io)?;
+            Err(test_nospace())
+        }
+        None => file.write_all(bytes).map_err(|_| MutationError::Io),
+    }
+}
+
+#[cfg(test)]
+fn test_io_fault(point: IoFaultPoint) -> Result<(), MutationError> {
+    if take_test_io_fault(point).is_some() {
+        Err(test_nospace())
+    } else {
+        Ok(())
+    }
+}
+
+#[cfg(not(test))]
+fn test_io_fault(_point: IoFaultPoint) -> Result<(), MutationError> {
+    Ok(())
+}
+
+#[cfg(not(test))]
+fn write_all_with_test_fault(
+    file: &mut File,
+    bytes: &[u8],
+    _point: IoFaultPoint,
+) -> Result<(), MutationError> {
+    file.write_all(bytes).map_err(|_| MutationError::Io)
 }
 
 fn project_error(error: ProjectError) -> MutationError {
@@ -251,7 +361,12 @@ impl StateRoot {
         Ok(Some(bytes))
     }
 
-    fn write_new(&self, name: &str, bytes: &[u8]) -> Result<(), MutationError> {
+    fn write_new(
+        &self,
+        name: &str,
+        bytes: &[u8],
+        phase: JournalPhase,
+    ) -> Result<(), MutationError> {
         if bytes.len() > MAX_JOURNAL_BYTES {
             return Err(MutationError::LimitExceeded);
         }
@@ -271,7 +386,7 @@ impl StateRoot {
         })?;
         let mut file = File::from(fd);
         require_private_file(&file, 0)?;
-        file.write_all(bytes).map_err(|_| MutationError::Io)?;
+        write_all_with_test_fault(&mut file, bytes, IoFaultPoint::JournalWrite(phase))?;
         fsync(&file).map_err(mutation_io)?;
         fcntl_fullfsync(&file).map_err(mutation_io)?;
         if require_private_file(&file, MAX_JOURNAL_BYTES)?.1 != bytes.len() {
@@ -458,6 +573,13 @@ struct JournalRecordV2 {
     body: JournalBody,
 }
 
+#[derive(Serialize)]
+struct BorrowedJournalRecordV2<'a> {
+    format: &'static str,
+    checksum: &'a str,
+    body: &'a JournalBody,
+}
+
 #[derive(Deserialize)]
 struct JournalFormatProbe {
     format: String,
@@ -515,14 +637,61 @@ fn sha256(bytes: &[u8]) -> String {
     encoded
 }
 
-fn encode(mut body: JournalBody) -> Result<Vec<u8>, MutationError> {
-    body.format = JournalFormat::V2;
-    let canonical = serde_json::to_vec(&body).map_err(|_| MutationError::Io)?;
-    let record = JournalRecordV2 {
-        format: "rust-engineering-mcp-mutation-journal-v2".to_owned(),
-        checksum: sha256(&canonical),
+struct Sha256Writer(Sha256);
+
+impl Write for Sha256Writer {
+    fn write(&mut self, bytes: &[u8]) -> std::io::Result<usize> {
+        self.0.update(bytes);
+        Ok(bytes.len())
+    }
+
+    fn flush(&mut self) -> std::io::Result<()> {
+        Ok(())
+    }
+}
+
+#[derive(Default)]
+struct CountingWriter {
+    bytes: usize,
+}
+
+impl Write for CountingWriter {
+    fn write(&mut self, bytes: &[u8]) -> std::io::Result<usize> {
+        self.bytes = self
+            .bytes
+            .checked_add(bytes.len())
+            .ok_or_else(|| std::io::Error::other("journal length overflow"))?;
+        Ok(bytes.len())
+    }
+
+    fn flush(&mut self) -> std::io::Result<()> {
+        Ok(())
+    }
+}
+
+fn canonical_checksum(value: &impl Serialize) -> Result<String, MutationError> {
+    let mut writer = Sha256Writer(Sha256::new());
+    serde_json::to_writer(&mut writer, value).map_err(|_| MutationError::Io)?;
+    let mut encoded = String::from("sha256:");
+    for byte in writer.0.finalize() {
+        use std::fmt::Write;
+        // Writing into a String cannot fail; preserve the typed I/O surface anyway.
+        let _ = write!(&mut encoded, "{byte:02x}");
+    }
+    Ok(encoded)
+}
+
+fn borrowed_record<'a>(body: &'a JournalBody, checksum: &'a str) -> BorrowedJournalRecordV2<'a> {
+    BorrowedJournalRecordV2 {
+        format: "rust-engineering-mcp-mutation-journal-v2",
+        checksum,
         body,
-    };
+    }
+}
+
+fn encode(body: &JournalBody) -> Result<Vec<u8>, MutationError> {
+    let checksum = canonical_checksum(body)?;
+    let record = borrowed_record(body, &checksum);
     let bytes = serde_json::to_vec(&record).map_err(|_| MutationError::Io)?;
     if bytes.len() > MAX_JOURNAL_BYTES {
         return Err(MutationError::LimitExceeded);
@@ -540,7 +709,14 @@ fn worst_case_record_len(body: &JournalBody) -> Result<usize, MutationError> {
             inode: u64::MAX,
         });
     }
-    encode(worst_case).map(|bytes| bytes.len())
+    let checksum = canonical_checksum(&worst_case)?;
+    let record = borrowed_record(&worst_case, &checksum);
+    let mut writer = CountingWriter::default();
+    serde_json::to_writer(&mut writer, &record).map_err(|_| MutationError::Io)?;
+    if writer.bytes > MAX_JOURNAL_BYTES {
+        return Err(MutationError::LimitExceeded);
+    }
+    Ok(writer.bytes)
 }
 
 fn decode_envelope(bytes: &[u8]) -> Result<JournalBody, MutationError> {
@@ -553,9 +729,9 @@ fn decode_envelope(bytes: &[u8]) -> Result<JournalBody, MutationError> {
         "rust-engineering-mcp-mutation-journal-v2" => {
             let record: JournalRecordV2 =
                 serde_json::from_slice(bytes).map_err(|_| MutationError::RecoveryRequired)?;
-            let canonical =
-                serde_json::to_vec(&record.body).map_err(|_| MutationError::RecoveryRequired)?;
-            if record.checksum != sha256(&canonical) {
+            if record.checksum
+                != canonical_checksum(&record.body).map_err(|_| MutationError::RecoveryRequired)?
+            {
                 return Err(MutationError::RecoveryRequired);
             }
             record.body
@@ -563,9 +739,10 @@ fn decode_envelope(bytes: &[u8]) -> Result<JournalBody, MutationError> {
         "rust-engineering-mcp-mutation-journal-v1" => {
             let record: LegacyJournalRecordV1 =
                 serde_json::from_slice(bytes).map_err(|_| MutationError::RecoveryRequired)?;
-            let canonical =
-                serde_json::to_vec(&record.body).map_err(|_| MutationError::RecoveryRequired)?;
-            if record.checksum != sha256(&canonical) || record.body.operation != "manifest_patch" {
+            if record.checksum
+                != canonical_checksum(&record.body).map_err(|_| MutationError::RecoveryRequired)?
+                || record.body.operation != "manifest_patch"
+            {
                 return Err(MutationError::RecoveryRequired);
             }
             let phase = match record.body.phase {
@@ -609,7 +786,7 @@ fn decode_envelope(bytes: &[u8]) -> Result<JournalBody, MutationError> {
     body.digest
         .parse::<SourceFingerprint>()
         .map_err(|_| MutationError::RecoveryRequired)?;
-    if !matches!(body.operation.as_str(), "manifest_patch" | "format_apply")
+    if operation_kind(&body.operation).is_err()
         || body.files.len() > 128
         || (body.legacy_v1
             && (body.operation != "manifest_patch"
@@ -681,6 +858,9 @@ fn operation_kind(operation: &str) -> Result<MutationKind, MutationError> {
     match operation {
         "manifest_patch" => Ok(MutationKind::ManifestPatch),
         "format_apply" => Ok(MutationKind::FormatApply),
+        "fix_apply" => Ok(MutationKind::FixApply),
+        "dependency_add" => Ok(MutationKind::DependencyAdd),
+        "dependency_remove" => Ok(MutationKind::DependencyRemove),
         _ => Err(MutationError::RecoveryRequired),
     }
 }
@@ -689,6 +869,9 @@ fn operation_name(kind: MutationKind) -> &'static str {
     match kind {
         MutationKind::ManifestPatch => "manifest_patch",
         MutationKind::FormatApply => "format_apply",
+        MutationKind::FixApply => "fix_apply",
+        MutationKind::DependencyAdd => "dependency_add",
+        MutationKind::DependencyRemove => "dependency_remove",
     }
 }
 
@@ -728,21 +911,59 @@ fn candidate_files(candidate: &MutationCandidate) -> Result<Vec<CandidateFile<'_
                 source_file(&candidate.before, "Cargo.toml").ok_or(MutationError::Invalid)?;
             let after =
                 source_file(&candidate.after, "Cargo.toml").ok_or(MutationError::Invalid)?;
-            if changed.iter().any(|file| file.path != "Cargo.toml") {
+            if changed
+                .iter()
+                .any(|file| !matches!(file.path, "Cargo.toml" | "Cargo.lock"))
+            {
                 return Err(MutationError::Invalid);
             }
             if after.bytes().len() > MAX_MANIFEST_BYTES {
                 return Err(MutationError::LimitExceeded);
             }
             validate_manifest_patch(before.bytes(), after.bytes())?;
-            // Preserve the M2-01 receipt contract for a semantic no-op.
-            Ok(vec![CandidateFile {
-                path: "Cargo.toml",
-                before: before.bytes(),
-                after: after.bytes(),
-            }])
+            if changed.is_empty() {
+                // Preserve the M2-01 receipt contract for a semantic no-op.
+                Ok(vec![CandidateFile {
+                    path: "Cargo.toml",
+                    before: before.bytes(),
+                    after: after.bytes(),
+                }])
+            } else {
+                Ok(changed)
+            }
         }
-        MutationKind::FormatApply => {
+        MutationKind::DependencyAdd | MutationKind::DependencyRemove => {
+            let manifests = changed
+                .iter()
+                .filter(|file| file.path == "Cargo.toml" || file.path.ends_with("/Cargo.toml"))
+                .copied()
+                .collect::<Vec<_>>();
+            if manifests.len() > 1
+                || changed.iter().any(|file| {
+                    file.path != "Cargo.lock"
+                        && file.path != "Cargo.toml"
+                        && !file.path.ends_with("/Cargo.toml")
+                })
+            {
+                return Err(MutationError::Invalid);
+            }
+            if let Some(manifest) = manifests.first() {
+                if manifest.after.len() > MAX_MANIFEST_BYTES {
+                    return Err(MutationError::LimitExceeded);
+                }
+                validate_dependency_delta(
+                    manifest.before,
+                    manifest.after,
+                    if candidate.kind == MutationKind::DependencyAdd {
+                        DependencyDelta::Add
+                    } else {
+                        DependencyDelta::Remove
+                    },
+                )?;
+            }
+            Ok(changed)
+        }
+        MutationKind::FormatApply | MutationKind::FixApply => {
             if changed.len() > 128 || changed.iter().any(|file| !file.path.ends_with(".rs")) {
                 return Err(if changed.len() > 128 {
                     MutationError::LimitExceeded
@@ -790,117 +1011,6 @@ fn mixed_bundle(
         .collect::<Result<Vec<_>, _>>()?;
     SourceBundle::with_directories(output, before.directories().to_vec())
         .map_err(|_| MutationError::RecoveryRequired)
-}
-
-fn validate_manifest_patch(before: &[u8], after: &[u8]) -> Result<(), MutationError> {
-    let mut before: toml::Value =
-        toml::from_str(std::str::from_utf8(before).map_err(|_| MutationError::Invalid)?)
-            .map_err(|_| MutationError::Invalid)?;
-    let mut after: toml::Value =
-        toml::from_str(std::str::from_utf8(after).map_err(|_| MutationError::Invalid)?)
-            .map_err(|_| MutationError::Invalid)?;
-    let before_root = before.as_table_mut().ok_or(MutationError::Invalid)?;
-    let after_root = after.as_table_mut().ok_or(MutationError::Invalid)?;
-    let before_local = before_root.remove("lints");
-    let after_local = after_root.remove("lints");
-    validate_lints_delta(before_local.as_ref(), after_local.as_ref())?;
-    let before_workspace = before_root
-        .get_mut("workspace")
-        .and_then(toml::Value::as_table_mut)
-        .and_then(|workspace| workspace.remove("lints"));
-    let after_workspace = after_root
-        .get_mut("workspace")
-        .and_then(toml::Value::as_table_mut)
-        .and_then(|workspace| workspace.remove("lints"));
-    validate_lints_delta(before_workspace.as_ref(), after_workspace.as_ref())?;
-    if before != after {
-        return Err(MutationError::Invalid);
-    }
-    Ok(())
-}
-
-fn validate_lints_delta(
-    before: Option<&toml::Value>,
-    after: Option<&toml::Value>,
-) -> Result<(), MutationError> {
-    if before == after {
-        return Ok(());
-    }
-    let empty = toml::map::Map::new();
-    let before = before
-        .map(|value| value.as_table().ok_or(MutationError::Invalid))
-        .transpose()?
-        .unwrap_or(&empty);
-    let after = after
-        .map(|value| value.as_table().ok_or(MutationError::Invalid))
-        .transpose()?
-        .unwrap_or(&empty);
-    let namespaces: std::collections::BTreeSet<_> = before
-        .keys()
-        .chain(after.keys())
-        .map(String::as_str)
-        .collect();
-    for namespace in namespaces {
-        if before.get(namespace) == after.get(namespace) {
-            continue;
-        }
-        if !matches!(namespace, "rust" | "clippy") {
-            return Err(MutationError::Invalid);
-        }
-        let before_lints = before
-            .get(namespace)
-            .map(|value| value.as_table().ok_or(MutationError::Invalid))
-            .transpose()?
-            .unwrap_or(&empty);
-        let after_lints = after
-            .get(namespace)
-            .map(|value| value.as_table().ok_or(MutationError::Invalid))
-            .transpose()?
-            .unwrap_or(&empty);
-        let lint_names: std::collections::BTreeSet<_> = before_lints
-            .keys()
-            .chain(after_lints.keys())
-            .map(String::as_str)
-            .collect();
-        for name in lint_names {
-            if before_lints.get(name) == after_lints.get(name) {
-                continue;
-            }
-            if name.is_empty()
-                || name.len() > 128
-                || !name
-                    .bytes()
-                    .all(|byte| byte.is_ascii_alphanumeric() || byte == b'_')
-            {
-                return Err(MutationError::Invalid);
-            }
-            let Some(setting) = after_lints.get(name) else {
-                continue;
-            };
-            if let Some(level) = setting.as_str() {
-                if !matches!(level, "allow" | "warn" | "deny" | "forbid") {
-                    return Err(MutationError::Invalid);
-                }
-                continue;
-            }
-            let setting = setting.as_table().ok_or(MutationError::Invalid)?;
-            if setting.len() > 2
-                || !setting
-                    .keys()
-                    .all(|key| matches!(key.as_str(), "level" | "priority"))
-                || !setting
-                    .get("level")
-                    .and_then(toml::Value::as_str)
-                    .is_some_and(|level| matches!(level, "allow" | "warn" | "deny" | "forbid"))
-                || setting
-                    .get("priority")
-                    .is_some_and(|priority| priority.as_integer().is_none())
-            {
-                return Err(MutationError::Invalid);
-            }
-        }
-    }
-    Ok(())
 }
 
 fn file_fingerprint(bytes: &[u8]) -> Result<SourceFingerprint, MutationError> {
@@ -1023,6 +1133,29 @@ struct StoreIndex {
     summaries: Vec<MutationRecordSummary>,
 }
 
+fn ensure_new_record_quota(
+    index: &StoreIndex,
+    transient_reservation: u64,
+    retained_future_record: u64,
+) -> Result<(), MutationError> {
+    let retained_ceiling = MAX_STORE_BYTES
+        .checked_sub(RECOVERY_HEADROOM_BYTES)
+        .ok_or(MutationError::LimitExceeded)?;
+    if index.journal_count >= MAX_JOURNALS
+        || index
+            .bytes
+            .checked_add(transient_reservation)
+            .is_none_or(|total| total > MAX_STORE_BYTES)
+        || index
+            .bytes
+            .checked_add(retained_future_record)
+            .is_none_or(|total| total > retained_ceiling)
+    {
+        return Err(MutationError::LimitExceeded);
+    }
+    Ok(())
+}
+
 impl NativeMutationStore {
     pub fn open(state_path: &Path, write_roots: &[PathBuf]) -> Result<Self, MutationError> {
         Self::open_for_kind(state_path, write_roots, MutationKind::ManifestPatch)
@@ -1110,6 +1243,32 @@ impl NativeMutationStore {
         self.commit_checked(lease, request, control, |_| Ok(()))
     }
 
+    /// Replays only an existing journal binding; it never creates a journal.
+    pub fn replay(
+        &self,
+        lease: &ProjectLease,
+        id: &MutationId,
+        digest: &SourceFingerprint,
+        key: &IdempotencyKey,
+        control: &dyn OperationControl,
+    ) -> Result<MutationReceipt, MutationError> {
+        control.check().map_err(project_error)?;
+        let _global = self.state.lock(GLOBAL_LOCK)?;
+        self.authorize_with(lease, control)?;
+        let workspace_lock = workspace_lock_name(lease.node);
+        let _workspace = self.state.lock(&workspace_lock)?;
+        let observed = match self.load_readonly(lease, id)? {
+            Some(body) => body,
+            None => {
+                if self.orphan_temp_exists(lease, id)? {
+                    return Err(MutationError::RecoveryRequired);
+                }
+                return Err(MutationError::NotFound);
+            }
+        };
+        self.replay_loaded_locked(lease, id, digest, key, control, observed)
+    }
+
     fn commit_checked(
         &self,
         lease: &ProjectLease,
@@ -1129,23 +1288,14 @@ impl NativeMutationStore {
         let changed = planned.iter().any(|file| file.before != file.after);
 
         if let Some(observed) = self.load_readonly(lease, &request.id)? {
-            if observed.digest != request.digest.as_str() || observed.key != request.key.as_str() {
-                return Err(MutationError::Conflict);
-            }
-            let mut body = self
-                .load_repair(lease, &request.id)?
-                .ok_or(MutationError::RecoveryRequired)?;
-            if matches!(
-                body.phase,
-                JournalPhase::Committed | JournalPhase::NoChange | JournalPhase::Aborted
-            ) && self.all_temps_absent(lease, &body)?
-            {
-                if body.format == JournalFormat::V1 {
-                    self.persist(lease, &mut body)?;
-                }
-                return make_receipt(&body);
-            }
-            return self.recover_locked(lease, body);
+            return self.replay_loaded_locked(
+                lease,
+                &request.id,
+                &request.digest,
+                &request.key,
+                control,
+                observed,
+            );
         }
         let index = self.scan_store()?;
         self.reject_new_commit(&index, lease, request)?;
@@ -1195,15 +1345,16 @@ impl NativeMutationStore {
             format: JournalFormat::V2,
         };
         let name = journal_name(&request.id);
-        let encoded = encode(body.clone())?;
         let worst_case_bytes = worst_case_record_len(&body)?;
         // Reserve two maximum-size copies because phase persistence briefly
         // holds the durable final record and its complete staging successor.
         let reservation = (worst_case_bytes as u64)
             .checked_mul(2)
             .ok_or(MutationError::LimitExceeded)?;
-        self.ensure_quota_for(&index, reservation)?;
-        self.state.write_new(&name, &encoded)?;
+        ensure_new_record_quota(&index, reservation, worst_case_bytes as u64)?;
+        let encoded = encode(&body)?;
+        self.state
+            .write_new(&name, &encoded, JournalPhase::Prepared)?;
         if let Err(error) = checkpoint(CommitCheckpoint::Prepared) {
             return Err(self.abort_before_effect(lease, body, error));
         }
@@ -1349,6 +1500,38 @@ impl NativeMutationStore {
             Err(error) if published_files == 0 => Err(self.abort_before_effect(lease, body, error)),
             Err(_) => Err(MutationError::RecoveryRequired),
         }
+    }
+
+    fn replay_loaded_locked(
+        &self,
+        lease: &ProjectLease,
+        id: &MutationId,
+        digest: &SourceFingerprint,
+        key: &IdempotencyKey,
+        control: &dyn OperationControl,
+        mut observed: JournalBody,
+    ) -> Result<MutationReceipt, MutationError> {
+        if observed.id != id.as_str() {
+            return Err(MutationError::RecoveryRequired);
+        }
+        if observed.digest != digest.as_str() || observed.key != key.as_str() {
+            return Err(MutationError::Conflict);
+        }
+        control.check().map_err(project_error)?;
+        if matches!(
+            observed.phase,
+            JournalPhase::Committed | JournalPhase::NoChange | JournalPhase::Aborted
+        ) && self.all_temps_absent(lease, &observed)?
+        {
+            if observed.format == JournalFormat::V1 {
+                self.persist(lease, &mut observed)?;
+            }
+            return make_receipt(&observed);
+        }
+        let body = self
+            .load_repair_for(lease, id, Some(&observed))?
+            .ok_or(MutationError::RecoveryRequired)?;
+        self.recover_locked(lease, body)
     }
 
     pub fn receipt(
@@ -1544,18 +1727,6 @@ impl NativeMutationStore {
         })
     }
 
-    fn ensure_quota_for(&self, index: &StoreIndex, additional: u64) -> Result<(), MutationError> {
-        if index.journal_count >= MAX_JOURNALS
-            || index
-                .bytes
-                .checked_add(additional)
-                .is_none_or(|total| total > MAX_STORE_BYTES)
-        {
-            return Err(MutationError::LimitExceeded);
-        }
-        Ok(())
-    }
-
     fn read_pair(
         &self,
         lease: &ProjectLease,
@@ -1697,10 +1868,10 @@ impl NativeMutationStore {
             .sequence
             .checked_add(1)
             .ok_or(MutationError::LimitExceeded)?;
-        let encoded = encode(next.clone())?;
+        let encoded = encode(&next)?;
         let name = journal_name(&id);
         let staging = format!(".{name}.staging");
-        self.state.write_new(&staging, &encoded)?;
+        self.state.write_new(&staging, &encoded, next.phase)?;
         renameat(
             &self.state.directory,
             &staging,
@@ -1920,7 +2091,7 @@ impl NativeMutationStore {
         }
         let mut file = File::from(writable);
         file.set_len(0).map_err(|_| MutationError::Io)?;
-        file.write_all(after).map_err(|_| MutationError::Io)?;
+        write_all_with_test_fault(&mut file, after, IoFaultPoint::TempContentWrite)?;
         before_sync()?;
         fsync(&file).map_err(mutation_io)?;
         fcntl_fullfsync(&file).map_err(mutation_io)?;
@@ -2043,6 +2214,7 @@ impl NativeMutationStore {
         fcntl_fullfsync(&active).map_err(mutation_io)?;
         fsync(&displaced).map_err(mutation_io)?;
         fcntl_fullfsync(&displaced).map_err(mutation_io)?;
+        test_io_fault(IoFaultPoint::PostSwapDurability)?;
         self.durable_source_parent(lease, source_path)?;
         self.durable_workspace(lease)?;
         self.authorize_with(lease, &Continue)

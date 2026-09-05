@@ -1,6 +1,6 @@
 {
   "name": "rust.manifest.patch",
-  "description": "Preview, commit or inspect a journaled root Cargo.toml lint edit. Host --allow-manifest-write is required. Preview validates the exact candidate in the approved offline Cargo runtime and returns its diff/digest. Commit requires that plan, current project authority and an idempotency key. Reopen the project after commit to read its receipt. Local coordinated writes do not exclude external editors or provide multi-file atomicity. Only package/workspace rust/clippy lint set/remove is currently implemented.",
+  "description": "Preview, commit or inspect a journaled semantic root Cargo.toml edit. Host --allow-manifest-write is required. Preview validates the exact candidate in the approved offline Cargo runtime and returns its diff/digest. New effects require an unexpired approved plan and an idempotency key. Exact ID/digest/key can replay an existing journal under current authority. Commit invalidates its input project_ref: call rust.project.open and use its newly returned data.project_ref for ALL later calls, including receipt/recovery; never reuse the precommit reference. Local coordinated writes do not exclude external editors or provide multi-file atomicity. Supports closed feature, built-in profile setting, workspace dependency and package/workspace rust/clippy lint set/remove. Dependency resolution requires host-approved offline vendor data and preserves whether Cargo.lock exists.",
   "inputSchema": {
     "$defs": {
       "Action": {
@@ -82,6 +82,55 @@
           }
         ]
       },
+      "DebugInfoInput": {
+        "enum": [
+          "none",
+          "limited",
+          "full",
+          "line-tables-only",
+          "line-directives-only"
+        ],
+        "type": "string"
+      },
+      "DependencySpecInput": {
+        "additionalProperties": false,
+        "properties": {
+          "default_features": {
+            "default": true,
+            "type": "boolean"
+          },
+          "features": {
+            "items": {
+              "$ref": "#/$defs/FeatureNameInput"
+            },
+            "maxItems": 128,
+            "type": "array"
+          },
+          "optional": {
+            "default": false,
+            "type": "boolean"
+          },
+          "package": {
+            "maxLength": 128,
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9_][A-Za-z0-9_-]*$",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "requirement": {
+            "maxLength": 128,
+            "minLength": 1,
+            "pattern": "^[ -~]+$",
+            "type": "string"
+          }
+        },
+        "required": [
+          "requirement"
+        ],
+        "type": "object"
+      },
       "Edit": {
         "oneOf": [
           {
@@ -150,8 +199,154 @@
               "name"
             ],
             "type": "object"
+          },
+          {
+            "additionalProperties": false,
+            "properties": {
+              "name": {
+                "maxLength": 128,
+                "minLength": 1,
+                "pattern": "^[A-Za-z0-9_][A-Za-z0-9_.+-]*$",
+                "type": "string"
+              },
+              "operation": {
+                "const": "feature_set",
+                "type": "string"
+              },
+              "values": {
+                "items": {
+                  "$ref": "#/$defs/FeatureValueInput"
+                },
+                "maxItems": 128,
+                "type": "array"
+              }
+            },
+            "required": [
+              "operation",
+              "name",
+              "values"
+            ],
+            "type": "object"
+          },
+          {
+            "additionalProperties": false,
+            "properties": {
+              "name": {
+                "maxLength": 128,
+                "minLength": 1,
+                "pattern": "^[A-Za-z0-9_][A-Za-z0-9_.+-]*$",
+                "type": "string"
+              },
+              "operation": {
+                "const": "feature_remove",
+                "type": "string"
+              }
+            },
+            "required": [
+              "operation",
+              "name"
+            ],
+            "type": "object"
+          },
+          {
+            "additionalProperties": false,
+            "properties": {
+              "operation": {
+                "const": "profile_set",
+                "type": "string"
+              },
+              "profile": {
+                "$ref": "#/$defs/Profile"
+              },
+              "setting": {
+                "$ref": "#/$defs/ProfileSettingInput"
+              }
+            },
+            "required": [
+              "operation",
+              "profile",
+              "setting"
+            ],
+            "type": "object"
+          },
+          {
+            "additionalProperties": false,
+            "properties": {
+              "operation": {
+                "const": "profile_remove",
+                "type": "string"
+              },
+              "profile": {
+                "$ref": "#/$defs/Profile"
+              },
+              "setting": {
+                "$ref": "#/$defs/ProfileSettingKeyInput"
+              }
+            },
+            "required": [
+              "operation",
+              "profile",
+              "setting"
+            ],
+            "type": "object"
+          },
+          {
+            "additionalProperties": false,
+            "properties": {
+              "name": {
+                "maxLength": 128,
+                "minLength": 1,
+                "pattern": "^[A-Za-z0-9_][A-Za-z0-9_-]*$",
+                "type": "string"
+              },
+              "operation": {
+                "const": "workspace_dependency_set",
+                "type": "string"
+              },
+              "spec": {
+                "$ref": "#/$defs/DependencySpecInput"
+              }
+            },
+            "required": [
+              "operation",
+              "name",
+              "spec"
+            ],
+            "type": "object"
+          },
+          {
+            "additionalProperties": false,
+            "properties": {
+              "name": {
+                "maxLength": 128,
+                "minLength": 1,
+                "pattern": "^[A-Za-z0-9_][A-Za-z0-9_-]*$",
+                "type": "string"
+              },
+              "operation": {
+                "const": "workspace_dependency_remove",
+                "type": "string"
+              }
+            },
+            "required": [
+              "operation",
+              "name"
+            ],
+            "type": "object"
           }
         ]
+      },
+      "FeatureNameInput": {
+        "maxLength": 128,
+        "minLength": 1,
+        "pattern": "^[A-Za-z0-9_][A-Za-z0-9_.+-]*$",
+        "type": "string"
+      },
+      "FeatureValueInput": {
+        "maxLength": 128,
+        "minLength": 1,
+        "pattern": "^[ -~]+$",
+        "type": "string"
       },
       "Level": {
         "enum": [
@@ -162,6 +357,24 @@
         ],
         "type": "string"
       },
+      "LtoInput": {
+        "anyOf": [
+          {
+            "type": "boolean"
+          },
+          {
+            "$ref": "#/$defs/LtoTextInput"
+          }
+        ]
+      },
+      "LtoTextInput": {
+        "enum": [
+          "off",
+          "thin",
+          "fat"
+        ],
+        "type": "string"
+      },
       "Namespace": {
         "enum": [
           "rust",
@@ -169,10 +382,227 @@
         ],
         "type": "string"
       },
+      "OptLevelInput": {
+        "anyOf": [
+          {
+            "format": "uint8",
+            "maximum": 3,
+            "minimum": 0,
+            "type": "integer"
+          },
+          {
+            "$ref": "#/$defs/SizeOptLevelInput"
+          }
+        ]
+      },
+      "PanicInput": {
+        "enum": [
+          "unwind",
+          "abort"
+        ],
+        "type": "string"
+      },
+      "Profile": {
+        "enum": [
+          "dev",
+          "release",
+          "test",
+          "bench"
+        ],
+        "type": "string"
+      },
+      "ProfileSettingInput": {
+        "oneOf": [
+          {
+            "additionalProperties": false,
+            "properties": {
+              "name": {
+                "const": "opt-level",
+                "type": "string"
+              },
+              "value": {
+                "$ref": "#/$defs/OptLevelInput"
+              }
+            },
+            "required": [
+              "name",
+              "value"
+            ],
+            "type": "object"
+          },
+          {
+            "additionalProperties": false,
+            "properties": {
+              "name": {
+                "const": "debug",
+                "type": "string"
+              },
+              "value": {
+                "$ref": "#/$defs/DebugInfoInput"
+              }
+            },
+            "required": [
+              "name",
+              "value"
+            ],
+            "type": "object"
+          },
+          {
+            "additionalProperties": false,
+            "properties": {
+              "name": {
+                "const": "strip",
+                "type": "string"
+              },
+              "value": {
+                "$ref": "#/$defs/StripInput"
+              }
+            },
+            "required": [
+              "name",
+              "value"
+            ],
+            "type": "object"
+          },
+          {
+            "additionalProperties": false,
+            "properties": {
+              "name": {
+                "const": "debug-assertions",
+                "type": "string"
+              },
+              "value": {
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "name",
+              "value"
+            ],
+            "type": "object"
+          },
+          {
+            "additionalProperties": false,
+            "properties": {
+              "name": {
+                "const": "overflow-checks",
+                "type": "string"
+              },
+              "value": {
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "name",
+              "value"
+            ],
+            "type": "object"
+          },
+          {
+            "additionalProperties": false,
+            "properties": {
+              "name": {
+                "const": "lto",
+                "type": "string"
+              },
+              "value": {
+                "$ref": "#/$defs/LtoInput"
+              }
+            },
+            "required": [
+              "name",
+              "value"
+            ],
+            "type": "object"
+          },
+          {
+            "additionalProperties": false,
+            "properties": {
+              "name": {
+                "const": "panic",
+                "type": "string"
+              },
+              "value": {
+                "$ref": "#/$defs/PanicInput"
+              }
+            },
+            "required": [
+              "name",
+              "value"
+            ],
+            "type": "object"
+          },
+          {
+            "additionalProperties": false,
+            "properties": {
+              "name": {
+                "const": "incremental",
+                "type": "string"
+              },
+              "value": {
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "name",
+              "value"
+            ],
+            "type": "object"
+          },
+          {
+            "additionalProperties": false,
+            "properties": {
+              "name": {
+                "const": "codegen-units",
+                "type": "string"
+              },
+              "value": {
+                "format": "uint32",
+                "minimum": 1,
+                "type": "integer"
+              }
+            },
+            "required": [
+              "name",
+              "value"
+            ],
+            "type": "object"
+          }
+        ]
+      },
+      "ProfileSettingKeyInput": {
+        "enum": [
+          "opt-level",
+          "debug",
+          "strip",
+          "debug-assertions",
+          "overflow-checks",
+          "lto",
+          "panic",
+          "incremental",
+          "codegen-units"
+        ],
+        "type": "string"
+      },
       "Scope": {
         "enum": [
           "package",
           "workspace"
+        ],
+        "type": "string"
+      },
+      "SizeOptLevelInput": {
+        "enum": [
+          "s",
+          "z"
+        ],
+        "type": "string"
+      },
+      "StripInput": {
+        "enum": [
+          "none",
+          "debuginfo",
+          "symbols"
         ],
         "type": "string"
       }
@@ -332,6 +762,19 @@
         ],
         "type": "string"
       },
+      "LockDisposition": {
+        "enum": [
+          "updated_existing",
+          "transient_unpublished"
+        ],
+        "type": "string"
+      },
+      "LockPolicy": {
+        "enum": [
+          "preserve_presence"
+        ],
+        "type": "string"
+      },
       "MutationEvidence": {
         "oneOf": [
           {
@@ -389,7 +832,9 @@
           "toolchain_unavailable",
           "candidate_invalid",
           "cancelled",
-          "command_timeout"
+          "command_timeout",
+          "offline_data_missing",
+          "offline_data_invalid"
         ],
         "type": "string"
       },
@@ -451,6 +896,38 @@
         ],
         "type": "string"
       },
+      "ResolutionView": {
+        "additionalProperties": false,
+        "properties": {
+          "dataset_fingerprint": {
+            "type": "string"
+          },
+          "lock_disposition": {
+            "$ref": "#/$defs/LockDisposition"
+          },
+          "lock_policy": {
+            "$ref": "#/$defs/LockPolicy"
+          },
+          "manifest_path": {
+            "type": "string"
+          },
+          "resolution_execution_fingerprint": {
+            "type": "string"
+          },
+          "resolved_lock_fingerprint": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "resolution_execution_fingerprint",
+          "dataset_fingerprint",
+          "resolved_lock_fingerprint",
+          "lock_policy",
+          "lock_disposition",
+          "manifest_path"
+        ],
+        "type": "object"
+      },
       "SnapshotSemantics": {
         "enum": [
           "latest_known"
@@ -492,7 +969,9 @@
       "ValidationMethod": {
         "enum": [
           "cargo_metadata_frozen_no_deps",
-          "rustfmt_then_fmt_check"
+          "rustfmt_then_fmt_check",
+          "cargo_fix_then_check",
+          "cargo_metadata_offline_then_frozen"
         ],
         "type": "string"
       },
@@ -526,6 +1005,16 @@
           "platform": {
             "type": "string"
           },
+          "resolution": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/ResolutionView"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
           "rust_version": {
             "type": "string"
           },
@@ -543,7 +1032,8 @@
           "rust_version",
           "cargo_version",
           "candidate_source_fingerprint",
-          "mutation_execution_fingerprint"
+          "mutation_execution_fingerprint",
+          "resolution"
         ],
         "type": "object"
       }

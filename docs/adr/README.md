@@ -40,7 +40,15 @@ Accepted, Superseded y Rejected.
 | [ADR-032](ADR-032-project-inspection.md) | Inspección de source capturado y evidencia | Accepted; M1-01 implementada y validada |
 | [ADR-047](ADR-047-publication-license-and-delivery.md) | Licencia pública y entrega mediante GitHub | Accepted |
 | [ADR-048](ADR-048-0.1.0-qualification-and-artifact-boundary.md) | Frontera de calificación y artifacts 0.1.0 | Accepted |
-| [ADR-049](ADR-049-m2-write-boundary-qualification.md) | Calificación previa de escritura M2 | Proposed; D02 No-go del candidato actual, no writer implementado |
+| [ADR-049](ADR-049-m2-write-boundary-qualification.md) | Calificación previa de escritura M2 | Proposed; D02 No-go histórico, requisito de exclusión sustituido por ADR-050 |
+| [ADR-050](ADR-050-local-coordinated-mutation.md) | Mutación local coordinada | Accepted; implementación integrada bajo calificación M2 |
+| [ADR-051](ADR-051-semantic-manifest-editor.md) | Editor semántico preservador | Accepted; familias tipadas integradas bajo calificación M2 |
+| [ADR-052](ADR-052-mutation-journal-and-authorization.md) | Journal y autoridad de mutación | Accepted; implementación integrada bajo calificación M2 |
+| [ADR-053](ADR-053-bounded-guest-mutation-staging.md) | Staging guest de mutación acotado | Accepted; implementación integrada bajo calificación M2 |
+| [ADR-054](ADR-054-multiple-file-mutation-publication.md) | Publicación de reemplazos multiarchivo existentes | Accepted; implementación integrada bajo calificación M2 |
+| [ADR-055](ADR-055-offline-cargo-data-and-lock-policy.md) | Datos Cargo offline y policy del lock | Accepted; implementación integrada bajo calificación M2 |
+| [ADR-056](ADR-056-cargo-fix-isolated-loopback.md) | Cargo fix y loopback aislado | Accepted; implementación integrada bajo calificación M2 |
+| [ADR-057](ADR-057-typed-manifest-and-dependency-operations.md) | Operaciones TOML y selección de packages | Accepted; implementación integrada bajo calificación M2 |
 
 - [ADR-033 — Installed runtime toolchain observation](ADR-033-toolchain-inspection.md).
 
@@ -61,17 +69,6 @@ Accepted, Superseded y Rejected.
 - [ADR-045: CLI doctor](ADR-045-cli-doctor.md).
 - [ADR-046: Bounded utility experiment](ADR-046-bounded-utility-experiment.md).
 
-- [ADR-050 — Local coordinated mutation](ADR-050-local-coordinated-mutation.md): Accepted; decisión de producto, writer aún pendiente.
+- [ADR-058 — Observabilidad local de las mutaciones](ADR-058-local-mutation-observability.md): eventos acotados por tracing/stderr sin collector.
 
-- [ADR-051 — Editor semántico](ADR-051-semantic-manifest-editor.md) — Accepted, M2-01 pendiente.
-- [ADR-052 — Journal y autoridad](ADR-052-mutation-journal-and-authorization.md) — Accepted, M2-01 pendiente.
-
-- [ADR-053 — Staging de mutación guest acotado](ADR-053-bounded-guest-mutation-staging.md)
-
-- [ADR-054 — Publicación multiarchivo existente](ADR-054-multiple-file-mutation-publication.md)
-
-- [ADR-055 — Datos Cargo offline y policy lock](ADR-055-offline-cargo-data-and-lock-policy.md)
-
-- [ADR-056 — Cargo fix y loopback aislado](ADR-056-cargo-fix-isolated-loopback.md)
-
-- [ADR-057 — Operaciones TOML y selección de paquetes](ADR-057-typed-manifest-and-dependency-operations.md)
+- [ADR-059 — Terminal plan retirement and durable replay](ADR-059-terminal-plan-retirement-and-durable-replay.md).

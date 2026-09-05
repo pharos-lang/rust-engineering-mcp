@@ -3,6 +3,7 @@
 #[serde(rename_all = "snake_case")]
 pub enum RustMutationCommand {
     Format,
+    Fix,
 }
 
 #[derive(Clone, Debug)]

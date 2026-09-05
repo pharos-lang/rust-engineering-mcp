@@ -2,13 +2,15 @@
 use crate::{HostDockerConfig, RustGateway};
 use rust_engineering_application::{
     DiagnosticExplainPort, ExecutionError, InspectionControl, InspectionError, ProjectError,
-    ProjectInspectionPort, ProjectMutationPort, ToolchainInspectionPort,
+    ProjectInspectionPort, ProjectMutationPort, ProjectResolutionPort, ResolutionError,
+    ToolchainInspectionPort,
 };
 use rust_engineering_domain::{
-    DiagnosticCode, ExecutionFingerprint, ExecutionLimits, ExecutionResult, ExecutionTermination,
-    ExplainObservation, OperationalErrorCode, ProjectStructure, RuntimeIdentity, RustCommand,
-    RustMutationCommand, RustMutationObservation, SourceBundle, ToolchainExecution,
-    ToolchainObservation, ToolchainObservationCommand, ToolchainRuntime,
+    CargoVendorSnapshot, DiagnosticCode, ExecutionFingerprint, ExecutionLimits, ExecutionResult,
+    ExecutionTermination, ExplainObservation, MutationResolutionObservation, OperationalErrorCode,
+    ProjectStructure, RuntimeIdentity, RustCommand, RustMutationCommand, RustMutationObservation,
+    SourceBundle, ToolchainExecution, ToolchainObservation, ToolchainObservationCommand,
+    ToolchainRuntime,
 };
 use std::sync::{
     Mutex,
@@ -622,6 +624,53 @@ fn require_successful_mutation_execution(result: &ExecutionResult) -> Result<(),
     }
 }
 
+fn invalid_mutation() -> InspectionError {
+    InspectionError::Project(ProjectError::Rejected(OperationalErrorCode::InvalidProject))
+}
+
+fn require_successful_fix_execution(
+    result: &ExecutionResult,
+    candidate: &SourceBundle,
+) -> Result<(), InspectionError> {
+    require_successful_fix_envelope(result)?;
+    let parsed = super::cargo_diagnostics::parse(&result.stdout, candidate, true)
+        .map_err(|_| invalid_mutation())?;
+    if parsed.complete && parsed.build_finished == Some(true) {
+        Ok(())
+    } else {
+        Err(invalid_mutation())
+    }
+}
+
+fn require_successful_fix_envelope(result: &ExecutionResult) -> Result<(), InspectionError> {
+    match result.termination {
+        ExecutionTermination::TimedOut => {
+            return Err(InspectionError::Project(ProjectError::Rejected(
+                OperationalErrorCode::CommandTimeout,
+            )));
+        }
+        ExecutionTermination::Cancelled => {
+            return Err(InspectionError::Project(ProjectError::Cancelled));
+        }
+        ExecutionTermination::OutputLimit => return Err(InspectionError::OutputLimit),
+        ExecutionTermination::Exited => (),
+    }
+    if result.stdout_truncated || result.stderr_truncated {
+        return Err(InspectionError::OutputLimit);
+    }
+    if result.exit_code != Some(0) || result.oom_killed != Some(false) {
+        return Err(invalid_mutation());
+    }
+    Ok(())
+}
+
+fn require_successful_check_execution(
+    result: &ExecutionResult,
+    candidate: &SourceBundle,
+) -> Result<(), InspectionError> {
+    require_successful_fix_execution(result, candidate)
+}
+
 fn mutation_execution_error(error: ExecutionError) -> InspectionError {
     if error == ExecutionError::Cancelled {
         InspectionError::Project(ProjectError::Cancelled)
@@ -641,27 +690,48 @@ impl ProjectMutationPort for RustProjectInspector {
             let mutation = gateway
                 .execute_mutation(
                     source,
-                    command,
+                    command.clone(),
                     ExecutionLimits::new(30_000, 256 * 1024).ok_or(InspectionError::Internal)?,
                     control,
                 )
                 .map_err(mutation_execution_error)?;
-            require_successful_mutation_execution(&mutation.result)?;
+            match command {
+                RustMutationCommand::Format => {
+                    require_successful_mutation_execution(&mutation.result)?;
+                }
+                RustMutationCommand::Fix => {
+                    require_successful_fix_envelope(&mutation.result)?;
+                }
+            }
             let candidate =
                 mutation
                     .candidate
                     .ok_or(InspectionError::Project(ProjectError::Rejected(
                         OperationalErrorCode::InvalidProject,
                     )))?;
+            if matches!(command, RustMutationCommand::Fix) {
+                require_successful_fix_execution(&mutation.result, &candidate)?;
+            }
+            let postcheck_command = match command {
+                RustMutationCommand::Format => RustCommand::FormatCheck,
+                RustMutationCommand::Fix => RustCommand::Check,
+            };
             let postcheck = gateway
                 .execute(
                     &candidate,
-                    RustCommand::FormatCheck,
+                    postcheck_command,
                     ExecutionLimits::new(30_000, 256 * 1024).ok_or(InspectionError::Internal)?,
                     control,
                 )
                 .map_err(mutation_execution_error)?;
-            require_successful_mutation_execution(&postcheck)?;
+            match command {
+                RustMutationCommand::Format => {
+                    require_successful_mutation_execution(&postcheck)?;
+                }
+                RustMutationCommand::Fix => {
+                    require_successful_check_execution(&postcheck, &candidate)?;
+                }
+            }
             control.check().map_err(InspectionError::Project)?;
             let archive =
                 super::source_archive::encode(&candidate).map_err(InspectionError::Execution)?;
@@ -689,6 +759,43 @@ impl ProjectMutationPort for RustProjectInspector {
             result,
             Err(InspectionError::Execution(ExecutionError::CleanupUncertain)
                 | InspectionError::Internal)
+        ) {
+            self.quarantined.store(true, Ordering::Release);
+        }
+        result
+    }
+}
+
+impl ProjectResolutionPort for RustProjectInspector {
+    fn resolve(
+        &self,
+        edited: &SourceBundle,
+        dataset: &CargoVendorSnapshot,
+        control: &dyn InspectionControl,
+    ) -> Result<MutationResolutionObservation, ResolutionError> {
+        let semantic_error = std::cell::Cell::new(None);
+        let inspected = self.with_gateway(control, |gateway| {
+            super::resolution_gateway::execute(gateway, edited, dataset, control).map_err(|error| {
+                match error {
+                    ResolutionError::Inspection(error) => error,
+                    error => {
+                        semantic_error.set(Some(error));
+                        InspectionError::Internal
+                    }
+                }
+            })
+        });
+        let result = if let Some(error) = semantic_error.get() {
+            Err(error)
+        } else {
+            inspected.map_err(ResolutionError::Inspection)
+        };
+        if matches!(
+            result,
+            Err(ResolutionError::Inspection(
+                InspectionError::Execution(ExecutionError::CleanupUncertain)
+                    | InspectionError::Internal
+            ))
         ) {
             self.quarantined.store(true, Ordering::Release);
         }
@@ -733,6 +840,7 @@ fn frozen_lock_error(
 #[cfg(test)]
 mod tests {
     use super::*;
+    use rust_engineering_domain::SourceFile;
     use std::cell::Cell;
     use std::sync::atomic::AtomicBool;
     fn explanation_execution() -> Result<ExecutionResult, Box<dyn std::error::Error>> {
@@ -755,6 +863,13 @@ mod tests {
         let mut execution = explanation_execution()?;
         execution.stdout.clear();
         Ok(execution)
+    }
+    fn source_file(path: &str, bytes: &[u8]) -> Result<SourceFile, Box<dyn std::error::Error>> {
+        SourceFile::new(path.into(), bytes.to_vec())
+            .map_err(|error| std::io::Error::other(format!("{error:?}")).into())
+    }
+    fn source_bundle(files: Vec<SourceFile>) -> Result<SourceBundle, Box<dyn std::error::Error>> {
+        SourceBundle::new(files).map_err(|error| std::io::Error::other(format!("{error:?}")).into())
     }
 
     #[test]
@@ -817,13 +932,43 @@ mod tests {
         Ok(())
     }
 
+    #[test]
+    fn fix_accepts_progress_stderr_only_with_complete_successful_cargo_json()
+    -> Result<(), Box<dyn std::error::Error>> {
+        let source = source_bundle(vec![source_file(
+            "src/lib.rs",
+            b"pub fn answer() -> u32 { 42 }\n",
+        )?])?;
+        let mut execution = successful_empty_execution()?;
+        execution.stdout = "{\"reason\":\"build-finished\",\"success\":true}\n".into();
+        execution.stderr = "    Checking fixture v0.1.0 (/source)\n".into();
+        assert_eq!(
+            require_successful_fix_execution(&execution, &source),
+            Ok(())
+        );
+        for stdout in [
+            "{\"reason\":\"build-finished\",\"success\":false}\n",
+            "{\"reason\":\"build-finished\",\"success\":true}",
+            "{\"reason\":\"unknown\"}\n",
+        ] {
+            let mut invalid = execution.clone();
+            invalid.stdout = stdout.into();
+            assert_eq!(
+                require_successful_fix_execution(&invalid, &source),
+                Err(InspectionError::Project(ProjectError::Rejected(
+                    OperationalErrorCode::InvalidProject
+                )))
+            );
+        }
+        Ok(())
+    }
+
     #[cfg(target_os = "macos")]
     #[test]
     #[ignore = "explicit approved Docker socket/image; production inspector mutation fixture"]
     fn production_inspector_formats_postchecks_rejects_and_cancels()
     -> Result<(), Box<dyn std::error::Error>> {
         use rust_engineering_application::{ExecutionCancellation, OperationControl};
-        use rust_engineering_domain::SourceFile;
         struct Control {
             started: std::time::Instant,
             cancel_after_ms: Option<u64>,
@@ -909,6 +1054,56 @@ mod tests {
                 OperationalErrorCode::InvalidProject
             )))
         ));
+        let fix_manifest = b"[package]\nname = \"fix_probe\"\nversion = \"0.1.0\"\nedition = \"2024\"\n\n[features]\ndefault = [\"enabled\"]\nenabled = []\n";
+        let fix_lock = b"# This file is automatically @generated by Cargo.\n# It is not intended for manual editing.\nversion = 4\n\n[[package]]\nname = \"fix_probe\"\nversion = \"0.1.0\"\n";
+        let fix_source = source_bundle(vec![
+            source_file("Cargo.toml", fix_manifest)?,
+            source_file("Cargo.lock", fix_lock)?,
+            source_file(
+                "src/lib.rs",
+                b"#[cfg(not(feature = \"enabled\"))]\ncompile_error!(\"default feature disabled\");\n\npub fn answer() -> u32 {\n    let mut value = 42;\n    value\n}\n"
+            )?,
+        ])?;
+        let fixed = inspector
+            .mutate(&fix_source, RustMutationCommand::Fix, &control)
+            .map_err(|error| format!("fix: {error:?}"))?;
+        assert_eq!(fixed.candidate.files()[0].bytes(), fix_lock);
+        assert_eq!(fixed.candidate.files()[1].bytes(), fix_manifest);
+        assert!(
+            std::str::from_utf8(fixed.candidate.files()[2].bytes())?.contains("let value = 42;")
+        );
+        assert_ne!(
+            fixed.mutation_execution_fingerprint,
+            fixed.runtime.execution_fingerprint
+        );
+        let missing_lock = source_bundle(vec![
+            source_file("Cargo.toml", fix_manifest)?,
+            source_file("src/lib.rs", b"pub fn answer() {}\n")?,
+        ])?;
+        assert!(matches!(
+            inspector.mutate(&missing_lock, RustMutationCommand::Fix, &control),
+            Err(InspectionError::Project(ProjectError::Rejected(
+                OperationalErrorCode::InvalidProject
+            )))
+        ));
+        let hostile_manifest = b"[package]\nname = \"hostile_fix\"\nversion = \"0.1.0\"\nedition = \"2024\"\nbuild = \"build.rs\"\n";
+        let hostile_lock = b"# This file is automatically @generated by Cargo.\n# It is not intended for manual editing.\nversion = 4\n\n[[package]]\nname = \"hostile_fix\"\nversion = \"0.1.0\"\n";
+        let hostile = source_bundle(vec![
+            source_file("Cargo.toml", hostile_manifest)?,
+            source_file("Cargo.lock", hostile_lock)?,
+            source_file(
+                "build.rs",
+                b"fn main() { std::fs::write(\"Cargo.toml\", b\"[package]\\nname='changed'\\nversion='0.1.0'\\n\").unwrap(); }\n",
+            )?,
+            source_file(
+                "src/lib.rs",
+                b"pub fn answer() -> u32 { let mut value = 42; value }\n",
+            )?,
+        ])?;
+        assert!(matches!(
+            inspector.mutate(&hostile, RustMutationCommand::Fix, &control),
+            Err(InspectionError::Execution(ExecutionError::Denied))
+        ));
         let cancelled = Control {
             started: std::time::Instant::now(),
             cancel_after_ms: Some(100),
@@ -917,7 +1112,43 @@ mod tests {
             inspector.mutate(&source, RustMutationCommand::Format, &cancelled),
             Err(InspectionError::Project(ProjectError::Cancelled))
         ));
+        let cancelled_fix = Control {
+            started: std::time::Instant::now(),
+            cancel_after_ms: Some(100),
+        };
+        assert!(matches!(
+            inspector.mutate(&fix_source, RustMutationCommand::Fix, &cancelled_fix),
+            Err(InspectionError::Project(ProjectError::Cancelled))
+        ));
         assert!(!inspector.is_quarantined());
+        {
+            let gateway = inspector.gateway.lock().map_err(|_| "gateway lock")?;
+            let gateway = gateway.as_ref().ok_or("gateway missing")?;
+            for kind in ["container", "volume"] {
+                let arguments = if kind == "container" {
+                    vec![
+                        "container".into(),
+                        "ls".into(),
+                        "--all".into(),
+                        "--filter=label=org.rust-mcp.execution=true".into(),
+                        "--format={{.ID}}".into(),
+                    ]
+                } else {
+                    vec![
+                        "volume".into(),
+                        "ls".into(),
+                        "--filter=label=org.rust-mcp.execution=true".into(),
+                        "--format={{.Name}}".into(),
+                    ]
+                };
+                let inventory = gateway
+                    .inner
+                    .control(&arguments)
+                    .map_err(|error| format!("inventory: {error:?}"))?;
+                assert_eq!(inventory.code, Some(0));
+                assert!(inventory.stdout.iter().all(u8::is_ascii_whitespace));
+            }
+        }
         drop(inspector);
         std::fs::remove_dir_all(state_root)?;
         Ok(())

@@ -10,19 +10,21 @@ use std::collections::BTreeMap;
 use std::sync::atomic::Ordering;
 use std::time::{Duration, Instant};
 
-const VOLUME_OPTIONS: &str =
+pub(super) const VOLUME_OPTIONS: &str =
     "size=64m,nr_inodes=8192,uid=65534,gid=65534,mode=0700,nosuid,nodev,noexec";
+const FIX_TARGET_TMPFS: &str = "rw,exec,nosuid,nodev,size=256m,mode=0700,uid=65534,gid=65534";
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, serde::Serialize)]
 pub(super) enum MutationPhase {
     Guardian,
     Ingest,
     Format,
+    Fix,
     Export,
 }
 impl MutationPhase {
     pub(super) fn writable(self) -> bool {
-        matches!(self, Self::Ingest | Self::Format)
+        matches!(self, Self::Ingest | Self::Format | Self::Fix)
     }
     pub(super) fn interactive(self) -> bool {
         self == Self::Ingest
@@ -31,7 +33,7 @@ impl MutationPhase {
         match self {
             Self::Guardian => "/usr/bin/sleep",
             Self::Ingest | Self::Export => "/usr/bin/tar",
-            Self::Format => "/opt/rust/bin/cargo",
+            Self::Format | Self::Fix => "/opt/rust/bin/cargo",
         }
     }
     pub(super) fn arguments(self) -> &'static [&'static str] {
@@ -54,6 +56,21 @@ impl MutationPhase {
                 "--config",
                 "disable_all_formatting=false",
             ],
+            Self::Fix => &[
+                "fix",
+                "--workspace",
+                "--all-targets",
+                "--frozen",
+                "--offline",
+                "--allow-no-vcs",
+                "--allow-dirty",
+                "--allow-staged",
+                "--message-format=json",
+                "--color",
+                "never",
+                "--target-dir",
+                "/target",
+            ],
             Self::Export => &[
                 "--create",
                 "--file=-",
@@ -67,7 +84,7 @@ impl MutationPhase {
     }
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Clone, Debug, Deserialize)]
 #[serde(rename_all = "PascalCase")]
 pub(super) struct MutationVolume {
     pub(super) name: String,
@@ -80,7 +97,7 @@ pub(super) struct MutationVolume {
     pub(super) status: Option<serde_json::Value>,
 }
 
-fn labels(nonce: &str) -> BTreeMap<String, String> {
+pub(super) fn labels(nonce: &str) -> BTreeMap<String, String> {
     BTreeMap::from([
         ("org.rust-mcp.execution".into(), "true".into()),
         ("org.rust-mcp.rust-job".into(), nonce.into()),
@@ -105,7 +122,7 @@ fn fail_closed_state_change<T>(
     }
 }
 
-fn mutation_control(
+pub(super) fn mutation_control(
     gateway: &RustGateway,
     arguments: &[String],
     deadline: Instant,
@@ -118,7 +135,7 @@ fn mutation_control(
     )
 }
 
-fn query_control(
+pub(super) fn query_control(
     gateway: &RustGateway,
     arguments: &[String],
     deadline: Instant,
@@ -130,7 +147,11 @@ fn query_control(
         .map_err(|(error, _)| error)
 }
 
-fn parse_volume(bytes: &[u8], name: &str, nonce: &str) -> Result<MutationVolume, ExecutionError> {
+pub(super) fn parse_volume(
+    bytes: &[u8],
+    name: &str,
+    nonce: &str,
+) -> Result<MutationVolume, ExecutionError> {
     let mut values: Vec<MutationVolume> =
         serde_json::from_slice(bytes).map_err(|_| ExecutionError::Infrastructure)?;
     let volume = values
@@ -198,7 +219,18 @@ fn create_arguments(
     for value in crate::rust_gateway::environment() {
         args.push(format!("--env={value}"));
     }
-    let profile = gateway.inner.state.path().join("seccomp-rust.json");
+    if phase == MutationPhase::Fix {
+        args.push(format!("--tmpfs=/target:{FIX_TARGET_TMPFS}"));
+    }
+    let profile = gateway
+        .inner
+        .state
+        .path()
+        .join(if phase == MutationPhase::Fix {
+            "seccomp-rust-fix.json"
+        } else {
+            "seccomp-rust.json"
+        });
     args.push(format!(
         "--security-opt=seccomp={}",
         profile
@@ -219,7 +251,7 @@ fn create_arguments(
     Ok(args)
 }
 
-fn absent(
+pub(super) fn absent(
     gateway: &RustGateway,
     kind: &str,
     name: &str,
@@ -279,7 +311,7 @@ fn create_phase(
     crate::rust_applied::verify_mutation(&inspect.stdout, gateway.image_id(), phase, volume, nonce)
 }
 
-fn start_attached(
+pub(super) fn start_attached(
     gateway: &RustGateway,
     name: &str,
     interactive: bool,
@@ -316,7 +348,7 @@ fn start_attached(
     )
 }
 
-fn running(
+pub(super) fn running(
     gateway: &RustGateway,
     name: &str,
     nonce: &str,
@@ -368,7 +400,7 @@ fn running(
         && item.config.image == gateway.image_id())
 }
 
-fn remove_if_present(
+pub(super) fn remove_if_present(
     gateway: &RustGateway,
     name: &str,
     nonce: &str,
@@ -424,13 +456,23 @@ fn remove_if_present(
     }
 }
 
-fn cleanup(
+pub(super) fn cleanup(
     gateway: &RustGateway,
     names: &[&str],
     volume: &str,
     nonce: &str,
 ) -> Result<(), ExecutionError> {
     let deadline = Instant::now() + Duration::from_secs(10);
+    cleanup_until(gateway, names, volume, nonce, deadline)
+}
+
+pub(super) fn cleanup_until(
+    gateway: &RustGateway,
+    names: &[&str],
+    volume: &str,
+    nonce: &str,
+    deadline: Instant,
+) -> Result<(), ExecutionError> {
     let cancel = &NeverCancel;
     let mut clean = true;
     for name in names {
@@ -479,10 +521,37 @@ fn cleanup(
     }
 }
 
-fn only_rust_changed(before: &SourceBundle, after: &SourceBundle) -> bool {
+fn mutation_scope_ok(
+    before: &SourceBundle,
+    after: &SourceBundle,
+    command: &RustMutationCommand,
+) -> bool {
+    if before.files().len() != after.files().len() || before.directories() != after.directories() {
+        return false;
+    }
+    let mut changed = 0usize;
     before.files().iter().zip(after.files()).all(|(old, new)| {
-        old.path() == new.path() && (old.bytes() == new.bytes() || old.path().ends_with(".rs"))
+        if old.path() != new.path() {
+            return false;
+        }
+        if old.bytes() == new.bytes() {
+            return true;
+        }
+        changed += 1;
+        old.path().ends_with(".rs")
+            && (!matches!(command, RustMutationCommand::Fix) || changed <= 128)
     })
+}
+
+fn fix_output_complete(capture: &Capture, candidate: &SourceBundle) -> bool {
+    if capture.stdout_truncated || capture.stderr_truncated {
+        return false;
+    }
+    let Ok(stdout) = std::str::from_utf8(&capture.stdout) else {
+        return false;
+    };
+    super::cargo_diagnostics::parse(stdout, candidate, true)
+        .is_ok_and(|parsed| parsed.complete && parsed.build_finished == Some(true))
 }
 
 fn make_result(
@@ -555,6 +624,7 @@ fn mutation_configuration_fingerprint(
         MutationPhase::Guardian,
         MutationPhase::Ingest,
         MutationPhase::Format,
+        MutationPhase::Fix,
         MutationPhase::Export,
     ]
     .into_iter()
@@ -564,6 +634,7 @@ fn mutation_configuration_fingerprint(
         include_bytes!("mutation_gateway.rs"),
         include_bytes!("mutation_archive.rs"),
         include_bytes!("rust_applied.rs"),
+        include_bytes!("seccomp-rust-fix.json"),
         include_bytes!("../../domain/src/rust_mutation.rs"),
     ];
     let bytes = serde_json::to_vec(&(
@@ -626,7 +697,15 @@ pub(super) fn execute(
     let volume_name = format!("rust-mcp-mutation-source-{nonce}");
     let guardian = format!("rust-mcp-mutation-guardian-{nonce}");
     let ingest = format!("rust-mcp-mutation-ingest-{nonce}");
-    let mutator = format!("rust-mcp-mutation-format-{nonce}");
+    let mutation_phase = match &command {
+        RustMutationCommand::Format => MutationPhase::Format,
+        RustMutationCommand::Fix => MutationPhase::Fix,
+    };
+    let mutator_kind = match &command {
+        RustMutationCommand::Format => "format",
+        RustMutationCommand::Fix => "fix",
+    };
+    let mutator = format!("rust-mcp-mutation-{mutator_kind}-{nonce}");
     let exporter = format!("rust-mcp-mutation-export-{nonce}");
     let names = [&ingest[..], &mutator[..], &exporter[..], &guardian[..]];
     if !absent(gateway, "volume", &volume_name, deadline, cancel)? {
@@ -709,7 +788,7 @@ pub(super) fn execute(
             &mutator,
             &nonce,
             &volume,
-            MutationPhase::Format,
+            mutation_phase,
             deadline,
             cancel,
         )?;
@@ -743,6 +822,9 @@ pub(super) fn execute(
             None
         };
         if mutated.stop != Stop::Exited || mutated.code != Some(0) {
+            return Ok((mutated, oom, None));
+        }
+        if matches!(command, RustMutationCommand::Fix) && oom != Some(false) {
             return Ok((mutated, oom, None));
         }
         remove_if_present(gateway, &mutator, &nonce, deadline, cancel)?;
@@ -792,8 +874,12 @@ pub(super) fn execute(
             return Err(ExecutionError::Infrastructure);
         }
         let candidate = crate::mutation_archive::decode(&exported.stdout, source)?;
-        if !only_rust_changed(source, &candidate) {
+        if !mutation_scope_ok(source, &candidate, &command) {
             return Err(ExecutionError::Denied);
+        }
+        if matches!(command, RustMutationCommand::Fix) && !fix_output_complete(&mutated, &candidate)
+        {
+            return Ok((mutated, oom, None));
         }
         Ok((mutated, oom, Some(candidate)))
     })();
@@ -836,6 +922,24 @@ mod tests {
             ]
         );
         assert_eq!(
+            MutationPhase::Fix.arguments(),
+            [
+                "fix",
+                "--workspace",
+                "--all-targets",
+                "--frozen",
+                "--offline",
+                "--allow-no-vcs",
+                "--allow-dirty",
+                "--allow-staged",
+                "--message-format=json",
+                "--color",
+                "never",
+                "--target-dir",
+                "/target"
+            ]
+        );
+        assert_eq!(
             MutationPhase::Export.arguments(),
             [
                 "--create",
@@ -849,9 +953,44 @@ mod tests {
         );
         assert!(MutationPhase::Ingest.writable());
         assert!(MutationPhase::Format.writable());
+        assert!(MutationPhase::Fix.writable());
         assert!(!MutationPhase::Guardian.writable());
         assert!(!MutationPhase::Export.writable());
         assert!(MutationPhase::Ingest.interactive());
+    }
+    #[test]
+    fn fix_socket_rule_masks_the_base_type_and_keeps_only_stream()
+    -> Result<(), Box<dyn std::error::Error>> {
+        let profile: serde_json::Value =
+            serde_json::from_slice(include_bytes!("seccomp-rust-fix.json"))?;
+        let rules = profile["syscalls"].as_array().ok_or("syscalls")?;
+        let socket = rules
+            .iter()
+            .find(|rule| {
+                rule["names"] == serde_json::json!(["socket"]) && rule["args"][0]["value"] == 2
+            })
+            .ok_or("inet socket rule")?;
+        let predicate = &socket["args"][1];
+        assert_eq!(predicate["index"], 1);
+        assert_eq!(predicate["op"], "SCMP_CMP_MASKED_EQ");
+        let mask = predicate["value"].as_u64().ok_or("mask")?;
+        let datum = predicate["valueTwo"].as_u64().ok_or("datum")?;
+        // Libseccomp masks both operands. A reversed 1/15 also admits odd types.
+        for (kind, allowed) in [
+            (1, true),
+            (1 | 0x80000, true),
+            (1 | 0x800, true),
+            (2, false),
+            (3, false),
+            (5, false),
+        ] {
+            assert_eq!(kind & mask == datum & mask, allowed);
+        }
+        assert_eq!(
+            socket["args"][2],
+            serde_json::json!({"index": 2, "value": 0, "op": "SCMP_CMP_EQ"})
+        );
+        Ok(())
     }
     #[test]
     fn ambiguous_state_change_reply_permanently_quarantines_late_commit() {
@@ -950,14 +1089,100 @@ mod tests {
             .map_err(|e| format!("{e:?}"))
         }
         let before = bundle(b"fn x( ){ }", b"[package]")?;
-        assert!(only_rust_changed(
+        assert!(mutation_scope_ok(
             &before,
-            &bundle(b"fn x() {}", b"[package]")?
+            &bundle(b"fn x() {}", b"[package]")?,
+            &RustMutationCommand::Fix,
         ));
-        assert!(!only_rust_changed(
+        assert!(!mutation_scope_ok(
             &before,
-            &bundle(b"fn x() {}", b"changed")?
+            &bundle(b"fn x() {}", b"changed")?,
+            &RustMutationCommand::Fix,
         ));
+        let shorter =
+            SourceBundle::new(vec![before.files()[0].clone()]).map_err(|e| format!("{e:?}"))?;
+        assert!(!mutation_scope_ok(
+            &before,
+            &shorter,
+            &RustMutationCommand::Fix
+        ));
+        assert!(!mutation_scope_ok(
+            &shorter,
+            &before,
+            &RustMutationCommand::Format
+        ));
+        let extra_directory =
+            SourceBundle::with_directories(before.files().to_vec(), vec!["empty".into()])
+                .map_err(|e| format!("{e:?}"))?;
+        assert!(!mutation_scope_ok(
+            &before,
+            &extra_directory,
+            &RustMutationCommand::Fix
+        ));
+        Ok(())
+    }
+
+    #[test]
+    fn fix_scope_caps_changed_existing_rust_files() -> Result<(), String> {
+        let before = SourceBundle::new(
+            (0..129)
+                .map(|index| SourceFile::new(format!("src/f{index}.rs"), b"old".to_vec()))
+                .collect::<Result<Vec<_>, _>>()
+                .map_err(|error| format!("{error:?}"))?,
+        )
+        .map_err(|error| format!("{error:?}"))?;
+        let after = SourceBundle::new(
+            (0..129)
+                .map(|index| SourceFile::new(format!("src/f{index}.rs"), b"new".to_vec()))
+                .collect::<Result<Vec<_>, _>>()
+                .map_err(|error| format!("{error:?}"))?,
+        )
+        .map_err(|error| format!("{error:?}"))?;
+        assert!(!mutation_scope_ok(
+            &before,
+            &after,
+            &RustMutationCommand::Fix
+        ));
+        assert!(mutation_scope_ok(
+            &before,
+            &after,
+            &RustMutationCommand::Format
+        ));
+        Ok(())
+    }
+
+    #[test]
+    fn fix_requires_complete_strict_cargo_json() -> Result<(), String> {
+        let source = SourceBundle::new(vec![
+            SourceFile::new("src/lib.rs".into(), b"pub fn answer() {}\n".to_vec())
+                .map_err(|error| format!("{error:?}"))?,
+        ])
+        .map_err(|error| format!("{error:?}"))?;
+        let capture = |stdout: &[u8]| Capture {
+            code: Some(0),
+            stdout: stdout.to_vec(),
+            stderr: b"Checking fixture\n".to_vec(),
+            stdout_truncated: false,
+            stderr_truncated: false,
+            stop: Stop::Exited,
+            duration_ms: 1,
+        };
+        assert!(fix_output_complete(
+            &capture(b"{\"reason\":\"build-finished\",\"success\":true}\n"),
+            &source
+        ));
+        for stdout in [
+            &b"{\"reason\":\"build-finished\",\"success\":false}\n"[..],
+            &b"{\"reason\":\"build-finished\",\"success\":true}"[..],
+            &b"not-json\n"[..],
+            &b"{\"reason\":\"unknown\"}\n"[..],
+            &[0xff][..],
+        ] {
+            assert!(!fix_output_complete(&capture(stdout), &source));
+        }
+        let mut truncated = capture(b"{\"reason\":\"build-finished\",\"success\":true}\n");
+        truncated.stderr_truncated = true;
+        assert!(!fix_output_complete(&truncated, &source));
         Ok(())
     }
 

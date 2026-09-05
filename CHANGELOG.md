@@ -1,5 +1,35 @@
 # Changelog
 
+## 0.2.0-dev — Unreleased
+
+### M2 calificado localmente — mutación segura
+
+- Los planes terminales liberan cuota; los retries exactos se resuelven desde el
+  journal con permisos vigentes, incluso tras reinicio (ADR-059).
+
+- Eventos locales M2 por stderr sin source, rutas ni credenciales.
+- Admisión del journal con reservas de staging y crecimiento de metadata. La
+  corrupción persistente tiene un procedimiento documentado para continuar en
+  workspace y state root nuevos, conservando los originales.
+- El checkout registra cinco tools opt-in adicionales: `rust.manifest.patch`,
+  `rust.fmt.apply`, `rust.fix.apply`, `rust.dependency.add` y
+  `rust.dependency.remove`; las trece tools publicadas en `0.1.0` se conservan.
+- ADR-050 adopta `local_coordinated`, con preview/commit/receipt, planes ligados a
+  la operación, cinco grants independientes, journal durable y recuperación
+  conservadora. No promete CAS, exclusión de escritores externos ni atomicidad
+  visible multiarchivo.
+- Manifest patch incorpora ediciones tipadas set/remove para lints, features,
+  profiles y workspace dependencies. Add/remove exige un manifest miembro y datos
+  Cargo vendorizados aprobados cuando cambia la resolución.
+- La policy `preserve_presence` actualiza un lock existente y no publica el lock
+  transitorio usado al validar un proyecto que carecía de él.
+- Fmt y fix solo reemplazan archivos Rust existentes. Fix usa un perfil aislado
+  dedicado con `network=none` y TCP loopback interno para la coordinación de Cargo;
+  el candidato se comprueba después de aplicar fixes.
+
+La calificación conjunta M2 está completada: [full y clientes](docs/validation/M2-07.md).
+No se ha publicado otra release.
+
 ## 0.1.0 — 2026-09-05
 
 - Publicada la release estable `v0.1.0` desde el commit público
@@ -267,10 +297,3 @@ release remain unapproved; the fixture signing seed is public test data only.
 ## M1-15 — Candidatos locales
 
 Preparados candidatos release core/local macOS arm64 con hashes, linkage, archivos de avisos y smoke de instalación offline. Doctor activo verificado en ambos ejecutables; en ese corte aún no había publicación ni licencia aprobada.
-
-## M2 en desarrollo — decisión de concurrencia
-
-ADR-050 adopta local_coordinated por delegación del owner: evita broker privilegiado
-y declara los límites frente a otros editores. La rama incorpora manifest.patch de
-lints y está integrando fmt.apply, con permisos separados, preview y journal
-recuperable. No se ha publicado otra release; la calificación M2 sigue en curso.

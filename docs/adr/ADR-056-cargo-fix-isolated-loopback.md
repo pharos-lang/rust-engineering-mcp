@@ -34,6 +34,7 @@ SOCK_STREAM, protocolo 0 y `bind`, `connect`, `listen`, `accept4`, `getsockname`
 network, socket Docker, secretos ni bind host. Se permite TCP en loopback dentro
 de su namespace; no afirmar denegación absoluta de sockets ni autenticidad de los
 mensajes internos de Cargo. No ampliar el perfil M1, fmt, ingest ni exporter.
+La comparación de tipo usa `SCMP_CMP_MASKED_EQ` con máscara 15 y datum 1: el tipo base debe ser SOCK_STREAM, conservando flags CLOEXEC/NONBLOCK. El probe del filtro aplicado confirmó que el orden inverso 1/15 permitía tipos impares llegar al kernel; no impedía STREAM. Se corrige la precisión de la policy, sin ampliar protocolos ni familias.
 El target de compilación es tmpfs ejecutable, acotado y separado de source.
 
 Éxito exige exit 0, captura completa acotada, OOM false, JSON Cargo válido con
@@ -76,10 +77,11 @@ pruebas y revisión del perfil de producción son necesarias antes de M2-03 Done
 
 ## Evidence
 
+- [Probe real de ambas máscaras y fuentes libseccomp/runc](../validation/M2-fix-socket-mask.json).
 - [D06: 121 observaciones, cancelación y cleanup](../validation/M2-D06-cargo-fix-qualification.md).
 - [Cargo fix oficial](https://doc.rust-lang.org/cargo/commands/cargo-fix.html).
 - [Implementación en el commit del runtime](https://github.com/rust-lang/cargo/blob/797e8a9bca276c1c9f9f738d2a20f484fa4eea9d/src/cargo/ops/fix/mod.rs).
 
 ## Status
 
-Accepted para implementar M2-03. No cambia la calificación ni el perfil de M1.
+Accepted. M2-03 calificado en [M2](../validation/M2-07.md). No cambia el perfil de M1.

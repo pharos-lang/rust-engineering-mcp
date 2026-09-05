@@ -15,7 +15,7 @@ fn fmt_preview(opened: &Value) -> Value {
     })
 }
 
-fn mutation_output(response: Value, schema: &Value, status: &str) -> Result<Value> {
+pub(super) fn mutation_output(response: Value, schema: &Value, status: &str) -> Result<Value> {
     assert!(response.get("error").is_none(), "{response}");
     let output = &response["result"]["structuredContent"];
     assert_eq!(output["status"], status, "{response}");
@@ -47,7 +47,7 @@ fn mutation_output(response: Value, schema: &Value, status: &str) -> Result<Valu
     Ok(output.clone())
 }
 
-fn tool_schema(server: &mut Server, id: i64, name: &str) -> Result<Value> {
+pub(super) fn tool_schema(server: &mut Server, id: i64, name: &str) -> Result<Value> {
     server.send(request(id, "tools/list"))?;
     let response = server.receive(id, DISCOVERY_TIMEOUT)?;
     let tool = response["result"]["tools"]

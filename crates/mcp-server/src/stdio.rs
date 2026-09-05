@@ -52,9 +52,19 @@ const SUPPORTED_VERSIONS: &[ProtocolVersion] = &[
     ProtocolVersion::V_2026_07_28,
 ];
 
+#[derive(Clone)]
+pub struct HostCargoVendorConfig {
+    pub directory: PathBuf,
+    pub fingerprint: rust_engineering_domain::SourceFingerprint,
+}
+
 pub struct HostConfig {
     pub manifest_write_roots: Vec<PathBuf>,
     pub fmt_write_roots: Vec<PathBuf>,
+    pub fix_write_roots: Vec<PathBuf>,
+    pub dependency_add_roots: Vec<PathBuf>,
+    pub dependency_remove_roots: Vec<PathBuf>,
+    pub cargo_vendor: Option<HostCargoVendorConfig>,
     pub catalog: Option<HostCatalogConfig>,
     pub audit: Option<HostAuditConfig>,
     pub roots: Vec<PathBuf>,
@@ -77,6 +87,9 @@ struct EngineeringServer {
     format: format::FormatTool,
     manifest_mutation: mutation::ManifestMutationTool,
     format_mutation: mutation::FormatMutationTool,
+    fix_mutation: mutation::FixMutationTool,
+    dependency_add: mutation::DependencyAddTool,
+    dependency_remove: mutation::DependencyRemoveTool,
     toolchain: toolchain::ToolchainTool,
     ready: Arc<AtomicBool>,
     resources: resources::Resources,
@@ -98,6 +111,9 @@ impl ServerHandler for EngineeringServer {
             format::NAME => Some(self.format.definition.clone()),
             mutation::NAME => Some(self.manifest_mutation.definition.clone()),
             mutation::FORMAT_NAME => Some(self.format_mutation.definition.clone()),
+            mutation::FIX_NAME => Some(self.fix_mutation.definition.clone()),
+            mutation::DEPENDENCY_ADD_NAME => Some(self.dependency_add.definition.clone()),
+            mutation::DEPENDENCY_REMOVE_NAME => Some(self.dependency_remove.definition.clone()),
             inspection::NAME => Some(self.inspect.definition.clone()),
             toolchain::NAME => Some(self.toolchain.definition.clone()),
             _ => None,
@@ -126,6 +142,9 @@ impl ServerHandler for EngineeringServer {
                 self.crate_inspect.definition.clone(),
                 self.manifest_mutation.definition.clone(),
                 self.format_mutation.definition.clone(),
+                self.fix_mutation.definition.clone(),
+                self.dependency_add.definition.clone(),
+                self.dependency_remove.definition.clone(),
             ],
             ..Default::default()
         })
@@ -163,6 +182,21 @@ impl ServerHandler for EngineeringServer {
                 .map(Into::into),
             mutation::FORMAT_NAME => self
                 .format_mutation
+                .call(request, context)
+                .await
+                .map(Into::into),
+            mutation::FIX_NAME => self
+                .fix_mutation
+                .call(request, context)
+                .await
+                .map(Into::into),
+            mutation::DEPENDENCY_ADD_NAME => self
+                .dependency_add
+                .call(request, context)
+                .await
+                .map(Into::into),
+            mutation::DEPENDENCY_REMOVE_NAME => self
+                .dependency_remove
                 .call(request, context)
                 .await
                 .map(Into::into),
@@ -241,7 +275,12 @@ pub fn run(config: HostConfig) -> ExitCode {
     };
     let ready = Arc::new(AtomicBool::new(false));
     let rust_enabled = config.rust.is_some();
-    if !config.manifest_write_roots.is_empty() || !config.fmt_write_roots.is_empty() {
+    if !config.manifest_write_roots.is_empty()
+        || !config.fmt_write_roots.is_empty()
+        || !config.fix_write_roots.is_empty()
+        || !config.dependency_add_roots.is_empty()
+        || !config.dependency_remove_roots.is_empty()
+    {
         let Some(runtime) = config.rust.as_ref() else {
             return ExitCode::FAILURE;
         };
@@ -262,11 +301,15 @@ pub fn run(config: HostConfig) -> ExitCode {
             config.rust.as_ref().map(|runtime| mutation::WriteConfig {
                 roots,
                 state_parent: runtime.state_root.clone(),
+                vendor: config.cargo_vendor.clone(),
             })
         }
     };
     let manifest_write_config = write_config(config.manifest_write_roots);
     let fmt_write_config = write_config(config.fmt_write_roots);
+    let fix_write_config = write_config(config.fix_write_roots);
+    let dependency_add_config = write_config(config.dependency_add_roots);
+    let dependency_remove_config = write_config(config.dependency_remove_roots);
     let inspector = Arc::new(rust_engineering_execution::RustProjectInspector::new(
         config.rust,
     ));
@@ -447,11 +490,53 @@ pub fn run(config: HostConfig) -> ExitCode {
         Arc::clone(&inspector),
         Arc::clone(&ready),
         fmt_write_config,
-        mutation_plans,
+        Arc::clone(&mutation_plans),
     ) {
         Ok(tool) => tool,
         Err(_) => {
             tracing::error!("MCP format mutation contract initialization failed");
+            return ExitCode::FAILURE;
+        }
+    };
+    let fix_mutation = match mutation::FixMutationTool::new(
+        project.registry(),
+        workers.clone(),
+        Arc::clone(&inspector),
+        Arc::clone(&ready),
+        fix_write_config,
+        Arc::clone(&mutation_plans),
+    ) {
+        Ok(tool) => tool,
+        Err(_) => {
+            tracing::error!("MCP fix mutation contract initialization failed");
+            return ExitCode::FAILURE;
+        }
+    };
+    let dependency_add = match mutation::DependencyAddTool::new(
+        project.registry(),
+        workers.clone(),
+        Arc::clone(&inspector),
+        Arc::clone(&ready),
+        dependency_add_config,
+        Arc::clone(&mutation_plans),
+    ) {
+        Ok(tool) => tool,
+        Err(_) => {
+            tracing::error!("MCP dependency add contract initialization failed");
+            return ExitCode::FAILURE;
+        }
+    };
+    let dependency_remove = match mutation::DependencyRemoveTool::new(
+        project.registry(),
+        workers.clone(),
+        Arc::clone(&inspector),
+        Arc::clone(&ready),
+        dependency_remove_config,
+        Arc::clone(&mutation_plans),
+    ) {
+        Ok(tool) => tool,
+        Err(_) => {
+            tracing::error!("MCP dependency remove contract initialization failed");
             return ExitCode::FAILURE;
         }
     };
@@ -483,6 +568,9 @@ pub fn run(config: HostConfig) -> ExitCode {
                 format,
                 manifest_mutation,
                 format_mutation,
+                fix_mutation,
+                dependency_add,
+                dependency_remove,
                 resources,
                 ready,
             },

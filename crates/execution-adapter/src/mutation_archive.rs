@@ -175,6 +175,22 @@ pub(super) fn decode(
     archive: &[u8],
     before: &SourceBundle,
 ) -> Result<SourceBundle, ExecutionError> {
+    decode_inner(archive, before, false)
+}
+
+pub(super) fn decode_resolution(
+    archive: &[u8],
+    before: &SourceBundle,
+    transient_lock: bool,
+) -> Result<SourceBundle, ExecutionError> {
+    decode_inner(archive, before, transient_lock)
+}
+
+fn decode_inner(
+    archive: &[u8],
+    before: &SourceBundle,
+    transient_lock: bool,
+) -> Result<SourceBundle, ExecutionError> {
     if archive.len() > MAX_ARCHIVE || !archive.len().is_multiple_of(BLOCK) {
         return denied();
     }
@@ -227,15 +243,24 @@ pub(super) fn decode(
         benign_identity_name(&header[297..329])?;
         let _mtime = strict_octal(&header[136..148])?;
         let size = strict_octal(&header[124..136])?;
-        let (directory, mode) = match header[156] {
-            b'0' => (false, FILE_MODE),
-            b'5' => (true, DIRECTORY_MODE),
+        let directory = match header[156] {
+            b'0' => false,
+            b'5' => true,
             _ => return denied(),
         };
-        if strict_octal(&header[100..108])? != mode || (directory && size != 0) {
+        if directory && size != 0 {
             return denied();
         }
         let path = exported_path(header, directory)?;
+        let mode = strict_octal(&header[100..108])?;
+        let mode_ok = mode == if directory { DIRECTORY_MODE } else { FILE_MODE }
+            || (!directory
+                && transient_lock
+                && path.as_deref() == Some("Cargo.lock")
+                && mode == 0o644);
+        if !mode_ok {
+            return denied();
+        }
         let data_start = end;
         let data_end = data_start.checked_add(size).ok_or(ExecutionError::Denied)?;
         let padded_end = data_start
@@ -584,6 +609,42 @@ mod tests {
                 Err(ExecutionError::Denied)
             ));
         }
+        Ok(())
+    }
+
+    #[test]
+    fn resolution_allows_0644_only_for_a_transient_root_lock() -> Result<(), String> {
+        let before = source(&[("Cargo.lock", b""), ("src/lib.rs", b"old")], &[])?;
+        let mut transient = exported(&before, &BTreeMap::new());
+        let lock = first_header(&mut transient, 2);
+        test_octal(&mut lock[100..108], 0o644);
+        set_checksum(lock);
+        assert!(decode_resolution(&transient, &before, true).is_ok());
+        assert!(matches!(
+            decode_resolution(&transient, &before, false),
+            Err(ExecutionError::Denied)
+        ));
+        assert!(matches!(
+            decode(&transient, &before),
+            Err(ExecutionError::Denied)
+        ));
+
+        let mut other = exported(&before, &BTreeMap::new());
+        let source = first_header(&mut other, 3);
+        test_octal(&mut source[100..108], 0o644);
+        set_checksum(source);
+        assert!(matches!(
+            decode_resolution(&other, &before, true),
+            Err(ExecutionError::Denied)
+        ));
+        let mut permissive = transient;
+        let lock = first_header(&mut permissive, 2);
+        test_octal(&mut lock[100..108], 0o777);
+        set_checksum(lock);
+        assert!(matches!(
+            decode_resolution(&permissive, &before, true),
+            Err(ExecutionError::Denied)
+        ));
         Ok(())
     }
 

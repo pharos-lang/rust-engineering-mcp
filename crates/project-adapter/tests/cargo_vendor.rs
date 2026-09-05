@@ -112,6 +112,28 @@ fn rejects_wrong_expected_digest() -> TestResult {
 }
 
 #[test]
+fn file_tree_fingerprint_cannot_authorize_an_extra_empty_directory() -> TestResult {
+    let fixture = Fixture::new()?;
+    let approved = ck(inspect_cargo_vendor(&fixture.vendor, &Continue))?;
+    let extra = fixture.vendor.join("quote-1.0.47/unapproved-empty");
+    ck(fs::create_dir(&extra))?;
+    assert_eq!(
+        capture_with_expected(&fixture.vendor, &approved.tree_fingerprint, &Continue),
+        Err(ProjectError::Rejected(OperationalErrorCode::InvalidProject))
+    );
+    ck(fs::remove_dir(extra))?;
+    assert_eq!(
+        ck(capture_with_expected(
+            &fixture.vendor,
+            &approved.tree_fingerprint,
+            &Continue
+        ))?,
+        approved
+    );
+    Ok(())
+}
+
+#[test]
 fn checksum_requires_exact_files_and_valid_digests() -> TestResult {
     for case in [
         "bad",

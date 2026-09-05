@@ -1,6 +1,8 @@
 use crate::{ProjectLease, mutation_store::NativeMutationStore};
 use rust_engineering_application::{MutationPublisher, OperationControl};
-use rust_engineering_domain::{MutationCommit, MutationError, MutationId, MutationReceipt};
+use rust_engineering_domain::{
+    IdempotencyKey, MutationCommit, MutationError, MutationId, MutationReceipt, SourceFingerprint,
+};
 
 pub fn mutation_bytes_digest(
     bytes: &[u8],
@@ -25,6 +27,16 @@ impl MutationPublisher<ProjectLease> for NativeMutationStore {
         control: &dyn OperationControl,
     ) -> Result<MutationReceipt, MutationError> {
         self.commit(lease, request, control)
+    }
+    fn replay(
+        &self,
+        lease: &ProjectLease,
+        id: &MutationId,
+        digest: &SourceFingerprint,
+        key: &IdempotencyKey,
+        control: &dyn OperationControl,
+    ) -> Result<MutationReceipt, MutationError> {
+        self.replay(lease, id, digest, key, control)
     }
     fn receipt(
         &self,

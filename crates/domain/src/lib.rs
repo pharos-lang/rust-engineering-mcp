@@ -91,3 +91,6 @@ mod rust_mutation;
 pub use rust_mutation::*;
 mod cargo_vendor;
 pub use cargo_vendor::*;
+
+mod resolution;
+pub use resolution::{MutationLockDisposition, MutationResolutionObservation};

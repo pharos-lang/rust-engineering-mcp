@@ -106,4 +106,4 @@ Un backend remoto/multiusuario futuro deberá reevaluar esta TCB; no hereda la d
 
 Accepted por el Technical Owner bajo la delegación explícita del owner del 2026-09-05.
 Sustituye la exigencia de exclusión OS fuerte en D02; ADR-049 conserva evidencia histórica.
-Implementación y calificación positiva: pendientes, M2-01 en preparación.
+Implementación y calificación positiva completadas: [cierre M2](../validation/M2-07.md).

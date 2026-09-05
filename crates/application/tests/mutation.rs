@@ -176,6 +176,7 @@ struct Publisher {
     authorize_leases: RefCell<Vec<usize>>,
     commits: Cell<usize>,
     receipts: RefCell<Vec<usize>>,
+    replays: RefCell<Vec<(usize, MutationId, SourceFingerprint, IdempotencyKey)>>,
     recoveries: RefCell<Vec<usize>>,
 }
 
@@ -187,6 +188,7 @@ impl Publisher {
             authorize_leases: RefCell::new(Vec::new()),
             commits: Cell::new(0),
             receipts: RefCell::new(Vec::new()),
+            replays: RefCell::new(Vec::new()),
             recoveries: RefCell::new(Vec::new()),
         }
     }
@@ -205,6 +207,20 @@ impl MutationPublisher<usize> for Publisher {
         _: &dyn OperationControl,
     ) -> Result<MutationReceipt, MutationError> {
         self.commits.set(self.commits.get() + 1);
+        self.commit_result.borrow().clone()
+    }
+
+    fn replay(
+        &self,
+        lease: &usize,
+        id: &MutationId,
+        digest: &SourceFingerprint,
+        key: &IdempotencyKey,
+        _: &dyn OperationControl,
+    ) -> Result<MutationReceipt, MutationError> {
+        self.replays
+            .borrow_mut()
+            .push((*lease, id.clone(), digest.clone(), key.clone()));
         self.commit_result.borrow().clone()
     }
 
@@ -974,6 +990,7 @@ fn captured_preview_does_not_hold_registry_during_validation_and_rechecks_genera
 }
 
 struct Mutator {
+    expected_command: rust_engineering_domain::RustMutationCommand,
     candidate: SourceBundle,
     calls: Cell<usize>,
 }
@@ -984,10 +1001,7 @@ impl rust_engineering_application::ProjectMutationPort for Mutator {
         command: rust_engineering_domain::RustMutationCommand,
         _: &dyn InspectionControl,
     ) -> Result<rust_engineering_domain::RustMutationObservation, InspectionError> {
-        assert_eq!(
-            command,
-            rust_engineering_domain::RustMutationCommand::Format
-        );
+        assert_eq!(command, self.expected_command);
         self.calls.set(self.calls.get() + 1);
         Ok(rust_engineering_domain::RustMutationObservation {
             candidate: self.candidate.clone(),
@@ -999,54 +1013,71 @@ impl rust_engineering_application::ProjectMutationPort for Mutator {
 }
 
 #[test]
-fn format_preview_checks_authority_before_capture_and_binds_both_executions() {
-    let before = source(Some(b"[workspace]\n"), b"fn example( ){}\n");
-    let after = source(Some(b"[workspace]\n"), b"fn example() {}\n");
-    let backend = Backend::new(vec![before.clone()]);
-    let mut registry = registry(backend.clone());
-    let control = Control::default();
-    let opened = registry.open("/trusted/workspace", &control).expect("open");
-    let publisher = Publisher::new();
-    publisher
-        .authorize_error
-        .set(Some(MutationError::PermissionDenied));
-    assert!(matches!(
-        registry.prepare_format(
-            &opened.project_ref,
-            &opened.identity.fingerprint,
-            &publisher,
-            &control
+fn rust_previews_check_authority_and_bind_operation_and_both_executions() {
+    for (command, kind, version) in [
+        (
+            rust_engineering_domain::RustMutationCommand::Format,
+            MutationKind::FormatApply,
+            "m2-fmt-apply-v1",
         ),
-        Err(MutationPreparationError::Mutation(
-            MutationError::PermissionDenied
-        ))
-    ));
-    assert_eq!(backend.source_calls.get(), 0);
-    publisher.authorize_error.set(None);
-    let prepared = registry
-        .prepare_format(
-            &opened.project_ref,
-            &opened.identity.fingerprint,
-            &publisher,
-            &control,
-        )
-        .expect("prepare format");
-    let mutator = Mutator {
-        candidate: after.clone(),
-        calls: Cell::new(0),
-    };
-    let (workspace, candidate) = prepared.validate(&mutator, &control).expect("validated");
-    assert_eq!(workspace, "/trusted/workspace");
-    assert_eq!(candidate.before, before);
-    assert_eq!(candidate.after, after);
-    assert_eq!(candidate.kind, MutationKind::FormatApply);
-    assert!(candidate.validation.contains(&fingerprint(5)));
-    assert!(candidate.validation.contains(&fingerprint(6)));
-    assert_eq!(mutator.calls.get(), 1);
-    registry
-        .finish_manifest_preview(&opened.project_ref, &candidate, &control)
-        .expect("unchanged live generation");
-    assert_eq!(publisher.commits.get(), 0);
+        (
+            rust_engineering_domain::RustMutationCommand::Fix,
+            MutationKind::FixApply,
+            "m2-fix-apply-v1",
+        ),
+    ] {
+        let before = source(Some(b"[workspace]\n"), b"fn example( ){}\n");
+        let after = source(Some(b"[workspace]\n"), b"fn example() {}\n");
+        let backend = Backend::new(vec![before.clone()]);
+        let mut registry = registry(backend.clone());
+        let control = Control::default();
+        let opened = registry.open("/trusted/workspace", &control).expect("open");
+        let publisher = Publisher::new();
+        publisher
+            .authorize_error
+            .set(Some(MutationError::PermissionDenied));
+        assert!(matches!(
+            registry.prepare_format(
+                &opened.project_ref,
+                &opened.identity.fingerprint,
+                &publisher,
+                &control
+            ),
+            Err(MutationPreparationError::Mutation(
+                MutationError::PermissionDenied
+            ))
+        ));
+        assert_eq!(backend.source_calls.get(), 0);
+        publisher.authorize_error.set(None);
+        let prepared = registry
+            .prepare_format(
+                &opened.project_ref,
+                &opened.identity.fingerprint,
+                &publisher,
+                &control,
+            )
+            .expect("prepare format");
+        let mutator = Mutator {
+            expected_command: command.clone(),
+            candidate: after.clone(),
+            calls: Cell::new(0),
+        };
+        let (workspace, candidate) = prepared
+            .validate_command(command, &mutator, &control)
+            .expect("validated");
+        assert_eq!(workspace, "/trusted/workspace");
+        assert_eq!(candidate.before, before);
+        assert_eq!(candidate.after, after);
+        assert_eq!(candidate.kind, kind);
+        assert!(candidate.validation.contains(version));
+        assert!(candidate.validation.contains(&fingerprint(5)));
+        assert!(candidate.validation.contains(&fingerprint(6)));
+        assert_eq!(mutator.calls.get(), 1);
+        registry
+            .finish_manifest_preview(&opened.project_ref, &candidate, &control)
+            .expect("unchanged live generation");
+        assert_eq!(publisher.commits.get(), 0);
+    }
 }
 
 #[test]
@@ -1068,6 +1099,7 @@ fn format_preview_rejects_changed_manifest_missing_files_and_late_external_chang
             )
             .expect("prepare");
         let mutator = Mutator {
+            expected_command: rust_engineering_domain::RustMutationCommand::Format,
             candidate: after,
             calls: Cell::new(0),
         };
@@ -1085,6 +1117,7 @@ fn format_preview_rejects_changed_manifest_missing_files_and_late_external_chang
         )
         .expect("prepare");
     let mutator = Mutator {
+        expected_command: rust_engineering_domain::RustMutationCommand::Format,
         candidate: source(Some(b"[workspace]\n"), b"fn example() {}\n"),
         calls: Cell::new(0),
     };
@@ -1093,4 +1126,192 @@ fn format_preview_rejects_changed_manifest_missing_files_and_late_external_chang
         registry.finish_manifest_preview(&opened.project_ref, &candidate, &control),
         Err(MutationPreparationError::Mutation(MutationError::Conflict))
     );
+}
+
+#[test]
+fn terminal_plans_release_capacity_without_increasing_pending_quota() {
+    let clock = Clock::default();
+    let mut plans = MutationPlans::default();
+    for number in 1..=12 {
+        let id = mutation_id(number);
+        let digest = fingerprint(number as u8).parse().expect("digest");
+        plans
+            .remember(id.clone(), digest, "/workspace".into(), candidate(), &clock)
+            .expect("sequential admission");
+        let digest = fingerprint(number as u8).parse().expect("digest");
+        let plan = plans
+            .resolve(
+                &id,
+                &digest,
+                IdempotencyKey::new("same-key".into()).expect("key"),
+                &clock,
+            )
+            .expect("resolve");
+        let mut terminal = receipt();
+        terminal.id = id.clone();
+        terminal.digest = digest.clone();
+        terminal.state = match number % 3 {
+            0 => MutationState::Aborted,
+            1 => MutationState::Committed,
+            _ => MutationState::NoChange,
+        };
+        plan.retire_if_terminal(&terminal);
+        assert!(matches!(
+            plans.resolve(
+                &id,
+                &digest,
+                IdempotencyKey::new("same-key".into()).expect("key"),
+                &clock
+            ),
+            Err(MutationError::NotFound)
+        ));
+        assert_eq!(
+            plans.allocation_stats().plans,
+            1,
+            "allocated terminal bytes await next admission"
+        );
+    }
+    for number in 20..24 {
+        plans
+            .remember(
+                mutation_id(number),
+                fingerprint(number as u8).parse().expect("digest"),
+                "/workspace".into(),
+                candidate(),
+                &clock,
+            )
+            .expect("four pending");
+    }
+    assert_eq!(plans.allocation_stats().plans, 4);
+    assert_eq!(
+        plans.remember(
+            mutation_id(24),
+            fingerprint(24).parse().expect("digest"),
+            "/workspace".into(),
+            candidate(),
+            &clock
+        ),
+        Err(MutationError::LimitExceeded)
+    );
+}
+
+#[test]
+fn retirement_requires_exact_terminal_receipt_binding() {
+    let clock = Clock::default();
+    let mut plans = MutationPlans::default();
+    let request = request();
+    plans
+        .remember(
+            request.id.clone(),
+            request.digest.clone(),
+            "/workspace".into(),
+            request.candidate.clone(),
+            &clock,
+        )
+        .expect("remember");
+    let plan = plans
+        .resolve(&request.id, &request.digest, request.key.clone(), &clock)
+        .expect("resolve");
+    for wrong in 0..3 {
+        let mut observed = receipt();
+        match wrong {
+            0 => observed.id = mutation_id(9),
+            1 => observed.digest = fingerprint(9).parse().expect("digest"),
+            _ => observed.state = MutationState::RecoveryRequired,
+        }
+        plan.retire_if_terminal(&observed);
+        assert!(
+            plans
+                .resolve(&request.id, &request.digest, request.key.clone(), &clock)
+                .is_ok()
+        );
+    }
+    plan.retire_if_terminal(&receipt());
+    assert!(matches!(
+        plans.resolve(&request.id, &request.digest, request.key.clone(), &clock),
+        Err(MutationError::NotFound)
+    ));
+}
+
+#[test]
+fn durable_replay_requires_live_authority_and_invalidates_after_result() {
+    let backend = Backend::new(vec![candidate().after]);
+    let mut registry = registry(backend.clone());
+    let control = Control::default();
+    let publisher = Publisher::new();
+    let request = request();
+    let opened = registry.open("/trusted/workspace", &control).expect("open");
+    publisher
+        .authorize_error
+        .set(Some(MutationError::PermissionDenied));
+    assert_eq!(
+        registry.replay_mutation(
+            &opened.project_ref,
+            &request.id,
+            &request.digest,
+            &request.key,
+            &publisher,
+            &control
+        ),
+        Err(MutationError::PermissionDenied)
+    );
+    assert!(publisher.replays.borrow().is_empty());
+    publisher.authorize_error.set(None);
+    assert_eq!(
+        registry.replay_mutation(
+            &opened.project_ref,
+            &request.id,
+            &request.digest,
+            &request.key,
+            &publisher,
+            &control
+        ),
+        Ok(receipt())
+    );
+    assert_eq!(publisher.replays.borrow().len(), 1);
+    assert!(
+        publisher.receipts.borrow().is_empty(),
+        "replay is not receipt lookup"
+    );
+    assert_eq!(publisher.replays.borrow()[0].1, request.id);
+    assert_eq!(publisher.replays.borrow()[0].2, request.digest);
+    assert_eq!(publisher.replays.borrow()[0].3, request.key);
+    assert_eq!(
+        publisher.commits.get(),
+        0,
+        "replay never dispatches candidate commit"
+    );
+    assert_eq!(
+        backend.source_calls.get(),
+        0,
+        "replay needs no source capture or Cargo validation"
+    );
+    assert_eq!(
+        registry.replay_mutation(
+            &opened.project_ref,
+            &request.id,
+            &request.digest,
+            &request.key,
+            &publisher,
+            &control
+        ),
+        Err(MutationError::PermissionDenied)
+    );
+    assert_eq!(publisher.replays.borrow().len(), 1);
+    let reopened = registry
+        .open("/trusted/workspace", &control)
+        .expect("reopen");
+    control.0.store(true, Ordering::Relaxed);
+    assert_eq!(
+        registry.replay_mutation(
+            &reopened.project_ref,
+            &request.id,
+            &request.digest,
+            &request.key,
+            &publisher,
+            &control
+        ),
+        Err(MutationError::Cancelled)
+    );
+    assert_eq!(publisher.replays.borrow().len(), 1);
 }

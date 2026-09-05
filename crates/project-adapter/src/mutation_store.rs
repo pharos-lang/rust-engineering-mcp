@@ -3,9 +3,11 @@
 use rust_engineering_application::OperationControl;
 #[cfg(not(target_os = "macos"))]
 use rust_engineering_domain::MutationKind;
-use rust_engineering_domain::{MutationCandidate, MutationError, SourceFingerprint};
 #[cfg(not(target_os = "macos"))]
-use rust_engineering_domain::{MutationCommit, MutationId, MutationReceipt, MutationRecordSummary};
+use rust_engineering_domain::{
+    IdempotencyKey, MutationCommit, MutationId, MutationReceipt, MutationRecordSummary,
+};
+use rust_engineering_domain::{MutationCandidate, MutationError, SourceFingerprint};
 use sha2::{Digest, Sha256};
 #[cfg(not(target_os = "macos"))]
 use std::path::{Path, PathBuf};
@@ -39,6 +41,9 @@ pub fn mutation_digest(candidate: &MutationCandidate) -> Result<SourceFingerprin
     let kind = match candidate.kind {
         rust_engineering_domain::MutationKind::ManifestPatch => b"manifest_patch".as_slice(),
         rust_engineering_domain::MutationKind::FormatApply => b"format_apply".as_slice(),
+        rust_engineering_domain::MutationKind::FixApply => b"fix_apply".as_slice(),
+        rust_engineering_domain::MutationKind::DependencyAdd => b"dependency_add".as_slice(),
+        rust_engineering_domain::MutationKind::DependencyRemove => b"dependency_remove".as_slice(),
     };
     field(&mut hash, kind);
     bundle(&mut hash, &candidate.before);
@@ -74,6 +79,16 @@ impl NativeMutationStore {
         &self,
         _lease: &crate::ProjectLease,
         _request: &MutationCommit,
+        _control: &dyn OperationControl,
+    ) -> Result<MutationReceipt, MutationError> {
+        Err(MutationError::UnsupportedPlatform)
+    }
+    pub fn replay(
+        &self,
+        _lease: &crate::ProjectLease,
+        _id: &MutationId,
+        _digest: &SourceFingerprint,
+        _key: &IdempotencyKey,
         _control: &dyn OperationControl,
     ) -> Result<MutationReceipt, MutationError> {
         Err(MutationError::UnsupportedPlatform)

@@ -8,6 +8,10 @@ pub(crate) fn parse(mut args: impl Iterator<Item = OsString>) -> Option<stdio::H
     let mut config = stdio::HostConfig {
         manifest_write_roots: Vec::new(),
         fmt_write_roots: Vec::new(),
+        fix_write_roots: Vec::new(),
+        dependency_add_roots: Vec::new(),
+        dependency_remove_roots: Vec::new(),
+        cargo_vendor: None,
         audit: None,
         catalog: None,
         roots: Vec::new(),
@@ -16,6 +20,8 @@ pub(crate) fn parse(mut args: impl Iterator<Item = OsString>) -> Option<stdio::H
     };
     let mut ttl_seen = false;
     let mut catalog_options: [Option<PathBuf>; 4] = std::array::from_fn(|_| None);
+    let mut vendor_path = None;
+    let mut vendor_fingerprint = None;
     let mut audit_path = None;
     let mut audit_fingerprint = None;
     let mut rust_options: [Option<std::ffi::OsString>; 4] = std::array::from_fn(|_| None);
@@ -25,11 +31,20 @@ pub(crate) fn parse(mut args: impl Iterator<Item = OsString>) -> Option<stdio::H
             config.roots.push(PathBuf::from(value));
         } else if flag == OsStr::new("--allow-manifest-write")
             || flag == OsStr::new("--allow-fmt-write")
+            || flag == OsStr::new("--allow-fix-write")
+            || flag == OsStr::new("--allow-dependency-add")
+            || flag == OsStr::new("--allow-dependency-remove")
         {
             let roots = if flag == OsStr::new("--allow-manifest-write") {
                 &mut config.manifest_write_roots
-            } else {
+            } else if flag == OsStr::new("--allow-fmt-write") {
                 &mut config.fmt_write_roots
+            } else if flag == OsStr::new("--allow-fix-write") {
+                &mut config.fix_write_roots
+            } else if flag == OsStr::new("--allow-dependency-add") {
+                &mut config.dependency_add_roots
+            } else {
+                &mut config.dependency_remove_roots
             };
             let path = PathBuf::from(&value);
             if value.to_str().is_none()
@@ -61,6 +76,19 @@ pub(crate) fn parse(mut args: impl Iterator<Item = OsString>) -> Option<stdio::H
                 return None;
             }
             catalog_options[index] = Some(path);
+        } else if flag == OsStr::new("--cargo-vendor-dir") && vendor_path.is_none() {
+            let path = PathBuf::from(&value);
+            if value.to_str().is_none() || !path.is_absolute() {
+                return None;
+            }
+            vendor_path = Some(path);
+        } else if flag == OsStr::new("--cargo-vendor-tree-sha256") && vendor_fingerprint.is_none() {
+            vendor_fingerprint = Some(
+                value
+                    .to_str()?
+                    .parse::<rust_engineering_domain::SourceFingerprint>()
+                    .ok()?,
+            );
         } else if flag == OsStr::new("--rustsec-snapshot") && audit_path.is_none() {
             let path = PathBuf::from(&value);
             if value.to_str().is_none() || !path.is_absolute() {
@@ -128,13 +156,36 @@ pub(crate) fn parse(mut args: impl Iterator<Item = OsString>) -> Option<stdio::H
         (Some(path), Some(fingerprint)) => Some(stdio::HostAuditConfig { path, fingerprint }),
         _ => return None,
     };
-    let has_writes = !config.manifest_write_roots.is_empty() || !config.fmt_write_roots.is_empty();
+    config.cargo_vendor = match (vendor_path, vendor_fingerprint) {
+        (None, None) => None,
+        (Some(directory), Some(fingerprint))
+            if config.rust.is_some()
+                && !config
+                    .roots
+                    .iter()
+                    .any(|root| directory.starts_with(root) || root.starts_with(&directory)) =>
+        {
+            Some(stdio::HostCargoVendorConfig {
+                directory,
+                fingerprint,
+            })
+        }
+        _ => return None,
+    };
+    let has_writes = !config.manifest_write_roots.is_empty()
+        || !config.fmt_write_roots.is_empty()
+        || !config.fix_write_roots.is_empty()
+        || !config.dependency_add_roots.is_empty()
+        || !config.dependency_remove_roots.is_empty();
     if has_writes
         && (config.rust.is_none()
             || config
                 .manifest_write_roots
                 .iter()
                 .chain(config.fmt_write_roots.iter())
+                .chain(config.fix_write_roots.iter())
+                .chain(config.dependency_add_roots.iter())
+                .chain(config.dependency_remove_roots.iter())
                 .any(|root| !config.roots.iter().any(|read| root.starts_with(read))))
     {
         return None;
@@ -158,36 +209,129 @@ mod tests {
     use super::*;
     #[test]
     fn mutation_journal_and_read_roots_cannot_overlap_in_either_direction() {
-        let parse_roots = |read: &str, write: &str, state: &str| {
+        for permission in [
+            "--allow-manifest-write",
+            "--allow-fmt-write",
+            "--allow-fix-write",
+            "--allow-dependency-add",
+            "--allow-dependency-remove",
+        ] {
+            let parse_roots = |read: &str, write: &str, state: &str| {
+                parse(
+                    [
+                        "--root",
+                        read,
+                        permission,
+                        write,
+                        "--docker",
+                        "/usr/local/bin/docker",
+                        "--docker-socket",
+                        "/tmp/docker.sock",
+                        "--state-root",
+                        state,
+                        "--rust-image",
+                        rust_engineering_execution::APPROVED_RUST_IMAGE,
+                    ]
+                    .into_iter()
+                    .map(OsString::from),
+                )
+            };
+            assert!(parse_roots("/work/project", "/work/project", "/private/state").is_some());
+            assert!(parse_roots("/work/project", "/work/project", "/work/project/state").is_none());
+            assert!(
+                parse_roots(
+                    "/private/state/rust-mcp-mutations-v1/project",
+                    "/private/state/rust-mcp-mutations-v1/project",
+                    "/private/state"
+                )
+                .is_none()
+            );
+            assert!(parse_roots("/work/project", "/other/project", "/private/state").is_none());
+        }
+    }
+    #[test]
+    fn vendor_data_requires_a_complete_host_pair_runtime_and_disjoint_root() {
+        let fingerprint = format!("sha256:{}", "a".repeat(64));
+        let base = [
+            "--root",
+            "/work/project",
+            "--docker",
+            "/usr/local/bin/docker",
+            "--docker-socket",
+            "/tmp/docker.sock",
+            "--state-root",
+            "/private/state",
+            "--rust-image",
+            rust_engineering_execution::APPROVED_RUST_IMAGE,
+        ];
+        let configured = |extra: &[&str]| {
             parse(
-                [
-                    "--root",
-                    read,
-                    "--allow-manifest-write",
-                    write,
-                    "--docker",
-                    "/usr/local/bin/docker",
-                    "--docker-socket",
-                    "/tmp/docker.sock",
-                    "--state-root",
-                    state,
-                    "--rust-image",
-                    rust_engineering_execution::APPROVED_RUST_IMAGE,
-                ]
-                .into_iter()
-                .map(OsString::from),
+                base.iter()
+                    .copied()
+                    .chain(extra.iter().copied())
+                    .map(OsString::from),
             )
         };
-        assert!(parse_roots("/work/project", "/work/project", "/private/state").is_some());
-        assert!(parse_roots("/work/project", "/work/project", "/work/project/state").is_none());
+        assert!(configured(&[]).is_some());
         assert!(
-            parse_roots(
-                "/private/state/rust-mcp-mutations-v1/project",
-                "/private/state/rust-mcp-mutations-v1/project",
-                "/private/state"
+            configured(&[
+                "--cargo-vendor-dir",
+                "/data/vendor",
+                "--cargo-vendor-tree-sha256",
+                &fingerprint
+            ])
+            .is_some()
+        );
+        for arguments in [
+            vec!["--cargo-vendor-dir", "/data/vendor"],
+            vec!["--cargo-vendor-tree-sha256", &fingerprint],
+            vec![
+                "--cargo-vendor-dir",
+                "relative",
+                "--cargo-vendor-tree-sha256",
+                &fingerprint,
+            ],
+            vec![
+                "--cargo-vendor-dir",
+                "/work/project/vendor",
+                "--cargo-vendor-tree-sha256",
+                &fingerprint,
+            ],
+            vec![
+                "--cargo-vendor-dir",
+                "/work",
+                "--cargo-vendor-tree-sha256",
+                &fingerprint,
+            ],
+            vec![
+                "--cargo-vendor-dir",
+                "/data/vendor",
+                "--cargo-vendor-tree-sha256",
+                "sha256:bad",
+            ],
+            vec![
+                "--cargo-vendor-dir",
+                "/data/vendor",
+                "--cargo-vendor-tree-sha256",
+                &fingerprint,
+                "--cargo-vendor-dir",
+                "/data/other",
+            ],
+        ] {
+            assert!(configured(&arguments).is_none(), "accepted {arguments:?}");
+        }
+        assert!(
+            parse(
+                [
+                    "--cargo-vendor-dir",
+                    "/data/vendor",
+                    "--cargo-vendor-tree-sha256",
+                    &fingerprint
+                ]
+                .into_iter()
+                .map(OsString::from)
             )
             .is_none()
         );
-        assert!(parse_roots("/work/project", "/other/project", "/private/state").is_none());
     }
 }

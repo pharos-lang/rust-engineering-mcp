@@ -174,31 +174,66 @@ fn format_request(before: SourceBundle, suffix: u128, key: &str) -> TestResult<M
     })
 }
 
+fn mutation_request(
+    before: SourceBundle,
+    kind: MutationKind,
+    suffix: u128,
+    key: &str,
+    replacements: &[(&str, &[u8])],
+) -> TestResult<MutationCommit> {
+    let files = ck!(before
+        .files()
+        .iter()
+        .map(|file| {
+            let bytes = replacements
+                .iter()
+                .find(|(path, _)| *path == file.path())
+                .map_or_else(|| file.bytes().to_vec(), |(_, bytes)| bytes.to_vec());
+            SourceFile::new(file.path().to_owned(), bytes)
+        })
+        .collect::<Result<Vec<_>, _>>());
+    let after = ck!(SourceBundle::with_directories(
+        files,
+        before.directories().to_vec()
+    ));
+    let candidate = MutationCandidate {
+        kind,
+        before,
+        after,
+        validation: format!("native-semantic-delta:{kind:?}"),
+    };
+    Ok(MutationCommit {
+        id: ck!(MutationId::new(format!("mut_{suffix:032x}"))),
+        digest: ck!(mutation_digest(&candidate)),
+        key: ck!(IdempotencyKey::new(key.to_owned())),
+        candidate,
+    })
+}
+
 #[test]
-fn format_commit_replaces_multiple_nested_files_and_separates_grants() -> TestResult<()> {
-    let fixture = Fixture::new("format-happy")?;
+fn manifest_patch_commits_root_manifest_and_existing_lock_as_one_plan() -> TestResult<()> {
+    let fixture = Fixture::new("manifest-lock")?;
     ck!(fs::write(
-        fixture.project.join("src/other.rs"),
-        b"pub fn other()->u8{7}\n"
+        fixture.project.join("Cargo.lock"),
+        b"# lock before\nversion = 4\n"
     ));
     let backend = fixture.backend()?;
     let opened = ck!(backend.open(fixture.project.to_str().ok_or("utf8")?, &Continue));
     let before = ck!(backend.source(&opened.lease, &Continue));
-    let commit = format_request(before, 90, "format-happy-key")?;
-    let manifest = ck!(NativeMutationStore::open(
+    let manifest = b"[package]\nname = \"fixture\"\nversion = \"0.1.0\"\nedition = \"2024\"\n\n[features]\ndefault = [\"dep:serde\"]\n";
+    let lock = b"# lock after\nversion = 4\n";
+    let commit = mutation_request(
+        before,
+        MutationKind::ManifestPatch,
+        201,
+        "manifest-lock-key",
+        &[("Cargo.toml", manifest), ("Cargo.lock", lock)],
+    )?;
+    let store = ck!(NativeMutationStore::open(
         &fixture.state,
         std::slice::from_ref(&fixture.project)
     ));
-    assert_eq!(
-        manifest.commit(&opened.lease, &commit, &Continue),
-        Err(MutationError::PermissionDenied)
-    );
-    let format = ck!(NativeMutationStore::open_for_kind(
-        &fixture.state,
-        std::slice::from_ref(&fixture.project),
-        MutationKind::FormatApply
-    ));
-    let receipt = ck!(format.commit(&opened.lease, &commit, &Continue));
+    let receipt = ck!(store.commit(&opened.lease, &commit, &Continue));
     assert_eq!(receipt.state, MutationState::Committed);
     assert_eq!(
         receipt
@@ -206,35 +241,331 @@ fn format_commit_replaces_multiple_nested_files_and_separates_grants() -> TestRe
             .iter()
             .map(|file| file.path.as_str())
             .collect::<Vec<_>>(),
-        vec!["src/lib.rs", "src/other.rs"]
+        vec!["Cargo.lock", "Cargo.toml"]
     );
-    assert!(
+    assert_eq!(ck!(fs::read(fixture.project.join("Cargo.toml"))), manifest);
+    assert_eq!(ck!(fs::read(fixture.project.join("Cargo.lock"))), lock);
+    Ok(())
+}
+
+#[test]
+fn dependency_add_commits_one_member_manifest_and_root_lock_under_its_kind() -> TestResult<()> {
+    let fixture = Fixture::new("dependency-member")?;
+    ck!(fs::write(
+        fixture.project.join("Cargo.toml"),
+        b"[workspace]\nmembers = [\"member\"]\nresolver = \"3\"\n[package]\nname = \"fixture\"\nversion = \"0.1.0\"\nedition = \"2024\"\n"
+    ));
+    ck!(fs::create_dir_all(fixture.project.join("member/src")));
+    ck!(fs::write(
+        fixture.project.join("member/Cargo.toml"),
+        b"[package]\nname = \"member\"\nversion = \"0.1.0\"\nedition = \"2024\"\n"
+    ));
+    ck!(fs::write(
+        fixture.project.join("member/src/lib.rs"),
+        b"pub fn member() {}\n"
+    ));
+    ck!(fs::write(
+        fixture.project.join("Cargo.lock"),
+        b"# lock before\nversion = 4\n"
+    ));
+    let backend = fixture.backend()?;
+    let opened = ck!(backend.open(fixture.project.to_str().ok_or("utf8")?, &Continue));
+    let before = ck!(backend.source(&opened.lease, &Continue));
+    let member = b"[package]\nname = \"member\"\nversion = \"0.1.0\"\nedition = \"2024\"\n\n[target.'cfg(unix)'.build-dependencies]\nsystem_api = { version = \"1\", package = \"libc\", features = [\"extra_traits\"], optional = true, default-features = false }\n";
+    let lock = b"# lock after add\nversion = 4\n";
+    let commit = mutation_request(
+        before,
+        MutationKind::DependencyAdd,
+        202,
+        "dependency-member-key",
+        &[("member/Cargo.toml", member), ("Cargo.lock", lock)],
+    )?;
+    let wrong_kind = ck!(NativeMutationStore::open_for_kind(
+        &fixture.state,
+        std::slice::from_ref(&fixture.project),
+        MutationKind::DependencyRemove
+    ));
+    assert_eq!(
+        wrong_kind.commit(&opened.lease, &commit, &Continue),
+        Err(MutationError::PermissionDenied)
+    );
+    let store = ck!(NativeMutationStore::open_for_kind(
+        &fixture.state,
+        std::slice::from_ref(&fixture.project),
+        MutationKind::DependencyAdd
+    ));
+    let receipt = ck!(store.commit(&opened.lease, &commit, &Continue));
+    assert_eq!(receipt.state, MutationState::Committed);
+    assert_eq!(
         receipt
             .files
             .iter()
-            .all(|file| file.effect_after == Some(file.after.clone()))
+            .map(|file| file.path.as_str())
+            .collect::<Vec<_>>(),
+        vec!["Cargo.lock", "member/Cargo.toml"]
     );
     assert_eq!(
-        manifest.receipt(&opened.lease, &commit.id),
-        Err(MutationError::PermissionDenied)
+        ck!(fs::read(fixture.project.join("member/Cargo.toml"))),
+        member
+    );
+    Ok(())
+}
+
+#[test]
+fn dependency_remove_only_drops_the_selected_local_key() -> TestResult<()> {
+    let fixture = Fixture::new("dependency-remove")?;
+    let before_manifest = b"[package]\nname = \"fixture\"\nversion = \"0.1.0\"\nedition = \"2024\"\n[dependencies]\nserde = { workspace = true, features = [\"derive\"] }\nkeep = \"1\"\n[features]\ndefault = [\"serde/std\"]\n[workspace]\n[workspace.dependencies]\nserde = \"1\"\n";
+    ck!(fs::write(
+        fixture.project.join("Cargo.toml"),
+        before_manifest
+    ));
+    let backend = fixture.backend()?;
+    let opened = ck!(backend.open(fixture.project.to_str().ok_or("utf8")?, &Continue));
+    let before = ck!(backend.source(&opened.lease, &Continue));
+    let after_manifest = b"[package]\nname = \"fixture\"\nversion = \"0.1.0\"\nedition = \"2024\"\n[dependencies]\nkeep = \"1\"\n[features]\ndefault = [\"serde/std\"]\n[workspace]\n[workspace.dependencies]\nserde = \"1\"\n";
+    let commit = mutation_request(
+        before,
+        MutationKind::DependencyRemove,
+        203,
+        "dependency-remove-key",
+        &[("Cargo.toml", after_manifest)],
+    )?;
+    let store = ck!(NativeMutationStore::open_for_kind(
+        &fixture.state,
+        std::slice::from_ref(&fixture.project),
+        MutationKind::DependencyRemove
+    ));
+    assert_eq!(
+        ck!(store.commit(&opened.lease, &commit, &Continue)).state,
+        MutationState::Committed
     );
     assert_eq!(
-        format.commit(&opened.lease, &commit, &Continue),
-        Ok(receipt.clone())
+        ck!(fs::read(fixture.project.join("Cargo.toml"))),
+        after_manifest
     );
-    let operator = ck!(NativeMutationStore::open(&fixture.state, &[]));
-    let records = ck!(operator.list_records());
-    assert_eq!(records.len(), 1);
-    assert_eq!(records[0].id, commit.id);
-    assert_eq!(records[0].digest, commit.digest);
-    ck!(operator.prune_record(&commit.id, &commit.digest));
-    assert!(ck!(operator.list_records()).is_empty());
-    assert!(!ck!(fs::read_dir(&fixture.project)).any(|entry| {
-        entry
-            .ok()
-            .and_then(|entry| entry.file_name().into_string().ok())
-            .is_some_and(|name| name.starts_with(".rust-mcp-mut-"))
-    }));
+    Ok(())
+}
+
+#[test]
+fn dependency_no_op_may_publish_only_an_existing_root_lock() -> TestResult<()> {
+    let fixture = Fixture::new("dependency-lock-noop")?;
+    ck!(fs::write(
+        fixture.project.join("Cargo.lock"),
+        b"# old lock\nversion = 4\n"
+    ));
+    let backend = fixture.backend()?;
+    let opened = ck!(backend.open(fixture.project.to_str().ok_or("utf8")?, &Continue));
+    let before = ck!(backend.source(&opened.lease, &Continue));
+    let lock = b"# resolved lock\nversion = 4\n";
+    let commit = mutation_request(
+        before,
+        MutationKind::DependencyAdd,
+        204,
+        "dependency-lock-noop-key",
+        &[("Cargo.lock", lock)],
+    )?;
+    let store = ck!(NativeMutationStore::open_for_kind(
+        &fixture.state,
+        std::slice::from_ref(&fixture.project),
+        MutationKind::DependencyAdd
+    ));
+    let receipt = ck!(store.commit(&opened.lease, &commit, &Continue));
+    assert_eq!(receipt.state, MutationState::Committed);
+    assert_eq!(receipt.files.len(), 1);
+    assert_eq!(receipt.files[0].path, "Cargo.lock");
+    assert_eq!(ck!(fs::read(fixture.project.join("Cargo.lock"))), lock);
+    Ok(())
+}
+
+#[test]
+fn forged_dependency_adds_leave_source_and_journal_untouched() -> TestResult<()> {
+    let fixture = Fixture::new("dependency-forgeries")?;
+    let backend = fixture.backend()?;
+    let opened = ck!(backend.open(fixture.project.to_str().ok_or("utf8")?, &Continue));
+    let before = ck!(backend.source(&opened.lease, &Continue));
+    let original_manifest = ck!(fs::read(fixture.project.join("Cargo.toml")));
+    let original_source = ck!(fs::read(fixture.project.join("src/lib.rs")));
+    let store = ck!(NativeMutationStore::open_for_kind(
+        &fixture.state,
+        std::slice::from_ref(&fixture.project),
+        MutationKind::DependencyAdd
+    ));
+    let cases: Vec<Vec<(&str, &[u8])>> = vec![
+        vec![(
+            "Cargo.toml",
+            b"[package]\nname = \"fixture\"\nversion = \"0.1.0\"\nedition = \"2024\"\n[dependencies]\nevil = { path = \"../evil\" }\n",
+        )],
+        vec![(
+            "Cargo.toml",
+            b"[package]\nname = \"fixture\"\nversion = \"0.1.0\"\nedition = \"2024\"\n[dependencies]\nevil = { git = \"https://example.invalid/evil\" }\n",
+        )],
+        vec![(
+            "Cargo.toml",
+            b"[package]\nname = \"changed\"\nversion = \"0.1.0\"\nedition = \"2024\"\n[dependencies]\nserde = \"1\"\n",
+        )],
+        vec![(
+            "Cargo.toml",
+            b"[package]\nname = \"fixture\"\nversion = \"0.1.0\"\nedition = \"2024\"\n[dependencies]\nserde = \"1\"\nregex = \"1\"\n",
+        )],
+        vec![
+            (
+                "Cargo.toml",
+                b"[package]\nname = \"fixture\"\nversion = \"0.1.0\"\nedition = \"2024\"\n[dependencies]\nserde = \"1\"\n",
+            ),
+            ("src/lib.rs", b"pub fn forged() {}\n"),
+        ],
+    ];
+    for (index, replacements) in cases.iter().enumerate() {
+        let commit = mutation_request(
+            before.clone(),
+            MutationKind::DependencyAdd,
+            210 + index as u128,
+            &format!("dependency-forgery-{index}"),
+            replacements,
+        )?;
+        assert_eq!(
+            store.commit(&opened.lease, &commit, &Continue),
+            Err(MutationError::Invalid),
+            "case {index}"
+        );
+        assert_eq!(
+            ck!(fs::read(fixture.project.join("Cargo.toml"))),
+            original_manifest
+        );
+        assert_eq!(
+            ck!(fs::read(fixture.project.join("src/lib.rs"))),
+            original_source
+        );
+        assert!(ck!(store.list_records()).is_empty());
+    }
+    Ok(())
+}
+
+#[test]
+fn dependency_add_rejects_changes_to_two_member_manifests() -> TestResult<()> {
+    let fixture = Fixture::new("dependency-two-manifests")?;
+    ck!(fs::write(
+        fixture.project.join("Cargo.toml"),
+        b"[workspace]\nmembers = [\"member\"]\nresolver = \"3\"\n[package]\nname = \"fixture\"\nversion = \"0.1.0\"\nedition = \"2024\"\n"
+    ));
+    ck!(fs::create_dir_all(fixture.project.join("member/src")));
+    ck!(fs::write(
+        fixture.project.join("member/Cargo.toml"),
+        b"[package]\nname = \"member\"\nversion = \"0.1.0\"\nedition = \"2024\"\n"
+    ));
+    ck!(fs::write(fixture.project.join("member/src/lib.rs"), b""));
+    let backend = fixture.backend()?;
+    let opened = ck!(backend.open(fixture.project.to_str().ok_or("utf8")?, &Continue));
+    let before = ck!(backend.source(&opened.lease, &Continue));
+    let root = b"[workspace]\nmembers = [\"member\"]\nresolver = \"3\"\n[package]\nname = \"fixture\"\nversion = \"0.1.0\"\nedition = \"2024\"\n[dependencies]\nserde = \"1\"\n";
+    let member = b"[package]\nname = \"member\"\nversion = \"0.1.0\"\nedition = \"2024\"\n[dependencies]\nserde = \"1\"\n";
+    let commit = mutation_request(
+        before,
+        MutationKind::DependencyAdd,
+        220,
+        "dependency-two-manifests-key",
+        &[("Cargo.toml", root), ("member/Cargo.toml", member)],
+    )?;
+    let store = ck!(NativeMutationStore::open_for_kind(
+        &fixture.state,
+        std::slice::from_ref(&fixture.project),
+        MutationKind::DependencyAdd
+    ));
+    assert_eq!(
+        store.commit(&opened.lease, &commit, &Continue),
+        Err(MutationError::Invalid)
+    );
+    assert!(ck!(store.list_records()).is_empty());
+    Ok(())
+}
+
+#[test]
+fn rust_mutation_commit_replaces_nested_files_and_separates_all_operation_grants() -> TestResult<()>
+{
+    for kind in [MutationKind::FormatApply, MutationKind::FixApply] {
+        let fixture = Fixture::new("rust-mutation-happy")?;
+        ck!(fs::write(
+            fixture.project.join("src/other.rs"),
+            b"pub fn other()->u8{7}\n"
+        ));
+        let backend = fixture.backend()?;
+        let opened = ck!(backend.open(fixture.project.to_str().ok_or("utf8")?, &Continue));
+        let before = ck!(backend.source(&opened.lease, &Continue));
+        let mut commit = format_request(before, 90, "rust-mutation-happy-key")?;
+        commit.candidate.kind = kind;
+        commit.digest = ck!(mutation_digest(&commit.candidate));
+        let manifest = ck!(NativeMutationStore::open(
+            &fixture.state,
+            std::slice::from_ref(&fixture.project)
+        ));
+        assert_eq!(
+            manifest.commit(&opened.lease, &commit, &Continue),
+            Err(MutationError::PermissionDenied)
+        );
+        let format = ck!(NativeMutationStore::open_for_kind(
+            &fixture.state,
+            std::slice::from_ref(&fixture.project),
+            kind
+        ));
+        let other = ck!(NativeMutationStore::open_for_kind(
+            &fixture.state,
+            std::slice::from_ref(&fixture.project),
+            if kind == MutationKind::FormatApply {
+                MutationKind::FixApply
+            } else {
+                MutationKind::FormatApply
+            }
+        ));
+        assert_eq!(
+            other.commit(&opened.lease, &commit, &Continue),
+            Err(MutationError::PermissionDenied)
+        );
+        let receipt = ck!(format.commit(&opened.lease, &commit, &Continue));
+        assert_eq!(receipt.state, MutationState::Committed);
+        assert_eq!(
+            receipt
+                .files
+                .iter()
+                .map(|file| file.path.as_str())
+                .collect::<Vec<_>>(),
+            vec!["src/lib.rs", "src/other.rs"]
+        );
+        assert!(
+            receipt
+                .files
+                .iter()
+                .all(|file| file.effect_after == Some(file.after.clone()))
+        );
+        assert_eq!(
+            manifest.receipt(&opened.lease, &commit.id),
+            Err(MutationError::PermissionDenied)
+        );
+        assert_eq!(
+            format.commit(&opened.lease, &commit, &Continue),
+            Ok(receipt.clone())
+        );
+        assert_eq!(
+            other.receipt(&opened.lease, &commit.id),
+            Err(MutationError::PermissionDenied)
+        );
+        assert_eq!(
+            other.recover(&opened.lease, &commit.id),
+            Err(MutationError::PermissionDenied)
+        );
+        let operator = ck!(NativeMutationStore::open(&fixture.state, &[]));
+        let records = ck!(operator.list_records());
+        assert_eq!(records.len(), 1);
+        assert_eq!(records[0].id, commit.id);
+        assert_eq!(records[0].digest, commit.digest);
+        ck!(operator.prune_record(&commit.id, &commit.digest));
+        assert!(ck!(operator.list_records()).is_empty());
+        assert!(!ck!(fs::read_dir(&fixture.project)).any(|entry| {
+            entry
+                .ok()
+                .and_then(|entry| entry.file_name().into_string().ok())
+                .is_some_and(|name| name.starts_with(".rust-mcp-mut-"))
+        }));
+    }
     Ok(())
 }
 
@@ -261,6 +592,16 @@ fn commit_replay_receipt_and_reopened_lease_are_bound_to_workspace() -> TestResu
     );
     assert_eq!(
         store.commit(&opened.lease, &commit, &Continue),
+        Ok(first.clone())
+    );
+    assert_eq!(
+        store.replay(
+            &opened.lease,
+            &commit.id,
+            &commit.digest,
+            &commit.key,
+            &Continue
+        ),
         Ok(first.clone())
     );
     let reopened = ck!(backend.open(fixture.project.to_str().ok_or("utf8")?, &Continue));

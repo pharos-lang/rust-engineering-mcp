@@ -41,11 +41,15 @@ Commands:
         [--catalog-store PATH --catalog-trust PATH [--catalog-model-dir PATH] [--catalog-index-store PATH]]
         [--allow-manifest-write WORKSPACE_ROOT]...
         [--allow-fmt-write WORKSPACE_ROOT]...
+        [--allow-fix-write WORKSPACE_ROOT]...
+        [--allow-dependency-add WORKSPACE_ROOT]...
+        [--allow-dependency-remove WORKSPACE_ROOT]...
+        [--cargo-vendor-dir PATH --cargo-vendor-tree-sha256 sha256:ID]
         [--rustsec-snapshot PATH --rustsec-sha256 sha256:ID]
         [--docker PATH --docker-socket PATH --state-root PATH --rust-image sha256:ID]
                  Serve MCP with host-authorized physical roots (default: none)
 
-Available tools: rust.project.open; rust.project.inspect; rust.toolchain.inspect; rust.check; rust.fmt.check; rust.clippy; rust.test; rust.dependencies.audit; rust.diagnostics.explain; rust.quality.gate; rust.catalog.status; rust.crate.search; rust.crate.inspect; rust.manifest.patch; rust.fmt.apply (explicit approved Rust runtime required except project.open, catalog.status, crate.search and crate.inspect).
+Available tools: rust.project.open; rust.project.inspect; rust.toolchain.inspect; rust.check; rust.fmt.check; rust.clippy; rust.test; rust.dependencies.audit; rust.diagnostics.explain; rust.quality.gate; rust.catalog.status; rust.crate.search; rust.crate.inspect; rust.manifest.patch; rust.fmt.apply; rust.fix.apply; rust.dependency.add; rust.dependency.remove (explicit approved Rust runtime required except project.open, catalog.status, crate.search and crate.inspect).
 ";
 
 const USAGE_ERROR: &str = "Unsupported invocation. Use 'rust-engineering-mcp --help'.\n";

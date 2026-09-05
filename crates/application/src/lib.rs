@@ -244,3 +244,8 @@ pub use mutation::*;
 
 mod rust_mutation;
 pub use rust_mutation::*;
+
+mod resolution;
+pub use resolution::{
+    PreparedSemanticMutation, ProjectResolutionPort, ResolutionError, SemanticPreparationError,
+};

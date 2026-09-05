@@ -6,8 +6,9 @@ use crate::{
 };
 use rust_engineering_domain::{
     IdempotencyKey, ManifestEdit, ManifestEditError, MutationCandidate, MutationCommit,
-    MutationError, MutationId, MutationKind, MutationReceipt, ProjectIdentityFingerprint,
-    ProjectRef, RustMutationCommand, SourceBundle, SourceFile, SourceFingerprint,
+    MutationError, MutationId, MutationKind, MutationReceipt, MutationState,
+    ProjectIdentityFingerprint, ProjectRef, RustMutationCommand, SourceBundle, SourceFile,
+    SourceFingerprint,
 };
 use std::sync::{
     Arc,
@@ -21,6 +22,15 @@ pub trait MutationPublisher<L> {
         &self,
         lease: &L,
         request: &MutationCommit,
+        control: &dyn OperationControl,
+    ) -> Result<MutationReceipt, MutationError>;
+    /// Repeat only an existing durable operation; never create an operation from an ID.
+    fn replay(
+        &self,
+        lease: &L,
+        id: &MutationId,
+        digest: &SourceFingerprint,
+        key: &IdempotencyKey,
         control: &dyn OperationControl,
     ) -> Result<MutationReceipt, MutationError>;
     fn receipt(&self, lease: &L, id: &MutationId) -> Result<MutationReceipt, MutationError>;
@@ -173,6 +183,26 @@ impl<B: ProjectSourceBackend, G: ReferenceGenerator, C: RegistryClock> ProjectRe
         result
     }
 
+    pub fn replay_mutation(
+        &mut self,
+        reference: &ProjectRef,
+        id: &MutationId,
+        digest: &SourceFingerprint,
+        key: &IdempotencyKey,
+        publisher: &impl MutationPublisher<B::Lease>,
+        control: &dyn OperationControl,
+    ) -> Result<MutationReceipt, MutationError> {
+        self.resolve_inner(reference, control, false)
+            .map_err(project_mutation_error)?;
+        let entry = self.entries.get(reference).ok_or(MutationError::NotFound)?;
+        publisher.authorize(&entry.project.lease)?;
+        let result = publisher.replay(&entry.project.lease, id, digest, key, control);
+        if result.is_ok() || result == Err(MutationError::RecoveryRequired) {
+            self.entries.remove(reference);
+        }
+        result
+    }
+
     pub fn mutation_receipt(
         &mut self,
         reference: &ProjectRef,
@@ -205,8 +235,21 @@ impl PreparedRustMutation {
         mutator: &impl ProjectMutationPort,
         control: &dyn InspectionControl,
     ) -> Result<(String, MutationCandidate), MutationPreparationError> {
+        self.validate_command(RustMutationCommand::Format, mutator, control)
+    }
+
+    pub fn validate_command(
+        self,
+        command: RustMutationCommand,
+        mutator: &impl ProjectMutationPort,
+        control: &dyn InspectionControl,
+    ) -> Result<(String, MutationCandidate), MutationPreparationError> {
+        let (kind, version) = match command {
+            RustMutationCommand::Format => (MutationKind::FormatApply, "m2-fmt-apply-v1"),
+            RustMutationCommand::Fix => (MutationKind::FixApply, "m2-fix-apply-v1"),
+        };
         let observation = mutator
-            .mutate(&self.before, RustMutationCommand::Format, control)
+            .mutate(&self.before, command, control)
             .map_err(MutationPreparationError::Inspection)?;
         control.check()?;
         // The application independently enforces the closed operation's scope.
@@ -234,7 +277,7 @@ impl PreparedRustMutation {
         }
         let runtime = observation.runtime;
         let fields = [
-            "m2-fmt-apply-v1".to_owned(),
+            version.to_owned(),
             "local_coordinated".to_owned(),
             runtime.platform,
             runtime.image_id,
@@ -253,7 +296,7 @@ impl PreparedRustMutation {
         Ok((
             self.workspace_root,
             MutationCandidate {
-                kind: MutationKind::FormatApply,
+                kind,
                 before: self.before,
                 after,
                 validation,
@@ -318,6 +361,23 @@ fn project_mutation_error(error: ProjectError) -> MutationError {
 pub struct RememberedMutation {
     pub workspace_root: String,
     pub request: MutationCommit,
+    completed: Arc<AtomicBool>,
+}
+
+impl RememberedMutation {
+    /// Retirement cannot fail on a mutex after a durable terminal result.
+    /// The next admission drops the buffers before checking the active-plan quota.
+    pub fn retire_if_terminal(&self, receipt: &MutationReceipt) {
+        if receipt.id == self.request.id
+            && receipt.digest == self.request.digest
+            && matches!(
+                receipt.state,
+                MutationState::Committed | MutationState::NoChange | MutationState::Aborted
+            )
+        {
+            self.completed.store(true, Ordering::Release);
+        }
+    }
 }
 
 struct Plan {
@@ -325,8 +385,10 @@ struct Plan {
     digest: SourceFingerprint,
     workspace_root: String,
     candidate: MutationCandidate,
+    bytes: usize,
     created: u64,
     retention: Option<PreviewToken>,
+    completed: Arc<AtomicBool>,
 }
 
 /// Dropping an undelivered preview revokes its budget reservation without a lock.
@@ -362,9 +424,11 @@ impl Drop for PreviewRetention {
 }
 impl Plan {
     fn retained(&self) -> bool {
-        self.retention
-            .as_ref()
-            .is_none_or(|token| token.0.load(Ordering::Acquire))
+        !self.completed.load(Ordering::Acquire)
+            && self
+                .retention
+                .as_ref()
+                .is_none_or(|token| token.0.load(Ordering::Acquire))
     }
 }
 
@@ -372,6 +436,13 @@ impl Plan {
 #[derive(Default)]
 pub struct MutationPlans {
     entries: Vec<Plan>,
+}
+
+/// Current in-memory plan allocation. This excludes journals and process RSS.
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+pub struct MutationAllocationStats {
+    pub plans: usize,
+    pub bytes: usize,
 }
 
 impl MutationPlans {
@@ -442,10 +513,20 @@ impl MutationPlans {
             digest,
             workspace_root,
             candidate,
+            bytes,
             created: now,
             retention,
+            completed: Arc::new(AtomicBool::new(false)),
         });
         Ok(())
+    }
+
+    /// Observes allocated entries without pruning expired or revoked plans.
+    pub fn allocation_stats(&self) -> MutationAllocationStats {
+        MutationAllocationStats {
+            plans: self.entries.len(),
+            bytes: self.entries.iter().map(|plan| plan.bytes).sum(),
+        }
     }
 
     pub fn resolve(
@@ -472,6 +553,7 @@ impl MutationPlans {
         }
         Ok(RememberedMutation {
             workspace_root: plan.workspace_root.clone(),
+            completed: plan.completed.clone(),
             request: MutationCommit {
                 id: id.clone(),
                 digest: digest.clone(),

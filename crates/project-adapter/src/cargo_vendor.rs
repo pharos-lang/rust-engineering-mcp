@@ -130,6 +130,23 @@ fn package_identity(manifest: &[u8]) -> Result<(String, String), ProjectError> {
 }
 
 pub(crate) fn validate(source: SourceBundle) -> Result<CargoVendorSnapshot, ProjectError> {
+    // File paths determine every authorized directory. Reject explicit empty
+    // directories so the host's file-tree digest also binds the whole topology.
+    let mut implied_directories = BTreeSet::new();
+    for file in source.files() {
+        for (index, _) in file.path().match_indices('/') {
+            implied_directories.insert(&file.path()[..index]);
+        }
+    }
+    if source
+        .directories()
+        .iter()
+        .map(String::as_str)
+        .collect::<BTreeSet<_>>()
+        != implied_directories
+    {
+        return Err(invalid());
+    }
     let tree_fingerprint = tree_fingerprint(&source)?;
     let files = source
         .files()

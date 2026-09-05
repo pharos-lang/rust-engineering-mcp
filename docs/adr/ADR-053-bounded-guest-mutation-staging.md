@@ -79,4 +79,4 @@ Fuentes oficiales: [local-driver options](https://docs.docker.com/reference/cli/
 
 ## Status
 
-Accepted para implementar D04. M2-02/03 y la calificación de producción siguen pendientes.
+Accepted. D04 y M2-02/03 implementados y calificados: [cierre M2](../validation/M2-07.md).

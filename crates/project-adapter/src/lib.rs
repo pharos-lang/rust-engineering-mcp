@@ -10,6 +10,7 @@ mod filesystem;
 mod manifest;
 mod manifest_edit;
 pub mod mutation_store;
+mod semantic_delta;
 
 use std::path::{Path, PathBuf};
 use std::time::Instant;

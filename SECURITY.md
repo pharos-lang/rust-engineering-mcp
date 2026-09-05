@@ -248,18 +248,43 @@ no demuestra por sí solo el perfil M1 completo: esa evidencia procede del full 
 
 ## Escritura local M2 en desarrollo
 
-[ADR-050](docs/adr/ADR-050-local-coordinated-mutation.md) fija edición local
-coordinada para M2: permiso de escritura del host configurado una vez, preview/diff,
-precondiciones, locks entre instancias MCP, journal y recuperación conservadora.
-No exige servicios privilegiados, sudo, cuentas ni cambios de ownership del proyecto.
-El host mantiene estables las roots y evita editar simultáneamente los archivos
-afectados durante el commit breve. El MCP no bloquea al IDE ni promete CAS o atomicidad
-visible multiarchivo. Conflictos observados detienen la operación; los posteriores
-pueden requerir recuperación conservando evidencia y sin pisar bytes desconocidos.
-La rama de desarrollo incorpora `rust.manifest.patch` para lints del `Cargo.toml`
-raíz e integra `rust.fmt.apply` para archivos Rust existentes. Ambos usan
-preview/commit/receipt, con grants separados `--allow-manifest-write WORKSPACE_ROOT`
-y `--allow-fmt-write WORKSPACE_ROOT`. La calificación conjunta sigue en curso;
-estas capacidades no forman parte de la release `0.1.0`. Las trece tools M1 y su
-sandbox se conservan. Fix, dependencias y las demás familias de patch siguen
-pendientes; el tablero enlaza la evidencia sin anunciar M2 terminado.
+[ADR-050](docs/adr/ADR-050-local-coordinated-mutation.md) define
+`local_coordinated`. Los cinco grants de escritura son independientes y provienen
+solo del host; `project_ref`, el request y el contenido del proyecto no amplían
+autoridad. Preview no publica source. Para efectos nuevos, commit exige el plan exacto no
+vencido, vuelve a comprobar identidad y bytes completos y usa publicación no-follow
+más journal. Con plan ausente o expirado, solo se admite replay de un journal
+existente ligado a ID/digest/key exactos y autoridad viva (ADR-059); puede recuperar
+o migrar ese registro, nunca crear una operación nueva. Los
+locks coordinan instancias con el mismo state root, pero no excluyen IDE, Git u
+otros procesos del usuario. No se garantiza CAS, atomicidad visible multiarchivo,
+protección frente a un host malicioso ni supervivencia demostrada a power loss.
+
+El workspace nunca se monta con escritura en Docker. Source y vendor se capturan
+como bytes propios; los procesos de ingest terminan antes del mutador y vendor se
+monta read-only. Solo el mutador acotado puede escribir staging y solo el publisher
+host aplica después los paths y bytes autorizados.
+Fmt y fix pueden reemplazar como máximo 128 archivos `.rs` existentes. Fix ejecuta
+build scripts y proc macros: esos componentes pueden influir en cualquier cambio
+`.rs` permitido. Su perfil conserva `network=none`, pero permite sockets TCP
+loopback dentro del namespace para el protocolo interno de Cargo; no se debe
+describir como denegación absoluta de sockets. Esta excepción no se aplica a M1,
+fmt, ingest, export ni resolución.
+
+Las mutaciones que cambian resolución requieren un directory source aprobado por
+path y SHA-256. El servidor lo captura con I/O no-follow; no hereda `CARGO_HOME`,
+configuración, credenciales ni red del host. Cargo usa source replacement fijo,
+HOME/CARGO_HOME efímeros y ejecución offline con red aislada. La policy
+`preserve_presence` publica un lock actualizado solo cuando ya existía. Datos
+ausentes, corruptos o cambiados bloquean la operación completa; no hay fallback a
+descarga ni a edición solo del manifest.
+
+La [calificación local M2](docs/validation/M2-07.md) está completada. El checkout se identifica como `0.2.0-dev`,
+pero estas cinco tools no forman parte de la release estable `0.1.0`.
+
+Los journals M2 parciales/corruptos pueden bloquear nuevas mutaciones del store
+compartido. Se conserva la evidencia; el [procedimiento de recuperación](docs/client-configuration.md#planes-receipts-y-recovery)
+requiere copias físicas y estado nuevos si la reconciliación no converge. Esta
+limitación de disponibilidad no se presenta como recuperación automática universal.
+Los eventos M2 por stderr no contienen código, rutas ni credenciales; el host
+controla la retención de esos logs.

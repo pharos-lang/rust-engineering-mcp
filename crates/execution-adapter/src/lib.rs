@@ -683,6 +683,7 @@ mod tests {
 
 mod mutation_archive;
 mod mutation_gateway;
+mod resolution_gateway;
 mod rust_applied;
 mod rust_gateway;
 mod source_archive;

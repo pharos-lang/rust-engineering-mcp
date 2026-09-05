@@ -1423,7 +1423,24 @@ backups y puede exigir recuperación sin sobrescribir bytes desconocidos. Esta l
 no relaja containment de paths ni el sandbox para código de proyecto.
 
 
-Después de estabilizar el core podrán añadirse operaciones mutables.
+El contrato implementado de M2 añade estas cinco tools a las trece de M1. Todas
+usan acciones `preview`, `commit` y `receipt`; sus esquemas exactos y ejemplos están
+en [tools](../tools.md). El host concede cada operación por separado. ADR-052/054
+fijan journal privado, generación completa, límites, retención y recuperación.
+
+ADR-055 adopta datos Cargo vendor optativos, capturados y verificados por SHA del
+árbol fuera de las read roots. Solo las operaciones que resuelven dependencias
+requieren estos datos; el runtime no los descarga ni importa CARGO_HOME. Cargo
+resuelve offline en staging y valida después con metadata frozen. Un Cargo.lock
+existente puede actualizarse junto al manifest; un lock ausente permanece ausente
+en el host (`preserve_presence`). Receipts/recovery no requieren el dataset.
+
+ADR-056 fija Cargo fix para todos los targets del workspace y features default,
+sin flags arbitrarios ni migración de edición. Su perfil aislado permite el TCP
+loopback que Cargo necesita; `network=none` conserva aislamiento externo. ADR-057
+limita patch a features, settings de profiles incorporados, workspace dependencies
+y lints; add/remove seleccionan un paquete miembro por manifest existente y no
+editan definiciones ajenas implícitamente.
 
 ---
 

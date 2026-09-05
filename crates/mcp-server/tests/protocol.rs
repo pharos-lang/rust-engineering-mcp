@@ -173,7 +173,7 @@ impl Server {
         }
     }
 
-    fn finish(mut self, expected: i32) -> Result<Vec<u8>, Box<dyn Error>> {
+    fn finish_raw(mut self, expected: i32) -> Result<Vec<u8>, Box<dyn Error>> {
         self.stdin.take();
         assert_eq!(self.wait()?.code(), Some(expected));
         match self.stdout.recv_timeout(TIMEOUT) {
@@ -182,11 +182,83 @@ impl Server {
         }
         let errors = self.stderr.recv_timeout(TIMEOUT)??;
         assert!(!String::from_utf8_lossy(&errors).contains(SECRET));
+        Ok(errors)
+    }
+
+    fn finish(self, expected: i32) -> Result<Vec<u8>, Box<dyn Error>> {
+        let errors = self.finish_raw(expected)?;
         if expected == 0 {
             assert!(errors.is_empty(), "unexpected stderr: {errors:?}");
         }
         Ok(errors)
     }
+
+    fn finish_with_mutation_event(
+        self,
+        expected_status: i32,
+        tool: &str,
+    ) -> Result<(), Box<dyn Error>> {
+        let errors = self.finish_raw(expected_status)?;
+        let events = mutation_events(&errors)?;
+        assert_eq!(events.len(), 1, "unexpected mutation events: {events:?}");
+        assert_mutation_event(&events[0], tool, "preview")?;
+        assert_eq!(events[0]["admitted"], false);
+        assert_eq!(events[0]["status"], "blocked");
+        assert_eq!(events[0]["reason"], "permission_denied");
+        assert_eq!(events[0]["cleanup_uncertain"], false);
+        assert_eq!(events[0]["result_id"], Value::Null);
+        assert_eq!(events[0]["files_changed"], 0);
+        Ok(())
+    }
+}
+
+fn mutation_events(stderr: &[u8]) -> Result<Vec<Value>, Box<dyn Error>> {
+    let text = std::str::from_utf8(stderr)?;
+    text.lines()
+        .map(|line| {
+            let json = line
+                .strip_prefix(" INFO ")
+                .or_else(|| line.strip_prefix("INFO "))
+                .ok_or_else(|| format!("unexpected stderr record: {line}"))?;
+            serde_json::from_str(json).map_err(Into::into)
+        })
+        .collect()
+}
+
+fn assert_mutation_event(event: &Value, tool: &str, phase: &str) -> TestResult {
+    let object = event.as_object().ok_or("mutation event is not an object")?;
+    let expected = [
+        "schema",
+        "event",
+        "tool",
+        "phase",
+        "admitted",
+        "status",
+        "reason",
+        "duration_ms",
+        "cleanup_uncertain",
+        "result_id",
+        "files_changed",
+        "allocated_plans",
+        "allocated_plan_bytes",
+    ];
+    assert_eq!(
+        object.len(),
+        expected.len(),
+        "unexpected event fields: {event}"
+    );
+    for field in expected {
+        assert!(object.contains_key(field), "missing {field}: {event}");
+    }
+    assert_eq!(event["schema"], "rust-mcp-mutation-event-v1");
+    assert_eq!(event["event"], "mutation_call_completed");
+    assert_eq!(event["tool"], tool);
+    assert_eq!(event["phase"], phase);
+    assert!(event["duration_ms"].as_u64().is_some());
+    assert!(event["allocated_plans"].as_u64().is_some());
+    assert!(event["allocated_plan_bytes"].as_u64().is_some());
+    assert!(!event.to_string().contains(SECRET));
+    Ok(())
 }
 
 impl Drop for Server {
@@ -325,6 +397,9 @@ fn bootstrap(server: &mut Server, version: &str) -> Result<Value, Box<dyn Error>
         (12, include_str!("snapshots/crate-inspect-tool.json")),
         (13, include_str!("snapshots/manifest-patch-tool.json")),
         (14, include_str!("snapshots/fmt-apply-tool.json")),
+        (15, include_str!("snapshots/fix-apply-tool.json")),
+        (16, include_str!("snapshots/dependency-add-tool.json")),
+        (17, include_str!("snapshots/dependency-remove-tool.json")),
     ] {
         assert_eq!(
             response["result"]["tools"][index],
@@ -605,7 +680,7 @@ mod project_fixtures {
 fn assert_project_list(response: &Value, modern: bool) {
     assert!(response.get("error").is_none(), "{response}");
     let tools = response["result"]["tools"].as_array();
-    assert_eq!(tools.map(Vec::len), Some(15));
+    assert_eq!(tools.map(Vec::len), Some(18));
     let names: Vec<_> = response["result"]["tools"]
         .as_array()
         .into_iter()
@@ -629,7 +704,10 @@ fn assert_project_list(response: &Value, modern: bool) {
             "rust.crate.search",
             "rust.crate.inspect",
             "rust.manifest.patch",
-            "rust.fmt.apply"
+            "rust.fmt.apply",
+            "rust.fix.apply",
+            "rust.dependency.add",
+            "rust.dependency.remove"
         ]
     );
     let tool = &response["result"]["tools"][0];
@@ -1533,73 +1611,89 @@ fn first_crate_inspect_requires_discovery() -> TestResult {
 }
 
 #[test]
-fn fmt_apply_contract_is_closed_and_default_denied_in_all_versions() -> TestResult {
-    for version in std::iter::once(VERSION).chain(LEGACY) {
-        let mut server = Server::start()?;
-        bootstrap(&mut server, version)?;
-        server.send(if version == VERSION {
-            modern(json!(10), "tools/list")
-        } else {
-            json!({"jsonrpc":"2.0","id":10,"method":"tools/list"})
-        })?;
-        let tool = server.response(json!(10))?["result"]["tools"][14].clone();
-        assert_eq!(tool["name"], "rust.fmt.apply");
-        assert_eq!(
-            tool["annotations"],
-            json!({"readOnlyHint":false,"destructiveHint":true,"idempotentHint":false,"openWorldHint":false})
-        );
-        let input = jsonschema::validator_for(&tool["inputSchema"])?;
-        let valid_ref = "prj_00000000000000000000000000000001";
-        let fingerprint = format!("sha256:{}", "a".repeat(64));
-        for arguments in [
-            json!({}),
-            json!({"project_ref":valid_ref}),
-            json!({"project_ref":42,"action":{"mode":"preview","expected_project_fingerprint":fingerprint}}),
-            json!({"project_ref":valid_ref,"action":{"mode":"preview"}}),
-            json!({"project_ref":valid_ref,"action":{"mode":"preview","expected_project_fingerprint":fingerprint,"args":["--edition","2027"]}}),
-            json!({"project_ref":valid_ref,"action":{"mode":"preview","expected_project_fingerprint":fingerprint,"edit":{"path":"src/lib.rs"}}}),
-            json!({"project_ref":valid_ref,"action":{"mode":"commit","plan_id":"mut_bad","plan_digest":fingerprint,"idempotency_key":"key"}}),
-            json!({"project_ref":valid_ref,"action":{"mode":"commit","plan_id":"mut_00000000000000000000000000000001","plan_digest":"sha256:bad","idempotency_key":"key"}}),
-            json!({"project_ref":valid_ref,"action":{"mode":"commit","plan_id":"mut_00000000000000000000000000000001","plan_digest":fingerprint,"idempotency_key":"spaces forbidden"}}),
-            json!({"project_ref":valid_ref,"action":{"mode":"receipt","operation_id":"mut_00000000000000000000000000000001","recover":false,"force":true}}),
-        ] {
-            assert!(!input.is_valid(&arguments), "schema accepted {arguments}");
-            server.send(named_inspect_call(11, "rust.fmt.apply", arguments, version))?;
-            assert_eq!(server.response(json!(11))?["error"]["code"], -32602);
+fn rust_mutation_contracts_are_closed_and_default_denied_in_all_versions() -> TestResult {
+    for (index, name) in [
+        (14, "rust.fmt.apply"),
+        (15, "rust.fix.apply"),
+        (16, "rust.dependency.add"),
+        (17, "rust.dependency.remove"),
+    ] {
+        for version in std::iter::once(VERSION).chain(LEGACY) {
+            let mut server = Server::start()?;
+            bootstrap(&mut server, version)?;
+            server.send(if version == VERSION {
+                modern(json!(10), "tools/list")
+            } else {
+                json!({"jsonrpc":"2.0","id":10,"method":"tools/list"})
+            })?;
+            let tool = server.response(json!(10))?["result"]["tools"][index].clone();
+            assert_eq!(tool["name"], name);
+            assert_eq!(
+                tool["annotations"],
+                json!({"readOnlyHint":false,"destructiveHint":true,"idempotentHint":false,"openWorldHint":false})
+            );
+            let input = jsonschema::validator_for(&tool["inputSchema"])?;
+            let valid_ref = "prj_00000000000000000000000000000001";
+            let fingerprint = format!("sha256:{}", "a".repeat(64));
+            for arguments in [
+                json!({}),
+                json!({"project_ref":valid_ref}),
+                json!({"project_ref":42,"action":{"mode":"preview","expected_project_fingerprint":fingerprint}}),
+                json!({"project_ref":valid_ref,"action":{"mode":"preview"}}),
+                json!({"project_ref":valid_ref,"action":{"mode":"preview","expected_project_fingerprint":fingerprint,"args":["--edition","2027"]}}),
+                json!({"project_ref":valid_ref,"action":{"mode":"preview","expected_project_fingerprint":fingerprint,"edit":{"path":"src/lib.rs"}}}),
+                json!({"project_ref":valid_ref,"action":{"mode":"commit","plan_id":"mut_bad","plan_digest":fingerprint,"idempotency_key":"key"}}),
+                json!({"project_ref":valid_ref,"action":{"mode":"commit","plan_id":"mut_00000000000000000000000000000001","plan_digest":"sha256:bad","idempotency_key":"key"}}),
+                json!({"project_ref":valid_ref,"action":{"mode":"commit","plan_id":"mut_00000000000000000000000000000001","plan_digest":fingerprint,"idempotency_key":"spaces forbidden"}}),
+                json!({"project_ref":valid_ref,"action":{"mode":"receipt","operation_id":"mut_00000000000000000000000000000001","recover":false,"force":true}}),
+            ] {
+                assert!(!input.is_valid(&arguments), "schema accepted {arguments}");
+                server.send(named_inspect_call(11, name, arguments, version))?;
+                assert_eq!(server.response(json!(11))?["error"]["code"], -32602);
+            }
+            let mut arguments = json!({"project_ref":valid_ref,"action":{"mode":"preview","expected_project_fingerprint":fingerprint}});
+            if name == "rust.dependency.add" || name == "rust.dependency.remove" {
+                arguments["action"]["name"] = json!("serde");
+            }
+            if name == "rust.dependency.add" {
+                arguments["action"]["requirement"] = json!("1.0");
+            }
+            assert!(
+                input.is_valid(&arguments),
+                "invalid default denied request: {arguments}"
+            );
+            server.send(named_inspect_call(12, name, arguments, version))?;
+            let denied = server.response(json!(12))?;
+            assert!(denied.get("error").is_none(), "{denied}");
+            let result = &denied["result"];
+            assert_eq!(result["isError"], true);
+            if version == VERSION {
+                assert_eq!(result["resultType"], "complete");
+            } else {
+                assert!(result.get("resultType").is_none());
+            }
+            assert_eq!(result["content"].as_array().map(Vec::len), Some(1));
+            assert_eq!(result["content"][0]["type"], "text");
+            let fallback: Value = serde_json::from_str(
+                result["content"][0]["text"]
+                    .as_str()
+                    .ok_or("missing mutation fallback")?,
+            )?;
+            assert_eq!(fallback, result["structuredContent"]);
+            let output = jsonschema::validator_for(&tool["outputSchema"])?;
+            output
+                .validate(&fallback)
+                .map_err(|error| error.to_string())?;
+            let mut extra = fallback;
+            extra["unrecognized"] = json!(true);
+            assert!(!output.is_valid(&extra));
+            assert_eq!(result["structuredContent"]["status"], "blocked");
+            assert_eq!(
+                result["structuredContent"]["error_code"],
+                "permission_denied"
+            );
+            server.finish_with_mutation_event(0, name)?;
         }
-        let arguments = json!({"project_ref":valid_ref,"action":{"mode":"preview","expected_project_fingerprint":fingerprint}});
-        assert!(input.is_valid(&arguments));
-        server.send(named_inspect_call(12, "rust.fmt.apply", arguments, version))?;
-        let denied = server.response(json!(12))?;
-        assert!(denied.get("error").is_none(), "{denied}");
-        let result = &denied["result"];
-        assert_eq!(result["isError"], true);
-        if version == VERSION {
-            assert_eq!(result["resultType"], "complete");
-        } else {
-            assert!(result.get("resultType").is_none());
-        }
-        assert_eq!(result["content"].as_array().map(Vec::len), Some(1));
-        assert_eq!(result["content"][0]["type"], "text");
-        let fallback: Value = serde_json::from_str(
-            result["content"][0]["text"]
-                .as_str()
-                .ok_or("missing mutation fallback")?,
-        )?;
-        assert_eq!(fallback, result["structuredContent"]);
-        let output = jsonschema::validator_for(&tool["outputSchema"])?;
-        output
-            .validate(&fallback)
-            .map_err(|error| error.to_string())?;
-        let mut extra = fallback;
-        extra["unrecognized"] = json!(true);
-        assert!(!output.is_valid(&extra));
-        assert_eq!(result["structuredContent"]["status"], "blocked");
-        assert_eq!(
-            result["structuredContent"]["error_code"],
-            "permission_denied"
-        );
-        server.finish(0)?;
     }
     Ok(())
 }
