@@ -55,10 +55,11 @@ jobs:
         run: |
           export COVERAGE_FILE=coverage/.coverage
           python -m coverage run --branch --source=scripts --omit='scripts/test-*.py' scripts/check-architecture.py
+          python -m coverage run --append --branch --source=scripts --omit='scripts/test-*.py' scripts/test-coverage-reports.py
           python -m coverage xml -o coverage/python.xml
 
       - name: Validate coverage reports
-        run: python scripts/check-coverage-reports.py coverage/rust.lcov coverage/python.xml
+        run: python scripts/check-coverage-reports.py
 
       - name: Scan and wait for the Quality Gate
         uses: SonarSource/sonarqube-scan-action@22918119ff8e1ca75a623e15c8296b6ea4fbe28f # v8.2.1

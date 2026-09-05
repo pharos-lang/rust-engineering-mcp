@@ -3,9 +3,11 @@
 
 from __future__ import annotations
 
-import argparse
 from pathlib import Path
 import xml.etree.ElementTree as ET
+
+RUST_LCOV = Path("coverage/rust.lcov")
+PYTHON_COBERTURA = Path("coverage/python.xml")
 
 
 def validate_lcov(path: Path) -> tuple[int, int]:
@@ -40,13 +42,8 @@ def validate_cobertura(path: Path) -> tuple[int, int]:
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("rust_lcov", type=Path)
-    parser.add_argument("python_cobertura", type=Path)
-    args = parser.parse_args()
-
-    rust_hit, rust_found = validate_lcov(args.rust_lcov)
-    python_hit, python_found = validate_cobertura(args.python_cobertura)
+    rust_hit, rust_found = validate_lcov(RUST_LCOV)
+    python_hit, python_found = validate_cobertura(PYTHON_COBERTURA)
     print(
         "coverage inputs valid: "
         f"Rust {rust_hit}/{rust_found} lines; "
