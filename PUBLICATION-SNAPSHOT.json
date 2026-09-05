@@ -1,6 +1,6 @@
 {
   "schema": "rust-engineering-mcp-public-snapshot-v1",
-  "source_commit": "590853d25d58404318d86562748292c54b4f5371",
+  "source_commit": "68cd00131ac71df23460723533df1c10314b0675",
   "history_policy": "new public root commit; private local history is not exported",
   "sanitization": {
     "rule": "replace the local home path and local username in UTF-8 files",
