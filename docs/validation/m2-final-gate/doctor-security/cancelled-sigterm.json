@@ -1,0 +1,164 @@
+{
+  "format_version": 1,
+  "operation": "doctor",
+  "mode": "active",
+  "status": "failed",
+  "duration_ms": 1039,
+  "checks": [
+    {
+      "id": "catalog",
+      "scope": "catalog_snapshot",
+      "status": "not_configured",
+      "reason": "not_configured",
+      "component_reason": "not_configured",
+      "action": "configure_optional",
+      "severity": "warning"
+    },
+    {
+      "id": "model",
+      "scope": "local_model",
+      "status": "not_configured",
+      "reason": "not_configured",
+      "component_reason": "not_configured",
+      "action": "configure_optional",
+      "severity": "warning"
+    },
+    {
+      "id": "semantic_index",
+      "scope": "catalog_snapshot",
+      "status": "not_configured",
+      "reason": "not_configured",
+      "component_reason": "not_configured",
+      "action": "configure_optional",
+      "severity": "warning"
+    },
+    {
+      "id": "rustsec",
+      "scope": "catalog_snapshot",
+      "status": "not_configured",
+      "reason": "not_configured",
+      "component_reason": "not_configured",
+      "action": "configure_optional",
+      "severity": "warning"
+    },
+    {
+      "id": "filesystem_roots",
+      "scope": "host_filesystem",
+      "status": "not_configured",
+      "reason": "not_configured",
+      "component_reason": null,
+      "action": "configure_optional",
+      "severity": "warning"
+    },
+    {
+      "id": "rustc",
+      "scope": "approved_runtime",
+      "status": "unavailable",
+      "reason": "interrupted",
+      "component_reason": null,
+      "action": "review_runtime",
+      "severity": "failed"
+    },
+    {
+      "id": "cargo",
+      "scope": "approved_runtime",
+      "status": "unavailable",
+      "reason": "interrupted",
+      "component_reason": null,
+      "action": "review_runtime",
+      "severity": "failed"
+    },
+    {
+      "id": "rustfmt",
+      "scope": "approved_runtime",
+      "status": "unavailable",
+      "reason": "interrupted",
+      "component_reason": null,
+      "action": "review_runtime",
+      "severity": "failed"
+    },
+    {
+      "id": "clippy",
+      "scope": "approved_runtime",
+      "status": "unavailable",
+      "reason": "interrupted",
+      "component_reason": null,
+      "action": "review_runtime",
+      "severity": "failed"
+    },
+    {
+      "id": "sandbox",
+      "scope": "approved_runtime",
+      "status": "unavailable",
+      "reason": "interrupted",
+      "component_reason": null,
+      "action": "review_runtime",
+      "severity": "failed"
+    },
+    {
+      "id": "host_tools",
+      "scope": "host",
+      "status": "not_checked",
+      "reason": "unknown",
+      "component_reason": null,
+      "action": "none",
+      "severity": "warning"
+    },
+    {
+      "id": "cargo_audit",
+      "scope": "approved_runtime",
+      "status": "not_used",
+      "reason": "owned_rustsec_engine",
+      "component_reason": null,
+      "action": "none",
+      "severity": "passed"
+    },
+    {
+      "id": "audit_engine",
+      "scope": "compiled_feature",
+      "status": "available",
+      "reason": "owned_rustsec_engine",
+      "component_reason": null,
+      "action": "none",
+      "severity": "passed"
+    },
+    {
+      "id": "optional_tools",
+      "scope": "host",
+      "status": "not_checked",
+      "reason": "unknown",
+      "component_reason": null,
+      "action": "none",
+      "severity": "warning"
+    },
+    {
+      "id": "diagnostic",
+      "scope": "diagnostic",
+      "status": "unavailable",
+      "reason": "interrupted",
+      "component_reason": null,
+      "action": "review_diagnostic",
+      "severity": "failed"
+    }
+  ],
+  "catalog": {
+    "catalog": {
+      "status": "unavailable",
+      "reason": "not_configured"
+    },
+    "reservation": null,
+    "model": {
+      "status": "unavailable",
+      "reason": "not_configured"
+    },
+    "semantic_index": {
+      "status": "unavailable",
+      "reason": "not_configured"
+    },
+    "rustsec": {
+      "status": "unavailable",
+      "reason": "not_configured"
+    }
+  },
+  "runtime": null
+}

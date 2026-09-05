@@ -1,0 +1,60 @@
+{
+  "model": "claude-sonnet-5",
+  "effort": "medium",
+  "cli_version": "2.1.260",
+  "files": [
+    {
+      "path": "docs/adr/ADR-050-local-coordinated-mutation.md",
+      "sha256": "e4e8b38936cdde67c4704833c464b68dd43e7fe6166daadb887991ee695c6a40"
+    },
+    {
+      "path": "docs/adr/ADR-051-semantic-manifest-editor.md",
+      "sha256": "e8f11b804f740bcafdaf30900e3809ef13721478ba0b59c23c4a86f03bdf2c73"
+    },
+    {
+      "path": "docs/adr/ADR-052-mutation-journal-and-authorization.md",
+      "sha256": "7afced4d0e13c80a320cb1bb4c43b81c75920b01088a18645a1c81b8e6a9444f"
+    },
+    {
+      "path": "crates/domain/src/manifest_edit.rs",
+      "sha256": "b332d3fcfc8d6a3786961690adb06dbb9148472e66c951696b83dff0d540d9a9"
+    },
+    {
+      "path": "crates/domain/src/mutation.rs",
+      "sha256": "d9bbdd60c002a028a0509746086bef66a5ca72f47e0040166a3663c505fbd5a4"
+    },
+    {
+      "path": "crates/application/src/manifest_edit.rs",
+      "sha256": "10645c11645937991d7256a7a3a157437e5fc19f42b3df4b2ab8e32e6641189d"
+    },
+    {
+      "path": "crates/application/src/mutation.rs",
+      "sha256": "cf0206b118bd8e93105c32c98e574b0d714e0adf4cd44e95304cb27ac14a7886"
+    },
+    {
+      "path": "crates/project-adapter/src/manifest_edit.rs",
+      "sha256": "af1bd2f802ad71a5dd47707045307efec8501e26c17e4fffae30ac2405bde5c4"
+    },
+    {
+      "path": "crates/project-adapter/tests/manifest_edit.rs",
+      "sha256": "94dd2c45909a4f953eebd080362fbb056ca2e20c04b91c0de3a5f31a89d59aad"
+    },
+    {
+      "path": "crates/application/tests/mutation.rs",
+      "sha256": "0777b0894f08032b307dfeeea3c312b66dfd962dd5ac09149312fd1cd286ac97"
+    },
+    {
+      "path": "crates/mcp-server/src/host_config.rs",
+      "sha256": "f47981c2a7020842ec1aa8e9692c55e2451be972f094937bc52d0efc5d8103b3"
+    },
+    {
+      "path": "crates/mcp-server/src/stdio/mutation.rs",
+      "sha256": "30cc1e48fb53914f20894c5668089bf931dd7fb70d5eff3a32e6558774aac0c7"
+    },
+    {
+      "path": "crates/mcp-server/tests/inspection_runtime/mutation.rs",
+      "sha256": "2a2afd667ede5ee0e5b4875df9790c24390cd1f0c6528c8ee0018ae54b81b830"
+    }
+  ],
+  "packet_sha256": "b007db430a04070bfc8dd1e85392e0613f873a7e164c64d409b35af23539fb8a"
+}

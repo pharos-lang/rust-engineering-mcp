@@ -1,9 +1,16 @@
 //! Filesystem and manifest adapters. No Cargo or other child process is spawned.
 
 pub mod catalog_store;
+mod mutation_port;
+pub use mutation_port::mutation_bytes_digest;
+mod mutation_state;
+pub use mutation_state::prepare_mutation_state;
 mod filesystem;
 #[cfg(target_os = "macos")]
 mod manifest;
+mod manifest_edit;
+pub mod mutation_store;
+mod semantic_delta;
 
 use std::path::{Path, PathBuf};
 use std::time::Instant;
@@ -12,6 +19,7 @@ use rust_engineering_application::{ProjectError, ReferenceGenerator, RegistryClo
 use rust_engineering_domain::ProjectRef;
 
 pub use filesystem::{MAX_HOST_SNAPSHOT_BYTES, ProjectLease, SecureProjects, read_host_snapshot};
+pub use manifest_edit::TomlManifestEditor;
 
 /// All manifest access is mediated by the capability adapter.
 pub trait ManifestIo {
@@ -52,3 +60,5 @@ impl RegistryClock for MonotonicClock {
         self.0.elapsed().as_secs()
     }
 }
+mod cargo_vendor;
+pub use cargo_vendor::{capture_with_expected, inspect_cargo_vendor};

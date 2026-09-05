@@ -42,6 +42,10 @@ mod macos {
     use std::time::{Duration, Instant};
 
     type TestResult = Result<(), Box<dyn std::error::Error>>;
+    // The FIFO fixture spawns a child. Serialize cases so temporary fork/exec
+    // descriptor inheritance cannot extend another case's flock lifetime.
+    // The explicit concurrent-open assertions within their cases are unchanged.
+    static SERIAL: std::sync::Mutex<()> = std::sync::Mutex::new(());
     struct Fixture(PathBuf);
     impl Fixture {
         fn new() -> Result<Self, Box<dyn std::error::Error>> {
@@ -71,6 +75,7 @@ mod macos {
 
     #[test]
     fn private_optional_reader_does_not_lock_or_clean_staging() -> TestResult {
+        let _serial = SERIAL.lock().map_err(|_| "catalog fixture lock poisoned")?;
         let f = Fixture::new()?;
         let path = f.0.join("active.bundle");
         f.write("staging.bundle", b"interrupted")?;
@@ -127,6 +132,7 @@ mod macos {
 
     #[test]
     fn complete_bytes_replace_atomically_and_survive_reopen() -> TestResult {
+        let _serial = SERIAL.lock().map_err(|_| "catalog fixture lock poisoned")?;
         let f = Fixture::new()?;
         let mut store = CatalogStore::open(&f.0)?;
         assert_eq!(store.read_active()?, None);
@@ -150,6 +156,7 @@ mod macos {
 
     #[test]
     fn concurrent_open_is_nonblocking_and_lock_releases_on_drop() -> TestResult {
+        let _serial = SERIAL.lock().map_err(|_| "catalog fixture lock poisoned")?;
         let f = Fixture::new()?;
         let store = CatalogStore::open(&f.0)?;
         let start = Instant::now();
@@ -162,6 +169,7 @@ mod macos {
 
     #[test]
     fn interrupted_staging_is_discarded_without_promotion_or_fallback() -> TestResult {
+        let _serial = SERIAL.lock().map_err(|_| "catalog fixture lock poisoned")?;
         for active in [
             None,
             Some(b"complete-active".as_slice()),
@@ -182,6 +190,7 @@ mod macos {
 
     #[test]
     fn a_busy_open_does_not_discard_another_imports_staging() -> TestResult {
+        let _serial = SERIAL.lock().map_err(|_| "catalog fixture lock poisoned")?;
         let f = Fixture::new()?;
         let _store = CatalogStore::open(&f.0)?;
         let staged = f.write("staging.bundle", b"pending")?;
@@ -192,6 +201,7 @@ mod macos {
 
     #[test]
     fn moved_root_and_replaced_lock_fail_closed() -> TestResult {
+        let _serial = SERIAL.lock().map_err(|_| "catalog fixture lock poisoned")?;
         let f = Fixture::new()?;
         let root = f.0.join("root");
         fs::create_dir(&root)?;
@@ -215,6 +225,7 @@ mod macos {
 
     #[test]
     fn active_deletion_during_lease_is_not_a_new_store() -> TestResult {
+        let _serial = SERIAL.lock().map_err(|_| "catalog fixture lock poisoned")?;
         let f = Fixture::new()?;
         let mut store = CatalogStore::open(&f.0)?;
         store.commit(b"generation")?;
@@ -226,6 +237,7 @@ mod macos {
 
     #[test]
     fn root_and_store_files_require_private_permissions() -> TestResult {
+        let _serial = SERIAL.lock().map_err(|_| "catalog fixture lock poisoned")?;
         for mode in [0o755, 0o770, 0o1700] {
             let f = Fixture::new()?;
             fs::set_permissions(&f.0, fs::Permissions::from_mode(mode))?;
@@ -251,6 +263,7 @@ mod macos {
 
     #[test]
     fn links_and_special_files_at_every_fixed_name_are_rejected() -> TestResult {
+        let _serial = SERIAL.lock().map_err(|_| "catalog fixture lock poisoned")?;
         for name in ["store.lock", "staging.bundle", "active.bundle"] {
             for kind in ["symlink", "hardlink", "fifo", "directory"] {
                 let f = Fixture::new()?;
@@ -291,6 +304,7 @@ mod macos {
 
     #[test]
     fn bounded_input_acquisition_rejects_untrusted_names_and_types() -> TestResult {
+        let _serial = SERIAL.lock().map_err(|_| "catalog fixture lock poisoned")?;
         let f = Fixture::new()?;
         let path = f.write("bundle", b"four")?;
         assert_eq!(read_catalog_file(&path, 4)?, b"four");
@@ -320,6 +334,7 @@ mod macos {
 
     #[test]
     fn model_input_has_separate_bound_without_expanding_catalog_authority() -> TestResult {
+        let _serial = SERIAL.lock().map_err(|_| "catalog fixture lock poisoned")?;
         assert_eq!(MAX_MODEL_FILE_BYTES, 512 * 1024 * 1024);
         assert_eq!(MAX_CATALOG_FILE_BYTES, 80 * 1024 * 1024);
         // The bound is checked before path validation or filesystem access.
@@ -347,6 +362,7 @@ mod macos {
 
     #[test]
     fn trust_file_requires_private_owner_file_parent_and_safe_ancestors() -> TestResult {
+        let _serial = SERIAL.lock().map_err(|_| "catalog fixture lock poisoned")?;
         let f = Fixture::new()?;
         let path = f.write("trust.json", b"host-trust")?;
         assert_eq!(read_trust_file(&path, 4096)?, b"host-trust");
@@ -389,6 +405,7 @@ mod macos {
 
     #[test]
     fn root_owned_sticky_tmp_requires_private_immediate_child() -> TestResult {
+        let _serial = SERIAL.lock().map_err(|_| "catalog fixture lock poisoned")?;
         let id = OsReferences.generate().map_err(|e| format!("{e:?}"))?;
         let base = Path::new("/private/tmp").join(format!("catalog-trust-{id}"));
         fs::create_dir(&base)?;
@@ -413,6 +430,7 @@ mod macos {
 
     #[test]
     fn floor_is_independent_bounded_durable_and_never_promoted_from_staging() -> TestResult {
+        let _serial = SERIAL.lock().map_err(|_| "catalog fixture lock poisoned")?;
         let f = Fixture::new()?;
         let mut store = CatalogStore::open(&f.0)?;
         assert_eq!(store.read_floor()?, None);
@@ -454,6 +472,7 @@ mod macos {
 
     #[test]
     fn floor_record_and_staging_reject_links_and_oversized_bytes() -> TestResult {
+        let _serial = SERIAL.lock().map_err(|_| "catalog fixture lock poisoned")?;
         for name in ["floor.record", "floor.staging"] {
             let f = Fixture::new()?;
             let outside = f.write("outside", b"outside")?;
@@ -485,6 +504,7 @@ mod macos {
 
     #[test]
     fn exact_limit_roundtrips_and_oversized_state_is_not_overwritten() -> TestResult {
+        let _serial = SERIAL.lock().map_err(|_| "catalog fixture lock poisoned")?;
         let f = Fixture::new()?;
         let mut store = CatalogStore::open(&f.0)?;
         let bytes = vec![b'x'; MAX_CATALOG_FILE_BYTES];

@@ -313,11 +313,20 @@ impl ExecutionCancellation for WorkBudget<'_> {
 }
 
 pub struct RustGateway {
-    inner: DockerGateway,
-    verified: AtomicBool,
+    pub(super) inner: DockerGateway,
+    pub(super) verified: AtomicBool,
     pub(super) calibrating: AtomicBool,
 }
 impl RustGateway {
+    pub fn execute_mutation(
+        &self,
+        source: &SourceBundle,
+        command: rust_engineering_domain::RustMutationCommand,
+        limits: ExecutionLimits,
+        cancel: &dyn ExecutionCancellation,
+    ) -> Result<rust_engineering_domain::RustMutationExecution, ExecutionError> {
+        super::mutation_gateway::execute(self, source, command, limits, cancel)
+    }
     pub fn new(config: HostDockerConfig) -> Result<Self, ExecutionError> {
         if config.image_id != APPROVED_RUST_IMAGE {
             return Err(ExecutionError::InvalidConfiguration);

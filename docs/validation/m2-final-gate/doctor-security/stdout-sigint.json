@@ -1,0 +1,11 @@
+{
+  "case": "stdout-sigint",
+  "status": "passed",
+  "stdout_drained": false,
+  "forced_stop": false,
+  "signal": "SIGINT",
+  "prefill_bytes": 65536,
+  "exit_code": 1,
+  "elapsed_seconds": 0.623,
+  "signal_join_seconds": 0.114
+}

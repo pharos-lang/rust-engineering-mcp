@@ -1,0 +1,80 @@
+{
+  "model": "claude-opus-5",
+  "effort": "high",
+  "cli_version": "2.1.260",
+  "read_only": true,
+  "tools": [],
+  "files": [
+    {
+      "path": "docs/adr/ADR-055-offline-cargo-data-and-lock-policy.md",
+      "sha256": "f1ed3477d48b67cb2f0f5c0aa6941002aa808265767b76c7f44cb15877d56481",
+      "bytes": 8200
+    },
+    {
+      "path": "docs/adr/ADR-056-cargo-fix-isolated-loopback.md",
+      "sha256": "8bcf59c24097357b87161b9c55dfb91e719052f4a8be0dade44c5a9705ceab36",
+      "bytes": 5082
+    },
+    {
+      "path": "docs/adr/ADR-057-typed-manifest-and-dependency-operations.md",
+      "sha256": "12a116c6ed5645659935e2b278e6bc41aad43c739fee8a8a5c53b46beadaefa1",
+      "bytes": 5854
+    },
+    {
+      "path": "docs/validation/M2-fix-socket-mask.json",
+      "sha256": "c0bd909d5e79e0e23a28ca5dbebfc3c0883f15101d244183030579b1a45755c0",
+      "bytes": 51390
+    },
+    {
+      "path": "crates/execution-adapter/src/resolution_gateway.rs",
+      "sha256": "16d225d692d601d709c45263c68dfe69ad9cabf997544e14f4b94ea00ff490c7",
+      "bytes": 53384
+    },
+    {
+      "path": "crates/execution-adapter/src/mutation_gateway.rs",
+      "sha256": "df7fe329bbcdbffc49cfdf461df9556041f1aae624c9bd0f47b4ece34b13db87",
+      "bytes": 44482
+    },
+    {
+      "path": "crates/execution-adapter/src/seccomp-rust-fix.json",
+      "sha256": "0dc7bbbbf8f7e2a47c784488c49bbc7ffd6acac83b6f15e4fe2f0b9c1f642f15",
+      "bytes": 4018
+    },
+    {
+      "path": "crates/execution-adapter/src/mutation_archive.rs",
+      "sha256": "e8e7059558680df02ef41cb65af98a347b6cbbae452bda19ffb880c4fd5f9647",
+      "bytes": 27820
+    },
+    {
+      "path": "crates/mcp-server/src/stdio.rs",
+      "sha256": "e18e1f06d6353ad14ae72f8cf3d113637eb6604954c555b195c2ce818345a291",
+      "bytes": 22127
+    },
+    {
+      "path": "crates/mcp-server/src/host_config.rs",
+      "sha256": "9d67e34de0bacdc328d1938e943ee39cb69d62552d27e8c9a232fae32baea341",
+      "bytes": 12011
+    },
+    {
+      "path": "crates/project-adapter/src/filesystem/macos/source.rs",
+      "sha256": "aebc1b3b3e664b9e3f8c4274c1493f8433c1ab86c5453f2b3c178467c76715b1",
+      "bytes": 24797
+    },
+    {
+      "path": "crates/project-adapter/src/mutation_store.rs",
+      "sha256": "3a3142089060be0bb1aadd2f2cab13a00ca3a7dd5d3e5b1ac42a5b4b7a864334",
+      "bytes": 4128
+    },
+    {
+      "path": "crates/project-adapter/src/semantic_delta.rs",
+      "sha256": "808c104479c119550259aa52034d424d3db0a24554d54d8dea67e5f1f0943314",
+      "bytes": 21545
+    },
+    {
+      "path": "crates/mcp-server/tests/inspection_runtime/fix_hostile.rs",
+      "sha256": "bb5937d26241e99add44bebca3f8980d8cc7a878e4fcae7d1cb9f277fcb1c92e",
+      "bytes": 7177
+    }
+  ],
+  "prompt_sha256": "c8ee472cfaa518728be5d61ad00c57d9d1349bedbd73d16aa76849a68365a5c4"
+}

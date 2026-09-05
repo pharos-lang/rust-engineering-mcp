@@ -1,0 +1,36 @@
+{
+  "schema": "rust-mcp-gate-report-v2",
+  "mode": "core",
+  "platform": "macOS-26.6.2-arm64-arm-64bit-Mach-O",
+  "machine": "arm64",
+  "started_at": "2026-09-05T16:00:25.507805Z",
+  "steps": [
+    {
+      "name": "fmt",
+      "command": [
+        "cargo",
+        "fmt",
+        "--all",
+        "--check"
+      ],
+      "started_at": "2026-09-05T16:00:25.535969Z",
+      "status": "failed",
+      "exit_code": 1,
+      "finished_at": "2026-09-05T16:00:25.989337Z",
+      "seconds": 0.453,
+      "counts": {
+        "output_lines": 12,
+        "output_bytes_utf8": 460,
+        "test_groups": [],
+        "rust_passed": 0,
+        "rust_failed": 0,
+        "python_unittest_executed": 0
+      }
+    }
+  ],
+  "status": "failed",
+  "cargo": "cargo 1.98.1 (797e8a9bc 2026-08-05)",
+  "rustc": "rustc 1.98.1 (48a229cea 2026-09-01)",
+  "error": "fmt failed (1)",
+  "finished_at": "2026-09-05T16:00:25.989681Z"
+}

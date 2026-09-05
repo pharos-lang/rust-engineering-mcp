@@ -1,0 +1,147 @@
+{
+  "model": "claude-opus-5",
+  "effort": "high",
+  "cli_version": "2.1.260",
+  "read_only": true,
+  "tools": [],
+  "source_comparison": [
+    {
+      "path": "docs/adr/ADR-059-terminal-plan-retirement-and-durable-replay.md",
+      "previous_sha256": "03bbcef604a6064badfd13b1ff6fdee8ba9f77129d33ae99bd177df3805a84fe",
+      "current_sha256": "55fd35d50374a0634927171b57f9ec880408c712bdbb7f1ceb1e7233478aa8b3",
+      "unchanged": false
+    },
+    {
+      "path": "docs/adr/ADR-052-mutation-journal-and-authorization.md",
+      "previous_sha256": "ce39d4e64efbe324e58b874dce05bd2468860a21d98208a521a3f90802563058",
+      "current_sha256": "ce39d4e64efbe324e58b874dce05bd2468860a21d98208a521a3f90802563058",
+      "unchanged": true
+    },
+    {
+      "path": "crates/application/src/mutation.rs",
+      "previous_sha256": "e4b79d9da88b3c427c23e5824719870703e20c1636aa43f2f0c6dab7444ee3b9",
+      "current_sha256": "e4b79d9da88b3c427c23e5824719870703e20c1636aa43f2f0c6dab7444ee3b9",
+      "unchanged": true
+    },
+    {
+      "path": "crates/application/tests/mutation.rs",
+      "previous_sha256": "1802bf48958e2a5c29f63fe54fd05953cf5338d44db3fdbbb62b538915764cf4",
+      "current_sha256": "c5b457b453ba03d1e345c293c174434dc78e7c7acf0d619843afbf6a3995795c",
+      "unchanged": false
+    },
+    {
+      "path": "crates/project-adapter/src/filesystem/macos/mutation.rs",
+      "previous_sha256": "8a00082f778f265db328418d121087ef3cb13570db6c359d7e21f4b50dc1745d",
+      "current_sha256": "8a00082f778f265db328418d121087ef3cb13570db6c359d7e21f4b50dc1745d",
+      "unchanged": true
+    },
+    {
+      "path": "crates/project-adapter/src/mutation_port.rs",
+      "previous_sha256": "1418352cf96899392b14a90683cbe32b1a3daef90abda90b941c35618efe8b42",
+      "current_sha256": "1418352cf96899392b14a90683cbe32b1a3daef90abda90b941c35618efe8b42",
+      "unchanged": true
+    },
+    {
+      "path": "crates/project-adapter/src/mutation_store.rs",
+      "previous_sha256": "24ad53774e998fa239340a6c8e90abbbe4e9b9a4d505b0747d8d85ce06dbd3ce",
+      "current_sha256": "24ad53774e998fa239340a6c8e90abbbe4e9b9a4d505b0747d8d85ce06dbd3ce",
+      "unchanged": true
+    },
+    {
+      "path": "crates/project-adapter/tests/support/native_mutation.rs",
+      "previous_sha256": "26347f02499e87849f959e78a56287ec918cacf4edd7ad7592a2be72069e8583",
+      "current_sha256": "1661216f500223ee6e15b1ad6bd1c24a01380f4aa09ca41aacba99ec0ba10704",
+      "unchanged": false
+    },
+    {
+      "path": "crates/mcp-server/src/stdio/mutation.rs",
+      "previous_sha256": "d58153f8b628d385a74b0e47cb5bf6e9981fe66de1c33df16482a24fd2161e50",
+      "current_sha256": "dfe52208cb61d687aa5bab9a1e070977c19025d26913f3893a56e93939c0df32",
+      "unchanged": false
+    },
+    {
+      "path": "crates/mcp-server/tests/inspection_runtime/terminal_plan.rs",
+      "previous_sha256": "5d6cb5c46282cc4950983a8e968c1662d625149538c86cf6d0dd4b59eb67b023",
+      "current_sha256": "5d6cb5c46282cc4950983a8e968c1662d625149538c86cf6d0dd4b59eb67b023",
+      "unchanged": true
+    }
+  ],
+  "files": [
+    {
+      "path": "crates/mcp-server/src/stdio/mutation/semantic_input.rs",
+      "sha256": "1cdc7212438e0b0aa475dc49d379e20dc4923f3f68bcb542fb8fc8a6fb25431b",
+      "bytes": 33683
+    },
+    {
+      "path": "crates/mcp-server/src/stdio/workers.rs",
+      "sha256": "546e24b8c4c11d4c22c776bbcd234370f8b284906a3f23d7b9a2f56225a8e317",
+      "bytes": 23169
+    },
+    {
+      "path": "crates/application/src/lib.rs",
+      "sha256": "a49e55162b875fcc824dcb14e0f2cd95e793db7c960d8e7a4981f6a02412cfea",
+      "bytes": 6502
+    },
+    {
+      "path": "crates/application/src/source.rs",
+      "sha256": "be7b1ae1dacc0aa9b8fabafff6b226f7731d8019d8c069e07f97a972e4e394c5",
+      "bytes": 1611
+    },
+    {
+      "path": "docs/adr/ADR-058-local-mutation-observability.md",
+      "sha256": "932e66b6b2edf878bf25b0864911de1bd14d4585d13921d7a80dbb6313f94841",
+      "bytes": 3632
+    },
+    {
+      "path": "docs/adr/ADR-059-terminal-plan-retirement-and-durable-replay.md",
+      "sha256": "55fd35d50374a0634927171b57f9ec880408c712bdbb7f1ceb1e7233478aa8b3",
+      "bytes": 3969
+    },
+    {
+      "path": "README.md",
+      "sha256": "dab48b826bb4265be5a14e17cb5025f47869501471c8101e37038a10c2f4b7b5",
+      "bytes": 20400
+    },
+    {
+      "path": "docs/tools.md",
+      "sha256": "5a622302f03b331ffa6bb2b2dd243246af3267d4f260b9385f9b996e96d7a441",
+      "bytes": 48309
+    },
+    {
+      "path": "docs/client-configuration.md",
+      "sha256": "fb86f665a3dd021928e783cef83864aa429dd42246f04231611025c22ceefda6",
+      "bytes": 14443
+    },
+    {
+      "path": "scripts/test-m2-clients.py",
+      "sha256": "f18397e4694521b62d6764c3baa8dc52188e8feb8ad09e1321a91e51ba1905cc",
+      "bytes": 29499
+    },
+    {
+      "path": "crates/mcp-server/tests/snapshots/fmt-apply-tool.json",
+      "sha256": "78983f1e4c08d607a4504994237a3a053de0f5c779671c0da6357db0bf833dab",
+      "bytes": 15116
+    },
+    {
+      "path": "crates/mcp-server/tests/snapshots/dependency-remove-tool.json",
+      "sha256": "e73dfb65c55c5de6852b77e947bb8ee79ce824f18ef3035b33f84836ab198cdd",
+      "bytes": 15999
+    },
+    {
+      "path": "crates/mcp-server/tests/snapshots/manifest-patch-tool.json",
+      "sha256": "1a4f9891093f03db987ad9b53f3b862a0dc54183abf074d89096f6f294b814aa",
+      "bytes": 28198
+    },
+    {
+      "path": "crates/mcp-server/tests/snapshots/dependency-add-tool.json",
+      "sha256": "426515577746d42235ee31edfe455a5057cb0c7ffd1912f534de26e323304be6",
+      "bytes": 17073
+    },
+    {
+      "path": "crates/mcp-server/tests/snapshots/fix-apply-tool.json",
+      "sha256": "89c93950abe47923644f1cb2457491fbf4823533b99a489a7723fc1786fd57d5",
+      "bytes": 15229
+    }
+  ],
+  "prompt_sha256": "8e3731ef77f4b07ad10141cc28d77b6ebb4c2105ea82dcd2474f140e1de25dd1"
+}

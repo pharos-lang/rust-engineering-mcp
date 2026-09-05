@@ -48,8 +48,11 @@ documenta límites y compatibilidad.
 
 Los tests `protocol.rs` lanzan el binario y usan fixtures JSON independientes del
 SDK, con plazos y lectores acotados. No se crea un port de dominio para stdio:
-es una frontera externa al dominio. El checkout incorpora trece tools: status tiene
-[evidencia M1-11](validation/M1-11.md) y search tiene [gate M1-12 aprobado](validation/M1-12.md). Inspect está conectado con [gate M1-13 aprobado](validation/M1-13.md).
+es una frontera externa al dominio. La release `0.1.0` incorpora trece tools:
+status tiene [evidencia M1-11](validation/M1-11.md), search tiene
+[gate M1-12 aprobado](validation/M1-12.md) e inspect está conectado con
+[gate M1-13 aprobado](validation/M1-13.md). El checkout añade cinco handlers M2
+calificados localmente, descritos al final.
 
 SQLite es autoritativo mediante el port CatalogRepository y snapshots en memoria
 (ADR-026); LanceDB derivado y E5 local están implementados en M0-09.
@@ -261,3 +264,40 @@ con ejecución de proyecto dentro del guest Docker Linux ARM64 aprobado.
 No existe catálogo oficial 0.1.0 ni clave Ed25519 de producción. Import, firmas,
 antirollback, cambio de trust por el host y revocación por retirada de trust siguen
 implementados para catálogos aportados explícitamente por el host.
+
+## Escritura local M2 en desarrollo
+
+El adapter MCP expone cinco handlers tipados sobre un mismo caso de uso de mutación:
+manifest patch, fmt, fix y dependency add/remove. Domain liga candidato, clase de
+operación, fingerprints, validación y receipts; application conserva los planes
+compartidos (cuatro/64 MiB), verifica autoridad antes de capturar y antes de
+publicar, y mantiene resolución/editor/inspector tras ports. Los DTOs rmcp, JSON
+Schema y presupuestos del envelope permanecen en el adapter MCP.
+
+Los productores de candidatos usan el Execution Gateway Docker ya existente.
+Source, staging y el directory source Cargo aprobado viajan como archivos propios;
+no hay bind writable del workspace ni ejecución de Cargo host. Fmt y fix exportan
+solo reemplazos `.rs` existentes. Fix selecciona un perfil seccomp dedicado con
+TCP loopback interno y `network=none`; los demás perfiles no reciben esa capacidad.
+La resolución ejecuta metadata offline sobre staging escribible y metadata frozen
+sobre el resultado, con vendor read-only y configuración source replacement fija.
+
+El publisher nativo aplica los bytes exactos mediante handles no-follow, locks y
+journal. `local_coordinated` detecta cambios observados, pero no ofrece exclusión
+OS ante escritores externos, CAS ni una transacción visible multiarchivo. La policy
+`preserve_presence` incluye el lock raíz actualizado si existía y elimina del
+candidato un lock creado solo para validar. Esta arquitectura está integrada en el
+checkout `0.2.0-dev` de 18 tools, con [calificación M2](validation/M2-07.md); la release
+`0.1.0` conserva 13.
+
+M2 usa [eventos locales de terminación](adr/ADR-058-local-mutation-observability.md)
+por tracing/stderr. La retención de planes se consulta sin modificarla; la CLI
+conserva la autoridad del operador sobre journals. No se añade collector, servidor
+de métricas ni dependencia del dominio hacia tracing. Corrupción del store puede
+exigir la [remediación conservadora](client-configuration.md#planes-receipts-y-recovery)
+en identidades físicas nuevas, sin borrar evidencia original.
+
+ADR-059 libera la cuota de planes terminales mediante una marca atómica y poda
+antes de la próxima admisión. El port existente del publisher agrega replay de
+ID/digest/key exclusivamente sobre journal existente, bajo autoridad viva; no se
+añade cache de tombstones ni otro store. TTL limita empezar cambios nuevos.

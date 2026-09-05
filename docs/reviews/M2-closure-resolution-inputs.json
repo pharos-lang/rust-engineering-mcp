@@ -1,0 +1,33 @@
+{
+  "model": "claude-opus-5",
+  "effort": "high",
+  "cli_version": "2.1.260",
+  "read_only": true,
+  "tools": [],
+  "files": [
+    {
+      "path": "crates/execution-adapter/src/resolution_gateway.rs",
+      "sha256": "8c54b84ca315ccee6a96038246447d6682ab09defc248285fc75671782c1e3de",
+      "bytes": 54111
+    },
+    {
+      "path": "docs/validation/M2-D05-hardening-followup.json",
+      "sha256": "de44b7c639fc7bf91283bb027deec05eae562f4b45882bbfe7c57b9bda7dedce",
+      "bytes": 3303
+    },
+    {
+      "path": "docs/reviews/M2-final-security-review.md",
+      "sha256": "c5ceda8560b0ee047f2fcb75691bb7b8a7ae44e3af9f603844f10352410583be",
+      "bytes": 5056
+    },
+    {
+      "path": "docs/adr/ADR-055-offline-cargo-data-and-lock-policy.md",
+      "sha256": "e62381cfeabca33a923cd1777296ab6dd7ffe304c3be263ced687985cae5a693",
+      "bytes": 8435
+    }
+  ],
+  "previous_source_sha256": "16d225d692d601d709c45263c68dfe69ad9cabf997544e14f4b94ea00ff490c7",
+  "prompt": "docs/reviews/m2-closure-packages/M2-closure-resolution-opus-prompt.txt",
+  "prompt_sha256": "42552ea575c233abd0b5b290a77ea3ab401eaff314c0239f3e8f9efa6b1948c2",
+  "started_at": "2026-09-05T22:12:45.755629+00:00"
+}

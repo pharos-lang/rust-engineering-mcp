@@ -1,0 +1,373 @@
+{
+  "status": "preserved",
+  "gate_report": "docs/validation/M2-full-gate.json",
+  "gate_sha256": "05f0391041e053309e8924183600dcfbd8cd41b925afadb2edca7fcb73e43ea5",
+  "logs": [
+    {
+      "path": "docs/validation/m2-final-gate/audit-data/audit-data.log",
+      "sha256": "c4b4bf80662e6afaedf0a1472652bb3be519dad3abcf4c7c802d3b23104c8315",
+      "bytes": 586
+    },
+    {
+      "path": "docs/validation/m2-final-gate/audit-data/receipt.json",
+      "sha256": "8b29781a0f2912a85c899aa4a314cf408ebb3a33e866b173f98b657bd23b8bae",
+      "bytes": 475
+    },
+    {
+      "path": "docs/validation/m2-final-gate/doctor-security/active.json",
+      "sha256": "d2847f957f95d0a4e29a59a7a6f31d564294c3f05222c6543440f97d71635d56",
+      "bytes": 5352
+    },
+    {
+      "path": "docs/validation/m2-final-gate/doctor-security/active.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "docs/validation/m2-final-gate/doctor-security/active.stdout.log",
+      "sha256": "b38bc894b73ea2bb0fd6acc371e60d4bb9d3b2c19a0580ad0bff4ad29839acfe",
+      "bytes": 3792
+    },
+    {
+      "path": "docs/validation/m2-final-gate/doctor-security/build.stderr.log",
+      "sha256": "14e637f241a1d56f96dca974ab901d85be657f956477dd6bac0c2ae02972f7e1",
+      "bytes": 172
+    },
+    {
+      "path": "docs/validation/m2-final-gate/doctor-security/build.stdout.log",
+      "sha256": "1beda595bef827a8b57ddfa763734a2274a2e7039c201c9276b0752dcb698ccf",
+      "bytes": 200408
+    },
+    {
+      "path": "docs/validation/m2-final-gate/doctor-security/cancelled-sighup.json",
+      "sha256": "390c72d632317e1f5162c142d756ab09e46c07ab6f170930931b85b26c3674a1",
+      "bytes": 4012
+    },
+    {
+      "path": "docs/validation/m2-final-gate/doctor-security/cancelled-sighup.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "docs/validation/m2-final-gate/doctor-security/cancelled-sighup.stdout.log",
+      "sha256": "b29de621ebc1a9e6eb4b8464ffd254b5f0dece3ef40f4b93408795dce92190e5",
+      "bytes": 2869
+    },
+    {
+      "path": "docs/validation/m2-final-gate/doctor-security/cancelled-sigint.json",
+      "sha256": "72b2c740f52e4ed56ceacf0bb068e00ef60f87fa3a13b865b59366de40d55638",
+      "bytes": 4012
+    },
+    {
+      "path": "docs/validation/m2-final-gate/doctor-security/cancelled-sigint.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "docs/validation/m2-final-gate/doctor-security/cancelled-sigint.stdout.log",
+      "sha256": "116a28c4a67592d63b9acdee2284126baa69d3732ac34a3e4aedf9da3d93c0d4",
+      "bytes": 2869
+    },
+    {
+      "path": "docs/validation/m2-final-gate/doctor-security/cancelled-sigterm.json",
+      "sha256": "55536825724086f11850d9b7f9f60ef61140c4dab1bb562e55ee0dceb9f88c2f",
+      "bytes": 4012
+    },
+    {
+      "path": "docs/validation/m2-final-gate/doctor-security/cancelled-sigterm.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "docs/validation/m2-final-gate/doctor-security/cancelled-sigterm.stdout.log",
+      "sha256": "95e073bf55811c8a367e80644a4bd76dc1412673d2149fbc6d1ba72caf0ee251",
+      "bytes": 2869
+    },
+    {
+      "path": "docs/validation/m2-final-gate/doctor-security/ordinary.stderr.log",
+      "sha256": "7ea9176415e1f1b8a8d27e489ece1db2b6dbc5224626066bb2b0d141f2c28594",
+      "bytes": 246
+    },
+    {
+      "path": "docs/validation/m2-final-gate/doctor-security/ordinary.stdout.log",
+      "sha256": "61d1650537b75cf2103583bea81d57f5ebedafd7100f95e1a5bc5739431103dc",
+      "bytes": 357
+    },
+    {
+      "path": "docs/validation/m2-final-gate/doctor-security/report.json",
+      "sha256": "1671b63ae2174cba7eea46d150bf1e5c5d6beb54310098412b94a01b841ac67a",
+      "bytes": 1000
+    },
+    {
+      "path": "docs/validation/m2-final-gate/doctor-security/stdout-deadline.json",
+      "sha256": "d7544645c9194eec7de55efb2cc9ff9ce8b7684da01790658fa8e2ab06e015ca",
+      "bytes": 226
+    },
+    {
+      "path": "docs/validation/m2-final-gate/doctor-security/stdout-deadline.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "docs/validation/m2-final-gate/doctor-security/stdout-sigint.json",
+      "sha256": "5013e170e73cd423b26b2c40e32d8c986d151896e5b561d3f6d44773c74b363e",
+      "bytes": 229
+    },
+    {
+      "path": "docs/validation/m2-final-gate/doctor-security/stdout-sigint.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "docs/validation/m2-final-gate/full.log",
+      "sha256": "3a8d991a3d0374b8ab21fe0aa98f9f99f6744f2f75fbb35e795b244ef0fcddd4",
+      "bytes": 171222
+    },
+    {
+      "path": "docs/validation/m2-final-gate/m2-runtime/0.log",
+      "sha256": "90eafdf192a9f90a2c24230426396cff4169dd47aff90018020110d5e4d6e2a8",
+      "bytes": 383
+    },
+    {
+      "path": "docs/validation/m2-final-gate/m2-runtime/1.log",
+      "sha256": "d5fc5af4b2863c4ad8a67c65fa897e6cfbeede213342c3cf72c10b84e34faddf",
+      "bytes": 394
+    },
+    {
+      "path": "docs/validation/m2-final-gate/m2-runtime/2.log",
+      "sha256": "28417f80a8dd423e82be7a92fe79ffad2b7efd4894a7fe9dfdf790e7eeee674d",
+      "bytes": 384
+    },
+    {
+      "path": "docs/validation/m2-final-gate/m2-runtime/3.log",
+      "sha256": "8ff8c0fa5e2cb0b7a99f941ef7c5e494abc8fb178303385e6cbd35ed80e69d18",
+      "bytes": 374
+    },
+    {
+      "path": "docs/validation/m2-final-gate/m2-runtime/4.log",
+      "sha256": "dc23022bf7ea1cb9a29731f564a804411874aaa92270619c7eee99be9dfe1045",
+      "bytes": 498
+    },
+    {
+      "path": "docs/validation/m2-final-gate/m2-runtime/5.log",
+      "sha256": "f4be2145761a17ba22cf12939aa69e7ed6c7543c54ee9099d1405e4fb123080a",
+      "bytes": 888
+    },
+    {
+      "path": "docs/validation/m2-final-gate/m2-runtime/6.log",
+      "sha256": "0b40d95fead2f0873b2c3b4eaa05dadd610f6e1567635028a5ebeae1213ce009",
+      "bytes": 503
+    },
+    {
+      "path": "docs/validation/m2-final-gate/m2-runtime/7.log",
+      "sha256": "fd0cd761546a0b8e37701aa2f4dc0220743de5d04abfb1cfe238db7668c24e2f",
+      "bytes": 635
+    },
+    {
+      "path": "docs/validation/m2-final-gate/m2-runtime/8.log",
+      "sha256": "4e919fd2574662f6ecbb1bdbae24bdba99941b3372250fcad80e1ec302dfdd9e",
+      "bytes": 716
+    },
+    {
+      "path": "docs/validation/m2-final-gate/m2-runtime/9.log",
+      "sha256": "87dc3dd96d31c08a311041fdb818911661935521292e2ca182164bcf79416cba",
+      "bytes": 389
+    },
+    {
+      "path": "docs/validation/m2-final-gate/m2-runtime/receipt.json",
+      "sha256": "7a6df5cda0df05b1ab40e898ad4530b0a5fc6c6385ed8656ebb407583bf1a40e",
+      "bytes": 44038
+    },
+    {
+      "path": "docs/validation/m2-final-gate/rust-security/0.log",
+      "sha256": "b358ba74c6bfe24e340176dfd98ab1787f52edcaec06aeb66bcb346cf6eb72cc",
+      "bytes": 2431
+    },
+    {
+      "path": "docs/validation/m2-final-gate/rust-security/1.log",
+      "sha256": "5d8eedd8d2042f614e2199d859a914f47af0f8b3060f965c4fd49aa772d2291c",
+      "bytes": 28960
+    },
+    {
+      "path": "docs/validation/m2-final-gate/rust-security/10.log",
+      "sha256": "5632a9318a29b379f95ff3ad4b02d27f57194ff5985ca7306202b8f06eb1ef42",
+      "bytes": 1355
+    },
+    {
+      "path": "docs/validation/m2-final-gate/rust-security/11.log",
+      "sha256": "53752273ec59e229aff0defb7ac4e987580260632e7f5112cc06cc4189490009",
+      "bytes": 660
+    },
+    {
+      "path": "docs/validation/m2-final-gate/rust-security/12.log",
+      "sha256": "3dc57927daba6ac1403d098ebe7bd04dbefd58c7fc694a865f62a2d8e1e03225",
+      "bytes": 5181
+    },
+    {
+      "path": "docs/validation/m2-final-gate/rust-security/13.log",
+      "sha256": "24a5e84797a77671d28854f48f0bf658eba128104bb9c352c9466845c5e98c2a",
+      "bytes": 886
+    },
+    {
+      "path": "docs/validation/m2-final-gate/rust-security/14.log",
+      "sha256": "6368a584a599155cf655b318d3ae2725b001e90478ffffb358db60d2e56ccd13",
+      "bytes": 2365
+    },
+    {
+      "path": "docs/validation/m2-final-gate/rust-security/15.log",
+      "sha256": "c768c9c242791c8fb710e7ec27816f561dbd877c2409d05772e97b4004237f06",
+      "bytes": 1300
+    },
+    {
+      "path": "docs/validation/m2-final-gate/rust-security/16.log",
+      "sha256": "faa245cb285a517e4852e2d74eef5c618cd0f7357f49060840bd6d69ccd9401f",
+      "bytes": 969
+    },
+    {
+      "path": "docs/validation/m2-final-gate/rust-security/17.log",
+      "sha256": "06a08d2f100918321bda71d6f0af0a4ac5736f54268fb028f0a4add6b88de6ca",
+      "bytes": 803
+    },
+    {
+      "path": "docs/validation/m2-final-gate/rust-security/18.log",
+      "sha256": "dc0ec8e738ba184f9ffe6deeac0d8d9e41e1cedadcf96185e9bd839b4739fbd9",
+      "bytes": 888
+    },
+    {
+      "path": "docs/validation/m2-final-gate/rust-security/19.log",
+      "sha256": "ae4d214f3949a2767502407319572f54c26059d7e0d88ec5e14073095634df07",
+      "bytes": 678
+    },
+    {
+      "path": "docs/validation/m2-final-gate/rust-security/2.log",
+      "sha256": "96d9b9cf277cefc77121e5e5464c0f46ee6f86aa0fdf59e07573baca1a6f6c97",
+      "bytes": 6248
+    },
+    {
+      "path": "docs/validation/m2-final-gate/rust-security/3.log",
+      "sha256": "14117cdbcaf2d73a6a3a01718a260754d6a730ffba1da50e78919b0a45604837",
+      "bytes": 375
+    },
+    {
+      "path": "docs/validation/m2-final-gate/rust-security/4.log",
+      "sha256": "346a0dbaedda08f4652cf234a1b5e21d3fe19307a249ebfa494338970647367d",
+      "bytes": 1331
+    },
+    {
+      "path": "docs/validation/m2-final-gate/rust-security/5.log",
+      "sha256": "40d24855a49ee94b6992078890781ad8d2bff8c243f7c071acc61dccde1afaae",
+      "bytes": 661
+    },
+    {
+      "path": "docs/validation/m2-final-gate/rust-security/6.log",
+      "sha256": "d0dc210a072de68d5855fe8aac9d07da46f1409fd4a2a2c9d09c41707674c04a",
+      "bytes": 1314
+    },
+    {
+      "path": "docs/validation/m2-final-gate/rust-security/7.log",
+      "sha256": "13396f571e577b37ff591bf3b8a9c8e4d9d14939129501c63a048b05e3813e74",
+      "bytes": 1405
+    },
+    {
+      "path": "docs/validation/m2-final-gate/rust-security/8.log",
+      "sha256": "1f36e2040eaf0890300a941695039d38400b47beae62e6aac670d80cf9eac01d",
+      "bytes": 1255
+    },
+    {
+      "path": "docs/validation/m2-final-gate/rust-security/9.log",
+      "sha256": "4e33b04be2b03c428ba3de8c897f59094a2c70d36ae8ca1f731966ab20d06197",
+      "bytes": 25806
+    },
+    {
+      "path": "docs/validation/m2-final-gate/rust-security/calibration.json",
+      "sha256": "19dcdabe9b2550e87158cdb6238998cc213a512286658ccaad69b6c8ba231f4b",
+      "bytes": 29571
+    },
+    {
+      "path": "docs/validation/m2-final-gate/rust-security/clippy-containment.json",
+      "sha256": "b705f9db9254ded6ce066501b5cb17df0dffe0042f17cda15244013446b7138e",
+      "bytes": 1166
+    },
+    {
+      "path": "docs/validation/m2-final-gate/rust-security/mcp-audit-denials.json",
+      "sha256": "205b1ac687b9783edb3fe3e55a4d6438c7e709add1af88059fe9511d4872ffa5",
+      "bytes": 276
+    },
+    {
+      "path": "docs/validation/m2-final-gate/rust-security/mcp-audit-freshness.json",
+      "sha256": "fb94d5a27bb87e94054bf5bf2d3c58dad5935adcb4416e13711a3a6d104d78a9",
+      "bytes": 856
+    },
+    {
+      "path": "docs/validation/m2-final-gate/rust-security/mcp-audit-rsa.json",
+      "sha256": "a230a536c1f109b404cdfaa6ea6ef66a6ee9ad0d4cccb91bfd3c63afd1ff7bb6",
+      "bytes": 541
+    },
+    {
+      "path": "docs/validation/m2-final-gate/rust-security/mcp-check.json",
+      "sha256": "a5e68383025765787aa06b7b0b5269cc405f89c642528c3e74341dd245b2774f",
+      "bytes": 1094
+    },
+    {
+      "path": "docs/validation/m2-final-gate/rust-security/mcp-clippy.json",
+      "sha256": "7191c0dba9ac27890849bbff4d05cf6cee88b58fffecd60d43f0e8ca71664940",
+      "bytes": 972
+    },
+    {
+      "path": "docs/validation/m2-final-gate/rust-security/mcp-explain.json",
+      "sha256": "575bd45f555e3d78fa6ffbdbad4d6cb76a61ddc1fde19397f9ec6c188b9f2ea3",
+      "bytes": 615
+    },
+    {
+      "path": "docs/validation/m2-final-gate/rust-security/mcp-format.json",
+      "sha256": "4e75938e77740c3e0c9ed9e80a1fdcbcf9cfe9be9f70f082f26222ce3330ba90",
+      "bytes": 1042
+    },
+    {
+      "path": "docs/validation/m2-final-gate/rust-security/mcp-inspection.json",
+      "sha256": "e7113778fc6341917fba019ed6c646aa65158d507ed8fb6f06db30a27201c353",
+      "bytes": 6830
+    },
+    {
+      "path": "docs/validation/m2-final-gate/rust-security/mcp-quality-cancellation.json",
+      "sha256": "07e9d28bb9da157e47b0f63f7d8af0c6908cbd9c864c5f32e060dcdef641bfdb",
+      "bytes": 327
+    },
+    {
+      "path": "docs/validation/m2-final-gate/rust-security/mcp-quality-fast.json",
+      "sha256": "e20173e768099037267a91b552ef379ca7f4c5af4ef3450293e42c9247024973",
+      "bytes": 449
+    },
+    {
+      "path": "docs/validation/m2-final-gate/rust-security/mcp-quality-standard.json",
+      "sha256": "2307cdc7db2c46fc15332a41e27cd9a17fd4c4d4ff9bde5a8ed445240e1a119e",
+      "bytes": 542
+    },
+    {
+      "path": "docs/validation/m2-final-gate/rust-security/mcp-test-cancellation.json",
+      "sha256": "f03f0de3e7dcee340228dc67af39aa0ee67b4289b714d9191672d7a3439cbb58",
+      "bytes": 316
+    },
+    {
+      "path": "docs/validation/m2-final-gate/rust-security/mcp-test.json",
+      "sha256": "2878b03e1542b39dbbeec180b46ff913796ebf64a2ffe01a6a704741b8bfced6",
+      "bytes": 1070
+    },
+    {
+      "path": "docs/validation/m2-final-gate/rust-security/mcp-toolchain.json",
+      "sha256": "43899e45b7d54ba4f4af64611a0d8bfcc1667807e5127660f915393f57e695ed",
+      "bytes": 2929
+    },
+    {
+      "path": "docs/validation/m2-final-gate/rust-security/test-containment.json",
+      "sha256": "672f929d6983c8bae051fe0ec1dfa1fdbeaa25494efe300c47850bf595fe66a1",
+      "bytes": 26101
+    },
+    {
+      "path": "docs/validation/m2-final-gate/rust-security/test-forgery.json",
+      "sha256": "57e7ef901ad7c08128e311644932ba75858fae326dc4906877b00acd2f971d8d",
+      "bytes": 4889
+    }
+  ],
+  "selection_note": "Full outer log plus log/JSON artifacts generated within this gate start/end. Old doctor directory was moved aside before the gate; no stale cancellation streams were reused. Runtime explicit selections have their own per-log bindings."
+}

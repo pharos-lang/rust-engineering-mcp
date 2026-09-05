@@ -1,0 +1,11 @@
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.11s
+     Running tests/inspection_runtime.rs (target/debug/deps/inspection_runtime-836bf750ab4f64c1)
+
+running 3 tests
+test fix_mutation_runtime::fix_active_descendants_join_on_cancellation_timeout_and_eof_without_host_changes ... M2_FIX_LIFECYCLE {"active_build_scripts_and_descendants":3,"cancelled_nonce":"cfbb7074143b92b1808cd7e112cda896","eof_nonce":"06d89253bf491bca29f350b9349d2cb4","host_source_unchanged":true,"owned_containers":[],"owned_volumes":[],"timeout_nonce":"cef7373f0fe01ba0a50f95b9f5019beb"}
+ok
+test fix_mutation_runtime::fix_nonzero_or_missing_lock_never_retains_a_candidate_or_changes_host ... ok
+test fix_mutation_runtime::fix_preview_commit_recheck_noop_and_restart_receipt_keep_exact_scope ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 26 filtered out; finished in 99.02s
+

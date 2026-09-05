@@ -1,5 +1,14 @@
 # D02 — prerrequisitos del host para escritura M2
 
+> Resolución posterior a la planificación: el owner delegó la decisión D02 para
+> preservar instalación/uso sencillos. [ADR-050](../adr/ADR-050-local-coordinated-mutation.md)
+> acepta local_coordinated: namespace host confiable, precondiciones y locks MCP,
+> sin exclusión OS de editores externos. Las exigencias de exclusión fuerte y espera
+> de decisión del owner que aparecen abajo son históricas y quedan sustituidas por
+> ese ADR; no hay CAS, atomicidad multiarchivo ni rollback sobre bytes desconocidos.
+> La calificación positiva de M2 sigue pendiente.
+
+
 Estado: investigación **read-only**, decisión **Proposed**. No es implementación
 ni calificación nativa. Fecha: 2026-09-05. Complementa [M2](m2-safe-mutation.md)
 y [D02](adr-backlog-m2-m8.md). La investigación independiente GPT-5.6 Sol High

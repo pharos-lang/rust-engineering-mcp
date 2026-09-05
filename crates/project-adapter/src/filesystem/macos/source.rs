@@ -6,6 +6,7 @@ use rust_engineering_domain::{
     SourceFile, validate_source_path,
 };
 use rustix::fs::Dir;
+use std::collections::BTreeSet;
 
 fn source_error(error: SourceError) -> ProjectError {
     rejected(match error {
@@ -68,6 +69,8 @@ struct Capture<'a> {
     files: Vec<SourceFile>,
     observed_files: BTreeMap<PathBuf, FileStamp>,
     observed_directories: BTreeMap<PathBuf, DirectoryStamp>,
+    excluded: &'a BTreeMap<PathBuf, Node>,
+    observed_exclusions: BTreeSet<PathBuf>,
     entries: usize,
     total: usize,
 }
@@ -86,7 +89,13 @@ impl Capture<'_> {
                 continue;
             }
             self.entries += 1;
-            if self.entries > SOURCE_MAX_ENTRIES {
+            // The private writer can add one exact, journal-bound root temp for
+            // each changed file. Keep physical traversal bounded while leaving
+            // the public logical SourceBundle ceiling unchanged.
+            let physical_limit = SOURCE_MAX_ENTRIES
+                .checked_add(self.excluded.len())
+                .ok_or_else(limit)?;
+            if self.entries > physical_limit {
                 return Err(limit());
             }
             let full = path.join(name);
@@ -122,7 +131,23 @@ impl Capture<'_> {
                     return Err(invalid());
                 }
             } else if kind == FileType::RegularFile {
-                self.file(&full)?;
+                if let Some(expected) = self.excluded.get(&full) {
+                    let fd = self
+                        .backend
+                        .open_path(&full, false)
+                        .map_err(capture_error)?;
+                    if FileStamp::from_stat(
+                        fstat(&fd).map_err(|error| capture_error(map_io(error)))?,
+                    )?
+                    .node
+                        != *expected
+                    {
+                        return Err(invalid());
+                    }
+                    self.observed_exclusions.insert(full);
+                } else {
+                    self.file(&full)?;
+                }
             } else {
                 // Reject FIFO/device/socket/link/unknown without opening it.
                 return Err(denied());
@@ -192,6 +217,16 @@ impl Capture<'_> {
             if DirectoryStamp::of(&self.backend.open_path(path, true).map_err(capture_error)?)?
                 != *stamp
             {
+                return Err(invalid());
+            }
+        }
+        if self.observed_exclusions.len() != self.excluded.len() {
+            return Err(invalid());
+        }
+        for (path, node) in self.excluded {
+            self.control.check()?;
+            let fd = self.backend.open_path(path, false).map_err(capture_error)?;
+            if FileStamp::from_stat(fstat(&fd).map_err(map_io)?)?.node != *node {
                 return Err(invalid());
             }
         }
@@ -410,6 +445,17 @@ impl ProjectSourceBackend for SecureProjects {
         lease: &ProjectLease,
         control: &dyn OperationControl,
     ) -> Result<SourceBundle, ProjectError> {
+        self.source_excluding(lease, control, &BTreeMap::new())
+    }
+}
+
+impl SecureProjects {
+    pub(super) fn source_excluding(
+        &self,
+        lease: &ProjectLease,
+        control: &dyn OperationControl,
+        excluded: &BTreeMap<PathBuf, Node>,
+    ) -> Result<SourceBundle, ProjectError> {
         let before = self.revalidate(lease, control)?;
         let mut capture = Capture {
             backend: self,
@@ -418,6 +464,8 @@ impl ProjectSourceBackend for SecureProjects {
             files: Vec::new(),
             observed_files: BTreeMap::new(),
             observed_directories: BTreeMap::new(),
+            excluded,
+            observed_exclusions: BTreeSet::new(),
             entries: 0,
             total: 0,
         };
@@ -494,6 +542,7 @@ mod tests {
             path: path.clone(),
             calls: AtomicUsize::new(0),
         };
+        let excluded = BTreeMap::new();
         let mut capture = Capture {
             backend: &backend,
             base: &root,
@@ -501,6 +550,8 @@ mod tests {
             files: Vec::new(),
             observed_files: BTreeMap::new(),
             observed_directories: BTreeMap::new(),
+            excluded: &excluded,
+            observed_exclusions: BTreeSet::new(),
             entries: 0,
             total: 0,
         };
@@ -564,6 +615,7 @@ mod entry_race_tests {
             file,
             alias: root.join("alias"),
         };
+        let excluded = BTreeMap::new();
         let mut capture = Capture {
             backend: &backend,
             base: &root,
@@ -571,6 +623,8 @@ mod entry_race_tests {
             files: Vec::new(),
             observed_files: BTreeMap::new(),
             observed_directories: BTreeMap::new(),
+            excluded: &excluded,
+            observed_exclusions: BTreeSet::new(),
             entries: 0,
             total: 0,
         };
@@ -596,6 +650,7 @@ mod direct_file_validation_tests {
         // relative names must instead fail the source path validator immediately.
         let backend = SecureProjects::new(&[])?;
         let base = Path::new("/not-an-authorized-root");
+        let excluded = BTreeMap::new();
         let mut capture = Capture {
             backend: &backend,
             base,
@@ -603,6 +658,8 @@ mod direct_file_validation_tests {
             files: Vec::new(),
             observed_files: BTreeMap::new(),
             observed_directories: BTreeMap::new(),
+            excluded: &excluded,
+            observed_exclusions: BTreeSet::new(),
             entries: 0,
             total: 0,
         };

@@ -1,0 +1,223 @@
+{
+  "approved_image": "sha256:8fac70723a8d04b6ec9633ab721806b8a55f4f083a1b3f988c61bf6a00fa1909",
+  "cargo_expected": "cargo 1.98.1 (797e8a9bc 2026-08-05)",
+  "cargo_observed": "cargo 1.98.1 (797e8a9bc 2026-08-05)\nrelease: 1.98.1\ncommit-hash: 797e8a9bca276c1c9f9f738d2a20f484fa4eea9d\ncommit-date: 2026-08-05\nhost: aarch64-unknown-linux-gnu\nlibgit2: 1.9.4 (sys:0.21.0 vendored)\nlibcurl: 8.21.0-DEV (sys:0.4.90+curl-8.21.0 vendored ssl:OpenSSL/3.6.3)\nssl: OpenSSL 3.6.3 9 Jun 2026\nos: Debian 12.0.0 (bookworm) [64-bit]\n",
+  "cleanup_errors": [],
+  "comparison": {
+    "local_registry_logical_bytes": 143020,
+    "local_registry_regular_files": 6,
+    "local_registry_ustar_bytes": 153600,
+    "same_run_transfer": {
+      "local_registry": {
+        "archive_bytes": 153600,
+        "export": {
+          "archive_bytes": 153600,
+          "archive_sha256": "sha256:8ba403a1854547cb5f8f1db3ed247690607baa3917d165f1fb94063d0f804f68",
+          "entry_count": 13,
+          "logical_file_bytes": 143020,
+          "regular_file_count": 6
+        },
+        "ingest_lifecycle_duration_ns": 140559042,
+        "logical_file_bytes": 143020,
+        "regular_file_count": 6
+      },
+      "vendor": {
+        "archive_bytes": 839680,
+        "export": {
+          "archive_bytes": 839680,
+          "archive_sha256": "sha256:d27c0ad9f38339ccae0a3bf6dea08a056931311c76928ed91f7f6299a97142b9",
+          "entry_count": 114,
+          "logical_file_bytes": 752307,
+          "regular_file_count": 92
+        },
+        "ingest_lifecycle_duration_ns": 148736792,
+        "logical_file_bytes": 752307,
+        "regular_file_count": 92
+      }
+    },
+    "vendor_logical_bytes": 752307,
+    "vendor_regular_files": 92,
+    "vendor_ustar_bytes": 839680
+  },
+  "decision_candidate": {
+    "host_flags": [
+      "--cargo-vendor-dir=/absolute/private/vendor",
+      "--cargo-vendor-tree-sha256=sha256:<64-hex>"
+    ],
+    "preferred_provisioning": "Cargo directory source generated administratively by installed cargo vendor",
+    "runtime": "Inspect and copy the approved tree through no-follow host handles into private staging; run only pinned guest Cargo with generated fixed source replacement and network none.",
+    "status": "qualified_candidate_not_D05_accepted"
+  },
+  "event_count": 309,
+  "exact_command": [
+    "python3",
+    "scripts/probe-m2-vendor-data.py"
+  ],
+  "experiments": {
+    "alias_optional_feature_transitive": {
+      "approved_candidate_count": 1,
+      "frozen_resolution_duration_ns": 159629542,
+      "lock_sha256": "sha256:bf68356f62fa9dae886549f7c8abc2452e86bfc5e90ef801bb322f5044b4d292",
+      "offline_resolution_duration_ns": 167651709,
+      "packages": [
+        [
+          "d05-fixture",
+          "0.1.0"
+        ],
+        [
+          "proc-macro2",
+          "1.0.107"
+        ],
+        [
+          "quote",
+          "1.0.47"
+        ],
+        [
+          "unicode-ident",
+          "1.0.24"
+        ]
+      ],
+      "transfer": {
+        "source_archive_bytes": 10240,
+        "source_transfer_duration_ns": 135369292,
+        "vendor_archive_bytes": 839680,
+        "vendor_transfer_duration_ns": 141922000
+      }
+    },
+    "basic": {
+      "approved_candidate_count": 1,
+      "frozen_resolution_duration_ns": 155929708,
+      "lock_sha256": "sha256:020c7026a2f47aa82665379221580174a65dd4b8ea584a55d11b69ed508a000d",
+      "offline_resolution_duration_ns": 167892041,
+      "packages": [
+        [
+          "d05-fixture",
+          "0.1.0"
+        ],
+        [
+          "unicode-ident",
+          "1.0.24"
+        ]
+      ],
+      "transfer": {
+        "source_archive_bytes": 10240,
+        "source_transfer_duration_ns": 132148709,
+        "vendor_archive_bytes": 839680,
+        "vendor_transfer_duration_ns": 140135250
+      }
+    },
+    "checksum_mismatch": {
+      "approved_candidate_count": 0,
+      "corrupted_path": "quote-1.0.47/Cargo.toml",
+      "exit_code": 101,
+      "metadata_exit_code": 0,
+      "metadata_stderr": "     Locking 3 packages to latest Rust 1.98.1 compatible versions\n      Adding proc-macro2 v1.0.107\n      Adding quote v1.0.47\n      Adding unicode-ident v1.0.24\n",
+      "mutation": "checksum_mismatch",
+      "staging_changed_files": [
+        "Cargo.lock"
+      ],
+      "stderr": "error: the listed checksum of `/rust-mcp-vendor/quote-1.0.47/Cargo.toml` has changed:\nexpected: 13d8c50837f14aff48cd622349f98fb2c46350b7a0c08fd574cf7de4def27d06\nactual:   7e80976c168cae0ce97d279bd7d6de9eeb0a6200de3c9754a6e7127c68624ceb\n\ndirectory sources are not intended to be edited, if modifications are required then it is recommended that `[patch]` is used with a forked copy of the source\n",
+      "transfer": {
+        "source_archive_bytes": 10240,
+        "source_transfer_duration_ns": 134948416,
+        "vendor_archive_bytes": 839680,
+        "vendor_transfer_duration_ns": 142065292
+      }
+    },
+    "missing_data": {
+      "approved_candidate_count": 0,
+      "corrupted_path": null,
+      "exit_code": 101,
+      "metadata_exit_code": 101,
+      "metadata_stderr": "error: no matching package named `quote` found\nlocation searched: directory source `/rust-mcp-vendor` (which is replacing registry `crates-io`)\nrequired by package `d05-fixture v0.1.0 (/source)`\nnote: offline mode (via `--offline`) can sometimes cause surprising resolution failures\nhelp: if this error is too confusing you may wish to retry without `--offline`\n",
+      "mutation": "missing_data",
+      "staging_changed_files": [],
+      "stderr": "error: no matching package named `quote` found\nlocation searched: directory source `/rust-mcp-vendor` (which is replacing registry `crates-io`)\nrequired by package `d05-fixture v0.1.0 (/source)`\nnote: offline mode (via `--offline`) can sometimes cause surprising resolution failures\nhelp: if this error is too confusing you may wish to retry without `--offline`\n",
+      "transfer": {
+        "source_archive_bytes": 10240,
+        "source_transfer_duration_ns": 132335834,
+        "vendor_archive_bytes": 675840,
+        "vendor_transfer_duration_ns": 144533500
+      }
+    }
+  },
+  "final_cleanup_inventory": {
+    "containers": [],
+    "volumes": []
+  },
+  "fixture": {
+    "directory_count": 22,
+    "logical_file_bytes": 752307,
+    "metadata_kinds": [
+      "regular"
+    ],
+    "regular_file_count": 92,
+    "source_mode_values": [
+      420
+    ],
+    "ustar_bytes": 839680,
+    "vendor_tree_fingerprint": "sha256:743947d5788c1a4385a4b59869c5b8bd0535f7fc0d875b51288f9b26b2d0eba1"
+  },
+  "generation": {
+    "argv": [
+      "/opt/rust/bin/cargo",
+      "vendor",
+      "--offline",
+      "--locked",
+      "--respect-source-config",
+      "--versioned-dirs",
+      "--manifest-path=/source/Cargo.toml",
+      "--config=source.crates-io.replace-with=\"rust-mcp-offline\"",
+      "--config=source.rust-mcp-offline.local-registry=\"/rust-mcp-registry\"",
+      "/source/vendor"
+    ],
+    "checksum_semantics": {
+      "proc-macro2-1.0.107": {
+        "checksum_file_sha256": "sha256:f446cfd05e78b027598827cd6a564b7856a55fc5612e992c3dab2c28ba589ba1",
+        "covered_regular_files": 32,
+        "package_sha256": "sha256:985e7ec9bb745e6ce6535b544d84d6cd6f7ad8bd711c398938ae983b91a766d9"
+      },
+      "quote-1.0.47": {
+        "checksum_file_sha256": "sha256:77c75949648f39a753e67b9fa616fa255429b9475e52eb8b87ebf70307133d70",
+        "covered_regular_files": 34,
+        "package_sha256": "sha256:1fbf4db142a473a8d80c26bbf18454ed458bf8d26c8219c331daecfdbd079001"
+      },
+      "unicode-ident-1.0.24": {
+        "checksum_file_sha256": "sha256:90bb9be712fc0d625c8fd206d16edca353f35e82bf56155a8e0dec43907ff944",
+        "covered_regular_files": 23,
+        "package_sha256": "sha256:e6e4313cd5fcd3dad5cafa179702e2b244f760991f45397d14d4ebf38247da75"
+      }
+    },
+    "duration_ns": 158009625,
+    "source_export": {
+      "archive_bytes": 849920,
+      "archive_sha256": "sha256:48bb791780830821feae621e8497b3f0f12046f2147668edaad1b34fdb8002c7",
+      "entry_count": 120,
+      "logical_file_bytes": 753448,
+      "regular_file_count": 96
+    },
+    "stdout": "[source.crates-io]\nreplace-with = \"vendored-sources\"\n\n[source.vendored-sources]\ndirectory = \"/source/vendor\"\n"
+  },
+  "multipliers": {
+    "logical_bytes_vendor_over_local_registry": 5.26,
+    "regular_files_vendor_over_local_registry": 15.333,
+    "same_run_ingest_lifecycle_vendor_over_local_registry": 1.058,
+    "ustar_bytes_vendor_over_local_registry": 5.467
+  },
+  "observation_count": 230,
+  "official_sources": [
+    "https://doc.rust-lang.org/cargo/commands/cargo-vendor.html",
+    "https://doc.rust-lang.org/cargo/reference/source-replacement.html",
+    "https://doc.rust-lang.org/cargo/reference/config.html#source"
+  ],
+  "product_gate": "fixture_candidate_qualified_not_accepted",
+  "raw_report": {
+    "bytes": 8940165,
+    "path": "docs/validation/M2-D05-vendor-qualification.json",
+    "sha256": "sha256:66200dd78b47f670585f8923f5fbb6d7f987996efe465308e23e892d237f8d4e"
+  },
+  "scope": "D05 directory-source comparison only; not production acceptance or M2-04 completion",
+  "script_sha256": "sha256:f91425c5d6014afa7528ba114b53732894c85b391d83da151dd6db0d289cfbad",
+  "status": "observations_matched",
+  "total_duration_ns": 7831052834
+}

@@ -18,9 +18,9 @@ Fuente principal: [`spec/rust-engineering-mcp-propuesta-v0.3.md`](spec/rust-engi
 | Área | Estado real | Evidencia |
 | --- | --- | --- |
 | Historial | M0-01..12 integrados mediante ramas ai/ y merges no-ff locales. | Cada validation/M0-*.md registra integración; no remoto. |
-| Especificación/instrucciones | v0.3.1 y AGENTS.md revisados; decisiones ADR-001..048. | spec, ADRs y dispositions de reviewers. |
+| Especificación/instrucciones | v0.3.1 y AGENTS.md revisados; decisiones ADR-001..059. | spec, ADRs y dispositions de reviewers. |
 | Código Rust | Ocho crates: domain, application, MCP, project, execution, catalog, semantic y artifact. | Workspace real; domain soloSerde, application soloDomain. |
-| MCP | Trece tools implementadas: project.open, project.inspect, toolchain.inspect, check, fmt.check, clippy, test, dependencies.audit, diagnostics.explain, quality.gate, catalog.status, crate.search y crate.inspect; Resources owner-bound; contratos tipados y cinco versiones wire probadas. | protocol/contract tests; M0-03/04/07. |
+| MCP | Trece tools M1 estables: project.open, project.inspect, toolchain.inspect, check, fmt.check, clippy, test, dependencies.audit, diagnostics.explain, quality.gate, catalog.status, crate.search y crate.inspect; Resources owner-bound; contratos tipados y cinco versiones wire probadas; checkout 0.2.0-dev añade cinco tools M2 opt-in calificadas localmente. | protocol/contract tests; M0-03/04/07 y [matriz M2](validation/M2-matrix.md). |
 | Seguridad | I/O propio macOS/APFS no-follow; gateway Docker Linux ARM64 de probes y camino Rust ADR-031 revisado. | M0-04/05/06; [calibración Rust](validation/M1-01-rust-gateway.md), integración MCP ADR-032 validada. |
 | Datos locales | SQLite/FTS5 autoritativo, E5 verificado/LanceDB derivado con persistencia verificada, ArtifactStore efímero. | M0-08/09/10a, fixtures y tests reales. |
 | Pruebas/fixtures | Gate final M1-17: 23/23 etapas; 644 workspace tests y un doctest separados, más seguridad, catálogo, semántica, release tooling y doctor. | [Recibo full v2 final](validation/m1-17-final-gate-v2.json). |
@@ -38,7 +38,7 @@ M1 expone exactamente las trece tools enumeradas en la decisión de alcance inme
 de la propuesta y en la instrucción del owner. `rust.dependencies.inspect` queda
 fuera del contrato público M1 aunque aparezca en la sección descriptiva 23.9; la
 metadata necesaria se implementará como soporte interno de `project.inspect`, audit
-y catálogo. M2+ permanece fuera de alcance.
+y catálogo. La autorización posterior del owner habilita solo M2; M3+ y otra release permanecen fuera de alcance.
 
 ADR-048 define 0.1.0 como cierre compuesto: un único archive core
 `aarch64-apple-darwin` verificado y un full gate `local` source-bound en macOS26
@@ -96,7 +96,7 @@ y [validación/reviews](roadmap/planning-validation.md).
 
 | Milestone | Estado de planificación | Plan / prompt de ejecución separado |
 | --- | --- | --- |
-| M2 / 0.2.x | Planned | [Safe Mutation](roadmap/m2-safe-mutation.md) · [prompt M2](prompts/implement-m2.md) |
+| M2 / 0.2.x | Done local; sin release nueva | [Safe Mutation](roadmap/m2-safe-mutation.md) · [prompt M2](prompts/implement-m2.md) |
 | M3 / 0.3.x | Planned | [Quality](roadmap/m3-quality.md) · [prompt M3](prompts/implement-m3.md) |
 | M4 / 0.4.x | Planned | [Security](roadmap/m4-security.md) · [prompt M4](prompts/implement-m4.md) |
 | M5 / 0.5.x | Planned | [Performance](roadmap/m5-performance.md) · [prompt M5](prompts/implement-m5.md) |
@@ -105,15 +105,26 @@ y [validación/reviews](roadmap/planning-validation.md).
 | M8 / 0.8–0.9 / readiness 1.0 | Planned | [Stabilization](roadmap/m8-stabilization.md) · [prompt M8](prompts/implement-m8.md) |
 
 El owner autoriza cerrar e integrar primero esta planificación y después implementar
-solo M2. Esta tabla registra la fase documental; no acredita implementación nueva
-ni autoriza avanzar a M3 o publicar otra release.
+solo M2. Esta tabla enlaza la planificación; la evidencia de implementación está
+en la matriz M2. Su cierre no autoriza avanzar a M3 ni publicar otra release.
 
 ## In Progress
+
+No hay implementación M2 pendiente. M2-01..07 tiene calificación conjunta local:
+18 tools, trece contratos M1 intactos, full posterior a ADR-059, cliente stock y
+revisiones Accepted. [Cierre, límites e integración](validation/M2-07.md).
+M3+ no está autorizado y otra release permanece fuera de alcance.
 
 No hay vertical M0/M1 en progreso. La fuente, CI portable, SonarCloud, artifact y
 release están enlazados desde el [recibo final](validation/m1-17-public-release.json).
 
 ## Blocked
+
+El bloqueo de decisión D02 se resolvió por delegación explícita del owner mediante
+[ADR-050](adr/ADR-050-local-coordinated-mutation.md): edición local coordinada sin
+broker privilegiado. El No-go histórico sigue siendo válido para exclusión OS fuerte,
+que el producto no anuncia. El writer M2-01/02 ya tiene calificación positiva; las ampliaciones se cierran con
+el gate conjunto M2.
 
 No hay bloqueo M0/M1 ni decisión de alcance pendiente para 0.1.0. ADR-048 mantiene
 fuera de esta release los artifacts/plataformas/assets no calificados y el catálogo
@@ -122,7 +133,8 @@ oficial. La [matriz M1-17](validation/M1-17-matrix.md) conserva esas limitacione
 ## Done
 
 M0-00..12, M0-10a y M1-01..17: cada fila enlaza pruebas, revisión e integración
-correspondientes.
+correspondientes. M2-01..07: [matriz](validation/M2-matrix.md), [full final](validation/M2-full-gate.json),
+[cliente PASS](validation/M2-clients.json) y [trazabilidad](validation/M2-traceability.md).
 Los números de los reportes por corte son históricos; el total observado más
 reciente se registra en el assessment y su evidencia enlazada. M0-12 conserva
 el cierre histórico de M0. El handoff M1 sustituye los prompts antiguos.
@@ -185,3 +197,35 @@ M1-14 implementada con evidencia; M1 aún no cerrado.
 
 M1-14 integrada a72216d/20689cf; main limpio para smoke3 doctor +9 capabilities
 +37 protocolo;304 hashes verificados y Clippy all-features final aprobado.
+
+### M2-01/02 — Done en la base local `331d163`
+
+El corte mínimo de lints y fmt.apply tienen preview/commit/receipt/recovery,
+autorización separada, captura protegida y publicación recuperable.
+[Gate core](validation/M2-02-core-gate.json): 14/14, 748 pruebas Rust y un doctest.
+[Runtime actual](validation/M2-02-runtime-gate.json): manifest 1/1 y fmt 2/2,
+con comandos, hashes y source inventory del snapshot. Trece contratos M1 intactos.
+[Contrato Sonnet](reviews/M2-02-contract-review.md) y
+[writer Opus](reviews/M2-02-native-review.md) aceptados sin P0/P1 pendientes.
+[Medición APFS](validation/M2-02-native-performance.json): 128 archivos/16 MiB,
+commit 5.687 s, replay 173 ms y recuperación terminal 103 ms, una observación.
+
+La revisión registra P2 sobre headroom de recovery heterogéneo, pico RSS no medido
+y precisión del harness cfg(test). Se siguen en el cierre conjunto; no se afirma
+atomicidad multiarchivo ni exclusión de editores externos. En ese snapshot, M2 completo seguía In
+Progress. El [cierre posterior](validation/M2-07.md) acredita full/client de las
+cinco tools y las extensiones con sus propios gates. No hay tag, push ni release nueva.
+
+
+D05 resuelto por ADR-055: directory source de Cargo vendor optativo, fingerprint
+host, verificación completa de checksums y policy preserve_presence del lock.
+Los probes son evidencia de decisión, no implementación de dependency.add/remove.
+
+M2-03: ADR-056 acepta el perfil dedicado de Cargo fix tras D06 (121 observaciones);
+implementado con pruebas reales de preview/commit/restart y fallos. No amplía
+seccomp M1. El cierre depende del gate conjunto y revisión de esta ampliación.
+
+M2 cliente stock detectó cuota RAM consumida por terminales. ADR-059 lo corrigió;
+[recheck Accepted](reviews/M2-059-review.md), [full posterior](validation/M2-full-gate.json)
+y [cliente PASS intento 5](validation/M2-clients.json) acreditan el cierre.
+El full anterior y los intentos fallidos permanecen históricos y preservados.

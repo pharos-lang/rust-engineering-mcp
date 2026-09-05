@@ -1,0 +1,44 @@
+{
+  "model": "claude-opus-5",
+  "effort": "high",
+  "cli_version": "2.1.260",
+  "files": [
+    {
+      "path": "docs/adr/ADR-050-local-coordinated-mutation.md",
+      "sha256": "e4e8b38936cdde67c4704833c464b68dd43e7fe6166daadb887991ee695c6a40"
+    },
+    {
+      "path": "docs/adr/ADR-052-mutation-journal-and-authorization.md",
+      "sha256": "7afced4d0e13c80a320cb1bb4c43b81c75920b01088a18645a1c81b8e6a9444f"
+    },
+    {
+      "path": "crates/domain/src/mutation.rs",
+      "sha256": "d9bbdd60c002a028a0509746086bef66a5ca72f47e0040166a3663c505fbd5a4"
+    },
+    {
+      "path": "crates/project-adapter/src/mutation_store.rs",
+      "sha256": "7690354645e7961b089e1388c45b2cd379408301bfaebb93b9576d342d437d39"
+    },
+    {
+      "path": "crates/project-adapter/src/mutation_state.rs",
+      "sha256": "ad5a732b8340ccf6cd54c111726ad38d6530eab76118406c1bf33c478000dfc3"
+    },
+    {
+      "path": "crates/project-adapter/src/mutation_port.rs",
+      "sha256": "4bffe1dea8cd1f1fe34cc554fa525f85fd3dfbb612fc3a71c09939d063996ac9"
+    },
+    {
+      "path": "crates/project-adapter/src/filesystem/macos.rs",
+      "sha256": "cc22a77a95bed734d2bdece82c6574d3386e15b742e3f8e83dd1ca5471709d5b"
+    },
+    {
+      "path": "crates/project-adapter/src/filesystem/macos/mutation.rs",
+      "sha256": "2de5a9961369307e04094ee6a629c5f0b02b26da936b1b3d62dec75294f4d50b"
+    },
+    {
+      "path": "crates/project-adapter/tests/mutation_store.rs",
+      "sha256": "66fd8452fcc04661ca183a9c9270437a1df9cae6332890f97c194e4a9d3916d9"
+    }
+  ],
+  "packet_sha256": "f9eff4550c337b7bca8a3861e25b94144f3646781845acc95681942ec692c084"
+}

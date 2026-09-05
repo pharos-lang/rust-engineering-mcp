@@ -235,3 +235,17 @@ pub use explain::{DiagnosticExplainPort, explain_diagnostic};
 
 mod quality;
 pub use quality::QualityPorts;
+
+mod manifest_edit;
+pub use manifest_edit::*;
+
+mod mutation;
+pub use mutation::*;
+
+mod rust_mutation;
+pub use rust_mutation::*;
+
+mod resolution;
+pub use resolution::{
+    PreparedSemanticMutation, ProjectResolutionPort, ResolutionError, SemanticPreparationError,
+};

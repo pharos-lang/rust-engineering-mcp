@@ -1,0 +1,72 @@
+{
+  "model": "claude-sonnet-5",
+  "effort": "medium",
+  "cli_version": "2.1.260",
+  "files": [
+    {
+      "path": "docs/adr/ADR-050-local-coordinated-mutation.md",
+      "sha256": "e4e8b38936cdde67c4704833c464b68dd43e7fe6166daadb887991ee695c6a40"
+    },
+    {
+      "path": "docs/adr/ADR-051-semantic-manifest-editor.md",
+      "sha256": "e8f11b804f740bcafdaf30900e3809ef13721478ba0b59c23c4a86f03bdf2c73"
+    },
+    {
+      "path": "docs/adr/ADR-052-mutation-journal-and-authorization.md",
+      "sha256": "7a44a7183fedcffc1af99efd7ce79d2276d5e23a3c0933bb0aa5599a8f7099cd"
+    },
+    {
+      "path": "crates/domain/src/manifest_edit.rs",
+      "sha256": "b332d3fcfc8d6a3786961690adb06dbb9148472e66c951696b83dff0d540d9a9"
+    },
+    {
+      "path": "crates/domain/src/mutation.rs",
+      "sha256": "f932299ec076cc9fcc651da472350eb9cab2a7187e3bec7b474314ff3f750fdd"
+    },
+    {
+      "path": "crates/application/src/manifest_edit.rs",
+      "sha256": "10645c11645937991d7256a7a3a157437e5fc19f42b3df4b2ab8e32e6641189d"
+    },
+    {
+      "path": "crates/application/src/mutation.rs",
+      "sha256": "bfb0b9d69ed9cba5a3196481c2c40c024a657bcee81d522cf90b3a10fc9786bc"
+    },
+    {
+      "path": "crates/project-adapter/src/manifest_edit.rs",
+      "sha256": "af1bd2f802ad71a5dd47707045307efec8501e26c17e4fffae30ac2405bde5c4"
+    },
+    {
+      "path": "crates/project-adapter/tests/manifest_edit.rs",
+      "sha256": "94dd2c45909a4f953eebd080362fbb056ca2e20c04b91c0de3a5f31a89d59aad"
+    },
+    {
+      "path": "crates/application/tests/mutation.rs",
+      "sha256": "4d44e5d2e0854149159420166e47c426d119dce808b3f5a821d2bc60f5af79bd"
+    },
+    {
+      "path": "crates/mcp-server/src/host_config.rs",
+      "sha256": "f47981c2a7020842ec1aa8e9692c55e2451be972f094937bc52d0efc5d8103b3"
+    },
+    {
+      "path": "crates/mcp-server/src/stdio/mutation.rs",
+      "sha256": "04e85f18efdfdbc8d591e11b1d9230c71ca68337b879e7b9c562626d53cf56fa"
+    },
+    {
+      "path": "crates/mcp-server/tests/inspection_runtime/mutation.rs",
+      "sha256": "307fd9655fd729197bbab69573afb0a6631b6d762be1127956cc619cb75bcb24"
+    },
+    {
+      "path": "crates/mcp-server/src/stdio.rs",
+      "sha256": "3333bcbf614faed57d33d1c6c68f1256afc26e96c93bd915c3ef0084da1f3d26"
+    },
+    {
+      "path": "crates/mcp-server/src/mutation_cli.rs",
+      "sha256": "41aacc795385a90c85fdff2bda87ff3200a6efe27b3fbcf0b681e1ed80624aae"
+    },
+    {
+      "path": "crates/mcp-server/src/stdio/workers.rs",
+      "sha256": "546e24b8c4c11d4c22c776bbcd234370f8b284906a3f23d7b9a2f56225a8e317"
+    }
+  ],
+  "packet_sha256": "fe6cc4de451ef24d23a2cedd747a15619afb252563450cff2d8d28e9f1507868"
+}

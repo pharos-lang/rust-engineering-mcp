@@ -1,0 +1,73 @@
+{
+  "timestamp_utc": "2026-09-05T17:14:07.552927+00:00",
+  "cli_version": "2.1.260",
+  "model": "claude-opus-5",
+  "effort": "high",
+  "read_only": true,
+  "tools": [],
+  "safe_mode": true,
+  "files": [
+    {
+      "path": "docs/adr/ADR-050-local-coordinated-mutation.md",
+      "sha256": "e4e8b38936cdde67c4704833c464b68dd43e7fe6166daadb887991ee695c6a40",
+      "bytes": 7460
+    },
+    {
+      "path": "docs/adr/ADR-052-mutation-journal-and-authorization.md",
+      "sha256": "740dc2ba04770560b5b7305cd2e6155ff744f022d5c7386d6ca21eb8aa5bec5f",
+      "bytes": 9191
+    },
+    {
+      "path": "docs/adr/ADR-054-multiple-file-mutation-publication.md",
+      "sha256": "25fdea56705b4492c46d1d4b1c87157ae374270043a1bf3937a40a7050309f44",
+      "bytes": 6063
+    },
+    {
+      "path": "docs/reviews/M2-01-review.md",
+      "sha256": "86afdcbbe45fe4975b92006d5af3b979db8f3196a7da2c68dd4f24fcf947cad9",
+      "bytes": 4444
+    },
+    {
+      "path": "crates/domain/src/mutation.rs",
+      "sha256": "cda55481cd7ffbc80c6c83074662d95bba8610fbcbff164c1a61c730eb3ab41d",
+      "bytes": 3044
+    },
+    {
+      "path": "crates/project-adapter/src/mutation_store.rs",
+      "sha256": "54c1ced98d0173cd6e49d999063b9a55d0bdf9835f1965997d715b3c97080fbb",
+      "bytes": 3850
+    },
+    {
+      "path": "crates/project-adapter/src/filesystem/macos.rs",
+      "sha256": "5baedec6ebc09489d2b5b3e7a6f0fe4516b5662061318c8b2d5da4b7d7cc8be6",
+      "bytes": 13560
+    },
+    {
+      "path": "crates/project-adapter/src/filesystem/macos/source.rs",
+      "sha256": "aebc1b3b3e664b9e3f8c4274c1493f8433c1ab86c5453f2b3c178467c76715b1",
+      "bytes": 24797
+    },
+    {
+      "path": "crates/project-adapter/src/filesystem/macos/mutation.rs",
+      "sha256": "3aa5cd1cf1c2d71b70907c0f7e28bb0ffe3c06c78868a3eab7105cc1fc68677b",
+      "bytes": 168584
+    },
+    {
+      "path": "crates/project-adapter/tests/mutation_store.rs",
+      "sha256": "ea176d8a83db4f173099b34a21c544daad2b0eae5e12c47d22b961b29449b5ba",
+      "bytes": 23058
+    },
+    {
+      "path": "docs/validation/M2-02-native-qualification.json",
+      "sha256": "fd561b37c46d4666f46353df3b5fe93642230977802856d15870725a6cf3fb96",
+      "bytes": 1824
+    },
+    {
+      "path": "docs/validation/M2-02-native-performance.json",
+      "sha256": "8ccc6c19f1cb0c513856c863edab118378d3fc1d5bdd61535c324963e18b39b1",
+      "bytes": 1185
+    }
+  ],
+  "packet_sha256": "22ebc00b3ecb7c52805221c1210bca5059b4494b8be9b22c595e20552177190b",
+  "packet_bytes": 306405
+}

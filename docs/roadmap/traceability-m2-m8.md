@@ -1,5 +1,14 @@
 # Trazabilidad spec → M2–M8, limitaciones y decisiones
 
+> Resolución posterior a la planificación: el owner delegó la decisión D02 para
+> preservar instalación/uso sencillos. [ADR-050](../adr/ADR-050-local-coordinated-mutation.md)
+> acepta local_coordinated: namespace host confiable, precondiciones y locks MCP,
+> sin exclusión OS de editores externos. Las exigencias de exclusión fuerte y espera
+> de decisión del owner que aparecen abajo son históricas y quedan sustituidas por
+> ese ADR; no hay CAS, atomicidad multiarchivo ni rollback sobre bytes desconocidos.
+> La calificación positiva de M2 sigue pendiente.
+
+
 Estado: **Planned**. Fuente: [spec completa](../spec/rust-engineering-mcp-propuesta-v0.3.md). El registro final enumera todos los encabezados numéricos, incluidos subapartados; las líneas permiten ubicar la fuente exacta. Cada fila tiene disposición, corte, evidencia requerida y gate. Una fila de mantenimiento no reabre M1: exige preservar su comportamiento y verificar regresiones cuando se amplíe la frontera. “Suggested/Deferred” preserva el carácter sugerido/futuro de la sección, no elimina requisitos normativos.
 
 Los entregables §97 sin número propio se descomponen así: M0/M1 → [baseline](baseline-2026-09-05.md); M2 → M2-01..07; M3 → M3-01..06; M4 → M4-01..06; M5 → M5-01..05; M6 → M6-01..06; M7 → M7-G0 y solo con Go M7-01..06; M8 → M8-01..09. 1.0.0 → M8-02 contratos estables/SemVer, M8-08 security model, M8-07 cross-platform/signing, M8-06 CLI/guías, M8-04 protocolo y M8-03 upgrades; se exige el [checklist de readiness](m8-stabilization.md), no una fecha de release.

@@ -80,3 +80,17 @@ pub use explain::*;
 
 mod quality;
 pub use quality::*;
+
+mod manifest_edit;
+pub use manifest_edit::*;
+
+mod mutation;
+pub use mutation::*;
+
+mod rust_mutation;
+pub use rust_mutation::*;
+mod cargo_vendor;
+pub use cargo_vendor::*;
+
+mod resolution;
+pub use resolution::{MutationLockDisposition, MutationResolutionObservation};

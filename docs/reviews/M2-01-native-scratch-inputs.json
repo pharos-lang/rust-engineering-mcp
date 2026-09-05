@@ -1,0 +1,36 @@
+{
+  "model": "claude-opus-5",
+  "effort": "high",
+  "cli_version": "2.1.260",
+  "files": [
+    {
+      "path": "docs/adr/ADR-050-local-coordinated-mutation.md",
+      "sha256": "e4e8b38936cdde67c4704833c464b68dd43e7fe6166daadb887991ee695c6a40"
+    },
+    {
+      "path": "docs/adr/ADR-052-mutation-journal-and-authorization.md",
+      "sha256": "740dc2ba04770560b5b7305cd2e6155ff744f022d5c7386d6ca21eb8aa5bec5f"
+    },
+    {
+      "path": "crates/domain/src/mutation.rs",
+      "sha256": "f932299ec076cc9fcc651da472350eb9cab2a7187e3bec7b474314ff3f750fdd"
+    },
+    {
+      "path": "crates/project-adapter/src/filesystem/macos/mutation.rs",
+      "sha256": "4443e5765ec7e082aa22176a0ccea1da9931dba5cceb3d7a0d40d88226fd60eb"
+    },
+    {
+      "path": "crates/project-adapter/src/mutation_store.rs",
+      "sha256": "d9effda1141adbc40220623a01db02dabfd6a2b372974bd29bd8ac925e9db2bb"
+    },
+    {
+      "path": "crates/project-adapter/tests/mutation_store.rs",
+      "sha256": "99c721da3753677b8837b1179161df85ba632601128169cf1e8bd13eb7483169"
+    },
+    {
+      "path": "docs/validation/m2-d02-native-probe.json",
+      "sha256": "0ac42ab1761f0dcfc0401aa4799469ec386b7aa5484359dfa1b179a2bb246243"
+    }
+  ],
+  "packet_sha256": "0634e1182f93b64ba42553a5d6757dbf4e407a05f84cc44ca8c6113bb3f04e7b"
+}

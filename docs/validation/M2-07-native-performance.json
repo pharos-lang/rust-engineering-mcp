@@ -1,0 +1,102 @@
+{
+  "schema_version": 1,
+  "evidence_id": "M2-07-native-release-test-rss",
+  "recorded_at_utc": "2026-09-05T18:33:06+00:00",
+  "purpose": "Host observation of peak resident memory for the existing ignored native mutation ceiling fixture, using the release test executable directly so Cargo and compiler memory are excluded from the measured process.",
+  "snapshot": {
+    "git_head": "331d1630da5a2c1d8d8c596305c0c1167a7896cb",
+    "working_tree": "The measured source snapshot had uncommitted changes in domain mutation and native mutation files; exact source hashes below identify the measured content.",
+    "binary": {
+      "path": "/Users/cburgosro/Projects/rust-mcp/target/release/deps/rust_engineering_project-34145aef73d56ab6",
+      "size_bytes": 2632848,
+      "sha256": "6d2e3cf4962afa28fe375c258b64e98c871343bde22ae7cfd92e243609fab038"
+    },
+    "source_sha256": {
+      "crates/domain/src/mutation.rs": "e5964cfb6dd9cb1551816229aa144ac529f091788ed1721a8f7d4cb48e99be70",
+      "crates/domain/src/source.rs": "2fbc370dc6be5434bd64e137f5d97284f4faa11cca64164566957f1133e7e7d9",
+      "crates/project-adapter/src/filesystem/macos.rs": "5baedec6ebc09489d2b5b3e7a6f0fe4516b5662061318c8b2d5da4b7d7cc8be6",
+      "crates/project-adapter/src/filesystem/macos/mutation.rs": "da1ab2737666861e120afae2d8feae6c7f38f5df689f8541f57c01eb204978ca",
+      "crates/project-adapter/src/filesystem/macos/source.rs": "aebc1b3b3e664b9e3f8c4274c1493f8433c1ab86c5453f2b3c178467c76715b1",
+      "crates/project-adapter/src/mutation_store.rs": "3a3142089060be0bb1aadd2f2cab13a00ca3a7dd5d3e5b1ac42a5b4b7a864334",
+      "crates/project-adapter/tests/support/native_mutation.rs": "46ec088944986c2e46db00f0d4d20a5d42fd011a23c190fa90d8c397f7bd8017"
+    }
+  },
+  "toolchain_and_host": {
+    "rustc": "rustc 1.98.1 (48a229cea 2026-09-01)",
+    "rustc_host": "aarch64-apple-darwin",
+    "llvm": "22.1.8",
+    "cargo": "cargo 1.98.1 (797e8a9bc 2026-08-05)",
+    "os": "macOS 26.6.2 (25G83)",
+    "kernel": "Darwin 25.6.0 arm64",
+    "hardware_model": "Mac16,5",
+    "physical_memory_bytes": 51539607552
+  },
+  "build": {
+    "working_directory": "/Users/cburgosro/Projects/rust-mcp",
+    "command": "cargo test -p rust-engineering-project --release --lib --no-run --message-format=json > /private/tmp/m2-07-native-performance-cargo.json",
+    "result": "passed",
+    "cargo_reported_finished_seconds": 4.56,
+    "artifact_discovery": "Select the compiler-artifact JSON object whose target.name is rust_engineering_project, target.kind is [lib], and profile.test is true; use its executable field."
+  },
+  "measurement": {
+    "working_directory": "/Users/cburgosro/Projects/rust-mcp",
+    "command": "/usr/bin/time -l /Users/cburgosro/Projects/rust-mcp/target/release/deps/rust_engineering_project-34145aef73d56ab6 --ignored --exact filesystem::macos::mutation::tests::measure_real_format_commit_replay_recovery_and_index_ceiling --nocapture",
+    "stdout_capture": "/private/tmp/m2-07-native-performance.stdout",
+    "stderr_capture": "/private/tmp/m2-07-native-performance.stderr",
+    "test_name": "filesystem::macos::mutation::tests::measure_real_format_commit_replay_recovery_and_index_ceiling",
+    "selection": {
+      "ignored": true,
+      "exact": true,
+      "nocapture": true
+    },
+    "exit_code": 0,
+    "test_result": {
+      "status": "ok",
+      "passed": 1,
+      "failed": 0,
+      "filtered_out": 55,
+      "harness_finished_seconds": 6.56
+    },
+    "process": {
+      "wall_seconds": 6.94,
+      "user_seconds": 1.04,
+      "system_seconds": 1.12,
+      "maximum_resident_set_size_bytes": 1784365056,
+      "peak_memory_footprint_bytes": 1783646080,
+      "page_reclaims": 109091,
+      "page_faults": 0,
+      "swaps": 0
+    },
+    "native_fixture_metrics": {
+      "commit_ms": 5535,
+      "replay_ms": 156,
+      "recovery_ms": 92,
+      "stored_bytes": 44774412,
+      "index_list_ms": 13,
+      "exact_receipt_ms": 0,
+      "quota_refusal_ms": 10
+    },
+    "raw_test_summary": "test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 55 filtered out; finished in 6.56s",
+    "raw_fixture_metric": "M2_02_REAL_COST commit_ms=5535 replay_ms=156 recovery_ms=92 stored_bytes=44774412 index_list_ms=13 exact_receipt_ms=0 quota_refusal_ms=10",
+    "raw_time_metric": "6.94 real 1.04 user 1.12 sys; 1784365056 maximum resident set size; 1783646080 peak memory footprint"
+  },
+  "interpretation": {
+    "n2_observation": "The direct release test process reached a maximum resident set size of 1,784,365,056 bytes on this host.",
+    "included": [
+      "Rust test harness and allocator state",
+      "in-process source bundles and candidate bytes",
+      "journal encoding, decoding, indexing, receipt, and recovery work",
+      "temporary fixture construction and filesystem interaction"
+    ],
+    "excluded": [
+      "Cargo process resident memory",
+      "rustc and linker resident memory"
+    ],
+    "limitations": [
+      "This is one host observation, not a formal upper bound or cross-platform guarantee.",
+      "It does not qualify rollback under power loss.",
+      "It does not isolate the writer's allocations from the test harness, source bundles, journals, or fixtures.",
+      "Wall time and memory can vary with filesystem, allocator, OS cache state, and concurrent host load."
+    ]
+  }
+}

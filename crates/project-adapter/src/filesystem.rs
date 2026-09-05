@@ -2,7 +2,10 @@
 mod macos;
 
 #[cfg(target_os = "macos")]
-pub use macos::{ProjectLease, SecureProjects, read_host_snapshot};
+pub(crate) use macos::capture_cargo_vendor;
+
+#[cfg(target_os = "macos")]
+pub use macos::{NativeMutationStore, ProjectLease, SecureProjects, read_host_snapshot};
 
 /// Maximum owned bytes accepted from an explicitly configured host snapshot.
 pub const MAX_HOST_SNAPSHOT_BYTES: usize = 8 * 1024 * 1024;

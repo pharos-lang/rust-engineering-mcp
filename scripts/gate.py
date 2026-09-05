@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """Local CI entrypoint. No installs, downloads or remote integration.
-core runs portable gates; full additionally requires calibrated macOS/Docker/model.
+core runs portable gates; full additionally requires calibrated macOS/Docker/model and M2 mutation fixtures.
 """
-import argparse, datetime, json, os, pathlib, platform, re, shutil, subprocess, sys, time
+import argparse, datetime, hashlib, json, os, pathlib, platform, re, shutil, stat, subprocess, sys, time
 ROOT=pathlib.Path(__file__).resolve().parents[1]
 
 RUST_TEST_RESULT = re.compile(
@@ -78,6 +78,39 @@ def run_step(report, save, name, command, env, require_test_groups=False,
     if evidence_error:
         raise RuntimeError(f'{name} evidence failed: {evidence_error}')
 
+def source_inventory(root, env):
+    """Bind tracked and untracked code/config/fixtures without following links."""
+    names = subprocess.check_output(
+        ['git', 'ls-files', '--cached', '--others', '--exclude-standard', '-z'],
+        cwd=root, env=env).decode().split('\0')
+    roots = {'AGENTS.md', 'Cargo.toml', 'Cargo.lock', 'rust-toolchain.toml',
+             'deny.toml', 'rustfmt.toml', 'clippy.toml', '.gitignore'}
+    prefixes = ('crates/', 'scripts/', 'fixtures/', 'vendor/', '.cargo/', '.github/')
+    rows = []
+    for name in sorted(set(names)):
+        if name not in roots and not name.startswith(prefixes):
+            continue
+        path = root / name
+        try:
+            info = path.lstat()
+        except FileNotFoundError:
+            rows.append({'path': name, 'kind': 'absent'})
+            continue
+        if stat.S_ISLNK(info.st_mode):
+            data = os.readlink(path).encode()
+            kind = 'symlink-target'
+            digest = hashlib.sha256(data).hexdigest()
+            size = len(data)
+        elif stat.S_ISREG(info.st_mode):
+            with path.open('rb') as stream:
+                digest = hashlib.file_digest(stream, 'sha256').hexdigest()
+            size, kind = info.st_size, 'file'
+        else:
+            raise RuntimeError(f'unsupported gate source entry: {name}')
+        rows.append({'path': name, 'kind': kind, 'mode': oct(stat.S_IMODE(info.st_mode)),
+                     'bytes': size, 'sha256': digest})
+    return rows
+
 def main():
     parser=argparse.ArgumentParser(description=__doc__)
     parser.add_argument('mode', choices=['core','full'])
@@ -97,7 +130,7 @@ def main():
     try:
         if os.name=='nt': raise RuntimeError('Windows fixture harness not calibrated; matrix gate unavailable')
         if args.mode=='full':
-            if sys.platform!='darwin' or platform.machine()!='arm64': raise RuntimeError('Full M1 gate calibrated only on macOS ARM64')
+            if sys.platform!='darwin' or platform.machine()!='arm64': raise RuntimeError('Full native gate calibrated only on macOS ARM64')
             for key in ['RUST_MCP_TEST_SOCKET','RUST_MCP_E5_DIR','ORT_LIB_LOCATION']:
                 if not env.get(key): raise RuntimeError(f'{key} required for full gate; no substitution')
         for name in ['rustup','cargo-audit','cargo-deny']:
@@ -111,6 +144,8 @@ def main():
             actual=subprocess.check_output([binary,'--version'],env=env,text=True).strip()
             report[pathlib.Path(binary).name]=actual
             if not actual.startswith(prefix): raise RuntimeError('Rust/Cargo1.98.1 required; no automatic toolchain replacement')
+        report['source_inputs'] = source_inventory(ROOT, env)
+        save()
         run('fmt',['cargo','fmt','--all','--check'])
         for step in ['check','clippy','test']:
             command=['cargo',step,'--workspace','--all-targets','--locked','--offline']
@@ -134,6 +169,7 @@ def main():
         if args.mode=='full':
             run('docker-security',['sh','scripts/test-execution.sh'])
             run('rust-security',[sys.executable,'scripts/test-rust-execution.py'])
+            run('m2-runtime',[sys.executable,'scripts/test-m2-runtime.py'])
             run('audit-data',[sys.executable,'scripts/test-audit-data.py'])
             run('semantic',[sys.executable,'scripts/test-semantic.py'])
             run('catalog',[sys.executable,'scripts/test-catalog.py'])
@@ -141,6 +177,9 @@ def main():
             run('crate-search',[sys.executable,'scripts/test-crate-search.py'])
             run('crate-inspect',[sys.executable,'scripts/test-crate-inspect.py'])
             run('doctor',[sys.executable,'scripts/test-doctor.py'])
+        report['source_inputs_unchanged'] = source_inventory(ROOT, env) == report['source_inputs']
+        if not report['source_inputs_unchanged']:
+            raise RuntimeError('code/config/fixture inputs changed during gate; qualification rejected')
         report['status']='passed';report['finished_at']=utc_now()
     except Exception as error:
         report['status']='failed';report['error']=str(error);report['finished_at']=utc_now();save();raise

@@ -2,6 +2,8 @@
 """Discriminating tests for gate receipt timestamps and direct test counts."""
 import importlib.util
 import io
+import os
+import tempfile
 from pathlib import Path
 import sys
 import unittest
@@ -22,6 +24,24 @@ GATE = load_gate_module()
 
 
 class GateReportingTests(unittest.TestCase):
+    @unittest.skipIf(os.name == "nt", "native symlink fixture")
+    def test_source_binding_detects_new_bytes_and_records_links_without_following(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            (root / 'crates').mkdir()
+            file = root / 'crates/source.rs'
+            file.write_text('before')
+            (root / 'crates/link.rs').symlink_to('/nonexistent/outside')
+            names = b'crates/source.rs\0crates/link.rs\0docs/changing-report.json\0'
+            with mock.patch.object(GATE.subprocess, 'check_output', return_value=names):
+                before = GATE.source_inventory(root, {})
+                file.write_text('after')
+                after = GATE.source_inventory(root, {})
+            self.assertEqual(len(before), 2)
+            self.assertEqual(before[0]['kind'], 'symlink-target')
+            self.assertEqual(before[0], after[0])
+            self.assertNotEqual(before[1]['sha256'], after[1]['sha256'])
+
     def test_rust_summary_preserves_each_counter(self):
         parsed = GATE.parse_test_summary_line(
             "test result: ok. 12 passed; 1 failed; 2 ignored; 3 measured; 4 filtered out"

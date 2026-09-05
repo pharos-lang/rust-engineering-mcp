@@ -1,0 +1,1414 @@
+//! Closed two-volume Cargo offline resolution from ADR-055.
+use super::*;
+use crate::mutation_gateway::{
+    MutationVolume, VOLUME_OPTIONS, absent, cleanup_until, labels, mutation_control, parse_volume,
+    query_control, remove_if_present, running, start_attached,
+};
+use crate::rust_gateway::RustGateway;
+use rust_engineering_application::{InspectionError, ProjectError, ResolutionError};
+use rust_engineering_domain::{
+    CargoVendorSnapshot, ExecutionFingerprint, MutationLockDisposition,
+    MutationResolutionObservation, OperationalErrorCode, RuntimeIdentity, SourceBundle, SourceFile,
+};
+use serde_json::Value;
+use sha2::{Digest, Sha256};
+use std::sync::atomic::Ordering;
+use std::time::{Duration, Instant};
+
+const WALL: Duration = Duration::from_secs(30);
+const CLEANUP: Duration = Duration::from_secs(10);
+const OUTPUT: usize = 1024 * 1024;
+const REPLACE: &str = "--config=source.crates-io.replace-with=\"rust-mcp-vendor\"";
+const DIRECTORY: &str = "--config=source.rust-mcp-vendor.directory=\"/rust-mcp-vendor\"";
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq, serde::Serialize)]
+pub(super) enum ResolutionPhase {
+    SourceGuardian,
+    VendorGuardian,
+    SourceIngest,
+    VendorIngest,
+    Resolve,
+    Frozen,
+    Export,
+}
+struct ResolutionVolumes<'a> {
+    source: &'a MutationVolume,
+    vendor: &'a MutationVolume,
+}
+impl ResolutionPhase {
+    pub(super) fn program(self) -> &'static str {
+        match self {
+            Self::SourceGuardian | Self::VendorGuardian => "/usr/bin/sleep",
+            Self::SourceIngest | Self::VendorIngest | Self::Export => "/usr/bin/tar",
+            Self::Resolve | Self::Frozen => "/opt/rust/bin/cargo",
+        }
+    }
+    pub(super) fn arguments(self) -> &'static [&'static str] {
+        match self {
+            Self::SourceGuardian | Self::VendorGuardian => &["900"],
+            Self::SourceIngest => &[
+                "--extract",
+                "--file=-",
+                "--directory=/source",
+                "--no-same-owner",
+                "--no-same-permissions",
+                "--keep-old-files",
+            ],
+            Self::VendorIngest => &[
+                "--extract",
+                "--file=-",
+                "--directory=/rust-mcp-vendor",
+                "--no-same-owner",
+                "--no-same-permissions",
+                "--keep-old-files",
+            ],
+            Self::Resolve => &[
+                "metadata",
+                "--format-version=1",
+                "--offline",
+                "--manifest-path=/source/Cargo.toml",
+                REPLACE,
+                DIRECTORY,
+            ],
+            Self::Frozen => &[
+                "metadata",
+                "--format-version=1",
+                "--frozen",
+                "--offline",
+                "--manifest-path=/source/Cargo.toml",
+                REPLACE,
+                DIRECTORY,
+            ],
+            Self::Export => &[
+                "--create",
+                "--file=-",
+                "--format=ustar",
+                "--sort=name",
+                "--one-file-system",
+                "--directory=/source",
+                ".",
+            ],
+        }
+    }
+    pub(super) fn interactive(self) -> bool {
+        matches!(self, Self::SourceIngest | Self::VendorIngest)
+    }
+    pub(super) fn source_writable(self) -> bool {
+        matches!(self, Self::SourceIngest | Self::Resolve)
+    }
+    pub(super) fn vendor_writable(self) -> bool {
+        self == Self::VendorIngest
+    }
+    pub(super) fn source_mounted(self) -> bool {
+        !matches!(self, Self::VendorGuardian | Self::VendorIngest)
+    }
+    pub(super) fn vendor_mounted(self) -> bool {
+        !matches!(self, Self::SourceGuardian | Self::SourceIngest)
+    }
+}
+
+fn invalid_execution(error: ExecutionError) -> ResolutionError {
+    if error == ExecutionError::Cancelled {
+        ResolutionError::Inspection(InspectionError::Project(ProjectError::Cancelled))
+    } else {
+        ResolutionError::Inspection(InspectionError::Execution(error))
+    }
+}
+fn output_limit() -> ResolutionError {
+    ResolutionError::Inspection(InspectionError::OutputLimit)
+}
+
+fn create_arguments(
+    gateway: &RustGateway,
+    name: &str,
+    nonce: &str,
+    source: &MutationVolume,
+    vendor: &MutationVolume,
+    phase: ResolutionPhase,
+) -> Result<Vec<String>, ExecutionError> {
+    let mut args = [
+        "container",
+        "create",
+        "--pull=never",
+        "--runtime=runc",
+        "--init=false",
+        "--network=none",
+        "--read-only",
+        "--cap-drop=ALL",
+        "--security-opt=no-new-privileges=true",
+        "--ipc=private",
+        "--cgroupns=private",
+        "--pids-limit=128",
+        "--cpus=1",
+        "--memory=1g",
+        "--memory-swap=1g",
+        "--shm-size=1m",
+        "--log-driver=none",
+        "--no-healthcheck",
+        "--tmpfs=/work:rw,exec,nosuid,nodev,size=512m,mode=1777",
+        "--tmpfs=/tmp:rw,nosuid,nodev,noexec,size=64m,mode=1777",
+        "--workdir=/source",
+        "--hostname=sandbox",
+        "--user=65534:65534",
+    ]
+    .map(str::to_owned)
+    .to_vec();
+    args.push(format!("--name={name}"));
+    for (key, value) in labels(nonce) {
+        args.push(format!("--label={key}={value}"));
+    }
+    for value in crate::rust_gateway::environment() {
+        args.push(format!("--env={value}"));
+    }
+    let profile = gateway.inner.state.path().join("seccomp-rust.json");
+    args.push(format!(
+        "--security-opt=seccomp={}",
+        profile
+            .to_str()
+            .ok_or(ExecutionError::InvalidConfiguration)?
+    ));
+    if phase.source_mounted() {
+        args.push(format!(
+            "--mount=type=volume,source={},target=/source,volume-nocopy,volume-driver=local{}",
+            source.name,
+            if phase.source_writable() {
+                ""
+            } else {
+                ",readonly"
+            }
+        ));
+    }
+    if phase.vendor_mounted() {
+        args.push(format!(
+            "--mount=type=volume,source={},target=/rust-mcp-vendor,volume-nocopy,volume-driver=local{}",
+            vendor.name, if phase.vendor_writable() { "" } else { ",readonly" }
+        ));
+    }
+    if phase.interactive() {
+        args.push("--interactive".into());
+    }
+    args.push(format!("--entrypoint={}", phase.program()));
+    args.push(gateway.image_id().into());
+    args.extend(phase.arguments().iter().map(|value| (*value).to_owned()));
+    Ok(args)
+}
+
+fn create_volume(
+    gateway: &RustGateway,
+    name: &str,
+    nonce: &str,
+    deadline: Instant,
+    cancel: &dyn ExecutionCancellation,
+) -> Result<MutationVolume, ExecutionError> {
+    if !absent(gateway, "volume", name, deadline, cancel)? {
+        return Err(ExecutionError::CleanupUncertain);
+    }
+    let mut args = vec![
+        "volume".into(),
+        "create".into(),
+        "--driver=local".into(),
+        "--opt=type=tmpfs".into(),
+        "--opt=device=tmpfs".into(),
+        format!("--opt=o={VOLUME_OPTIONS}"),
+    ];
+    for (key, value) in labels(nonce) {
+        args.push(format!("--label={key}={value}"));
+    }
+    args.push(name.into());
+    mutation_control(gateway, &args, deadline, cancel)?;
+    let inspected = query_control(
+        gateway,
+        &["volume".into(), "inspect".into(), name.into()],
+        deadline,
+        cancel,
+    )?;
+    if inspected.code != Some(0) {
+        return Err(ExecutionError::Infrastructure);
+    }
+    parse_volume(&inspected.stdout, name, nonce)
+}
+
+fn create_phase(
+    gateway: &RustGateway,
+    name: &str,
+    nonce: &str,
+    volumes: &ResolutionVolumes<'_>,
+    phase: ResolutionPhase,
+    deadline: Instant,
+    cancel: &dyn ExecutionCancellation,
+) -> Result<(), ExecutionError> {
+    if !absent(gateway, "container", name, deadline, cancel)? {
+        return Err(ExecutionError::CleanupUncertain);
+    }
+    mutation_control(
+        gateway,
+        &create_arguments(gateway, name, nonce, volumes.source, volumes.vendor, phase)?,
+        deadline,
+        cancel,
+    )?;
+    let inspected = query_control(
+        gateway,
+        &["container".into(), "inspect".into(), name.into()],
+        deadline,
+        cancel,
+    )?;
+    if inspected.code != Some(0) {
+        return Err(ExecutionError::Infrastructure);
+    }
+    crate::rust_applied::verify_resolution(
+        &inspected.stdout,
+        gateway.image_id(),
+        phase,
+        volumes.source,
+        volumes.vendor,
+        nonce,
+    )
+}
+
+fn completed(
+    gateway: &RustGateway,
+    name: &str,
+    capture: &Capture,
+    deadline: Instant,
+    cancel: &dyn ExecutionCancellation,
+) -> Result<bool, ExecutionError> {
+    if capture.stop != Stop::Exited {
+        return Ok(false);
+    }
+    let inspected = query_control(
+        gateway,
+        &["container".into(), "inspect".into(), name.into()],
+        deadline,
+        cancel,
+    )?;
+    let values: Vec<Container> =
+        serde_json::from_slice(&inspected.stdout).map_err(|_| ExecutionError::Infrastructure)?;
+    let value = values
+        .first()
+        .filter(|_| values.len() == 1)
+        .ok_or(ExecutionError::Infrastructure)?;
+    if inspected.code != Some(0) || !value.state.completed(capture.code) {
+        return Err(ExecutionError::Infrastructure);
+    }
+    Ok(!value.state.oom_killed)
+}
+
+fn manifest_relative<'a>(path: &'a str, root: &str) -> Option<&'a str> {
+    let relative = path.strip_prefix(root)?.strip_prefix('/')?;
+    if relative.is_empty()
+        || relative.starts_with('/')
+        || rust_engineering_domain::validate_source_path(relative).is_err()
+        || !(relative == "Cargo.toml" || relative.ends_with("/Cargo.toml"))
+    {
+        return None;
+    }
+    Some(relative)
+}
+
+fn file_exists(source: &SourceBundle, path: &str) -> bool {
+    source
+        .files()
+        .binary_search_by(|file| file.path().cmp(path))
+        .is_ok()
+}
+
+fn normalize_array(value: &mut Value, key: &str) {
+    if let Some(values) = value.get_mut(key).and_then(Value::as_array_mut) {
+        values.sort_by_key(|value| serde_json::to_string(value).unwrap_or_default());
+    }
+}
+
+fn normalized_graph(value: &Value) -> Option<Value> {
+    let mut packages = value.get("packages")?.as_array()?.clone();
+    for package in &mut packages {
+        normalize_array(package, "dependencies");
+        normalize_array(package, "features");
+        normalize_array(package, "targets");
+    }
+    packages.sort_by_key(|package| {
+        package
+            .get("id")
+            .and_then(Value::as_str)
+            .unwrap_or("")
+            .to_owned()
+    });
+    let mut resolve = value.get("resolve")?.clone();
+    let nodes = resolve.get_mut("nodes")?.as_array_mut()?;
+    for node in nodes.iter_mut() {
+        normalize_array(node, "dependencies");
+        normalize_array(node, "deps");
+        normalize_array(node, "features");
+        if let Some(deps) = node.get_mut("deps").and_then(Value::as_array_mut) {
+            for dependency in deps {
+                normalize_array(dependency, "dep_kinds");
+            }
+        }
+        normalize_array(node, "deps");
+    }
+    nodes.sort_by_key(|node| {
+        node.get("id")
+            .and_then(Value::as_str)
+            .unwrap_or("")
+            .to_owned()
+    });
+    let mut members = value.get("workspace_members")?.as_array()?.clone();
+    members.sort_by_key(|member| member.as_str().unwrap_or("").to_owned());
+    Some(serde_json::json!({"packages":packages,"resolve":resolve,"workspace_members":members}))
+}
+
+fn metadata_graph(
+    capture: &Capture,
+    source: &SourceBundle,
+    dataset: &CargoVendorSnapshot,
+) -> Result<Value, ResolutionError> {
+    if capture.stop != Stop::Exited
+        || capture.code != Some(0)
+        || capture.stdout_truncated
+        || capture.stderr_truncated
+    {
+        return Err(ResolutionError::Failed);
+    }
+    let value: Value =
+        serde_json::from_slice(&capture.stdout).map_err(|_| ResolutionError::Failed)?;
+    if value.get("version").and_then(Value::as_u64) != Some(1)
+        || value.get("workspace_root").and_then(Value::as_str) != Some("/source")
+    {
+        return Err(ResolutionError::Failed);
+    }
+    let packages = value
+        .get("packages")
+        .and_then(Value::as_array)
+        .filter(|packages| !packages.is_empty())
+        .ok_or(ResolutionError::Failed)?;
+    let mut ids = std::collections::BTreeSet::new();
+    for package in packages {
+        let id = package
+            .get("id")
+            .and_then(Value::as_str)
+            .ok_or(ResolutionError::Failed)?;
+        let name = package
+            .get("name")
+            .and_then(Value::as_str)
+            .ok_or(ResolutionError::Failed)?;
+        let version = package
+            .get("version")
+            .and_then(Value::as_str)
+            .ok_or(ResolutionError::Failed)?;
+        let manifest = package
+            .get("manifest_path")
+            .and_then(Value::as_str)
+            .ok_or(ResolutionError::Failed)?;
+        if !ids.insert(id) {
+            return Err(ResolutionError::Failed);
+        }
+        if let Some(relative) = manifest_relative(manifest, "/source") {
+            if !file_exists(source, relative) {
+                return Err(ResolutionError::Failed);
+            }
+        } else if let Some(relative) = manifest_relative(manifest, "/rust-mcp-vendor") {
+            if !file_exists(&dataset.source, relative) {
+                return Err(ResolutionError::InvalidOfflineData);
+            }
+            let directory = relative
+                .strip_suffix("/Cargo.toml")
+                .ok_or(ResolutionError::InvalidOfflineData)?;
+            if directory.contains('/')
+                || !dataset.packages.iter().any(|package| {
+                    package.name == name
+                        && package.version == version
+                        && directory == format!("{}-{}", package.name, package.version)
+                })
+            {
+                return Err(ResolutionError::InvalidOfflineData);
+            }
+        } else {
+            return Err(ResolutionError::Failed);
+        }
+    }
+    let members = value
+        .get("workspace_members")
+        .and_then(Value::as_array)
+        .filter(|members| !members.is_empty())
+        .ok_or(ResolutionError::Failed)?;
+    if members
+        .iter()
+        .any(|member| member.as_str().is_none_or(|id| !ids.contains(id)))
+    {
+        return Err(ResolutionError::Failed);
+    }
+    let resolve = value
+        .get("resolve")
+        .filter(|resolve| !resolve.is_null())
+        .ok_or(ResolutionError::Failed)?;
+    let nodes = resolve
+        .get("nodes")
+        .and_then(Value::as_array)
+        .ok_or(ResolutionError::Failed)?;
+    let mut node_ids = std::collections::BTreeSet::new();
+    for node in nodes {
+        let id = node
+            .get("id")
+            .and_then(Value::as_str)
+            .ok_or(ResolutionError::Failed)?;
+        if !ids.contains(id) || !node_ids.insert(id) {
+            return Err(ResolutionError::Failed);
+        }
+        let dependency_ids = node
+            .get("dependencies")
+            .and_then(Value::as_array)
+            .ok_or(ResolutionError::Failed)?;
+        if dependency_ids
+            .iter()
+            .any(|dependency| dependency.as_str().is_none_or(|id| !ids.contains(id)))
+        {
+            return Err(ResolutionError::Failed);
+        }
+        let dependencies = node
+            .get("deps")
+            .and_then(Value::as_array)
+            .ok_or(ResolutionError::Failed)?;
+        if dependencies.iter().any(|dependency| {
+            dependency
+                .get("pkg")
+                .and_then(Value::as_str)
+                .is_none_or(|id| !ids.contains(id))
+        }) {
+            return Err(ResolutionError::Failed);
+        }
+    }
+    if node_ids != ids {
+        return Err(ResolutionError::Failed);
+    }
+    if resolve
+        .get("root")
+        .filter(|root| !root.is_null())
+        .is_some_and(|root| root.as_str().is_none_or(|id| !ids.contains(id)))
+    {
+        return Err(ResolutionError::Failed);
+    }
+    normalized_graph(&value).ok_or(ResolutionError::Failed)
+}
+
+fn missing_offline_data(capture: &Capture) -> bool {
+    if capture.stop != Stop::Exited
+        || capture.code != Some(101)
+        || capture.stdout_truncated
+        || capture.stderr_truncated
+        || !capture.stdout.is_empty()
+    {
+        return false;
+    }
+    let Ok(stderr) = std::str::from_utf8(&capture.stderr) else {
+        return false;
+    };
+    let directory = stderr
+        .lines()
+        .any(|line| line == "location searched: directory source `/rust-mcp-vendor` (which is replacing registry `crates-io`)");
+    let absent = stderr.lines().any(|line| {
+        line.starts_with("error: no matching package named `") && line.ends_with("` found")
+    });
+    let version = stderr.lines().any(|line| {
+        line.starts_with("error: failed to select a version for the requirement `")
+            && line.ends_with('`')
+    }) && stderr
+        .lines()
+        .any(|line| line.starts_with("candidate versions found which didn't match:"));
+    directory && (absent || version)
+}
+
+fn tree_fingerprint(
+    source: &SourceBundle,
+) -> Result<rust_engineering_domain::SourceFingerprint, ResolutionError> {
+    let mut hash = Sha256::new();
+    for file in source.files() {
+        hash.update((file.path().len() as u64).to_le_bytes());
+        hash.update(file.path().as_bytes());
+        hash.update((file.bytes().len() as u64).to_le_bytes());
+        hash.update(file.bytes());
+    }
+    let mut value = String::from("sha256:");
+    for byte in hash.finalize() {
+        use std::fmt::Write;
+        write!(&mut value, "{byte:02x}").map_err(|_| ResolutionError::InvalidOfflineData)?;
+    }
+    value
+        .parse()
+        .map_err(|_| ResolutionError::InvalidOfflineData)
+}
+
+fn expected_export(edited: &SourceBundle) -> Result<(SourceBundle, bool), ResolutionError> {
+    let had_lock = edited
+        .files()
+        .binary_search_by(|file| file.path().cmp("Cargo.lock"))
+        .is_ok();
+    if had_lock {
+        return Ok((edited.clone(), true));
+    }
+    let mut files = edited.files().to_vec();
+    files.push(SourceFile::new("Cargo.lock".into(), Vec::new()).map_err(|_| output_limit())?);
+    SourceBundle::with_directories(files, edited.directories().to_vec())
+        .map(|bundle| (bundle, false))
+        .map_err(|_| output_limit())
+}
+
+fn scope_candidate(
+    edited: &SourceBundle,
+    exported: SourceBundle,
+    had_lock: bool,
+) -> Result<(SourceBundle, Vec<u8>, MutationLockDisposition), ResolutionError> {
+    let lock = exported
+        .files()
+        .iter()
+        .find(|file| file.path() == "Cargo.lock")
+        .filter(|file| !file.bytes().is_empty())
+        .ok_or(ResolutionError::Failed)?
+        .bytes()
+        .to_vec();
+    for file in exported.files() {
+        if file.path() == "Cargo.lock" {
+            continue;
+        }
+        let old = edited
+            .files()
+            .iter()
+            .find(|old| old.path() == file.path())
+            .ok_or(ResolutionError::Failed)?;
+        if old.bytes() != file.bytes() {
+            return Err(ResolutionError::Failed);
+        }
+    }
+    if had_lock {
+        Ok((exported, lock, MutationLockDisposition::UpdatedExisting))
+    } else {
+        let files = exported
+            .files()
+            .iter()
+            .filter(|file| file.path() != "Cargo.lock")
+            .cloned()
+            .collect();
+        let candidate = SourceBundle::with_directories(files, edited.directories().to_vec())
+            .map_err(|_| ResolutionError::Failed)?;
+        if &candidate != edited {
+            return Err(ResolutionError::Failed);
+        }
+        Ok((
+            candidate,
+            lock,
+            MutationLockDisposition::TransientUnpublished,
+        ))
+    }
+}
+
+fn fingerprint(
+    gateway: &RustGateway,
+    phase: ResolutionPhase,
+    source_archive: &[u8],
+    vendor_archive: &[u8],
+    resolved_lock: Option<&[u8]>,
+    resolved_stdout: &[u8],
+    checked_stdout: &[u8],
+) -> Result<ExecutionFingerprint, ResolutionError> {
+    let volume = |name: &str, mountpoint: &str| MutationVolume {
+        name: name.into(),
+        driver: "local".into(),
+        scope: "local".into(),
+        options: std::collections::BTreeMap::from([
+            ("device".into(), "tmpfs".into()),
+            ("o".into(), VOLUME_OPTIONS.into()),
+            ("type".into(), "tmpfs".into()),
+        ]),
+        labels: labels("<nonce>"),
+        mountpoint: mountpoint.into(),
+        cluster_volume: None,
+        status: None,
+    };
+    let source = volume("<source-volume>", "<source-mountpoint>");
+    let vendor = volume("<vendor-volume>", "<vendor-mountpoint>");
+    let commands = [
+        ResolutionPhase::SourceGuardian,
+        ResolutionPhase::VendorGuardian,
+        ResolutionPhase::SourceIngest,
+        ResolutionPhase::VendorIngest,
+        ResolutionPhase::Resolve,
+        ResolutionPhase::Frozen,
+        ResolutionPhase::Export,
+    ]
+    .into_iter()
+    .map(|value| create_arguments(gateway, "<container>", "<nonce>", &source, &vendor, value))
+    .collect::<Result<Vec<_>, _>>()
+    .map_err(invalid_execution)?;
+    let bytes = serde_json::to_vec(&(
+        gateway
+            .configuration_fingerprint()
+            .map_err(invalid_execution)?,
+        phase,
+        phase.arguments(),
+        commands,
+        ["--opt=type=tmpfs", "--opt=device=tmpfs", VOLUME_OPTIONS],
+        digest(source_archive),
+        digest(vendor_archive),
+        resolved_lock.map(digest),
+        digest(resolved_stdout),
+        digest(checked_stdout),
+        OUTPUT,
+        WALL.as_millis(),
+        CLEANUP.as_millis(),
+        (
+            digest(include_bytes!("resolution_gateway.rs")),
+            digest(include_bytes!("mutation_gateway.rs")),
+            digest(include_bytes!("mutation_archive.rs")),
+            digest(include_bytes!("rust_applied.rs")),
+            digest(include_bytes!("seccomp-rust.json")),
+        ),
+    ))
+    .map_err(|_| invalid_execution(ExecutionError::Infrastructure))?;
+    digest(&bytes)
+        .parse()
+        .map_err(|_| invalid_execution(ExecutionError::Infrastructure))
+}
+
+pub(super) fn execute(
+    gateway: &RustGateway,
+    edited: &SourceBundle,
+    dataset: &CargoVendorSnapshot,
+    cancel: &dyn ExecutionCancellation,
+) -> Result<MutationResolutionObservation, ResolutionError> {
+    let started = Instant::now();
+    let _busy = match gateway.inner.busy.try_lock() {
+        Ok(guard) => guard,
+        Err(std::sync::TryLockError::WouldBlock) => {
+            return Err(invalid_execution(ExecutionError::Busy));
+        }
+        Err(_) => {
+            gateway.inner.quarantined.store(true, Ordering::Release);
+            return Err(invalid_execution(ExecutionError::CleanupUncertain));
+        }
+    };
+    if gateway.is_quarantined() {
+        return Err(invalid_execution(ExecutionError::CleanupUncertain));
+    }
+    if !gateway.verified.load(Ordering::Acquire) {
+        return Err(invalid_execution(ExecutionError::Denied));
+    }
+    if cancel.is_cancelled() {
+        return Err(ResolutionError::Inspection(InspectionError::Project(
+            ProjectError::Cancelled,
+        )));
+    }
+    if tree_fingerprint(&dataset.source)? != dataset.tree_fingerprint {
+        return Err(ResolutionError::InvalidOfflineData);
+    }
+    if digest(
+        &state::executable_bytes(&gateway.inner.config.executable).map_err(invalid_execution)?,
+    ) != gateway.inner.executable_digest
+    {
+        return Err(invalid_execution(ExecutionError::Unavailable));
+    }
+    let info = gateway
+        .inner
+        .control(&["info".into(), "--format={{json .}}".into()])
+        .map_err(invalid_execution)?;
+    let engine: EngineIdentity = serde_json::from_slice(&info.stdout)
+        .map_err(|_| invalid_execution(ExecutionError::Unavailable))?;
+    if info.code != Some(0) || engine != gateway.inner.engine {
+        return Err(invalid_execution(ExecutionError::Unavailable));
+    }
+    let source_archive = crate::mutation_archive::encode(edited).map_err(invalid_execution)?;
+    let vendor_archive = crate::mutation_archive::encode(&dataset.source)
+        .map_err(|_| ResolutionError::InvalidOfflineData)?;
+    let (expected, had_lock) = expected_export(edited)?;
+    let deadline = started + WALL;
+    let nonce = state::nonce().map_err(invalid_execution)?;
+    let source_name = format!("rust-mcp-resolution-source-{nonce}");
+    let vendor_name = format!("rust-mcp-resolution-vendor-{nonce}");
+    let source_guardian = format!("rust-mcp-resolution-source-guardian-{nonce}");
+    let vendor_guardian = format!("rust-mcp-resolution-vendor-guardian-{nonce}");
+    let source_ingest = format!("rust-mcp-resolution-source-ingest-{nonce}");
+    let vendor_ingest = format!("rust-mcp-resolution-vendor-ingest-{nonce}");
+    let resolver = format!("rust-mcp-resolution-resolve-{nonce}");
+    let frozen = format!("rust-mcp-resolution-frozen-{nonce}");
+    let exporter = format!("rust-mcp-resolution-export-{nonce}");
+    let names = [
+        &source_ingest[..],
+        &vendor_ingest[..],
+        &resolver[..],
+        &frozen[..],
+        &exporter[..],
+        &source_guardian[..],
+        &vendor_guardian[..],
+    ];
+    let work = (|| -> Result<_, ResolutionError> {
+        let source = create_volume(gateway, &source_name, &nonce, deadline, cancel)
+            .map_err(invalid_execution)?;
+        let vendor = create_volume(gateway, &vendor_name, &nonce, deadline, cancel)
+            .map_err(invalid_execution)?;
+        let volumes = ResolutionVolumes {
+            source: &source,
+            vendor: &vendor,
+        };
+        for (name, phase) in [
+            (&source_guardian, ResolutionPhase::SourceGuardian),
+            (&vendor_guardian, ResolutionPhase::VendorGuardian),
+        ] {
+            create_phase(gateway, name, &nonce, &volumes, phase, deadline, cancel)
+                .map_err(invalid_execution)?;
+            mutation_control(
+                gateway,
+                &["container".into(), "start".into(), name.to_string()],
+                deadline,
+                cancel,
+            )
+            .map_err(invalid_execution)?;
+            if !running(gateway, name, &nonce, deadline, cancel).map_err(invalid_execution)? {
+                return Err(invalid_execution(ExecutionError::Infrastructure));
+            }
+        }
+        for (name, phase, archive) in [
+            (
+                &source_ingest,
+                ResolutionPhase::SourceIngest,
+                source_archive.as_slice(),
+            ),
+            (
+                &vendor_ingest,
+                ResolutionPhase::VendorIngest,
+                vendor_archive.as_slice(),
+            ),
+        ] {
+            create_phase(gateway, name, &nonce, &volumes, phase, deadline, cancel)
+                .map_err(invalid_execution)?;
+            let result = start_attached(gateway, name, true, archive, deadline, OUTPUT, cancel)
+                .map_err(invalid_execution)?;
+            remove_if_present(gateway, name, &nonce, deadline, cancel)
+                .map_err(invalid_execution)?;
+            if result.stop == Stop::OutputLimit {
+                return Err(output_limit());
+            }
+            if result.stop == Stop::Cancelled {
+                return Err(ResolutionError::Inspection(InspectionError::Project(
+                    ProjectError::Cancelled,
+                )));
+            }
+            if result.stop == Stop::TimedOut {
+                return Err(ResolutionError::Inspection(InspectionError::Project(
+                    ProjectError::Rejected(OperationalErrorCode::CommandTimeout),
+                )));
+            }
+            if result.code != Some(0)
+                || result.stdout_truncated
+                || result.stderr_truncated
+                || !result.stdout.is_empty()
+                || !result.stderr.is_empty()
+            {
+                return Err(invalid_execution(ExecutionError::Infrastructure));
+            }
+        }
+        if !running(gateway, &source_guardian, &nonce, deadline, cancel)
+            .map_err(invalid_execution)?
+            || !running(gateway, &vendor_guardian, &nonce, deadline, cancel)
+                .map_err(invalid_execution)?
+            || !absent(gateway, "container", &source_ingest, deadline, cancel)
+                .map_err(invalid_execution)?
+            || !absent(gateway, "container", &vendor_ingest, deadline, cancel)
+                .map_err(invalid_execution)?
+        {
+            return Err(invalid_execution(ExecutionError::Infrastructure));
+        }
+        create_phase(
+            gateway,
+            &resolver,
+            &nonce,
+            &volumes,
+            ResolutionPhase::Resolve,
+            deadline,
+            cancel,
+        )
+        .map_err(invalid_execution)?;
+        let resolved = start_attached(gateway, &resolver, false, &[], deadline, OUTPUT, cancel)
+            .map_err(invalid_execution)?;
+        let resolved_clean = completed(gateway, &resolver, &resolved, deadline, cancel)
+            .map_err(invalid_execution)?;
+        remove_if_present(gateway, &resolver, &nonce, deadline, cancel)
+            .map_err(invalid_execution)?;
+        if resolved.stop == Stop::OutputLimit {
+            return Err(output_limit());
+        }
+        if resolved.stop == Stop::Cancelled {
+            return Err(ResolutionError::Inspection(InspectionError::Project(
+                ProjectError::Cancelled,
+            )));
+        }
+        if resolved.stop == Stop::TimedOut {
+            return Err(ResolutionError::Inspection(InspectionError::Project(
+                ProjectError::Rejected(OperationalErrorCode::CommandTimeout),
+            )));
+        }
+        if !resolved_clean {
+            return Err(ResolutionError::Failed);
+        }
+        if resolved.code != Some(0) {
+            return Err(if missing_offline_data(&resolved) {
+                ResolutionError::MissingOfflineData
+            } else {
+                ResolutionError::Failed
+            });
+        }
+        let resolved_graph = metadata_graph(&resolved, edited, dataset)?;
+        create_phase(
+            gateway,
+            &frozen,
+            &nonce,
+            &volumes,
+            ResolutionPhase::Frozen,
+            deadline,
+            cancel,
+        )
+        .map_err(invalid_execution)?;
+        let checked = start_attached(gateway, &frozen, false, &[], deadline, OUTPUT, cancel)
+            .map_err(invalid_execution)?;
+        let checked_clean =
+            completed(gateway, &frozen, &checked, deadline, cancel).map_err(invalid_execution)?;
+        remove_if_present(gateway, &frozen, &nonce, deadline, cancel).map_err(invalid_execution)?;
+        if checked.stop == Stop::OutputLimit {
+            return Err(output_limit());
+        }
+        if checked.stop == Stop::Cancelled {
+            return Err(ResolutionError::Inspection(InspectionError::Project(
+                ProjectError::Cancelled,
+            )));
+        }
+        if checked.stop == Stop::TimedOut {
+            return Err(ResolutionError::Inspection(InspectionError::Project(
+                ProjectError::Rejected(OperationalErrorCode::CommandTimeout),
+            )));
+        }
+        if !checked_clean || checked.code != Some(0) {
+            return Err(ResolutionError::Failed);
+        }
+        let checked_graph = metadata_graph(&checked, edited, dataset)?;
+        if checked_graph != resolved_graph {
+            return Err(ResolutionError::Failed);
+        }
+        if !running(gateway, &source_guardian, &nonce, deadline, cancel)
+            .map_err(invalid_execution)?
+            || !running(gateway, &vendor_guardian, &nonce, deadline, cancel)
+                .map_err(invalid_execution)?
+            || !absent(gateway, "container", &resolver, deadline, cancel)
+                .map_err(invalid_execution)?
+            || !absent(gateway, "container", &frozen, deadline, cancel)
+                .map_err(invalid_execution)?
+            || !absent(gateway, "container", &source_ingest, deadline, cancel)
+                .map_err(invalid_execution)?
+            || !absent(gateway, "container", &vendor_ingest, deadline, cancel)
+                .map_err(invalid_execution)?
+        {
+            return Err(invalid_execution(ExecutionError::Infrastructure));
+        }
+        create_phase(
+            gateway,
+            &exporter,
+            &nonce,
+            &volumes,
+            ResolutionPhase::Export,
+            deadline,
+            cancel,
+        )
+        .map_err(invalid_execution)?;
+        let exported = start_attached(
+            gateway,
+            &exporter,
+            false,
+            &[],
+            deadline,
+            crate::mutation_archive::MAX_ARCHIVE,
+            cancel,
+        )
+        .map_err(invalid_execution)?;
+        remove_if_present(gateway, &exporter, &nonce, deadline, cancel)
+            .map_err(invalid_execution)?;
+        if exported.stop == Stop::OutputLimit {
+            return Err(output_limit());
+        }
+        if exported.stop != Stop::Exited
+            || exported.code != Some(0)
+            || exported.stdout_truncated
+            || exported.stderr_truncated
+            || !exported.stderr.is_empty()
+        {
+            return Err(ResolutionError::Failed);
+        }
+        let decoded =
+            crate::mutation_archive::decode_resolution(&exported.stdout, &expected, !had_lock)
+                .map_err(|_| ResolutionError::Failed)?;
+        let (candidate, lock, disposition) = scope_candidate(edited, decoded, had_lock)?;
+        Ok((candidate, lock, disposition, resolved, checked))
+    })();
+    let cleanup_deadline = Instant::now() + CLEANUP;
+    let first_cleanup = cleanup_until(gateway, &names, &source_name, &nonce, cleanup_deadline);
+    let second_cleanup = cleanup_until(gateway, &[], &vendor_name, &nonce, cleanup_deadline);
+    first_cleanup.map_err(invalid_execution)?;
+    second_cleanup.map_err(invalid_execution)?;
+    let (candidate, lock, lock_disposition, resolved, checked) = work?;
+    if cancel.is_cancelled() {
+        return Err(ResolutionError::Inspection(InspectionError::Project(
+            ProjectError::Cancelled,
+        )));
+    }
+    let candidate_archive = crate::source_archive::encode(&candidate).map_err(invalid_execution)?;
+    Ok(MutationResolutionObservation {
+        candidate: candidate.clone(),
+        runtime: RuntimeIdentity {
+            platform: "linux/aarch64".into(),
+            image_id: gateway.image_id().into(),
+            configuration_fingerprint: gateway
+                .configuration_fingerprint()
+                .map_err(invalid_execution)?,
+            execution_fingerprint: fingerprint(
+                gateway,
+                ResolutionPhase::Frozen,
+                &source_archive,
+                &vendor_archive,
+                Some(&lock),
+                &resolved.stdout,
+                &checked.stdout,
+            )?,
+            rust_version: crate::rust_gateway::APPROVED_RUST_VERSION.into(),
+            cargo_version: crate::rust_gateway::APPROVED_CARGO_VERSION.into(),
+            declared_toolchain: crate::project_metadata::declared_toolchain(&candidate)
+                .map_err(|_| ResolutionError::Failed)?,
+        },
+        resolution_execution_fingerprint: fingerprint(
+            gateway,
+            ResolutionPhase::Resolve,
+            &source_archive,
+            &vendor_archive,
+            None,
+            &resolved.stdout,
+            &checked.stdout,
+        )?,
+        dataset_fingerprint: dataset.tree_fingerprint.clone(),
+        resolved_lock_fingerprint: digest(&lock).parse().map_err(|_| ResolutionError::Failed)?,
+        candidate_source_fingerprint: digest(&candidate_archive)
+            .parse()
+            .map_err(|_| ResolutionError::Failed)?,
+        lock_disposition,
+    })
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use rust_engineering_domain::{CargoVendorPackage, SourceFile};
+    fn bundle(files: &[(&str, &[u8])]) -> Result<SourceBundle, String> {
+        SourceBundle::new(
+            files
+                .iter()
+                .map(|(path, bytes)| SourceFile::new((*path).into(), bytes.to_vec()))
+                .collect::<Result<Vec<_>, _>>()
+                .map_err(|error| format!("{error:?}"))?,
+        )
+        .map_err(|error| format!("{error:?}"))
+    }
+    #[test]
+    fn phases_seal_commands_and_access_matrix() {
+        assert_eq!(
+            ResolutionPhase::Resolve.arguments(),
+            [
+                "metadata",
+                "--format-version=1",
+                "--offline",
+                "--manifest-path=/source/Cargo.toml",
+                REPLACE,
+                DIRECTORY
+            ]
+        );
+        assert_eq!(ResolutionPhase::Frozen.arguments()[2], "--frozen");
+        assert!(ResolutionPhase::Resolve.source_writable());
+        assert!(!ResolutionPhase::Frozen.source_writable());
+        assert!(ResolutionPhase::VendorIngest.vendor_writable());
+        assert!(!ResolutionPhase::Resolve.vendor_writable());
+    }
+    fn capture(bytes: &[u8]) -> Capture {
+        Capture {
+            code: Some(0),
+            stdout: bytes.to_vec(),
+            stderr: Vec::new(),
+            stdout_truncated: false,
+            stderr_truncated: false,
+            stop: Stop::Exited,
+            duration_ms: 1,
+        }
+    }
+    fn dataset() -> Result<CargoVendorSnapshot, String> {
+        let source = SourceBundle::with_directories(
+            vec![
+                SourceFile::new(
+                    "quote-1.0.47/Cargo.toml".into(),
+                    b"[package]\nname='quote'\nversion='1.0.47'\n".to_vec(),
+                )
+                .map_err(|error| format!("{error:?}"))?,
+            ],
+            vec!["quote-1.0.47".into()],
+        )
+        .map_err(|error| format!("{error:?}"))?;
+        Ok(CargoVendorSnapshot {
+            tree_fingerprint: tree_fingerprint(&source).map_err(|error| format!("{error:?}"))?,
+            source,
+            packages: vec![CargoVendorPackage {
+                name: "quote".into(),
+                version: "1.0.47".into(),
+                package_checksum: format!("sha256:{}", "1".repeat(64))
+                    .parse()
+                    .map_err(|error| format!("{error:?}"))?,
+            }],
+        })
+    }
+    fn metadata(source_manifest: &str, vendor_manifest: &str, vendor_name: &str) -> Vec<u8> {
+        serde_json::to_vec(&serde_json::json!({
+            "version":1,
+            "workspace_root":"/source",
+            "workspace_members":["root 0.1.0 (path+file:///source)"],
+            "packages":[
+                {"id":"root 0.1.0 (path+file:///source)","name":"root","version":"0.1.0","manifest_path":source_manifest,"dependencies":[],"features":{},"targets":[]},
+                {"id":"registry+https://github.com/rust-lang/crates.io-index#quote@1.0.47","name":vendor_name,"version":"1.0.47","manifest_path":vendor_manifest,"dependencies":[],"features":{},"targets":[]}
+            ],
+            "resolve":{"root":"root 0.1.0 (path+file:///source)","nodes":[
+                {"id":"root 0.1.0 (path+file:///source)","dependencies":["registry+https://github.com/rust-lang/crates.io-index#quote@1.0.47"],"deps":[{"name":"quote","pkg":"registry+https://github.com/rust-lang/crates.io-index#quote@1.0.47","dep_kinds":[]}],"features":[]},
+                {"id":"registry+https://github.com/rust-lang/crates.io-index#quote@1.0.47","dependencies":[],"deps":[],"features":[]}
+            ]}
+        }))
+        .unwrap_or_default()
+    }
+    #[test]
+    fn metadata_paths_identities_graph_and_completeness_are_closed() -> Result<(), String> {
+        let source = bundle(&[("Cargo.toml", b"[package]\nname='root'\nversion='0.1.0'\n")])?;
+        let dataset = dataset()?;
+        let valid = metadata(
+            "/source/Cargo.toml",
+            "/rust-mcp-vendor/quote-1.0.47/Cargo.toml",
+            "quote",
+        );
+        let graph = metadata_graph(&capture(&valid), &source, &dataset)
+            .map_err(|error| format!("{error:?}"))?;
+        assert!(graph.get("resolve").is_some());
+        for (source_manifest, vendor_manifest, vendor_name, expected) in [
+            (
+                "/sourcex/../source/Cargo.toml",
+                "/rust-mcp-vendor/quote-1.0.47/Cargo.toml",
+                "quote",
+                ResolutionError::Failed,
+            ),
+            (
+                "/source/Cargo.toml",
+                "/rust-mcp-vendor/quote-1.0.48/Cargo.toml",
+                "quote",
+                ResolutionError::InvalidOfflineData,
+            ),
+            (
+                "/source/Cargo.toml",
+                "/rust-mcp-vendor/quote-1.0.47/Cargo.toml",
+                "forged",
+                ResolutionError::InvalidOfflineData,
+            ),
+        ] {
+            assert_eq!(
+                metadata_graph(
+                    &capture(&metadata(source_manifest, vendor_manifest, vendor_name)),
+                    &source,
+                    &dataset,
+                ),
+                Err(expected)
+            );
+        }
+        let empty = capture(
+            br#"{"version":1,"workspace_root":"/source","workspace_members":[],"packages":[],"resolve":{"nodes":[],"root":null}}"#,
+        );
+        assert_eq!(
+            metadata_graph(&empty, &source, &dataset),
+            Err(ResolutionError::Failed)
+        );
+        let mut changed: Value =
+            serde_json::from_slice(&valid).map_err(|error| error.to_string())?;
+        changed["resolve"]["nodes"][0]["features"] = serde_json::json!(["changed"]);
+        let changed = serde_json::to_vec(&changed).map_err(|error| error.to_string())?;
+        assert_ne!(
+            metadata_graph(&capture(&valid), &source, &dataset),
+            metadata_graph(&capture(&changed), &source, &dataset)
+        );
+        let mut truncated = capture(&valid);
+        truncated.stdout_truncated = true;
+        assert_eq!(
+            metadata_graph(&truncated, &source, &dataset),
+            Err(ResolutionError::Failed)
+        );
+        Ok(())
+    }
+
+    #[test]
+    fn missing_offline_data_requires_exact_cargo_directory_source_diagnostics() {
+        let absent = b"error: no matching package named `absent-crate` found\nlocation searched: directory source `/rust-mcp-vendor` (which is replacing registry `crates-io`)\n";
+        let version = b"error: failed to select a version for the requirement `quote = \"=9.0.0\"`\ncandidate versions found which didn't match: 1.0.47\nlocation searched: directory source `/rust-mcp-vendor` (which is replacing registry `crates-io`)\n";
+        for stderr in [absent.as_slice(), version.as_slice()] {
+            let mut value = capture(b"");
+            value.code = Some(101);
+            value.stderr = stderr.to_vec();
+            assert!(missing_offline_data(&value));
+            value.code = Some(1);
+            assert!(!missing_offline_data(&value));
+            value.code = Some(101);
+            value.stop = Stop::OutputLimit;
+            assert!(!missing_offline_data(&value));
+            value.stop = Stop::Exited;
+            value.stderr.extend_from_slice(b"not relevant");
+            value.stdout = b"unexpected".to_vec();
+            assert!(!missing_offline_data(&value));
+        }
+        let mut near_miss = capture(b"");
+        near_miss.code = Some(101);
+        near_miss.stderr = b"error: no matching package named `x` found\nlocation searched: registry `crates-io`\n".to_vec();
+        assert!(!missing_offline_data(&near_miss));
+    }
+    #[test]
+    fn preserve_presence_publishes_only_an_existing_lock() -> Result<(), String> {
+        let no_lock = bundle(&[
+            ("Cargo.toml", b"[package]"),
+            ("src/lib.rs", b"pub fn x() {}"),
+        ])?;
+        let (expected, had_lock) =
+            expected_export(&no_lock).map_err(|error| format!("{error:?}"))?;
+        let exported = bundle(&[
+            ("Cargo.lock", b"resolved"),
+            ("Cargo.toml", b"[package]"),
+            ("src/lib.rs", b"pub fn x() {}"),
+        ])?;
+        let (candidate, lock, disposition) =
+            scope_candidate(&no_lock, exported, had_lock).map_err(|error| format!("{error:?}"))?;
+        assert_eq!(expected.files().len(), no_lock.files().len() + 1);
+        assert_eq!(candidate, no_lock);
+        assert_eq!(lock, b"resolved");
+        assert_eq!(disposition, MutationLockDisposition::TransientUnpublished);
+        let with_lock = bundle(&[("Cargo.lock", b"old"), ("Cargo.toml", b"[package]")])?;
+        let (candidate, _, disposition) = scope_candidate(
+            &with_lock,
+            bundle(&[("Cargo.lock", b"new"), ("Cargo.toml", b"[package]")])?,
+            true,
+        )
+        .map_err(|error| format!("{error:?}"))?;
+        assert_eq!(candidate.files()[0].bytes(), b"new");
+        assert_eq!(disposition, MutationLockDisposition::UpdatedExisting);
+        Ok(())
+    }
+
+    #[test]
+    fn transient_lock_refuses_a_4097th_source_entry() -> Result<(), String> {
+        let source = SourceBundle::new(
+            (0..rust_engineering_domain::SOURCE_MAX_ENTRIES)
+                .map(|index| SourceFile::new(format!("f{index}"), Vec::new()))
+                .collect::<Result<Vec<_>, _>>()
+                .map_err(|error| format!("{error:?}"))?,
+        )
+        .map_err(|error| format!("{error:?}"))?;
+        assert!(matches!(
+            expected_export(&source),
+            Err(ResolutionError::Inspection(InspectionError::OutputLimit))
+        ));
+        Ok(())
+    }
+    #[test]
+    fn scope_rejects_every_non_lock_change_and_empty_lock() -> Result<(), String> {
+        let before = bundle(&[("Cargo.lock", b"old"), ("Cargo.toml", b"old")])?;
+        assert_eq!(
+            scope_candidate(
+                &before,
+                bundle(&[("Cargo.lock", b"new"), ("Cargo.toml", b"changed")])?,
+                true
+            ),
+            Err(ResolutionError::Failed)
+        );
+        assert_eq!(
+            scope_candidate(
+                &before,
+                bundle(&[("Cargo.lock", b""), ("Cargo.toml", b"old")])?,
+                true
+            ),
+            Err(ResolutionError::Failed)
+        );
+        Ok(())
+    }
+
+    #[cfg(target_os = "macos")]
+    #[test]
+    #[ignore = "explicit approved Docker socket/image; isolated ADR-055 two-volume fixture"]
+    fn real_vendor_resolution_preserves_lock_presence_and_cleans_all_objects()
+    -> Result<(), Box<dyn std::error::Error>> {
+        fn fixture_source() -> Result<SourceBundle, Box<dyn std::error::Error>> {
+            fn visit(
+                root: &std::path::Path,
+                at: &std::path::Path,
+                files: &mut Vec<SourceFile>,
+                directories: &mut Vec<String>,
+            ) -> Result<(), Box<dyn std::error::Error>> {
+                for entry in std::fs::read_dir(at)? {
+                    let entry = entry?;
+                    let path = entry.path();
+                    let relative = path.strip_prefix(root)?.to_str().ok_or("fixture path")?;
+                    let kind = entry.file_type()?;
+                    if kind.is_dir() {
+                        directories.push(relative.into());
+                        visit(root, &path, files, directories)?;
+                    } else if kind.is_file() {
+                        files.push(source_file(relative, &std::fs::read(&path)?)?);
+                    } else {
+                        return Err("special fixture entry".into());
+                    }
+                }
+                Ok(())
+            }
+            let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+                .join("../../fixtures/cargo-vendor-data/vendor");
+            let mut files = Vec::new();
+            let mut directories = Vec::new();
+            visit(&root, &root, &mut files, &mut directories)?;
+            SourceBundle::with_directories(files, directories)
+                .map_err(|error| format!("vendor bundle: {error:?}").into())
+        }
+        fn source_file(path: &str, bytes: &[u8]) -> Result<SourceFile, Box<dyn std::error::Error>> {
+            SourceFile::new(path.into(), bytes.to_vec())
+                .map_err(|error| format!("source: {error:?}").into())
+        }
+        fn project(
+            manifest: &[u8],
+            lock: Option<&[u8]>,
+        ) -> Result<SourceBundle, Box<dyn std::error::Error>> {
+            let mut files = vec![
+                source_file("Cargo.toml", manifest)?,
+                source_file("src/lib.rs", b"pub fn answer() {}\n")?,
+            ];
+            if let Some(lock) = lock {
+                files.push(source_file("Cargo.lock", lock)?);
+            }
+            SourceBundle::new(files).map_err(|error| format!("project: {error:?}").into())
+        }
+        let suffix = state::nonce().map_err(|error| format!("nonce: {error:?}"))?;
+        let state_root = std::path::PathBuf::from("/private/tmp")
+            .join(format!("rust-mcp-resolution-test-{suffix}"));
+        std::fs::create_dir(&state_root)?;
+        let gateway = RustGateway::new(HostDockerConfig {
+            executable: "/Applications/Docker.app/Contents/Resources/bin/docker".into(),
+            socket: "/Users/cburgosro/.docker/run/docker.sock".into(),
+            state_root: state_root.clone(),
+            image_id: crate::APPROVED_RUST_IMAGE.into(),
+        })
+        .map_err(|error| format!("gateway: {error:?}"))?;
+        gateway.set_verified(true);
+        let dataset = CargoVendorSnapshot {
+            source: fixture_source()?,
+            tree_fingerprint:
+                "sha256:743947d5788c1a4385a4b59869c5b8bd0535f7fc0d875b51288f9b26b2d0eba1".parse()?,
+            packages: [
+                (
+                    "proc-macro2",
+                    "1.0.107",
+                    "985e7ec9bb745e6ce6535b544d84d6cd6f7ad8bd711c398938ae983b91a766d9",
+                ),
+                (
+                    "quote",
+                    "1.0.47",
+                    "1fbf4db142a473a8d80c26bbf18454ed458bf8d26c8219c331daecfdbd079001",
+                ),
+                (
+                    "unicode-ident",
+                    "1.0.24",
+                    "e6e4313cd5fcd3dad5cafa179702e2b244f760991f45397d14d4ebf38247da75",
+                ),
+            ]
+            .into_iter()
+            .map(|(name, version, checksum)| {
+                Ok(CargoVendorPackage {
+                    name: name.into(),
+                    version: version.into(),
+                    package_checksum: format!("sha256:{checksum}").parse()?,
+                })
+            })
+            .collect::<Result<Vec<_>, Box<dyn std::error::Error>>>()?,
+        };
+        let manifest = b"[package]\nname = \"resolution_fixture\"\nversion = \"0.1.0\"\nedition = \"2024\"\n\n[dependencies]\nunicode-ident = \"=1.0.24\"\n";
+        let transient_source = project(manifest, None)?;
+        let transient = execute(&gateway, &transient_source, &dataset, &NeverCancel)
+            .map_err(|error| format!("transient: {error:?}"))?;
+        assert_eq!(transient.candidate, transient_source);
+        assert_eq!(
+            transient.lock_disposition,
+            MutationLockDisposition::TransientUnpublished
+        );
+        let old_lock = b"# This file is automatically @generated by Cargo.\n# It is not intended for manual editing.\nversion = 4\n\n[[package]]\nname = \"resolution_fixture\"\nversion = \"0.1.0\"\n";
+        let locked_source = project(manifest, Some(old_lock))?;
+        let updated = execute(&gateway, &locked_source, &dataset, &NeverCancel)
+            .map_err(|error| format!("existing lock: {error:?}"))?;
+        assert_eq!(
+            updated.lock_disposition,
+            MutationLockDisposition::UpdatedExisting
+        );
+        assert_ne!(updated.candidate.files()[0].bytes(), old_lock);
+        let missing = project(
+            b"[package]\nname='missing'\nversion='0.1.0'\nedition='2024'\n[dependencies]\nabsent-crate='=9.9.9'\n",
+            None,
+        )?;
+        assert!(matches!(
+            execute(&gateway, &missing, &dataset, &NeverCancel),
+            Err(ResolutionError::MissingOfflineData)
+        ));
+        let unavailable_version = project(
+            b"[package]\nname='missing-version'\nversion='0.1.0'\nedition='2024'\n[dependencies]\nquote='=9.9.9'\n",
+            None,
+        )?;
+        assert!(matches!(
+            execute(&gateway, &unavailable_version, &dataset, &NeverCancel),
+            Err(ResolutionError::MissingOfflineData)
+        ));
+        let bad_lock = project(manifest, Some(b"not a lock\n"))?;
+        assert!(matches!(
+            execute(&gateway, &bad_lock, &dataset, &NeverCancel),
+            Err(ResolutionError::Failed)
+        ));
+        struct Cancel;
+        impl ExecutionCancellation for Cancel {
+            fn is_cancelled(&self) -> bool {
+                true
+            }
+        }
+        assert!(matches!(
+            execute(&gateway, &transient_source, &dataset, &Cancel),
+            Err(ResolutionError::Inspection(InspectionError::Project(
+                ProjectError::Cancelled
+            )))
+        ));
+        for kind in ["container", "volume"] {
+            let arguments = if kind == "container" {
+                vec![
+                    "container".into(),
+                    "ls".into(),
+                    "--all".into(),
+                    "--filter=label=org.rust-mcp.execution=true".into(),
+                    "--format={{.ID}}".into(),
+                ]
+            } else {
+                vec![
+                    "volume".into(),
+                    "ls".into(),
+                    "--filter=label=org.rust-mcp.execution=true".into(),
+                    "--format={{.Name}}".into(),
+                ]
+            };
+            let inventory = gateway
+                .inner
+                .control(&arguments)
+                .map_err(|error| format!("inventory: {error:?}"))?;
+            assert_eq!(inventory.code, Some(0));
+            assert!(inventory.stdout.iter().all(u8::is_ascii_whitespace));
+        }
+        drop(gateway);
+        std::fs::remove_dir_all(state_root)?;
+        Ok(())
+    }
+}

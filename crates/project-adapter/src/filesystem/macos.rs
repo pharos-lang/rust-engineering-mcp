@@ -15,6 +15,9 @@ use sha2::{Digest, Sha256};
 
 use crate::{ManifestIo, manifest};
 
+mod mutation;
+pub use mutation::NativeMutationStore;
+
 // XNU fcntl.h / open(2), verified by real positive and negative fixtures.
 // rustix 1.1.4 does not name these Apple flags. Never use them on another OS.
 // XNU rejects NOFOLLOW + NOFOLLOW_ANY together; ANY protects every component.
@@ -407,3 +410,5 @@ impl ManifestIo for Access<'_> {
 mod snapshot;
 mod source;
 pub use snapshot::read_host_snapshot;
+mod cargo_vendor;
+pub(crate) use cargo_vendor::capture_cargo_vendor;

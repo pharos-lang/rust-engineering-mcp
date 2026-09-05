@@ -1,0 +1,28 @@
+{
+  "status": "passed",
+  "recorded_at": "2026-09-05T22:29:05.907628+00:00",
+  "command": [
+    "cargo",
+    "build",
+    "--release",
+    "--locked",
+    "--offline",
+    "-p",
+    "rust-engineering-mcp"
+  ],
+  "exit_code": 0,
+  "version": "rust-engineering-mcp 0.2.0-dev",
+  "profile": "core; default features empty",
+  "binary": "target/release/rust-engineering-mcp",
+  "binary_sha256": "41d256a606538d52df3c574e812b5fdd2df006cc659a335a447d4935f45e685c",
+  "bytes": 22647376,
+  "build_log": "docs/validation/m2-final-gate/release-core-build.log",
+  "build_log_sha256": "92e06e4842c2fa9a2139c34892b15d58451290c4ed4fe3a60c23f8f551bc9ec1",
+  "full_gate": "docs/validation/M2-full-gate.json",
+  "full_gate_sha256": "05f0391041e053309e8924183600dcfbd8cd41b925afadb2edca7fcb73e43ea5",
+  "client_receipt": "docs/validation/M2-clients.json",
+  "client_receipt_sha256": "61958b34778bd8a62c52bff14135a1c0976a71d5ef7dfdd2ec139e4254509150",
+  "matches_qualified_client_binary": true,
+  "client_rerun": "not repeated: exact binary bytes equal the passed attempt-5 client qualification",
+  "distribution": "local development binary only; no publication/release qualification"
+}

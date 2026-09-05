@@ -1,0 +1,4 @@
+unknown format "uint64" ignored in schema at path "#/properties/duration_ms"
+unknown format "uint64" ignored in schema at path "#/properties/duration_ms"
+unknown format "uint64" ignored in schema at path "#/$defs/Truncation/properties/diagnostics_omitted"
+unknown format "uint64" ignored in schema at path "#/$defs/Truncation/properties/diagnostics_omitted"

@@ -1,9 +1,40 @@
 # M2 — Safe Mutation / 0.2.x
 
-Estado: **Planned**. Spec §25/§97 M2, §21/35–47/52/69–70/74–77/103–107;
+> Resolución posterior a la planificación: el owner delegó la decisión D02 para
+> preservar instalación/uso sencillos. [ADR-050](../adr/ADR-050-local-coordinated-mutation.md)
+> acepta local_coordinated: namespace host confiable, precondiciones y locks MCP,
+> sin exclusión OS de editores externos. Las exigencias de exclusión fuerte y espera
+> de decisión del owner que aparecen abajo son históricas y quedan sustituidas por
+> ese ADR; no hay CAS, atomicidad multiarchivo ni rollback sobre bytes desconocidos.
+> La [calificación positiva de M2](../validation/M2-07.md) está completada; la release 0.1.0 no cambia.
+
+
+Estado: **Done: cinco tools implementadas y calificadas localmente; sin release nueva**. Spec §25/§97 M2, §21/35–47/52/69–70/74–77/103–107;
 [ADR-013](../adr/ADR-013-safe-mutation.md), [ADR-024](../adr/ADR-024-project-open.md),
 [ADR-031](../adr/ADR-031-rust-source-transfer.md),
 [ADR-035](../adr/ADR-035-format-check.md). Aplican [G1–G9](m2-m8.md).
+
+## Decisiones implementadas que sustituyen propuestas iniciales
+
+El contrato vigente está en ADR-050 a ADR-059 y [matriz M2](../validation/M2-matrix.md).
+Las secciones posteriores conservan la planificación histórica. D01 corresponde a
+ADR-052/054 (journal privado, cuatro planes/64 MiB/600 s, retención durable sin TTL
+automático y prune explícito). D03 es ADR-051/057 (toml_edit y cuatro familias).
+D04 es ADR-053/056: Cargo fix usa la plantilla probada frozen/offline, allow-no-vcs,
+allow-dirty y allow-staged sobre la copia sin Git. D05 es ADR-055: vendor aprobado
+opcional y lock preserve_presence, sin importar CARGO_HOME ni descargar en runtime.
+G3 se concreta en ADR-058, con tracing local y consultas del journal, sin collector.
+ADR-059 distingue preview vigente para efectos nuevos de replay durable exacto,
+y libera planes terminales en la próxima admisión.
+No existe updater gestionado M2; el criterio de downgrade gestionado no aplica a
+esta integración sin release. Readers v1/v2/unknown se prueban; el downgrade manual
+exige reconciliar previamente y no adquiere una garantía retroactiva de 0.1.0.
+
+La calificación de falta de disco distingue ENOSPC real en tmpfs guest de fault
+injection en cada fase durable del writer con I/O APFS real; no se llena el disco
+host ni se afirma power-loss. Antes/after conocido o preservación de incertidumbre
+son los oráculos. La medición de memoria máxima nativa es una observación, no un
+cap de RSS; la matriz publica el coste y su alcance.
 
 ## Objetivo y contrato propuesto
 
@@ -118,34 +149,20 @@ parent movido, crash/disco lleno y rollback que pise cambios ajenos.
 7. Crash recovery conserva bytes desconocidos de terceros. Si no coinciden con
    before ni after, cuarentena/recovery_required; jamás rollback ciego.
 
-**D02 es un prerrequisito de seguridad, no una receta implementada.** `flock` es
-advisory; hash/fstat antes de rename no hacen compare-and-swap. Un parent descriptor
-puede apuntar a un directorio movido fuera de la root y un writer puede intervenir
-entre la comprobación y reemplazo. La implementación debe demostrar una primitiva
-kernel/root-bound o una frontera de exclusión del namespace controlada por el host
-que cubra ese intervalo; no basta recapturar después de haber sobrescrito bytes.
-Si no puede ofrecerla, commit falla cerrado y M2 no se declara Done. La eventual
-TCB de exclusión debe ser explícita, verificable y revisada antes del código, sin
-presentar un lock cooperativo como exclusión de editores arbitrarios.
+**D02 vigente: ADR-050 local_coordinated.** El owner delegó elegir el contrato
+sin añadir carga de instalación. Se confía en el host/dev y en un namespace estable
+durante el commit; el código del proyecto ejecutado por el MCP sigue siendo no
+confiable y queda aislado del host. Las roots originales, resolución protegida y
+precondiciones se prueban; locks coordinan únicamente MCP con state root compartido.
+No se anuncia exclusión OS de editores, CAS por contenido ni visibilidad atómica
+multiarchivo. Los bytes desconocidos se conservan y cualquier efecto incierto queda
+en recovery_required. Las pruebas de carreras delimitan estas garantías, no convierten
+el contrato coordinado en enforcement frente a un host malicioso.
 
-Evaluar por separado containment de root y conflicto con escritor externo: probar
-uno no acredita el otro. Candidatos concretos: openat con O_RESOLVE_BENEATH y
-O_NOFOLLOW_ANY para adquisición, renameatx_np para publicación, locks solo para
-callers cooperativos y F_FULLFSYNC/durabilidad de directorio para recuperación.
-Ninguno se anuncia como CAS por contenido. Una aserción de exclusividad del host
-solo puede formar TCB si el owner acepta explícitamente ese contrato más estrecho;
-debe figurar en receipt y docs con su riesgo residual, sin fingir enforcement.
-La rama por defecto sigue exigiendo exclusión demostrada o rechazo.
-
-Puerta D02 Go/No-go antes de M2-01: Go requiere un diseño concreto y un oráculo
-nativo que pueda distinguir exclusión/containment real de una comprobación
-optimista. No-go conserva M2 pendiente y bloquea sus dependientes; registra el
-experimento, target y mecanismo que faltan. Contingencia a evaluar: namespace
-exclusivo aprovisionado por un broker/identidad host separados, con exclusión
-demostrable. Serializar solo los callers MCP no cubre editores externos. Adoptar
-una frontera de confianza más estrecha o reducir el alcance requiere una decisión
-explícita del owner y ADR/spec actualizados; no es fallback automático ni permite
-marcar las cinco mutaciones Done mediante preview-only.
+La investigación negativa y los requisitos fuertes originales se conservan en
+[prerrequisitos históricos D02](m2-d02-host-preconditions.md) y ADR-049. Ya no se
+espera otra decisión del owner ni se exige broker/UID adicional. La calificación
+positiva del writer para ADR-050 sigue siendo obligatoria antes de M2-01 Done.
 
 Revisar APIs [rustix 1.1.4](https://docs.rs/rustix/1.1.4/rustix/fs/struct.RenameFlags.html)
 y [APFS](https://developer.apple.com/library/archive/documentation/FileManagement/Conceptual/APFS_Guide/ToolsandAPIs/ToolsandAPIs.html)
@@ -181,14 +198,19 @@ con snapshot Cargo aprobado; nunca cambiar entre modos silenciosamente. El DoD
 exige al menos un caso registry real resuelto offline y un caso ausente denegado.
 App con lock: incluir lock generado en staging en el mismo plan/commit; library sin
 lock: respetar policy declarada por host, no inferirla de package.lib. No modificar
-lock de M1 ni relajar frozen de lecturas. `toml_edit` requiere selección/licencia/pin
-y tests en D03; todavía no está en dependencias normales del workspace.
+lock de M1 ni relajar frozen de lecturas. `toml_edit` queda seleccionado y fijado por ADR-051; su incorporación y fixtures
+forman parte de M2-01, con inventario específico antes de otra distribución.
 
 ## Tests, DoR y DoD
 
+La [trazabilidad de cierre](../validation/M2-traceability.md) enlaza cada casilla
+y G1–G9 con implementación, pruebas y límites del [full final](../validation/M2-full-gate.json).
+
 Fixtures: dos ProjectRefs mismo workspace, dos servidores, external writer en cada
-ventana, parent/root swap/ABA, symlinks/hardlinks/FIFO, permisos revocados, falta
-disco, journal corrupto, crash en cada barrera durable y pérdida de respuesta.
+ventana, parent/root swap/ABA, symlinks/hardlinks/FIFO, permisos revocados, journal corrupto,
+pérdida de respuesta y barreras/faults nativos calificados en la matriz M2.
+La inyección de escritura parcial/ENOSPC del journal y los crashes calificados no
+simulan disco APFS físicamente lleno, todas las primitivas ni pérdida de energía.
 Cada control de contención incluye control positivo que demuestra que el ataque
 se ejecuta y altera el canario con el control deliberadamente ausente en un fixture
 privado: writer concurrente, parent movido, link de destino y exporter extra.
@@ -210,19 +232,23 @@ M2-01..07, G1–G9, todas las casillas siguientes y el DoD adicional de decision
 contractuales con receipts en futura matriz M2. Nueva
 distribución no empaqueta Cargo cache/runtime/fixtures sin D05/D14 y notices/SBOM.
 
-- [ ] Cinco tools producen preview revisable, permiso explícito, commit limitado
+- [x] Cinco tools producen preview revisable, permiso explícito, commit limitado
   y receipt; trece contratos M1 permanecen iguales. Fuente: spec §25/97, ADR-013/015.
-- [ ] Mutación stale, replay alterado, lock concurrente y permiso ausente no cambian
-  bytes; cada efecto queda dentro de root incluso con races. Fuente: ADR-007/024,
-  D01/D02 y M2-01/07.
-- [ ] Crash/cancel/disco lleno en cada fase recuperan before o after conocido,
-  preservando bytes externos y señalando incertidumbre. Fuente: ADR-013, M2-01/07.
-- [ ] Cargo/rustfmt reales operan en staging con red/env/hijos/quotas enforced;
+- [x] Mutación stale, replay alterado, lock concurrente y permiso ausente no cambian
+  bytes en los casos calificados. I/O protegido y carreras negativas respetan el
+  contrato de namespace confiable local_coordinated; no se acredita contención
+  frente a un host que lo viole. Fuente: ADR-007/024/050 y M2-01/07.
+- [x] Crash/cancel y faults de I/O calificados preservan bytes externos y solo
+  recuperan generaciones conocidas; journal parcial/unknown conserva evidencia y
+  puede exigir remediación manual con recovery_required. El alcance de inyección
+  y la ausencia de prueba de power loss/disco físico lleno quedan explícitos.
+  Fuente: ADR-052/054, M2-native-io-faults.json y M2-native-remediation.json.
+- [x] Cargo/rustfmt reales operan en staging con red/env/hijos/quotas enforced;
   no existe write bind host ni instalación implícita. Fuente: spec §37–45/107,
   ADR-008/009/031 y M2-02/03.
-- [ ] Add/remove/patch preservan TOML y policy lock, resuelven un registry fixture
+- [x] Add/remove/patch preservan TOML y policy lock, resuelven un registry fixture
   offline y niegan cache ausente. Fuente: spec §25.3–25.5/105, D03/D05 y M2-04..06.
-- [ ] Full source-bound, native/security, Inspector y cliente stock pasan; reviews
+- [x] Full source-bound, native/security, Inspector y cliente stock pasan; reviews
   Sonnet y Opus High no dejan findings bloqueantes. Fuente: AGENTS, G4/G5/G8.
 
 
@@ -245,13 +271,13 @@ M6 debe decidir su operación nueva en D25, versionar cualquier enum/formato per
 que cambie y probar unknown-version. No reservar valores públicos vacíos en M2.
 Journal, plan y receipt tienen versión independiente desde el primer writer; readers
 rechazan versión desconocida antes de efectos. D12 aplica desde M2-01 a esos formatos,
-aunque las migraciones generales sean M8-03. Journal pendiente bloquea admisión de
-mutaciones y el preflight administrativo de downgrade hasta reconciliación.
-No se puede modificar retroactivamente 0.1.0 para que detecte un journal M2: el
-launcher/CLI de actualización calificado debe impedir el downgrade gestionado;
-un binario antiguo invocado manualmente queda fuera de esa garantía y no ofrece
-mutaciones M2. Probar versiones de writer compatibles/incompatibles, no inventar
-un test que afirme que el binario histórico conoce un formato futuro.
+aunque las migraciones generales sean M8-03. Journal pendiente impide nuevas mutaciones sobre su generación hasta
+reconciliación. ADR-054 sustituye la propuesta de preflight gestionado: M2 no
+incorpora updater ni launcher de downgrade. La guía exige reconciliar los journals
+ante un cambio manual de checkout. No se puede modificar retroactivamente 0.1.0
+para que detecte un journal M2; el binario histórico no ofrece mutaciones M2.
+Probar decoders compatibles/incompatibles sin afirmar que un binario histórico
+conoce un formato futuro.
 
 **Snapshots/availability:** commit invalida todos los caches/planes ligados a su
 source generation, incluyendo previews concurrentes; lectores con snapshot ya
@@ -274,26 +300,29 @@ rustc-workspace-wrapper, linker, runner, target-dir, net/http y credentials/regi
 aportados externamente. Config host malformado/adulterado se rechaza antes del job.
 El gateway fija env/target-dir/red; un asset administrativo no relaja esos controles.
 
-**Cargo fix:** D04 califica plantilla cerrada `cargo fix --offline --locked
---allow-no-vcs --message-format=json`, manifest/target-dir guest constantes y selección
-package/targets desde tipos. `--allow-dirty`, `--allow-staged`, edition/edition-idioms,
-broken-code y flags libres no se admiten; si la versión fijada exigiera otro flag
-para la copia sin Git, decidirlo con prueba antes de ampliar la plantilla. Registrar
-args exactos en receipt; la copia/journal/rollback aportan la protección, no el check
-VCS de Cargo. Rustfmt no promete idempotencia universal: un segundo candidato distinto
+**Cargo fix (decisión implementada ADR-056, sustituye la propuesta D04):**
+plantilla cerrada `cargo fix --workspace --all-targets --frozen --offline
+--allow-no-vcs --allow-dirty --allow-staged --message-format=json --color never
+--target-dir /target`. La selección es workspace/all-targets; no hay edition,
+edition-idioms, broken-code ni flags libres. La captura no contiene Git y la
+aceptación del diff se basa en generación exacta y permiso explícito; los flags
+calificados no autorizan reset/stash ni ejecutar Git host. Los argumentos se
+registran en provenance; el check VCS de Cargo no es la frontera de protección. Rustfmt no promete idempotencia universal: un segundo candidato distinto
 necesita otro preview/aprobación; nunca se aplica bajo el digest anterior ni se
 llama plan_expired a una mera diferencia de resultado sin TTL vencido.
 
 DoD adicional M2-01/07, con fuentes dentro de cada criterio:
 
-- [ ] Trece snapshots y comportamiento/admisión M1 bajo commit concurrente
+- [x] Trece snapshots y comportamiento/admisión M1 bajo commit concurrente
   conservan contrato y respetan los presupuestos existentes L09/L10; invalidación postcommit demostrada. Fuente: G1, spec §52/69/70,
   ADR-024/031, D01/D02.
-- [ ] Receipt owner/grant/revocación/reopen y unknown-format/downgrade gestionado
-  se prueban antes de publicar el primer writer. Fuente: G2/G6, ADR-013, D01/D12.
-- [ ] tools/security-model públicos enuncian alcance real de exclusión, ausencia de
+- [x] Receipt owner/grant/revocación/reopen, decoder legacy v1 y unknown-format
+  fail-closed se prueban. Se publica que no existe updater/downgrade gestionado;
+  el operador reconcilia journals antes de volver a otro checkout y 0.1.0 no
+  interpreta formato M2. Fuente: G2/G6, ADR-052/054 y guía de clientes.
+- [x] tools/security-model públicos enuncian alcance real de exclusión, ausencia de
   atomicidad multiarchivo para lectores externos y lecturas M1 concurrentes, dirty
-  policy, retención/autorización de receipts y límite del downgrade gestionado;
+  policy, retención/autorización de receipts y ausencia de updater/downgrade gestionado;
   AGENTS refleja solo M2 autorizado en la fase de implementación. Fuente: AGENTS,
   spec §35–45/53–59/113 y D01/D02.
 

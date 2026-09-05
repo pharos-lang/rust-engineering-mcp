@@ -316,3 +316,72 @@ containment o readiness universal. No descargas ni reparación automática.
 ## M1-15 — Candidatos locales
 
 La preparación M1-15 verifica archivos confiables generados localmente; no introduce un instalador genérico. Catálogos entran por el importer autenticado existente. Trust seed42 sigue siendo fixture pública; instalación privada y firma ad hoc no otorgan identidad de publisher.
+
+## Escritura local M2 en desarrollo
+
+[ADR-050](adr/ADR-050-local-coordinated-mutation.md) adopta
+`local_coordinated`. El host concede por separado manifest, formato, fix,
+dependency add y dependency remove sobre roots que ya son legibles. Una referencia,
+un plan o un receipt de otra clase no transfiere autoridad. Preview no escribe;
+commit revalida identidad, generación completa, digest y plan; receipt observa el
+journal y solo intenta recovery cuando el peer lo pide. Cuatro planes y 64 MiB se
+comparten entre las cinco tools, y la respuesta excesiva se rechaza antes de
+retener el plan.
+
+La lectura y publicación host usan handles relativos no-follow. Esos controles no
+impiden que otro programa del mismo usuario escriba después de una comprobación:
+los locks solo coordinan servidores con el mismo state root. No hay CAS, exclusión
+OS de editores externos, atomicidad visible multiarchivo, protección contra un host
+malicioso ni supervivencia a power loss demostrada. Ante bytes o inodes desconocidos,
+recovery conserva evidencia y falla cerrado en vez de sobrescribir.
+
+El código del proyecto solo actúa sobre staging guest. Fmt y fix no pueden crear o
+borrar paths y exportan hasta 128 reemplazos `.rs` existentes. `cargo fix` puede
+ejecutar build scripts y proc macros que influyan en esos bytes. Su perfil dedicado
+mantiene `network=none`, pero permite TCP loopback interno para la coordinación de
+Cargo; M1, fmt, ingest, export y resolución conservan sus perfiles previos.
+
+La resolución captura un directory source Cargo aprobado fuera de las project
+roots, verifica el SHA-256 esperado y lo monta read-only desde bytes propios. No
+hereda CARGO_HOME, proxies, credenciales o configuración host y no descarga. Datos
+ausentes o corruptos impiden el candidato. `preserve_presence` evita crear
+Cargo.lock en el host cuando el proyecto no lo tenía y actualiza el existente en
+el mismo plan cuando sí lo tenía. La [calificación M2](validation/M2-07.md) del
+checkout `0.2.0-dev` está completada; la release estable sigue siendo `0.1.0`.
+
+No existe un canal de upgrade/downgrade gestionado para M2. Un operador debe
+reconciliar los journals pendientes antes de ejecutar un binario anterior; la
+release `0.1.0` no reconoce el formato de journal M2 y una invocación manual queda
+fuera de esa garantía.
+
+## Metadata y namespace del writer M2
+
+En el writer del checkout macOS/APFS, ACL se conserva mediante CLONE_ACL del
+kernel; no se compara independientemente. UID/GID, modo, file flags y xattrs sí
+se verifican. La exclusión de hardlinks depende de nlink, no de una garantía
+acreditada a O_UNIQUE. El host y el IDE deben dejar intactos los nombres reservados
+`.rust-mcp-mut-*`, también después de una interrupción: la verificación previa
+no convierte unlink/rename en compare-and-swap. Conservar journal y temporales si
+hay `recovery_required`; no usar git clean ni borrar evidencia para desbloquearlo.
+
+### Disponibilidad y observabilidad del journal M2
+
+Un journal truncado por fallo de escritura propio también puede bloquear list/prune
+y commits nuevos de todo el store compartido. No se elimina automáticamente ni se
+considera un sucesor válido. La [remediación](client-configuration.md#planes-receipts-y-recovery)
+preserva originales y continúa únicamente en copias físicas y state root nuevos,
+con grants nuevos; no restaura idempotencia ni certifica el journal antiguo.
+Admisión retiene hasta 207 MiB, más 48 MiB de staging y 1 MiB de crecimiento reservado.
+Las pruebas de ENOSPC del writer inyectan errores tras I/O APFS real: no llenan el
+disco host ni prueban power-loss. Los fallos del tmpfs guest se califican aparte.
+
+[ADR-058](adr/ADR-058-local-mutation-observability.md) limita eventos tracing a estado,
+fase, duración, IDs opacos y contadores locales, sin source, paths ni credenciales.
+No se habilitan logs SDK ni un collector; el host controla retención de stderr.
+
+El límite de cuatro planes aplica a propuestas pendientes: los planes terminales
+dejan capacidad para nuevas propuestas en la siguiente admisión. Un commit con
+plan ausente/expirado solo puede repetir un journal existente con ID, digest y key
+exactos, bajo grant vivo e identidad física original. No inicia efectos nuevos sin
+preview vigente. Prune retira ese replay; un receipt terminal describe historia,
+no el source actual. Véase [ADR-059](adr/ADR-059-terminal-plan-retirement-and-durable-replay.md).
