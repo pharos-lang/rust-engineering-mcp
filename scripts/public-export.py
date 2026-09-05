@@ -42,6 +42,17 @@ def validate_commitish(value: str) -> str:
     return value
 
 
+def resolve_commit(value: str) -> str:
+    """Resolve one validated revision to exactly one full commit object ID."""
+    commitish = validate_commitish(value)
+    commit = git(
+        "rev-parse", "--verify", "--end-of-options", f"{commitish}^{{commit}}"
+    ).decode().strip()
+    if re.fullmatch(r"[0-9a-f]{40}", commit) is None:
+        raise RuntimeError("Git did not return exactly one full commit object ID")
+    return commit
+
+
 def sha256(data: bytes) -> str:
     return hashlib.sha256(data).hexdigest()
 
@@ -60,10 +71,7 @@ def main() -> None:
         shutil.rmtree(output)
     output.mkdir(parents=True, mode=0o700)
 
-    commitish = validate_commitish(args.commit)
-    commit = git(
-        "rev-parse", "--verify", "--end-of-options", f"{commitish}^{{commit}}"
-    ).decode().strip()
+    commit = resolve_commit(args.commit)
     rows = git("ls-tree", "-rz", commit).split(b"\0")
     replacements = {
         str(pathlib.Path.home()).encode(): b"<LOCAL_HOME>",

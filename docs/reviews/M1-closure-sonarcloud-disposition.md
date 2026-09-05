@@ -33,9 +33,12 @@ the candidate-bound artifact, Inspector and stock Codex receipts. They remain fu
 included in Sonar static and security analysis.
 
 The final focused additions exercise a failed child exit, the default output
-stream, the impossible missing-pipe branch through a controlled mock, and the real
-offline vendor verifier. This covers the observed delta without weakening the 80%
-Quality Gate.
+stream, the impossible missing-pipe branch through a controlled mock, and real Git
+resolution of `HEAD` with a negative malformed-output oracle. This covers the
+observed delta without weakening the 80% Quality Gate. `verify-vendor.py` remains a
+mandatory supply-chain step but is excluded from the coverage percentage because
+the Sonar job does not retain its published `.crate` input; the live supply-chain
+job, not fabricated scanner state, is its executable oracle.
 
 ## Security disposition
 

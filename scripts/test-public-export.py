@@ -4,6 +4,7 @@
 import importlib.util
 from pathlib import Path
 import unittest
+from unittest import mock
 
 
 def load_exporter():
@@ -40,10 +41,13 @@ class PublicExportTests(unittest.TestCase):
                     EXPORTER.validate_commitish(value)
 
     def test_git_resolves_head_to_exactly_one_object_id(self):
-        observed = EXPORTER.git(
-            "rev-parse", "--verify", "--end-of-options", "HEAD^{commit}"
-        ).decode().strip()
+        observed = EXPORTER.resolve_commit("HEAD")
         self.assertRegex(observed, r"\A[0-9a-f]{40}\Z")
+
+    def test_git_resolution_rejects_non_object_output(self):
+        with mock.patch.object(EXPORTER, "git", return_value=b"not-an-object\n"):
+            with self.assertRaisesRegex(RuntimeError, "exactly one full commit"):
+                EXPORTER.resolve_commit("HEAD")
 
 
 if __name__ == "__main__":
