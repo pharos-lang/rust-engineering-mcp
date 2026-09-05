@@ -4,4 +4,4 @@
 /.vscode/
 *.log
 *.profraw
-
+/coverage/
