@@ -284,6 +284,25 @@ struct Server {
 }
 impl Server {
     fn start(fixture: &Fixture) -> Result<Self> {
+        Self::start_with_grants(fixture, false, false)
+    }
+    fn start_with_manifest_write(fixture: &Fixture, write: bool) -> Result<Self> {
+        Self::start_with_grants(fixture, write, false)
+    }
+    fn start_with_grants(fixture: &Fixture, manifest: bool, format: bool) -> Result<Self> {
+        let mut grants = Vec::new();
+        if manifest {
+            grants.extend([
+                "--allow-manifest-write".into(),
+                fixture.project.as_os_str().to_owned(),
+            ]);
+        }
+        if format {
+            grants.extend([
+                "--allow-fmt-write".into(),
+                fixture.project.as_os_str().to_owned(),
+            ]);
+        }
         let mut child = Command::new(env!("CARGO_BIN_EXE_rust-engineering-mcp"))
             .env_clear()
             .current_dir(&fixture.root)
@@ -297,6 +316,7 @@ impl Server {
             .arg(&fixture.state)
             .arg("--rust-image")
             .arg(APPROVED_RUST_IMAGE)
+            .args(grants)
             .stdin(Stdio::piped())
             .stdout(Stdio::piped())
             .stderr(Stdio::piped())
@@ -2378,3 +2398,9 @@ mod explain_runtime;
 
 #[path = "inspection_runtime/quality.rs"]
 mod quality_runtime;
+
+#[path = "inspection_runtime/mutation.rs"]
+mod mutation_runtime;
+
+#[path = "inspection_runtime/format_mutation.rs"]
+mod format_mutation_runtime;

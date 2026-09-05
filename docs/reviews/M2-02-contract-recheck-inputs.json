@@ -1,0 +1,64 @@
+{
+  "cli_version": "2.1.260 (Claude Code)",
+  "model": "claude-sonnet-5",
+  "effort": "medium",
+  "command": [
+    "/Users/cburgosro/.local/bin/claude",
+    "--safe-mode",
+    "--print",
+    "--model",
+    "claude-sonnet-5",
+    "--effort",
+    "medium",
+    "--tools",
+    "",
+    "--strict-mcp-config",
+    "--mcp-config",
+    "{\"mcpServers\":{}}",
+    "--no-session-persistence",
+    "--disable-slash-commands",
+    "--output-format",
+    "json"
+  ],
+  "scope": "M2-02 P1 closure delta and parser P2; native/Docker/D05 excluded",
+  "prior_raw_sha256": "a65f8cd90befaad5f192a3b3fa4089991ced792a8db9936bb5db7fdcb0551781",
+  "files": [
+    {
+      "path": "crates/application/src/mutation.rs",
+      "sha256": "89c0832ee12221419fa6f0157a72bfee1c3068a5192d6b7c44758be08a8f9dbd",
+      "selection": "lines 318-470",
+      "selection_sha256": "52cb039e326aa398c9c5b0a3f57adde71d73582a1b8f1b30bb7afb36a3908320"
+    },
+    {
+      "path": "crates/application/tests/mutation.rs",
+      "sha256": "a211c32ad20c37ca7e613095432d0e98d968d94a1362c840de6bbfc3cb95bdeb",
+      "selection": "lines 240-272, lines 451-595",
+      "selection_sha256": "4772e9f95da2ffd1f77cd427dbbf8d8ecbb3dfd97cce677a45772688a6c86e2f"
+    },
+    {
+      "path": "crates/mcp-server/src/stdio/mutation.rs",
+      "sha256": "b57452e6744948b8b9a2572a18f49d4daa139aa239aa423b0a1d5107c20747d0",
+      "selection": "lines 345-414, lines 638-852, lines 1023-1273",
+      "selection_sha256": "4cecb6e54e86b37d901057b7a8e4655e3f945cc05f1f560ad078e35f723b92b3"
+    },
+    {
+      "path": "crates/mcp-server/src/stdio/workers.rs",
+      "sha256": "546e24b8c4c11d4c22c776bbcd234370f8b284906a3f23d7b9a2f56225a8e317",
+      "selection": "lines 137-175",
+      "selection_sha256": "eb3c352d1764bcdc32cb9291b808978830dd92517290e1031f1421f0e33919ee"
+    },
+    {
+      "path": "docs/reviews/M2-02-contract-review.md",
+      "sha256": "6355dec4491cd3ec488eaf5e6252e2c352d3230c01fab140e05b8d8fd5f727af",
+      "selection": "complete file"
+    }
+  ],
+  "tests": [
+    "cargo test -p rust-engineering-application --test mutation: 15 passed",
+    "cargo test -p rust-engineering-mcp --bin rust-engineering-mcp stdio::mutation::tests: 6 passed",
+    "cargo clippy -p rust-engineering-application --test mutation -- -D warnings: passed",
+    "cargo clippy -p rust-engineering-mcp --bin rust-engineering-mcp --tests -- -D warnings: passed"
+  ],
+  "packet_bytes": 43207,
+  "packet_sha256": "3270ade63fab838b8e17932e866b28437a720cff2c0a881ea8cf435cb9a158cb"
+}

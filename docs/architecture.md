@@ -261,3 +261,21 @@ con ejecución de proyecto dentro del guest Docker Linux ARM64 aprobado.
 No existe catálogo oficial 0.1.0 ni clave Ed25519 de producción. Import, firmas,
 antirollback, cambio de trust por el host y revocación por retirada de trust siguen
 implementados para catálogos aportados explícitamente por el host.
+
+## Escritura local M2 en desarrollo
+
+[ADR-050](adr/ADR-050-local-coordinated-mutation.md) fija edición local
+coordinada para M2: permiso de escritura del host configurado una vez, preview/diff,
+precondiciones, locks entre instancias MCP, journal y recuperación conservadora.
+No exige servicios privilegiados, sudo, cuentas ni cambios de ownership del proyecto.
+El host mantiene estables las roots y evita editar simultáneamente los archivos
+afectados durante el commit breve. El MCP no bloquea al IDE ni promete CAS o atomicidad
+visible multiarchivo. Conflictos observados detienen la operación; los posteriores
+pueden requerir recuperación conservando evidencia y sin pisar bytes desconocidos.
+La rama de desarrollo incorpora `rust.manifest.patch` para lints del `Cargo.toml`
+raíz e integra `rust.fmt.apply` para archivos Rust existentes. Ambos usan
+preview/commit/receipt, con grants separados `--allow-manifest-write WORKSPACE_ROOT`
+y `--allow-fmt-write WORKSPACE_ROOT`. La calificación conjunta sigue en curso;
+estas capacidades no forman parte de la release `0.1.0`. Las trece tools M1 y su
+sandbox se conservan. Fix, dependencias y las demás familias de patch siguen
+pendientes; el tablero enlaza la evidencia sin anunciar M2 terminado.

@@ -1,0 +1,20 @@
+{
+  "model": "claude-opus-5",
+  "effort": "high",
+  "cli_version": "2.1.260",
+  "files": [
+    {
+      "path": "docs/adr/ADR-050-local-coordinated-mutation.md",
+      "sha256": "5d7ee77d960b8a6bc8f772286c16c13358bdd71bf6e3b9f40a151f6e594c9f6c"
+    },
+    {
+      "path": "docs/adr/ADR-049-m2-write-boundary-qualification.md",
+      "sha256": "bfbd075345d0b4e8c002b85de9053370c51e866a14b432cd143d9a719989c249"
+    },
+    {
+      "path": "docs/validation/M2-matrix.md",
+      "sha256": "d984cec299b4c83ee2fb8014c05432ada22f8e7f358fa445e9bfd85c21aee547"
+    }
+  ],
+  "packet_sha256": "8c0c5d35ca623e3dcbb1d07932e951078b489b12f038bac9d32e114eacb5c472"
+}

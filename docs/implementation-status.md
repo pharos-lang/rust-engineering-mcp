@@ -110,18 +110,19 @@ ni autoriza avanzar a M3 o publicar otra release.
 
 ## In Progress
 
+**M2-01: implementación y revisión de contratos, editor y transacción local_coordinated** según
+ADR-050. Las cinco tools M2 aún no están implementadas ni calificadas; trece M1 intactas.
+[Estado y evidencia](validation/M2-matrix.md). No se reabre M0/M1 ni se avanza a M3.
+
 No hay vertical M0/M1 en progreso. La fuente, CI portable, SonarCloud, artifact y
 release están enlazados desde el [recibo final](validation/m1-17-public-release.json).
 
 ## Blocked
 
-**M2 / D02 — No-go del candidato actual**, después del merge local de planificación
-`2f54b36`. La [matriz M2](validation/M2-matrix.md) y el [probe APFS](validation/m2-d02-native-probe.json)
-demuestran que rename protegido contiene paths descendientes, pero hash/flock/swap
-no excluyen escritores externos ni fijan la entrada del root. Leases: EPERM.
-Se requiere decisión de frontera host y calificación positiva antes de M2-01;
-[ADR-049](adr/ADR-049-m2-write-boundary-qualification.md) sigue Proposed.
-No hay writer ni tools M2 implementadas. M2-01..07 y sus dependientes siguen pendientes.
+El bloqueo de decisión D02 se resolvió por delegación explícita del owner mediante
+[ADR-050](adr/ADR-050-local-coordinated-mutation.md): edición local coordinada sin
+broker privilegiado. El No-go histórico sigue siendo válido para exclusión OS fuerte,
+que el producto no anuncia. La calificación positiva del writer sigue pendiente.
 
 No hay bloqueo M0/M1 ni decisión de alcance pendiente para 0.1.0. ADR-048 mantiene
 fuera de esta release los artifacts/plataformas/assets no calificados y el catálogo
@@ -193,3 +194,29 @@ M1-14 implementada con evidencia; M1 aún no cerrado.
 
 M1-14 integrada a72216d/20689cf; main limpio para smoke3 doctor +9 capabilities
 +37 protocolo;304 hashes verificados y Clippy all-features final aprobado.
+
+### Avance M2-01 en el checkout de trabajo
+
+Editor semántico de lints, tipos/ports de mutación, planes acotados y adapter MCP
+implementados en la rama. ADR-050/051/052 fijan la decisión previa al writer.
+[Revisión independiente](reviews/M2-01-review.md): snapshots de contrato y Scratch
+aceptados sin P0/P1 pendientes en esos paquetes. Gate core v2 14/14 es anterior al
+último Scratch y a la generalización M2-02: no se acredita como gate de fuente final.
+La CLI list/prune terminal existe y el runtime MCP manifest tiene prueba real.
+El gate conjunto y las mediciones finales siguen pendientes.
+No se marca M2-01 ni M2 Done, ni se publica nueva release.
+
+M2 D04: ADR-053 Accepted para implementación tras el [probe acotado](validation/M2-D04-native-qualification.md);79 observaciones de lifecycle/cuotas/cleanup. No califica todavía fmt/fix ni exportador productivo.
+
+M2-02 en integración: gateway/exportador y port productivos con pruebas Docker;
+ADR-054 define writer multiarchivo, compatibilidad journal v1/v2 y grant separado.
+La auditoría interna encontró un P1 de respuesta Docker perdida; corrección y
+recheck pendientes antes de calificar el flujo público. La suite de aplicación
+de mutación tiene 14 casos aprobados, incluidos scope y generación de formato.
+
+D05 resuelto por ADR-055: directory source de Cargo vendor optativo, fingerprint
+host, verificación completa de checksums y policy preserve_presence del lock.
+Los probes son evidencia de decisión, no implementación de dependency.add/remove.
+
+M2-03: ADR-056 acepta el perfil dedicado de Cargo fix tras D06 (121 observaciones);
+implementación y calificación de producción pendientes. No amplía seccomp M1.

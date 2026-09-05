@@ -15,9 +15,9 @@ operaciones estructuradas para inspeccionar un workspace, ejecutar comprobacione
 de calidad dentro de un runtime controlado, consultar diagnósticos y trabajar con
 un catálogo local de crates.
 
-El servidor usa transporte MCP por `stdio`. Las tools son de solo lectura respecto
-al código fuente: observan, validan y devuelven evidencia; no aplican cambios al
-repositorio.
+El servidor usa transporte MCP por `stdio`. Las trece tools de la release
+`0.1.0` observan y validan sin modificar el source. La edición opt-in de M2 se
+desarrolla por separado y todavía no está publicada.
 
 > [!IMPORTANT]
 > La versión estable actual es `0.1.0`. GitHub Releases publica un único binario core
@@ -336,3 +336,27 @@ El proyecto se distribuye, a elección del usuario, bajo
 [MIT](LICENSE-MIT) o [Apache License 2.0](LICENSE-APACHE). Los componentes y datos de
 terceros conservan sus propias licencias; consulta [`NOTICE`](NOTICE). Cada
 distribución binaria deberá incorporar su inventario específico de notices.
+
+## Escritura local M2 en desarrollo
+
+[ADR-050](docs/adr/ADR-050-local-coordinated-mutation.md) fija edición local
+coordinada para M2: permiso de escritura del host configurado una vez, preview/diff,
+precondiciones, locks entre instancias MCP, journal y recuperación conservadora.
+No exige servicios privilegiados, sudo, cuentas ni cambios de ownership del proyecto.
+El host mantiene estables las roots y evita editar simultáneamente los archivos
+afectados durante el commit breve. El MCP no bloquea al IDE ni promete CAS o atomicidad
+visible multiarchivo. Conflictos observados detienen la operación; los posteriores
+pueden requerir recuperación conservando evidencia y sin pisar bytes desconocidos.
+La rama de desarrollo incorpora `rust.manifest.patch` para lints del `Cargo.toml`
+raíz e integra `rust.fmt.apply` para archivos Rust existentes. Ambos usan
+preview/commit/receipt, con grants separados `--allow-manifest-write WORKSPACE_ROOT`
+y `--allow-fmt-write WORKSPACE_ROOT`. La calificación conjunta sigue en curso;
+estas capacidades no forman parte de la release `0.1.0`. Las trece tools M1 y su
+sandbox se conservan. Fix, dependencias y las demás familias de patch siguen
+pendientes; el tablero enlaza la evidencia sin anunciar M2 terminado.
+
+La CLI de desarrollo `cargo-vendor inspect --directory /ruta/vendor --json`
+verifica un directory source preparado mediante
+`cargo vendor --locked --versioned-dirs`. Devuelve el fingerprint y los paquetes verificados, sin ejecutar
+Cargo ni descargar datos. Su uso por add/remove está en integración; no es un
+requisito de instalación ni de las tools M1 o de formato.

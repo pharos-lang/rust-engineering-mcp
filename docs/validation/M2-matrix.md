@@ -1,6 +1,6 @@
 # M2 — matriz de implementación y prerrequisitos
 
-Fecha: 2026-09-05. Estado: **Blocked en D02**, no M2 Done.
+Fecha: 2026-09-05. Estado: **M2-01/02 en integración/revisión**, no M2 Done.
 La planificación fue commit `8b35cf6`, merge local `2f54b360e1e81f21e7efeff7c451cdd6f663a04f`.
 Esta fase se inició después de ese merge en `ai/m2-write-qualification` y actualizó
 primero el scope de AGENTS conforme al owner. No hubo push, PR, tag ni release.
@@ -9,10 +9,13 @@ primero el scope de AGENTS conforme al owner. No hubo push, PR, tag ni release.
 | --- | --- | --- |
 | Planificación M2–M8 | Integrada localmente | [Validación/reviews](../roadmap/planning-validation.md); no implementación |
 | Scope de sesión M2 | Actualizado | AGENTS autoriza cinco tools futuras; trece M1 siguen implementadas |
-| D02 investigación | No-go del candidato actual | [Prerrequisitos](../roadmap/m2-d02-host-preconditions.md), [ADR-049 Proposed](../adr/ADR-049-m2-write-boundary-qualification.md) |
+| D02 investigación histórica | No-go para exclusión OS fuerte, sustituido por ADR-050 | [Prerrequisitos](../roadmap/m2-d02-host-preconditions.md), [ADR-049 Proposed](../adr/ADR-049-m2-write-boundary-qualification.md) |
 | Probe nativo | 15 observaciones coincidentes; no califica writer | [Script](../../scripts/probe-m2-write-primitives.py), [JSON final](m2-d02-native-probe.json) |
-| M2-01..07 | Pendientes, bloqueados antes del primer writer | D02 requiere frontera acreditada y decisión; no implementación parcial expuesta |
-| M2 full/native/client gate | No ejecutado | No hay candidato de producto M2; no reutilizar 23/23 M1 como evidencia nueva |
+| M2-01 | In progress | Lint preview/commit/receipt, retención y Scratch implementados; [snapshots aceptados](../reviews/M2-01-review.md). Gate de fuente conjunta pendiente. |
+| M2-02 | In progress | 15 tools, [contrato/runtime fmt](../../crates/mcp-server/tests/inspection_runtime/format_mutation.rs), [nativo](M2-02-native-qualification.json), [medición](M2-02-native-performance.json). Reviews encontraron ajustes de cuota/receipt/cancelación en corrección; no Done. |
+| D05 | Decisión Accepted / captura implementada | [ADR-055](../adr/ADR-055-offline-cargo-data-and-lock-policy.md), CLI cargo-vendor inspect y [6 pruebas de datos](../../crates/project-adapter/tests/cargo_vendor.rs); falta resolución productiva. |
+| M2-03..07 | Pendientes | Fix, add/remove, patch completo y calificación final; no autoriza M3. |
+| M2 full/client gate | No ejecutado | Hay candidato parcial M2-01/02; faltan tres tools y gate conjunto. No reutilizar 23/23 M1 como evidencia nueva. |
 
 ## Experimento reproducible
 
@@ -64,7 +67,7 @@ timings/inodes/hashes, trece snapshots y producto/manifests/workflows sin cambio
 La [revisión Opus 5 High](../reviews/M2-D02-review.md) aceptó el recibo corregido
 sin P0/P1; conserva las limitaciones y mejoras de evidencia pendientes.
 
-## Decisión necesaria y handoff
+## Bloqueo histórico anterior a ADR-050
 
 El writer depende de una decisión explícita: mantener exclusión fuerte y diseñar/
 aprovisionar broker con UID/ACL/anchor separados, o aceptar un contrato de confianza
@@ -72,7 +75,15 @@ en exclusividad del workspace declarada por el host. La segunda opción modifica
 la garantía y exige ADR/spec/criterios/docs públicos; no equivale a enforcement OS.
 No cambiar cuentas, ownership, ACLs, entitlements ni servicios para forzar un positivo.
 
-Siguiente acción: resolver D02 con el owner, actualizar ADR-049 y decisiones D01/D03,
+Siguiente acción histórica (sustituida por ADR-050): resolver D02 con el owner, actualizar ADR-049 y decisiones D01/D03,
 calificar positivamente la frontera y continuar M2-01. El [prompt M2](../prompts/implement-m2.md)
 sigue siendo la entrada completa. No continuar a M3. No afirmar cinco tools,
 journal/receipts ni M2 implementados a partir de este experimento.
+
+## Resolución del owner posterior al experimento
+
+El owner delegó escoger la mejor decisión sin cargar instalación/uso. ADR-050
+acepta local_coordinated y sustituye la exigencia de exclusión OS. La sección de
+handoff anterior registra el bloqueo histórico; ya no se espera otra confirmación.
+Se continúa M2-01 con pruebas positivas/negativas para el contrato nuevo. No se
+reinterpretan los 15 resultados del probe como aprobación del writer.

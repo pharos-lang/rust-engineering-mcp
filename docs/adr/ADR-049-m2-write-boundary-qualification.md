@@ -44,7 +44,8 @@ y fixtures independientes sin anunciar mutaciones implementadas.
 
 ## Status
 
-Proposed. Pendiente evidencia nativa y decisión de frontera del owner.
+Superseded by ADR-050 para la decisión de frontera. La evidencia negativa nativa
+se conserva como histórica y válida.
 
 Evidencia nativa obtenida: [probe](../validation/m2-d02-native-probe.json), No-go
 del candidato, sin calificar el writer. La decisión del owner sigue pendiente.
@@ -52,3 +53,7 @@ Fuente Apple de leases inspeccionada el 2026-09-05:
 [vfs_subr.c, autorización y EPERM](https://github.com/apple-oss-distributions/xnu/blob/xnu-12377.121.6/bsd/vfs/vfs_subr.c#L12989-L13002)
 y [entitlement del test oficial](https://github.com/apple-oss-distributions/xnu/blob/xnu-12377.121.6/tests/file_leases.entitlements).
 Tag público xnu-12377.121.6; no se presenta como fuente idéntica al kernel instalado.
+
+Resolución posterior: el owner delegó la decisión; [ADR-050](ADR-050-local-coordinated-mutation.md)
+acepta local_coordinated sin exclusión OS. La evidencia No-go se conserva; no bloquea
+la preparación del writer bajo el contrato nuevo, cuya calificación sigue pendiente.

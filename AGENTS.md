@@ -49,8 +49,10 @@ planificación M2–M8 y después implementar únicamente M2. La planificación 
 integrada localmente en `2f54b360e1e81f21e7efeff7c451cdd6f663a04f`.
 No avanzar a M3 ni publicar otra release/tag sin autorización explícita adicional.
 M2 sigue su [plan](docs/roadmap/m2-safe-mutation.md), incluida la puerta D02 antes
-de un writer: una calificación negativa bloquea el corte, no autoriza reducir
-garantías. El contrato público implementado conserva estas trece tools M1:
+de un writer. El owner delegó resolver D02 sin cargar instalación/uso;
+[ADR-050](docs/adr/ADR-050-local-coordinated-mutation.md) adopta local_coordinated,
+sin exclusión OS de editores externos ni broker privilegiado. La calificación
+positiva del writer sigue siendo obligatoria. El contrato público implementado conserva estas trece tools M1:
 
 - `rust.project.open`
 - `rust.project.inspect`

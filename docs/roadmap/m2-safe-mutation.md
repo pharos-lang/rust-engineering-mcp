@@ -1,5 +1,14 @@
 # M2 — Safe Mutation / 0.2.x
 
+> Resolución posterior a la planificación: el owner delegó la decisión D02 para
+> preservar instalación/uso sencillos. [ADR-050](../adr/ADR-050-local-coordinated-mutation.md)
+> acepta local_coordinated: namespace host confiable, precondiciones y locks MCP,
+> sin exclusión OS de editores externos. Las exigencias de exclusión fuerte y espera
+> de decisión del owner que aparecen abajo son históricas y quedan sustituidas por
+> ese ADR; no hay CAS, atomicidad multiarchivo ni rollback sobre bytes desconocidos.
+> La calificación positiva de M2 sigue pendiente.
+
+
 Estado: **Planned**. Spec §25/§97 M2, §21/35–47/52/69–70/74–77/103–107;
 [ADR-013](../adr/ADR-013-safe-mutation.md), [ADR-024](../adr/ADR-024-project-open.md),
 [ADR-031](../adr/ADR-031-rust-source-transfer.md),
@@ -118,34 +127,20 @@ parent movido, crash/disco lleno y rollback que pise cambios ajenos.
 7. Crash recovery conserva bytes desconocidos de terceros. Si no coinciden con
    before ni after, cuarentena/recovery_required; jamás rollback ciego.
 
-**D02 es un prerrequisito de seguridad, no una receta implementada.** `flock` es
-advisory; hash/fstat antes de rename no hacen compare-and-swap. Un parent descriptor
-puede apuntar a un directorio movido fuera de la root y un writer puede intervenir
-entre la comprobación y reemplazo. La implementación debe demostrar una primitiva
-kernel/root-bound o una frontera de exclusión del namespace controlada por el host
-que cubra ese intervalo; no basta recapturar después de haber sobrescrito bytes.
-Si no puede ofrecerla, commit falla cerrado y M2 no se declara Done. La eventual
-TCB de exclusión debe ser explícita, verificable y revisada antes del código, sin
-presentar un lock cooperativo como exclusión de editores arbitrarios.
+**D02 vigente: ADR-050 local_coordinated.** El owner delegó elegir el contrato
+sin añadir carga de instalación. Se confía en el host/dev y en un namespace estable
+durante el commit; el código del proyecto ejecutado por el MCP sigue siendo no
+confiable y queda aislado del host. Las roots originales, resolución protegida y
+precondiciones se prueban; locks coordinan únicamente MCP con state root compartido.
+No se anuncia exclusión OS de editores, CAS por contenido ni visibilidad atómica
+multiarchivo. Los bytes desconocidos se conservan y cualquier efecto incierto queda
+en recovery_required. Las pruebas de carreras delimitan estas garantías, no convierten
+el contrato coordinado en enforcement frente a un host malicioso.
 
-Evaluar por separado containment de root y conflicto con escritor externo: probar
-uno no acredita el otro. Candidatos concretos: openat con O_RESOLVE_BENEATH y
-O_NOFOLLOW_ANY para adquisición, renameatx_np para publicación, locks solo para
-callers cooperativos y F_FULLFSYNC/durabilidad de directorio para recuperación.
-Ninguno se anuncia como CAS por contenido. Una aserción de exclusividad del host
-solo puede formar TCB si el owner acepta explícitamente ese contrato más estrecho;
-debe figurar en receipt y docs con su riesgo residual, sin fingir enforcement.
-La rama por defecto sigue exigiendo exclusión demostrada o rechazo.
-
-Puerta D02 Go/No-go antes de M2-01: Go requiere un diseño concreto y un oráculo
-nativo que pueda distinguir exclusión/containment real de una comprobación
-optimista. No-go conserva M2 pendiente y bloquea sus dependientes; registra el
-experimento, target y mecanismo que faltan. Contingencia a evaluar: namespace
-exclusivo aprovisionado por un broker/identidad host separados, con exclusión
-demostrable. Serializar solo los callers MCP no cubre editores externos. Adoptar
-una frontera de confianza más estrecha o reducir el alcance requiere una decisión
-explícita del owner y ADR/spec actualizados; no es fallback automático ni permite
-marcar las cinco mutaciones Done mediante preview-only.
+La investigación negativa y los requisitos fuertes originales se conservan en
+[prerrequisitos históricos D02](m2-d02-host-preconditions.md) y ADR-049. Ya no se
+espera otra decisión del owner ni se exige broker/UID adicional. La calificación
+positiva del writer para ADR-050 sigue siendo obligatoria antes de M2-01 Done.
 
 Revisar APIs [rustix 1.1.4](https://docs.rs/rustix/1.1.4/rustix/fs/struct.RenameFlags.html)
 y [APFS](https://developer.apple.com/library/archive/documentation/FileManagement/Conceptual/APFS_Guide/ToolsandAPIs/ToolsandAPIs.html)
@@ -181,8 +176,8 @@ con snapshot Cargo aprobado; nunca cambiar entre modos silenciosamente. El DoD
 exige al menos un caso registry real resuelto offline y un caso ausente denegado.
 App con lock: incluir lock generado en staging en el mismo plan/commit; library sin
 lock: respetar policy declarada por host, no inferirla de package.lib. No modificar
-lock de M1 ni relajar frozen de lecturas. `toml_edit` requiere selección/licencia/pin
-y tests en D03; todavía no está en dependencias normales del workspace.
+lock de M1 ni relajar frozen de lecturas. `toml_edit` queda seleccionado y fijado por ADR-051; su incorporación y fixtures
+forman parte de M2-01, con inventario específico antes de otra distribución.
 
 ## Tests, DoR y DoD
 

@@ -60,3 +60,18 @@ Accepted, Superseded y Rejected.
 - [ADR-044: Paged crate inspection](ADR-044-paged-crate-inspection.md).
 - [ADR-045: CLI doctor](ADR-045-cli-doctor.md).
 - [ADR-046: Bounded utility experiment](ADR-046-bounded-utility-experiment.md).
+
+- [ADR-050 — Local coordinated mutation](ADR-050-local-coordinated-mutation.md): Accepted; decisión de producto, writer aún pendiente.
+
+- [ADR-051 — Editor semántico](ADR-051-semantic-manifest-editor.md) — Accepted, M2-01 pendiente.
+- [ADR-052 — Journal y autoridad](ADR-052-mutation-journal-and-authorization.md) — Accepted, M2-01 pendiente.
+
+- [ADR-053 — Staging de mutación guest acotado](ADR-053-bounded-guest-mutation-staging.md)
+
+- [ADR-054 — Publicación multiarchivo existente](ADR-054-multiple-file-mutation-publication.md)
+
+- [ADR-055 — Datos Cargo offline y policy lock](ADR-055-offline-cargo-data-and-lock-policy.md)
+
+- [ADR-056 — Cargo fix y loopback aislado](ADR-056-cargo-fix-isolated-loopback.md)
+
+- [ADR-057 — Operaciones TOML y selección de paquetes](ADR-057-typed-manifest-and-dependency-operations.md)

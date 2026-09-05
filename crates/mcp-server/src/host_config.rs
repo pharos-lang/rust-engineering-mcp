@@ -6,6 +6,8 @@ use std::{
 };
 pub(crate) fn parse(mut args: impl Iterator<Item = OsString>) -> Option<stdio::HostConfig> {
     let mut config = stdio::HostConfig {
+        manifest_write_roots: Vec::new(),
+        fmt_write_roots: Vec::new(),
         audit: None,
         catalog: None,
         roots: Vec::new(),
@@ -21,6 +23,23 @@ pub(crate) fn parse(mut args: impl Iterator<Item = OsString>) -> Option<stdio::H
         let value = args.next()?;
         if flag == OsStr::new("--root") && config.roots.len() < 16 && value.to_str().is_some() {
             config.roots.push(PathBuf::from(value));
+        } else if flag == OsStr::new("--allow-manifest-write")
+            || flag == OsStr::new("--allow-fmt-write")
+        {
+            let roots = if flag == OsStr::new("--allow-manifest-write") {
+                &mut config.manifest_write_roots
+            } else {
+                &mut config.fmt_write_roots
+            };
+            let path = PathBuf::from(&value);
+            if value.to_str().is_none()
+                || !path.is_absolute()
+                || roots.contains(&path)
+                || roots.len() >= 16
+            {
+                return None;
+            }
+            roots.push(path);
         } else if flag == OsStr::new("--project-ttl-secs") && !ttl_seen {
             let ttl = value
                 .to_str()
@@ -109,5 +128,66 @@ pub(crate) fn parse(mut args: impl Iterator<Item = OsString>) -> Option<stdio::H
         (Some(path), Some(fingerprint)) => Some(stdio::HostAuditConfig { path, fingerprint }),
         _ => return None,
     };
+    let has_writes = !config.manifest_write_roots.is_empty() || !config.fmt_write_roots.is_empty();
+    if has_writes
+        && (config.rust.is_none()
+            || config
+                .manifest_write_roots
+                .iter()
+                .chain(config.fmt_write_roots.iter())
+                .any(|root| !config.roots.iter().any(|read| root.starts_with(read))))
+    {
+        return None;
+    }
+    if has_writes {
+        let runtime = config.rust.as_ref()?;
+        let journal = runtime.state_root.join("rust-mcp-mutations-v1");
+        if config
+            .roots
+            .iter()
+            .any(|read| journal.starts_with(read) || read.starts_with(&journal))
+        {
+            return None;
+        }
+    }
     Some(config)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    #[test]
+    fn mutation_journal_and_read_roots_cannot_overlap_in_either_direction() {
+        let parse_roots = |read: &str, write: &str, state: &str| {
+            parse(
+                [
+                    "--root",
+                    read,
+                    "--allow-manifest-write",
+                    write,
+                    "--docker",
+                    "/usr/local/bin/docker",
+                    "--docker-socket",
+                    "/tmp/docker.sock",
+                    "--state-root",
+                    state,
+                    "--rust-image",
+                    rust_engineering_execution::APPROVED_RUST_IMAGE,
+                ]
+                .into_iter()
+                .map(OsString::from),
+            )
+        };
+        assert!(parse_roots("/work/project", "/work/project", "/private/state").is_some());
+        assert!(parse_roots("/work/project", "/work/project", "/work/project/state").is_none());
+        assert!(
+            parse_roots(
+                "/private/state/rust-mcp-mutations-v1/project",
+                "/private/state/rust-mcp-mutations-v1/project",
+                "/private/state"
+            )
+            .is_none()
+        );
+        assert!(parse_roots("/work/project", "/other/project", "/private/state").is_none());
+    }
 }

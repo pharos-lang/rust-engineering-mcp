@@ -1,4 +1,5 @@
 //! Verify the daemon's applied configuration before starting the guest.
+use super::mutation_gateway::{MutationPhase, MutationVolume};
 use super::rust_gateway::{Phase, Volume};
 use rust_engineering_application::ExecutionError;
 use serde::Deserialize;
@@ -275,6 +276,160 @@ fn mounts_ok(c: &Created, phase: &Phase, volume: &Volume) -> Result<bool, Execut
         && r.volume_options.driver_config.options.is_empty())
 }
 
+/// Verify every security-sensitive field for an ADR-053 phase. This stays
+/// separate from the M1 verifier because the volume driver options and source
+/// access matrix are intentionally different.
+pub(super) fn verify_mutation(
+    bytes: &[u8],
+    image: &str,
+    phase: MutationPhase,
+    volume: &MutationVolume,
+    nonce: &str,
+) -> Result<(), ExecutionError> {
+    let containers: Vec<Created> =
+        serde_json::from_slice(bytes).map_err(|_| ExecutionError::Infrastructure)?;
+    let c = containers
+        .first()
+        .filter(|_| containers.len() == 1)
+        .ok_or(ExecutionError::Infrastructure)?;
+    let h = &c.host_config;
+    let mut env = c.config.env.clone();
+    env.sort();
+    let profile: serde_json::Value = serde_json::from_str(include_str!("seccomp-rust.json"))
+        .map_err(|_| ExecutionError::Infrastructure)?;
+    let seccomp = h
+        .security_opt
+        .iter()
+        .filter_map(|value| value.strip_prefix("seccomp="))
+        .collect::<Vec<_>>();
+    let profile_ok = seccomp.len() == 1
+        && serde_json::from_str::<serde_json::Value>(seccomp[0])
+            .is_ok_and(|value| value == profile);
+    let expected_labels = BTreeMap::from([
+        ("org.rust-mcp.execution".into(), "true".into()),
+        ("org.rust-mcp.rust-job".into(), nonce.into()),
+    ]);
+    let safe = !c.config.tty
+        && c.config.open_stdin == phase.interactive()
+        && c.config.attach_stdin == phase.interactive()
+        && c.config.stdin_once == phase.interactive()
+        && !h.auto_remove
+        && h.group_add.as_ref().is_none_or(Vec::is_empty)
+        && h.uts_mode.is_empty()
+        && h.oom_kill_disable != Some(true)
+        && h.oom_score_adj == 0
+        && h.device_cgroup_rules.as_ref().is_none_or(Vec::is_empty)
+        && h.storage_opt.as_ref().is_none_or(BTreeMap::is_empty)
+        && h.annotations.as_ref().is_none_or(BTreeMap::is_empty)
+        && h.runtime == "runc"
+        && h.init != Some(true)
+        && h.userns_mode.is_empty()
+        && h.cgroup_parent.is_empty()
+        && h.sysctls.as_ref().is_none_or(BTreeMap::is_empty)
+        && h.ulimits.as_ref().is_none_or(Vec::is_empty)
+        && h.masked_paths
+            == [
+                "/proc/acpi",
+                "/proc/asound",
+                "/proc/interrupts",
+                "/proc/kcore",
+                "/proc/keys",
+                "/proc/latency_stats",
+                "/proc/sched_debug",
+                "/proc/scsi",
+                "/proc/timer_list",
+                "/proc/timer_stats",
+                "/sys/devices/virtual/powercap",
+                "/sys/firmware",
+            ]
+        && h.readonly_paths
+            == [
+                "/proc/bus",
+                "/proc/fs",
+                "/proc/irq",
+                "/proc/sys",
+                "/proc/sysrq-trigger",
+            ]
+        && c.config.labels == expected_labels
+        && mutation_mounts_ok(c, phase, volume)?
+        && c.config.volumes.as_ref().is_none_or(BTreeMap::is_empty)
+        && h.cap_add.as_ref().is_none_or(Vec::is_empty)
+        && h.volumes_from.as_ref().is_none_or(Vec::is_empty)
+        && h.readonly_rootfs
+        && h.network_mode == "none"
+        && h.pid_mode.is_empty()
+        && h.ipc_mode == "private"
+        && h.cgroupns_mode == "private"
+        && h.cap_drop == ["ALL"]
+        && h.security_opt.len() == 2
+        && h.security_opt
+            .iter()
+            .any(|value| value == "no-new-privileges=true" || value == "no-new-privileges")
+        && profile_ok
+        && h.pids_limit == 128
+        && h.nano_cpus == 1_000_000_000
+        && h.memory == 1_073_741_824
+        && h.memory_swap == 1_073_741_824
+        && h.shm_size == 1_048_576
+        && !h.privileged
+        && h.binds.as_ref().is_none_or(Vec::is_empty)
+        && h.devices.is_empty()
+        && h.device_requests.as_ref().is_none_or(Vec::is_empty)
+        && !h.publish_all_ports
+        && h.port_bindings.is_empty()
+        && h.restart_policy.name == "no"
+        && h.log_config.kind == "none"
+        && h.tmpfs.len() == 2
+        && h.tmpfs
+            .get("/work")
+            .is_some_and(|value| value == "rw,exec,nosuid,nodev,size=512m,mode=1777")
+        && h.tmpfs
+            .get("/tmp")
+            .is_some_and(|value| value == "rw,nosuid,nodev,noexec,size=64m,mode=1777")
+        && c.config.user == "65534:65534"
+        && c.config.working_dir == "/source"
+        && c.config.image == image
+        && c.config.entrypoint == [phase.program()]
+        && c.config.cmd == phase.arguments()
+        && env == super::rust_gateway::environment();
+    if safe {
+        Ok(())
+    } else {
+        Err(ExecutionError::InvalidConfiguration)
+    }
+}
+
+fn mutation_mounts_ok(
+    c: &Created,
+    phase: MutationPhase,
+    volume: &MutationVolume,
+) -> Result<bool, ExecutionError> {
+    if c.mounts.len() != 1 || c.host_config.mounts.len() != 1 {
+        return Ok(false);
+    }
+    let applied: AppliedMount = serde_json::from_value(c.mounts[0].clone())
+        .map_err(|_| ExecutionError::InvalidConfiguration)?;
+    let requested: RequestedMount = serde_json::from_value(c.host_config.mounts[0].clone())
+        .map_err(|_| ExecutionError::InvalidConfiguration)?;
+    Ok(applied.kind == "volume"
+        && applied.name == volume.name
+        && applied.source == volume.mountpoint
+        && applied.destination == "/source"
+        && applied.driver == "local"
+        && applied.mode == "z"
+        && applied.propagation.is_empty()
+        && applied.rw == phase.writable()
+        && requested.kind == "volume"
+        && requested.source == volume.name
+        && requested.target == "/source"
+        && requested.read_only != phase.writable()
+        && requested.volume_options.no_copy
+        && requested.volume_options.subpath.is_empty()
+        && requested.volume_options.labels.is_empty()
+        && requested.volume_options.driver_config.name == "local"
+        && requested.volume_options.driver_config.options.is_empty())
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -401,6 +556,185 @@ mod tests {
                         "fixture"
                     )
                     .is_err()
+                );
+            }
+        }
+        Ok(())
+    }
+
+    fn mutation_fixture(
+        phase: MutationPhase,
+    ) -> Result<(Value, MutationVolume), Box<dyn std::error::Error>> {
+        let (mut value, base) = fixture(&Phase::Run(RustCommand::Check))?;
+        value[0]["Config"]["OpenStdin"] = json!(phase.interactive());
+        value[0]["Config"]["AttachStdin"] = json!(phase.interactive());
+        value[0]["Config"]["StdinOnce"] = json!(phase.interactive());
+        value[0]["Config"]["Entrypoint"] = json!([phase.program()]);
+        value[0]["Config"]["Cmd"] = json!(phase.arguments());
+        value[0]["Mounts"][0]["RW"] = json!(phase.writable());
+        value[0]["HostConfig"]["Mounts"][0]["ReadOnly"] = json!(!phase.writable());
+        let volume = MutationVolume {
+            name: base.name,
+            driver: "local".into(),
+            scope: "local".into(),
+            options: BTreeMap::from([
+                ("device".into(), "tmpfs".into()),
+                (
+                    "o".into(),
+                    "size=64m,nr_inodes=8192,uid=65534,gid=65534,mode=0700,nosuid,nodev,noexec"
+                        .into(),
+                ),
+                ("type".into(), "tmpfs".into()),
+            ]),
+            labels: BTreeMap::from([
+                ("org.rust-mcp.execution".into(), "true".into()),
+                ("org.rust-mcp.rust-job".into(), "fixture".into()),
+            ]),
+            mountpoint: base.mountpoint,
+            cluster_volume: None,
+            status: None,
+        };
+        Ok((value, volume))
+    }
+
+    fn mutation_security_changes(phase: MutationPhase) -> Vec<(&'static str, Value)> {
+        vec![
+            ("/0/Config/Tty", json!(true)),
+            ("/0/Config/OpenStdin", json!(!phase.interactive())),
+            ("/0/Config/AttachStdin", json!(!phase.interactive())),
+            ("/0/Config/StdinOnce", json!(!phase.interactive())),
+            ("/0/Config/User", json!("0:0")),
+            ("/0/Config/Env", json!(["HOST_SECRET=sentinel"])),
+            ("/0/Config/Entrypoint", json!(["/usr/bin/id"])),
+            ("/0/Config/Cmd", json!(["--help"])),
+            ("/0/Config/WorkingDir", json!("/work")),
+            ("/0/Config/Image", json!("sha256:unapproved")),
+            ("/0/Config/Labels/org.rust-mcp.rust-job", json!("other")),
+            ("/0/Config/Volumes", json!({"/host":{}})),
+            ("/0/HostConfig/AutoRemove", json!(true)),
+            ("/0/HostConfig/GroupAdd", json!(["0"])),
+            ("/0/HostConfig/UTSMode", json!("host")),
+            ("/0/HostConfig/OomKillDisable", json!(true)),
+            ("/0/HostConfig/OomScoreAdj", json!(-1000)),
+            ("/0/HostConfig/DeviceCgroupRules", json!(["a *:* rwm"])),
+            ("/0/HostConfig/StorageOpt", json!({"size":"2g"})),
+            ("/0/HostConfig/Annotations", json!({"unsafe":"true"})),
+            ("/0/HostConfig/Runtime", json!("other")),
+            ("/0/HostConfig/Init", json!(true)),
+            ("/0/HostConfig/UsernsMode", json!("host")),
+            ("/0/HostConfig/CgroupParent", json!("other")),
+            ("/0/HostConfig/Sysctls", json!({"kernel.domainname":"x"})),
+            ("/0/HostConfig/Ulimits", json!([{}])),
+            ("/0/HostConfig/NetworkMode", json!("host")),
+            ("/0/HostConfig/PidMode", json!("host")),
+            ("/0/HostConfig/IpcMode", json!("host")),
+            ("/0/HostConfig/CgroupnsMode", json!("host")),
+            ("/0/HostConfig/CapDrop", json!([])),
+            ("/0/HostConfig/CapAdd", json!(["SYS_ADMIN"])),
+            ("/0/HostConfig/VolumesFrom", json!(["other"])),
+            ("/0/HostConfig/SecurityOpt", json!(["seccomp=unconfined"])),
+            ("/0/HostConfig/ReadonlyRootfs", json!(false)),
+            ("/0/HostConfig/PidsLimit", json!(-1)),
+            ("/0/HostConfig/NanoCpus", json!(0)),
+            ("/0/HostConfig/Memory", json!(0)),
+            ("/0/HostConfig/MemorySwap", json!(-1)),
+            ("/0/HostConfig/ShmSize", json!(64 * 1024 * 1024)),
+            ("/0/HostConfig/Privileged", json!(true)),
+            ("/0/HostConfig/Binds", json!(["/:/host"])),
+            ("/0/HostConfig/Devices", json!([{}])),
+            ("/0/HostConfig/DeviceRequests", json!([{}])),
+            ("/0/HostConfig/PublishAllPorts", json!(true)),
+            ("/0/HostConfig/PortBindings", json!({"80/tcp":[{}]})),
+            ("/0/HostConfig/RestartPolicy/Name", json!("always")),
+            ("/0/HostConfig/LogConfig/Type", json!("json-file")),
+            ("/0/HostConfig/Tmpfs/~1work", json!("rw,size=1g")),
+            ("/0/HostConfig/MaskedPaths", json!([])),
+            ("/0/HostConfig/ReadonlyPaths", json!([])),
+            ("/0/HostConfig/Mounts/0/Type", json!("bind")),
+            ("/0/HostConfig/Mounts/0/Source", json!("other")),
+            ("/0/HostConfig/Mounts/0/Target", json!("/other")),
+            ("/0/HostConfig/Mounts/0/ReadOnly", json!(phase.writable())),
+            ("/0/HostConfig/Mounts/0/VolumeOptions/NoCopy", json!(false)),
+            (
+                "/0/HostConfig/Mounts/0/VolumeOptions/Labels",
+                json!({"unsafe":"true"}),
+            ),
+            (
+                "/0/HostConfig/Mounts/0/VolumeOptions/Subpath",
+                json!("other"),
+            ),
+            (
+                "/0/HostConfig/Mounts/0/VolumeOptions/DriverConfig/Name",
+                json!("other"),
+            ),
+            (
+                "/0/HostConfig/Mounts/0/VolumeOptions/DriverConfig/Options",
+                json!({"type":"bind"}),
+            ),
+            ("/0/Mounts/0/Type", json!("bind")),
+            ("/0/Mounts/0/Name", json!("other")),
+            ("/0/Mounts/0/Source", json!("/other")),
+            ("/0/Mounts/0/Destination", json!("/other")),
+            ("/0/Mounts/0/Driver", json!("other")),
+            ("/0/Mounts/0/Mode", json!("rw")),
+            ("/0/Mounts/0/RW", json!(!phase.writable())),
+            ("/0/Mounts/0/Propagation", json!("rshared")),
+        ]
+    }
+
+    fn set_fixture_value(
+        document: &mut Value,
+        pointer: &str,
+        changed: Value,
+    ) -> Result<(), String> {
+        if let Some(slot) = document.pointer_mut(pointer) {
+            *slot = changed;
+            return Ok(());
+        }
+        let (parent, key) = pointer
+            .rsplit_once('/')
+            .ok_or_else(|| format!("mutation path {pointer}"))?;
+        document
+            .pointer_mut(parent)
+            .and_then(Value::as_object_mut)
+            .ok_or_else(|| format!("mutation path {pointer}"))?
+            .insert(key.to_owned(), changed);
+        Ok(())
+    }
+
+    #[test]
+    fn mutation_phases_enforce_access_argv_and_security_configuration()
+    -> Result<(), Box<dyn std::error::Error>> {
+        for phase in [
+            MutationPhase::Guardian,
+            MutationPhase::Ingest,
+            MutationPhase::Format,
+            MutationPhase::Export,
+        ] {
+            let (base, volume) = mutation_fixture(phase)?;
+            assert_eq!(
+                verify_mutation(
+                    &serde_json::to_vec(&base)?,
+                    super::super::APPROVED_RUST_IMAGE,
+                    phase,
+                    &volume,
+                    "fixture",
+                ),
+                Ok(())
+            );
+            for (path, changed) in mutation_security_changes(phase) {
+                let mut invalid = base.clone();
+                set_fixture_value(&mut invalid, path, changed)?;
+                assert!(
+                    verify_mutation(
+                        &serde_json::to_vec(&invalid)?,
+                        super::super::APPROVED_RUST_IMAGE,
+                        phase,
+                        &volume,
+                        "fixture",
+                    )
+                    .is_err(),
+                    "{phase:?} accepted {path}"
                 );
             }
         }

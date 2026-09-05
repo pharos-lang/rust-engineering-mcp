@@ -1,0 +1,536 @@
+{
+  "name": "rust.fmt.apply",
+  "description": "Preview, commit or inspect a journaled rustfmt operation on existing Rust source files. Host --allow-fmt-write is required. Preview runs rustfmt in the approved offline sandbox, verifies fmt.check against the complete exported candidate, and returns its exact diff/digest without source writes. Commit requires that unexpired plan, current project authority and an idempotency key. Reopen after commit for receipt or recovery. Local coordinated publication does not exclude external editors or provide multi-file atomicity.",
+  "inputSchema": {
+    "$defs": {
+      "FormatAction": {
+        "oneOf": [
+          {
+            "additionalProperties": false,
+            "properties": {
+              "expected_project_fingerprint": {
+                "pattern": "^sha256:[0-9a-f]{64}$",
+                "type": "string"
+              },
+              "mode": {
+                "const": "preview",
+                "type": "string"
+              }
+            },
+            "required": [
+              "mode",
+              "expected_project_fingerprint"
+            ],
+            "type": "object"
+          },
+          {
+            "additionalProperties": false,
+            "properties": {
+              "idempotency_key": {
+                "maxLength": 64,
+                "minLength": 1,
+                "pattern": "^[A-Za-z0-9_-]+$",
+                "type": "string"
+              },
+              "mode": {
+                "const": "commit",
+                "type": "string"
+              },
+              "plan_digest": {
+                "pattern": "^sha256:[0-9a-f]{64}$",
+                "type": "string"
+              },
+              "plan_id": {
+                "pattern": "^mut_[0-9a-f]{32}$",
+                "type": "string"
+              }
+            },
+            "required": [
+              "mode",
+              "plan_id",
+              "plan_digest",
+              "idempotency_key"
+            ],
+            "type": "object"
+          },
+          {
+            "additionalProperties": false,
+            "properties": {
+              "mode": {
+                "const": "receipt",
+                "type": "string"
+              },
+              "operation_id": {
+                "pattern": "^mut_[0-9a-f]{32}$",
+                "type": "string"
+              },
+              "recover": {
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "mode",
+              "operation_id",
+              "recover"
+            ],
+            "type": "object"
+          }
+        ]
+      }
+    },
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "additionalProperties": false,
+    "properties": {
+      "action": {
+        "$ref": "#/$defs/FormatAction"
+      },
+      "project_ref": {
+        "pattern": "^prj_[0-9a-f]{32}$",
+        "type": "string"
+      }
+    },
+    "required": [
+      "project_ref",
+      "action"
+    ],
+    "title": "FormatInput",
+    "type": "object"
+  },
+  "outputSchema": {
+    "$defs": {
+      "Change": {
+        "additionalProperties": false,
+        "properties": {
+          "after_bytes": {
+            "format": "uint64",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "after_sha256": {
+            "type": "string"
+          },
+          "before_bytes": {
+            "format": "uint64",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "before_sha256": {
+            "type": "string"
+          },
+          "path": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "path",
+          "before_sha256",
+          "after_sha256",
+          "before_bytes",
+          "after_bytes"
+        ],
+        "type": "object"
+      },
+      "Concurrency": {
+        "enum": [
+          "local_coordinated"
+        ],
+        "type": "string"
+      },
+      "Data": {
+        "oneOf": [
+          {
+            "additionalProperties": false,
+            "properties": {
+              "diff": {
+                "type": "string"
+              },
+              "expires_in_seconds": {
+                "format": "uint64",
+                "minimum": 0,
+                "type": "integer"
+              },
+              "files": {
+                "items": {
+                  "$ref": "#/$defs/Change"
+                },
+                "type": "array"
+              },
+              "kind": {
+                "const": "preview",
+                "type": "string"
+              },
+              "plan_digest": {
+                "type": "string"
+              },
+              "plan_id": {
+                "type": "string"
+              },
+              "validation": {
+                "$ref": "#/$defs/ValidationView"
+              }
+            },
+            "required": [
+              "kind",
+              "plan_id",
+              "plan_digest",
+              "expires_in_seconds",
+              "files",
+              "diff",
+              "validation"
+            ],
+            "type": "object"
+          },
+          {
+            "additionalProperties": false,
+            "properties": {
+              "files": {
+                "items": {
+                  "$ref": "#/$defs/ReceiptChange"
+                },
+                "type": "array"
+              },
+              "kind": {
+                "const": "receipt",
+                "type": "string"
+              },
+              "operation_id": {
+                "type": "string"
+              },
+              "plan_digest": {
+                "type": "string"
+              },
+              "state": {
+                "$ref": "#/$defs/ReceiptState"
+              },
+              "validation": {
+                "$ref": "#/$defs/ValidationView"
+              }
+            },
+            "required": [
+              "kind",
+              "operation_id",
+              "plan_digest",
+              "state",
+              "validation",
+              "files"
+            ],
+            "type": "object"
+          }
+        ]
+      },
+      "ExcludedGuarantee": {
+        "enum": [
+          "os_exclusion_of_external_writers",
+          "multi_file_atomicity",
+          "malicious_host_protection",
+          "demonstrated_power_loss_survival"
+        ],
+        "type": "string"
+      },
+      "Freshness": {
+        "enum": [
+          "unknown"
+        ],
+        "type": "string"
+      },
+      "MutationEvidence": {
+        "oneOf": [
+          {
+            "additionalProperties": false,
+            "properties": {
+              "kind": {
+                "const": "local",
+                "type": "string"
+              }
+            },
+            "required": [
+              "kind"
+            ],
+            "type": "object"
+          },
+          {
+            "additionalProperties": false,
+            "properties": {
+              "freshness": {
+                "$ref": "#/$defs/Freshness"
+              },
+              "kind": {
+                "const": "mutation_snapshot",
+                "type": "string"
+              },
+              "plan_digest": {
+                "type": "string"
+              },
+              "semantics": {
+                "$ref": "#/$defs/SnapshotSemantics"
+              }
+            },
+            "required": [
+              "kind",
+              "plan_digest",
+              "semantics",
+              "freshness"
+            ],
+            "type": "object"
+          }
+        ]
+      },
+      "Reason": {
+        "enum": [
+          "invalid_operation",
+          "permission_denied",
+          "conflict",
+          "lock_busy",
+          "plan_expired",
+          "not_found",
+          "limit_exceeded",
+          "unsupported_platform",
+          "io",
+          "recovery_required",
+          "toolchain_unavailable",
+          "candidate_invalid",
+          "cancelled",
+          "command_timeout"
+        ],
+        "type": "string"
+      },
+      "ReceiptChange": {
+        "additionalProperties": false,
+        "properties": {
+          "before_bytes": {
+            "format": "uint64",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "before_sha256": {
+            "type": "string"
+          },
+          "effect_after_bytes": {
+            "format": "uint64",
+            "minimum": 0,
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "effect_after_sha256": {
+            "description": "Effect recorded at the terminal journal phase, not current live state.",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "intended_after_bytes": {
+            "format": "uint64",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "intended_after_sha256": {
+            "type": "string"
+          },
+          "path": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "path",
+          "before_sha256",
+          "intended_after_sha256",
+          "before_bytes",
+          "intended_after_bytes",
+          "effect_after_sha256",
+          "effect_after_bytes"
+        ],
+        "type": "object"
+      },
+      "ReceiptState": {
+        "enum": [
+          "committed",
+          "no_change",
+          "aborted",
+          "recovery_required"
+        ],
+        "type": "string"
+      },
+      "SnapshotSemantics": {
+        "enum": [
+          "latest_known"
+        ],
+        "type": "string"
+      },
+      "Status": {
+        "enum": [
+          "passed",
+          "failed",
+          "blocked",
+          "unavailable",
+          "cancelled"
+        ],
+        "type": "string"
+      },
+      "Truncation": {
+        "additionalProperties": false,
+        "properties": {
+          "diagnostics_omitted": {
+            "format": "uint64",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "stderr_truncated": {
+            "type": "boolean"
+          },
+          "stdout_truncated": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "stdout_truncated",
+          "stderr_truncated",
+          "diagnostics_omitted"
+        ],
+        "type": "object"
+      },
+      "ValidationMethod": {
+        "enum": [
+          "cargo_metadata_frozen_no_deps",
+          "rustfmt_then_fmt_check"
+        ],
+        "type": "string"
+      },
+      "ValidationView": {
+        "additionalProperties": false,
+        "properties": {
+          "candidate_source_fingerprint": {
+            "type": "string"
+          },
+          "cargo_version": {
+            "type": "string"
+          },
+          "configuration_fingerprint": {
+            "type": "string"
+          },
+          "execution_fingerprint": {
+            "type": "string"
+          },
+          "image_id": {
+            "type": "string"
+          },
+          "method": {
+            "$ref": "#/$defs/ValidationMethod"
+          },
+          "mutation_execution_fingerprint": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "platform": {
+            "type": "string"
+          },
+          "rust_version": {
+            "type": "string"
+          },
+          "semantics": {
+            "$ref": "#/$defs/SnapshotSemantics"
+          }
+        },
+        "required": [
+          "method",
+          "semantics",
+          "platform",
+          "image_id",
+          "configuration_fingerprint",
+          "execution_fingerprint",
+          "rust_version",
+          "cargo_version",
+          "candidate_source_fingerprint",
+          "mutation_execution_fingerprint"
+        ],
+        "type": "object"
+      }
+    },
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "additionalProperties": false,
+    "properties": {
+      "concurrency_contract": {
+        "$ref": "#/$defs/Concurrency"
+      },
+      "data": {
+        "anyOf": [
+          {
+            "$ref": "#/$defs/Data"
+          },
+          {
+            "type": "null"
+          }
+        ]
+      },
+      "diagnostics": {
+        "maxItems": 0,
+        "type": "array"
+      },
+      "duration_ms": {
+        "format": "uint64",
+        "minimum": 0,
+        "type": "integer"
+      },
+      "error_code": {
+        "anyOf": [
+          {
+            "$ref": "#/$defs/Reason"
+          },
+          {
+            "type": "null"
+          }
+        ]
+      },
+      "error_message": {
+        "type": [
+          "string",
+          "null"
+        ]
+      },
+      "evidence": {
+        "$ref": "#/$defs/MutationEvidence"
+      },
+      "guarantees_not_provided": {
+        "items": {
+          "$ref": "#/$defs/ExcludedGuarantee"
+        },
+        "maxItems": 4,
+        "minItems": 4,
+        "type": "array"
+      },
+      "status": {
+        "$ref": "#/$defs/Status"
+      },
+      "summary": {
+        "type": "string"
+      },
+      "truncation": {
+        "$ref": "#/$defs/Truncation"
+      }
+    },
+    "required": [
+      "status",
+      "error_code",
+      "error_message",
+      "summary",
+      "duration_ms",
+      "data",
+      "diagnostics",
+      "truncation",
+      "evidence",
+      "concurrency_contract",
+      "guarantees_not_provided"
+    ],
+    "title": "Output",
+    "type": "object"
+  },
+  "annotations": {
+    "readOnlyHint": false,
+    "destructiveHint": true,
+    "idempotentHint": false,
+    "openWorldHint": false
+  }
+}

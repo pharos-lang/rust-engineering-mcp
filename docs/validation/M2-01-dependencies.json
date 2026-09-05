@@ -1,0 +1,52 @@
+{
+  "schema": "rust-mcp-m2-dependency-review-v1",
+  "source": "Cargo.lock and exact locally cached upstream manifests/license texts",
+  "new_packages": [
+    {
+      "name": "toml_datetime",
+      "version": "1.1.1+spec-1.1.0",
+      "checksum": "3165f65f62e28e0115a00b2ebdd37eb6f3b641855f9d636d3cd4103767159ad7",
+      "license": "MIT OR Apache-2.0",
+      "rust_version": "1.85",
+      "license_files": [
+        {
+          "file": "LICENSE-APACHE",
+          "sha256": "c6596eb7be8581c18be736c846fb9173b69eccf6ef94c5135893ec56bd92ba08"
+        },
+        {
+          "file": "LICENSE-MIT",
+          "sha256": "6efb0476a1cc085077ed49357026d8c173bf33017278ef440f222fb9cbcb66e6"
+        }
+      ],
+      "features": [
+        "alloc",
+        "default",
+        "std"
+      ]
+    },
+    {
+      "name": "toml_edit",
+      "version": "0.25.13+spec-1.1.0",
+      "checksum": "6975367e4d2ef766d86af01ffad14b622fecc8d4357a998fbc4deb6e9bacaf9b",
+      "license": "MIT OR Apache-2.0",
+      "rust_version": "1.85",
+      "license_files": [
+        {
+          "file": "LICENSE-APACHE",
+          "sha256": "c6596eb7be8581c18be736c846fb9173b69eccf6ef94c5135893ec56bd92ba08"
+        },
+        {
+          "file": "LICENSE-MIT",
+          "sha256": "6efb0476a1cc085077ed49357026d8c173bf33017278ef440f222fb9cbcb66e6"
+        }
+      ],
+      "features": [
+        "parse",
+        "display"
+      ]
+    }
+  ],
+  "no_runtime_installation": true,
+  "release_inventory": "Historical 0.1.0 inventory unchanged; regenerate candidate inventory before any M2 release",
+  "feature_evidence": "cargo tree --locked --offline -i toml_datetime@1.1.1 -e features"
+}

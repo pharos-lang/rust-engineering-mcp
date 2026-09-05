@@ -1,5 +1,14 @@
 # Backlog de decisiones M2–M8
 
+> Resolución posterior a la planificación: el owner delegó la decisión D02 para
+> preservar instalación/uso sencillos. [ADR-050](../adr/ADR-050-local-coordinated-mutation.md)
+> acepta local_coordinated: namespace host confiable, precondiciones y locks MCP,
+> sin exclusión OS de editores externos. Las exigencias de exclusión fuerte y espera
+> de decisión del owner que aparecen abajo son históricas y quedan sustituidas por
+> ese ADR; no hay CAS, atomicidad multiarchivo ni rollback sobre bytes desconocidos.
+> La calificación positiva de M2 sigue pendiente.
+
+
 Estado global: **Proposed**. Ninguna entrada es un ADR Accepted. Los IDs D01–D26 son IDs de planificación, no números ADR reservados. El Technical Owner decide y crea el ADR real durante la implementación, antes del primer corte dependiente. “Fecha límite” significa una puerta del roadmap, no una fecha de calendario. G1–G9 del [maestro](m2-m8.md) y el milestone enlazado fijan los gates.
 
 ## D01 — Autoridad de mutación y DTOs

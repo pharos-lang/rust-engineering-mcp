@@ -316,3 +316,30 @@ containment o readiness universal. No descargas ni reparación automática.
 ## M1-15 — Candidatos locales
 
 La preparación M1-15 verifica archivos confiables generados localmente; no introduce un instalador genérico. Catálogos entran por el importer autenticado existente. Trust seed42 sigue siendo fixture pública; instalación privada y firma ad hoc no otorgan identidad de publisher.
+
+## Escritura local M2 en desarrollo
+
+[ADR-050](adr/ADR-050-local-coordinated-mutation.md) fija edición local
+coordinada para M2: permiso de escritura del host configurado una vez, preview/diff,
+precondiciones, locks entre instancias MCP, journal y recuperación conservadora.
+No exige servicios privilegiados, sudo, cuentas ni cambios de ownership del proyecto.
+El host mantiene estables las roots y evita editar simultáneamente los archivos
+afectados durante el commit breve. El MCP no bloquea al IDE ni promete CAS o atomicidad
+visible multiarchivo. Conflictos observados detienen la operación; los posteriores
+pueden requerir recuperación conservando evidencia y sin pisar bytes desconocidos.
+La rama de desarrollo incorpora `rust.manifest.patch` para lints del `Cargo.toml`
+raíz e integra `rust.fmt.apply` para archivos Rust existentes. Ambos usan
+preview/commit/receipt, con grants separados `--allow-manifest-write WORKSPACE_ROOT`
+y `--allow-fmt-write WORKSPACE_ROOT`. La calificación conjunta sigue en curso;
+estas capacidades no forman parte de la release `0.1.0`. Las trece tools M1 y su
+sandbox se conservan. Fix, dependencias y las demás familias de patch siguen
+pendientes; el tablero enlaza la evidencia sin anunciar M2 terminado.
+# Metadata y namespace del writer M2
+
+En el writer experimental macOS/APFS, ACL se conserva mediante CLONE_ACL del
+kernel; no se compara independientemente. UID/GID, modo, file flags y xattrs sí
+se verifican. La exclusión de hardlinks depende de nlink, no de una garantía
+acreditada a O_UNIQUE. El host y el IDE deben dejar intactos los nombres reservados
+`.rust-mcp-mut-*`, también después de una interrupción: la verificación previa
+no convierte unlink/rename en compare-and-swap. Conservar journal y temporales si
+hay `recovery_required`; no usar git clean ni borrar evidencia para desbloquearlo.

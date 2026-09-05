@@ -15,6 +15,7 @@ mod crate_search;
 mod explaining;
 mod format;
 mod inspection;
+mod mutation;
 mod project;
 mod quality;
 mod resources;
@@ -25,8 +26,8 @@ mod workers;
 use std::borrow::Cow;
 use std::path::PathBuf;
 use std::process::ExitCode;
-use std::sync::Arc;
 use std::sync::atomic::{AtomicBool, Ordering};
+use std::sync::{Arc, Mutex};
 use std::time::Duration;
 
 use rmcp::model::{
@@ -52,6 +53,8 @@ const SUPPORTED_VERSIONS: &[ProtocolVersion] = &[
 ];
 
 pub struct HostConfig {
+    pub manifest_write_roots: Vec<PathBuf>,
+    pub fmt_write_roots: Vec<PathBuf>,
     pub catalog: Option<HostCatalogConfig>,
     pub audit: Option<HostAuditConfig>,
     pub roots: Vec<PathBuf>,
@@ -72,6 +75,8 @@ struct EngineeringServer {
     explain: explaining::ExplainTool,
     quality: quality::QualityTool,
     format: format::FormatTool,
+    manifest_mutation: mutation::ManifestMutationTool,
+    format_mutation: mutation::FormatMutationTool,
     toolchain: toolchain::ToolchainTool,
     ready: Arc<AtomicBool>,
     resources: resources::Resources,
@@ -91,6 +96,8 @@ impl ServerHandler for EngineeringServer {
             explaining::NAME => Some(self.explain.definition.clone()),
             quality::NAME => Some(self.quality.definition.clone()),
             format::NAME => Some(self.format.definition.clone()),
+            mutation::NAME => Some(self.manifest_mutation.definition.clone()),
+            mutation::FORMAT_NAME => Some(self.format_mutation.definition.clone()),
             inspection::NAME => Some(self.inspect.definition.clone()),
             toolchain::NAME => Some(self.toolchain.definition.clone()),
             _ => None,
@@ -117,6 +124,8 @@ impl ServerHandler for EngineeringServer {
                 self.catalog.definition.clone(),
                 self.crate_search.definition.clone(),
                 self.crate_inspect.definition.clone(),
+                self.manifest_mutation.definition.clone(),
+                self.format_mutation.definition.clone(),
             ],
             ..Default::default()
         })
@@ -147,6 +156,16 @@ impl ServerHandler for EngineeringServer {
             explaining::NAME => self.explain.call(request, context).await.map(Into::into),
             quality::NAME => self.quality.call(request, context).await.map(Into::into),
             format::NAME => self.format.call(request, context).await.map(Into::into),
+            mutation::NAME => self
+                .manifest_mutation
+                .call(request, context)
+                .await
+                .map(Into::into),
+            mutation::FORMAT_NAME => self
+                .format_mutation
+                .call(request, context)
+                .await
+                .map(Into::into),
             inspection::NAME => self.inspect.call(request, context).await.map(Into::into),
             toolchain::NAME => self.toolchain.call(request, context).await.map(Into::into),
             _ => Err(ErrorData::new(
@@ -222,6 +241,32 @@ pub fn run(config: HostConfig) -> ExitCode {
     };
     let ready = Arc::new(AtomicBool::new(false));
     let rust_enabled = config.rust.is_some();
+    if !config.manifest_write_roots.is_empty() || !config.fmt_write_roots.is_empty() {
+        let Some(runtime) = config.rust.as_ref() else {
+            return ExitCode::FAILURE;
+        };
+        let journal = runtime.state_root.join("rust-mcp-mutations-v1");
+        if config
+            .roots
+            .iter()
+            .any(|root| journal.starts_with(root) || root.starts_with(&journal))
+        {
+            tracing::error!("Mutation state must be outside project roots");
+            return ExitCode::FAILURE;
+        }
+    }
+    let write_config = |roots: Vec<PathBuf>| {
+        if roots.is_empty() {
+            None
+        } else {
+            config.rust.as_ref().map(|runtime| mutation::WriteConfig {
+                roots,
+                state_parent: runtime.state_root.clone(),
+            })
+        }
+    };
+    let manifest_write_config = write_config(config.manifest_write_roots);
+    let fmt_write_config = write_config(config.fmt_write_roots);
     let inspector = Arc::new(rust_engineering_execution::RustProjectInspector::new(
         config.rust,
     ));
@@ -381,6 +426,35 @@ pub fn run(config: HostConfig) -> ExitCode {
             return ExitCode::FAILURE;
         }
     };
+    let mutation_plans = Arc::new(Mutex::new(mutation::SharedPlans::default()));
+    let manifest_mutation = match mutation::ManifestMutationTool::new(
+        project.registry(),
+        workers.clone(),
+        Arc::clone(&inspector),
+        Arc::clone(&ready),
+        manifest_write_config,
+        Arc::clone(&mutation_plans),
+    ) {
+        Ok(tool) => tool,
+        Err(_) => {
+            tracing::error!("MCP mutation contract initialization failed");
+            return ExitCode::FAILURE;
+        }
+    };
+    let format_mutation = match mutation::FormatMutationTool::new(
+        project.registry(),
+        workers.clone(),
+        Arc::clone(&inspector),
+        Arc::clone(&ready),
+        fmt_write_config,
+        mutation_plans,
+    ) {
+        Ok(tool) => tool,
+        Err(_) => {
+            tracing::error!("MCP format mutation contract initialization failed");
+            return ExitCode::FAILURE;
+        }
+    };
     let runtime = match tokio::runtime::Builder::new_current_thread()
         .enable_time()
         .build()
@@ -407,6 +481,8 @@ pub fn run(config: HostConfig) -> ExitCode {
                 explain,
                 quality,
                 format,
+                manifest_mutation,
+                format_mutation,
                 resources,
                 ready,
             },

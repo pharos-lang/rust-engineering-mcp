@@ -267,3 +267,10 @@ release remain unapproved; the fixture signing seed is public test data only.
 ## M1-15 — Candidatos locales
 
 Preparados candidatos release core/local macOS arm64 con hashes, linkage, archivos de avisos y smoke de instalación offline. Doctor activo verificado en ambos ejecutables; en ese corte aún no había publicación ni licencia aprobada.
+
+## M2 en desarrollo — decisión de concurrencia
+
+ADR-050 adopta local_coordinated por delegación del owner: evita broker privilegiado
+y declara los límites frente a otros editores. La rama incorpora manifest.patch de
+lints y está integrando fmt.apply, con permisos separados, preview y journal
+recuperable. No se ha publicado otra release; la calificación M2 sigue en curso.

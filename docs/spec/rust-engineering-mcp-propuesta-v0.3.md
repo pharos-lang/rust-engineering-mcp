@@ -1412,6 +1412,17 @@ La salida debe conservar detalle suficiente para que el agente repare los proble
 
 # 25. Tools 0.2.x — edición segura
 
+Decisión de implementación M2, 2026-09-05: [ADR-050](../adr/ADR-050-local-coordinated-mutation.md)
+fija el modo local_coordinated: permiso host explícito, preview/digest, precondiciones,
+locks entre instancias MCP, journal y recuperación conservadora. No requiere broker
+privilegiado ni cuentas/ownership nuevos. El host mantiene estable el namespace y evita
+escrituras simultáneas sobre archivos aplicados durante commit. No se promete exclusión
+OS de editores externos, CAS por contenido ni atomicidad visible multiarchivo. Un
+conflicto observado antes de publicar no escribe source; uno posterior conserva
+backups y puede exigir recuperación sin sobrescribir bytes desconocidos. Esta limitación
+no relaja containment de paths ni el sandbox para código de proyecto.
+
+
 Después de estabilizar el core podrán añadirse operaciones mutables.
 
 ---
