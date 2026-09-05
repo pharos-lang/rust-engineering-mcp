@@ -24,6 +24,11 @@ cubierto. `scripts/test-coverage-reports.py` prueba las rutas positivas y advers
 del validador, que rechaza reportes ausentes, vacíos o con contadores inconsistentes
 antes de invocar SonarCloud.
 
+El análisis Python declara las versiones compatibles 3.11, 3.12, 3.13 y 3.14.
+`crates/catalog-adapter/src/schema.sql` es DDL de SQLite, no PL/SQL de Oracle;
+`.sql` se retira por tanto de los sufijos del analizador PL/SQL. Un futuro archivo
+`.plsql` sí activará ese analizador y deberá aportar su configuración Oracle real.
+
 La cifra de SonarCloud representa los tests Rust portables y el control de
 arquitectura Python que se ejecutan en Ubuntu. No incluye doctests ni los gates
 full, Docker, macOS network-deny, E5/ORT/LanceDB, clientes reales o pruebas nativas
