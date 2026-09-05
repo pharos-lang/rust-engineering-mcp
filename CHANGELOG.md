@@ -1,6 +1,15 @@
 # Changelog
 
-## 0.1.0 — 2026-09-04
+## 0.1.0 — 2026-09-05
+
+- Publicada la release estable `v0.1.0` desde el commit público
+  `452acdbf3a634d2cc0b9d153db09718237625b9d`. El workflow tag-bound
+  `33948798048` reconstruyó, instaló y probó el archive core macOS ARM64,
+  verificó sus tres attestations OIDC y creó el draft promocionado después de una
+  descarga y smoke independientes.
+- SonarCloud queda verde sobre `main`: cobertura total 71,4 %, 0 issues nuevos
+  abiertos y, en el cambio de cierre, cobertura de código nuevo 85,1 % con ratings
+  A de reliability, security y maintainability.
 
 - ADR-048 fija la frontera candidata de 0.1.0: un único archive core para
   `aarch64-apple-darwin`, sin modelo, ORT, LanceDB, catálogo, trust, fixtures,
@@ -25,16 +34,15 @@
 - Original project code is now dual-licensed under `MIT OR Apache-2.0`, copyright
   IUMotion Labs. The public source channel is
   `pharos-lang/rust-engineering-mcp`. Pinned GitHub Actions provide portable CI and
-  a manual, OIDC-attested draft core-artifact workflow; no binary release or crates.io
-  publication follows from this source publication.
+  a manual, OIDC-attested core-artifact workflow. The macOS ARM64 binary is now
+  published through GitHub Releases; crates.io remains disabled.
 
-- M1-17 qualification remains in progress only for final source/artifact gates and
-  publication. MCP Inspector 2.5.0 repeated discovery, positive and fail-closed
+- M1-17 qualification is complete. MCP Inspector 2.5.0 repeated discovery, positive and fail-closed
   paths on the final core binary. Stock Codex 0.153.0 with `gpt-5.6-sol` completed
   the model-directed E0502-to-green repair and missing-runtime phases under a
   schema-v4 closed controller; 39 controller tests and independent Opus 5 reviews
-  report no open P0/P1. Protected publication, tag, attestation and GitHub Release
-  remain before M1-15/M1-17 can be marked Done.
+  report no open P0/P1. Protected PRs #8/#9, final public CI, tag, attestations,
+  downloaded-asset smoke and GitHub Release are recorded in the closure receipt.
 
 - M1-16: completed the frozen 24-run paired utility pilot and hidden oracles.
   Both arms passed all 12 first/final candidates; there was no discordant pair or

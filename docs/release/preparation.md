@@ -1,11 +1,17 @@
-# M1 release preparation — source published, binaries not approved
+# M1 release preparation — historical pre-publication procedure
+
+Final outcome: M1-15 closed on 2026-09-05 with the stable
+[GitHub Release v0.1.0](https://github.com/pharos-lang/rust-engineering-mcp/releases/tag/v0.1.0).
+The [public receipt](../validation/m1-17-public-release.json) supersedes this file
+for final tag, CI, asset, smoke and provenance facts. This procedure remains the
+historical preparation record and does not authorize any excluded artifact.
 
 Prepared 2026-09-04 against development baseline
 `463bab799da4b2cb3999f6f083d91e2dbd8641f9`. This document prepares M1-15;
 The owner subsequently approved public source publication in ADR-047 and the 0.1.0
-artifact/host/catalog boundary in ADR-048. This document still does not close M1-15
+artifact/host/catalog boundary in ADR-048. This document alone does not close M1-15
 or authorize model, local-feature or catalog distribution.
-The remaining executable gates stay in [implementation status](../implementation-status.md).
+The completed executable gates are linked from [implementation status](../implementation-status.md).
 
 ## Concrete owner decisions
 

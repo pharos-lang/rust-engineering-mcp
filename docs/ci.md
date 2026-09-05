@@ -19,11 +19,11 @@ fase explícita de aprovisionamiento; el runtime MCP no adquiere nada.
 las dependencias fijadas por `Cargo.lock`; el resultado se entrega como LCOV.
 Python usa Coverage.py 7.16.0 desde una wheel fijada por URL y SHA-256 y entrega
 Cobertura XML. `scripts/test-*.py` se clasifica como código de prueba; los demás
-scripts son fuentes medibles. El job ejecuta `scripts/check-architecture.py`, por
-lo que cualquier otra utilidad Python no recorrida permanece como código no
-cubierto. `scripts/test-coverage-reports.py` prueba las rutas positivas y adversas
-del validador, que rechaza reportes ausentes, vacíos o con contadores inconsistentes
-antes de invocar SonarCloud.
+scripts son fuentes medibles. El job ejecuta arquitectura, validación de reportes,
+gate reporting, artifact/smoke, calificador Codex y exportación pública: 74 tests
+Python en total. Los entrypoints que requieren un host release real permanecen
+analizados por Sonar y probados por sus suites, pero se excluyen solo del porcentaje
+de cobertura; su evidencia end-to-end es separada y candidate-bound.
 
 El análisis Python declara las versiones compatibles 3.11, 3.12, 3.13 y 3.14.
 `crates/catalog-adapter/src/schema.sql` es DDL de SQLite, no PL/SQL de Oracle;
@@ -43,6 +43,9 @@ manifest y SHA-256, instalar/verificar el archive y probar `version`, doctor pas
 discovery, trece tools y denegaciones estructuradas. Después crea provenance OIDC y
 un prerelease en borrador. No publica en crates.io ni contiene modelo, ORT, LanceDB,
 catálogo, trust, fixtures, Docker o toolchain. El draft no es una release soportada.
+Para 0.1.0, el run `33948798048` pasó y el draft se promovió solo después de
+verificar la descarga, hashes, attestations y smoke independientes; véase el
+[recibo público](validation/m1-17-public-release.json).
 
 ```text
 python3 scripts/gate.py core
@@ -58,7 +61,7 @@ sustituciones del toolchain. Cargo utiliza CARGO_INCREMENTAL=0, --locked --offli
 
 | Entorno | Evidencia 0.1.0 | Alcance |
 | --- | --- | --- |
-| macOS26.6.2/APFS ARM64, Rust1.98.1 | Host positivo core + full `local`; único artifact previsto | E5/ORT/LanceDB solo en full desde fuente |
+| macOS26.6.2/APFS ARM64, Rust1.98.1 | Host positivo core + full `local`; único artifact 0.1.0 publicado | E5/ORT/LanceDB solo en full desde fuente |
 | Docker/Linux ARM64, runc/cgroupsv2 | Guest de ejecución aprobado | No es host/artifact Linux nativo |
 | Linux x86_64 | CI portable/fail-closed | Sin capability positiva ni artifact 0.1.0 |
 | Windows x86_64 | CI portable/fail-closed | Sin adapter reparse-safe positivo ni artifact 0.1.0 |

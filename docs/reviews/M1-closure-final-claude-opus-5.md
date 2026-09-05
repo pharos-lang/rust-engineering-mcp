@@ -54,3 +54,19 @@ draft-to-published transition, and only then mark M1-15/M1-17 Done.
 The release notes must retain the stated boundary: no catalog snapshot, model,
 ONNX Runtime, LanceDB data, production signing key, positive Linux/Windows native
 capability claim, or M2 implementation is part of 0.1.0.
+
+## Publication-condition resolution
+
+All conditions above passed on 2026-09-05. Protected PRs #8 and #9 produced public
+commit `452acdbf3a634d2cc0b9d153db09718237625b9d`; final main CI and SonarCloud passed.
+The definitive tag-bound workflow run `33948798048` built, installed, smoked and
+attested the three published subjects. A fresh download verified `SHA256SUMS`, the
+exact signer workflow/ref/source commit and 13-tool smoke; a second download after
+promotion was byte-identical. The stable release and hashes are recorded in
+[`m1-17-public-release.json`](../validation/m1-17-public-release.json).
+
+The earlier run `33948251834` qualified its artifact but failed to create a draft
+because the no-checkout job did not give `gh release create` an explicit repository.
+No release existed. PR #9 fixed the workflow, the pre-release tag was replaced on
+the protected corrected commit, and the complete definitive run succeeded. Both
+attempts remain visible; only the latter is accepted release provenance.
