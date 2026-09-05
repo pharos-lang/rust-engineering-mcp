@@ -160,8 +160,17 @@ Mantener sincronizados:
 - `docs/tools.md`
 - `docs/security-model.md`
 - `docs/compatibility.md`
+- `docs/client-configuration.md`
 - `docs/adr/`
 - `docs/implementation-status.md`
+
+`README.md` es la guía pública de instalación, configuración, operación y uso del
+MCP; no es un registro de planificación ni un diario de implementación. Debe
+actualizarse en el mismo cambio siempre que se libere, elimine o modifique una
+feature, una tool, un comando, un requisito de instalación, una configuración de
+cliente/host, una plataforma soportada o una limitación operativa o de seguridad
+que afecte a usuarios. Los detalles de arquitectura, hitos y evidencia permanecen
+en los documentos especializados enlazados desde el README.
 
 `docs/implementation-status.md` es el tablero repo-visible. Solo mover un elemento a
 Done cuando la columna de evidencia apunte a pruebas, comandos o artifacts reales.

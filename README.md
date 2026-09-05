@@ -1,252 +1,316 @@
 # Rust Engineering MCP
 
-Servidor MCP de ingeniería Rust, publicado como código abierto por IUMotion Labs,
-con M0 cerrada y M1 todavía bloqueada para distribución binaria.
-`rust.project.open` registra una raíz autorizada por el host con validación
-estructural acotada, acceso no-follow y referencia opaca. `rust.project.inspect`
-inspecciona declaraciones capturadas mediante el runtime Rust aprobado.
-`rust.toolchain.inspect` observa su inventario instalado y versiones. El acceso protegido
-requiere macOS26+ y APFS, con probes que fallan cerrados si faltan garantías.
-`rust.check` valida compilación capturada y devuelve diagnósticos/logs efímeros
-con autorización de Resources. `rust.fmt.check` comprueba formato configurado del
-workspace y devuelve archivos/diff acotado sin escribir las fuentes. `rust.clippy`
-aporta findings estructurados con perfiles cerrados y logs autorizados. `rust.test`
-ejecuta tests acotados, distingue compilación de ejecución y conserva salida del
-harness en Resources. `rust.dependencies.audit` correlaciona el lock capturado con
-un snapshot RustSec explícito verificado contra el hash del host; no descarga datos.
-`rust.diagnostics.explain` devuelve texto del compilador instalado con identidad/hash.
-`rust.quality.gate` compone perfiles fast/standard sobre una captura y conserva cada
-etapa y sus logs. `rust.catalog.status` añade la undécima tool: observa disponibilidad
-verificada y freshness del contexto local; M1-11 está validado en [su recibo](docs/validation/M1-11.md).
-`rust.crate.search` incorpora la duodécima tool con modos lexical/semantic/hybrid
-y filtros de versiones desde SQLite; su [gate M1-12 está aprobado](docs/validation/M1-12.md).
-`rust.crate.inspect` incorpora la decimotercera tool con páginas de hechos SQLite;
-su [gate M1-13 está aprobado](docs/validation/M1-13.md). La administración CLI explícita conserva
-su [evidencia M1-10](docs/validation/M1-10.md).
+[![CI](https://github.com/pharos-lang/rust-engineering-mcp/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/pharos-lang/rust-engineering-mcp/actions/workflows/ci.yml)
+[![Quality Gate](https://sonarcloud.io/api/project_badges/measure?project=pharos-lang_rust-engineering-mcp&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=pharos-lang_rust-engineering-mcp)
+[![Security Rating](https://sonarcloud.io/api/project_badges/measure?project=pharos-lang_rust-engineering-mcp&metric=security_rating)](https://sonarcloud.io/summary/new_code?id=pharos-lang_rust-engineering-mcp)
+[![Reliability Rating](https://sonarcloud.io/api/project_badges/measure?project=pharos-lang_rust-engineering-mcp&metric=reliability_rating)](https://sonarcloud.io/summary/new_code?id=pharos-lang_rust-engineering-mcp)
+[![Maintainability Rating](https://sonarcloud.io/api/project_badges/measure?project=pharos-lang_rust-engineering-mcp&metric=sqale_rating)](https://sonarcloud.io/summary/new_code?id=pharos-lang_rust-engineering-mcp)
+[![Coverage](https://sonarcloud.io/api/project_badges/measure?project=pharos-lang_rust-engineering-mcp&metric=coverage)](https://sonarcloud.io/summary/new_code?id=pharos-lang_rust-engineering-mcp)
+[![Rust 1.98.1](https://img.shields.io/badge/Rust-1.98.1-000000?logo=rust)](rust-toolchain.toml)
+[![License](https://img.shields.io/badge/license-MIT%20OR%20Apache--2.0-blue.svg)](LICENSE)
 
-El workspace incluye ocho crates: domain, application, MCP, project, execution,
-catalog, semantic y artifact. SQLite/FTS5 conserva los facts; E5 verificado y
-LanceDB aportan recuperación derivada local; ArtifactStore conserva bytes acotados
-redactados en memoria. Estado, búsqueda e inspección paginada del catálogo son públicos.
-Resources expone únicamente logs autorizados.
+Rust Engineering MCP conecta agentes compatibles con [Model Context Protocol
+(MCP)](https://modelcontextprotocol.io/) con proyectos Rust locales. Expone
+operaciones estructuradas para inspeccionar un workspace, ejecutar comprobaciones
+de calidad dentro de un runtime controlado, consultar diagnósticos y trabajar con
+un catálogo local de crates.
 
-## Uso del bootstrap
+El servidor usa transporte MCP por `stdio`. Las tools son de solo lectura respecto
+al código fuente: observan, validan y devuelven evidencia; no aplican cambios al
+repositorio.
 
-Rust/Cargo **1.98.1**, edition2024, fijados en rust-toolchain.toml y manifests.
-Las dependencias del lock deben estar aprovisionadas antes de trabajar offline.
+> [!IMPORTANT]
+> La versión actual es `0.1.0-dev.1` y se distribuye como código fuente. Todavía no
+> existe una versión binaria soportada en GitHub Releases. La ejecución completa se
+> ha calificado localmente en Apple Silicon con macOS 26 y APFS; la CI comprueba que
+> el código compila y pasa sus pruebas en Linux, macOS y Windows, pero eso no amplía
+> las garantías del sandbox o del filesystem a esas plataformas.
 
-```text
-cargo run --locked --offline -- version
-cargo run --locked --offline -- --help
-cargo run --locked --offline -- serve --stdio --root /ruta/fisica/autorizada
+## Funcionalidades
+
+| Área | Tool | Uso |
+| --- | --- | --- |
+| Proyecto | `rust.project.open` | Abre una raíz previamente autorizada y devuelve un `project_ref` temporal. |
+| Proyecto | `rust.project.inspect` | Inspecciona packages, targets, features, perfiles y dependencias declaradas. |
+| Toolchain | `rust.toolchain.inspect` | Informa las versiones, targets y componentes instalados en el runtime aprobado. |
+| Calidad | `rust.check` | Ejecuta `cargo check` con opciones tipadas y diagnósticos estructurados. |
+| Calidad | `rust.fmt.check` | Comprueba formato sin modificar archivos. |
+| Calidad | `rust.clippy` | Ejecuta Clippy con perfiles cerrados. |
+| Calidad | `rust.test` | Ejecuta tests acotados y conserva el resultado del harness. |
+| Seguridad | `rust.dependencies.audit` | Contrasta `Cargo.lock` con un snapshot RustSec suministrado por el host. |
+| Diagnóstico | `rust.diagnostics.explain` | Obtiene la explicación de un código `rustc`, por ejemplo `E0502`. |
+| Calidad | `rust.quality.gate` | Ejecuta un gate `fast` o `standard` y devuelve el estado de cada etapa. |
+| Catálogo | `rust.catalog.status` | Informa disponibilidad, identidad y frescura del catálogo local. |
+| Catálogo | `rust.crate.search` | Busca crates en modo léxico, semántico o híbrido. |
+| Catálogo | `rust.crate.inspect` | Consulta versiones, features, dependencias y advisories registrados. |
+
+Los contratos completos, límites y ejemplos de respuesta están en
+[`docs/tools.md`](docs/tools.md).
+
+## Requisitos
+
+Para compilar el servidor:
+
+- Git;
+- Rust y Cargo `1.98.1`;
+- las dependencias fijadas por `Cargo.lock`.
+
+Para abrir proyectos en el entorno actualmente calificado se necesita macOS 26 o
+posterior, Apple Silicon y un volumen APFS. Las tools que ejecutan Cargo requieren,
+además, Docker y la imagen Linux ARM64 exacta aprobada por el proyecto. El catálogo
+es opcional y requiere que el host proporcione sus archivos locales de datos y
+confianza.
+
+Consulta la [matriz de compatibilidad](docs/compatibility.md) antes de usar el
+servidor en otro sistema operativo o filesystem.
+
+## Compilar desde el código fuente
+
+```bash
+git clone https://github.com/pharos-lang/rust-engineering-mcp.git
+cd rust-engineering-mcp
+cargo build --release --locked -p rust-engineering-mcp
 ```
 
-El servidor admite hasta16 roots del host y `--project-ttl-secs N` (1..86400,
-default1800). Sin roots no hay acceso a proyectos. stdout contiene solo protocolo;
-tracing escribe stderr. EOF limpio termina con0, error de transporte/bootstrap con1,
-uso inválido con2. Entrada y salida por línea limitadas a1MiB; frames incompletos al EOF se
-rechazan. Frames parciales y escrituras tienen deadline total de10s. ADR-030
-limita workers, peticiones y envíos; la cancelación repetida puede exigir reconectar. rmcp3.2.0 gestiona JSON-RPC, stdio y negociación; el harness prueba cinco
-versiones MCP. Ver [compatibilidad y límites](docs/compatibility.md).
-
-## Gate local
-
-Sobre este repositorio revisado y con los prerrequisitos explícitos de [CI](docs/ci.md):
+El binario queda en:
 
 ```text
-python3 scripts/gate.py core
-RUST_MCP_TEST_SOCKET=/ruta/docker.sock RUST_MCP_E5_DIR=/ruta/e5/onnx ORT_LIB_LOCATION=/ruta/ort python3 scripts/gate.py full
+target/release/rust-engineering-mcp
 ```
 
-Core ejecuta fmt/check/Clippy/tests/doctests, contratos/protocolo, arquitectura,
-vendor, fixtures Cargo, audit y deny. Full añade Docker real y semántica E5/LanceDB
-bajo red denegada, incluyendo check/Clippy workspace all-features. Cargo trabaja
-locked/offline y CARGO_INCREMENTAL=0. El gate no instala herramientas, modelos ni
-imágenes automáticamente. Core solo no cierra M0 ni califica una distribución M1.
+Comprueba el binario y su configuración pasiva:
 
-El [reporte M0-12](docs/validation/M0-12.md) conserva185 pruebas Rust distintas,
-11 casos Cargo+1 oracle estático, diez garantías Docker y sus límites. El modelo
-externo se identifica mediante [recibo y hashes](fixtures/semantic/README.md);
-el build core sin feature local no califica como release M1. La advertencia de
-mantenimiento de paste1.0.15 sigue visible, sin ignores de vulnerabilidades.
+```bash
+./target/release/rust-engineering-mcp version --json
+./target/release/rust-engineering-mcp doctor --json
+```
 
-GitHub ejecuta además [CI portable](.github/workflows/ci.yml) en Linux x86_64,
-macOS ARM64 y Windows x86_64. El [flujo de candidato](.github/workflows/release-candidate.yml)
-es manual, exige un tag existente, genera provenance mediante OIDC y crea únicamente
-un prerelease en borrador. Esa evidencia alojada no habilita capacidades de sandbox
-que continúan fail-closed ni sustituye el gate local completo.
+`doctor` no instala, descarga ni repara componentes. Devuelve `warning` cuando una
+capacidad opcional no está configurada. Usa `--help` para consultar todos los
+comandos y opciones disponibles.
 
-## Seguridad y alcance
+## Iniciar el servidor
 
-El gateway M0 ejecuta escenarios cerrados de una imagen de probes
-Go aprobada, sobre Docker/Linux ARM64 con runc/cgroupsv2. No admite Cargo, flags
-arbitrarios ni host mounts. Timeout/cancel/overflow eliminan el contenedor completo;
-cleanup incierto bloquea la instancia. `capabilities` hace probes activos del host:
+La configuración mínima autoriza una o más raíces físicas. Usa siempre rutas
+absolutas:
+
+```bash
+./target/release/rust-engineering-mcp serve --stdio \
+  --root /ruta/absoluta/al/proyecto
+```
+
+Se pueden repetir hasta 16 argumentos `--root`. Sin roots, ninguna tool puede abrir
+proyectos. Un `project_ref` pertenece al proceso actual, caduca por inactividad y
+deja de ser válido al reiniciar el servidor.
+
+Esta configuración mínima permite abrir proyectos, pero las operaciones que ejecutan
+Rust fallarán de forma cerrada hasta que el host configure el runtime aprobado.
+
+## Conectar un agente
+
+Rust Engineering MCP puede configurarse en clientes que admitan servidores MCP
+locales mediante `stdio`. La tabla distingue entre compatibilidad verificada por el
+proyecto y configuraciones basadas en el soporte `stdio` documentado por cada
+cliente.
+
+| Cliente | Configuración | Evidencia actual |
+| --- | --- | --- |
+| Codex | [CLI o `config.toml`](docs/client-configuration.md#codex) | APIs directas del cliente Codex 0.153.0 verificadas; uso autónomo por el modelo pendiente. |
+| Claude Code | [CLI o `.mcp.json`](docs/client-configuration.md#claude-code) | Configuración documentada; calificación de este MCP pendiente. |
+| Gemini CLI | [`settings.json`](docs/client-configuration.md#gemini-cli) | Configuración documentada; calificación de este MCP pendiente. |
+| Cursor | [`.cursor/mcp.json`](docs/client-configuration.md#cursor) | Configuración documentada; calificación de este MCP pendiente. |
+| VS Code / GitHub Copilot | [`.vscode/mcp.json`](docs/client-configuration.md#vs-code-y-github-copilot) | Configuración documentada; calificación de este MCP pendiente. |
+| MCP Inspector | [Web, CLI o TUI](docs/client-configuration.md#mcp-inspector) | Inspector 2.5.0 descubrió y llamó las 13 tools; Resource read no quedó calificado. |
+
+La [guía de configuración por cliente](docs/client-configuration.md) contiene los
+archivos completos, comandos de verificación y enlaces a la documentación oficial.
+Estos son los dos casos de inicio rápido más habituales.
+
+### Codex
+
+Codex puede registrar el servidor directamente desde la CLI:
+
+```bash
+codex mcp add rust-engineering -- \
+  /ruta/absoluta/rust-engineering-mcp \
+  serve --stdio \
+  --root /ruta/absoluta/al/proyecto
+```
+
+También puedes añadirlo en `~/.codex/config.toml` o en `.codex/config.toml` de un
+proyecto confiable:
+
+```toml
+[mcp_servers.rust_engineering]
+command = "/ruta/absoluta/rust-engineering-mcp"
+args = ["serve", "--stdio", "--root", "/ruta/absoluta/al/proyecto"]
+startup_timeout_sec = 45
+tool_timeout_sec = 300
+default_tools_approval_mode = "prompt"
+```
+
+Reinicia el cliente después de guardar la configuración y comprueba la conexión con
+`codex mcp list` o `/mcp`. La [documentación oficial de Codex sobre
+MCP](https://developers.openai.com/codex/mcp/) describe las demás opciones de
+configuración.
+
+### Claude Code
+
+Registra el servidor en el proyecto actual desde la CLI de Claude Code:
+
+```bash
+claude mcp add --scope project rust-engineering -- \
+  /ruta/absoluta/rust-engineering-mcp \
+  serve --stdio \
+  --root /ruta/absoluta/al/proyecto
+```
+
+Ejecuta `claude mcp get rust-engineering` o abre `/mcp` para revisar el estado. Los
+servidores compartidos mediante `.mcp.json` requieren la aprobación del usuario en
+un workspace confiable.
+
+## Habilitar ejecución Rust
+
+`rust.project.inspect`, `rust.toolchain.inspect`, `rust.check`, `rust.fmt.check`,
+`rust.clippy`, `rust.test`, `rust.dependencies.audit`,
+`rust.diagnostics.explain` y `rust.quality.gate` usan un runtime Docker aprobado.
+Cargo puede ejecutar `build.rs`, proc macros y código de tests, por lo que conviene
+mantener aprobación interactiva en el cliente MCP.
+
+La configuración del host utiliza el grupo completo de flags siguiente:
+
+```bash
+./target/release/rust-engineering-mcp serve --stdio \
+  --root /ruta/absoluta/al/proyecto \
+  --docker /ruta/absoluta/al/cliente/docker \
+  --docker-socket /ruta/absoluta/docker.sock \
+  --state-root /ruta/absoluta/a/estado-privado \
+  --rust-image sha256:8fac70723a8d04b6ec9633ab721806b8a55f4f083a1b3f988c61bf6a00fa1909
+```
+
+El servidor acepta únicamente esa identidad de imagen. La imagen no está publicada
+en un registry; las instrucciones y recibos para construir y verificar el fixture
+están en [`fixtures/rust-runtime/README.md`](fixtures/rust-runtime/README.md). El
+runtime no descarga ni aprovisiona imágenes durante una sesión MCP.
+
+Para `rust.dependencies.audit`, añade juntos un snapshot RustSec local y su hash:
 
 ```text
-cargo run --locked --offline -- capabilities --docker /ruta/docker --docker-socket /ruta/docker.sock --state-root /directorio/privado --probe-image sha256:ID_LOCAL
+--rustsec-snapshot /ruta/absoluta/rustsec.json
+--rustsec-sha256 sha256:<64-hex>
 ```
 
-El reporte conserva project_code_available=false: esa evidencia no certifica
-build.rs ni proc macros. El [corpus adversarial](fixtures/README.md) queda excluido
-del harness de ejecución directa en el host. Semantic fallback conserva facts de
-SQLite y declara la degradación; un checksum aislado no autentica un publisher.
-El nuevo importador M1-10 verifica firmas contra trust explícito del host.
-ArtifactStore es efímero, con cuotas/TTL, redacción literal y retrieval owner-bound;
-Check y fmt publican logs con ProjectRef vivo mediante Resources mínimos.
+## Configurar el catálogo local
 
-No se acredita soporte nativo Linux/Windows/x86_64, clientes MCP de terceros ni
-calidad/overhead del modelo por los tres ejemplos de integración. Los requisitos
-para avanzar están en [M1 prerequisites](docs/m1-prerequisites.md).
+El servidor no descarga ni actualiza catálogos durante una sesión MCP. Si ya tienes
+un catálogo firmado y un archivo de confianza, añade:
 
-## Continuidad y documentación
+```text
+--catalog-store /ruta/absoluta/al/store
+--catalog-trust /ruta/absoluta/trust.json
+```
 
-- [Tablero y evidencia](docs/implementation-status.md).
-- [Prompt para iniciar M1](docs/prompts/continue-m1.md).
-- [Especificación v0.3.1](docs/spec/rust-engineering-mcp-propuesta-v0.3.md) y [ADRs](docs/adr/README.md).
-- [Arquitectura](docs/architecture.md), [contratos](docs/domain-contracts.md) y [tools](docs/tools.md).
-- [Modelo de seguridad](docs/security-model.md), [política](SECURITY.md), [changelog](CHANGELOG.md).
+La búsqueda semántica requiere compilar el binario con `--features local` y añadir
+el modelo y el índice:
 
-El desarrollo conserva ramas/merges locales y ahora publica snapshots saneados en
-GitHub con Actions fijadas por commit. No se ha publicado0.1.0 como binario.
-[LICENSE](LICENSE) concede `MIT OR Apache-2.0`; Cargo publish permanece deshabilitado.
+```text
+--catalog-model-dir /ruta/absoluta/al/modelo-e5
+--catalog-index-store /ruta/absoluta/al/indice-lance
+```
 
-El prerrequisito Rust de M1-01 incorpora captura de source con handles no-follow,
-transferencia acotada a un volumen Docker y runtime1.98.1 aprobado por identidad.
-La calibración real ejecuta build.rs/proc macros y prueba recursos y cleanup de
-descendientes. La conexión MCP incorpora `project.inspect` junto a `project.open`; su validación
-M1-01 está registrada en el tablero. El host configura explícitamente
-Docker/socket/state-root/imagen según [tools](docs/tools.md); el runtime MCP nunca
-aprovisiona ni descarga assets. Véase [evidencia ADR-031](docs/validation/M1-01-rust-gateway.md).
+Sin modelo o índice, la búsqueda puede usar el modo léxico cuando SQLite esté
+disponible. La administración del catálogo se realiza fuera del runtime MCP con los
+comandos `catalog status`, `catalog import`, `catalog sync` y
+`catalog rebuild-index`. Consulta el [formato de bundles](docs/catalog-bundle-format.md)
+y la [referencia CLI](docs/tools.md#cli-de-catálogo-m1-10-no-tool-mcp).
 
-M1-08 / ADR-039: `rust.diagnostics.explain` accepts only an ASCII `E0000`-shaped
-code and obtains bounded text from the approved installed rustc through the same
-calibrated, network-denied gateway and joined workers. No project_ref, project source,
-resource URI or host rustc execution is needed. Unknown codes return unavailable;
-no heuristic explanation substitutes for compiler evidence. Returned text includes
-content SHA, immutable runtime identity and latest_known artifact provenance/freshness.
-No toolchain/image/model acquisition or native-platform qualification is implied.
+## Flujo recomendado para un agente
 
-M1-09 / ADR-040: `rust.quality.gate` composes fast(fmt/check/strict Clippy) or
-standard(+default30s tests/offline audit) over one captured source generation, with
-per-stage status, selection, repair detail and runtime evidence. One240s joined
-worker; ordinary failures continue, interruption/uncertain cleanup aborts. Logs are
-published as a bounded authorized group with final retention/ProjectRef checks;
-rollback removes only new IDs, preserving earlier live logs. Omitted nonempty
-streams make the quality verdict conservative even when command execution completed.
-MCP body/envelope budgets retain stage rows and explicit omissions. No downloads,
-source edits, global catalog import or new platform support. At the M1-09 baseline, M1-10..17 remained pending; current M1-10 evidence is below.
+1. Llama `rust.project.open` con la ruta absoluta autorizada.
+2. Conserva el `project_ref` devuelto para las llamadas siguientes.
+3. Usa `rust.project.inspect` antes de seleccionar packages, targets o features.
+4. Ejecuta la comprobación más pequeña que responda la pregunta: formato, check,
+   Clippy, test o audit.
+5. Usa `rust.quality.gate` cuando necesites una evaluación compuesta.
+6. Lee los Resources devueltos cuando una tool publique logs acotados.
+7. Reabre el proyecto si cambió el código o caducó la referencia.
 
-Corte local M1-01..09 validado: [M1-09](docs/validation/M1-09.md), core498 y
-full14/14 con gateway Rust real y E5/LanceDB bajo network deny. Es evidencia
-histórica; M1-10 tiene su propio recibo abajo. No hay release ni nuevas plataformas.
+Ejemplos de solicitudes para un agente:
 
-## M1-10 — Administración de catálogo en desarrollo
+```text
+Abre /ruta/absoluta/al/proyecto e inspecciona sus packages y features.
 
-La CLI `catalog import|sync|status|rebuild-index` acepta trust del host, bundles
-Ed25519/Zstd/USTAR y stores privados macOS26+/APFS. `sync --source` usa bytes
-locales; `sync --url ... --allow-host ...` adquiere explícitamente por HTTPS. No
-hay endpoint ni publisher oficial aprobado. En ese corte el runtime MCP no descargaba
-y conservaba diez tools; M1-11 incorpora el estado de catálogo descrito abajo. [Formato, flags, recuperación y límites](docs/catalog-bundle-format.md).
+Ejecuta rust.check sobre el workspace abierto y resume los diagnósticos con sus spans.
 
-La persistencia incluye un floor independiente reservado antes de activar, y
-objetos Lance nativos ligados al modelo/catálogo. [Evidencia M1-10](docs/validation/M1-10.md):
-full15/15 antes del ajuste final de observabilidad; core540 y CLI nativo5+1 actuales,
-con hashes separados y revisión Opus5/Sonnet5. No se anuncia release, cierre M1 ni
-soporte de nuevas plataformas.
+Comprueba formato y Clippy estricto sin modificar ningún archivo.
 
-## M1-11 — Estado del contexto local
+Ejecuta el quality gate standard y enumera las etapas fallidas o bloqueadas.
 
-`rust.catalog.status` recibe `{}` tras bootstrap, sin ProjectRef ni paths del peer.
-El host configura `serve --stdio --catalog-store /store --catalog-trust /trust.json`;
-el par es obligatorio si se configura catálogo. `--catalog-model-dir /e5` es opcional;
-`--catalog-index-store /index` requiere modelo. Sin esa configuración, la tool
-informa componentes no configurados. La feature `local` habilita carga E5/LanceDB;
-core conserva SQLite y declara `feature_disabled` para semántica configurada.
+Busca crates de serialización compatibles con Rust 1.98.1 en el catálogo local.
+```
 
-La carga es lazy y de solo lectura; catálogo/modelo/índice quedan retenidos por sesión,
-incluso si la primera carga informa indisponibilidad. Reiniciar permite observar
-imports/rebuilds administrativos. Un índice inválido conserva SQLite disponible.
-[Contrato y límites](docs/tools.md#rustcatalogstatus),
-[ADR-042](docs/adr/ADR-042-catalog-runtime-status.md).
+## Seguridad
 
-## M1-12 — Búsqueda de crates
+- Autoriza únicamente roots necesarias y usa rutas absolutas.
+- No uses el servidor con repositorios no confiables en esta versión de desarrollo.
+- Mantén confirmación interactiva para tools que ejecutan Cargo.
+- No interpretes `--offline` como aislamiento de red; el gateway exige controles del
+  sandbox y falla cerrado si no puede verificarlos.
+- `stdout` está reservado al protocolo MCP; los logs operativos se escriben en
+  `stderr`.
+- El servidor no hereda automáticamente todo el entorno ni instala componentes.
 
-`rust.crate.search` usa la misma generación retenida que status; no necesita
-ProjectRef, nuevas rutas ni descargas. Hybrid combina rankings léxico y semántico;
-si modelo/índice no están disponibles, declara fallback lexical con los mismos
-filtros. SQLite decide los facts y la versión compatible seleccionada. Core admite
-lexical/fallback; E5/Lance requieren `local` y assets verificados.
+Lee el [modelo de seguridad](docs/security-model.md) y la [política para reportar
+vulnerabilidades](SECURITY.md) antes de habilitar ejecución.
 
-Los resultados describen una ventana acotada, no todo el registry ni seguridad del
-crate. [Input, ranking y límites](docs/tools.md#rustcratesearch),
-[ADR-043](docs/adr/ADR-043-catalog-search-modes.md),
-[evidencia M1-12](docs/validation/M1-12.md).
+## Solución de problemas
 
-## M1-13 — Inspección de crates
+| Síntoma | Qué revisar |
+| --- | --- |
+| El cliente no inicia el servidor | Ejecuta `rust-engineering-mcp version --json`, usa una ruta absoluta al binario y revisa `stderr`. |
+| `project.open` devuelve `unavailable` | Comprueba macOS/APFS, que la root fue autorizada y que no contiene symlinks en la ruta física. |
+| Una tool devuelve `SANDBOX_DENIED` | Verifica que se proporcionó el grupo completo de flags Docker y la imagen aprobada. |
+| `rust.dependencies.audit` no está disponible | Proporciona juntos el snapshot RustSec y el SHA-256 esperado. |
+| El catálogo aparece `not_configured` | Proporciona juntos `--catalog-store` y `--catalog-trust`. |
+| La búsqueda semántica se degrada a léxica | Compila con `--features local` y revisa modelo e índice con `doctor --json`. |
+| Un `project_ref` dejó de funcionar | Reabre el proyecto; las referencias caducan y no sobreviven al proceso. |
+| El cliente parece recibir texto que no es MCP | No redirijas logs a `stdout` ni inicies el binario mediante scripts que impriman allí. |
 
-`rust.crate.inspect` pagina overview, versiones, features, dependencias e IDs de
-advisories registrados. La continuación mantiene el fingerprint del snapshot y
-la versión exacta cuando corresponde; documentación y source no registrados se
-exponen como unknown. Comparte la generación SQLite retenida de status/search,
-sin necesitar modelo ni índice. [Contrato](docs/tools.md#rustcrateinspect) y
-[evidencia M1-13](docs/validation/M1-13.md). Las trece tools están implementadas;
-release y calificación experimental siguen pendientes. M1 no está cerrado.
+## Documentación
 
-## M1-14 — Diagnóstico CLI
+- [Configuración de clientes MCP](docs/client-configuration.md)
+- [Tools y CLI](docs/tools.md)
+- [Compatibilidad](docs/compatibility.md)
+- [Modelo de seguridad](docs/security-model.md)
+- [Configuración de CI](docs/ci.md)
+- [Estado verificable del proyecto](docs/implementation-status.md)
+- [Arquitectura](docs/architecture.md)
+- [ADRs](docs/adr/README.md)
+- [Changelog](CHANGELOG.md)
 
-`version --json` informa versión, feature local compilada y target; son hechos del
-binario. `doctor --json` diagnostica archivos configurados sin lanzar subprocesses;
-acepta los mismos flags del host que `serve --stdio`. Puede cargar E5/Lance locales.
-`doctor --active --json` añade calibración e inventario del runtime Rust aprobado,
-cuando sus cuatro flags están configurados; no ejecuta el proyecto del usuario.
-`capabilities --human` muestra los probes activos existentes en formato humano;
-su salida por defecto sigue siendo JSON.
+Los documentos de arquitectura, decisiones y estado conservan los detalles internos
+de implementación y planificación. Este README se limita a la instalación, operación
+y uso público del MCP.
 
-Doctor devuelve 0 para passed/warning, 1 para fallos del diagnóstico y 2 para sintaxis
-inválida. Los servicios opcionales sin configurar y snapshots antiguos producen
-warning, no una afirmación de disponibilidad universal. No instala ni repara nada.
-SIGINT/SIGTERM/SIGHUP solicitan cancelación y esperan el worker y cleanup.
-[Comandos y configuración](docs/tools.md#cli-y-doctor-m1-14),
-[ADR-045](docs/adr/ADR-045-cli-doctor.md). El gate activo acredita calibración,
-interrupción y cleanup del runtime aprobado; no cierra M1 ni las brechas de plataforma.
+## Contribuir
 
-## M1-15 — Candidatos locales
+Consulta [`CONTRIBUTING.md`](CONTRIBUTING.md). Antes de abrir un PR, ejecuta al
+menos:
 
-Los [candidatos offline locales](docs/release/offline-candidates.md) contienen binarios core/local y recibos de instalación/doctor. Siguen siendo artifacts de revisión; licencia y distribución requieren decisiones explícitas.
+```bash
+cargo fmt --all --check
+cargo check --workspace --all-targets --locked
+cargo clippy --workspace --all-targets --locked -- -D warnings
+cargo test --workspace --all-targets --locked
+```
 
-## M1-16 — Piloto de utilidad medido
+Los gates completos y sus prerrequisitos están documentados en [`docs/ci.md`](docs/ci.md).
 
-El [piloto v2](docs/validation/M1-16.md) completó24/24 ejecuciones pareadas y sus
-oráculos congelados. Ambos brazos pasaron12/12 candidatos iniciales y finales; no
-hubo pares discordantes ni ventaja observable de éxito. El endpoint saturado no
-discrimina entre brazos ni demuestra equivalencia. El brazo MCP usó más solicitudes,
-tiempo y tokens; no se permite inferencia causal o poblacional.
+## Licencia
 
-## M1-17 — Calificación local
+Copyright © 2026 IUMotion Labs.
 
-El [gate full19](docs/validation/M1-17-final-gate.md) pasó en macOS ARM64 y
-[MCP Inspector2.5.0](docs/validation/M1-17-inspector.md) llamó con éxito las13 tools
-desde su UI persistente y envió una notificación de cancelación. El
-[cliente stock Codex0.153.0](docs/validation/M1-17-codex-client.md) pasó preflights
-directos de tool y Resource; sus turnos de modelo no llamaron al producto y se
-conservan como calificación fallida. También confirmó inventario canónico estable,
-una transición E0502→check verde y un error claro con runtime ausente. La
-[revisión final](docs/validation/M1-17-review-disposition.md) conserva su veredicto
-bloqueado. La [matriz](docs/validation/M1-17-matrix.md) mantiene abiertos los runners
-nativos, los faltantes de licencias/notices y la custodia de la clave Ed25519 para
-catálogos de producción.
-
-## Licencia y publicación
-
-El código original se ofrece bajo `MIT OR Apache-2.0`, a elección del usuario, con
-copyright de IUMotion Labs. Ambas licencias contienen exclusiones de garantía y
-límites de responsabilidad; prevalece siempre el texto legal aplicable en
-[LICENSE-MIT](LICENSE-MIT) o [LICENSE-APACHE](LICENSE-APACHE). Los componentes de
-terceros conservan sus propias condiciones y notices.
-
-El repositorio oficial es `pharos-lang/rust-engineering-mcp`. GitHub es el canal de
-código e incidencias y GitHub Releases será el canal inicial de binarios una vez
-cerrados los gates correspondientes. [ADR-047](docs/adr/ADR-047-publication-license-and-delivery.md)
-y la [nota de publicación](docs/publication.md) describen el snapshot público,
-CI/CD, attestations y las claves de catálogo que siguen pendientes.
+El proyecto se distribuye, a elección del usuario, bajo
+[MIT](LICENSE-MIT) o [Apache License 2.0](LICENSE-APACHE). Los componentes y datos de
+terceros conservan sus propias licencias; consulta [`NOTICE`](NOTICE). Cada
+distribución binaria deberá incorporar su inventario específico de notices.
