@@ -1,18 +1,19 @@
 # M1-17 release qualification matrix
 
-Updated 2026-09-04. Status: **In progress**. The historical macOS ARM64 full gate, actual MCP
-Inspector 2.5.0 UI session, candidate-bound stock Codex client exercises and
-independent review are complete. ADR-048 subsequently resolved the positive host,
-artifact and no-catalog boundary. M1-15/M1-17 remain open only for final candidate
-artifact, full/client/review evidence and publication. Product license, copyright
-and source publisher/channel were resolved by ADR-047.
+Updated 2026-09-05. Status: **Done**. The macOS ARM64 full gate, MCP Inspector
+2.5.0, model-directed stock Codex flow and independent review are complete. ADR-048
+defines the positive host, artifact and no-catalog boundary. Protected public CI,
+tag-bound artifact qualification, attestations, independent re-download/smoke and
+the stable release are recorded in the [public release receipt](m1-17-public-release.json).
 
-The accepted local binary SHA-256
-`7a99038be57429e1db32c91d01772e7efd104691828253f45ed3bbb0e9330417`
-is candidate-bound to `d024c7c72648206266f0d195ffc7040fb444eef6`: the
-[source-equivalence receipt](../release/candidate/m1-17-source-equivalence.json)
-rechecked all 238 selected inputs against that commit and the working tree, with
-zero mismatches. It proves source-input equivalence, not a reproducible rebuild.
+The final local client-qualified binary SHA-256 is
+`ebcb292c71d863aabb900874651230d0a16d5c93f68da84afb84bd89f4977edf` and the
+[local artifact receipt](../release/0.1.0-local-artifact-receipt.json) binds it to
+source commit `a6ea6b782e57271c01885bd147e5b66835ed9f8d`. The independently built public
+binary SHA-256 is `8f6f8c754ae3bde6cc2089ffb5c6360e5c9ebb61af7f022477ee10a30ed336ef`
+and its [public receipt](m1-17-public-release.json) binds it to tagged commit
+`452acdbf3a634d2cc0b9d153db09718237625b9d`. Byte equality between the local and
+Actions builds is not claimed; each evidence set qualifies its own bytes.
 
 ## Vertical evidence and dependencies
 
@@ -23,11 +24,11 @@ zero mismatches. It proves source-input equivalence, not a reproducible rebuild.
 | M1-12 crate search | [Core/native search and postmerge](M1-12.md) | Integrated; lexical/semantic/hybrid, fallback and ES/EN cases; no general relevance claim |
 | M1-13 crate inspection | [Core/native inspection and postmerge](M1-13.md) | Integrated; authoritative SQLite facts, bounded paging and thirteen tools |
 | M1-14 CLI/doctor | [Core/active/cancellation and postmerge](M1-14.md) | Integrated; historical 645 includes 644 tests plus one doctest; fresh gate reports those stages separately |
-| M1-15 local candidate preparation | [Offline candidates](../release/offline-candidates.md), [postmerge receipt](../release/candidate/postmerge-receipt.json) | Historical source/full evidence; final ADR-048 core artifact remains pending |
+| M1-15 release | [Offline candidates](../release/offline-candidates.md), [local core receipt](../release/0.1.0-local-artifact-receipt.json), [public receipt](m1-17-public-release.json) | Historical candidates retained; final tagged core artifact published and independently verified |
 | M1-16 experiments | [Completed pilot](M1-16.md), [utility report](../research/m1-16/measurement/REPORT.md), [retrieval benchmark](../research/m1-16/benchmark/REPORT.md) | Utility pilot saturated with no equivalence/value claim; retrieval run is bounded/descriptive only |
 | M1-17 Inspector | [Actual Inspector qualification](M1-17-inspector.md) | 13/13 positive calls through persistent UI; cancellation notification observed; UI Resource read unqualified |
 | M1-17 stock client | [Historical supplement](M1-17-codex-client.md), [final model-directed run](M1-17-codex-model.md) | Codex 0.153.0 model called the final binary, repaired E0502 to green and observed missing-runtime fail-closed |
-| M1-17 final gate/review | [Historical full19](M1-17-final-gate.md), [final full v2](m1-17-final-gate-v2.json), [independent review](M1-17-review-opus.md), [disposition](M1-17-review-disposition.md) | Final 23-stage macOS ARM64 gate passed; final candidate review/disposition remains |
+| M1-17 final gate/review | [Historical full19](M1-17-final-gate.md), [final full v2](m1-17-final-gate-v2.json), [final independent review](../reviews/M1-closure-final-claude-opus-5.md), [public receipt](m1-17-public-release.json) | Final 23-stage gate and Opus 5 review passed; zero P0/P1 and release conditions satisfied |
 
 ## Exact specification DoD (§M1, lines 4380–4397)
 
@@ -36,7 +37,7 @@ zero mismatches. It proves source-input equivalence, not a reproducible rebuild.
 | Documented `inputSchema`/`outputSchema`, derived from Rust where possible | [Tool documentation](../tools.md); thirteen checked-in snapshots under `crates/mcp-server/tests/snapshots`; [canonical two-session client inventory](m1-17-codex-client/tool-inventory-canonicalization.json) | Satisfied at candidate source |
 | Main responses use `structuredContent` | Per-tool protocol tests in the [full19 log](m1-17-final-gate/full.log); 13/13 actual [Inspector calls](M1-17-inspector.md) | Satisfied |
 | Contract tests detect breaking schema changes | Thirteen snapshots plus Serde/JSON Schema validation in the candidate's 644-test stage; canonical digest `7c83911d…` stable across two client sessions | Satisfied |
-| Linux/macOS/Windows portable core/protocol/catalog CI | [Public run 33928952807](public-ci-live-33928952807.json); historical full19 on macOS ARM64 | Satisfied for ADR-048 portable scope; no positive Linux/Windows claim |
+| Linux/macOS/Windows portable core/protocol/catalog CI | [Final public receipt](m1-17-public-release.json), run `33948778666`; full gate on macOS ARM64 | Satisfied for ADR-048 portable scope; no positive Linux/Windows claim |
 | Real security tests for every advertised sandbox capability; tools blocked where guarantees are absent | M0-06/M1-01..09 adversarial gates, historical Docker/Rust stages and missing-runtime `SANDBOX_DENIED` | Satisfied for advertised macOS host plus approved Docker guest; other hosts fail closed |
 | Structured output | Typed contract tests and actual Inspector/client responses above | Satisfied |
 | Timeouts | [M1-06 active cancellation/EOF](M1-06.md), [M1-09 quality cancellation](M1-09.md), full19 Rust security | Satisfied for candidate source; Inspector evidence alone proves only client notification |
@@ -59,10 +60,10 @@ failed evidence and are never substituted for product or agent evidence.
 | ---: | --- | --- | --- |
 | 1 | open a project | Inspector `rust.project.open`; stock Codex preflight and [repair receipt](m1-17-codex-client/repair-missing-receipt.json) | Satisfied |
 | 2 | inspect configuration | Inspector `rust.project.inspect`; stock Codex preflight | Satisfied |
-| 3 | modify code with its own capabilities | Eight model-authored repair submissions in [M1-16](M1-16.md) | Satisfied in bounded harness; stock-client model use unproven |
+| 3 | modify code with its own capabilities | Eight model-authored repair submissions in [M1-16](M1-16.md) plus the final stock Codex repair | Satisfied; final stock model edited only the authorized fixture source |
 | 4 | execute `rust.check` | Inspector positive call; stock Codex E0502 then green check | Satisfied |
 | 5 | receive structured diagnostics | Fresh candidate-bound stock Codex E0502 response; [M1-03](M1-03.md) E0502/E0106 cases | Satisfied |
-| 6 | correct the error | M1-16 model-authored passing patches plus fresh client-observed external edit/check transition | Satisfied by combined evidence; no claim of one stock-model loop |
+| 6 | correct the error | M1-16 passing patches plus final stock Codex E0502 edit and green recheck | Satisfied in one candidate-bound stock-model loop |
 | 7 | execute Clippy | Inspector call; M1-16 standard quality-gate stages; [M1-05](M1-05.md) | Satisfied |
 | 8 | execute tests | Inspector call; M1-16 quality-gate stages; [M1-06](M1-06.md) | Satisfied |
 | 9 | execute audit | Inspector call; M1-16 quality-gate stages; [focused identified audit](m1-17-final-gate/audit-focused.json) | Satisfied, bounded by recorded local RustSec inputs |
@@ -85,12 +86,12 @@ failed evidence and are never substituted for product or agent evidence.
 | Resolved delivery decision | GitHub artifact provenance | Keyless GitHub OIDC attestations; no long-lived repository signing secret |
 | Resolved by ADR-048 | No official catalog in 0.1.0 | No catalog/trust/fixture/private or public production key is shipped; future publication needs a new decision |
 | Excluded artifact limitation | Kanaria/E5/ORT/LanceDB redistribution | These remain visible for source builders but are prohibited from the core archive closure |
-| Local artifact evidence | Core target notice inventory and SPDX SBOM | [Local archive receipt](../release/0.1.0-local-artifact-receipt.json) passed; tagged Actions rebuild must match the same contract |
-| Final delivery gap | Artifact attestation/publication | Local install/smoke passed; GitHub OIDC attestation and Release remain |
+| Local and public artifact evidence | Core target notice inventory and SPDX SBOM | [Local archive receipt](../release/0.1.0-local-artifact-receipt.json) and [tagged public receipt](m1-17-public-release.json) passed the same contract |
+| Final delivery | Artifact attestation/publication | GitHub OIDC attestations, independent download/smoke and stable Release passed |
 | Resolved product metadata | Eight workspace crates previously had no product grant | All inherit `MIT OR Apache-2.0`; release-specific third-party notice work remains open |
 
-M1-15 and M1-17 stay **In progress** until the final gates are recorded. A
-declaration, `cargo deny` success or a historical local review copy is not artifact evidence.
+M1-15 and M1-17 are **Done** because the final gates and public bytes are recorded.
+The closure does not rely on a declaration, `cargo deny` alone or a historical copy.
 
 ## Additional release gates
 
@@ -102,15 +103,15 @@ declaration, `cargo deny` success or a historical local review copy is not artif
 | Tool contract stability | [Two-session canonical inventory](m1-17-codex-client/tool-inventory-canonicalization.json) | Deep-equal; insertion-order historical digests superseded |
 | Native semantics/performance | M1-12 actual paths; bounded retrieval benchmark and utility pilot | macOS ARM64 source evidence only; no general utility/quality claim |
 | Licensing/notices | [Preparation](../release/preparation.md), [local archive receipt](../release/0.1.0-local-artifact-receipt.json) | Core archive passed; local/model/native assets excluded |
-| Signed distribution | GitHub OIDC workflow | Final core attestation pending; no official catalog distribution |
-| Independent final review | [Opus 5 read-only review](M1-17-review-opus.md) and [principal disposition](M1-17-review-disposition.md) | Historical review completed; model-authored, not human; final candidate requires a new review and disposition |
-| Closure | This matrix and board | **In progress**; source is public, no binary release is published |
+| Signed distribution | [Public release receipt](m1-17-public-release.json) | Three subjects verified against tag, source commit and signer workflow; no official catalog distribution |
+| Independent final review | [Final Opus 5 read-only review](../reviews/M1-closure-final-claude-opus-5.md) | Accepted/ready; model-authored, not human; zero P0/P1 and P2 publication conditions resolved |
+| Closure | This matrix, board and [release](https://github.com/pharos-lang/rust-engineering-mcp/releases/tag/v0.1.0) | **Done** |
 
 ## Native matrix and capability boundaries
 
 | Platform | Observed status | Required before qualification |
 | --- | --- | --- |
-| macOS 26.6.2 ARM64/APFS | Only positive host; source-bound local evidence | Final core artifact/full/client/review evidence pending |
+| macOS 26.6.2 ARM64/APFS | Only positive host; source-bound local evidence and published core artifact | Qualified for the bounded 0.1.0 contract |
 | Linux x86_64 | Portable/fail-closed CI only | No positive capability or 0.1.0 artifact advertised |
 | Windows x86_64 | Portable/fail-closed CI only | No reparse-safe positive adapter or 0.1.0 artifact advertised |
 | Linux ARM64, macOS x86_64, Windows ARM64 | Not advertised | Outside 0.1.0 artifact matrix |

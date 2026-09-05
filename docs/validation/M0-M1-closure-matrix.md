@@ -1,6 +1,6 @@
 # M0/M1 closure traceability matrix
 
-Updated: 2026-09-04. This matrix is the live closure view requested by the M0/M1
+Updated: 2026-09-05. Status: **M0/M1 Done**. This matrix is the live closure view requested by the M0/M1
 handoff prompt. It distinguishes code implementation, executable evidence, owner
 decisions and external delivery state. Historical receipts remain unchanged.
 
@@ -56,9 +56,9 @@ row. Platform limitations are part of the fail-closed contract, not hidden passe
 | M1-12 | `rust.crate.search` | Integrated lexical/semantic/hybrid/fallback behavior. | Semantic positive path is source-qualified, not in the core archive. | Done |
 | M1-13 | `rust.crate.inspect` | Integrated authoritative paged facts. | No packaged catalog. | Done |
 | M1-14 | CLI/doctor | Integrated passive/active diagnostics and cleanup. | Final archive smoke still required. | Done |
-| M1-15 | Documentation/release | Product license/source channel resolved; the [local core archive](../release/0.1.0-local-artifact-receipt.json) passed inventory/SBOM/notices/install smoke. | Tagged Actions rebuild, attestation and GitHub release remain. | In progress |
+| M1-15 | Documentation/release | Product license/source channel and local core archive passed; [tagged public receipt](m1-17-public-release.json) binds inventory/SBOM/notices/install smoke, attestations and release. | GitHub Release `v0.1.0` published for macOS ARM64. | Done |
 | M1-16 | Bounded utility experiment | 24/24 pilot plus native retrieval benchmark completed; ceiling effect and higher observed MCP cost retained. | No equivalence or causal product-value claim. | Done |
-| M1-17 | 0.1.0 qualification | Final Inspector and stock Codex model-directed evidence bind the core binary; final artifact/full gate/review/publication remain. | No tag or release yet. | In progress |
+| M1-17 | 0.1.0 qualification | Final Inspector, stock Codex, full 23/23 gate, Opus review, public CI, SonarCloud and downloaded-artifact smoke passed. | Tag `v0.1.0`, OIDC attestations and stable release verified. | Done |
 
 ## Specification M1 Definition of Done
 
@@ -67,7 +67,7 @@ row. Platform limitations are part of the fail-closed contract, not hidden passe
 | Input/output schemas documented and derived from Rust | Thirteen snapshots, typed DTOs and `docs/tools.md`. | Implementation + tests | Satisfied |
 | `structuredContent` primary responses | Contract/protocol suites and Inspector 13/13. | Implementation + evidence | Satisfied |
 | Breaking-schema tests | Snapshot and canonical descriptor tests. | Tests | Satisfied |
-| Linux/macOS/Windows core/protocol/catalog CI | Public run `33928952807`; non-macOS positive I/O suites are intentionally unavailable. | Portable evidence + ADR-048 | Satisfied for declared portable scope |
+| Linux/macOS/Windows core/protocol/catalog CI | Final public run `33948778666`; non-macOS positive I/O suites are intentionally unavailable. | Portable evidence + ADR-048 | Satisfied for declared portable scope |
 | Security tests for each advertised capability/fail-closed elsewhere | macOS/APFS and Docker adversarial gates; non-macOS unsupported tests. | Security evidence + scope decision | Satisfied for advertised capabilities |
 | Structured output and diagnostics | Typed contracts, rustc/Cargo cases and clients. | Implementation + evidence | Satisfied |
 | Timeouts/cancellation/kill-tree | M1-03/06/09/14 and full gate. | Security evidence | Satisfied |
@@ -80,11 +80,12 @@ row. Platform limitations are part of the fail-closed contract, not hidden passe
 | Integration tests | Core/full suites and [final full v2 receipt](m1-17-final-gate-v2.json). | Evidence | Satisfied on final source |
 | MCP Inspector | Inspector 2.5.0 historical UI plus final core-binary CLI receipt. | Third-party client evidence | Satisfied with documented CLI limitations |
 
-## Remaining closure sequence
+## Closure result
 
-1. Obtain the final Opus candidate review and dispose every finding.
-2. Export the public snapshot, open/merge a protected PR after required CI, tag,
-   dispatch the release workflow, verify archive/hash/SBOM/notices/attestation and
-   publish 0.1.0 only if every row is satisfied.
+Protected PRs #8/#9, final public CI and SonarCloud on
+`452acdbf3a634d2cc0b9d153db09718237625b9d`, tag-bound workflow `33948798048`,
+three verified attestations and the stable GitHub Release satisfy the remaining
+delivery state. The [final public receipt](m1-17-public-release.json) is authoritative.
 
-M2 remains unimplemented and outside this matrix.
+M2 remains unimplemented and outside this matrix. Planning starts from
+[`docs/prompts/plan-m2-m8.md`](../prompts/plan-m2-m8.md).

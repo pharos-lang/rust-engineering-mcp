@@ -4,7 +4,7 @@
 
 | Componente | Foundation implementada |
 | --- | --- |
-| Versión del paquete | candidato `0.1.0`; release pendiente |
+| Versión del paquete | release estable `0.1.0` |
 | Toolchain fijado / MSRV inicial | Rust y Cargo `1.98.1`, edition 2024 |
 | Target de validación local | `aarch64-apple-darwin` |
 | SDK | `rmcp =3.2.0`, features `server`, `transport-io`, sin defaults |
@@ -12,7 +12,7 @@
 | Dominio | Serde `1.0.229`; sin dependencia del SDK, ADR-022 |
 | CI portable | Linux x86_64, macOS ARM64 y Windows x86_64; fuente/protocolo/fail-closed, no capabilities positivas |
 | Host positivo M1 | macOS 26 ARM64/APFS; ejecución de proyecto en guest Docker Linux ARM64 aprobado |
-| Artifact 0.1.0 previsto | Un único archive core `aarch64-apple-darwin`; todavía sin release |
+| Artifact 0.1.0 publicado | Un único archive core `aarch64-apple-darwin`; checksum, SBOM/notices y provenance verificados |
 | Linux / Windows / macOS x86_64 nativos | CI pública compila y prueba el código fuente; la calificación nativa del sandbox y filesystem sigue pendiente antes del RC M1 |
 | Licencia / redistribución | Código original `MIT OR Apache-2.0`; assets `local` no se redistribuyen en 0.1.0 |
 | Clientes de terceros | Inspector 2.5.0 verificó inventario/fail-closed y Codex 0.153.0 completó un flujo model-directed; demás clientes no calificados |
@@ -217,7 +217,8 @@ contenedor exacto, no una serialización canónica del archivo comprimido.
 [Formato/flags](catalog-bundle-format.md), incluido floor independiente y requisitos
 0600/0700. [M1-10](validation/M1-10.md) distingue full15/15 y la fuente anterior
 al ajuste final del CLI de los gates core540/Clippy all-features/CLI nativo5+1
-posteriores. Siguen pendientes clientes reales, distribución y release.
+posteriores. En ese corte seguían pendientes clientes reales, distribución y
+release; M1-17 los calificó después sin cambiar este contrato de catálogo.
 
 ## M1-11 — Contrato de estado
 
@@ -272,3 +273,7 @@ hechos diferentes. [ADR-045](adr/ADR-045-cli-doctor.md).
 ## M1-15 — Candidatos locales
 
 Candidatos release macOS arm64 ejecutados desde instalación privada: core/local version y doctor activo. Firma ad hoc verificada localmente; no notarización ni evidencia de otros hosts. Véase [candidatos](release/offline-candidates.md).
+
+La release final sustituye esos candidatos como canal soportado: `v0.1.0` publica
+solo core macOS ARM64 y usa provenance OIDC, checksum y smoke sobre los bytes
+descargados. Véase el [recibo público](validation/m1-17-public-release.json).

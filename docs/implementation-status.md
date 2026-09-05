@@ -1,6 +1,6 @@
 # Estado de implementación — Rust Engineering MCP
 
-Actualizado: 2026-09-04
+Actualizado: 2026-09-05
 
 Fuente principal: [`spec/rust-engineering-mcp-propuesta-v0.3.md`](spec/rust-engineering-mcp-propuesta-v0.3.md)
 
@@ -24,11 +24,11 @@ Fuente principal: [`spec/rust-engineering-mcp-propuesta-v0.3.md`](spec/rust-engi
 | Seguridad | I/O propio macOS/APFS no-follow; gateway Docker Linux ARM64 de probes y camino Rust ADR-031 revisado. | M0-04/05/06; [calibración Rust](validation/M1-01-rust-gateway.md), integración MCP ADR-032 validada. |
 | Datos locales | SQLite/FTS5 autoritativo, E5 verificado/LanceDB derivado con persistencia verificada, ArtifactStore efímero. | M0-08/09/10a, fixtures y tests reales. |
 | Pruebas/fixtures | Gate final M1-17: 23/23 etapas; 644 workspace tests y un doctest separados, más seguridad, catálogo, semántica, release tooling y doctor. | [Recibo full v2 final](validation/m1-17-final-gate-v2.json). |
-| CI/release | CI portable pública verde en Linux x86_64, macOS ARM64 y Windows x86_64; macOS26 ARM64/APFS es el host positivo y Docker Linux ARM64 el guest aprobado; sin release binaria. | ADR-048, scripts/gate.py, `.github/workflows/`, [recibo histórico](validation/public-source-publication.json), [observación live del run 33928952807](validation/public-ci-live-33928952807.json) y [full19 histórico](validation/M1-17-final-gate.md); artifact/final gates pendientes. |
+| CI/release | CI pública final verde en Linux x86_64, macOS ARM64, Windows x86_64 y supply chain; SonarCloud verde; release estable `v0.1.0` publicada para macOS ARM64 con hashes, smoke y attestations. | ADR-048, [recibo público final](validation/m1-17-public-release.json), [release v0.1.0](https://github.com/pharos-lang/rust-engineering-mcp/releases/tag/v0.1.0) y [full gate](validation/m1-17-final-gate-v2.json). |
 | Toolchain | Rust/Cargo1.98.1, edition2024, rustfmt/Clippy; host aarch64-apple-darwin. | rust-toolchain.toml y reporte de gate. |
 | Configuración local | YouTrack deshabilitado para este repositorio. | .codex/config.toml; no afecta el producto. |
 
-M0 está cerrada; M1-01..14 implementadas con evidencia por vertical. M1/0.1.0 todavía no está cerrado. Un foundation completo no
+M0 y M1/0.1.0 están cerradas con evidencia ejecutable y publicación verificable. Un foundation completo no
 habilita Cargo arbitrario, distribución estable ni soporte de plataformas
 no verificadas. Las limitaciones de M1 se conservan como criterios verificables.
 
@@ -83,31 +83,30 @@ fixtures, Docker ni toolchain; no existe catálogo oficial ni clave Ed25519 de p
 | M1-12 | `rust.crate.search` | M0-08,09 | Done | ADR-043; core603/10stages, wire35, Clippy all-features y native E5/index2+1 bajo network deny; filtros SQLite, ranks y fallback explícitos, budget MCP512KiB. Sonnet5/revisión principal; [evidencia](validation/M1-12.md). |
 | M1-13 | `rust.crate.inspect` | M0-08 | Done | ADR-044; core629, wire37, Clippy all-features y2 CLI/MCP bajo network deny; pages por versión/fingerprint, unknown explícitos y budget512KiB. Sonnet5/revisión principal; [evidencia](validation/M1-13.md). |
 | M1-14 | CLI y doctor | M0/M1 anteriores | Done | ADR-045; core645/10stages,37 protocolo,4 casos activos con SIGINT/TERM/HUP y cleanup,2 stdout bloqueados. JSON/humano y parser host compartido; Opus5 y disposición. [Evidencia](validation/M1-14.md). |
-| M1-15 | Documentación/release | Todos | **In progress** | El [archive core local](release/0.1.0-local-artifact-receipt.json) pasó inventory/SBOM/notices/manifest/hash, instalación y smoke sobre 13 tools. Falta la reconstrucción/attestation desde el tag público y publicar GitHub Release. |
+| M1-15 | Documentación/release | Todos | Done | El [archive core local](release/0.1.0-local-artifact-receipt.json) pasó inventory/SBOM/notices/manifest/hash; el workflow tag-bound reconstruyó los bytes públicos, verificó instalación/smoke y attestations, y publicó la [release v0.1.0](https://github.com/pharos-lang/rust-engineering-mcp/releases/tag/v0.1.0). [Recibo final](validation/m1-17-public-release.json). |
 | M1-16 | Experimentos acotados | M1-01..15 | Done | [Piloto v2](validation/M1-16.md): techo12/12 en ambos brazos, sin equivalencia/causalidad y con mayor costo B. [Benchmark retrieval](research/m1-16/benchmark/REPORT.md): una ejecución descriptiva8queries/15crates, sin claim general de calidad, multilingüe o utilidad de agente. |
-| M1-17 | Gate 0.1.0 | Todos | **In progress** | Archive/smoke y [full v2 23/23](validation/m1-17-final-gate-v2.json) pasaron; Inspector 2.5.0 y [stock Codex model-directed](validation/M1-17-codex-model.md) vinculan el binario. Faltan revisión candidata, publicación protegida, tag, attestation y release. |
+| M1-17 | Gate 0.1.0 | Todos | Done | [Full v2 23/23](validation/m1-17-final-gate-v2.json), archive/smoke, Inspector 2.5.0, [stock Codex model-directed](validation/M1-17-codex-model.md), revisión Opus 5 sin P0/P1, PRs protegidos, CI final, tag, attestations y [release pública](validation/m1-17-public-release.json) pasaron. |
 
 ## Backlog inmediato
 
-1. M1-10..16 están integradas. Completar únicamente M1-15/M1-17 conforme al cierre
-   compuesto ADR-048: artifact, full final, clientes, reviews y publicación. No avanzar a M2.
+M0/M1 están cerradas. El siguiente trabajo autorizado es únicamente planificar M2–M8
+mediante [el prompt de handoff](prompts/plan-m2-m8.md); este cierre no implementa M2.
 
 ## In Progress
 
-M1-15 y M1-17 están activas. La fuente y su CI portable están públicas con
-[recibo histórico verificable](validation/public-source-publication.json). M1 no
-está cerrado hasta completar y enlazar los gates finales de ADR-048.
+No hay vertical M0/M1 en progreso. La fuente, CI portable, SonarCloud, artifact y
+release están enlazados desde el [recibo final](validation/m1-17-public-release.json).
 
 ## Blocked
 
-No hay bloqueo de foundation ni decisión de alcance pendiente para 0.1.0. ADR-048
-retira de esta release los artifacts/plataformas/assets no calificados y el catálogo
-oficial. El trabajo restante es ejecutable y figura In progress, no Blocked. La
-[matriz M1-17](validation/M1-17-matrix.md) conserva limitaciones y gates separados.
+No hay bloqueo M0/M1 ni decisión de alcance pendiente para 0.1.0. ADR-048 mantiene
+fuera de esta release los artifacts/plataformas/assets no calificados y el catálogo
+oficial. La [matriz M1-17](validation/M1-17-matrix.md) conserva esas limitaciones.
 
 ## Done
 
-M0-00..12 y M0-10a: cada fila enlaza pruebas y revisión/integración correspondiente.
+M0-00..12, M0-10a y M1-01..17: cada fila enlaza pruebas, revisión e integración
+correspondientes.
 Los números de los reportes por corte son históricos; el total observado más
 reciente se registra en el assessment y su evidencia enlazada. M0-12 conserva
 el cierre histórico de M0. El handoff M1 sustituye los prompts antiguos.

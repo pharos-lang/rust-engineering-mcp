@@ -23,8 +23,8 @@ en evidencia snapshot. La validación de metadata no autentica su origen. Los l�
 de project.open y el saneamiento de errores se aplican en sus adapters;
 los errores de formato externos no deben exponerse sin redacción.
 
-No hay todavía una versión binaria publicada con soporte de seguridad. ADR-048
-limita el futuro artifact 0.1.0 a core sobre macOS26 ARM64/APFS; el único perfil
+La release binaria 0.1.0 publica únicamente el core sobre macOS26 ARM64/APFS; ADR-048
+limita a ese entorno el soporte positivo. El único perfil
 positivo de ejecución añade el gateway guest Docker Linux ARM64 aprobado. El
 archive no incluye Docker, toolchain, modelo, ORT, LanceDB, catálogo ni trust.
 No utilizarlo para ejecutar o validar repositorios no confiables. Los gates locales
@@ -238,7 +238,7 @@ una salida bloqueada puede fallar después de ese cleanup. Véase ADR-045.
 
 ## Frontera del artifact 0.1.0
 
-El único archive previsto contiene el ejecutable core macOS ARM64, licencias del
+El único archive publicado contiene el ejecutable core macOS ARM64, licencias del
 producto, closure de dependencias target-specific, SBOM SPDX, notices, manifest y
 hashes. GitHub OIDC acredita provenance de esos bytes, no un catálogo ni assets
 excluidos. La instalación debe verificar el archive y ejecutar `version`, doctor

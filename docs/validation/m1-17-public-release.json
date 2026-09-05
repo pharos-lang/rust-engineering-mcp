@@ -1,0 +1,140 @@
+{
+  "schema": "rust-engineering-mcp-public-release-receipt-v1",
+  "observed_at_utc": "2026-09-05T06:11:06Z",
+  "status": "passed",
+  "release": {
+    "repository": "pharos-lang/rust-engineering-mcp",
+    "url": "https://github.com/pharos-lang/rust-engineering-mcp/releases/tag/v0.1.0",
+    "database_id": 383152154,
+    "tag": "v0.1.0",
+    "tag_object": "ce94adb93a3d5548dcdf567017866f0ddadabe2e",
+    "source_commit": "452acdbf3a634d2cc0b9d153db09718237625b9d",
+    "private_export_source_commit": "68cd00131ac71df23460723533df1c10314b0675",
+    "published_at_utc": "2026-09-05T06:09:42Z",
+    "draft": false,
+    "prerelease": false,
+    "crates_io_published": false
+  },
+  "protected_publication": {
+    "closure_pr": "https://github.com/pharos-lang/rust-engineering-mcp/pull/8",
+    "closure_merge_commit": "d38a252bf770a07b041bd6685fa55e67ec1a0d9c",
+    "release_fix_pr": "https://github.com/pharos-lang/rust-engineering-mcp/pull/9",
+    "final_merge_commit": "452acdbf3a634d2cc0b9d153db09718237625b9d",
+    "final_ci": {
+      "run_id": 33948778666,
+      "url": "https://github.com/pharos-lang/rust-engineering-mcp/actions/runs/33948778666",
+      "head_sha": "452acdbf3a634d2cc0b9d153db09718237625b9d",
+      "jobs": {
+        "portable_aarch64_apple_darwin": "passed",
+        "portable_x86_64_unknown_linux_gnu": "passed",
+        "portable_x86_64_pc_windows_msvc": "passed",
+        "supply_chain": "passed"
+      }
+    },
+    "sonarcloud": {
+      "main_run_id": 33948778651,
+      "main_run_url": "https://github.com/pharos-lang/rust-engineering-mcp/actions/runs/33948778651",
+      "quality_gate": "passed",
+      "overall_coverage_percent": 71.4,
+      "overall_line_coverage_percent": 71.8,
+      "overall_branch_coverage_percent": 33.0,
+      "new_code_qualification_run_id": 33947933033,
+      "new_code_coverage_percent": 85.1485,
+      "new_code_line_coverage_percent": 82.6667,
+      "new_code_branch_coverage_percent": 92.3077,
+      "new_code_security_hotspots_reviewed_percent": 100.0,
+      "new_open_issues": 0,
+      "new_bugs": 0,
+      "new_vulnerabilities": 0,
+      "new_code_smells": 0,
+      "new_reliability_rating": "A",
+      "new_security_rating": "A",
+      "new_maintainability_rating": "A"
+    }
+  },
+  "release_workflow": {
+    "name": "Draft release candidate",
+    "workflow": ".github/workflows/release-candidate.yml",
+    "successful_run_id": 33948798048,
+    "url": "https://github.com/pharos-lang/rust-engineering-mcp/actions/runs/33948798048",
+    "event": "workflow_dispatch",
+    "ref": "refs/tags/v0.1.0",
+    "head_sha": "452acdbf3a634d2cc0b9d153db09718237625b9d",
+    "jobs": {
+      "validate_tagged_source": "passed",
+      "build_and_qualify_aarch64_apple_darwin": "passed",
+      "create_draft_github_release": "passed"
+    },
+    "superseded_attempt": {
+      "run_id": 33948251834,
+      "head_sha": "d38a252bf770a07b041bd6685fa55e67ec1a0d9c",
+      "status": "failed_after_artifact_qualification",
+      "failure": "gh release create could not infer a repository in a no-checkout job",
+      "resolution": "protected PR #9 added --repo GITHUB_REPOSITORY; no release existed; the pre-release tag was replaced before the definitive run"
+    }
+  },
+  "assets": {
+    "rust-engineering-mcp-v0.1.0-aarch64-apple-darwin.tar.gz": {
+      "bytes": 7300973,
+      "sha256": "b499a3e32d8186d2f513fd5269e4bf50929b29b24b6448c8005af32913586fb4"
+    },
+    "SHA256SUMS": {
+      "bytes": 122,
+      "sha256": "b4eee858437d898b2a393916f926f77ea811b35bb1db73657af217d7446e0a34"
+    },
+    "release-smoke-receipt.json": {
+      "bytes": 4976,
+      "sha256": "bd602203c415f4cb27b2af93323aab1eb6a33b8c25f34c1a10051e0ef64da5f3"
+    },
+    "binary_sha256": "8f6f8c754ae3bde6cc2089ffb5c6360e5c9ebb61af7f022477ee10a30ed336ef",
+    "packages": 219,
+    "relationships": 550,
+    "archive_members": 11,
+    "tools": 13,
+    "tool_schema_set_sha256": "03d6e5279070c0fef6400d2098af6bdd45e3a8dcb80a942318460a541d58b9a2"
+  },
+  "provenance": {
+    "subjects": [
+      "rust-engineering-mcp-v0.1.0-aarch64-apple-darwin.tar.gz",
+      "SHA256SUMS",
+      "release-smoke-receipt.json"
+    ],
+    "verified_with": "gh attestation verify",
+    "signer_workflow": "pharos-lang/rust-engineering-mcp/.github/workflows/release-candidate.yml",
+    "source_commit": "452acdbf3a634d2cc0b9d153db09718237625b9d",
+    "source_ref": "refs/tags/v0.1.0",
+    "run_invocation": "https://github.com/pharos-lang/rust-engineering-mcp/actions/runs/33948798048/attempts/1",
+    "runner_environment": "github-hosted",
+    "status": "passed"
+  },
+  "independent_post_workflow_verification": {
+    "draft_download_matches_published_download": true,
+    "sha256sums_check": "passed",
+    "attestations_match_definitive_source_commit": true,
+    "smoke": "passed",
+    "independent_smoke_receipt_sha256": "bb390dab72eb49dea229ed686f45845d69c9409c4c24d4935b011f083122e596",
+    "cli_calls": 3,
+    "mcp_calls": 6,
+    "process_group_clean": true,
+    "temporary_installation_removed": true
+  },
+  "published_boundary": {
+    "target": "aarch64-apple-darwin",
+    "positive_host": "macOS 26 ARM64 on APFS",
+    "portable_ci_only": [
+      "x86_64-unknown-linux-gnu",
+      "x86_64-pc-windows-msvc"
+    ],
+    "excluded": [
+      "official catalog",
+      "production catalog signing key",
+      "embedding model",
+      "ONNX Runtime",
+      "LanceDB payload",
+      "Docker image",
+      "toolchain",
+      "test fixtures",
+      "M2 functionality"
+    ]
+  }
+}

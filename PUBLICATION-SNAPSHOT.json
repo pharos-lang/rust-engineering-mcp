@@ -1,10 +1,10 @@
 {
   "schema": "rust-engineering-mcp-public-snapshot-v1",
-  "source_commit": "68cd00131ac71df23460723533df1c10314b0675",
+  "source_commit": "cd71e23b93ccb4d64975e662f1d3fb77d2e9beb9",
   "history_policy": "new public root commit; private local history is not exported",
   "sanitization": {
     "rule": "replace the local home path and local username in UTF-8 files",
-    "redacted_file_count": 124,
+    "redacted_file_count": 125,
     "files": [
       {
         "path": "docs/prompts/close-m0-m1-and-handoff-m2-m8.md",
@@ -16,6 +16,12 @@
         "path": "docs/prompts/continue-m1.md",
         "original_sha256": "2f25164aeda47e226e9b3f417ab41f55047de93ac3e2dc6c35e83809322ded59",
         "public_sha256": "15212db13f11d4aea0a7732f9865b1de8678a3689dabee897a75e02efa0c31da",
+        "replacement_scope": "local-home-or-user-path-only"
+      },
+      {
+        "path": "docs/prompts/plan-m2-m8.md",
+        "original_sha256": "3bae2d337d55ed951bb274a5547ce32f2dd20dbaaa15dcefb789f81be324a898",
+        "public_sha256": "a8e4ff545ff46f317658d7d5e1fef1bcf8841bbd82e2e8dc71a99cf8c18c973b",
         "replacement_scope": "local-home-or-user-path-only"
       },
       {
@@ -764,5 +770,5 @@
       "crates/mcp-server/src/catalog_sync/test-certs/end.key"
     ]
   },
-  "exported_files_before_manifest": 1451
+  "exported_files_before_manifest": 1453
 }
