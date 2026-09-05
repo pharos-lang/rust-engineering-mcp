@@ -4,8 +4,9 @@
 
 - SonarCloud ahora importa cobertura real: LCOV de los tests Rust portables y
   Cobertura XML del control de arquitectura Python. El workflow rechaza reportes
-  ausentes o vacíos y documenta las pruebas especializadas que quedan fuera de
-  esta métrica.
+  ausentes o vacíos, declara las versiones Python compatibles, evita clasificar el
+  schema SQLite como PL/SQL y documenta las pruebas especializadas que quedan fuera
+  de esta métrica.
 
 - README reorganizado como guía pública de instalación, configuración y uso. La
   nueva guía de clientes documenta Codex, Claude Code, Gemini CLI, Cursor, VS Code
