@@ -18,13 +18,13 @@ Fuente principal: [`spec/rust-engineering-mcp-propuesta-v0.3.md`](spec/rust-engi
 | Área | Estado real | Evidencia |
 | --- | --- | --- |
 | Historial | M0-01..12 integrados mediante ramas ai/ y merges no-ff locales. | Cada validation/M0-*.md registra integración; no remoto. |
-| Especificación/instrucciones | v0.3.1 y AGENTS.md revisados; decisiones ADR-001..045. | spec, ADRs y dispositions de reviewers. |
+| Especificación/instrucciones | v0.3.1 y AGENTS.md revisados; decisiones ADR-001..048. | spec, ADRs y dispositions de reviewers. |
 | Código Rust | Ocho crates: domain, application, MCP, project, execution, catalog, semantic y artifact. | Workspace real; domain soloSerde, application soloDomain. |
 | MCP | Trece tools implementadas: project.open, project.inspect, toolchain.inspect, check, fmt.check, clippy, test, dependencies.audit, diagnostics.explain, quality.gate, catalog.status, crate.search y crate.inspect; Resources owner-bound; contratos tipados y cinco versiones wire probadas. | protocol/contract tests; M0-03/04/07. |
 | Seguridad | I/O propio macOS/APFS no-follow; gateway Docker Linux ARM64 de probes y camino Rust ADR-031 revisado. | M0-04/05/06; [calibración Rust](validation/M1-01-rust-gateway.md), integración MCP ADR-032 validada. |
 | Datos locales | SQLite/FTS5 autoritativo, E5 verificado/LanceDB derivado con persistencia verificada, ArtifactStore efímero. | M0-08/09/10a, fixtures y tests reales. |
-| Pruebas/fixtures | Gate candidato M1-17: full19/19; 644 workspace tests y un doctest en etapas separadas, además de seguridad, catálogo, semántica y doctor. | [M1-17 full actual](validation/M1-17-final-gate.md); [conteos](validation/m1-17-final-gate/counts-derived-from-log.json). |
-| CI/release | CI local core/full y GitHub CI/CD implementadas; CI portable pública verde en Linux x86_64, macOS ARM64 y Windows x86_64; full19 candidato pasó en macOS ARM64; sin release binaria. | scripts/gate.py, `.github/workflows/`, [recibo de publicación](validation/public-source-publication.json), [run público](https://github.com/pharos-lang/rust-engineering-mcp/actions/runs/33928437393) y [recibo M1-17](validation/M1-17-final-gate.md); capabilities nativas y notices siguen pendientes. |
+| Pruebas/fixtures | Gate final M1-17: 23/23 etapas; 644 workspace tests y un doctest separados, más seguridad, catálogo, semántica, release tooling y doctor. | [Recibo full v2 final](validation/m1-17-final-gate-v2.json). |
+| CI/release | CI portable pública verde en Linux x86_64, macOS ARM64 y Windows x86_64; macOS26 ARM64/APFS es el host positivo y Docker Linux ARM64 el guest aprobado; sin release binaria. | ADR-048, scripts/gate.py, `.github/workflows/`, [recibo histórico](validation/public-source-publication.json), [observación live del run 33928952807](validation/public-ci-live-33928952807.json) y [full19 histórico](validation/M1-17-final-gate.md); artifact/final gates pendientes. |
 | Toolchain | Rust/Cargo1.98.1, edition2024, rustfmt/Clippy; host aarch64-apple-darwin. | rust-toolchain.toml y reporte de gate. |
 | Configuración local | YouTrack deshabilitado para este repositorio. | .codex/config.toml; no afecta el producto. |
 
@@ -39,6 +39,12 @@ de la propuesta y en la instrucción del owner. `rust.dependencies.inspect` qued
 fuera del contrato público M1 aunque aparezca en la sección descriptiva 23.9; la
 metadata necesaria se implementará como soporte interno de `project.inspect`, audit
 y catálogo. M2+ permanece fuera de alcance.
+
+ADR-048 define 0.1.0 como cierre compuesto: un único archive core
+`aarch64-apple-darwin` verificado y un full gate `local` source-bound en macOS26
+ARM64/APFS con el gateway guest Docker Linux ARM64. Linux/Windows son CI
+portable/fail-closed. No se distribuyen modelo, ORT, LanceDB, catálogo, trust,
+fixtures, Docker ni toolchain; no existe catálogo oficial ni clave Ed25519 de producción 0.1.0.
 
 ## M0 — Foundation
 
@@ -77,27 +83,27 @@ y catálogo. M2+ permanece fuera de alcance.
 | M1-12 | `rust.crate.search` | M0-08,09 | Done | ADR-043; core603/10stages, wire35, Clippy all-features y native E5/index2+1 bajo network deny; filtros SQLite, ranks y fallback explícitos, budget MCP512KiB. Sonnet5/revisión principal; [evidencia](validation/M1-12.md). |
 | M1-13 | `rust.crate.inspect` | M0-08 | Done | ADR-044; core629, wire37, Clippy all-features y2 CLI/MCP bajo network deny; pages por versión/fingerprint, unknown explícitos y budget512KiB. Sonnet5/revisión principal; [evidencia](validation/M1-13.md). |
 | M1-14 | CLI y doctor | M0/M1 anteriores | Done | ADR-045; core645/10stages,37 protocolo,4 casos activos con SIGINT/TERM/HUP y cleanup,2 stdout bloqueados. JSON/humano y parser host compartido; Opus5 y disposición. [Evidencia](validation/M1-14.md). |
-| M1-15 | Documentación/release | Todos | **Blocked** | ADR-047: fuente pública `MIT OR Apache-2.0`, IUMotion Labs y GitHub resueltos. Candidatos/instalación/doctor locales verificados. Kanaria/E5/ORT, notices finales por target, capabilities/recibos nativos y clave Ed25519 de catálogo aún bloquean binarios/catálogos. |
-| M1-16 | Experimento de utilidad | M1-01..15 | Done | [Piloto v2 medido](validation/M1-16.md): 24/24 runs, ambos brazos12/12 y12 pares both-pass. Endpoint saturado sin poder discriminante ni evidencia de equivalencia; B observó más solicitudes/tiempo/tokens. Sin inferencia causal/poblacional. |
-| M1-17 | Gate 0.1.0 | Todos | **Blocked** | [Evidencia y matriz](validation/M1-17.md): full19 macOS ARM64, Inspector13/13, stock Codex directo, revisión Opus5 y [CI portable pública](https://github.com/pharos-lang/rust-engineering-mcp/actions/runs/33928437393) completados. Las capabilities nativas Linux/Windows/x86, notices y clave Ed25519 de catálogo bloquean M1; uso model-driven en stock Codex no se probó. |
+| M1-15 | Documentación/release | Todos | **In progress** | El [archive core local](release/0.1.0-local-artifact-receipt.json) pasó inventory/SBOM/notices/manifest/hash, instalación y smoke sobre 13 tools. Falta la reconstrucción/attestation desde el tag público y publicar GitHub Release. |
+| M1-16 | Experimentos acotados | M1-01..15 | Done | [Piloto v2](validation/M1-16.md): techo12/12 en ambos brazos, sin equivalencia/causalidad y con mayor costo B. [Benchmark retrieval](research/m1-16/benchmark/REPORT.md): una ejecución descriptiva8queries/15crates, sin claim general de calidad, multilingüe o utilidad de agente. |
+| M1-17 | Gate 0.1.0 | Todos | **In progress** | Archive/smoke y [full v2 23/23](validation/m1-17-final-gate-v2.json) pasaron; Inspector 2.5.0 y [stock Codex model-directed](validation/M1-17-codex-model.md) vinculan el binario. Faltan revisión candidata, publicación protegida, tag, attestation y release. |
 
 ## Backlog inmediato
 
-1. M1-10..16 están integradas y la calificación local M1-17 está documentada. Resolver únicamente los bloqueos explícitos de runners nativos, licencias/notices y decisiones del owner. No avanzar a M2.
+1. M1-10..16 están integradas. Completar únicamente M1-15/M1-17 conforme al cierre
+   compuesto ADR-048: artifact, full final, clientes, reviews y publicación. No avanzar a M2.
 
 ## In Progress
 
-No hay vertical de implementación activa. La fuente y su CI portable están públicas
-con [recibo verificable](validation/public-source-publication.json). M1-17 conserva
-evidencia local completa y un cierre formalmente bloqueado; M1 no está cerrado.
+M1-15 y M1-17 están activas. La fuente y su CI portable están públicas con
+[recibo histórico verificable](validation/public-source-publication.json). M1 no
+está cerrado hasta completar y enlazar los gates finales de ADR-048.
 
 ## Blocked
 
-Ningún bloqueo de foundation pendiente. La matriz portable de GitHub está verde,
-pero M1-15/M1-17 siguen bloqueados por capabilities y recibos nativos
-Linux/Windows/x86 aplicables; Kanaria/E5/ORT/notices finales; y custodia,
-rotación/revocación de la clave Ed25519 de catálogos de producción. La
-[matriz M1-17](validation/M1-17-matrix.md) mantiene cada categoría separada.
+No hay bloqueo de foundation ni decisión de alcance pendiente para 0.1.0. ADR-048
+retira de esta release los artifacts/plataformas/assets no calificados y el catálogo
+oficial. El trabajo restante es ejecutable y figura In progress, no Blocked. La
+[matriz M1-17](validation/M1-17-matrix.md) conserva limitaciones y gates separados.
 
 ## Done
 
@@ -112,23 +118,20 @@ el cierre histórico de M0. El handoff M1 sustituye los prompts antiguos.
   temporales; la implementación debe generar datos reales, no copiarlos.
 - El layout de muchos crates es una propuesta, no un mandato. M0 debe empezar con el
   mínimo de crates que preserve fronteras reales y medir el costo de compilación.
-- No hay todavía benchmark que demuestre la calidad del modelo local ni el overhead
-  de LanceDB; ADR-019 impone un gate antes de estabilizarlos.
+- El benchmark retrieval acotado describe una sola proyección y no demuestra calidad
+  general, cobertura multilingüe ni utilidad; sigue siendo una limitación, no deuda de ejecución.
 - ADR-047 resolvió licencia dual, copyright y canal de fuente. Esto no resuelve las
   licencias/notices de terceros ni autoriza distribuir modelos o binarios.
-- `scripts/gate.py` debe registrar timestamps exactos de inicio/fin y conteos por
-  etapa en el reporte; el gate M1-17 conserva honestamente un inicio desconocido y
-  conteos derivados del log.
+- `scripts/gate.py` incorpora reportes v2 con timestamps/conteos directos; el gate
+  M1-17 histórico conserva honestamente inicio desconocido y conteos derivados.
 
 ## Decisions Pending
 
 | Decisión | Momento límite | Gate |
 | --- | --- | --- |
-| Clave Ed25519 de catálogo: custodia, rotación y revocación | Antes de distribuir un catálogo firmado | Responsable y procedimiento explícitos; fixture seed42 prohibida. GitHub artifacts usan OIDC sin clave persistente. |
-| Soporte fuerte de sandbox por OS | Antes de habilitar R1/R2 en cada target | Security tests reales por plataforma y tabla de capabilities. |
-| Distribución estable y benchmark del modelo | Antes de RC M1 | E5 revision/hashes locales fijados en M0-09; falta calidad ES/EN, CPU/RAM/startup, recibos nativos por target y licencia de distribución. |
-| Fuente/licencia del snapshot global | Antes de `catalog sync` público | Revisión de términos del registry, formato firmado y provenance. |
-| Matriz mínima nativa ARM64/x86_64 | Antes del RC 0.1.0 | CI portable pública completa; faltan recibos de runtime/capabilities y limitaciones de LanceDB/ONNX por target. |
+| Catálogo oficial futuro | Antes de una release que lo distribuya | Nueva decisión de fuente/términos y procedimiento de custodia/rotación/revocación; no aplica a 0.1.0. |
+| Soporte positivo adicional por OS | Antes de anunciar otro target | Adapter protegido y security tests nativos; CI portable no basta. |
+| Distribución futura del perfil `local` | Antes de empaquetar E5/ORT/LanceDB | Licencias/notices y recibos nativos completos; excluido de 0.1.0. |
 
 ## Riesgos activos
 

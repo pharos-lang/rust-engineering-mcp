@@ -23,7 +23,10 @@ en evidencia snapshot. La validación de metadata no autentica su origen. Los l�
 de project.open y el saneamiento de errores se aplican en sus adapters;
 los errores de formato externos no deben exponerse sin redacción.
 
-No hay una versión binaria publicada con soporte de seguridad.
+No hay todavía una versión binaria publicada con soporte de seguridad. ADR-048
+limita el futuro artifact 0.1.0 a core sobre macOS26 ARM64/APFS; el único perfil
+positivo de ejecución añade el gateway guest Docker Linux ARM64 aprobado. El
+archive no incluye Docker, toolchain, modelo, ORT, LanceDB, catálogo ni trust.
 No utilizarlo para ejecutar o validar repositorios no confiables. Los gates locales
 son herramientas del desarrollo del servidor, no capacidades del producto.
 
@@ -177,7 +180,9 @@ Solo la CLI adquiere bundles; runtime y tools no reciben autoridad de descarga.
 Trust exige archivo propio0600, padre0700 y ancestros protegidos contra reemplazo;
 los controles POSIX no inspeccionan ACLs: el host debe excluir grants adicionales.
 Solo macOS26+/APFS está habilitado. La firma autentica al publisher elegido por el
-host; ninguna identidad oficial ni redistribución ha sido aprobada.
+host. IUMotion Labs no distribuye un catálogo oficial en 0.1.0: la fixture pública
+no es trust root, no se empaqueta trust y no existe clave Ed25519 de producción que
+custodiar para esta release.
 
 El floor separado se reserva antes de activar; conservarlo permite reparar active
 inválido/ausente con los bytes reservados exactos o una secuencia superior. No borrar
@@ -230,3 +235,13 @@ y512KiB del resultado MCP completo mantienen las limitaciones existentes.
 Doctor pasivo no ejecuta probes ni adquiere administración del catálogo. El modo
 --active calibra el runtime aprobado y espera cleanup ante SIGINT/TERM/HUP;
 una salida bloqueada puede fallar después de ese cleanup. Véase ADR-045.
+
+## Frontera del artifact 0.1.0
+
+El único archive previsto contiene el ejecutable core macOS ARM64, licencias del
+producto, closure de dependencias target-specific, SBOM SPDX, notices, manifest y
+hashes. GitHub OIDC acredita provenance de esos bytes, no un catálogo ni assets
+excluidos. La instalación debe verificar el archive y ejecutar `version`, doctor
+pasivo, discovery, el inventario de trece tools y denegaciones esperadas. El core
+no demuestra por sí solo el perfil M1 completo: esa evidencia procede del full gate
+`local` source-bound con assets exactos y del gateway aprobado.

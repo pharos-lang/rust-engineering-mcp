@@ -39,6 +39,7 @@ Accepted, Superseded y Rejected.
 | [ADR-031](ADR-031-rust-source-transfer.md) | Runtime Rust, source transfer y calibración | Accepted; prerrequisito revisado |
 | [ADR-032](ADR-032-project-inspection.md) | Inspección de source capturado y evidencia | Accepted; M1-01 implementada y validada |
 | [ADR-047](ADR-047-publication-license-and-delivery.md) | Licencia pública y entrega mediante GitHub | Accepted |
+| [ADR-048](ADR-048-0.1.0-qualification-and-artifact-boundary.md) | Frontera de calificación y artifacts 0.1.0 | Accepted |
 
 - [ADR-033 — Installed runtime toolchain observation](ADR-033-toolchain-inspection.md).
 
@@ -53,3 +54,8 @@ Accepted, Superseded y Rejected.
 - [ADR-039: Compiler explanations](ADR-039-compiler-explanations.md).
 - [ADR-040: Single-capture quality gate](ADR-040-single-capture-quality-gate.md).
 - [ADR-041: Authenticated catalog bundles and durable activation](ADR-041-authenticated-catalog-bundles.md).
+- [ADR-042: Catalog runtime status](ADR-042-catalog-runtime-status.md).
+- [ADR-043: Catalog search modes](ADR-043-catalog-search-modes.md).
+- [ADR-044: Paged crate inspection](ADR-044-paged-crate-inspection.md).
+- [ADR-045: CLI doctor](ADR-045-cli-doctor.md).
+- [ADR-046: Bounded utility experiment](ADR-046-bounded-utility-experiment.md).

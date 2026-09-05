@@ -1,5 +1,11 @@
 # M1-15 offline candidate/bootstrap design — local review only
 
+Current disposition under ADR-048: every artifact and hash below is historical
+source-qualification evidence. These core/local archives are not 0.1.0 release
+inputs and must not be promoted. The release boundary is a newly built, source-bound
+core `aarch64-apple-darwin` archive containing no model, ORT, LanceDB, catalog,
+trust, fixture, Docker image or toolchain. Historical receipts remain unchanged.
+
 Prepared 2026-09-04; accepted compiled inputs match main `01a90ab6`. This is not a release,
 distribution approval, product-license choice or production publisher designation.
 Only candidate artifacts under `target/m1-15-candidate/` are created. No global
@@ -111,11 +117,10 @@ ownership manifest. Preserve receipts and failed state for review. No global pat
 Docker object, user catalog, existing toolchain or cache is removed. Do not copy
 candidate outputs into `/usr/local`, Homebrew, application bundles or user profiles.
 
-Before any promotion: rebuild exact accepted commit if necessary; verify source,
-lock, binary and asset hashes; finish per-target native/license review; obtain owner
-product-license and publisher/channel/key-custody decisions; qualify supported clients
-and platforms; and perform the approved active install/doctor gate. This local
-exercise can supply evidence toward M1-15 but cannot silently close those decisions.
+These archives are not promotion candidates. Their source, lock, binary and asset
+hashes remain useful for the full `local` source-bound gate and historical review.
+The distinct final core archive must satisfy ADR-048's target closure, SBOM, notices,
+manifest, install and smoke gates. M1-15 cannot close from this exercise alone.
 
 ## Completed local evidence
 
@@ -167,7 +172,9 @@ Remaining technical warnings: failed rust-objcopy stripping due to its missing L
 dylib, and local linker compact-unwind limits for a greater-than16MiB `__eh_frame`.
 The linker warns of possible exception-handling performance impact. Neither warning
 was hidden or repaired by installation. Product/native/model licensing, production
-trust, complete client qualification and additional native targets remain separate approvals/gates.
+trust and complete client qualification were separate approvals/gates at the time.
+ADR-048 later excluded local/model/catalog assets and additional native artifacts
+from 0.1.0 without retroactively changing these observations.
 
 After the principal refreshed release metadata, the candidate inventory was recopied
 and verified at SHA256 `cbbca0d52613c341f55580088766c76f2c2be0b64df8a5ef672f1be0dd35948a`.

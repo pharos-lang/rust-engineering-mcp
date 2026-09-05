@@ -29,6 +29,8 @@ cancelación. Conserva leases opacos, sin conocer handles OS, Cargo ni MCP.
 `crates/project-adapter` aporta I/O protegido, parser TOML/semver acotado, SHA-256,
 entropía OS y reloj monotónico. El adapter macOS usa rustix; otros targets rechazan
 la operación antes de I/O. Las fronteras siguen ADR-004 y ADR-024.
+ADR-048 califica como host positivo 0.1.0 únicamente macOS26 ARM64/APFS; Linux y
+Windows prueban portabilidad y rechazo fail-closed, no un adapter positivo.
 
 `stdio/project.rs` traduce DTOs Serde/schemars al caso de uso, aplica JSON Schema
 a input/output y limita a un worker sin cola. El worker posee el permiso hasta
@@ -97,6 +99,8 @@ rehidratan desde SQLite. Rebuild reemplaza metadata y tabla solo tras éxito. La
 mezcla conserva resultados léxicos primero y agrega candidatos únicos; no es aún
 el ranking de M1-12. El worker de búsqueda MCP de M1-12 y la CLI/persistencia de M1-10
 se describen debajo. Ver ADR-027, ADR-041 y ADR-043.
+Esta arquitectura `local` permanece dentro de M1 y se califica desde fuente; E5,
+ORT, LanceDB y sus datos no forman parte del archive core 0.1.0.
 
 ## Artifacts efímeros
 
@@ -244,3 +248,16 @@ Doctor_run registra señales antes del trabajo, posee el control y espera el wor
 bloqueante hasta cleanup. El mismo Report tipado alimenta JSON/humano y códigos de
 salida; version informa build facts y capabilities añade rendering humano conservando
 su contrato JSON. No cambia las trece tools MCP. [ADR-045](adr/ADR-045-cli-doctor.md).
+
+## Frontera de distribución 0.1.0
+
+ADR-048 no cambia la arquitectura ni el contrato. Se distribuye un único archive
+core `aarch64-apple-darwin` que conserva discovery, las trece definiciones y caminos
+SQLite lexical/degradados. No contiene modelo, ORT, LanceDB, catálogo, trust,
+fixtures, Docker ni toolchain. El cierre arquitectónico es compuesto: artifact
+core verificado más full gate source-bound del perfil `local` en el host positivo,
+con ejecución de proyecto dentro del guest Docker Linux ARM64 aprobado.
+
+No existe catálogo oficial 0.1.0 ni clave Ed25519 de producción. Import, firmas,
+antirollback, cambio de trust por el host y revocación por retirada de trust siguen
+implementados para catálogos aportados explícitamente por el host.

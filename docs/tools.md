@@ -100,7 +100,7 @@ fijo; ausencia de componente ejecutable es unavailable, política no autorizada 
 blocked. Annotations: readOnly true, destructive false, idempotent true, openWorld false.
 Véase [ADR-033](adr/ADR-033-toolchain-inspection.md).
 
-## Contrato M1 previsto
+## Contrato M1 / 0.1.0
 
 El alcance autorizado contiene exactamente estas trece tools:
 
@@ -123,6 +123,10 @@ El alcance autorizado contiene exactamente estas trece tools:
 `rust.dependencies.inspect` no es tool pública M1. Los contratos tipados, schemas y
 resultados estructurados se implementarán según ADR-006 y ADR-015. La publicación
 de una tool no sustituirá los controles de disponibilidad/policy por plataforma.
+El archive core descubre estas trece definiciones, pero no promete que todas tengan
+un camino positivo sin configuración del host. Ejecución requiere el gateway
+aprobado; semántica requiere un build `local` source-qualified y assets aportados
+por el usuario. Los resultados unavailable/blocked/degraded son parte del contrato.
 
 ## Gateway M0-05
 
@@ -413,6 +417,8 @@ OS global. Deadline120s cooperativo en el worker joined compartido; cancelación
 timeout retienen admisión hasta finalizar trabajo nativo y descartan éxito tardío.
 El resultado MCP completo, incluidas representaciones textual/estructurada, tiene
 cap128KiB. [ADR-042](adr/ADR-042-catalog-runtime-status.md).
+0.1.0 no incluye catálogo, trust ni fixture oficial; cualquier configuración procede
+del host. La clave de fixture nunca identifica a IUMotion Labs ni a una release.
 
 ## rust.crate.search
 
@@ -569,3 +575,12 @@ no readiness universal. [ADR-045](adr/ADR-045-cli-doctor.md).
 
 Una salida bloqueada por el consumidor vence a los5s o por señal, después de
 terminar la observación y cleanup; sale1 y puede no entregar un JSON completo.
+
+## Perfil del artifact 0.1.0
+
+El único archive previsto es core para `aarch64-apple-darwin`. Debe pasar desde sus
+bytes empaquetados `version`, doctor pasivo, discovery, inventario exacto de trece
+tools y los caminos estructurados degraded/unavailable esperados. Conserva SQLite
+lexical cuando el host aporta un catálogo válido, pero no incluye modelo, ORT,
+LanceDB, catálogo, trust, fixtures, Docker ni toolchain. El perfil `local` completo
+continúa siendo M1 y se califica separadamente desde fuente según ADR-048.

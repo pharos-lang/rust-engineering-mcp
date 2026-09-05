@@ -1,0 +1,51 @@
+{
+  "schema": "rust-engineering-mcp-local-release-artifact-receipt-v1",
+  "status": "passed",
+  "source_commit": "a6ea6b782e57271c01885bd147e5b66835ed9f8d",
+  "source_worktree_clean": true,
+  "tag_candidate": "v0.1.0",
+  "target": "aarch64-apple-darwin",
+  "scope": "local reproduction before protected public publication; GitHub Actions must rebuild and attest the tagged source",
+  "archive": {
+    "name": "rust-engineering-mcp-v0.1.0-aarch64-apple-darwin.tar.gz",
+    "bytes": 7301742,
+    "sha256": "c3cc17a57d7a2b07366a7cdb38695b9d6c329f6f5b7cf1d9e68e7a383f95f18d",
+    "members": 11
+  },
+  "binary": {
+    "name": "rust-engineering-mcp",
+    "version": "0.1.0",
+    "sha256": "ebcb292c71d863aabb900874651230d0a16d5c93f68da84afb84bd89f4977edf"
+  },
+  "closure": {
+    "packages": 219,
+    "relationships": 550,
+    "tool_count": 13,
+    "tool_schema_set_sha256": "03d6e5279070c0fef6400d2098af6bdd45e3a8dcb80a942318460a541d58b9a2",
+    "sha256sums_sha256": "13825d8a6149bd01998c9aef967d1b95566ad8d618baa28e01a32ef46b6eb2d8",
+    "manifest_sha256": "586bbd2507f138c9b073c652ef012a2a7b4950db89cc50685e431ccdcda45c94",
+    "inventory_sha256": "f05007f52508bcaba88732b6fd04b0455541770f4063403f5d43eb6e1bc71963",
+    "sbom_spdx_sha256": "f85741b0faa22691fa3c94c4d225d9eb5cdff9a749f419dfb25c6bdbf22bf495",
+    "third_party_notices_sha256": "0b499c862bb357e702104f06b65c6b15a80d7ea6a9ff613750f3f666cf7625b2"
+  },
+  "smoke": {
+    "status": "passed",
+    "raw_receipt_sha256": "2bb407b40dc13a57ded0c37e05c60826f8f5244dbd6d1f3da93e40ae059291dc",
+    "cli_calls": 3,
+    "mcp_calls": 6,
+    "exact_tool_and_schema_inventory": true,
+    "structured_results": ["passed", "unavailable", "blocked"],
+    "process_group_clean": true,
+    "temporary_installation_removed": true
+  },
+  "excluded": [
+    "official catalog",
+    "catalog trust material",
+    "Docker runtime",
+    "Rust toolchain",
+    "E5 model",
+    "ONNX Runtime",
+    "LanceDB data",
+    "test fixtures"
+  ]
+}

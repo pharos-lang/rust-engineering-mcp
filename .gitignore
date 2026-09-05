@@ -4,4 +4,6 @@
 /.vscode/
 *.log
 *.profraw
+__pycache__/
+*.py[cod]
 /coverage/
