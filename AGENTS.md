@@ -44,8 +44,13 @@ versión fijada en `Cargo.lock`.
 
 ## Alcance vigente
 
-El trabajo autorizado es M0 y M1/0.1.0. No avanzar a M2. El contrato público M1 se
-limita a estas trece tools:
+M0 y M1/0.1.0 están cerrados. El owner autorizó el 2026-09-05 integrar primero la
+planificación M2–M8 y después implementar únicamente M2. La planificación quedó
+integrada localmente en `2f54b360e1e81f21e7efeff7c451cdd6f663a04f`.
+No avanzar a M3 ni publicar otra release/tag sin autorización explícita adicional.
+M2 sigue su [plan](docs/roadmap/m2-safe-mutation.md), incluida la puerta D02 antes
+de un writer: una calificación negativa bloquea el corte, no autoriza reducir
+garantías. El contrato público implementado conserva estas trece tools M1:
 
 - `rust.project.open`
 - `rust.project.inspect`
@@ -60,6 +65,11 @@ limita a estas trece tools:
 - `rust.catalog.status`
 - `rust.crate.search`
 - `rust.crate.inspect`
+
+M2 autoriza implementar `rust.fmt.apply`, `rust.fix.apply`, `rust.dependency.add`,
+`rust.dependency.remove` y `rust.manifest.patch` por verticales calificadas. No
+anunciar tools vacías ni considerar dieciocho tools implementadas antes de su
+evidencia. Las trece anteriores conservan contratos y semántica.
 
 `rust.dependencies.inspect` aparece en una sección descriptiva de la propuesta,
 pero no pertenece al alcance inmediato que la propia propuesta y la instrucción del

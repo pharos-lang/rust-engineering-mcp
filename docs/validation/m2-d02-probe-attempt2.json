@@ -1,0 +1,121 @@
+{
+  "started_at_utc": "2026-09-05T07:40:38.760459+00:00",
+  "scope": "disposable fixture experiment; no production writer",
+  "platform": "macOS-26.6.2-arm64-arm-64bit-Mach-O",
+  "kernel": "25.6.0",
+  "machine": "arm64",
+  "uid": 501,
+  "script_sha256": "6e75cae0912f7de223f4ba700c4361a184c58bda00dd3af6ff8a5a9165dcf89d",
+  "observations": [
+    {
+      "case": "root_relative_swap_positive",
+      "expected_observation": true,
+      "errno": 0
+    },
+    {
+      "case": "unknown_flag_rejected",
+      "expected_observation": true,
+      "errno": 22
+    },
+    {
+      "case": "absolute_path_beneath_rejected",
+      "expected_observation": true,
+      "errno": 107
+    },
+    {
+      "case": "symlink_denied",
+      "expected_observation": true,
+      "errno": 62,
+      "outside_changed": false
+    },
+    {
+      "case": "symlink_attack_control",
+      "expected_observation": true,
+      "errno": 0,
+      "outside_changed": true
+    },
+    {
+      "case": "moved_parent_root_path_denied",
+      "expected_observation": true,
+      "errno": 2,
+      "outside_changed": false
+    },
+    {
+      "case": "moved_parent_descriptor_attack_control",
+      "expected_observation": true,
+      "errno": 0,
+      "outside_changed": true
+    },
+    {
+      "case": "root_handle_does_not_pin_configured_namespace",
+      "expected_observation": true,
+      "errno": 0,
+      "original_root_path_absent": true,
+      "relocated_root_changed": true
+    },
+    {
+      "case": "cooperative_flock_control",
+      "expected_observation": true,
+      "second_lock_denied": true
+    },
+    {
+      "case": "uncooperative_writer_ignores_flock",
+      "expected_observation": true,
+      "preflight_sha256": "6db7d803e74f1ffa7d8f5adc0bf95b3e15bf4c8373fffadf546227cc6c6742cb",
+      "observed_sha256": "3c4623849a49a53911c4a3e48d8cead8a1858960bccdea7a1b978d73ec2f06d7"
+    },
+    {
+      "case": "swap_does_not_compare_expected_content",
+      "expected_observation": true,
+      "errno": 0,
+      "candidate_published_before_conflict_detection": true,
+      "displaced_external_bytes_retained": true
+    },
+    {
+      "case": "swap_back_displaces_newer_visible_update",
+      "expected_observation": true,
+      "errno": 0,
+      "newer_update_no_longer_at_user_path": true,
+      "newer_bytes_retained_in_staging": true
+    },
+    {
+      "case": "file_lease_unavailable_to_current_process",
+      "expected_observation": true,
+      "errno": 1,
+      "scope": "availability only, no positive lease enforcement claim"
+    },
+    {
+      "case": "fullfsync_file",
+      "expected_observation": true,
+      "errno": 0,
+      "scope": "API result only; no power-loss or journal-recovery claim"
+    },
+    {
+      "case": "fullfsync_directory",
+      "expected_observation": true,
+      "errno": 0,
+      "scope": "API result only; no power-loss or journal-recovery claim"
+    }
+  ],
+  "product_gate": "no_go_current_candidate",
+  "sdk_headers": {
+    "stdio": {
+      "path": "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/sys/stdio.h",
+      "sha256": "a8078ae1cba1a46a66d0de6fe7f13bbc969cdb7e78fc2d4b9a5c5cdaaf16126b"
+    },
+    "fcntl": {
+      "path": "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/sys/fcntl.h",
+      "sha256": "805fd8c695f8e5e1c327b6852382cc5533738bbfd8f18bc11f850531166e4fe8"
+    }
+  },
+  "filesystem": "apfs",
+  "experiment_status": "observations_matched",
+  "limitations": [
+    "No production writer, journal or five M2 tools implemented",
+    "No proof that all possible host isolation designs are impossible",
+    "No EXDEV cross-volume, mmap, kernel crash or power-loss qualification",
+    "Expected attack success is evidence against the candidate, not M2 success",
+    "Temporary fixture tree removed; no user project bytes changed"
+  ],
+  "finished_at_utc": "2026-09-05T07:40:38.933312+00:00"
+}

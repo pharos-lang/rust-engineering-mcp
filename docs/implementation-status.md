@@ -115,6 +115,14 @@ release están enlazados desde el [recibo final](validation/m1-17-public-release
 
 ## Blocked
 
+**M2 / D02 — No-go del candidato actual**, después del merge local de planificación
+`2f54b36`. La [matriz M2](validation/M2-matrix.md) y el [probe APFS](validation/m2-d02-native-probe.json)
+demuestran que rename protegido contiene paths descendientes, pero hash/flock/swap
+no excluyen escritores externos ni fijan la entrada del root. Leases: EPERM.
+Se requiere decisión de frontera host y calificación positiva antes de M2-01;
+[ADR-049](adr/ADR-049-m2-write-boundary-qualification.md) sigue Proposed.
+No hay writer ni tools M2 implementadas. M2-01..07 y sus dependientes siguen pendientes.
+
 No hay bloqueo M0/M1 ni decisión de alcance pendiente para 0.1.0. ADR-048 mantiene
 fuera de esta release los artifacts/plataformas/assets no calificados y el catálogo
 oficial. La [matriz M1-17](validation/M1-17-matrix.md) conserva esas limitaciones.

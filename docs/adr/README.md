@@ -40,6 +40,7 @@ Accepted, Superseded y Rejected.
 | [ADR-032](ADR-032-project-inspection.md) | Inspección de source capturado y evidencia | Accepted; M1-01 implementada y validada |
 | [ADR-047](ADR-047-publication-license-and-delivery.md) | Licencia pública y entrega mediante GitHub | Accepted |
 | [ADR-048](ADR-048-0.1.0-qualification-and-artifact-boundary.md) | Frontera de calificación y artifacts 0.1.0 | Accepted |
+| [ADR-049](ADR-049-m2-write-boundary-qualification.md) | Calificación previa de escritura M2 | Proposed; D02 No-go del candidato actual, no writer implementado |
 
 - [ADR-033 — Installed runtime toolchain observation](ADR-033-toolchain-inspection.md).
 
