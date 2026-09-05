@@ -2,6 +2,11 @@
 
 ## Unreleased — 0.1.0-dev.1
 
+- README reorganizado como guía pública de instalación, configuración y uso. La
+  nueva guía de clientes documenta Codex, Claude Code, Gemini CLI, Cursor, VS Code
+  y MCP Inspector, distinguiendo configuración disponible de compatibilidad
+  calificada.
+
 - Original project code is now dual-licensed under `MIT OR Apache-2.0`, copyright
   IUMotion Labs. The public source channel is
   `pharos-lang/rust-engineering-mcp`. Pinned GitHub Actions provide portable CI and

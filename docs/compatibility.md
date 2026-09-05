@@ -10,9 +10,9 @@
 | SDK | `rmcp =3.2.0`, features `server`, `transport-io`, sin defaults |
 | Runtime / logging | Tokio `1.53.1`, tokio-util `0.7.19`, tracing `0.1.44`, tracing-subscriber `0.3.23` |
 | Dominio | Serde `1.0.229`; sin dependencia del SDK, ADR-022 |
-| Linux / Windows / macOS x86_64 nativos | Sin ejecución validada; matriz CI inicial documentará esta limitación, gate requerido antes del RC M1 |
-| Licencia / redistribución | Decisión pendiente; gate obligatorio antes de publicar M1 |
-| Clientes de terceros | Pendientes; las pruebas actuales usan un harness independiente |
+| Linux / Windows / macOS x86_64 nativos | CI pública compila y prueba el código fuente; la calificación nativa del sandbox y filesystem sigue pendiente antes del RC M1 |
+| Licencia / redistribución | Código fuente público bajo `MIT OR Apache-2.0`; binarios soportados todavía no publicados |
+| Clientes de terceros | Inspector 2.5.0 llamó 13/13 tools; APIs directas de Codex 0.153.0 verificadas; calificación model-driven y demás clientes pendiente |
 | Sandbox | Probes M0 separados; Cargo M1 habilitado solo en runtime aprobado Docker/Linux ARM64 calibrado ADR-031/032 |
 | SQLite / FTS5 | rusqlite 0.40.2, SQLite bundled 3.53.2; memoria, pruebas ARM64 macOS |
 | LanceDB / embeddings | M0-09: E5/ORT y LanceDB0.31 memory://; feature local, gate macOS ARM64 |
@@ -34,7 +34,10 @@ La matriz original acredita bootstrap y project.open. La evidencia M1-11 cubre
 las once definiciones anteriores; [M1-12](validation/M1-12.md) valida el contrato
 de doce tools. El checkout anuncia trece con M1-13 implementado y gate aprobado.
 Esto no acredita conformidad completa de cada revisión MCP.
-No se han probado clientes Codex/Claude/otros.
+La [guía de clientes](client-configuration.md) documenta Codex, Claude Code, Gemini
+CLI, Cursor, VS Code y MCP Inspector. Solo Inspector 2.5.0 y las APIs directas de
+Codex 0.153.0 cuentan con evidencia preservada; una configuración documentada no se
+presenta como calificación del flujo autónomo del agente.
 Las versiones se declaran explícitamente; no se anuncia una nueva versión por
 actualizar el SDK sin ampliar las pruebas.
 
