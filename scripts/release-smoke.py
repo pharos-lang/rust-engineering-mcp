@@ -152,7 +152,7 @@ def open_regular(path: Path, limit: int) -> tuple[int, os.stat_result]:
     if hasattr(os, "O_NOFOLLOW"):
         flags |= os.O_NOFOLLOW
     try:
-        descriptor = os.open(path, flags)
+        descriptor = os.open(path, flags)  # NOSONAR -- no-follow open followed by regular-file and bounded-size validation.
     except OSError as error:
         raise ValueError(f"cannot open regular no-follow file {path}: {error}") from error
     observed = os.fstat(descriptor)
@@ -1047,7 +1047,7 @@ def write_receipt(path: Path, value: dict[str, object]) -> None:
         flags = os.O_WRONLY | os.O_CREAT | os.O_EXCL
         if hasattr(os, "O_NOFOLLOW"):
             flags |= os.O_NOFOLLOW
-        descriptor = os.open(path.name, flags, 0o600, dir_fd=directory)
+        descriptor = os.open(path.name, flags, 0o600, dir_fd=directory)  # NOSONAR -- fixed basename under a resolved directory fd, exclusive and no-follow.
         created = True
         data = canonical_json(value)
         written = 0
@@ -1063,7 +1063,7 @@ def write_receipt(path: Path, value: dict[str, object]) -> None:
             descriptor = -1
         if created:
             try:
-                os.unlink(path.name, dir_fd=directory)
+                os.unlink(path.name, dir_fd=directory)  # NOSONAR -- removes only the receipt this function exclusively created via the same directory fd.
             except FileNotFoundError:
                 pass
         raise

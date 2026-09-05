@@ -135,7 +135,7 @@ def read_regular(path: Path, limit: int) -> bytes:
     if hasattr(os, "O_NOFOLLOW"):
         flags |= os.O_NOFOLLOW
     try:
-        descriptor = os.open(path, flags)
+        descriptor = os.open(path, flags)  # NOSONAR -- no-follow open plus fstat identity and size checks below.
     except OSError as error:
         raise ValueError(f"cannot open regular no-follow file {path}: {error}") from error
     try:
@@ -177,7 +177,7 @@ def cargo_metadata(root: Path, target: str) -> dict[str, object]:
         "1",
     ]
     try:
-        output = subprocess.run(
+        output = subprocess.run(  # NOSONAR -- fixed Cargo argv, closed target, no shell or user flags.
             command,
             cwd=root,
             stdin=subprocess.DEVNULL,
@@ -592,7 +592,7 @@ def write_deterministic_archive(path: Path, prefix: str, members: list[Member]) 
                     info.uname = ""
                     info.gname = ""
                     info.mtime = 0
-                    archive.addfile(info, io.BytesIO(member.data))
+                    archive.addfile(info, io.BytesIO(member.data))  # NOSONAR -- safe_relative validates every in-memory member name.
 
 
 def verify_archive(path: Path, prefix: str, expected: list[Member]) -> None:
@@ -667,7 +667,7 @@ def prepare_output(path: Path) -> Path:
         if path.is_symlink() or not path.is_dir():
             raise ValueError("output directory must be a real directory")
     else:
-        path.mkdir(parents=True, mode=0o755)
+        path.mkdir(parents=True, mode=0o755)  # NOSONAR -- explicit maintainer-selected output; archive publication remains exclusive/no-follow.
     return path.resolve(strict=True)
 
 
