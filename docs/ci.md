@@ -13,6 +13,22 @@ advisories/bans/sources. Los pull requests no reciben secretos ni permisos de
 escritura. Este workflow puede descargar dependencias y advisory data durante su
 fase explícita de aprovisionamiento; el runtime MCP no adquiere nada.
 
+`.github/workflows/sonarcloud.yml` calcula cobertura antes del análisis. Rust usa
+`cargo-llvm-cov` 0.9.0 con Rust 1.98.1 y ejecuta el workspace, todos sus targets y
+las dependencias fijadas por `Cargo.lock`; el resultado se entrega como LCOV.
+Python usa Coverage.py 7.16.0 desde una wheel fijada por URL y SHA-256 y entrega
+Cobertura XML. `scripts/test-*.py` se clasifica como código de prueba; los demás
+scripts son fuentes medibles. El job ejecuta `scripts/check-architecture.py`, por
+lo que cualquier otra utilidad Python no recorrida permanece como código no
+cubierto. Un validador rechaza reportes ausentes, vacíos o con contadores
+inconsistentes antes de invocar SonarCloud.
+
+La cifra de SonarCloud representa los tests Rust portables y el control de
+arquitectura Python que se ejecutan en Ubuntu. No incluye doctests ni los gates
+full, Docker, macOS network-deny, E5/ORT/LanceDB, clientes reales o pruebas nativas
+de otras plataformas. Esos alcances conservan su evidencia separada en este
+documento y en `docs/validation/`.
+
 `.github/workflows/release-candidate.yml` solo admite dispatch manual desde un tag
 de versión existente. Construye el perfil core para los tres runners, empaqueta
 LICENSE/NOTICE, verifica SHA-256, crea attestations OIDC y abre un GitHub prerelease
