@@ -1,0 +1,145 @@
+{
+  "schema_version": 1,
+  "recorded_at_utc": "2026-09-05T19:20:42+00:00",
+  "baseline_commit": "331d163",
+  "objective": "Exercise native mutation journal, staging, publication, and recovery I/O fault handling without exhausting host storage.",
+  "status": "passed",
+  "scope": {
+    "platform": "macOS-26.6.2-arm64-arm-64bit-Mach-O",
+    "rustc": [
+      "rustc 1.98.1 (48a229cea 2026-09-01)",
+      "binary: rustc",
+      "commit-hash: 48a229ceaefd4985c50990b14116b6d856af0985",
+      "commit-date: 2026-09-01",
+      "host: aarch64-apple-darwin",
+      "release: 1.98.1",
+      "LLVM version: 22.1.8"
+    ],
+    "fault_mechanism": "Private thread-local cfg(test) one-shot injection at real native writer I/O boundaries.",
+    "production_contract_changed": false,
+    "durable_format_changed": false,
+    "quota_changed": false
+  },
+  "faults": {
+    "injected_errno": {
+      "name": "ENOSPC",
+      "rustix": "Errno::NOSPC",
+      "public_mapping": "MutationError::Io"
+    },
+    "modes": [
+      {
+        "name": "NoSpaceBefore",
+        "behavior": "Return the native writer ENOSPC mapping at the selected boundary."
+      },
+      {
+        "name": "ShortWriteThenNoSpace",
+        "behavior": "Write exactly the first half of the intended bytes to the real fd, then return the native writer ENOSPC mapping."
+      }
+    ],
+    "points": [
+      "JournalWrite(phase)",
+      "TempContentWrite",
+      "PostSwapDurability"
+    ]
+  },
+  "observations": {
+    "journal_phase_table": [
+      {
+        "phase": "Prepared",
+        "source_generation": "before",
+        "result": "Io",
+        "partial_record": "final journal retained",
+        "receipt_and_recovery": "RecoveryRequired"
+      },
+      {
+        "phase": "Scratch",
+        "source_generation": "before",
+        "result": "RecoveryRequired",
+        "partial_record": "staging successor retained",
+        "receipt_and_recovery": "RecoveryRequired"
+      },
+      {
+        "phase": "Staged",
+        "source_generation": "before",
+        "result": "RecoveryRequired",
+        "partial_record": "staging successor retained",
+        "receipt_and_recovery": "RecoveryRequired"
+      },
+      {
+        "phase": "Applying",
+        "source_generation": "before",
+        "result": "RecoveryRequired",
+        "partial_record": "staging successor retained",
+        "receipt_and_recovery": "RecoveryRequired"
+      },
+      {
+        "phase": "Published",
+        "source_generation": "after",
+        "result": "RecoveryRequired",
+        "partial_record": "staging successor retained",
+        "receipt_and_recovery": "RecoveryRequired"
+      },
+      {
+        "phase": "Committed",
+        "source_generation": "after",
+        "result": "RecoveryRequired",
+        "partial_record": "staging successor retained",
+        "receipt_and_recovery": "RecoveryRequired"
+      }
+    ],
+    "staging_content_short_write": {
+      "commit_result": "Io",
+      "terminal_state": "Aborted",
+      "source_generation": "before",
+      "reserved_temp": "removed after strict node/source validation"
+    },
+    "post_swap_durability_enospc": {
+      "commit_result": "RecoveryRequired",
+      "intermediate_source_generation": "after",
+      "explicit_recovery": "Committed",
+      "terminal_temp": "absent"
+    },
+    "recovery_terminal_journal_short_write": {
+      "first_recovery_result": "Io",
+      "source_generation": "after",
+      "reserved_temp": "absent after qualified cleanup",
+      "subsequent_receipt_and_recovery": "RecoveryRequired because the partial staging journal is preserved"
+    }
+  },
+  "commands": [
+    {
+      "command": "rustfmt +1.98.1 --edition 2024 crates/project-adapter/src/filesystem/macos/mutation.rs crates/project-adapter/tests/support/native_mutation.rs",
+      "result": "passed"
+    },
+    {
+      "command": "cargo +1.98.1 test -p rust-engineering-project --lib 'filesystem::macos::mutation::tests::' -- --nocapture",
+      "result": "35 passed; 0 failed; 2 ignored; 25 filtered out"
+    },
+    {
+      "command": "cargo +1.98.1 clippy -p rust-engineering-project --all-targets -- -D warnings",
+      "result": "passed"
+    }
+  ],
+  "discriminating_tests": [
+    "short_journal_writes_fail_closed_at_every_commit_phase",
+    "short_staging_content_write_recovers_known_before_generation",
+    "post_swap_durability_enospc_recovers_known_after_generation",
+    "recovery_terminal_journal_short_write_preserves_known_after_and_evidence"
+  ],
+  "source_hashes": {
+    "crates/project-adapter/src/filesystem/macos/mutation.rs": "sha256:6db94b0818d6d5230db87125ca4422122f78f836a2d7a50ded2200e7e32f7fe2",
+    "crates/project-adapter/tests/support/native_mutation.rs": "sha256:1984f757917c5e42ce1c7640e9718ef7763a7a638b250692b545784df11e40ee",
+    "docs/roadmap/m2-safe-mutation.md": "sha256:5bde4e58ae87826b737e6ce64818e025692933e0523e34c0f025a2cd72693503"
+  },
+  "limitations": [
+    "This is deterministic fault injection and does not fill the physical APFS volume.",
+    "The short-write mode performs a real prefix write but injects the following ENOSPC result; it does not force the kernel write syscall itself to return a short count.",
+    "The evidence does not test sudden power loss, APFS behavior under zero free blocks, or hardware I/O errors.",
+    "A partial or corrupt journal is intentionally preserved and remains RecoveryRequired; the writer does not infer ownership strongly enough to delete it after uncertainty."
+  ],
+  "host_safety": {
+    "docker_used": false,
+    "host_disk_filled": false,
+    "services_installed_or_mounted": false
+  }
+}

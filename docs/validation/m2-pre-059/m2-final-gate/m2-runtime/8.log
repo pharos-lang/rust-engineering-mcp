@@ -1,0 +1,11 @@
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.11s
+     Running tests/inspection_runtime.rs (target/debug/deps/inspection_runtime-836bf750ab4f64c1)
+
+running 4 tests
+test dependency_mutation_runtime::absent_lock_stays_absent_and_manifest_patch_families_use_resolution_oracle ... ok
+test dependency_mutation_runtime::dependency_add_remove_preview_commit_restart_and_scope ... ok
+test dependency_mutation_runtime::dependency_dataset_selection_target_and_inherited_removal_fail_closed ... ok
+test dependency_mutation_runtime::package_root_feature_set_and_remove_are_exact_and_lock_preserving ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 24 filtered out; finished in 121.82s
+

@@ -1,0 +1,9 @@
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.11s
+     Running tests/inspection_runtime.rs (target/debug/deps/inspection_runtime-836bf750ab4f64c1)
+
+running 1 test
+test audit_runtime::audit_real_rsa_and_lock_generations_are_captured_without_building ... M1_AUDIT_RECEIPT {"cases":4,"cleanup":true,"configuration_fingerprint":"sha256:84fb1e2dac1829773cd1c3fa00b757db03c33f78c2de9a49ab836d56b019183e","invalid_and_ambiguous_lock_blocked":true,"lock_generations_sha256_verified":2,"no_invented_patch":true,"project_build_script_not_executed":true,"real_rsa_finding":true,"root_path_verified":true,"severity":"medium","snapshot_fingerprint":"sha256:a95411a2a965b47f287545dc14a1f8d8ab1fa7a671cd8139e264dbff952d8c22","source_unchanged_between_explicit_mutations":true}
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 28 filtered out; finished in 18.13s
+

@@ -1,0 +1,20 @@
+{
+  "status": "passed",
+  "command": [
+    "cargo",
+    "build",
+    "--release",
+    "--locked",
+    "--offline",
+    "-p",
+    "rust-engineering-mcp"
+  ],
+  "version": "rust-engineering-mcp 0.2.0-dev",
+  "profile": "core; default features empty",
+  "binary": "target/release/rust-engineering-mcp",
+  "binary_sha256": "39d95ec7d44ff062febf99af2e8f6351e89a303cdf9bb976e09799e6fb6ef28f",
+  "bytes": 22639984,
+  "build_log_sha256": "d5ac76d8633510c42fa0961f66f260ae0731b57a4828fcb6ac0bd931af33d844",
+  "source_gate_sha256": "2c58c6fe1c28f34bc603edda9b22336aa19c0d68b6d645913f96b6837127d9e1",
+  "distribution": "local development binary only; no archive, signing, tag, publication or release qualification"
+}

@@ -1,0 +1,970 @@
+{
+  "status": "passed_with_explicit_raw_artifact_exceptions",
+  "recorded_at": "2026-09-05T22:36:40.952119+00:00",
+  "unfiltered_exit_code": 2,
+  "unfiltered_diagnostics": 1529,
+  "scoped_exit_code": 0,
+  "scope": "All staged content except the exact listed files; implementation commit separately passed unfiltered git diff --cached --check.",
+  "excluded_files": [
+    {
+      "path": "docs/reviews/M2-02-native-review.md",
+      "sha256": "d9ca753e973b559a340c47d7bffe25a4c8de9c015846e1bc40da9770f1e11cdf",
+      "diagnostics": 2,
+      "kinds": [
+        "trailing whitespace."
+      ],
+      "reason": "Intentional CommonMark hard line breaks in preserved historical review summary."
+    },
+    {
+      "path": "docs/reviews/m2-059-packages/M2-059-opus-prompt.txt",
+      "sha256": "25640c566ffa0decb48d36a1a8a20a301d8a0e46ff13e1c0bc2c0f5c742c1fd8",
+      "diagnostics": 458,
+      "kinds": [
+        "new blank line at EOF.",
+        "trailing whitespace."
+      ],
+      "reason": "Immutable raw command output or exact historical review input; preserve original bytes and recorded hashes."
+    },
+    {
+      "path": "docs/reviews/m2-059-packages/M2-059-recheck-opus-prompt.txt",
+      "sha256": "8e3731ef77f4b07ad10141cc28d77b6ebb4c2105ea82dcd2474f140e1de25dd1",
+      "diagnostics": 514,
+      "kinds": [
+        "new blank line at EOF.",
+        "trailing whitespace."
+      ],
+      "reason": "Immutable raw command output or exact historical review input; preserve original bytes and recorded hashes."
+    },
+    {
+      "path": "docs/reviews/m2-closure-packages/M2-closure-agy-prompt.txt",
+      "sha256": "3f0544dbf7e03987d3b6c42f003aff09cc545a76ef789b0e42562ad224b19652",
+      "diagnostics": 398,
+      "kinds": [
+        "trailing whitespace."
+      ],
+      "reason": "Immutable raw command output or exact historical review input; preserve original bytes and recorded hashes."
+    },
+    {
+      "path": "docs/reviews/m2-closure-packages/M2-closure-resolution-opus-prompt.txt",
+      "sha256": "42552ea575c233abd0b5b290a77ea3ab401eaff314c0239f3e8f9efa6b1948c2",
+      "diagnostics": 1,
+      "kinds": [
+        "trailing whitespace."
+      ],
+      "reason": "Immutable raw command output or exact historical review input; preserve original bytes and recorded hashes."
+    },
+    {
+      "path": "docs/reviews/m2-final-packages/M2-final-native-prompt.txt",
+      "sha256": "3c454357e67a9c5424f5e4debc67bb32ed44663bc94fec1e22aeb9adeebef3fc",
+      "diagnostics": 11,
+      "kinds": [
+        "trailing whitespace."
+      ],
+      "reason": "Immutable raw command output or exact historical review input; preserve original bytes and recorded hashes."
+    },
+    {
+      "path": "docs/validation/m2-059/M2-059-application.log",
+      "sha256": "d1193e70b5f2f3939a82ec18729a9753417fbde607b6d4a2ca1311909d47c916",
+      "diagnostics": 1,
+      "kinds": [
+        "new blank line at EOF."
+      ],
+      "reason": "Immutable raw command output or exact historical review input; preserve original bytes and recorded hashes."
+    },
+    {
+      "path": "docs/validation/m2-059/M2-059-native-replay.log",
+      "sha256": "acbf276720d0696dc90ff49bab4454493e90dd5922945e569e48cca94b2dc825",
+      "diagnostics": 1,
+      "kinds": [
+        "new blank line at EOF."
+      ],
+      "reason": "Immutable raw command output or exact historical review input; preserve original bytes and recorded hashes."
+    },
+    {
+      "path": "docs/validation/m2-059/M2-059-runtime.log",
+      "sha256": "8c33cdddfb50f3194e514a239e2def93267a7cc63278983f1da821121aa2ce84",
+      "diagnostics": 1,
+      "kinds": [
+        "new blank line at EOF."
+      ],
+      "reason": "Immutable raw command output or exact historical review input; preserve original bytes and recorded hashes."
+    },
+    {
+      "path": "docs/validation/m2-d05-hardening-followup.log",
+      "sha256": "7342d1499c1e9a683038818d832ba4dcbc278ddc93b778ae88474f433bb083be",
+      "diagnostics": 1,
+      "kinds": [
+        "new blank line at EOF."
+      ],
+      "reason": "Immutable raw command output or exact historical review input; preserve original bytes and recorded hashes."
+    },
+    {
+      "path": "docs/validation/m2-d05-hardening-gate.log",
+      "sha256": "dde85a7590685c1650c94428894a9ea51024e38579d2c62aaba025a10837f831",
+      "diagnostics": 1,
+      "kinds": [
+        "new blank line at EOF."
+      ],
+      "reason": "Immutable raw command output or exact historical review input; preserve original bytes and recorded hashes."
+    },
+    {
+      "path": "docs/validation/m2-d05-vendor-fingerprint.log",
+      "sha256": "6499c63707d6a96346b9e562f4e9625dd9fea9d390870d093bb7eea0dd4d7304",
+      "diagnostics": 1,
+      "kinds": [
+        "new blank line at EOF."
+      ],
+      "reason": "Immutable raw command output or exact historical review input; preserve original bytes and recorded hashes."
+    },
+    {
+      "path": "docs/validation/m2-final-gate/audit-data/audit-data.log",
+      "sha256": "c4b4bf80662e6afaedf0a1472652bb3be519dad3abcf4c7c802d3b23104c8315",
+      "diagnostics": 1,
+      "kinds": [
+        "new blank line at EOF."
+      ],
+      "reason": "Immutable raw command output or exact historical review input; preserve original bytes and recorded hashes."
+    },
+    {
+      "path": "docs/validation/m2-final-gate/doctor-security/ordinary.stdout.log",
+      "sha256": "61d1650537b75cf2103583bea81d57f5ebedafd7100f95e1a5bc5739431103dc",
+      "diagnostics": 1,
+      "kinds": [
+        "new blank line at EOF."
+      ],
+      "reason": "Immutable raw command output or exact historical review input; preserve original bytes and recorded hashes."
+    },
+    {
+      "path": "docs/validation/m2-final-gate/full.log",
+      "sha256": "3a8d991a3d0374b8ab21fe0aa98f9f99f6744f2f75fbb35e795b244ef0fcddd4",
+      "diagnostics": 29,
+      "kinds": [
+        "trailing whitespace."
+      ],
+      "reason": "Immutable raw command output or exact historical review input; preserve original bytes and recorded hashes."
+    },
+    {
+      "path": "docs/validation/m2-final-gate/m2-runtime/0.log",
+      "sha256": "90eafdf192a9f90a2c24230426396cff4169dd47aff90018020110d5e4d6e2a8",
+      "diagnostics": 1,
+      "kinds": [
+        "new blank line at EOF."
+      ],
+      "reason": "Immutable raw command output or exact historical review input; preserve original bytes and recorded hashes."
+    },
+    {
+      "path": "docs/validation/m2-final-gate/m2-runtime/1.log",
+      "sha256": "d5fc5af4b2863c4ad8a67c65fa897e6cfbeede213342c3cf72c10b84e34faddf",
+      "diagnostics": 1,
+      "kinds": [
+        "new blank line at EOF."
+      ],
+      "reason": "Immutable raw command output or exact historical review input; preserve original bytes and recorded hashes."
+    },
+    {
+      "path": "docs/validation/m2-final-gate/m2-runtime/2.log",
+      "sha256": "28417f80a8dd423e82be7a92fe79ffad2b7efd4894a7fe9dfdf790e7eeee674d",
+      "diagnostics": 1,
+      "kinds": [
+        "new blank line at EOF."
+      ],
+      "reason": "Immutable raw command output or exact historical review input; preserve original bytes and recorded hashes."
+    },
+    {
+      "path": "docs/validation/m2-final-gate/m2-runtime/3.log",
+      "sha256": "8ff8c0fa5e2cb0b7a99f941ef7c5e494abc8fb178303385e6cbd35ed80e69d18",
+      "diagnostics": 1,
+      "kinds": [
+        "new blank line at EOF."
+      ],
+      "reason": "Immutable raw command output or exact historical review input; preserve original bytes and recorded hashes."
+    },
+    {
+      "path": "docs/validation/m2-final-gate/m2-runtime/4.log",
+      "sha256": "dc23022bf7ea1cb9a29731f564a804411874aaa92270619c7eee99be9dfe1045",
+      "diagnostics": 1,
+      "kinds": [
+        "new blank line at EOF."
+      ],
+      "reason": "Immutable raw command output or exact historical review input; preserve original bytes and recorded hashes."
+    },
+    {
+      "path": "docs/validation/m2-final-gate/m2-runtime/5.log",
+      "sha256": "f4be2145761a17ba22cf12939aa69e7ed6c7543c54ee9099d1405e4fb123080a",
+      "diagnostics": 1,
+      "kinds": [
+        "new blank line at EOF."
+      ],
+      "reason": "Immutable raw command output or exact historical review input; preserve original bytes and recorded hashes."
+    },
+    {
+      "path": "docs/validation/m2-final-gate/m2-runtime/6.log",
+      "sha256": "0b40d95fead2f0873b2c3b4eaa05dadd610f6e1567635028a5ebeae1213ce009",
+      "diagnostics": 1,
+      "kinds": [
+        "new blank line at EOF."
+      ],
+      "reason": "Immutable raw command output or exact historical review input; preserve original bytes and recorded hashes."
+    },
+    {
+      "path": "docs/validation/m2-final-gate/m2-runtime/7.log",
+      "sha256": "fd0cd761546a0b8e37701aa2f4dc0220743de5d04abfb1cfe238db7668c24e2f",
+      "diagnostics": 1,
+      "kinds": [
+        "new blank line at EOF."
+      ],
+      "reason": "Immutable raw command output or exact historical review input; preserve original bytes and recorded hashes."
+    },
+    {
+      "path": "docs/validation/m2-final-gate/m2-runtime/8.log",
+      "sha256": "4e919fd2574662f6ecbb1bdbae24bdba99941b3372250fcad80e1ec302dfdd9e",
+      "diagnostics": 1,
+      "kinds": [
+        "new blank line at EOF."
+      ],
+      "reason": "Immutable raw command output or exact historical review input; preserve original bytes and recorded hashes."
+    },
+    {
+      "path": "docs/validation/m2-final-gate/m2-runtime/9.log",
+      "sha256": "87dc3dd96d31c08a311041fdb818911661935521292e2ca182164bcf79416cba",
+      "diagnostics": 1,
+      "kinds": [
+        "new blank line at EOF."
+      ],
+      "reason": "Immutable raw command output or exact historical review input; preserve original bytes and recorded hashes."
+    },
+    {
+      "path": "docs/validation/m2-final-gate/rust-security/0.log",
+      "sha256": "b358ba74c6bfe24e340176dfd98ab1787f52edcaec06aeb66bcb346cf6eb72cc",
+      "diagnostics": 1,
+      "kinds": [
+        "new blank line at EOF."
+      ],
+      "reason": "Immutable raw command output or exact historical review input; preserve original bytes and recorded hashes."
+    },
+    {
+      "path": "docs/validation/m2-final-gate/rust-security/1.log",
+      "sha256": "5d8eedd8d2042f614e2199d859a914f47af0f8b3060f965c4fd49aa772d2291c",
+      "diagnostics": 1,
+      "kinds": [
+        "new blank line at EOF."
+      ],
+      "reason": "Immutable raw command output or exact historical review input; preserve original bytes and recorded hashes."
+    },
+    {
+      "path": "docs/validation/m2-final-gate/rust-security/10.log",
+      "sha256": "5632a9318a29b379f95ff3ad4b02d27f57194ff5985ca7306202b8f06eb1ef42",
+      "diagnostics": 1,
+      "kinds": [
+        "new blank line at EOF."
+      ],
+      "reason": "Immutable raw command output or exact historical review input; preserve original bytes and recorded hashes."
+    },
+    {
+      "path": "docs/validation/m2-final-gate/rust-security/11.log",
+      "sha256": "53752273ec59e229aff0defb7ac4e987580260632e7f5112cc06cc4189490009",
+      "diagnostics": 1,
+      "kinds": [
+        "new blank line at EOF."
+      ],
+      "reason": "Immutable raw command output or exact historical review input; preserve original bytes and recorded hashes."
+    },
+    {
+      "path": "docs/validation/m2-final-gate/rust-security/12.log",
+      "sha256": "3dc57927daba6ac1403d098ebe7bd04dbefd58c7fc694a865f62a2d8e1e03225",
+      "diagnostics": 1,
+      "kinds": [
+        "new blank line at EOF."
+      ],
+      "reason": "Immutable raw command output or exact historical review input; preserve original bytes and recorded hashes."
+    },
+    {
+      "path": "docs/validation/m2-final-gate/rust-security/13.log",
+      "sha256": "24a5e84797a77671d28854f48f0bf658eba128104bb9c352c9466845c5e98c2a",
+      "diagnostics": 1,
+      "kinds": [
+        "new blank line at EOF."
+      ],
+      "reason": "Immutable raw command output or exact historical review input; preserve original bytes and recorded hashes."
+    },
+    {
+      "path": "docs/validation/m2-final-gate/rust-security/14.log",
+      "sha256": "6368a584a599155cf655b318d3ae2725b001e90478ffffb358db60d2e56ccd13",
+      "diagnostics": 1,
+      "kinds": [
+        "new blank line at EOF."
+      ],
+      "reason": "Immutable raw command output or exact historical review input; preserve original bytes and recorded hashes."
+    },
+    {
+      "path": "docs/validation/m2-final-gate/rust-security/15.log",
+      "sha256": "c768c9c242791c8fb710e7ec27816f561dbd877c2409d05772e97b4004237f06",
+      "diagnostics": 1,
+      "kinds": [
+        "new blank line at EOF."
+      ],
+      "reason": "Immutable raw command output or exact historical review input; preserve original bytes and recorded hashes."
+    },
+    {
+      "path": "docs/validation/m2-final-gate/rust-security/16.log",
+      "sha256": "faa245cb285a517e4852e2d74eef5c618cd0f7357f49060840bd6d69ccd9401f",
+      "diagnostics": 1,
+      "kinds": [
+        "new blank line at EOF."
+      ],
+      "reason": "Immutable raw command output or exact historical review input; preserve original bytes and recorded hashes."
+    },
+    {
+      "path": "docs/validation/m2-final-gate/rust-security/17.log",
+      "sha256": "06a08d2f100918321bda71d6f0af0a4ac5736f54268fb028f0a4add6b88de6ca",
+      "diagnostics": 1,
+      "kinds": [
+        "new blank line at EOF."
+      ],
+      "reason": "Immutable raw command output or exact historical review input; preserve original bytes and recorded hashes."
+    },
+    {
+      "path": "docs/validation/m2-final-gate/rust-security/18.log",
+      "sha256": "dc0ec8e738ba184f9ffe6deeac0d8d9e41e1cedadcf96185e9bd839b4739fbd9",
+      "diagnostics": 1,
+      "kinds": [
+        "new blank line at EOF."
+      ],
+      "reason": "Immutable raw command output or exact historical review input; preserve original bytes and recorded hashes."
+    },
+    {
+      "path": "docs/validation/m2-final-gate/rust-security/19.log",
+      "sha256": "ae4d214f3949a2767502407319572f54c26059d7e0d88ec5e14073095634df07",
+      "diagnostics": 1,
+      "kinds": [
+        "new blank line at EOF."
+      ],
+      "reason": "Immutable raw command output or exact historical review input; preserve original bytes and recorded hashes."
+    },
+    {
+      "path": "docs/validation/m2-final-gate/rust-security/2.log",
+      "sha256": "96d9b9cf277cefc77121e5e5464c0f46ee6f86aa0fdf59e07573baca1a6f6c97",
+      "diagnostics": 1,
+      "kinds": [
+        "new blank line at EOF."
+      ],
+      "reason": "Immutable raw command output or exact historical review input; preserve original bytes and recorded hashes."
+    },
+    {
+      "path": "docs/validation/m2-final-gate/rust-security/3.log",
+      "sha256": "14117cdbcaf2d73a6a3a01718a260754d6a730ffba1da50e78919b0a45604837",
+      "diagnostics": 1,
+      "kinds": [
+        "new blank line at EOF."
+      ],
+      "reason": "Immutable raw command output or exact historical review input; preserve original bytes and recorded hashes."
+    },
+    {
+      "path": "docs/validation/m2-final-gate/rust-security/4.log",
+      "sha256": "346a0dbaedda08f4652cf234a1b5e21d3fe19307a249ebfa494338970647367d",
+      "diagnostics": 1,
+      "kinds": [
+        "new blank line at EOF."
+      ],
+      "reason": "Immutable raw command output or exact historical review input; preserve original bytes and recorded hashes."
+    },
+    {
+      "path": "docs/validation/m2-final-gate/rust-security/5.log",
+      "sha256": "40d24855a49ee94b6992078890781ad8d2bff8c243f7c071acc61dccde1afaae",
+      "diagnostics": 1,
+      "kinds": [
+        "new blank line at EOF."
+      ],
+      "reason": "Immutable raw command output or exact historical review input; preserve original bytes and recorded hashes."
+    },
+    {
+      "path": "docs/validation/m2-final-gate/rust-security/6.log",
+      "sha256": "d0dc210a072de68d5855fe8aac9d07da46f1409fd4a2a2c9d09c41707674c04a",
+      "diagnostics": 1,
+      "kinds": [
+        "new blank line at EOF."
+      ],
+      "reason": "Immutable raw command output or exact historical review input; preserve original bytes and recorded hashes."
+    },
+    {
+      "path": "docs/validation/m2-final-gate/rust-security/7.log",
+      "sha256": "13396f571e577b37ff591bf3b8a9c8e4d9d14939129501c63a048b05e3813e74",
+      "diagnostics": 1,
+      "kinds": [
+        "new blank line at EOF."
+      ],
+      "reason": "Immutable raw command output or exact historical review input; preserve original bytes and recorded hashes."
+    },
+    {
+      "path": "docs/validation/m2-final-gate/rust-security/8.log",
+      "sha256": "1f36e2040eaf0890300a941695039d38400b47beae62e6aac670d80cf9eac01d",
+      "diagnostics": 1,
+      "kinds": [
+        "new blank line at EOF."
+      ],
+      "reason": "Immutable raw command output or exact historical review input; preserve original bytes and recorded hashes."
+    },
+    {
+      "path": "docs/validation/m2-final-gate/rust-security/9.log",
+      "sha256": "4e33b04be2b03c428ba3de8c897f59094a2c70d36ae8ca1f731966ab20d06197",
+      "diagnostics": 1,
+      "kinds": [
+        "new blank line at EOF."
+      ],
+      "reason": "Immutable raw command output or exact historical review input; preserve original bytes and recorded hashes."
+    },
+    {
+      "path": "docs/validation/m2-final-runtime/0.log",
+      "sha256": "90eafdf192a9f90a2c24230426396cff4169dd47aff90018020110d5e4d6e2a8",
+      "diagnostics": 1,
+      "kinds": [
+        "new blank line at EOF."
+      ],
+      "reason": "Immutable raw command output or exact historical review input; preserve original bytes and recorded hashes."
+    },
+    {
+      "path": "docs/validation/m2-final-runtime/1.log",
+      "sha256": "d5fc5af4b2863c4ad8a67c65fa897e6cfbeede213342c3cf72c10b84e34faddf",
+      "diagnostics": 1,
+      "kinds": [
+        "new blank line at EOF."
+      ],
+      "reason": "Immutable raw command output or exact historical review input; preserve original bytes and recorded hashes."
+    },
+    {
+      "path": "docs/validation/m2-final-runtime/2.log",
+      "sha256": "28417f80a8dd423e82be7a92fe79ffad2b7efd4894a7fe9dfdf790e7eeee674d",
+      "diagnostics": 1,
+      "kinds": [
+        "new blank line at EOF."
+      ],
+      "reason": "Immutable raw command output or exact historical review input; preserve original bytes and recorded hashes."
+    },
+    {
+      "path": "docs/validation/m2-final-runtime/3.log",
+      "sha256": "8ff8c0fa5e2cb0b7a99f941ef7c5e494abc8fb178303385e6cbd35ed80e69d18",
+      "diagnostics": 1,
+      "kinds": [
+        "new blank line at EOF."
+      ],
+      "reason": "Immutable raw command output or exact historical review input; preserve original bytes and recorded hashes."
+    },
+    {
+      "path": "docs/validation/m2-final-runtime/4.log",
+      "sha256": "dc23022bf7ea1cb9a29731f564a804411874aaa92270619c7eee99be9dfe1045",
+      "diagnostics": 1,
+      "kinds": [
+        "new blank line at EOF."
+      ],
+      "reason": "Immutable raw command output or exact historical review input; preserve original bytes and recorded hashes."
+    },
+    {
+      "path": "docs/validation/m2-final-runtime/5.log",
+      "sha256": "f4be2145761a17ba22cf12939aa69e7ed6c7543c54ee9099d1405e4fb123080a",
+      "diagnostics": 1,
+      "kinds": [
+        "new blank line at EOF."
+      ],
+      "reason": "Immutable raw command output or exact historical review input; preserve original bytes and recorded hashes."
+    },
+    {
+      "path": "docs/validation/m2-final-runtime/6.log",
+      "sha256": "0b40d95fead2f0873b2c3b4eaa05dadd610f6e1567635028a5ebeae1213ce009",
+      "diagnostics": 1,
+      "kinds": [
+        "new blank line at EOF."
+      ],
+      "reason": "Immutable raw command output or exact historical review input; preserve original bytes and recorded hashes."
+    },
+    {
+      "path": "docs/validation/m2-final-runtime/7.log",
+      "sha256": "fd0cd761546a0b8e37701aa2f4dc0220743de5d04abfb1cfe238db7668c24e2f",
+      "diagnostics": 1,
+      "kinds": [
+        "new blank line at EOF."
+      ],
+      "reason": "Immutable raw command output or exact historical review input; preserve original bytes and recorded hashes."
+    },
+    {
+      "path": "docs/validation/m2-final-runtime/8.log",
+      "sha256": "4e919fd2574662f6ecbb1bdbae24bdba99941b3372250fcad80e1ec302dfdd9e",
+      "diagnostics": 1,
+      "kinds": [
+        "new blank line at EOF."
+      ],
+      "reason": "Immutable raw command output or exact historical review input; preserve original bytes and recorded hashes."
+    },
+    {
+      "path": "docs/validation/m2-final-runtime/9.log",
+      "sha256": "87dc3dd96d31c08a311041fdb818911661935521292e2ca182164bcf79416cba",
+      "diagnostics": 1,
+      "kinds": [
+        "new blank line at EOF."
+      ],
+      "reason": "Immutable raw command output or exact historical review input; preserve original bytes and recorded hashes."
+    },
+    {
+      "path": "docs/validation/m2-pre-059/m2-final-gate/doctor-security/ordinary.stdout.log",
+      "sha256": "113f3aab0d4a21e81a82dca2346ef4270f31cb71163be273cf32134fe35680bb",
+      "diagnostics": 1,
+      "kinds": [
+        "new blank line at EOF."
+      ],
+      "reason": "Immutable raw command output or exact historical review input; preserve original bytes and recorded hashes."
+    },
+    {
+      "path": "docs/validation/m2-pre-059/m2-final-gate/full.log",
+      "sha256": "08d3693520d7dea63e031aa881595ca2df2f9fafd531453b2808e033dc6b7f0a",
+      "diagnostics": 29,
+      "kinds": [
+        "trailing whitespace."
+      ],
+      "reason": "Immutable raw command output or exact historical review input; preserve original bytes and recorded hashes."
+    },
+    {
+      "path": "docs/validation/m2-pre-059/m2-final-gate/m2-runtime/0.log",
+      "sha256": "9bb627e3a23e10be30d618ae48dab28634abe81e0855626c4918f2db432e5d5d",
+      "diagnostics": 1,
+      "kinds": [
+        "new blank line at EOF."
+      ],
+      "reason": "Immutable raw command output or exact historical review input; preserve original bytes and recorded hashes."
+    },
+    {
+      "path": "docs/validation/m2-pre-059/m2-final-gate/m2-runtime/1.log",
+      "sha256": "647f9dc3e8568629e4a3db70d61defc4d4fa1d8d1a2c678d7e102e060226fcb0",
+      "diagnostics": 1,
+      "kinds": [
+        "new blank line at EOF."
+      ],
+      "reason": "Immutable raw command output or exact historical review input; preserve original bytes and recorded hashes."
+    },
+    {
+      "path": "docs/validation/m2-pre-059/m2-final-gate/m2-runtime/2.log",
+      "sha256": "0d47c8123c929bfe461cc1a411e8fc5b670e729c5235fe20c9534e0159737f02",
+      "diagnostics": 1,
+      "kinds": [
+        "new blank line at EOF."
+      ],
+      "reason": "Immutable raw command output or exact historical review input; preserve original bytes and recorded hashes."
+    },
+    {
+      "path": "docs/validation/m2-pre-059/m2-final-gate/m2-runtime/3.log",
+      "sha256": "f6f146c5f8f5201c10db7526654378c93ecc7aea31e799ac28f44e247b8fbd72",
+      "diagnostics": 1,
+      "kinds": [
+        "new blank line at EOF."
+      ],
+      "reason": "Immutable raw command output or exact historical review input; preserve original bytes and recorded hashes."
+    },
+    {
+      "path": "docs/validation/m2-pre-059/m2-final-gate/m2-runtime/4.log",
+      "sha256": "2e75b00a90b97aa4cdb3cc7bd0fc1a6cab385e1e63a1300ea7c90400ae87ee60",
+      "diagnostics": 1,
+      "kinds": [
+        "new blank line at EOF."
+      ],
+      "reason": "Immutable raw command output or exact historical review input; preserve original bytes and recorded hashes."
+    },
+    {
+      "path": "docs/validation/m2-pre-059/m2-final-gate/m2-runtime/5.log",
+      "sha256": "878c500521fc777c4e218ee2e5ca455d23d77e62b2c739e5c78b315a1947fa3b",
+      "diagnostics": 1,
+      "kinds": [
+        "new blank line at EOF."
+      ],
+      "reason": "Immutable raw command output or exact historical review input; preserve original bytes and recorded hashes."
+    },
+    {
+      "path": "docs/validation/m2-pre-059/m2-final-gate/m2-runtime/6.log",
+      "sha256": "150f70cdfb8f7b4e4c7978b8e65bc0833c63a9681043a14e42da91973da3f731",
+      "diagnostics": 1,
+      "kinds": [
+        "new blank line at EOF."
+      ],
+      "reason": "Immutable raw command output or exact historical review input; preserve original bytes and recorded hashes."
+    },
+    {
+      "path": "docs/validation/m2-pre-059/m2-final-gate/m2-runtime/7.log",
+      "sha256": "dd8dd1a349306494bcbcb0a6234bb1b86dca64088660022b7ce04886a3a2f31d",
+      "diagnostics": 1,
+      "kinds": [
+        "new blank line at EOF."
+      ],
+      "reason": "Immutable raw command output or exact historical review input; preserve original bytes and recorded hashes."
+    },
+    {
+      "path": "docs/validation/m2-pre-059/m2-final-gate/m2-runtime/8.log",
+      "sha256": "32def53d0fce0254a6d2efa680b8bd284dadfda2ca7969a743d7a5bff79901e5",
+      "diagnostics": 1,
+      "kinds": [
+        "new blank line at EOF."
+      ],
+      "reason": "Immutable raw command output or exact historical review input; preserve original bytes and recorded hashes."
+    },
+    {
+      "path": "docs/validation/m2-pre-059/m2-final-gate/rust-security/0.log",
+      "sha256": "88c0030be687b06d550a9449484869aa9f7405961aeb34f392ee201453e6855a",
+      "diagnostics": 1,
+      "kinds": [
+        "new blank line at EOF."
+      ],
+      "reason": "Immutable raw command output or exact historical review input; preserve original bytes and recorded hashes."
+    },
+    {
+      "path": "docs/validation/m2-pre-059/m2-final-gate/rust-security/1.log",
+      "sha256": "0beb1ed732956e472e4a9bfb88652481fd29d8927af1f305cb787db2e624dc7c",
+      "diagnostics": 1,
+      "kinds": [
+        "new blank line at EOF."
+      ],
+      "reason": "Immutable raw command output or exact historical review input; preserve original bytes and recorded hashes."
+    },
+    {
+      "path": "docs/validation/m2-pre-059/m2-final-gate/rust-security/10.log",
+      "sha256": "f970fdd7333b62a7c7ad980b2a237c3973d0685d1283210dc02b331869d09f9a",
+      "diagnostics": 1,
+      "kinds": [
+        "new blank line at EOF."
+      ],
+      "reason": "Immutable raw command output or exact historical review input; preserve original bytes and recorded hashes."
+    },
+    {
+      "path": "docs/validation/m2-pre-059/m2-final-gate/rust-security/11.log",
+      "sha256": "ddeee85813e5817222e43e009eb5e3083a164ce3f2825fb50e353f948fcd3565",
+      "diagnostics": 1,
+      "kinds": [
+        "new blank line at EOF."
+      ],
+      "reason": "Immutable raw command output or exact historical review input; preserve original bytes and recorded hashes."
+    },
+    {
+      "path": "docs/validation/m2-pre-059/m2-final-gate/rust-security/12.log",
+      "sha256": "11de24779eca539491a04c6ee3a1b4a34b36b5abc5895bf3af7f1b3817d75b99",
+      "diagnostics": 1,
+      "kinds": [
+        "new blank line at EOF."
+      ],
+      "reason": "Immutable raw command output or exact historical review input; preserve original bytes and recorded hashes."
+    },
+    {
+      "path": "docs/validation/m2-pre-059/m2-final-gate/rust-security/13.log",
+      "sha256": "bbb722030ce3a00b2c1033da6ea35aec04a5ec82115763c1e2c3c1f333d9353d",
+      "diagnostics": 1,
+      "kinds": [
+        "new blank line at EOF."
+      ],
+      "reason": "Immutable raw command output or exact historical review input; preserve original bytes and recorded hashes."
+    },
+    {
+      "path": "docs/validation/m2-pre-059/m2-final-gate/rust-security/14.log",
+      "sha256": "82bee8c23589acd17f6e855bc47edcc085f5504a74ca62616c5f217b0ffae8f9",
+      "diagnostics": 1,
+      "kinds": [
+        "new blank line at EOF."
+      ],
+      "reason": "Immutable raw command output or exact historical review input; preserve original bytes and recorded hashes."
+    },
+    {
+      "path": "docs/validation/m2-pre-059/m2-final-gate/rust-security/15.log",
+      "sha256": "431e869ea3b4be6f2e0b2be3cb212c61080c4ec0d9560cb0717dab60fd3b65ca",
+      "diagnostics": 1,
+      "kinds": [
+        "new blank line at EOF."
+      ],
+      "reason": "Immutable raw command output or exact historical review input; preserve original bytes and recorded hashes."
+    },
+    {
+      "path": "docs/validation/m2-pre-059/m2-final-gate/rust-security/16.log",
+      "sha256": "3d9e4314c8bdf585b0afbb1340c4803b40d62e38fcb5634ddf8d808ab8c476e5",
+      "diagnostics": 1,
+      "kinds": [
+        "new blank line at EOF."
+      ],
+      "reason": "Immutable raw command output or exact historical review input; preserve original bytes and recorded hashes."
+    },
+    {
+      "path": "docs/validation/m2-pre-059/m2-final-gate/rust-security/17.log",
+      "sha256": "b044de2f3691a94953ec1bf7bc4581f72d4f983d2610fff60dbfc33a6e272a63",
+      "diagnostics": 1,
+      "kinds": [
+        "new blank line at EOF."
+      ],
+      "reason": "Immutable raw command output or exact historical review input; preserve original bytes and recorded hashes."
+    },
+    {
+      "path": "docs/validation/m2-pre-059/m2-final-gate/rust-security/18.log",
+      "sha256": "49afc11ffa4acab3698eb9c1f0441ea08872d0cf54572d7a7ce8d1d2c44e3540",
+      "diagnostics": 1,
+      "kinds": [
+        "new blank line at EOF."
+      ],
+      "reason": "Immutable raw command output or exact historical review input; preserve original bytes and recorded hashes."
+    },
+    {
+      "path": "docs/validation/m2-pre-059/m2-final-gate/rust-security/19.log",
+      "sha256": "55ce5169ca384d1d857735ed1705fa74570e3328634d5701f5dff01fdca50e39",
+      "diagnostics": 1,
+      "kinds": [
+        "new blank line at EOF."
+      ],
+      "reason": "Immutable raw command output or exact historical review input; preserve original bytes and recorded hashes."
+    },
+    {
+      "path": "docs/validation/m2-pre-059/m2-final-gate/rust-security/2.log",
+      "sha256": "007924e3ad22b95bbaea3e815559824c753ddb949db670aaf5e3d2f77b4f9c14",
+      "diagnostics": 1,
+      "kinds": [
+        "new blank line at EOF."
+      ],
+      "reason": "Immutable raw command output or exact historical review input; preserve original bytes and recorded hashes."
+    },
+    {
+      "path": "docs/validation/m2-pre-059/m2-final-gate/rust-security/3.log",
+      "sha256": "f3b9157f8461e95f283d9d771fa307feaf102e6577fab9a2e947a8272acda905",
+      "diagnostics": 1,
+      "kinds": [
+        "new blank line at EOF."
+      ],
+      "reason": "Immutable raw command output or exact historical review input; preserve original bytes and recorded hashes."
+    },
+    {
+      "path": "docs/validation/m2-pre-059/m2-final-gate/rust-security/4.log",
+      "sha256": "daddd046e41a6697edb5f0a49010bd5cae8e7f71c5524bfd127bcc70cbd09f65",
+      "diagnostics": 1,
+      "kinds": [
+        "new blank line at EOF."
+      ],
+      "reason": "Immutable raw command output or exact historical review input; preserve original bytes and recorded hashes."
+    },
+    {
+      "path": "docs/validation/m2-pre-059/m2-final-gate/rust-security/5.log",
+      "sha256": "0b453de44b7adfb10237931a71280054b55cbe95f52ed15a68b2176cb869e02c",
+      "diagnostics": 1,
+      "kinds": [
+        "new blank line at EOF."
+      ],
+      "reason": "Immutable raw command output or exact historical review input; preserve original bytes and recorded hashes."
+    },
+    {
+      "path": "docs/validation/m2-pre-059/m2-final-gate/rust-security/6.log",
+      "sha256": "54beff85473e23b345aae73a2f4af8a096a943b789ac146c9473ecdaa59d91bb",
+      "diagnostics": 1,
+      "kinds": [
+        "new blank line at EOF."
+      ],
+      "reason": "Immutable raw command output or exact historical review input; preserve original bytes and recorded hashes."
+    },
+    {
+      "path": "docs/validation/m2-pre-059/m2-final-gate/rust-security/7.log",
+      "sha256": "bc38055ce9dd0e65fe8138c89e12536d0d3941a5e4a5b2229799ab9283556424",
+      "diagnostics": 1,
+      "kinds": [
+        "new blank line at EOF."
+      ],
+      "reason": "Immutable raw command output or exact historical review input; preserve original bytes and recorded hashes."
+    },
+    {
+      "path": "docs/validation/m2-pre-059/m2-final-gate/rust-security/8.log",
+      "sha256": "3d5cc1a859c4e438d60c8383cb7fde362d2fa4c48e11edff4a3c96affa5db2c6",
+      "diagnostics": 1,
+      "kinds": [
+        "new blank line at EOF."
+      ],
+      "reason": "Immutable raw command output or exact historical review input; preserve original bytes and recorded hashes."
+    },
+    {
+      "path": "docs/validation/m2-pre-059/m2-final-gate/rust-security/9.log",
+      "sha256": "24f82ccf84bd8515158e08483fd9ec5b99359fe62bd6b8956e05f4ca25951afd",
+      "diagnostics": 1,
+      "kinds": [
+        "new blank line at EOF."
+      ],
+      "reason": "Immutable raw command output or exact historical review input; preserve original bytes and recorded hashes."
+    },
+    {
+      "path": "docs/validation/m2-pre-059/m2-final-runtime/0.log",
+      "sha256": "9bb627e3a23e10be30d618ae48dab28634abe81e0855626c4918f2db432e5d5d",
+      "diagnostics": 1,
+      "kinds": [
+        "new blank line at EOF."
+      ],
+      "reason": "Immutable raw command output or exact historical review input; preserve original bytes and recorded hashes."
+    },
+    {
+      "path": "docs/validation/m2-pre-059/m2-final-runtime/1.log",
+      "sha256": "647f9dc3e8568629e4a3db70d61defc4d4fa1d8d1a2c678d7e102e060226fcb0",
+      "diagnostics": 1,
+      "kinds": [
+        "new blank line at EOF."
+      ],
+      "reason": "Immutable raw command output or exact historical review input; preserve original bytes and recorded hashes."
+    },
+    {
+      "path": "docs/validation/m2-pre-059/m2-final-runtime/2.log",
+      "sha256": "0d47c8123c929bfe461cc1a411e8fc5b670e729c5235fe20c9534e0159737f02",
+      "diagnostics": 1,
+      "kinds": [
+        "new blank line at EOF."
+      ],
+      "reason": "Immutable raw command output or exact historical review input; preserve original bytes and recorded hashes."
+    },
+    {
+      "path": "docs/validation/m2-pre-059/m2-final-runtime/3.log",
+      "sha256": "f6f146c5f8f5201c10db7526654378c93ecc7aea31e799ac28f44e247b8fbd72",
+      "diagnostics": 1,
+      "kinds": [
+        "new blank line at EOF."
+      ],
+      "reason": "Immutable raw command output or exact historical review input; preserve original bytes and recorded hashes."
+    },
+    {
+      "path": "docs/validation/m2-pre-059/m2-final-runtime/4.log",
+      "sha256": "2e75b00a90b97aa4cdb3cc7bd0fc1a6cab385e1e63a1300ea7c90400ae87ee60",
+      "diagnostics": 1,
+      "kinds": [
+        "new blank line at EOF."
+      ],
+      "reason": "Immutable raw command output or exact historical review input; preserve original bytes and recorded hashes."
+    },
+    {
+      "path": "docs/validation/m2-pre-059/m2-final-runtime/5.log",
+      "sha256": "878c500521fc777c4e218ee2e5ca455d23d77e62b2c739e5c78b315a1947fa3b",
+      "diagnostics": 1,
+      "kinds": [
+        "new blank line at EOF."
+      ],
+      "reason": "Immutable raw command output or exact historical review input; preserve original bytes and recorded hashes."
+    },
+    {
+      "path": "docs/validation/m2-pre-059/m2-final-runtime/6.log",
+      "sha256": "150f70cdfb8f7b4e4c7978b8e65bc0833c63a9681043a14e42da91973da3f731",
+      "diagnostics": 1,
+      "kinds": [
+        "new blank line at EOF."
+      ],
+      "reason": "Immutable raw command output or exact historical review input; preserve original bytes and recorded hashes."
+    },
+    {
+      "path": "docs/validation/m2-pre-059/m2-final-runtime/7.log",
+      "sha256": "dd8dd1a349306494bcbcb0a6234bb1b86dca64088660022b7ce04886a3a2f31d",
+      "diagnostics": 1,
+      "kinds": [
+        "new blank line at EOF."
+      ],
+      "reason": "Immutable raw command output or exact historical review input; preserve original bytes and recorded hashes."
+    },
+    {
+      "path": "docs/validation/m2-pre-059/m2-final-runtime/8.log",
+      "sha256": "32def53d0fce0254a6d2efa680b8bd284dadfda2ca7969a743d7a5bff79901e5",
+      "diagnostics": 1,
+      "kinds": [
+        "new blank line at EOF."
+      ],
+      "reason": "Immutable raw command output or exact historical review input; preserve original bytes and recorded hashes."
+    }
+  ],
+  "command": [
+    "git",
+    "diff",
+    "--cached",
+    "--check",
+    "--",
+    ".",
+    ":(exclude)docs/reviews/M2-02-native-review.md",
+    ":(exclude)docs/reviews/m2-059-packages/M2-059-opus-prompt.txt",
+    ":(exclude)docs/reviews/m2-059-packages/M2-059-recheck-opus-prompt.txt",
+    ":(exclude)docs/reviews/m2-closure-packages/M2-closure-agy-prompt.txt",
+    ":(exclude)docs/reviews/m2-closure-packages/M2-closure-resolution-opus-prompt.txt",
+    ":(exclude)docs/reviews/m2-final-packages/M2-final-native-prompt.txt",
+    ":(exclude)docs/validation/m2-059/M2-059-application.log",
+    ":(exclude)docs/validation/m2-059/M2-059-native-replay.log",
+    ":(exclude)docs/validation/m2-059/M2-059-runtime.log",
+    ":(exclude)docs/validation/m2-d05-hardening-followup.log",
+    ":(exclude)docs/validation/m2-d05-hardening-gate.log",
+    ":(exclude)docs/validation/m2-d05-vendor-fingerprint.log",
+    ":(exclude)docs/validation/m2-final-gate/audit-data/audit-data.log",
+    ":(exclude)docs/validation/m2-final-gate/doctor-security/ordinary.stdout.log",
+    ":(exclude)docs/validation/m2-final-gate/full.log",
+    ":(exclude)docs/validation/m2-final-gate/m2-runtime/0.log",
+    ":(exclude)docs/validation/m2-final-gate/m2-runtime/1.log",
+    ":(exclude)docs/validation/m2-final-gate/m2-runtime/2.log",
+    ":(exclude)docs/validation/m2-final-gate/m2-runtime/3.log",
+    ":(exclude)docs/validation/m2-final-gate/m2-runtime/4.log",
+    ":(exclude)docs/validation/m2-final-gate/m2-runtime/5.log",
+    ":(exclude)docs/validation/m2-final-gate/m2-runtime/6.log",
+    ":(exclude)docs/validation/m2-final-gate/m2-runtime/7.log",
+    ":(exclude)docs/validation/m2-final-gate/m2-runtime/8.log",
+    ":(exclude)docs/validation/m2-final-gate/m2-runtime/9.log",
+    ":(exclude)docs/validation/m2-final-gate/rust-security/0.log",
+    ":(exclude)docs/validation/m2-final-gate/rust-security/1.log",
+    ":(exclude)docs/validation/m2-final-gate/rust-security/10.log",
+    ":(exclude)docs/validation/m2-final-gate/rust-security/11.log",
+    ":(exclude)docs/validation/m2-final-gate/rust-security/12.log",
+    ":(exclude)docs/validation/m2-final-gate/rust-security/13.log",
+    ":(exclude)docs/validation/m2-final-gate/rust-security/14.log",
+    ":(exclude)docs/validation/m2-final-gate/rust-security/15.log",
+    ":(exclude)docs/validation/m2-final-gate/rust-security/16.log",
+    ":(exclude)docs/validation/m2-final-gate/rust-security/17.log",
+    ":(exclude)docs/validation/m2-final-gate/rust-security/18.log",
+    ":(exclude)docs/validation/m2-final-gate/rust-security/19.log",
+    ":(exclude)docs/validation/m2-final-gate/rust-security/2.log",
+    ":(exclude)docs/validation/m2-final-gate/rust-security/3.log",
+    ":(exclude)docs/validation/m2-final-gate/rust-security/4.log",
+    ":(exclude)docs/validation/m2-final-gate/rust-security/5.log",
+    ":(exclude)docs/validation/m2-final-gate/rust-security/6.log",
+    ":(exclude)docs/validation/m2-final-gate/rust-security/7.log",
+    ":(exclude)docs/validation/m2-final-gate/rust-security/8.log",
+    ":(exclude)docs/validation/m2-final-gate/rust-security/9.log",
+    ":(exclude)docs/validation/m2-final-runtime/0.log",
+    ":(exclude)docs/validation/m2-final-runtime/1.log",
+    ":(exclude)docs/validation/m2-final-runtime/2.log",
+    ":(exclude)docs/validation/m2-final-runtime/3.log",
+    ":(exclude)docs/validation/m2-final-runtime/4.log",
+    ":(exclude)docs/validation/m2-final-runtime/5.log",
+    ":(exclude)docs/validation/m2-final-runtime/6.log",
+    ":(exclude)docs/validation/m2-final-runtime/7.log",
+    ":(exclude)docs/validation/m2-final-runtime/8.log",
+    ":(exclude)docs/validation/m2-final-runtime/9.log",
+    ":(exclude)docs/validation/m2-pre-059/m2-final-gate/doctor-security/ordinary.stdout.log",
+    ":(exclude)docs/validation/m2-pre-059/m2-final-gate/full.log",
+    ":(exclude)docs/validation/m2-pre-059/m2-final-gate/m2-runtime/0.log",
+    ":(exclude)docs/validation/m2-pre-059/m2-final-gate/m2-runtime/1.log",
+    ":(exclude)docs/validation/m2-pre-059/m2-final-gate/m2-runtime/2.log",
+    ":(exclude)docs/validation/m2-pre-059/m2-final-gate/m2-runtime/3.log",
+    ":(exclude)docs/validation/m2-pre-059/m2-final-gate/m2-runtime/4.log",
+    ":(exclude)docs/validation/m2-pre-059/m2-final-gate/m2-runtime/5.log",
+    ":(exclude)docs/validation/m2-pre-059/m2-final-gate/m2-runtime/6.log",
+    ":(exclude)docs/validation/m2-pre-059/m2-final-gate/m2-runtime/7.log",
+    ":(exclude)docs/validation/m2-pre-059/m2-final-gate/m2-runtime/8.log",
+    ":(exclude)docs/validation/m2-pre-059/m2-final-gate/rust-security/0.log",
+    ":(exclude)docs/validation/m2-pre-059/m2-final-gate/rust-security/1.log",
+    ":(exclude)docs/validation/m2-pre-059/m2-final-gate/rust-security/10.log",
+    ":(exclude)docs/validation/m2-pre-059/m2-final-gate/rust-security/11.log",
+    ":(exclude)docs/validation/m2-pre-059/m2-final-gate/rust-security/12.log",
+    ":(exclude)docs/validation/m2-pre-059/m2-final-gate/rust-security/13.log",
+    ":(exclude)docs/validation/m2-pre-059/m2-final-gate/rust-security/14.log",
+    ":(exclude)docs/validation/m2-pre-059/m2-final-gate/rust-security/15.log",
+    ":(exclude)docs/validation/m2-pre-059/m2-final-gate/rust-security/16.log",
+    ":(exclude)docs/validation/m2-pre-059/m2-final-gate/rust-security/17.log",
+    ":(exclude)docs/validation/m2-pre-059/m2-final-gate/rust-security/18.log",
+    ":(exclude)docs/validation/m2-pre-059/m2-final-gate/rust-security/19.log",
+    ":(exclude)docs/validation/m2-pre-059/m2-final-gate/rust-security/2.log",
+    ":(exclude)docs/validation/m2-pre-059/m2-final-gate/rust-security/3.log",
+    ":(exclude)docs/validation/m2-pre-059/m2-final-gate/rust-security/4.log",
+    ":(exclude)docs/validation/m2-pre-059/m2-final-gate/rust-security/5.log",
+    ":(exclude)docs/validation/m2-pre-059/m2-final-gate/rust-security/6.log",
+    ":(exclude)docs/validation/m2-pre-059/m2-final-gate/rust-security/7.log",
+    ":(exclude)docs/validation/m2-pre-059/m2-final-gate/rust-security/8.log",
+    ":(exclude)docs/validation/m2-pre-059/m2-final-gate/rust-security/9.log",
+    ":(exclude)docs/validation/m2-pre-059/m2-final-runtime/0.log",
+    ":(exclude)docs/validation/m2-pre-059/m2-final-runtime/1.log",
+    ":(exclude)docs/validation/m2-pre-059/m2-final-runtime/2.log",
+    ":(exclude)docs/validation/m2-pre-059/m2-final-runtime/3.log",
+    ":(exclude)docs/validation/m2-pre-059/m2-final-runtime/4.log",
+    ":(exclude)docs/validation/m2-pre-059/m2-final-runtime/5.log",
+    ":(exclude)docs/validation/m2-pre-059/m2-final-runtime/6.log",
+    ":(exclude)docs/validation/m2-pre-059/m2-final-runtime/7.log",
+    ":(exclude)docs/validation/m2-pre-059/m2-final-runtime/8.log"
+  ]
+}

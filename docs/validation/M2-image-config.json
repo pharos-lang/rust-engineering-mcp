@@ -1,0 +1,64 @@
+{
+  "status": "passed",
+  "recorded_at": "2026-09-05T19:29:03.074924+00:00",
+  "image": "sha256:8fac70723a8d04b6ec9633ab721806b8a55f4f083a1b3f988c61bf6a00fa1909",
+  "observations": [
+    {
+      "path": "/.cargo/config",
+      "exists": false,
+      "command": [
+        "/Applications/Docker.app/Contents/Resources/bin/docker",
+        "--host",
+        "unix:///Users/cburgosro/.docker/run/docker.sock",
+        "run",
+        "--rm",
+        "--pull=never",
+        "--name",
+        "rust-mcp-image-config-qualification-0",
+        "--label",
+        "org.rust-mcp.m2-image-config=true",
+        "--read-only",
+        "--network=none",
+        "--cap-drop=ALL",
+        "--security-opt=no-new-privileges",
+        "--user=65534:65534",
+        "--pids-limit=32",
+        "--memory=64m",
+        "--entrypoint=/usr/bin/test",
+        "sha256:8fac70723a8d04b6ec9633ab721806b8a55f4f083a1b3f988c61bf6a00fa1909",
+        "-e",
+        "/.cargo/config"
+      ],
+      "exit_code": 1
+    },
+    {
+      "path": "/.cargo/config.toml",
+      "exists": false,
+      "command": [
+        "/Applications/Docker.app/Contents/Resources/bin/docker",
+        "--host",
+        "unix:///Users/cburgosro/.docker/run/docker.sock",
+        "run",
+        "--rm",
+        "--pull=never",
+        "--name",
+        "rust-mcp-image-config-qualification-1",
+        "--label",
+        "org.rust-mcp.m2-image-config=true",
+        "--read-only",
+        "--network=none",
+        "--cap-drop=ALL",
+        "--security-opt=no-new-privileges",
+        "--user=65534:65534",
+        "--pids-limit=32",
+        "--memory=64m",
+        "--entrypoint=/usr/bin/test",
+        "sha256:8fac70723a8d04b6ec9633ab721806b8a55f4f083a1b3f988c61bf6a00fa1909",
+        "-e",
+        "/.cargo/config.toml"
+      ],
+      "exit_code": 1
+    }
+  ],
+  "remaining_containers": []
+}

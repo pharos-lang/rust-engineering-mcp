@@ -1,0 +1,3624 @@
+Focused read-only follow-up to M2-final-contract-sonnet.json. ExplicitSonnet5medium,no tools. Your prior Accepted report labeled unverifiable wiring and missing dataset startup as P1 (but non-blocking), plus pathschema and lexicalpreflightP2. Now supplied exact full wiring stdio.rs, sharedmutationtool, updatedDTO and realdependencyintegrationtests. Confirm each5grant maps separately including receipts/recover andcrosskind rejection. Missing dataset is INTENTIONAL valid startup: receipts/commit alreadyvalidatedretainedplans need no Cargo data, journalrecovery must remain accessible without reinstalling datasets. Lints/profiles need nodata; dep preview returns typed actionable offline_data_missing with noeffects. Requiring pairforgrant would break recovery/no-previewusage, so reviewerP1usability reclassified non-blocking design choice byOwner; evaluate reasoning. Schema nowexactboundedrelativecomponents excl '.'/'..', testcovershidden/dotsonly3valid. Lexicalparse merelyearlyguard, nativeprotectedI/O/securitypacket reviewedseparately; notassertingpathproof. Real4/4dependencyMCPserialPASS129.99s recorded M2-04runtime, positivecommits/receipt/absentlock/dottedinheritance. Do notclaimfullclosureongoing. Return clearAccepted/Revise, dispositions and anyremainingactualP0/P1; avoidlabelingmissingpacketcontext a provenbug.
+
+===== crates/mcp-server/src/stdio.rs =====
+//! MCP adapter: rmcp owns messages, negotiation, dispatch and transport framing.
+
+mod admission;
+mod auditing;
+pub use auditing::provider::HostAuditConfig;
+mod budget;
+mod catalog;
+mod check;
+pub(crate) use catalog::provider::CatalogProvider;
+pub use catalog::provider::HostCatalogConfig;
+mod clippy;
+mod contract;
+mod crate_inspect;
+mod crate_search;
+mod explaining;
+mod format;
+mod inspection;
+mod mutation;
+mod project;
+mod quality;
+mod resources;
+mod testing;
+mod toolchain;
+mod workers;
+
+use std::borrow::Cow;
+use std::path::PathBuf;
+use std::process::ExitCode;
+use std::sync::atomic::{AtomicBool, Ordering};
+use std::sync::{Arc, Mutex};
+use std::time::Duration;
+
+use rmcp::model::{
+    CallToolRequestParams, CallToolResponse, CustomRequest, CustomResult, ErrorCode, ErrorData,
+    Implementation, ListToolsResult, PaginatedRequestParams, ProtocolVersion,
+    ReadResourceRequestParams, ReadResourceResponse, ServerCapabilities, ServerInfo, Tool,
+};
+use rmcp::service::{QuitReason, RequestContext, RoleServer};
+use rmcp::{ServerHandler, service::ServerInitializeError, service::serve_server_with_ct};
+use tracing_subscriber::filter::Targets;
+use tracing_subscriber::prelude::*;
+
+use budget::{BudgetedReader, CheckedWriter, IoFailure};
+use project::ProjectTool;
+use rust_engineering_project::SecureProjects;
+
+const SUPPORTED_VERSIONS: &[ProtocolVersion] = &[
+    ProtocolVersion::V_2024_11_05,
+    ProtocolVersion::V_2025_03_26,
+    ProtocolVersion::V_2025_06_18,
+    ProtocolVersion::V_2025_11_25,
+    ProtocolVersion::V_2026_07_28,
+];
+
+#[derive(Clone)]
+pub struct HostCargoVendorConfig {
+    pub directory: PathBuf,
+    pub fingerprint: rust_engineering_domain::SourceFingerprint,
+}
+
+pub struct HostConfig {
+    pub manifest_write_roots: Vec<PathBuf>,
+    pub fmt_write_roots: Vec<PathBuf>,
+    pub fix_write_roots: Vec<PathBuf>,
+    pub dependency_add_roots: Vec<PathBuf>,
+    pub dependency_remove_roots: Vec<PathBuf>,
+    pub cargo_vendor: Option<HostCargoVendorConfig>,
+    pub catalog: Option<HostCatalogConfig>,
+    pub audit: Option<HostAuditConfig>,
+    pub roots: Vec<PathBuf>,
+    pub ttl_seconds: u64,
+    pub rust: Option<rust_engineering_execution::HostDockerConfig>,
+}
+
+struct EngineeringServer {
+    catalog: catalog::CatalogTool,
+    crate_search: crate_search::CrateSearchTool,
+    crate_inspect: crate_inspect::CrateInspectTool,
+    project: ProjectTool,
+    inspect: inspection::InspectionTool,
+    check: check::CheckTool,
+    clippy: clippy::ClippyTool,
+    testing: testing::TestTool,
+    audit: auditing::AuditTool,
+    explain: explaining::ExplainTool,
+    quality: quality::QualityTool,
+    format: format::FormatTool,
+    manifest_mutation: mutation::ManifestMutationTool,
+    format_mutation: mutation::FormatMutationTool,
+    fix_mutation: mutation::FixMutationTool,
+    dependency_add: mutation::DependencyAddTool,
+    dependency_remove: mutation::DependencyRemoveTool,
+    toolchain: toolchain::ToolchainTool,
+    ready: Arc<AtomicBool>,
+    resources: resources::Resources,
+}
+
+impl ServerHandler for EngineeringServer {
+    fn get_tool(&self, name: &str) -> Option<Tool> {
+        match name {
+            crate_search::NAME => Some(self.crate_search.definition.clone()),
+            crate_inspect::NAME => Some(self.crate_inspect.definition.clone()),
+            catalog::NAME => Some(self.catalog.definition.clone()),
+            project::NAME => Some(self.project.definition.clone()),
+            check::NAME => Some(self.check.definition.clone()),
+            clippy::NAME => Some(self.clippy.definition.clone()),
+            testing::NAME => Some(self.testing.definition.clone()),
+            auditing::NAME => Some(self.audit.definition.clone()),
+            explaining::NAME => Some(self.explain.definition.clone()),
+            quality::NAME => Some(self.quality.definition.clone()),
+            format::NAME => Some(self.format.definition.clone()),
+            mutation::NAME => Some(self.manifest_mutation.definition.clone()),
+            mutation::FORMAT_NAME => Some(self.format_mutation.definition.clone()),
+            mutation::FIX_NAME => Some(self.fix_mutation.definition.clone()),
+            mutation::DEPENDENCY_ADD_NAME => Some(self.dependency_add.definition.clone()),
+            mutation::DEPENDENCY_REMOVE_NAME => Some(self.dependency_remove.definition.clone()),
+            inspection::NAME => Some(self.inspect.definition.clone()),
+            toolchain::NAME => Some(self.toolchain.definition.clone()),
+            _ => None,
+        }
+    }
+
+    async fn list_tools(
+        &self,
+        _request: Option<PaginatedRequestParams>,
+        _context: RequestContext<RoleServer>,
+    ) -> Result<ListToolsResult, ErrorData> {
+        Ok(ListToolsResult {
+            tools: vec![
+                self.project.definition.clone(),
+                self.inspect.definition.clone(),
+                self.toolchain.definition.clone(),
+                self.check.definition.clone(),
+                self.format.definition.clone(),
+                self.clippy.definition.clone(),
+                self.testing.definition.clone(),
+                self.audit.definition.clone(),
+                self.explain.definition.clone(),
+                self.quality.definition.clone(),
+                self.catalog.definition.clone(),
+                self.crate_search.definition.clone(),
+                self.crate_inspect.definition.clone(),
+                self.manifest_mutation.definition.clone(),
+                self.format_mutation.definition.clone(),
+                self.fix_mutation.definition.clone(),
+                self.dependency_add.definition.clone(),
+                self.dependency_remove.definition.clone(),
+            ],
+            ..Default::default()
+        })
+    }
+
+    async fn call_tool(
+        &self,
+        request: CallToolRequestParams,
+        context: RequestContext<RoleServer>,
+    ) -> Result<CallToolResponse, ErrorData> {
+        match request.name.as_ref() {
+            crate_inspect::NAME => self
+                .crate_inspect
+                .call(request, context)
+                .await
+                .map(Into::into),
+            crate_search::NAME => self
+                .crate_search
+                .call(request, context)
+                .await
+                .map(Into::into),
+            catalog::NAME => self.catalog.call(request, context).await.map(Into::into),
+            project::NAME => self.project.call(request, context).await.map(Into::into),
+            check::NAME => self.check.call(request, context).await.map(Into::into),
+            clippy::NAME => self.clippy.call(request, context).await.map(Into::into),
+            testing::NAME => self.testing.call(request, context).await.map(Into::into),
+            auditing::NAME => self.audit.call(request, context).await.map(Into::into),
+            explaining::NAME => self.explain.call(request, context).await.map(Into::into),
+            quality::NAME => self.quality.call(request, context).await.map(Into::into),
+            format::NAME => self.format.call(request, context).await.map(Into::into),
+            mutation::NAME => self
+                .manifest_mutation
+                .call(request, context)
+                .await
+                .map(Into::into),
+            mutation::FORMAT_NAME => self
+                .format_mutation
+                .call(request, context)
+                .await
+                .map(Into::into),
+            mutation::FIX_NAME => self
+                .fix_mutation
+                .call(request, context)
+                .await
+                .map(Into::into),
+            mutation::DEPENDENCY_ADD_NAME => self
+                .dependency_add
+                .call(request, context)
+                .await
+                .map(Into::into),
+            mutation::DEPENDENCY_REMOVE_NAME => self
+                .dependency_remove
+                .call(request, context)
+                .await
+                .map(Into::into),
+            inspection::NAME => self.inspect.call(request, context).await.map(Into::into),
+            toolchain::NAME => self.toolchain.call(request, context).await.map(Into::into),
+            _ => Err(ErrorData::new(
+                ErrorCode::METHOD_NOT_FOUND,
+                "Unknown tool",
+                None,
+            )),
+        }
+    }
+
+    async fn read_resource(
+        &self,
+        request: ReadResourceRequestParams,
+        context: RequestContext<RoleServer>,
+    ) -> Result<ReadResourceResponse, ErrorData> {
+        self.resources.read(request, context).await
+    }
+
+    fn get_info(&self) -> ServerInfo {
+        ServerInfo::new(
+            ServerCapabilities::builder()
+                .enable_tools()
+                .enable_resources()
+                .build(),
+        )
+        .with_server_info(Implementation::new(
+            "rust-engineering-mcp",
+            env!("CARGO_PKG_VERSION"),
+        ))
+    }
+
+    fn supported_protocol_versions(&self) -> Cow<'static, [ProtocolVersion]> {
+        Cow::Borrowed(SUPPORTED_VERSIONS)
+    }
+
+    async fn on_custom_request(
+        &self,
+        _request: CustomRequest,
+        _context: RequestContext<RoleServer>,
+    ) -> Result<CustomResult, ErrorData> {
+        // The default SDK error reflects the untrusted method name.
+        Err(ErrorData::new(
+            ErrorCode::METHOD_NOT_FOUND,
+            "Unknown method",
+            None,
+        ))
+    }
+}
+
+pub fn run(config: HostConfig) -> ExitCode {
+    // Never read RUST_LOG: SDK diagnostics may include peer payloads. Only this
+    // adapter's fixed operational messages are enabled, always on stderr.
+    let subscriber = tracing_subscriber::registry().with(
+        tracing_subscriber::fmt::layer()
+            .with_writer(std::io::stderr)
+            .with_ansi(false)
+            .with_target(false)
+            .without_time()
+            .with_filter(Targets::new().with_target("rust_engineering_mcp", tracing::Level::INFO)),
+    );
+    // This thread-local subscriber covers the current-thread runtime below.
+    // Revisit propagation before moving handlers to a multi-thread runtime.
+    let _subscriber = tracing::subscriber::set_default(subscriber);
+    let workers = workers::Workers::new();
+    let project = match SecureProjects::new(&config.roots)
+        .and_then(|backend| ProjectTool::new(backend, config.ttl_seconds, workers.clone()))
+    {
+        Ok(project) => project,
+        Err(_) => {
+            tracing::error!("MCP project authorization initialization failed");
+            return ExitCode::FAILURE;
+        }
+    };
+    let ready = Arc::new(AtomicBool::new(false));
+    let rust_enabled = config.rust.is_some();
+    if !config.manifest_write_roots.is_empty()
+        || !config.fmt_write_roots.is_empty()
+        || !config.fix_write_roots.is_empty()
+        || !config.dependency_add_roots.is_empty()
+        || !config.dependency_remove_roots.is_empty()
+    {
+        let Some(runtime) = config.rust.as_ref() else {
+            return ExitCode::FAILURE;
+        };
+        let journal = runtime.state_root.join("rust-mcp-mutations-v1");
+        if config
+            .roots
+            .iter()
+            .any(|root| journal.starts_with(root) || root.starts_with(&journal))
+        {
+            tracing::error!("Mutation state must be outside project roots");
+            return ExitCode::FAILURE;
+        }
+    }
+    let write_config = |roots: Vec<PathBuf>| {
+        if roots.is_empty() {
+            None
+        } else {
+            config.rust.as_ref().map(|runtime| mutation::WriteConfig {
+                roots,
+                state_parent: runtime.state_root.clone(),
+                vendor: config.cargo_vendor.clone(),
+            })
+        }
+    };
+    let manifest_write_config = write_config(config.manifest_write_roots);
+    let fmt_write_config = write_config(config.fmt_write_roots);
+    let fix_write_config = write_config(config.fix_write_roots);
+    let dependency_add_config = write_config(config.dependency_add_roots);
+    let dependency_remove_config = write_config(config.dependency_remove_roots);
+    let inspector = Arc::new(rust_engineering_execution::RustProjectInspector::new(
+        config.rust,
+    ));
+    let inspect = match inspection::InspectionTool::new(
+        project.registry(),
+        workers.clone(),
+        Arc::clone(&inspector),
+        Arc::clone(&ready),
+    ) {
+        Ok(tool) => tool,
+        Err(_) => {
+            tracing::error!("MCP inspection contract initialization failed");
+            return ExitCode::FAILURE;
+        }
+    };
+    let toolchain = match toolchain::ToolchainTool::new(
+        project.registry(),
+        workers.clone(),
+        Arc::clone(&inspector),
+        Arc::clone(&ready),
+    ) {
+        Ok(tool) => tool,
+        Err(_) => {
+            tracing::error!("MCP toolchain contract initialization failed");
+            return ExitCode::FAILURE;
+        }
+    };
+    let resources =
+        match resources::Resources::new(project.registry(), workers.clone(), Arc::clone(&ready)) {
+            Ok(resources) => resources,
+            Err(_) => {
+                tracing::error!("MCP artifact initialization failed");
+                return ExitCode::FAILURE;
+            }
+        };
+    let check = match check::CheckTool::new(
+        project.registry(),
+        workers.clone(),
+        Arc::clone(&inspector),
+        Arc::clone(&ready),
+        &resources,
+    ) {
+        Ok(check) => check,
+        Err(_) => {
+            tracing::error!("MCP check contract initialization failed");
+            return ExitCode::FAILURE;
+        }
+    };
+    let clippy = match clippy::ClippyTool::new(
+        project.registry(),
+        workers.clone(),
+        Arc::clone(&inspector),
+        Arc::clone(&ready),
+        &resources,
+    ) {
+        Ok(clippy) => clippy,
+        Err(_) => {
+            tracing::error!("MCP clippy contract initialization failed");
+            return ExitCode::FAILURE;
+        }
+    };
+    let testing = match testing::TestTool::new(
+        project.registry(),
+        workers.clone(),
+        Arc::clone(&inspector),
+        Arc::clone(&ready),
+        &resources,
+    ) {
+        Ok(testing) => testing,
+        Err(_) => {
+            tracing::error!("MCP testing contract initialization failed");
+            return ExitCode::FAILURE;
+        }
+    };
+    let format = match format::FormatTool::new(
+        project.registry(),
+        workers.clone(),
+        Arc::clone(&inspector),
+        Arc::clone(&ready),
+        &resources,
+    ) {
+        Ok(tool) => tool,
+        Err(_) => {
+            tracing::error!("MCP formatting contract initialization failed");
+            return ExitCode::FAILURE;
+        }
+    };
+    let audit = match auditing::AuditTool::new(
+        project.registry(),
+        workers.clone(),
+        Arc::clone(&inspector),
+        Arc::clone(&ready),
+        config.audit.clone(),
+    ) {
+        Ok(tool) => tool,
+        Err(_) => {
+            tracing::error!("MCP audit contract initialization failed");
+            return ExitCode::FAILURE;
+        }
+    };
+    let explain = match explaining::ExplainTool::new(
+        workers.clone(),
+        Arc::clone(&inspector),
+        Arc::clone(&ready),
+    ) {
+        Ok(tool) => tool,
+        Err(_) => {
+            tracing::error!("MCP explanation contract initialization failed");
+            return ExitCode::FAILURE;
+        }
+    };
+    let catalog_provider = Arc::new(catalog::provider::CatalogProvider::new(
+        config.catalog,
+        config.audit.clone(),
+    ));
+    let crate_search = match crate_search::CrateSearchTool::new(
+        workers.clone(),
+        Arc::clone(&ready),
+        Arc::clone(&catalog_provider),
+    ) {
+        Ok(tool) => tool,
+        Err(_) => {
+            tracing::error!("MCP crate search contract initialization failed");
+            return ExitCode::FAILURE;
+        }
+    };
+    let crate_inspect = match crate_inspect::CrateInspectTool::new(
+        workers.clone(),
+        Arc::clone(&ready),
+        Arc::clone(&catalog_provider),
+    ) {
+        Ok(tool) => tool,
+        Err(_) => {
+            tracing::error!("MCP crate inspect contract initialization failed");
+            return ExitCode::FAILURE;
+        }
+    };
+    let catalog =
+        match catalog::CatalogTool::new(workers.clone(), Arc::clone(&ready), catalog_provider) {
+            Ok(tool) => tool,
+            Err(_) => {
+                tracing::error!("MCP catalog contract initialization failed");
+                return ExitCode::FAILURE;
+            }
+        };
+    let quality = match quality::QualityTool::new(
+        project.registry(),
+        workers.clone(),
+        Arc::clone(&inspector),
+        Arc::clone(&ready),
+        &resources,
+        config.audit,
+    ) {
+        Ok(tool) => tool,
+        Err(_) => {
+            tracing::error!("MCP quality gate contract initialization failed");
+            return ExitCode::FAILURE;
+        }
+    };
+    let mutation_plans = Arc::new(Mutex::new(mutation::SharedPlans::default()));
+    let manifest_mutation = match mutation::ManifestMutationTool::new(
+        project.registry(),
+        workers.clone(),
+        Arc::clone(&inspector),
+        Arc::clone(&ready),
+        manifest_write_config,
+        Arc::clone(&mutation_plans),
+    ) {
+        Ok(tool) => tool,
+        Err(_) => {
+            tracing::error!("MCP mutation contract initialization failed");
+            return ExitCode::FAILURE;
+        }
+    };
+    let format_mutation = match mutation::FormatMutationTool::new(
+        project.registry(),
+        workers.clone(),
+        Arc::clone(&inspector),
+        Arc::clone(&ready),
+        fmt_write_config,
+        Arc::clone(&mutation_plans),
+    ) {
+        Ok(tool) => tool,
+        Err(_) => {
+            tracing::error!("MCP format mutation contract initialization failed");
+            return ExitCode::FAILURE;
+        }
+    };
+    let fix_mutation = match mutation::FixMutationTool::new(
+        project.registry(),
+        workers.clone(),
+        Arc::clone(&inspector),
+        Arc::clone(&ready),
+        fix_write_config,
+        Arc::clone(&mutation_plans),
+    ) {
+        Ok(tool) => tool,
+        Err(_) => {
+            tracing::error!("MCP fix mutation contract initialization failed");
+            return ExitCode::FAILURE;
+        }
+    };
+    let dependency_add = match mutation::DependencyAddTool::new(
+        project.registry(),
+        workers.clone(),
+        Arc::clone(&inspector),
+        Arc::clone(&ready),
+        dependency_add_config,
+        Arc::clone(&mutation_plans),
+    ) {
+        Ok(tool) => tool,
+        Err(_) => {
+            tracing::error!("MCP dependency add contract initialization failed");
+            return ExitCode::FAILURE;
+        }
+    };
+    let dependency_remove = match mutation::DependencyRemoveTool::new(
+        project.registry(),
+        workers.clone(),
+        Arc::clone(&inspector),
+        Arc::clone(&ready),
+        dependency_remove_config,
+        Arc::clone(&mutation_plans),
+    ) {
+        Ok(tool) => tool,
+        Err(_) => {
+            tracing::error!("MCP dependency remove contract initialization failed");
+            return ExitCode::FAILURE;
+        }
+    };
+    let runtime = match tokio::runtime::Builder::new_current_thread()
+        .enable_time()
+        .build()
+    {
+        Ok(runtime) => runtime,
+        Err(_) => {
+            tracing::error!("MCP runtime initialization failed");
+            return ExitCode::FAILURE;
+        }
+    };
+    let success = runtime.block_on(async {
+        let success = serve(
+            EngineeringServer {
+                catalog,
+                crate_search,
+                crate_inspect,
+                project,
+                inspect,
+                toolchain,
+                check,
+                clippy,
+                testing,
+                audit,
+                explain,
+                quality,
+                format,
+                manifest_mutation,
+                format_mutation,
+                fix_mutation,
+                dependency_add,
+                dependency_remove,
+                resources,
+                ready,
+            },
+            &workers,
+        )
+        .await;
+        // Rust cleanup can perform twelve bounded Docker controls after the
+        // current control/observer completes. Allow their deadlines and pipe
+        // drain margins; kernel/daemon failure is still reported as uncertainty.
+        let grace = Duration::from_secs(if rust_enabled { 240 } else { 12 });
+        let drained = workers.shutdown(grace).await;
+        success && drained && !inspector.is_quarantined()
+    });
+    // Tokio stdin uses blocking I/O that cannot always be cancelled. Bound
+    // runtime cleanup; the binary then exits and releases its standard handles.
+    runtime.shutdown_timeout(Duration::from_millis(100));
+    if success {
+        ExitCode::SUCCESS
+    } else {
+        tracing::error!("MCP stdio session failed");
+        ExitCode::FAILURE
+    }
+}
+
+async fn serve(server: EngineeringServer, workers: &workers::Workers) -> bool {
+    let ready = Arc::clone(&server.ready);
+    let failed = Arc::new(IoFailure::new(workers.cancellation()));
+    let (reader, writer) = rmcp::transport::stdio();
+    let transport = admission::AdmittedTransport::new(
+        rmcp::transport::async_rw::AsyncRwTransport::new_server(
+            BudgetedReader::new(reader, Arc::clone(&failed)),
+            CheckedWriter::new(writer, Arc::clone(&failed)),
+        ),
+        Arc::clone(&failed),
+    );
+    let clean_close = match serve_server_with_ct(
+        admission::AdmittedService::new(server),
+        transport,
+        failed.cancellation(),
+    )
+    .await
+    {
+        Ok(service) => {
+            // No await between bootstrap completion and readiness on this runtime.
+            ready.store(true, Ordering::Release);
+            matches!(service.waiting().await, Ok(QuitReason::Closed))
+        }
+        Err(ServerInitializeError::ConnectionClosed(_)) => true,
+        // Never format SDK errors: they can contain the complete peer message.
+        Err(_) => false,
+    };
+    clean_close && !failed.occurred()
+}
+
+===== crates/mcp-server/src/stdio/mutation/semantic_input.rs =====
+//! Closed MCP DTOs for typed manifest and dependency mutations.
+
+use super::{Action, Input, MutationInput};
+use rmcp::model::ErrorData;
+use rust_engineering_domain::{
+    BuiltinProfile, DependencyKind, DependencyName, DependencySpec, DependencyTarget, FeatureName,
+    FeatureValue, LintLevel, LintName, LintScope, LintTool, ManifestEdit, MutationError,
+    MutationKind, ProfileCodegenUnits, ProfileDebugInfo, ProfileLto, ProfileOptLevel, ProfilePanic,
+    ProfileSettingEdit, ProfileSettingKey, ProfileStrip, ProjectIdentityFingerprint, ProjectRef,
+    SourceFingerprint, validate_source_path,
+};
+use schemars::JsonSchema;
+use serde::Deserialize;
+
+pub(super) const DEPENDENCY_ADD_NAME: &str = "rust.dependency.add";
+pub(super) const DEPENDENCY_REMOVE_NAME: &str = "rust.dependency.remove";
+
+#[derive(Deserialize, JsonSchema)]
+#[serde(transparent)]
+pub(super) struct FeatureNameInput(
+    #[schemars(
+        length(min = 1, max = 128),
+        regex(pattern = "^[A-Za-z0-9_][A-Za-z0-9_.+-]*$")
+    )]
+    String,
+);
+
+#[derive(Deserialize, JsonSchema)]
+#[serde(transparent)]
+pub(super) struct FeatureValueInput(
+    #[schemars(length(min = 1, max = 128), regex(pattern = "^[ -~]+$"))] String,
+);
+
+#[derive(Clone, Copy, Deserialize, JsonSchema)]
+#[serde(rename_all = "snake_case")]
+pub(super) enum Scope {
+    Package,
+    Workspace,
+}
+
+#[derive(Clone, Copy, Deserialize, JsonSchema)]
+#[serde(rename_all = "snake_case")]
+pub(super) enum Namespace {
+    Rust,
+    Clippy,
+}
+
+#[derive(Clone, Copy, Deserialize, JsonSchema)]
+#[serde(rename_all = "snake_case")]
+pub(super) enum Level {
+    Allow,
+    Warn,
+    Deny,
+    Forbid,
+}
+
+#[derive(Clone, Copy, Deserialize, JsonSchema)]
+#[serde(rename_all = "snake_case")]
+pub(super) enum Profile {
+    Dev,
+    Release,
+    Test,
+    Bench,
+}
+
+#[derive(Clone, Copy, Deserialize, JsonSchema)]
+#[serde(rename_all = "kebab-case")]
+pub(super) enum ProfileSettingKeyInput {
+    OptLevel,
+    Debug,
+    Strip,
+    DebugAssertions,
+    OverflowChecks,
+    Lto,
+    Panic,
+    Incremental,
+    CodegenUnits,
+}
+
+#[derive(Clone, Copy, Deserialize, JsonSchema)]
+#[serde(untagged)]
+pub(super) enum OptLevelInput {
+    Integer(#[schemars(range(min = 0, max = 3))] u8),
+    Text(SizeOptLevelInput),
+}
+
+#[derive(Clone, Copy, Deserialize, JsonSchema)]
+#[serde(rename_all = "lowercase")]
+pub(super) enum SizeOptLevelInput {
+    S,
+    Z,
+}
+
+#[derive(Clone, Copy, Deserialize, JsonSchema)]
+#[serde(rename_all = "kebab-case")]
+pub(super) enum DebugInfoInput {
+    None,
+    Limited,
+    Full,
+    LineTablesOnly,
+    LineDirectivesOnly,
+}
+
+#[derive(Clone, Copy, Deserialize, JsonSchema)]
+#[serde(rename_all = "lowercase")]
+pub(super) enum StripInput {
+    None,
+    Debuginfo,
+    Symbols,
+}
+
+#[derive(Clone, Copy, Deserialize, JsonSchema)]
+#[serde(rename_all = "lowercase")]
+pub(super) enum LtoTextInput {
+    Off,
+    Thin,
+    Fat,
+}
+
+#[derive(Clone, Copy, Deserialize, JsonSchema)]
+#[serde(untagged)]
+pub(super) enum LtoInput {
+    Boolean(bool),
+    Text(LtoTextInput),
+}
+
+#[derive(Clone, Copy, Deserialize, JsonSchema)]
+#[serde(rename_all = "lowercase")]
+pub(super) enum PanicInput {
+    Unwind,
+    Abort,
+}
+
+#[derive(Clone, Copy, Deserialize, JsonSchema)]
+#[serde(
+    tag = "name",
+    content = "value",
+    rename_all = "kebab-case",
+    deny_unknown_fields
+)]
+pub(super) enum ProfileSettingInput {
+    OptLevel(OptLevelInput),
+    Debug(DebugInfoInput),
+    Strip(StripInput),
+    DebugAssertions(bool),
+    OverflowChecks(bool),
+    Lto(LtoInput),
+    Panic(PanicInput),
+    Incremental(bool),
+    CodegenUnits(#[schemars(range(min = 1))] u32),
+}
+
+#[derive(Deserialize, JsonSchema)]
+#[serde(deny_unknown_fields)]
+pub(super) struct DependencySpecInput {
+    #[schemars(length(min = 1, max = 128), regex(pattern = "^[ -~]+$"))]
+    requirement: String,
+    #[schemars(
+        length(min = 1, max = 128),
+        regex(pattern = "^[A-Za-z0-9_][A-Za-z0-9_-]*$")
+    )]
+    package: Option<String>,
+    #[serde(default)]
+    #[schemars(length(max = 128))]
+    features: Vec<FeatureNameInput>,
+    #[serde(default)]
+    optional: bool,
+    #[serde(default = "default_true")]
+    default_features: bool,
+}
+
+fn default_true() -> bool {
+    true
+}
+
+#[derive(Deserialize, JsonSchema)]
+#[serde(tag = "operation", rename_all = "snake_case", deny_unknown_fields)]
+pub(super) enum Edit {
+    LintSet {
+        scope: Scope,
+        tool: Namespace,
+        #[schemars(length(min = 1, max = 128), regex(pattern = "^[A-Za-z0-9_]+$"))]
+        name: String,
+        level: Level,
+        priority: Option<i64>,
+    },
+    LintRemove {
+        scope: Scope,
+        tool: Namespace,
+        #[schemars(length(min = 1, max = 128), regex(pattern = "^[A-Za-z0-9_]+$"))]
+        name: String,
+    },
+    FeatureSet {
+        #[schemars(
+            length(min = 1, max = 128),
+            regex(pattern = "^[A-Za-z0-9_][A-Za-z0-9_.+-]*$")
+        )]
+        name: String,
+        #[schemars(length(max = 128))]
+        values: Vec<FeatureValueInput>,
+    },
+    FeatureRemove {
+        #[schemars(
+            length(min = 1, max = 128),
+            regex(pattern = "^[A-Za-z0-9_][A-Za-z0-9_.+-]*$")
+        )]
+        name: String,
+    },
+    ProfileSet {
+        profile: Profile,
+        setting: ProfileSettingInput,
+    },
+    ProfileRemove {
+        profile: Profile,
+        setting: ProfileSettingKeyInput,
+    },
+    WorkspaceDependencySet {
+        #[schemars(
+            length(min = 1, max = 128),
+            regex(pattern = "^[A-Za-z0-9_][A-Za-z0-9_-]*$")
+        )]
+        name: String,
+        spec: DependencySpecInput,
+    },
+    WorkspaceDependencyRemove {
+        #[schemars(
+            length(min = 1, max = 128),
+            regex(pattern = "^[A-Za-z0-9_][A-Za-z0-9_-]*$")
+        )]
+        name: String,
+    },
+}
+
+impl Edit {
+    pub(super) fn into_domain(self) -> Result<ManifestEdit, MutationError> {
+        let scope = |value| match value {
+            Scope::Package => LintScope::Package,
+            Scope::Workspace => LintScope::Workspace,
+        };
+        let tool = |value| match value {
+            Namespace::Rust => LintTool::Rust,
+            Namespace::Clippy => LintTool::Clippy,
+        };
+        let profile = |value| match value {
+            Profile::Dev => BuiltinProfile::Dev,
+            Profile::Release => BuiltinProfile::Release,
+            Profile::Test => BuiltinProfile::Test,
+            Profile::Bench => BuiltinProfile::Bench,
+        };
+        Ok(match self {
+            Self::LintSet {
+                scope: selected_scope,
+                tool: selected_tool,
+                name,
+                level,
+                priority,
+            } => ManifestEdit::LintSet {
+                scope: scope(selected_scope),
+                tool: tool(selected_tool),
+                name: lint_name(name)?,
+                priority,
+                level: match level {
+                    Level::Allow => LintLevel::Allow,
+                    Level::Warn => LintLevel::Warn,
+                    Level::Deny => LintLevel::Deny,
+                    Level::Forbid => LintLevel::Forbid,
+                },
+            },
+            Self::LintRemove {
+                scope: selected_scope,
+                tool: selected_tool,
+                name,
+            } => ManifestEdit::LintRemove {
+                scope: scope(selected_scope),
+                tool: tool(selected_tool),
+                name: lint_name(name)?,
+            },
+            Self::FeatureSet { name, values } => ManifestEdit::FeatureSet {
+                name: feature_name(name)?,
+                values: values
+                    .into_iter()
+                    .map(|value| FeatureValue::new(value.0).map_err(|_| MutationError::Invalid))
+                    .collect::<Result<Vec<_>, _>>()?,
+            },
+            Self::FeatureRemove { name } => ManifestEdit::FeatureRemove {
+                name: feature_name(name)?,
+            },
+            Self::ProfileSet {
+                profile: selected,
+                setting,
+            } => ManifestEdit::ProfileSet {
+                profile: profile(selected),
+                setting: setting.into_domain()?,
+            },
+            Self::ProfileRemove {
+                profile: selected,
+                setting,
+            } => ManifestEdit::ProfileRemove {
+                profile: profile(selected),
+                setting: setting.into_domain(),
+            },
+            Self::WorkspaceDependencySet { name, spec } => {
+                if spec.optional {
+                    return Err(MutationError::Invalid);
+                }
+                ManifestEdit::WorkspaceDependencySet {
+                    name: dependency_name(name)?,
+                    spec: spec.into_domain()?,
+                }
+            }
+            Self::WorkspaceDependencyRemove { name } => ManifestEdit::WorkspaceDependencyRemove {
+                name: dependency_name(name)?,
+            },
+        })
+    }
+}
+
+impl ProfileSettingInput {
+    fn into_domain(self) -> Result<ProfileSettingEdit, MutationError> {
+        Ok(match self {
+            Self::OptLevel(value) => ProfileSettingEdit::OptLevel(match value {
+                OptLevelInput::Integer(0) => ProfileOptLevel::Zero,
+                OptLevelInput::Integer(1) => ProfileOptLevel::One,
+                OptLevelInput::Integer(2) => ProfileOptLevel::Two,
+                OptLevelInput::Integer(3) => ProfileOptLevel::Three,
+                OptLevelInput::Integer(_) => return Err(MutationError::Invalid),
+                OptLevelInput::Text(SizeOptLevelInput::S) => ProfileOptLevel::Size,
+                OptLevelInput::Text(SizeOptLevelInput::Z) => ProfileOptLevel::SizeMin,
+            }),
+            Self::Debug(value) => ProfileSettingEdit::Debug(match value {
+                DebugInfoInput::None => ProfileDebugInfo::None,
+                DebugInfoInput::Limited => ProfileDebugInfo::Limited,
+                DebugInfoInput::Full => ProfileDebugInfo::Full,
+                DebugInfoInput::LineTablesOnly => ProfileDebugInfo::LineTablesOnly,
+                DebugInfoInput::LineDirectivesOnly => ProfileDebugInfo::LineDirectivesOnly,
+            }),
+            Self::Strip(value) => ProfileSettingEdit::Strip(match value {
+                StripInput::None => ProfileStrip::None,
+                StripInput::Debuginfo => ProfileStrip::Debuginfo,
+                StripInput::Symbols => ProfileStrip::Symbols,
+            }),
+            Self::DebugAssertions(value) => ProfileSettingEdit::DebugAssertions(value),
+            Self::OverflowChecks(value) => ProfileSettingEdit::OverflowChecks(value),
+            Self::Lto(value) => ProfileSettingEdit::Lto(match value {
+                LtoInput::Boolean(false) => ProfileLto::False,
+                LtoInput::Boolean(true) => ProfileLto::True,
+                LtoInput::Text(LtoTextInput::Off) => ProfileLto::Off,
+                LtoInput::Text(LtoTextInput::Thin) => ProfileLto::Thin,
+                LtoInput::Text(LtoTextInput::Fat) => ProfileLto::Fat,
+            }),
+            Self::Panic(value) => ProfileSettingEdit::Panic(match value {
+                PanicInput::Unwind => ProfilePanic::Unwind,
+                PanicInput::Abort => ProfilePanic::Abort,
+            }),
+            Self::Incremental(value) => ProfileSettingEdit::Incremental(value),
+            Self::CodegenUnits(value) => ProfileSettingEdit::CodegenUnits(
+                ProfileCodegenUnits::new(value).map_err(|_| MutationError::Invalid)?,
+            ),
+        })
+    }
+}
+
+impl ProfileSettingKeyInput {
+    fn into_domain(self) -> ProfileSettingKey {
+        match self {
+            Self::OptLevel => ProfileSettingKey::OptLevel,
+            Self::Debug => ProfileSettingKey::Debug,
+            Self::Strip => ProfileSettingKey::Strip,
+            Self::DebugAssertions => ProfileSettingKey::DebugAssertions,
+            Self::OverflowChecks => ProfileSettingKey::OverflowChecks,
+            Self::Lto => ProfileSettingKey::Lto,
+            Self::Panic => ProfileSettingKey::Panic,
+            Self::Incremental => ProfileSettingKey::Incremental,
+            Self::CodegenUnits => ProfileSettingKey::CodegenUnits,
+        }
+    }
+}
+
+impl DependencySpecInput {
+    fn into_domain(self) -> Result<DependencySpec, MutationError> {
+        if !bounded_ascii(&self.requirement, 128) || self.features.len() > 128 {
+            return Err(MutationError::Invalid);
+        }
+        Ok(DependencySpec {
+            requirement: self.requirement,
+            package: self.package.map(dependency_name).transpose()?,
+            features: self
+                .features
+                .into_iter()
+                .map(|feature| feature_name(feature.0))
+                .collect::<Result<Vec<_>, _>>()?,
+            optional: self.optional,
+            default_features: self.default_features,
+        })
+    }
+}
+
+fn lint_name(value: String) -> Result<LintName, MutationError> {
+    LintName::new(value).map_err(|_| MutationError::Invalid)
+}
+
+fn feature_name(value: String) -> Result<FeatureName, MutationError> {
+    FeatureName::new(value).map_err(|_| MutationError::Invalid)
+}
+
+fn dependency_name(value: String) -> Result<DependencyName, MutationError> {
+    DependencyName::new(value).map_err(|_| MutationError::Invalid)
+}
+
+fn bounded_ascii(value: &str, maximum: usize) -> bool {
+    !value.is_empty()
+        && value.len() <= maximum
+        && value.bytes().all(|byte| (b' '..=b'~').contains(&byte))
+}
+
+#[derive(Clone, Copy, Deserialize, JsonSchema, Default)]
+#[serde(rename_all = "snake_case")]
+pub(super) enum DependencyKindInput {
+    #[default]
+    Normal,
+    Dev,
+    Build,
+}
+
+impl DependencyKindInput {
+    fn into_domain(self) -> DependencyKind {
+        match self {
+            Self::Normal => DependencyKind::Normal,
+            Self::Dev => DependencyKind::Dev,
+            Self::Build => DependencyKind::Build,
+        }
+    }
+}
+
+#[derive(Deserialize, JsonSchema)]
+#[serde(deny_unknown_fields)]
+pub(in crate::stdio) struct DependencyAddInput {
+    #[schemars(with = "String", regex(pattern = "^prj_[0-9a-f]{32}$"))]
+    project_ref: ProjectRef,
+    action: DependencyAddAction,
+}
+
+#[derive(Deserialize, JsonSchema)]
+#[serde(tag = "mode", rename_all = "snake_case", deny_unknown_fields)]
+enum DependencyAddAction {
+    Preview {
+        #[schemars(with = "String", regex(pattern = "^sha256:[0-9a-f]{64}$"))]
+        expected_project_fingerprint: ProjectIdentityFingerprint,
+        #[serde(default = "default_manifest_path")]
+        #[schemars(
+            length(min = 10, max = 100),
+            regex(
+                pattern = "^(([A-Za-z0-9_.-]*[A-Za-z0-9_-][A-Za-z0-9_.-]*|\\.{3,})/){0,31}Cargo\\.toml$"
+            )
+        )]
+        manifest_path: String,
+        #[serde(default)]
+        dependency_kind: DependencyKindInput,
+        #[schemars(length(min = 1, max = 256), regex(pattern = "^[ -~]+$"))]
+        target: Option<String>,
+        #[schemars(
+            length(min = 1, max = 128),
+            regex(pattern = "^[A-Za-z0-9_][A-Za-z0-9_-]*$")
+        )]
+        name: String,
+        #[schemars(length(min = 1, max = 128), regex(pattern = "^[ -~]+$"))]
+        requirement: String,
+        #[schemars(
+            length(min = 1, max = 128),
+            regex(pattern = "^[A-Za-z0-9_][A-Za-z0-9_-]*$")
+        )]
+        package: Option<String>,
+        #[serde(default)]
+        #[schemars(length(max = 128))]
+        features: Vec<FeatureNameInput>,
+        #[serde(default)]
+        optional: bool,
+        #[serde(default = "default_true")]
+        default_features: bool,
+    },
+    Commit {
+        #[schemars(regex(pattern = "^mut_[0-9a-f]{32}$"))]
+        plan_id: String,
+        #[schemars(with = "String", regex(pattern = "^sha256:[0-9a-f]{64}$"))]
+        plan_digest: SourceFingerprint,
+        #[schemars(length(min = 1, max = 64), regex(pattern = "^[A-Za-z0-9_-]+$"))]
+        idempotency_key: String,
+    },
+    Receipt {
+        #[schemars(regex(pattern = "^mut_[0-9a-f]{32}$"))]
+        operation_id: String,
+        recover: bool,
+    },
+}
+
+#[derive(Deserialize, JsonSchema)]
+#[serde(deny_unknown_fields)]
+pub(in crate::stdio) struct DependencyRemoveInput {
+    #[schemars(with = "String", regex(pattern = "^prj_[0-9a-f]{32}$"))]
+    project_ref: ProjectRef,
+    action: DependencyRemoveAction,
+}
+
+#[derive(Deserialize, JsonSchema)]
+#[serde(tag = "mode", rename_all = "snake_case", deny_unknown_fields)]
+enum DependencyRemoveAction {
+    Preview {
+        #[schemars(with = "String", regex(pattern = "^sha256:[0-9a-f]{64}$"))]
+        expected_project_fingerprint: ProjectIdentityFingerprint,
+        #[serde(default = "default_manifest_path")]
+        #[schemars(
+            length(min = 10, max = 100),
+            regex(
+                pattern = "^(([A-Za-z0-9_.-]*[A-Za-z0-9_-][A-Za-z0-9_.-]*|\\.{3,})/){0,31}Cargo\\.toml$"
+            )
+        )]
+        manifest_path: String,
+        #[serde(default)]
+        dependency_kind: DependencyKindInput,
+        #[schemars(length(min = 1, max = 256), regex(pattern = "^[ -~]+$"))]
+        target: Option<String>,
+        #[schemars(
+            length(min = 1, max = 128),
+            regex(pattern = "^[A-Za-z0-9_][A-Za-z0-9_-]*$")
+        )]
+        name: String,
+    },
+    Commit {
+        #[schemars(regex(pattern = "^mut_[0-9a-f]{32}$"))]
+        plan_id: String,
+        #[schemars(with = "String", regex(pattern = "^sha256:[0-9a-f]{64}$"))]
+        plan_digest: SourceFingerprint,
+        #[schemars(length(min = 1, max = 64), regex(pattern = "^[A-Za-z0-9_-]+$"))]
+        idempotency_key: String,
+    },
+    Receipt {
+        #[schemars(regex(pattern = "^mut_[0-9a-f]{32}$"))]
+        operation_id: String,
+        recover: bool,
+    },
+}
+
+fn default_manifest_path() -> String {
+    "Cargo.toml".to_owned()
+}
+
+fn manifest_path(value: String) -> Result<String, ErrorData> {
+    if validate_source_path(&value).is_err()
+        || (value != "Cargo.toml" && !value.ends_with("/Cargo.toml"))
+    {
+        return Err(invalid_arguments());
+    }
+    Ok(value)
+}
+
+fn dependency_target(value: Option<String>) -> Result<Option<DependencyTarget>, ErrorData> {
+    value
+        .map(|target| DependencyTarget::new(target).map_err(|_| invalid_arguments()))
+        .transpose()
+}
+
+fn dependency_spec(
+    requirement: String,
+    package: Option<String>,
+    features: Vec<FeatureNameInput>,
+    optional: bool,
+    default_features: bool,
+) -> Result<DependencySpec, ErrorData> {
+    DependencySpecInput {
+        requirement,
+        package,
+        features,
+        optional,
+        default_features,
+    }
+    .into_domain()
+    .map_err(|_| invalid_arguments())
+}
+
+fn invalid_arguments() -> ErrorData {
+    ErrorData::invalid_params("Invalid tool arguments", None)
+}
+
+impl MutationInput for DependencyAddInput {
+    const NAME: &'static str = DEPENDENCY_ADD_NAME;
+    const DESCRIPTION: &'static str = "Preview, commit or inspect a journaled dependency addition. Host --allow-dependency-add and approved offline Cargo vendor data are required.";
+    const KIND: MutationKind = MutationKind::DependencyAdd;
+
+    fn into_request(self) -> Result<Input, ErrorData> {
+        let action = match self.action {
+            DependencyAddAction::Preview {
+                expected_project_fingerprint,
+                manifest_path: selected_manifest,
+                dependency_kind,
+                target,
+                name,
+                requirement,
+                package,
+                features,
+                optional,
+                default_features,
+            } => Action::SemanticPreview {
+                expected_project_fingerprint,
+                target_manifest: manifest_path(selected_manifest)?,
+                edit: ManifestEdit::DependencyAdd {
+                    kind: dependency_kind.into_domain(),
+                    target: dependency_target(target)?,
+                    name: dependency_name(name).map_err(|_| invalid_arguments())?,
+                    spec: dependency_spec(
+                        requirement,
+                        package,
+                        features,
+                        optional,
+                        default_features,
+                    )?,
+                },
+            },
+            DependencyAddAction::Commit {
+                plan_id,
+                plan_digest,
+                idempotency_key,
+            } => Action::Commit {
+                plan_id,
+                plan_digest,
+                idempotency_key,
+            },
+            DependencyAddAction::Receipt {
+                operation_id,
+                recover,
+            } => Action::Receipt {
+                operation_id,
+                recover,
+            },
+        };
+        Ok(Input {
+            project_ref: self.project_ref,
+            action,
+        })
+    }
+}
+
+impl MutationInput for DependencyRemoveInput {
+    const NAME: &'static str = DEPENDENCY_REMOVE_NAME;
+    const DESCRIPTION: &'static str = "Preview, commit or inspect a journaled dependency removal. Host --allow-dependency-remove and approved offline Cargo vendor data are required.";
+    const KIND: MutationKind = MutationKind::DependencyRemove;
+
+    fn into_request(self) -> Result<Input, ErrorData> {
+        let action = match self.action {
+            DependencyRemoveAction::Preview {
+                expected_project_fingerprint,
+                manifest_path: selected_manifest,
+                dependency_kind,
+                target,
+                name,
+            } => Action::SemanticPreview {
+                expected_project_fingerprint,
+                target_manifest: manifest_path(selected_manifest)?,
+                edit: ManifestEdit::DependencyRemove {
+                    kind: dependency_kind.into_domain(),
+                    target: dependency_target(target)?,
+                    name: dependency_name(name).map_err(|_| invalid_arguments())?,
+                },
+            },
+            DependencyRemoveAction::Commit {
+                plan_id,
+                plan_digest,
+                idempotency_key,
+            } => Action::Commit {
+                plan_id,
+                plan_digest,
+                idempotency_key,
+            },
+            DependencyRemoveAction::Receipt {
+                operation_id,
+                recover,
+            } => Action::Receipt {
+                operation_id,
+                recover,
+            },
+        };
+        Ok(Input {
+            project_ref: self.project_ref,
+            action,
+        })
+    }
+}
+
+#[cfg(test)]
+#[allow(clippy::expect_used)] // Fixed DTO fixtures; production conversion remains fallible.
+mod tests {
+    use super::*;
+    use serde_json::json;
+
+    fn decode_edit(value: serde_json::Value) -> Result<ManifestEdit, MutationError> {
+        serde_json::from_value::<Edit>(value)
+            .map_err(|_| MutationError::Invalid)?
+            .into_domain()
+    }
+
+    #[test]
+    fn lint_json_shape_and_mapping_remain_unchanged() {
+        let edit = decode_edit(json!({
+            "operation": "lint_set",
+            "scope": "workspace",
+            "tool": "clippy",
+            "name": "unwrap_used",
+            "level": "deny",
+            "priority": 2
+        }))
+        .expect("lint edit");
+        assert!(matches!(
+            edit,
+            ManifestEdit::LintSet {
+                scope: LintScope::Workspace,
+                tool: LintTool::Clippy,
+                level: LintLevel::Deny,
+                priority: Some(2),
+                ..
+            }
+        ));
+    }
+
+    #[test]
+    fn feature_values_use_domain_validation() {
+        let valid = decode_edit(json!({
+            "operation": "feature_set",
+            "name": "full",
+            "values": ["dep:serde", "serde/derive", "tokio?/rt"]
+        }));
+        assert!(matches!(valid, Ok(ManifestEdit::FeatureSet { .. })));
+        assert_eq!(
+            decode_edit(json!({
+                "operation": "feature_set",
+                "name": "full",
+                "values": ["dep:../escape"]
+            })),
+            Err(MutationError::Invalid)
+        );
+    }
+
+    #[test]
+    fn profile_values_are_typed_and_bounded() {
+        for setting in [
+            json!({"name":"opt-level", "value":3}),
+            json!({"name":"opt-level", "value":"z"}),
+            json!({"name":"debug", "value":"line-tables-only"}),
+            json!({"name":"strip", "value":"symbols"}),
+            json!({"name":"lto", "value":true}),
+            json!({"name":"lto", "value":"thin"}),
+            json!({"name":"panic", "value":"abort"}),
+            json!({"name":"incremental", "value":false}),
+            json!({"name":"codegen-units", "value":1}),
+        ] {
+            assert!(
+                decode_edit(json!({
+                    "operation": "profile_set",
+                    "profile": "release",
+                    "setting": setting
+                }))
+                .is_ok()
+            );
+        }
+        assert!(
+            serde_json::from_value::<Edit>(json!({
+                "operation": "profile_set",
+                "profile": "release",
+                "setting": {"name":"opt-level", "value":4}
+            }))
+            .is_ok()
+        );
+        assert_eq!(
+            decode_edit(json!({
+                "operation": "profile_set",
+                "profile": "release",
+                "setting": {"name":"opt-level", "value":4}
+            })),
+            Err(MutationError::Invalid)
+        );
+        assert_eq!(
+            decode_edit(json!({
+                "operation": "profile_set",
+                "profile": "release",
+                "setting": {"name":"codegen-units", "value":0}
+            })),
+            Err(MutationError::Invalid)
+        );
+    }
+
+    #[test]
+    fn workspace_dependencies_forbid_optional_and_unknown_inheritance() {
+        assert_eq!(
+            decode_edit(json!({
+                "operation": "workspace_dependency_set",
+                "name": "serde",
+                "spec": {"requirement":"1", "optional":true}
+            })),
+            Err(MutationError::Invalid)
+        );
+        assert!(
+            serde_json::from_value::<Edit>(json!({
+                "operation": "workspace_dependency_set",
+                "name": "serde",
+                "spec": {"requirement":"1", "workspace":true}
+            }))
+            .is_err()
+        );
+    }
+
+    #[test]
+    fn add_preview_defaults_and_maps_direct_fields() {
+        let input: DependencyAddInput = serde_json::from_value(json!({
+            "project_ref":"prj_00000000000000000000000000000001",
+            "action": {
+                "mode":"preview",
+                "expected_project_fingerprint":"sha256:0000000000000000000000000000000000000000000000000000000000000001",
+                "name":"serde",
+                "requirement":"1",
+                "features":["derive"]
+            }
+        }))
+        .expect("add DTO");
+        let request = input.into_request().expect("domain request");
+        assert!(matches!(
+            request.action,
+            Action::SemanticPreview {
+                target_manifest,
+                edit: ManifestEdit::DependencyAdd {
+                    kind: DependencyKind::Normal,
+                    target: None,
+                    spec: DependencySpec {
+                        optional: false,
+                        default_features: true,
+                        ..
+                    },
+                    ..
+                },
+                ..
+            } if target_manifest == "Cargo.toml"
+        ));
+    }
+
+    #[test]
+    fn dependency_preview_rejects_bad_paths_targets_and_unknown_fields() {
+        let base = json!({
+            "project_ref":"prj_00000000000000000000000000000001",
+            "action": {
+                "mode":"preview",
+                "expected_project_fingerprint":"sha256:0000000000000000000000000000000000000000000000000000000000000001",
+                "manifest_path":"../Cargo.toml",
+                "target":"x86_64..unknown",
+                "name":"serde",
+                "requirement":"1",
+                "workspace":true
+            }
+        });
+        assert!(serde_json::from_value::<DependencyAddInput>(base).is_err());
+
+        let input: DependencyRemoveInput = serde_json::from_value(json!({
+            "project_ref":"prj_00000000000000000000000000000001",
+            "action": {
+                "mode":"preview",
+                "expected_project_fingerprint":"sha256:0000000000000000000000000000000000000000000000000000000000000001",
+                "manifest_path":"../Cargo.toml",
+                "target":"x86_64..unknown",
+                "name":"serde"
+            }
+        }))
+        .expect("serde accepts values guarded by domain constructors");
+        assert!(input.into_request().is_err());
+
+        let empty_requirement: DependencyAddInput = serde_json::from_value(json!({
+            "project_ref":"prj_00000000000000000000000000000001",
+            "action": {
+                "mode":"preview",
+                "expected_project_fingerprint":"sha256:0000000000000000000000000000000000000000000000000000000000000001",
+                "name":"serde",
+                "requirement":""
+            }
+        }))
+        .expect("schema constraints are also enforced during conversion");
+        assert!(empty_requirement.into_request().is_err());
+    }
+
+    #[test]
+    fn dependency_manifest_schema_rejects_traversal_and_matches_portable_components() {
+        let schema = schemars::schema_for!(DependencyRemoveInput);
+        let value = serde_json::to_value(schema).expect("schema JSON");
+        let validator = jsonschema::validator_for(&value).expect("schema validator");
+        for (path, accepted) in [
+            ("Cargo.toml", true),
+            ("a-b/Cargo.toml", true),
+            (".hidden/Cargo.toml", true),
+            (".../Cargo.toml", true),
+            ("../Cargo.toml", false),
+            ("a/./Cargo.toml", false),
+            ("a/../Cargo.toml", false),
+            ("/Cargo.toml", false),
+            ("a//Cargo.toml", false),
+        ] {
+            let arguments = json!({"project_ref":"prj_00000000000000000000000000000001", "action": {
+                "mode":"preview", "expected_project_fingerprint": "sha256:0000000000000000000000000000000000000000000000000000000000000001",
+                "manifest_path":path, "name":"serde" }});
+            assert_eq!(validator.is_valid(&arguments), accepted, "path {path}");
+        }
+    }
+
+    #[test]
+    fn empty_and_unknown_edit_fields_are_rejected() {
+        assert_eq!(
+            decode_edit(json!({
+                "operation":"feature_remove",
+                "name":""
+            })),
+            Err(MutationError::Invalid)
+        );
+        assert!(
+            serde_json::from_value::<Edit>(json!({
+                "operation":"lint_remove",
+                "scope":"package",
+                "tool":"rust",
+                "name":"unsafe_code",
+                "extra":true
+            }))
+            .is_err()
+        );
+    }
+
+    #[test]
+    fn schemas_keep_dependency_tools_closed() {
+        let add =
+            serde_json::to_value(schemars::schema_for!(DependencyAddInput)).expect("add schema");
+        let remove = serde_json::to_value(schemars::schema_for!(DependencyRemoveInput))
+            .expect("remove schema");
+        let add_text = add.to_string();
+        let remove_text = remove.to_string();
+        assert!(add_text.contains("dependency_kind"));
+        assert!(add_text.contains("default_features"));
+        assert!(!remove_text.contains("requirement"));
+        assert!(!remove_text.contains("features"));
+    }
+
+    #[test]
+    fn dependency_lifecycle_actions_preserve_commit_and_receipt_contracts() {
+        let commit: DependencyAddInput = serde_json::from_value(json!({
+            "project_ref":"prj_00000000000000000000000000000001",
+            "action": {
+                "mode":"commit",
+                "plan_id":"mut_00000000000000000000000000000001",
+                "plan_digest":"sha256:0000000000000000000000000000000000000000000000000000000000000002",
+                "idempotency_key":"request-1"
+            }
+        }))
+        .expect("commit DTO");
+        assert!(matches!(
+            commit.into_request().expect("commit request").action,
+            Action::Commit { idempotency_key, .. } if idempotency_key == "request-1"
+        ));
+
+        let receipt: DependencyRemoveInput = serde_json::from_value(json!({
+            "project_ref":"prj_00000000000000000000000000000001",
+            "action": {
+                "mode":"receipt",
+                "operation_id":"mut_00000000000000000000000000000001",
+                "recover":true
+            }
+        }))
+        .expect("receipt DTO");
+        assert!(matches!(
+            receipt.into_request().expect("receipt request").action,
+            Action::Receipt { recover: true, .. }
+        ));
+    }
+}
+
+===== crates/mcp-server/tests/inspection_runtime/dependency_mutation.rs =====
+use super::format_mutation_runtime::{mutation_output, tool_schema};
+use super::*;
+use std::ffi::OsString;
+use std::path::Path;
+
+const VENDOR_FINGERPRINT: &str =
+    "sha256:743947d5788c1a4385a4b59869c5b8bd0535f7fc0d875b51288f9b26b2d0eba1";
+
+fn copy_tree(source: &Path, destination: &Path) -> Result {
+    fs::create_dir(destination)?;
+    for entry in fs::read_dir(source)? {
+        let entry = entry?;
+        let file_type = entry.file_type()?;
+        let target = destination.join(entry.file_name());
+        if file_type.is_dir() {
+            copy_tree(&entry.path(), &target)?;
+        } else if file_type.is_file() {
+            fs::copy(entry.path(), target)?;
+        } else {
+            return Err("vendor fixture contains a non-file entry".into());
+        }
+    }
+    Ok(())
+}
+
+fn install_vendor(fixture: &Fixture) -> Result<PathBuf> {
+    let source =
+        PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../../fixtures/cargo-vendor-data/vendor");
+    let vendor = fixture.root.join("vendor");
+    copy_tree(&source, &vendor)?;
+    Ok(vendor)
+}
+
+fn mutation_arguments(fixture: &Fixture, vendor: Option<&Path>) -> Vec<OsString> {
+    let mut arguments = Vec::new();
+    for flag in [
+        "--allow-manifest-write",
+        "--allow-dependency-add",
+        "--allow-dependency-remove",
+    ] {
+        arguments.push(flag.into());
+        arguments.push(fixture.project.as_os_str().to_owned());
+    }
+    if let Some(vendor) = vendor {
+        arguments.push("--cargo-vendor-dir".into());
+        arguments.push(vendor.as_os_str().to_owned());
+        arguments.push("--cargo-vendor-tree-sha256".into());
+        arguments.push(VENDOR_FINGERPRINT.into());
+    }
+    arguments
+}
+
+fn read_tree(root: &Path) -> Result<BTreeMap<String, Vec<u8>>> {
+    fn walk(root: &Path, at: &Path, files: &mut BTreeMap<String, Vec<u8>>) -> Result {
+        for entry in fs::read_dir(at)? {
+            let entry = entry?;
+            let path = entry.path();
+            if entry.file_type()?.is_dir() {
+                walk(root, &path, files)?;
+            } else {
+                let relative = path
+                    .strip_prefix(root)?
+                    .to_str()
+                    .ok_or("non-UTF8 fixture")?;
+                files.insert(relative.replace('\\', "/"), fs::read(path)?);
+            }
+        }
+        Ok(())
+    }
+    let mut files = BTreeMap::new();
+    walk(root, root, &mut files)?;
+    Ok(files)
+}
+
+fn semantic_call(id: i64, tool: &str, opened: &Value, action: Value) -> Value {
+    call(
+        id,
+        tool,
+        json!({"project_ref":opened["project_ref"],"action":action}),
+    )
+}
+
+fn commit_action(preview: &Value, key: &str) -> Value {
+    json!({
+        "mode":"commit",
+        "plan_id":preview["data"]["plan_id"],
+        "plan_digest":preview["data"]["plan_digest"],
+        "idempotency_key":key
+    })
+}
+
+fn assert_resolution(preview: &Value, manifest: &str, disposition: &str) {
+    let validation = &preview["data"]["validation"];
+    assert_eq!(validation["method"], "cargo_metadata_offline_then_frozen");
+    assert_eq!(validation["image_id"], APPROVED_RUST_IMAGE);
+    assert_eq!(validation["resolution"]["manifest_path"], manifest);
+    assert_eq!(validation["resolution"]["lock_policy"], "preserve_presence");
+    assert_eq!(validation["resolution"]["lock_disposition"], disposition);
+    assert_eq!(
+        validation["resolution"]["dataset_fingerprint"],
+        VENDOR_FINGERPRINT
+    );
+    for field in [
+        "configuration_fingerprint",
+        "execution_fingerprint",
+        "candidate_source_fingerprint",
+    ] {
+        assert_fingerprint(&validation[field]);
+    }
+    for field in [
+        "resolution_execution_fingerprint",
+        "resolved_lock_fingerprint",
+    ] {
+        assert_fingerprint(&validation["resolution"][field]);
+    }
+}
+
+#[test]
+#[ignore = "explicit approved Docker runtime/socket on macOS APFS; serial runtime qualification"]
+fn dependency_add_remove_preview_commit_restart_and_scope() -> Result {
+    let _serial = SERIAL.lock().map_err(|_| "serial lock poisoned")?;
+    let mut fixture = Fixture::new()?;
+    let vendor = install_vendor(&fixture)?;
+    fixture.assert_clean(None)?;
+    let before = read_tree(&fixture.project)?;
+    let mut server =
+        Server::start_with_arguments(&fixture, mutation_arguments(&fixture, Some(&vendor)))?;
+    let (opened, _) = server.bootstrap_open(&fixture)?;
+    let add_schema = tool_schema(&mut server, 3, "rust.dependency.add")?;
+    let remove_schema = tool_schema(&mut server, 4, "rust.dependency.remove")?;
+    server.send(semantic_call(
+        5,
+        "rust.dependency.add",
+        &opened,
+        json!({
+            "mode":"preview",
+            "expected_project_fingerprint":opened["fingerprint"],
+            "manifest_path":"app/Cargo.toml",
+            "dependency_kind":"normal",
+            "name":"quoted",
+            "requirement":"=1.0.47",
+            "package":"quote",
+            "features":["proc-macro"],
+            "optional":true,
+            "default_features":false
+        }),
+    ))?;
+    let added = mutation_output(server.receive(5, JOIN_TIMEOUT)?, &add_schema, "passed")?;
+    assert_resolution(&added, "app/Cargo.toml", "updated_existing");
+    assert_eq!(read_tree(&fixture.project)?, before);
+    let paths = added["data"]["files"]
+        .as_array()
+        .ok_or("files")?
+        .iter()
+        .map(|file| file["path"].as_str().unwrap_or_default())
+        .collect::<Vec<_>>();
+    assert_eq!(paths, ["Cargo.lock", "app/Cargo.toml"]);
+    let diff = added["data"]["diff"].as_str().ok_or("diff")?;
+    assert!(diff.contains("quoted = { version = \"=1.0.47\", package = \"quote\", features = [\"proc-macro\"], optional = true, default-features = false }"), "{diff}");
+    assert!(diff.contains("name = \"quote\""), "{diff}");
+
+    let add_commit = commit_action(&added, "add_quoted");
+    server.send(semantic_call(
+        6,
+        "rust.dependency.remove",
+        &opened,
+        add_commit.clone(),
+    ))?;
+    let cross = mutation_output(
+        server.receive(6, DISCOVERY_TIMEOUT)?,
+        &remove_schema,
+        "blocked",
+    )?;
+    assert_eq!(cross["error_code"], "permission_denied");
+    server.send(semantic_call(7, "rust.dependency.add", &opened, add_commit))?;
+    let add_receipt = mutation_output(server.receive(7, JOIN_TIMEOUT)?, &add_schema, "passed")?;
+    assert_eq!(add_receipt["data"]["state"], "committed");
+    assert!(
+        String::from_utf8(fs::read(fixture.project.join("app/Cargo.toml"))?)?.contains("quoted =")
+    );
+    assert!(
+        String::from_utf8(fs::read(fixture.project.join("Cargo.lock"))?)?
+            .contains("name = \"quote\"")
+    );
+    server.finish()?;
+    fixture.assert_clean(None)?;
+
+    let mut restarted =
+        Server::start_with_arguments(&fixture, mutation_arguments(&fixture, Some(&vendor)))?;
+    let (reopened, _) = restarted.bootstrap_open(&fixture)?;
+    restarted.send(semantic_call(
+        3,
+        "rust.dependency.add",
+        &reopened,
+        json!({
+            "mode":"receipt","operation_id":add_receipt["data"]["operation_id"],"recover":true
+        }),
+    ))?;
+    let replay = mutation_output(restarted.receive(3, JOIN_TIMEOUT)?, &add_schema, "passed")?;
+    assert_eq!(replay["data"], add_receipt["data"]);
+    restarted.send(semantic_call(4, "rust.dependency.remove", &reopened, json!({
+        "mode":"preview","expected_project_fingerprint":reopened["fingerprint"],
+        "manifest_path":"app/Cargo.toml","dependency_kind":"normal","target":null,"name":"quoted"
+    })))?;
+    let removed = mutation_output(
+        restarted.receive(4, JOIN_TIMEOUT)?,
+        &remove_schema,
+        "passed",
+    )?;
+    assert_resolution(&removed, "app/Cargo.toml", "updated_existing");
+    let remove_diff = removed["data"]["diff"].as_str().ok_or("diff")?;
+    assert!(remove_diff.contains("-quoted ="), "{remove_diff}");
+    restarted.send(semantic_call(
+        5,
+        "rust.dependency.remove",
+        &reopened,
+        commit_action(&removed, "remove_quoted"),
+    ))?;
+    let receipt = mutation_output(
+        restarted.receive(5, JOIN_TIMEOUT)?,
+        &remove_schema,
+        "passed",
+    )?;
+    assert_eq!(receipt["data"]["state"], "committed");
+    assert!(
+        !String::from_utf8(fs::read(fixture.project.join("app/Cargo.toml"))?)?.contains("quoted =")
+    );
+    assert!(
+        !String::from_utf8(fs::read(fixture.project.join("Cargo.lock"))?)?
+            .contains("name = \"quote\"")
+    );
+    restarted.finish()?;
+    fixture.assert_clean(None)?;
+    fixture.successful = true;
+    Ok(())
+}
+
+#[test]
+#[ignore = "explicit approved Docker runtime/socket on macOS APFS; serial runtime qualification"]
+fn dependency_dataset_selection_target_and_inherited_removal_fail_closed() -> Result {
+    let _serial = SERIAL.lock().map_err(|_| "serial lock poisoned")?;
+    let mut missing = Fixture::new()?;
+    let before = read_tree(&missing.project)?;
+    let mut server = Server::start_with_arguments(&missing, mutation_arguments(&missing, None))?;
+    let (opened, _) = server.bootstrap_open(&missing)?;
+    let schema = tool_schema(&mut server, 3, "rust.dependency.add")?;
+    server.send(semantic_call(
+        4,
+        "rust.dependency.add",
+        &opened,
+        json!({
+            "mode":"preview","expected_project_fingerprint":opened["fingerprint"],
+            "manifest_path":"app/Cargo.toml","name":"quote","requirement":"=1.0.47"
+        }),
+    ))?;
+    let blocked = mutation_output(server.receive(4, JOIN_TIMEOUT)?, &schema, "blocked")?;
+    assert_eq!(blocked["error_code"], "offline_data_missing");
+    server.finish()?;
+    assert_eq!(read_tree(&missing.project)?, before);
+    missing.assert_clean(None)?;
+    missing.successful = true;
+
+    let mut invalid = Fixture::new()?;
+    let vendor = install_vendor(&invalid)?;
+    fs::write(vendor.join("quote-1.0.47/src/lib.rs"), b"altered")?;
+    let mut server =
+        Server::start_with_arguments(&invalid, mutation_arguments(&invalid, Some(&vendor)))?;
+    let (opened, _) = server.bootstrap_open(&invalid)?;
+    server.send(semantic_call(
+        3,
+        "rust.dependency.add",
+        &opened,
+        json!({
+            "mode":"preview","expected_project_fingerprint":opened["fingerprint"],
+            "manifest_path":"app/Cargo.toml","name":"quote","requirement":"=1.0.47"
+        }),
+    ))?;
+    let blocked = mutation_output(server.receive(3, JOIN_TIMEOUT)?, &schema, "blocked")?;
+    assert_eq!(blocked["error_code"], "offline_data_invalid");
+    server.finish()?;
+    invalid.assert_clean(None)?;
+    invalid.successful = true;
+
+    let mut selected = Fixture::new()?;
+    let vendor = install_vendor(&selected)?;
+    let mut server =
+        Server::start_with_arguments(&selected, mutation_arguments(&selected, Some(&vendor)))?;
+    let (opened, _) = server.bootstrap_open(&selected)?;
+    server.send(semantic_call(
+        3,
+        "rust.dependency.add",
+        &opened,
+        json!({
+            "mode":"preview","expected_project_fingerprint":opened["fingerprint"],
+            "name":"quote","requirement":"=1.0.47"
+        }),
+    ))?;
+    let root = mutation_output(server.receive(3, JOIN_TIMEOUT)?, &schema, "blocked")?;
+    assert_eq!(root["error_code"], "invalid_operation");
+    let remove_schema = tool_schema(&mut server, 4, "rust.dependency.remove")?;
+    server.send(semantic_call(
+        5,
+        "rust.dependency.remove",
+        &opened,
+        json!({
+            "mode":"preview","expected_project_fingerprint":opened["fingerprint"],
+            "manifest_path":"app/Cargo.toml","dependency_kind":"build",
+            "target":"cfg(unix)","name":"renamed"
+        }),
+    ))?;
+    let inherited = mutation_output(server.receive(5, JOIN_TIMEOUT)?, &remove_schema, "passed")?;
+    assert_resolution(&inherited, "app/Cargo.toml", "updated_existing");
+    let diff = inherited["data"]["diff"].as_str().ok_or("diff")?;
+    assert!(diff.contains("[target.'cfg(unix)'.build-dependencies]"));
+    assert!(diff.contains("-renamed.workspace = true"));
+    assert!(!diff.contains("helper/Cargo.toml"));
+    server.finish()?;
+    selected.assert_clean(None)?;
+    selected.successful = true;
+    Ok(())
+}
+
+#[test]
+#[ignore = "explicit approved Docker runtime/socket on macOS APFS; serial runtime qualification"]
+fn absent_lock_stays_absent_and_manifest_patch_families_use_resolution_oracle() -> Result {
+    let _serial = SERIAL.lock().map_err(|_| "serial lock poisoned")?;
+    let mut fixture = Fixture::new()?;
+    let vendor = install_vendor(&fixture)?;
+    fs::remove_file(fixture.project.join("Cargo.lock"))?;
+    let mut server =
+        Server::start_with_arguments(&fixture, mutation_arguments(&fixture, Some(&vendor)))?;
+    let (opened, _) = server.bootstrap_open(&fixture)?;
+    let manifest_schema = tool_schema(&mut server, 3, "rust.manifest.patch")?;
+    server.send(semantic_call(
+        4,
+        "rust.manifest.patch",
+        &opened,
+        json!({
+            "mode":"preview","expected_project_fingerprint":opened["fingerprint"],
+            "edit":{"operation":"workspace_dependency_set","name":"quoted","spec":{
+                "requirement":"=1.0.47","package":"quote","features":["proc-macro"],
+                "optional":false,"default_features":false
+            }}
+        }),
+    ))?;
+    let transient = mutation_output(server.receive(4, JOIN_TIMEOUT)?, &manifest_schema, "passed")?;
+    assert_resolution(&transient, "Cargo.toml", "transient_unpublished");
+    assert!(!fixture.project.join("Cargo.lock").exists());
+    assert_eq!(transient["data"]["files"].as_array().map(Vec::len), Some(1));
+    assert_eq!(transient["data"]["files"][0]["path"], "Cargo.toml");
+    server.send(semantic_call(
+        5,
+        "rust.manifest.patch",
+        &opened,
+        commit_action(&transient, "workspace_quote"),
+    ))?;
+    let committed = mutation_output(server.receive(5, JOIN_TIMEOUT)?, &manifest_schema, "passed")?;
+    assert_eq!(committed["data"]["state"], "committed");
+    assert!(!fixture.project.join("Cargo.lock").exists());
+    server.send(call(
+        6,
+        "rust.project.open",
+        json!({"path":fixture.project}),
+    ))?;
+    let reopened_response = server.receive(6, DISCOVERY_TIMEOUT)?;
+    let reopened = &reopened_response["result"]["structuredContent"]["data"];
+    server.send(semantic_call(
+        7,
+        "rust.manifest.patch",
+        reopened,
+        json!({
+            "mode":"preview","expected_project_fingerprint":reopened["fingerprint"],
+            "edit":{"operation":"workspace_dependency_remove","name":"quoted"}
+        }),
+    ))?;
+    let remove = mutation_output(server.receive(7, JOIN_TIMEOUT)?, &manifest_schema, "passed")?;
+    assert_resolution(&remove, "Cargo.toml", "transient_unpublished");
+    assert!(
+        remove["data"]["diff"]
+            .as_str()
+            .unwrap_or_default()
+            .contains("-quoted =")
+    );
+    assert!(!fixture.project.join("Cargo.lock").exists());
+    server.finish()?;
+    fixture.assert_clean(None)?;
+
+    let mut patch = Fixture::new()?;
+    let vendor = install_vendor(&patch)?;
+    let mut server =
+        Server::start_with_arguments(&patch, mutation_arguments(&patch, Some(&vendor)))?;
+    let (opened, _) = server.bootstrap_open(&patch)?;
+    let schema = tool_schema(&mut server, 3, "rust.manifest.patch")?;
+    for (id, edit, needle, resolved) in [
+        (
+            4,
+            json!({"operation":"lint_set","scope":"workspace","tool":"rust","name":"unsafe_code","level":"forbid","priority":0}),
+            "[workspace.lints.rust]",
+            false,
+        ),
+        (
+            5,
+            json!({"operation":"profile_set","profile":"dev","setting":{"name":"opt-level","value":2}}),
+            "opt-level = 2",
+            false,
+        ),
+        (
+            6,
+            json!({"operation":"workspace_dependency_set","name":"quoted","spec":{"requirement":"=1.0.47","package":"quote","features":[],"optional":false,"default_features":true}}),
+            "quoted =",
+            true,
+        ),
+    ] {
+        server.send(semantic_call(
+            id,
+            "rust.manifest.patch",
+            &opened,
+            json!({
+                "mode":"preview","expected_project_fingerprint":opened["fingerprint"],"edit":edit
+            }),
+        ))?;
+        let output = mutation_output(server.receive(id, JOIN_TIMEOUT)?, &schema, "passed")?;
+        assert!(
+            output["data"]["diff"]
+                .as_str()
+                .unwrap_or_default()
+                .contains(needle)
+        );
+        if resolved {
+            assert_resolution(&output, "Cargo.toml", "updated_existing");
+        }
+    }
+    server.send(semantic_call(
+        7,
+        "rust.manifest.patch",
+        &opened,
+        json!({
+            "mode":"preview","expected_project_fingerprint":opened["fingerprint"],
+            "edit":{"operation":"workspace_dependency_set","name":"bad","spec":{
+                "requirement":"1","features":[],"optional":true,"default_features":true
+            }}
+        }),
+    ))?;
+    let optional = mutation_output(server.receive(7, DISCOVERY_TIMEOUT)?, &schema, "blocked")?;
+    assert_eq!(optional["error_code"], "invalid_operation");
+    server.finish()?;
+    patch.assert_clean(None)?;
+    patch.successful = true;
+    fixture.successful = true;
+    Ok(())
+}
+
+#[test]
+#[ignore = "explicit approved Docker runtime/socket on macOS APFS; serial runtime qualification"]
+fn package_root_feature_set_and_remove_are_exact_and_lock_preserving() -> Result {
+    let _serial = SERIAL.lock().map_err(|_| "serial lock poisoned")?;
+    let mut fixture = Fixture::new()?;
+    let vendor = install_vendor(&fixture)?;
+    fs::create_dir_all(fixture.project.join("src"))?;
+    fs::write(fixture.project.join("src/lib.rs"), "pub fn root() {}\n")?;
+    fs::write(
+        fixture.project.join("Cargo.toml"),
+        "[package]\nname = \"root\"\nversion = \"0.1.0\"\nedition = \"2024\"\n[features]\ndefault = []\nold = []\n",
+    )?;
+    fs::write(
+        fixture.project.join("Cargo.lock"),
+        "version = 4\n\n[[package]]\nname = \"root\"\nversion = \"0.1.0\"\n",
+    )?;
+    let before = read_tree(&fixture.project)?;
+    let mut server =
+        Server::start_with_arguments(&fixture, mutation_arguments(&fixture, Some(&vendor)))?;
+    let (opened, _) = server.bootstrap_open(&fixture)?;
+    let schema = tool_schema(&mut server, 3, "rust.manifest.patch")?;
+    server.send(semantic_call(
+        4,
+        "rust.manifest.patch",
+        &opened,
+        json!({
+            "mode":"preview","expected_project_fingerprint":opened["fingerprint"],
+            "edit":{"operation":"feature_set","name":"new","values":["old"]}
+        }),
+    ))?;
+    let set = mutation_output(server.receive(4, JOIN_TIMEOUT)?, &schema, "passed")?;
+    assert_resolution(&set, "Cargo.toml", "updated_existing");
+    assert_eq!(
+        set["data"]["files"]
+            .as_array()
+            .ok_or("files")?
+            .iter()
+            .map(|file| file["path"].as_str().unwrap_or_default())
+            .collect::<Vec<_>>(),
+        ["Cargo.lock", "Cargo.toml"]
+    );
+    assert!(
+        set["data"]["diff"]
+            .as_str()
+            .unwrap_or_default()
+            .contains("+new = [\"old\"]")
+    );
+    assert_eq!(read_tree(&fixture.project)?, before);
+    server.send(semantic_call(
+        5,
+        "rust.manifest.patch",
+        &opened,
+        json!({
+            "mode":"preview","expected_project_fingerprint":opened["fingerprint"],
+            "edit":{"operation":"feature_remove","name":"old"}
+        }),
+    ))?;
+    let removed = mutation_output(server.receive(5, JOIN_TIMEOUT)?, &schema, "passed")?;
+    assert_resolution(&removed, "Cargo.toml", "updated_existing");
+    assert!(
+        removed["data"]["diff"]
+            .as_str()
+            .unwrap_or_default()
+            .contains("-old = []")
+    );
+    assert_eq!(read_tree(&fixture.project)?, before);
+    server.finish()?;
+    fixture.assert_clean(None)?;
+    fixture.successful = true;
+    Ok(())
+}
+
+===== crates/mcp-server/src/stdio/mutation.rs =====
+//! New M2 contract; does not extend any M1 error enum or schema.
+mod semantic_input;
+use super::{
+    contract::{Contract, ToolOutput},
+    project::Registry,
+    workers::{WorkerError, Workers},
+};
+use rmcp::{
+    model::{CallToolRequestParams, CallToolResult, ErrorData, Tool, ToolAnnotations},
+    service::{RequestContext, RoleServer},
+};
+use rust_engineering_application::{
+    ExecutionError, InspectionError, MutationPlans, MutationPreparationError, PreviewRetention,
+    ProjectError, ReferenceGenerator,
+};
+use rust_engineering_domain::{
+    IdempotencyKey, ManifestEdit, MutationCandidate, MutationError, MutationId, MutationKind,
+    MutationReceipt, MutationState, ProjectIdentityFingerprint, ProjectRef, SourceFingerprint,
+    ToolStatus,
+};
+use rust_engineering_execution::RustProjectInspector;
+use rust_engineering_project::{
+    MonotonicClock, OsReferences, TomlManifestEditor, mutation_bytes_digest,
+    mutation_store::{NativeMutationStore, mutation_digest},
+    prepare_mutation_state,
+};
+use schemars::JsonSchema;
+use semantic_input::{DependencyAddInput, DependencyRemoveInput, Edit};
+use serde::{Deserialize, Serialize};
+use std::{
+    path::PathBuf,
+    sync::{
+        Arc, Mutex, TryLockError,
+        atomic::{AtomicBool, Ordering},
+    },
+    time::{Duration, Instant},
+};
+
+pub const NAME: &str = "rust.manifest.patch";
+pub const FORMAT_NAME: &str = "rust.fmt.apply";
+pub const FIX_NAME: &str = "rust.fix.apply";
+pub const DEPENDENCY_ADD_NAME: &str = semantic_input::DEPENDENCY_ADD_NAME;
+pub const DEPENDENCY_REMOVE_NAME: &str = semantic_input::DEPENDENCY_REMOVE_NAME;
+const DEADLINE: Duration = Duration::from_secs(240);
+const MAX_RESULT: usize = 512 * 1024;
+
+#[derive(Clone)]
+pub(super) struct WriteConfig {
+    pub roots: Vec<PathBuf>,
+    pub state_parent: PathBuf,
+    pub vendor: Option<super::HostCargoVendorConfig>,
+}
+
+#[derive(Deserialize, JsonSchema)]
+#[serde(deny_unknown_fields)]
+pub(super) struct Input {
+    #[schemars(with = "String", regex(pattern = "^prj_[0-9a-f]{32}$"))]
+    project_ref: ProjectRef,
+    action: Action,
+}
+
+#[derive(Deserialize, JsonSchema)]
+#[serde(tag = "mode", rename_all = "snake_case", deny_unknown_fields)]
+enum Action {
+    #[serde(skip)]
+    SemanticPreview {
+        expected_project_fingerprint: ProjectIdentityFingerprint,
+        target_manifest: String,
+        edit: ManifestEdit,
+    },
+    #[serde(skip)]
+    FormatPreview {
+        expected_project_fingerprint: ProjectIdentityFingerprint,
+    },
+    Preview {
+        #[schemars(with = "String", regex(pattern = "^sha256:[0-9a-f]{64}$"))]
+        expected_project_fingerprint: ProjectIdentityFingerprint,
+        edit: Edit,
+    },
+    Commit {
+        #[schemars(regex(pattern = "^mut_[0-9a-f]{32}$"))]
+        plan_id: String,
+        #[schemars(with = "String", regex(pattern = "^sha256:[0-9a-f]{64}$"))]
+        plan_digest: SourceFingerprint,
+        #[schemars(length(min = 1, max = 64), regex(pattern = "^[A-Za-z0-9_-]+$"))]
+        idempotency_key: String,
+    },
+    Receipt {
+        #[schemars(regex(pattern = "^mut_[0-9a-f]{32}$"))]
+        operation_id: String,
+        /// Classify an interrupted journal; never overwrite unknown source bytes.
+        recover: bool,
+    },
+}
+
+#[derive(Deserialize, JsonSchema)]
+#[serde(deny_unknown_fields)]
+pub(super) struct FormatInput {
+    #[schemars(with = "String", regex(pattern = "^prj_[0-9a-f]{32}$"))]
+    project_ref: ProjectRef,
+    action: FormatAction,
+}
+#[derive(Deserialize, JsonSchema)]
+#[serde(tag = "mode", rename_all = "snake_case", deny_unknown_fields)]
+enum FormatAction {
+    Preview {
+        #[schemars(with = "String", regex(pattern = "^sha256:[0-9a-f]{64}$"))]
+        expected_project_fingerprint: ProjectIdentityFingerprint,
+    },
+    Commit {
+        #[schemars(regex(pattern = "^mut_[0-9a-f]{32}$"))]
+        plan_id: String,
+        #[schemars(with = "String", regex(pattern = "^sha256:[0-9a-f]{64}$"))]
+        plan_digest: SourceFingerprint,
+        #[schemars(length(min = 1, max = 64), regex(pattern = "^[A-Za-z0-9_-]+$"))]
+        idempotency_key: String,
+    },
+    Receipt {
+        #[schemars(regex(pattern = "^mut_[0-9a-f]{32}$"))]
+        operation_id: String,
+        recover: bool,
+    },
+}
+
+pub(super) trait MutationInput:
+    serde::de::DeserializeOwned + JsonSchema + Send + 'static
+{
+    const NAME: &'static str;
+    const DESCRIPTION: &'static str;
+    const KIND: MutationKind;
+    fn into_request(self) -> Result<Input, ErrorData>;
+}
+impl MutationInput for Input {
+    const NAME: &'static str = NAME;
+    const KIND: MutationKind = MutationKind::ManifestPatch;
+    const DESCRIPTION: &'static str = "Preview, commit or inspect a journaled semantic root Cargo.toml edit. Host --allow-manifest-write is required. Preview validates the exact candidate in the approved offline Cargo runtime and returns its diff/digest. Commit requires that plan, current project authority and an idempotency key. Reopen the project after commit to read its receipt. Local coordinated writes do not exclude external editors or provide multi-file atomicity. Supports closed feature, built-in profile setting, workspace dependency and package/workspace rust/clippy lint set/remove. Dependency resolution requires host-approved offline vendor data and preserves whether Cargo.lock exists.";
+    fn into_request(self) -> Result<Input, ErrorData> {
+        Ok(self)
+    }
+}
+impl MutationInput for FormatInput {
+    const NAME: &'static str = FORMAT_NAME;
+    const KIND: MutationKind = MutationKind::FormatApply;
+    const DESCRIPTION: &'static str = "Preview, commit or inspect a journaled rustfmt operation on existing Rust source files. Host --allow-fmt-write is required. Preview runs rustfmt in the approved offline sandbox, verifies fmt.check against the complete exported candidate, and returns its exact diff/digest without source writes. Commit requires that unexpired plan, current project authority and an idempotency key. Reopen after commit for receipt or recovery. Local coordinated publication does not exclude external editors or provide multi-file atomicity.";
+    fn into_request(self) -> Result<Input, ErrorData> {
+        Ok(Input {
+            project_ref: self.project_ref,
+            action: match self.action {
+                FormatAction::Preview {
+                    expected_project_fingerprint,
+                } => Action::FormatPreview {
+                    expected_project_fingerprint,
+                },
+                FormatAction::Commit {
+                    plan_id,
+                    plan_digest,
+                    idempotency_key,
+                } => Action::Commit {
+                    plan_id,
+                    plan_digest,
+                    idempotency_key,
+                },
+                FormatAction::Receipt {
+                    operation_id,
+                    recover,
+                } => Action::Receipt {
+                    operation_id,
+                    recover,
+                },
+            },
+        })
+    }
+}
+
+#[derive(Deserialize, JsonSchema)]
+#[serde(deny_unknown_fields)]
+pub(super) struct FixInput {
+    #[schemars(with = "String", regex(pattern = "^prj_[0-9a-f]{32}$"))]
+    project_ref: ProjectRef,
+    action: FormatAction,
+}
+impl MutationInput for FixInput {
+    const NAME: &'static str = FIX_NAME;
+    const KIND: MutationKind = MutationKind::FixApply;
+    const DESCRIPTION: &'static str = "Preview, commit or inspect a journaled cargo fix operation on existing Rust source. Host --allow-fix-write is required. The fixed offline sandbox command selects all workspace targets and default features, then independently checks the complete candidate. Project build scripts and proc macros may influence permitted source changes; review the exact diff. No edition migration, broken-code or arbitrary flags. Commit requires the unexpired plan, current project authority and idempotency key. Reopen for receipt/recovery. Local coordinated publication does not exclude external editors or provide multi-file atomicity.";
+    fn into_request(self) -> Result<Input, ErrorData> {
+        FormatInput {
+            project_ref: self.project_ref,
+            action: self.action,
+        }
+        .into_request()
+    }
+}
+
+#[derive(Clone, Copy, Serialize, JsonSchema)]
+#[serde(rename_all = "snake_case")]
+enum Status {
+    Passed,
+    Failed,
+    Blocked,
+    Unavailable,
+    Cancelled,
+}
+#[derive(Clone, Copy, Serialize, JsonSchema)]
+#[serde(rename_all = "snake_case")]
+enum Reason {
+    InvalidOperation,
+    PermissionDenied,
+    Conflict,
+    LockBusy,
+    PlanExpired,
+    NotFound,
+    LimitExceeded,
+    UnsupportedPlatform,
+    Io,
+    RecoveryRequired,
+    ToolchainUnavailable,
+    CandidateInvalid,
+    Cancelled,
+    CommandTimeout,
+    OfflineDataMissing,
+    OfflineDataInvalid,
+}
+#[derive(Clone, Serialize, JsonSchema)]
+#[serde(rename_all = "snake_case")]
+enum Concurrency {
+    LocalCoordinated,
+}
+#[derive(Clone, Serialize, JsonSchema)]
+#[serde(rename_all = "snake_case")]
+enum ExcludedGuarantee {
+    OsExclusionOfExternalWriters,
+    MultiFileAtomicity,
+    MaliciousHostProtection,
+    DemonstratedPowerLossSurvival,
+}
+
+#[derive(Clone, Serialize, JsonSchema)]
+#[serde(deny_unknown_fields)]
+struct Change {
+    path: String,
+    before_sha256: String,
+    after_sha256: String,
+    before_bytes: u64,
+    after_bytes: u64,
+}
+
+#[derive(Clone, Serialize, JsonSchema)]
+#[serde(deny_unknown_fields)]
+struct ValidationView {
+    method: ValidationMethod,
+    semantics: SnapshotSemantics,
+    platform: String,
+    image_id: String,
+    configuration_fingerprint: String,
+    execution_fingerprint: String,
+    rust_version: String,
+    cargo_version: String,
+    candidate_source_fingerprint: String,
+    mutation_execution_fingerprint: Option<String>,
+    resolution: Option<ResolutionView>,
+}
+#[derive(Clone, Serialize, JsonSchema)]
+#[serde(rename_all = "snake_case")]
+enum ValidationMethod {
+    CargoMetadataFrozenNoDeps,
+    RustfmtThenFmtCheck,
+    CargoFixThenCheck,
+    CargoMetadataOfflineThenFrozen,
+}
+#[derive(Clone, Serialize, JsonSchema)]
+#[serde(rename_all = "snake_case")]
+enum SnapshotSemantics {
+    LatestKnown,
+}
+
+#[derive(Clone, Serialize, JsonSchema)]
+#[serde(rename_all = "snake_case")]
+enum Freshness {
+    Unknown,
+}
+#[derive(Clone, Serialize, JsonSchema)]
+#[serde(tag = "kind", rename_all = "snake_case", deny_unknown_fields)]
+enum MutationEvidence {
+    Local,
+    MutationSnapshot {
+        plan_digest: String,
+        semantics: SnapshotSemantics,
+        freshness: Freshness,
+    },
+}
+#[derive(Clone, Default, Serialize, JsonSchema)]
+#[serde(deny_unknown_fields)]
+struct Truncation {
+    stdout_truncated: bool,
+    stderr_truncated: bool,
+    diagnostics_omitted: u64,
+}
+
+#[derive(Clone, Serialize, JsonSchema)]
+#[serde(deny_unknown_fields)]
+struct ResolutionView {
+    resolution_execution_fingerprint: String,
+    dataset_fingerprint: String,
+    resolved_lock_fingerprint: String,
+    lock_policy: LockPolicy,
+    lock_disposition: LockDisposition,
+    manifest_path: String,
+}
+#[derive(Clone, Serialize, JsonSchema)]
+#[serde(rename_all = "snake_case")]
+enum LockPolicy {
+    PreservePresence,
+}
+#[derive(Clone, Serialize, JsonSchema)]
+#[serde(rename_all = "snake_case")]
+enum LockDisposition {
+    UpdatedExisting,
+    TransientUnpublished,
+}
+
+fn read_validation_frame(encoded: &mut &str) -> Result<String, MutationError> {
+    let (length, rest) = encoded.split_once(':').ok_or(MutationError::Invalid)?;
+    if length.len() > 5 || !length.bytes().all(|b| b.is_ascii_digit()) {
+        return Err(MutationError::Invalid);
+    }
+    let length = length
+        .parse::<usize>()
+        .map_err(|_| MutationError::Invalid)?;
+    if length > 1024 {
+        return Err(MutationError::Invalid);
+    }
+    let field = rest.get(..length).ok_or(MutationError::Invalid)?.to_owned();
+    *encoded = rest.get(length..).ok_or(MutationError::Invalid)?;
+    Ok(field)
+}
+
+fn validation_view(mut encoded: &str) -> Result<ValidationView, MutationError> {
+    let mut fields = Vec::new();
+    for _ in 0..9 {
+        let (size, rest) = encoded.split_once(':').ok_or(MutationError::Invalid)?;
+        if size.len() > 5 || !size.bytes().all(|b| b.is_ascii_digit()) {
+            return Err(MutationError::Invalid);
+        }
+        let size = size.parse::<usize>().map_err(|_| MutationError::Invalid)?;
+        if size > 1024 {
+            return Err(MutationError::Invalid);
+        }
+        fields.push(rest.get(..size).ok_or(MutationError::Invalid)?.to_owned());
+        encoded = rest.get(size..).ok_or(MutationError::Invalid)?;
+    }
+    let [
+        version,
+        mode,
+        platform,
+        image_id,
+        configuration_fingerprint,
+        execution_fingerprint,
+        rust_version,
+        cargo_version,
+        candidate_source_fingerprint,
+    ]: [String; 9] = fields.try_into().map_err(|_| MutationError::Invalid)?;
+    let mut resolution = None;
+    let (method, mutation_execution_fingerprint) = match version.as_str() {
+        "m2-manifest-lints-v1" | "m2-manifest-semantic-v1" if encoded.is_empty() => {
+            (ValidationMethod::CargoMetadataFrozenNoDeps, None)
+        }
+        "m2-fmt-apply-v1" | "m2-fix-apply-v1" => {
+            let (size, value) = encoded.split_once(':').ok_or(MutationError::Invalid)?;
+            if size != "71" || value.len() != 71 {
+                return Err(MutationError::Invalid);
+            }
+            value
+                .parse::<SourceFingerprint>()
+                .map_err(|_| MutationError::Invalid)?;
+            (
+                if version == "m2-fix-apply-v1" {
+                    ValidationMethod::CargoFixThenCheck
+                } else {
+                    ValidationMethod::RustfmtThenFmtCheck
+                },
+                Some(value.to_owned()),
+            )
+        }
+        "m2-manifest-resolved-v1" | "m2-dependency-add-v1" | "m2-dependency-remove-v1" => {
+            let resolution_execution_fingerprint = read_validation_frame(&mut encoded)?;
+            let dataset_fingerprint = read_validation_frame(&mut encoded)?;
+            let resolved_lock_fingerprint = read_validation_frame(&mut encoded)?;
+            for fingerprint in [
+                &resolution_execution_fingerprint,
+                &dataset_fingerprint,
+                &resolved_lock_fingerprint,
+            ] {
+                fingerprint
+                    .parse::<SourceFingerprint>()
+                    .map_err(|_| MutationError::Invalid)?;
+            }
+            let lock_disposition = match read_validation_frame(&mut encoded)?.as_str() {
+                "updated_existing" => LockDisposition::UpdatedExisting,
+                "transient_unpublished" => LockDisposition::TransientUnpublished,
+                _ => return Err(MutationError::Invalid),
+            };
+            let manifest_path = read_validation_frame(&mut encoded)?;
+            if !encoded.is_empty()
+                || rust_engineering_domain::validate_source_path(&manifest_path).is_err()
+                || !(manifest_path == "Cargo.toml" || manifest_path.ends_with("/Cargo.toml"))
+            {
+                return Err(MutationError::Invalid);
+            }
+            resolution = Some(ResolutionView {
+                resolution_execution_fingerprint,
+                dataset_fingerprint,
+                resolved_lock_fingerprint,
+                lock_policy: LockPolicy::PreservePresence,
+                lock_disposition,
+                manifest_path,
+            });
+            (ValidationMethod::CargoMetadataOfflineThenFrozen, None)
+        }
+        _ => return Err(MutationError::Invalid),
+    };
+    if mode != "local_coordinated" {
+        return Err(MutationError::Invalid);
+    }
+    for fingerprint in [
+        &image_id,
+        &configuration_fingerprint,
+        &execution_fingerprint,
+        &candidate_source_fingerprint,
+    ] {
+        fingerprint
+            .parse::<SourceFingerprint>()
+            .map_err(|_| MutationError::Invalid)?;
+    }
+    Ok(ValidationView {
+        resolution,
+        method,
+        mutation_execution_fingerprint,
+        semantics: SnapshotSemantics::LatestKnown,
+        platform,
+        image_id,
+        configuration_fingerprint,
+        execution_fingerprint,
+        rust_version,
+        cargo_version,
+        candidate_source_fingerprint,
+    })
+}
+
+#[derive(Clone, Serialize, JsonSchema)]
+#[serde(tag = "kind", rename_all = "snake_case", deny_unknown_fields)]
+enum Data {
+    Preview {
+        plan_id: String,
+        plan_digest: String,
+        expires_in_seconds: u64,
+        files: Vec<Change>,
+        diff: String,
+        validation: ValidationView,
+    },
+    Receipt {
+        operation_id: String,
+        plan_digest: String,
+        state: ReceiptState,
+        validation: ValidationView,
+        files: Vec<ReceiptChange>,
+    },
+}
+#[derive(Clone, Serialize, JsonSchema)]
+#[serde(rename_all = "snake_case")]
+enum ReceiptState {
+    Committed,
+    NoChange,
+    Aborted,
+    RecoveryRequired,
+}
+
+#[derive(Clone, Serialize, JsonSchema)]
+#[serde(deny_unknown_fields)]
+struct Output {
+    status: Status,
+    error_code: Option<Reason>,
+    error_message: Option<&'static str>,
+    summary: &'static str,
+    duration_ms: u64,
+    data: Option<Data>,
+    diagnostics: [(); 0],
+    truncation: Truncation,
+    evidence: MutationEvidence,
+    concurrency_contract: Concurrency,
+    guarantees_not_provided: [ExcludedGuarantee; 4],
+}
+impl ToolOutput for Output {
+    fn status(&self) -> ToolStatus {
+        match self.status {
+            Status::Passed => ToolStatus::Passed,
+            Status::Failed => ToolStatus::Failed,
+            Status::Blocked => ToolStatus::Blocked,
+            Status::Unavailable => ToolStatus::Unavailable,
+            Status::Cancelled => ToolStatus::Cancelled,
+        }
+    }
+}
+impl Output {
+    fn new(
+        status: Status,
+        reason: Option<Reason>,
+        data: Option<Data>,
+        summary: &'static str,
+        duration_ms: u64,
+    ) -> Self {
+        let evidence = match &data {
+            Some(Data::Preview { plan_digest, .. } | Data::Receipt { plan_digest, .. }) => {
+                MutationEvidence::MutationSnapshot {
+                    plan_digest: plan_digest.clone(),
+                    semantics: SnapshotSemantics::LatestKnown,
+                    freshness: Freshness::Unknown,
+                }
+            }
+            None => MutationEvidence::Local,
+        };
+        Self {
+            status,
+            error_code: reason,
+            error_message: reason.map(|_| summary),
+            summary,
+            duration_ms,
+            data,
+            diagnostics: [],
+            truncation: Truncation::default(),
+            evidence,
+            concurrency_contract: Concurrency::LocalCoordinated,
+            guarantees_not_provided: [
+                ExcludedGuarantee::OsExclusionOfExternalWriters,
+                ExcludedGuarantee::MultiFileAtomicity,
+                ExcludedGuarantee::MaliciousHostProtection,
+                ExcludedGuarantee::DemonstratedPowerLossSurvival,
+            ],
+        }
+    }
+    fn failure(reason: Reason, duration: u64) -> Self {
+        let status = match reason {
+            Reason::UnsupportedPlatform | Reason::ToolchainUnavailable => Status::Unavailable,
+            Reason::CandidateInvalid | Reason::CommandTimeout => Status::Failed,
+            Reason::Cancelled => Status::Cancelled,
+            _ => Status::Blocked,
+        };
+        Self::new(
+            status,
+            Some(reason),
+            None,
+            match reason {
+                Reason::InvalidOperation => {
+                    "Operation is outside this tool's supported mutation contract"
+                }
+                Reason::PermissionDenied => {
+                    "A current project reference and exact host write grant for this operation are required"
+                }
+                Reason::Conflict => {
+                    "Source or approval changed; reopen the project and request a new preview"
+                }
+                Reason::LockBusy => "Another operation is active; retry when it finishes",
+                Reason::PlanExpired => "Preview expired; request a new preview and review its diff",
+                Reason::NotFound => {
+                    "Plan or operation was not found; a restarted session requires receipt lookup for persisted operations"
+                }
+                Reason::LimitExceeded => {
+                    "Mutation exceeds a bounded plan, output or journal budget"
+                }
+                Reason::UnsupportedPlatform => {
+                    "This writer requires the qualified macOS ARM64 APFS adapter"
+                }
+                Reason::Io => {
+                    "Mutation I/O failed; consult the original operation receipt before retrying a commit"
+                }
+                Reason::RecoveryRequired => {
+                    "Preserve journal and mutation temporaries; reopen and request receipt with recover=true"
+                }
+                Reason::ToolchainUnavailable => {
+                    "Configure the approved offline Cargo runtime before preview"
+                }
+                Reason::CandidateInvalid => {
+                    "The isolated tool or postcondition check rejected the candidate; source was not changed"
+                }
+                Reason::Cancelled => "Operation cancelled before a successful receipt was returned",
+                Reason::OfflineDataMissing => {
+                    "Configure a host-approved Cargo vendor dataset for offline dependency resolution"
+                }
+                Reason::OfflineDataInvalid => {
+                    "The configured Cargo vendor data could not be verified against the host fingerprint"
+                }
+                Reason::CommandTimeout => {
+                    "The isolated operation exceeded its time budget; no candidate was approved"
+                }
+            },
+            duration,
+        )
+    }
+}
+
+struct Provider {
+    config: Option<WriteConfig>,
+    kind: MutationKind,
+    store: Option<NativeMutationStore>,
+}
+impl Provider {
+    fn store(&mut self) -> Result<(), MutationError> {
+        let config = self
+            .config
+            .as_ref()
+            .ok_or(MutationError::PermissionDenied)?;
+        if self.store.is_none() {
+            let path = prepare_mutation_state(&config.state_parent)?;
+            self.store = Some(NativeMutationStore::open_for_kind(
+                &path,
+                &config.roots,
+                self.kind,
+            )?);
+        }
+        Ok(())
+    }
+}
+
+#[derive(Default)]
+pub(super) struct SharedPlans {
+    plans: MutationPlans,
+    clock: MonotonicClock,
+}
+
+pub(super) type ManifestMutationTool = MutationTool<Input>;
+pub(super) type FormatMutationTool = MutationTool<FormatInput>;
+pub(super) type FixMutationTool = MutationTool<FixInput>;
+pub(super) type DependencyAddTool = MutationTool<DependencyAddInput>;
+pub(super) type DependencyRemoveTool = MutationTool<DependencyRemoveInput>;
+
+pub(super) struct MutationTool<I> {
+    pub definition: Tool,
+    contract: Contract<I, Output>,
+    registry: Arc<Mutex<Registry>>,
+    provider: Arc<Mutex<Provider>>,
+    workers: Workers,
+    inspector: Arc<RustProjectInspector>,
+    ready: Arc<AtomicBool>,
+    plans: Arc<Mutex<SharedPlans>>,
+}
+impl<I: MutationInput> MutationTool<I> {
+    pub fn new(
+        registry: Arc<Mutex<Registry>>,
+        workers: Workers,
+        inspector: Arc<RustProjectInspector>,
+        ready: Arc<AtomicBool>,
+        config: Option<WriteConfig>,
+        plans: Arc<Mutex<SharedPlans>>,
+    ) -> Result<Self, ErrorData> {
+        let contract = Contract::<I, Output>::new()?;
+        let definition = Tool::new(I::NAME, I::DESCRIPTION, (*contract.input_schema).clone())
+            .with_raw_output_schema(Arc::clone(&contract.output_schema))
+            .with_annotations(
+                ToolAnnotations::new()
+                    .read_only(false)
+                    .destructive(true)
+                    .idempotent(false)
+                    .open_world(false),
+            );
+        Ok(Self {
+            definition,
+            contract,
+            registry,
+            workers,
+            inspector,
+            ready,
+            plans,
+            provider: Arc::new(Mutex::new(Provider {
+                config,
+                kind: I::KIND,
+                store: None,
+            })),
+        })
+    }
+
+    pub async fn call(
+        &self,
+        request: CallToolRequestParams,
+        context: RequestContext<RoleServer>,
+    ) -> Result<CallToolResult, ErrorData> {
+        let input = self.contract.decode(request.arguments)?.into_request()?;
+        let started = Instant::now();
+        if !self.ready.load(Ordering::Acquire) {
+            return self
+                .contract
+                .encode(Output::failure(Reason::PermissionDenied, 0));
+        }
+        let registry = Arc::clone(&self.registry);
+        let provider = Arc::clone(&self.provider);
+        let inspector = Arc::clone(&self.inspector);
+        let plans = Arc::clone(&self.plans);
+        let retention = PreviewRetention::default();
+        let preview_token = retention.token();
+        let preview_contract = Contract::<I, Output>::new()?;
+        let result = self
+            .workers
+            .run_joined(context.ct, started + DEADLINE, move |control| {
+                let mut provider = provider.try_lock().map_err(lock_reason)?;
+                provider.store().map_err(reason)?;
+                let vendor_config = provider
+                    .config
+                    .as_ref()
+                    .and_then(|config| config.vendor.clone());
+                let Provider { store, .. } = &mut *provider;
+                let store = store.as_ref().ok_or(Reason::PermissionDenied)?;
+                match input.action {
+                    action @ (Action::Preview { .. }
+                    | Action::FormatPreview { .. }
+                    | Action::SemanticPreview { .. }) => {
+                        let (workspace, candidate) = match action {
+                            action @ (Action::Preview { .. } | Action::SemanticPreview { .. }) => {
+                                let (expected_project_fingerprint, target_manifest, edit) =
+                                    match action {
+                                        Action::Preview {
+                                            expected_project_fingerprint,
+                                            edit,
+                                        } => (
+                                            expected_project_fingerprint,
+                                            "Cargo.toml".to_owned(),
+                                            edit.into_domain().map_err(reason)?,
+                                        ),
+                                        Action::SemanticPreview {
+                                            expected_project_fingerprint,
+                                            target_manifest,
+                                            edit,
+                                        } => (expected_project_fingerprint, target_manifest, edit),
+                                        _ => return Err(Reason::InvalidOperation),
+                                    };
+                                let prepared = registry
+                                    .try_lock()
+                                    .map_err(lock_reason)?
+                                    .prepare_semantic(
+                                        &input.project_ref,
+                                        &expected_project_fingerprint,
+                                        &target_manifest,
+                                        I::KIND,
+                                        &edit,
+                                        store,
+                                        control,
+                                    )
+                                    .map_err(semantic_reason)?;
+                                let dataset = if matches!(
+                                    edit,
+                                    ManifestEdit::LintSet { .. }
+                                        | ManifestEdit::LintRemove { .. }
+                                        | ManifestEdit::ProfileSet { .. }
+                                        | ManifestEdit::ProfileRemove { .. }
+                                ) {
+                                    None
+                                } else {
+                                    vendor_config
+                                        .as_ref()
+                                        .map(|config| {
+                                            rust_engineering_project::capture_with_expected(
+                                                &config.directory,
+                                                &config.fingerprint,
+                                                control,
+                                            )
+                                        })
+                                        .transpose()
+                                        .map_err(|error| match error {
+                                            ProjectError::Cancelled => Reason::Cancelled,
+                                            ProjectError::Internal => Reason::Io,
+                                            _ => Reason::OfflineDataInvalid,
+                                        })?
+                                };
+                                prepared
+                                    .validate(
+                                        &TomlManifestEditor,
+                                        inspector.as_ref(),
+                                        inspector.as_ref(),
+                                        dataset.as_ref(),
+                                        control,
+                                    )
+                                    .map_err(semantic_reason)?
+                            }
+                            Action::FormatPreview {
+                                expected_project_fingerprint,
+                            } => {
+                                let prepared = registry
+                                    .try_lock()
+                                    .map_err(lock_reason)?
+                                    .prepare_format(
+                                        &input.project_ref,
+                                        &expected_project_fingerprint,
+                                        store,
+                                        control,
+                                    )
+                                    .map_err(preparation_reason)?;
+                                let command = match I::KIND {
+                                    MutationKind::FormatApply => {
+                                        rust_engineering_domain::RustMutationCommand::Format
+                                    }
+                                    MutationKind::FixApply => {
+                                        rust_engineering_domain::RustMutationCommand::Fix
+                                    }
+                                    _ => return Err(Reason::InvalidOperation),
+                                };
+                                prepared
+                                    .validate_command(command, inspector.as_ref(), control)
+                                    .map_err(preparation_reason)?
+                            }
+                            _ => return Err(Reason::InvalidOperation),
+                        };
+                        registry
+                            .try_lock()
+                            .map_err(lock_reason)?
+                            .finish_manifest_preview(&input.project_ref, &candidate, control)
+                            .map_err(preparation_reason)?;
+                        let (files, diff) = preview_diff(&candidate).map_err(reason)?;
+                        let digest = mutation_digest(&candidate).map_err(reason)?;
+                        let reference = OsReferences.generate().map_err(|_| Reason::Io)?;
+                        let suffix = reference.as_str().strip_prefix("prj_").ok_or(Reason::Io)?;
+                        let id = MutationId::new(format!("mut_{suffix}")).map_err(reason)?;
+                        let data = Data::Preview {
+                            plan_id: id.as_str().into(),
+                            plan_digest: digest.to_string(),
+                            expires_in_seconds: MutationPlans::TTL_SECONDS,
+                            files,
+                            diff,
+                            validation: validation_view(&candidate.validation).map_err(reason)?,
+                        };
+                        // Bound the complete MCP encoding, including duplicated text and JSON,
+                        // before retaining a plan whose exact diff the peer cannot receive.
+                        validate_preview_size(&preview_contract, &data)?;
+                        let mut shared = plans.try_lock().map_err(lock_reason)?;
+                        let SharedPlans { plans, clock } = &mut *shared;
+                        plans
+                            .remember_revocable(
+                                id,
+                                digest,
+                                workspace,
+                                candidate,
+                                clock,
+                                preview_token,
+                            )
+                            .map_err(reason)?;
+                        Ok(data)
+                    }
+                    Action::Commit {
+                        plan_id,
+                        plan_digest,
+                        idempotency_key,
+                    } => {
+                        let id = MutationId::new(plan_id).map_err(reason)?;
+                        let key = IdempotencyKey::new(idempotency_key).map_err(reason)?;
+                        let shared = plans.try_lock().map_err(lock_reason)?;
+                        let plan = shared
+                            .plans
+                            .resolve(&id, &plan_digest, key, &shared.clock)
+                            .map_err(reason)?;
+                        if plan.request.candidate.kind != I::KIND {
+                            return Err(Reason::PermissionDenied);
+                        }
+                        drop(shared);
+                        let receipt = registry
+                            .try_lock()
+                            .map_err(lock_reason)?
+                            .commit_mutation(
+                                &input.project_ref,
+                                &plan.workspace_root,
+                                &plan.request,
+                                store,
+                                control,
+                            )
+                            .map_err(reason)?;
+                        receipt_data(receipt).map_err(reason)
+                    }
+                    Action::Receipt {
+                        operation_id,
+                        recover,
+                    } => {
+                        let id = MutationId::new(operation_id).map_err(reason)?;
+                        let receipt = registry
+                            .try_lock()
+                            .map_err(lock_reason)?
+                            .mutation_receipt(&input.project_ref, &id, recover, store, control)
+                            .map_err(reason)?;
+                        receipt_data(receipt).map_err(reason)
+                    }
+                }
+            })
+            .await;
+        let duration = started.elapsed().as_millis().try_into().unwrap_or(u64::MAX);
+        let output = match result {
+            // Native commit finishes its journal after its irreversible point.
+            // Do not relabel a durable receipt as cancelled after losing the race.
+            Ok(joined) => match joined.result {
+                Ok(
+                    data @ Data::Receipt {
+                        state: ReceiptState::RecoveryRequired,
+                        ..
+                    },
+                ) => Output::new(
+                    Status::Blocked,
+                    Some(Reason::RecoveryRequired),
+                    Some(data),
+                    "Publication needs recovery; preserve the journal and avoid concurrent edits",
+                    duration,
+                ),
+                Ok(
+                    data @ Data::Receipt {
+                        state: ReceiptState::Aborted,
+                        ..
+                    },
+                ) => Output::new(
+                    Status::Blocked,
+                    Some(Reason::Conflict),
+                    Some(data),
+                    "Operation aborted without applying the candidate; request a new preview",
+                    duration,
+                ),
+                Ok(data @ Data::Receipt { .. }) => Output::new(
+                    Status::Passed,
+                    None,
+                    Some(data),
+                    "Durable mutation receipt",
+                    duration,
+                ),
+                Ok(data) if joined.interrupted.is_none() => preview_output(data, duration),
+                Ok(_) => Output::failure(Reason::Cancelled, duration),
+                Err(error) => Output::failure(error, duration),
+            },
+            Err(error) => Output::failure(
+                match error {
+                    WorkerError::Busy => Reason::LockBusy,
+                    WorkerError::Cancelled => Reason::Cancelled,
+                    WorkerError::TimedOut => Reason::CommandTimeout,
+                    WorkerError::Internal => Reason::Io,
+                },
+                duration,
+            ),
+        };
+        let retain_preview = matches!(&output.data, Some(Data::Preview { .. }));
+        let encoded = self.contract.encode(output)?;
+        if serde_json::to_vec(&encoded)
+            .map_err(|_| ErrorData::internal_error("Mutation encoding failed", None))?
+            .len()
+            > MAX_RESULT
+        {
+            return self
+                .contract
+                .encode(Output::failure(Reason::LimitExceeded, duration));
+        }
+        if retain_preview {
+            retention.retain();
+        }
+        Ok(encoded)
+    }
+}
+
+fn reason(error: MutationError) -> Reason {
+    match error {
+        MutationError::Invalid => Reason::InvalidOperation,
+        MutationError::PermissionDenied => Reason::PermissionDenied,
+        MutationError::Conflict => Reason::Conflict,
+        MutationError::Busy => Reason::LockBusy,
+        MutationError::Expired => Reason::PlanExpired,
+        MutationError::NotFound => Reason::NotFound,
+        MutationError::LimitExceeded => Reason::LimitExceeded,
+        MutationError::UnsupportedPlatform => Reason::UnsupportedPlatform,
+        MutationError::Cancelled => Reason::Cancelled,
+        MutationError::Io => Reason::Io,
+        MutationError::RecoveryRequired => Reason::RecoveryRequired,
+    }
+}
+fn preparation_reason(error: MutationPreparationError) -> Reason {
+    match error {
+        MutationPreparationError::Mutation(error) => reason(error),
+        MutationPreparationError::Edit(_) => Reason::InvalidOperation,
+        MutationPreparationError::Project(ProjectError::Cancelled) => Reason::Cancelled,
+        MutationPreparationError::Project(ProjectError::Internal) => Reason::Io,
+        MutationPreparationError::Project(ProjectError::Rejected(
+            rust_engineering_domain::OperationalErrorCode::InvalidProject,
+        )) => Reason::Conflict,
+        MutationPreparationError::Project(_) => Reason::PermissionDenied,
+        MutationPreparationError::Inspection(InspectionError::Execution(
+            ExecutionError::Denied
+            | ExecutionError::Unavailable
+            | ExecutionError::InvalidConfiguration,
+        )) => Reason::ToolchainUnavailable,
+        MutationPreparationError::Inspection(
+            InspectionError::Project(ProjectError::Cancelled)
+            | InspectionError::Execution(ExecutionError::Cancelled),
+        ) => Reason::Cancelled,
+        MutationPreparationError::Inspection(InspectionError::Project(ProjectError::Rejected(
+            rust_engineering_domain::OperationalErrorCode::InvalidProject,
+        ))) => Reason::CandidateInvalid,
+        MutationPreparationError::Inspection(InspectionError::Project(ProjectError::Rejected(
+            rust_engineering_domain::OperationalErrorCode::CommandTimeout,
+        ))) => Reason::CommandTimeout,
+        MutationPreparationError::Inspection(InspectionError::OutputLimit) => Reason::LimitExceeded,
+        MutationPreparationError::Inspection(_) => Reason::Io,
+    }
+}
+
+fn semantic_reason(error: rust_engineering_application::SemanticPreparationError) -> Reason {
+    use rust_engineering_application::{ResolutionError, SemanticPreparationError as E};
+    match error {
+        E::Mutation(error) => reason(error),
+        E::Edit(rust_engineering_domain::ManifestEditError::Conflict) => Reason::Conflict,
+        E::Edit(rust_engineering_domain::ManifestEditError::LimitExceeded) => Reason::LimitExceeded,
+        E::Edit(_) => Reason::InvalidOperation,
+        E::Project(error) => preparation_reason(MutationPreparationError::Project(error)),
+        E::Inspection(error) | E::Resolution(ResolutionError::Inspection(error)) => {
+            preparation_reason(MutationPreparationError::Inspection(error))
+        }
+        E::Resolution(ResolutionError::MissingOfflineData) => Reason::OfflineDataMissing,
+        E::Resolution(ResolutionError::InvalidOfflineData) => Reason::OfflineDataInvalid,
+        E::Resolution(ResolutionError::Failed) => Reason::CandidateInvalid,
+    }
+}
+#[derive(Clone, Serialize, JsonSchema)]
+#[serde(deny_unknown_fields)]
+struct ReceiptChange {
+    path: String,
+    before_sha256: String,
+    intended_after_sha256: String,
+    before_bytes: u64,
+    intended_after_bytes: u64,
+    /// Effect recorded at the terminal journal phase, not current live state.
+    effect_after_sha256: Option<String>,
+    effect_after_bytes: Option<u64>,
+}
+
+fn lock_reason<T>(error: TryLockError<T>) -> Reason {
+    match error {
+        TryLockError::WouldBlock => Reason::LockBusy,
+        TryLockError::Poisoned(_) => Reason::Io,
+    }
+}
+fn validate_preview_size<I: serde::de::DeserializeOwned + JsonSchema>(
+    contract: &Contract<I, Output>,
+    data: &Data,
+) -> Result<(), Reason> {
+    let complete = contract
+        .encode(preview_output(data.clone(), u64::MAX))
+        .map_err(|_| Reason::Io)?;
+    if serde_json::to_vec(&complete).map_err(|_| Reason::Io)?.len() > MAX_RESULT {
+        return Err(Reason::LimitExceeded);
+    }
+    Ok(())
+}
+fn preview_output(data: Data, duration: u64) -> Output {
+    Output::new(
+        Status::Passed,
+        None,
+        Some(data),
+        "Review this exact diff before commit; source has not been changed",
+        duration,
+    )
+}
+
+fn receipt_data(receipt: MutationReceipt) -> Result<Data, MutationError> {
+    Ok(Data::Receipt {
+        operation_id: receipt.id.as_str().into(),
+        validation: validation_view(&receipt.validation)?,
+        plan_digest: receipt.digest.to_string(),
+        state: match receipt.state {
+            MutationState::Committed => ReceiptState::Committed,
+            MutationState::NoChange => ReceiptState::NoChange,
+            MutationState::Aborted => ReceiptState::Aborted,
+            MutationState::RecoveryRequired => ReceiptState::RecoveryRequired,
+        },
+        files: receipt
+            .files
+            .into_iter()
+            .map(|file| ReceiptChange {
+                path: file.path,
+                before_sha256: file.before.to_string(),
+                intended_after_sha256: file.after.to_string(),
+                before_bytes: file.before_bytes,
+                intended_after_bytes: file.after_bytes,
+                effect_after_sha256: file.effect_after.map(|hash| hash.to_string()),
+                effect_after_bytes: file.effect_after_bytes,
+            })
+            .collect(),
+    })
+}
+fn preview_diff(candidate: &MutationCandidate) -> Result<(Vec<Change>, String), MutationError> {
+    let mut changes = Vec::new();
+    let mut diff = String::new();
+    for before in candidate.before.files() {
+        let after = candidate
+            .after
+            .files()
+            .iter()
+            .find(|file| file.path() == before.path())
+            .ok_or(MutationError::Invalid)?;
+        if before.bytes() == after.bytes() {
+            continue;
+        }
+        if !match candidate.kind {
+            MutationKind::ManifestPatch => matches!(before.path(), "Cargo.toml" | "Cargo.lock"),
+            MutationKind::FormatApply | MutationKind::FixApply => before.path().ends_with(".rs"),
+            MutationKind::DependencyAdd | MutationKind::DependencyRemove => {
+                matches!(before.path(), "Cargo.toml" | "Cargo.lock")
+                    || before.path().ends_with("/Cargo.toml")
+            }
+        } {
+            return Err(MutationError::PermissionDenied);
+        }
+        changes.push(Change {
+            path: before.path().into(),
+            before_sha256: mutation_bytes_digest(before.bytes())?.to_string(),
+            after_sha256: mutation_bytes_digest(after.bytes())?.to_string(),
+            before_bytes: before.bytes().len() as u64,
+            after_bytes: after.bytes().len() as u64,
+        });
+        use std::fmt::Write;
+        writeln!(diff, "--- a/{}\n+++ b/{}", before.path(), after.path())
+            .map_err(|_| MutationError::Io)?;
+        let lines = |bytes: &[u8]| {
+            bytes.iter().filter(|b| **b == b'\n').count()
+                + usize::from(!bytes.is_empty() && bytes.last() != Some(&b'\n'))
+        };
+        writeln!(
+            diff,
+            "@@ -1,{} +1,{} @@",
+            lines(before.bytes()),
+            lines(after.bytes())
+        )
+        .map_err(|_| MutationError::Io)?;
+        for (prefix, bytes) in [("-", before.bytes()), ("+", after.bytes())] {
+            let text = std::str::from_utf8(bytes).map_err(|_| MutationError::Invalid)?;
+            for line in text.split_inclusive('\n') {
+                diff.push_str(prefix);
+                diff.push_str(line);
+                if !line.ends_with('\n') {
+                    diff.push_str("\n\\ No newline at end of file\n");
+                }
+                if diff.len() > 128 * 1024 {
+                    return Err(MutationError::LimitExceeded);
+                }
+            }
+        }
+    }
+    Ok((changes, diff))
+}
+
+#[cfg(test)]
+mod tests {
+    // Fixed test fixtures only; production keeps expect_used denied.
+    #![allow(clippy::expect_used)]
+
+    use super::*;
+    use rust_engineering_domain::{SourceBundle, SourceFile};
+    use serde_json::json;
+
+    fn framed(fields: &[&str]) -> String {
+        fields
+            .iter()
+            .map(|field| format!("{}:{field}", field.len()))
+            .collect()
+    }
+
+    fn test_candidate() -> MutationCandidate {
+        let bundle = |contents: &[u8]| {
+            SourceBundle::new(vec![
+                SourceFile::new("src/lib.rs".into(), contents.to_vec()).expect("test source"),
+            ])
+            .expect("test bundle")
+        };
+        MutationCandidate {
+            kind: MutationKind::FormatApply,
+            before: bundle(b"pub fn answer( )->u8 { 42 }\n"),
+            after: bundle(b"pub fn answer() -> u8 {\n    42\n}\n"),
+            validation: String::new(),
+        }
+    }
+
+    fn test_mutation_id(number: u128) -> MutationId {
+        MutationId::new(format!("mut_{number:032x}")).expect("test mutation id")
+    }
+
+    fn test_fingerprint(number: u8) -> SourceFingerprint {
+        format!("sha256:{number:064x}")
+            .parse()
+            .expect("test fingerprint")
+    }
+
+    fn runtime() -> std::io::Result<tokio::runtime::Runtime> {
+        tokio::runtime::Builder::new_current_thread()
+            .enable_time()
+            .build()
+    }
+
+    #[test]
+    fn nested_contract_rejects_scope_escalation_and_arbitrary_edits()
+    -> Result<(), Box<dyn std::error::Error>> {
+        let contract = Contract::<Input, Output>::new()?;
+        let base = json!({"project_ref":"prj_0123456789abcdef0123456789abcdef", "action":{
+            "mode":"preview","expected_project_fingerprint":format!("sha256:{}", "a".repeat(64)),
+            "edit":{"operation":"lint_set","scope":"package","tool":"rust","name":"unsafe_code","level":"deny","priority":null}
+        }});
+        assert!(
+            contract
+                .decode(Some(serde_json::from_value(base.clone())?))
+                .is_ok()
+        );
+        let mut invalid = Vec::new();
+        let mut value = base.clone();
+        value["write_root"] = json!("/tmp");
+        invalid.push(value);
+        let mut value = base.clone();
+        value["action"]["confirm"] = json!(true);
+        invalid.push(value);
+        let mut value = base.clone();
+        value["action"]["edit"]["path"] = json!("package.build");
+        invalid.push(value);
+        let mut value = base.clone();
+        value["action"]["edit"]["operation"] = json!("json_patch");
+        invalid.push(value);
+        let mut value = base.clone();
+        value["action"]["edit"]["name"] = json!("unsafe_code\n[package]");
+        invalid.push(value);
+        let mut value = base;
+        value["action"]["edit"]["tool"] = json!("cargo");
+        invalid.push(value);
+        for value in invalid {
+            let error = contract
+                .decode(Some(serde_json::from_value(value)?))
+                .err()
+                .ok_or("accepted invalid input")?;
+            assert_eq!(error.code, rmcp::model::ErrorCode::INVALID_PARAMS);
+            assert_eq!(error.message, "Invalid tool arguments");
+        }
+        Ok(())
+    }
+
+    #[test]
+    fn preview_budget_counts_escaped_duplicate_mcp_content_before_plan_retention()
+    -> Result<(), Box<dyn std::error::Error>> {
+        let contract = Contract::<Input, Output>::new()?;
+        let fingerprint = format!("sha256:{}", "a".repeat(64));
+        let data = |diff: String| Data::Preview {
+            plan_id: "mut_0123456789abcdef0123456789abcdef".into(),
+            plan_digest: fingerprint.clone(),
+            expires_in_seconds: 600,
+            files: vec![],
+            diff,
+            validation: ValidationView {
+                resolution: None,
+                mutation_execution_fingerprint: None,
+                method: ValidationMethod::CargoMetadataFrozenNoDeps,
+                semantics: SnapshotSemantics::LatestKnown,
+                platform: "linux/arm64".into(),
+                image_id: fingerprint.clone(),
+                configuration_fingerprint: fingerprint.clone(),
+                execution_fingerprint: fingerprint.clone(),
+                rust_version: "1.98.1".into(),
+                cargo_version: "1.98.1".into(),
+                candidate_source_fingerprint: fingerprint.clone(),
+            },
+        };
+        assert!(validate_preview_size(&contract, &data("simple diff".into())).is_ok());
+        // This is within the raw diff cap; JSON escaping and duplicated MCP text exceed the full cap.
+        assert!(matches!(
+            validate_preview_size(&contract, &data("\\".repeat(128 * 1024))),
+            Err(Reason::LimitExceeded)
+        ));
+        Ok(())
+    }
+
+    #[test]
+    fn late_worker_cancellation_revokes_the_undelivered_plan_before_next_admission()
+    -> Result<(), Box<dyn std::error::Error>> {
+        runtime()?.block_on(async {
+            let workers = Workers::new();
+            let request = tokio_util::sync::CancellationToken::new();
+            let plans = Arc::new(Mutex::new(SharedPlans::default()));
+            let retention = PreviewRetention::default();
+            let token = retention.token();
+            let id = test_mutation_id(1);
+            let digest = test_fingerprint(1);
+            let task_workers = workers.clone();
+            let task_request = request.clone();
+            let task_plans = Arc::clone(&plans);
+            let task_id = id.clone();
+            let task_digest = digest.clone();
+            let (remembered_tx, remembered_rx) = tokio::sync::oneshot::channel();
+            let (release_tx, release_rx) = std::sync::mpsc::sync_channel(1);
+            let task = tokio::spawn(async move {
+                task_workers
+                    .run_joined(
+                        task_request,
+                        Instant::now() + Duration::from_secs(5),
+                        move |_| {
+                            let mut shared = task_plans.lock().map_err(|_| Reason::Io)?;
+                            let SharedPlans { plans, clock } = &mut *shared;
+                            plans
+                                .remember_revocable(
+                                    task_id,
+                                    task_digest,
+                                    "/workspace".into(),
+                                    test_candidate(),
+                                    clock,
+                                    token,
+                                )
+                                .map_err(reason)?;
+                            drop(shared);
+                            remembered_tx.send(()).map_err(|_| Reason::Io)?;
+                            release_rx
+                                .recv_timeout(Duration::from_secs(5))
+                                .map_err(|_| Reason::Io)?;
+                            Ok::<_, Reason>(())
+                        },
+                    )
+                    .await
+            });
+
+            tokio::time::timeout(Duration::from_secs(5), remembered_rx).await??;
+            request.cancel();
+            release_tx.send(())?;
+            let joined = task.await?.map_err(|_| "worker rejected")?;
+            assert!(joined.result.is_ok());
+            assert_eq!(joined.interrupted, Some(WorkerError::Cancelled));
+
+            // This is the observable MCP outcome for a completed preview whose
+            // cancellation is noticed only after the blocking closure returns.
+            let contract = Contract::<FormatInput, Output>::new()?;
+            let response =
+                serde_json::to_value(contract.encode(Output::failure(Reason::Cancelled, 1))?)?;
+            assert_eq!(response["structuredContent"]["status"], "cancelled");
+            assert!(response["structuredContent"]["data"].is_null());
+
+            // The response did not carry the preview, so dropping its delivery
+            // guard must make the remembered plan unreachable and reclaimable.
+            drop(retention);
+            {
+                let mut shared = plans.lock().map_err(|_| "plans poisoned")?;
+                let SharedPlans { plans, clock } = &mut *shared;
+                assert!(matches!(
+                    plans.resolve(
+                        &id,
+                        &digest,
+                        IdempotencyKey::new("cancelled-preview".into()).expect("idempotency key"),
+                        clock,
+                    ),
+                    Err(MutationError::NotFound)
+                ));
+                for number in 2..=5 {
+                    plans
+                        .remember(
+                            test_mutation_id(number),
+                            test_fingerprint(number as u8),
+                            "/workspace".into(),
+                            test_candidate(),
+                            clock,
+                        )
+                        .expect("revoked plan is pruned before all four slots are admitted");
+                }
+            }
+            assert!(workers.shutdown(Duration::from_secs(1)).await);
+            Ok(())
+        })
+    }
+
+    #[test]
+    fn format_provenance_requires_exact_version_and_terminal_fingerprint_frame() {
+        let fingerprint = format!("sha256:{}", "a".repeat(64));
+        let base = [
+            "m2-fmt-apply-v1",
+            "local_coordinated",
+            "linux/arm64",
+            fingerprint.as_str(),
+            fingerprint.as_str(),
+            fingerprint.as_str(),
+            "1.98.1",
+            "1.98.1",
+            fingerprint.as_str(),
+        ];
+        let valid = format!("{}71:{fingerprint}", framed(&base));
+        assert!(validation_view(&valid).is_ok());
+
+        let mut wrong_version = base;
+        wrong_version[0] = "m2-fmt-apply-v2";
+        let malformed = [
+            framed(&base),
+            format!("{}70:{fingerprint}", framed(&base)),
+            format!("{}71:{}", framed(&base), &fingerprint[..70]),
+            format!("{}71:{fingerprint}x", framed(&base)),
+            format!("{}71:sha256:{}", framed(&base), "g".repeat(64)),
+            format!("{}71:{fingerprint}", framed(&wrong_version)),
+        ];
+        for encoded in malformed {
+            assert!(matches!(
+                validation_view(&encoded),
+                Err(MutationError::Invalid)
+            ));
+        }
+    }
+
+    #[test]
+    fn resolved_provenance_requires_exact_frames_and_preserve_presence_disposition() {
+        let fingerprint = format!("sha256:{}", "a".repeat(64));
+        for version in [
+            "m2-manifest-resolved-v1",
+            "m2-dependency-add-v1",
+            "m2-dependency-remove-v1",
+        ] {
+            for disposition in ["updated_existing", "transient_unpublished"] {
+                let fields = [
+                    version,
+                    "local_coordinated",
+                    "linux/arm64",
+                    &fingerprint,
+                    &fingerprint,
+                    &fingerprint,
+                    "1.98.1",
+                    "1.98.1",
+                    &fingerprint,
+                    &fingerprint,
+                    &fingerprint,
+                    &fingerprint,
+                    disposition,
+                    "member/Cargo.toml",
+                ];
+                let valid = framed(&fields);
+                let view = validation_view(&valid).expect("valid resolved provenance");
+                assert!(view.resolution.is_some());
+                assert!(view.mutation_execution_fingerprint.is_none());
+                for (index, replacement) in [
+                    (9, "sha256:bad"),
+                    (10, "sha256:bad"),
+                    (11, "sha256:bad"),
+                    (12, "create_lock"),
+                    (13, "../Cargo.toml"),
+                    (13, "/Cargo.toml"),
+                    (13, "src/lib.rs"),
+                    (0, "m2-dependency-add-v2"),
+                ] {
+                    let mut invalid = fields;
+                    invalid[index] = replacement;
+                    assert!(matches!(
+                        validation_view(&framed(&invalid)),
+                        Err(MutationError::Invalid)
+                    ));
+                }
+                for malformed in [
+                    format!("{valid}0:"),
+                    framed(&fields[..13]),
+                    format!("{}99999:x", framed(&fields[..13])),
+                    format!("{}1:é", framed(&fields[..13])),
+                ] {
+                    assert!(matches!(
+                        validation_view(&malformed),
+                        Err(MutationError::Invalid)
+                    ));
+                }
+            }
+        }
+    }
+
+    #[test]
+    fn missing_grant_denies_before_creating_state() {
+        let mut provider = Provider {
+            config: None,
+            store: None,
+            kind: MutationKind::ManifestPatch,
+        };
+        assert_eq!(provider.store(), Err(MutationError::PermissionDenied));
+        assert!(provider.store.is_none());
+    }
+
+    #[test]
+    fn candidate_failure_is_valid_result_but_recovery_is_operational()
+    -> Result<(), Box<dyn std::error::Error>> {
+        let contract = Contract::<Input, Output>::new()?;
+        for (reason, is_error) in [
+            (Reason::CandidateInvalid, false),
+            (Reason::RecoveryRequired, true),
+        ] {
+            let response = contract.encode(Output::failure(reason, 1))?;
+            let response = serde_json::to_value(response)?;
+            assert_eq!(response["isError"], is_error);
+            assert_eq!(
+                serde_json::from_str::<serde_json::Value>(
+                    response["content"][0]["text"]
+                        .as_str()
+                        .ok_or("text absent")?
+                )?,
+                response["structuredContent"]
+            );
+        }
+        Ok(())
+    }
+}

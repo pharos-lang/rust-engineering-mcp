@@ -1,21 +1,41 @@
 # M2 — matriz de implementación y prerrequisitos
 
-Fecha: 2026-09-05. Estado: **M2-01/02 en integración/revisión**, no M2 Done.
+Fecha: 2026-09-05. Estado: **M2-01..07 Done: cinco tools implementadas y calificadas localmente**.
 La planificación fue commit `8b35cf6`, merge local `2f54b360e1e81f21e7efeff7c451cdd6f663a04f`.
-Esta fase se inició después de ese merge en `ai/m2-write-qualification` y actualizó
-primero el scope de AGENTS conforme al owner. No hubo push, PR, tag ni release.
+La implementación `0.2.0-dev` se integra localmente desde `ai/m2-write-qualification`;
+[full, clientes, reviews e integración](M2-07.md).
+No hubo push, PR, tag ni release nueva. Los recibos históricos identifican sus propios bytes.
 
 | Elemento | Estado | Evidencia y límite |
 | --- | --- | --- |
-| Planificación M2–M8 | Integrada localmente | [Validación/reviews](../roadmap/planning-validation.md); no implementación |
-| Scope de sesión M2 | Actualizado | AGENTS autoriza cinco tools futuras; trece M1 siguen implementadas |
-| D02 investigación histórica | No-go para exclusión OS fuerte, sustituido por ADR-050 | [Prerrequisitos](../roadmap/m2-d02-host-preconditions.md), [ADR-049 Proposed](../adr/ADR-049-m2-write-boundary-qualification.md) |
-| Probe nativo | 15 observaciones coincidentes; no califica writer | [Script](../../scripts/probe-m2-write-primitives.py), [JSON final](m2-d02-native-probe.json) |
-| M2-01 | In progress | Lint preview/commit/receipt, retención y Scratch implementados; [snapshots aceptados](../reviews/M2-01-review.md). Gate de fuente conjunta pendiente. |
-| M2-02 | In progress | 15 tools, [contrato/runtime fmt](../../crates/mcp-server/tests/inspection_runtime/format_mutation.rs), [nativo](M2-02-native-qualification.json), [medición](M2-02-native-performance.json). Reviews encontraron ajustes de cuota/receipt/cancelación en corrección; no Done. |
-| D05 | Decisión Accepted / captura implementada | [ADR-055](../adr/ADR-055-offline-cargo-data-and-lock-policy.md), CLI cargo-vendor inspect y [6 pruebas de datos](../../crates/project-adapter/tests/cargo_vendor.rs); falta resolución productiva. |
-| M2-03..07 | Pendientes | Fix, add/remove, patch completo y calificación final; no autoriza M3. |
-| M2 full/client gate | No ejecutado | Hay candidato parcial M2-01/02; faltan tres tools y gate conjunto. No reutilizar 23/23 M1 como evidencia nueva. |
+| Planificación M2–M8 | Integrada localmente | [Validación/reviews](../roadmap/planning-validation.md); M3+ no implementado |
+| Scope M2 | Cinco tools adicionales implementadas | [AGENTS](../../AGENTS.md), [contratos](../tools.md); 18 totales en desarrollo, 13 en release estable 0.1.0 |
+| D02 | Exclusión fuerte No-go; contrato local_coordinated Accepted | [ADR-050](../adr/ADR-050-local-coordinated-mutation.md); host/editor confiables, sin broker ni exclusión OS |
+| M2-01 | Done histórico | Lints preview/commit/receipt y Scratch; [revisión](../reviews/M2-01-review.md), [core 14/14](M2-02-core-gate.json), [runtime](M2-02-runtime-gate.json) |
+| M2-02 | Done histórico | [fmt runtime 2/2](M2-02-runtime-gate.json), [Sonnet](../reviews/M2-02-contract-review.md), [Opus](../reviews/M2-02-native-review.md), [nativo](M2-02-native-qualification.json) |
+| M2-03 | Done | [ADR-056](../adr/ADR-056-cargo-fix-isolated-loopback.md), [Fix runtime](../../crates/mcp-server/tests/inspection_runtime/fix_mutation.rs), [proc macros hostiles](../../crates/mcp-server/tests/inspection_runtime/fix_hostile.rs), [máscara socket real](M2-fix-socket-mask.json) |
+| M2-04/05 | Done | [ADR-055](../adr/ADR-055-offline-cargo-data-and-lock-policy.md), [ADR-057](../adr/ADR-057-typed-manifest-and-dependency-operations.md), [runtime 4/4](M2-04-runtime-gate.json); vendor opcional y preserve_presence |
+| M2-06 | Done | Cuatro familias tipadas; runtime anterior y [editor LF/CRLF/herencia](../../crates/project-adapter/tests/manifest_edit.rs) |
+| M2-07 | Done | [contrato Sonnet Accepted](../reviews/M2-final-contract-review.md); [seguridad Opus Accepted](../reviews/M2-final-security-review.md) y [writer Opus Accepted](../reviews/M2-final-native-review.md); [full final](M2-full-gate.json), [runtime 17/17](M2-final-runtime.json), [cliente PASS](M2-clients.json), [ADR-059 Accepted](../reviews/M2-059-review.md), [AGY trazabilidad](../reviews/M2-closure-agy-review.md) |
+| Memoria nativa | Medida, optimizada y limitada en alcance | [medición](M2-07-native-memory.json): 976,666,624 B RSS ciclo máximo, 798,769,152 B commit aislado; observaciones, no cap ni RSS MCP completo |
+| Observabilidad local | Done | [ADR-058](../adr/ADR-058-local-mutation-observability.md); sin collector ni telemetría |
+
+## Límites de la calificación
+
+M2 es optativo y reutiliza el runtime aprobado. El publisher positivo está limitado
+al adapter macOS ARM64/APFS; otros targets rechazan escritura. Los límites son
+16 MiB de source, 4096 entradas, 1 MiB por archivo, 128 reemplazos, cuatro planes
+con 64 MiB de bytes retenidos y journal privado con cuotas (207 MiB retenidos, 48 MiB staging y 1 MiB de crecimiento dentro de 256 MiB). La memoria total puede
+ser mayor: la medición nativa máxima se aproxima a 1 GiB y no incluye todos los
+planes/transportes del MCP. No se promete coste despreciable ni se instala un servicio
+para ocultarlo. No hay atomicidad visible multiarchivo, exclusión de editores,
+protección frente a host malicioso ni prueba de supervivencia a pérdida de energía.
+
+Los faults de filesystem inyectados se distinguen de disco físico lleno y del
+ENOSPC real del tmpfs guest. Unknown bytes/journal permanecen conservados con
+recovery_required; ese resultado no equivale a recuperación automática exitosa.
+Una release 0.2 requerirá sus propios artifacts, SBOM, firmas y gate de distribución;
+el trabajo actual no la publica ni altera la release 0.1.0.
 
 ## Experimento reproducible
 

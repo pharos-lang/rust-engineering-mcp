@@ -1,0 +1,55 @@
+{
+  "model": "claude-sonnet-5",
+  "effort": "medium",
+  "cli_version": "2.1.260",
+  "read_only": true,
+  "tools": [],
+  "files": [
+    {
+      "path": "docs/adr/ADR-058-local-mutation-observability.md",
+      "sha256": "88d8736f6f9ce2d8ad1ab115e6c3ada954d631b0f18e125d80a12d64feab9286",
+      "bytes": 3210
+    },
+    {
+      "path": "crates/mcp-server/src/stdio/mutation.rs",
+      "sha256": "a6ed0ec4e1195d254377880ce621a4ce868e62c49de831c6993a438d68ea55de",
+      "bytes": 71261
+    },
+    {
+      "path": "crates/mcp-server/src/stdio/mutation/audit.rs",
+      "sha256": "a2425667f333c22c535d5d199ee7249a0a8230cc316cd324b7239fc1be0f0ace",
+      "bytes": 8744
+    },
+    {
+      "path": "crates/mcp-server/src/stdio/workers.rs",
+      "sha256": "546e24b8c4c11d4c22c776bbcd234370f8b284906a3f23d7b9a2f56225a8e317",
+      "bytes": 23169
+    },
+    {
+      "path": "crates/application/src/mutation.rs",
+      "sha256": "195a7f0f5a28f5918cb785377ca6b5bde338646c056c94d9cc1f848774ce865e",
+      "bytes": 17714
+    },
+    {
+      "path": "crates/mcp-server/tests/protocol.rs",
+      "sha256": "d0e2a13d1948d9cf787ebd9181089a3f1c7985a23cd0dbeb37c95e5e2f1f8bae",
+      "bytes": 66106
+    },
+    {
+      "path": "crates/mcp-server/tests/inspection_runtime.rs",
+      "sha256": "7ea591d0c7ad6b31c040a15e90a4280f8b187c9f505dd0a24d4e34dca8143c77",
+      "bytes": 106506
+    },
+    {
+      "path": "crates/mcp-server/tests/inspection_runtime/fix_mutation.rs",
+      "sha256": "1aef83b6864fe874c1f07d5e779740e652f9681c922e403398b7bdb767cff25a",
+      "bytes": 12661
+    },
+    {
+      "path": "crates/mcp-server/src/stdio/mutation/semantic_input.rs",
+      "sha256": "407301473568bc42cbe7e97cb82158bd44abd677ee208949a56a2749bb4ebd96",
+      "bytes": 33045
+    }
+  ],
+  "prompt_sha256": "ed13f87334307b60d85b6b2bb3cec4c24327a03152569a253701cc6fde368017"
+}

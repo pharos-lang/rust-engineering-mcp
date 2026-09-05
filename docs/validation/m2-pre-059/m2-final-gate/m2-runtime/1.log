@@ -1,0 +1,8 @@
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.06s
+     Running unittests src/lib.rs (target/debug/deps/rust_engineering_execution-e50400fc8b531a8f)
+
+running 1 test
+test resolution_gateway::tests::real_vendor_resolution_preserves_lock_presence_and_cleans_all_objects ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 124 filtered out; finished in 9.92s
+

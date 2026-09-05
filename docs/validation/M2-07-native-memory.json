@@ -1,0 +1,178 @@
+{
+  "schema_version": 1,
+  "evidence_id": "M2-07-native-streaming-journal-memory",
+  "recorded_at_utc": "2026-09-05T18:53:35+00:00",
+  "objective": "Measure the minimum byte-compatible journal memory optimization on the direct release test binary.",
+  "snapshot": {
+    "git_head": "331d1630da5a2c1d8d8c596305c0c1167a7896cb",
+    "note": "The working tree contains concurrent M2 integration. Exact hashes identify the production and test inputs measured here.",
+    "release_test_binary": {
+      "path": "/Users/cburgosro/Projects/rust-mcp/target/release/deps/rust_engineering_project-e21b0d66558d2180",
+      "size_bytes": 2685616,
+      "sha256": "d43342c074d6d4a7fc2c8139e6cfee0ba109e0372d75588151da5216c595b89e"
+    },
+    "sha256": {
+      "Cargo.lock": "701e8556a138ce2081cc7484f404331fdc9160456ff4fbb46e78ce5e439b7417",
+      "crates/domain/src/mutation.rs": "e5964cfb6dd9cb1551816229aa144ac529f091788ed1721a8f7d4cb48e99be70",
+      "crates/domain/src/source.rs": "2fbc370dc6be5434bd64e137f5d97284f4faa11cca64164566957f1133e7e7d9",
+      "crates/project-adapter/src/filesystem/macos/mutation.rs": "d34565aa7816f66915b48d69771e5fe15cb619ce0cc5113fbf85f6b3ab9a3652",
+      "crates/project-adapter/src/filesystem/macos/source.rs": "aebc1b3b3e664b9e3f8c4274c1493f8433c1ab86c5453f2b3c178467c76715b1",
+      "crates/project-adapter/src/mutation_store.rs": "3a3142089060be0bb1aadd2f2cab13a00ca3a7dd5d3e5b1ac42a5b4b7a864334",
+      "crates/project-adapter/tests/support/native_mutation.rs": "b1cbb4cff588bc01e9330b6c53e980382388089b23e4ea0ff4875171dc4f60c8",
+      "Cargo.toml": "78bd4ef6b16a854b373d02d899a495a2a4e48deab608880de902118df248b66c",
+      "crates/project-adapter/Cargo.toml": "284a103fcebe3ad95916da2340e1805044cfc7a1197aabd657c0e81c4d151ba3"
+    },
+    "pre_optimization_identifiers": {
+      "release_test_binary_sha256": "6d2e3cf4962afa28fe375c258b64e98c871343bde22ae7cfd92e243609fab038",
+      "mutation_rs_sha256": "da1ab2737666861e120afae2d8feae6c7f38f5df689f8541f57c01eb204978ca",
+      "native_mutation_test_sha256": "46ec088944986c2e46db00f0d4d20a5d42fd011a23c190fa90d8c397f7bd8017"
+    },
+    "workspace_version": "0.2.0-dev"
+  },
+  "change": {
+    "production": [
+      "Journal encoding borrows JournalBody instead of deep-cloning it at encode call sites.",
+      "Canonical v1/v2 checksum serialization streams directly into SHA-256.",
+      "Worst-case record length serializes into a checked counting writer instead of allocating the record bytes; the existing worst-case JournalBody clone remains.",
+      "Envelope field order, JSON serializer, checksums, journal phases, persistence sequence, locks, quotas, and recovery behavior remain unchanged."
+    ],
+    "tests": [
+      "A buffered reference encoder proves byte-exact v2 output.",
+      "Buffered canonical JSON and streaming checksums match for v1 and v2; the v1 record remains decodable.",
+      "A separate ignored maximum commit fixture permits process-isolated RSS measurement."
+    ]
+  },
+  "host": {
+    "os": "macOS 26.6.2 (25G83)",
+    "kernel": "Darwin 25.6.0 arm64",
+    "hardware_model": "Mac16,5",
+    "physical_memory_bytes": 51539607552,
+    "rustc": "rustc 1.98.1 (48a229cea 2026-09-01)",
+    "cargo": "cargo 1.98.1 (797e8a9bc 2026-08-05)",
+    "llvm": "22.1.8"
+  },
+  "build": {
+    "working_directory": "/Users/cburgosro/Projects/rust-mcp",
+    "command": "cargo test -p rust-engineering-project --release --lib --no-run --message-format=json > /private/tmp/m2-07-native-memory-build.json",
+    "result": "passed",
+    "cargo_reported_seconds": 4.73,
+    "artifact_discovery": "Use executable from the compiler-artifact object with target.name rust_engineering_project, target.kind [lib], and profile.test true."
+  },
+  "measurements": {
+    "pre_optimization_full_lifecycle": {
+      "source": "docs/validation/M2-07-native-performance.json plus the direct command capture made before this optimization",
+      "command": "/usr/bin/time -l <release-test-binary> --ignored --exact filesystem::macos::mutation::tests::measure_real_format_commit_replay_recovery_and_index_ceiling --nocapture",
+      "maximum_resident_set_size_bytes": 1784365056,
+      "peak_memory_footprint_bytes": 1783646080,
+      "wall_seconds": 6.94,
+      "commit_ms": 5535,
+      "replay_ms": 156,
+      "recovery_ms": 92,
+      "stored_bytes": 44774412
+    },
+    "post_optimization_full_lifecycle": {
+      "command": "/usr/bin/time -l /Users/cburgosro/Projects/rust-mcp/target/release/deps/rust_engineering_project-e21b0d66558d2180 --ignored --exact filesystem::macos::mutation::tests::measure_real_format_commit_replay_recovery_and_index_ceiling --nocapture",
+      "result": "ok; 1 passed; 0 failed; 57 filtered out",
+      "maximum_resident_set_size_bytes": 976666624,
+      "peak_memory_footprint_bytes": 975455432,
+      "wall_seconds": 6.41,
+      "commit_ms": 5418,
+      "replay_ms": 150,
+      "recovery_ms": 90,
+      "stored_bytes": 44774412,
+      "index_list_ms": 12,
+      "exact_receipt_ms": 0,
+      "quota_refusal_ms": 10,
+      "rss_reduction_bytes": 807698432,
+      "rss_reduction_percent": 45.26531324316631
+    },
+    "post_optimization_commit_only": {
+      "command": "/usr/bin/time -l /Users/cburgosro/Projects/rust-mcp/target/release/deps/rust_engineering_project-e21b0d66558d2180 --ignored --exact filesystem::macos::mutation::tests::measure_real_format_commit_only --nocapture",
+      "result": "ok; 1 passed; 0 failed; 57 filtered out",
+      "maximum_resident_set_size_bytes": 798769152,
+      "peak_memory_footprint_bytes": 797475872,
+      "wall_seconds": 5.58,
+      "commit_ms": 5529
+    },
+    "pre_optimization_six_phase_encoding": {
+      "command": "/usr/bin/time -l <pre-optimization-release-test-binary> --exact filesystem::macos::mutation::tests::maximum_format_journal_cost_is_bounded_per_global_phase --nocapture",
+      "result": "ok",
+      "maximum_resident_set_size_bytes": 871284736,
+      "peak_memory_footprint_bytes": 870368264,
+      "wall_seconds": 0.39,
+      "encoded_max_bytes": 44769139,
+      "worst_case_bytes": 44772622,
+      "encoded_six_phases_bytes": 268614827,
+      "encode_six_ms": 249,
+      "decode_one_ms": 57
+    },
+    "post_optimization_six_phase_encoding": {
+      "command": "/usr/bin/time -l /Users/cburgosro/Projects/rust-mcp/target/release/deps/rust_engineering_project-e21b0d66558d2180 --exact filesystem::macos::mutation::tests::maximum_format_journal_cost_is_bounded_per_global_phase --nocapture",
+      "result": "ok; 1 passed; 0 failed; 57 filtered out",
+      "maximum_resident_set_size_bytes": 468172800,
+      "peak_memory_footprint_bytes": 467026616,
+      "wall_seconds": 0.72,
+      "encoded_max_bytes": 44769139,
+      "worst_case_bytes": 44772622,
+      "encoded_six_phases_bytes": 268614827,
+      "encode_six_ms": 230,
+      "decode_one_ms": 53,
+      "rss_reduction_bytes": 403111936,
+      "rss_reduction_percent": 46.26638334680983
+    }
+  },
+  "validation": [
+    {
+      "command": "cargo test -p rust-engineering-project --lib filesystem::macos::mutation::tests",
+      "result": "31 passed; 0 failed; 1 ignored"
+    },
+    {
+      "command": "cargo test -p rust-engineering-project --test mutation_store",
+      "result": "20 passed; 0 failed"
+    },
+    {
+      "command": "cargo test -p rust-engineering-project --lib filesystem::macos::mutation::tests::streamed_checksums_preserve_buffered_v1_and_v2_bytes -- --exact --nocapture",
+      "result": "1 passed; 0 failed"
+    },
+    {
+      "command": "cargo clippy -p rust-engineering-project --all-targets -- -D warnings",
+      "result": "passed"
+    },
+    {
+      "command": "rustfmt --edition 2024 --check crates/project-adapter/src/filesystem/macos/mutation.rs crates/project-adapter/tests/support/native_mutation.rs",
+      "result": "passed"
+    },
+    {
+      "command": "git diff --check -- crates/project-adapter/src/filesystem/macos/mutation.rs crates/project-adapter/tests/support/native_mutation.rs",
+      "result": "passed"
+    }
+  ],
+  "compatibility": {
+    "v2_byte_exact_reference": "passed",
+    "v1_buffered_checksum_and_decode": "passed",
+    "encoded_max_unchanged": true,
+    "worst_case_length_unchanged": true,
+    "terminal_stored_bytes_unchanged": true,
+    "security_or_quota_relaxation": false
+  },
+  "scope": {
+    "observed": "Direct release test process RSS on one macOS ARM64/APFS host.",
+    "includes": [
+      "Rust test harness and allocator",
+      "maximum source candidates and journal bodies",
+      "fixture construction",
+      "source capture, journal persistence, replay, recovery, and index work as selected by each test"
+    ],
+    "excludes": [
+      "Cargo, rustc, and linker RSS from the measured process",
+      "application plan registry and MCP protocol/runtime allocations"
+    ],
+    "limitations": [
+      "These observations are not a formal RSS bound or cross-host guarantee.",
+      "The commit-only process RSS still includes fixture setup before the commit timer starts.",
+      "The measurements do not qualify rollback under power loss.",
+      "Timing differences are observations, not a regression threshold.",
+      "The full lifecycle remains close to 1 GiB and does not close the existing P2 until runtime-level memory and acceptance criteria are decided."
+    ]
+  }
+}

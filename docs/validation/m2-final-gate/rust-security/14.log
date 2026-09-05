@@ -1,0 +1,15 @@
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.12s
+     Running tests/inspection_runtime.rs (target/debug/deps/inspection_runtime-836bf750ab4f64c1)
+
+running 1 test
+test audit_runtime::audit_snapshot_freshness_and_advisory_classification_are_distinct ... M1_AUDIT_CASE {"case":"synthetic_patched","cleanup":true,"snapshot_fingerprint":"sha256:7823093050f8a55d890a19d9f1f13737386ea59db5f4c2e9722dac8450f9003e","source_unchanged":true,"status":"passed"}
+M1_AUDIT_CASE {"case":"synthetic_withdrawn","cleanup":true,"snapshot_fingerprint":"sha256:77fd974e6c95053cddeaa73479e48ab97ed3459d826deca6f2035596191ca35c","source_unchanged":true,"status":"passed"}
+M1_AUDIT_CASE {"case":"synthetic_informational","cleanup":true,"snapshot_fingerprint":"sha256:44972213d938a7ef2afd80589c6bcb5fd0bc5615e81aedd7530c26e5b57953c0","source_unchanged":true,"status":"passed"}
+M1_AUDIT_CASE {"case":"stale","cleanup":true,"snapshot_fingerprint":"sha256:69728625b00e6487b459ceebd356c4bf163d5977608e4a88e4a9be31a5482894","source_unchanged":true,"status":"unavailable"}
+M1_AUDIT_CASE {"case":"stale_with_findings","cleanup":true,"snapshot_fingerprint":"sha256:25d5ca3ae9db89cbadd4a7e12067c3a9d743310f54b4b6c2515415e68a498e31","source_unchanged":true,"status":"unavailable"}
+M1_AUDIT_CASE {"case":"unknown_age","cleanup":true,"snapshot_fingerprint":"sha256:65eff0568a81106cfc108b229d219e40f3ab11400bf226520b8ada5726ea9c97","source_unchanged":true,"status":"unavailable"}
+M1_AUDIT_RECEIPT {"cases":6,"cleanup":true,"configuration_fingerprints":["sha256:84fb1e2dac1829773cd1c3fa00b757db03c33f78c2de9a49ab836d56b019183e","sha256:84fb1e2dac1829773cd1c3fa00b757db03c33f78c2de9a49ab836d56b019183e","sha256:84fb1e2dac1829773cd1c3fa00b757db03c33f78c2de9a49ab836d56b019183e","sha256:84fb1e2dac1829773cd1c3fa00b757db03c33f78c2de9a49ab836d56b019183e","sha256:84fb1e2dac1829773cd1c3fa00b757db03c33f78c2de9a49ab836d56b019183e","sha256:84fb1e2dac1829773cd1c3fa00b757db03c33f78c2de9a49ab836d56b019183e"],"fixture_identity_not_publisher_authentication":true,"snapshot_and_lock_sha256_verified":6,"source_unchanged":true,"stale_and_unknown_never_pass":true,"stale_findings_retained_with_unavailable_state":true,"synthetic_patched_clean":true,"withdrawn_and_informational_distinct":true}
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 28 filtered out; finished in 88.59s
+

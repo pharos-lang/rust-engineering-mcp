@@ -1,0 +1,9 @@
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.11s
+     Running tests/inspection_runtime.rs (target/debug/deps/inspection_runtime-836bf750ab4f64c1)
+
+running 1 test
+test test_reports_results_selections_and_verified_harness_logs ... M1_TEST_RECEIPT {"cases":9,"cleanup":true,"execution_fingerprints":["sha256:2e169d4ab7656ce62876ec99d04443881f11aef5f2277e37d8c30e5dee085b6b","sha256:05d418409f9b200a361efd25e1bb19745d35eb859a2c8a6cbe66a5c9098c2e68","sha256:762b6d5baf63e362523dc553622cb3205166f7909bac4515cf0f4b189e43135e","sha256:a21bd04bb1ac2ba6c0cde1095e6a7a53dec56ce5544f6d1cd56698a7c9bf5021","sha256:8b706f7c3f2c7145f961d7db554009a54b02c0a9885748f8a8e4c685f70c833c","sha256:dc55e3f7801b811e8d52bb225c93e1a3a003b3113a5f1a88ee16352177f0d98e","sha256:51719a0421272c0d4db833970226ef48c8f5d9634b32432ce5f39c8763ad28e3","sha256:f5e544e619168fc9fa229716db9698541eaaf3f79e725691e8895c7bfa413f76","sha256:db1a52360f3e429343e97d3c545cd9f827e8014ef1911edb87047ef70b3752d6"],"logs_sha256_verified":9,"package_filter_features_all_features_target_timeout_verified":true,"passed_failed_compile_failed_distinguished":true,"raw_harness_tail_retained":true,"source_unchanged_between_explicit_mutations":true,"timeout_partial_build_evidence":true}
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 28 filtered out; finished in 37.91s
+

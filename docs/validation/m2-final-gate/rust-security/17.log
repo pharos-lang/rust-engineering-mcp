@@ -1,0 +1,9 @@
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.13s
+     Running tests/inspection_runtime.rs (target/debug/deps/inspection_runtime-836bf750ab4f64c1)
+
+running 1 test
+test quality_runtime::quality_fast_retains_format_and_strict_clippy_failures_and_readonly_source ... M1_QUALITY_RECEIPT {"captured_source_write_denied":true,"cases":2,"cleanup":true,"configuration_fingerprint":"sha256:84fb1e2dac1829773cd1c3fa00b757db03c33f78c2de9a49ab836d56b019183e","format_diff_and_clippy_diagnostic_retained":true,"logs_sha256_verified":6,"ordered_stages":3,"ordinary_failures_continue":true,"prior_log_group_retained":true,"profiles":["fast"],"source_unchanged_between_explicit_mutations":true}
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 28 filtered out; finished in 20.15s
+

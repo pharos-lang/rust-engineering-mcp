@@ -1,0 +1,4589 @@
+{
+  "schema": "rust-mcp-gate-report-v2",
+  "mode": "full",
+  "platform": "macOS-26.6.2-arm64-arm-64bit-Mach-O",
+  "machine": "arm64",
+  "started_at": "2026-09-05T19:46:50.312617Z",
+  "steps": [
+    {
+      "name": "fmt",
+      "command": [
+        "cargo",
+        "fmt",
+        "--all",
+        "--check"
+      ],
+      "started_at": "2026-09-05T19:46:50.400312Z",
+      "status": "passed",
+      "exit_code": 0,
+      "finished_at": "2026-09-05T19:46:50.946697Z",
+      "seconds": 0.546,
+      "counts": {
+        "output_lines": 0,
+        "output_bytes_utf8": 0,
+        "test_groups": [],
+        "rust_passed": 0,
+        "rust_failed": 0,
+        "python_unittest_executed": 0
+      }
+    },
+    {
+      "name": "check",
+      "command": [
+        "cargo",
+        "check",
+        "--workspace",
+        "--all-targets",
+        "--locked",
+        "--offline"
+      ],
+      "started_at": "2026-09-05T19:46:50.947311Z",
+      "status": "passed",
+      "exit_code": 0,
+      "finished_at": "2026-09-05T19:46:54.625216Z",
+      "seconds": 3.678,
+      "counts": {
+        "output_lines": 3,
+        "output_bytes_utf8": 285,
+        "test_groups": [],
+        "rust_passed": 0,
+        "rust_failed": 0,
+        "python_unittest_executed": 0
+      }
+    },
+    {
+      "name": "clippy",
+      "command": [
+        "cargo",
+        "clippy",
+        "--workspace",
+        "--all-targets",
+        "--locked",
+        "--offline",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "started_at": "2026-09-05T19:46:54.626016Z",
+      "status": "passed",
+      "exit_code": 0,
+      "finished_at": "2026-09-05T19:46:58.518828Z",
+      "seconds": 3.893,
+      "counts": {
+        "output_lines": 3,
+        "output_bytes_utf8": 285,
+        "test_groups": [],
+        "rust_passed": 0,
+        "rust_failed": 0,
+        "python_unittest_executed": 0
+      }
+    },
+    {
+      "name": "test",
+      "command": [
+        "cargo",
+        "test",
+        "--workspace",
+        "--all-targets",
+        "--locked",
+        "--offline"
+      ],
+      "started_at": "2026-09-05T19:46:58.519489Z",
+      "status": "failed",
+      "exit_code": 101,
+      "finished_at": "2026-09-05T19:48:01.196712Z",
+      "seconds": 62.677,
+      "counts": {
+        "output_lines": 1127,
+        "output_bytes_utf8": 82647,
+        "test_groups": [
+          {
+            "runner": "rust-test-harness",
+            "status": "ok",
+            "passed": 0,
+            "failed": 0,
+            "ignored": 0,
+            "measured": 0,
+            "filtered_out": 0
+          },
+          {
+            "runner": "rust-test-harness",
+            "status": "ok",
+            "passed": 4,
+            "failed": 0,
+            "ignored": 0,
+            "measured": 0,
+            "filtered_out": 0
+          },
+          {
+            "runner": "rust-test-harness",
+            "status": "ok",
+            "passed": 6,
+            "failed": 0,
+            "ignored": 0,
+            "measured": 0,
+            "filtered_out": 0
+          },
+          {
+            "runner": "rust-test-harness",
+            "status": "ok",
+            "passed": 8,
+            "failed": 0,
+            "ignored": 0,
+            "measured": 0,
+            "filtered_out": 0
+          },
+          {
+            "runner": "rust-test-harness",
+            "status": "ok",
+            "passed": 5,
+            "failed": 0,
+            "ignored": 0,
+            "measured": 0,
+            "filtered_out": 0
+          },
+          {
+            "runner": "rust-test-harness",
+            "status": "ok",
+            "passed": 3,
+            "failed": 0,
+            "ignored": 0,
+            "measured": 0,
+            "filtered_out": 0
+          },
+          {
+            "runner": "rust-test-harness",
+            "status": "ok",
+            "passed": 8,
+            "failed": 0,
+            "ignored": 0,
+            "measured": 0,
+            "filtered_out": 0
+          },
+          {
+            "runner": "rust-test-harness",
+            "status": "ok",
+            "passed": 11,
+            "failed": 0,
+            "ignored": 0,
+            "measured": 0,
+            "filtered_out": 0
+          },
+          {
+            "runner": "rust-test-harness",
+            "status": "ok",
+            "passed": 4,
+            "failed": 0,
+            "ignored": 0,
+            "measured": 0,
+            "filtered_out": 0
+          },
+          {
+            "runner": "rust-test-harness",
+            "status": "ok",
+            "passed": 5,
+            "failed": 0,
+            "ignored": 0,
+            "measured": 0,
+            "filtered_out": 0
+          },
+          {
+            "runner": "rust-test-harness",
+            "status": "ok",
+            "passed": 5,
+            "failed": 0,
+            "ignored": 0,
+            "measured": 0,
+            "filtered_out": 0
+          },
+          {
+            "runner": "rust-test-harness",
+            "status": "ok",
+            "passed": 6,
+            "failed": 0,
+            "ignored": 0,
+            "measured": 0,
+            "filtered_out": 0
+          },
+          {
+            "runner": "rust-test-harness",
+            "status": "ok",
+            "passed": 15,
+            "failed": 0,
+            "ignored": 0,
+            "measured": 0,
+            "filtered_out": 0
+          },
+          {
+            "runner": "rust-test-harness",
+            "status": "ok",
+            "passed": 8,
+            "failed": 0,
+            "ignored": 0,
+            "measured": 0,
+            "filtered_out": 0
+          },
+          {
+            "runner": "rust-test-harness",
+            "status": "ok",
+            "passed": 12,
+            "failed": 0,
+            "ignored": 0,
+            "measured": 0,
+            "filtered_out": 0
+          },
+          {
+            "runner": "rust-test-harness",
+            "status": "ok",
+            "passed": 12,
+            "failed": 0,
+            "ignored": 0,
+            "measured": 0,
+            "filtered_out": 0
+          },
+          {
+            "runner": "rust-test-harness",
+            "status": "ok",
+            "passed": 4,
+            "failed": 0,
+            "ignored": 0,
+            "measured": 0,
+            "filtered_out": 0
+          },
+          {
+            "runner": "rust-test-harness",
+            "status": "ok",
+            "passed": 4,
+            "failed": 0,
+            "ignored": 0,
+            "measured": 0,
+            "filtered_out": 0
+          },
+          {
+            "runner": "rust-test-harness",
+            "status": "ok",
+            "passed": 3,
+            "failed": 0,
+            "ignored": 0,
+            "measured": 0,
+            "filtered_out": 0
+          },
+          {
+            "runner": "rust-test-harness",
+            "status": "ok",
+            "passed": 19,
+            "failed": 0,
+            "ignored": 0,
+            "measured": 0,
+            "filtered_out": 0
+          },
+          {
+            "runner": "rust-test-harness",
+            "status": "ok",
+            "passed": 50,
+            "failed": 0,
+            "ignored": 2,
+            "measured": 0,
+            "filtered_out": 0
+          },
+          {
+            "runner": "rust-test-harness",
+            "status": "ok",
+            "passed": 10,
+            "failed": 0,
+            "ignored": 0,
+            "measured": 0,
+            "filtered_out": 0
+          },
+          {
+            "runner": "rust-test-harness",
+            "status": "ok",
+            "passed": 5,
+            "failed": 0,
+            "ignored": 0,
+            "measured": 0,
+            "filtered_out": 0
+          },
+          {
+            "runner": "rust-test-harness",
+            "status": "ok",
+            "passed": 8,
+            "failed": 0,
+            "ignored": 0,
+            "measured": 0,
+            "filtered_out": 0
+          },
+          {
+            "runner": "rust-test-harness",
+            "status": "ok",
+            "passed": 8,
+            "failed": 0,
+            "ignored": 0,
+            "measured": 0,
+            "filtered_out": 0
+          },
+          {
+            "runner": "rust-test-harness",
+            "status": "ok",
+            "passed": 13,
+            "failed": 0,
+            "ignored": 0,
+            "measured": 0,
+            "filtered_out": 0
+          },
+          {
+            "runner": "rust-test-harness",
+            "status": "ok",
+            "passed": 1,
+            "failed": 0,
+            "ignored": 0,
+            "measured": 0,
+            "filtered_out": 0
+          },
+          {
+            "runner": "rust-test-harness",
+            "status": "ok",
+            "passed": 7,
+            "failed": 0,
+            "ignored": 0,
+            "measured": 0,
+            "filtered_out": 0
+          },
+          {
+            "runner": "rust-test-harness",
+            "status": "ok",
+            "passed": 2,
+            "failed": 0,
+            "ignored": 0,
+            "measured": 0,
+            "filtered_out": 0
+          },
+          {
+            "runner": "rust-test-harness",
+            "status": "ok",
+            "passed": 2,
+            "failed": 0,
+            "ignored": 0,
+            "measured": 0,
+            "filtered_out": 0
+          },
+          {
+            "runner": "rust-test-harness",
+            "status": "ok",
+            "passed": 7,
+            "failed": 0,
+            "ignored": 0,
+            "measured": 0,
+            "filtered_out": 0
+          },
+          {
+            "runner": "rust-test-harness",
+            "status": "ok",
+            "passed": 7,
+            "failed": 0,
+            "ignored": 0,
+            "measured": 0,
+            "filtered_out": 0
+          },
+          {
+            "runner": "rust-test-harness",
+            "status": "ok",
+            "passed": 4,
+            "failed": 0,
+            "ignored": 0,
+            "measured": 0,
+            "filtered_out": 0
+          },
+          {
+            "runner": "rust-test-harness",
+            "status": "ok",
+            "passed": 3,
+            "failed": 0,
+            "ignored": 0,
+            "measured": 0,
+            "filtered_out": 0
+          },
+          {
+            "runner": "rust-test-harness",
+            "status": "ok",
+            "passed": 3,
+            "failed": 0,
+            "ignored": 0,
+            "measured": 0,
+            "filtered_out": 0
+          },
+          {
+            "runner": "rust-test-harness",
+            "status": "ok",
+            "passed": 115,
+            "failed": 0,
+            "ignored": 10,
+            "measured": 0,
+            "filtered_out": 0
+          },
+          {
+            "runner": "rust-test-harness",
+            "status": "ok",
+            "passed": 1,
+            "failed": 0,
+            "ignored": 4,
+            "measured": 0,
+            "filtered_out": 0
+          },
+          {
+            "runner": "rust-test-harness",
+            "status": "ok",
+            "passed": 186,
+            "failed": 0,
+            "ignored": 3,
+            "measured": 0,
+            "filtered_out": 0
+          },
+          {
+            "runner": "rust-test-harness",
+            "status": "ok",
+            "passed": 9,
+            "failed": 0,
+            "ignored": 0,
+            "measured": 0,
+            "filtered_out": 0
+          },
+          {
+            "runner": "rust-test-harness",
+            "status": "ok",
+            "passed": 5,
+            "failed": 0,
+            "ignored": 0,
+            "measured": 0,
+            "filtered_out": 0
+          },
+          {
+            "runner": "rust-test-harness",
+            "status": "ok",
+            "passed": 2,
+            "failed": 0,
+            "ignored": 0,
+            "measured": 0,
+            "filtered_out": 0
+          },
+          {
+            "runner": "rust-test-harness",
+            "status": "ok",
+            "passed": 13,
+            "failed": 0,
+            "ignored": 0,
+            "measured": 0,
+            "filtered_out": 0
+          },
+          {
+            "runner": "rust-test-harness",
+            "status": "ok",
+            "passed": 2,
+            "failed": 0,
+            "ignored": 0,
+            "measured": 0,
+            "filtered_out": 0
+          },
+          {
+            "runner": "rust-test-harness",
+            "status": "ok",
+            "passed": 2,
+            "failed": 0,
+            "ignored": 0,
+            "measured": 0,
+            "filtered_out": 0
+          },
+          {
+            "runner": "rust-test-harness",
+            "status": "ok",
+            "passed": 3,
+            "failed": 0,
+            "ignored": 0,
+            "measured": 0,
+            "filtered_out": 0
+          },
+          {
+            "runner": "rust-test-harness",
+            "status": "ok",
+            "passed": 0,
+            "failed": 0,
+            "ignored": 28,
+            "measured": 0,
+            "filtered_out": 0
+          },
+          {
+            "runner": "rust-test-harness",
+            "status": "ok",
+            "passed": 38,
+            "failed": 0,
+            "ignored": 0,
+            "measured": 0,
+            "filtered_out": 0
+          },
+          {
+            "runner": "rust-test-harness",
+            "status": "ok",
+            "passed": 62,
+            "failed": 0,
+            "ignored": 2,
+            "measured": 0,
+            "filtered_out": 0
+          },
+          {
+            "runner": "rust-test-harness",
+            "status": "ok",
+            "passed": 6,
+            "failed": 0,
+            "ignored": 0,
+            "measured": 0,
+            "filtered_out": 0
+          },
+          {
+            "runner": "rust-test-harness",
+            "status": "ok",
+            "passed": 7,
+            "failed": 0,
+            "ignored": 0,
+            "measured": 0,
+            "filtered_out": 0
+          },
+          {
+            "runner": "rust-test-harness",
+            "status": "FAILED",
+            "passed": 15,
+            "failed": 1,
+            "ignored": 0,
+            "measured": 0,
+            "filtered_out": 0
+          }
+        ],
+        "rust_passed": 738,
+        "rust_failed": 1,
+        "python_unittest_executed": 0
+      }
+    }
+  ],
+  "status": "failed",
+  "cargo": "cargo 1.98.1 (797e8a9bc 2026-08-05)",
+  "rustc": "rustc 1.98.1 (48a229cea 2026-09-01)",
+  "source_inputs": [
+    {
+      "path": ".github/requirements-coverage.txt",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 313,
+      "sha256": "203b0a0009a3679190273afdfe4892d20646f22d5eef596a01eee783439b578b"
+    },
+    {
+      "path": ".github/workflows/ci.yml",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 3178,
+      "sha256": "bd3e912645d39cd7cc089705342786126506d365b1f7c375d572a3435f4af793"
+    },
+    {
+      "path": ".github/workflows/release-candidate.yml",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 8953,
+      "sha256": "60a9c6951f511a5fe945e4c1538616bfd9266c6beb11fb4d7541f045d93a290c"
+    },
+    {
+      "path": ".github/workflows/sonarcloud.yml",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 2832,
+      "sha256": "661384b954113ed899e236d5ed589f729426786d4c64554d15bd670c965ea252"
+    },
+    {
+      "path": ".gitignore",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 87,
+      "sha256": "a1c7fb97fcaa46bf67de1abe752e92c01c260cf29857c2eec1ed0c778f8fb270"
+    },
+    {
+      "path": "AGENTS.md",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 11364,
+      "sha256": "5495d6e4147401e092bc557ac15aefad152e6f45f146f66b4f60d7d7225bfaa9"
+    },
+    {
+      "path": "Cargo.lock",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 158362,
+      "sha256": "701e8556a138ce2081cc7484f404331fdc9160456ff4fbb46e78ce5e439b7417"
+    },
+    {
+      "path": "Cargo.toml",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 2803,
+      "sha256": "78bd4ef6b16a854b373d02d899a495a2a4e48deab608880de902118df248b66c"
+    },
+    {
+      "path": "clippy.toml",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 16,
+      "sha256": "daa892bd4fe465d97eb7eb07effb93bd9a7bca83eea75fff25ab714c1ab18e5e"
+    },
+    {
+      "path": "crates/application/Cargo.toml",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 362,
+      "sha256": "ecb3aaa6fc4dd0f882fd9222e7834a66ea3bf8e2ca606f06e8288cdc78cd1d2b"
+    },
+    {
+      "path": "crates/application/src/artifact.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 1401,
+      "sha256": "4d0c8fa749bd3ad46cfb64dfb49a2f888e019db303ae4fe8cf968ce8c620eda4"
+    },
+    {
+      "path": "crates/application/src/artifact_access.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 5658,
+      "sha256": "976917af526332b3fa8292a614cea8d560cd288553c16b08d8ad7ad330d520ab"
+    },
+    {
+      "path": "crates/application/src/audit.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 3698,
+      "sha256": "821e757834650996ea3f712be0a6a4c168b28b34cb362539739a938db1fe5b2c"
+    },
+    {
+      "path": "crates/application/src/catalog.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 1039,
+      "sha256": "76cbfc86faa77e505399ccdc5cbd8860bfe5c28968dbe571d47669942bc331e8"
+    },
+    {
+      "path": "crates/application/src/catalog_context.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 6548,
+      "sha256": "2aa7c582982c846e64ae7e5c5948bd11c0143f7c3c944909ab9291334991bedc"
+    },
+    {
+      "path": "crates/application/src/check.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 1756,
+      "sha256": "738a76deed1bfede47db9a1857472a8976162ff473a60677d884711bc84c3920"
+    },
+    {
+      "path": "crates/application/src/clippy.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 1774,
+      "sha256": "0ce423d267e1b527e9a62bbfa7a7dfd01a9e7c0f0edb48ab752f1a5f6837d203"
+    },
+    {
+      "path": "crates/application/src/crate_inspect.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 9399,
+      "sha256": "a3243d8749fd238f5cad17eecbacb346ffac0f58c318ba89f04c34ced5bc4641"
+    },
+    {
+      "path": "crates/application/src/crate_search.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 13793,
+      "sha256": "2653f518c9a966b337b8f65de636c023c2bae038977e68757bdb123d57166528"
+    },
+    {
+      "path": "crates/application/src/execution.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 1584,
+      "sha256": "bb88a2fafa52f624f67d208897e3b27b8da9b993cccb0c7864195f7179b7f713"
+    },
+    {
+      "path": "crates/application/src/explain.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 1735,
+      "sha256": "5086b2f826343b4c92ca6689e4bb2bb83f9c343c0e779654fa34714dc0365593"
+    },
+    {
+      "path": "crates/application/src/format.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 1721,
+      "sha256": "a24cb1bc819d9681ea36e712486099288c079676801c036cc112e95ea3d1dafd"
+    },
+    {
+      "path": "crates/application/src/inspection.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 3279,
+      "sha256": "d637e03d60df9a69a125c7b24a4e948e4d5918763586126235b1ff4468f20439"
+    },
+    {
+      "path": "crates/application/src/lib.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 6502,
+      "sha256": "a49e55162b875fcc824dcb14e0f2cd95e793db7c960d8e7a4981f6a02412cfea"
+    },
+    {
+      "path": "crates/application/src/manifest_edit.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 270,
+      "sha256": "10645c11645937991d7256a7a3a157437e5fc19f42b3df4b2ab8e32e6641189d"
+    },
+    {
+      "path": "crates/application/src/mutation.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 17714,
+      "sha256": "195a7f0f5a28f5918cb785377ca6b5bde338646c056c94d9cc1f848774ce865e"
+    },
+    {
+      "path": "crates/application/src/quality.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 7362,
+      "sha256": "96f9dc9b8d303f0a6ec4b8e964c6cf86953b6c097097753b1757c6081c0440d3"
+    },
+    {
+      "path": "crates/application/src/resolution.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 12298,
+      "sha256": "1c3e4b2bb9e3f6f0af199adc1355c3c664945a6b6972610a189aa8ada77c23a8"
+    },
+    {
+      "path": "crates/application/src/rust_mutation.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 447,
+      "sha256": "1971b7702ea94be57c12402d60e68dbfabd0790a499d2324352e1a8741646403"
+    },
+    {
+      "path": "crates/application/src/semantic.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 4637,
+      "sha256": "0892675fa72624a37fdbe190d8cd1dcd5a491d882dae278f3509c6fa2356fae1"
+    },
+    {
+      "path": "crates/application/src/source.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 1611,
+      "sha256": "be7b1ae1dacc0aa9b8fabafff6b226f7731d8019d8c069e07f97a972e4e394c5"
+    },
+    {
+      "path": "crates/application/src/test_run.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 1809,
+      "sha256": "bdaa50e9cecc915113246e3d2ca2c3020d9de7ce816ed4995bebef4b1f4ad24d"
+    },
+    {
+      "path": "crates/application/src/toolchain.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 2836,
+      "sha256": "020026512e8fc33ff006ea0281a4868076b2c8ea9703a299c2ae727873ace45a"
+    },
+    {
+      "path": "crates/application/src/validation.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 17207,
+      "sha256": "66fb958d4bb5f870d153b377de3183b969275ff7fea61ec3f5fb325d088d4d08"
+    },
+    {
+      "path": "crates/application/tests/artifact_access.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 11165,
+      "sha256": "9f54427b93441266c3834aba42d7f31d0f49372ef05804d8a8a0e34d3c26768b"
+    },
+    {
+      "path": "crates/application/tests/audit.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 18360,
+      "sha256": "dfafee19ad68b7529f381a0a395760c9df6a4cc46b4b228d42c613c856105df1"
+    },
+    {
+      "path": "crates/application/tests/catalog_context.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 12624,
+      "sha256": "5b11f63bda00bd5ba05574bce79d13a47289014ee31d9cc25fbda50b78dad7bf"
+    },
+    {
+      "path": "crates/application/tests/check.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 18476,
+      "sha256": "4606c3e88f876bdff69177d5c2170ad9bb2f98399d0f4eace2fb589bc512def6"
+    },
+    {
+      "path": "crates/application/tests/clippy.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 11501,
+      "sha256": "c60f822f77904f20007bcc3df6c07b1eca6964a7c9ec8baec7dcfef9545182c6"
+    },
+    {
+      "path": "crates/application/tests/crate_inspect.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 16216,
+      "sha256": "700a005db284ec79c48fc23e8391fd6360258c9e97e253e7ef39187e583084ff"
+    },
+    {
+      "path": "crates/application/tests/crate_search.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 18982,
+      "sha256": "ae859b364039e94f51187d6f146e25f5bc41d0f6b8d7b636b58549cbf703cc97"
+    },
+    {
+      "path": "crates/application/tests/execution.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 3535,
+      "sha256": "fa23ab8010dda308427fe1e98524e7d13045172a0377797cac6d24f17494723c"
+    },
+    {
+      "path": "crates/application/tests/explain.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 6629,
+      "sha256": "ccf6482c78e766f7b9506d84fbc1eb5a4699650bb697c377374cf1273a5c720d"
+    },
+    {
+      "path": "crates/application/tests/format.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 18831,
+      "sha256": "f1966946b8377b95d1871e6faeac7036c8313c282c9100ba40ddfa2dc22930b5"
+    },
+    {
+      "path": "crates/application/tests/inspection.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 12507,
+      "sha256": "832952c56d313648cded6e9b28271e4b9433ef9fb5bdb8a485d1e61c52b30550"
+    },
+    {
+      "path": "crates/application/tests/mutation.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 34782,
+      "sha256": "a6b2fa360fe88825e5f4d5418fdda55df33612033c662e40b3085c06cc45441f"
+    },
+    {
+      "path": "crates/application/tests/quality.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 32567,
+      "sha256": "d20bb18a6e384ba467ffe13257ba5378df6bf5dfd53878f73e8767ba3a00365f"
+    },
+    {
+      "path": "crates/application/tests/registry.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 15567,
+      "sha256": "f924fce1f0ec851f210466bcc7a20572f9f63a199a40b27f4707b9ad177ce289"
+    },
+    {
+      "path": "crates/application/tests/resolution.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 30964,
+      "sha256": "04603ce9a1e44c5ae51f0e0c15f536892009872e7fff6017b9923b89d42343a9"
+    },
+    {
+      "path": "crates/application/tests/source.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 6057,
+      "sha256": "3a17c76530e3867302f540921a814742492d02f92baa2549e4a3d452c1c025e8"
+    },
+    {
+      "path": "crates/application/tests/test_run.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 13919,
+      "sha256": "257b8a8e031b249f2cea940cd565f32f68ceda37c1d3022533c52274041d6f89"
+    },
+    {
+      "path": "crates/application/tests/toolchain.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 12798,
+      "sha256": "0dc7b4b6004b11acc1125fe58ff0c867534cb2963c198fde7cf7c6b6a1949a2d"
+    },
+    {
+      "path": "crates/artifact-adapter/Cargo.toml",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 404,
+      "sha256": "6842d518e2a598bb411d8272bd4a58e9b9faf04af0f3b4a4e2fe737a07aa37cf"
+    },
+    {
+      "path": "crates/artifact-adapter/src/lib.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 12480,
+      "sha256": "e6df58aecb12fa7b1d53b9126ef5449e041cf1fc7e53204baafe84b31db58067"
+    },
+    {
+      "path": "crates/artifact-adapter/src/tests.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 19404,
+      "sha256": "0d915fc2c5d7f21fdd41df29b3b7819d10de084d7c69438456f7f18586bee3ee"
+    },
+    {
+      "path": "crates/catalog-adapter/Cargo.toml",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 692,
+      "sha256": "c45a4a66fd9684481acb2fdefd182a5db9558d5e705d0504a98fb60f9f273eaf"
+    },
+    {
+      "path": "crates/catalog-adapter/src/audit.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 16716,
+      "sha256": "e832c90abd7efff7e1e57d2f4ea1f2f83fb87e94a1dbdb82182c9e7a59114067"
+    },
+    {
+      "path": "crates/catalog-adapter/src/audit/lock.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 43253,
+      "sha256": "5b71e5e28aecb4a7ca5a7547710eca56cfa6313b554824ff167689785ed76adb"
+    },
+    {
+      "path": "crates/catalog-adapter/src/audit/tests.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 18558,
+      "sha256": "96f677b685a9d2000a139cf26db191fcbbd2735ab54e83c4ef5297021eeeafd9"
+    },
+    {
+      "path": "crates/catalog-adapter/src/bundle.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 10643,
+      "sha256": "8496df6d87d0f3422935d87fe70dce8f3fe55eeea299e187ae0a228e50824a1d"
+    },
+    {
+      "path": "crates/catalog-adapter/src/bundle/archive.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 3737,
+      "sha256": "3a5ccdcd0b83fded33b36222d1518cc879354f5c8ac916057a2f690a4ec96510"
+    },
+    {
+      "path": "crates/catalog-adapter/src/bundle/floor.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 6709,
+      "sha256": "aa7b5bf033e722d0371134187cfa4cf0baafd81ea9bef98339429792a95bbc66"
+    },
+    {
+      "path": "crates/catalog-adapter/src/bundle/tests.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 19318,
+      "sha256": "d2ba3b54282f917ea138ea019a3474cc89e5f40a74fb87d35d16194519d02f8f"
+    },
+    {
+      "path": "crates/catalog-adapter/src/inspect.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 12906,
+      "sha256": "76777e408b9eb5dd1e0a0f7819bc1df0d13d40903e0a67b04816b601987250e1"
+    },
+    {
+      "path": "crates/catalog-adapter/src/lib.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 16320,
+      "sha256": "d3b29d6052c1511fbcea3802cd6986b2ca8cedc88b1075099ba93d0e9360d844"
+    },
+    {
+      "path": "crates/catalog-adapter/src/records.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 12994,
+      "sha256": "651d4192cd85733baad18fc037ccdaefd1a13d9e16e3b037d66289d1df3e00c3"
+    },
+    {
+      "path": "crates/catalog-adapter/src/schema.sql",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 1363,
+      "sha256": "a17cb4fe0c3e73802260fade2a51dbd9735038ed78b5982b34b189b2c27872dc"
+    },
+    {
+      "path": "crates/catalog-adapter/src/search.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 5776,
+      "sha256": "8e1b5ffbb0675d693bc938e422d7c0622f99749009c750e79ed693c7c1bd9441"
+    },
+    {
+      "path": "crates/catalog-adapter/src/tests.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 6138,
+      "sha256": "8df2037cded2b81bacca3a9e96b1700df5af0efec998564c4ef5c1114bcf0329"
+    },
+    {
+      "path": "crates/catalog-adapter/tests/catalog.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 18547,
+      "sha256": "35235936561efc1dd9f35a6ffe130de10710871253066f0c1b4c046310570ddc"
+    },
+    {
+      "path": "crates/catalog-adapter/tests/crate_inspect.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 9780,
+      "sha256": "e67355e7b2124725f582cacb26922922cf502d33b5ca2f239c78370a644394f9"
+    },
+    {
+      "path": "crates/catalog-adapter/tests/crate_search.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 9999,
+      "sha256": "bfcd6af3d9e5251e08479d48cd0bb17db5b9410f94a03c8ac0b2df6fa23a54f9"
+    },
+    {
+      "path": "crates/catalog-adapter/tests/fixtures/rustsec/RUSTSEC-2023-0071.md",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 1375,
+      "sha256": "8538ebf5d6ad7c749a63dd43a725ea0000aff574cfddecc8e4ef52736831328a"
+    },
+    {
+      "path": "crates/catalog-adapter/tests/hybrid.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 19016,
+      "sha256": "8e9a6a1ed34b84adf986b2d915c68df33501c30b8bdcfb40c86bcac9b2dd6157"
+    },
+    {
+      "path": "crates/domain/Cargo.toml",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 403,
+      "sha256": "8bbbe01e33f553aa82ca73c4f584749948c23270398a506d7f35a903882a68a7"
+    },
+    {
+      "path": "crates/domain/src/artifact.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 3799,
+      "sha256": "9118391523b4e6760be3e907fac7cb19885627c1028941074070e6e4be70c29b"
+    },
+    {
+      "path": "crates/domain/src/audit.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 7771,
+      "sha256": "29a37b62bd7e7e1c68f7aab17396ad531858fb492fa545bdfbd904fe20a8f78b"
+    },
+    {
+      "path": "crates/domain/src/cargo_vendor.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 462,
+      "sha256": "7dbe20905267e8777f61ae5fdf980976f52adc376c789cbb98ddc089fc414a07"
+    },
+    {
+      "path": "crates/domain/src/catalog.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 3222,
+      "sha256": "3eadfd4abadb590ccc2af01e8b06c7130aeb04f1e401888644ac5437b0b9ea14"
+    },
+    {
+      "path": "crates/domain/src/catalog_context.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 3765,
+      "sha256": "c6f5c19a2ed18ae210be44e8948670e39b830b639d1171d8d6d2ce0c3ce4196c"
+    },
+    {
+      "path": "crates/domain/src/check.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 6099,
+      "sha256": "58f72d097697608de80630a1fa4840d0856812196e630d3419e0d5d5090342d7"
+    },
+    {
+      "path": "crates/domain/src/clippy.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 5819,
+      "sha256": "b24debf9904e8b6f3035387c6d6abd935dfa4985d6c1e490f62d85911211ef3a"
+    },
+    {
+      "path": "crates/domain/src/crate_inspect.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 4828,
+      "sha256": "ce82b660430f9b3eda14d5af7762152009595e720bc8d0f5a2c7a8be32773b12"
+    },
+    {
+      "path": "crates/domain/src/crate_search.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 5213,
+      "sha256": "06c464042b20d3d183e1e03ba537203393fe4e994b826ceaf3a7dc9dc6907018"
+    },
+    {
+      "path": "crates/domain/src/diagnostic.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 5995,
+      "sha256": "c30ec0a63eedb7056ade36b32a3dcd401fc37af18cb2c978b059ad242ef8efc3"
+    },
+    {
+      "path": "crates/domain/src/evidence.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 7648,
+      "sha256": "f6381cd9c57083ea8f88693bb5e23ce56458b8db7885965b48b264316e2b958f"
+    },
+    {
+      "path": "crates/domain/src/execution.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 4394,
+      "sha256": "1bdc22144ebd161a6e880c2ffd31bedb077fd22845854b6a88ac44c895c4b243"
+    },
+    {
+      "path": "crates/domain/src/explain.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 902,
+      "sha256": "e6f1671ae647ca187bb479180d25ae525c4abc21b717e53fc1685b3f29c88b7b"
+    },
+    {
+      "path": "crates/domain/src/format.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 807,
+      "sha256": "ebbabb3ce4239ab30c0a4b655bf5608661c08a2a58fa048f717ca53e1cdd5ab7"
+    },
+    {
+      "path": "crates/domain/src/inspection.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 4914,
+      "sha256": "35bc13a23208ea28ecda0cd9e5b90fc4cb757c9489ff39803064bc5c82bea174"
+    },
+    {
+      "path": "crates/domain/src/lib.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 2109,
+      "sha256": "618203a5eff8db525f137835e57f5c85f21a14a9d26c1844d37399a0edcd8846"
+    },
+    {
+      "path": "crates/domain/src/manifest_edit.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 7279,
+      "sha256": "aa6cb6c9fe83b719fe2df2555d9e1cad66cf97229cc366e1a517345a65b40f2f"
+    },
+    {
+      "path": "crates/domain/src/mutation.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 3099,
+      "sha256": "e5964cfb6dd9cb1551816229aa144ac529f091788ed1721a8f7d4cb48e99be70"
+    },
+    {
+      "path": "crates/domain/src/quality.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 8577,
+      "sha256": "47874992b40416dc6544fbba9bfd9959f1775d07d8da83bc0ebd0ca02a5be98c"
+    },
+    {
+      "path": "crates/domain/src/resolution.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 811,
+      "sha256": "0323babb00fd58b88c06fd38ba47c45da18f7e42f76197a1dc267fa891ea16b5"
+    },
+    {
+      "path": "crates/domain/src/result.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 6212,
+      "sha256": "811f094d5999301e7e085d1c962df1c0e289dda27b2595e8582ba79b17f50d4a"
+    },
+    {
+      "path": "crates/domain/src/rust_execution.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 460,
+      "sha256": "a8b99ecd81ab4b24cf78ce90972b72e310fbd025ae3c13a2ca99168c37bc854a"
+    },
+    {
+      "path": "crates/domain/src/rust_mutation.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 821,
+      "sha256": "28e7e444abe76a6a75c89da8fac413da5f9b78f61d81092606eea5ceb9f16733"
+    },
+    {
+      "path": "crates/domain/src/semantic.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 3622,
+      "sha256": "41ea99ab68382ad99f8d2401e56cab225ded8aa3049eca018fdbe96571a240fb"
+    },
+    {
+      "path": "crates/domain/src/source.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 7938,
+      "sha256": "2fbc370dc6be5434bd64e137f5d97284f4faa11cca64164566957f1133e7e7d9"
+    },
+    {
+      "path": "crates/domain/src/test_run.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 8020,
+      "sha256": "33e31c094a2ffb9844531c1a730cd715de5fa03bd5d102df2310436d2eeb17d9"
+    },
+    {
+      "path": "crates/domain/src/toolchain.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 2148,
+      "sha256": "3e08ab9cc9da4bf9e2e43f47cc131dc9244bf196b6347238a37b27371d294d79"
+    },
+    {
+      "path": "crates/domain/src/value.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 3904,
+      "sha256": "099375e4f4324dade2fbff7f8b8faa30156f5202111890b0fdbe5ca153123aa8"
+    },
+    {
+      "path": "crates/domain/tests/catalog_context.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 1404,
+      "sha256": "ce76738bf858a392123421a51a88e646c954e0277e7ee82e0e63fed1a66ad792"
+    },
+    {
+      "path": "crates/domain/tests/contracts.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 7726,
+      "sha256": "aa28f3f0ed356200dbbff0b021f9d105752530fc0fb5f180a992d62b53c843e4"
+    },
+    {
+      "path": "crates/domain/tests/crate_inspect.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 3439,
+      "sha256": "610258fc29565eada909f8c846afe0c712f3d6898742a05f15601f58cd81d3c3"
+    },
+    {
+      "path": "crates/domain/tests/crate_search.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 1902,
+      "sha256": "a19de01e3c3d203531782c4901c8d8060fa246d14b7306d394ccd7a1e1d02cbd"
+    },
+    {
+      "path": "crates/domain/tests/diagnostics.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 9154,
+      "sha256": "c1d02e33bf90260f6d5819ee947b8cf0caf32763ebfa64cf21b6a6b869a98e0d"
+    },
+    {
+      "path": "crates/domain/tests/freshness.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 7540,
+      "sha256": "b2d2f140ea2d18abc059e4151a20fdc3411beedb12db46bbb5bb7496c08be4f6"
+    },
+    {
+      "path": "crates/domain/tests/manifest_edit.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 2542,
+      "sha256": "0b738ac2fd710827567cfd4fb3855f386bcd01a2bff636b949f2d70c1e79d897"
+    },
+    {
+      "path": "crates/domain/tests/mutation.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 2000,
+      "sha256": "ab7d57ee9566e0bd98912c93b14c765b1982a4c727a57efcf85832943fe02c55"
+    },
+    {
+      "path": "crates/domain/tests/quality.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 7352,
+      "sha256": "3066acee3a989c46995d0a241689e37fd2830d6bde6d6cd90bea34b636b936ab"
+    },
+    {
+      "path": "crates/execution-adapter/Cargo.toml",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 608,
+      "sha256": "cace4e373fe2c0b6e779353ebdfd88d3b5ea5df5896b6deb7cb252555ece54f0"
+    },
+    {
+      "path": "crates/execution-adapter/src/applied.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 6586,
+      "sha256": "146855b8e3377523ab15aab5a8a91d2b46bfc85a519c4471d12ac822f8ea7baf"
+    },
+    {
+      "path": "crates/execution-adapter/src/applied_tests.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 19732,
+      "sha256": "17cb8a9bf5ca08728971d715f07794e8c748f8c63ff3f947df60d699f4c5d0a7"
+    },
+    {
+      "path": "crates/execution-adapter/src/capabilities.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 18759,
+      "sha256": "ed9db68859f5171470920e4ef7c743c51af98eb0dd57dddf65059744d3e97e75"
+    },
+    {
+      "path": "crates/execution-adapter/src/cargo_diagnostics.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 37370,
+      "sha256": "a02f91b58ec07b9f1426886c65de16825441f7876ecf025ddc4ab33c1fd16b49"
+    },
+    {
+      "path": "crates/execution-adapter/src/format_output.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 12095,
+      "sha256": "10984e7f9db1ecaf9d392446f85146da57c2dbc690116b68450c6a5d320d08e1"
+    },
+    {
+      "path": "crates/execution-adapter/src/lib.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 23990,
+      "sha256": "9df13b672e20ed4820b4c5d2a90f4ff608f22ff116055578e6339b69c6ed6408"
+    },
+    {
+      "path": "crates/execution-adapter/src/mutation_archive.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 27820,
+      "sha256": "e8e7059558680df02ef41cb65af98a347b6cbbae452bda19ffb880c4fd5f9647"
+    },
+    {
+      "path": "crates/execution-adapter/src/mutation_gateway.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 44482,
+      "sha256": "df7fe329bbcdbffc49cfdf461df9556041f1aae624c9bd0f47b4ece34b13db87"
+    },
+    {
+      "path": "crates/execution-adapter/src/project_inspection.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 58627,
+      "sha256": "8cf540a9ad1dad7602e15dfc30d65a26569dcbf163f9542e6c662c697da93f4d"
+    },
+    {
+      "path": "crates/execution-adapter/src/project_metadata.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 48669,
+      "sha256": "c146ec7e75358be5699e8cfd2142618cb11e2f2cbf1abfece4a4776c879320bb"
+    },
+    {
+      "path": "crates/execution-adapter/src/resolution_gateway.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 54111,
+      "sha256": "8c54b84ca315ccee6a96038246447d6682ab09defc248285fc75671782c1e3de"
+    },
+    {
+      "path": "crates/execution-adapter/src/rust_applied.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 42690,
+      "sha256": "c130cfee5f41be23ecf53ad65556db2d025f0ec8df56180ba2340ebf354bde97"
+    },
+    {
+      "path": "crates/execution-adapter/src/rust_calibration.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 22820,
+      "sha256": "d8bdb9625520c2eeeb737d6ac664cbf4eb23d879cfcaacfe0527d49da9118f0c"
+    },
+    {
+      "path": "crates/execution-adapter/src/rust_gateway.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 44561,
+      "sha256": "e736e8f489d5360a0e9d2d5b815f450304a7ceea0740bd812819bb7baea6e483"
+    },
+    {
+      "path": "crates/execution-adapter/src/rust_gateway/test_runtime.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 15094,
+      "sha256": "e92adbbff7ca8db15151b4d5cc195bd45fd8de300f48a060086bd317208ff96d"
+    },
+    {
+      "path": "crates/execution-adapter/src/seccomp-rust-fix.json",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 4018,
+      "sha256": "0dc7bbbbf8f7e2a47c784488c49bbc7ffd6acac83b6f15e4fe2f0b9c1f642f15"
+    },
+    {
+      "path": "crates/execution-adapter/src/seccomp-rust.json",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 3379,
+      "sha256": "f9d31acb22989dc6ac37c02d4c73acfbbb3b74b5e08beff9983f3a811fd4e56d"
+    },
+    {
+      "path": "crates/execution-adapter/src/seccomp-socket.json",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 2869,
+      "sha256": "1f5dd6201d129405e1c48c64d796a46704f60bdd7eb2c4d82ffc1b6cf6b4ce31"
+    },
+    {
+      "path": "crates/execution-adapter/src/seccomp.json",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 2851,
+      "sha256": "aad227ba23e1bd6cde69b344b54fef09b0881b18654aacf5303929c8c14aa514"
+    },
+    {
+      "path": "crates/execution-adapter/src/source_archive.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 3844,
+      "sha256": "a9ec5fc6aea7d1a20571733101d764d42830787e5f6c42d8f3b1681ddc8fd97e"
+    },
+    {
+      "path": "crates/execution-adapter/src/state.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 9983,
+      "sha256": "d294e5d49c4045ebaa5af66d48e2cbf95b666daadda245505c54269541c2a781"
+    },
+    {
+      "path": "crates/execution-adapter/src/supervisor.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 16376,
+      "sha256": "f650bd956dd30e56929af7643265e49265d09be277e3039f775091caa022db19"
+    },
+    {
+      "path": "crates/execution-adapter/src/toolchain_metadata.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 12758,
+      "sha256": "b20d3982942e875cd7f87a21566e7630b9e0600bc00468dff0c5fae3f7ee1816"
+    },
+    {
+      "path": "crates/execution-adapter/tests/gateway.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 7985,
+      "sha256": "72cdb20fd5bde91fc8b2895c67b333a2cdae1d99776f713cecb96c7d7f0466c1"
+    },
+    {
+      "path": "crates/mcp-server/Cargo.toml",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 1224,
+      "sha256": "3e83220e7cace478e9ea6d07527b59e1a7425328c68145e28412deba6e0ac8fb"
+    },
+    {
+      "path": "crates/mcp-server/src/capabilities.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 8530,
+      "sha256": "045f6a008b8c8835a7ff867d7938057c498ba33ddae8d1283e67068fd0826639"
+    },
+    {
+      "path": "crates/mcp-server/src/cargo_vendor_cli.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 6762,
+      "sha256": "b211cf1f89f68627b301c8d5abe5795719a02d8dda0cb7c4ef6ac352f6056b63"
+    },
+    {
+      "path": "crates/mcp-server/src/catalog_cli.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 17852,
+      "sha256": "bc3a8e85f9f0fb51316970abfe9e8aacde6c5579e9d66467e13d0e169126ed45"
+    },
+    {
+      "path": "crates/mcp-server/src/catalog_cli/floor.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 526,
+      "sha256": "321fe4b795839f1a1848cd91818525414061744beedd36110051ac614a03bcbb"
+    },
+    {
+      "path": "crates/mcp-server/src/catalog_semantic.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 6033,
+      "sha256": "887f94125eab61822e7e5a5ddda6437d42f23f1eb1859f85485338094c00028a"
+    },
+    {
+      "path": "crates/mcp-server/src/catalog_sync.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 5622,
+      "sha256": "c405bb00e0dfb1f1745424eb4f420ab7896e4bb05f1e5bdf39366791e36f2f8a"
+    },
+    {
+      "path": "crates/mcp-server/src/catalog_sync/test-certs/README.md",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 547,
+      "sha256": "46a4a9b91e5dd92cceda1d27573d2cfb947619aa1eb2f396f5fb905644f7115a"
+    },
+    {
+      "path": "crates/mcp-server/src/catalog_sync/test-certs/chain.pem",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 1247,
+      "sha256": "cd455d0ea93c204c4ec1b569a59a51407e0f5969b53a2102ea519dedf9de2854"
+    },
+    {
+      "path": "crates/mcp-server/src/catalog_sync/test-certs/end.key",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 241,
+      "sha256": "5137467345dd24a91915c17cac20e66f6ac83cd8e0a0ca7aece5eb26e20ad739"
+    },
+    {
+      "path": "crates/mcp-server/src/catalog_sync/test-certs/root.pem",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 583,
+      "sha256": "0896dc570d53e0ee054003b5b5b753d7640422d412935e92d005512afd5e0944"
+    },
+    {
+      "path": "crates/mcp-server/src/catalog_sync/tests.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 10550,
+      "sha256": "cf92a1d1ec5cb29ad7cd4911c6e0df5884c2cd45d4a6f15914a07aedcb0bf71a"
+    },
+    {
+      "path": "crates/mcp-server/src/doctor.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 18073,
+      "sha256": "01fab81d8bd94d2128e1f2865adec8f41bbbed714ea16185395ef04c5c0e2f1e"
+    },
+    {
+      "path": "crates/mcp-server/src/doctor/tests.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 6724,
+      "sha256": "d47e12b25e5695a2f8ecea920d4996c1809e40c614032c54049f8b439927a29b"
+    },
+    {
+      "path": "crates/mcp-server/src/doctor_run.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 6404,
+      "sha256": "3c3cf1826f6df4872923b301c4ab691f32e4c3627e1872d6dd53a82007b29334"
+    },
+    {
+      "path": "crates/mcp-server/src/host_config.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 12011,
+      "sha256": "9d67e34de0bacdc328d1938e943ee39cb69d62552d27e8c9a232fae32baea341"
+    },
+    {
+      "path": "crates/mcp-server/src/main.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 6129,
+      "sha256": "d4b6bca28d77a8c2d95839726031e7d3c9f4ea4e48a8b8def5ea4433b8cdb1b9"
+    },
+    {
+      "path": "crates/mcp-server/src/mutation_cli.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 7822,
+      "sha256": "41aacc795385a90c85fdff2bda87ff3200a6efe27b3fbcf0b681e1ed80624aae"
+    },
+    {
+      "path": "crates/mcp-server/src/stdio.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 22127,
+      "sha256": "e18e1f06d6353ad14ae72f8cf3d113637eb6604954c555b195c2ce818345a291"
+    },
+    {
+      "path": "crates/mcp-server/src/stdio/admission.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 23221,
+      "sha256": "3ba026113e2d0a77d71e558d2aec2d012ca13ca606df1323a0dad150febf1a3a"
+    },
+    {
+      "path": "crates/mcp-server/src/stdio/auditing.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 23362,
+      "sha256": "3e9ed5ccfa4ea23a4ae258dd974cff75d716e0689db6054690285be0deae9056"
+    },
+    {
+      "path": "crates/mcp-server/src/stdio/auditing/provider.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 4003,
+      "sha256": "a0dd9f72e6d4dc8f57cf8aaf58b7f1813568331455e2adcca6f4ebbae2f16eb1"
+    },
+    {
+      "path": "crates/mcp-server/src/stdio/auditing/schemas.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 3387,
+      "sha256": "29d99f1f7468e98dab180071acec3fcaf34ad73d33a37fd4da216f22e2a97850"
+    },
+    {
+      "path": "crates/mcp-server/src/stdio/auditing/tests.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 19770,
+      "sha256": "6a5b38153277808d6c921a3edd074562fae2b97fd2e918f46d249607f73790db"
+    },
+    {
+      "path": "crates/mcp-server/src/stdio/budget.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 12591,
+      "sha256": "16023ff0df4c0e37d9f364114f4c5b05606e583af56cd92f89e9e4d26da8efdd"
+    },
+    {
+      "path": "crates/mcp-server/src/stdio/catalog.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 10019,
+      "sha256": "b3594570edc405093b55afe1d912bf557b5ce7fa0ba131e6a643748ee3989b87"
+    },
+    {
+      "path": "crates/mcp-server/src/stdio/catalog/provider.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 20227,
+      "sha256": "79da998971baa79c89d9599b4012b1e03f011a0145395b91fee347afe5c77594"
+    },
+    {
+      "path": "crates/mcp-server/src/stdio/catalog/provider/tests.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 13363,
+      "sha256": "5cce8499bb2f3005383bc2fbf5cad7e1cde100192261f1ad401b21feca371bae"
+    },
+    {
+      "path": "crates/mcp-server/src/stdio/catalog/schemas.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 4823,
+      "sha256": "375f34eeda3c9f9021140bb73fa24902f4cdf890f4726887ca9e6744dd1ba020"
+    },
+    {
+      "path": "crates/mcp-server/src/stdio/catalog/tests.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 3979,
+      "sha256": "e113145cca063f0deee3f171dc2ec38d11e269b4850d3c50c557a468fb94260c"
+    },
+    {
+      "path": "crates/mcp-server/src/stdio/check.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 21193,
+      "sha256": "bc68a00d46a942aebc0562e423dd8b0e3a46bcd2bc9af54cd3c4323ee313bb00"
+    },
+    {
+      "path": "crates/mcp-server/src/stdio/check/schemas.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 3196,
+      "sha256": "8ea176e232187b3677086b6dd7d5bcb90f2c3538561691a888be976c6b78f9b1"
+    },
+    {
+      "path": "crates/mcp-server/src/stdio/check/tests.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 15607,
+      "sha256": "cc9bdd646c796fe87cd22f189e34150b267991f39dd8332376ab63280e688d21"
+    },
+    {
+      "path": "crates/mcp-server/src/stdio/clippy.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 21285,
+      "sha256": "1f11e01238e7ce9520c0dfb1430159d588d31a7b4090f7023ea6b827a60cb704"
+    },
+    {
+      "path": "crates/mcp-server/src/stdio/clippy/schemas.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 682,
+      "sha256": "5b31dfe401ebe270ffcc69d6c162e2dc9f246289cc080c1a8abb5d678e1918b0"
+    },
+    {
+      "path": "crates/mcp-server/src/stdio/clippy/tests.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 17894,
+      "sha256": "117471734edf0df4854a346f67e4c34e9f9d01ccfda9a896f44b1a1dc5ab3b98"
+    },
+    {
+      "path": "crates/mcp-server/src/stdio/contract.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 7443,
+      "sha256": "d048b1bfcc16e81a54f4fab7588efe746b679872623a4a2ea0e83e2b5462b96d"
+    },
+    {
+      "path": "crates/mcp-server/src/stdio/crate_inspect.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 14546,
+      "sha256": "5c7cbb800db600f91a86d61c69f818148ef1015984a5d968c6835a0d2850a380"
+    },
+    {
+      "path": "crates/mcp-server/src/stdio/crate_inspect/schemas.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 4898,
+      "sha256": "df8fa40aa4964f53ba790c251052882e651aec2d7bcd6d6804545015dc449a30"
+    },
+    {
+      "path": "crates/mcp-server/src/stdio/crate_inspect/tests.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 15759,
+      "sha256": "5f30c4158835c144112221f03ea0e748e57c99a38df9c125d11e1006ff1049d3"
+    },
+    {
+      "path": "crates/mcp-server/src/stdio/crate_search.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 13516,
+      "sha256": "89d5f1e0e483eaedf036155f79ba7fe7aa2d3f1848418aa42c21e4d1231c9520"
+    },
+    {
+      "path": "crates/mcp-server/src/stdio/crate_search/schemas.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 5781,
+      "sha256": "e2b23ce3a4740e70781db795aa97415c9e1781c9e48b3b1857b8391aa54a5223"
+    },
+    {
+      "path": "crates/mcp-server/src/stdio/crate_search/tests.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 16000,
+      "sha256": "6677ae58ce5ef9e33f86fddf4452686d3893250a1b8a8d8f585f32400a049e95"
+    },
+    {
+      "path": "crates/mcp-server/src/stdio/explaining.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 15357,
+      "sha256": "6de3df2e31d69bae9ea5fb2e0b517c9f4ebf1ef60b288896103fc570348be9ef"
+    },
+    {
+      "path": "crates/mcp-server/src/stdio/explaining/schemas.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 1583,
+      "sha256": "16f5f8c5c0269203101b96dff25a4e3f50d40b5ab0891ebc02d7f0fd067b0c5d"
+    },
+    {
+      "path": "crates/mcp-server/src/stdio/explaining/tests.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 16021,
+      "sha256": "a248b58baaf93d76f7493276111aed0ef88fc467a0501f7220829bb47513dea9"
+    },
+    {
+      "path": "crates/mcp-server/src/stdio/format.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 22951,
+      "sha256": "e040046c48bf90a4d2fa9d78d97cf80f75d84dee970a40dfb5419b5d5d33a361"
+    },
+    {
+      "path": "crates/mcp-server/src/stdio/format/tests.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 18415,
+      "sha256": "7bfd600baecfc772540339654d1e52fe3372fb7d058801872cf3127575aa55fc"
+    },
+    {
+      "path": "crates/mcp-server/src/stdio/inspection.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 13051,
+      "sha256": "30074a484ba31b287d7f5efaeba9b44a59e3b0359bed9123cba3bb375622e8d1"
+    },
+    {
+      "path": "crates/mcp-server/src/stdio/inspection/schemas.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 8241,
+      "sha256": "45613b0069b7ddb8217386c30dd8874afb73d6f6b4239bebf560a2d2c83b674b"
+    },
+    {
+      "path": "crates/mcp-server/src/stdio/inspection/tests.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 9699,
+      "sha256": "2fa26025c619568d0fc15fd51bd130f372db9e275f5e7e32ebd8e5a92392d7f6"
+    },
+    {
+      "path": "crates/mcp-server/src/stdio/mutation.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 71261,
+      "sha256": "a6ed0ec4e1195d254377880ce621a4ce868e62c49de831c6993a438d68ea55de"
+    },
+    {
+      "path": "crates/mcp-server/src/stdio/mutation/audit.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 8744,
+      "sha256": "a2425667f333c22c535d5d199ee7249a0a8230cc316cd324b7239fc1be0f0ace"
+    },
+    {
+      "path": "crates/mcp-server/src/stdio/mutation/semantic_input.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 33045,
+      "sha256": "407301473568bc42cbe7e97cb82158bd44abd677ee208949a56a2749bb4ebd96"
+    },
+    {
+      "path": "crates/mcp-server/src/stdio/project.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 14056,
+      "sha256": "81420de56b5c732335d46a342be79502d2704602d484dce36001cdb5c3b373cf"
+    },
+    {
+      "path": "crates/mcp-server/src/stdio/quality.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 32256,
+      "sha256": "e8848842ac3db036b12f47cd47693d8ea3525183d838c40a877710863ce353a3"
+    },
+    {
+      "path": "crates/mcp-server/src/stdio/quality/schemas.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 1419,
+      "sha256": "45cba2f1d53e491079026602e9e0418280f9d7879d408cd160c759ba9c40739f"
+    },
+    {
+      "path": "crates/mcp-server/src/stdio/quality/tests.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 20768,
+      "sha256": "1fa1cb0bc08cba9f8a0d6ce442a0afc41f4a48ca56bc5adc71865fc99264809c"
+    },
+    {
+      "path": "crates/mcp-server/src/stdio/resources.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 7005,
+      "sha256": "0c85bcf1e32502dda052ebbdbe7b101ac97c8240ab3280c20b93f10e37890d12"
+    },
+    {
+      "path": "crates/mcp-server/src/stdio/resources/tests.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 5364,
+      "sha256": "10ab307af247f5fe0011a9119a4f5295817962e53b2b7c64bd1c3ee78a82ed78"
+    },
+    {
+      "path": "crates/mcp-server/src/stdio/testing.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 22948,
+      "sha256": "85058575c29a21aebee91611fbc0b8a5322f2fb90d2b8709f4f043d39e63d07d"
+    },
+    {
+      "path": "crates/mcp-server/src/stdio/testing/schemas.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 781,
+      "sha256": "afd546f95e0401ac7228b0f38dcbb78b7f89f312743709ed988b1851025d78ce"
+    },
+    {
+      "path": "crates/mcp-server/src/stdio/testing/tests.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 20493,
+      "sha256": "d78d2cf9067d09d6de629993ca3a3619d492fe2c2357bc1247663dd3b4c3f81b"
+    },
+    {
+      "path": "crates/mcp-server/src/stdio/toolchain.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 13400,
+      "sha256": "6b542790c8a26f8bf73dd4c7e37a05a75e5edf8c11a4d41ca754a8ef354312d4"
+    },
+    {
+      "path": "crates/mcp-server/src/stdio/toolchain/schemas.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 2257,
+      "sha256": "b4f15e76b6f413fd3da7ae4277b539ab9716a60859f3706e18b7f69cb6f7eb3c"
+    },
+    {
+      "path": "crates/mcp-server/src/stdio/toolchain/tests.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 15387,
+      "sha256": "5679358938f13fd1a43732306e1c32674c1e912c6138e9964a3dee48ff1e6067"
+    },
+    {
+      "path": "crates/mcp-server/src/stdio/workers.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 23169,
+      "sha256": "546e24b8c4c11d4c22c776bbcd234370f8b284906a3f23d7b9a2f56225a8e317"
+    },
+    {
+      "path": "crates/mcp-server/src/version.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 1222,
+      "sha256": "51df41edfddb8d6202aa3d773fe347d1a2a187a6c64a4883151c7bfd99c672da"
+    },
+    {
+      "path": "crates/mcp-server/tests/capabilities_cli.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 11402,
+      "sha256": "810c082938675adcd84c23859930b6d5b9ecf10946ae1991773c5f54c2dd9db0"
+    },
+    {
+      "path": "crates/mcp-server/tests/catalog_cli.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 14404,
+      "sha256": "578d236b14cfa99eac9fbd8982c95b431fc92de3ca0d9aa79b46c206519c767e"
+    },
+    {
+      "path": "crates/mcp-server/tests/catalog_cli/bundle_fixture.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 5275,
+      "sha256": "f4d28c5893ea3e88962eb220933c2bd0d543e54ee15012a6e57d3d7b1d0cf5c0"
+    },
+    {
+      "path": "crates/mcp-server/tests/catalog_status.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 16150,
+      "sha256": "0195e0130be44a4e261d6798f99bcc76f31f20cb1fb27dc9701492a15898cd45"
+    },
+    {
+      "path": "crates/mcp-server/tests/cli.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 12070,
+      "sha256": "b54032ac64901d8e45ca5b320cbd7293170ca03fab49d6c5016e6698701f5fe4"
+    },
+    {
+      "path": "crates/mcp-server/tests/crate_inspect.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 16939,
+      "sha256": "fa8565b97b351cb34c958f02bf43305c5f4af1957a10cc5b676f9de62e07604d"
+    },
+    {
+      "path": "crates/mcp-server/tests/crate_inspect/fixture.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 5505,
+      "sha256": "ddcc39e2dad4c5fd158b6d506af1acc49a07b4ac40e2c0ae998eb78968bd91c1"
+    },
+    {
+      "path": "crates/mcp-server/tests/crate_search.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 22270,
+      "sha256": "c0de734be69fad2312c5da3c248bb4db996999f836095386d8fead4e6f1d7781"
+    },
+    {
+      "path": "crates/mcp-server/tests/crate_search/fixture.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 4815,
+      "sha256": "ec22d0ddcabb3c8ce551f773cb80f49edf16bd7935347bbd3acda1217fb1d305"
+    },
+    {
+      "path": "crates/mcp-server/tests/doctor.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 9779,
+      "sha256": "b29cf3fee4873d5d543105cb0cb1e893b32d0fbe5582faf84f27c18bb43e539f"
+    },
+    {
+      "path": "crates/mcp-server/tests/inspection_runtime.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 106506,
+      "sha256": "7ea591d0c7ad6b31c040a15e90a4280f8b187c9f505dd0a24d4e34dca8143c77"
+    },
+    {
+      "path": "crates/mcp-server/tests/inspection_runtime/audit.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 20204,
+      "sha256": "0f1ee396538e272e0d7d5cafd6630de834780e270a66acc0047c3e90df1ed421"
+    },
+    {
+      "path": "crates/mcp-server/tests/inspection_runtime/dependency_mutation.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 20118,
+      "sha256": "37cf812f01a65cf6e68007b2cb48aa16b20671a3098db277c1d8f57f9b79518f"
+    },
+    {
+      "path": "crates/mcp-server/tests/inspection_runtime/explain.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 8479,
+      "sha256": "a5cd129fa73a116351d51133978aa9845b4b7ab586916e87a8343a38e8d61a6f"
+    },
+    {
+      "path": "crates/mcp-server/tests/inspection_runtime/fix_hostile.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 7177,
+      "sha256": "bb5937d26241e99add44bebca3f8980d8cc7a878e4fcae7d1cb9f277fcb1c92e"
+    },
+    {
+      "path": "crates/mcp-server/tests/inspection_runtime/fix_mutation.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 12661,
+      "sha256": "1aef83b6864fe874c1f07d5e779740e652f9681c922e403398b7bdb767cff25a"
+    },
+    {
+      "path": "crates/mcp-server/tests/inspection_runtime/format_mutation.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 13745,
+      "sha256": "eaf6bf1af8b15a7e641392283d5f0fb8abdcfe3060a30a253a491b678af3f684"
+    },
+    {
+      "path": "crates/mcp-server/tests/inspection_runtime/mutation.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 7782,
+      "sha256": "307fd9655fd729197bbab69573afb0a6631b6d762be1127956cc619cb75bcb24"
+    },
+    {
+      "path": "crates/mcp-server/tests/inspection_runtime/mutation_concurrency.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 8388,
+      "sha256": "d93db2ed18c2760587112b297ca692075006785d6131a75102f8f1ff0217638b"
+    },
+    {
+      "path": "crates/mcp-server/tests/inspection_runtime/quality.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 19931,
+      "sha256": "8afc9bafbff07c12343966563ddf5a40a725301eda2918e2c7b0e7ce23c986dd"
+    },
+    {
+      "path": "crates/mcp-server/tests/protocol.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 66106,
+      "sha256": "d0e2a13d1948d9cf787ebd9181089a3f1c7985a23cd0dbeb37c95e5e2f1f8bae"
+    },
+    {
+      "path": "crates/mcp-server/tests/snapshots/audit-tool.json",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 20573,
+      "sha256": "b6bb173a199bd85919c1a8f97218c4f02162f106338abffef97e3a68b72269f2"
+    },
+    {
+      "path": "crates/mcp-server/tests/snapshots/catalog-status-tool.json",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 19626,
+      "sha256": "9ac8e2964beb0ae3af9829776761d25612ad4a57252dc19f98fa684f3c46c1bc"
+    },
+    {
+      "path": "crates/mcp-server/tests/snapshots/check-tool.json",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 20990,
+      "sha256": "a9281b713e3f8b91682b0d248cacb7fc1e978b6d8df9baf0ad0f315a5a43f014"
+    },
+    {
+      "path": "crates/mcp-server/tests/snapshots/clippy-tool.json",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 21019,
+      "sha256": "a4afb5c9d2c854ed23fb256c9ecdfd40e0ca5129a9aa302553a957e5346511a0"
+    },
+    {
+      "path": "crates/mcp-server/tests/snapshots/crate-inspect-tool.json",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 20912,
+      "sha256": "27af4b9f7c2df00fc2d528341ee781d350d09081bf2a7c9f3c5bc5538442d39d"
+    },
+    {
+      "path": "crates/mcp-server/tests/snapshots/crate-search-tool.json",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 22052,
+      "sha256": "3d2a6d091a4a0ba0cfcdd1a4f8600e4cf4f883fc18ad4fee2412d4a1053f6039"
+    },
+    {
+      "path": "crates/mcp-server/tests/snapshots/dependency-add-tool.json",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 16754,
+      "sha256": "b1cf899ccde99c27531a23c0efc057e16094487c460742f044e7425078050974"
+    },
+    {
+      "path": "crates/mcp-server/tests/snapshots/dependency-remove-tool.json",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 15680,
+      "sha256": "acf1995d94cebb98c853414f1fa110e52fd654df935253701b6a97d04d3bc333"
+    },
+    {
+      "path": "crates/mcp-server/tests/snapshots/doctor-report.json",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 3840,
+      "sha256": "31378102881bf084c399ad60efbe900fa540b991bfa6fc5e84d07a6575831482"
+    },
+    {
+      "path": "crates/mcp-server/tests/snapshots/explain-tool.json",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 11880,
+      "sha256": "f4e0ab8b25a32e07ba6a86c100b7ee2a5adcab7a35f691f16e82c9d3f4933b9f"
+    },
+    {
+      "path": "crates/mcp-server/tests/snapshots/fix-apply-tool.json",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 14999,
+      "sha256": "9c2f23f54ed47abddcdc676526fdad56c76aeb47e84d71c4f989e30e7f5f7bcc"
+    },
+    {
+      "path": "crates/mcp-server/tests/snapshots/fmt-apply-tool.json",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 14906,
+      "sha256": "af8f0b0763802bad78db2e8c62804ade0e8e0cd972116ba08b08b1acf22119f1"
+    },
+    {
+      "path": "crates/mcp-server/tests/snapshots/format-tool.json",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 19404,
+      "sha256": "762e342a4b9e7e7e4a013583fb0f71ecefe1bf4c3ef47088b7c119a75dee56a4"
+    },
+    {
+      "path": "crates/mcp-server/tests/snapshots/manifest-patch-tool.json",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 27986,
+      "sha256": "222e0dd910faf23b65cb59ce2fd22b0d41057fb6280f15214fdd8d7f51569436"
+    },
+    {
+      "path": "crates/mcp-server/tests/snapshots/project-inspect-tool.json",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 22557,
+      "sha256": "bf0838ace4f0f7f0709c76801de6f1b66307d90251eab6441a2d07208b913e07"
+    },
+    {
+      "path": "crates/mcp-server/tests/snapshots/project-open-tool.json",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 5754,
+      "sha256": "bfab409498dc67517a96d4d034f403d24ad3ae31046df3afc09c1f3781148d9b"
+    },
+    {
+      "path": "crates/mcp-server/tests/snapshots/quality-tool.json",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 35272,
+      "sha256": "95f2b8adf277a0d2d95b827a320c1f848bb1069482ad30d2e1592d418bdfffb3"
+    },
+    {
+      "path": "crates/mcp-server/tests/snapshots/test-tool.json",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 21926,
+      "sha256": "a4f0904c89b34bd4eb3524f9de71c8d4c2036028b5905bcfdc17eea75085abf7"
+    },
+    {
+      "path": "crates/mcp-server/tests/snapshots/toolchain-inspect-tool.json",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 13479,
+      "sha256": "bd57a8784387ac6939b3a12d2343660a1bf2c2fc1246c83790e6f7e0276ef518"
+    },
+    {
+      "path": "crates/project-adapter/Cargo.toml",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 627,
+      "sha256": "284a103fcebe3ad95916da2340e1805044cfc7a1197aabd657c0e81c4d151ba3"
+    },
+    {
+      "path": "crates/project-adapter/src/cargo_vendor.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 8683,
+      "sha256": "62c271d7c6866cba8f57a57fcd706ba8f39dc05c476d32c660ac5ee3167fb983"
+    },
+    {
+      "path": "crates/project-adapter/src/catalog_store.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 34130,
+      "sha256": "9dd602706a909d3f4bea5183a730d5b0147b07d3e64f5a14a375daa0f0a36d87"
+    },
+    {
+      "path": "crates/project-adapter/src/filesystem.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 2353,
+      "sha256": "a7bddc159d188ce2f923aa599e8fd1870f12ae978d76a2a486e804a6022dbb8f"
+    },
+    {
+      "path": "crates/project-adapter/src/filesystem/macos.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 13560,
+      "sha256": "5baedec6ebc09489d2b5b3e7a6f0fe4516b5662061318c8b2d5da4b7d7cc8be6"
+    },
+    {
+      "path": "crates/project-adapter/src/filesystem/macos/cargo_vendor.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 7483,
+      "sha256": "3be6f95e9bce6aa4c793f3a62a5685b10961d34f3010f3921c99227823f21360"
+    },
+    {
+      "path": "crates/project-adapter/src/filesystem/macos/mutation.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 101739,
+      "sha256": "1873c798b1de5ad7133c2a16f76753ff5b01aed67c3c82736e18ac0224481dc8"
+    },
+    {
+      "path": "crates/project-adapter/src/filesystem/macos/snapshot.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 2848,
+      "sha256": "f594a825e55d76bf725dd447077bd6bba6ca3f276882cbd5f13627056a609f45"
+    },
+    {
+      "path": "crates/project-adapter/src/filesystem/macos/source.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 24797,
+      "sha256": "aebc1b3b3e664b9e3f8c4274c1493f8433c1ab86c5453f2b3c178467c76715b1"
+    },
+    {
+      "path": "crates/project-adapter/src/lib.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 1937,
+      "sha256": "893eab8e2a960c93a759fd709a8abbb7fa90f332a017cdb8b468f2c7b37a654c"
+    },
+    {
+      "path": "crates/project-adapter/src/manifest.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 32283,
+      "sha256": "1c81c2701a2cc701b2644bdb56e4bdfc38c49aeff6073a76191605b893dfa581"
+    },
+    {
+      "path": "crates/project-adapter/src/manifest_edit.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 33060,
+      "sha256": "a449fdb8ef52ae03db39815e4ea3a57aa6db7ce59935bee708eedd9ab951cfbb"
+    },
+    {
+      "path": "crates/project-adapter/src/mutation_port.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 1383,
+      "sha256": "4bffe1dea8cd1f1fe34cc554fa525f85fd3dfbb612fc3a71c09939d063996ac9"
+    },
+    {
+      "path": "crates/project-adapter/src/mutation_state.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 3247,
+      "sha256": "d1f6fa1008712f1f74b8499523464825871dc57e78dc49b870f6566ee6467bd4"
+    },
+    {
+      "path": "crates/project-adapter/src/mutation_store.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 4128,
+      "sha256": "3a3142089060be0bb1aadd2f2cab13a00ca3a7dd5d3e5b1ac42a5b4b7a864334"
+    },
+    {
+      "path": "crates/project-adapter/src/semantic_delta.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 21545,
+      "sha256": "808c104479c119550259aa52034d424d3db0a24554d54d8dea67e5f1f0943314"
+    },
+    {
+      "path": "crates/project-adapter/tests/cargo_oracle.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 9411,
+      "sha256": "405e472bc22564f653d5ee123098bee360315f7c33f70ace41aafb5a87c17b90"
+    },
+    {
+      "path": "crates/project-adapter/tests/cargo_vendor.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 9718,
+      "sha256": "ed331ed4e37645723be70791acfb8378b793faf008f1f10af3ba194e24ec4ae7"
+    },
+    {
+      "path": "crates/project-adapter/tests/catalog_store.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 21242,
+      "sha256": "123c436a2a6b4c9d27be849c8023adcdab1772b5966c037a4ea12f0f01b6105e"
+    },
+    {
+      "path": "crates/project-adapter/tests/filesystem.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 18876,
+      "sha256": "8ae7ff65724008361894879b304b3d2e3b0d5ccd434274188a22a470e6f7bb72"
+    },
+    {
+      "path": "crates/project-adapter/tests/host_snapshot.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 10356,
+      "sha256": "c408db712cb1b793230b899494cdff0a62919fcebba3fe1b5fb05014ab1ce625"
+    },
+    {
+      "path": "crates/project-adapter/tests/manifest_edit.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 27408,
+      "sha256": "50d5108efb44e3e889fcd562e51c59284d2dd54590613b1818b7c2b79583a7f1"
+    },
+    {
+      "path": "crates/project-adapter/tests/mutation_store.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 36090,
+      "sha256": "761d53b06a99ead3e753e66c8db5d57a246c1bce8b42173faa708e899dc9f6fc"
+    },
+    {
+      "path": "crates/project-adapter/tests/source.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 24201,
+      "sha256": "b6ef04d0bfddc830b565fc5a90d211222ca6f8aa0beb4412f491a77cd666d44a"
+    },
+    {
+      "path": "crates/project-adapter/tests/support/native_mutation.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 105710,
+      "sha256": "fd742a57ed9613af9d055e56828745691e730923fcbfb73cd4377057ce03fb00"
+    },
+    {
+      "path": "crates/semantic-adapter/Cargo.toml",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 1018,
+      "sha256": "ed32b7a9afcb32a6658e4a48c5dfefc1ac0bd620bb8542e72d19aeaa7ec7ae28"
+    },
+    {
+      "path": "crates/semantic-adapter/src/embedding.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 4604,
+      "sha256": "cd3d1686a38169b54a479d1985a734a64ba7cdc10fe4ea4185316e6e875ffb53"
+    },
+    {
+      "path": "crates/semantic-adapter/src/index.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 16059,
+      "sha256": "6e51acb13cc0d1843d48f4b0ba139bf37a22140b214c442c90f36aa577fbcf54"
+    },
+    {
+      "path": "crates/semantic-adapter/src/index/persistence.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 24174,
+      "sha256": "80f5173252037cc3ca62b20866515dc873314d5532b142dc3fbf1a560ac40cf1"
+    },
+    {
+      "path": "crates/semantic-adapter/src/lib.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 460,
+      "sha256": "25bdee39f1f40535610831b01c0e530a51bf310cc9f010919c926c39014b7bd1"
+    },
+    {
+      "path": "crates/semantic-adapter/src/model.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 2638,
+      "sha256": "08082cf321273ed502deafae11a5c5c6d7174db41c4cd8301439820d90cc8524"
+    },
+    {
+      "path": "crates/semantic-adapter/tests/local.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 7994,
+      "sha256": "795d6ecbdf8e053346ce37eca56ae24b9a8340b76bc55af239f1a96da413f391"
+    },
+    {
+      "path": "deny.toml",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 993,
+      "sha256": "522c060e8ee23cd530805ff43992df306c674597ea256709e843ac22e3f0afdf"
+    },
+    {
+      "path": "fixtures/README.md",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 3333,
+      "sha256": "90dc388e2db518ad57883e713733503c28575d003f6c209834c1bb9206d92a54"
+    },
+    {
+      "path": "fixtures/borrow-error/Cargo.lock",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 164,
+      "sha256": "8af382c9da0847087abf5c3d55602594289e0e983628a577a347adc63c66962e"
+    },
+    {
+      "path": "fixtures/borrow-error/Cargo.toml",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 128,
+      "sha256": "5209e1750a3091a1dcf759dc9948e20747e7bc59060028454c7ef49b50def4db"
+    },
+    {
+      "path": "fixtures/borrow-error/src/lib.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 125,
+      "sha256": "1fb25ac1700fabf190864fab0c2652f9fd9676a5de88f7df5b83b994bca3cde2"
+    },
+    {
+      "path": "fixtures/build-script/Cargo.lock",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 164,
+      "sha256": "a36c6c37b63771235d1feb9b50e5bf47c89f011cbe8a1dbadd03174d6be1e115"
+    },
+    {
+      "path": "fixtures/build-script/Cargo.toml",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 128,
+      "sha256": "9366f3904e95f7cca2e3bfce1e304015d09bd9da8ecc743b31e0b1251c4763c3"
+    },
+    {
+      "path": "fixtures/build-script/build.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 295,
+      "sha256": "8ce44d6f8f8b212aa46e51499116bc9fa1ecc3b04bc7d28c4247bc13499e090e"
+    },
+    {
+      "path": "fixtures/build-script/src/lib.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 112,
+      "sha256": "d8c2b3ce39852094211911982b1d4b33391fc8dcaee8bb21b79e4e6de57947b7"
+    },
+    {
+      "path": "fixtures/cargo-local-registry/README.md",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 868,
+      "sha256": "5bb741f81a8dec3868283a81e64b790e937e2b9bec0e49fcebfcaf355540a7a5"
+    },
+    {
+      "path": "fixtures/cargo-local-registry/manifest.json",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 4154,
+      "sha256": "13ce748ffdbba59be52e11b70d33211ce747ecf014b77f0bc7bf43070fa1b3a2"
+    },
+    {
+      "path": "fixtures/cargo-local-registry/registry/index/pr/oc/proc-macro2",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 968,
+      "sha256": "8a59650e19a615bee5ce7c0e9aab30f6b6aa3c3d86fbb88cde865fde9458480f"
+    },
+    {
+      "path": "fixtures/cargo-local-registry/registry/index/qu/ot/quote",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 633,
+      "sha256": "fcb27cbd471a5bcb4766aac9ea557e5c7358802de8ba4652d46cee7d653f09e8"
+    },
+    {
+      "path": "fixtures/cargo-local-registry/registry/index/un/ic/unicode-ident",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 911,
+      "sha256": "67bb72b705bf0767a197ec29c28d0d20697b9da6ac0bdf1c969cf5f59234fa90"
+    },
+    {
+      "path": "fixtures/cargo-local-registry/registry/proc-macro2-1.0.107.crate",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 59588,
+      "sha256": "985e7ec9bb745e6ce6535b544d84d6cd6f7ad8bd711c398938ae983b91a766d9"
+    },
+    {
+      "path": "fixtures/cargo-local-registry/registry/quote-1.0.47.crate",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 31622,
+      "sha256": "1fbf4db142a473a8d80c26bbf18454ed458bf8d26c8219c331daecfdbd079001"
+    },
+    {
+      "path": "fixtures/cargo-local-registry/registry/unicode-ident-1.0.24.crate",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 49298,
+      "sha256": "e6e4313cd5fcd3dad5cafa179702e2b244f760991f45397d14d4ebf38247da75"
+    },
+    {
+      "path": "fixtures/cargo-vendor-data/README.md",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 590,
+      "sha256": "44e6f4cb4574d3b8076cb7b7091025907589154bbad7b9c19721fa878edd9a4b"
+    },
+    {
+      "path": "fixtures/cargo-vendor-data/manifest.json",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 21401,
+      "sha256": "50761b606dd82613252928e9554b2987f2fe9e5f970ee228451a6d67192080da"
+    },
+    {
+      "path": "fixtures/cargo-vendor-data/vendor/proc-macro2-1.0.107/.cargo-checksum.json",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 3001,
+      "sha256": "f446cfd05e78b027598827cd6a564b7856a55fc5612e992c3dab2c28ba589ba1"
+    },
+    {
+      "path": "fixtures/cargo-vendor-data/vendor/proc-macro2-1.0.107/.cargo_vcs_info.json",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 94,
+      "sha256": "0a870b23ea0c10231ed5a850b8fe8f23dd74926e90594e49a35a7e1b5e8a92f5"
+    },
+    {
+      "path": "fixtures/cargo-vendor-data/vendor/proc-macro2-1.0.107/.github/FUNDING.yml",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 16,
+      "sha256": "b017158736b3c9751a2d21edfce7fe61c8954e2fced8da8dd3013c2f3e295bd9"
+    },
+    {
+      "path": "fixtures/cargo-vendor-data/vendor/proc-macro2-1.0.107/.github/workflows/ci.yml",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 7371,
+      "sha256": "f0003fd6c9bd0f9208f552a57dd5dd76fee714a7d0be286cecc98f06add580ff"
+    },
+    {
+      "path": "fixtures/cargo-vendor-data/vendor/proc-macro2-1.0.107/Cargo.lock",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 5985,
+      "sha256": "30daf1b1e7557b089dfe7783a6cdd8bd7b4f82b31eaaa554c1afbca448f3a936"
+    },
+    {
+      "path": "fixtures/cargo-vendor-data/vendor/proc-macro2-1.0.107/Cargo.toml",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 2460,
+      "sha256": "6bdbe54a7f052e552dcfca90351764476e2767237ec3f954df8bd9f602861056"
+    },
+    {
+      "path": "fixtures/cargo-vendor-data/vendor/proc-macro2-1.0.107/Cargo.toml.orig",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 2340,
+      "sha256": "e04a009c48ea3e9b017807ea9183e330cc909a9cc0e754c5c6b3f7c0b29fb9de"
+    },
+    {
+      "path": "fixtures/cargo-vendor-data/vendor/proc-macro2-1.0.107/LICENSE-APACHE",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 9723,
+      "sha256": "62c7a1e35f56406896d7aa7ca52d0cc0d272ac022b5d2796e7d6905db8a3636a"
+    },
+    {
+      "path": "fixtures/cargo-vendor-data/vendor/proc-macro2-1.0.107/LICENSE-MIT",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 1023,
+      "sha256": "23f18e03dc49df91622fe2a76176497404e46ced8a715d9d2b67a7446571cca3"
+    },
+    {
+      "path": "fixtures/cargo-vendor-data/vendor/proc-macro2-1.0.107/README.md",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 3864,
+      "sha256": "8eebdcf2f9a5034693589a9982adf06c2aac5c9f078c07a44400d293ed5b4a8e"
+    },
+    {
+      "path": "fixtures/cargo-vendor-data/vendor/proc-macro2-1.0.107/build.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 10277,
+      "sha256": "baeb20b52f6b536be8657a566591a507bb2e34a45cf8baa42b135510a0c3c729"
+    },
+    {
+      "path": "fixtures/cargo-vendor-data/vendor/proc-macro2-1.0.107/rust-toolchain.toml",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 38,
+      "sha256": "6bbb61302978c736b2da03e4fb40e3beab908f85d533ab46fd541e637b5f3e0f"
+    },
+    {
+      "path": "fixtures/cargo-vendor-data/vendor/proc-macro2-1.0.107/src/detection.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 2703,
+      "sha256": "ed9a5f9a979ab01247d7a68eeb1afa3c13209334c5bfff0f9289cb07e5bb4e8b"
+    },
+    {
+      "path": "fixtures/cargo-vendor-data/vendor/proc-macro2-1.0.107/src/extra.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 5164,
+      "sha256": "29f094473279a29b71c3cc9f5fa27c2e2c30c670390cf7e4b7cf451486cc857e"
+    },
+    {
+      "path": "fixtures/cargo-vendor-data/vendor/proc-macro2-1.0.107/src/fallback.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 35014,
+      "sha256": "416a3d24349c163d47f62ac8ae61c28ba6dc4990f04f3d5dacde030b86582d06"
+    },
+    {
+      "path": "fixtures/cargo-vendor-data/vendor/proc-macro2-1.0.107/src/lib.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 51164,
+      "sha256": "ed6bf5e3c3b4fc952d4bdf9b48b149087bceaebf5392befce0bc6cae590a008d"
+    },
+    {
+      "path": "fixtures/cargo-vendor-data/vendor/proc-macro2-1.0.107/src/location.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 871,
+      "sha256": "9225c5a55f03b56cce42bc55ceb509e8216a5e0b24c94aa1cd071b04e3d6c15f"
+    },
+    {
+      "path": "fixtures/cargo-vendor-data/vendor/proc-macro2-1.0.107/src/marker.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 573,
+      "sha256": "c11c5a1be8bdf18be3fcd224393f350a9aae7ce282e19ce583c84910c6903a8f"
+    },
+    {
+      "path": "fixtures/cargo-vendor-data/vendor/proc-macro2-1.0.107/src/num.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 342,
+      "sha256": "82d625cbcd255965e46231ac3af1b74ab8bff9787c799e8ed1f978de146cb0b5"
+    },
+    {
+      "path": "fixtures/cargo-vendor-data/vendor/proc-macro2-1.0.107/src/parse.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 28680,
+      "sha256": "1257d423e9311dda9db0239ff244dfe7b028c1048ab8a83d76daec6068b05114"
+    },
+    {
+      "path": "fixtures/cargo-vendor-data/vendor/proc-macro2-1.0.107/src/probe.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 220,
+      "sha256": "2b57e8ebf46a7c60ee2762f23f16d24ee9ddb8f1acd0a7faf7a99cf2e4187151"
+    },
+    {
+      "path": "fixtures/cargo-vendor-data/vendor/proc-macro2-1.0.107/src/probe/proc_macro_span.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 1217,
+      "sha256": "53853f0c70170c9695294b8867821664d9b8f1c901957b003003a3c26987abbe"
+    },
+    {
+      "path": "fixtures/cargo-vendor-data/vendor/proc-macro2-1.0.107/src/probe/proc_macro_span_file.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 370,
+      "sha256": "e7fb4cf8852d9d589bfa3321d8d5cdc8cccb45606ec816a6b8a08f73e416b9ce"
+    },
+    {
+      "path": "fixtures/cargo-vendor-data/vendor/proc-macro2-1.0.107/src/probe/proc_macro_span_location.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 408,
+      "sha256": "e022386204b6e042b3c55a6c809923849a2f915199bcbf3be72d0b7c8ffa7f83"
+    },
+    {
+      "path": "fixtures/cargo-vendor-data/vendor/proc-macro2-1.0.107/src/rcvec.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 3080,
+      "sha256": "d6e4c1ea42f75e63465fce50ca83f9257536ccdc0345fe78b0037aa2c08c5e37"
+    },
+    {
+      "path": "fixtures/cargo-vendor-data/vendor/proc-macro2-1.0.107/src/rustc_literal_escaper.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 22380,
+      "sha256": "fb3f2f93a09b84f539e6ef514d4b403ee16f2112ff04642099170a60828318ee"
+    },
+    {
+      "path": "fixtures/cargo-vendor-data/vendor/proc-macro2-1.0.107/src/wrapper.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 31198,
+      "sha256": "21a563ef1eec685e3d60ee0479812f212c578dc6d405053b7827c46f6801fdc6"
+    },
+    {
+      "path": "fixtures/cargo-vendor-data/vendor/proc-macro2-1.0.107/tests/comments.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 3456,
+      "sha256": "11520f6baee23b9258db904f4c256fd3877493f754e2b99041f73a330e74a911"
+    },
+    {
+      "path": "fixtures/cargo-vendor-data/vendor/proc-macro2-1.0.107/tests/features.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 227,
+      "sha256": "7e52c0c801019b271bf11a994c2e1799a1429b0c1a3a34e551a23971797fe412"
+    },
+    {
+      "path": "fixtures/cargo-vendor-data/vendor/proc-macro2-1.0.107/tests/marker.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 2647,
+      "sha256": "f16299460587d6c65603ed809f1a3b81853e4b99d6cb44d0b68bb07259d7e9f8"
+    },
+    {
+      "path": "fixtures/cargo-vendor-data/vendor/proc-macro2-1.0.107/tests/test.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 32289,
+      "sha256": "7d58c3a754241ffdec84e4e9ac799852071db71d77359de164ca7ba6217020e9"
+    },
+    {
+      "path": "fixtures/cargo-vendor-data/vendor/proc-macro2-1.0.107/tests/test_fmt.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 1263,
+      "sha256": "1fa3a817bf934c3bb38942e56eecb70ef525710c6bcfec0356adec654b053c0b"
+    },
+    {
+      "path": "fixtures/cargo-vendor-data/vendor/proc-macro2-1.0.107/tests/test_size.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 3805,
+      "sha256": "7ed5f07c3ccc74c4d09f3c1c43542fbbe23417146761558a0fd4659e19ae1afc"
+    },
+    {
+      "path": "fixtures/cargo-vendor-data/vendor/quote-1.0.47/.cargo-checksum.json",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 3410,
+      "sha256": "77c75949648f39a753e67b9fa616fa255429b9475e52eb8b87ebf70307133d70"
+    },
+    {
+      "path": "fixtures/cargo-vendor-data/vendor/quote-1.0.47/.cargo_vcs_info.json",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 94,
+      "sha256": "1452b78f41bb8c7dbf526da57f134ac6d75cf80b7cc539494bab5e133907ce0e"
+    },
+    {
+      "path": "fixtures/cargo-vendor-data/vendor/quote-1.0.47/.github/FUNDING.yml",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 16,
+      "sha256": "b017158736b3c9751a2d21edfce7fe61c8954e2fced8da8dd3013c2f3e295bd9"
+    },
+    {
+      "path": "fixtures/cargo-vendor-data/vendor/quote-1.0.47/.github/workflows/ci.yml",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 2861,
+      "sha256": "fb61965972f379dbd9bd98ea5d45ffd67fd79b30e71ef667f69e8b65134923c2"
+    },
+    {
+      "path": "fixtures/cargo-vendor-data/vendor/quote-1.0.47/Cargo.lock",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 6722,
+      "sha256": "a8d837a5066c75ed2af8a982eb6f8ebdfb96f94ddb06978fec45827f4ea1348c"
+    },
+    {
+      "path": "fixtures/cargo-vendor-data/vendor/quote-1.0.47/Cargo.toml",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 1753,
+      "sha256": "13d8c50837f14aff48cd622349f98fb2c46350b7a0c08fd574cf7de4def27d06"
+    },
+    {
+      "path": "fixtures/cargo-vendor-data/vendor/quote-1.0.47/Cargo.toml.orig",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 1150,
+      "sha256": "acbbe8c10dc81f648339333c8fa3e0aa787ad5887b105d1947bc522553d87d73"
+    },
+    {
+      "path": "fixtures/cargo-vendor-data/vendor/quote-1.0.47/LICENSE-APACHE",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 9723,
+      "sha256": "62c7a1e35f56406896d7aa7ca52d0cc0d272ac022b5d2796e7d6905db8a3636a"
+    },
+    {
+      "path": "fixtures/cargo-vendor-data/vendor/quote-1.0.47/LICENSE-MIT",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 1023,
+      "sha256": "23f18e03dc49df91622fe2a76176497404e46ced8a715d9d2b67a7446571cca3"
+    },
+    {
+      "path": "fixtures/cargo-vendor-data/vendor/quote-1.0.47/README.md",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 9203,
+      "sha256": "9d6af721967088b8263c0544c0c3c459206998252dd5632a3bdf87cb27ec92be"
+    },
+    {
+      "path": "fixtures/cargo-vendor-data/vendor/quote-1.0.47/build.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 882,
+      "sha256": "cd6808c02e476b09a520105e2c6f6d325cccb1ecd542cbbcc836a0ae6f6fb0f1"
+    },
+    {
+      "path": "fixtures/cargo-vendor-data/vendor/quote-1.0.47/rust-toolchain.toml",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 38,
+      "sha256": "6bbb61302978c736b2da03e4fb40e3beab908f85d533ab46fd541e637b5f3e0f"
+    },
+    {
+      "path": "fixtures/cargo-vendor-data/vendor/quote-1.0.47/src/ext.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 3549,
+      "sha256": "dabcf1dbf9a81c2dccbfb85f81a08120f5a15be40616d51434ed4ebdfe0c7283"
+    },
+    {
+      "path": "fixtures/cargo-vendor-data/vendor/quote-1.0.47/src/format.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 4816,
+      "sha256": "662db1f14106d79aacab400a3176a75989a4437ecaaa85ab88cd9a40b750cc5b"
+    },
+    {
+      "path": "fixtures/cargo-vendor-data/vendor/quote-1.0.47/src/ident_fragment.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 2359,
+      "sha256": "eed1a7407182c00ddfdc98741eaa6e234a6d2c01755e95f943b27926b8c92243"
+    },
+    {
+      "path": "fixtures/cargo-vendor-data/vendor/quote-1.0.47/src/lib.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 47968,
+      "sha256": "e01ca26adfe51a087813d1fc1154efd8a8c9cb5b5a81f314194b4904a4422c71"
+    },
+    {
+      "path": "fixtures/cargo-vendor-data/vendor/quote-1.0.47/src/runtime.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 15848,
+      "sha256": "fdb7986b31141627408b51381607f66ef4b69dd81b080c2f6489da267e96b2ba"
+    },
+    {
+      "path": "fixtures/cargo-vendor-data/vendor/quote-1.0.47/src/spanned.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 1081,
+      "sha256": "713678bf5cb3b4bf2f119dcf64d188a63dc59455a724c3d2567ceab83b734d73"
+    },
+    {
+      "path": "fixtures/cargo-vendor-data/vendor/quote-1.0.47/src/to_tokens.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 7185,
+      "sha256": "1b07b676afce2f666bac6f454758d066758033fc85e9cd9d2d12d58ad2eb36e1"
+    },
+    {
+      "path": "fixtures/cargo-vendor-data/vendor/quote-1.0.47/tests/compiletest.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 214,
+      "sha256": "4e381aa8ca3eabb7ac14d1e0c3700b3223e47640547a6988cfa13ad68255f60f"
+    },
+    {
+      "path": "fixtures/cargo-vendor-data/vendor/quote-1.0.47/tests/test.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 13694,
+      "sha256": "023d6b57ba5ba199a04d9757e3b1464c2bc09579b035ea82c047e08d89d19226"
+    },
+    {
+      "path": "fixtures/cargo-vendor-data/vendor/quote-1.0.47/tests/ui/does-not-have-iter-interpolated-dup.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 209,
+      "sha256": "ad13eea21d4cdd2ab6c082f633392e1ff20fb0d1af5f2177041e0bf7f30da695"
+    },
+    {
+      "path": "fixtures/cargo-vendor-data/vendor/quote-1.0.47/tests/ui/does-not-have-iter-interpolated-dup.stderr",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 767,
+      "sha256": "c7bbbc8860b9ec0e87e725412a139841c3046aaf465f7190c94f935ab037a996"
+    },
+    {
+      "path": "fixtures/cargo-vendor-data/vendor/quote-1.0.47/tests/ui/does-not-have-iter-interpolated.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 201,
+      "sha256": "83a5b3f240651adcbe4b6e51076d76d653ad439b37442cf4054f1fd3c073f3b7"
+    },
+    {
+      "path": "fixtures/cargo-vendor-data/vendor/quote-1.0.47/tests/ui/does-not-have-iter-interpolated.stderr",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 747,
+      "sha256": "6ca839345f8119f7eb3acd2fc6a37833dbcc861c02d8961727db01a29318fcc6"
+    },
+    {
+      "path": "fixtures/cargo-vendor-data/vendor/quote-1.0.47/tests/ui/does-not-have-iter-separated.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 55,
+      "sha256": "fe413c48331d5e3a7ae5fef6a5892a90c72f610d54595879eb49d0a94154ba3f"
+    },
+    {
+      "path": "fixtures/cargo-vendor-data/vendor/quote-1.0.47/tests/ui/does-not-have-iter-separated.stderr",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 738,
+      "sha256": "ff2312aa4623e79eb7f5810cf0e6d992cd57779f0a01c5855a92a1f102086123"
+    },
+    {
+      "path": "fixtures/cargo-vendor-data/vendor/quote-1.0.47/tests/ui/does-not-have-iter.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 54,
+      "sha256": "09dc9499d861b63cebb0848b855b78e2dc9497bfde37ba6339f3625ae009a62f"
+    },
+    {
+      "path": "fixtures/cargo-vendor-data/vendor/quote-1.0.47/tests/ui/does-not-have-iter.stderr",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 726,
+      "sha256": "21408398d12876b82416cfd57b7919ca4210f5fb8f79d7d921b2bfed5879ac4d"
+    },
+    {
+      "path": "fixtures/cargo-vendor-data/vendor/quote-1.0.47/tests/ui/not-quotable.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 119,
+      "sha256": "5759d0884943417609f28faadc70254a3e2fd3d9bd6ff7297a3fb70a77fafd8a"
+    },
+    {
+      "path": "fixtures/cargo-vendor-data/vendor/quote-1.0.47/tests/ui/not-quotable.stderr",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 681,
+      "sha256": "a9748bc9a0a72a17f9c1f96e9b12be3686e9d7d51f120796516e26e5cebf62ad"
+    },
+    {
+      "path": "fixtures/cargo-vendor-data/vendor/quote-1.0.47/tests/ui/not-repeatable.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 106,
+      "sha256": "a4b115c04e4e41049a05f5b69450503fbffeba031218b4189cb931839f7f9a9c"
+    },
+    {
+      "path": "fixtures/cargo-vendor-data/vendor/quote-1.0.47/tests/ui/not-repeatable.stderr",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 1802,
+      "sha256": "72105d3dec4e8ed2a657db7d397e30d452c26c1488cb1e18e23c2d1d137a6f6d"
+    },
+    {
+      "path": "fixtures/cargo-vendor-data/vendor/quote-1.0.47/tests/ui/wrong-type-span.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 109,
+      "sha256": "6195e35ea844c0c52ba1cff5d790c3a371af6915d137d377834ad984229ef9ea"
+    },
+    {
+      "path": "fixtures/cargo-vendor-data/vendor/quote-1.0.47/tests/ui/wrong-type-span.stderr",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 346,
+      "sha256": "cad072e40e0ecc04f375122ae41aede2f0da2a9244492b3fcf70249e59d1b128"
+    },
+    {
+      "path": "fixtures/cargo-vendor-data/vendor/unicode-ident-1.0.24/.cargo-checksum.json",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 2229,
+      "sha256": "90bb9be712fc0d625c8fd206d16edca353f35e82bf56155a8e0dec43907ff944"
+    },
+    {
+      "path": "fixtures/cargo-vendor-data/vendor/unicode-ident-1.0.24/.cargo_vcs_info.json",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 94,
+      "sha256": "9900659dcf16d47a600102bbfd47cf554a0d4db40790983e570f9ecac9822c68"
+    },
+    {
+      "path": "fixtures/cargo-vendor-data/vendor/unicode-ident-1.0.24/.github/FUNDING.yml",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 16,
+      "sha256": "b017158736b3c9751a2d21edfce7fe61c8954e2fced8da8dd3013c2f3e295bd9"
+    },
+    {
+      "path": "fixtures/cargo-vendor-data/vendor/unicode-ident-1.0.24/.github/workflows/ci.yml",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 3418,
+      "sha256": "7cd19596c9178c43f442aeeaf808592bb0c3a118ce291aa2037bd22116045e61"
+    },
+    {
+      "path": "fixtures/cargo-vendor-data/vendor/unicode-ident-1.0.24/Cargo.lock",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 20100,
+      "sha256": "dac9e67ad7272c61e7b197143b696705ce4800ea0e010b3b1f0c8924a0c9701d"
+    },
+    {
+      "path": "fixtures/cargo-vendor-data/vendor/unicode-ident-1.0.24/Cargo.toml",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 2072,
+      "sha256": "0bb9c0e006a21355cb85c7df72e78dd8ba6fffbb7dc3f1e7a4c19af53cd354da"
+    },
+    {
+      "path": "fixtures/cargo-vendor-data/vendor/unicode-ident-1.0.24/Cargo.toml.orig",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 1331,
+      "sha256": "8d0abaf7ce10cb78f26edcd613dfe5a47faa4381e6e251c7d1c123608d2e037a"
+    },
+    {
+      "path": "fixtures/cargo-vendor-data/vendor/unicode-ident-1.0.24/LICENSE-APACHE",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 9723,
+      "sha256": "62c7a1e35f56406896d7aa7ca52d0cc0d272ac022b5d2796e7d6905db8a3636a"
+    },
+    {
+      "path": "fixtures/cargo-vendor-data/vendor/unicode-ident-1.0.24/LICENSE-MIT",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 1023,
+      "sha256": "23f18e03dc49df91622fe2a76176497404e46ced8a715d9d2b67a7446571cca3"
+    },
+    {
+      "path": "fixtures/cargo-vendor-data/vendor/unicode-ident-1.0.24/LICENSE-UNICODE",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 1995,
+      "sha256": "f7db81051789b729fea528a63ec4c938fdcb93d9d61d97dc8cc2e9df6d47f2a1"
+    },
+    {
+      "path": "fixtures/cargo-vendor-data/vendor/unicode-ident-1.0.24/README.md",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 12338,
+      "sha256": "2fd3a0c6c9abd2c042fb319221f9ef2c95728a6e3725b0f067e4d315c5dbfe5a"
+    },
+    {
+      "path": "fixtures/cargo-vendor-data/vendor/unicode-ident-1.0.24/benches/xid.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 4097,
+      "sha256": "7eb058c1140a253f7177af8868a95aabb1b92c52dc7eee5abbfeadb507d7845d"
+    },
+    {
+      "path": "fixtures/cargo-vendor-data/vendor/unicode-ident-1.0.24/src/lib.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 12871,
+      "sha256": "078912e7c64ba3ea1081b88c2610deba31eeb057c28f9d78e929db4856b7774f"
+    },
+    {
+      "path": "fixtures/cargo-vendor-data/vendor/unicode-ident-1.0.24/src/tables.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 63369,
+      "sha256": "369c476ba91a39fce55563b692a3f598daf7f026cfe0a3796cfed1102fb3b190"
+    },
+    {
+      "path": "fixtures/cargo-vendor-data/vendor/unicode-ident-1.0.24/tests/compare.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 1803,
+      "sha256": "f2311271aa1db7380e5bf153ef83ee99777e14579e4f28c2b1a3e21877ffe715"
+    },
+    {
+      "path": "fixtures/cargo-vendor-data/vendor/unicode-ident-1.0.24/tests/fst/mod.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 385,
+      "sha256": "69a3aaf59acd8bca962ecc6234be56be8c0934ab79b253162f10eb881523901f"
+    },
+    {
+      "path": "fixtures/cargo-vendor-data/vendor/unicode-ident-1.0.24/tests/fst/xid_continue.fst",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 76143,
+      "sha256": "b58be4f0c498253e7a5ac664046096f15f249da66131347d4b822097623549a2"
+    },
+    {
+      "path": "fixtures/cargo-vendor-data/vendor/unicode-ident-1.0.24/tests/fst/xid_start.fst",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 67370,
+      "sha256": "aec7eecdacfce308d2e6210f47d28ed3aad5c8b048efbfbc11fc22e60fbf435b"
+    },
+    {
+      "path": "fixtures/cargo-vendor-data/vendor/unicode-ident-1.0.24/tests/roaring/mod.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 540,
+      "sha256": "f5c6d55463a7f53e92a493cf046d717149250fbafc0e0fe94bdb531377bf8b11"
+    },
+    {
+      "path": "fixtures/cargo-vendor-data/vendor/unicode-ident-1.0.24/tests/static_size.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 2456,
+      "sha256": "80c3ca7eeec2660f3f4f2efa8fecd6209b32ec8b547192cbfa37c0e67a5f14a0"
+    },
+    {
+      "path": "fixtures/cargo-vendor-data/vendor/unicode-ident-1.0.24/tests/tables/mod.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 144,
+      "sha256": "e6949172d10fc4b2431ce7546269bfd4f9146454c8c3e31faf5e5d80c16a8ab6"
+    },
+    {
+      "path": "fixtures/cargo-vendor-data/vendor/unicode-ident-1.0.24/tests/tables/tables.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 24312,
+      "sha256": "302d87306100b6280f8db93e167dc70c47f724045cf1312b7354683656c3f36b"
+    },
+    {
+      "path": "fixtures/cargo-vendor-data/vendor/unicode-ident-1.0.24/tests/trie/mod.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 179,
+      "sha256": "d4acbb716bcbaf80660039797f45e138ed8bbd66749fa3b19b1a971574679cc9"
+    },
+    {
+      "path": "fixtures/cargo-vendor-data/vendor/unicode-ident-1.0.24/tests/trie/trie.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 30787,
+      "sha256": "f7b9edc1e8a98e3be42b653bba27bb4eb5fc48a559d6d8d1c6a4db4b5425b0d5"
+    },
+    {
+      "path": "fixtures/catalog/README.md",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 1480,
+      "sha256": "bed141786eb6c13429d504e413e390fe2e726f8ec97cb30fe127e97f6ff4c3b0"
+    },
+    {
+      "path": "fixtures/catalog/fixture-1.tar.zst",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 2058,
+      "sha256": "1b3aa5c89847b7db81229678e6e78766547f27d78c5c994d80ba2452cda69538"
+    },
+    {
+      "path": "fixtures/catalog/fixture-2.tar.zst",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 2072,
+      "sha256": "e1381435c81434794cb8cf7745301528123304541a280c6de4c6eeedc0c271f9"
+    },
+    {
+      "path": "fixtures/catalog/fixture-trust.json",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 138,
+      "sha256": "33932c6aff0aa1a5befcb5b03f40edf12525330ff848b5220967eaef05f571d7"
+    },
+    {
+      "path": "fixtures/clippy-warning/Cargo.lock",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 166,
+      "sha256": "ba9a0fad538eaca2ecad1a90ebeb8ed5261e7f6f1439b9cff1fd63ef071b4553"
+    },
+    {
+      "path": "fixtures/clippy-warning/Cargo.toml",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 130,
+      "sha256": "4f5e7f02d98b3a4ea03757bc3f7b65d24cccb12b70e7956aa9cd074894b2cf9f"
+    },
+    {
+      "path": "fixtures/clippy-warning/src/lib.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 107,
+      "sha256": "d2538de864eacc45ae5fbfcd7103ffbd91abcaf8fab1c7d8826a5092db30dc1e"
+    },
+    {
+      "path": "fixtures/corpus-sha256.json",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 5159,
+      "sha256": "10053b3579b66823cb0a27fe474cdaa5ae228c5f1fcf300d1c39eae8e1a6aef3"
+    },
+    {
+      "path": "fixtures/execution-probe/Dockerfile",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 131,
+      "sha256": "512d88edc35743d36911a764ad8d2466252da155987fd743fcd47dc6961f2dc0"
+    },
+    {
+      "path": "fixtures/execution-probe/README.md",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 6397,
+      "sha256": "2225d1a9e73042151f4df059594e9f0a9d86288970c610710d5f9d53c1b5ed07"
+    },
+    {
+      "path": "fixtures/execution-probe/canary",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 24,
+      "sha256": "387c39cef95b78db9ebf079d36082da33490a50b62d466bebf4560c03cfb3b97"
+    },
+    {
+      "path": "fixtures/execution-probe/main.go",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 15137,
+      "sha256": "d874f3850fda54d7c2b2dafbd3cf8b81a72760d0de776504448407937e58d615"
+    },
+    {
+      "path": "fixtures/feature-conflict/Cargo.lock",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 168,
+      "sha256": "7300d74d0363af09c0441276421aa1114918425697511930f4011dab7d71dfe9"
+    },
+    {
+      "path": "fixtures/feature-conflict/Cargo.toml",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 178,
+      "sha256": "08c3b533cc4fa3618626c75431086b3cda14066ce251df1f827439800e325604"
+    },
+    {
+      "path": "fixtures/feature-conflict/src/lib.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 180,
+      "sha256": "b224df17f22db3e3abdd0bfe5414c82ace3b724a285e222c8aabbbf1afcf8b93"
+    },
+    {
+      "path": "fixtures/lifetime-error/Cargo.lock",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 166,
+      "sha256": "78e8a4fab846a70f79d983e7c8cf442fd87b9656629f8e4242e187de23b4b43f"
+    },
+    {
+      "path": "fixtures/lifetime-error/Cargo.toml",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 130,
+      "sha256": "5570b236937a0a36f052986830cd6ab8e5384c315ad32b9ec8ce4a3d96436c7b"
+    },
+    {
+      "path": "fixtures/lifetime-error/src/lib.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 152,
+      "sha256": "dcb4e967c2e6107b0a6b7526de93d698be2330f20d69ca314259add622569f0f"
+    },
+    {
+      "path": "fixtures/rust-runtime/Dockerfile",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 845,
+      "sha256": "ee8599fb9f1683d3172e3a1d4a04a23270c125aab3303600b8dd800572fb5463"
+    },
+    {
+      "path": "fixtures/rust-runtime/README.md",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 4034,
+      "sha256": "035ddd2fea1635ff988b1a8283e13ee33d9d2bed77271a1c5c6ebd2a9604e303"
+    },
+    {
+      "path": "fixtures/rust-runtime/provision.py",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 2670,
+      "sha256": "fd3d253f80b76c39a537e8ada5464dde5c8dcf5835d6b307e808f228f4d59514"
+    },
+    {
+      "path": "fixtures/rust-runtime/sources.json",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 1915,
+      "sha256": "44f0b9ad348b2972b0e63d85606df58e651279bf9ddb35e2ac65e3778a29edff"
+    },
+    {
+      "path": "fixtures/rust-runtime/verify.py",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 4044,
+      "sha256": "e9dcf12764a5d06242566fa55b3ede2c1a89211e6e585bbe753cc1c97e53a5f7"
+    },
+    {
+      "path": "fixtures/security/malicious-build-script/Cargo.toml",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 114,
+      "sha256": "fc32eac29196a7375bf7a09312a21f8793b9d422d32d96436300ad2a446f2233"
+    },
+    {
+      "path": "fixtures/security/malicious-build-script/README.md",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 714,
+      "sha256": "9da769a6d745ae57b35c33182e6a70aaf5e5c8aae76a436f0ace67d25ac75481"
+    },
+    {
+      "path": "fixtures/security/malicious-build-script/build.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 1310,
+      "sha256": "5b5d15a496e72eb3270b2e56da79fe2f87e5dbf382c904317bea4bb94b51f673"
+    },
+    {
+      "path": "fixtures/security/malicious-build-script/src/lib.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 103,
+      "sha256": "357c08d6b08a995107df29f8c484bff29363ebe5928b7245ec84f6559beeec26"
+    },
+    {
+      "path": "fixtures/security/rust-containment/README.md",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 9809,
+      "sha256": "2cb791a2d9ed6e4c9d30a295259c197c4b30782babdc20d951603c9af452c209"
+    },
+    {
+      "path": "fixtures/security/rust-containment/build.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 202,
+      "sha256": "40fa6d1949ab132b3971fcb8ed2faaee179bf89c0a4aae36c11207e653610e0b"
+    },
+    {
+      "path": "fixtures/security/rust-containment/build_overflow.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 703,
+      "sha256": "e4e32ee71ca17b1d99036d6b9ab4e03db2c6a9dd21d2987cbae8a148b084754f"
+    },
+    {
+      "path": "fixtures/security/rust-containment/build_resources.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 11205,
+      "sha256": "f879a74176ec9909f5185197ddb200b4574e1cb3f5dde8e4d94849f5dc2909f2"
+    },
+    {
+      "path": "fixtures/security/rust-containment/build_timeout.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 234,
+      "sha256": "5b60d58b288d439245bdf906b9eca298b86c8747607652a4fd0c208dd01df176"
+    },
+    {
+      "path": "fixtures/security/rust-containment/checks.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 12802,
+      "sha256": "d638d845c17a93c4bec6752e369081a36e0f1d92bff6fc31424a7bffc5b7097e"
+    },
+    {
+      "path": "fixtures/security/rust-containment/descendants.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 4016,
+      "sha256": "2c44448677e1f0cd7237542ba9a305fd54fb2d0496c5e8f90351bdf88acface4"
+    },
+    {
+      "path": "fixtures/security/rust-containment/proc_macro.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 401,
+      "sha256": "f91d0dcdb212e785f3c1d300ac1eb33811ff6a15daca52a4d63e32a40b2cc202"
+    },
+    {
+      "path": "fixtures/semantic/README.md",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 1438,
+      "sha256": "5e4d47968f4589b8ced19073aa581356862c80588043930982ce3009f0dd3f30"
+    },
+    {
+      "path": "fixtures/semantic/model-receipt.json",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 3104,
+      "sha256": "864c0bcd2ce3ab9d39e29c0291cb0f1e5c6467842062f1928cac570690cdd6eb"
+    },
+    {
+      "path": "fixtures/unsafe/Cargo.lock",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 158,
+      "sha256": "888aabdec3867ecf737e675082fdf8edbb4a4859ee6e6c456ae8a455b258da32"
+    },
+    {
+      "path": "fixtures/unsafe/Cargo.toml",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 122,
+      "sha256": "5425676f16d101a5c55661e32625c132450f55e54dc4347286ea4740b5858258"
+    },
+    {
+      "path": "fixtures/unsafe/src/lib.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 93,
+      "sha256": "626ecf88103c0a6a004f5a0d30b3884f68bcdac4284570b781f7da6d81d96001"
+    },
+    {
+      "path": "fixtures/valid-basic/Cargo.lock",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 163,
+      "sha256": "87ee3fe28b6ccc69bf1de0905468ad7bee0cda5e7d2967083544c4aaa8b5268f"
+    },
+    {
+      "path": "fixtures/valid-basic/Cargo.toml",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 127,
+      "sha256": "a3cc3fd16486fa922bbb987cd4636e34adeb262bb869f23cdb90abf92d381232"
+    },
+    {
+      "path": "fixtures/valid-basic/src/lib.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 96,
+      "sha256": "d1cd3a9ec81c79e71f5fb2d81addaea04506bf92d78d54bc7472abb594fdc478"
+    },
+    {
+      "path": "fixtures/vulnerable-dependency/Cargo.lock",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 431,
+      "sha256": "6db0663c4356668508babc7e9f20ea0ea068f310f1c0e2d156c9974e37b081ab"
+    },
+    {
+      "path": "fixtures/vulnerable-dependency/Cargo.toml",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 168,
+      "sha256": "5649364e26ebb5ff05c61ca028f8986e23adb19c52f5e9a7727fadf00920eb42"
+    },
+    {
+      "path": "fixtures/vulnerable-dependency/README.md",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 1428,
+      "sha256": "a71ddbf8268494560329dabf4a28785a92b5248eab5404933805281fa46be71a"
+    },
+    {
+      "path": "fixtures/vulnerable-dependency/RUSTSEC-2023-0071.md",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 1375,
+      "sha256": "8538ebf5d6ad7c749a63dd43a725ea0000aff574cfddecc8e4ef52736831328a"
+    },
+    {
+      "path": "fixtures/vulnerable-dependency/provenance.json",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 618,
+      "sha256": "eae93e750c68c178b3372d55819067db51e9f619fad09d6a8017b349a008ccce"
+    },
+    {
+      "path": "fixtures/vulnerable-dependency/src/lib.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 69,
+      "sha256": "e87b3302a4f888ead05bf777ae4e5a07332e882220add5b0f951de63fde842a7"
+    },
+    {
+      "path": "fixtures/workspace/Cargo.lock",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 275,
+      "sha256": "2e79811518b0c367cdc988f5529e3cca33a8046f44f0037e20a6a329b3076a4f"
+    },
+    {
+      "path": "fixtures/workspace/Cargo.toml",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 207,
+      "sha256": "75296864930f2a018c8af0f2c717fb7425391d695ea860b041c11ee4f37118b2"
+    },
+    {
+      "path": "fixtures/workspace/consumer/Cargo.toml",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 198,
+      "sha256": "9bc8de3d913881279df46b56f9ed377e9225063578056c4e53fd1cb7c8ec4348"
+    },
+    {
+      "path": "fixtures/workspace/consumer/src/lib.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 119,
+      "sha256": "19e1a1a7b64c2629013a0343f9504dfc6619b8d35fe5daa4271e6aea1f1f45e7"
+    },
+    {
+      "path": "fixtures/workspace/core/Cargo.toml",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 138,
+      "sha256": "2443904808174211877dbc26df8eb959d762c420407021d33001a0ca4477d552"
+    },
+    {
+      "path": "fixtures/workspace/core/src/lib.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 30,
+      "sha256": "5e0a6af76181b77032ef291474aab99538433cb86eb2b8ad88f3c0cfb2577a51"
+    },
+    {
+      "path": "rust-toolchain.toml",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 86,
+      "sha256": "c910997cb152c6dc8ed13b1fdf9fa28a4ed30d6776123e27dd6170e5c66067a0"
+    },
+    {
+      "path": "rustfmt.toml",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 40,
+      "sha256": "81488ae3bcd5756dc21762a103ca15beb799fde4c27672cd7c8e7118f2eef130"
+    },
+    {
+      "path": "scripts/check-architecture.py",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 2459,
+      "sha256": "3ead3527b90d202b0a1936215a32f112d76c73649205923bb7edbc7c6f4f4e05"
+    },
+    {
+      "path": "scripts/check-coverage-reports.py",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 1931,
+      "sha256": "ac86b4b8b66f3582376218485b1e01d208a8834813024ed3b16ebd3d6cd219fa"
+    },
+    {
+      "path": "scripts/codex-model-qualifier.py",
+      "kind": "file",
+      "mode": "0o755",
+      "bytes": 85650,
+      "sha256": "6b775fd2e4bb42ef4b052feee776f88c56a8819400b9fc95498aebe35d0789fa"
+    },
+    {
+      "path": "scripts/gate.py",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 10366,
+      "sha256": "ccbf6a80b0d704412db91ff4a92521e73aee8db403345452bb34a08a703a7373"
+    },
+    {
+      "path": "scripts/probe-m2-cargo-fix.py",
+      "kind": "file",
+      "mode": "0o755",
+      "bytes": 32775,
+      "sha256": "78650acbd3f084b4277a4bf26df137ad223026424a837b5e768dc6d7f5b7b1de"
+    },
+    {
+      "path": "scripts/probe-m2-fix-socket-mask.py",
+      "kind": "file",
+      "mode": "0o755",
+      "bytes": 20318,
+      "sha256": "e1926f51e1df007be5ae51a0efce7c05e83c30173c147a449115b0ea8e86c60b"
+    },
+    {
+      "path": "scripts/probe-m2-guest-staging.py",
+      "kind": "file",
+      "mode": "0o755",
+      "bytes": 24829,
+      "sha256": "cb2adb4da596e6111fe3199b3be3c20f351a5f971949e9dbbd98643a8399b21a"
+    },
+    {
+      "path": "scripts/probe-m2-offline-registry.py",
+      "kind": "file",
+      "mode": "0o755",
+      "bytes": 30564,
+      "sha256": "36821e340c1e99e44c937a48817aacecec2cb32f09d2d4cfd9cf703b202d3306"
+    },
+    {
+      "path": "scripts/probe-m2-vendor-data.py",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 28330,
+      "sha256": "f91425c5d6014afa7528ba114b53732894c85b391d83da151dd6db0d289cfbad"
+    },
+    {
+      "path": "scripts/probe-m2-write-primitives.py",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 13881,
+      "sha256": "3294e409ef8ca50a990cbf933117b68b9ba7b528b42912746238ad85bc2c7938"
+    },
+    {
+      "path": "scripts/public-export.py",
+      "kind": "file",
+      "mode": "0o755",
+      "bytes": 5944,
+      "sha256": "4533485fad2d1db7ecb86d398de6c492ff7a99445654d321aef24b37bcd622ec"
+    },
+    {
+      "path": "scripts/release-artifact.py",
+      "kind": "file",
+      "mode": "0o755",
+      "bytes": 30286,
+      "sha256": "fadc5d724e378bff5e0873b0e5a5bc98501c7d7f9796c5e19f68799f80db7f5f"
+    },
+    {
+      "path": "scripts/release-inventory.py",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 13466,
+      "sha256": "f5125bfda5ed31e4622d179040b075bad8fcecd607de9cb0b2ab8ccce8bbb3e9"
+    },
+    {
+      "path": "scripts/release-smoke.py",
+      "kind": "file",
+      "mode": "0o755",
+      "bytes": 51039,
+      "sha256": "213318a14fdd3e9033e1465de6ffd04e681985a94936692106fb37c5fb633ac3"
+    },
+    {
+      "path": "scripts/test-audit-data.py",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 4174,
+      "sha256": "d9d0de272103be358cdf6a9c7e4ef6a0577f9ae4becc8c4971981b124754096e"
+    },
+    {
+      "path": "scripts/test-catalog-status.py",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 2525,
+      "sha256": "265169e91d4727d8bbf02cbe6111981048bc094ea725c6a9e2e9c0da8161ea3a"
+    },
+    {
+      "path": "scripts/test-catalog.py",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 2498,
+      "sha256": "f6a30da91bacd63abe17eda007e3a61dea3759b0d2ccca9715d51d688e0812d4"
+    },
+    {
+      "path": "scripts/test-codex-model-qualifier.py",
+      "kind": "file",
+      "mode": "0o755",
+      "bytes": 39614,
+      "sha256": "370f9dafe4263926c6be46f3ff552abe2338b7e3def8e4dcb21e93d5c6860049"
+    },
+    {
+      "path": "scripts/test-coverage-reports.py",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 3105,
+      "sha256": "2fa2371aaa3024a012b81d293c37140ef310004c8aeb9bd633424f1c1d5bce6b"
+    },
+    {
+      "path": "scripts/test-crate-inspect.py",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 2520,
+      "sha256": "0750dff57e1e76ebb176882be6f8abe998e87deb41f4147eae6ecd15f461a3d3"
+    },
+    {
+      "path": "scripts/test-crate-search.py",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 2513,
+      "sha256": "217c21c4d46deffcd0422416e70ec31abec065174a9d18d6bc000e5ec36ca7d9"
+    },
+    {
+      "path": "scripts/test-doctor.py",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 24433,
+      "sha256": "3f8e2574fdeea0ab7c003d690e9115226abc848908c2fb7ad58a4fc0987f454c"
+    },
+    {
+      "path": "scripts/test-execution.sh",
+      "kind": "file",
+      "mode": "0o755",
+      "bytes": 1386,
+      "sha256": "e1d18603de87422637a20ba0c2dc2fda2f18a4561178d104ad03554ab87ecbd5"
+    },
+    {
+      "path": "scripts/test-fixtures.py",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 10165,
+      "sha256": "e7ae94fc770093ee90f64b7cb084af546f8067c7f09bf781ef879bbe0cf4df58"
+    },
+    {
+      "path": "scripts/test-gate-reporting.py",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 5751,
+      "sha256": "b3ed90b8ce4b3672c8bf96e8e74a83ff8ddac7edcc3ef3602a40c9c71b749510"
+    },
+    {
+      "path": "scripts/test-m2-clients.py",
+      "kind": "file",
+      "mode": "0o755",
+      "bytes": 28082,
+      "sha256": "fad2bd155a873579485b6e1e38df33c014edad4f1d6a1515529db74387c1fba6"
+    },
+    {
+      "path": "scripts/test-m2-runtime.py",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 4848,
+      "sha256": "d98e692a784355c0b0ff282894e58c5b7200dfcaf95cc24dc37186ea1b236fa4"
+    },
+    {
+      "path": "scripts/test-public-export.py",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 1891,
+      "sha256": "526ebd9f5ba1ce0b6c9e634ac3780b3a697bc1bb3b732d23db3b476c7f718e15"
+    },
+    {
+      "path": "scripts/test-release-artifact.py",
+      "kind": "file",
+      "mode": "0o755",
+      "bytes": 12521,
+      "sha256": "a4e19106ef5a0ec87ae5c0484fa1fceb3f9426a9a45bceab8eb44640ebfafe03"
+    },
+    {
+      "path": "scripts/test-release-smoke.py",
+      "kind": "file",
+      "mode": "0o755",
+      "bytes": 14447,
+      "sha256": "a0c73c0cb5db25a8c925c174742fb72a10b8e39dc4ec0617911249d4c1b17803"
+    },
+    {
+      "path": "scripts/test-rust-execution.py",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 12458,
+      "sha256": "8fae7e90beb9d0fa008142da1e71d5ced1a2695fde4df6671fb91fef1fc952bb"
+    },
+    {
+      "path": "scripts/test-semantic.py",
+      "kind": "file",
+      "mode": "0o755",
+      "bytes": 3477,
+      "sha256": "7dc0b9700795e2709509b986684523de493cf069e001710b009b25c6034c7e79"
+    },
+    {
+      "path": "scripts/verify-vendor.py",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 2854,
+      "sha256": "68850a8fcf8e3e40806856dcc825dd23d9c076556322216dec3ae04f75fd74c0"
+    },
+    {
+      "path": "vendor/lancedb-manifest-only.patch",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 836,
+      "sha256": "b1e77dc0f2a8b2ed4f9b374e28a057b1806f1895a8dd798efabbb26e203c5ec5"
+    },
+    {
+      "path": "vendor/lancedb/.cargo_vcs_info.json",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 106,
+      "sha256": "a21ac61e186efa057477b4695cbd7360a615b86bbe34596670e5f1b93d43b72e"
+    },
+    {
+      "path": "vendor/lancedb/Cargo.lock",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 258736,
+      "sha256": "44cf1952ec4123b384ad030a48afb59240bf6692e03f3335d4d5214b06f5cb0a"
+    },
+    {
+      "path": "vendor/lancedb/Cargo.toml",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 7942,
+      "sha256": "c0159aba24fabaf0e2357351496b0bd9547bd2fa07dad78915bc7a11d57e63a0"
+    },
+    {
+      "path": "vendor/lancedb/Cargo.toml.orig",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 5349,
+      "sha256": "8177ab15ffb14d1f2fe4e426fb58a5b21118b091e1753fdbd55dcfce760a75a6"
+    },
+    {
+      "path": "vendor/lancedb/LICENSE",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 11357,
+      "sha256": "58d1e17ffe5109a7ae296caafcadfdbe6a7d176f0bc4ab01e12a689b0499d8bd"
+    },
+    {
+      "path": "vendor/lancedb/Makefile",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 500,
+      "sha256": "ef5a0e2899eca93b968dd40c5e521c1851fbb3399d908bec5906e8499cd4c877"
+    },
+    {
+      "path": "vendor/lancedb/README.md",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 619,
+      "sha256": "15e016c52477e4b43d03f01c46f1d8e76d592425ba7bb4041f0c5b8981b07e66"
+    },
+    {
+      "path": "vendor/lancedb/examples/bedrock.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 2641,
+      "sha256": "14a332a17c92e173ef0e0096e31a0e1e69f991b49889643a06c43484bf18449d"
+    },
+    {
+      "path": "vendor/lancedb/examples/full_text_search.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 3065,
+      "sha256": "e9dd4647a0704a3a039d9df083ddc15b7a762963287b7aa2d8d7c21857a508a3"
+    },
+    {
+      "path": "vendor/lancedb/examples/hybrid_search.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 4083,
+      "sha256": "7aae4ea7ca1afd758943fcb32820d5101dfcb46ceb127af913484306b295ad25"
+    },
+    {
+      "path": "vendor/lancedb/examples/ivf_pq.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 5138,
+      "sha256": "0695786dbe785fc064dbbfe69fe21958247ec5b0335a62ac72ae80f15ba4b8fe"
+    },
+    {
+      "path": "vendor/lancedb/examples/openai.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 2186,
+      "sha256": "25deb53033448055fcef8ef0c27a5cc12817d27960b069fad8b76350b7ad3e1e"
+    },
+    {
+      "path": "vendor/lancedb/examples/polars.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 1545,
+      "sha256": "d5b4f20609c02bcfa8dfb9b2d5529f5b2915857eb13de1784364ab9ce09ac14d"
+    },
+    {
+      "path": "vendor/lancedb/examples/sentence_transformers.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 3422,
+      "sha256": "356a9a76f7e24f498158987a92adb28f3532b0ada7fbbfaca7bb851d22fd989f"
+    },
+    {
+      "path": "vendor/lancedb/examples/simple.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 3937,
+      "sha256": "8df99477680324df52192d54f9e9dad1a093db95d182b1ee36a9e5e1c4c14c22"
+    },
+    {
+      "path": "vendor/lancedb/src/arrow.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 11548,
+      "sha256": "ef9e5830163d7ae886417302afff487dc08fac75076550afa9523e265f271bca"
+    },
+    {
+      "path": "vendor/lancedb/src/blob.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 14826,
+      "sha256": "cce7139a1d37305fd3617bbfa274191a3a2081ff0616e8c811f0ba9ef732da99"
+    },
+    {
+      "path": "vendor/lancedb/src/connection.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 60344,
+      "sha256": "0e3e9c529ad783cb225f4fdc37a97f7858b11c173e92959fc065cd268ef84c01"
+    },
+    {
+      "path": "vendor/lancedb/src/connection/create_table.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 21492,
+      "sha256": "1f0330c53a1b46cd76768f9e80d02f16279a4bedbb73612ffb49d8a30af928d3"
+    },
+    {
+      "path": "vendor/lancedb/src/data.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 212,
+      "sha256": "66e5cf93d0554a23416441bdb2535da364df4356521078c257c1c70d2580edf6"
+    },
+    {
+      "path": "vendor/lancedb/src/data/inspect.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 6160,
+      "sha256": "ba6b537332a590cf4d2aebd661946c1b5f33c16aacb34d8094c6db71a739ebc2"
+    },
+    {
+      "path": "vendor/lancedb/src/data/sanitize.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 9882,
+      "sha256": "326baba3a8b4da7d0e4490901c8ed19873f311076eff9645c528f6179ed0fecc"
+    },
+    {
+      "path": "vendor/lancedb/src/data/scannable.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 44792,
+      "sha256": "ebe36ce637c374c47cf7a15edd323483c440d4bf5554b1c1ad31cc960aeb9c4f"
+    },
+    {
+      "path": "vendor/lancedb/src/database.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 11591,
+      "sha256": "473a6a1c1f34e59ac3265b4196df34ea5b1598d2842d79cedb74d885ed9b4f64"
+    },
+    {
+      "path": "vendor/lancedb/src/database/listing.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 94945,
+      "sha256": "cfbd7c3f50ecdea5633e5efd8731a540440169f20b578af457b7a8c1b3251cf1"
+    },
+    {
+      "path": "vendor/lancedb/src/database/namespace.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 52514,
+      "sha256": "1e15ce127f47df002f7e021d5dfbdaddb18d326df0918dfe7a6fcaf130b5c14d"
+    },
+    {
+      "path": "vendor/lancedb/src/database/read_freshness.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 12203,
+      "sha256": "15cfb2d5f57251d7064eb45bfc1f9db147c99240fc4459d6139f1744f1b1935c"
+    },
+    {
+      "path": "vendor/lancedb/src/dataloader.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 118,
+      "sha256": "3d3f14c2cdba03fc5c8eb9c9d7ac7e703cf2db259dcc95ef5dcbdf939cfaf92d"
+    },
+    {
+      "path": "vendor/lancedb/src/dataloader/permutation.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 722,
+      "sha256": "da080e53db56421f3e671a1be265879dcaa9f540fa00f940327eedcb5660fa19"
+    },
+    {
+      "path": "vendor/lancedb/src/dataloader/permutation/builder.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 14989,
+      "sha256": "fc73e10a79320dc75829c91f3cded409daab6d2c05afec6a4325a612791f52fe"
+    },
+    {
+      "path": "vendor/lancedb/src/dataloader/permutation/reader.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 35890,
+      "sha256": "efc7e3237584f821fc08c3f9b86487cc1a525ec0137dd434b09076b50ce3466b"
+    },
+    {
+      "path": "vendor/lancedb/src/dataloader/permutation/shuffle.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 18329,
+      "sha256": "e5c2c23ee20aa2cbba5d3f4ed3c48a5121c80d33ce0dcccb3dc7d1bb094b0443"
+    },
+    {
+      "path": "vendor/lancedb/src/dataloader/permutation/split.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 28418,
+      "sha256": "8093d841b1de5f80932d38b8951e9e1535313646dc91d7837fcecbfb3efd0b94"
+    },
+    {
+      "path": "vendor/lancedb/src/dataloader/permutation/util.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 3022,
+      "sha256": "1c235a41bbf11be8b5ae2ee5ac447184c7a13ae099d6398a1c02b034fa588a3d"
+    },
+    {
+      "path": "vendor/lancedb/src/embeddings.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 13908,
+      "sha256": "eaa00b4fbb3d92003bd965b1957573ae734ccf643d6c0df00dd26cdd4da85334"
+    },
+    {
+      "path": "vendor/lancedb/src/embeddings/bedrock.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 10222,
+      "sha256": "aeb8b75ec4f628fd0a95408a709b80bb5b7058a07b2fde6d5a06549c2de633cc"
+    },
+    {
+      "path": "vendor/lancedb/src/embeddings/openai.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 8247,
+      "sha256": "d2bb98d3ddeedba39fa8339c9ec33f4348d70083991d410416ce8809468ca8eb"
+    },
+    {
+      "path": "vendor/lancedb/src/embeddings/sentence_transformers.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 17358,
+      "sha256": "a4d35011c11651cf68d2efaae82075b1ffdf256c8b8417531c8cf64c5d9b2f61"
+    },
+    {
+      "path": "vendor/lancedb/src/error.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 7505,
+      "sha256": "fd806f088c4dc003d299f85eb69fadc5040f4eb705f5312d25e33a13d8336325"
+    },
+    {
+      "path": "vendor/lancedb/src/expr.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 7302,
+      "sha256": "7f6498012a67d8e527efd6db9c503ebcf6e64ff23235ece52b225bf240fffdd3"
+    },
+    {
+      "path": "vendor/lancedb/src/expr/sql.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 4737,
+      "sha256": "ac8cee8f758f716318dc549a88e5c0a9bba048f1f192d1f1c15d6043659eb395"
+    },
+    {
+      "path": "vendor/lancedb/src/index.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 15811,
+      "sha256": "2080522db48c00e1710eb90532311c3d4df12c3f751b3e18240f85eaa0eb847a"
+    },
+    {
+      "path": "vendor/lancedb/src/index/scalar.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 2921,
+      "sha256": "23e9ff043a923b9080d9bab5debf2d9ed57477354126a02581875dc888f7e428"
+    },
+    {
+      "path": "vendor/lancedb/src/index/vector.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 18051,
+      "sha256": "105b7629f3478251987927c630e460384d1a63923cfc4e0f0ba928f10c857352"
+    },
+    {
+      "path": "vendor/lancedb/src/index/waiter.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 3050,
+      "sha256": "577c32da178a43367e2e500da2866cb2f067d83597ce389368076cabdafb0754"
+    },
+    {
+      "path": "vendor/lancedb/src/io.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 119,
+      "sha256": "188009fdd04370702e1179e71f00e0f736c5acd5af8e4e6ce40810b0ccd85cb0"
+    },
+    {
+      "path": "vendor/lancedb/src/io/object_store.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 9702,
+      "sha256": "e409e306c86b244af6e4b26cbbf47c41f8b7bd5d8b36fc16f353219d7d0b677c"
+    },
+    {
+      "path": "vendor/lancedb/src/io/object_store/io_tracking.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 7095,
+      "sha256": "01d1a13fadca1938e404914ae80bb6db421b1ee9102c9ec2a13bbda01ca61380"
+    },
+    {
+      "path": "vendor/lancedb/src/ipc.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 3030,
+      "sha256": "d8a99af9ed4f15b9f30d806089eb55ec998732c48402eb47a2c41237d958a25e"
+    },
+    {
+      "path": "vendor/lancedb/src/lib.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 12194,
+      "sha256": "c38e15ae415894de49fcc8ecd4a98e0df68cf3f872b81f6ecc7e43d1780a5d40"
+    },
+    {
+      "path": "vendor/lancedb/src/polars_arrow_convertors.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 6195,
+      "sha256": "6c1d06d303260843e969d18b612a9f0c7edfd58a2e6731f91f39564c01f801f4"
+    },
+    {
+      "path": "vendor/lancedb/src/query.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 96022,
+      "sha256": "b1beb38040eabee7ecb3da64c5752f0404d22a45b6b1a65f167ea11e812aa35c"
+    },
+    {
+      "path": "vendor/lancedb/src/query/hybrid.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 12755,
+      "sha256": "a1cb1b214ab3e099f17f8fd946c0970b0212e0643175a6210e4cb01ee66915c7"
+    },
+    {
+      "path": "vendor/lancedb/src/remote.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 923,
+      "sha256": "d1ef084be0db6463b5ca32f7f2d3fc5e3bfb8d8b3d8db5dd1ab9a5ca11fb73bb"
+    },
+    {
+      "path": "vendor/lancedb/src/remote/client.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 47300,
+      "sha256": "0b839cac246e2271bcb13c51ea88bfd7841f966d22ee479af41b6c4b66e2a445"
+    },
+    {
+      "path": "vendor/lancedb/src/remote/db.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 75747,
+      "sha256": "1cf9418e1e2798804a269b02f1f49a25c0b1dbc5c57df69a3dc526f1a37be372"
+    },
+    {
+      "path": "vendor/lancedb/src/remote/oauth.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 30389,
+      "sha256": "3e39acf17e323ab198619611e9b568a1a3b4e3e7dba28d9e032cfa64c4ea9e5e"
+    },
+    {
+      "path": "vendor/lancedb/src/remote/retry.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 8861,
+      "sha256": "56a7b099d92725a365be4224521cece5770bd1b90a23b25541ceae91751b63ea"
+    },
+    {
+      "path": "vendor/lancedb/src/remote/table.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 331685,
+      "sha256": "18edae7e374ab414137f867cbf76234d9a8c2813d5c95903761ab16dba79fc31"
+    },
+    {
+      "path": "vendor/lancedb/src/remote/table/insert.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 21847,
+      "sha256": "07031d06d1386d85629f90ceaada612ebf2adcbf34bef18015b27019d7488933"
+    },
+    {
+      "path": "vendor/lancedb/src/remote/util.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 2388,
+      "sha256": "d5417673d972ce9c770e8847eb4ab500ca5a9744c4587a789129ddbdaa139dc8"
+    },
+    {
+      "path": "vendor/lancedb/src/rerankers.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 3381,
+      "sha256": "acf6350802dbf591de2678f9d20a04cfb531c84f4a99ffec9af59bf7a7ce4579"
+    },
+    {
+      "path": "vendor/lancedb/src/rerankers/rrf.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 6927,
+      "sha256": "d14aa3b3004f9ebe06eb91750b5ff22ae4ca04992419868334aa9f69fef93a8f"
+    },
+    {
+      "path": "vendor/lancedb/src/table.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 167256,
+      "sha256": "b22660a44b822ef53d3fe281f022de6e53624cde0acd67d30aadc6cd1499e48c"
+    },
+    {
+      "path": "vendor/lancedb/src/table/add_data.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 39572,
+      "sha256": "4e01a067fc8b9f6c22358dfa2885d99067fad42797f4adc89574c52cab552974"
+    },
+    {
+      "path": "vendor/lancedb/src/table/create_index.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 52049,
+      "sha256": "b3c159b745f108fde4c4fae6a3ecd68260da209aa8b4f5ca5c1e55cffd293e1f"
+    },
+    {
+      "path": "vendor/lancedb/src/table/datafusion.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 19322,
+      "sha256": "3e8d09f76649bfe5028d89166c60aae067e6d97597e9f157a413947718255bf3"
+    },
+    {
+      "path": "vendor/lancedb/src/table/datafusion/blob_coerce.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 18440,
+      "sha256": "fe86ea9c80866dd390c9efd751379a8442da8f7c7cf7b892a7c5dfd4a40ada71"
+    },
+    {
+      "path": "vendor/lancedb/src/table/datafusion/cast.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 27513,
+      "sha256": "dfa8fc6e28063085993b95bf5d8eab260b39ae55a4063590a5c25300646fcd30"
+    },
+    {
+      "path": "vendor/lancedb/src/table/datafusion/insert.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 15741,
+      "sha256": "552937ecbcff7388a7f8cbd140dc25fa6b9d40ecb0e087abac22028e0c011081"
+    },
+    {
+      "path": "vendor/lancedb/src/table/datafusion/reject_nan.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 8791,
+      "sha256": "1dd56221716f4a5ce43a3270c5536e8c38aae408c6828da6231f2b4bbefde9b3"
+    },
+    {
+      "path": "vendor/lancedb/src/table/datafusion/scannable_exec.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 4147,
+      "sha256": "76f6eb6077b9d5d26f36c183e59650cec87330bd9fd594367ef1fe3ea2879c1f"
+    },
+    {
+      "path": "vendor/lancedb/src/table/datafusion/udtf.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 179,
+      "sha256": "fbfa4ba387e74f43f9d39f55c4dc5d691758382e4fca9726b47d59bac745a401"
+    },
+    {
+      "path": "vendor/lancedb/src/table/datafusion/udtf/fts.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 67919,
+      "sha256": "92eb45490be8042a4eaa6c5aa5222a44d8f5c4be25719293982d875aca559eb6"
+    },
+    {
+      "path": "vendor/lancedb/src/table/dataset.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 28922,
+      "sha256": "08a07c5bc3a17596fa30a0994bcb119dcc9197b256a517097697793cb466b196"
+    },
+    {
+      "path": "vendor/lancedb/src/table/delete.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 9661,
+      "sha256": "7960cbc23f6b54d2db14684a090bf8a76db6c1ed2399d5ba212fa4b22b2b32aa"
+    },
+    {
+      "path": "vendor/lancedb/src/table/merge.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 31569,
+      "sha256": "39dd8966f288d20e9ccd7d824fd4a0df586d52d205cd91699a01615b64ad0519"
+    },
+    {
+      "path": "vendor/lancedb/src/table/merge/lsm.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 39598,
+      "sha256": "77c175f5acb31a64537b6e7b1d81880f6f273a2bd4293512481058ab882014ee"
+    },
+    {
+      "path": "vendor/lancedb/src/table/optimize.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 25680,
+      "sha256": "5506185b31debd1785db8d552a04f5f0f85f0b1aad76b0a899c070c32eae326d"
+    },
+    {
+      "path": "vendor/lancedb/src/table/primary_key.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 4137,
+      "sha256": "30e92b0fb8b40acea197c4c3d63898401daedf0b941f1f9594d3acb2ce866ea7"
+    },
+    {
+      "path": "vendor/lancedb/src/table/query.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 38929,
+      "sha256": "9d6c709583df7c3485fc35a83fbe533b2b6026a429d533b2e12e80b74780d754"
+    },
+    {
+      "path": "vendor/lancedb/src/table/schema_evolution.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 22909,
+      "sha256": "e400ef9dc23ab69c53832adb0968a3897c5a83596806b5ca174043ab8ad91083"
+    },
+    {
+      "path": "vendor/lancedb/src/table/update.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 13983,
+      "sha256": "34395ef7294cc96faaa20d1dc679a3ec9490179757164a73ff4c603cdcfe6433"
+    },
+    {
+      "path": "vendor/lancedb/src/table/write_progress.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 16995,
+      "sha256": "15be4e1b620e459bc264e35db8084612259924738632e919284f203fdb15951a"
+    },
+    {
+      "path": "vendor/lancedb/src/test_utils.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 420,
+      "sha256": "34e96b0360a8e768ed3ee6eea5c869f8e33741efc6097d3bf03237701de9ca1e"
+    },
+    {
+      "path": "vendor/lancedb/src/test_utils/connection.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 5112,
+      "sha256": "de7149392a06eb3465c973259bab4af19bbc24ae2bbc948c784c39847ffbe402"
+    },
+    {
+      "path": "vendor/lancedb/src/test_utils/datagen.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 1573,
+      "sha256": "dd5c41e6e1e4aa6cb631f6f8cfd0b92e1eafd7f20a986a05ad2ecac1c82e3c25"
+    },
+    {
+      "path": "vendor/lancedb/src/test_utils/embeddings.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 1649,
+      "sha256": "8a7a46986a755dfe3baa5656068a7b6212da1d7a374c3923af0daaf097af439e"
+    },
+    {
+      "path": "vendor/lancedb/src/utils/background_cache.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 23055,
+      "sha256": "951f942efaf70fc55e478c46db9e636c649b0f8129f8a03ff3cf23c3fb2b9066"
+    },
+    {
+      "path": "vendor/lancedb/src/utils/mod.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 27599,
+      "sha256": "c15cbed616e52575a1cbae2fb21206d4a09e01c3fb08f8671b0e4fe8b9c9eff0"
+    },
+    {
+      "path": "vendor/lancedb/tests/blob_integration.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 30954,
+      "sha256": "220059d26fd4d9d28d440849bc7271cad99574c726ea1958f4061d30240caf64"
+    },
+    {
+      "path": "vendor/lancedb/tests/embedding_registry_test.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 11752,
+      "sha256": "70118119ac1f1ef4efef9ed2ef455d480b1477855c409bcc1ff92022f9d4dcc4"
+    },
+    {
+      "path": "vendor/lancedb/tests/embeddings_parallel_test.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 8542,
+      "sha256": "563135b99973102baa03dc7ad8e4d5bdf1621a9cd825f026a98c0d58d2f658a6"
+    },
+    {
+      "path": "vendor/lancedb/tests/object_store_test.rs",
+      "kind": "file",
+      "mode": "0o644",
+      "bytes": 12931,
+      "sha256": "bde69a4bd973df96eb7abb9f4988c8170b8374ef5ad713678d252c5e6cd6f7a3"
+    }
+  ],
+  "error": "test failed (101)",
+  "finished_at": "2026-09-05T19:48:01.197550Z",
+  "failure_disposition": {
+    "reason": "CatalogStore fixture interference reproduced in 1/20 runs; independent cases serialized, explicit concurrency assertions preserved; 20/20 matched repetitions passed.",
+    "evidence": "docs/validation/M2-catalog-fixture-isolation.json",
+    "log_sha256": "a39179ec845ac132d913d88bb4beb75635ad87c40cf1817bf8dc5939ff51c03b"
+  }
+}

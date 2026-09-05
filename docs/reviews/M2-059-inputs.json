@@ -1,0 +1,60 @@
+{
+  "model": "claude-opus-5",
+  "effort": "high",
+  "cli_version": "2.1.260",
+  "read_only": true,
+  "tools": [],
+  "files": [
+    {
+      "path": "docs/adr/ADR-059-terminal-plan-retirement-and-durable-replay.md",
+      "sha256": "03bbcef604a6064badfd13b1ff6fdee8ba9f77129d33ae99bd177df3805a84fe",
+      "bytes": 3575
+    },
+    {
+      "path": "docs/adr/ADR-052-mutation-journal-and-authorization.md",
+      "sha256": "ce39d4e64efbe324e58b874dce05bd2468860a21d98208a521a3f90802563058",
+      "bytes": 12375
+    },
+    {
+      "path": "crates/application/src/mutation.rs",
+      "sha256": "e4b79d9da88b3c427c23e5824719870703e20c1636aa43f2f0c6dab7444ee3b9",
+      "bytes": 19683
+    },
+    {
+      "path": "crates/application/tests/mutation.rs",
+      "sha256": "1802bf48958e2a5c29f63fe54fd05953cf5338d44db3fdbbb62b538915764cf4",
+      "bytes": 40621
+    },
+    {
+      "path": "crates/project-adapter/src/filesystem/macos/mutation.rs",
+      "sha256": "8a00082f778f265db328418d121087ef3cb13570db6c359d7e21f4b50dc1745d",
+      "bytes": 103366
+    },
+    {
+      "path": "crates/project-adapter/src/mutation_port.rs",
+      "sha256": "1418352cf96899392b14a90683cbe32b1a3daef90abda90b941c35618efe8b42",
+      "bytes": 1725
+    },
+    {
+      "path": "crates/project-adapter/src/mutation_store.rs",
+      "sha256": "24ad53774e998fa239340a6c8e90abbbe4e9b9a4d505b0747d8d85ce06dbd3ce",
+      "bytes": 4462
+    },
+    {
+      "path": "crates/project-adapter/tests/support/native_mutation.rs",
+      "sha256": "26347f02499e87849f959e78a56287ec918cacf4edd7ad7592a2be72069e8583",
+      "bytes": 113989
+    },
+    {
+      "path": "crates/mcp-server/src/stdio/mutation.rs",
+      "sha256": "d58153f8b628d385a74b0e47cb5bf6e9981fe66de1c33df16482a24fd2161e50",
+      "bytes": 72789
+    },
+    {
+      "path": "crates/mcp-server/tests/inspection_runtime/terminal_plan.rs",
+      "sha256": "5d6cb5c46282cc4950983a8e968c1662d625149538c86cf6d0dd4b59eb67b023",
+      "bytes": 7681
+    }
+  ],
+  "prompt_sha256": "25640c566ffa0decb48d36a1a8a20a301d8a0e46ff13e1c0bc2c0f5c742c1fd8"
+}
