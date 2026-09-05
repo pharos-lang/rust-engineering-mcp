@@ -56,6 +56,11 @@ jobs:
           export COVERAGE_FILE=coverage/.coverage
           python -m coverage run --branch --source=scripts --omit='scripts/test-*.py' scripts/check-architecture.py
           python -m coverage run --append --branch --source=scripts --omit='scripts/test-*.py' scripts/test-coverage-reports.py
+          python -m coverage run --append --branch --source=scripts --omit='scripts/test-*.py' scripts/test-gate-reporting.py
+          python -m coverage run --append --branch --source=scripts --omit='scripts/test-*.py' scripts/test-release-artifact.py
+          python -m coverage run --append --branch --source=scripts --omit='scripts/test-*.py' scripts/test-release-smoke.py
+          python -m coverage run --append --branch --source=scripts --omit='scripts/test-*.py' scripts/test-codex-model-qualifier.py
+          python -m coverage run --append --branch --source=scripts --omit='scripts/test-*.py' scripts/test-public-export.py
           python -m coverage xml -o coverage/python.xml
 
       - name: Validate coverage reports

@@ -3,6 +3,10 @@ name: Draft release candidate
 on:
   workflow_dispatch:
 
+concurrency:
+  group: release-candidate-${{ github.ref }}
+  cancel-in-progress: false
+
 permissions:
   contents: read
 
@@ -16,36 +20,27 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
-      - name: Require an existing version tag
+      - name: Require a stable version tag
         shell: bash
         run: |
-          if [[ "${GITHUB_REF_TYPE}" != "tag" || ! "${GITHUB_REF_NAME}" =~ ^v[0-9]+\.[0-9]+\.[0-9]+([.-][0-9A-Za-z.-]+)?$ ]]; then
-            echo "Dispatch this workflow from an existing v* version tag." >&2
+          if [[ "${GITHUB_REF_TYPE}" != "tag" || ! "${GITHUB_REF_NAME}" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "Dispatch this workflow from an existing stable vX.Y.Z tag." >&2
             exit 1
           fi
 
   build:
-    name: build / ${{ matrix.target }}
+    name: build and qualify / aarch64-apple-darwin
     needs: validate-ref
-    runs-on: ${{ matrix.runner }}
+    runs-on: macos-26
     timeout-minutes: 60
+    outputs:
+      archive-sha256: ${{ steps.candidate-digests.outputs.archive-sha256 }}
+      checksums-sha256: ${{ steps.candidate-digests.outputs.checksums-sha256 }}
+      smoke-receipt-sha256: ${{ steps.candidate-digests.outputs.smoke-receipt-sha256 }}
     permissions:
       contents: read
       id-token: write
       attestations: write
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - runner: ubuntu-latest
-            target: x86_64-unknown-linux-gnu
-            binary: rust-engineering-mcp
-          - runner: macos-26
-            target: aarch64-apple-darwin
-            binary: rust-engineering-mcp
-          - runner: windows-2025
-            target: x86_64-pc-windows-msvc
-            binary: rust-engineering-mcp.exe
     steps:
       - name: Check out tagged source
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -60,55 +55,111 @@ jobs:
         run: |
           rustup toolchain install 1.98.1 --profile minimal
           rustup default 1.98.1
+          rustc --version
+          cargo --version
 
-      - name: Verify tag matches package version
+      - name: Provision locked dependencies
+        run: cargo fetch --locked
+
+      - name: Test release artifact boundary
+        run: python3 -B scripts/test-release-artifact.py
+
+      - name: Test archive smoke verifier
+        run: python3 -B scripts/test-release-smoke.py
+
+      - name: Verify tag matches every workspace package
         shell: bash
         env:
           RELEASE_TAG: ${{ github.ref_name }}
         run: |
-          python - <<'PY'
+          python3 - <<'PY'
           import json, os, subprocess
           metadata = json.loads(subprocess.check_output(
-              ["cargo", "metadata", "--no-deps", "--format-version", "1"], text=True))
-          versions = {p["version"] for p in metadata["packages"]}
+              ["cargo", "metadata", "--locked", "--offline", "--no-deps",
+               "--format-version", "1"], text=True))
+          versions = {package["version"] for package in metadata["packages"]}
           expected = os.environ["RELEASE_TAG"].removeprefix("v")
           if versions != {expected}:
-              raise SystemExit(f"tag {expected!r} does not match package versions {sorted(versions)!r}")
+              raise SystemExit(
+                  f"tag {expected!r} does not match package versions {sorted(versions)!r}"
+              )
           PY
 
-      - name: Build core binary
-        run: cargo build --release --locked -p rust-engineering-mcp
+      - name: Build locked core binary
+        run: cargo build --release --locked --offline -p rust-engineering-mcp
 
-      - name: Package notices and binary
+      - name: Build and reopen the deterministic core archive
+        env:
+          RELEASE_TAG: ${{ github.ref_name }}
+        run: >-
+          python3 -B scripts/release-artifact.py
+          --binary target/release/rust-engineering-mcp
+          --target aarch64-apple-darwin
+          --tag "$RELEASE_TAG"
+          --output-dir dist
+
+      - name: Install and smoke the archived bytes
+        env:
+          RELEASE_TAG: ${{ github.ref_name }}
+        run: >-
+          python3 -B scripts/release-smoke.py
+          --archive "dist/rust-engineering-mcp-${RELEASE_TAG}-aarch64-apple-darwin.tar.gz"
+          --sha256sums dist/SHA256SUMS
+          --tag "$RELEASE_TAG"
+          --target aarch64-apple-darwin
+          --output-receipt dist/release-smoke-receipt.json
+
+      - name: Bind candidate digests across jobs
+        id: candidate-digests
         shell: bash
         env:
           RELEASE_TAG: ${{ github.ref_name }}
-          TARGET_NAME: ${{ matrix.target }}
-          BINARY_NAME: ${{ matrix.binary }}
         run: |
-          set -euo pipefail
-          stem="rust-engineering-mcp-${RELEASE_TAG}-${TARGET_NAME}"
-          mkdir -p "dist/${stem}"
-          cp "target/release/${BINARY_NAME}" "dist/${stem}/"
-          cp README.md SECURITY.md LICENSE LICENSE-APACHE LICENSE-MIT NOTICE "dist/${stem}/"
-          tar -czf "dist/${stem}.tar.gz" -C dist "${stem}"
-          rm -rf "dist/${stem}"
-          python - "dist/${stem}.tar.gz" <<'PY'
-          import hashlib, pathlib, sys
-          path = pathlib.Path(sys.argv[1])
-          path.with_suffix(path.suffix + ".sha256").write_text(
-              f"{hashlib.sha256(path.read_bytes()).hexdigest()}  {path.name}\n")
+          python3 - <<'PY'
+          import hashlib, os, pathlib
+          root = pathlib.Path("dist")
+          tag = os.environ["RELEASE_TAG"]
+          paths = {
+              "archive-sha256": root / f"rust-engineering-mcp-{tag}-aarch64-apple-darwin.tar.gz",
+              "checksums-sha256": root / "SHA256SUMS",
+              "smoke-receipt-sha256": root / "release-smoke-receipt.json",
+          }
+          with pathlib.Path(os.environ["GITHUB_OUTPUT"]).open("a", encoding="utf-8") as output:
+              for name, path in paths.items():
+                  output.write(f"{name}={hashlib.sha256(path.read_bytes()).hexdigest()}\n")
           PY
 
-      - name: Attest build provenance
+      - name: Attest archive, checksum and smoke receipt
         uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4.2.2
         with:
-          subject-path: dist/*.tar.gz
+          subject-path: |
+            dist/*.tar.gz
+            dist/SHA256SUMS
+            dist/release-smoke-receipt.json
 
-      - name: Upload candidate artifact
+      - name: Verify candidate attestations before transfer
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ github.ref_name }}
+        run: |
+          gh attestation verify \
+            --repo "$GITHUB_REPOSITORY" \
+            --signer-workflow "$GITHUB_REPOSITORY/.github/workflows/release-candidate.yml" \
+            "dist/rust-engineering-mcp-${RELEASE_TAG}-aarch64-apple-darwin.tar.gz"
+          gh attestation verify \
+            --repo "$GITHUB_REPOSITORY" \
+            --signer-workflow "$GITHUB_REPOSITORY/.github/workflows/release-candidate.yml" \
+            dist/SHA256SUMS
+          gh attestation verify \
+            --repo "$GITHUB_REPOSITORY" \
+            --signer-workflow "$GITHUB_REPOSITORY/.github/workflows/release-candidate.yml" \
+            dist/release-smoke-receipt.json
+
+      - name: Upload qualified candidate
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
-          name: candidate-${{ matrix.target }}
+          name: candidate-aarch64-apple-darwin
           path: dist/*
           if-no-files-found: error
 
@@ -120,25 +171,55 @@ jobs:
     permissions:
       contents: write
     steps:
-      - name: Download candidate artifacts
+      - name: Download qualified candidate
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
-          pattern: candidate-*
+          name: candidate-aarch64-apple-darwin
           path: dist
-          merge-multiple: true
 
-      - name: Verify checksums
+      - name: Reconcile candidate files and receipt
+        shell: bash
+        env:
+          RELEASE_TAG: ${{ github.ref_name }}
+          BUILD_ARCHIVE_SHA256: ${{ needs.build.outputs.archive-sha256 }}
+          BUILD_CHECKSUMS_SHA256: ${{ needs.build.outputs.checksums-sha256 }}
+          BUILD_SMOKE_RECEIPT_SHA256: ${{ needs.build.outputs.smoke-receipt-sha256 }}
         run: |
-          python - <<'PY'
-          import hashlib, pathlib
-          archives = sorted(pathlib.Path("dist").glob("*.tar.gz"))
-          if len(archives) != 3:
-              raise SystemExit(f"expected three archives, found {len(archives)}")
-          for archive in archives:
-              checksum = archive.with_suffix(archive.suffix + ".sha256").read_text().split()[0]
-              actual = hashlib.sha256(archive.read_bytes()).hexdigest()
-              if checksum != actual:
-                  raise SystemExit(f"checksum mismatch: {archive}")
+          python3 - <<'PY'
+          import hashlib, json, os, pathlib, re
+          root = pathlib.Path("dist")
+          tag = os.environ["RELEASE_TAG"]
+          archive = root / f"rust-engineering-mcp-{tag}-aarch64-apple-darwin.tar.gz"
+          expected = {archive.name, "SHA256SUMS", "release-smoke-receipt.json"}
+          observed = {path.name for path in root.iterdir() if path.is_file()}
+          if observed != expected:
+              raise SystemExit(f"candidate file set mismatch: {sorted(observed)}")
+          line = (root / "SHA256SUMS").read_text(encoding="ascii")
+          match = re.fullmatch(r"([0-9a-f]{64})  ([^/\r\n]+)\n", line)
+          digest = hashlib.sha256(archive.read_bytes()).hexdigest()
+          if match is None or match.group(1) != digest or match.group(2) != archive.name:
+              raise SystemExit("archive checksum mismatch")
+          cross_job = {
+              archive.name: os.environ["BUILD_ARCHIVE_SHA256"],
+              "SHA256SUMS": os.environ["BUILD_CHECKSUMS_SHA256"],
+              "release-smoke-receipt.json": os.environ["BUILD_SMOKE_RECEIPT_SHA256"],
+          }
+          for name, expected_digest in cross_job.items():
+              observed_digest = hashlib.sha256((root / name).read_bytes()).hexdigest()
+              if observed_digest != expected_digest:
+                  raise SystemExit(f"cross-job digest mismatch for {name}")
+          receipt = json.loads((root / "release-smoke-receipt.json").read_bytes())
+          release = receipt.get("release", {})
+          if (
+              receipt.get("schema") != "rust-engineering-mcp-release-smoke-receipt-v1"
+              or receipt.get("status") != "passed"
+              or release.get("tag") != tag
+              or release.get("target") != "aarch64-apple-darwin"
+              or release.get("archive_sha256") != digest
+              or receipt.get("counts", {}).get("tools") != 13
+              or receipt.get("cleanup", {}).get("process_group_clean") is not True
+          ):
+              raise SystemExit("release smoke receipt mismatch")
           PY
 
       - name: Create draft prerelease

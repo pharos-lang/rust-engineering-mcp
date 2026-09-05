@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Verify the exact published archive and a manifest-only LanceDB correction."""
+"""Verify the published LanceDB archive, reviewed patch and sourced license."""
 import hashlib, io, os, pathlib, tarfile, difflib, tomllib
 if not __debug__:
     raise RuntimeError("Verification requires Python assertions; optimized mode is rejected")
@@ -15,7 +15,12 @@ with tarfile.open(fileobj=io.BytesIO(data),mode='r:gz') as tar:
         if item.isfile():
             original[str(pathlib.PurePosixPath(item.name).relative_to('lancedb-0.31.0'))]=tar.extractfile(item).read()
 actual={str(p.relative_to(root/'vendor/lancedb')):p.read_bytes() for p in (root/'vendor/lancedb').rglob('*') if p.is_file()}
-assert original.keys()==actual.keys(), 'Vendor files added or removed'
+license_name='LICENSE'
+assert actual.keys()==original.keys()|{license_name}, 'Vendor files added or removed'
+# Exact upstream bytes for Cargo.lock's lancedb 0.31.0 VCS revision. The request,
+# redirect, Git blob and SHA-256 receipt is retained in
+# docs/release/upstream-licenses/receipt.json; this file was not in the .crate.
+assert hashlib.sha256(actual[license_name]).hexdigest()=='58d1e17ffe5109a7ae296caafcadfdbe6a7d176f0bc4ab01e12a689b0499d8bd', 'Reviewed upstream license differs'
 changed={name for name in original if original[name]!=actual[name]}
 assert changed=={'Cargo.toml','Cargo.toml.orig'}, changed
 assert actual['Cargo.toml']==original['Cargo.toml'].replace(b'[dependencies.lance-testing]',b'[dev-dependencies.lance-testing]')

@@ -1,6 +1,15 @@
 # Changelog
 
-## Unreleased — 0.1.0-dev.1
+## 0.1.0 — 2026-09-04
+
+- ADR-048 fija la frontera candidata de 0.1.0: un único archive core para
+  `aarch64-apple-darwin`, sin modelo, ORT, LanceDB, catálogo, trust, fixtures,
+  Docker ni toolchain. El cierre M1 sigue siendo compuesto y exige además un full
+  gate source-bound del perfil `local` en macOS26 ARM64/APFS con el gateway Docker
+  Linux ARM64. Linux y Windows conservan únicamente CI portable/fail-closed.
+- IUMotion Labs no publicará un catálogo oficial en 0.1.0. La fixture y su clave
+  pública continúan siendo material de prueba; esta release no necesita ni crea
+  una clave Ed25519 de producción.
 
 - SonarCloud ahora importa cobertura real: LCOV de los tests Rust portables y
   Cobertura XML del control de arquitectura Python. El workflow rechaza reportes
@@ -19,18 +28,25 @@
   a manual, OIDC-attested draft core-artifact workflow; no binary release or crates.io
   publication follows from this source publication.
 
-- M1-17 qualification remains blocked. The fresh 19-stage full gate passed on
-  macOS ARM64. MCP Inspector2.5.0 successfully called all13 public tools through
-  its UI. Stock Codex0.153.0 passed direct tool/Resource, canonical inventory, repair
-  and missing-runtime exercises; two model turns made no product call. The Opus5
-  review was disposed without hiding its blocked verdict. Native runners, remaining
-  third-party notices and production catalog-key custody still block M1.
+- M1-17 qualification remains in progress only for final source/artifact gates and
+  publication. MCP Inspector 2.5.0 repeated discovery, positive and fail-closed
+  paths on the final core binary. Stock Codex 0.153.0 with `gpt-5.6-sol` completed
+  the model-directed E0502-to-green repair and missing-runtime phases under a
+  schema-v4 closed controller; 39 controller tests and independent Opus 5 reviews
+  report no open P0/P1. Protected publication, tag, attestation and GitHub Release
+  remain before M1-15/M1-17 can be marked Done.
 
 - M1-16: completed the frozen 24-run paired utility pilot and hidden oracles.
   Both arms passed all 12 first/final candidates; there was no discordant pair or
   observed success advantage. The saturated endpoint has zero discriminating power
   and is not equivalence evidence. The MCP arm used more interactions, elapsed time
   and tokens; no causal, population or product-value claim follows.
+
+- M1-16 retrieval benchmark: one bounded native run over 8 queries and a closed
+  15-crate projection observed Hit@5 0.125 lexical versus 1.0 semantic/hybrid,
+  warm medians 0.476 versus 4.040/4.041 ms and sampled peak RSS 1,641,632 KiB.
+  This separate descriptive benchmark does not establish general IR superiority,
+  multilingual coverage, statistical significance, agent utility or causality.
 
 - Prerrequisito M1-01: worker compartido sin cola, cancelación y drenaje al cierre;
   admisión de mensajes SDK y envíos acotada, deadlines de frames/escrituras y cap

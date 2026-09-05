@@ -1,0 +1,69 @@
+{
+  "schema": "rust-engineering-mcp-stock-codex-qualification-public-v1",
+  "status": "passed",
+  "date": "2026-09-04",
+  "raw_receipt_sha256": "629fe2aa837218b7df839c936c11978bab4ba6aa00fa64fabc45e961aa3ab3b5",
+  "raw_transcript_sha256": "318c8600863b86ba2b6caed65b88df6779ce7c921c24ea7f33483899a9bff45c",
+  "plan_sha256": "8b86bd6bc5d27c20a78702af5ce967878a7839ba5629cb9faeec06b7aa998919",
+  "qualifier_sha256": "72419d89279efc67f469f59637c81fe60da5927aba7629996c7e232a4102c93a",
+  "qualifier_tests_sha256": "370f9dafe4263926c6be46f3ff552abe2338b7e3def8e4dcb21e93d5c6860049",
+  "qualifier_tests": {
+    "executed": 39,
+    "status": "passed"
+  },
+  "candidate": {
+    "server_version": "0.1.0",
+    "server_sha256": "ebcb292c71d863aabb900874651230d0a16d5c93f68da84afb84bd89f4977edf",
+    "codex_version": "0.153.0",
+    "codex_sha256": "a29d9e86eef88cbbd69f97ce8c590b1d0a287c8f77424f5eef226b883d7eaa22",
+    "code_host_sha256": "9f6c2696d09c293e1e6d7034930c62a104120db6a13f50f99cb3cdfeb4bb7692",
+    "model": "gpt-5.6-sol",
+    "reasoning_effort": "medium"
+  },
+  "closed_profile": {
+    "approval_policy": "never",
+    "sandbox": "workspace-write",
+    "network_access": false,
+    "feature_world_count": 135,
+    "feature_world_sha256": "1731985d18004a9ea2d02acde5ace6c9cfdb22797d374c165f0075d5e18f6b4b",
+    "schema_bundle_sha256": "2af3f81b7de53f1b1bc7ce6e7349288b200ecf6f6c59405d632cf6ca1d5be1d0"
+  },
+  "phases": {
+    "missing_runtime": {
+      "status": "passed",
+      "enabled_tools": ["rust.project.open", "rust.check"],
+      "descriptor_sha256_observed": "d4b47a2f162520f5ec3ec2047c6956d8109d2003382461477ecfe8bc59bf1e3a",
+      "descriptor_sha256_approved": "d4b47a2f162520f5ec3ec2047c6956d8109d2003382461477ecfe8bc59bf1e3a",
+      "model_calls": ["rust.project.open", "rust.check"],
+      "product_result": "SANDBOX_DENIED",
+      "code_host_observed": true,
+      "cleanup_failure": null,
+      "remaining_pids": []
+    },
+    "repair": {
+      "status": "passed",
+      "enabled_tools": ["rust.project.open", "rust.project.inspect", "rust.check", "rust.quality.gate"],
+      "descriptor_sha256_observed": "d4f9ff8148024726900a1744e688ac6afced51677b48e95b5fdf26188bca5ddd",
+      "descriptor_sha256_approved": "d4f9ff8148024726900a1744e688ac6afced51677b48e95b5fdf26188bca5ddd",
+      "model_calls": ["rust.project.open", "rust.project.inspect", "rust.check", "rust.project.open", "rust.check"],
+      "diagnostic": "E0502",
+      "file_changes": 1,
+      "final_check": "passed",
+      "runtime_image_id": "sha256:8fac70723a8d04b6ec9633ab721806b8a55f4f083a1b3f988c61bf6a00fa1909",
+      "runtime_platform": "linux/aarch64",
+      "runtime_rust": "1.98.1",
+      "code_host_observed": true,
+      "cleanup_failure": null,
+      "remaining_pids": []
+    }
+  },
+  "integrity": {
+    "auth_source_unchanged": true,
+    "auth_copies_unlinked": true,
+    "authority_canary_unchanged": true,
+    "source_fixture_unchanged": true,
+    "owned_private_child_removed": true,
+    "raw_evidence_published": false,
+    "raw_evidence_reason": "Contains local paths and account telemetry; hashes retain binding without publishing private material."
+  }
+}

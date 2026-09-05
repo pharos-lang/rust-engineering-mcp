@@ -72,6 +72,13 @@ jobs:
       - name: Check architectural dependency boundaries
         run: python scripts/check-architecture.py
 
+      - name: Test release and qualification controllers
+        if: matrix.target == 'x86_64-unknown-linux-gnu'
+        run: |
+          python3 -B scripts/test-release-artifact.py
+          python3 -B scripts/test-release-smoke.py
+          python3 -B scripts/test-codex-model-qualifier.py
+
   supply-chain:
     name: supply chain
     runs-on: ubuntu-latest

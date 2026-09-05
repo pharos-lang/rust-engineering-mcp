@@ -19,18 +19,29 @@ useful cross-platform evidence but do not advertise sandbox/filesystem capabilit
 that still fail closed outside qualified adapters.
 
 The manual `.github/workflows/release-candidate.yml` workflow must be dispatched from
-an existing version tag. It produces only core-profile archives, creates GitHub OIDC
-provenance attestations and opens a draft prerelease. A draft is not a supported
-release. Local-feature/model/catalog packages remain outside this pipeline until
-their native and notice gates close.
+an existing version tag. ADR-048 restricts 0.1.0 to one macOS ARM64 core archive
+with a target-specific inventory, SPDX SBOM, third-party notices, manifest and
+checksums. The workflow must install and exercise those same bytes before creating
+GitHub OIDC provenance and a draft prerelease. A draft is not a supported release.
+The archive contains no model, ORT, LanceDB, catalog, trust, fixtures, Docker image
+or toolchain; the complete `local` profile remains qualified from source.
 
 GitHub OIDC signs the build-provenance statement without a repository-held private
-key. Signed catalog snapshots use a separate Ed25519 protocol defined by ADR-041;
-their production key and operational custodian remain undecided because no catalog
-distribution is authorized.
+key. Signed catalog snapshots use a separate Ed25519 protocol defined by ADR-041.
+IUMotion Labs will not publish an official catalog in 0.1.0, so this release creates
+no production catalog key or custody obligation; fixture trust remains test-only.
 
 The public source snapshot and portable CI qualification are recorded in
 [`docs/validation/public-source-publication.json`](validation/public-source-publication.json).
 The cited GitHub run passed on Linux x86_64, macOS ARM64 and Windows x86_64 together
 with the supply-chain job. This is source-portability evidence only; native sandbox,
 filesystem, model, catalog and per-target notice gates remain separate.
+
+The historical receipt intentionally remains bound to run `33928437393`. A separate
+[live observation](validation/public-ci-live-33928952807.json) records the later
+green run `33928952807` on public commit `d2192037e55362e2834969db627844c2f734a50f`
+and current branch protection; it does not overwrite the earlier observation or
+serve as native capability evidence. No 0.1.0 tag or binary release exists yet.
+Final documentation must add the actual
+tag/commit, workflow jobs, archive/SBOM/notices hashes, verified attestation and
+release URL only after observing them live.

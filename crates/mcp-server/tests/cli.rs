@@ -104,18 +104,22 @@ fn non_utf8_argument_is_rejected_without_panicking() -> io::Result<()> {
 #[cfg(unix)]
 #[test]
 fn closed_output_stream_returns_one_without_panicking() -> io::Result<()> {
-    use std::os::fd::OwnedFd;
-    use std::os::unix::net::UnixStream;
     use std::process::Stdio;
 
     for argument in ["--help", "version", "unknown"] {
-        let (writer, reader) = UnixStream::pair()?;
-        // Shut down the endpoint before closing our descriptor: another test's
-        // concurrently spawning child can briefly retain a pre-exec duplicate.
-        // Dropping only this descriptor does not prove that the peer is closed.
-        reader.shutdown(std::net::Shutdown::Both)?;
-        drop(reader);
-        let closed_stream = Stdio::from(OwnedFd::from(writer));
+        // A completed sink closes the only pipe reader before the product starts.
+        // A socket-pair shutdown can still accept a short write on some kernels,
+        // making the version case a race rather than a closed-output oracle.
+        let mut sink = Command::new("/usr/bin/true")
+            .env_clear()
+            .stdin(Stdio::piped())
+            .spawn()?;
+        let closed_stream = Stdio::from(
+            sink.stdin
+                .take()
+                .ok_or_else(|| io::Error::other("missing sink input"))?,
+        );
+        assert!(sink.wait()?.success());
         let mut command = Command::new(env!("CARGO_BIN_EXE_rust-engineering-mcp"));
         command.env_clear().arg(argument);
         if argument == "unknown" {

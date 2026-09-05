@@ -3,6 +3,7 @@
 El gate de calificación sigue siendo local: ramas ai/, commits coherentes, merge
 no-ff y evidencia post-merge. ADR-029 define la matriz inicial de M0. ADR-047 añade
 GitHub CI/CD sin convertir sus runners alojados en evidencia automática de sandbox.
+ADR-048 separa CI portable, host positivo y artifact distribuible.
 
 `.github/workflows/ci.yml` usa actions oficiales fijadas por commit, permisos
 `contents: read` y cancelación por concurrencia. Aprovisiona explícitamente el
@@ -36,11 +37,12 @@ de otras plataformas. Esos alcances conservan su evidencia separada en este
 documento y en `docs/validation/`.
 
 `.github/workflows/release-candidate.yml` solo admite dispatch manual desde un tag
-de versión existente. Construye el perfil core para los tres runners, empaqueta
-LICENSE/NOTICE, verifica SHA-256, crea attestations OIDC y abre un GitHub prerelease
-en borrador. No publica en crates.io, no contiene E5/ORT/LanceDB y no convierte el
-draft en release soportada. Publicarlo exige cerrar previamente las filas aplicables
-de la matriz M1-17.
+de versión existente. Para 0.1.0 debe construir únicamente core para
+`aarch64-apple-darwin`, generar closure target-specific, SBOM SPDX, notices,
+manifest y SHA-256, instalar/verificar el archive y probar `version`, doctor pasivo,
+discovery, trece tools y denegaciones estructuradas. Después crea provenance OIDC y
+un prerelease en borrador. No publica en crates.io ni contiene modelo, ORT, LanceDB,
+catálogo, trust, fixtures, Docker o toolchain. El draft no es una release soportada.
 
 ```text
 python3 scripts/gate.py core
@@ -48,17 +50,19 @@ RUST_MCP_TEST_SOCKET=/ruta/docker.sock RUST_MCP_E5_DIR=/ruta/e5/onnx ORT_LIB_LOC
 ```
 
 El reporte por defecto queda en `target/gate-report.json`; `--report PATH` permite
-conservar un artifact de validación. Cada etapa registra comando, duración y estado.
+conservar un artifact de validación. El schema v2 registra inicio/fin UTC, comando,
+duración, estado y conteos directos por etapa. Los reportes históricos anteriores
+conservan sus timestamps/conteos derivados y no se reescriben.
 Un error o prerequisito ausente produce exit no cero. No se aceptan Python -O ni
 sustituciones del toolchain. Cargo utiliza CARGO_INCREMENTAL=0, --locked --offline.
 
-| Entorno | Gate M0 | Alcance / pendiente |
+| Entorno | Evidencia 0.1.0 | Alcance |
 | --- | --- | --- |
-| macOS26.6.2/APFS ARM64, Rust1.98.1 | Core + full real | Único host nativo validado; E5/ORT/LanceDB incluidos |
-| Docker/Linux ARM64, runc/cgroupsv2 | Security probes + CLI capabilities | M0 probes; M1 ADR-031 añade Rust1.98.1 y source transfer, sin host mounts |
-| Linux ARM64/x86_64 nativo | Sin ejecutar | Requiere runner Rust1.98.1; acceso protegido de proyecto aún unavailable |
-| Windows x86_64/ARM64 | Sin ejecutar | Requiere runner, harness Windows y adapter no-follow/reparse-safe |
-| macOS x86_64 | Sin ejecutar | Requiere runner y native ORT/model receipt de esa plataforma |
+| macOS26.6.2/APFS ARM64, Rust1.98.1 | Host positivo core + full `local`; único artifact previsto | E5/ORT/LanceDB solo en full desde fuente |
+| Docker/Linux ARM64, runc/cgroupsv2 | Guest de ejecución aprobado | No es host/artifact Linux nativo |
+| Linux x86_64 | CI portable/fail-closed | Sin capability positiva ni artifact 0.1.0 |
+| Windows x86_64 | CI portable/fail-closed | Sin adapter reparse-safe positivo ni artifact 0.1.0 |
+| Linux ARM64, macOS x86_64, Windows ARM64 | No anunciados | Fuera de artifacts 0.1.0 |
 
 `core` ejecuta fmt, check, Clippy, unit/integration/contract/protocol/security sin
 Docker, doctests, invariantes arquitectónicas, integridad de vendor, corpus Cargo,
@@ -78,9 +82,11 @@ aprovisionamiento explícito de desarrollo antes del gate offline.
 Deny ejecuta advisories/bans/sources con todas las features, sin advisory ignores.
 `paste`1.0.15 tiene advertencia de mantenimiento transitiva visible en cargo-audit;
 versiones duplicadas son warnings. ADR-047 resolvió la licencia del código original;
-la redistribución de dependencias/modelos y sus notices sigue pendiente. `deny licenses`
-no forma parte del gate M0 ni se declara aprobado. Esos notices se requieren antes
-de publicar binarios M1, junto al benchmark ES/EN y recibos nativos por plataforma.
+la redistribución de modelo/ORT/LanceDB sigue fuera de 0.1.0. `deny licenses` no
+forma parte del gate M0 ni sustituye el closure legal. El archive core necesita
+inventario y notices exactos para su target; los assets excluidos conservan sus
+limitaciones para quien construya `local`. El benchmark acotado ya existe, sin
+afirmar superioridad general ni utilidad de agente.
 Los fixtures build.rs/proc macros/libtest bajo
 el sandbox Cargo se verifican en los cortes M1 y en rust-security; no se atribuyen a M0.
 
@@ -206,3 +212,11 @@ de doctor, no afirmación de full19/19 ni de nuevos runners. SIGINT fue comproba
 el manejo implementado de SIGTERM no se presenta como un caso adicional ejecutado.
 [ADR-045](adr/ADR-045-cli-doctor.md). Distribución, clientes reales y cierre M1
 mantienen sus gates independientes.
+
+## Cierre compuesto ADR-048
+
+El artifact core por sí solo no califica M1. El candidato final debe combinar su
+receipt de archive/SBOM/notices/install/smoke con un full gate v2 source-bound del
+perfil `local`, Inspector y stock Codex dirigido por modelo sobre los mismos bytes,
+reviews finales y la evidencia pública de PR, CI, tag, attestation y release. IUMotion
+Labs no publica catálogo oficial 0.1.0 y no se aprovisiona clave Ed25519 de producción.

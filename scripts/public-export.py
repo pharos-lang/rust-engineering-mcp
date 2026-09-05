@@ -21,10 +21,36 @@ TOKEN_PATTERNS = {
 PUBLIC_TEST_PRIVATE_KEYS = {
     "crates/mcp-server/src/catalog_sync/test-certs/end.key",
 }
+COMMITISH = re.compile(r"(?:[0-9A-Fa-f]{40}|[A-Za-z0-9][A-Za-z0-9._/-]{0,200})\Z")
 
 
 def git(*args: str) -> bytes:
-    return subprocess.check_output(["git", *args], cwd=ROOT)
+    # Arguments are fixed subcommands plus validated commit/object IDs; never a shell.
+    return subprocess.check_output(["git", *args], cwd=ROOT)  # NOSONAR
+
+
+def validate_commitish(value: str) -> str:
+    """Reject option injection and ambiguous/pathological revision spellings."""
+    if (
+        COMMITISH.fullmatch(value) is None
+        or value.startswith("-")
+        or ".." in value
+        or "//" in value
+        or value.endswith(("/", ".lock"))
+    ):
+        raise ValueError("commit must be a full object ID or bounded Git ref name")
+    return value
+
+
+def resolve_commit(value: str) -> str:
+    """Resolve one validated revision to exactly one full commit object ID."""
+    commitish = validate_commitish(value)
+    commit = git(
+        "rev-parse", "--verify", "--end-of-options", f"{commitish}^{{commit}}"
+    ).decode().strip()
+    if re.fullmatch(r"[0-9a-f]{40}", commit) is None:
+        raise RuntimeError("Git did not return exactly one full commit object ID")
+    return commit
 
 
 def sha256(data: bytes) -> str:
@@ -45,7 +71,7 @@ def main() -> None:
         shutil.rmtree(output)
     output.mkdir(parents=True, mode=0o700)
 
-    commit = git("rev-parse", f"{args.commit}^{{commit}}").decode().strip()
+    commit = resolve_commit(args.commit)
     rows = git("ls-tree", "-rz", commit).split(b"\0")
     replacements = {
         str(pathlib.Path.home()).encode(): b"<LOCAL_HOME>",

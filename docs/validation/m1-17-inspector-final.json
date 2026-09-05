@@ -1,0 +1,43 @@
+{
+  "schema": "rust-engineering-mcp-inspector-qualification-public-v1",
+  "status": "passed",
+  "date": "2026-09-04",
+  "raw_receipt_sha256": "1b24e48dfc0c590703c1767160e9b737182226c10c6689f83cfbc322901bcf23",
+  "inspector_version": "2.5.0",
+  "sdk_client_version": "2.0.0",
+  "server_version": "0.1.0",
+  "server_sha256": "ebcb292c71d863aabb900874651230d0a16d5c93f68da84afb84bd89f4977edf",
+  "tool_count": 13,
+  "tool_names": [
+    "rust.project.open",
+    "rust.project.inspect",
+    "rust.toolchain.inspect",
+    "rust.check",
+    "rust.fmt.check",
+    "rust.clippy",
+    "rust.test",
+    "rust.dependencies.audit",
+    "rust.diagnostics.explain",
+    "rust.quality.gate",
+    "rust.catalog.status",
+    "rust.crate.search",
+    "rust.crate.inspect"
+  ],
+  "observations": {
+    "initialize": "passed",
+    "tools_list": "passed",
+    "positive_calls": 6,
+    "positive_distinct_tools": 5,
+    "unavailable_tools_fail_closed": 9,
+    "resources_list": "passed",
+    "ipv4_outbound_denied": true,
+    "ipv6_outbound_denied": true,
+    "container_cleanup": "absent",
+    "volume_cleanup": "absent"
+  },
+  "limitations": [
+    "One-shot Inspector CLI, not GUI.",
+    "Does not repeat all thirteen tools on positive paths.",
+    "No same-session Resource read or active-child cancellation claim."
+  ]
+}

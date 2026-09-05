@@ -20,7 +20,7 @@ al código fuente: observan, validan y devuelven evidencia; no aplican cambios a
 repositorio.
 
 > [!IMPORTANT]
-> La versión actual es `0.1.0-dev.1` y se distribuye como código fuente. Todavía no
+> La versión actual del candidato es `0.1.0` y se distribuye como código fuente. Todavía no
 > existe una versión binaria soportada en GitHub Releases. La ejecución completa se
 > ha calificado localmente en Apple Silicon con macOS 26 y APFS; la CI comprueba que
 > el código compila y pasa sus pruebas en Linux, macOS y Windows, pero eso no amplía
@@ -115,12 +115,12 @@ cliente.
 
 | Cliente | Configuración | Evidencia actual |
 | --- | --- | --- |
-| Codex | [CLI o `config.toml`](docs/client-configuration.md#codex) | APIs directas del cliente Codex 0.153.0 verificadas; uso autónomo por el modelo pendiente. |
+| Codex | [CLI o `config.toml`](docs/client-configuration.md#codex) | Codex 0.153.0 y `gpt-5.6-sol` completaron el flujo model-directed de error, reparación y runtime ausente sobre el binario 0.1.0. |
 | Claude Code | [CLI o `.mcp.json`](docs/client-configuration.md#claude-code) | Configuración documentada; calificación de este MCP pendiente. |
 | Gemini CLI | [`settings.json`](docs/client-configuration.md#gemini-cli) | Configuración documentada; calificación de este MCP pendiente. |
 | Cursor | [`.cursor/mcp.json`](docs/client-configuration.md#cursor) | Configuración documentada; calificación de este MCP pendiente. |
 | VS Code / GitHub Copilot | [`.vscode/mcp.json`](docs/client-configuration.md#vs-code-y-github-copilot) | Configuración documentada; calificación de este MCP pendiente. |
-| MCP Inspector | [Web, CLI o TUI](docs/client-configuration.md#mcp-inspector) | Inspector 2.5.0 descubrió y llamó las 13 tools; Resource read no quedó calificado. |
+| MCP Inspector | [Web, CLI o TUI](docs/client-configuration.md#mcp-inspector) | Inspector 2.5.0 descubrió las 13 tools; la repetición final verificó paths positivos y fail-closed sobre el binario 0.1.0. |
 
 La [guía de configuración por cliente](docs/client-configuration.md) contiene los
 archivos completos, comandos de verificación y enlaces a la documentación oficial.
@@ -305,6 +305,11 @@ cargo test --workspace --all-targets --locked
 ```
 
 Los gates completos y sus prerrequisitos están documentados en [`docs/ci.md`](docs/ci.md).
+Core solo no cierra M0 ni califica una distribución M1. ADR-048 exige además el
+full gate source-bound con feature `local`, E5/ORT/LanceDB y el gateway Docker
+Linux ARM64 en el host positivo macOS 26 ARM64/APFS. La CI portable en Linux,
+macOS y Windows acredita fuente, protocolo y comportamiento fail-closed; no amplía
+las capabilities nativas ni promete artifacts para esos targets.
 
 ## Licencia
 

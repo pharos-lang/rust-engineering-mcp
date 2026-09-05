@@ -1,4 +1,8 @@
-# Prompt para retomar M1
+# Prompt histórico para retomar M1
+
+Este checkpoint fue sustituido por
+[close-m0-m1-and-handoff-m2-m8.md](close-m0-m1-and-handoff-m2-m8.md), que parte del
+estado posterior a la publicación de la fuente y está orientado al cierre completo.
 
 Copia el siguiente bloque en una nueva sesión de Codex abierta en el repositorio.
 

@@ -1,0 +1,80 @@
+{
+  "schema": "rust-mcp-gate-public-receipt-v2",
+  "status": "passed",
+  "mode": "full",
+  "source_commit": "d24a95dc199c7d877adf36a2807d844d7e010a7a",
+  "source_worktree_clean": false,
+  "dirty_scope": [
+    "docs/release/0.1.0-local-artifact-receipt.json",
+    "docs/implementation-status.md",
+    "docs/validation/M0-M1-closure-matrix.md",
+    "docs/validation/M1-17-matrix.md"
+  ],
+  "dirty_disposition": "Artifact receipt and closure-matrix documentation only; production code, manifests, lockfile, tests, CI and gate scripts matched source_commit.",
+  "raw_report_sha256": "c04dfac95623171d419ac54fc9c1a6805cf56e6fc552ed2c541d04ccd633269f",
+  "platform": "macOS-26.6.2-arm64-arm-64bit-Mach-O",
+  "rustc": "rustc 1.98.1 (48a229cea 2026-09-01)",
+  "cargo": "cargo 1.98.1 (797e8a9bc 2026-08-05)",
+  "started_at": "2026-09-05T04:50:01.674374Z",
+  "finished_at": "2026-09-05T05:02:32.772553Z",
+  "step_count": 23,
+  "step_seconds_total": 750.957,
+  "rust_test_passes_observed": 680,
+  "python_unittest_executed": 65,
+  "failed_steps": [],
+  "steps": [
+    "fmt",
+    "check",
+    "clippy",
+    "test",
+    "doctests",
+    "architecture",
+    "gate-reporting",
+    "release-artifact-tests",
+    "release-smoke-tests",
+    "codex-qualifier-tests",
+    "vendor",
+    "cargo-fixtures",
+    "audit",
+    "deny",
+    "docker-security",
+    "rust-security",
+    "audit-data",
+    "semantic",
+    "catalog",
+    "catalog-status",
+    "crate-search",
+    "crate-inspect",
+    "doctor"
+  ],
+  "direct_counts": {
+    "workspace_test_passed": 644,
+    "doctest_passed": 1,
+    "docker_security_passed": 4,
+    "semantic_passed": 17,
+    "catalog_passed": 6,
+    "catalog_status_passed": 3,
+    "crate_search_passed": 3,
+    "crate_inspect_passed": 2,
+    "gate_reporting_python": 6,
+    "release_artifact_python": 11,
+    "release_smoke_python": 9,
+    "codex_qualifier_python": 39
+  },
+  "native_harnesses": {
+    "rust_security": "passed",
+    "audit_data": "passed under macOS process network deny",
+    "semantic": "passed with exact E5, ORT, LanceDB and SQLite under network deny",
+    "catalog": "passed signed import, restart, rollback and native index rebuild",
+    "doctor": "passed calibration, SIGINT, SIGTERM, SIGHUP and stalled-output cleanup"
+  },
+  "post_gate_cleanup": {
+    "managed_containers": [],
+    "managed_volumes": []
+  },
+  "warnings": [
+    "cargo audit reports the allowed unmaintained paste advisory in the source-only local feature graph.",
+    "cargo deny reports allowed duplicate packages and one stale denied-feature warning; advisories, bans and sources passed.",
+    "The core release archive excludes E5, ORT, LanceDB and their local dependency closure."
+  ]
+}

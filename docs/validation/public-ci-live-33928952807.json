@@ -1,0 +1,61 @@
+{
+  "schema": "rust-engineering-mcp-public-ci-observation-v1",
+  "observed_at_utc": "2026-09-05T01:05:01Z",
+  "repository": "pharos-lang/rust-engineering-mcp",
+  "run": {
+    "id": 33928952807,
+    "url": "https://github.com/pharos-lang/rust-engineering-mcp/actions/runs/33928952807",
+    "workflow": "CI",
+    "event": "push",
+    "head_branch": "main",
+    "head_sha": "d2192037e55362e2834969db627844c2f734a50f",
+    "status": "completed",
+    "conclusion": "success",
+    "created_at": "2026-09-04T23:17:46Z",
+    "updated_at": "2026-09-04T23:22:55Z"
+  },
+  "jobs": [
+    {
+      "id": 101203421510,
+      "name": "portable / x86_64-unknown-linux-gnu",
+      "conclusion": "success",
+      "url": "https://github.com/pharos-lang/rust-engineering-mcp/actions/runs/33928952807/job/101203421510"
+    },
+    {
+      "id": 101203421488,
+      "name": "portable / aarch64-apple-darwin",
+      "conclusion": "success",
+      "url": "https://github.com/pharos-lang/rust-engineering-mcp/actions/runs/33928952807/job/101203421488"
+    },
+    {
+      "id": 101203421375,
+      "name": "portable / x86_64-pc-windows-msvc",
+      "conclusion": "success",
+      "url": "https://github.com/pharos-lang/rust-engineering-mcp/actions/runs/33928952807/job/101203421375"
+    },
+    {
+      "id": 101203421450,
+      "name": "supply chain",
+      "conclusion": "success",
+      "url": "https://github.com/pharos-lang/rust-engineering-mcp/actions/runs/33928952807/job/101203421450"
+    }
+  ],
+  "branch_protection_observed": {
+    "branch": "main",
+    "strict": true,
+    "enforce_admins": true,
+    "required_checks": [
+      "portable / x86_64-unknown-linux-gnu",
+      "portable / aarch64-apple-darwin",
+      "portable / x86_64-pc-windows-msvc",
+      "supply chain"
+    ],
+    "allow_force_pushes": false,
+    "allow_deletions": false
+  },
+  "scope": "Live public portable CI and branch-protection observation only. It does not qualify native sandbox, protected filesystem, ORT, LanceDB, model assets or binary artifacts.",
+  "source_commands": [
+    "gh run view 33928952807 --repo pharos-lang/rust-engineering-mcp --json databaseId,name,displayTitle,event,status,conclusion,createdAt,startedAt,updatedAt,headBranch,headSha,url,jobs,workflowName",
+    "gh api repos/pharos-lang/rust-engineering-mcp/branches/main/protection"
+  ]
+}

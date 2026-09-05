@@ -4826,7 +4826,7 @@ dependencies = [
 
 [[package]]
 name = "rust-engineering-application"
-version = "0.1.0-dev.1"
+version = "0.1.0"
 dependencies = [
  "rust-engineering-domain",
  "serde_json",
@@ -4834,7 +4834,7 @@ dependencies = [
 
 [[package]]
 name = "rust-engineering-artifact"
-version = "0.1.0-dev.1"
+version = "0.1.0"
 dependencies = [
  "getrandom 0.4.3",
  "rust-engineering-application",
@@ -4844,7 +4844,7 @@ dependencies = [
 
 [[package]]
 name = "rust-engineering-catalog"
-version = "0.1.0-dev.1"
+version = "0.1.0"
 dependencies = [
  "cargo-lock",
  "ring",
@@ -4863,7 +4863,7 @@ dependencies = [
 
 [[package]]
 name = "rust-engineering-domain"
-version = "0.1.0-dev.1"
+version = "0.1.0"
 dependencies = [
  "serde",
  "serde_json",
@@ -4871,7 +4871,7 @@ dependencies = [
 
 [[package]]
 name = "rust-engineering-execution"
-version = "0.1.0-dev.1"
+version = "0.1.0"
 dependencies = [
  "getrandom 0.4.3",
  "rust-engineering-application",
@@ -4886,7 +4886,7 @@ dependencies = [
 
 [[package]]
 name = "rust-engineering-mcp"
-version = "0.1.0-dev.1"
+version = "0.1.0"
 dependencies = [
  "base64 0.22.1",
  "jsonschema",
@@ -4914,7 +4914,7 @@ dependencies = [
 
 [[package]]
 name = "rust-engineering-project"
-version = "0.1.0-dev.1"
+version = "0.1.0"
 dependencies = [
  "getrandom 0.4.3",
  "rust-engineering-application",
@@ -4928,7 +4928,7 @@ dependencies = [
 
 [[package]]
 name = "rust-engineering-semantic"
-version = "0.1.0-dev.1"
+version = "0.1.0"
 dependencies = [
  "arrow-array",
  "arrow-schema",

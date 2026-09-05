@@ -89,7 +89,7 @@ seguridad, estados de resultados, artifacts o autoridad del host.
 | Embeddings | `EmbeddingProvider` abstraído; consulta local y snapshots/imports compatibles con entornos air-gapped |
 | Cache | SQLite inicialmente; siempre separado conceptualmente del catálogo autoritativo |
 | Configuración | TOML |
-| Distribución primaria | Binarios firmados en GitHub Releases |
+| Distribución primaria | GitHub Releases; 0.1.0 publica el artifact core macOS ARM64 definido por ADR-048 |
 | Distribución secundaria | `cargo install` / crates.io |
 | Versionado | SemVer + matriz de compatibilidad MCP |
 | Estrategia de tools | Pocas tools de alto valor, composables y con salida estructurada |
@@ -3293,7 +3293,7 @@ Orden recomendado:
 
 # 61. GitHub Releases
 
-Cada release debe publicar:
+La matriz aspiracional puede publicar, según viabilidad:
 
 ```text
 linux x86_64
@@ -3303,7 +3303,9 @@ macOS arm64
 windows x86_64
 ```
 
-Según viabilidad.
+Para 0.1.0, ADR-048 califica y publica únicamente macOS ARM64. Linux y Windows
+conservan CI de portabilidad/fail-closed, pero no se presentan como hosts de
+capabilities positivas ni reciben artifacts 0.1.0.
 
 Artefactos:
 
@@ -4287,7 +4289,9 @@ macOS
 Windows
 ```
 
-cuando CI sea viable.
+cuando existan adapters y security tests nativos. Para 0.1.0, ADR-048 conserva CI
+portable en los tres OS y califica como host positivo únicamente macOS ARM64/APFS
+con el gateway Docker Linux ARM64 aprobado.
 
 ---
 
@@ -4382,7 +4386,7 @@ Definition of Done:
 - `inputSchema` y `outputSchema` documentados y derivados de tipos Rust cuando sea posible;
 - respuestas principales mediante `structuredContent`;
 - contract tests que detecten breaking changes de schema;
-- Linux/macOS/Windows ejecutan CI de core/protocolo/catálogo; cada capability de
+- Linux/macOS/Windows ejecutan CI portable de core/protocolo/catálogo; cada capability de
   sandbox anunciada tiene security tests reales en esa plataforma y las tools se
   bloquean donde falten garantías;
 - output estructurado;
@@ -4395,6 +4399,12 @@ Definition of Done:
 - provenance/freshness en resultados del catálogo;
 - integration tests;
 - MCP Inspector tests.
+
+ADR-048 separa la calificación completa desde fuente de los artifacts binarios:
+el full gate de M1 sigue incluyendo E5/ORT/LanceDB en el host positivo, mientras
+el release 0.1.0 distribuye solo un core macOS ARM64 sin modelo, runtime, catálogo
+ni fixture. El core por sí solo no califica M1; el cierre usa ambos conjuntos de
+evidencia. IUMotion Labs no publica un catálogo oficial en 0.1.0.
 
 ---
 
