@@ -113,7 +113,8 @@ en la matriz M2. Su cierre no autoriza avanzar a M3 ni publicar otra release.
 No hay implementación M2 pendiente. M2-01..07 tiene calificación conjunta local:
 18 tools, trece contratos M1 intactos, full posterior a ADR-059, cliente stock y
 revisiones Accepted. [Cierre, límites e integración](validation/M2-07.md).
-M3+ no está autorizado y otra release permanece fuera de alcance.
+Integrado localmente con merge no-ff `7554bcc`; [smoke y hashes](validation/M2-local-integration.json)
+posteriores aprobados. M3+ no está autorizado y otra release permanece fuera de alcance.
 
 No hay vertical M0/M1 en progreso. La fuente, CI portable, SonarCloud, artifact y
 release están enlazados desde el [recibo final](validation/m1-17-public-release.json).
