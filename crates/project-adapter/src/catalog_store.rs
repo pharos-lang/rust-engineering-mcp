@@ -788,7 +788,8 @@ mod macos {
                     std::fs::set_permissions(&path, std::fs::Permissions::from_mode(0o600))?;
                 }
                 let result = read_private_checked(&path, 6, || {
-                    std::fs::set_permissions(&base, std::fs::Permissions::from_mode(0o777))
+                    // Deliberate negative oracle: the read below must reject a world-writable ancestor.
+                    std::fs::set_permissions(&base, std::fs::Permissions::from_mode(0o777)) // NOSONAR
                         .map_err(|_| StoreError::Io)
                 });
                 assert_eq!(result, Err(StoreError::Denied));

@@ -98,7 +98,8 @@ mod macos {
             read_private_optional_file(&path, 7)?.as_deref(),
             Some(b"payload".as_slice())
         );
-        fs::set_permissions(&path, fs::Permissions::from_mode(0o644))?;
+        // Deliberate negative oracle: a non-private catalog file must be denied.
+        fs::set_permissions(&path, fs::Permissions::from_mode(0o644))?; // NOSONAR
         assert_eq!(
             read_private_optional_file(&path, 7),
             Err(StoreError::Denied)
@@ -115,7 +116,8 @@ mod macos {
             read_private_optional_file(&f.0.join("link"), 7),
             Err(StoreError::Denied)
         );
-        fs::set_permissions(&f.0, fs::Permissions::from_mode(0o755))?;
+        // Deliberate negative oracle: a searchable store root must be denied.
+        fs::set_permissions(&f.0, fs::Permissions::from_mode(0o755))?; // NOSONAR
         assert_eq!(
             read_private_optional_file(&path, 7),
             Err(StoreError::Denied)
@@ -233,7 +235,8 @@ mod macos {
         for name in ["store.lock", "staging.bundle", "active.bundle"] {
             let f = Fixture::new()?;
             let path = f.write(name, b"")?;
-            fs::set_permissions(path, fs::Permissions::from_mode(0o644))?;
+            // Deliberate negative oracle: each public store artifact must be denied.
+            fs::set_permissions(path, fs::Permissions::from_mode(0o644))?; // NOSONAR
             if name == "active.bundle" {
                 assert_eq!(
                     CatalogStore::open(&f.0)?.read_active(),
@@ -352,7 +355,8 @@ mod macos {
             assert_eq!(read_trust_file(&path, 4096), Err(StoreError::Denied));
         }
         fs::set_permissions(&path, fs::Permissions::from_mode(0o600))?;
-        fs::set_permissions(&f.0, fs::Permissions::from_mode(0o755))?;
+        // Deliberate negative oracle: trust below a public root must be denied.
+        fs::set_permissions(&f.0, fs::Permissions::from_mode(0o755))?; // NOSONAR
         assert_eq!(read_trust_file(&path, 4096), Err(StoreError::Denied));
         fs::set_permissions(&f.0, fs::Permissions::from_mode(0o700))?;
         let shared = f.0.join("shared");
@@ -368,7 +372,8 @@ mod macos {
                 Err(StoreError::Denied)
             );
         }
-        fs::set_permissions(&shared, fs::Permissions::from_mode(0o755))?;
+        // Positive oracle: traversal through a public non-writable ancestor is allowed.
+        fs::set_permissions(&shared, fs::Permissions::from_mode(0o755))?; // NOSONAR
         assert_eq!(
             read_trust_file(&parent.join("trust.json"), 4096)?,
             b"host-trust"
@@ -397,7 +402,8 @@ mod macos {
         fs::create_dir(&inner)?;
         fs::set_permissions(&inner, fs::Permissions::from_mode(0o700))?;
         fs::copy(&trust, inner.join("trust.json"))?;
-        fs::set_permissions(&fixture.0, fs::Permissions::from_mode(0o755))?;
+        // Deliberate negative oracle: the immediate non-private child must be denied.
+        fs::set_permissions(&fixture.0, fs::Permissions::from_mode(0o755))?; // NOSONAR
         assert_eq!(
             read_trust_file(&inner.join("trust.json"), 4096),
             Err(StoreError::Denied)

@@ -1,6 +1,6 @@
 {
   "schema": "rust-engineering-mcp-public-snapshot-v1",
-  "source_commit": "8e45ec1411cf3cf2cb7cece423f6a243a6f0fa00",
+  "source_commit": "41ff958abe7af907b56ebaf89aca01433abc06bd",
   "history_policy": "new public root commit; private local history is not exported",
   "sanitization": {
     "rule": "replace the local home path and local username in UTF-8 files",
@@ -764,5 +764,5 @@
       "crates/mcp-server/src/catalog_sync/test-certs/end.key"
     ]
   },
-  "exported_files_before_manifest": 1450
+  "exported_files_before_manifest": 1451
 }

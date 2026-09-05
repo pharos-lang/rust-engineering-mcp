@@ -5,6 +5,7 @@ import io
 from pathlib import Path
 import sys
 import unittest
+from unittest import mock
 
 
 def load_gate_module():
@@ -86,6 +87,42 @@ class GateReportingTests(unittest.TestCase):
             )
         self.assertEqual(report["steps"][0]["status"], "failed")
         self.assertIn("evidence_error", report["steps"][0])
+
+    def test_nonzero_process_is_persisted_before_failure(self):
+        report = {"schema": "rust-mcp-gate-report-v2", "steps": []}
+        with self.assertRaisesRegex(RuntimeError, r"failed \(7\)"):
+            GATE.run_step(
+                report,
+                lambda: None,
+                "failed-command",
+                [sys.executable, "-c", "raise SystemExit(7)"],
+                {},
+                output_stream=io.StringIO(),
+            )
+        self.assertEqual(report["steps"][0]["status"], "failed")
+        self.assertEqual(report["steps"][0]["exit_code"], 7)
+
+    def test_default_output_and_missing_pipe_paths_are_explicit(self):
+        report = {"schema": "rust-mcp-gate-report-v2", "steps": []}
+        with mock.patch.object(GATE.sys, "stdout", io.StringIO()):
+            GATE.run_step(
+                report,
+                lambda: None,
+                "default-output",
+                [sys.executable, "-c", "print('ok')"],
+                {},
+            )
+        process = mock.Mock(stdout=None)
+        with mock.patch.object(GATE.subprocess, "Popen", return_value=process):
+            with self.assertRaisesRegex(RuntimeError, "output pipe unavailable"):
+                GATE.run_step(
+                    {"schema": "rust-mcp-gate-report-v2", "steps": []},
+                    lambda: None,
+                    "missing-pipe",
+                    [sys.executable, "-c", "pass"],
+                    {},
+                    output_stream=io.StringIO(),
+                )
 
 
 if __name__ == "__main__":

@@ -11,12 +11,19 @@ The first public analysis correctly blocked the PR. Its Quality Gate reported
 three newly published Python qualification programs. Linux, macOS, Windows and the
 supply-chain job all passed independently; none of those results waives SonarCloud.
 
+A second analysis, workflow run `33947170898`, proved that the remediation was
+taking effect but still blocked correctly: new coverage rose to 73.6%, and fifteen
+of the sixteen findings stopped counting as new vulnerabilities. The remaining
+uncovered delta was isolated to `gate.py` plus three vendor-verifier lines; the one
+remaining security issue was the private-directory rejection predicate.
+
 ## Coverage disposition
 
 The workflow previously measured only the architecture checker and the coverage
-report validator. It now runs all 65 Python tests under the same branch-coverage
-database: gate reporting (6), artifact production (11), archive smoke (9) and stock
-Codex qualification (39), in addition to the existing 3 reporting tests.
+report validator. It now runs the 69 qualification/gate/export tests under the same
+branch-coverage database: gate reporting (8), artifact production (11), archive
+smoke (9), stock Codex qualification (39) and public-export validation (2), in
+addition to the existing 3 coverage-report tests.
 
 The three qualification programs are excluded only from Sonar's coverage metric.
 Their executable main paths require a real Darwin ARM64 release host, Docker/Codex,
@@ -24,6 +31,11 @@ or both and cannot be exercised honestly by the portable Linux scanner. Their te
 still execute and fail the workflow, and their authoritative end-to-end evidence is
 the candidate-bound artifact, Inspector and stock Codex receipts. They remain fully
 included in Sonar static and security analysis.
+
+The final focused additions exercise a failed child exit, the default output
+stream, the impossible missing-pipe branch through a controlled mock, and the real
+offline vendor verifier. This covers the observed delta without weakening the 80%
+Quality Gate.
 
 ## Security disposition
 
@@ -44,6 +56,18 @@ These are false positives caused by the scanner not carrying the cross-function
 authentication and containment invariants. Each is suppressed with a `NOSONAR`
 annotation on the exact reported line and an adjacent control-specific reason. No
 file, rule or security analyzer is globally excluded.
+
+## Existing `main` issues
+
+The same correction also disposes the eight pre-existing open vulnerabilities on
+`main`. Seven Rust S2612 findings deliberately create non-private permissions in
+security tests and assert that catalog/trust reads fail closed (one is a positive
+oracle for a public but non-writable ancestor); each line now explains the oracle
+and carries a local `NOSONAR`. The remaining Python S8705 finding was not merely
+suppressed: the public exporter now validates a bounded Git commit/ref grammar,
+rejects option/range/pathological spellings, places `--end-of-options` before the
+revision, and has discriminating tests. Its fixed subprocess helper is annotated to
+make the no-shell, validated-argument invariant visible to the analyzer.
 
 ## Closure condition
 

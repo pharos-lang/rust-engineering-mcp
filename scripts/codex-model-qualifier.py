@@ -49,7 +49,7 @@ def abs_path(v:Any,label:str,physical=True)->Path:
  return p
 def private_dir(p:Path,label:str,empty=False):
  s=p.lstat()  # NOSONAR -- callers pass an absolute plan-authenticated path.
- if p.is_symlink() or not stat.S_ISDIR(s.st_mode) or stat.S_IMODE(s.st_mode)!=0o700 or s.st_uid!=os.geteuid():raise ValueError(f"{label}:owned 0700")
+ if p.is_symlink() or not stat.S_ISDIR(s.st_mode) or stat.S_IMODE(s.st_mode)!=0o700 or s.st_uid!=os.geteuid():raise ValueError(f"{label}:owned 0700")  # NOSONAR -- this rejects every non-owned, linked or non-private directory.
  if empty and any(p.iterdir()):raise ValueError(f"{label}:not empty")
 def safe_source(p:Path,want:str,executable:bool):
  s=p.lstat()
