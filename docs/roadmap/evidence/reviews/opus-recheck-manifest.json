@@ -1,0 +1,38 @@
+[
+  {
+    "path": "docs/roadmap/planning-validation.md",
+    "sha256": "c930fabbc28920da51ea485e7e0207ba1743885f2eca9f95f4053bd870be7fbb"
+  },
+  {
+    "path": "docs/roadmap/m2-m8.md",
+    "sha256": "958f6fdb383c47b2a6215a5a2c8de9cb674285557d06518990ec1c06bd11505a"
+  },
+  {
+    "path": "docs/roadmap/m2-safe-mutation.md",
+    "sha256": "790d86a4e482396a8a4d2ad6593aedd41dc03520a46aa3523171693a76d6d8f8"
+  },
+  {
+    "path": "docs/roadmap/m3-quality.md",
+    "sha256": "0ab12c59fdb71ab11b6a35471ce870956c2dcb05748184ae5390a4be512d4ead"
+  },
+  {
+    "path": "docs/roadmap/m6-analyzer.md",
+    "sha256": "eec40a07c8fc6a1a09e1327c722cca55410e0eec382d9220d3e00843a41c7610"
+  },
+  {
+    "path": "docs/roadmap/m7-remote.md",
+    "sha256": "cc854e9d6ebeaeebbca2e166942dff2def48d69f156a3a05b1899365d1b1a992"
+  },
+  {
+    "path": "docs/roadmap/m8-stabilization.md",
+    "sha256": "3fb3b8ba619f06063a7a4ad3da6ee5d8f2843417e60fe36d839780412c0c899a"
+  },
+  {
+    "path": "docs/roadmap/adr-backlog-m2-m8.md",
+    "sha256": "c442d105a6e94279efe7f8e0d03dc2e61c9a9a7236eb727a4ecdf9d31af697d7"
+  },
+  {
+    "path": "docs/roadmap/traceability-m2-m8.md",
+    "sha256": "f9f96be24da089e7b649732c0f44fdef32c6aaf488a7bc813a0012e60d89dfdb"
+  }
+]

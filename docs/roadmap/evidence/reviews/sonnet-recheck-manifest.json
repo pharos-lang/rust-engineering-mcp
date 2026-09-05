@@ -1,0 +1,38 @@
+[
+  {
+    "path": "docs/roadmap/planning-validation.md",
+    "sha256": "eba0713c069d98e9c3783fa746f82a270a3f983a22588041b1846ae9011f8b71"
+  },
+  {
+    "path": "docs/roadmap/m2-safe-mutation.md",
+    "sha256": "37eb337aab277aa5d2fc23297298702564528ad800291fe438ed6b02f36464b1"
+  },
+  {
+    "path": "docs/roadmap/m8-stabilization.md",
+    "sha256": "839ff0d696398714fec39e5bbfbd5996f5f2306364bc1f140db311e767b05d35"
+  },
+  {
+    "path": "docs/roadmap/adr-backlog-m2-m8.md",
+    "sha256": "dbad427bdd3fdca145ab11afb11a1daa36e0ab1150af6600a53a0d5be07dcb2c"
+  },
+  {
+    "path": "docs/roadmap/m2-m8.md",
+    "sha256": "958f6fdb383c47b2a6215a5a2c8de9cb674285557d06518990ec1c06bd11505a"
+  },
+  {
+    "path": "docs/adr/ADR-013-safe-mutation.md",
+    "sha256": "80d33509b8c7a2abe244ae7b8576c02939508b5a5b6a4dcfc552185482d9e400"
+  },
+  {
+    "path": "docs/adr/ADR-024-project-open.md",
+    "sha256": "7d48f8bc8d2937ef2a1ca654ba78d6acf4eacaa30b7974541fbb3662d027d165"
+  },
+  {
+    "path": "docs/adr/ADR-031-rust-source-transfer.md",
+    "sha256": "2fcd34c560d06940717c32449ac48e84d71f2c759e2faff97e330b582780dbf0"
+  },
+  {
+    "path": "docs/roadmap/evidence/document-validation.json",
+    "sha256": "07895b18e81c97641c521ba511fe7fae8d288603a3637e8b50953bdaa75a9631"
+  }
+]
