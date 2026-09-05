@@ -20,9 +20,9 @@ remaining security issue was the private-directory rejection predicate.
 ## Coverage disposition
 
 The workflow previously measured only the architecture checker and the coverage
-report validator. It now runs the 69 qualification/gate/export tests under the same
+report validator. It now runs the 71 qualification/gate/export tests under the same
 branch-coverage database: gate reporting (8), artifact production (11), archive
-smoke (9), stock Codex qualification (39) and public-export validation (2), in
+smoke (9), stock Codex qualification (39) and public-export validation (4), in
 addition to the existing 3 coverage-report tests.
 
 The three qualification programs are excluded only from Sonar's coverage metric.
