@@ -1,0 +1,19 @@
+name: Rust Engineering MCP
+
+queries:
+  - uses: security-extended
+
+paths:
+  - crates
+  - scripts
+  - .github/workflows
+  - docs/release/reproduction
+  - fixtures/rust-runtime
+
+paths-ignore:
+  - "vendor/**"
+  - "docs/research/**"
+  - "docs/validation/**"
+  - "crates/**/tests/**"
+  - "scripts/test-*.py"
+  - "docs/release/reproduction/**/test*.py"
