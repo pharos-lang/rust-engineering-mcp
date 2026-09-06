@@ -6,7 +6,8 @@ use std::os::fd::{AsFd, OwnedFd};
 use std::path::{Path, PathBuf};
 
 use rust_engineering_application::{
-    OperationControl, ProjectBackend, ProjectError, ProjectIdentity, ValidatedProject,
+    OperationControl, ProjectBackend, ProjectError, ProjectIdentity, QualityOwnerFacts,
+    QualityProjectBackend, ValidatedProject,
 };
 use rust_engineering_domain::OperationalErrorCode;
 use rustix::fs::{CWD, FileType, Mode, OFlags, Stat, fstat, fstatfs, openat};
@@ -17,6 +18,9 @@ use crate::{ManifestIo, manifest};
 
 mod mutation;
 pub use mutation::NativeMutationStore;
+mod quality;
+pub(crate) mod state_primitives;
+pub use quality::{NativeQualityArtifactStore, prune_expired, recover};
 
 // XNU fcntl.h / open(2), verified by real positive and negative fixtures.
 // rustix 1.1.4 does not name these Apple flags. Never use them on another OS.
@@ -338,6 +342,21 @@ impl ProjectBackend for SecureProjects {
             return Err(invalid());
         }
         Ok(self.collect(&lease.path, control)?.identity)
+    }
+}
+
+impl QualityProjectBackend for SecureProjects {
+    fn revalidate_quality_owner(
+        &self,
+        lease: &ProjectLease,
+        control: &dyn OperationControl,
+    ) -> Result<QualityOwnerFacts, ProjectError> {
+        let identity = self.revalidate(lease, control)?;
+        Ok(QualityOwnerFacts {
+            granted_root_device: i64::from(lease.node.device),
+            granted_root_inode: lease.node.inode,
+            workspace_root: identity.workspace_root,
+        })
     }
 }
 

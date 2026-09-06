@@ -5,7 +5,10 @@ mod macos;
 pub(crate) use macos::capture_cargo_vendor;
 
 #[cfg(target_os = "macos")]
-pub use macos::{NativeMutationStore, ProjectLease, SecureProjects, read_host_snapshot};
+pub use macos::{
+    NativeMutationStore, NativeQualityArtifactStore, ProjectLease, SecureProjects, prune_expired,
+    read_host_snapshot, recover,
+};
 
 /// Maximum owned bytes accepted from an explicitly configured host snapshot.
 pub const MAX_HOST_SNAPSHOT_BYTES: usize = 8 * 1024 * 1024;
@@ -14,7 +17,7 @@ pub const MAX_HOST_SNAPSHOT_BYTES: usize = 8 * 1024 * 1024;
 mod unsupported {
     use rust_engineering_application::{
         OperationControl, ProjectBackend, ProjectError, ProjectIdentity, ProjectSourceBackend,
-        ValidatedProject,
+        QualityOwnerFacts, QualityProjectBackend, ValidatedProject,
     };
     use rust_engineering_domain::{OperationalErrorCode, SourceBundle};
     use std::path::{Path, PathBuf};
@@ -66,6 +69,18 @@ mod unsupported {
             _lease: &ProjectLease,
             _control: &dyn OperationControl,
         ) -> Result<ProjectIdentity, ProjectError> {
+            Err(ProjectError::Rejected(
+                OperationalErrorCode::UnsupportedPlatform,
+            ))
+        }
+    }
+
+    impl QualityProjectBackend for SecureProjects {
+        fn revalidate_quality_owner(
+            &self,
+            _lease: &ProjectLease,
+            _control: &dyn OperationControl,
+        ) -> Result<QualityOwnerFacts, ProjectError> {
             Err(ProjectError::Rejected(
                 OperationalErrorCode::UnsupportedPlatform,
             ))

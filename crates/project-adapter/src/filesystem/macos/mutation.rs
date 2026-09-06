@@ -5,9 +5,9 @@ use crate::semantic_delta::{DependencyDelta, validate_dependency_delta, validate
 use base64::{Engine as _, engine::general_purpose::STANDARD};
 use rust_engineering_application::{OperationControl, ProjectSourceBackend};
 use rust_engineering_domain::{
-    IdempotencyKey, MutationCandidate, MutationCommit, MutationError, MutationFileReceipt,
-    MutationId, MutationKind, MutationReceipt, MutationRecordSummary, MutationState, SourceBundle,
-    SourceFile, SourceFingerprint,
+    IdempotencyKey, M2_RECOVERY_HEADROOM_BYTES, MutationCandidate, MutationCommit, MutationError,
+    MutationFileReceipt, MutationId, MutationKind, MutationReceipt, MutationRecordSummary,
+    MutationState, SourceBundle, SourceFile, SourceFingerprint,
 };
 use rustix::buffer::spare_capacity;
 use rustix::fs::{
@@ -25,8 +25,9 @@ const MAX_STORE_BYTES: u64 = 256 * 1024 * 1024;
 const MAX_JOURNAL_BYTES: usize = 48 * 1024 * 1024;
 const RECOVERY_STAGING_HEADROOM_BYTES: u64 = MAX_JOURNAL_BYTES as u64;
 const RETAINED_METADATA_GROWTH_BYTES: u64 = MAX_JOURNALS as u64 * 8 * 1024;
-const RECOVERY_HEADROOM_BYTES: u64 =
-    RECOVERY_STAGING_HEADROOM_BYTES + RETAINED_METADATA_GROWTH_BYTES;
+const _: () = assert!(
+    M2_RECOVERY_HEADROOM_BYTES == RECOVERY_STAGING_HEADROOM_BYTES + RETAINED_METADATA_GROWTH_BYTES
+);
 // XNU renameatx_np: SWAP | NOFOLLOW_ANY | RESOLVE_BENEATH.
 const RENAME_SAFE_SWAP: u32 = 2 | 16 | 32;
 const CLONE_SAFE_METADATA: u32 = 1 | 4 | 8 | 16;
@@ -1139,7 +1140,7 @@ fn ensure_new_record_quota(
     retained_future_record: u64,
 ) -> Result<(), MutationError> {
     let retained_ceiling = MAX_STORE_BYTES
-        .checked_sub(RECOVERY_HEADROOM_BYTES)
+        .checked_sub(M2_RECOVERY_HEADROOM_BYTES)
         .ok_or(MutationError::LimitExceeded)?;
     if index.journal_count >= MAX_JOURNALS
         || index

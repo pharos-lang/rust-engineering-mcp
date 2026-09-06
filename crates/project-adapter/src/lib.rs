@@ -10,6 +10,8 @@ mod filesystem;
 mod manifest;
 mod manifest_edit;
 pub mod mutation_store;
+pub mod quality_artifact_store;
+pub use quality_artifact_store::NativeQualityArtifactStore;
 mod semantic_delta;
 
 use std::path::{Path, PathBuf};

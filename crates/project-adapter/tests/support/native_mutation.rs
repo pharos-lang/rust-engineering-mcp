@@ -2731,7 +2731,7 @@ fn heterogeneous_records_leave_one_maximum_recovery_copy_before_new_admission() 
             .all(|bytes| *bytes <= MAX_JOURNAL_BYTES as u64)
     );
     let retained_total = retained_records.iter().sum::<u64>();
-    assert_eq!(retained_total, MAX_STORE_BYTES - RECOVERY_HEADROOM_BYTES);
+    assert_eq!(retained_total, MAX_STORE_BYTES - M2_RECOVERY_HEADROOM_BYTES);
 
     let index = StoreIndex {
         journal_count: retained_records.len(),
@@ -2759,7 +2759,7 @@ fn heterogeneous_records_leave_one_maximum_recovery_copy_before_new_admission() 
         Ok(())
     );
     assert_eq!(
-        boundary.bytes + small_worst_case + RECOVERY_HEADROOM_BYTES,
+        boundary.bytes + small_worst_case + M2_RECOVERY_HEADROOM_BYTES,
         MAX_STORE_BYTES
     );
     assert!(small_prepared_record < small_worst_case);
