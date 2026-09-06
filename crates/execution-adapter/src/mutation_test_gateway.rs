@@ -19,7 +19,7 @@
 //! Cleanup joins every owned container before either volume is removed and
 //! quarantines the gateway on any uncertainty, exactly like the nextest and
 //! coverage verticals.
-use super::mutation_gateway::{VOLUME_OPTIONS, parse_volume};
+use super::mutation_gateway::VOLUME_OPTIONS;
 use super::mutation_outcomes::{
     MAX_LOCK_JSON, MAX_OUTCOMES_JSON, guest_identity, validated_report_bundle,
 };
@@ -76,35 +76,6 @@ pub struct MutationTestExecution {
     pub identity: MutationGuestIdentity,
 }
 
-fn output_volume(
-    gateway: &RustGateway,
-    name: &str,
-    nonce: &str,
-) -> Result<super::mutation_gateway::MutationVolume, ExecutionError> {
-    let mut args = vec![
-        "volume".into(),
-        "create".into(),
-        "--driver=local".into(),
-        "--opt=type=tmpfs".into(),
-        "--opt=device=tmpfs".into(),
-        format!("--opt=o={VOLUME_OPTIONS}"),
-    ];
-    for (key, value) in labels(nonce) {
-        args.push(format!("--label={key}={value}"));
-    }
-    args.push(name.into());
-    if gateway.inner.control(&args)?.code != Some(0) {
-        return Err(ExecutionError::Infrastructure);
-    }
-    let inspect = gateway
-        .inner
-        .control(&["volume".into(), "inspect".into(), name.into()])?;
-    if inspect.code != Some(0) {
-        return Err(ExecutionError::Infrastructure);
-    }
-    parse_volume(&inspect.stdout, name, nonce)
-}
-
 pub(super) fn execute(
     gateway: &RustGateway,
     source: &SourceBundle,
@@ -113,36 +84,14 @@ pub(super) fn execute(
     cancel: &dyn ExecutionCancellation,
 ) -> Result<MutationTestExecution, ExecutionError> {
     let started = Instant::now();
-    let _busy = match gateway.inner.busy.try_lock() {
-        Ok(guard) => guard,
-        Err(std::sync::TryLockError::WouldBlock) => return Err(ExecutionError::Busy),
-        Err(_) => {
-            gateway.inner.quarantined.store(true, Ordering::Release);
-            return Err(ExecutionError::CleanupUncertain);
-        }
-    };
+    let _busy = gateway.hold_busy()?;
     if gateway.is_quarantined() {
         return Err(ExecutionError::CleanupUncertain);
     }
     if gateway.calibrating.load(Ordering::Acquire) || !gateway.verified.load(Ordering::Acquire) {
         return Err(ExecutionError::Denied);
     }
-    if cancel.is_cancelled() {
-        return Err(ExecutionError::Cancelled);
-    }
-    if digest(&state::executable_bytes(&gateway.inner.config.executable)?)
-        != gateway.inner.executable_digest
-    {
-        return Err(ExecutionError::Unavailable);
-    }
-    let current = gateway
-        .inner
-        .control(&["info".into(), "--format={{json .}}".into()])?;
-    let engine: EngineIdentity =
-        serde_json::from_slice(&current.stdout).map_err(|_| ExecutionError::Unavailable)?;
-    if current.code != Some(0) || engine != gateway.inner.engine {
-        return Err(ExecutionError::Unavailable);
-    }
+    gateway.approved_runtime(cancel)?;
     let archive = super::source_archive::encode_mutation_source(source)?;
     let budget = WorkBudget {
         started,
@@ -188,7 +137,12 @@ pub(super) fn execute(
             return Err(ExecutionError::Infrastructure);
         }
         let volume = Volume::parse(&inspect.stdout, &source_volume, &nonce)?;
-        let output = output_volume(gateway, &report_volume, &nonce)?;
+        let output = super::mutation_gateway::create_tmpfs_volume(
+            gateway,
+            &report_volume,
+            &nonce,
+            VOLUME_OPTIONS,
+        )?;
         gateway.start_mutation_output_guardian(
             PhaseRequest {
                 name: &guardian,

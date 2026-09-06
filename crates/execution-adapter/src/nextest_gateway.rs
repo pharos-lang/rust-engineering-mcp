@@ -174,36 +174,14 @@ pub(super) fn execute(
     cancel: &dyn ExecutionCancellation,
 ) -> Result<NextestExecution, ExecutionError> {
     let started = Instant::now();
-    let _busy = match gateway.inner.busy.try_lock() {
-        Ok(guard) => guard,
-        Err(std::sync::TryLockError::WouldBlock) => return Err(ExecutionError::Busy),
-        Err(_) => {
-            gateway.inner.quarantined.store(true, Ordering::Release);
-            return Err(ExecutionError::CleanupUncertain);
-        }
-    };
+    let _busy = gateway.hold_busy()?;
     if gateway.is_quarantined() {
         return Err(ExecutionError::CleanupUncertain);
     }
     if gateway.calibrating.load(Ordering::Acquire) || !gateway.verified.load(Ordering::Acquire) {
         return Err(ExecutionError::Denied);
     }
-    if cancel.is_cancelled() {
-        return Err(ExecutionError::Cancelled);
-    }
-    if digest(&state::executable_bytes(&gateway.inner.config.executable)?)
-        != gateway.inner.executable_digest
-    {
-        return Err(ExecutionError::Unavailable);
-    }
-    let current = gateway
-        .inner
-        .control(&["info".into(), "--format={{json .}}".into()])?;
-    let engine: EngineIdentity =
-        serde_json::from_slice(&current.stdout).map_err(|_| ExecutionError::Unavailable)?;
-    if current.code != Some(0) || engine != gateway.inner.engine {
-        return Err(ExecutionError::Unavailable);
-    }
+    gateway.approved_runtime(cancel)?;
     let source_archive_bytes = super::source_archive::encode(source)?;
     let config_archive_bytes = config_archive(&generate_config(options))?;
     let budget = WorkBudget {

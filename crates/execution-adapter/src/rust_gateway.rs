@@ -818,6 +818,54 @@ impl ExecutionCancellation for WorkBudget<'_> {
     }
 }
 
+impl RustGateway {
+    /// Take the gateway's single-flight lock, or say why no phase can start.
+    ///
+    /// A poisoned lock means a previous run left the daemon in a state this
+    /// process cannot describe, so the gateway quarantines itself instead of
+    /// starting anything else.
+    pub(super) fn hold_busy(&self) -> Result<std::sync::MutexGuard<'_, ()>, ExecutionError> {
+        match self.inner.busy.try_lock() {
+            Ok(guard) => Ok(guard),
+            Err(std::sync::TryLockError::WouldBlock) => Err(ExecutionError::Busy),
+            Err(_) => {
+                self.inner.quarantined.store(true, Ordering::Release);
+                Err(ExecutionError::CleanupUncertain)
+            }
+        }
+    }
+
+    /// Re-establish that the runtime is still the approved one, immediately
+    /// before a phase starts.
+    ///
+    /// An already cancelled call never starts work, the Docker executable is
+    /// re-digested so a swapped binary is unavailable rather than trusted, and
+    /// the daemon must still identify itself as the engine this gateway
+    /// calibrated against.
+    pub(super) fn approved_runtime(
+        &self,
+        cancel: &dyn ExecutionCancellation,
+    ) -> Result<(), ExecutionError> {
+        if cancel.is_cancelled() {
+            return Err(ExecutionError::Cancelled);
+        }
+        if digest(&state::executable_bytes(&self.inner.config.executable)?)
+            != self.inner.executable_digest
+        {
+            return Err(ExecutionError::Unavailable);
+        }
+        let current = self
+            .inner
+            .control(&["info".into(), "--format={{json .}}".into()])?;
+        let engine: EngineIdentity =
+            serde_json::from_slice(&current.stdout).map_err(|_| ExecutionError::Unavailable)?;
+        if current.code != Some(0) || engine != self.inner.engine {
+            return Err(ExecutionError::Unavailable);
+        }
+        Ok(())
+    }
+}
+
 pub struct RustGateway {
     pub(super) inner: DockerGateway,
     pub(super) verified: AtomicBool,

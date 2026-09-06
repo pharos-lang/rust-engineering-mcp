@@ -147,6 +147,43 @@ pub(super) fn query_control(
         .map_err(|(error, _)| error)
 }
 
+/// Create one labelled tmpfs volume with exactly the requested options, then
+/// read back what the daemon applied.
+///
+/// A quality vertical that needs its own writable output volume creates it this
+/// way: the driver, type and option string are fixed here, the job nonce labels
+/// it so cleanup can find it, and the inspected reply must match the options
+/// that were asked for or the volume is not this product's.
+pub(super) fn create_tmpfs_volume(
+    gateway: &RustGateway,
+    name: &str,
+    nonce: &str,
+    options: &str,
+) -> Result<MutationVolume, ExecutionError> {
+    let mut args = vec![
+        "volume".into(),
+        "create".into(),
+        "--driver=local".into(),
+        "--opt=type=tmpfs".into(),
+        "--opt=device=tmpfs".into(),
+        format!("--opt=o={options}"),
+    ];
+    for (key, value) in labels(nonce) {
+        args.push(format!("--label={key}={value}"));
+    }
+    args.push(name.into());
+    if gateway.inner.control(&args)?.code != Some(0) {
+        return Err(ExecutionError::Infrastructure);
+    }
+    let inspect = gateway
+        .inner
+        .control(&["volume".into(), "inspect".into(), name.into()])?;
+    if inspect.code != Some(0) {
+        return Err(ExecutionError::Infrastructure);
+    }
+    parse_volume_with_options(&inspect.stdout, name, nonce, options)
+}
+
 pub(super) fn parse_volume(
     bytes: &[u8],
     name: &str,
@@ -691,14 +728,7 @@ pub(super) fn execute(
     cancel: &dyn ExecutionCancellation,
 ) -> Result<RustMutationExecution, ExecutionError> {
     let started = Instant::now();
-    let _busy = match gateway.inner.busy.try_lock() {
-        Ok(guard) => guard,
-        Err(std::sync::TryLockError::WouldBlock) => return Err(ExecutionError::Busy),
-        Err(_) => {
-            gateway.inner.quarantined.store(true, Ordering::Release);
-            return Err(ExecutionError::CleanupUncertain);
-        }
-    };
+    let _busy = gateway.hold_busy()?;
     if gateway.is_quarantined() {
         return Err(ExecutionError::CleanupUncertain);
     }

@@ -1,5 +1,5 @@
 //! Closed two-phase cargo-llvm-cov execution and fixed report egress.
-use super::mutation_gateway::{VOLUME_OPTIONS, parse_volume_with_options};
+use super::mutation_gateway::VOLUME_OPTIONS;
 use super::mutation_outcomes::validated_closed_ustar;
 use super::nextest_gateway::decode_single_file_tar;
 use super::rust_gateway::{
@@ -38,36 +38,6 @@ pub struct CoverageExecution {
     pub html_truncated: bool,
 }
 
-fn tmpfs_volume(
-    gateway: &RustGateway,
-    name: &str,
-    nonce: &str,
-    options: &str,
-) -> Result<super::mutation_gateway::MutationVolume, ExecutionError> {
-    let mut args = vec![
-        "volume".into(),
-        "create".into(),
-        "--driver=local".into(),
-        "--opt=type=tmpfs".into(),
-        "--opt=device=tmpfs".into(),
-        format!("--opt=o={options}"),
-    ];
-    for (key, value) in labels(nonce) {
-        args.push(format!("--label={key}={value}"));
-    }
-    args.push(name.into());
-    if gateway.inner.control(&args)?.code != Some(0) {
-        return Err(ExecutionError::Infrastructure);
-    }
-    let inspect = gateway
-        .inner
-        .control(&["volume".into(), "inspect".into(), name.into()])?;
-    if inspect.code != Some(0) {
-        return Err(ExecutionError::Infrastructure);
-    }
-    parse_volume_with_options(&inspect.stdout, name, nonce, options)
-}
-
 pub(super) fn execute(
     gateway: &RustGateway,
     source: &SourceBundle,
@@ -76,36 +46,14 @@ pub(super) fn execute(
     cancel: &dyn ExecutionCancellation,
 ) -> Result<CoverageExecution, ExecutionError> {
     let started = Instant::now();
-    let _busy = match gateway.inner.busy.try_lock() {
-        Ok(g) => g,
-        Err(std::sync::TryLockError::WouldBlock) => return Err(ExecutionError::Busy),
-        Err(_) => {
-            gateway.inner.quarantined.store(true, Ordering::Release);
-            return Err(ExecutionError::CleanupUncertain);
-        }
-    };
+    let _busy = gateway.hold_busy()?;
     if gateway.is_quarantined()
         || gateway.calibrating.load(Ordering::Acquire)
         || !gateway.verified.load(Ordering::Acquire)
     {
         return Err(ExecutionError::Denied);
     }
-    if cancel.is_cancelled() {
-        return Err(ExecutionError::Cancelled);
-    }
-    if digest(&state::executable_bytes(&gateway.inner.config.executable)?)
-        != gateway.inner.executable_digest
-    {
-        return Err(ExecutionError::Unavailable);
-    }
-    let current = gateway
-        .inner
-        .control(&["info".into(), "--format={{json .}}".into()])?;
-    let engine: EngineIdentity =
-        serde_json::from_slice(&current.stdout).map_err(|_| ExecutionError::Unavailable)?;
-    if current.code != Some(0) || engine != gateway.inner.engine {
-        return Err(ExecutionError::Unavailable);
-    }
+    gateway.approved_runtime(cancel)?;
     let archive = super::source_archive::encode(source)?;
     let budget = WorkBudget {
         started,
@@ -153,8 +101,13 @@ pub(super) fn execute(
             return Err(ExecutionError::Infrastructure);
         }
         let volume = Volume::parse(&inspect.stdout, &source_volume, &nonce)?;
-        let output = tmpfs_volume(gateway, &report_volume, &nonce, VOLUME_OPTIONS)?;
-        let target = tmpfs_volume(
+        let output = super::mutation_gateway::create_tmpfs_volume(
+            gateway,
+            &report_volume,
+            &nonce,
+            VOLUME_OPTIONS,
+        )?;
+        let target = super::mutation_gateway::create_tmpfs_volume(
             gateway,
             &target_volume,
             &nonce,
