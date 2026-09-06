@@ -1604,6 +1604,52 @@ impl RustGateway {
         }
         clean.then_some(()).ok_or(ExecutionError::CleanupUncertain)
     }
+    /// Start a created container attached and observe how it ended.
+    ///
+    /// Every phase ends here: the container is started attached so its streams
+    /// are this product's own capture under the phase budget, and a container
+    /// that exited is inspected once more so a daemon OOM kill is reported as
+    /// evidence instead of as an ordinary exit. Only the ingesting phase keeps
+    /// stdin open, and only an archive export raises the output limit.
+    fn run_started_container(
+        &self,
+        name: &str,
+        interactive: bool,
+        input: &[u8],
+        output_limit: usize,
+        budget: &WorkBudget<'_>,
+    ) -> Result<(Capture, Option<bool>), ExecutionError> {
+        let mut command = DockerGateway::command(&self.inner.config, &self.inner.state)?;
+        command.args(["container", "start", "--attach"]);
+        if interactive {
+            command.arg("--interactive");
+        }
+        command.arg(name);
+        let outcome = supervisor::run_with_input(
+            command,
+            budget.deadline.saturating_duration_since(Instant::now()),
+            output_limit,
+            budget,
+            input,
+        )?;
+        let mut oom_killed = None;
+        if outcome.stop == Stop::Exited {
+            let inspected =
+                self.inner
+                    .control(&["container".into(), "inspect".into(), name.into()])?;
+            let containers: Vec<Container> = serde_json::from_slice(&inspected.stdout)
+                .map_err(|_| ExecutionError::Infrastructure)?;
+            if inspected.code != Some(0)
+                || containers.len() != 1
+                || !containers[0].state.completed(outcome.code)
+            {
+                return Err(ExecutionError::Infrastructure);
+            }
+            oom_killed = Some(containers[0].state.oom_killed);
+        }
+        Ok((outcome, oom_killed))
+    }
+
     pub(super) fn phase(
         &self,
         request: PhaseRequest<'_>,
@@ -1641,35 +1687,13 @@ impl RustGateway {
         if let Some(stop) = budget.stop() {
             return Ok((budget.stopped_capture(stop), None));
         }
-        let mut command = DockerGateway::command(&self.inner.config, &self.inner.state)?;
-        command.args(["container", "start", "--attach"]);
-        if phase.ingesting() {
-            command.arg("--interactive");
-        }
-        command.arg(name);
-        let outcome = supervisor::run_with_input(
-            command,
-            budget.deadline.saturating_duration_since(Instant::now()),
+        self.run_started_container(
+            name,
+            phase.ingesting(),
+            input,
             budget.limits.output_bytes(),
             budget,
-            input,
-        )?;
-        let mut oom_killed = None;
-        if outcome.stop == Stop::Exited {
-            let inspected =
-                self.inner
-                    .control(&["container".into(), "inspect".into(), name.into()])?;
-            let containers: Vec<Container> = serde_json::from_slice(&inspected.stdout)
-                .map_err(|_| ExecutionError::Infrastructure)?;
-            if inspected.code != Some(0)
-                || containers.len() != 1
-                || !containers[0].state.completed(outcome.code)
-            {
-                return Err(ExecutionError::Infrastructure);
-            }
-            oom_killed = Some(containers[0].state.oom_killed);
-        }
-        Ok((outcome, oom_killed))
+        )
     }
     /// Same contract as [`Self::phase`], for the one phase that mounts a
     /// second, always read-only volume at `/baseline`
@@ -1723,31 +1747,7 @@ impl RustGateway {
         if let Some(stop) = budget.stop() {
             return Ok((budget.stopped_capture(stop), None));
         }
-        let mut command = DockerGateway::command(&self.inner.config, &self.inner.state)?;
-        command.args(["container", "start", "--attach", name]);
-        let outcome = supervisor::run_with_input(
-            command,
-            budget.deadline.saturating_duration_since(Instant::now()),
-            budget.limits.output_bytes(),
-            budget,
-            &[],
-        )?;
-        let mut oom_killed = None;
-        if outcome.stop == Stop::Exited {
-            let inspected =
-                self.inner
-                    .control(&["container".into(), "inspect".into(), name.into()])?;
-            let containers: Vec<Container> = serde_json::from_slice(&inspected.stdout)
-                .map_err(|_| ExecutionError::Infrastructure)?;
-            if inspected.code != Some(0)
-                || containers.len() != 1
-                || !containers[0].state.completed(outcome.code)
-            {
-                return Err(ExecutionError::Infrastructure);
-            }
-            oom_killed = Some(containers[0].state.oom_killed);
-        }
-        Ok((outcome, oom_killed))
+        self.run_started_container(name, false, &[], budget.limits.output_bytes(), budget)
     }
     pub(super) fn nextest_phase(
         &self,
@@ -1792,36 +1792,12 @@ impl RustGateway {
         if let Some(stop) = budget.stop() {
             return Ok((budget.stopped_capture(stop), None));
         }
-        let mut command = DockerGateway::command(&self.inner.config, &self.inner.state)?;
-        command.args(["container", "start", "--attach", name]);
         let output_limit = if matches!(phase, Phase::ExportNextest) {
             super::nextest_gateway::MAX_JUNIT_EXPORT
         } else {
             budget.limits.output_bytes()
         };
-        let outcome = supervisor::run_with_input(
-            command,
-            budget.deadline.saturating_duration_since(Instant::now()),
-            output_limit,
-            budget,
-            &[],
-        )?;
-        let mut oom_killed = None;
-        if outcome.stop == Stop::Exited {
-            let inspected =
-                self.inner
-                    .control(&["container".into(), "inspect".into(), name.into()])?;
-            let containers: Vec<Container> = serde_json::from_slice(&inspected.stdout)
-                .map_err(|_| ExecutionError::Infrastructure)?;
-            if inspected.code != Some(0)
-                || containers.len() != 1
-                || !containers[0].state.completed(outcome.code)
-            {
-                return Err(ExecutionError::Infrastructure);
-            }
-            oom_killed = Some(containers[0].state.oom_killed);
-        }
-        Ok((outcome, oom_killed))
+        self.run_started_container(name, false, &[], output_limit, budget)
     }
 
     pub(super) fn coverage_phase(
@@ -1865,8 +1841,6 @@ impl RustGateway {
         if let Some(stop) = budget.stop() {
             return Ok((budget.stopped_capture(stop), None));
         }
-        let mut command = DockerGateway::command(&self.inner.config, &self.inner.state)?;
-        command.args(["container", "start", "--attach", name]);
         let output_limit = if matches!(
             phase,
             Phase::ExportCoverageJson | Phase::ExportCoverageLcov | Phase::ExportCoverageHtml
@@ -1875,29 +1849,7 @@ impl RustGateway {
         } else {
             budget.limits.output_bytes()
         };
-        let outcome = supervisor::run_with_input(
-            command,
-            budget.deadline.saturating_duration_since(Instant::now()),
-            output_limit,
-            budget,
-            &[],
-        )?;
-        let mut oom_killed = None;
-        if outcome.stop == Stop::Exited {
-            let inspected =
-                self.inner
-                    .control(&["container".into(), "inspect".into(), name.into()])?;
-            let containers: Vec<Container> = serde_json::from_slice(&inspected.stdout)
-                .map_err(|_| ExecutionError::Infrastructure)?;
-            if inspected.code != Some(0)
-                || containers.len() != 1
-                || !containers[0].state.completed(outcome.code)
-            {
-                return Err(ExecutionError::Infrastructure);
-            }
-            oom_killed = Some(containers[0].state.oom_killed);
-        }
-        Ok((outcome, oom_killed))
+        self.run_started_container(name, false, &[], output_limit, budget)
     }
 
     /// Same contract as [`Self::coverage_phase`], for the M3-05 phases that
@@ -1953,31 +1905,13 @@ impl RustGateway {
         if let Some(stop) = budget.stop() {
             return Ok((budget.stopped_capture(stop), None));
         }
-        let mut command = DockerGateway::command(&self.inner.config, &self.inner.state)?;
-        command.args(["container", "start", "--attach", name]);
-        let outcome = supervisor::run_with_input(
-            command,
-            budget.deadline.saturating_duration_since(Instant::now()),
+        self.run_started_container(
+            name,
+            false,
+            &[],
             super::mutation_test_gateway::output_limit(phase, budget.limits),
             budget,
-            &[],
-        )?;
-        let mut oom_killed = None;
-        if outcome.stop == Stop::Exited {
-            let inspected =
-                self.inner
-                    .control(&["container".into(), "inspect".into(), name.into()])?;
-            let containers: Vec<Container> = serde_json::from_slice(&inspected.stdout)
-                .map_err(|_| ExecutionError::Infrastructure)?;
-            if inspected.code != Some(0)
-                || containers.len() != 1
-                || !containers[0].state.completed(outcome.code)
-            {
-                return Err(ExecutionError::Infrastructure);
-            }
-            oom_killed = Some(containers[0].state.oom_killed);
-        }
-        Ok((outcome, oom_killed))
+        )
     }
 
     /// Keeps the Docker-managed report volume alive from creation until the
