@@ -2,6 +2,7 @@
 //! mapping. Everything here is portable: the gateway itself is qualified by
 //! `docs/validation/M3-runtime.json`, not by this module.
 use super::*;
+use crate::stdio::workers::{Joined, WorkerError};
 use rust_engineering_application::semver_check::SemverObservation;
 use rust_engineering_domain::{
     ArtifactMetadata, ArtifactPlugin, ArtifactRuntime, ArtifactSelection, ArtifactSensitivity,
@@ -10,6 +11,7 @@ use rust_engineering_domain::{
     QualityJobId, QualityMimeType, RuntimeIdentity, SnapshotEvidence, SourceKind, UtcInstant,
     semver_check::{SemverExit, SemverFinding, SemverFindingCompleteness, SemverFindingCounts},
 };
+use rust_engineering_domain::{Clock, UnixSeconds};
 use serde_json::{Value, json};
 
 type TestResult = Result<(), Box<dyn std::error::Error>>;
@@ -553,9 +555,4 @@ fn itemized_findings_stop_at_the_response_bound_and_are_counted_as_omitted() -> 
     assert_eq!(value["data"]["counts"]["deny"], MAX_RESPONSE_FINDINGS + 3);
     assert_eq!(value["data"]["raw_output"]["completeness"], "truncated");
     Ok(())
-}
-
-#[test]
-fn the_wall_clock_advances_with_the_host() {
-    assert!(WallClock.now().0 > 1_700_000_000);
 }

@@ -187,26 +187,10 @@ fn closed_input_rejects_flags_and_unqualified_selections() -> TestResult {
     }))?))?;
     assert_eq!(accepted.options()?.timeout_seconds(), 45);
     assert!(matches!(
-        ExecutionMode::from(accepted.execution_mode),
-        ExecutionMode::Synchronous
+        accepted.execution_mode,
+        ExecutionModeDto::Synchronous
     ));
     Ok(())
-}
-
-#[test]
-fn the_declared_execution_modes_map_to_the_application_modes() {
-    assert!(matches!(
-        ExecutionMode::from(ExecutionModeDto::Auto),
-        ExecutionMode::Auto
-    ));
-    assert!(matches!(
-        ExecutionMode::from(ExecutionModeDto::Task),
-        ExecutionMode::Task
-    ));
-    assert!(matches!(
-        ExecutionMode::from(ExecutionModeDto::default()),
-        ExecutionMode::Auto
-    ));
 }
 
 #[test]
@@ -518,9 +502,4 @@ fn joined_cleanup_signals_are_reported_over_a_completed_body() {
         }),
         Err(InspectionError::OutputLimit)
     ));
-}
-
-#[test]
-fn the_wall_clock_advances_with_the_host() {
-    assert!(WallClock.now().0 > 1_700_000_000);
 }

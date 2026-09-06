@@ -44,6 +44,17 @@ pub(super) type Store = MemoryArtifactStore<ArtifactClock>;
 pub(super) fn uri(owner: &ProjectRef, id: &ArtifactId) -> String {
     format!("{PREFIX}{owner}/{id}")
 }
+/// Lower-case hexadecimal for a digest a Resource projection publishes. The
+/// spelling is part of every tool's output contract, so there is one of it.
+pub(super) fn hex(bytes: &[u8; 32]) -> String {
+    const HEX: &[u8; 16] = b"0123456789abcdef";
+    let mut value = String::with_capacity(64);
+    for byte in bytes {
+        value.push(char::from(HEX[usize::from(byte >> 4)]));
+        value.push(char::from(HEX[usize::from(byte & 0x0f)]));
+    }
+    value
+}
 pub(super) fn quality_index_uri(owner: &ProjectRef, job: &QualityJobId) -> String {
     format!("{QUALITY_PREFIX}{owner}/{job}")
 }

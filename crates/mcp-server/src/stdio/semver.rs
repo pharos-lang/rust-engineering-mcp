@@ -1,12 +1,15 @@
 //! Synchronous M3-04 `rust.semver.check` contract and runtime integration.
 
+use super::clock::WallClock;
+use super::resources::hex;
+use super::workers::{joined_result, worker_error};
 use super::{
     contract::{Contract, ToolOutput},
     nextest::{ExecutionModeDto, ExecutionSelection, select_execution_mode},
     project::Registry,
     quality_artifacts::DurableSemverPublisher,
     resources::{self, Store},
-    workers::{Joined, WorkerError, Workers},
+    workers::Workers,
 };
 use rmcp::{
     model::{CallToolRequestParams, CallToolResult, ErrorData, Tool, ToolAnnotations},
@@ -19,8 +22,7 @@ use rust_engineering_application::semver_check::{
 };
 use rust_engineering_application::{ExecutionError, InspectionError, ProjectError};
 use rust_engineering_domain::{
-    ArtifactCompleteness, Clock, GuestArtifactName, OperationalErrorCode, ProjectRef, ToolStatus,
-    UnixSeconds,
+    ArtifactCompleteness, GuestArtifactName, OperationalErrorCode, ProjectRef, ToolStatus,
     semver_check::{
         SemverCommandOptions, SemverFindingLevel, SemverProjectSelection, SemverRequiredUpdate,
     },
@@ -33,7 +35,7 @@ use std::{
         Arc, Mutex,
         atomic::{AtomicBool, Ordering},
     },
-    time::{Duration, Instant, SystemTime, UNIX_EPOCH},
+    time::{Duration, Instant},
 };
 
 pub(super) const NAME: &str = "rust.semver.check";
@@ -720,44 +722,6 @@ fn artifact(owner: &ProjectRef, reference: SemverArtifactReference) -> Result<Ar
                 },
             })
         }
-    }
-}
-fn hex(bytes: &[u8; 32]) -> String {
-    bytes.iter().map(|byte| format!("{byte:02x}")).collect()
-}
-fn worker_error(error: WorkerError) -> InspectionError {
-    match error {
-        WorkerError::Busy => InspectionError::Execution(ExecutionError::Busy),
-        WorkerError::Cancelled => InspectionError::Project(ProjectError::Cancelled),
-        WorkerError::TimedOut => {
-            InspectionError::Project(ProjectError::Rejected(OperationalErrorCode::CommandTimeout))
-        }
-        WorkerError::Internal => InspectionError::Internal,
-    }
-}
-fn joined_result<T>(joined: Joined<T, InspectionError>) -> Result<T, InspectionError> {
-    match (joined.result, joined.interrupted) {
-        (
-            Err(
-                InspectionError::Project(ProjectError::Cancelled)
-                | InspectionError::Execution(ExecutionError::Cancelled),
-            ),
-            Some(signal),
-        ) => Err(worker_error(signal)),
-        (Err(error), _) => Err(error),
-        (Ok(_), Some(signal)) => Err(worker_error(signal)),
-        (Ok(value), None) => Ok(value),
-    }
-}
-struct WallClock;
-impl Clock for WallClock {
-    fn now(&self) -> UnixSeconds {
-        UnixSeconds(
-            SystemTime::now()
-                .duration_since(UNIX_EPOCH)
-                .map(|value| value.as_secs())
-                .unwrap_or(0),
-        )
     }
 }
 

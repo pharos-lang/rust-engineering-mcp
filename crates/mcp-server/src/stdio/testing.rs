@@ -1,11 +1,13 @@
 //! One admitted Test run owns capture, execution, normalization and log publication.
 #[allow(dead_code)]
 mod schemas;
+use super::clock::WallClock;
+use super::workers::{joined_result, worker_error};
 use super::{
     contract::{Contract, ToolOutput},
     project::Registry,
     resources::{self, ArtifactClock, Store},
-    workers::{Joined, WorkerError, Workers},
+    workers::Workers,
 };
 use rmcp::{
     model::{CallToolRequestParams, CallToolResult, ErrorData, Tool, ToolAnnotations},
@@ -13,8 +15,8 @@ use rmcp::{
 };
 use rust_engineering_application::{ExecutionError, InspectionError, ProjectError};
 use rust_engineering_domain::{
-    CheckOutcome, Clock, Diagnostic, Evidence, ExecutionTermination, OperationalErrorCode,
-    ProjectRef, ProjectTest, RuntimeIdentity, TestOptions, TestSelection, ToolStatus, UnixSeconds,
+    CheckOutcome, Diagnostic, Evidence, ExecutionTermination, OperationalErrorCode, ProjectRef,
+    ProjectTest, RuntimeIdentity, TestOptions, TestSelection, ToolStatus,
 };
 use rust_engineering_execution::RustProjectInspector;
 use schemars::JsonSchema;
@@ -24,7 +26,7 @@ use std::{
         Arc, Mutex,
         atomic::{AtomicBool, Ordering},
     },
-    time::{Duration, Instant, SystemTime, UNIX_EPOCH},
+    time::{Duration, Instant},
 };
 pub(super) const NAME: &str = "rust.test";
 const DEADLINE: Duration = Duration::from_secs(120);
@@ -428,41 +430,6 @@ fn output(
         truncation,
         evidence,
     })
-}
-fn worker_error(error: WorkerError) -> InspectionError {
-    match error {
-        WorkerError::Busy => InspectionError::Execution(ExecutionError::Busy),
-        WorkerError::Cancelled => InspectionError::Project(ProjectError::Cancelled),
-        WorkerError::TimedOut => {
-            InspectionError::Project(ProjectError::Rejected(OperationalErrorCode::CommandTimeout))
-        }
-        WorkerError::Internal => InspectionError::Internal,
-    }
-}
-fn joined_result<T>(joined: Joined<T, InspectionError>) -> Result<T, InspectionError> {
-    match (joined.result, joined.interrupted) {
-        (
-            Err(
-                InspectionError::Project(ProjectError::Cancelled)
-                | InspectionError::Execution(ExecutionError::Cancelled),
-            ),
-            Some(signal),
-        ) => Err(worker_error(signal)),
-        (Err(error), _) => Err(error),
-        (Ok(_), Some(signal)) => Err(worker_error(signal)),
-        (Ok(value), None) => Ok(value),
-    }
-}
-struct WallClock;
-impl Clock for WallClock {
-    fn now(&self) -> UnixSeconds {
-        UnixSeconds(
-            SystemTime::now()
-                .duration_since(UNIX_EPOCH)
-                .map(|v| v.as_secs())
-                .unwrap_or(0),
-        )
-    }
 }
 pub(super) struct TestTool {
     pub(super) definition: Tool,

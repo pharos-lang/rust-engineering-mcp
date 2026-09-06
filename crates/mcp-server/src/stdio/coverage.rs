@@ -3,9 +3,11 @@
 //! The instrumented runner keeps the report bundle opaque: HTML is retained as
 //! a validated archive Resource, never rendered by this transport adapter.
 
+use super::clock::WallClock;
+use super::resources::hex;
 use super::{
     contract::{Contract, ToolOutput},
-    nextest::{ExecutionSelection, select_execution_mode},
+    nextest::{ExecutionModeDto, ExecutionSelection, select_execution_mode},
     project::Registry,
     quality_artifacts::DurableCoveragePublisher,
     resources::{self, Store},
@@ -22,10 +24,9 @@ use rust_engineering_application::job::JobPermit;
 use rust_engineering_application::{ExecutionError, InspectionError, ProjectError};
 use rust_engineering_domain::coverage::CoverageMetric;
 use rust_engineering_domain::{
-    ArtifactCompleteness, Clock, ExecutionTermination, GuestArtifactName, OperationalErrorCode,
-    ProjectRef, ToolStatus, UnixSeconds,
+    ArtifactCompleteness, ExecutionTermination, GuestArtifactName, OperationalErrorCode,
+    ProjectRef, ToolStatus,
     coverage::{CoverageOptions, CoverageSelection},
-    job::ExecutionMode,
 };
 use rust_engineering_execution::RustProjectInspector;
 use schemars::JsonSchema;
@@ -35,7 +36,7 @@ use std::{
         Arc, Mutex,
         atomic::{AtomicBool, Ordering},
     },
-    time::{Duration, Instant, SystemTime, UNIX_EPOCH},
+    time::{Duration, Instant},
 };
 
 pub(super) const NAME: &str = "rust.coverage";
@@ -84,23 +85,6 @@ impl Input {
             timeout_seconds: self.timeout_seconds,
         })
         .map_err(|_| ErrorData::invalid_params("Invalid tool arguments", None))
-    }
-}
-#[derive(Clone, Copy, Debug, Default, Deserialize, JsonSchema)]
-#[serde(rename_all = "snake_case")]
-pub(super) enum ExecutionModeDto {
-    #[default]
-    Auto,
-    Task,
-    Synchronous,
-}
-impl From<ExecutionModeDto> for ExecutionMode {
-    fn from(value: ExecutionModeDto) -> Self {
-        match value {
-            ExecutionModeDto::Auto => Self::Auto,
-            ExecutionModeDto::Task => Self::Task,
-            ExecutionModeDto::Synchronous => Self::Synchronous,
-        }
     }
 }
 
@@ -582,15 +566,6 @@ fn kind_dto(value: CoverageArtifactKind) -> ArtifactKind {
         CoverageArtifactKind::StdoutLog | CoverageArtifactKind::StderrLog => ArtifactKind::ToolLog,
     }
 }
-fn hex(bytes: &[u8; 32]) -> String {
-    const HEX: &[u8; 16] = b"0123456789abcdef";
-    let mut value = String::with_capacity(64);
-    for byte in bytes {
-        value.push(char::from(HEX[usize::from(byte >> 4)]));
-        value.push(char::from(HEX[usize::from(byte & 15)]));
-    }
-    value
-}
 fn joined_result<T>(joined: Joined<T, InspectionError>) -> Result<T, InspectionError> {
     match (joined.result, joined.interrupted) {
         (Err(error), _) => Err(error),
@@ -602,17 +577,6 @@ fn joined_result<T>(joined: Joined<T, InspectionError>) -> Result<T, InspectionE
         )),
         (Ok(_), Some(_)) => Err(InspectionError::Internal),
         (Ok(value), None) => Ok(value),
-    }
-}
-struct WallClock;
-impl Clock for WallClock {
-    fn now(&self) -> UnixSeconds {
-        UnixSeconds(
-            SystemTime::now()
-                .duration_since(UNIX_EPOCH)
-                .map(|v| v.as_secs())
-                .unwrap_or(0),
-        )
     }
 }
 

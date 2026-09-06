@@ -1,12 +1,14 @@
 //! A single admitted quality run publishes all required stages and retained repair facts.
 #[allow(dead_code)]
 mod schemas;
+use super::clock::WallClock;
+use super::workers::worker_error;
 use super::{
     auditing::provider::{AuditProvider, HostAuditConfig},
     contract::{Contract, ToolOutput},
     project::Registry,
     resources::{self, ArtifactClock, Store},
-    workers::{Joined, WorkerError, Workers},
+    workers::{Joined, Workers},
 };
 use rmcp::{
     model::{CallToolRequestParams, CallToolResult, ErrorData, Tool, ToolAnnotations},
@@ -14,10 +16,10 @@ use rmcp::{
 };
 use rust_engineering_application::{ExecutionError, InspectionError, ProjectError, QualityPorts};
 use rust_engineering_domain::{
-    AuditObservation, AuditState, CheckObservation, Clock, Diagnostic, Evidence,
-    ExecutionTermination, OperationalErrorCode, ProjectQualityGate, ProjectRef, QualityIssue,
-    QualityObservation, QualityProfile, QualityStage, QualityStageReport, RuntimeIdentity,
-    ToolStatus, UnixSeconds, quality_runtime_matches, quality_status,
+    AuditObservation, AuditState, CheckObservation, Diagnostic, Evidence, ExecutionTermination,
+    OperationalErrorCode, ProjectQualityGate, ProjectRef, QualityIssue, QualityObservation,
+    QualityProfile, QualityStage, QualityStageReport, RuntimeIdentity, ToolStatus,
+    quality_runtime_matches, quality_status,
 };
 use rust_engineering_execution::RustProjectInspector;
 use schemars::JsonSchema;
@@ -27,7 +29,7 @@ use std::{
         Arc, Mutex,
         atomic::{AtomicBool, Ordering},
     },
-    time::{Duration, Instant, SystemTime, UNIX_EPOCH},
+    time::{Duration, Instant},
 };
 pub(super) const NAME: &str = "rust.quality.gate";
 const DEADLINE: Duration = Duration::from_secs(240);
@@ -709,16 +711,6 @@ fn encode_bounded(
     }
     Ok(encoded)
 }
-fn worker_error(error: WorkerError) -> InspectionError {
-    match error {
-        WorkerError::Busy => InspectionError::Execution(ExecutionError::Busy),
-        WorkerError::Cancelled => InspectionError::Project(ProjectError::Cancelled),
-        WorkerError::TimedOut => {
-            InspectionError::Project(ProjectError::Rejected(OperationalErrorCode::CommandTimeout))
-        }
-        WorkerError::Internal => InspectionError::Internal,
-    }
-}
 fn joined_result<T>(joined: Joined<T, InspectionError>) -> Result<T, InspectionError> {
     match (joined.result, joined.interrupted) {
         (
@@ -733,17 +725,6 @@ fn joined_result<T>(joined: Joined<T, InspectionError>) -> Result<T, InspectionE
         // Ok means the lease and grouped logs are committed; a later signal must not
         // reinterpret that successful publication as an uncommitted cancelled result.
         (Ok(value), _) => Ok(value),
-    }
-}
-struct WallClock;
-impl Clock for WallClock {
-    fn now(&self) -> UnixSeconds {
-        UnixSeconds(
-            SystemTime::now()
-                .duration_since(UNIX_EPOCH)
-                .map(|v| v.as_secs())
-                .unwrap_or(0),
-        )
     }
 }
 pub(super) struct QualityTool {

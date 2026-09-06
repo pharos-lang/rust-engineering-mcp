@@ -1,4 +1,5 @@
 use super::*;
+use crate::stdio::workers::{Joined, WorkerError};
 use rust_engineering_application::mutation_test::MutationArtifactStreams;
 use rust_engineering_domain::mutation_test::{MutationCounts, MutationMutantRow};
 use rust_engineering_domain::{ExecutionFingerprint, ExecutionTermination, RuntimeIdentity};
@@ -555,7 +556,6 @@ fn worker_signals_and_joined_cleanup_map_to_inspection_errors() {
         }),
         Err(InspectionError::InvalidMetadata)
     ));
-    assert!(WallClock.now().0 > 1_700_000_000);
 }
 
 #[test]

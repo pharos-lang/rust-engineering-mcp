@@ -1,8 +1,10 @@
 use super::*;
+use crate::stdio::workers::WorkerError;
 use rust_engineering_domain::{
     AuditFinding, AuditPackage, AuditPath, AuditSource, FreshnessPolicy, InspectionSemantics,
     Provenance, SnapshotEvidence,
 };
+use rust_engineering_domain::{Clock, UnixSeconds};
 use serde_json::{Value, json};
 type TestResult = Result<(), Box<dyn std::error::Error>>;
 struct FixedClock;

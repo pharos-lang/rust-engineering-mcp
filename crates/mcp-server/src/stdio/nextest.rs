@@ -1,11 +1,14 @@
 //! M3-01 synchronous `rust.test.nextest` contract and runtime integration.
 
+use super::clock::WallClock;
+use super::resources::hex;
+use super::workers::{joined_result, worker_error};
 use super::{
     contract::{Contract, ToolOutput},
     project::Registry,
     quality_artifacts::DurableNextestPublisher,
     resources::{self, Store},
-    workers::{Joined, WorkerError, Workers},
+    workers::Workers,
 };
 use rmcp::{
     model::{CallToolRequestParams, CallToolResult, ErrorData, Tool, ToolAnnotations},
@@ -19,8 +22,8 @@ use rust_engineering_application::nextest::{
 };
 use rust_engineering_application::{ExecutionError, InspectionError, ProjectError};
 use rust_engineering_domain::{
-    ArtifactCompleteness, Clock, GuestArtifactName, OperationalErrorCode, ProjectRef, ToolStatus,
-    UnixSeconds, job::ExecutionMode,
+    ArtifactCompleteness, GuestArtifactName, OperationalErrorCode, ProjectRef, ToolStatus,
+    job::ExecutionMode,
 };
 use rust_engineering_execution::RustProjectInspector;
 use schemars::JsonSchema;
@@ -30,7 +33,7 @@ use std::{
         Arc, Mutex,
         atomic::{AtomicBool, Ordering},
     },
-    time::{Duration, Instant, SystemTime, UNIX_EPOCH},
+    time::{Duration, Instant},
 };
 
 pub(super) const NAME: &str = "rust.test.nextest";
@@ -798,44 +801,6 @@ fn operational_message(code: OperationalErrorCode) -> &'static str {
     }
 }
 
-fn worker_error(error: WorkerError) -> InspectionError {
-    match error {
-        WorkerError::Busy => InspectionError::Execution(ExecutionError::Busy),
-        WorkerError::Cancelled => InspectionError::Project(ProjectError::Cancelled),
-        WorkerError::TimedOut => {
-            InspectionError::Project(ProjectError::Rejected(OperationalErrorCode::CommandTimeout))
-        }
-        WorkerError::Internal => InspectionError::Internal,
-    }
-}
-
-fn joined_result<T>(joined: Joined<T, InspectionError>) -> Result<T, InspectionError> {
-    match (joined.result, joined.interrupted) {
-        (
-            Err(
-                InspectionError::Project(ProjectError::Cancelled)
-                | InspectionError::Execution(ExecutionError::Cancelled),
-            ),
-            Some(signal),
-        ) => Err(worker_error(signal)),
-        (Err(error), _) => Err(error),
-        (Ok(_), Some(signal)) => Err(worker_error(signal)),
-        (Ok(value), None) => Ok(value),
-    }
-}
-
-struct WallClock;
-impl Clock for WallClock {
-    fn now(&self) -> UnixSeconds {
-        UnixSeconds(
-            SystemTime::now()
-                .duration_since(UNIX_EPOCH)
-                .map(|value| value.as_secs())
-                .unwrap_or(0),
-        )
-    }
-}
-
 fn published_artifacts(
     project_ref: &ProjectRef,
     artifacts: Vec<NextestArtifactReference>,
@@ -921,19 +886,10 @@ fn published_artifacts(
         .collect()
 }
 
-fn hex(bytes: &[u8; 32]) -> String {
-    const HEX: &[u8; 16] = b"0123456789abcdef";
-    let mut value = String::with_capacity(64);
-    for byte in bytes {
-        value.push(char::from(HEX[usize::from(byte >> 4)]));
-        value.push(char::from(HEX[usize::from(byte & 0x0f)]));
-    }
-    value
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::stdio::workers::{Joined, WorkerError};
     use rust_engineering_application::nextest::{
         ArtifactStreams, NextestCounts, NextestObservation,
     };
@@ -1117,6 +1073,24 @@ mod tests {
             created_seconds: 0,
             expires_seconds: 3600,
         })
+    }
+
+    #[test]
+    fn the_shared_execution_mode_dto_maps_onto_the_application_modes() {
+        // Nextest owns the one DTO that coverage, semver and mutation testing
+        // decode, so the mapping is asserted once, here.
+        assert!(matches!(
+            ExecutionMode::from(ExecutionModeDto::default()),
+            ExecutionMode::Auto
+        ));
+        assert!(matches!(
+            ExecutionMode::from(ExecutionModeDto::Task),
+            ExecutionMode::Task
+        ));
+        assert!(matches!(
+            ExecutionMode::from(ExecutionModeDto::Synchronous),
+            ExecutionMode::Synchronous
+        ));
     }
 
     #[test]
@@ -1371,10 +1345,5 @@ mod tests {
         assert!(published_artifacts(&project, overflow).is_err());
         assert_eq!(hex(&[0xde; 32]), "de".repeat(32));
         Ok(())
-    }
-
-    #[test]
-    fn the_wall_clock_advances_with_the_host() {
-        assert!(WallClock.now().0 > 1_700_000_000);
     }
 }

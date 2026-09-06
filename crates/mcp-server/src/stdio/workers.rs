@@ -3,9 +3,10 @@ use std::sync::Arc;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::time::{Duration, Instant};
 
-use rust_engineering_application::ExecutionCancellation;
 use rust_engineering_application::job::{CleanupObservation, JobPermit, JobSignal};
-use rust_engineering_application::{OperationControl, ProjectError};
+use rust_engineering_application::{
+    ExecutionCancellation, ExecutionError, InspectionError, OperationControl, ProjectError,
+};
 use rust_engineering_domain::OperationalErrorCode;
 use rust_engineering_domain::job::Milliseconds;
 use tokio::sync::{OwnedSemaphorePermit, Semaphore};
@@ -409,6 +410,38 @@ impl Workers {
             Ok(Ok(_))
         );
         drained && !self.panicked.load(Ordering::Acquire)
+    }
+}
+
+/// The one reading of a worker signal every inspection tool shares: capacity is
+/// the host refusing the request, a deadline is an operational timeout, and a
+/// panicked or poisoned worker is never described to the peer at all.
+pub(super) fn worker_error(error: WorkerError) -> InspectionError {
+    match error {
+        WorkerError::Busy => InspectionError::Execution(ExecutionError::Busy),
+        WorkerError::Cancelled => InspectionError::Project(ProjectError::Cancelled),
+        WorkerError::TimedOut => {
+            InspectionError::Project(ProjectError::Rejected(OperationalErrorCode::CommandTimeout))
+        }
+        WorkerError::Internal => InspectionError::Internal,
+    }
+}
+
+/// A body that completed while cleanup was interrupted did not complete for the
+/// peer: the interrupting signal wins. A body that reports its own cancellation
+/// defers to the signal that caused it, and every other body error is its own.
+pub(super) fn joined_result<T>(joined: Joined<T, InspectionError>) -> Result<T, InspectionError> {
+    match (joined.result, joined.interrupted) {
+        (
+            Err(
+                InspectionError::Project(ProjectError::Cancelled)
+                | InspectionError::Execution(ExecutionError::Cancelled),
+            ),
+            Some(signal),
+        ) => Err(worker_error(signal)),
+        (Err(error), _) => Err(error),
+        (Ok(_), Some(signal)) => Err(worker_error(signal)),
+        (Ok(value), None) => Ok(value),
     }
 }
 

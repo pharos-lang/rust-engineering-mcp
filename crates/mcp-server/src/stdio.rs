@@ -6,6 +6,7 @@ pub use auditing::provider::HostAuditConfig;
 mod budget;
 mod catalog;
 mod check;
+mod clock;
 pub(crate) use catalog::provider::CatalogProvider;
 pub use catalog::provider::HostCatalogConfig;
 mod clippy;
