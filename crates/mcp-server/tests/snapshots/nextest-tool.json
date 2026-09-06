@@ -1,0 +1,577 @@
+{
+  "name": "rust.test.nextest",
+  "description": "Run cargo-nextest over captured Rust source in the approved offline gateway. Executes hostile project code, uses the fixed default rust-mcp profile, accepts only closed selections, and returns bounded machine-readable counts plus private artifact Resources. Auto or synchronous is qualified only when timeout_seconds is at most 60 and the fixed default profile is used; longer auto calls require negotiated MCP Tasks, and task mode is accepted only when the peer declares io.modelcontextprotocol/tasks. The synchronous work budget excludes joined cleanup, defaults to the requested timeout and never exceeds 60 seconds here. Installs nothing and never runs doctests.",
+  "inputSchema": {
+    "$defs": {
+      "ExecutionModeDto": {
+        "enum": [
+          "auto",
+          "task",
+          "synchronous"
+        ],
+        "type": "string"
+      },
+      "Feature": {
+        "maxLength": 128,
+        "minLength": 1,
+        "pattern": "^[A-Za-z0-9_][A-Za-z0-9_-]*(/[A-Za-z0-9_][A-Za-z0-9_-]*)?$",
+        "type": "string"
+      }
+    },
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "additionalProperties": false,
+    "properties": {
+      "all_features": {
+        "default": false,
+        "type": "boolean"
+      },
+      "execution_mode": {
+        "$ref": "#/$defs/ExecutionModeDto"
+      },
+      "features": {
+        "default": [],
+        "items": {
+          "$ref": "#/$defs/Feature"
+        },
+        "maxItems": 32,
+        "type": "array"
+      },
+      "no_default_features": {
+        "default": false,
+        "type": "boolean"
+      },
+      "package": {
+        "default": null,
+        "maxLength": 128,
+        "minLength": 1,
+        "pattern": "^[A-Za-z0-9_][A-Za-z0-9_-]*$",
+        "type": [
+          "string",
+          "null"
+        ]
+      },
+      "project_ref": {
+        "pattern": "^prj_[0-9a-f]{32}$",
+        "type": "string"
+      },
+      "retries": {
+        "default": 0,
+        "format": "uint8",
+        "maximum": 2,
+        "minimum": 0,
+        "type": "integer"
+      },
+      "target": {
+        "default": null,
+        "pattern": "^aarch64-unknown-linux-gnu$",
+        "type": [
+          "string",
+          "null"
+        ]
+      },
+      "test_filter": {
+        "default": null,
+        "maxLength": 128,
+        "minLength": 1,
+        "pattern": "^[A-Za-z0-9_][A-Za-z0-9_:]*$",
+        "type": [
+          "string",
+          "null"
+        ]
+      },
+      "timeout_seconds": {
+        "default": 300,
+        "format": "uint64",
+        "maximum": 3600,
+        "minimum": 1,
+        "type": "integer"
+      }
+    },
+    "required": [
+      "project_ref"
+    ],
+    "title": "Input",
+    "type": "object"
+  },
+  "outputSchema": {
+    "$defs": {
+      "ArtifactKind": {
+        "enum": [
+          "junit_xml",
+          "stdout_log",
+          "stderr_log",
+          "tool_log"
+        ],
+        "type": "string"
+      },
+      "Code": {
+        "enum": [
+          "PROJECT_NOT_FOUND",
+          "INVALID_PROJECT",
+          "COMMAND_TIMEOUT",
+          "OUTPUT_LIMIT_EXCEEDED",
+          "TOOL_NOT_INSTALLED",
+          "SANDBOX_DENIED",
+          "NETWORK_DENIED",
+          "UNSUPPORTED_PLATFORM",
+          "TASKS_REQUIRED"
+        ],
+        "type": "string"
+      },
+      "Completeness": {
+        "enum": [
+          "complete",
+          "truncated",
+          "partial",
+          "invalid",
+          "unavailable"
+        ],
+        "type": "string"
+      },
+      "Counts": {
+        "additionalProperties": false,
+        "properties": {
+          "failed": {
+            "format": "uint64",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "flaky": {
+            "format": "uint64",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "ignored": {
+            "format": "uint64",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "leaked": {
+            "format": "uint64",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "passed": {
+            "format": "uint64",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "retried": {
+            "format": "uint64",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "selected": {
+            "format": "uint64",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "timed_out": {
+            "format": "uint64",
+            "minimum": 0,
+            "type": "integer"
+          }
+        },
+        "required": [
+          "selected",
+          "passed",
+          "failed",
+          "ignored",
+          "retried",
+          "flaky",
+          "leaked",
+          "timed_out"
+        ],
+        "type": "object"
+      },
+      "Data": {
+        "additionalProperties": false,
+        "properties": {
+          "artifacts": {
+            "items": {
+              "$ref": "#/$defs/PublishedArtifact"
+            },
+            "maxItems": 128,
+            "type": "array"
+          },
+          "completeness": {
+            "$ref": "#/$defs/Completeness"
+          },
+          "counts": {
+            "$ref": "#/$defs/Counts"
+          },
+          "doctests_run": {
+            "type": "boolean"
+          },
+          "exit_code": {
+            "format": "int32",
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "omissions": {
+            "$ref": "#/$defs/Omissions"
+          },
+          "profile": {
+            "maxLength": 128,
+            "minLength": 1,
+            "type": "string"
+          },
+          "project_ref": {
+            "pattern": "^prj_[0-9a-f]{32}$",
+            "type": "string"
+          },
+          "runtime": {
+            "$ref": "#/$defs/RuntimeEvidence"
+          },
+          "termination": {
+            "$ref": "#/$defs/ExecutionTermination"
+          },
+          "tests": {
+            "items": {
+              "$ref": "#/$defs/TestRow"
+            },
+            "maxItems": 128,
+            "type": "array"
+          },
+          "validation_complete": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "project_ref",
+          "profile",
+          "validation_complete",
+          "completeness",
+          "counts",
+          "tests",
+          "doctests_run",
+          "termination",
+          "exit_code",
+          "runtime",
+          "artifacts",
+          "omissions"
+        ],
+        "type": "object"
+      },
+      "ExecutionTermination": {
+        "enum": [
+          "exited",
+          "timed_out",
+          "cancelled",
+          "output_limit"
+        ],
+        "type": "string"
+      },
+      "Omissions": {
+        "additionalProperties": false,
+        "properties": {
+          "artifacts_unavailable": {
+            "type": "boolean"
+          },
+          "junit_truncated": {
+            "type": "boolean"
+          },
+          "stderr_truncated": {
+            "type": "boolean"
+          },
+          "stdout_truncated": {
+            "type": "boolean"
+          },
+          "tests_omitted": {
+            "format": "uint64",
+            "minimum": 0,
+            "type": "integer"
+          }
+        },
+        "required": [
+          "tests_omitted",
+          "junit_truncated",
+          "stdout_truncated",
+          "stderr_truncated",
+          "artifacts_unavailable"
+        ],
+        "type": "object"
+      },
+      "PublishedArtifact": {
+        "additionalProperties": false,
+        "properties": {
+          "completeness": {
+            "$ref": "#/$defs/Completeness"
+          },
+          "kind": {
+            "$ref": "#/$defs/ArtifactKind"
+          },
+          "sha256": {
+            "pattern": "^[0-9a-f]{64}$",
+            "type": "string"
+          },
+          "size_bytes": {
+            "format": "uint64",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "uri": {
+            "maxLength": 512,
+            "minLength": 1,
+            "type": "string"
+          }
+        },
+        "required": [
+          "kind",
+          "uri",
+          "sha256",
+          "size_bytes",
+          "completeness"
+        ],
+        "type": "object"
+      },
+      "RuntimeEvidence": {
+        "additionalProperties": false,
+        "properties": {
+          "cargo_version": {
+            "maxLength": 128,
+            "minLength": 1,
+            "type": "string"
+          },
+          "configuration_fingerprint": {
+            "pattern": "^sha256:[0-9a-f]{64}$",
+            "type": "string"
+          },
+          "declared_toolchain": {
+            "maxLength": 32,
+            "minLength": 1,
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "execution_fingerprint": {
+            "pattern": "^sha256:[0-9a-f]{64}$",
+            "type": "string"
+          },
+          "image_id": {
+            "pattern": "^sha256:[0-9a-f]{64}$",
+            "type": "string"
+          },
+          "platform": {
+            "maxLength": 128,
+            "minLength": 1,
+            "type": "string"
+          },
+          "rust_version": {
+            "maxLength": 128,
+            "minLength": 1,
+            "type": "string"
+          }
+        },
+        "required": [
+          "platform",
+          "image_id",
+          "configuration_fingerprint",
+          "execution_fingerprint",
+          "rust_version",
+          "cargo_version",
+          "declared_toolchain"
+        ],
+        "type": "object"
+      },
+      "TestRow": {
+        "additionalProperties": false,
+        "properties": {
+          "attempts": {
+            "format": "uint16",
+            "maximum": 65535,
+            "minimum": 1,
+            "type": "integer"
+          },
+          "duration_ms": {
+            "format": "uint64",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "status": {
+            "$ref": "#/$defs/TestStatus"
+          },
+          "test_id": {
+            "maxLength": 256,
+            "minLength": 1,
+            "type": "string"
+          }
+        },
+        "required": [
+          "test_id",
+          "status",
+          "attempts",
+          "duration_ms"
+        ],
+        "type": "object"
+      },
+      "TestStatus": {
+        "enum": [
+          "passed",
+          "failed",
+          "ignored",
+          "flaky",
+          "leaked",
+          "timed_out"
+        ],
+        "type": "string"
+      }
+    },
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "oneOf": [
+      {
+        "properties": {
+          "data": {
+            "$ref": "#/$defs/Data"
+          },
+          "error_code": {
+            "type": "null"
+          },
+          "error_message": {
+            "type": "null"
+          },
+          "status": {
+            "const": "passed",
+            "type": "string"
+          }
+        },
+        "required": [
+          "status",
+          "error_code",
+          "error_message",
+          "data"
+        ],
+        "type": "object"
+      },
+      {
+        "properties": {
+          "data": {
+            "$ref": "#/$defs/Data"
+          },
+          "error_code": {
+            "type": "null"
+          },
+          "error_message": {
+            "type": "null"
+          },
+          "status": {
+            "const": "failed",
+            "type": "string"
+          }
+        },
+        "required": [
+          "status",
+          "error_code",
+          "error_message",
+          "data"
+        ],
+        "type": "object"
+      },
+      {
+        "properties": {
+          "data": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/Data"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "error_code": {
+            "$ref": "#/$defs/Code"
+          },
+          "error_message": {
+            "type": "string"
+          },
+          "status": {
+            "const": "blocked",
+            "type": "string"
+          }
+        },
+        "required": [
+          "status",
+          "error_code",
+          "error_message",
+          "data"
+        ],
+        "type": "object"
+      },
+      {
+        "properties": {
+          "data": {
+            "type": "null"
+          },
+          "error_code": {
+            "$ref": "#/$defs/Code"
+          },
+          "error_message": {
+            "type": "string"
+          },
+          "status": {
+            "const": "unavailable",
+            "type": "string"
+          }
+        },
+        "required": [
+          "status",
+          "error_code",
+          "error_message",
+          "data"
+        ],
+        "type": "object"
+      },
+      {
+        "properties": {
+          "data": {
+            "type": "null"
+          },
+          "error_code": {
+            "type": "null"
+          },
+          "error_message": {
+            "type": "null"
+          },
+          "status": {
+            "const": "cancelled",
+            "type": "string"
+          }
+        },
+        "required": [
+          "status",
+          "error_code",
+          "error_message",
+          "data"
+        ],
+        "type": "object"
+      }
+    ],
+    "properties": {
+      "duration_ms": {
+        "format": "uint64",
+        "minimum": 0,
+        "type": "integer"
+      },
+      "summary": {
+        "type": "string"
+      }
+    },
+    "required": [
+      "summary",
+      "duration_ms"
+    ],
+    "title": "Output",
+    "type": "object",
+    "unevaluatedProperties": false
+  },
+  "annotations": {
+    "readOnlyHint": true,
+    "destructiveHint": false,
+    "idempotentHint": false,
+    "openWorldHint": false
+  }
+}

@@ -201,11 +201,28 @@ fn host_root_non_utf8_is_rejected_before_server_startup() -> io::Result<()> {
 
 #[test]
 fn rust_runtime_options_require_a_complete_unique_approved_tuple() -> io::Result<()> {
+    use std::fs;
+    use std::os::unix::fs::PermissionsExt;
+    use std::time::{SystemTime, UNIX_EPOCH};
+
     let baseline = run(&["unknown"])?;
+    let state_root = std::env::temp_dir().canonicalize()?.join(format!(
+        "rust-mcp-cli-state-{}-{}",
+        std::process::id(),
+        SystemTime::now()
+            .duration_since(UNIX_EPOCH)
+            .map_err(io::Error::other)?
+            .as_nanos()
+    ));
+    fs::create_dir(&state_root)?;
+    fs::set_permissions(&state_root, fs::Permissions::from_mode(0o700))?;
+    let state_root = state_root
+        .to_str()
+        .ok_or_else(|| io::Error::other("temporary state root is not UTF-8"))?;
     let options = [
         ("--docker", "/nonexistent/trusted-docker"),
         ("--docker-socket", "/nonexistent/trusted.sock"),
-        ("--state-root", "/nonexistent/trusted-state"),
+        ("--state-root", state_root),
         (
             "--rust-image",
             rust_engineering_execution::APPROVED_RUST_IMAGE,
@@ -257,9 +274,14 @@ fn rust_runtime_options_require_a_complete_unique_approved_tuple() -> io::Result
     // EOF starts and stops stdio without calibration or Docker execution. The
     // nonexistent executable also prevents any accidental real runtime access.
     let output = run(&complete)?;
-    assert!(output.status.success());
+    assert!(
+        output.status.success(),
+        "{}",
+        String::from_utf8_lossy(&output.stderr)
+    );
     assert!(output.stdout.is_empty());
     assert!(output.stderr.is_empty());
+    fs::remove_dir_all(state_root)?;
     Ok(())
 }
 

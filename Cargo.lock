@@ -4889,6 +4889,7 @@ name = "rust-engineering-mcp"
 version = "0.2.0-dev"
 dependencies = [
  "base64 0.22.1",
+ "getrandom 0.4.3",
  "jsonschema",
  "reqwest",
  "ring",
@@ -4900,6 +4901,7 @@ dependencies = [
  "rust-engineering-execution",
  "rust-engineering-project",
  "rust-engineering-semantic",
+ "rustix",
  "schemars 1.2.2",
  "serde",
  "serde_json",

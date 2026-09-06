@@ -12,6 +12,7 @@ mod doctor;
 mod doctor_run;
 mod host_config;
 mod mutation_cli;
+mod quality_artifact_cli;
 mod stdio;
 mod version;
 
@@ -20,6 +21,8 @@ const HELP: &str = "Rust Engineering MCP — development server
 Usage: rust-engineering-mcp <COMMAND>
 
 Commands:
+  quality-artifacts recover --state-root PATH [--json]
+  quality-artifacts prune --state-root PATH [--json]
   mutation list --state-root PATH [--json]
   cargo-vendor inspect --directory PATH [--json]
   mutation prune --state-root PATH --operation-id ID --plan-digest sha256:ID [--json]
@@ -57,6 +60,7 @@ const USAGE_ERROR: &str = "Unsupported invocation. Use 'rust-engineering-mcp --h
 enum Invocation {
     Catalog(catalog_cli::Invocation),
     Mutation(mutation_cli::Invocation),
+    QualityArtifacts(quality_artifact_cli::Invocation),
     CargoVendor(cargo_vendor_cli::Invocation),
     Help,
     Version { json: bool },
@@ -94,6 +98,11 @@ fn invocation() -> Invocation {
     if command == OsStr::new("mutation") {
         return mutation_cli::parse(args)
             .map(Invocation::Mutation)
+            .unwrap_or(Invocation::Unsupported);
+    }
+    if command == OsStr::new("quality-artifacts") {
+        return quality_artifact_cli::parse(args)
+            .map(Invocation::QualityArtifacts)
             .unwrap_or(Invocation::Unsupported);
     }
     if command == OsStr::new("cargo-vendor") {
@@ -137,6 +146,7 @@ fn main() -> ExitCode {
     let (result, code) = match invocation() {
         Invocation::Catalog(config) => return catalog_cli::run(config),
         Invocation::Mutation(config) => return mutation_cli::run(config),
+        Invocation::QualityArtifacts(config) => return quality_artifact_cli::run(config),
         Invocation::CargoVendor(config) => return cargo_vendor_cli::run(config),
         Invocation::Help => (io::stdout().lock().write_all(HELP.as_bytes()), 0),
         Invocation::Version { json } => return version::run(json),

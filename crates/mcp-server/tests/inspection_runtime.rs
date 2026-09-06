@@ -334,7 +334,43 @@ impl Server {
         Self::start_with_arguments(fixture, grants)
     }
     fn start_with_arguments(fixture: &Fixture, grants: Vec<std::ffi::OsString>) -> Result<Self> {
-        let mut child = Command::new(env!("CARGO_BIN_EXE_rust-engineering-mcp"))
+        Self::start_with_arguments_and_state(fixture, grants, true)
+    }
+    fn start_with_arguments_and_state(
+        fixture: &Fixture,
+        grants: Vec<std::ffi::OsString>,
+        state_root: bool,
+    ) -> Result<Self> {
+        Self::start_with_task_hooks(fixture, grants, state_root, None, false)
+    }
+    fn start_tasks(fixture: &Fixture, delay_phase: Option<&str>) -> Result<Self> {
+        Self::start_tasks_with_arguments(fixture, delay_phase, Vec::new())
+    }
+    fn start_tasks_with_arguments(
+        fixture: &Fixture,
+        delay_phase: Option<&str>,
+        grants: Vec<std::ffi::OsString>,
+    ) -> Result<Self> {
+        Self::start_with_task_hooks(
+            fixture,
+            grants,
+            true,
+            Some(delay_phase.unwrap_or("none")),
+            false,
+        )
+    }
+    fn start_tasks_uncertain(fixture: &Fixture) -> Result<Self> {
+        Self::start_with_task_hooks(fixture, Vec::new(), true, None, true)
+    }
+    fn start_with_task_hooks(
+        fixture: &Fixture,
+        grants: Vec<std::ffi::OsString>,
+        state_root: bool,
+        delay_phase: Option<&str>,
+        force_uncertain: bool,
+    ) -> Result<Self> {
+        let mut command = Command::new(env!("CARGO_BIN_EXE_rust-engineering-mcp"));
+        command
             .env_clear()
             .current_dir(&fixture.root)
             .args(["serve", "--stdio", "--root"])
@@ -342,9 +378,20 @@ impl Server {
             .arg("--docker")
             .arg(DOCKER)
             .arg("--docker-socket")
-            .arg(&fixture.socket)
-            .arg("--state-root")
-            .arg(&fixture.state)
+            .arg(&fixture.socket);
+        if delay_phase.is_some() || force_uncertain {
+            command.env("RUST_MCP_TEST_TASKS_READY", "1");
+        }
+        if let Some(delay_phase) = delay_phase {
+            command.env("RUST_MCP_TEST_TASK_DELAY_PHASE", delay_phase);
+        }
+        if force_uncertain {
+            command.env("RUST_MCP_TEST_TASK_FORCE_UNCERTAIN", "1");
+        }
+        if state_root {
+            command.arg("--state-root").arg(&fixture.state);
+        }
+        let mut child = command
             .arg("--rust-image")
             .arg(APPROVED_RUST_IMAGE)
             .args(grants)
@@ -527,11 +574,14 @@ impl Server {
         Ok(())
     }
     fn finish(&mut self) -> Result {
+        self.finish_expect(true)
+    }
+    fn finish_expect(&mut self, expected_success: bool) -> Result {
         self.stdin.take();
         let deadline = Instant::now() + JOIN_TIMEOUT;
         loop {
             if let Some(status) = self.child.try_wait()? {
-                if !status.success() {
+                if status.success() != expected_success {
                     return Err(format!("server exited {status}").into());
                 }
                 // Drain through actual pipe EOF after process exit. This closes
@@ -561,7 +611,21 @@ impl Server {
                     .completed
                     .extend(std::mem::take(&mut tracking.requests).into_values());
                 let stderr = self.stderr.recv_timeout(CONTROL_TIMEOUT)??;
-                assert_runtime_mutation_events(&stderr, &tracking.completed)?;
+                if expected_success {
+                    assert_runtime_mutation_events(&stderr, &tracking.completed)?;
+                } else {
+                    let text = std::str::from_utf8(&stderr)?;
+                    let failure = "ERROR MCP stdio session failed";
+                    if text.lines().filter(|line| *line == failure).count() != 1 {
+                        return Err(format!("missing exact failed-session trace: {text}").into());
+                    }
+                    let lifecycle = text
+                        .lines()
+                        .filter(|line| *line != failure)
+                        .collect::<Vec<_>>()
+                        .join("\n");
+                    assert_runtime_mutation_events(lifecycle.as_bytes(), &tracking.completed)?;
+                }
                 return Ok(());
             }
             if Instant::now() >= deadline {
@@ -634,6 +698,30 @@ fn assert_runtime_mutation_events(stderr: &[u8], expected: &[MutationExpectation
             .strip_prefix(" INFO ")
             .or_else(|| line.strip_prefix("INFO "))
             .ok_or_else(|| format!("unexpected server stderr record: {line}"))?;
+        if encoded.starts_with("bounded job lifecycle event") {
+            for field in [
+                "job_id=",
+                "kind=",
+                "event=",
+                "phase=",
+                "state=",
+                "reason=",
+                "elapsed_ms=",
+                "budget_ms=",
+                "retained_bytes=",
+                "retained_entries=",
+            ] {
+                if !encoded.contains(field) {
+                    return Err(format!("incomplete job event: {encoded}").into());
+                }
+            }
+            for forbidden in ["prj_", "/source", "argument", "structuredContent"] {
+                if encoded.contains(forbidden) {
+                    return Err(format!("sensitive job event field: {encoded}").into());
+                }
+            }
+            continue;
+        }
         let event: Value = serde_json::from_str(encoded)?;
         let object = event.as_object().ok_or("mutation event is not an object")?;
         let fields = [
@@ -747,6 +835,22 @@ fn call(id: i64, name: &str, arguments: Value) -> Value {
     request["params"]["name"] = json!(name);
     request["params"]["arguments"] = arguments;
     request
+}
+fn task_request(id: i64, method: &str, params: Value) -> Value {
+    let mut params = params.as_object().cloned().unwrap_or_default();
+    params.insert(
+        "_meta".into(),
+        json!({
+            "io.modelcontextprotocol/protocolVersion":VERSION,
+            "io.modelcontextprotocol/clientCapabilities":{
+                "extensions":{"io.modelcontextprotocol/tasks":{}}
+            }
+        }),
+    );
+    json!({"jsonrpc":"2.0","id":id,"method":method,"params":params})
+}
+fn task_call(id: i64, name: &str, arguments: Value) -> Value {
+    task_request(id, "tools/call", json!({"name":name,"arguments":arguments}))
 }
 fn assert_fingerprint(value: &Value) {
     let text = value.as_str().unwrap_or_default();
@@ -2625,3 +2729,12 @@ mod mutation_concurrency_runtime;
 
 #[path = "inspection_runtime/terminal_plan.rs"]
 mod terminal_plan_runtime;
+
+#[path = "inspection_runtime/nextest.rs"]
+mod nextest_runtime;
+
+#[path = "inspection_runtime/semver.rs"]
+mod semver_runtime;
+
+#[path = "inspection_runtime/tasks.rs"]
+mod tasks_runtime;
