@@ -15,5 +15,6 @@ paths-ignore:
   - "docs/research/**"
   - "docs/validation/**"
   - "crates/**/tests/**"
+  - "crates/**/tests.rs"
   - "scripts/test-*.py"
   - "docs/release/reproduction/**/test*.py"
