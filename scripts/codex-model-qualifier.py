@@ -354,6 +354,21 @@ def process_is_live(pid):
  try:os.kill(pid,0);return True
  except ProcessLookupError:return False
  except PermissionError:return True
+class DarwinBsdInfo(ctypes.Structure):
+ _fields_=[("flags",ctypes.c_uint32),("status",ctypes.c_uint32),("xstatus",ctypes.c_uint32),("pid",ctypes.c_uint32),("ppid",ctypes.c_uint32),("uid",ctypes.c_uint32),("gid",ctypes.c_uint32),("ruid",ctypes.c_uint32),("rgid",ctypes.c_uint32),("svuid",ctypes.c_uint32),("svgid",ctypes.c_uint32),("reserved",ctypes.c_uint32),("comm",ctypes.c_char*16),("name",ctypes.c_char*32),("nfiles",ctypes.c_uint32),("pgid",ctypes.c_uint32),("pjobc",ctypes.c_uint32),("tdev",ctypes.c_uint32),("tpgid",ctypes.c_uint32),("nice",ctypes.c_int32),("start_seconds",ctypes.c_uint64),("start_microseconds",ctypes.c_uint64)]
+def darwin_process_rows():
+ """Read the process table without spawning ps when a host sandbox denies it."""
+ libproc=ctypes.CDLL("/usr/lib/libproc.dylib",use_errno=True);capacity=4096;pids=(ctypes.c_int*capacity)();count=libproc.proc_listallpids(pids,ctypes.sizeof(pids))
+ if count<0:raise OSError(ctypes.get_errno() or 5,"proc_listallpids")
+ out=[]
+ for pid in pids[:min(count,capacity)]:
+  if pid<=0:continue
+  info=DarwinBsdInfo();size=libproc.proc_pidinfo(pid,3,0,ctypes.byref(info),ctypes.sizeof(info))
+  if size!=ctypes.sizeof(info):continue
+  try:command=process_executable(pid)
+  except (OSError,ProcessLookupError):command=os.fsdecode(bytes(info.comm).split(b"\0",1)[0])
+  out.append((int(info.pid),int(info.ppid),int(info.pgid),command))
+ return out
 class Transport:
  def __init__(self,phase,cmd,cwd,home,temp,log,deadline,rpc_timeout=30,allowed_executables=None,required_role=None):
   self.phase=phase;self.log=log;self.deadline=deadline;self.rpc_timeout=rpc_timeout;self.q=queue.Queue();self.events=queue.Queue();self.n=0;self.requests={};self.failure=None;self.stderr=bytearray();self.observed=set();self.process_identities={};self.allowed_executables={str(Path(k)):v for k,v in (allowed_executables or {}).items()};self.required_role=required_role;self.stop=threading.Event();self.closed=False;self.close_result=None;self.close_lock=threading.Lock()
@@ -399,7 +414,11 @@ class Transport:
   except Exception as e:self.failure=self.failure or f"stderr:{e}"
  @staticmethod
  def _rows():
-  r=subprocess.run(["/bin/ps","-ww","-axo","pid=,ppid=,pgid=,args="],capture_output=True,text=True,check=True,timeout=5);out=[]
+  try:r=subprocess.run(["/bin/ps","-ww","-axo","pid=,ppid=,pgid=,args="],capture_output=True,text=True,check=True,timeout=5)
+  except PermissionError:
+   if sys.platform=="darwin":return darwin_process_rows()
+   raise
+  out=[]
   for line in r.stdout.splitlines():
    parts=line.strip().split(None,3)
    if len(parts)==4:out.append((int(parts[0]),int(parts[1]),int(parts[2]),parts[3]))

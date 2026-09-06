@@ -16,7 +16,7 @@ import time
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 DOCKER = '/Applications/Docker.app/Contents/Resources/bin/docker'
-IMAGE = 'sha256:8fac70723a8d04b6ec9633ab721806b8a55f4f083a1b3f988c61bf6a00fa1909'
+IMAGE = 'sha256:384a1742ecc53cdd3a9c0bf36c6f8b66db73ddd118aeeae6e55654ea998ae36a'
 CALIBRATION = '/opt/rust/bin/cargo check --frozen --message-format=json --jobs=1'
 FINGERPRINT = re.compile(r'sha256:[0-9a-f]{64}\Z')
 JOB = re.compile(r'rust-mcp-cargo-([0-9a-f]{32})\Z')

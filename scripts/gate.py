@@ -170,6 +170,7 @@ def main():
             run('docker-security',['sh','scripts/test-execution.sh'])
             run('rust-security',[sys.executable,'scripts/test-rust-execution.py'])
             run('m2-runtime',[sys.executable,'scripts/test-m2-runtime.py'])
+            run('m3-runtime',[sys.executable,'-B','scripts/test-m3-runtime.py'])
             run('audit-data',[sys.executable,'scripts/test-audit-data.py'])
             run('semantic',[sys.executable,'scripts/test-semantic.py'])
             run('catalog',[sys.executable,'scripts/test-catalog.py'])
