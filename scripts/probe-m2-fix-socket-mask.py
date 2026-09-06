@@ -16,7 +16,9 @@ DOCKER = Path("/usr/local/bin/docker")
 SOCKET = Path("/Users/cburgosro/.docker/run/docker.sock")
 IMAGE = "sha256:384a1742ecc53cdd3a9c0bf36c6f8b66db73ddd118aeeae6e55654ea998ae36a"
 PRODUCTION_PROFILE = ROOT / "crates/execution-adapter/src/seccomp-rust-fix.json"
-REPORT = ROOT / "docs/validation/M2-fix-socket-mask.json"
+REPORTS = ROOT / "docs/validation"
+REPORT_NAME = "M2-fix-socket-mask.json"
+REPORT = REPORTS / REPORT_NAME
 LABEL_KEY = "org.rust-mcp.m2-fix-socket-mask"
 TIMEOUT = 30
 
@@ -50,6 +52,33 @@ fn main() {
 
 def sha256(data):
     return "sha256:" + hashlib.sha256(data).hexdigest()
+
+
+class ProbeDirectory:
+    """A directory this probe owns, which validates every path it hands out.
+
+    The probe writes nothing outside a base it resolved once. `entry` accepts
+    only a plain file name, joins it to that resolved base and refuses any
+    result that does not land directly inside it, so the path reaching the
+    filesystem is always one this script constructed.
+    """
+
+    def __init__(self, base):
+        self.base = Path(base).resolve(strict=True)
+
+    def entry(self, name):
+        target = (self.base / name).resolve()
+        if target.parent != self.base or target.name != name:
+            raise AssertionError(f"{name!r} does not name a file directly inside {self.base}")
+        return target
+
+    def write(self, name, text, mode=None):
+        target = self.entry(name)
+        with open(target, "wb") as handle:
+            handle.write(text.encode("utf-8"))
+        if mode is not None:
+            target.chmod(mode)
+        return target
 
 
 class Probe:
@@ -305,14 +334,15 @@ def main():
     production_bytes = PRODUCTION_PROFILE.read_bytes()
     production = json.loads(production_bytes)
     corrected = corrected_profile(production)
+    reports = ProbeDirectory(REPORTS)
     with tempfile.TemporaryDirectory(prefix="rust-mcp-m2-mask-") as directory:
-        temporary = Path(directory)
-        docker_config = temporary / "docker-config"
+        scratch = ProbeDirectory(directory)
+        temporary = scratch.base
+        docker_config = scratch.entry("docker-config")
         docker_config.mkdir(mode=0o700)
-        old_path = temporary / "old.json"
-        corrected_path = temporary / "corrected.json"
-        old_path.write_text(json.dumps(production, separators=(",", ":")), encoding="utf-8")
-        corrected_path.write_text(json.dumps(corrected, separators=(",", ":")), encoding="utf-8")
+        old_path = scratch.write("old.json", json.dumps(production, separators=(",", ":")))
+        corrected_path = scratch.write(
+            "corrected.json", json.dumps(corrected, separators=(",", ":")))
         probe = Probe(docker_config, temporary)
         cleanup = None
         failure = None
@@ -417,7 +447,7 @@ def main():
                 "failure": failure,
                 "events": probe.events,
             }
-            REPORT.write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")
+            reports.write(REPORT_NAME, json.dumps(report, indent=2) + "\n")
     if report["status"] != "passed":
         raise SystemExit("probe or cleanup failed")
     print(json.dumps({

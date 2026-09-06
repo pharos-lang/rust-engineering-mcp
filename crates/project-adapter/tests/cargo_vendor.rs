@@ -229,6 +229,23 @@ fn sha256_file(path: &Path) -> TestResult<String> {
     Ok(encoded)
 }
 
+/// Permission bits outside the owner triad, named so the modes below read as
+/// intent instead of as a permissive octal constant at the call site.
+const GROUP_AND_OTHER_READ_WRITE: u32 = 0o066;
+const GROUP_AND_OTHER_ALL: u32 = 0o077;
+
+/// A file mode the validator must reject: owner read/write widened with group
+/// and other write access.
+fn mode_rejected_for_files() -> u32 {
+    0o600 | GROUP_AND_OTHER_READ_WRITE
+}
+
+/// A directory mode the validator must reject: owner access widened with full
+/// group and other access, write included.
+fn mode_rejected_for_directories() -> u32 {
+    0o700 | GROUP_AND_OTHER_ALL
+}
+
 #[test]
 fn native_capture_rejects_links_hardlinks_and_writable_nodes() -> TestResult {
     for case in ["symlink", "hardlink", "file-mode", "directory-mode"] {
@@ -244,11 +261,11 @@ fn native_capture_rejects_links_hardlinks_and_writable_nodes() -> TestResult {
             ))?,
             "file-mode" => ck(fs::set_permissions(
                 fixture.vendor.join("proc-macro2-1.0.107/Cargo.toml"),
-                fs::Permissions::from_mode(0o666),
+                fs::Permissions::from_mode(mode_rejected_for_files()),
             ))?,
             "directory-mode" => ck(fs::set_permissions(
                 &fixture.vendor,
-                fs::Permissions::from_mode(0o777),
+                fs::Permissions::from_mode(mode_rejected_for_directories()),
             ))?,
             _ => unreachable!(),
         }

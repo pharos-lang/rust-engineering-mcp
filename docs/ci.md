@@ -25,6 +25,55 @@ Python en total. Los entrypoints que requieren un host release real permanecen
 analizados por Sonar y probados por sus suites, pero se excluyen solo del porcentaje
 de cobertura; su evidencia end-to-end es separada y candidate-bound.
 
+`sonar.coverage.exclusions` nombra cada archivo individualmente —nunca un crate
+entero ni un comodín— y ninguno sale del análisis: siguen midiéndose fiabilidad,
+seguridad, mantenibilidad y duplicación. Solo se excluye lo que el scanner
+portable no puede ejecutar, y cada grupo declara el recibo que sí prueba su
+comportamiento:
+
+1. Programas de calificación maintainer-only: `scripts/codex-model-qualifier.py`,
+   `scripts/release-artifact.py`, `scripts/release-smoke.py` y
+   `scripts/verify-vendor.py`. Requieren host release Darwin real, Docker/Codex o
+   ambos. Recibos: [`M3-full-gate.json`](validation/M3-full-gate.json) y los
+   receipts de release en `docs/validation/`.
+2. Sondas M2 sobre Docker: `scripts/probe-m2-cargo-fix.py`,
+   `probe-m2-fix-socket-mask.py`, `probe-m2-guest-staging.py`,
+   `probe-m2-offline-registry.py`, `probe-m2-vendor-data.py` y
+   `probe-m2-write-primitives.py`. Su única ruta ejecutable crea volúmenes y
+   contenedores contra la imagen aprobada en un daemon local; el runner Ubuntu no
+   tiene ni el socket ni la imagen. Recibos: los JSON `M2-*` que cada sonda emite
+   y [`M3-rust-security.json`](validation/M3-rust-security.json).
+3. Gateway Docker cerrado y sus puertos: `crates/execution-adapter/src/lib.rs`,
+   `rust_gateway.rs`, `mutation_gateway.rs`, `mutation_test_gateway.rs`,
+   `nextest_gateway.rs`, `coverage_gateway.rs`, `semver_gateway.rs`,
+   `resolution_gateway.rs`, `project_inspection.rs`, `coverage_port.rs`,
+   `nextest_port.rs`, `mutation_test_port.rs` y `semver_port.rs`. Construyen y
+   ejecutan las fases del contenedor; los puertos reciben `&RustGateway` concreto,
+   así que sin daemon no hay ruta que un test portable pueda tomar. Los parsers
+   que sí son puros viven aparte (`coverage_json.rs`, `nextest_junit.rs`,
+   `semver_output.rs`, `mutation_outcomes.rs`) y siguen midiéndose. Recibos:
+   [`M3-runtime.json`](validation/M3-runtime.json) y
+   [`M3-rust-security.json`](validation/M3-rust-security.json).
+4. Store durable macOS ARM64 y su publicación:
+   `crates/mcp-server/src/stdio/quality_artifacts.rs`,
+   `crates/project-adapter/src/mutation_store.rs`, `mutation_port.rs`,
+   `quality_artifact_store.rs`, `cargo_vendor.rs` y `filesystem.rs`. ADR-061
+   califica solo macOS ARM64/APFS: fuera de ese host `NativeQualityArtifactStore`
+   no tiene constructor, por lo que las rutas de publicación son inalcanzables en
+   Linux. Recibos: [`M3-runtime.json`](validation/M3-runtime.json) y
+   [`M3-06-rollback.json`](validation/M3-06-rollback.json).
+5. Entrypoints de host: `crates/mcp-server/src/stdio.rs` —ensamblado del servidor
+   sobre transporte stdio real, store nativo y runtime Docker— y
+   `crates/mcp-server/src/main.rs` —dispatch de argv del binario—, más
+   `scripts/m3-inspector-session.mjs`, que conduce una sesión MCP contra un
+   servidor real. Recibos: [`M3-runtime.json`](validation/M3-runtime.json) y
+   [`M3-full-gate.json`](validation/M3-full-gate.json).
+
+Los módulos de herramienta (`stdio/nextest.rs`, `coverage.rs`, `semver.rs`,
+`mutation.rs`, `mutation_test.rs`, `tasks.rs`, `resources.rs`) no se excluyen:
+su validación de opciones, sus conversiones DTO, sus proyecciones y su gramática
+de URI son puras y se prueban en el propio módulo.
+
 El análisis Python declara las versiones compatibles 3.11, 3.12, 3.13 y 3.14.
 `crates/catalog-adapter/src/schema.sql` es DDL de SQLite, no PL/SQL de Oracle;
 `.sql` se retira por tanto de los sufijos del analizador PL/SQL. Un futuro archivo

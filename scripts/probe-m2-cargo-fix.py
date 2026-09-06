@@ -21,8 +21,11 @@ DOCKER = Path("/usr/local/bin/docker")
 SOCKET = Path("/Users/cburgosro/.docker/run/docker.sock")
 IMAGE = "sha256:384a1742ecc53cdd3a9c0bf36c6f8b66db73ddd118aeeae6e55654ea998ae36a"
 SECCOMP = ROOT / "crates/execution-adapter/src/seccomp-rust.json"
-REPORT = ROOT / "docs/validation/M2-D06-cargo-fix-qualification.json"
-SUMMARY = ROOT / "docs/validation/M2-D06-cargo-fix-qualification.md"
+REPORTS = ROOT / "docs/validation"
+REPORT_NAME = "M2-D06-cargo-fix-qualification.json"
+SUMMARY_NAME = "M2-D06-cargo-fix-qualification.md"
+REPORT = REPORTS / REPORT_NAME
+SUMMARY = REPORTS / SUMMARY_NAME
 TIMEOUT = 30
 REQUESTED_ARGV = [
     "/opt/rust/bin/cargo", "fix", "--workspace", "--all-targets", "--default-features",
@@ -39,6 +42,33 @@ def sha256(data):
 def encoded(data):
     return {"length": len(data), "sha256": sha256(data),
             "base64": base64.b64encode(data).decode("ascii")}
+
+
+class ProbeDirectory:
+    """A directory this probe owns, which validates every path it hands out.
+
+    The probe writes nothing outside a base it resolved once. `entry` takes a
+    plain file name, joins it to that resolved base and rejects any result that
+    does not land directly inside it, so every path reaching the filesystem is
+    one this script constructed.
+    """
+
+    def __init__(self, base):
+        self.base = Path(base).resolve(strict=True)
+
+    def entry(self, name):
+        target = (self.base / name).resolve()
+        if target.parent != self.base or target.name != name:
+            raise AssertionError(f"{name!r} is not a file name directly inside {self.base}")
+        return target
+
+    def write(self, name, payload, mode=None):
+        target = self.entry(name)
+        with open(target, "wb") as handle:
+            handle.write(payload if isinstance(payload, bytes) else payload.encode("utf-8"))
+        if mode is not None:
+            target.chmod(mode)
+        return target
 
 
 def archive(files):
@@ -329,7 +359,7 @@ def baseline_socket_denial(probe):
 TCP_OPERATIONS = ["bind", "connect", "listen", "accept4", "getsockname", "setsockopt", "shutdown"]
 
 
-def private_tcp_profile(path, operations=TCP_OPERATIONS):
+def private_tcp_profile(directory, name, operations=TCP_OPERATIONS):
     profile = json.loads(SECCOMP.read_text())
     profile["syscalls"].extend([
         {"names": ["socket"], "action": "SCMP_ACT_ALLOW", "args": [
@@ -340,11 +370,10 @@ def private_tcp_profile(path, operations=TCP_OPERATIONS):
         {"names": list(operations), "action": "SCMP_ACT_ALLOW"},
     ])
     data = (json.dumps(profile, indent=2, sort_keys=True) + "\n").encode()
-    path.write_bytes(data)
-    path.chmod(0o600)
-    return {"path": str(path), "sha256": sha256(data),
-            "socket_constraints": ["AF_INET", "SOCK_STREAM masked by 0xf", "protocol 0 (TCP for stream)"],
-            "socket_operations": list(operations)}
+    path = directory.write(name, data, mode=0o600)
+    return path, {"path": str(path), "sha256": sha256(data),
+                  "socket_constraints": ["AF_INET", "SOCK_STREAM masked by 0xf", "protocol 0 (TCP for stream)"],
+                  "socket_operations": list(operations)}
 
 
 def profile_failure(probe, suffix, expected):
@@ -466,7 +495,7 @@ def timeout_cleanup(probe):
             "oom_killed": state["OOMKilled"]}
 
 
-def write_summary(report):
+def write_summary(reports, report):
     positive_result = report.get("experiments", {}).get("positive", {})
     missing = report.get("experiments", {}).get("missing_lock", {})
     cancel = report.get("experiments", {}).get("cancellation", {})
@@ -499,7 +528,7 @@ The experimental profile admits AF_INET stream sockets with protocol 0 and `bind
 - [Cargo fix command](https://doc.rust-lang.org/nightly/cargo/commands/cargo-fix.html) documents target, feature, VCS, frozen, and offline behavior.
 - [Cargo fix implementation at the runtime commit](https://github.com/rust-lang/cargo/blob/797e8a9bca276c1c9f9f738d2a20f484fa4eea9d/src/cargo/ops/fix/mod.rs) shows the TCP lock client and bounded iterative rustc/rustfix execution used by Cargo 1.98.1.
 """
-    SUMMARY.write_text(text)
+    reports.write(SUMMARY_NAME, text)
 
 
 def main():
@@ -516,7 +545,8 @@ def main():
     status = 70
     probe = None
     with tempfile.TemporaryDirectory(prefix="rust-mcp-m2-d06-config-") as config_name:
-        config = Path(config_name)
+        scratch = ProbeDirectory(config_name)
+        config = scratch.base
         config.chmod(0o700)
         probe = Probe(config, nonce)
         try:
@@ -536,21 +566,21 @@ def main():
                 "unsupported_default_features": unsupported_default_features(probe),
                 "production_seccomp_denial": baseline_socket_denial(probe),
             }
-            no_setsockopt = config / "seccomp-cargo-fix-no-setsockopt.json"
             variants = {}
-            variants["without_setsockopt"] = private_tcp_profile(
-                no_setsockopt, [value for value in TCP_OPERATIONS if value != "setsockopt"])
+            no_setsockopt, variants["without_setsockopt"] = private_tcp_profile(
+                scratch, "seccomp-cargo-fix-no-setsockopt.json",
+                [value for value in TCP_OPERATIONS if value != "setsockopt"])
             probe.seccomp = no_setsockopt
             experiments["setsockopt_required"] = profile_failure(
                 probe, "no-setsockopt", "failed to bind TCP listener to manage locking")
-            no_shutdown = config / "seccomp-cargo-fix-no-shutdown.json"
-            variants["without_shutdown"] = private_tcp_profile(
-                no_shutdown, [value for value in TCP_OPERATIONS if value != "shutdown"])
+            no_shutdown, variants["without_shutdown"] = private_tcp_profile(
+                scratch, "seccomp-cargo-fix-no-shutdown.json",
+                [value for value in TCP_OPERATIONS if value != "shutdown"])
             probe.seccomp = no_shutdown
             experiments["shutdown_required"] = profile_failure(
                 probe, "no-shutdown", "failed to shutdown")
-            private_profile = config / "seccomp-cargo-fix-experiment.json"
-            report["experimental_seccomp"] = private_tcp_profile(private_profile)
+            private_profile, report["experimental_seccomp"] = private_tcp_profile(
+                scratch, "seccomp-cargo-fix-experiment.json")
             report["experimental_seccomp_variants"] = variants
             probe.seccomp = private_profile
             experiments.update({"positive": positive(probe), "missing_lock": missing_lock(probe),
@@ -585,8 +615,9 @@ def main():
         "Docker network=none isolates external interfaces but does not by itself deny every loopback syscall.",
         "Cancellation was forced during a fixed benign build script sleep and verifies container removal, not every daemon failure mode.",
     ]
-    REPORT.write_text(json.dumps(report, indent=2, sort_keys=True) + "\n")
-    write_summary(report)
+    reports = ProbeDirectory(REPORTS)
+    reports.write(REPORT_NAME, json.dumps(report, indent=2, sort_keys=True) + "\n")
+    write_summary(reports, report)
     print(json.dumps({"status": report["experiment_status"], "gate": report["product_gate"],
                       "cleanup": report["final_cleanup_inventory"]}, sort_keys=True))
     return status
