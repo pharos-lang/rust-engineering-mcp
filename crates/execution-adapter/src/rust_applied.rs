@@ -88,6 +88,144 @@ struct Restart {
     name: String,
 }
 
+/// Authority every applied container refuses, whichever phase it runs.
+///
+/// The daemon is asked for a container with no host namespaces, no added
+/// groups, no OOM or cgroup tuning, no sysctls, no ulimits and the fixed masked
+/// and read-only proc paths, under runc without its init. `interactive` is the
+/// one shape that varies: only an ingesting or interactive phase opens stdin.
+/// The two labels bind the container to this product and to one job nonce, so a
+/// container created by anything else is never adopted.
+fn no_host_authority(c: &Created, nonce: &str, interactive: bool) -> bool {
+    let h = &c.host_config;
+    !c.config.tty
+        && c.config.open_stdin == interactive
+        && c.config.attach_stdin == interactive
+        && c.config.stdin_once == interactive
+        && c.config.labels
+            == BTreeMap::from([
+                ("org.rust-mcp.execution".into(), "true".into()),
+                ("org.rust-mcp.rust-job".into(), nonce.into()),
+            ])
+        && !h.auto_remove
+        && h.group_add.as_ref().is_none_or(Vec::is_empty)
+        && h.uts_mode.is_empty()
+        && h.oom_kill_disable != Some(true)
+        && h.oom_score_adj == 0
+        && h.device_cgroup_rules.as_ref().is_none_or(Vec::is_empty)
+        && h.storage_opt.as_ref().is_none_or(BTreeMap::is_empty)
+        && h.annotations.as_ref().is_none_or(BTreeMap::is_empty)
+        && h.runtime == "runc"
+        && h.init != Some(true)
+        && h.userns_mode.is_empty()
+        && h.cgroup_parent.is_empty()
+        && h.sysctls.as_ref().is_none_or(BTreeMap::is_empty)
+        && h.ulimits.as_ref().is_none_or(Vec::is_empty)
+        && h.masked_paths
+            == [
+                "/proc/acpi",
+                "/proc/asound",
+                "/proc/interrupts",
+                "/proc/kcore",
+                "/proc/keys",
+                "/proc/latency_stats",
+                "/proc/sched_debug",
+                "/proc/scsi",
+                "/proc/timer_list",
+                "/proc/timer_stats",
+                "/sys/devices/virtual/powercap",
+                "/sys/firmware",
+            ]
+        && h.readonly_paths
+            == [
+                "/proc/bus",
+                "/proc/fs",
+                "/proc/irq",
+                "/proc/sys",
+                "/proc/sysrq-trigger",
+            ]
+}
+
+/// Limits every applied container carries, whichever phase it runs.
+///
+/// No capabilities, devices, host binds, published ports, restart policy or
+/// logging; a read-only rootfs on a private network, IPC and cgroup namespace;
+/// the fixed CPU, memory, PID and shared-memory ceilings; and the two private
+/// tmpfs mounts the guest writes into. The image and working directory are the
+/// approved ones. Each caller still verifies its own seccomp profile, mounts,
+/// extra tmpfs, guest user, entrypoint, arguments and environment.
+fn applied_limits_ok(c: &Created, image: &str) -> bool {
+    let h = &c.host_config;
+    c.config.volumes.as_ref().is_none_or(BTreeMap::is_empty)
+        && h.cap_add.as_ref().is_none_or(Vec::is_empty)
+        && h.volumes_from.as_ref().is_none_or(Vec::is_empty)
+        && h.readonly_rootfs
+        && h.network_mode == "none"
+        && h.pid_mode.is_empty()
+        && h.ipc_mode == "private"
+        && h.cgroupns_mode == "private"
+        && h.cap_drop == ["ALL"]
+        && h.security_opt.len() == 2
+        && h.security_opt
+            .iter()
+            .any(|value| value == "no-new-privileges=true" || value == "no-new-privileges")
+        && h.pids_limit == 128
+        && h.nano_cpus == 1_000_000_000
+        && h.memory == 1_073_741_824
+        && h.memory_swap == 1_073_741_824
+        && h.shm_size == 1_048_576
+        && !h.privileged
+        && h.binds.as_ref().is_none_or(Vec::is_empty)
+        && h.devices.is_empty()
+        && h.device_requests.as_ref().is_none_or(Vec::is_empty)
+        && !h.publish_all_ports
+        && h.port_bindings.is_empty()
+        && h.restart_policy.name == "no"
+        && h.log_config.kind == "none"
+        && h.tmpfs
+            .get("/work")
+            .is_some_and(|value| value == "rw,exec,nosuid,nodev,size=512m,mode=1777")
+        && h.tmpfs
+            .get("/tmp")
+            .is_some_and(|value| value == "rw,nosuid,nodev,noexec,size=64m,mode=1777")
+        && c.config.working_dir == "/source"
+        && c.config.image == image
+}
+
+/// The single applied seccomp profile must parse to exactly the phase's own.
+fn applied_profile_ok(c: &Created, expected: &str) -> Result<bool, ExecutionError> {
+    let profile: serde_json::Value =
+        serde_json::from_str(expected).map_err(|_| ExecutionError::Infrastructure)?;
+    let applied = c
+        .host_config
+        .security_opt
+        .iter()
+        .filter_map(|value| value.strip_prefix("seccomp="))
+        .collect::<Vec<_>>();
+    Ok(applied.len() == 1
+        && serde_json::from_str::<serde_json::Value>(applied[0])
+            .is_ok_and(|value| value == profile))
+}
+
+/// The daemon answered a create with exactly one container or it is not the one
+/// this gateway asked for.
+fn only_created(bytes: &[u8]) -> Result<Created, ExecutionError> {
+    let containers: Vec<Created> =
+        serde_json::from_slice(bytes).map_err(|_| ExecutionError::Infrastructure)?;
+    let mut containers = containers.into_iter();
+    match (containers.next(), containers.next()) {
+        (Some(created), None) => Ok(created),
+        _ => Err(ExecutionError::Infrastructure),
+    }
+}
+
+/// Environment equality is order-insensitive; the applied order is the daemon's.
+fn sorted_env(c: &Created) -> Vec<String> {
+    let mut env = c.config.env.clone();
+    env.sort();
+    env
+}
+
 pub(super) fn verify(
     bytes: &[u8],
     image: &str,
@@ -279,70 +417,11 @@ fn verify_rust_generic(
     coverage_target: Option<(&MutationVolume, bool)>,
     nonce: &str,
 ) -> Result<(), ExecutionError> {
-    let containers: Vec<Created> =
-        serde_json::from_slice(bytes).map_err(|_| ExecutionError::Infrastructure)?;
-    let c = containers
-        .first()
-        .filter(|_| containers.len() == 1)
-        .ok_or(ExecutionError::Infrastructure)?;
+    let c = only_created(bytes)?;
+    let c = &c;
     let h = &c.host_config;
-    let mut env = c.config.env.clone();
-    env.sort();
-    let profile: serde_json::Value = serde_json::from_str(phase.seccomp_profile_json())
-        .map_err(|_| ExecutionError::Infrastructure)?;
-    let seccomp = h
-        .security_opt
-        .iter()
-        .filter_map(|s| s.strip_prefix("seccomp="))
-        .collect::<Vec<_>>();
-    let profile_ok = seccomp.len() == 1
-        && serde_json::from_str::<serde_json::Value>(seccomp[0]).is_ok_and(|v| v == profile);
-    let safe = !c.config.tty
-        && c.config.open_stdin == phase.ingesting()
-        && c.config.attach_stdin == phase.ingesting()
-        && c.config.stdin_once == phase.ingesting()
-        && !h.auto_remove
-        && h.group_add.as_ref().is_none_or(Vec::is_empty)
-        && h.uts_mode.is_empty()
-        && h.oom_kill_disable != Some(true)
-        && h.oom_score_adj == 0
-        && h.device_cgroup_rules.as_ref().is_none_or(Vec::is_empty)
-        && h.storage_opt.as_ref().is_none_or(BTreeMap::is_empty)
-        && h.annotations.as_ref().is_none_or(BTreeMap::is_empty)
-        && h.runtime == "runc"
-        && h.init != Some(true)
-        && h.userns_mode.is_empty()
-        && h.cgroup_parent.is_empty()
-        && h.sysctls.as_ref().is_none_or(BTreeMap::is_empty)
-        && h.ulimits.as_ref().is_none_or(Vec::is_empty)
-        && h.masked_paths
-            == [
-                "/proc/acpi",
-                "/proc/asound",
-                "/proc/interrupts",
-                "/proc/kcore",
-                "/proc/keys",
-                "/proc/latency_stats",
-                "/proc/sched_debug",
-                "/proc/scsi",
-                "/proc/timer_list",
-                "/proc/timer_stats",
-                "/sys/devices/virtual/powercap",
-                "/sys/firmware",
-            ]
-        && h.readonly_paths
-            == [
-                "/proc/bus",
-                "/proc/fs",
-                "/proc/irq",
-                "/proc/sys",
-                "/proc/sysrq-trigger",
-            ]
-        && c.config.labels
-            == BTreeMap::from([
-                ("org.rust-mcp.execution".into(), "true".into()),
-                ("org.rust-mcp.rust-job".into(), nonce.into()),
-            ])
+    let profile_ok = applied_profile_ok(c, phase.seccomp_profile_json())?;
+    let safe = no_host_authority(c, nonce, phase.ingesting())
         && mounts_ok(
             c,
             phase,
@@ -352,51 +431,18 @@ fn verify_rust_generic(
             baseline,
             coverage_target,
         )?
-        && c.config.volumes.as_ref().is_none_or(BTreeMap::is_empty)
-        && h.cap_add.as_ref().is_none_or(Vec::is_empty)
-        && h.volumes_from.as_ref().is_none_or(Vec::is_empty)
-        && h.readonly_rootfs
-        && h.network_mode == "none"
-        && h.pid_mode.is_empty()
-        && h.ipc_mode == "private"
-        && h.cgroupns_mode == "private"
-        && h.cap_drop == ["ALL"]
-        && h.security_opt.len() == 2
-        && h.security_opt
-            .iter()
-            .any(|s| s == "no-new-privileges=true" || s == "no-new-privileges")
+        && applied_limits_ok(c, image)
         && profile_ok
-        && h.pids_limit == 128
-        && h.nano_cpus == 1000000000
-        && h.memory == 1073741824
-        && h.memory_swap == 1073741824
-        && h.shm_size == 1048576
-        && !h.privileged
-        && h.binds.as_ref().is_none_or(Vec::is_empty)
-        && h.devices.is_empty()
-        && h.device_requests.as_ref().is_none_or(Vec::is_empty)
-        && !h.publish_all_ports
-        && h.port_bindings.is_empty()
-        && h.restart_policy.name == "no"
-        && h.log_config.kind == "none"
         && h.tmpfs.len() == 2 + usize::from(phase.extra_tmpfs().is_some())
-        && h.tmpfs
-            .get("/work")
-            .is_some_and(|s| s == "rw,exec,nosuid,nodev,size=512m,mode=1777")
-        && h.tmpfs
-            .get("/tmp")
-            .is_some_and(|s| s == "rw,nosuid,nodev,noexec,size=64m,mode=1777")
         // The mutation phases add exactly one further private tmpfs, with the
         // exact ADR-053 staging profile, for the writable copy of the tree.
         && phase.extra_tmpfs().is_none_or(|(path, options)| {
             h.tmpfs.get(path).is_some_and(|applied| applied == options)
         })
         && c.config.user == phase.user()
-        && c.config.working_dir == "/source"
-        && c.config.image == image
         && c.config.entrypoint == [phase.program()]
         && c.config.cmd == phase.arguments()
-        && env == phase.environment();
+        && sorted_env(c) == phase.environment();
     if safe {
         Ok(())
     } else {
@@ -612,121 +658,30 @@ pub(super) fn verify_mutation(
     volume: &MutationVolume,
     nonce: &str,
 ) -> Result<(), ExecutionError> {
-    let containers: Vec<Created> =
-        serde_json::from_slice(bytes).map_err(|_| ExecutionError::Infrastructure)?;
-    let c = containers
-        .first()
-        .filter(|_| containers.len() == 1)
-        .ok_or(ExecutionError::Infrastructure)?;
+    let c = only_created(bytes)?;
+    let c = &c;
     let h = &c.host_config;
-    let mut env = c.config.env.clone();
-    env.sort();
-    let expected_profile = if phase == MutationPhase::Fix {
-        include_str!("seccomp-rust-fix.json")
-    } else {
-        include_str!("seccomp-rust.json")
-    };
-    let profile: serde_json::Value =
-        serde_json::from_str(expected_profile).map_err(|_| ExecutionError::Infrastructure)?;
-    let seccomp = h
-        .security_opt
-        .iter()
-        .filter_map(|value| value.strip_prefix("seccomp="))
-        .collect::<Vec<_>>();
-    let profile_ok = seccomp.len() == 1
-        && serde_json::from_str::<serde_json::Value>(seccomp[0])
-            .is_ok_and(|value| value == profile);
-    let expected_labels = BTreeMap::from([
-        ("org.rust-mcp.execution".into(), "true".into()),
-        ("org.rust-mcp.rust-job".into(), nonce.into()),
-    ]);
-    let safe = !c.config.tty
-        && c.config.open_stdin == phase.interactive()
-        && c.config.attach_stdin == phase.interactive()
-        && c.config.stdin_once == phase.interactive()
-        && !h.auto_remove
-        && h.group_add.as_ref().is_none_or(Vec::is_empty)
-        && h.uts_mode.is_empty()
-        && h.oom_kill_disable != Some(true)
-        && h.oom_score_adj == 0
-        && h.device_cgroup_rules.as_ref().is_none_or(Vec::is_empty)
-        && h.storage_opt.as_ref().is_none_or(BTreeMap::is_empty)
-        && h.annotations.as_ref().is_none_or(BTreeMap::is_empty)
-        && h.runtime == "runc"
-        && h.init != Some(true)
-        && h.userns_mode.is_empty()
-        && h.cgroup_parent.is_empty()
-        && h.sysctls.as_ref().is_none_or(BTreeMap::is_empty)
-        && h.ulimits.as_ref().is_none_or(Vec::is_empty)
-        && h.masked_paths
-            == [
-                "/proc/acpi",
-                "/proc/asound",
-                "/proc/interrupts",
-                "/proc/kcore",
-                "/proc/keys",
-                "/proc/latency_stats",
-                "/proc/sched_debug",
-                "/proc/scsi",
-                "/proc/timer_list",
-                "/proc/timer_stats",
-                "/sys/devices/virtual/powercap",
-                "/sys/firmware",
-            ]
-        && h.readonly_paths
-            == [
-                "/proc/bus",
-                "/proc/fs",
-                "/proc/irq",
-                "/proc/sys",
-                "/proc/sysrq-trigger",
-            ]
-        && c.config.labels == expected_labels
+    let profile_ok = applied_profile_ok(
+        c,
+        if phase == MutationPhase::Fix {
+            include_str!("seccomp-rust-fix.json")
+        } else {
+            include_str!("seccomp-rust.json")
+        },
+    )?;
+    let safe = no_host_authority(c, nonce, phase.interactive())
         && mutation_mounts_ok(c, phase, volume)?
-        && c.config.volumes.as_ref().is_none_or(BTreeMap::is_empty)
-        && h.cap_add.as_ref().is_none_or(Vec::is_empty)
-        && h.volumes_from.as_ref().is_none_or(Vec::is_empty)
-        && h.readonly_rootfs
-        && h.network_mode == "none"
-        && h.pid_mode.is_empty()
-        && h.ipc_mode == "private"
-        && h.cgroupns_mode == "private"
-        && h.cap_drop == ["ALL"]
-        && h.security_opt.len() == 2
-        && h.security_opt
-            .iter()
-            .any(|value| value == "no-new-privileges=true" || value == "no-new-privileges")
+        && applied_limits_ok(c, image)
         && profile_ok
-        && h.pids_limit == 128
-        && h.nano_cpus == 1_000_000_000
-        && h.memory == 1_073_741_824
-        && h.memory_swap == 1_073_741_824
-        && h.shm_size == 1_048_576
-        && !h.privileged
-        && h.binds.as_ref().is_none_or(Vec::is_empty)
-        && h.devices.is_empty()
-        && h.device_requests.as_ref().is_none_or(Vec::is_empty)
-        && !h.publish_all_ports
-        && h.port_bindings.is_empty()
-        && h.restart_policy.name == "no"
-        && h.log_config.kind == "none"
         && h.tmpfs.len() == if phase == MutationPhase::Fix { 3 } else { 2 }
-        && h.tmpfs
-            .get("/work")
-            .is_some_and(|value| value == "rw,exec,nosuid,nodev,size=512m,mode=1777")
-        && h.tmpfs
-            .get("/tmp")
-            .is_some_and(|value| value == "rw,nosuid,nodev,noexec,size=64m,mode=1777")
         && (phase != MutationPhase::Fix
             || h.tmpfs.get("/target").is_some_and(|value| {
                 value == "rw,exec,nosuid,nodev,size=256m,mode=0700,uid=65534,gid=65534"
             }))
         && c.config.user == "65534:65534"
-        && c.config.working_dir == "/source"
-        && c.config.image == image
         && c.config.entrypoint == [phase.program()]
         && c.config.cmd == phase.arguments()
-        && env == super::rust_gateway::environment();
+        && sorted_env(c) == super::rust_gateway::environment();
     if safe {
         Ok(())
     } else {
@@ -833,112 +788,19 @@ pub(super) fn verify_resolution(
     vendor: &MutationVolume,
     nonce: &str,
 ) -> Result<(), ExecutionError> {
-    let containers: Vec<Created> =
-        serde_json::from_slice(bytes).map_err(|_| ExecutionError::Infrastructure)?;
-    let c = containers
-        .first()
-        .filter(|_| containers.len() == 1)
-        .ok_or(ExecutionError::Infrastructure)?;
+    let c = only_created(bytes)?;
+    let c = &c;
     let h = &c.host_config;
-    let mut env = c.config.env.clone();
-    env.sort();
-    let profile: serde_json::Value = serde_json::from_str(include_str!("seccomp-rust.json"))
-        .map_err(|_| ExecutionError::Infrastructure)?;
-    let seccomp = h
-        .security_opt
-        .iter()
-        .filter_map(|value| value.strip_prefix("seccomp="))
-        .collect::<Vec<_>>();
-    let profile_ok = seccomp.len() == 1
-        && serde_json::from_str::<serde_json::Value>(seccomp[0])
-            .is_ok_and(|value| value == profile);
-    let expected_labels = BTreeMap::from([
-        ("org.rust-mcp.execution".into(), "true".into()),
-        ("org.rust-mcp.rust-job".into(), nonce.into()),
-    ]);
-    let safe = !c.config.tty
-        && c.config.open_stdin == phase.interactive()
-        && c.config.attach_stdin == phase.interactive()
-        && c.config.stdin_once == phase.interactive()
-        && !h.auto_remove
-        && h.group_add.as_ref().is_none_or(Vec::is_empty)
-        && h.uts_mode.is_empty()
-        && h.oom_kill_disable != Some(true)
-        && h.oom_score_adj == 0
-        && h.device_cgroup_rules.as_ref().is_none_or(Vec::is_empty)
-        && h.storage_opt.as_ref().is_none_or(BTreeMap::is_empty)
-        && h.annotations.as_ref().is_none_or(BTreeMap::is_empty)
-        && h.runtime == "runc"
-        && h.init != Some(true)
-        && h.userns_mode.is_empty()
-        && h.cgroup_parent.is_empty()
-        && h.sysctls.as_ref().is_none_or(BTreeMap::is_empty)
-        && h.ulimits.as_ref().is_none_or(Vec::is_empty)
-        && h.masked_paths
-            == [
-                "/proc/acpi",
-                "/proc/asound",
-                "/proc/interrupts",
-                "/proc/kcore",
-                "/proc/keys",
-                "/proc/latency_stats",
-                "/proc/sched_debug",
-                "/proc/scsi",
-                "/proc/timer_list",
-                "/proc/timer_stats",
-                "/sys/devices/virtual/powercap",
-                "/sys/firmware",
-            ]
-        && h.readonly_paths
-            == [
-                "/proc/bus",
-                "/proc/fs",
-                "/proc/irq",
-                "/proc/sys",
-                "/proc/sysrq-trigger",
-            ]
-        && c.config.labels == expected_labels
+    let profile_ok = applied_profile_ok(c, include_str!("seccomp-rust.json"))?;
+    let safe = no_host_authority(c, nonce, phase.interactive())
         && resolution_mounts_ok(c, phase, source, vendor)?
-        && c.config.volumes.as_ref().is_none_or(BTreeMap::is_empty)
-        && h.cap_add.as_ref().is_none_or(Vec::is_empty)
-        && h.volumes_from.as_ref().is_none_or(Vec::is_empty)
-        && h.readonly_rootfs
-        && h.network_mode == "none"
-        && h.pid_mode.is_empty()
-        && h.ipc_mode == "private"
-        && h.cgroupns_mode == "private"
-        && h.cap_drop == ["ALL"]
-        && h.security_opt.len() == 2
-        && h.security_opt
-            .iter()
-            .any(|value| value == "no-new-privileges=true" || value == "no-new-privileges")
+        && applied_limits_ok(c, image)
         && profile_ok
-        && h.pids_limit == 128
-        && h.nano_cpus == 1_000_000_000
-        && h.memory == 1_073_741_824
-        && h.memory_swap == 1_073_741_824
-        && h.shm_size == 1_048_576
-        && !h.privileged
-        && h.binds.as_ref().is_none_or(Vec::is_empty)
-        && h.devices.is_empty()
-        && h.device_requests.as_ref().is_none_or(Vec::is_empty)
-        && !h.publish_all_ports
-        && h.port_bindings.is_empty()
-        && h.restart_policy.name == "no"
-        && h.log_config.kind == "none"
         && h.tmpfs.len() == 2
-        && h.tmpfs
-            .get("/work")
-            .is_some_and(|value| value == "rw,exec,nosuid,nodev,size=512m,mode=1777")
-        && h.tmpfs
-            .get("/tmp")
-            .is_some_and(|value| value == "rw,nosuid,nodev,noexec,size=64m,mode=1777")
         && c.config.user == "65534:65534"
-        && c.config.working_dir == "/source"
-        && c.config.image == image
         && c.config.entrypoint == [phase.program()]
         && c.config.cmd == phase.arguments()
-        && env == super::rust_gateway::environment();
+        && sorted_env(c) == super::rust_gateway::environment();
     if safe {
         Ok(())
     } else {
