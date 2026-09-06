@@ -98,8 +98,22 @@ pub struct ExecutionLimits {
     output_bytes: usize,
 }
 impl ExecutionLimits {
+    /// Construct limits for the synchronous M1 command family.  Those public
+    /// tools retain their calibrated 60-second ceiling.
     pub fn new(wall_ms: u64, output_bytes: usize) -> Option<Self> {
         (100..=60_000).contains(&wall_ms).then_some(())?;
+        Self::new_bounded(wall_ms, output_bytes)
+    }
+
+    /// Construct limits for an ADR-060 bounded quality job.  The caller must
+    /// still apply the smaller synchronous (120 s) or tool-specific budget;
+    /// this constructor only raises the gateway's representable ceiling.
+    pub fn new_job(wall_ms: u64, output_bytes: usize) -> Option<Self> {
+        (100..=3_600_000).contains(&wall_ms).then_some(())?;
+        Self::new_bounded(wall_ms, output_bytes)
+    }
+
+    fn new_bounded(wall_ms: u64, output_bytes: usize) -> Option<Self> {
         (1024..=1024 * 1024).contains(&output_bytes).then_some(())?;
         Some(Self {
             wall_ms,
@@ -112,6 +126,20 @@ impl ExecutionLimits {
     /// Maximum retained bytes per stream (stdout and stderr independently).
     pub fn output_bytes(self) -> usize {
         self.output_bytes
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::ExecutionLimits;
+
+    #[test]
+    fn m1_and_job_wall_time_ceilings_are_distinct_and_closed() {
+        assert!(ExecutionLimits::new(60_000, 1024).is_some());
+        assert!(ExecutionLimits::new(60_001, 1024).is_none());
+        assert!(ExecutionLimits::new_job(3_600_000, 1024).is_some());
+        assert!(ExecutionLimits::new_job(3_600_001, 1024).is_none());
+        assert!(ExecutionLimits::new_job(3_600_000, 1023).is_none());
     }
 }
 impl Default for ExecutionLimits {

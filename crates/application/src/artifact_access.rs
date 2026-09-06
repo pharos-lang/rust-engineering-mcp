@@ -66,7 +66,7 @@ impl<B: ProjectBackend, G: ReferenceGenerator, C: RegistryClock> ProjectRegistry
     ) -> Result<AuthorizedArtifact, ArtifactAccessError> {
         self.read_artifact_with_touch(reference, id, store, artifact_clock, control, true)
     }
-    pub(crate) fn read_artifact_without_touch(
+    pub fn read_artifact_without_touch(
         &mut self,
         reference: &ProjectRef,
         id: &ArtifactId,

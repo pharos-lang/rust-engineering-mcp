@@ -11,6 +11,8 @@ pub enum ProjectError {
     Internal,
 }
 
+pub mod coverage;
+
 /// A cooperative checkpoint for bounded read/parse operations.
 pub trait OperationControl: Send + Sync {
     fn check(&self) -> Result<(), ProjectError>;
@@ -42,6 +44,16 @@ pub trait ProjectBackend {
         lease: &Self::Lease,
         control: &dyn OperationControl,
     ) -> Result<ProjectIdentity, ProjectError>;
+}
+
+/// Optional live-owner facts required by ADR-061. Implementations derive these
+/// from already-open directory capabilities, never from caller path text.
+pub trait QualityProjectBackend: ProjectBackend {
+    fn revalidate_quality_owner(
+        &self,
+        lease: &Self::Lease,
+        control: &dyn OperationControl,
+    ) -> Result<QualityOwnerFacts, ProjectError>;
 }
 
 pub trait ReferenceGenerator {
@@ -183,6 +195,28 @@ impl<B: ProjectBackend, G: ReferenceGenerator, C: RegistryClock> ProjectRegistry
     }
 }
 
+impl<B: QualityProjectBackend, G: ReferenceGenerator, C: RegistryClock> ProjectRegistry<B, G, C> {
+    /// Revalidate without renewing the project lease. Artifact reads and task
+    /// polling therefore cannot keep either project or artifact authority alive.
+    pub fn quality_owner_facts(
+        &mut self,
+        reference: &ProjectRef,
+        control: &dyn OperationControl,
+    ) -> Result<QualityOwnerFacts, ProjectError> {
+        let identity = self.resolve_inner(reference, control, false)?;
+        let entry = self.entries.get(reference).ok_or(ProjectError::Rejected(
+            OperationalErrorCode::ProjectNotFound,
+        ))?;
+        let facts = self
+            .backend
+            .revalidate_quality_owner(&entry.project.lease, control)?;
+        if facts.workspace_root != identity.workspace_root {
+            return Err(ProjectError::Rejected(OperationalErrorCode::InvalidProject));
+        }
+        Ok(facts)
+    }
+}
+
 mod execution;
 pub use execution::*;
 
@@ -213,6 +247,9 @@ pub use toolchain::*;
 mod artifact_access;
 pub use artifact_access::*;
 
+mod quality_artifact;
+pub use quality_artifact::*;
+
 mod check;
 pub use check::*;
 
@@ -226,6 +263,12 @@ pub use clippy::*;
 
 mod test_run;
 pub use test_run::*;
+
+pub mod mutation_test;
+pub mod nextest;
+pub mod semver_check;
+
+pub mod job;
 
 mod audit;
 pub use audit::*;
