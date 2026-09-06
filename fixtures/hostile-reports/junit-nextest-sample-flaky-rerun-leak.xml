@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites tests="1" failures="0" skipped="0" time="0.01">
+  <testsuite name="fixture-nextest-flaky" tests="1" failures="0" skipped="0">
+    <testcase classname="fixture_nextest_flaky" name="fails_once_then_passes" time="0.01">
+      <rerun failure="F01 deterministic first attempt">attempt 1</rerun>
+      <system-out>nextest retry: 1</system-out>
+    </testcase>
+  </testsuite>
+  <testsuite name="fixture-nextest-leaky" tests="1" failures="0" skipped="0">
+    <testcase classname="fixture_nextest_leaky" name="detached_child_leaks" time="0.01">
+      <system-err>leak: child process still alive after test</system-err>
+    </testcase>
+  </testsuite>
+</testsuites>

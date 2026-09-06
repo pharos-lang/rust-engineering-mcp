@@ -1,0 +1,4 @@
+[package]
+name = "semver-enum-open"
+version = "1.0.0"
+edition = "2024"
