@@ -929,7 +929,6 @@ mod tests {
     use super::*;
     use rust_engineering_domain::SourceFile;
     use std::cell::Cell;
-    use std::sync::atomic::AtomicBool;
     fn explanation_execution() -> Result<ExecutionResult, Box<dyn std::error::Error>> {
         Ok(ExecutionResult {
             termination: ExecutionTermination::Exited,
