@@ -202,7 +202,6 @@ fn host_root_non_utf8_is_rejected_before_server_startup() -> io::Result<()> {
 #[test]
 fn rust_runtime_options_require_a_complete_unique_approved_tuple() -> io::Result<()> {
     use std::fs;
-    use std::os::unix::fs::PermissionsExt;
     use std::time::{SystemTime, UNIX_EPOCH};
 
     let baseline = run(&["unknown"])?;
@@ -215,7 +214,14 @@ fn rust_runtime_options_require_a_complete_unique_approved_tuple() -> io::Result
             .as_nanos()
     ));
     fs::create_dir(&state_root)?;
-    fs::set_permissions(&state_root, fs::Permissions::from_mode(0o700))?;
+    // The scratch state root is owner-only where the platform expresses that
+    // as a POSIX mode. The assertions below are about CLI parsing and hold
+    // identically on every platform, so only this setup step is gated.
+    #[cfg(unix)]
+    {
+        use std::os::unix::fs::PermissionsExt;
+        fs::set_permissions(&state_root, fs::Permissions::from_mode(0o700))?;
+    }
     let state_root = state_root
         .to_str()
         .ok_or_else(|| io::Error::other("temporary state root is not UTF-8"))?;

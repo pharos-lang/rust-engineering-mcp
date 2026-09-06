@@ -27,11 +27,18 @@ mod unsupported {
         Err(QualityArtifactError::UnsupportedPlatform)
     }
 
-    /// Uninhabited in practice: `open` never returns one on this platform.
+    /// Uninhabited in practice: neither constructor returns one on this platform.
     pub struct NativeQualityArtifactStore(());
 
     impl NativeQualityArtifactStore {
         pub fn open(_state_root: &Path) -> Result<Self, QualityArtifactError> {
+            unsupported()
+        }
+
+        /// Attaching to an existing store fails closed exactly like `open`, so
+        /// a reader on an unsupported platform reports the platform rather
+        /// than an absent store.
+        pub fn attach(_state_root: &Path) -> Result<Self, QualityArtifactError> {
             unsupported()
         }
 
