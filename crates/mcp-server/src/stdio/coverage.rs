@@ -617,25 +617,4 @@ impl Clock for WallClock {
 }
 
 #[cfg(test)]
-mod tests {
-    use super::*;
-    #[test]
-    fn rejects_package_workspace_contradiction() -> Result<(), Box<dyn std::error::Error>> {
-        assert!(
-            Input {
-                project_ref: "prj_00000000000000000000000000000000".parse()?,
-                package: Some("x".into()),
-                workspace: true,
-                features: vec![],
-                all_features: false,
-                no_default_features: false,
-                target: None,
-                timeout_seconds: 300,
-                execution_mode: ExecutionModeDto::Auto
-            }
-            .options()
-            .is_err()
-        );
-        Ok(())
-    }
-}
+mod tests;

@@ -937,7 +937,9 @@ mod tests {
     use rust_engineering_application::nextest::{
         ArtifactStreams, NextestCounts, NextestObservation,
     };
-    use rust_engineering_domain::{ExecutionFingerprint, ExecutionTermination, RuntimeIdentity};
+    use rust_engineering_domain::{
+        ArtifactMetadata, ExecutionFingerprint, ExecutionTermination, RuntimeIdentity,
+    };
     use sha2::{Digest, Sha256};
 
     fn observation(counts: NextestCounts) -> Result<NextestTaskResult, Box<dyn std::error::Error>> {
@@ -1103,5 +1105,276 @@ mod tests {
         assert_eq!(passed["isError"], false);
         assert_eq!(passed["structuredContent"]["status"], "passed");
         Ok(())
+    }
+
+    fn artifact(owner: &str) -> Result<ArtifactMetadata, Box<dyn std::error::Error>> {
+        Ok(ArtifactMetadata {
+            owner: owner.parse()?,
+            id: "art_00000000000000000000000000000009".parse()?,
+            sha256: [0x3c; 32],
+            size_bytes: 64,
+            truncated: false,
+            created_seconds: 0,
+            expires_seconds: 3600,
+        })
+    }
+
+    #[test]
+    fn every_operational_code_has_one_declared_outcome_and_message()
+    -> Result<(), Box<dyn std::error::Error>> {
+        let tool = NextestTool::new()?;
+        for (code, status, error_code) in [
+            (
+                OperationalErrorCode::ProjectNotFound,
+                "blocked",
+                "PROJECT_NOT_FOUND",
+            ),
+            (
+                OperationalErrorCode::InvalidProject,
+                "blocked",
+                "INVALID_PROJECT",
+            ),
+            (
+                OperationalErrorCode::LockfileUpdateRequired,
+                "blocked",
+                "INVALID_PROJECT",
+            ),
+            (
+                OperationalErrorCode::CommandTimeout,
+                "blocked",
+                "COMMAND_TIMEOUT",
+            ),
+            (
+                OperationalErrorCode::SandboxDenied,
+                "blocked",
+                "SANDBOX_DENIED",
+            ),
+            (
+                OperationalErrorCode::NetworkDenied,
+                "blocked",
+                "NETWORK_DENIED",
+            ),
+            (
+                OperationalErrorCode::OutputLimitExceeded,
+                "blocked",
+                "OUTPUT_LIMIT_EXCEEDED",
+            ),
+            (
+                OperationalErrorCode::ToolNotInstalled,
+                "unavailable",
+                "TOOL_NOT_INSTALLED",
+            ),
+            (
+                OperationalErrorCode::UnsupportedPlatform,
+                "unavailable",
+                "UNSUPPORTED_PLATFORM",
+            ),
+        ] {
+            let message = operational_message(code);
+            let encoded = serde_json::to_value(tool.encode_operational(code, message, 5)?)?;
+            let value = &encoded["structuredContent"];
+            assert_eq!(value["status"], status, "{error_code}");
+            assert_eq!(value["error_code"], error_code);
+            assert_eq!(value["error_message"], message);
+            assert_eq!(value["summary"], message);
+            assert_eq!(value["duration_ms"], 5);
+            assert_eq!(encoded["isError"], true);
+            // An unavailable runtime carries no partial assessment at all.
+            assert_eq!(value["data"], serde_json::Value::Null);
+        }
+        Ok(())
+    }
+
+    #[test]
+    fn every_inspection_error_maps_to_one_declared_outcome()
+    -> Result<(), Box<dyn std::error::Error>> {
+        let tool = NextestTool::new()?;
+        for (error, status, code) in [
+            (
+                InspectionError::Project(ProjectError::Rejected(
+                    OperationalErrorCode::ProjectNotFound,
+                )),
+                "blocked",
+                serde_json::json!("PROJECT_NOT_FOUND"),
+            ),
+            (
+                InspectionError::Project(ProjectError::Cancelled),
+                "cancelled",
+                serde_json::Value::Null,
+            ),
+            (
+                InspectionError::Execution(ExecutionError::Cancelled),
+                "cancelled",
+                serde_json::Value::Null,
+            ),
+            (
+                InspectionError::Execution(ExecutionError::Unavailable),
+                "unavailable",
+                serde_json::json!("TOOL_NOT_INSTALLED"),
+            ),
+            (
+                InspectionError::Execution(ExecutionError::Denied),
+                "blocked",
+                serde_json::json!("SANDBOX_DENIED"),
+            ),
+            (
+                InspectionError::Execution(ExecutionError::Busy),
+                "blocked",
+                serde_json::json!("SANDBOX_DENIED"),
+            ),
+            (
+                InspectionError::Execution(ExecutionError::InvalidConfiguration),
+                "blocked",
+                serde_json::json!("SANDBOX_DENIED"),
+            ),
+            (
+                InspectionError::OutputLimit,
+                "blocked",
+                serde_json::json!("OUTPUT_LIMIT_EXCEEDED"),
+            ),
+            (
+                InspectionError::InvalidMetadata,
+                "blocked",
+                serde_json::json!("INVALID_PROJECT"),
+            ),
+        ] {
+            let encoded = serde_json::to_value(tool.encode_inspection_error(error, 6)?)?;
+            assert_eq!(encoded["structuredContent"]["status"], status);
+            assert_eq!(encoded["structuredContent"]["error_code"], code);
+        }
+        // Unverified cleanup quarantines the runtime and infrastructure faults
+        // are never reported as an assessment a peer could act on.
+        for error in [
+            InspectionError::Execution(ExecutionError::CleanupUncertain),
+            InspectionError::Execution(ExecutionError::Infrastructure),
+            InspectionError::Project(ProjectError::Internal),
+            InspectionError::Internal,
+        ] {
+            let failure = tool
+                .encode_inspection_error(error, 6)
+                .err()
+                .ok_or("tool result")?;
+            assert_eq!(failure.code, rmcp::model::ErrorCode::INTERNAL_ERROR);
+        }
+        Ok(())
+    }
+
+    #[test]
+    fn worker_signals_and_joined_cleanup_map_to_inspection_errors() {
+        assert!(matches!(
+            worker_error(WorkerError::Busy),
+            InspectionError::Execution(ExecutionError::Busy)
+        ));
+        assert!(matches!(
+            worker_error(WorkerError::Cancelled),
+            InspectionError::Project(ProjectError::Cancelled)
+        ));
+        assert!(matches!(
+            worker_error(WorkerError::TimedOut),
+            InspectionError::Project(ProjectError::Rejected(OperationalErrorCode::CommandTimeout))
+        ));
+        assert!(matches!(
+            worker_error(WorkerError::Internal),
+            InspectionError::Internal
+        ));
+        assert!(matches!(
+            joined_result(Joined {
+                result: Ok(3_u8),
+                interrupted: None
+            }),
+            Ok(3)
+        ));
+        assert!(matches!(
+            joined_result(Joined {
+                result: Ok(3_u8),
+                interrupted: Some(WorkerError::Cancelled)
+            }),
+            Err(InspectionError::Project(ProjectError::Cancelled))
+        ));
+        // A body that observed its own cancellation still reports the signal
+        // that caused it rather than a bare cancellation.
+        assert!(matches!(
+            joined_result::<u8>(Joined {
+                result: Err(InspectionError::Execution(ExecutionError::Cancelled)),
+                interrupted: Some(WorkerError::TimedOut)
+            }),
+            Err(InspectionError::Project(ProjectError::Rejected(
+                OperationalErrorCode::CommandTimeout
+            )))
+        ));
+        assert!(matches!(
+            joined_result::<u8>(Joined {
+                result: Err(InspectionError::OutputLimit),
+                interrupted: None
+            }),
+            Err(InspectionError::OutputLimit)
+        ));
+    }
+
+    #[test]
+    fn published_artifacts_are_owner_bound_and_kind_declared()
+    -> Result<(), Box<dyn std::error::Error>> {
+        let project: ProjectRef = "prj_00000000000000000000000000000001".parse()?;
+        let published = published_artifacts(
+            &project,
+            vec![
+                NextestArtifactReference::Ephemeral {
+                    kind: NextestArtifactKind::JunitXml,
+                    metadata: artifact("prj_00000000000000000000000000000001")?,
+                },
+                NextestArtifactReference::EphemeralUnavailable {
+                    kind: NextestArtifactKind::StderrLog,
+                    metadata: artifact("prj_00000000000000000000000000000001")?,
+                },
+            ],
+        )?;
+        let value = serde_json::to_value(&published)?;
+        assert_eq!(value[0]["kind"], "junit_xml");
+        assert_eq!(
+            value[0]["uri"],
+            format!("rust-artifact://{project}/art_00000000000000000000000000000009")
+        );
+        assert_eq!(value[0]["sha256"], "3c".repeat(32));
+        assert_eq!(value[0]["size_bytes"], 64);
+        assert_eq!(value[0]["completeness"], "complete");
+        assert_eq!(value[1]["kind"], "stderr_log");
+        assert_eq!(value[1]["completeness"], "unavailable");
+        // An artifact captured for another project is never republished here.
+        for reference in [
+            NextestArtifactReference::Ephemeral {
+                kind: NextestArtifactKind::StdoutLog,
+                metadata: artifact("prj_00000000000000000000000000000002")?,
+            },
+            NextestArtifactReference::EphemeralUnavailable {
+                kind: NextestArtifactKind::StdoutLog,
+                metadata: artifact("prj_00000000000000000000000000000002")?,
+            },
+        ] {
+            assert!(published_artifacts(&project, vec![reference]).is_err());
+        }
+        let overflow: Vec<_> = (0..129)
+            .map(|_| NextestArtifactReference::Ephemeral {
+                kind: NextestArtifactKind::JunitXml,
+                metadata: ArtifactMetadata {
+                    owner: project.clone(),
+                    id: "art_00000000000000000000000000000009"
+                        .parse()
+                        .unwrap_or_else(|_| unreachable!()),
+                    sha256: [0; 32],
+                    size_bytes: 0,
+                    truncated: false,
+                    created_seconds: 0,
+                    expires_seconds: 1,
+                },
+            })
+            .collect();
+        assert!(published_artifacts(&project, overflow).is_err());
+        assert_eq!(hex(&[0xde; 32]), "de".repeat(32));
+        Ok(())
+    }
+
+    #[test]
+    fn the_wall_clock_advances_with_the_host() {
+        assert!(WallClock.now().0 > 1_700_000_000);
     }
 }

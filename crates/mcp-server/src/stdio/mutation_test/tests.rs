@@ -348,3 +348,268 @@ fn a_timed_out_run_is_blocked_and_keeps_its_partial_evidence()
     );
     Ok(())
 }
+
+fn artifact_metadata(
+    owner: &str,
+    truncated: bool,
+) -> Result<rust_engineering_domain::ArtifactMetadata, Box<dyn std::error::Error>> {
+    Ok(rust_engineering_domain::ArtifactMetadata {
+        owner: owner.parse()?,
+        id: "art_00000000000000000000000000000004".parse()?,
+        sha256: [0x7b; 32],
+        size_bytes: 128,
+        truncated,
+        created_seconds: 0,
+        expires_seconds: 3600,
+    })
+}
+
+#[test]
+fn every_operational_code_has_one_declared_outcome_and_message()
+-> Result<(), Box<dyn std::error::Error>> {
+    let tool = MutationTestTool::new()?;
+    for (code, status, error_code) in [
+        (
+            OperationalErrorCode::ProjectNotFound,
+            "blocked",
+            "PROJECT_NOT_FOUND",
+        ),
+        (
+            OperationalErrorCode::InvalidProject,
+            "blocked",
+            "INVALID_PROJECT",
+        ),
+        (
+            OperationalErrorCode::LockfileUpdateRequired,
+            "blocked",
+            "INVALID_PROJECT",
+        ),
+        (
+            OperationalErrorCode::CommandTimeout,
+            "blocked",
+            "COMMAND_TIMEOUT",
+        ),
+        (
+            OperationalErrorCode::SandboxDenied,
+            "blocked",
+            "SANDBOX_DENIED",
+        ),
+        (
+            OperationalErrorCode::NetworkDenied,
+            "blocked",
+            "NETWORK_DENIED",
+        ),
+        (
+            OperationalErrorCode::OutputLimitExceeded,
+            "blocked",
+            "OUTPUT_LIMIT_EXCEEDED",
+        ),
+        (
+            OperationalErrorCode::ToolNotInstalled,
+            "unavailable",
+            "TOOL_NOT_INSTALLED",
+        ),
+        (
+            OperationalErrorCode::UnsupportedPlatform,
+            "unavailable",
+            "UNSUPPORTED_PLATFORM",
+        ),
+    ] {
+        let message = operational_message(code);
+        let encoded = serde_json::to_value(tool.encode_operational(code, message, 8)?)?;
+        let value = &encoded["structuredContent"];
+        assert_eq!(value["status"], status, "{error_code}");
+        assert_eq!(value["error_code"], error_code);
+        assert_eq!(value["error_message"], message);
+        assert_eq!(value["summary"], message);
+        assert_eq!(value["duration_ms"], 8);
+        assert_eq!(encoded["isError"], true);
+        assert_eq!(value["data"], serde_json::Value::Null);
+    }
+    Ok(())
+}
+
+#[test]
+fn every_inspection_error_maps_to_one_declared_outcome() -> Result<(), Box<dyn std::error::Error>> {
+    let tool = MutationTestTool::new()?;
+    for (error, status, code) in [
+        (
+            InspectionError::Project(ProjectError::Rejected(
+                OperationalErrorCode::ProjectNotFound,
+            )),
+            "blocked",
+            serde_json::json!("PROJECT_NOT_FOUND"),
+        ),
+        (
+            InspectionError::Project(ProjectError::Cancelled),
+            "cancelled",
+            serde_json::Value::Null,
+        ),
+        (
+            InspectionError::Execution(ExecutionError::Cancelled),
+            "cancelled",
+            serde_json::Value::Null,
+        ),
+        (
+            InspectionError::Execution(ExecutionError::Unavailable),
+            "unavailable",
+            serde_json::json!("TOOL_NOT_INSTALLED"),
+        ),
+        (
+            InspectionError::Execution(ExecutionError::Denied),
+            "blocked",
+            serde_json::json!("SANDBOX_DENIED"),
+        ),
+        (
+            InspectionError::Execution(ExecutionError::Busy),
+            "blocked",
+            serde_json::json!("SANDBOX_DENIED"),
+        ),
+        (
+            InspectionError::Execution(ExecutionError::InvalidConfiguration),
+            "blocked",
+            serde_json::json!("SANDBOX_DENIED"),
+        ),
+        (
+            InspectionError::OutputLimit,
+            "blocked",
+            serde_json::json!("OUTPUT_LIMIT_EXCEEDED"),
+        ),
+        (
+            InspectionError::InvalidMetadata,
+            "blocked",
+            serde_json::json!("INVALID_PROJECT"),
+        ),
+    ] {
+        let encoded = serde_json::to_value(tool.encode_inspection_error(error, 4)?)?;
+        assert_eq!(encoded["structuredContent"]["status"], status);
+        assert_eq!(encoded["structuredContent"]["error_code"], code);
+        assert_eq!(encoded["structuredContent"]["duration_ms"], 4);
+    }
+    for error in [
+        InspectionError::Execution(ExecutionError::CleanupUncertain),
+        InspectionError::Execution(ExecutionError::Infrastructure),
+        InspectionError::Project(ProjectError::Internal),
+        InspectionError::Internal,
+    ] {
+        let failure = tool
+            .encode_inspection_error(error, 4)
+            .err()
+            .ok_or("tool result")?;
+        assert_eq!(failure.code, rmcp::model::ErrorCode::INTERNAL_ERROR);
+    }
+    // The synchronous budget is never enough for a mutation campaign.
+    let required = serde_json::to_value(tool.tasks_required()?)?;
+    assert_eq!(
+        required["structuredContent"]["error_code"],
+        "TASKS_REQUIRED"
+    );
+    Ok(())
+}
+
+#[test]
+fn worker_signals_and_joined_cleanup_map_to_inspection_errors() {
+    assert!(matches!(
+        worker_error(WorkerError::Busy),
+        InspectionError::Execution(ExecutionError::Busy)
+    ));
+    assert!(matches!(
+        worker_error(WorkerError::Cancelled),
+        InspectionError::Project(ProjectError::Cancelled)
+    ));
+    assert!(matches!(
+        worker_error(WorkerError::TimedOut),
+        InspectionError::Project(ProjectError::Rejected(OperationalErrorCode::CommandTimeout))
+    ));
+    assert!(matches!(
+        worker_error(WorkerError::Internal),
+        InspectionError::Internal
+    ));
+    assert!(matches!(
+        joined_result(Joined {
+            result: Ok(5_u8),
+            interrupted: None
+        }),
+        Ok(5)
+    ));
+    assert!(matches!(
+        joined_result(Joined {
+            result: Ok(5_u8),
+            interrupted: Some(WorkerError::Busy)
+        }),
+        Err(InspectionError::Execution(ExecutionError::Busy))
+    ));
+    assert!(matches!(
+        joined_result::<u8>(Joined {
+            result: Err(InspectionError::Project(ProjectError::Cancelled)),
+            interrupted: Some(WorkerError::TimedOut)
+        }),
+        Err(InspectionError::Project(ProjectError::Rejected(
+            OperationalErrorCode::CommandTimeout
+        )))
+    ));
+    assert!(matches!(
+        joined_result::<u8>(Joined {
+            result: Err(InspectionError::InvalidMetadata),
+            interrupted: Some(WorkerError::Cancelled)
+        }),
+        Err(InspectionError::InvalidMetadata)
+    ));
+    assert!(WallClock.now().0 > 1_700_000_000);
+}
+
+#[test]
+fn published_artifacts_are_owner_bound_and_kind_declared() -> Result<(), Box<dyn std::error::Error>>
+{
+    let project: ProjectRef = "prj_00000000000000000000000000000001".parse()?;
+    let published = published_artifacts(
+        &project,
+        vec![
+            MutationArtifactReference::Ephemeral {
+                kind: MutationArtifactKind::OutcomesJson,
+                metadata: artifact_metadata("prj_00000000000000000000000000000001", false)?,
+            },
+            MutationArtifactReference::Ephemeral {
+                kind: MutationArtifactKind::ArchiveBundle,
+                metadata: artifact_metadata("prj_00000000000000000000000000000001", true)?,
+            },
+            MutationArtifactReference::Ephemeral {
+                kind: MutationArtifactKind::StderrLog,
+                metadata: artifact_metadata("prj_00000000000000000000000000000001", false)?,
+            },
+        ],
+    )?;
+    let value = serde_json::to_value(&published)?;
+    assert_eq!(value[0]["kind"], "outcomes_json");
+    assert_eq!(
+        value[0]["uri"],
+        format!("rust-artifact://{project}/art_00000000000000000000000000000004")
+    );
+    assert_eq!(value[0]["sha256"], "7b".repeat(32));
+    assert_eq!(value[0]["size_bytes"], 128);
+    assert_eq!(value[0]["completeness"], "complete");
+    assert_eq!(value[1]["kind"], "archive_bundle");
+    // A truncated stream is partial evidence, never a complete artifact.
+    assert_eq!(value[1]["completeness"], "partial");
+    assert_eq!(value[2]["kind"], "tool_log");
+    assert!(
+        published_artifacts(
+            &project,
+            vec![MutationArtifactReference::Ephemeral {
+                kind: MutationArtifactKind::OutcomesJson,
+                metadata: artifact_metadata("prj_00000000000000000000000000000002", false)?,
+            }],
+        )
+        .is_err()
+    );
+    let overflow: Vec<_> = (0..129)
+        .map(|_| MutationArtifactReference::Ephemeral {
+            kind: MutationArtifactKind::StdoutLog,
+            metadata: artifact_metadata("prj_00000000000000000000000000000001", false)
+                .unwrap_or_else(|_| unreachable!()),
+        })
+        .collect();
+    assert!(published_artifacts(&project, overflow).is_err());
+    assert_eq!(hex(&[0x10; 32]), "10".repeat(32));
+    Ok(())
+}
