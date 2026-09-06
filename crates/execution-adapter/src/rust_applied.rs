@@ -95,6 +95,190 @@ pub(super) fn verify(
     volume: &Volume,
     nonce: &str,
 ) -> Result<(), ExecutionError> {
+    verify_rust(bytes, image, phase, volume, None, nonce)
+}
+
+pub(super) fn verify_nextest(
+    bytes: &[u8],
+    image: &str,
+    phase: &Phase,
+    volume: &Volume,
+    junit: &MutationVolume,
+    junit_writable: bool,
+    nonce: &str,
+) -> Result<(), ExecutionError> {
+    verify_rust(
+        bytes,
+        image,
+        phase,
+        volume,
+        Some((junit, junit_writable)),
+        nonce,
+    )
+}
+
+/// Coverage uses the same bounded local-driver output-volume mechanism as
+/// nextest, but mounts it at the fixed guest path `/work/coverage`.
+pub(super) fn verify_coverage(
+    bytes: &[u8],
+    image: &str,
+    phase: &Phase,
+    volume: &Volume,
+    output: &MutationVolume,
+    target: &MutationVolume,
+    nonce: &str,
+) -> Result<(), ExecutionError> {
+    let output_writable = !matches!(
+        phase,
+        Phase::ExportCoverageJson | Phase::ExportCoverageLcov | Phase::ExportCoverageHtml
+    );
+    if !named_tmpfs_volume_is_exact(output, super::mutation_gateway::VOLUME_OPTIONS, nonce)
+        || !named_tmpfs_volume_is_exact(
+            target,
+            super::coverage_gateway::COVERAGE_TARGET_VOLUME_OPTIONS,
+            nonce,
+        )
+    {
+        return Err(ExecutionError::InvalidConfiguration);
+    }
+    verify_rust_generic(
+        bytes,
+        image,
+        phase,
+        volume,
+        Some((output, output_writable)),
+        Some("/work/coverage"),
+        None,
+        phase
+            .coverage_target_writable()
+            .map(|writable| (target, writable)),
+        nonce,
+    )
+}
+
+fn named_tmpfs_volume_is_exact(volume: &MutationVolume, options: &str, nonce: &str) -> bool {
+    volume.driver == "local"
+        && volume.scope == "local"
+        && volume.options
+            == BTreeMap::from([
+                ("device".into(), "tmpfs".into()),
+                ("o".into(), options.into()),
+                ("type".into(), "tmpfs".into()),
+            ])
+        && volume.labels == super::rust_gateway::labels(nonce)
+        && volume.mountpoint.starts_with("/var/lib/docker/volumes/")
+        && volume.mountpoint.ends_with("/_data")
+        && volume.cluster_volume.is_none()
+        && volume.status.is_none()
+}
+
+/// M3-05 uses the same bounded local-driver output-volume mechanism as nextest
+/// and coverage, mounted at the fixed guest path `/mutants`. The verifier also
+/// covers the extra private scratch tmpfs through `Phase::extra_tmpfs`, so a
+/// daemon that dropped, resized or relaxed that mount fails closed before any
+/// project code runs.
+pub(super) fn verify_mutation_test(
+    bytes: &[u8],
+    image: &str,
+    phase: &Phase,
+    volume: &Volume,
+    output: &MutationVolume,
+    writable: bool,
+    nonce: &str,
+) -> Result<(), ExecutionError> {
+    verify_rust_output(
+        bytes,
+        image,
+        phase,
+        volume,
+        output,
+        writable,
+        super::mutation_test_gateway::MUTATION_OUTPUT_TARGET,
+        nonce,
+    )
+}
+
+// The concurrent M3 semver adapter calls this once its tool vertical is
+// registered; I02b keeps the prepared boundary compiling without advertising it.
+#[allow(dead_code)]
+pub(super) fn verify_semver(
+    bytes: &[u8],
+    image: &str,
+    phase: &Phase,
+    volume: &Volume,
+    baseline: &Volume,
+    nonce: &str,
+) -> Result<(), ExecutionError> {
+    verify_rust_generic(
+        bytes,
+        image,
+        phase,
+        volume,
+        None,
+        None,
+        Some(baseline),
+        None,
+        nonce,
+    )
+}
+
+fn verify_rust(
+    bytes: &[u8],
+    image: &str,
+    phase: &Phase,
+    volume: &Volume,
+    junit: Option<(&MutationVolume, bool)>,
+    nonce: &str,
+) -> Result<(), ExecutionError> {
+    verify_rust_generic(
+        bytes,
+        image,
+        phase,
+        volume,
+        junit,
+        Some("/junit"),
+        None,
+        None,
+        nonce,
+    )
+}
+
+#[allow(clippy::too_many_arguments)] // One explicit argument per applied mount invariant.
+fn verify_rust_output(
+    bytes: &[u8],
+    image: &str,
+    phase: &Phase,
+    volume: &Volume,
+    output: &MutationVolume,
+    writable: bool,
+    target: &str,
+    nonce: &str,
+) -> Result<(), ExecutionError> {
+    verify_rust_generic(
+        bytes,
+        image,
+        phase,
+        volume,
+        Some((output, writable)),
+        Some(target),
+        None,
+        None,
+        nonce,
+    )
+}
+
+#[allow(clippy::too_many_arguments)] // One explicit argument per applied mount invariant.
+fn verify_rust_generic(
+    bytes: &[u8],
+    image: &str,
+    phase: &Phase,
+    volume: &Volume,
+    junit: Option<(&MutationVolume, bool)>,
+    output_target: Option<&str>,
+    baseline: Option<&Volume>,
+    coverage_target: Option<(&MutationVolume, bool)>,
+    nonce: &str,
+) -> Result<(), ExecutionError> {
     let containers: Vec<Created> =
         serde_json::from_slice(bytes).map_err(|_| ExecutionError::Infrastructure)?;
     let c = containers
@@ -104,7 +288,7 @@ pub(super) fn verify(
     let h = &c.host_config;
     let mut env = c.config.env.clone();
     env.sort();
-    let profile: serde_json::Value = serde_json::from_str(include_str!("seccomp-rust.json"))
+    let profile: serde_json::Value = serde_json::from_str(phase.seccomp_profile_json())
         .map_err(|_| ExecutionError::Infrastructure)?;
     let seccomp = h
         .security_opt
@@ -159,7 +343,15 @@ pub(super) fn verify(
                 ("org.rust-mcp.execution".into(), "true".into()),
                 ("org.rust-mcp.rust-job".into(), nonce.into()),
             ])
-        && mounts_ok(c, phase, volume)?
+        && mounts_ok(
+            c,
+            phase,
+            volume,
+            junit,
+            output_target,
+            baseline,
+            coverage_target,
+        )?
         && c.config.volumes.as_ref().is_none_or(BTreeMap::is_empty)
         && h.cap_add.as_ref().is_none_or(Vec::is_empty)
         && h.volumes_from.as_ref().is_none_or(Vec::is_empty)
@@ -187,19 +379,24 @@ pub(super) fn verify(
         && h.port_bindings.is_empty()
         && h.restart_policy.name == "no"
         && h.log_config.kind == "none"
-        && h.tmpfs.len() == 2
+        && h.tmpfs.len() == 2 + usize::from(phase.extra_tmpfs().is_some())
         && h.tmpfs
             .get("/work")
             .is_some_and(|s| s == "rw,exec,nosuid,nodev,size=512m,mode=1777")
         && h.tmpfs
             .get("/tmp")
             .is_some_and(|s| s == "rw,nosuid,nodev,noexec,size=64m,mode=1777")
+        // The mutation phases add exactly one further private tmpfs, with the
+        // exact ADR-053 staging profile, for the writable copy of the tree.
+        && phase.extra_tmpfs().is_none_or(|(path, options)| {
+            h.tmpfs.get(path).is_some_and(|applied| applied == options)
+        })
         && c.config.user == phase.user()
         && c.config.working_dir == "/source"
         && c.config.image == image
         && c.config.entrypoint == [phase.program()]
         && c.config.cmd == phase.arguments()
-        && env == super::rust_gateway::environment();
+        && env == phase.environment();
     if safe {
         Ok(())
     } else {
@@ -249,26 +446,155 @@ struct AppliedMount {
     rw: bool,
     propagation: String,
 }
-fn mounts_ok(c: &Created, phase: &Phase, volume: &Volume) -> Result<bool, ExecutionError> {
-    if c.mounts.len() != 1 || c.host_config.mounts.len() != 1 {
+fn mounts_ok(
+    c: &Created,
+    phase: &Phase,
+    volume: &Volume,
+    junit: Option<(&MutationVolume, bool)>,
+    output_target: Option<&str>,
+    baseline: Option<&Volume>,
+    coverage_target: Option<(&MutationVolume, bool)>,
+) -> Result<bool, ExecutionError> {
+    let expected = usize::from(junit.is_some())
+        + usize::from(baseline.is_some())
+        + usize::from(coverage_target.is_some())
+        + 1;
+    if c.mounts.len() != expected || c.host_config.mounts.len() != expected {
         return Ok(false);
     }
-    let a: AppliedMount = serde_json::from_value(c.mounts[0].clone())
+    let applied = c
+        .mounts
+        .iter()
+        .cloned()
+        .map(serde_json::from_value::<AppliedMount>)
+        .collect::<Result<Vec<_>, _>>()
         .map_err(|_| ExecutionError::InvalidConfiguration)?;
-    let r: RequestedMount = serde_json::from_value(c.host_config.mounts[0].clone())
+    let requested = c
+        .host_config
+        .mounts
+        .iter()
+        .cloned()
+        .map(serde_json::from_value::<RequestedMount>)
+        .collect::<Result<Vec<_>, _>>()
         .map_err(|_| ExecutionError::InvalidConfiguration)?;
-    Ok(a.kind == "volume"
+    let source_target = if matches!(phase, Phase::IngestBaseline) {
+        "/baseline"
+    } else {
+        "/source"
+    };
+    let a = applied
+        .iter()
+        .find(|mount| mount.destination == source_target)
+        .ok_or(ExecutionError::InvalidConfiguration)?;
+    let r = requested
+        .iter()
+        .find(|mount| mount.target == source_target)
+        .ok_or(ExecutionError::InvalidConfiguration)?;
+    let source_ok = a.kind == "volume"
         && a.name == volume.name
         && a.source == volume.mountpoint
-        && a.destination == "/source"
+        && a.destination == source_target
         && a.driver == "local"
         && a.mode == "z"
         && a.propagation.is_empty()
         && a.rw == phase.ingesting()
         && r.kind == "volume"
         && r.source == volume.name
-        && r.target == "/source"
+        && r.target == source_target
         && r.read_only != phase.ingesting()
+        && r.volume_options.no_copy
+        && r.volume_options.subpath.is_empty()
+        && r.volume_options.labels.is_empty()
+        && r.volume_options.driver_config.name == "local"
+        && r.volume_options.driver_config.options.is_empty();
+    if !source_ok {
+        return Ok(false);
+    }
+    if let Some((junit, writable)) = junit {
+        let target = output_target.ok_or(ExecutionError::InvalidConfiguration)?;
+        let a = applied
+            .iter()
+            .find(|mount| mount.destination == target)
+            .ok_or(ExecutionError::InvalidConfiguration)?;
+        let r = requested
+            .iter()
+            .find(|mount| mount.target == target)
+            .ok_or(ExecutionError::InvalidConfiguration)?;
+        let junit_ok = a.kind == "volume"
+            && a.name == junit.name
+            && a.source == junit.mountpoint
+            && a.destination == target
+            && a.driver == "local"
+            && a.mode == "z"
+            && a.propagation.is_empty()
+            && a.rw == writable
+            && r.kind == "volume"
+            && r.source == junit.name
+            && r.target == target
+            && r.read_only != writable
+            && r.volume_options.no_copy
+            && r.volume_options.subpath.is_empty()
+            && r.volume_options.labels.is_empty()
+            && r.volume_options.driver_config.name == "local"
+            && r.volume_options.driver_config.options.is_empty();
+        if !junit_ok {
+            return Ok(false);
+        }
+    }
+    if let Some((target, writable)) = coverage_target {
+        let destination = super::coverage_gateway::COVERAGE_TARGET_PATH;
+        let a = applied
+            .iter()
+            .find(|mount| mount.destination == destination)
+            .ok_or(ExecutionError::InvalidConfiguration)?;
+        let r = requested
+            .iter()
+            .find(|mount| mount.target == destination)
+            .ok_or(ExecutionError::InvalidConfiguration)?;
+        let target_ok = a.kind == "volume"
+            && a.name == target.name
+            && a.source == target.mountpoint
+            && a.destination == destination
+            && a.driver == "local"
+            && a.mode == "z"
+            && a.propagation.is_empty()
+            && a.rw == writable
+            && r.kind == "volume"
+            && r.source == target.name
+            && r.target == destination
+            && r.read_only != writable
+            && r.volume_options.no_copy
+            && r.volume_options.subpath.is_empty()
+            && r.volume_options.labels.is_empty()
+            && r.volume_options.driver_config.name == "local"
+            && r.volume_options.driver_config.options.is_empty();
+        if !target_ok {
+            return Ok(false);
+        }
+    }
+    let Some(baseline) = baseline else {
+        return Ok(true);
+    };
+    let a = applied
+        .iter()
+        .find(|mount| mount.destination == "/baseline")
+        .ok_or(ExecutionError::InvalidConfiguration)?;
+    let r = requested
+        .iter()
+        .find(|mount| mount.target == "/baseline")
+        .ok_or(ExecutionError::InvalidConfiguration)?;
+    Ok(a.kind == "volume"
+        && a.name == baseline.name
+        && a.source == baseline.mountpoint
+        && a.destination == "/baseline"
+        && a.driver == "local"
+        && a.mode == "z"
+        && a.propagation.is_empty()
+        && !a.rw
+        && r.kind == "volume"
+        && r.source == baseline.name
+        && r.target == "/baseline"
+        && r.read_only
         && r.volume_options.no_copy
         && r.volume_options.subpath.is_empty()
         && r.volume_options.labels.is_empty()
@@ -662,6 +988,35 @@ mod tests {
         );
         Ok(())
     }
+
+    #[test]
+    fn quality_profile_only_adds_af_unix_stream_socketpair()
+    -> Result<(), Box<dyn std::error::Error>> {
+        let base_bytes = include_bytes!("seccomp-rust.json");
+        let base: Value = serde_json::from_slice(base_bytes)?;
+        let quality: Value = serde_json::from_str(include_str!("seccomp-rust-quality.json"))?;
+        for key in ["defaultAction", "defaultErrnoRet", "archMap"] {
+            assert_eq!(quality[key], base[key], "changed {key}");
+        }
+        let base_rules = base["syscalls"].as_array().ok_or("base rules")?;
+        let quality_rules = quality["syscalls"].as_array().ok_or("quality rules")?;
+        assert_eq!(&quality_rules[..base_rules.len()], base_rules);
+        assert_eq!(quality_rules.len(), base_rules.len() + 1);
+        assert_eq!(
+            quality_rules[base_rules.len()]["names"],
+            json!(["socketpair"])
+        );
+        assert_eq!(
+            quality_rules[base_rules.len()]["args"],
+            json!([
+                {"index":0,"value":1,"op":"SCMP_CMP_EQ"},
+                {"index":1,"value":15,"valueTwo":1,"op":"SCMP_CMP_MASKED_EQ"},
+                {"index":2,"value":0,"op":"SCMP_CMP_EQ"}
+            ])
+        );
+        assert!(!String::from_utf8_lossy(base_bytes).contains("\"valueTwo\": 1"));
+        Ok(())
+    }
     fn fixture(phase: &Phase) -> Result<(Value, Volume), Box<dyn std::error::Error>> {
         // Recorded real Docker29.7.2 mount shapes, with this unit's explicit
         // exec tmpfs, ownership labels and fixed M1-04 formatter applied.
@@ -689,7 +1044,14 @@ mod tests {
         c[0]["Config"]["Env"]
             .as_array_mut()
             .ok_or("env")?
-            .push(json!("RUSTFMT=/opt/rust/bin/rustfmt"));
+            .extend([json!("RUSTFMT=/opt/rust/bin/rustfmt")]);
+        let env = c[0]["Config"]["Env"].as_array_mut().ok_or("env")?;
+        let cargo_home = env
+            .iter_mut()
+            .find(|value| value.as_str() == Some("CARGO_HOME=/work/cargo"))
+            .ok_or("historical cargo home")?;
+        *cargo_home = json!("CARGO_HOME=/opt/rust");
+        c[0]["Config"]["Image"] = json!(super::super::APPROVED_RUST_IMAGE);
         c[0]["Config"]["Labels"] =
             json!({"org.rust-mcp.execution":"true","org.rust-mcp.rust-job":"fixture"});
         c[0]["HostConfig"]["Tmpfs"]["/work"] = json!("rw,exec,nosuid,nodev,size=512m,mode=1777");
@@ -697,6 +1059,79 @@ mod tests {
             json!({"Name":c[0]["Mounts"][0]["Name"],"Mountpoint":c[0]["Mounts"][0]["Source"],"Driver":"local","Scope":"local","Options":null,"Labels":{}}),
         )?;
         Ok((c, volume))
+    }
+
+    fn coverage_fixture(
+        phase: &Phase,
+    ) -> Result<(Value, Volume, MutationVolume, MutationVolume), Box<dyn std::error::Error>> {
+        let (mut document, source) = fixture(phase)?;
+        document[0]["Config"]["User"] = json!(phase.user());
+        document[0]["Config"]["Env"] = json!(phase.environment());
+        document[0]["Config"]["Entrypoint"] = json!([phase.program()]);
+        document[0]["Config"]["Cmd"] = json!(phase.arguments());
+        let profile: Value = serde_json::from_str(phase.seccomp_profile_json())?;
+        document[0]["HostConfig"]["SecurityOpt"] =
+            json!(["no-new-privileges=true", format!("seccomp={profile}")]);
+        let named = |name: &str, options: &str| MutationVolume {
+            name: name.into(),
+            driver: "local".into(),
+            scope: "local".into(),
+            options: BTreeMap::from([
+                ("device".into(), "tmpfs".into()),
+                ("o".into(), options.into()),
+                ("type".into(), "tmpfs".into()),
+            ]),
+            labels: super::super::rust_gateway::labels("fixture"),
+            mountpoint: format!("/var/lib/docker/volumes/{name}/_data"),
+            cluster_volume: None,
+            status: None,
+        };
+        let output = named(
+            "coverage-output",
+            super::super::mutation_gateway::VOLUME_OPTIONS,
+        );
+        let target = named(
+            "coverage-target",
+            super::super::coverage_gateway::COVERAGE_TARGET_VOLUME_OPTIONS,
+        );
+        let original_applied = document[0]["Mounts"][0].clone();
+        let original_requested = document[0]["HostConfig"]["Mounts"][0].clone();
+        let mut add_mount = |volume: &MutationVolume,
+                             destination: &str,
+                             writable: bool|
+         -> Result<(), Box<dyn std::error::Error>> {
+            let mut applied = original_applied.clone();
+            applied["Name"] = json!(volume.name);
+            applied["Source"] = json!(volume.mountpoint);
+            applied["Destination"] = json!(destination);
+            applied["RW"] = json!(writable);
+            document[0]["Mounts"]
+                .as_array_mut()
+                .ok_or("applied mounts")?
+                .push(applied);
+            let mut requested = original_requested.clone();
+            requested["Source"] = json!(volume.name);
+            requested["Target"] = json!(destination);
+            requested["ReadOnly"] = json!(!writable);
+            document[0]["HostConfig"]["Mounts"]
+                .as_array_mut()
+                .ok_or("requested mounts")?
+                .push(requested);
+            Ok(())
+        };
+        let output_writable = !matches!(
+            phase,
+            Phase::ExportCoverageJson | Phase::ExportCoverageLcov | Phase::ExportCoverageHtml
+        );
+        add_mount(&output, "/work/coverage", output_writable)?;
+        if let Some(writable) = phase.coverage_target_writable() {
+            add_mount(
+                &target,
+                super::super::coverage_gateway::COVERAGE_TARGET_PATH,
+                writable,
+            )?;
+        }
+        Ok((document, source, output, target))
     }
     #[test]
     fn real_mount_shapes_are_accepted_for_both_phases() -> Result<(), Box<dyn std::error::Error>> {
@@ -713,6 +1148,266 @@ mod tests {
                 Ok(())
             );
         }
+        Ok(())
+    }
+
+    #[test]
+    fn coverage_mounts_enforce_the_adr065_access_matrix_and_exact_options()
+    -> Result<(), Box<dyn std::error::Error>> {
+        use rust_engineering_domain::coverage::{CoverageReportFormat, CoverageSelection};
+        // Literal expectations are the oracle. They deliberately do not call
+        // `coverage_target_writable` to derive either side of the assertion.
+        let phases = [
+            (Phase::GuardCoverageVolumes, Some(false)),
+            (
+                Phase::Run(RustCommand::CoverageRun(
+                    CoverageSelection::default().try_into()?,
+                )),
+                Some(true),
+            ),
+            (
+                Phase::Run(RustCommand::CoverageReport(CoverageReportFormat::Json)),
+                Some(true),
+            ),
+            (
+                Phase::Run(RustCommand::CoverageReport(CoverageReportFormat::Lcov)),
+                Some(true),
+            ),
+            (
+                Phase::Run(RustCommand::CoverageReport(CoverageReportFormat::Html)),
+                Some(true),
+            ),
+            (Phase::ExportCoverageJson, None),
+            (Phase::ExportCoverageLcov, None),
+            (Phase::ExportCoverageHtml, None),
+        ];
+        for (phase, expected) in phases {
+            assert_eq!(phase.coverage_target_writable(), expected, "{phase:?}");
+            let (document, source, output, target) = coverage_fixture(&phase)?;
+            assert_eq!(
+                verify_coverage(
+                    &serde_json::to_vec(&document)?,
+                    super::super::APPROVED_RUST_IMAGE,
+                    &phase,
+                    &source,
+                    &output,
+                    &target,
+                    "fixture",
+                ),
+                Ok(()),
+                "{phase:?}"
+            );
+            for (pointer, changed) in [
+                ("/0/HostConfig/NetworkMode", json!("host")),
+                ("/0/Mounts/0/RW", json!(true)),
+                ("/0/HostConfig/Mounts/0/ReadOnly", json!(false)),
+                (
+                    "/0/Mounts/1/RW",
+                    json!(!document[0]["Mounts"][1]["RW"].as_bool().ok_or("rw")?),
+                ),
+            ] {
+                let mut invalid = document.clone();
+                *invalid.pointer_mut(pointer).ok_or("coverage mutation")? = changed;
+                assert!(
+                    verify_coverage(
+                        &serde_json::to_vec(&invalid)?,
+                        super::super::APPROVED_RUST_IMAGE,
+                        &phase,
+                        &source,
+                        &output,
+                        &target,
+                        "fixture",
+                    )
+                    .is_err(),
+                    "{phase:?} accepted {pointer}"
+                );
+            }
+            if phase.coverage_target_writable().is_some() {
+                let mut invalid = document.clone();
+                let target_rw = invalid[0]["Mounts"][2]["RW"].as_bool().ok_or("target rw")?;
+                invalid[0]["Mounts"][2]["RW"] = json!(!target_rw);
+                assert!(
+                    verify_coverage(
+                        &serde_json::to_vec(&invalid)?,
+                        super::super::APPROVED_RUST_IMAGE,
+                        &phase,
+                        &source,
+                        &output,
+                        &target,
+                        "fixture",
+                    )
+                    .is_err()
+                );
+            }
+            let mut wrong_target = target.clone();
+            wrong_target.options.insert(
+                "o".into(),
+                "size=512m,nr_inodes=65536,uid=65534,gid=65534,mode=0700,nosuid,nodev,noexec"
+                    .into(),
+            );
+            assert!(
+                verify_coverage(
+                    &serde_json::to_vec(&document)?,
+                    super::super::APPROVED_RUST_IMAGE,
+                    &phase,
+                    &source,
+                    &output,
+                    &wrong_target,
+                    "fixture",
+                )
+                .is_err()
+            );
+        }
+        Ok(())
+    }
+
+    #[test]
+    fn coverage_target_is_absent_from_every_non_coverage_phase()
+    -> Result<(), Box<dyn std::error::Error>> {
+        use rust_engineering_domain::mutation_test::MutationTestSelection;
+        use rust_engineering_domain::nextest::NextestSelection;
+        use rust_engineering_domain::semver_check::SemverProjectSelection;
+        use rust_engineering_domain::{CheckSelection, ClippySelection, TestSelection};
+        let phases = [
+            Phase::Ingest,
+            Phase::IngestBaseline,
+            Phase::GuardNextestOutput,
+            Phase::GuardMutationOutput,
+            Phase::ExportNextest,
+            Phase::ExportMutationOutcomes,
+            Phase::ExportMutationBundle,
+            Phase::ExportMutationLock,
+            Phase::ListMutants(MutationTestSelection::default().try_into()?),
+            Phase::Run(RustCommand::Metadata),
+            Phase::Run(RustCommand::FormatCheck),
+            Phase::Run(RustCommand::TestProject(
+                TestSelection::default().try_into()?,
+            )),
+            Phase::Run(RustCommand::Check),
+            Phase::Run(RustCommand::CheckProject(
+                CheckSelection::default().try_into()?,
+            )),
+            Phase::Run(RustCommand::ClippyProject(
+                ClippySelection::default().try_into()?,
+            )),
+            Phase::Run(RustCommand::TestNextest(
+                NextestSelection::default().try_into()?,
+            )),
+            Phase::Run(RustCommand::SemverCheck(
+                SemverProjectSelection::default().try_into()?,
+            )),
+            Phase::Run(RustCommand::MutationTest(
+                MutationTestSelection::default().try_into()?,
+            )),
+            Phase::Run(RustCommand::CompilerVersion),
+            Phase::Run(RustCommand::Explain("E0502".parse()?)),
+            Phase::Run(RustCommand::CargoVersion),
+            Phase::Run(RustCommand::LlvmCovVersion),
+            Phase::Run(RustCommand::InstalledComponents),
+            Phase::Run(RustCommand::SemverChecksVersion),
+            Phase::Run(RustCommand::MutantsVersion),
+        ];
+        for phase in phases {
+            assert_eq!(phase.coverage_target_writable(), None, "{phase:?}");
+        }
+        Ok(())
+    }
+    #[test]
+    fn semver_baseline_ingest_is_writable_only_at_the_dedicated_mount()
+    -> Result<(), Box<dyn std::error::Error>> {
+        let phase = Phase::IngestBaseline;
+        let (mut document, baseline) = fixture(&Phase::Ingest)?;
+        document[0]["Config"]["Cmd"] = json!(phase.arguments());
+        document[0]["Mounts"][0]["Destination"] = json!("/baseline");
+        document[0]["HostConfig"]["Mounts"][0]["Target"] = json!("/baseline");
+        assert_eq!(
+            verify(
+                &serde_json::to_vec(&document)?,
+                super::super::APPROVED_RUST_IMAGE,
+                &phase,
+                &baseline,
+                "fixture"
+            ),
+            Ok(())
+        );
+        document[0]["HostConfig"]["Mounts"][0]["ReadOnly"] = json!(true);
+        assert!(
+            verify(
+                &serde_json::to_vec(&document)?,
+                super::super::APPROVED_RUST_IMAGE,
+                &phase,
+                &baseline,
+                "fixture"
+            )
+            .is_err()
+        );
+        Ok(())
+    }
+    #[test]
+    fn semver_requires_exactly_two_distinct_read_only_source_volumes()
+    -> Result<(), Box<dyn std::error::Error>> {
+        use rust_engineering_domain::semver_check::SemverProjectSelection;
+        let phase = Phase::Run(RustCommand::SemverCheck(
+            SemverProjectSelection::default().try_into()?,
+        ));
+        let (mut document, source) = fixture(&Phase::Run(RustCommand::Check))?;
+        document[0]["Config"]["Cmd"] = json!(phase.arguments());
+        document[0]["Config"]["Env"] = json!(phase.environment());
+        let profile: Value = serde_json::from_str(include_str!("seccomp-rust-quality.json"))?;
+        document[0]["HostConfig"]["SecurityOpt"] =
+            json!(["no-new-privileges=true", format!("seccomp={profile}")]);
+        document[0]["Mounts"][0]["RW"] = json!(false);
+        document[0]["HostConfig"]["Mounts"][0]["ReadOnly"] = json!(true);
+        let baseline: Volume = serde_json::from_value(json!({
+            "Name":"baseline-volume",
+            "Mountpoint":"/var/lib/docker/volumes/baseline-volume/_data",
+            "Driver":"local",
+            "Scope":"local",
+            "Options":null,
+            "Labels":{},
+            "ClusterVolume":null,
+            "Status":null
+        }))?;
+        let mut applied = document[0]["Mounts"][0].clone();
+        applied["Name"] = json!(baseline.name);
+        applied["Source"] = json!(baseline.mountpoint);
+        applied["Destination"] = json!("/baseline");
+        applied["RW"] = json!(false);
+        document[0]["Mounts"]
+            .as_array_mut()
+            .ok_or("mounts")?
+            .push(applied);
+        let mut requested = document[0]["HostConfig"]["Mounts"][0].clone();
+        requested["Source"] = json!(baseline.name);
+        requested["Target"] = json!("/baseline");
+        requested["ReadOnly"] = json!(true);
+        document[0]["HostConfig"]["Mounts"]
+            .as_array_mut()
+            .ok_or("mount requests")?
+            .push(requested);
+        assert_eq!(
+            verify_semver(
+                &serde_json::to_vec(&document)?,
+                super::super::APPROVED_RUST_IMAGE,
+                &phase,
+                &source,
+                &baseline,
+                "fixture"
+            ),
+            Ok(())
+        );
+        document[0]["Mounts"][1]["RW"] = json!(true);
+        assert!(
+            verify_semver(
+                &serde_json::to_vec(&document)?,
+                super::super::APPROVED_RUST_IMAGE,
+                &phase,
+                &source,
+                &baseline,
+                "fixture"
+            )
+            .is_err()
+        );
         Ok(())
     }
     #[test]

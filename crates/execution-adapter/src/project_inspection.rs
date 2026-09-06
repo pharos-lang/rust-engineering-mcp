@@ -515,6 +515,93 @@ impl rust_engineering_application::ProjectTestPort for RustProjectInspector {
     }
 }
 
+impl rust_engineering_application::nextest::ProjectNextestPort for RustProjectInspector {
+    fn run(
+        &self,
+        source: &SourceBundle,
+        options: &rust_engineering_application::nextest::NextestOptions,
+        control: &dyn InspectionControl,
+    ) -> Result<rust_engineering_application::nextest::NextestObservation, InspectionError> {
+        let result = self.with_gateway(control, |gateway| {
+            super::nextest_port::run(gateway, source, options, control)
+        });
+        if matches!(
+            result,
+            Err(InspectionError::Execution(ExecutionError::CleanupUncertain)
+                | InspectionError::Internal)
+        ) {
+            self.quarantined.store(true, Ordering::Release);
+        }
+        result
+    }
+}
+
+impl rust_engineering_application::mutation_test::ProjectMutationTestPort for RustProjectInspector {
+    fn run(
+        &self,
+        source: &SourceBundle,
+        options: &rust_engineering_domain::mutation_test::MutationTestCommandOptions,
+        control: &dyn InspectionControl,
+    ) -> Result<rust_engineering_application::mutation_test::MutationTestObservation, InspectionError>
+    {
+        let result = self.with_gateway(control, |gateway| {
+            super::mutation_test_port::run(gateway, source, options, control)
+        });
+        if matches!(
+            result,
+            Err(InspectionError::Execution(ExecutionError::CleanupUncertain)
+                | InspectionError::Internal)
+        ) {
+            self.quarantined.store(true, Ordering::Release);
+        }
+        result
+    }
+}
+
+impl rust_engineering_application::semver_check::ProjectSemverPort for RustProjectInspector {
+    fn run(
+        &self,
+        baseline: &SourceBundle,
+        candidate: &SourceBundle,
+        options: &rust_engineering_application::semver_check::SemverOptions,
+        control: &dyn InspectionControl,
+    ) -> Result<rust_engineering_application::semver_check::SemverObservation, InspectionError>
+    {
+        let result = self.with_gateway(control, |gateway| {
+            super::semver_port::run(gateway, baseline, candidate, options, control)
+        });
+        if matches!(
+            result,
+            Err(InspectionError::Execution(ExecutionError::CleanupUncertain)
+                | InspectionError::Internal)
+        ) {
+            self.quarantined.store(true, Ordering::Release);
+        }
+        result
+    }
+}
+
+impl rust_engineering_application::coverage::ProjectCoveragePort for RustProjectInspector {
+    fn run(
+        &self,
+        source: &SourceBundle,
+        options: &rust_engineering_domain::coverage::CoverageOptions,
+        control: &dyn InspectionControl,
+    ) -> Result<rust_engineering_application::coverage::CoverageObservation, InspectionError> {
+        let result = self.with_gateway(control, |gateway| {
+            super::coverage_port::run(gateway, source, options, control)
+        });
+        if matches!(
+            result,
+            Err(InspectionError::Execution(ExecutionError::CleanupUncertain)
+                | InspectionError::Internal)
+        ) {
+            self.quarantined.store(true, Ordering::Release);
+        }
+        result
+    }
+}
+
 impl rust_engineering_application::ProjectFormatPort for RustProjectInspector {
     fn format(
         &self,

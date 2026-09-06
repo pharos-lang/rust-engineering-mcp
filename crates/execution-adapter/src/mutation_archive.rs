@@ -794,3 +794,241 @@ mod tests {
         Ok(())
     }
 }
+
+/// What the store cannot see once an archive is one opaque member.
+///
+/// ADR-061 bounds `members/job` **including archive entries**, but the quality
+/// store charges one descriptor per `ArchiveBundle`. The egress/wiring layer
+/// must therefore charge `entries` against the job's declared member budget
+/// before publishing the bundle; that aggregate is the integrator's obligation.
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+#[allow(dead_code)] // consumed by the M3 quality egress gateway.
+pub struct ArchiveBundleStats {
+    /// Every USTAR entry counted, including the `./` root and directories.
+    pub entries: u16,
+}
+
+/// ADR-061 `ArchiveBundle` ingress: revalidate a bounded closed-USTAR stream
+/// written by the fixed approved guest program and re-encode it canonically.
+///
+/// The profile is exactly the closed M2 export profile — one `./` root entry,
+/// regular files and directories only, fixed mode/owner, no links, devices,
+/// FIFOs, sparse members, PAX or GNU extensions, no `..`, bounded name, entry
+/// count and size — plus ADR-061's member ceiling. Member names remain data:
+/// nothing here opens, creates or extracts to a host path, and the returned
+/// bytes are stored as one opaque `application/x-tar` member.
+///
+/// The returned [`ArchiveBundleStats`] is what makes the ADR's aggregate
+/// members/job bound computable by the caller that publishes the member.
+#[allow(dead_code)] // wired by the M3 quality egress gateway; ingress profile qualified here.
+pub fn revalidate_quality_archive(
+    archive: &[u8],
+) -> Result<(Vec<u8>, ArchiveBundleStats), ExecutionError> {
+    // First pass: read only the declared member names, so the strict decoder
+    // below can be reused unchanged against an archive with no prior bundle.
+    if archive.len() > MAX_ARCHIVE || !archive.len().is_multiple_of(BLOCK) {
+        return denied();
+    }
+    let mut files = Vec::new();
+    let mut directories = Vec::new();
+    let mut offset = 0usize;
+    let mut entries = 0usize;
+    while offset < archive.len() {
+        let end = offset.checked_add(BLOCK).ok_or(ExecutionError::Denied)?;
+        let header = archive.get(offset..end).ok_or(ExecutionError::Denied)?;
+        if header.iter().all(|byte| *byte == 0) {
+            break;
+        }
+        entries = entries.checked_add(1).ok_or(ExecutionError::Denied)?;
+        if entries > usize::from(rust_engineering_domain::QUALITY_MAX_JOB_MEMBERS) {
+            return denied();
+        }
+        let directory = match header[156] {
+            b'0' => false,
+            b'5' => true,
+            _ => return denied(),
+        };
+        if let Some(path) = exported_path(header, directory)? {
+            if directory {
+                directories.push(path);
+            } else {
+                files.push(SourceFile::new(path, Vec::new()).map_err(|_| ExecutionError::Denied)?);
+            }
+        }
+        let size = strict_octal(&header[124..136])?;
+        offset = end
+            .checked_add(size.div_ceil(BLOCK) * BLOCK)
+            .ok_or(ExecutionError::Denied)?;
+    }
+    let declared =
+        SourceBundle::with_directories(files, directories).map_err(|_| ExecutionError::Denied)?;
+    let stats = ArchiveBundleStats {
+        entries: u16::try_from(entries).map_err(|_| ExecutionError::Denied)?,
+    };
+    Ok((encode(&decode(archive, &declared)?)?, stats))
+}
+
+#[cfg(test)]
+mod quality_archive_tests {
+    use super::*;
+
+    /// A guest-side USTAR writer, independent of the encoder under test.
+    fn entry(output: &mut Vec<u8>, path: &str, bytes: &[u8], kind: u8, mode: usize) {
+        let mut header = [0u8; BLOCK];
+        let name = path.as_bytes();
+        header[..name.len().min(100)].copy_from_slice(&name[..name.len().min(100)]);
+        fn octal(field: &mut [u8], value: usize) {
+            let text = format!("{value:0width$o}", width = field.len() - 1);
+            let take = text.len().min(field.len());
+            field[..take].copy_from_slice(&text.as_bytes()[..take]);
+        }
+        octal(&mut header[100..108], mode);
+        octal(&mut header[108..116], OWNER);
+        octal(&mut header[116..124], OWNER);
+        octal(&mut header[124..136], bytes.len());
+        octal(&mut header[136..148], 1);
+        header[148..156].fill(b' ');
+        header[156] = kind;
+        header[257..263].copy_from_slice(b"ustar\0");
+        header[263..265].copy_from_slice(b"00");
+        header[265..272].copy_from_slice(b"nobody\0");
+        header[297..305].copy_from_slice(b"nogroup\0");
+        octal(&mut header[329..337], 0);
+        octal(&mut header[337..345], 0);
+        let value = checksum(&header);
+        octal(&mut header[148..155], value);
+        header[154] = 0;
+        header[155] = b' ';
+        output.extend_from_slice(&header);
+        output.extend_from_slice(bytes);
+        output.resize(
+            output.len() + bytes.len().div_ceil(BLOCK) * BLOCK - bytes.len(),
+            0,
+        );
+    }
+
+    fn stream(files: &[(&str, &[u8])], directories: &[&str]) -> Vec<u8> {
+        let mut output = Vec::new();
+        entry(&mut output, "./", &[], b'5', DIRECTORY_MODE);
+        for directory in directories {
+            entry(
+                &mut output,
+                &format!("./{directory}/"),
+                &[],
+                b'5',
+                DIRECTORY_MODE,
+            );
+        }
+        for (path, bytes) in files {
+            entry(&mut output, &format!("./{path}"), bytes, b'0', FILE_MODE);
+        }
+        output.resize(output.len() + END_BLOCKS * BLOCK, 0);
+        output
+    }
+
+    fn bundle(files: &[(&str, &[u8])], directories: &[&str]) -> Result<SourceBundle, String> {
+        let files = files
+            .iter()
+            .map(|(path, bytes)| SourceFile::new((*path).into(), bytes.to_vec()))
+            .collect::<Result<Vec<_>, _>>()
+            .map_err(|error| format!("{error:?}"))?;
+        SourceBundle::with_directories(
+            files,
+            directories.iter().map(|path| (*path).into()).collect(),
+        )
+        .map_err(|error| format!("{error:?}"))
+    }
+
+    #[test]
+    fn a_bounded_regular_archive_canonicalizes_without_extraction() -> Result<(), String> {
+        let members: &[(&str, &[u8])] = &[
+            ("report/index.html", b"<p>ok</p>"),
+            ("report/style.css", b"x"),
+        ];
+        let bundle = bundle(members, &["report", "report/empty"])?;
+        let stream = stream(members, &["report", "report/empty"]);
+        let (canonical, stats) =
+            revalidate_quality_archive(&stream).map_err(|error| format!("{error:?}"))?;
+        assert_eq!(
+            canonical,
+            encode(&bundle).map_err(|error| format!("{error:?}"))?
+        );
+        // The aggregate the ADR bounds is the entry count, not the member: `./`,
+        // two directories and two files, which the integrator charges to the job.
+        assert_eq!(stats, ArchiveBundleStats { entries: 5 });
+        // Re-encoding is stable, so the stored member is a canonical function
+        // of the guest bytes and never of their arrival order.
+        assert_eq!(
+            revalidate_quality_archive(&stream).map_err(|error| format!("{error:?}"))?,
+            (canonical.clone(), stats)
+        );
+        assert!(canonical.len() <= MAX_ARCHIVE);
+        Ok(())
+    }
+
+    #[test]
+    fn links_devices_traversal_extensions_and_over_count_are_rejected() -> Result<(), String> {
+        // Every non-regular type flag: hard link, symlink, character and block
+        // device, FIFO, contiguous, and the PAX/GNU extension headers.
+        for kind in *b"123467xgLK" {
+            let mut hostile = Vec::new();
+            entry(&mut hostile, "./", &[], b'5', DIRECTORY_MODE);
+            entry(&mut hostile, "./report/evil", &[], kind, FILE_MODE);
+            hostile.resize(hostile.len() + END_BLOCKS * BLOCK, 0);
+            assert!(
+                revalidate_quality_archive(&hostile).is_err(),
+                "type flag {kind}"
+            );
+        }
+        // Traversal and absolute names.
+        for name in [
+            "./../escape",
+            "/etc/passwd",
+            "./report/../../escape",
+            "../x",
+        ] {
+            let mut hostile = Vec::new();
+            entry(&mut hostile, "./", &[], b'5', DIRECTORY_MODE);
+            entry(&mut hostile, name, b"x", b'0', FILE_MODE);
+            hostile.resize(hostile.len() + END_BLOCKS * BLOCK, 0);
+            assert!(revalidate_quality_archive(&hostile).is_err(), "{name}");
+        }
+        // A member above the closed per-file ceiling.
+        let big = vec![0_u8; SOURCE_MAX_FILE_BYTES + 1];
+        assert!(revalidate_quality_archive(&stream(&[("report/big", &big)], &["report"])).is_err());
+        // A setuid or world-readable mode is outside the closed profile.
+        let mut permissive = Vec::new();
+        entry(&mut permissive, "./", &[], b'5', DIRECTORY_MODE);
+        entry(&mut permissive, "./report", b"x", b'0', 0o755);
+        permissive.resize(permissive.len() + END_BLOCKS * BLOCK, 0);
+        assert!(revalidate_quality_archive(&permissive).is_err());
+
+        // More members than ADR-061 admits for one job.
+        let ceiling = usize::from(rust_engineering_domain::QUALITY_MAX_JOB_MEMBERS);
+        let names = (0..ceiling)
+            .map(|index| format!("m{index}"))
+            .collect::<Vec<_>>();
+        let members = names
+            .iter()
+            .map(|name| (name.as_str(), &b"x"[..]))
+            .collect::<Vec<_>>();
+        assert!(revalidate_quality_archive(&stream(&members, &[])).is_err());
+        // One below the ceiling, counting the `./` root entry, canonicalizes.
+        let within = &members[..ceiling - 1];
+        let (canonical, stats) = revalidate_quality_archive(&stream(within, &[]))
+            .map_err(|error| format!("{error:?}"))?;
+        assert_eq!(
+            canonical,
+            encode(&bundle(within, &[])?).map_err(|error| format!("{error:?}"))?
+        );
+        // Exactly the ceiling in entries: one bundle can exhaust a whole job's
+        // declared member budget once the integrator charges this count.
+        assert_eq!(
+            stats,
+            ArchiveBundleStats {
+                entries: u16::try_from(ceiling).map_err(|error| format!("{error:?}"))?
+            }
+        );
+        Ok(())
+    }
+}

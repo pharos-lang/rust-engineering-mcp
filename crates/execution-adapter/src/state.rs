@@ -123,6 +123,10 @@ mod mac {
             state.write("seccomp-socket.json", include_bytes!("seccomp-socket.json"))?;
             state.write("seccomp-rust.json", include_bytes!("seccomp-rust.json"))?;
             state.write(
+                "seccomp-rust-quality.json",
+                include_bytes!("seccomp-rust-quality.json"),
+            )?;
+            state.write(
                 "seccomp-rust-fix.json",
                 include_bytes!("seccomp-rust-fix.json"),
             )?;
@@ -170,6 +174,11 @@ mod mac {
             let _ = unlinkat(&self.directory, "seccomp.json", AtFlags::empty());
             let _ = unlinkat(&self.directory, "seccomp-socket.json", AtFlags::empty());
             let _ = unlinkat(&self.directory, "seccomp-rust.json", AtFlags::empty());
+            let _ = unlinkat(
+                &self.directory,
+                "seccomp-rust-quality.json",
+                AtFlags::empty(),
+            );
             let _ = unlinkat(&self.directory, "seccomp-rust-fix.json", AtFlags::empty());
             if self.check().is_ok() {
                 let _ = unlinkat(&self.root, &self.name, AtFlags::REMOVEDIR);

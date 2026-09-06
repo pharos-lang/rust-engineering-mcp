@@ -1,7 +1,13 @@
 //! Single product boundary for external processes. No shells or caller argv.
 mod applied;
 mod capabilities;
+mod coverage_gateway;
+pub mod coverage_json;
+mod coverage_port;
 pub use capabilities::{CapabilityReport, CapabilityStatus};
+mod semver_gateway;
+mod semver_output;
+mod semver_port;
 mod state;
 mod supervisor;
 
@@ -683,6 +689,10 @@ mod tests {
 
 mod mutation_archive;
 mod mutation_gateway;
+mod mutation_outcomes;
+mod mutation_test_gateway;
+mod mutation_test_port;
+pub use mutation_test_gateway::MutationTestExecution;
 mod resolution_gateway;
 mod rust_applied;
 mod rust_gateway;
@@ -701,3 +711,8 @@ pub use project_inspection::RustProjectInspector;
 mod toolchain_metadata;
 
 mod format_output;
+
+mod nextest_gateway;
+mod nextest_junit;
+mod nextest_port;
+pub use nextest_gateway::NextestExecution;

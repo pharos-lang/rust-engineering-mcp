@@ -152,6 +152,15 @@ pub(super) fn parse_volume(
     name: &str,
     nonce: &str,
 ) -> Result<MutationVolume, ExecutionError> {
+    parse_volume_with_options(bytes, name, nonce, VOLUME_OPTIONS)
+}
+
+pub(super) fn parse_volume_with_options(
+    bytes: &[u8],
+    name: &str,
+    nonce: &str,
+    expected_options: &str,
+) -> Result<MutationVolume, ExecutionError> {
     let mut values: Vec<MutationVolume> =
         serde_json::from_slice(bytes).map_err(|_| ExecutionError::Infrastructure)?;
     let volume = values
@@ -160,7 +169,7 @@ pub(super) fn parse_volume(
         .ok_or(ExecutionError::InvalidConfiguration)?;
     let expected = BTreeMap::from([
         ("device".into(), "tmpfs".into()),
-        ("o".into(), VOLUME_OPTIONS.into()),
+        ("o".into(), expected_options.into()),
         ("type".into(), "tmpfs".into()),
     ]);
     if volume.name != name
@@ -462,8 +471,18 @@ pub(super) fn cleanup(
     volume: &str,
     nonce: &str,
 ) -> Result<(), ExecutionError> {
+    cleanup_with_options(gateway, names, volume, nonce, VOLUME_OPTIONS)
+}
+
+pub(super) fn cleanup_with_options(
+    gateway: &RustGateway,
+    names: &[&str],
+    volume: &str,
+    nonce: &str,
+    expected_options: &str,
+) -> Result<(), ExecutionError> {
     let deadline = Instant::now() + Duration::from_secs(10);
-    cleanup_until(gateway, names, volume, nonce, deadline)
+    cleanup_until_with_options(gateway, names, volume, nonce, expected_options, deadline)
 }
 
 pub(super) fn cleanup_until(
@@ -471,6 +490,17 @@ pub(super) fn cleanup_until(
     names: &[&str],
     volume: &str,
     nonce: &str,
+    deadline: Instant,
+) -> Result<(), ExecutionError> {
+    cleanup_until_with_options(gateway, names, volume, nonce, VOLUME_OPTIONS, deadline)
+}
+
+fn cleanup_until_with_options(
+    gateway: &RustGateway,
+    names: &[&str],
+    volume: &str,
+    nonce: &str,
+    expected_options: &str,
     deadline: Instant,
 ) -> Result<(), ExecutionError> {
     let cancel = &NeverCancel;
@@ -490,7 +520,7 @@ pub(super) fn cleanup_until(
                     deadline,
                     cancel,
                 );
-                if !matches!(inspected, Ok(ref c) if c.code == Some(0) && parse_volume(&c.stdout, volume, nonce).is_ok())
+                if !matches!(inspected, Ok(ref c) if c.code == Some(0) && parse_volume_with_options(&c.stdout, volume, nonce, expected_options).is_ok())
                 {
                     clean = false;
                 } else {
@@ -1050,6 +1080,26 @@ mod tests {
         }]);
         let bytes = serde_json::to_vec(&valid)?;
         assert!(parse_volume(&bytes, "rust-mcp-mutation-source-fixture", "fixture").is_ok());
+        let mut coverage = valid.clone();
+        coverage[0]["Options"]["o"] =
+            serde_json::json!(super::super::coverage_gateway::COVERAGE_TARGET_VOLUME_OPTIONS);
+        assert!(
+            parse_volume_with_options(
+                &serde_json::to_vec(&coverage)?,
+                "rust-mcp-mutation-source-fixture",
+                "fixture",
+                super::super::coverage_gateway::COVERAGE_TARGET_VOLUME_OPTIONS,
+            )
+            .is_ok()
+        );
+        assert!(
+            parse_volume(
+                &serde_json::to_vec(&coverage)?,
+                "rust-mcp-mutation-source-fixture",
+                "fixture"
+            )
+            .is_err()
+        );
         for (path, changed) in [
             ("/0/Driver", serde_json::json!("bind")),
             ("/0/Scope", serde_json::json!("global")),
