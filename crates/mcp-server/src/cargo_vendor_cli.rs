@@ -174,31 +174,26 @@ pub fn run(invocation: Invocation) -> ExitCode {
 #[cfg(test)]
 mod tests {
     use super::*;
+    /// The parser requires an absolute directory, and a leading slash is not
+    /// absolute on Windows, where a path needs a drive prefix.
+    #[cfg(not(windows))]
+    const VENDOR_DIR: &str = "/private/vendor";
+    #[cfg(windows)]
+    const VENDOR_DIR: &str = r"C:\private\vendor";
     #[test]
     fn closed_read_only_cli_rejects_implicit_provisioning_and_relative_roots() {
         for args in [
-            vec!["inspect", "--directory", "/private/vendor", "--json"],
-            vec!["inspect", "--directory", "/private/vendor"],
+            vec!["inspect", "--directory", VENDOR_DIR, "--json"],
+            vec!["inspect", "--directory", VENDOR_DIR],
         ] {
             assert!(parse(args.into_iter().map(OsString::from)).is_some());
         }
         for args in [
             vec!["inspect"],
-            vec!["sync", "--directory", "/private/vendor"],
+            vec!["sync", "--directory", VENDOR_DIR],
             vec!["inspect", "--directory", "relative"],
-            vec![
-                "inspect",
-                "--directory",
-                "/private/vendor",
-                "--allow-network",
-            ],
-            vec![
-                "inspect",
-                "--directory",
-                "/private/vendor",
-                "--json",
-                "--json",
-            ],
+            vec!["inspect", "--directory", VENDOR_DIR, "--allow-network"],
+            vec!["inspect", "--directory", VENDOR_DIR, "--json", "--json"],
         ] {
             assert!(parse(args.into_iter().map(OsString::from)).is_none());
         }

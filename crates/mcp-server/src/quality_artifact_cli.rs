@@ -133,11 +133,18 @@ mod tests {
     fn parses(args: &[&str]) -> bool {
         parse(args.iter().map(OsString::from)).is_some()
     }
+    /// The grammar requires an absolute state root, and what counts as
+    /// absolute is platform-specific: a leading slash is not absolute on
+    /// Windows, where a path needs a drive prefix.
+    #[cfg(not(windows))]
+    const STATE_ROOT: &str = "/tmp/state";
+    #[cfg(windows)]
+    const STATE_ROOT: &str = r"C:\tmp\state";
     #[test]
     fn grammar_is_closed_and_requires_absolute_state_root() {
-        assert!(parses(&["recover", "--state-root", "/tmp/state", "--json"]));
-        assert!(parses(&["prune", "--state-root", "/tmp/state"]));
+        assert!(parses(&["recover", "--state-root", STATE_ROOT, "--json"]));
+        assert!(parses(&["prune", "--state-root", STATE_ROOT]));
         assert!(!parses(&["prune", "--state-root", "relative"]));
-        assert!(!parses(&["recover", "--state-root", "/tmp/state", "--all"]));
+        assert!(!parses(&["recover", "--state-root", STATE_ROOT, "--all"]));
     }
 }

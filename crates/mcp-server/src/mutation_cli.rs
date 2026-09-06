@@ -202,6 +202,12 @@ pub fn run(invocation: Invocation) -> ExitCode {
 #[cfg(test)]
 mod tests {
     use super::*;
+    /// The parser requires an absolute state root, and a leading slash is not
+    /// absolute on Windows, where a path needs a drive prefix.
+    #[cfg(not(windows))]
+    const STATE_ROOT: &str = "/tmp/state";
+    #[cfg(windows)]
+    const STATE_ROOT: &str = r"C:\tmp\state";
     fn parse_strings(args: &[&str]) -> bool {
         parse(args.iter().map(OsString::from)).is_some()
     }
@@ -210,23 +216,23 @@ mod tests {
         assert!(parse_strings(&[
             "list",
             "--state-root",
-            "/tmp/state",
+            STATE_ROOT,
             "--json"
         ]));
         assert!(!parse_strings(&["list", "--state-root", "relative"]));
         assert!(!parse_strings(&[
             "list",
             "--state-root",
-            "/tmp/state",
+            STATE_ROOT,
             "--all"
         ]));
-        assert!(!parse_strings(&["prune", "--state-root", "/tmp/state"]));
+        assert!(!parse_strings(&["prune", "--state-root", STATE_ROOT]));
         let id = "mut_0123456789abcdef0123456789abcdef";
         let digest = format!("sha256:{}", "a".repeat(64));
         assert!(parse_strings(&[
             "prune",
             "--state-root",
-            "/tmp/state",
+            STATE_ROOT,
             "--operation-id",
             id,
             "--plan-digest",
@@ -235,7 +241,7 @@ mod tests {
         assert!(!parse_strings(&[
             "prune",
             "--state-root",
-            "/tmp/state",
+            STATE_ROOT,
             "--operation-id",
             "../journal",
             "--plan-digest",

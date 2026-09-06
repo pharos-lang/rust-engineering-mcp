@@ -207,6 +207,56 @@ pub(crate) fn parse(mut args: impl Iterator<Item = OsString>) -> Option<stdio::H
 #[cfg(test)]
 mod tests {
     use super::*;
+    // Test paths are POSIX-style; a leading slash is not absolute on Windows,
+    // where a path needs a drive prefix. The same prefix is applied to every
+    // path, so the containment and disjointness relationships these tests
+    // assert are identical on both platforms.
+    #[cfg(not(windows))]
+    const PRIVATE_STATE_RUST_MCP_MUTATIONS_V1_PROJECT: &str =
+        "/private/state/rust-mcp-mutations-v1/project";
+    #[cfg(windows)]
+    const PRIVATE_STATE_RUST_MCP_MUTATIONS_V1_PROJECT: &str =
+        r"C:/private/state/rust-mcp-mutations-v1/project";
+    #[cfg(not(windows))]
+    const USR_LOCAL_BIN_DOCKER: &str = "/usr/local/bin/docker";
+    #[cfg(windows)]
+    const USR_LOCAL_BIN_DOCKER: &str = r"C:/usr/local/bin/docker";
+    #[cfg(not(windows))]
+    const WORK_PROJECT_VENDOR: &str = "/work/project/vendor";
+    #[cfg(windows)]
+    const WORK_PROJECT_VENDOR: &str = r"C:/work/project/vendor";
+    #[cfg(not(windows))]
+    const WORK_PROJECT_STATE: &str = "/work/project/state";
+    #[cfg(windows)]
+    const WORK_PROJECT_STATE: &str = r"C:/work/project/state";
+    #[cfg(not(windows))]
+    const TMP_DOCKER_SOCK: &str = "/tmp/docker.sock";
+    #[cfg(windows)]
+    const TMP_DOCKER_SOCK: &str = r"C:/tmp/docker.sock";
+    #[cfg(not(windows))]
+    const OTHER_PROJECT: &str = "/other/project";
+    #[cfg(windows)]
+    const OTHER_PROJECT: &str = r"C:/other/project";
+    #[cfg(not(windows))]
+    const PRIVATE_STATE: &str = "/private/state";
+    #[cfg(windows)]
+    const PRIVATE_STATE: &str = r"C:/private/state";
+    #[cfg(not(windows))]
+    const WORK_PROJECT: &str = "/work/project";
+    #[cfg(windows)]
+    const WORK_PROJECT: &str = r"C:/work/project";
+    #[cfg(not(windows))]
+    const DATA_VENDOR: &str = "/data/vendor";
+    #[cfg(windows)]
+    const DATA_VENDOR: &str = r"C:/data/vendor";
+    #[cfg(not(windows))]
+    const DATA_OTHER: &str = "/data/other";
+    #[cfg(windows)]
+    const DATA_OTHER: &str = r"C:/data/other";
+    #[cfg(not(windows))]
+    const WORK: &str = "/work";
+    #[cfg(windows)]
+    const WORK: &str = r"C:/work";
     #[test]
     fn mutation_journal_and_read_roots_cannot_overlap_in_either_direction() {
         for permission in [
@@ -224,9 +274,9 @@ mod tests {
                         permission,
                         write,
                         "--docker",
-                        "/usr/local/bin/docker",
+                        USR_LOCAL_BIN_DOCKER,
                         "--docker-socket",
-                        "/tmp/docker.sock",
+                        TMP_DOCKER_SOCK,
                         "--state-root",
                         state,
                         "--rust-image",
@@ -236,17 +286,17 @@ mod tests {
                     .map(OsString::from),
                 )
             };
-            assert!(parse_roots("/work/project", "/work/project", "/private/state").is_some());
-            assert!(parse_roots("/work/project", "/work/project", "/work/project/state").is_none());
+            assert!(parse_roots(WORK_PROJECT, WORK_PROJECT, PRIVATE_STATE).is_some());
+            assert!(parse_roots(WORK_PROJECT, WORK_PROJECT, WORK_PROJECT_STATE).is_none());
             assert!(
                 parse_roots(
-                    "/private/state/rust-mcp-mutations-v1/project",
-                    "/private/state/rust-mcp-mutations-v1/project",
-                    "/private/state"
+                    PRIVATE_STATE_RUST_MCP_MUTATIONS_V1_PROJECT,
+                    PRIVATE_STATE_RUST_MCP_MUTATIONS_V1_PROJECT,
+                    PRIVATE_STATE
                 )
                 .is_none()
             );
-            assert!(parse_roots("/work/project", "/other/project", "/private/state").is_none());
+            assert!(parse_roots(WORK_PROJECT, OTHER_PROJECT, PRIVATE_STATE).is_none());
         }
     }
     #[test]
@@ -254,13 +304,13 @@ mod tests {
         let fingerprint = format!("sha256:{}", "a".repeat(64));
         let base = [
             "--root",
-            "/work/project",
+            WORK_PROJECT,
             "--docker",
-            "/usr/local/bin/docker",
+            USR_LOCAL_BIN_DOCKER,
             "--docker-socket",
-            "/tmp/docker.sock",
+            TMP_DOCKER_SOCK,
             "--state-root",
-            "/private/state",
+            PRIVATE_STATE,
             "--rust-image",
             rust_engineering_execution::APPROVED_RUST_IMAGE,
         ];
@@ -276,14 +326,14 @@ mod tests {
         assert!(
             configured(&[
                 "--cargo-vendor-dir",
-                "/data/vendor",
+                DATA_VENDOR,
                 "--cargo-vendor-tree-sha256",
                 &fingerprint
             ])
             .is_some()
         );
         for arguments in [
-            vec!["--cargo-vendor-dir", "/data/vendor"],
+            vec!["--cargo-vendor-dir", DATA_VENDOR],
             vec!["--cargo-vendor-tree-sha256", &fingerprint],
             vec![
                 "--cargo-vendor-dir",
@@ -293,29 +343,29 @@ mod tests {
             ],
             vec![
                 "--cargo-vendor-dir",
-                "/work/project/vendor",
+                WORK_PROJECT_VENDOR,
                 "--cargo-vendor-tree-sha256",
                 &fingerprint,
             ],
             vec![
                 "--cargo-vendor-dir",
-                "/work",
+                WORK,
                 "--cargo-vendor-tree-sha256",
                 &fingerprint,
             ],
             vec![
                 "--cargo-vendor-dir",
-                "/data/vendor",
+                DATA_VENDOR,
                 "--cargo-vendor-tree-sha256",
                 "sha256:bad",
             ],
             vec![
                 "--cargo-vendor-dir",
-                "/data/vendor",
+                DATA_VENDOR,
                 "--cargo-vendor-tree-sha256",
                 &fingerprint,
                 "--cargo-vendor-dir",
-                "/data/other",
+                DATA_OTHER,
             ],
         ] {
             assert!(configured(&arguments).is_none(), "accepted {arguments:?}");
@@ -324,7 +374,7 @@ mod tests {
             parse(
                 [
                     "--cargo-vendor-dir",
-                    "/data/vendor",
+                    DATA_VENDOR,
                     "--cargo-vendor-tree-sha256",
                     &fingerprint
                 ]

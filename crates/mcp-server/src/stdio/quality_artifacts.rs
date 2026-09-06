@@ -48,7 +48,11 @@ pub(super) fn attach(
 ) -> Result<Option<QualityRuntime>, QualityArtifactError> {
     let publisher = match NativeQualityArtifactStore::open(state_root) {
         Ok(store) => store,
-        Err(QualityArtifactError::UnsupportedStateRoot | QualityArtifactError::Busy) => {
+        Err(
+            QualityArtifactError::UnsupportedPlatform
+            | QualityArtifactError::UnsupportedStateRoot
+            | QualityArtifactError::Busy,
+        ) => {
             return Ok(None);
         }
         Err(error) => return Err(error),
@@ -59,7 +63,11 @@ pub(super) fn attach(
     // on the publishing `open` above and on the explicit operator CLI.
     let reader = match NativeQualityArtifactStore::attach(state_root) {
         Ok(store) => store,
-        Err(QualityArtifactError::UnsupportedStateRoot | QualityArtifactError::Busy) => {
+        Err(
+            QualityArtifactError::UnsupportedPlatform
+            | QualityArtifactError::UnsupportedStateRoot
+            | QualityArtifactError::Busy,
+        ) => {
             return Ok(None);
         }
         Err(error) => return Err(error),
