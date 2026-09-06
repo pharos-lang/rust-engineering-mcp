@@ -287,8 +287,55 @@ journal. `local_coordinated` detecta cambios observados, pero no ofrece exclusi�
 OS ante escritores externos, CAS ni una transacción visible multiarchivo. La policy
 `preserve_presence` incluye el lock raíz actualizado si existía y elimina del
 candidato un lock creado solo para validar. Esta arquitectura está integrada en el
-checkout `0.2.0-dev` de 18 tools, con [calificación M2](validation/M2-07.md); la release
-`0.1.0` conserva 13.
+checkout `0.3.0-dev` de 22 tools, con [calificación M2](validation/M2-07.md) para las
+18 anteriores y las cuatro tools M3 calificadas en sus cortes síncronos; la release `0.1.0`
+conserva 13.
+
+M3-01 mantiene `rust.test.nextest` sobre el mismo Execution Gateway. Inyecta una
+configuración product-owned antes de la fuente, ejecuta el perfil quality dedicado
+y exporta JUnit desde un volumen tmpfs separado mediante un tar de nombre fijo;
+el host acepta sólo un archivo regular y nunca abre un path elegido por el guest.
+Stage 0 publica JUnit y streams mediante el `ArtifactStore` efímero M1; Stage 1
+publica en el store durable privado de ADR-061.
+Tasks se anuncia después de G4, pero sólo un peer que declare la extensión puede
+materializar un job. Sin negociación mutua permanece únicamente la ruta síncrona
+calificada de hasta 60 s.
+
+## M3 — arquitectura de calidad
+
+El dominio implementa `job`, `nextest`, `coverage`, `semver_check`,
+`mutation_test` y `quality_artifact` en `crates/domain/src/`. Allí viven el
+lifecycle y las invariantes de jobs, selecciones y observaciones, además de
+reservas, TTL, watermark, quarantine y descriptores de artifacts; no entran rmcp,
+Cargo, Docker ni filesystem.
+
+La aplicación implementa los casos de uso en `crates/application/src/job.rs`,
+`nextest.rs`, `coverage.rs`, `semver_check.rs`, `mutation_test.rs` y
+`quality_artifact.rs`. `JobExecutor` y `JobRegistry` conservan el permiso del
+worker durante la ejecución y exponen ports tipados para ejecución, cancelación,
+reloj y store.
+
+`crates/execution-adapter/src/` implementa las fases cerradas por herramienta:
+nextest usa config/source/run y egress JUnit; coverage separa keeper, run,
+report y export, con target tmpfs ejecutable solo en run/report y report volume
+`noexec`; SemVer usa baseline/source/run/egress; mutation usa baseline, copia
+privada, run y ArchiveBundle. Todas mantienen source read-only, rootfs read-only,
+`network=none`, límites y cleanup joined. Los gateways son
+`nextest_gateway.rs`, `coverage_gateway.rs`, `semver_gateway.rs` y
+`mutation_test_gateway.rs`; sus ports y parsers están en los módulos homónimos.
+
+`crates/project-adapter/src/quality_artifact_store.rs` y su adapter macOS
+persisten el store durable privado bajo el state root; `crates/mcp-server/src/main.rs`
+y `crates/mcp-server/src/quality_artifact_cli.rs` implementan
+`quality-artifacts recover|prune`.
+
+El adapter MCP registra las 22 tools en `crates/mcp-server/src/stdio.rs`; los
+handlers M3 están en `stdio/{nextest,coverage,semver,mutation_test}.rs` y el
+lifecycle negociado en `stdio/tasks.rs`. `stdio/resources.rs` publica el índice y
+los miembros como Resources bajo `rust-quality-artifact://`; Tasks está
+implementado, calificado y anunciado con negociación mutua. Los cuatro cortes M3
+calificados tienen sus recibos en `docs/validation/M3-runtime.json` y
+`docs/validation/M3-rust-security.json`.
 
 M2 usa [eventos locales de terminación](adr/ADR-058-local-mutation-observability.md)
 por tracing/stderr. La retención de planes se consulta sin modificarla; la CLI

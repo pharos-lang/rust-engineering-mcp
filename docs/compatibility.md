@@ -5,7 +5,7 @@
 | Componente | Foundation implementada |
 | --- | --- |
 | Release soportada | `0.1.0` |
-| Checkout de desarrollo | `0.2.0-dev`; 18 tools calificadas localmente, sin tag ni publicación |
+| Checkout de desarrollo | `0.3.0-dev`; 22 tools descubiertas: 18 M1/M2 y cuatro M3 calificadas; Tasks anunciado con negociación mutua; sin tag ni publicación |
 | Toolchain fijado / MSRV inicial | Rust y Cargo `1.98.1`, edition 2024 |
 | Target de validación local | `aarch64-apple-darwin` |
 | SDK | `rmcp =3.2.0`, features `server`, `transport-io`, sin defaults |
@@ -37,20 +37,55 @@
 La matriz original acredita bootstrap y project.open. La evidencia M1-11 cubre
 las once definiciones anteriores; [M1-12](validation/M1-12.md) valida el contrato
 de doce tools. La release `0.1.0` anuncia trece con M1-13 implementado y gate
-aprobado. El checkout de desarrollo anuncia 18 al sumar las cinco tools M2; esa
-ampliación todavía no es una calificación de release.
+aprobado. El checkout de desarrollo anuncia 22 al sumar las cinco tools M2 y las
+cuatro tools M3. Las 18 primeras conservan su calificación M2 y las cuatro M3
+pasan su gate Docker. Tasks se anuncia tras la calificación M3-02; cada uso
+requiere que el peer declare la extensión.
 Esto no acredita conformidad completa de cada revisión MCP.
+
+## Imagen y plugins M3
+
+| Elemento | Identidad / versión | Estado |
+| --- | --- | --- |
+| Guest Linux ARM64 | `sha256:384a1742ecc53cdd3a9c0bf36c6f8b66db73ddd118aeeae6e55654ea998ae36a` | Provisionada; runtime M3 calificado |
+| Configuración de imagen | `sha256:7d4e58b9e29b2045c13d71542f7892ee071a6886a1b939c4cbfc3ff7ce40dc45` | Verificada |
+| cargo-nextest | 0.9.143 | Provisionado |
+| cargo-llvm-cov / llvm-tools-preview | 0.9.0 / 1.98.1 | Provisionado |
+| cargo-semver-checks | 0.50.0 | Provisionado |
+| cargo-mutants | 27.1.0, source-built | Provisionado |
+
+Provisioning pasó 47/47 observaciones. Estas identidades no convierten las tools
+M3 en capacidades calificadas ni cambian las cinco versiones de protocolo.
 La [guía de clientes](client-configuration.md) documenta Codex, Claude Code, Gemini
 CLI, Cursor, VS Code y MCP Inspector. Inspector 2.5.0 y Codex 0.153.0 conservan
 evidencia M1. En M2, Inspector verificó 18 tools/open/denegaciones y Claude Code
 2.1.260 con Sonnet 5 medium completó cinco preview/commit y receipt en el intento 5,
 con la regla de renovar referencias explícita en prompt v2. Los intentos 1–4
 fallidos se conservan; no acredita fiabilidad general ni éxito solo por descriptions.
-Una configuración documentada no equivale a calificación.
+Una configuración documentada no equivale a calificación. Las cinco versiones de
+protocolo permanecen sin cambios. Las tools 20 (`rust.coverage`), 21
+(`rust.semver.check`) y 22 (`rust.mutation.test`) están implementadas y
+calificadas en M3.
 Los dos turnos históricos fallidos se conservan; el flujo candidato final está
 registrado por separado.
 Las versiones se declaran explícitamente; no se anuncia una nueva versión por
 actualizar el SDK sin ampliar las pruebas.
+
+## Compatibilidad de MCP Tasks en M3-02
+
+El camino Tasks está implementado sobre rmcp 3.2.0 para las cinco versiones
+negociadas. La matriz de producto prueba ambos lados del switch: sin anuncio,
+`tasks/*` es `-32601`; anunciado sin declaración del peer, rmcp devuelve `-32021`
+con `requiredCapabilities`; con declaración mutua, el task es observable. En
+`2026-07-28` la declaración viaja en `_meta`; las cuatro versiones legacy la
+conservan en el handshake de sesión.
+
+El switch de producción está encendido después de G4. Inspector 2.5.0 declaró la
+extensión y completó create/poll/cancel; Codex CLI/app-server 0.153.0 no la declaró
+y pasó discovery, llamadas y Resources por el camino síncrono soportado. Para todo
+cliente que no declare Tasks, la compatibilidad admitida sigue siendo el modo
+síncrono calificado y `TASKS_REQUIRED` para jobs largos; el nombre del cliente
+nunca habilita autoridad ni una excepción de protocolo. [Matriz](validation/M3-02.md).
 
 El cliente moderno envía `params._meta` con
 `io.modelcontextprotocol/protocolVersion: "2026-07-28"` y

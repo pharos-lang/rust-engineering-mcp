@@ -279,7 +279,7 @@ HOME/CARGO_HOME efímeros y ejecución offline con red aislada. La policy
 ausentes, corruptos o cambiados bloquean la operación completa; no hay fallback a
 descarga ni a edición solo del manifest.
 
-La [calificación local M2](docs/validation/M2-07.md) está completada. El checkout se identifica como `0.2.0-dev`,
+La [calificación local M2](docs/validation/M2-07.md) está completada. El checkout se identifica como `0.3.0-dev`,
 pero estas cinco tools no forman parte de la release estable `0.1.0`.
 
 Los journals M2 parciales/corruptos pueden bloquear nuevas mutaciones del store
@@ -288,3 +288,41 @@ requiere copias físicas y estado nuevos si la reconciliación no converge. Esta
 limitación de disponibilidad no se presenta como recuperación automática universal.
 Los eventos M2 por stderr no contienen código, rutas ni credenciales; el host
 controla la retención de esos logs.
+
+## Frontera M3 de jobs y artifacts persistentes
+
+Un permiso de worker equivale a un permiso de job: la ejecución se puede consultar
+o cancelar mientras el job está vivo, y los errores se enmascaran entre estados
+no distinguibles. La expiración usa deadline monotónico durante la sesión y TTL
+de reloj persistente al reconciliar; leer no renueva el TTL.
+
+El store privado de calidad liga cada artifact al uid, al state root protegido y
+al workspace root concedido por el host. Por tanto, el mismo uid con el mismo
+state root y la misma root concedida por el host puede releer evidencia retenida,
+incluso tras reinicio; no es aislamiento entre peers del mismo usuario. TTL y
+cuotas aplican a esa evidencia y el host controla su retención. La imagen M3 añade
+plugins solo mediante provisioning explícito autorizado; el runtime no instala ni
+descarga.
+
+El perfil seccomp quality conserva íntegramente el perfil Rust anterior y añade
+exactamente una regla: `socketpair(arg0 == AF_UNIX, arg1 & 0x0f == SOCK_STREAM,
+arg2 == 0)`. Es la forma anónima de stream que Tokio necesita; los perfiles M1 y
+M2 no cambian, y AF_INET/AF_INET6 y la red Docker siguen denegados.
+Los identificadores de Task y los locators de artifacts nunca son autoridad: la
+autoridad proviene del owner, la root concedida y los grants del host según
+[ADR-060](docs/adr/ADR-060-bounded-job-execution-and-mcp-tasks.md) y ADR-061.
+La imagen, reporting y alcance de seguridad M1/M2 permanecen sin ampliación.
+
+Coverage usa además un tmpfs nombrado por job, acotado y ejecutable únicamente en
+sus fases `CoverageRun` y `CoverageReport`: el volumen de reports permanece
+`noexec`, pero esas fases deben escribir profraw/profdata en el volumen dedicado.
+Existe precisamente para cruzar esas fases en contenedores separados sin hacer
+ejecutable el volumen de artifacts. Se elimina con cleanup.
+
+La fuente host se monta read-only y el verifier comprueba los mounts aplicados;
+la inmutabilidad se acredita con el canary del gate
+`host_source_and_canary_are_unchanged_after_every_mutation_run`. El campo por
+respuesta `source_unchanged` se eliminó precisamente porque el gateway no podía
+hacerlo fallar: era una afirmación tautológica, no una observación. Tasks está
+implementado, calificado y anunciado después de G4; el camino asíncrono sólo queda
+habilitado para un peer que también declare `io.modelcontextprotocol/tasks`.

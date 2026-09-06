@@ -1,5 +1,32 @@
 # Changelog
 
+## 0.3.0-dev — Unreleased
+
+### M3 — calidad y seguridad
+
+- Añadidas `rust.test.nextest`, `rust.coverage`, `rust.semver.check` y
+  `rust.mutation.test`; las 18 snapshots de tools preexistentes son byte-identical
+  a `main` y el snapshot de mutation cambió deliberadamente durante las
+  correcciones de seguridad. El gate Docker M3 pasa 62/62 (nextest 19, Tasks 7,
+  coverage 8, SemVer 18 y mutation 10) y el gate Rust de seguridad 20/20.
+- Añadidos el lifecycle acotado de jobs, el store privado persistente de artifacts
+  y la CLI `quality-artifacts recover|prune`, con Resources bajo el esquema
+  `rust-quality-artifact://`.
+- Provisionada una nueva imagen guest inmutable con plugins versionados y hashes
+  fijados; el runtime no instala ni descarga plugins.
+- Adoptado el perfil seccomp quality con la delta mínima de `socketpair` requerida
+  por Tokio ([ADR-064](docs/adr/ADR-064-quality-job-seccomp-profile.md)) y un
+  volumen ejecutable dedicado solo para las fases run/report de coverage
+  ([ADR-065](docs/adr/ADR-065-coverage-target-volume.md)).
+- Decisiones: lifecycle y Tasks negociadas en el job executor ([ADR-060](docs/adr/ADR-060-bounded-job-execution-and-mcp-tasks.md)); store privado y
+  límites de retención ([ADR-061](docs/adr/ADR-061-private-quality-artifact-store.md));
+  contabilidad de coverage y baselines SemVer ([ADR-062](docs/adr/ADR-062-coverage-accounting-and-semver-baselines.md)); provisioning autorizado
+  ([ADR-063](docs/adr/ADR-063-m3-guest-plugin-provisioning.md)). Tasks está
+  implementado, calificado y anunciado tras G4, aunque su uso exige declaración
+  mutua de la extensión. El gate full local pasa 25/25 y M3-06 queda calificado;
+  el cierre del milestone sigue pendiente de la aceptación formal de ADR-064/065
+  y de un re-review independiente.
+
 ## 0.2.0-dev — Unreleased
 
 ### M2 calificado localmente — mutación segura

@@ -1,6 +1,6 @@
 # M3 — Quality / 0.3.x
 
-Estado: **Planned**. Entrada: cierre real M2, con su writer y gateway calificados.
+Estado: **In progress**. Entrada: cierre real M2, con su writer y gateway calificados.
 Fuentes: spec §26/48/51/74–80/97 M3,
 [ADR-028](../adr/ADR-028-ephemeral-artifact-store.md),
 [ADR-030](../adr/ADR-030-m1-worker-admission.md),

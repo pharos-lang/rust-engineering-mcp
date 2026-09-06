@@ -129,6 +129,28 @@ un camino positivo sin configuración del host. Ejecución requiere el gateway
 aprobado; semántica requiere un build `local` source-qualified y assets aportados
 por el usuario. Los resultados unavailable/blocked/degraded son parte del contrato.
 
+## Vertical M3-01 en el checkout de desarrollo
+
+`rust.test.nextest` se incorporó como la tool número 19; el checkout integrado
+actual descubre 22 al incluir coverage, SemVer y mutation. Selecciona
+package/features/target y un filtro cerrado, usa siempre el perfil `rust-mcp`, no
+ejecuta doctests y obtiene
+counts, attempts, retries, flaky/leak/timeout sólo del JUnit acotado. JUnit,
+stdout y stderr se publican en el store durable Stage 1 cuando existe un state
+root calificado, con URIs privadas de índice/chunk vinculadas al ProjectRef vivo.
+Sin state root, o si attach devuelve `UnsupportedStateRoot`/`Busy`, usa el store
+efímero M1 Stage 0. Truncación, expiración o ausencia de artifacts queda explícita
+y no puede promover el resultado a pass.
+
+MCP Tasks está anunciado tras la calificación M3-02. Sin declaración del peer,
+`execution_mode=auto|synchronous` sólo califica con perfil default y
+`timeout_seconds <= 60`; `auto` mayor devuelve `TASKS_REQUIRED` antes del worker y
+`task` produce `-32602`. Con declaración mutua, `auto|task` crea el job con default
+300 s y máximo 3.600 s. La ejecución Docker está calificada con el perfil
+nextest-only de ADR-064; M1/M2 conservan sus perfiles byte-identical. Passing=0,
+failing/timeout=100, build-error=101 y no-tests=4 se derivan de observación real;
+cancelación del gateway no se inventa como exit code.
+
 ## Gateway M0-05
 
 El gateway M0 separado del servidor ejecuta probes locales confiables en Docker/Linux
@@ -840,3 +862,178 @@ plan ausente/expirado solo puede repetir un journal existente con ID, digest y k
 exactos, bajo grant vivo e identidad física original. No inicia efectos nuevos sin
 preview vigente. Prune retira ese replay; un receipt terminal describe historia,
 no el source actual. Véase [ADR-059](adr/ADR-059-terminal-plan-retirement-and-durable-replay.md).
+
+## `rust.coverage`
+
+`rust.coverage` reserva una selección Cargo cerrada (`package` o `workspace`,
+features, target y un límite de tiempo) para una captura de cobertura LLVM. El
+contrato no acepta flags, rutas de salida, regex de exclusión, doctests, branch ni
+MC/DC. La ejecución calificada hace una sola fase `cargo llvm-cov --no-report` y
+deriva JSON, LCOV y un `ArchiveBundle` HTML de ese mismo profdata. JSON completo,
+LCOV y HTML son artifacts; la respuesta solo puede contener el resumen paginado.
+
+Un porcentaje solo existe si su denominador es distinto de cero; archivos o scopes
+sin líneas, regiones o funciones instrumentadas no se reportan como 0% ni 100%.
+Las rutas compartidas se deduplican en el agregado. JSON y LCOV salen únicamente
+desde nombres fijos en `/work/coverage`; el directorio HTML sale como un único
+tar USTAR validado, sin preview ni interpretación de HTML. En especial, enlaces,
+devices y rutas que escapen del bundle son rechazados. La publicación Stage 1 usa
+el store durable cuando el host lo configuró y Stage 0 queda como fallback
+acotado; ambas referencias se devuelven como Resources privados. Cada miembro
+durable admite hasta 32 MiB. El HTML validado se conserva como un solo
+`ArchiveBundle` y cuenta una vez contra los 128 miembros del job; sus entradas USTAR
+siguen limitadas aparte. Si falla un miembro se marca omitido y se publican los
+demás, sin dejar una reserva inaccesible.
+
+Antes de ejecutar se comprueban la identidad fijada de `cargo-llvm-cov` y
+`llvm-tools-preview`; ausencia o mismatch devuelve `Unavailable`. Sin Tasks
+declarado, `auto` y `synchronous` solo califican para `timeout_seconds <= 60`; un
+`auto` mayor devuelve `Blocked`/`TASKS_REQUIRED` y `task` se rechaza con `-32602`
+sin `data`. Con declaración mutua, `auto|task` usa el presupuesto job de 300 s por
+defecto y 3.600 s máximo, igual que las otras tools M3. Los límites de
+stdout/stderr y cada artifact son 512 KiB y 8 MiB respectivamente. Una captura
+truncada, timeout o parse incompleto es `Blocked`, nunca una cobertura limpia.
+
+**Calificación vigente (2026-09-06):** cargo-llvm-cov 0.9.0 completa una sola
+captura instrumentada y deriva JSON, LCOV y HTML desde el mismo profdata. El target
+privado ADR-065 es read-write en run/report porque el plugin materializa allí su
+lista profraw y profdata combinado; el keeper es read-only y los exporters no ven
+ese target. Los modos ejecutables no sobreviven el ingest de source, el report
+sigue `noexec`, la red sigue denegada y cleanup elimina los tres volúmenes. El gate
+completo pasó 62/62 (nextest 19, Tasks 7, coverage 8, SemVer 18 y
+mutation 10). El fixture calibrado
+fija líneas 4/4, regiones 8/9 y funciones 2/2; los aliases de un archivo compartido
+se deduplican tras normalización confinada a `/source`. Un crate sin código
+instrumentable produce `no coverage data found` y queda incompleto sin porcentaje
+fabricado. Véase [`docs/validation/M3-03.md`](validation/M3-03.md).
+
+## `rust.semver.check`
+
+`rust.semver.check` compara dos `project_ref` locales y vivos. Captura primero el
+baseline y después el candidato, revalida cada captura y vuelve a validar ambos
+grants antes de publicar. Cada lado conserva evidencia `SnapshotEvidence`
+independiente; la respuesta no afirma que dos roots formen un snapshot atómico.
+
+La entrada expone una sola selección cerrada (`package`, `features`,
+`all_features`, `no_default_features`, `target`) aplicada de forma idéntica a
+ambos lados. No acepta flags, revisiones Git, versiones de registry, URLs ni
+selecciones asimétricas. Un target `lib` ausente se detecta en la estructura ya
+capturada y devuelve `unavailable` antes de ejecutar semver. El gateway monta el
+candidato read-only en `/source` y el baseline read-only en `/baseline`, usa
+`--color never`, `GIT_DIR=/nonexistent`, `GIT_CEILING_DIRECTORIES=/`, `NO_COLOR=1`,
+red deshabilitada y el perfil seccomp quality de ADR-064.
+
+La respuesta repite `baseline_selection` y `candidate_selection`; ambas se
+construyen del mismo valor validado y permiten comprobar la simetría efectiva sin
+inferirla del argv ni del texto del plugin.
+
+El plugin 0.50.0 no ofrece findings machine-readable. Exit code y conteos
+deny/warn forman el resultado coarse; los campos por finding son best-effort y
+siempre `partial`. Un formato no reconocido, salida truncada o exit 100 sin ningún
+finding deny se degrada a `incomplete`/`blocked`, nunca a «sin ruptura». La salida
+cruda no coloreada se captura por el stream supervisado fijo (el plugin no ofrece
+ruta de reporte) y se conserva como Resource privado. Con state root calificado,
+Stage 1 es el default durable; su descriptor queda ligado a un digest
+domain-separated del par ordenado baseline/candidate y al owner candidato. Sin
+state root, o si el attach devuelve `UnsupportedStateRoot`/`Busy`, usa el
+ArtifactStore M1 Stage 0. Ambos caminos tienen truncación/omisión explícita. La
+respuesta incluye como máximo 16 findings y
+mantiene los conteos/`findings_omitted`, incluso con texto hostil máximamente
+escapado, para permanecer bajo 512 KiB contando el mirror estructurado/textual.
+
+Tasks está anunciado. Sin declaración del peer, `auto` y `synchronous` califican
+solo cuando `timeout_seconds <= 60`; un `auto` mayor devuelve `TASKS_REQUIRED`
+antes de admisión y `task` devuelve `-32602`. Con declaración mutua, `auto|task`
+usa 300 s por defecto y 3.600 s máximo. No se instala ni descarga nada. La
+calibración Docker está registrada en
+[M3-04-semver-calibration](validation/M3-04-semver-calibration.md).
+
+## `rust.mutation.test`
+
+`rust.mutation.test` ejecuta `cargo mutants` sobre un `project_ref` vivo. La
+prueba baseline es obligatoria (`--baseline run`): un baseline que falla es un
+resultado `failed` con su propia evidencia, nunca un informe de mutación limpio.
+El binario fijado 27.1.0 solo acepta `run` y `skip` en `--baseline`, de modo que
+el corte expresa la intención «baseline automático» como la ejecución explícita
+no omitible.
+
+La entrada es una selección cerrada (`package`, `features`, `all_features`,
+`no_default_features`, `target`) más `max_mutants` (1..=100, por defecto 100) y
+`mutant_timeout_seconds` (1..=60, por defecto 60). No acepta sharding,
+`--in-place`, override de baseline, ruta de salida ni flags libres de cargo. El
+target se reenvía como `--cargo-arg=--target=<triple>` y solo admite el único
+triple instalado.
+
+Contención: los mutantes se aplican únicamente en una copia privada del sandbox.
+`/source` se monta read-only en todas las fases de mutación, la copia vive en un
+tmpfs propio del contenedor (`/mutants-scratch`, `0700`, uid/gid 65534, `nosuid`,
+`nodev`) que se destruye con el contenedor y que ningún exportador monta, y no
+existe ninguna ruta de decodificación que devuelva fuente mutada al host. Solo
+salen bytes de informe, por tres exportadores `tar` de argv fija que leen
+`/mutants/mutants.out` montado read-only: `outcomes.json`, un `ArchiveBundle`
+USTAR validado con `diff/`, `logs/` y las listas por clase, y `lock.json`.
+`docker cp` no se usa. `mutants.out/lock.json` registra usuario y host desde
+dentro del guest: se comprueba que sean los valores del sandbox y se redacta
+cualquier forma de host; el archivo nunca se publica ni se incluye en el bundle.
+
+La respuesta no publica una afirmación `source_unchanged`: el proceso no dispone de
+una segunda lectura independiente del host capaz de hacerla falsa. La inmutabilidad
+se impone por el mount `/source` read-only y su verificación aplicada, y se evidencia
+en el gate mediante el canary host-side antes/después de cada familia de fixtures.
+
+El veredicto proviene solo de `outcomes.json` y de las listas
+`caught/missed/timeout/unviable`, leídas por un parser acotado en tamaño,
+profundidad y número de elementos. El texto legible de la herramienta nunca es
+oráculo. Las tres fuentes —el denominador de la pasada de listado, las clases de
+`outcomes.json` y los totales de las listas— deben coincidir; cualquier
+desacuerdo degrada la evidencia a inválida. `missed >= 1` es `failed`;
+`timeout`, `unviable` e incompleto nunca acreditan limpio, y cada conteo publica
+su denominador explícito (`generated`, `tested`, `viable`).
+
+Costo: el conjunto de mutantes se genera primero en una pasada de listado que no
+compila ni ejecuta nada; si supera `max_mutants` el trabajo se rechaza con
+`MUTANT_LIMIT_EXCEEDED` antes de construir nada. El timeout por mutante es
+`<= 60 s`, el timeout de build es una función fija del anterior acotada a
+`[60, 300] s`, y el presupuesto total del job es
+`clamp(build_timeout + mutant_timeout × max_mutants, 300, 3600)` segundos.
+
+Tasks está anunciado y ninguna selección de mutación entra en el presupuesto
+síncrono de 60 s. Sin declaración del peer, `auto` devuelve `TASKS_REQUIRED` y
+`task` se rechaza; con declaración mutua, `auto|task` crea el job. No se instala ni
+descarga nada. La calibración Docker de exits, `outcomes.json` y conteos está en
+[M3-05-mutation-calibration](validation/M3-05-mutation-calibration.md).
+
+## MCP Tasks for M3 quality jobs (M3-02)
+
+The four M3 quality tools share one negotiated execution rule. `execution_mode`
+is closed to `auto`, `task`, and `synchronous`. With the Tasks extension mutually
+declared, `auto` always creates an owner-bound task; it is never silently reduced
+to a synchronous call. Explicit `task` without the peer capability is fixed
+JSON-RPC `-32602` with no data. Without Tasks, `auto` uses synchronous execution
+only for the already qualified at-most-60-second selection; otherwise the normal
+tool result is `isError:true` with `TASKS_REQUIRED`, before worker admission.
+
+A created task has a fixed 7,200,000 ms TTL and 1,000 ms poll hint. `tasks/get`
+returns `working` until joined cleanup, then an inline `completed`, `failed`, or
+`cancelled` payload. An ordinary tool result remains `completed` even when its
+own `isError` is true. `tasks/cancel` records cooperative intent; it does not claim
+`cancelled` until gateway cleanup is observed. `tasks/update` always returns the
+fixed authorized error `-32602 task does not accept input`. Malformed, unknown,
+expired, revoked and foreign identifiers all return byte-identical `-32602 task
+unavailable` without data.
+
+One task owns the existing ADR-030 worker permit through execution, collection,
+publication and cleanup. A second tool call or worker-backed Resource read returns
+the existing busy/`SANDBOX_DENIED` result; bounded `tasks/get|cancel|update` remain
+responsive. Task records retain only validated bounded structured output; polling
+reconstructs its JSON text mirror and rechecks artifact-member liveness.
+An `unavailable` member observed during polling may be a transient projection of
+registry/store contention rather than expiry; the stored record is unchanged, so
+polling again after the active job completes can make the live member visible.
+
+`TASKS_ADVERTISEMENT_READY` is enabled after the Docker lifecycle, five-version
+declared/undeclared matrix, 30+30 budget series and stock-client gate passed.
+Inspector 2.5.0 declared the extension and completed the task lifecycle. Codex
+app-server 0.153.0 did not declare it and completed the supported synchronous path;
+it therefore cannot create, poll or cancel M3 tasks. See
+[M3-02 validation](validation/M3-02.md).

@@ -115,18 +115,18 @@ siguientes conservan la evolución histórica y los recibos de cada incorporaci�
 compilado en el gateway. Ejecuta secuencialmente dos tests exactos: transferencia
 USTAR con directorios vacíos/nombre100 bytes y calibración de seis escenarios
 Rust, seguida de metadata autorizada y revocación ante recalibración cancelada.
-Guarda logs y recibo en `target/rust-security/`; no instala ni selecciona otra
+Guarda logs y recibo vigente en `target/m3-rust-security/`; no instala ni selecciona otra
 imagen. `test-execution.sh` conserva exclusivamente la integración de probes M0.
 
 El stage rust-security incluye ahora cuatro tests exactos secuenciales: transferencia
 benigna, seis escenarios adversos del gateway, inspección MCP real y cierre por
 EOF/cancel durante calibración. Rechaza cero tests ejecutados. Conserva recibos
-`target/rust-security/calibration.json` y `mcp-inspection.json`; no debe ejecutarse
+`target/m3-rust-security/calibration.json` y `mcp-inspection.json`; no debe ejecutarse
 en paralelo con otros jobs Docker del gateway (startup rechaza objetos existentes).
 
 M1-02 reutiliza el test MCP real para ambas inspecciones en una sesión. El test
 exacto se llama toolchain_inspect_observes_installed_runtime_with_shared_calibration;
-target/rust-security/mcp-toolchain.json conserva el inventario y tres ejecuciones.
+target/m3-rust-security/mcp-toolchain.json conserva el inventario y tres ejecuciones.
 El reporte M1-01 previo es histórico; script actual exige ambos recibos.
 
 M1-03 amplía rust-security a seis tests exactos secuenciales: añade Cargo check
@@ -163,6 +163,18 @@ M1-09 extends the serial Rust security stage to20exact tests. Three quality-gate
 cases validate fast/standard,21distinct log SHA checks, source immutability and
 active libtest cancellation/EOF. Full remains14stages including real E5/LanceDB
 all-features and native macOS test-process network deny. No Assets are refreshed.
+
+M3-01 añade `scripts/test-m3-runtime.py` como stage full después de M2. Ejecuta
+19 selecciones exactas ignoradas de `nextest_runtime` y del módulo MCP
+`inspection_runtime::nextest`
+con selección exacta, un único test pasado y `--test-threads=1`; hashea fuentes,
+config e imagen y persiste estado running/final en `target/m3-runtime/receipt.json`.
+El gate Rust existente también emite un recibo source-bound bajo la imagen P02 en
+`target/m3-rust-security/receipt.json`. En la evidencia actual rust-security pasa
+20/20 y el UnixStream interno de Tokio funciona únicamente mediante el perfil
+separado de ADR-064. Los controles negativos
+mantienen AF_INET/AF_INET6/connect/pathname-Unix denegados; el gate final M3-01
+pasó 19/19 y queda registrado en `validation/M3-01-runtime.json`.
 
 ## M1-10 — Etapa catalog añadida
 

@@ -223,7 +223,7 @@ runtime, agrega al final de `args` el grupo completo:
 --docker /ruta/absoluta/al/cliente/docker
 --docker-socket /ruta/absoluta/docker.sock
 --state-root /ruta/absoluta/a/estado-privado
---rust-image sha256:8fac70723a8d04b6ec9633ab721806b8a55f4f083a1b3f988c61bf6a00fa1909
+--rust-image sha256:384a1742ecc53cdd3a9c0bf36c6f8b66db73ddd118aeeae6e55654ea998ae36a
 ```
 
 Agrega juntos `--rustsec-snapshot` y `--rustsec-sha256` para audit. Agrega juntos
@@ -251,7 +251,7 @@ errores de proyecto, runtime, RustSec y catálogo.
 
 [ADR-050](adr/ADR-050-local-coordinated-mutation.md) fija el modo
 `local_coordinated`. La release `0.1.0` conserva 13 tools; el binario compilado
-desde el checkout `0.2.0-dev` descubre cinco tools M2 adicionales
+desde el checkout `0.3.0-dev` descubre cinco tools M2 adicionales
 [calificadas localmente](validation/M2-07.md).
 
 ### Permisos y runtime
@@ -352,6 +352,48 @@ Nunca conectes el store nuevo a las roots originales aún en cuarentena. Reabre 
 solicita previews nuevos. Se restaura trabajo en la copia; no se repara el journal
 original ni se traslada su idempotencia. Los originales quedan preservados para
 reconciliación manual. [Contrato y límite](adr/ADR-052-mutation-journal-and-authorization.md).
+
+## Calidad M3 y artifacts persistentes
+
+El mismo `--state-root` hospeda también `rust-mcp-quality-artifacts-v1`. El store
+usa TTL predeterminado de 1 h y cuotas de 32 MiB por artifact, 64 MiB por job,
+128 MiB por owner y 256 MiB global. La calificación positiva está limitada a
+macOS ARM64/APFS; Linux y Windows fallan cerrados. La CLI
+`quality-artifacts recover|prune` está integrada en `main.rs` y disponible para el
+operador local; ambos subcomandos exigen `--state-root` absoluto y aceptan `--json`.
+[Recibo de upgrade/rollback](validation/M3-06-rollback.md).
+
+Las cuatro tools de calidad M3 aceptan `execution_mode=auto|task|synchronous`.
+`TASKS_ADVERTISEMENT_READY` está activado tras la puerta G4. Un peer que declare
+`io.modelcontextprotocol/tasks` obtiene un `CreateTaskResult`, conserva el
+`taskId`, consulta `tasks/get` y puede solicitar `tasks/cancel`. La cancelación es
+cooperativa: el estado no pasa a `cancelled` hasta que el gateway haya unido y
+limpiado el árbol de procesos. `tasks/update` no está admitido para jobs M3.
+
+Sin declaración, solo una selección calificada con `timeout_seconds <= 60` puede
+ejecutarse síncronamente; `auto` largo devuelve `TASKS_REQUIRED` antes de iniciar
+trabajo y `task` devuelve `-32602`. Inspector 2.5.0 declaró Tasks en la evidencia;
+Codex CLI/app-server 0.153.0 no la declaró y fue calificado por su fallback
+síncrono. No agregues manualmente la extensión como workaround para un cliente:
+la declaración tiene que venir del peer. [Estado y matriz](validation/M3-02.md).
+
+Stage 1 define Resources con URI `rust-quality-artifact://`. El índice de un job
+se lee con su cursor y los artifacts se leen por chunks (`offset` y `length`) desde
+el path fijo del store; `resources/list` no enumera objetos. Esta lectura Stage 1
+no autoriza trabajo, reparación ni renovación del TTL. Un miembro expirado se
+devuelve como no encontrado y su proyección posterior en `tasks/get` pasa a
+`unavailable` sin reescribir el resultado histórico del job.
+
+Si el store necesita recuperación, detén las instancias que lo usan y conserva la
+raíz original. Ejecuta `quality-artifacts recover` para obtener un reporte;
+`quality-artifacts prune` reclama únicamente objetos y reservas ya expirados y
+nunca desaloja evidencia viva ni pone nada en quarantine. Una regresión del reloj
+durable bloquea `prune` con `recovery_required` hasta que `recover` re-base el
+watermark. No edites archivos, borres objetos desconocidos ni reutilices M2
+journals. Los objetos dudosos se ponen en quarantine y un store lleno rechaza
+trabajo nuevo. Un registro con `format_version` desconocido (escrito por un binario
+más nuevo) se rechaza cerrado y se conserva; este binario nunca lo reinterpreta ni
+lo borra. [Recibo](validation/M3-06-rollback.md).
 
 El límite de cuatro planes aplica a propuestas pendientes: los planes terminales
 dejan capacidad para nuevas propuestas en la siguiente admisión. Un commit con

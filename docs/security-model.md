@@ -347,7 +347,7 @@ hereda CARGO_HOME, proxies, credenciales o configuración host y no descarga. Da
 ausentes o corruptos impiden el candidato. `preserve_presence` evita crear
 Cargo.lock en el host cuando el proyecto no lo tenía y actualiza el existente en
 el mismo plan cuando sí lo tenía. La [calificación M2](validation/M2-07.md) del
-checkout `0.2.0-dev` está completada; la release estable sigue siendo `0.1.0`.
+checkout `0.3.0-dev` está completada; la release estable sigue siendo `0.1.0`.
 
 No existe un canal de upgrade/downgrade gestionado para M2. Un operador debe
 reconciliar los journals pendientes antes de ejecutar un binario anterior; la
@@ -385,3 +385,99 @@ plan ausente/expirado solo puede repetir un journal existente con ID, digest y k
 exactos, bajo grant vivo e identidad física original. No inicia efectos nuevos sin
 preview vigente. Prune retira ese replay; un receipt terminal describe historia,
 no el source actual. Véase [ADR-059](adr/ADR-059-terminal-plan-retirement-and-durable-replay.md).
+
+## M3-01 — egress nextest y bloqueo seccomp
+
+La configuración nextest es product-owned y se ingesta antes de la fuente con
+`--keep-old-files`; el caller no selecciona perfil ni path. JUnit se escribe en un
+volumen tmpfs propio y sale por stdout de un exporter fijo `/usr/bin/tar`, montado
+read-only. El decoder host acepta exactamente `junit.xml` como archivo regular y
+rechaza symlinks, hardlinks, devices, extensiones, miembros extra y exceso de bytes;
+no usa `docker cp` ni abre un path del guest. Stage 0 conserva autorización por
+ProjectRef, cuota/TTL M1 y flags de truncación.
+
+La imagen P02 está calibrada para el security gate M1, pero `cargo-nextest` 0.9.143
+intenta crear un `socketpair(AF_UNIX, SOCK_STREAM)` mediante Tokio. El perfil
+seccomp aprobado sólo admite la forma `SOCK_SEQPACKET`, por lo que la ejecución
+termina 101 antes de producir JUnit. Ampliar esa regla es una decisión de
+containment y requiere autorización, prueba negativa de sockets y recalificación;
+M3-01 permanece bloqueada hasta entonces.
+
+## M3 — lifecycle de jobs
+
+Un worker permit es un job permit: el executor registra el job, permite poll y
+cancelación, y conserva el permiso hasta cleanup. Los IDs de Task no autorizan
+acceso; se revalida owner/grant y ProjectRef. Los errores de job, artifact ausente,
+owner incorrecto y estado no publicable se enmascaran. El deadline monotónico
+domina durante la sesión; el TTL persistente (1 h por defecto) limita re-acceso
+tras reinicio y las lecturas no renuevan la expiración.
+
+## M3 — store de artifacts de calidad
+
+`rust-mcp-quality-artifacts-v1` contiene `store.lock`, watermark, reservations,
+blobs, descriptors y quarantine. El binding combina uid, state root y workspace
+root concedido. La reserva aplica floor/headroom y cuotas de 32 MiB por artifact,
+64 MiB por job, 128 MiB por owner, 256 MiB global y 128 miembros. El watermark
+rechaza regresiones; pares válidos se conservan, y objetos desconocidos,
+malformados, links, cambios de ownership/mode o hashes incompatibles van a
+quarantine. El `.trunc` solo legitima el surplus que el store marcó antes de
+publicar; el cursor de job es de 49 bytes.
+
+`ArchiveBundle` se ingesta como contenido hostil: solo miembros regulares,
+acotados y exactos; no se extraen rutas, no se siguen links y nombres, MIME,
+XML/JSON/HTML/SVG y paths nunca son autoridad. La plataforma positiva actual es
+macOS ARM64/APFS; otros targets fallan cerrados. Las cuotas y límites son
+calificados donde se indica; cualquier número de TTL máximo o medición no
+ejecutada sigue siendo propuesto/pendiente.
+
+Los valores de cuota y el cursor indicados arriba son límites implementados; la
+observación de provisioning `47/47` y la prueba nativa del store son medidas
+registradas. El TTL máximo y cualquier presupuesto no cubierto por esas pruebas
+siguen siendo valores propuestos o pendientes de medición, no garantías.
+
+Un bundle cuenta como un único miembro durable; su número de entradas se limita
+independientemente en el validador USTAR común. Fallar un miembro degrada esa pieza
+y conserva los locators ya publicados, mientras finish/reconciliación libera la
+reserva restante. Las lecturas quality no consumen el worker permit y usan locks
+no bloqueantes: contención se enmascara como `not found`/`Unavailable`, tras el gate
+`ready`, para no congelar Tasks, watchdog ni EOF.
+
+`rust.mutation.test` no expone `source_unchanged`. La fuente host se protege con
+`/source` read-only, verificación del mount aplicado y un canary host-side del gate;
+no se presenta como una medición por respuesta. El target ejecutable ADR-065 contiene
+bytes arbitrarios controlados por el proyecto, pero solo durante las fases coverage
+cerradas y desaparece con cleanup.
+
+## M3-02 — autoridad y cancelación de Tasks
+
+Un `taskId` es un locator aleatorio, nunca una credencial. Cada operación vuelve a
+derivar el binding con uid, identidad física del state root, identidad física de
+la granted root y workspace root, y revalida el `ProjectRef` vivo y la generación
+de policy. IDs malformados, ausentes, expirados, revocados o de otro grant quedan
+tras el mismo `-32602 task unavailable`, sin datos ni eco del identificador.
+
+El job posee el único permit ADR-030 hasta que cleanup unido sea observado. El
+token que controla el gateway pertenece al registro y se deriva solo del cierre
+de sesión; nunca se copia `RequestContext::ct`, que rmcp cancela al encolar la
+respuesta. `tasks/cancel`, deadline, no-entrega, revocación y EOF señalan ese token
+cooperativo. Ningún camino aborta una future como sustituto de terminar, drenar y
+unir descendientes. Cleanup incierto conserva el permit y pone la sesión en fallo.
+
+La entrega se marca únicamente después del `send` del transporte. Si rmcp suprime
+la respuesta antes de ese borde, el watchdog cancela el orphan a los 30 s sin
+reciclar el lease conservador de la request. Polling no renueva TTL. Resultados
+retained excedidos se degradan a evidencia no disponible; jamás a pass parcial.
+La capability se anuncia desde la evidencia G4: el uso efectivo sigue requiriendo
+declaración mutua. Inspector 2.5.0 completó el lifecycle Tasks; Codex app-server
+0.153.0 no declaró la extensión y permaneció en el fallback síncrono. Véase
+[M3-02](validation/M3-02.md).
+
+## M3 — ejecución nextest e identidad
+
+La ejecución usa argv cerrado, perfil `rust-mcp` y configuración product-owned.
+El exportador lee bytes desde un path fijo; el parser JUnit limita tamaño,
+profundidad, atributos, miembros y entidades, y rechaza links, extras y tipos no
+regulares. La imagen es el digest inmutable M3 y la provenance de plugins incluye
+nextest 0.9.143, llvm-cov 0.9.0, llvm-tools 1.98.1, semver-checks 0.50.0 y
+mutants 27.1.0 source-built. Provisioning pasó 47/47, pero nextest sigue sin
+calificación runtime por la denegación de `socketpair(AF_UNIX, SOCK_STREAM)`.
