@@ -72,3 +72,9 @@ Accepted, Superseded y Rejected.
 - [ADR-058 — Observabilidad local de las mutaciones](ADR-058-local-mutation-observability.md): eventos acotados por tracing/stderr sin collector.
 
 - [ADR-059 — Terminal plan retirement and durable replay](ADR-059-terminal-plan-retirement-and-durable-replay.md).
+- [ADR-060 — Bounded job execution and negotiated MCP Tasks](ADR-060-bounded-job-execution-and-mcp-tasks.md): Accepted; implemented and M3-02 qualified.
+- [ADR-061 — Owner-bound private artifact store for quality jobs](ADR-061-private-quality-artifact-store.md): Accepted; implemented and qualified.
+- [ADR-062 — LLVM coverage accounting and authorized SemVer baselines](ADR-062-coverage-accounting-and-semver-baselines.md): Accepted; calibrated and qualified.
+- [ADR-063 — M3 guest plugin provisioning](ADR-063-m3-guest-plugin-provisioning.md): Accepted; implemented and runtime-qualified.
+- [ADR-064 — Quality job seccomp profile](ADR-064-quality-job-seccomp-profile.md): Accepted 2026-09-06; qualified by the [M3 runtime](../validation/M3-runtime.json) and [Rust security](../validation/M3-rust-security.json) receipts.
+- [ADR-065 — Dedicated persistent coverage target volume](ADR-065-coverage-target-volume.md): Accepted 2026-09-06; qualified by the [M3 runtime](../validation/M3-runtime.json) and [Rust security](../validation/M3-rust-security.json) receipts.
