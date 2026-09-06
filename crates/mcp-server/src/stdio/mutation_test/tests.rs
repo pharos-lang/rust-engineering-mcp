@@ -1,6 +1,7 @@
 use super::*;
 use crate::stdio::workers::{Joined, WorkerError};
 use rust_engineering_application::mutation_test::MutationArtifactStreams;
+use rust_engineering_application::{ExecutionError, ProjectError};
 use rust_engineering_domain::mutation_test::{MutationCounts, MutationMutantRow};
 use rust_engineering_domain::{ExecutionFingerprint, ExecutionTermination, RuntimeIdentity};
 use sha2::{Digest, Sha256};

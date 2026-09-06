@@ -810,3 +810,132 @@ async fn live_executor_masks_malformed_unknown_revoked_foreign_and_expired_ids_b
     assert_eq!(serde_json::to_vec(&error)?, expected);
     Ok(())
 }
+
+#[test]
+fn every_job_state_projects_its_declared_task_status() -> Result<(), Box<dyn std::error::Error>> {
+    let tasks = Tasks::dormant()?;
+    for (state, status) in [
+        (JobState::Admitted, "working"),
+        (JobState::Running, "working"),
+        (JobState::Cancelled, "cancelled"),
+    ] {
+        let mut job = completed_status(false)?;
+        job.state = state;
+        let projected = serde_json::to_value(tasks.project(job)?)?;
+        assert_eq!(projected["status"], status);
+        assert_eq!(projected["taskId"], "job_00000000000000000000000000000001");
+        assert_eq!(projected["ttlMs"], 7_200_000);
+        assert_eq!(projected["pollIntervalMs"], 1_000);
+        // Only a completed job carries a result; a working or cancelled one
+        // never leaks a partial tool payload.
+        assert_eq!(projected.get("result"), None);
+        assert_eq!(projected.get("error"), None);
+    }
+    // An infrastructure failure is a failed task with a bounded reason, not a
+    // completed one carrying a result.
+    let mut failed = completed_status(false)?;
+    failed.state = JobState::Failed;
+    failed.completion = Some(JobCompletion::InfrastructureFailure(
+        JobInfrastructureFailure::Internal,
+    ));
+    let projected = serde_json::to_value(tasks.project(failed)?)?;
+    assert_eq!(projected["status"], "failed");
+    assert!(projected.get("error").is_some());
+    assert_eq!(projected.get("result"), None);
+    // A job that claims completion without a tool result is not projectable.
+    let mut empty = completed_status(false)?;
+    empty.completion = None;
+    assert!(tasks.project(empty).is_err());
+    Ok(())
+}
+
+#[test]
+fn a_dead_artifact_is_reported_unavailable_and_a_foreign_uri_is_left_alone()
+-> Result<(), Box<dyn std::error::Error>> {
+    let owner: rust_engineering_domain::ProjectRef =
+        "prj_00000000000000000000000000000001".parse()?;
+    let ephemeral =
+        "rust-artifact://prj_00000000000000000000000000000001/art_00000000000000000000000000000002";
+    let durable = "rust-quality-artifact://prj_00000000000000000000000000000001/qart_0123456789abcdef0123456789abcdef?offset=0&length=16";
+    let encoded = |uris: &[&str]| {
+        QualityToolResult::new(
+            serde_json::json!({
+                "status": "passed",
+                "data": {
+                    "artifacts": uris
+                        .iter()
+                        .map(|uri| serde_json::json!({"uri": uri, "completeness": "complete"}))
+                        .collect::<Vec<_>>()
+                }
+            })
+            .to_string(),
+        )
+    };
+
+    // Without a liveness source the payload is returned exactly as encoded.
+    let value = refresh_encoded_artifacts(None, &owner, encoded(&[ephemeral])?)?;
+    assert_eq!(value["data"]["artifacts"][0]["completeness"], "complete");
+
+    // With one that reports every artifact gone, both schemes are downgraded.
+    let dead = DeadArtifacts;
+    let value = refresh_encoded_artifacts(Some(&dead), &owner, encoded(&[ephemeral, durable])?)?;
+    assert_eq!(value["data"]["artifacts"][0]["completeness"], "unavailable");
+    assert_eq!(value["data"]["artifacts"][1]["completeness"], "unavailable");
+
+    // A reference this owner cannot verify is reported unavailable rather than
+    // claimed live: another project's URI and an unparseable id both downgrade.
+    for uri in [
+        "rust-artifact://prj_00000000000000000000000000000009/art_00000000000000000000000000000002",
+        "rust-artifact://prj_00000000000000000000000000000001/not-an-id",
+        "rust-quality-artifact://prj_00000000000000000000000000000009/qart_0123456789abcdef0123456789abcdef?offset=0&length=16",
+    ] {
+        let value = refresh_encoded_artifacts(Some(&dead), &owner, encoded(&[uri])?)?;
+        assert_eq!(
+            value["data"]["artifacts"][0]["completeness"], "unavailable",
+            "{uri}"
+        );
+    }
+    // A value that is not an artifact reference of this transport is left alone.
+    let foreign = refresh_encoded_artifacts(
+        Some(&dead),
+        &owner,
+        encoded(&["https://example.invalid/report"])?,
+    )?;
+    assert_eq!(foreign["data"]["artifacts"][0]["completeness"], "complete");
+    // A payload without a data.artifacts array is passed through unchanged.
+    let plain = QualityToolResult::new(serde_json::json!({"status": "passed"}).to_string())?;
+    assert_eq!(
+        refresh_encoded_artifacts(Some(&dead), &owner, plain)?["status"],
+        "passed"
+    );
+    Ok(())
+}
+
+#[test]
+fn admission_failures_are_masked_or_reported_as_capacity() {
+    for error in [JobError::Busy, JobError::QuotaExceeded] {
+        assert_eq!(map_admission(error).message, "Task worker busy");
+    }
+    assert_eq!(
+        map_admission(JobError::Unavailable).code,
+        rmcp::model::ErrorCode::INVALID_PARAMS
+    );
+    assert_eq!(
+        map_admission(JobError::InputRejected).code,
+        rmcp::model::ErrorCode::INTERNAL_ERROR
+    );
+    assert_eq!(
+        map_worker_admission(workers::WorkerError::Busy).message,
+        "Task worker busy"
+    );
+    for signal in [
+        workers::WorkerError::Cancelled,
+        workers::WorkerError::TimedOut,
+        workers::WorkerError::Internal,
+    ] {
+        assert_eq!(
+            map_worker_admission(signal).code,
+            rmcp::model::ErrorCode::INTERNAL_ERROR
+        );
+    }
+}

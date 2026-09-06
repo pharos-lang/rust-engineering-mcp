@@ -54,13 +54,16 @@ comportamiento:
    `semver_output.rs`, `mutation_outcomes.rs`) y siguen midiéndose. Recibos:
    [`M3-runtime.json`](validation/M3-runtime.json) y
    [`M3-rust-security.json`](validation/M3-rust-security.json).
-4. Store durable macOS ARM64 y su publicación:
-   `crates/mcp-server/src/stdio/quality_artifacts.rs`,
-   `crates/project-adapter/src/mutation_store.rs`, `mutation_port.rs`,
-   `quality_artifact_store.rs`, `cargo_vendor.rs` y `filesystem.rs`. ADR-061
-   califica solo macOS ARM64/APFS: fuera de ese host `NativeQualityArtifactStore`
-   no tiene constructor, por lo que las rutas de publicación son inalcanzables en
-   Linux. Recibos: [`M3-runtime.json`](validation/M3-runtime.json) y
+4. Publicación durable ligada al store macOS ARM64:
+   `crates/mcp-server/src/stdio/quality_artifacts.rs`. ADR-061 califica solo
+   macOS ARM64/APFS y fuera de ese host `NativeQualityArtifactStore` no tiene
+   constructor, así que ningún test portable puede alcanzar sus rutas de
+   publicación. Los adaptadores del store —`mutation_store.rs`,
+   `mutation_port.rs`, `quality_artifact_store.rs`, `cargo_vendor.rs` y
+   `filesystem.rs`— **no** se excluyen: su digest de plan y de bytes es portable
+   y `tests/mutation_digest.rs` lo prueba, junto con el rechazo
+   `UnsupportedPlatform` que cada entrypoint debe dar en un host no calificado.
+   Recibos: [`M3-runtime.json`](validation/M3-runtime.json) y
    [`M3-06-rollback.json`](validation/M3-06-rollback.json).
 5. Entrypoints de host: `crates/mcp-server/src/stdio.rs` —ensamblado del servidor
    sobre transporte stdio real, store nativo y runtime Docker— y

@@ -1,6 +1,7 @@
 //! M3-01 synchronous `rust.test.nextest` contract and runtime integration.
 
 use super::clock::WallClock;
+use super::operational::{self, OperationalOutput};
 use super::resources::hex;
 use super::workers::{joined_result, worker_error};
 use super::{
@@ -14,13 +15,13 @@ use rmcp::{
     model::{CallToolRequestParams, CallToolResult, ErrorData, Tool, ToolAnnotations},
     service::{RequestContext, RoleServer},
 };
+use rust_engineering_application::InspectionError;
 use rust_engineering_application::job::JobPermit;
 use rust_engineering_application::nextest::{
     NEXTEST_DEFAULT_TIMEOUT_SECONDS, NEXTEST_MAX_TEST_ROWS, NextestArtifactKind,
     NextestArtifactReference, NextestCompleteness, NextestOptions, NextestSelection,
     NextestTaskResult, NextestTestStatus,
 };
-use rust_engineering_application::{ExecutionError, InspectionError, ProjectError};
 use rust_engineering_domain::{
     ArtifactCompleteness, GuestArtifactName, OperationalErrorCode, ProjectRef, ToolStatus,
     job::ExecutionMode,
@@ -537,34 +538,8 @@ impl NextestTool {
         override_message: &'static str,
         duration_ms: u64,
     ) -> Result<CallToolResult, ErrorData> {
-        let (error_code, unavailable) = match code {
-            OperationalErrorCode::ProjectNotFound => (Code::ProjectNotFound, false),
-            OperationalErrorCode::InvalidProject => (Code::InvalidProject, false),
-            OperationalErrorCode::ToolNotInstalled => (Code::ToolNotInstalled, true),
-            OperationalErrorCode::LockfileUpdateRequired => (Code::InvalidProject, false),
-            OperationalErrorCode::CommandTimeout => (Code::CommandTimeout, false),
-            OperationalErrorCode::SandboxDenied => (Code::SandboxDenied, false),
-            OperationalErrorCode::NetworkDenied => (Code::NetworkDenied, false),
-            OperationalErrorCode::UnsupportedPlatform => (Code::UnsupportedPlatform, true),
-            OperationalErrorCode::OutputLimitExceeded => (Code::OutputLimitExceeded, false),
-        };
-        self.contract.encode(Output {
-            outcome: if unavailable {
-                Outcome::Unavailable {
-                    error_code,
-                    error_message: override_message,
-                    data: (),
-                }
-            } else {
-                Outcome::Blocked {
-                    error_code,
-                    error_message: override_message,
-                    data: None,
-                }
-            },
-            summary: override_message,
-            duration_ms,
-        })
+        self.contract
+            .encode(Output::operational(code, override_message, duration_ms))
     }
 
     fn encode_inspection_error(
@@ -572,58 +547,12 @@ impl NextestTool {
         error: InspectionError,
         duration_ms: u64,
     ) -> Result<CallToolResult, ErrorData> {
-        match error {
-            InspectionError::Project(ProjectError::Rejected(code)) => {
-                self.encode_operational(code, operational_message(code), duration_ms)
-            }
-            InspectionError::Project(ProjectError::Cancelled)
-            | InspectionError::Execution(ExecutionError::Cancelled) => {
-                self.contract.encode(Output {
-                    outcome: Outcome::Cancelled {
-                        error_code: (),
-                        error_message: (),
-                        data: (),
-                    },
-                    summary: "Nextest cancelled after joined cleanup",
-                    duration_ms,
-                })
-            }
-            InspectionError::Execution(ExecutionError::Unavailable) => self.encode_operational(
-                OperationalErrorCode::ToolNotInstalled,
-                operational_message(OperationalErrorCode::ToolNotInstalled),
-                duration_ms,
-            ),
-            InspectionError::Execution(
-                ExecutionError::Denied
-                | ExecutionError::Busy
-                | ExecutionError::InvalidConfiguration,
-            ) => self.encode_operational(
-                OperationalErrorCode::SandboxDenied,
-                operational_message(OperationalErrorCode::SandboxDenied),
-                duration_ms,
-            ),
-            InspectionError::OutputLimit => self.encode_operational(
-                OperationalErrorCode::OutputLimitExceeded,
-                operational_message(OperationalErrorCode::OutputLimitExceeded),
-                duration_ms,
-            ),
-            InspectionError::InvalidMetadata => self.encode_operational(
-                OperationalErrorCode::InvalidProject,
-                operational_message(OperationalErrorCode::InvalidProject),
-                duration_ms,
-            ),
-            InspectionError::Execution(ExecutionError::CleanupUncertain) => {
-                Err(ErrorData::internal_error(
-                    "Gateway cleanup could not be verified; further execution is quarantined",
-                    None,
-                ))
-            }
-            InspectionError::Internal
-            | InspectionError::Project(ProjectError::Internal)
-            | InspectionError::Execution(ExecutionError::Infrastructure) => {
-                Err(ErrorData::internal_error("Nextest failed", None))
-            }
-        }
+        operational::encode_inspection_error(
+            &self.contract,
+            error,
+            operational_message,
+            duration_ms,
+        )
     }
 
     pub(super) fn encode_task_result(
@@ -781,6 +710,60 @@ impl NextestTool {
     }
 }
 
+impl operational::OperationalOutput for Output {
+    fn operational(code: OperationalErrorCode, message: &'static str, duration_ms: u64) -> Self {
+        let error_code = Code::from(code);
+        Output {
+            outcome: if operational::unavailable(code) {
+                Outcome::Unavailable {
+                    error_code,
+                    error_message: message,
+                    data: (),
+                }
+            } else {
+                Outcome::Blocked {
+                    error_code,
+                    error_message: message,
+                    data: None,
+                }
+            },
+            summary: message,
+            duration_ms,
+        }
+    }
+    fn cancelled(duration_ms: u64) -> Self {
+        Output {
+            outcome: Outcome::Cancelled {
+                error_code: (),
+                error_message: (),
+                data: (),
+            },
+            summary: "Nextest cancelled after joined cleanup",
+            duration_ms,
+        }
+    }
+    fn failed() -> ErrorData {
+        ErrorData::internal_error("Nextest failed", None)
+    }
+}
+
+impl From<OperationalErrorCode> for Code {
+    fn from(value: OperationalErrorCode) -> Self {
+        match value {
+            OperationalErrorCode::ProjectNotFound => Self::ProjectNotFound,
+            OperationalErrorCode::InvalidProject | OperationalErrorCode::LockfileUpdateRequired => {
+                Self::InvalidProject
+            }
+            OperationalErrorCode::ToolNotInstalled => Self::ToolNotInstalled,
+            OperationalErrorCode::CommandTimeout => Self::CommandTimeout,
+            OperationalErrorCode::SandboxDenied => Self::SandboxDenied,
+            OperationalErrorCode::NetworkDenied => Self::NetworkDenied,
+            OperationalErrorCode::UnsupportedPlatform => Self::UnsupportedPlatform,
+            OperationalErrorCode::OutputLimitExceeded => Self::OutputLimitExceeded,
+        }
+    }
+}
+
 fn operational_message(code: OperationalErrorCode) -> &'static str {
     match code {
         OperationalErrorCode::ProjectNotFound => "Project reference is missing or expired",
@@ -893,6 +876,7 @@ mod tests {
     use rust_engineering_application::nextest::{
         ArtifactStreams, NextestCounts, NextestObservation,
     };
+    use rust_engineering_application::{ExecutionError, ProjectError};
     use rust_engineering_domain::{
         ArtifactMetadata, ExecutionFingerprint, ExecutionTermination, RuntimeIdentity,
     };

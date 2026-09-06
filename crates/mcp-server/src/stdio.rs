@@ -20,6 +20,7 @@ mod inspection;
 mod mutation;
 mod mutation_test;
 mod nextest;
+mod operational;
 mod project;
 mod quality;
 mod quality_artifacts;
