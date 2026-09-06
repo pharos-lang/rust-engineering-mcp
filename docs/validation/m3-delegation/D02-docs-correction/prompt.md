@@ -1,0 +1,27 @@
+# Package D02 — Correct the public documents against the real M3 evidence (documentation worker, Luna)
+
+An independent traceability audit (Gemini 3.8 Flash High) found that several public documents now understate or contradict what the receipts prove. Read its report first: `docs/validation/m3-delegation/R02-traceability/report.md`. Your job is to make the documents match the evidence exactly — no more, no less.
+
+## Facts as of now (verify each against the cited file before you write it)
+- Registered tools: **22** (18 from M1/M2 plus `rust.test.nextest`, `rust.coverage`, `rust.semver.check`, `rust.mutation.test`). Check `crates/mcp-server/src/stdio.rs` and the snapshot directory. The 18 pre-existing tool snapshots are byte-identical to `main`; the mutation snapshot changed deliberately during the security fixes (recorded in `docs/validation/m3-delegation/W3-security-fixes/last-message.md`).
+- Docker qualification on the approved guest image `sha256:384a1742ecc53cdd3a9c0bf36c6f8b66db73ddd118aeeae6e55654ea998ae36a`: the complete M3 runtime gate passes **55/55** (nextest 19, coverage 8, semver 18, mutation 10) and the Rust security gate passes **20/20**. Receipts: `docs/validation/M3-runtime.json`, `docs/validation/M3-rust-security.json`. Use the receipt files themselves as the source of the counts and hashes you cite.
+- Non-Docker workspace suite: 1,066 passed, 0 failed, 109 ignored.
+- The nextest seccomp blocker is **resolved** (ADR-064 profile) and the coverage `noexec` blocker is **resolved** (ADR-065 dedicated volume, amended so the report phases may write). Any sentence saying nextest or coverage is blocked is now false.
+- M3-02 (negotiated Tasks) is **not** qualified yet and `TASKS_ADVERTISEMENT_READY` is still false; the integrator is qualifying it in a parallel window. Do not claim Tasks works for clients.
+- M3-06 (closure) has not run.
+
+## Your ownership (only these files)
+`README.md`, `CHANGELOG.md`, `SECURITY.md`, `docs/architecture.md`, `docs/implementation-status.md`, plus the two receipt-hash corrections the audit found in `docs/validation/M3-04.md` and `docs/validation/M3-05.md` (they cite a superseded attempt receipt; replace it with the hash of the current `docs/validation/M3-runtime.json`, computed by you with `shasum -a 256`).
+Do **not** touch `docs/tools.md`, `docs/compatibility.md`, `docs/client-configuration.md`, `docs/security-model.md`, `docs/validation/M3-matrix.md`, `docs/validation/M3-01..03.md`, `docs/validation/M3-02*`, any ADR, or any code — the integrator owns those in the parallel window.
+
+## What to correct
+1. **README**: the four M3 tools are implemented and Docker-qualified in the current checkout (state the counts and point to the receipts); remove or rewrite every "blocked", "pending qualification", "in progress" or "not available" claim about nextest, coverage, semver and mutation; state the tool count as 22; describe the guest image provisioning (owner-authorized, pinned versions and hashes, new immutable image ID); describe the persistent private quality artifact store and the `quality-artifacts recover|prune` CLI as available; state clearly that negotiated Tasks are implemented but not advertised and not client-qualified yet, and that only macOS ARM64/APFS is a positive host while Linux and Windows fail closed. Keep the README a user guide: no receipt dumps, link to the validation documents instead.
+2. **CHANGELOG**: one `0.3.0-dev` (unreleased) section that matches reality — added tools, the artifact store, the job lifecycle, the new guest image, the seccomp and mount decisions, with ADR links. Do not touch M2 or earlier entries.
+3. **SECURITY.md**: the persistent-artifact privacy boundary (same uid, same state root, same host-granted root can re-read retained evidence; TTL and quotas apply), the quality seccomp profile and its exact one-rule delta, the dedicated coverage volume and why it exists, host-source immutability enforced by the read-only mount and the applied-mount verifier plus the gate's host-side canary test (the per-response `source_unchanged` field was removed precisely because it could not fail), and that task identifiers and artifact locators are never authority.
+4. **docs/architecture.md**: an M3 section describing the domain job/nextest/coverage/semver/mutation/quality-artifact modules, the application job executor and ports, the execution-adapter phases and volumes per tool, the project-adapter durable store, and the MCP tools and Resource scheme — as implemented, with file paths.
+5. **docs/implementation-status.md**: the M3 table with the true state per cut (M3-01/03/04/05 qualified with receipts; M3-02 implemented, qualification in progress; M3-06 pending), D06/D17/D18/provisioning decided with ADR links, the assessment rows updated (22 tools in the checkout, new image, durable store), and the M3 row of the milestone table moved to In progress. Do not alter M0/M1/M2 rows or their evidence.
+6. The two receipt-hash corrections named above.
+
+## Rules
+Branch `ai/m3-quality`; no commits, merge, push, installs, downloads, Docker or Cargo runs. Every number you write must come from a file you read in this session; cite the file in the text where a reader would need it. Never promise a capability the receipts do not support, and never soften a limitation. Check your links (`git diff --check` plus a relative-link check over what you edited).
+Delivery: Task, Result, Files changed with SHA-256, Tests executed (the checks you ran), Evidence (claim → source file), Risks, Decisions, Open issues.

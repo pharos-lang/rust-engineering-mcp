@@ -1,0 +1,5 @@
+2026-09-06T10:47:55.474749Z ERROR codex_core::tools::router: error=apply_patch verification failed: Failed to find expected lines in /Users/cburgosro/Projects/rust-mcp/docs/implementation-status.md:
+M3-01 está Done para su corte síncrono: integra contrato, gateway, JUnit, Stage 1
+2026-09-06T10:48:21.983172Z ERROR codex_core::tools::router: error=apply_patch verification failed: Failed to find expected lines in /Users/cburgosro/Projects/rust-mcp/docs/implementation-status.md:
+[Evidencia M3-01](validation/M3-01.md).
+2026-09-06T11:08:11.377922Z ERROR codex_core::tools::router: error=apply_patch verification failed: invalid patch: multiple operations target /Users/cburgosro/Projects/rust-mcp/docs/validation/M3-02.md

@@ -1,0 +1,16 @@
+2026-09-06T02:03:13.268019Z ERROR codex_core::tools::router: error=apply_patch verification failed: Failed to find expected lines in /Users/cburgosro/Projects/rust-mcp/crates/execution-adapter/src/nextest_gateway.rs:
+         path = "junit.xml"\n\
+2026-09-06T02:04:46.440432Z ERROR codex_core::tools::router: error=apply_patch verification failed: Failed to find expected lines in /Users/cburgosro/Projects/rust-mcp/crates/execution-adapter/src/nextest_gateway.rs:
+         path = "junit.xml"\n\
+2026-09-06T02:05:02.225750Z ERROR codex_core::tools::router: error=apply_patch verification failed: Failed to find expected lines in /Users/cburgosro/Projects/rust-mcp/crates/execution-adapter/src/nextest_gateway.rs:
+         path = "junit.xml"\n\
+2026-09-06T02:40:47.046919Z ERROR codex_core::tools::router: error=apply_patch verification failed: Failed to find expected lines in /Users/cburgosro/Projects/rust-mcp/README.md:
+La calificación local M2 está completada con [evidencia reproducible](docs/validation/M2-07.md). El paquete del checkout informa
+`0.2.0-dev`; la release estable continúa siendo `0.1.0`.
+2026-09-06T02:41:19.886237Z ERROR codex_core::tools::router: error=apply_patch verification failed: Failed to find expected lines in /Users/cburgosro/Projects/rust-mcp/docs/compatibility.md:
+El checkout de desarrollo anuncia 18 al sumar las cinco tools M2; esa
+ampliación todavía no es una calificación de release.
+2026-09-06T02:42:04.431080Z ERROR codex_core::tools::router: error=apply_patch verification failed: Failed to find expected lines in /Users/cburgosro/Projects/rust-mcp/docs/tools.md:
+resultados unavailable/blocked/degraded son parte del contrato.
+2026-09-06T02:43:45.663075Z ERROR codex_core::tools::router: error=apply_patch verification failed: Failed to find expected lines in /Users/cburgosro/Projects/rust-mcp/docs/ci.md:
+M1-09 extiende el gate Rust a20 tests exactos secuenciales. Tres quality-gate

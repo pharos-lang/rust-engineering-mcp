@@ -1,0 +1,10 @@
+   Compiling fixture-nextest-passing v0.1.0 (/source)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.12s
+────────────
+ Nextest run ID 2b669b90-b600-4112-879d-b4cbe0714767 with nextest profile: rust-mcp
+    Starting 3 tests across 1 binary
+        PASS [   0.002s] (1/3) fixture-nextest-passing alpha
+        PASS [   0.001s] (2/3) fixture-nextest-passing beta
+        PASS [   0.002s] (3/3) fixture-nextest-passing gamma
+────────────
+     Summary [   0.005s] 3 tests run: 3 passed, 0 skipped

@@ -1,0 +1,1 @@
+agy --model gemini-3.8-flash-high --effort high --sandbox --disable-slash-commands --output-format json --print-timeout 60m --print <prompt.md>

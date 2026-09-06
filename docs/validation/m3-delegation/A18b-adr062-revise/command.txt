@@ -1,0 +1,1 @@
+claude --model claude-sonnet-5 --effort high --print --output-format json --no-session-persistence --strict-mcp-config --mcp-config \{\"mcpServers\":\{\}\} --permission-mode default --allowedTools Read Grep Glob Write\(docs/adr/ADR-062-\*\) Edit\(docs/adr/ADR-062-\*\) Bash\(shasum:\*\) Bash\(ls:\*\) --disallowedTools Agent WebFetch WebSearch 

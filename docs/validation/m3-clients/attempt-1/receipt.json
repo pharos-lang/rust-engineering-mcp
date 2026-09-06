@@ -1,0 +1,14 @@
+{
+  "attempt": "attempt-1",
+  "candidate": {
+    "server_sha256": "81105e2992612f3b9ccd2aa181421ddb8e56bdf16225e0f5fa3e0cab01043270"
+  },
+  "error": {
+    "message": "Expecting value: line 1 column 1 (char 0)",
+    "type": "JSONDecodeError"
+  },
+  "image_id": "sha256:384a1742ecc53cdd3a9c0bf36c6f8b66db73ddd118aeeae6e55654ea998ae36a",
+  "schema": "rust-mcp-m3-clients-v1",
+  "status": "failed",
+  "tasks_advertised": false
+}

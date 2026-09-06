@@ -1,0 +1,96 @@
+{
+  "advertisement_switch_enabled": false,
+  "attempt": "attempt-9",
+  "candidate": {
+    "server_sha256": "343aac147e0e6ada6c8c1a2015731b41d1076c03000ad222981721c7df1b7a45"
+  },
+  "error": {
+    "message": "Codex model-directed MCP flow was not observed",
+    "type": "RuntimeError"
+  },
+  "image_id": "sha256:384a1742ecc53cdd3a9c0bf36c6f8b66db73ddd118aeeae6e55654ea998ae36a",
+  "inspector": {
+    "bridge_suffix_sha256": "9dce889b8537d6c9f369664dd2119ee4b81388c05f0ead1903e692193e3f6d94",
+    "bundle_sha256": "1fcbc2c4d4324b85f75c0b4cf9f125ee1f74df90d14eb3fea4ca96d0a1885f4e",
+    "commands": {
+      "cancel": {
+        "argv_sha256": "d90fee751a01515a28f942a5c3ac74769da398851383065555651f7829ccb7c4",
+        "duration_seconds": 0.085,
+        "exit_code": 1,
+        "overflow": false,
+        "stderr_bytes": 265,
+        "stderr_sha256": "180e0a1df14cf5370503071bcf6107dfa5facbf69a4ce942e66344ac5adf3149",
+        "stdout_bytes": 0,
+        "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "discovery": {
+        "argv_sha256": "78604f67c8236aed8fa47fdf194c85c5dd9e28eae235c8478c6f2fd06b18b6e5",
+        "duration_seconds": 0.219,
+        "exit_code": 0,
+        "overflow": false,
+        "stderr_bytes": 86099,
+        "stderr_sha256": "3b33ef21625425433937c1d4c5d80fac0b23f6ce8eb1b201d796a2581079971a",
+        "stdout_bytes": 302519,
+        "stdout_sha256": "9f9e3410fdb61824dfbced27c5767d63274f29ce524f989f5cf96c8f127c5d2b"
+      },
+      "failure": {
+        "argv_sha256": "a4e901bffea96e9b456777b60474c81c71007286f9ce20c27cdfdaf14b337e0e",
+        "duration_seconds": 0.183,
+        "exit_code": 5,
+        "overflow": false,
+        "stderr_bytes": 2265,
+        "stderr_sha256": "7e996731b0cef500efc15d86571eac101e5fd75b3aaf8354aab60cd016d5ca0a",
+        "stdout_bytes": 489,
+        "stdout_sha256": "6f453e2b94eb52fa895cc948863abf64ffc246036d52ada4b37c503a145344d2"
+      },
+      "persistent_task_session": {
+        "argv_sha256": "eebfb11f8e39b472ae3cf85f31031f9f1215abbc63e5fa623fbb724899f08e6a",
+        "duration_seconds": 18.348,
+        "exit_code": 0,
+        "overflow": false,
+        "stderr_bytes": 6937,
+        "stderr_sha256": "fe60b34adbe02a3d338a297d59dc6b0f9895550d09163b06ce73774e1e7328b9",
+        "stdout_bytes": 201,
+        "stdout_sha256": "586ad70287e24ac8169cb547d245c6271c0cc6d7ab3472004c7c5ddf96261b00"
+      },
+      "positive": {
+        "argv_sha256": "d9032f09635e5bb8dedb6682e829b0c8befe9f83429c96b6b3c57ac1209d5b0d",
+        "duration_seconds": 0.182,
+        "exit_code": 0,
+        "overflow": false,
+        "stderr_bytes": 358,
+        "stderr_sha256": "847b6d06095ddbd390cec3b9d26a7015d61e300cd29458b338a653faa69bcc8a",
+        "stdout_bytes": 1226,
+        "stdout_sha256": "5f1f5aecd88af42ec575d1234384e7486eb525cad16dd4cc77c78e514ee7c6a7"
+      },
+      "resource": {
+        "argv_sha256": "5bb96856b1f7f3952dc9b6a104985e6268645e9b43df16c9870ace5ad638f21b",
+        "duration_seconds": 0.165,
+        "exit_code": 1,
+        "overflow": false,
+        "stderr_bytes": 67,
+        "stderr_sha256": "8b40f4c17f95cd664dbd17b309a32865408293ea1cf389f0b866b1809e2a922b",
+        "stdout_bytes": 0,
+        "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    "persistent_task_session": {
+      "cancel": true,
+      "discovery": true,
+      "failure": true,
+      "positive": true,
+      "protocol_era": "modern",
+      "resource": true,
+      "task_flow": true,
+      "tasks_advertised": true,
+      "tasks_declared": true,
+      "tool_count": 22,
+      "version": "2.5.0"
+    },
+    "version": "2.5.0"
+  },
+  "qualification_override": true,
+  "schema": "rust-mcp-m3-clients-v1",
+  "status": "failed",
+  "tasks_advertised": true
+}

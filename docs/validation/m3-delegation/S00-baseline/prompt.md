@@ -1,0 +1,41 @@
+# Package S00 — M3 baseline inspection and branch creation (integrator delegate)
+
+Task / ID: S00 (pre-M3-01). Objective: produce the live baseline that M3 will build on, create the M3 work branch, and map the code interfaces M3 must extend. No product code changes.
+Model / CLI / effort / reason: GPT-5.6 Sol via `codex exec`, effort high, sandbox workspace-write. Reason: integrator role; this inspection defines ownership boundaries for later cuts.
+Orchestrator: Claude Fable 5.1 (Claude Code 2.1.261 main session). You report to it; you do not delegate further, you do not merge, push, commit, publish, install or download anything.
+
+## Git base and repository facts observed by the orchestrator (revalidate live)
+- Repo: /Users/cburgosro/Projects/rust-mcp, branch `main`, HEAD `52396184e5b53983056791f62d9eecbab3954d15`, M2 merge `7554bccbff2209ae5b3df63b2b1011646586380f`, branch `ai/m2-write-qualification` expected at `ed1d6b21327ca38db2c1b35a9a61e0d74de686c8`.
+- Untracked and to be PRESERVED untouched: `Claude outputs/` and `docs/prompts/implement-m3-fable-orchestrator.md`.
+- Host tools observed by orchestrator: cargo-nextest 0.9.143 at /opt/homebrew/bin, cargo-mutants 27.0.0 at ~/.cargo/bin, no cargo-llvm-cov, no cargo-semver-checks. Docker client at /Applications/Docker.app/Contents/Resources/bin/docker. Guest image Dockerfile `fixtures/rust-runtime/Dockerfile` installs only Rust 1.98.1 (no plugins).
+- rmcp 3.2.0 in Cargo.lock; its source ships `src/task_manager.rs` and SEP-2663 task model types (a separate researcher is analysing that; you don't need to).
+
+## Normative sources (read them; do not summarise them away)
+AGENTS.md; docs/roadmap/m3-quality.md; docs/roadmap/m2-m8.md (G1–G9); docs/roadmap/adr-backlog-m2-m8.md (D06/D17/D18); docs/prompts/implement-m3.md; docs/implementation-status.md; docs/validation/M2-07.md; docs/validation/M2-local-integration.json; docs/ci.md; docs/architecture.md; ADR-028, ADR-030, ADR-031, ADR-037, ADR-040, ADR-050..059.
+
+## Work items (all required)
+1. **Live Git inspection**: `git status --porcelain`, HEAD, all local branches with tips, remotes, and confirm the three hashes above. Report any discrepancy verbatim.
+2. **Create branch** `ai/m3-quality` from the current `main` HEAD and check it out (`git switch -c ai/m3-quality`). Do not commit anything. Untracked files stay untracked.
+3. **Workspace inventory**: crates, `rust-toolchain.toml`, key locked versions (rmcp, tokio, serde, schemars, jsonschema or equivalent validator, rustix, toml_edit, sha2), number of test files per crate (list files, do not run the suite). Run only `cargo check --workspace --all-targets --locked --offline` as a health check and report its exit code/duration; if it fails, report the failure and stop other Cargo use.
+4. **M2 closure live contrast**: read `docs/validation/m2-closure/verify-evidence.py` (its usage/help), run it in its read-only verification mode against the current checkout, and report whether the 574 M2 inputs still hash identically to the closure receipt. Do not modify any receipt.
+5. **Provisioning and environment inventory** (no downloads, no docker build, no docker run):
+   - How the approved guest image was provisioned: `fixtures/rust-runtime/{README.md,sources.json,provision.py,verify.py}`; the immutable image ID recorded in `docs/validation/M2-image-config.json` and/or the M2 full receipt; whether that image ID exists locally (`docker image inspect <id> --format '{{.Id}}'` is allowed; nothing else with Docker).
+   - The host paths used by the M2 full gate for `RUST_MCP_TEST_SOCKET`, `RUST_MCP_E5_DIR`, `ORT_LIB_LOCATION` (from M2 receipts/docs) and whether each path exists now.
+   - Presence/version on host of: cargo-audit, cargo-deny, Go, Python3, Node/npx (for MCP Inspector), `claude`, `codex`, `agy`. Version output only.
+   - Guest plugin gap: confirm that none of cargo-nextest, cargo-llvm-cov, llvm-tools (llvm-profdata/llvm-cov), cargo-semver-checks, cargo-mutants exist in the approved guest image (inspect the Dockerfile/sources.json; no container run). Write a **provisioning proposal** section: for each plugin the official upstream project, release asset naming for `aarch64-unknown-linux-gnu`/Linux ARM64 (musl or gnu), license (SPDX), and the `llvm-tools` standalone component tarball name/URL pattern from static.rust-lang.org for Rust 1.98.1 aarch64-unknown-linux-gnu. Mark exact versions/hashes as "TO BE VERIFIED before authorization" unless you can read them from local files. Describe the command that would extend `fixtures/rust-runtime` (new sources entries + Dockerfile layer), destination, impact (new image ID, recalibration of the Rust gateway, ADR-031 amendments), and validation. This section is a request for owner authorization, not an action.
+6. **M3 architecture/ownership map** — for each item give file path(s), key type/function names and line numbers:
+   a. Execution gateway and closed command set: `crates/domain/src/rust_execution.rs` (RustCommand enum and variants), `crates/application/src/execution.rs` (ExecutionPort, admission), `crates/execution-adapter/src/rust_gateway.rs` + `rust_gateway/` (how a command becomes argv, env, mounts, tmpfs, limits; how output streams are captured and bounded; how cancel/timeout kill+join the tree; calibration and quarantine).
+   b. Worker admission and MCP lifecycle: `crates/mcp-server/src/stdio/workers.rs`, `stdio/admission.rs`, `stdio/budget.rs`; how `rust.test` (ADR-037) and `rust.quality.gate` (ADR-040) run through a joined single worker; the current deadline/timeouts (10 s bootstrap, 240 s quality gate, etc.) with their constants.
+   c. Artifacts: `crates/domain/src/artifact.rs`, `crates/application/src/artifact.rs`, `artifact_access.rs`, `crates/artifact-adapter/src/lib.rs`; quotas (16 MiB global/1 MiB owner/256 KiB artifact/TTL 1 h) constants, owner binding, Resource URI scheme and the MCP resources handler files; how logs are published today (group publication/rollback in quality gate).
+   d. M2 staging reuse for mutation: `crates/execution-adapter/src/mutation_gateway.rs`, `applied.rs`, `rust_applied.rs`, `mutation_archive.rs`, `seccomp-rust-fix.json`; what the "private writable copy" mechanism is (tmpfs/volume, quotas), and how bytes come back out (export protocol) — this is what M3-05 must reuse.
+   e. Source capture/ProjectRef: `crates/application/src/source.rs`, `inspection.rs`; how two ProjectRefs could be captured and revalidated for SemVer baseline/candidate.
+   f. MCP contract machinery: `crates/mcp-server/src/stdio/contract*`; where tool schemas/snapshots live (tests dir), how a new tool is registered/listed, how `structuredContent`/TextContent mirror works, wire-version tests (five protocol versions), and the snapshot files that guard the 18 existing tools.
+   g. Gate: `scripts/gate.py` stage list for core and full, `scripts/test-rust-execution.py` (how exact ignored Docker tests are invoked), `scripts/test-m2-runtime.py`, `scripts/test-m2-clients.py` and `scripts/codex-model-qualifier.py` (how the stock client run was driven), so M3 can add stages without breaking them.
+   h. Docs: structure of `docs/tools.md` per tool, `docs/validation/M2-matrix.md` format, and `docs/adr/README.md` index; **the next free ADR number** (verify by listing docs/adr).
+7. **Risks/blockers for M3-01 DoR**: anything in the code that contradicts the M3 plan assumptions (e.g., single worker without queue, artifact store memory-only, no persistence layer for jobs, no `llvm-tools`), listed with file references.
+
+## Prohibitions
+No edits under `crates/`, `scripts/`, `fixtures/`, `docs/` except the report below. No commits, no `git push`, no `git merge`, no `cargo install`, no `docker build/run/pull`, no network. Do not run the full test suite or gate. Do not delete or move anything.
+
+## Delivery
+Write the report to `docs/validation/m3-delegation/S00-baseline/report.md` (create directories). Language: Spanish or English, consistent within the file. Include SHA-256 of every file you cite as read (`shasum -a 256`). End with the mandatory sections in this order: Task, Result, Files changed, Tests executed, Evidence, Risks, Decisions, Open issues. Also print the same report as your final message.

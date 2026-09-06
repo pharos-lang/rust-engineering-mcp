@@ -1,0 +1,215 @@
+{
+  "defaultAction": "SCMP_ACT_ERRNO",
+  "defaultErrnoRet": 1,
+  "archMap": [
+    {
+      "architecture": "SCMP_ARCH_AARCH64",
+      "subArchitectures": []
+    }
+  ],
+  "syscalls": [
+    {
+      "names": [
+        "read",
+        "write",
+        "readv",
+        "writev",
+        "pread64",
+        "pwrite64",
+        "close",
+        "openat",
+        "newfstatat",
+        "fstat",
+        "statx",
+        "lseek",
+        "fcntl",
+        "ioctl",
+        "getdents64",
+        "readlinkat",
+        "readlink",
+        "faccessat",
+        "faccessat2",
+        "mmap",
+        "munmap",
+        "mprotect",
+        "madvise",
+        "brk",
+        "futex",
+        "futex_waitv",
+        "nanosleep",
+        "clock_gettime",
+        "clock_nanosleep",
+        "gettimeofday",
+        "getpid",
+        "getppid",
+        "gettid",
+        "getuid",
+        "geteuid",
+        "getgid",
+        "getegid",
+        "getgroups",
+        "set_tid_address",
+        "set_robust_list",
+        "rseq",
+        "rt_sigaction",
+        "rt_sigprocmask",
+        "rt_sigreturn",
+        "sigaltstack",
+        "sched_getaffinity",
+        "sched_yield",
+        "sched_getparam",
+        "sched_getscheduler",
+        "sched_get_priority_max",
+        "sched_get_priority_min",
+        "uname",
+        "prlimit64",
+        "getrlimit",
+        "getrusage",
+        "getrandom",
+        "exit",
+        "exit_group",
+        "execve",
+        "execveat",
+        "wait4",
+        "waitid",
+        "kill",
+        "tgkill",
+        "tkill",
+        "dup",
+        "dup2",
+        "dup3",
+        "pipe",
+        "pipe2",
+        "setsid",
+        "getsid",
+        "getpgid",
+        "setpgid",
+        "ftruncate",
+        "truncate",
+        "fsync",
+        "fdatasync",
+        "mkdir",
+        "mkdirat",
+        "rmdir",
+        "unlink",
+        "unlinkat",
+        "rename",
+        "renameat",
+        "renameat2",
+        "symlink",
+        "symlinkat",
+        "link",
+        "linkat",
+        "getcwd",
+        "chdir",
+        "fchdir",
+        "chmod",
+        "fchmod",
+        "fchmodat",
+        "fchown",
+        "fchownat",
+        "umask",
+        "utimensat",
+        "statfs",
+        "fstatfs",
+        "prctl",
+        "epoll_create1",
+        "epoll_ctl",
+        "epoll_pwait",
+        "epoll_pwait2",
+        "eventfd2",
+        "ppoll",
+        "pselect6",
+        "restart_syscall",
+        "clock_getres",
+        "flock",
+        "sendto",
+        "recvfrom",
+        "sendmsg",
+        "recvmsg"
+      ],
+      "action": "SCMP_ACT_ALLOW"
+    },
+    {
+      "names": [
+        "clone"
+      ],
+      "action": "SCMP_ACT_ALLOW",
+      "args": [
+        {
+          "index": 0,
+          "value": 2114060288,
+          "valueTwo": 0,
+          "op": "SCMP_CMP_MASKED_EQ"
+        }
+      ]
+    },
+    {
+      "names": [
+        "clone3"
+      ],
+      "action": "SCMP_ACT_ERRNO",
+      "errnoRet": 38
+    },
+    {
+      "names": [
+        "socketpair"
+      ],
+      "action": "SCMP_ACT_ALLOW",
+      "args": [
+        {
+          "index": 0,
+          "value": 1,
+          "op": "SCMP_CMP_EQ"
+        },
+        {
+          "index": 1,
+          "value": 15,
+          "valueTwo": 5,
+          "op": "SCMP_CMP_MASKED_EQ"
+        },
+        {
+          "index": 2,
+          "value": 0,
+          "op": "SCMP_CMP_EQ"
+        }
+      ]
+    },
+    {
+      "names": [
+        "socket"
+      ],
+      "action": "SCMP_ACT_ALLOW",
+      "args": [
+        {
+          "index": 0,
+          "value": 2,
+          "op": "SCMP_CMP_EQ"
+        },
+        {
+          "index": 1,
+          "value": 15,
+          "valueTwo": 1,
+          "op": "SCMP_CMP_MASKED_EQ"
+        },
+        {
+          "index": 2,
+          "value": 0,
+          "op": "SCMP_CMP_EQ"
+        }
+      ]
+    },
+    {
+      "names": [
+        "bind",
+        "connect",
+        "listen",
+        "accept4",
+        "getsockname",
+        "setsockopt",
+        "shutdown"
+      ],
+      "action": "SCMP_ACT_ALLOW"
+    }
+  ]
+}

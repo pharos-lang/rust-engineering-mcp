@@ -1,0 +1,9 @@
+file:///Users/cburgosro/Projects/rust-mcp/scripts/m3-inspector-session.mjs:131
+    throw new Error("server did not advertise the Tasks extension");
+          ^
+
+Error: server did not advertise the Tasks extension
+    at file:///Users/cburgosro/Projects/rust-mcp/scripts/m3-inspector-session.mjs:131:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+
+Node.js v24.15.0
