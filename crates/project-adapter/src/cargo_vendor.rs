@@ -1,20 +1,29 @@
 //! Validation and protected capture of an explicit Cargo directory source.
 use rust_engineering_application::{OperationControl, ProjectError};
-use rust_engineering_domain::{
-    CargoVendorPackage, CargoVendorSnapshot, OperationalErrorCode, SourceBundle, SourceFingerprint,
-    validate_source_path,
-};
-use serde::de::{MapAccess, Visitor};
-use serde::{Deserialize, Deserializer};
-use sha2::{Digest, Sha256};
-use std::collections::{BTreeMap, BTreeSet};
-use std::fmt;
+use rust_engineering_domain::{CargoVendorSnapshot, OperationalErrorCode, SourceFingerprint};
 use std::path::Path;
+
+// The capture path below only compiles on macOS, so the parsing and digest
+// machinery it owns is imported with it.
+#[cfg(target_os = "macos")]
+use rust_engineering_domain::{CargoVendorPackage, SourceBundle, validate_source_path};
+#[cfg(target_os = "macos")]
+use serde::de::{MapAccess, Visitor};
+#[cfg(target_os = "macos")]
+use serde::{Deserialize, Deserializer};
+#[cfg(target_os = "macos")]
+use sha2::{Digest, Sha256};
+#[cfg(target_os = "macos")]
+use std::collections::{BTreeMap, BTreeSet};
+#[cfg(target_os = "macos")]
+use std::fmt;
 
 fn invalid() -> ProjectError {
     ProjectError::Rejected(OperationalErrorCode::InvalidProject)
 }
 
+// Reachable only through the macOS capture path in `inspect_cargo_vendor`.
+#[cfg(target_os = "macos")]
 fn fingerprint(
     bytes: impl IntoIterator<Item = impl AsRef<[u8]>>,
 ) -> Result<SourceFingerprint, ProjectError> {
@@ -25,6 +34,8 @@ fn fingerprint(
     finish_fingerprint(hash)
 }
 
+// Reachable only through the macOS capture path in `inspect_cargo_vendor`.
+#[cfg(target_os = "macos")]
 fn finish_fingerprint(hash: Sha256) -> Result<SourceFingerprint, ProjectError> {
     let mut encoded = String::from("sha256:");
     for byte in hash.finalize() {
@@ -34,6 +45,8 @@ fn finish_fingerprint(hash: Sha256) -> Result<SourceFingerprint, ProjectError> {
     encoded.parse().map_err(|_| ProjectError::Internal)
 }
 
+// Reachable only through the macOS capture path in `inspect_cargo_vendor`.
+#[cfg(target_os = "macos")]
 fn tree_fingerprint(source: &SourceBundle) -> Result<SourceFingerprint, ProjectError> {
     let mut hash = Sha256::new();
     for file in source.files() {
@@ -45,9 +58,11 @@ fn tree_fingerprint(source: &SourceBundle) -> Result<SourceFingerprint, ProjectE
     finish_fingerprint(hash)
 }
 
+#[cfg(target_os = "macos")]
 #[derive(Debug)]
 struct UniqueFiles(BTreeMap<String, String>);
 
+#[cfg(target_os = "macos")]
 impl<'de> Deserialize<'de> for UniqueFiles {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
     where
@@ -76,6 +91,7 @@ impl<'de> Deserialize<'de> for UniqueFiles {
     }
 }
 
+#[cfg(target_os = "macos")]
 #[derive(Deserialize)]
 #[serde(deny_unknown_fields)]
 struct CargoChecksum {
@@ -85,6 +101,8 @@ struct CargoChecksum {
     comment: Option<String>,
 }
 
+// Reachable only through the macOS capture path in `inspect_cargo_vendor`.
+#[cfg(target_os = "macos")]
 fn checksum(value: &str) -> Result<SourceFingerprint, ProjectError> {
     if value.len() != 64
         || !value
@@ -96,6 +114,8 @@ fn checksum(value: &str) -> Result<SourceFingerprint, ProjectError> {
     format!("sha256:{value}").parse().map_err(|_| invalid())
 }
 
+// Reachable only through the macOS capture path in `inspect_cargo_vendor`.
+#[cfg(target_os = "macos")]
 fn package_name(name: &str) -> bool {
     name.len() <= 64
         && name
@@ -107,6 +127,8 @@ fn package_name(name: &str) -> bool {
             .all(|byte| byte.is_ascii_alphanumeric() || matches!(byte, b'-' | b'_'))
 }
 
+// Reachable only through the macOS capture path in `inspect_cargo_vendor`.
+#[cfg(target_os = "macos")]
 fn package_identity(manifest: &[u8]) -> Result<(String, String), ProjectError> {
     let parsed: toml::Value = toml::from_str(std::str::from_utf8(manifest).map_err(|_| invalid())?)
         .map_err(|_| invalid())?;
@@ -129,6 +151,8 @@ fn package_identity(manifest: &[u8]) -> Result<(String, String), ProjectError> {
     Ok((name.to_owned(), version.to_owned()))
 }
 
+// Reachable only through the macOS capture path in `inspect_cargo_vendor`.
+#[cfg(target_os = "macos")]
 pub(crate) fn validate(source: SourceBundle) -> Result<CargoVendorSnapshot, ProjectError> {
     // File paths determine every authorized directory. Reject explicit empty
     // directories so the host's file-tree digest also binds the whole topology.

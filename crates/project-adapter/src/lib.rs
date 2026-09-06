@@ -12,6 +12,9 @@ mod manifest_edit;
 pub mod mutation_store;
 pub mod quality_artifact_store;
 pub use quality_artifact_store::NativeQualityArtifactStore;
+// Only the macOS mutation backend validates a semantic manifest delta, so the
+// module compiles with it, like `manifest` above.
+#[cfg(target_os = "macos")]
 mod semantic_delta;
 
 use std::path::{Path, PathBuf};
