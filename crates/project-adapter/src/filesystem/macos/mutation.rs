@@ -252,6 +252,68 @@ fn xattrs(fd: &impl AsFd) -> Result<XattrSnapshot, MutationError> {
     Ok(attributes)
 }
 
+/// One held exclusive lock on a store entry, released when it is dropped.
+struct StoreLock {
+    _file: OwnedFd,
+    #[cfg(test)]
+    _fork_barrier: ForkBarrier,
+}
+
+// `fork` copies the whole descriptor table, so a spawn on one thread keeps
+// every `flock` its siblings hold alive inside the child until that child
+// reaches `exec`. The sibling that then releases its own descriptor no longer
+// owns the lock, and its next acquisition reads `Busy` with no real holder.
+// ADR-061 records the same effect for the quality artifact store. macOS
+// publishes no `FD_CLOFORK`, and `POSIX_SPAWN_CLOEXEC_DEFAULT` leaves the
+// window open, so the only place that closes it is the process that forks:
+// this harness spawns a helper only while no store lock is held.
+#[cfg(test)]
+static STORE_LOCK_FORK_BARRIER: std::sync::RwLock<()> = std::sync::RwLock::new(());
+
+#[cfg(test)]
+std::thread_local! {
+    static STORE_LOCKS_HELD: std::cell::Cell<usize> = const { std::cell::Cell::new(0) };
+}
+
+/// Keeps a helper spawn out of this thread's store lock window. A commit holds
+/// the global and the workspace lock at once, so only the outermost one reads
+/// the barrier: a nested read would wait behind a spawn that is itself waiting
+/// for the outer read to end.
+#[cfg(test)]
+struct ForkBarrier {
+    _outermost: Option<std::sync::RwLockReadGuard<'static, ()>>,
+}
+
+#[cfg(test)]
+impl ForkBarrier {
+    fn enter() -> Self {
+        let held = STORE_LOCKS_HELD.with(|held| held.replace(held.get() + 1));
+        Self {
+            _outermost: (held == 0).then(|| {
+                STORE_LOCK_FORK_BARRIER
+                    .read()
+                    .unwrap_or_else(std::sync::PoisonError::into_inner)
+            }),
+        }
+    }
+}
+
+#[cfg(test)]
+impl Drop for ForkBarrier {
+    fn drop(&mut self) {
+        STORE_LOCKS_HELD.with(|held| held.set(held.get() - 1));
+    }
+}
+
+/// Spawns a helper process outside every window in which a store lock is held.
+#[cfg(test)]
+fn while_no_store_lock_is_held<T>(spawn: impl FnOnce() -> T) -> T {
+    let _exclusive = STORE_LOCK_FORK_BARRIER
+        .write()
+        .unwrap_or_else(std::sync::PoisonError::into_inner);
+    spawn()
+}
+
 struct StateRoot {
     slash: OwnedFd,
     directory: OwnedFd,
@@ -331,11 +393,17 @@ impl StateRoot {
         Ok(lock)
     }
 
-    fn lock(&self, name: &str) -> Result<OwnedFd, MutationError> {
-        let lock = self.open_lock(name)?;
-        flock(&lock, FlockOperation::NonBlockingLockExclusive).map_err(mutation_io)?;
+    fn lock(&self, name: &str) -> Result<StoreLock, MutationError> {
+        #[cfg(test)]
+        let fork_barrier = ForkBarrier::enter();
+        let file = self.open_lock(name)?;
+        flock(&file, FlockOperation::NonBlockingLockExclusive).map_err(mutation_io)?;
         self.check()?;
-        Ok(lock)
+        Ok(StoreLock {
+            _file: file,
+            #[cfg(test)]
+            _fork_barrier: fork_barrier,
+        })
     }
 
     fn read_optional(&self, name: &str) -> Result<Option<Vec<u8>>, MutationError> {

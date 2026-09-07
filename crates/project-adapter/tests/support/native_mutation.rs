@@ -740,16 +740,18 @@ fn killed_process_recovers_each_durable_boundary() -> Result<(), String> {
         let fixture = Fixture::new(&format!("process-crash-{phase}"))?;
         let (_backend, lease, request) = fixture.request(CRASH_SUFFIX)?;
         let ready = fixture.base.join("crash-ready");
-        let mut child = Command::new(std::env::current_exe().map_err(|error| error.to_string())?)
-            .arg("--exact")
-            .arg("filesystem::macos::mutation::tests::abrupt_checkpoint_helper")
-            .arg("--nocapture")
-            .env(CRASH_PROJECT, &fixture.project)
-            .env(CRASH_STATE, &fixture.state)
-            .env(CRASH_READY, &ready)
-            .env(CRASH_PHASE, phase)
-            .spawn()
-            .map_err(|error| error.to_string())?;
+        let mut child = while_no_store_lock_is_held(|| {
+            Command::new(std::env::current_exe().map_err(|error| error.to_string())?)
+                .arg("--exact")
+                .arg("filesystem::macos::mutation::tests::abrupt_checkpoint_helper")
+                .arg("--nocapture")
+                .env(CRASH_PROJECT, &fixture.project)
+                .env(CRASH_STATE, &fixture.state)
+                .env(CRASH_READY, &ready)
+                .env(CRASH_PHASE, phase)
+                .spawn()
+                .map_err(|error| error.to_string())
+        })?;
         let mut observed = false;
         for _ in 0..500 {
             if ready.exists() {
@@ -822,17 +824,19 @@ fn killed_process_rolls_forward_known_format_prefix() -> Result<(), String> {
         let fixture = Fixture::new(&format!("format-prefix-crash-{phase}"))?;
         let (_backend, lease, request) = fixture.format_request(CRASH_SUFFIX)?;
         let ready = fixture.base.join("format-crash-ready");
-        let mut child = Command::new(std::env::current_exe().map_err(|error| error.to_string())?)
-            .arg("--exact")
-            .arg("filesystem::macos::mutation::tests::abrupt_checkpoint_helper")
-            .arg("--nocapture")
-            .env(CRASH_PROJECT, &fixture.project)
-            .env(CRASH_STATE, &fixture.state)
-            .env(CRASH_READY, &ready)
-            .env(CRASH_PHASE, phase)
-            .env(CRASH_KIND, "format")
-            .spawn()
-            .map_err(|error| error.to_string())?;
+        let mut child = while_no_store_lock_is_held(|| {
+            Command::new(std::env::current_exe().map_err(|error| error.to_string())?)
+                .arg("--exact")
+                .arg("filesystem::macos::mutation::tests::abrupt_checkpoint_helper")
+                .arg("--nocapture")
+                .env(CRASH_PROJECT, &fixture.project)
+                .env(CRASH_STATE, &fixture.state)
+                .env(CRASH_READY, &ready)
+                .env(CRASH_PHASE, phase)
+                .env(CRASH_KIND, "format")
+                .spawn()
+                .map_err(|error| error.to_string())
+        })?;
         let mut observed = false;
         for _ in 0..500 {
             if ready.exists() {
