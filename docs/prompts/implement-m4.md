@@ -2,6 +2,8 @@
 
 Asume el rol de Technical Owner, arquitecto, integrador y revisor final en el repositorio Rust Engineering MCP. Esta sesión autoriza exclusivamente M4; no avances al siguiente milestone. YouTrack está deshabilitado. Sigue la instrucción actual del owner si contradice el alcance histórico de AGENTS; no supongas autorización de publicación.
 
+El [complemento M3 para M4](implement-m4-complement-m3.md) acompaña este encargo con los hechos, decisiones, recibos y deuda que M3 dejó en `main`.
+
 ## Inicio obligatorio
 
 Lee completamente [AGENTS](../../AGENTS.md), [spec](../spec/rust-engineering-mcp-propuesta-v0.3.md), README, CHANGELOG, SECURITY, docs/architecture.md, docs/tools.md, docs/security-model.md, docs/compatibility.md, docs/ci.md, docs/publication.md, [estado](../implementation-status.md), todos los ADR pertinentes y recibos de cierre anteriores. Lee el [maestro](../roadmap/m2-m8.md), [plan M4](../roadmap/m4-security.md), [trazabilidad](../roadmap/traceability-m2-m8.md) y [decisiones propuestas](../roadmap/adr-backlog-m2-m8.md). Estas referencias forman parte del encargo; no sustituyas sus criterios con un resumen.
