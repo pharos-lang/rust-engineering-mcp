@@ -1,0 +1,1069 @@
+{
+  "schema": "rust-mcp-m3-delegation-log-inventory-v1",
+  "recorded_at": "2026-09-06T21:03:32.418912+00:00",
+  "purpose": "Explicit selection of which M3 delegation records enter Git. The raw agent transcripts (stdout.txt, JSONL) stay on disk and are excluded by .gitignore; their path, size and SHA-256 are recorded here so the excluded bytes stay verifiable. Every other file in each package is committed. Mirrors the M2 precedent in docs/validation/M2-selective-log-tracking.json.",
+  "note": "R01-plugins/attempt-2-denied/stdout.txt is only 328 bytes, but is excluded under the same uniform rule; the headless permission denial it records is preserved in that package's committed stderr.txt.",
+  "package_count": 58,
+  "excluded_transcript_count": 59,
+  "excluded_transcript_bytes": 42399935,
+  "committed_file_count": 356,
+  "packages": [
+    {
+      "package": "A06-d06-adr",
+      "excluded_transcripts": [
+        {
+          "path": "docs/validation/m3-delegation/A06-d06-adr/stdout.txt",
+          "bytes": 1347078,
+          "sha256": "ce26941fbc7bff0a2cd9dc04e70ce92984a7a3a2e5c746e807759c55064280dc"
+        }
+      ],
+      "committed_files": [
+        "docs/validation/m3-delegation/A06-d06-adr/command.txt",
+        "docs/validation/m3-delegation/A06-d06-adr/last-message.md",
+        "docs/validation/m3-delegation/A06-d06-adr/meta.json",
+        "docs/validation/m3-delegation/A06-d06-adr/prompt.md",
+        "docs/validation/m3-delegation/A06-d06-adr/started-utc.txt",
+        "docs/validation/m3-delegation/A06-d06-adr/stderr.txt"
+      ]
+    },
+    {
+      "package": "A06b-adr060-revise",
+      "excluded_transcripts": [
+        {
+          "path": "docs/validation/m3-delegation/A06b-adr060-revise/stdout.txt",
+          "bytes": 297728,
+          "sha256": "fb0d300a85087e7ac0b51d0a1d425c8ae23815657f352b8851ccb2dedbad10cf"
+        }
+      ],
+      "committed_files": [
+        "docs/validation/m3-delegation/A06b-adr060-revise/command.txt",
+        "docs/validation/m3-delegation/A06b-adr060-revise/last-message.md",
+        "docs/validation/m3-delegation/A06b-adr060-revise/meta.json",
+        "docs/validation/m3-delegation/A06b-adr060-revise/prompt.md",
+        "docs/validation/m3-delegation/A06b-adr060-revise/started-utc.txt",
+        "docs/validation/m3-delegation/A06b-adr060-revise/stderr.txt"
+      ]
+    },
+    {
+      "package": "A17-d17-adr",
+      "excluded_transcripts": [
+        {
+          "path": "docs/validation/m3-delegation/A17-d17-adr/stdout.txt",
+          "bytes": 541671,
+          "sha256": "6295ba3f506af303756a7a745aff64a000f2bf51316f1ff02bda6a1ff8feb762"
+        }
+      ],
+      "committed_files": [
+        "docs/validation/m3-delegation/A17-d17-adr/command.txt",
+        "docs/validation/m3-delegation/A17-d17-adr/last-message.md",
+        "docs/validation/m3-delegation/A17-d17-adr/meta.json",
+        "docs/validation/m3-delegation/A17-d17-adr/prompt.md",
+        "docs/validation/m3-delegation/A17-d17-adr/started-utc.txt",
+        "docs/validation/m3-delegation/A17-d17-adr/stderr.txt"
+      ]
+    },
+    {
+      "package": "A17b-adr061-revise",
+      "excluded_transcripts": [
+        {
+          "path": "docs/validation/m3-delegation/A17b-adr061-revise/stdout.txt",
+          "bytes": 135882,
+          "sha256": "eda0fb565ebf2bfa5993be599b849420a3b589d18edc2ef252f56fb7c095a78a"
+        }
+      ],
+      "committed_files": [
+        "docs/validation/m3-delegation/A17b-adr061-revise/command.txt",
+        "docs/validation/m3-delegation/A17b-adr061-revise/last-message.md",
+        "docs/validation/m3-delegation/A17b-adr061-revise/meta.json",
+        "docs/validation/m3-delegation/A17b-adr061-revise/prompt.md",
+        "docs/validation/m3-delegation/A17b-adr061-revise/started-utc.txt",
+        "docs/validation/m3-delegation/A17b-adr061-revise/stderr.txt"
+      ]
+    },
+    {
+      "package": "A18-d18-adr",
+      "excluded_transcripts": [
+        {
+          "path": "docs/validation/m3-delegation/A18-d18-adr/stdout.txt",
+          "bytes": 6214,
+          "sha256": "9316aa2bdea4f569d3107c0586b74e4be792e12a0a5bbb225c3ec77d5b8b08d7"
+        }
+      ],
+      "committed_files": [
+        "docs/validation/m3-delegation/A18-d18-adr/command.txt",
+        "docs/validation/m3-delegation/A18-d18-adr/last-message.md",
+        "docs/validation/m3-delegation/A18-d18-adr/meta.json",
+        "docs/validation/m3-delegation/A18-d18-adr/prompt.md",
+        "docs/validation/m3-delegation/A18-d18-adr/started-utc.txt",
+        "docs/validation/m3-delegation/A18-d18-adr/stderr.txt"
+      ]
+    },
+    {
+      "package": "A18b-adr062-revise",
+      "excluded_transcripts": [
+        {
+          "path": "docs/validation/m3-delegation/A18b-adr062-revise/stdout.txt",
+          "bytes": 6425,
+          "sha256": "347c9050bfa0eb7cd16db46022a0b1a963207384e911d0d80730af67ac788226"
+        }
+      ],
+      "committed_files": [
+        "docs/validation/m3-delegation/A18b-adr062-revise/command.txt",
+        "docs/validation/m3-delegation/A18b-adr062-revise/last-message.md",
+        "docs/validation/m3-delegation/A18b-adr062-revise/meta.json",
+        "docs/validation/m3-delegation/A18b-adr062-revise/prompt.md",
+        "docs/validation/m3-delegation/A18b-adr062-revise/started-utc.txt",
+        "docs/validation/m3-delegation/A18b-adr062-revise/stderr.txt"
+      ]
+    },
+    {
+      "package": "D01-docs-m3",
+      "excluded_transcripts": [
+        {
+          "path": "docs/validation/m3-delegation/D01-docs-m3/stdout.txt",
+          "bytes": 370591,
+          "sha256": "234285a58840ff366fbb2efbf128edff153b2e4561d32a297911b0e257b92b08"
+        }
+      ],
+      "committed_files": [
+        "docs/validation/m3-delegation/D01-docs-m3/command.txt",
+        "docs/validation/m3-delegation/D01-docs-m3/last-message.md",
+        "docs/validation/m3-delegation/D01-docs-m3/meta.json",
+        "docs/validation/m3-delegation/D01-docs-m3/prompt.md",
+        "docs/validation/m3-delegation/D01-docs-m3/started-utc.txt",
+        "docs/validation/m3-delegation/D01-docs-m3/stderr.txt"
+      ]
+    },
+    {
+      "package": "D02-docs-correction",
+      "excluded_transcripts": [
+        {
+          "path": "docs/validation/m3-delegation/D02-docs-correction/stdout.txt",
+          "bytes": 1549884,
+          "sha256": "63bd61184404140c7e02937718c1b10e91f9412c7882b4b15e49c8e5eda83c75"
+        }
+      ],
+      "committed_files": [
+        "docs/validation/m3-delegation/D02-docs-correction/command.txt",
+        "docs/validation/m3-delegation/D02-docs-correction/last-message.md",
+        "docs/validation/m3-delegation/D02-docs-correction/meta.json",
+        "docs/validation/m3-delegation/D02-docs-correction/prompt.md",
+        "docs/validation/m3-delegation/D02-docs-correction/started-utc.txt",
+        "docs/validation/m3-delegation/D02-docs-correction/stderr.txt"
+      ]
+    },
+    {
+      "package": "D03-adr-acceptance",
+      "excluded_transcripts": [
+        {
+          "path": "docs/validation/m3-delegation/D03-adr-acceptance/stdout.txt",
+          "bytes": 391887,
+          "sha256": "1053053141df4f7c4b1f5d548bf7e78f1c9f7af2562187905987c6316db8f10a"
+        }
+      ],
+      "committed_files": [
+        "docs/validation/m3-delegation/D03-adr-acceptance/command.txt",
+        "docs/validation/m3-delegation/D03-adr-acceptance/last-message.md",
+        "docs/validation/m3-delegation/D03-adr-acceptance/meta.json",
+        "docs/validation/m3-delegation/D03-adr-acceptance/prompt.md",
+        "docs/validation/m3-delegation/D03-adr-acceptance/started-utc.txt",
+        "docs/validation/m3-delegation/D03-adr-acceptance/stderr.txt"
+      ]
+    },
+    {
+      "package": "D04-closure-consistency",
+      "excluded_transcripts": [
+        {
+          "path": "docs/validation/m3-delegation/D04-closure-consistency/stdout.txt",
+          "bytes": 812137,
+          "sha256": "967cb6f9bf565535bdf275708c58cfadebc138d52302e3cc34e33c9d9dd52386"
+        }
+      ],
+      "committed_files": [
+        "docs/validation/m3-delegation/D04-closure-consistency/command.txt",
+        "docs/validation/m3-delegation/D04-closure-consistency/last-message.md",
+        "docs/validation/m3-delegation/D04-closure-consistency/meta.json",
+        "docs/validation/m3-delegation/D04-closure-consistency/prompt.md",
+        "docs/validation/m3-delegation/D04-closure-consistency/started-utc.txt",
+        "docs/validation/m3-delegation/D04-closure-consistency/stderr.txt"
+      ]
+    },
+    {
+      "package": "F01-fixtures-docs",
+      "excluded_transcripts": [
+        {
+          "path": "docs/validation/m3-delegation/F01-fixtures-docs/stdout.txt",
+          "bytes": 162199,
+          "sha256": "39d2a21160d37532298242b8025c28b8a074b5603592c3ae6f6e21f4bef8cb16"
+        }
+      ],
+      "committed_files": [
+        "docs/validation/m3-delegation/F01-fixtures-docs/command.txt",
+        "docs/validation/m3-delegation/F01-fixtures-docs/last-message.md",
+        "docs/validation/m3-delegation/F01-fixtures-docs/meta.json",
+        "docs/validation/m3-delegation/F01-fixtures-docs/prompt.md",
+        "docs/validation/m3-delegation/F01-fixtures-docs/started-utc.txt",
+        "docs/validation/m3-delegation/F01-fixtures-docs/stderr.txt"
+      ]
+    },
+    {
+      "package": "F02-mutation-fixtures",
+      "excluded_transcripts": [
+        {
+          "path": "docs/validation/m3-delegation/F02-mutation-fixtures/stdout.txt",
+          "bytes": 87521,
+          "sha256": "dd655ce49ee604ce6b3b9cc7f487ab6261bec3c3cbcf1838c235513568142249"
+        }
+      ],
+      "committed_files": [
+        "docs/validation/m3-delegation/F02-mutation-fixtures/command.txt",
+        "docs/validation/m3-delegation/F02-mutation-fixtures/last-message.md",
+        "docs/validation/m3-delegation/F02-mutation-fixtures/meta.json",
+        "docs/validation/m3-delegation/F02-mutation-fixtures/prompt.md",
+        "docs/validation/m3-delegation/F02-mutation-fixtures/started-utc.txt",
+        "docs/validation/m3-delegation/F02-mutation-fixtures/stderr.txt"
+      ]
+    },
+    {
+      "package": "I00-jobexecutor",
+      "excluded_transcripts": [
+        {
+          "path": "docs/validation/m3-delegation/I00-jobexecutor/stdout.txt",
+          "bytes": 2108720,
+          "sha256": "268ff6c2e53e6460e4e4f61a3e0bdfe79160cd159ee4d3932ae4fb894df9b277"
+        }
+      ],
+      "committed_files": [
+        "docs/validation/m3-delegation/I00-jobexecutor/command.txt",
+        "docs/validation/m3-delegation/I00-jobexecutor/last-message.md",
+        "docs/validation/m3-delegation/I00-jobexecutor/meta.json",
+        "docs/validation/m3-delegation/I00-jobexecutor/prompt.md",
+        "docs/validation/m3-delegation/I00-jobexecutor/started-utc.txt",
+        "docs/validation/m3-delegation/I00-jobexecutor/stderr.txt"
+      ]
+    },
+    {
+      "package": "I01-nextest-adapter",
+      "excluded_transcripts": [
+        {
+          "path": "docs/validation/m3-delegation/I01-nextest-adapter/stdout.txt",
+          "bytes": 11654,
+          "sha256": "b313f4125ecf17597994e2aa0e95d6905571736e8616366721f87c0c8bf9bda9"
+        }
+      ],
+      "committed_files": [
+        "docs/validation/m3-delegation/I01-nextest-adapter/command.txt",
+        "docs/validation/m3-delegation/I01-nextest-adapter/last-message.md",
+        "docs/validation/m3-delegation/I01-nextest-adapter/meta.json",
+        "docs/validation/m3-delegation/I01-nextest-adapter/prompt.md",
+        "docs/validation/m3-delegation/I01-nextest-adapter/started-utc.txt",
+        "docs/validation/m3-delegation/I01-nextest-adapter/stderr.txt"
+      ]
+    },
+    {
+      "package": "I02-integration-nextest",
+      "excluded_transcripts": [
+        {
+          "path": "docs/validation/m3-delegation/I02-integration-nextest/stdout.txt",
+          "bytes": 2684176,
+          "sha256": "ece287418ab142fa6d1ab39d9372d5888dc305b54022b98bc92986f583cfff21"
+        }
+      ],
+      "committed_files": [
+        "docs/validation/m3-delegation/I02-integration-nextest/command.txt",
+        "docs/validation/m3-delegation/I02-integration-nextest/files-sha256.txt",
+        "docs/validation/m3-delegation/I02-integration-nextest/last-message.md",
+        "docs/validation/m3-delegation/I02-integration-nextest/meta.json",
+        "docs/validation/m3-delegation/I02-integration-nextest/prompt.md",
+        "docs/validation/m3-delegation/I02-integration-nextest/started-utc.txt",
+        "docs/validation/m3-delegation/I02-integration-nextest/stderr.txt"
+      ]
+    },
+    {
+      "package": "I02b-v00-fixes",
+      "excluded_transcripts": [
+        {
+          "path": "docs/validation/m3-delegation/I02b-v00-fixes/stdout.txt",
+          "bytes": 5211750,
+          "sha256": "006bfeba97ce9aff232b92b040381d9536503869e29da3a67ed6051906c32781"
+        }
+      ],
+      "committed_files": [
+        "docs/validation/m3-delegation/I02b-v00-fixes/command.txt",
+        "docs/validation/m3-delegation/I02b-v00-fixes/files-sha256.txt",
+        "docs/validation/m3-delegation/I02b-v00-fixes/last-message.md",
+        "docs/validation/m3-delegation/I02b-v00-fixes/meta.json",
+        "docs/validation/m3-delegation/I02b-v00-fixes/prompt.md",
+        "docs/validation/m3-delegation/I02b-v00-fixes/started-utc.txt",
+        "docs/validation/m3-delegation/I02b-v00-fixes/stderr.txt"
+      ]
+    },
+    {
+      "package": "I03-coverage",
+      "excluded_transcripts": [
+        {
+          "path": "docs/validation/m3-delegation/I03-coverage/stdout.txt",
+          "bytes": 684638,
+          "sha256": "7e56c529251f38340b1aa56fc9d5f8b2b32a3824f4e5e3730cec7372b50b5e2a"
+        }
+      ],
+      "committed_files": [
+        "docs/validation/m3-delegation/I03-coverage/command.txt",
+        "docs/validation/m3-delegation/I03-coverage/last-message.md",
+        "docs/validation/m3-delegation/I03-coverage/meta.json",
+        "docs/validation/m3-delegation/I03-coverage/prompt.md",
+        "docs/validation/m3-delegation/I03-coverage/started-utc.txt",
+        "docs/validation/m3-delegation/I03-coverage/stderr.txt"
+      ]
+    },
+    {
+      "package": "I03b-coverage-continue",
+      "excluded_transcripts": [
+        {
+          "path": "docs/validation/m3-delegation/I03b-coverage-continue/stdout.txt",
+          "bytes": 770683,
+          "sha256": "cc0728b6688d0b872cc07795207b665614a53eeeee56c213d743d2aac20a1299"
+        }
+      ],
+      "committed_files": [
+        "docs/validation/m3-delegation/I03b-coverage-continue/command.txt",
+        "docs/validation/m3-delegation/I03b-coverage-continue/last-message.md",
+        "docs/validation/m3-delegation/I03b-coverage-continue/meta.json",
+        "docs/validation/m3-delegation/I03b-coverage-continue/prompt.md",
+        "docs/validation/m3-delegation/I03b-coverage-continue/started-utc.txt",
+        "docs/validation/m3-delegation/I03b-coverage-continue/stderr.txt"
+      ]
+    },
+    {
+      "package": "I04-semver",
+      "excluded_transcripts": [
+        {
+          "path": "docs/validation/m3-delegation/I04-semver/stdout.txt",
+          "bytes": 4005,
+          "sha256": "a211d15a6ca60b727fc0ea403e10dcf7aa58da614ca3f04db0aedd4cb10f0e79"
+        }
+      ],
+      "committed_files": [
+        "docs/validation/m3-delegation/I04-semver/command.txt",
+        "docs/validation/m3-delegation/I04-semver/last-message.md",
+        "docs/validation/m3-delegation/I04-semver/meta.json",
+        "docs/validation/m3-delegation/I04-semver/prompt.md",
+        "docs/validation/m3-delegation/I04-semver/started-utc.txt",
+        "docs/validation/m3-delegation/I04-semver/stderr.txt"
+      ]
+    },
+    {
+      "package": "I04b-semver-continue",
+      "excluded_transcripts": [
+        {
+          "path": "docs/validation/m3-delegation/I04b-semver-continue/stdout.txt",
+          "bytes": 2029,
+          "sha256": "f6943a89bcf837c4ad50114a6fac744e4b5a9b14654cb509fed09d9e08ab6a59"
+        }
+      ],
+      "committed_files": [
+        "docs/validation/m3-delegation/I04b-semver-continue/command.txt",
+        "docs/validation/m3-delegation/I04b-semver-continue/last-message.md",
+        "docs/validation/m3-delegation/I04b-semver-continue/meta.json",
+        "docs/validation/m3-delegation/I04b-semver-continue/prompt.md",
+        "docs/validation/m3-delegation/I04b-semver-continue/started-utc.txt",
+        "docs/validation/m3-delegation/I04b-semver-continue/stderr.txt"
+      ]
+    },
+    {
+      "package": "I04c-semver-complete",
+      "excluded_transcripts": [
+        {
+          "path": "docs/validation/m3-delegation/I04c-semver-complete/stdout.txt",
+          "bytes": 4780357,
+          "sha256": "934bef4a5ca20d1d316f50cdd1913dfbcb36c5787cae1a086da6cf151969e8a8"
+        }
+      ],
+      "committed_files": [
+        "docs/validation/m3-delegation/I04c-semver-complete/command.txt",
+        "docs/validation/m3-delegation/I04c-semver-complete/last-message.md",
+        "docs/validation/m3-delegation/I04c-semver-complete/meta.json",
+        "docs/validation/m3-delegation/I04c-semver-complete/prompt.md",
+        "docs/validation/m3-delegation/I04c-semver-complete/started-utc.txt",
+        "docs/validation/m3-delegation/I04c-semver-complete/stderr.txt"
+      ]
+    },
+    {
+      "package": "I05-mutation",
+      "excluded_transcripts": [
+        {
+          "path": "docs/validation/m3-delegation/I05-mutation/stdout.txt",
+          "bytes": 19320,
+          "sha256": "a48231788b93986d23485d563a01e4d4f4539f03e14769ca1f2c07a3e32e505c"
+        }
+      ],
+      "committed_files": [
+        "docs/validation/m3-delegation/I05-mutation/command.txt",
+        "docs/validation/m3-delegation/I05-mutation/last-message.md",
+        "docs/validation/m3-delegation/I05-mutation/meta.json",
+        "docs/validation/m3-delegation/I05-mutation/prompt.md",
+        "docs/validation/m3-delegation/I05-mutation/started-utc.txt",
+        "docs/validation/m3-delegation/I05-mutation/stderr.txt"
+      ]
+    },
+    {
+      "package": "I06-tasks-implementation",
+      "excluded_transcripts": [
+        {
+          "path": "docs/validation/m3-delegation/I06-tasks-implementation/stdout.txt",
+          "bytes": 1773827,
+          "sha256": "c27240a9b73f749d412e577a16b95eb8776e5494c4b72d0cbe6804e0ec5bf64a"
+        }
+      ],
+      "committed_files": [
+        "docs/validation/m3-delegation/I06-tasks-implementation/command.txt",
+        "docs/validation/m3-delegation/I06-tasks-implementation/last-message.md",
+        "docs/validation/m3-delegation/I06-tasks-implementation/meta.json",
+        "docs/validation/m3-delegation/I06-tasks-implementation/prompt.md",
+        "docs/validation/m3-delegation/I06-tasks-implementation/started-utc.txt",
+        "docs/validation/m3-delegation/I06-tasks-implementation/stderr.txt"
+      ]
+    },
+    {
+      "package": "I17-artifact-store",
+      "excluded_transcripts": [
+        {
+          "path": "docs/validation/m3-delegation/I17-artifact-store/stdout.txt",
+          "bytes": 364641,
+          "sha256": "b752a68771067c6d2f02784a2055bb96fff120c594e7824c90fa91c83abbdd67"
+        }
+      ],
+      "committed_files": [
+        "docs/validation/m3-delegation/I17-artifact-store/command.txt",
+        "docs/validation/m3-delegation/I17-artifact-store/last-message.md",
+        "docs/validation/m3-delegation/I17-artifact-store/meta.json",
+        "docs/validation/m3-delegation/I17-artifact-store/prompt.md",
+        "docs/validation/m3-delegation/I17-artifact-store/started-utc.txt",
+        "docs/validation/m3-delegation/I17-artifact-store/stderr.txt"
+      ]
+    },
+    {
+      "package": "I17b-artifact-store",
+      "excluded_transcripts": [
+        {
+          "path": "docs/validation/m3-delegation/I17b-artifact-store/stdout.txt",
+          "bytes": 69501,
+          "sha256": "05d137359d561fe1c483c4225633e99469d493062d3f6f1f3cd2f07d23a6b1b3"
+        }
+      ],
+      "committed_files": [
+        "docs/validation/m3-delegation/I17b-artifact-store/command.txt",
+        "docs/validation/m3-delegation/I17b-artifact-store/last-message.md",
+        "docs/validation/m3-delegation/I17b-artifact-store/meta.json",
+        "docs/validation/m3-delegation/I17b-artifact-store/prompt.md",
+        "docs/validation/m3-delegation/I17b-artifact-store/started-utc.txt",
+        "docs/validation/m3-delegation/I17b-artifact-store/stderr.txt"
+      ]
+    },
+    {
+      "package": "I17c-artifact-store-opus",
+      "excluded_transcripts": [
+        {
+          "path": "docs/validation/m3-delegation/I17c-artifact-store-opus/stdout.txt",
+          "bytes": 15065,
+          "sha256": "891a312e6f8adeb31ac7efc3b36a7d4744604198490dfbcd30b23be96c74b42b"
+        }
+      ],
+      "committed_files": [
+        "docs/validation/m3-delegation/I17c-artifact-store-opus/command.txt",
+        "docs/validation/m3-delegation/I17c-artifact-store-opus/last-message.md",
+        "docs/validation/m3-delegation/I17c-artifact-store-opus/meta.json",
+        "docs/validation/m3-delegation/I17c-artifact-store-opus/prompt.md",
+        "docs/validation/m3-delegation/I17c-artifact-store-opus/started-utc.txt",
+        "docs/validation/m3-delegation/I17c-artifact-store-opus/stderr.txt"
+      ]
+    },
+    {
+      "package": "I17d-store-fixes",
+      "excluded_transcripts": [
+        {
+          "path": "docs/validation/m3-delegation/I17d-store-fixes/stdout.txt",
+          "bytes": 13015,
+          "sha256": "4983db2a58422d186f5419e341fa21468d4f519c66839871fafa658c38dc1deb"
+        }
+      ],
+      "committed_files": [
+        "docs/validation/m3-delegation/I17d-store-fixes/command.txt",
+        "docs/validation/m3-delegation/I17d-store-fixes/last-message.md",
+        "docs/validation/m3-delegation/I17d-store-fixes/meta.json",
+        "docs/validation/m3-delegation/I17d-store-fixes/prompt.md",
+        "docs/validation/m3-delegation/I17d-store-fixes/started-utc.txt",
+        "docs/validation/m3-delegation/I17d-store-fixes/stderr.txt"
+      ]
+    },
+    {
+      "package": "INT-integration",
+      "excluded_transcripts": [
+        {
+          "path": "docs/validation/m3-delegation/INT-integration/stdout.txt",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        }
+      ],
+      "committed_files": [
+        "docs/validation/m3-delegation/INT-integration/command.txt",
+        "docs/validation/m3-delegation/INT-integration/prompt.md",
+        "docs/validation/m3-delegation/INT-integration/started-utc.txt",
+        "docs/validation/m3-delegation/INT-integration/stderr.txt"
+      ]
+    },
+    {
+      "package": "P00-docker-probe",
+      "excluded_transcripts": [
+        {
+          "path": "docs/validation/m3-delegation/P00-docker-probe/stdout.txt",
+          "bytes": 11739,
+          "sha256": "97a96322caee4c5be4c1168131092440f888d80d06c53867ef04034941770aaa"
+        }
+      ],
+      "committed_files": [
+        "docs/validation/m3-delegation/P00-docker-probe/command.txt",
+        "docs/validation/m3-delegation/P00-docker-probe/last-message.md",
+        "docs/validation/m3-delegation/P00-docker-probe/meta.json",
+        "docs/validation/m3-delegation/P00-docker-probe/prompt.md",
+        "docs/validation/m3-delegation/P00-docker-probe/started-utc.txt",
+        "docs/validation/m3-delegation/P00-docker-probe/stderr.txt"
+      ]
+    },
+    {
+      "package": "P01-provisioning",
+      "excluded_transcripts": [
+        {
+          "path": "docs/validation/m3-delegation/P01-provisioning/stdout.txt",
+          "bytes": 762971,
+          "sha256": "5d044276da3d2c1978e92e87670e1a4e84295be836ba2110e08775802f973da9"
+        }
+      ],
+      "committed_files": [
+        "docs/validation/m3-delegation/P01-provisioning/command.txt",
+        "docs/validation/m3-delegation/P01-provisioning/last-message.md",
+        "docs/validation/m3-delegation/P01-provisioning/meta.json",
+        "docs/validation/m3-delegation/P01-provisioning/prompt.md",
+        "docs/validation/m3-delegation/P01-provisioning/started-utc.txt",
+        "docs/validation/m3-delegation/P01-provisioning/stderr.txt"
+      ]
+    },
+    {
+      "package": "P02-provision-run",
+      "excluded_transcripts": [
+        {
+          "path": "docs/validation/m3-delegation/P02-provision-run/stdout.txt",
+          "bytes": 1032004,
+          "sha256": "515274927f85c7c561a9cd4f373f1286204adc4651c17a9617ab887807d9d237"
+        }
+      ],
+      "committed_files": [
+        "docs/validation/m3-delegation/P02-provision-run/command.txt",
+        "docs/validation/m3-delegation/P02-provision-run/last-message.md",
+        "docs/validation/m3-delegation/P02-provision-run/meta.json",
+        "docs/validation/m3-delegation/P02-provision-run/prompt.md",
+        "docs/validation/m3-delegation/P02-provision-run/started-utc.txt",
+        "docs/validation/m3-delegation/P02-provision-run/stderr.txt"
+      ]
+    },
+    {
+      "package": "Q01-docker-qualification",
+      "excluded_transcripts": [
+        {
+          "path": "docs/validation/m3-delegation/Q01-docker-qualification/stdout.txt",
+          "bytes": 4759838,
+          "sha256": "c04be7a1ba7f393c5977e946e3767d1b696393546341dc5d66edd924913b04ee"
+        }
+      ],
+      "committed_files": [
+        "docs/validation/m3-delegation/Q01-docker-qualification/command.txt",
+        "docs/validation/m3-delegation/Q01-docker-qualification/last-message.md",
+        "docs/validation/m3-delegation/Q01-docker-qualification/meta.json",
+        "docs/validation/m3-delegation/Q01-docker-qualification/prompt.md",
+        "docs/validation/m3-delegation/Q01-docker-qualification/started-utc.txt",
+        "docs/validation/m3-delegation/Q01-docker-qualification/stderr.txt"
+      ]
+    },
+    {
+      "package": "Q02-probe",
+      "excluded_transcripts": [
+        {
+          "path": "docs/validation/m3-delegation/Q02-probe/stdout.txt",
+          "bytes": 1137077,
+          "sha256": "4d0536895acaaa2c14f05b01d340e63cdb53bdc506b3a485fd58506191e826af"
+        }
+      ],
+      "committed_files": [
+        "docs/validation/m3-delegation/Q02-probe/command.txt",
+        "docs/validation/m3-delegation/Q02-probe/last-message.md",
+        "docs/validation/m3-delegation/Q02-probe/meta.json",
+        "docs/validation/m3-delegation/Q02-probe/prompt.md",
+        "docs/validation/m3-delegation/Q02-probe/started-utc.txt",
+        "docs/validation/m3-delegation/Q02-probe/stderr.txt"
+      ]
+    },
+    {
+      "package": "Q02b-docker-validator",
+      "excluded_transcripts": [
+        {
+          "path": "docs/validation/m3-delegation/Q02b-docker-validator/stdout.txt",
+          "bytes": 3494,
+          "sha256": "34b9b883da76d37e3a1475f2f755ced5c0b78b3816fddcbd3d0c34888756672a"
+        }
+      ],
+      "committed_files": [
+        "docs/validation/m3-delegation/Q02b-docker-validator/command.txt",
+        "docs/validation/m3-delegation/Q02b-docker-validator/last-message.md",
+        "docs/validation/m3-delegation/Q02b-docker-validator/meta.json",
+        "docs/validation/m3-delegation/Q02b-docker-validator/prompt.md",
+        "docs/validation/m3-delegation/Q02b-docker-validator/started-utc.txt",
+        "docs/validation/m3-delegation/Q02b-docker-validator/stderr.txt"
+      ]
+    },
+    {
+      "package": "R00-rmcp-tasks",
+      "excluded_transcripts": [
+        {
+          "path": "docs/validation/m3-delegation/R00-rmcp-tasks/stdout.txt",
+          "bytes": 35241,
+          "sha256": "3084e49589bcda4c47bed2614b8d33ba8ec554075c595200fd79fef6c5e57c72"
+        }
+      ],
+      "committed_files": [
+        "docs/validation/m3-delegation/R00-rmcp-tasks/command.txt",
+        "docs/validation/m3-delegation/R00-rmcp-tasks/meta.json",
+        "docs/validation/m3-delegation/R00-rmcp-tasks/prompt.md",
+        "docs/validation/m3-delegation/R00-rmcp-tasks/report.md",
+        "docs/validation/m3-delegation/R00-rmcp-tasks/started-utc.txt",
+        "docs/validation/m3-delegation/R00-rmcp-tasks/stderr.txt"
+      ]
+    },
+    {
+      "package": "R01-plugins",
+      "excluded_transcripts": [
+        {
+          "path": "docs/validation/m3-delegation/R01-plugins/attempt-2-denied/stdout.txt",
+          "bytes": 328,
+          "sha256": "a2b41077b0373977e9feab4f19ae1c2ce14e1c1c9c5f6449a62af86337aea8f7"
+        },
+        {
+          "path": "docs/validation/m3-delegation/R01-plugins/stdout.txt",
+          "bytes": 32831,
+          "sha256": "b5f439b550e7a40cd3bf770008dc7cdc7f427818fb623e671b3bf7f2c2f1cba0"
+        }
+      ],
+      "committed_files": [
+        "docs/validation/m3-delegation/R01-plugins/attempt-1-denied.md",
+        "docs/validation/m3-delegation/R01-plugins/attempt-2-denied/command.txt",
+        "docs/validation/m3-delegation/R01-plugins/attempt-2-denied/meta.json",
+        "docs/validation/m3-delegation/R01-plugins/attempt-2-denied/prompt.md",
+        "docs/validation/m3-delegation/R01-plugins/attempt-2-denied/report.md",
+        "docs/validation/m3-delegation/R01-plugins/attempt-2-denied/started-utc.txt",
+        "docs/validation/m3-delegation/R01-plugins/attempt-2-denied/stderr.txt",
+        "docs/validation/m3-delegation/R01-plugins/command.txt",
+        "docs/validation/m3-delegation/R01-plugins/meta.json",
+        "docs/validation/m3-delegation/R01-plugins/prompt.md",
+        "docs/validation/m3-delegation/R01-plugins/report.md",
+        "docs/validation/m3-delegation/R01-plugins/started-utc.txt",
+        "docs/validation/m3-delegation/R01-plugins/stderr.txt"
+      ]
+    },
+    {
+      "package": "R02-traceability",
+      "excluded_transcripts": [
+        {
+          "path": "docs/validation/m3-delegation/R02-traceability/stdout.txt",
+          "bytes": 38260,
+          "sha256": "7d8ef27a4ae909fd5a026085600cbb6fbfe1155dc47fddea06fe1fa9e0fa9ae7"
+        }
+      ],
+      "committed_files": [
+        "docs/validation/m3-delegation/R02-traceability/command.txt",
+        "docs/validation/m3-delegation/R02-traceability/meta.json",
+        "docs/validation/m3-delegation/R02-traceability/prompt.md",
+        "docs/validation/m3-delegation/R02-traceability/report.md",
+        "docs/validation/m3-delegation/R02-traceability/started-utc.txt",
+        "docs/validation/m3-delegation/R02-traceability/stderr.txt"
+      ]
+    },
+    {
+      "package": "S00-baseline",
+      "excluded_transcripts": [
+        {
+          "path": "docs/validation/m3-delegation/S00-baseline/stdout.txt",
+          "bytes": 1683286,
+          "sha256": "cb262a81571f15de9600d5d04e724e05cb0728731d9967c69201da1493e49ae1"
+        }
+      ],
+      "committed_files": [
+        "docs/validation/m3-delegation/S00-baseline/command.txt",
+        "docs/validation/m3-delegation/S00-baseline/last-message.md",
+        "docs/validation/m3-delegation/S00-baseline/meta.json",
+        "docs/validation/m3-delegation/S00-baseline/prompt.md",
+        "docs/validation/m3-delegation/S00-baseline/report.md",
+        "docs/validation/m3-delegation/S00-baseline/started-utc.txt",
+        "docs/validation/m3-delegation/S00-baseline/stderr.txt"
+      ]
+    },
+    {
+      "package": "S00b-branch",
+      "excluded_transcripts": [
+        {
+          "path": "docs/validation/m3-delegation/S00b-branch/stdout.txt",
+          "bytes": 4065,
+          "sha256": "c31c246281ba3173a2dfd6b5380095160fa9619a5c4f102543385e5dc518c8b8"
+        }
+      ],
+      "committed_files": [
+        "docs/validation/m3-delegation/S00b-branch/command.txt",
+        "docs/validation/m3-delegation/S00b-branch/last-message.md",
+        "docs/validation/m3-delegation/S00b-branch/meta.json",
+        "docs/validation/m3-delegation/S00b-branch/prompt.md",
+        "docs/validation/m3-delegation/S00b-branch/started-utc.txt",
+        "docs/validation/m3-delegation/S00b-branch/stderr.txt"
+      ]
+    },
+    {
+      "package": "S01-store-flake",
+      "excluded_transcripts": [
+        {
+          "path": "docs/validation/m3-delegation/S01-store-flake/stdout.txt",
+          "bytes": 16943,
+          "sha256": "f453151ec4b27520b43d1617999beb12e927212ef82215a9bac7f3594c695e13"
+        }
+      ],
+      "committed_files": [
+        "docs/validation/m3-delegation/S01-store-flake/command.txt",
+        "docs/validation/m3-delegation/S01-store-flake/last-message.md",
+        "docs/validation/m3-delegation/S01-store-flake/meta.json",
+        "docs/validation/m3-delegation/S01-store-flake/prompt.md",
+        "docs/validation/m3-delegation/S01-store-flake/started-utc.txt",
+        "docs/validation/m3-delegation/S01-store-flake/stderr.txt"
+      ]
+    },
+    {
+      "package": "V-CONTRACTS",
+      "excluded_transcripts": [
+        {
+          "path": "docs/validation/m3-delegation/V-CONTRACTS/stdout.txt",
+          "bytes": 10434,
+          "sha256": "7f6ef684e8b39b1901704771fefb56e4c96027be75bc3fce8bc3940e56d55a1a"
+        }
+      ],
+      "committed_files": [
+        "docs/validation/m3-delegation/V-CONTRACTS/command.txt",
+        "docs/validation/m3-delegation/V-CONTRACTS/last-message.md",
+        "docs/validation/m3-delegation/V-CONTRACTS/meta.json",
+        "docs/validation/m3-delegation/V-CONTRACTS/prompt.md",
+        "docs/validation/m3-delegation/V-CONTRACTS/started-utc.txt",
+        "docs/validation/m3-delegation/V-CONTRACTS/stderr.txt"
+      ]
+    },
+    {
+      "package": "V-SEC",
+      "excluded_transcripts": [
+        {
+          "path": "docs/validation/m3-delegation/V-SEC/stdout.txt",
+          "bytes": 30891,
+          "sha256": "901ac7d12ecd3a20903c744a7ca2bdf61965fd6c30f2292b2918ae391813d7ca"
+        }
+      ],
+      "committed_files": [
+        "docs/validation/m3-delegation/V-SEC/command.txt",
+        "docs/validation/m3-delegation/V-SEC/last-message.md",
+        "docs/validation/m3-delegation/V-SEC/meta.json",
+        "docs/validation/m3-delegation/V-SEC/prompt.md",
+        "docs/validation/m3-delegation/V-SEC/started-utc.txt",
+        "docs/validation/m3-delegation/V-SEC/stderr.txt"
+      ]
+    },
+    {
+      "package": "V00-jobexecutor-review",
+      "excluded_transcripts": [
+        {
+          "path": "docs/validation/m3-delegation/V00-jobexecutor-review/stdout.txt",
+          "bytes": 20021,
+          "sha256": "5f33523e4e016201975bc318d07d23b42f58ea1aed25815ae30aa7931b77c47d"
+        }
+      ],
+      "committed_files": [
+        "docs/validation/m3-delegation/V00-jobexecutor-review/command.txt",
+        "docs/validation/m3-delegation/V00-jobexecutor-review/last-message.md",
+        "docs/validation/m3-delegation/V00-jobexecutor-review/meta.json",
+        "docs/validation/m3-delegation/V00-jobexecutor-review/prompt.md",
+        "docs/validation/m3-delegation/V00-jobexecutor-review/started-utc.txt",
+        "docs/validation/m3-delegation/V00-jobexecutor-review/stderr.txt"
+      ]
+    },
+    {
+      "package": "V06-adr060-review",
+      "excluded_transcripts": [
+        {
+          "path": "docs/validation/m3-delegation/V06-adr060-review/stdout.txt",
+          "bytes": 24306,
+          "sha256": "a08702172713cec3c36c16f02f23998e61af4c0a9b3f79273e499c5a08515de7"
+        }
+      ],
+      "committed_files": [
+        "docs/validation/m3-delegation/V06-adr060-review/command.txt",
+        "docs/validation/m3-delegation/V06-adr060-review/last-message.md",
+        "docs/validation/m3-delegation/V06-adr060-review/meta.json",
+        "docs/validation/m3-delegation/V06-adr060-review/prompt.md",
+        "docs/validation/m3-delegation/V06-adr060-review/started-utc.txt",
+        "docs/validation/m3-delegation/V06-adr060-review/stderr.txt"
+      ]
+    },
+    {
+      "package": "V17-adr061-review",
+      "excluded_transcripts": [
+        {
+          "path": "docs/validation/m3-delegation/V17-adr061-review/stdout.txt",
+          "bytes": 33966,
+          "sha256": "0082fddda7972dd14b77ea807def9e25237f0a5fe3b59ffeb6e03a0044c3bccb"
+        }
+      ],
+      "committed_files": [
+        "docs/validation/m3-delegation/V17-adr061-review/command.txt",
+        "docs/validation/m3-delegation/V17-adr061-review/last-message.md",
+        "docs/validation/m3-delegation/V17-adr061-review/meta.json",
+        "docs/validation/m3-delegation/V17-adr061-review/prompt.md",
+        "docs/validation/m3-delegation/V17-adr061-review/started-utc.txt",
+        "docs/validation/m3-delegation/V17-adr061-review/stderr.txt"
+      ]
+    },
+    {
+      "package": "V17c-store-review",
+      "excluded_transcripts": [
+        {
+          "path": "docs/validation/m3-delegation/V17c-store-review/stdout.txt",
+          "bytes": 16380,
+          "sha256": "81c3bc9de3da51b0b04a0174030361b0b93e8378ae460fdf81ff67eff28d7ba9"
+        }
+      ],
+      "committed_files": [
+        "docs/validation/m3-delegation/V17c-store-review/command.txt",
+        "docs/validation/m3-delegation/V17c-store-review/last-message.md",
+        "docs/validation/m3-delegation/V17c-store-review/meta.json",
+        "docs/validation/m3-delegation/V17c-store-review/prompt.md",
+        "docs/validation/m3-delegation/V17c-store-review/started-utc.txt",
+        "docs/validation/m3-delegation/V17c-store-review/stderr.txt"
+      ]
+    },
+    {
+      "package": "V18-adr062-review",
+      "excluded_transcripts": [
+        {
+          "path": "docs/validation/m3-delegation/V18-adr062-review/stdout.txt",
+          "bytes": 14815,
+          "sha256": "cfbd20eb82ec9780062ee99b69683a9cc194b9eb7adb94da68ebfe6608578a48"
+        }
+      ],
+      "committed_files": [
+        "docs/validation/m3-delegation/V18-adr062-review/command.txt",
+        "docs/validation/m3-delegation/V18-adr062-review/last-message.md",
+        "docs/validation/m3-delegation/V18-adr062-review/meta.json",
+        "docs/validation/m3-delegation/V18-adr062-review/prompt.md",
+        "docs/validation/m3-delegation/V18-adr062-review/started-utc.txt",
+        "docs/validation/m3-delegation/V18-adr062-review/stderr.txt"
+      ]
+    },
+    {
+      "package": "VC-confirm",
+      "excluded_transcripts": [
+        {
+          "path": "docs/validation/m3-delegation/VC-confirm/stdout.txt",
+          "bytes": 3944,
+          "sha256": "d6f521e9b73bcfba4e41160348eaa0d44eee0adbd5c513243a075090aac4404d"
+        }
+      ],
+      "committed_files": [
+        "docs/validation/m3-delegation/VC-confirm/command.txt",
+        "docs/validation/m3-delegation/VC-confirm/last-message.md",
+        "docs/validation/m3-delegation/VC-confirm/meta.json",
+        "docs/validation/m3-delegation/VC-confirm/prompt.md",
+        "docs/validation/m3-delegation/VC-confirm/started-utc.txt",
+        "docs/validation/m3-delegation/VC-confirm/stderr.txt"
+      ]
+    },
+    {
+      "package": "VF-contracts-final",
+      "excluded_transcripts": [
+        {
+          "path": "docs/validation/m3-delegation/VF-contracts-final/stdout.txt",
+          "bytes": 5274,
+          "sha256": "52e9b5f118b8a12b1b8edcd11792dd025429ec8df8be0bf59b1588057188ac09"
+        }
+      ],
+      "committed_files": [
+        "docs/validation/m3-delegation/VF-contracts-final/command.txt",
+        "docs/validation/m3-delegation/VF-contracts-final/last-message.md",
+        "docs/validation/m3-delegation/VF-contracts-final/meta.json",
+        "docs/validation/m3-delegation/VF-contracts-final/prompt.md",
+        "docs/validation/m3-delegation/VF-contracts-final/started-utc.txt",
+        "docs/validation/m3-delegation/VF-contracts-final/stderr.txt"
+      ]
+    },
+    {
+      "package": "VF-opus-final",
+      "excluded_transcripts": [
+        {
+          "path": "docs/validation/m3-delegation/VF-opus-final/stdout.txt",
+          "bytes": 28039,
+          "sha256": "8cc400c64adecf98496f864d79897ef8d4dc925abf5a31f7a6c0d3eb8d3ed22d"
+        }
+      ],
+      "committed_files": [
+        "docs/validation/m3-delegation/VF-opus-final/command.txt",
+        "docs/validation/m3-delegation/VF-opus-final/last-message.md",
+        "docs/validation/m3-delegation/VF-opus-final/meta.json",
+        "docs/validation/m3-delegation/VF-opus-final/prompt.md",
+        "docs/validation/m3-delegation/VF-opus-final/started-utc.txt",
+        "docs/validation/m3-delegation/VF-opus-final/stderr.txt"
+      ]
+    },
+    {
+      "package": "VR-contracts-rereview",
+      "excluded_transcripts": [
+        {
+          "path": "docs/validation/m3-delegation/VR-contracts-rereview/stdout.txt",
+          "bytes": 8598,
+          "sha256": "83667076dcc410bb95963396cbfc322663a371dd6fbc3a0d05feebaeac306211"
+        }
+      ],
+      "committed_files": [
+        "docs/validation/m3-delegation/VR-contracts-rereview/command.txt",
+        "docs/validation/m3-delegation/VR-contracts-rereview/last-message.md",
+        "docs/validation/m3-delegation/VR-contracts-rereview/meta.json",
+        "docs/validation/m3-delegation/VR-contracts-rereview/prompt.md",
+        "docs/validation/m3-delegation/VR-contracts-rereview/started-utc.txt",
+        "docs/validation/m3-delegation/VR-contracts-rereview/stderr.txt"
+      ]
+    },
+    {
+      "package": "VR-opus-rereview",
+      "excluded_transcripts": [
+        {
+          "path": "docs/validation/m3-delegation/VR-opus-rereview/stdout.txt",
+          "bytes": 8779,
+          "sha256": "c83a13576064b3cfb9fd6da331d63b861d32792f76f8f764b7ed213509ea209e"
+        }
+      ],
+      "committed_files": [
+        "docs/validation/m3-delegation/VR-opus-rereview/command.txt",
+        "docs/validation/m3-delegation/VR-opus-rereview/last-message.md",
+        "docs/validation/m3-delegation/VR-opus-rereview/meta.json",
+        "docs/validation/m3-delegation/VR-opus-rereview/prompt.md",
+        "docs/validation/m3-delegation/VR-opus-rereview/started-utc.txt",
+        "docs/validation/m3-delegation/VR-opus-rereview/stderr.txt"
+      ]
+    },
+    {
+      "package": "W1-runtime-gate",
+      "excluded_transcripts": [
+        {
+          "path": "docs/validation/m3-delegation/W1-runtime-gate/stdout.txt",
+          "bytes": 12902,
+          "sha256": "af3a0d76920e03170aa5f4989d055ba34f12ef3bc5bd737e8d0564366f931a28"
+        }
+      ],
+      "committed_files": [
+        "docs/validation/m3-delegation/W1-runtime-gate/command.txt",
+        "docs/validation/m3-delegation/W1-runtime-gate/last-message.md",
+        "docs/validation/m3-delegation/W1-runtime-gate/meta.json",
+        "docs/validation/m3-delegation/W1-runtime-gate/prompt.md",
+        "docs/validation/m3-delegation/W1-runtime-gate/started-utc.txt",
+        "docs/validation/m3-delegation/W1-runtime-gate/stderr.txt"
+      ]
+    },
+    {
+      "package": "W2-coverage-final",
+      "excluded_transcripts": [
+        {
+          "path": "docs/validation/m3-delegation/W2-coverage-final/stdout.txt",
+          "bytes": 531182,
+          "sha256": "41a00d48bdcdc6effac1538d43aecc6cff6e64bcda1883b1a9e65933ca80b2da"
+        }
+      ],
+      "committed_files": [
+        "docs/validation/m3-delegation/W2-coverage-final/command.txt",
+        "docs/validation/m3-delegation/W2-coverage-final/last-message.md",
+        "docs/validation/m3-delegation/W2-coverage-final/meta.json",
+        "docs/validation/m3-delegation/W2-coverage-final/prompt.md",
+        "docs/validation/m3-delegation/W2-coverage-final/started-utc.txt",
+        "docs/validation/m3-delegation/W2-coverage-final/stderr.txt"
+      ]
+    },
+    {
+      "package": "W3-security-fixes",
+      "excluded_transcripts": [
+        {
+          "path": "docs/validation/m3-delegation/W3-security-fixes/stdout.txt",
+          "bytes": 1366584,
+          "sha256": "caeed7544727afa625b0184bc26452e29fa8702b3628813e13ac70dcb010bfb1"
+        }
+      ],
+      "committed_files": [
+        "docs/validation/m3-delegation/W3-security-fixes/command.txt",
+        "docs/validation/m3-delegation/W3-security-fixes/last-message.md",
+        "docs/validation/m3-delegation/W3-security-fixes/meta.json",
+        "docs/validation/m3-delegation/W3-security-fixes/prompt.md",
+        "docs/validation/m3-delegation/W3-security-fixes/started-utc.txt",
+        "docs/validation/m3-delegation/W3-security-fixes/stderr.txt"
+      ]
+    },
+    {
+      "package": "W4-m302-qualification",
+      "excluded_transcripts": [
+        {
+          "path": "docs/validation/m3-delegation/W4-m302-qualification/stdout.txt",
+          "bytes": 3965167,
+          "sha256": "c2c0de3643f801733a78e8c83fb94fa225ef2da1a932e81e8ea70364dede29ef"
+        }
+      ],
+      "committed_files": [
+        "docs/validation/m3-delegation/W4-m302-qualification/command.txt",
+        "docs/validation/m3-delegation/W4-m302-qualification/last-message.md",
+        "docs/validation/m3-delegation/W4-m302-qualification/meta.json",
+        "docs/validation/m3-delegation/W4-m302-qualification/prompt.md",
+        "docs/validation/m3-delegation/W4-m302-qualification/started-utc.txt",
+        "docs/validation/m3-delegation/W4-m302-qualification/stderr.txt"
+      ]
+    },
+    {
+      "package": "W5-m306-closure",
+      "excluded_transcripts": [
+        {
+          "path": "docs/validation/m3-delegation/W5-m306-closure/stdout.txt",
+          "bytes": 2565684,
+          "sha256": "fa45f595f26b89aa9f4b732fcc3c42431aee2ba43d7769a878ce11df74be4bda"
+        }
+      ],
+      "committed_files": [
+        "docs/validation/m3-delegation/W5-m306-closure/command.txt",
+        "docs/validation/m3-delegation/W5-m306-closure/last-message.md",
+        "docs/validation/m3-delegation/W5-m306-closure/meta.json",
+        "docs/validation/m3-delegation/W5-m306-closure/prompt.md",
+        "docs/validation/m3-delegation/W5-m306-closure/started-utc.txt",
+        "docs/validation/m3-delegation/W5-m306-closure/stderr.txt"
+      ]
+    },
+    {
+      "package": "W6-closure-completion",
+      "excluded_transcripts": [
+        {
+          "path": "docs/validation/m3-delegation/W6-closure-completion/stdout.txt",
+          "bytes": 12294,
+          "sha256": "419dbfe2b5533581fd57a5cebc4efda5907bfe709610ca3dd24042d55001d2fb"
+        }
+      ],
+      "committed_files": [
+        "docs/validation/m3-delegation/W6-closure-completion/command.txt",
+        "docs/validation/m3-delegation/W6-closure-completion/last-message.md",
+        "docs/validation/m3-delegation/W6-closure-completion/meta.json",
+        "docs/validation/m3-delegation/W6-closure-completion/prompt.md",
+        "docs/validation/m3-delegation/W6-closure-completion/started-utc.txt",
+        "docs/validation/m3-delegation/W6-closure-completion/stderr.txt"
+      ]
+    }
+  ]
+}

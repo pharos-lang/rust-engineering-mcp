@@ -181,7 +181,7 @@ impl Server {
         server.request(json!({"jsonrpc":"2.0","id":2,"method":"tools/list","params":{}}))?;
         let listing = server.response(2)?;
         let tools = listing["result"]["tools"].as_array().ok_or("tools array")?;
-        assert_eq!(tools.len(), 13);
+        assert_eq!(tools.len(), 22);
         let tool = tools
             .iter()
             .find(|t| t["name"] == "rust.catalog.status")

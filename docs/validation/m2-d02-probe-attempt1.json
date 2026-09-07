@@ -1,0 +1,23 @@
+{
+  "started_at_utc": "2026-09-05T07:39:26.037842+00:00",
+  "scope": "disposable fixture experiment; no production writer",
+  "platform": "macOS-26.6.2-arm64-arm-64bit-Mach-O",
+  "kernel": "25.6.0",
+  "machine": "arm64",
+  "uid": 501,
+  "script_sha256": "e0e351d4bd476cac91e9fc0cfa516f073029d868cd023a13832e6b2f652c716e",
+  "observations": [],
+  "product_gate": "not_evaluated",
+  "sdk_headers": {
+    "stdio": {
+      "path": "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/sys/stdio.h",
+      "sha256": "a8078ae1cba1a46a66d0de6fe7f13bbc969cdb7e78fc2d4b9a5c5cdaaf16126b"
+    },
+    "fcntl": {
+      "path": "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/sys/fcntl.h",
+      "sha256": "805fd8c695f8e5e1c327b6852382cc5533738bbfd8f18bc11f850531166e4fe8"
+    }
+  },
+  "filesystem": "/",
+  "experiment_status": "unavailable_apfs"
+}

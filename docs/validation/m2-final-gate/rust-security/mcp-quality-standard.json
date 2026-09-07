@@ -1,0 +1,16 @@
+{
+  "audit_after_failed_test": true,
+  "cases": 3,
+  "cleanup": true,
+  "configuration_fingerprint": "sha256:84fb1e2dac1829773cd1c3fa00b757db03c33f78c2de9a49ab836d56b019183e",
+  "logs_sha256_verified": 12,
+  "missing_snapshot_never_passes": true,
+  "nonmatching_real_rsa_snapshot": true,
+  "ordered_stages": 5,
+  "profiles": [
+    "standard"
+  ],
+  "real_test_failure_retained": true,
+  "snapshot_fingerprint": "sha256:5f7f12204f20567d78fc7faf86c1a2cd677311d5592e414b5b7738f9ae3dd3fc",
+  "source_unchanged_between_explicit_mutations": true
+}

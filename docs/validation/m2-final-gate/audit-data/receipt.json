@@ -1,0 +1,11 @@
+{
+  "actual_rustsec_sqlite_finding": true,
+  "lock_fingerprint": "sha256:bd6ccdbaa1a6a5c3d0d5b4fa6b3c923b43e780325d4c0f84c825a8cf7fece84c",
+  "network_deny_scope": "macos_test_process_only",
+  "scope": "owned-rustsec-sqlite-data",
+  "snapshot_fingerprint": "sha256:de5bf2923d43c38c44aa0d841726730932b5140bc0920c7bb122c6f6a2d68e30",
+  "tcp_ipv4_ipv6_denied": true,
+  "udp_ipv4_ipv6_denied": true,
+  "positive_tcp_udp_ipv4_ipv6_controls": true,
+  "runtime_temp_absent": true
+}

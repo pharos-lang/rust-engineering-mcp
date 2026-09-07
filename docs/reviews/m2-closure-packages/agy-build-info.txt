@@ -1,0 +1,1 @@
+/Users/cburgosro/.local/bin/agy: go1.28-20260721-RC01 cl/951519500 +3ebc191975 X:fieldtrack,boringcrypto,simd,mapsplitgroup

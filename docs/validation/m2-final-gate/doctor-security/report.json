@@ -1,0 +1,39 @@
+{
+  "status": "passed",
+  "active_cases": 4,
+  "output_cases": 2,
+  "output_results": [
+    {
+      "case": "stdout-sigint",
+      "status": "passed",
+      "stdout_drained": false,
+      "forced_stop": false,
+      "signal": "SIGINT",
+      "prefill_bytes": 65536,
+      "exit_code": 1,
+      "elapsed_seconds": 0.623,
+      "signal_join_seconds": 0.114
+    },
+    {
+      "case": "stdout-deadline",
+      "status": "passed",
+      "stdout_drained": false,
+      "forced_stop": false,
+      "signal": null,
+      "prefill_bytes": 65536,
+      "exit_code": 1,
+      "elapsed_seconds": 5.131,
+      "signal_join_seconds": null
+    }
+  ],
+  "cleanup": true,
+  "image_id": "sha256:8fac70723a8d04b6ec9633ab721806b8a55f4f083a1b3f988c61bf6a00fa1909",
+  "observed_calibration_jobs": [
+    "37c38f50cbb0532c0ada3b24a75dab7f",
+    "134b12c74c5883466e8169572ae8b153",
+    "a37f4611c4a628ec70f187cbc96457a1"
+  ],
+  "sigint_join_seconds": 0.233,
+  "sigterm_join_seconds": 0.239,
+  "sighup_join_seconds": 0.234
+}

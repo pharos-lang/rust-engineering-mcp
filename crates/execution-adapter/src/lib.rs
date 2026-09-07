@@ -1,7 +1,13 @@
 //! Single product boundary for external processes. No shells or caller argv.
 mod applied;
 mod capabilities;
+mod coverage_gateway;
+pub mod coverage_json;
+mod coverage_port;
 pub use capabilities::{CapabilityReport, CapabilityStatus};
+mod semver_gateway;
+mod semver_output;
+mod semver_port;
 mod state;
 mod supervisor;
 
@@ -322,6 +328,35 @@ impl DockerGateway {
     }
     fn control(&self, args: &[String]) -> Result<Capture, ExecutionError> {
         Self::control_raw(&self.config, &self.state, args)
+    }
+    /// Mutation-only bounded Docker control. The boolean reports whether the
+    /// CLI may have been dispatched; callers fail closed for state changes.
+    fn control_until(
+        &self,
+        args: &[String],
+        deadline: Instant,
+        cancel: &dyn ExecutionCancellation,
+    ) -> Result<Capture, (ExecutionError, bool)> {
+        if cancel.is_cancelled() {
+            return Err((ExecutionError::Cancelled, false));
+        }
+        let remaining = deadline.saturating_duration_since(Instant::now());
+        if remaining.is_zero() {
+            return Err((ExecutionError::Infrastructure, false));
+        }
+        let mut command =
+            Self::command(&self.config, &self.state).map_err(|error| (error, false))?;
+        command.args(args);
+        let capture = supervisor::run(command, remaining, 256 * 1024, cancel)
+            .map_err(|error| (error, true))?;
+        if capture.stdout_truncated || capture.stderr_truncated {
+            return Err((ExecutionError::Infrastructure, true));
+        }
+        match capture.stop {
+            Stop::Exited => Ok(capture),
+            Stop::Cancelled => Err((ExecutionError::Cancelled, true)),
+            Stop::TimedOut | Stop::OutputLimit => Err((ExecutionError::Infrastructure, true)),
+        }
     }
     fn remove(&self, name: &str) -> Result<(), ExecutionError> {
         let result = self.control(&[
@@ -652,6 +687,13 @@ mod tests {
     }
 }
 
+mod mutation_archive;
+mod mutation_gateway;
+mod mutation_outcomes;
+mod mutation_test_gateway;
+mod mutation_test_port;
+pub use mutation_test_gateway::MutationTestExecution;
+mod resolution_gateway;
 mod rust_applied;
 mod rust_gateway;
 mod source_archive;
@@ -669,3 +711,8 @@ pub use project_inspection::RustProjectInspector;
 mod toolchain_metadata;
 
 mod format_output;
+
+mod nextest_gateway;
+mod nextest_junit;
+mod nextest_port;
+pub use nextest_gateway::NextestExecution;

@@ -1,0 +1,96 @@
+{
+  "advertisement_switch_enabled": false,
+  "attempt": "attempt-7",
+  "candidate": {
+    "server_sha256": "343aac147e0e6ada6c8c1a2015731b41d1076c03000ad222981721c7df1b7a45"
+  },
+  "error": {
+    "message": "[Errno 1] Operation not permitted: '/bin/ps'",
+    "type": "PermissionError"
+  },
+  "image_id": "sha256:384a1742ecc53cdd3a9c0bf36c6f8b66db73ddd118aeeae6e55654ea998ae36a",
+  "inspector": {
+    "bridge_suffix_sha256": "9dce889b8537d6c9f369664dd2119ee4b81388c05f0ead1903e692193e3f6d94",
+    "bundle_sha256": "1fcbc2c4d4324b85f75c0b4cf9f125ee1f74df90d14eb3fea4ca96d0a1885f4e",
+    "commands": {
+      "cancel": {
+        "argv_sha256": "38d12e7087f16a4a6d47607fb4dc272f896b3fae936a2efab780f7a8f6e14f64",
+        "duration_seconds": 0.085,
+        "exit_code": 1,
+        "overflow": false,
+        "stderr_bytes": 265,
+        "stderr_sha256": "180e0a1df14cf5370503071bcf6107dfa5facbf69a4ce942e66344ac5adf3149",
+        "stdout_bytes": 0,
+        "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "discovery": {
+        "argv_sha256": "fd2341f41532dcdd07a3e5a2c22a1b7afbe558c9ab8c53c2ee3f1d8af411bd9b",
+        "duration_seconds": 0.181,
+        "exit_code": 0,
+        "overflow": false,
+        "stderr_bytes": 86099,
+        "stderr_sha256": "3b33ef21625425433937c1d4c5d80fac0b23f6ce8eb1b201d796a2581079971a",
+        "stdout_bytes": 302519,
+        "stdout_sha256": "9f9e3410fdb61824dfbced27c5767d63274f29ce524f989f5cf96c8f127c5d2b"
+      },
+      "failure": {
+        "argv_sha256": "eb3a615c8a633f545d416bed2c1483df310a72bc2009ca89458e996bced3362f",
+        "duration_seconds": 0.183,
+        "exit_code": 5,
+        "overflow": false,
+        "stderr_bytes": 2265,
+        "stderr_sha256": "7e996731b0cef500efc15d86571eac101e5fd75b3aaf8354aab60cd016d5ca0a",
+        "stdout_bytes": 489,
+        "stdout_sha256": "6f453e2b94eb52fa895cc948863abf64ffc246036d52ada4b37c503a145344d2"
+      },
+      "persistent_task_session": {
+        "argv_sha256": "30b0f65358fd8f23eb8fd18b7edf2dd8bca972f8f773f138a7d082f85082528e",
+        "duration_seconds": 17.334,
+        "exit_code": 0,
+        "overflow": false,
+        "stderr_bytes": 6937,
+        "stderr_sha256": "da5d6c6298db71121a0f2a356ffee75bb2888ba3d8e7518fc391a4f366aca128",
+        "stdout_bytes": 201,
+        "stdout_sha256": "586ad70287e24ac8169cb547d245c6271c0cc6d7ab3472004c7c5ddf96261b00"
+      },
+      "positive": {
+        "argv_sha256": "43007ceccad1e3aeda12894e417449680c02f3c2afc8ddd25f5f02734a79ed43",
+        "duration_seconds": 0.18,
+        "exit_code": 0,
+        "overflow": false,
+        "stderr_bytes": 358,
+        "stderr_sha256": "847b6d06095ddbd390cec3b9d26a7015d61e300cd29458b338a653faa69bcc8a",
+        "stdout_bytes": 1226,
+        "stdout_sha256": "6bbb30ba060b3c2f22633ef4229a4d23308b24cd64f9e07cb64abbbc3993af15"
+      },
+      "resource": {
+        "argv_sha256": "cdbdedccfd1c601fe5e1e3f296d587ecc1254dbbba4e15e17d210093f12a86f0",
+        "duration_seconds": 0.164,
+        "exit_code": 1,
+        "overflow": false,
+        "stderr_bytes": 67,
+        "stderr_sha256": "8b40f4c17f95cd664dbd17b309a32865408293ea1cf389f0b866b1809e2a922b",
+        "stdout_bytes": 0,
+        "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    "persistent_task_session": {
+      "cancel": true,
+      "discovery": true,
+      "failure": true,
+      "positive": true,
+      "protocol_era": "modern",
+      "resource": true,
+      "task_flow": true,
+      "tasks_advertised": true,
+      "tasks_declared": true,
+      "tool_count": 22,
+      "version": "2.5.0"
+    },
+    "version": "2.5.0"
+  },
+  "qualification_override": true,
+  "schema": "rust-mcp-m3-clients-v1",
+  "status": "failed",
+  "tasks_advertised": true
+}

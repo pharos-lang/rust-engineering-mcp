@@ -1,0 +1,9 @@
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.13s
+     Running tests/inspection_runtime.rs (target/debug/deps/inspection_runtime-836bf750ab4f64c1)
+
+running 2 tests
+test format_mutation_runtime::fmt_preview_commit_conflict_reopen_check_restart_receipt_and_noop ... ok
+test format_mutation_runtime::fmt_preview_is_default_denied_and_cargo_alias_is_rejected_before_gateway ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 26 filtered out; finished in 21.16s
+

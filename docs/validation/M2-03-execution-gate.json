@@ -1,0 +1,132 @@
+{
+  "schema": "rust-mcp-m2-03-execution-gate-v1",
+  "recorded_at": "2026-09-05T13:23:18-05:00",
+  "base_commit": "331d1630da5a2c1d8d8c596305c0c1167a7896cb",
+  "runtime": {
+    "docker_server_version": "29.7.2",
+    "socket": "/Users/cburgosro/.docker/run/docker.sock",
+    "image_id": "sha256:8fac70723a8d04b6ec9633ab721806b8a55f4f083a1b3f988c61bf6a00fa1909",
+    "platform": "linux/arm64"
+  },
+  "files": {
+    "crates/execution-adapter/src/mutation_gateway.rs": "sha256:e8f1274ac5440398d39d8719b0253803aabc6e5542bfa69f09bc4fdbe43c5ecb",
+    "crates/execution-adapter/src/project_inspection.rs": "sha256:e8c51313ef2173db1cfb34b10eede4b971def2844df75fb5ddb44cf9ed6cf90d",
+    "crates/execution-adapter/src/rust_applied.rs": "sha256:02cec3bf42a437182b89c48af2c851e06747f533be0ff0d2e1a4531d4b7e1b41",
+    "crates/execution-adapter/src/state.rs": "sha256:d294e5d49c4045ebaa5af66d48e2cbf95b666daadda245505c54269541c2a781",
+    "crates/execution-adapter/src/seccomp-rust-fix.json": "sha256:c5b045931bb8fc4e011193f71976cba5f97bb565e4ef051e13a3425309750709"
+  },
+  "profile": {
+    "path": "crates/execution-adapter/src/seccomp-rust-fix.json",
+    "sha256": "sha256:c5b045931bb8fc4e011193f71976cba5f97bb565e4ef051e13a3425309750709",
+    "delta": [
+      "socket(AF_INET,SOCK_STREAM masked by 0xf,protocol 0)",
+      "bind",
+      "connect",
+      "listen",
+      "accept4",
+      "getsockname",
+      "setsockopt",
+      "shutdown"
+    ],
+    "network_mode": "none"
+  },
+  "commands": [
+    {
+      "argv": [
+        "cargo",
+        "test",
+        "-p",
+        "rust-engineering-execution",
+        "--all-targets"
+      ],
+      "exit_code": 0,
+      "result": "106 passed; 0 failed; 9 ignored; integration 1 passed; 4 ignored"
+    },
+    {
+      "argv": [
+        "cargo",
+        "clippy",
+        "-p",
+        "rust-engineering-execution",
+        "--all-targets",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "exit_code": 0,
+      "result": "passed"
+    },
+    {
+      "argv": [
+        "cargo",
+        "test",
+        "-p",
+        "rust-engineering-execution",
+        "--lib",
+        "project_inspection::tests::production_inspector_formats_postchecks_rejects_and_cancels",
+        "--",
+        "--ignored",
+        "--exact",
+        "--nocapture"
+      ],
+      "exit_code": 0,
+      "duration_seconds": 8.2,
+      "result": "1 passed; 0 failed"
+    },
+    {
+      "argv": [
+        "git",
+        "diff",
+        "--check"
+      ],
+      "exit_code": 0,
+      "result": "passed"
+    }
+  ],
+  "docker_cases": {
+    "positive": {
+      "command": "cargo fix fixed argv then independent cargo check",
+      "changed": [
+        "src/lib.rs"
+      ],
+      "default_feature_enabled": true,
+      "cargo_lock_unchanged": true,
+      "manifest_unchanged": true
+    },
+    "missing_lock": {
+      "classification": "InvalidProject",
+      "candidate": false,
+      "lock_generated": false
+    },
+    "hostile_build_script": {
+      "attempt": "replace Cargo.toml inside writable guest source",
+      "classification": "ExecutionError::Denied",
+      "candidate": false
+    },
+    "cancellation": {
+      "format": "Cancelled",
+      "fix": "Cancelled",
+      "gateway_quarantined": false
+    },
+    "cleanup": {
+      "label": "org.rust-mcp.execution=true",
+      "containers": [],
+      "volumes": []
+    }
+  },
+  "unit_discrimination": [
+    "exact Fix argv",
+    "dedicated profile delta",
+    "Fix-only /target tmpfs",
+    "all applied security fields",
+    "complete Cargo JSON",
+    "malformed/truncated/unknown Cargo output",
+    "128 changed .rs cap",
+    "manifest scope rejection",
+    "OOM candidate suppression"
+  ],
+  "notes": [
+    "This receipt freezes the five-file Fix execution snapshot accepted before later D05 shared-gateway edits; its hashes intentionally differ from the current working tree.",
+    "cargo fmt --all -- --check was attempted but reported only concurrently modified files outside this execution cut; the four changed Rust files were formatted directly and git diff --check passed."
+  ]
+}

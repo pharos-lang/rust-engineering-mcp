@@ -1,0 +1,108 @@
+{
+  "cli_version": "2.1.260 (Claude Code)",
+  "model": "claude-sonnet-5",
+  "effort": "medium",
+  "command": [
+    "/Users/cburgosro/.local/bin/claude",
+    "--print",
+    "--model",
+    "claude-sonnet-5",
+    "--effort",
+    "medium",
+    "--tools",
+    "",
+    "--strict-mcp-config",
+    "--mcp-config",
+    "{\"mcpServers\":{}}",
+    "--no-session-persistence",
+    "--disable-slash-commands",
+    "--output-format",
+    "json"
+  ],
+  "scope": "M2-02 generic/application/public MCP contract; native publisher excluded",
+  "files": [
+    {
+      "path": "docs/adr/ADR-050-local-coordinated-mutation.md",
+      "sha256": "e4e8b38936cdde67c4704833c464b68dd43e7fe6166daadb887991ee695c6a40",
+      "selection": "complete file"
+    },
+    {
+      "path": "docs/adr/ADR-052-mutation-journal-and-authorization.md",
+      "sha256": "740dc2ba04770560b5b7305cd2e6155ff744f022d5c7386d6ca21eb8aa5bec5f",
+      "selection": "complete file"
+    },
+    {
+      "path": "docs/adr/ADR-053-bounded-guest-mutation-staging.md",
+      "sha256": "bb5a1d2e92f6b8db1b23642cca2d8796fa3146f178e1e2924fb98074f5ae8ae0",
+      "selection": "complete file"
+    },
+    {
+      "path": "docs/adr/ADR-054-multiple-file-mutation-publication.md",
+      "sha256": "25fdea56705b4492c46d1d4b1c87157ae374270043a1bf3937a40a7050309f44",
+      "selection": "complete file"
+    },
+    {
+      "path": "crates/domain/src/rust_mutation.rs",
+      "sha256": "95647c05bd2c8c412c6f4b200228566513f0788925569d2ba8022b025fbbaa4f",
+      "selection": "complete file"
+    },
+    {
+      "path": "crates/domain/src/mutation.rs",
+      "sha256": "cda55481cd7ffbc80c6c83074662d95bba8610fbcbff164c1a61c730eb3ab41d",
+      "selection": "complete file"
+    },
+    {
+      "path": "crates/application/src/mutation.rs",
+      "sha256": "16a062437cec21e9c96957b835db2ccd9cc3ad185841483cf3ee9785c0f66cee",
+      "selection": "complete file"
+    },
+    {
+      "path": "crates/application/src/rust_mutation.rs",
+      "sha256": "1971b7702ea94be57c12402d60e68dbfabd0790a499d2324352e1a8741646403",
+      "selection": "complete file"
+    },
+    {
+      "path": "crates/application/tests/mutation.rs",
+      "sha256": "737853c64574980bbe7682560baff3670e03b02918de2bf393479c7f3011eb4b",
+      "selection": "complete file"
+    },
+    {
+      "path": "crates/mcp-server/src/stdio/mutation.rs",
+      "sha256": "7569135660328fd96ec32d5ffb34e107c38bcd18344f3770785205e003a4c962",
+      "selection": "complete file"
+    },
+    {
+      "path": "crates/mcp-server/src/host_config.rs",
+      "sha256": "ac52456e359c384901975860b644fc19767a3628f017e1fd0303faf09b6d2e95",
+      "selection": "complete file"
+    },
+    {
+      "path": "crates/mcp-server/src/stdio.rs",
+      "sha256": "8f640b673e4d7f8014221feea2f813903b44be097c94aad637905e19354bf51c",
+      "selection": "complete file"
+    },
+    {
+      "path": "crates/mcp-server/tests/protocol.rs",
+      "sha256": "29ce216844ae151ff143243fc53aa99bd42b40f131b9fba637a81c3b0c80defb",
+      "selection": "complete file"
+    },
+    {
+      "path": "crates/mcp-server/tests/inspection_runtime/format_mutation.rs",
+      "sha256": "8bdd6c41dc087c372f153d835917c8515c334b2a4725d8f15953002f6f7fdb4e",
+      "selection": "complete file"
+    },
+    {
+      "path": "crates/mcp-server/tests/snapshots/fmt-apply-tool.json",
+      "sha256": "b47da9e93cf15bd2a8241c24f9b11ac0f91d5fbe4345e4d2f683b5e0f4a138ef",
+      "selection": "complete file"
+    },
+    {
+      "path": "crates/execution-adapter/src/project_inspection.rs",
+      "sha256": "5c3b8a5054a3603c133b6fb4cde7289b6b56fb5f2c9fdc76b17a6dd9581f3ce8",
+      "selection": "lines 599-696",
+      "selection_sha256": "d7e9939945c429943df314f02bab48bea8623125013b1e7b008c0ac136dce3b7"
+    }
+  ],
+  "packet_bytes": 244255,
+  "packet_sha256": "220b2dd759b150bb599ebe3d7e50c715897c492d084da1248f574008b5c0c3db"
+}

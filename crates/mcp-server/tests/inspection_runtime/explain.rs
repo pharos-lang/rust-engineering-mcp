@@ -129,8 +129,22 @@ fn compiler_explanation_requires_no_project_and_preserves_actual_evidence() -> R
     fixture.assert_clean(None)?;
     let expected = fixture.source_bytes()?;
     let mut server = start_without_roots(&fixture)?;
+    let state_entries = || -> Result<Vec<String>> {
+        let mut names = fs::read_dir(&fixture.state)?
+            .map(|entry| {
+                entry?
+                    .file_name()
+                    .into_string()
+                    .map_err(|_| std::io::Error::other("non-UTF8 state entry"))
+            })
+            .collect::<std::result::Result<Vec<_>, _>>()?;
+        names.sort();
+        Ok(names)
+    };
     server.send(request(1, "tools/list"))?;
     let list = server.receive(1, DISCOVERY_TIMEOUT)?;
+    let startup_state = state_entries()?;
+    assert_eq!(startup_state, ["rust-mcp-quality-artifacts-v1"]);
     let tool = list["result"]["tools"]
         .as_array()
         .ok_or("missing tools")?
@@ -157,9 +171,10 @@ fn compiler_explanation_requires_no_project_and_preserves_actual_evidence() -> R
         let response = server.receive(id, DISCOVERY_TIMEOUT)?;
         assert_eq!(response["error"]["code"], -32602, "{code:?}: {response}");
         fixture.assert_clean(None)?;
-        assert!(
-            fs::read_dir(&fixture.state)?.next().is_none(),
-            "invalid input started calibration"
+        assert_eq!(
+            state_entries()?,
+            startup_state,
+            "invalid input changed state or started calibration"
         );
     }
     server.send(call(

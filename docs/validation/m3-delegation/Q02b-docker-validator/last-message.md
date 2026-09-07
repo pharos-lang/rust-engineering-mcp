@@ -1,0 +1,1 @@
+I'm going to stop polling now. Three background waiters are armed (`bf378uemi` fires when the receipt leaves `running`; `bqxj6n5c3` at the 7-minute mark; the gate task `br2v9xovr` itself on exit). I'll resume when one of them notifies me.

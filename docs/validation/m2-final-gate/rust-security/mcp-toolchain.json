@@ -1,0 +1,95 @@
+{
+  "data": {
+    "observation": {
+      "declared_toolchain": null,
+      "inventory": {
+        "cargo_version": "1.98.1",
+        "channel": "stable",
+        "host_triple": "aarch64-unknown-linux-gnu",
+        "installed_components": [
+          {
+            "component": "cargo",
+            "target": null
+          },
+          {
+            "component": "clippy",
+            "target": null
+          },
+          {
+            "component": "rust_std",
+            "target": "aarch64-unknown-linux-gnu"
+          },
+          {
+            "component": "rustc",
+            "target": null
+          },
+          {
+            "component": "rustfmt",
+            "target": null
+          }
+        ],
+        "installed_targets": [
+          "aarch64-unknown-linux-gnu"
+        ],
+        "rustc_version": "1.98.1"
+      },
+      "runtime": {
+        "configuration_fingerprint": "sha256:84fb1e2dac1829773cd1c3fa00b757db03c33f78c2de9a49ab836d56b019183e",
+        "executions": [
+          {
+            "command": "compiler_version",
+            "execution_fingerprint": "sha256:ce033e8d59d3f57d533f2aa81e8280f299201174240b9eba56c9dc95b8e198ab"
+          },
+          {
+            "command": "cargo_version",
+            "execution_fingerprint": "sha256:08081f6dd17274208794ccfff720b499ad9cc069217f1b45b2136eb9d0f116e0"
+          },
+          {
+            "command": "installed_components",
+            "execution_fingerprint": "sha256:991ed2cfce7b90bb15bc3c013a1d74325ad87ccaa6ddcfc5dce0f412c9384952"
+          }
+        ],
+        "image_id": "sha256:8fac70723a8d04b6ec9633ab721806b8a55f4f083a1b3f988c61bf6a00fa1909",
+        "platform": "linux/aarch64"
+      },
+      "source_fingerprint": "sha256:a60dab0b2eb8b8f2c0d4163402aea16e42ea94ebb68202d42a8d795f07850715"
+    },
+    "project_identity_fingerprint": "sha256:8bd617d063f67e856b62c870c7e8d433f6de198166b7b318f8e467e8fe18f754",
+    "project_ref": "prj_33a851fa10eaa7a133aa77e7355642d9",
+    "semantics": "latest_known"
+  },
+  "diagnostics": [],
+  "duration_ms": 2216,
+  "error_code": null,
+  "error_message": null,
+  "evidence": {
+    "details": {
+      "freshness": {
+        "age_seconds": 2,
+        "assessed_at": 1788646291,
+        "policy": {
+          "fresh_for_seconds": 60,
+          "id": "captured-project-v1",
+          "stale_after_seconds": 300
+        },
+        "state": "fresh"
+      },
+      "provenance": {
+        "created_at": 1788646289,
+        "integrity": "verified",
+        "network_used": false,
+        "observed_at": 1788646291,
+        "source_id": "sha256:a60dab0b2eb8b8f2c0d4163402aea16e42ea94ebb68202d42a8d795f07850715",
+        "source_kind": "project_snapshot"
+      }
+    },
+    "kind": "snapshot"
+  },
+  "status": "passed",
+  "summary": "Installed toolchain observed in the approved offline Linux runtime",
+  "truncation": {
+    "diagnostics_omitted": 0,
+    "stderr_truncated": false,
+    "stdout_truncated": false
+  }
+}

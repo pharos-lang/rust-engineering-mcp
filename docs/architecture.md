@@ -48,8 +48,11 @@ documenta límites y compatibilidad.
 
 Los tests `protocol.rs` lanzan el binario y usan fixtures JSON independientes del
 SDK, con plazos y lectores acotados. No se crea un port de dominio para stdio:
-es una frontera externa al dominio. El checkout incorpora trece tools: status tiene
-[evidencia M1-11](validation/M1-11.md) y search tiene [gate M1-12 aprobado](validation/M1-12.md). Inspect está conectado con [gate M1-13 aprobado](validation/M1-13.md).
+es una frontera externa al dominio. La release `0.1.0` incorpora trece tools:
+status tiene [evidencia M1-11](validation/M1-11.md), search tiene
+[gate M1-12 aprobado](validation/M1-12.md) e inspect está conectado con
+[gate M1-13 aprobado](validation/M1-13.md). El checkout añade cinco handlers M2
+calificados localmente, descritos al final.
 
 SQLite es autoritativo mediante el port CatalogRepository y snapshots en memoria
 (ADR-026); LanceDB derivado y E5 local están implementados en M0-09.
@@ -261,3 +264,87 @@ con ejecución de proyecto dentro del guest Docker Linux ARM64 aprobado.
 No existe catálogo oficial 0.1.0 ni clave Ed25519 de producción. Import, firmas,
 antirollback, cambio de trust por el host y revocación por retirada de trust siguen
 implementados para catálogos aportados explícitamente por el host.
+
+## Escritura local M2 en desarrollo
+
+El adapter MCP expone cinco handlers tipados sobre un mismo caso de uso de mutación:
+manifest patch, fmt, fix y dependency add/remove. Domain liga candidato, clase de
+operación, fingerprints, validación y receipts; application conserva los planes
+compartidos (cuatro/64 MiB), verifica autoridad antes de capturar y antes de
+publicar, y mantiene resolución/editor/inspector tras ports. Los DTOs rmcp, JSON
+Schema y presupuestos del envelope permanecen en el adapter MCP.
+
+Los productores de candidatos usan el Execution Gateway Docker ya existente.
+Source, staging y el directory source Cargo aprobado viajan como archivos propios;
+no hay bind writable del workspace ni ejecución de Cargo host. Fmt y fix exportan
+solo reemplazos `.rs` existentes. Fix selecciona un perfil seccomp dedicado con
+TCP loopback interno y `network=none`; los demás perfiles no reciben esa capacidad.
+La resolución ejecuta metadata offline sobre staging escribible y metadata frozen
+sobre el resultado, con vendor read-only y configuración source replacement fija.
+
+El publisher nativo aplica los bytes exactos mediante handles no-follow, locks y
+journal. `local_coordinated` detecta cambios observados, pero no ofrece exclusión
+OS ante escritores externos, CAS ni una transacción visible multiarchivo. La policy
+`preserve_presence` incluye el lock raíz actualizado si existía y elimina del
+candidato un lock creado solo para validar. Esta arquitectura está integrada en el
+checkout `0.3.0-dev` de 22 tools, con [calificación M2](validation/M2-07.md) para las
+18 anteriores y las cuatro tools M3 calificadas en sus cortes síncronos; la release `0.1.0`
+conserva 13.
+
+M3-01 mantiene `rust.test.nextest` sobre el mismo Execution Gateway. Inyecta una
+configuración product-owned antes de la fuente, ejecuta el perfil quality dedicado
+y exporta JUnit desde un volumen tmpfs separado mediante un tar de nombre fijo;
+el host acepta sólo un archivo regular y nunca abre un path elegido por el guest.
+Stage 0 publica JUnit y streams mediante el `ArtifactStore` efímero M1; Stage 1
+publica en el store durable privado de ADR-061.
+Tasks se anuncia después de G4, pero sólo un peer que declare la extensión puede
+materializar un job. Sin negociación mutua permanece únicamente la ruta síncrona
+calificada de hasta 60 s.
+
+## M3 — arquitectura de calidad
+
+El dominio implementa `job`, `nextest`, `coverage`, `semver_check`,
+`mutation_test` y `quality_artifact` en `crates/domain/src/`. Allí viven el
+lifecycle y las invariantes de jobs, selecciones y observaciones, además de
+reservas, TTL, watermark, quarantine y descriptores de artifacts; no entran rmcp,
+Cargo, Docker ni filesystem.
+
+La aplicación implementa los casos de uso en `crates/application/src/job.rs`,
+`nextest.rs`, `coverage.rs`, `semver_check.rs`, `mutation_test.rs` y
+`quality_artifact.rs`. `JobExecutor` y `JobRegistry` conservan el permiso del
+worker durante la ejecución y exponen ports tipados para ejecución, cancelación,
+reloj y store.
+
+`crates/execution-adapter/src/` implementa las fases cerradas por herramienta:
+nextest usa config/source/run y egress JUnit; coverage separa keeper, run,
+report y export, con target tmpfs ejecutable solo en run/report y report volume
+`noexec`; SemVer usa baseline/source/run/egress; mutation usa baseline, copia
+privada, run y ArchiveBundle. Todas mantienen source read-only, rootfs read-only,
+`network=none`, límites y cleanup joined. Los gateways son
+`nextest_gateway.rs`, `coverage_gateway.rs`, `semver_gateway.rs` y
+`mutation_test_gateway.rs`; sus ports y parsers están en los módulos homónimos.
+
+`crates/project-adapter/src/quality_artifact_store.rs` y su adapter macOS
+persisten el store durable privado bajo el state root; `crates/mcp-server/src/main.rs`
+y `crates/mcp-server/src/quality_artifact_cli.rs` implementan
+`quality-artifacts recover|prune`.
+
+El adapter MCP registra las 22 tools en `crates/mcp-server/src/stdio.rs`; los
+handlers M3 están en `stdio/{nextest,coverage,semver,mutation_test}.rs` y el
+lifecycle negociado en `stdio/tasks.rs`. `stdio/resources.rs` publica el índice y
+los miembros como Resources bajo `rust-quality-artifact://`; Tasks está
+implementado, calificado y anunciado con negociación mutua. Los cuatro cortes M3
+calificados tienen sus recibos en `docs/validation/M3-runtime.json` y
+`docs/validation/M3-rust-security.json`.
+
+M2 usa [eventos locales de terminación](adr/ADR-058-local-mutation-observability.md)
+por tracing/stderr. La retención de planes se consulta sin modificarla; la CLI
+conserva la autoridad del operador sobre journals. No se añade collector, servidor
+de métricas ni dependencia del dominio hacia tracing. Corrupción del store puede
+exigir la [remediación conservadora](client-configuration.md#planes-receipts-y-recovery)
+en identidades físicas nuevas, sin borrar evidencia original.
+
+ADR-059 libera la cuota de planes terminales mediante una marca atómica y poda
+antes de la próxima admisión. El port existente del publisher agrega replay de
+ID/digest/key exclusivamente sobre journal existente, bajo autoridad viva; no se
+añade cache de tombstones ni otro store. TTL limita empezar cambios nuevos.

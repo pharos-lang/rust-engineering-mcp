@@ -1,0 +1,622 @@
+{
+  "cargo_commit": "797e8a9bca276c1c9f9f738d2a20f484fa4eea9d",
+  "cargo_version": "1.98.1",
+  "files": [
+    {
+      "bytes": 3001,
+      "path": "proc-macro2-1.0.107/.cargo-checksum.json",
+      "sha256": "f446cfd05e78b027598827cd6a564b7856a55fc5612e992c3dab2c28ba589ba1",
+      "source_mode": 420
+    },
+    {
+      "bytes": 94,
+      "path": "proc-macro2-1.0.107/.cargo_vcs_info.json",
+      "sha256": "0a870b23ea0c10231ed5a850b8fe8f23dd74926e90594e49a35a7e1b5e8a92f5",
+      "source_mode": 420
+    },
+    {
+      "bytes": 16,
+      "path": "proc-macro2-1.0.107/.github/FUNDING.yml",
+      "sha256": "b017158736b3c9751a2d21edfce7fe61c8954e2fced8da8dd3013c2f3e295bd9",
+      "source_mode": 420
+    },
+    {
+      "bytes": 7371,
+      "path": "proc-macro2-1.0.107/.github/workflows/ci.yml",
+      "sha256": "f0003fd6c9bd0f9208f552a57dd5dd76fee714a7d0be286cecc98f06add580ff",
+      "source_mode": 420
+    },
+    {
+      "bytes": 5985,
+      "path": "proc-macro2-1.0.107/Cargo.lock",
+      "sha256": "30daf1b1e7557b089dfe7783a6cdd8bd7b4f82b31eaaa554c1afbca448f3a936",
+      "source_mode": 420
+    },
+    {
+      "bytes": 2460,
+      "path": "proc-macro2-1.0.107/Cargo.toml",
+      "sha256": "6bdbe54a7f052e552dcfca90351764476e2767237ec3f954df8bd9f602861056",
+      "source_mode": 420
+    },
+    {
+      "bytes": 2340,
+      "path": "proc-macro2-1.0.107/Cargo.toml.orig",
+      "sha256": "e04a009c48ea3e9b017807ea9183e330cc909a9cc0e754c5c6b3f7c0b29fb9de",
+      "source_mode": 420
+    },
+    {
+      "bytes": 9723,
+      "path": "proc-macro2-1.0.107/LICENSE-APACHE",
+      "sha256": "62c7a1e35f56406896d7aa7ca52d0cc0d272ac022b5d2796e7d6905db8a3636a",
+      "source_mode": 420
+    },
+    {
+      "bytes": 1023,
+      "path": "proc-macro2-1.0.107/LICENSE-MIT",
+      "sha256": "23f18e03dc49df91622fe2a76176497404e46ced8a715d9d2b67a7446571cca3",
+      "source_mode": 420
+    },
+    {
+      "bytes": 3864,
+      "path": "proc-macro2-1.0.107/README.md",
+      "sha256": "8eebdcf2f9a5034693589a9982adf06c2aac5c9f078c07a44400d293ed5b4a8e",
+      "source_mode": 420
+    },
+    {
+      "bytes": 10277,
+      "path": "proc-macro2-1.0.107/build.rs",
+      "sha256": "baeb20b52f6b536be8657a566591a507bb2e34a45cf8baa42b135510a0c3c729",
+      "source_mode": 420
+    },
+    {
+      "bytes": 38,
+      "path": "proc-macro2-1.0.107/rust-toolchain.toml",
+      "sha256": "6bbb61302978c736b2da03e4fb40e3beab908f85d533ab46fd541e637b5f3e0f",
+      "source_mode": 420
+    },
+    {
+      "bytes": 2703,
+      "path": "proc-macro2-1.0.107/src/detection.rs",
+      "sha256": "ed9a5f9a979ab01247d7a68eeb1afa3c13209334c5bfff0f9289cb07e5bb4e8b",
+      "source_mode": 420
+    },
+    {
+      "bytes": 5164,
+      "path": "proc-macro2-1.0.107/src/extra.rs",
+      "sha256": "29f094473279a29b71c3cc9f5fa27c2e2c30c670390cf7e4b7cf451486cc857e",
+      "source_mode": 420
+    },
+    {
+      "bytes": 35014,
+      "path": "proc-macro2-1.0.107/src/fallback.rs",
+      "sha256": "416a3d24349c163d47f62ac8ae61c28ba6dc4990f04f3d5dacde030b86582d06",
+      "source_mode": 420
+    },
+    {
+      "bytes": 51164,
+      "path": "proc-macro2-1.0.107/src/lib.rs",
+      "sha256": "ed6bf5e3c3b4fc952d4bdf9b48b149087bceaebf5392befce0bc6cae590a008d",
+      "source_mode": 420
+    },
+    {
+      "bytes": 871,
+      "path": "proc-macro2-1.0.107/src/location.rs",
+      "sha256": "9225c5a55f03b56cce42bc55ceb509e8216a5e0b24c94aa1cd071b04e3d6c15f",
+      "source_mode": 420
+    },
+    {
+      "bytes": 573,
+      "path": "proc-macro2-1.0.107/src/marker.rs",
+      "sha256": "c11c5a1be8bdf18be3fcd224393f350a9aae7ce282e19ce583c84910c6903a8f",
+      "source_mode": 420
+    },
+    {
+      "bytes": 342,
+      "path": "proc-macro2-1.0.107/src/num.rs",
+      "sha256": "82d625cbcd255965e46231ac3af1b74ab8bff9787c799e8ed1f978de146cb0b5",
+      "source_mode": 420
+    },
+    {
+      "bytes": 28680,
+      "path": "proc-macro2-1.0.107/src/parse.rs",
+      "sha256": "1257d423e9311dda9db0239ff244dfe7b028c1048ab8a83d76daec6068b05114",
+      "source_mode": 420
+    },
+    {
+      "bytes": 220,
+      "path": "proc-macro2-1.0.107/src/probe.rs",
+      "sha256": "2b57e8ebf46a7c60ee2762f23f16d24ee9ddb8f1acd0a7faf7a99cf2e4187151",
+      "source_mode": 420
+    },
+    {
+      "bytes": 1217,
+      "path": "proc-macro2-1.0.107/src/probe/proc_macro_span.rs",
+      "sha256": "53853f0c70170c9695294b8867821664d9b8f1c901957b003003a3c26987abbe",
+      "source_mode": 420
+    },
+    {
+      "bytes": 370,
+      "path": "proc-macro2-1.0.107/src/probe/proc_macro_span_file.rs",
+      "sha256": "e7fb4cf8852d9d589bfa3321d8d5cdc8cccb45606ec816a6b8a08f73e416b9ce",
+      "source_mode": 420
+    },
+    {
+      "bytes": 408,
+      "path": "proc-macro2-1.0.107/src/probe/proc_macro_span_location.rs",
+      "sha256": "e022386204b6e042b3c55a6c809923849a2f915199bcbf3be72d0b7c8ffa7f83",
+      "source_mode": 420
+    },
+    {
+      "bytes": 3080,
+      "path": "proc-macro2-1.0.107/src/rcvec.rs",
+      "sha256": "d6e4c1ea42f75e63465fce50ca83f9257536ccdc0345fe78b0037aa2c08c5e37",
+      "source_mode": 420
+    },
+    {
+      "bytes": 22380,
+      "path": "proc-macro2-1.0.107/src/rustc_literal_escaper.rs",
+      "sha256": "fb3f2f93a09b84f539e6ef514d4b403ee16f2112ff04642099170a60828318ee",
+      "source_mode": 420
+    },
+    {
+      "bytes": 31198,
+      "path": "proc-macro2-1.0.107/src/wrapper.rs",
+      "sha256": "21a563ef1eec685e3d60ee0479812f212c578dc6d405053b7827c46f6801fdc6",
+      "source_mode": 420
+    },
+    {
+      "bytes": 3456,
+      "path": "proc-macro2-1.0.107/tests/comments.rs",
+      "sha256": "11520f6baee23b9258db904f4c256fd3877493f754e2b99041f73a330e74a911",
+      "source_mode": 420
+    },
+    {
+      "bytes": 227,
+      "path": "proc-macro2-1.0.107/tests/features.rs",
+      "sha256": "7e52c0c801019b271bf11a994c2e1799a1429b0c1a3a34e551a23971797fe412",
+      "source_mode": 420
+    },
+    {
+      "bytes": 2647,
+      "path": "proc-macro2-1.0.107/tests/marker.rs",
+      "sha256": "f16299460587d6c65603ed809f1a3b81853e4b99d6cb44d0b68bb07259d7e9f8",
+      "source_mode": 420
+    },
+    {
+      "bytes": 32289,
+      "path": "proc-macro2-1.0.107/tests/test.rs",
+      "sha256": "7d58c3a754241ffdec84e4e9ac799852071db71d77359de164ca7ba6217020e9",
+      "source_mode": 420
+    },
+    {
+      "bytes": 1263,
+      "path": "proc-macro2-1.0.107/tests/test_fmt.rs",
+      "sha256": "1fa3a817bf934c3bb38942e56eecb70ef525710c6bcfec0356adec654b053c0b",
+      "source_mode": 420
+    },
+    {
+      "bytes": 3805,
+      "path": "proc-macro2-1.0.107/tests/test_size.rs",
+      "sha256": "7ed5f07c3ccc74c4d09f3c1c43542fbbe23417146761558a0fd4659e19ae1afc",
+      "source_mode": 420
+    },
+    {
+      "bytes": 3410,
+      "path": "quote-1.0.47/.cargo-checksum.json",
+      "sha256": "77c75949648f39a753e67b9fa616fa255429b9475e52eb8b87ebf70307133d70",
+      "source_mode": 420
+    },
+    {
+      "bytes": 94,
+      "path": "quote-1.0.47/.cargo_vcs_info.json",
+      "sha256": "1452b78f41bb8c7dbf526da57f134ac6d75cf80b7cc539494bab5e133907ce0e",
+      "source_mode": 420
+    },
+    {
+      "bytes": 16,
+      "path": "quote-1.0.47/.github/FUNDING.yml",
+      "sha256": "b017158736b3c9751a2d21edfce7fe61c8954e2fced8da8dd3013c2f3e295bd9",
+      "source_mode": 420
+    },
+    {
+      "bytes": 2861,
+      "path": "quote-1.0.47/.github/workflows/ci.yml",
+      "sha256": "fb61965972f379dbd9bd98ea5d45ffd67fd79b30e71ef667f69e8b65134923c2",
+      "source_mode": 420
+    },
+    {
+      "bytes": 6722,
+      "path": "quote-1.0.47/Cargo.lock",
+      "sha256": "a8d837a5066c75ed2af8a982eb6f8ebdfb96f94ddb06978fec45827f4ea1348c",
+      "source_mode": 420
+    },
+    {
+      "bytes": 1753,
+      "path": "quote-1.0.47/Cargo.toml",
+      "sha256": "13d8c50837f14aff48cd622349f98fb2c46350b7a0c08fd574cf7de4def27d06",
+      "source_mode": 420
+    },
+    {
+      "bytes": 1150,
+      "path": "quote-1.0.47/Cargo.toml.orig",
+      "sha256": "acbbe8c10dc81f648339333c8fa3e0aa787ad5887b105d1947bc522553d87d73",
+      "source_mode": 420
+    },
+    {
+      "bytes": 9723,
+      "path": "quote-1.0.47/LICENSE-APACHE",
+      "sha256": "62c7a1e35f56406896d7aa7ca52d0cc0d272ac022b5d2796e7d6905db8a3636a",
+      "source_mode": 420
+    },
+    {
+      "bytes": 1023,
+      "path": "quote-1.0.47/LICENSE-MIT",
+      "sha256": "23f18e03dc49df91622fe2a76176497404e46ced8a715d9d2b67a7446571cca3",
+      "source_mode": 420
+    },
+    {
+      "bytes": 9203,
+      "path": "quote-1.0.47/README.md",
+      "sha256": "9d6af721967088b8263c0544c0c3c459206998252dd5632a3bdf87cb27ec92be",
+      "source_mode": 420
+    },
+    {
+      "bytes": 882,
+      "path": "quote-1.0.47/build.rs",
+      "sha256": "cd6808c02e476b09a520105e2c6f6d325cccb1ecd542cbbcc836a0ae6f6fb0f1",
+      "source_mode": 420
+    },
+    {
+      "bytes": 38,
+      "path": "quote-1.0.47/rust-toolchain.toml",
+      "sha256": "6bbb61302978c736b2da03e4fb40e3beab908f85d533ab46fd541e637b5f3e0f",
+      "source_mode": 420
+    },
+    {
+      "bytes": 3549,
+      "path": "quote-1.0.47/src/ext.rs",
+      "sha256": "dabcf1dbf9a81c2dccbfb85f81a08120f5a15be40616d51434ed4ebdfe0c7283",
+      "source_mode": 420
+    },
+    {
+      "bytes": 4816,
+      "path": "quote-1.0.47/src/format.rs",
+      "sha256": "662db1f14106d79aacab400a3176a75989a4437ecaaa85ab88cd9a40b750cc5b",
+      "source_mode": 420
+    },
+    {
+      "bytes": 2359,
+      "path": "quote-1.0.47/src/ident_fragment.rs",
+      "sha256": "eed1a7407182c00ddfdc98741eaa6e234a6d2c01755e95f943b27926b8c92243",
+      "source_mode": 420
+    },
+    {
+      "bytes": 47968,
+      "path": "quote-1.0.47/src/lib.rs",
+      "sha256": "e01ca26adfe51a087813d1fc1154efd8a8c9cb5b5a81f314194b4904a4422c71",
+      "source_mode": 420
+    },
+    {
+      "bytes": 15848,
+      "path": "quote-1.0.47/src/runtime.rs",
+      "sha256": "fdb7986b31141627408b51381607f66ef4b69dd81b080c2f6489da267e96b2ba",
+      "source_mode": 420
+    },
+    {
+      "bytes": 1081,
+      "path": "quote-1.0.47/src/spanned.rs",
+      "sha256": "713678bf5cb3b4bf2f119dcf64d188a63dc59455a724c3d2567ceab83b734d73",
+      "source_mode": 420
+    },
+    {
+      "bytes": 7185,
+      "path": "quote-1.0.47/src/to_tokens.rs",
+      "sha256": "1b07b676afce2f666bac6f454758d066758033fc85e9cd9d2d12d58ad2eb36e1",
+      "source_mode": 420
+    },
+    {
+      "bytes": 214,
+      "path": "quote-1.0.47/tests/compiletest.rs",
+      "sha256": "4e381aa8ca3eabb7ac14d1e0c3700b3223e47640547a6988cfa13ad68255f60f",
+      "source_mode": 420
+    },
+    {
+      "bytes": 13694,
+      "path": "quote-1.0.47/tests/test.rs",
+      "sha256": "023d6b57ba5ba199a04d9757e3b1464c2bc09579b035ea82c047e08d89d19226",
+      "source_mode": 420
+    },
+    {
+      "bytes": 209,
+      "path": "quote-1.0.47/tests/ui/does-not-have-iter-interpolated-dup.rs",
+      "sha256": "ad13eea21d4cdd2ab6c082f633392e1ff20fb0d1af5f2177041e0bf7f30da695",
+      "source_mode": 420
+    },
+    {
+      "bytes": 767,
+      "path": "quote-1.0.47/tests/ui/does-not-have-iter-interpolated-dup.stderr",
+      "sha256": "c7bbbc8860b9ec0e87e725412a139841c3046aaf465f7190c94f935ab037a996",
+      "source_mode": 420
+    },
+    {
+      "bytes": 201,
+      "path": "quote-1.0.47/tests/ui/does-not-have-iter-interpolated.rs",
+      "sha256": "83a5b3f240651adcbe4b6e51076d76d653ad439b37442cf4054f1fd3c073f3b7",
+      "source_mode": 420
+    },
+    {
+      "bytes": 747,
+      "path": "quote-1.0.47/tests/ui/does-not-have-iter-interpolated.stderr",
+      "sha256": "6ca839345f8119f7eb3acd2fc6a37833dbcc861c02d8961727db01a29318fcc6",
+      "source_mode": 420
+    },
+    {
+      "bytes": 55,
+      "path": "quote-1.0.47/tests/ui/does-not-have-iter-separated.rs",
+      "sha256": "fe413c48331d5e3a7ae5fef6a5892a90c72f610d54595879eb49d0a94154ba3f",
+      "source_mode": 420
+    },
+    {
+      "bytes": 738,
+      "path": "quote-1.0.47/tests/ui/does-not-have-iter-separated.stderr",
+      "sha256": "ff2312aa4623e79eb7f5810cf0e6d992cd57779f0a01c5855a92a1f102086123",
+      "source_mode": 420
+    },
+    {
+      "bytes": 54,
+      "path": "quote-1.0.47/tests/ui/does-not-have-iter.rs",
+      "sha256": "09dc9499d861b63cebb0848b855b78e2dc9497bfde37ba6339f3625ae009a62f",
+      "source_mode": 420
+    },
+    {
+      "bytes": 726,
+      "path": "quote-1.0.47/tests/ui/does-not-have-iter.stderr",
+      "sha256": "21408398d12876b82416cfd57b7919ca4210f5fb8f79d7d921b2bfed5879ac4d",
+      "source_mode": 420
+    },
+    {
+      "bytes": 119,
+      "path": "quote-1.0.47/tests/ui/not-quotable.rs",
+      "sha256": "5759d0884943417609f28faadc70254a3e2fd3d9bd6ff7297a3fb70a77fafd8a",
+      "source_mode": 420
+    },
+    {
+      "bytes": 681,
+      "path": "quote-1.0.47/tests/ui/not-quotable.stderr",
+      "sha256": "a9748bc9a0a72a17f9c1f96e9b12be3686e9d7d51f120796516e26e5cebf62ad",
+      "source_mode": 420
+    },
+    {
+      "bytes": 106,
+      "path": "quote-1.0.47/tests/ui/not-repeatable.rs",
+      "sha256": "a4b115c04e4e41049a05f5b69450503fbffeba031218b4189cb931839f7f9a9c",
+      "source_mode": 420
+    },
+    {
+      "bytes": 1802,
+      "path": "quote-1.0.47/tests/ui/not-repeatable.stderr",
+      "sha256": "72105d3dec4e8ed2a657db7d397e30d452c26c1488cb1e18e23c2d1d137a6f6d",
+      "source_mode": 420
+    },
+    {
+      "bytes": 109,
+      "path": "quote-1.0.47/tests/ui/wrong-type-span.rs",
+      "sha256": "6195e35ea844c0c52ba1cff5d790c3a371af6915d137d377834ad984229ef9ea",
+      "source_mode": 420
+    },
+    {
+      "bytes": 346,
+      "path": "quote-1.0.47/tests/ui/wrong-type-span.stderr",
+      "sha256": "cad072e40e0ecc04f375122ae41aede2f0da2a9244492b3fcf70249e59d1b128",
+      "source_mode": 420
+    },
+    {
+      "bytes": 2229,
+      "path": "unicode-ident-1.0.24/.cargo-checksum.json",
+      "sha256": "90bb9be712fc0d625c8fd206d16edca353f35e82bf56155a8e0dec43907ff944",
+      "source_mode": 420
+    },
+    {
+      "bytes": 94,
+      "path": "unicode-ident-1.0.24/.cargo_vcs_info.json",
+      "sha256": "9900659dcf16d47a600102bbfd47cf554a0d4db40790983e570f9ecac9822c68",
+      "source_mode": 420
+    },
+    {
+      "bytes": 16,
+      "path": "unicode-ident-1.0.24/.github/FUNDING.yml",
+      "sha256": "b017158736b3c9751a2d21edfce7fe61c8954e2fced8da8dd3013c2f3e295bd9",
+      "source_mode": 420
+    },
+    {
+      "bytes": 3418,
+      "path": "unicode-ident-1.0.24/.github/workflows/ci.yml",
+      "sha256": "7cd19596c9178c43f442aeeaf808592bb0c3a118ce291aa2037bd22116045e61",
+      "source_mode": 420
+    },
+    {
+      "bytes": 20100,
+      "path": "unicode-ident-1.0.24/Cargo.lock",
+      "sha256": "dac9e67ad7272c61e7b197143b696705ce4800ea0e010b3b1f0c8924a0c9701d",
+      "source_mode": 420
+    },
+    {
+      "bytes": 2072,
+      "path": "unicode-ident-1.0.24/Cargo.toml",
+      "sha256": "0bb9c0e006a21355cb85c7df72e78dd8ba6fffbb7dc3f1e7a4c19af53cd354da",
+      "source_mode": 420
+    },
+    {
+      "bytes": 1331,
+      "path": "unicode-ident-1.0.24/Cargo.toml.orig",
+      "sha256": "8d0abaf7ce10cb78f26edcd613dfe5a47faa4381e6e251c7d1c123608d2e037a",
+      "source_mode": 420
+    },
+    {
+      "bytes": 9723,
+      "path": "unicode-ident-1.0.24/LICENSE-APACHE",
+      "sha256": "62c7a1e35f56406896d7aa7ca52d0cc0d272ac022b5d2796e7d6905db8a3636a",
+      "source_mode": 420
+    },
+    {
+      "bytes": 1023,
+      "path": "unicode-ident-1.0.24/LICENSE-MIT",
+      "sha256": "23f18e03dc49df91622fe2a76176497404e46ced8a715d9d2b67a7446571cca3",
+      "source_mode": 420
+    },
+    {
+      "bytes": 1995,
+      "path": "unicode-ident-1.0.24/LICENSE-UNICODE",
+      "sha256": "f7db81051789b729fea528a63ec4c938fdcb93d9d61d97dc8cc2e9df6d47f2a1",
+      "source_mode": 420
+    },
+    {
+      "bytes": 12338,
+      "path": "unicode-ident-1.0.24/README.md",
+      "sha256": "2fd3a0c6c9abd2c042fb319221f9ef2c95728a6e3725b0f067e4d315c5dbfe5a",
+      "source_mode": 420
+    },
+    {
+      "bytes": 4097,
+      "path": "unicode-ident-1.0.24/benches/xid.rs",
+      "sha256": "7eb058c1140a253f7177af8868a95aabb1b92c52dc7eee5abbfeadb507d7845d",
+      "source_mode": 420
+    },
+    {
+      "bytes": 12871,
+      "path": "unicode-ident-1.0.24/src/lib.rs",
+      "sha256": "078912e7c64ba3ea1081b88c2610deba31eeb057c28f9d78e929db4856b7774f",
+      "source_mode": 420
+    },
+    {
+      "bytes": 63369,
+      "path": "unicode-ident-1.0.24/src/tables.rs",
+      "sha256": "369c476ba91a39fce55563b692a3f598daf7f026cfe0a3796cfed1102fb3b190",
+      "source_mode": 420
+    },
+    {
+      "bytes": 1803,
+      "path": "unicode-ident-1.0.24/tests/compare.rs",
+      "sha256": "f2311271aa1db7380e5bf153ef83ee99777e14579e4f28c2b1a3e21877ffe715",
+      "source_mode": 420
+    },
+    {
+      "bytes": 385,
+      "path": "unicode-ident-1.0.24/tests/fst/mod.rs",
+      "sha256": "69a3aaf59acd8bca962ecc6234be56be8c0934ab79b253162f10eb881523901f",
+      "source_mode": 420
+    },
+    {
+      "bytes": 76143,
+      "path": "unicode-ident-1.0.24/tests/fst/xid_continue.fst",
+      "sha256": "b58be4f0c498253e7a5ac664046096f15f249da66131347d4b822097623549a2",
+      "source_mode": 420
+    },
+    {
+      "bytes": 67370,
+      "path": "unicode-ident-1.0.24/tests/fst/xid_start.fst",
+      "sha256": "aec7eecdacfce308d2e6210f47d28ed3aad5c8b048efbfbc11fc22e60fbf435b",
+      "source_mode": 420
+    },
+    {
+      "bytes": 540,
+      "path": "unicode-ident-1.0.24/tests/roaring/mod.rs",
+      "sha256": "f5c6d55463a7f53e92a493cf046d717149250fbafc0e0fe94bdb531377bf8b11",
+      "source_mode": 420
+    },
+    {
+      "bytes": 2456,
+      "path": "unicode-ident-1.0.24/tests/static_size.rs",
+      "sha256": "80c3ca7eeec2660f3f4f2efa8fecd6209b32ec8b547192cbfa37c0e67a5f14a0",
+      "source_mode": 420
+    },
+    {
+      "bytes": 144,
+      "path": "unicode-ident-1.0.24/tests/tables/mod.rs",
+      "sha256": "e6949172d10fc4b2431ce7546269bfd4f9146454c8c3e31faf5e5d80c16a8ab6",
+      "source_mode": 420
+    },
+    {
+      "bytes": 24312,
+      "path": "unicode-ident-1.0.24/tests/tables/tables.rs",
+      "sha256": "302d87306100b6280f8db93e167dc70c47f724045cf1312b7354683656c3f36b",
+      "source_mode": 420
+    },
+    {
+      "bytes": 179,
+      "path": "unicode-ident-1.0.24/tests/trie/mod.rs",
+      "sha256": "d4acbb716bcbaf80660039797f45e138ed8bbd66749fa3b19b1a971574679cc9",
+      "source_mode": 420
+    },
+    {
+      "bytes": 30787,
+      "path": "unicode-ident-1.0.24/tests/trie/trie.rs",
+      "sha256": "f7b9edc1e8a98e3be42b653bba27bb4eb5fc48a559d6d8d1c6a4db4b5425b0d5",
+      "source_mode": 420
+    }
+  ],
+  "format_version": 1,
+  "generation_argv": [
+    "/opt/rust/bin/cargo",
+    "vendor",
+    "--offline",
+    "--locked",
+    "--respect-source-config",
+    "--versioned-dirs",
+    "--manifest-path=/source/Cargo.toml",
+    "--config=source.crates-io.replace-with=\"rust-mcp-offline\"",
+    "--config=source.rust-mcp-offline.local-registry=\"/rust-mcp-registry\"",
+    "/source/vendor"
+  ],
+  "packages": [
+    {
+      "cargo_lock_checksum": "e6e4313cd5fcd3dad5cafa179702e2b244f760991f45397d14d4ebf38247da75",
+      "crate_bytes": 49298,
+      "crate_path": "registry/unicode-ident-1.0.24.crate",
+      "crate_sha256": "e6e4313cd5fcd3dad5cafa179702e2b244f760991f45397d14d4ebf38247da75",
+      "declared_license": "(MIT OR Apache-2.0) AND Unicode-3.0",
+      "index_path": "registry/index/un/ic/unicode-ident",
+      "index_row_bytes": 911,
+      "index_row_sha256": "67bb72b705bf0767a197ec29c28d0d20697b9da6ac0bdf1c969cf5f59234fa90",
+      "name": "unicode-ident",
+      "source": "registry+https://github.com/rust-lang/crates.io-index",
+      "version": "1.0.24"
+    },
+    {
+      "cargo_lock_checksum": "985e7ec9bb745e6ce6535b544d84d6cd6f7ad8bd711c398938ae983b91a766d9",
+      "crate_bytes": 59588,
+      "crate_path": "registry/proc-macro2-1.0.107.crate",
+      "crate_sha256": "985e7ec9bb745e6ce6535b544d84d6cd6f7ad8bd711c398938ae983b91a766d9",
+      "declared_license": "MIT OR Apache-2.0",
+      "index_path": "registry/index/pr/oc/proc-macro2",
+      "index_row_bytes": 968,
+      "index_row_sha256": "8a59650e19a615bee5ce7c0e9aab30f6b6aa3c3d86fbb88cde865fde9458480f",
+      "name": "proc-macro2",
+      "source": "registry+https://github.com/rust-lang/crates.io-index",
+      "version": "1.0.107"
+    },
+    {
+      "cargo_lock_checksum": "1fbf4db142a473a8d80c26bbf18454ed458bf8d26c8219c331daecfdbd079001",
+      "crate_bytes": 31622,
+      "crate_path": "registry/quote-1.0.47.crate",
+      "crate_sha256": "1fbf4db142a473a8d80c26bbf18454ed458bf8d26c8219c331daecfdbd079001",
+      "declared_license": "MIT OR Apache-2.0",
+      "index_path": "registry/index/qu/ot/quote",
+      "index_row_bytes": 633,
+      "index_row_sha256": "fcb27cbd471a5bcb4766aac9ea557e5c7358802de8ba4652d46cee7d653f09e8",
+      "name": "quote",
+      "source": "registry+https://github.com/rust-lang/crates.io-index",
+      "version": "1.0.47"
+    }
+  ],
+  "purpose": "M2 D05 directory-source fixture qualification; not production acceptance",
+  "restrictions": [
+    "Only bounded canonical paths, directories, and regular files were accepted.",
+    "Symlinks, hardlinks, devices, FIFOs, privileged mode bits, duplicates, and PAX metadata were rejected.",
+    "The host wrote each validated file explicitly; no guest archive was extracted on the host.",
+    ".cargo-checksum.json detects accidental modification and is not an authentication mechanism."
+  ],
+  "source_index_commit": "3fae660f226d6b05eadcea9fb3512ecddaa33b67",
+  "source_registry_fixture_fingerprint": "sha256:1165e096813a84ae3989d84417031dee78fdffba3c4937c697c830c7500abbed",
+  "vendor_tree_fingerprint": "sha256:743947d5788c1a4385a4b59869c5b8bd0535f7fc0d875b51288f9b26b2d0eba1"
+}

@@ -1,0 +1,919 @@
+{
+  "schema": "rust-mcp-gate-report-v2",
+  "mode": "core",
+  "platform": "macOS-26.6.2-arm64-arm-64bit-Mach-O",
+  "machine": "arm64",
+  "started_at": "2026-09-05T16:00:46.867165Z",
+  "steps": [
+    {
+      "name": "fmt",
+      "command": [
+        "cargo",
+        "fmt",
+        "--all",
+        "--check"
+      ],
+      "started_at": "2026-09-05T16:00:46.894573Z",
+      "status": "passed",
+      "exit_code": 0,
+      "finished_at": "2026-09-05T16:00:47.361334Z",
+      "seconds": 0.467,
+      "counts": {
+        "output_lines": 0,
+        "output_bytes_utf8": 0,
+        "test_groups": [],
+        "rust_passed": 0,
+        "rust_failed": 0,
+        "python_unittest_executed": 0
+      }
+    },
+    {
+      "name": "check",
+      "command": [
+        "cargo",
+        "check",
+        "--workspace",
+        "--all-targets",
+        "--locked",
+        "--offline"
+      ],
+      "started_at": "2026-09-05T16:00:47.361688Z",
+      "status": "passed",
+      "exit_code": 0,
+      "finished_at": "2026-09-05T16:00:52.129170Z",
+      "seconds": 4.768,
+      "counts": {
+        "output_lines": 9,
+        "output_bytes_utf8": 901,
+        "test_groups": [],
+        "rust_passed": 0,
+        "rust_failed": 0,
+        "python_unittest_executed": 0
+      }
+    },
+    {
+      "name": "clippy",
+      "command": [
+        "cargo",
+        "clippy",
+        "--workspace",
+        "--all-targets",
+        "--locked",
+        "--offline",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "started_at": "2026-09-05T16:00:52.129534Z",
+      "status": "passed",
+      "exit_code": 0,
+      "finished_at": "2026-09-05T16:00:56.973937Z",
+      "seconds": 4.844,
+      "counts": {
+        "output_lines": 9,
+        "output_bytes_utf8": 901,
+        "test_groups": [],
+        "rust_passed": 0,
+        "rust_failed": 0,
+        "python_unittest_executed": 0
+      }
+    },
+    {
+      "name": "test",
+      "command": [
+        "cargo",
+        "test",
+        "--workspace",
+        "--all-targets",
+        "--locked",
+        "--offline"
+      ],
+      "started_at": "2026-09-05T16:00:56.974287Z",
+      "status": "passed",
+      "exit_code": 0,
+      "finished_at": "2026-09-05T16:01:58.759100Z",
+      "seconds": 61.785,
+      "counts": {
+        "output_lines": 1087,
+        "output_bytes_utf8": 76175,
+        "test_groups": [
+          {
+            "runner": "rust-test-harness",
+            "status": "ok",
+            "passed": 0,
+            "failed": 0,
+            "ignored": 0,
+            "measured": 0,
+            "filtered_out": 0
+          },
+          {
+            "runner": "rust-test-harness",
+            "status": "ok",
+            "passed": 4,
+            "failed": 0,
+            "ignored": 0,
+            "measured": 0,
+            "filtered_out": 0
+          },
+          {
+            "runner": "rust-test-harness",
+            "status": "ok",
+            "passed": 6,
+            "failed": 0,
+            "ignored": 0,
+            "measured": 0,
+            "filtered_out": 0
+          },
+          {
+            "runner": "rust-test-harness",
+            "status": "ok",
+            "passed": 8,
+            "failed": 0,
+            "ignored": 0,
+            "measured": 0,
+            "filtered_out": 0
+          },
+          {
+            "runner": "rust-test-harness",
+            "status": "ok",
+            "passed": 5,
+            "failed": 0,
+            "ignored": 0,
+            "measured": 0,
+            "filtered_out": 0
+          },
+          {
+            "runner": "rust-test-harness",
+            "status": "ok",
+            "passed": 3,
+            "failed": 0,
+            "ignored": 0,
+            "measured": 0,
+            "filtered_out": 0
+          },
+          {
+            "runner": "rust-test-harness",
+            "status": "ok",
+            "passed": 8,
+            "failed": 0,
+            "ignored": 0,
+            "measured": 0,
+            "filtered_out": 0
+          },
+          {
+            "runner": "rust-test-harness",
+            "status": "ok",
+            "passed": 11,
+            "failed": 0,
+            "ignored": 0,
+            "measured": 0,
+            "filtered_out": 0
+          },
+          {
+            "runner": "rust-test-harness",
+            "status": "ok",
+            "passed": 4,
+            "failed": 0,
+            "ignored": 0,
+            "measured": 0,
+            "filtered_out": 0
+          },
+          {
+            "runner": "rust-test-harness",
+            "status": "ok",
+            "passed": 5,
+            "failed": 0,
+            "ignored": 0,
+            "measured": 0,
+            "filtered_out": 0
+          },
+          {
+            "runner": "rust-test-harness",
+            "status": "ok",
+            "passed": 5,
+            "failed": 0,
+            "ignored": 0,
+            "measured": 0,
+            "filtered_out": 0
+          },
+          {
+            "runner": "rust-test-harness",
+            "status": "ok",
+            "passed": 6,
+            "failed": 0,
+            "ignored": 0,
+            "measured": 0,
+            "filtered_out": 0
+          },
+          {
+            "runner": "rust-test-harness",
+            "status": "ok",
+            "passed": 12,
+            "failed": 0,
+            "ignored": 0,
+            "measured": 0,
+            "filtered_out": 0
+          },
+          {
+            "runner": "rust-test-harness",
+            "status": "ok",
+            "passed": 8,
+            "failed": 0,
+            "ignored": 0,
+            "measured": 0,
+            "filtered_out": 0
+          },
+          {
+            "runner": "rust-test-harness",
+            "status": "ok",
+            "passed": 12,
+            "failed": 0,
+            "ignored": 0,
+            "measured": 0,
+            "filtered_out": 0
+          },
+          {
+            "runner": "rust-test-harness",
+            "status": "ok",
+            "passed": 4,
+            "failed": 0,
+            "ignored": 0,
+            "measured": 0,
+            "filtered_out": 0
+          },
+          {
+            "runner": "rust-test-harness",
+            "status": "ok",
+            "passed": 4,
+            "failed": 0,
+            "ignored": 0,
+            "measured": 0,
+            "filtered_out": 0
+          },
+          {
+            "runner": "rust-test-harness",
+            "status": "ok",
+            "passed": 3,
+            "failed": 0,
+            "ignored": 0,
+            "measured": 0,
+            "filtered_out": 0
+          },
+          {
+            "runner": "rust-test-harness",
+            "status": "ok",
+            "passed": 19,
+            "failed": 0,
+            "ignored": 0,
+            "measured": 0,
+            "filtered_out": 0
+          },
+          {
+            "runner": "rust-test-harness",
+            "status": "ok",
+            "passed": 50,
+            "failed": 0,
+            "ignored": 2,
+            "measured": 0,
+            "filtered_out": 0
+          },
+          {
+            "runner": "rust-test-harness",
+            "status": "ok",
+            "passed": 10,
+            "failed": 0,
+            "ignored": 0,
+            "measured": 0,
+            "filtered_out": 0
+          },
+          {
+            "runner": "rust-test-harness",
+            "status": "ok",
+            "passed": 5,
+            "failed": 0,
+            "ignored": 0,
+            "measured": 0,
+            "filtered_out": 0
+          },
+          {
+            "runner": "rust-test-harness",
+            "status": "ok",
+            "passed": 8,
+            "failed": 0,
+            "ignored": 0,
+            "measured": 0,
+            "filtered_out": 0
+          },
+          {
+            "runner": "rust-test-harness",
+            "status": "ok",
+            "passed": 8,
+            "failed": 0,
+            "ignored": 0,
+            "measured": 0,
+            "filtered_out": 0
+          },
+          {
+            "runner": "rust-test-harness",
+            "status": "ok",
+            "passed": 13,
+            "failed": 0,
+            "ignored": 0,
+            "measured": 0,
+            "filtered_out": 0
+          },
+          {
+            "runner": "rust-test-harness",
+            "status": "ok",
+            "passed": 1,
+            "failed": 0,
+            "ignored": 0,
+            "measured": 0,
+            "filtered_out": 0
+          },
+          {
+            "runner": "rust-test-harness",
+            "status": "ok",
+            "passed": 7,
+            "failed": 0,
+            "ignored": 0,
+            "measured": 0,
+            "filtered_out": 0
+          },
+          {
+            "runner": "rust-test-harness",
+            "status": "ok",
+            "passed": 2,
+            "failed": 0,
+            "ignored": 0,
+            "measured": 0,
+            "filtered_out": 0
+          },
+          {
+            "runner": "rust-test-harness",
+            "status": "ok",
+            "passed": 2,
+            "failed": 0,
+            "ignored": 0,
+            "measured": 0,
+            "filtered_out": 0
+          },
+          {
+            "runner": "rust-test-harness",
+            "status": "ok",
+            "passed": 7,
+            "failed": 0,
+            "ignored": 0,
+            "measured": 0,
+            "filtered_out": 0
+          },
+          {
+            "runner": "rust-test-harness",
+            "status": "ok",
+            "passed": 7,
+            "failed": 0,
+            "ignored": 0,
+            "measured": 0,
+            "filtered_out": 0
+          },
+          {
+            "runner": "rust-test-harness",
+            "status": "ok",
+            "passed": 3,
+            "failed": 0,
+            "ignored": 0,
+            "measured": 0,
+            "filtered_out": 0
+          },
+          {
+            "runner": "rust-test-harness",
+            "status": "ok",
+            "passed": 3,
+            "failed": 0,
+            "ignored": 0,
+            "measured": 0,
+            "filtered_out": 0
+          },
+          {
+            "runner": "rust-test-harness",
+            "status": "ok",
+            "passed": 96,
+            "failed": 0,
+            "ignored": 7,
+            "measured": 0,
+            "filtered_out": 0
+          },
+          {
+            "runner": "rust-test-harness",
+            "status": "ok",
+            "passed": 1,
+            "failed": 0,
+            "ignored": 4,
+            "measured": 0,
+            "filtered_out": 0
+          },
+          {
+            "runner": "rust-test-harness",
+            "status": "ok",
+            "passed": 165,
+            "failed": 0,
+            "ignored": 3,
+            "measured": 0,
+            "filtered_out": 0
+          },
+          {
+            "runner": "rust-test-harness",
+            "status": "ok",
+            "passed": 9,
+            "failed": 0,
+            "ignored": 0,
+            "measured": 0,
+            "filtered_out": 0
+          },
+          {
+            "runner": "rust-test-harness",
+            "status": "ok",
+            "passed": 5,
+            "failed": 0,
+            "ignored": 0,
+            "measured": 0,
+            "filtered_out": 0
+          },
+          {
+            "runner": "rust-test-harness",
+            "status": "ok",
+            "passed": 2,
+            "failed": 0,
+            "ignored": 0,
+            "measured": 0,
+            "filtered_out": 0
+          },
+          {
+            "runner": "rust-test-harness",
+            "status": "ok",
+            "passed": 13,
+            "failed": 0,
+            "ignored": 0,
+            "measured": 0,
+            "filtered_out": 0
+          },
+          {
+            "runner": "rust-test-harness",
+            "status": "ok",
+            "passed": 2,
+            "failed": 0,
+            "ignored": 0,
+            "measured": 0,
+            "filtered_out": 0
+          },
+          {
+            "runner": "rust-test-harness",
+            "status": "ok",
+            "passed": 2,
+            "failed": 0,
+            "ignored": 0,
+            "measured": 0,
+            "filtered_out": 0
+          },
+          {
+            "runner": "rust-test-harness",
+            "status": "ok",
+            "passed": 3,
+            "failed": 0,
+            "ignored": 0,
+            "measured": 0,
+            "filtered_out": 0
+          },
+          {
+            "runner": "rust-test-harness",
+            "status": "ok",
+            "passed": 0,
+            "failed": 0,
+            "ignored": 16,
+            "measured": 0,
+            "filtered_out": 0
+          },
+          {
+            "runner": "rust-test-harness",
+            "status": "ok",
+            "passed": 37,
+            "failed": 0,
+            "ignored": 0,
+            "measured": 0,
+            "filtered_out": 0
+          },
+          {
+            "runner": "rust-test-harness",
+            "status": "ok",
+            "passed": 30,
+            "failed": 0,
+            "ignored": 0,
+            "measured": 0,
+            "filtered_out": 0
+          },
+          {
+            "runner": "rust-test-harness",
+            "status": "ok",
+            "passed": 6,
+            "failed": 0,
+            "ignored": 0,
+            "measured": 0,
+            "filtered_out": 0
+          },
+          {
+            "runner": "rust-test-harness",
+            "status": "ok",
+            "passed": 16,
+            "failed": 0,
+            "ignored": 0,
+            "measured": 0,
+            "filtered_out": 0
+          },
+          {
+            "runner": "rust-test-harness",
+            "status": "ok",
+            "passed": 16,
+            "failed": 0,
+            "ignored": 0,
+            "measured": 0,
+            "filtered_out": 0
+          },
+          {
+            "runner": "rust-test-harness",
+            "status": "ok",
+            "passed": 9,
+            "failed": 0,
+            "ignored": 0,
+            "measured": 0,
+            "filtered_out": 0
+          },
+          {
+            "runner": "rust-test-harness",
+            "status": "ok",
+            "passed": 13,
+            "failed": 0,
+            "ignored": 0,
+            "measured": 0,
+            "filtered_out": 0
+          },
+          {
+            "runner": "rust-test-harness",
+            "status": "ok",
+            "passed": 1,
+            "failed": 0,
+            "ignored": 0,
+            "measured": 0,
+            "filtered_out": 12
+          },
+          {
+            "runner": "rust-test-harness",
+            "status": "ok",
+            "passed": 13,
+            "failed": 0,
+            "ignored": 0,
+            "measured": 0,
+            "filtered_out": 0
+          },
+          {
+            "runner": "rust-test-harness",
+            "status": "ok",
+            "passed": 18,
+            "failed": 0,
+            "ignored": 0,
+            "measured": 0,
+            "filtered_out": 0
+          },
+          {
+            "runner": "rust-test-harness",
+            "status": "ok",
+            "passed": 1,
+            "failed": 0,
+            "ignored": 0,
+            "measured": 0,
+            "filtered_out": 0
+          },
+          {
+            "runner": "rust-test-harness",
+            "status": "ok",
+            "passed": 0,
+            "failed": 0,
+            "ignored": 0,
+            "measured": 0,
+            "filtered_out": 0
+          }
+        ],
+        "rust_passed": 711,
+        "rust_failed": 0,
+        "python_unittest_executed": 0
+      }
+    },
+    {
+      "name": "doctests",
+      "command": [
+        "cargo",
+        "test",
+        "--workspace",
+        "--doc",
+        "--locked",
+        "--offline"
+      ],
+      "started_at": "2026-09-05T16:01:58.760547Z",
+      "status": "passed",
+      "exit_code": 0,
+      "finished_at": "2026-09-05T16:01:59.876102Z",
+      "seconds": 1.116,
+      "counts": {
+        "output_lines": 44,
+        "output_bytes_utf8": 1199,
+        "test_groups": [
+          {
+            "runner": "rust-test-harness",
+            "status": "ok",
+            "passed": 0,
+            "failed": 0,
+            "ignored": 0,
+            "measured": 0,
+            "filtered_out": 0
+          },
+          {
+            "runner": "rust-test-harness",
+            "status": "ok",
+            "passed": 0,
+            "failed": 0,
+            "ignored": 0,
+            "measured": 0,
+            "filtered_out": 0
+          },
+          {
+            "runner": "rust-test-harness",
+            "status": "ok",
+            "passed": 0,
+            "failed": 0,
+            "ignored": 0,
+            "measured": 0,
+            "filtered_out": 0
+          },
+          {
+            "runner": "rust-test-harness",
+            "status": "ok",
+            "passed": 1,
+            "failed": 0,
+            "ignored": 0,
+            "measured": 0,
+            "filtered_out": 0
+          },
+          {
+            "runner": "rust-test-harness",
+            "status": "ok",
+            "passed": 0,
+            "failed": 0,
+            "ignored": 0,
+            "measured": 0,
+            "filtered_out": 0
+          },
+          {
+            "runner": "rust-test-harness",
+            "status": "ok",
+            "passed": 0,
+            "failed": 0,
+            "ignored": 0,
+            "measured": 0,
+            "filtered_out": 0
+          },
+          {
+            "runner": "rust-test-harness",
+            "status": "ok",
+            "passed": 0,
+            "failed": 0,
+            "ignored": 0,
+            "measured": 0,
+            "filtered_out": 0
+          }
+        ],
+        "rust_passed": 1,
+        "rust_failed": 0,
+        "python_unittest_executed": 0
+      }
+    },
+    {
+      "name": "architecture",
+      "command": [
+        "/opt/homebrew/opt/python@3.14/bin/python3.14",
+        "scripts/check-architecture.py"
+      ],
+      "started_at": "2026-09-05T16:01:59.876493Z",
+      "status": "passed",
+      "exit_code": 0,
+      "finished_at": "2026-09-05T16:01:59.946758Z",
+      "seconds": 0.07,
+      "counts": {
+        "output_lines": 1,
+        "output_bytes_utf8": 127,
+        "test_groups": [],
+        "rust_passed": 0,
+        "rust_failed": 0,
+        "python_unittest_executed": 0
+      }
+    },
+    {
+      "name": "gate-reporting",
+      "command": [
+        "/opt/homebrew/opt/python@3.14/bin/python3.14",
+        "scripts/test-gate-reporting.py"
+      ],
+      "started_at": "2026-09-05T16:01:59.947226Z",
+      "status": "passed",
+      "exit_code": 0,
+      "finished_at": "2026-09-05T16:02:00.118345Z",
+      "seconds": 0.171,
+      "counts": {
+        "output_lines": 5,
+        "output_bytes_utf8": 106,
+        "test_groups": [
+          {
+            "runner": "python-unittest",
+            "executed": 8
+          }
+        ],
+        "rust_passed": 0,
+        "rust_failed": 0,
+        "python_unittest_executed": 8
+      }
+    },
+    {
+      "name": "release-artifact-tests",
+      "command": [
+        "/opt/homebrew/opt/python@3.14/bin/python3.14",
+        "-B",
+        "scripts/test-release-artifact.py"
+      ],
+      "started_at": "2026-09-05T16:02:00.118962Z",
+      "status": "passed",
+      "exit_code": 0,
+      "finished_at": "2026-09-05T16:02:00.192855Z",
+      "seconds": 0.074,
+      "counts": {
+        "output_lines": 16,
+        "output_bytes_utf8": 1580,
+        "test_groups": [
+          {
+            "runner": "python-unittest",
+            "executed": 11
+          }
+        ],
+        "rust_passed": 0,
+        "rust_failed": 0,
+        "python_unittest_executed": 11
+      }
+    },
+    {
+      "name": "release-smoke-tests",
+      "command": [
+        "/opt/homebrew/opt/python@3.14/bin/python3.14",
+        "-B",
+        "scripts/test-release-smoke.py"
+      ],
+      "started_at": "2026-09-05T16:02:00.193638Z",
+      "status": "passed",
+      "exit_code": 0,
+      "finished_at": "2026-09-05T16:02:00.260839Z",
+      "seconds": 0.067,
+      "counts": {
+        "output_lines": 14,
+        "output_bytes_utf8": 1178,
+        "test_groups": [
+          {
+            "runner": "python-unittest",
+            "executed": 9
+          }
+        ],
+        "rust_passed": 0,
+        "rust_failed": 0,
+        "python_unittest_executed": 9
+      }
+    },
+    {
+      "name": "codex-qualifier-tests",
+      "command": [
+        "/opt/homebrew/opt/python@3.14/bin/python3.14",
+        "-B",
+        "scripts/test-codex-model-qualifier.py"
+      ],
+      "started_at": "2026-09-05T16:02:00.261160Z",
+      "status": "passed",
+      "exit_code": 0,
+      "finished_at": "2026-09-05T16:02:53.962690Z",
+      "seconds": 53.701,
+      "counts": {
+        "output_lines": 6,
+        "output_bytes_utf8": 232,
+        "test_groups": [
+          {
+            "runner": "python-unittest",
+            "executed": 39
+          }
+        ],
+        "rust_passed": 0,
+        "rust_failed": 0,
+        "python_unittest_executed": 39
+      }
+    },
+    {
+      "name": "vendor",
+      "command": [
+        "/opt/homebrew/opt/python@3.14/bin/python3.14",
+        "scripts/verify-vendor.py"
+      ],
+      "started_at": "2026-09-05T16:02:53.963403Z",
+      "status": "passed",
+      "exit_code": 0,
+      "finished_at": "2026-09-05T16:02:54.022745Z",
+      "seconds": 0.059,
+      "counts": {
+        "output_lines": 1,
+        "output_bytes_utf8": 87,
+        "test_groups": [],
+        "rust_passed": 0,
+        "rust_failed": 0,
+        "python_unittest_executed": 0
+      }
+    },
+    {
+      "name": "cargo-fixtures",
+      "command": [
+        "/opt/homebrew/opt/python@3.14/bin/python3.14",
+        "scripts/test-fixtures.py",
+        "/Users/cburgosro/Projects/rust-mcp",
+        "--cargo",
+        "/Users/cburgosro/.rustup/toolchains/1.98.1-aarch64-apple-darwin/bin/cargo"
+      ],
+      "started_at": "2026-09-05T16:02:54.023076Z",
+      "status": "passed",
+      "exit_code": 0,
+      "finished_at": "2026-09-05T16:02:55.988367Z",
+      "seconds": 1.965,
+      "counts": {
+        "output_lines": 13,
+        "output_bytes_utf8": 1674,
+        "test_groups": [],
+        "rust_passed": 0,
+        "rust_failed": 0,
+        "python_unittest_executed": 0
+      }
+    },
+    {
+      "name": "audit",
+      "command": [
+        "cargo",
+        "audit",
+        "--no-fetch"
+      ],
+      "started_at": "2026-09-05T16:02:55.988862Z",
+      "status": "passed",
+      "exit_code": 0,
+      "finished_at": "2026-09-05T16:02:56.319010Z",
+      "seconds": 0.33,
+      "counts": {
+        "output_lines": 259,
+        "output_bytes_utf8": 13440,
+        "test_groups": [],
+        "rust_passed": 0,
+        "rust_failed": 0,
+        "python_unittest_executed": 0
+      }
+    },
+    {
+      "name": "deny",
+      "command": [
+        "cargo",
+        "deny",
+        "--all-features",
+        "--locked",
+        "--offline",
+        "check",
+        "--disable-fetch",
+        "--hide-inclusion-graph",
+        "advisories",
+        "bans",
+        "sources"
+      ],
+      "started_at": "2026-09-05T16:02:56.319367Z",
+      "status": "passed",
+      "exit_code": 0,
+      "finished_at": "2026-09-05T16:02:56.933118Z",
+      "seconds": 0.614,
+      "counts": {
+        "output_lines": 213,
+        "output_bytes_utf8": 16226,
+        "test_groups": [],
+        "rust_passed": 0,
+        "rust_failed": 0,
+        "python_unittest_executed": 0
+      }
+    }
+  ],
+  "status": "passed",
+  "cargo": "cargo 1.98.1 (797e8a9bc 2026-08-05)",
+  "rustc": "rustc 1.98.1 (48a229cea 2026-09-01)",
+  "finished_at": "2026-09-05T16:02:56.933460Z"
+}

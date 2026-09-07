@@ -1,10 +1,12 @@
 // These types are used only to derive schemas; domain values own wire serialization.
 #[allow(dead_code)]
 pub(super) mod schemas;
+use super::clock::WallClock;
+use super::workers::worker_error;
 use super::{
     contract::{Contract, ToolOutput},
     project::Registry,
-    workers::{WorkerError, Workers},
+    workers::Workers,
 };
 use rmcp::{
     model::{CallToolRequestParams, CallToolResult, ErrorData, Tool, ToolAnnotations},
@@ -12,8 +14,7 @@ use rmcp::{
 };
 use rust_engineering_application::{ExecutionError, InspectionError, ProjectError};
 use rust_engineering_domain::{
-    Clock, Evidence, OperationalErrorCode, ProjectInspection, ProjectRef, ProjectStructure,
-    ToolStatus, UnixSeconds,
+    Evidence, OperationalErrorCode, ProjectInspection, ProjectRef, ProjectStructure, ToolStatus,
 };
 use rust_engineering_execution::RustProjectInspector;
 use schemars::JsonSchema;
@@ -23,7 +24,7 @@ use std::{
         Arc, Mutex,
         atomic::{AtomicBool, Ordering},
     },
-    time::{Duration, Instant, SystemTime, UNIX_EPOCH},
+    time::{Duration, Instant},
 };
 
 pub(super) const NAME: &str = "rust.project.inspect";
@@ -248,27 +249,6 @@ fn output(
         truncation,
         evidence,
     })
-}
-fn worker_error(error: WorkerError) -> InspectionError {
-    match error {
-        WorkerError::Busy => InspectionError::Execution(ExecutionError::Busy),
-        WorkerError::Cancelled => InspectionError::Project(ProjectError::Cancelled),
-        WorkerError::TimedOut => {
-            InspectionError::Project(ProjectError::Rejected(OperationalErrorCode::CommandTimeout))
-        }
-        WorkerError::Internal => InspectionError::Internal,
-    }
-}
-struct WallClock;
-impl Clock for WallClock {
-    fn now(&self) -> UnixSeconds {
-        UnixSeconds(
-            SystemTime::now()
-                .duration_since(UNIX_EPOCH)
-                .map(|v| v.as_secs())
-                .unwrap_or(0),
-        )
-    }
 }
 pub(super) struct InspectionTool {
     pub(super) definition: Tool,

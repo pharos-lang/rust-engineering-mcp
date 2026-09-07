@@ -1,0 +1,526 @@
+{
+  "schema": "rust-mcp-m3-01-rust-security-v1",
+  "status": "passed",
+  "started_at": "2026-09-06T11:53:57.983841+00:00",
+  "image_id": "sha256:384a1742ecc53cdd3a9c0bf36c6f8b66db73ddd118aeeae6e55654ea998ae36a",
+  "steps": [
+    {
+      "selection": "rust_gateway::tests::benign_source_transfer_compiles_with_empty_directory",
+      "command": [
+        "/Users/cburgosro/.rustup/toolchains/1.98.1-aarch64-apple-darwin/bin/cargo",
+        "test",
+        "--locked",
+        "--offline",
+        "-p",
+        "rust-engineering-execution",
+        "--lib",
+        "rust_gateway::tests::benign_source_transfer_compiles_with_empty_directory",
+        "--",
+        "--exact",
+        "--ignored",
+        "--nocapture",
+        "--test-threads=1"
+      ],
+      "status": "passed",
+      "exit_code": 0,
+      "expected_executed": 1,
+      "seconds": 7.961,
+      "log_sha256": "2c0d7fd02d0a9a375b5777ba261a36dd8bcb39d1d708cf1c8d85ad093636115c"
+    },
+    {
+      "selection": "rust_calibration::tests::observed_descendants_are_cleaned_on_timeout_cancel_and_overflow",
+      "command": [
+        "/Users/cburgosro/.rustup/toolchains/1.98.1-aarch64-apple-darwin/bin/cargo",
+        "test",
+        "--locked",
+        "--offline",
+        "-p",
+        "rust-engineering-execution",
+        "--lib",
+        "rust_calibration::tests::observed_descendants_are_cleaned_on_timeout_cancel_and_overflow",
+        "--",
+        "--exact",
+        "--ignored",
+        "--nocapture",
+        "--test-threads=1"
+      ],
+      "status": "passed",
+      "exit_code": 0,
+      "expected_executed": 1,
+      "seconds": 14.373,
+      "log_sha256": "caf5edfc1bd207113330c6dcf54720f60bec93f4a7bf59d01a1c1fa4f5f5a881"
+    },
+    {
+      "selection": "toolchain_inspect_observes_installed_runtime_with_shared_calibration",
+      "command": [
+        "/Users/cburgosro/.rustup/toolchains/1.98.1-aarch64-apple-darwin/bin/cargo",
+        "test",
+        "--locked",
+        "--offline",
+        "-p",
+        "rust-engineering-mcp",
+        "--test",
+        "inspection_runtime",
+        "toolchain_inspect_observes_installed_runtime_with_shared_calibration",
+        "--",
+        "--exact",
+        "--ignored",
+        "--nocapture",
+        "--test-threads=1"
+      ],
+      "status": "passed",
+      "exit_code": 0,
+      "expected_executed": 1,
+      "seconds": 17.965,
+      "log_sha256": "cb052177ad828bb2fd85d633bea2b98cc5b6aa4bb0805cf4cd6d8abf8fc84f69"
+    },
+    {
+      "selection": "eof_and_cancellation_during_calibration_join_workers_and_leave_no_owned_objects",
+      "command": [
+        "/Users/cburgosro/.rustup/toolchains/1.98.1-aarch64-apple-darwin/bin/cargo",
+        "test",
+        "--locked",
+        "--offline",
+        "-p",
+        "rust-engineering-mcp",
+        "--test",
+        "inspection_runtime",
+        "eof_and_cancellation_during_calibration_join_workers_and_leave_no_owned_objects",
+        "--",
+        "--exact",
+        "--ignored",
+        "--nocapture",
+        "--test-threads=1"
+      ],
+      "status": "passed",
+      "exit_code": 0,
+      "expected_executed": 1,
+      "seconds": 3.634,
+      "log_sha256": "065f0f261ae210227c4b843df5472fb2f9e33553f5d500c29d512f296bf31df6"
+    },
+    {
+      "selection": "check_reports_success_and_borrow_errors_with_live_log_resources",
+      "command": [
+        "/Users/cburgosro/.rustup/toolchains/1.98.1-aarch64-apple-darwin/bin/cargo",
+        "test",
+        "--locked",
+        "--offline",
+        "-p",
+        "rust-engineering-mcp",
+        "--test",
+        "inspection_runtime",
+        "check_reports_success_and_borrow_errors_with_live_log_resources",
+        "--",
+        "--exact",
+        "--ignored",
+        "--nocapture",
+        "--test-threads=1"
+      ],
+      "status": "passed",
+      "exit_code": 0,
+      "expected_executed": 1,
+      "seconds": 19.783,
+      "log_sha256": "2b594c18e60bf86014f12400205e9ef5402f86e79654fb7b1546a215f053d767"
+    },
+    {
+      "selection": "check_cancellation_and_eof_join_active_cargo_jobs",
+      "command": [
+        "/Users/cburgosro/.rustup/toolchains/1.98.1-aarch64-apple-darwin/bin/cargo",
+        "test",
+        "--locked",
+        "--offline",
+        "-p",
+        "rust-engineering-mcp",
+        "--test",
+        "inspection_runtime",
+        "check_cancellation_and_eof_join_active_cargo_jobs",
+        "--",
+        "--exact",
+        "--ignored",
+        "--nocapture",
+        "--test-threads=1"
+      ],
+      "status": "passed",
+      "exit_code": 0,
+      "expected_executed": 1,
+      "seconds": 17.594,
+      "log_sha256": "4d135ac3fac50398975aa0a46551024ad4eb6b570925a74521d58d0b25feabd7"
+    },
+    {
+      "selection": "format_reports_workspace_diffs_without_source_writes",
+      "command": [
+        "/Users/cburgosro/.rustup/toolchains/1.98.1-aarch64-apple-darwin/bin/cargo",
+        "test",
+        "--locked",
+        "--offline",
+        "-p",
+        "rust-engineering-mcp",
+        "--test",
+        "inspection_runtime",
+        "format_reports_workspace_diffs_without_source_writes",
+        "--",
+        "--exact",
+        "--ignored",
+        "--nocapture",
+        "--test-threads=1"
+      ],
+      "status": "passed",
+      "exit_code": 0,
+      "expected_executed": 1,
+      "seconds": 20.365,
+      "log_sha256": "9831be94cdc027176ddebae09fb04054a05ef04ce03104d9a4d550f9ba240af7"
+    },
+    {
+      "selection": "rust_calibration::tests::actual_clippy_build_script_and_proc_macro_containment",
+      "command": [
+        "/Users/cburgosro/.rustup/toolchains/1.98.1-aarch64-apple-darwin/bin/cargo",
+        "test",
+        "--locked",
+        "--offline",
+        "-p",
+        "rust-engineering-execution",
+        "--lib",
+        "rust_calibration::tests::actual_clippy_build_script_and_proc_macro_containment",
+        "--",
+        "--exact",
+        "--ignored",
+        "--nocapture",
+        "--test-threads=1"
+      ],
+      "status": "passed",
+      "exit_code": 0,
+      "expected_executed": 1,
+      "seconds": 15.538,
+      "log_sha256": "6f3feb00807ce08e30e765878efb4a7f4c1cd030f2badd7b7285ab3d83ca3d67"
+    },
+    {
+      "selection": "clippy_profiles_report_findings_and_verified_log_resources",
+      "command": [
+        "/Users/cburgosro/.rustup/toolchains/1.98.1-aarch64-apple-darwin/bin/cargo",
+        "test",
+        "--locked",
+        "--offline",
+        "-p",
+        "rust-engineering-mcp",
+        "--test",
+        "inspection_runtime",
+        "clippy_profiles_report_findings_and_verified_log_resources",
+        "--",
+        "--exact",
+        "--ignored",
+        "--nocapture",
+        "--test-threads=1"
+      ],
+      "status": "passed",
+      "exit_code": 0,
+      "expected_executed": 1,
+      "seconds": 20.202,
+      "log_sha256": "ed321df18cbafeba65fc6aec6be78171876461ac46d31129ce126edc9818f597"
+    },
+    {
+      "selection": "rust_gateway::test_runtime::actual_test_runtime_containment_and_descendant_cleanup",
+      "command": [
+        "/Users/cburgosro/.rustup/toolchains/1.98.1-aarch64-apple-darwin/bin/cargo",
+        "test",
+        "--locked",
+        "--offline",
+        "-p",
+        "rust-engineering-execution",
+        "--lib",
+        "rust_gateway::test_runtime::actual_test_runtime_containment_and_descendant_cleanup",
+        "--",
+        "--exact",
+        "--ignored",
+        "--nocapture",
+        "--test-threads=1"
+      ],
+      "status": "passed",
+      "exit_code": 0,
+      "expected_executed": 1,
+      "seconds": 42.065,
+      "log_sha256": "cf41032881688a792ef2285f1aeeead1c0899a5935be1a785735e6ff937ab0ef"
+    },
+    {
+      "selection": "test_reports_results_selections_and_verified_harness_logs",
+      "command": [
+        "/Users/cburgosro/.rustup/toolchains/1.98.1-aarch64-apple-darwin/bin/cargo",
+        "test",
+        "--locked",
+        "--offline",
+        "-p",
+        "rust-engineering-mcp",
+        "--test",
+        "inspection_runtime",
+        "test_reports_results_selections_and_verified_harness_logs",
+        "--",
+        "--exact",
+        "--ignored",
+        "--nocapture",
+        "--test-threads=1"
+      ],
+      "status": "passed",
+      "exit_code": 0,
+      "expected_executed": 1,
+      "seconds": 38.18,
+      "log_sha256": "3f58c9a2fc5f58b5489f068626c81e17dc916172a0d7af145c3880a7bd4e154c"
+    },
+    {
+      "selection": "test_cancellation_and_eof_join_active_test_binaries",
+      "command": [
+        "/Users/cburgosro/.rustup/toolchains/1.98.1-aarch64-apple-darwin/bin/cargo",
+        "test",
+        "--locked",
+        "--offline",
+        "-p",
+        "rust-engineering-mcp",
+        "--test",
+        "inspection_runtime",
+        "test_cancellation_and_eof_join_active_test_binaries",
+        "--",
+        "--exact",
+        "--ignored",
+        "--nocapture",
+        "--test-threads=1"
+      ],
+      "status": "passed",
+      "exit_code": 0,
+      "expected_executed": 1,
+      "seconds": 18.188,
+      "log_sha256": "c1d997c250a6b19ae756767efcb2338ecbe4dbb77420f779adba387c3ffcaaf5"
+    },
+    {
+      "selection": "rust_gateway::test_runtime::actual_proc_macro_forgery_cannot_hide_later_cargo_failure",
+      "command": [
+        "/Users/cburgosro/.rustup/toolchains/1.98.1-aarch64-apple-darwin/bin/cargo",
+        "test",
+        "--locked",
+        "--offline",
+        "-p",
+        "rust-engineering-execution",
+        "--lib",
+        "rust_gateway::test_runtime::actual_proc_macro_forgery_cannot_hide_later_cargo_failure",
+        "--",
+        "--exact",
+        "--ignored",
+        "--nocapture",
+        "--test-threads=1"
+      ],
+      "status": "passed",
+      "exit_code": 0,
+      "expected_executed": 1,
+      "seconds": 14.356,
+      "log_sha256": "b6330d1add7d1ebacb1df162b9232566545dd2932e4f549be5eab4d395a3ac7a"
+    },
+    {
+      "selection": "audit_runtime::audit_real_rsa_and_lock_generations_are_captured_without_building",
+      "command": [
+        "/Users/cburgosro/.rustup/toolchains/1.98.1-aarch64-apple-darwin/bin/cargo",
+        "test",
+        "--locked",
+        "--offline",
+        "-p",
+        "rust-engineering-mcp",
+        "--test",
+        "inspection_runtime",
+        "audit_runtime::audit_real_rsa_and_lock_generations_are_captured_without_building",
+        "--",
+        "--exact",
+        "--ignored",
+        "--nocapture",
+        "--test-threads=1"
+      ],
+      "status": "passed",
+      "exit_code": 0,
+      "expected_executed": 1,
+      "seconds": 18.375,
+      "log_sha256": "5f314bbc517680ae68e15c3a62bf7d3d0288442d5a528669c20df8b5ee147061"
+    },
+    {
+      "selection": "audit_runtime::audit_snapshot_freshness_and_advisory_classification_are_distinct",
+      "command": [
+        "/Users/cburgosro/.rustup/toolchains/1.98.1-aarch64-apple-darwin/bin/cargo",
+        "test",
+        "--locked",
+        "--offline",
+        "-p",
+        "rust-engineering-mcp",
+        "--test",
+        "inspection_runtime",
+        "audit_runtime::audit_snapshot_freshness_and_advisory_classification_are_distinct",
+        "--",
+        "--exact",
+        "--ignored",
+        "--nocapture",
+        "--test-threads=1"
+      ],
+      "status": "passed",
+      "exit_code": 0,
+      "expected_executed": 1,
+      "seconds": 88.41,
+      "log_sha256": "5f9600ee812d27e56fa23715d2a90a06bbdd9c552a3f0ba8ef6ca2a9252c9e02"
+    },
+    {
+      "selection": "audit_runtime::audit_missing_integrity_path_and_symlink_fail_closed",
+      "command": [
+        "/Users/cburgosro/.rustup/toolchains/1.98.1-aarch64-apple-darwin/bin/cargo",
+        "test",
+        "--locked",
+        "--offline",
+        "-p",
+        "rust-engineering-mcp",
+        "--test",
+        "inspection_runtime",
+        "audit_runtime::audit_missing_integrity_path_and_symlink_fail_closed",
+        "--",
+        "--exact",
+        "--ignored",
+        "--nocapture",
+        "--test-threads=1"
+      ],
+      "status": "passed",
+      "exit_code": 0,
+      "expected_executed": 1,
+      "seconds": 74.069,
+      "log_sha256": "252eae39be66db3ed446f993d4b6c78df3c43d771997f8e6b5d1cd64bd4fdf08"
+    },
+    {
+      "selection": "explain_runtime::compiler_explanation_requires_no_project_and_preserves_actual_evidence",
+      "command": [
+        "/Users/cburgosro/.rustup/toolchains/1.98.1-aarch64-apple-darwin/bin/cargo",
+        "test",
+        "--locked",
+        "--offline",
+        "-p",
+        "rust-engineering-mcp",
+        "--test",
+        "inspection_runtime",
+        "explain_runtime::compiler_explanation_requires_no_project_and_preserves_actual_evidence",
+        "--",
+        "--exact",
+        "--ignored",
+        "--nocapture",
+        "--test-threads=1"
+      ],
+      "status": "passed",
+      "exit_code": 0,
+      "expected_executed": 1,
+      "seconds": 17.076,
+      "log_sha256": "9e0c55034fd0b65d3dcc73a97e277fe51ecb76d0912207c5f61698ac273b02ad"
+    },
+    {
+      "selection": "quality_runtime::quality_fast_retains_format_and_strict_clippy_failures_and_readonly_source",
+      "command": [
+        "/Users/cburgosro/.rustup/toolchains/1.98.1-aarch64-apple-darwin/bin/cargo",
+        "test",
+        "--locked",
+        "--offline",
+        "-p",
+        "rust-engineering-mcp",
+        "--test",
+        "inspection_runtime",
+        "quality_runtime::quality_fast_retains_format_and_strict_clippy_failures_and_readonly_source",
+        "--",
+        "--exact",
+        "--ignored",
+        "--nocapture",
+        "--test-threads=1"
+      ],
+      "status": "passed",
+      "exit_code": 0,
+      "expected_executed": 1,
+      "seconds": 20.062,
+      "log_sha256": "de4ee0cddddb4e5d4e213dd05bd4b20159407ae89db799db746ae19eb3afcfc6"
+    },
+    {
+      "selection": "quality_runtime::quality_standard_distinguishes_pass_test_failure_and_unavailable_audit",
+      "command": [
+        "/Users/cburgosro/.rustup/toolchains/1.98.1-aarch64-apple-darwin/bin/cargo",
+        "test",
+        "--locked",
+        "--offline",
+        "-p",
+        "rust-engineering-mcp",
+        "--test",
+        "inspection_runtime",
+        "quality_runtime::quality_standard_distinguishes_pass_test_failure_and_unavailable_audit",
+        "--",
+        "--exact",
+        "--ignored",
+        "--nocapture",
+        "--test-threads=1"
+      ],
+      "status": "passed",
+      "exit_code": 0,
+      "expected_executed": 1,
+      "seconds": 40.414,
+      "log_sha256": "af5817d91d1751518e9ed22f5806254c6d1e7b152ae00df28917af85b175c8f8"
+    },
+    {
+      "selection": "quality_runtime::quality_cancellation_and_eof_join_the_active_test_stage",
+      "command": [
+        "/Users/cburgosro/.rustup/toolchains/1.98.1-aarch64-apple-darwin/bin/cargo",
+        "test",
+        "--locked",
+        "--offline",
+        "-p",
+        "rust-engineering-mcp",
+        "--test",
+        "inspection_runtime",
+        "quality_runtime::quality_cancellation_and_eof_join_the_active_test_stage",
+        "--",
+        "--exact",
+        "--ignored",
+        "--nocapture",
+        "--test-threads=1"
+      ],
+      "status": "passed",
+      "exit_code": 0,
+      "expected_executed": 1,
+      "seconds": 24.022,
+      "log_sha256": "3e47bfb94c1906983aa0412296185f642ff98d5f5cd08efb0c284340b08c5540"
+    }
+  ],
+  "sources": [
+    {
+      "path": "scripts/test-rust-execution.py",
+      "sha256": "d8ae8d453535a54f3f332500b67fc9e282eed663e880a0d6fe118b505fbf0885"
+    },
+    {
+      "path": "crates/execution-adapter/src/rust_gateway.rs",
+      "sha256": "63ba68b8a299f42130fcca935ab538912fa0816b32a5389dd395369d477b3e31"
+    },
+    {
+      "path": "crates/execution-adapter/src/rust_applied.rs",
+      "sha256": "c332f43b3db2d6a3b59542b37251bed0b6ca9b0d47893bab7160f0f37da645bb"
+    },
+    {
+      "path": "crates/execution-adapter/src/toolchain_metadata.rs",
+      "sha256": "f7924e5bf2cf78d4c3f1e8114a03d9661d5efa61cbab37c5437d51e4adb77016"
+    },
+    {
+      "path": "crates/execution-adapter/src/seccomp-rust-fix.json",
+      "sha256": "0dc7bbbbf8f7e2a47c784488c49bbc7ffd6acac83b6f15e4fe2f0b9c1f642f15"
+    },
+    {
+      "path": "crates/execution-adapter/src/seccomp-rust-quality.json",
+      "sha256": "c288305c9fdba791926a9154fe47a1f53a30d61501cd9d059a78467866ccf938"
+    },
+    {
+      "path": "crates/execution-adapter/src/seccomp-rust.json",
+      "sha256": "f9d31acb22989dc6ac37c02d4c73acfbbb3b74b5e08beff9983f3a811fd4e56d"
+    },
+    {
+      "path": "crates/execution-adapter/src/seccomp-socket.json",
+      "sha256": "1f5dd6201d129405e1c48c64d796a46704f60bdd7eb2c4d82ffc1b6cf6b4ce31"
+    },
+    {
+      "path": "crates/execution-adapter/src/seccomp.json",
+      "sha256": "aad227ba23e1bd6cde69b344b54fef09b0881b18654aacf5303929c8c14aa514"
+    },
+    {
+      "path": "docs/validation/M3-image-config.json",
+      "sha256": "3252effc88fb3f8c31fec6f4ea146e057f6ef1c19252f7c554640b35c0d4ab77"
+    }
+  ],
+  "finished_at": "2026-09-06T12:02:50.626835+00:00"
+}

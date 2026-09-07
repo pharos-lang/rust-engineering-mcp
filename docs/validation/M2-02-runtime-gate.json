@@ -1,0 +1,161 @@
+{
+  "schema": "rust-mcp-m2-runtime-gate-v1",
+  "scope": "M2-01 manifest mutation and M2-02 format mutation runtime tests plus portable core gate; does not declare M2 Done",
+  "generated_at": "2026-09-05T17:50:41.922107Z",
+  "status": "passed",
+  "git_head": "ea1a315fdf9f2fe942454b4a102545b959c79248",
+  "platform": "macOS-26.6.2-arm64-arm-64bit-Mach-O",
+  "toolchain": {
+    "cargo": "cargo 1.98.1 (797e8a9bc 2026-08-05)",
+    "rustc": "rustc 1.98.1 (48a229cea 2026-09-01)"
+  },
+  "runtime": {
+    "docker_path": "/Applications/Docker.app/Contents/Resources/bin/docker",
+    "docker_version": "Docker version 29.7.2, build a7dcaa6",
+    "docker_executable_sha256": "a6822407e207ff0b687419ccbe55700ffbf389d77de58ef625b3b1790d88747c",
+    "socket": "/Users/cburgosro/.docker/run/docker.sock",
+    "socket_precondition": "absolute Unix socket verified before tests",
+    "approved_image": "sha256:8fac70723a8d04b6ec9633ab721806b8a55f4f083a1b3f988c61bf6a00fa1909",
+    "execution": "serial"
+  },
+  "source_evidence": {
+    "inventory_method": "SHA-256 over sorted Cargo.toml, Cargo.lock, scripts/gate.py, crates/**/*.rs and crates/**/Cargo.toml; each path and content are unsigned-64-length framed",
+    "inventory_file_count": 230,
+    "inventory_sha256": "d890b3c7bf6090678b27a1589a5c31964f15d61cf613f122a410d0b5c0230bc9",
+    "direct_files": [
+      {
+        "path": "crates/mcp-server/tests/inspection_runtime.rs",
+        "sha256": "7768cce9fd3ddf4067456622d7c71fca4feb542c87aaaa0486a7044a468f74f4"
+      },
+      {
+        "path": "crates/mcp-server/tests/inspection_runtime/mutation.rs",
+        "sha256": "307fd9655fd729197bbab69573afb0a6631b6d762be1127956cc619cb75bcb24"
+      },
+      {
+        "path": "crates/mcp-server/tests/inspection_runtime/format_mutation.rs",
+        "sha256": "8bdd6c41dc087c372f153d835917c8515c334b2a4725d8f15953002f6f7fdb4e"
+      },
+      {
+        "path": "crates/execution-adapter/src/rust_gateway.rs",
+        "sha256": "e736e8f489d5360a0e9d2d5b815f450304a7ceea0740bd812819bb7baea6e483"
+      },
+      {
+        "path": "scripts/gate.py",
+        "sha256": "e0bed6c314cbae60cb02d0068e298b85240250ab746acea85b641bd955510b07"
+      },
+      {
+        "path": "Cargo.toml",
+        "sha256": "43ccb07c94ce9d1c8112c1c062966ba61e2c8288432354a73a00d1ade20f4dca"
+      },
+      {
+        "path": "Cargo.lock",
+        "sha256": "30eac49e73f5ede0ef5d213919fcab5244c58bdd045a5e4e79278fcdfda7617f"
+      }
+    ]
+  },
+  "runtime_tests": [
+    {
+      "command": [
+        "env",
+        "RUST_MCP_TEST_SOCKET=/Users/cburgosro/.docker/run/docker.sock",
+        "cargo",
+        "test",
+        "-p",
+        "rust-engineering-mcp",
+        "--test",
+        "inspection_runtime",
+        "mutation_runtime::manifest_preview_commit_conflict_reopen_and_restart_receipt",
+        "--",
+        "--ignored",
+        "--exact",
+        "--test-threads=1"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 22.1,
+      "log": "/tmp/rust-mcp-m2-02-runtime-manifest.log",
+      "name": "manifest mutation lifecycle",
+      "status": "passed",
+      "tests": {
+        "passed": 1,
+        "failed": 0,
+        "ignored": 0,
+        "filtered_out": 17
+      },
+      "log_sha256": "47f5ca2ff652da2708d0b7f1f95cbedcfd37b7f36f9df65f9d95318b6e2e65e4",
+      "log_bytes": 575
+    },
+    {
+      "command": [
+        "env",
+        "RUST_MCP_TEST_SOCKET=/Users/cburgosro/.docker/run/docker.sock",
+        "cargo",
+        "test",
+        "-p",
+        "rust-engineering-mcp",
+        "--test",
+        "inspection_runtime",
+        "format_mutation_runtime::",
+        "--",
+        "--ignored",
+        "--test-threads=1"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 20.707,
+      "log": "/tmp/rust-mcp-m2-02-runtime-fmt.log",
+      "name": "format mutation lifecycle and default-deny/config rejection",
+      "status": "passed",
+      "tests": {
+        "passed": 2,
+        "failed": 0,
+        "ignored": 0,
+        "filtered_out": 16
+      },
+      "log_sha256": "1482b0a1e3e175843819e22b2f1a96d78ca0588e22197d25362adc9eb955294e",
+      "log_bytes": 498
+    }
+  ],
+  "core_gate": {
+    "command": [
+      "python3",
+      "scripts/gate.py",
+      "core",
+      "--report",
+      "docs/validation/M2-02-core-gate.json"
+    ],
+    "exit_code": 0,
+    "elapsed_seconds": 153.425,
+    "log": "/tmp/rust-mcp-m2-02-core-gate.log",
+    "report": "docs/validation/M2-02-core-gate.json",
+    "status": "passed",
+    "schema": "rust-mcp-gate-report-v2",
+    "steps": 14,
+    "passed_steps": [
+      "fmt",
+      "check",
+      "clippy",
+      "test",
+      "doctests",
+      "architecture",
+      "gate-reporting",
+      "release-artifact-tests",
+      "release-smoke-tests",
+      "codex-qualifier-tests",
+      "vendor",
+      "cargo-fixtures",
+      "audit",
+      "deny"
+    ],
+    "rust_tests_passed": 748,
+    "doctests_passed": 1,
+    "report_started_at": "2026-09-05T17:47:02.455925Z",
+    "report_finished_at": "2026-09-05T17:49:35.834695Z",
+    "report_sha256": "ae4093d11943ea0165dd4475cd4bb76ebef31d2f548fe7b808cb1c1301b9cf10",
+    "report_bytes": 23509,
+    "log_sha256": "deb1fc89e00c560fa43d1ba3233e42e10024e63bb1000d3a5de40a56b96c1814",
+    "log_bytes": 118880
+  },
+  "warnings": [
+    "cargo deny completed successfully with configured duplicate and unknown-feature warnings retained in the core log",
+    "ignored Docker tests outside the two explicit mutation filters were not executed by this runtime gate"
+  ]
+}

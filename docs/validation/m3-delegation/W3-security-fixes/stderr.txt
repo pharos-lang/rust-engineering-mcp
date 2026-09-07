@@ -1,0 +1,17 @@
+2026-09-06T13:37:36.842179Z ERROR codex_core::tools::router: error=apply_patch verification failed: Failed to find expected lines in /Users/cburgosro/Projects/rust-mcp/docs/adr/ADR-060-bounded-job-execution-and-mcp-tasks.md:
+Concretely, while an asynchronous job holds the worker permit,
+every other `tools/call` and every M1/M3 Resource read that uses `run_joined` returns
+the existing conservative busy/`SANDBOX_DENIED` structured response. Resource reads
+remain on the worker permit in M3; separating them is deferred until measurement.
+Only bounded in-memory `tasks/get`, `tasks/cancel`, and `tasks/update` registry work
+is exempt from that permit and therefore remains responsive.
+2026-09-06T13:38:14.682455Z ERROR codex_core::tools::router: error=apply_patch verification failed: Failed to find expected lines in /Users/cburgosro/Projects/rust-mcp/docs/adr/ADR-060-bounded-job-execution-and-mcp-tasks.md:
+A job monopolizes the existing worker permit, so other tools and
+worker-backed Resource reads return busy until joined completion; only task registry
+control remains responsive.
+2026-09-06T14:25:28.513008Z ERROR codex_core::tools::router: error=apply_patch verification failed: Failed to find expected lines in /Users/cburgosro/Projects/rust-mcp/docs/validation/M3-01.md:
+ADR-064 remains Proposed pending the
+orchestrator's containment acceptance even though its authorized implementation
+and runtime controls pass.
+2026-09-06T14:26:14.212038Z ERROR codex_core::tools::router: error=apply_patch verification failed: Failed to find expected lines in /Users/cburgosro/Projects/rust-mcp/docs/adr/ADR-061-private-quality-artifact-store.md:
+ambiguity or clock anomaly quarantines, not guesses/overwrites/unlinks/serves. The block affects only quality artifacts: M1 Resources, M2 commit/receipt and all 18 existing tools continue.

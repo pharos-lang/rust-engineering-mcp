@@ -1,0 +1,111 @@
+{
+  "schema": "rust-mcp-m2-04-runtime-gate-v1",
+  "recorded_at": "2026-09-05T15:05:00-05:00",
+  "base_commit": "331d1630da5a2c1d8d8c596305c0c1167a7896cb",
+  "runtime": {
+    "docker_server_version": "29.7.2",
+    "socket": "/Users/cburgosro/.docker/run/docker.sock",
+    "image_id": "sha256:8fac70723a8d04b6ec9633ab721806b8a55f4f083a1b3f988c61bf6a00fa1909",
+    "platform": "linux/arm64",
+    "network_mode": "none"
+  },
+  "source_snapshot": {
+    "crates/mcp-server/src/stdio/mutation.rs": "sha256:6bffd3453dde010e86482c5d1d11dfec48d1d9883360572f4e54d3c10444c88b",
+    "crates/mcp-server/src/stdio/mutation/semantic_input.rs": "sha256:4fe8befed56c8d405bf0b9e2389018fac16f216ca6cb90c2fa0e8cf9da7e3c0d",
+    "crates/execution-adapter/src/resolution_gateway.rs": "sha256:a335b7b5a1957bd16bf1a7ceb3819da016bdf3e8b616c3a8a05fc4d8078d4546",
+    "crates/execution-adapter/src/project_inspection.rs": "sha256:8cf540a9ad1dad7602e15dfc30d65a26569dcbf163f9542e6c662c697da93f4d",
+    "crates/project-adapter/src/manifest_edit.rs": "sha256:a449fdb8ef52ae03db39815e4ea3a57aa6db7ce59935bee708eedd9ab951cfbb"
+  },
+  "profile": {
+    "path": "crates/execution-adapter/src/seccomp-rust.json",
+    "sha256": "sha256:f9d31acb22989dc6ac37c02d4c73acfbbb3b74b5e08beff9983f3a811fd4e56d"
+  },
+  "test": {
+    "path": "crates/mcp-server/tests/inspection_runtime/dependency_mutation.rs",
+    "sha256": "sha256:ac340c07a9656fb935b0c4b445b26bed6abeb220d43fd58e3c616f0e17390558"
+  },
+  "vendor": {
+    "private_copy_outside_project": true,
+    "source_fixture": "fixtures/cargo-vendor-data/vendor",
+    "tree_fingerprint": "sha256:743947d5788c1a4385a4b59869c5b8bd0535f7fc0d875b51288f9b26b2d0eba1",
+    "network_or_download": false
+  },
+  "commands": [
+    {
+      "argv": ["cargo","test","-p","rust-engineering-mcp","--test","inspection_runtime","dependency_mutation_runtime","--","--ignored","--nocapture","--test-threads=1"],
+      "environment": {"RUST_MCP_TEST_SOCKET": "/Users/cburgosro/.docker/run/docker.sock"},
+      "exit_code": 0,
+      "duration_seconds": 133.31,
+      "test_duration_seconds": 129.99,
+      "result": "4 passed; 0 failed; 20 filtered out"
+    },
+    {
+      "argv": ["cargo","clippy","-p","rust-engineering-mcp","--test","inspection_runtime","--","-D","warnings"],
+      "exit_code": 0,
+      "duration_seconds": 2.82,
+      "result": "passed"
+    },
+    {
+      "argv": ["cargo","test","-p","rust-engineering-mcp","--test","inspection_runtime","dependency_mutation_runtime","--no-run"],
+      "exit_code": 0,
+      "result": "compiled"
+    }
+  ],
+  "cases": {
+    "dependency_add_remove": {
+      "manifest": "app/Cargo.toml",
+      "dependency": "quoted alias of quote =1.0.47",
+      "explicit_options": {"features":["proc-macro"],"optional":true,"default_features":false},
+      "preview_files": ["Cargo.lock","app/Cargo.toml"],
+      "preview_left_host_unchanged": true,
+      "add_commit_and_reopen": true,
+      "restart_receipt_exact": true,
+      "remove_exact_local_key_and_commit": true,
+      "resolved_lock_removed_quote": true,
+      "cross_kind_plan_denied": true
+    },
+    "offline_data": {
+      "missing": "offline_data_missing",
+      "altered_bytes_with_approved_fingerprint": "offline_data_invalid"
+    },
+    "selection_and_inheritance": {
+      "virtual_root_default": "invalid_operation",
+      "target_build_dependency": "cfg(unix)",
+      "dotted_workspace_inheritance_removed": true,
+      "unrelated_manifest_unchanged": true
+    },
+    "absent_lock": {
+      "preview_disposition": "transient_unpublished",
+      "resolved_lock_fingerprint_present": true,
+      "preview_files": ["Cargo.toml"],
+      "commit_manifest_only": true,
+      "host_lock_remained_absent": true
+    },
+    "manifest_patch": {
+      "workspace_lint_set": true,
+      "profile_set": true,
+      "workspace_dependency_set_and_remove": true,
+      "workspace_dependency_optional_rejected": true,
+      "package_feature_set_and_remove": true,
+      "resolution_oracle_used_for_dependency_and_feature_edits": true
+    },
+    "contract": {
+      "output_schema_validated_for_each_complete_tool_output": true,
+      "text_fallback_equals_structured_content": true,
+      "local_coordinated_guarantees_checked": true,
+      "candidate_paths_and_diff_scope_checked": true
+    }
+  },
+  "cleanup": {
+    "label": "org.rust-mcp.execution=true",
+    "inventory_before": {"containers":[],"volumes":[]},
+    "inventory_after": {"containers":[],"volumes":[]},
+    "private_fixture_removal_on_success": true
+  },
+  "qualification_history": [
+    "An initial harness run used a mistyped vendor digest and failed closed as offline_data_invalid; no owned Docker objects remained.",
+    "The inherited dotted workspace=true removal initially exposed UnsupportedLayout; ADR-051/057 editor support was added by the principal and independently passed its 26 editor tests before this final gate.",
+    "A package feature removal fixture initially referenced the removed feature from default; the fixture was corrected before the final gate."
+  ],
+  "scope": "Runtime evidence for M2 dependency and semantic manifest mutation paths only; this receipt does not declare M2 complete."
+}

@@ -1,0 +1,40 @@
+{
+  "model": "claude-opus-5",
+  "effort": "high",
+  "cli_version": "2.1.260",
+  "read_only": true,
+  "tools": [],
+  "files": [
+    {
+      "path": "docs/adr/ADR-052-mutation-journal-and-authorization.md",
+      "sha256": "31640c85108960a38f90db1fb7e3ecebfddb6e25527d906c42275c68db16ab5d",
+      "bytes": 11688
+    },
+    {
+      "path": "docs/client-configuration.md",
+      "sha256": "1f9f8775d39dff606068b30635796da1bc069f5e483faf1427e7f4bd3a3c691c",
+      "bytes": 13636
+    },
+    {
+      "path": "README.md",
+      "sha256": "fb3c1276496d18e3fd4c4209f9af9a03e7d9dce3da76259cb424a879a8f5adbe",
+      "bytes": 19867
+    },
+    {
+      "path": "docs/validation/M2-native-remediation.json",
+      "sha256": "0c2c8db244bf027091212c3ec458395555f699d94d8bd31e0be3b6ebabc2e17a",
+      "bytes": 6634
+    },
+    {
+      "path": "crates/project-adapter/src/filesystem/macos/mutation.rs",
+      "sha256": "1873c798b1de5ad7133c2a16f76753ff5b01aed67c3c82736e18ac0224481dc8",
+      "bytes": 101739
+    },
+    {
+      "path": "crates/project-adapter/tests/support/native_mutation.rs",
+      "sha256": "fd742a57ed9613af9d055e56828745691e730923fcbfb73cd4377057ce03fb00",
+      "bytes": 105710
+    }
+  ],
+  "prompt_sha256": "42f29261ea5b64ab365a7e154e0ab2e6f1005c7c6fa44a1f2a53fc073baf11c8"
+}

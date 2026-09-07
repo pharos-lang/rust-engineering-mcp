@@ -1,0 +1,27 @@
+{
+  "cases_passed": 5,
+  "cases_total": 5,
+  "command": "PYTHONDONTWRITEBYTECODE=1 python3 - <<'PY' # import harness, stub run_bounded, assert five exit/isError policy cases",
+  "harness": {
+    "path": "scripts/test-m2-clients.py",
+    "sha256": "dae9d284ed8237ee0f9bbd3daf655f918e156419b13a76533b854573eda2690d"
+  },
+  "inspector": {
+    "exit_code_definition_lines": "13255-13262",
+    "is_error_mapping_lines": "13741-13746",
+    "observed_semantics": "The CLI writes the JSON result and then exits 5 when result.isError is true.",
+    "path": "target/m1-17-inspector/node_modules/@modelcontextprotocol/inspector/clients/cli/build/index.js",
+    "sha256": "1fcbc2c4d4324b85f75c0b4cf9f125ee1f74df90d14eb3fea4ca96d0a1885f4e",
+    "version": "2.5.0"
+  },
+  "policy": {
+    "expected_tool_error_exit_4_is_error_true": "rejected",
+    "expected_tool_error_exit_5_is_error_false": "rejected",
+    "expected_tool_error_exit_5_is_error_true": "accepted",
+    "normal_exit_0_is_error_false": "accepted",
+    "normal_exit_5_is_error_true": "rejected"
+  },
+  "schema": "rust-mcp-m2-inspector-exit-policy-v1",
+  "scope": "Pure harness policy check; no server, model or Docker execution.",
+  "status": "passed"
+}

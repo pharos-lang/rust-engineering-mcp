@@ -1,0 +1,11 @@
+{
+  "test": "recover retained owned fixture after fixing operation decoder whitelist",
+  "initial_phase": "prepared",
+  "terminal_phase": "aborted",
+  "source_matches_exact_journal_before": true,
+  "file_count": 6,
+  "no_reserved_temporary_remains": true,
+  "journal_sha256": "fd4dae8982c9953e0d2eae5e8fc756c4fe8dcee4ed511a526836eb6da2234c20",
+  "binary_sha256": "6fc199e75b71acf9cdd9dc52f844ad16e693282e7c907a1c248f51adff4c011a",
+  "notes": "Recovery removed its prepared private clone. An initial harness comparison incorrectly included that scratch file; comparison against the full journal before bundle confirmed every source file unchanged."
+}

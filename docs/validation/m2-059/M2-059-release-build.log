@@ -1,0 +1,8 @@
+   Compiling rust-engineering-application v0.2.0-dev (/Users/cburgosro/Projects/rust-mcp/crates/application)
+   Compiling rust-engineering-artifact v0.2.0-dev (/Users/cburgosro/Projects/rust-mcp/crates/artifact-adapter)
+   Compiling rust-engineering-catalog v0.2.0-dev (/Users/cburgosro/Projects/rust-mcp/crates/catalog-adapter)
+   Compiling rust-engineering-execution v0.2.0-dev (/Users/cburgosro/Projects/rust-mcp/crates/execution-adapter)
+   Compiling rust-engineering-semantic v0.2.0-dev (/Users/cburgosro/Projects/rust-mcp/crates/semantic-adapter)
+   Compiling rust-engineering-project v0.2.0-dev (/Users/cburgosro/Projects/rust-mcp/crates/project-adapter)
+   Compiling rust-engineering-mcp v0.2.0-dev (/Users/cburgosro/Projects/rust-mcp/crates/mcp-server)
+    Finished `release` profile [optimized] target(s) in 12.80s

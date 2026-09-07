@@ -1,0 +1,18 @@
+{
+  "status": "passed",
+  "recorded_at": "2026-09-05T22:37:40.313511+00:00",
+  "head": "7554bccbff2209ae5b3df63b2b1011646586380f",
+  "full_gate_sha256": "05f0391041e053309e8924183600dcfbd8cd41b925afadb2edca7fcb73e43ea5",
+  "source_inputs": 574,
+  "runtime_cases": 17,
+  "runtime_selections": 10,
+  "verified_logs": 73,
+  "m1_identical_snapshots": 13,
+  "binary_sha256": "41d256a606538d52df3c574e812b5fdd2df006cc659a335a447d4935f45e685c",
+  "client_receipt_sha256": "61958b34778bd8a62c52bff14135a1c0976a71d5ef7dfdd2ec139e4254509150",
+  "checked_documents": 38,
+  "local_link_targets": 436,
+  "fences_and_diff_check": "passed",
+  "script_sha256": "fa8fc5f7957737c84298c0fa2c367cfa895ff4b98f33bbeb38e7c3ba9f988802",
+  "limits": "Local link targets and fences; no remote URL or fragment-anchor validation. No Cargo/Docker execution."
+}

@@ -1,0 +1,228 @@
+{
+  "status": "preserved",
+  "gate_report": "docs/validation/M2-full-gate.json",
+  "gate_sha256": "2c58c6fe1c28f34bc603edda9b22336aa19c0d68b6d645913f96b6837127d9e1",
+  "logs": [
+    {
+      "path": "docs/validation/m2-final-gate/full.log",
+      "sha256": "08d3693520d7dea63e031aa881595ca2df2f9fafd531453b2808e033dc6b7f0a",
+      "bytes": 173572
+    },
+    {
+      "path": "docs/validation/m2-final-gate/rust-security/0.log",
+      "sha256": "88c0030be687b06d550a9449484869aa9f7405961aeb34f392ee201453e6855a",
+      "bytes": 2431
+    },
+    {
+      "path": "docs/validation/m2-final-gate/rust-security/1.log",
+      "sha256": "0beb1ed732956e472e4a9bfb88652481fd29d8927af1f305cb787db2e624dc7c",
+      "bytes": 28960
+    },
+    {
+      "path": "docs/validation/m2-final-gate/rust-security/10.log",
+      "sha256": "f970fdd7333b62a7c7ad980b2a237c3973d0685d1283210dc02b331869d09f9a",
+      "bytes": 1355
+    },
+    {
+      "path": "docs/validation/m2-final-gate/rust-security/11.log",
+      "sha256": "ddeee85813e5817222e43e009eb5e3083a164ce3f2825fb50e353f948fcd3565",
+      "bytes": 660
+    },
+    {
+      "path": "docs/validation/m2-final-gate/rust-security/12.log",
+      "sha256": "11de24779eca539491a04c6ee3a1b4a34b36b5abc5895bf3af7f1b3817d75b99",
+      "bytes": 5181
+    },
+    {
+      "path": "docs/validation/m2-final-gate/rust-security/13.log",
+      "sha256": "bbb722030ce3a00b2c1033da6ea35aec04a5ec82115763c1e2c3c1f333d9353d",
+      "bytes": 886
+    },
+    {
+      "path": "docs/validation/m2-final-gate/rust-security/14.log",
+      "sha256": "82bee8c23589acd17f6e855bc47edcc085f5504a74ca62616c5f217b0ffae8f9",
+      "bytes": 2365
+    },
+    {
+      "path": "docs/validation/m2-final-gate/rust-security/15.log",
+      "sha256": "431e869ea3b4be6f2e0b2be3cb212c61080c4ec0d9560cb0717dab60fd3b65ca",
+      "bytes": 1300
+    },
+    {
+      "path": "docs/validation/m2-final-gate/rust-security/16.log",
+      "sha256": "3d9e4314c8bdf585b0afbb1340c4803b40d62e38fcb5634ddf8d808ab8c476e5",
+      "bytes": 969
+    },
+    {
+      "path": "docs/validation/m2-final-gate/rust-security/17.log",
+      "sha256": "b044de2f3691a94953ec1bf7bc4581f72d4f983d2610fff60dbfc33a6e272a63",
+      "bytes": 803
+    },
+    {
+      "path": "docs/validation/m2-final-gate/rust-security/18.log",
+      "sha256": "49afc11ffa4acab3698eb9c1f0441ea08872d0cf54572d7a7ce8d1d2c44e3540",
+      "bytes": 888
+    },
+    {
+      "path": "docs/validation/m2-final-gate/rust-security/19.log",
+      "sha256": "55ce5169ca384d1d857735ed1705fa74570e3328634d5701f5dff01fdca50e39",
+      "bytes": 678
+    },
+    {
+      "path": "docs/validation/m2-final-gate/rust-security/2.log",
+      "sha256": "007924e3ad22b95bbaea3e815559824c753ddb949db670aaf5e3d2f77b4f9c14",
+      "bytes": 6248
+    },
+    {
+      "path": "docs/validation/m2-final-gate/rust-security/3.log",
+      "sha256": "f3b9157f8461e95f283d9d771fa307feaf102e6577fab9a2e947a8272acda905",
+      "bytes": 375
+    },
+    {
+      "path": "docs/validation/m2-final-gate/rust-security/4.log",
+      "sha256": "daddd046e41a6697edb5f0a49010bd5cae8e7f71c5524bfd127bcc70cbd09f65",
+      "bytes": 1331
+    },
+    {
+      "path": "docs/validation/m2-final-gate/rust-security/5.log",
+      "sha256": "0b453de44b7adfb10237931a71280054b55cbe95f52ed15a68b2176cb869e02c",
+      "bytes": 661
+    },
+    {
+      "path": "docs/validation/m2-final-gate/rust-security/6.log",
+      "sha256": "54beff85473e23b345aae73a2f4af8a096a943b789ac146c9473ecdaa59d91bb",
+      "bytes": 1314
+    },
+    {
+      "path": "docs/validation/m2-final-gate/rust-security/7.log",
+      "sha256": "bc38055ce9dd0e65fe8138c89e12536d0d3941a5e4a5b2229799ab9283556424",
+      "bytes": 1405
+    },
+    {
+      "path": "docs/validation/m2-final-gate/rust-security/8.log",
+      "sha256": "3d5cc1a859c4e438d60c8383cb7fde362d2fa4c48e11edff4a3c96affa5db2c6",
+      "bytes": 1255
+    },
+    {
+      "path": "docs/validation/m2-final-gate/rust-security/9.log",
+      "sha256": "24f82ccf84bd8515158e08483fd9ec5b99359fe62bd6b8956e05f4ca25951afd",
+      "bytes": 25806
+    },
+    {
+      "path": "docs/validation/m2-final-gate/m2-runtime/0.log",
+      "sha256": "9bb627e3a23e10be30d618ae48dab28634abe81e0855626c4918f2db432e5d5d",
+      "bytes": 383
+    },
+    {
+      "path": "docs/validation/m2-final-gate/m2-runtime/1.log",
+      "sha256": "647f9dc3e8568629e4a3db70d61defc4d4fa1d8d1a2c678d7e102e060226fcb0",
+      "bytes": 394
+    },
+    {
+      "path": "docs/validation/m2-final-gate/m2-runtime/2.log",
+      "sha256": "0d47c8123c929bfe461cc1a411e8fc5b670e729c5235fe20c9534e0159737f02",
+      "bytes": 384
+    },
+    {
+      "path": "docs/validation/m2-final-gate/m2-runtime/3.log",
+      "sha256": "f6f146c5f8f5201c10db7526654378c93ecc7aea31e799ac28f44e247b8fbd72",
+      "bytes": 374
+    },
+    {
+      "path": "docs/validation/m2-final-gate/m2-runtime/4.log",
+      "sha256": "2e75b00a90b97aa4cdb3cc7bd0fc1a6cab385e1e63a1300ea7c90400ae87ee60",
+      "bytes": 498
+    },
+    {
+      "path": "docs/validation/m2-final-gate/m2-runtime/5.log",
+      "sha256": "878c500521fc777c4e218ee2e5ca455d23d77e62b2c739e5c78b315a1947fa3b",
+      "bytes": 888
+    },
+    {
+      "path": "docs/validation/m2-final-gate/m2-runtime/6.log",
+      "sha256": "150f70cdfb8f7b4e4c7978b8e65bc0833c63a9681043a14e42da91973da3f731",
+      "bytes": 503
+    },
+    {
+      "path": "docs/validation/m2-final-gate/m2-runtime/7.log",
+      "sha256": "dd8dd1a349306494bcbcb0a6234bb1b86dca64088660022b7ce04886a3a2f31d",
+      "bytes": 635
+    },
+    {
+      "path": "docs/validation/m2-final-gate/m2-runtime/8.log",
+      "sha256": "32def53d0fce0254a6d2efa680b8bd284dadfda2ca7969a743d7a5bff79901e5",
+      "bytes": 716
+    },
+    {
+      "path": "docs/validation/m2-final-gate/doctor-security/active.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "docs/validation/m2-final-gate/doctor-security/active.stdout.log",
+      "sha256": "42c25e97ab41a7ed74a95e3439f004748b20c40ed711300707036992b4bbf747",
+      "bytes": 3792
+    },
+    {
+      "path": "docs/validation/m2-final-gate/doctor-security/build.stderr.log",
+      "sha256": "e2c936c422a75a8232b186225de44dce8286739afbbbc4b0062b8067eb573154",
+      "bytes": 172
+    },
+    {
+      "path": "docs/validation/m2-final-gate/doctor-security/build.stdout.log",
+      "sha256": "956033039c4005a1d0b6db503b185833bd196e92876a230881b1699ca16d63ea",
+      "bytes": 200408
+    },
+    {
+      "path": "docs/validation/m2-final-gate/doctor-security/cancelled-sighup.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "docs/validation/m2-final-gate/doctor-security/cancelled-sighup.stdout.log",
+      "sha256": "b00eef1dcd6ac7f2435e9df346a0fc5121895c8d847eb172fd051cacda826a7f",
+      "bytes": 2869
+    },
+    {
+      "path": "docs/validation/m2-final-gate/doctor-security/cancelled-sigint.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "docs/validation/m2-final-gate/doctor-security/cancelled-sigint.stdout.log",
+      "sha256": "55b4df7dfe164ee42cd4d3d0d82eabc7d6ba92e9eaa27dc5315cb973bb6b5f3a",
+      "bytes": 2868
+    },
+    {
+      "path": "docs/validation/m2-final-gate/doctor-security/cancelled-sigterm.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "docs/validation/m2-final-gate/doctor-security/cancelled-sigterm.stdout.log",
+      "sha256": "e9ebab8e1cf60e77a710ad87507a1faa9d8e6d52455bed253c10dc8729b32953",
+      "bytes": 2869
+    },
+    {
+      "path": "docs/validation/m2-final-gate/doctor-security/ordinary.stderr.log",
+      "sha256": "22222e3c75960009002900559332ee03c323465188599e87caa79ced8bb1f62c",
+      "bytes": 246
+    },
+    {
+      "path": "docs/validation/m2-final-gate/doctor-security/ordinary.stdout.log",
+      "sha256": "113f3aab0d4a21e81a82dca2346ef4270f31cb71163be273cf32134fe35680bb",
+      "bytes": 357
+    },
+    {
+      "path": "docs/validation/m2-final-gate/doctor-security/stdout-deadline.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "docs/validation/m2-final-gate/doctor-security/stdout-sigint.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    }
+  ],
+  "selection_note": "Only logs whose source modification time is within this full gate are retained; stale cancelled.* doctor logs from an older run were excluded. Historical target files were not modified."
+}

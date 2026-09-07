@@ -1,0 +1,6 @@
+# Deliberately incomplete hand-written lockfile: frozen execution must reject it
+# promptly instead of consulting a registry.
+version = 4
+[[package]]
+name = "semver-registry-required"
+version = "1.0.0"

@@ -1,0 +1,16 @@
+2026-09-06T15:24:48.987336Z ERROR codex_core::tools::router: error=apply_patch verification failed: invalid patch: multiple operations target /Users/cburgosro/Projects/rust-mcp/scripts/test-m3-budgets.py
+2026-09-06T16:16:11.008922Z ERROR codex_core::tools::router: error=apply_patch verification failed: Failed to find expected lines in /Users/cburgosro/Projects/rust-mcp/scripts/test-m3-clients.py:
+    controller = importlib.util.module_from_spec(specification)
+    specification.loader.exec_module(controller)
+    specification.loader.exec_module(controller)
+2026-09-06T16:34:26.996028Z ERROR codex_core::tools::router: error=apply_patch verification failed: Failed to find expected lines in /Users/cburgosro/Projects/rust-mcp/docs/compatibility.md:
+El checkout de desarrollo anuncia 19 al sumar las cinco tools M2 y el
+contrato `rust.test.nextest`. Las 18 primeras conservan su calificación M2;
+nextest no está calificada porque el seccomp P02 niega el UnixStream interno de
+Tokio. Esta ampliación no es una calificación de release y Tasks continúa sin
+anunciarse.
+2026-09-06T16:35:08.493293Z ERROR codex_core::tools::router: error=apply_patch verification failed: Failed to find expected lines in /Users/cburgosro/Projects/rust-mcp/docs/compatibility.md:
+Las tools 20 (`rust.coverage`), 21
+(`rust.semver.check`) y 22 (`rust.mutation.test`) están planificadas en M3, no
+disponibles.
+2026-09-06T16:36:22.369073Z ERROR codex_core::tools::router: error=apply_patch verification failed: invalid patch: multiple operations target /Users/cburgosro/Projects/rust-mcp/docs/validation/M3-02.md

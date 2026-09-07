@@ -1,0 +1,12 @@
+2026-09-06T09:52:08.351933Z ERROR codex_memories_write::phase2: Phase 2 no changes
+2026-09-06T09:56:08.480298Z ERROR codex_core::tools::router: error=apply_patch verification failed: Failed to find expected lines in /Users/cburgosro/Projects/rust-mcp/crates/execution-adapter/src/rust_applied.rs:
+        Some("/junit"),
+        None,
+        nonce,
+2026-09-06T10:01:44.788308Z ERROR codex_core::tools::router: error=apply_patch verification failed: Failed to find expected lines in /Users/cburgosro/Projects/rust-mcp/docs/adr/README.md:
+- [ADR-064 — Quality job seccomp profile](ADR-064-quality-job-seccomp-profile.md)
+2026-09-06T10:07:14.479951Z ERROR codex_core::tools::router: error=apply_patch verification failed: Failed to find expected lines in /Users/cburgosro/Projects/rust-mcp/fixtures/coverage/README.md:
+- `containment`: executes the ADR-065 negative controls inside the coverage run:
+  source and report volumes remain `noexec`, and AF_INET access remains denied.
+2026-09-06T10:13:09.277549Z ERROR codex_core::tools::router: error=apply_patch verification failed: invalid patch: multiple operations target /Users/cburgosro/Projects/rust-mcp/docs/validation/M3-03.md
+2026-09-06T10:15:20.779879Z ERROR codex_core::tools::router: error=apply_patch verification failed: invalid patch: multiple operations target /Users/cburgosro/Projects/rust-mcp/crates/execution-adapter/src/mutation_gateway.rs

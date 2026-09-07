@@ -1,0 +1,11 @@
+{
+  "case": "stdout-deadline",
+  "status": "passed",
+  "stdout_drained": false,
+  "forced_stop": false,
+  "signal": null,
+  "prefill_bytes": 65536,
+  "exit_code": 1,
+  "elapsed_seconds": 5.131,
+  "signal_join_seconds": null
+}

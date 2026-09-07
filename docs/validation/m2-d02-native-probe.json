@@ -1,0 +1,390 @@
+{
+  "started_at_utc": "2026-09-05T07:48:23.331004+00:00",
+  "scope": "disposable fixture experiment; no production writer",
+  "platform": "macOS-26.6.2-arm64-arm-64bit-Mach-O",
+  "kernel": "25.6.0",
+  "machine": "arm64",
+  "uid": 501,
+  "script_sha256": "3294e409ef8ca50a990cbf933117b68b9ba7b528b42912746238ad85bc2c7938",
+  "observations": [
+    {
+      "case": "root_relative_swap_positive",
+      "expected_observation": true,
+      "files_observed": {
+        "target": {
+          "sha256": "dda18a0e21ae47c53b4309434cbc02ae8bf764fa83a6defbb719431242722aa7",
+          "size": 9,
+          "device": 16777230,
+          "inode": 109985982
+        },
+        "staged": {
+          "sha256": "6db7d803e74f1ffa7d8f5adc0bf95b3e15bf4c8373fffadf546227cc6c6742cb",
+          "size": 6,
+          "device": 16777230,
+          "inode": 109985981
+        }
+      },
+      "errno": 0,
+      "errno_name": "OK",
+      "errno_message": "Undefined error: 0"
+    },
+    {
+      "case": "unknown_flag_rejected",
+      "expected_observation": true,
+      "files_observed": {
+        "target": {
+          "sha256": "dda18a0e21ae47c53b4309434cbc02ae8bf764fa83a6defbb719431242722aa7",
+          "size": 9,
+          "device": 16777230,
+          "inode": 109985982
+        },
+        "staged": {
+          "sha256": "6db7d803e74f1ffa7d8f5adc0bf95b3e15bf4c8373fffadf546227cc6c6742cb",
+          "size": 6,
+          "device": 16777230,
+          "inode": 109985981
+        }
+      },
+      "errno": 22,
+      "errno_name": "EINVAL",
+      "errno_message": "Invalid argument"
+    },
+    {
+      "case": "absolute_path_beneath_rejected",
+      "expected_observation": true,
+      "files_observed": {
+        "target": {
+          "sha256": "dda18a0e21ae47c53b4309434cbc02ae8bf764fa83a6defbb719431242722aa7",
+          "size": 9,
+          "device": 16777230,
+          "inode": 109985982
+        },
+        "staged": {
+          "sha256": "6db7d803e74f1ffa7d8f5adc0bf95b3e15bf4c8373fffadf546227cc6c6742cb",
+          "size": 6,
+          "device": 16777230,
+          "inode": 109985981
+        }
+      },
+      "errno": 107,
+      "errno_name": "ENOTCAPABLE",
+      "errno_message": "Capabilities insufficient"
+    },
+    {
+      "case": "symlink_denied",
+      "expected_observation": true,
+      "files_observed": {
+        "target": {
+          "sha256": "6db7d803e74f1ffa7d8f5adc0bf95b3e15bf4c8373fffadf546227cc6c6742cb",
+          "size": 6,
+          "device": 16777230,
+          "inode": 109985987
+        },
+        "staged": {
+          "sha256": "dda18a0e21ae47c53b4309434cbc02ae8bf764fa83a6defbb719431242722aa7",
+          "size": 9,
+          "device": 16777230,
+          "inode": 109985988
+        },
+        "outside": {
+          "sha256": "e100fbce008c04ec40637af0af91fb2f05aeedc23f856a2d3c0b1580625d755e",
+          "size": 6,
+          "device": 16777230,
+          "inode": 109985989
+        }
+      },
+      "errno": 62,
+      "outside_changed": false,
+      "errno_name": "ELOOP",
+      "errno_message": "Too many levels of symbolic links"
+    },
+    {
+      "case": "symlink_attack_control",
+      "expected_observation": true,
+      "files_observed": {
+        "target": {
+          "sha256": "6db7d803e74f1ffa7d8f5adc0bf95b3e15bf4c8373fffadf546227cc6c6742cb",
+          "size": 6,
+          "device": 16777230,
+          "inode": 109985995
+        },
+        "staged": {
+          "sha256": "e100fbce008c04ec40637af0af91fb2f05aeedc23f856a2d3c0b1580625d755e",
+          "size": 6,
+          "device": 16777230,
+          "inode": 109985997
+        },
+        "outside": {
+          "sha256": "dda18a0e21ae47c53b4309434cbc02ae8bf764fa83a6defbb719431242722aa7",
+          "size": 9,
+          "device": 16777230,
+          "inode": 109985996
+        }
+      },
+      "errno": 0,
+      "outside_changed": true,
+      "errno_name": "OK",
+      "errno_message": "Undefined error: 0"
+    },
+    {
+      "case": "moved_parent_root_path_denied",
+      "expected_observation": true,
+      "files_observed": {
+        "staged": {
+          "sha256": "dda18a0e21ae47c53b4309434cbc02ae8bf764fa83a6defbb719431242722aa7",
+          "size": 9,
+          "device": 16777230,
+          "inode": 109986004
+        },
+        "moved_parent_target": {
+          "sha256": "6db7d803e74f1ffa7d8f5adc0bf95b3e15bf4c8373fffadf546227cc6c6742cb",
+          "size": 6,
+          "device": 16777230,
+          "inode": 109986003
+        }
+      },
+      "errno": 2,
+      "outside_changed": false,
+      "errno_name": "ENOENT",
+      "errno_message": "No such file or directory"
+    },
+    {
+      "case": "moved_parent_descriptor_attack_control",
+      "expected_observation": true,
+      "files_observed": {
+        "staged": {
+          "sha256": "6db7d803e74f1ffa7d8f5adc0bf95b3e15bf4c8373fffadf546227cc6c6742cb",
+          "size": 6,
+          "device": 16777230,
+          "inode": 109986009
+        },
+        "moved_parent_target": {
+          "sha256": "dda18a0e21ae47c53b4309434cbc02ae8bf764fa83a6defbb719431242722aa7",
+          "size": 9,
+          "device": 16777230,
+          "inode": 109986010
+        }
+      },
+      "errno": 0,
+      "outside_changed": true,
+      "errno_name": "OK",
+      "errno_message": "Undefined error: 0"
+    },
+    {
+      "case": "root_handle_does_not_pin_configured_namespace",
+      "expected_observation": true,
+      "files_observed": {
+        "moved_root_target": {
+          "sha256": "dda18a0e21ae47c53b4309434cbc02ae8bf764fa83a6defbb719431242722aa7",
+          "size": 9,
+          "device": 16777230,
+          "inode": 109986016
+        }
+      },
+      "errno": 0,
+      "original_root_path_absent": true,
+      "handle_before": {
+        "device": 16777230,
+        "inode": 109986012
+      },
+      "handle_after": {
+        "device": 16777230,
+        "inode": 109986012
+      },
+      "relocated_root_changed": true,
+      "errno_name": "OK",
+      "errno_message": "Undefined error: 0"
+    },
+    {
+      "case": "cooperative_flock_control",
+      "expected_observation": true,
+      "files_observed": {
+        "target": {
+          "sha256": "6db7d803e74f1ffa7d8f5adc0bf95b3e15bf4c8373fffadf546227cc6c6742cb",
+          "size": 6,
+          "device": 16777230,
+          "inode": 109986021
+        },
+        "staged": {
+          "sha256": "dda18a0e21ae47c53b4309434cbc02ae8bf764fa83a6defbb719431242722aa7",
+          "size": 9,
+          "device": 16777230,
+          "inode": 109986022
+        }
+      },
+      "second_lock_denied": true
+    },
+    {
+      "case": "uncooperative_writer_ignores_flock",
+      "expected_observation": true,
+      "files_observed": {
+        "target": {
+          "sha256": "3c4623849a49a53911c4a3e48d8cead8a1858960bccdea7a1b978d73ec2f06d7",
+          "size": 8,
+          "device": 16777230,
+          "inode": 109986021
+        },
+        "staged": {
+          "sha256": "dda18a0e21ae47c53b4309434cbc02ae8bf764fa83a6defbb719431242722aa7",
+          "size": 9,
+          "device": 16777230,
+          "inode": 109986022
+        }
+      },
+      "preflight_sha256": "6db7d803e74f1ffa7d8f5adc0bf95b3e15bf4c8373fffadf546227cc6c6742cb",
+      "observed_sha256": "3c4623849a49a53911c4a3e48d8cead8a1858960bccdea7a1b978d73ec2f06d7"
+    },
+    {
+      "case": "swap_does_not_compare_expected_content",
+      "expected_observation": true,
+      "files_observed": {
+        "target": {
+          "sha256": "dda18a0e21ae47c53b4309434cbc02ae8bf764fa83a6defbb719431242722aa7",
+          "size": 9,
+          "device": 16777230,
+          "inode": 109986022
+        },
+        "staged": {
+          "sha256": "3c4623849a49a53911c4a3e48d8cead8a1858960bccdea7a1b978d73ec2f06d7",
+          "size": 8,
+          "device": 16777230,
+          "inode": 109986021
+        }
+      },
+      "errno": 0,
+      "candidate_published_before_conflict_detection": true,
+      "displaced_external_bytes_retained": true,
+      "errno_name": "OK",
+      "errno_message": "Undefined error: 0"
+    },
+    {
+      "case": "swap_back_displaces_newer_visible_update",
+      "expected_observation": true,
+      "files_observed": {
+        "target": {
+          "sha256": "3c4623849a49a53911c4a3e48d8cead8a1858960bccdea7a1b978d73ec2f06d7",
+          "size": 8,
+          "device": 16777230,
+          "inode": 109986021
+        },
+        "staged": {
+          "sha256": "7cea4e266e7dc38a042147b35f283ef853905c458aa03053fa381515d429f2fa",
+          "size": 15,
+          "device": 16777230,
+          "inode": 109986022
+        }
+      },
+      "errno": 0,
+      "newer_update_no_longer_at_user_path": true,
+      "newer_bytes_retained_in_staging": true,
+      "errno_name": "OK",
+      "errno_message": "Undefined error: 0"
+    },
+    {
+      "case": "file_lease_unavailable_to_current_process",
+      "expected_observation": true,
+      "files_observed": {
+        "target": {
+          "sha256": "6db7d803e74f1ffa7d8f5adc0bf95b3e15bf4c8373fffadf546227cc6c6742cb",
+          "size": 6,
+          "device": 16777230,
+          "inode": 109986027
+        },
+        "staged": {
+          "sha256": "dda18a0e21ae47c53b4309434cbc02ae8bf764fa83a6defbb719431242722aa7",
+          "size": 9,
+          "device": 16777230,
+          "inode": 109986028
+        }
+      },
+      "errno": 1,
+      "scope": "availability only, no positive lease enforcement claim",
+      "errno_name": "EPERM",
+      "errno_message": "Operation not permitted"
+    },
+    {
+      "case": "fullfsync_file",
+      "expected_observation": true,
+      "files_observed": {
+        "target": {
+          "sha256": "6db7d803e74f1ffa7d8f5adc0bf95b3e15bf4c8373fffadf546227cc6c6742cb",
+          "size": 6,
+          "device": 16777230,
+          "inode": 109986027
+        },
+        "staged": {
+          "sha256": "dda18a0e21ae47c53b4309434cbc02ae8bf764fa83a6defbb719431242722aa7",
+          "size": 9,
+          "device": 16777230,
+          "inode": 109986028
+        }
+      },
+      "errno": 0,
+      "scope": "API result only; no power-loss or journal-recovery claim",
+      "errno_name": "OK",
+      "errno_message": "Undefined error: 0"
+    },
+    {
+      "case": "fullfsync_directory",
+      "expected_observation": true,
+      "files_observed": {
+        "target": {
+          "sha256": "6db7d803e74f1ffa7d8f5adc0bf95b3e15bf4c8373fffadf546227cc6c6742cb",
+          "size": 6,
+          "device": 16777230,
+          "inode": 109986027
+        },
+        "staged": {
+          "sha256": "dda18a0e21ae47c53b4309434cbc02ae8bf764fa83a6defbb719431242722aa7",
+          "size": 9,
+          "device": 16777230,
+          "inode": 109986028
+        }
+      },
+      "errno": 0,
+      "scope": "API result only; no power-loss or journal-recovery claim",
+      "errno_name": "OK",
+      "errno_message": "Undefined error: 0"
+    }
+  ],
+  "product_gate": "no_go_current_candidate",
+  "sdk_headers": {
+    "stdio": {
+      "path": "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/sys/stdio.h",
+      "sha256": "a8078ae1cba1a46a66d0de6fe7f13bbc969cdb7e78fc2d4b9a5c5cdaaf16126b"
+    },
+    "fcntl": {
+      "path": "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/sys/fcntl.h",
+      "sha256": "805fd8c695f8e5e1c327b6852382cc5533738bbfd8f18bc11f850531166e4fe8"
+    }
+  },
+  "filesystem": "apfs",
+  "experiment_status": "observations_matched",
+  "limitations": [
+    "No production writer, journal or five M2 tools implemented",
+    "No proof that all possible host isolation designs are impossible",
+    "No EXDEV cross-volume, hardlink, mmap, kernel crash or power-loss qualification",
+    "Expected attack success is evidence against the candidate, not M2 success",
+    "Temporary fixture tree removed; no user project bytes changed"
+  ],
+  "finished_at_utc": "2026-09-05T07:48:23.511243+00:00",
+  "timings": [
+    {
+      "step": "/usr/bin/xcrun",
+      "duration_ns": 6695666
+    },
+    {
+      "step": "/bin/df",
+      "duration_ns": 2379417
+    },
+    {
+      "step": "/usr/sbin/diskutil",
+      "duration_ns": 132020959
+    },
+    {
+      "step": "fixed_uncooperative_python_child",
+      "duration_ns": 19342667
+    }
+  ],
+  "total_duration_ns": 180247000
+}

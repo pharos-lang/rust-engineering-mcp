@@ -1,0 +1,21 @@
+{
+  "status": "passed",
+  "recorded_at": "2026-09-06T01:10:16.730070+00:00",
+  "image": "sha256:384a1742ecc53cdd3a9c0bf36c6f8b66db73ddd118aeeae6e55654ea998ae36a",
+  "created": "2026-09-06T01:08:49.226737584Z",
+  "config_digest": "sha256:7d4e58b9e29b2045c13d71542f7892ee071a6886a1b939c4cbfc3ff7ce40dc45",
+  "user": "65534:65534",
+  "env": [
+    "PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+  ],
+  "workdir": "/work",
+  "observations": [
+    {
+      "config_matches_expected": true,
+      "architecture": "arm64",
+      "os": "linux",
+      "image_id": "sha256:384a1742ecc53cdd3a9c0bf36c6f8b66db73ddd118aeeae6e55654ea998ae36a",
+      "config_digest_algorithm": "sha256(canonical sorted-key JSON of Docker inspect .Config)"
+    }
+  ]
+}

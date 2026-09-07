@@ -4826,7 +4826,7 @@ dependencies = [
 
 [[package]]
 name = "rust-engineering-application"
-version = "0.1.0"
+version = "0.2.0-dev"
 dependencies = [
  "rust-engineering-domain",
  "serde_json",
@@ -4834,7 +4834,7 @@ dependencies = [
 
 [[package]]
 name = "rust-engineering-artifact"
-version = "0.1.0"
+version = "0.2.0-dev"
 dependencies = [
  "getrandom 0.4.3",
  "rust-engineering-application",
@@ -4844,7 +4844,7 @@ dependencies = [
 
 [[package]]
 name = "rust-engineering-catalog"
-version = "0.1.0"
+version = "0.2.0-dev"
 dependencies = [
  "cargo-lock",
  "ring",
@@ -4863,7 +4863,7 @@ dependencies = [
 
 [[package]]
 name = "rust-engineering-domain"
-version = "0.1.0"
+version = "0.2.0-dev"
 dependencies = [
  "serde",
  "serde_json",
@@ -4871,7 +4871,7 @@ dependencies = [
 
 [[package]]
 name = "rust-engineering-execution"
-version = "0.1.0"
+version = "0.2.0-dev"
 dependencies = [
  "getrandom 0.4.3",
  "rust-engineering-application",
@@ -4886,9 +4886,10 @@ dependencies = [
 
 [[package]]
 name = "rust-engineering-mcp"
-version = "0.1.0"
+version = "0.2.0-dev"
 dependencies = [
  "base64 0.22.1",
+ "getrandom 0.4.3",
  "jsonschema",
  "reqwest",
  "ring",
@@ -4900,6 +4901,7 @@ dependencies = [
  "rust-engineering-execution",
  "rust-engineering-project",
  "rust-engineering-semantic",
+ "rustix",
  "schemars 1.2.2",
  "serde",
  "serde_json",
@@ -4914,21 +4916,24 @@ dependencies = [
 
 [[package]]
 name = "rust-engineering-project"
-version = "0.1.0"
+version = "0.2.0-dev"
 dependencies = [
+ "base64 0.22.1",
  "getrandom 0.4.3",
  "rust-engineering-application",
  "rust-engineering-domain",
  "rustix",
  "semver",
  "serde",
+ "serde_json",
  "sha2 0.11.0",
  "toml",
+ "toml_edit",
 ]
 
 [[package]]
 name = "rust-engineering-semantic"
-version = "0.1.0"
+version = "0.2.0-dev"
 dependencies = [
  "arrow-array",
  "arrow-schema",
@@ -5844,7 +5849,7 @@ dependencies = [
  "indexmap 2.14.1",
  "serde_core",
  "serde_spanned",
- "toml_datetime",
+ "toml_datetime 0.7.5+spec-1.1.0",
  "toml_parser",
  "toml_writer",
  "winnow 0.7.15",
@@ -5857,6 +5862,28 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "92e1cfed4a3038bc5a127e35a2d360f145e1f4b971b551a2ba5fd7aedf7e1347"
 dependencies = [
  "serde_core",
+]
+
+[[package]]
+name = "toml_datetime"
+version = "1.1.1+spec-1.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "3165f65f62e28e0115a00b2ebdd37eb6f3b641855f9d636d3cd4103767159ad7"
+dependencies = [
+ "serde_core",
+]
+
+[[package]]
+name = "toml_edit"
+version = "0.25.13+spec-1.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "6975367e4d2ef766d86af01ffad14b622fecc8d4357a998fbc4deb6e9bacaf9b"
+dependencies = [
+ "indexmap 2.14.1",
+ "toml_datetime 1.1.1+spec-1.1.0",
+ "toml_parser",
+ "toml_writer",
+ "winnow 1.0.4",
 ]
 
 [[package]]
@@ -6442,6 +6469,9 @@ name = "winnow"
 version = "1.0.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "23b97319f7b8343df12cc98938e5c3eb436064524c8d2b4e30a1d3a36eecdf81"
+dependencies = [
+ "memchr",
+]
 
 [[package]]
 name = "wit-bindgen"

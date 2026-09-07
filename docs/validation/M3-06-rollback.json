@@ -1,0 +1,287 @@
+{
+  "schema": "rust-mcp-m3-06-rollback-v1",
+  "status": "passed",
+  "started_at": "2026-09-06T20:38:31.546291Z",
+  "scope": "ADR-061 durable quality artifact store: the only on-disk format M3 introduces",
+  "selections": [
+    {
+      "clause": "unknown record version fails closed",
+      "package": "rust-engineering-project",
+      "selection": "apfs::an_unknown_record_version_fails_closed_and_is_never_reinterpreted",
+      "command": [
+        "/Users/cburgosro/.rustup/toolchains/1.98.1-aarch64-apple-darwin/bin/cargo",
+        "test",
+        "--locked",
+        "--offline",
+        "-p",
+        "rust-engineering-project",
+        "--test",
+        "quality_artifact_store",
+        "apfs::an_unknown_record_version_fails_closed_and_is_never_reinterpreted",
+        "--",
+        "--exact",
+        "--nocapture",
+        "--test-threads=1"
+      ],
+      "exit_code": 0,
+      "status": "passed",
+      "expected_executed": 1,
+      "seconds": 6.61,
+      "log_sha256": "d219e5d051ee7a48657a653e5f448cc642e21fe9e316508a55ea3683581eb141"
+    },
+    {
+      "clause": "unknown watermark version blocks and rebases nothing",
+      "package": "rust-engineering-project",
+      "selection": "apfs::an_unknown_watermark_version_blocks_quality_and_rebases_nothing",
+      "command": [
+        "/Users/cburgosro/.rustup/toolchains/1.98.1-aarch64-apple-darwin/bin/cargo",
+        "test",
+        "--locked",
+        "--offline",
+        "-p",
+        "rust-engineering-project",
+        "--test",
+        "quality_artifact_store",
+        "apfs::an_unknown_watermark_version_blocks_quality_and_rebases_nothing",
+        "--",
+        "--exact",
+        "--nocapture",
+        "--test-threads=1"
+      ],
+      "exit_code": 0,
+      "status": "passed",
+      "expected_executed": 1,
+      "seconds": 0.213,
+      "log_sha256": "5499e04a2e8a92d011b2fa59fe8a9a13aff5c516cf332bcb64bea5741d5cfe52"
+    },
+    {
+      "clause": "future sibling and M2 untouched",
+      "package": "rust-engineering-project",
+      "selection": "apfs::a_future_sibling_store_and_the_m2_journal_are_never_read_migrated_or_removed",
+      "command": [
+        "/Users/cburgosro/.rustup/toolchains/1.98.1-aarch64-apple-darwin/bin/cargo",
+        "test",
+        "--locked",
+        "--offline",
+        "-p",
+        "rust-engineering-project",
+        "--test",
+        "quality_artifact_store",
+        "apfs::a_future_sibling_store_and_the_m2_journal_are_never_read_migrated_or_removed",
+        "--",
+        "--exact",
+        "--nocapture",
+        "--test-threads=1"
+      ],
+      "exit_code": 0,
+      "status": "passed",
+      "expected_executed": 1,
+      "seconds": 0.196,
+      "log_sha256": "761d9371ee954e96cbc7a0c547db35b4d387e82ce7f4b6ce6f1ec9f61624fe16"
+    },
+    {
+      "clause": "recover/prune on valid+expired+unknown (library)",
+      "package": "rust-engineering-project",
+      "selection": "apfs::operator_recover_and_prune_separate_valid_expired_and_unknown_objects",
+      "command": [
+        "/Users/cburgosro/.rustup/toolchains/1.98.1-aarch64-apple-darwin/bin/cargo",
+        "test",
+        "--locked",
+        "--offline",
+        "-p",
+        "rust-engineering-project",
+        "--test",
+        "quality_artifact_store",
+        "apfs::operator_recover_and_prune_separate_valid_expired_and_unknown_objects",
+        "--",
+        "--exact",
+        "--nocapture",
+        "--test-threads=1"
+      ],
+      "exit_code": 0,
+      "status": "passed",
+      "expected_executed": 1,
+      "seconds": 0.288,
+      "log_sha256": "b0d4578cea0ed43dd3e781b789ca81328f544d03d33cf6e6d5363534dc2f4730"
+    },
+    {
+      "clause": "recover/prune through the shipped binary",
+      "package": "rust-engineering-mcp",
+      "selection": "prune_reclaims_only_expired_objects_and_recover_quarantines_the_unknown_one",
+      "command": [
+        "/Users/cburgosro/.rustup/toolchains/1.98.1-aarch64-apple-darwin/bin/cargo",
+        "test",
+        "--locked",
+        "--offline",
+        "-p",
+        "rust-engineering-mcp",
+        "--test",
+        "quality_artifact_cli",
+        "prune_reclaims_only_expired_objects_and_recover_quarantines_the_unknown_one",
+        "--",
+        "--exact",
+        "--nocapture",
+        "--test-threads=1"
+      ],
+      "exit_code": 0,
+      "status": "passed",
+      "expected_executed": 1,
+      "seconds": 1.725,
+      "log_sha256": "8a63cd483aeabc5064fc5be86de8557ca18dc6aaf888058d7f14d98c425e2ce7"
+    },
+    {
+      "clause": "clock regression blocks prune until recover",
+      "package": "rust-engineering-mcp",
+      "selection": "a_clock_regression_blocks_prune_with_a_closed_code_until_recover_rebases_it",
+      "command": [
+        "/Users/cburgosro/.rustup/toolchains/1.98.1-aarch64-apple-darwin/bin/cargo",
+        "test",
+        "--locked",
+        "--offline",
+        "-p",
+        "rust-engineering-mcp",
+        "--test",
+        "quality_artifact_cli",
+        "a_clock_regression_blocks_prune_with_a_closed_code_until_recover_rebases_it",
+        "--",
+        "--exact",
+        "--nocapture",
+        "--test-threads=1"
+      ],
+      "exit_code": 0,
+      "status": "passed",
+      "expected_executed": 1,
+      "seconds": 1.798,
+      "log_sha256": "a107a996adcc22f105ecb6b0902b3ca2fd25380d2187e8184ace5d578bca4d00"
+    },
+    {
+      "clause": "reused: quarantine reasons + M2 sibling intact",
+      "package": "rust-engineering-project",
+      "selection": "apfs::corrupt_or_unknown_objects_are_quarantined_with_a_closed_reason",
+      "command": [
+        "/Users/cburgosro/.rustup/toolchains/1.98.1-aarch64-apple-darwin/bin/cargo",
+        "test",
+        "--locked",
+        "--offline",
+        "-p",
+        "rust-engineering-project",
+        "--test",
+        "quality_artifact_store",
+        "apfs::corrupt_or_unknown_objects_are_quarantined_with_a_closed_reason",
+        "--",
+        "--exact",
+        "--nocapture",
+        "--test-threads=1"
+      ],
+      "exit_code": 0,
+      "status": "passed",
+      "expected_executed": 1,
+      "seconds": 0.313,
+      "log_sha256": "9b2b0076f601f9d51ec4889b310988c8be32a9377f1b6a99f71cc818593ac6b0"
+    },
+    {
+      "clause": "reused: clock regression fails closed, M2 intact",
+      "package": "rust-engineering-project",
+      "selection": "apfs::a_durable_clock_regression_blocks_only_quality_until_recovery",
+      "command": [
+        "/Users/cburgosro/.rustup/toolchains/1.98.1-aarch64-apple-darwin/bin/cargo",
+        "test",
+        "--locked",
+        "--offline",
+        "-p",
+        "rust-engineering-project",
+        "--test",
+        "quality_artifact_store",
+        "apfs::a_durable_clock_regression_blocks_only_quality_until_recovery",
+        "--",
+        "--exact",
+        "--nocapture",
+        "--test-threads=1"
+      ],
+      "exit_code": 0,
+      "status": "passed",
+      "expected_executed": 1,
+      "seconds": 0.205,
+      "log_sha256": "bb1747ad1d16586f1a32628f9723c8fd02b10f03707d761fd98a4b8b0b6355f3"
+    },
+    {
+      "clause": "reused: expiry reclamation never evicts live evidence",
+      "package": "rust-engineering-project",
+      "selection": "apfs::expired_evidence_and_claims_stop_being_charged_and_leave_the_volume",
+      "command": [
+        "/Users/cburgosro/.rustup/toolchains/1.98.1-aarch64-apple-darwin/bin/cargo",
+        "test",
+        "--locked",
+        "--offline",
+        "-p",
+        "rust-engineering-project",
+        "--test",
+        "quality_artifact_store",
+        "apfs::expired_evidence_and_claims_stop_being_charged_and_leave_the_volume",
+        "--",
+        "--exact",
+        "--nocapture",
+        "--test-threads=1"
+      ],
+      "exit_code": 0,
+      "status": "passed",
+      "expected_executed": 1,
+      "seconds": 0.224,
+      "log_sha256": "3f735140e0d53b08805686ddf3578766fc16e83eb872743e2aa54e76e5b5198b"
+    },
+    {
+      "clause": "reused: operator state root parity with M2",
+      "package": "rust-engineering-project",
+      "selection": "apfs::an_operator_state_root_is_qualified_exactly_as_m2_qualifies_it",
+      "command": [
+        "/Users/cburgosro/.rustup/toolchains/1.98.1-aarch64-apple-darwin/bin/cargo",
+        "test",
+        "--locked",
+        "--offline",
+        "-p",
+        "rust-engineering-project",
+        "--test",
+        "quality_artifact_store",
+        "apfs::an_operator_state_root_is_qualified_exactly_as_m2_qualifies_it",
+        "--",
+        "--exact",
+        "--nocapture",
+        "--test-threads=1"
+      ],
+      "exit_code": 0,
+      "status": "passed",
+      "expected_executed": 1,
+      "seconds": 0.169,
+      "log_sha256": "77bb2b44efd2ba7fb84eafcde5a4102c933e56b29c0859e826e849dbbf2e209e"
+    }
+  ],
+  "finished_at": "2026-09-06T20:38:43.289832Z",
+  "sources": [
+    {
+      "path": "crates/project-adapter/src/filesystem/macos/quality.rs",
+      "sha256": "271dab3b782336df43508748ddac7119387181484aad69bb61d467b0b37d6940"
+    },
+    {
+      "path": "crates/project-adapter/tests/quality_artifact_store.rs",
+      "sha256": "ea6de5c82c039605ee1c159f51a230d5dc87cf27ed87f4eae6c5d5b093c2ee8e"
+    },
+    {
+      "path": "crates/mcp-server/src/quality_artifact_cli.rs",
+      "sha256": "58cedf7fc6e2491ff1ad4f739861f0ee77cf7836859f9f786a0c1e4d0bb7b172"
+    },
+    {
+      "path": "crates/mcp-server/tests/quality_artifact_cli.rs",
+      "sha256": "270ca891f0534ced76f673fc5acee4921580de29cf5a4b17e25581d1dde97e9f"
+    },
+    {
+      "path": "crates/domain/src/quality_artifact.rs",
+      "sha256": "88f957213a0090732475d22bbcff64edb9cc338261f05ec2c3a4159c3875fd5b"
+    }
+  ],
+  "totals": {
+    "selections": 10,
+    "passed": 10,
+    "new_in_w6": 6,
+    "reused_existing": 4
+  }
+}

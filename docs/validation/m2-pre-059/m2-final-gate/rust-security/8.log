@@ -1,0 +1,9 @@
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.11s
+     Running tests/inspection_runtime.rs (target/debug/deps/inspection_runtime-836bf750ab4f64c1)
+
+running 1 test
+test clippy_profiles_report_findings_and_verified_log_resources ... M1_CLIPPY_RECEIPT {"cases":6,"cleanup":true,"configuration_fingerprint":"sha256:84fb1e2dac1829773cd1c3fa00b757db03c33f78c2de9a49ab836d56b019183e","default_warning_passed":true,"execution_fingerprints":["sha256:ac8c5425558212663afd3ef1c5b28382539840d9402121f5482e57128e63b5dc","sha256:49f31fbeb2074ec1bf10d98c129c5c30b15b20d99fbb33fa250fdfa6fded72b6","sha256:b8973fc47417c9572600582201df4653ef9c07c68690f0cdae2d59c6507e67b6","sha256:7ad66482a3096e4f07e1f2765956d6436718bc54aa2447216f0c22a9e0b8fbe2","sha256:b3051773177d7302735cd80784427fb93a92c5c2ade5b09a42dfa4303ad94f51","sha256:14ff711b506b5f0c70127b002d2c3e6009dedaff99497358029dc866218ef2b5"],"logs_verified":6,"package_features_all_targets_verified":true,"pedantic_opt_in":true,"project_alias_verified":true,"source_unchanged":true,"status":"passed","strict_warning_failed":true,"structured_findings_suggestions":true,"workspace_verified":true}
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 27 filtered out; finished in 20.16s
+

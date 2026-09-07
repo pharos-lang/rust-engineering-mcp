@@ -1,0 +1,35 @@
+{
+  "schema": "rust-mcp-m2-d05-resolution-execution-gate-v1",
+  "recorded_at": "2026-09-05T14:10:00-05:00",
+  "base_commit": "331d1630da5a2c1d8d8c596305c0c1167a7896cb",
+  "runtime": {
+    "docker_server_version": "29.7.2",
+    "socket": "/Users/cburgosro/.docker/run/docker.sock",
+    "image_id": "sha256:8fac70723a8d04b6ec9633ab721806b8a55f4f083a1b3f988c61bf6a00fa1909",
+    "platform": "linux/arm64"
+  },
+  "files": {
+    "crates/execution-adapter/src/resolution_gateway.rs": "sha256:a335b7b5a1957bd16bf1a7ceb3819da016bdf3e8b616c3a8a05fc4d8078d4546",
+    "crates/execution-adapter/src/project_inspection.rs": "sha256:8cf540a9ad1dad7602e15dfc30d65a26569dcbf163f9542e6c662c697da93f4d",
+    "crates/execution-adapter/src/rust_applied.rs": "sha256:cd4dc4fd21a8d618a96debfc6e1f006b500619e35d330a116333e52bfa3e55a6",
+    "crates/execution-adapter/src/mutation_gateway.rs": "sha256:1685518076ec3a254e93c7f4429024bb712ae8c7666568747b0a441d9eaa5798",
+    "crates/execution-adapter/src/mutation_archive.rs": "sha256:e8e7059558680df02ef41cb65af98a347b6cbbae452bda19ffb880c4fd5f9647",
+    "crates/execution-adapter/src/lib.rs": "sha256:9df13b672e20ed4820b4c5d2a90f4ff608f22ff116055578e6339b69c6ed6408"
+  },
+  "commands": [
+    {"argv":["cargo","test","-p","rust-engineering-execution","--all-targets"],"exit_code":0,"result":"113 passed; 0 failed; 10 ignored; integration 1 passed; 4 ignored"},
+    {"argv":["cargo","clippy","-p","rust-engineering-execution","--all-targets","--","-D","warnings"],"exit_code":0,"result":"passed"},
+    {"argv":["cargo","test","-p","rust-engineering-execution","--lib","resolution_gateway::tests::real_vendor_resolution_preserves_lock_presence_and_cleans_all_objects","--","--ignored","--exact","--nocapture"],"exit_code":0,"duration_seconds":8.14,"result":"1 passed; 0 failed"},
+    {"argv":["git","diff","--check"],"exit_code":0,"result":"passed"}
+  ],
+  "fixture": {"vendor_files":92,"vendor_bytes":752307,"tree_fingerprint":"sha256:743947d819de210a9073f0ca6c3dff6208680efedd0989d4957e70cc8fe5eba1"},
+  "cases": {
+    "existing_lock":"updated and published after two successful complete metadata executions",
+    "absent_lock":"transient lock used for validation and not published",
+    "missing_crate":"Cargo nonzero classified Failed without candidate",
+    "invalid_lock":"Cargo nonzero classified Failed without candidate",
+    "predispatch_cancel":"Cancelled without Docker admission",
+    "cleanup":{"containers":[],"volumes":[]}
+  },
+  "notes":["This receipt records the D05 execution snapshot and tests actually run on those hashes; it is separate from the earlier M2-03 Fix snapshot."]
+}

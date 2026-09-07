@@ -1,0 +1,232 @@
+{
+  "status": "passed",
+  "recorded_at": "2026-09-05T19:57:17.180787+00:00",
+  "command": "cargo test --locked --offline -p rust-engineering-project --test catalog_store; then test binary repeated 20 times",
+  "before": [
+    {
+      "run": 1,
+      "exit_code": 101,
+      "sha256": "ba45d790097d567b0edffc4207c0aec090f30b5efd85759c6152d13aadd5e699"
+    },
+    {
+      "run": 2,
+      "exit_code": 0,
+      "sha256": "2ead6acf9b22d2d554b54288f1714a28500fd628e7717f80f1f15b736c798028"
+    },
+    {
+      "run": 3,
+      "exit_code": 0,
+      "sha256": "7b78044993c3ad675c8ec1dc2d65e220d793ced0b0fc145514005ce0a913390e"
+    },
+    {
+      "run": 4,
+      "exit_code": 0,
+      "sha256": "73103c3eb523cd2b2a3337ce313956c273787a7b060c198fcb301027f51a4635"
+    },
+    {
+      "run": 5,
+      "exit_code": 0,
+      "sha256": "f815f6532a5f47a1cf0d80d3458bb37509b8806e002479c536e421b13db1b5a1"
+    },
+    {
+      "run": 6,
+      "exit_code": 0,
+      "sha256": "ae5afc7674c0d02fe643e6d0b84b8bd3f8cd91d8d29367a820ece8f5e914bdfd"
+    },
+    {
+      "run": 7,
+      "exit_code": 0,
+      "sha256": "02cb26796e9506c6e79054715336a3bb4d7b48f4d2f6e54b5c7a743ddb21e56e"
+    },
+    {
+      "run": 8,
+      "exit_code": 0,
+      "sha256": "688839952fbd0d7cc5fb5d6e551e4de246e33749802f4c72917c6ffca6326598"
+    },
+    {
+      "run": 9,
+      "exit_code": 0,
+      "sha256": "9879af71e79810369f1f6357e63e9db19cfe860ce0bda9dc79a3040060ac9aca"
+    },
+    {
+      "run": 10,
+      "exit_code": 0,
+      "sha256": "193793b208c44fea6d9b00f7a23f448241a221c079c4342555dd04075afa4096"
+    },
+    {
+      "run": 11,
+      "exit_code": 0,
+      "sha256": "569a3a83a1b335d51fb317ea3cc4ca17a9be137ab3ae3f2fbdaf9a23dabb15b4"
+    },
+    {
+      "run": 12,
+      "exit_code": 0,
+      "sha256": "75e23c854f383e74ec3739d37063dc4462623ef0cf23722e67fc19fd8589fc7e"
+    },
+    {
+      "run": 13,
+      "exit_code": 0,
+      "sha256": "a7e5ca7046f58ea94092b4f5c43ba5d63f0e5062028be8d133931bececb6f26a"
+    },
+    {
+      "run": 14,
+      "exit_code": 0,
+      "sha256": "8e39d9fea7c5bb19f19842d61ca9d885a16dde0a05ff145c6a1e211e8c9aa467"
+    },
+    {
+      "run": 15,
+      "exit_code": 0,
+      "sha256": "2f6f34ee300dbe3eedfe4c5eb6cf036d83e7c51c18c69097c8053756374a9d68"
+    },
+    {
+      "run": 16,
+      "exit_code": 0,
+      "sha256": "56b6f739f7fbdb45a93bb4817c328a0e978efcd4e721873e41dd51191406a786"
+    },
+    {
+      "run": 17,
+      "exit_code": 0,
+      "sha256": "4200d7cca1b274792027f63ebcfc100728b25fea8add8b90fd95a438da87ba6c"
+    },
+    {
+      "run": 18,
+      "exit_code": 0,
+      "sha256": "7055a9f82ecce20b9592c2be2572dbc07d928265d34c8bba1bd796c541d78f44"
+    },
+    {
+      "run": 19,
+      "exit_code": 0,
+      "sha256": "567444da65e93b050ae29da39d98d4625b75b0a7e728387c464209483892a088"
+    },
+    {
+      "run": 20,
+      "exit_code": 0,
+      "sha256": "6a9bf25da9b9ac1b1d323ad0abf94097f0f8fa3c2fc9e44da2f15cbcdf168a1f"
+    }
+  ],
+  "after": [
+    {
+      "iteration": 1,
+      "exit_code": 0,
+      "seconds": 0.307,
+      "output": "\nrunning 16 tests\ntest macos::a_busy_open_does_not_discard_another_imports_staging ... ok\ntest macos::active_deletion_during_lease_is_not_a_new_store ... ok\ntest macos::bounded_input_acquisition_rejects_untrusted_names_and_types ... ok\ntest macos::complete_bytes_replace_atomically_and_survive_reopen ... ok\ntest macos::concurrent_open_is_nonblocking_and_lock_releases_on_drop ... ok\ntest macos::exact_limit_roundtrips_and_oversized_state_is_not_overwritten ... ok\ntest macos::floor_is_independent_bounded_durable_and_never_promoted_from_staging ... ok\ntest macos::floor_record_and_staging_reject_links_and_oversized_bytes ... ok\ntest macos::interrupted_staging_is_discarded_without_promotion_or_fallback ... ok\ntest macos::links_and_special_files_at_every_fixed_name_are_rejected ... ok\ntest macos::model_input_has_separate_bound_without_expanding_catalog_authority ... ok\ntest macos::moved_root_and_replaced_lock_fail_closed ... ok\ntest macos::private_optional_reader_does_not_lock_or_clean_staging ... ok\ntest macos::root_and_store_files_require_private_permissions ... ok\ntest macos::root_owned_sticky_tmp_requires_private_immediate_child ... ok\ntest macos::trust_file_requires_private_owner_file_parent_and_safe_ancestors ... ok\n\ntest result: ok. 16 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.30s\n\n"
+    },
+    {
+      "iteration": 2,
+      "exit_code": 0,
+      "seconds": 0.313,
+      "output": "\nrunning 16 tests\ntest macos::active_deletion_during_lease_is_not_a_new_store ... ok\ntest macos::a_busy_open_does_not_discard_another_imports_staging ... ok\ntest macos::bounded_input_acquisition_rejects_untrusted_names_and_types ... ok\ntest macos::complete_bytes_replace_atomically_and_survive_reopen ... ok\ntest macos::concurrent_open_is_nonblocking_and_lock_releases_on_drop ... ok\ntest macos::exact_limit_roundtrips_and_oversized_state_is_not_overwritten ... ok\ntest macos::floor_is_independent_bounded_durable_and_never_promoted_from_staging ... ok\ntest macos::floor_record_and_staging_reject_links_and_oversized_bytes ... ok\ntest macos::interrupted_staging_is_discarded_without_promotion_or_fallback ... ok\ntest macos::links_and_special_files_at_every_fixed_name_are_rejected ... ok\ntest macos::model_input_has_separate_bound_without_expanding_catalog_authority ... ok\ntest macos::moved_root_and_replaced_lock_fail_closed ... ok\ntest macos::private_optional_reader_does_not_lock_or_clean_staging ... ok\ntest macos::root_and_store_files_require_private_permissions ... ok\ntest macos::root_owned_sticky_tmp_requires_private_immediate_child ... ok\ntest macos::trust_file_requires_private_owner_file_parent_and_safe_ancestors ... ok\n\ntest result: ok. 16 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.30s\n\n"
+    },
+    {
+      "iteration": 3,
+      "exit_code": 0,
+      "seconds": 0.403,
+      "output": "\nrunning 16 tests\ntest macos::a_busy_open_does_not_discard_another_imports_staging ... ok\ntest macos::active_deletion_during_lease_is_not_a_new_store ... ok\ntest macos::bounded_input_acquisition_rejects_untrusted_names_and_types ... ok\ntest macos::complete_bytes_replace_atomically_and_survive_reopen ... ok\ntest macos::concurrent_open_is_nonblocking_and_lock_releases_on_drop ... ok\ntest macos::exact_limit_roundtrips_and_oversized_state_is_not_overwritten ... ok\ntest macos::floor_is_independent_bounded_durable_and_never_promoted_from_staging ... ok\ntest macos::floor_record_and_staging_reject_links_and_oversized_bytes ... ok\ntest macos::interrupted_staging_is_discarded_without_promotion_or_fallback ... ok\ntest macos::links_and_special_files_at_every_fixed_name_are_rejected ... ok\ntest macos::model_input_has_separate_bound_without_expanding_catalog_authority ... ok\ntest macos::moved_root_and_replaced_lock_fail_closed ... ok\ntest macos::private_optional_reader_does_not_lock_or_clean_staging ... ok\ntest macos::root_and_store_files_require_private_permissions ... ok\ntest macos::root_owned_sticky_tmp_requires_private_immediate_child ... ok\ntest macos::trust_file_requires_private_owner_file_parent_and_safe_ancestors ... ok\n\ntest result: ok. 16 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.39s\n\n"
+    },
+    {
+      "iteration": 4,
+      "exit_code": 0,
+      "seconds": 0.331,
+      "output": "\nrunning 16 tests\ntest macos::a_busy_open_does_not_discard_another_imports_staging ... ok\ntest macos::active_deletion_during_lease_is_not_a_new_store ... ok\ntest macos::bounded_input_acquisition_rejects_untrusted_names_and_types ... ok\ntest macos::complete_bytes_replace_atomically_and_survive_reopen ... ok\ntest macos::concurrent_open_is_nonblocking_and_lock_releases_on_drop ... ok\ntest macos::exact_limit_roundtrips_and_oversized_state_is_not_overwritten ... ok\ntest macos::floor_is_independent_bounded_durable_and_never_promoted_from_staging ... ok\ntest macos::floor_record_and_staging_reject_links_and_oversized_bytes ... ok\ntest macos::interrupted_staging_is_discarded_without_promotion_or_fallback ... ok\ntest macos::links_and_special_files_at_every_fixed_name_are_rejected ... ok\ntest macos::model_input_has_separate_bound_without_expanding_catalog_authority ... ok\ntest macos::moved_root_and_replaced_lock_fail_closed ... ok\ntest macos::private_optional_reader_does_not_lock_or_clean_staging ... ok\ntest macos::root_and_store_files_require_private_permissions ... ok\ntest macos::root_owned_sticky_tmp_requires_private_immediate_child ... ok\ntest macos::trust_file_requires_private_owner_file_parent_and_safe_ancestors ... ok\n\ntest result: ok. 16 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.32s\n\n"
+    },
+    {
+      "iteration": 5,
+      "exit_code": 0,
+      "seconds": 0.322,
+      "output": "\nrunning 16 tests\ntest macos::a_busy_open_does_not_discard_another_imports_staging ... ok\ntest macos::active_deletion_during_lease_is_not_a_new_store ... ok\ntest macos::bounded_input_acquisition_rejects_untrusted_names_and_types ... ok\ntest macos::complete_bytes_replace_atomically_and_survive_reopen ... ok\ntest macos::concurrent_open_is_nonblocking_and_lock_releases_on_drop ... ok\ntest macos::exact_limit_roundtrips_and_oversized_state_is_not_overwritten ... ok\ntest macos::floor_is_independent_bounded_durable_and_never_promoted_from_staging ... ok\ntest macos::floor_record_and_staging_reject_links_and_oversized_bytes ... ok\ntest macos::interrupted_staging_is_discarded_without_promotion_or_fallback ... ok\ntest macos::links_and_special_files_at_every_fixed_name_are_rejected ... ok\ntest macos::model_input_has_separate_bound_without_expanding_catalog_authority ... ok\ntest macos::moved_root_and_replaced_lock_fail_closed ... ok\ntest macos::private_optional_reader_does_not_lock_or_clean_staging ... ok\ntest macos::root_and_store_files_require_private_permissions ... ok\ntest macos::root_owned_sticky_tmp_requires_private_immediate_child ... ok\ntest macos::trust_file_requires_private_owner_file_parent_and_safe_ancestors ... ok\n\ntest result: ok. 16 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.31s\n\n"
+    },
+    {
+      "iteration": 6,
+      "exit_code": 0,
+      "seconds": 0.328,
+      "output": "\nrunning 16 tests\ntest macos::a_busy_open_does_not_discard_another_imports_staging ... ok\ntest macos::active_deletion_during_lease_is_not_a_new_store ... ok\ntest macos::bounded_input_acquisition_rejects_untrusted_names_and_types ... ok\ntest macos::complete_bytes_replace_atomically_and_survive_reopen ... ok\ntest macos::concurrent_open_is_nonblocking_and_lock_releases_on_drop ... ok\ntest macos::exact_limit_roundtrips_and_oversized_state_is_not_overwritten ... ok\ntest macos::floor_is_independent_bounded_durable_and_never_promoted_from_staging ... ok\ntest macos::floor_record_and_staging_reject_links_and_oversized_bytes ... ok\ntest macos::interrupted_staging_is_discarded_without_promotion_or_fallback ... ok\ntest macos::links_and_special_files_at_every_fixed_name_are_rejected ... ok\ntest macos::model_input_has_separate_bound_without_expanding_catalog_authority ... ok\ntest macos::moved_root_and_replaced_lock_fail_closed ... ok\ntest macos::private_optional_reader_does_not_lock_or_clean_staging ... ok\ntest macos::root_and_store_files_require_private_permissions ... ok\ntest macos::root_owned_sticky_tmp_requires_private_immediate_child ... ok\ntest macos::trust_file_requires_private_owner_file_parent_and_safe_ancestors ... ok\n\ntest result: ok. 16 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.32s\n\n"
+    },
+    {
+      "iteration": 7,
+      "exit_code": 0,
+      "seconds": 0.315,
+      "output": "\nrunning 16 tests\ntest macos::a_busy_open_does_not_discard_another_imports_staging ... ok\ntest macos::active_deletion_during_lease_is_not_a_new_store ... ok\ntest macos::bounded_input_acquisition_rejects_untrusted_names_and_types ... ok\ntest macos::complete_bytes_replace_atomically_and_survive_reopen ... ok\ntest macos::concurrent_open_is_nonblocking_and_lock_releases_on_drop ... ok\ntest macos::exact_limit_roundtrips_and_oversized_state_is_not_overwritten ... ok\ntest macos::floor_is_independent_bounded_durable_and_never_promoted_from_staging ... ok\ntest macos::floor_record_and_staging_reject_links_and_oversized_bytes ... ok\ntest macos::interrupted_staging_is_discarded_without_promotion_or_fallback ... ok\ntest macos::links_and_special_files_at_every_fixed_name_are_rejected ... ok\ntest macos::model_input_has_separate_bound_without_expanding_catalog_authority ... ok\ntest macos::moved_root_and_replaced_lock_fail_closed ... ok\ntest macos::private_optional_reader_does_not_lock_or_clean_staging ... ok\ntest macos::root_and_store_files_require_private_permissions ... ok\ntest macos::root_owned_sticky_tmp_requires_private_immediate_child ... ok\ntest macos::trust_file_requires_private_owner_file_parent_and_safe_ancestors ... ok\n\ntest result: ok. 16 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.31s\n\n"
+    },
+    {
+      "iteration": 8,
+      "exit_code": 0,
+      "seconds": 0.316,
+      "output": "\nrunning 16 tests\ntest macos::a_busy_open_does_not_discard_another_imports_staging ... ok\ntest macos::active_deletion_during_lease_is_not_a_new_store ... ok\ntest macos::complete_bytes_replace_atomically_and_survive_reopen ... ok\ntest macos::bounded_input_acquisition_rejects_untrusted_names_and_types ... ok\ntest macos::concurrent_open_is_nonblocking_and_lock_releases_on_drop ... ok\ntest macos::exact_limit_roundtrips_and_oversized_state_is_not_overwritten ... ok\ntest macos::floor_is_independent_bounded_durable_and_never_promoted_from_staging ... ok\ntest macos::floor_record_and_staging_reject_links_and_oversized_bytes ... ok\ntest macos::interrupted_staging_is_discarded_without_promotion_or_fallback ... ok\ntest macos::links_and_special_files_at_every_fixed_name_are_rejected ... ok\ntest macos::model_input_has_separate_bound_without_expanding_catalog_authority ... ok\ntest macos::moved_root_and_replaced_lock_fail_closed ... ok\ntest macos::private_optional_reader_does_not_lock_or_clean_staging ... ok\ntest macos::root_and_store_files_require_private_permissions ... ok\ntest macos::root_owned_sticky_tmp_requires_private_immediate_child ... ok\ntest macos::trust_file_requires_private_owner_file_parent_and_safe_ancestors ... ok\n\ntest result: ok. 16 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.31s\n\n"
+    },
+    {
+      "iteration": 9,
+      "exit_code": 0,
+      "seconds": 0.329,
+      "output": "\nrunning 16 tests\ntest macos::a_busy_open_does_not_discard_another_imports_staging ... ok\ntest macos::active_deletion_during_lease_is_not_a_new_store ... ok\ntest macos::bounded_input_acquisition_rejects_untrusted_names_and_types ... ok\ntest macos::complete_bytes_replace_atomically_and_survive_reopen ... ok\ntest macos::concurrent_open_is_nonblocking_and_lock_releases_on_drop ... ok\ntest macos::exact_limit_roundtrips_and_oversized_state_is_not_overwritten ... ok\ntest macos::floor_is_independent_bounded_durable_and_never_promoted_from_staging ... ok\ntest macos::floor_record_and_staging_reject_links_and_oversized_bytes ... ok\ntest macos::interrupted_staging_is_discarded_without_promotion_or_fallback ... ok\ntest macos::links_and_special_files_at_every_fixed_name_are_rejected ... ok\ntest macos::model_input_has_separate_bound_without_expanding_catalog_authority ... ok\ntest macos::moved_root_and_replaced_lock_fail_closed ... ok\ntest macos::private_optional_reader_does_not_lock_or_clean_staging ... ok\ntest macos::root_and_store_files_require_private_permissions ... ok\ntest macos::root_owned_sticky_tmp_requires_private_immediate_child ... ok\ntest macos::trust_file_requires_private_owner_file_parent_and_safe_ancestors ... ok\n\ntest result: ok. 16 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.32s\n\n"
+    },
+    {
+      "iteration": 10,
+      "exit_code": 0,
+      "seconds": 0.345,
+      "output": "\nrunning 16 tests\ntest macos::a_busy_open_does_not_discard_another_imports_staging ... ok\ntest macos::active_deletion_during_lease_is_not_a_new_store ... ok\ntest macos::bounded_input_acquisition_rejects_untrusted_names_and_types ... ok\ntest macos::complete_bytes_replace_atomically_and_survive_reopen ... ok\ntest macos::concurrent_open_is_nonblocking_and_lock_releases_on_drop ... ok\ntest macos::exact_limit_roundtrips_and_oversized_state_is_not_overwritten ... ok\ntest macos::floor_is_independent_bounded_durable_and_never_promoted_from_staging ... ok\ntest macos::floor_record_and_staging_reject_links_and_oversized_bytes ... ok\ntest macos::interrupted_staging_is_discarded_without_promotion_or_fallback ... ok\ntest macos::links_and_special_files_at_every_fixed_name_are_rejected ... ok\ntest macos::model_input_has_separate_bound_without_expanding_catalog_authority ... ok\ntest macos::moved_root_and_replaced_lock_fail_closed ... ok\ntest macos::private_optional_reader_does_not_lock_or_clean_staging ... ok\ntest macos::root_and_store_files_require_private_permissions ... ok\ntest macos::root_owned_sticky_tmp_requires_private_immediate_child ... ok\ntest macos::trust_file_requires_private_owner_file_parent_and_safe_ancestors ... ok\n\ntest result: ok. 16 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.34s\n\n"
+    },
+    {
+      "iteration": 11,
+      "exit_code": 0,
+      "seconds": 0.317,
+      "output": "\nrunning 16 tests\ntest macos::a_busy_open_does_not_discard_another_imports_staging ... ok\ntest macos::active_deletion_during_lease_is_not_a_new_store ... ok\ntest macos::complete_bytes_replace_atomically_and_survive_reopen ... ok\ntest macos::bounded_input_acquisition_rejects_untrusted_names_and_types ... ok\ntest macos::concurrent_open_is_nonblocking_and_lock_releases_on_drop ... ok\ntest macos::exact_limit_roundtrips_and_oversized_state_is_not_overwritten ... ok\ntest macos::floor_is_independent_bounded_durable_and_never_promoted_from_staging ... ok\ntest macos::floor_record_and_staging_reject_links_and_oversized_bytes ... ok\ntest macos::interrupted_staging_is_discarded_without_promotion_or_fallback ... ok\ntest macos::links_and_special_files_at_every_fixed_name_are_rejected ... ok\ntest macos::model_input_has_separate_bound_without_expanding_catalog_authority ... ok\ntest macos::moved_root_and_replaced_lock_fail_closed ... ok\ntest macos::private_optional_reader_does_not_lock_or_clean_staging ... ok\ntest macos::root_and_store_files_require_private_permissions ... ok\ntest macos::root_owned_sticky_tmp_requires_private_immediate_child ... ok\ntest macos::trust_file_requires_private_owner_file_parent_and_safe_ancestors ... ok\n\ntest result: ok. 16 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.31s\n\n"
+    },
+    {
+      "iteration": 12,
+      "exit_code": 0,
+      "seconds": 0.324,
+      "output": "\nrunning 16 tests\ntest macos::a_busy_open_does_not_discard_another_imports_staging ... ok\ntest macos::active_deletion_during_lease_is_not_a_new_store ... ok\ntest macos::complete_bytes_replace_atomically_and_survive_reopen ... ok\ntest macos::bounded_input_acquisition_rejects_untrusted_names_and_types ... ok\ntest macos::concurrent_open_is_nonblocking_and_lock_releases_on_drop ... ok\ntest macos::exact_limit_roundtrips_and_oversized_state_is_not_overwritten ... ok\ntest macos::floor_is_independent_bounded_durable_and_never_promoted_from_staging ... ok\ntest macos::floor_record_and_staging_reject_links_and_oversized_bytes ... ok\ntest macos::interrupted_staging_is_discarded_without_promotion_or_fallback ... ok\ntest macos::links_and_special_files_at_every_fixed_name_are_rejected ... ok\ntest macos::model_input_has_separate_bound_without_expanding_catalog_authority ... ok\ntest macos::moved_root_and_replaced_lock_fail_closed ... ok\ntest macos::private_optional_reader_does_not_lock_or_clean_staging ... ok\ntest macos::root_and_store_files_require_private_permissions ... ok\ntest macos::root_owned_sticky_tmp_requires_private_immediate_child ... ok\ntest macos::trust_file_requires_private_owner_file_parent_and_safe_ancestors ... ok\n\ntest result: ok. 16 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.32s\n\n"
+    },
+    {
+      "iteration": 13,
+      "exit_code": 0,
+      "seconds": 0.321,
+      "output": "\nrunning 16 tests\ntest macos::a_busy_open_does_not_discard_another_imports_staging ... ok\ntest macos::active_deletion_during_lease_is_not_a_new_store ... ok\ntest macos::complete_bytes_replace_atomically_and_survive_reopen ... ok\ntest macos::bounded_input_acquisition_rejects_untrusted_names_and_types ... ok\ntest macos::concurrent_open_is_nonblocking_and_lock_releases_on_drop ... ok\ntest macos::exact_limit_roundtrips_and_oversized_state_is_not_overwritten ... ok\ntest macos::floor_is_independent_bounded_durable_and_never_promoted_from_staging ... ok\ntest macos::floor_record_and_staging_reject_links_and_oversized_bytes ... ok\ntest macos::interrupted_staging_is_discarded_without_promotion_or_fallback ... ok\ntest macos::links_and_special_files_at_every_fixed_name_are_rejected ... ok\ntest macos::model_input_has_separate_bound_without_expanding_catalog_authority ... ok\ntest macos::moved_root_and_replaced_lock_fail_closed ... ok\ntest macos::private_optional_reader_does_not_lock_or_clean_staging ... ok\ntest macos::root_and_store_files_require_private_permissions ... ok\ntest macos::root_owned_sticky_tmp_requires_private_immediate_child ... ok\ntest macos::trust_file_requires_private_owner_file_parent_and_safe_ancestors ... ok\n\ntest result: ok. 16 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.31s\n\n"
+    },
+    {
+      "iteration": 14,
+      "exit_code": 0,
+      "seconds": 0.331,
+      "output": "\nrunning 16 tests\ntest macos::active_deletion_during_lease_is_not_a_new_store ... ok\ntest macos::a_busy_open_does_not_discard_another_imports_staging ... ok\ntest macos::bounded_input_acquisition_rejects_untrusted_names_and_types ... ok\ntest macos::complete_bytes_replace_atomically_and_survive_reopen ... ok\ntest macos::concurrent_open_is_nonblocking_and_lock_releases_on_drop ... ok\ntest macos::exact_limit_roundtrips_and_oversized_state_is_not_overwritten ... ok\ntest macos::floor_is_independent_bounded_durable_and_never_promoted_from_staging ... ok\ntest macos::floor_record_and_staging_reject_links_and_oversized_bytes ... ok\ntest macos::interrupted_staging_is_discarded_without_promotion_or_fallback ... ok\ntest macos::links_and_special_files_at_every_fixed_name_are_rejected ... ok\ntest macos::model_input_has_separate_bound_without_expanding_catalog_authority ... ok\ntest macos::moved_root_and_replaced_lock_fail_closed ... ok\ntest macos::private_optional_reader_does_not_lock_or_clean_staging ... ok\ntest macos::root_and_store_files_require_private_permissions ... ok\ntest macos::root_owned_sticky_tmp_requires_private_immediate_child ... ok\ntest macos::trust_file_requires_private_owner_file_parent_and_safe_ancestors ... ok\n\ntest result: ok. 16 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.32s\n\n"
+    },
+    {
+      "iteration": 15,
+      "exit_code": 0,
+      "seconds": 0.357,
+      "output": "\nrunning 16 tests\ntest macos::a_busy_open_does_not_discard_another_imports_staging ... ok\ntest macos::active_deletion_during_lease_is_not_a_new_store ... ok\ntest macos::complete_bytes_replace_atomically_and_survive_reopen ... ok\ntest macos::bounded_input_acquisition_rejects_untrusted_names_and_types ... ok\ntest macos::concurrent_open_is_nonblocking_and_lock_releases_on_drop ... ok\ntest macos::exact_limit_roundtrips_and_oversized_state_is_not_overwritten ... ok\ntest macos::floor_is_independent_bounded_durable_and_never_promoted_from_staging ... ok\ntest macos::floor_record_and_staging_reject_links_and_oversized_bytes ... ok\ntest macos::interrupted_staging_is_discarded_without_promotion_or_fallback ... ok\ntest macos::links_and_special_files_at_every_fixed_name_are_rejected ... ok\ntest macos::model_input_has_separate_bound_without_expanding_catalog_authority ... ok\ntest macos::moved_root_and_replaced_lock_fail_closed ... ok\ntest macos::private_optional_reader_does_not_lock_or_clean_staging ... ok\ntest macos::root_and_store_files_require_private_permissions ... ok\ntest macos::root_owned_sticky_tmp_requires_private_immediate_child ... ok\ntest macos::trust_file_requires_private_owner_file_parent_and_safe_ancestors ... ok\n\ntest result: ok. 16 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.35s\n\n"
+    },
+    {
+      "iteration": 16,
+      "exit_code": 0,
+      "seconds": 0.328,
+      "output": "\nrunning 16 tests\ntest macos::active_deletion_during_lease_is_not_a_new_store ... ok\ntest macos::a_busy_open_does_not_discard_another_imports_staging ... ok\ntest macos::complete_bytes_replace_atomically_and_survive_reopen ... ok\ntest macos::bounded_input_acquisition_rejects_untrusted_names_and_types ... ok\ntest macos::concurrent_open_is_nonblocking_and_lock_releases_on_drop ... ok\ntest macos::exact_limit_roundtrips_and_oversized_state_is_not_overwritten ... ok\ntest macos::floor_is_independent_bounded_durable_and_never_promoted_from_staging ... ok\ntest macos::floor_record_and_staging_reject_links_and_oversized_bytes ... ok\ntest macos::interrupted_staging_is_discarded_without_promotion_or_fallback ... ok\ntest macos::links_and_special_files_at_every_fixed_name_are_rejected ... ok\ntest macos::model_input_has_separate_bound_without_expanding_catalog_authority ... ok\ntest macos::moved_root_and_replaced_lock_fail_closed ... ok\ntest macos::private_optional_reader_does_not_lock_or_clean_staging ... ok\ntest macos::root_and_store_files_require_private_permissions ... ok\ntest macos::root_owned_sticky_tmp_requires_private_immediate_child ... ok\ntest macos::trust_file_requires_private_owner_file_parent_and_safe_ancestors ... ok\n\ntest result: ok. 16 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.32s\n\n"
+    },
+    {
+      "iteration": 17,
+      "exit_code": 0,
+      "seconds": 0.34,
+      "output": "\nrunning 16 tests\ntest macos::a_busy_open_does_not_discard_another_imports_staging ... ok\ntest macos::active_deletion_during_lease_is_not_a_new_store ... ok\ntest macos::complete_bytes_replace_atomically_and_survive_reopen ... ok\ntest macos::bounded_input_acquisition_rejects_untrusted_names_and_types ... ok\ntest macos::concurrent_open_is_nonblocking_and_lock_releases_on_drop ... ok\ntest macos::exact_limit_roundtrips_and_oversized_state_is_not_overwritten ... ok\ntest macos::floor_is_independent_bounded_durable_and_never_promoted_from_staging ... ok\ntest macos::floor_record_and_staging_reject_links_and_oversized_bytes ... ok\ntest macos::interrupted_staging_is_discarded_without_promotion_or_fallback ... ok\ntest macos::links_and_special_files_at_every_fixed_name_are_rejected ... ok\ntest macos::model_input_has_separate_bound_without_expanding_catalog_authority ... ok\ntest macos::moved_root_and_replaced_lock_fail_closed ... ok\ntest macos::private_optional_reader_does_not_lock_or_clean_staging ... ok\ntest macos::root_and_store_files_require_private_permissions ... ok\ntest macos::root_owned_sticky_tmp_requires_private_immediate_child ... ok\ntest macos::trust_file_requires_private_owner_file_parent_and_safe_ancestors ... ok\n\ntest result: ok. 16 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.33s\n\n"
+    },
+    {
+      "iteration": 18,
+      "exit_code": 0,
+      "seconds": 0.352,
+      "output": "\nrunning 16 tests\ntest macos::active_deletion_during_lease_is_not_a_new_store ... ok\ntest macos::a_busy_open_does_not_discard_another_imports_staging ... ok\ntest macos::bounded_input_acquisition_rejects_untrusted_names_and_types ... ok\ntest macos::complete_bytes_replace_atomically_and_survive_reopen ... ok\ntest macos::concurrent_open_is_nonblocking_and_lock_releases_on_drop ... ok\ntest macos::exact_limit_roundtrips_and_oversized_state_is_not_overwritten ... ok\ntest macos::floor_is_independent_bounded_durable_and_never_promoted_from_staging ... ok\ntest macos::floor_record_and_staging_reject_links_and_oversized_bytes ... ok\ntest macos::interrupted_staging_is_discarded_without_promotion_or_fallback ... ok\ntest macos::links_and_special_files_at_every_fixed_name_are_rejected ... ok\ntest macos::model_input_has_separate_bound_without_expanding_catalog_authority ... ok\ntest macos::moved_root_and_replaced_lock_fail_closed ... ok\ntest macos::private_optional_reader_does_not_lock_or_clean_staging ... ok\ntest macos::root_and_store_files_require_private_permissions ... ok\ntest macos::root_owned_sticky_tmp_requires_private_immediate_child ... ok\ntest macos::trust_file_requires_private_owner_file_parent_and_safe_ancestors ... ok\n\ntest result: ok. 16 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.34s\n\n"
+    },
+    {
+      "iteration": 19,
+      "exit_code": 0,
+      "seconds": 0.346,
+      "output": "\nrunning 16 tests\ntest macos::a_busy_open_does_not_discard_another_imports_staging ... ok\ntest macos::active_deletion_during_lease_is_not_a_new_store ... ok\ntest macos::complete_bytes_replace_atomically_and_survive_reopen ... ok\ntest macos::bounded_input_acquisition_rejects_untrusted_names_and_types ... ok\ntest macos::concurrent_open_is_nonblocking_and_lock_releases_on_drop ... ok\ntest macos::exact_limit_roundtrips_and_oversized_state_is_not_overwritten ... ok\ntest macos::floor_is_independent_bounded_durable_and_never_promoted_from_staging ... ok\ntest macos::floor_record_and_staging_reject_links_and_oversized_bytes ... ok\ntest macos::interrupted_staging_is_discarded_without_promotion_or_fallback ... ok\ntest macos::links_and_special_files_at_every_fixed_name_are_rejected ... ok\ntest macos::model_input_has_separate_bound_without_expanding_catalog_authority ... ok\ntest macos::moved_root_and_replaced_lock_fail_closed ... ok\ntest macos::private_optional_reader_does_not_lock_or_clean_staging ... ok\ntest macos::root_and_store_files_require_private_permissions ... ok\ntest macos::root_owned_sticky_tmp_requires_private_immediate_child ... ok\ntest macos::trust_file_requires_private_owner_file_parent_and_safe_ancestors ... ok\n\ntest result: ok. 16 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.34s\n\n"
+    },
+    {
+      "iteration": 20,
+      "exit_code": 0,
+      "seconds": 0.332,
+      "output": "\nrunning 16 tests\ntest macos::a_busy_open_does_not_discard_another_imports_staging ... ok\ntest macos::active_deletion_during_lease_is_not_a_new_store ... ok\ntest macos::complete_bytes_replace_atomically_and_survive_reopen ... ok\ntest macos::bounded_input_acquisition_rejects_untrusted_names_and_types ... ok\ntest macos::concurrent_open_is_nonblocking_and_lock_releases_on_drop ... ok\ntest macos::exact_limit_roundtrips_and_oversized_state_is_not_overwritten ... ok\ntest macos::floor_is_independent_bounded_durable_and_never_promoted_from_staging ... ok\ntest macos::floor_record_and_staging_reject_links_and_oversized_bytes ... ok\ntest macos::interrupted_staging_is_discarded_without_promotion_or_fallback ... ok\ntest macos::links_and_special_files_at_every_fixed_name_are_rejected ... ok\ntest macos::model_input_has_separate_bound_without_expanding_catalog_authority ... ok\ntest macos::moved_root_and_replaced_lock_fail_closed ... ok\ntest macos::private_optional_reader_does_not_lock_or_clean_staging ... ok\ntest macos::root_and_store_files_require_private_permissions ... ok\ntest macos::root_owned_sticky_tmp_requires_private_immediate_child ... ok\ntest macos::trust_file_requires_private_owner_file_parent_and_safe_ancestors ... ok\n\ntest result: ok. 16 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.32s\n\n"
+    }
+  ],
+  "change": "Serialize independent fixture cases around external mkfifo. Explicit concurrency assertions remain unchanged. Temporary fork/exec descriptor inheritance is the inferred cause, not established by a kernel trace. No production change, new dependency, unsafe code, retry, or weakened assertion.",
+  "test_source_sha256": "601e6cfe06e7537f654ef33c212db83bc1e6c7b44fef82ba56aec3611a0b4d56",
+  "production_sha256": "9dd602706a909d3f4bea5183a730d5b0147b07d3e64f5a14a375daa0f0a36d87"
+}

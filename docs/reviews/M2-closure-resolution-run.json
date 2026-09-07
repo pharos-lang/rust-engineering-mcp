@@ -1,0 +1,21 @@
+{
+  "command": [
+    "claude",
+    "--print",
+    "--model",
+    "claude-opus-5",
+    "--effort",
+    "high",
+    "--safe-mode",
+    "--tools",
+    "",
+    "--strict-mcp-config",
+    "--mcp-config",
+    "{\"mcpServers\":{}}",
+    "--output-format",
+    "json",
+    "--no-session-persistence"
+  ],
+  "exit_code": 0,
+  "finished_at": "2026-09-05T22:15:32.945176+00:00"
+}

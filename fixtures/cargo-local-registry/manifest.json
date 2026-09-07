@@ -1,0 +1,93 @@
+{
+  "cargo_commit": "797e8a9bca276c1c9f9f738d2a20f484fa4eea9d",
+  "cargo_version": "1.98.1",
+  "files": [
+    {
+      "bytes": 968,
+      "path": "index/pr/oc/proc-macro2",
+      "sha256": "8a59650e19a615bee5ce7c0e9aab30f6b6aa3c3d86fbb88cde865fde9458480f"
+    },
+    {
+      "bytes": 633,
+      "path": "index/qu/ot/quote",
+      "sha256": "fcb27cbd471a5bcb4766aac9ea557e5c7358802de8ba4652d46cee7d653f09e8"
+    },
+    {
+      "bytes": 911,
+      "path": "index/un/ic/unicode-ident",
+      "sha256": "67bb72b705bf0767a197ec29c28d0d20697b9da6ac0bdf1c969cf5f59234fa90"
+    },
+    {
+      "bytes": 59588,
+      "path": "proc-macro2-1.0.107.crate",
+      "sha256": "985e7ec9bb745e6ce6535b544d84d6cd6f7ad8bd711c398938ae983b91a766d9"
+    },
+    {
+      "bytes": 31622,
+      "path": "quote-1.0.47.crate",
+      "sha256": "1fbf4db142a473a8d80c26bbf18454ed458bf8d26c8219c331daecfdbd079001"
+    },
+    {
+      "bytes": 49298,
+      "path": "unicode-ident-1.0.24.crate",
+      "sha256": "e6e4313cd5fcd3dad5cafa179702e2b244f760991f45397d14d4ebf38247da75"
+    }
+  ],
+  "format_version": 1,
+  "index_commit": "3fae660f226d6b05eadcea9fb3512ecddaa33b67",
+  "index_config_present": false,
+  "index_repository": "https://github.com/rust-lang/crates.io-index",
+  "limitations": [
+    "Fixture proves only the listed versions and their tested closure.",
+    "Cargo checksum consistency is not publisher authentication or a live-registry claim."
+  ],
+  "packages": [
+    {
+      "cargo_lock_checksum": "e6e4313cd5fcd3dad5cafa179702e2b244f760991f45397d14d4ebf38247da75",
+      "crate_bytes": 49298,
+      "crate_path": "registry/unicode-ident-1.0.24.crate",
+      "crate_sha256": "e6e4313cd5fcd3dad5cafa179702e2b244f760991f45397d14d4ebf38247da75",
+      "declared_license": "(MIT OR Apache-2.0) AND Unicode-3.0",
+      "index_path": "registry/index/un/ic/unicode-ident",
+      "index_row_bytes": 911,
+      "index_row_sha256": "67bb72b705bf0767a197ec29c28d0d20697b9da6ac0bdf1c969cf5f59234fa90",
+      "name": "unicode-ident",
+      "source": "registry+https://github.com/rust-lang/crates.io-index",
+      "version": "1.0.24"
+    },
+    {
+      "cargo_lock_checksum": "985e7ec9bb745e6ce6535b544d84d6cd6f7ad8bd711c398938ae983b91a766d9",
+      "crate_bytes": 59588,
+      "crate_path": "registry/proc-macro2-1.0.107.crate",
+      "crate_sha256": "985e7ec9bb745e6ce6535b544d84d6cd6f7ad8bd711c398938ae983b91a766d9",
+      "declared_license": "MIT OR Apache-2.0",
+      "index_path": "registry/index/pr/oc/proc-macro2",
+      "index_row_bytes": 968,
+      "index_row_sha256": "8a59650e19a615bee5ce7c0e9aab30f6b6aa3c3d86fbb88cde865fde9458480f",
+      "name": "proc-macro2",
+      "source": "registry+https://github.com/rust-lang/crates.io-index",
+      "version": "1.0.107"
+    },
+    {
+      "cargo_lock_checksum": "1fbf4db142a473a8d80c26bbf18454ed458bf8d26c8219c331daecfdbd079001",
+      "crate_bytes": 31622,
+      "crate_path": "registry/quote-1.0.47.crate",
+      "crate_sha256": "1fbf4db142a473a8d80c26bbf18454ed458bf8d26c8219c331daecfdbd079001",
+      "declared_license": "MIT OR Apache-2.0",
+      "index_path": "registry/index/qu/ot/quote",
+      "index_row_bytes": 633,
+      "index_row_sha256": "fcb27cbd471a5bcb4766aac9ea557e5c7358802de8ba4652d46cee7d653f09e8",
+      "name": "quote",
+      "source": "registry+https://github.com/rust-lang/crates.io-index",
+      "version": "1.0.47"
+    }
+  ],
+  "provenance": {
+    "crate_artifacts": "Original crates.io .crate bytes already present in the local Cargo cache, selected only when SHA-256 matched the current repository Cargo.lock. Runtime must never inherit this cache.",
+    "index_rows": "Exact version rows fetched from the official rust-lang/crates.io-index repository at index_commit.",
+    "license_basis": "Declared package license recorded from each packaged normalized Cargo.toml; artifacts contain their upstream license files."
+  },
+  "purpose": "M2 D05 fixture qualification only; not a production Cargo registry snapshot",
+  "registry_source": "registry+https://github.com/rust-lang/crates.io-index",
+  "registry_tree_fingerprint": "sha256:1165e096813a84ae3989d84417031dee78fdffba3c4937c697c830c7500abbed"
+}

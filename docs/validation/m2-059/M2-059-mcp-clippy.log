@@ -1,0 +1,8 @@
+    Checking rust-engineering-application v0.2.0-dev (/Users/cburgosro/Projects/rust-mcp/crates/application)
+    Checking rust-engineering-semantic v0.2.0-dev (/Users/cburgosro/Projects/rust-mcp/crates/semantic-adapter)
+    Checking rust-engineering-catalog v0.2.0-dev (/Users/cburgosro/Projects/rust-mcp/crates/catalog-adapter)
+    Checking rust-engineering-artifact v0.2.0-dev (/Users/cburgosro/Projects/rust-mcp/crates/artifact-adapter)
+    Checking rust-engineering-execution v0.2.0-dev (/Users/cburgosro/Projects/rust-mcp/crates/execution-adapter)
+    Checking rust-engineering-project v0.2.0-dev (/Users/cburgosro/Projects/rust-mcp/crates/project-adapter)
+    Checking rust-engineering-mcp v0.2.0-dev (/Users/cburgosro/Projects/rust-mcp/crates/mcp-server)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 4.45s

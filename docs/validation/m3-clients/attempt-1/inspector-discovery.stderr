@@ -1,0 +1,836 @@
+Warning: tool "rust.project.inspect"
+  Path: outputSchema.$defs.DeclaredProfile.properties.inherits
+  Issue: `type` is an array (["string","null"]). The array form is legal JSON Schema, but several MCP clients read `type` as a single string and either reject the tool or drop the constraint.
+  Suggestion: Split it into `anyOf` branches, each with a single `type` — `{"anyOf": [{"type": "string"}, {"type": "null"}]}`. (Making the property optional instead is a different contract: absent is not the same as `null`.)
+
+Warning: tool "rust.project.inspect"
+  Path: outputSchema.$defs.DependencyOrigin.properties.relative_path
+  Issue: `type` is an array (["string","null"]). The array form is legal JSON Schema, but several MCP clients read `type` as a single string and either reject the tool or drop the constraint.
+  Suggestion: Split it into `anyOf` branches, each with a single `type` — `{"anyOf": [{"type": "string"}, {"type": "null"}]}`. (Making the property optional instead is a different contract: absent is not the same as `null`.)
+
+Warning: tool "rust.project.inspect"
+  Path: outputSchema.$defs.DirectDependency.properties.rename
+  Issue: `type` is an array (["string","null"]). The array form is legal JSON Schema, but several MCP clients read `type` as a single string and either reject the tool or drop the constraint.
+  Suggestion: Split it into `anyOf` branches, each with a single `type` — `{"anyOf": [{"type": "string"}, {"type": "null"}]}`. (Making the property optional instead is a different contract: absent is not the same as `null`.)
+
+Warning: tool "rust.project.inspect"
+  Path: outputSchema.$defs.DirectDependency.properties.target_condition
+  Issue: `type` is an array (["string","null"]). The array form is legal JSON Schema, but several MCP clients read `type` as a single string and either reject the tool or drop the constraint.
+  Suggestion: Split it into `anyOf` branches, each with a single `type` — `{"anyOf": [{"type": "string"}, {"type": "null"}]}`. (Making the property optional instead is a different contract: absent is not the same as `null`.)
+
+Warning: tool "rust.project.inspect"
+  Path: outputSchema.$defs.Freshness.properties.age_seconds
+  Issue: `type` is an array (["integer","null"]). The array form is legal JSON Schema, but several MCP clients read `type` as a single string and either reject the tool or drop the constraint.
+  Suggestion: Split it into `anyOf` branches, each with a single `type` — `{"anyOf": [{"type": "integer"}, {"type": "null"}]}`. (Making the property optional instead is a different contract: absent is not the same as `null`.)
+
+Warning: tool "rust.project.inspect"
+  Path: outputSchema.$defs.ProjectPackage.properties.rust_version
+  Issue: `type` is an array (["string","null"]). The array form is legal JSON Schema, but several MCP clients read `type` as a single string and either reject the tool or drop the constraint.
+  Suggestion: Split it into `anyOf` branches, each with a single `type` — `{"anyOf": [{"type": "string"}, {"type": "null"}]}`. (Making the property optional instead is a different contract: absent is not the same as `null`.)
+
+Warning: tool "rust.project.inspect"
+  Path: outputSchema.$defs.Provenance.properties.created_at
+  Issue: `type` is an array (["integer","null"]). The array form is legal JSON Schema, but several MCP clients read `type` as a single string and either reject the tool or drop the constraint.
+  Suggestion: Split it into `anyOf` branches, each with a single `type` — `{"anyOf": [{"type": "integer"}, {"type": "null"}]}`. (Making the property optional instead is a different contract: absent is not the same as `null`.)
+
+Warning: tool "rust.project.inspect"
+  Path: outputSchema.$defs.Provenance.properties.observed_at
+  Issue: `type` is an array (["integer","null"]). The array form is legal JSON Schema, but several MCP clients read `type` as a single string and either reject the tool or drop the constraint.
+  Suggestion: Split it into `anyOf` branches, each with a single `type` — `{"anyOf": [{"type": "integer"}, {"type": "null"}]}`. (Making the property optional instead is a different contract: absent is not the same as `null`.)
+
+Warning: tool "rust.project.inspect"
+  Path: outputSchema.$defs.RuntimeIdentity.properties.declared_toolchain
+  Issue: `type` is an array (["string","null"]). The array form is legal JSON Schema, but several MCP clients read `type` as a single string and either reject the tool or drop the constraint.
+  Suggestion: Split it into `anyOf` branches, each with a single `type` — `{"anyOf": [{"type": "string"}, {"type": "null"}]}`. (Making the property optional instead is a different contract: absent is not the same as `null`.)
+
+Warning: tool "rust.toolchain.inspect"
+  Path: outputSchema.$defs.Freshness.properties.age_seconds
+  Issue: `type` is an array (["integer","null"]). The array form is legal JSON Schema, but several MCP clients read `type` as a single string and either reject the tool or drop the constraint.
+  Suggestion: Split it into `anyOf` branches, each with a single `type` — `{"anyOf": [{"type": "integer"}, {"type": "null"}]}`. (Making the property optional instead is a different contract: absent is not the same as `null`.)
+
+Warning: tool "rust.toolchain.inspect"
+  Path: outputSchema.$defs.Provenance.properties.created_at
+  Issue: `type` is an array (["integer","null"]). The array form is legal JSON Schema, but several MCP clients read `type` as a single string and either reject the tool or drop the constraint.
+  Suggestion: Split it into `anyOf` branches, each with a single `type` — `{"anyOf": [{"type": "integer"}, {"type": "null"}]}`. (Making the property optional instead is a different contract: absent is not the same as `null`.)
+
+Warning: tool "rust.toolchain.inspect"
+  Path: outputSchema.$defs.Provenance.properties.observed_at
+  Issue: `type` is an array (["integer","null"]). The array form is legal JSON Schema, but several MCP clients read `type` as a single string and either reject the tool or drop the constraint.
+  Suggestion: Split it into `anyOf` branches, each with a single `type` — `{"anyOf": [{"type": "integer"}, {"type": "null"}]}`. (Making the property optional instead is a different contract: absent is not the same as `null`.)
+
+Warning: tool "rust.toolchain.inspect"
+  Path: outputSchema.$defs.ToolchainObservation.properties.declared_toolchain
+  Issue: `type` is an array (["string","null"]). The array form is legal JSON Schema, but several MCP clients read `type` as a single string and either reject the tool or drop the constraint.
+  Suggestion: Split it into `anyOf` branches, each with a single `type` — `{"anyOf": [{"type": "string"}, {"type": "null"}]}`. (Making the property optional instead is a different contract: absent is not the same as `null`.)
+
+Warning: tool "rust.check"
+  Path: inputSchema.properties.package
+  Issue: `type` is an array (["string","null"]). The array form is legal JSON Schema, but several MCP clients read `type` as a single string and either reject the tool or drop the constraint.
+  Suggestion: Split it into `anyOf` branches, each with a single `type` — `{"anyOf": [{"type": "string"}, {"type": "null"}]}`. (Making the property optional instead is a different contract: absent is not the same as `null`.)
+
+Warning: tool "rust.check"
+  Path: inputSchema.properties.target
+  Issue: `type` is an array (["string","null"]). The array form is legal JSON Schema, but several MCP clients read `type` as a single string and either reject the tool or drop the constraint.
+  Suggestion: Split it into `anyOf` branches, each with a single `type` — `{"anyOf": [{"type": "string"}, {"type": "null"}]}`. (Making the property optional instead is a different contract: absent is not the same as `null`.)
+
+Warning: tool "rust.check"
+  Path: outputSchema.$defs.CheckOptions.properties.package
+  Issue: `type` is an array (["string","null"]). The array form is legal JSON Schema, but several MCP clients read `type` as a single string and either reject the tool or drop the constraint.
+  Suggestion: Split it into `anyOf` branches, each with a single `type` — `{"anyOf": [{"type": "string"}, {"type": "null"}]}`. (Making the property optional instead is a different contract: absent is not the same as `null`.)
+
+Warning: tool "rust.check"
+  Path: outputSchema.$defs.CheckOptions.properties.target
+  Issue: `type` is an array (["string","null"]). The array form is legal JSON Schema, but several MCP clients read `type` as a single string and either reject the tool or drop the constraint.
+  Suggestion: Split it into `anyOf` branches, each with a single `type` — `{"anyOf": [{"type": "string"}, {"type": "null"}]}`. (Making the property optional instead is a different contract: absent is not the same as `null`.)
+
+Warning: tool "rust.check"
+  Path: outputSchema.$defs.Data.properties.exit_code
+  Issue: `type` is an array (["integer","null"]). The array form is legal JSON Schema, but several MCP clients read `type` as a single string and either reject the tool or drop the constraint.
+  Suggestion: Split it into `anyOf` branches, each with a single `type` — `{"anyOf": [{"type": "integer"}, {"type": "null"}]}`. (Making the property optional instead is a different contract: absent is not the same as `null`.)
+
+Warning: tool "rust.check"
+  Path: outputSchema.$defs.Diagnostic.properties.code
+  Issue: `type` is an array (["string","null"]). The array form is legal JSON Schema, but several MCP clients read `type` as a single string and either reject the tool or drop the constraint.
+  Suggestion: Split it into `anyOf` branches, each with a single `type` — `{"anyOf": [{"type": "string"}, {"type": "null"}]}`. (Making the property optional instead is a different contract: absent is not the same as `null`.)
+
+Warning: tool "rust.check"
+  Path: outputSchema.$defs.Diagnostic.properties.rendered
+  Issue: `type` is an array (["string","null"]). The array form is legal JSON Schema, but several MCP clients read `type` as a single string and either reject the tool or drop the constraint.
+  Suggestion: Split it into `anyOf` branches, each with a single `type` — `{"anyOf": [{"type": "string"}, {"type": "null"}]}`. (Making the property optional instead is a different contract: absent is not the same as `null`.)
+
+Warning: tool "rust.check"
+  Path: outputSchema.$defs.Freshness.properties.age_seconds
+  Issue: `type` is an array (["integer","null"]). The array form is legal JSON Schema, but several MCP clients read `type` as a single string and either reject the tool or drop the constraint.
+  Suggestion: Split it into `anyOf` branches, each with a single `type` — `{"anyOf": [{"type": "integer"}, {"type": "null"}]}`. (Making the property optional instead is a different contract: absent is not the same as `null`.)
+
+Warning: tool "rust.check"
+  Path: outputSchema.$defs.Provenance.properties.created_at
+  Issue: `type` is an array (["integer","null"]). The array form is legal JSON Schema, but several MCP clients read `type` as a single string and either reject the tool or drop the constraint.
+  Suggestion: Split it into `anyOf` branches, each with a single `type` — `{"anyOf": [{"type": "integer"}, {"type": "null"}]}`. (Making the property optional instead is a different contract: absent is not the same as `null`.)
+
+Warning: tool "rust.check"
+  Path: outputSchema.$defs.Provenance.properties.observed_at
+  Issue: `type` is an array (["integer","null"]). The array form is legal JSON Schema, but several MCP clients read `type` as a single string and either reject the tool or drop the constraint.
+  Suggestion: Split it into `anyOf` branches, each with a single `type` — `{"anyOf": [{"type": "integer"}, {"type": "null"}]}`. (Making the property optional instead is a different contract: absent is not the same as `null`.)
+
+Warning: tool "rust.check"
+  Path: outputSchema.$defs.RuntimeIdentity.properties.declared_toolchain
+  Issue: `type` is an array (["string","null"]). The array form is legal JSON Schema, but several MCP clients read `type` as a single string and either reject the tool or drop the constraint.
+  Suggestion: Split it into `anyOf` branches, each with a single `type` — `{"anyOf": [{"type": "string"}, {"type": "null"}]}`. (Making the property optional instead is a different contract: absent is not the same as `null`.)
+
+Warning: tool "rust.check"
+  Path: outputSchema.$defs.SourceSpan.properties.label
+  Issue: `type` is an array (["string","null"]). The array form is legal JSON Schema, but several MCP clients read `type` as a single string and either reject the tool or drop the constraint.
+  Suggestion: Split it into `anyOf` branches, each with a single `type` — `{"anyOf": [{"type": "string"}, {"type": "null"}]}`. (Making the property optional instead is a different contract: absent is not the same as `null`.)
+
+Warning: tool "rust.fmt.check"
+  Path: outputSchema.$defs.Data.properties.diff
+  Issue: `type` is an array (["string","null"]). The array form is legal JSON Schema, but several MCP clients read `type` as a single string and either reject the tool or drop the constraint.
+  Suggestion: Split it into `anyOf` branches, each with a single `type` — `{"anyOf": [{"type": "string"}, {"type": "null"}]}`. (Making the property optional instead is a different contract: absent is not the same as `null`.)
+
+Warning: tool "rust.fmt.check"
+  Path: outputSchema.$defs.Data.properties.exit_code
+  Issue: `type` is an array (["integer","null"]). The array form is legal JSON Schema, but several MCP clients read `type` as a single string and either reject the tool or drop the constraint.
+  Suggestion: Split it into `anyOf` branches, each with a single `type` — `{"anyOf": [{"type": "integer"}, {"type": "null"}]}`. (Making the property optional instead is a different contract: absent is not the same as `null`.)
+
+Warning: tool "rust.fmt.check"
+  Path: outputSchema.$defs.Diagnostic.properties.code
+  Issue: `type` is an array (["string","null"]). The array form is legal JSON Schema, but several MCP clients read `type` as a single string and either reject the tool or drop the constraint.
+  Suggestion: Split it into `anyOf` branches, each with a single `type` — `{"anyOf": [{"type": "string"}, {"type": "null"}]}`. (Making the property optional instead is a different contract: absent is not the same as `null`.)
+
+Warning: tool "rust.fmt.check"
+  Path: outputSchema.$defs.Diagnostic.properties.rendered
+  Issue: `type` is an array (["string","null"]). The array form is legal JSON Schema, but several MCP clients read `type` as a single string and either reject the tool or drop the constraint.
+  Suggestion: Split it into `anyOf` branches, each with a single `type` — `{"anyOf": [{"type": "string"}, {"type": "null"}]}`. (Making the property optional instead is a different contract: absent is not the same as `null`.)
+
+Warning: tool "rust.fmt.check"
+  Path: outputSchema.$defs.Freshness.properties.age_seconds
+  Issue: `type` is an array (["integer","null"]). The array form is legal JSON Schema, but several MCP clients read `type` as a single string and either reject the tool or drop the constraint.
+  Suggestion: Split it into `anyOf` branches, each with a single `type` — `{"anyOf": [{"type": "integer"}, {"type": "null"}]}`. (Making the property optional instead is a different contract: absent is not the same as `null`.)
+
+Warning: tool "rust.fmt.check"
+  Path: outputSchema.$defs.Provenance.properties.created_at
+  Issue: `type` is an array (["integer","null"]). The array form is legal JSON Schema, but several MCP clients read `type` as a single string and either reject the tool or drop the constraint.
+  Suggestion: Split it into `anyOf` branches, each with a single `type` — `{"anyOf": [{"type": "integer"}, {"type": "null"}]}`. (Making the property optional instead is a different contract: absent is not the same as `null`.)
+
+Warning: tool "rust.fmt.check"
+  Path: outputSchema.$defs.Provenance.properties.observed_at
+  Issue: `type` is an array (["integer","null"]). The array form is legal JSON Schema, but several MCP clients read `type` as a single string and either reject the tool or drop the constraint.
+  Suggestion: Split it into `anyOf` branches, each with a single `type` — `{"anyOf": [{"type": "integer"}, {"type": "null"}]}`. (Making the property optional instead is a different contract: absent is not the same as `null`.)
+
+Warning: tool "rust.fmt.check"
+  Path: outputSchema.$defs.RuntimeIdentity.properties.declared_toolchain
+  Issue: `type` is an array (["string","null"]). The array form is legal JSON Schema, but several MCP clients read `type` as a single string and either reject the tool or drop the constraint.
+  Suggestion: Split it into `anyOf` branches, each with a single `type` — `{"anyOf": [{"type": "string"}, {"type": "null"}]}`. (Making the property optional instead is a different contract: absent is not the same as `null`.)
+
+Warning: tool "rust.fmt.check"
+  Path: outputSchema.$defs.SourceSpan.properties.label
+  Issue: `type` is an array (["string","null"]). The array form is legal JSON Schema, but several MCP clients read `type` as a single string and either reject the tool or drop the constraint.
+  Suggestion: Split it into `anyOf` branches, each with a single `type` — `{"anyOf": [{"type": "string"}, {"type": "null"}]}`. (Making the property optional instead is a different contract: absent is not the same as `null`.)
+
+Warning: tool "rust.clippy"
+  Path: inputSchema.properties.package
+  Issue: `type` is an array (["string","null"]). The array form is legal JSON Schema, but several MCP clients read `type` as a single string and either reject the tool or drop the constraint.
+  Suggestion: Split it into `anyOf` branches, each with a single `type` — `{"anyOf": [{"type": "string"}, {"type": "null"}]}`. (Making the property optional instead is a different contract: absent is not the same as `null`.)
+
+Warning: tool "rust.clippy"
+  Path: outputSchema.$defs.ClippyOptions.properties.package
+  Issue: `type` is an array (["string","null"]). The array form is legal JSON Schema, but several MCP clients read `type` as a single string and either reject the tool or drop the constraint.
+  Suggestion: Split it into `anyOf` branches, each with a single `type` — `{"anyOf": [{"type": "string"}, {"type": "null"}]}`. (Making the property optional instead is a different contract: absent is not the same as `null`.)
+
+Warning: tool "rust.clippy"
+  Path: outputSchema.$defs.Data.properties.exit_code
+  Issue: `type` is an array (["integer","null"]). The array form is legal JSON Schema, but several MCP clients read `type` as a single string and either reject the tool or drop the constraint.
+  Suggestion: Split it into `anyOf` branches, each with a single `type` — `{"anyOf": [{"type": "integer"}, {"type": "null"}]}`. (Making the property optional instead is a different contract: absent is not the same as `null`.)
+
+Warning: tool "rust.clippy"
+  Path: outputSchema.$defs.Diagnostic.properties.code
+  Issue: `type` is an array (["string","null"]). The array form is legal JSON Schema, but several MCP clients read `type` as a single string and either reject the tool or drop the constraint.
+  Suggestion: Split it into `anyOf` branches, each with a single `type` — `{"anyOf": [{"type": "string"}, {"type": "null"}]}`. (Making the property optional instead is a different contract: absent is not the same as `null`.)
+
+Warning: tool "rust.clippy"
+  Path: outputSchema.$defs.Diagnostic.properties.rendered
+  Issue: `type` is an array (["string","null"]). The array form is legal JSON Schema, but several MCP clients read `type` as a single string and either reject the tool or drop the constraint.
+  Suggestion: Split it into `anyOf` branches, each with a single `type` — `{"anyOf": [{"type": "string"}, {"type": "null"}]}`. (Making the property optional instead is a different contract: absent is not the same as `null`.)
+
+Warning: tool "rust.clippy"
+  Path: outputSchema.$defs.Freshness.properties.age_seconds
+  Issue: `type` is an array (["integer","null"]). The array form is legal JSON Schema, but several MCP clients read `type` as a single string and either reject the tool or drop the constraint.
+  Suggestion: Split it into `anyOf` branches, each with a single `type` — `{"anyOf": [{"type": "integer"}, {"type": "null"}]}`. (Making the property optional instead is a different contract: absent is not the same as `null`.)
+
+Warning: tool "rust.clippy"
+  Path: outputSchema.$defs.Provenance.properties.created_at
+  Issue: `type` is an array (["integer","null"]). The array form is legal JSON Schema, but several MCP clients read `type` as a single string and either reject the tool or drop the constraint.
+  Suggestion: Split it into `anyOf` branches, each with a single `type` — `{"anyOf": [{"type": "integer"}, {"type": "null"}]}`. (Making the property optional instead is a different contract: absent is not the same as `null`.)
+
+Warning: tool "rust.clippy"
+  Path: outputSchema.$defs.Provenance.properties.observed_at
+  Issue: `type` is an array (["integer","null"]). The array form is legal JSON Schema, but several MCP clients read `type` as a single string and either reject the tool or drop the constraint.
+  Suggestion: Split it into `anyOf` branches, each with a single `type` — `{"anyOf": [{"type": "integer"}, {"type": "null"}]}`. (Making the property optional instead is a different contract: absent is not the same as `null`.)
+
+Warning: tool "rust.clippy"
+  Path: outputSchema.$defs.RuntimeIdentity.properties.declared_toolchain
+  Issue: `type` is an array (["string","null"]). The array form is legal JSON Schema, but several MCP clients read `type` as a single string and either reject the tool or drop the constraint.
+  Suggestion: Split it into `anyOf` branches, each with a single `type` — `{"anyOf": [{"type": "string"}, {"type": "null"}]}`. (Making the property optional instead is a different contract: absent is not the same as `null`.)
+
+Warning: tool "rust.clippy"
+  Path: outputSchema.$defs.SourceSpan.properties.label
+  Issue: `type` is an array (["string","null"]). The array form is legal JSON Schema, but several MCP clients read `type` as a single string and either reject the tool or drop the constraint.
+  Suggestion: Split it into `anyOf` branches, each with a single `type` — `{"anyOf": [{"type": "string"}, {"type": "null"}]}`. (Making the property optional instead is a different contract: absent is not the same as `null`.)
+
+Warning: tool "rust.test"
+  Path: inputSchema.properties.package
+  Issue: `type` is an array (["string","null"]). The array form is legal JSON Schema, but several MCP clients read `type` as a single string and either reject the tool or drop the constraint.
+  Suggestion: Split it into `anyOf` branches, each with a single `type` — `{"anyOf": [{"type": "string"}, {"type": "null"}]}`. (Making the property optional instead is a different contract: absent is not the same as `null`.)
+
+Warning: tool "rust.test"
+  Path: inputSchema.properties.target
+  Issue: `type` is an array (["string","null"]). The array form is legal JSON Schema, but several MCP clients read `type` as a single string and either reject the tool or drop the constraint.
+  Suggestion: Split it into `anyOf` branches, each with a single `type` — `{"anyOf": [{"type": "string"}, {"type": "null"}]}`. (Making the property optional instead is a different contract: absent is not the same as `null`.)
+
+Warning: tool "rust.test"
+  Path: inputSchema.properties.test_filter
+  Issue: `type` is an array (["string","null"]). The array form is legal JSON Schema, but several MCP clients read `type` as a single string and either reject the tool or drop the constraint.
+  Suggestion: Split it into `anyOf` branches, each with a single `type` — `{"anyOf": [{"type": "string"}, {"type": "null"}]}`. (Making the property optional instead is a different contract: absent is not the same as `null`.)
+
+Warning: tool "rust.test"
+  Path: outputSchema.$defs.Data.properties.build_succeeded
+  Issue: `type` is an array (["boolean","null"]). The array form is legal JSON Schema, but several MCP clients read `type` as a single string and either reject the tool or drop the constraint.
+  Suggestion: Split it into `anyOf` branches, each with a single `type` — `{"anyOf": [{"type": "boolean"}, {"type": "null"}]}`. (Making the property optional instead is a different contract: absent is not the same as `null`.)
+
+Warning: tool "rust.test"
+  Path: outputSchema.$defs.Data.properties.exit_code
+  Issue: `type` is an array (["integer","null"]). The array form is legal JSON Schema, but several MCP clients read `type` as a single string and either reject the tool or drop the constraint.
+  Suggestion: Split it into `anyOf` branches, each with a single `type` — `{"anyOf": [{"type": "integer"}, {"type": "null"}]}`. (Making the property optional instead is a different contract: absent is not the same as `null`.)
+
+Warning: tool "rust.test"
+  Path: outputSchema.$defs.Diagnostic.properties.code
+  Issue: `type` is an array (["string","null"]). The array form is legal JSON Schema, but several MCP clients read `type` as a single string and either reject the tool or drop the constraint.
+  Suggestion: Split it into `anyOf` branches, each with a single `type` — `{"anyOf": [{"type": "string"}, {"type": "null"}]}`. (Making the property optional instead is a different contract: absent is not the same as `null`.)
+
+Warning: tool "rust.test"
+  Path: outputSchema.$defs.Diagnostic.properties.rendered
+  Issue: `type` is an array (["string","null"]). The array form is legal JSON Schema, but several MCP clients read `type` as a single string and either reject the tool or drop the constraint.
+  Suggestion: Split it into `anyOf` branches, each with a single `type` — `{"anyOf": [{"type": "string"}, {"type": "null"}]}`. (Making the property optional instead is a different contract: absent is not the same as `null`.)
+
+Warning: tool "rust.test"
+  Path: outputSchema.$defs.Freshness.properties.age_seconds
+  Issue: `type` is an array (["integer","null"]). The array form is legal JSON Schema, but several MCP clients read `type` as a single string and either reject the tool or drop the constraint.
+  Suggestion: Split it into `anyOf` branches, each with a single `type` — `{"anyOf": [{"type": "integer"}, {"type": "null"}]}`. (Making the property optional instead is a different contract: absent is not the same as `null`.)
+
+Warning: tool "rust.test"
+  Path: outputSchema.$defs.Provenance.properties.created_at
+  Issue: `type` is an array (["integer","null"]). The array form is legal JSON Schema, but several MCP clients read `type` as a single string and either reject the tool or drop the constraint.
+  Suggestion: Split it into `anyOf` branches, each with a single `type` — `{"anyOf": [{"type": "integer"}, {"type": "null"}]}`. (Making the property optional instead is a different contract: absent is not the same as `null`.)
+
+Warning: tool "rust.test"
+  Path: outputSchema.$defs.Provenance.properties.observed_at
+  Issue: `type` is an array (["integer","null"]). The array form is legal JSON Schema, but several MCP clients read `type` as a single string and either reject the tool or drop the constraint.
+  Suggestion: Split it into `anyOf` branches, each with a single `type` — `{"anyOf": [{"type": "integer"}, {"type": "null"}]}`. (Making the property optional instead is a different contract: absent is not the same as `null`.)
+
+Warning: tool "rust.test"
+  Path: outputSchema.$defs.RuntimeIdentity.properties.declared_toolchain
+  Issue: `type` is an array (["string","null"]). The array form is legal JSON Schema, but several MCP clients read `type` as a single string and either reject the tool or drop the constraint.
+  Suggestion: Split it into `anyOf` branches, each with a single `type` — `{"anyOf": [{"type": "string"}, {"type": "null"}]}`. (Making the property optional instead is a different contract: absent is not the same as `null`.)
+
+Warning: tool "rust.test"
+  Path: outputSchema.$defs.SourceSpan.properties.label
+  Issue: `type` is an array (["string","null"]). The array form is legal JSON Schema, but several MCP clients read `type` as a single string and either reject the tool or drop the constraint.
+  Suggestion: Split it into `anyOf` branches, each with a single `type` — `{"anyOf": [{"type": "string"}, {"type": "null"}]}`. (Making the property optional instead is a different contract: absent is not the same as `null`.)
+
+Warning: tool "rust.test"
+  Path: outputSchema.$defs.TestOptions.properties.package
+  Issue: `type` is an array (["string","null"]). The array form is legal JSON Schema, but several MCP clients read `type` as a single string and either reject the tool or drop the constraint.
+  Suggestion: Split it into `anyOf` branches, each with a single `type` — `{"anyOf": [{"type": "string"}, {"type": "null"}]}`. (Making the property optional instead is a different contract: absent is not the same as `null`.)
+
+Warning: tool "rust.test"
+  Path: outputSchema.$defs.TestOptions.properties.target
+  Issue: `type` is an array (["string","null"]). The array form is legal JSON Schema, but several MCP clients read `type` as a single string and either reject the tool or drop the constraint.
+  Suggestion: Split it into `anyOf` branches, each with a single `type` — `{"anyOf": [{"type": "string"}, {"type": "null"}]}`. (Making the property optional instead is a different contract: absent is not the same as `null`.)
+
+Warning: tool "rust.test"
+  Path: outputSchema.$defs.TestOptions.properties.test_filter
+  Issue: `type` is an array (["string","null"]). The array form is legal JSON Schema, but several MCP clients read `type` as a single string and either reject the tool or drop the constraint.
+  Suggestion: Split it into `anyOf` branches, each with a single `type` — `{"anyOf": [{"type": "string"}, {"type": "null"}]}`. (Making the property optional instead is a different contract: absent is not the same as `null`.)
+
+Warning: tool "rust.test.nextest"
+  Path: inputSchema.properties.package
+  Issue: `type` is an array (["string","null"]). The array form is legal JSON Schema, but several MCP clients read `type` as a single string and either reject the tool or drop the constraint.
+  Suggestion: Split it into `anyOf` branches, each with a single `type` — `{"anyOf": [{"type": "string"}, {"type": "null"}]}`. (Making the property optional instead is a different contract: absent is not the same as `null`.)
+
+Warning: tool "rust.test.nextest"
+  Path: inputSchema.properties.target
+  Issue: `type` is an array (["string","null"]). The array form is legal JSON Schema, but several MCP clients read `type` as a single string and either reject the tool or drop the constraint.
+  Suggestion: Split it into `anyOf` branches, each with a single `type` — `{"anyOf": [{"type": "string"}, {"type": "null"}]}`. (Making the property optional instead is a different contract: absent is not the same as `null`.)
+
+Warning: tool "rust.test.nextest"
+  Path: inputSchema.properties.test_filter
+  Issue: `type` is an array (["string","null"]). The array form is legal JSON Schema, but several MCP clients read `type` as a single string and either reject the tool or drop the constraint.
+  Suggestion: Split it into `anyOf` branches, each with a single `type` — `{"anyOf": [{"type": "string"}, {"type": "null"}]}`. (Making the property optional instead is a different contract: absent is not the same as `null`.)
+
+Warning: tool "rust.test.nextest"
+  Path: outputSchema.$defs.Data.properties.exit_code
+  Issue: `type` is an array (["integer","null"]). The array form is legal JSON Schema, but several MCP clients read `type` as a single string and either reject the tool or drop the constraint.
+  Suggestion: Split it into `anyOf` branches, each with a single `type` — `{"anyOf": [{"type": "integer"}, {"type": "null"}]}`. (Making the property optional instead is a different contract: absent is not the same as `null`.)
+
+Warning: tool "rust.test.nextest"
+  Path: outputSchema.$defs.RuntimeEvidence.properties.declared_toolchain
+  Issue: `type` is an array (["string","null"]). The array form is legal JSON Schema, but several MCP clients read `type` as a single string and either reject the tool or drop the constraint.
+  Suggestion: Split it into `anyOf` branches, each with a single `type` — `{"anyOf": [{"type": "string"}, {"type": "null"}]}`. (Making the property optional instead is a different contract: absent is not the same as `null`.)
+
+Warning: tool "rust.dependencies.audit"
+  Path: outputSchema.$defs.AuditFinding.properties.informational
+  Issue: `type` is an array (["string","null"]). The array form is legal JSON Schema, but several MCP clients read `type` as a single string and either reject the tool or drop the constraint.
+  Suggestion: Split it into `anyOf` branches, each with a single `type` — `{"anyOf": [{"type": "string"}, {"type": "null"}]}`. (Making the property optional instead is a different contract: absent is not the same as `null`.)
+
+Warning: tool "rust.dependencies.audit"
+  Path: outputSchema.$defs.AuditObservation.properties.lock_fingerprint
+  Issue: `type` is an array (["string","null"]). The array form is legal JSON Schema, but several MCP clients read `type` as a single string and either reject the tool or drop the constraint.
+  Suggestion: Split it into `anyOf` branches, each with a single `type` — `{"anyOf": [{"type": "string"}, {"type": "null"}]}`. (Making the property optional instead is a different contract: absent is not the same as `null`.)
+
+Warning: tool "rust.dependencies.audit"
+  Path: outputSchema.$defs.AuditObservation.properties.snapshot_fingerprint
+  Issue: `type` is an array (["string","null"]). The array form is legal JSON Schema, but several MCP clients read `type` as a single string and either reject the tool or drop the constraint.
+  Suggestion: Split it into `anyOf` branches, each with a single `type` — `{"anyOf": [{"type": "string"}, {"type": "null"}]}`. (Making the property optional instead is a different contract: absent is not the same as `null`.)
+
+Warning: tool "rust.dependencies.audit"
+  Path: outputSchema.$defs.AuditObservation.properties.snapshot_record_count
+  Issue: `type` is an array (["integer","null"]). The array form is legal JSON Schema, but several MCP clients read `type` as a single string and either reject the tool or drop the constraint.
+  Suggestion: Split it into `anyOf` branches, each with a single `type` — `{"anyOf": [{"type": "integer"}, {"type": "null"}]}`. (Making the property optional instead is a different contract: absent is not the same as `null`.)
+
+Warning: tool "rust.dependencies.audit"
+  Path: outputSchema.$defs.AuditObservation.properties.snapshot_sequence
+  Issue: `type` is an array (["integer","null"]). The array form is legal JSON Schema, but several MCP clients read `type` as a single string and either reject the tool or drop the constraint.
+  Suggestion: Split it into `anyOf` branches, each with a single `type` — `{"anyOf": [{"type": "integer"}, {"type": "null"}]}`. (Making the property optional instead is a different contract: absent is not the same as `null`.)
+
+Warning: tool "rust.dependencies.audit"
+  Path: outputSchema.$defs.AuditPackage.properties.source_fingerprint
+  Issue: `type` is an array (["string","null"]). The array form is legal JSON Schema, but several MCP clients read `type` as a single string and either reject the tool or drop the constraint.
+  Suggestion: Split it into `anyOf` branches, each with a single `type` — `{"anyOf": [{"type": "string"}, {"type": "null"}]}`. (Making the property optional instead is a different contract: absent is not the same as `null`.)
+
+Warning: tool "rust.dependencies.audit"
+  Path: outputSchema.$defs.Freshness.properties.age_seconds
+  Issue: `type` is an array (["integer","null"]). The array form is legal JSON Schema, but several MCP clients read `type` as a single string and either reject the tool or drop the constraint.
+  Suggestion: Split it into `anyOf` branches, each with a single `type` — `{"anyOf": [{"type": "integer"}, {"type": "null"}]}`. (Making the property optional instead is a different contract: absent is not the same as `null`.)
+
+Warning: tool "rust.dependencies.audit"
+  Path: outputSchema.$defs.Provenance.properties.created_at
+  Issue: `type` is an array (["integer","null"]). The array form is legal JSON Schema, but several MCP clients read `type` as a single string and either reject the tool or drop the constraint.
+  Suggestion: Split it into `anyOf` branches, each with a single `type` — `{"anyOf": [{"type": "integer"}, {"type": "null"}]}`. (Making the property optional instead is a different contract: absent is not the same as `null`.)
+
+Warning: tool "rust.dependencies.audit"
+  Path: outputSchema.$defs.Provenance.properties.observed_at
+  Issue: `type` is an array (["integer","null"]). The array form is legal JSON Schema, but several MCP clients read `type` as a single string and either reject the tool or drop the constraint.
+  Suggestion: Split it into `anyOf` branches, each with a single `type` — `{"anyOf": [{"type": "integer"}, {"type": "null"}]}`. (Making the property optional instead is a different contract: absent is not the same as `null`.)
+
+Warning: tool "rust.dependencies.audit"
+  Path: outputSchema.$defs.RuntimeIdentity.properties.declared_toolchain
+  Issue: `type` is an array (["string","null"]). The array form is legal JSON Schema, but several MCP clients read `type` as a single string and either reject the tool or drop the constraint.
+  Suggestion: Split it into `anyOf` branches, each with a single `type` — `{"anyOf": [{"type": "string"}, {"type": "null"}]}`. (Making the property optional instead is a different contract: absent is not the same as `null`.)
+
+Warning: tool "rust.dependencies.audit"
+  Path: outputSchema.$defs.RustSecProvenance.properties.created_at
+  Issue: `type` is an array (["integer","null"]). The array form is legal JSON Schema, but several MCP clients read `type` as a single string and either reject the tool or drop the constraint.
+  Suggestion: Split it into `anyOf` branches, each with a single `type` — `{"anyOf": [{"type": "integer"}, {"type": "null"}]}`. (Making the property optional instead is a different contract: absent is not the same as `null`.)
+
+Warning: tool "rust.dependencies.audit"
+  Path: outputSchema.$defs.RustSecProvenance.properties.observed_at
+  Issue: `type` is an array (["integer","null"]). The array form is legal JSON Schema, but several MCP clients read `type` as a single string and either reject the tool or drop the constraint.
+  Suggestion: Split it into `anyOf` branches, each with a single `type` — `{"anyOf": [{"type": "integer"}, {"type": "null"}]}`. (Making the property optional instead is a different contract: absent is not the same as `null`.)
+
+Warning: tool "rust.diagnostics.explain"
+  Path: outputSchema.$defs.ExplainObservation.properties.exit_code
+  Issue: `type` is an array (["integer","null"]). The array form is legal JSON Schema, but several MCP clients read `type` as a single string and either reject the tool or drop the constraint.
+  Suggestion: Split it into `anyOf` branches, each with a single `type` — `{"anyOf": [{"type": "integer"}, {"type": "null"}]}`. (Making the property optional instead is a different contract: absent is not the same as `null`.)
+
+Warning: tool "rust.diagnostics.explain"
+  Path: outputSchema.$defs.ExplainObservation.properties.explanation
+  Issue: `type` is an array (["string","null"]). The array form is legal JSON Schema, but several MCP clients read `type` as a single string and either reject the tool or drop the constraint.
+  Suggestion: Split it into `anyOf` branches, each with a single `type` — `{"anyOf": [{"type": "string"}, {"type": "null"}]}`. (Making the property optional instead is a different contract: absent is not the same as `null`.)
+
+Warning: tool "rust.diagnostics.explain"
+  Path: outputSchema.$defs.Freshness.properties.age_seconds
+  Issue: `type` is an array (["integer","null"]). The array form is legal JSON Schema, but several MCP clients read `type` as a single string and either reject the tool or drop the constraint.
+  Suggestion: Split it into `anyOf` branches, each with a single `type` — `{"anyOf": [{"type": "integer"}, {"type": "null"}]}`. (Making the property optional instead is a different contract: absent is not the same as `null`.)
+
+Warning: tool "rust.diagnostics.explain"
+  Path: outputSchema.$defs.Provenance.properties.created_at
+  Issue: `type` is an array (["integer","null"]). The array form is legal JSON Schema, but several MCP clients read `type` as a single string and either reject the tool or drop the constraint.
+  Suggestion: Split it into `anyOf` branches, each with a single `type` — `{"anyOf": [{"type": "integer"}, {"type": "null"}]}`. (Making the property optional instead is a different contract: absent is not the same as `null`.)
+
+Warning: tool "rust.diagnostics.explain"
+  Path: outputSchema.$defs.Provenance.properties.observed_at
+  Issue: `type` is an array (["integer","null"]). The array form is legal JSON Schema, but several MCP clients read `type` as a single string and either reject the tool or drop the constraint.
+  Suggestion: Split it into `anyOf` branches, each with a single `type` — `{"anyOf": [{"type": "integer"}, {"type": "null"}]}`. (Making the property optional instead is a different contract: absent is not the same as `null`.)
+
+Warning: tool "rust.diagnostics.explain"
+  Path: outputSchema.$defs.RuntimeIdentity.properties.declared_toolchain
+  Issue: `type` is an array (["string","null"]). The array form is legal JSON Schema, but several MCP clients read `type` as a single string and either reject the tool or drop the constraint.
+  Suggestion: Split it into `anyOf` branches, each with a single `type` — `{"anyOf": [{"type": "string"}, {"type": "null"}]}`. (Making the property optional instead is a different contract: absent is not the same as `null`.)
+
+Warning: tool "rust.quality.gate"
+  Path: outputSchema.$defs.AuditFinding.properties.informational
+  Issue: `type` is an array (["string","null"]). The array form is legal JSON Schema, but several MCP clients read `type` as a single string and either reject the tool or drop the constraint.
+  Suggestion: Split it into `anyOf` branches, each with a single `type` — `{"anyOf": [{"type": "string"}, {"type": "null"}]}`. (Making the property optional instead is a different contract: absent is not the same as `null`.)
+
+Warning: tool "rust.quality.gate"
+  Path: outputSchema.$defs.AuditObservation.properties.lock_fingerprint
+  Issue: `type` is an array (["string","null"]). The array form is legal JSON Schema, but several MCP clients read `type` as a single string and either reject the tool or drop the constraint.
+  Suggestion: Split it into `anyOf` branches, each with a single `type` — `{"anyOf": [{"type": "string"}, {"type": "null"}]}`. (Making the property optional instead is a different contract: absent is not the same as `null`.)
+
+Warning: tool "rust.quality.gate"
+  Path: outputSchema.$defs.AuditObservation.properties.snapshot_fingerprint
+  Issue: `type` is an array (["string","null"]). The array form is legal JSON Schema, but several MCP clients read `type` as a single string and either reject the tool or drop the constraint.
+  Suggestion: Split it into `anyOf` branches, each with a single `type` — `{"anyOf": [{"type": "string"}, {"type": "null"}]}`. (Making the property optional instead is a different contract: absent is not the same as `null`.)
+
+Warning: tool "rust.quality.gate"
+  Path: outputSchema.$defs.AuditObservation.properties.snapshot_record_count
+  Issue: `type` is an array (["integer","null"]). The array form is legal JSON Schema, but several MCP clients read `type` as a single string and either reject the tool or drop the constraint.
+  Suggestion: Split it into `anyOf` branches, each with a single `type` — `{"anyOf": [{"type": "integer"}, {"type": "null"}]}`. (Making the property optional instead is a different contract: absent is not the same as `null`.)
+
+Warning: tool "rust.quality.gate"
+  Path: outputSchema.$defs.AuditObservation.properties.snapshot_sequence
+  Issue: `type` is an array (["integer","null"]). The array form is legal JSON Schema, but several MCP clients read `type` as a single string and either reject the tool or drop the constraint.
+  Suggestion: Split it into `anyOf` branches, each with a single `type` — `{"anyOf": [{"type": "integer"}, {"type": "null"}]}`. (Making the property optional instead is a different contract: absent is not the same as `null`.)
+
+Warning: tool "rust.quality.gate"
+  Path: outputSchema.$defs.AuditPackage.properties.source_fingerprint
+  Issue: `type` is an array (["string","null"]). The array form is legal JSON Schema, but several MCP clients read `type` as a single string and either reject the tool or drop the constraint.
+  Suggestion: Split it into `anyOf` branches, each with a single `type` — `{"anyOf": [{"type": "string"}, {"type": "null"}]}`. (Making the property optional instead is a different contract: absent is not the same as `null`.)
+
+Warning: tool "rust.quality.gate"
+  Path: outputSchema.$defs.Data.properties.source_fingerprint
+  Issue: `type` is an array (["string","null"]). The array form is legal JSON Schema, but several MCP clients read `type` as a single string and either reject the tool or drop the constraint.
+  Suggestion: Split it into `anyOf` branches, each with a single `type` — `{"anyOf": [{"type": "string"}, {"type": "null"}]}`. (Making the property optional instead is a different contract: absent is not the same as `null`.)
+
+Warning: tool "rust.quality.gate"
+  Path: outputSchema.$defs.Diagnostic.properties.code
+  Issue: `type` is an array (["string","null"]). The array form is legal JSON Schema, but several MCP clients read `type` as a single string and either reject the tool or drop the constraint.
+  Suggestion: Split it into `anyOf` branches, each with a single `type` — `{"anyOf": [{"type": "string"}, {"type": "null"}]}`. (Making the property optional instead is a different contract: absent is not the same as `null`.)
+
+Warning: tool "rust.quality.gate"
+  Path: outputSchema.$defs.Diagnostic.properties.rendered
+  Issue: `type` is an array (["string","null"]). The array form is legal JSON Schema, but several MCP clients read `type` as a single string and either reject the tool or drop the constraint.
+  Suggestion: Split it into `anyOf` branches, each with a single `type` — `{"anyOf": [{"type": "string"}, {"type": "null"}]}`. (Making the property optional instead is a different contract: absent is not the same as `null`.)
+
+Warning: tool "rust.quality.gate"
+  Path: outputSchema.$defs.Execution.properties.exit_code
+  Issue: `type` is an array (["integer","null"]). The array form is legal JSON Schema, but several MCP clients read `type` as a single string and either reject the tool or drop the constraint.
+  Suggestion: Split it into `anyOf` branches, each with a single `type` — `{"anyOf": [{"type": "integer"}, {"type": "null"}]}`. (Making the property optional instead is a different contract: absent is not the same as `null`.)
+
+Warning: tool "rust.quality.gate"
+  Path: outputSchema.$defs.FormatDetails.properties.diff
+  Issue: `type` is an array (["string","null"]). The array form is legal JSON Schema, but several MCP clients read `type` as a single string and either reject the tool or drop the constraint.
+  Suggestion: Split it into `anyOf` branches, each with a single `type` — `{"anyOf": [{"type": "string"}, {"type": "null"}]}`. (Making the property optional instead is a different contract: absent is not the same as `null`.)
+
+Warning: tool "rust.quality.gate"
+  Path: outputSchema.$defs.Freshness.properties.age_seconds
+  Issue: `type` is an array (["integer","null"]). The array form is legal JSON Schema, but several MCP clients read `type` as a single string and either reject the tool or drop the constraint.
+  Suggestion: Split it into `anyOf` branches, each with a single `type` — `{"anyOf": [{"type": "integer"}, {"type": "null"}]}`. (Making the property optional instead is a different contract: absent is not the same as `null`.)
+
+Warning: tool "rust.quality.gate"
+  Path: outputSchema.$defs.Provenance.properties.created_at
+  Issue: `type` is an array (["integer","null"]). The array form is legal JSON Schema, but several MCP clients read `type` as a single string and either reject the tool or drop the constraint.
+  Suggestion: Split it into `anyOf` branches, each with a single `type` — `{"anyOf": [{"type": "integer"}, {"type": "null"}]}`. (Making the property optional instead is a different contract: absent is not the same as `null`.)
+
+Warning: tool "rust.quality.gate"
+  Path: outputSchema.$defs.Provenance.properties.observed_at
+  Issue: `type` is an array (["integer","null"]). The array form is legal JSON Schema, but several MCP clients read `type` as a single string and either reject the tool or drop the constraint.
+  Suggestion: Split it into `anyOf` branches, each with a single `type` — `{"anyOf": [{"type": "integer"}, {"type": "null"}]}`. (Making the property optional instead is a different contract: absent is not the same as `null`.)
+
+Warning: tool "rust.quality.gate"
+  Path: outputSchema.$defs.RuntimeIdentity.properties.declared_toolchain
+  Issue: `type` is an array (["string","null"]). The array form is legal JSON Schema, but several MCP clients read `type` as a single string and either reject the tool or drop the constraint.
+  Suggestion: Split it into `anyOf` branches, each with a single `type` — `{"anyOf": [{"type": "string"}, {"type": "null"}]}`. (Making the property optional instead is a different contract: absent is not the same as `null`.)
+
+Warning: tool "rust.quality.gate"
+  Path: outputSchema.$defs.RustSecProvenance.properties.created_at
+  Issue: `type` is an array (["integer","null"]). The array form is legal JSON Schema, but several MCP clients read `type` as a single string and either reject the tool or drop the constraint.
+  Suggestion: Split it into `anyOf` branches, each with a single `type` — `{"anyOf": [{"type": "integer"}, {"type": "null"}]}`. (Making the property optional instead is a different contract: absent is not the same as `null`.)
+
+Warning: tool "rust.quality.gate"
+  Path: outputSchema.$defs.RustSecProvenance.properties.observed_at
+  Issue: `type` is an array (["integer","null"]). The array form is legal JSON Schema, but several MCP clients read `type` as a single string and either reject the tool or drop the constraint.
+  Suggestion: Split it into `anyOf` branches, each with a single `type` — `{"anyOf": [{"type": "integer"}, {"type": "null"}]}`. (Making the property optional instead is a different contract: absent is not the same as `null`.)
+
+Warning: tool "rust.quality.gate"
+  Path: outputSchema.$defs.SourceSpan.properties.label
+  Issue: `type` is an array (["string","null"]). The array form is legal JSON Schema, but several MCP clients read `type` as a single string and either reject the tool or drop the constraint.
+  Suggestion: Split it into `anyOf` branches, each with a single `type` — `{"anyOf": [{"type": "string"}, {"type": "null"}]}`. (Making the property optional instead is a different contract: absent is not the same as `null`.)
+
+Warning: tool "rust.quality.gate"
+  Path: outputSchema.$defs.TestDetails.properties.build_succeeded
+  Issue: `type` is an array (["boolean","null"]). The array form is legal JSON Schema, but several MCP clients read `type` as a single string and either reject the tool or drop the constraint.
+  Suggestion: Split it into `anyOf` branches, each with a single `type` — `{"anyOf": [{"type": "boolean"}, {"type": "null"}]}`. (Making the property optional instead is a different contract: absent is not the same as `null`.)
+
+Warning: tool "rust.catalog.status"
+  Path: outputSchema.$defs.Freshness.properties.age_seconds
+  Issue: `type` is an array (["integer","null"]). The array form is legal JSON Schema, but several MCP clients read `type` as a single string and either reject the tool or drop the constraint.
+  Suggestion: Split it into `anyOf` branches, each with a single `type` — `{"anyOf": [{"type": "integer"}, {"type": "null"}]}`. (Making the property optional instead is a different contract: absent is not the same as `null`.)
+
+Warning: tool "rust.catalog.status"
+  Path: outputSchema.$defs.Provenance.properties.created_at
+  Issue: `type` is an array (["integer","null"]). The array form is legal JSON Schema, but several MCP clients read `type` as a single string and either reject the tool or drop the constraint.
+  Suggestion: Split it into `anyOf` branches, each with a single `type` — `{"anyOf": [{"type": "integer"}, {"type": "null"}]}`. (Making the property optional instead is a different contract: absent is not the same as `null`.)
+
+Warning: tool "rust.catalog.status"
+  Path: outputSchema.$defs.Provenance.properties.observed_at
+  Issue: `type` is an array (["integer","null"]). The array form is legal JSON Schema, but several MCP clients read `type` as a single string and either reject the tool or drop the constraint.
+  Suggestion: Split it into `anyOf` branches, each with a single `type` — `{"anyOf": [{"type": "integer"}, {"type": "null"}]}`. (Making the property optional instead is a different contract: absent is not the same as `null`.)
+
+Warning: tool "rust.crate.search"
+  Path: inputSchema.$defs.Filters.properties.msrv_lte
+  Issue: `type` is an array (["string","null"]). The array form is legal JSON Schema, but several MCP clients read `type` as a single string and either reject the tool or drop the constraint.
+  Suggestion: Split it into `anyOf` branches, each with a single `type` — `{"anyOf": [{"type": "string"}, {"type": "null"}]}`. (Making the property optional instead is a different contract: absent is not the same as `null`.)
+
+Warning: tool "rust.crate.search"
+  Path: outputSchema.$defs.Freshness.properties.age_seconds
+  Issue: `type` is an array (["integer","null"]). The array form is legal JSON Schema, but several MCP clients read `type` as a single string and either reject the tool or drop the constraint.
+  Suggestion: Split it into `anyOf` branches, each with a single `type` — `{"anyOf": [{"type": "integer"}, {"type": "null"}]}`. (Making the property optional instead is a different contract: absent is not the same as `null`.)
+
+Warning: tool "rust.crate.search"
+  Path: outputSchema.$defs.KnownVersion.properties.license
+  Issue: `type` is an array (["string","null"]). The array form is legal JSON Schema, but several MCP clients read `type` as a single string and either reject the tool or drop the constraint.
+  Suggestion: Split it into `anyOf` branches, each with a single `type` — `{"anyOf": [{"type": "string"}, {"type": "null"}]}`. (Making the property optional instead is a different contract: absent is not the same as `null`.)
+
+Warning: tool "rust.crate.search"
+  Path: outputSchema.$defs.KnownVersion.properties.rust_version
+  Issue: `type` is an array (["string","null"]). The array form is legal JSON Schema, but several MCP clients read `type` as a single string and either reject the tool or drop the constraint.
+  Suggestion: Split it into `anyOf` branches, each with a single `type` — `{"anyOf": [{"type": "string"}, {"type": "null"}]}`. (Making the property optional instead is a different contract: absent is not the same as `null`.)
+
+Warning: tool "rust.crate.search"
+  Path: outputSchema.$defs.Provenance.properties.created_at
+  Issue: `type` is an array (["integer","null"]). The array form is legal JSON Schema, but several MCP clients read `type` as a single string and either reject the tool or drop the constraint.
+  Suggestion: Split it into `anyOf` branches, each with a single `type` — `{"anyOf": [{"type": "integer"}, {"type": "null"}]}`. (Making the property optional instead is a different contract: absent is not the same as `null`.)
+
+Warning: tool "rust.crate.search"
+  Path: outputSchema.$defs.Provenance.properties.observed_at
+  Issue: `type` is an array (["integer","null"]). The array form is legal JSON Schema, but several MCP clients read `type` as a single string and either reject the tool or drop the constraint.
+  Suggestion: Split it into `anyOf` branches, each with a single `type` — `{"anyOf": [{"type": "integer"}, {"type": "null"}]}`. (Making the property optional instead is a different contract: absent is not the same as `null`.)
+
+Warning: tool "rust.crate.search"
+  Path: outputSchema.$defs.RankedCrate.properties.fusion_score
+  Issue: `type` is an array (["number","null"]). The array form is legal JSON Schema, but several MCP clients read `type` as a single string and either reject the tool or drop the constraint.
+  Suggestion: Split it into `anyOf` branches, each with a single `type` — `{"anyOf": [{"type": "number"}, {"type": "null"}]}`. (Making the property optional instead is a different contract: absent is not the same as `null`.)
+
+Warning: tool "rust.crate.search"
+  Path: outputSchema.$defs.SearchCrateFacts.properties.repository
+  Issue: `type` is an array (["string","null"]). The array form is legal JSON Schema, but several MCP clients read `type` as a single string and either reject the tool or drop the constraint.
+  Suggestion: Split it into `anyOf` branches, each with a single `type` — `{"anyOf": [{"type": "string"}, {"type": "null"}]}`. (Making the property optional instead is a different contract: absent is not the same as `null`.)
+
+Warning: tool "rust.crate.search"
+  Path: outputSchema.$defs.SearchVersionFacts.properties.license
+  Issue: `type` is an array (["string","null"]). The array form is legal JSON Schema, but several MCP clients read `type` as a single string and either reject the tool or drop the constraint.
+  Suggestion: Split it into `anyOf` branches, each with a single `type` — `{"anyOf": [{"type": "string"}, {"type": "null"}]}`. (Making the property optional instead is a different contract: absent is not the same as `null`.)
+
+Warning: tool "rust.crate.search"
+  Path: outputSchema.$defs.SearchVersionFacts.properties.published_at
+  Issue: `type` is an array (["integer","null"]). The array form is legal JSON Schema, but several MCP clients read `type` as a single string and either reject the tool or drop the constraint.
+  Suggestion: Split it into `anyOf` branches, each with a single `type` — `{"anyOf": [{"type": "integer"}, {"type": "null"}]}`. (Making the property optional instead is a different contract: absent is not the same as `null`.)
+
+Warning: tool "rust.crate.search"
+  Path: outputSchema.$defs.SearchVersionFacts.properties.rust_version
+  Issue: `type` is an array (["string","null"]). The array form is legal JSON Schema, but several MCP clients read `type` as a single string and either reject the tool or drop the constraint.
+  Suggestion: Split it into `anyOf` branches, each with a single `type` — `{"anyOf": [{"type": "string"}, {"type": "null"}]}`. (Making the property optional instead is a different contract: absent is not the same as `null`.)
+
+Warning: tool "rust.crate.inspect"
+  Path: inputSchema.properties.snapshot_fingerprint
+  Issue: `type` is an array (["string","null"]). The array form is legal JSON Schema, but several MCP clients read `type` as a single string and either reject the tool or drop the constraint.
+  Suggestion: Split it into `anyOf` branches, each with a single `type` — `{"anyOf": [{"type": "string"}, {"type": "null"}]}`. (Making the property optional instead is a different contract: absent is not the same as `null`.)
+
+Warning: tool "rust.crate.inspect"
+  Path: inputSchema.properties.version
+  Issue: `type` is an array (["string","null"]). The array form is legal JSON Schema, but several MCP clients read `type` as a single string and either reject the tool or drop the constraint.
+  Suggestion: Split it into `anyOf` branches, each with a single `type` — `{"anyOf": [{"type": "string"}, {"type": "null"}]}`. (Making the property optional instead is a different contract: absent is not the same as `null`.)
+
+Warning: tool "rust.crate.inspect"
+  Path: outputSchema.$defs.Freshness.properties.age_seconds
+  Issue: `type` is an array (["integer","null"]). The array form is legal JSON Schema, but several MCP clients read `type` as a single string and either reject the tool or drop the constraint.
+  Suggestion: Split it into `anyOf` branches, each with a single `type` — `{"anyOf": [{"type": "integer"}, {"type": "null"}]}`. (Making the property optional instead is a different contract: absent is not the same as `null`.)
+
+Warning: tool "rust.crate.inspect"
+  Path: outputSchema.$defs.InspectOverview.properties.repository
+  Issue: `type` is an array (["string","null"]). The array form is legal JSON Schema, but several MCP clients read `type` as a single string and either reject the tool or drop the constraint.
+  Suggestion: Split it into `anyOf` branches, each with a single `type` — `{"anyOf": [{"type": "string"}, {"type": "null"}]}`. (Making the property optional instead is a different contract: absent is not the same as `null`.)
+
+Warning: tool "rust.crate.inspect"
+  Path: outputSchema.$defs.InspectOverview.properties.updated_at
+  Issue: `type` is an array (["integer","null"]). The array form is legal JSON Schema, but several MCP clients read `type` as a single string and either reject the tool or drop the constraint.
+  Suggestion: Split it into `anyOf` branches, each with a single `type` — `{"anyOf": [{"type": "integer"}, {"type": "null"}]}`. (Making the property optional instead is a different contract: absent is not the same as `null`.)
+
+Warning: tool "rust.crate.inspect"
+  Path: outputSchema.$defs.InspectPagination.properties.next_offset
+  Issue: `type` is an array (["integer","null"]). The array form is legal JSON Schema, but several MCP clients read `type` as a single string and either reject the tool or drop the constraint.
+  Suggestion: Split it into `anyOf` branches, each with a single `type` — `{"anyOf": [{"type": "integer"}, {"type": "null"}]}`. (Making the property optional instead is a different contract: absent is not the same as `null`.)
+
+Warning: tool "rust.crate.inspect"
+  Path: outputSchema.$defs.InspectVersion.properties.license
+  Issue: `type` is an array (["string","null"]). The array form is legal JSON Schema, but several MCP clients read `type` as a single string and either reject the tool or drop the constraint.
+  Suggestion: Split it into `anyOf` branches, each with a single `type` — `{"anyOf": [{"type": "string"}, {"type": "null"}]}`. (Making the property optional instead is a different contract: absent is not the same as `null`.)
+
+Warning: tool "rust.crate.inspect"
+  Path: outputSchema.$defs.InspectVersion.properties.published_at
+  Issue: `type` is an array (["integer","null"]). The array form is legal JSON Schema, but several MCP clients read `type` as a single string and either reject the tool or drop the constraint.
+  Suggestion: Split it into `anyOf` branches, each with a single `type` — `{"anyOf": [{"type": "integer"}, {"type": "null"}]}`. (Making the property optional instead is a different contract: absent is not the same as `null`.)
+
+Warning: tool "rust.crate.inspect"
+  Path: outputSchema.$defs.InspectVersion.properties.rust_version
+  Issue: `type` is an array (["string","null"]). The array form is legal JSON Schema, but several MCP clients read `type` as a single string and either reject the tool or drop the constraint.
+  Suggestion: Split it into `anyOf` branches, each with a single `type` — `{"anyOf": [{"type": "string"}, {"type": "null"}]}`. (Making the property optional instead is a different contract: absent is not the same as `null`.)
+
+Warning: tool "rust.crate.inspect"
+  Path: outputSchema.$defs.KnownVersion.properties.license
+  Issue: `type` is an array (["string","null"]). The array form is legal JSON Schema, but several MCP clients read `type` as a single string and either reject the tool or drop the constraint.
+  Suggestion: Split it into `anyOf` branches, each with a single `type` — `{"anyOf": [{"type": "string"}, {"type": "null"}]}`. (Making the property optional instead is a different contract: absent is not the same as `null`.)
+
+Warning: tool "rust.crate.inspect"
+  Path: outputSchema.$defs.KnownVersion.properties.rust_version
+  Issue: `type` is an array (["string","null"]). The array form is legal JSON Schema, but several MCP clients read `type` as a single string and either reject the tool or drop the constraint.
+  Suggestion: Split it into `anyOf` branches, each with a single `type` — `{"anyOf": [{"type": "string"}, {"type": "null"}]}`. (Making the property optional instead is a different contract: absent is not the same as `null`.)
+
+Warning: tool "rust.crate.inspect"
+  Path: outputSchema.$defs.Provenance.properties.created_at
+  Issue: `type` is an array (["integer","null"]). The array form is legal JSON Schema, but several MCP clients read `type` as a single string and either reject the tool or drop the constraint.
+  Suggestion: Split it into `anyOf` branches, each with a single `type` — `{"anyOf": [{"type": "integer"}, {"type": "null"}]}`. (Making the property optional instead is a different contract: absent is not the same as `null`.)
+
+Warning: tool "rust.crate.inspect"
+  Path: outputSchema.$defs.Provenance.properties.observed_at
+  Issue: `type` is an array (["integer","null"]). The array form is legal JSON Schema, but several MCP clients read `type` as a single string and either reject the tool or drop the constraint.
+  Suggestion: Split it into `anyOf` branches, each with a single `type` — `{"anyOf": [{"type": "integer"}, {"type": "null"}]}`. (Making the property optional instead is a different contract: absent is not the same as `null`.)
+
+Warning: tool "rust.manifest.patch"
+  Path: inputSchema.$defs.DependencySpecInput.properties.package
+  Issue: `type` is an array (["string","null"]). The array form is legal JSON Schema, but several MCP clients read `type` as a single string and either reject the tool or drop the constraint.
+  Suggestion: Split it into `anyOf` branches, each with a single `type` — `{"anyOf": [{"type": "string"}, {"type": "null"}]}`. (Making the property optional instead is a different contract: absent is not the same as `null`.)
+
+Warning: tool "rust.manifest.patch"
+  Path: inputSchema.$defs.Edit.oneOf[0].properties.priority
+  Issue: `type` is an array (["integer","null"]). The array form is legal JSON Schema, but several MCP clients read `type` as a single string and either reject the tool or drop the constraint.
+  Suggestion: Split it into `anyOf` branches, each with a single `type` — `{"anyOf": [{"type": "integer"}, {"type": "null"}]}`. (Making the property optional instead is a different contract: absent is not the same as `null`.)
+
+Warning: tool "rust.manifest.patch"
+  Path: outputSchema.properties.error_message
+  Issue: `type` is an array (["string","null"]). The array form is legal JSON Schema, but several MCP clients read `type` as a single string and either reject the tool or drop the constraint.
+  Suggestion: Split it into `anyOf` branches, each with a single `type` — `{"anyOf": [{"type": "string"}, {"type": "null"}]}`. (Making the property optional instead is a different contract: absent is not the same as `null`.)
+
+Warning: tool "rust.manifest.patch"
+  Path: outputSchema.$defs.ReceiptChange.properties.effect_after_bytes
+  Issue: `type` is an array (["integer","null"]). The array form is legal JSON Schema, but several MCP clients read `type` as a single string and either reject the tool or drop the constraint.
+  Suggestion: Split it into `anyOf` branches, each with a single `type` — `{"anyOf": [{"type": "integer"}, {"type": "null"}]}`. (Making the property optional instead is a different contract: absent is not the same as `null`.)
+
+Warning: tool "rust.manifest.patch"
+  Path: outputSchema.$defs.ReceiptChange.properties.effect_after_sha256
+  Issue: `type` is an array (["string","null"]). The array form is legal JSON Schema, but several MCP clients read `type` as a single string and either reject the tool or drop the constraint.
+  Suggestion: Split it into `anyOf` branches, each with a single `type` — `{"anyOf": [{"type": "string"}, {"type": "null"}]}`. (Making the property optional instead is a different contract: absent is not the same as `null`.)
+
+Warning: tool "rust.manifest.patch"
+  Path: outputSchema.$defs.ValidationView.properties.mutation_execution_fingerprint
+  Issue: `type` is an array (["string","null"]). The array form is legal JSON Schema, but several MCP clients read `type` as a single string and either reject the tool or drop the constraint.
+  Suggestion: Split it into `anyOf` branches, each with a single `type` — `{"anyOf": [{"type": "string"}, {"type": "null"}]}`. (Making the property optional instead is a different contract: absent is not the same as `null`.)
+
+Warning: tool "rust.fmt.apply"
+  Path: outputSchema.properties.error_message
+  Issue: `type` is an array (["string","null"]). The array form is legal JSON Schema, but several MCP clients read `type` as a single string and either reject the tool or drop the constraint.
+  Suggestion: Split it into `anyOf` branches, each with a single `type` — `{"anyOf": [{"type": "string"}, {"type": "null"}]}`. (Making the property optional instead is a different contract: absent is not the same as `null`.)
+
+Warning: tool "rust.fmt.apply"
+  Path: outputSchema.$defs.ReceiptChange.properties.effect_after_bytes
+  Issue: `type` is an array (["integer","null"]). The array form is legal JSON Schema, but several MCP clients read `type` as a single string and either reject the tool or drop the constraint.
+  Suggestion: Split it into `anyOf` branches, each with a single `type` — `{"anyOf": [{"type": "integer"}, {"type": "null"}]}`. (Making the property optional instead is a different contract: absent is not the same as `null`.)
+
+Warning: tool "rust.fmt.apply"
+  Path: outputSchema.$defs.ReceiptChange.properties.effect_after_sha256
+  Issue: `type` is an array (["string","null"]). The array form is legal JSON Schema, but several MCP clients read `type` as a single string and either reject the tool or drop the constraint.
+  Suggestion: Split it into `anyOf` branches, each with a single `type` — `{"anyOf": [{"type": "string"}, {"type": "null"}]}`. (Making the property optional instead is a different contract: absent is not the same as `null`.)
+
+Warning: tool "rust.fmt.apply"
+  Path: outputSchema.$defs.ValidationView.properties.mutation_execution_fingerprint
+  Issue: `type` is an array (["string","null"]). The array form is legal JSON Schema, but several MCP clients read `type` as a single string and either reject the tool or drop the constraint.
+  Suggestion: Split it into `anyOf` branches, each with a single `type` — `{"anyOf": [{"type": "string"}, {"type": "null"}]}`. (Making the property optional instead is a different contract: absent is not the same as `null`.)
+
+Warning: tool "rust.fix.apply"
+  Path: outputSchema.properties.error_message
+  Issue: `type` is an array (["string","null"]). The array form is legal JSON Schema, but several MCP clients read `type` as a single string and either reject the tool or drop the constraint.
+  Suggestion: Split it into `anyOf` branches, each with a single `type` — `{"anyOf": [{"type": "string"}, {"type": "null"}]}`. (Making the property optional instead is a different contract: absent is not the same as `null`.)
+
+Warning: tool "rust.fix.apply"
+  Path: outputSchema.$defs.ReceiptChange.properties.effect_after_bytes
+  Issue: `type` is an array (["integer","null"]). The array form is legal JSON Schema, but several MCP clients read `type` as a single string and either reject the tool or drop the constraint.
+  Suggestion: Split it into `anyOf` branches, each with a single `type` — `{"anyOf": [{"type": "integer"}, {"type": "null"}]}`. (Making the property optional instead is a different contract: absent is not the same as `null`.)
+
+Warning: tool "rust.fix.apply"
+  Path: outputSchema.$defs.ReceiptChange.properties.effect_after_sha256
+  Issue: `type` is an array (["string","null"]). The array form is legal JSON Schema, but several MCP clients read `type` as a single string and either reject the tool or drop the constraint.
+  Suggestion: Split it into `anyOf` branches, each with a single `type` — `{"anyOf": [{"type": "string"}, {"type": "null"}]}`. (Making the property optional instead is a different contract: absent is not the same as `null`.)
+
+Warning: tool "rust.fix.apply"
+  Path: outputSchema.$defs.ValidationView.properties.mutation_execution_fingerprint
+  Issue: `type` is an array (["string","null"]). The array form is legal JSON Schema, but several MCP clients read `type` as a single string and either reject the tool or drop the constraint.
+  Suggestion: Split it into `anyOf` branches, each with a single `type` — `{"anyOf": [{"type": "string"}, {"type": "null"}]}`. (Making the property optional instead is a different contract: absent is not the same as `null`.)
+
+Warning: tool "rust.dependency.add"
+  Path: inputSchema.$defs.DependencyAddAction.oneOf[0].properties.package
+  Issue: `type` is an array (["string","null"]). The array form is legal JSON Schema, but several MCP clients read `type` as a single string and either reject the tool or drop the constraint.
+  Suggestion: Split it into `anyOf` branches, each with a single `type` — `{"anyOf": [{"type": "string"}, {"type": "null"}]}`. (Making the property optional instead is a different contract: absent is not the same as `null`.)
+
+Warning: tool "rust.dependency.add"
+  Path: inputSchema.$defs.DependencyAddAction.oneOf[0].properties.target
+  Issue: `type` is an array (["string","null"]). The array form is legal JSON Schema, but several MCP clients read `type` as a single string and either reject the tool or drop the constraint.
+  Suggestion: Split it into `anyOf` branches, each with a single `type` — `{"anyOf": [{"type": "string"}, {"type": "null"}]}`. (Making the property optional instead is a different contract: absent is not the same as `null`.)
+
+Warning: tool "rust.dependency.add"
+  Path: outputSchema.properties.error_message
+  Issue: `type` is an array (["string","null"]). The array form is legal JSON Schema, but several MCP clients read `type` as a single string and either reject the tool or drop the constraint.
+  Suggestion: Split it into `anyOf` branches, each with a single `type` — `{"anyOf": [{"type": "string"}, {"type": "null"}]}`. (Making the property optional instead is a different contract: absent is not the same as `null`.)
+
+Warning: tool "rust.dependency.add"
+  Path: outputSchema.$defs.ReceiptChange.properties.effect_after_bytes
+  Issue: `type` is an array (["integer","null"]). The array form is legal JSON Schema, but several MCP clients read `type` as a single string and either reject the tool or drop the constraint.
+  Suggestion: Split it into `anyOf` branches, each with a single `type` — `{"anyOf": [{"type": "integer"}, {"type": "null"}]}`. (Making the property optional instead is a different contract: absent is not the same as `null`.)
+
+Warning: tool "rust.dependency.add"
+  Path: outputSchema.$defs.ReceiptChange.properties.effect_after_sha256
+  Issue: `type` is an array (["string","null"]). The array form is legal JSON Schema, but several MCP clients read `type` as a single string and either reject the tool or drop the constraint.
+  Suggestion: Split it into `anyOf` branches, each with a single `type` — `{"anyOf": [{"type": "string"}, {"type": "null"}]}`. (Making the property optional instead is a different contract: absent is not the same as `null`.)
+
+Warning: tool "rust.dependency.add"
+  Path: outputSchema.$defs.ValidationView.properties.mutation_execution_fingerprint
+  Issue: `type` is an array (["string","null"]). The array form is legal JSON Schema, but several MCP clients read `type` as a single string and either reject the tool or drop the constraint.
+  Suggestion: Split it into `anyOf` branches, each with a single `type` — `{"anyOf": [{"type": "string"}, {"type": "null"}]}`. (Making the property optional instead is a different contract: absent is not the same as `null`.)
+
+Warning: tool "rust.dependency.remove"
+  Path: inputSchema.$defs.DependencyRemoveAction.oneOf[0].properties.target
+  Issue: `type` is an array (["string","null"]). The array form is legal JSON Schema, but several MCP clients read `type` as a single string and either reject the tool or drop the constraint.
+  Suggestion: Split it into `anyOf` branches, each with a single `type` — `{"anyOf": [{"type": "string"}, {"type": "null"}]}`. (Making the property optional instead is a different contract: absent is not the same as `null`.)
+
+Warning: tool "rust.dependency.remove"
+  Path: outputSchema.properties.error_message
+  Issue: `type` is an array (["string","null"]). The array form is legal JSON Schema, but several MCP clients read `type` as a single string and either reject the tool or drop the constraint.
+  Suggestion: Split it into `anyOf` branches, each with a single `type` — `{"anyOf": [{"type": "string"}, {"type": "null"}]}`. (Making the property optional instead is a different contract: absent is not the same as `null`.)
+
+Warning: tool "rust.dependency.remove"
+  Path: outputSchema.$defs.ReceiptChange.properties.effect_after_bytes
+  Issue: `type` is an array (["integer","null"]). The array form is legal JSON Schema, but several MCP clients read `type` as a single string and either reject the tool or drop the constraint.
+  Suggestion: Split it into `anyOf` branches, each with a single `type` — `{"anyOf": [{"type": "integer"}, {"type": "null"}]}`. (Making the property optional instead is a different contract: absent is not the same as `null`.)
+
+Warning: tool "rust.dependency.remove"
+  Path: outputSchema.$defs.ReceiptChange.properties.effect_after_sha256
+  Issue: `type` is an array (["string","null"]). The array form is legal JSON Schema, but several MCP clients read `type` as a single string and either reject the tool or drop the constraint.
+  Suggestion: Split it into `anyOf` branches, each with a single `type` — `{"anyOf": [{"type": "string"}, {"type": "null"}]}`. (Making the property optional instead is a different contract: absent is not the same as `null`.)
+
+Warning: tool "rust.dependency.remove"
+  Path: outputSchema.$defs.ValidationView.properties.mutation_execution_fingerprint
+  Issue: `type` is an array (["string","null"]). The array form is legal JSON Schema, but several MCP clients read `type` as a single string and either reject the tool or drop the constraint.
+  Suggestion: Split it into `anyOf` branches, each with a single `type` — `{"anyOf": [{"type": "string"}, {"type": "null"}]}`. (Making the property optional instead is a different contract: absent is not the same as `null`.)
+
+Warning: tool "rust.coverage"
+  Path: inputSchema.properties.package
+  Issue: `type` is an array (["string","null"]). The array form is legal JSON Schema, but several MCP clients read `type` as a single string and either reject the tool or drop the constraint.
+  Suggestion: Split it into `anyOf` branches, each with a single `type` — `{"anyOf": [{"type": "string"}, {"type": "null"}]}`. (Making the property optional instead is a different contract: absent is not the same as `null`.)
+
+Warning: tool "rust.coverage"
+  Path: inputSchema.properties.target
+  Issue: `type` is an array (["string","null"]). The array form is legal JSON Schema, but several MCP clients read `type` as a single string and either reject the tool or drop the constraint.
+  Suggestion: Split it into `anyOf` branches, each with a single `type` — `{"anyOf": [{"type": "string"}, {"type": "null"}]}`. (Making the property optional instead is a different contract: absent is not the same as `null`.)
+
+Warning: tool "rust.coverage"
+  Path: outputSchema.$defs.Data.properties.exit_code
+  Issue: `type` is an array (["integer","null"]). The array form is legal JSON Schema, but several MCP clients read `type` as a single string and either reject the tool or drop the constraint.
+  Suggestion: Split it into `anyOf` branches, each with a single `type` — `{"anyOf": [{"type": "integer"}, {"type": "null"}]}`. (Making the property optional instead is a different contract: absent is not the same as `null`.)
+
+Warning: tool "rust.semver.check"
+  Path: inputSchema.properties.package
+  Issue: `type` is an array (["string","null"]). The array form is legal JSON Schema, but several MCP clients read `type` as a single string and either reject the tool or drop the constraint.
+  Suggestion: Split it into `anyOf` branches, each with a single `type` — `{"anyOf": [{"type": "string"}, {"type": "null"}]}`. (Making the property optional instead is a different contract: absent is not the same as `null`.)
+
+Warning: tool "rust.semver.check"
+  Path: inputSchema.properties.target
+  Issue: `type` is an array (["string","null"]). The array form is legal JSON Schema, but several MCP clients read `type` as a single string and either reject the tool or drop the constraint.
+  Suggestion: Split it into `anyOf` branches, each with a single `type` — `{"anyOf": [{"type": "string"}, {"type": "null"}]}`. (Making the property optional instead is a different contract: absent is not the same as `null`.)
+
+Warning: tool "rust.semver.check"
+  Path: outputSchema.$defs.Data.properties.exit_code
+  Issue: `type` is an array (["integer","null"]). The array form is legal JSON Schema, but several MCP clients read `type` as a single string and either reject the tool or drop the constraint.
+  Suggestion: Split it into `anyOf` branches, each with a single `type` — `{"anyOf": [{"type": "integer"}, {"type": "null"}]}`. (Making the property optional instead is a different contract: absent is not the same as `null`.)
+
+Warning: tool "rust.semver.check"
+  Path: outputSchema.$defs.Finding.properties.span
+  Issue: `type` is an array (["string","null"]). The array form is legal JSON Schema, but several MCP clients read `type` as a single string and either reject the tool or drop the constraint.
+  Suggestion: Split it into `anyOf` branches, each with a single `type` — `{"anyOf": [{"type": "string"}, {"type": "null"}]}`. (Making the property optional instead is a different contract: absent is not the same as `null`.)
+
+Warning: tool "rust.semver.check"
+  Path: outputSchema.$defs.Selection.properties.package
+  Issue: `type` is an array (["string","null"]). The array form is legal JSON Schema, but several MCP clients read `type` as a single string and either reject the tool or drop the constraint.
+  Suggestion: Split it into `anyOf` branches, each with a single `type` — `{"anyOf": [{"type": "string"}, {"type": "null"}]}`. (Making the property optional instead is a different contract: absent is not the same as `null`.)
+
+Warning: tool "rust.semver.check"
+  Path: outputSchema.$defs.Selection.properties.target
+  Issue: `type` is an array (["string","null"]). The array form is legal JSON Schema, but several MCP clients read `type` as a single string and either reject the tool or drop the constraint.
+  Suggestion: Split it into `anyOf` branches, each with a single `type` — `{"anyOf": [{"type": "string"}, {"type": "null"}]}`. (Making the property optional instead is a different contract: absent is not the same as `null`.)
+
+Warning: tool "rust.semver.check"
+  Path: outputSchema.$defs.SideEvidence.properties.captured_at_unix_seconds
+  Issue: `type` is an array (["integer","null"]). The array form is legal JSON Schema, but several MCP clients read `type` as a single string and either reject the tool or drop the constraint.
+  Suggestion: Split it into `anyOf` branches, each with a single `type` — `{"anyOf": [{"type": "integer"}, {"type": "null"}]}`. (Making the property optional instead is a different contract: absent is not the same as `null`.)
+
+Warning: tool "rust.mutation.test"
+  Path: inputSchema.properties.package
+  Issue: `type` is an array (["string","null"]). The array form is legal JSON Schema, but several MCP clients read `type` as a single string and either reject the tool or drop the constraint.
+  Suggestion: Split it into `anyOf` branches, each with a single `type` — `{"anyOf": [{"type": "string"}, {"type": "null"}]}`. (Making the property optional instead is a different contract: absent is not the same as `null`.)
+
+Warning: tool "rust.mutation.test"
+  Path: inputSchema.properties.target
+  Issue: `type` is an array (["string","null"]). The array form is legal JSON Schema, but several MCP clients read `type` as a single string and either reject the tool or drop the constraint.
+  Suggestion: Split it into `anyOf` branches, each with a single `type` — `{"anyOf": [{"type": "string"}, {"type": "null"}]}`. (Making the property optional instead is a different contract: absent is not the same as `null`.)
+
+Warning: tool "rust.mutation.test"
+  Path: outputSchema.$defs.Data.properties.exit_code
+  Issue: `type` is an array (["integer","null"]). The array form is legal JSON Schema, but several MCP clients read `type` as a single string and either reject the tool or drop the constraint.
+  Suggestion: Split it into `anyOf` branches, each with a single `type` — `{"anyOf": [{"type": "integer"}, {"type": "null"}]}`. (Making the property optional instead is a different contract: absent is not the same as `null`.)
+
+Warning: tool "rust.mutation.test"
+  Path: outputSchema.$defs.RuntimeEvidence.properties.declared_toolchain
+  Issue: `type` is an array (["string","null"]). The array form is legal JSON Schema, but several MCP clients read `type` as a single string and either reject the tool or drop the constraint.
+  Suggestion: Split it into `anyOf` branches, each with a single `type` — `{"anyOf": [{"type": "string"}, {"type": "null"}]}`. (Making the property optional instead is a different contract: absent is not the same as `null`.)
+
+0 errors, 167 warnings across 21 tools.

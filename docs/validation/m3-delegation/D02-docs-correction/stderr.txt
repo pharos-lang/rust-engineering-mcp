@@ -1,0 +1,27 @@
+2026-09-06T14:44:03.122520Z ERROR codex_core::tools::router: error=apply_patch verification failed: Failed to find expected lines in /Users/cburgosro/Projects/rust-mcp/README.md:
+`quality-artifacts recover|prune` sigue en integración porque
+la CLI principal aún no expone esos subcomandos. En macOS ARM64/APFS la
+calificación del store es positiva; Linux y Windows fallan cerrados.
+2026-09-06T14:44:30.779195Z ERROR codex_core::tools::router: error=apply_patch verification failed: Failed to find expected lines in /Users/cburgosro/Projects/rust-mcp/README.md:
+`quality-artifacts recover|prune` sigue en integración porque
+la CLI principal aún no expone esos subcomandos. En macOS ARM64/APFS la
+calificación del store es positiva; Linux y Windows fallan cerrados.
+2026-09-06T14:45:13.430320Z ERROR codex_core::tools::router: error=apply_patch verification failed: Failed to find expected lines in /Users/cburgosro/Projects/rust-mcp/README.md:
+`quality-artifacts recover|prune` sigue en integración porque
+la CLI principal aún no expone esos subcomandos. En macOS ARM64/APFS la
+calificación del store es positiva; Linux y Windows fallan cerrados.
+2026-09-06T14:46:40.405880Z ERROR codex_core::tools::router: error=apply_patch verification failed: Failed to find expected lines in /Users/cburgosro/Projects/rust-mcp/SECURITY.md:
+Coverage usa además un tmpfs nombrado por job, acotado y ejecutable únicamente en
+sus fases run/report; su contenido es arbitrario y controlado por el proyecto, no
+confiable. No es visible al host ni a otras tools y se elimina con cleanup. Los
+artifacts/reportes siguen en volúmenes `noexec` y la fuente host sigue read-only.
+Tasks no se anuncia: sólo la ruta síncrona calificada de hasta 60 s es alcanzable.
+2026-09-06T14:47:12.868926Z ERROR codex_core::tools::router: error=apply_patch verification failed: Failed to find expected lines in /Users/cburgosro/Projects/rust-mcp/SECURITY.md:
+Coverage usa además un tmpfs nombrado por job, acotado y ejecutable únicamente en
+sus fases run/report; su contenido es arbitrario y controlado por el proyecto, no
+confiable. No es visible al host ni a otras tools y se elimina con cleanup. Los
+artifacts/reportes siguen en volúmenes `noexec` y la fuente host sigue read-only.
+Tasks no se anuncia: sólo la ruta síncrona calificada de hasta 60 s es alcanzable.
+2026-09-06T14:48:49.959308Z ERROR codex_core::tools::router: error=apply_patch verification failed: Failed to find expected lines in /Users/cburgosro/Projects/rust-mcp/docs/architecture.md:
+`local_coordinated` detecta cambios observados, pero no ofrece exclusión
+OS ante escritores externos, CAS ni una transacción visible multiarchivo. La policy

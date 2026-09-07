@@ -1,0 +1,19 @@
+{
+  "status": "built; final source-bound gate pending after ADR059",
+  "command": [
+    "cargo",
+    "build",
+    "--release",
+    "--locked",
+    "--offline",
+    "-p",
+    "rust-engineering-mcp"
+  ],
+  "version": "rust-engineering-mcp 0.2.0-dev",
+  "profile": "core; default features empty",
+  "binary": "target/release/rust-engineering-mcp",
+  "binary_sha256": "3ab4be2b5e1102945194f1d4d836018f2827df1a94a81778af5d4f3160e8662e",
+  "bytes": 22647376,
+  "build_log_sha256": "7b913085fbf9102aadd2e920d8146887abe65f91088033be4cdf2a97fcbfdeaf",
+  "distribution": "local development binary only; no publication/release qualification"
+}

@@ -1,0 +1,2129 @@
+GATE fmt
+GATE check
+    Checking rust-engineering-project v0.2.0-dev (/Users/cburgosro/Projects/rust-mcp/crates/project-adapter)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.37s
+GATE clippy
+    Checking rust-engineering-project v0.2.0-dev (/Users/cburgosro/Projects/rust-mcp/crates/project-adapter)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.32s
+GATE test
+   Compiling rust-engineering-project v0.2.0-dev (/Users/cburgosro/Projects/rust-mcp/crates/project-adapter)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.42s
+     Running unittests src/lib.rs (target/debug/deps/rust_engineering_application-08fd8be0824a9151)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/artifact_access.rs (target/debug/deps/artifact_access-e928531d32742c05)
+
+running 4 tests
+test invalidated_owner_is_purged_without_reading_its_artifact ... ok
+test unknown_reference_and_precancel_do_not_read_storage ... ok
+test every_failed_authorization_or_copy_preserves_project_ttl_and_error_class ... ok
+test bounded_reads_preserve_bytes_metadata_and_never_renew_artifact_retention ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/audit.rs (target/debug/deps/audit-0d51ebcfaf79eb40)
+
+running 6 tests
+test invalid_reference_and_precancel_reach_neither_port ... ok
+test inspection_failure_or_cancellation_never_runs_auditor ... ok
+test lock_mutation_between_ports_keeps_one_generation_and_conservative_evidence ... ok
+test identity_expiry_and_cancellation_after_audit_deny_publication_and_renewal ... ok
+test audit_data_errors_preserve_typed_failure_without_renewing_lease ... ok
+test unavailable_stale_and_finding_failure_are_observations_with_preserved_evidence ... ok
+
+test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/catalog_context.rs (target/debug/deps/catalog_context-7a2010a0a6afd2db)
+
+running 8 tests
+test catalog_context_bundled_rustsec_does_not_become_audit_source ... ok
+test catalog_context_assesses_independent_ages_without_project_reference ... ok
+test rustsec_preserves_existing_positive_u64_sequence_contract ... ok
+test publisher_network_history_does_not_grant_runtime_acquisition ... ok
+test catalog_context_reassesses_retained_observation_at_policy_boundaries ... ok
+test catalog_context_retains_pending_floor_without_active_or_with_older_active ... ok
+test catalog_context_checks_cancellation_before_after_and_before_publication ... ok
+test catalog_context_rejects_mixed_or_out_of_bounds_staging_observations ... ok
+
+test result: ok. 8 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/check.rs (target/debug/deps/check-dfa86ac3c467648c)
+
+running 5 tests
+test precancel_and_unknown_reference_never_invoke_checker_or_store ... ok
+test compiler_failure_is_valid_and_publishes_one_log_with_no_raw_streams ... ok
+test quota_preserves_validation_without_log_and_final_authorization_still_applies ... ok
+test failed_publications_rollback_only_new_artifact_and_do_not_renew_lease ... ok
+test large_streams_keep_both_sections_and_utf8_without_invalidating_completion ... ok
+
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/clippy.rs (target/debug/deps/clippy-d0e89c1e79533e4d)
+
+running 3 tests
+test options_forwarded_and_failed_result_retained_with_one_authorized_log ... ok
+test quota_fallback_preserves_failure_and_still_requires_live_authorization ... ok
+test final_revocation_and_cancellation_rollback_new_log_without_renewal ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/crate_inspect.rs (target/debug/deps/crate_inspect-56446b0c2016ff4f)
+
+running 8 tests
+test freshness_is_reassessed_and_metadata_changes_fail_closed ... ok
+test fingerprint_mismatch_invalid_input_and_precancellation_prevent_queries ... ok
+test unverified_metadata_and_port_errors_are_not_notfound ... ok
+test missing_crate_missing_version_and_empty_collection_remain_distinct ... ok
+test bad_section_dependency_order_and_duplicate_versions_are_rejected ... ok
+test each_section_preserves_bounded_authoritative_facts_and_explicit_absence ... ok
+test every_checkpoint_cancellation_including_final_denies_publication ... ok
+test offset_at_total_is_valid_but_underfilled_or_nonprogressing_pages_fail ... ok
+
+test result: ok. 8 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/crate_search.rs (target/debug/deps/crate_search-3c99fae75497affb)
+
+running 11 tests
+test missing_components_retain_typed_reason_and_same_filters ... ok
+test sqlite_failures_and_invalid_lexical_candidates_are_not_semantic_fallback ... ok
+test matching_unverified_model_and_index_do_not_establish_semantic_integrity ... ok
+test tie_order_is_name_deterministic_and_filters_precede_limit ... ok
+test cancellation_after_native_failure_or_hydration_never_falls_back ... ok
+test unknown_semantic_identity_fails_even_when_all_other_candidates_filtered ... ok
+test modes_use_only_requested_channels_and_preserve_scores ... ok
+test signed_zero_scores_tie_by_name_in_each_channel ... ok
+test invalid_semantic_candidates_and_identity_trigger_explicit_fallback ... ok
+test full_lexical_window_cannot_suppress_hybrid_fusion ... ok
+test fallback_hydrates_at_most_the_hundred_candidate_union ... ok
+
+test result: ok. 11 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/execution.rs (target/debug/deps/execution-ecd28ed5743a9cf8)
+
+running 4 tests
+test budgets_reject_zero_and_excess_without_clamping ... ok
+test capabilities_from_another_configuration_never_authorize_execution ... ok
+test project_code_needs_opt_in_and_strict_without_downgrading ... ok
+test strict_rejects_each_missing_guarantee_and_restricted_has_explicit_subset ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/explain.rs (target/debug/deps/explain-0816f06e7e290ea4)
+
+running 5 tests
+test cancellation_before_and_after_observation_prevents_publication ... ok
+test exact_byte_cap_is_accepted ... ok
+test code_grammar_rejects_shell_flags_unicode_and_wrong_width_through_serde ... ok
+test mismatched_code_and_oversized_utf8_output_are_not_published ... ok
+test explanation_without_project_preserves_observation_and_capture_start_time ... ok
+
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/format.rs (target/debug/deps/format-ffe91d2beed00965)
+
+running 5 tests
+test precancel_and_unknown_reference_never_invoke_formatter_or_store ... ok
+test format_difference_is_valid_and_publishes_one_log_with_no_raw_streams ... ok
+test quota_preserves_validation_without_log_and_final_authorization_still_applies ... ok
+test failed_publications_rollback_only_new_artifact_and_do_not_renew_lease ... ok
+test large_streams_keep_both_sections_and_utf8_without_invalidating_completion ... ok
+
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/inspection.rs (target/debug/deps/inspection-6a3737c54b35cdee)
+
+running 6 tests
+test invalid_reference_and_precancel_never_reach_capture_or_inspector ... ok
+test inspector_failure_preserves_error_without_renewing_capture_ttl ... ok
+test cancellation_inside_successful_inspector_suppresses_result_and_ttl_renewal ... ok
+test identity_change_inside_inspector_permanently_removes_reference ... ok
+test ttl_expiring_inside_inspector_releases_lease_without_publication ... ok
+test success_preserves_capture_and_reports_aged_latest_known_evidence ... ok
+
+test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/mutation.rs (target/debug/deps/mutation-af5a1fc12958a607)
+
+running 15 tests
+test preview_checks_expected_identity_and_authority_before_edit_or_oracle ... ok
+test cancelled_precommit_preserves_live_reference ... ok
+test commit_rejects_wrong_workspace_and_missing_authority_before_publisher_commit ... ok
+test plans_enforce_ttl_boundary_and_reject_backward_clock ... ok
+test plans_enforce_capacity_digest_binding_and_id_uniqueness ... ok
+test preview_refuses_source_changed_after_oracle ... ok
+test plans_enforce_aggregate_candidate_bytes ... ok
+test successful_or_recovery_required_commit_invalidates_reference ... ok
+test preview_oracle_receives_candidate_and_only_root_manifest_changes ... ok
+test absent_manifest_and_editor_or_oracle_failures_never_commit ... ok
+test receipt_requires_reopened_live_authority_and_recover_is_explicit ... ok
+test captured_preview_does_not_hold_registry_during_validation_and_rechecks_generation ... ok
+test format_preview_rejects_changed_manifest_missing_files_and_late_external_changes ... ok
+test rust_previews_check_authority_and_bind_operation_and_both_executions ... ok
+test preview_retention_restores_slot_and_byte_budgets_but_delivered_plans_resolve ... ok
+
+test result: ok. 15 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/quality.rs (target/debug/deps/quality-512b8f8393092b39)
+
+running 8 tests
+test rollback_attempts_every_new_id_even_when_one_removal_fails ... ok
+test audit_fresh_at_execution_is_reassessed_after_log_publication ... ok
+test batch_rolls_back_new_logs_on_capture_failure_or_expiry_during_later_validation ... ok
+test outer_capture_age_includes_execution_and_log_publication_without_changing_verdict ... ok
+test operational_failure_continues_but_infrastructure_cancel_and_mismatched_source_abort ... ok
+test profiles_use_one_capture_and_closed_options_even_after_validation_failure ... ok
+test quota_omission_never_bypasses_final_identity_expiry_or_cancellation ... ok
+test inconsistent_runtime_aborts_before_logs_and_audit_but_command_identity_may_differ ... ok
+
+test result: ok. 8 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/registry.rs (target/debug/deps/registry-42a0488dcbe7bbcd)
+
+running 12 tests
+test configuration_requires_positive_bounded_ttl_and_capacity ... ok
+test cancelled_resolve_preserves_lease_and_pre_cancelled_resolve_skips_backend ... ok
+test cancellation_before_open_never_calls_ports_and_after_backend_never_registers ... ok
+test references_have_no_authority_in_another_registry_even_with_identical_backend ... ok
+test revalidation_failure_revokes_lease_and_releases_capacity ... ok
+test rejected_backend_and_failed_entropy_cannot_consume_registry_slots ... ok
+test malformed_or_oversized_paths_never_reach_backend_and_boundary_is_bytes ... ok
+test cancelled_resolution_does_not_refresh_idle_deadline ... ok
+test colliding_entropy_never_replaces_an_existing_capability ... ok
+test successful_resolution_refreshes_idle_ttl_and_exact_deadline_expires ... ok
+test root_or_fingerprint_change_revokes_reference_permanently ... ok
+test sixty_four_live_handles_fill_capacity_before_backend_access_and_expiry_reclaims_it ... ok
+
+test result: ok. 12 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/resolution.rs (target/debug/deps/resolution-38f0d51a0cb43657)
+
+running 12 tests
+test identity_conflict_precedes_grant_and_capture ... ok
+test authorization_precedes_capture_and_denial_has_no_source_effect ... ok
+test missing_target_manifest_is_rejected_after_authorized_capture ... ok
+test dependency_resolution_requires_explicit_offline_data ... ok
+test dependency_non_member_is_rejected_before_edit_or_resolution ... ok
+test virtual_workspace_root_is_not_a_default_dependency_member ... ok
+test feature_and_workspace_dependency_patches_require_resolution ... ok
+test lint_uses_frozen_inspection_and_semantic_nine_field_validation ... ok
+test absent_lock_remains_absent_and_noop_still_resolves ... ok
+test existing_lock_resolution_preserves_scope_and_binds_fourteen_fields ... ok
+test prepare_rejects_open_kinds_mismatches_and_non_root_patch_before_capture ... ok
+test resolver_cannot_change_other_source_or_lie_about_lock_or_dataset ... ok
+
+test result: ok. 12 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/source.rs (target/debug/deps/source-18267283dc61669d)
+
+running 4 tests
+test cancelled_capture_does_not_renew_idle_ttl ... ok
+test expiry_during_capture_prevents_releasing_bytes ... ok
+test cancelled_capture_preserves_reference_and_precancel_skips_backend ... ok
+test source_requires_live_reference_and_revalidates_after_capture ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/test_run.rs (target/debug/deps/test_run-2d44fcce19d23c05)
+
+running 4 tests
+test options_forwarded_and_failed_result_retained_with_one_authorized_log ... ok
+test final_revocation_and_cancellation_rollback_new_log_without_renewal ... ok
+test quota_fallback_preserves_failure_and_still_requires_live_authorization ... ok
+test publication_preserves_reported_build_phase_for_each_execution_outcome ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/toolchain.rs (target/debug/deps/toolchain-3799db333019b918)
+
+running 3 tests
+test missing_reference_and_precancellation_skip_both_effect_ports ... ok
+test complete_inventory_and_distinct_execution_evidence_survive_publication ... ok
+test incomplete_or_invalidated_observation_never_publishes_or_renews ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src/lib.rs (target/debug/deps/rust_engineering_artifact-9e9b10efe90ee359)
+
+running 19 tests
+test tests::clock_changes_during_capture_do_not_publish_draft ... ok
+test tests::binary_patterns_and_stored_hash_metadata ... ok
+test tests::exact_input_cap_is_truncated_without_an_extra_eof_read ... ok
+test tests::endless_source_bounded_no_extra_probe ... ok
+test tests::entropy_and_eight_collisions_fail_before_input_without_overwrite ... ok
+test tests::expiry_frees_admission_and_expiry_overflow_rejects_without_input ... ok
+test tests::empty_artifacts_consume_counts_and_ownership_is_not_an_oracle ... ok
+test tests::expiry_at_boundary_and_clock_regression_poison ... ok
+test tests::private_redact_rejects_empty_secret_before_reading_input ... ok
+test tests::malformed_source_and_partial_error_roll_back ... ok
+test tests::eof_and_both_budget_suffixes_are_conservative ... ok
+test tests::invalid_limits_and_secret_configuration ... ok
+test tests::remove_is_owner_bound_idempotent_and_releases_capacity ... ok
+test tests::maximum_budget_reserved_before_read_and_released_on_revoke ... ok
+test tests::retain_live_owners_frees_dead_capacity_without_evicting_live_logs ... ok
+test tests::upstream_truncation_is_preserved_and_hashes_only_stored_redacted_bytes ... ok
+test tests::overlapping_nested_and_adjacent_matches_all_chunk_sizes ... ok
+test tests::matches_cross_4096_boundary_and_keep_flags ... ok
+test tests::streaming_matches_independent_whole_buffer_oracle_at_all_short_cuts ... ok
+
+test result: ok. 19 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.41s
+
+     Running unittests src/lib.rs (target/debug/deps/rust_engineering_catalog-3d375c508ce7451a)
+
+running 52 tests
+test audit::lock::tests::cycles_terminate_and_do_not_duplicate_workspace_paths ... ok
+test audit::lock::tests::multihop_workspace_paths_are_shortest_and_deterministic ... ok
+test audit::lock::tests::orphan_nodes_fail_even_when_their_names_match_advisories ... ok
+test audit::lock::tests::name_version_source_and_checksum_limits_are_enforced ... ok
+test audit::lock::tests::checked_in_rsa_fixture_retains_source_and_path ... ok
+test audit::lock::tests::local_external_and_credential_sources_never_become_crates_io ... ok
+test audit::tests::data_deadline_is_not_reported_as_cancellation ... ok
+test audit::lock::tests::exact_git_identity_preserves_revision_and_branch ... ok
+test audit::lock::tests::cancellation_is_checked_during_parse_and_graph_traversal ... ok
+test audit::lock::tests::workspace_mapping_requires_unique_local_identity_and_existing_index ... ok
+test audit::lock::tests::qualified_versions_disambiguate_but_missing_or_duplicate_nodes_fail ... ok
+test audit::tests::owned_rustsec_sqlite_audit_runs_with_actual_network_deny ... ignored, explicit macOS network-denied process; scripts/test-audit-data.py
+test audit::lock::tests::ambiguous_short_edges_fail_before_library_first_match ... ok
+test audit::lock::tests::checkpoints_preserve_timeout_and_distinguish_other_failures ... ok
+test audit::lock::tests::package_and_dependency_names_use_bounded_ascii_grammar ... ok
+test audit::lock::tests::canonical_registry_comparison_preserves_precise_and_exact_origin ... ok
+test audit::lock::tests::unsupported_schema_versions_fields_and_dependency_grammar_fail_closed ... ok
+test audit::lock::tests::exponential_route_graph_keeps_one_representative_in_linear_work ... ok
+test audit::lock::tests::path_depth_and_root_count_omissions_count_roots_not_routes ... ok
+test bundle::tests::emit_development_fixtures ... ignored, explicit maintainer fixture emission; never a distribution identity
+test audit::tests::status_metadata_preserves_verified_snapshot_identity ... ok
+test audit::tests::cancellation_and_snapshot_size_budgets_are_enforced ... ok
+test audit::tests::real_advisory_without_collection_matches_and_sqlite_is_authoritative ... ok
+test audit::tests::sources_never_turn_path_or_alternate_registry_into_crates_io ... ok
+test audit::tests::explicit_canonical_advisory_source_matches_but_registry_fragment_does_not ... ok
+test audit::tests::empty_snapshots_and_unsafe_display_metadata_are_rejected ... ok
+test audit::tests::official_matching_distinguishes_patched_unaffected_withdrawn_and_information ... ok
+test audit::tests::integrity_identity_duplicates_collection_and_transport_schema_fail_closed ... ok
+test audit::lock::tests::package_and_edge_budgets_precede_library_resolution ... ok
+test audit::tests::freshness_is_reassessed_without_refresh_or_copy_age_reset ... ok
+test bundle::tests::rejects_bare_manifest_signature_without_domain_context ... ok
+test bundle::tests::rejects_archive_paths_links_devices_extensions_and_duplicates ... ok
+test bundle::tests::rejects_payload_order_and_signed_manifest_order_independently ... ok
+test bundle::tests::rejects_noncanonical_signed_manifest_and_unknown_schema ... ok
+test bundle::tests::rejects_signature_hash_identity_and_trust_errors ... ok
+test audit::tests::aggregate_findings_budget_preserves_honest_omissions ... ok
+test bundle::tests::rejects_tar_truncation_checksum_base256_and_trailing_data ... ok
+test bundle::tests::authenticates_real_sqlite_and_enforces_sequence ... ok
+test bundle::floor::tests::mismatch_corruption_noncanonical_and_oversized_records_fail_closed ... ok
+test tests::migration_is_atomic_idempotent_and_rejects_unknown_schema ... ok
+test bundle::tests::authenticates_multiple_payloads_and_retains_exact_owned_bytes ... ok
+test tests::runtime_read_only_and_attach_disabled_and_real_fts ... ok
+test bundle::tests::rejects_signed_manifest_publisher_and_channel_mismatches ... ok
+test bundle::tests::rejects_signed_sequence_above_sqlite_integer_range_before_catalog_parsing ... ok
+test bundle::tests::signed_catalog_tampering_and_provenance_mismatch_fail ... ok
+test bundle::floor::tests::original_cli_wire_format_and_rotation_identity_are_preserved ... ok
+test tests::search_payload_is_bounded_and_import_rejects_trailing_pages ... ok
+test inspect::tests::real_sqlite_count_and_version_sentinels_reject_invalid_staging ... ok
+test tests::rehashed_hostile_images_fail_validation_beyond_digest ... ok
+test bundle::tests::rejects_bombs_and_excess_members_before_catalog_parsing ... ok
+test tests::sqlite_progress_handler_interrupts_expensive_query ... ok
+test bundle::tests::semantic_transport_requires_complete_matching_metadata_and_size ... ok
+
+test result: ok. 50 passed; 0 failed; 2 ignored; 0 measured; 0 filtered out; finished in 0.51s
+
+     Running tests/catalog.rs (target/debug/deps/catalog-ca8d6b0f41ccf8ca)
+
+running 10 tests
+test schema_manifest_deserialization_rejects_unknown_fields ... ok
+test latest_known_and_inspect_use_semver_order_and_accept_feature_keys ... ok
+test sqlite_roundtrip_preserves_all_normalized_facts_and_provenance ... ok
+test fts5_treats_operators_as_literal_terms_and_bounds_results ... ok
+test search_use_case_reassesses_freshness_without_changing_snapshot_facts ... ok
+test rejects_corrupt_bytes_hash_size_wal_and_schema_manifest ... ok
+test empty_catalog_is_a_valid_searchable_and_rebuildable_snapshot ... ok
+test failed_activation_preserves_active_snapshot_and_rejects_rollback ... ok
+test reordered_input_builds_identical_bytes_and_rebuild_preserves_facts ... ok
+test realistic_capacity_build_open_rebuild_and_bounded_search ... ok
+
+test result: ok. 10 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.99s
+
+     Running tests/crate_inspect.rs (target/debug/deps/crate_inspect-91beb72027cd3022)
+
+running 5 tests
+test absence_empty_collection_and_no_stable_are_distinct ... ok
+test syntax_and_shape_are_rejected_before_absence_lookup ... ok
+test overview_preserves_stable_yanked_and_explicit_unknown_fields ... ok
+test all_collection_pages_reconstruct_exact_sorted_facts ... ok
+test maximum_schema_collections_and_versions_are_pageable ... ok
+
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s
+
+     Running tests/crate_search.rs (target/debug/deps/crate_search-32ebb29f41c5e6a9)
+
+running 8 tests
+test only_selected_version_supplies_sorted_advisory_ids_and_scalar_facts ... ok
+test selects_highest_eligible_across_all_versions_and_preserves_stable_yanked_fact ... ok
+test msrv_unknown_or_unstable_is_excluded_only_when_compatibility_requested ... ok
+test msrv_numeric_comparison_handles_partial_patch_and_u64_maximum ... ok
+test missing_filtered_invalid_and_prerelease_only_identities_are_distinct ... ok
+test real_bm25_orders_scores_then_names_and_honors_limit ... ok
+test fts_terms_are_literal_and_never_expand_or_or_prefix_syntax ... ok
+test sixty_four_scalar_versions_are_supported_without_schema_change ... ok
+
+test result: ok. 8 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.04s
+
+     Running tests/hybrid.rs (target/debug/deps/hybrid-7c60436a1bf721ae)
+
+running 8 tests
+test successful_stub_retrieval_deduplicates_and_rehydrates_only_sqlite_facts ... ok
+test missing_model_or_index_preserves_lexical_and_skips_inference ... ok
+test authoritative_summary_integrity_failure_is_not_a_successful_lexical_fallback ... ok
+test inference_and_index_errors_preserve_lexical_results_and_explicit_reason ... ok
+test semantic_additions_cannot_exceed_query_limit_or_payload_budget ... ok
+test malformed_embedding_never_reaches_index ... ok
+test duplicate_unknown_excessive_or_invalid_distance_candidates_fall_back_atomically ... ok
+test snapshot_schema_and_complete_model_identity_are_checked_before_inference ... ok
+
+test result: ok. 8 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.04s
+
+     Running unittests src/lib.rs (target/debug/deps/rust_engineering_domain-f255a090caa497b5)
+
+running 13 tests
+test clippy::tests::selection_preserves_package_targets_profile_and_sorts_features ... ok
+test source::directory_tests::explicit_empty_directories_and_implied_parents_are_unique_sorted ... ok
+test check::tests::rejects_contradictions_duplicates_options_and_unsupported_targets ... ok
+test artifact::tests::id_is_canonical_and_serde_validated ... ok
+test source::tests::names_are_portable_relative_and_bounded ... ok
+test test_run::tests::bounded_filter_and_timeout_reject_injection_and_non_ascii ... ok
+test source::tests::sorted_unique_and_no_file_directory_collisions ... ok
+test clippy::tests::defaults_and_all_profiles_roundtrip_only_supported_keys ... ok
+test test_run::tests::closed_selection_preserves_features_and_only_installed_target ... ok
+test clippy::tests::deserialization_cannot_bypass_closed_validated_options ... ok
+test test_run::tests::serde_cannot_bypass_selection_validation_or_add_harness_args ... ok
+test source::directory_tests::directory_collisions_duplicates_names_and_shared_limit_are_enforced ... ok
+test source::tests::file_total_and_implied_directory_limits ... ok
+
+test result: ok. 13 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+     Running tests/catalog_context.rs (target/debug/deps/catalog_context-079da2f9e10504a6)
+
+running 1 test
+test catalog_component_serialization_is_explicit_and_disjoint ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/contracts.rs (target/debug/deps/contracts-a42abdb3a9013a96)
+
+running 7 tests
+test error_text_does_not_reflect_invalid_input ... ok
+test canonical_references_roundtrip_but_reject_paths_and_noncanonical_input ... ok
+test cancellation_does_not_invent_an_error_code ... ok
+test fingerprints_validate_canonical_digests_without_computing_them ... ok
+test project_failure_is_a_normal_result_and_keeps_diagnostics ... ok
+test deserialization_cannot_bypass_outcome_invariants ... ok
+test every_operational_code_has_one_mapping_and_is_not_success ... ok
+
+test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/crate_inspect.rs (target/debug/deps/crate_inspect-784f23319d9c0569)
+
+running 2 tests
+test request_shape_bounds_and_section_rules_are_enforced ... ok
+test unknown_coverage_and_missing_outcomes_have_disjoint_wire_shapes ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/crate_search.rs (target/debug/deps/crate_search-15bcd6169a4e2df0)
+
+running 2 tests
+test filters_and_modes_use_closed_serialized_contracts ... ok
+test msrv_is_canonical_bounded_and_numeric ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/diagnostics.rs (target/debug/deps/diagnostics-69f9127b201bc488)
+
+running 7 tests
+test locationless_diagnostic_preserves_unicode_and_multiline_text ... ok
+test multiline_positions_and_optional_independent_bytes_roundtrip ... ok
+test closed_enums_keep_explicit_wire_names ... ok
+test coordinates_and_byte_offsets_reject_invalid_ranges ... ok
+test multipart_suggestion_preserves_insertion_and_deletion ... ok
+test diagnostic_roundtrip_validates_nested_evidence ... ok
+test objects_reject_unknown_fields_and_empty_required_text ... ok
+
+test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/freshness.rs (target/debug/deps/freshness-361bc60bdeb2fe8d)
+
+running 7 tests
+test observing_or_importing_a_snapshot_does_not_refresh_its_creation ... ok
+test typed_snapshot_result_roundtrip_keeps_evidence_and_truncation ... ok
+test policy_and_source_order_validate_constructor_and_deserialization ... ok
+test unknown_or_future_creation_is_never_false_freshness ... ok
+test exact_age_boundaries_are_reproducible ... ok
+test stored_freshness_cannot_be_relabeled_or_detached_from_provenance ... ok
+test snapshot_evidence_has_required_nullable_fields_and_closed_discriminator ... ok
+
+test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/manifest_edit.rs (target/debug/deps/manifest_edit-dffcf8f0f6b8a04b)
+
+running 4 tests
+test codegen_units_are_nonzero_and_bounded_by_the_type ... ok
+test cargo_names_are_ascii_bounded_and_nonempty ... ok
+test dependency_targets_are_data_not_paths_or_arguments ... ok
+test feature_values_cover_the_closed_cargo_forms ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/mutation.rs (target/debug/deps/mutation-5ed847945515c850)
+
+running 3 tests
+test idempotency_keys_accept_only_bounded_opaque_ascii_tokens ... ok
+test lint_names_are_bounded_ascii_identifiers_not_toml_paths ... ok
+test mutation_ids_are_opaque_canonical_128_bit_hex_values ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/quality.rs (target/debug/deps/quality-3f71f0e5f448bdbf)
+
+running 3 tests
+test required_stage_order_and_precedence_cannot_hide_incomplete_results ... ok
+test passed_label_requires_complete_and_consistent_execution_facts ... ok
+test audit_stale_unknown_unverified_or_omitted_evidence_never_passes ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src/lib.rs (target/debug/deps/rust_engineering_execution-60b83db6c6796e8f)
+
+running 125 tests
+test applied::tests::socket_control_profile_only_adds_socket_and_preserves_every_other_rule ... ok
+test capabilities::tests::malformed_guest_evidence_is_a_failed_probe_not_infrastructure ... ok
+test capabilities::tests::quota_without_actual_throttling_is_not_enforcement ... ok
+test capabilities::tests::ignored_details_do_not_break_known_evidence_but_bad_known_events_fail ... ok
+test capabilities::tests::exit137_without_oom_or_allocation_evidence_never_proves_memory_limit ... ok
+test applied::tests::accepts_docker_equivalent_ordering_and_nullable_empty_collections ... ok
+test cargo_diagnostics::tests::excessive_input_and_parser_recursion_fail_closed_without_dropping_prior_records ... ok
+test cargo_diagnostics::tests::empty_secondary_label_is_absence_without_incomplete_evidence ... ok
+test capabilities::tests::socket_oracle_requires_all_distinct_cases_and_correct_control ... ok
+test applied::tests::accepts_omitted_or_empty_optional_capabilities_and_mounts ... ok
+test cargo_diagnostics::tests::clippy_lint_family_includes_code_less_child_suggestions ... ok
+test applied::tests::rejects_capability_additions_and_implicit_or_applied_mounts ... ok
+test cargo_diagnostics::tests::any_missing_invalid_overlapping_or_oversize_edit_discards_the_whole_group ... ok
+test cargo_diagnostics::tests::invalid_and_misaligned_positions_are_omitted_without_losing_message ... ok
+test cargo_diagnostics::tests::malformed_unknown_duplicate_and_partial_records_preserve_only_valid_prefix ... ok
+test cargo_diagnostics::tests::test_forged_phase_or_cargo_looking_harness_tail_never_certifies_completion ... ok
+test applied::tests::rejects_malformed_wrong_typed_and_duplicate_container_inspection ... ok
+test applied::tests::control_profiles_are_bound_to_scenarios_and_preserve_other_guarantees ... ok
+test cargo_diagnostics::tests::test_compile_failure_requires_ended_cargo_stream_and_preserves_partial_diagnostics ... ok
+test format_output::tests::empty_and_partial_output_are_distinguished ... ok
+test format_output::tests::malformed_chunks_omit_diff_but_keep_other_valid_files ... ok
+test cargo_diagnostics::tests::external_generated_escaped_and_unknown_paths_never_enter_spans ... ok
+test format_output::tests::newline_only_and_crlf_output ... ok
+test format_output::tests::multiple_chunks_deduplicate_and_preserve_unicode_body ... ok
+test format_output::tests::paths_and_header_positions_must_match_capture ... ok
+test applied::tests::rejects_pid_memory_budget_reused_for_other_scenarios_and_reverse ... ok
+test format_output::tests::prefixed_fake_headers_are_never_metadata ... ok
+test cargo_diagnostics::tests::successful_and_failed_finished_events_retain_real_severities ... ok
+test mutation_archive::tests::decodes_changed_binary_bytes_and_strict_prefix_path ... ok
+test cargo_diagnostics::tests::unicode_columns_and_exclusive_byte_ranges_match_captured_source ... ok
+test cargo_diagnostics::tests::multipart_suggestions_stay_grouped_per_flattened_child_node ... ok
+test format_output::tests::omission_counts_unique_files_exactly ... ok
+test format_output::tests::diff_and_input_limits_are_independent_and_utf8_safe ... ok
+test mutation_archive::tests::rejects_extra_missing_duplicate_and_type_collision ... ok
+test mutation_archive::tests::rejects_extensions_links_ownership_and_modes ... ok
+test mutation_gateway::tests::ambiguous_state_change_reply_permanently_quarantines_late_commit ... ok
+test mutation_archive::tests::writable_encoder_uses_closed_modes_and_identity ... ok
+test applied::tests::rejects_unconfined_tampered_missing_and_duplicate_seccomp_profiles ... ok
+test mutation_gateway::tests::fix_requires_complete_strict_cargo_json ... ok
+test cargo_diagnostics::tests::test_harness_tail_is_not_reparsed_as_cargo_or_coverage ... ok
+test mutation_archive::tests::resolution_allows_0644_only_for_a_transient_root_lock ... ok
+test mutation_gateway::tests::fix_socket_rule_masks_the_base_type_and_keeps_only_stream ... ok
+test mutation_gateway::tests::phases_have_closed_programs_arguments_and_mount_access ... ok
+test mutation_gateway::tests::real_rustfmt_exports_full_candidate_and_cleans_owned_objects ... ignored, explicit approved Docker socket/image; isolated ADR-053 staging fixture
+test mutation_gateway::tests::scope_accepts_only_existing_rust_file_byte_changes ... ok
+test mutation_archive::tests::rejects_path_normalization_and_encoding_attacks ... ok
+test project_inspection::tests::explain_retains_exact_compiler_bytes_and_binds_runtime_and_content ... ok
+test project_inspection::tests::failed_calibration_is_latched_but_clean_cancellation_can_retry ... ok
+test project_inspection::tests::explain_unknown_requires_exact_complete_code_specific_compiler_evidence ... ok
+test mutation_archive::tests::rejects_framing_checksum_padding_and_terminator_attacks ... ok
+test mutation_gateway::tests::mutation_volume_requires_exact_tmpfs_quota_identity_and_ownership ... ok
+test mutation_gateway::tests::fix_scope_caps_changed_existing_rust_files ... ok
+test project_inspection::tests::fix_accepts_progress_stderr_only_with_complete_successful_cargo_json ... ok
+test project_inspection::tests::frozen_lock_classification_requires_exact_startup_evidence ... ok
+test project_inspection::tests::production_inspector_formats_postchecks_rejects_and_cancels ... ignored, explicit approved Docker socket/image; production inspector mutation fixture
+test project_inspection::tests::mutation_and_postcheck_require_complete_clean_success ... ok
+test project_inspection::tests::explain_never_promotes_incomplete_empty_or_failed_output ... ok
+test project_metadata::tests::declarations_keep_rename_cfg_features_and_hash_complete_secret_origins ... ok
+test cargo_diagnostics::tests::message_and_span_limits_are_explicit_and_utf8_safe ... ok
+test project_metadata::tests::guest_paths_must_name_exact_captured_files_or_path_dependency_manifests ... ok
+test project_metadata::tests::duplicate_package_identity_fields_are_each_rejected_independently ... ok
+test applied::tests::accepts_each_exact_scenario_and_its_memory_budget ... ok
+test project_metadata::tests::inconsistent_dependency_origins_kinds_requirements_and_duplicates_fail ... ok
+test project_metadata::tests::duplicate_ids_members_names_paths_and_feature_keys_are_rejected ... ok
+test project_metadata::tests::minimal_metadata_has_nullable_msrv_fixed_policy_and_captured_digest ... ok
+test project_metadata::tests::maps_opaque_ids_stably_and_preserves_cargo_resolved_workspace_inheritance ... ok
+test resolution_gateway::tests::missing_offline_data_requires_exact_cargo_directory_source_diagnostics ... ok
+test project_metadata::tests::malformed_unknown_semantics_and_missing_facts_fail_but_new_fields_are_tolerated ... ok
+test resolution_gateway::tests::real_vendor_resolution_preserves_lock_presence_and_cleans_all_objects ... ignored, explicit approved Docker socket/image; isolated ADR-055 two-volume fixture
+test resolution_gateway::tests::phases_seal_commands_and_access_matrix ... ok
+test resolution_gateway::tests::preserve_presence_publishes_only_an_existing_lock ... ok
+test resolution_gateway::tests::scope_rejects_every_non_lock_change_and_empty_lock ... ok
+test project_inspection::tests::invalid_utf8_expansion_keeps_bounded_partial_text ... ok
+test project_metadata::tests::root_profiles_are_declared_settings_with_typed_values_and_overrides ... ok
+test rust_applied::tests::fix_profile_only_adds_the_qualified_loopback_syscalls ... ok
+test project_metadata::tests::invalid_unknown_profiles_cycles_overrides_and_toolchain_are_rejected ... ok
+test rust_calibration::tests::actual_build_script_and_proc_macro_containment ... ignored, explicit Docker socket and approved image; hostile code runs only inside gateway
+test rust_calibration::tests::actual_clippy_build_script_and_proc_macro_containment ... ignored, explicit approved Docker socket; actual Clippy hostile fixtures only inside calibrated gateway
+test rust_calibration::tests::observed_descendants_are_cleaned_on_timeout_cancel_and_overflow ... ignored, explicit Docker socket; fixed hostile descendants only inside gateway
+test rust_calibration::tests::resource_limits_are_actually_enforced ... ignored, explicit Docker socket; bounded resource stress only inside gateway
+test rust_gateway::test_runtime::actual_proc_macro_forgery_cannot_hide_later_cargo_failure ... ignored, explicit approved Docker runtime/socket; contained proc-macro forgery only
+test rust_gateway::test_runtime::actual_test_runtime_containment_and_descendant_cleanup ... ignored, explicit approved Docker runtime/socket; serial actual contained R2 tests
+test rust_gateway::tests::benign_source_transfer_compiles_with_empty_directory ... ignored, Requires explicit local Docker socket and approved Rust image
+test resolution_gateway::tests::metadata_paths_identities_graph_and_completeness_are_closed ... ok
+test rust_gateway::tests::cancellation_and_deadlines_never_mask_harness_or_cleanup_errors ... ok
+test rust_gateway::tests::check_arguments_are_closed_separate_and_fingerprintable ... ok
+test rust_gateway::tests::clippy_profiles_and_selections_have_closed_argv ... ok
+test rust_gateway::tests::completion_preserves_overflow_and_observed_oom ... ok
+test rust_gateway::tests::explain_command_accepts_only_validated_code_as_one_separate_argument ... ok
+test rust_gateway::tests::formatting_command_is_closed_and_cannot_write_source ... ok
+test rust_gateway::tests::installed_components_command_is_fixed_and_has_no_peer_arguments ... ok
+test rust_gateway::tests::test_command_seals_harness_args_and_filter_position ... ok
+test applied::tests::rejects_missing_required_configuration_fields ... ok
+test source_archive::tests::archive_has_only_plain_ustar_entries_and_preserves_binary_bytes ... ok
+test project_metadata::tests::versions_editions_names_targets_and_declared_features_are_validated ... ok
+test state::tests::replaced_state_root_is_rejected ... ok
+test supervisor::tests::each_input_step_is_bounded_and_zero_write_is_an_error ... ok
+test rust_applied::tests::real_mount_shapes_are_accepted_for_both_phases ... ok
+test mutation_archive::tests::enforces_file_total_entry_and_archive_bounds ... ok
+test supervisor::tests::nonblocking_steps_preserve_input_after_short_writes_and_retries ... ok
+test supervisor::tests::oversized_input_is_rejected_before_attempting_spawn ... ok
+test resolution_gateway::tests::transient_lock_refuses_a_4097th_source_entry ... ok
+test project_metadata::tests::profiles_and_override_counts_are_bounded_without_partial_results ... ok
+test tests::never_started_and_runtime_errors_are_not_normal_process_exits ... ok
+test tests::replacement_characters_cannot_expand_the_output_budget ... ok
+test toolchain_metadata::tests::enforces_byte_identifier_and_record_limits_without_partial_inventory ... ok
+test toolchain_metadata::tests::observed_image_inventory_is_complete_normalized_and_order_independent ... ok
+test mutation_archive::tests::rejects_qualified_receipt_export_with_extra_wrong_mode_file ... ok
+test toolchain_metadata::tests::rejects_invalid_bytes_cut_lines_and_whitespace_in_each_stream ... ok
+test tests::configuration_identity_covers_every_generated_argument ... ok
+test toolchain_metadata::tests::rejects_mismatched_headers_release_host_and_incomplete_or_duplicate_records ... ok
+test toolchain_metadata::tests::rejects_supported_uninstalled_targets_and_missing_unknown_duplicate_components ... ok
+test supervisor::tests::early_child_exit_cannot_certify_an_incomplete_transfer ... ok
+test supervisor::tests::empty_input_preserves_null_stdin_behavior ... ok
+test applied::tests::rejects_each_changed_safety_field_independently ... ok
+test supervisor::tests::simultaneous_input_and_output_overflow_remains_bounded ... ok
+test cargo_diagnostics::tests::diagnostic_count_node_depth_and_aggregate_json_budgets_never_claim_complete ... ok
+test rust_applied::tests::resolution_phases_enforce_two_mount_access_and_security ... ok
+test rust_applied::tests::mutations_cannot_add_authority_or_weaken_applied_limits ... ok
+test project_metadata::tests::input_collection_and_aggregate_public_output_budgets_fail_entire_result ... ok
+test supervisor::tests::blocked_child_input_obeys_cancellation ... ok
+test supervisor::tests::blocked_child_input_obeys_timeout_and_joins_readers ... ok
+test mutation_archive::tests::maximum_source_bytes_roundtrip_and_encoder_remain_bounded ... ok
+test supervisor::tests::actual_pipe_drains_output_while_sending_input_and_closes_eof ... ok
+test rust_applied::tests::mutation_phases_enforce_access_argv_and_security_configuration ... ok
+
+test result: ok. 115 passed; 0 failed; 10 ignored; 0 measured; 0 filtered out; finished in 0.15s
+
+     Running tests/gateway.rs (target/debug/deps/gateway-ea7689362dddb5e4)
+
+running 5 tests
+test active_capabilities_require_positive_controls_and_kernel_evidence ... ignored, explicit local Docker image/socket and macOS/APFS required
+test new_gateway_refuses_existing_labelled_container_and_cancel_cleans_it ... ignored, explicit local Docker image/socket and macOS/APFS required
+test successful_and_failed_processes_are_normal_results_with_stable_identity ... ignored, explicit local Docker image/socket and macOS/APFS required
+test timeout_cancellation_and_stream_limits_clean_up_the_container ... ignored, explicit local Docker image/socket and macOS/APFS required
+test configuration_rejects_noncanonical_image_and_paths_before_io ... ok
+
+test result: ok. 1 passed; 0 failed; 4 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src/main.rs (target/debug/deps/rust_engineering_mcp-dc326b7af29f199d)
+
+running 189 tests
+test cargo_vendor_cli::tests::closed_read_only_cli_rejects_implicit_provisioning_and_relative_roots ... ok
+test doctor::tests::configured_failure_dominates_warning_and_success ... ok
+test doctor::tests::failed_worker_never_attests_active_cleanup ... ok
+test capabilities::tests::format_flags_are_optional_unique_and_do_not_replace_configuration ... ok
+test doctor::tests::cancellation_never_becomes_success_and_failure_preserves_checks ... ok
+test doctor::tests::optional_embedded_index_without_model_or_feature_warns_but_explicit_configuration_fails ... ok
+test doctor::tests::parser_is_closed_and_keeps_flag_like_host_values ... ok
+test doctor::tests::stale_and_unknown_snapshot_freshness_are_warnings_not_failures ... ok
+test catalog_sync::tests::only_exact_canonical_https_authority_is_authorized ... ok
+test capabilities::tests::human_summary_uses_the_same_fixed_report ... ok
+test mutation_cli::tests::admin_parser_is_closed_and_requires_explicit_exact_prune_digest ... ok
+test host_config::tests::vendor_data_requires_a_complete_host_pair_runtime_and_disjoint_root ... ok
+test host_config::tests::mutation_journal_and_read_roots_cannot_overlap_in_either_direction ... ok
+test doctor::tests::passive_runtime_configuration_does_not_touch_executable_or_state ... ok
+test doctor::tests::passive_without_configuration_has_bounded_warning_report ... ok
+test stdio::admission::tests::sdk_message_decoder_rejects_batch_arrays ... ok
+test stdio::admission::tests::cancellation_tombstone_is_retained_until_teardown ... ok
+test stdio::admission::tests::reused_id_during_pending_send_retains_both_request_leases ... ok
+test stdio::auditing::provider::tests::host_snapshot_errors_preserve_missing_policy_deadline_and_budget ... ok
+test stdio::admission::tests::duplicate_outstanding_request_id_closes_session ... ok
+test stdio::admission::tests::old_send_completion_cannot_release_reused_request_id ... ok
+test stdio::admission::tests::unpolled_send_futures_are_bounded_and_dropping_releases_capacity ... ok
+test stdio::admission::tests::sdk_dispatch_retains_lease_until_cancellation_cleanup_finishes ... ok
+test stdio::admission::tests::sdk_suppressed_cancelled_response_retains_tombstone ... ok
+test stdio::admission::tests::completed_dispatch_without_sent_response_retains_admission ... ok
+test stdio::admission::tests::cancellation_has_separate_notification_capacity ... ok
+test stdio::auditing::tests::joined_hard_errors_survive_interrupts ... ok
+test stdio::auditing::tests::joined_snapshot_timeouts_preserve_signal_and_hard_errors ... ok
+test stdio::admission::tests::normal_response_send_releases_slot_for_sequential_calls ... ok
+test stdio::admission::tests::queued_send_deadline_cancels_session ... ok
+test stdio::auditing::tests::closed_input_only_accepts_live_reference_shape ... ok
+test stdio::auditing::tests::audit_error_codes_are_explicit_and_schema_valid ... ok
+test stdio::auditing::tests::contradictory_snapshot_provenance_is_blocked ... ok
+test stdio::auditing::tests::provider_read_checkpoint_errors_reach_the_expected_public_outcome ... ok
+test stdio::auditing::tests::present_but_invalid_integrity_is_not_reported_as_missing_snapshot ... ok
+test stdio::auditing::tests::informational_records_do_not_fail_clean_audit ... ok
+test catalog_sync::tests::streamed_and_declared_lengths_obey_the_same_budget ... ok
+test stdio::auditing::tests::snapshot_runtime_errors_keep_operational_codes_and_status ... ok
+test stdio::auditing::tests::fresh_findings_fail_even_when_source_or_output_coverage_is_incomplete ... ok
+test stdio::auditing::tests::passed_and_vulnerable_results_keep_both_evidence_sources ... ok
+test stdio::auditing::tests::stale_and_unknown_snapshot_take_precedence_over_retained_findings ... ok
+test stdio::budget::tests::pending_output_is_deadlined ... ok
+test stdio::budget::tests::stalled_partial_output_keeps_only_written_prefix ... ok
+test stdio::budget::tests::flushed_partial_frame_does_not_restart_output_deadline ... ok
+test stdio::auditing::tests::absent_stale_unknown_and_unverified_snapshots_cannot_pass ... ok
+test stdio::budget::tests::output_cap_counts_across_writes_and_newline_resets_it ... ok
+test stdio::catalog::provider::tests::configured_rustsec_is_independent_and_reread_each_call ... ok
+test stdio::catalog::provider::tests::authenticates_catalog_identity_counts_and_floor ... ok
+test stdio::budget::tests::pending_flush_and_shutdown_are_deadlined ... ok
+test stdio::auditing::tests::snapshot_coverage_count_and_sequence_are_required_for_pass ... ok
+test stdio::budget::tests::completed_input_frame_resets_deadline ... ok
+test stdio::catalog::provider::tests::unconfigured_status_has_no_implicit_catalog_or_audit_source ... ok
+test stdio::catalog::provider::tests::missing_active_keeps_authenticated_reservation_visible_and_pending ... ok
+test stdio::auditing::tests::incomplete_port_facts_never_pass ... ok
+test stdio::budget::tests::idle_reader_has_no_deadline_but_partial_frame_does ... ok
+test stdio::catalog::tests::availability_errors_cancel_and_complete_encoded_budget ... ok
+test stdio::catalog::tests::status_contract_closes_input_components_and_nullable_reservation ... ok
+test stdio::catalog::provider::tests::configured_semantic_paths_without_local_feature_do_not_attempt_loading ... ok
+test stdio::check::tests::emit_check_contract_snapshot ... ignored, prints schemas for owner-reviewed versioned snapshot generation; writes no files
+test stdio::check::tests::cleanup_uncertainty_outranks_cancellation_and_deadline_without_payload ... ok
+test stdio::check::tests::closed_input_and_validated_options_reject_flags_and_contradictions ... ok
+test stdio::check::tests::frozen_lock_failure_preserves_log_as_operational_error ... ok
+test stdio::check::tests::complete_compile_outcomes_are_domain_results_and_timeout_retains_partial_log ... ok
+test stdio::catalog::provider::tests::reserved_newer_floor_preserves_older_active_as_explicit_pending_state ... ok
+test stdio::catalog::provider::tests::wrong_trust_key_never_authenticates_catalog_bytes ... ok
+test stdio::catalog::provider::tests::missing_or_corrupt_floor_never_authenticates_existing_active ... ok
+test stdio::catalog::provider::tests::symlink_and_hardlink_active_are_denied ... ok
+test catalog_sync::tests::untrusted_tls_and_elapsed_deadline_fail_without_bytes ... ok
+test catalog_sync::tests::tls_success_sends_only_expected_request_metadata ... ok
+test stdio::clippy::tests::cleanup_uncertainty_outranks_cancellation_and_deadline_without_payload ... ok
+test stdio::clippy::tests::closed_input_and_validated_options_reject_flags_and_contradictions ... ok
+test stdio::contract::tests::project_failure_is_valid_structured_result_with_identical_text ... ok
+test stdio::contract::tests::rejects_non_object_contracts_at_startup ... ok
+test stdio::contract::tests::validates_schema_and_rust_input_without_reflection ... ok
+test stdio::clippy::tests::frozen_lock_failure_preserves_log_as_operational_error ... ok
+test stdio::catalog::provider::tests::runtime_read_ignores_admin_lease_and_preserves_staging_sentinel ... ok
+test stdio::check::tests::nested_schema_is_closed_and_nullable_facts_are_required ... ok
+test stdio::clippy::tests::complete_compile_outcomes_are_domain_results_and_timeout_retains_partial_log ... ok
+test stdio::catalog::provider::tests::catalog_session_keeps_initial_generation_and_unavailable_result ... ok
+test stdio::crate_inspect::tests::trimming_keeps_prefix_and_progress_without_skipping_or_emptying_page ... ok
+test stdio::check::tests::retention_capacity_preserves_compile_semantics_and_diagnostics_without_artifact_uri ... ok
+test stdio::crate_inspect::tests::cancellation_before_encoding_cannot_publish_success ... ok
+test stdio::clippy::tests::closed_profiles_roundtrip_and_default_matches_native_policy ... ok
+test stdio::crate_inspect::tests::input_defaults_closure_and_section_pagination_rules ... ok
+test stdio::crate_inspect::tests::missing_lookup_and_operational_errors_remain_distinct ... ok
+test stdio::catalog::provider::tests::rustsec_filesystem_failures_preserve_catalog_and_report_specific_reason ... ok
+test stdio::clippy::tests::nested_schema_is_closed_and_nullable_facts_are_required ... ok
+test stdio::clippy::tests::retention_capacity_preserves_compile_semantics_and_diagnostics_without_artifact_uri ... ok
+test stdio::crate_search::tests::msrv_input_accepts_only_canonical_bounded_versions ... ok
+test stdio::explaining::tests::explanation_byte_limit_is_independent_of_json_character_limit ... ok
+test stdio::crate_search::tests::fallback_tags_and_operational_errors_are_explicit ... ok
+test stdio::explaining::tests::incomplete_or_inconsistent_observations_never_pass ... ok
+test stdio::explaining::tests::joined_hard_errors_survive_both_deadline_and_cancellation ... ok
+test stdio::explaining::tests::code_only_input_rejects_injections_and_authority ... ok
+test stdio::crate_search::tests::closed_input_defaults_and_semantic_query_bounds ... ok
+test stdio::explaining::tests::operational_results_have_no_partial_inventory_and_infrastructure_is_not_project_error ... ok
+test stdio::crate_search::tests::hybrid_wire_matches_schema_and_closes_every_nested_object ... ok
+test stdio::format::tests::emit_format_contract_snapshot ... ignored, prints schemas for owner-reviewed versioned snapshot generation; writes no files
+test stdio::explaining::tests::unknown_valid_code_has_no_fabricated_explanation ... ok
+test stdio::explaining::tests::nested_schema_rejects_invalid_facts_and_missing_nullable_fields ... ok
+test stdio::explaining::tests::explanation_contract_is_closed_and_carries_artifact_evidence ... ok
+test stdio::crate_inspect::tests::all_sections_unknown_facts_and_nested_objects_match_announced_schema ... ok
+test stdio::format::tests::frozen_lock_failure_preserves_log_as_operational_error ... ok
+test stdio::crate_inspect::tests::full_mcp_budget_preserves_valid_maximum_version_facts_and_counts ... ok
+test stdio::format::tests::input_accepts_only_live_reference_shape ... ok
+test stdio::format::tests::cleanup_uncertainty_outranks_cancellation_and_deadline_without_payload ... ok
+test stdio::format::tests::complete_format_outcomes_are_domain_results_and_timeout_retains_partial_log ... ok
+test stdio::format::tests::incomplete_format_never_passes_and_display_omission_keeps_execution_facts ... ok
+test stdio::format::tests::operational_outcomes_cover_unavailable_denied_timeout_and_infrastructure ... ok
+test stdio::mutation::audit::tests::event_is_closed_and_excludes_paths_diffs_and_untrusted_values ... ok
+test stdio::mutation::audit::tests::phase_and_reason_mapping_are_exhaustive_and_recovery_is_distinct ... ok
+test stdio::mutation::audit::tests::unavailable_allocation_is_explicitly_null ... ok
+test stdio::mutation::semantic_input::tests::add_preview_defaults_and_maps_direct_fields ... ok
+test stdio::mutation::semantic_input::tests::dependency_lifecycle_actions_preserve_commit_and_receipt_contracts ... ok
+test stdio::inspection::tests::operational_results_and_infrastructure_failures_remain_distinct ... ok
+test stdio::mutation::semantic_input::tests::dependency_preview_rejects_bad_paths_targets_and_unknown_fields ... ok
+test stdio::mutation::semantic_input::tests::empty_and_unknown_edit_fields_are_rejected ... ok
+test stdio::mutation::semantic_input::tests::feature_values_use_domain_validation ... ok
+test stdio::mutation::semantic_input::tests::lint_json_shape_and_mapping_remain_unchanged ... ok
+test stdio::mutation::semantic_input::tests::profile_values_are_typed_and_bounded ... ok
+test stdio::mutation::semantic_input::tests::schemas_keep_dependency_tools_closed ... ok
+test stdio::mutation::semantic_input::tests::workspace_dependencies_forbid_optional_and_unknown_inheritance ... ok
+test stdio::mutation::tests::cleanup_uncertain_is_observed_before_reason_mapping ... ok
+test stdio::mutation::semantic_input::tests::dependency_manifest_schema_rejects_traversal_and_matches_portable_components ... ok
+test stdio::mutation::tests::format_provenance_requires_exact_version_and_terminal_fingerprint_frame ... ok
+test stdio::mutation::tests::late_worker_cancellation_revokes_the_undelivered_plan_before_next_admission ... ok
+test stdio::mutation::tests::lost_preview_is_a_cancelled_event_without_a_produced_id ... ok
+test stdio::mutation::tests::missing_grant_denies_before_creating_state ... ok
+test stdio::inspection::tests::domain_output_matches_closed_schema_and_required_nullable_facts ... ok
+test stdio::format::tests::nested_schema_is_closed_and_nullable_facts_are_required ... ok
+test stdio::mutation::tests::resolved_provenance_requires_exact_frames_and_preserve_presence_disposition ... ok
+test stdio::inspection::tests::project_ref_only_input_rejects_extra_fields_and_malformed_tokens ... ok
+test stdio::mutation::tests::failure_status_and_mcp_error_distinguish_availability_validation_and_cargo ... ok
+test stdio::project::tests::all_outcomes_serialize_to_their_closed_runtime_schema ... ok
+test stdio::format::tests::retention_capacity_preserves_format_semantics_and_diagnostics_without_artifact_uri ... ok
+test stdio::quality::tests::all_operational_stage_failures_retain_rows_with_local_evidence ... ok
+test stdio::mutation::tests::nested_contract_rejects_scope_escalation_and_arbitrary_edits ... ok
+test stdio::explaining::tests::complete_wire_budget_counts_both_structured_content_and_text ... ok
+test stdio::quality::tests::emit_quality_contract_snapshot ... ignored, prints schemas for owner-reviewed versioned snapshot generation; writes no files
+test stdio::quality::tests::cleanup_uncertainty_and_infrastructure_outrank_worker_interruption ... ok
+test stdio::quality::tests::inconsistent_order_variant_fingerprint_or_log_metadata_fails_closed ... ok
+test catalog_sync::tests::redirects_never_connect_to_the_target ... ok
+test stdio::quality::tests::divergent_audit_runtime_is_rejected_but_command_execution_fingerprints_may_differ ... ok
+test stdio::quality::tests::aggregate_precedence_preserves_failed_unavailable_and_blocked_rows ... ok
+test stdio::quality::tests::committed_publication_survives_late_cancellation_and_timeout ... ok
+test stdio::quality::tests::only_reference_and_explicit_closed_profile_are_accepted ... ok
+test stdio::inspection::tests::complete_wire_budget_rejects_large_structured_and_text_payload ... ok
+test stdio::resources::tests::blob_metadata_describes_actual_stored_bytes ... ok
+test stdio::resources::tests::bootstrap_blocks_before_touching_poisoned_authority ... ok
+test stdio::resources::tests::canonical_uris_round_trip_and_reject_every_additional_component ... ok
+test stdio::mutation::tests::preview_budget_counts_escaped_duplicate_mcp_content_before_plan_retention ... ok
+test stdio::quality::tests::nested_schema_is_closed_and_required_nullable_facts_are_present ... ok
+test stdio::testing::tests::cleanup_uncertainty_outranks_cancellation_and_deadline_without_payload ... ok
+test stdio::testing::tests::closed_input_and_validated_options_reject_flags_and_contradictions ... ok
+test stdio::crate_search::tests::cancellation_during_budget_trimming_cannot_publish_success ... ok
+test stdio::resources::tests::binary_content_has_exact_base64_and_private_uncacheable_metadata ... ok
+test stdio::quality::tests::profiles_keep_rows_repair_facts_resources_and_exact_text_fallback ... ok
+test stdio::testing::tests::frozen_lock_failure_preserves_log_as_operational_error ... ok
+test stdio::testing::tests::complete_compile_outcomes_are_domain_results_and_timeout_retains_partial_log ... ok
+test stdio::quality::tests::per_stage_diagnostic_count_is_bounded_even_below_byte_budget ... ok
+test stdio::testing::tests::supported_selection_roundtrips_without_coverage_fields ... ok
+test stdio::toolchain::tests::joined_hard_errors_survive_both_deadline_and_cancellation ... ok
+test stdio::toolchain::tests::domain_output_matches_closed_nested_schema_and_text_fallback ... ok
+test stdio::testing::tests::test_phase_facts_and_inconsistent_pass_cannot_fabricate_success ... ok
+test stdio::testing::tests::nested_schema_is_closed_and_nullable_facts_are_required ... ok
+test stdio::testing::tests::retention_capacity_preserves_compile_semantics_and_diagnostics_without_artifact_uri ... ok
+test stdio::toolchain::tests::complete_wire_budget_counts_both_structured_content_and_text ... ok
+test stdio::toolchain::tests::operational_results_have_no_partial_inventory_and_infrastructure_is_not_project_error ... ok
+test stdio::toolchain::tests::project_ref_only_input_rejects_runtime_authority_and_malformed_tokens ... ok
+test stdio::workers::tests::aborted_waiter_and_session_shutdown_signal_the_worker ... ok
+test stdio::workers::tests::detached_worker_panic_latches_failure_for_both_wait_modes ... ok
+test stdio::workers::tests::expired_cancelled_and_closed_admission_never_invoke_work ... ok
+test stdio::toolchain::tests::required_nullable_facts_allow_null_but_never_omission ... ok
+test stdio::quality::tests::forged_pass_partial_execution_test_build_and_audit_unavailability_never_pass ... ok
+test stdio::workers::tests::joined_success_does_not_observe_its_own_waiter_drop_as_cancellation ... ok
+test stdio::toolchain::tests::schema_rejects_unknown_inventory_and_runtime_facts_and_overlong_identifiers ... ok
+test stdio::workers::tests::cancelled_waiter_retains_capacity_until_real_completion ... ok
+test stdio::workers::tests::abandoning_joined_waiter_signals_cancellation_but_shutdown_waits_for_cleanup ... ok
+test catalog_sync::tests::encoded_partial_and_error_responses_are_rejected_without_retry ... ok
+test stdio::project::tests::every_operational_code_and_cancellation_use_error_content ... ok
+test stdio::workers::tests::joined_preserves_cleanup_error_and_waits_after_cancel_or_deadline ... ok
+test stdio::workers::tests::deadline_does_not_release_a_still_running_worker ... ok
+test stdio::crate_search::tests::complete_result_budget_trims_suffix_without_cropping_facts_or_losing_counts ... ok
+test stdio::check::tests::response_budget_drops_diagnostics_but_keeps_log_and_downgrades_passed ... ok
+test stdio::clippy::tests::response_budget_drops_diagnostics_but_keeps_log_and_downgrades_passed ... ok
+test stdio::format::tests::response_budget_drops_diagnostics_but_keeps_log_and_downgrades_passed ... ok
+test stdio::testing::tests::response_budget_drops_diagnostics_but_keeps_log_and_downgrades_passed ... ok
+test stdio::quality::tests::response_budget_preserves_all_stage_rows_and_resources_with_visible_omissions ... ok
+test stdio::auditing::tests::bounded_response_marks_omissions_and_downgrades_pass ... ok
+
+test result: ok. 186 passed; 0 failed; 3 ignored; 0 measured; 0 filtered out; finished in 5.96s
+
+     Running tests/capabilities_cli.rs (target/debug/deps/capabilities_cli-ffb2e59eabb8b6e8)
+
+running 9 tests
+test invalid_configuration_human_output_is_fixed_and_does_not_echo_paths ... ok
+test invalid_configuration_preserves_default_json_bytes_and_explicit_alias ... ok
+test capabilities_non_utf8_paths_are_configuration_errors_without_panics ... ok
+test duplicate_or_missing_format_configuration_is_syntax_failure ... ok
+test capabilities_rejects_long_or_control_arguments_without_reflection ... ok
+test capabilities_non_utf8_flags_and_image_are_usage_errors ... ok
+test capabilities_rejects_duplicate_unknown_and_positional_flags ... ok
+test capabilities_invalid_paths_and_images_report_unavailable_json ... ok
+test capabilities_requires_every_flag_and_every_value ... ok
+
+test result: ok. 9 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.32s
+
+     Running tests/catalog_cli.rs (target/debug/deps/catalog_cli-e6a85117e54c0ee8)
+
+running 5 tests
+test stale_staging_does_not_override_authenticated_active ... ok
+test separate_process_import_status_sync_and_durable_rollback ... ok
+test key_rotation_retains_floor_and_channel_change_is_explicit ... ok
+test invalid_candidate_preserves_active_and_corrupt_active_recovery_keeps_floor ... ok
+test durable_reservation_recovers_interruption_and_missing_floor_never_resets ... ok
+
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.33s
+
+     Running tests/catalog_status.rs (target/debug/deps/catalog_status-164f699e4f7041d5)
+
+running 2 tests
+test catalog_runtime_cli_rejects_incomplete_relative_and_duplicate_authority ... ok
+test actual_wire_catalog_status_authenticates_fixture_and_schema ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.16s
+
+     Running tests/cli.rs (target/debug/deps/cli-396ffcfd8381ae29)
+
+running 13 tests
+test non_utf8_argument_is_rejected_without_panicking ... ok
+test no_arguments_fail_without_polluting_stdout ... ok
+test host_root_non_utf8_is_rejected_before_server_startup ... ok
+test untrusted_arguments_are_not_echoed ... ok
+test version_comes_from_package_metadata ... ok
+test trailing_arguments_are_not_ignored ... ok
+test help_describes_only_implemented_commands ... ok
+test non_utf8_snapshot_configuration_is_rejected_without_echo ... ok
+test closed_output_stream_returns_one_without_panicking ... ok
+test unsupported_modes_fail_without_claiming_mcp_support ... ok
+test audit_snapshot_flags_require_unique_complete_valid_host_configuration ... ok
+test rust_runtime_options_require_a_complete_unique_approved_tuple ... ok
+test host_policy_arguments_are_bounded_and_not_ignored ... ok
+
+test result: ok. 13 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.16s
+
+     Running tests/crate_inspect.rs (target/debug/deps/crate_inspect-f5185bc1621b5d8e)
+
+running 2 tests
+test actual_cli_mcp_paginates_exact_sqlite_sections_and_preserves_unknowns ... ok
+test actual_mcp_continuation_detects_restart_generation_and_rejects_invalid_pages ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.31s
+
+     Running tests/crate_search.rs (target/debug/deps/crate_search-442c5046ee61d2e4)
+
+running 2 tests
+test actual_wire_search_rejects_query_and_filter_authority_extensions ... ok
+test actual_wire_lexical_filters_and_semantic_fallback_use_identical_sqlite_facts ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.20s
+
+     Running tests/doctor.rs (target/debug/deps/doctor-d3631cba3a6b9ae3)
+
+running 3 tests
+test passive_doctor_and_version_are_bounded_and_never_execute_path_tools ... ok
+test doctor_reads_signed_catalog_without_admin_lease_or_staging_mutation ... ok
+test doctor_rejects_closed_cli_syntax_and_reports_configured_access_failures ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.10s
+
+     Running tests/inspection_runtime.rs (target/debug/deps/inspection_runtime-836bf750ab4f64c1)
+
+running 28 tests
+test audit_runtime::audit_missing_integrity_path_and_symlink_fail_closed ... ignored, explicit approved Docker runtime/socket on macOS APFS; run this binary serially
+test audit_runtime::audit_real_rsa_and_lock_generations_are_captured_without_building ... ignored, explicit approved Docker runtime/socket on macOS APFS; run this binary serially
+test audit_runtime::audit_snapshot_freshness_and_advisory_classification_are_distinct ... ignored, explicit approved Docker runtime/socket on macOS APFS; run this binary serially
+test check_cancellation_and_eof_join_active_cargo_jobs ... ignored, explicit approved Docker runtime/socket on macOS APFS; run this binary serially
+test check_reports_success_and_borrow_errors_with_live_log_resources ... ignored, explicit approved Docker runtime/socket on macOS APFS; run this binary serially
+test clippy_profiles_report_findings_and_verified_log_resources ... ignored, explicit approved Docker runtime/socket on macOS APFS; run this binary serially
+test dependency_mutation_runtime::absent_lock_stays_absent_and_manifest_patch_families_use_resolution_oracle ... ignored, explicit approved Docker runtime/socket on macOS APFS; serial runtime qualification
+test dependency_mutation_runtime::dependency_add_remove_preview_commit_restart_and_scope ... ignored, explicit approved Docker runtime/socket on macOS APFS; serial runtime qualification
+test dependency_mutation_runtime::dependency_dataset_selection_target_and_inherited_removal_fail_closed ... ignored, explicit approved Docker runtime/socket on macOS APFS; serial runtime qualification
+test dependency_mutation_runtime::package_root_feature_set_and_remove_are_exact_and_lock_preserving ... ignored, explicit approved Docker runtime/socket on macOS APFS; serial runtime qualification
+test eof_and_cancellation_during_calibration_join_workers_and_leave_no_owned_objects ... ignored, explicit approved Docker runtime/socket on macOS APFS; run this binary serially
+test explain_runtime::compiler_explanation_requires_no_project_and_preserves_actual_evidence ... ignored, explicit approved Docker runtime/socket on macOS APFS; run this binary serially
+test fix_hostile_runtime::fix_executes_hostile_proc_macro_and_retains_no_plan_after_compile_error ... ignored, explicit approved Docker runtime/socket on macOS APFS; serial hostile proc-macro qualification
+test fix_hostile_runtime::fix_rejects_proc_macro_manifest_mutation_and_host_escape_without_retaining_plan ... ignored, explicit approved Docker runtime/socket on macOS APFS; serial hostile proc-macro qualification
+test fix_mutation_runtime::fix_active_descendants_join_on_cancellation_timeout_and_eof_without_host_changes ... ignored, explicit approved Docker runtime/socket on macOS APFS; serial runtime qualification
+test fix_mutation_runtime::fix_nonzero_or_missing_lock_never_retains_a_candidate_or_changes_host ... ignored, explicit approved Docker runtime/socket on macOS APFS; serial runtime qualification
+test fix_mutation_runtime::fix_preview_commit_recheck_noop_and_restart_receipt_keep_exact_scope ... ignored, explicit approved Docker runtime/socket on macOS APFS; serial runtime qualification
+test format_mutation_runtime::fmt_preview_commit_conflict_reopen_check_restart_receipt_and_noop ... ignored, explicit approved Docker runtime/socket on macOS APFS; run this binary serially
+test format_mutation_runtime::fmt_preview_is_default_denied_and_cargo_alias_is_rejected_before_gateway ... ignored, explicit approved Docker runtime/socket on macOS APFS; run this binary serially
+test format_reports_workspace_diffs_without_source_writes ... ignored, explicit approved Docker runtime/socket on macOS APFS; run this binary serially
+test mutation_concurrency_runtime::thirteen_m1_tools_keep_existing_busy_contract_during_real_native_commit ... ignored, explicit approved Docker runtime/socket and APFS; serial M1/M2 concurrency qualification
+test mutation_runtime::manifest_preview_commit_conflict_reopen_and_restart_receipt ... ignored, explicit approved Docker runtime/socket on macOS APFS; run this binary serially
+test quality_runtime::quality_cancellation_and_eof_join_the_active_test_stage ... ignored, explicit approved Docker runtime/socket on macOS APFS; run this binary serially
+test quality_runtime::quality_fast_retains_format_and_strict_clippy_failures_and_readonly_source ... ignored, explicit approved Docker runtime/socket on macOS APFS; run this binary serially
+test quality_runtime::quality_standard_distinguishes_pass_test_failure_and_unavailable_audit ... ignored, explicit approved Docker runtime/socket on macOS APFS; run this binary serially
+test test_cancellation_and_eof_join_active_test_binaries ... ignored, explicit approved Docker runtime/socket on macOS APFS; run this binary serially
+test test_reports_results_selections_and_verified_harness_logs ... ignored, explicit approved Docker runtime/socket on macOS APFS; run this binary serially
+test toolchain_inspect_observes_installed_runtime_with_shared_calibration ... ignored, explicit approved Docker runtime/socket on macOS APFS; run this binary serially
+
+test result: ok. 0 passed; 0 failed; 28 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/protocol.rs (target/debug/deps/protocol-808c1375a4bc7beb)
+
+running 38 tests
+test eof_drains_complete_requests_already_written ... ok
+test empty_eof_exits_cleanly_without_protocol_output ... ok
+test first_crate_inspect_requires_discovery ... ok
+test first_project_call_preserves_bounded_bootstrap_behavior ... ok
+test first_catalog_status_is_denied_before_discovery ... ok
+test first_crate_search_requires_bootstrap_before_catalog_access ... ok
+test eof_with_unterminated_frame_is_rejected ... ok
+test fragmented_crlf_frames_and_coalesced_requests ... ok
+test invalid_json_syntax_is_ignored_and_invalid_shape_is_rejected ... ok
+test modern_discovery_and_deterministic_project_tool ... ok
+test modern_request_bootstraps_without_discovery ... ok
+test exact_frame_limit_accepts_lf_and_counts_cr ... ok
+test closed_stdout_exits_even_when_stdin_remains_open ... ok
+test metadata_errors_after_bootstrap_are_recoverable ... ok
+test project_fixtures::project_open_missing_or_invalid_manifest_returns_tool_error_and_service_survives ... ok
+test project_fixtures::deeply_nested_toml_is_rejected_without_aborting_the_server ... ok
+test initial_metadata_errors_follow_sdk_lifecycle ... ok
+test oversized_frames_fail_without_waiting_for_eof_or_leaking_input ... ok
+test clippy_closed_profiles_and_options_are_enforced_in_all_wire_versions ... ok
+test batches_are_rejected_by_the_pinned_sdk_in_every_supported_mode ... ok
+test catalog_status_closed_input_and_explicit_absence_in_all_versions ... ok
+test diagnostic_explain_validates_code_without_project_authority_in_all_versions ... ok
+test crate_search_validates_closed_inputs_and_reports_missing_catalog_in_all_versions ... ok
+test crate_inspect_closed_shape_and_missing_catalog_in_all_versions ... ok
+test legacy_versions_and_initialize_fallback ... ok
+test opaque_resources_are_not_enumerated_and_invalid_authority_is_uniform ... ok
+test sequential_responses_release_admission_for_reused_request_ids ... ok
+test unavailable_tool_and_unknown_cancellation_preserve_service ... ok
+test first_inspect_is_denied_until_discovery_then_reference_validation_runs ... ok
+test project_fixtures::inspect_live_reference_without_runtime_is_denied_without_project_execution ... ok
+test project_open_tool_contract_matches_snapshot_and_rejects_invalid_arguments ... ok
+test project_open_without_host_authority_is_a_structured_operational_failure ... ok
+test project_fixtures::project_open_succeeds_with_host_root_in_modern_and_all_legacy_versions ... ok
+test test_closed_options_are_enforced_in_all_wire_versions ... ok
+test quality_profiles_require_closed_input_and_live_reference_in_all_versions ... ok
+test rust_mutation_contracts_are_closed_and_default_denied_in_all_versions ... ok
+test inspect_rejects_malformed_input_and_unknown_references_in_all_versions ... ok
+test partial_frame_deadline_closes_a_live_input_pipe ... ok
+
+test result: ok. 38 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 10.55s
+
+     Running unittests src/lib.rs (target/debug/deps/rust_engineering_project-7ab412a8be08feed)
+
+running 64 tests
+test filesystem::macos::mutation::tests::abrupt_checkpoint_helper ... ok
+test filesystem::macos::mutation::tests::heterogeneous_records_leave_one_maximum_recovery_copy_before_new_admission ... ok
+test catalog_store::macos::tests::ownership_predicates_reject_another_principal ... ok
+test catalog_store::macos::tests::sdk_unique_flag_and_stat_both_reject_hardlinks ... ok
+
+running 1 test
+
+running 1 test
+test catalog_store::macos::tests::private_read_rechecks_ancestors_even_when_file_is_absent ... ok
+
+running 1 test
+
+running 1 test
+test filesystem::macos::mutation::tests::legacy_v1_receipt_is_read_only_and_explicit_recovery_migrates_to_v2 ... ok
+test filesystem::macos::mutation::tests::aborted_cleanup_resumes_after_a_durable_missing_temp_prefix ... ok
+test filesystem::macos::mutation::tests::measure_real_format_commit_only ... ignored, explicit release-profile APFS commit-only memory measurement
+test filesystem::macos::mutation::tests::measure_real_format_commit_replay_recovery_and_index_ceiling ... ignored, explicit release-profile APFS ceiling measurement
+test filesystem::macos::mutation::tests::cancellation_during_final_logical_recapture_aborts_and_cleans_temps ... ok
+test filesystem::macos::mutation::tests::logical_recapture_excludes_only_owned_temp_nodes ... ok
+test filesystem::macos::mutation::tests::metadata_growth_reservation_covers_maximum_v2_and_legacy_conversion ... ok
+test filesystem::macos::mutation::tests::exact_query_and_recovery_ignore_unrelated_store_damage ... ok
+test filesystem::macos::mutation::tests::another_workspace_cannot_promote_a_staging_journal ... ok
+test filesystem::macos::mutation::tests::manifest_and_lock_recovery_preserves_unknown_untouched_manifest ... ok
+
+running 1 test
+test filesystem::macos::mutation::tests::manifest_and_lock_first_swap_crash_rolls_forward_only_known_bytes ... ok
+test filesystem::macos::mutation::tests::canonical_bundle_order_handles_module_file_and_sibling_module_directory ... ok
+test catalog_store::macos::tests::interrupted_commit_preserves_complete_generation_and_reports_uncertainty ... ok
+test filesystem::macos::mutation::tests::protected_nested_swap_rejects_a_symlinked_parent_that_plain_swap_follows ... ok
+test filesystem::macos::mutation::tests::newer_staged_record_left_by_persist_failure_is_recovered ... ok
+
+running 1 test
+
+running 1 test
+test filesystem::macos::mutation::tests::post_swap_durability_enospc_recovers_known_after_generation ... ok
+test filesystem::macos::mutation::tests::proven_swap_failure_returns_cause_and_records_abort ... ok
+test filesystem::macos::mutation::tests::lost_temp_and_out_of_order_generation_remain_recovery_required ... ok
+test filesystem::macos::mutation::tests::partial_scratch_and_sync_boundary_failures_abort_without_source_effect ... ok
+test filesystem::macos::mutation::tests::corrupt_store_is_quarantined_while_a_new_physical_workspace_and_store_continue ... ok
+test filesystem::macos::mutation::tests::recovery_terminal_journal_short_write_preserves_known_after_and_evidence ... ok
+test filesystem::macos::mutation::tests::workspace_lock_names_are_bounded_shards ... ok
+test filesystem::macos::mutation::tests::workspace_patch_preserves_unchanged_inherited_local_lints ... ok
+test filesystem::macos::source::direct_file_validation_tests::invalid_relative_path_is_rejected_before_any_filesystem_open ... ok
+test filesystem::macos::mutation::tests::streamed_checksums_preserve_buffered_v1_and_v2_bytes ... ok
+test filesystem::macos::mutation::tests::second_store_observes_global_lock_as_busy ... ok
+test manifest::tests::accepts_authorized_external_dependency_without_inheritance ... ok
+test manifest::tests::accepts_real_package_and_retains_exact_bytes ... ok
+test manifest::tests::bounds_dependency_depth_and_edges ... ok
+test manifest::tests::checks_cancellation_and_per_manifest_budget ... ok
+test manifest::tests::excluded_subtrees_are_not_automatic_or_default_members ... ok
+test manifest::tests::legacy_groups_cannot_hide_dependency_paths ... ok
+test manifest::tests::preserves_authorization_failure_for_conditional_external_dependency ... ok
+test manifest::tests::rejects_parseable_nonprojects_and_invalid_versions ... ok
+test manifest::tests::rejects_unresolved_inheritance_sources_and_nightly_features ... ok
+test manifest::tests::rejects_unsupported_members_before_reading_their_paths ... ok
+test manifest::tests::rejects_wrong_default_members_duplicate_names_and_missing_targets ... ok
+test manifest::tests::resolves_workspace_inheritance_and_path_closure ... ok
+test semantic_delta::tests::dependency_delta_is_exactly_one_add_or_remove ... ok
+test semantic_delta::tests::dependency_delta_rejects_replacement_second_key_and_unknown_change ... ok
+test semantic_delta::tests::manifest_families_preserve_unknown_neighbors ... ok
+test semantic_delta::tests::manifest_patch_rejects_changed_unknowns_and_forbidden_sources ... ok
+test semantic_delta::tests::profile_delta_rejects_overrides_inherits_and_changed_unknown_settings ... ok
+test semantic_delta::tests::removing_an_existing_non_registry_dependency_is_still_one_local_remove ... ok
+test filesystem::macos::source::entry_race_tests::stale_regular_directory_entry_cannot_authorize_hardlink ... ok
+test filesystem::macos::source::tests::mutation_between_file_read_and_metadata_check_rejects ... ok
+test filesystem::macos::mutation::tests::short_staging_content_write_recovers_known_before_generation ... ok
+test filesystem::macos::mutation::tests::killed_process_recovers_each_durable_boundary ... ok
+
+running 1 test
+test filesystem::macos::mutation::tests::unknown_journal_format_never_cleans_or_changes_source ... ok
+test filesystem::macos::mutation::tests::unknown_untouched_bytes_stop_format_recovery_without_advancing_suffix ... ok
+test filesystem::macos::mutation::tests::terminal_record_with_an_occupied_reserved_name_stays_recovery_required ... ok
+test filesystem::macos::mutation::tests::receipt_is_read_only_and_staging_sequence_must_increase ... ok
+test filesystem::macos::mutation::tests::cleanup_phase_interruptions_never_report_a_premature_terminal_receipt ... ok
+test filesystem::macos::mutation::tests::deterministic_pre_effect_interruptions_recover_without_source_write ... ok
+
+running 1 test
+test filesystem::macos::mutation::tests::post_swap_interrupt_and_late_external_write_are_classified ... ok
+test filesystem::macos::mutation::tests::operator_lists_and_prunes_only_exact_terminal_records ... ok
+test filesystem::macos::mutation::tests::short_journal_writes_fail_closed_at_every_commit_phase ... ok
+
+running 1 test
+test filesystem::macos::mutation::tests::killed_process_rolls_forward_known_format_prefix ... ok
+test filesystem::macos::mutation::tests::maximum_format_journal_cost_is_bounded_per_global_phase ... ok
+
+test result: ok. 62 passed; 0 failed; 2 ignored; 0 measured; 0 filtered out; finished in 15.55s
+
+     Running tests/cargo_oracle.rs (target/debug/deps/cargo_oracle-691274ecfbff3f62)
+
+running 6 tests
+test invalid_semver_agrees ... ok
+test missing_workspace_member_agrees ... ok
+test missing_targets_agree ... ok
+test virtual_workspace_literal_members_inheritance_and_paths_agree ... ok
+test package_metadata_agrees_without_executing_build_script ... ok
+test default_members_follow_automatic_membership_and_exclude_prefixes ... ok
+
+test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.06s
+
+     Running tests/cargo_vendor.rs (target/debug/deps/cargo_vendor-ed3c4a7080f28e84)
+
+running 7 tests
+test mutation_during_capture_is_rejected ... ok
+test rejects_wrong_expected_digest ... ok
+test native_capture_rejects_links_hardlinks_and_writable_nodes ... ok
+test qualified_fixture_has_exact_digest_packages_and_bytes ... ok
+test file_tree_fingerprint_cannot_authorize_an_extra_empty_directory ... ok
+test checksum_duplicate_keys_and_duplicate_package_identity_are_rejected ... ok
+test checksum_requires_exact_files_and_valid_digests ... ok
+
+test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.34s
+
+     Running tests/catalog_store.rs (target/debug/deps/catalog_store-d2155e75bfb8ce61)
+
+running 16 tests
+test macos::a_busy_open_does_not_discard_another_imports_staging ... ok
+test macos::active_deletion_during_lease_is_not_a_new_store ... ok
+test macos::complete_bytes_replace_atomically_and_survive_reopen ... ok
+test macos::floor_is_independent_bounded_durable_and_never_promoted_from_staging ... ok
+test macos::concurrent_open_is_nonblocking_and_lock_releases_on_drop ... ok
+test macos::floor_record_and_staging_reject_links_and_oversized_bytes ... ok
+test macos::links_and_special_files_at_every_fixed_name_are_rejected ... ok
+test macos::bounded_input_acquisition_rejects_untrusted_names_and_types ... ok
+test macos::model_input_has_separate_bound_without_expanding_catalog_authority ... ok
+test macos::exact_limit_roundtrips_and_oversized_state_is_not_overwritten ... ok
+test macos::interrupted_staging_is_discarded_without_promotion_or_fallback ... ok
+test macos::moved_root_and_replaced_lock_fail_closed ... ok
+test macos::private_optional_reader_does_not_lock_or_clean_staging ... ok
+test macos::root_and_store_files_require_private_permissions ... ok
+test macos::root_owned_sticky_tmp_requires_private_immediate_child ... ok
+test macos::trust_file_requires_private_owner_file_parent_and_safe_ancestors ... ok
+
+test result: ok. 16 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.38s
+
+     Running tests/filesystem.rs (target/debug/deps/filesystem-ab1293773bef0d0f)
+
+running 16 tests
+test os_references_are_distinct_opaque_128_bit_values ... ok
+test macos::repeated_observation_cannot_hide_a_changed_manifest ... ok
+test macos::ambiguous_and_relative_requested_paths_are_rejected ... ok
+test macos::symlink_authority_and_intermediate_components_are_denied ... ok
+test macos::manifest_mutation_after_read_is_detected_before_identity_is_issued ... ok
+test macos::empty_roots_and_sibling_prefix_do_not_authorize_projects ... ok
+test macos::cancellation_and_deadline_stop_at_filesystem_checkpoints ... ok
+test macos::package_fingerprint_is_deterministic_and_tracks_manifests_not_source_bytes ... ok
+test macos::hardlinked_manifest_and_source_are_denied ... ok
+test macos::oversized_or_invalid_manifest_is_rejected ... ok
+test macos::project_replacement_during_manifest_read_is_detected ... ok
+test macos::virtual_workspace_inheritance_and_external_dependency_need_explicit_authority ... ok
+test macos::fifo_and_directory_manifests_are_rejected_without_blocking ... ok
+test macos::project_manifest_and_source_symlinks_are_denied_even_inside_authority ... ok
+test macos::replacing_project_or_root_invalidates_old_lease ... ok
+test macos::bounded_concurrent_project_symlink_swaps_never_return_outside_identity ... ok
+
+test result: ok. 16 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.05s
+
+     Running tests/host_snapshot.rs (target/debug/deps/host_snapshot-b2261d2d893466c5)
+
+running 9 tests
+test macos::absent_snapshot_is_reported_as_missing ... ok
+test macos::relative_traversal_and_ambiguous_paths_are_rejected ... ok
+test macos::cancellation_and_deadline_stop_before_io_and_between_chunks ... ok
+test macos::reads_exact_owned_bytes_without_cargo_manifest ... ok
+test macos::file_and_ancestor_symlinks_are_denied ... ok
+test macos::hardlinks_fifo_and_directory_are_rejected_without_blocking ... ok
+test macos::exact_limit_is_read_and_one_extra_byte_is_rejected ... ok
+test macos::growth_during_read_is_bounded ... ok
+test macos::mutations_and_replacements_during_read_fail_closed ... ok
+
+test result: ok. 9 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s
+
+     Running tests/manifest_edit.rs (target/debug/deps/manifest_edit-ccc2b35a162e7050)
+
+running 26 tests
+test malformed_utf8_limits_depth_and_name_injection_fail_closed ... ok
+test inheritance_and_missing_workspace_are_rejected ... ok
+test missing_remove_is_an_exact_no_op ... ok
+test a_changed_mixed_newline_document_is_rejected ... ok
+test feature_edits_reject_virtual_roots_bad_values_and_touched_inline_tables ... ok
+test crlf_multiline_strings_retain_source_newlines ... ok
+test invalid_requirements_and_feature_limits_fail_before_editing ... ok
+test dependency_operations_reject_virtual_and_unsupported_touched_layouts ... ok
+test new_semantic_no_ops_precede_unrelated_roundtrip_rejection ... ok
+test virtual_workspace_rejects_package_lints ... ok
+test profile_equivalent_spellings_are_exact_no_ops ... ok
+test inserts_standard_package_and_workspace_tables ... ok
+test invalid_existing_settings_are_rejected ... ok
+test dependency_remove_drops_only_local_inheritance_key ... ok
+test dependency_add_no_op_accepts_string_inline_equivalence_but_not_unknown_keys ... ok
+test inline_dotted_and_wrong_type_paths_are_rejected ... ok
+test remove_drops_only_target_and_its_attached_comment ... ok
+test features_set_remove_and_no_op_preserve_surrounding_text ... ok
+test semantic_no_op_preserves_every_byte ... ok
+test unrelated_dotted_key_reordering_refuses_the_change ... ok
+test workspace_dependency_semantic_no_op_and_remove_are_local ... ok
+test dependency_add_handles_kind_target_alias_and_conflicts ... ok
+test set_preserves_value_comment_key_spelling_and_crlf ... ok
+test workspace_dependency_set_is_explicit_and_rejects_optional ... ok
+test dependency_remove_preserves_neighbors_when_removing_complete_dotted_or_table_entry ... ok
+test profiles_write_closed_values_and_remove_only_one_setting ... ok
+
+test result: ok. 26 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+     Running tests/mutation_store.rs (target/debug/deps/mutation_store-aa214a887a6e8df5)
+
+running 20 tests
+test external_process_lock_helper ... ok
+
+running 1 test
+test external_process_lock_helper ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 19 filtered out; finished in 0.02s
+
+test digest_binds_validation_and_directories ... ok
+test global_lock_is_nonblocking_across_store_instances ... ok
+test forged_dependency_adds_leave_source_and_journal_untouched ... ok
+test oversized_editor_output_and_ambiguous_state_parent_are_rejected_early ... ok
+test grant_is_deny_by_default_and_root_move_invalidates_authority ... ok
+test corrupt_journal_blocks_all_new_commits_before_source_write ... ok
+test global_lock_is_nonblocking_across_processes ... ok
+test late_manifest_symlink_never_writes_its_external_target ... ok
+test dependency_add_rejects_changes_to_two_member_manifests ... ok
+test state_overlap_and_hardlinked_manifest_are_rejected ... ok
+test commit_replay_receipt_and_reopened_lease_are_bound_to_workspace ... ok
+test dependency_remove_only_drops_the_selected_local_key ... ok
+test dependency_no_op_may_publish_only_an_existing_root_lock ... ok
+test commit_preserves_private_mode_and_extended_attributes ... ok
+test manifest_patch_commits_root_manifest_and_existing_lock_as_one_plan ... ok
+test source_conflict_and_reused_key_write_nothing ... ok
+test dependency_add_commits_one_member_manifest_and_root_lock_under_its_kind ... ok
+test rust_mutation_commit_replaces_nested_files_and_separates_all_operation_grants ... ok
+test journal_count_quota_and_unknown_store_entry_fail_closed ... ok
+
+test result: ok. 20 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 3.81s
+
+     Running tests/source.rs (target/debug/deps/source-c97ba804331fc21f)
+
+running 18 tests
+test cancellation_stops_capture_without_mutation ... ok
+test replaced_registered_directory_is_rejected ... ok
+test stale_regular_entry_swapped_to_fifo_before_open_is_rejected_without_blocking ... ok
+test internal_relative_package_paths_and_workspace_inheritance_are_preserved ... ok
+test vanished_inner_file_is_invalid_capture_but_registry_lease_stays_live ... ok
+test rejects_external_and_absolute_dependencies_even_when_host_authorized ... ok
+test captured_bundle_preserves_empty_directories_but_not_excluded_directories ... ok
+test registry_captures_exact_sorted_bytes_without_mutation_and_excludes_build_git_dirs ... ok
+test absolute_target_and_build_paths_accepted_by_m0_are_rejected_for_transfer ... ok
+test accepts_internal_parent_dependency_without_rewriting ... ok
+test cargo_paths_cannot_reference_excluded_components_at_any_depth_or_casing ... ok
+test rejects_source_links_hardlinks_fifos_and_socket_without_reading_content ... ok
+test nested_configuration_toml_uses_m0_size_cap_and_pinned_parser_depth_guard ... ok
+test exclusions_and_cargo_config_denial_are_case_insensitive_including_directories ... ok
+test rejects_project_cargo_configuration_and_non_bare_toolchains ... ok
+test unvisited_manifests_cannot_hide_escaping_paths_aliases_or_replacements ... ok
+test observed_file_and_directory_mutations_are_rejected ... ok
+test source_limits_cover_bytes_names_depth_and_directory_count ... ok
+
+test result: ok. 18 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.78s
+
+     Running unittests src/lib.rs (target/debug/deps/rust_engineering_semantic-ee9ee445f02549de)
+
+running 1 test
+test model::tests::rejects_absent_and_wrong_bytes_before_parsing ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/local.rs (target/debug/deps/local-311d8615bb39a5ad)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+GATE doctests
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.12s
+   Doc-tests rust_engineering_application
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests rust_engineering_artifact
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests rust_engineering_catalog
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests rust_engineering_domain
+
+running 1 test
+test crates/domain/src/lib.rs - (line 6) - compile fail ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.15s
+
+   Doc-tests rust_engineering_execution
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests rust_engineering_project
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests rust_engineering_semantic
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+GATE architecture
+PASS domain/application dependency and IO boundaries, sole process gateway, offline engine defaults, memory-only model adapter
+GATE gate-reporting
+.........
+----------------------------------------------------------------------
+Ran 9 tests in 0.070s
+
+OK
+GATE release-artifact-tests
+test_archive_verifier_rejects_duplicates_types_and_hash_mismatch (__main__.ReleaseArtifactTests.test_archive_verifier_rejects_duplicates_types_and_hash_mismatch) ... ok
+test_archive_verifier_rejects_traversal (__main__.ReleaseArtifactTests.test_archive_verifier_rejects_traversal) ... ok
+test_core_asset_exclusion_is_fail_closed (__main__.ReleaseArtifactTests.test_core_asset_exclusion_is_fail_closed) ... ok
+test_deterministic_archive_bytes (__main__.ReleaseArtifactTests.test_deterministic_archive_bytes) ... ok
+test_graph_parser_keeps_normal_build_and_excludes_dev (__main__.ReleaseArtifactTests.test_graph_parser_keeps_normal_build_and_excludes_dev) ... ok
+test_license_names_are_exact_and_missing_text_fails_closed (__main__.ReleaseArtifactTests.test_license_names_are_exact_and_missing_text_fails_closed) ... ok
+test_packaging_host_and_thin_macho_arm64_are_required (__main__.ReleaseArtifactTests.test_packaging_host_and_thin_macho_arm64_are_required) ... ok
+test_partial_publication_removes_only_own_archive_link (__main__.ReleaseArtifactTests.test_partial_publication_removes_only_own_archive_link) ... ok
+test_read_regular_rejects_symlink (__main__.ReleaseArtifactTests.test_read_regular_rejects_symlink) ... ok
+test_safe_relative_rejects_noncanonical_paths (__main__.ReleaseArtifactTests.test_safe_relative_rejects_noncanonical_paths) ... ok
+test_tag_must_match_stable_workspace_version (__main__.ReleaseArtifactTests.test_tag_must_match_stable_workspace_version) ... ok
+
+----------------------------------------------------------------------
+Ran 11 tests in 0.006s
+
+OK
+GATE release-smoke-tests
+test_checksum_tampering_is_rejected (__main__.ReleaseSmokeTests.test_checksum_tampering_is_rejected) ... ok
+test_inventory_mismatch_is_rejected (__main__.ReleaseSmokeTests.test_inventory_mismatch_is_rejected) ... ok
+test_manifest_self_row_and_hash_are_rejected_when_tampered (__main__.ReleaseSmokeTests.test_manifest_self_row_and_hash_are_rejected_when_tampered) ... ok
+test_prohibited_asset_is_rejected (__main__.ReleaseSmokeTests.test_prohibited_asset_is_rejected) ... ok
+test_receipt_no_overwrite_preserves_existing_file (__main__.ReleaseSmokeTests.test_receipt_no_overwrite_preserves_existing_file) ... ok
+test_spdx_relationship_mismatch_is_rejected (__main__.ReleaseSmokeTests.test_spdx_relationship_mismatch_is_rejected) ... ok
+test_transcript_validators_reject_incoherent_text_and_tool_set (__main__.ReleaseSmokeTests.test_transcript_validators_reject_incoherent_text_and_tool_set) ... ok
+test_traversal_is_rejected (__main__.ReleaseSmokeTests.test_traversal_is_rejected) ... ok
+test_valid_synthetic_archive (__main__.ReleaseSmokeTests.test_valid_synthetic_archive) ... ok
+
+----------------------------------------------------------------------
+Ran 9 tests in 0.010s
+
+OK
+GATE codex-qualifier-tests
+...........qualifier failed:Expecting property name enclosed in double quotes: line 1 column 2 (char 1)
+............................
+----------------------------------------------------------------------
+Ran 39 tests in 52.686s
+
+OK
+GATE vendor
+PASS published SHA256; 93 files; only two exact manifest edits; Rust sources unchanged
+GATE cargo-fixtures
+{"fixture": "vulnerable-dependency", "ok": true, "verification": "static pinned audit input only; no Cargo invocation"}
+{"command": "test", "diagnostic": null, "expected_failure": false, "fixture": "valid-basic", "flags": [], "ok": true}
+{"command": "check", "diagnostic": "E0502", "expected_failure": true, "fixture": "borrow-error", "flags": [], "ok": true}
+{"command": "check", "diagnostic": "E0597", "expected_failure": true, "fixture": "lifetime-error", "flags": [], "ok": true}
+{"command": "clippy", "diagnostic": "clippy::useless_vec", "expected_failure": false, "fixture": "clippy-warning", "flags": [], "ok": true}
+{"command": "check", "diagnostic": "unsafe_code", "expected_failure": true, "fixture": "unsafe", "flags": [], "ok": true}
+{"command": "test", "diagnostic": null, "expected_failure": false, "fixture": "workspace", "flags": [], "ok": true}
+{"command": "check", "diagnostic": null, "expected_failure": false, "fixture": "feature-conflict", "flags": [], "ok": true}
+{"command": "check", "diagnostic": null, "expected_failure": false, "fixture": "feature-conflict", "flags": ["--features", "left"], "ok": true}
+{"command": "check", "diagnostic": null, "expected_failure": false, "fixture": "feature-conflict", "flags": ["--features", "right"], "ok": true}
+{"command": "check", "diagnostic": "fixture mutually exclusive features", "expected_failure": true, "fixture": "feature-conflict", "flags": ["--features", "left,right"], "ok": true}
+{"command": "test", "diagnostic": null, "expected_failure": false, "fixture": "build-script", "flags": [], "ok": true}
+{"compiler_cases": 11, "malicious_fixture_executed": false, "ok": true, "static_audit_inputs": 1}
+GATE audit
+      Loaded 1239 security advisories (from /Users/cburgosro/.cargo/advisory-db)
+    Scanning Cargo.lock for vulnerabilities (589 crate dependencies)
+Crate:     paste
+Version:   1.0.15
+Warning:   unmaintained
+Title:     paste - no longer maintained
+Date:      2024-10-07
+ID:        RUSTSEC-2024-0436
+URL:       https://rustsec.org/advisories/RUSTSEC-2024-0436
+Dependency tree:
+paste 1.0.15
+├── tokenizers 0.22.2
+│   └── fastembed 6.0.2
+│       └── rust-engineering-semantic 0.2.0-dev
+│           └── rust-engineering-mcp 0.2.0-dev
+├── lance-bitpacking 8.0.0
+│   └── lance-encoding 8.0.0
+│       ├── lancedb 0.31.0
+│       │   └── rust-engineering-semantic 0.2.0-dev
+│       ├── lance-index 8.0.0
+│       │   ├── lancedb 0.31.0
+│       │   ├── lance-namespace-impls 8.0.0
+│       │   │   └── lancedb 0.31.0
+│       │   └── lance 8.0.0
+│       │       ├── lancedb 0.31.0
+│       │       └── lance-namespace-impls 8.0.0
+│       ├── lance-file 8.0.0
+│       │   ├── lancedb 0.31.0
+│       │   ├── lance-table 8.0.0
+│       │   │   ├── lancedb 0.31.0
+│       │   │   ├── lance-namespace-impls 8.0.0
+│       │   │   ├── lance-index 8.0.0
+│       │   │   └── lance 8.0.0
+│       │   ├── lance-index 8.0.0
+│       │   └── lance 8.0.0
+│       └── lance 8.0.0
+├── datafusion-physical-expr 53.1.0
+│   ├── lancedb 0.31.0
+│   ├── lance-index 8.0.0
+│   ├── lance-datafusion 8.0.0
+│   │   ├── lancedb 0.31.0
+│   │   ├── lance-index 8.0.0
+│   │   └── lance 8.0.0
+│   ├── lance 8.0.0
+│   ├── datafusion-pruning 53.1.0
+│   │   └── datafusion-physical-optimizer 53.1.0
+│   │       └── datafusion 53.1.0
+│   │           ├── lancedb 0.31.0
+│   │           ├── lance-index 8.0.0
+│   │           ├── lance-datafusion 8.0.0
+│   │           └── lance 8.0.0
+│   ├── datafusion-physical-plan 53.1.0
+│   │   ├── lancedb 0.31.0
+│   │   ├── lance-namespace-impls 8.0.0
+│   │   ├── lance 8.0.0
+│   │   ├── datafusion-session 53.1.0
+│   │   │   ├── datafusion-datasource-json 53.1.0
+│   │   │   │   └── datafusion 53.1.0
+│   │   │   ├── datafusion-datasource-csv 53.1.0
+│   │   │   │   └── datafusion 53.1.0
+│   │   │   ├── datafusion-datasource-arrow 53.1.0
+│   │   │   │   └── datafusion 53.1.0
+│   │   │   ├── datafusion-datasource 53.1.0
+│   │   │   │   ├── datafusion-pruning 53.1.0
+│   │   │   │   ├── datafusion-datasource-json 53.1.0
+│   │   │   │   ├── datafusion-datasource-csv 53.1.0
+│   │   │   │   ├── datafusion-datasource-arrow 53.1.0
+│   │   │   │   ├── datafusion-catalog-listing 53.1.0
+│   │   │   │   │   └── datafusion 53.1.0
+│   │   │   │   ├── datafusion-catalog 53.1.0
+│   │   │   │   │   ├── lancedb 0.31.0
+│   │   │   │   │   ├── datafusion-functions-table 53.1.0
+│   │   │   │   │   │   └── datafusion 53.1.0
+│   │   │   │   │   ├── datafusion-catalog-listing 53.1.0
+│   │   │   │   │   └── datafusion 53.1.0
+│   │   │   │   └── datafusion 53.1.0
+│   │   │   ├── datafusion-catalog 53.1.0
+│   │   │   └── datafusion 53.1.0
+│   │   ├── datafusion-pruning 53.1.0
+│   │   ├── datafusion-physical-optimizer 53.1.0
+│   │   ├── datafusion-functions-table 53.1.0
+│   │   ├── datafusion-datasource-json 53.1.0
+│   │   ├── datafusion-datasource-csv 53.1.0
+│   │   ├── datafusion-datasource-arrow 53.1.0
+│   │   ├── datafusion-datasource 53.1.0
+│   │   ├── datafusion-catalog-listing 53.1.0
+│   │   ├── datafusion-catalog 53.1.0
+│   │   └── datafusion 53.1.0
+│   ├── datafusion-physical-optimizer 53.1.0
+│   ├── datafusion-physical-expr-adapter 53.1.0
+│   │   ├── datafusion-datasource 53.1.0
+│   │   ├── datafusion-catalog-listing 53.1.0
+│   │   └── datafusion 53.1.0
+│   ├── datafusion-optimizer 53.1.0
+│   │   └── datafusion 53.1.0
+│   ├── datafusion-functions-window 53.1.0
+│   │   └── datafusion 53.1.0
+│   ├── datafusion-functions-aggregate 53.1.0
+│   │   ├── datafusion-functions-nested 53.1.0
+│   │   │   ├── datafusion-sql 53.1.0
+│   │   │   │   ├── lancedb 0.31.0
+│   │   │   │   ├── lance-core 8.0.0
+│   │   │   │   │   ├── lancedb 0.31.0
+│   │   │   │   │   ├── lance-table 8.0.0
+│   │   │   │   │   ├── lance-select 8.0.0
+│   │   │   │   │   │   ├── lance-table 8.0.0
+│   │   │   │   │   │   ├── lance-index 8.0.0
+│   │   │   │   │   │   └── lance 8.0.0
+│   │   │   │   │   ├── lance-namespace-impls 8.0.0
+│   │   │   │   │   ├── lance-namespace 8.0.0
+│   │   │   │   │   │   ├── lancedb 0.31.0
+│   │   │   │   │   │   ├── lance-namespace-impls 8.0.0
+│   │   │   │   │   │   ├── lance-io 8.0.0
+│   │   │   │   │   │   │   ├── lancedb 0.31.0
+│   │   │   │   │   │   │   ├── lance-table 8.0.0
+│   │   │   │   │   │   │   ├── lance-namespace-impls 8.0.0
+│   │   │   │   │   │   │   ├── lance-index 8.0.0
+│   │   │   │   │   │   │   ├── lance-file 8.0.0
+│   │   │   │   │   │   │   └── lance 8.0.0
+│   │   │   │   │   │   └── lance 8.0.0
+│   │   │   │   │   ├── lance-linalg 8.0.0
+│   │   │   │   │   │   ├── lancedb 0.31.0
+│   │   │   │   │   │   ├── lance-namespace-impls 8.0.0
+│   │   │   │   │   │   ├── lance-index 8.0.0
+│   │   │   │   │   │   └── lance 8.0.0
+│   │   │   │   │   ├── lance-io 8.0.0
+│   │   │   │   │   ├── lance-index 8.0.0
+│   │   │   │   │   ├── lance-file 8.0.0
+│   │   │   │   │   ├── lance-encoding 8.0.0
+│   │   │   │   │   ├── lance-datafusion 8.0.0
+│   │   │   │   │   └── lance 8.0.0
+│   │   │   │   └── datafusion 53.1.0
+│   │   │   └── datafusion 53.1.0
+│   │   └── datafusion 53.1.0
+│   ├── datafusion-datasource 53.1.0
+│   ├── datafusion-catalog-listing 53.1.0
+│   ├── datafusion-catalog 53.1.0
+│   └── datafusion 53.1.0
+├── datafusion-functions-window 53.1.0
+├── datafusion-functions-table 53.1.0
+├── datafusion-functions-nested 53.1.0
+├── datafusion-functions-aggregate 53.1.0
+├── datafusion-expr-common 53.1.0
+│   ├── datafusion-pruning 53.1.0
+│   ├── datafusion-physical-optimizer 53.1.0
+│   ├── datafusion-physical-expr-common 53.1.0
+│   │   ├── datafusion-pruning 53.1.0
+│   │   ├── datafusion-physical-plan 53.1.0
+│   │   ├── datafusion-physical-optimizer 53.1.0
+│   │   ├── datafusion-physical-expr-adapter 53.1.0
+│   │   ├── datafusion-physical-expr 53.1.0
+│   │   ├── datafusion-functions-window-common 53.1.0
+│   │   │   ├── datafusion-physical-plan 53.1.0
+│   │   │   ├── datafusion-functions-window 53.1.0
+│   │   │   └── datafusion-expr 53.1.0
+│   │   │       ├── lancedb 0.31.0
+│   │   │       ├── lance-index 8.0.0
+│   │   │       ├── lance 8.0.0
+│   │   │       ├── datafusion-sql 53.1.0
+│   │   │       ├── datafusion-session 53.1.0
+│   │   │       ├── datafusion-physical-plan 53.1.0
+│   │   │       ├── datafusion-physical-optimizer 53.1.0
+│   │   │       ├── datafusion-physical-expr-adapter 53.1.0
+│   │   │       ├── datafusion-physical-expr 53.1.0
+│   │   │       ├── datafusion-optimizer 53.1.0
+│   │   │       ├── datafusion-functions-window 53.1.0
+│   │   │       ├── datafusion-functions-table 53.1.0
+│   │   │       ├── datafusion-functions-nested 53.1.0
+│   │   │       ├── datafusion-functions-aggregate 53.1.0
+│   │   │       ├── datafusion-functions 53.1.0
+│   │   │       │   ├── lancedb 0.31.0
+│   │   │       │   ├── lance-datafusion 8.0.0
+│   │   │       │   ├── lance 8.0.0
+│   │   │       │   ├── datafusion-physical-plan 53.1.0
+│   │   │       │   ├── datafusion-physical-expr-adapter 53.1.0
+│   │   │       │   ├── datafusion-functions-nested 53.1.0
+│   │   │       │   └── datafusion 53.1.0
+│   │   │       ├── datafusion-execution 53.1.0
+│   │   │       │   ├── lancedb 0.31.0
+│   │   │       │   ├── datafusion-session 53.1.0
+│   │   │       │   ├── datafusion-physical-plan 53.1.0
+│   │   │       │   ├── datafusion-physical-optimizer 53.1.0
+│   │   │       │   ├── datafusion-functions-nested 53.1.0
+│   │   │       │   ├── datafusion-functions-aggregate 53.1.0
+│   │   │       │   ├── datafusion-functions 53.1.0
+│   │   │       │   ├── datafusion-datasource-json 53.1.0
+│   │   │       │   ├── datafusion-datasource-csv 53.1.0
+│   │   │       │   ├── datafusion-datasource-arrow 53.1.0
+│   │   │       │   ├── datafusion-datasource 53.1.0
+│   │   │       │   ├── datafusion-catalog-listing 53.1.0
+│   │   │       │   ├── datafusion-catalog 53.1.0
+│   │   │       │   └── datafusion 53.1.0
+│   │   │       ├── datafusion-datasource-json 53.1.0
+│   │   │       ├── datafusion-datasource-csv 53.1.0
+│   │   │       ├── datafusion-datasource-arrow 53.1.0
+│   │   │       ├── datafusion-datasource 53.1.0
+│   │   │       ├── datafusion-catalog-listing 53.1.0
+│   │   │       ├── datafusion-catalog 53.1.0
+│   │   │       └── datafusion 53.1.0
+│   │   ├── datafusion-functions-window 53.1.0
+│   │   ├── datafusion-functions-nested 53.1.0
+│   │   ├── datafusion-functions-aggregate-common 53.1.0
+│   │   │   ├── datafusion-physical-plan 53.1.0
+│   │   │   ├── datafusion-physical-expr 53.1.0
+│   │   │   ├── datafusion-functions-nested 53.1.0
+│   │   │   ├── datafusion-functions-aggregate 53.1.0
+│   │   │   └── datafusion-expr 53.1.0
+│   │   ├── datafusion-functions-aggregate 53.1.0
+│   │   ├── datafusion-expr 53.1.0
+│   │   ├── datafusion-execution 53.1.0
+│   │   ├── datafusion-datasource-json 53.1.0
+│   │   ├── datafusion-datasource-csv 53.1.0
+│   │   ├── datafusion-datasource-arrow 53.1.0
+│   │   ├── datafusion-datasource 53.1.0
+│   │   ├── datafusion-catalog-listing 53.1.0
+│   │   └── datafusion 53.1.0
+│   ├── datafusion-physical-expr 53.1.0
+│   ├── datafusion-optimizer 53.1.0
+│   ├── datafusion-functions-nested 53.1.0
+│   ├── datafusion-functions-aggregate-common 53.1.0
+│   ├── datafusion-functions 53.1.0
+│   ├── datafusion-expr 53.1.0
+│   └── datafusion 53.1.0
+├── datafusion-expr 53.1.0
+└── datafusion-common 53.1.0
+    ├── lancedb 0.31.0
+    ├── lance-namespace-impls 8.0.0
+    ├── lance-index 8.0.0
+    ├── lance-file 8.0.0
+    ├── lance-datafusion 8.0.0
+    ├── lance-core 8.0.0
+    ├── datafusion-sql 53.1.0
+    ├── datafusion-session 53.1.0
+    ├── datafusion-pruning 53.1.0
+    ├── datafusion-physical-plan 53.1.0
+    ├── datafusion-physical-optimizer 53.1.0
+    ├── datafusion-physical-expr-common 53.1.0
+    ├── datafusion-physical-expr-adapter 53.1.0
+    ├── datafusion-physical-expr 53.1.0
+    ├── datafusion-optimizer 53.1.0
+    ├── datafusion-functions-window-common 53.1.0
+    ├── datafusion-functions-window 53.1.0
+    ├── datafusion-functions-table 53.1.0
+    ├── datafusion-functions-nested 53.1.0
+    ├── datafusion-functions-aggregate-common 53.1.0
+    ├── datafusion-functions-aggregate 53.1.0
+    ├── datafusion-functions 53.1.0
+    ├── datafusion-expr-common 53.1.0
+    ├── datafusion-expr 53.1.0
+    ├── datafusion-execution 53.1.0
+    ├── datafusion-datasource-json 53.1.0
+    ├── datafusion-datasource-csv 53.1.0
+    ├── datafusion-datasource-arrow 53.1.0
+    ├── datafusion-datasource 53.1.0
+    ├── datafusion-catalog-listing 53.1.0
+    ├── datafusion-catalog 53.1.0
+    └── datafusion 53.1.0
+
+warning: 1 allowed warning found
+GATE deny
+warning[duplicate]: found 2 duplicate entries for crate 'base64'
+   ┌─ /Users/cburgosro/Projects/rust-mcp/Cargo.lock:33:1
+   │  
+33 │ ╭ base64 0.13.1 registry+https://github.com/rust-lang/crates.io-index
+34 │ │ base64 0.22.1 registry+https://github.com/rust-lang/crates.io-index
+   │ ╰───────────────────────────────────────────────────────────────────┘ lock entries
+
+warning[duplicate]: found 2 duplicate entries for crate 'bitflags'
+   ┌─ /Users/cburgosro/Projects/rust-mcp/Cargo.lock:38:1
+   │  
+38 │ ╭ bitflags 1.3.2 registry+https://github.com/rust-lang/crates.io-index
+39 │ │ bitflags 2.13.1 registry+https://github.com/rust-lang/crates.io-index
+   │ ╰─────────────────────────────────────────────────────────────────────┘ lock entries
+
+warning[duplicate]: found 2 duplicate entries for crate 'block-buffer'
+   ┌─ /Users/cburgosro/Projects/rust-mcp/Cargo.lock:44:1
+   │  
+44 │ ╭ block-buffer 0.10.4 registry+https://github.com/rust-lang/crates.io-index
+45 │ │ block-buffer 0.12.1 registry+https://github.com/rust-lang/crates.io-index
+   │ ╰─────────────────────────────────────────────────────────────────────────┘ lock entries
+
+warning[duplicate]: found 2 duplicate entries for crate 'cpufeatures'
+   ┌─ /Users/cburgosro/Projects/rust-mcp/Cargo.lock:73:1
+   │  
+73 │ ╭ cpufeatures 0.2.17 registry+https://github.com/rust-lang/crates.io-index
+74 │ │ cpufeatures 0.3.1 registry+https://github.com/rust-lang/crates.io-index
+   │ ╰───────────────────────────────────────────────────────────────────────┘ lock entries
+
+warning[duplicate]: found 2 duplicate entries for crate 'crypto-common'
+   ┌─ /Users/cburgosro/Projects/rust-mcp/Cargo.lock:83:1
+   │  
+83 │ ╭ crypto-common 0.1.7 registry+https://github.com/rust-lang/crates.io-index
+84 │ │ crypto-common 0.2.2 registry+https://github.com/rust-lang/crates.io-index
+   │ ╰─────────────────────────────────────────────────────────────────────────┘ lock entries
+
+warning[duplicate]: found 2 duplicate entries for crate 'darling'
+   ┌─ /Users/cburgosro/Projects/rust-mcp/Cargo.lock:89:1
+   │  
+89 │ ╭ darling 0.20.11 registry+https://github.com/rust-lang/crates.io-index
+90 │ │ darling 0.23.0 registry+https://github.com/rust-lang/crates.io-index
+   │ ╰────────────────────────────────────────────────────────────────────┘ lock entries
+
+warning[duplicate]: found 2 duplicate entries for crate 'darling_core'
+   ┌─ /Users/cburgosro/Projects/rust-mcp/Cargo.lock:91:1
+   │  
+91 │ ╭ darling_core 0.20.11 registry+https://github.com/rust-lang/crates.io-index
+92 │ │ darling_core 0.23.0 registry+https://github.com/rust-lang/crates.io-index
+   │ ╰─────────────────────────────────────────────────────────────────────────┘ lock entries
+
+warning[duplicate]: found 2 duplicate entries for crate 'darling_macro'
+   ┌─ /Users/cburgosro/Projects/rust-mcp/Cargo.lock:93:1
+   │  
+93 │ ╭ darling_macro 0.20.11 registry+https://github.com/rust-lang/crates.io-index
+94 │ │ darling_macro 0.23.0 registry+https://github.com/rust-lang/crates.io-index
+   │ ╰──────────────────────────────────────────────────────────────────────────┘ lock entries
+
+warning[duplicate]: found 2 duplicate entries for crate 'digest'
+    ┌─ /Users/cburgosro/Projects/rust-mcp/Cargo.lock:132:1
+    │  
+132 │ ╭ digest 0.10.7 registry+https://github.com/rust-lang/crates.io-index
+133 │ │ digest 0.11.3 registry+https://github.com/rust-lang/crates.io-index
+    │ ╰───────────────────────────────────────────────────────────────────┘ lock entries
+
+warning[duplicate]: found 2 duplicate entries for crate 'foldhash'
+    ┌─ /Users/cburgosro/Projects/rust-mcp/Cargo.lock:160:1
+    │  
+160 │ ╭ foldhash 0.1.5 registry+https://github.com/rust-lang/crates.io-index
+161 │ │ foldhash 0.2.0 registry+https://github.com/rust-lang/crates.io-index
+    │ ╰────────────────────────────────────────────────────────────────────┘ lock entries
+
+warning[duplicate]: found 3 duplicate entries for crate 'getrandom'
+    ┌─ /Users/cburgosro/Projects/rust-mcp/Cargo.lock:179:1
+    │  
+179 │ ╭ getrandom 0.2.17 registry+https://github.com/rust-lang/crates.io-index
+180 │ │ getrandom 0.3.4 registry+https://github.com/rust-lang/crates.io-index
+181 │ │ getrandom 0.4.3 registry+https://github.com/rust-lang/crates.io-index
+    │ ╰─────────────────────────────────────────────────────────────────────┘ lock entries
+
+warning[duplicate]: found 4 duplicate entries for crate 'hashbrown'
+    ┌─ /Users/cburgosro/Projects/rust-mcp/Cargo.lock:185:1
+    │  
+185 │ ╭ hashbrown 0.14.5 registry+https://github.com/rust-lang/crates.io-index
+186 │ │ hashbrown 0.15.5 registry+https://github.com/rust-lang/crates.io-index
+187 │ │ hashbrown 0.16.1 registry+https://github.com/rust-lang/crates.io-index
+188 │ │ hashbrown 0.17.1 registry+https://github.com/rust-lang/crates.io-index
+    │ ╰──────────────────────────────────────────────────────────────────────┘ lock entries
+
+warning[duplicate]: found 2 duplicate entries for crate 'itertools'
+    ┌─ /Users/cburgosro/Projects/rust-mcp/Cargo.lock:222:1
+    │  
+222 │ ╭ itertools 0.13.0 registry+https://github.com/rust-lang/crates.io-index
+223 │ │ itertools 0.14.0 registry+https://github.com/rust-lang/crates.io-index
+    │ ╰──────────────────────────────────────────────────────────────────────┘ lock entries
+
+warning[duplicate]: found 2 duplicate entries for crate 'ndarray'
+    ┌─ /Users/cburgosro/Projects/rust-mcp/Cargo.lock:300:1
+    │  
+300 │ ╭ ndarray 0.16.1 registry+https://github.com/rust-lang/crates.io-index
+301 │ │ ndarray 0.17.2 registry+https://github.com/rust-lang/crates.io-index
+    │ ╰────────────────────────────────────────────────────────────────────┘ lock entries
+
+warning[duplicate]: found 2 duplicate entries for crate 'nom'
+    ┌─ /Users/cburgosro/Projects/rust-mcp/Cargo.lock:302:1
+    │  
+302 │ ╭ nom 7.1.3 registry+https://github.com/rust-lang/crates.io-index
+303 │ │ nom 8.0.0 registry+https://github.com/rust-lang/crates.io-index
+    │ ╰───────────────────────────────────────────────────────────────┘ lock entries
+
+warning[unknown-feature]: found unknown feature 'load-dynamic' for crate 'ort-sys = 2.0.0-rc.13'
+   ┌─ /Users/cburgosro/Projects/rust-mcp/deny.toml:22:31
+   │
+22 │ deny = ["download-binaries", "load-dynamic"]
+   │                               ━━━━━━━━━━━━ unknown feature
+
+warning[duplicate]: found 2 duplicate entries for crate 'phf'
+    ┌─ /Users/cburgosro/Projects/rust-mcp/Cargo.lock:334:1
+    │  
+334 │ ╭ phf 0.12.1 registry+https://github.com/rust-lang/crates.io-index
+335 │ │ phf 0.13.1 registry+https://github.com/rust-lang/crates.io-index
+    │ ╰────────────────────────────────────────────────────────────────┘ lock entries
+
+warning[duplicate]: found 2 duplicate entries for crate 'phf_shared'
+    ┌─ /Users/cburgosro/Projects/rust-mcp/Cargo.lock:338:1
+    │  
+338 │ ╭ phf_shared 0.12.1 registry+https://github.com/rust-lang/crates.io-index
+339 │ │ phf_shared 0.13.1 registry+https://github.com/rust-lang/crates.io-index
+    │ ╰───────────────────────────────────────────────────────────────────────┘ lock entries
+
+warning[duplicate]: found 2 duplicate entries for crate 'r-efi'
+    ┌─ /Users/cburgosro/Projects/rust-mcp/Cargo.lock:359:1
+    │  
+359 │ ╭ r-efi 5.3.0 registry+https://github.com/rust-lang/crates.io-index
+360 │ │ r-efi 6.0.0 registry+https://github.com/rust-lang/crates.io-index
+    │ ╰─────────────────────────────────────────────────────────────────┘ lock entries
+
+warning[duplicate]: found 2 duplicate entries for crate 'rand'
+    ┌─ /Users/cburgosro/Projects/rust-mcp/Cargo.lock:363:1
+    │  
+363 │ ╭ rand 0.9.5 registry+https://github.com/rust-lang/crates.io-index
+364 │ │ rand 0.10.2 registry+https://github.com/rust-lang/crates.io-index
+    │ ╰─────────────────────────────────────────────────────────────────┘ lock entries
+
+warning[duplicate]: found 2 duplicate entries for crate 'rand_core'
+    ┌─ /Users/cburgosro/Projects/rust-mcp/Cargo.lock:366:1
+    │  
+366 │ ╭ rand_core 0.9.5 registry+https://github.com/rust-lang/crates.io-index
+367 │ │ rand_core 0.10.1 registry+https://github.com/rust-lang/crates.io-index
+    │ ╰──────────────────────────────────────────────────────────────────────┘ lock entries
+
+warning[duplicate]: found 2 duplicate entries for crate 'sha2'
+    ┌─ /Users/cburgosro/Projects/rust-mcp/Cargo.lock:433:1
+    │  
+433 │ ╭ sha2 0.10.9 registry+https://github.com/rust-lang/crates.io-index
+434 │ │ sha2 0.11.0 registry+https://github.com/rust-lang/crates.io-index
+    │ ╰─────────────────────────────────────────────────────────────────┘ lock entries
+
+warning[duplicate]: found 2 duplicate entries for crate 'snafu'
+    ┌─ /Users/cburgosro/Projects/rust-mcp/Cargo.lock:443:1
+    │  
+443 │ ╭ snafu 0.8.9 registry+https://github.com/rust-lang/crates.io-index
+444 │ │ snafu 0.9.2 registry+https://github.com/rust-lang/crates.io-index
+    │ ╰─────────────────────────────────────────────────────────────────┘ lock entries
+
+warning[duplicate]: found 2 duplicate entries for crate 'snafu-derive'
+    ┌─ /Users/cburgosro/Projects/rust-mcp/Cargo.lock:445:1
+    │  
+445 │ ╭ snafu-derive 0.8.9 registry+https://github.com/rust-lang/crates.io-index
+446 │ │ snafu-derive 0.9.2 registry+https://github.com/rust-lang/crates.io-index
+    │ ╰────────────────────────────────────────────────────────────────────────┘ lock entries
+
+warning[duplicate]: found 2 duplicate entries for crate 'strum'
+    ┌─ /Users/cburgosro/Projects/rust-mcp/Cargo.lock:457:1
+    │  
+457 │ ╭ strum 0.26.3 registry+https://github.com/rust-lang/crates.io-index
+458 │ │ strum 0.28.0 registry+https://github.com/rust-lang/crates.io-index
+    │ ╰──────────────────────────────────────────────────────────────────┘ lock entries
+
+warning[duplicate]: found 2 duplicate entries for crate 'strum_macros'
+    ┌─ /Users/cburgosro/Projects/rust-mcp/Cargo.lock:459:1
+    │  
+459 │ ╭ strum_macros 0.26.4 registry+https://github.com/rust-lang/crates.io-index
+460 │ │ strum_macros 0.28.0 registry+https://github.com/rust-lang/crates.io-index
+    │ ╰─────────────────────────────────────────────────────────────────────────┘ lock entries
+
+warning[duplicate]: found 2 duplicate entries for crate 'syn'
+    ┌─ /Users/cburgosro/Projects/rust-mcp/Cargo.lock:462:1
+    │  
+462 │ ╭ syn 2.0.119 registry+https://github.com/rust-lang/crates.io-index
+463 │ │ syn 3.0.4 registry+https://github.com/rust-lang/crates.io-index
+    │ ╰───────────────────────────────────────────────────────────────┘ lock entries
+
+warning[duplicate]: found 2 duplicate entries for crate 'toml_datetime'
+    ┌─ /Users/cburgosro/Projects/rust-mcp/Cargo.lock:486:1
+    │  
+486 │ ╭ toml_datetime 0.7.5+spec-1.1.0 registry+https://github.com/rust-lang/crates.io-index
+487 │ │ toml_datetime 1.1.1+spec-1.1.0 registry+https://github.com/rust-lang/crates.io-index
+    │ ╰────────────────────────────────────────────────────────────────────────────────────┘ lock entries
+
+warning[duplicate]: found 2 duplicate entries for crate 'windows-sys'
+    ┌─ /Users/cburgosro/Projects/rust-mcp/Cargo.lock:542:1
+    │  
+542 │ ╭ windows-sys 0.52.0 registry+https://github.com/rust-lang/crates.io-index
+543 │ │ windows-sys 0.61.2 registry+https://github.com/rust-lang/crates.io-index
+    │ ╰────────────────────────────────────────────────────────────────────────┘ lock entries
+
+warning[duplicate]: found 2 duplicate entries for crate 'winnow'
+    ┌─ /Users/cburgosro/Projects/rust-mcp/Cargo.lock:553:1
+    │  
+553 │ ╭ winnow 0.7.15 registry+https://github.com/rust-lang/crates.io-index
+554 │ │ winnow 1.0.4 registry+https://github.com/rust-lang/crates.io-index
+    │ ╰──────────────────────────────────────────────────────────────────┘ lock entries
+
+advisories ok, bans ok, sources ok
+GATE docker-security
+#0 building with "default" instance using docker driver
+
+#1 [internal] load build definition from Dockerfile
+#1 transferring dockerfile: 170B done
+#1 DONE 0.0s
+
+#2 [internal] load .dockerignore
+#2 transferring context: 2B done
+#2 DONE 0.0s
+
+#3 [internal] load build context
+#3 transferring context: 2.82MB 0.0s done
+#3 DONE 0.0s
+
+#4 [1/2] COPY --chmod=0555 probe /mcp-probe
+#4 CACHED
+
+#5 [2/2] COPY --chmod=0666 canary /rootfs-canary
+#5 CACHED
+
+#6 exporting to image
+#6 exporting layers done
+#6 exporting manifest sha256:254f343f77058f7a5fbd5c0a1833eab7166caf21ac609c897825cb094f459467 done
+#6 exporting config sha256:9ee7cce88a049666a7d3fe4cbe7f0477bda897fa23844c648d2800f6f3c53711 done
+#6 exporting attestation manifest sha256:35322c2a35510b9b2e0418a8241039b37c6f51115068aae6516f630d49ae5984 done
+#6 exporting manifest list sha256:2feeee30a81038df6ae2c39237d6b06b04c43dd26cc60365aea816a0b1418d8b done
+#6 naming to docker.io/library/rust-mcp-probe:m0 done
+#6 unpacking to docker.io/library/rust-mcp-probe:m0 done
+#6 DONE 0.0s
+
+View build details: docker-desktop://dashboard/build/default/default/nxt2ei7s8eu2ya1a8t67f3vmm
+   Compiling rust-engineering-domain v0.2.0-dev (/Users/cburgosro/Projects/rust-mcp/crates/domain)
+   Compiling rust-engineering-application v0.2.0-dev (/Users/cburgosro/Projects/rust-mcp/crates/application)
+   Compiling rust-engineering-execution v0.2.0-dev (/Users/cburgosro/Projects/rust-mcp/crates/execution-adapter)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 2.76s
+     Running tests/gateway.rs (target/debug/deps/gateway-53f450d1dbebe96f)
+
+running 4 tests
+test active_capabilities_require_positive_controls_and_kernel_evidence ... ok
+test new_gateway_refuses_existing_labelled_container_and_cancel_cleans_it ... ok
+test successful_and_failed_processes_are_normal_results_with_stable_identity ... ok
+test timeout_cancellation_and_stream_limits_clean_up_the_container ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 1 filtered out; finished in 14.78s
+
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.12s
+     Running `target/debug/rust-engineering-mcp capabilities --docker /Applications/Docker.app/Contents/Resources/bin/docker --docker-socket /Users/cburgosro/.docker/run/docker.sock --state-root /private/tmp/rust-mcp-probe-build.lkZCozZ7 --probe-image 'sha256:2feeee30a81038df6ae2c39237d6b06b04c43dd26cc60365aea816a0b1418d8b'`
+{"status":"verified","scope":"trusted_probe_image_only","observed_at_unix_ms":1788638388958,"engine":{"ID":"01e8e3b3-4876-40c5-bae5-396de46f9511","ServerVersion":"29.7.2","DefaultRuntime":"runc","OSType":"linux","Architecture":"aarch64","CgroupVersion":"2","SecurityOptions":["name=seccomp,profile=builtin","name=cgroupns"],"MemoryLimit":true,"SwapLimit":true,"CpuCfsQuota":true,"PidsLimit":true},"image_id":"sha256:2feeee30a81038df6ae2c39237d6b06b04c43dd26cc60365aea816a0b1418d8b","capabilities":{"filesystem_isolated":true,"network_isolated":true,"environment_isolated":true,"children_contained":true,"wall_time_limited":true,"output_limited":true,"cpu_quota":true,"memory_limited":true,"pids_limited":true,"disk_limited":true},"configuration_fingerprint":"sha256:75053f634f43a7a49828434a15d2256fb22edb87970767ebcd1b14388d5c59f7","strict_available":true,"restricted_available":true,"project_code_available":false,"observations":[{"scenario":"environment","control":false,"limits":{"wall_ms":10000,"output_bytes":65536},"memory_bytes":67108864,"execution":{"termination":"exited","exit_code":0,"oom_killed":false,"stdout":"{\"scenario\":\"environment\",\"event\":\"environment\",\"pid\":1,\"details\":{\"entries\":[\"GOMAXPROCS=2\",\"HOME=/work\",\"HOSTNAME=sandbox\",\"PATH=/nonexistent\",\"TMPDIR=/tmp\"]}}\n","stderr":"","stdout_truncated":false,"stderr_truncated":false,"duration_ms":61,"total_duration_ms":171,"execution_fingerprint":"sha256:49121f8b1aa3e5fbc148f4e9b6528151219fbe1684234208ae80a1901f19ea88","platform":"linux/aarch64","image_id":"sha256:2feeee30a81038df6ae2c39237d6b06b04c43dd26cc60365aea816a0b1418d8b"}},{"scenario":"network","control":false,"limits":{"wall_ms":10000,"output_bytes":65536},"memory_bytes":67108864,"execution":{"termination":"exited","exit_code":0,"oom_killed":false,"stdout":"{\"scenario\":\"network\",\"event\":\"socket\",\"pid\":1,\"details\":{\"family\":\"ipv4\",\"operation\":\"socket_only\",\"purpose\":\"loopback\",\"result\":{\"allowed\":false,\"errno\":1,\"error\":\"operation not permitted\"},\"transport\":\"tcp\"}}\n{\"scenario\":\"network\",\"event\":\"socket\",\"pid\":1,\"details\":{\"family\":\"ipv4\",\"operation\":\"socket_only\",\"purpose\":\"dns\",\"result\":{\"allowed\":false,\"errno\":1,\"error\":\"operation not permitted\"},\"transport\":\"tcp\"}}\n{\"scenario\":\"network\",\"event\":\"socket\",\"pid\":1,\"details\":{\"family\":\"ipv4\",\"operation\":\"socket_only\",\"purpose\":\"loopback\",\"result\":{\"allowed\":false,\"errno\":1,\"error\":\"operation not permitted\"},\"transport\":\"udp\"}}\n{\"scenario\":\"network\",\"event\":\"socket\",\"pid\":1,\"details\":{\"family\":\"ipv4\",\"operation\":\"socket_only\",\"purpose\":\"dns\",\"result\":{\"allowed\":false,\"errno\":1,\"error\":\"operation not permitted\"},\"transport\":\"udp\"}}\n{\"scenario\":\"network\",\"event\":\"socket\",\"pid\":1,\"details\":{\"family\":\"ipv6\",\"operation\":\"socket_only\",\"purpose\":\"loopback\",\"result\":{\"allowed\":false,\"errno\":1,\"error\":\"operation not permitted\"},\"transport\":\"tcp\"}}\n{\"scenario\":\"network\",\"event\":\"socket\",\"pid\":1,\"details\":{\"family\":\"ipv6\",\"operation\":\"socket_only\",\"purpose\":\"dns\",\"result\":{\"allowed\":false,\"errno\":1,\"error\":\"operation not permitted\"},\"transport\":\"tcp\"}}\n{\"scenario\":\"network\",\"event\":\"socket\",\"pid\":1,\"details\":{\"family\":\"ipv6\",\"operation\":\"socket_only\",\"purpose\":\"loopback\",\"result\":{\"allowed\":false,\"errno\":1,\"error\":\"operation not permitted\"},\"transport\":\"udp\"}}\n{\"scenario\":\"network\",\"event\":\"socket\",\"pid\":1,\"details\":{\"family\":\"ipv6\",\"operation\":\"socket_only\",\"purpose\":\"dns\",\"result\":{\"allowed\":false,\"errno\":1,\"error\":\"operation not permitted\"},\"transport\":\"udp\"}}\n{\"scenario\":\"network\",\"event\":\"socket\",\"pid\":1,\"details\":{\"family\":\"unix\",\"operation\":\"socket_only\",\"purpose\":\"local\",\"result\":{\"allowed\":false,\"errno\":1,\"error\":\"operation not permitted\"},\"transport\":\"stream\"}}\n{\"scenario\":\"network\",\"event\":\"socket\",\"pid\":1,\"details\":{\"family\":\"netlink\",\"operation\":\"socket_only\",\"purpose\":\"local\",\"result\":{\"allowed\":false,\"errno\":1,\"error\":\"operation not permitted\"},\"transport\":\"raw\"}}\n","stderr":"","stdout_truncated":false,"stderr_truncated":false,"duration_ms":59,"total_duration_ms":165,"execution_fingerprint":"sha256:79711f8352051d2ae9c63c5421766c4bb5a1a192562d49605e7e2bae5f94fc68","platform":"linux/aarch64","image_id":"sha256:2feeee30a81038df6ae2c39237d6b06b04c43dd26cc60365aea816a0b1418d8b"}},{"scenario":"network","control":true,"limits":{"wall_ms":10000,"output_bytes":65536},"memory_bytes":67108864,"execution":{"termination":"exited","exit_code":0,"oom_killed":false,"stdout":"{\"scenario\":\"network\",\"event\":\"socket\",\"pid\":1,\"details\":{\"family\":\"ipv4\",\"operation\":\"socket_only\",\"purpose\":\"loopback\",\"result\":{\"allowed\":true,\"errno\":0,\"error\":\"\"},\"transport\":\"tcp\"}}\n{\"scenario\":\"network\",\"event\":\"socket\",\"pid\":1,\"details\":{\"family\":\"ipv4\",\"operation\":\"socket_only\",\"purpose\":\"dns\",\"result\":{\"allowed\":true,\"errno\":0,\"error\":\"\"},\"transport\":\"tcp\"}}\n{\"scenario\":\"network\",\"event\":\"socket\",\"pid\":1,\"details\":{\"family\":\"ipv4\",\"operation\":\"socket_only\",\"purpose\":\"loopback\",\"result\":{\"allowed\":true,\"errno\":0,\"error\":\"\"},\"transport\":\"udp\"}}\n{\"scenario\":\"network\",\"event\":\"socket\",\"pid\":1,\"details\":{\"family\":\"ipv4\",\"operation\":\"socket_only\",\"purpose\":\"dns\",\"result\":{\"allowed\":true,\"errno\":0,\"error\":\"\"},\"transport\":\"udp\"}}\n{\"scenario\":\"network\",\"event\":\"socket\",\"pid\":1,\"details\":{\"family\":\"ipv6\",\"operation\":\"socket_only\",\"purpose\":\"loopback\",\"result\":{\"allowed\":true,\"errno\":0,\"error\":\"\"},\"transport\":\"tcp\"}}\n{\"scenario\":\"network\",\"event\":\"socket\",\"pid\":1,\"details\":{\"family\":\"ipv6\",\"operation\":\"socket_only\",\"purpose\":\"dns\",\"result\":{\"allowed\":true,\"errno\":0,\"error\":\"\"},\"transport\":\"tcp\"}}\n{\"scenario\":\"network\",\"event\":\"socket\",\"pid\":1,\"details\":{\"family\":\"ipv6\",\"operation\":\"socket_only\",\"purpose\":\"loopback\",\"result\":{\"allowed\":true,\"errno\":0,\"error\":\"\"},\"transport\":\"udp\"}}\n{\"scenario\":\"network\",\"event\":\"socket\",\"pid\":1,\"details\":{\"family\":\"ipv6\",\"operation\":\"socket_only\",\"purpose\":\"dns\",\"result\":{\"allowed\":true,\"errno\":0,\"error\":\"\"},\"transport\":\"udp\"}}\n{\"scenario\":\"network\",\"event\":\"socket\",\"pid\":1,\"details\":{\"family\":\"unix\",\"operation\":\"socket_only\",\"purpose\":\"local\",\"result\":{\"allowed\":true,\"errno\":0,\"error\":\"\"},\"transport\":\"stream\"}}\n{\"scenario\":\"network\",\"event\":\"socket\",\"pid\":1,\"details\":{\"family\":\"netlink\",\"operation\":\"socket_only\",\"purpose\":\"local\",\"result\":{\"allowed\":true,\"errno\":0,\"error\":\"\"},\"transport\":\"raw\"}}\n","stderr":"","stdout_truncated":false,"stderr_truncated":false,"duration_ms":57,"total_duration_ms":162,"execution_fingerprint":"sha256:3566093e2fbbf8bff40404383b14e31e942ef5a24295aee9712f262e0d225493","platform":"linux/aarch64","image_id":"sha256:2feeee30a81038df6ae2c39237d6b06b04c43dd26cc60365aea816a0b1418d8b"}},{"scenario":"filesystem","control":false,"limits":{"wall_ms":10000,"output_bytes":65536},"memory_bytes":67108864,"execution":{"termination":"exited","exit_code":0,"oom_killed":false,"stdout":"{\"scenario\":\"filesystem\",\"event\":\"rootfs_canary\",\"pid\":1,\"details\":{\"path\":\"/rootfs-canary\",\"read_result\":{\"allowed\":true,\"errno\":0,\"error\":\"\"},\"stat_result\":{\"allowed\":true,\"errno\":0,\"error\":\"\"},\"world_writable\":true}}\n{\"scenario\":\"filesystem\",\"event\":\"write\",\"pid\":1,\"details\":{\"path\":\"/mcp-probe\",\"result\":{\"allowed\":false,\"errno\":13,\"error\":\"permission denied\"}}}\n{\"scenario\":\"filesystem\",\"event\":\"write\",\"pid\":1,\"details\":{\"path\":\"/rootfs-canary\",\"result\":{\"allowed\":false,\"errno\":30,\"error\":\"read-only file system\"}}}\n{\"scenario\":\"filesystem\",\"event\":\"write\",\"pid\":1,\"details\":{\"path\":\"/work/positive\",\"result\":{\"allowed\":true,\"errno\":0,\"error\":\"\"}}}\n{\"scenario\":\"filesystem\",\"event\":\"host_canary\",\"pid\":1,\"details\":{\"absent\":true,\"path\":\"/etc/host-canary\",\"result\":{\"allowed\":false,\"errno\":2,\"error\":\"no such file or directory\"}}}\n{\"scenario\":\"filesystem\",\"event\":\"symlink\",\"pid\":1,\"details\":{\"path\":\"/work/probe-link\",\"result\":{\"allowed\":true,\"errno\":0,\"error\":\"\"},\"target\":\"/rootfs-canary\"}}\n{\"scenario\":\"filesystem\",\"event\":\"symlink_write\",\"pid\":1,\"details\":{\"path\":\"/work/probe-link\",\"result\":{\"allowed\":false,\"errno\":30,\"error\":\"read-only file system\"}}}\n{\"scenario\":\"filesystem\",\"event\":\"symlink_swap\",\"pid\":1,\"details\":{\"swaps\":256,\"attempts\":512,\"positive_writes\":228,\"readonly_denials\":284,\"unexpected_root_writes\":0,\"other_errors\":0}}\n{\"scenario\":\"filesystem\",\"event\":\"filesystem_assertions\",\"pid\":1,\"details\":{\"canary_read_result\":{\"allowed\":true,\"errno\":0,\"error\":\"\"},\"passed\":true,\"rootfs_unchanged\":true,\"unexpected_root_writes\":0}}\n","stderr":"","stdout_truncated":false,"stderr_truncated":false,"duration_ms":61,"total_duration_ms":160,"execution_fingerprint":"sha256:1907322a4bb0f4b6f878604c5953f1d74ff0bebcabf7e5dbbca04cbcb7b02c8c","platform":"linux/aarch64","image_id":"sha256:2feeee30a81038df6ae2c39237d6b06b04c43dd26cc60365aea816a0b1418d8b"}},{"scenario":"filesystem","control":true,"limits":{"wall_ms":10000,"output_bytes":65536},"memory_bytes":67108864,"execution":{"termination":"exited","exit_code":1,"oom_killed":false,"stdout":"{\"scenario\":\"filesystem\",\"event\":\"rootfs_canary\",\"pid\":1,\"details\":{\"path\":\"/rootfs-canary\",\"read_result\":{\"allowed\":true,\"errno\":0,\"error\":\"\"},\"stat_result\":{\"allowed\":true,\"errno\":0,\"error\":\"\"},\"world_writable\":true}}\n{\"scenario\":\"filesystem\",\"event\":\"write\",\"pid\":1,\"details\":{\"path\":\"/mcp-probe\",\"result\":{\"allowed\":false,\"errno\":13,\"error\":\"permission denied\"}}}\n{\"scenario\":\"filesystem\",\"event\":\"write\",\"pid\":1,\"details\":{\"path\":\"/rootfs-canary\",\"result\":{\"allowed\":true,\"errno\":0,\"error\":\"\"}}}\n{\"scenario\":\"filesystem\",\"event\":\"write\",\"pid\":1,\"details\":{\"path\":\"/work/positive\",\"result\":{\"allowed\":true,\"errno\":0,\"error\":\"\"}}}\n{\"scenario\":\"filesystem\",\"event\":\"host_canary\",\"pid\":1,\"details\":{\"absent\":true,\"path\":\"/etc/host-canary\",\"result\":{\"allowed\":false,\"errno\":2,\"error\":\"no such file or directory\"}}}\n{\"scenario\":\"filesystem\",\"event\":\"symlink\",\"pid\":1,\"details\":{\"path\":\"/work/probe-link\",\"result\":{\"allowed\":true,\"errno\":0,\"error\":\"\"},\"target\":\"/rootfs-canary\"}}\n{\"scenario\":\"filesystem\",\"event\":\"symlink_write\",\"pid\":1,\"details\":{\"path\":\"/work/probe-link\",\"result\":{\"allowed\":true,\"errno\":0,\"error\":\"\"}}}\n{\"scenario\":\"filesystem\",\"event\":\"symlink_swap\",\"pid\":1,\"details\":{\"swaps\":256,\"attempts\":512,\"positive_writes\":407,\"readonly_denials\":0,\"unexpected_root_writes\":105,\"other_errors\":0}}\n{\"scenario\":\"filesystem\",\"event\":\"filesystem_assertions\",\"pid\":1,\"details\":{\"canary_read_result\":{\"allowed\":true,\"errno\":0,\"error\":\"\"},\"passed\":false,\"rootfs_unchanged\":false,\"unexpected_root_writes\":105}}\n","stderr":"","stdout_truncated":false,"stderr_truncated":false,"duration_ms":64,"total_duration_ms":170,"execution_fingerprint":"sha256:8e37a8d9d93247c6795f2bde5df69fbd0b196f01afc54b395329ef03fd4ae093","platform":"linux/aarch64","image_id":"sha256:2feeee30a81038df6ae2c39237d6b06b04c43dd26cc60365aea816a0b1418d8b"}},{"scenario":"descendants","control":false,"limits":{"wall_ms":1500,"output_bytes":65536},"memory_bytes":67108864,"execution":{"termination":"timed_out","exit_code":null,"oom_killed":null,"stdout":"{\"scenario\":\"descendants\",\"event\":\"descendant_started\",\"pid\":10,\"details\":{\"child_pid\":13,\"double_fork\":true,\"duration_seconds\":60,\"intermediate_pid\":10,\"original_parent_pid\":1,\"parent_process_group\":1,\"setsid\":true}}\n{\"scenario\":\"descendants\",\"event\":\"intermediate_exited\",\"pid\":1,\"details\":{\"duration_seconds\":60,\"intermediate_pid\":10,\"parent_process_group\":1}}\n{\"scenario\":\"heartbeat\",\"event\":\"heartbeat\",\"pid\":13,\"details\":{\"parent_pid\":1,\"process_group\":13,\"tick\":0}}\n{\"scenario\":\"heartbeat\",\"event\":\"heartbeat\",\"pid\":13,\"details\":{\"parent_pid\":1,\"process_group\":13,\"tick\":1}}\n{\"scenario\":\"heartbeat\",\"event\":\"heartbeat\",\"pid\":13,\"details\":{\"parent_pid\":1,\"process_group\":13,\"tick\":2}}\n{\"scenario\":\"heartbeat\",\"event\":\"heartbeat\",\"pid\":13,\"details\":{\"parent_pid\":1,\"process_group\":13,\"tick\":3}}\n{\"scenario\":\"heartbeat\",\"event\":\"heartbeat\",\"pid\":13,\"details\":{\"parent_pid\":1,\"process_group\":13,\"tick\":4}}\n{\"scenario\":\"heartbeat\",\"event\":\"heartbeat\",\"pid\":13,\"details\":{\"parent_pid\":1,\"process_group\":13,\"tick\":5}}\n{\"scenario\":\"heartbeat\",\"event\":\"heartbeat\",\"pid\":13,\"details\":{\"parent_pid\":1,\"process_group\":13,\"tick\":6}}\n{\"scenario\":\"heartbeat\",\"event\":\"heartbeat\",\"pid\":13,\"details\":{\"parent_pid\":1,\"process_group\":13,\"tick\":7}}\n{\"scenario\":\"heartbeat\",\"event\":\"heartbeat\",\"pid\":13,\"details\":{\"parent_pid\":1,\"process_group\":13,\"tick\":8}}\n{\"scenario\":\"heartbeat\",\"event\":\"heartbeat\",\"pid\":13,\"details\":{\"parent_pid\":1,\"process_group\":13,\"tick\":9}}\n{\"scenario\":\"heartbeat\",\"event\":\"heartbeat\",\"pid\":13,\"details\":{\"parent_pid\":1,\"process_group\":13,\"tick\":10}}\n{\"scenario\":\"heartbeat\",\"event\":\"heartbeat\",\"pid\":13,\"details\":{\"parent_pid\":1,\"process_group\":13,\"tick\":11}}\n{\"scenario\":\"heartbeat\",\"event\":\"heartbeat\",\"pid\":13,\"details\":{\"parent_pid\":1,\"process_group\":13,\"tick\":12}}\n{\"scenario\":\"heartbeat\",\"event\":\"heartbeat\",\"pid\":13,\"details\":{\"parent_pid\":1,\"process_group\":13,\"tick\":13}}\n","stderr":"","stdout_truncated":false,"stderr_truncated":false,"duration_ms":1509,"total_duration_ms":1656,"execution_fingerprint":"sha256:49ee1111767e2489903893dcd04707f31cf976c90b2c0bdfd75f412b1a955461","platform":"linux/aarch64","image_id":"sha256:2feeee30a81038df6ae2c39237d6b06b04c43dd26cc60365aea816a0b1418d8b"}},{"scenario":"output","control":false,"limits":{"wall_ms":10000,"output_bytes":4096},"memory_bytes":67108864,"execution":{"termination":"output_limit","exit_code":null,"oom_killed":null,"stdout":"{\"scenario\":\"output\",\"event\":\"output\",\"pid\":1,\"details\":{\"index\":0,\"payload\":\"xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx","stderr":"{\"scenario\":\"output\",\"event\":\"output\",\"pid\":1,\"details\":{\"index\":0,\"payload\":\"xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx","stdout_truncated":true,"stderr_truncated":true,"duration_ms":56,"total_duration_ms":165,"execution_fingerprint":"sha256:a853031cd5a0d4bac719e3e4e6a23b462f21cdeba99c2d566b486dbde9816898","platform":"linux/aarch64","image_id":"sha256:2feeee30a81038df6ae2c39237d6b06b04c43dd26cc60365aea816a0b1418d8b"}},{"scenario":"cgroups","control":false,"limits":{"wall_ms":10000,"output_bytes":65536},"memory_bytes":67108864,"execution":{"termination":"exited","exit_code":0,"oom_killed":false,"stdout":"{\"scenario\":\"cgroups\",\"event\":\"cgroups\",\"pid\":1,\"details\":{\"cpu.max\":{\"result\":{\"allowed\":true,\"errno\":0,\"error\":\"\"},\"value\":\"50000 100000\"},\"memory.events\":{\"result\":{\"allowed\":true,\"errno\":0,\"error\":\"\"},\"value\":\"low 0\\nhigh 0\\nmax 0\\noom 0\\noom_kill 0\\noom_group_kill 0\\nsock_throttled 0\"},\"memory.max\":{\"result\":{\"allowed\":true,\"errno\":0,\"error\":\"\"},\"value\":\"67108864\"},\"pids.current\":{\"result\":{\"allowed\":true,\"errno\":0,\"error\":\"\"},\"value\":\"4\"},\"pids.events\":{\"result\":{\"allowed\":true,\"errno\":0,\"error\":\"\"},\"value\":\"max 0\"},\"pids.max\":{\"result\":{\"allowed\":true,\"errno\":0,\"error\":\"\"},\"value\":\"64\"}}}\n","stderr":"","stdout_truncated":false,"stderr_truncated":false,"duration_ms":61,"total_duration_ms":161,"execution_fingerprint":"sha256:d3e01df8071e4486ddacbbb0a79700611606b272f37c22ca7d666d20f0403564","platform":"linux/aarch64","image_id":"sha256:2feeee30a81038df6ae2c39237d6b06b04c43dd26cc60365aea816a0b1418d8b"}},{"scenario":"pids","control":false,"limits":{"wall_ms":10000,"output_bytes":65536},"memory_bytes":268435456,"execution":{"termination":"exited","exit_code":0,"oom_killed":false,"stdout":"{\"scenario\":\"pids\",\"event\":\"spawn_failed\",\"pid\":1,\"details\":{\"attempt\":22,\"eagain\":true,\"result\":{\"allowed\":false,\"errno\":11,\"error\":\"resource temporarily unavailable\"}}}\n{\"scenario\":\"pids\",\"event\":\"pids\",\"pid\":1,\"details\":{\"cgroups\":{\"cpu.max\":{\"result\":{\"allowed\":true,\"errno\":0,\"error\":\"\"},\"value\":\"50000 100000\"},\"memory.events\":{\"result\":{\"allowed\":true,\"errno\":0,\"error\":\"\"},\"value\":\"low 0\\nhigh 0\\nmax 0\\noom 0\\noom_kill 0\\noom_group_kill 0\\nsock_throttled 0\"},\"memory.max\":{\"result\":{\"allowed\":true,\"errno\":0,\"error\":\"\"},\"value\":\"268435456\"},\"pids.current\":{\"result\":{\"allowed\":true,\"errno\":0,\"error\":\"\"},\"value\":\"64\"},\"pids.events\":{\"result\":{\"allowed\":true,\"errno\":0,\"error\":\"\"},\"value\":\"max 2\"},\"pids.max\":{\"result\":{\"allowed\":true,\"errno\":0,\"error\":\"\"},\"value\":\"64\"}},\"eagain\":true,\"maximum_attempts\":80,\"started\":22}}\n","stderr":"","stdout_truncated":false,"stderr_truncated":false,"duration_ms":65,"total_duration_ms":166,"execution_fingerprint":"sha256:09c6fe0bbc2d5c7b9a0d52bea3d44281916c802e348a6dfea75a23b0c73e6451","platform":"linux/aarch64","image_id":"sha256:2feeee30a81038df6ae2c39237d6b06b04c43dd26cc60365aea816a0b1418d8b"}},{"scenario":"memory","control":false,"limits":{"wall_ms":10000,"output_bytes":65536},"memory_bytes":67108864,"execution":{"termination":"exited","exit_code":137,"oom_killed":true,"stdout":"{\"scenario\":\"memory\",\"event\":\"memory_started\",\"pid\":1,\"details\":{\"maximum_bytes\":201326592}}\n{\"scenario\":\"memory\",\"event\":\"memory_allocated\",\"pid\":1,\"details\":{\"bytes\":8388608}}\n{\"scenario\":\"memory\",\"event\":\"memory_allocated\",\"pid\":1,\"details\":{\"bytes\":16777216}}\n{\"scenario\":\"memory\",\"event\":\"memory_allocated\",\"pid\":1,\"details\":{\"bytes\":25165824}}\n{\"scenario\":\"memory\",\"event\":\"memory_allocated\",\"pid\":1,\"details\":{\"bytes\":33554432}}\n{\"scenario\":\"memory\",\"event\":\"memory_allocated\",\"pid\":1,\"details\":{\"bytes\":41943040}}\n{\"scenario\":\"memory\",\"event\":\"memory_allocated\",\"pid\":1,\"details\":{\"bytes\":50331648}}\n{\"scenario\":\"memory\",\"event\":\"memory_allocated\",\"pid\":1,\"details\":{\"bytes\":58720256}}\n","stderr":"","stdout_truncated":false,"stderr_truncated":false,"duration_ms":61,"total_duration_ms":164,"execution_fingerprint":"sha256:e02b02209b504e17f73c83650aaab42788dc029121c3d087ec286bad37c37eb4","platform":"linux/aarch64","image_id":"sha256:2feeee30a81038df6ae2c39237d6b06b04c43dd26cc60365aea816a0b1418d8b"}},{"scenario":"disk","control":false,"limits":{"wall_ms":10000,"output_bytes":65536},"memory_bytes":67108864,"execution":{"termination":"exited","exit_code":0,"oom_killed":false,"stdout":"{\"scenario\":\"disk\",\"event\":\"disk\",\"pid\":1,\"details\":{\"bytes_written\":8388608,\"enospc\":true,\"result\":{\"allowed\":false,\"errno\":28,\"error\":\"no space left on device\"}}}\n","stderr":"","stdout_truncated":false,"stderr_truncated":false,"duration_ms":58,"total_duration_ms":165,"execution_fingerprint":"sha256:8c7d5a4a0d5c7988d01fed9880def151bd01b55cc99dbc21b47ada22ec41e79d","platform":"linux/aarch64","image_id":"sha256:2feeee30a81038df6ae2c39237d6b06b04c43dd26cc60365aea816a0b1418d8b"}},{"scenario":"cpu","control":false,"limits":{"wall_ms":10000,"output_bytes":65536},"memory_bytes":67108864,"execution":{"termination":"exited","exit_code":0,"oom_killed":false,"stdout":"{\"scenario\":\"cpu\",\"event\":\"cpu\",\"pid\":1,\"details\":{\"after\":{\"result\":{\"allowed\":true,\"errno\":0,\"error\":\"\"},\"value\":\"usage_usec 1539058\\nuser_usec 1531150\\nsystem_usec 7907\\nnice_usec 0\\nnr_periods 30\\nnr_throttled 30\\nthrottled_usec 1471396\\nnr_bursts 0\\nburst_usec 0\"},\"before\":{\"result\":{\"allowed\":true,\"errno\":0,\"error\":\"\"},\"value\":\"usage_usec 6501\\nuser_usec 0\\nsystem_usec 6501\\nnice_usec 0\\nnr_periods 0\\nnr_throttled 0\\nthrottled_usec 0\\nnr_bursts 0\\nburst_usec 0\"},\"checksum\":17937162527825788929,\"cpu.max\":{\"result\":{\"allowed\":true,\"errno\":0,\"error\":\"\"},\"value\":\"50000 100000\"},\"elapsed_milliseconds\":3000,\"iterations\":21337}}\n","stderr":"","stdout_truncated":false,"stderr_truncated":false,"duration_ms":3065,"total_duration_ms":3186,"execution_fingerprint":"sha256:58b9a4cbd841f92d3355102e6b2b507168683916b2fa94834f9dcbc74981e2f8","platform":"linux/aarch64","image_id":"sha256:2feeee30a81038df6ae2c39237d6b06b04c43dd26cc60365aea816a0b1418d8b"}}],"invalid_evidence":[]}
+GATE rust-security
+RUST SECURITY rust_gateway::tests::benign_source_transfer_compiles_with_empty_directory
+RUST SECURITY rust_calibration::tests::observed_descendants_are_cleaned_on_timeout_cancel_and_overflow
+RUST SECURITY toolchain_inspect_observes_installed_runtime_with_shared_calibration
+RUST SECURITY eof_and_cancellation_during_calibration_join_workers_and_leave_no_owned_objects
+RUST SECURITY check_reports_success_and_borrow_errors_with_live_log_resources
+RUST SECURITY check_cancellation_and_eof_join_active_cargo_jobs
+RUST SECURITY format_reports_workspace_diffs_without_source_writes
+RUST SECURITY rust_calibration::tests::actual_clippy_build_script_and_proc_macro_containment
+RUST SECURITY clippy_profiles_report_findings_and_verified_log_resources
+RUST SECURITY rust_gateway::test_runtime::actual_test_runtime_containment_and_descendant_cleanup
+RUST SECURITY test_reports_results_selections_and_verified_harness_logs
+RUST SECURITY test_cancellation_and_eof_join_active_test_binaries
+RUST SECURITY rust_gateway::test_runtime::actual_proc_macro_forgery_cannot_hide_later_cargo_failure
+RUST SECURITY audit_runtime::audit_real_rsa_and_lock_generations_are_captured_without_building
+RUST SECURITY audit_runtime::audit_snapshot_freshness_and_advisory_classification_are_distinct
+RUST SECURITY audit_runtime::audit_missing_integrity_path_and_symlink_fail_closed
+RUST SECURITY explain_runtime::compiler_explanation_requires_no_project_and_preserves_actual_evidence
+RUST SECURITY quality_runtime::quality_fast_retains_format_and_strict_clippy_failures_and_readonly_source
+RUST SECURITY quality_runtime::quality_standard_distinguishes_pass_test_failure_and_unavailable_audit
+RUST SECURITY quality_runtime::quality_cancellation_and_eof_join_the_active_test_stage
+PASS actual Rust containment, MCP inspection/check/format/clippy/test/audit/explain/quality/Resources and joined cleanup: /Users/cburgosro/Projects/rust-mcp/target/rust-security
+GATE m2-runtime
+M2 RUNTIME mutation_gateway::tests::real_rustfmt_exports_full_candidate_and_cleans_owned_objects
+M2 RUNTIME resolution_gateway::tests::real_vendor_resolution_preserves_lock_presence_and_cleans_all_objects
+M2 RUNTIME project_inspection::tests::production_inspector_formats_postchecks_rejects_and_cancels
+M2 RUNTIME mutation_runtime::manifest_preview_commit_conflict_reopen_and_restart_receipt
+M2 RUNTIME format_mutation_runtime::
+M2 RUNTIME fix_mutation_runtime::
+M2 RUNTIME fix_hostile_runtime::
+M2 RUNTIME mutation_concurrency_runtime::
+M2 RUNTIME dependency_mutation_runtime::
+PASS M2 runtime: /Users/cburgosro/Projects/rust-mcp/target/m2-runtime/receipt.json
+GATE audit-data
+   Compiling rust-engineering-domain v0.2.0-dev (/Users/cburgosro/Projects/rust-mcp/crates/domain)
+   Compiling rust-engineering-application v0.2.0-dev (/Users/cburgosro/Projects/rust-mcp/crates/application)
+   Compiling rust-engineering-catalog v0.2.0-dev (/Users/cburgosro/Projects/rust-mcp/crates/catalog-adapter)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 4.27s
+PASS owned RustSec/SQLite under actual macOS test-process network deny; no temp writes
+GATE semantic
+PASS published SHA256; 93 files; only two exact manifest edits; Rust sources unchanged
+PASS network positive controls IPv4/IPv6 bind; ORT SHA256 4d53c916ea95f09203324f9aad7b76f75c16d8a4bc98f8a949ea0ac73c07604d
+    Checking rust-engineering-domain v0.2.0-dev (/Users/cburgosro/Projects/rust-mcp/crates/domain)
+    Checking winnow v1.0.4
+    Checking toml_writer v1.1.2+spec-1.1.0
+    Checking toml_datetime v1.1.1+spec-1.1.0
+warning: function `resolve_arrow_field_path` is never used
+   --> vendor/lancedb/src/utils/mod.rs:202:15
+    |
+202 | pub(crate) fn resolve_arrow_field_path(schema: &Schema, column: &str) -> Result<(String, Field)> {
+    |               ^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: `lancedb` (lib) generated 1 warning
+    Checking toml_parser v1.1.3+spec-1.1.0
+    Checking toml v0.9.12+spec-1.1.0
+    Checking toml_edit v0.25.13+spec-1.1.0
+    Checking rust-engineering-application v0.2.0-dev (/Users/cburgosro/Projects/rust-mcp/crates/application)
+    Checking cargo-lock v11.0.1
+    Checking rust-engineering-project v0.2.0-dev (/Users/cburgosro/Projects/rust-mcp/crates/project-adapter)
+    Checking rust-engineering-execution v0.2.0-dev (/Users/cburgosro/Projects/rust-mcp/crates/execution-adapter)
+    Checking rust-engineering-semantic v0.2.0-dev (/Users/cburgosro/Projects/rust-mcp/crates/semantic-adapter)
+    Checking rust-engineering-artifact v0.2.0-dev (/Users/cburgosro/Projects/rust-mcp/crates/artifact-adapter)
+    Checking rustsec v0.32.0
+    Checking rust-engineering-catalog v0.2.0-dev (/Users/cburgosro/Projects/rust-mcp/crates/catalog-adapter)
+    Checking rust-engineering-mcp v0.2.0-dev (/Users/cburgosro/Projects/rust-mcp/crates/mcp-server)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 4.91s
+    Checking rust-engineering-domain v0.2.0-dev (/Users/cburgosro/Projects/rust-mcp/crates/domain)
+warning: function `resolve_arrow_field_path` is never used
+   --> vendor/lancedb/src/utils/mod.rs:202:15
+    |
+202 | pub(crate) fn resolve_arrow_field_path(schema: &Schema, column: &str) -> Result<(String, Field)> {
+    |               ^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: `lancedb` (lib) generated 1 warning
+    Checking rust-engineering-application v0.2.0-dev (/Users/cburgosro/Projects/rust-mcp/crates/application)
+    Checking rust-engineering-project v0.2.0-dev (/Users/cburgosro/Projects/rust-mcp/crates/project-adapter)
+    Checking rust-engineering-catalog v0.2.0-dev (/Users/cburgosro/Projects/rust-mcp/crates/catalog-adapter)
+    Checking rust-engineering-execution v0.2.0-dev (/Users/cburgosro/Projects/rust-mcp/crates/execution-adapter)
+    Checking rust-engineering-semantic v0.2.0-dev (/Users/cburgosro/Projects/rust-mcp/crates/semantic-adapter)
+    Checking rust-engineering-artifact v0.2.0-dev (/Users/cburgosro/Projects/rust-mcp/crates/artifact-adapter)
+    Checking rust-engineering-mcp v0.2.0-dev (/Users/cburgosro/Projects/rust-mcp/crates/mcp-server)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 4.09s
+   Compiling rust-engineering-domain v0.2.0-dev (/Users/cburgosro/Projects/rust-mcp/crates/domain)
+   Compiling rust-engineering-application v0.2.0-dev (/Users/cburgosro/Projects/rust-mcp/crates/application)
+   Compiling rust-engineering-catalog v0.2.0-dev (/Users/cburgosro/Projects/rust-mcp/crates/catalog-adapter)
+   Compiling rust-engineering-semantic v0.2.0-dev (/Users/cburgosro/Projects/rust-mcp/crates/semantic-adapter)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 6.16s
+
+running 16 tests
+test index::persistence::tests::archive_budgets_are_enforced_before_native_parsing ... ok
+test index::persistence::tests::authentic_native_bytes_with_wrong_schema_are_rejected ... ok
+test index::persistence::tests::corrupt_truncated_and_hostile_archive_keys_fail_closed ... ok
+test index::persistence::tests::empty_table_round_trips ... ok
+test index::persistence::tests::memory_registry_cannot_resolve_local_or_remote_references ... ok
+test index::persistence::tests::metadata_and_model_are_bound_before_native_open ... ok
+test index::persistence::tests::native_manifest_remote_and_traversal_references_are_rejected ... ok
+test index::persistence::tests::native_objects_survive_destroying_every_original_handle ... ok
+test index::persistence::tests::restored_rows_validate_ids_vectors_nulls_and_count ... ok
+test index::tests::accepts_maximum_rows_dimension_and_name_length ... ok
+test index::tests::failed_rebuild_preserves_generation_and_success_replaces_it ... ok
+test index::tests::memory_generations_do_not_share_tables ... ok
+test index::tests::query_limits_and_vectors_are_validated_even_for_empty_table ... ok
+test index::tests::real_table_returns_only_bounded_ids_and_distances ... ok
+test index::tests::rejects_invalid_metadata_and_rows_before_generation ... ok
+test model::tests::rejects_absent_and_wrong_bytes_before_parsing ... ok
+
+test result: ok. 16 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.13s
+
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 16 filtered out; finished in 0.00s
+
+
+running 1 test
+test real_offline_e5_lance_sqlite_roundtrip ... ignored, Requires RUST_MCP_E5_DIR and explicit network-isolation calibration via scripts/test-semantic.py
+
+test result: ok. 0 passed; 0 failed; 1 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 1 test
+test real_offline_e5_lance_sqlite_roundtrip ... E5/Lance result for ownership: [SemanticCandidate { crate_name: "ownership", distance: 0.27902523 }, SemanticCandidate { crate_name: "serde_json", distance: 0.43071872 }, SemanticCandidate { crate_name: "tokio", distance: 0.43422505 }]
+E5/Lance result for serde_json: [SemanticCandidate { crate_name: "serde_json", distance: 0.23213457 }, SemanticCandidate { crate_name: "tokio", distance: 0.3243479 }, SemanticCandidate { crate_name: "ownership", distance: 0.36427516 }]
+PASS real E5 + LanceDB + authoritative SQLite + rebuild + mismatch fallback, network denied
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 5.77s
+
+PASS semantic gate: real model, index, SQLite, calibrated network deny, configured TMPDIR remains absent
+GATE catalog
+   Compiling winnow v1.0.4
+   Compiling toml_writer v1.1.2+spec-1.1.0
+   Compiling rust-engineering-domain v0.2.0-dev (/Users/cburgosro/Projects/rust-mcp/crates/domain)
+   Compiling toml_datetime v1.1.1+spec-1.1.0
+   Compiling toml_parser v1.1.3+spec-1.1.0
+   Compiling toml v0.9.12+spec-1.1.0
+   Compiling toml_edit v0.25.13+spec-1.1.0
+   Compiling rust-engineering-application v0.2.0-dev (/Users/cburgosro/Projects/rust-mcp/crates/application)
+   Compiling rust-engineering-artifact v0.2.0-dev (/Users/cburgosro/Projects/rust-mcp/crates/artifact-adapter)
+   Compiling rust-engineering-semantic v0.2.0-dev (/Users/cburgosro/Projects/rust-mcp/crates/semantic-adapter)
+   Compiling cargo-lock v11.0.1
+   Compiling rust-engineering-project v0.2.0-dev (/Users/cburgosro/Projects/rust-mcp/crates/project-adapter)
+   Compiling rust-engineering-execution v0.2.0-dev (/Users/cburgosro/Projects/rust-mcp/crates/execution-adapter)
+   Compiling rustsec v0.32.0
+   Compiling rust-engineering-catalog v0.2.0-dev (/Users/cburgosro/Projects/rust-mcp/crates/catalog-adapter)
+   Compiling rust-engineering-mcp v0.2.0-dev (/Users/cburgosro/Projects/rust-mcp/crates/mcp-server)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 8.92s
+
+running 6 tests
+test actual_cli_rebuild_reopens_native_index_without_network ... ignored, full gate: exact E5/ORT assets and enforced macOS network deny required
+test durable_reservation_recovers_interruption_and_missing_floor_never_resets ... ok
+test invalid_candidate_preserves_active_and_corrupt_active_recovery_keeps_floor ... ok
+test key_rotation_retains_floor_and_channel_change_is_explicit ... ok
+test separate_process_import_status_sync_and_durable_rollback ... ok
+test stale_staging_does_not_override_authenticated_active ... ok
+
+test result: ok. 5 passed; 0 failed; 1 ignored; 0 measured; 0 filtered out; finished in 8.41s
+
+
+
+running 1 test
+test actual_cli_rebuild_reopens_native_index_without_network ... PASS real embedded native index import/restart status; signed corrupt native payload rejected before active/floor
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 5 filtered out; finished in 21.07s
+
+
+PASS signed CLI import/status/restart/rollback and real E5 native index rebuild/reopen under network deny
+GATE catalog-status
+   Compiling rust-engineering-mcp v0.2.0-dev (/Users/cburgosro/Projects/rust-mcp/crates/mcp-server)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.62s
+
+running 3 tests
+test actual_wire_catalog_status_authenticates_fixture_and_schema ... ok
+test actual_wire_native_catalog_status_preserves_identity_and_degrades_independently ... ignored, full gate: pinned E5/ORT and inherited enforced macOS network deny
+test catalog_runtime_cli_rejects_incomplete_relative_and_duplicate_authority ... ok
+
+test result: ok. 2 passed; 0 failed; 1 ignored; 0 measured; 0 filtered out; finished in 7.04s
+
+
+
+running 1 test
+test actual_wire_native_catalog_status_preserves_identity_and_degrades_independently ... PASS real MCP E5/native index bindings, retained session, restart invalid/mismatched-index fallback and missing-model independence
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 2 filtered out; finished in 14.43s
+
+
+PASS MCP catalog status, real E5/native index, immutable session, corrupted index independence under network deny
+GATE crate-search
+   Compiling rust-engineering-mcp v0.2.0-dev (/Users/cburgosro/Projects/rust-mcp/crates/mcp-server)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.59s
+
+running 3 tests
+test actual_wire_all_search_modes_and_native_fallback_are_bound_to_sqlite ... ignored, full gate: actual E5/native Lance objects and inherited macOS network deny
+test actual_wire_lexical_filters_and_semantic_fallback_use_identical_sqlite_facts ... ok
+test actual_wire_search_rejects_query_and_filter_authority_extensions ... ok
+
+test result: ok. 2 passed; 0 failed; 1 ignored; 0 measured; 0 filtered out; finished in 7.13s
+
+
+
+running 1 test
+test actual_wire_all_search_modes_and_native_fallback_are_bound_to_sqlite ... PASS actual E5/native lexical/semantic/hybrid ES+EN boundaries and SQLite-filtered fallbacks; no retrieval-quality claim
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 2 filtered out; finished in 10.84s
+
+
+PASS MCP crate search, real E5/native rankings, shared generation and explicit fallback under network deny
+GATE crate-inspect
+   Compiling rust-engineering-mcp v0.2.0-dev (/Users/cburgosro/Projects/rust-mcp/crates/mcp-server)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.53s
+
+running 2 tests
+test actual_cli_mcp_paginates_exact_sqlite_sections_and_preserves_unknowns ... ok
+test actual_mcp_continuation_detects_restart_generation_and_rejects_invalid_pages ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 7.22s
+
+
+PASS MCP paged inspection, exact SQLite facts, unknown metadata and generation-bound continuation under network deny
+GATE doctor
+DOCTOR build core CLI and run ordinary contract tests
+DOCTOR actual successful calibration and runtime inventory
+DOCTOR SIGINT during observed calibration and joined cleanup
+DOCTOR SIGTERM during observed calibration and joined cleanup
+DOCTOR SIGHUP during observed calibration and joined cleanup
+DOCTOR passive stdout-sigint with a prefilled undrained stdout pipe
+DOCTOR passive stdout-deadline with a prefilled undrained stdout pipe
+PASS doctor calibration, SIGINT/SIGTERM/SIGHUP cleanup and stalled output: /Users/cburgosro/Projects/rust-mcp/target/doctor-security
+PASS full gate: docs/validation/M2-full-gate.json

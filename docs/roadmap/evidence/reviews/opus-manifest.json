@@ -1,0 +1,58 @@
+[
+  {
+    "path": "AGENTS.md",
+    "sha256": "9057042f049b2f77e020206f9bba6464c925f58f2430aaa30cc96f8596ade73d"
+  },
+  {
+    "path": "docs/roadmap/m2-m8.md",
+    "sha256": "d7ced4894a3dc74603930477075ae7ef143e4093c9dd4b4cf5afd1a2d761a543"
+  },
+  {
+    "path": "docs/roadmap/m2-safe-mutation.md",
+    "sha256": "c8246adf2bb6f16d1c959db15b65e16b3087c2d8af6bfbb0dcd44b6b4e49abc5"
+  },
+  {
+    "path": "docs/roadmap/m3-quality.md",
+    "sha256": "f5dd399504f6aaeee3fbabb38c1fa31d5b884c41b48de67eddb0c969c888436a"
+  },
+  {
+    "path": "docs/roadmap/m6-analyzer.md",
+    "sha256": "81c4cf7b03af714ab3b691b99dca15041903fdf9d1b054015805129e285221fd"
+  },
+  {
+    "path": "docs/roadmap/m7-remote.md",
+    "sha256": "2428292cfbdd9991060a5d37641eb8655023e7867948f489bf5abbccbcfa92b5"
+  },
+  {
+    "path": "docs/roadmap/m8-stabilization.md",
+    "sha256": "9a932ccc65f3a51f574d361db0de34019b5470ed92dc09f1fcde73c3a298fe58"
+  },
+  {
+    "path": "docs/roadmap/adr-backlog-m2-m8.md",
+    "sha256": "bbfd87ec067b8c04987fb46cda946a2d8ca4259ded66fe4270a4be977566c26d"
+  },
+  {
+    "path": "docs/roadmap/traceability-m2-m8.md",
+    "sha256": "4b98d50db420b5fbde3f05da346633689050d56d8c031e50f03a2d7b7aec1fcc"
+  },
+  {
+    "path": "docs/roadmap/baseline-2026-09-05.md",
+    "sha256": "efd511035e0270ee63883c5bb484591fc0a13e0c6082e140caf809d1d880d805"
+  },
+  {
+    "path": "docs/adr/ADR-013-safe-mutation.md",
+    "sha256": "80d33509b8c7a2abe244ae7b8576c02939508b5a5b6a4dcfc552185482d9e400"
+  },
+  {
+    "path": "docs/adr/ADR-024-project-open.md",
+    "sha256": "7d48f8bc8d2937ef2a1ca654ba78d6acf4eacaa30b7974541fbb3662d027d165"
+  },
+  {
+    "path": "docs/adr/ADR-031-rust-source-transfer.md",
+    "sha256": "2fcd34c560d06940717c32449ac48e84d71f2c759e2faff97e330b582780dbf0"
+  },
+  {
+    "path": "docs/adr/ADR-048-0.1.0-qualification-and-artifact-boundary.md",
+    "sha256": "2c7bf1d5b9cd9a4f87f6a8d7dd7eeb989895f04eac2780ddbe8f8f7de955fb2e"
+  }
+]

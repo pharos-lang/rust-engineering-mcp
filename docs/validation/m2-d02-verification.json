@@ -1,0 +1,24 @@
+{
+  "observed_at_utc": "2026-09-05T07:51:06.709053+00:00",
+  "planning_merge": "2f54b360e1e81f21e7efeff7c451cdd6f663a04f",
+  "native_probe_exit_code": 0,
+  "native_probe_product_result": "no_go_current_candidate",
+  "observations": 15,
+  "script_sha256_verified_out_of_band": "3294e409ef8ca50a990cbf933117b68b9ba7b528b42912746238ad85bc2c7938",
+  "receipt_sha256": "0ac42ab1761f0dcfc0401aa4799469ec386b7aa5484359dfa1b179a2bb246243",
+  "ast_parse": "passed",
+  "timings_reconciled": true,
+  "swap_inode_identity_and_newer_update_hash_checked": true,
+  "production_manifests_workflows_unchanged": true,
+  "public_m1_tool_snapshots": 13,
+  "cargo_gate": "not run; no product code or dependency changes",
+  "m2_feature_gate": "blocked, not satisfied",
+  "verification_interpreter": {
+    "version": "3.14.7 (main, Aug  5 2026, 10:29:49) [Clang 21.0.0 (clang-2100.1.1.101)]",
+    "executable": "/opt/homebrew/opt/python@3.14/bin/python3.14",
+    "observed_at_utc": "2026-09-05T07:53:19.635465+00:00",
+    "scope": "interpreter of out-of-band verification; not retroactive metadata of prior native run"
+  },
+  "architecture_validator": "passed",
+  "git_diff_check": "passed"
+}

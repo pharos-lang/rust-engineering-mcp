@@ -15,6 +15,7 @@ fn entry(
     name: &str,
     bytes: &[u8],
     directory: bool,
+    file_mode: usize,
 ) -> Result<(), ExecutionError> {
     let padded = bytes.len().div_ceil(512) * 512;
     if out.len() + 512 + padded + 1024 > MAX_ARCHIVE {
@@ -25,7 +26,10 @@ fn entry(
         return Err(ExecutionError::Denied);
     }
     header[..name.len()].copy_from_slice(name.as_bytes());
-    octal(&mut header[100..108], if directory { 0o755 } else { 0o444 })?;
+    octal(
+        &mut header[100..108],
+        if directory { 0o755 } else { file_mode },
+    )?;
     octal(&mut header[108..116], 0)?;
     octal(&mut header[116..124], 0)?;
     octal(&mut header[124..136], bytes.len())?;
@@ -42,17 +46,33 @@ fn entry(
     out.resize(out.len() + padded - bytes.len(), 0);
     Ok(())
 }
-pub(super) fn encode(source: &SourceBundle) -> Result<Vec<u8>, ExecutionError> {
+fn encode_with_file_mode(
+    source: &SourceBundle,
+    file_mode: usize,
+) -> Result<Vec<u8>, ExecutionError> {
     let mut out = Vec::new();
     // Domain sorting puts every parent before its descendants, including empties.
     for directory in source.directories() {
-        entry(&mut out, directory, &[], true)?;
+        entry(&mut out, directory, &[], true, file_mode)?;
     }
     for file in source.files() {
-        entry(&mut out, file.path(), file.bytes(), false)?;
+        entry(&mut out, file.path(), file.bytes(), false, file_mode)?;
     }
     out.resize(out.len() + 1024, 0);
     Ok(out)
+}
+
+pub(super) fn encode(source: &SourceBundle) -> Result<Vec<u8>, ExecutionError> {
+    encode_with_file_mode(source, 0o444)
+}
+
+/// Mutation input remains mounted read-only while project code executes, but
+/// cargo-mutants preserves its source modes when it copies that tree into the
+/// private writable scratch tmpfs. Giving the captured regular files owner
+/// write permission is therefore required for the unprivileged mutator to
+/// replace its scratch copy; it does not make `/source` writable.
+pub(super) fn encode_mutation_source(source: &SourceBundle) -> Result<Vec<u8>, ExecutionError> {
+    encode_with_file_mode(source, 0o644)
 }
 
 #[cfg(test)]
@@ -93,6 +113,43 @@ mod tests {
                 .sum();
             assert_eq!(expected, actual);
         }
+        Ok(())
+    }
+
+    #[test]
+    fn mutation_archive_changes_only_regular_file_mode() -> Result<(), String> {
+        let source = SourceBundle::new(vec![
+            SourceFile::new("src/lib.rs".into(), b"x".to_vec())
+                .map_err(|error| format!("{error:?}"))?,
+        ])
+        .map_err(|error| format!("{error:?}"))?;
+        let ordinary = encode(&source).map_err(|error| format!("{error:?}"))?;
+        let mutation = encode_mutation_source(&source).map_err(|error| format!("{error:?}"))?;
+        const FILE_HEADER: usize = 512;
+        assert_eq!(
+            &ordinary[FILE_HEADER + 100..FILE_HEADER + 108],
+            b"0000444\0"
+        );
+        assert_eq!(
+            &mutation[FILE_HEADER + 100..FILE_HEADER + 108],
+            b"0000644\0"
+        );
+        let mut normalized = mutation;
+        normalized[FILE_HEADER + 100..FILE_HEADER + 108]
+            .copy_from_slice(&ordinary[FILE_HEADER + 100..FILE_HEADER + 108]);
+        // Recalculate the checksum after normalizing the single intended field.
+        normalized[FILE_HEADER + 148..FILE_HEADER + 156].fill(b' ');
+        let checksum: usize = normalized[FILE_HEADER..FILE_HEADER + 512]
+            .iter()
+            .map(|byte| usize::from(*byte))
+            .sum();
+        octal(
+            &mut normalized[FILE_HEADER + 148..FILE_HEADER + 155],
+            checksum,
+        )
+        .map_err(|error| format!("{error:?}"))?;
+        normalized[FILE_HEADER + 155] = b' ';
+        assert_eq!(normalized, ordinary);
         Ok(())
     }
 }

@@ -1,0 +1,9 @@
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.11s
+     Running tests/inspection_runtime.rs (target/debug/deps/inspection_runtime-836bf750ab4f64c1)
+
+running 2 tests
+test fix_hostile_runtime::fix_executes_hostile_proc_macro_and_retains_no_plan_after_compile_error ... ok
+test fix_hostile_runtime::fix_rejects_proc_macro_manifest_mutation_and_host_escape_without_retaining_plan ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 26 filtered out; finished in 37.04s
+

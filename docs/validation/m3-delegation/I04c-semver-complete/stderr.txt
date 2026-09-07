@@ -1,0 +1,20 @@
+2026-09-06T06:35:22.993650Z ERROR codex_core::tools::router: error=apply_patch verification failed: Failed to find expected lines in /Users/cburgosro/Projects/rust-mcp/crates/application/src/lib.rs:
+pub mod coverage;
+pub mod nextest;
+2026-09-06T06:45:33.484859Z ERROR codex_core::tools::router: error=apply_patch verification failed: Failed to find expected lines in /Users/cburgosro/Projects/rust-mcp/docs/implementation-status.md:
+M3-01 está Done para su corte síncrono: integra contrato, gateway, JUnit, Stage 1
+2026-09-06T07:04:11.769860Z ERROR codex_core::tools::router: error=apply_patch verification failed: invalid patch: multiple operations target /Users/cburgosro/Projects/rust-mcp/crates/mcp-server/tests/snapshots/semver-tool.json
+2026-09-06T07:09:18.103638Z ERROR codex_core::tools::router: error=apply_patch verification failed: Failed to find expected lines in /Users/cburgosro/Projects/rust-mcp/crates/application/src/semver_check.rs:
+        assert_eq!(classify(&unparsed), SemverOutcome::Incomplete);
+        assert_eq!(classify(&contradictory), SemverOutcome::Blocked);
+        Ok(())
+    }
+2026-09-06T07:09:52.948166Z ERROR codex_core::tools::router: error=apply_patch verification failed: Failed to find expected lines in /Users/cburgosro/Projects/rust-mcp/docs/tools.md:
+si siempre `partial`. Un formato no reconocido, salida truncada o exit 100 sin ningún
+finding deny se degrada a `incomplete`/`blocked`, nunca a «sin ruptura». La salida
+cruda no coloreada se conserva como Resource privado del ArtifactStore M1, con
+truncación/omisión explícita; la respuesta permanece bajo 512 KiB.
+2026-09-06T07:27:24.455127Z ERROR codex_core::tools::router: error=apply_patch verification failed: invalid patch: The last line of the patch must be '*** End Patch'
+2026-09-06T07:49:12.046889Z ERROR codex_core::tools::router: error=apply_patch verification failed: Failed to find expected lines in /Users/cburgosro/Projects/rust-mcp/docs/validation/M3-04-semver-calibration.md:
+Ambas se ejecutarán con
+`--exact --ignored --test-threads=1`.

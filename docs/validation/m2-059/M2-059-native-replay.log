@@ -1,0 +1,11 @@
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.07s
+     Running unittests src/lib.rs (target/debug/deps/rust_engineering_project-3f9c9bb0894fa001)
+
+running 4 tests
+test filesystem::macos::mutation::tests::measure_real_format_commit_replay_recovery_and_index_ceiling ... ignored, explicit release-profile APFS ceiling measurement
+test filesystem::macos::mutation::tests::pending_replay_uses_existing_recovery_and_pruned_replay_is_not_found ... ok
+test filesystem::macos::mutation::tests::terminal_replay_requires_the_exact_binding_and_never_reapplies_source ... ok
+test filesystem::macos::mutation::tests::terminal_legacy_v1_replay_migrates_only_after_exact_binding ... ok
+
+test result: ok. 3 passed; 0 failed; 1 ignored; 0 measured; 63 filtered out; finished in 0.22s
+

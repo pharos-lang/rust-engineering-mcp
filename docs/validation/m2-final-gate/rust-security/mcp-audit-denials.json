@@ -1,0 +1,9 @@
+{
+  "bad_sha256_record_path_and_source_symlink_blocked": true,
+  "cases": 5,
+  "cleanup": true,
+  "configured_missing_file_unavailable": true,
+  "configured_runtime_missing_snapshot_unavailable": true,
+  "project_source_unchanged": true,
+  "snapshot_source_unchanged": true
+}

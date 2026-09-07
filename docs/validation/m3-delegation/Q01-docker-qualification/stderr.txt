@@ -1,0 +1,12 @@
+2026-09-06T08:09:22.650908Z ERROR codex_models_manager::manager: failed to renew cache TTL: EOF while parsing a value at line 1 column 0
+2026-09-06T08:38:17.629449Z ERROR codex_core::tools::router: error=apply_patch verification failed: Failed to find expected lines in /Users/cburgosro/Projects/rust-mcp/crates/execution-adapter/src/source_archive.rs:
+        assert_eq!(&ordinary[100..108], b"0000444\0");
+        assert_eq!(&mutation[100..108], b"0000644\0");
+        let mut normalized = mutation;
+        normalized[100..108].copy_from_slice(&ordinary[100..108]);
+        // Recalculate the checksum after normalizing the single intended field.
+        normalized[148..156].fill(b' ');
+        let checksum: usize = normalized[..512].iter().map(|byte| usize::from(*byte)).sum();
+        octal(&mut normalized[148..155], checksum).map_err(|error| format!("{error:?}"))?;
+        normalized[155] = b' ';
+2026-09-06T09:31:39.837828Z ERROR codex_core::tools::router: error=apply_patch verification failed: invalid patch: multiple operations target /Users/cburgosro/Projects/rust-mcp/docs/validation/M3-04-semver-calibration.md

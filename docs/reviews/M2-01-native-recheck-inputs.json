@@ -1,0 +1,56 @@
+{
+  "model": "claude-opus-5",
+  "effort": "high",
+  "cli_version": "2.1.260",
+  "files": [
+    {
+      "path": "docs/adr/ADR-050-local-coordinated-mutation.md",
+      "sha256": "e4e8b38936cdde67c4704833c464b68dd43e7fe6166daadb887991ee695c6a40"
+    },
+    {
+      "path": "docs/adr/ADR-052-mutation-journal-and-authorization.md",
+      "sha256": "7a44a7183fedcffc1af99efd7ce79d2276d5e23a3c0933bb0aa5599a8f7099cd"
+    },
+    {
+      "path": "crates/domain/src/mutation.rs",
+      "sha256": "f932299ec076cc9fcc651da472350eb9cab2a7187e3bec7b474314ff3f750fdd"
+    },
+    {
+      "path": "crates/project-adapter/src/mutation_store.rs",
+      "sha256": "d9effda1141adbc40220623a01db02dabfd6a2b372974bd29bd8ac925e9db2bb"
+    },
+    {
+      "path": "crates/project-adapter/src/mutation_state.rs",
+      "sha256": "d1f6fa1008712f1f74b8499523464825871dc57e78dc49b870f6566ee6467bd4"
+    },
+    {
+      "path": "crates/project-adapter/src/mutation_port.rs",
+      "sha256": "4bffe1dea8cd1f1fe34cc554fa525f85fd3dfbb612fc3a71c09939d063996ac9"
+    },
+    {
+      "path": "crates/project-adapter/src/filesystem/macos.rs",
+      "sha256": "cc22a77a95bed734d2bdece82c6574d3386e15b742e3f8e83dd1ca5471709d5b"
+    },
+    {
+      "path": "crates/project-adapter/src/filesystem/macos/mutation.rs",
+      "sha256": "dab5f4baedb6073646a77b506a912d61cd0ec4eb25b0439bb049f5fa19e1144a"
+    },
+    {
+      "path": "crates/project-adapter/tests/mutation_store.rs",
+      "sha256": "99c721da3753677b8837b1179161df85ba632601128169cf1e8bd13eb7483169"
+    },
+    {
+      "path": "crates/mcp-server/src/stdio.rs",
+      "sha256": "3333bcbf614faed57d33d1c6c68f1256afc26e96c93bd915c3ef0084da1f3d26"
+    },
+    {
+      "path": "crates/mcp-server/src/mutation_cli.rs",
+      "sha256": "41aacc795385a90c85fdff2bda87ff3200a6efe27b3fbcf0b681e1ed80624aae"
+    },
+    {
+      "path": "crates/mcp-server/src/stdio/workers.rs",
+      "sha256": "546e24b8c4c11d4c22c776bbcd234370f8b284906a3f23d7b9a2f56225a8e317"
+    }
+  ],
+  "packet_sha256": "2449f4af2543d3b1ef8b07124ea0a70e5ed6663608171df28372dba4a39c5697"
+}

@@ -3,11 +3,21 @@ use std::sync::Arc;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::time::{Duration, Instant};
 
-use rust_engineering_application::ExecutionCancellation;
-use rust_engineering_application::{OperationControl, ProjectError};
+use rust_engineering_application::job::{CleanupObservation, JobPermit, JobSignal};
+use rust_engineering_application::{
+    ExecutionCancellation, ExecutionError, InspectionError, OperationControl, ProjectError,
+};
 use rust_engineering_domain::OperationalErrorCode;
+use rust_engineering_domain::job::Milliseconds;
 use tokio::sync::{OwnedSemaphorePermit, Semaphore};
 use tokio_util::sync::CancellationToken;
+
+tokio::task_local! {
+    static NEGOTIATED_TASKS: bool;
+    static ADMITTED_JOB_PERMIT: Arc<JobWorkerPermit>;
+    static JOB_EXECUTION: bool;
+    static REJECT_JOB_ADMISSION: bool;
+}
 
 #[derive(Clone)]
 pub(super) struct Workers {
@@ -54,6 +64,131 @@ pub(super) struct Control {
     deadline: Instant,
 }
 
+pub(super) struct JobWorkerPermit {
+    permit: std::sync::Mutex<Option<OwnedSemaphorePermit>>,
+    registry_owned: bool,
+}
+
+pub(super) struct RegistryJobPermit(Arc<JobWorkerPermit>);
+
+/// Request-independent signal owned by a background job. Queueing a task seed
+/// severs the rmcp request cancellation token; only task control, watchdog or
+/// shutdown call `request_cancellation` on this signal.
+// Kept in production code for M3-02 Tasks activation; M3-01 qualifies its rmcp
+// cancellation separation without advertising Tasks capability.
+#[allow(dead_code)]
+pub(super) struct JobExecutionSignal {
+    cancellation: CancellationToken,
+    cleanup: std::sync::Mutex<bool>,
+    cleanup_ready: std::sync::Condvar,
+}
+
+#[allow(dead_code)]
+impl JobExecutionSignal {
+    pub(super) fn new() -> Arc<Self> {
+        Arc::new(Self {
+            cancellation: CancellationToken::new(),
+            cleanup: std::sync::Mutex::new(false),
+            cleanup_ready: std::sync::Condvar::new(),
+        })
+    }
+    pub(super) fn cancellation(&self) -> CancellationToken {
+        self.cancellation.clone()
+    }
+    pub(super) fn observe_cleanup(&self) {
+        if let Ok(mut observed) = self.cleanup.lock() {
+            *observed = true;
+            self.cleanup_ready.notify_all();
+        }
+    }
+}
+
+impl JobSignal for JobExecutionSignal {
+    fn request_cancellation(&self) {
+        self.cancellation.cancel();
+    }
+    fn cancellation_requested(&self) -> bool {
+        self.cancellation.is_cancelled()
+    }
+    fn cleanup_observed(&self) -> bool {
+        self.cleanup.lock().is_ok_and(|observed| *observed)
+    }
+    fn join_cleanup(&self, timeout: Milliseconds) -> CleanupObservation {
+        let Ok(observed) = self.cleanup.lock() else {
+            return CleanupObservation::Uncertain;
+        };
+        if *observed {
+            return CleanupObservation::Observed;
+        }
+        let waited = self
+            .cleanup_ready
+            .wait_timeout(observed, Duration::from_millis(timeout.0));
+        match waited {
+            Ok((observed, _)) if *observed => CleanupObservation::Observed,
+            _ => CleanupObservation::Uncertain,
+        }
+    }
+}
+
+impl JobPermit for JobWorkerPermit {
+    fn is_held(&self) -> bool {
+        self.permit.lock().is_ok_and(|permit| permit.is_some())
+    }
+
+    fn release_after_cleanup(&self) {
+        if self.registry_owned {
+            return;
+        }
+        if let Ok(mut permit) = self.permit.lock() {
+            permit.take();
+        }
+    }
+}
+
+impl JobPermit for RegistryJobPermit {
+    fn is_held(&self) -> bool {
+        self.0.is_held()
+    }
+
+    fn release_after_cleanup(&self) {
+        if let Ok(mut permit) = self.0.permit.lock() {
+            permit.take();
+        }
+    }
+}
+
+pub(super) async fn with_negotiated_tasks<T>(declared: bool, future: impl Future<Output = T>) -> T {
+    NEGOTIATED_TASKS.scope(declared, future).await
+}
+
+pub(super) fn negotiated_tasks(fallback: bool) -> bool {
+    NEGOTIATED_TASKS
+        .try_with(|declared| *declared)
+        .unwrap_or(fallback)
+}
+
+pub(super) fn executing_admitted_job() -> bool {
+    JOB_EXECUTION.try_with(|value| *value).unwrap_or(false)
+}
+
+pub(super) async fn with_admitted_job<T>(
+    permit: Arc<JobWorkerPermit>,
+    future: impl Future<Output = T>,
+) -> T {
+    JOB_EXECUTION
+        .scope(true, ADMITTED_JOB_PERMIT.scope(permit, future))
+        .await
+}
+
+pub(super) async fn with_job_execution_selection<T>(future: impl Future<Output = T>) -> T {
+    JOB_EXECUTION.scope(true, future).await
+}
+
+#[allow(dead_code)]
+pub(super) async fn with_rejected_job_admission<T>(future: impl Future<Output = T>) -> T {
+    REJECT_JOB_ADMISSION.scope(true, future).await
+}
+
 impl Control {
     fn check_worker(&self) -> Result<(), WorkerError> {
         if self.request.is_cancelled() || self.session.is_cancelled() || self.local.is_cancelled() {
@@ -92,6 +227,41 @@ impl Workers {
             session: CancellationToken::new(),
             panicked: Arc::new(AtomicBool::new(false)),
         }
+    }
+
+    /// Reserve the same ADR-030 permit for a registry-owned job. The returned
+    /// guard is stored by `JobExecutor` and cannot release capacity until that
+    /// executor observes joined cleanup.
+    #[allow(dead_code)]
+    pub(super) fn admit_job(&self) -> Result<Arc<JobWorkerPermit>, WorkerError> {
+        if REJECT_JOB_ADMISSION
+            .try_with(|rejected| *rejected)
+            .unwrap_or(false)
+        {
+            return Err(WorkerError::Busy);
+        }
+        if let Ok(permit) = ADMITTED_JOB_PERMIT.try_with(Arc::clone) {
+            return Ok(permit);
+        }
+        Ok(Arc::new(JobWorkerPermit {
+            permit: std::sync::Mutex::new(Some(self.admit()?)),
+            registry_owned: false,
+        }))
+    }
+
+    /// Reserve the one ADR-030 slot for an asynchronous registry-owned job.
+    /// The ordinary permit handed to the tool cannot release this reservation;
+    /// only the companion `JobPermit` stored by `JobExecutor` can do so after
+    /// joined cleanup is observed.
+    pub(super) fn reserve_job(
+        &self,
+    ) -> Result<(Arc<JobWorkerPermit>, Arc<dyn JobPermit>), WorkerError> {
+        let permit = Arc::new(JobWorkerPermit {
+            permit: std::sync::Mutex::new(Some(self.admit()?)),
+            registry_owned: true,
+        });
+        let registry: Arc<dyn JobPermit> = Arc::new(RegistryJobPermit(Arc::clone(&permit)));
+        Ok((permit, registry))
     }
 
     pub(super) async fn run<T, E, F>(
@@ -174,6 +344,49 @@ impl Workers {
         .map_err(|_| WorkerError::Internal)?
     }
 
+    /// Execute the job that already owns the sole ADR-030 permit. The permit
+    /// remains registry-owned after the joined work returns; only the job
+    /// executor may release it after it observes cleanup.
+    pub(super) async fn run_joined_with<T, E, F>(
+        &self,
+        permit: Arc<JobWorkerPermit>,
+        request: CancellationToken,
+        deadline: Instant,
+        work: F,
+    ) -> Result<Joined<T, E>, WorkerError>
+    where
+        T: Send + 'static,
+        E: Send + 'static,
+        F: FnOnce(&Control) -> Result<T, E> + Send + 'static,
+    {
+        if self.panicked.load(Ordering::Acquire) || !permit.is_held() {
+            return Err(WorkerError::Internal);
+        }
+        let local = CancellationToken::new();
+        let _cancel_on_drop = local.clone().drop_guard();
+        let control = Control {
+            request,
+            session: self.session.clone(),
+            local,
+            deadline,
+        };
+        control.check_worker()?;
+        let panicked = Arc::clone(&self.panicked);
+        tokio::task::spawn_blocking(move || {
+            let _permit_owner = permit;
+            let _panic = PanicLatch(panicked);
+            control.check_worker()?;
+            let result = work(&control);
+            let interrupted = control.check_worker().err();
+            Ok(Joined {
+                result,
+                interrupted,
+            })
+        })
+        .await
+        .map_err(|_| WorkerError::Internal)?
+    }
+
     fn admit(&self) -> Result<OwnedSemaphorePermit, WorkerError> {
         if self.panicked.load(Ordering::Acquire) {
             return Err(WorkerError::Internal);
@@ -197,6 +410,38 @@ impl Workers {
             Ok(Ok(_))
         );
         drained && !self.panicked.load(Ordering::Acquire)
+    }
+}
+
+/// The one reading of a worker signal every inspection tool shares: capacity is
+/// the host refusing the request, a deadline is an operational timeout, and a
+/// panicked or poisoned worker is never described to the peer at all.
+pub(super) fn worker_error(error: WorkerError) -> InspectionError {
+    match error {
+        WorkerError::Busy => InspectionError::Execution(ExecutionError::Busy),
+        WorkerError::Cancelled => InspectionError::Project(ProjectError::Cancelled),
+        WorkerError::TimedOut => {
+            InspectionError::Project(ProjectError::Rejected(OperationalErrorCode::CommandTimeout))
+        }
+        WorkerError::Internal => InspectionError::Internal,
+    }
+}
+
+/// A body that completed while cleanup was interrupted did not complete for the
+/// peer: the interrupting signal wins. A body that reports its own cancellation
+/// defers to the signal that caused it, and every other body error is its own.
+pub(super) fn joined_result<T>(joined: Joined<T, InspectionError>) -> Result<T, InspectionError> {
+    match (joined.result, joined.interrupted) {
+        (
+            Err(
+                InspectionError::Project(ProjectError::Cancelled)
+                | InspectionError::Execution(ExecutionError::Cancelled),
+            ),
+            Some(signal),
+        ) => Err(worker_error(signal)),
+        (Err(error), _) => Err(error),
+        (Ok(_), Some(signal)) => Err(worker_error(signal)),
+        (Ok(value), None) => Ok(value),
     }
 }
 
@@ -254,6 +499,19 @@ mod tests {
             assert!(workers.shutdown(Duration::from_secs(1)).await);
             Ok(())
         })
+    }
+
+    #[test]
+    fn registry_job_guard_is_the_single_worker_permit() -> Result<(), WorkerError> {
+        let workers = Workers::new();
+        let permit = workers.admit_job()?;
+        assert!(permit.is_held());
+        assert!(matches!(workers.admit_job(), Err(WorkerError::Busy)));
+        permit.release_after_cleanup();
+        assert!(!permit.is_held());
+        let next = workers.admit_job()?;
+        assert!(next.is_held());
+        Ok(())
     }
 
     #[test]
@@ -475,6 +733,43 @@ mod tests {
     }
 
     #[test]
+    fn admitted_job_executes_with_its_existing_permit_instead_of_busy()
+    -> Result<(), Box<dyn std::error::Error>> {
+        runtime()?.block_on(async {
+            let workers = Workers::new();
+            let permit = workers.admit_job().map_err(|_| "job admission failed")?;
+            assert_eq!(
+                workers
+                    .run_joined(
+                        CancellationToken::new(),
+                        Instant::now() + Duration::from_secs(1),
+                        |_| Ok::<_, ()>(()),
+                    )
+                    .await,
+                Err(WorkerError::Busy)
+            );
+            assert_eq!(
+                workers
+                    .run_joined_with(
+                        Arc::clone(&permit),
+                        CancellationToken::new(),
+                        Instant::now() + Duration::from_secs(1),
+                        |_| Ok::<_, ()>(42),
+                    )
+                    .await,
+                Ok(Joined {
+                    result: Ok(42),
+                    interrupted: None,
+                })
+            );
+            assert!(permit.is_held());
+            permit.release_after_cleanup();
+            assert!(workers.shutdown(Duration::from_secs(1)).await);
+            Ok(())
+        })
+    }
+
+    #[test]
     fn abandoning_joined_waiter_signals_cancellation_but_shutdown_waits_for_cleanup()
     -> Result<(), Box<dyn std::error::Error>> {
         runtime()?.block_on(async {
@@ -597,5 +892,62 @@ mod tests {
             }
             Ok(())
         })
+    }
+
+    #[test]
+    fn registry_owned_permit_runs_its_job_and_only_executor_release_reopens_capacity()
+    -> Result<(), Box<dyn std::error::Error>> {
+        runtime()?.block_on(async {
+            let workers = Workers::new();
+            let (permit, registry_permit) = workers
+                .reserve_job()
+                .map_err(|error| format!("job reservation failed: {error:?}"))?;
+            assert_eq!(
+                workers
+                    .run(
+                        CancellationToken::new(),
+                        Instant::now() + Duration::from_secs(1),
+                        |_| Ok::<_, ()>(())
+                    )
+                    .await,
+                Err(WorkerError::Busy)
+            );
+
+            let task_workers = workers.clone();
+            let scoped = with_admitted_job(Arc::clone(&permit), async move {
+                let inherited = task_workers.admit_job()?;
+                assert!(Arc::ptr_eq(&permit, &inherited));
+                let joined = task_workers
+                    .run_joined_with(
+                        Arc::clone(&inherited),
+                        CancellationToken::new(),
+                        Instant::now() + Duration::from_secs(1),
+                        |_| Ok::<_, ()>(7),
+                    )
+                    .await?;
+                inherited.release_after_cleanup();
+                Ok::<_, WorkerError>(joined.result)
+            })
+            .await
+            .map_err(|error| format!("joined job failed: {error:?}"))?;
+            assert_eq!(scoped, Ok(7));
+            assert!(matches!(workers.admit_job(), Err(WorkerError::Busy)));
+
+            registry_permit.release_after_cleanup();
+            assert!(workers.admit_job().is_ok());
+            Ok(())
+        })
+    }
+
+    #[test]
+    fn rejected_task_admission_cannot_fall_through_to_worker_execution()
+    -> Result<(), Box<dyn std::error::Error>> {
+        runtime()?.block_on(async {
+            let workers = Workers::new();
+            let rejected = with_rejected_job_admission(async { workers.admit_job() }).await;
+            assert!(matches!(rejected, Err(WorkerError::Busy)));
+            assert!(workers.admit_job().is_ok());
+        });
+        Ok(())
     }
 }

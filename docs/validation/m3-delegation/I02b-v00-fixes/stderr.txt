@@ -1,0 +1,33 @@
+2026-09-06T03:23:33.155051Z ERROR codex_core::tools::router: error=apply_patch verification failed: Failed to find expected lines in /Users/cburgosro/Projects/rust-mcp/docs/adr/README.md:
+- [ADR-063 — M3 guest plugin provisioning](ADR-063-m3-guest-plugin-provisioning.md)
+2026-09-06T03:44:40.271101Z ERROR codex_core::tools::router: error=write_stdin failed: Unknown process id 49454
+2026-09-06T03:52:10.613765Z ERROR codex_core::tools::router: error=apply_patch verification failed: Failed to find expected lines in /Users/cburgosro/Projects/rust-mcp/crates/mcp-server/tests/inspection_runtime/nextest.rs:
+    assert_eq!(tools.len(), 19);
+2026-09-06T03:58:30.751569Z ERROR codex_core::tools::router: error=apply_patch verification failed: invalid hunk at line 5, Expected update hunk to start with a @@ context marker, got: '\'
+2026-09-06T03:58:40.932837Z ERROR codex_core::tools::router: error=apply_patch verification failed: Failed to find expected lines in /Users/cburgosro/Projects/rust-mcp/crates/execution-adapter/src/nextest_gateway.rs:
+         path = "junit.xml"\n\
+2026-09-06T04:02:56.514351Z ERROR codex_core::tools::router: error=patch rejected: writing outside of the project; rejected by user approval settings
+2026-09-06T04:04:59.791724Z ERROR codex_core::tools::router: error=apply_patch verification failed: Failed to find expected lines in /Users/cburgosro/Projects/rust-mcp/crates/execution-adapter/src/nextest_gateway.rs:
+         path = "/junit/junit.xml"\n\
+2026-09-06T04:08:21.128460Z ERROR codex_core::tools::router: error=exec_command failed: CreateProcess { message: "Rejected(\"`/bin/zsh -lc 'DOCKER_HOST=unix:///Users/cburgosro/.docker/run/docker.sock /Applications/Docker.app/Contents/Resources/bin/docker volume rm rust-mcp-diag-junit-i02b && rm -rf /private/tmp/rust-mcp-nextest-diag.DBX7Vq'` rejected: rm -f style commands are not permitted. Use a safer approach\")" }
+2026-09-06T04:16:11.930997Z ERROR codex_core::tools::router: error=apply_patch verification failed: Failed to find expected lines in /Users/cburgosro/Projects/rust-mcp/crates/domain/src/nextest.rs:
+        assert_eq!(NextestExit::classify(0), NextestExit::Success);
+        assert_eq!(NextestExit::classify(100), NextestExit::TestFailure);
+        assert_eq!(NextestExit::classify(101), NextestExit::RunnerFailure);
+        assert_eq!(NextestExit::classify(104), NextestExit::TimeoutOrCancelled);
+        for other in [-1, 1, 99, 102, 103, 105] {
+2026-09-06T04:24:55.710978Z ERROR codex_core::tools::router: error=apply_patch verification failed: Failed to find expected lines in /Users/cburgosro/Projects/rust-mcp/crates/execution-adapter/src/nextest_gateway.rs:
+        &volume,
+        &nonce,
+    );
+    output_cleanup?;
+    source_cleanup?;
+2026-09-06T04:28:48.279013Z ERROR codex_core::tools::router: error=apply_patch verification failed: Failed to find expected lines in /Users/cburgosro/Projects/rust-mcp/crates/execution-adapter/src/nextest_gateway.rs:
+    if !gateway.absent("volume", &volume).map_err(|error| match error {
+        ExecutionError::CleanupUncertain => ExecutionError::Busy,
+        other => other,
+    })? || !gateway.absent("volume", &junit_volume)? {
+        return Err(ExecutionError::CleanupUncertain);
+    }
+2026-09-06T04:44:51.078922Z ERROR codex_core::tools::router: error=apply_patch verification failed: invalid hunk at line 5, Expected update hunk to start with a @@ context marker, got: '\'
+2026-09-06T05:38:14.928036Z ERROR codex_core::tools::router: error=apply_patch verification failed: invalid patch: multiple operations target /Users/cburgosro/Projects/rust-mcp/docs/validation/M3-01.md

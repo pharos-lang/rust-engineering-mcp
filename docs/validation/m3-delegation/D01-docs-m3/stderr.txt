@@ -1,0 +1,27 @@
+2026-09-06T03:28:15.710141Z ERROR codex_memories_write::phase2: Phase 2 no changes
+2026-09-06T03:29:52.606331Z ERROR codex_core::tools::router: error=apply_patch verification failed: Failed to find expected lines in /Users/cburgosro/Projects/rust-mcp/docs/adr/ADR-063-m3-guest-plugin-provisioning.md:
+The installed LLVM executables are exactly
+under `/opt/rust/lib/rustlib/aarch64-unknown-linux-gnu/bin/`; there is no
+`llvm-tools-preview/` path segment in either executable path.
+2026-09-06T03:30:50.420420Z ERROR codex_core::tools::router: error=apply_patch verification failed: Failed to find expected lines in /Users/cburgosro/Projects/rust-mcp/docs/compatibility.md:
+Tasks continúa sin anunciarse.
+2026-09-06T03:31:16.739845Z ERROR codex_core::tools::router: error=apply_patch verification failed: Failed to find expected lines in /Users/cburgosro/Projects/rust-mcp/docs/client-configuration.md:
+Los journals M2 parciales/corruptos pueden bloquear nuevas mutaciones del store
+2026-09-06T03:31:30.742738Z ERROR codex_core::tools::router: error=apply_patch verification failed: Failed to find expected lines in /Users/cburgosro/Projects/rust-mcp/docs/client-configuration.md:
+No hay retención ni eliminación automática. Un store de desarrollo ya poblado bajo
+2026-09-06T03:31:48.579583Z ERROR codex_core::tools::router: error=apply_patch verification failed: Failed to find expected lines in /Users/cburgosro/Projects/rust-mcp/docs/client-configuration.md:
+El límite de cuatro planes aplica a propuestas pendientes: los planes terminales
+dejan capacidad para nuevas propuestas en la siguiente admisión. Un commit con
+plan ausente/expirado solo puede repetir un journal existente ligado a ID/digest/key exactos, bajo grant vivo e identidad física original. No inicia efectos nuevos sin preview vigente. Prune retira ese replay; un receipt terminal describe historia,
+no el source actual. Véase [ADR-059](adr/ADR-059-terminal-plan-retirement-and-durable-replay.md).
+2026-09-06T03:32:21.680452Z ERROR codex_core::tools::router: error=apply_patch verification failed: Failed to find expected lines in /Users/cburgosro/Projects/rust-mcp/docs/architecture.md:
+M3-01 permanece bloqueada hasta entonces.
+2026-09-06T03:32:42.177478Z ERROR codex_core::tools::router: error=apply_patch verification failed: Failed to find expected lines in /Users/cburgosro/Projects/rust-mcp/docs/security-model.md:
+La calificación positiva M3-01 sigue bloqueada por el perfil seccomp actual y no debe presentarse como calificada.
+2026-09-06T03:33:23.973548Z ERROR codex_core::tools::router: error=apply_patch verification failed: Failed to find expected lines in /Users/cburgosro/Projects/rust-mcp/docs/implementation-status.md:
+## Inspección autoritativa M1-13
+2026-09-06T03:34:42.877006Z ERROR codex_core::tools::router: error=apply_patch verification failed: Failed to find expected lines in /Users/cburgosro/Projects/rust-mcp/README.md:
+El checkout identificado como
+`0.2.0-dev` añade cinco tools de mutación opt-in; todavía no forma una release.
+2026-09-06T03:34:58.083642Z ERROR codex_core::tools::router: error=apply_patch verification failed: Failed to find expected lines in /Users/cburgosro/Projects/rust-mcp/docs/architecture.md:
+La [calificación M2](validation/M2-07.md) del checkout `0.2.0-dev` está completada; la release `0.1.0`

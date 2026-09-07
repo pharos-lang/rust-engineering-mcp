@@ -1,0 +1,4 @@
+[package]
+name = "coverage-zero-denominator"
+version = "0.1.0"
+edition = "2024"

@@ -1,0 +1,51 @@
+{
+  "schema": "rust-mcp-m3-01-rust-security-v1",
+  "status": "failed",
+  "started_at": "2026-09-06T10:11:42.781475+00:00",
+  "image_id": "sha256:384a1742ecc53cdd3a9c0bf36c6f8b66db73ddd118aeeae6e55654ea998ae36a",
+  "steps": [],
+  "sources": [
+    {
+      "path": "scripts/test-rust-execution.py",
+      "sha256": "d8ae8d453535a54f3f332500b67fc9e282eed663e880a0d6fe118b505fbf0885"
+    },
+    {
+      "path": "crates/execution-adapter/src/rust_gateway.rs",
+      "sha256": "f924d621c16b85acb3907b93c644f347417bea5eccb64ac8d14c9d83891dff58"
+    },
+    {
+      "path": "crates/execution-adapter/src/rust_applied.rs",
+      "sha256": "c332f43b3db2d6a3b59542b37251bed0b6ca9b0d47893bab7160f0f37da645bb"
+    },
+    {
+      "path": "crates/execution-adapter/src/toolchain_metadata.rs",
+      "sha256": "f7924e5bf2cf78d4c3f1e8114a03d9661d5efa61cbab37c5437d51e4adb77016"
+    },
+    {
+      "path": "crates/execution-adapter/src/seccomp-rust-fix.json",
+      "sha256": "0dc7bbbbf8f7e2a47c784488c49bbc7ffd6acac83b6f15e4fe2f0b9c1f642f15"
+    },
+    {
+      "path": "crates/execution-adapter/src/seccomp-rust-quality.json",
+      "sha256": "c288305c9fdba791926a9154fe47a1f53a30d61501cd9d059a78467866ccf938"
+    },
+    {
+      "path": "crates/execution-adapter/src/seccomp-rust.json",
+      "sha256": "f9d31acb22989dc6ac37c02d4c73acfbbb3b74b5e08beff9983f3a811fd4e56d"
+    },
+    {
+      "path": "crates/execution-adapter/src/seccomp-socket.json",
+      "sha256": "1f5dd6201d129405e1c48c64d796a46704f60bdd7eb2c4d82ffc1b6cf6b4ce31"
+    },
+    {
+      "path": "crates/execution-adapter/src/seccomp.json",
+      "sha256": "aad227ba23e1bd6cde69b344b54fef09b0881b18654aacf5303929c8c14aa514"
+    },
+    {
+      "path": "docs/validation/M3-image-config.json",
+      "sha256": "3252effc88fb3f8c31fec6f4ea146e057f6ef1c19252f7c554640b35c0d4ab77"
+    }
+  ],
+  "error": "Rust security test failed or did not execute: /Users/cburgosro/Projects/rust-mcp/target/m3-rust-security/0.log",
+  "finished_at": "2026-09-06T10:11:48.637037+00:00"
+}

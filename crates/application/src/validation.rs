@@ -21,10 +21,26 @@ fn bounded_stream(value: &str) -> (&str, bool) {
 }
 
 pub(crate) struct CapturedValidation {
-    reference: ProjectRef,
-    identity: ProjectIdentityFingerprint,
-    created_at: UnixSeconds,
+    pub(crate) reference: ProjectRef,
+    pub(crate) identity: ProjectIdentityFingerprint,
+    pub(crate) created_at: UnixSeconds,
     pub(crate) source: SourceBundle,
+}
+
+struct BytesInput<'a> {
+    remaining: &'a [u8],
+    truncated: bool,
+}
+impl ArtifactInput for BytesInput<'_> {
+    fn truncated(&self) -> bool {
+        self.truncated
+    }
+    fn read(&mut self, out: &mut [u8]) -> Result<usize, ArtifactError> {
+        let count = out.len().min(self.remaining.len());
+        out[..count].copy_from_slice(&self.remaining[..count]);
+        self.remaining = &self.remaining[count..];
+        Ok(count)
+    }
 }
 
 pub(crate) struct ValidationPublication {
@@ -68,6 +84,149 @@ fn access_error(error: ArtifactAccessError) -> InspectionError {
 }
 
 impl<B: ProjectSourceBackend, G: ReferenceGenerator, C: RegistryClock> ProjectRegistry<B, G, C> {
+    pub(crate) fn publish_coverage_stage0(
+        &mut self,
+        captured: CapturedValidation,
+        observation: &mut crate::coverage::CoverageObservation,
+        artifacts: &mut impl ArtifactStore,
+        control: &dyn InspectionControl,
+    ) -> Result<Vec<crate::coverage::CoverageArtifactReference>, InspectionError> {
+        use crate::coverage::{CoverageArtifactKind, CoverageArtifactReference};
+        let reference = &captured.reference;
+        let streams = [
+            (
+                CoverageArtifactKind::Json,
+                observation.artifacts.json.as_slice(),
+                observation.artifacts.json_truncated,
+            ),
+            (
+                CoverageArtifactKind::Lcov,
+                observation.artifacts.lcov.as_slice(),
+                observation.artifacts.lcov_truncated,
+            ),
+            (
+                CoverageArtifactKind::ArchiveBundle,
+                observation.artifacts.html_bundle.as_slice(),
+                observation.artifacts.html_truncated,
+            ),
+            (
+                CoverageArtifactKind::StdoutLog,
+                observation.artifacts.stdout.as_slice(),
+                observation.artifacts.stdout_truncated,
+            ),
+            (
+                CoverageArtifactKind::StderrLog,
+                observation.artifacts.stderr.as_slice(),
+                observation.artifacts.stderr_truncated,
+            ),
+        ];
+        self.reap_artifacts(artifacts).map_err(artifact_error)?;
+        let mut published = Vec::new();
+        for (kind, bytes, truncated) in streams {
+            if bytes.is_empty() {
+                continue;
+            }
+            match artifacts.capture(
+                reference,
+                &mut BytesInput {
+                    remaining: bytes,
+                    truncated,
+                },
+            ) {
+                Ok(metadata) => {
+                    published.push(CoverageArtifactReference::Ephemeral { kind, metadata })
+                }
+                Err(ArtifactError::QuotaExceeded) => {
+                    observation.parse_complete = false;
+                }
+                Err(error) => return Err(artifact_error(error)),
+            }
+        }
+        self.resolve_inner(reference, control, true)?;
+        Ok(published)
+    }
+    pub(crate) fn publish_nextest_stage0(
+        &mut self,
+        captured: CapturedValidation,
+        observation: &mut crate::nextest::NextestObservation,
+        artifacts: &mut impl ArtifactStore,
+        control: &dyn InspectionControl,
+    ) -> Result<Vec<crate::nextest::NextestArtifactReference>, InspectionError> {
+        use crate::nextest::{NextestArtifactKind, NextestArtifactReference, NextestCompleteness};
+
+        let reference = &captured.reference;
+        let streams = [
+            (
+                NextestArtifactKind::JunitXml,
+                observation.artifacts.junit_xml.as_slice(),
+                observation.artifacts.junit_truncated,
+            ),
+            (
+                NextestArtifactKind::StdoutLog,
+                observation.artifacts.stdout.as_slice(),
+                observation.artifacts.stdout_truncated,
+            ),
+            (
+                NextestArtifactKind::StderrLog,
+                observation.artifacts.stderr.as_slice(),
+                observation.artifacts.stderr_truncated,
+            ),
+        ];
+        self.reap_artifacts(artifacts).map_err(artifact_error)?;
+        let mut published = Vec::new();
+        for (kind, bytes, already_truncated) in streams {
+            if bytes.is_empty() {
+                continue;
+            }
+            match artifacts.capture(
+                reference,
+                &mut BytesInput {
+                    remaining: bytes,
+                    truncated: already_truncated,
+                },
+            ) {
+                Ok(metadata) => {
+                    match kind {
+                        NextestArtifactKind::JunitXml => {
+                            observation.artifacts.junit_truncated |= metadata.truncated
+                        }
+                        NextestArtifactKind::StdoutLog => {
+                            observation.artifacts.stdout_truncated |= metadata.truncated
+                        }
+                        NextestArtifactKind::StderrLog => {
+                            observation.artifacts.stderr_truncated |= metadata.truncated
+                        }
+                    }
+                    published.push(NextestArtifactReference::Ephemeral { kind, metadata });
+                }
+                Err(ArtifactError::QuotaExceeded) => {
+                    observation.validation_complete = false;
+                    observation.completeness = NextestCompleteness::Partial;
+                }
+                Err(error) => return Err(artifact_error(error)),
+            }
+        }
+        if observation.artifacts.junit_truncated
+            || observation.artifacts.stdout_truncated
+            || observation.artifacts.stderr_truncated
+        {
+            observation.validation_complete = false;
+            observation.completeness = NextestCompleteness::Partial;
+        }
+        if let Err(error) = self.resolve_inner(reference, control, true) {
+            for artifact in &published {
+                let NextestArtifactReference::Ephemeral { metadata, .. } = artifact else {
+                    continue;
+                };
+                artifacts
+                    .remove(reference, &metadata.id)
+                    .map_err(|_| InspectionError::Internal)?;
+            }
+            return Err(error.into());
+        }
+        Ok(published)
+    }
+
     pub(crate) fn capture_validation(
         &mut self,
         reference: &ProjectRef,

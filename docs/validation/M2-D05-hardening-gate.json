@@ -1,0 +1,98 @@
+{
+  "schema": "rust-mcp-m2-d05-hardening-gate-v1",
+  "recorded_at": "2026-09-05",
+  "base_commit": "331d1630da5a2c1d8d8c596305c0c1167a7896cb",
+  "scope": "ADR-055 resolver metadata provenance, graph equivalence, offline-data classification and execution-fingerprint hardening",
+  "runtime": {
+    "docker_server_version": "29.7.2",
+    "socket": "/Users/cburgosro/.docker/run/docker.sock",
+    "image_id": "sha256:8fac70723a8d04b6ec9633ab721806b8a55f4f083a1b3f988c61bf6a00fa1909",
+    "platform": "linux/arm64"
+  },
+  "source_snapshot": {
+    "crates/execution-adapter/src/resolution_gateway.rs": "sha256:16d225d692d601d709c45263c68dfe69ad9cabf997544e14f4b94ea00ff490c7",
+    "crates/execution-adapter/src/mutation_archive.rs": "sha256:e8e7059558680df02ef41cb65af98a347b6cbbae452bda19ffb880c4fd5f9647",
+    "crates/execution-adapter/src/rust_applied.rs": "sha256:cd4dc4fd21a8d618a96debfc6e1f006b500619e35d330a116333e52bfa3e55a6",
+    "crates/execution-adapter/src/seccomp-rust.json": "sha256:f9d31acb22989dc6ac37c02d4c73acfbbb3b74b5e08beff9983f3a811fd4e56d"
+  },
+  "commands": [
+    {
+      "argv": ["cargo", "test", "-p", "rust-engineering-execution", "--lib", "resolution_gateway::tests"],
+      "exit_code": 0,
+      "result": "6 passed; 0 failed; 1 ignored; 117 filtered out"
+    },
+    {
+      "argv": ["cargo", "clippy", "-p", "rust-engineering-execution", "--lib", "--", "-D", "warnings"],
+      "exit_code": 0,
+      "result": "passed"
+    },
+    {
+      "argv": ["cargo", "test", "-p", "rust-engineering-execution", "--lib", "resolution_gateway::tests::real_vendor_resolution_preserves_lock_presence_and_cleans_all_objects", "--", "--ignored", "--exact", "--nocapture"],
+      "exit_code": 0,
+      "duration_seconds": 8.153,
+      "result": "1 passed; 0 failed; 123 filtered out",
+      "log": "docs/validation/m2-d05-hardening-gate.log",
+      "log_sha256": "sha256:dde85a7590685c1650c94428894a9ea51024e38579d2c62aaba025a10837f831"
+    },
+    {
+      "argv": ["cargo", "test", "-p", "rust-engineering-project", "--test", "cargo_vendor", "qualified_fixture_has_exact_digest_packages_and_bytes", "--", "--exact", "--nocapture"],
+      "exit_code": 0,
+      "duration_seconds": 2.482,
+      "result": "1 passed",
+      "log": "docs/validation/m2-d05-vendor-fingerprint.log",
+      "log_sha256": "sha256:6499c63707d6a96346b9e562f4e9625dd9fea9d390870d093bb7eea0dd4d7304"
+    }
+  ],
+  "hardening_cases": {
+    "metadata_manifest_provenance": {
+      "source": "normal relative Cargo.toml path must exist in the captured source bundle",
+      "vendor": "normal relative Cargo.toml path must exist in the captured vendor bundle and directory/name/version must match a validated dataset package",
+      "outside_or_lexical_alias": "rejected",
+      "forged_vendor_identity": "rejected"
+    },
+    "metadata_graph": {
+      "package_ids_unique": true,
+      "workspace_members_subset": true,
+      "resolve_node_ids_equal_package_ids": true,
+      "resolve_dependency_ids_known": true,
+      "resolve_and_frozen_normalized_graph_equal": true,
+      "empty_metadata_rejected": true
+    },
+    "classification": {
+      "cargo_1_98_1_absent_package_exact_directory_source_diagnostic": "missing_offline_data",
+      "cargo_1_98_1_version_selection_exact_directory_source_diagnostic": "missing_offline_data",
+      "near_miss_or_other_nonzero": "failed"
+    },
+    "fingerprints": {
+      "resolution_stdout_sha256_bound": true,
+      "frozen_stdout_sha256_bound": true,
+      "mutation_archive_source_sha256_bound": true,
+      "existing_public_frames_unchanged": true
+    },
+    "real_runtime": {
+      "transient_lock_not_published": true,
+      "existing_lock_updated": true,
+      "missing_crate_classified_missing_offline_data": true,
+      "bad_lock_classified_failed": true,
+      "predispatch_cancelled": true
+    }
+  },
+  "vendor_fixture": {
+    "current_verified_tree_fingerprint": "sha256:743947d5788c1a4385a4b59869c5b8bd0535f7fc0d875b51288f9b26b2d0eba1",
+    "verification": "fresh qualified_fixture_has_exact_digest_packages_and_bytes test",
+    "historical_receipt": {
+      "path": "docs/validation/M2-D05-resolution-execution-gate.json",
+      "sha256": "sha256:daee1829c880e95242094f2cd19524e67ab1a72aabfa76504e46d75e619105f9",
+      "recorded_tree_fingerprint": "sha256:743947d819de210a9073f0ca6c3dff6208680efedd0989d4957e70cc8fe5eba1",
+      "disposition": "preserved unchanged as historical evidence",
+      "uncertainty": "The recorded value does not match the current fixture's freshly verified fingerprint and cannot be reconstructed from a retained historical vendor-tree computation; treat it as an unresolved historical transcription error, not current authorization evidence."
+    }
+  },
+  "cleanup": {
+    "inventory_before": {"containers": [], "volumes": []},
+    "inventory_after": {"containers": [], "volumes": []},
+    "label": "org.rust-mcp.execution=true"
+  },
+  "status": "passed",
+  "claim_limit": "This receipt qualifies the bounded D05 hardening cut; it does not declare M2 complete."
+}

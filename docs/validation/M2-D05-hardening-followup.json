@@ -1,0 +1,64 @@
+{
+  "schema": "rust-mcp-m2-d05-hardening-followup-v1",
+  "recorded_at": "2026-09-05",
+  "base_commit": "331d1630da5a2c1d8d8c596305c0c1167a7896cb",
+  "review_source": "docs/reviews/M2-final-security-recheck-opus.json",
+  "scope": "P2 execution-fingerprint source binding and pinned Cargo 1.98.1 missing-version discrimination",
+  "source_snapshot": {
+    "crates/execution-adapter/src/resolution_gateway.rs": "sha256:8c54b84ca315ccee6a96038246447d6682ab09defc248285fc75671782c1e3de",
+    "crates/execution-adapter/src/mutation_gateway.rs": "sha256:df7fe329bbcdbffc49cfdf461df9556041f1aae624c9bd0f47b4ece34b13db87",
+    "crates/execution-adapter/src/mutation_archive.rs": "sha256:e8e7059558680df02ef41cb65af98a347b6cbbae452bda19ffb880c4fd5f9647",
+    "crates/execution-adapter/src/rust_applied.rs": "sha256:cd4dc4fd21a8d618a96debfc6e1f006b500619e35d330a116333e52bfa3e55a6",
+    "crates/execution-adapter/src/seccomp-rust.json": "sha256:f9d31acb22989dc6ac37c02d4c73acfbbb3b74b5e08beff9983f3a811fd4e56d"
+  },
+  "changes": {
+    "fingerprint": "Both existing resolution fingerprints now bind mutation_gateway.rs in addition to resolution_gateway.rs, mutation_archive.rs, rust_applied.rs and seccomp-rust.json.",
+    "classification": {
+      "required_exit_code": 101,
+      "required_stop": "exited",
+      "requires_complete_stdout_and_stderr": true,
+      "oom_or_unclean_completion": "failed",
+      "absent_package_exact_directory_source_diagnostic": "missing_offline_data",
+      "unavailable_version_exact_directory_source_diagnostic": "missing_offline_data",
+      "other_nonzero": "failed"
+    }
+  },
+  "commands": [
+    {
+      "argv": ["cargo", "test", "-p", "rust-engineering-execution", "--lib", "resolution_gateway::tests"],
+      "exit_code": 0,
+      "result": "6 passed; 0 failed; 1 ignored; 118 filtered out"
+    },
+    {
+      "argv": ["cargo", "clippy", "-p", "rust-engineering-execution", "--lib", "--", "-D", "warnings"],
+      "exit_code": 0,
+      "result": "passed"
+    },
+    {
+      "argv": ["cargo", "test", "-p", "rust-engineering-execution", "--lib", "resolution_gateway::tests::real_vendor_resolution_preserves_lock_presence_and_cleans_all_objects", "--", "--ignored", "--exact", "--nocapture"],
+      "exit_code": 0,
+      "duration_seconds": 10.008,
+      "result": "1 passed; 0 failed; 124 filtered out",
+      "log": "docs/validation/m2-d05-hardening-followup.log",
+      "log_sha256": "sha256:7342d1499c1e9a683038818d832ba4dcbc278ddc93b778ae88474f433bb083be"
+    }
+  ],
+  "real_cases": {
+    "absent_package": "missing_offline_data",
+    "quote_exact_9_9_9_against_vendor_1_0_47": "missing_offline_data",
+    "bad_lock": "failed",
+    "transient_lock_not_published": true,
+    "existing_lock_updated": true,
+    "predispatch_cancelled": true
+  },
+  "cleanup": {
+    "inventory_before": {"containers": [], "volumes": []},
+    "inventory_after": {"containers": [], "volumes": []},
+    "label": "org.rust-mcp.execution=true"
+  },
+  "remaining_debt": {
+    "duplicate_vendor_tree_hash_algorithm": "Known P2 C1 remains for the owner. This follow-up does not move hashing into domain or add a dependency across the architectural boundary."
+  },
+  "status": "passed",
+  "claim_limit": "This receipt closes the two assigned P2 follow-ups only; it does not declare M2 complete."
+}

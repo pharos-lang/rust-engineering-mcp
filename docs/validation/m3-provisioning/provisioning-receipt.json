@@ -1,0 +1,90 @@
+{
+  "profile": "m3",
+  "tag": "rust-engineering-runtime:1.98.1-arm64-m3",
+  "image_id": "sha256:384a1742ecc53cdd3a9c0bf36c6f8b66db73ddd118aeeae6e55654ea998ae36a",
+  "archives": [
+    {
+      "id": "rustc",
+      "filename": "rustc-1.98.1-aarch64-unknown-linux-gnu.tar.xz",
+      "sha256": "89fb83041993b48816514815606f53a5264729b8b449671a6b291e6f0ae74f40",
+      "size": 66438268,
+      "url": "https://static.rust-lang.org/dist/2026-09-03/rustc-1.98.1-aarch64-unknown-linux-gnu.tar.xz"
+    },
+    {
+      "id": "rust-std",
+      "filename": "rust-std-1.98.1-aarch64-unknown-linux-gnu.tar.xz",
+      "sha256": "9bf796a6ec5b004813ebd0b650775a7c6a4f3aae97ad362ae294798dca4f3b23",
+      "size": 30815124,
+      "url": "https://static.rust-lang.org/dist/2026-09-03/rust-std-1.98.1-aarch64-unknown-linux-gnu.tar.xz"
+    },
+    {
+      "id": "cargo",
+      "filename": "cargo-1.98.1-aarch64-unknown-linux-gnu.tar.xz",
+      "sha256": "c09425a7f300af148c0bdfded0e7d5f1fe7c075b2b9674e8935afa769297b2f6",
+      "size": 11108572,
+      "url": "https://static.rust-lang.org/dist/2026-09-03/cargo-1.98.1-aarch64-unknown-linux-gnu.tar.xz"
+    },
+    {
+      "id": "rustfmt-preview",
+      "filename": "rustfmt-1.98.1-aarch64-unknown-linux-gnu.tar.xz",
+      "sha256": "7d4c136278b61096d46ef23019c29acb7ee5a2a1412cbfee5050316110c6fd8c",
+      "size": 2288788,
+      "url": "https://static.rust-lang.org/dist/2026-09-03/rustfmt-1.98.1-aarch64-unknown-linux-gnu.tar.xz"
+    },
+    {
+      "id": "clippy-preview",
+      "filename": "clippy-1.98.1-aarch64-unknown-linux-gnu.tar.xz",
+      "sha256": "396e17c0a669399823d0e59073686a4e5f50b2d41f062f1d3afc9210f9d3553d",
+      "size": 3915700,
+      "url": "https://static.rust-lang.org/dist/2026-09-03/clippy-1.98.1-aarch64-unknown-linux-gnu.tar.xz"
+    },
+    {
+      "id": "cargo-nextest",
+      "filename": "cargo-nextest-0.9.143-aarch64-unknown-linux-gnu.tar.gz",
+      "sha256": "2a64b3566a92508550a7ab29c3e8db25472ca37730ecb4d22100b6aa440c2a68",
+      "size": 11243965,
+      "url": "https://github.com/nextest-rs/nextest/releases/download/cargo-nextest-0.9.143/cargo-nextest-0.9.143-aarch64-unknown-linux-gnu.tar.gz"
+    },
+    {
+      "id": "cargo-llvm-cov",
+      "filename": "cargo-llvm-cov-aarch64-unknown-linux-gnu.tar.gz",
+      "sha256": "9af53b273e50d01d8bde8785de8541f6738cc4375248cd7683aec8b5768b9d21",
+      "size": 1613151,
+      "url": "https://github.com/taiki-e/cargo-llvm-cov/releases/download/v0.9.0/cargo-llvm-cov-aarch64-unknown-linux-gnu.tar.gz"
+    },
+    {
+      "id": "llvm-tools",
+      "filename": "llvm-tools-1.98.1-aarch64-unknown-linux-gnu.tar.xz",
+      "sha256": "caaf950c65f3e428247dbe9c173d142b7072b2134962a61924c01e39f6b6dc1e",
+      "size": 32493908,
+      "url": "https://static.rust-lang.org/dist/llvm-tools-1.98.1-aarch64-unknown-linux-gnu.tar.xz"
+    },
+    {
+      "id": "cargo-semver-checks",
+      "filename": "cargo-semver-checks-aarch64-unknown-linux-gnu.tar.gz",
+      "sha256": "e35f435ea322659381f52e7034bb4f0470108f5b267d29f13cf08152fa4af29b",
+      "size": 7866573,
+      "url": "https://github.com/obi1kenobi/cargo-semver-checks/releases/download/v0.50.0/cargo-semver-checks-aarch64-unknown-linux-gnu.tar.gz"
+    }
+  ],
+  "source_build": {
+    "source_build": {
+      "crate": "cargo-mutants",
+      "version": "27.1.0",
+      "command": "cargo install cargo-mutants --version 27.1.0 --locked --root /opt/plugins",
+      "registry": "crates.io",
+      "registry_index_checksum": "recorded by provision.py when emitted by the builder; null if unavailable",
+      "binary_sha256": "recorded by provision.py after the builder emits it",
+      "build_log_sha256": "recorded by provision.py after Docker build completes"
+    },
+    "registry_index_checksum": "07072e7bcdeb425d5e5fdbfd9f15a2c749e23cb2edf5ef40aee5876760ae1cf9",
+    "crate_sha256": "07072e7bcdeb425d5e5fdbfd9f15a2c749e23cb2edf5ef40aee5876760ae1cf9",
+    "binary_sha256": "137e3ac100a35f563370dcdcca41e2b35ac1c2c257dc90fd8e6a01f984aa86a8",
+    "build_log_sha256": "3800033ba5b44983211c532603ae934e4beed3c5fc9fa215585d4a8e402e34e9"
+  },
+  "build_log": {
+    "path": "build.log",
+    "sha256": "3800033ba5b44983211c532603ae934e4beed3c5fc9fa215585d4a8e402e34e9",
+    "size": 42980
+  }
+}

@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites name="nextest-run" tests="3" skipped="0" failures="1" errors="0" uuid="9805e73c-d38c-4a43-88a3-d69004a65b52" timestamp="2026-09-06T16:19:25.914+00:00" time="0.006">
+    <testsuite name="fixture-nextest-failing" tests="3" skipped="0" errors="0" failures="1">
+        <testcase name="deterministic_failure" classname="fixture-nextest-failing" timestamp="2026-09-06T16:19:25.914+00:00" time="0.002">
+            <failure message="thread &apos;deterministic_failure&apos; (73) panicked at src/lib.rs:9:5" type="test failure with exit code 101">thread &apos;deterministic_failure&apos; (73) panicked at src/lib.rs:9:5:
+assertion `left == right` failed
+  left: &quot;F01 deterministic failure&quot;
+ right: &quot;different&quot;
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace</failure>
+            <system-out>
+running 1 test
+test deterministic_failure ... FAILED
+
+failures:
+
+failures:
+    deterministic_failure
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 2 filtered out; finished in 0.00s
+
+</system-out>
+            <system-err>
+thread &apos;deterministic_failure&apos; (73) panicked at src/lib.rs:9:5:
+assertion `left == right` failed
+  left: &quot;F01 deterministic failure&quot;
+ right: &quot;different&quot;
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+</system-err>
+        </testcase>
+        <testcase name="pass_one" classname="fixture-nextest-failing" timestamp="2026-09-06T16:19:25.917+00:00" time="0.002"/>
+        <testcase name="pass_two" classname="fixture-nextest-failing" timestamp="2026-09-06T16:19:25.918+00:00" time="0.002"/>
+    </testsuite>
+</testsuites>

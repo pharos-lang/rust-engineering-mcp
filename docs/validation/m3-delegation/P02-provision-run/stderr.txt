@@ -1,0 +1,4 @@
+2026-09-06T01:07:51.804156Z ERROR codex_core::tools::router: error=apply_patch verification failed: Failed to find expected lines in /Users/cburgosro/Projects/rust-mcp/fixtures/rust-runtime/verify.py:
+    installer_result = execute(
+        'installer-files',
+        ['/usr/bin/find', '/', '-type', 'f', '-name', 'install.sh', '-print'], standard_env)

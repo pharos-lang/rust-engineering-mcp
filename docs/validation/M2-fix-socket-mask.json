@@ -1,0 +1,974 @@
+{
+  "schema_version": 1,
+  "recorded_at_utc": "2026-09-05T19:09:35+00:00",
+  "objective": "Resolve the reviewed Docker seccomp SCMP_CMP_MASKED_EQ operand order with an applied-profile guest probe.",
+  "status": "passed",
+  "finding": {
+    "review": "docs/reviews/M2-final-security-opus.json P0-1",
+    "review_model": "claude-opus-5",
+    "reviewed_operands": {
+      "value": 1,
+      "valueTwo": 15
+    },
+    "corrected_operands": {
+      "value": 15,
+      "valueTwo": 1
+    },
+    "review_disposition": "P0 rejected: the reviewed claim that 1/15 cannot match is empirically false and omits libseccomp's datum mask fixup.",
+    "corrected_severity": "P1 policy precision: 1/15 admits odd base socket types to the kernel; this probe observed no successful unintended socket and does not establish authority expansion.",
+    "conclusion": "The production 1/15 rule admits AF_INET SOCK_STREAM with protocol 0, including SOCK_CLOEXEC. It also lets SOCK_RAW protocol 0 reach the kernel, which returns EPROTONOSUPPORT. The tightened 15/1 rule preserves both STREAM cases and rejects RAW with the profile's EPERM; both profiles reject DGRAM and protocol 255.",
+    "semantics": "libseccomp treats value as the mask and valueTwo as the datum, then masks the datum before emitting BPF. Thus 1/15 becomes (type & 1) == (15 & 1), while 15/1 becomes (type & 15) == (1 & 15)."
+  },
+  "profiles": {
+    "production_path": "/Users/cburgosro/Projects/rust-mcp/crates/execution-adapter/src/seccomp-rust-fix.json",
+    "production_sha256": "sha256:c5b045931bb8fc4e011193f71976cba5f97bb565e4ef051e13a3425309750709",
+    "old_operands": {
+      "value": 1,
+      "valueTwo": 15
+    },
+    "corrected_operands": {
+      "value": 15,
+      "valueTwo": 1
+    },
+    "old_temporary_sha256": "sha256:b167b89ae96c3e06b265f4bd0d038b789b70d355283e31bc54204f6d8089ccac",
+    "corrected_temporary_sha256": "sha256:980283e7531267ac8acedf31a149ad38996edb5dd7b42d2e96748f803abff584"
+  },
+  "probe": {
+    "script_sha256": "sha256:e1926f51e1df007be5ae51a0efce7c05e83c30173c147a449115b0ea8e86c60b",
+    "source_sha256": "sha256:3fc5bc986dc172b024d2cfbdd74567fe9fd2f9a3b768737f9befe905d6734b2e",
+    "guest_binary_sha256": "sha256:6e3cad2e2682d7ec12bf1c3217dc6f622490e21600dfde37f4a846638140b663",
+    "old": {
+      "applied": {
+        "container_id": "a3948fa7b8261a8bb99ab21bb4e68b9db83971978968acb20fe19edbfcf264b3",
+        "applied_profile_sha256": "sha256:b167b89ae96c3e06b265f4bd0d038b789b70d355283e31bc54204f6d8089ccac",
+        "socket_rule": {
+          "names": [
+            "socket"
+          ],
+          "action": "SCMP_ACT_ALLOW",
+          "args": [
+            {
+              "index": 0,
+              "value": 2,
+              "op": "SCMP_CMP_EQ"
+            },
+            {
+              "index": 1,
+              "value": 1,
+              "valueTwo": 15,
+              "op": "SCMP_CMP_MASKED_EQ"
+            },
+            {
+              "index": 2,
+              "value": 0,
+              "op": "SCMP_CMP_EQ"
+            }
+          ]
+        }
+      },
+      "observations": {
+        "stream": {
+          "socket_type": 1,
+          "protocol": 0,
+          "returned_fd": 3,
+          "errno": 0
+        },
+        "stream_cloexec": {
+          "socket_type": 524289,
+          "protocol": 0,
+          "returned_fd": 3,
+          "errno": 0
+        },
+        "dgram": {
+          "socket_type": 2,
+          "protocol": 0,
+          "returned_fd": -1,
+          "errno": 1
+        },
+        "raw": {
+          "socket_type": 3,
+          "protocol": 0,
+          "returned_fd": -1,
+          "errno": 93
+        },
+        "stream_protocol_255": {
+          "socket_type": 1,
+          "protocol": 255,
+          "returned_fd": -1,
+          "errno": 1
+        }
+      }
+    },
+    "corrected": {
+      "applied": {
+        "container_id": "f71bec7bfc74a4f498fc8c264b85513dab8447596d38ece5001d6f9b1285c3e7",
+        "applied_profile_sha256": "sha256:980283e7531267ac8acedf31a149ad38996edb5dd7b42d2e96748f803abff584",
+        "socket_rule": {
+          "names": [
+            "socket"
+          ],
+          "action": "SCMP_ACT_ALLOW",
+          "args": [
+            {
+              "index": 0,
+              "value": 2,
+              "op": "SCMP_CMP_EQ"
+            },
+            {
+              "index": 1,
+              "value": 15,
+              "valueTwo": 1,
+              "op": "SCMP_CMP_MASKED_EQ"
+            },
+            {
+              "index": 2,
+              "value": 0,
+              "op": "SCMP_CMP_EQ"
+            }
+          ]
+        }
+      },
+      "observations": {
+        "stream": {
+          "socket_type": 1,
+          "protocol": 0,
+          "returned_fd": 3,
+          "errno": 0
+        },
+        "stream_cloexec": {
+          "socket_type": 524289,
+          "protocol": 0,
+          "returned_fd": 3,
+          "errno": 0
+        },
+        "dgram": {
+          "socket_type": 2,
+          "protocol": 0,
+          "returned_fd": -1,
+          "errno": 1
+        },
+        "raw": {
+          "socket_type": 3,
+          "protocol": 0,
+          "returned_fd": -1,
+          "errno": 1
+        },
+        "stream_protocol_255": {
+          "socket_type": 1,
+          "protocol": 255,
+          "returned_fd": -1,
+          "errno": 1
+        }
+      }
+    }
+  },
+  "runtime": {
+    "approved_image_id": "sha256:8fac70723a8d04b6ec9633ab721806b8a55f4f083a1b3f988c61bf6a00fa1909",
+    "approved_image_repo_digests": [
+      "rust-engineering-runtime@sha256:8fac70723a8d04b6ec9633ab721806b8a55f4f083a1b3f988c61bf6a00fa1909"
+    ],
+    "approved_image_architecture": "arm64",
+    "approved_image_os": "linux",
+    "docker": {
+      "Client": {
+        "Version": "29.7.2",
+        "ApiVersion": "1.55",
+        "DefaultAPIVersion": "1.55",
+        "GitCommit": "a7dcaa6",
+        "GoVersion": "go1.26.5",
+        "Os": "darwin",
+        "Arch": "arm64",
+        "BuildTime": "Wed Aug  5 18:27:50 2026",
+        "Context": "default"
+      },
+      "Server": {
+        "Platform": {
+          "Name": "Docker Desktop 4.87.0 (236836)"
+        },
+        "Version": "29.7.2",
+        "ApiVersion": "1.55",
+        "MinAPIVersion": "1.40",
+        "Os": "linux",
+        "Arch": "arm64",
+        "Components": [
+          {
+            "Name": "Engine",
+            "Version": "29.7.2",
+            "Details": {
+              "ApiVersion": "1.55",
+              "Arch": "arm64",
+              "BuildTime": "Wed Aug  5 18:28:35 2026",
+              "Experimental": "false",
+              "GitCommit": "6a43e3d",
+              "GoVersion": "go1.26.5",
+              "KernelVersion": "7.0.12-linuxkit",
+              "MinAPIVersion": "1.40",
+              "Module": "github.com/moby/moby/v2",
+              "ModuleVersion": "v2.0.0+unknown",
+              "Os": "linux"
+            }
+          },
+          {
+            "Name": "containerd",
+            "Version": "v2.2.5",
+            "Details": {
+              "GitCommit": "e53c7c1516c3b2bff98eb76f1f4117477e6f4e66"
+            }
+          },
+          {
+            "Name": "runc",
+            "Version": "1.3.6",
+            "Details": {
+              "GitCommit": "v1.3.6-0-g491b69ba"
+            }
+          },
+          {
+            "Name": "docker-init",
+            "Version": "0.19.0",
+            "Details": {
+              "GitCommit": "de40ad0"
+            }
+          }
+        ],
+        "GitCommit": "6a43e3d",
+        "GoVersion": "go1.26.5",
+        "KernelVersion": "7.0.12-linuxkit",
+        "BuildTime": "2026-08-05T18:28:35.000000000+00:00"
+      }
+    },
+    "guest_packages": [
+      "libc6=2.36-9+deb12u14",
+      "libseccomp2=2.5.4-1+deb12u1"
+    ],
+    "qualification_note": "runc applies the profile; the guest libseccomp package is recorded as image provenance and is not the library that constructs the host-side filter.",
+    "filter_builder_versions": {
+      "runc": "1.3.6 (Docker reports v1.3.6-0-g491b69ba)",
+      "runc_pinned_libseccomp_golang": "v0.10.0",
+      "host_libseccomp": "not exposed by Docker inspect/version; semantics were verified through the applied filter rather than inferred from the guest package"
+    }
+  },
+  "primary_sources": [
+    {
+      "url": "https://raw.githubusercontent.com/seccomp/libseccomp/v2.5.4/src/db.c",
+      "claim": "Pinned libseccomp 2.5.4 maps datum_a to mask and datum_b to datum, then masks the datum before BPF generation."
+    },
+    {
+      "url": "https://github.com/seccomp/libseccomp-golang/blob/v0.10.0/seccomp.go",
+      "claim": "libseccomp-golang documents MakeCondition operand handling and masked equality."
+    },
+    {
+      "url": "https://github.com/opencontainers/runc/blob/v1.3.6/libcontainer/seccomp/seccomp_linux.go",
+      "claim": "runc passes config Arg.Value and Arg.ValueTwo to libseccomp MakeCondition in that order."
+    },
+    {
+      "url": "https://raw.githubusercontent.com/opencontainers/runc/v1.3.6/go.mod",
+      "claim": "runc 1.3.6 pins libseccomp-golang v0.10.0."
+    }
+  ],
+  "controls": {
+    "image_pull": false,
+    "network_mode": "none",
+    "host_binds": false,
+    "project_fixture_executed": false,
+    "probe_compilation": "Fixed source embedded in this script, compiled inside the approved guest into a disposable Docker-managed volume.",
+    "compiler_user": "0:0 with every capability dropped; probe execution user is 65534:65534",
+    "production_profile_modified": false,
+    "profile_difference": "Only socket argument 1 value/valueTwo changed from 1/15 to 15/1 in the corrected temporary copy."
+  },
+  "cleanup": {
+    "failures": [],
+    "containers": [],
+    "volumes": []
+  },
+  "failure": null,
+  "events": [
+    {
+      "argv": [
+        "/usr/local/bin/docker",
+        "--config",
+        "/var/folders/hr/tglf6rl10w3b68rk0s47ddw00000gn/T/rust-mcp-m2-mask-rtwusuc9/docker-config",
+        "--host",
+        "unix:///Users/cburgosro/.docker/run/docker.sock",
+        "version",
+        "--format",
+        "{{json .}}"
+      ],
+      "exit_code": 0,
+      "duration_ns": 21770833,
+      "stdout": {
+        "bytes": 1102,
+        "sha256": "sha256:8dd7086400860e22732a5be3f1f5ca44cf071d28183a83c8a2d7601c8590bc26",
+        "utf8": "{\"Client\":{\"Version\":\"29.7.2\",\"ApiVersion\":\"1.55\",\"DefaultAPIVersion\":\"1.55\",\"GitCommit\":\"a7dcaa6\",\"GoVersion\":\"go1.26.5\",\"Os\":\"darwin\",\"Arch\":\"arm64\",\"BuildTime\":\"Wed Aug  5 18:27:50 2026\",\"Context\":\"default\"},\"Server\":{\"Platform\":{\"Name\":\"Docker Desktop 4.87.0 (236836)\"},\"Version\":\"29.7.2\",\"ApiVersion\":\"1.55\",\"MinAPIVersion\":\"1.40\",\"Os\":\"linux\",\"Arch\":\"arm64\",\"Components\":[{\"Name\":\"Engine\",\"Version\":\"29.7.2\",\"Details\":{\"ApiVersion\":\"1.55\",\"Arch\":\"arm64\",\"BuildTime\":\"Wed Aug  5 18:28:35 2026\",\"Experimental\":\"false\",\"GitCommit\":\"6a43e3d\",\"GoVersion\":\"go1.26.5\",\"KernelVersion\":\"7.0.12-linuxkit\",\"MinAPIVersion\":\"1.40\",\"Module\":\"github.com/moby/moby/v2\",\"ModuleVersion\":\"v2.0.0+unknown\",\"Os\":\"linux\"}},{\"Name\":\"containerd\",\"Version\":\"v2.2.5\",\"Details\":{\"GitCommit\":\"e53c7c1516c3b2bff98eb76f1f4117477e6f4e66\"}},{\"Name\":\"runc\",\"Version\":\"1.3.6\",\"Details\":{\"GitCommit\":\"v1.3.6-0-g491b69ba\"}},{\"Name\":\"docker-init\",\"Version\":\"0.19.0\",\"Details\":{\"GitCommit\":\"de40ad0\"}}],\"GitCommit\":\"6a43e3d\",\"GoVersion\":\"go1.26.5\",\"KernelVersion\":\"7.0.12-linuxkit\",\"BuildTime\":\"2026-08-05T18:28:35.000000000+00:00\"}}\n"
+      },
+      "stderr": {
+        "bytes": 0,
+        "sha256": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "utf8": ""
+      }
+    },
+    {
+      "argv": [
+        "/usr/local/bin/docker",
+        "--config",
+        "/var/folders/hr/tglf6rl10w3b68rk0s47ddw00000gn/T/rust-mcp-m2-mask-rtwusuc9/docker-config",
+        "--host",
+        "unix:///Users/cburgosro/.docker/run/docker.sock",
+        "image",
+        "inspect",
+        "sha256:8fac70723a8d04b6ec9633ab721806b8a55f4f083a1b3f988c61bf6a00fa1909"
+      ],
+      "exit_code": 0,
+      "duration_ns": 22974458,
+      "stdout": {
+        "bytes": 1561,
+        "sha256": "sha256:964fb9b714cdd2e717797ac7d162f719e28271f2a7b7d76734cf94eb17241fb4",
+        "utf8": "[\n    {\n        \"Id\": \"sha256:8fac70723a8d04b6ec9633ab721806b8a55f4f083a1b3f988c61bf6a00fa1909\",\n        \"RepoTags\": [\n            \"rust-engineering-runtime:1.98.1-arm64\"\n        ],\n        \"RepoDigests\": [\n            \"rust-engineering-runtime@sha256:8fac70723a8d04b6ec9633ab721806b8a55f4f083a1b3f988c61bf6a00fa1909\"\n        ],\n        \"Comment\": \"buildkit.dockerfile.v0\",\n        \"Created\": \"2026-09-04T04:05:58.935636635Z\",\n        \"Config\": {\n            \"User\": \"65534:65534\",\n            \"Env\": [\n                \"PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin\"\n            ],\n            \"WorkingDir\": \"/work\"\n        },\n        \"Architecture\": \"arm64\",\n        \"Os\": \"linux\",\n        \"Size\": 277539751,\n        \"RootFS\": {\n            \"Type\": \"layers\",\n            \"Layers\": [\n                \"sha256:b325022f416adb87294911953b1ad36cb4f4e3414ef50fcb445fc99e3258f4de\",\n                \"sha256:5f70bf18a086007016e948b04aed3b82103a36bea41755b6cddfaf10ace3c6ef\"\n            ]\n        },\n        \"Metadata\": {\n            \"LastTagTime\": \"2026-09-04T04:07:59.31514476Z\"\n        },\n        \"Descriptor\": {\n            \"mediaType\": \"application/vnd.oci.image.index.v1+json\",\n            \"digest\": \"sha256:8fac70723a8d04b6ec9633ab721806b8a55f4f083a1b3f988c61bf6a00fa1909\",\n            \"size\": 855\n        },\n        \"Identity\": {\n            \"Build\": [\n                {\n                    \"Ref\": \"jy4zpwshn0prhwlt6w668quor\",\n                    \"CreatedAt\": \"2026-09-04T04:07:59.317645052Z\"\n                }\n            ]\n        }\n    }\n]\n"
+      },
+      "stderr": {
+        "bytes": 0,
+        "sha256": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "utf8": ""
+      }
+    },
+    {
+      "argv": [
+        "/usr/local/bin/docker",
+        "--config",
+        "/var/folders/hr/tglf6rl10w3b68rk0s47ddw00000gn/T/rust-mcp-m2-mask-rtwusuc9/docker-config",
+        "--host",
+        "unix:///Users/cburgosro/.docker/run/docker.sock",
+        "run",
+        "--rm",
+        "--pull=never",
+        "--network=none",
+        "--read-only",
+        "--cap-drop=ALL",
+        "--security-opt=no-new-privileges=true",
+        "--user=65534:65534",
+        "--entrypoint=/usr/bin/dpkg-query",
+        "sha256:8fac70723a8d04b6ec9633ab721806b8a55f4f083a1b3f988c61bf6a00fa1909",
+        "-W",
+        "-f=${Package}=${Version}\\n",
+        "libseccomp2",
+        "libc6"
+      ],
+      "exit_code": 0,
+      "duration_ns": 93759500,
+      "stdout": {
+        "bytes": 50,
+        "sha256": "sha256:7d1d34f8e14257f72f4246e7acf2522a935d3bffef3613659ba885560ed3dd2e",
+        "utf8": "libc6=2.36-9+deb12u14\nlibseccomp2=2.5.4-1+deb12u1\n"
+      },
+      "stderr": {
+        "bytes": 0,
+        "sha256": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "utf8": ""
+      }
+    },
+    {
+      "argv": [
+        "/usr/local/bin/docker",
+        "--config",
+        "/var/folders/hr/tglf6rl10w3b68rk0s47ddw00000gn/T/rust-mcp-m2-mask-rtwusuc9/docker-config",
+        "--host",
+        "unix:///Users/cburgosro/.docker/run/docker.sock",
+        "volume",
+        "create",
+        "--label=org.rust-mcp.m2-fix-socket-mask=732aa10b4e7aed58",
+        "rust-mcp-m2-mask-732aa10b4e7aed58"
+      ],
+      "exit_code": 0,
+      "duration_ns": 13332333,
+      "stdout": {
+        "bytes": 34,
+        "sha256": "sha256:90652e4ee55005ab837698bd1e83097261d09b1696ca18f623a6e6409610e916",
+        "utf8": "rust-mcp-m2-mask-732aa10b4e7aed58\n"
+      },
+      "stderr": {
+        "bytes": 0,
+        "sha256": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "utf8": ""
+      }
+    },
+    {
+      "argv": [
+        "/usr/local/bin/docker",
+        "--config",
+        "/var/folders/hr/tglf6rl10w3b68rk0s47ddw00000gn/T/rust-mcp-m2-mask-rtwusuc9/docker-config",
+        "--host",
+        "unix:///Users/cburgosro/.docker/run/docker.sock",
+        "container",
+        "create",
+        "--name=rust-mcp-m2-mask-732aa10b4e7aed58-compile",
+        "--pull=never",
+        "--runtime=runc",
+        "--init=false",
+        "--network=none",
+        "--read-only",
+        "--cap-drop=ALL",
+        "--security-opt=no-new-privileges=true",
+        "--ipc=private",
+        "--cgroupns=private",
+        "--pids-limit=128",
+        "--cpus=1",
+        "--memory=512m",
+        "--memory-swap=512m",
+        "--shm-size=1m",
+        "--log-driver=none",
+        "--no-healthcheck",
+        "--user=0:0",
+        "--workdir=/work",
+        "--label=org.rust-mcp.m2-fix-socket-mask=732aa10b4e7aed58",
+        "--env=PATH=/opt/rust/bin:/usr/bin:/bin",
+        "--env=HOME=/work",
+        "--env=TMPDIR=/work",
+        "--mount=type=volume,source=rust-mcp-m2-mask-732aa10b4e7aed58,target=/work,volume-nocopy,volume-driver=local",
+        "--interactive",
+        "--entrypoint=/opt/rust/bin/rustc",
+        "sha256:8fac70723a8d04b6ec9633ab721806b8a55f4f083a1b3f988c61bf6a00fa1909",
+        "-",
+        "--edition=2024",
+        "--crate-name=socket_mask_probe",
+        "-O",
+        "-o",
+        "/work/socket-mask-probe"
+      ],
+      "exit_code": 0,
+      "duration_ns": 32806375,
+      "stdout": {
+        "bytes": 65,
+        "sha256": "sha256:5a8fee90b9b01f35e346584cff5b24e82de3e8768f812d50884d437fadf47b1e",
+        "utf8": "4863faea5ad202e06eeba5cc9d3a4727141752e0e3a3e7ebb7f48620de4dc3a1\n"
+      },
+      "stderr": {
+        "bytes": 0,
+        "sha256": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "utf8": ""
+      }
+    },
+    {
+      "argv": [
+        "/usr/local/bin/docker",
+        "--config",
+        "/var/folders/hr/tglf6rl10w3b68rk0s47ddw00000gn/T/rust-mcp-m2-mask-rtwusuc9/docker-config",
+        "--host",
+        "unix:///Users/cburgosro/.docker/run/docker.sock",
+        "container",
+        "inspect",
+        "rust-mcp-m2-mask-732aa10b4e7aed58-compile"
+      ],
+      "exit_code": 0,
+      "duration_ns": 13636042,
+      "stdout": {
+        "bytes": 7508,
+        "sha256": "sha256:5d0102a74ff6fd2b64bb165f1763759f44994c435119fd8bc6af86886b4d6efc",
+        "utf8": "[\n    {\n        \"Id\": \"4863faea5ad202e06eeba5cc9d3a4727141752e0e3a3e7ebb7f48620de4dc3a1\",\n        \"Created\": \"2026-09-05T19:09:35.153034762Z\",\n        \"Path\": \"/opt/rust/bin/rustc\",\n        \"Args\": [\n            \"-\",\n            \"--edition=2024\",\n            \"--crate-name=socket_mask_probe\",\n            \"-O\",\n            \"-o\",\n            \"/work/socket-mask-probe\"\n        ],\n        \"State\": {\n            \"Status\": \"created\",\n            \"Running\": false,\n            \"Paused\": false,\n            \"Restarting\": false,\n            \"OOMKilled\": false,\n            \"Dead\": false,\n            \"Pid\": 0,\n            \"ExitCode\": 0,\n            \"Error\": \"\",\n            \"StartedAt\": \"0001-01-01T00:00:00Z\",\n            \"FinishedAt\": \"0001-01-01T00:00:00Z\"\n        },\n        \"Image\": \"sha256:8fac70723a8d04b6ec9633ab721806b8a55f4f083a1b3f988c61bf6a00fa1909\",\n        \"ResolvConfPath\": \"\",\n        \"HostnamePath\": \"\",\n        \"HostsPath\": \"\",\n        \"LogPath\": \"\",\n        \"Name\": \"/rust-mcp-m2-mask-732aa10b4e7aed58-compile\",\n        \"RestartCount\": 0,\n        \"Driver\": \"overlayfs\",\n        \"Platform\": \"linux\",\n        \"MountLabel\": \"\",\n        \"ProcessLabel\": \"\",\n        \"AppArmorProfile\": \"\",\n        \"ExecIDs\": null,\n        \"HostConfig\": {\n            \"Binds\": null,\n            \"ContainerIDFile\": \"\",\n            \"LogConfig\": {\n                \"Type\": \"none\",\n                \"Config\": {}\n            },\n            \"NetworkMode\": \"none\",\n            \"PortBindings\": {},\n            \"RestartPolicy\": {\n                \"Name\": \"no\",\n                \"MaximumRetryCount\": 0\n            },\n            \"AutoRemove\": false,\n            \"VolumeDriver\": \"\",\n            \"VolumesFrom\": null,\n            \"ConsoleSize\": [\n                0,\n                0\n            ],\n            \"CapAdd\": null,\n            \"CapDrop\": [\n                \"ALL\"\n            ],\n            \"CgroupnsMode\": \"private\",\n            \"Dns\": null,\n            \"DnsOptions\": [],\n            \"DnsSearch\": [],\n            \"ExtraHosts\": null,\n            \"GroupAdd\": null,\n            \"IpcMode\": \"private\",\n            \"Cgroup\": \"\",\n            \"Links\": null,\n            \"OomScoreAdj\": 0,\n            \"PidMode\": \"\",\n            \"Privileged\": false,\n            \"PublishAllPorts\": false,\n            \"ReadonlyRootfs\": true,\n            \"SecurityOpt\": [\n                \"no-new-privileges=true\"\n            ],\n            \"UTSMode\": \"\",\n            \"UsernsMode\": \"\",\n            \"ShmSize\": 1048576,\n            \"Runtime\": \"runc\",\n            \"Isolation\": \"\",\n            \"CpuShares\": 0,\n            \"Memory\": 536870912,\n            \"NanoCpus\": 1000000000,\n            \"CgroupParent\": \"\",\n            \"BlkioWeight\": 0,\n            \"BlkioWeightDevice\": [],\n            \"BlkioDeviceReadBps\": [],\n            \"BlkioDeviceWriteBps\": [],\n            \"BlkioDeviceReadIOps\": [],\n            \"BlkioDeviceWriteIOps\": [],\n            \"CpuPeriod\": 0,\n            \"CpuQuota\": 0,\n            \"CpuRealtimePeriod\": 0,\n            \"CpuRealtimeRuntime\": 0,\n            \"CpusetCpus\": \"\",\n            \"CpusetMems\": \"\",\n            \"Devices\": [],\n            \"DeviceCgroupRules\": null,\n            \"DeviceRequests\": null,\n            \"MemoryReservation\": 0,\n            \"MemorySwap\": 536870912,\n            \"MemorySwappiness\": null,\n            \"OomKillDisable\": false,\n            \"PidsLimit\": 128,\n            \"Ulimits\": [],\n            \"CpuCount\": 0,\n            \"CpuPercent\": 0,\n            \"IOMaximumIOps\": 0,\n            \"IOMaximumBandwidth\": 0,\n            \"Mounts\": [\n                {\n                    \"Type\": \"volume\",\n                    \"Source\": \"rust-mcp-m2-mask-732aa10b4e7aed58\",\n                    \"Target\": \"/work\",\n                    \"VolumeOptions\": {\n                        \"NoCopy\": true,\n                        \"DriverConfig\": {\n                            \"Name\": \"local\"\n                        }\n                    }\n                }\n            ],\n            \"MaskedPaths\": [\n                \"/proc/acpi\",\n                \"/proc/asound\",\n                \"/proc/interrupts\",\n                \"/proc/kcore\",\n                \"/proc/keys\",\n                \"/proc/latency_stats\",\n                \"/proc/sched_debug\",\n                \"/proc/scsi\",\n                \"/proc/timer_list\",\n                \"/proc/timer_stats\",\n                \"/sys/devices/virtual/powercap\",\n                \"/sys/firmware\"\n            ],\n            \"ReadonlyPaths\": [\n                \"/proc/bus\",\n                \"/proc/fs\",\n                \"/proc/irq\",\n                \"/proc/sys\",\n                \"/proc/sysrq-trigger\"\n            ],\n            \"Init\": false\n        },\n        \"Storage\": {\n            \"RootFS\": {\n                \"Snapshot\": {\n                    \"Name\": \"overlayfs\"\n                }\n            }\n        },\n        \"Mounts\": [\n            {\n                \"Type\": \"volume\",\n                \"Name\": \"rust-mcp-m2-mask-732aa10b4e7aed58\",\n                \"Source\": \"/var/lib/docker/volumes/rust-mcp-m2-mask-732aa10b4e7aed58/_data\",\n                \"Destination\": \"/work\",\n                \"Driver\": \"local\",\n                \"Mode\": \"z\",\n                \"RW\": true,\n                \"Propagation\": \"\"\n            }\n        ],\n        \"Config\": {\n            \"Hostname\": \"4863faea5ad2\",\n            \"Domainname\": \"\",\n            \"User\": \"0:0\",\n            \"AttachStdin\": true,\n            \"AttachStdout\": true,\n            \"AttachStderr\": true,\n            \"Tty\": false,\n            \"OpenStdin\": true,\n            \"StdinOnce\": true,\n            \"Env\": [\n                \"PATH=/opt/rust/bin:/usr/bin:/bin\",\n                \"HOME=/work\",\n                \"TMPDIR=/work\"\n            ],\n            \"Cmd\": [\n                \"-\",\n                \"--edition=2024\",\n                \"--crate-name=socket_mask_probe\",\n                \"-O\",\n                \"-o\",\n                \"/work/socket-mask-probe\"\n            ],\n            \"Healthcheck\": {\n                \"Test\": [\n                    \"NONE\"\n                ]\n            },\n            \"Image\": \"sha256:8fac70723a8d04b6ec9633ab721806b8a55f4f083a1b3f988c61bf6a00fa1909\",\n            \"Volumes\": null,\n            \"WorkingDir\": \"/work\",\n            \"Entrypoint\": [\n                \"/opt/rust/bin/rustc\"\n            ],\n            \"Labels\": {\n                \"org.rust-mcp.m2-fix-socket-mask\": \"732aa10b4e7aed58\"\n            }\n        },\n        \"NetworkSettings\": {\n            \"SandboxID\": \"\",\n            \"SandboxKey\": \"\",\n            \"Ports\": {},\n            \"Networks\": {\n                \"none\": {\n                    \"IPAMConfig\": null,\n                    \"Links\": null,\n                    \"Aliases\": null,\n                    \"DriverOpts\": null,\n                    \"GwPriority\": 0,\n                    \"NetworkID\": \"\",\n                    \"EndpointID\": \"\",\n                    \"Gateway\": \"\",\n                    \"IPAddress\": \"\",\n                    \"MacAddress\": \"\",\n                    \"IPPrefixLen\": 0,\n                    \"IPv6Gateway\": \"\",\n                    \"GlobalIPv6Address\": \"\",\n                    \"GlobalIPv6PrefixLen\": 0,\n                    \"DNSNames\": null\n                }\n            }\n        },\n        \"ImageManifestDescriptor\": {\n            \"mediaType\": \"application/vnd.oci.image.manifest.v1+json\",\n            \"digest\": \"sha256:c7ba4a32b6051a3183cc87a4095ff40a4ec0722323df807bb8bb2d1da9381220\",\n            \"size\": 669,\n            \"platform\": {\n                \"architecture\": \"arm64\",\n                \"os\": \"linux\"\n            }\n        }\n    }\n]\n"
+      },
+      "stderr": {
+        "bytes": 0,
+        "sha256": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "utf8": ""
+      }
+    },
+    {
+      "argv": [
+        "/usr/local/bin/docker",
+        "--config",
+        "/var/folders/hr/tglf6rl10w3b68rk0s47ddw00000gn/T/rust-mcp-m2-mask-rtwusuc9/docker-config",
+        "--host",
+        "unix:///Users/cburgosro/.docker/run/docker.sock",
+        "container",
+        "start",
+        "--attach",
+        "--interactive",
+        "rust-mcp-m2-mask-732aa10b4e7aed58-compile"
+      ],
+      "exit_code": 0,
+      "duration_ns": 139493292,
+      "stdout": {
+        "bytes": 0,
+        "sha256": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "utf8": ""
+      },
+      "stderr": {
+        "bytes": 0,
+        "sha256": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "utf8": ""
+      }
+    },
+    {
+      "argv": [
+        "/usr/local/bin/docker",
+        "--config",
+        "/var/folders/hr/tglf6rl10w3b68rk0s47ddw00000gn/T/rust-mcp-m2-mask-rtwusuc9/docker-config",
+        "--host",
+        "unix:///Users/cburgosro/.docker/run/docker.sock",
+        "container",
+        "create",
+        "--name=rust-mcp-m2-mask-732aa10b4e7aed58-hash",
+        "--pull=never",
+        "--runtime=runc",
+        "--init=false",
+        "--network=none",
+        "--read-only",
+        "--cap-drop=ALL",
+        "--security-opt=no-new-privileges=true",
+        "--ipc=private",
+        "--cgroupns=private",
+        "--pids-limit=128",
+        "--cpus=1",
+        "--memory=512m",
+        "--memory-swap=512m",
+        "--shm-size=1m",
+        "--log-driver=none",
+        "--no-healthcheck",
+        "--user=65534:65534",
+        "--workdir=/work",
+        "--label=org.rust-mcp.m2-fix-socket-mask=732aa10b4e7aed58",
+        "--env=PATH=/opt/rust/bin:/usr/bin:/bin",
+        "--env=HOME=/work",
+        "--env=TMPDIR=/work",
+        "--mount=type=volume,source=rust-mcp-m2-mask-732aa10b4e7aed58,target=/work,volume-nocopy,volume-driver=local,readonly",
+        "--entrypoint=/usr/bin/sha256sum",
+        "sha256:8fac70723a8d04b6ec9633ab721806b8a55f4f083a1b3f988c61bf6a00fa1909",
+        "/work/socket-mask-probe"
+      ],
+      "exit_code": 0,
+      "duration_ns": 30322500,
+      "stdout": {
+        "bytes": 65,
+        "sha256": "sha256:bb8de6c9857e9e6c61a0e265fe2b6dc956070a04a58c810191e6bc027ce4dfa8",
+        "utf8": "d6887b196971d1fcbb8d2a6299012964c0d93fa887ec83411e68feed79b1d319\n"
+      },
+      "stderr": {
+        "bytes": 0,
+        "sha256": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "utf8": ""
+      }
+    },
+    {
+      "argv": [
+        "/usr/local/bin/docker",
+        "--config",
+        "/var/folders/hr/tglf6rl10w3b68rk0s47ddw00000gn/T/rust-mcp-m2-mask-rtwusuc9/docker-config",
+        "--host",
+        "unix:///Users/cburgosro/.docker/run/docker.sock",
+        "container",
+        "inspect",
+        "rust-mcp-m2-mask-732aa10b4e7aed58-hash"
+      ],
+      "exit_code": 0,
+      "duration_ns": 12828709,
+      "stdout": {
+        "bytes": 7275,
+        "sha256": "sha256:9eede77d2a27f52b07882a2102b7e5d877ede0ad4c418b57b57113e1474340c6",
+        "utf8": "[\n    {\n        \"Id\": \"d6887b196971d1fcbb8d2a6299012964c0d93fa887ec83411e68feed79b1d319\",\n        \"Created\": \"2026-09-05T19:09:35.336541845Z\",\n        \"Path\": \"/usr/bin/sha256sum\",\n        \"Args\": [\n            \"/work/socket-mask-probe\"\n        ],\n        \"State\": {\n            \"Status\": \"created\",\n            \"Running\": false,\n            \"Paused\": false,\n            \"Restarting\": false,\n            \"OOMKilled\": false,\n            \"Dead\": false,\n            \"Pid\": 0,\n            \"ExitCode\": 0,\n            \"Error\": \"\",\n            \"StartedAt\": \"0001-01-01T00:00:00Z\",\n            \"FinishedAt\": \"0001-01-01T00:00:00Z\"\n        },\n        \"Image\": \"sha256:8fac70723a8d04b6ec9633ab721806b8a55f4f083a1b3f988c61bf6a00fa1909\",\n        \"ResolvConfPath\": \"\",\n        \"HostnamePath\": \"\",\n        \"HostsPath\": \"\",\n        \"LogPath\": \"\",\n        \"Name\": \"/rust-mcp-m2-mask-732aa10b4e7aed58-hash\",\n        \"RestartCount\": 0,\n        \"Driver\": \"overlayfs\",\n        \"Platform\": \"linux\",\n        \"MountLabel\": \"\",\n        \"ProcessLabel\": \"\",\n        \"AppArmorProfile\": \"\",\n        \"ExecIDs\": null,\n        \"HostConfig\": {\n            \"Binds\": null,\n            \"ContainerIDFile\": \"\",\n            \"LogConfig\": {\n                \"Type\": \"none\",\n                \"Config\": {}\n            },\n            \"NetworkMode\": \"none\",\n            \"PortBindings\": {},\n            \"RestartPolicy\": {\n                \"Name\": \"no\",\n                \"MaximumRetryCount\": 0\n            },\n            \"AutoRemove\": false,\n            \"VolumeDriver\": \"\",\n            \"VolumesFrom\": null,\n            \"ConsoleSize\": [\n                0,\n                0\n            ],\n            \"CapAdd\": null,\n            \"CapDrop\": [\n                \"ALL\"\n            ],\n            \"CgroupnsMode\": \"private\",\n            \"Dns\": null,\n            \"DnsOptions\": [],\n            \"DnsSearch\": [],\n            \"ExtraHosts\": null,\n            \"GroupAdd\": null,\n            \"IpcMode\": \"private\",\n            \"Cgroup\": \"\",\n            \"Links\": null,\n            \"OomScoreAdj\": 0,\n            \"PidMode\": \"\",\n            \"Privileged\": false,\n            \"PublishAllPorts\": false,\n            \"ReadonlyRootfs\": true,\n            \"SecurityOpt\": [\n                \"no-new-privileges=true\"\n            ],\n            \"UTSMode\": \"\",\n            \"UsernsMode\": \"\",\n            \"ShmSize\": 1048576,\n            \"Runtime\": \"runc\",\n            \"Isolation\": \"\",\n            \"CpuShares\": 0,\n            \"Memory\": 536870912,\n            \"NanoCpus\": 1000000000,\n            \"CgroupParent\": \"\",\n            \"BlkioWeight\": 0,\n            \"BlkioWeightDevice\": [],\n            \"BlkioDeviceReadBps\": [],\n            \"BlkioDeviceWriteBps\": [],\n            \"BlkioDeviceReadIOps\": [],\n            \"BlkioDeviceWriteIOps\": [],\n            \"CpuPeriod\": 0,\n            \"CpuQuota\": 0,\n            \"CpuRealtimePeriod\": 0,\n            \"CpuRealtimeRuntime\": 0,\n            \"CpusetCpus\": \"\",\n            \"CpusetMems\": \"\",\n            \"Devices\": [],\n            \"DeviceCgroupRules\": null,\n            \"DeviceRequests\": null,\n            \"MemoryReservation\": 0,\n            \"MemorySwap\": 536870912,\n            \"MemorySwappiness\": null,\n            \"OomKillDisable\": false,\n            \"PidsLimit\": 128,\n            \"Ulimits\": [],\n            \"CpuCount\": 0,\n            \"CpuPercent\": 0,\n            \"IOMaximumIOps\": 0,\n            \"IOMaximumBandwidth\": 0,\n            \"Mounts\": [\n                {\n                    \"Type\": \"volume\",\n                    \"Source\": \"rust-mcp-m2-mask-732aa10b4e7aed58\",\n                    \"Target\": \"/work\",\n                    \"ReadOnly\": true,\n                    \"VolumeOptions\": {\n                        \"NoCopy\": true,\n                        \"DriverConfig\": {\n                            \"Name\": \"local\"\n                        }\n                    }\n                }\n            ],\n            \"MaskedPaths\": [\n                \"/proc/acpi\",\n                \"/proc/asound\",\n                \"/proc/interrupts\",\n                \"/proc/kcore\",\n                \"/proc/keys\",\n                \"/proc/latency_stats\",\n                \"/proc/sched_debug\",\n                \"/proc/scsi\",\n                \"/proc/timer_list\",\n                \"/proc/timer_stats\",\n                \"/sys/devices/virtual/powercap\",\n                \"/sys/firmware\"\n            ],\n            \"ReadonlyPaths\": [\n                \"/proc/bus\",\n                \"/proc/fs\",\n                \"/proc/irq\",\n                \"/proc/sys\",\n                \"/proc/sysrq-trigger\"\n            ],\n            \"Init\": false\n        },\n        \"Storage\": {\n            \"RootFS\": {\n                \"Snapshot\": {\n                    \"Name\": \"overlayfs\"\n                }\n            }\n        },\n        \"Mounts\": [\n            {\n                \"Type\": \"volume\",\n                \"Name\": \"rust-mcp-m2-mask-732aa10b4e7aed58\",\n                \"Source\": \"/var/lib/docker/volumes/rust-mcp-m2-mask-732aa10b4e7aed58/_data\",\n                \"Destination\": \"/work\",\n                \"Driver\": \"local\",\n                \"Mode\": \"z\",\n                \"RW\": false,\n                \"Propagation\": \"\"\n            }\n        ],\n        \"Config\": {\n            \"Hostname\": \"d6887b196971\",\n            \"Domainname\": \"\",\n            \"User\": \"65534:65534\",\n            \"AttachStdin\": false,\n            \"AttachStdout\": true,\n            \"AttachStderr\": true,\n            \"Tty\": false,\n            \"OpenStdin\": false,\n            \"StdinOnce\": false,\n            \"Env\": [\n                \"PATH=/opt/rust/bin:/usr/bin:/bin\",\n                \"HOME=/work\",\n                \"TMPDIR=/work\"\n            ],\n            \"Cmd\": [\n                \"/work/socket-mask-probe\"\n            ],\n            \"Healthcheck\": {\n                \"Test\": [\n                    \"NONE\"\n                ]\n            },\n            \"Image\": \"sha256:8fac70723a8d04b6ec9633ab721806b8a55f4f083a1b3f988c61bf6a00fa1909\",\n            \"Volumes\": null,\n            \"WorkingDir\": \"/work\",\n            \"Entrypoint\": [\n                \"/usr/bin/sha256sum\"\n            ],\n            \"Labels\": {\n                \"org.rust-mcp.m2-fix-socket-mask\": \"732aa10b4e7aed58\"\n            }\n        },\n        \"NetworkSettings\": {\n            \"SandboxID\": \"\",\n            \"SandboxKey\": \"\",\n            \"Ports\": {},\n            \"Networks\": {\n                \"none\": {\n                    \"IPAMConfig\": null,\n                    \"Links\": null,\n                    \"Aliases\": null,\n                    \"DriverOpts\": null,\n                    \"GwPriority\": 0,\n                    \"NetworkID\": \"\",\n                    \"EndpointID\": \"\",\n                    \"Gateway\": \"\",\n                    \"IPAddress\": \"\",\n                    \"MacAddress\": \"\",\n                    \"IPPrefixLen\": 0,\n                    \"IPv6Gateway\": \"\",\n                    \"GlobalIPv6Address\": \"\",\n                    \"GlobalIPv6PrefixLen\": 0,\n                    \"DNSNames\": null\n                }\n            }\n        },\n        \"ImageManifestDescriptor\": {\n            \"mediaType\": \"application/vnd.oci.image.manifest.v1+json\",\n            \"digest\": \"sha256:c7ba4a32b6051a3183cc87a4095ff40a4ec0722323df807bb8bb2d1da9381220\",\n            \"size\": 669,\n            \"platform\": {\n                \"architecture\": \"arm64\",\n                \"os\": \"linux\"\n            }\n        }\n    }\n]\n"
+      },
+      "stderr": {
+        "bytes": 0,
+        "sha256": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "utf8": ""
+      }
+    },
+    {
+      "argv": [
+        "/usr/local/bin/docker",
+        "--config",
+        "/var/folders/hr/tglf6rl10w3b68rk0s47ddw00000gn/T/rust-mcp-m2-mask-rtwusuc9/docker-config",
+        "--host",
+        "unix:///Users/cburgosro/.docker/run/docker.sock",
+        "container",
+        "start",
+        "--attach",
+        "rust-mcp-m2-mask-732aa10b4e7aed58-hash"
+      ],
+      "exit_code": 0,
+      "duration_ns": 79680292,
+      "stdout": {
+        "bytes": 90,
+        "sha256": "sha256:8f47218051245b925b96ab0415187824d71b135c1afe0e218ce46a287a0fdc54",
+        "utf8": "6e3cad2e2682d7ec12bf1c3217dc6f622490e21600dfde37f4a846638140b663  /work/socket-mask-probe\n"
+      },
+      "stderr": {
+        "bytes": 0,
+        "sha256": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "utf8": ""
+      }
+    },
+    {
+      "argv": [
+        "/usr/local/bin/docker",
+        "--config",
+        "/var/folders/hr/tglf6rl10w3b68rk0s47ddw00000gn/T/rust-mcp-m2-mask-rtwusuc9/docker-config",
+        "--host",
+        "unix:///Users/cburgosro/.docker/run/docker.sock",
+        "container",
+        "rm",
+        "--force",
+        "rust-mcp-m2-mask-732aa10b4e7aed58-hash"
+      ],
+      "exit_code": 0,
+      "duration_ns": 17086041,
+      "stdout": {
+        "bytes": 39,
+        "sha256": "sha256:ba37e683d3c451672e9a934c75436c5ab09c4bd1d7d2c66382e865ab55f55356",
+        "utf8": "rust-mcp-m2-mask-732aa10b4e7aed58-hash\n"
+      },
+      "stderr": {
+        "bytes": 0,
+        "sha256": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "utf8": ""
+      }
+    },
+    {
+      "argv": [
+        "/usr/local/bin/docker",
+        "--config",
+        "/var/folders/hr/tglf6rl10w3b68rk0s47ddw00000gn/T/rust-mcp-m2-mask-rtwusuc9/docker-config",
+        "--host",
+        "unix:///Users/cburgosro/.docker/run/docker.sock",
+        "container",
+        "create",
+        "--name=rust-mcp-m2-mask-732aa10b4e7aed58-old",
+        "--pull=never",
+        "--runtime=runc",
+        "--init=false",
+        "--network=none",
+        "--read-only",
+        "--cap-drop=ALL",
+        "--security-opt=no-new-privileges=true",
+        "--ipc=private",
+        "--cgroupns=private",
+        "--pids-limit=128",
+        "--cpus=1",
+        "--memory=512m",
+        "--memory-swap=512m",
+        "--shm-size=1m",
+        "--log-driver=none",
+        "--no-healthcheck",
+        "--user=65534:65534",
+        "--workdir=/work",
+        "--label=org.rust-mcp.m2-fix-socket-mask=732aa10b4e7aed58",
+        "--env=PATH=/opt/rust/bin:/usr/bin:/bin",
+        "--env=HOME=/work",
+        "--env=TMPDIR=/work",
+        "--mount=type=volume,source=rust-mcp-m2-mask-732aa10b4e7aed58,target=/work,volume-nocopy,volume-driver=local,readonly",
+        "--security-opt=seccomp=/var/folders/hr/tglf6rl10w3b68rk0s47ddw00000gn/T/rust-mcp-m2-mask-rtwusuc9/old.json",
+        "--entrypoint=/work/socket-mask-probe",
+        "sha256:8fac70723a8d04b6ec9633ab721806b8a55f4f083a1b3f988c61bf6a00fa1909"
+      ],
+      "exit_code": 0,
+      "duration_ns": 35547583,
+      "stdout": {
+        "bytes": 65,
+        "sha256": "sha256:20894f9e2cbf69af5ea6bd98bc0b25faff3d20a3a3f662de15c599cb663957f9",
+        "utf8": "a3948fa7b8261a8bb99ab21bb4e68b9db83971978968acb20fe19edbfcf264b3\n"
+      },
+      "stderr": {
+        "bytes": 0,
+        "sha256": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "utf8": ""
+      }
+    },
+    {
+      "argv": [
+        "/usr/local/bin/docker",
+        "--config",
+        "/var/folders/hr/tglf6rl10w3b68rk0s47ddw00000gn/T/rust-mcp-m2-mask-rtwusuc9/docker-config",
+        "--host",
+        "unix:///Users/cburgosro/.docker/run/docker.sock",
+        "container",
+        "inspect",
+        "rust-mcp-m2-mask-732aa10b4e7aed58-old"
+      ],
+      "exit_code": 0,
+      "duration_ns": 17381917,
+      "stdout": {
+        "bytes": 9741,
+        "sha256": "sha256:7c2a6165891623eace682527c70468cdbc3269b2ab626dddf47dbe7a81bb2c53"
+      },
+      "stderr": {
+        "bytes": 0,
+        "sha256": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "utf8": ""
+      }
+    },
+    {
+      "argv": [
+        "/usr/local/bin/docker",
+        "--config",
+        "/var/folders/hr/tglf6rl10w3b68rk0s47ddw00000gn/T/rust-mcp-m2-mask-rtwusuc9/docker-config",
+        "--host",
+        "unix:///Users/cburgosro/.docker/run/docker.sock",
+        "container",
+        "start",
+        "--attach",
+        "rust-mcp-m2-mask-732aa10b4e7aed58-old"
+      ],
+      "exit_code": 0,
+      "duration_ns": 66495500,
+      "stdout": {
+        "bytes": 103,
+        "sha256": "sha256:b7e3485b8c6946ea84569bd0829cfebf38a4e7901ed16109cfd31bd3e2db137e",
+        "utf8": "stream,1,0,3,0\nstream_cloexec,524289,0,3,0\ndgram,2,0,-1,1\nraw,3,0,-1,93\nstream_protocol_255,1,255,-1,1\n"
+      },
+      "stderr": {
+        "bytes": 0,
+        "sha256": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "utf8": ""
+      }
+    },
+    {
+      "argv": [
+        "/usr/local/bin/docker",
+        "--config",
+        "/var/folders/hr/tglf6rl10w3b68rk0s47ddw00000gn/T/rust-mcp-m2-mask-rtwusuc9/docker-config",
+        "--host",
+        "unix:///Users/cburgosro/.docker/run/docker.sock",
+        "container",
+        "rm",
+        "--force",
+        "rust-mcp-m2-mask-732aa10b4e7aed58-old"
+      ],
+      "exit_code": 0,
+      "duration_ns": 17162125,
+      "stdout": {
+        "bytes": 38,
+        "sha256": "sha256:38fe8d2a8c054f2076ee8286a7713a0ad7b6bdcaa86b90c8fe467a5c5dce628b",
+        "utf8": "rust-mcp-m2-mask-732aa10b4e7aed58-old\n"
+      },
+      "stderr": {
+        "bytes": 0,
+        "sha256": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "utf8": ""
+      }
+    },
+    {
+      "argv": [
+        "/usr/local/bin/docker",
+        "--config",
+        "/var/folders/hr/tglf6rl10w3b68rk0s47ddw00000gn/T/rust-mcp-m2-mask-rtwusuc9/docker-config",
+        "--host",
+        "unix:///Users/cburgosro/.docker/run/docker.sock",
+        "container",
+        "create",
+        "--name=rust-mcp-m2-mask-732aa10b4e7aed58-corrected",
+        "--pull=never",
+        "--runtime=runc",
+        "--init=false",
+        "--network=none",
+        "--read-only",
+        "--cap-drop=ALL",
+        "--security-opt=no-new-privileges=true",
+        "--ipc=private",
+        "--cgroupns=private",
+        "--pids-limit=128",
+        "--cpus=1",
+        "--memory=512m",
+        "--memory-swap=512m",
+        "--shm-size=1m",
+        "--log-driver=none",
+        "--no-healthcheck",
+        "--user=65534:65534",
+        "--workdir=/work",
+        "--label=org.rust-mcp.m2-fix-socket-mask=732aa10b4e7aed58",
+        "--env=PATH=/opt/rust/bin:/usr/bin:/bin",
+        "--env=HOME=/work",
+        "--env=TMPDIR=/work",
+        "--mount=type=volume,source=rust-mcp-m2-mask-732aa10b4e7aed58,target=/work,volume-nocopy,volume-driver=local,readonly",
+        "--security-opt=seccomp=/var/folders/hr/tglf6rl10w3b68rk0s47ddw00000gn/T/rust-mcp-m2-mask-rtwusuc9/corrected.json",
+        "--entrypoint=/work/socket-mask-probe",
+        "sha256:8fac70723a8d04b6ec9633ab721806b8a55f4f083a1b3f988c61bf6a00fa1909"
+      ],
+      "exit_code": 0,
+      "duration_ns": 31961000,
+      "stdout": {
+        "bytes": 65,
+        "sha256": "sha256:77c6bf41cd78ddbebeb7f885954f0e5c80b2434267036512c66e007919e08783",
+        "utf8": "f71bec7bfc74a4f498fc8c264b85513dab8447596d38ece5001d6f9b1285c3e7\n"
+      },
+      "stderr": {
+        "bytes": 0,
+        "sha256": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "utf8": ""
+      }
+    },
+    {
+      "argv": [
+        "/usr/local/bin/docker",
+        "--config",
+        "/var/folders/hr/tglf6rl10w3b68rk0s47ddw00000gn/T/rust-mcp-m2-mask-rtwusuc9/docker-config",
+        "--host",
+        "unix:///Users/cburgosro/.docker/run/docker.sock",
+        "container",
+        "inspect",
+        "rust-mcp-m2-mask-732aa10b4e7aed58-corrected"
+      ],
+      "exit_code": 0,
+      "duration_ns": 13314208,
+      "stdout": {
+        "bytes": 9747,
+        "sha256": "sha256:396193289619b1c243c627ca2395aca7e0ce54b3b26c083cd511a7d5e66627bd"
+      },
+      "stderr": {
+        "bytes": 0,
+        "sha256": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "utf8": ""
+      }
+    },
+    {
+      "argv": [
+        "/usr/local/bin/docker",
+        "--config",
+        "/var/folders/hr/tglf6rl10w3b68rk0s47ddw00000gn/T/rust-mcp-m2-mask-rtwusuc9/docker-config",
+        "--host",
+        "unix:///Users/cburgosro/.docker/run/docker.sock",
+        "container",
+        "start",
+        "--attach",
+        "rust-mcp-m2-mask-732aa10b4e7aed58-corrected"
+      ],
+      "exit_code": 0,
+      "duration_ns": 59602917,
+      "stdout": {
+        "bytes": 102,
+        "sha256": "sha256:fdcf0bfeec69aeedfe31211f91d0bb3e61dd7228c06ad95bcfbb033695dbef70",
+        "utf8": "stream,1,0,3,0\nstream_cloexec,524289,0,3,0\ndgram,2,0,-1,1\nraw,3,0,-1,1\nstream_protocol_255,1,255,-1,1\n"
+      },
+      "stderr": {
+        "bytes": 0,
+        "sha256": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "utf8": ""
+      }
+    },
+    {
+      "argv": [
+        "/usr/local/bin/docker",
+        "--config",
+        "/var/folders/hr/tglf6rl10w3b68rk0s47ddw00000gn/T/rust-mcp-m2-mask-rtwusuc9/docker-config",
+        "--host",
+        "unix:///Users/cburgosro/.docker/run/docker.sock",
+        "container",
+        "rm",
+        "--force",
+        "rust-mcp-m2-mask-732aa10b4e7aed58-corrected"
+      ],
+      "exit_code": 0,
+      "duration_ns": 16987959,
+      "stdout": {
+        "bytes": 44,
+        "sha256": "sha256:3d29bea0c7c4a2ff32926bc1bd02d73d41d76b2a0eca0c85b5e7802d7a6a6f7d",
+        "utf8": "rust-mcp-m2-mask-732aa10b4e7aed58-corrected\n"
+      },
+      "stderr": {
+        "bytes": 0,
+        "sha256": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "utf8": ""
+      }
+    },
+    {
+      "argv": [
+        "/usr/local/bin/docker",
+        "--config",
+        "/var/folders/hr/tglf6rl10w3b68rk0s47ddw00000gn/T/rust-mcp-m2-mask-rtwusuc9/docker-config",
+        "--host",
+        "unix:///Users/cburgosro/.docker/run/docker.sock",
+        "container",
+        "rm",
+        "--force",
+        "rust-mcp-m2-mask-732aa10b4e7aed58-compile"
+      ],
+      "exit_code": 0,
+      "duration_ns": 17825709,
+      "stdout": {
+        "bytes": 42,
+        "sha256": "sha256:233b2b1071c112ec6606d0a3af6be2c6f785a9cac7f8cfc38bae4d0d8600e3e3",
+        "utf8": "rust-mcp-m2-mask-732aa10b4e7aed58-compile\n"
+      },
+      "stderr": {
+        "bytes": 0,
+        "sha256": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "utf8": ""
+      }
+    },
+    {
+      "argv": [
+        "/usr/local/bin/docker",
+        "--config",
+        "/var/folders/hr/tglf6rl10w3b68rk0s47ddw00000gn/T/rust-mcp-m2-mask-rtwusuc9/docker-config",
+        "--host",
+        "unix:///Users/cburgosro/.docker/run/docker.sock",
+        "volume",
+        "rm",
+        "rust-mcp-m2-mask-732aa10b4e7aed58"
+      ],
+      "exit_code": 0,
+      "duration_ns": 13009458,
+      "stdout": {
+        "bytes": 34,
+        "sha256": "sha256:90652e4ee55005ab837698bd1e83097261d09b1696ca18f623a6e6409610e916",
+        "utf8": "rust-mcp-m2-mask-732aa10b4e7aed58\n"
+      },
+      "stderr": {
+        "bytes": 0,
+        "sha256": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "utf8": ""
+      }
+    },
+    {
+      "argv": [
+        "/usr/local/bin/docker",
+        "--config",
+        "/var/folders/hr/tglf6rl10w3b68rk0s47ddw00000gn/T/rust-mcp-m2-mask-rtwusuc9/docker-config",
+        "--host",
+        "unix:///Users/cburgosro/.docker/run/docker.sock",
+        "container",
+        "ls",
+        "--all",
+        "--filter",
+        "label=org.rust-mcp.m2-fix-socket-mask=732aa10b4e7aed58",
+        "--format",
+        "{{.Names}}"
+      ],
+      "exit_code": 0,
+      "duration_ns": 12310500,
+      "stdout": {
+        "bytes": 0,
+        "sha256": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "utf8": ""
+      },
+      "stderr": {
+        "bytes": 0,
+        "sha256": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "utf8": ""
+      }
+    },
+    {
+      "argv": [
+        "/usr/local/bin/docker",
+        "--config",
+        "/var/folders/hr/tglf6rl10w3b68rk0s47ddw00000gn/T/rust-mcp-m2-mask-rtwusuc9/docker-config",
+        "--host",
+        "unix:///Users/cburgosro/.docker/run/docker.sock",
+        "volume",
+        "ls",
+        "--filter",
+        "label=org.rust-mcp.m2-fix-socket-mask=732aa10b4e7aed58",
+        "--format",
+        "{{.Name}}"
+      ],
+      "exit_code": 0,
+      "duration_ns": 11864792,
+      "stdout": {
+        "bytes": 0,
+        "sha256": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "utf8": ""
+      },
+      "stderr": {
+        "bytes": 0,
+        "sha256": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "utf8": ""
+      }
+    }
+  ]
+}

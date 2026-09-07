@@ -1,0 +1,10 @@
+{
+  "active_test_binaries_observed": 2,
+  "calibrated_by_successful_test": true,
+  "cancelled_request_response_suppressed": true,
+  "cleanup": true,
+  "discovery_responsive_during_tests": true,
+  "eof_joined_shutdown": true,
+  "only_expected_source_mutations": true,
+  "worker_reused_after_observed_cleanup": true
+}

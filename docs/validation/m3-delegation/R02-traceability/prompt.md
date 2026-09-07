@@ -1,0 +1,13 @@
+# Package R02 — Independent traceability and contradiction audit of M3 (Gemini 3.8 Flash High via agy, read-only)
+
+You are Gemini 3.8 Flash High, invoked by the orchestrator of the Rust Engineering MCP project as the independent traceability auditor for milestone M3. You have file-reading tools only in this run: do not run shell commands, do not fetch URLs, do not edit anything. If a tool is denied, say so explicitly rather than guessing.
+
+Package root: the repository at /Users/cburgosro/Projects/rust-mcp (branch `ai/m3-quality`). Audit the *claims*, not the code's correctness.
+Read: `docs/roadmap/m3-quality.md` (the plan and its DoD checkboxes), `docs/roadmap/m2-m8.md` (G1–G9), `docs/roadmap/traceability-m2-m8.md` (rows C10/C11/L07–L11 and the §26/§51/§77/§80 rows), `docs/roadmap/adr-backlog-m2-m8.md` (D06/D17/D18), the accepted decisions `docs/adr/ADR-060..ADR-064`, the evidence `docs/validation/M3-*.md`, `docs/validation/M3-*.json`, `docs/validation/M3-matrix.md`, `docs/validation/m3-delegation/README.md` and the per-package `last-message.md` files, and the public documents `README.md`, `CHANGELOG.md`, `SECURITY.md`, `docs/tools.md`, `docs/architecture.md`, `docs/security-model.md`, `docs/compatibility.md`, `docs/client-configuration.md`, `docs/implementation-status.md`, `docs/ci.md`.
+Answer, with file:line citations for every claim:
+1. For each M3 cut (M3-01..M3-06) and each DoD checkbox in the plan: is there evidence, where, and does the evidence actually support the claim (a receipt that says `passed` with counts, not a narrative)? List anything asserted without evidence, and anything evidenced but not asserted.
+2. For each of G1–G9: which M3 artifacts satisfy it, and which parts remain unsatisfied.
+3. Contradictions between documents: numbers (tool counts, budgets, TTLs, quotas, image IDs, versions, hashes), statuses (Proposed vs Accepted vs Done), and capability claims (what the README/tools.md promise vs what the receipts prove). Include stale M2 statements that M3 has invalidated, and any place where a proposal is written as a measured fact.
+4. Whether any document claims a platform, client, or capability that the evidence does not support (CI portable vs native positive; Tasks advertisement; stock-client support; plugin availability in the runtime vs the host).
+5. The exact list of items that must change before M3 can be declared Done.
+Deliver a Markdown report: Summary (≤8 lines), then one section per question with a table of findings (id | severity blocker/major/minor | document:line | claim | contradicting source | required correction), then "Limitations of this audit" (what you could not read or verify). Do not propose architecture changes; do not repeat the code reviews.

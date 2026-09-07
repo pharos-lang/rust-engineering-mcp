@@ -1,0 +1,22 @@
+[
+  {
+    "path": "scripts/probe-m2-write-primitives.py",
+    "sha256": "3294e409ef8ca50a990cbf933117b68b9ba7b528b42912746238ad85bc2c7938"
+  },
+  {
+    "path": "docs/validation/m2-d02-native-probe.json",
+    "sha256": "0ac42ab1761f0dcfc0401aa4799469ec386b7aa5484359dfa1b179a2bb246243"
+  },
+  {
+    "path": "docs/validation/M2-matrix.md",
+    "sha256": "342ae6c5b7a64bc4fa992aebed889ea56a9fb7a4058acc5d299b2828408709b7"
+  },
+  {
+    "path": "docs/adr/ADR-049-m2-write-boundary-qualification.md",
+    "sha256": "885d11576395c92c64e31ce3027e11a67fdc3b9730577d47ac85628fd7fe067e"
+  },
+  {
+    "path": "docs/validation/m2-d02-probe-attempt1.json",
+    "sha256": "bdfc3ba8679f1a88c0d5a5b7266bdfc948153f22cd587a4099dff678eb730f37"
+  }
+]

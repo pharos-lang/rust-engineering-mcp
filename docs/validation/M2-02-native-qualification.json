@@ -1,0 +1,58 @@
+{
+  "artifact": "M2-02 native writer focused qualification",
+  "timestamp_utc": "2026-09-05T17:34:45Z",
+  "platform": "aarch64-apple-darwin",
+  "commands": [
+    {
+      "command": "cargo test -p rust-engineering-project --all-targets",
+      "result": "passed",
+      "passed_tests": 144,
+      "ignored_tests": 1,
+      "breakdown": {
+        "library": 46,
+        "cargo_oracle": 6,
+        "cargo_vendor": 6,
+        "catalog_store": 16,
+        "filesystem": 16,
+        "host_snapshot": 9,
+        "manifest_edit": 13,
+        "mutation_store": 14,
+        "source": 18
+      }
+    },
+    {
+      "command": "cargo clippy -p rust-engineering-project --all-targets -- -D warnings",
+      "result": "passed"
+    },
+    {
+      "command": "cargo test --release -p rust-engineering-project --lib filesystem::macos::mutation::tests::measure_real_format_commit_replay_recovery_and_index_ceiling -- --ignored --exact --nocapture",
+      "result": "passed"
+    },
+    {
+      "command": "python3 scripts/check-architecture.py",
+      "result": "passed"
+    },
+    {
+      "command": "git diff --check",
+      "result": "passed"
+    }
+  ],
+  "source_sha256": {
+    "crates/domain/src/mutation.rs": "cda55481cd7ffbc80c6c83074662d95bba8610fbcbff164c1a61c730eb3ab41d",
+    "crates/domain/src/source.rs": "2fbc370dc6be5434bd64e137f5d97284f4faa11cca64164566957f1133e7e7d9",
+    "crates/project-adapter/src/mutation_store.rs": "54c1ced98d0173cd6e49d999063b9a55d0bdf9835f1965997d715b3c97080fbb",
+    "crates/project-adapter/src/filesystem/macos.rs": "5baedec6ebc09489d2b5b3e7a6f0fe4516b5662061318c8b2d5da4b7d7cc8be6",
+    "crates/project-adapter/src/filesystem/macos/mutation.rs": "066a5c6beaff5778845cd84a14a7a59184612f4b53e4dc602f6bb949c4a01b48",
+    "crates/project-adapter/src/filesystem/macos/source.rs": "aebc1b3b3e664b9e3f8c4274c1493f8433c1ab86c5453f2b3c178467c76715b1",
+    "crates/project-adapter/tests/mutation_store.rs": "ea176d8a83db4f173099b34a21c544daad2b0eae5e12c47d22b961b29449b5ba",
+    "crates/project-adapter/tests/support/native_mutation.rs": "ea36bd2bf450ffb3cf7f20f012d62ae6067e143f84695d848b59ce2fac6aef46",
+    "docs/adr/ADR-054-multiple-file-mutation-publication.md": "928b5e463d339ac8ac759c42e4dbee389ebe23655e3f698b2b4b1e84cfd04905",
+    "docs/validation/M2-02-native-performance.json": "604e9b49a147f20968ca57cb4d308ad31f2a3c4188420b15c9435368ae9e6578"
+  },
+  "scope": "Focused project-adapter validation on the current shared working tree; the main owner runs the combined workspace gate after concurrent integration.",
+  "claims_excluded": [
+    "power-loss qualification",
+    "atomic visibility to external readers",
+    "whole-workspace gate"
+  ]
+}

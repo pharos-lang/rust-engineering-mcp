@@ -1,0 +1,18 @@
+ INFO {"schema":"rust-mcp-mutation-event-v1","event":"mutation_call_completed","tool":"rust.manifest.patch","phase":"preview","admitted":false,"status":"blocked","reason":"permission_denied","duration_ms":0,"cleanup_uncertain":false,"result_id":null,"files_changed":0,"allocated_plans":0,"allocated_plan_bytes":0}
+unknown format "uint64" ignored in schema at path "#/oneOf/0/properties/expires_in_seconds"
+unknown format "uint64" ignored in schema at path "#/oneOf/0/properties/expires_in_seconds"
+unknown format "uint64" ignored in schema at path "#/$defs/Change/properties/after_bytes"
+unknown format "uint64" ignored in schema at path "#/$defs/Change/properties/after_bytes"
+unknown format "uint64" ignored in schema at path "#/$defs/Change/properties/before_bytes"
+unknown format "uint64" ignored in schema at path "#/$defs/Change/properties/before_bytes"
+unknown format "uint64" ignored in schema at path "#/$defs/ReceiptChange/properties/before_bytes"
+unknown format "uint64" ignored in schema at path "#/$defs/ReceiptChange/properties/before_bytes"
+unknown format "uint64" ignored in schema at path "#/$defs/ReceiptChange/properties/effect_after_bytes"
+unknown format "uint64" ignored in schema at path "#/$defs/ReceiptChange/properties/effect_after_bytes"
+unknown format "uint64" ignored in schema at path "#/$defs/ReceiptChange/properties/intended_after_bytes"
+unknown format "uint64" ignored in schema at path "#/$defs/ReceiptChange/properties/intended_after_bytes"
+unknown format "uint64" ignored in schema at path "#/properties/duration_ms"
+unknown format "uint64" ignored in schema at path "#/properties/duration_ms"
+unknown format "uint64" ignored in schema at path "#/$defs/Truncation/properties/diagnostics_omitted"
+unknown format "uint64" ignored in schema at path "#/$defs/Truncation/properties/diagnostics_omitted"
+{"error":{"code":"tool_is_error","message":"Tool 'rust.manifest.patch' returned isError:true."}}

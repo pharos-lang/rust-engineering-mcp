@@ -1,0 +1,132 @@
+{
+  "status": "focused_checks_passed; independent review and new full/client closure pending",
+  "issue": "Four terminal plans exhausted the four-pending-plan RAM quota, blocking the fifth sequential mutation in stock client attempt 2.",
+  "decision": "ADR-059 terminal retirement and durable exact replay; no quota increase or client-session workaround",
+  "source_inputs": [
+    {
+      "path": "crates/application/src/mutation.rs",
+      "sha256": "e4b79d9da88b3c427c23e5824719870703e20c1636aa43f2f0c6dab7444ee3b9"
+    },
+    {
+      "path": "crates/application/tests/mutation.rs",
+      "sha256": "1802bf48958e2a5c29f63fe54fd05953cf5338d44db3fdbbb62b538915764cf4"
+    },
+    {
+      "path": "crates/project-adapter/src/filesystem/macos/mutation.rs",
+      "sha256": "8a00082f778f265db328418d121087ef3cb13570db6c359d7e21f4b50dc1745d"
+    },
+    {
+      "path": "crates/project-adapter/src/mutation_port.rs",
+      "sha256": "1418352cf96899392b14a90683cbe32b1a3daef90abda90b941c35618efe8b42"
+    },
+    {
+      "path": "crates/project-adapter/src/mutation_store.rs",
+      "sha256": "24ad53774e998fa239340a6c8e90abbbe4e9b9a4d505b0747d8d85ce06dbd3ce"
+    },
+    {
+      "path": "crates/project-adapter/tests/support/native_mutation.rs",
+      "sha256": "26347f02499e87849f959e78a56287ec918cacf4edd7ad7592a2be72069e8583"
+    },
+    {
+      "path": "crates/mcp-server/src/stdio/mutation.rs",
+      "sha256": "d58153f8b628d385a74b0e47cb5bf6e9981fe66de1c33df16482a24fd2161e50"
+    },
+    {
+      "path": "crates/mcp-server/tests/inspection_runtime/terminal_plan.rs",
+      "sha256": "5d6cb5c46282cc4950983a8e968c1662d625149538c86cf6d0dd4b59eb67b023"
+    },
+    {
+      "path": "scripts/test-m2-clients.py",
+      "sha256": "dae9d284ed8237ee0f9bbd3daf655f918e156419b13a76533b854573eda2690d"
+    },
+    {
+      "path": "scripts/test-m2-runtime.py",
+      "sha256": "1639b7ed75665db8e98305f1c823fd5f6ff9a2d4e4123fefaa6656c21f21ca84"
+    }
+  ],
+  "commands": [
+    {
+      "argv": [
+        "cargo",
+        "test",
+        "--locked",
+        "--offline",
+        "-p",
+        "rust-engineering-application",
+        "--test",
+        "mutation"
+      ],
+      "result": "18 passed; 0 failed"
+    },
+    {
+      "argv": [
+        "cargo",
+        "test",
+        "--locked",
+        "--offline",
+        "-p",
+        "rust-engineering-project",
+        "--lib",
+        "replay",
+        "--",
+        "--nocapture"
+      ],
+      "result": "3 passed; 0 failed; 1 ignored benchmark"
+    },
+    {
+      "argv": [
+        "cargo",
+        "test",
+        "--locked",
+        "--offline",
+        "-p",
+        "rust-engineering-mcp",
+        "--test",
+        "inspection_runtime",
+        "terminal_plan_runtime::terminal_plans_free_quota_and_replay_only_from_exact_durable_identity",
+        "--",
+        "--ignored",
+        "--exact",
+        "--nocapture",
+        "--test-threads=1"
+      ],
+      "result": "1 passed; 0 failed; 0 ignored; 19.69 seconds",
+      "environment": {
+        "RUST_MCP_TEST_SOCKET": "/Users/cburgosro/.docker/run/docker.sock"
+      }
+    }
+  ],
+  "clippy": "application and MCP all-targets passed; native adapter all-targets passed in worker",
+  "logs": [
+    {
+      "path": "docs/validation/m2-059/M2-059-application.log",
+      "sha256": "d1193e70b5f2f3939a82ec18729a9753417fbde607b6d4a2ca1311909d47c916"
+    },
+    {
+      "path": "docs/validation/m2-059/M2-059-app-clippy.log",
+      "sha256": "732a89ccbe49244c1152335225c9dec972365411c3f41218bde47ab1df3938ae"
+    },
+    {
+      "path": "docs/validation/m2-059/M2-059-native-replay.log",
+      "sha256": "acbf276720d0696dc90ff49bab4454493e90dd5922945e569e48cca94b2dc825"
+    },
+    {
+      "path": "docs/validation/m2-059/M2-059-runtime.log",
+      "sha256": "8c33cdddfb50f3194e514a239e2def93267a7cc63278983f1da821121aa2ce84"
+    },
+    {
+      "path": "docs/validation/m2-059/M2-059-mcp-clippy.log",
+      "sha256": "4bc7328032d7f4ad40f324cd4e88c83888cb42e0ddeb62299e58692cc7c2219f"
+    },
+    {
+      "path": "docs/validation/m2-059/M2-059-release-build.log",
+      "sha256": "7b913085fbf9102aadd2e920d8146887abe65f91088033be4cdf2a97fcbfdeaf"
+    }
+  ],
+  "limitations": [
+    "Consumed-response then retry exercises the replay path but is not physical network loss injection.",
+    "Terminal receipt describes historical effects, not current source equality.",
+    "Pending or corrupt journals keep existing recovery and preservation limits.",
+    "Build remains 0.2.0-dev; no release."
+  ]
+}

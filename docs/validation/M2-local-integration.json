@@ -1,0 +1,40 @@
+{
+  "schema": "rust-engineering-mcp.m2-local-integration.v1",
+  "status": "passed",
+  "recorded_at": "2026-09-05T22:39:09.450191+00:00",
+  "branch": "main",
+  "merge_commit": "7554bccbff2209ae5b3df63b2b1011646586380f",
+  "merge_parents": [
+    "2f54b360e1e81f21e7efeff7c451cdd6f663a04f",
+    "ed1d6b21327ca38db2c1b35a9a61e0d74de686c8"
+  ],
+  "implementation_commit": "01c11f0dea21957d9a4c02acfe6bcbd1db4fca15",
+  "qualification_commit": "ed1d6b21327ca38db2c1b35a9a61e0d74de686c8",
+  "preserved_branch": "ai/m2-write-qualification",
+  "preserved_branch_tip": "ed1d6b21327ca38db2c1b35a9a61e0d74de686c8",
+  "source_inputs_count": 574,
+  "source_inputs_equal_full_gate": true,
+  "source_inventory_json_sha256": "8b738b883df1ac82f9cdf132a36925e968d8d7ffbb8bdf62d40d5f29123b9389",
+  "full_gate": "docs/validation/M2-full-gate.json",
+  "full_gate_sha256": "05f0391041e053309e8924183600dcfbd8cd41b925afadb2edca7fcb73e43ea5",
+  "smoke": "docs/validation/M2-postmerge-smoke.json",
+  "smoke_sha256": "e50c78195184ecd40b5230bab5cca3af75823ec9202c1cb8077bbae4937c2712",
+  "client_receipt_sha256": "61958b34778bd8a62c52bff14135a1c0976a71d5ef7dfdd2ec139e4254509150",
+  "core_binary_sha256": "41d256a606538d52df3c574e812b5fdd2df006cc659a335a447d4935f45e685c",
+  "m1_identical_snapshots": 13,
+  "owned_docker_containers": 0,
+  "owned_docker_volumes": 0,
+  "integration_tree_sha": "8cc8e9d5330e7cbfa774644a3bc4c774dd5442dc",
+  "subsequent_commit_scope": "Documentation and integration evidence only; final commit id is outside this self-referential receipt.",
+  "publication_performed": false,
+  "m3_started": false,
+  "reviews": {
+    "contract": "Accepted",
+    "security": "Accepted with documented residuals",
+    "native_writer": "Accepted with documented residuals",
+    "observability": "Accepted",
+    "adr_059": "Accepted",
+    "final_resolution_delta": "Accepted",
+    "agy_traceability": "Accepted with owner precision corrections"
+  }
+}

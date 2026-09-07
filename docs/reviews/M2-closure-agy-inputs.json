@@ -1,0 +1,237 @@
+{
+  "model": "gemini-3.8-flash-high",
+  "effort": "high",
+  "mode": "plan",
+  "sandbox": true,
+  "read_only_requested": true,
+  "tools_requested": "none; package-only review",
+  "files": [
+    {
+      "path": "docs/validation/M2-07.md",
+      "sha256": "9bbd6d01a3c4e00950204a4dfefa8cd9a3b78ebadf5ec9c129ff9521f2de0690",
+      "bytes": 9369,
+      "coverage": "lines 1-144"
+    },
+    {
+      "path": "docs/validation/M2-traceability.md",
+      "sha256": "5e2976d7a0619e1665fc51396048585129be1339bbe7e371157547d4052542fc",
+      "bytes": 6006,
+      "coverage": "lines 1-53"
+    },
+    {
+      "path": "docs/validation/M2-matrix.md",
+      "sha256": "dc8be495539c23e8a12a7dd42634692618c3d754126b525a00a38ec3b6cd1d9a",
+      "bytes": 8347,
+      "coverage": "lines 1-109"
+    },
+    {
+      "path": "docs/roadmap/m2-safe-mutation.md",
+      "sha256": "3f89452fa2e55b7fa1915e02d757b39c06759f453cb42cbfe295a685ee6d1ba4",
+      "bytes": 24704,
+      "coverage": "lines 204-331"
+    },
+    {
+      "path": "docs/roadmap/m2-m8.md",
+      "sha256": "22bb916b14aefcb63d266f4fa725538e4734f6ea6c6e1fecfcd35533907e69cb",
+      "bytes": 15296,
+      "coverage": "lines 193-242"
+    },
+    {
+      "path": "docs/spec/rust-engineering-mcp-propuesta-v0.3.md",
+      "sha256": "8aadfd0f26a5cea7d7fe05f9a000b9996c808c94ba36d987007feb6f80126e80",
+      "bytes": 101272,
+      "coverage": "lines 1413-1500"
+    },
+    {
+      "path": "docs/adr/ADR-050-local-coordinated-mutation.md",
+      "sha256": "378ba4200ee0d224d27ef988bef47ac4394ac5104bf9bd6b839fa76776bee045",
+      "bytes": 7474,
+      "coverage": "lines 1-109"
+    },
+    {
+      "path": "docs/adr/ADR-051-semantic-manifest-editor.md",
+      "sha256": "296a431965f98c5c681688a28cc0b15fa0e9aa33f033942f635b06cb97c52b57",
+      "bytes": 2499,
+      "coverage": "lines 1-50"
+    },
+    {
+      "path": "docs/adr/ADR-052-mutation-journal-and-authorization.md",
+      "sha256": "ce39d4e64efbe324e58b874dce05bd2468860a21d98208a521a3f90802563058",
+      "bytes": 12375,
+      "coverage": "lines 1-183"
+    },
+    {
+      "path": "docs/adr/ADR-053-bounded-guest-mutation-staging.md",
+      "sha256": "50c3252db875447f1f5f35e8d52a408995da6487bb0286160b4e952045da7b15",
+      "bytes": 4950,
+      "coverage": "lines 1-82"
+    },
+    {
+      "path": "docs/adr/ADR-054-multiple-file-mutation-publication.md",
+      "sha256": "8e3400f7218153543d28caf50524c16c776a4199826833787cfdcbe160f0d763",
+      "bytes": 6866,
+      "coverage": "lines 1-109"
+    },
+    {
+      "path": "docs/adr/ADR-055-offline-cargo-data-and-lock-policy.md",
+      "sha256": "763a770bf53f39da67270e9463b591bf43d108c6fd39a751316e23af93da7bc0",
+      "bytes": 8404,
+      "coverage": "lines 1-133"
+    },
+    {
+      "path": "docs/adr/ADR-056-cargo-fix-isolated-loopback.md",
+      "sha256": "c80d2b7ed9b5d8454fd5ce93c6b39d5e1ca015a9987ea1919efc89405a8041b8",
+      "bytes": 5089,
+      "coverage": "lines 1-87"
+    },
+    {
+      "path": "docs/adr/ADR-057-typed-manifest-and-dependency-operations.md",
+      "sha256": "8cbc71ac595453d461c14741a240cee6dc6bae53dff52266ebed6bd15379d504",
+      "bytes": 5882,
+      "coverage": "lines 1-102"
+    },
+    {
+      "path": "docs/adr/ADR-058-local-mutation-observability.md",
+      "sha256": "1c5f1c7e114d01f15223be8e90e846c1ec1006ad09ae97be83e4d2f48a32b53f",
+      "bytes": 3638,
+      "coverage": "lines 1-58"
+    },
+    {
+      "path": "docs/adr/ADR-059-terminal-plan-retirement-and-durable-replay.md",
+      "sha256": "6e50817a794105ca271e46c7d75c089cf3c33c4360228bb6a32e7b730bdc9b84",
+      "bytes": 4100,
+      "coverage": "lines 1-67"
+    },
+    {
+      "path": "README.md",
+      "sha256": "debab8a9aa2079636785d88788eced0481a071ca24c5811dd5a527caaaa82499",
+      "bytes": 20632,
+      "coverage": "lines 356-401"
+    },
+    {
+      "path": "SECURITY.md",
+      "sha256": "f7f0af259649ffb347f47580aa9735cb5211cedafb80ce02a870164ae6bdf999",
+      "bytes": 18685,
+      "coverage": "lines 249-290"
+    },
+    {
+      "path": "docs/architecture.md",
+      "sha256": "c2953c5f372f8b9bdfc51860479ac7d5b8991be04bb8d745134fa838f3a78f92",
+      "bytes": 18927,
+      "coverage": "lines 268-303"
+    },
+    {
+      "path": "docs/tools.md",
+      "sha256": "d083a31142b5267366b02aa56b47b6cd12153936ec53ecf8e63e2c667e67da84",
+      "bytes": 48400,
+      "coverage": "lines 589-842"
+    },
+    {
+      "path": "docs/security-model.md",
+      "sha256": "9ca4db3556d9608c17acf1d1fd1b29abd1165f36f25871b2a410a95ec3087b60",
+      "bytes": 25006,
+      "coverage": "lines 320-387"
+    },
+    {
+      "path": "docs/compatibility.md",
+      "sha256": "bead445f739fb893069baf2bd5d1c9fdeb16e66e5cc84b9dce6edd05c970836c",
+      "bytes": 20529,
+      "coverage": "lines 287-312"
+    },
+    {
+      "path": "docs/client-configuration.md",
+      "sha256": "f2547aa2632e1645c976a96249c5534ffd420fb553957e058d36dcec7e33f25a",
+      "bytes": 14952,
+      "coverage": "lines 250-361"
+    },
+    {
+      "path": "docs/validation/M2-full-gate.json",
+      "sha256": "05f0391041e053309e8924183600dcfbd8cd41b925afadb2edca7fcb73e43ea5",
+      "bytes": 160655,
+      "coverage": "derived JSON fields"
+    },
+    {
+      "path": "docs/validation/M2-final-runtime.json",
+      "sha256": "2bf528673f42afc8d754d36a8e766b961464add91dc7ba41c41cff624090fbe9",
+      "bytes": 44612,
+      "coverage": "derived JSON fields"
+    },
+    {
+      "path": "docs/validation/M2-clients.json",
+      "sha256": "61958b34778bd8a62c52bff14135a1c0976a71d5ef7dfdd2ec139e4254509150",
+      "bytes": 17048,
+      "coverage": "derived JSON fields"
+    },
+    {
+      "path": "docs/validation/M2-client-binary.json",
+      "sha256": "66a111959ab6bd18e9a792d00e6f1d08f24d0a97d10060fe55f72fc4f6c0f743",
+      "bytes": 1167,
+      "coverage": "lines 1-28"
+    },
+    {
+      "path": "docs/validation/M2-m1-contract-preservation.json",
+      "sha256": "57579121a68c16699019a2ee50e7bf499b07a69398c2ced8438cb23c2ed47ad7",
+      "bytes": 2445,
+      "coverage": "lines 1-59"
+    },
+    {
+      "path": "docs/validation/M2-final-verification.json",
+      "sha256": "3b24609888138588991eee001f4dcb9481ded2c6f6820205ee3944e61dab32b5",
+      "bytes": 832,
+      "coverage": "lines 1-18"
+    },
+    {
+      "path": "docs/reviews/M2-059-review.md",
+      "sha256": "902ab937cc6bcaffd40d7e5348da64c78c9979ffd78dcccb0fdaa81ed0c38cac",
+      "bytes": 3518,
+      "coverage": "lines 1-46"
+    },
+    {
+      "path": "docs/reviews/M2-closure-resolution-review.md",
+      "sha256": "89b60e306c806dfb2260fce221541336217115c94c3a6e445f529965dff3af69",
+      "bytes": 2723,
+      "coverage": "lines 1-41"
+    },
+    {
+      "path": "docs/reviews/M2-final-native-review.md",
+      "sha256": "534ad79d180288c6cd33d22eee480e5d6f5b00a006e899dc750226f216ac1d8d",
+      "bytes": 2660,
+      "coverage": "lines 1-40"
+    },
+    {
+      "path": "docs/reviews/M2-final-security-review.md",
+      "sha256": "c5ceda8560b0ee047f2fcb75691bb7b8a7ae44e3af9f603844f10352410583be",
+      "bytes": 5056,
+      "coverage": "lines 1-44"
+    },
+    {
+      "path": "crates/application/tests/mutation.rs",
+      "sha256": "c5b457b453ba03d1e345c293c174434dc78e7c7acf0d619843afbf6a3995795c",
+      "bytes": 41118,
+      "coverage": "function declaration index only"
+    },
+    {
+      "path": "crates/project-adapter/tests/support/native_mutation.rs",
+      "sha256": "1661216f500223ee6e15b1ad6bd1c24a01380f4aa09ca41aacba99ec0ba10704",
+      "bytes": 114906,
+      "coverage": "function declaration index only"
+    },
+    {
+      "path": "crates/mcp-server/tests/inspection_runtime/terminal_plan.rs",
+      "sha256": "5d6cb5c46282cc4950983a8e968c1662d625149538c86cf6d0dd4b59eb67b023",
+      "bytes": 7681,
+      "coverage": "function declaration index only"
+    },
+    {
+      "path": "crates/mcp-server/tests/inspection_runtime/dependency_mutation.rs",
+      "sha256": "37cf812f01a65cf6e68007b2cb48aa16b20671a3098db277c1d8f57f9b79518f",
+      "bytes": 20118,
+      "coverage": "function declaration index only"
+    }
+  ],
+  "prompt": "docs/reviews/m2-closure-packages/M2-closure-agy-prompt.txt",
+  "prompt_sha256": "3f0544dbf7e03987d3b6c42f003aff09cc545a76ef789b0e42562ad224b19652",
+  "prompt_bytes": 205312,
+  "tooling": "docs/reviews/m2-closure-packages/agy-tooling.json",
+  "prepared_at": "2026-09-05T22:32:02.118227+00:00"
+}

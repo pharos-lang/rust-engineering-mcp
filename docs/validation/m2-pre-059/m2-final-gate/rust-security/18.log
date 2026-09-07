@@ -1,0 +1,9 @@
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.11s
+     Running tests/inspection_runtime.rs (target/debug/deps/inspection_runtime-836bf750ab4f64c1)
+
+running 1 test
+test quality_runtime::quality_standard_distinguishes_pass_test_failure_and_unavailable_audit ... M1_QUALITY_RECEIPT {"audit_after_failed_test":true,"cases":3,"cleanup":true,"configuration_fingerprint":"sha256:84fb1e2dac1829773cd1c3fa00b757db03c33f78c2de9a49ab836d56b019183e","logs_sha256_verified":12,"missing_snapshot_never_passes":true,"nonmatching_real_rsa_snapshot":true,"ordered_stages":5,"profiles":["standard"],"real_test_failure_retained":true,"snapshot_fingerprint":"sha256:640b8b9c974eb6bdef387fa6055fddc1ba71f37fdbcf229f63da7f9e0f7d75ee","source_unchanged_between_explicit_mutations":true}
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 27 filtered out; finished in 40.72s
+

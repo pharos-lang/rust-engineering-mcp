@@ -1,0 +1,174 @@
+{
+  "status": "passed",
+  "profile": "m3",
+  "utc_start": "2026-09-06T01:08:15Z",
+  "utc_end": "2026-09-06T01:09:08Z",
+  "image_id": "sha256:384a1742ecc53cdd3a9c0bf36c6f8b66db73ddd118aeeae6e55654ea998ae36a",
+  "tag": "rust-engineering-runtime:1.98.1-arm64-m3",
+  "base_image_digest": "docker.io/library/debian@sha256:88200866dfff7ea7f5cbcb6ec7c8a701889efe6fe859fe64d6990e4b07ea4171",
+  "host_docker": {
+    "client_version": "29.7.2",
+    "server_version": "29.7.2",
+    "desktop_version": "4.87.0 (236836)",
+    "os_arch": "linux/arm64",
+    "command": "/Applications/Docker.app/Contents/Resources/bin/docker --host unix:///Users/cburgosro/.docker/run/docker.sock version",
+    "exit_code": 0,
+    "stdout_path": "docs/validation/m3-provisioning/docker-version-20260906T011222Z.stdout.log",
+    "stderr_path": "docs/validation/m3-provisioning/docker-version-20260906T011222Z.stderr.log"
+  },
+  "commands": [
+    {
+      "name": "provision",
+      "command": "BUILDX_CONFIG=target/m3-runtime-provisioning/buildx python3 fixtures/rust-runtime/provision.py --docker /Applications/Docker.app/Contents/Resources/bin/docker --host unix:///Users/cburgosro/.docker/run/docker.sock --output target/m3-runtime-provisioning --plugins",
+      "exit_code": 0,
+      "stdout_path": "docs/validation/m3-provisioning/provision-20260906T010815Z.stdout.log",
+      "stderr_path": "docs/validation/m3-provisioning/provision-20260906T010815Z.stderr.log"
+    },
+    {
+      "name": "verify",
+      "command": "python3 fixtures/rust-runtime/verify.py --docker /Applications/Docker.app/Contents/Resources/bin/docker --host unix:///Users/cburgosro/.docker/run/docker.sock --output target/m3-runtime-provisioning --plugins",
+      "exit_code": 0,
+      "observed_at": "2026-09-06T01:10:16.730070+00:00",
+      "stdout_path": "docs/validation/m3-provisioning/verify-20260906T011011Z.stdout.log",
+      "stderr_path": "docs/validation/m3-provisioning/verify-20260906T011011Z.stderr.log"
+    }
+  ],
+  "components": [
+    {
+      "id": "cargo-nextest",
+      "version": "0.9.143",
+      "url": "https://github.com/nextest-rs/nextest/releases/download/cargo-nextest-0.9.143/cargo-nextest-0.9.143-aarch64-unknown-linux-gnu.tar.gz",
+      "sha256": "2a64b3566a92508550a7ab29c3e8db25472ca37730ecb4d22100b6aa440c2a68",
+      "size": 11243965,
+      "license": "Apache-2.0 OR MIT",
+      "notice_path": "/usr/share/doc/rust-runtime/plugin-license-sources.txt"
+    },
+    {
+      "id": "cargo-llvm-cov",
+      "version": "0.9.0",
+      "url": "https://github.com/taiki-e/cargo-llvm-cov/releases/download/v0.9.0/cargo-llvm-cov-aarch64-unknown-linux-gnu.tar.gz",
+      "sha256": "9af53b273e50d01d8bde8785de8541f6738cc4375248cd7683aec8b5768b9d21",
+      "size": 1613151,
+      "license": "Apache-2.0 OR MIT",
+      "notice_path": "/usr/share/doc/rust-runtime/plugin-license-sources.txt"
+    },
+    {
+      "id": "llvm-tools",
+      "version": "1.98.1",
+      "url": "https://static.rust-lang.org/dist/llvm-tools-1.98.1-aarch64-unknown-linux-gnu.tar.xz",
+      "sha256": "caaf950c65f3e428247dbe9c173d142b7072b2134962a61924c01e39f6b6dc1e",
+      "size": 32493908,
+      "license": "Apache-2.0 WITH LLVM-exception",
+      "notice_path": "/usr/share/doc/rust-runtime/notices/LICENSE.TXT; /usr/share/doc/rust-runtime/plugin-license-sources.txt"
+    },
+    {
+      "id": "cargo-semver-checks",
+      "version": "0.50.0",
+      "url": "https://github.com/obi1kenobi/cargo-semver-checks/releases/download/v0.50.0/cargo-semver-checks-aarch64-unknown-linux-gnu.tar.gz",
+      "sha256": "e35f435ea322659381f52e7034bb4f0470108f5b267d29f13cf08152fa4af29b",
+      "size": 7866573,
+      "license": "Apache-2.0 OR MIT",
+      "notice_path": "/usr/share/doc/rust-runtime/plugin-license-sources.txt"
+    },
+    {
+      "id": "cargo-mutants",
+      "version": "27.1.0",
+      "url": "https://crates.io/crates/cargo-mutants/27.1.0",
+      "sha256": null,
+      "size": null,
+      "license": "MIT",
+      "notice_path": "/usr/share/doc/rust-runtime/plugin-license-sources.txt"
+    }
+  ],
+  "cargo_mutants_source_build": {
+    "crate": "cargo-mutants",
+    "version": "27.1.0",
+    "command": "cargo install cargo-mutants --version 27.1.0 --locked --root /opt/plugins",
+    "registry": "crates.io",
+    "registry_index_checksum": "07072e7bcdeb425d5e5fdbfd9f15a2c749e23cb2edf5ef40aee5876760ae1cf9",
+    "crate_sha256": "07072e7bcdeb425d5e5fdbfd9f15a2c749e23cb2edf5ef40aee5876760ae1cf9",
+    "binary_sha256": "137e3ac100a35f563370dcdcca41e2b35ac1c2c257dc90fd8e6a01f984aa86a8",
+    "build_log_sha256": "3800033ba5b44983211c532603ae934e4beed3c5fc9fa215585d4a8e402e34e9",
+    "build_log_path": "docs/validation/m3-provisioning/build.log"
+  },
+  "verification": {
+    "path": "docs/validation/m3-provisioning/verification.json",
+    "exit_code": 0,
+    "observed_at": "2026-09-06T01:10:16.730070+00:00",
+    "result_count": 47,
+    "result_exit_counts": {"0": 47},
+    "user": "65534:65534",
+    "workdir": "/work",
+    "network": "none",
+    "read_only": true,
+    "cap_drop": "ALL",
+    "no_new_privileges": true,
+    "rust_versions": {
+      "rustc": "1.98.1",
+      "cargo": "1.98.1",
+      "cargo-nextest": "0.9.143",
+      "cargo-llvm-cov": "0.9.0",
+      "cargo-semver-checks": "0.50.0",
+      "cargo-mutants": "27.1.0",
+      "llvm-tools": "LLVM 22.1.8-rust-1.98.1-stable"
+    },
+    "rust_components": [
+      "cargo",
+      "clippy-preview",
+      "llvm-tools-preview",
+      "rust-std-aarch64-unknown-linux-gnu",
+      "rustc",
+      "rustfmt-preview"
+    ],
+    "executable_sha256": {
+      "/opt/rust/bin/cargo": "2101d7104b91a013912c94275dcd31c2b41061ef7f6e8530df11cdad55b8fbc5",
+      "/opt/rust/bin/cargo-clippy": "44ad53b58a0fb84fc09c31c09799a1236f03160ea80549820c881a6e734df806",
+      "/opt/rust/bin/cargo-llvm-cov": "1829d7aff143b565ec996255d6a431770de8713a664b8da50add1c76c1a57a9e",
+      "/opt/rust/bin/cargo-mutants": "137e3ac100a35f563370dcdcca41e2b35ac1c2c257dc90fd8e6a01f984aa86a8",
+      "/opt/rust/bin/cargo-nextest": "38dc9f7e6ef58ceb01771bd1d312bc892f367417be58a3683c635c160f4d7c2f",
+      "/opt/rust/bin/cargo-semver-checks": "f87889a5e26b6ee6f7656e8494c37842ab041349b04e5084a66c144df2ccc02b",
+      "/opt/rust/bin/clippy-driver": "3bb746414d10f2b96655d9dc36bf3acc9c914ae7ea882ffa74a2c841924aa282",
+      "/opt/rust/bin/rustc": "d4217a981a778bfe445c0a29c408f5a25a92e9bb5222701579ad5a35bd913e8f",
+      "/opt/rust/bin/rustfmt": "7aa230a4c704fb7b0e2fbccb90688b5b62d932cf9663805d26bbbe7a99ebae8",
+      "/opt/rust/lib/rustlib/aarch64-unknown-linux-gnu/bin/llvm-cov": "c3865abd81eed0db83ae257b347c4fef88f457bc303cd5ce104d24f49e081272",
+      "/opt/rust/lib/rustlib/aarch64-unknown-linux-gnu/bin/llvm-profdata": "c7160d195180796edf7cc4c3f087f72b5425fc9ec2d9734b956a265e506f982e",
+      "/usr/bin/gcc": "dc53dbc5a583d03ae8ed6272ca9afc0f58873f9f9b86dd7d448b17fb3f88a8d0"
+    },
+    "ldd": {"available": true, "executables_checked": 12, "missing_libraries": []},
+    "dpkg_list_sha256": "sha256:fb53e503ad3b6bac9365806f46184e733ca127e4f1d09f32c25f7fb27856cb62",
+    "dpkg_package_count": 132,
+    "license_notice_paths": [
+      "/usr/share/doc/rust-runtime/dpkg-query.txt",
+      "/usr/share/doc/rust-runtime/cargo-mutants-build-inputs.json",
+      "/usr/share/doc/rust-runtime/plugin-license-sources.txt",
+      "/usr/share/doc/rust-runtime/notices/LICENSE.TXT"
+    ],
+    "forbidden_package_managers_absent": true,
+    "build_inputs_absent": true,
+    "installer_files_absent": true
+  },
+  "help_outputs": {
+    "cargo semver-checks --help": {"stdout_path": "docs/validation/m3-provisioning/help/cargo-semver-checks-help.stdout", "stderr_path": "docs/validation/m3-provisioning/help/cargo-semver-checks-help.stderr", "exit_code": 0, "sha256": "9f6083facba0fb4efa1055c8de564c2a4f7a1a9b76ba3b1a18cec2e74a950eeb"},
+    "cargo semver-checks check-release --help": {"stdout_path": "docs/validation/m3-provisioning/help/cargo-semver-checks-check-release-help.stdout", "stderr_path": "docs/validation/m3-provisioning/help/cargo-semver-checks-check-release-help.stderr", "exit_code": 0, "sha256": "c6f3e08c5de346c4f02e5185938159fe94e42f0f523da4014ac1044aee1c0783"},
+    "cargo llvm-cov --help": {"stdout_path": "docs/validation/m3-provisioning/help/cargo-llvm-cov-help.stdout", "stderr_path": "docs/validation/m3-provisioning/help/cargo-llvm-cov-help.stderr", "exit_code": 0, "sha256": "f1c3bfbe110e1dfd93624fe91d0294ebe860d940398efba6988a1275050ee93d"},
+    "cargo llvm-cov report --help": {"stdout_path": "docs/validation/m3-provisioning/help/cargo-llvm-cov-report-help.stdout", "stderr_path": "docs/validation/m3-provisioning/help/cargo-llvm-cov-report-help.stderr", "exit_code": 0, "sha256": "77a217f092027f76b81b978641d5ae516165a1b5552fcb61400202207aa5ec94"},
+    "cargo nextest --help": {"stdout_path": "docs/validation/m3-provisioning/help/cargo-nextest-help.stdout", "stderr_path": "docs/validation/m3-provisioning/help/cargo-nextest-help.stderr", "exit_code": 0, "sha256": "696e54db1288d35bfaf25768e70bcd20ec38f8a63cd76e13d1d6cacc264d32a8"},
+    "cargo nextest run --help": {"stdout_path": "docs/validation/m3-provisioning/help/cargo-nextest-run-help.stdout", "stderr_path": "docs/validation/m3-provisioning/help/cargo-nextest-run-help.stderr", "exit_code": 0, "sha256": "93f967000d6a181c472a47f32d96e18a6cdcfe9607f0d2969be46b154a3f5bf0"},
+    "cargo mutants --help": {"stdout_path": "docs/validation/m3-provisioning/help/cargo-mutants-help.stdout", "stderr_path": "docs/validation/m3-provisioning/help/cargo-mutants-help.stderr", "exit_code": 0, "sha256": "cc1de762d004b8b74204bf940705c1142f5515b35841ba5c8df5b9863216914e"}
+  },
+  "raw_artifacts": {
+    "image_id": "docs/validation/m3-provisioning/image-id",
+    "base_inspect": "docs/validation/m3-provisioning/base-inspect.json",
+    "image_inspect": "docs/validation/m3-provisioning/image-inspect.json",
+    "provisioning_receipt": "docs/validation/m3-provisioning/provisioning-receipt.json",
+    "verification": "docs/validation/m3-provisioning/verification.json",
+    "build_log": "docs/validation/m3-provisioning/build.log"
+  },
+  "fixture_fixes_revealed_by_run": [
+    "provision.py now permits omitted sizes for base Rust archives while recording observed sizes; declared plugin sizes remain mandatory and checked.",
+    "sources.json and Dockerfile now use the actual llvm-tools-preview archive member prefix present in the verified archive.",
+    "Dockerfile now supplies /opt/rust/bin to the builder, captures the LLVM LICENSE.TXT, and removes the Rust installer script from the final filesystem.",
+    "verify.py now uses cargo-mutants mutants --version, maps LLVM tools to their two executable probes, and checks closed known paths instead of a permission-noisy find / scan."
+  ],
+  "adr063_follow_up": "ADR-063 currently spells the two LLVM archive executable members without the llvm-tools-preview directory prefix; the verified archive and fixture use the actual members under that prefix. ADR correction remains for the integrator because ADR-063 is outside this package ownership."
+}

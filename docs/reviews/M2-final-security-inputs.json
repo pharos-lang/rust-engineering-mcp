@@ -1,0 +1,90 @@
+{
+  "model": "claude-opus-5",
+  "effort": "high",
+  "cli_version": "2.1.260",
+  "read_only": true,
+  "tools": [],
+  "files": [
+    {
+      "path": "docs/adr/ADR-050-local-coordinated-mutation.md",
+      "sha256": "e4e8b38936cdde67c4704833c464b68dd43e7fe6166daadb887991ee695c6a40",
+      "bytes": 7460
+    },
+    {
+      "path": "docs/adr/ADR-053-bounded-guest-mutation-staging.md",
+      "sha256": "bb5a1d2e92f6b8db1b23642cca2d8796fa3146f178e1e2924fb98074f5ae8ae0",
+      "bytes": 4952
+    },
+    {
+      "path": "docs/adr/ADR-055-offline-cargo-data-and-lock-policy.md",
+      "sha256": "d3f3a71425f1d774252ec33ca896d24ab9da04cc412a686c7cec04a325269381",
+      "bytes": 7480
+    },
+    {
+      "path": "docs/adr/ADR-056-cargo-fix-isolated-loopback.md",
+      "sha256": "0f95839e32336d5caaa5be498629cb2681f119b63d8640b18a4f86ec21946425",
+      "bytes": 4633
+    },
+    {
+      "path": "docs/adr/ADR-057-typed-manifest-and-dependency-operations.md",
+      "sha256": "12a116c6ed5645659935e2b278e6bc41aad43c739fee8a8a5c53b46beadaefa1",
+      "bytes": 5854
+    },
+    {
+      "path": "crates/execution-adapter/src/resolution_gateway.rs",
+      "sha256": "a335b7b5a1957bd16bf1a7ceb3819da016bdf3e8b616c3a8a05fc4d8078d4546",
+      "bytes": 39127
+    },
+    {
+      "path": "crates/execution-adapter/src/mutation_gateway.rs",
+      "sha256": "1685518076ec3a254e93c7f4429024bb712ae8c7666568747b0a441d9eaa5798",
+      "bytes": 42332
+    },
+    {
+      "path": "crates/execution-adapter/src/mutation_archive.rs",
+      "sha256": "e8e7059558680df02ef41cb65af98a347b6cbbae452bda19ffb880c4fd5f9647",
+      "bytes": 27820
+    },
+    {
+      "path": "crates/execution-adapter/src/rust_applied.rs",
+      "sha256": "cd4dc4fd21a8d618a96debfc6e1f006b500619e35d330a116333e52bfa3e55a6",
+      "bytes": 42690
+    },
+    {
+      "path": "crates/execution-adapter/src/seccomp-rust.json",
+      "sha256": "f9d31acb22989dc6ac37c02d4c73acfbbb3b74b5e08beff9983f3a811fd4e56d",
+      "bytes": 3379
+    },
+    {
+      "path": "crates/execution-adapter/src/seccomp-rust-fix.json",
+      "sha256": "c5b045931bb8fc4e011193f71976cba5f97bb565e4ef051e13a3425309750709",
+      "bytes": 4018
+    },
+    {
+      "path": "crates/execution-adapter/src/project_inspection.rs",
+      "sha256": "8cf540a9ad1dad7602e15dfc30d65a26569dcbf163f9542e6c662c697da93f4d",
+      "bytes": 58627
+    },
+    {
+      "path": "crates/execution-adapter/src/state.rs",
+      "sha256": "d294e5d49c4045ebaa5af66d48e2cbf95b666daadda245505c54269541c2a781",
+      "bytes": 9983
+    },
+    {
+      "path": "crates/project-adapter/src/cargo_vendor.rs",
+      "sha256": "62c271d7c6866cba8f57a57fcd706ba8f39dc05c476d32c660ac5ee3167fb983",
+      "bytes": 8683
+    },
+    {
+      "path": "crates/project-adapter/src/semantic_delta.rs",
+      "sha256": "808c104479c119550259aa52034d424d3db0a24554d54d8dea67e5f1f0943314",
+      "bytes": 21545
+    },
+    {
+      "path": "crates/application/src/resolution.rs",
+      "sha256": "1c3e4b2bb9e3f6f0af199adc1355c3c664945a6b6972610a189aa8ada77c23a8",
+      "bytes": 12298
+    }
+  ],
+  "prompt_sha256": "407060b3f83a7814078eb72e4c858c3f5f6b8cf11edf76660e84d4182da03639"
+}

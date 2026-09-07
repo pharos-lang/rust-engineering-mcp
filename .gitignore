@@ -7,3 +7,21 @@
 __pycache__/
 *.py[cod]
 /coverage/
+
+# Client homes that qualification harnesses point at a client binary carry
+# OAuth tokens and session databases.  They are credential material and
+# per-attempt scratch state, never evidence, so they must never be stageable.
+codex-home/
+auth.json
+installation_id
+.netrc
+credentials.json
+.env
+docs/validation/**/*.sqlite
+docs/validation/**/*.sqlite-shm
+docs/validation/**/*.sqlite-wal
+
+# Raw M3 delegation agent transcripts (~41 MB of JSONL). They stay on disk;
+# docs/validation/M3-delegation-log-inventory.json records their size and
+# digest and names the files from each package that are committed.
+docs/validation/m3-delegation/**/stdout.txt

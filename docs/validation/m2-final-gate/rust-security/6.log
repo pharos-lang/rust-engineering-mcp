@@ -1,0 +1,9 @@
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.11s
+     Running tests/inspection_runtime.rs (target/debug/deps/inspection_runtime-836bf750ab4f64c1)
+
+running 1 test
+test format_reports_workspace_diffs_without_source_writes ... M1_FORMAT_RECEIPT {"all_workspace_members":true,"build_script_not_executed":true,"cases":7,"cleanup":true,"configuration_fingerprint":"sha256:84fb1e2dac1829773cd1c3fa00b757db03c33f78c2de9a49ab836d56b019183e","configured_style_honored":true,"disable_all_overridden":true,"execution_fingerprints":["sha256:bf0d1169a8953c097f406574a18d3e62edefbc0224211a8e352818888b729616","sha256:cf443e35dd2e60cd3dcb7e832b34d75df035f4cde7427e1c633a59ba8bde6e11","sha256:fcf5e96e5ca317a366791fbf2a21cd76501cf35e3b047de30c685662f5bf3a34","sha256:212a58e5391d31fdbdb335efe7c09d1b1c55078dadbc13f089e84d91939f2d58","sha256:85052df7aff13a0a7b3800f7ed38f706655e86651dcaa4f71ae295120f8ceae7","sha256:6a203d103a0b42c15366fdcc54ae1eb8c08b1080d7271cc386dd6196e8483290","sha256:8ab6920f0d9a44dd8434dcd8c6c894530edd19fbe942690425cd9b678a32b771"],"large_diff_omitted":true,"logs_verified":7,"newline_only_difference":true,"parse_failure_incomplete":true,"source_unchanged":true,"status":"passed"}
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 28 filtered out; finished in 20.68s
+

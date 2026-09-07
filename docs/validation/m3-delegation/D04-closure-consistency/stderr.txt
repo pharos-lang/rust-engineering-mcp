@@ -1,0 +1,10 @@
+2026-09-06T20:53:26.528953Z ERROR codex_core::tools::router: error=apply_patch verification failed: Failed to find expected lines in /Users/cburgosro/Projects/rust-mcp/docs/validation/M3-04.md:
+W3 volvió a pasar las 18 selecciones SemVer dentro del gate completo
+55/55; el recibo actual es [`M3-runtime.json`](M3-runtime.json), SHA-256
+`910c4f82d6421b06b58102ee03c73257e97e4078dab1981e1f01bc6e52678053`.
+2026-09-06T20:54:25.909897Z ERROR codex_core::tools::router: error=apply_patch verification failed: Failed to find expected lines in /Users/cburgosro/Projects/rust-mcp/docs/implementation-status.md:
+| M3 / 0.3.x | In progress | [Quality](roadmap/m3-quality.md) · [matriz M3](validation/M3-matrix.md) |
+2026-09-06T20:55:12.422767Z ERROR codex_core::tools::router: error=apply_patch verification failed: Failed to find expected lines in /Users/cburgosro/Projects/rust-mcp/docs/validation/M3-04.md:
+W3 volvió a pasar las 18 selecciones SemVer dentro del gate completo
+55/55; el recibo actual es [`M3-runtime.json`](M3-runtime.json), SHA-256
+`910c4f82d6421b06b58102ee03c73257e97e4078dab1981e1f01bc6e52678053`.

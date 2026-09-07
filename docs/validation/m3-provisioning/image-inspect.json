@@ -1,0 +1,44 @@
+{
+  "Id": "sha256:384a1742ecc53cdd3a9c0bf36c6f8b66db73ddd118aeeae6e55654ea998ae36a",
+  "RepoTags": [
+    "rust-engineering-runtime:1.98.1-arm64-m3"
+  ],
+  "RepoDigests": [
+    "rust-engineering-runtime@sha256:384a1742ecc53cdd3a9c0bf36c6f8b66db73ddd118aeeae6e55654ea998ae36a"
+  ],
+  "Comment": "buildkit.dockerfile.v0",
+  "Created": "2026-09-06T01:08:49.226737584Z",
+  "Config": {
+    "User": "65534:65534",
+    "Env": [
+      "PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+    ],
+    "WorkingDir": "/work"
+  },
+  "Architecture": "arm64",
+  "Os": "linux",
+  "Size": 354266518,
+  "RootFS": {
+    "Type": "layers",
+    "Layers": [
+      "sha256:ca28856a287b75aad40543935c6e00a03a22d55ce52c2f5a7591d7dd811aa970",
+      "sha256:5f70bf18a086007016e948b04aed3b82103a36bea41755b6cddfaf10ace3c6ef"
+    ]
+  },
+  "Metadata": {
+    "LastTagTime": "2026-09-06T01:09:05.1385103Z"
+  },
+  "Descriptor": {
+    "mediaType": "application/vnd.oci.image.index.v1+json",
+    "digest": "sha256:384a1742ecc53cdd3a9c0bf36c6f8b66db73ddd118aeeae6e55654ea998ae36a",
+    "size": 855
+  },
+  "Identity": {
+    "Build": [
+      {
+        "Ref": "kn8gkqfzh6siaeqc8eg3e6sbp",
+        "CreatedAt": "2026-09-06T01:09:08.26996026Z"
+      }
+    ]
+  }
+}

@@ -4,7 +4,7 @@ use rust_engineering_domain::{RustCommand, SourceBundle};
 use std::collections::BTreeMap;
 
 pub const APPROVED_RUST_IMAGE: &str =
-    "sha256:8fac70723a8d04b6ec9633ab721806b8a55f4f083a1b3f988c61bf6a00fa1909";
+    "sha256:384a1742ecc53cdd3a9c0bf36c6f8b66db73ddd118aeeae6e55654ea998ae36a";
 // These versions were verified during explicit provisioning of the immutable ID.
 // Changing the approved identity requires updating and reverifying this tuple.
 pub(super) const APPROVED_RUST_VERSION: &str = "1.98.1";
@@ -12,11 +12,147 @@ pub(super) const APPROVED_CARGO_VERSION: &str = "1.98.1";
 #[derive(Clone, Debug)]
 pub(super) enum Phase {
     Ingest,
+    /// Populates the second, always read-only SemVer baseline volume
+    /// (ADR-062 §8). This phase has a dedicated writable ingest-time mount at
+    /// `/baseline`; that same volume is remounted read-only for the comparison.
+    IngestBaseline,
+    GuardNextestOutput,
+    /// Holds both ADR-065 tmpfs volumes mounted between the independent
+    /// coverage run and report containers. It executes no project code; the
+    /// executable target is read-only here.
+    GuardCoverageVolumes,
+    ExportNextest,
+    ExportCoverageJson,
+    ExportCoverageLcov,
+    ExportCoverageHtml,
+    /// Keeps the M3-05 `mutants.out` report volume alive between the run and
+    /// the three fixed exporters (M2 staging guarantee, ADR-053).
+    GuardMutationOutput,
+    /// Generates the mutant set without building or running anything, so the
+    /// `max_mutants` cap can be enforced before any project code executes.
+    /// This is an adapter-internal phase: the closed `RustCommand` grammar
+    /// exposes only the run itself.
+    ListMutants(rust_engineering_domain::mutation_test::MutationTestCommandOptions),
+    /// Fixed single-file egress of the only mutation oracle.
+    ExportMutationOutcomes,
+    /// Fixed egress of the bounded `diff/` and `logs/` report tree. `lock.json`
+    /// is excluded here because it carries identity fields that are asserted
+    /// separately and never published.
+    ExportMutationBundle,
+    /// Fixed single-file egress of `lock.json` for the guest-identity assertion.
+    /// These bytes never leave the adapter.
+    ExportMutationLock,
     Run(RustCommand),
 }
 impl Phase {
+    /// The ADR-064 quality profile covers every phase that builds and runs test
+    /// binaries. `cargo mutants` does both, for the baseline and for each
+    /// mutant, so it needs exactly the same allowlist as nextest and coverage —
+    /// no additional syscall was required or added for M3-05. The listing phase
+    /// runs `cargo metadata` and the mutant generator only, and shares the
+    /// profile so the two mutation phases differ solely in argv.
+    fn quality_profile(&self) -> bool {
+        matches!(
+            self,
+            Self::ListMutants(_)
+                | Self::Run(
+                    RustCommand::TestNextest(_)
+                        | RustCommand::CoverageRun(_)
+                        | RustCommand::CoverageReport(_)
+                        | RustCommand::SemverCheck(_)
+                        | RustCommand::MutationTest(_)
+                )
+        )
+    }
+
+    pub(super) fn seccomp_profile_name(&self) -> &'static str {
+        if self.quality_profile() {
+            "seccomp-rust-quality.json"
+        } else {
+            "seccomp-rust.json"
+        }
+    }
+
+    pub(super) fn seccomp_profile_json(&self) -> &'static str {
+        if self.quality_profile() {
+            include_str!("seccomp-rust-quality.json")
+        } else {
+            include_str!("seccomp-rust.json")
+        }
+    }
+
+    /// The private writable copy the mutators work in. `cargo-mutants` copies
+    /// the tree into the system temporary directory, so the M3-05 phases point
+    /// `TMPDIR` at this container-scoped tmpfs: it is created empty per
+    /// container, is owned by the unprivileged guest user, is destroyed with
+    /// the container and is reachable by no exporter, so no mutated source can
+    /// ever be read back out. `/source` itself stays read-only for both phases.
+    pub(super) fn extra_tmpfs(&self) -> Option<(&'static str, &'static str)> {
+        matches!(
+            self,
+            Self::ListMutants(_) | Self::Run(RustCommand::MutationTest(_))
+        )
+        .then_some((MUTATION_SCRATCH_PATH, MUTATION_SCRATCH_TMPFS))
+    }
     pub(super) fn ingesting(&self) -> bool {
-        matches!(self, Self::Ingest)
+        matches!(self, Self::Ingest | Self::IngestBaseline)
+    }
+    /// ADR-065's executable named tmpfs is absent from every non-coverage
+    /// phase. It is writable while the instrumented tests run and while the
+    /// pinned plugin merges profraw data in each report invocation; the
+    /// keeper remains read-only and exporters never receive the mount.
+    pub(super) fn coverage_target_writable(&self) -> Option<bool> {
+        match self {
+            Self::Run(RustCommand::CoverageRun(_) | RustCommand::CoverageReport(_)) => Some(true),
+            Self::GuardCoverageVolumes => Some(false),
+            _ => None,
+        }
+    }
+    /// The base allowlist (`environment()`), extended for the semver `Run`
+    /// phase only (ADR-062 §8) with a fixed environment that neutralizes
+    /// `cargo-semver-checks`'s own git auto-detection: `GIT_DIR` points at a
+    /// guest path guaranteed absent from `APPROVED_RUST_IMAGE`, and
+    /// `GIT_CEILING_DIRECTORIES`/`NO_COLOR` are defense in depth (neither
+    /// `--baseline-version` nor `--baseline-rev` is ever passed, so git
+    /// detection is not a functioning code path regardless). `NO_COLOR=1`
+    /// forces off the `anstream`/`anstyle`-driven color the pinned binary
+    /// might otherwise emit; provisional pending §10/§11 calibration
+    /// confirming the pinned binary's actual auto-detection behavior.
+    pub(super) fn environment(&self) -> Vec<String> {
+        let mut env = environment();
+        if matches!(
+            self,
+            Self::Run(RustCommand::CoverageRun(_) | RustCommand::CoverageReport(_))
+        ) {
+            env.extend(
+                [
+                    "LLVM_COV=/opt/rust/lib/rustlib/aarch64-unknown-linux-gnu/bin/llvm-cov",
+                    "LLVM_PROFDATA=/opt/rust/lib/rustlib/aarch64-unknown-linux-gnu/bin/llvm-profdata",
+                    "CARGO_LLVM_COV_TARGET_DIR=/work/coverage-target",
+                ]
+                .map(str::to_owned),
+            );
+        }
+        if matches!(self, Self::Run(RustCommand::SemverCheck(_))) {
+            env.extend(
+                [
+                    "GIT_DIR=/nonexistent",
+                    "GIT_CEILING_DIRECTORIES=/",
+                    "NO_COLOR=1",
+                ]
+                .map(str::to_owned),
+            );
+            env.sort();
+        }
+        // The mutation phases replace, never extend, the base temporary
+        // directory: leaving `TMPDIR=/tmp` would put the writable copy on the
+        // small shared `noexec` tmpfs and silently fail every mutant build.
+        if let Some((path, _)) = self.extra_tmpfs() {
+            env.retain(|value| !value.starts_with("TMPDIR="));
+            env.push(format!("TMPDIR={path}"));
+        }
+        env.sort();
+        env
     }
     pub(super) fn user(&self) -> &'static str {
         if self.ingesting() {
@@ -27,7 +163,18 @@ impl Phase {
     }
     pub(super) fn program(&self) -> &'static str {
         match self {
-            Self::Ingest => "/usr/bin/tar",
+            Self::Ingest | Self::IngestBaseline => "/usr/bin/tar",
+            Self::GuardNextestOutput | Self::GuardCoverageVolumes | Self::GuardMutationOutput => {
+                "/usr/bin/sleep"
+            }
+            Self::ExportNextest
+            | Self::ExportCoverageJson
+            | Self::ExportCoverageLcov
+            | Self::ExportCoverageHtml
+            | Self::ExportMutationOutcomes
+            | Self::ExportMutationBundle
+            | Self::ExportMutationLock => "/usr/bin/tar",
+            Self::ListMutants(_) => "/opt/rust/bin/cargo",
             Self::Run(RustCommand::CompilerVersion | RustCommand::Explain(_)) => {
                 "/opt/rust/bin/rustc"
             }
@@ -44,6 +191,79 @@ impl Phase {
                 "--no-same-owner",
                 "--no-same-permissions",
                 "--keep-old-files",
+            ],
+            Self::IngestBaseline => &[
+                "--extract",
+                "--file=-",
+                "--directory=/baseline",
+                "--no-same-owner",
+                "--no-same-permissions",
+                "--keep-old-files",
+            ],
+            Self::GuardNextestOutput | Self::GuardCoverageVolumes | Self::GuardMutationOutput => {
+                &["900"]
+            }
+            // Egress from the mutation report volume only. `--directory` names
+            // the tool-written report tree, never `/source`, so a `mutants.out`
+            // directory forged inside the project can never be exported.
+            Self::ExportMutationOutcomes => &[
+                "--create",
+                "--file=-",
+                "--format=ustar",
+                "--no-recursion",
+                "--directory=/mutants/mutants.out",
+                "outcomes.json",
+            ],
+            Self::ExportMutationLock => &[
+                "--create",
+                "--file=-",
+                "--format=ustar",
+                "--no-recursion",
+                "--directory=/mutants/mutants.out",
+                "lock.json",
+            ],
+            Self::ExportMutationBundle => &[
+                "--create",
+                "--file=-",
+                "--format=ustar",
+                "--sort=name",
+                "--one-file-system",
+                "--exclude=./lock.json",
+                "--directory=/mutants/mutants.out",
+                ".",
+            ],
+            Self::ExportNextest => &[
+                "--create",
+                "--file=-",
+                "--format=ustar",
+                "--no-recursion",
+                "--directory=/junit/rust-mcp/reports",
+                "junit.xml",
+            ],
+            Self::ExportCoverageJson => &[
+                "--create",
+                "--file=-",
+                "--format=ustar",
+                "--no-recursion",
+                "--directory=/work/coverage",
+                "coverage.json",
+            ],
+            Self::ExportCoverageLcov => &[
+                "--create",
+                "--file=-",
+                "--format=ustar",
+                "--no-recursion",
+                "--directory=/work/coverage",
+                "lcov.info",
+            ],
+            Self::ExportCoverageHtml => &[
+                "--create",
+                "--file=-",
+                "--format=ustar",
+                "--sort=name",
+                "--one-file-system",
+                "--directory=/work/coverage/html",
+                ".",
             ],
             Self::Run(RustCommand::FormatCheck) => &[
                 "fmt",
@@ -65,6 +285,69 @@ impl Phase {
                 "--jobs=1",
                 "--color=never",
             ],
+            // Structured results come only from the parsed JUnit file
+            // (`nextest_junit.rs`), never from stdout, so no message-format
+            // flag is requested here. `--build-jobs`/`--test-threads` names
+            // and values are carried from general cargo-nextest CLI
+            // knowledge, not a page this package could fetch; the
+            // integrator's calibration run must confirm them alongside the
+            // NextestExit hypotheses. The config path is a product-owned
+            // file placed under the source volume by `nextest_gateway.rs`,
+            // never a guest- or caller-supplied path.
+            Self::Run(RustCommand::TestNextest(_)) => &[
+                "nextest",
+                "run",
+                "--config-file",
+                super::nextest_gateway::NEXTEST_CONFIG_GUEST_PATH,
+                "--profile",
+                rust_engineering_domain::nextest::NEXTEST_PROFILE,
+                "--frozen",
+                "--offline",
+                "--color=never",
+                "--no-fail-fast",
+                "--build-jobs=1",
+                "--test-threads=1",
+            ],
+            Self::Run(RustCommand::CoverageRun(_)) => &[
+                "llvm-cov",
+                "--no-report",
+                "--frozen",
+                "--offline",
+                "--jobs=1",
+                "--color=never",
+            ],
+            Self::Run(RustCommand::CoverageReport(format)) => match format {
+                rust_engineering_domain::coverage::CoverageReportFormat::Json => &[
+                    "llvm-cov",
+                    "report",
+                    "--json",
+                    "--output-path",
+                    "/work/coverage/coverage.json",
+                    "--frozen",
+                    "--offline",
+                    "--color=never",
+                ],
+                rust_engineering_domain::coverage::CoverageReportFormat::Lcov => &[
+                    "llvm-cov",
+                    "report",
+                    "--lcov",
+                    "--output-path",
+                    "/work/coverage/lcov.info",
+                    "--frozen",
+                    "--offline",
+                    "--color=never",
+                ],
+                rust_engineering_domain::coverage::CoverageReportFormat::Html => &[
+                    "llvm-cov",
+                    "report",
+                    "--html",
+                    "--output-dir",
+                    "/work/coverage/html",
+                    "--frozen",
+                    "--offline",
+                    "--color=never",
+                ],
+            },
             Self::Run(RustCommand::ClippyProject(_)) => {
                 &["clippy", "--frozen", "--message-format=json", "--jobs=1"]
             }
@@ -74,6 +357,7 @@ impl Phase {
             Self::Run(RustCommand::InstalledComponents) => {
                 &["--", "/opt/rust/lib/rustlib/components"]
             }
+            Self::Run(RustCommand::LlvmCovVersion) => &["llvm-cov", "--version"],
             Self::Run(RustCommand::CompilerVersion | RustCommand::CargoVersion) => {
                 &["--version", "--verbose"]
             }
@@ -85,6 +369,75 @@ impl Phase {
                     "never".into(),
                 ];
             }
+            // Closed argv per ADR-062 §8: baseline is the second, always
+            // read-only mount added by `arguments_with_baseline`; the
+            // candidate keeps its ordinary `/source` mount unchanged.
+            Self::Run(RustCommand::SemverCheck(_)) => &[
+                "semver-checks",
+                "check-release",
+                "--manifest-path",
+                "/source/Cargo.toml",
+                "--baseline-root",
+                "/baseline",
+                "--color",
+                "never",
+            ],
+            // Argument-free plugin identity probe (ADR-062 §1), analogous to
+            // `CargoVersion`/`LlvmCovVersion` above but naming the
+            // cargo-semver-checks subcommand explicitly.
+            Self::Run(RustCommand::SemverChecksVersion) => &["semver-checks", "--version"],
+            Self::Run(RustCommand::MutantsVersion) => &["mutants", "--version"],
+            // Listing generates the mutant set from the source text only: it
+            // neither builds nor runs anything, so the cap can be enforced
+            // before any project code executes. `--no-config` is mandatory on
+            // both mutation phases: without it a hostile project's
+            // `.cargo/mutants.toml` could redirect the output directory or add
+            // cargo arguments.
+            Self::ListMutants(_) => &[
+                "mutants",
+                "--no-config",
+                "--dir",
+                "/source",
+                "--list",
+                "--json",
+                "--colors",
+                "never",
+                "--no-times",
+            ],
+            // Closed argv per the pinned cargo-mutants 27.1.0 help
+            // (`docs/validation/m3-provisioning/help/cargo-mutants-help.stdout`).
+            // The mandatory baseline is `--baseline run`: that binary's
+            // `--baseline` accepts only `run`/`skip`, so the M3-05 "baseline
+            // auto" intent is expressed as the explicit, non-skippable run.
+            // No sharding, no `--in-place`, no free flags, one job, fixed
+            // order, offline and frozen cargo, and an output directory inside
+            // the private report volume.
+            Self::Run(RustCommand::MutationTest(_)) => &[
+                "mutants",
+                "--no-config",
+                "--dir",
+                "/source",
+                "--output",
+                "/mutants",
+                "--baseline",
+                "run",
+                "--no-shuffle",
+                "--jobs",
+                "1",
+                "--jobserver",
+                "false",
+                "--copy-target",
+                "false",
+                "--copy-vcs",
+                "false",
+                "--cargo-arg=--offline",
+                "--cargo-arg=--frozen",
+                "--colors",
+                "never",
+                "--no-times",
+                "--level",
+                "info",
+            ],
         };
         let mut args = args.iter().map(|s| (*s).to_owned()).collect::<Vec<_>>();
         if let Self::Run(RustCommand::CheckProject(options)) = self {
@@ -150,15 +503,154 @@ impl Phase {
             }
             args.extend(["--", "--test-threads=1", "--color=never"].map(str::to_owned));
         }
+        if let Self::Run(RustCommand::TestNextest(options)) = self {
+            if let Some(package) = options.package() {
+                args.push(format!("--package={package}"));
+            }
+            if !options.features().is_empty() {
+                args.push(format!("--features={}", options.features().join(",")));
+            }
+            if options.all_features() {
+                args.push("--all-features".into());
+            }
+            if options.no_default_features() {
+                args.push("--no-default-features".into());
+            }
+            if let Some(target) = options.target() {
+                args.push(format!("--target={target}"));
+            }
+            if let Some(filter) = options.test_filter() {
+                args.push(filter.to_owned());
+            }
+        }
+        if let Self::Run(RustCommand::CoverageRun(options)) = self {
+            append_coverage_selection(&mut args, options);
+        }
+        if let Self::Run(RustCommand::SemverCheck(options)) = self {
+            append_semver_selection(&mut args, options);
+        }
+        if let Self::Run(RustCommand::MutationTest(options)) = self {
+            // Budgets first, then the selection, so argv shape is a pure
+            // function of the validated options in a fixed order.
+            args.extend([
+                "--timeout".to_owned(),
+                options.mutant_timeout_seconds().to_string(),
+                // The tool would otherwise derive a longer per-mutant
+                // timeout from a slow baseline; the floor keeps the
+                // caller's bound authoritative.
+                "--minimum-test-timeout".to_owned(),
+                options.mutant_timeout_seconds().to_string(),
+                "--build-timeout".to_owned(),
+                options.build_timeout_seconds().to_string(),
+            ]);
+            append_mutation_selection(&mut args, options);
+        }
+        if let Self::ListMutants(options) = self {
+            append_mutation_selection(&mut args, options);
+        }
         args
     }
 }
+
+fn append_coverage_selection(
+    args: &mut Vec<String>,
+    options: &rust_engineering_domain::coverage::CoverageOptions,
+) {
+    if let Some(package) = options.package() {
+        args.push(format!("--package={package}"));
+    }
+    if options.workspace() {
+        args.push("--workspace".into());
+    }
+    if !options.features().is_empty() {
+        args.push(format!("--features={}", options.features().join(",")));
+    }
+    if options.all_features() {
+        args.push("--all-features".into());
+    }
+    if options.no_default_features() {
+        args.push("--no-default-features".into());
+    }
+    if let Some(target) = options.target() {
+        args.push(format!("--target={target}"));
+    }
+}
+
+/// Applies the closed selection identically to both sides of the comparison
+/// (ADR-062 §8): `cargo-semver-checks` itself only accepts one shared
+/// `--features`/`--all-features`/etc. set, applied to both the baseline and
+/// current crate, never `--baseline-features`/`--current-features`. The
+/// pinned `check-release --help` (see
+/// `docs/validation/m3-provisioning/help/cargo-semver-checks-check-release-help.stdout`)
+/// exposes no `--no-default-features` flag; `--only-explicit-features` is the
+/// closest documented equivalent ("Use no features except ones explicitly
+/// added by other flags") and is used here as a provisional mapping pending
+/// calibration confirmation.
+fn append_semver_selection(
+    args: &mut Vec<String>,
+    options: &rust_engineering_domain::semver_check::SemverCommandOptions,
+) {
+    if let Some(package) = options.package() {
+        args.push(format!("--package={package}"));
+    }
+    if !options.features().is_empty() {
+        args.push(format!("--features={}", options.features().join(",")));
+    }
+    if options.all_features() {
+        args.push("--all-features".into());
+    }
+    if options.no_default_features() {
+        args.push("--only-explicit-features".into());
+    }
+    if let Some(target) = options.target() {
+        args.push(format!("--target={target}"));
+    }
+}
+/// Guest path of the private writable copy used by the M3-05 mutators.
+pub(super) const MUTATION_SCRATCH_PATH: &str = "/mutants-scratch";
+/// Same containment profile as the ADR-053 staging volume (unprivileged owner,
+/// `0700`, `nosuid`, `nodev`), sized for one copied tree. `exec` is required
+/// because `cargo-mutants` may place a mutant's target directory beside its
+/// copy of the tree; the mount is private to a single container and is reachable
+/// by no exporter.
+pub(super) const MUTATION_SCRATCH_TMPFS: &str =
+    "rw,exec,nosuid,nodev,size=256m,mode=0700,uid=65534,gid=65534";
+
+/// The closed selection grammar, applied identically to the listing and the run
+/// so the cap is counted over exactly the mutants that would be tested.
+/// `cargo-mutants` has no `--target` of its own; the one installed triple is
+/// forwarded through the documented `--cargo-arg` escape, which cannot carry a
+/// caller string because [`MutationTestCommandOptions`] accepts only that
+/// triple.
+///
+/// [`MutationTestCommandOptions`]: rust_engineering_domain::mutation_test::MutationTestCommandOptions
+fn append_mutation_selection(
+    args: &mut Vec<String>,
+    options: &rust_engineering_domain::mutation_test::MutationTestCommandOptions,
+) {
+    if let Some(package) = options.package() {
+        args.push(format!("--package={package}"));
+    }
+    if !options.features().is_empty() {
+        args.push(format!("--features={}", options.features().join(",")));
+    }
+    if options.all_features() {
+        args.push("--all-features".into());
+    }
+    if options.no_default_features() {
+        args.push("--no-default-features".into());
+    }
+    if let Some(target) = options.target() {
+        args.push(format!("--cargo-arg=--target={target}"));
+    }
+}
+
 pub(super) fn environment() -> Vec<String> {
     let mut env = [
         "PATH=/opt/rust/bin:/usr/bin:/bin",
         "HOME=/work",
         "TMPDIR=/tmp",
-        "CARGO_HOME=/work/cargo",
+        "CARGO_HOME=/opt/rust",
         "CARGO_TARGET_DIR=/work/target",
         "CARGO_INCREMENTAL=0",
         "CARGO_NET_OFFLINE=true",
@@ -184,7 +676,7 @@ pub(super) struct Volume {
     status: Option<serde_json::Value>,
 }
 impl Volume {
-    fn parse(bytes: &[u8], name: &str, nonce: &str) -> Result<Self, ExecutionError> {
+    pub(super) fn parse(bytes: &[u8], name: &str, nonce: &str) -> Result<Self, ExecutionError> {
         let mut volumes: Vec<Self> =
             serde_json::from_slice(bytes).map_err(|_| ExecutionError::Infrastructure)?;
         if volumes.len() != 1 {
@@ -206,18 +698,18 @@ impl Volume {
         Ok(v)
     }
 }
-fn labels(nonce: &str) -> BTreeMap<String, String> {
+pub(super) fn labels(nonce: &str) -> BTreeMap<String, String> {
     BTreeMap::from([
         ("org.rust-mcp.execution".into(), "true".into()),
         ("org.rust-mcp.rust-job".into(), nonce.into()),
     ])
 }
 
-struct PhaseRequest<'a> {
-    name: &'a str,
-    nonce: &'a str,
-    volume: &'a Volume,
-    phase: &'a Phase,
+pub(super) struct PhaseRequest<'a> {
+    pub(super) name: &'a str,
+    pub(super) nonce: &'a str,
+    pub(super) volume: &'a Volume,
+    pub(super) phase: &'a Phase,
 }
 fn implementation_fingerprint() -> String {
     let sources: &[&[u8]] = &[
@@ -225,6 +717,18 @@ fn implementation_fingerprint() -> String {
         include_bytes!("project_inspection.rs"),
         include_bytes!("rust_applied.rs"),
         include_bytes!("rust_calibration.rs"),
+        include_bytes!("nextest_gateway.rs"),
+        include_bytes!("coverage_gateway.rs"),
+        include_bytes!("nextest_junit.rs"),
+        include_bytes!("nextest_port.rs"),
+        include_bytes!("mutation_test_gateway.rs"),
+        include_bytes!("mutation_outcomes.rs"),
+        include_bytes!("mutation_test_port.rs"),
+        include_bytes!("../../domain/src/mutation_test.rs"),
+        include_bytes!("semver_output.rs"),
+        include_bytes!("semver_gateway.rs"),
+        include_bytes!("semver_port.rs"),
+        include_bytes!("toolchain_metadata.rs"),
         include_bytes!("source_archive.rs"),
         include_bytes!("supervisor.rs"),
         include_bytes!("state.rs"),
@@ -234,6 +738,8 @@ fn implementation_fingerprint() -> String {
         include_bytes!("../../domain/src/check.rs"),
         include_bytes!("../../domain/src/clippy.rs"),
         include_bytes!("../../domain/src/test_run.rs"),
+        include_bytes!("../../domain/src/nextest.rs"),
+        include_bytes!("../../domain/src/semver_check.rs"),
         include_bytes!("../../domain/src/explain.rs"),
         include_bytes!("../../domain/src/value.rs"),
         include_bytes!("../../../Cargo.lock"),
@@ -253,7 +759,7 @@ fn implementation_fingerprint() -> String {
     )
 }
 
-fn finish_work(
+pub(super) fn finish_work(
     work: Result<(Capture, Option<bool>), ExecutionError>,
     terminal_signal: Option<Stop>,
 ) -> Result<(Capture, Option<bool>), ExecutionError> {
@@ -273,14 +779,14 @@ pub(super) enum Admission<'a> {
     Project,
     Calibration(Option<&'a Mutex<Option<String>>>),
 }
-struct WorkBudget<'a> {
-    started: Instant,
-    deadline: Instant,
-    limits: ExecutionLimits,
-    cancel: &'a dyn ExecutionCancellation,
+pub(super) struct WorkBudget<'a> {
+    pub(super) started: Instant,
+    pub(super) deadline: Instant,
+    pub(super) limits: ExecutionLimits,
+    pub(super) cancel: &'a dyn ExecutionCancellation,
 }
 impl WorkBudget<'_> {
-    fn stop(&self) -> Option<Stop> {
+    pub(super) fn stop(&self) -> Option<Stop> {
         if self.cancel.is_cancelled() {
             Some(Stop::Cancelled)
         } else if Instant::now() >= self.deadline {
@@ -289,7 +795,7 @@ impl WorkBudget<'_> {
             None
         }
     }
-    fn stopped_capture(&self, stop: Stop) -> Capture {
+    pub(super) fn stopped_capture(&self, stop: Stop) -> Capture {
         Capture {
             code: None,
             stdout: Vec::new(),
@@ -312,12 +818,106 @@ impl ExecutionCancellation for WorkBudget<'_> {
     }
 }
 
+impl RustGateway {
+    /// Take the gateway's single-flight lock, or say why no phase can start.
+    ///
+    /// A poisoned lock means a previous run left the daemon in a state this
+    /// process cannot describe, so the gateway quarantines itself instead of
+    /// starting anything else.
+    pub(super) fn hold_busy(&self) -> Result<std::sync::MutexGuard<'_, ()>, ExecutionError> {
+        match self.inner.busy.try_lock() {
+            Ok(guard) => Ok(guard),
+            Err(std::sync::TryLockError::WouldBlock) => Err(ExecutionError::Busy),
+            Err(_) => {
+                self.inner.quarantined.store(true, Ordering::Release);
+                Err(ExecutionError::CleanupUncertain)
+            }
+        }
+    }
+
+    /// Re-establish that the runtime is still the approved one, immediately
+    /// before a phase starts.
+    ///
+    /// An already cancelled call never starts work, the Docker executable is
+    /// re-digested so a swapped binary is unavailable rather than trusted, and
+    /// the daemon must still identify itself as the engine this gateway
+    /// calibrated against.
+    pub(super) fn approved_runtime(
+        &self,
+        cancel: &dyn ExecutionCancellation,
+    ) -> Result<(), ExecutionError> {
+        if cancel.is_cancelled() {
+            return Err(ExecutionError::Cancelled);
+        }
+        if digest(&state::executable_bytes(&self.inner.config.executable)?)
+            != self.inner.executable_digest
+        {
+            return Err(ExecutionError::Unavailable);
+        }
+        let current = self
+            .inner
+            .control(&["info".into(), "--format={{json .}}".into()])?;
+        let engine: EngineIdentity =
+            serde_json::from_slice(&current.stdout).map_err(|_| ExecutionError::Unavailable)?;
+        if current.code != Some(0) || engine != self.inner.engine {
+            return Err(ExecutionError::Unavailable);
+        }
+        Ok(())
+    }
+}
+
 pub struct RustGateway {
-    inner: DockerGateway,
-    verified: AtomicBool,
+    pub(super) inner: DockerGateway,
+    pub(super) verified: AtomicBool,
     pub(super) calibrating: AtomicBool,
 }
 impl RustGateway {
+    pub fn execute_mutation(
+        &self,
+        source: &SourceBundle,
+        command: rust_engineering_domain::RustMutationCommand,
+        limits: ExecutionLimits,
+        cancel: &dyn ExecutionCancellation,
+    ) -> Result<rust_engineering_domain::RustMutationExecution, ExecutionError> {
+        super::mutation_gateway::execute(self, source, command, limits, cancel)
+    }
+    pub fn execute_nextest(
+        &self,
+        source: &SourceBundle,
+        options: &rust_engineering_domain::nextest::NextestCommandOptions,
+        limits: ExecutionLimits,
+        cancel: &dyn ExecutionCancellation,
+    ) -> Result<super::nextest_gateway::NextestExecution, ExecutionError> {
+        super::nextest_gateway::execute(self, source, options, limits, cancel)
+    }
+    pub fn execute_mutation_test(
+        &self,
+        source: &SourceBundle,
+        options: &rust_engineering_domain::mutation_test::MutationTestCommandOptions,
+        limits: ExecutionLimits,
+        cancel: &dyn ExecutionCancellation,
+    ) -> Result<super::mutation_test_gateway::MutationTestExecution, ExecutionError> {
+        super::mutation_test_gateway::execute(self, source, options, limits, cancel)
+    }
+    pub fn execute_coverage(
+        &self,
+        source: &SourceBundle,
+        options: &rust_engineering_domain::coverage::CoverageOptions,
+        limits: ExecutionLimits,
+        cancel: &dyn ExecutionCancellation,
+    ) -> Result<super::coverage_gateway::CoverageExecution, ExecutionError> {
+        super::coverage_gateway::execute(self, source, options, limits, cancel)
+    }
+    pub fn execute_semver(
+        &self,
+        baseline: &SourceBundle,
+        candidate: &SourceBundle,
+        options: &rust_engineering_domain::semver_check::SemverCommandOptions,
+        limits: ExecutionLimits,
+        cancel: &dyn ExecutionCancellation,
+    ) -> Result<rust_engineering_domain::ExecutionResult, ExecutionError> {
+        super::semver_gateway::execute(self, baseline, candidate, options, limits, cancel)
+    }
     pub fn new(config: HostDockerConfig) -> Result<Self, ExecutionError> {
         if config.image_id != APPROVED_RUST_IMAGE {
             return Err(ExecutionError::InvalidConfiguration);
@@ -401,15 +1001,92 @@ impl RustGateway {
             cluster_volume: None,
             status: None,
         };
+        let baseline_volume = Volume {
+            name: "<baseline-volume>".into(),
+            mountpoint: "<baseline-mountpoint>".into(),
+            driver: "local".into(),
+            scope: "local".into(),
+            options: None,
+            labels: labels("<nonce>"),
+            cluster_volume: None,
+            status: None,
+        };
+        let coverage_output_volume = super::mutation_gateway::MutationVolume {
+            name: "<coverage-output-volume>".into(),
+            mountpoint: "<coverage-output-mountpoint>".into(),
+            driver: "local".into(),
+            scope: "local".into(),
+            options: BTreeMap::from([
+                ("device".into(), "tmpfs".into()),
+                ("o".into(), super::mutation_gateway::VOLUME_OPTIONS.into()),
+                ("type".into(), "tmpfs".into()),
+            ]),
+            labels: labels("<nonce>"),
+            cluster_volume: None,
+            status: None,
+        };
+        let coverage_target_volume = super::mutation_gateway::MutationVolume {
+            name: "<coverage-target-volume>".into(),
+            mountpoint: "<coverage-target-mountpoint>".into(),
+            options: BTreeMap::from([
+                ("device".into(), "tmpfs".into()),
+                (
+                    "o".into(),
+                    super::coverage_gateway::COVERAGE_TARGET_VOLUME_OPTIONS.into(),
+                ),
+                ("type".into(), "tmpfs".into()),
+            ]),
+            ..coverage_output_volume.clone()
+        };
         let mut commands = Vec::new();
         for phase in [
             Phase::Ingest,
+            Phase::IngestBaseline,
+            Phase::GuardNextestOutput,
+            Phase::ExportNextest,
+            Phase::ExportCoverageJson,
+            Phase::ExportCoverageLcov,
+            Phase::ExportCoverageHtml,
+            Phase::GuardMutationOutput,
+            Phase::ExportMutationOutcomes,
+            Phase::ExportMutationBundle,
+            Phase::ExportMutationLock,
+            Phase::ListMutants(
+                rust_engineering_domain::mutation_test::MutationTestSelection::default()
+                    .try_into()
+                    .map_err(|_| ExecutionError::Infrastructure)?,
+            ),
+            Phase::Run(RustCommand::MutationTest(
+                rust_engineering_domain::mutation_test::MutationTestSelection::default()
+                    .try_into()
+                    .map_err(|_| ExecutionError::Infrastructure)?,
+            )),
+            Phase::Run(RustCommand::MutantsVersion),
             Phase::Run(RustCommand::Metadata),
             Phase::Run(RustCommand::FormatCheck),
             Phase::Run(RustCommand::TestProject(
                 rust_engineering_domain::TestSelection::default()
                     .try_into()
                     .map_err(|_| ExecutionError::Infrastructure)?,
+            )),
+            Phase::Run(RustCommand::TestNextest(
+                rust_engineering_domain::nextest::NextestSelection::default()
+                    .try_into()
+                    .map_err(|_| ExecutionError::Infrastructure)?,
+            )),
+            Phase::Run(RustCommand::CoverageRun(
+                rust_engineering_domain::coverage::CoverageSelection::default()
+                    .try_into()
+                    .map_err(|_| ExecutionError::Infrastructure)?,
+            )),
+            Phase::Run(RustCommand::CoverageReport(
+                rust_engineering_domain::coverage::CoverageReportFormat::Json,
+            )),
+            Phase::Run(RustCommand::CoverageReport(
+                rust_engineering_domain::coverage::CoverageReportFormat::Lcov,
+            )),
+            Phase::Run(RustCommand::CoverageReport(
+                rust_engineering_domain::coverage::CoverageReportFormat::Html,
             )),
             Phase::Run(RustCommand::ClippyProject(
                 rust_engineering_domain::ClippySelection::default()
@@ -424,14 +1101,70 @@ impl RustGateway {
                     .map_err(|_| ExecutionError::Infrastructure)?,
             )),
             Phase::Run(RustCommand::CargoVersion),
+            Phase::Run(RustCommand::LlvmCovVersion),
             Phase::Run(RustCommand::InstalledComponents),
             Phase::Run(RustCommand::CheckProject(
                 rust_engineering_domain::CheckSelection::default()
                     .try_into()
                     .map_err(|_| ExecutionError::Infrastructure)?,
             )),
+            Phase::Run(RustCommand::SemverChecksVersion),
         ] {
             let mut args = self.arguments("<container>", "<nonce>", &volume, &phase)?;
+            for arg in &mut args {
+                if arg.starts_with("--security-opt=seccomp=") {
+                    *arg = "--security-opt=seccomp=<profile>".into();
+                }
+            }
+            commands.push(args);
+        }
+        {
+            let mut args = self.arguments_with_baseline(
+                "<container>",
+                "<nonce>",
+                &volume,
+                &baseline_volume,
+                &Phase::Run(RustCommand::SemverCheck(
+                    rust_engineering_domain::semver_check::SemverProjectSelection::default()
+                        .try_into()
+                        .map_err(|_| ExecutionError::Infrastructure)?,
+                )),
+            )?;
+            for arg in &mut args {
+                if arg.starts_with("--security-opt=seccomp=") {
+                    *arg = "--security-opt=seccomp=<profile>".into();
+                }
+            }
+            commands.push(args);
+        }
+        for phase in [
+            Phase::GuardCoverageVolumes,
+            Phase::Run(RustCommand::CoverageRun(
+                rust_engineering_domain::coverage::CoverageSelection::default()
+                    .try_into()
+                    .map_err(|_| ExecutionError::Infrastructure)?,
+            )),
+            Phase::Run(RustCommand::CoverageReport(
+                rust_engineering_domain::coverage::CoverageReportFormat::Json,
+            )),
+            Phase::Run(RustCommand::CoverageReport(
+                rust_engineering_domain::coverage::CoverageReportFormat::Lcov,
+            )),
+            Phase::Run(RustCommand::CoverageReport(
+                rust_engineering_domain::coverage::CoverageReportFormat::Html,
+            )),
+            Phase::ExportCoverageJson,
+            Phase::ExportCoverageLcov,
+            Phase::ExportCoverageHtml,
+        ] {
+            let mut args = self.arguments_with_coverage(
+                "<container>",
+                "<nonce>",
+                &volume,
+                &phase,
+                &coverage_output_volume,
+                &coverage_target_volume,
+            )?;
             for arg in &mut args {
                 if arg.starts_with("--security-opt=seccomp=") {
                     *arg = "--security-opt=seccomp=<profile>".into();
@@ -445,6 +1178,8 @@ impl RustGateway {
             &self.inner.executable_digest,
             commands,
             include_str!("seccomp-rust.json"),
+            include_str!("seccomp-rust-quality.json"),
+            super::coverage_gateway::COVERAGE_TARGET_VOLUME_OPTIONS,
             // Receipts identify the actual verifier, archive/source limits and
             // supervisor implementation, not only a manually maintained label.
             implementation_fingerprint(),
@@ -461,7 +1196,7 @@ impl RustGateway {
     pub fn is_quarantined(&self) -> bool {
         self.inner.is_quarantined()
     }
-    fn arguments(
+    pub(super) fn arguments(
         &self,
         name: &str,
         nonce: &str,
@@ -496,21 +1231,29 @@ impl RustGateway {
         .to_vec();
         args.push(format!("--name={name}"));
         args.push(format!("--user={}", phase.user()));
+        if let Some((path, options)) = phase.extra_tmpfs() {
+            args.push(format!("--tmpfs={path}:{options}"));
+        }
         for (k, v) in labels(nonce) {
             args.push(format!("--label={k}={v}"));
         }
-        for env in environment() {
+        for env in phase.environment() {
             args.push(format!("--env={env}"));
         }
-        let profile = self.inner.state.path().join("seccomp-rust.json");
+        let profile = self.inner.state.path().join(phase.seccomp_profile_name());
         args.push(format!(
             "--security-opt=seccomp={}",
             profile
                 .to_str()
                 .ok_or(ExecutionError::InvalidConfiguration)?
         ));
+        let source_target = if matches!(phase, Phase::IngestBaseline) {
+            "/baseline"
+        } else {
+            "/source"
+        };
         args.push(format!(
-            "--mount=type=volume,source={},target=/source,volume-nocopy,volume-driver=local{}",
+            "--mount=type=volume,source={},target={source_target},volume-nocopy,volume-driver=local{}",
             volume.name,
             if phase.ingesting() { "" } else { ",readonly" }
         ));
@@ -522,7 +1265,109 @@ impl RustGateway {
         args.extend(phase.arguments());
         Ok(args)
     }
-    fn absent(&self, kind: &str, name: &str) -> Result<bool, ExecutionError> {
+    /// Adds the second, always read-only `/baseline` mount required by
+    /// `RustCommand::SemverCheck` (ADR-062 §8). `volume` keeps its ordinary
+    /// `/source` semantics (read-only for `Run`, unchanged from every other
+    /// command); `baseline_volume` is never writable, in any phase.
+    pub(super) fn arguments_with_baseline(
+        &self,
+        name: &str,
+        nonce: &str,
+        volume: &Volume,
+        baseline_volume: &Volume,
+        phase: &Phase,
+    ) -> Result<Vec<String>, ExecutionError> {
+        let mut args = self.arguments(name, nonce, volume, phase)?;
+        let position = args
+            .iter()
+            .position(|arg| arg.starts_with("--entrypoint="))
+            .ok_or(ExecutionError::Infrastructure)?;
+        args.insert(
+            position,
+            format!(
+                "--mount=type=volume,source={},target=/baseline,volume-nocopy,volume-driver=local,readonly",
+                baseline_volume.name
+            ),
+        );
+        Ok(args)
+    }
+    fn arguments_with_junit(
+        &self,
+        name: &str,
+        nonce: &str,
+        volume: &Volume,
+        phase: &Phase,
+        junit: &super::mutation_gateway::MutationVolume,
+        junit_writable: bool,
+    ) -> Result<Vec<String>, ExecutionError> {
+        self.arguments_with_output(name, nonce, volume, phase, junit, junit_writable, "/junit")
+    }
+    #[allow(clippy::too_many_arguments)] // The closed mount shape stays explicit and auditable.
+    fn arguments_with_output(
+        &self,
+        name: &str,
+        nonce: &str,
+        volume: &Volume,
+        phase: &Phase,
+        output: &super::mutation_gateway::MutationVolume,
+        writable: bool,
+        target: &str,
+    ) -> Result<Vec<String>, ExecutionError> {
+        let mut args = self.arguments(name, nonce, volume, phase)?;
+        let position = args
+            .iter()
+            .position(|arg| arg.starts_with("--entrypoint="))
+            .ok_or(ExecutionError::Infrastructure)?;
+        args.insert(
+            position,
+            format!(
+                "--mount=type=volume,source={},target={target},volume-nocopy,volume-driver=local{}",
+                output.name,
+                if writable { "" } else { ",readonly" }
+            ),
+        );
+        Ok(args)
+    }
+    fn arguments_with_coverage(
+        &self,
+        name: &str,
+        nonce: &str,
+        volume: &Volume,
+        phase: &Phase,
+        output: &super::mutation_gateway::MutationVolume,
+        target: &super::mutation_gateway::MutationVolume,
+    ) -> Result<Vec<String>, ExecutionError> {
+        let output_writable = !matches!(
+            phase,
+            Phase::ExportCoverageJson | Phase::ExportCoverageLcov | Phase::ExportCoverageHtml
+        );
+        let mut args = self.arguments_with_output(
+            name,
+            nonce,
+            volume,
+            phase,
+            output,
+            output_writable,
+            "/work/coverage",
+        )?;
+        if let Some(writable) = phase.coverage_target_writable() {
+            let position = args
+                .iter()
+                .position(|arg| arg.starts_with("--entrypoint="))
+                .ok_or(ExecutionError::Infrastructure)?;
+            args.insert(
+                position,
+                format!(
+                    "--mount=type=volume,source={},target={},volume-nocopy,volume-driver=local{}",
+                    target.name,
+                    super::coverage_gateway::COVERAGE_TARGET_PATH,
+                    if writable { "" } else { ",readonly" }
+                ),
+            );
+        }
+        Ok(args)
+    }
+    pub(super) fn absent(&self, kind: &str, name: &str) -> Result<bool, ExecutionError> {
         let args = if kind == "volume" {
             vec![
                 "volume".into(),
@@ -581,28 +1426,197 @@ impl RustGateway {
         }
         Ok(())
     }
-    fn cleanup(
+    pub(super) fn cleanup(
         &self,
         ingest: &str,
         run: &str,
         volume: &str,
         nonce: &str,
     ) -> Result<(), ExecutionError> {
-        self.cleanup_inner(ingest, run, volume, nonce).map_err(|_| {
-            self.inner.quarantined.store(true, Ordering::Release);
-            ExecutionError::CleanupUncertain
-        })
+        self.cleanup_inner(&[ingest, run], &[volume], nonce)
     }
-    fn cleanup_inner(
+    /// Join every nextest container before either of its two cross-mounted
+    /// volumes is removed. The output guardian mounts the source read-only and
+    /// the run container mounts JUnit read-write, so two independent cleanup
+    /// passes would introduce an ordering cycle on non-terminal stops.
+    #[allow(clippy::too_many_arguments)] // Closed names for four containers and two volumes.
+    pub(super) fn cleanup_nextest(
         &self,
         ingest: &str,
         run: &str,
+        exporter: &str,
+        output_guardian: &str,
+        source_volume: &str,
+        junit_volume: &str,
+        nonce: &str,
+    ) -> Result<(), ExecutionError> {
+        let mut clean = true;
+        for name in [ingest, run, exporter, output_guardian] {
+            match self.absent("container", name) {
+                Ok(true) => (),
+                Ok(false) => {
+                    if self.owned_container(name, nonce).is_err()
+                        || !matches!(
+                            self.inner.control(&[
+                                "container".into(),
+                                "rm".into(),
+                                "--force".into(),
+                                name.into(),
+                            ]),
+                            Ok(ref result) if result.code == Some(0)
+                        )
+                        || !matches!(self.absent("container", name), Ok(true))
+                    {
+                        clean = false;
+                    }
+                }
+                Err(_) => clean = false,
+            }
+        }
+        if !clean {
+            self.inner.quarantined.store(true, Ordering::Release);
+            return Err(ExecutionError::CleanupUncertain);
+        }
+        // The ordinary source volume and the restricted local-driver tmpfs
+        // volume have different verified metadata shapes. Attempt both
+        // removals after all containers are gone, using each profile's
+        // existing owner verifier.
+        let source_clean = self
+            .cleanup_inner_fallible(&[], &[source_volume], nonce)
+            .is_ok();
+        let output_clean = super::mutation_gateway::cleanup(self, &[], junit_volume, nonce).is_ok();
+        if source_clean && output_clean {
+            Ok(())
+        } else {
+            self.inner.quarantined.store(true, Ordering::Release);
+            Err(ExecutionError::CleanupUncertain)
+        }
+    }
+    /// Coverage has one source, one restricted report volume and ADR-065's
+    /// dedicated executable target volume. Join and remove every named
+    /// container before all three volumes; a partial report must not leak a
+    /// live writer or executable build output into later work.
+    pub(super) fn cleanup_coverage(
+        &self,
+        containers: &[&str],
+        source_volume: &str,
+        report_volume: &str,
+        nonce: &str,
+    ) -> Result<(), ExecutionError> {
+        self.cleanup_coverage_inner(containers, source_volume, report_volume, None, nonce)
+    }
+    pub(super) fn cleanup_coverage_with_target(
+        &self,
+        containers: &[&str],
+        source_volume: &str,
+        report_volume: &str,
+        target_volume: &str,
+        nonce: &str,
+    ) -> Result<(), ExecutionError> {
+        self.cleanup_coverage_inner(
+            containers,
+            source_volume,
+            report_volume,
+            Some(target_volume),
+            nonce,
+        )
+    }
+    fn cleanup_coverage_inner(
+        &self,
+        containers: &[&str],
+        source_volume: &str,
+        report_volume: &str,
+        target_volume: Option<&str>,
+        nonce: &str,
+    ) -> Result<(), ExecutionError> {
+        let mut clean = true;
+        for name in containers {
+            match self.absent("container", name) {
+                Ok(true) => (),
+                Ok(false) => {
+                    if self.owned_container(name, nonce).is_err()
+                        || !matches!(
+                            self.inner.control(&[
+                                "container".into(),
+                                "rm".into(),
+                                "--force".into(),
+                                (*name).into(),
+                            ]),
+                            Ok(ref result) if result.code == Some(0)
+                        )
+                        || !matches!(self.absent("container", name), Ok(true))
+                    {
+                        clean = false;
+                    }
+                }
+                Err(_) => clean = false,
+            }
+        }
+        let source_clean = self
+            .cleanup_inner_fallible(&[], &[source_volume], nonce)
+            .is_ok();
+        let output_clean =
+            super::mutation_gateway::cleanup(self, &[], report_volume, nonce).is_ok();
+        let target_clean = target_volume.is_none_or(|target_volume| {
+            super::mutation_gateway::cleanup_with_options(
+                self,
+                &[],
+                target_volume,
+                nonce,
+                super::coverage_gateway::COVERAGE_TARGET_VOLUME_OPTIONS,
+            )
+            .is_ok()
+        });
+        if clean && source_clean && output_clean && target_clean {
+            Ok(())
+        } else {
+            self.inner.quarantined.store(true, Ordering::Release);
+            Err(ExecutionError::CleanupUncertain)
+        }
+    }
+    /// Same contract as [`Self::cleanup`], extended to the second ingest
+    /// container and second (baseline) volume `RustCommand::SemverCheck`
+    /// adds (ADR-062 §8). Containers are always removed before either
+    /// volume, exactly like the single-source path.
+    #[allow(dead_code)] // Activated by the pending M3 semver vertical.
+    #[allow(clippy::too_many_arguments)] // Cleanup names stay explicit; no guest data is accepted.
+    pub(super) fn cleanup_with_baseline(
+        &self,
+        ingest: &str,
+        ingest_baseline: &str,
+        version: &str,
+        run: &str,
         volume: &str,
+        baseline_volume: &str,
+        nonce: &str,
+    ) -> Result<(), ExecutionError> {
+        self.cleanup_inner(
+            &[ingest, ingest_baseline, version, run],
+            &[volume, baseline_volume],
+            nonce,
+        )
+    }
+    fn cleanup_inner(
+        &self,
+        containers: &[&str],
+        volumes: &[&str],
+        nonce: &str,
+    ) -> Result<(), ExecutionError> {
+        self.cleanup_inner_fallible(containers, volumes, nonce)
+            .map_err(|_| {
+                self.inner.quarantined.store(true, Ordering::Release);
+                ExecutionError::CleanupUncertain
+            })
+    }
+    fn cleanup_inner_fallible(
+        &self,
+        containers: &[&str],
+        volumes: &[&str],
         nonce: &str,
     ) -> Result<(), ExecutionError> {
         // Attempt all removals even if one fails; never remove a volume before its writers.
         let mut clean = true;
-        for name in [ingest, run] {
+        for name in containers {
             match self.absent("container", name) {
                 Ok(true) => (),
                 Ok(false) => {
@@ -616,31 +1630,75 @@ impl RustGateway {
             }
         }
         if clean {
-            match self.absent("volume", volume) {
-                Ok(true) => (),
-                Ok(false) => {
-                    self.owned_volume(volume, nonce)?;
-                    match self
-                        .inner
-                        .control(&["volume".into(), "rm".into(), volume.into()])
-                    {
-                        Ok(c) if c.code == Some(0) => (),
-                        _ => clean = false,
+            for volume in volumes {
+                match self.absent("volume", volume) {
+                    Ok(true) => (),
+                    Ok(false) => {
+                        self.owned_volume(volume, nonce)?;
+                        match self
+                            .inner
+                            .control(&["volume".into(), "rm".into(), (*volume).into()])
+                        {
+                            Ok(c) if c.code == Some(0) => (),
+                            _ => clean = false,
+                        }
+                        if !matches!(self.absent("volume", volume), Ok(true)) {
+                            clean = false;
+                        }
                     }
-                    if !matches!(self.absent("volume", volume), Ok(true)) {
-                        clean = false;
-                    }
+                    Err(_) => clean = false,
                 }
-                Err(_) => clean = false,
             }
         }
-        if !clean {
-            self.inner.quarantined.store(true, Ordering::Release);
-            return Err(ExecutionError::CleanupUncertain);
-        }
-        Ok(())
+        clean.then_some(()).ok_or(ExecutionError::CleanupUncertain)
     }
-    fn phase(
+    /// Start a created container attached and observe how it ended.
+    ///
+    /// Every phase ends here: the container is started attached so its streams
+    /// are this product's own capture under the phase budget, and a container
+    /// that exited is inspected once more so a daemon OOM kill is reported as
+    /// evidence instead of as an ordinary exit. Only the ingesting phase keeps
+    /// stdin open, and only an archive export raises the output limit.
+    fn run_started_container(
+        &self,
+        name: &str,
+        interactive: bool,
+        input: &[u8],
+        output_limit: usize,
+        budget: &WorkBudget<'_>,
+    ) -> Result<(Capture, Option<bool>), ExecutionError> {
+        let mut command = DockerGateway::command(&self.inner.config, &self.inner.state)?;
+        command.args(["container", "start", "--attach"]);
+        if interactive {
+            command.arg("--interactive");
+        }
+        command.arg(name);
+        let outcome = supervisor::run_with_input(
+            command,
+            budget.deadline.saturating_duration_since(Instant::now()),
+            output_limit,
+            budget,
+            input,
+        )?;
+        let mut oom_killed = None;
+        if outcome.stop == Stop::Exited {
+            let inspected =
+                self.inner
+                    .control(&["container".into(), "inspect".into(), name.into()])?;
+            let containers: Vec<Container> = serde_json::from_slice(&inspected.stdout)
+                .map_err(|_| ExecutionError::Infrastructure)?;
+            if inspected.code != Some(0)
+                || containers.len() != 1
+                || !containers[0].state.completed(outcome.code)
+            {
+                return Err(ExecutionError::Infrastructure);
+            }
+            oom_killed = Some(containers[0].state.oom_killed);
+        }
+        Ok((outcome, oom_killed))
+    }
+
+    pub(super) fn phase(
         &self,
         request: PhaseRequest<'_>,
         input: &[u8],
@@ -677,35 +1735,390 @@ impl RustGateway {
         if let Some(stop) = budget.stop() {
             return Ok((budget.stopped_capture(stop), None));
         }
-        let mut command = DockerGateway::command(&self.inner.config, &self.inner.state)?;
-        command.args(["container", "start", "--attach"]);
-        if phase.ingesting() {
-            command.arg("--interactive");
-        }
-        command.arg(name);
-        let outcome = supervisor::run_with_input(
-            command,
-            budget.deadline.saturating_duration_since(Instant::now()),
+        self.run_started_container(
+            name,
+            phase.ingesting(),
+            input,
             budget.limits.output_bytes(),
             budget,
-            input,
-        )?;
-        let mut oom_killed = None;
-        if outcome.stop == Stop::Exited {
-            let inspected =
-                self.inner
-                    .control(&["container".into(), "inspect".into(), name.into()])?;
-            let containers: Vec<Container> = serde_json::from_slice(&inspected.stdout)
-                .map_err(|_| ExecutionError::Infrastructure)?;
-            if inspected.code != Some(0)
-                || containers.len() != 1
-                || !containers[0].state.completed(outcome.code)
-            {
-                return Err(ExecutionError::Infrastructure);
-            }
-            oom_killed = Some(containers[0].state.oom_killed);
+        )
+    }
+    /// Same contract as [`Self::phase`], for the one phase that mounts a
+    /// second, always read-only volume at `/baseline`
+    /// (`RustCommand::SemverCheck`, ADR-062 §8).
+    #[allow(dead_code)] // Activated by the pending M3 semver vertical.
+    pub(super) fn phase_with_baseline(
+        &self,
+        request: PhaseRequest<'_>,
+        baseline_volume: &Volume,
+        budget: &WorkBudget<'_>,
+    ) -> Result<(Capture, Option<bool>), ExecutionError> {
+        let PhaseRequest {
+            name,
+            nonce,
+            volume,
+            phase,
+        } = request;
+        if let Some(stop) = budget.stop() {
+            return Ok((budget.stopped_capture(stop), None));
         }
-        Ok((outcome, oom_killed))
+        if !self.absent("container", name)? {
+            return Err(ExecutionError::CleanupUncertain);
+        }
+        let created = self.inner.control(&self.arguments_with_baseline(
+            name,
+            nonce,
+            volume,
+            baseline_volume,
+            phase,
+        )?)?;
+        if created.code != Some(0) {
+            return Err(ExecutionError::Infrastructure);
+        }
+        if let Some(stop) = budget.stop() {
+            return Ok((budget.stopped_capture(stop), None));
+        }
+        let inspect = self
+            .inner
+            .control(&["container".into(), "inspect".into(), name.into()])?;
+        if inspect.code != Some(0) {
+            return Err(ExecutionError::Infrastructure);
+        }
+        super::rust_applied::verify_semver(
+            &inspect.stdout,
+            self.image_id(),
+            phase,
+            volume,
+            baseline_volume,
+            nonce,
+        )?;
+        if let Some(stop) = budget.stop() {
+            return Ok((budget.stopped_capture(stop), None));
+        }
+        self.run_started_container(name, false, &[], budget.limits.output_bytes(), budget)
+    }
+    pub(super) fn nextest_phase(
+        &self,
+        request: PhaseRequest<'_>,
+        junit: &super::mutation_gateway::MutationVolume,
+        junit_writable: bool,
+        budget: &WorkBudget<'_>,
+    ) -> Result<(Capture, Option<bool>), ExecutionError> {
+        let PhaseRequest {
+            name,
+            nonce,
+            volume,
+            phase,
+        } = request;
+        if let Some(stop) = budget.stop() {
+            return Ok((budget.stopped_capture(stop), None));
+        }
+        if !self.absent("container", name)? {
+            return Err(ExecutionError::CleanupUncertain);
+        }
+        let arguments =
+            self.arguments_with_junit(name, nonce, volume, phase, junit, junit_writable)?;
+        let created = self.inner.control(&arguments)?;
+        if created.code != Some(0) {
+            return Err(ExecutionError::Infrastructure);
+        }
+        let inspect = self
+            .inner
+            .control(&["container".into(), "inspect".into(), name.into()])?;
+        if inspect.code != Some(0) {
+            return Err(ExecutionError::Infrastructure);
+        }
+        super::rust_applied::verify_nextest(
+            &inspect.stdout,
+            self.image_id(),
+            phase,
+            volume,
+            junit,
+            junit_writable,
+            nonce,
+        )?;
+        if let Some(stop) = budget.stop() {
+            return Ok((budget.stopped_capture(stop), None));
+        }
+        let output_limit = if matches!(phase, Phase::ExportNextest) {
+            super::nextest_gateway::MAX_JUNIT_EXPORT
+        } else {
+            budget.limits.output_bytes()
+        };
+        self.run_started_container(name, false, &[], output_limit, budget)
+    }
+
+    pub(super) fn coverage_phase(
+        &self,
+        request: PhaseRequest<'_>,
+        output: &super::mutation_gateway::MutationVolume,
+        target: &super::mutation_gateway::MutationVolume,
+        budget: &WorkBudget<'_>,
+    ) -> Result<(Capture, Option<bool>), ExecutionError> {
+        let PhaseRequest {
+            name,
+            nonce,
+            volume,
+            phase,
+        } = request;
+        if let Some(stop) = budget.stop() {
+            return Ok((budget.stopped_capture(stop), None));
+        }
+        if !self.absent("container", name)? {
+            return Err(ExecutionError::CleanupUncertain);
+        }
+        let arguments = self.arguments_with_coverage(name, nonce, volume, phase, output, target)?;
+        if self.inner.control(&arguments)?.code != Some(0) {
+            return Err(ExecutionError::Infrastructure);
+        }
+        let inspect = self
+            .inner
+            .control(&["container".into(), "inspect".into(), name.into()])?;
+        if inspect.code != Some(0) {
+            return Err(ExecutionError::Infrastructure);
+        }
+        super::rust_applied::verify_coverage(
+            &inspect.stdout,
+            self.image_id(),
+            phase,
+            volume,
+            output,
+            target,
+            nonce,
+        )?;
+        if let Some(stop) = budget.stop() {
+            return Ok((budget.stopped_capture(stop), None));
+        }
+        let output_limit = if matches!(
+            phase,
+            Phase::ExportCoverageJson | Phase::ExportCoverageLcov | Phase::ExportCoverageHtml
+        ) {
+            super::coverage_gateway::MAX_COVERAGE_EXPORT
+        } else {
+            budget.limits.output_bytes()
+        };
+        self.run_started_container(name, false, &[], output_limit, budget)
+    }
+
+    /// Same contract as [`Self::coverage_phase`], for the M3-05 phases that
+    /// mount the bounded `mutants.out` report volume at `/mutants`. The source
+    /// volume keeps its ordinary read-only `Run` semantics: the mutators work
+    /// in the container-private scratch tmpfs, never in `/source`.
+    pub(super) fn mutation_test_phase(
+        &self,
+        request: PhaseRequest<'_>,
+        output: &super::mutation_gateway::MutationVolume,
+        writable: bool,
+        budget: &WorkBudget<'_>,
+    ) -> Result<(Capture, Option<bool>), ExecutionError> {
+        let PhaseRequest {
+            name,
+            nonce,
+            volume,
+            phase,
+        } = request;
+        if let Some(stop) = budget.stop() {
+            return Ok((budget.stopped_capture(stop), None));
+        }
+        if !self.absent("container", name)? {
+            return Err(ExecutionError::CleanupUncertain);
+        }
+        let arguments = self.arguments_with_output(
+            name,
+            nonce,
+            volume,
+            phase,
+            output,
+            writable,
+            super::mutation_test_gateway::MUTATION_OUTPUT_TARGET,
+        )?;
+        if self.inner.control(&arguments)?.code != Some(0) {
+            return Err(ExecutionError::Infrastructure);
+        }
+        let inspect = self
+            .inner
+            .control(&["container".into(), "inspect".into(), name.into()])?;
+        if inspect.code != Some(0) {
+            return Err(ExecutionError::Infrastructure);
+        }
+        super::rust_applied::verify_mutation_test(
+            &inspect.stdout,
+            self.image_id(),
+            phase,
+            volume,
+            output,
+            writable,
+            nonce,
+        )?;
+        if let Some(stop) = budget.stop() {
+            return Ok((budget.stopped_capture(stop), None));
+        }
+        self.run_started_container(
+            name,
+            false,
+            &[],
+            super::mutation_test_gateway::output_limit(phase, budget.limits),
+            budget,
+        )
+    }
+
+    /// Keeps the Docker-managed report volume alive from creation until the
+    /// last exporter has read it, exactly as the nextest and coverage verticals
+    /// do for their own output volumes.
+    pub(super) fn start_mutation_output_guardian(
+        &self,
+        request: PhaseRequest<'_>,
+        output: &super::mutation_gateway::MutationVolume,
+        budget: &WorkBudget<'_>,
+    ) -> Result<(), ExecutionError> {
+        let PhaseRequest {
+            name,
+            nonce,
+            volume,
+            phase,
+        } = request;
+        if !matches!(phase, Phase::GuardMutationOutput) || budget.stop().is_some() {
+            return Err(ExecutionError::InvalidConfiguration);
+        }
+        if !self.absent("container", name)? {
+            return Err(ExecutionError::CleanupUncertain);
+        }
+        let arguments = self.arguments_with_output(
+            name,
+            nonce,
+            volume,
+            phase,
+            output,
+            true,
+            super::mutation_test_gateway::MUTATION_OUTPUT_TARGET,
+        )?;
+        if self.inner.control(&arguments)?.code != Some(0) {
+            return Err(ExecutionError::Infrastructure);
+        }
+        let inspect = self
+            .inner
+            .control(&["container".into(), "inspect".into(), name.into()])?;
+        if inspect.code != Some(0) {
+            return Err(ExecutionError::Infrastructure);
+        }
+        super::rust_applied::verify_mutation_test(
+            &inspect.stdout,
+            self.image_id(),
+            phase,
+            volume,
+            output,
+            true,
+            nonce,
+        )?;
+        if self
+            .inner
+            .control(&["container".into(), "start".into(), name.into()])?
+            .code
+            != Some(0)
+            || !super::mutation_gateway::running(self, name, nonce, budget.deadline, budget.cancel)?
+        {
+            return Err(ExecutionError::Infrastructure);
+        }
+        Ok(())
+    }
+
+    pub(super) fn start_coverage_output_guardian(
+        &self,
+        request: PhaseRequest<'_>,
+        output: &super::mutation_gateway::MutationVolume,
+        target: &super::mutation_gateway::MutationVolume,
+        budget: &WorkBudget<'_>,
+    ) -> Result<(), ExecutionError> {
+        let PhaseRequest {
+            name,
+            nonce,
+            volume,
+            phase,
+        } = request;
+        if !matches!(phase, Phase::GuardCoverageVolumes) || budget.stop().is_some() {
+            return Err(ExecutionError::InvalidConfiguration);
+        }
+        if !self.absent("container", name)? {
+            return Err(ExecutionError::CleanupUncertain);
+        }
+        let arguments = self.arguments_with_coverage(name, nonce, volume, phase, output, target)?;
+        if self.inner.control(&arguments)?.code != Some(0) {
+            return Err(ExecutionError::Infrastructure);
+        }
+        let inspect = self
+            .inner
+            .control(&["container".into(), "inspect".into(), name.into()])?;
+        if inspect.code != Some(0) {
+            return Err(ExecutionError::Infrastructure);
+        }
+        super::rust_applied::verify_coverage(
+            &inspect.stdout,
+            self.image_id(),
+            phase,
+            volume,
+            output,
+            target,
+            nonce,
+        )?;
+        if self
+            .inner
+            .control(&["container".into(), "start".into(), name.into()])?
+            .code
+            != Some(0)
+            || !super::mutation_gateway::running(self, name, nonce, budget.deadline, budget.cancel)?
+        {
+            return Err(ExecutionError::Infrastructure);
+        }
+        Ok(())
+    }
+
+    pub(super) fn start_nextest_output_guardian(
+        &self,
+        request: PhaseRequest<'_>,
+        junit: &super::mutation_gateway::MutationVolume,
+        budget: &WorkBudget<'_>,
+    ) -> Result<(), ExecutionError> {
+        let PhaseRequest {
+            name,
+            nonce,
+            volume,
+            phase,
+        } = request;
+        if !matches!(phase, Phase::GuardNextestOutput) || budget.stop().is_some() {
+            return Err(ExecutionError::InvalidConfiguration);
+        }
+        if !self.absent("container", name)? {
+            return Err(ExecutionError::CleanupUncertain);
+        }
+        let arguments = self.arguments_with_junit(name, nonce, volume, phase, junit, true)?;
+        if self.inner.control(&arguments)?.code != Some(0) {
+            return Err(ExecutionError::Infrastructure);
+        }
+        let inspect = self
+            .inner
+            .control(&["container".into(), "inspect".into(), name.into()])?;
+        if inspect.code != Some(0) {
+            return Err(ExecutionError::Infrastructure);
+        }
+        super::rust_applied::verify_nextest(
+            &inspect.stdout,
+            self.image_id(),
+            phase,
+            volume,
+            junit,
+            true,
+            nonce,
+        )?;
+        if self
+            .inner
+            .control(&["container".into(), "start".into(), name.into()])?
+            .code
+            != Some(0)
+            || !super::mutation_gateway::running(self, name, nonce, budget.deadline, budget.cancel)?
+        {
+            return Err(ExecutionError::Infrastructure);
+        }
+        Ok(())
     }
     pub fn execute(
         &self,
@@ -983,6 +2396,85 @@ mod tests {
         Ok(())
     }
     #[test]
+    fn nextest_command_seals_config_path_profile_and_selection_argv()
+    -> Result<(), Box<dyn std::error::Error>> {
+        use rust_engineering_domain::TestSelection;
+        use rust_engineering_domain::nextest::{NextestCommandOptions, NextestSelection};
+        let options: NextestCommandOptions = NextestSelection {
+            package: Some("app".into()),
+            test_filter: Some("tests::works".into()),
+            features: vec!["extra".into()],
+            target: Some("aarch64-unknown-linux-gnu".into()),
+            no_default_features: true,
+            timeout: 60,
+            retries: 2,
+            ..Default::default()
+        }
+        .try_into()?;
+        let phase = Phase::Run(RustCommand::TestNextest(options));
+        assert_eq!(phase.seccomp_profile_name(), "seccomp-rust-quality.json");
+        assert_eq!(phase.program(), "/opt/rust/bin/cargo");
+        assert_eq!(
+            phase.arguments(),
+            [
+                "nextest",
+                "run",
+                "--config-file",
+                nextest_gateway::NEXTEST_CONFIG_GUEST_PATH,
+                "--profile",
+                "rust-mcp",
+                "--frozen",
+                "--offline",
+                "--color=never",
+                "--no-fail-fast",
+                "--build-jobs=1",
+                "--test-threads=1",
+                "--package=app",
+                "--features=extra",
+                "--no-default-features",
+                "--target=aarch64-unknown-linux-gnu",
+                "tests::works",
+            ]
+        );
+        // Retries never appear in argv: they are carried only in the
+        // product-owned generated config file, so argv shape is stable
+        // regardless of the caller's retry request.
+        let no_selection = Phase::Run(RustCommand::TestNextest(
+            NextestSelection::default().try_into()?,
+        ));
+        assert_eq!(
+            Phase::Run(RustCommand::Check).seccomp_profile_name(),
+            "seccomp-rust.json"
+        );
+        assert_eq!(Phase::Ingest.seccomp_profile_name(), "seccomp-rust.json");
+        assert_eq!(
+            no_selection.arguments(),
+            [
+                "nextest",
+                "run",
+                "--config-file",
+                nextest_gateway::NEXTEST_CONFIG_GUEST_PATH,
+                "--profile",
+                "rust-mcp",
+                "--frozen",
+                "--offline",
+                "--color=never",
+                "--no-fail-fast",
+                "--build-jobs=1",
+                "--test-threads=1",
+            ]
+        );
+        assert_ne!(
+            serde_json::to_vec(&RustCommand::TestNextest(
+                NextestSelection::default().try_into()?
+            ))?,
+            serde_json::to_vec(&RustCommand::TestProject(
+                TestSelection::default().try_into()?
+            ))?
+        );
+        Ok(())
+    }
+    #[test]
     fn clippy_profiles_and_selections_have_closed_argv() -> Result<(), Box<dyn std::error::Error>> {
         use rust_engineering_domain::{ClippySelection, LintProfile};
         for (lint_profile, suffix) in [
@@ -1030,6 +2522,99 @@ mod tests {
                 "--workspace"
             ]
         );
+        Ok(())
+    }
+    #[test]
+    fn semver_argv_environment_and_quality_profile_are_closed()
+    -> Result<(), Box<dyn std::error::Error>> {
+        use rust_engineering_domain::semver_check::SemverProjectSelection;
+        let phase = Phase::Run(RustCommand::SemverCheck(
+            SemverProjectSelection {
+                package: Some("api".into()),
+                features: vec!["extra".into()],
+                no_default_features: true,
+                target: Some("aarch64-unknown-linux-gnu".into()),
+                ..Default::default()
+            }
+            .try_into()?,
+        ));
+        assert_eq!(phase.seccomp_profile_name(), "seccomp-rust-quality.json");
+        assert_eq!(
+            phase.arguments(),
+            [
+                "semver-checks",
+                "check-release",
+                "--manifest-path",
+                "/source/Cargo.toml",
+                "--baseline-root",
+                "/baseline",
+                "--color",
+                "never",
+                "--package=api",
+                "--features=extra",
+                "--only-explicit-features",
+                "--target=aarch64-unknown-linux-gnu"
+            ]
+        );
+        let env = phase.environment();
+        assert!(env.contains(&"GIT_DIR=/nonexistent".into()));
+        assert!(env.contains(&"GIT_CEILING_DIRECTORIES=/".into()));
+        assert!(env.contains(&"NO_COLOR=1".into()));
+        assert_eq!(
+            Phase::Run(RustCommand::SemverChecksVersion).seccomp_profile_name(),
+            "seccomp-rust.json"
+        );
+        assert_eq!(
+            Phase::IngestBaseline.arguments(),
+            [
+                "--extract",
+                "--file=-",
+                "--directory=/baseline",
+                "--no-same-owner",
+                "--no-same-permissions",
+                "--keep-old-files"
+            ]
+        );
+        Ok(())
+    }
+    #[test]
+    fn coverage_environment_is_scoped_once_to_coverage_phases()
+    -> Result<(), Box<dyn std::error::Error>> {
+        let base = environment();
+        for key in ["LLVM_COV=", "LLVM_PROFDATA=", "CARGO_LLVM_COV_TARGET_DIR="] {
+            assert_eq!(
+                base.iter().filter(|value| value.starts_with(key)).count(),
+                0
+            );
+        }
+        for phase in [
+            Phase::Run(RustCommand::CoverageRun(
+                rust_engineering_domain::coverage::CoverageSelection::default().try_into()?,
+            )),
+            Phase::Run(RustCommand::CoverageReport(
+                rust_engineering_domain::coverage::CoverageReportFormat::Json,
+            )),
+        ] {
+            let applied = phase.environment();
+            for key in ["LLVM_COV=", "LLVM_PROFDATA=", "CARGO_LLVM_COV_TARGET_DIR="] {
+                assert_eq!(
+                    applied
+                        .iter()
+                        .filter(|value| value.starts_with(key))
+                        .count(),
+                    1,
+                    "{key} must be present exactly once"
+                );
+            }
+            if matches!(phase, Phase::Run(RustCommand::CoverageReport(_))) {
+                assert!(
+                    !phase
+                        .arguments()
+                        .iter()
+                        .any(|argument| argument.starts_with("--jobs"))
+                );
+            }
+        }
         Ok(())
     }
     #[test]

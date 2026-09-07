@@ -1,0 +1,14 @@
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.11s
+     Running tests/inspection_runtime.rs (target/debug/deps/inspection_runtime-836bf750ab4f64c1)
+
+running 1 test
+test audit_runtime::audit_missing_integrity_path_and_symlink_fail_closed ... M1_AUDIT_CASE {"case":"absent","cleanup":true,"error_code":"AUDIT_SNAPSHOT_UNAVAILABLE","source_unchanged":true,"status":"unavailable"}
+M1_AUDIT_CASE {"case":"configured_missing","cleanup":true,"error_code":"AUDIT_SNAPSHOT_UNAVAILABLE","source_unchanged":true,"status":"unavailable"}
+M1_AUDIT_CASE {"case":"bad_hash","cleanup":true,"error_code":"AUDIT_INTEGRITY_FAILED","source_unchanged":true,"status":"blocked"}
+M1_AUDIT_CASE {"case":"bad_record_path","cleanup":true,"error_code":"AUDIT_SNAPSHOT_INVALID","source_unchanged":true,"status":"blocked"}
+M1_AUDIT_CASE {"case":"symlink","cleanup":true,"error_code":"SANDBOX_DENIED","source_unchanged":true,"status":"blocked"}
+M1_AUDIT_RECEIPT {"bad_sha256_record_path_and_source_symlink_blocked":true,"cases":5,"cleanup":true,"configured_missing_file_unavailable":true,"configured_runtime_missing_snapshot_unavailable":true,"project_source_unchanged":true,"snapshot_source_unchanged":true}
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 27 filtered out; finished in 73.84s
+

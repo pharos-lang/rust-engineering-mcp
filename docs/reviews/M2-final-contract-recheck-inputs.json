@@ -1,0 +1,28 @@
+{
+  "model": "claude-sonnet-5",
+  "effort": "medium",
+  "cli_version": "2.1.260",
+  "files": [
+    {
+      "path": "crates/mcp-server/src/stdio.rs",
+      "sha256": "e18e1f06d6353ad14ae72f8cf3d113637eb6604954c555b195c2ce818345a291",
+      "bytes": 22127
+    },
+    {
+      "path": "crates/mcp-server/src/stdio/mutation/semantic_input.rs",
+      "sha256": "7c48bd6f5cf605b47375e4aa6ac7eeaaa7c5bc55fcb45e33b083ef02bf260787",
+      "bytes": 32849
+    },
+    {
+      "path": "crates/mcp-server/tests/inspection_runtime/dependency_mutation.rs",
+      "sha256": "ac340c07a9656fb935b0c4b445b26bed6abeb220d43fd58e3c616f0e17390558",
+      "bytes": 20106
+    },
+    {
+      "path": "crates/mcp-server/src/stdio/mutation.rs",
+      "sha256": "6bffd3453dde010e86482c5d1d11dfec48d1d9883360572f4e54d3c10444c88b",
+      "bytes": 60573
+    }
+  ],
+  "prompt_sha256": "24561b8a7a55419bc231907390f19d41bf85a72a821df9861ddd7f809a6bf6a4"
+}

@@ -1,0 +1,25 @@
+{
+  "files": [
+    {
+      "original": "docs/validation/M2-full-gate.json",
+      "preserved": "docs/validation/m2-pre-059/M2-full-gate.json",
+      "sha256": "2c58c6fe1c28f34bc603edda9b22336aa19c0d68b6d645913f96b6837127d9e1"
+    },
+    {
+      "original": "docs/validation/M2-final-runtime.json",
+      "preserved": "docs/validation/m2-pre-059/M2-final-runtime.json",
+      "sha256": "5a617b604fc3dd7a5a8f269acc23cc1d426484affcffb866b2f63588ddbf24a6"
+    },
+    {
+      "original": "docs/validation/M2-final-log-inventory.json",
+      "preserved": "docs/validation/m2-pre-059/M2-final-log-inventory.json",
+      "sha256": "f471985aec75f9bce73e89bad342804e597f68ec40e256db5738dc4c41e6824a"
+    },
+    {
+      "original": "docs/validation/M2-client-binary.json",
+      "preserved": "docs/validation/m2-pre-059/M2-client-binary.json",
+      "sha256": "9fedf136eabb4e14840d134c09b32db937dc166f75fad0c8921cec2a4f0d2e36"
+    }
+  ],
+  "reason": "Successful pre-ADR059 full and runtime evidence; superseded after real stock client exposed terminal plan quota defect."
+}

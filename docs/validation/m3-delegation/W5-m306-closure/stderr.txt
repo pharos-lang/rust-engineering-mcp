@@ -1,0 +1,15 @@
+2026-09-06T17:42:37.847322Z ERROR codex_memories_write::phase2: Phase 2 no changes
+2026-09-06T19:13:20.457266Z ERROR codex_core::tools::router: error=apply_patch verification failed: Failed to find expected lines in /Users/cburgosro/Projects/rust-mcp/docs/architecture.md:
+`stdio/resources.rs` publica el índice y
+los miembros como Resources bajo `rust-quality-artifact://`; Tasks sigue
+implementado pero no anunciado ni calificado para clientes. Los cuatro cortes M3
+calificados tienen sus recibos en `docs/validation/M3-runtime.json` y
+2026-09-06T19:31:25.977711Z ERROR codex_core::tools::router: error=apply_patch verification failed: Failed to find expected lines in /Users/cburgosro/Projects/rust-mcp/docs/validation/M3-07.md:
+Supply chain fue obligatorio y pasó: audit
+no encontró vulnerabilidades y conservó el warning permitido de `paste 1.0.15`;
+deny pasó advisories, bans y sources. Para no escribir en el cache global de sólo
+lectura, W5 usó un `CARGO_HOME` temporal ensamblado exclusivamente con caches ya
+instalados; no hubo fetch ni instalación.
+
+Intentos preservados:
+2026-09-06T19:32:18.573160Z ERROR codex_core::tools::router: error=exec_command failed: CreateProcess { message: "Rejected(\"`/bin/zsh -lc \\\"test -d /private/tmp/rust-mcp-w5-cargo-home.oifXE1My && rm -rf /private/tmp/rust-mcp-w5-cargo-home.oifXE1My\\nif test -e /private/tmp/rust-mcp-w5-cargo-home.oifXE1My; then echo 'temporary Cargo home still exists'; exit 1; else echo 'temporary Cargo home removed'; fi\\\"` rejected: rm -f style commands are not permitted. Use a safer approach\")" }

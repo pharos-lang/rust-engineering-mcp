@@ -1,0 +1,58 @@
+unknown format "uint64" ignored in schema at path "#/properties/duration_ms"
+unknown format "uint64" ignored in schema at path "#/properties/duration_ms"
+unknown format "uint64" ignored in schema at path "#/$defs/Truncation/properties/diagnostics_omitted"
+unknown format "uint64" ignored in schema at path "#/$defs/Truncation/properties/diagnostics_omitted"
+unknown format "uint64" ignored in schema at path "#/properties/size_bytes"
+unknown format "uint64" ignored in schema at path "#/properties/size_bytes"
+unknown format "uint64" ignored in schema at path "#/$defs/Counts/properties/failed"
+unknown format "uint64" ignored in schema at path "#/$defs/Counts/properties/failed"
+unknown format "uint64" ignored in schema at path "#/$defs/Counts/properties/flaky"
+unknown format "uint64" ignored in schema at path "#/$defs/Counts/properties/flaky"
+unknown format "uint64" ignored in schema at path "#/$defs/Counts/properties/ignored"
+unknown format "uint64" ignored in schema at path "#/$defs/Counts/properties/ignored"
+unknown format "uint64" ignored in schema at path "#/$defs/Counts/properties/leaked"
+unknown format "uint64" ignored in schema at path "#/$defs/Counts/properties/leaked"
+unknown format "uint64" ignored in schema at path "#/$defs/Counts/properties/passed"
+unknown format "uint64" ignored in schema at path "#/$defs/Counts/properties/passed"
+unknown format "uint64" ignored in schema at path "#/$defs/Counts/properties/retried"
+unknown format "uint64" ignored in schema at path "#/$defs/Counts/properties/retried"
+unknown format "uint64" ignored in schema at path "#/$defs/Counts/properties/selected"
+unknown format "uint64" ignored in schema at path "#/$defs/Counts/properties/selected"
+unknown format "uint64" ignored in schema at path "#/$defs/Counts/properties/timed_out"
+unknown format "uint64" ignored in schema at path "#/$defs/Counts/properties/timed_out"
+unknown format "uint64" ignored in schema at path "#/$defs/Omissions/properties/tests_omitted"
+unknown format "uint64" ignored in schema at path "#/$defs/Omissions/properties/tests_omitted"
+unknown format "uint16" ignored in schema at path "#/properties/attempts"
+unknown format "uint16" ignored in schema at path "#/properties/attempts"
+unknown format "uint64" ignored in schema at path "#/properties/duration_ms"
+unknown format "uint64" ignored in schema at path "#/properties/duration_ms"
+unknown format "uint64" ignored in schema at path "#/properties/duration_ms"
+unknown format "uint64" ignored in schema at path "#/properties/duration_ms"
+ INFO bounded job lifecycle event job_id="job_a66546544752c9e92b89d0fe2b564046" kind=TestNextest event=AdmissionAccepted phase=Admission state=Admitted reason=None elapsed_ms=0 budget_ms=300000 retained_bytes=524288 retained_entries=1
+ INFO bounded job lifecycle event job_id="job_a66546544752c9e92b89d0fe2b564046" kind=TestNextest event=Started phase=Capture state=Running reason=None elapsed_ms=0 budget_ms=300000 retained_bytes=524288 retained_entries=1
+ INFO bounded job lifecycle event job_id="job_a66546544752c9e92b89d0fe2b564046" kind=TestNextest event=PhaseTransition phase=Prepare state=Running reason=None elapsed_ms=0 budget_ms=300000 retained_bytes=524288 retained_entries=1
+ INFO bounded job lifecycle event job_id="job_a66546544752c9e92b89d0fe2b564046" kind=TestNextest event=PhaseTransition phase=Execute state=Running reason=None elapsed_ms=1 budget_ms=300000 retained_bytes=524288 retained_entries=1
+ INFO bounded job lifecycle event job_id="job_a66546544752c9e92b89d0fe2b564046" kind=TestNextest event=PhaseTransition phase=Collect state=Running reason=None elapsed_ms=14056 budget_ms=300000 retained_bytes=524288 retained_entries=1
+ INFO bounded job lifecycle event job_id="job_a66546544752c9e92b89d0fe2b564046" kind=TestNextest event=PhaseTransition phase=Publish state=Running reason=None elapsed_ms=14056 budget_ms=300000 retained_bytes=524288 retained_entries=1
+ INFO bounded job lifecycle event job_id="job_a66546544752c9e92b89d0fe2b564046" kind=TestNextest event=TerminalPublished phase=Terminal state=Completed reason=None elapsed_ms=14057 budget_ms=300000 retained_bytes=524288 retained_entries=1
+ INFO bounded job lifecycle event job_id="job_d2b0095652c2b093a75448571006ba51" kind=TestNextest event=AdmissionAccepted phase=Admission state=Admitted reason=None elapsed_ms=0 budget_ms=300000 retained_bytes=524288 retained_entries=1
+ INFO bounded job lifecycle event job_id="job_d2b0095652c2b093a75448571006ba51" kind=TestNextest event=Started phase=Capture state=Running reason=None elapsed_ms=0 budget_ms=300000 retained_bytes=524288 retained_entries=1
+ INFO bounded job lifecycle event job_id="job_d2b0095652c2b093a75448571006ba51" kind=TestNextest event=PhaseTransition phase=Prepare state=Running reason=None elapsed_ms=1 budget_ms=300000 retained_bytes=524288 retained_entries=1
+ INFO bounded job lifecycle event job_id="job_d2b0095652c2b093a75448571006ba51" kind=TestNextest event=PhaseTransition phase=Execute state=Running reason=None elapsed_ms=2 budget_ms=300000 retained_bytes=524288 retained_entries=1
+ INFO bounded job lifecycle event job_id="job_d2b0095652c2b093a75448571006ba51" kind=TestNextest event=PhaseTransition phase=Collect state=Running reason=None elapsed_ms=1649 budget_ms=300000 retained_bytes=524288 retained_entries=1
+ INFO bounded job lifecycle event job_id="job_d2b0095652c2b093a75448571006ba51" kind=TestNextest event=PhaseTransition phase=Publish state=Running reason=None elapsed_ms=1649 budget_ms=300000 retained_bytes=524288 retained_entries=1
+ INFO bounded job lifecycle event job_id="job_d2b0095652c2b093a75448571006ba51" kind=TestNextest event=TerminalPublished phase=Terminal state=Completed reason=None elapsed_ms=1650 budget_ms=300000 retained_bytes=524288 retained_entries=1
+ INFO bounded job lifecycle event job_id="job_f618ec722282ba26f76b9856682dba6e" kind=TestNextest event=AdmissionAccepted phase=Admission state=Admitted reason=None elapsed_ms=0 budget_ms=300000 retained_bytes=524288 retained_entries=1
+ INFO bounded job lifecycle event job_id="job_f618ec722282ba26f76b9856682dba6e" kind=TestNextest event=Started phase=Capture state=Running reason=None elapsed_ms=1 budget_ms=300000 retained_bytes=524288 retained_entries=1
+ INFO bounded job lifecycle event job_id="job_f618ec722282ba26f76b9856682dba6e" kind=TestNextest event=PhaseTransition phase=Prepare state=Running reason=None elapsed_ms=2 budget_ms=300000 retained_bytes=524288 retained_entries=1
+ INFO bounded job lifecycle event job_id="job_f618ec722282ba26f76b9856682dba6e" kind=TestNextest event=PhaseTransition phase=Execute state=Running reason=None elapsed_ms=4 budget_ms=300000 retained_bytes=524288 retained_entries=1
+ INFO bounded job lifecycle event job_id="job_f618ec722282ba26f76b9856682dba6e" kind=TestNextest event=CleanupObserved phase=Terminal state=Cancelled reason=ClientCancellation elapsed_ms=8 budget_ms=300000 retained_bytes=524288 retained_entries=1
+file:///Users/cburgosro/Projects/rust-mcp/scripts/m3-inspector-session.mjs:190
+    throw new Error("Inspector did not cancel its active Tasks operation");
+          ^
+
+Error: Inspector did not cancel its active Tasks operation
+    at file:///Users/cburgosro/Projects/rust-mcp/scripts/m3-inspector-session.mjs:190:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+
+Node.js v24.15.0

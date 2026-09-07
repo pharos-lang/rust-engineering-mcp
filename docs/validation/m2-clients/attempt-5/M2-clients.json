@@ -1,0 +1,476 @@
+{
+  "claude": {
+    "allowed_mcp_tools": [
+      "rust.project.open",
+      "rust.manifest.patch",
+      "rust.fmt.apply",
+      "rust.fix.apply",
+      "rust.dependency.add",
+      "rust.dependency.remove"
+    ],
+    "builtins": [],
+    "duration_seconds": 96.597,
+    "effort_requested": "medium",
+    "executable_sha256": "3c269f66801028823e24a63ced9fdd3988cb86cf85fccd9f03f87e463b9d3e3c",
+    "fallback_configured": false,
+    "final_tree_sha256": {
+      "Cargo.lock": "042764341b787bfb49cc64b64449e242ed34249c18a2858121603d72d7d12104",
+      "Cargo.toml": "d474538dd2040b091afeb1cb724300e518710ff80d0a58addcf5654190908de2",
+      "src/lib.rs": "56ca2047a96c3537114cc0288597a66ffa2fc71c0c8f61e1adf8ed0b9f8046a9"
+    },
+    "model_requested": "claude-sonnet-5",
+    "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "stream": {
+      "calls": [
+        {
+          "id": "toolu_01AiZ9KTV5Zj6yPsdp19bgp1",
+          "input": {
+            "path": "/Users/cburgosro/Projects/rust-mcp/target/m2-clients/run-1788641250957474000/project"
+          },
+          "tool": "rust.project.open"
+        },
+        {
+          "id": "toolu_011GgELcuXGBKz3FjuyMTbYN",
+          "input": {
+            "action": {
+              "default_features": false,
+              "dependency_kind": "normal",
+              "expected_project_fingerprint": "sha256:785c1e9df63875f83deebfd6786f235fd24329b57f1442fb4f404e3ce3c408bf",
+              "features": [
+                "proc-macro"
+              ],
+              "mode": "preview",
+              "name": "quoted",
+              "optional": false,
+              "package": "quote",
+              "requirement": "=1.0.47"
+            },
+            "project_ref": "prj_e0835621f12a584126970d13d677d564"
+          },
+          "tool": "rust.dependency.add"
+        },
+        {
+          "id": "toolu_01KEWEVL64siJvuEVWt54c2Z",
+          "input": {
+            "action": {
+              "idempotency_key": "step1-add-quoted",
+              "mode": "commit",
+              "plan_digest": "sha256:563f05beca49cf1f58a0a4a8e4d06ed77ffe1918caf7100e0da241a01129b65e",
+              "plan_id": "mut_7b77ff7c85f9d29e4c7780328d64e503"
+            },
+            "project_ref": "prj_e0835621f12a584126970d13d677d564"
+          },
+          "tool": "rust.dependency.add"
+        },
+        {
+          "id": "toolu_014tyjSSdDQoU5GXPhu3T1Sr",
+          "input": {
+            "path": "/Users/cburgosro/Projects/rust-mcp/target/m2-clients/run-1788641250957474000/project"
+          },
+          "tool": "rust.project.open"
+        },
+        {
+          "id": "toolu_014Zp3TEFcSqdm4NRD1QVv7d",
+          "input": {
+            "action": {
+              "expected_project_fingerprint": "sha256:912f2cd1525b22a9847bf48f4fc2c3181d940942e58a00898597f03e8cec1dc6",
+              "mode": "preview",
+              "name": "quoted"
+            },
+            "project_ref": "prj_05c93636fc4205306774923eec6d3dd6"
+          },
+          "tool": "rust.dependency.remove"
+        },
+        {
+          "id": "toolu_01VAHFXKdtq8NkoiXZF671J2",
+          "input": {
+            "action": {
+              "idempotency_key": "step2-remove-quoted",
+              "mode": "commit",
+              "plan_digest": "sha256:122c73d6dc8e1a725e691ffc369087cb28f2147ba6a2c768749c307f0a137d27",
+              "plan_id": "mut_8d86a2661365876cc99338eda93c7ea2"
+            },
+            "project_ref": "prj_05c93636fc4205306774923eec6d3dd6"
+          },
+          "tool": "rust.dependency.remove"
+        },
+        {
+          "id": "toolu_01HqtpkECaNeMXvvYpX4SK3z",
+          "input": {
+            "path": "/Users/cburgosro/Projects/rust-mcp/target/m2-clients/run-1788641250957474000/project"
+          },
+          "tool": "rust.project.open"
+        },
+        {
+          "id": "toolu_01CdhD9fVp7gNYoVDLRxzhBw",
+          "input": {
+            "action": {
+              "edit": {
+                "level": "forbid",
+                "name": "unsafe_code",
+                "operation": "lint_set",
+                "scope": "package",
+                "tool": "rust"
+              },
+              "expected_project_fingerprint": "sha256:785c1e9df63875f83deebfd6786f235fd24329b57f1442fb4f404e3ce3c408bf",
+              "mode": "preview"
+            },
+            "project_ref": "prj_7a788cada9d56982fc363c55c63cded7"
+          },
+          "tool": "rust.manifest.patch"
+        },
+        {
+          "id": "toolu_01CjCVZQ6zpYFSX8K3jEDomr",
+          "input": {
+            "action": {
+              "idempotency_key": "step3-lint-unsafe-forbid",
+              "mode": "commit",
+              "plan_digest": "sha256:175194222849b77b74e30764c81498d38229f5566d397aed33b6f2adab31bbfb",
+              "plan_id": "mut_b44684eaf5484a604b49948d0de3002b"
+            },
+            "project_ref": "prj_7a788cada9d56982fc363c55c63cded7"
+          },
+          "tool": "rust.manifest.patch"
+        },
+        {
+          "id": "toolu_013zE2357VMAczmTDmGB91bS",
+          "input": {
+            "path": "/Users/cburgosro/Projects/rust-mcp/target/m2-clients/run-1788641250957474000/project"
+          },
+          "tool": "rust.project.open"
+        },
+        {
+          "id": "toolu_016xqtNfCb8B1LnDqJVLCUZt",
+          "input": {
+            "action": {
+              "expected_project_fingerprint": "sha256:7c52474c81f7eb2719d3cbc1a4ea0f9f5586604513414c4699d7991354ca6d46",
+              "mode": "preview"
+            },
+            "project_ref": "prj_5d0c1a5ab1bbaca621910e304e0f49c1"
+          },
+          "tool": "rust.fmt.apply"
+        },
+        {
+          "id": "toolu_0194DbDeMc7qdfstvVvUVntW",
+          "input": {
+            "action": {
+              "idempotency_key": "step4-fmt-apply",
+              "mode": "commit",
+              "plan_digest": "sha256:28aa55c1a266a44d8707721da384eb43a69f183f06166fe2d61c680fb7fc4a50",
+              "plan_id": "mut_8a2c208234c02d1792d600e3688db5bd"
+            },
+            "project_ref": "prj_5d0c1a5ab1bbaca621910e304e0f49c1"
+          },
+          "tool": "rust.fmt.apply"
+        },
+        {
+          "id": "toolu_01JvqKXXWvkTd1rRcWbQm6tG",
+          "input": {
+            "path": "/Users/cburgosro/Projects/rust-mcp/target/m2-clients/run-1788641250957474000/project"
+          },
+          "tool": "rust.project.open"
+        },
+        {
+          "id": "toolu_01NbkPTD7NTDnWnZF7meT2qa",
+          "input": {
+            "action": {
+              "expected_project_fingerprint": "sha256:7c52474c81f7eb2719d3cbc1a4ea0f9f5586604513414c4699d7991354ca6d46",
+              "mode": "preview"
+            },
+            "project_ref": "prj_97c6aa8397e6e4f444c9535e5de96298"
+          },
+          "tool": "rust.fix.apply"
+        },
+        {
+          "id": "toolu_01Vf4bqkc2vUVbr8NdY3JRyi",
+          "input": {
+            "action": {
+              "idempotency_key": "step5-fix-unused-mut",
+              "mode": "commit",
+              "plan_digest": "sha256:1004c371fdbb461ce46bb3611e7fc259f379f00e8c7f64ab18952f42f0898909",
+              "plan_id": "mut_acacea7cff56eb00c898de0a156f2da7"
+            },
+            "project_ref": "prj_97c6aa8397e6e4f444c9535e5de96298"
+          },
+          "tool": "rust.fix.apply"
+        },
+        {
+          "id": "toolu_01Kv3r4oYBNvt5CGz6pKzeJu",
+          "input": {
+            "path": "/Users/cburgosro/Projects/rust-mcp/target/m2-clients/run-1788641250957474000/project"
+          },
+          "tool": "rust.project.open"
+        },
+        {
+          "id": "toolu_01NceeXwc5wxEPgcai21iAKF",
+          "input": {
+            "action": {
+              "mode": "receipt",
+              "operation_id": "mut_acacea7cff56eb00c898de0a156f2da7",
+              "recover": false
+            },
+            "project_ref": "prj_99d9ef4fe5cd7a7946dcda73e1702b4b"
+          },
+          "tool": "rust.fix.apply"
+        }
+      ],
+      "final_event_subtype": "success",
+      "observed_models": [
+        "claude-sonnet-5"
+      ],
+      "results": [
+        {
+          "mode": null,
+          "status": "passed",
+          "tool": "rust.project.open",
+          "tool_use_id": "toolu_01AiZ9KTV5Zj6yPsdp19bgp1"
+        },
+        {
+          "mode": "preview",
+          "status": "passed",
+          "tool": "rust.dependency.add",
+          "tool_use_id": "toolu_011GgELcuXGBKz3FjuyMTbYN"
+        },
+        {
+          "mode": "commit",
+          "status": "passed",
+          "tool": "rust.dependency.add",
+          "tool_use_id": "toolu_01KEWEVL64siJvuEVWt54c2Z"
+        },
+        {
+          "mode": null,
+          "status": "passed",
+          "tool": "rust.project.open",
+          "tool_use_id": "toolu_014tyjSSdDQoU5GXPhu3T1Sr"
+        },
+        {
+          "mode": "preview",
+          "status": "passed",
+          "tool": "rust.dependency.remove",
+          "tool_use_id": "toolu_014Zp3TEFcSqdm4NRD1QVv7d"
+        },
+        {
+          "mode": "commit",
+          "status": "passed",
+          "tool": "rust.dependency.remove",
+          "tool_use_id": "toolu_01VAHFXKdtq8NkoiXZF671J2"
+        },
+        {
+          "mode": null,
+          "status": "passed",
+          "tool": "rust.project.open",
+          "tool_use_id": "toolu_01HqtpkECaNeMXvvYpX4SK3z"
+        },
+        {
+          "mode": "preview",
+          "status": "passed",
+          "tool": "rust.manifest.patch",
+          "tool_use_id": "toolu_01CdhD9fVp7gNYoVDLRxzhBw"
+        },
+        {
+          "mode": "commit",
+          "status": "passed",
+          "tool": "rust.manifest.patch",
+          "tool_use_id": "toolu_01CjCVZQ6zpYFSX8K3jEDomr"
+        },
+        {
+          "mode": null,
+          "status": "passed",
+          "tool": "rust.project.open",
+          "tool_use_id": "toolu_013zE2357VMAczmTDmGB91bS"
+        },
+        {
+          "mode": "preview",
+          "status": "passed",
+          "tool": "rust.fmt.apply",
+          "tool_use_id": "toolu_016xqtNfCb8B1LnDqJVLCUZt"
+        },
+        {
+          "mode": "commit",
+          "status": "passed",
+          "tool": "rust.fmt.apply",
+          "tool_use_id": "toolu_0194DbDeMc7qdfstvVvUVntW"
+        },
+        {
+          "mode": null,
+          "status": "passed",
+          "tool": "rust.project.open",
+          "tool_use_id": "toolu_01JvqKXXWvkTd1rRcWbQm6tG"
+        },
+        {
+          "mode": "preview",
+          "status": "passed",
+          "tool": "rust.fix.apply",
+          "tool_use_id": "toolu_01NbkPTD7NTDnWnZF7meT2qa"
+        },
+        {
+          "mode": "commit",
+          "status": "passed",
+          "tool": "rust.fix.apply",
+          "tool_use_id": "toolu_01Vf4bqkc2vUVbr8NdY3JRyi"
+        },
+        {
+          "mode": null,
+          "status": "passed",
+          "tool": "rust.project.open",
+          "tool_use_id": "toolu_01Kv3r4oYBNvt5CGz6pKzeJu"
+        },
+        {
+          "mode": "receipt",
+          "status": "passed",
+          "tool": "rust.fix.apply",
+          "tool_use_id": "toolu_01NceeXwc5wxEPgcai21iAKF"
+        }
+      ],
+      "tool_call_count": 17,
+      "tool_result_count": 17
+    },
+    "version": "2.1.260 (Claude Code)"
+  },
+  "docker_after": {
+    "containers": [],
+    "volumes": []
+  },
+  "docker_before": {
+    "containers": [],
+    "volumes": []
+  },
+  "expected_model_calls": {
+    "rust.dependency.add": [
+      "preview",
+      "commit"
+    ],
+    "rust.dependency.remove": [
+      "preview",
+      "commit"
+    ],
+    "rust.fix.apply": [
+      "preview",
+      "commit"
+    ],
+    "rust.fix.apply_receipt": true,
+    "rust.fmt.apply": [
+      "preview",
+      "commit"
+    ],
+    "rust.manifest.patch": [
+      "preview",
+      "commit"
+    ],
+    "rust.project.open": "at least six"
+  },
+  "expected_tools": [
+    "rust.project.open",
+    "rust.project.inspect",
+    "rust.toolchain.inspect",
+    "rust.check",
+    "rust.fmt.check",
+    "rust.clippy",
+    "rust.test",
+    "rust.dependencies.audit",
+    "rust.diagnostics.explain",
+    "rust.quality.gate",
+    "rust.catalog.status",
+    "rust.crate.search",
+    "rust.crate.inspect",
+    "rust.manifest.patch",
+    "rust.fmt.apply",
+    "rust.fix.apply",
+    "rust.dependency.add",
+    "rust.dependency.remove"
+  ],
+  "fixture_after": {
+    "Cargo.lock": "042764341b787bfb49cc64b64449e242ed34249c18a2858121603d72d7d12104",
+    "Cargo.toml": "d474538dd2040b091afeb1cb724300e518710ff80d0a58addcf5654190908de2",
+    "src/lib.rs": "56ca2047a96c3537114cc0288597a66ffa2fc71c0c8f61e1adf8ed0b9f8046a9"
+  },
+  "fixture_before": {
+    "Cargo.lock": "042764341b787bfb49cc64b64449e242ed34249c18a2858121603d72d7d12104",
+    "Cargo.toml": "29808ac130e567d5fb8bc94fa2f66c1055b797cf23bb522ec275023109c2eb64",
+    "src/lib.rs": "bd664871d33ccd37ea4627a7d3dbde6abf7b2256d53bbb0bec8e4fe0fad6f6df"
+  },
+  "identities": {
+    "claude_auth_method": "claude.ai",
+    "claude_sha256": "3c269f66801028823e24a63ced9fdd3988cb86cf85fccd9f03f87e463b9d3e3c",
+    "claude_version": "2.1.260 (Claude Code)",
+    "inspector_cli_sha256": "1fcbc2c4d4324b85f75c0b4cf9f125ee1f74df90d14eb3fea4ca96d0a1885f4e",
+    "inspector_version": "2.5.0",
+    "node_sha256": "3200fbd9f7fd4410426dd541e10d1ab829d3472f270d743c7fabd1696c03fe32",
+    "server_sha256": "41d256a606538d52df3c574e812b5fdd2df006cc659a335a447d4935f45e685c"
+  },
+  "inspector": {
+    "canonical_inventory_sha256": "3437ec2a483ee1bd19165bb7318f36d8c0cdd430aa881ce7c3606c32a006f460",
+    "cli_sha256": "1fcbc2c4d4324b85f75c0b4cf9f125ee1f74df90d14eb3fea4ca96d0a1885f4e",
+    "default_denials": {
+      "rust.dependency.add": "permission_denied",
+      "rust.dependency.remove": "permission_denied",
+      "rust.fix.apply": "permission_denied",
+      "rust.fmt.apply": "permission_denied",
+      "rust.manifest.patch": "permission_denied"
+    },
+    "limitation": "Inspector CLI is one-shot; project references cannot be carried into a later invocation.",
+    "m1_snapshots": {
+      "rust.catalog.status": "c075bbb21e1cd6cc394ff65733d4016cf90d61d0c085acbbb206d4a88b6524dc",
+      "rust.check": "6d16c69a5c782828717a45d7e7a7271b34e2376323dcfcfb3d0cc049b02b8385",
+      "rust.clippy": "5a87e39711ad006c11951ea27d23950111f1011f66f4412181a9c54809750b9b",
+      "rust.crate.inspect": "6cc9ab735e48fb865213386a606702b7f22b576cbf1b0f7d36f6196a9d1d8ce1",
+      "rust.crate.search": "0788868ed18a7ed2d8b3002017a312f1adea5b90ea3430d8bfbfd516b693a83c",
+      "rust.dependencies.audit": "1f8d62f3949f565fc8aabdacce61dab65919c6f0cf0c4cecccf4f03389d5d1cc",
+      "rust.diagnostics.explain": "861e1b4ff08196f35ced4f07dbb69a2135f5a4e0720ebf73d2766d726c5376f4",
+      "rust.fmt.check": "1c17b28a27063f0d4e7cbd4837d72c958b6a9d022f248a0d53474ba209146f45",
+      "rust.project.inspect": "7f424a454332475212a4f06ec1ac945cfe600cdf382a3ed238bda70212139f4a",
+      "rust.project.open": "84b9ceb750351eb803a461d05e2383bce441d5dc059c591f1e91a9f5c4c3d128",
+      "rust.quality.gate": "fcd2b3058e9b19aecaee84a28ea90b04a234598609613a569bcc02b817dd1ee3",
+      "rust.test": "0104d39a86b2f1a3881fa0f2f458750fa71b3fc6688a76584471da67d7321525",
+      "rust.toolchain.inspect": "c821fcfd1d94ba65580364f27280f18d2b439e38215526dc0e7181c10832db3d"
+    },
+    "node_sha256": "3200fbd9f7fd4410426dd541e10d1ab829d3472f270d743c7fabd1696c03fe32",
+    "positive_open": true,
+    "tool_count": 18,
+    "tool_names": [
+      "rust.project.open",
+      "rust.project.inspect",
+      "rust.toolchain.inspect",
+      "rust.check",
+      "rust.fmt.check",
+      "rust.clippy",
+      "rust.test",
+      "rust.dependencies.audit",
+      "rust.diagnostics.explain",
+      "rust.quality.gate",
+      "rust.catalog.status",
+      "rust.crate.search",
+      "rust.crate.inspect",
+      "rust.manifest.patch",
+      "rust.fmt.apply",
+      "rust.fix.apply",
+      "rust.dependency.add",
+      "rust.dependency.remove"
+    ],
+    "version": "2.5.0"
+  },
+  "inspector_exit_5_disposition": {
+    "exit_code_definition_lines": "13255-13262",
+    "installed_source": "target/m1-17-inspector/node_modules/@modelcontextprotocol/inspector/clients/cli/build/index.js",
+    "installed_source_sha256": "1fcbc2c4d4324b85f75c0b4cf9f125ee1f74df90d14eb3fea4ca96d0a1885f4e",
+    "is_error_mapping_lines": "13741-13746",
+    "semantics": "Inspector 2.5.0 emits the JSON result, then exits 5 when result.isError is true; only the five expected default-deny calls accept that exit and still require isError:true plus blocked/permission_denied."
+  },
+  "limits": {
+    "combined_output_bytes": 8388608,
+    "wall_seconds": 900
+  },
+  "run_directory": "target/m2-clients/run-1788641250957474000",
+  "schema": "rust-mcp-m2-third-party-clients-v2",
+  "scope": "Inspector one-shot discovery/default-deny plus one stock Claude model-directed five-tool mutation workflow",
+  "security": {
+    "builtin_tools": [],
+    "claude_restricted": true,
+    "fallback_model": false,
+    "network_claim": "No client network-isolation claim; the normal model API is required. Guest execution remains Docker network=none.",
+    "permission_bypass": false,
+    "strict_mcp_config": true
+  },
+  "status": "passed",
+  "vendor_fingerprint": "sha256:743947d5788c1a4385a4b59869c5b8bd0535f7fc0d875b51288f9b26b2d0eba1"
+}

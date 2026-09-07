@@ -2,6 +2,7 @@
 mod schemas;
 #[cfg(test)]
 mod tests;
+use super::clock::WallClock;
 use super::{
     catalog::provider::CatalogProvider,
     contract::{Contract, ToolOutput},
@@ -20,7 +21,7 @@ use std::{
         Arc,
         atomic::{AtomicBool, Ordering},
     },
-    time::{Duration, Instant, SystemTime, UNIX_EPOCH},
+    time::{Duration, Instant},
 };
 pub(super) const NAME: &str = "rust.crate.inspect";
 const DEADLINE: Duration = Duration::from_secs(120);
@@ -286,17 +287,6 @@ fn worker_error(error: WorkerError) -> CatalogInspectError {
 }
 fn millis(started: Instant) -> u64 {
     started.elapsed().as_millis().try_into().unwrap_or(u64::MAX)
-}
-struct WallClock;
-impl Clock for WallClock {
-    fn now(&self) -> UnixSeconds {
-        UnixSeconds(
-            SystemTime::now()
-                .duration_since(UNIX_EPOCH)
-                .map(|v| v.as_secs())
-                .unwrap_or(0),
-        )
-    }
 }
 pub(super) struct CrateInspectTool {
     pub(super) definition: Tool,

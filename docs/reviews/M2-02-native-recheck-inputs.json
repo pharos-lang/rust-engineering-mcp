@@ -1,0 +1,69 @@
+{
+  "model": "claude-opus-5",
+  "effort": "high",
+  "cli_version": "2.1.260",
+  "tools": [],
+  "permission_mode": "dontAsk",
+  "strict_mcp_config": true,
+  "no_session_persistence": true,
+  "files": [
+    {
+      "path": "docs/adr/ADR-050-local-coordinated-mutation.md",
+      "sha256": "e4e8b38936cdde67c4704833c464b68dd43e7fe6166daadb887991ee695c6a40"
+    },
+    {
+      "path": "docs/adr/ADR-052-mutation-journal-and-authorization.md",
+      "sha256": "740dc2ba04770560b5b7305cd2e6155ff744f022d5c7386d6ca21eb8aa5bec5f"
+    },
+    {
+      "path": "docs/adr/ADR-054-multiple-file-mutation-publication.md",
+      "sha256": "928b5e463d339ac8ac759c42e4dbee389ebe23655e3f698b2b4b1e84cfd04905"
+    },
+    {
+      "path": "crates/domain/src/mutation.rs",
+      "sha256": "cda55481cd7ffbc80c6c83074662d95bba8610fbcbff164c1a61c730eb3ab41d"
+    },
+    {
+      "path": "crates/domain/src/source.rs",
+      "sha256": "2fbc370dc6be5434bd64e137f5d97284f4faa11cca64164566957f1133e7e7d9"
+    },
+    {
+      "path": "crates/project-adapter/src/mutation_store.rs",
+      "sha256": "54c1ced98d0173cd6e49d999063b9a55d0bdf9835f1965997d715b3c97080fbb"
+    },
+    {
+      "path": "crates/project-adapter/src/filesystem/macos.rs",
+      "sha256": "5baedec6ebc09489d2b5b3e7a6f0fe4516b5662061318c8b2d5da4b7d7cc8be6"
+    },
+    {
+      "path": "crates/project-adapter/src/filesystem/macos/source.rs",
+      "sha256": "aebc1b3b3e664b9e3f8c4274c1493f8433c1ab86c5453f2b3c178467c76715b1"
+    },
+    {
+      "path": "crates/project-adapter/src/filesystem/macos/mutation.rs",
+      "sha256": "066a5c6beaff5778845cd84a14a7a59184612f4b53e4dc602f6bb949c4a01b48"
+    },
+    {
+      "path": "crates/project-adapter/tests/mutation_store.rs",
+      "sha256": "ea176d8a83db4f173099b34a21c544daad2b0eae5e12c47d22b961b29449b5ba"
+    },
+    {
+      "path": "crates/project-adapter/tests/support/native_mutation.rs",
+      "sha256": "ea36bd2bf450ffb3cf7f20f012d62ae6067e143f84695d848b59ce2fac6aef46"
+    },
+    {
+      "path": "docs/validation/M2-02-native-performance.json",
+      "sha256": "604e9b49a147f20968ca57cb4d308ad31f2a3c4188420b15c9435368ae9e6578"
+    },
+    {
+      "path": "docs/validation/M2-02-native-qualification.json",
+      "sha256": "743f3deb0db7e63429f339d85f2556a73fd5e287337f84205e5b41bbe6cc72cb"
+    },
+    {
+      "path": "docs/reviews/M2-02-native-opus.json",
+      "sha256": "a0b264c57452978c5a6d7db543fcbabc20e0bc5d00fdce0db1ac7e53518661da"
+    }
+  ],
+  "packet_sha256": "f6e83fd1616be2f46c5e4b910e9d7c4d7890b94e6a30f6913d47053e93b4c6da",
+  "packet_bytes": 243047
+}

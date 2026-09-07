@@ -1,5 +1,62 @@
 # Changelog
 
+## 0.3.0-dev — Unreleased
+
+### M3 — calidad y seguridad
+
+- Añadidas `rust.test.nextest`, `rust.coverage`, `rust.semver.check` y
+  `rust.mutation.test`; las 18 snapshots de tools preexistentes son byte-identical
+  a `main` y el snapshot de mutation cambió deliberadamente durante las
+  correcciones de seguridad. El gate Docker M3 pasa 62/62 (nextest 19, Tasks 7,
+  coverage 8, SemVer 18 y mutation 10) y el gate Rust de seguridad 20/20.
+- Añadidos el lifecycle acotado de jobs, el store privado persistente de artifacts
+  y la CLI `quality-artifacts recover|prune`, con Resources bajo el esquema
+  `rust-quality-artifact://`.
+- Provisionada una nueva imagen guest inmutable con plugins versionados y hashes
+  fijados; el runtime no instala ni descarga plugins.
+- Adoptado el perfil seccomp quality con la delta mínima de `socketpair` requerida
+  por Tokio ([ADR-064](docs/adr/ADR-064-quality-job-seccomp-profile.md)) y un
+  volumen ejecutable dedicado solo para las fases run/report de coverage
+  ([ADR-065](docs/adr/ADR-065-coverage-target-volume.md)).
+- Decisiones: lifecycle y Tasks negociadas en el job executor ([ADR-060](docs/adr/ADR-060-bounded-job-execution-and-mcp-tasks.md)); store privado y
+  límites de retención ([ADR-061](docs/adr/ADR-061-private-quality-artifact-store.md));
+  contabilidad de coverage y baselines SemVer ([ADR-062](docs/adr/ADR-062-coverage-accounting-and-semver-baselines.md)); provisioning autorizado
+  ([ADR-063](docs/adr/ADR-063-m3-guest-plugin-provisioning.md)). Tasks está
+  implementado, calificado y anunciado tras G4, aunque su uso exige declaración
+  mutua de la extensión. El gate full local pasa 25/25 y M3-06 queda calificado;
+  el cierre del milestone sigue pendiente de la aceptación formal de ADR-064/065
+  y de un re-review independiente.
+
+## 0.2.0-dev — Unreleased
+
+### M2 calificado localmente — mutación segura
+
+- Los planes terminales liberan cuota; los retries exactos se resuelven desde el
+  journal con permisos vigentes, incluso tras reinicio (ADR-059).
+
+- Eventos locales M2 por stderr sin source, rutas ni credenciales.
+- Admisión del journal con reservas de staging y crecimiento de metadata. La
+  corrupción persistente tiene un procedimiento documentado para continuar en
+  workspace y state root nuevos, conservando los originales.
+- El checkout registra cinco tools opt-in adicionales: `rust.manifest.patch`,
+  `rust.fmt.apply`, `rust.fix.apply`, `rust.dependency.add` y
+  `rust.dependency.remove`; las trece tools publicadas en `0.1.0` se conservan.
+- ADR-050 adopta `local_coordinated`, con preview/commit/receipt, planes ligados a
+  la operación, cinco grants independientes, journal durable y recuperación
+  conservadora. No promete CAS, exclusión de escritores externos ni atomicidad
+  visible multiarchivo.
+- Manifest patch incorpora ediciones tipadas set/remove para lints, features,
+  profiles y workspace dependencies. Add/remove exige un manifest miembro y datos
+  Cargo vendorizados aprobados cuando cambia la resolución.
+- La policy `preserve_presence` actualiza un lock existente y no publica el lock
+  transitorio usado al validar un proyecto que carecía de él.
+- Fmt y fix solo reemplazan archivos Rust existentes. Fix usa un perfil aislado
+  dedicado con `network=none` y TCP loopback interno para la coordinación de Cargo;
+  el candidato se comprueba después de aplicar fixes.
+
+La calificación conjunta M2 está completada: [full y clientes](docs/validation/M2-07.md).
+No se ha publicado otra release.
+
 ## 0.1.0 — 2026-09-05
 
 - Publicada la release estable `v0.1.0` desde el commit público

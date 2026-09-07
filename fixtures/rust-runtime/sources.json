@@ -3,8 +3,19 @@
   "target": "aarch64-unknown-linux-gnu",
   "base": "docker.io/library/debian@sha256:88200866dfff7ea7f5cbcb6ec7c8a701889efe6fe859fe64d6990e4b07ea4171",
   "manifest": "https://static.rust-lang.org/dist/channel-rust-1.98.1.toml",
+  "provisioning": {
+    "m1_tag": "rust-engineering-runtime:1.98.1-arm64",
+    "m3_tag": "rust-engineering-runtime:1.98.1-arm64-m3",
+    "gateway_environment": {
+      "PATH": "/opt/rust/bin:/usr/bin:/bin",
+      "CARGO_HOME": "/opt/rust",
+      "LLVM_COV": "/opt/rust/lib/rustlib/aarch64-unknown-linux-gnu/bin/llvm-cov",
+      "LLVM_PROFDATA": "/opt/rust/lib/rustlib/aarch64-unknown-linux-gnu/bin/llvm-profdata"
+    }
+  },
   "components": [
     {
+      "kind": "rust-component",
       "package": "rustc",
       "manifest_version": "1.98.1 (48a229cea 2026-09-01)",
       "available": true,
@@ -12,6 +23,7 @@
       "sha256": "89fb83041993b48816514815606f53a5264729b8b449671a6b291e6f0ae74f40"
     },
     {
+      "kind": "rust-component",
       "package": "rust-std",
       "manifest_version": "1.98.1 (48a229cea 2026-09-01)",
       "available": true,
@@ -19,6 +31,7 @@
       "sha256": "9bf796a6ec5b004813ebd0b650775a7c6a4f3aae97ad362ae294798dca4f3b23"
     },
     {
+      "kind": "rust-component",
       "package": "cargo",
       "manifest_version": "0.99.0 (797e8a9bc 2026-08-05)",
       "available": true,
@@ -26,6 +39,7 @@
       "sha256": "c09425a7f300af148c0bdfded0e7d5f1fe7c075b2b9674e8935afa769297b2f6"
     },
     {
+      "kind": "rust-component",
       "package": "rustfmt-preview",
       "manifest_version": "1.9.0",
       "available": true,
@@ -33,6 +47,7 @@
       "sha256": "7d4c136278b61096d46ef23019c29acb7ee5a2a1412cbfee5050316110c6fd8c"
     },
     {
+      "kind": "rust-component",
       "package": "clippy-preview",
       "manifest_version": "0.1.98",
       "available": true,
@@ -40,5 +55,101 @@
       "sha256": "396e17c0a669399823d0e59073686a4e5f50b2d41f062f1d3afc9210f9d3553d"
     }
   ],
-  "manifest_sha256": "a7c8774a5fd8441c997d94c029776cbc5eb111e9d72ab5d256fa69866644347e"
+  "manifest_sha256": "a7c8774a5fd8441c997d94c029776cbc5eb111e9d72ab5d256fa69866644347e",
+  "plugins": [
+    {
+      "id": "cargo-nextest",
+      "kind": "release-archive",
+      "version": "0.9.143",
+      "target": "aarch64-unknown-linux-gnu",
+      "url": "https://github.com/nextest-rs/nextest/releases/download/cargo-nextest-0.9.143/cargo-nextest-0.9.143-aarch64-unknown-linux-gnu.tar.gz",
+      "release_url": "https://github.com/nextest-rs/nextest/releases/tag/cargo-nextest-0.9.143",
+      "sha256": "2a64b3566a92508550a7ab29c3e8db25472ca37730ecb4d22100b6aa440c2a68",
+      "size": 11243965,
+      "license": "Apache-2.0 OR MIT",
+      "notice_source": "https://raw.githubusercontent.com/nextest-rs/nextest/cargo-nextest-0.9.143/cargo-nextest/Cargo.toml",
+      "expected_archive_members": ["cargo-nextest"],
+      "destination": "/opt/rust/bin/cargo-nextest",
+      "cargo_subcommand": "nextest"
+    },
+    {
+      "id": "cargo-llvm-cov",
+      "kind": "release-archive",
+      "version": "0.9.0",
+      "target": "aarch64-unknown-linux-gnu",
+      "url": "https://github.com/taiki-e/cargo-llvm-cov/releases/download/v0.9.0/cargo-llvm-cov-aarch64-unknown-linux-gnu.tar.gz",
+      "release_url": "https://github.com/taiki-e/cargo-llvm-cov/releases/tag/v0.9.0",
+      "sha256": "9af53b273e50d01d8bde8785de8541f6738cc4375248cd7683aec8b5768b9d21",
+      "size": 1613151,
+      "license": "Apache-2.0 OR MIT",
+      "notice_source": "https://raw.githubusercontent.com/taiki-e/cargo-llvm-cov/v0.9.0/Cargo.toml",
+      "expected_archive_members": ["cargo-llvm-cov"],
+      "destination": "/opt/rust/bin/cargo-llvm-cov",
+      "cargo_subcommand": "llvm-cov"
+    },
+    {
+      "id": "llvm-tools",
+      "kind": "rust-component",
+      "version": "1.98.1",
+      "target": "aarch64-unknown-linux-gnu",
+      "url": "https://static.rust-lang.org/dist/llvm-tools-1.98.1-aarch64-unknown-linux-gnu.tar.xz",
+      "checksum_url": "https://static.rust-lang.org/dist/llvm-tools-1.98.1-aarch64-unknown-linux-gnu.tar.xz.sha256",
+      "sha256": "caaf950c65f3e428247dbe9c173d142b7072b2134962a61924c01e39f6b6dc1e",
+      "size": 32493908,
+      "license": "Apache-2.0 WITH LLVM-exception",
+      "notice_source": "Official llvm-tools archive LICENSE/NOTICE files; verify and capture during provisioning",
+      "expected_archive_members": [
+        "llvm-tools-1.98.1-aarch64-unknown-linux-gnu/install.sh",
+        "llvm-tools-1.98.1-aarch64-unknown-linux-gnu/llvm-tools-preview/lib/rustlib/aarch64-unknown-linux-gnu/bin/llvm-cov",
+        "llvm-tools-1.98.1-aarch64-unknown-linux-gnu/llvm-tools-preview/lib/rustlib/aarch64-unknown-linux-gnu/bin/llvm-profdata"
+      ],
+      "destination": "/opt/rust",
+      "installed_component": "llvm-tools-preview",
+      "executables": {
+        "llvm-cov": "/opt/rust/lib/rustlib/aarch64-unknown-linux-gnu/bin/llvm-cov",
+        "llvm-profdata": "/opt/rust/lib/rustlib/aarch64-unknown-linux-gnu/bin/llvm-profdata"
+      },
+      "environment_fallback": {
+        "LLVM_COV": "/opt/rust/lib/rustlib/aarch64-unknown-linux-gnu/bin/llvm-cov",
+        "LLVM_PROFDATA": "/opt/rust/lib/rustlib/aarch64-unknown-linux-gnu/bin/llvm-profdata"
+      }
+    },
+    {
+      "id": "cargo-semver-checks",
+      "kind": "release-archive",
+      "version": "0.50.0",
+      "target": "aarch64-unknown-linux-gnu",
+      "url": "https://github.com/obi1kenobi/cargo-semver-checks/releases/download/v0.50.0/cargo-semver-checks-aarch64-unknown-linux-gnu.tar.gz",
+      "release_url": "https://github.com/obi1kenobi/cargo-semver-checks/releases/tag/v0.50.0",
+      "sha256": "e35f435ea322659381f52e7034bb4f0470108f5b267d29f13cf08152fa4af29b",
+      "size": 7866573,
+      "license": "Apache-2.0 OR MIT",
+      "notice_source": "https://raw.githubusercontent.com/obi1kenobi/cargo-semver-checks/v0.50.0/Cargo.toml",
+      "expected_archive_members": ["cargo-semver-checks"],
+      "destination": "/opt/rust/bin/cargo-semver-checks",
+      "cargo_subcommand": "semver-checks"
+    },
+    {
+      "id": "cargo-mutants",
+      "kind": "source-build",
+      "version": "27.1.0",
+      "target": "aarch64-unknown-linux-gnu",
+      "url": "https://crates.io/crates/cargo-mutants/27.1.0",
+      "sha256": null,
+      "size": null,
+      "license": "MIT",
+      "notice_source": "https://raw.githubusercontent.com/sourcefrog/cargo-mutants/v27.1.0/Cargo.toml",
+      "expected_archive_members": [],
+      "destination": "/opt/rust/bin/cargo-mutants",
+      "source_build": {
+        "crate": "cargo-mutants",
+        "version": "27.1.0",
+        "command": "cargo install cargo-mutants --version 27.1.0 --locked --root /opt/plugins",
+        "registry": "crates.io",
+        "registry_index_checksum": "recorded by provision.py when emitted by the builder; null if unavailable",
+        "binary_sha256": "recorded by provision.py after the builder emits it",
+        "build_log_sha256": "recorded by provision.py after Docker build completes"
+      }
+    }
+  ]
 }

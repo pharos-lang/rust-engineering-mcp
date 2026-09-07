@@ -1,0 +1,27 @@
+   Compiling rust-engineering-domain v0.2.0-dev (/Users/cburgosro/Projects/rust-mcp/crates/domain)
+   Compiling rust-engineering-application v0.2.0-dev (/Users/cburgosro/Projects/rust-mcp/crates/application)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 1.57s
+     Running tests/mutation.rs (target/debug/deps/mutation-98d6687b43e71f92)
+
+running 18 tests
+test preview_checks_expected_identity_and_authority_before_edit_or_oracle ... ok
+test commit_rejects_wrong_workspace_and_missing_authority_before_publisher_commit ... ok
+test cancelled_precommit_preserves_live_reference ... ok
+test receipt_requires_reopened_live_authority_and_recover_is_explicit ... ok
+test durable_replay_requires_live_authority_and_invalidates_after_result ... ok
+test absent_manifest_and_editor_or_oracle_failures_never_commit ... ok
+test captured_preview_does_not_hold_registry_during_validation_and_rechecks_generation ... ok
+test preview_oracle_receives_candidate_and_only_root_manifest_changes ... ok
+test plans_enforce_aggregate_candidate_bytes ... ok
+test retirement_requires_exact_terminal_receipt_binding ... ok
+test plans_enforce_ttl_boundary_and_reject_backward_clock ... ok
+test preview_refuses_source_changed_after_oracle ... ok
+test plans_enforce_capacity_digest_binding_and_id_uniqueness ... ok
+test format_preview_rejects_changed_manifest_missing_files_and_late_external_changes ... ok
+test rust_previews_check_authority_and_bind_operation_and_both_executions ... ok
+test successful_or_recovery_required_commit_invalidates_reference ... ok
+test preview_retention_restores_slot_and_byte_budgets_but_delivered_plans_resolve ... ok
+test terminal_plans_release_capacity_without_increasing_pending_quota ... ok
+
+test result: ok. 18 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+

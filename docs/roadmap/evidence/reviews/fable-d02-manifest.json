@@ -1,0 +1,22 @@
+[
+  {
+    "path": "docs/roadmap/m2-safe-mutation.md",
+    "sha256": "790d86a4e482396a8a4d2ad6593aedd41dc03520a46aa3523171693a76d6d8f8"
+  },
+  {
+    "path": "docs/adr/ADR-013-safe-mutation.md",
+    "sha256": "80d33509b8c7a2abe244ae7b8576c02939508b5a5b6a4dcfc552185482d9e400"
+  },
+  {
+    "path": "docs/adr/ADR-024-project-open.md",
+    "sha256": "7d48f8bc8d2937ef2a1ca654ba78d6acf4eacaa30b7974541fbb3662d027d165"
+  },
+  {
+    "path": "docs/adr/ADR-031-rust-source-transfer.md",
+    "sha256": "2fcd34c560d06940717c32449ac48e84d71f2c759e2faff97e330b582780dbf0"
+  },
+  {
+    "path": "AGENTS.md",
+    "sha256": "9057042f049b2f77e020206f9bba6464c925f58f2430aaa30cc96f8596ade73d"
+  }
+]

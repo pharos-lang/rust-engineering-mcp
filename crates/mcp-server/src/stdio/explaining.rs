@@ -1,9 +1,11 @@
 // These types are used only to derive schemas; domain values own wire serialization.
 #[allow(dead_code)]
 pub(super) mod schemas;
+use super::clock::WallClock;
+use super::workers::worker_error;
 use super::{
     contract::{Contract, ToolOutput},
-    workers::{Joined, WorkerError, Workers},
+    workers::{Joined, Workers},
 };
 use rmcp::{
     model::{CallToolRequestParams, CallToolResult, ErrorData, Tool, ToolAnnotations},
@@ -11,8 +13,8 @@ use rmcp::{
 };
 use rust_engineering_application::{ExecutionError, InspectionError, ProjectError};
 use rust_engineering_domain::{
-    Clock, DiagnosticCode, DiagnosticExplanation, Evidence, ExecutionTermination,
-    ExplainObservation, OperationalErrorCode, ToolStatus, UnixSeconds,
+    DiagnosticCode, DiagnosticExplanation, Evidence, ExecutionTermination, ExplainObservation,
+    OperationalErrorCode, ToolStatus,
 };
 use rust_engineering_execution::RustProjectInspector;
 use schemars::JsonSchema;
@@ -22,7 +24,7 @@ use std::{
         Arc,
         atomic::{AtomicBool, Ordering},
     },
-    time::{Duration, Instant, SystemTime, UNIX_EPOCH},
+    time::{Duration, Instant},
 };
 
 pub(super) const NAME: &str = "rust.diagnostics.explain";
@@ -308,16 +310,6 @@ fn output(
         evidence,
     })
 }
-fn worker_error(error: WorkerError) -> InspectionError {
-    match error {
-        WorkerError::Busy => InspectionError::Execution(ExecutionError::Busy),
-        WorkerError::Cancelled => InspectionError::Project(ProjectError::Cancelled),
-        WorkerError::TimedOut => {
-            InspectionError::Project(ProjectError::Rejected(OperationalErrorCode::CommandTimeout))
-        }
-        WorkerError::Internal => InspectionError::Internal,
-    }
-}
 fn joined_result<T>(joined: Joined<T, InspectionError>) -> Result<T, InspectionError> {
     match (joined.result, joined.interrupted) {
         // Actual failures, especially cleanup uncertainty, survive cancellation
@@ -332,17 +324,6 @@ fn joined_result<T>(joined: Joined<T, InspectionError>) -> Result<T, InspectionE
         (Err(error), _) => Err(error),
         (Ok(_), Some(signal)) => Err(worker_error(signal)),
         (Ok(value), None) => Ok(value),
-    }
-}
-struct WallClock;
-impl Clock for WallClock {
-    fn now(&self) -> UnixSeconds {
-        UnixSeconds(
-            SystemTime::now()
-                .duration_since(UNIX_EPOCH)
-                .map(|v| v.as_secs())
-                .unwrap_or(0),
-        )
     }
 }
 pub(super) struct ExplainTool {

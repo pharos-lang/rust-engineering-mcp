@@ -1,0 +1,59 @@
+{
+  "status": "passed",
+  "public_baseline": "aa61bce44834df3154441f75bfbab726097ad0ff",
+  "exact_unchanged_snapshots": [
+    {
+      "path": "crates/mcp-server/tests/snapshots/audit-tool.json",
+      "sha256": "b6bb173a199bd85919c1a8f97218c4f02162f106338abffef97e3a68b72269f2"
+    },
+    {
+      "path": "crates/mcp-server/tests/snapshots/catalog-status-tool.json",
+      "sha256": "9ac8e2964beb0ae3af9829776761d25612ad4a57252dc19f98fa684f3c46c1bc"
+    },
+    {
+      "path": "crates/mcp-server/tests/snapshots/check-tool.json",
+      "sha256": "a9281b713e3f8b91682b0d248cacb7fc1e978b6d8df9baf0ad0f315a5a43f014"
+    },
+    {
+      "path": "crates/mcp-server/tests/snapshots/clippy-tool.json",
+      "sha256": "a4afb5c9d2c854ed23fb256c9ecdfd40e0ca5129a9aa302553a957e5346511a0"
+    },
+    {
+      "path": "crates/mcp-server/tests/snapshots/crate-inspect-tool.json",
+      "sha256": "27af4b9f7c2df00fc2d528341ee781d350d09081bf2a7c9f3c5bc5538442d39d"
+    },
+    {
+      "path": "crates/mcp-server/tests/snapshots/crate-search-tool.json",
+      "sha256": "3d2a6d091a4a0ba0cfcdd1a4f8600e4cf4f883fc18ad4fee2412d4a1053f6039"
+    },
+    {
+      "path": "crates/mcp-server/tests/snapshots/explain-tool.json",
+      "sha256": "f4e0ab8b25a32e07ba6a86c100b7ee2a5adcab7a35f691f16e82c9d3f4933b9f"
+    },
+    {
+      "path": "crates/mcp-server/tests/snapshots/format-tool.json",
+      "sha256": "762e342a4b9e7e7e4a013583fb0f71ecefe1bf4c3ef47088b7c119a75dee56a4"
+    },
+    {
+      "path": "crates/mcp-server/tests/snapshots/project-inspect-tool.json",
+      "sha256": "bf0838ace4f0f7f0709c76801de6f1b66307d90251eab6441a2d07208b913e07"
+    },
+    {
+      "path": "crates/mcp-server/tests/snapshots/project-open-tool.json",
+      "sha256": "bfab409498dc67517a96d4d034f403d24ad3ae31046df3afc09c1f3781148d9b"
+    },
+    {
+      "path": "crates/mcp-server/tests/snapshots/quality-tool.json",
+      "sha256": "95f2b8adf277a0d2d95b827a320c1f848bb1069482ad30d2e1592d418bdfffb3"
+    },
+    {
+      "path": "crates/mcp-server/tests/snapshots/test-tool.json",
+      "sha256": "a4f0904c89b34bd4eb3524f9de71c8d4c2036028b5905bcfdc17eea75085abf7"
+    },
+    {
+      "path": "crates/mcp-server/tests/snapshots/toolchain-inspect-tool.json",
+      "sha256": "bd57a8784387ac6939b3a12d2343660a1bf2c2fc1246c83790e6f7e0276ef518"
+    }
+  ],
+  "scope": "Byte equality of all thirteen M1 public tool snapshots; runtime admission and behavior are separately tested by the full gate."
+}

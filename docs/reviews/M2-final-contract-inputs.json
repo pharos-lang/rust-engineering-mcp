@@ -1,0 +1,65 @@
+{
+  "model": "claude-sonnet-5",
+  "effort": "medium",
+  "cli_version": "2.1.260",
+  "read_only": true,
+  "tools": [],
+  "files": [
+    {
+      "path": "docs/adr/ADR-050-local-coordinated-mutation.md",
+      "sha256": "e4e8b38936cdde67c4704833c464b68dd43e7fe6166daadb887991ee695c6a40",
+      "bytes": 7460
+    },
+    {
+      "path": "docs/adr/ADR-052-mutation-journal-and-authorization.md",
+      "sha256": "3bada3a68f78bbe15c3f77f5ce3e8e096562488f27aeeacc671bdbcc31645b1c",
+      "bytes": 9777
+    },
+    {
+      "path": "docs/adr/ADR-055-offline-cargo-data-and-lock-policy.md",
+      "sha256": "d3f3a71425f1d774252ec33ca896d24ab9da04cc412a686c7cec04a325269381",
+      "bytes": 7480
+    },
+    {
+      "path": "docs/adr/ADR-056-cargo-fix-isolated-loopback.md",
+      "sha256": "0f95839e32336d5caaa5be498629cb2681f119b63d8640b18a4f86ec21946425",
+      "bytes": 4633
+    },
+    {
+      "path": "docs/adr/ADR-057-typed-manifest-and-dependency-operations.md",
+      "sha256": "12a116c6ed5645659935e2b278e6bc41aad43c739fee8a8a5c53b46beadaefa1",
+      "bytes": 5854
+    },
+    {
+      "path": "crates/mcp-server/src/host_config.rs",
+      "sha256": "9d67e34de0bacdc328d1938e943ee39cb69d62552d27e8c9a232fae32baea341",
+      "bytes": 12011
+    },
+    {
+      "path": "crates/mcp-server/src/stdio/mutation.rs",
+      "sha256": "6bffd3453dde010e86482c5d1d11dfec48d1d9883360572f4e54d3c10444c88b",
+      "bytes": 60573
+    },
+    {
+      "path": "crates/mcp-server/src/stdio/mutation/semantic_input.rs",
+      "sha256": "4fe8befed56c8d405bf0b9e2389018fac16f216ca6cb90c2fa0e8cf9da7e3c0d",
+      "bytes": 31653
+    },
+    {
+      "path": "crates/application/src/mutation.rs",
+      "sha256": "518cacfe2bb30f433a4aa705da29c5c824b47ceace3abd0dcf1444c81849c2b6",
+      "bytes": 17160
+    },
+    {
+      "path": "crates/application/src/resolution.rs",
+      "sha256": "1c3e4b2bb9e3f6f0af199adc1355c3c664945a6b6972610a189aa8ada77c23a8",
+      "bytes": 12298
+    },
+    {
+      "path": "crates/mcp-server/tests/protocol.rs",
+      "sha256": "d68d88ba72732d7ffa76a6d960c0385ff524767da9b11053d27098e46fca102a",
+      "bytes": 63619
+    }
+  ],
+  "prompt_sha256": "56c9399a3abb2fc6acd46963d601ffc146e2589c9877e2c244385637cb8a72e0"
+}

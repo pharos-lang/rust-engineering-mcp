@@ -23,6 +23,19 @@ for dependency in ['lancedb','fastembed','ort','rustsec']:
 for path in list((root/'crates/semantic-adapter/src').glob('*.rs'))+list((root/'crates/artifact-adapter/src').glob('*.rs')):
     assert not re.search(r'(?:std::fs|File::open|read_to_end|shared-memory://)',path.read_text(encoding='utf-8')), path
 
+# ADR-061 fault/clock hooks exist solely for the project-adapter integration
+# tests. A production module must never install either hook; keeping this in
+# the architecture gate makes that property independent of reviewer memory.
+quality_impl=root/'crates/project-adapter/src/filesystem/macos/quality.rs'
+for symbol in ['with_fault_injection', 'with_clock_source']:
+    occurrences=[]
+    for path in (root/'crates').glob('*/src/**/*.rs'):
+        for number,line in enumerate(path.read_text(encoding='utf-8').splitlines(),1):
+            if symbol in line:
+                occurrences.append((path,number,line.strip()))
+    assert len(occurrences) == 1 and occurrences[0][0] == quality_impl, occurrences
+    assert occurrences[0][2].startswith(f'pub fn {symbol}'), occurrences
+
 assert manifest['workspace']['dependencies']['rustsec']['version']=='=0.32.0'
 assert manifest['workspace']['dependencies']['cargo-lock']['version']=='=11.0.1'
 assert not manifest['workspace']['dependencies']['rustsec'].get('features')

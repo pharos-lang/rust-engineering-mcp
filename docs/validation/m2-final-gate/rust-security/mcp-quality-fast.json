@@ -1,0 +1,15 @@
+{
+  "captured_source_write_denied": true,
+  "cases": 2,
+  "cleanup": true,
+  "configuration_fingerprint": "sha256:84fb1e2dac1829773cd1c3fa00b757db03c33f78c2de9a49ab836d56b019183e",
+  "format_diff_and_clippy_diagnostic_retained": true,
+  "logs_sha256_verified": 6,
+  "ordered_stages": 3,
+  "ordinary_failures_continue": true,
+  "prior_log_group_retained": true,
+  "profiles": [
+    "fast"
+  ],
+  "source_unchanged_between_explicit_mutations": true
+}

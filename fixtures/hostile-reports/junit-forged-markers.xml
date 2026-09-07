@@ -1,0 +1,3 @@
+<testsuite name="forged" tests="1" failures="0"><testcase name="looks-good"><system-out>cargo test: 1 passed
+nextest: PASS
+{"reason":"build-finished","success":true}</system-out><failure message="real failure">assertion failed</failure></testcase></testsuite>

@@ -25,6 +25,58 @@ Python en total. Los entrypoints que requieren un host release real permanecen
 analizados por Sonar y probados por sus suites, pero se excluyen solo del porcentaje
 de cobertura; su evidencia end-to-end es separada y candidate-bound.
 
+`sonar.coverage.exclusions` nombra cada archivo individualmente —nunca un crate
+entero ni un comodín— y ninguno sale del análisis: siguen midiéndose fiabilidad,
+seguridad, mantenibilidad y duplicación. Solo se excluye lo que el scanner
+portable no puede ejecutar, y cada grupo declara el recibo que sí prueba su
+comportamiento:
+
+1. Programas de calificación maintainer-only: `scripts/codex-model-qualifier.py`,
+   `scripts/release-artifact.py`, `scripts/release-smoke.py` y
+   `scripts/verify-vendor.py`. Requieren host release Darwin real, Docker/Codex o
+   ambos. Recibos: [`M3-full-gate.json`](validation/M3-full-gate.json) y los
+   receipts de release en `docs/validation/`.
+2. Sondas M2 sobre Docker: `scripts/probe-m2-cargo-fix.py`,
+   `probe-m2-fix-socket-mask.py`, `probe-m2-guest-staging.py`,
+   `probe-m2-offline-registry.py`, `probe-m2-vendor-data.py` y
+   `probe-m2-write-primitives.py`. Su única ruta ejecutable crea volúmenes y
+   contenedores contra la imagen aprobada en un daemon local; el runner Ubuntu no
+   tiene ni el socket ni la imagen. Recibos: los JSON `M2-*` que cada sonda emite
+   y [`M3-rust-security.json`](validation/M3-rust-security.json).
+3. Gateway Docker cerrado y sus puertos: `crates/execution-adapter/src/lib.rs`,
+   `rust_gateway.rs`, `mutation_gateway.rs`, `mutation_test_gateway.rs`,
+   `nextest_gateway.rs`, `coverage_gateway.rs`, `semver_gateway.rs`,
+   `resolution_gateway.rs`, `project_inspection.rs`, `coverage_port.rs`,
+   `nextest_port.rs`, `mutation_test_port.rs` y `semver_port.rs`. Construyen y
+   ejecutan las fases del contenedor; los puertos reciben `&RustGateway` concreto,
+   así que sin daemon no hay ruta que un test portable pueda tomar. Los parsers
+   que sí son puros viven aparte (`coverage_json.rs`, `nextest_junit.rs`,
+   `semver_output.rs`, `mutation_outcomes.rs`) y siguen midiéndose. Recibos:
+   [`M3-runtime.json`](validation/M3-runtime.json) y
+   [`M3-rust-security.json`](validation/M3-rust-security.json).
+4. Publicación durable ligada al store macOS ARM64:
+   `crates/mcp-server/src/stdio/quality_artifacts.rs`. ADR-061 califica solo
+   macOS ARM64/APFS y fuera de ese host `NativeQualityArtifactStore` no tiene
+   constructor, así que ningún test portable puede alcanzar sus rutas de
+   publicación. Los adaptadores del store —`mutation_store.rs`,
+   `mutation_port.rs`, `quality_artifact_store.rs`, `cargo_vendor.rs` y
+   `filesystem.rs`— **no** se excluyen: su digest de plan y de bytes es portable
+   y `tests/mutation_digest.rs` lo prueba, junto con el rechazo
+   `UnsupportedPlatform` que cada entrypoint debe dar en un host no calificado.
+   Recibos: [`M3-runtime.json`](validation/M3-runtime.json) y
+   [`M3-06-rollback.json`](validation/M3-06-rollback.json).
+5. Entrypoints de host: `crates/mcp-server/src/stdio.rs` —ensamblado del servidor
+   sobre transporte stdio real, store nativo y runtime Docker— y
+   `crates/mcp-server/src/main.rs` —dispatch de argv del binario—, más
+   `scripts/m3-inspector-session.mjs`, que conduce una sesión MCP contra un
+   servidor real. Recibos: [`M3-runtime.json`](validation/M3-runtime.json) y
+   [`M3-full-gate.json`](validation/M3-full-gate.json).
+
+Los módulos de herramienta (`stdio/nextest.rs`, `coverage.rs`, `semver.rs`,
+`mutation.rs`, `mutation_test.rs`, `tasks.rs`, `resources.rs`) no se excluyen:
+su validación de opciones, sus conversiones DTO, sus proyecciones y su gramática
+de URI son puras y se prueban en el propio módulo.
+
 El análisis Python declara las versiones compatibles 3.11, 3.12, 3.13 y 3.14.
 `crates/catalog-adapter/src/schema.sql` es DDL de SQLite, no PL/SQL de Oracle;
 `.sql` se retira por tanto de los sufijos del analizador PL/SQL. Un futuro archivo
@@ -115,18 +167,18 @@ siguientes conservan la evolución histórica y los recibos de cada incorporaci�
 compilado en el gateway. Ejecuta secuencialmente dos tests exactos: transferencia
 USTAR con directorios vacíos/nombre100 bytes y calibración de seis escenarios
 Rust, seguida de metadata autorizada y revocación ante recalibración cancelada.
-Guarda logs y recibo en `target/rust-security/`; no instala ni selecciona otra
+Guarda logs y recibo vigente en `target/m3-rust-security/`; no instala ni selecciona otra
 imagen. `test-execution.sh` conserva exclusivamente la integración de probes M0.
 
 El stage rust-security incluye ahora cuatro tests exactos secuenciales: transferencia
 benigna, seis escenarios adversos del gateway, inspección MCP real y cierre por
 EOF/cancel durante calibración. Rechaza cero tests ejecutados. Conserva recibos
-`target/rust-security/calibration.json` y `mcp-inspection.json`; no debe ejecutarse
+`target/m3-rust-security/calibration.json` y `mcp-inspection.json`; no debe ejecutarse
 en paralelo con otros jobs Docker del gateway (startup rechaza objetos existentes).
 
 M1-02 reutiliza el test MCP real para ambas inspecciones en una sesión. El test
 exacto se llama toolchain_inspect_observes_installed_runtime_with_shared_calibration;
-target/rust-security/mcp-toolchain.json conserva el inventario y tres ejecuciones.
+target/m3-rust-security/mcp-toolchain.json conserva el inventario y tres ejecuciones.
 El reporte M1-01 previo es histórico; script actual exige ambos recibos.
 
 M1-03 amplía rust-security a seis tests exactos secuenciales: añade Cargo check
@@ -163,6 +215,18 @@ M1-09 extends the serial Rust security stage to20exact tests. Three quality-gate
 cases validate fast/standard,21distinct log SHA checks, source immutability and
 active libtest cancellation/EOF. Full remains14stages including real E5/LanceDB
 all-features and native macOS test-process network deny. No Assets are refreshed.
+
+M3-01 añade `scripts/test-m3-runtime.py` como stage full después de M2. Ejecuta
+19 selecciones exactas ignoradas de `nextest_runtime` y del módulo MCP
+`inspection_runtime::nextest`
+con selección exacta, un único test pasado y `--test-threads=1`; hashea fuentes,
+config e imagen y persiste estado running/final en `target/m3-runtime/receipt.json`.
+El gate Rust existente también emite un recibo source-bound bajo la imagen P02 en
+`target/m3-rust-security/receipt.json`. En la evidencia actual rust-security pasa
+20/20 y el UnixStream interno de Tokio funciona únicamente mediante el perfil
+separado de ADR-064. Los controles negativos
+mantienen AF_INET/AF_INET6/connect/pathname-Unix denegados; el gate final M3-01
+pasó 19/19 y queda registrado en `validation/M3-01-runtime.json`.
 
 ## M1-10 — Etapa catalog añadida
 

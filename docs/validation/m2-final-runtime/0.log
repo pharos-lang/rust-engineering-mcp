@@ -1,0 +1,8 @@
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.07s
+     Running unittests src/lib.rs (target/debug/deps/rust_engineering_execution-e50400fc8b531a8f)
+
+running 1 test
+test mutation_gateway::tests::real_rustfmt_exports_full_candidate_and_cleans_owned_objects ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 124 filtered out; finished in 4.01s
+

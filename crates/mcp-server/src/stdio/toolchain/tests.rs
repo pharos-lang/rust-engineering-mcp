@@ -1,4 +1,5 @@
 use super::*;
+use crate::stdio::workers::WorkerError;
 use rust_engineering_domain::*;
 use serde_json::{Value, json};
 type TestResult = Result<(), Box<dyn std::error::Error>>;

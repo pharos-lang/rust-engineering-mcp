@@ -1,0 +1,9 @@
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.11s
+     Running tests/inspection_runtime.rs (target/debug/deps/inspection_runtime-836bf750ab4f64c1)
+
+running 1 test
+test mutation_concurrency_runtime::thirteen_m1_tools_keep_existing_busy_contract_during_real_native_commit ... M2_M1_CONCURRENCY {"m1_busy_outcomes_equal":true,"native_staging_observed":true,"old_reference_invalidated":true,"source_payload_bytes":15728640,"thirteen_calls_and_commit_wait_ms":17469,"thirteen_m1_responses_ms":2,"tools_compared":13}
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 28 filtered out; finished in 40.38s
+

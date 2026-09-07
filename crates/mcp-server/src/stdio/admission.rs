@@ -3,6 +3,7 @@
 use std::borrow::Cow;
 use std::collections::HashMap;
 use std::io;
+use std::sync::atomic::{AtomicU64, Ordering};
 use std::sync::{Arc, Mutex};
 use std::time::Duration;
 
@@ -15,6 +16,8 @@ use rmcp::service::{
 };
 use rmcp::transport::Transport;
 use tokio::sync::{OwnedSemaphorePermit, Semaphore};
+
+use rust_engineering_application::job::{DeliveryToken, DeliveryTracker, InMemoryDeliveryTracker};
 
 use super::budget::IoFailure;
 
@@ -30,6 +33,16 @@ pub(super) struct AdmissionLease {
 
 pub(super) fn lease(extensions: &Extensions) -> Option<AdmissionLease> {
     extensions.get::<AdmissionLease>().cloned()
+}
+
+#[allow(dead_code)]
+pub(super) fn delivery_token(extensions: &Extensions) -> Option<DeliveryToken> {
+    extensions.get::<DeliveryToken>().copied()
+}
+
+struct OutstandingRequest {
+    lease: AdmissionLease,
+    delivery: DeliveryToken,
 }
 
 /// Preserve the transport lease even if the inner handler drops its context
@@ -78,7 +91,9 @@ pub(super) struct AdmittedTransport<T> {
     inner: T,
     failed: Arc<IoFailure>,
     requests: Arc<Semaphore>,
-    request_ledger: Arc<Mutex<HashMap<RequestId, AdmissionLease>>>,
+    request_ledger: Arc<Mutex<HashMap<RequestId, OutstandingRequest>>>,
+    delivery: Arc<dyn DeliveryTracker>,
+    next_delivery: Arc<AtomicU64>,
     notifications: Arc<Semaphore>,
     sends: Arc<Semaphore>,
     send_deadline: Duration,
@@ -91,10 +106,17 @@ impl<T> AdmittedTransport<T> {
             failed,
             requests: Arc::new(Semaphore::new(CAPACITY)),
             request_ledger: Arc::new(Mutex::new(HashMap::new())),
+            delivery: Arc::new(InMemoryDeliveryTracker::default()),
+            next_delivery: Arc::new(AtomicU64::new(1)),
             notifications: Arc::new(Semaphore::new(CAPACITY)),
             sends: Arc::new(Semaphore::new(CAPACITY)),
             send_deadline: SEND_DEADLINE,
         }
+    }
+
+    pub(super) fn with_delivery_tracker(mut self, delivery: Arc<dyn DeliveryTracker>) -> Self {
+        self.delivery = delivery;
+        self
     }
 }
 
@@ -122,7 +144,7 @@ impl<T: Transport<RoleServer>> Transport<RoleServer> for AdmittedTransport<T> {
         // handoff. Transfer the lease to the send future: the peer may observe
         // the frame and reuse its ID before stdout's flush future completes.
         // Completion must never remove a newer ledger entry using the same ID.
-        let request_lease = match self.request_ledger.lock() {
+        let outstanding = match self.request_ledger.lock() {
             Ok(mut ledger) => response_id.as_ref().and_then(|id| ledger.remove(id)),
             Err(_) => {
                 self.failed.record();
@@ -131,6 +153,7 @@ impl<T: Transport<RoleServer>> Transport<RoleServer> for AdmittedTransport<T> {
         };
         let permit = Arc::clone(&self.sends).try_acquire_owned();
         let failed = Arc::clone(&self.failed);
+        let delivery = Arc::clone(&self.delivery);
         let deadline = tokio::time::Instant::now() + self.send_deadline;
         let send = if permit.is_ok() && !failed.occurred() {
             Some(self.inner.send(item))
@@ -139,11 +162,16 @@ impl<T: Transport<RoleServer>> Transport<RoleServer> for AdmittedTransport<T> {
             None
         };
         async move {
-            let _request_lease = request_lease;
+            let request_lease = outstanding.map(|request| (request.lease, request.delivery));
             let _permit = permit.map_err(|_| rejected())?;
             let send = send.ok_or_else(rejected)?;
             match tokio::time::timeout_at(deadline, send).await {
-                Ok(Ok(())) => Ok(()),
+                Ok(Ok(())) => {
+                    if let Some((_, token)) = request_lease.as_ref() {
+                        delivery.mark_delivered(*token);
+                    }
+                    Ok(())
+                }
                 _ => {
                     failed.record();
                     Err(rejected())
@@ -171,22 +199,40 @@ impl<T: Transport<RoleServer>> Transport<RoleServer> for AdmittedTransport<T> {
                 let lease = AdmissionLease {
                     _permit: Arc::new(permit),
                 };
-                if let JsonRpcMessage::Request(request) = &message {
+                let delivery = if let JsonRpcMessage::Request(request) = &message {
+                    let Some(delivery) =
+                        DeliveryToken::new(self.next_delivery.fetch_add(1, Ordering::AcqRel))
+                    else {
+                        self.failed.record();
+                        return None;
+                    };
                     match self.request_ledger.lock() {
                         Ok(mut ledger) => {
                             if ledger.contains_key(&request.id) {
                                 self.failed.record();
                                 return None;
                             }
-                            ledger.insert(request.id.clone(), lease.clone());
+                            ledger.insert(
+                                request.id.clone(),
+                                OutstandingRequest {
+                                    lease: lease.clone(),
+                                    delivery,
+                                },
+                            );
                         }
                         Err(_) => {
                             self.failed.record();
                             return None;
                         }
                     }
-                }
+                    Some(delivery)
+                } else {
+                    None
+                };
                 message.insert_extension(lease);
+                if let Some(delivery) = delivery {
+                    message.insert_extension(delivery);
+                }
                 Some(message)
             }
             Err(_) => {
@@ -219,8 +265,19 @@ impl<T: Transport<RoleServer>> Transport<RoleServer> for AdmittedTransport<T> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::stdio::workers::JobExecutionSignal;
     use rmcp::model::{EmptyResult, GetExtensions, ServerResult};
+    use rust_engineering_application::job::{
+        DeliveryToken, InMemoryDeliveryTracker, InMemoryJobRegistry, JobAuthority, JobClock,
+        JobError, JobEvent, JobEvents, JobExecutor, JobIds, JobPermit, JobRegistry, JobSignal,
+        JobSubmission,
+    };
+    use rust_engineering_domain::{
+        ProjectRef,
+        job::{JobBudget, JobKind, JobOwnerBinding, JobState, Milliseconds},
+    };
     use std::collections::VecDeque;
+    use std::sync::atomic::{AtomicBool, Ordering};
 
     struct Fixture {
         messages: VecDeque<RxJsonRpcMessage<RoleServer>>,
@@ -463,6 +520,33 @@ mod tests {
     }
 
     #[test]
+    fn delivery_is_marked_only_after_successful_send_completion() -> io::Result<()> {
+        run(async {
+            let failed = Arc::new(IoFailure::default());
+            let tracker = Arc::new(InMemoryDeliveryTracker::default());
+            let mut transport = AdmittedTransport::new(
+                Fixture {
+                    messages: VecDeque::from([request(1)?]),
+                    stall: false,
+                },
+                failed,
+            )
+            .with_delivery_tracker(tracker.clone());
+            let message = transport.receive().await.ok_or_else(rejected)?;
+            let JsonRpcMessage::Request(request) = message else {
+                return Err(rejected());
+            };
+            let token = delivery_token(request.request.extensions()).ok_or_else(rejected)?;
+            tracker.register(token);
+            assert!(!tracker.was_delivered(token));
+            drop(request);
+            transport.send(response()).await?;
+            assert!(tracker.was_delivered(token));
+            Ok(())
+        })
+    }
+
+    #[test]
     fn unpolled_send_futures_are_bounded_and_dropping_releases_capacity() -> io::Result<()> {
         run(async {
             let failed = Arc::new(IoFailure::default());
@@ -490,6 +574,124 @@ mod tests {
         started: tokio_util::sync::CancellationToken,
         cancelled: tokio_util::sync::CancellationToken,
         cleanup: tokio_util::sync::CancellationToken,
+    }
+
+    struct FixedClock;
+    impl JobClock for FixedClock {
+        fn monotonic_millis(&self) -> Milliseconds {
+            Milliseconds(0)
+        }
+        fn utc_now(&self) -> Result<String, JobError> {
+            Ok("2026-09-05T12:00:00Z".into())
+        }
+    }
+    struct FixedIds;
+    impl JobIds for FixedIds {
+        fn random_128(&self) -> Result<[u8; 16], JobError> {
+            Ok([7; 16])
+        }
+    }
+    struct Allow;
+    impl JobAuthority for Allow {
+        fn revalidate(&self, _: &JobOwnerBinding, _: &ProjectRef, _: u64) -> bool {
+            true
+        }
+    }
+    struct Held(AtomicBool);
+    impl JobPermit for Held {
+        fn is_held(&self) -> bool {
+            self.0.load(Ordering::Acquire)
+        }
+        fn release_after_cleanup(&self) {
+            self.0.store(false, Ordering::Release);
+        }
+    }
+    struct Silent;
+    impl JobEvents for Silent {
+        fn record(&self, _: JobEvent) {}
+    }
+
+    struct QueuedJobService {
+        queued: tokio_util::sync::CancellationToken,
+        request_cancelled: tokio_util::sync::CancellationToken,
+    }
+
+    struct PrecommitCancelledService {
+        executor: Arc<JobExecutor>,
+        signal: Arc<JobExecutionSignal>,
+        permit: Arc<Held>,
+        rolled_back: tokio_util::sync::CancellationToken,
+    }
+    impl Service<RoleServer> for PrecommitCancelledService {
+        async fn handle_request(
+            &self,
+            _: ClientRequest,
+            context: RequestContext<RoleServer>,
+        ) -> Result<ServerResult, ErrorData> {
+            context.ct.cancelled().await;
+            let project_ref = "prj_00000000000000000000000000000001"
+                .parse()
+                .map_err(|_| ErrorData::internal_error("fixture project", None))?;
+            let outcome = self.executor.submit_guarded(
+                JobSubmission {
+                    kind: JobKind::TestNextest,
+                    owner: JobOwnerBinding::new([9; 32]),
+                    project_ref,
+                    policy_generation: 1,
+                    budget: JobBudget::asynchronous_default()
+                        .map_err(|_| ErrorData::internal_error("fixture budget", None))?,
+                    delivery_token: DeliveryToken::new(1)
+                        .ok_or_else(|| ErrorData::internal_error("fixture token", None))?,
+                    reserved_result_bytes: 1,
+                    signal: Arc::clone(&self.signal) as Arc<dyn JobSignal>,
+                    permit: Arc::clone(&self.permit) as Arc<dyn JobPermit>,
+                },
+                || !context.ct.is_cancelled(),
+            );
+            if outcome != Err(JobError::Unavailable)
+                || self.permit.is_held()
+                || self.signal.cancellation_requested()
+            {
+                return Err(ErrorData::internal_error("fixture rollback", None));
+            }
+            self.rolled_back.cancel();
+            Ok(ServerResult::EmptyResult(EmptyResult {}))
+        }
+        async fn handle_notification(
+            &self,
+            _: ClientNotification,
+            _: NotificationContext<RoleServer>,
+        ) -> Result<(), ErrorData> {
+            Ok(())
+        }
+        fn get_info(&self) -> ServerInfo {
+            ServerInfo::default()
+        }
+    }
+    impl Service<RoleServer> for QueuedJobService {
+        async fn handle_request(
+            &self,
+            _: ClientRequest,
+            context: RequestContext<RoleServer>,
+        ) -> Result<ServerResult, ErrorData> {
+            let request_cancelled = self.request_cancelled.clone();
+            tokio::spawn(async move {
+                context.ct.cancelled().await;
+                request_cancelled.cancel();
+            });
+            self.queued.cancel();
+            Ok(ServerResult::EmptyResult(EmptyResult {}))
+        }
+        async fn handle_notification(
+            &self,
+            _: ClientNotification,
+            _: NotificationContext<RoleServer>,
+        ) -> Result<(), ErrorData> {
+            Ok(())
+        }
+        fn get_info(&self) -> ServerInfo {
+            ServerInfo::default()
+        }
     }
 
     impl Service<RoleServer> for WaitingService {
@@ -605,6 +807,134 @@ mod tests {
                 .map_err(io::Error::other)?
                 .map_err(io::Error::other)?;
             assert_eq!(slots.available_permits(), CAPACITY);
+            Ok(())
+        })
+    }
+
+    #[test]
+    fn rmcp_post_queue_request_cancellation_does_not_cancel_registry_job_signal() -> io::Result<()>
+    {
+        run(async {
+            let executor = Arc::new(JobExecutor::new(
+                Arc::new(InMemoryJobRegistry::default()),
+                Arc::new(FixedClock),
+                Arc::new(FixedIds),
+                Arc::new(Allow),
+                Arc::new(InMemoryDeliveryTracker::default()),
+                Arc::new(Silent),
+            ));
+            let signal = JobExecutionSignal::new();
+            let project_ref = "prj_00000000000000000000000000000001"
+                .parse()
+                .map_err(io::Error::other)?;
+            let seed = executor
+                .submit(JobSubmission {
+                    kind: JobKind::TestNextest,
+                    owner: JobOwnerBinding::new([9; 32]),
+                    project_ref,
+                    policy_generation: 1,
+                    budget: JobBudget::asynchronous_default().map_err(io::Error::other)?,
+                    delivery_token: DeliveryToken::new(1)
+                        .ok_or_else(|| io::Error::other("token"))?,
+                    reserved_result_bytes: 1,
+                    signal: Arc::clone(&signal) as Arc<dyn JobSignal>,
+                    permit: Arc::new(Held(AtomicBool::new(true))),
+                })
+                .map_err(io::Error::other)?;
+            executor.start(&seed.id).map_err(io::Error::other)?;
+
+            let cancellation = serde_json::from_value(serde_json::json!({
+                "jsonrpc":"2.0", "method":"notifications/cancelled", "params":{"requestId":1}
+            }))
+            .map_err(io::Error::other)?;
+            let failed = Arc::new(IoFailure::default());
+            let transport = AdmittedTransport::new(
+                Fixture {
+                    messages: VecDeque::from([request(1)?, cancellation]),
+                    stall: true,
+                },
+                failed,
+            );
+            let queued = tokio_util::sync::CancellationToken::new();
+            let request_cancelled = tokio_util::sync::CancellationToken::new();
+            let session = tokio_util::sync::CancellationToken::new();
+            let service = rmcp::service::serve_directly_with_ct(
+                AdmittedService::new(QueuedJobService {
+                    queued: queued.clone(),
+                    request_cancelled: request_cancelled.clone(),
+                }),
+                transport,
+                None,
+                session.clone(),
+            );
+            tokio::time::timeout(Duration::from_secs(1), queued.cancelled())
+                .await
+                .map_err(io::Error::other)?;
+            tokio::time::timeout(Duration::from_secs(1), request_cancelled.cancelled())
+                .await
+                .map_err(io::Error::other)?;
+            assert!(!signal.cancellation_requested());
+            assert!(!signal.cancellation().is_cancelled());
+            assert_eq!(
+                executor.status(&seed.id).map_err(io::Error::other)?.state,
+                JobState::Running
+            );
+            signal.observe_cleanup();
+            session.cancel();
+            tokio::time::timeout(Duration::from_secs(1), service.cancel())
+                .await
+                .map_err(io::Error::other)?
+                .map_err(io::Error::other)?;
+            Ok(())
+        })
+    }
+
+    #[test]
+    fn rmcp_precommit_request_cancellation_rolls_back_without_publishing_a_job() -> io::Result<()> {
+        run(async {
+            let registry = Arc::new(InMemoryJobRegistry::default());
+            let executor = Arc::new(JobExecutor::new(
+                registry.clone(),
+                Arc::new(FixedClock),
+                Arc::new(FixedIds),
+                Arc::new(Allow),
+                Arc::new(InMemoryDeliveryTracker::default()),
+                Arc::new(Silent),
+            ));
+            let signal = JobExecutionSignal::new();
+            let permit = Arc::new(Held(AtomicBool::new(true)));
+            let rolled_back = tokio_util::sync::CancellationToken::new();
+            let cancellation = serde_json::from_value(serde_json::json!({
+                "jsonrpc":"2.0", "method":"notifications/cancelled", "params":{"requestId":1}
+            }))
+            .map_err(io::Error::other)?;
+            let service = rmcp::service::serve_directly_with_ct(
+                AdmittedService::new(PrecommitCancelledService {
+                    executor,
+                    signal: signal.clone(),
+                    permit: permit.clone(),
+                    rolled_back: rolled_back.clone(),
+                }),
+                AdmittedTransport::new(
+                    Fixture {
+                        messages: VecDeque::from([request(1)?, cancellation]),
+                        stall: true,
+                    },
+                    Arc::new(IoFailure::default()),
+                ),
+                None,
+                tokio_util::sync::CancellationToken::new(),
+            );
+            tokio::time::timeout(Duration::from_secs(1), rolled_back.cancelled())
+                .await
+                .map_err(io::Error::other)?;
+            assert!(registry.snapshot().map_err(io::Error::other)?.is_empty());
+            assert!(!permit.is_held());
+            assert!(!signal.cancellation_requested());
+            tokio::time::timeout(Duration::from_secs(1), service.cancel())
+                .await
+                .map_err(io::Error::other)?
+                .map_err(io::Error::other)?;
             Ok(())
         })
     }

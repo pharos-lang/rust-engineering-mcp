@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites name="nextest-run" tests="3" skipped="0" failures="0" errors="0" uuid="b7d6fe88-9fcf-4d89-9a93-ac6cef320ca5" timestamp="2026-09-06T16:22:10.524+00:00" time="0.006">
+    <testsuite name="fixture-nextest-passing" tests="3" skipped="0" errors="0" failures="0">
+        <testcase name="alpha" classname="fixture-nextest-passing" timestamp="2026-09-06T16:22:10.524+00:00" time="0.002"/>
+        <testcase name="beta" classname="fixture-nextest-passing" timestamp="2026-09-06T16:22:10.526+00:00" time="0.002"/>
+        <testcase name="gamma" classname="fixture-nextest-passing" timestamp="2026-09-06T16:22:10.528+00:00" time="0.002"/>
+    </testsuite>
+</testsuites>
