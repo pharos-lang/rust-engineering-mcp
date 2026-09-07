@@ -1,0 +1,8 @@
+
+running 3 tests
+test doctor_reads_signed_catalog_without_admin_lease_or_staging_mutation ... ok
+test doctor_rejects_closed_cli_syntax_and_reports_configured_access_failures ... ok
+test passive_doctor_and_version_are_bounded_and_never_execute_path_tools ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.40s
+

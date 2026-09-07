@@ -2,6 +2,7 @@
 pub(super) mod provider;
 #[allow(dead_code)]
 mod schemas;
+use super::clock::WallClock;
 use super::{
     contract::{Contract, ToolOutput},
     workers::{Joined, WorkerError, Workers},
@@ -12,9 +13,7 @@ use rmcp::{
     service::{RequestContext, RoleServer},
 };
 use rust_engineering_application::ProjectError;
-use rust_engineering_domain::{
-    CatalogContextStatus, Clock, OperationalErrorCode, ToolStatus, UnixSeconds,
-};
+use rust_engineering_domain::{CatalogContextStatus, OperationalErrorCode, ToolStatus};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use std::{
@@ -22,7 +21,7 @@ use std::{
         Arc,
         atomic::{AtomicBool, Ordering},
     },
-    time::{Duration, Instant, SystemTime, UNIX_EPOCH},
+    time::{Duration, Instant},
 };
 
 pub(super) const NAME: &str = "rust.catalog.status";
@@ -208,17 +207,6 @@ fn joined_result<T>(joined: Joined<T, ProjectError>) -> Result<T, ProjectError> 
         }
         (Err(error), _) => Err(error),
         (Ok(value), None) => Ok(value),
-    }
-}
-struct WallClock;
-impl Clock for WallClock {
-    fn now(&self) -> UnixSeconds {
-        UnixSeconds(
-            SystemTime::now()
-                .duration_since(UNIX_EPOCH)
-                .map(|v| v.as_secs())
-                .unwrap_or(0),
-        )
     }
 }
 pub(super) struct CatalogTool {

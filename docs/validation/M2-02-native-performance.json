@@ -1,0 +1,42 @@
+{
+  "artifact": "M2-02 native v2 journal ceiling",
+  "date": "2026-09-05",
+  "command": "cargo test -p rust-engineering-project --lib maximum_format_journal_cost_is_bounded_per_global_phase -- --nocapture",
+  "profile": "test-unoptimized-debuginfo",
+  "host": {
+    "os": "Darwin 25.6.0 arm64",
+    "rustc": "1.98.1 (48a229cea 2026-09-01)",
+    "target": "aarch64-apple-darwin"
+  },
+  "fixture": {
+    "changed_files": 128,
+    "bytes_per_file_per_bundle": 131072,
+    "before_bundle_bytes": 16777216,
+    "after_bundle_bytes": 16777216,
+    "journal_limit_bytes": 50331648,
+    "global_phases_encoded": 6
+  },
+  "observed": {
+    "maximum_encoded_journal_bytes": 44769139,
+    "worst_case_reserved_journal_bytes": 44772622,
+    "total_encoded_bytes_across_six_global_phases": 268614827,
+    "encode_six_phases_milliseconds": 11194,
+    "decode_one_maximum_journal_milliseconds": 1604,
+    "test_elapsed_seconds": 15.14,
+    "release_real_apfs": {
+      "command": "cargo test --release -p rust-engineering-project --lib filesystem::macos::mutation::tests::measure_real_format_commit_replay_recovery_and_index_ceiling -- --ignored --exact --nocapture",
+      "logical_source_bytes": 16777216,
+      "changed_files": 128,
+      "commit_milliseconds": 5687,
+      "terminal_commit_replay_milliseconds": 173,
+      "terminal_recovery_milliseconds": 103,
+      "stored_journal_bytes": 44774412,
+      "store_records": 128,
+      "list_records_milliseconds": 5,
+      "exact_terminal_receipt_milliseconds": 0,
+      "quota_refusal_milliseconds": 5,
+      "result": "passed"
+    }
+  },
+  "interpretation": "The maximum-source, maximum-file-count v2 record remains below the 48 MiB per-record bound. The full payload is serialized once for each of the six global phases; no per-file journal rewrite is included. Release measurements exercise real protected APFS commit, exact terminal replay/recovery, bounded full-index listing, exact receipt at quota, and fail-closed new-commit admission. Timings are single observations, not a benchmark or power-loss claim."
+}

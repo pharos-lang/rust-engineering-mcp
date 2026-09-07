@@ -1,0 +1,7 @@
+cargo-semver-checks-help	0	cargo semver-checks --help
+cargo-semver-checks-check-release-help	0	cargo semver-checks check-release --help
+cargo-llvm-cov-help	0	cargo llvm-cov --help
+cargo-llvm-cov-report-help	0	cargo llvm-cov report --help
+cargo-nextest-help	0	cargo nextest --help
+cargo-nextest-run-help	0	cargo nextest run --help
+cargo-mutants-help	0	cargo mutants --help

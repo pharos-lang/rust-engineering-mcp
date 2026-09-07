@@ -1,0 +1,40 @@
+file:///Users/cburgosro/Projects/rust-mcp/target/m1-17-inspector/node_modules/@modelcontextprotocol/client/dist/src-D_zzAWoS.mjs:3970
+				error: new SdkError(SdkErrorCode.InvalidResult, `Invalid result for ${method}: ${parsed.error}`, { method })
+				       ^
+
+SdkError: Invalid result for tools/list: [
+  {
+    "expected": "number",
+    "code": "invalid_type",
+    "path": [
+      "ttlMs"
+    ],
+    "message": "Invalid input: expected number, received undefined"
+  },
+  {
+    "code": "invalid_value",
+    "values": [
+      "public",
+      "private"
+    ],
+    "path": [
+      "cacheScope"
+    ],
+    "message": "Invalid option: expected one of \"public\"|\"private\""
+  }
+]
+    at Object.decodeResult (file:///Users/cburgosro/Projects/rust-mcp/target/m1-17-inspector/node_modules/@modelcontextprotocol/client/dist/src-D_zzAWoS.mjs:3970:12)
+    at file:///Users/cburgosro/Projects/rust-mcp/target/m1-17-inspector/node_modules/@modelcontextprotocol/client/dist/src-D_zzAWoS.mjs:6120:22
+    at Client._onresponse (file:///Users/cburgosro/Projects/rust-mcp/target/m1-17-inspector/node_modules/@modelcontextprotocol/client/dist/src-D_zzAWoS.mjs:5966:42)
+    at Client._onresponse (file:///Users/cburgosro/Projects/rust-mcp/target/m1-17-inspector/node_modules/@modelcontextprotocol/client/dist/index.mjs:4036:9)
+    at _transport.onmessage (file:///Users/cburgosro/Projects/rust-mcp/target/m1-17-inspector/node_modules/@modelcontextprotocol/client/dist/src-D_zzAWoS.mjs:5758:82)
+    at baseTransport.onmessage (file:///Users/cburgosro/Projects/rust-mcp/target/m1-17-inspector/rust-mcp-attempt-4-bridge.mjs:4832:9)
+    at StdioClientTransport.processReadBuffer (file:///Users/cburgosro/Projects/rust-mcp/target/m1-17-inspector/node_modules/@modelcontextprotocol/client/dist/stdio.mjs:134:20)
+    at Socket.<anonymous> (file:///Users/cburgosro/Projects/rust-mcp/target/m1-17-inspector/node_modules/@modelcontextprotocol/client/dist/stdio.mjs:99:11)
+    at Socket.emit (node:events:509:28)
+    at addChunk (node:internal/streams/readable:563:12) {
+  code: 'INVALID_RESULT',
+  data: { method: 'tools/list' }
+}
+
+Node.js v24.15.0

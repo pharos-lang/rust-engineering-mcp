@@ -1,0 +1,86 @@
+{
+  "docker_after_failure": {
+    "containers": [],
+    "volumes": []
+  },
+  "docker_before": {
+    "containers": [],
+    "volumes": []
+  },
+  "error": "RuntimeError:inspector_deny-1_exit_5",
+  "expected_model_calls": {
+    "rust.dependency.add": [
+      "preview",
+      "commit"
+    ],
+    "rust.dependency.remove": [
+      "preview",
+      "commit"
+    ],
+    "rust.fix.apply": [
+      "preview",
+      "commit"
+    ],
+    "rust.fix.apply_receipt": true,
+    "rust.fmt.apply": [
+      "preview",
+      "commit"
+    ],
+    "rust.manifest.patch": [
+      "preview",
+      "commit"
+    ],
+    "rust.project.open": "at least six"
+  },
+  "expected_tools": [
+    "rust.project.open",
+    "rust.project.inspect",
+    "rust.toolchain.inspect",
+    "rust.check",
+    "rust.fmt.check",
+    "rust.clippy",
+    "rust.test",
+    "rust.dependencies.audit",
+    "rust.diagnostics.explain",
+    "rust.quality.gate",
+    "rust.catalog.status",
+    "rust.crate.search",
+    "rust.crate.inspect",
+    "rust.manifest.patch",
+    "rust.fmt.apply",
+    "rust.fix.apply",
+    "rust.dependency.add",
+    "rust.dependency.remove"
+  ],
+  "fixture_before": {
+    "Cargo.lock": "042764341b787bfb49cc64b64449e242ed34249c18a2858121603d72d7d12104",
+    "Cargo.toml": "29808ac130e567d5fb8bc94fa2f66c1055b797cf23bb522ec275023109c2eb64",
+    "src/lib.rs": "bd664871d33ccd37ea4627a7d3dbde6abf7b2256d53bbb0bec8e4fe0fad6f6df"
+  },
+  "identities": {
+    "claude_auth_method": "claude.ai",
+    "claude_sha256": "3c269f66801028823e24a63ced9fdd3988cb86cf85fccd9f03f87e463b9d3e3c",
+    "claude_version": "2.1.260 (Claude Code)",
+    "inspector_cli_sha256": "1fcbc2c4d4324b85f75c0b4cf9f125ee1f74df90d14eb3fea4ca96d0a1885f4e",
+    "inspector_version": "2.5.0",
+    "node_sha256": "3200fbd9f7fd4410426dd541e10d1ab829d3472f270d743c7fabd1696c03fe32",
+    "server_sha256": "39d95ec7d44ff062febf99af2e8f6351e89a303cdf9bb976e09799e6fb6ef28f"
+  },
+  "limits": {
+    "combined_output_bytes": 8388608,
+    "wall_seconds": 900
+  },
+  "run_directory": "target/m2-clients/run-1788639530307273000",
+  "schema": "rust-mcp-m2-third-party-clients-v1",
+  "scope": "Inspector one-shot discovery/default-deny plus one stock Claude model-directed five-tool mutation workflow",
+  "security": {
+    "builtin_tools": [],
+    "claude_restricted": true,
+    "fallback_model": false,
+    "network_claim": "No client network-isolation claim; the normal model API is required. Guest execution remains Docker network=none.",
+    "permission_bypass": false,
+    "strict_mcp_config": true
+  },
+  "status": "failed",
+  "vendor_fingerprint": "sha256:743947d5788c1a4385a4b59869c5b8bd0535f7fc0d875b51288f9b26b2d0eba1"
+}

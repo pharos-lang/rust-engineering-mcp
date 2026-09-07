@@ -49,6 +49,11 @@ pub use semantic::*;
 mod artifact;
 pub use artifact::*;
 
+pub mod job;
+
+mod quality_artifact;
+pub use quality_artifact::*;
+
 mod source;
 pub use source::*;
 mod rust_execution;
@@ -80,3 +85,22 @@ pub use explain::*;
 
 mod quality;
 pub use quality::*;
+
+mod manifest_edit;
+pub use manifest_edit::*;
+
+mod mutation;
+pub use mutation::*;
+
+mod rust_mutation;
+pub use rust_mutation::*;
+mod cargo_vendor;
+pub use cargo_vendor::*;
+
+mod resolution;
+pub use resolution::{MutationLockDisposition, MutationResolutionObservation};
+
+pub mod coverage;
+pub mod mutation_test;
+pub mod nextest;
+pub mod semver_check;

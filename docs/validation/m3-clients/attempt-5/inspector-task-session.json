@@ -1,0 +1,10 @@
+{
+  "argv_sha256": "453054b2779e64c0dad5f8934704e089afd10fae0e61b1db53b1bdcdab2e95df",
+  "duration_seconds": 16.269,
+  "exit_code": 1,
+  "overflow": false,
+  "stderr_bytes": 6194,
+  "stderr_sha256": "a2639ee8e3c5c95f88d34b73f3631995d85839dfada2eddfdaf752e4946336e9",
+  "stdout_bytes": 0,
+  "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+}

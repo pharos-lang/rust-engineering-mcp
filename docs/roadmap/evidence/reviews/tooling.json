@@ -1,0 +1,32 @@
+{
+  "observed_at_utc": "2026-09-05T07:22:29.225546+00:00",
+  "claude_version": "2.1.260 (Claude Code)",
+  "agy_version": "not exposed by --help; changelog first entry 1.1.27 is not proof of installed executable version",
+  "selected_models": {
+    "sonnet": "claude-sonnet-5",
+    "opus": "claude-opus-5",
+    "gemini": "gemini-3.8-flash-high",
+    "exceptional_fable": "claude-fable-5-1"
+  },
+  "effort": "high",
+  "executables": {
+    "claude": {
+      "path": "/Users/cburgosro/.local/bin/claude",
+      "resolved_path": "/Users/cburgosro/.local/share/claude/versions/2.1.260",
+      "sha256": "3c269f66801028823e24a63ced9fdd3988cb86cf85fccd9f03f87e463b9d3e3c"
+    },
+    "agy": {
+      "path": "/Users/cburgosro/.local/bin/agy",
+      "resolved_path": "/Users/cburgosro/.local/bin/agy",
+      "sha256": "d583be1344ea9cfa0c45cff2c1342af7837f4833c4edb65e69bee84776a45caa"
+    }
+  },
+  "packet_sha256": {
+    "sonnet": "63e299304fd1817dd597e0b726117752b6339191e992e00ddda7c07f75746edf",
+    "opus": "959395c5ec294aea8570c98df8a71e4702412720ad99cf823dc2236abd589dfe",
+    "gemini": "f6f146fc152e2f82a83c8b619da8edadbc5fbb5a5fffa85d3f3b899ac5ada36b",
+    "sonnet_recheck": "71e80e7b0d97b22406af6712ecbc62a4d694b6dcdf646c96d8f743356841b7cf",
+    "opus_recheck": "1c9be00de6f6bfa20873799078d509384b89467c2c6231b29119b7992d42ec07",
+    "fable_d02": "38d5696784d52c5cd2105906c10d341bbccf523ff6844c5bc3ec7c35ef51c11f"
+  }
+}

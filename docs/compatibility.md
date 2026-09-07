@@ -4,7 +4,8 @@
 
 | Componente | Foundation implementada |
 | --- | --- |
-| Versión del paquete | release estable `0.1.0` |
+| Release soportada | `0.1.0` |
+| Checkout de desarrollo | `0.3.0-dev`; 22 tools descubiertas: 18 M1/M2 y cuatro M3 calificadas; Tasks anunciado con negociación mutua; sin tag ni publicación |
 | Toolchain fijado / MSRV inicial | Rust y Cargo `1.98.1`, edition 2024 |
 | Target de validación local | `aarch64-apple-darwin` |
 | SDK | `rmcp =3.2.0`, features `server`, `transport-io`, sin defaults |
@@ -13,9 +14,9 @@
 | CI portable | Linux x86_64, macOS ARM64 y Windows x86_64; fuente/protocolo/fail-closed, no capabilities positivas |
 | Host positivo M1 | macOS 26 ARM64/APFS; ejecución de proyecto en guest Docker Linux ARM64 aprobado |
 | Artifact 0.1.0 publicado | Un único archive core `aarch64-apple-darwin`; checksum, SBOM/notices y provenance verificados |
-| Linux / Windows / macOS x86_64 nativos | CI pública compila y prueba el código fuente; la calificación nativa del sandbox y filesystem sigue pendiente antes del RC M1 |
+| Linux / Windows / macOS x86_64 nativos | CI pública compila y prueba el código fuente; la calificación nativa del sandbox y filesystem sigue pendiente para ampliar soporte en una release futura |
 | Licencia / redistribución | Código original `MIT OR Apache-2.0`; assets `local` no se redistribuyen en 0.1.0 |
-| Clientes de terceros | Inspector 2.5.0 verificó inventario/fail-closed y Codex 0.153.0 completó un flujo model-directed; demás clientes no calificados |
+| Clientes de terceros | M1: Inspector 2.5.0 y Codex 0.153.0. M2: Inspector 2.5.0 y Claude Code 2.1.260/Sonnet 5 medium; [alcance del recibo](validation/M2-clients.json) |
 | Sandbox | Probes M0 separados; Cargo M1 habilitado solo en runtime aprobado Docker/Linux ARM64 calibrado ADR-031/032 |
 | SQLite / FTS5 | rusqlite 0.40.2, SQLite bundled 3.53.2; memoria, pruebas ARM64 macOS |
 | LanceDB / embeddings | M0-09: E5/ORT y LanceDB0.31 memory://; feature local, gate macOS ARM64 |
@@ -35,16 +36,56 @@
 
 La matriz original acredita bootstrap y project.open. La evidencia M1-11 cubre
 las once definiciones anteriores; [M1-12](validation/M1-12.md) valida el contrato
-de doce tools. El checkout anuncia trece con M1-13 implementado y gate aprobado.
+de doce tools. La release `0.1.0` anuncia trece con M1-13 implementado y gate
+aprobado. El checkout de desarrollo anuncia 22 al sumar las cinco tools M2 y las
+cuatro tools M3. Las 18 primeras conservan su calificación M2 y las cuatro M3
+pasan su gate Docker. Tasks se anuncia tras la calificación M3-02; cada uso
+requiere que el peer declare la extensión.
 Esto no acredita conformidad completa de cada revisión MCP.
+
+## Imagen y plugins M3
+
+| Elemento | Identidad / versión | Estado |
+| --- | --- | --- |
+| Guest Linux ARM64 | `sha256:384a1742ecc53cdd3a9c0bf36c6f8b66db73ddd118aeeae6e55654ea998ae36a` | Provisionada; runtime M3 calificado |
+| Configuración de imagen | `sha256:7d4e58b9e29b2045c13d71542f7892ee071a6886a1b939c4cbfc3ff7ce40dc45` | Verificada |
+| cargo-nextest | 0.9.143 | Provisionado |
+| cargo-llvm-cov / llvm-tools-preview | 0.9.0 / 1.98.1 | Provisionado |
+| cargo-semver-checks | 0.50.0 | Provisionado |
+| cargo-mutants | 27.1.0, source-built | Provisionado |
+
+Provisioning pasó 47/47 observaciones. Estas identidades no convierten las tools
+M3 en capacidades calificadas ni cambian las cinco versiones de protocolo.
 La [guía de clientes](client-configuration.md) documenta Codex, Claude Code, Gemini
-CLI, Cursor, VS Code y MCP Inspector. Solo Inspector 2.5.0 y Codex 0.153.0 cuentan
-con evidencia preservada, incluido un flujo model-directed en Codex; una configuración
-documentada no se convierte por sí sola en una declaración de compatibilidad.
+CLI, Cursor, VS Code y MCP Inspector. Inspector 2.5.0 y Codex 0.153.0 conservan
+evidencia M1. En M2, Inspector verificó 18 tools/open/denegaciones y Claude Code
+2.1.260 con Sonnet 5 medium completó cinco preview/commit y receipt en el intento 5,
+con la regla de renovar referencias explícita en prompt v2. Los intentos 1–4
+fallidos se conservan; no acredita fiabilidad general ni éxito solo por descriptions.
+Una configuración documentada no equivale a calificación. Las cinco versiones de
+protocolo permanecen sin cambios. Las tools 20 (`rust.coverage`), 21
+(`rust.semver.check`) y 22 (`rust.mutation.test`) están implementadas y
+calificadas en M3.
 Los dos turnos históricos fallidos se conservan; el flujo candidato final está
 registrado por separado.
 Las versiones se declaran explícitamente; no se anuncia una nueva versión por
 actualizar el SDK sin ampliar las pruebas.
+
+## Compatibilidad de MCP Tasks en M3-02
+
+El camino Tasks está implementado sobre rmcp 3.2.0 para las cinco versiones
+negociadas. La matriz de producto prueba ambos lados del switch: sin anuncio,
+`tasks/*` es `-32601`; anunciado sin declaración del peer, rmcp devuelve `-32021`
+con `requiredCapabilities`; con declaración mutua, el task es observable. En
+`2026-07-28` la declaración viaja en `_meta`; las cuatro versiones legacy la
+conservan en el handshake de sesión.
+
+El switch de producción está encendido después de G4. Inspector 2.5.0 declaró la
+extensión y completó create/poll/cancel; Codex CLI/app-server 0.153.0 no la declaró
+y pasó discovery, llamadas y Resources por el camino síncrono soportado. Para todo
+cliente que no declare Tasks, la compatibilidad admitida sigue siendo el modo
+síncrono calificado y `TASKS_REQUIRED` para jobs largos; el nombre del cliente
+nunca habilita autoridad ni una excepción de protocolo. [Matriz](validation/M3-02.md).
 
 El cliente moderno envía `params._meta` con
 `io.modelcontextprotocol/protocolVersion: "2026-07-28"` y
@@ -277,3 +318,30 @@ Candidatos release macOS arm64 ejecutados desde instalación privada: core/local
 La release final sustituye esos candidatos como canal soportado: `v0.1.0` publica
 solo core macOS ARM64 y usa provenance OIDC, checksum y smoke sobre los bytes
 descargados. Véase el [recibo público](validation/m1-17-public-release.json).
+
+## Escritura local M2 en desarrollo
+
+Las cinco tools M2 usan el mismo binario y el mismo grupo Docker/imagen de M1; no
+añaden daemon, UID, servicio ni tool instalada. Exigen grants independientes y un
+state root privado compartido por las instancias que escriban el workspace. La
+calificación host positiva permanece limitada a macOS 26 ARM64/APFS. Linux,
+Windows, macOS x86_64 y filesystems distintos no tienen adapter positivo para
+project I/O, captura vendor o publicación.
+
+Las operaciones con resolución requieren opcionalmente un directory source Cargo
+preparado por el operador y configurado con path más fingerprint. El runtime no
+descarga crates ni hereda Cargo host. Fmt/fix no requieren vendor; fix exige lock
+existente y permite loopback únicamente dentro de su namespace Docker aislado,
+manteniendo `network=none`. Esto no acredita aislamiento nativo Docker en Linux o
+Windows ni convierte el soporte de compilación CI en soporte de escritura.
+
+El modo `local_coordinated` presupone que el host mantiene estables roots/state y
+evita escritores simultáneos durante commit. No ofrece CAS, exclusión OS de otros
+programas ni atomicidad visible multiarchivo. `preserve_presence` mantiene la
+presencia o ausencia inicial de Cargo.lock. La [calificación conjunta](validation/M2-07.md)
+del checkout `0.2.0-dev` está completada; la release soportada continúa siendo `0.1.0` con 13
+tools.
+
+M2 ADR-059 conserva schemas y formato de journal: libera planes terminales y
+permite commit replay exacto desde el journal con ID/digest/key y autoridad viva
+incluso tras TTL/reinicio. No permite iniciar efectos nuevos sin preview vigente.

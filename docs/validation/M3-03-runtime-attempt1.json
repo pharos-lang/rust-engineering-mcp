@@ -1,0 +1,12 @@
+{
+  "schema": "rust-mcp-m3-03-runtime-v1",
+  "status": "failed",
+  "image_id": "sha256:384a1742ecc53cdd3a9c0bf36c6f8b66db73ddd118aeeae6e55654ea998ae36a",
+  "step": {
+    "selection": "known_counts_fixture_has_exact_line_region_and_function_oracle",
+    "command": "RUST_MCP_TEST_SOCKET=/Users/cburgosro/.docker/run/docker.sock RUST_MCP_TEST_IMAGE=sha256:384a1742ecc53cdd3a9c0bf36c6f8b66db73ddd118aeeae6e55654ea998ae36a cargo test --locked --offline -p rust-engineering-execution --test coverage_runtime known_counts_fixture_has_exact_line_region_and_function_oracle -- --exact --ignored --nocapture --test-threads=1",
+    "exit_code": 101,
+    "observed_error": "InvalidConfiguration"
+  },
+  "reason": "The first calibration attempt did not enter cargo-llvm-cov. Qualification remains blocked; no coverage count oracle is claimed."
+}

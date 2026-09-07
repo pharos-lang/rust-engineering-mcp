@@ -1,0 +1,32 @@
+   Compiling fixture-nextest-failing v0.1.0 (/source)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.11s
+────────────
+ Nextest run ID 747ae053-36ae-4661-b746-fce3e329094f with nextest profile: rust-mcp
+    Starting 3 tests across 1 binary
+        FAIL [   0.002s] (1/3) fixture-nextest-failing deterministic_failure
+  stdout ───
+
+    running 1 test
+    test deterministic_failure ... FAILED
+
+    failures:
+
+    failures:
+        deterministic_failure
+
+    test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 2 filtered out; finished in 0.00s
+
+  stderr ───
+
+    thread 'deterministic_failure' (73) panicked at src/lib.rs:9:5:
+    assertion `left == right` failed
+      left: "F01 deterministic failure"
+     right: "different"
+    note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+        PASS [   0.002s] (2/3) fixture-nextest-failing pass_one
+        PASS [   0.002s] (3/3) fixture-nextest-failing pass_two
+────────────
+     Summary [   0.005s] 3 tests run: 2 passed, 1 failed, 0 skipped
+        FAIL [   0.002s] (1/3) fixture-nextest-failing deterministic_failure
+error: test run failed

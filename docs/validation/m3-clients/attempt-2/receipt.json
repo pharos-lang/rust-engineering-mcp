@@ -1,0 +1,16 @@
+{
+  "advertisement_switch_enabled": false,
+  "attempt": "attempt-2",
+  "candidate": {
+    "server_sha256": "ffa12b6179c1c5968e28e3679bd46a8fd82bf3901bc05da3a0fe29a33b073e8a"
+  },
+  "error": {
+    "message": "Inspector failure oracle was not observed",
+    "type": "RuntimeError"
+  },
+  "image_id": "sha256:384a1742ecc53cdd3a9c0bf36c6f8b66db73ddd118aeeae6e55654ea998ae36a",
+  "qualification_override": true,
+  "schema": "rust-mcp-m3-clients-v1",
+  "status": "failed",
+  "tasks_advertised": true
+}

@@ -1,0 +1,291 @@
+{
+  "artifacts": {
+    "fixture_manifest": {
+      "path": "fixtures/cargo-local-registry/manifest.json",
+      "sha256": "sha256:13ce748ffdbba59be52e11b70d33211ce747ecf014b77f0bc7bf43070fa1b3a2"
+    },
+    "probe": {
+      "path": "scripts/probe-m2-offline-registry.py",
+      "sha256": "sha256:36821e340c1e99e44c937a48817aacecec2cb32f09d2d4cfd9cf703b202d3306"
+    },
+    "raw_report": {
+      "bytes": 2886831,
+      "path": "docs/validation/M2-D05-offline-registry-qualification.json",
+      "sha256": "sha256:a9379a8b30edc7219e9784547c0463efa3b2afe77bf2b4053e45afe80e901905"
+    }
+  },
+  "budgets": {
+    "cpus": 1,
+    "docker_call_timeout_seconds": 30,
+    "memory_bytes": 1073741824,
+    "memory_swap_bytes": 1073741824,
+    "pids": 128,
+    "registry_volume_bytes": 2097152,
+    "registry_volume_inodes": 512,
+    "shm_bytes": 1048576,
+    "source_volume_bytes": 8388608,
+    "source_volume_inodes": 512,
+    "tmp_tmpfs_bytes": 67108864,
+    "work_tmpfs_bytes": 536870912
+  },
+  "controls_observed": [
+    "approved immutable image",
+    "fixed direct guest programs and argv",
+    "network=none",
+    "rootfs read-only",
+    "all capabilities dropped",
+    "no-new-privileges",
+    "seccomp-rust profile",
+    "no host binds",
+    "source and registry Docker-managed tmpfs volumes held by guardians",
+    "registry mounted read-only for Cargo",
+    "empty per-container CARGO_HOME under /work",
+    "owned label cleanup and final empty inventory"
+  ],
+  "format_version": 1,
+  "guest_command_templates": {
+    "registry_write_discriminator": [
+      "/usr/bin/dd",
+      "if=/dev/zero",
+      "of=/rust-mcp-registry/write-probe",
+      "bs=1",
+      "count=1",
+      "status=none"
+    ],
+    "resolve": [
+      "/opt/rust/bin/cargo",
+      "metadata",
+      "--format-version=1",
+      "--offline",
+      "--manifest-path=/source/Cargo.toml",
+      "--config=source.crates-io.replace-with=\"rust-mcp-offline\"",
+      "--config=source.rust-mcp-offline.local-registry=\"/rust-mcp-registry\""
+    ],
+    "verify_frozen": [
+      "/opt/rust/bin/cargo",
+      "metadata",
+      "--format-version=1",
+      "--frozen",
+      "--manifest-path=/source/Cargo.toml",
+      "--config=source.crates-io.replace-with=\"rust-mcp-offline\"",
+      "--config=source.rust-mcp-offline.local-registry=\"/rust-mcp-registry\""
+    ]
+  },
+  "identities": {
+    "cargo_observed": "cargo 1.98.1 (797e8a9bc 2026-08-05)\nrelease: 1.98.1\ncommit-hash: 797e8a9bca276c1c9f9f738d2a20f484fa4eea9d\ncommit-date: 2026-08-05\nhost: aarch64-unknown-linux-gnu\nlibgit2: 1.9.4 (sys:0.21.0 vendored)\nlibcurl: 8.21.0-DEV (sys:0.4.90+curl-8.21.0 vendored ssl:OpenSSL/3.6.3)\nssl: OpenSSL 3.6.3 9 Jun 2026\nos: Debian 12.0.0 (bookworm) [64-bit]",
+    "docker_server": {
+      "ApiVersion": "1.55",
+      "Arch": "arm64",
+      "BuildTime": "2026-08-05T18:28:35.000000000+00:00",
+      "Components": [
+        {
+          "Details": {
+            "ApiVersion": "1.55",
+            "Arch": "arm64",
+            "BuildTime": "Wed Aug  5 18:28:35 2026",
+            "Experimental": "false",
+            "GitCommit": "6a43e3d",
+            "GoVersion": "go1.26.5",
+            "KernelVersion": "7.0.12-linuxkit",
+            "MinAPIVersion": "1.40",
+            "Module": "github.com/moby/moby/v2",
+            "ModuleVersion": "v2.0.0+unknown",
+            "Os": "linux"
+          },
+          "Name": "Engine",
+          "Version": "29.7.2"
+        },
+        {
+          "Details": {
+            "GitCommit": "e53c7c1516c3b2bff98eb76f1f4117477e6f4e66"
+          },
+          "Name": "containerd",
+          "Version": "v2.2.5"
+        },
+        {
+          "Details": {
+            "GitCommit": "v1.3.6-0-g491b69ba"
+          },
+          "Name": "runc",
+          "Version": "1.3.6"
+        },
+        {
+          "Details": {
+            "GitCommit": "de40ad0"
+          },
+          "Name": "docker-init",
+          "Version": "0.19.0"
+        }
+      ],
+      "GitCommit": "6a43e3d",
+      "GoVersion": "go1.26.5",
+      "KernelVersion": "7.0.12-linuxkit",
+      "MinAPIVersion": "1.40",
+      "Os": "linux",
+      "Platform": {
+        "Name": "Docker Desktop 4.87.0 (236836)"
+      },
+      "Version": "29.7.2"
+    },
+    "image": "sha256:8fac70723a8d04b6ec9633ab721806b8a55f4f083a1b3f988c61bf6a00fa1909",
+    "index_commit": "3fae660f226d6b05eadcea9fb3512ecddaa33b67",
+    "index_config_present": false,
+    "registry_tree_fingerprint": "sha256:1165e096813a84ae3989d84417031dee78fdffba3c4937c697c830c7500abbed"
+  },
+  "interpretation": [
+    "The fixture mechanics are qualified on the recorded host only.",
+    "Cargo 1.98.1 local-registry source replacement succeeded without index/config.json.",
+    "Offline resolution updated an existing lock and a second frozen metadata run accepted it.",
+    "Alias, optional activation, quote proc-macro feature and quote -> proc-macro2 -> unicode-ident transitively resolved.",
+    "Remove pruned the same transitive packages from Cargo.lock.",
+    "Missing index failed before lock mutation; missing crate and checksum mismatch failed after staging Cargo.lock mutation. Production must discard every failed staging tree.",
+    "No result accepts D05 or completes M2-04/M2-05."
+  ],
+  "limitations": [
+    "This qualifies only the retained fixture and D05 candidate mechanics.",
+    "It does not accept D05, implement a production resolver, or complete M2-04/M2-05.",
+    "Only the recorded Docker Desktop arm64 daemon and approved local image were exercised.",
+    "The fixture is a bounded crates.io subset, not a live or complete registry snapshot.",
+    "Negative cases may alter an ephemeral staging lock before Cargo fails; no candidate is published.",
+    "The Python USTAR encoder/parser is experiment code, not the production hostile-input decoder."
+  ],
+  "product_gate": "fixture_candidate_qualified_not_accepted",
+  "results": {
+    "add_remove": {
+      "added_lock_sha256": "sha256:bf68356f62fa9dae886549f7c8abc2452e86bfc5e90ef801bb322f5044b4d292",
+      "added_packages": [
+        [
+          "d05-fixture",
+          "0.1.0"
+        ],
+        [
+          "proc-macro2",
+          "1.0.107"
+        ],
+        [
+          "quote",
+          "1.0.47"
+        ],
+        [
+          "unicode-ident",
+          "1.0.24"
+        ]
+      ],
+      "removed_lock_sha256": "sha256:fc78013f786094ad3fc84ae16fae246508d9753b3697f7157cfe59fb33a77ba1",
+      "removed_packages": [
+        [
+          "d05-fixture",
+          "0.1.0"
+        ]
+      ]
+    },
+    "basic_without_index_config": {
+      "lock_sha256": "sha256:020c7026a2f47aa82665379221580174a65dd4b8ea584a55d11b69ed508a000d",
+      "packages": [
+        [
+          "d05-fixture",
+          "0.1.0"
+        ],
+        [
+          "unicode-ident",
+          "1.0.24"
+        ]
+      ]
+    },
+    "cleanup_errors": [],
+    "final_cleanup_inventory": {
+      "containers": [],
+      "volumes": []
+    },
+    "negative": {
+      "checksum_mismatch": {
+        "candidate_publishable": false,
+        "exit_code": 101,
+        "staging_changed_files": [
+          "Cargo.lock"
+        ]
+      },
+      "missing_crate": {
+        "candidate_publishable": false,
+        "exit_code": 101,
+        "staging_changed_files": [
+          "Cargo.lock"
+        ]
+      },
+      "missing_index": {
+        "candidate_publishable": false,
+        "exit_code": 101,
+        "staging_changed_files": []
+      }
+    },
+    "observations_failed": 0,
+    "observations_total": 222
+  },
+  "scope": "D05 fixture qualification only; not production acceptance or M2-04 completion",
+  "status": "observations_matched",
+  "timings": {
+    "cargo_container_start_events": {
+      "add-frozen": {
+        "duration_ns": 87795667,
+        "exit_code": 0,
+        "stderr_sha256": "sha256:30a4755c2fd03cfcabd592b761c9620b30e55233bff0d0c62ba5a5c6be98fb75",
+        "stdout_sha256": "sha256:97c380d8f64c09e97683bf229c48aead8a8bf515cc42f41a80dc83d39b49368f"
+      },
+      "add-resolve": {
+        "duration_ns": 97504291,
+        "exit_code": 0,
+        "stderr_sha256": "sha256:ba546ae22229804967506c6b681fb62ef9b073aaa1a472d610996742309e6485",
+        "stdout_sha256": "sha256:97c380d8f64c09e97683bf229c48aead8a8bf515cc42f41a80dc83d39b49368f"
+      },
+      "basic-frozen": {
+        "duration_ns": 86823833,
+        "exit_code": 0,
+        "stderr_sha256": "sha256:a62a4dc5d1d3876bf96bd0428e2e4cebe00779adff3a53ee7121a10c141efcf7",
+        "stdout_sha256": "sha256:f21bcebe62c6ea26f9123e1a811ed90c2e2f306e4fd1be75488c99f15816e7f2"
+      },
+      "basic-resolve": {
+        "duration_ns": 95655041,
+        "exit_code": 0,
+        "stderr_sha256": "sha256:461d3666d96c8bac4135c27875fb10163557cabee1f2f9ef9abb60dbfa619078",
+        "stdout_sha256": "sha256:f21bcebe62c6ea26f9123e1a811ed90c2e2f306e4fd1be75488c99f15816e7f2"
+      },
+      "cargo-version": {
+        "duration_ns": 60701667,
+        "exit_code": 0,
+        "stderr_sha256": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stdout_sha256": "sha256:954de6b3213646730af761d4ee35a6f754896bdd79c3a1b74fe57a7b543c2420"
+      },
+      "checksum-resolve": {
+        "duration_ns": 97546167,
+        "exit_code": 101,
+        "stderr_sha256": "sha256:bf59944a2d09bacd6d037999c3c4454a65d3ff795078d4bf1e4f068bcf076adc",
+        "stdout_sha256": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "missing-crate-resolve": {
+        "duration_ns": 94231333,
+        "exit_code": 101,
+        "stderr_sha256": "sha256:2819fac462865b7746731a7a8c7fa6aa700056f61b3f887e27b6197b19fd33c7",
+        "stdout_sha256": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "missing-index-resolve": {
+        "duration_ns": 81755292,
+        "exit_code": 101,
+        "stderr_sha256": "sha256:c68756453c2b4115aa3019b3ed9c3573d44ada9293d835223d51af30b3443988",
+        "stdout_sha256": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "remove-frozen": {
+        "duration_ns": 89203666,
+        "exit_code": 0,
+        "stderr_sha256": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stdout_sha256": "sha256:7bd913b01cc9f2d28ac8b8a9fb85baf6527b280767b53bfa4ec0dd6dd4ed1fce"
+      },
+      "remove-resolve": {
+        "duration_ns": 84566125,
+        "exit_code": 0,
+        "stderr_sha256": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stdout_sha256": "sha256:7bd913b01cc9f2d28ac8b8a9fb85baf6527b280767b53bfa4ec0dd6dd4ed1fce"
+      }
+    },
+    "total_duration_ns": 7438974917
+  }
+}

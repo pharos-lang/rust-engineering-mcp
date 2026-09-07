@@ -1,0 +1,47 @@
+[
+    {
+        "Id": "sha256:88200866dfff7ea7f5cbcb6ec7c8a701889efe6fe859fe64d6990e4b07ea4171",
+        "RepoTags": [
+            "debian:bookworm-slim",
+            "debian@sha256:88200866dfff7ea7f5cbcb6ec7c8a701889efe6fe859fe64d6990e4b07ea4171"
+        ],
+        "RepoDigests": [
+            "debian@sha256:88200866dfff7ea7f5cbcb6ec7c8a701889efe6fe859fe64d6990e4b07ea4171"
+        ],
+        "Comment": "debuerreotype 0.17",
+        "Created": "2026-08-24T00:00:00Z",
+        "Config": {
+            "Env": [
+                "PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+            ],
+            "Cmd": [
+                "bash"
+            ]
+        },
+        "Architecture": "arm64",
+        "Variant": "v8",
+        "Os": "linux",
+        "Size": 28124449,
+        "RootFS": {
+            "Type": "layers",
+            "Layers": [
+                "sha256:13a56b6535801be2adde694dabaf1c2df1d862a390661907dac821c42cd565cc"
+            ]
+        },
+        "Metadata": {
+            "LastTagTime": "2026-09-06T01:08:17.310431208Z"
+        },
+        "Descriptor": {
+            "mediaType": "application/vnd.oci.image.index.v1+json",
+            "digest": "sha256:88200866dfff7ea7f5cbcb6ec7c8a701889efe6fe859fe64d6990e4b07ea4171",
+            "size": 5651
+        },
+        "Identity": {
+            "Pull": [
+                {
+                    "Repository": "docker.io/library/debian"
+                }
+            ]
+        }
+    }
+]

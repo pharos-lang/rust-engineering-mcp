@@ -1,0 +1,3 @@
+Blocked by concurrent shared mutation work: `rust_gateway.rs` references missing `mutation_test_gateway` APIs/constants, so the execution crate cannot compile and Docker qualification cannot proceed.
+
+I recorded the real failed coverage calibration attempt in [M3-03-runtime-attempt1.json](/Users/cburgosro/Projects/rust-mcp/docs/validation/M3-03-runtime-attempt1.json). Focused domain/application coverage tests pass (3 tests); runtime and full gates remain unqualified.

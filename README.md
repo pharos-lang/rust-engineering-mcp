@@ -15,9 +15,10 @@ operaciones estructuradas para inspeccionar un workspace, ejecutar comprobacione
 de calidad dentro de un runtime controlado, consultar diagnósticos y trabajar con
 un catálogo local de crates.
 
-El servidor usa transporte MCP por `stdio`. Las tools son de solo lectura respecto
-al código fuente: observan, validan y devuelven evidencia; no aplican cambios al
-repositorio.
+El servidor usa transporte MCP por `stdio`. Las trece tools de la release
+`0.1.0` observan y validan sin modificar el source. El checkout `0.3.0-dev`
+registra 22 tools: las 18 de M1/M2 y las cuatro tools de calidad M3; todavía no
+forma una release.
 
 > [!IMPORTANT]
 > La versión estable actual es `0.1.0`. GitHub Releases publica un único binario core
@@ -37,15 +38,35 @@ repositorio.
 | Calidad | `rust.fmt.check` | Comprueba formato sin modificar archivos. |
 | Calidad | `rust.clippy` | Ejecuta Clippy con perfiles cerrados. |
 | Calidad | `rust.test` | Ejecuta tests acotados y conserva el resultado del harness. |
+| Calidad (M3, desarrollo) | `rust.test.nextest` | Tool 19; modo síncrono con la regla qualified-short (hasta 60 s). Calificada en Docker: 19/19 selecciones. |
+| Calidad (M3, desarrollo) | `rust.coverage` | Tool 20; cobertura tipada y acotada. Calificada en Docker: 8/8 selecciones. |
+| Calidad (M3, desarrollo) | `rust.semver.check` | Tool 21; comparación SemVer contra baseline. Calificada en Docker: 18/18 selecciones. |
+| Calidad (M3, desarrollo) | `rust.mutation.test` | Tool 22; mutation testing con bundle acotado. Calificada en Docker: 10/10 selecciones. |
 | Seguridad | `rust.dependencies.audit` | Contrasta `Cargo.lock` con un snapshot RustSec suministrado por el host. |
 | Diagnóstico | `rust.diagnostics.explain` | Obtiene la explicación de un código `rustc`, por ejemplo `E0502`. |
 | Calidad | `rust.quality.gate` | Ejecuta un gate `fast` o `standard` y devuelve el estado de cada etapa. |
 | Catálogo | `rust.catalog.status` | Informa disponibilidad, identidad y frescura del catálogo local. |
 | Catálogo | `rust.crate.search` | Busca crates en modo léxico, semántico o híbrido. |
 | Catálogo | `rust.crate.inspect` | Consulta versiones, features, dependencias y advisories registrados. |
+| Mutación (desarrollo) | `rust.manifest.patch` | Previsualiza, confirma y recupera ediciones TOML semánticas cerradas. |
+| Mutación (desarrollo) | `rust.fmt.apply` | Aplica el candidato exacto producido y verificado por rustfmt. |
+| Mutación (desarrollo) | `rust.fix.apply` | Aplica un candidato de `cargo fix` y lo comprueba en el sandbox. |
+| Mutación (desarrollo) | `rust.dependency.add` | Añade una dependencia crates.io a un package miembro con resolución offline aprobada. |
+| Mutación (desarrollo) | `rust.dependency.remove` | Elimina una dependencia seleccionada y resuelve offline el candidato. |
 
 Los contratos completos, límites y ejemplos de respuesta están en
 [`docs/tools.md`](docs/tools.md).
+
+Las mutaciones máximas pueden consumir memoria considerable: el ciclo nativo de
+128 archivos/16 MiB midió aproximadamente 932 MiB de RSS después de optimizar el
+journal; no es un límite del proceso MCP completo. Consulta los [límites y la
+medición](docs/validation/M2-matrix.md). M2 emite eventos operativos acotados por
+stderr, sin source, rutas ni credenciales y sin colector adicional; su retención
+la controla el host. stdout queda reservado al protocolo.
+El store privado admite hasta 128 journals/256 MiB; la admisión reserva 48 MiB
+para recovery y 1 MiB para crecimiento, dejando hasta 207 MiB retenidos. Un journal
+corrupto puede bloquear ese store. La [guía de recuperación](docs/client-configuration.md#planes-receipts-y-recovery)
+explica cómo conservar la evidencia y continuar en copias y estado nuevos.
 
 ## Requisitos
 
@@ -133,11 +154,11 @@ cliente.
 | Cliente | Configuración | Evidencia actual |
 | --- | --- | --- |
 | Codex | [CLI o `config.toml`](docs/client-configuration.md#codex) | Codex 0.153.0 y `gpt-5.6-sol` completaron el flujo model-directed de error, reparación y runtime ausente sobre el binario 0.1.0. |
-| Claude Code | [CLI o `.mcp.json`](docs/client-configuration.md#claude-code) | Configuración documentada; calificación de este MCP pendiente. |
+| Claude Code | [CLI o `.mcp.json`](docs/client-configuration.md#claude-code) | M2: Claude Code 2.1.260, Sonnet 5 medium, cinco preview/commit y receipt final; [PASS intento 5](docs/validation/M2-clients.json), con renovación de referencias explícita en el prompt. |
 | Gemini CLI | [`settings.json`](docs/client-configuration.md#gemini-cli) | Configuración documentada; calificación de este MCP pendiente. |
 | Cursor | [`.cursor/mcp.json`](docs/client-configuration.md#cursor) | Configuración documentada; calificación de este MCP pendiente. |
 | VS Code / GitHub Copilot | [`.vscode/mcp.json`](docs/client-configuration.md#vs-code-y-github-copilot) | Configuración documentada; calificación de este MCP pendiente. |
-| MCP Inspector | [Web, CLI o TUI](docs/client-configuration.md#mcp-inspector) | Inspector 2.5.0 descubrió las 13 tools; la repetición final verificó paths positivos y fail-closed sobre el binario 0.1.0. |
+| MCP Inspector | [Web, CLI o TUI](docs/client-configuration.md#mcp-inspector) | M1: 13 tools y paths positivos/fail-closed. M2: 18 tools, trece snapshots M1 idénticos, open positivo y cinco denegaciones sin grants; [recibo](docs/validation/M2-clients.json). |
 
 La [guía de configuración por cliente](docs/client-configuration.md) contiene los
 archivos completos, comandos de verificación y enlaces a la documentación oficial.
@@ -189,7 +210,7 @@ un workspace confiable.
 ## Habilitar ejecución Rust
 
 `rust.project.inspect`, `rust.toolchain.inspect`, `rust.check`, `rust.fmt.check`,
-`rust.clippy`, `rust.test`, `rust.dependencies.audit`,
+`rust.clippy`, `rust.test`, `rust.test.nextest`, `rust.dependencies.audit`,
 `rust.diagnostics.explain` y `rust.quality.gate` usan un runtime Docker aprobado.
 Cargo puede ejecutar `build.rs`, proc macros y código de tests, por lo que conviene
 mantener aprobación interactiva en el cliente MCP.
@@ -202,7 +223,7 @@ La configuración del host utiliza el grupo completo de flags siguiente:
   --docker /ruta/absoluta/al/cliente/docker \
   --docker-socket /ruta/absoluta/docker.sock \
   --state-root /ruta/absoluta/a/estado-privado \
-  --rust-image sha256:8fac70723a8d04b6ec9633ab721806b8a55f4f083a1b3f988c61bf6a00fa1909
+  --rust-image sha256:384a1742ecc53cdd3a9c0bf36c6f8b66db73ddd118aeeae6e55654ea998ae36a
 ```
 
 El servidor acepta únicamente esa identidad de imagen. La imagen no está publicada
@@ -336,3 +357,93 @@ El proyecto se distribuye, a elección del usuario, bajo
 [MIT](LICENSE-MIT) o [Apache License 2.0](LICENSE-APACHE). Los componentes y datos de
 terceros conservan sus propias licencias; consulta [`NOTICE`](NOTICE). Cada
 distribución binaria deberá incorporar su inventario específico de notices.
+
+## Escritura local M2 en desarrollo
+
+[ADR-050](docs/adr/ADR-050-local-coordinated-mutation.md) fija el modo
+`local_coordinated`: preview devuelve el diff y un plan acotado; commit revalida
+la generación completa y publica el candidato exacto; receipt permite observar o
+recuperar la operación durable. Los locks coordinan procesos que comparten
+`--state-root`, pero no bloquean IDE, Git u otros escritores del mismo usuario. No
+hay CAS ni atomicidad visible para una publicación de varios archivos.
+
+El checkout de desarrollo descubre 22 tools: conserva las trece de M1, añade
+`rust.manifest.patch`, `rust.fmt.apply`, `rust.fix.apply`,
+`rust.dependency.add` y `rust.dependency.remove`, e integra el contrato M3-01 de
+`rust.test.nextest`. Cada tool de escritura exige su grant de host:
+`--allow-manifest-write`, `--allow-fmt-write`, `--allow-fix-write`,
+`--allow-dependency-add` o `--allow-dependency-remove`, seguido de la raíz del
+workspace. Un grant no autoriza planes ni receipts de otra operación.
+
+`manifest.patch` admite operaciones cerradas set/remove para lints, features,
+profiles incorporados y workspace dependencies. `rust.dependency.add/remove` seleccionan un
+`Cargo.toml` relativo que Cargo debe corroborar como package miembro. Los cambios
+que alteran resolución requieren el par opcional `--cargo-vendor-dir PATH` y
+`--cargo-vendor-tree-sha256 sha256:DIGEST`; lints, profiles, fmt y fix no lo
+requieren. La policy `preserve_presence` actualiza el `Cargo.lock` raíz si ya
+existía y excluye del candidato el lock transitorio si no existía.
+
+Todo candidato se produce o valida con la imagen Docker ya configurada para M1,
+sin ejecutar Cargo del host ni descargar datos durante una llamada MCP. El perfil
+dedicado de fix conserva `network=none` y permite TCP loopback solo dentro de su
+namespace para la coordinación interna de Cargo; build scripts y proc macros pueden
+influir en los cambios `.rs`, por lo que se debe revisar el diff exacto. La
+calificación local M2 está completada con [evidencia reproducible](docs/validation/M2-07.md). El paquete del checkout informa
+`0.3.0-dev`; la release estable continúa siendo `0.1.0`.
+
+`rust.test.nextest` usa el perfil quality dedicado, no ejecuta doctests y publica
+JUnit/stdout/stderr como Resources privadas. M3-02 habilitó el anuncio de MCP Tasks
+después de la puerta G4: el uso asíncrono sólo se materializa cuando el peer también
+declara `io.modelcontextprotocol/tasks`. Sin esa declaración, `auto` y
+`synchronous` sólo se admiten para una selección calificada con
+`timeout_seconds <= 60`; un `auto` más largo devuelve `TASKS_REQUIRED` antes de
+admisión y `task` se rechaza. Véanse los
+[documentos de validación M3](docs/validation/M3-matrix.md).
+
+La CLI de desarrollo `cargo-vendor inspect --directory /ruta/vendor --json`
+verifica un directory source preparado mediante
+`cargo vendor --locked --versioned-dirs /ruta/vendor`. Devuelve el fingerprint y
+los paquetes verificados, sin ejecutar Cargo ni descargar datos. El operador
+ejecuta ambos comandos de preparación fuera del runtime MCP; el servidor no hereda
+`CARGO_HOME`, no instala herramientas y no descarga crates. Esta fuente es opcional y no forma
+parte de la instalación de M1.
+
+## M3 — calidad avanzada
+
+El checkout `0.3.0-dev` descubre 22 tools. `rust.test.nextest`, `rust.coverage`,
+`rust.semver.check` y `rust.mutation.test` están implementadas y calificadas en el
+gate Docker M3: 62/62 selecciones (nextest 19, Tasks 7, coverage 8,
+SemVer 18 y mutation 10), más 20/20 controles de seguridad. Los detalles
+y hashes están en la [matriz y recibos M3](docs/validation/M3-matrix.md).
+Las 18 snapshots preexistentes son byte-identical a `main`; el snapshot de
+mutation cambió deliberadamente durante las correcciones de seguridad.
+
+El host habilita la imagen guest M3 mediante provisioning explícito y autorizado
+por el owner de `fixtures/rust-runtime` con `--plugins`. Las versiones de plugins
+y sus hashes quedan fijados en el recibo de provisioning; la imagen seleccionada
+es el nuevo ID inmutable
+`sha256:384a1742ecc53cdd3a9c0bf36c6f8b66db73ddd118aeeae6e55654ea998ae36a`.
+Incluye nextest 0.9.143, llvm-cov 0.9.0 con llvm-tools 1.98.1, semver-checks
+0.50.0 y mutants 27.1.0 construido desde fuente. El runtime MCP no instala ni
+actualiza plugins.
+
+El store privado persistente de calidad usa el mismo `--state-root`, bajo
+`rust-mcp-quality-artifacts-v1`. Su TTL predeterminado es 1 h; los límites son
+32 MiB por artifact, 64 MiB por job, 128 MiB por owner, 256 MiB global y 128
+miembros por job. `quality-artifacts recover|prune` está disponible para el
+operador local. En macOS ARM64/APFS el store está calificado; Linux y Windows
+fallan cerrados.
+
+Las lecturas Stage 1 mediante Resources y la recuperación/prune usan el store
+privado persistente. Para M3, macOS ARM64/APFS es el único host positivo; Linux y
+Windows fallan cerrados. Tasks está implementado, calificado y anunciado; cada
+operación asíncrona sigue requiriendo que el peer declare la extensión. Inspector
+2.5.0 completó el lifecycle Tasks; Codex app-server 0.153.0 no declaró la extensión
+y quedó en su ruta síncrona calificada.
+
+El límite de cuatro planes aplica a propuestas pendientes: los planes terminales
+dejan capacidad para nuevas propuestas en la siguiente admisión. Un commit con
+plan ausente/expirado solo puede repetir un journal existente con ID, digest y key
+exactos, bajo grant vivo e identidad física original. No inicia efectos nuevos sin
+preview vigente. Prune retira ese replay; un receipt terminal describe historia,
+no el source actual. Véase [ADR-059](docs/adr/ADR-059-terminal-plan-retirement-and-durable-replay.md).

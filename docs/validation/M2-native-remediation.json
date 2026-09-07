@@ -1,0 +1,97 @@
+{
+  "schema_version": 1,
+  "evidence_id": "M2-native-partial-journal-remediation-and-recovery-headroom",
+  "recorded_at_utc": "2026-09-05T19:42:05Z",
+  "baseline_commit": "331d1630da5a2c1d8d8c596305c0c1167a7896cb",
+  "objective": "Qualify the ADR-052 operator escape from a preserved partial journal and reserve bounded metadata growth in newly admitted stores.",
+  "status": "passed",
+  "review_input": {
+    "path": "docs/reviews/M2-final-native-opus.json",
+    "sha256": "4245f164aedb8d18377676d078daabf6b6687c51eaa1e0c7fe560bed6c71e4d7"
+  },
+  "scope": {
+    "platform": "macOS 26.6.2 (25G83), aarch64-apple-darwin",
+    "rustc": "rustc 1.98.1 (48a229cea 2026-09-01)",
+    "production_changes": [
+      "New-record admission retains 48 MiB for one maximum journal staging copy plus 1 MiB for bounded metadata growth across 128 records.",
+      "Commit computes the counting-writer worst-case record size and applies quota admission before allocating the encoded Prepared record. Durable bytes, checksums, phases, and write order are unchanged."
+    ],
+    "production_cleanup_or_salvage_added": false,
+    "durable_format_changed": false
+  },
+  "quota": {
+    "store_cap_bytes": 268435456,
+    "maximum_record_bytes": 50331648,
+    "recovery_staging_headroom_bytes": 50331648,
+    "metadata_growth_per_record_bytes": 8192,
+    "maximum_records": 128,
+    "metadata_growth_headroom_bytes": 1048576,
+    "new_admission_retained_ceiling_bytes": 217055232,
+    "new_admission_retained_ceiling_mib": 207,
+    "observed_worst_case_growth": {
+      "v2_128_files_maximum_source_paths_and_staged_nodes_bytes": 6044,
+      "legacy_v1_to_v2_bytes": 124
+    },
+    "proof_scope": "The deterministic serialization test uses 128 mutation entries, 100-byte source paths, maximum sequence/inode fields, minimum device fields, RecoveryRequired as the longest phase, and a v1 envelope converted through the production envelope decoder. Both observed deltas are below the reserved 8192 bytes per retained record."
+  },
+  "partial_journal_observations": {
+    "fixture": "A real short write of the Scratch staging journal leaves the complete Prepared final journal, a truncated staging successor, and the reserved workspace temp.",
+    "same_store": {
+      "list_records": "RecoveryRequired",
+      "prune_exact_damaged_id": "RecoveryRequired",
+      "new_commit_in_second_authorized_workspace": "RecoveryRequired before source effects",
+      "damaged_id_receipt": "RecoveryRequired",
+      "damaged_id_recover": "RecoveryRequired",
+      "intact_terminal_id_receipt_in_second_workspace": "Committed"
+    },
+    "preservation": "After all blocked/query operations, byte/name snapshots of both original workspaces and the private state tree are identical to the post-fault snapshots; the reserved temp remains present."
+  },
+  "supported_escape_observations": {
+    "procedure": "Copy the operator-reviewed before generation into a physically new workspace, create a different private state root, and grant only the new workspace.",
+    "physical_identity": "The test asserts the replacement workspace inode differs from the quarantined workspace inode.",
+    "reserved_namespace": "The replacement is checked to contain no .rust-mcp-mut-* entry before opening the new store.",
+    "old_lease_at_new_store": "PermissionDenied",
+    "new_commit": "Committed with effect_after equal to the approved after fingerprint",
+    "original_evidence_after_new_commit": "Both original workspaces and the original private state remain byte/name identical to their post-fault snapshots; the original reserved temp remains present."
+  },
+  "commands": [
+    {
+      "command": "cargo +1.98.1 test -p rust-engineering-project --lib metadata_growth_reservation_covers_maximum_v2_and_legacy_conversion -- --nocapture",
+      "result": "passed; M2_METADATA_GROWTH v2_bytes=6044 legacy_v1_to_v2_bytes=124 per_record_reservation=8192"
+    },
+    {
+      "command": "cargo +1.98.1 test -p rust-engineering-project --lib corrupt_store_is_quarantined_while_a_new_physical_workspace_and_store_continue -- --nocapture",
+      "result": "passed"
+    },
+    {
+      "command": "cargo +1.98.1 test -p rust-engineering-project --lib heterogeneous_records_leave_one_maximum_recovery_copy_before_new_admission -- --nocapture",
+      "result": "passed; exact 207 MiB boundary admitted and the next record rejected under the new headroom"
+    },
+    {
+      "command": "cargo +1.98.1 test -p rust-engineering-project --lib streamed_checksums_preserve_buffered_v1_and_v2_bytes -- --nocapture",
+      "result": "passed"
+    },
+    {
+      "command": "cargo +1.98.1 test -p rust-engineering-project --lib recovery_terminal_journal_short_write_preserves_known_after_and_evidence -- --nocapture",
+      "result": "passed"
+    },
+    {
+      "command": "cargo +1.98.1 clippy -p rust-engineering-project --all-targets -- -D warnings",
+      "result": "passed"
+    }
+  ],
+  "source_hashes": {
+    "crates/project-adapter/src/filesystem/macos/mutation.rs": "sha256:1873c798b1de5ad7133c2a16f76753ff5b01aed67c3c82736e18ac0224481dc8",
+    "crates/project-adapter/tests/support/native_mutation.rs": "sha256:fd742a57ed9613af9d055e56828745691e730923fcbfb73cd4377057ce03fb00",
+    "docs/adr/ADR-052-mutation-journal-and-authorization.md": "sha256:31640c85108960a38f90db1fb7e3ecebfddb6e25527d906c42275c68db16ab5d"
+  },
+  "limitations": [
+    "The escape restores service in a new physical workspace and new private state; it does not repair, certify, remove, or reinterpret the quarantined original generation.",
+    "A partial or corrupt journal intentionally remains a shared-store availability wedge for scans, administration, and new commits. Exact intact terminal records can still be queried by ID.",
+    "The 207 MiB retained ceiling protects stores populated under this admission rule. It does not retroactively create metadata headroom in stores admitted by an older 208 MiB ceiling.",
+    "The quota proof bounds growth caused by the writer's current v2 phase metadata and current v1-to-v2 conversion. Unknown future durable fields require a new bound and qualification.",
+    "The admission reordering avoids allocating the Prepared encoding before quota rejection, but no new RSS or timing claim is made. The existing worst-case JournalBody clone remains.",
+    "The related deterministic fault evidence does not inject failures in fsync, F_FULLFSYNC, fclonefileat, openat, set_len, renameat, or renameat_with and does not simulate physical disk exhaustion or sudden power loss.",
+    "No Docker, service installation, mount, real user repository, or host disk filling was used."
+  ]
+}

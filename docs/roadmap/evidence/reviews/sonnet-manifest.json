@@ -1,0 +1,78 @@
+[
+  {
+    "path": "docs/roadmap/adr-backlog-m2-m8.md",
+    "sha256": "bbfd87ec067b8c04987fb46cda946a2d8ca4259ded66fe4270a4be977566c26d"
+  },
+  {
+    "path": "docs/roadmap/baseline-2026-09-05.md",
+    "sha256": "efd511035e0270ee63883c5bb484591fc0a13e0c6082e140caf809d1d880d805"
+  },
+  {
+    "path": "docs/roadmap/m2-m8.md",
+    "sha256": "d7ced4894a3dc74603930477075ae7ef143e4093c9dd4b4cf5afd1a2d761a543"
+  },
+  {
+    "path": "docs/roadmap/m2-safe-mutation.md",
+    "sha256": "c8246adf2bb6f16d1c959db15b65e16b3087c2d8af6bfbb0dcd44b6b4e49abc5"
+  },
+  {
+    "path": "docs/roadmap/m3-quality.md",
+    "sha256": "f5dd399504f6aaeee3fbabb38c1fa31d5b884c41b48de67eddb0c969c888436a"
+  },
+  {
+    "path": "docs/roadmap/m4-security.md",
+    "sha256": "938d5af23d51f2a12ddd40eba707098ad413ceb0d1528a06eeb22fcfb0202948"
+  },
+  {
+    "path": "docs/roadmap/m5-performance.md",
+    "sha256": "86506318267e62988176ca996edf760ae33d6bffe7e94de594f260fab443e3d7"
+  },
+  {
+    "path": "docs/roadmap/m6-analyzer.md",
+    "sha256": "81c4cf7b03af714ab3b691b99dca15041903fdf9d1b054015805129e285221fd"
+  },
+  {
+    "path": "docs/roadmap/m7-remote.md",
+    "sha256": "2428292cfbdd9991060a5d37641eb8655023e7867948f489bf5abbccbcfa92b5"
+  },
+  {
+    "path": "docs/roadmap/m8-stabilization.md",
+    "sha256": "9a932ccc65f3a51f574d361db0de34019b5470ed92dc09f1fcde73c3a298fe58"
+  },
+  {
+    "path": "docs/roadmap/traceability-m2-m8.md",
+    "sha256": "4b98d50db420b5fbde3f05da346633689050d56d8c031e50f03a2d7b7aec1fcc"
+  },
+  {
+    "path": "docs/prompts/implement-m2.md",
+    "sha256": "9478473021cb5e9ad93f73d8f45221ad367cacb7f134844cb85b03e8c0086d2a"
+  },
+  {
+    "path": "docs/prompts/implement-m3.md",
+    "sha256": "341401c7eb276119d06b41b8524a1fad547096f36ec0ca148c23530731db68b5"
+  },
+  {
+    "path": "docs/prompts/implement-m4.md",
+    "sha256": "c0875184da8867a95ca7d376093ffd8726a112eec712535ebe7a104c1813f51d"
+  },
+  {
+    "path": "docs/prompts/implement-m5.md",
+    "sha256": "def9987dc123c6f5ed99de22efbbc426bae5ad4c417f70ccb8131ec4bc9c61ae"
+  },
+  {
+    "path": "docs/prompts/implement-m6.md",
+    "sha256": "782fc34c9083ae61f62b15836ad67f0b1ec741843b099579aac85fb2b36cd7cc"
+  },
+  {
+    "path": "docs/prompts/implement-m7.md",
+    "sha256": "306fb575f38959b86568e03426f149cc3af98258c825fd0cee0a71fd1b06681b"
+  },
+  {
+    "path": "docs/prompts/implement-m8.md",
+    "sha256": "4329312cd7b8bcd1a7c42fb2d69ae06c84f50820095692924e1540f29672adc8"
+  },
+  {
+    "path": "AGENTS.md",
+    "sha256": "9057042f049b2f77e020206f9bba6464c925f58f2430aaa30cc96f8596ade73d"
+  }
+]

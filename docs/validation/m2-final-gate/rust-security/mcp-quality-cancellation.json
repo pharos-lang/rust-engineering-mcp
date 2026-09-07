@@ -1,0 +1,11 @@
+{
+  "active_quality_test_binaries_observed": 2,
+  "cancelled_response_suppressed": true,
+  "cases": 3,
+  "cleanup": true,
+  "eof_joined_shutdown": true,
+  "initial_fast_pass": true,
+  "prior_log_group_survives_cancel": true,
+  "source_unchanged_between_explicit_mutations": true,
+  "worker_reused_after_joined_cleanup": true
+}

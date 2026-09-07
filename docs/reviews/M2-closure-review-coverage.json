@@ -1,0 +1,648 @@
+{
+  "status": "snapshot_before_final_document_status_updates",
+  "note": "A differing hash does not transfer earlier review coverage; later reviews and owner dispositions are separate. Code is frozen for the running full. Final documentation status updates will change document hashes again.",
+  "reviews": [
+    {
+      "manifest": "docs/reviews/M2-final-contract-inputs.json",
+      "manifest_sha256": "60e149aa0d2157dcc85039631a20a2a65b8586bfdb39522ea82b71f9ed1edcd9",
+      "files": [
+        {
+          "path": "docs/adr/ADR-050-local-coordinated-mutation.md",
+          "reviewed_sha256": "e4e8b38936cdde67c4704833c464b68dd43e7fe6166daadb887991ee695c6a40",
+          "current_sha256": "e4e8b38936cdde67c4704833c464b68dd43e7fe6166daadb887991ee695c6a40",
+          "matches": true
+        },
+        {
+          "path": "docs/adr/ADR-052-mutation-journal-and-authorization.md",
+          "reviewed_sha256": "3bada3a68f78bbe15c3f77f5ce3e8e096562488f27aeeacc671bdbcc31645b1c",
+          "current_sha256": "ce39d4e64efbe324e58b874dce05bd2468860a21d98208a521a3f90802563058",
+          "matches": false
+        },
+        {
+          "path": "docs/adr/ADR-055-offline-cargo-data-and-lock-policy.md",
+          "reviewed_sha256": "d3f3a71425f1d774252ec33ca896d24ab9da04cc412a686c7cec04a325269381",
+          "current_sha256": "e62381cfeabca33a923cd1777296ab6dd7ffe304c3be263ced687985cae5a693",
+          "matches": false
+        },
+        {
+          "path": "docs/adr/ADR-056-cargo-fix-isolated-loopback.md",
+          "reviewed_sha256": "0f95839e32336d5caaa5be498629cb2681f119b63d8640b18a4f86ec21946425",
+          "current_sha256": "8bcf59c24097357b87161b9c55dfb91e719052f4a8be0dade44c5a9705ceab36",
+          "matches": false
+        },
+        {
+          "path": "docs/adr/ADR-057-typed-manifest-and-dependency-operations.md",
+          "reviewed_sha256": "12a116c6ed5645659935e2b278e6bc41aad43c739fee8a8a5c53b46beadaefa1",
+          "current_sha256": "12a116c6ed5645659935e2b278e6bc41aad43c739fee8a8a5c53b46beadaefa1",
+          "matches": true
+        },
+        {
+          "path": "crates/mcp-server/src/host_config.rs",
+          "reviewed_sha256": "9d67e34de0bacdc328d1938e943ee39cb69d62552d27e8c9a232fae32baea341",
+          "current_sha256": "9d67e34de0bacdc328d1938e943ee39cb69d62552d27e8c9a232fae32baea341",
+          "matches": true
+        },
+        {
+          "path": "crates/mcp-server/src/stdio/mutation.rs",
+          "reviewed_sha256": "6bffd3453dde010e86482c5d1d11dfec48d1d9883360572f4e54d3c10444c88b",
+          "current_sha256": "dfe52208cb61d687aa5bab9a1e070977c19025d26913f3893a56e93939c0df32",
+          "matches": false
+        },
+        {
+          "path": "crates/mcp-server/src/stdio/mutation/semantic_input.rs",
+          "reviewed_sha256": "4fe8befed56c8d405bf0b9e2389018fac16f216ca6cb90c2fa0e8cf9da7e3c0d",
+          "current_sha256": "1cdc7212438e0b0aa475dc49d379e20dc4923f3f68bcb542fb8fc8a6fb25431b",
+          "matches": false
+        },
+        {
+          "path": "crates/application/src/mutation.rs",
+          "reviewed_sha256": "518cacfe2bb30f433a4aa705da29c5c824b47ceace3abd0dcf1444c81849c2b6",
+          "current_sha256": "e4b79d9da88b3c427c23e5824719870703e20c1636aa43f2f0c6dab7444ee3b9",
+          "matches": false
+        },
+        {
+          "path": "crates/application/src/resolution.rs",
+          "reviewed_sha256": "1c3e4b2bb9e3f6f0af199adc1355c3c664945a6b6972610a189aa8ada77c23a8",
+          "current_sha256": "1c3e4b2bb9e3f6f0af199adc1355c3c664945a6b6972610a189aa8ada77c23a8",
+          "matches": true
+        },
+        {
+          "path": "crates/mcp-server/tests/protocol.rs",
+          "reviewed_sha256": "d68d88ba72732d7ffa76a6d960c0385ff524767da9b11053d27098e46fca102a",
+          "current_sha256": "d0e2a13d1948d9cf787ebd9181089a3f1c7985a23cd0dbeb37c95e5e2f1f8bae",
+          "matches": false
+        }
+      ]
+    },
+    {
+      "manifest": "docs/reviews/M2-final-contract-recheck-inputs.json",
+      "manifest_sha256": "50c282b6210afcb80011677936ee57a74aab762bb91f414333be20ebdfffb65c",
+      "files": [
+        {
+          "path": "crates/mcp-server/src/stdio.rs",
+          "reviewed_sha256": "e18e1f06d6353ad14ae72f8cf3d113637eb6604954c555b195c2ce818345a291",
+          "current_sha256": "e18e1f06d6353ad14ae72f8cf3d113637eb6604954c555b195c2ce818345a291",
+          "matches": true
+        },
+        {
+          "path": "crates/mcp-server/src/stdio/mutation/semantic_input.rs",
+          "reviewed_sha256": "7c48bd6f5cf605b47375e4aa6ac7eeaaa7c5bc55fcb45e33b083ef02bf260787",
+          "current_sha256": "1cdc7212438e0b0aa475dc49d379e20dc4923f3f68bcb542fb8fc8a6fb25431b",
+          "matches": false
+        },
+        {
+          "path": "crates/mcp-server/tests/inspection_runtime/dependency_mutation.rs",
+          "reviewed_sha256": "ac340c07a9656fb935b0c4b445b26bed6abeb220d43fd58e3c616f0e17390558",
+          "current_sha256": "37cf812f01a65cf6e68007b2cb48aa16b20671a3098db277c1d8f57f9b79518f",
+          "matches": false
+        },
+        {
+          "path": "crates/mcp-server/src/stdio/mutation.rs",
+          "reviewed_sha256": "6bffd3453dde010e86482c5d1d11dfec48d1d9883360572f4e54d3c10444c88b",
+          "current_sha256": "dfe52208cb61d687aa5bab9a1e070977c19025d26913f3893a56e93939c0df32",
+          "matches": false
+        }
+      ]
+    },
+    {
+      "manifest": "docs/reviews/M2-final-security-inputs.json",
+      "manifest_sha256": "d26786f40c2da971bccebbc791450fc2220a2162e9ed32beee35fb9f28bdcbc3",
+      "files": [
+        {
+          "path": "docs/adr/ADR-050-local-coordinated-mutation.md",
+          "reviewed_sha256": "e4e8b38936cdde67c4704833c464b68dd43e7fe6166daadb887991ee695c6a40",
+          "current_sha256": "e4e8b38936cdde67c4704833c464b68dd43e7fe6166daadb887991ee695c6a40",
+          "matches": true
+        },
+        {
+          "path": "docs/adr/ADR-053-bounded-guest-mutation-staging.md",
+          "reviewed_sha256": "bb5a1d2e92f6b8db1b23642cca2d8796fa3146f178e1e2924fb98074f5ae8ae0",
+          "current_sha256": "bb5a1d2e92f6b8db1b23642cca2d8796fa3146f178e1e2924fb98074f5ae8ae0",
+          "matches": true
+        },
+        {
+          "path": "docs/adr/ADR-055-offline-cargo-data-and-lock-policy.md",
+          "reviewed_sha256": "d3f3a71425f1d774252ec33ca896d24ab9da04cc412a686c7cec04a325269381",
+          "current_sha256": "e62381cfeabca33a923cd1777296ab6dd7ffe304c3be263ced687985cae5a693",
+          "matches": false
+        },
+        {
+          "path": "docs/adr/ADR-056-cargo-fix-isolated-loopback.md",
+          "reviewed_sha256": "0f95839e32336d5caaa5be498629cb2681f119b63d8640b18a4f86ec21946425",
+          "current_sha256": "8bcf59c24097357b87161b9c55dfb91e719052f4a8be0dade44c5a9705ceab36",
+          "matches": false
+        },
+        {
+          "path": "docs/adr/ADR-057-typed-manifest-and-dependency-operations.md",
+          "reviewed_sha256": "12a116c6ed5645659935e2b278e6bc41aad43c739fee8a8a5c53b46beadaefa1",
+          "current_sha256": "12a116c6ed5645659935e2b278e6bc41aad43c739fee8a8a5c53b46beadaefa1",
+          "matches": true
+        },
+        {
+          "path": "crates/execution-adapter/src/resolution_gateway.rs",
+          "reviewed_sha256": "a335b7b5a1957bd16bf1a7ceb3819da016bdf3e8b616c3a8a05fc4d8078d4546",
+          "current_sha256": "8c54b84ca315ccee6a96038246447d6682ab09defc248285fc75671782c1e3de",
+          "matches": false
+        },
+        {
+          "path": "crates/execution-adapter/src/mutation_gateway.rs",
+          "reviewed_sha256": "1685518076ec3a254e93c7f4429024bb712ae8c7666568747b0a441d9eaa5798",
+          "current_sha256": "df7fe329bbcdbffc49cfdf461df9556041f1aae624c9bd0f47b4ece34b13db87",
+          "matches": false
+        },
+        {
+          "path": "crates/execution-adapter/src/mutation_archive.rs",
+          "reviewed_sha256": "e8e7059558680df02ef41cb65af98a347b6cbbae452bda19ffb880c4fd5f9647",
+          "current_sha256": "e8e7059558680df02ef41cb65af98a347b6cbbae452bda19ffb880c4fd5f9647",
+          "matches": true
+        },
+        {
+          "path": "crates/execution-adapter/src/rust_applied.rs",
+          "reviewed_sha256": "cd4dc4fd21a8d618a96debfc6e1f006b500619e35d330a116333e52bfa3e55a6",
+          "current_sha256": "c130cfee5f41be23ecf53ad65556db2d025f0ec8df56180ba2340ebf354bde97",
+          "matches": false
+        },
+        {
+          "path": "crates/execution-adapter/src/seccomp-rust.json",
+          "reviewed_sha256": "f9d31acb22989dc6ac37c02d4c73acfbbb3b74b5e08beff9983f3a811fd4e56d",
+          "current_sha256": "f9d31acb22989dc6ac37c02d4c73acfbbb3b74b5e08beff9983f3a811fd4e56d",
+          "matches": true
+        },
+        {
+          "path": "crates/execution-adapter/src/seccomp-rust-fix.json",
+          "reviewed_sha256": "c5b045931bb8fc4e011193f71976cba5f97bb565e4ef051e13a3425309750709",
+          "current_sha256": "0dc7bbbbf8f7e2a47c784488c49bbc7ffd6acac83b6f15e4fe2f0b9c1f642f15",
+          "matches": false
+        },
+        {
+          "path": "crates/execution-adapter/src/project_inspection.rs",
+          "reviewed_sha256": "8cf540a9ad1dad7602e15dfc30d65a26569dcbf163f9542e6c662c697da93f4d",
+          "current_sha256": "8cf540a9ad1dad7602e15dfc30d65a26569dcbf163f9542e6c662c697da93f4d",
+          "matches": true
+        },
+        {
+          "path": "crates/execution-adapter/src/state.rs",
+          "reviewed_sha256": "d294e5d49c4045ebaa5af66d48e2cbf95b666daadda245505c54269541c2a781",
+          "current_sha256": "d294e5d49c4045ebaa5af66d48e2cbf95b666daadda245505c54269541c2a781",
+          "matches": true
+        },
+        {
+          "path": "crates/project-adapter/src/cargo_vendor.rs",
+          "reviewed_sha256": "62c271d7c6866cba8f57a57fcd706ba8f39dc05c476d32c660ac5ee3167fb983",
+          "current_sha256": "62c271d7c6866cba8f57a57fcd706ba8f39dc05c476d32c660ac5ee3167fb983",
+          "matches": true
+        },
+        {
+          "path": "crates/project-adapter/src/semantic_delta.rs",
+          "reviewed_sha256": "808c104479c119550259aa52034d424d3db0a24554d54d8dea67e5f1f0943314",
+          "current_sha256": "808c104479c119550259aa52034d424d3db0a24554d54d8dea67e5f1f0943314",
+          "matches": true
+        },
+        {
+          "path": "crates/application/src/resolution.rs",
+          "reviewed_sha256": "1c3e4b2bb9e3f6f0af199adc1355c3c664945a6b6972610a189aa8ada77c23a8",
+          "current_sha256": "1c3e4b2bb9e3f6f0af199adc1355c3c664945a6b6972610a189aa8ada77c23a8",
+          "matches": true
+        }
+      ]
+    },
+    {
+      "manifest": "docs/reviews/M2-final-security-recheck-inputs.json",
+      "manifest_sha256": "cc46432e4c2da93bf6b0c95af1b217d965d33e3f823b73843ee6a73096f258b0",
+      "files": [
+        {
+          "path": "docs/adr/ADR-055-offline-cargo-data-and-lock-policy.md",
+          "reviewed_sha256": "f1ed3477d48b67cb2f0f5c0aa6941002aa808265767b76c7f44cb15877d56481",
+          "current_sha256": "e62381cfeabca33a923cd1777296ab6dd7ffe304c3be263ced687985cae5a693",
+          "matches": false
+        },
+        {
+          "path": "docs/adr/ADR-056-cargo-fix-isolated-loopback.md",
+          "reviewed_sha256": "8bcf59c24097357b87161b9c55dfb91e719052f4a8be0dade44c5a9705ceab36",
+          "current_sha256": "8bcf59c24097357b87161b9c55dfb91e719052f4a8be0dade44c5a9705ceab36",
+          "matches": true
+        },
+        {
+          "path": "docs/adr/ADR-057-typed-manifest-and-dependency-operations.md",
+          "reviewed_sha256": "12a116c6ed5645659935e2b278e6bc41aad43c739fee8a8a5c53b46beadaefa1",
+          "current_sha256": "12a116c6ed5645659935e2b278e6bc41aad43c739fee8a8a5c53b46beadaefa1",
+          "matches": true
+        },
+        {
+          "path": "docs/validation/M2-fix-socket-mask.json",
+          "reviewed_sha256": "c0bd909d5e79e0e23a28ca5dbebfc3c0883f15101d244183030579b1a45755c0",
+          "current_sha256": "c0bd909d5e79e0e23a28ca5dbebfc3c0883f15101d244183030579b1a45755c0",
+          "matches": true
+        },
+        {
+          "path": "crates/execution-adapter/src/resolution_gateway.rs",
+          "reviewed_sha256": "16d225d692d601d709c45263c68dfe69ad9cabf997544e14f4b94ea00ff490c7",
+          "current_sha256": "8c54b84ca315ccee6a96038246447d6682ab09defc248285fc75671782c1e3de",
+          "matches": false
+        },
+        {
+          "path": "crates/execution-adapter/src/mutation_gateway.rs",
+          "reviewed_sha256": "df7fe329bbcdbffc49cfdf461df9556041f1aae624c9bd0f47b4ece34b13db87",
+          "current_sha256": "df7fe329bbcdbffc49cfdf461df9556041f1aae624c9bd0f47b4ece34b13db87",
+          "matches": true
+        },
+        {
+          "path": "crates/execution-adapter/src/seccomp-rust-fix.json",
+          "reviewed_sha256": "0dc7bbbbf8f7e2a47c784488c49bbc7ffd6acac83b6f15e4fe2f0b9c1f642f15",
+          "current_sha256": "0dc7bbbbf8f7e2a47c784488c49bbc7ffd6acac83b6f15e4fe2f0b9c1f642f15",
+          "matches": true
+        },
+        {
+          "path": "crates/execution-adapter/src/mutation_archive.rs",
+          "reviewed_sha256": "e8e7059558680df02ef41cb65af98a347b6cbbae452bda19ffb880c4fd5f9647",
+          "current_sha256": "e8e7059558680df02ef41cb65af98a347b6cbbae452bda19ffb880c4fd5f9647",
+          "matches": true
+        },
+        {
+          "path": "crates/mcp-server/src/stdio.rs",
+          "reviewed_sha256": "e18e1f06d6353ad14ae72f8cf3d113637eb6604954c555b195c2ce818345a291",
+          "current_sha256": "e18e1f06d6353ad14ae72f8cf3d113637eb6604954c555b195c2ce818345a291",
+          "matches": true
+        },
+        {
+          "path": "crates/mcp-server/src/host_config.rs",
+          "reviewed_sha256": "9d67e34de0bacdc328d1938e943ee39cb69d62552d27e8c9a232fae32baea341",
+          "current_sha256": "9d67e34de0bacdc328d1938e943ee39cb69d62552d27e8c9a232fae32baea341",
+          "matches": true
+        },
+        {
+          "path": "crates/project-adapter/src/filesystem/macos/source.rs",
+          "reviewed_sha256": "aebc1b3b3e664b9e3f8c4274c1493f8433c1ab86c5453f2b3c178467c76715b1",
+          "current_sha256": "aebc1b3b3e664b9e3f8c4274c1493f8433c1ab86c5453f2b3c178467c76715b1",
+          "matches": true
+        },
+        {
+          "path": "crates/project-adapter/src/mutation_store.rs",
+          "reviewed_sha256": "3a3142089060be0bb1aadd2f2cab13a00ca3a7dd5d3e5b1ac42a5b4b7a864334",
+          "current_sha256": "24ad53774e998fa239340a6c8e90abbbe4e9b9a4d505b0747d8d85ce06dbd3ce",
+          "matches": false
+        },
+        {
+          "path": "crates/project-adapter/src/semantic_delta.rs",
+          "reviewed_sha256": "808c104479c119550259aa52034d424d3db0a24554d54d8dea67e5f1f0943314",
+          "current_sha256": "808c104479c119550259aa52034d424d3db0a24554d54d8dea67e5f1f0943314",
+          "matches": true
+        },
+        {
+          "path": "crates/mcp-server/tests/inspection_runtime/fix_hostile.rs",
+          "reviewed_sha256": "bb5937d26241e99add44bebca3f8980d8cc7a878e4fcae7d1cb9f277fcb1c92e",
+          "current_sha256": "bb5937d26241e99add44bebca3f8980d8cc7a878e4fcae7d1cb9f277fcb1c92e",
+          "matches": true
+        }
+      ]
+    },
+    {
+      "manifest": "docs/reviews/M2-final-native-inputs.json",
+      "manifest_sha256": "f7e64bd365f9836c6468dfa8fc6fc2a49cdc8bd0c18ca3442a2623d35ba59fcd",
+      "files": [
+        {
+          "path": "docs/adr/ADR-050-local-coordinated-mutation.md",
+          "reviewed_sha256": "e4e8b38936cdde67c4704833c464b68dd43e7fe6166daadb887991ee695c6a40",
+          "current_sha256": "e4e8b38936cdde67c4704833c464b68dd43e7fe6166daadb887991ee695c6a40",
+          "matches": true
+        },
+        {
+          "path": "docs/adr/ADR-052-mutation-journal-and-authorization.md",
+          "reviewed_sha256": "3bada3a68f78bbe15c3f77f5ce3e8e096562488f27aeeacc671bdbcc31645b1c",
+          "current_sha256": "ce39d4e64efbe324e58b874dce05bd2468860a21d98208a521a3f90802563058",
+          "matches": false
+        },
+        {
+          "path": "docs/adr/ADR-054-multiple-file-mutation-publication.md",
+          "reviewed_sha256": "928b5e463d339ac8ac759c42e4dbee389ebe23655e3f698b2b4b1e84cfd04905",
+          "current_sha256": "928b5e463d339ac8ac759c42e4dbee389ebe23655e3f698b2b4b1e84cfd04905",
+          "matches": true
+        },
+        {
+          "path": "docs/adr/ADR-057-typed-manifest-and-dependency-operations.md",
+          "reviewed_sha256": "12a116c6ed5645659935e2b278e6bc41aad43c739fee8a8a5c53b46beadaefa1",
+          "current_sha256": "12a116c6ed5645659935e2b278e6bc41aad43c739fee8a8a5c53b46beadaefa1",
+          "matches": true
+        },
+        {
+          "path": "docs/validation/M2-07-native-memory.json",
+          "reviewed_sha256": "e70fc3c1de06b623fc0c8d2a3b4677aa151f441280213c23a30797ea01d0a4b5",
+          "current_sha256": "29de7ff25ddbf622fdf6e4a376133db442204159e1960cf13736714f6f425e05",
+          "matches": false
+        },
+        {
+          "path": "docs/validation/M2-native-io-faults.json",
+          "reviewed_sha256": "f9855fade332851a60ea0734cdf9a6301412df3d673178d7a77e1700853bb739",
+          "current_sha256": "f9855fade332851a60ea0734cdf9a6301412df3d673178d7a77e1700853bb739",
+          "matches": true
+        },
+        {
+          "path": "crates/project-adapter/src/filesystem/macos/mutation.rs",
+          "reviewed_sha256": "6db94b0818d6d5230db87125ca4422122f78f836a2d7a50ded2200e7e32f7fe2",
+          "current_sha256": "8a00082f778f265db328418d121087ef3cb13570db6c359d7e21f4b50dc1745d",
+          "matches": false
+        },
+        {
+          "path": "crates/project-adapter/tests/support/native_mutation.rs",
+          "reviewed_sha256": "1984f757917c5e42ce1c7640e9718ef7763a7a638b250692b545784df11e40ee",
+          "current_sha256": "1661216f500223ee6e15b1ad6bd1c24a01380f4aa09ca41aacba99ec0ba10704",
+          "matches": false
+        }
+      ]
+    },
+    {
+      "manifest": "docs/reviews/M2-final-native-recheck-inputs.json",
+      "manifest_sha256": "77fcc85316666c6aaf710918e5aca8d2e0da9fdf3d6d5e3130d3594e94db2c5b",
+      "files": [
+        {
+          "path": "docs/adr/ADR-052-mutation-journal-and-authorization.md",
+          "reviewed_sha256": "31640c85108960a38f90db1fb7e3ecebfddb6e25527d906c42275c68db16ab5d",
+          "current_sha256": "ce39d4e64efbe324e58b874dce05bd2468860a21d98208a521a3f90802563058",
+          "matches": false
+        },
+        {
+          "path": "docs/client-configuration.md",
+          "reviewed_sha256": "1f9f8775d39dff606068b30635796da1bc069f5e483faf1427e7f4bd3a3c691c",
+          "current_sha256": "99f3ff01dfd95e124261f03b38ac5ccbd6351822bb0a2ff5dcd015046d8cc0f2",
+          "matches": false
+        },
+        {
+          "path": "README.md",
+          "reviewed_sha256": "fb3c1276496d18e3fd4c4209f9af9a03e7d9dce3da76259cb424a879a8f5adbe",
+          "current_sha256": "3d83a71e9c07e10c1acfdd62b6dc8f5295a9bcc709b1449dd7b84e46ff8961e7",
+          "matches": false
+        },
+        {
+          "path": "docs/validation/M2-native-remediation.json",
+          "reviewed_sha256": "0c2c8db244bf027091212c3ec458395555f699d94d8bd31e0be3b6ebabc2e17a",
+          "current_sha256": "0c2c8db244bf027091212c3ec458395555f699d94d8bd31e0be3b6ebabc2e17a",
+          "matches": true
+        },
+        {
+          "path": "crates/project-adapter/src/filesystem/macos/mutation.rs",
+          "reviewed_sha256": "1873c798b1de5ad7133c2a16f76753ff5b01aed67c3c82736e18ac0224481dc8",
+          "current_sha256": "8a00082f778f265db328418d121087ef3cb13570db6c359d7e21f4b50dc1745d",
+          "matches": false
+        },
+        {
+          "path": "crates/project-adapter/tests/support/native_mutation.rs",
+          "reviewed_sha256": "fd742a57ed9613af9d055e56828745691e730923fcbfb73cd4377057ce03fb00",
+          "current_sha256": "1661216f500223ee6e15b1ad6bd1c24a01380f4aa09ca41aacba99ec0ba10704",
+          "matches": false
+        }
+      ]
+    },
+    {
+      "manifest": "docs/reviews/M2-observability-inputs.json",
+      "manifest_sha256": "2e41165005fae11312f236beae7c218dbb2543e5bc72760a4fba21e4f762d8c0",
+      "files": [
+        {
+          "path": "docs/adr/ADR-058-local-mutation-observability.md",
+          "reviewed_sha256": "88d8736f6f9ce2d8ad1ab115e6c3ada954d631b0f18e125d80a12d64feab9286",
+          "current_sha256": "932e66b6b2edf878bf25b0864911de1bd14d4585d13921d7a80dbb6313f94841",
+          "matches": false
+        },
+        {
+          "path": "crates/mcp-server/src/stdio/mutation.rs",
+          "reviewed_sha256": "a6ed0ec4e1195d254377880ce621a4ce868e62c49de831c6993a438d68ea55de",
+          "current_sha256": "dfe52208cb61d687aa5bab9a1e070977c19025d26913f3893a56e93939c0df32",
+          "matches": false
+        },
+        {
+          "path": "crates/mcp-server/src/stdio/mutation/audit.rs",
+          "reviewed_sha256": "a2425667f333c22c535d5d199ee7249a0a8230cc316cd324b7239fc1be0f0ace",
+          "current_sha256": "a2425667f333c22c535d5d199ee7249a0a8230cc316cd324b7239fc1be0f0ace",
+          "matches": true
+        },
+        {
+          "path": "crates/mcp-server/src/stdio/workers.rs",
+          "reviewed_sha256": "546e24b8c4c11d4c22c776bbcd234370f8b284906a3f23d7b9a2f56225a8e317",
+          "current_sha256": "546e24b8c4c11d4c22c776bbcd234370f8b284906a3f23d7b9a2f56225a8e317",
+          "matches": true
+        },
+        {
+          "path": "crates/application/src/mutation.rs",
+          "reviewed_sha256": "195a7f0f5a28f5918cb785377ca6b5bde338646c056c94d9cc1f848774ce865e",
+          "current_sha256": "e4b79d9da88b3c427c23e5824719870703e20c1636aa43f2f0c6dab7444ee3b9",
+          "matches": false
+        },
+        {
+          "path": "crates/mcp-server/tests/protocol.rs",
+          "reviewed_sha256": "d0e2a13d1948d9cf787ebd9181089a3f1c7985a23cd0dbeb37c95e5e2f1f8bae",
+          "current_sha256": "d0e2a13d1948d9cf787ebd9181089a3f1c7985a23cd0dbeb37c95e5e2f1f8bae",
+          "matches": true
+        },
+        {
+          "path": "crates/mcp-server/tests/inspection_runtime.rs",
+          "reviewed_sha256": "7ea591d0c7ad6b31c040a15e90a4280f8b187c9f505dd0a24d4e34dca8143c77",
+          "current_sha256": "688f098e48b11898ee50db102e10e8aa81fc22fd30d174aac21ea89b68c98e88",
+          "matches": false
+        },
+        {
+          "path": "crates/mcp-server/tests/inspection_runtime/fix_mutation.rs",
+          "reviewed_sha256": "1aef83b6864fe874c1f07d5e779740e652f9681c922e403398b7bdb767cff25a",
+          "current_sha256": "1aef83b6864fe874c1f07d5e779740e652f9681c922e403398b7bdb767cff25a",
+          "matches": true
+        },
+        {
+          "path": "crates/mcp-server/src/stdio/mutation/semantic_input.rs",
+          "reviewed_sha256": "407301473568bc42cbe7e97cb82158bd44abd677ee208949a56a2749bb4ebd96",
+          "current_sha256": "1cdc7212438e0b0aa475dc49d379e20dc4923f3f68bcb542fb8fc8a6fb25431b",
+          "matches": false
+        }
+      ]
+    },
+    {
+      "manifest": "docs/reviews/M2-059-inputs.json",
+      "manifest_sha256": "cfd50087cfb353b2a74cc313578c181380cc352347ab291f5f4ee5ed3d04c972",
+      "files": [
+        {
+          "path": "docs/adr/ADR-059-terminal-plan-retirement-and-durable-replay.md",
+          "reviewed_sha256": "03bbcef604a6064badfd13b1ff6fdee8ba9f77129d33ae99bd177df3805a84fe",
+          "current_sha256": "55fd35d50374a0634927171b57f9ec880408c712bdbb7f1ceb1e7233478aa8b3",
+          "matches": false
+        },
+        {
+          "path": "docs/adr/ADR-052-mutation-journal-and-authorization.md",
+          "reviewed_sha256": "ce39d4e64efbe324e58b874dce05bd2468860a21d98208a521a3f90802563058",
+          "current_sha256": "ce39d4e64efbe324e58b874dce05bd2468860a21d98208a521a3f90802563058",
+          "matches": true
+        },
+        {
+          "path": "crates/application/src/mutation.rs",
+          "reviewed_sha256": "e4b79d9da88b3c427c23e5824719870703e20c1636aa43f2f0c6dab7444ee3b9",
+          "current_sha256": "e4b79d9da88b3c427c23e5824719870703e20c1636aa43f2f0c6dab7444ee3b9",
+          "matches": true
+        },
+        {
+          "path": "crates/application/tests/mutation.rs",
+          "reviewed_sha256": "1802bf48958e2a5c29f63fe54fd05953cf5338d44db3fdbbb62b538915764cf4",
+          "current_sha256": "c5b457b453ba03d1e345c293c174434dc78e7c7acf0d619843afbf6a3995795c",
+          "matches": false
+        },
+        {
+          "path": "crates/project-adapter/src/filesystem/macos/mutation.rs",
+          "reviewed_sha256": "8a00082f778f265db328418d121087ef3cb13570db6c359d7e21f4b50dc1745d",
+          "current_sha256": "8a00082f778f265db328418d121087ef3cb13570db6c359d7e21f4b50dc1745d",
+          "matches": true
+        },
+        {
+          "path": "crates/project-adapter/src/mutation_port.rs",
+          "reviewed_sha256": "1418352cf96899392b14a90683cbe32b1a3daef90abda90b941c35618efe8b42",
+          "current_sha256": "1418352cf96899392b14a90683cbe32b1a3daef90abda90b941c35618efe8b42",
+          "matches": true
+        },
+        {
+          "path": "crates/project-adapter/src/mutation_store.rs",
+          "reviewed_sha256": "24ad53774e998fa239340a6c8e90abbbe4e9b9a4d505b0747d8d85ce06dbd3ce",
+          "current_sha256": "24ad53774e998fa239340a6c8e90abbbe4e9b9a4d505b0747d8d85ce06dbd3ce",
+          "matches": true
+        },
+        {
+          "path": "crates/project-adapter/tests/support/native_mutation.rs",
+          "reviewed_sha256": "26347f02499e87849f959e78a56287ec918cacf4edd7ad7592a2be72069e8583",
+          "current_sha256": "1661216f500223ee6e15b1ad6bd1c24a01380f4aa09ca41aacba99ec0ba10704",
+          "matches": false
+        },
+        {
+          "path": "crates/mcp-server/src/stdio/mutation.rs",
+          "reviewed_sha256": "d58153f8b628d385a74b0e47cb5bf6e9981fe66de1c33df16482a24fd2161e50",
+          "current_sha256": "dfe52208cb61d687aa5bab9a1e070977c19025d26913f3893a56e93939c0df32",
+          "matches": false
+        },
+        {
+          "path": "crates/mcp-server/tests/inspection_runtime/terminal_plan.rs",
+          "reviewed_sha256": "5d6cb5c46282cc4950983a8e968c1662d625149538c86cf6d0dd4b59eb67b023",
+          "current_sha256": "5d6cb5c46282cc4950983a8e968c1662d625149538c86cf6d0dd4b59eb67b023",
+          "matches": true
+        }
+      ]
+    },
+    {
+      "manifest": "docs/reviews/M2-059-recheck-inputs.json",
+      "manifest_sha256": "2e4b50682dbc01a36beef80d6ed131d5a53332577cfb9ed0a8f0989d8d52d5c2",
+      "files": [
+        {
+          "path": "crates/mcp-server/src/stdio/mutation/semantic_input.rs",
+          "reviewed_sha256": "1cdc7212438e0b0aa475dc49d379e20dc4923f3f68bcb542fb8fc8a6fb25431b",
+          "current_sha256": "1cdc7212438e0b0aa475dc49d379e20dc4923f3f68bcb542fb8fc8a6fb25431b",
+          "matches": true
+        },
+        {
+          "path": "crates/mcp-server/src/stdio/workers.rs",
+          "reviewed_sha256": "546e24b8c4c11d4c22c776bbcd234370f8b284906a3f23d7b9a2f56225a8e317",
+          "current_sha256": "546e24b8c4c11d4c22c776bbcd234370f8b284906a3f23d7b9a2f56225a8e317",
+          "matches": true
+        },
+        {
+          "path": "crates/application/src/lib.rs",
+          "reviewed_sha256": "a49e55162b875fcc824dcb14e0f2cd95e793db7c960d8e7a4981f6a02412cfea",
+          "current_sha256": "a49e55162b875fcc824dcb14e0f2cd95e793db7c960d8e7a4981f6a02412cfea",
+          "matches": true
+        },
+        {
+          "path": "crates/application/src/source.rs",
+          "reviewed_sha256": "be7b1ae1dacc0aa9b8fabafff6b226f7731d8019d8c069e07f97a972e4e394c5",
+          "current_sha256": "be7b1ae1dacc0aa9b8fabafff6b226f7731d8019d8c069e07f97a972e4e394c5",
+          "matches": true
+        },
+        {
+          "path": "docs/adr/ADR-058-local-mutation-observability.md",
+          "reviewed_sha256": "932e66b6b2edf878bf25b0864911de1bd14d4585d13921d7a80dbb6313f94841",
+          "current_sha256": "932e66b6b2edf878bf25b0864911de1bd14d4585d13921d7a80dbb6313f94841",
+          "matches": true
+        },
+        {
+          "path": "docs/adr/ADR-059-terminal-plan-retirement-and-durable-replay.md",
+          "reviewed_sha256": "55fd35d50374a0634927171b57f9ec880408c712bdbb7f1ceb1e7233478aa8b3",
+          "current_sha256": "55fd35d50374a0634927171b57f9ec880408c712bdbb7f1ceb1e7233478aa8b3",
+          "matches": true
+        },
+        {
+          "path": "README.md",
+          "reviewed_sha256": "dab48b826bb4265be5a14e17cb5025f47869501471c8101e37038a10c2f4b7b5",
+          "current_sha256": "3d83a71e9c07e10c1acfdd62b6dc8f5295a9bcc709b1449dd7b84e46ff8961e7",
+          "matches": false
+        },
+        {
+          "path": "docs/tools.md",
+          "reviewed_sha256": "5a622302f03b331ffa6bb2b2dd243246af3267d4f260b9385f9b996e96d7a441",
+          "current_sha256": "242543aaa5175fcb107a14641dec9811dc78751defe8488a211d8cb36c6bbd05",
+          "matches": false
+        },
+        {
+          "path": "docs/client-configuration.md",
+          "reviewed_sha256": "fb86f665a3dd021928e783cef83864aa429dd42246f04231611025c22ceefda6",
+          "current_sha256": "99f3ff01dfd95e124261f03b38ac5ccbd6351822bb0a2ff5dcd015046d8cc0f2",
+          "matches": false
+        },
+        {
+          "path": "scripts/test-m2-clients.py",
+          "reviewed_sha256": "f18397e4694521b62d6764c3baa8dc52188e8feb8ad09e1321a91e51ba1905cc",
+          "current_sha256": "f18397e4694521b62d6764c3baa8dc52188e8feb8ad09e1321a91e51ba1905cc",
+          "matches": true
+        },
+        {
+          "path": "crates/mcp-server/tests/snapshots/fmt-apply-tool.json",
+          "reviewed_sha256": "78983f1e4c08d607a4504994237a3a053de0f5c779671c0da6357db0bf833dab",
+          "current_sha256": "78983f1e4c08d607a4504994237a3a053de0f5c779671c0da6357db0bf833dab",
+          "matches": true
+        },
+        {
+          "path": "crates/mcp-server/tests/snapshots/dependency-remove-tool.json",
+          "reviewed_sha256": "e73dfb65c55c5de6852b77e947bb8ee79ce824f18ef3035b33f84836ab198cdd",
+          "current_sha256": "e73dfb65c55c5de6852b77e947bb8ee79ce824f18ef3035b33f84836ab198cdd",
+          "matches": true
+        },
+        {
+          "path": "crates/mcp-server/tests/snapshots/manifest-patch-tool.json",
+          "reviewed_sha256": "1a4f9891093f03db987ad9b53f3b862a0dc54183abf074d89096f6f294b814aa",
+          "current_sha256": "1a4f9891093f03db987ad9b53f3b862a0dc54183abf074d89096f6f294b814aa",
+          "matches": true
+        },
+        {
+          "path": "crates/mcp-server/tests/snapshots/dependency-add-tool.json",
+          "reviewed_sha256": "426515577746d42235ee31edfe455a5057cb0c7ffd1912f534de26e323304be6",
+          "current_sha256": "426515577746d42235ee31edfe455a5057cb0c7ffd1912f534de26e323304be6",
+          "matches": true
+        },
+        {
+          "path": "crates/mcp-server/tests/snapshots/fix-apply-tool.json",
+          "reviewed_sha256": "89c93950abe47923644f1cb2457491fbf4823533b99a489a7723fc1786fd57d5",
+          "current_sha256": "89c93950abe47923644f1cb2457491fbf4823533b99a489a7723fc1786fd57d5",
+          "matches": true
+        }
+      ]
+    },
+    {
+      "manifest": "docs/reviews/M2-closure-resolution-inputs.json",
+      "manifest_sha256": "97f2e31d086b25e83974b8c98818d3d138eab1d37843830aaea3685e107493f8",
+      "files": [
+        {
+          "path": "crates/execution-adapter/src/resolution_gateway.rs",
+          "reviewed_sha256": "8c54b84ca315ccee6a96038246447d6682ab09defc248285fc75671782c1e3de",
+          "current_sha256": "8c54b84ca315ccee6a96038246447d6682ab09defc248285fc75671782c1e3de",
+          "matches": true
+        },
+        {
+          "path": "docs/validation/M2-D05-hardening-followup.json",
+          "reviewed_sha256": "de44b7c639fc7bf91283bb027deec05eae562f4b45882bbfe7c57b9bda7dedce",
+          "current_sha256": "de44b7c639fc7bf91283bb027deec05eae562f4b45882bbfe7c57b9bda7dedce",
+          "matches": true
+        },
+        {
+          "path": "docs/reviews/M2-final-security-review.md",
+          "reviewed_sha256": "c5ceda8560b0ee047f2fcb75691bb7b8a7ae44e3af9f603844f10352410583be",
+          "current_sha256": "c5ceda8560b0ee047f2fcb75691bb7b8a7ae44e3af9f603844f10352410583be",
+          "matches": true
+        },
+        {
+          "path": "docs/adr/ADR-055-offline-cargo-data-and-lock-policy.md",
+          "reviewed_sha256": "e62381cfeabca33a923cd1777296ab6dd7ffe304c3be263ced687985cae5a693",
+          "current_sha256": "e62381cfeabca33a923cd1777296ab6dd7ffe304c3be263ced687985cae5a693",
+          "matches": true
+        }
+      ]
+    }
+  ]
+}

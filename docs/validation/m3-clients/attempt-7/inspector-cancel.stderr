@@ -1,0 +1,1 @@
+{"error":{"code":"error","message":"Unsupported method: tasks/cancel. Supported --cli methods: initialize, tools/list, tools/call, resources/list, resources/read, resources/templates/list, prompts/list, prompts/get, logging/setLevel, servers/list, servers/show."}}

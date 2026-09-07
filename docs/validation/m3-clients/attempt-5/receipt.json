@@ -1,0 +1,16 @@
+{
+  "advertisement_switch_enabled": false,
+  "attempt": "attempt-5",
+  "candidate": {
+    "server_sha256": "343aac147e0e6ada6c8c1a2015731b41d1076c03000ad222981721c7df1b7a45"
+  },
+  "error": {
+    "message": "Inspector persistent Tasks session did not succeed",
+    "type": "RuntimeError"
+  },
+  "image_id": "sha256:384a1742ecc53cdd3a9c0bf36c6f8b66db73ddd118aeeae6e55654ea998ae36a",
+  "qualification_override": true,
+  "schema": "rust-mcp-m3-clients-v1",
+  "status": "failed",
+  "tasks_advertised": true
+}

@@ -1,0 +1,41 @@
+{
+  "agy-help": {
+    "command": [
+      "agy",
+      "--help"
+    ],
+    "path": "docs/reviews/m2-closure-packages/agy-help.txt",
+    "sha256": "715b420be9c35c8b5cb2a90eb58c10fa0f33d150a45c075f9b043473e9a64bfd"
+  },
+  "agy-models": {
+    "command": [
+      "agy",
+      "models"
+    ],
+    "path": "docs/reviews/m2-closure-packages/agy-models.txt",
+    "sha256": "261531c7491d6b15b50eefba9d8215be9d045d3e9b793882d296b2b9f330cd20"
+  },
+  "agy-changelog": {
+    "command": [
+      "agy",
+      "changelog"
+    ],
+    "path": "docs/reviews/m2-closure-packages/agy-changelog.txt",
+    "sha256": "06bbdddd033cbed09909ea34919ab721cc0d34ee883e05ee60f46ec7768c2917"
+  },
+  "agy-build-info": {
+    "command": [
+      "go",
+      "version",
+      "-m",
+      "/Users/cburgosro/.local/bin/agy"
+    ],
+    "path": "docs/reviews/m2-closure-packages/agy-build-info.txt",
+    "sha256": "de1fa936ce6654ada4aa61b9d354c29ba668328e9c6a1d3e411230f212a4c51b"
+  },
+  "executable": {
+    "path": "/Users/cburgosro/.local/bin/agy",
+    "sha256": "d583be1344ea9cfa0c45cff2c1342af7837f4833c4edb65e69bee84776a45caa",
+    "version_note": "Bundled changelog begins at 1.1.27; help exposes no version flag. Executable SHA and Go build info are authoritative local identity."
+  }
+}

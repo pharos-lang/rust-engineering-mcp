@@ -282,9 +282,95 @@ struct Server {
     stderr: Receiver<io::Result<Vec<u8>>>,
     pending: BTreeMap<i64, Value>,
 }
+
+#[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord)]
+struct MutationExpectation {
+    tool: String,
+    phase: String,
+}
+
+#[derive(Default)]
+struct AuditTracking {
+    requests: BTreeMap<i64, MutationExpectation>,
+    completed: Vec<MutationExpectation>,
+}
+
+static AUDIT_TRACKING: Mutex<BTreeMap<u32, AuditTracking>> = Mutex::new(BTreeMap::new());
 impl Server {
     fn start(fixture: &Fixture) -> Result<Self> {
-        let mut child = Command::new(env!("CARGO_BIN_EXE_rust-engineering-mcp"))
+        Self::start_with_grants(fixture, false, false)
+    }
+    fn start_with_manifest_write(fixture: &Fixture, write: bool) -> Result<Self> {
+        Self::start_with_grants(fixture, write, false)
+    }
+    fn start_with_grants(fixture: &Fixture, manifest: bool, format: bool) -> Result<Self> {
+        Self::start_with_mutations(fixture, manifest, format, false)
+    }
+    fn start_with_mutations(
+        fixture: &Fixture,
+        manifest: bool,
+        format: bool,
+        fix: bool,
+    ) -> Result<Self> {
+        let mut grants = Vec::new();
+        if manifest {
+            grants.extend([
+                "--allow-manifest-write".into(),
+                fixture.project.as_os_str().to_owned(),
+            ]);
+        }
+        if format {
+            grants.extend([
+                "--allow-fmt-write".into(),
+                fixture.project.as_os_str().to_owned(),
+            ]);
+        }
+        if fix {
+            grants.extend([
+                "--allow-fix-write".into(),
+                fixture.project.as_os_str().to_owned(),
+            ]);
+        }
+        Self::start_with_arguments(fixture, grants)
+    }
+    fn start_with_arguments(fixture: &Fixture, grants: Vec<std::ffi::OsString>) -> Result<Self> {
+        Self::start_with_arguments_and_state(fixture, grants, true)
+    }
+    fn start_with_arguments_and_state(
+        fixture: &Fixture,
+        grants: Vec<std::ffi::OsString>,
+        state_root: bool,
+    ) -> Result<Self> {
+        Self::start_with_task_hooks(fixture, grants, state_root, None, false)
+    }
+    fn start_tasks(fixture: &Fixture, delay_phase: Option<&str>) -> Result<Self> {
+        Self::start_tasks_with_arguments(fixture, delay_phase, Vec::new())
+    }
+    fn start_tasks_with_arguments(
+        fixture: &Fixture,
+        delay_phase: Option<&str>,
+        grants: Vec<std::ffi::OsString>,
+    ) -> Result<Self> {
+        Self::start_with_task_hooks(
+            fixture,
+            grants,
+            true,
+            Some(delay_phase.unwrap_or("none")),
+            false,
+        )
+    }
+    fn start_tasks_uncertain(fixture: &Fixture) -> Result<Self> {
+        Self::start_with_task_hooks(fixture, Vec::new(), true, None, true)
+    }
+    fn start_with_task_hooks(
+        fixture: &Fixture,
+        grants: Vec<std::ffi::OsString>,
+        state_root: bool,
+        delay_phase: Option<&str>,
+        force_uncertain: bool,
+    ) -> Result<Self> {
+        let mut command = Command::new(env!("CARGO_BIN_EXE_rust-engineering-mcp"));
+        command
             .env_clear()
             .current_dir(&fixture.root)
             .args(["serve", "--stdio", "--root"])
@@ -292,11 +378,23 @@ impl Server {
             .arg("--docker")
             .arg(DOCKER)
             .arg("--docker-socket")
-            .arg(&fixture.socket)
-            .arg("--state-root")
-            .arg(&fixture.state)
+            .arg(&fixture.socket);
+        if delay_phase.is_some() || force_uncertain {
+            command.env("RUST_MCP_TEST_TASKS_READY", "1");
+        }
+        if let Some(delay_phase) = delay_phase {
+            command.env("RUST_MCP_TEST_TASK_DELAY_PHASE", delay_phase);
+        }
+        if force_uncertain {
+            command.env("RUST_MCP_TEST_TASK_FORCE_UNCERTAIN", "1");
+        }
+        if state_root {
+            command.arg("--state-root").arg(&fixture.state);
+        }
+        let mut child = command
             .arg("--rust-image")
             .arg(APPROVED_RUST_IMAGE)
+            .args(grants)
             .stdin(Stdio::piped())
             .stdout(Stdio::piped())
             .stderr(Stdio::piped())
@@ -343,6 +441,20 @@ impl Server {
         })
     }
     fn send(&mut self, value: Value) -> Result {
+        if let Some((id, expected)) = mutation_expectation(&value) {
+            let mut all = AUDIT_TRACKING
+                .lock()
+                .unwrap_or_else(|error| error.into_inner());
+            if all
+                .entry(self.child.id())
+                .or_default()
+                .requests
+                .insert(id, expected)
+                .is_some()
+            {
+                return Err("duplicate outstanding mutation request ID".into());
+            }
+        }
         let mut bytes = serde_json::to_vec(&value)?;
         bytes.push(b'\n');
         let mut input = self.stdin.take().ok_or("stdin closed")?;
@@ -370,12 +482,24 @@ impl Server {
             let actual = value["id"]
                 .as_i64()
                 .ok_or("unexpected server notification")?;
+            self.observe_mutation_response(actual, &value);
             if actual == id {
                 return Ok(value);
             }
             if self.pending.insert(actual, value).is_some() {
                 return Err("duplicate response ID".into());
             }
+        }
+    }
+    fn observe_mutation_response(&mut self, id: i64, response: &Value) {
+        let mut all = AUDIT_TRACKING
+            .lock()
+            .unwrap_or_else(|error| error.into_inner());
+        let tracking = all.entry(self.child.id()).or_default();
+        if let Some(expected) = tracking.requests.remove(&id)
+            && response.get("result").is_some()
+        {
+            tracking.completed.push(expected);
         }
     }
     fn bootstrap_open(&mut self, fixture: &Fixture) -> Result<(Value, Value)> {
@@ -439,6 +563,7 @@ impl Server {
         while let Ok(frame) = self.stdout.try_recv() {
             let value: Value = serde_json::from_slice(&frame?)?;
             let actual = value["id"].as_i64().ok_or("unexpected notification")?;
+            self.observe_mutation_response(actual, &value);
             if actual == id {
                 return Err(format!("cancelled request unexpectedly returned: {value}").into());
             }
@@ -449,20 +574,15 @@ impl Server {
         Ok(())
     }
     fn finish(&mut self) -> Result {
+        self.finish_expect(true)
+    }
+    fn finish_expect(&mut self, expected_success: bool) -> Result {
         self.stdin.take();
         let deadline = Instant::now() + JOIN_TIMEOUT;
         loop {
             if let Some(status) = self.child.try_wait()? {
-                if !status.success() {
+                if status.success() != expected_success {
                     return Err(format!("server exited {status}").into());
-                }
-                let stderr = self.stderr.recv_timeout(CONTROL_TIMEOUT)??;
-                if !stderr.is_empty() {
-                    return Err(format!(
-                        "unexpected server stderr: {}",
-                        String::from_utf8_lossy(&stderr)
-                    )
-                    .into());
                 }
                 // Drain through actual pipe EOF after process exit. This closes
                 // the race between the reader thread and the final no-id check.
@@ -473,6 +593,7 @@ impl Server {
                             let id = value["id"]
                                 .as_i64()
                                 .ok_or("unexpected final notification")?;
+                            self.observe_mutation_response(id, &value);
                             if self.pending.insert(id, value).is_some() {
                                 return Err("duplicate final response ID".into());
                             }
@@ -480,6 +601,30 @@ impl Server {
                         Err(mpsc::RecvTimeoutError::Disconnected) => break,
                         Err(error) => return Err(error.into()),
                     }
+                }
+                let mut tracking = AUDIT_TRACKING
+                    .lock()
+                    .unwrap_or_else(|error| error.into_inner())
+                    .remove(&self.child.id())
+                    .unwrap_or_default();
+                tracking
+                    .completed
+                    .extend(std::mem::take(&mut tracking.requests).into_values());
+                let stderr = self.stderr.recv_timeout(CONTROL_TIMEOUT)??;
+                if expected_success {
+                    assert_runtime_mutation_events(&stderr, &tracking.completed)?;
+                } else {
+                    let text = std::str::from_utf8(&stderr)?;
+                    let failure = "ERROR MCP stdio session failed";
+                    if text.lines().filter(|line| *line == failure).count() != 1 {
+                        return Err(format!("missing exact failed-session trace: {text}").into());
+                    }
+                    let lifecycle = text
+                        .lines()
+                        .filter(|line| *line != failure)
+                        .collect::<Vec<_>>()
+                        .join("\n");
+                    assert_runtime_mutation_events(lifecycle.as_bytes(), &tracking.completed)?;
                 }
                 return Ok(());
             }
@@ -492,6 +637,10 @@ impl Server {
 }
 impl Drop for Server {
     fn drop(&mut self) {
+        AUDIT_TRACKING
+            .lock()
+            .unwrap_or_else(|error| error.into_inner())
+            .remove(&self.child.id());
         self.stdin.take();
         // Assertion failures also request EOF and allow the production joined
         // worker to clean up. Killing immediately would orphan its Docker job.
@@ -510,6 +659,171 @@ impl Drop for Server {
         );
     }
 }
+
+fn mutation_expectation(request: &Value) -> Option<(i64, MutationExpectation)> {
+    if request["method"] != "tools/call" {
+        return None;
+    }
+    let tool = request["params"]["name"].as_str()?;
+    if !matches!(
+        tool,
+        "rust.manifest.patch"
+            | "rust.fmt.apply"
+            | "rust.fix.apply"
+            | "rust.dependency.add"
+            | "rust.dependency.remove"
+    ) {
+        return None;
+    }
+    let phase = match request["params"]["arguments"]["action"]["mode"].as_str()? {
+        "preview" => "preview",
+        "commit" => "commit",
+        "receipt" if request["params"]["arguments"]["action"]["recover"] == true => "recover",
+        "receipt" => "receipt",
+        _ => return None,
+    };
+    Some((
+        request["id"].as_i64()?,
+        MutationExpectation {
+            tool: tool.into(),
+            phase: phase.into(),
+        },
+    ))
+}
+
+fn assert_runtime_mutation_events(stderr: &[u8], expected: &[MutationExpectation]) -> Result {
+    let mut actual = Vec::new();
+    for line in std::str::from_utf8(stderr)?.lines() {
+        let encoded = line
+            .strip_prefix(" INFO ")
+            .or_else(|| line.strip_prefix("INFO "))
+            .ok_or_else(|| format!("unexpected server stderr record: {line}"))?;
+        if encoded.starts_with("bounded job lifecycle event") {
+            for field in [
+                "job_id=",
+                "kind=",
+                "event=",
+                "phase=",
+                "state=",
+                "reason=",
+                "elapsed_ms=",
+                "budget_ms=",
+                "retained_bytes=",
+                "retained_entries=",
+            ] {
+                if !encoded.contains(field) {
+                    return Err(format!("incomplete job event: {encoded}").into());
+                }
+            }
+            for forbidden in ["prj_", "/source", "argument", "structuredContent"] {
+                if encoded.contains(forbidden) {
+                    return Err(format!("sensitive job event field: {encoded}").into());
+                }
+            }
+            continue;
+        }
+        let event: Value = serde_json::from_str(encoded)?;
+        let object = event.as_object().ok_or("mutation event is not an object")?;
+        let fields = [
+            "schema",
+            "event",
+            "tool",
+            "phase",
+            "admitted",
+            "status",
+            "reason",
+            "duration_ms",
+            "cleanup_uncertain",
+            "result_id",
+            "files_changed",
+            "allocated_plans",
+            "allocated_plan_bytes",
+        ];
+        if object.len() != fields.len() || fields.iter().any(|field| !object.contains_key(*field)) {
+            return Err(format!("mutation event fields are not closed: {event}").into());
+        }
+        if event["schema"] != "rust-mcp-mutation-event-v1"
+            || event["event"] != "mutation_call_completed"
+            || event["admitted"].as_bool().is_none()
+            || event["duration_ms"].as_u64().is_none()
+            || event["cleanup_uncertain"].as_bool().is_none()
+            || event["files_changed"].as_u64().is_none()
+        {
+            return Err(format!("invalid mutation event scalar: {event}").into());
+        }
+        let status = event["status"].as_str().ok_or("missing event status")?;
+        if !matches!(
+            status,
+            "passed" | "failed" | "blocked" | "unavailable" | "cancelled"
+        ) {
+            return Err(format!("unknown mutation status: {event}").into());
+        }
+        if let Some(reason) = event["reason"].as_str()
+            && !matches!(
+                reason,
+                "invalid_operation"
+                    | "permission_denied"
+                    | "conflict"
+                    | "lock_busy"
+                    | "plan_expired"
+                    | "not_found"
+                    | "limit_exceeded"
+                    | "unsupported_platform"
+                    | "io"
+                    | "recovery_required"
+                    | "toolchain_unavailable"
+                    | "candidate_invalid"
+                    | "cancelled"
+                    | "command_timeout"
+                    | "offline_data_missing"
+                    | "offline_data_invalid"
+            )
+        {
+            return Err(format!("unknown mutation reason: {event}").into());
+        }
+        if !(event["reason"].is_null() || event["reason"].as_str().is_some()) {
+            return Err(format!("invalid mutation reason type: {event}").into());
+        }
+        if let Some(id) = event["result_id"].as_str()
+            && (id.len() != 36
+                || !id.starts_with("mut_")
+                || !id[4..]
+                    .bytes()
+                    .all(|byte| byte.is_ascii_digit() || (b'a'..=b'f').contains(&byte)))
+        {
+            return Err(format!("invalid produced mutation ID: {event}").into());
+        }
+        if !(event["result_id"].is_null() || event["result_id"].as_str().is_some()) {
+            return Err(format!("invalid mutation result ID type: {event}").into());
+        }
+        let allocation_present = event["allocated_plans"].as_u64().is_some()
+            && event["allocated_plan_bytes"].as_u64().is_some();
+        let allocation_absent =
+            event["allocated_plans"].is_null() && event["allocated_plan_bytes"].is_null();
+        if !(allocation_present || allocation_absent) {
+            return Err(format!("partial mutation allocation observation: {event}").into());
+        }
+        for forbidden in ["Cargo.toml", "workspace", "diff", "idempotency", "SECRET"] {
+            if encoded.contains(forbidden) {
+                return Err(format!("sensitive mutation value in stderr: {encoded}").into());
+            }
+        }
+        actual.push(MutationExpectation {
+            tool: event["tool"].as_str().ok_or("missing event tool")?.into(),
+            phase: event["phase"].as_str().ok_or("missing event phase")?.into(),
+        });
+    }
+    actual.sort();
+    let mut expected = expected.to_vec();
+    expected.sort();
+    if actual != expected {
+        return Err(
+            format!("mutation event mismatch: expected {expected:?}, got {actual:?}").into(),
+        );
+    }
+    Ok(())
+}
+
 fn request(id: i64, method: &str) -> Value {
     json!({"jsonrpc":"2.0","id":id,"method":method,"params":{"_meta":{
         "io.modelcontextprotocol/protocolVersion":VERSION,
@@ -521,6 +835,22 @@ fn call(id: i64, name: &str, arguments: Value) -> Value {
     request["params"]["name"] = json!(name);
     request["params"]["arguments"] = arguments;
     request
+}
+fn task_request(id: i64, method: &str, params: Value) -> Value {
+    let mut params = params.as_object().cloned().unwrap_or_default();
+    params.insert(
+        "_meta".into(),
+        json!({
+            "io.modelcontextprotocol/protocolVersion":VERSION,
+            "io.modelcontextprotocol/clientCapabilities":{
+                "extensions":{"io.modelcontextprotocol/tasks":{}}
+            }
+        }),
+    );
+    json!({"jsonrpc":"2.0","id":id,"method":method,"params":params})
+}
+fn task_call(id: i64, name: &str, arguments: Value) -> Value {
+    task_request(id, "tools/call", json!({"name":name,"arguments":arguments}))
 }
 fn assert_fingerprint(value: &Value) {
     let text = value.as_str().unwrap_or_default();
@@ -2378,3 +2708,33 @@ mod explain_runtime;
 
 #[path = "inspection_runtime/quality.rs"]
 mod quality_runtime;
+
+#[path = "inspection_runtime/mutation.rs"]
+mod mutation_runtime;
+
+#[path = "inspection_runtime/format_mutation.rs"]
+mod format_mutation_runtime;
+
+#[path = "inspection_runtime/fix_mutation.rs"]
+mod fix_mutation_runtime;
+
+#[path = "inspection_runtime/dependency_mutation.rs"]
+mod dependency_mutation_runtime;
+
+#[path = "inspection_runtime/fix_hostile.rs"]
+mod fix_hostile_runtime;
+
+#[path = "inspection_runtime/mutation_concurrency.rs"]
+mod mutation_concurrency_runtime;
+
+#[path = "inspection_runtime/terminal_plan.rs"]
+mod terminal_plan_runtime;
+
+#[path = "inspection_runtime/nextest.rs"]
+mod nextest_runtime;
+
+#[path = "inspection_runtime/semver.rs"]
+mod semver_runtime;
+
+#[path = "inspection_runtime/tasks.rs"]
+mod tasks_runtime;

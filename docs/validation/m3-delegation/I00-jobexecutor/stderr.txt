@@ -1,0 +1,9 @@
+2026-09-06T01:09:23.905252Z ERROR codex_core::tools::router: error=apply_patch verification failed: Failed to find expected lines in /Users/cburgosro/Projects/rust-mcp/crates/domain/tests/job.rs:
+fn job_id_is_canonical_and_entropy_is_not_embedded_as_authority() {
+2026-09-06T01:17:37.229167Z ERROR codex_core::tools::router: error=apply_patch verification failed: Failed to find expected lines in /Users/cburgosro/Projects/rust-mcp/crates/mcp-server/tests/protocol.rs:
+fn mutation_tool_contracts_are_closed_and_denied_by_default() -> TestResult {
+2026-09-06T01:27:11.207959Z ERROR codex_core::tools::router: error=apply_patch verification failed: Failed to find expected lines in /Users/cburgosro/Projects/rust-mcp/crates/mcp-server/src/stdio/tasks.rs:
+                    JobResult::TestNextest(observation) => {
+                        self.nextest
+                            .encode_task_result(&status.project_ref, observation, is_error)?
+                    }

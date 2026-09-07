@@ -1,0 +1,952 @@
+{
+  "schema": "rust-mcp-m3-integration-v1",
+  "recorded_at": "2026-09-06T22:23:16.728218+00:00",
+  "outcome": "not_merged",
+  "outcome_reason": "The pull request is complete, pushed and green on every platform gate, but it cannot be merged by this delegate. Two blockers are outside the authorization of the integration package: main requires a pull request review and .github/CODEOWNERS requires the owner @cburgosro9303 to review every change, which the author cannot self-approve; and the required SonarCloud quality gate fails three new-code conditions that are policy decisions for the owner, not integration defects. Changing repository settings, Sonar scanner scope or quality-gate thresholds was not authorized.",
+  "branch": "ai/m3-quality",
+  "branch_tip": "d3330e6fe56cd1f6188a8cf90782b8c3aab7a821",
+  "base": {
+    "branch": "main",
+    "origin_main_at_start": "8e6364d08a61dabf97583fe9aac9730c49a9f517"
+  },
+  "scope_finding": {
+    "summary": "origin/main never received M2: it was merged locally only. The branch was cut from that local main, so the pull request delivers M2 and M3 together, not M3 alone.",
+    "m2_commits_carried": 8,
+    "m3_commits_added": 16,
+    "consequence": "CI compiled the M2 code for Linux and Windows for the first time in this pull request and found real portability defects, all fixed on the branch."
+  },
+  "pull_request": {
+    "number": 14,
+    "url": "https://github.com/pharos-lang/rust-engineering-mcp/pull/14",
+    "mergeable": "MERGEABLE",
+    "merge_state_status": "BLOCKED",
+    "review_decision": "REVIEW_REQUIRED"
+  },
+  "commits": [
+    {
+      "sha": "d3330e6fe56cd1f6188a8cf90782b8c3aab7a821",
+      "subject": "fix(m3): fall back to Stage 0 off macOS and test absoluteness per platform"
+    },
+    {
+      "sha": "835b2330699d79611f02dee964d1a44e9d0e345e",
+      "subject": "fix(m2): drop a redundant AtomicBool import in inspector tests"
+    },
+    {
+      "sha": "3c293a14f2a0416f65b2de6f2f11f0e4929ade0b",
+      "subject": "fix(m2): compile the macOS-only manifest and vendor internals only on macOS"
+    },
+    {
+      "sha": "86d44917ce801b71f0224675b2ad4ac533915376",
+      "subject": "Merge origin/main into ai/m3-quality"
+    },
+    {
+      "sha": "2d757ed645fd57b40c84a2e833e4a42b1251eae5",
+      "subject": "fix(m3): repair three portability defects found by CI"
+    },
+    {
+      "sha": "9791d03bbe33ed2d1e5feb8c2b6114be83622896",
+      "subject": "test(m3): record the M3 qualification, reviews and delegation"
+    },
+    {
+      "sha": "db3589b247b84583cb463d7727ff58105ab358b3",
+      "subject": "docs(m3): document the quality verticals, jobs and their limits"
+    },
+    {
+      "sha": "f48f989672fc0d223e11a2c9fe49cfd465770c42",
+      "subject": "test(m3): add the M3 gate scripts and client harnesses"
+    },
+    {
+      "sha": "17fbfbef1d770a49f1c154b0905f2daed1b6d4df",
+      "subject": "test(m3): add the fixtures that calibrate the four verticals"
+    },
+    {
+      "sha": "72f70012b6434c143faf8d725a8a0ba1e2a6296c",
+      "subject": "feat(m3): expose the quality verticals as tools 19-22 over MCP"
+    },
+    {
+      "sha": "e57ccad576291ce47e2ce04155d2554f17ab50c2",
+      "subject": "feat(m3): store quality artifacts durably under the owner's control"
+    },
+    {
+      "sha": "98ca5dc2fe64e751ccf14496ebfedb07baf725d5",
+      "subject": "feat(m3): run quality jobs in the guest behind typed ports"
+    },
+    {
+      "sha": "e0d54ccdf810b8e14fe0346643f62aaa9450110e",
+      "subject": "feat(m3): model quality jobs, artifacts and the four verticals"
+    },
+    {
+      "sha": "c3d240796078df8a229f4e95740aaa3f0b6f9a1c",
+      "subject": "feat(m3): provision the guest image for the quality verticals"
+    },
+    {
+      "sha": "860244e60d65756bb9239dc7bc13c59fb8cdeaf7",
+      "subject": "docs(m3): record the six M3 decisions as accepted"
+    },
+    {
+      "sha": "bdc952021cec404de6f2818f9795a8eca477b090",
+      "subject": "chore(m3): keep client credentials and raw transcripts out of Git"
+    },
+    {
+      "sha": "52396184e5b53983056791f62d9eecbab3954d15",
+      "subject": "docs(m2): record local integration and postmerge smoke"
+    },
+    {
+      "sha": "7554bccbff2209ae5b3df63b2b1011646586380f",
+      "subject": "Merge locally qualified M2 safe mutation"
+    },
+    {
+      "sha": "ed1d6b21327ca38db2c1b35a9a61e0d74de686c8",
+      "subject": "test(m2): record final qualification and independent reviews"
+    },
+    {
+      "sha": "01c11f0dea21957d9a4c02acfe6bcbd1db4fca15",
+      "subject": "feat(m2): complete typed mutation and durable replay"
+    },
+    {
+      "sha": "331d1630da5a2c1d8d8c596305c0c1167a7896cb",
+      "subject": "feat(m2): add journaled manifest and formatting mutations"
+    },
+    {
+      "sha": "ea1a315fdf9f2fe942454b4a102545b959c79248",
+      "subject": "test: record M2 write-boundary qualification no-go"
+    },
+    {
+      "sha": "2f54b360e1e81f21e7efeff7c451cdd6f663a04f",
+      "subject": "Merge reviewed M2-M8 roadmap and implementation handoffs"
+    },
+    {
+      "sha": "8b35cf6b3eec11dd4cda4d65ea8825ac7c045ba3",
+      "subject": "docs: plan M2-M8 with verified baseline and independent reviews"
+    }
+  ],
+  "commit_count": 24,
+  "checks": [
+    {
+      "name": "CodeQL",
+      "bucket": "fail",
+      "state": "FAILURE",
+      "link": "https://github.com/pharos-lang/rust-engineering-mcp/runs/101566747564"
+    },
+    {
+      "name": "CodeQL / actions",
+      "bucket": "pass",
+      "state": "SUCCESS",
+      "link": "https://github.com/pharos-lang/rust-engineering-mcp/actions/runs/34062956492/job/101566658268"
+    },
+    {
+      "name": "CodeQL / python",
+      "bucket": "pass",
+      "state": "SUCCESS",
+      "link": "https://github.com/pharos-lang/rust-engineering-mcp/actions/runs/34062956492/job/101566658266"
+    },
+    {
+      "name": "CodeQL / rust",
+      "bucket": "pass",
+      "state": "SUCCESS",
+      "link": "https://github.com/pharos-lang/rust-engineering-mcp/actions/runs/34062956492/job/101566658153"
+    },
+    {
+      "name": "SonarCloud",
+      "bucket": "fail",
+      "state": "FAILURE",
+      "link": "https://github.com/pharos-lang/rust-engineering-mcp/actions/runs/34062956590/job/101566658389"
+    },
+    {
+      "name": "SonarCloud Code Analysis",
+      "bucket": "fail",
+      "state": "FAILURE",
+      "link": "https://sonarcloud.io/dashboard?id=pharos-lang_rust-engineering-mcp&pullRequest=14"
+    },
+    {
+      "name": "portable / aarch64-apple-darwin",
+      "bucket": "pass",
+      "state": "SUCCESS",
+      "link": "https://github.com/pharos-lang/rust-engineering-mcp/actions/runs/34062956511/job/101568064155"
+    },
+    {
+      "name": "portable / x86_64-pc-windows-msvc",
+      "bucket": "pass",
+      "state": "SUCCESS",
+      "link": "https://github.com/pharos-lang/rust-engineering-mcp/actions/runs/34062956511/job/101568064621"
+    },
+    {
+      "name": "portable / x86_64-unknown-linux-gnu",
+      "bucket": "pass",
+      "state": "SUCCESS",
+      "link": "https://github.com/pharos-lang/rust-engineering-mcp/actions/runs/34062956511/job/101568085640"
+    },
+    {
+      "name": "supply chain",
+      "bucket": "pass",
+      "state": "SUCCESS",
+      "link": "https://github.com/pharos-lang/rust-engineering-mcp/actions/runs/34062956511/job/101568064923"
+    }
+  ],
+  "required_checks": {
+    "contexts": [
+      "portable / x86_64-unknown-linux-gnu",
+      "portable / aarch64-apple-darwin",
+      "portable / x86_64-pc-windows-msvc",
+      "supply chain",
+      "SonarCloud"
+    ],
+    "passing": [
+      "portable / x86_64-unknown-linux-gnu",
+      "portable / aarch64-apple-darwin",
+      "portable / x86_64-pc-windows-msvc",
+      "supply chain"
+    ],
+    "failing": [
+      "SonarCloud"
+    ]
+  },
+  "sonarcloud_quality_gate": {
+    "status": "ERROR",
+    "conditions": [
+      {
+        "metric": "new_reliability_rating",
+        "status": "OK",
+        "actual": "1",
+        "comparator": "GT",
+        "threshold": "1"
+      },
+      {
+        "metric": "new_security_rating",
+        "status": "ERROR",
+        "actual": "5",
+        "comparator": "GT",
+        "threshold": "1"
+      },
+      {
+        "metric": "new_maintainability_rating",
+        "status": "OK",
+        "actual": "1",
+        "comparator": "GT",
+        "threshold": "1"
+      },
+      {
+        "metric": "new_coverage",
+        "status": "ERROR",
+        "actual": "54.3",
+        "comparator": "LT",
+        "threshold": "80"
+      },
+      {
+        "metric": "new_duplicated_lines_density",
+        "status": "ERROR",
+        "actual": "4.0",
+        "comparator": "GT",
+        "threshold": "3"
+      },
+      {
+        "metric": "new_security_hotspots_reviewed",
+        "status": "OK",
+        "actual": "100.0",
+        "comparator": "LT",
+        "threshold": "100"
+      }
+    ],
+    "assessment": "new_security_rating is E because of six issues that are all false positives on non-production code: four pythonsecurity:S2083 path-injection reports in local probe scripts where the path comes from tempfile.TemporaryDirectory, and two rust:S2612 permissive-permission reports in crates/project-adapter/tests/cargo_vendor.rs, a test that deliberately sets 0o666/0o777 to assert the vendor validator rejects them. new_coverage is 54.3 percent against an 80 percent threshold because the scanner runs on Linux while the mutation store, the quality artifact store and the guest execution paths are macOS ARM64 and APFS only; sonar-project.properties already records the owner's decision not to turn unavailable host paths into fake coverage. new_duplicated_lines_density is 4.0 percent against a 3 percent threshold over the new M2 and M3 code. Resolving any of the three requires an owner decision on scanner scope, gate thresholds or a large body of new portable tests."
+  },
+  "portability_defects_fixed": [
+    {
+      "defect": "NativeQualityArtifactStore fail-closed stub lacked attach, which the Resource reader calls",
+      "platforms": [
+        "linux",
+        "windows",
+        "sonarcloud"
+      ],
+      "error": "E0599",
+      "fix_commit_subject": "fix(m3): repair three portability defects found by CI"
+    },
+    {
+      "defect": "tests/cli.rs imported std::os::unix::fs::PermissionsExt unconditionally",
+      "platforms": [
+        "windows"
+      ],
+      "error": "E0433, E0599",
+      "fix_commit_subject": "fix(m3): repair three portability defects found by CI"
+    },
+    {
+      "defect": "task_control deadline test used a 100ms margin against spawn_blocking scheduling latency",
+      "platforms": [
+        "macos"
+      ],
+      "error": "assertion failed: Err(Internal) != Ok(7)",
+      "fix_commit_subject": "fix(m3): repair three portability defects found by CI"
+    },
+    {
+      "defect": "M2 semantic_delta unreachable off macOS (29 dead_code errors under -D warnings)",
+      "platforms": [
+        "linux",
+        "windows"
+      ],
+      "error": "dead_code",
+      "fix_commit_subject": "fix(m2): compile the macOS-only manifest and vendor internals only on macOS"
+    },
+    {
+      "defect": "M2 cargo_vendor::validate and helpers unreachable off macOS (10 dead_code errors)",
+      "platforms": [
+        "linux",
+        "windows"
+      ],
+      "error": "dead_code",
+      "fix_commit_subject": "fix(m2): compile the macOS-only manifest and vendor internals only on macOS"
+    },
+    {
+      "defect": "redundant AtomicBool import in inspector tests, unused off macOS",
+      "platforms": [
+        "linux",
+        "windows"
+      ],
+      "error": "unused_imports",
+      "fix_commit_subject": "fix(m2): drop a redundant AtomicBool import in inspector tests"
+    },
+    {
+      "defect": "UnsupportedPlatform did not fall back to Stage 0, so --state-root made the server refuse to start",
+      "platforms": [
+        "linux"
+      ],
+      "error": "MCP durable quality artifact initialization failed",
+      "fix_commit_subject": "fix(m3): fall back to Stage 0 off macOS and test absoluteness per platform"
+    },
+    {
+      "defect": "five parser tests asserted absoluteness with POSIX literals that are not absolute on Windows",
+      "platforms": [
+        "windows"
+      ],
+      "error": "assertion failed",
+      "fix_commit_subject": "fix(m3): fall back to Stage 0 off macOS and test absoluteness per platform"
+    }
+  ],
+  "known_open_items": [
+    {
+      "item": "filesystem::macos::mutation::tests::lost_temp_and_out_of_order_generation_remain_recovery_required",
+      "kind": "intermittent test failure (pre-existing, M2)",
+      "evidence": "Failed once on the macOS runner with Error: \"Busy\" and passed on re-run with byte-identical project-adapter sources; the immediately preceding macOS run over the same bytes also passed, and the test passes 8 of 8 locally in isolation. Busy is a non-blocking flock WOULDBLOCK on the per-state-root mutation-store lock. Not caused by this integration and not investigated further."
+    },
+    {
+      "item": "test-hooks advertisement override",
+      "kind": "accepted residual",
+      "reference": "docs/validation/M3-matrix.md"
+    },
+    {
+      "item": "LiveJobAuthority::revalidate under contention",
+      "kind": "accepted residual",
+      "reference": "docs/validation/M3-matrix.md"
+    }
+  ],
+  "sanitization": {
+    "finding": "The M3 stock-client gate pointed CODEX_HOME at the per-attempt evidence directory, so six codex-home directories under docs/validation/m3-clients/ held a copy of auth.json with live OAuth id, access and refresh tokens and an account_id, the Codex session databases, installation_id and per-run scratch.",
+    "never_tracked": true,
+    "history_clean": "git log --all --diff-filter=A over auth.json, */codex-home/* and installation_id returns nothing",
+    "directories_removed": [
+      "docs/validation/m3-clients/attempt-10/codex-home",
+      "docs/validation/m3-clients/attempt-11/codex-home",
+      "docs/validation/m3-clients/attempt-12/codex-home",
+      "docs/validation/m3-clients/attempt-7/codex-home",
+      "docs/validation/m3-clients/attempt-8/codex-home",
+      "docs/validation/m3-clients/attempt-9/codex-home"
+    ],
+    "files_removed": 112,
+    "removed_file_digests": [
+      {
+        "path": "docs/validation/m3-clients/attempt-10/codex-home/.sandbox_migration",
+        "bytes": 3,
+        "sha256": "2d27fbdf4e8ca207afbfa388ca9172fbcc6c70e534af2476b3b704f87debadcf"
+      },
+      {
+        "path": "docs/validation/m3-clients/attempt-10/codex-home/auth.json",
+        "bytes": 4241,
+        "sha256": "60a0d7556f32f1779d22489709399ed9ee0ac447bd37e7888b009e7ef2645f58"
+      },
+      {
+        "path": "docs/validation/m3-clients/attempt-10/codex-home/goals_1.sqlite",
+        "bytes": 32768,
+        "sha256": "0f78ee09ea92ab012f42750527825e573190910040993e20190ed7c4b88559c0"
+      },
+      {
+        "path": "docs/validation/m3-clients/attempt-10/codex-home/goals_1.sqlite-shm",
+        "bytes": 32768,
+        "sha256": "02abd9f0c402551c5ea02cdc19325247bf14e7a6aff721ef6e21cd6ccc8683cb"
+      },
+      {
+        "path": "docs/validation/m3-clients/attempt-10/codex-home/goals_1.sqlite-wal",
+        "bytes": 74192,
+        "sha256": "612a630ac4d164b2270860029811d64cffd9a2981e5d07c7bd969e5f1941b053"
+      },
+      {
+        "path": "docs/validation/m3-clients/attempt-10/codex-home/installation_id",
+        "bytes": 36,
+        "sha256": "2b2c867bf7abe683056b947df8fb3cea4193467f95dd4d72f097b49578328efb"
+      },
+      {
+        "path": "docs/validation/m3-clients/attempt-10/codex-home/logs_2.sqlite",
+        "bytes": 49152,
+        "sha256": "c92a87572da103111e279ddfcf4dbf8e86c1f6dff3d1c87bf9cea59e1751faaa"
+      },
+      {
+        "path": "docs/validation/m3-clients/attempt-10/codex-home/logs_2.sqlite-shm",
+        "bytes": 32768,
+        "sha256": "276ce871855f2a2ae84a698b904a37fa07b65e33877cc92bc72ccad754c4aea3"
+      },
+      {
+        "path": "docs/validation/m3-clients/attempt-10/codex-home/logs_2.sqlite-wal",
+        "bytes": 144232,
+        "sha256": "d37377b635a01f9799baec32396f94e2bfee4a15ece47945f20ce35db577d228"
+      },
+      {
+        "path": "docs/validation/m3-clients/attempt-10/codex-home/memories_1.sqlite",
+        "bytes": 40960,
+        "sha256": "69ae63fa88ff1258e61251069ccb34007de01618bdc5b90ce8b172c6831ccdc8"
+      },
+      {
+        "path": "docs/validation/m3-clients/attempt-10/codex-home/memories_1.sqlite-wal",
+        "bytes": 61832,
+        "sha256": "96d4e8304699de36d0c961faf9880acae83233d399d6f10ea91f2490d2766b31"
+      },
+      {
+        "path": "docs/validation/m3-clients/attempt-10/codex-home/models_cache.json",
+        "bytes": 266699,
+        "sha256": "ccce31d1bb3d654ce1ae137e235afd446110a3eda3afb0c1904de9ee6a313981"
+      },
+      {
+        "path": "docs/validation/m3-clients/attempt-10/codex-home/queue_1.sqlite",
+        "bytes": 40960,
+        "sha256": "ecf54b3ed0756b79401e0aacfa58167d83a650e31d833467ec33f573b9a14b65"
+      },
+      {
+        "path": "docs/validation/m3-clients/attempt-10/codex-home/queue_1.sqlite-shm",
+        "bytes": 32768,
+        "sha256": "60e863d15922f2b2e716f810d1f099c63fee3d3c0b0be60a0f1f97facb99a1b4"
+      },
+      {
+        "path": "docs/validation/m3-clients/attempt-10/codex-home/queue_1.sqlite-wal",
+        "bytes": 86552,
+        "sha256": "447a7e515783b03a25980f823b27c802b09e7333032b99a5ba9520f4c76b09c9"
+      },
+      {
+        "path": "docs/validation/m3-clients/attempt-10/codex-home/state_5.sqlite",
+        "bytes": 4096,
+        "sha256": "4eeb710c739848e62f0d53d04057e17375b4af741c9b441f2a546f6ed860c79f"
+      },
+      {
+        "path": "docs/validation/m3-clients/attempt-10/codex-home/state_5.sqlite-shm",
+        "bytes": 32768,
+        "sha256": "826b3251fe90eb9b449c4e542760c090ea077ecdba73a7f42fe3ad916e9c892d"
+      },
+      {
+        "path": "docs/validation/m3-clients/attempt-10/codex-home/state_5.sqlite-wal",
+        "bytes": 1825192,
+        "sha256": "3a63c51939a3c44a21178a62d697b487e84a8d44a381c44830dc904a468803ba"
+      },
+      {
+        "path": "docs/validation/m3-clients/attempt-11/codex-home/.sandbox_migration",
+        "bytes": 3,
+        "sha256": "2d27fbdf4e8ca207afbfa388ca9172fbcc6c70e534af2476b3b704f87debadcf"
+      },
+      {
+        "path": "docs/validation/m3-clients/attempt-11/codex-home/auth.json",
+        "bytes": 4241,
+        "sha256": "60a0d7556f32f1779d22489709399ed9ee0ac447bd37e7888b009e7ef2645f58"
+      },
+      {
+        "path": "docs/validation/m3-clients/attempt-11/codex-home/goals_1.sqlite",
+        "bytes": 32768,
+        "sha256": "04eb6225ffed1b306fcd0f09e3e146e79a9aeb0731d7a6d50b6ecae51020e13c"
+      },
+      {
+        "path": "docs/validation/m3-clients/attempt-11/codex-home/goals_1.sqlite-shm",
+        "bytes": 32768,
+        "sha256": "9509fd75e29c23fe4e980963be3535d655aa6d3616697627a7b375a184f73b3a"
+      },
+      {
+        "path": "docs/validation/m3-clients/attempt-11/codex-home/goals_1.sqlite-wal",
+        "bytes": 74192,
+        "sha256": "a34f4afdadf6e9626e9e67512011b237f312b81c77ac07ba8361ba358e2a8ca8"
+      },
+      {
+        "path": "docs/validation/m3-clients/attempt-11/codex-home/installation_id",
+        "bytes": 36,
+        "sha256": "c82f78ed790acce88ee15f21e84d417ec24926f2582b2e4193df7787a7b1c9f8"
+      },
+      {
+        "path": "docs/validation/m3-clients/attempt-11/codex-home/logs_2.sqlite",
+        "bytes": 49152,
+        "sha256": "433a6ac46d6573513eede5168f3402f8b886f4ef72dd99dbebed4d3c93c2367c"
+      },
+      {
+        "path": "docs/validation/m3-clients/attempt-11/codex-home/logs_2.sqlite-shm",
+        "bytes": 32768,
+        "sha256": "0777f0df671ad8fffaa0574897459980954a102a5a89afb1052dbb81d9e832f6"
+      },
+      {
+        "path": "docs/validation/m3-clients/attempt-11/codex-home/logs_2.sqlite-wal",
+        "bytes": 197792,
+        "sha256": "492d3d151db7f47b4d4e54a7baf5aa48e3a1f4ef7230f099f5136492826eff7b"
+      },
+      {
+        "path": "docs/validation/m3-clients/attempt-11/codex-home/memories_1.sqlite",
+        "bytes": 12288,
+        "sha256": "aaf2811f9d08cb375c964cf2431398bf1a8b4b5b2a8f418efdb28c65c7fe7d36"
+      },
+      {
+        "path": "docs/validation/m3-clients/attempt-11/codex-home/memories_1.sqlite-shm",
+        "bytes": 32768,
+        "sha256": "e7756fb6dc4db17038134890d6c63252e71fbfe4167197af176f13c2e589481e"
+      },
+      {
+        "path": "docs/validation/m3-clients/attempt-11/codex-home/memories_1.sqlite-wal",
+        "bytes": 61832,
+        "sha256": "d184b30bb35c690f3f5d9378ac0f8b6f89ca0bcf8c72edcdaadbe3a8fced42c9"
+      },
+      {
+        "path": "docs/validation/m3-clients/attempt-11/codex-home/models_cache.json",
+        "bytes": 266699,
+        "sha256": "5c7f0c7d96b2332f3ae30c2033fd21b3aa5489ccb68f6a37f6fca01b3ba73a97"
+      },
+      {
+        "path": "docs/validation/m3-clients/attempt-11/codex-home/queue_1.sqlite",
+        "bytes": 12288,
+        "sha256": "1a9e2b2b95ee8b6a35c7be4eaaf9b828beba710f2cf6a742b109f993b7814a92"
+      },
+      {
+        "path": "docs/validation/m3-clients/attempt-11/codex-home/queue_1.sqlite-shm",
+        "bytes": 32768,
+        "sha256": "90d8bee146a73987e53bad5d691a79d61a37997c62bd8a0b20b2a79c1561ea61"
+      },
+      {
+        "path": "docs/validation/m3-clients/attempt-11/codex-home/queue_1.sqlite-wal",
+        "bytes": 86552,
+        "sha256": "16804c712022a9d4450fdc14c1eb041da10b90f2116cc42970b08415e4bef707"
+      },
+      {
+        "path": "docs/validation/m3-clients/attempt-11/codex-home/state_5.sqlite",
+        "bytes": 4096,
+        "sha256": "4eeb710c739848e62f0d53d04057e17375b4af741c9b441f2a546f6ed860c79f"
+      },
+      {
+        "path": "docs/validation/m3-clients/attempt-11/codex-home/state_5.sqlite-shm",
+        "bytes": 32768,
+        "sha256": "456aeeb7880eac09dad222f1707a5436434d73282f7db9d0f8b7d67939219d9c"
+      },
+      {
+        "path": "docs/validation/m3-clients/attempt-11/codex-home/state_5.sqlite-wal",
+        "bytes": 1825192,
+        "sha256": "4f4b4cfb1485e18b881bd3dae6a9a1e06b533de947d52e39bb5d2653dcda1b89"
+      },
+      {
+        "path": "docs/validation/m3-clients/attempt-11/codex-home/tmp/arg0/codex-arg0txMpHh/.lock",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "path": "docs/validation/m3-clients/attempt-11/codex-home/tmp/arg0/codex-arg0txMpHh/apply_patch",
+        "bytes": 220452192,
+        "sha256": "a29d9e86eef88cbbd69f97ce8c590b1d0a287c8f77424f5eef226b883d7eaa22"
+      },
+      {
+        "path": "docs/validation/m3-clients/attempt-11/codex-home/tmp/arg0/codex-arg0txMpHh/applypatch",
+        "bytes": 220452192,
+        "sha256": "a29d9e86eef88cbbd69f97ce8c590b1d0a287c8f77424f5eef226b883d7eaa22"
+      },
+      {
+        "path": "docs/validation/m3-clients/attempt-11/codex-home/tmp/arg0/codex-arg0txMpHh/codex-execve-wrapper",
+        "bytes": 220452192,
+        "sha256": "a29d9e86eef88cbbd69f97ce8c590b1d0a287c8f77424f5eef226b883d7eaa22"
+      },
+      {
+        "path": "docs/validation/m3-clients/attempt-12/codex-home/.sandbox_migration",
+        "bytes": 3,
+        "sha256": "2d27fbdf4e8ca207afbfa388ca9172fbcc6c70e534af2476b3b704f87debadcf"
+      },
+      {
+        "path": "docs/validation/m3-clients/attempt-12/codex-home/auth.json",
+        "bytes": 4241,
+        "sha256": "60a0d7556f32f1779d22489709399ed9ee0ac447bd37e7888b009e7ef2645f58"
+      },
+      {
+        "path": "docs/validation/m3-clients/attempt-12/codex-home/goals_1.sqlite",
+        "bytes": 32768,
+        "sha256": "995022d1e18a0869a3119278dd26007cc362a68545cee49ab95962029f2302c6"
+      },
+      {
+        "path": "docs/validation/m3-clients/attempt-12/codex-home/installation_id",
+        "bytes": 36,
+        "sha256": "c4a1c7db307de6f573ba2c746b0582e2f1b60e5c2d2bc8ba3b07508d3fa6bd76"
+      },
+      {
+        "path": "docs/validation/m3-clients/attempt-12/codex-home/logs_2.sqlite",
+        "bytes": 49152,
+        "sha256": "4cde99d0752ebc0722adb639bc6ea212d0388756002d161ec7eef9159bb27115"
+      },
+      {
+        "path": "docs/validation/m3-clients/attempt-12/codex-home/logs_2.sqlite-shm",
+        "bytes": 32768,
+        "sha256": "56f2fcff1d0e5a5f393815e43a6eca0243cbde5403088a7a2454d694d867986b"
+      },
+      {
+        "path": "docs/validation/m3-clients/attempt-12/codex-home/logs_2.sqlite-wal",
+        "bytes": 354352,
+        "sha256": "a2940351098d86c52018735c6554be882f55d1b5ad09cf1e9d692e075659886d"
+      },
+      {
+        "path": "docs/validation/m3-clients/attempt-12/codex-home/memories_1.sqlite",
+        "bytes": 8192,
+        "sha256": "23d4b796ea63c2a02f539d98790adc210a90d5eed793c2c6a4128afbd1eb8a7d"
+      },
+      {
+        "path": "docs/validation/m3-clients/attempt-12/codex-home/memories_1.sqlite-shm",
+        "bytes": 32768,
+        "sha256": "39145a6393b234ec28d19afc04db213c3a2f24892599bda75d01a245ac20030d"
+      },
+      {
+        "path": "docs/validation/m3-clients/attempt-12/codex-home/memories_1.sqlite-wal",
+        "bytes": 61832,
+        "sha256": "7fa67ff63cec859052ccb593b5975c68e4263185194e0bef6ae5b663806a3c08"
+      },
+      {
+        "path": "docs/validation/m3-clients/attempt-12/codex-home/models_cache.json",
+        "bytes": 266699,
+        "sha256": "b9291e48b238f6c950e0c897889a3cdd8e21f5a31182ebc29bd4db7c483ddc06"
+      },
+      {
+        "path": "docs/validation/m3-clients/attempt-12/codex-home/queue_1.sqlite",
+        "bytes": 4096,
+        "sha256": "4eeb710c739848e62f0d53d04057e17375b4af741c9b441f2a546f6ed860c79f"
+      },
+      {
+        "path": "docs/validation/m3-clients/attempt-12/codex-home/queue_1.sqlite-shm",
+        "bytes": 32768,
+        "sha256": "c0cf6cd80659211dfef2a807b8a66826337494f30bad9abe98de89dd8426a900"
+      },
+      {
+        "path": "docs/validation/m3-clients/attempt-12/codex-home/queue_1.sqlite-wal",
+        "bytes": 86552,
+        "sha256": "d94434392fbcf1e8668e232d9f2d581784bd6de3c40ac3ae67e561b7562a26b6"
+      },
+      {
+        "path": "docs/validation/m3-clients/attempt-12/codex-home/state_5.sqlite",
+        "bytes": 4096,
+        "sha256": "4eeb710c739848e62f0d53d04057e17375b4af741c9b441f2a546f6ed860c79f"
+      },
+      {
+        "path": "docs/validation/m3-clients/attempt-12/codex-home/state_5.sqlite-shm",
+        "bytes": 32768,
+        "sha256": "86d739d3f306d232602674e2f7de72eef6ced427ba1a11cf12e6f0ed1966d005"
+      },
+      {
+        "path": "docs/validation/m3-clients/attempt-12/codex-home/state_5.sqlite-wal",
+        "bytes": 1825192,
+        "sha256": "2a8a738132737065322546dcdc66f0674ebefe84a40ee2ac8a64c0738d0d5dce"
+      },
+      {
+        "path": "docs/validation/m3-clients/attempt-12/codex-home/tmp/arg0/codex-arg048L0R4/.lock",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "path": "docs/validation/m3-clients/attempt-12/codex-home/tmp/arg0/codex-arg048L0R4/apply_patch",
+        "bytes": 220452192,
+        "sha256": "a29d9e86eef88cbbd69f97ce8c590b1d0a287c8f77424f5eef226b883d7eaa22"
+      },
+      {
+        "path": "docs/validation/m3-clients/attempt-12/codex-home/tmp/arg0/codex-arg048L0R4/applypatch",
+        "bytes": 220452192,
+        "sha256": "a29d9e86eef88cbbd69f97ce8c590b1d0a287c8f77424f5eef226b883d7eaa22"
+      },
+      {
+        "path": "docs/validation/m3-clients/attempt-12/codex-home/tmp/arg0/codex-arg048L0R4/codex-execve-wrapper",
+        "bytes": 220452192,
+        "sha256": "a29d9e86eef88cbbd69f97ce8c590b1d0a287c8f77424f5eef226b883d7eaa22"
+      },
+      {
+        "path": "docs/validation/m3-clients/attempt-7/codex-home/.sandbox_migration",
+        "bytes": 3,
+        "sha256": "2d27fbdf4e8ca207afbfa388ca9172fbcc6c70e534af2476b3b704f87debadcf"
+      },
+      {
+        "path": "docs/validation/m3-clients/attempt-7/codex-home/auth.json",
+        "bytes": 4241,
+        "sha256": "60a0d7556f32f1779d22489709399ed9ee0ac447bd37e7888b009e7ef2645f58"
+      },
+      {
+        "path": "docs/validation/m3-clients/attempt-7/codex-home/goals_1.sqlite",
+        "bytes": 20480,
+        "sha256": "5e33843ec5403aefd5b5af7b5e53ba2d3908c7b86f0400c5ce75e22256db45b2"
+      },
+      {
+        "path": "docs/validation/m3-clients/attempt-7/codex-home/goals_1.sqlite-shm",
+        "bytes": 32768,
+        "sha256": "9028e6e910cb401fe6399054b72e72bde7a90614f6103516a58fc80f82120b15"
+      },
+      {
+        "path": "docs/validation/m3-clients/attempt-7/codex-home/goals_1.sqlite-wal",
+        "bytes": 74192,
+        "sha256": "0b0d5f5563c1051fe5dcfdefa8fb3b14284e40761d608ea504c5a5b5e5352bb8"
+      },
+      {
+        "path": "docs/validation/m3-clients/attempt-7/codex-home/installation_id",
+        "bytes": 36,
+        "sha256": "bc7ac9db42695a38a603e54f93f646f47fd00becf3a6342098386e875fc81e8e"
+      },
+      {
+        "path": "docs/validation/m3-clients/attempt-7/codex-home/logs_2.sqlite",
+        "bytes": 49152,
+        "sha256": "b7daae775a102ad2a62787967b03fc3cb2ca7982b3c41e4327a0464c78f19ff5"
+      },
+      {
+        "path": "docs/validation/m3-clients/attempt-7/codex-home/logs_2.sqlite-shm",
+        "bytes": 32768,
+        "sha256": "3978b27041fc1adacb31babb48df0d7beff877249d407de11c39a9c5b0a1dcd1"
+      },
+      {
+        "path": "docs/validation/m3-clients/attempt-7/codex-home/logs_2.sqlite-wal",
+        "bytes": 119512,
+        "sha256": "be2c1d981cf2d5cbe1aa6746a0608e30e2ca4eca54f3087b91ed1040cc64d69d"
+      },
+      {
+        "path": "docs/validation/m3-clients/attempt-7/codex-home/memories_1.sqlite",
+        "bytes": 20480,
+        "sha256": "6a38d0fa2421a370824200edd8bf2cdca567929bf03503fcdacfa2d8c9c72692"
+      },
+      {
+        "path": "docs/validation/m3-clients/attempt-7/codex-home/memories_1.sqlite-shm",
+        "bytes": 32768,
+        "sha256": "c439d2605a1ee1afebf2f781673de2bc6527fd7e32d0b8ef02fc6ece54443f24"
+      },
+      {
+        "path": "docs/validation/m3-clients/attempt-7/codex-home/memories_1.sqlite-wal",
+        "bytes": 61832,
+        "sha256": "d9bacdaedaaf2a51865c9984cd11d1806d95989fe9050e03d40889296d4ad513"
+      },
+      {
+        "path": "docs/validation/m3-clients/attempt-7/codex-home/models_cache.json",
+        "bytes": 266699,
+        "sha256": "9ec143a27a213b092593b64f0e9ea8aa6053c377b5a88e9912929beffe3c2efd"
+      },
+      {
+        "path": "docs/validation/m3-clients/attempt-7/codex-home/queue_1.sqlite",
+        "bytes": 16384,
+        "sha256": "0637d7a65a4e5e7cdc48e26a4881b574b00278fb24565cee06862ab6d3dcf46f"
+      },
+      {
+        "path": "docs/validation/m3-clients/attempt-7/codex-home/queue_1.sqlite-shm",
+        "bytes": 32768,
+        "sha256": "37feae71ee28c8cfbc085ffcb352d2aad79a08f4d73ec5e654b2dea61f669413"
+      },
+      {
+        "path": "docs/validation/m3-clients/attempt-7/codex-home/queue_1.sqlite-wal",
+        "bytes": 82432,
+        "sha256": "0c3bc54b4aefa036eebccb60bbe2c425e366c8ae18e6edb27fdb497cdef9ee33"
+      },
+      {
+        "path": "docs/validation/m3-clients/attempt-7/codex-home/state_5.sqlite",
+        "bytes": 4096,
+        "sha256": "4eeb710c739848e62f0d53d04057e17375b4af741c9b441f2a546f6ed860c79f"
+      },
+      {
+        "path": "docs/validation/m3-clients/attempt-7/codex-home/state_5.sqlite-shm",
+        "bytes": 32768,
+        "sha256": "01caa4f378f649dcbfcb514283409c7dc7ffef7ab301e8ae003342d99a9ae715"
+      },
+      {
+        "path": "docs/validation/m3-clients/attempt-7/codex-home/state_5.sqlite-wal",
+        "bytes": 1825192,
+        "sha256": "2e5507a0b8b5a73fe41a2264ae2429d0730e433909e08f9dde16012f9cb97d71"
+      },
+      {
+        "path": "docs/validation/m3-clients/attempt-8/codex-home/.sandbox_migration",
+        "bytes": 3,
+        "sha256": "2d27fbdf4e8ca207afbfa388ca9172fbcc6c70e534af2476b3b704f87debadcf"
+      },
+      {
+        "path": "docs/validation/m3-clients/attempt-8/codex-home/auth.json",
+        "bytes": 4241,
+        "sha256": "60a0d7556f32f1779d22489709399ed9ee0ac447bd37e7888b009e7ef2645f58"
+      },
+      {
+        "path": "docs/validation/m3-clients/attempt-8/codex-home/goals_1.sqlite",
+        "bytes": 32768,
+        "sha256": "81a803254a7f40c90dc8ab2b52ffccfd68f078f78bf6cdf2028218b755295778"
+      },
+      {
+        "path": "docs/validation/m3-clients/attempt-8/codex-home/installation_id",
+        "bytes": 36,
+        "sha256": "391ec1d2ed77c5d5b2fb507a3cd69f2707c29e2f31c3f7263a0bdd5486e6d3c7"
+      },
+      {
+        "path": "docs/validation/m3-clients/attempt-8/codex-home/logs_2.sqlite",
+        "bytes": 131072,
+        "sha256": "cb29706d8b47351c9cd0b1b0cde218310349ee35338e4c29fb95b4451dcd29d9"
+      },
+      {
+        "path": "docs/validation/m3-clients/attempt-8/codex-home/memories_1.sqlite",
+        "bytes": 40960,
+        "sha256": "247bacdc7fbb4a66695a668bb43caa5edc3c13233d168ade434876cd71a519d3"
+      },
+      {
+        "path": "docs/validation/m3-clients/attempt-8/codex-home/memories_1.sqlite-wal",
+        "bytes": 61832,
+        "sha256": "c8013c9997d375b6abf0b1a8c6e438da27cb3816464c3b333ba30ec7d842df90"
+      },
+      {
+        "path": "docs/validation/m3-clients/attempt-8/codex-home/models_cache.json",
+        "bytes": 266699,
+        "sha256": "a8c64943be082fb1d945348920336bc177cbfc8ec65e279326f9aca9e500b54f"
+      },
+      {
+        "path": "docs/validation/m3-clients/attempt-8/codex-home/queue_1.sqlite",
+        "bytes": 40960,
+        "sha256": "9fc099a13c9c01ce6a6e342c96091612ff9f875d62ce9566ea21c5a10ab37cc0"
+      },
+      {
+        "path": "docs/validation/m3-clients/attempt-8/codex-home/queue_1.sqlite-shm",
+        "bytes": 32768,
+        "sha256": "dae3a3ea8074b67767aac35c35ca2a5c3205473a6f7439de5a4d65aa3f5fc0a1"
+      },
+      {
+        "path": "docs/validation/m3-clients/attempt-8/codex-home/queue_1.sqlite-wal",
+        "bytes": 86552,
+        "sha256": "3d082046c2693ef5aea5c65ae38f4fe0c1acc2de9130479dc0da29a4c2fbeed5"
+      },
+      {
+        "path": "docs/validation/m3-clients/attempt-8/codex-home/state_5.sqlite",
+        "bytes": 4096,
+        "sha256": "4eeb710c739848e62f0d53d04057e17375b4af741c9b441f2a546f6ed860c79f"
+      },
+      {
+        "path": "docs/validation/m3-clients/attempt-8/codex-home/state_5.sqlite-shm",
+        "bytes": 32768,
+        "sha256": "2ef78fcaa6b95437af936d473abe772fd7ce108f4cd27847a4e6a091e75c40e7"
+      },
+      {
+        "path": "docs/validation/m3-clients/attempt-8/codex-home/state_5.sqlite-wal",
+        "bytes": 1825192,
+        "sha256": "1dcf7158798fbd086985855ba19fe8303e125ca73794b138612c587539598999"
+      },
+      {
+        "path": "docs/validation/m3-clients/attempt-9/codex-home/.sandbox_migration",
+        "bytes": 3,
+        "sha256": "2d27fbdf4e8ca207afbfa388ca9172fbcc6c70e534af2476b3b704f87debadcf"
+      },
+      {
+        "path": "docs/validation/m3-clients/attempt-9/codex-home/auth.json",
+        "bytes": 4241,
+        "sha256": "60a0d7556f32f1779d22489709399ed9ee0ac447bd37e7888b009e7ef2645f58"
+      },
+      {
+        "path": "docs/validation/m3-clients/attempt-9/codex-home/goals_1.sqlite",
+        "bytes": 4096,
+        "sha256": "4eeb710c739848e62f0d53d04057e17375b4af741c9b441f2a546f6ed860c79f"
+      },
+      {
+        "path": "docs/validation/m3-clients/attempt-9/codex-home/goals_1.sqlite-shm",
+        "bytes": 32768,
+        "sha256": "28e52766633f46317af0efa8b14028a9e49efb1a39db1192db1698679c906d17"
+      },
+      {
+        "path": "docs/validation/m3-clients/attempt-9/codex-home/goals_1.sqlite-wal",
+        "bytes": 74192,
+        "sha256": "c04fd5c9a5b53de9c8c517214739cb5929cb10daed3b7c619f0e15293b632e48"
+      },
+      {
+        "path": "docs/validation/m3-clients/attempt-9/codex-home/installation_id",
+        "bytes": 36,
+        "sha256": "3dc063d0e5659ef16292ab14d9aede0de5c9fe6d9a2ad959660ba0aea8488633"
+      },
+      {
+        "path": "docs/validation/m3-clients/attempt-9/codex-home/logs_2.sqlite",
+        "bytes": 49152,
+        "sha256": "e3ed39a0bb8bd0864efc860b4f3f5a0bf71418f4ea14a7c872e43469b627c0f4"
+      },
+      {
+        "path": "docs/validation/m3-clients/attempt-9/codex-home/logs_2.sqlite-shm",
+        "bytes": 32768,
+        "sha256": "86375b6ee53fb285930393608b58ef93ae7d45f70b8fb30eaf3b5134c84a49fd"
+      },
+      {
+        "path": "docs/validation/m3-clients/attempt-9/codex-home/logs_2.sqlite-wal",
+        "bytes": 144232,
+        "sha256": "5a3cb20f90af33a50c125825c2e108fe30efd2c55cbc8ea0c9fb32d2d0113203"
+      },
+      {
+        "path": "docs/validation/m3-clients/attempt-9/codex-home/memories_1.sqlite",
+        "bytes": 40960,
+        "sha256": "f280614dfbd93934439f76e4da7a162a967edd08a7c9b5dd2949db79e28663e1"
+      },
+      {
+        "path": "docs/validation/m3-clients/attempt-9/codex-home/models_cache.json",
+        "bytes": 266699,
+        "sha256": "974bb23031b9ff02203010ab9ad9d11fbb17c97610b89730405c200295b29893"
+      },
+      {
+        "path": "docs/validation/m3-clients/attempt-9/codex-home/queue_1.sqlite",
+        "bytes": 40960,
+        "sha256": "3a5dc42ff1a6c9b407dccb41ffbd6a1ab6e8457d55b14778f9c3fef96c33bf54"
+      },
+      {
+        "path": "docs/validation/m3-clients/attempt-9/codex-home/queue_1.sqlite-shm",
+        "bytes": 32768,
+        "sha256": "e98ccbb3971e1948993398ee904e20ca125653be4151c941d944ad2e4519cb2f"
+      },
+      {
+        "path": "docs/validation/m3-clients/attempt-9/codex-home/queue_1.sqlite-wal",
+        "bytes": 86552,
+        "sha256": "154c3c6b8ec0f1c0d5b9f934b1a2f0f60fda3542605eee5b16631c34cdd741dc"
+      },
+      {
+        "path": "docs/validation/m3-clients/attempt-9/codex-home/state_5.sqlite",
+        "bytes": 4096,
+        "sha256": "4eeb710c739848e62f0d53d04057e17375b4af741c9b441f2a546f6ed860c79f"
+      },
+      {
+        "path": "docs/validation/m3-clients/attempt-9/codex-home/state_5.sqlite-shm",
+        "bytes": 32768,
+        "sha256": "21191f208c8ac869f231e8ea0adebbb4cba87bbcc787069796a96329df428c2b"
+      },
+      {
+        "path": "docs/validation/m3-clients/attempt-9/codex-home/state_5.sqlite-wal",
+        "bytes": 1825192,
+        "sha256": "6f9984197dd0c45854e237a6f396ba87a5a71a4459c551cd61ce0113d466d1e9"
+      }
+    ],
+    "harness_fix": "scripts/test-m3-clients.py now points the client home at a temporary directory outside the repository and destroys it with the gate, and asserts the evidence directory holds no auth.json, installation_id or *.sqlite* file, demoting the attempt so no current receipt is published if one appears.",
+    "gitignore_added": [
+      "codex-home/",
+      "auth.json",
+      "installation_id",
+      ".netrc",
+      "credentials.json",
+      ".env",
+      "docs/validation/**/*.sqlite",
+      "docs/validation/**/*.sqlite-shm",
+      "docs/validation/**/*.sqlite-wal",
+      "docs/validation/m3-delegation/**/stdout.txt"
+    ],
+    "verification": "git status --porcelain -uall over all stageable paths reports 0 credential-shaped files"
+  },
+  "excluded_transcripts": {
+    "inventory": "docs/validation/M3-delegation-log-inventory.json",
+    "count": 59,
+    "bytes": 42399935,
+    "committed_files": 356,
+    "packages": 58
+  },
+  "local_verification_on_committed_bytes": {
+    "cargo_fmt_check": "passed",
+    "cargo_check_workspace_all_targets_locked_offline": "passed",
+    "cargo_clippy_workspace_all_targets_deny_warnings": "passed",
+    "cargo_test_workspace_locked_offline": "passed, 1073 tests, 0 failed",
+    "check_architecture_py": "passed",
+    "workspace_test_inventory": 1184,
+    "linux_cross_check": "cargo clippy --target x86_64-unknown-linux-gnu -- -D warnings passes for rust-engineering-domain, -application, -project and -execution; -semantic and -mcp cannot be cross-checked locally because their C dependencies need a Linux toolchain, and CI covers them.",
+    "snapshots": "git diff main -- crates/mcp-server/tests/snapshots/ shows only the four new tool snapshots as additions; all 19 snapshots present on main, the 18 M1/M2 tool snapshots plus doctor-report.json, are byte-identical. The mutation-tool change the package anticipated does not exist: mutation-test-tool.json is one of the four new files."
+  },
+  "not_done": [
+    "merge (blocked: owner review required by CODEOWNERS, and the required SonarCloud gate fails)",
+    "post-merge smoke (no merge occurred)",
+    "committing this receipt on main (no merge occurred; it is committed on the branch instead)"
+  ]
+}

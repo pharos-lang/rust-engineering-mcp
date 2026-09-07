@@ -1,0 +1,53 @@
+   Compiling rust-engineering-domain v0.2.0-dev (/Users/cburgosro/Projects/rust-mcp/crates/domain)
+   Compiling rust-engineering-application v0.2.0-dev (/Users/cburgosro/Projects/rust-mcp/crates/application)
+   Compiling rust-engineering-semantic v0.2.0-dev (/Users/cburgosro/Projects/rust-mcp/crates/semantic-adapter)
+   Compiling rust-engineering-catalog v0.2.0-dev (/Users/cburgosro/Projects/rust-mcp/crates/catalog-adapter)
+   Compiling rust-engineering-artifact v0.2.0-dev (/Users/cburgosro/Projects/rust-mcp/crates/artifact-adapter)
+   Compiling rust-engineering-project v0.2.0-dev (/Users/cburgosro/Projects/rust-mcp/crates/project-adapter)
+   Compiling rust-engineering-execution v0.2.0-dev (/Users/cburgosro/Projects/rust-mcp/crates/execution-adapter)
+   Compiling rust-engineering-mcp v0.2.0-dev (/Users/cburgosro/Projects/rust-mcp/crates/mcp-server)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 3.32s
+     Running tests/protocol.rs (target/debug/deps/protocol-911bbe174d68278e)
+
+running 38 tests
+test empty_eof_exits_cleanly_without_protocol_output ... ok
+test first_project_call_preserves_bounded_bootstrap_behavior ... ok
+test eof_drains_complete_requests_already_written ... ok
+test first_crate_search_requires_bootstrap_before_catalog_access ... ok
+test first_catalog_status_is_denied_before_discovery ... ok
+test first_crate_inspect_requires_discovery ... ok
+test eof_with_unterminated_frame_is_rejected ... ok
+test fragmented_crlf_frames_and_coalesced_requests ... ok
+test invalid_json_syntax_is_ignored_and_invalid_shape_is_rejected ... ok
+test modern_discovery_and_deterministic_project_tool ... ok
+test exact_frame_limit_accepts_lf_and_counts_cr ... ok
+test closed_stdout_exits_even_when_stdin_remains_open ... ok
+test modern_request_bootstraps_without_discovery ... ok
+test metadata_errors_after_bootstrap_are_recoverable ... ok
+test project_fixtures::project_open_missing_or_invalid_manifest_returns_tool_error_and_service_survives ... ok
+test project_fixtures::deeply_nested_toml_is_rejected_without_aborting_the_server ... ok
+test initial_metadata_errors_follow_sdk_lifecycle ... ok
+test oversized_frames_fail_without_waiting_for_eof_or_leaking_input ... ok
+test clippy_closed_profiles_and_options_are_enforced_in_all_wire_versions ... ok
+test batches_are_rejected_by_the_pinned_sdk_in_every_supported_mode ... ok
+test crate_inspect_closed_shape_and_missing_catalog_in_all_versions ... ok
+test diagnostic_explain_validates_code_without_project_authority_in_all_versions ... ok
+test crate_search_validates_closed_inputs_and_reports_missing_catalog_in_all_versions ... ok
+test catalog_status_closed_input_and_explicit_absence_in_all_versions ... ok
+test legacy_versions_and_initialize_fallback ... ok
+test opaque_resources_are_not_enumerated_and_invalid_authority_is_uniform ... ok
+test sequential_responses_release_admission_for_reused_request_ids ... ok
+test unavailable_tool_and_unknown_cancellation_preserve_service ... ok
+test first_inspect_is_denied_until_discovery_then_reference_validation_runs ... ok
+test project_fixtures::inspect_live_reference_without_runtime_is_denied_without_project_execution ... ok
+test project_fixtures::project_open_succeeds_with_host_root_in_modern_and_all_legacy_versions ... ok
+test project_open_tool_contract_matches_snapshot_and_rejects_invalid_arguments ... ok
+test project_open_without_host_authority_is_a_structured_operational_failure ... ok
+test test_closed_options_are_enforced_in_all_wire_versions ... ok
+test quality_profiles_require_closed_input_and_live_reference_in_all_versions ... ok
+test rust_mutation_contracts_are_closed_and_default_denied_in_all_versions ... ok
+test inspect_rejects_malformed_input_and_unknown_references_in_all_versions ... ok
+test partial_frame_deadline_closes_a_live_input_pipe ... ok
+
+test result: ok. 38 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 11.71s
+

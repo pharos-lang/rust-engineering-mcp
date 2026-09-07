@@ -1,0 +1,2 @@
+2026-09-06T00:59:48.464255Z ERROR codex_core::tools::router: error=apply_patch verification failed: Failed to find expected lines in /Users/cburgosro/Projects/rust-mcp/docs/adr/README.md:
+| [ADR-059](ADR-059-terminal-plan-retirement-and-durable-replay.md) | Terminal plan retirement and durable replay | Accepted; M2 closure |

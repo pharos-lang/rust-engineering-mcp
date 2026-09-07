@@ -1,0 +1,32 @@
+{
+  "status": "completed",
+  "exit_code": 0,
+  "started_at": "2026-09-05T22:32:36.617067+00:00",
+  "finished_at": "2026-09-05T22:34:00.504934+00:00",
+  "requested_model": "gemini-3.8-flash-high",
+  "effort": "high",
+  "mode": "plan",
+  "sandbox": true,
+  "cwd": "/var/folders/hr/tglf6rl10w3b68rk0s47ddw00000gn/T/m2-agy-readonly-mvkkw11g",
+  "argv": [
+    "/Users/cburgosro/.local/bin/agy",
+    "--model",
+    "gemini-3.8-flash-high",
+    "--effort",
+    "high",
+    "--mode",
+    "plan",
+    "--sandbox",
+    "--disable-slash-commands",
+    "--output-format",
+    "json",
+    "--print-timeout",
+    "10m",
+    "--print",
+    "PROMPT_FILE:docs/reviews/m2-closure-packages/M2-closure-agy-prompt.txt"
+  ],
+  "prompt_sha256": "3f0544dbf7e03987d3b6c42f003aff09cc545a76ef789b0e42562ad224b19652",
+  "output_sha256": "84c62659247e59b7bac0d2b5fbd685f2d9be18cc4af2213813cf0ce447853ffe",
+  "stderr_sha256": "3a7f8550106d86abb322e8ed0fb30a0296c0e97c6be03d5a8033b99d16737459",
+  "scope": "Read-only self-contained traceability review; no implementation, tests or tools authorized."
+}

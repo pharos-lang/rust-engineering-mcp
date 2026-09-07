@@ -1,0 +1,129 @@
+{
+  "status": "passed",
+  "started_at": "2026-09-05T22:37:39.974373+00:00",
+  "head": "7554bccbff2209ae5b3df63b2b1011646586380f",
+  "environment_overrides": {
+    "RUST_MCP_TEST_SOCKET": "/Users/cburgosro/.docker/run/docker.sock"
+  },
+  "steps": [
+    {
+      "name": "input-verification",
+      "command": [
+        "python3",
+        "docs/validation/m2-closure/verify-evidence.py"
+      ],
+      "status": "passed",
+      "exit_code": 0,
+      "expected_executed": null,
+      "seconds": 0.344,
+      "log": "docs/validation/m2-postmerge/input-verification.log",
+      "bytes": 832,
+      "sha256": "5c6b9a9f0b9c3aadd7468d58979ed16df0e53cfdec757218839728fec4774f59"
+    },
+    {
+      "name": "protocol",
+      "command": [
+        "/Users/cburgosro/.rustup/toolchains/1.98.1-aarch64-apple-darwin/bin/cargo",
+        "test",
+        "--locked",
+        "--offline",
+        "-p",
+        "rust-engineering-mcp",
+        "--test",
+        "protocol"
+      ],
+      "status": "passed",
+      "exit_code": 0,
+      "expected_executed": 38,
+      "seconds": 15.733,
+      "log": "docs/validation/m2-postmerge/protocol.log",
+      "bytes": 3904,
+      "sha256": "7c70e0376ebc504fa545c29d7e93d90e96f2e33b27d2e361d5ba02d4f4ac3326"
+    },
+    {
+      "name": "terminal-replay",
+      "command": [
+        "/Users/cburgosro/.rustup/toolchains/1.98.1-aarch64-apple-darwin/bin/cargo",
+        "test",
+        "--locked",
+        "--offline",
+        "-p",
+        "rust-engineering-mcp",
+        "--test",
+        "inspection_runtime",
+        "terminal_plan_runtime::terminal_plans_free_quota_and_replay_only_from_exact_durable_identity",
+        "--",
+        "--ignored",
+        "--nocapture",
+        "--test-threads=1"
+      ],
+      "status": "passed",
+      "exit_code": 0,
+      "expected_executed": 1,
+      "seconds": 20.83,
+      "log": "docs/validation/m2-postmerge/terminal-replay.log",
+      "bytes": 489,
+      "sha256": "0a100f6d672c3258a1f4beee7f68cde378ffd3377e4cf2129d9b50507e2fe03e"
+    },
+    {
+      "name": "core-version",
+      "command": [
+        "target/release/rust-engineering-mcp",
+        "--version"
+      ],
+      "status": "passed",
+      "exit_code": 0,
+      "expected_executed": null,
+      "seconds": 0.004,
+      "log": "docs/validation/m2-postmerge/core-version.log",
+      "bytes": 31,
+      "sha256": "d831ef5e03191f69c4c3899ad7bdb872f53b92dd87d1c53cb9e850b653358c99"
+    },
+    {
+      "name": "owned-containers",
+      "command": [
+        "docker",
+        "--host",
+        "unix:///Users/cburgosro/.docker/run/docker.sock",
+        "container",
+        "ls",
+        "-a",
+        "--filter",
+        "label=org.rust-mcp.execution=true",
+        "--format",
+        "{{json .}}"
+      ],
+      "status": "passed",
+      "exit_code": 0,
+      "expected_executed": 0,
+      "seconds": 0.013,
+      "log": "docs/validation/m2-postmerge/owned-containers.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "owned-volumes",
+      "command": [
+        "docker",
+        "--host",
+        "unix:///Users/cburgosro/.docker/run/docker.sock",
+        "volume",
+        "ls",
+        "--filter",
+        "label=org.rust-mcp.execution=true",
+        "--format",
+        "{{json .}}"
+      ],
+      "status": "passed",
+      "exit_code": 0,
+      "expected_executed": 0,
+      "seconds": 0.012,
+      "log": "docs/validation/m2-postmerge/owned-volumes.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "finished_at": "2026-09-05T22:38:16.921918+00:00",
+  "full_gate_sha256": "05f0391041e053309e8924183600dcfbd8cd41b925afadb2edca7fcb73e43ea5",
+  "scope": "Proportional smoke of merged identical inputs; protocol contract, real five-commit/replay/restart runtime, core version and absence of owned Docker resources. Full and client are not repeated."
+}

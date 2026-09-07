@@ -1,0 +1,12 @@
+2026-09-06T06:32:13.924645Z ERROR codex_core::tools::router: error=apply_patch verification failed: Failed to find expected lines in /Users/cburgosro/Projects/rust-mcp/crates/execution-adapter/src/rust_gateway.rs:
+            Self::Run(
+                RustCommand::CompilerVersion | RustCommand::CargoVersion | RustCommand::LlvmCovVersion,
+            ) => &["--version", "--verbose"],
+2026-09-06T06:39:33.568661Z ERROR codex_core::tools::router: error=apply_patch verification failed: Failed to find expected lines in /Users/cburgosro/Projects/rust-mcp/crates/mcp-server/src/stdio/coverage.rs:
+enum Completeness { Complete, Partial, Invalid, Unavailable }
+2026-09-06T06:42:17.497447Z ERROR codex_core::tools::router: error=apply_patch verification failed: invalid patch: multiple operations target /Users/cburgosro/Projects/rust-mcp/crates/execution-adapter/tests/coverage_runtime.rs
+2026-09-06T06:43:14.141042Z ERROR codex_core::tools::router: error=apply_patch verification failed: Failed to find expected lines in /Users/cburgosro/Projects/rust-mcp/crates/execution-adapter/tests/coverage_runtime.rs:
+            files.push(SourceFile::new(
+                relative,
+                std::fs::read(entry.path())?,
+            )?);

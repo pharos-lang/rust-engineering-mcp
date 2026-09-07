@@ -173,7 +173,7 @@ impl Server {
         }
     }
 
-    fn finish(mut self, expected: i32) -> Result<Vec<u8>, Box<dyn Error>> {
+    fn finish_raw(mut self, expected: i32) -> Result<Vec<u8>, Box<dyn Error>> {
         self.stdin.take();
         assert_eq!(self.wait()?.code(), Some(expected));
         match self.stdout.recv_timeout(TIMEOUT) {
@@ -182,11 +182,83 @@ impl Server {
         }
         let errors = self.stderr.recv_timeout(TIMEOUT)??;
         assert!(!String::from_utf8_lossy(&errors).contains(SECRET));
+        Ok(errors)
+    }
+
+    fn finish(self, expected: i32) -> Result<Vec<u8>, Box<dyn Error>> {
+        let errors = self.finish_raw(expected)?;
         if expected == 0 {
             assert!(errors.is_empty(), "unexpected stderr: {errors:?}");
         }
         Ok(errors)
     }
+
+    fn finish_with_mutation_event(
+        self,
+        expected_status: i32,
+        tool: &str,
+    ) -> Result<(), Box<dyn Error>> {
+        let errors = self.finish_raw(expected_status)?;
+        let events = mutation_events(&errors)?;
+        assert_eq!(events.len(), 1, "unexpected mutation events: {events:?}");
+        assert_mutation_event(&events[0], tool, "preview")?;
+        assert_eq!(events[0]["admitted"], false);
+        assert_eq!(events[0]["status"], "blocked");
+        assert_eq!(events[0]["reason"], "permission_denied");
+        assert_eq!(events[0]["cleanup_uncertain"], false);
+        assert_eq!(events[0]["result_id"], Value::Null);
+        assert_eq!(events[0]["files_changed"], 0);
+        Ok(())
+    }
+}
+
+fn mutation_events(stderr: &[u8]) -> Result<Vec<Value>, Box<dyn Error>> {
+    let text = std::str::from_utf8(stderr)?;
+    text.lines()
+        .map(|line| {
+            let json = line
+                .strip_prefix(" INFO ")
+                .or_else(|| line.strip_prefix("INFO "))
+                .ok_or_else(|| format!("unexpected stderr record: {line}"))?;
+            serde_json::from_str(json).map_err(Into::into)
+        })
+        .collect()
+}
+
+fn assert_mutation_event(event: &Value, tool: &str, phase: &str) -> TestResult {
+    let object = event.as_object().ok_or("mutation event is not an object")?;
+    let expected = [
+        "schema",
+        "event",
+        "tool",
+        "phase",
+        "admitted",
+        "status",
+        "reason",
+        "duration_ms",
+        "cleanup_uncertain",
+        "result_id",
+        "files_changed",
+        "allocated_plans",
+        "allocated_plan_bytes",
+    ];
+    assert_eq!(
+        object.len(),
+        expected.len(),
+        "unexpected event fields: {event}"
+    );
+    for field in expected {
+        assert!(object.contains_key(field), "missing {field}: {event}");
+    }
+    assert_eq!(event["schema"], "rust-mcp-mutation-event-v1");
+    assert_eq!(event["event"], "mutation_call_completed");
+    assert_eq!(event["tool"], tool);
+    assert_eq!(event["phase"], phase);
+    assert!(event["duration_ms"].as_u64().is_some());
+    assert!(event["allocated_plans"].as_u64().is_some());
+    assert!(event["allocated_plan_bytes"].as_u64().is_some());
+    assert!(!event.to_string().contains(SECRET));
+    Ok(())
 }
 
 impl Drop for Server {
@@ -201,6 +273,15 @@ fn modern(id: Value, method: &str) -> Value {
     json!({"jsonrpc":"2.0", "id":id, "method":method, "params":{"_meta":{
         "io.modelcontextprotocol/protocolVersion":VERSION,
         "io.modelcontextprotocol/clientCapabilities":{}
+    }}})
+}
+
+fn modern_with_tasks(id: Value, method: &str) -> Value {
+    json!({"jsonrpc":"2.0", "id":id, "method":method, "params":{"_meta":{
+        "io.modelcontextprotocol/protocolVersion":VERSION,
+        "io.modelcontextprotocol/clientCapabilities":{
+            "extensions":{"io.modelcontextprotocol/tasks":{}}
+        }
     }}})
 }
 
@@ -283,6 +364,14 @@ fn initialize(id: i64, version: &str) -> Value {
     }})
 }
 
+fn initialize_with_tasks(id: i64, version: &str) -> Value {
+    json!({"jsonrpc":"2.0", "id":id, "method":"initialize", "params":{
+        "protocolVersion":version,
+        "capabilities":{"extensions":{"io.modelcontextprotocol/tasks":{}}},
+        "clientInfo":{"name":"independent-wire-test","version":"1"}
+    }})
+}
+
 fn project_call(id: i64, arguments: Value, version: &str) -> Value {
     let mut request = if version == VERSION {
         modern(json!(id), "tools/call")
@@ -317,12 +406,21 @@ fn bootstrap(server: &mut Server, version: &str) -> Result<Value, Box<dyn Error>
         (4, include_str!("snapshots/format-tool.json")),
         (5, include_str!("snapshots/clippy-tool.json")),
         (6, include_str!("snapshots/test-tool.json")),
-        (7, include_str!("snapshots/audit-tool.json")),
-        (8, include_str!("snapshots/explain-tool.json")),
-        (9, include_str!("snapshots/quality-tool.json")),
-        (10, include_str!("snapshots/catalog-status-tool.json")),
-        (11, include_str!("snapshots/crate-search-tool.json")),
-        (12, include_str!("snapshots/crate-inspect-tool.json")),
+        (7, include_str!("snapshots/nextest-tool.json")),
+        (8, include_str!("snapshots/audit-tool.json")),
+        (9, include_str!("snapshots/explain-tool.json")),
+        (10, include_str!("snapshots/quality-tool.json")),
+        (11, include_str!("snapshots/catalog-status-tool.json")),
+        (12, include_str!("snapshots/crate-search-tool.json")),
+        (13, include_str!("snapshots/crate-inspect-tool.json")),
+        (14, include_str!("snapshots/manifest-patch-tool.json")),
+        (15, include_str!("snapshots/fmt-apply-tool.json")),
+        (16, include_str!("snapshots/fix-apply-tool.json")),
+        (17, include_str!("snapshots/dependency-add-tool.json")),
+        (18, include_str!("snapshots/dependency-remove-tool.json")),
+        (19, include_str!("snapshots/coverage-tool.json")),
+        (20, include_str!("snapshots/semver-tool.json")),
+        (21, include_str!("snapshots/mutation-test-tool.json")),
     ] {
         assert_eq!(
             response["result"]["tools"][index],
@@ -603,7 +701,7 @@ mod project_fixtures {
 fn assert_project_list(response: &Value, modern: bool) {
     assert!(response.get("error").is_none(), "{response}");
     let tools = response["result"]["tools"].as_array();
-    assert_eq!(tools.map(Vec::len), Some(13));
+    assert_eq!(tools.map(Vec::len), Some(22));
     let names: Vec<_> = response["result"]["tools"]
         .as_array()
         .into_iter()
@@ -620,12 +718,21 @@ fn assert_project_list(response: &Value, modern: bool) {
             "rust.fmt.check",
             "rust.clippy",
             "rust.test",
+            "rust.test.nextest",
             "rust.dependencies.audit",
             "rust.diagnostics.explain",
             "rust.quality.gate",
             "rust.catalog.status",
             "rust.crate.search",
-            "rust.crate.inspect"
+            "rust.crate.inspect",
+            "rust.manifest.patch",
+            "rust.fmt.apply",
+            "rust.fix.apply",
+            "rust.dependency.add",
+            "rust.dependency.remove",
+            "rust.coverage",
+            "rust.semver.check",
+            "rust.mutation.test"
         ]
     );
     let tool = &response["result"]["tools"][0];
@@ -660,8 +767,12 @@ fn assert_project_list(response: &Value, modern: bool) {
     assert!(response["result"].get("nextCursor").is_none());
     if modern {
         assert_eq!(response["result"]["resultType"], "complete");
+        assert_eq!(response["result"]["ttlMs"], 0);
+        assert_eq!(response["result"]["cacheScope"], "private");
     } else {
         assert!(response["result"].get("resultType").is_none());
+        assert_eq!(response["result"]["ttlMs"], 0);
+        assert_eq!(response["result"]["cacheScope"], "private");
     }
 }
 
@@ -682,7 +793,14 @@ fn modern_discovery_and_deterministic_project_tool() -> TestResult {
             "2026-07-28"
         ])
     );
-    assert_eq!(result["capabilities"], json!({"tools":{},"resources":{}}));
+    assert_eq!(
+        result["capabilities"],
+        json!({
+            "tools":{},
+            "resources":{},
+            "extensions":{"io.modelcontextprotocol/tasks":{}}
+        })
+    );
     assert!(result.get("serverInfo").is_none());
     assert_eq!(
         result["_meta"]["io.modelcontextprotocol/serverInfo"]["name"],
@@ -725,7 +843,11 @@ fn legacy_versions_and_initialize_fallback() -> TestResult {
         assert_eq!(response["result"]["protocolVersion"], negotiated);
         assert_eq!(
             response["result"]["capabilities"],
-            json!({"tools":{},"resources":{}})
+            json!({
+                "tools":{},
+                "resources":{},
+                "extensions":{"io.modelcontextprotocol/tasks":{}}
+            })
         );
         assert_eq!(
             response["result"]["serverInfo"]["name"],
@@ -834,7 +956,11 @@ fn eof_drains_complete_requests_already_written() -> TestResult {
     server.stdin.take();
     assert_eq!(
         server.response(json!(1))?["result"]["capabilities"],
-        json!({"tools":{},"resources":{}})
+        json!({
+            "tools":{},
+            "resources":{},
+            "extensions":{"io.modelcontextprotocol/tasks":{}}
+        })
     );
     assert_project_list(&server.response(json!(2))?, true);
     server.finish(0)?;
@@ -995,7 +1121,7 @@ fn inspect_rejects_malformed_input_and_unknown_references_in_all_versions() -> T
         ("rust.fmt.check", 4),
         ("rust.clippy", 5),
         ("rust.test", 6),
-        ("rust.dependencies.audit", 7),
+        ("rust.dependencies.audit", 8),
     ] {
         for version in std::iter::once(VERSION).chain(LEGACY) {
             let mut server = Server::start()?;
@@ -1047,7 +1173,7 @@ fn first_inspect_is_denied_until_discovery_then_reference_validation_runs() -> T
         ("rust.fmt.check", 4),
         ("rust.clippy", 5),
         ("rust.test", 6),
-        ("rust.dependencies.audit", 7),
+        ("rust.dependencies.audit", 8),
     ] {
         let mut server = Server::start()?;
         let arguments = json!({"project_ref":"prj_00000000000000000000000000000001"});
@@ -1208,6 +1334,319 @@ fn test_closed_options_are_enforced_in_all_wire_versions() -> TestResult {
 }
 
 #[test]
+fn nextest_contract_and_synchronous_gate_are_stable_in_all_wire_versions() -> TestResult {
+    let snapshot: Value = serde_json::from_str(include_str!("snapshots/nextest-tool.json"))?;
+    for version in std::iter::once(VERSION).chain(LEGACY) {
+        let mut server = Server::start()?;
+        bootstrap(&mut server, version)?;
+        server.send(if version == VERSION {
+            modern(json!(20), "tools/list")
+        } else {
+            json!({"jsonrpc":"2.0","id":20,"method":"tools/list","params":{}})
+        })?;
+        let tool = server.response(json!(20))?["result"]["tools"][7].clone();
+        assert_eq!(tool, snapshot);
+
+        // Default auto is 300 seconds and therefore requires Tasks before
+        // worker admission or project-reference resolution in M3-01.
+        server.send(named_inspect_call(
+            21,
+            "rust.test.nextest",
+            json!({"project_ref":"prj_00000000000000000000000000000001"}),
+            version,
+        ))?;
+        let required = server.response(json!(21))?;
+        assert_output(&required, &tool, true, version)?;
+        assert_eq!(
+            required["result"]["structuredContent"]["error_code"],
+            "TASKS_REQUIRED"
+        );
+
+        // The explicitly bounded default-profile path is usable by stock
+        // clients and reaches normal live-reference validation.
+        server.send(named_inspect_call(
+            22,
+            "rust.test.nextest",
+            json!({
+                "project_ref":"prj_00000000000000000000000000000001",
+                "execution_mode":"synchronous",
+                "timeout_seconds":60
+            }),
+            version,
+        ))?;
+        let synchronous = server.response(json!(22))?;
+        assert_output(&synchronous, &tool, true, version)?;
+        assert_eq!(
+            synchronous["result"]["structuredContent"]["error_code"],
+            "PROJECT_NOT_FOUND"
+        );
+
+        server.send(named_inspect_call(
+            23,
+            "rust.test.nextest",
+            json!({
+                "project_ref":"prj_00000000000000000000000000000001",
+                "execution_mode":"task"
+            }),
+            version,
+        ))?;
+        assert_eq!(server.response(json!(23))?["error"]["code"], -32602);
+        server.finish(0)?;
+    }
+    Ok(())
+}
+
+#[test]
+fn semver_contract_and_synchronous_gate_are_stable_in_all_wire_versions() -> TestResult {
+    let snapshot: Value = serde_json::from_str(include_str!("snapshots/semver-tool.json"))?;
+    for version in std::iter::once(VERSION).chain(LEGACY) {
+        let mut server = Server::start()?;
+        bootstrap(&mut server, version)?;
+        server.send(if version == VERSION {
+            modern(json!(30), "tools/list")
+        } else {
+            json!({"jsonrpc":"2.0","id":30,"method":"tools/list","params":{}})
+        })?;
+        let tool = server.response(json!(30))?["result"]["tools"][20].clone();
+        assert_eq!(tool, snapshot);
+        let valid_refs = json!({
+            "baseline_project_ref":"prj_00000000000000000000000000000001",
+            "candidate_project_ref":"prj_00000000000000000000000000000002"
+        });
+        let validator = jsonschema::validator_for(&tool["inputSchema"])?;
+        assert!(validator.is_valid(&valid_refs));
+        for invalid in [
+            json!({"baseline_project_ref":"prj_00000000000000000000000000000001"}),
+            json!({"baseline_project_ref":"prj_00000000000000000000000000000001","candidate_project_ref":"prj_00000000000000000000000000000002","baseline_features":["x"]}),
+            json!({"baseline_project_ref":"prj_00000000000000000000000000000001","candidate_project_ref":"prj_00000000000000000000000000000002","target":"x86_64-unknown-linux-gnu"}),
+        ] {
+            assert!(!validator.is_valid(&invalid));
+            server.send(named_inspect_call(
+                31,
+                "rust.semver.check",
+                invalid,
+                version,
+            ))?;
+            assert_eq!(server.response(json!(31))?["error"]["code"], -32602);
+        }
+        let contradictory = json!({
+            "baseline_project_ref":"prj_00000000000000000000000000000001",
+            "candidate_project_ref":"prj_00000000000000000000000000000002",
+            "features":["x"],
+            "all_features":true
+        });
+        assert!(validator.is_valid(&contradictory));
+        server.send(named_inspect_call(
+            31,
+            "rust.semver.check",
+            contradictory,
+            version,
+        ))?;
+        assert_eq!(server.response(json!(31))?["error"]["code"], -32602);
+        server.send(named_inspect_call(
+            32,
+            "rust.semver.check",
+            valid_refs.clone(),
+            version,
+        ))?;
+        let required = server.response(json!(32))?;
+        assert_output(&required, &tool, true, version)?;
+        assert_eq!(
+            required["result"]["structuredContent"]["error_code"],
+            "TASKS_REQUIRED"
+        );
+        let mut synchronous = valid_refs;
+        synchronous["execution_mode"] = json!("synchronous");
+        synchronous["timeout_seconds"] = json!(60);
+        server.send(named_inspect_call(
+            33,
+            "rust.semver.check",
+            synchronous,
+            version,
+        ))?;
+        let response = server.response(json!(33))?;
+        assert_output(&response, &tool, true, version)?;
+        assert_eq!(
+            response["result"]["structuredContent"]["error_code"],
+            "PROJECT_NOT_FOUND"
+        );
+        server.finish(0)?;
+    }
+    Ok(())
+}
+
+#[test]
+fn coverage_contract_and_synchronous_gate_are_stable_in_all_wire_versions() -> TestResult {
+    let snapshot: Value = serde_json::from_str(include_str!("snapshots/coverage-tool.json"))?;
+    for version in std::iter::once(VERSION).chain(LEGACY) {
+        let mut server = Server::start()?;
+        bootstrap(&mut server, version)?;
+        server.send(if version == VERSION {
+            modern(json!(50), "tools/list")
+        } else {
+            json!({"jsonrpc":"2.0","id":50,"method":"tools/list","params":{}})
+        })?;
+        let tool = server.response(json!(50))?["result"]["tools"][19].clone();
+        assert_eq!(tool, snapshot);
+
+        // Default auto is 300 seconds, above the qualified synchronous budget,
+        // so the closed remediation code is returned before worker admission.
+        server.send(named_inspect_call(
+            51,
+            "rust.coverage",
+            json!({"project_ref":"prj_00000000000000000000000000000001"}),
+            version,
+        ))?;
+        let required = server.response(json!(51))?;
+        assert_output(&required, &tool, true, version)?;
+        assert_eq!(
+            required["result"]["structuredContent"]["error_code"],
+            "TASKS_REQUIRED"
+        );
+        assert_eq!(required["result"]["structuredContent"]["status"], "blocked");
+
+        // A bounded synchronous selection is qualified and reaches ordinary
+        // live-reference validation.
+        server.send(named_inspect_call(
+            52,
+            "rust.coverage",
+            json!({
+                "project_ref":"prj_00000000000000000000000000000001",
+                "execution_mode":"synchronous",
+                "timeout_seconds":60
+            }),
+            version,
+        ))?;
+        let synchronous = server.response(json!(52))?;
+        assert_output(&synchronous, &tool, true, version)?;
+        assert_eq!(
+            synchronous["result"]["structuredContent"]["error_code"],
+            "PROJECT_NOT_FOUND"
+        );
+
+        // Tasks are not negotiated, so an explicit task request is a protocol
+        // error with no data rather than a structured tool result.
+        server.send(named_inspect_call(
+            53,
+            "rust.coverage",
+            json!({
+                "project_ref":"prj_00000000000000000000000000000001",
+                "execution_mode":"task"
+            }),
+            version,
+        ))?;
+        let rejected = server.response(json!(53))?;
+        assert_eq!(rejected["error"]["code"], -32602);
+        assert!(rejected["error"].get("data").is_none());
+
+        // An explicit synchronous request above the budget is rejected rather
+        // than silently downgraded.
+        server.send(named_inspect_call(
+            54,
+            "rust.coverage",
+            json!({
+                "project_ref":"prj_00000000000000000000000000000001",
+                "execution_mode":"synchronous",
+                "timeout_seconds":61
+            }),
+            version,
+        ))?;
+        assert_eq!(server.response(json!(54))?["error"]["code"], -32602);
+        server.finish(0)?;
+    }
+    Ok(())
+}
+
+#[test]
+fn mutation_test_contract_and_task_gate_are_stable_in_all_wire_versions() -> TestResult {
+    let snapshot: Value = serde_json::from_str(include_str!("snapshots/mutation-test-tool.json"))?;
+    for version in std::iter::once(VERSION).chain(LEGACY) {
+        let mut server = Server::start()?;
+        bootstrap(&mut server, version)?;
+        server.send(if version == VERSION {
+            modern(json!(40), "tools/list")
+        } else {
+            json!({"jsonrpc":"2.0","id":40,"method":"tools/list","params":{}})
+        })?;
+        let tool = server.response(json!(40))?["result"]["tools"][21].clone();
+        assert_eq!(tool, snapshot);
+        let valid = json!({"project_ref":"prj_00000000000000000000000000000001"});
+        let validator = jsonschema::validator_for(&tool["inputSchema"])?;
+        assert!(validator.is_valid(&valid));
+        for invalid in [
+            json!({}),
+            json!({"project_ref":"prj_00000000000000000000000000000001","max_mutants":0}),
+            json!({"project_ref":"prj_00000000000000000000000000000001","max_mutants":101}),
+            json!({"project_ref":"prj_00000000000000000000000000000001","mutant_timeout_seconds":0}),
+            json!({"project_ref":"prj_00000000000000000000000000000001","mutant_timeout_seconds":61}),
+            json!({"project_ref":"prj_00000000000000000000000000000001","target":"x86_64-unknown-linux-gnu"}),
+            // No sharding, no in-place mutation and no baseline override are
+            // representable in the closed input grammar.
+            json!({"project_ref":"prj_00000000000000000000000000000001","shard":"1/4"}),
+            json!({"project_ref":"prj_00000000000000000000000000000001","in_place":true}),
+            json!({"project_ref":"prj_00000000000000000000000000000001","baseline":"skip"}),
+        ] {
+            assert!(!validator.is_valid(&invalid), "{invalid}");
+            server.send(named_inspect_call(
+                41,
+                "rust.mutation.test",
+                invalid,
+                version,
+            ))?;
+            assert_eq!(server.response(json!(41))?["error"]["code"], -32602);
+        }
+        // No mutation selection fits the 60-second synchronous budget, so the
+        // default `auto` mode always returns the structured remediation and
+        // never starts a run.
+        server.send(named_inspect_call(
+            42,
+            "rust.mutation.test",
+            valid.clone(),
+            version,
+        ))?;
+        let required = server.response(json!(42))?;
+        assert_output(&required, &tool, true, version)?;
+        assert_eq!(
+            required["result"]["structuredContent"]["error_code"],
+            "TASKS_REQUIRED"
+        );
+        assert_eq!(required["result"]["structuredContent"]["status"], "blocked");
+        let mut smallest = valid.clone();
+        smallest["max_mutants"] = json!(1);
+        smallest["mutant_timeout_seconds"] = json!(1);
+        server.send(named_inspect_call(
+            43,
+            "rust.mutation.test",
+            smallest,
+            version,
+        ))?;
+        assert_eq!(
+            server.response(json!(43))?["result"]["structuredContent"]["error_code"],
+            "TASKS_REQUIRED"
+        );
+        // Explicit synchronous is rejected as an invalid parameter rather than
+        // silently downgraded, and task mode stays unavailable.
+        for mode in ["synchronous", "task"] {
+            let mut requested = valid.clone();
+            requested["execution_mode"] = json!(mode);
+            server.send(named_inspect_call(
+                44,
+                "rust.mutation.test",
+                requested,
+                version,
+            ))?;
+            assert_eq!(
+                server.response(json!(44))?["error"]["code"],
+                -32602,
+                "{mode}"
+            );
+        }
+        server.finish(0)?;
+    }
+    Ok(())
+}
+
+#[test]
 fn diagnostic_explain_validates_code_without_project_authority_in_all_versions() -> TestResult {
     for version in std::iter::once(VERSION).chain(LEGACY) {
         let mut server = Server::start()?;
@@ -1217,7 +1656,7 @@ fn diagnostic_explain_validates_code_without_project_authority_in_all_versions()
         } else {
             json!({"jsonrpc":"2.0","id":10,"method":"tools/list"})
         })?;
-        let tool = server.response(json!(10))?["result"]["tools"][8].clone();
+        let tool = server.response(json!(10))?["result"]["tools"][9].clone();
         assert_eq!(tool["name"], "rust.diagnostics.explain");
         let validator = jsonschema::validator_for(&tool["inputSchema"])?;
         for arguments in [
@@ -1266,7 +1705,7 @@ fn quality_profiles_require_closed_input_and_live_reference_in_all_versions() ->
         } else {
             json!({"jsonrpc":"2.0","id":10,"method":"tools/list"})
         })?;
-        let tool = server.response(json!(10))?["result"]["tools"][9].clone();
+        let tool = server.response(json!(10))?["result"]["tools"][10].clone();
         assert_eq!(tool["name"], "rust.quality.gate");
         let validator = jsonschema::validator_for(&tool["inputSchema"])?;
         for arguments in [
@@ -1312,7 +1751,7 @@ fn catalog_status_closed_input_and_explicit_absence_in_all_versions() -> TestRes
         } else {
             json!({"jsonrpc":"2.0","id":10,"method":"tools/list"})
         })?;
-        let tool = server.response(json!(10))?["result"]["tools"][10].clone();
+        let tool = server.response(json!(10))?["result"]["tools"][11].clone();
         assert_eq!(tool["name"], "rust.catalog.status");
         let validator = jsonschema::validator_for(&tool["inputSchema"])?;
         for arguments in [
@@ -1397,7 +1836,7 @@ fn crate_search_validates_closed_inputs_and_reports_missing_catalog_in_all_versi
         } else {
             json!({"jsonrpc":"2.0","id":10,"method":"tools/list"})
         })?;
-        let tool = server.response(json!(10))?["result"]["tools"][11].clone();
+        let tool = server.response(json!(10))?["result"]["tools"][12].clone();
         assert_eq!(tool["name"], "rust.crate.search");
         for args in [
             json!({}),
@@ -1469,7 +1908,7 @@ fn crate_inspect_closed_shape_and_missing_catalog_in_all_versions() -> TestResul
         } else {
             json!({"jsonrpc":"2.0","id":10,"method":"tools/list"})
         })?;
-        let tool = server.response(json!(10))?["result"]["tools"][12].clone();
+        let tool = server.response(json!(10))?["result"]["tools"][13].clone();
         assert_eq!(tool["name"], "rust.crate.inspect");
         for args in [
             json!({}),
@@ -1525,5 +1964,149 @@ fn first_crate_inspect_requires_discovery() -> TestResult {
         "CATALOG_UNAVAILABLE"
     );
     server.finish(0)?;
+    Ok(())
+}
+
+#[test]
+fn rust_mutation_contracts_are_closed_and_default_denied_in_all_versions() -> TestResult {
+    for (index, name) in [
+        (15, "rust.fmt.apply"),
+        (16, "rust.fix.apply"),
+        (17, "rust.dependency.add"),
+        (18, "rust.dependency.remove"),
+    ] {
+        for version in std::iter::once(VERSION).chain(LEGACY) {
+            let mut server = Server::start()?;
+            bootstrap(&mut server, version)?;
+            server.send(if version == VERSION {
+                modern(json!(10), "tools/list")
+            } else {
+                json!({"jsonrpc":"2.0","id":10,"method":"tools/list"})
+            })?;
+            let tool = server.response(json!(10))?["result"]["tools"][index].clone();
+            assert_eq!(tool["name"], name);
+            assert_eq!(
+                tool["annotations"],
+                json!({"readOnlyHint":false,"destructiveHint":true,"idempotentHint":false,"openWorldHint":false})
+            );
+            let input = jsonschema::validator_for(&tool["inputSchema"])?;
+            let valid_ref = "prj_00000000000000000000000000000001";
+            let fingerprint = format!("sha256:{}", "a".repeat(64));
+            for arguments in [
+                json!({}),
+                json!({"project_ref":valid_ref}),
+                json!({"project_ref":42,"action":{"mode":"preview","expected_project_fingerprint":fingerprint}}),
+                json!({"project_ref":valid_ref,"action":{"mode":"preview"}}),
+                json!({"project_ref":valid_ref,"action":{"mode":"preview","expected_project_fingerprint":fingerprint,"args":["--edition","2027"]}}),
+                json!({"project_ref":valid_ref,"action":{"mode":"preview","expected_project_fingerprint":fingerprint,"edit":{"path":"src/lib.rs"}}}),
+                json!({"project_ref":valid_ref,"action":{"mode":"commit","plan_id":"mut_bad","plan_digest":fingerprint,"idempotency_key":"key"}}),
+                json!({"project_ref":valid_ref,"action":{"mode":"commit","plan_id":"mut_00000000000000000000000000000001","plan_digest":"sha256:bad","idempotency_key":"key"}}),
+                json!({"project_ref":valid_ref,"action":{"mode":"commit","plan_id":"mut_00000000000000000000000000000001","plan_digest":fingerprint,"idempotency_key":"spaces forbidden"}}),
+                json!({"project_ref":valid_ref,"action":{"mode":"receipt","operation_id":"mut_00000000000000000000000000000001","recover":false,"force":true}}),
+            ] {
+                assert!(!input.is_valid(&arguments), "schema accepted {arguments}");
+                server.send(named_inspect_call(11, name, arguments, version))?;
+                assert_eq!(server.response(json!(11))?["error"]["code"], -32602);
+            }
+            let mut arguments = json!({"project_ref":valid_ref,"action":{"mode":"preview","expected_project_fingerprint":fingerprint}});
+            if name == "rust.dependency.add" || name == "rust.dependency.remove" {
+                arguments["action"]["name"] = json!("serde");
+            }
+            if name == "rust.dependency.add" {
+                arguments["action"]["requirement"] = json!("1.0");
+            }
+            assert!(
+                input.is_valid(&arguments),
+                "invalid default denied request: {arguments}"
+            );
+            server.send(named_inspect_call(12, name, arguments, version))?;
+            let denied = server.response(json!(12))?;
+            assert!(denied.get("error").is_none(), "{denied}");
+            let result = &denied["result"];
+            assert_eq!(result["isError"], true);
+            if version == VERSION {
+                assert_eq!(result["resultType"], "complete");
+            } else {
+                assert!(result.get("resultType").is_none());
+            }
+            assert_eq!(result["content"].as_array().map(Vec::len), Some(1));
+            assert_eq!(result["content"][0]["type"], "text");
+            let fallback: Value = serde_json::from_str(
+                result["content"][0]["text"]
+                    .as_str()
+                    .ok_or("missing mutation fallback")?,
+            )?;
+            assert_eq!(fallback, result["structuredContent"]);
+            let output = jsonschema::validator_for(&tool["outputSchema"])?;
+            output
+                .validate(&fallback)
+                .map_err(|error| error.to_string())?;
+            let mut extra = fallback;
+            extra["unrecognized"] = json!(true);
+            assert!(!output.is_valid(&extra));
+            assert_eq!(result["structuredContent"]["status"], "blocked");
+            assert_eq!(
+                result["structuredContent"]["error_code"],
+                "permission_denied"
+            );
+            server.finish_with_mutation_event(0, name)?;
+        }
+    }
+    Ok(())
+}
+
+#[test]
+fn task_advertisement_and_capability_gate_cover_every_supported_protocol_version() -> TestResult {
+    for version in std::iter::once(VERSION).chain(LEGACY) {
+        for tasks_declared in [false, true] {
+            let mut server = Server::start()?;
+            let discovery = if version == VERSION {
+                if tasks_declared {
+                    modern_with_tasks(json!(1), "server/discover")
+                } else {
+                    modern(json!(1), "server/discover")
+                }
+            } else if tasks_declared {
+                initialize_with_tasks(1, version)
+            } else {
+                initialize(1, version)
+            };
+            server.send(discovery)?;
+            let discovered = server.response(json!(1))?;
+            assert_eq!(
+                discovered["result"]["capabilities"]["extensions"]["io.modelcontextprotocol/tasks"],
+                json!({}),
+                "{version}: {discovered}"
+            );
+            if version != VERSION {
+                server.send(json!({"jsonrpc":"2.0","method":"notifications/initialized"}))?;
+            }
+
+            let mut request = if version == VERSION {
+                if tasks_declared {
+                    modern_with_tasks(json!(90), "tasks/get")
+                } else {
+                    modern(json!(90), "tasks/get")
+                }
+            } else {
+                json!({"jsonrpc":"2.0","id":90,"method":"tasks/get","params":{}})
+            };
+            request["params"]["taskId"] = json!("job_00000000000000000000000000000001");
+            server.send(request)?;
+            let response = server.response(json!(90))?;
+            if tasks_declared {
+                assert_eq!(response["error"]["code"], -32602, "{version}: {response}");
+                assert_eq!(response["error"]["message"], "task unavailable");
+                assert_eq!(response["error"]["data"], Value::Null);
+            } else {
+                assert_eq!(response["error"]["code"], -32021, "{version}: {response}");
+                assert_eq!(
+                    response["error"]["data"]["requiredCapabilities"]["extensions"]["io.modelcontextprotocol/tasks"],
+                    json!({})
+                );
+            }
+            server.finish(0)?;
+        }
+    }
     Ok(())
 }

@@ -1,0 +1,15 @@
+--- warning function_missing: pub fn removed or renamed ---
+
+Description:
+A publicly-visible function cannot be imported by its prior path. A `pub use` may have been removed, or the function itself may have been renamed or removed entirely.
+        ref: https://doc.rust-lang.org/cargo/reference/semver.html#item-remove
+       impl: https://github.com/obi1kenobi/cargo-semver-checks/tree/v0.50.0/src/lints/function_missing.ron
+
+Failed in:
+  function semver_warn_only::removed, previously in file /baseline/src/lib.rs:2
+
+    Checking semver-warn-only v1.0.0 -> v1.0.0 (no change; assume patch)
+     Checked [   0.014s] 223 checks: 222 pass, 0 fail, 1 warn, 31 skip
+     Summary no semver update required
+     Warning produced 1 major and 0 minor level warnings
+             produced warnings suggest new major version

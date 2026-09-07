@@ -10,7 +10,7 @@ const MAX_ENTRIES: usize = 32;
 const VERSION: &str = "1.98.1";
 const HOST: &str = "aarch64-unknown-linux-gnu";
 
-// Observed in the provisioning receipt for approved image 8fac7072... . These
+// Observed in the M3 provisioning receipt for approved image 384a1742... . These
 // are runtime output records, not Cargo's distribution-package version 0.99.0.
 const RUST_HEADER: &str = "rustc 1.98.1 (48a229cea 2026-09-01)";
 const CARGO_HEADER: &str = "cargo 1.98.1 (797e8a9bc 2026-08-05)";
@@ -111,6 +111,7 @@ pub(super) fn parse(
     version_records(rustc, RUST_HEADER, RUST_FIELDS)?;
     version_records(cargo, CARGO_HEADER, CARGO_FIELDS)?;
     let mut installed = Vec::new();
+    let mut llvm_tools_seen = false;
     for name in lines(components)? {
         if name.len() > MAX_IDENTIFIER {
             return Err(InspectionError::OutputLimit);
@@ -121,6 +122,13 @@ pub(super) fn parse(
             "rust-std-aarch64-unknown-linux-gnu" => InstalledComponentKind::RustStd,
             "rustc" => InstalledComponentKind::Rustc,
             "rustfmt-preview" => InstalledComponentKind::Rustfmt,
+            // M3 adds llvm-tools-preview for later coverage phases. The M1
+            // public inventory enum remains byte-stable, so this image
+            // qualification marker is required but intentionally not projected.
+            "llvm-tools-preview" if !llvm_tools_seen => {
+                llvm_tools_seen = true;
+                continue;
+            }
             _ => return Err(InspectionError::InvalidMetadata),
         };
         if installed
@@ -134,8 +142,9 @@ pub(super) fn parse(
             target: (component == InstalledComponentKind::RustStd).then(|| HOST.to_owned()),
         });
     }
-    // The five recognized unique components are the full approved installation.
-    if installed.len() != 5 {
+    // The five M1 public components plus the M3 llvm-tools qualification marker
+    // are the full approved image inventory.
+    if installed.len() != 5 || !llvm_tools_seen {
         return Err(InspectionError::InvalidMetadata);
     }
     installed.sort_by_key(|entry| entry.component);
@@ -159,8 +168,7 @@ mod tests {
 
     const RUST: &str = "rustc 1.98.1 (48a229cea 2026-09-01)\nbinary: rustc\ncommit-hash: 48a229ceaefd4985c50990b14116b6d856af0985\ncommit-date: 2026-09-01\nhost: aarch64-unknown-linux-gnu\nrelease: 1.98.1\nLLVM version: 22.1.8\n";
     const CARGO: &str = "cargo 1.98.1 (797e8a9bc 2026-08-05)\nrelease: 1.98.1\ncommit-hash: 797e8a9bca276c1c9f9f738d2a20f484fa4eea9d\ncommit-date: 2026-08-05\nhost: aarch64-unknown-linux-gnu\nlibgit2: 1.9.4 (sys:0.21.0 vendored)\nlibcurl: 8.21.0-DEV (sys:0.4.90+curl-8.21.0 vendored ssl:OpenSSL/3.6.3)\nssl: OpenSSL 3.6.3 9 Jun 2026\nos: Debian 12.0.0 (bookworm) [64-bit]\n";
-    const COMPONENTS: &str =
-        "rustfmt-preview\nrustc\nrust-std-aarch64-unknown-linux-gnu\nclippy-preview\ncargo\n";
+    const COMPONENTS: &str = "rustfmt-preview\nrustc\nrust-std-aarch64-unknown-linux-gnu\nclippy-preview\ncargo\nllvm-tools-preview\n";
 
     #[test]
     fn observed_image_inventory_is_complete_normalized_and_order_independent()
@@ -234,6 +242,7 @@ mod tests {
     fn rejects_supported_uninstalled_targets_and_missing_unknown_duplicate_components() {
         for broken in [
             COMPONENTS.replace("cargo\n", ""),
+            COMPONENTS.replace("llvm-tools-preview\n", ""),
             COMPONENTS.replace(
                 "rust-std-aarch64-unknown-linux-gnu",
                 "rust-std-wasm32-unknown-unknown",
@@ -241,6 +250,7 @@ mod tests {
             COMPONENTS.replace("clippy-preview", "clippy"),
             format!("{COMPONENTS}rust-src\n"),
             format!("{COMPONENTS}cargo\n"),
+            format!("{COMPONENTS}llvm-tools-preview\n"),
             format!("{COMPONENTS}\n"),
             "".to_owned(),
         ] {

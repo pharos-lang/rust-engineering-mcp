@@ -1,0 +1,915 @@
+{
+  "observed_at": "2026-09-06T01:10:16.730070+00:00",
+  "profile": "m3",
+  "image_id": "sha256:384a1742ecc53cdd3a9c0bf36c6f8b66db73ddd118aeeae6e55654ea998ae36a",
+  "run_prefix": [
+    "/Applications/Docker.app/Contents/Resources/bin/docker",
+    "--host",
+    "unix:///Users/cburgosro/.docker/run/docker.sock",
+    "run",
+    "--rm",
+    "--pull",
+    "never",
+    "--platform",
+    "linux/arm64",
+    "--network",
+    "none",
+    "--read-only",
+    "--cap-drop",
+    "ALL",
+    "--security-opt",
+    "no-new-privileges",
+    "--user",
+    "65534:65534",
+    "--pids-limit",
+    "64",
+    "--memory",
+    "256m",
+    "--memory-swap",
+    "256m",
+    "--cpus",
+    "1",
+    "--log-driver",
+    "none",
+    "--no-healthcheck",
+    "--workdir",
+    "/work",
+    "--tmpfs",
+    "/tmp:size=64m,noexec,nosuid,nodev",
+    "--entrypoint",
+    "/usr/bin/env",
+    "sha256:384a1742ecc53cdd3a9c0bf36c6f8b66db73ddd118aeeae6e55654ea998ae36a"
+  ],
+  "gateway_environment": {
+    "PATH": "/opt/rust/bin:/usr/bin:/bin",
+    "CARGO_HOME": "/opt/rust",
+    "LLVM_COV": "/opt/rust/lib/rustlib/aarch64-unknown-linux-gnu/bin/llvm-cov",
+    "LLVM_PROFDATA": "/opt/rust/lib/rustlib/aarch64-unknown-linux-gnu/bin/llvm-profdata"
+  },
+  "results": [
+    {
+      "label": "rustc",
+      "command": [
+        "/opt/rust/bin/rustc",
+        "--version",
+        "--verbose"
+      ],
+      "environment": {
+        "PATH": "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+      },
+      "required": true,
+      "exit_code": 0,
+      "stdout": "rustc 1.98.1 (48a229cea 2026-09-01)\nbinary: rustc\ncommit-hash: 48a229ceaefd4985c50990b14116b6d856af0985\ncommit-date: 2026-09-01\nhost: aarch64-unknown-linux-gnu\nrelease: 1.98.1\nLLVM version: 22.1.8\n",
+      "stderr": ""
+    },
+    {
+      "label": "cargo",
+      "command": [
+        "/opt/rust/bin/cargo",
+        "--version",
+        "--verbose"
+      ],
+      "environment": {
+        "PATH": "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+      },
+      "required": true,
+      "exit_code": 0,
+      "stdout": "cargo 1.98.1 (797e8a9bc 2026-08-05)\nrelease: 1.98.1\ncommit-hash: 797e8a9bca276c1c9f9f738d2a20f484fa4eea9d\ncommit-date: 2026-08-05\nhost: aarch64-unknown-linux-gnu\nlibgit2: 1.9.4 (sys:0.21.0 vendored)\nlibcurl: 8.21.0-DEV (sys:0.4.90+curl-8.21.0 vendored ssl:OpenSSL/3.6.3)\nssl: OpenSSL 3.6.3 9 Jun 2026\nos: Debian 12.0.0 (bookworm) [64-bit]\n",
+      "stderr": ""
+    },
+    {
+      "label": "rustfmt",
+      "command": [
+        "/opt/rust/bin/rustfmt",
+        "--version"
+      ],
+      "environment": {
+        "PATH": "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+      },
+      "required": true,
+      "exit_code": 0,
+      "stdout": "rustfmt 1.9.0-stable (48a229ceae 2026-09-01)\n",
+      "stderr": ""
+    },
+    {
+      "label": "clippy-driver",
+      "command": [
+        "/opt/rust/bin/clippy-driver",
+        "--version"
+      ],
+      "environment": {
+        "PATH": "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+      },
+      "required": true,
+      "exit_code": 0,
+      "stdout": "clippy 0.1.98 (48a229ceae 2026-09-01)\n",
+      "stderr": ""
+    },
+    {
+      "label": "cargo-clippy",
+      "command": [
+        "/opt/rust/bin/cargo-clippy",
+        "--version"
+      ],
+      "environment": {
+        "PATH": "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+      },
+      "required": true,
+      "exit_code": 0,
+      "stdout": "clippy 0.1.98 (48a229ceae 2026-09-01)\n",
+      "stderr": ""
+    },
+    {
+      "label": "gcc",
+      "command": [
+        "/usr/bin/gcc",
+        "--version"
+      ],
+      "environment": {
+        "PATH": "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+      },
+      "required": true,
+      "exit_code": 0,
+      "stdout": "gcc (Debian 12.2.0-14+deb12u1) 12.2.0\nCopyright (C) 2022 Free Software Foundation, Inc.\nThis is free software; see the source for copying conditions.  There is NO\nwarranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.\n\n",
+      "stderr": ""
+    },
+    {
+      "label": "cargo-nextest",
+      "command": [
+        "/opt/rust/bin/cargo-nextest",
+        "--version"
+      ],
+      "environment": {
+        "PATH": "/opt/rust/bin:/usr/bin:/bin",
+        "CARGO_HOME": "/opt/rust",
+        "LLVM_COV": "/opt/rust/lib/rustlib/aarch64-unknown-linux-gnu/bin/llvm-cov",
+        "LLVM_PROFDATA": "/opt/rust/lib/rustlib/aarch64-unknown-linux-gnu/bin/llvm-profdata"
+      },
+      "required": true,
+      "exit_code": 0,
+      "stdout": "cargo-nextest 0.9.143 (60fa45f63 2026-08-04)\nrelease: 0.9.143\ncommit-hash: 60fa45f638ffc3f35e74afa65737f45fcd32db2a\ncommit-date: 2026-08-04\nhost: aarch64-unknown-linux-gnu\n",
+      "stderr": ""
+    },
+    {
+      "label": "cargo-llvm-cov",
+      "command": [
+        "/opt/rust/bin/cargo",
+        "llvm-cov",
+        "--version"
+      ],
+      "environment": {
+        "PATH": "/opt/rust/bin:/usr/bin:/bin",
+        "CARGO_HOME": "/opt/rust",
+        "LLVM_COV": "/opt/rust/lib/rustlib/aarch64-unknown-linux-gnu/bin/llvm-cov",
+        "LLVM_PROFDATA": "/opt/rust/lib/rustlib/aarch64-unknown-linux-gnu/bin/llvm-profdata"
+      },
+      "required": true,
+      "exit_code": 0,
+      "stdout": "cargo-llvm-cov 0.9.0\n",
+      "stderr": ""
+    },
+    {
+      "label": "cargo-semver-checks",
+      "command": [
+        "/opt/rust/bin/cargo-semver-checks",
+        "--version"
+      ],
+      "environment": {
+        "PATH": "/opt/rust/bin:/usr/bin:/bin",
+        "CARGO_HOME": "/opt/rust",
+        "LLVM_COV": "/opt/rust/lib/rustlib/aarch64-unknown-linux-gnu/bin/llvm-cov",
+        "LLVM_PROFDATA": "/opt/rust/lib/rustlib/aarch64-unknown-linux-gnu/bin/llvm-profdata"
+      },
+      "required": true,
+      "exit_code": 0,
+      "stdout": "cargo-semver-checks 0.50.0\n",
+      "stderr": ""
+    },
+    {
+      "label": "cargo-mutants",
+      "command": [
+        "/opt/rust/bin/cargo-mutants",
+        "mutants",
+        "--version"
+      ],
+      "environment": {
+        "PATH": "/opt/rust/bin:/usr/bin:/bin",
+        "CARGO_HOME": "/opt/rust",
+        "LLVM_COV": "/opt/rust/lib/rustlib/aarch64-unknown-linux-gnu/bin/llvm-cov",
+        "LLVM_PROFDATA": "/opt/rust/lib/rustlib/aarch64-unknown-linux-gnu/bin/llvm-profdata"
+      },
+      "required": true,
+      "exit_code": 0,
+      "stdout": "cargo-mutants 27.1.0\n",
+      "stderr": ""
+    },
+    {
+      "label": "llvm-profdata",
+      "command": [
+        "/opt/rust/lib/rustlib/aarch64-unknown-linux-gnu/bin/llvm-profdata",
+        "--version"
+      ],
+      "environment": {
+        "PATH": "/opt/rust/bin:/usr/bin:/bin",
+        "CARGO_HOME": "/opt/rust",
+        "LLVM_COV": "/opt/rust/lib/rustlib/aarch64-unknown-linux-gnu/bin/llvm-cov",
+        "LLVM_PROFDATA": "/opt/rust/lib/rustlib/aarch64-unknown-linux-gnu/bin/llvm-profdata"
+      },
+      "required": true,
+      "exit_code": 0,
+      "stdout": "LLVM (http://llvm.org/):\n  LLVM version 22.1.8-rust-1.98.1-stable\n  Optimized build.\n",
+      "stderr": ""
+    },
+    {
+      "label": "llvm-cov",
+      "command": [
+        "/opt/rust/lib/rustlib/aarch64-unknown-linux-gnu/bin/llvm-cov",
+        "--version"
+      ],
+      "environment": {
+        "PATH": "/opt/rust/bin:/usr/bin:/bin",
+        "CARGO_HOME": "/opt/rust",
+        "LLVM_COV": "/opt/rust/lib/rustlib/aarch64-unknown-linux-gnu/bin/llvm-cov",
+        "LLVM_PROFDATA": "/opt/rust/lib/rustlib/aarch64-unknown-linux-gnu/bin/llvm-profdata"
+      },
+      "required": true,
+      "exit_code": 0,
+      "stdout": "LLVM (http://llvm.org/):\n  LLVM version 22.1.8-rust-1.98.1-stable\n  Optimized build.\n",
+      "stderr": ""
+    },
+    {
+      "label": "cargo-llvm-cov-cargo-home-only",
+      "command": [
+        "/opt/rust/bin/cargo",
+        "llvm-cov",
+        "--version"
+      ],
+      "environment": {
+        "PATH": "/usr/bin:/bin",
+        "CARGO_HOME": "/opt/rust",
+        "LLVM_COV": "/opt/rust/lib/rustlib/aarch64-unknown-linux-gnu/bin/llvm-cov",
+        "LLVM_PROFDATA": "/opt/rust/lib/rustlib/aarch64-unknown-linux-gnu/bin/llvm-profdata"
+      },
+      "required": true,
+      "exit_code": 0,
+      "stdout": "cargo-llvm-cov 0.9.0\n",
+      "stderr": ""
+    },
+    {
+      "label": "executable-sha256",
+      "command": [
+        "/usr/bin/sha256sum",
+        "/opt/rust/bin/rustc",
+        "/opt/rust/bin/cargo",
+        "/opt/rust/bin/rustfmt",
+        "/opt/rust/bin/clippy-driver",
+        "/opt/rust/bin/cargo-clippy",
+        "/usr/bin/gcc",
+        "/opt/rust/bin/cargo-nextest",
+        "/opt/rust/bin/cargo-llvm-cov",
+        "/opt/rust/bin/cargo-semver-checks",
+        "/opt/rust/bin/cargo-mutants",
+        "/opt/rust/lib/rustlib/aarch64-unknown-linux-gnu/bin/llvm-profdata",
+        "/opt/rust/lib/rustlib/aarch64-unknown-linux-gnu/bin/llvm-cov"
+      ],
+      "environment": {
+        "PATH": "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+      },
+      "required": true,
+      "exit_code": 0,
+      "stdout": "d4217a981a778bfe445c0a29c408f5a25a92e9bb5222701579ad5a35bd913e8f  /opt/rust/bin/rustc\n2101d7104b91a013912c94275dcd31c2b41061ef7f6e8530df11cdad55b8fbc5  /opt/rust/bin/cargo\n7aa230a4c704fb7b0e2fbccb90688b5b62d932cf9663805d26bbbe7a99ebae8b  /opt/rust/bin/rustfmt\n3bb746414d10f2b96655d9dc36bf3acc9c914ae7ea882ffa74a2c841924aa282  /opt/rust/bin/clippy-driver\n44ad53b58a0fb84fc09c31c09799a1236f03160ea80549820c881a6e734df806  /opt/rust/bin/cargo-clippy\ndc53dbc5a583d03ae8ed6272ca9afc0f58873f9f9b86dd7d448b17fb3f88a8d0  /usr/bin/gcc\n38dc9f7e6ef58ceb01771bd1d312bc892f367417be58a3683c635c160f4d7c2f  /opt/rust/bin/cargo-nextest\n1829d7aff143b565ec996255d6a431770de8713a664b8da50add1c76c1a57a9e  /opt/rust/bin/cargo-llvm-cov\nf87889a5e26b6ee6f7656e8494c37842ab041349b04e5084a66c144df2ccc02b  /opt/rust/bin/cargo-semver-checks\n137e3ac100a35f563370dcdcca41e2b35ac1c2c257dc90fd8e6a01f984aa86a8  /opt/rust/bin/cargo-mutants\nc7160d195180796edf7cc4c3f087f72b5425fc9ec2d9734b956a265e506f982e  /opt/rust/lib/rustlib/aarch64-unknown-linux-gnu/bin/llvm-profdata\nc3865abd81eed0db83ae257b347c4fef88f457bc303cd5ce104d24f49e081272  /opt/rust/lib/rustlib/aarch64-unknown-linux-gnu/bin/llvm-cov\n",
+      "stderr": ""
+    },
+    {
+      "label": "ldd-available",
+      "command": [
+        "/usr/bin/test",
+        "-x",
+        "/usr/bin/ldd"
+      ],
+      "environment": {
+        "PATH": "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+      },
+      "required": false,
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "label": "ldd:/opt/rust/bin/rustc",
+      "command": [
+        "/usr/bin/ldd",
+        "/opt/rust/bin/rustc"
+      ],
+      "environment": {
+        "PATH": "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+      },
+      "required": true,
+      "exit_code": 0,
+      "stdout": "\tlinux-vdso.so.1 (0x0000ffff8420f000)\n\tlibrustc_driver-36de65988ef2d886.so => /opt/rust/bin/../lib/librustc_driver-36de65988ef2d886.so (0x0000ffff7fb10000)\n\tlibdl.so.2 => /lib/aarch64-linux-gnu/libdl.so.2 (0x0000ffff7fae0000)\n\tlibpthread.so.0 => /lib/aarch64-linux-gnu/libpthread.so.0 (0x0000ffff7fab0000)\n\tlibc.so.6 => /lib/aarch64-linux-gnu/libc.so.6 (0x0000ffff7f900000)\n\tlibLLVM.so.22.1-rust-1.98.1-stable => /opt/rust/bin/../lib/../lib/libLLVM.so.22.1-rust-1.98.1-stable (0x0000ffff779d0000)\n\tlibgcc_s.so.1 => /lib/aarch64-linux-gnu/libgcc_s.so.1 (0x0000ffff77990000)\n\t/lib/ld-linux-aarch64.so.1 (0x0000ffff841c0000)\n\tlibrt.so.1 => /lib/aarch64-linux-gnu/librt.so.1 (0x0000ffff77960000)\n\tlibm.so.6 => /lib/aarch64-linux-gnu/libm.so.6 (0x0000ffff778b0000)\n\tlibz.so.1 => /lib/aarch64-linux-gnu/libz.so.1 (0x0000ffff77870000)\n",
+      "stderr": ""
+    },
+    {
+      "label": "ldd:/opt/rust/bin/cargo",
+      "command": [
+        "/usr/bin/ldd",
+        "/opt/rust/bin/cargo"
+      ],
+      "environment": {
+        "PATH": "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+      },
+      "required": true,
+      "exit_code": 0,
+      "stdout": "\tlinux-vdso.so.1 (0x0000ffffbb5fd000)\n\tlibdl.so.2 => /lib/aarch64-linux-gnu/libdl.so.2 (0x0000ffffb9920000)\n\tlibgcc_s.so.1 => /lib/aarch64-linux-gnu/libgcc_s.so.1 (0x0000ffffb98e0000)\n\tlibpthread.so.0 => /lib/aarch64-linux-gnu/libpthread.so.0 (0x0000ffffb98b0000)\n\tlibm.so.6 => /lib/aarch64-linux-gnu/libm.so.6 (0x0000ffffb9800000)\n\tlibc.so.6 => /lib/aarch64-linux-gnu/libc.so.6 (0x0000ffffb9650000)\n\t/lib/ld-linux-aarch64.so.1 (0x0000ffffbb5b0000)\n",
+      "stderr": ""
+    },
+    {
+      "label": "ldd:/opt/rust/bin/rustfmt",
+      "command": [
+        "/usr/bin/ldd",
+        "/opt/rust/bin/rustfmt"
+      ],
+      "environment": {
+        "PATH": "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+      },
+      "required": true,
+      "exit_code": 0,
+      "stdout": "\tlinux-vdso.so.1 (0x0000ffffb567a000)\n\tlibrustc_driver-36de65988ef2d886.so => /opt/rust/bin/../lib/librustc_driver-36de65988ef2d886.so (0x0000ffffb0cb0000)\n\tlibgcc_s.so.1 => /lib/aarch64-linux-gnu/libgcc_s.so.1 (0x0000ffffb0c70000)\n\tlibpthread.so.0 => /lib/aarch64-linux-gnu/libpthread.so.0 (0x0000ffffb0c40000)\n\tlibm.so.6 => /lib/aarch64-linux-gnu/libm.so.6 (0x0000ffffb0b90000)\n\tlibc.so.6 => /lib/aarch64-linux-gnu/libc.so.6 (0x0000ffffb09e0000)\n\tlibdl.so.2 => /lib/aarch64-linux-gnu/libdl.so.2 (0x0000ffffb09b0000)\n\tlibLLVM.so.22.1-rust-1.98.1-stable => /opt/rust/bin/../lib/../lib/libLLVM.so.22.1-rust-1.98.1-stable (0x0000ffffa8a80000)\n\t/lib/ld-linux-aarch64.so.1 (0x0000ffffb5630000)\n\tlibrt.so.1 => /lib/aarch64-linux-gnu/librt.so.1 (0x0000ffffa8a50000)\n\tlibz.so.1 => /lib/aarch64-linux-gnu/libz.so.1 (0x0000ffffa8a10000)\n",
+      "stderr": ""
+    },
+    {
+      "label": "ldd:/opt/rust/bin/clippy-driver",
+      "command": [
+        "/usr/bin/ldd",
+        "/opt/rust/bin/clippy-driver"
+      ],
+      "environment": {
+        "PATH": "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+      },
+      "required": true,
+      "exit_code": 0,
+      "stdout": "\tlinux-vdso.so.1 (0x0000ffff83e4c000)\n\tlibrustc_driver-36de65988ef2d886.so => /opt/rust/bin/../lib/librustc_driver-36de65988ef2d886.so (0x0000ffff7ed90000)\n\tlibdl.so.2 => /lib/aarch64-linux-gnu/libdl.so.2 (0x0000ffff7ed60000)\n\tlibgcc_s.so.1 => /lib/aarch64-linux-gnu/libgcc_s.so.1 (0x0000ffff7ed20000)\n\tlibpthread.so.0 => /lib/aarch64-linux-gnu/libpthread.so.0 (0x0000ffff7ecf0000)\n\tlibc.so.6 => /lib/aarch64-linux-gnu/libc.so.6 (0x0000ffff7eb40000)\n\tlibLLVM.so.22.1-rust-1.98.1-stable => /opt/rust/bin/../lib/../lib/libLLVM.so.22.1-rust-1.98.1-stable (0x0000ffff76c10000)\n\t/lib/ld-linux-aarch64.so.1 (0x0000ffff83e10000)\n\tlibrt.so.1 => /lib/aarch64-linux-gnu/librt.so.1 (0x0000ffff76be0000)\n\tlibm.so.6 => /lib/aarch64-linux-gnu/libm.so.6 (0x0000ffff76b30000)\n\tlibz.so.1 => /lib/aarch64-linux-gnu/libz.so.1 (0x0000ffff76af0000)\n",
+      "stderr": ""
+    },
+    {
+      "label": "ldd:/opt/rust/bin/cargo-clippy",
+      "command": [
+        "/usr/bin/ldd",
+        "/opt/rust/bin/cargo-clippy"
+      ],
+      "environment": {
+        "PATH": "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+      },
+      "required": true,
+      "exit_code": 0,
+      "stdout": "\tlinux-vdso.so.1 (0x0000ffffaa23b000)\n\tlibrustc_driver-36de65988ef2d886.so => /opt/rust/bin/../lib/librustc_driver-36de65988ef2d886.so (0x0000ffffa5b10000)\n\tlibgcc_s.so.1 => /lib/aarch64-linux-gnu/libgcc_s.so.1 (0x0000ffffa5ad0000)\n\tlibpthread.so.0 => /lib/aarch64-linux-gnu/libpthread.so.0 (0x0000ffffa5aa0000)\n\tlibc.so.6 => /lib/aarch64-linux-gnu/libc.so.6 (0x0000ffffa58f0000)\n\tlibdl.so.2 => /lib/aarch64-linux-gnu/libdl.so.2 (0x0000ffffa58c0000)\n\tlibLLVM.so.22.1-rust-1.98.1-stable => /opt/rust/bin/../lib/../lib/libLLVM.so.22.1-rust-1.98.1-stable (0x0000ffff9d990000)\n\t/lib/ld-linux-aarch64.so.1 (0x0000ffffaa1f0000)\n\tlibrt.so.1 => /lib/aarch64-linux-gnu/librt.so.1 (0x0000ffff9d960000)\n\tlibm.so.6 => /lib/aarch64-linux-gnu/libm.so.6 (0x0000ffff9d8b0000)\n\tlibz.so.1 => /lib/aarch64-linux-gnu/libz.so.1 (0x0000ffff9d870000)\n",
+      "stderr": ""
+    },
+    {
+      "label": "ldd:/usr/bin/gcc",
+      "command": [
+        "/usr/bin/ldd",
+        "/usr/bin/gcc"
+      ],
+      "environment": {
+        "PATH": "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+      },
+      "required": true,
+      "exit_code": 0,
+      "stdout": "\tlinux-vdso.so.1 (0x0000ffffa923a000)\n\tlibc.so.6 => /lib/aarch64-linux-gnu/libc.so.6 (0x0000ffffa9040000)\n\t/lib/ld-linux-aarch64.so.1 (0x0000ffffa91f0000)\n",
+      "stderr": ""
+    },
+    {
+      "label": "ldd:/opt/rust/bin/cargo-nextest",
+      "command": [
+        "/usr/bin/ldd",
+        "/opt/rust/bin/cargo-nextest"
+      ],
+      "environment": {
+        "PATH": "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+      },
+      "required": true,
+      "exit_code": 0,
+      "stdout": "\tlinux-vdso.so.1 (0x0000ffff9842a000)\n\tlibm.so.6 => /lib/aarch64-linux-gnu/libm.so.6 (0x0000ffff97350000)\n\tlibc.so.6 => /lib/aarch64-linux-gnu/libc.so.6 (0x0000ffff971a0000)\n\t/lib/ld-linux-aarch64.so.1 (0x0000ffff983e0000)\n\tlibpthread.so.0 => /lib/aarch64-linux-gnu/libpthread.so.0 (0x0000ffff97170000)\n\tlibdl.so.2 => /lib/aarch64-linux-gnu/libdl.so.2 (0x0000ffff97140000)\n",
+      "stderr": ""
+    },
+    {
+      "label": "ldd:/opt/rust/bin/cargo-llvm-cov",
+      "command": [
+        "/usr/bin/ldd",
+        "/opt/rust/bin/cargo-llvm-cov"
+      ],
+      "environment": {
+        "PATH": "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+      },
+      "required": true,
+      "exit_code": 0,
+      "stdout": "\tlinux-vdso.so.1 (0x0000ffff804dc000)\n\tlibgcc_s.so.1 => /lib/aarch64-linux-gnu/libgcc_s.so.1 (0x0000ffff80110000)\n\tlibc.so.6 => /lib/aarch64-linux-gnu/libc.so.6 (0x0000ffff7ff60000)\n\t/lib/ld-linux-aarch64.so.1 (0x0000ffff804a0000)\n",
+      "stderr": ""
+    },
+    {
+      "label": "ldd:/opt/rust/bin/cargo-semver-checks",
+      "command": [
+        "/usr/bin/ldd",
+        "/opt/rust/bin/cargo-semver-checks"
+      ],
+      "environment": {
+        "PATH": "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+      },
+      "required": true,
+      "exit_code": 0,
+      "stdout": "\tlinux-vdso.so.1 (0x0000ffffb949c000)\n\tlibgcc_s.so.1 => /lib/aarch64-linux-gnu/libgcc_s.so.1 (0x0000ffffb8370000)\n\tlibpthread.so.0 => /lib/aarch64-linux-gnu/libpthread.so.0 (0x0000ffffb8340000)\n\tlibdl.so.2 => /lib/aarch64-linux-gnu/libdl.so.2 (0x0000ffffb8310000)\n\tlibc.so.6 => /lib/aarch64-linux-gnu/libc.so.6 (0x0000ffffb8160000)\n\t/lib/ld-linux-aarch64.so.1 (0x0000ffffb9460000)\n",
+      "stderr": ""
+    },
+    {
+      "label": "ldd:/opt/rust/bin/cargo-mutants",
+      "command": [
+        "/usr/bin/ldd",
+        "/opt/rust/bin/cargo-mutants"
+      ],
+      "environment": {
+        "PATH": "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+      },
+      "required": true,
+      "exit_code": 0,
+      "stdout": "\tlinux-vdso.so.1 (0x0000ffffa34ec000)\n\tlibgcc_s.so.1 => /lib/aarch64-linux-gnu/libgcc_s.so.1 (0x0000ffffa2e00000)\n\tlibc.so.6 => /lib/aarch64-linux-gnu/libc.so.6 (0x0000ffffa2c50000)\n\t/lib/ld-linux-aarch64.so.1 (0x0000ffffa34b0000)\n",
+      "stderr": ""
+    },
+    {
+      "label": "ldd:/opt/rust/lib/rustlib/aarch64-unknown-linux-gnu/bin/llvm-profdata",
+      "command": [
+        "/usr/bin/ldd",
+        "/opt/rust/lib/rustlib/aarch64-unknown-linux-gnu/bin/llvm-profdata"
+      ],
+      "environment": {
+        "PATH": "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+      },
+      "required": true,
+      "exit_code": 0,
+      "stdout": "\tlinux-vdso.so.1 (0x0000ffff8da3b000)\n\tlibpthread.so.0 => /lib/aarch64-linux-gnu/libpthread.so.0 (0x0000ffff8d930000)\n\tlibLLVM.so.22.1-rust-1.98.1-stable => /opt/rust/lib/rustlib/aarch64-unknown-linux-gnu/bin/../lib/libLLVM.so.22.1-rust-1.98.1-stable (0x0000ffff85a00000)\n\tlibm.so.6 => /lib/aarch64-linux-gnu/libm.so.6 (0x0000ffff85950000)\n\tlibgcc_s.so.1 => /lib/aarch64-linux-gnu/libgcc_s.so.1 (0x0000ffff85910000)\n\tlibc.so.6 => /lib/aarch64-linux-gnu/libc.so.6 (0x0000ffff85760000)\n\tlibrt.so.1 => /lib/aarch64-linux-gnu/librt.so.1 (0x0000ffff85730000)\n\tlibdl.so.2 => /lib/aarch64-linux-gnu/libdl.so.2 (0x0000ffff85700000)\n\tlibz.so.1 => /lib/aarch64-linux-gnu/libz.so.1 (0x0000ffff856c0000)\n\t/lib/ld-linux-aarch64.so.1 (0x0000ffff8d9f0000)\n",
+      "stderr": ""
+    },
+    {
+      "label": "ldd:/opt/rust/lib/rustlib/aarch64-unknown-linux-gnu/bin/llvm-cov",
+      "command": [
+        "/usr/bin/ldd",
+        "/opt/rust/lib/rustlib/aarch64-unknown-linux-gnu/bin/llvm-cov"
+      ],
+      "environment": {
+        "PATH": "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+      },
+      "required": true,
+      "exit_code": 0,
+      "stdout": "\tlinux-vdso.so.1 (0x0000ffff9ae08000)\n\tlibpthread.so.0 => /lib/aarch64-linux-gnu/libpthread.so.0 (0x0000ffff9ad00000)\n\tlibLLVM.so.22.1-rust-1.98.1-stable => /opt/rust/lib/rustlib/aarch64-unknown-linux-gnu/bin/../lib/libLLVM.so.22.1-rust-1.98.1-stable (0x0000ffff92dd0000)\n\tlibm.so.6 => /lib/aarch64-linux-gnu/libm.so.6 (0x0000ffff92d20000)\n\tlibgcc_s.so.1 => /lib/aarch64-linux-gnu/libgcc_s.so.1 (0x0000ffff92ce0000)\n\tlibc.so.6 => /lib/aarch64-linux-gnu/libc.so.6 (0x0000ffff92b30000)\n\tlibrt.so.1 => /lib/aarch64-linux-gnu/librt.so.1 (0x0000ffff92b00000)\n\tlibdl.so.2 => /lib/aarch64-linux-gnu/libdl.so.2 (0x0000ffff92ad0000)\n\tlibz.so.1 => /lib/aarch64-linux-gnu/libz.so.1 (0x0000ffff92a90000)\n\t/lib/ld-linux-aarch64.so.1 (0x0000ffff9adc0000)\n",
+      "stderr": ""
+    },
+    {
+      "label": "rust-components",
+      "command": [
+        "/usr/bin/cat",
+        "--",
+        "/opt/rust/lib/rustlib/components"
+      ],
+      "environment": {
+        "PATH": "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+      },
+      "required": true,
+      "exit_code": 0,
+      "stdout": "cargo\nclippy-preview\nrust-std-aarch64-unknown-linux-gnu\nrustc\nrustfmt-preview\nllvm-tools-preview\n",
+      "stderr": ""
+    },
+    {
+      "label": "dpkg-list-captured",
+      "command": [
+        "/usr/bin/cat",
+        "--",
+        "/usr/share/doc/rust-runtime/dpkg-query.txt"
+      ],
+      "environment": {
+        "PATH": "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+      },
+      "required": true,
+      "exit_code": 0,
+      "stdout": "adduser\t3.134\napt\t2.6.1\nbase-files\t12.4+deb12u15\nbase-passwd\t3.6.1\nbash\t5.2.15-2+b13\nbinutils\t2.40-2\nbinutils-aarch64-linux-gnu\t2.40-2\nbinutils-common:arm64\t2.40-2\nbsdutils\t1:2.38.1-5+deb12u3\nca-certificates\t20250419~deb12u1\ncoreutils\t9.1-1\ncpp\t4:12.2.0-3\ncpp-12\t12.2.0-14+deb12u1\ndash\t0.5.12-2\ndebconf\t1.5.82\ndebian-archive-keyring\t2023.3+deb12u2\ndebianutils\t5.7-0.5~deb12u1\ndiffutils\t1:3.8-4\ndpkg\t1.21.23\ne2fsprogs\t1.47.0-2+b2\nfindutils\t4.9.0-4\ngcc\t4:12.2.0-3\ngcc-12\t12.2.0-14+deb12u1\ngcc-12-base:arm64\t12.2.0-14+deb12u1\ngpgv\t2.2.40-1.1+deb12u2\ngrep\t3.8-5\ngzip\t1.12-1\nhostname\t3.23+nmu1\ninit-system-helpers\t1.65.2+deb12u1\nlibacl1:arm64\t2.3.1-3\nlibapt-pkg6.0:arm64\t2.6.1\nlibasan8:arm64\t12.2.0-14+deb12u1\nlibatomic1:arm64\t12.2.0-14+deb12u1\nlibattr1:arm64\t1:2.5.1-4\nlibaudit-common\t1:3.0.9-1\nlibaudit1:arm64\t1:3.0.9-1\nlibbinutils:arm64\t2.40-2\nlibblkid1:arm64\t2.38.1-5+deb12u3\nlibbz2-1.0:arm64\t1.0.8-5+b1\nlibc-bin\t2.36-9+deb12u14\nlibc-dev-bin\t2.36-9+deb12u14\nlibc6:arm64\t2.36-9+deb12u14\nlibc6-dev:arm64\t2.36-9+deb12u14\nlibcap-ng0:arm64\t0.8.3-1+b3\nlibcap2:arm64\t1:2.66-4+deb12u3+b1\nlibcc1-0:arm64\t12.2.0-14+deb12u1\nlibcom-err2:arm64\t1.47.0-2+b2\nlibcrypt-dev:arm64\t1:4.4.33-2\nlibcrypt1:arm64\t1:4.4.33-2\nlibctf-nobfd0:arm64\t2.40-2\nlibctf0:arm64\t2.40-2\nlibdb5.3:arm64\t5.3.28+dfsg2-1\nlibdebconfclient0:arm64\t0.270\nlibext2fs2:arm64\t1.47.0-2+b2\nlibffi8:arm64\t3.4.4-1\nlibgcc-12-dev:arm64\t12.2.0-14+deb12u1\nlibgcc-s1:arm64\t12.2.0-14+deb12u1\nlibgcrypt20:arm64\t1.10.1-3+deb12u1\nlibgmp10:arm64\t2:6.2.1+dfsg1-1.1\nlibgnutls30:arm64\t3.7.9-2+deb12u7\nlibgomp1:arm64\t12.2.0-14+deb12u1\nlibgpg-error0:arm64\t1.46-1\nlibgprofng0:arm64\t2.40-2\nlibgssapi-krb5-2:arm64\t1.20.1-2+deb12u5\nlibhogweed6:arm64\t3.8.1-2\nlibhwasan0:arm64\t12.2.0-14+deb12u1\nlibidn2-0:arm64\t2.3.3-1+b1\nlibisl23:arm64\t0.25-1.1\nlibitm1:arm64\t12.2.0-14+deb12u1\nlibjansson4:arm64\t2.14-2\nlibk5crypto3:arm64\t1.20.1-2+deb12u5\nlibkeyutils1:arm64\t1.6.3-2\nlibkrb5-3:arm64\t1.20.1-2+deb12u5\nlibkrb5support0:arm64\t1.20.1-2+deb12u5\nliblsan0:arm64\t12.2.0-14+deb12u1\nliblz4-1:arm64\t1.9.4-1\nliblzma5:arm64\t5.4.1-1+deb12u1\nlibmd0:arm64\t1.0.4-2\nlibmount1:arm64\t2.38.1-5+deb12u3\nlibmpc3:arm64\t1.3.1-1\nlibmpfr6:arm64\t4.2.0-1\nlibnettle8:arm64\t3.8.1-2\nlibnsl-dev:arm64\t1.3.0-2\nlibnsl2:arm64\t1.3.0-2\nlibp11-kit0:arm64\t0.24.1-2\nlibpam-modules:arm64\t1.5.2-6+deb12u2\nlibpam-modules-bin\t1.5.2-6+deb12u2\nlibpam-runtime\t1.5.2-6+deb12u2\nlibpam0g:arm64\t1.5.2-6+deb12u2\nlibpcre2-8-0:arm64\t10.42-1\nlibseccomp2:arm64\t2.5.4-1+deb12u1\nlibselinux1:arm64\t3.4-1+b6\nlibsemanage-common\t3.4-1\nlibsemanage2:arm64\t3.4-1+b5\nlibsepol2:arm64\t3.4-2.1\nlibsmartcols1:arm64\t2.38.1-5+deb12u3\nlibss2:arm64\t1.47.0-2+b2\nlibssl3:arm64\t3.0.20-1~deb12u2\nlibstdc++6:arm64\t12.2.0-14+deb12u1\nlibsystemd0:arm64\t252.39-1~deb12u2\nlibtasn1-6:arm64\t4.19.0-2+deb12u1\nlibtinfo6:arm64\t6.4-4\nlibtirpc-common\t1.3.3+ds-1\nlibtirpc-dev:arm64\t1.3.3+ds-1\nlibtirpc3:arm64\t1.3.3+ds-1\nlibtsan2:arm64\t12.2.0-14+deb12u1\nlibubsan1:arm64\t12.2.0-14+deb12u1\nlibudev1:arm64\t252.39-1~deb12u2\nlibunistring2:arm64\t1.0-2\nlibuuid1:arm64\t2.38.1-5+deb12u3\nlibxxhash0:arm64\t0.8.1-1\nlibzstd1:arm64\t1.5.4+dfsg2-5\nlinux-libc-dev:arm64\t6.1.180-1\nlogin\t1:4.13+dfsg1-1+deb12u2\nlogsave\t1.47.0-2+b2\nmawk\t1.3.4.20200120-3.1\nmount\t2.38.1-5+deb12u3\nncurses-base\t6.4-4\nncurses-bin\t6.4-4\nopenssl\t3.0.20-1~deb12u2\npasswd\t1:4.13+dfsg1-1+deb12u2\nperl-base\t5.36.0-7+deb12u3\nrpcsvc-proto\t1.4.3-1\nsed\t4.9-1+deb12u1\nsysvinit-utils\t3.06-4\ntar\t1.34+dfsg-1.2+deb12u1\ntzdata\t2026b-0+deb12u1\nusr-is-merged\t37~deb12u1\nutil-linux\t2.38.1-5+deb12u3\nutil-linux-extra\t2.38.1-5+deb12u3\nxz-utils\t5.4.1-1+deb12u1\nzlib1g:arm64\t1:1.2.13.dfsg-1\n",
+      "stderr": ""
+    },
+    {
+      "label": "license-notices",
+      "command": [
+        "/usr/bin/find",
+        "/usr/share/doc/rust-runtime",
+        "-type",
+        "f",
+        "-print",
+        "-exec",
+        "/usr/bin/sha256sum",
+        "{}",
+        ";"
+      ],
+      "environment": {
+        "PATH": "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+      },
+      "required": true,
+      "exit_code": 0,
+      "stdout": "/usr/share/doc/rust-runtime/dpkg-query.txt\nfb53e503ad3b6bac9365806f46184e733ca127e4f1d09f32c25f7fb27856cb62  /usr/share/doc/rust-runtime/dpkg-query.txt\n/usr/share/doc/rust-runtime/cargo-mutants-build-inputs.json\n122f645bad0716f9d117b24151e31d0528583df954a0bcd9a0429cb06834857d  /usr/share/doc/rust-runtime/cargo-mutants-build-inputs.json\n/usr/share/doc/rust-runtime/plugin-license-sources.txt\nadfc861b240947e4c0d7d9f2d9b73b980c24e52d93728e7910767ddbee0ddeb5  /usr/share/doc/rust-runtime/plugin-license-sources.txt\n/usr/share/doc/rust-runtime/notices/LICENSE.TXT\n8d85c1057d742e597985c7d4e6320b015a9139385cff4cbae06ffc0ebe89afee  /usr/share/doc/rust-runtime/notices/LICENSE.TXT\n",
+      "stderr": ""
+    },
+    {
+      "label": "absent-build-file:/opt/rust/lib/rustlib/uninstall.sh",
+      "command": [
+        "/usr/bin/test",
+        "!",
+        "-e",
+        "/opt/rust/lib/rustlib/uninstall.sh"
+      ],
+      "environment": {
+        "PATH": "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+      },
+      "required": true,
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "label": "absent-build-file:/opt/rust/lib/rustlib/install.sh",
+      "command": [
+        "/usr/bin/test",
+        "!",
+        "-e",
+        "/opt/rust/lib/rustlib/install.sh"
+      ],
+      "environment": {
+        "PATH": "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+      },
+      "required": true,
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "label": "absent-build-file:/opt/install",
+      "command": [
+        "/usr/bin/test",
+        "!",
+        "-e",
+        "/opt/install"
+      ],
+      "environment": {
+        "PATH": "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+      },
+      "required": true,
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "label": "absent-build-file:/opt/plugin-install",
+      "command": [
+        "/usr/bin/test",
+        "!",
+        "-e",
+        "/opt/plugin-install"
+      ],
+      "environment": {
+        "PATH": "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+      },
+      "required": true,
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "label": "absent-build-file:/opt/plugins",
+      "command": [
+        "/usr/bin/test",
+        "!",
+        "-e",
+        "/opt/plugins"
+      ],
+      "environment": {
+        "PATH": "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+      },
+      "required": true,
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "label": "absent-build-file:/opt/cargo",
+      "command": [
+        "/usr/bin/test",
+        "!",
+        "-e",
+        "/opt/cargo"
+      ],
+      "environment": {
+        "PATH": "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+      },
+      "required": true,
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "label": "absent-build-file:/opt/cargo-target",
+      "command": [
+        "/usr/bin/test",
+        "!",
+        "-e",
+        "/opt/cargo-target"
+      ],
+      "environment": {
+        "PATH": "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+      },
+      "required": true,
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "label": "absent:/usr/bin/apt",
+      "command": [
+        "/usr/bin/test",
+        "!",
+        "-e",
+        "/usr/bin/apt"
+      ],
+      "environment": {
+        "PATH": "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+      },
+      "required": true,
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "label": "absent:/usr/bin/apt-cache",
+      "command": [
+        "/usr/bin/test",
+        "!",
+        "-e",
+        "/usr/bin/apt-cache"
+      ],
+      "environment": {
+        "PATH": "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+      },
+      "required": true,
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "label": "absent:/usr/bin/apt-get",
+      "command": [
+        "/usr/bin/test",
+        "!",
+        "-e",
+        "/usr/bin/apt-get"
+      ],
+      "environment": {
+        "PATH": "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+      },
+      "required": true,
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "label": "absent:/usr/bin/apt-mark",
+      "command": [
+        "/usr/bin/test",
+        "!",
+        "-e",
+        "/usr/bin/apt-mark"
+      ],
+      "environment": {
+        "PATH": "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+      },
+      "required": true,
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "label": "absent:/usr/bin/dpkg",
+      "command": [
+        "/usr/bin/test",
+        "!",
+        "-e",
+        "/usr/bin/dpkg"
+      ],
+      "environment": {
+        "PATH": "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+      },
+      "required": true,
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "label": "absent:/usr/bin/dpkg-query",
+      "command": [
+        "/usr/bin/test",
+        "!",
+        "-e",
+        "/usr/bin/dpkg-query"
+      ],
+      "environment": {
+        "PATH": "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+      },
+      "required": true,
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "label": "absent:/usr/lib/apt/methods/http",
+      "command": [
+        "/usr/bin/test",
+        "!",
+        "-e",
+        "/usr/lib/apt/methods/http"
+      ],
+      "environment": {
+        "PATH": "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+      },
+      "required": true,
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "label": "absent:/usr/lib/apt/methods/https",
+      "command": [
+        "/usr/bin/test",
+        "!",
+        "-e",
+        "/usr/lib/apt/methods/https"
+      ],
+      "environment": {
+        "PATH": "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+      },
+      "required": true,
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "label": "absent:/usr/bin/curl",
+      "command": [
+        "/usr/bin/test",
+        "!",
+        "-e",
+        "/usr/bin/curl"
+      ],
+      "environment": {
+        "PATH": "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+      },
+      "required": true,
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "label": "absent:/usr/bin/wget",
+      "command": [
+        "/usr/bin/test",
+        "!",
+        "-e",
+        "/usr/bin/wget"
+      ],
+      "environment": {
+        "PATH": "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+      },
+      "required": true,
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    }
+  ],
+  "executable_sha256": {
+    "/opt/rust/bin/rustc": "d4217a981a778bfe445c0a29c408f5a25a92e9bb5222701579ad5a35bd913e8f",
+    "/opt/rust/bin/cargo": "2101d7104b91a013912c94275dcd31c2b41061ef7f6e8530df11cdad55b8fbc5",
+    "/opt/rust/bin/rustfmt": "7aa230a4c704fb7b0e2fbccb90688b5b62d932cf9663805d26bbbe7a99ebae8b",
+    "/opt/rust/bin/clippy-driver": "3bb746414d10f2b96655d9dc36bf3acc9c914ae7ea882ffa74a2c841924aa282",
+    "/opt/rust/bin/cargo-clippy": "44ad53b58a0fb84fc09c31c09799a1236f03160ea80549820c881a6e734df806",
+    "/usr/bin/gcc": "dc53dbc5a583d03ae8ed6272ca9afc0f58873f9f9b86dd7d448b17fb3f88a8d0",
+    "/opt/rust/bin/cargo-nextest": "38dc9f7e6ef58ceb01771bd1d312bc892f367417be58a3683c635c160f4d7c2f",
+    "/opt/rust/bin/cargo-llvm-cov": "1829d7aff143b565ec996255d6a431770de8713a664b8da50add1c76c1a57a9e",
+    "/opt/rust/bin/cargo-semver-checks": "f87889a5e26b6ee6f7656e8494c37842ab041349b04e5084a66c144df2ccc02b",
+    "/opt/rust/bin/cargo-mutants": "137e3ac100a35f563370dcdcca41e2b35ac1c2c257dc90fd8e6a01f984aa86a8",
+    "/opt/rust/lib/rustlib/aarch64-unknown-linux-gnu/bin/llvm-profdata": "c7160d195180796edf7cc4c3f087f72b5425fc9ec2d9734b956a265e506f982e",
+    "/opt/rust/lib/rustlib/aarch64-unknown-linux-gnu/bin/llvm-cov": "c3865abd81eed0db83ae257b347c4fef88f457bc303cd5ce104d24f49e081272"
+  },
+  "ldd": {
+    "available": true,
+    "results": [
+      {
+        "path": "/opt/rust/bin/rustc",
+        "exit_code": 0,
+        "stdout": "\tlinux-vdso.so.1 (0x0000ffff8420f000)\n\tlibrustc_driver-36de65988ef2d886.so => /opt/rust/bin/../lib/librustc_driver-36de65988ef2d886.so (0x0000ffff7fb10000)\n\tlibdl.so.2 => /lib/aarch64-linux-gnu/libdl.so.2 (0x0000ffff7fae0000)\n\tlibpthread.so.0 => /lib/aarch64-linux-gnu/libpthread.so.0 (0x0000ffff7fab0000)\n\tlibc.so.6 => /lib/aarch64-linux-gnu/libc.so.6 (0x0000ffff7f900000)\n\tlibLLVM.so.22.1-rust-1.98.1-stable => /opt/rust/bin/../lib/../lib/libLLVM.so.22.1-rust-1.98.1-stable (0x0000ffff779d0000)\n\tlibgcc_s.so.1 => /lib/aarch64-linux-gnu/libgcc_s.so.1 (0x0000ffff77990000)\n\t/lib/ld-linux-aarch64.so.1 (0x0000ffff841c0000)\n\tlibrt.so.1 => /lib/aarch64-linux-gnu/librt.so.1 (0x0000ffff77960000)\n\tlibm.so.6 => /lib/aarch64-linux-gnu/libm.so.6 (0x0000ffff778b0000)\n\tlibz.so.1 => /lib/aarch64-linux-gnu/libz.so.1 (0x0000ffff77870000)\n",
+        "stderr": "",
+        "missing_library": false
+      },
+      {
+        "path": "/opt/rust/bin/cargo",
+        "exit_code": 0,
+        "stdout": "\tlinux-vdso.so.1 (0x0000ffffbb5fd000)\n\tlibdl.so.2 => /lib/aarch64-linux-gnu/libdl.so.2 (0x0000ffffb9920000)\n\tlibgcc_s.so.1 => /lib/aarch64-linux-gnu/libgcc_s.so.1 (0x0000ffffb98e0000)\n\tlibpthread.so.0 => /lib/aarch64-linux-gnu/libpthread.so.0 (0x0000ffffb98b0000)\n\tlibm.so.6 => /lib/aarch64-linux-gnu/libm.so.6 (0x0000ffffb9800000)\n\tlibc.so.6 => /lib/aarch64-linux-gnu/libc.so.6 (0x0000ffffb9650000)\n\t/lib/ld-linux-aarch64.so.1 (0x0000ffffbb5b0000)\n",
+        "stderr": "",
+        "missing_library": false
+      },
+      {
+        "path": "/opt/rust/bin/rustfmt",
+        "exit_code": 0,
+        "stdout": "\tlinux-vdso.so.1 (0x0000ffffb567a000)\n\tlibrustc_driver-36de65988ef2d886.so => /opt/rust/bin/../lib/librustc_driver-36de65988ef2d886.so (0x0000ffffb0cb0000)\n\tlibgcc_s.so.1 => /lib/aarch64-linux-gnu/libgcc_s.so.1 (0x0000ffffb0c70000)\n\tlibpthread.so.0 => /lib/aarch64-linux-gnu/libpthread.so.0 (0x0000ffffb0c40000)\n\tlibm.so.6 => /lib/aarch64-linux-gnu/libm.so.6 (0x0000ffffb0b90000)\n\tlibc.so.6 => /lib/aarch64-linux-gnu/libc.so.6 (0x0000ffffb09e0000)\n\tlibdl.so.2 => /lib/aarch64-linux-gnu/libdl.so.2 (0x0000ffffb09b0000)\n\tlibLLVM.so.22.1-rust-1.98.1-stable => /opt/rust/bin/../lib/../lib/libLLVM.so.22.1-rust-1.98.1-stable (0x0000ffffa8a80000)\n\t/lib/ld-linux-aarch64.so.1 (0x0000ffffb5630000)\n\tlibrt.so.1 => /lib/aarch64-linux-gnu/librt.so.1 (0x0000ffffa8a50000)\n\tlibz.so.1 => /lib/aarch64-linux-gnu/libz.so.1 (0x0000ffffa8a10000)\n",
+        "stderr": "",
+        "missing_library": false
+      },
+      {
+        "path": "/opt/rust/bin/clippy-driver",
+        "exit_code": 0,
+        "stdout": "\tlinux-vdso.so.1 (0x0000ffff83e4c000)\n\tlibrustc_driver-36de65988ef2d886.so => /opt/rust/bin/../lib/librustc_driver-36de65988ef2d886.so (0x0000ffff7ed90000)\n\tlibdl.so.2 => /lib/aarch64-linux-gnu/libdl.so.2 (0x0000ffff7ed60000)\n\tlibgcc_s.so.1 => /lib/aarch64-linux-gnu/libgcc_s.so.1 (0x0000ffff7ed20000)\n\tlibpthread.so.0 => /lib/aarch64-linux-gnu/libpthread.so.0 (0x0000ffff7ecf0000)\n\tlibc.so.6 => /lib/aarch64-linux-gnu/libc.so.6 (0x0000ffff7eb40000)\n\tlibLLVM.so.22.1-rust-1.98.1-stable => /opt/rust/bin/../lib/../lib/libLLVM.so.22.1-rust-1.98.1-stable (0x0000ffff76c10000)\n\t/lib/ld-linux-aarch64.so.1 (0x0000ffff83e10000)\n\tlibrt.so.1 => /lib/aarch64-linux-gnu/librt.so.1 (0x0000ffff76be0000)\n\tlibm.so.6 => /lib/aarch64-linux-gnu/libm.so.6 (0x0000ffff76b30000)\n\tlibz.so.1 => /lib/aarch64-linux-gnu/libz.so.1 (0x0000ffff76af0000)\n",
+        "stderr": "",
+        "missing_library": false
+      },
+      {
+        "path": "/opt/rust/bin/cargo-clippy",
+        "exit_code": 0,
+        "stdout": "\tlinux-vdso.so.1 (0x0000ffffaa23b000)\n\tlibrustc_driver-36de65988ef2d886.so => /opt/rust/bin/../lib/librustc_driver-36de65988ef2d886.so (0x0000ffffa5b10000)\n\tlibgcc_s.so.1 => /lib/aarch64-linux-gnu/libgcc_s.so.1 (0x0000ffffa5ad0000)\n\tlibpthread.so.0 => /lib/aarch64-linux-gnu/libpthread.so.0 (0x0000ffffa5aa0000)\n\tlibc.so.6 => /lib/aarch64-linux-gnu/libc.so.6 (0x0000ffffa58f0000)\n\tlibdl.so.2 => /lib/aarch64-linux-gnu/libdl.so.2 (0x0000ffffa58c0000)\n\tlibLLVM.so.22.1-rust-1.98.1-stable => /opt/rust/bin/../lib/../lib/libLLVM.so.22.1-rust-1.98.1-stable (0x0000ffff9d990000)\n\t/lib/ld-linux-aarch64.so.1 (0x0000ffffaa1f0000)\n\tlibrt.so.1 => /lib/aarch64-linux-gnu/librt.so.1 (0x0000ffff9d960000)\n\tlibm.so.6 => /lib/aarch64-linux-gnu/libm.so.6 (0x0000ffff9d8b0000)\n\tlibz.so.1 => /lib/aarch64-linux-gnu/libz.so.1 (0x0000ffff9d870000)\n",
+        "stderr": "",
+        "missing_library": false
+      },
+      {
+        "path": "/usr/bin/gcc",
+        "exit_code": 0,
+        "stdout": "\tlinux-vdso.so.1 (0x0000ffffa923a000)\n\tlibc.so.6 => /lib/aarch64-linux-gnu/libc.so.6 (0x0000ffffa9040000)\n\t/lib/ld-linux-aarch64.so.1 (0x0000ffffa91f0000)\n",
+        "stderr": "",
+        "missing_library": false
+      },
+      {
+        "path": "/opt/rust/bin/cargo-nextest",
+        "exit_code": 0,
+        "stdout": "\tlinux-vdso.so.1 (0x0000ffff9842a000)\n\tlibm.so.6 => /lib/aarch64-linux-gnu/libm.so.6 (0x0000ffff97350000)\n\tlibc.so.6 => /lib/aarch64-linux-gnu/libc.so.6 (0x0000ffff971a0000)\n\t/lib/ld-linux-aarch64.so.1 (0x0000ffff983e0000)\n\tlibpthread.so.0 => /lib/aarch64-linux-gnu/libpthread.so.0 (0x0000ffff97170000)\n\tlibdl.so.2 => /lib/aarch64-linux-gnu/libdl.so.2 (0x0000ffff97140000)\n",
+        "stderr": "",
+        "missing_library": false
+      },
+      {
+        "path": "/opt/rust/bin/cargo-llvm-cov",
+        "exit_code": 0,
+        "stdout": "\tlinux-vdso.so.1 (0x0000ffff804dc000)\n\tlibgcc_s.so.1 => /lib/aarch64-linux-gnu/libgcc_s.so.1 (0x0000ffff80110000)\n\tlibc.so.6 => /lib/aarch64-linux-gnu/libc.so.6 (0x0000ffff7ff60000)\n\t/lib/ld-linux-aarch64.so.1 (0x0000ffff804a0000)\n",
+        "stderr": "",
+        "missing_library": false
+      },
+      {
+        "path": "/opt/rust/bin/cargo-semver-checks",
+        "exit_code": 0,
+        "stdout": "\tlinux-vdso.so.1 (0x0000ffffb949c000)\n\tlibgcc_s.so.1 => /lib/aarch64-linux-gnu/libgcc_s.so.1 (0x0000ffffb8370000)\n\tlibpthread.so.0 => /lib/aarch64-linux-gnu/libpthread.so.0 (0x0000ffffb8340000)\n\tlibdl.so.2 => /lib/aarch64-linux-gnu/libdl.so.2 (0x0000ffffb8310000)\n\tlibc.so.6 => /lib/aarch64-linux-gnu/libc.so.6 (0x0000ffffb8160000)\n\t/lib/ld-linux-aarch64.so.1 (0x0000ffffb9460000)\n",
+        "stderr": "",
+        "missing_library": false
+      },
+      {
+        "path": "/opt/rust/bin/cargo-mutants",
+        "exit_code": 0,
+        "stdout": "\tlinux-vdso.so.1 (0x0000ffffa34ec000)\n\tlibgcc_s.so.1 => /lib/aarch64-linux-gnu/libgcc_s.so.1 (0x0000ffffa2e00000)\n\tlibc.so.6 => /lib/aarch64-linux-gnu/libc.so.6 (0x0000ffffa2c50000)\n\t/lib/ld-linux-aarch64.so.1 (0x0000ffffa34b0000)\n",
+        "stderr": "",
+        "missing_library": false
+      },
+      {
+        "path": "/opt/rust/lib/rustlib/aarch64-unknown-linux-gnu/bin/llvm-profdata",
+        "exit_code": 0,
+        "stdout": "\tlinux-vdso.so.1 (0x0000ffff8da3b000)\n\tlibpthread.so.0 => /lib/aarch64-linux-gnu/libpthread.so.0 (0x0000ffff8d930000)\n\tlibLLVM.so.22.1-rust-1.98.1-stable => /opt/rust/lib/rustlib/aarch64-unknown-linux-gnu/bin/../lib/libLLVM.so.22.1-rust-1.98.1-stable (0x0000ffff85a00000)\n\tlibm.so.6 => /lib/aarch64-linux-gnu/libm.so.6 (0x0000ffff85950000)\n\tlibgcc_s.so.1 => /lib/aarch64-linux-gnu/libgcc_s.so.1 (0x0000ffff85910000)\n\tlibc.so.6 => /lib/aarch64-linux-gnu/libc.so.6 (0x0000ffff85760000)\n\tlibrt.so.1 => /lib/aarch64-linux-gnu/librt.so.1 (0x0000ffff85730000)\n\tlibdl.so.2 => /lib/aarch64-linux-gnu/libdl.so.2 (0x0000ffff85700000)\n\tlibz.so.1 => /lib/aarch64-linux-gnu/libz.so.1 (0x0000ffff856c0000)\n\t/lib/ld-linux-aarch64.so.1 (0x0000ffff8d9f0000)\n",
+        "stderr": "",
+        "missing_library": false
+      },
+      {
+        "path": "/opt/rust/lib/rustlib/aarch64-unknown-linux-gnu/bin/llvm-cov",
+        "exit_code": 0,
+        "stdout": "\tlinux-vdso.so.1 (0x0000ffff9ae08000)\n\tlibpthread.so.0 => /lib/aarch64-linux-gnu/libpthread.so.0 (0x0000ffff9ad00000)\n\tlibLLVM.so.22.1-rust-1.98.1-stable => /opt/rust/lib/rustlib/aarch64-unknown-linux-gnu/bin/../lib/libLLVM.so.22.1-rust-1.98.1-stable (0x0000ffff92dd0000)\n\tlibm.so.6 => /lib/aarch64-linux-gnu/libm.so.6 (0x0000ffff92d20000)\n\tlibgcc_s.so.1 => /lib/aarch64-linux-gnu/libgcc_s.so.1 (0x0000ffff92ce0000)\n\tlibc.so.6 => /lib/aarch64-linux-gnu/libc.so.6 (0x0000ffff92b30000)\n\tlibrt.so.1 => /lib/aarch64-linux-gnu/librt.so.1 (0x0000ffff92b00000)\n\tlibdl.so.2 => /lib/aarch64-linux-gnu/libdl.so.2 (0x0000ffff92ad0000)\n\tlibz.so.1 => /lib/aarch64-linux-gnu/libz.so.1 (0x0000ffff92a90000)\n\t/lib/ld-linux-aarch64.so.1 (0x0000ffff9adc0000)\n",
+        "stderr": "",
+        "missing_library": false
+      }
+    ]
+  },
+  "dpkg_list": "adduser\t3.134\napt\t2.6.1\nbase-files\t12.4+deb12u15\nbase-passwd\t3.6.1\nbash\t5.2.15-2+b13\nbinutils\t2.40-2\nbinutils-aarch64-linux-gnu\t2.40-2\nbinutils-common:arm64\t2.40-2\nbsdutils\t1:2.38.1-5+deb12u3\nca-certificates\t20250419~deb12u1\ncoreutils\t9.1-1\ncpp\t4:12.2.0-3\ncpp-12\t12.2.0-14+deb12u1\ndash\t0.5.12-2\ndebconf\t1.5.82\ndebian-archive-keyring\t2023.3+deb12u2\ndebianutils\t5.7-0.5~deb12u1\ndiffutils\t1:3.8-4\ndpkg\t1.21.23\ne2fsprogs\t1.47.0-2+b2\nfindutils\t4.9.0-4\ngcc\t4:12.2.0-3\ngcc-12\t12.2.0-14+deb12u1\ngcc-12-base:arm64\t12.2.0-14+deb12u1\ngpgv\t2.2.40-1.1+deb12u2\ngrep\t3.8-5\ngzip\t1.12-1\nhostname\t3.23+nmu1\ninit-system-helpers\t1.65.2+deb12u1\nlibacl1:arm64\t2.3.1-3\nlibapt-pkg6.0:arm64\t2.6.1\nlibasan8:arm64\t12.2.0-14+deb12u1\nlibatomic1:arm64\t12.2.0-14+deb12u1\nlibattr1:arm64\t1:2.5.1-4\nlibaudit-common\t1:3.0.9-1\nlibaudit1:arm64\t1:3.0.9-1\nlibbinutils:arm64\t2.40-2\nlibblkid1:arm64\t2.38.1-5+deb12u3\nlibbz2-1.0:arm64\t1.0.8-5+b1\nlibc-bin\t2.36-9+deb12u14\nlibc-dev-bin\t2.36-9+deb12u14\nlibc6:arm64\t2.36-9+deb12u14\nlibc6-dev:arm64\t2.36-9+deb12u14\nlibcap-ng0:arm64\t0.8.3-1+b3\nlibcap2:arm64\t1:2.66-4+deb12u3+b1\nlibcc1-0:arm64\t12.2.0-14+deb12u1\nlibcom-err2:arm64\t1.47.0-2+b2\nlibcrypt-dev:arm64\t1:4.4.33-2\nlibcrypt1:arm64\t1:4.4.33-2\nlibctf-nobfd0:arm64\t2.40-2\nlibctf0:arm64\t2.40-2\nlibdb5.3:arm64\t5.3.28+dfsg2-1\nlibdebconfclient0:arm64\t0.270\nlibext2fs2:arm64\t1.47.0-2+b2\nlibffi8:arm64\t3.4.4-1\nlibgcc-12-dev:arm64\t12.2.0-14+deb12u1\nlibgcc-s1:arm64\t12.2.0-14+deb12u1\nlibgcrypt20:arm64\t1.10.1-3+deb12u1\nlibgmp10:arm64\t2:6.2.1+dfsg1-1.1\nlibgnutls30:arm64\t3.7.9-2+deb12u7\nlibgomp1:arm64\t12.2.0-14+deb12u1\nlibgpg-error0:arm64\t1.46-1\nlibgprofng0:arm64\t2.40-2\nlibgssapi-krb5-2:arm64\t1.20.1-2+deb12u5\nlibhogweed6:arm64\t3.8.1-2\nlibhwasan0:arm64\t12.2.0-14+deb12u1\nlibidn2-0:arm64\t2.3.3-1+b1\nlibisl23:arm64\t0.25-1.1\nlibitm1:arm64\t12.2.0-14+deb12u1\nlibjansson4:arm64\t2.14-2\nlibk5crypto3:arm64\t1.20.1-2+deb12u5\nlibkeyutils1:arm64\t1.6.3-2\nlibkrb5-3:arm64\t1.20.1-2+deb12u5\nlibkrb5support0:arm64\t1.20.1-2+deb12u5\nliblsan0:arm64\t12.2.0-14+deb12u1\nliblz4-1:arm64\t1.9.4-1\nliblzma5:arm64\t5.4.1-1+deb12u1\nlibmd0:arm64\t1.0.4-2\nlibmount1:arm64\t2.38.1-5+deb12u3\nlibmpc3:arm64\t1.3.1-1\nlibmpfr6:arm64\t4.2.0-1\nlibnettle8:arm64\t3.8.1-2\nlibnsl-dev:arm64\t1.3.0-2\nlibnsl2:arm64\t1.3.0-2\nlibp11-kit0:arm64\t0.24.1-2\nlibpam-modules:arm64\t1.5.2-6+deb12u2\nlibpam-modules-bin\t1.5.2-6+deb12u2\nlibpam-runtime\t1.5.2-6+deb12u2\nlibpam0g:arm64\t1.5.2-6+deb12u2\nlibpcre2-8-0:arm64\t10.42-1\nlibseccomp2:arm64\t2.5.4-1+deb12u1\nlibselinux1:arm64\t3.4-1+b6\nlibsemanage-common\t3.4-1\nlibsemanage2:arm64\t3.4-1+b5\nlibsepol2:arm64\t3.4-2.1\nlibsmartcols1:arm64\t2.38.1-5+deb12u3\nlibss2:arm64\t1.47.0-2+b2\nlibssl3:arm64\t3.0.20-1~deb12u2\nlibstdc++6:arm64\t12.2.0-14+deb12u1\nlibsystemd0:arm64\t252.39-1~deb12u2\nlibtasn1-6:arm64\t4.19.0-2+deb12u1\nlibtinfo6:arm64\t6.4-4\nlibtirpc-common\t1.3.3+ds-1\nlibtirpc-dev:arm64\t1.3.3+ds-1\nlibtirpc3:arm64\t1.3.3+ds-1\nlibtsan2:arm64\t12.2.0-14+deb12u1\nlibubsan1:arm64\t12.2.0-14+deb12u1\nlibudev1:arm64\t252.39-1~deb12u2\nlibunistring2:arm64\t1.0-2\nlibuuid1:arm64\t2.38.1-5+deb12u3\nlibxxhash0:arm64\t0.8.1-1\nlibzstd1:arm64\t1.5.4+dfsg2-5\nlinux-libc-dev:arm64\t6.1.180-1\nlogin\t1:4.13+dfsg1-1+deb12u2\nlogsave\t1.47.0-2+b2\nmawk\t1.3.4.20200120-3.1\nmount\t2.38.1-5+deb12u3\nncurses-base\t6.4-4\nncurses-bin\t6.4-4\nopenssl\t3.0.20-1~deb12u2\npasswd\t1:4.13+dfsg1-1+deb12u2\nperl-base\t5.36.0-7+deb12u3\nrpcsvc-proto\t1.4.3-1\nsed\t4.9-1+deb12u1\nsysvinit-utils\t3.06-4\ntar\t1.34+dfsg-1.2+deb12u1\ntzdata\t2026b-0+deb12u1\nusr-is-merged\t37~deb12u1\nutil-linux\t2.38.1-5+deb12u3\nutil-linux-extra\t2.38.1-5+deb12u3\nxz-utils\t5.4.1-1+deb12u1\nzlib1g:arm64\t1:1.2.13.dfsg-1\n",
+  "license_notice_files": "/usr/share/doc/rust-runtime/dpkg-query.txt\nfb53e503ad3b6bac9365806f46184e733ca127e4f1d09f32c25f7fb27856cb62  /usr/share/doc/rust-runtime/dpkg-query.txt\n/usr/share/doc/rust-runtime/cargo-mutants-build-inputs.json\n122f645bad0716f9d117b24151e31d0528583df954a0bcd9a0429cb06834857d  /usr/share/doc/rust-runtime/cargo-mutants-build-inputs.json\n/usr/share/doc/rust-runtime/plugin-license-sources.txt\nadfc861b240947e4c0d7d9f2d9b73b980c24e52d93728e7910767ddbee0ddeb5  /usr/share/doc/rust-runtime/plugin-license-sources.txt\n/usr/share/doc/rust-runtime/notices/LICENSE.TXT\n8d85c1057d742e597985c7d4e6320b015a9139385cff4cbae06ffc0ebe89afee  /usr/share/doc/rust-runtime/notices/LICENSE.TXT\n",
+  "sbom": {
+    "base_image": "docker.io/library/debian@sha256:88200866dfff7ea7f5cbcb6ec7c8a701889efe6fe859fe64d6990e4b07ea4171",
+    "rust_version": "1.98.1",
+    "target": "aarch64-unknown-linux-gnu",
+    "rust_components": [
+      "cargo",
+      "clippy-preview",
+      "llvm-tools-preview",
+      "rust-std-aarch64-unknown-linux-gnu",
+      "rustc",
+      "rustfmt-preview"
+    ],
+    "plugins": [
+      "cargo-nextest",
+      "cargo-llvm-cov",
+      "llvm-tools",
+      "cargo-semver-checks",
+      "cargo-mutants"
+    ]
+  }
+}

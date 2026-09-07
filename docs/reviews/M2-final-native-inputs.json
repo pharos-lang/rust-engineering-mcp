@@ -1,0 +1,50 @@
+{
+  "model": "claude-opus-5",
+  "effort": "high",
+  "cli_version": "2.1.260",
+  "read_only": true,
+  "tools": [],
+  "files": [
+    {
+      "path": "docs/adr/ADR-050-local-coordinated-mutation.md",
+      "sha256": "e4e8b38936cdde67c4704833c464b68dd43e7fe6166daadb887991ee695c6a40",
+      "bytes": 7460
+    },
+    {
+      "path": "docs/adr/ADR-052-mutation-journal-and-authorization.md",
+      "sha256": "3bada3a68f78bbe15c3f77f5ce3e8e096562488f27aeeacc671bdbcc31645b1c",
+      "bytes": 9777
+    },
+    {
+      "path": "docs/adr/ADR-054-multiple-file-mutation-publication.md",
+      "sha256": "928b5e463d339ac8ac759c42e4dbee389ebe23655e3f698b2b4b1e84cfd04905",
+      "bytes": 6858
+    },
+    {
+      "path": "docs/adr/ADR-057-typed-manifest-and-dependency-operations.md",
+      "sha256": "12a116c6ed5645659935e2b278e6bc41aad43c739fee8a8a5c53b46beadaefa1",
+      "bytes": 5854
+    },
+    {
+      "path": "docs/validation/M2-07-native-memory.json",
+      "sha256": "e70fc3c1de06b623fc0c8d2a3b4677aa151f441280213c23a30797ea01d0a4b5",
+      "bytes": 9221
+    },
+    {
+      "path": "docs/validation/M2-native-io-faults.json",
+      "sha256": "f9855fade332851a60ea0734cdf9a6301412df3d673178d7a77e1700853bb739",
+      "bytes": 5566
+    },
+    {
+      "path": "crates/project-adapter/src/filesystem/macos/mutation.rs",
+      "sha256": "6db94b0818d6d5230db87125ca4422122f78f836a2d7a50ded2200e7e32f7fe2",
+      "bytes": 101548
+    },
+    {
+      "path": "crates/project-adapter/tests/support/native_mutation.rs",
+      "sha256": "1984f757917c5e42ce1c7640e9718ef7763a7a638b250692b545784df11e40ee",
+      "bytes": 96674
+    }
+  ],
+  "prompt_sha256": "3c454357e67a9c5424f5e4debc67bb32ed44663bc94fec1e22aeb9adeebef3fc"
+}

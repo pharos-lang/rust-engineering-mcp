@@ -1,0 +1,10 @@
+[package]
+name = "semver-warn-only"
+version = "1.0.0"
+edition = "2024"
+
+[lib]
+path = "src/lib.rs"
+
+[package.metadata.cargo-semver-checks.lints]
+function_missing = "warn"

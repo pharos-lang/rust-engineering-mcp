@@ -1,0 +1,613 @@
+{
+  "recorded_at": "2026-09-05T22:35:58.647097+00:00",
+  "purpose": "Explicit selection of M2 final and preserved historical ignored logs for Git; excludes other ignored files and all M1 logs.",
+  "files": [
+    {
+      "path": "docs/reviews/M2-closure-agy.stderr.log",
+      "bytes": 78,
+      "sha256": "3a7f8550106d86abb322e8ed0fb30a0296c0e97c6be03d5a8033b99d16737459"
+    },
+    {
+      "path": "docs/reviews/M2-closure-resolution-opus.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "docs/validation/m2-059/M2-059-app-clippy.log",
+      "bytes": 280,
+      "sha256": "732a89ccbe49244c1152335225c9dec972365411c3f41218bde47ab1df3938ae"
+    },
+    {
+      "path": "docs/validation/m2-059/M2-059-application.log",
+      "bytes": 1815,
+      "sha256": "d1193e70b5f2f3939a82ec18729a9753417fbde607b6d4a2ca1311909d47c916"
+    },
+    {
+      "path": "docs/validation/m2-059/M2-059-mcp-clippy.log",
+      "bytes": 834,
+      "sha256": "4bc7328032d7f4ad40f324cd4e88c83888cb42e0ddeb62299e58692cc7c2219f"
+    },
+    {
+      "path": "docs/validation/m2-059/M2-059-native-replay.log",
+      "bytes": 791,
+      "sha256": "acbf276720d0696dc90ff49bab4454493e90dd5922945e569e48cca94b2dc825"
+    },
+    {
+      "path": "docs/validation/m2-059/M2-059-release-build.log",
+      "bytes": 825,
+      "sha256": "7b913085fbf9102aadd2e920d8146887abe65f91088033be4cdf2a97fcbfdeaf"
+    },
+    {
+      "path": "docs/validation/m2-059/M2-059-runtime.log",
+      "bytes": 1151,
+      "sha256": "8c33cdddfb50f3194e514a239e2def93267a7cc63278983f1da821121aa2ce84"
+    },
+    {
+      "path": "docs/validation/m2-d05-hardening-followup.log",
+      "bytes": 394,
+      "sha256": "7342d1499c1e9a683038818d832ba4dcbc278ddc93b778ae88474f433bb083be"
+    },
+    {
+      "path": "docs/validation/m2-d05-hardening-gate.log",
+      "bytes": 394,
+      "sha256": "dde85a7590685c1650c94428894a9ea51024e38579d2c62aaba025a10837f831"
+    },
+    {
+      "path": "docs/validation/m2-d05-vendor-fingerprint.log",
+      "bytes": 445,
+      "sha256": "6499c63707d6a96346b9e562f4e9625dd9fea9d390870d093bb7eea0dd4d7304"
+    },
+    {
+      "path": "docs/validation/m2-final-gate/audit-data/audit-data.log",
+      "bytes": 586,
+      "sha256": "c4b4bf80662e6afaedf0a1472652bb3be519dad3abcf4c7c802d3b23104c8315"
+    },
+    {
+      "path": "docs/validation/m2-final-gate/doctor-security/active.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "docs/validation/m2-final-gate/doctor-security/active.stdout.log",
+      "bytes": 3792,
+      "sha256": "b38bc894b73ea2bb0fd6acc371e60d4bb9d3b2c19a0580ad0bff4ad29839acfe"
+    },
+    {
+      "path": "docs/validation/m2-final-gate/doctor-security/build.stderr.log",
+      "bytes": 172,
+      "sha256": "14e637f241a1d56f96dca974ab901d85be657f956477dd6bac0c2ae02972f7e1"
+    },
+    {
+      "path": "docs/validation/m2-final-gate/doctor-security/build.stdout.log",
+      "bytes": 200408,
+      "sha256": "1beda595bef827a8b57ddfa763734a2274a2e7039c201c9276b0752dcb698ccf"
+    },
+    {
+      "path": "docs/validation/m2-final-gate/doctor-security/cancelled-sighup.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "docs/validation/m2-final-gate/doctor-security/cancelled-sighup.stdout.log",
+      "bytes": 2869,
+      "sha256": "b29de621ebc1a9e6eb4b8464ffd254b5f0dece3ef40f4b93408795dce92190e5"
+    },
+    {
+      "path": "docs/validation/m2-final-gate/doctor-security/cancelled-sigint.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "docs/validation/m2-final-gate/doctor-security/cancelled-sigint.stdout.log",
+      "bytes": 2869,
+      "sha256": "116a28c4a67592d63b9acdee2284126baa69d3732ac34a3e4aedf9da3d93c0d4"
+    },
+    {
+      "path": "docs/validation/m2-final-gate/doctor-security/cancelled-sigterm.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "docs/validation/m2-final-gate/doctor-security/cancelled-sigterm.stdout.log",
+      "bytes": 2869,
+      "sha256": "95e073bf55811c8a367e80644a4bd76dc1412673d2149fbc6d1ba72caf0ee251"
+    },
+    {
+      "path": "docs/validation/m2-final-gate/doctor-security/ordinary.stderr.log",
+      "bytes": 246,
+      "sha256": "7ea9176415e1f1b8a8d27e489ece1db2b6dbc5224626066bb2b0d141f2c28594"
+    },
+    {
+      "path": "docs/validation/m2-final-gate/doctor-security/ordinary.stdout.log",
+      "bytes": 357,
+      "sha256": "61d1650537b75cf2103583bea81d57f5ebedafd7100f95e1a5bc5739431103dc"
+    },
+    {
+      "path": "docs/validation/m2-final-gate/doctor-security/stdout-deadline.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "docs/validation/m2-final-gate/doctor-security/stdout-sigint.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "docs/validation/m2-final-gate/full.log",
+      "bytes": 171222,
+      "sha256": "3a8d991a3d0374b8ab21fe0aa98f9f99f6744f2f75fbb35e795b244ef0fcddd4"
+    },
+    {
+      "path": "docs/validation/m2-final-gate/m2-runtime/0.log",
+      "bytes": 383,
+      "sha256": "90eafdf192a9f90a2c24230426396cff4169dd47aff90018020110d5e4d6e2a8"
+    },
+    {
+      "path": "docs/validation/m2-final-gate/m2-runtime/1.log",
+      "bytes": 394,
+      "sha256": "d5fc5af4b2863c4ad8a67c65fa897e6cfbeede213342c3cf72c10b84e34faddf"
+    },
+    {
+      "path": "docs/validation/m2-final-gate/m2-runtime/2.log",
+      "bytes": 384,
+      "sha256": "28417f80a8dd423e82be7a92fe79ffad2b7efd4894a7fe9dfdf790e7eeee674d"
+    },
+    {
+      "path": "docs/validation/m2-final-gate/m2-runtime/3.log",
+      "bytes": 374,
+      "sha256": "8ff8c0fa5e2cb0b7a99f941ef7c5e494abc8fb178303385e6cbd35ed80e69d18"
+    },
+    {
+      "path": "docs/validation/m2-final-gate/m2-runtime/4.log",
+      "bytes": 498,
+      "sha256": "dc23022bf7ea1cb9a29731f564a804411874aaa92270619c7eee99be9dfe1045"
+    },
+    {
+      "path": "docs/validation/m2-final-gate/m2-runtime/5.log",
+      "bytes": 888,
+      "sha256": "f4be2145761a17ba22cf12939aa69e7ed6c7543c54ee9099d1405e4fb123080a"
+    },
+    {
+      "path": "docs/validation/m2-final-gate/m2-runtime/6.log",
+      "bytes": 503,
+      "sha256": "0b40d95fead2f0873b2c3b4eaa05dadd610f6e1567635028a5ebeae1213ce009"
+    },
+    {
+      "path": "docs/validation/m2-final-gate/m2-runtime/7.log",
+      "bytes": 635,
+      "sha256": "fd0cd761546a0b8e37701aa2f4dc0220743de5d04abfb1cfe238db7668c24e2f"
+    },
+    {
+      "path": "docs/validation/m2-final-gate/m2-runtime/8.log",
+      "bytes": 716,
+      "sha256": "4e919fd2574662f6ecbb1bdbae24bdba99941b3372250fcad80e1ec302dfdd9e"
+    },
+    {
+      "path": "docs/validation/m2-final-gate/m2-runtime/9.log",
+      "bytes": 389,
+      "sha256": "87dc3dd96d31c08a311041fdb818911661935521292e2ca182164bcf79416cba"
+    },
+    {
+      "path": "docs/validation/m2-final-gate/release-core-build.log",
+      "bytes": 62,
+      "sha256": "92e06e4842c2fa9a2139c34892b15d58451290c4ed4fe3a60c23f8f551bc9ec1"
+    },
+    {
+      "path": "docs/validation/m2-final-gate/rust-security/0.log",
+      "bytes": 2431,
+      "sha256": "b358ba74c6bfe24e340176dfd98ab1787f52edcaec06aeb66bcb346cf6eb72cc"
+    },
+    {
+      "path": "docs/validation/m2-final-gate/rust-security/1.log",
+      "bytes": 28960,
+      "sha256": "5d8eedd8d2042f614e2199d859a914f47af0f8b3060f965c4fd49aa772d2291c"
+    },
+    {
+      "path": "docs/validation/m2-final-gate/rust-security/10.log",
+      "bytes": 1355,
+      "sha256": "5632a9318a29b379f95ff3ad4b02d27f57194ff5985ca7306202b8f06eb1ef42"
+    },
+    {
+      "path": "docs/validation/m2-final-gate/rust-security/11.log",
+      "bytes": 660,
+      "sha256": "53752273ec59e229aff0defb7ac4e987580260632e7f5112cc06cc4189490009"
+    },
+    {
+      "path": "docs/validation/m2-final-gate/rust-security/12.log",
+      "bytes": 5181,
+      "sha256": "3dc57927daba6ac1403d098ebe7bd04dbefd58c7fc694a865f62a2d8e1e03225"
+    },
+    {
+      "path": "docs/validation/m2-final-gate/rust-security/13.log",
+      "bytes": 886,
+      "sha256": "24a5e84797a77671d28854f48f0bf658eba128104bb9c352c9466845c5e98c2a"
+    },
+    {
+      "path": "docs/validation/m2-final-gate/rust-security/14.log",
+      "bytes": 2365,
+      "sha256": "6368a584a599155cf655b318d3ae2725b001e90478ffffb358db60d2e56ccd13"
+    },
+    {
+      "path": "docs/validation/m2-final-gate/rust-security/15.log",
+      "bytes": 1300,
+      "sha256": "c768c9c242791c8fb710e7ec27816f561dbd877c2409d05772e97b4004237f06"
+    },
+    {
+      "path": "docs/validation/m2-final-gate/rust-security/16.log",
+      "bytes": 969,
+      "sha256": "faa245cb285a517e4852e2d74eef5c618cd0f7357f49060840bd6d69ccd9401f"
+    },
+    {
+      "path": "docs/validation/m2-final-gate/rust-security/17.log",
+      "bytes": 803,
+      "sha256": "06a08d2f100918321bda71d6f0af0a4ac5736f54268fb028f0a4add6b88de6ca"
+    },
+    {
+      "path": "docs/validation/m2-final-gate/rust-security/18.log",
+      "bytes": 888,
+      "sha256": "dc0ec8e738ba184f9ffe6deeac0d8d9e41e1cedadcf96185e9bd839b4739fbd9"
+    },
+    {
+      "path": "docs/validation/m2-final-gate/rust-security/19.log",
+      "bytes": 678,
+      "sha256": "ae4d214f3949a2767502407319572f54c26059d7e0d88ec5e14073095634df07"
+    },
+    {
+      "path": "docs/validation/m2-final-gate/rust-security/2.log",
+      "bytes": 6248,
+      "sha256": "96d9b9cf277cefc77121e5e5464c0f46ee6f86aa0fdf59e07573baca1a6f6c97"
+    },
+    {
+      "path": "docs/validation/m2-final-gate/rust-security/3.log",
+      "bytes": 375,
+      "sha256": "14117cdbcaf2d73a6a3a01718a260754d6a730ffba1da50e78919b0a45604837"
+    },
+    {
+      "path": "docs/validation/m2-final-gate/rust-security/4.log",
+      "bytes": 1331,
+      "sha256": "346a0dbaedda08f4652cf234a1b5e21d3fe19307a249ebfa494338970647367d"
+    },
+    {
+      "path": "docs/validation/m2-final-gate/rust-security/5.log",
+      "bytes": 661,
+      "sha256": "40d24855a49ee94b6992078890781ad8d2bff8c243f7c071acc61dccde1afaae"
+    },
+    {
+      "path": "docs/validation/m2-final-gate/rust-security/6.log",
+      "bytes": 1314,
+      "sha256": "d0dc210a072de68d5855fe8aac9d07da46f1409fd4a2a2c9d09c41707674c04a"
+    },
+    {
+      "path": "docs/validation/m2-final-gate/rust-security/7.log",
+      "bytes": 1405,
+      "sha256": "13396f571e577b37ff591bf3b8a9c8e4d9d14939129501c63a048b05e3813e74"
+    },
+    {
+      "path": "docs/validation/m2-final-gate/rust-security/8.log",
+      "bytes": 1255,
+      "sha256": "1f36e2040eaf0890300a941695039d38400b47beae62e6aac670d80cf9eac01d"
+    },
+    {
+      "path": "docs/validation/m2-final-gate/rust-security/9.log",
+      "bytes": 25806,
+      "sha256": "4e33b04be2b03c428ba3de8c897f59094a2c70d36ae8ca1f731966ab20d06197"
+    },
+    {
+      "path": "docs/validation/m2-final-runtime/0.log",
+      "bytes": 383,
+      "sha256": "90eafdf192a9f90a2c24230426396cff4169dd47aff90018020110d5e4d6e2a8"
+    },
+    {
+      "path": "docs/validation/m2-final-runtime/1.log",
+      "bytes": 394,
+      "sha256": "d5fc5af4b2863c4ad8a67c65fa897e6cfbeede213342c3cf72c10b84e34faddf"
+    },
+    {
+      "path": "docs/validation/m2-final-runtime/2.log",
+      "bytes": 384,
+      "sha256": "28417f80a8dd423e82be7a92fe79ffad2b7efd4894a7fe9dfdf790e7eeee674d"
+    },
+    {
+      "path": "docs/validation/m2-final-runtime/3.log",
+      "bytes": 374,
+      "sha256": "8ff8c0fa5e2cb0b7a99f941ef7c5e494abc8fb178303385e6cbd35ed80e69d18"
+    },
+    {
+      "path": "docs/validation/m2-final-runtime/4.log",
+      "bytes": 498,
+      "sha256": "dc23022bf7ea1cb9a29731f564a804411874aaa92270619c7eee99be9dfe1045"
+    },
+    {
+      "path": "docs/validation/m2-final-runtime/5.log",
+      "bytes": 888,
+      "sha256": "f4be2145761a17ba22cf12939aa69e7ed6c7543c54ee9099d1405e4fb123080a"
+    },
+    {
+      "path": "docs/validation/m2-final-runtime/6.log",
+      "bytes": 503,
+      "sha256": "0b40d95fead2f0873b2c3b4eaa05dadd610f6e1567635028a5ebeae1213ce009"
+    },
+    {
+      "path": "docs/validation/m2-final-runtime/7.log",
+      "bytes": 635,
+      "sha256": "fd0cd761546a0b8e37701aa2f4dc0220743de5d04abfb1cfe238db7668c24e2f"
+    },
+    {
+      "path": "docs/validation/m2-final-runtime/8.log",
+      "bytes": 716,
+      "sha256": "4e919fd2574662f6ecbb1bdbae24bdba99941b3372250fcad80e1ec302dfdd9e"
+    },
+    {
+      "path": "docs/validation/m2-final-runtime/9.log",
+      "bytes": 389,
+      "sha256": "87dc3dd96d31c08a311041fdb818911661935521292e2ca182164bcf79416cba"
+    },
+    {
+      "path": "docs/validation/m2-pre-059/m2-final-gate/doctor-security/active.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "docs/validation/m2-pre-059/m2-final-gate/doctor-security/active.stdout.log",
+      "bytes": 3792,
+      "sha256": "42c25e97ab41a7ed74a95e3439f004748b20c40ed711300707036992b4bbf747"
+    },
+    {
+      "path": "docs/validation/m2-pre-059/m2-final-gate/doctor-security/build.stderr.log",
+      "bytes": 172,
+      "sha256": "e2c936c422a75a8232b186225de44dce8286739afbbbc4b0062b8067eb573154"
+    },
+    {
+      "path": "docs/validation/m2-pre-059/m2-final-gate/doctor-security/build.stdout.log",
+      "bytes": 200408,
+      "sha256": "956033039c4005a1d0b6db503b185833bd196e92876a230881b1699ca16d63ea"
+    },
+    {
+      "path": "docs/validation/m2-pre-059/m2-final-gate/doctor-security/cancelled-sighup.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "docs/validation/m2-pre-059/m2-final-gate/doctor-security/cancelled-sighup.stdout.log",
+      "bytes": 2869,
+      "sha256": "b00eef1dcd6ac7f2435e9df346a0fc5121895c8d847eb172fd051cacda826a7f"
+    },
+    {
+      "path": "docs/validation/m2-pre-059/m2-final-gate/doctor-security/cancelled-sigint.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "docs/validation/m2-pre-059/m2-final-gate/doctor-security/cancelled-sigint.stdout.log",
+      "bytes": 2868,
+      "sha256": "55b4df7dfe164ee42cd4d3d0d82eabc7d6ba92e9eaa27dc5315cb973bb6b5f3a"
+    },
+    {
+      "path": "docs/validation/m2-pre-059/m2-final-gate/doctor-security/cancelled-sigterm.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "docs/validation/m2-pre-059/m2-final-gate/doctor-security/cancelled-sigterm.stdout.log",
+      "bytes": 2869,
+      "sha256": "e9ebab8e1cf60e77a710ad87507a1faa9d8e6d52455bed253c10dc8729b32953"
+    },
+    {
+      "path": "docs/validation/m2-pre-059/m2-final-gate/doctor-security/ordinary.stderr.log",
+      "bytes": 246,
+      "sha256": "22222e3c75960009002900559332ee03c323465188599e87caa79ced8bb1f62c"
+    },
+    {
+      "path": "docs/validation/m2-pre-059/m2-final-gate/doctor-security/ordinary.stdout.log",
+      "bytes": 357,
+      "sha256": "113f3aab0d4a21e81a82dca2346ef4270f31cb71163be273cf32134fe35680bb"
+    },
+    {
+      "path": "docs/validation/m2-pre-059/m2-final-gate/doctor-security/stdout-deadline.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "docs/validation/m2-pre-059/m2-final-gate/doctor-security/stdout-sigint.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "docs/validation/m2-pre-059/m2-final-gate/full.log",
+      "bytes": 173572,
+      "sha256": "08d3693520d7dea63e031aa881595ca2df2f9fafd531453b2808e033dc6b7f0a"
+    },
+    {
+      "path": "docs/validation/m2-pre-059/m2-final-gate/m2-runtime/0.log",
+      "bytes": 383,
+      "sha256": "9bb627e3a23e10be30d618ae48dab28634abe81e0855626c4918f2db432e5d5d"
+    },
+    {
+      "path": "docs/validation/m2-pre-059/m2-final-gate/m2-runtime/1.log",
+      "bytes": 394,
+      "sha256": "647f9dc3e8568629e4a3db70d61defc4d4fa1d8d1a2c678d7e102e060226fcb0"
+    },
+    {
+      "path": "docs/validation/m2-pre-059/m2-final-gate/m2-runtime/2.log",
+      "bytes": 384,
+      "sha256": "0d47c8123c929bfe461cc1a411e8fc5b670e729c5235fe20c9534e0159737f02"
+    },
+    {
+      "path": "docs/validation/m2-pre-059/m2-final-gate/m2-runtime/3.log",
+      "bytes": 374,
+      "sha256": "f6f146c5f8f5201c10db7526654378c93ecc7aea31e799ac28f44e247b8fbd72"
+    },
+    {
+      "path": "docs/validation/m2-pre-059/m2-final-gate/m2-runtime/4.log",
+      "bytes": 498,
+      "sha256": "2e75b00a90b97aa4cdb3cc7bd0fc1a6cab385e1e63a1300ea7c90400ae87ee60"
+    },
+    {
+      "path": "docs/validation/m2-pre-059/m2-final-gate/m2-runtime/5.log",
+      "bytes": 888,
+      "sha256": "878c500521fc777c4e218ee2e5ca455d23d77e62b2c739e5c78b315a1947fa3b"
+    },
+    {
+      "path": "docs/validation/m2-pre-059/m2-final-gate/m2-runtime/6.log",
+      "bytes": 503,
+      "sha256": "150f70cdfb8f7b4e4c7978b8e65bc0833c63a9681043a14e42da91973da3f731"
+    },
+    {
+      "path": "docs/validation/m2-pre-059/m2-final-gate/m2-runtime/7.log",
+      "bytes": 635,
+      "sha256": "dd8dd1a349306494bcbcb0a6234bb1b86dca64088660022b7ce04886a3a2f31d"
+    },
+    {
+      "path": "docs/validation/m2-pre-059/m2-final-gate/m2-runtime/8.log",
+      "bytes": 716,
+      "sha256": "32def53d0fce0254a6d2efa680b8bd284dadfda2ca7969a743d7a5bff79901e5"
+    },
+    {
+      "path": "docs/validation/m2-pre-059/m2-final-gate/rust-security/0.log",
+      "bytes": 2431,
+      "sha256": "88c0030be687b06d550a9449484869aa9f7405961aeb34f392ee201453e6855a"
+    },
+    {
+      "path": "docs/validation/m2-pre-059/m2-final-gate/rust-security/1.log",
+      "bytes": 28960,
+      "sha256": "0beb1ed732956e472e4a9bfb88652481fd29d8927af1f305cb787db2e624dc7c"
+    },
+    {
+      "path": "docs/validation/m2-pre-059/m2-final-gate/rust-security/10.log",
+      "bytes": 1355,
+      "sha256": "f970fdd7333b62a7c7ad980b2a237c3973d0685d1283210dc02b331869d09f9a"
+    },
+    {
+      "path": "docs/validation/m2-pre-059/m2-final-gate/rust-security/11.log",
+      "bytes": 660,
+      "sha256": "ddeee85813e5817222e43e009eb5e3083a164ce3f2825fb50e353f948fcd3565"
+    },
+    {
+      "path": "docs/validation/m2-pre-059/m2-final-gate/rust-security/12.log",
+      "bytes": 5181,
+      "sha256": "11de24779eca539491a04c6ee3a1b4a34b36b5abc5895bf3af7f1b3817d75b99"
+    },
+    {
+      "path": "docs/validation/m2-pre-059/m2-final-gate/rust-security/13.log",
+      "bytes": 886,
+      "sha256": "bbb722030ce3a00b2c1033da6ea35aec04a5ec82115763c1e2c3c1f333d9353d"
+    },
+    {
+      "path": "docs/validation/m2-pre-059/m2-final-gate/rust-security/14.log",
+      "bytes": 2365,
+      "sha256": "82bee8c23589acd17f6e855bc47edcc085f5504a74ca62616c5f217b0ffae8f9"
+    },
+    {
+      "path": "docs/validation/m2-pre-059/m2-final-gate/rust-security/15.log",
+      "bytes": 1300,
+      "sha256": "431e869ea3b4be6f2e0b2be3cb212c61080c4ec0d9560cb0717dab60fd3b65ca"
+    },
+    {
+      "path": "docs/validation/m2-pre-059/m2-final-gate/rust-security/16.log",
+      "bytes": 969,
+      "sha256": "3d9e4314c8bdf585b0afbb1340c4803b40d62e38fcb5634ddf8d808ab8c476e5"
+    },
+    {
+      "path": "docs/validation/m2-pre-059/m2-final-gate/rust-security/17.log",
+      "bytes": 803,
+      "sha256": "b044de2f3691a94953ec1bf7bc4581f72d4f983d2610fff60dbfc33a6e272a63"
+    },
+    {
+      "path": "docs/validation/m2-pre-059/m2-final-gate/rust-security/18.log",
+      "bytes": 888,
+      "sha256": "49afc11ffa4acab3698eb9c1f0441ea08872d0cf54572d7a7ce8d1d2c44e3540"
+    },
+    {
+      "path": "docs/validation/m2-pre-059/m2-final-gate/rust-security/19.log",
+      "bytes": 678,
+      "sha256": "55ce5169ca384d1d857735ed1705fa74570e3328634d5701f5dff01fdca50e39"
+    },
+    {
+      "path": "docs/validation/m2-pre-059/m2-final-gate/rust-security/2.log",
+      "bytes": 6248,
+      "sha256": "007924e3ad22b95bbaea3e815559824c753ddb949db670aaf5e3d2f77b4f9c14"
+    },
+    {
+      "path": "docs/validation/m2-pre-059/m2-final-gate/rust-security/3.log",
+      "bytes": 375,
+      "sha256": "f3b9157f8461e95f283d9d771fa307feaf102e6577fab9a2e947a8272acda905"
+    },
+    {
+      "path": "docs/validation/m2-pre-059/m2-final-gate/rust-security/4.log",
+      "bytes": 1331,
+      "sha256": "daddd046e41a6697edb5f0a49010bd5cae8e7f71c5524bfd127bcc70cbd09f65"
+    },
+    {
+      "path": "docs/validation/m2-pre-059/m2-final-gate/rust-security/5.log",
+      "bytes": 661,
+      "sha256": "0b453de44b7adfb10237931a71280054b55cbe95f52ed15a68b2176cb869e02c"
+    },
+    {
+      "path": "docs/validation/m2-pre-059/m2-final-gate/rust-security/6.log",
+      "bytes": 1314,
+      "sha256": "54beff85473e23b345aae73a2f4af8a096a943b789ac146c9473ecdaa59d91bb"
+    },
+    {
+      "path": "docs/validation/m2-pre-059/m2-final-gate/rust-security/7.log",
+      "bytes": 1405,
+      "sha256": "bc38055ce9dd0e65fe8138c89e12536d0d3941a5e4a5b2229799ab9283556424"
+    },
+    {
+      "path": "docs/validation/m2-pre-059/m2-final-gate/rust-security/8.log",
+      "bytes": 1255,
+      "sha256": "3d5cc1a859c4e438d60c8383cb7fde362d2fa4c48e11edff4a3c96affa5db2c6"
+    },
+    {
+      "path": "docs/validation/m2-pre-059/m2-final-gate/rust-security/9.log",
+      "bytes": 25806,
+      "sha256": "24f82ccf84bd8515158e08483fd9ec5b99359fe62bd6b8956e05f4ca25951afd"
+    },
+    {
+      "path": "docs/validation/m2-pre-059/m2-final-runtime/0.log",
+      "bytes": 383,
+      "sha256": "9bb627e3a23e10be30d618ae48dab28634abe81e0855626c4918f2db432e5d5d"
+    },
+    {
+      "path": "docs/validation/m2-pre-059/m2-final-runtime/1.log",
+      "bytes": 394,
+      "sha256": "647f9dc3e8568629e4a3db70d61defc4d4fa1d8d1a2c678d7e102e060226fcb0"
+    },
+    {
+      "path": "docs/validation/m2-pre-059/m2-final-runtime/2.log",
+      "bytes": 384,
+      "sha256": "0d47c8123c929bfe461cc1a411e8fc5b670e729c5235fe20c9534e0159737f02"
+    },
+    {
+      "path": "docs/validation/m2-pre-059/m2-final-runtime/3.log",
+      "bytes": 374,
+      "sha256": "f6f146c5f8f5201c10db7526654378c93ecc7aea31e799ac28f44e247b8fbd72"
+    },
+    {
+      "path": "docs/validation/m2-pre-059/m2-final-runtime/4.log",
+      "bytes": 498,
+      "sha256": "2e75b00a90b97aa4cdb3cc7bd0fc1a6cab385e1e63a1300ea7c90400ae87ee60"
+    },
+    {
+      "path": "docs/validation/m2-pre-059/m2-final-runtime/5.log",
+      "bytes": 888,
+      "sha256": "878c500521fc777c4e218ee2e5ca455d23d77e62b2c739e5c78b315a1947fa3b"
+    },
+    {
+      "path": "docs/validation/m2-pre-059/m2-final-runtime/6.log",
+      "bytes": 503,
+      "sha256": "150f70cdfb8f7b4e4c7978b8e65bc0833c63a9681043a14e42da91973da3f731"
+    },
+    {
+      "path": "docs/validation/m2-pre-059/m2-final-runtime/7.log",
+      "bytes": 635,
+      "sha256": "dd8dd1a349306494bcbcb0a6234bb1b86dca64088660022b7ce04886a3a2f31d"
+    },
+    {
+      "path": "docs/validation/m2-pre-059/m2-final-runtime/8.log",
+      "bytes": 716,
+      "sha256": "32def53d0fce0254a6d2efa680b8bd284dadfda2ca7969a743d7a5bff79901e5"
+    }
+  ],
+  "count": 121,
+  "total_bytes": 969232
+}

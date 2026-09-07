@@ -1,0 +1,9 @@
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.12s
+     Running tests/inspection_runtime.rs (target/debug/deps/inspection_runtime-836bf750ab4f64c1)
+
+running 1 test
+test check_reports_success_and_borrow_errors_with_live_log_resources ... M1_CHECK_RECEIPT {"cache_scope":"private","cleanup":true,"configuration_fingerprint":"sha256:84fb1e2dac1829773cd1c3fa00b757db03c33f78c2de9a49ab836d56b019183e","error_codes":["E0502","E0106"],"execution_fingerprints":["sha256:f373db826809e77cf91a8ebd1da89c63f05bc02fe4d20ebdb42c3de7be69e39f","sha256:10271fc8f8148366fbbb37574279daeecaeb234966ddf432bfee942ddeaf65cd","sha256:bec501c606239a2f382bd1c9814ee5d8981bcc65b35913ee26b1269662d39818"],"failed":["failed","failed"],"frozen_missing_and_stale_locks_blocked":true,"logs_verified":6,"only_expected_source_mutations":true,"passed":["passed","passed"],"resource_reads_verified":7,"revoked_reference_denied":true,"source_fingerprints":["sha256:47e6d97d971219870c975ad5ede806e41a80b125cbba330d601b6f8f90840383","sha256:d57361d021e9cd134c7aecd77945dbbf40c6647db742c9db0f03d44b4ecfa760","sha256:9e26b11c7e89ce29c7cb22d1e3df2818e0a80b14b60d6466040288e0f15a3094"],"ttl_ms":0,"validation_complete":true,"wrong_owner_denied":true}
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 27 filtered out; finished in 19.67s
+

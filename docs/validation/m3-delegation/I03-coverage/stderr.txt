@@ -1,0 +1,11 @@
+2026-09-06T03:18:23.440148Z ERROR codex_core::tools::router: error=apply_patch verification failed: Failed to find expected lines in /Users/cburgosro/Projects/rust-mcp/crates/execution-adapter/src/rust_gateway.rs:
+        junit: &super::mutation_gateway::MutationVolume,
+        junit_writable: bool,
+        budget: &WorkBudget<'_>,
+    ) -> Result<(Capture, Option<bool>), ExecutionError> {
+2026-09-06T03:22:00.098210Z ERROR codex_core::tools::router: error=apply_patch verification failed: invalid hunk at line 2, Update file hunk for path '/Users/cburgosro/Projects/rust-mcp/src/placeholder' is empty
+2026-09-06T03:23:42.454623Z ERROR codex_core::tools::router: error=apply_patch verification failed: Failed to find expected lines in /Users/cburgosro/Projects/rust-mcp/crates/execution-adapter/src/rust_gateway.rs:
+            Self::Run(RustCommand::CompilerVersion | RustCommand::CargoVersion | RustCommand::LlvmCovVersion) => {
+2026-09-06T03:24:53.718384Z ERROR codex_core::tools::router: error=apply_patch verification failed: invalid patch: The last line of the patch must be '*** End Patch'
+2026-09-06T03:25:24.516589Z ERROR codex_core::tools::router: error=apply_patch verification failed: Failed to find expected lines in /Users/cburgosro/Projects/rust-mcp/crates/application/tests/coverage.rs:
+    coverage::{CoverageOptions, CoverageSelection, CoverageSummary}, ExecutionFingerprint,
