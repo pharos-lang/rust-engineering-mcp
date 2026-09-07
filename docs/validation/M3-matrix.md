@@ -53,6 +53,15 @@ pinneado, que es pre-existente y está documentado en
   fallar de forma intermitente en CI y en local, y su verde no prueba ausencia
   del defecto. Corrección propuesta como corte propio.
   [Detalle](M3-07.md#límites-y-riesgos-residuales)
+- **`closed_output_stream_returns_one_without_panicking` en Linux (hallazgo W7,
+  causa raíz no confirmada):** una observación única de fallo en el check
+  obligatorio `portable / x86_64-unknown-linux-gnu`, con el producto saliendo 0
+  en vez de 1. Probado a nivel de compilación que el cambio de W7 no puede
+  alcanzar ese binario; no reproducido en 40 corridas en macOS; la hipótesis de
+  herencia de descriptores quedó refutada (0/400 con y sin forks concurrentes).
+  No se corrigió nada, porque no hay causa raíz confirmada. Consecuencia visible
+  para el owner: queda trabajo abierto, con reproducción en Linux pendiente.
+  [Detalle](M3-07.md#límites-y-riesgos-residuales)
 - **`LiveJobAuthority::revalidate` bajo contención:** accepted residual. Puede
   responder `authorized` mientras el registro está contendiendo; es sólido solo
   mientras se mantenga la regla de un único permit y no está afirmado por una

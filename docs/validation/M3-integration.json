@@ -1100,6 +1100,20 @@
     "Dismiss the 31 hard-coded-cryptographic-value alerts as false positives in the Security tab, citing the assessment in M3-07.md.",
     "Schedule renaming the ownership label away from the word 'nonce' in a later maintenance cut, not this one: the rename touches rust_applied.rs, mutation_gateway.rs, rust_gateway.rs, resolution_gateway.rs and coverage_gateway.rs, which are qualified execution paths, so it needs its own cut with its own gate run."
    ]
+  },
+  "second_finding": {
+   "id": "W7-02",
+   "title": "closed_output_stream_returns_one_without_panicking failed once on Linux CI",
+   "root_cause": "NOT CONFIRMED",
+   "observation": "After pushing the requalification, portable / x86_64-unknown-linux-gnu failed at crates/mcp-server/tests/cli.rs:131 with left: Some(0), right: Some(1) on the --help case: the product exited 0, meaning its write to the supposedly closed stdout succeeded.",
+   "not_caused_by_w7": {
+    "proof": "A compile_error! placed inside execution-adapter's #[cfg(test)] mod tests does not fire when building rust-engineering-mcp --test cli (0 matches) but does fire when building execution-adapter's own test target (2 matches). That module is never compiled into the cli test binary or the product binary it exercises, so W7's one-line change cannot reach it.",
+    "method_rejected": "Comparing SHA-256 of the built binary was tried and discarded: two builds of identical source produce different hashes, so the comparison proves nothing."
+   },
+   "not_reproduced": "40 runs of the whole cli suite on macOS: 0 failures.",
+   "hypothesis_refuted": "Tested whether a concurrent fork keeps the pipe read end alive long enough for the write to succeed: 0/400 quiescent and 0/400 with eight concurrently forking threads. Not the mechanism, at least on macOS.",
+   "action_taken": "None. Fixing on an unconfirmed hypothesis would have changed qualified bytes without grounds. The oracle is correct as written.",
+   "open_work": "Needs an S03-style reproduction loop on Linux before the test is touched."
   }
  }
 }
