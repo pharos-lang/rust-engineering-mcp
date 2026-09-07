@@ -91,6 +91,51 @@ fixtures, Docker ni toolchain; no existe catálogo oficial ni clave Ed25519 de p
 | M1-16 | Experimentos acotados | M1-01..15 | Done | [Piloto v2](validation/M1-16.md): techo12/12 en ambos brazos, sin equivalencia/causalidad y con mayor costo B. [Benchmark retrieval](research/m1-16/benchmark/REPORT.md): una ejecución descriptiva8queries/15crates, sin claim general de calidad, multilingüe o utilidad de agente. |
 | M1-17 | Gate 0.1.0 | Todos | Done | [Full v2 23/23](validation/m1-17-final-gate-v2.json), archive/smoke, Inspector 2.5.0, [stock Codex model-directed](validation/M1-17-codex-model.md), revisión Opus 5 sin P0/P1, PRs protegidos, CI final, tag, attestations y [release pública](validation/m1-17-public-release.json) pasaron. |
 
+## M2 — Safe Mutation / 0.2.x
+
+Done con calificación conjunta y sin release nueva: 18 tools, los trece contratos
+M1 intactos, full posterior a ADR-059, cliente stock y revisiones Accepted.
+[Cierre, límites e integración](validation/M2-07.md). Integrado localmente con
+merge no-ff `7554bcc` y [smoke y hashes](validation/M2-local-integration.json)
+aprobados; llegó a `main` dentro del mismo PR #14 que M3. El detalle histórico
+por corte permanece más abajo en este mismo tablero.
+
+| ID | Corte | Estado | Evidencia / límite actual |
+| --- | --- | --- | --- |
+| M2-01 | Lints con preview/commit/receipt y Scratch | Done (histórico) | [Core 14/14](validation/M2-02-core-gate.json), [runtime](validation/M2-02-runtime-gate.json), [revisión](reviews/M2-01-review.md). |
+| M2-02 | `rust.fmt.apply` y writer nativo | Done (histórico) | [fmt runtime 2/2](validation/M2-02-runtime-gate.json), [contrato Sonnet](reviews/M2-02-contract-review.md), [writer Opus](reviews/M2-02-native-review.md). |
+| M2-03 | `rust.fix.apply` con perfil dedicado | Done | [ADR-056](adr/ADR-056-cargo-fix-isolated-loopback.md) y [máscara socket real](validation/M2-fix-socket-mask.json); no amplía el seccomp M1. |
+| M2-04/05 | `rust.dependency.add` / `.remove` | Done | [ADR-055](adr/ADR-055-offline-cargo-data-and-lock-policy.md), [ADR-057](adr/ADR-057-typed-manifest-and-dependency-operations.md), [runtime 4/4](validation/M2-04-runtime-gate.json); vendor optativo y `preserve_presence`. |
+| M2-06 | `rust.manifest.patch` tipado | Done | Cuatro familias tipadas sobre el editor LF/CRLF; runtime anterior. [Matriz](validation/M2-matrix.md). |
+| M2-07 | Cierre conjunto | Done | [Full 24/24](validation/M2-full-gate.json) sobre 574 inputs con 836 resultados Rust y 1 doctest; [runtime 17/17 en 10 selecciones](validation/M2-final-runtime.json); [cliente PASS](validation/M2-clients.json). [Cierre](validation/M2-07.md) · [Trazabilidad](validation/M2-traceability.md). |
+
+| Decisión / entregable | Estado | Evidencia |
+| --- | --- | --- |
+| D02 — edición local coordinada | Done (decided) | [ADR-050](adr/ADR-050-local-coordinated-mutation.md); el No-go histórico sigue válido para exclusión OS fuerte, que el producto no anuncia. |
+| D05 — datos Cargo offline y política de lock | Done (decided) | [ADR-055](adr/ADR-055-offline-cargo-data-and-lock-policy.md); los probes son evidencia de decisión, no implementación. |
+| M2-03 — perfil dedicado de Cargo fix | Done (decided) | [ADR-056](adr/ADR-056-cargo-fix-isolated-loopback.md), aceptado tras D06 (121 observaciones). |
+| ADR-059 — cuota RAM del cliente stock | Done (decided) | [Recheck Accepted](reviews/M2-059-review.md), [full posterior](validation/M2-full-gate.json) y [cliente PASS](validation/M2-clients.json). |
+
+## M3 — Quality
+
+| ID | Corte | Estado | Evidencia / límite actual |
+| --- | --- | --- | --- |
+| M3-01 | `rust.test.nextest` síncrono, gateway, JUnit y artifacts privados | Done (qualified) | [M3-01](validation/M3-01.md): runtime 19/19 dentro de M3-runtime 62/62 y security 20/20; Tasks integrado por M3-02. |
+| M3-02 | MCP Tasks y lifecycle job | Done (qualified) | Docker lifecycle 4/4 (D06-T04/T05/T08/T10), budgets con 30 muestras frías y 30 calientes por operación, five-version matrix, Inspector Tasks y Codex fallback; anuncio ON con declaración mutua. [M3-02](validation/M3-02.md). |
+| M3-03 | Coverage | Done (qualified) | ADR-065 enmendado; Docker coverage 8/8 dentro de M3 runtime 62/62, rust-security 20/20, counts/formatos/dedupe/zero-denominator fijados: [M3-03](validation/M3-03.md). |
+| M3-04 | SemVer baseline | Done (qualified) | Docker 18/18; exits y parser real fijados, roots inmutables, artifacts Stage 1/fallback. [M3-04](validation/M3-04.md). |
+| M3-05 | Mutation testing | Done (qualified) | Docker 10/10; exits, outcomes/listas/bundle/identidad fijados; containment, cap y cleanup verificados. [M3-05](validation/M3-05.md). |
+| M3-06 | Integración y handoff | Done (qualified) para el alcance local | Core 14/14 y full **25/25** (`audit-data` incluido) sobre 810 inputs; G6 con recibo propio 10/10; aceptación de ADR-064/065 y re-reviews registrados. [M3-07](validation/M3-07.md) · [Rollback](validation/M3-06-rollback.md). |
+
+| Decisión / entregable | Estado | Evidencia |
+| --- | --- | --- |
+| D06 — MCP Tasks | Done (decided) | [ADR-060](adr/ADR-060-bounded-job-execution-and-mcp-tasks.md) |
+| D17 — private quality artifact store | Done (decided) | [ADR-061](adr/ADR-061-private-quality-artifact-store.md) |
+| D18 — coverage and semver baselines | Done (decided) | [ADR-062](adr/ADR-062-coverage-accounting-and-semver-baselines.md) |
+| M3 guest provisioning | Done (decided) | [ADR-063](adr/ADR-063-m3-guest-plugin-provisioning.md), [receipt](validation/M3-provisioning.json) |
+| ADR-064 — perfil seccomp de los jobs de calidad | Accepted 2026-09-06 por el orquestador M3 | [ADR-064](adr/ADR-064-quality-job-seccomp-profile.md): una sola regla sobre el perfil base (`socketpair` AF_UNIX anónimo con flags enmascarados), perfil aplicado verificado contra el declarado por fase; [runtime 62/62](validation/M3-runtime.json), [rust-security 20/20](validation/M3-rust-security.json) y [V-SEC](validation/m3-delegation/V-SEC/last-message.md). |
+| ADR-065 — volumen de target para coverage (enmendado) | Accepted 2026-09-06 por el orquestador M3 | [ADR-065](adr/ADR-065-coverage-target-volume.md): tmpfs por job, read-write solo en `CoverageRun`/`CoverageReport`, keeper read-only, ausente de todo exporter y destruido en cleanup; [runtime 62/62](validation/M3-runtime.json), [rust-security 20/20](validation/M3-rust-security.json), [V-SEC](validation/m3-delegation/V-SEC/last-message.md) y [revisión final](validation/m3-delegation/VF-opus-final/last-message.md). |
+
 ## Backlog inmediato
 
 M0/M1 conservan Done. La [baseline live](roadmap/baseline-2026-09-05.md) distingue
@@ -271,23 +316,6 @@ El árbol de código coincide con el full14/14; registro final solo documental.
 
 M1-13 integrada08e41f3/392a8f2; smoke2 inspect/37 protocolo y296 hashes verificados.
 
-## M3 — Quality
-
-| ID | Corte | Estado | Evidencia / límite actual |
-| --- | --- | --- | --- |
-| M3-01 | `rust.test.nextest` síncrono, gateway, JUnit y artifacts privados | Done (qualified) | [M3-01](validation/M3-01.md): runtime 19/19 dentro de M3-runtime 62/62 y security 20/20; Tasks integrado por M3-02. |
-| M3-02 | MCP Tasks y lifecycle job | Done (qualified) | Docker lifecycle 4/4, budgets 30/30, five-version matrix, Inspector Tasks y Codex fallback; anuncio ON con declaración mutua. [M3-02](validation/M3-02.md). |
-| M3-03 | Coverage | Done (qualified) | ADR-065 enmendado; Docker coverage 8/8 dentro de M3 runtime 62/62, rust-security 20/20, counts/formatos/dedupe/zero-denominator fijados: [M3-03](validation/M3-03.md). |
-| M3-04 | SemVer baseline | Done (qualified) | Docker 18/18; exits y parser real fijados, roots inmutables, artifacts Stage 1/fallback. [M3-04](validation/M3-04.md). |
-| M3-05 | Mutation testing | Done (qualified) | Docker 10/10; exits, outcomes/listas/bundle/identidad fijados; containment, cap y cleanup verificados. [M3-05](validation/M3-05.md). |
-| M3-06 | Integración y handoff | Done (qualified) para el alcance local | Core 14/14 y full **25/25** (`audit-data` incluido); G6 con recibo propio 10/10; aceptación de ADR-064/065 y re-reviews registrados. [M3-07](validation/M3-07.md) · [Rollback](validation/M3-06-rollback.md). |
-
-| Decisión / entregable | Estado | Evidencia |
-| --- | --- | --- |
-| D06 — MCP Tasks | Done (decided) | [ADR-060](adr/ADR-060-bounded-job-execution-and-mcp-tasks.md) |
-| D17 — private quality artifact store | Done (decided) | [ADR-061](adr/ADR-061-private-quality-artifact-store.md) |
-| D18 — coverage and semver baselines | Done (decided) | [ADR-062](adr/ADR-062-coverage-accounting-and-semver-baselines.md) |
-| M3 guest provisioning | Done (decided) | [ADR-063](adr/ADR-063-m3-guest-plugin-provisioning.md), [receipt](validation/M3-provisioning.json) |
 M1-14 implementada con evidencia; M1 aún no cerrado.
 
 M1-14 integrada a72216d/20689cf; main limpio para smoke3 doctor +9 capabilities
