@@ -13,7 +13,7 @@ conteos, códigos de salida y hashes están en
 **Resultado: 10/10 selecciones, exit 0, exactamente un caso ejecutado por
 selección.** Seis son nuevas de W6 y cuatro reutilizan oráculos existentes que ya
 prueban su cláusula. Las diez son no-Docker y forman parte del `cargo test
---workspace` que el core y el full ejecutaron (1,072 pruebas, 0 fallos).
+--workspace` que el core y el full ejecutaron (1,105 pruebas, 0 fallos).
 
 ## Qué introduce M3 en disco
 

@@ -1,7 +1,7 @@
 {
   "schema": "rust-mcp-m3-01-rust-security-v1",
   "status": "passed",
-  "started_at": "2026-09-07T03:04:04.008012Z",
+  "started_at": "2026-09-06T19:57:54.976648Z",
   "image_id": "sha256:384a1742ecc53cdd3a9c0bf36c6f8b66db73ddd118aeeae6e55654ea998ae36a",
   "step_timeout_s": 900,
   "steps": [
@@ -26,8 +26,8 @@
       "exit_code": 0,
       "timed_out": false,
       "expected_executed": 1,
-      "seconds": 6.222,
-      "log_sha256": "860d1265cce7946de722d97e31dd3430954589a064354d77c28d49b6335085c0"
+      "seconds": 7.346,
+      "log_sha256": "4aa0880057932d6ed6e88c87d2acf55d0ec6a0eede9696600038fb9e92a4dd90"
     },
     {
       "selection": "rust_calibration::tests::observed_descendants_are_cleaned_on_timeout_cancel_and_overflow",
@@ -50,8 +50,8 @@
       "exit_code": 0,
       "timed_out": false,
       "expected_executed": 1,
-      "seconds": 14.877,
-      "log_sha256": "5b9d083e2edc84b28df031e9cef593aaddf1421c4711fc64e661483fefb666ef"
+      "seconds": 14.709,
+      "log_sha256": "70a5c42d2191a9304bacb1b1d577f43aa47c791ae53aee01787b2312a9c8d805"
     },
     {
       "selection": "toolchain_inspect_observes_installed_runtime_with_shared_calibration",
@@ -75,8 +75,8 @@
       "exit_code": 0,
       "timed_out": false,
       "expected_executed": 1,
-      "seconds": 18.616,
-      "log_sha256": "c5d052e4fa18d3771452dd0268e3ef25f4d74946cc8ea6b816922ee8d1cd286f"
+      "seconds": 18.229,
+      "log_sha256": "0d21d8a8fa38d1e7516218a9a5e624afef6ea33ca79ee4027665472f683f897d"
     },
     {
       "selection": "eof_and_cancellation_during_calibration_join_workers_and_leave_no_owned_objects",
@@ -100,8 +100,8 @@
       "exit_code": 0,
       "timed_out": false,
       "expected_executed": 1,
-      "seconds": 4.001,
-      "log_sha256": "47b288b1a117922f4f7498d7de865ad744b22aaed92ce9ca08d9222e2edf220f"
+      "seconds": 3.898,
+      "log_sha256": "c0f6291d714b9b2287df11fb572d05e96b95b52d35ca5006d1570474660ac06e"
     },
     {
       "selection": "check_reports_success_and_borrow_errors_with_live_log_resources",
@@ -125,8 +125,8 @@
       "exit_code": 0,
       "timed_out": false,
       "expected_executed": 1,
-      "seconds": 20.331,
-      "log_sha256": "01ed02891d7f9e334ef703f8e7d9e972e56897639c698b2b2242b2a2fd0f0226"
+      "seconds": 20.018,
+      "log_sha256": "f229bc7c868638f7215f5d79be318d99c46e95ecf60d73fe88fcd9809911be6e"
     },
     {
       "selection": "check_cancellation_and_eof_join_active_cargo_jobs",
@@ -150,8 +150,8 @@
       "exit_code": 0,
       "timed_out": false,
       "expected_executed": 1,
-      "seconds": 18.221,
-      "log_sha256": "9f8e6e96158e0b96949b390384e0418e204e21c1a685aa214bb353ba26687204"
+      "seconds": 17.965,
+      "log_sha256": "9ed66a9de44b8e5d268da01d6b253ce117771877a600b67bc728355dd0d19ecc"
     },
     {
       "selection": "format_reports_workspace_diffs_without_source_writes",
@@ -175,8 +175,8 @@
       "exit_code": 0,
       "timed_out": false,
       "expected_executed": 1,
-      "seconds": 21.56,
-      "log_sha256": "f953de9021349febf1272f5a55b2ae6fb49c9a334c50e003069ccf651d5cf198"
+      "seconds": 20.964,
+      "log_sha256": "f3e621987e78568121bfcc69c1cfee8825a90df8cc5cc95b3e54f78f9caa4937"
     },
     {
       "selection": "rust_calibration::tests::actual_clippy_build_script_and_proc_macro_containment",
@@ -199,8 +199,8 @@
       "exit_code": 0,
       "timed_out": false,
       "expected_executed": 1,
-      "seconds": 15.999,
-      "log_sha256": "8ef93cfcf05b7e03793c11f055719e0c79e1ea20b4fc86361ccfba6e59b5fd5f"
+      "seconds": 15.697,
+      "log_sha256": "928f5eb006488040384bfb2c78822195b86e258f8103177bf715394e7ac4d8b2"
     },
     {
       "selection": "clippy_profiles_report_findings_and_verified_log_resources",
@@ -224,8 +224,8 @@
       "exit_code": 0,
       "timed_out": false,
       "expected_executed": 1,
-      "seconds": 21.28,
-      "log_sha256": "e24d1cadd9aeeec14ffb5db821badb97bd6ccdf8262e37b4f98f0177dfc24af5"
+      "seconds": 20.306,
+      "log_sha256": "2e0ab6d49c235bbbd85bc6a15a5979962ded624891c4c276ee6afb18de52782c"
     },
     {
       "selection": "rust_gateway::test_runtime::actual_test_runtime_containment_and_descendant_cleanup",
@@ -248,8 +248,8 @@
       "exit_code": 0,
       "timed_out": false,
       "expected_executed": 1,
-      "seconds": 42.711,
-      "log_sha256": "077112c02ccb101873cb8924ad5f6904cffb2f231add14deccf915634399f3b6"
+      "seconds": 42.297,
+      "log_sha256": "379a260bd060e998020d5b53d73538ccda1aece2de38dd5fac8d95350a88c77b"
     },
     {
       "selection": "test_reports_results_selections_and_verified_harness_logs",
@@ -273,8 +273,8 @@
       "exit_code": 0,
       "timed_out": false,
       "expected_executed": 1,
-      "seconds": 39.252,
-      "log_sha256": "d071f598f5c12187e2f7f989c1d9b5ffa944ca66cc68dba28d97b06034e4b152"
+      "seconds": 38.508,
+      "log_sha256": "792366972fdd074fcd7a1e3010acd56cb78f0c1e6c8eb6590d8909c6a706aa02"
     },
     {
       "selection": "test_cancellation_and_eof_join_active_test_binaries",
@@ -298,8 +298,8 @@
       "exit_code": 0,
       "timed_out": false,
       "expected_executed": 1,
-      "seconds": 17.89,
-      "log_sha256": "d042a74df3e8d5ba653528365470276a857350b2fd27243676c1cb666133b952"
+      "seconds": 18.145,
+      "log_sha256": "312f7bf2417889c79060a0373789947fc2945fb51c8590e983e843e06307e54a"
     },
     {
       "selection": "rust_gateway::test_runtime::actual_proc_macro_forgery_cannot_hide_later_cargo_failure",
@@ -322,8 +322,8 @@
       "exit_code": 0,
       "timed_out": false,
       "expected_executed": 1,
-      "seconds": 14.425,
-      "log_sha256": "c6408d205527875f2387b3d4aafbb870adeff146076817a4101bf369ba95cf5b"
+      "seconds": 14.806,
+      "log_sha256": "870441993102f5e01b313069fa59288d45a9e5d823d5d4b04e04a90180e28e2d"
     },
     {
       "selection": "audit_runtime::audit_real_rsa_and_lock_generations_are_captured_without_building",
@@ -347,8 +347,8 @@
       "exit_code": 0,
       "timed_out": false,
       "expected_executed": 1,
-      "seconds": 18.028,
-      "log_sha256": "041eb99710e11424d4e0f2dc64c6803777ee7837be6df00d37b5d1cf340b18d2"
+      "seconds": 18.468,
+      "log_sha256": "9a693846c8f473dada0ef8e0056184c083d0ac42b1d03adfa7f4db8a52d4d312"
     },
     {
       "selection": "audit_runtime::audit_snapshot_freshness_and_advisory_classification_are_distinct",
@@ -372,8 +372,8 @@
       "exit_code": 0,
       "timed_out": false,
       "expected_executed": 1,
-      "seconds": 88.524,
-      "log_sha256": "a2d12075130b60fad302ae30ad2a2f410c371bfa09b78a5eee0b1559708cacd2"
+      "seconds": 88.499,
+      "log_sha256": "25c7d72403cda2cc5aabf254c6993549e5c8a49ecf0901b2a7a6609674e89429"
     },
     {
       "selection": "audit_runtime::audit_missing_integrity_path_and_symlink_fail_closed",
@@ -397,8 +397,8 @@
       "exit_code": 0,
       "timed_out": false,
       "expected_executed": 1,
-      "seconds": 74.346,
-      "log_sha256": "fa31f26f53cf99924e8174a10e8690c771bf46861c373d4348c76481dd5ed9ba"
+      "seconds": 74.359,
+      "log_sha256": "0df84db9d4d2571c90c6523e30c81a6c8db0b9b87968abf5210fa7a1e4177b31"
     },
     {
       "selection": "explain_runtime::compiler_explanation_requires_no_project_and_preserves_actual_evidence",
@@ -422,8 +422,8 @@
       "exit_code": 0,
       "timed_out": false,
       "expected_executed": 1,
-      "seconds": 17.216,
-      "log_sha256": "89c4c6770e82099cca89d626fe87759470a5f4ea5d9abc38c122b592ce3dd73b"
+      "seconds": 17.109,
+      "log_sha256": "f69506953bb2beabca9b79b3f22899ee868c1d1b4ab2ca1e7aadd381b1b2ed34"
     },
     {
       "selection": "quality_runtime::quality_fast_retains_format_and_strict_clippy_failures_and_readonly_source",
@@ -447,8 +447,8 @@
       "exit_code": 0,
       "timed_out": false,
       "expected_executed": 1,
-      "seconds": 20.527,
-      "log_sha256": "b12d0f51bdc1e77c9cd4c8dfab0111ae5bf7b44e63b07001cad5a5b614fe470d"
+      "seconds": 20.257,
+      "log_sha256": "96f7dcf38eebd8686ac2c5d567a7defafa3de641a8441c98470415d9c481ae44"
     },
     {
       "selection": "quality_runtime::quality_standard_distinguishes_pass_test_failure_and_unavailable_audit",
@@ -472,8 +472,8 @@
       "exit_code": 0,
       "timed_out": false,
       "expected_executed": 1,
-      "seconds": 40.463,
-      "log_sha256": "3c59c6ec497772774a0363e56cb2943f64663d7dcc58c9b95b58aa4205b90d2a"
+      "seconds": 41.071,
+      "log_sha256": "062d2f492c9aa54979ad3fac6f826f83b70a51991fa03c82e4823560bd7b2459"
     },
     {
       "selection": "quality_runtime::quality_cancellation_and_eof_join_the_active_test_stage",
@@ -497,8 +497,8 @@
       "exit_code": 0,
       "timed_out": false,
       "expected_executed": 1,
-      "seconds": 23.745,
-      "log_sha256": "63fb3f317e84dc23b2ac6eb215b20326de36a220d6fe8ad3542e096e852a1c9b"
+      "seconds": 24.13,
+      "log_sha256": "9c1f33b3de474e18b66583d9e937f713b6b388feffd3fd6282e3eeebfc70219f"
     }
   ],
   "sources": [
@@ -508,11 +508,11 @@
     },
     {
       "path": "crates/execution-adapter/src/rust_gateway.rs",
-      "sha256": "5197f62f27c344215092e2bc68e2ef745696121346fa779b99020bcfa6842e85"
+      "sha256": "5da3c6da6026438915a629518948b1cae4a4554726fe16f6fe6a84cf44dfd734"
     },
     {
       "path": "crates/execution-adapter/src/rust_applied.rs",
-      "sha256": "0d213929c51a6da9e10fcc778340ac1de8e6b232b623f583be9ebf208dce6a51"
+      "sha256": "7294e90596329a8017ac79800215374497d94444a90a8b38bb8a63ddfa48f4ff"
     },
     {
       "path": "crates/execution-adapter/src/toolchain_metadata.rs",
@@ -543,5 +543,5 @@
       "sha256": "3252effc88fb3f8c31fec6f4ea146e057f6ef1c19252f7c554640b35c0d4ab77"
     }
   ],
-  "finished_at": "2026-09-07T03:13:02.253847Z"
+  "finished_at": "2026-09-06T20:06:51.782202Z"
 }

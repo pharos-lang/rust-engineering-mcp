@@ -926,7 +926,7 @@ mod tests {
             );
         }
         for (username, hostname) in [
-            ("cburgosro", "sandbox"),
+            ("host-user", "sandbox"),
             ("nobody", "some-macbook.local"),
             ("root", "sandbox"),
             ("nobody", "SANDBOX"),

@@ -24,7 +24,7 @@ Fuente principal: [`spec/rust-engineering-mcp-propuesta-v0.3.md`](spec/rust-engi
 | Seguridad | I/O propio macOS/APFS no-follow; gateway Docker Linux ARM64 de probes y camino Rust ADR-031 revisado. | M0-04/05/06; [calibración Rust](validation/M1-01-rust-gateway.md), integración MCP ADR-032 validada. |
 | Datos locales | SQLite/FTS5 autoritativo, E5 verificado/LanceDB derivado, ArtifactStore M1 efímero y store privado M3 persistente disponible en macOS ARM64/APFS. | M0-08/09/10a; [ADR-061](adr/ADR-061-private-quality-artifact-store.md), CLI y tests de calidad. |
 | Imagen guest M3 | Imagen Linux ARM64 provisionada con plugins exactos; nextest calificado con el perfil mínimo quality de ADR-064. | [Digest/configuración](validation/M3-image-config.json), [provisioning](validation/M3-provisioning.json), [M3-01](validation/M3-01.md). |
-| Pruebas/fixtures | Suite workspace no-Docker: 1,072 pasaron y 0 fallaron; además, runtime Docker M3 62/62 y seguridad Rust 20/20. | [M3 runtime](validation/M3-runtime.json), [M3 security](validation/M3-rust-security.json). |
+| Pruebas/fixtures | Suite workspace no-Docker: 1,105 pasaron y 0 fallaron; además, runtime Docker M3 62/62 y seguridad Rust 20/20. Medido sobre el tip final de la rama. | [M3 runtime](validation/M3-runtime.json), [M3 security](validation/M3-rust-security.json). |
 | CI/release | CI pública final verde en Linux x86_64, macOS ARM64, Windows x86_64 y supply chain; SonarCloud verde; release estable `v0.1.0` publicada para macOS ARM64 con hashes, smoke y attestations. | ADR-048, [recibo público final](validation/m1-17-public-release.json), [release v0.1.0](https://github.com/pharos-lang/rust-engineering-mcp/releases/tag/v0.1.0) y [full gate](validation/m1-17-final-gate-v2.json). |
 | Toolchain | Rust/Cargo1.98.1, edition2024, rustfmt/Clippy; host aarch64-apple-darwin. | rust-toolchain.toml y reporte de gate. |
 | Configuración local | YouTrack deshabilitado para este repositorio. | .codex/config.toml; no afecta el producto. |
@@ -157,10 +157,11 @@ release están enlazados desde el [recibo final](validation/m1-17-public-release
 
 ## Blocked
 
-El cierre de M3 ya no está bloqueado por gates, código ni decisiones. W6 pasó el
-core 14/14 (408.568 s) y el full **25/25** (2,530.937 s) sobre 801 inputs con
-`source_inputs_unchanged: true`; `audit-data`, que W5 no pudo ejecutar dentro de su
-sandbox administrado, pasó en 43.228 s sin debilitarse. El runtime M3 pasa 62/62 y
+El cierre de M3 ya no está bloqueado por gates, código ni decisiones. W7 volvió a
+pasar, **sobre el tip final de la rama**, el core 14/14 (202.596 s) y el full
+**25/25** (2,589.601 s) sobre 810 inputs con `source_inputs_unchanged: true`;
+`audit-data`, que W5 no pudo ejecutar dentro de su
+sandbox administrado, pasó en 0.952 s sin debilitarse. El runtime M3 pasa 62/62 y
 rust-security 20/20. El hueco contractual P2 —la prueba product-level del
 `CreateTaskResult` para coverage, SemVer y mutation— está cerrado y probado, y G6
 tiene recibo propio 10/10. El M3 orchestrator aceptó ADR-064 y ADR-065 el

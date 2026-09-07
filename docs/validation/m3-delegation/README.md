@@ -74,3 +74,21 @@ Decisiones del owner registradas el 2026-09-05 (respuestas al orquestador): apro
 los cinco componentes (cargo-mutants 27.1.0 desde fuente); aceptar la postura persistente
 de D17; integrar al final mediante rama + PR con `gh`, supervisar checks y hacer merge
 si pasan (sin tag ni release).
+
+## Incidentes de arnés
+
+**2026-09-06 — S03 dejó 48 generadores de carga huérfanos.** El arnés de reproducción
+del paquete S03 (`ai/m3-quality`, defecto `Busy` de macOS en CI) lanzaba
+`NCPU*3` subshells `(while :; do :; done)` en segundo plano y confiaba la limpieza a
+`kill $HOGS` al final del mismo `zsh -c`. El líder del grupo (PID 68723) murió antes de
+llegar a esa línea, así que los 48 bucles (PID 68729–68776, `hw.ncpu`=16) quedaron con
+PPID 1 girando indefinidamente; se comprobó que el grupo solo contenía shells de carga
+(`ps -o comm= -g 68723` → 48×`/bin/zsh`) y ningún proceso de prueba. Se detectaron con
+`load average` de 183 mientras corría la requalificación W7, cuyas aserciones de plazo,
+cancelación y fuga son sensibles al tiempo: pudieron producir fallos falsos. Terminados
+con `kill -TERM/-KILL -- -68723`; carga de 1 min 183 → 52.
+
+Corrección para futuros arneses: el generador de carga debe lanzarse en su propio grupo
+de procesos y limpiarse con una trampa de salida (`trap 'kill 0' EXIT INT TERM` dentro de
+un `setsid`/subshell propio), de modo que muera aunque el controlador desaparezca. Confiar
+la limpieza a una línea final del script solo funciona si el script termina.
