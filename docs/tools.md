@@ -611,7 +611,7 @@ continúa siendo M1 y se califica separadamente desde fuente según ADR-048.
 ## Escritura local M2 en desarrollo
 
 La release `0.1.0` conserva exactamente las trece tools M1 anteriores. El checkout
-`0.2.0-dev` añade cinco definiciones [calificadas localmente](validation/M2-07.md): `rust.manifest.patch`,
+`0.3.0-dev` añade cinco definiciones [calificadas localmente](validation/M2-07.md): `rust.manifest.patch`,
 `rust.fmt.apply`, `rust.fix.apply`, `rust.dependency.add` y
 `rust.dependency.remove`. Todas usan input cerrado, un worker joined con deadline
 de 240 s, respuesta MCP completa de 512 KiB y el ciclo `preview` → `commit` →

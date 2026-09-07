@@ -1582,5 +1582,284 @@
     "committing this receipt on main (no merge occurred; it is committed on the branch instead)"
    ]
   }
+ },
+ "version_bump": {
+  "schema": "rust-mcp-m3-version-bump-v1",
+  "package": "W9",
+  "recorded_at": "2026-09-07T17:00:00+00:00",
+  "what": "The workspace version moved from 0.2.0-dev to 0.3.0-dev in Cargo.toml, and Cargo.lock was regenerated offline.",
+  "why": "The merged binary identified as 0.2.0-dev while eight documents already published 0.3.0-dev (README in three places, SECURITY.md, CHANGELOG.md, docs/architecture.md, docs/client-configuration.md, docs/security-model.md, docs/compatibility.md, docs/implementation-status.md), and the roadmap defines M3 as the 0.3.x line. The owner authorized bumping the code so the documents become true rather than being watered down.",
+  "lock_update": {
+   "command": [
+    "cargo",
+    "update",
+    "--workspace",
+    "--offline"
+   ],
+   "exit_code": 0,
+   "diff_stat": "Cargo.lock | 16 ++++++++--------  (8 insertions, 8 deletions)",
+   "conclusion": "Only the eight own-package version lines changed; no third-party version was resolved and nothing went online."
+  },
+  "propagation": {
+   "asserted_in_code_or_fixtures": "none pinned the literal",
+   "derived_from_cargo_pkg_version": [
+    "crates/mcp-server/src/version.rs",
+    "crates/mcp-server/src/stdio.rs",
+    "crates/mcp-server/src/catalog_sync.rs",
+    "crates/mcp-server/tests/cli.rs",
+    "crates/mcp-server/tests/doctor.rs",
+    "crates/mcp-server/tests/protocol.rs"
+   ],
+   "binary_output": {
+    "command": [
+     "rust-engineering-mcp",
+     "--version"
+    ],
+    "stdout": "rust-engineering-mcp 0.3.0-dev"
+   },
+   "stale_live_documents_corrected": [
+    "docs/compatibility.md",
+    "docs/tools.md"
+   ],
+   "deliberately_untouched": [
+    "docs/validation/ M2 and M3 receipts (dated records; their source_inputs hashes stay as written)",
+    "docs/validation/m3-delegation/ transcripts",
+    "docs/reviews/ dated review packages",
+    "CHANGELOG.md historical '0.2.0-dev \u2014 Unreleased' section heading",
+    "docs/adr/ADR-052 historical statement about stores populated on 0.2.0-dev checkouts",
+    "docs/prompts/resume-m2-final-closure.md"
+   ]
+  },
+  "invalidated_previous_receipts": {
+   "reason": "The version is a qualified byte, so the receipts produced at 0.2.0-dev no longer describe the checkout.",
+   "source_inputs_count": 810,
+   "source_inputs_canonical_sha256_before": "0af0ed9bf1f701ae49ed1da920640760114e8db95be08adce76d718e07321a7f",
+   "source_inputs_canonical_sha256_after": "791856ed9325c55ade73809207e971d3fd76c0bc3abd73c5b97ead54dff0ac9e",
+   "entries_that_differ": [
+    "Cargo.toml",
+    "Cargo.lock"
+   ],
+   "identical_between_core_and_full": true,
+   "preserved_receipts": [
+    {
+     "path": "docs/validation/M3-core-gate-v0.2.0-dev.json",
+     "sha256": "7b59e852ea0b522b974fe3377503e813114b7dc573da506396cb70d54affd836"
+    },
+    {
+     "path": "docs/validation/M3-full-gate-v0.2.0-dev.json",
+     "sha256": "035bfad65ffed692531d2a2fa049e370abfea2d6278cf27087f44e814d1f0e86"
+    },
+    {
+     "path": "docs/validation/M3-runtime-v0.2.0-dev.json",
+     "sha256": "5cfab6c56eaa9d6ab0f306b4920eb61eea21cd4cbc371bf7199c7094a674bf25"
+    },
+    {
+     "path": "docs/validation/M3-rust-security-v0.2.0-dev.json",
+     "sha256": "4ad812a05b8683d049001d96b6f59871f1aa880fc865b93979dec58d5ff8df0b"
+    }
+   ]
+  },
+  "requalification": {
+   "preliminary_commands": {
+    "commands": [
+     [
+      "cargo",
+      "fmt",
+      "--check"
+     ],
+     [
+      "cargo",
+      "check",
+      "--workspace",
+      "--all-targets",
+      "--locked",
+      "--offline"
+     ],
+     [
+      "cargo",
+      "clippy",
+      "--workspace",
+      "--all-targets",
+      "--locked",
+      "--offline",
+      "--",
+      "-D",
+      "warnings"
+     ],
+     [
+      "cargo",
+      "test",
+      "--workspace",
+      "--locked",
+      "--offline"
+     ],
+     [
+      "python3",
+      "-B",
+      "scripts/check-architecture.py"
+     ]
+    ],
+    "exit_code": 0,
+    "rust_results": 1106,
+    "failed": 0
+   },
+   "core_gate": {
+    "command": [
+     "python3",
+     "-B",
+     "scripts/gate.py",
+     "core",
+     "--report",
+     "docs/validation/M3-core-gate.json"
+    ],
+    "exit_code": 0,
+    "stages_passed": 14,
+    "stages_total": 14,
+    "started_at": "2026-09-07T16:01:20.345148Z",
+    "finished_at": "2026-09-07T16:08:36.111966Z",
+    "seconds": 435.767,
+    "source_inputs": 810,
+    "source_inputs_unchanged": true,
+    "tests_passed": 1105,
+    "doctests_passed": 1,
+    "receipt": "docs/validation/M3-core-gate.json",
+    "receipt_sha256": "cf37ad509cad5c6feec76510bcc505c0cfcc6dd7ff693559eff6ae693938ccd4"
+   },
+   "full_gate": {
+    "command": [
+     "python3",
+     "-B",
+     "scripts/gate.py",
+     "full",
+     "--report",
+     "docs/validation/M3-full-gate.json"
+    ],
+    "exit_code": 0,
+    "stages_passed": 25,
+    "stages_total": 25,
+    "started_at": "2026-09-07T16:08:36.308841Z",
+    "finished_at": "2026-09-07T16:49:32.812419Z",
+    "seconds": 2456.504,
+    "source_inputs": 810,
+    "source_inputs_unchanged": true,
+    "tests_passed": 1105,
+    "doctests_passed": 1,
+    "receipt": "docs/validation/M3-full-gate.json",
+    "receipt_sha256": "a5261457fc99640d62f421a5395d8d795a7124871db21f90e926d32259b36259"
+   },
+   "m3_runtime_stage": {
+    "stage": "m3-runtime",
+    "selections_passed": 62,
+    "selections_total": 62,
+    "seconds": 1229.21,
+    "started_at": "2026-09-07T16:26:11.211102Z",
+    "finished_at": "2026-09-07T16:46:40.367612Z",
+    "copied_to_canonical_name": "docs/validation/M3-runtime.json",
+    "receipt_sha256": "0c2984052db8a8849be32f024002f86b381c3ee69679fb098fe50901f7cb3e0a"
+   },
+   "rust_security_stage": {
+    "stage": "rust-security",
+    "selections_passed": 20,
+    "selections_total": 20,
+    "seconds": 529.25,
+    "started_at": "2026-09-07T16:11:09.795452Z",
+    "finished_at": "2026-09-07T16:19:58.978750Z",
+    "copied_to_canonical_name": "docs/validation/M3-rust-security.json",
+    "receipt_sha256": "d395c712d23ac9a55c8b8af31adc3d50d1a371338b73f200648314738b1ac8fc"
+   },
+   "host": {
+    "cargo": "cargo 1.98.1 (797e8a9bc 2026-08-05)",
+    "rustc": "rustc 1.98.1 (48a229cea 2026-09-01)",
+    "platform": "macOS-26.6.2-arm64-arm-64bit-Mach-O"
+   },
+   "no_qualified_result_changed_value": "core 14/14, full 25/25 over 810 inputs, Docker runtime 62/62 and rust-security 20/20 all reproduce on the 0.3.0-dev bytes."
+  },
+  "docker_hygiene": [
+   {
+    "after": "core gate",
+    "commands": [
+     "docker ps -aq --filter label=org.rust-mcp.execution=true | wc -l",
+     "docker volume ls -q --filter label=org.rust-mcp.execution=true | wc -l"
+    ],
+    "containers": 0,
+    "volumes": 0,
+    "formatted_listings": "empty"
+   },
+   {
+    "after": "full gate",
+    "commands": [
+     "docker ps -aq --filter label=org.rust-mcp.execution=true | wc -l",
+     "docker volume ls -q --filter label=org.rust-mcp.execution=true | wc -l"
+    ],
+    "containers": 0,
+    "volumes": 0,
+    "formatted_listings": "empty"
+   }
+  ],
+  "not_done": [
+   "no tag",
+   "no release",
+   "no crates.io publication",
+   "no force-push",
+   "no history rewrite",
+   "PR #14 not reopened"
+  ]
+ },
+ "status_board_repair": {
+  "schema": "rust-mcp-m3-status-board-repair-v1",
+  "package": "W9",
+  "file": "docs/implementation-status.md",
+  "defects_fixed": [
+   "The '## M3 \u2014 Quality' section sat at the end of the file, wedged between M1 and M2 historical notes; it now follows '## M0 \u2014 Foundation' and '## M1 \u2014 MVP / 0.1.0' so the milestone sections read M0, M1, M2, M3.",
+   "The M3 decision table stopped after the provisioning row and ran straight into unrelated M1 text; it now carries ADR-064 and ADR-065 and is closed properly.",
+   "There was no '## M2' section although M0, M1 and M3 had one; '## M2 \u2014 Safe Mutation / 0.2.x' now gathers the M2 state from the notes already in the file and the receipts they link."
+  ],
+  "decision_rows_added": [
+   {
+    "id": "ADR-064",
+    "title": "Quality job seccomp profile",
+    "status": "Accepted 2026-09-06 by the M3 orchestrator",
+    "link": "docs/adr/ADR-064-quality-job-seccomp-profile.md",
+    "qualification_evidence": [
+     "docs/validation/M3-runtime.json (62/62)",
+     "docs/validation/M3-rust-security.json (20/20)",
+     "docs/validation/m3-delegation/V-SEC/last-message.md"
+    ]
+   },
+   {
+    "id": "ADR-065",
+    "title": "Dedicated persistent coverage target volume, as amended",
+    "status": "Accepted 2026-09-06 by the M3 orchestrator",
+    "link": "docs/adr/ADR-065-coverage-target-volume.md",
+    "qualification_evidence": [
+     "docs/validation/M3-runtime.json (62/62)",
+     "docs/validation/M3-rust-security.json (20/20)",
+     "docs/validation/m3-delegation/V-SEC/last-message.md",
+     "docs/validation/m3-delegation/VF-opus-final/last-message.md"
+    ]
+   }
+  ],
+  "history_preserved": "No M0/M1/M2 historical note was deleted or reworded; the trail stays in place beneath '## Riesgos activos'.",
+  "numbers_verified_against_receipts": {
+   "M3-01 runtime 19/19": "confirmed as the first 19 selections of M3-runtime.json",
+   "Tasks selections 7": "confirmed (tasks_runtime:: entries), 55 tool selections + 7 = 62",
+   "M3-03 coverage 8/8": "confirmed",
+   "M3-04 18/18": "confirmed",
+   "M3-05 10/10": "confirmed",
+   "runtime 62/62": "confirmed",
+   "rust-security 20/20": "confirmed",
+   "core 14/14, full 25/25, 810 inputs": "confirmed",
+   "G6 rollback 10/10": "confirmed against M3-06-rollback.json totals {selections:10, passed:10}",
+   "1,105 tests + 1 doctest": "confirmed against the gate test_groups"
+  },
+  "only_number_corrected": {
+   "was": "budgets 30/30",
+   "problem": "Rendered as a pass count next to 'lifecycle 4/4', but M3-02-budgets.json records samples_each: 30 over three operations, and M3-02.md describes 30 cold and 30 warm samples per operation.",
+   "now": "budgets con 30 muestras fr\u00edas y 30 calientes por operaci\u00f3n"
+  },
+  "other_clarifications": [
+   "Named the four Docker lifecycle cases D06-T04/T05/T08/T10.",
+   "Made the 810 source inputs explicit on the M3-06 row."
+  ]
  }
 }

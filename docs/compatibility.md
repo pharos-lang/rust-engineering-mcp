@@ -339,8 +339,9 @@ El modo `local_coordinated` presupone que el host mantiene estables roots/state 
 evita escritores simultáneos durante commit. No ofrece CAS, exclusión OS de otros
 programas ni atomicidad visible multiarchivo. `preserve_presence` mantiene la
 presencia o ausencia inicial de Cargo.lock. La [calificación conjunta](validation/M2-07.md)
-del checkout `0.2.0-dev` está completada; la release soportada continúa siendo `0.1.0` con 13
-tools.
+M2 está completada sobre los bytes que entonces se identificaban como `0.2.0-dev`;
+el checkout actual es `0.3.0-dev` y la release soportada continúa siendo `0.1.0`
+con 13 tools.
 
 M2 ADR-059 conserva schemas y formato de journal: libera planes terminales y
 permite commit replay exacto desde el journal con ID/digest/key y autoridad viva

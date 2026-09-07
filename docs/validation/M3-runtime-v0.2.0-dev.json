@@ -1,7 +1,7 @@
 {
   "schema": "rust-mcp-m3-runtime-v1",
   "status": "passed",
-  "started_at": "2026-09-07T16:26:11.211102Z",
+  "started_at": "2026-09-07T03:19:18.554310Z",
   "image_id": "sha256:384a1742ecc53cdd3a9c0bf36c6f8b66db73ddd118aeeae6e55654ea998ae36a",
   "step_timeout_s": 900,
   "steps": [
@@ -27,8 +27,8 @@
       "exit_code": 0,
       "timed_out": false,
       "expected_executed": 1,
-      "seconds": 17.777,
-      "log_sha256": "6315c96784b8d3aac55735044ce23eb3d80af07bf415fbb0fa67f91c309ae5a9"
+      "seconds": 18.177,
+      "log_sha256": "30eb427cd628b2bb762f985decbd314731ebcd904280de64c9f06eca8623aeef"
     },
     {
       "selection": "build_error_reports_the_observed_runner_failure_exit_code",
@@ -52,8 +52,8 @@
       "exit_code": 0,
       "timed_out": false,
       "expected_executed": 1,
-      "seconds": 15.109,
-      "log_sha256": "3ac57aae719ab1fecc9db9d1dbbbfa1f90baee4cd8dfe460987a268e851fa634"
+      "seconds": 15.237,
+      "log_sha256": "ca5db37ff88e4c1b67ad6b05a63411b12bddb615df760b7fa796fc3226b820d6"
     },
     {
       "selection": "quality_profile_allows_only_the_required_anonymous_unix_stream_pair",
@@ -77,8 +77,8 @@
       "exit_code": 0,
       "timed_out": false,
       "expected_executed": 1,
-      "seconds": 15.027,
-      "log_sha256": "bd79d8021c82855905b12593692be453464ca681a2583a27a245e4e0e186e1b2"
+      "seconds": 15.455,
+      "log_sha256": "3d554760a078ac9d9027bb4b49bda6b6cc2d7c18fb0aa2e408b634afb0ce082a"
     },
     {
       "selection": "slow_test_timeout_is_a_test_failure_with_junit_evidence",
@@ -102,8 +102,8 @@
       "exit_code": 0,
       "timed_out": false,
       "expected_executed": 1,
-      "seconds": 16.202,
-      "log_sha256": "57a9e12585d379dbcccd3068a3caaa6fc195d9a75b0685df3d6d2facb836340d"
+      "seconds": 16.426,
+      "log_sha256": "600528c9ec067bc47b7aa079f25ff949be3d7c1df2d6479d54d8239f853fc39e"
     },
     {
       "selection": "passing_fixture_records_five_cold_and_five_warm_sync_samples",
@@ -127,8 +127,8 @@
       "exit_code": 0,
       "timed_out": false,
       "expected_executed": 1,
-      "seconds": 83.607,
-      "log_sha256": "0f9631cbc1ece174ebc065f4c57b5eea47fad351290fe730e3005e3a9017b98e"
+      "seconds": 84.138,
+      "log_sha256": "85bdeabac157e8eb91a3163b8e7cd0918128bf0d527c92a265e9f44321bb2298"
     },
     {
       "selection": "passing_and_failing_tests_produce_exact_junit_and_hypothesized_exit_codes",
@@ -152,8 +152,8 @@
       "exit_code": 0,
       "timed_out": false,
       "expected_executed": 1,
-      "seconds": 15.126,
-      "log_sha256": "4dd99a2a716206f9a137af0ef0d49aed60b2ba094546243c0cadb06c69e0c3f5"
+      "seconds": 15.395,
+      "log_sha256": "e019fa27a8f6a05cd8e24fd2aced4cff2dbd38365d1d874e7c85885ab3c9c6a5"
     },
     {
       "selection": "ignored_fixture_reports_skipped_tests_when_report_skipped_is_all",
@@ -177,8 +177,8 @@
       "exit_code": 0,
       "timed_out": false,
       "expected_executed": 1,
-      "seconds": 15.16,
-      "log_sha256": "a933f1c645e24083cee57ba70583dbe407193b620082dae2e26fec055e150405"
+      "seconds": 15.162,
+      "log_sha256": "21eb5834fe2dc31e44b85bbe1e41e35cf2233b85dafbe2e5c971315d883c4edd"
     },
     {
       "selection": "flaky_fixture_is_classified_flaky_when_retries_are_requested",
@@ -202,8 +202,8 @@
       "exit_code": 0,
       "timed_out": false,
       "expected_executed": 1,
-      "seconds": 15.084,
-      "log_sha256": "47f7fa30b1f1e642cba93e1bb16f3137f2c17db24b9ca9621b61837269958e84"
+      "seconds": 15.15,
+      "log_sha256": "9c440c2b5250d781fb71ce27216b59eca5463b963aed088456d4ee5244579668"
     },
     {
       "selection": "leaky_fixture_is_observed_and_never_hangs_the_gateway",
@@ -227,8 +227,8 @@
       "exit_code": 0,
       "timed_out": false,
       "expected_executed": 1,
-      "seconds": 16.094,
-      "log_sha256": "5595ed9df3f55aee99b8712473ac19cced79b7ab37292d053f4d92fea33106c5"
+      "seconds": 16.314,
+      "log_sha256": "c016ff22a129211bb84333807678227bf1fef72f9ff5dbaee65ac3fb1446bb91"
     },
     {
       "selection": "doc_only_fixture_never_runs_doctests",
@@ -252,8 +252,8 @@
       "exit_code": 0,
       "timed_out": false,
       "expected_executed": 1,
-      "seconds": 14.906,
-      "log_sha256": "b6502879fa812f839a6a4c4252b86f5c6d08975d2950b86cf8ee87e6a57c7539"
+      "seconds": 15.162,
+      "log_sha256": "78f6c68db8e8d6167401739fe185d1e37984287dee76cf05acf1ae1de11c7a00"
     },
     {
       "selection": "no_tests_fixture_still_exits_with_evidence",
@@ -277,8 +277,8 @@
       "exit_code": 0,
       "timed_out": false,
       "expected_executed": 1,
-      "seconds": 14.983,
-      "log_sha256": "e7eaba1e2829884023f8c9fb136e245954873ac019deba3931ced69b80a31160"
+      "seconds": 15.153,
+      "log_sha256": "f0a3aa914ba5d0a1e08d8c6e5b4dbb4fa83b773f69e3d479e99f1fe839e97b18"
     },
     {
       "selection": "hostile_output_flood_is_bounded_and_reported_as_output_limit",
@@ -302,8 +302,8 @@
       "exit_code": 0,
       "timed_out": false,
       "expected_executed": 1,
-      "seconds": 14.911,
-      "log_sha256": "67a5364634840d55175739dc45bd22d34fa88db10f26eb71c79e72a954f2f4ea"
+      "seconds": 14.976,
+      "log_sha256": "47e06ee4101217aa153a658b11e6952f5fc601ff54ba9ef489fe4a85f10cc713"
     },
     {
       "selection": "hostile_symlink_at_the_fixed_junit_path_is_rejected_and_never_followed",
@@ -327,8 +327,8 @@
       "exit_code": 0,
       "timed_out": false,
       "expected_executed": 1,
-      "seconds": 14.888,
-      "log_sha256": "c55709dc878c0de3b95996fb496c9f186db1b82b15d9ab6e57d42c7dd43db2c1"
+      "seconds": 15.138,
+      "log_sha256": "7da5506c4da5454af05939262ef55d65373cb4115b374f363566db94bf3f529f"
     },
     {
       "selection": "active_cancellation_with_an_observed_child_terminates_and_joins_cleanly",
@@ -352,8 +352,8 @@
       "exit_code": 0,
       "timed_out": false,
       "expected_executed": 1,
-      "seconds": 18.321,
-      "log_sha256": "01ea1f470e2944f68c899429a7c9fad169b0204ba82fb916e2d877044766602d"
+      "seconds": 18.543,
+      "log_sha256": "2f01d5b5350b009ae47622cf7816305c0cf1d961a60795197e9fba96d47af221"
     },
     {
       "selection": "source_is_immutable_across_the_run_and_a_second_job_reuses_the_gateway_cleanly",
@@ -377,8 +377,8 @@
       "exit_code": 0,
       "timed_out": false,
       "expected_executed": 1,
-      "seconds": 15.047,
-      "log_sha256": "6eaca84d25c73455831857e5ffaf369b99318fbec1048128ef14c297ecfb1466"
+      "seconds": 15.074,
+      "log_sha256": "8738af536ab34db45c13c20ef740de2c6ce34a64e55d4eaf199c3819503a72c5"
     },
     {
       "selection": "nextest_runtime::synchronous_passing_failing_ignored_doc_only_and_no_tests_are_observable",
@@ -402,8 +402,8 @@
       "exit_code": 0,
       "timed_out": false,
       "expected_executed": 1,
-      "seconds": 23.75,
-      "log_sha256": "449dcff1584a30d5f873e3cbe65ad2564a1234c7a2fe63fd6cf027112c5fa57b"
+      "seconds": 24.249,
+      "log_sha256": "c7da06580e817630bb201a037311d257ff63f78e270addf793ae933d67039f84"
     },
     {
       "selection": "nextest_runtime::synchronous_flaky_and_leaky_are_derived_from_junit",
@@ -427,8 +427,8 @@
       "exit_code": 0,
       "timed_out": false,
       "expected_executed": 1,
-      "seconds": 19.494,
-      "log_sha256": "23dd0fa822355323e00224a0f760507c4a869d1e8916e5bea09ce99f4a9d13d8"
+      "seconds": 19.556,
+      "log_sha256": "e6853f2767f34fbb5a5cc734f8a5734de23a10f06175bea0ea04b0d7e750e6ed"
     },
     {
       "selection": "nextest_runtime::hostile_output_is_bounded_forged_markers_are_ignored_and_source_is_immutable",
@@ -452,8 +452,8 @@
       "exit_code": 0,
       "timed_out": false,
       "expected_executed": 1,
-      "seconds": 16.288,
-      "log_sha256": "4dc2fae1690b7ab147eeaf3cdfb9088dec1a9773a7c937bdd2161243b347a578"
+      "seconds": 16.6,
+      "log_sha256": "1190670c184744e4522202cad5e2a2f354562f8b351d868f4a33afdada7093b5"
     },
     {
       "selection": "nextest_runtime::slow_timeout_cancellation_and_eof_observe_active_children_and_join_cleanup",
@@ -477,8 +477,8 @@
       "exit_code": 0,
       "timed_out": false,
       "expected_executed": 1,
-      "seconds": 45.861,
-      "log_sha256": "bd4b17da5e7eda112b276edc3b253ebad2ee5d9bcc1b48d134b8332f0114ea49"
+      "seconds": 46.443,
+      "log_sha256": "394f53aaa7742c7e3c95497c09e16c65dbb48d49b7fdaa958aca1e026b22564c"
     },
     {
       "selection": "tasks_runtime::tasks_revocation_during_active_child_masks_cancels_and_prevents_publication",
@@ -504,8 +504,8 @@
       "exit_code": 0,
       "timed_out": false,
       "expected_executed": 1,
-      "seconds": 23.054,
-      "log_sha256": "91b94d0c017899a3eb5b53d5e34f4ac8a1f63481ead04b2edba8c50a78e8b1b7"
+      "seconds": 30.919,
+      "log_sha256": "0254b4a8f4631f739dc54db3742ee40fadb1859760e1989de38f5a986b2c6fcb"
     },
     {
       "selection": "tasks_runtime::tasks_cancel_before_start_during_execution_publication_and_cleanup_waits_for_join",
@@ -531,8 +531,8 @@
       "exit_code": 0,
       "timed_out": false,
       "expected_executed": 1,
-      "seconds": 33.514,
-      "log_sha256": "8b749dfe2eb2328ed7449d37995b632525c8c74bd2aa22fa4d4e1b19e7ae8460"
+      "seconds": 33.988,
+      "log_sha256": "26808c770cd5d75db78e6ce8274319856ab52c1836fcfd83c7b07e14ca574187"
     },
     {
       "selection": "tasks_runtime::tasks_eof_joins_hostile_child_and_uncertain_cleanup_fails_session",
@@ -558,8 +558,8 @@
       "exit_code": 0,
       "timed_out": false,
       "expected_executed": 1,
-      "seconds": 90.33,
-      "log_sha256": "801e2a4280459bf5dd5806ee8241dd57fd73bbf08c5a6fd8830e0eb70b136d1a"
+      "seconds": 90.424,
+      "log_sha256": "954492a1eede45b9fa71a63262ffaa487e5cc61d887db645daa9112f36125724"
     },
     {
       "selection": "tasks_runtime::tasks_restart_masks_old_ids_reconciles_objects_and_admits_fresh_work",
@@ -585,8 +585,8 @@
       "exit_code": 0,
       "timed_out": false,
       "expected_executed": 1,
-      "seconds": 31.362,
-      "log_sha256": "3c0ceba55e2626810d2ec38b7975b2f5ab59ce1839e185f6ff27e32a925dda9e"
+      "seconds": 31.241,
+      "log_sha256": "4ee10d19ca9d25f9fe77144ae30124333d4fa6381388305686ed8cab5346cfd5"
     },
     {
       "selection": "tasks_runtime::tasks_coverage_materializes_a_create_task_result_for_a_declaring_peer",
@@ -612,8 +612,8 @@
       "exit_code": 0,
       "timed_out": false,
       "expected_executed": 1,
-      "seconds": 2.492,
-      "log_sha256": "cef9b03b70658f8483f7e0c0fb7a93c27ca6138bc80cb2da4d3311c4c27f8273"
+      "seconds": 2.377,
+      "log_sha256": "35ba8e933276d5f3cbc781a6b6200ac831298411c2ad46eb12500a332a73ada5"
     },
     {
       "selection": "tasks_runtime::tasks_semver_materializes_a_create_task_result_bound_to_the_candidate",
@@ -639,8 +639,8 @@
       "exit_code": 0,
       "timed_out": false,
       "expected_executed": 1,
-      "seconds": 2.435,
-      "log_sha256": "88e03eb81b5b94e3a49af2220fa38056986b6298160b0d59867b7cb360a7d3cd"
+      "seconds": 2.477,
+      "log_sha256": "b12229a96291c24f152cf653b84f06e267c58fa542d518f9a78b9668ab4612a5"
     },
     {
       "selection": "tasks_runtime::tasks_mutation_materializes_a_create_task_result_on_its_only_reachable_path",
@@ -666,8 +666,8 @@
       "exit_code": 0,
       "timed_out": false,
       "expected_executed": 1,
-      "seconds": 3.446,
-      "log_sha256": "8b9940ab8b4aa98cdc9d71e68f469d9031a44929e7217b9fca0b5faed007905d"
+      "seconds": 3.462,
+      "log_sha256": "0395b62b594f8c8fe4d103f846b32e47f7ed9fa4959919b03e5702e8b3b4b492"
     },
     {
       "selection": "identical_libraries_exit_zero",
@@ -691,8 +691,8 @@
       "exit_code": 0,
       "timed_out": false,
       "expected_executed": 1,
-      "seconds": 20.353,
-      "log_sha256": "44e68462c99bfff00e56774216b1a8b9cd7b1c1d1c9e2ad346367793746a1f5d"
+      "seconds": 21.131,
+      "log_sha256": "92bd2007959ec812dc6ca932eea2f66d8071749b025f3a60b2fe87361ef6ff1c"
     },
     {
       "selection": "removed_public_function_is_a_deny_level_break",
@@ -716,8 +716,8 @@
       "exit_code": 0,
       "timed_out": false,
       "expected_executed": 1,
-      "seconds": 15.219,
-      "log_sha256": "91b204bfda5fb47912d434f88a4e1091680b5edb143e504ac2fdcb6865008f45"
+      "seconds": 14.995,
+      "log_sha256": "dcd4a300c5e9b113848e841e310d933ee3f77d21bdfc0cf313ae555390034cc0"
     },
     {
       "selection": "trait_method_with_default_is_compatible",
@@ -741,8 +741,8 @@
       "exit_code": 0,
       "timed_out": false,
       "expected_executed": 1,
-      "seconds": 15.199,
-      "log_sha256": "aa7f296314701bca1c43339b8ba09c38f8e6a94b688b8f7fda3117796b8509f1"
+      "seconds": 15.129,
+      "log_sha256": "fed3d452f79a7e993dc209b0d56fd689cc2c36dfcc0adc710aa25f1aca5545e4"
     },
     {
       "selection": "trait_method_without_default_is_a_break",
@@ -766,8 +766,8 @@
       "exit_code": 0,
       "timed_out": false,
       "expected_executed": 1,
-      "seconds": 15.064,
-      "log_sha256": "42a210d8057f00300e455959989fbfeba86822e5af62815a2443bd5c38a8e6c7"
+      "seconds": 15.048,
+      "log_sha256": "c5f0855c7a88eea2eb73f64244da983b1a17d18b4ef57b0c43e90511b1280c4c"
     },
     {
       "selection": "non_exhaustive_enum_variant_addition_is_compatible",
@@ -791,8 +791,8 @@
       "exit_code": 0,
       "timed_out": false,
       "expected_executed": 1,
-      "seconds": 14.993,
-      "log_sha256": "e084c46768ca6bcd6483e73e8f6c448ac457c26461bdc64418c48733c6ec1f4a"
+      "seconds": 15.174,
+      "log_sha256": "76dec04988239948d8e57b438e3facf06faa81c47a3b47e0fc132f95e0e84d6b"
     },
     {
       "selection": "exhaustive_enum_variant_addition_is_a_break",
@@ -816,8 +816,8 @@
       "exit_code": 0,
       "timed_out": false,
       "expected_executed": 1,
-      "seconds": 15.04,
-      "log_sha256": "560a70b0bc7cb067a15f276e0e67f0d6083b55f22488282ef5c3facec52badde"
+      "seconds": 15.037,
+      "log_sha256": "991ae9a8b5ecc045cf92b96b7c5e84d88888c3ce7a1db228dc4aed066b4f60ab"
     },
     {
       "selection": "feature_gated_removal_uses_the_identical_selection_on_both_sides",
@@ -841,8 +841,8 @@
       "exit_code": 0,
       "timed_out": false,
       "expected_executed": 1,
-      "seconds": 15.025,
-      "log_sha256": "957c9d757b507e5c1f0f2f2d557d742dd66d439b40193d18fdfaba89d93f5759"
+      "seconds": 15.104,
+      "log_sha256": "2bcd4766051ceae0184661824c3293c13c8f58e5272dc8c7fa27b7faf3fddb41"
     },
     {
       "selection": "feature_gated_removal_without_feature_has_no_signal",
@@ -866,8 +866,8 @@
       "exit_code": 0,
       "timed_out": false,
       "expected_executed": 1,
-      "seconds": 14.94,
-      "log_sha256": "40498af96ddab0225163baee06d0ba4cc6659e7480597d54b39e5291b1e141ab"
+      "seconds": 15.059,
+      "log_sha256": "db12a69da5d60ee529ff56a214fc350dc94ca986faa232a69911fee700e64622"
     },
     {
       "selection": "no_lib_gateway_exit_is_calibrated_before_application_maps_unavailable",
@@ -891,8 +891,8 @@
       "exit_code": 0,
       "timed_out": false,
       "expected_executed": 1,
-      "seconds": 14.607,
-      "log_sha256": "d5b18d9f434ef6142bad10a76acb2bc30a4d21b95ada7e231d7bb0923ddf0ff5"
+      "seconds": 14.598,
+      "log_sha256": "4705255aa113c374df4432b091db8c9632b5fa1b8ef039f0037c47884425a264"
     },
     {
       "selection": "broken_baseline_is_incomplete_not_a_compatibility_pass",
@@ -916,8 +916,8 @@
       "exit_code": 0,
       "timed_out": false,
       "expected_executed": 1,
-      "seconds": 14.993,
-      "log_sha256": "8ca1f40a15536e7f73fe73083526b27a35681d19847a7a635aed8aae0067ede6"
+      "seconds": 15.018,
+      "log_sha256": "24eac82e9e4400ffc881bbc7ec86044b1802ed2703624eab2f3794dbd4ce2c62"
     },
     {
       "selection": "warn_level_only_findings_are_surfaced_under_exit_zero",
@@ -941,8 +941,8 @@
       "exit_code": 0,
       "timed_out": false,
       "expected_executed": 1,
-      "seconds": 15.077,
-      "log_sha256": "552628964ecf52e4aff79ec91353cccb5a66782eb54b6d3aa1420485e0e62f2b"
+      "seconds": 15.018,
+      "log_sha256": "d071be6da9c0c8d7a1429bb27510fec8a0055f4c23824e49c59719f7f305cc5e"
     },
     {
       "selection": "exit_100_with_zero_parsed_findings_is_blocked",
@@ -966,8 +966,8 @@
       "exit_code": 0,
       "timed_out": false,
       "expected_executed": 1,
-      "seconds": 15.121,
-      "log_sha256": "b79cf0d5ffc3e47f326e25fda040a89fca67eb5304b1e91084fdbaeb3e940257"
+      "seconds": 15.212,
+      "log_sha256": "b5a0ed457772c3f69372536d4f6a2a7821a8c4e0a4bfc2baca668ec447cc9405"
     },
     {
       "selection": "planted_git_directory_is_never_discovered",
@@ -991,8 +991,8 @@
       "exit_code": 0,
       "timed_out": false,
       "expected_executed": 1,
-      "seconds": 18.293,
-      "log_sha256": "a0874864156673814ca57325ba9ba5584493704da99739e6e4fe282b50967bf6"
+      "seconds": 18.396,
+      "log_sha256": "a53cb50484e48150fb5e016da923b3ae7de1039b70a68811ceb24779f4d31e4d"
     },
     {
       "selection": "registry_dependent_baseline_fails_recognizably_without_hanging",
@@ -1016,8 +1016,8 @@
       "exit_code": 0,
       "timed_out": false,
       "expected_executed": 1,
-      "seconds": 14.625,
-      "log_sha256": "7e3e7a48dcca9b04c4de17f1c7de0c613cc365ac7693dffc3ff2af94233e878d"
+      "seconds": 14.677,
+      "log_sha256": "06b35f880b9252923bcd6636717b261b3094851fa7d3e09496f68a0566a1494f"
     },
     {
       "selection": "cancellation_or_eof_with_active_child_is_joined_before_return",
@@ -1041,8 +1041,8 @@
       "exit_code": 0,
       "timed_out": false,
       "expected_executed": 1,
-      "seconds": 15.827,
-      "log_sha256": "83a187158dc2c2c1ed37c34f708ba3ad51c99c45a9fdca5de9473a2f7410d856"
+      "seconds": 15.735,
+      "log_sha256": "a67eedeff6be3dbfecf1a5543fc6756e593393638f9627912dc72185f7ba6dcd"
     },
     {
       "selection": "baseline_and_candidate_roots_are_immutable_after_run",
@@ -1066,8 +1066,8 @@
       "exit_code": 0,
       "timed_out": false,
       "expected_executed": 1,
-      "seconds": 15.109,
-      "log_sha256": "518e742ab91c439170e66e0f437a3f1a55f300532f8ce396c7987b1034314be6"
+      "seconds": 15.129,
+      "log_sha256": "bd9131315adc78972f49b921923671aabc5ab050ba7e5055c3790dc68c842ffe"
     },
     {
       "selection": "semver_runtime::mcp_semver_projects_findings_and_reads_bounded_raw_resource",
@@ -1091,8 +1091,8 @@
       "exit_code": 0,
       "timed_out": false,
       "expected_executed": 1,
-      "seconds": 17.831,
-      "log_sha256": "a8f8c11cc2fb2d59549c81fa8bad326ea865f3056a8850ed8e68bee680dca2db"
+      "seconds": 17.671,
+      "log_sha256": "57319f84996ab7f8808a7c28e2835b4357e5374d5fb5ccd4bf731223f9132864"
     },
     {
       "selection": "semver_runtime::mcp_semver_busy_quality_store_uses_stage0_raw_resource",
@@ -1116,8 +1116,8 @@
       "exit_code": 0,
       "timed_out": false,
       "expected_executed": 1,
-      "seconds": 17.622,
-      "log_sha256": "60d79d680a05eb0e66181c829dd1faa269bc4919ba06cdb12af206533410d519"
+      "seconds": 17.506,
+      "log_sha256": "beb7256c5ecac9a30bdddf9e250314b12fea457948716ce4d366a8773bae359f"
     },
     {
       "selection": "caught_all_fixture_reports_every_viable_mutant_as_caught",
@@ -1141,8 +1141,8 @@
       "exit_code": 0,
       "timed_out": false,
       "expected_executed": 1,
-      "seconds": 20.891,
-      "log_sha256": "169a1b3ac9dc006e61ff545fd6c62f5eb8e2be35e984f165aa1cc2a21d9e13d6"
+      "seconds": 20.722,
+      "log_sha256": "c733201f1386ec80398bad1043b577e3a47b252841210f109a5b98ce8f9eb398"
     },
     {
       "selection": "missed_one_fixture_names_the_surviving_function",
@@ -1166,8 +1166,8 @@
       "exit_code": 0,
       "timed_out": false,
       "expected_executed": 1,
-      "seconds": 19.554,
-      "log_sha256": "4f340b335cc97e48e8340c98051fb1b43aea9f2c34d1018e26890df62a55b036"
+      "seconds": 19.642,
+      "log_sha256": "05913a4722fb5538ea40fd2eca1ac5caf1ec88d3003424cfbda04c53f83ba68e"
     },
     {
       "selection": "timeout_loop_fixture_produces_a_bounded_timeout_class",
@@ -1191,8 +1191,8 @@
       "exit_code": 0,
       "timed_out": false,
       "expected_executed": 1,
-      "seconds": 26.782,
-      "log_sha256": "434cba36da9356e804a5eef6ababc2fe8da8d564b091b75476bb3ca5997e53c7"
+      "seconds": 26.689,
+      "log_sha256": "9fe90414bba6c79cad24ebbe639f849d2f5a92746d5a274f473b9892de21c94a"
     },
     {
       "selection": "unviable_fixture_produces_an_unviable_class_that_never_credits_clean",
@@ -1216,8 +1216,8 @@
       "exit_code": 0,
       "timed_out": false,
       "expected_executed": 1,
-      "seconds": 15.462,
-      "log_sha256": "b9ef3d08673d934655e82211e2c4a35a993c8332bf240ddbf3d70c8b188cdb3c"
+      "seconds": 15.571,
+      "log_sha256": "4534b6846d00a9e31819546f004463e6b5e54a773552f53a45f7b0100e7017db"
     },
     {
       "selection": "baseline_failing_fixture_reports_the_baseline_and_no_mutation_verdict",
@@ -1241,8 +1241,8 @@
       "exit_code": 0,
       "timed_out": false,
       "expected_executed": 1,
-      "seconds": 15.52,
-      "log_sha256": "ffedb0292453dc959d497f83d6699f4542fedee8ae4830c3d09fec566292b2ab"
+      "seconds": 15.591,
+      "log_sha256": "0573456f21c48f1e2eaa79a064d6352ebcf91f452953e0c23eb2f9f9a2db1fd4"
     },
     {
       "selection": "hostile_writer_fixture_is_contained_and_its_forged_output_is_not_trusted",
@@ -1266,8 +1266,8 @@
       "exit_code": 0,
       "timed_out": false,
       "expected_executed": 1,
-      "seconds": 17.12,
-      "log_sha256": "18341472ca66d13508d27153eb1dd5bf43341af1b8d7a2a337688c7eb1417ebd"
+      "seconds": 16.911,
+      "log_sha256": "1738ccaf37071392a77bb2b628005434648dbf2dec6d8e63c0858bc95b625cb0"
     },
     {
       "selection": "host_source_and_canary_are_unchanged_after_every_mutation_run",
@@ -1291,8 +1291,8 @@
       "exit_code": 0,
       "timed_out": false,
       "expected_executed": 1,
-      "seconds": 28.047,
-      "log_sha256": "6d85b77dc39a65ca8c7f5f4c1753377c595f2b5d565ac33ba221a19b64550bb3"
+      "seconds": 28.08,
+      "log_sha256": "27cd571f314073c35da38369165dddfdb5d0b0df79fa508aa428c9269b2350f3"
     },
     {
       "selection": "max_mutants_cap_is_enforced_before_anything_is_built",
@@ -1316,8 +1316,8 @@
       "exit_code": 0,
       "timed_out": false,
       "expected_executed": 1,
-      "seconds": 14.716,
-      "log_sha256": "0426103340303ec5cf852d2ec0ea438836b856b8cc0a9532f79d76df7ce8c23e"
+      "seconds": 14.602,
+      "log_sha256": "98eb8ac14d617df44c720f2e5a8b82b9ed422b96e562dc495956bfbe5c7ac18a"
     },
     {
       "selection": "cancellation_with_an_active_child_joins_cleanup_and_leaves_no_objects",
@@ -1341,8 +1341,8 @@
       "exit_code": 0,
       "timed_out": false,
       "expected_executed": 1,
-      "seconds": 38.785,
-      "log_sha256": "41801d5ed994a6c3d35fec03c112bb1ec488af1cf1de7cf13941a6fcf8e04a64"
+      "seconds": 38.833,
+      "log_sha256": "a1907542b3498f8a90a2f1168d44d3909288493866d3aa2a9e471146bea0f44a"
     },
     {
       "selection": "the_report_bundle_is_bounded_and_never_extracted_to_a_host_path",
@@ -1366,8 +1366,8 @@
       "exit_code": 0,
       "timed_out": false,
       "expected_executed": 1,
-      "seconds": 19.492,
-      "log_sha256": "1cfd4e4dd1f4c1be5888c0ddee59f706dc1692f4eff75d1dd48aa6a14cb2c6a6"
+      "seconds": 19.498,
+      "log_sha256": "5c2c140cdee33e5f676340137c8df55711627961f26cfbbe7965cd87ef72a522"
     },
     {
       "selection": "known_counts_fixture_has_exact_line_region_and_function_oracle",
@@ -1391,8 +1391,8 @@
       "exit_code": 0,
       "timed_out": false,
       "expected_executed": 1,
-      "seconds": 18.599,
-      "log_sha256": "500428d310293a06e1abec58e7a603177262640156e956792e566a5bf7256a06"
+      "seconds": 18.338,
+      "log_sha256": "aabc1505a2d40f441b503c75b7db0515e476fd191d1eb969f78f4b06e091edb9"
     },
     {
       "selection": "shared_file_workspace_deduplicates_aggregate_only",
@@ -1416,8 +1416,8 @@
       "exit_code": 0,
       "timed_out": false,
       "expected_executed": 1,
-      "seconds": 16.231,
-      "log_sha256": "73da22076a60dfc6c402dcb2a5881962b4e30e0a98cff6a438c9a150777117a1"
+      "seconds": 16.066,
+      "log_sha256": "d9a4827699c9160a2099a488ca8b21e5756a311ab0c78f9f5e8a08e1145966d0"
     },
     {
       "selection": "zero_denominator_is_absent_from_percent_metrics",
@@ -1441,8 +1441,8 @@
       "exit_code": 0,
       "timed_out": false,
       "expected_executed": 1,
-      "seconds": 15.69,
-      "log_sha256": "523e4381dc804254b7fefd04c6d0cf8451b59e6899fbfd80e755fead5fffeedf"
+      "seconds": 15.514,
+      "log_sha256": "0f97eefc902a607b7a96bf475c140c8847d7e4a319f74f5e15a6813abee2760c"
     },
     {
       "selection": "three_report_formats_derive_from_one_capture",
@@ -1466,8 +1466,8 @@
       "exit_code": 0,
       "timed_out": false,
       "expected_executed": 1,
-      "seconds": 16.043,
-      "log_sha256": "8da1b51f2db0dcaa13c48637aeb967c462c890b086772623fe04da00e8f9ec58"
+      "seconds": 16.022,
+      "log_sha256": "4d6a06324f65a5afab2f55de66c1afd543d2b771800c5f014134b83f908b7611"
     },
     {
       "selection": "no_tests_is_not_promoted_to_pass",
@@ -1491,8 +1491,8 @@
       "exit_code": 0,
       "timed_out": false,
       "expected_executed": 1,
-      "seconds": 16.081,
-      "log_sha256": "a4d6bba12272cabcba812823d97616398e665c40f66860ba273d65b135658206"
+      "seconds": 16.086,
+      "log_sha256": "17f8d6fb79629d849663e5d77fabda567d7b89388773579906093112e62ad385"
     },
     {
       "selection": "timeout_mid_build_is_blocked_after_joined_cleanup",
@@ -1516,8 +1516,8 @@
       "exit_code": 0,
       "timed_out": false,
       "expected_executed": 1,
-      "seconds": 16.01,
-      "log_sha256": "3967f4df93253f4518158192e48952b0e63fc79a75590fc342e62789060a5c41"
+      "seconds": 16.021,
+      "log_sha256": "d7c99693e1baaf1558bcc9fd9698f93600b4486048aafe5f36d58f7099fede05"
     },
     {
       "selection": "cancel_or_eof_joins_active_child_before_capacity_reuse",
@@ -1541,8 +1541,8 @@
       "exit_code": 0,
       "timed_out": false,
       "expected_executed": 1,
-      "seconds": 18.723,
-      "log_sha256": "2734ef096303fc98d9ba52147a2415261052820d4090e5cf80a2a2465664d22f"
+      "seconds": 18.604,
+      "log_sha256": "62160568b79fcd1763503d0e63c5282a73e9f7e755fb8335e1c005719d1b3c2f"
     },
     {
       "selection": "hostile_html_is_retained_only_as_opaque_archive_bundle",
@@ -1566,8 +1566,8 @@
       "exit_code": 0,
       "timed_out": false,
       "expected_executed": 1,
-      "seconds": 16.098,
-      "log_sha256": "2390478ac2f705b8baaff363c6cb84ba155d25187755792834905ce1ee9c972e"
+      "seconds": 16.095,
+      "log_sha256": "d78e2d692dd66668aba6ddb7f256c8227f921856ebe9e49c71ac14ace2a9737c"
     }
   ],
   "sources": [
@@ -2747,11 +2747,11 @@
   "configuration_inputs": [
     {
       "path": "Cargo.toml",
-      "sha256": "77be724116fb6f86b2f696e0b596cf6d96638706f8e8487cec6d81cf2fa34150"
+      "sha256": "78bd4ef6b16a854b373d02d899a495a2a4e48deab608880de902118df248b66c"
     },
     {
       "path": "Cargo.lock",
-      "sha256": "d67b10b35167578a08022daa4edf6232ec08db6ff932b2394d1a203fade86019"
+      "sha256": "49666c198cb9d7a7e1ab78ae05d922a3d7dd1c31d5f8a347a4cfee1137de7ed5"
     },
     {
       "path": "rust-toolchain.toml",
@@ -3366,5 +3366,5 @@
       "sha256": "0ae93b968d1e914c0aefff00b8718d55b26f7e2435815c39d3d390a02d2f767b"
     }
   ],
-  "finished_at": "2026-09-07T16:46:40.367612Z"
+  "finished_at": "2026-09-07T03:40:00.382845Z"
 }
