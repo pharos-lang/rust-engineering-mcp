@@ -1,7 +1,16 @@
 # M3 — matriz de validación
 
-Fecha: 2026-09-07 (re-calificación W7 sobre el tip final). Estado: **M3-01..06
-calificados localmente; G1..G9 satisfechos para el alcance local, sin release**.
+Fecha: 2026-09-07 (integración W8 en `main`; re-calificación W7 sobre el tip
+final). Estado: **M3-01..06 calificados e integrados en `main`; G1..G9
+satisfechos, sin release**.
+
+El PR #14 se mergeó en `main` el 2026-09-07 como `57c4037`, desde el tip
+`93991c4` de `ai/m3-quality`, con los cinco checks obligatorios verdes y un
+bypass de admin autorizado por el owner —el review exigido por CODEOWNERS era
+estructuralmente insatisfacible, porque el code owner es el autor del PR—. El
+merge no cambió ningún byte calificado (`git diff --stat 93991c4 main` vacío),
+así que todos los números de abajo siguen describiendo el árbol de `main`.
+[Integración](M3-07.md#integración) · [Recibo](M3-integration.json)
 
 **Los números de esta matriz corresponden a los bytes finales de la rama**, no a
 `e2ec7da`. W7 pasó `check-architecture` (exit 0), el core **14/14** (202.596 s) y
@@ -22,7 +31,7 @@ pinneado, que es pre-existente y está documentado en
 | M3-03 coverage | Done (qualified) | Coverage 8/8 dentro del runtime actual 62/62; target ADR-065 RW en run/report, keeper RO, export ausente; USTAR compartido rechaza prefix/link/uid/gid hostiles; bundle HTML de 320 KiB supera el cap antiguo; counts 4/4 líneas, 8/9 regiones, 2/2 funciones. [Calibración](M3-03.md) · [Recibo](M3-runtime.json) · [ADR-065](../adr/ADR-065-coverage-target-volume.md) |
 | M3-04 SemVer | Done (qualified) | Tool 21; W3 Docker 18/18: exits 0/100/101, warn-only, parser sobre goldens reales, ambos roots read-only, target dir confirmado, git/registry/cancelación, Stage 1 degradable y fallback Stage 0. [Recibo](M3-04.md) · [Calibración](M3-04-semver-calibration.md) |
 | M3-05 mutation | Done (qualified) | Tool 22; W3 Docker 10/10: exits 0/1/2/3/4, schema/listas/bundle reales, identidad guest, cap pre-build, hostil y cancelación. La inmutabilidad se acredita con mount RO/verifier y canary host, no con un campo de respuesta. [Recibo](M3-05.md) · [Calibración](M3-05-mutation-calibration.md) |
-| M3-06 integración y handoff | Done (qualified) for the local scope | [Core W7](M3-core-gate.json) 14/14 en 202.596 s; [full W7](M3-full-gate.json) **25/25** en 2,589.601 s, `audit-data` incluido; [rollback G6](M3-06-rollback.md) 10/10; [handoff](M3-07.md). Sobre el tip final de la rama. Commit y push hechos; no hay merge, tag ni release. |
+| M3-06 integración y handoff | Done | [Core W7](M3-core-gate.json) 14/14 en 202.596 s; [full W7](M3-full-gate.json) **25/25** en 2,589.601 s, `audit-data` incluido; [rollback G6](M3-06-rollback.md) 10/10; [handoff](M3-07.md). Integrado en `main` como `57c4037` (PR #14) sobre bytes idénticos al tip calificado; smoke post-merge fmt/check/clippy/test 1,105+1/arquitectura en exit 0 y 5 de 62 selecciones runtime re-ejecutadas. [Recibo de integración](M3-integration.json) · [Runtime post-merge](M3-postmerge-runtime.json). No hay tag ni release. |
 | D06 bounded jobs/tasks | Integrated and qualified | Lifecycle, permit compartido, token de registry, masking, quotas, TTL, liveness, child join, EOF/restart y clientes calificados; Tasks anunciado y aún gated por declaración del peer. [ADR-060](../adr/ADR-060-bounded-job-execution-and-mcp-tasks.md) · [M3-02](M3-02.md) |
 | D17 private artifact store | Integrated for quality tools | Autoridad live no bloqueante, publicación durable degradable por miembro, bundles contados una vez y Resources index/chunk; fallback Stage 0 sin state root o attach no disponible. Formato v1 versionado en el nombre del directorio. [ADR-061](../adr/ADR-061-private-quality-artifact-store.md) · [Rollback](M3-06-rollback.md) |
 | D18 coverage/SemVer accounting | Integrated and qualified | [ADR-062](../adr/ADR-062-coverage-accounting-and-semver-baselines.md), [SemVer 18/18](M3-04.md), [coverage 8/8](M3-03.md) |
@@ -35,7 +44,7 @@ pinneado, que es pre-existente y está documentado en
 | G6 Compatibilidad, migración y rollback | Done | Recibo propio de M3: versión desconocida falla cerrada y se conserva; el binario sin store M3 no lee, migra ni borra el directorio; `quality-artifacts recover|prune` se comportan como está documentado sobre objetos válidos, expirados y en quarantine; M2 y sus journals quedan intactos. 10/10 selecciones (6 nuevas + 4 reutilizadas). [Recibo](M3-06-rollback.md) · [JSON](M3-06-rollback.json) |
 | G7 Operación y distribución | Done for the non-release M3 scope | Provisioning 47/47 registra imagen/config, cinco componentes, hashes, licencias, notices y SBOM guest. M3 no produce paquete ni amplía plataformas. [Provisioning](M3-provisioning.json) · [ADR-063](../adr/ADR-063-m3-guest-plugin-provisioning.md) |
 | G8 Revisión independiente y bug bar | Done | V-SEC y V-CONTRACTS previos fueron dispuestos. Los re-reviews [VR-CONTRACTS](m3-delegation/VR-contracts-rereview/last-message.md) y [VR Opus](m3-delegation/VR-opus-rereview/last-message.md) confirmaron que los hallazgos bloqueantes están corregidos; los residuos aceptados quedan registrados en esta matriz. |
-| G9 Definition of Ready y Done | Done for the local scope | G1..G8 están satisfechos para el alcance local. No implica commit, tag, push, release ni ampliación de plataforma. [Handoff](M3-07.md) |
+| G9 Definition of Ready y Done | Done | G1..G8 están satisfechos y el trabajo está integrado en `main` (`57c4037`, PR #14) con smoke post-merge en exit 0. No implica tag, release ni ampliación de plataforma. [Handoff](M3-07.md) · [Integración](M3-integration.json) |
 
 ## Residuos aceptados
 
@@ -62,6 +71,16 @@ pinneado, que es pre-existente y está documentado en
   No se corrigió nada, porque no hay causa raíz confirmada. Consecuencia visible
   para el owner: queda trabajo abierto, con reproducción en Linux pendiente.
   [Detalle](M3-07.md#límites-y-riesgos-residuales)
+- **33 alertas CodeQL evaluadas como falsos positivos (trabajo abierto tras la
+  integración):** el check agregado `CodeQL` no es obligatorio y terminó en
+  `failure` sobre el tip mergeado. 31 son `rust/hard-coded-cryptographic-value`
+  disparadas porque la etiqueta de propiedad Docker `org.rust-mcp.rust-job` se
+  llama «nonce», que no es material criptográfico; 2 son
+  `rust/cleartext-logging` sobre mensajes de `assert_eq!` dentro del propio test
+  de redacción. Consecuencia visible para el owner: quedan dos acciones abiertas
+  —descartar las alertas en la pestaña Security y renombrar la etiqueta en su
+  propio corte, porque el rename toca cinco gateways ya calificados—.
+  [Detalle](M3-07.md#evaluación-codeql-33-alertas-check-no-obligatorio)
 - **`LiveJobAuthority::revalidate` bajo contención:** accepted residual. Puede
   responder `authorized` mientras el registro está contendiendo; es sólido solo
   mientras se mantenga la regla de un único permit y no está afirmado por una

@@ -1,10 +1,10 @@
 {
- "schema": "rust-mcp-m3-integration-v1",
+ "schema": "rust-mcp-m3-integration-v2",
  "recorded_at": "2026-09-06T22:23:16.728218+00:00",
- "outcome": "not_merged",
- "outcome_reason": "The pull request is complete, pushed and green on every platform gate, but it cannot be merged by this delegate. Two blockers are outside the authorization of the integration package: main requires a pull request review and .github/CODEOWNERS requires the owner @cburgosro9303 to review every change, which the author cannot self-approve; and the required SonarCloud quality gate fails three new-code conditions that are policy decisions for the owner, not integration defects. Changing repository settings, Sonar scanner scope or quality-gate thresholds was not authorized.",
+ "outcome": "merged",
+ "outcome_reason": "PR #14 was merged into main on 2026-09-07T14:10:45Z as 57c40373597541ac3d57bc8446ec4e2e598b904e. The five required checks were green on the merged tip 93991c4. The merge used an admin bypass authorized by the owner because the review requirement was structurally unsatisfiable, not because a check was skipped: CODEOWNERS makes @cburgosro9303 the code owner of the whole repository and that same account authored the PR, and GitHub does not permit self-approval, so the required approving review could never exist. enforce_admins was false, which made the bypass the only available mechanism. The SonarCloud quality gate that blocked the pre-merge attempt passed on the final tip.",
  "branch": "ai/m3-quality",
- "branch_tip": "d3330e6fe56cd1f6188a8cf90782b8c3aab7a821",
+ "branch_tip": "93991c4cf2994976093d6a28bd912341d8124722",
  "base": {
   "branch": "main",
   "origin_main_at_start": "8e6364d08a61dabf97583fe9aac9730c49a9f517"
@@ -18,169 +18,218 @@
  "pull_request": {
   "number": 14,
   "url": "https://github.com/pharos-lang/rust-engineering-mcp/pull/14",
-  "mergeable": "MERGEABLE",
-  "merge_state_status": "BLOCKED",
-  "review_decision": "REVIEW_REQUIRED"
+  "title": "M2 + M3 \u2014 Safe mutation, and quality verticals as bounded jobs",
+  "state": "MERGED",
+  "base": "main",
+  "head": "ai/m3-quality",
+  "head_oid": "93991c4cf2994976093d6a28bd912341d8124722",
+  "merged_at": "2026-09-07T14:10:45Z",
+  "merge_commit": "57c40373597541ac3d57bc8446ec4e2e598b904e",
+  "review_decision_at_merge": "REVIEW_REQUIRED"
  },
  "commits": [
   {
-   "sha": "d3330e6fe56cd1f6188a8cf90782b8c3aab7a821",
-   "subject": "fix(m3): fall back to Stage 0 off macOS and test absoluteness per platform"
-  },
-  {
-   "sha": "835b2330699d79611f02dee964d1a44e9d0e345e",
-   "subject": "fix(m2): drop a redundant AtomicBool import in inspector tests"
-  },
-  {
-   "sha": "3c293a14f2a0416f65b2de6f2f11f0e4929ade0b",
-   "subject": "fix(m2): compile the macOS-only manifest and vendor internals only on macOS"
-  },
-  {
-   "sha": "86d44917ce801b71f0224675b2ad4ac533915376",
-   "subject": "Merge origin/main into ai/m3-quality"
-  },
-  {
-   "sha": "2d757ed645fd57b40c84a2e833e4a42b1251eae5",
-   "subject": "fix(m3): repair three portability defects found by CI"
-  },
-  {
-   "sha": "9791d03bbe33ed2d1e5feb8c2b6114be83622896",
-   "subject": "test(m3): record the M3 qualification, reviews and delegation"
-  },
-  {
-   "sha": "db3589b247b84583cb463d7727ff58105ab358b3",
-   "subject": "docs(m3): document the quality verticals, jobs and their limits"
-  },
-  {
-   "sha": "f48f989672fc0d223e11a2c9fe49cfd465770c42",
-   "subject": "test(m3): add the M3 gate scripts and client harnesses"
-  },
-  {
-   "sha": "17fbfbef1d770a49f1c154b0905f2daed1b6d4df",
-   "subject": "test(m3): add the fixtures that calibrate the four verticals"
-  },
-  {
-   "sha": "72f70012b6434c143faf8d725a8a0ba1e2a6296c",
-   "subject": "feat(m3): expose the quality verticals as tools 19-22 over MCP"
-  },
-  {
-   "sha": "e57ccad576291ce47e2ce04155d2554f17ab50c2",
-   "subject": "feat(m3): store quality artifacts durably under the owner's control"
-  },
-  {
-   "sha": "98ca5dc2fe64e751ccf14496ebfedb07baf725d5",
-   "subject": "feat(m3): run quality jobs in the guest behind typed ports"
-  },
-  {
-   "sha": "e0d54ccdf810b8e14fe0346643f62aaa9450110e",
-   "subject": "feat(m3): model quality jobs, artifacts and the four verticals"
-  },
-  {
-   "sha": "c3d240796078df8a229f4e95740aaa3f0b6f9a1c",
-   "subject": "feat(m3): provision the guest image for the quality verticals"
-  },
-  {
-   "sha": "860244e60d65756bb9239dc7bc13c59fb8cdeaf7",
-   "subject": "docs(m3): record the six M3 decisions as accepted"
-  },
-  {
-   "sha": "bdc952021cec404de6f2818f9795a8eca477b090",
-   "subject": "chore(m3): keep client credentials and raw transcripts out of Git"
-  },
-  {
-   "sha": "52396184e5b53983056791f62d9eecbab3954d15",
-   "subject": "docs(m2): record local integration and postmerge smoke"
-  },
-  {
-   "sha": "7554bccbff2209ae5b3df63b2b1011646586380f",
-   "subject": "Merge locally qualified M2 safe mutation"
-  },
-  {
-   "sha": "ed1d6b21327ca38db2c1b35a9a61e0d74de686c8",
-   "subject": "test(m2): record final qualification and independent reviews"
-  },
-  {
-   "sha": "01c11f0dea21957d9a4c02acfe6bcbd1db4fca15",
-   "subject": "feat(m2): complete typed mutation and durable replay"
-  },
-  {
-   "sha": "331d1630da5a2c1d8d8c596305c0c1167a7896cb",
-   "subject": "feat(m2): add journaled manifest and formatting mutations"
-  },
-  {
-   "sha": "ea1a315fdf9f2fe942454b4a102545b959c79248",
-   "subject": "test: record M2 write-boundary qualification no-go"
+   "sha": "8b35cf6b3eec11dd4cda4d65ea8825ac7c045ba3",
+   "subject": "docs: plan M2-M8 with verified baseline and independent reviews"
   },
   {
    "sha": "2f54b360e1e81f21e7efeff7c451cdd6f663a04f",
    "subject": "Merge reviewed M2-M8 roadmap and implementation handoffs"
   },
   {
-   "sha": "8b35cf6b3eec11dd4cda4d65ea8825ac7c045ba3",
-   "subject": "docs: plan M2-M8 with verified baseline and independent reviews"
+   "sha": "ea1a315fdf9f2fe942454b4a102545b959c79248",
+   "subject": "test: record M2 write-boundary qualification no-go"
+  },
+  {
+   "sha": "331d1630da5a2c1d8d8c596305c0c1167a7896cb",
+   "subject": "feat(m2): add journaled manifest and formatting mutations"
+  },
+  {
+   "sha": "01c11f0dea21957d9a4c02acfe6bcbd1db4fca15",
+   "subject": "feat(m2): complete typed mutation and durable replay"
+  },
+  {
+   "sha": "ed1d6b21327ca38db2c1b35a9a61e0d74de686c8",
+   "subject": "test(m2): record final qualification and independent reviews"
+  },
+  {
+   "sha": "7554bccbff2209ae5b3df63b2b1011646586380f",
+   "subject": "Merge locally qualified M2 safe mutation"
+  },
+  {
+   "sha": "52396184e5b53983056791f62d9eecbab3954d15",
+   "subject": "docs(m2): record local integration and postmerge smoke"
+  },
+  {
+   "sha": "bdc952021cec404de6f2818f9795a8eca477b090",
+   "subject": "chore(m3): keep client credentials and raw transcripts out of Git"
+  },
+  {
+   "sha": "860244e60d65756bb9239dc7bc13c59fb8cdeaf7",
+   "subject": "docs(m3): record the six M3 decisions as accepted"
+  },
+  {
+   "sha": "c3d240796078df8a229f4e95740aaa3f0b6f9a1c",
+   "subject": "feat(m3): provision the guest image for the quality verticals"
+  },
+  {
+   "sha": "e0d54ccdf810b8e14fe0346643f62aaa9450110e",
+   "subject": "feat(m3): model quality jobs, artifacts and the four verticals"
+  },
+  {
+   "sha": "98ca5dc2fe64e751ccf14496ebfedb07baf725d5",
+   "subject": "feat(m3): run quality jobs in the guest behind typed ports"
+  },
+  {
+   "sha": "e57ccad576291ce47e2ce04155d2554f17ab50c2",
+   "subject": "feat(m3): store quality artifacts durably under the owner's control"
+  },
+  {
+   "sha": "72f70012b6434c143faf8d725a8a0ba1e2a6296c",
+   "subject": "feat(m3): expose the quality verticals as tools 19-22 over MCP"
+  },
+  {
+   "sha": "17fbfbef1d770a49f1c154b0905f2daed1b6d4df",
+   "subject": "test(m3): add the fixtures that calibrate the four verticals"
+  },
+  {
+   "sha": "f48f989672fc0d223e11a2c9fe49cfd465770c42",
+   "subject": "test(m3): add the M3 gate scripts and client harnesses"
+  },
+  {
+   "sha": "db3589b247b84583cb463d7727ff58105ab358b3",
+   "subject": "docs(m3): document the quality verticals, jobs and their limits"
+  },
+  {
+   "sha": "9791d03bbe33ed2d1e5feb8c2b6114be83622896",
+   "subject": "test(m3): record the M3 qualification, reviews and delegation"
+  },
+  {
+   "sha": "2d757ed645fd57b40c84a2e833e4a42b1251eae5",
+   "subject": "fix(m3): repair three portability defects found by CI"
+  },
+  {
+   "sha": "86d44917ce801b71f0224675b2ad4ac533915376",
+   "subject": "Merge origin/main into ai/m3-quality"
+  },
+  {
+   "sha": "3c293a14f2a0416f65b2de6f2f11f0e4929ade0b",
+   "subject": "fix(m2): compile the macOS-only manifest and vendor internals only on macOS"
+  },
+  {
+   "sha": "835b2330699d79611f02dee964d1a44e9d0e345e",
+   "subject": "fix(m2): drop a redundant AtomicBool import in inspector tests"
+  },
+  {
+   "sha": "d3330e6fe56cd1f6188a8cf90782b8c3aab7a821",
+   "subject": "fix(m3): fall back to Stage 0 off macOS and test absoluteness per platform"
+  },
+  {
+   "sha": "e2ec7dae6926dbc94020eba68158072cb22d04d6",
+   "subject": "docs(m3): record the integration outcome and what blocks the merge"
+  },
+  {
+   "sha": "e07df9aad7b2f6f283a16a2843bb4d90b4a232fd",
+   "subject": "fix(m3): resolve probe write paths and name the rejected test modes"
+  },
+  {
+   "sha": "6b46baf8b66d2f39f8f4e923f5167217f69a88b9",
+   "subject": "test(m3): cover the quality tool contracts the portable scanner can reach"
+  },
+  {
+   "sha": "defbd7abafd39b205a819108593e164c87544b64",
+   "subject": "refactor(m3): keep one worker mapping, one host clock and one digest spelling"
+  },
+  {
+   "sha": "aa562c3cd8d315be4c49e6bf239b3a9707b23153",
+   "subject": "refactor(m3): verify the applied container invariants in one place"
+  },
+  {
+   "sha": "c2c0ea480517fe70574a7c455fb6c9123776b2d0",
+   "subject": "refactor(m3): read one operational outcome, and stop excluding measurable code"
+  },
+  {
+   "sha": "ea13d945cf6a472cdd0004bb5204c2ba435f3e10",
+   "subject": "refactor(m3): end every gateway phase in one place"
+  },
+  {
+   "sha": "36c1d93f6475c02724673aa193a8e524cdd28097",
+   "subject": "refactor(m3): hold the gateway lock and re-check the runtime in one place"
+  },
+  {
+   "sha": "480ebd706ea63e090c3429064c0832bc95748f61",
+   "subject": "test(m3): keep helper spawns out of every store lock window"
+  },
+  {
+   "sha": "8a5fb7e40cfe13cafb2fdf72634fcd347f070ae9",
+   "subject": "docs(m3): re-qualify the M3 evidence on the final branch bytes"
+  },
+  {
+   "sha": "93991c4cf2994976093d6a28bd912341d8124722",
+   "subject": "docs(m3): record the Linux cli failure without a confirmed root cause"
   }
  ],
- "commit_count": 24,
+ "commit_count": 35,
  "checks": [
   {
+   "completed_at": "2026-09-07T04:01:58Z",
+   "conclusion": "failure",
    "name": "CodeQL",
-   "bucket": "fail",
-   "state": "FAILURE",
-   "link": "https://github.com/pharos-lang/rust-engineering-mcp/runs/101566747564"
+   "status": "completed"
   },
   {
+   "completed_at": "2026-09-07T04:01:59Z",
+   "conclusion": "success",
    "name": "CodeQL / actions",
-   "bucket": "pass",
-   "state": "SUCCESS",
-   "link": "https://github.com/pharos-lang/rust-engineering-mcp/actions/runs/34062956492/job/101566658268"
+   "status": "completed"
   },
   {
+   "completed_at": "2026-09-07T04:02:07Z",
+   "conclusion": "success",
    "name": "CodeQL / python",
-   "bucket": "pass",
-   "state": "SUCCESS",
-   "link": "https://github.com/pharos-lang/rust-engineering-mcp/actions/runs/34062956492/job/101566658266"
+   "status": "completed"
   },
   {
+   "completed_at": "2026-09-07T04:10:35Z",
+   "conclusion": "success",
    "name": "CodeQL / rust",
-   "bucket": "pass",
-   "state": "SUCCESS",
-   "link": "https://github.com/pharos-lang/rust-engineering-mcp/actions/runs/34062956492/job/101566658153"
+   "status": "completed"
   },
   {
+   "completed_at": "2026-09-07T04:06:51Z",
+   "conclusion": "success",
    "name": "SonarCloud",
-   "bucket": "fail",
-   "state": "FAILURE",
-   "link": "https://github.com/pharos-lang/rust-engineering-mcp/actions/runs/34062956590/job/101566658389"
+   "status": "completed"
   },
   {
+   "completed_at": "2026-09-07T04:06:44Z",
+   "conclusion": "success",
    "name": "SonarCloud Code Analysis",
-   "bucket": "fail",
-   "state": "FAILURE",
-   "link": "https://sonarcloud.io/dashboard?id=pharos-lang_rust-engineering-mcp&pullRequest=14"
+   "status": "completed"
   },
   {
+   "completed_at": "2026-09-07T04:06:53Z",
+   "conclusion": "success",
    "name": "portable / aarch64-apple-darwin",
-   "bucket": "pass",
-   "state": "SUCCESS",
-   "link": "https://github.com/pharos-lang/rust-engineering-mcp/actions/runs/34062956511/job/101568064155"
+   "status": "completed"
   },
   {
+   "completed_at": "2026-09-07T04:08:08Z",
+   "conclusion": "success",
    "name": "portable / x86_64-pc-windows-msvc",
-   "bucket": "pass",
-   "state": "SUCCESS",
-   "link": "https://github.com/pharos-lang/rust-engineering-mcp/actions/runs/34062956511/job/101568064621"
+   "status": "completed"
   },
   {
+   "completed_at": "2026-09-07T04:05:15Z",
+   "conclusion": "success",
    "name": "portable / x86_64-unknown-linux-gnu",
-   "bucket": "pass",
-   "state": "SUCCESS",
-   "link": "https://github.com/pharos-lang/rust-engineering-mcp/actions/runs/34062956511/job/101568085640"
+   "status": "completed"
   },
   {
+   "completed_at": "2026-09-07T04:05:24Z",
+   "conclusion": "success",
    "name": "supply chain",
-   "bucket": "pass",
-   "state": "SUCCESS",
-   "link": "https://github.com/pharos-lang/rust-engineering-mcp/actions/runs/34062956511/job/101568064923"
+   "status": "completed"
   }
  ],
  "required_checks": {
@@ -195,11 +244,12 @@
    "portable / x86_64-unknown-linux-gnu",
    "portable / aarch64-apple-darwin",
    "portable / x86_64-pc-windows-msvc",
-   "supply chain"
-  ],
-  "failing": [
+   "supply chain",
    "SonarCloud"
-  ]
+  ],
+  "failing": [],
+  "measured_on": "93991c4cf2994976093d6a28bd912341d8124722",
+  "source": "GET /repos/pharos-lang/rust-engineering-mcp/commits/93991c4.../check-runs"
  },
  "sonarcloud_quality_gate": {
   "status": "ERROR",
@@ -945,9 +995,10 @@
   "snapshots": "git diff main -- crates/mcp-server/tests/snapshots/ shows only the four new tool snapshots as additions; all 19 snapshots present on main, the 18 M1/M2 tool snapshots plus doctor-report.json, are byte-identical. The mutation-tool change the package anticipated does not exist: mutation-test-tool.json is one of the four new files."
  },
  "not_done": [
-  "merge (blocked: owner review required by CODEOWNERS, and the required SonarCloud gate fails)",
-  "post-merge smoke (no merge occurred)",
-  "committing this receipt on main (no merge occurred; it is committed on the branch instead)"
+  "tag, release and crates.io publication: not authorized and not performed",
+  "deleting the ai/m3-quality branch: not authorized; the branch is preserved on the remote",
+  "dismissing the 33 CodeQL alerts and renaming the 'nonce' ownership label: recommended to the owner, deferred to its own cut",
+  "reproducing the Linux cli failure: needs a Linux reproduction loop before the oracle is touched"
  ],
  "requalification": {
   "schema": "rust-mcp-m3-requalification-v1",
@@ -1114,6 +1165,422 @@
    "hypothesis_refuted": "Tested whether a concurrent fork keeps the pipe read end alive long enough for the write to succeed: 0/400 quiescent and 0/400 with eight concurrently forking threads. Not the mechanism, at least on macOS.",
    "action_taken": "None. Fixing on an unconfirmed hypothesis would have changed qualified bytes without grounds. The oracle is correct as written.",
    "open_work": "Needs an S03-style reproduction loop on Linux before the test is touched."
+  }
+ },
+ "branch_preserved_on_remote": true,
+ "merge": {
+  "merge_commit": "57c40373597541ac3d57bc8446ec4e2e598b904e",
+  "merged_at": "2026-09-07T14:10:45Z",
+  "base_before_merge": "8e6364d08a61dabf97583fe9aac9730c49a9f517",
+  "merged_tip": "93991c4cf2994976093d6a28bd912341d8124722",
+  "branch_deleted": false,
+  "admin_bypass": {
+   "used": true,
+   "authorized_by": "owner, explicitly",
+   "not_a_skipped_check": "All five required status checks were green on the merged tip before the merge. What could not be satisfied was the review requirement, not a check.",
+   "why_unsatisfiable": "main requires required_approving_review_count 1 with require_code_owner_reviews true, and .github/CODEOWNERS designates @cburgosro9303 as code owner of the repository. That account authored PR #14 and is the only collaborator, and GitHub does not permit a pull request author to approve their own pull request, so the required approval could not exist.",
+   "mechanism": "enforce_admins was false on main, so an administrator merge was the only available path.",
+   "residue": "reviewDecision stays permanently recorded as REVIEW_REQUIRED on the merged PR, which is the exact fingerprint of this situation.",
+   "branch_protection_observed": {
+    "enforce_admins": false,
+    "required_approving_review_count": 1,
+    "require_code_owner_reviews": true,
+    "require_last_push_approval": true,
+    "dismiss_stale_reviews": true,
+    "required_status_checks": [
+     "portable / x86_64-unknown-linux-gnu",
+     "portable / aarch64-apple-darwin",
+     "portable / x86_64-pc-windows-msvc",
+     "supply chain",
+     "SonarCloud"
+    ]
+   },
+   "structural_consequence": "Any future milestone using the same PR flow hits this again: either add a second reviewer or expect the bypass."
+  },
+  "codeql": {
+   "required": false,
+   "aggregate_check_conclusion_on_merged_tip": "failure",
+   "analysis_jobs_on_merged_tip": {
+    "rust": "success",
+    "actions": "success",
+    "python": "success"
+   },
+   "open_alerts_on_pr_merge_ref": 33,
+   "assessment": "false positives; see requalification.codeql_assessment in this file and M3-07.md",
+   "observed_after_merge_2026_09_07": {
+    "refs/pull/14/merge": {
+     "rust/hard-coded-cryptographic-value": 31,
+     "rust/cleartext-logging": 3
+    },
+    "refs/heads/main": {
+     "rust/hard-coded-cryptographic-value": 5,
+     "rust/cleartext-logging": "fixed"
+    },
+    "caveat": "The main-branch rust analysis had not yet been re-uploaded for 57c4037 when this was read: the newest /language:rust analysis on refs/heads/main is still commit 8e6364d0 of 2026-09-06 with 5 results, while /language:python and /language:actions were uploaded for 57c4037 with 0 results. The 5 open alerts on main therefore describe the pre-merge base, not the merged bytes. The 33 assessed alerts remain the number to act on."
+   }
+  }
+ },
+ "postmerge": {
+  "schema": "rust-mcp-m3-postmerge-v1",
+  "package": "W8",
+  "recorded_at": "2026-09-07T14:24:49.743022Z",
+  "head": "57c40373597541ac3d57bc8446ec4e2e598b904e",
+  "tree_comparison": {
+   "command": "git diff --stat 93991c4 main",
+   "exit_code": 0,
+   "output": "",
+   "conclusion": "The merge changed no qualified byte; main's tree equals the qualified branch tip."
+  },
+  "proportionality": "Because the trees are identical, re-running the expensive gates would only prove the same bytes twice. W8 ran the cheap smoke chain plus a representative runtime subset instead.",
+  "smoke": [
+   {
+    "command": "git diff --stat 93991c4 main",
+    "exit_code": 0,
+    "result": "empty output; the tree of main is identical to the qualified branch tip"
+   },
+   {
+    "command": "cargo fmt --check",
+    "exit_code": 0,
+    "result": "no differences"
+   },
+   {
+    "command": "cargo check --workspace --all-targets --locked --offline",
+    "exit_code": 0,
+    "result": "workspace checks"
+   },
+   {
+    "command": "cargo clippy --workspace --all-targets --locked --offline -- -D warnings",
+    "exit_code": 0,
+    "result": "no warnings"
+   },
+   {
+    "command": "cargo test --workspace --locked --offline",
+    "exit_code": 0,
+    "tests_passed": 1105,
+    "doctests_passed": 1,
+    "tests_failed": 0,
+    "tests_ignored": 118,
+    "result": "1,105 tests + 1 doctest passed, 0 failed, 118 ignored (the Docker-gated selections)"
+   },
+   {
+    "command": "python3 -B scripts/check-architecture.py",
+    "exit_code": 0,
+    "result": "PASS domain/application dependency and IO boundaries, sole process gateway, offline engine defaults, memory-only model adapter"
+   }
+  ],
+  "runtime_confirmation": {
+   "full_gate_qualified_pre_merge": {
+    "selections": "62/62",
+    "receipt": "docs/validation/M3-runtime.json",
+    "receipt_sha256": "5cfab6c56eaa9d6ab0f306b4920eb61eea21cd4cbc371bf7199c7094a674bf25",
+    "qualified_bytes": "identical to main's tree"
+   },
+   "subset_re_run_post_merge": {
+    "selections": "5/62",
+    "rationale": "one nextest, one Tasks lifecycle, one coverage, one semver, one mutation",
+    "gate_script": "scripts/test-m3-runtime.py",
+    "gate_script_sha256": "dbcefd6f61c00968763024f2868a2fced10822ce45fe55f269e3bd44b827e877",
+    "gate_script_modified": false,
+    "how": "The gate script has no selection filter, so a driver reproducing its environment construction and per-step command form byte for byte ran the five selections; the script itself was not modified.",
+    "image_id": "sha256:384a1742ecc53cdd3a9c0bf36c6f8b66db73ddd118aeeae6e55654ea998ae36a",
+    "status": "passed",
+    "steps": [
+     {
+      "selection": "all_passing_tests_report_the_hypothesized_success_exit_code",
+      "status": "passed",
+      "exit_code": 0,
+      "seconds": 21.592,
+      "log_sha256": "1bb544df0727b4e05afce18990664d9b855467c03b838a193d09f786087784a5"
+     },
+     {
+      "selection": "tasks_runtime::tasks_cancel_before_start_during_execution_publication_and_cleanup_waits_for_join",
+      "status": "passed",
+      "exit_code": 0,
+      "seconds": 46.149,
+      "log_sha256": "6e4036f45a0dbf8a6e291ec38f0b9e73ed7866af41a5f794f886ef40da2f6134"
+     },
+     {
+      "selection": "known_counts_fixture_has_exact_line_region_and_function_oracle",
+      "status": "passed",
+      "exit_code": 0,
+      "seconds": 18.463,
+      "log_sha256": "f31d27da8aaeb115c327721d18b3532fd377cc4112fa59f19febf132d4e4ffbb"
+     },
+     {
+      "selection": "removed_public_function_is_a_deny_level_break",
+      "status": "passed",
+      "exit_code": 0,
+      "seconds": 17.493,
+      "log_sha256": "ed236ead2f380f3b03ee8ab76a77803d1085f51d3355e9fa3383289c336faef3"
+     },
+     {
+      "selection": "missed_one_fixture_names_the_surviving_function",
+      "status": "passed",
+      "exit_code": 0,
+      "seconds": 21.834,
+      "log_sha256": "730d7ed647b3e7fba74a22e6c2eb7062a0af929d988799abb95489a619a64796"
+     }
+    ],
+    "receipt": "docs/validation/M3-postmerge-runtime.json",
+    "receipt_sha256": "c2ef705c346d589840db402123ee8f803f159b45a1649ae7126bfdd8c8e36226"
+   }
+  },
+  "docker_hygiene": {
+   "filter": "label=org.rust-mcp.execution=true",
+   "checked": "before and after the runtime subset",
+   "commands": [
+    "docker --host unix:///Users/cburgosro/.docker/run/docker.sock ps -a --filter label=org.rust-mcp.execution=true",
+    "docker --host unix:///Users/cburgosro/.docker/run/docker.sock volume ls --filter label=org.rust-mcp.execution=true"
+   ],
+   "owned_containers_before": 0,
+   "owned_volumes_before": 0,
+   "owned_containers_after": 0,
+   "owned_volumes_after": 0
+  },
+  "premerge_gate_receipts": {
+   "M3-core-gate.json": {
+    "path": "docs/validation/M3-core-gate.json",
+    "sha256": "7b59e852ea0b522b974fe3377503e813114b7dc573da506396cb70d54affd836"
+   },
+   "M3-full-gate.json": {
+    "path": "docs/validation/M3-full-gate.json",
+    "sha256": "035bfad65ffed692531d2a2fa049e370abfea2d6278cf27087f44e814d1f0e86"
+   },
+   "M3-runtime.json": {
+    "path": "docs/validation/M3-runtime.json",
+    "sha256": "5cfab6c56eaa9d6ab0f306b4920eb61eea21cd4cbc371bf7199c7094a674bf25"
+   },
+   "M3-rust-security.json": {
+    "path": "docs/validation/M3-rust-security.json",
+    "sha256": "4ad812a05b8683d049001d96b6f59871f1aa880fc865b93979dec58d5ff8df0b"
+   },
+   "M3-06-rollback.json": {
+    "path": "docs/validation/M3-06-rollback.json",
+    "sha256": "70442cbeb3a600c1b0139c51530f72f9b8cb1108519d98158a5c1371668fb3ba"
+   }
+  },
+  "sanitized_and_excluded_evidence": {
+   "sanitized_file_digests": "preserved verbatim in this file under sanitization.removed_file_digests: 112 SHA-256 digests of the 112 removed credential-bearing files, none of which was ever tracked",
+   "removed_file_count": 112,
+   "excluded_transcript_inventory": "docs/validation/M3-delegation-log-inventory.json",
+   "excluded_transcript_inventory_sha256": "25095e3cfe29e3b943d2627525caf5f2f00714144a773744270f898a9bd1ef13",
+   "excluded_transcript_count": 59,
+   "excluded_transcript_bytes": 42399935
+  },
+  "surviving_open_items": [
+   {
+    "id": "W7-02",
+    "title": "closed_output_stream_returns_one_without_panicking failed once on Linux CI",
+    "documented_in": "commit 93991c4cf2994976093d6a28bd912341d8124722",
+    "root_cause": "NOT CONFIRMED",
+    "oracle": "crates/mcp-server/tests/cli.rs:131",
+    "required_before_any_change": "an S03-style reproduction loop on Linux; the oracle is correct as written and must not be touched before then"
+   },
+   {
+    "id": "W7-CODEQL",
+    "title": "33 CodeQL alerts assessed as false positives; 'nonce' ownership label should be renamed",
+    "recommendation": [
+     "Dismiss the alerts in the Security tab, citing the assessment in M3-07.md.",
+     "Rename the Docker ownership label away from the word 'nonce' in its own cut: it touches rust_applied.rs, mutation_gateway.rs, rust_gateway.rs, resolution_gateway.rs and coverage_gateway.rs, which are qualified execution paths, so it needs its own gate run."
+    ]
+   }
+  ],
+  "superseded_premerge_record": {
+   "note": "W8 updated the headline fields of this receipt so they state the truth after the merge. Nothing is discarded: the exact pre-merge values are kept here.",
+   "outcome": "not_merged",
+   "outcome_reason": "The pull request is complete, pushed and green on every platform gate, but it cannot be merged by this delegate. Two blockers are outside the authorization of the integration package: main requires a pull request review and .github/CODEOWNERS requires the owner @cburgosro9303 to review every change, which the author cannot self-approve; and the required SonarCloud quality gate fails three new-code conditions that are policy decisions for the owner, not integration defects. Changing repository settings, Sonar scanner scope or quality-gate thresholds was not authorized.",
+   "branch_tip": "d3330e6fe56cd1f6188a8cf90782b8c3aab7a821",
+   "pull_request": {
+    "number": 14,
+    "url": "https://github.com/pharos-lang/rust-engineering-mcp/pull/14",
+    "mergeable": "MERGEABLE",
+    "merge_state_status": "BLOCKED",
+    "review_decision": "REVIEW_REQUIRED"
+   },
+   "required_checks": {
+    "contexts": [
+     "portable / x86_64-unknown-linux-gnu",
+     "portable / aarch64-apple-darwin",
+     "portable / x86_64-pc-windows-msvc",
+     "supply chain",
+     "SonarCloud"
+    ],
+    "passing": [
+     "portable / x86_64-unknown-linux-gnu",
+     "portable / aarch64-apple-darwin",
+     "portable / x86_64-pc-windows-msvc",
+     "supply chain"
+    ],
+    "failing": [
+     "SonarCloud"
+    ]
+   },
+   "checks": [
+    {
+     "name": "CodeQL",
+     "bucket": "fail",
+     "state": "FAILURE",
+     "link": "https://github.com/pharos-lang/rust-engineering-mcp/runs/101566747564"
+    },
+    {
+     "name": "CodeQL / actions",
+     "bucket": "pass",
+     "state": "SUCCESS",
+     "link": "https://github.com/pharos-lang/rust-engineering-mcp/actions/runs/34062956492/job/101566658268"
+    },
+    {
+     "name": "CodeQL / python",
+     "bucket": "pass",
+     "state": "SUCCESS",
+     "link": "https://github.com/pharos-lang/rust-engineering-mcp/actions/runs/34062956492/job/101566658266"
+    },
+    {
+     "name": "CodeQL / rust",
+     "bucket": "pass",
+     "state": "SUCCESS",
+     "link": "https://github.com/pharos-lang/rust-engineering-mcp/actions/runs/34062956492/job/101566658153"
+    },
+    {
+     "name": "SonarCloud",
+     "bucket": "fail",
+     "state": "FAILURE",
+     "link": "https://github.com/pharos-lang/rust-engineering-mcp/actions/runs/34062956590/job/101566658389"
+    },
+    {
+     "name": "SonarCloud Code Analysis",
+     "bucket": "fail",
+     "state": "FAILURE",
+     "link": "https://sonarcloud.io/dashboard?id=pharos-lang_rust-engineering-mcp&pullRequest=14"
+    },
+    {
+     "name": "portable / aarch64-apple-darwin",
+     "bucket": "pass",
+     "state": "SUCCESS",
+     "link": "https://github.com/pharos-lang/rust-engineering-mcp/actions/runs/34062956511/job/101568064155"
+    },
+    {
+     "name": "portable / x86_64-pc-windows-msvc",
+     "bucket": "pass",
+     "state": "SUCCESS",
+     "link": "https://github.com/pharos-lang/rust-engineering-mcp/actions/runs/34062956511/job/101568064621"
+    },
+    {
+     "name": "portable / x86_64-unknown-linux-gnu",
+     "bucket": "pass",
+     "state": "SUCCESS",
+     "link": "https://github.com/pharos-lang/rust-engineering-mcp/actions/runs/34062956511/job/101568085640"
+    },
+    {
+     "name": "supply chain",
+     "bucket": "pass",
+     "state": "SUCCESS",
+     "link": "https://github.com/pharos-lang/rust-engineering-mcp/actions/runs/34062956511/job/101568064923"
+    }
+   ],
+   "commits": [
+    {
+     "sha": "d3330e6fe56cd1f6188a8cf90782b8c3aab7a821",
+     "subject": "fix(m3): fall back to Stage 0 off macOS and test absoluteness per platform"
+    },
+    {
+     "sha": "835b2330699d79611f02dee964d1a44e9d0e345e",
+     "subject": "fix(m2): drop a redundant AtomicBool import in inspector tests"
+    },
+    {
+     "sha": "3c293a14f2a0416f65b2de6f2f11f0e4929ade0b",
+     "subject": "fix(m2): compile the macOS-only manifest and vendor internals only on macOS"
+    },
+    {
+     "sha": "86d44917ce801b71f0224675b2ad4ac533915376",
+     "subject": "Merge origin/main into ai/m3-quality"
+    },
+    {
+     "sha": "2d757ed645fd57b40c84a2e833e4a42b1251eae5",
+     "subject": "fix(m3): repair three portability defects found by CI"
+    },
+    {
+     "sha": "9791d03bbe33ed2d1e5feb8c2b6114be83622896",
+     "subject": "test(m3): record the M3 qualification, reviews and delegation"
+    },
+    {
+     "sha": "db3589b247b84583cb463d7727ff58105ab358b3",
+     "subject": "docs(m3): document the quality verticals, jobs and their limits"
+    },
+    {
+     "sha": "f48f989672fc0d223e11a2c9fe49cfd465770c42",
+     "subject": "test(m3): add the M3 gate scripts and client harnesses"
+    },
+    {
+     "sha": "17fbfbef1d770a49f1c154b0905f2daed1b6d4df",
+     "subject": "test(m3): add the fixtures that calibrate the four verticals"
+    },
+    {
+     "sha": "72f70012b6434c143faf8d725a8a0ba1e2a6296c",
+     "subject": "feat(m3): expose the quality verticals as tools 19-22 over MCP"
+    },
+    {
+     "sha": "e57ccad576291ce47e2ce04155d2554f17ab50c2",
+     "subject": "feat(m3): store quality artifacts durably under the owner's control"
+    },
+    {
+     "sha": "98ca5dc2fe64e751ccf14496ebfedb07baf725d5",
+     "subject": "feat(m3): run quality jobs in the guest behind typed ports"
+    },
+    {
+     "sha": "e0d54ccdf810b8e14fe0346643f62aaa9450110e",
+     "subject": "feat(m3): model quality jobs, artifacts and the four verticals"
+    },
+    {
+     "sha": "c3d240796078df8a229f4e95740aaa3f0b6f9a1c",
+     "subject": "feat(m3): provision the guest image for the quality verticals"
+    },
+    {
+     "sha": "860244e60d65756bb9239dc7bc13c59fb8cdeaf7",
+     "subject": "docs(m3): record the six M3 decisions as accepted"
+    },
+    {
+     "sha": "bdc952021cec404de6f2818f9795a8eca477b090",
+     "subject": "chore(m3): keep client credentials and raw transcripts out of Git"
+    },
+    {
+     "sha": "52396184e5b53983056791f62d9eecbab3954d15",
+     "subject": "docs(m2): record local integration and postmerge smoke"
+    },
+    {
+     "sha": "7554bccbff2209ae5b3df63b2b1011646586380f",
+     "subject": "Merge locally qualified M2 safe mutation"
+    },
+    {
+     "sha": "ed1d6b21327ca38db2c1b35a9a61e0d74de686c8",
+     "subject": "test(m2): record final qualification and independent reviews"
+    },
+    {
+     "sha": "01c11f0dea21957d9a4c02acfe6bcbd1db4fca15",
+     "subject": "feat(m2): complete typed mutation and durable replay"
+    },
+    {
+     "sha": "331d1630da5a2c1d8d8c596305c0c1167a7896cb",
+     "subject": "feat(m2): add journaled manifest and formatting mutations"
+    },
+    {
+     "sha": "ea1a315fdf9f2fe942454b4a102545b959c79248",
+     "subject": "test: record M2 write-boundary qualification no-go"
+    },
+    {
+     "sha": "2f54b360e1e81f21e7efeff7c451cdd6f663a04f",
+     "subject": "Merge reviewed M2-M8 roadmap and implementation handoffs"
+    },
+    {
+     "sha": "8b35cf6b3eec11dd4cda4d65ea8825ac7c045ba3",
+     "subject": "docs: plan M2-M8 with verified baseline and independent reviews"
+    }
+   ],
+   "commit_count": 24,
+   "not_done": [
+    "merge (blocked: owner review required by CODEOWNERS, and the required SonarCloud gate fails)",
+    "post-merge smoke (no merge occurred)",
+    "committing this receipt on main (no merge occurred; it is committed on the branch instead)"
+   ]
   }
  }
 }
