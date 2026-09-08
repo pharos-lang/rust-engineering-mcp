@@ -10,6 +10,16 @@
 //! and **the application** is what refuses to publish it as if it described
 //! this one. That refusal cannot live in the adapter: the adapter is the party
 //! whose claim is being checked.
+//!
+//! A second claim is checked for the same reason. `cargo-bloat` 0.12.1 forces
+//! `CARGO_PROFILE_<PROFILE>_STRIP=false` on every build it performs, because it
+//! needs the symbol table (`src/main.rs:694-696`; calibrated in the guest and
+//! recorded in `docs/validation/M5-04-bloat-calibration.json`). Every binary
+//! this tool measures is therefore an *analysis build*, and its size is exact
+//! for that file and not for the file a project asking for stripping would
+//! ship. `MeasuredBinary::analysis_build_symbols_forced` records that, and it
+//! is always true with this analyzer — so an observation that says otherwise is
+//! not describing the run we performed and is refused here.
 use crate::security::{SecurityCapture, SecurityError};
 use crate::{
     InspectionControl, InspectionError, ProjectRegistry, ProjectSourceBackend, QualityOwnerFacts,
@@ -72,6 +82,16 @@ pub fn validate_bloat_observation(
     // measurement published under the approved contract.
     if observation.analyzer_version != APPROVED_CARGO_BLOAT_VERSION
         && observation.completeness != BloatCompleteness::Unavailable
+    {
+        return Err(SecurityError::InvalidMetadata);
+    }
+    // A measured file exists only because the analyzer built it with symbols
+    // forced on (ADR-076 §6). `false` cannot be a truthful report from this
+    // analyzer, so it means the observation describes some other build.
+    if observation
+        .measured
+        .as_ref()
+        .is_some_and(|measured| !measured.analysis_build_symbols_forced)
     {
         return Err(SecurityError::InvalidMetadata);
     }
@@ -176,6 +196,7 @@ mod tests {
             size_bytes,
             sha256: format!("sha256:{}", "b".repeat(64)),
             format: BinaryFormat::Elf64Aarch64,
+            analysis_build_symbols_forced: true,
         }
     }
 
@@ -340,6 +361,20 @@ mod tests {
         let options = options();
         let mut observed = observation(&options);
         observed.attribution = Some(attribution(None));
+        rejected(observed, &options);
+    }
+
+    /// `cargo-bloat` 0.12.1 always builds with symbols forced on, so a measured
+    /// binary that claims otherwise is describing a build this tool cannot have
+    /// performed. Publishing it would let a reader take the size for the file
+    /// their stripped release ships.
+    #[test]
+    fn a_measured_binary_that_denies_the_forced_analysis_build_is_never_published() {
+        let options = options();
+        let mut observed = observation(&options);
+        let mut binary = measured(MEASURED_SIZE);
+        binary.analysis_build_symbols_forced = false;
+        observed.measured = Some(binary);
         rejected(observed, &options);
     }
 

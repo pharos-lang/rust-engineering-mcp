@@ -23,8 +23,21 @@ python3 -B fixtures/criterion-vendor/materialize.py
 ```
 
 Run that **once** before building `fixtures/benchmark`. It verifies every
-archive and extracts into `fixtures/criterion-vendor/vendor/`, which is where
-`fixtures/benchmark/.cargo/config.toml` points. Other modes:
+archive and extracts into `fixtures/criterion-vendor/vendor/`.
+
+That fixture deliberately ships **no** `.cargo` configuration: the M5 flows
+refuse a project-supplied Cargo config, because it is where a project would
+install a wrapper, a linker or a runner, and where it could redirect
+`source.crates-io` at bytes it controls. Select the directory source on the
+command line instead, which is the precedence Cargo gives the highest:
+
+```text
+cargo bench --offline --bench perf \
+  --config 'source.crates-io.replace-with="vendored-sources"' \
+  --config 'source.vendored-sources.directory="../criterion-vendor/vendor"'
+```
+
+Other modes:
 
 ```text
 python3 -B fixtures/criterion-vendor/materialize.py --verify-only

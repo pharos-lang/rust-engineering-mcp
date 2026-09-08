@@ -155,6 +155,7 @@ pub(crate) fn parse(mut args: impl Iterator<Item = OsString>) -> Option<stdio::H
         if image != OsStr::new(rust_engineering_execution::APPROVED_RUST_IMAGE)
             && image != OsStr::new(rust_engineering_execution::APPROVED_SECURITY_IMAGE)
             && image != OsStr::new(rust_engineering_execution::APPROVED_M4_IMAGE)
+            && image != OsStr::new(rust_engineering_execution::APPROVED_M5_IMAGE)
         {
             return None;
         }

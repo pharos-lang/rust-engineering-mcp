@@ -229,7 +229,9 @@ runtime, agrega al final de `args` el grupo completo:
 Agrega juntos `--rustsec-snapshot` y `--rustsec-sha256` para audit. Agrega juntos
 `--catalog-store` y `--catalog-trust` para catálogo léxico. El catálogo semántico
 requiere, además, un binario compilado con `--features local`,
-`--catalog-model-dir` y `--catalog-index-store`.
+`--catalog-model-dir` y `--catalog-index-store`. `--allow-profiling
+user-space-sampling` es la única concesión de profiling y exige el grupo Docker
+completo; se documenta [más abajo](#configurar-las-tools-m5).
 
 No pongas secretos en `args` ni habilites una confianza global para evitar las
 confirmaciones. Rust Engineering MCP no necesita claves API para funcionar: sus
@@ -303,6 +305,90 @@ Mantén la aprobación interactiva del cliente. Gate v2 y Miri ejecutan código 
 proyecto dentro del sandbox; `readOnlyHint` describe que la tool no escribe el
 checkout, no que el código evaluado sea inocuo. La calificación cliente M4 está
 limitada a Inspector 2.5.0 y Codex 0.153.0 en el host local documentado.
+
+### Configurar las tools M5
+
+Las cuatro definiciones M5 están implementadas y **pendientes de calificación**:
+la [matriz M5](validation/M5-matrix.md) conserva M5-01..04 en `In progress` y
+`tools/list` sigue devolviendo 27 definiciones. Esta sección documenta la
+configuración del host que esos contratos exigen; no acredita una calificación ni
+cambia la release `0.1.0`.
+
+#### `--allow-profiling`
+
+`rust.profile.flamegraph` exige una capability positiva del host. Se concede con
+una única opción, que acepta **un solo valor**:
+
+```text
+--allow-profiling user-space-sampling
+```
+
+Cualquier otro valor —y repetir la opción— hace inválida la invocación de
+`serve`; un valor desconocido es un error de configuración, nunca una concesión
+más estrecha o más amplia en silencio. `user-space-sampling` concede exactamente
+el muestreo de espacio de usuario (`exclude_kernel`, `exclude_hv`, eventos
+software de reloj de CPU) sobre el proceso hijo que lanza el perfilador y sus
+hilos, con una sola syscall añadida al perfil seccomp y solo en la fase de
+muestreo. No añade capabilities Linux, no usa contenedores privilegiados, no
+ejecuta `sudo` y no toca `perf_event_paranoid`. Detalles en el
+[modelo de seguridad](security-model.md#m5--medición-capability-de-profiling-y-containment).
+
+**La opción se rechaza de plano si no configuras el runtime Docker.** Sin el
+grupo `--docker` / `--docker-socket` / `--state-root` / `--rust-image` completo
+no hay contenedor que contener, así que `--allow-profiling` no se degrada: el
+arranque de `serve` falla. La capability es por servidor y revocable; retirarla
+del arreglo `args` y reiniciar cancela el trabajo en curso, hace join del árbol
+de procesos, conserva la evidencia publicada y devuelve el runtime al perfil
+calificado. Ninguna otra tool cambia de comportamiento por concederla.
+
+Sin la concesión, un cliente ve `rust.profile.flamegraph` responder `blocked` con
+`PROFILING_NOT_AUTHORIZED` (ADR-076 §5), **antes** de que se cree ningún
+contenedor: no hay build, no hay ejecución del binario y no hay artifact. El peer
+no puede pedir la capability, ni inferirla del proyecto, ni obtenerla por una URI
+de Resource o por las annotations de la tool.
+
+#### Vendor Cargo para `rust.benchmark.run`
+
+El harness de benchmarks es una dependencia de desarrollo del proyecto
+(Criterion 0.8.2, la única integración que M5 sabe medir) y se resuelve
+**offline**. Por eso `rust.benchmark.run` exige el directorio vendor autenticado
+por el host, el mismo par ya documentado para las tools M4:
+
+```text
+--cargo-vendor-dir /ruta/absoluta/al/vendor
+--cargo-vendor-tree-sha256 sha256:<64-hex>
+```
+
+Sin ese par, la tool **reporta que faltan datos offline** —el mismo camino
+`MISSING_OFFLINE_DATA` que ya usan las tools M4 cuando el vendor autenticado no
+está configurado— en lugar de degradarse: no descarga el harness, no lo sustituye
+y no emite un dataset parcial. `rust.profile.flamegraph` y `rust.binary.bloat`
+consumen el mismo árbol vendor para construir el binario que miden.
+`rust.benchmark.compare` no lo necesita: no ejecuta nada y opera sobre dos
+artifacts del store privado identificados por sus IDs opacos, que solo emite un
+`run` previo del mismo proyecto.
+
+Si el proyecto no tiene Criterion 0.8.2 vendorizado, o usa otro harness, el
+resultado es declarado (`harness_unrecognized`: ejecución, exit y logs, sin
+dataset ni medidas), nunca una medida degradada.
+
+#### Imagen del runtime M5
+
+La imagen guest M5 `rust-engineering-runtime:1.98.1-arm64-m5`
+(`sha256:e9ecc40d023d9d13ac3539cccb6a944cd1022da2a8b3f86ca61356086b38a209`)
+está construida y con [recibo](validation/M5-provisioning.json), y
+[ADR-077](adr/ADR-077-m5-runtime-admission.md) añade exactamente ese digest a la
+lista de admisión del gateway. El puerto de performance exige esa imagen **y solo
+esa**: cualquier otro digest devuelve `unavailable` antes de crear contenedor
+alguno. Un host configurado con la imagen M4 sigue sirviendo las 27 tools
+anteriores y recibe `unavailable` en las cuatro nuevas, que es el resultado
+correcto y declarado.
+
+La lista de digests que `serve` acepta en `--rust-image` es una comprobación
+distinta de la del gateway. Comprueba que el binario que vas a ejecutar admita el
+digest M5 antes de configurarlo: un digest no admitido no degrada nada, hace
+fallar el arranque. Admitir la imagen tampoco califica las tools; la calificación
+nativa M5 sigue abierta.
 
 ## Diagnóstico
 

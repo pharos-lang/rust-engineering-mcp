@@ -88,3 +88,21 @@ information.
 
 `target/` is generated and is git-ignored; no build artifacts belong in this
 corpus.
+
+## Sin configuración de Cargo propia
+
+Esta fixture **no** trae `.cargo/config.toml`. Los flujos M5 rechazan una fuente
+con configuración de Cargo del proyecto, porque G2 prohíbe wrappers, linkers y
+runners del proyecto y ese archivo es donde vivirían.
+
+Los frame pointers los fuerza **el gateway**, poniendo
+`RUSTFLAGS=-C force-frame-pointers=yes` en el entorno reconstruido de la fase de
+construcción. Para reproducirlo en el host:
+
+```sh
+cd fixtures/profile-workload
+RUSTFLAGS="-C force-frame-pointers=yes" cargo build --release --offline
+```
+
+Sin ese flag el binario sigue compilando, pero las pilas muestreadas son más
+cortas; eso se declara en el resultado, no se disimula.

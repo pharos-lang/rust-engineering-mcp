@@ -922,6 +922,7 @@ impl RustGateway {
         if config.image_id != APPROVED_RUST_IMAGE
             && config.image_id != crate::APPROVED_SECURITY_IMAGE
             && config.image_id != crate::APPROVED_M4_IMAGE
+            && config.image_id != crate::APPROVED_M5_IMAGE
         {
             return Err(ExecutionError::InvalidConfiguration);
         }

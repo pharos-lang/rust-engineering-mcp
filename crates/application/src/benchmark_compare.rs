@@ -21,7 +21,7 @@ use crate::{
 };
 use rust_engineering_domain::benchmark::{BenchmarkDataset, BenchmarkError};
 use rust_engineering_domain::benchmark_compare::{
-    ComparisonReport, IncompatibilityReason, compare,
+    CompareError, ComparisonReport, IncompatibilityReason, compare,
 };
 use rust_engineering_domain::{
     PayloadFormatVersion, ProjectRef, QualityArtifactError, QualityArtifactId, QualityArtifactKind,
@@ -218,7 +218,6 @@ impl<B: QualityProjectBackend, G: ReferenceGenerator, C: RegistryClock> ProjectR
         let candidate =
             self.load_dataset(reference, &request.candidate, store, decoder, control)?;
         control.check()?;
-        use rust_engineering_domain::benchmark_compare::CompareError;
         match compare(&baseline, &candidate) {
             Ok(report) => Ok(CompareOutcome::Report(Box::new(report))),
             Err(CompareError::Incompatible(reasons)) => Ok(CompareOutcome::Incompatible(reasons)),

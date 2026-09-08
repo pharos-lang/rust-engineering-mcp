@@ -10,12 +10,16 @@
 //! 1. fork/exec the child with `raise(SIGSTOP)` in `pre_exec`, on a helper
 //!    thread because `Command::spawn` blocks until the child execs;
 //! 2. `waitpid(..., WUNTRACED)` until the child is stopped;
-//! 3. `perf_event_open` on that pid only;
-//! 4. `mmap` one metadata page plus eight data pages;
-//! 5. `PERF_EVENT_IOC_ENABLE`, then `SIGCONT`;
-//! 6. drain the ring until the child exits, the duration elapses or the sample
-//!    cap is reached;
+//! 3. `perf_event_open` on that pid only, once per online CPU;
+//! 4. `mmap` one metadata page plus eight data pages per event;
+//! 5. `PERF_EVENT_IOC_ENABLE` on every event, then `SIGCONT`;
+//! 6. drain and merge all the rings until the child exits, the duration
+//!    elapses or the sample cap is reached;
 //! 7. `PERF_EVENT_IOC_DISABLE`, kill and reap, drain what is left.
+//!
+//! The per-CPU fan-out in steps 3 and 4 is forced by the kernel: `perf_mmap`
+//! refuses an inherited event opened with `cpu == -1`, so keeping `inherit = 1`
+//! means opening one event and one ring per CPU and merging them.
 
 use std::collections::BTreeMap;
 use std::fs;

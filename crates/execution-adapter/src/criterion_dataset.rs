@@ -1152,3 +1152,208 @@ mod tests {
         }
     }
 }
+
+/// Real bytes from the guest, not a hand-written fixture.
+///
+/// The three archives under `fixtures/benchmark-datasets/` were exported from
+/// `CRITERION_HOME` inside the qualified Linux ARM64 guest with the frozen
+/// ADR-073 parameters. They are the M5-01/M5-02 oracle: a baseline, an
+/// independent repeat of the *same* source, and a candidate built from a
+/// genuinely different source with the same benchmark identity and selection.
+#[cfg(test)]
+#[allow(clippy::expect_used, clippy::unwrap_used)] // Fixed real captures are malformed only by mistake.
+mod real_guest_datasets {
+    use super::{CriterionParse, parse_archive};
+    use rust_engineering_domain::benchmark::{
+        BENCHMARK_DATASET_FORMAT, BenchmarkDataset, BenchmarkProvenance, BenchmarkSelection,
+        BenchmarkHarness, HardwareProfile, ResourceQuotas, SampleUnit, SamplingMode,
+        Virtualization,
+    };
+    use rust_engineering_domain::benchmark_compare::{ComparisonVerdict, IncompatibilityReason, compare};
+
+    const RUN_1: &[u8] = include_bytes!("../../../fixtures/benchmark-datasets/criterion-run-1.tar");
+    const RUN_2: &[u8] = include_bytes!("../../../fixtures/benchmark-datasets/criterion-run-2.tar");
+    const CANDIDATE: &[u8] =
+        include_bytes!("../../../fixtures/benchmark-datasets/criterion-candidate.tar");
+
+    /// The frozen values the gateway passed to the harness for these captures.
+    const WARM_UP_MS: u64 = 3_000;
+    const MEASUREMENT_MS: u64 = 5_000;
+    const SAMPLE_SIZE: u32 = 30;
+
+    fn parsed(archive: &[u8]) -> CriterionParse {
+        parse_archive(archive, WARM_UP_MS, MEASUREMENT_MS, SAMPLE_SIZE).expect("real archive")
+    }
+
+    fn provenance(source: &str, execution: &str) -> BenchmarkProvenance {
+        BenchmarkProvenance {
+            source_fingerprint: source.into(),
+            harness: BenchmarkHarness::Criterion,
+            harness_version: "0.8.2".into(),
+            rust_version: "1.98.1".into(),
+            cargo_version: "1.98.1".into(),
+            declared_toolchain: None,
+            image_digest: "sha256:e9ecc40d".into(),
+            platform: "linux/aarch64".into(),
+            configuration_fingerprint: format!("sha256:{}", "a".repeat(64)),
+            execution_fingerprint: execution.into(),
+            selection: BenchmarkSelection {
+                package: None,
+                bench_target: Some("perf".into()),
+                features: Vec::new(),
+                all_features: false,
+                no_default_features: false,
+                profile: "bench".into(),
+            },
+            hardware: HardwareProfile {
+                cpu_model: Some("Apple silicon guest".into()),
+                cpu_cores: Some(1),
+                os_kernel: Some("7.0.12-linuxkit".into()),
+                arch: "aarch64".into(),
+                virtualization: Virtualization::Container,
+                cpu_governor: None,
+                quotas: ResourceQuotas {
+                    cpu_quota_millicores: Some(1000),
+                    memory_bytes: Some(2 * 1024 * 1024 * 1024),
+                    pids: Some(128),
+                },
+            },
+            run_index: 1,
+            run_count: 1,
+            captured_at_unix: 1_788_000_000,
+        }
+    }
+
+    fn dataset(archive: &[u8], source: &str, execution: &str) -> BenchmarkDataset {
+        BenchmarkDataset::new(
+            SampleUnit::Nanoseconds,
+            parsed(archive).measurements,
+            provenance(source, execution),
+        )
+        .expect("dataset")
+    }
+
+    fn median_ns(dataset: &BenchmarkDataset, key: &str) -> f64 {
+        let mut values = dataset
+            .measurement(key)
+            .expect("measurement")
+            .samples()
+            .iter()
+            .map(per_iteration)
+            .collect::<Vec<_>>();
+        values.sort_by(|a, b| a.partial_cmp(b).expect("finite"));
+        let middle = values.len() / 2;
+        if values.len().is_multiple_of(2) {
+            f64::midpoint(values[middle - 1], values[middle])
+        } else {
+            values[middle]
+        }
+    }
+
+    fn per_iteration(sample: &rust_engineering_domain::benchmark::RawSample) -> f64 {
+        sample.per_iteration_ns()
+    }
+
+    #[test]
+    fn the_real_export_parses_into_three_measurements_with_thirty_samples_each() {
+        for archive in [RUN_1, RUN_2, CANDIDATE] {
+            let parse = parsed(archive);
+            assert_eq!(parse.benchmarks_seen, 3);
+            assert_eq!(parse.benchmarks_skipped, 0);
+            assert!(!parse.truncated);
+            assert_eq!(parse.measurements.len(), 3);
+            let keys = parse
+                .measurements
+                .iter()
+                .map(|m| m.key().to_owned())
+                .collect::<Vec<_>>();
+            assert_eq!(keys, ["m5/control", "m5/reference", "m5/slower_125"]);
+            for measurement in &parse.measurements {
+                assert_eq!(measurement.samples().len(), 30);
+                assert_eq!(measurement.sampling_mode(), SamplingMode::Linear);
+                assert_eq!(measurement.warm_up_ms(), WARM_UP_MS);
+                assert_eq!(measurement.measurement_ms(), MEASUREMENT_MS);
+                assert_eq!(measurement.sample_size_requested(), SAMPLE_SIZE);
+                assert!(measurement.samples().iter().all(|s| s.per_iteration_ns() > 0.0));
+            }
+        }
+    }
+
+    #[test]
+    fn the_captured_medians_are_the_ones_the_receipt_records() {
+        let one = dataset(RUN_1, "sha256:base", "sha256:run1");
+        let two = dataset(RUN_2, "sha256:base", "sha256:run2");
+        let candidate = dataset(CANDIDATE, "sha256:cand", "sha256:cand");
+        // Tolerances are wide on purpose: these pin the identity of the capture,
+        // not a calibrated performance expectation.
+        for (label, value, expected) in [
+            ("run1 reference", median_ns(&one, "m5/reference"), 3299.0),
+            ("run2 reference", median_ns(&two, "m5/reference"), 3168.7),
+            ("candidate reference", median_ns(&candidate, "m5/reference"), 3721.9),
+        ] {
+            assert!(
+                (value - expected).abs() < 1.0,
+                "{label}: {value} drifted from the recorded {expected}"
+            );
+        }
+    }
+
+    #[test]
+    fn two_independent_runs_of_the_same_source_do_not_produce_a_verdict() {
+        let one = dataset(RUN_1, "sha256:base", "sha256:run1");
+        let two = dataset(RUN_2, "sha256:base", "sha256:run2");
+        let report = compare(&one, &two).expect("comparable");
+        let reference = report
+            .comparisons
+            .iter()
+            .find(|c| c.key == "m5/reference")
+            .expect("reference compared");
+        // The observed -3.9% is host noise of the same order as the 5% material
+        // threshold. Either "no material change" or "inconclusive" is an honest
+        // answer; claiming a direction would not be.
+        assert!(
+            matches!(
+                reference.verdict,
+                ComparisonVerdict::NoMaterialChange | ComparisonVerdict::Inconclusive
+            ),
+            "self-compare produced {:?}",
+            reference.verdict
+        );
+        assert_eq!(report.compared, 3);
+        assert!(report.baseline_only.is_empty() && report.candidate_only.is_empty());
+    }
+
+    #[test]
+    fn a_genuinely_slower_candidate_is_reported_as_a_regression() {
+        let baseline = dataset(RUN_1, "sha256:base", "sha256:run1");
+        let candidate = dataset(CANDIDATE, "sha256:cand", "sha256:cand");
+        let report = compare(&baseline, &candidate).expect("comparable");
+        let reference = report
+            .comparisons
+            .iter()
+            .find(|c| c.key == "m5/reference")
+            .expect("reference compared");
+        assert_eq!(reference.verdict, ComparisonVerdict::Regression);
+        assert!(
+            reference.effect_ratio > 0.05,
+            "effect {} did not exceed the material threshold",
+            reference.effect_ratio
+        );
+        assert!(reference.confidence_interval.0 > 0.05);
+        assert_eq!(reference.baseline_samples, 30);
+        assert_eq!(reference.candidate_samples, 30);
+        // Three benchmarks compared at once, so the method must say it corrected.
+        assert_eq!(report.method.family_size(), 3);
+    }
+
+    #[test]
+    fn comparing_a_capture_with_itself_is_refused_as_the_same_artifact() {
+        let one = dataset(RUN_1, "sha256:base", "sha256:run1");
+        let same = dataset(RUN_1, "sha256:base", "sha256:run1");
+        let error = compare(&one, &same).expect_err("same artifact");
+        assert!(
+            format!("{error:?}").contains(&format!("{:?}", IncompatibilityReason::SameArtifact)),
+            "unexpected error {error:?}"
+        );
+    }
+}

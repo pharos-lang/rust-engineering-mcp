@@ -289,8 +289,12 @@ Labs no publica catálogo oficial 0.1.0 y no se aprovisiona clave Ed25519 de pro
 
 ## M4 — calificación local completa
 
-El gate actual ejecuta 19 etapas core y 33 full. Las secciones M1/M3 anteriores
-conservan sus conteos históricos. Comandos, con inputs ya aprovisionados:
+La calificación M4 ejecutó 19 etapas core y 33 full; ese es el conteo que
+acreditan sus recibos y no se reescribe. La configuración actual de
+`scripts/gate.py` ejecuta 22 core y 36 full tras las tres etapas core que añade
+M5 (ver [M5](#m5--etapas-de-gate-imagen-y-fixture-de-benchmarks)). Las secciones
+M1/M3 anteriores conservan sus conteos históricos. Comandos, con inputs ya
+aprovisionados:
 
 ```sh
 python3 -B scripts/gate.py core --report target/M4-core-gate.json
@@ -324,3 +328,101 @@ clientes previamente instalados: Inspector 2.5.0 y Codex 0.153.0; el intento 6
 [pasó](validation/M4-clients.json). No almacena credenciales del cliente en el
 repositorio. El [handoff](validation/M4-handoff.md) distingue los resultados
 locales de CI/Sonar remotos, que no se ejecutaron para este checkout.
+
+## M5 — etapas de gate, imagen y fixture de benchmarks
+
+### Tres etapas core nuevas
+
+`scripts/gate.py` añade tres etapas al modo **core** —por tanto se ejecutan
+también en `full`, que es core más sus etapas nativas— justo después del bloque
+M4 y antes de `vendor`:
+
+| Etapa | Modo | Comando exacto |
+| --- | --- | --- |
+| `m5-helper-fmt` | core (y full) | `cargo fmt --manifest-path fixtures/profile-helper/Cargo.toml --check` |
+| `m5-helper-tests` | core (y full) | `cargo test --manifest-path fixtures/profile-helper/Cargo.toml --locked --offline --target-dir target/profile-helper` |
+| `m5-vendor-tests` | core (y full) | `python3 -B -m unittest discover -s fixtures/criterion-vendor -p 'test_*.py'` |
+
+Las dos últimas se declaran con `require_test_groups=True`: una etapa que no
+ejecuta ningún test es un fallo, no un pase. Con ellas, el conteo de `run(` en
+`scripts/gate.py` pasa a **22 etapas core** (`fmt`, `check`, `clippy`, `test`,
+`doctests`, `architecture`, `gate-reporting`, `release-artifact-tests`,
+`release-smoke-tests`, `codex-qualifier-tests`, `m4-client-harness-tests`,
+`m4-safety-harness-tests`, `m4-helper-fmt`, `m4-helper-tests`,
+`m4-provisioning-tests`, `m5-helper-fmt`, `m5-helper-tests`, `m5-vendor-tests`,
+`vendor`, `cargo-fixtures`, `audit`, `deny`) y **36 en full**, que añade las 14
+etapas nativas ya documentadas (`docker-security`, `rust-security`,
+`m2-runtime`, `m3-runtime`, `m4-tampered-plugin`, `m4-inventory`, `m4-runtime`,
+`audit-data`, `semantic`, `catalog`, `catalog-status`, `crate-search`,
+`crate-inspect`, `doctor`). Ese conteo describe la configuración vigente del
+script, no una ejecución acreditada: no existe todavía un recibo de gate M5.
+
+### Hueco declarado: no hay etapa full para el runtime nativo M5
+
+`full` **no** incorpora ninguna etapa que ejercite la imagen M5, el helper de
+profiling dentro del guest ni `cargo-bloat` sobre el runtime. Las tres etapas
+nuevas son portables: comprueban el formato y los tests del helper compilado en
+el host y la integridad de las fixtures vendorizadas. La calificación nativa de
+M5 sigue abierta —la [matriz M5](validation/M5-matrix.md) mantiene M5-01..04 en
+`In progress` y M5-05 en `Not started`— y su etapa de gate pertenece a ese
+cierre. Este documento no debe leerse como si esa etapa existiera.
+
+### Imagen guest M5
+
+La imagen se construye y se recibe con un único comando, que es el procedimiento
+completo:
+
+```sh
+python3 -B scripts/build-m5-runtime.py
+```
+
+El script comprueba **antes de construir** que el tag base
+`rust-engineering-runtime:1.98.1-arm64-m4-scanner` resuelve exactamente a
+`sha256:25ed3626e710081a571a86a29521eaf2e890e796afd422ba5e409e0ce1891635` y
+aborta si no; prepara el contexto con `provision.py` sin acceder a la red;
+construye con `--network=none --pull=false`; y verifica sobre la imagen resultante
+que los dos binarios existen, que **ninguno** es alcanzable por `PATH`, que los
+binarios M3/M4 siguen presentes y que el contexto de construcción no dejó
+residuos.
+
+El builder importa: Docker 29.7.2 ya no ofrece el constructor clásico —queda
+colgado tras el aviso de deprecación— y BuildKit resuelve un `FROM sha256:…` como
+referencia **remota**, que bajo `--network=none` falla con `DeadlineExceeded`. Por
+eso el `FROM` nombra la base por tag y no por digest, y por eso el script **no**
+fija `DOCKER_BUILDKIT`: no queda un builder alternativo que seleccionar, y el
+propio [recibo](validation/M5-provisioning.json) registra la línea
+`building with "desktop-linux" instance using docker driver` de BuildKit. La
+garantía de digest no se pierde: se comprueba inmediatamente antes de construir y
+el id observado queda en el recibo.
+
+El recibo se escribe en `docs/validation/M5-provisioning.json`. La ejecución del
+2026-09-08 pasó con `network_used: false`, 46 archivos y 10 769 232 bytes de
+contexto, y produjo la imagen `rust-engineering-runtime:1.98.1-arm64-m5` con id
+`sha256:e9ecc40d023d9d13ac3539cccb6a944cd1022da2a8b3f86ca61356086b38a209`,
+que contiene `/opt/perf/bin/cargo-bloat`
+(`sha256:e3eaea0d81679b8a14b8b435f54f00c0c952d4c4c5dc9a204fdbe42b3de7326a`) y
+`/opt/perf/bin/rust-mcp-profile-helper`
+(`sha256:04bd5ab818204b6f91371c3d82df91ab4f55c148c0e0fc802125520acf762dc5`).
+Construir esa imagen no la admite en el gateway: la admisión es una decisión
+separada con su propia calificación nativa
+([ADR-075](adr/ADR-075-m5-runtime-provisioning.md),
+[imagen M5](../fixtures/rust-runtime/m5/README.md)).
+
+### Fixture de benchmarks: materializar el vendor antes de compilar
+
+`fixtures/criterion-vendor/` versiona **archivos `.crate` fijados**, no un árbol
+extraído: 52 paquetes de crates.io que forman el cierre transitivo completo de
+`criterion 0.8.2`. El directory source que Cargo necesita es *generado* y está en
+`.gitignore`, así que `fixtures/benchmark` **no compila desde un checkout limpio**
+hasta ejecutar una vez:
+
+```text
+python3 -B fixtures/criterion-vendor/materialize.py
+```
+
+El script verifica el `sha256` de cada archivo contra `INVENTORY.json` antes de
+extraer nada, aplica las mismas reglas de seguridad de archivo que
+`fixtures/rust-runtime/m4-scanner/provision.py`, escribe cada
+`.cargo-checksum.json` y nunca accede a la red. `--verify-only` comprueba sin
+escribir. La etapa `m5-vendor-tests` ejercita esas comprobaciones; no sustituye a
+la materialización, que sigue siendo un paso explícito del operador.

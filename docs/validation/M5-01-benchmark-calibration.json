@@ -1,0 +1,192 @@
+{
+  "schema": "rust-engineering-mcp.m5-01-benchmark-calibration.v1",
+  "captured_at_utc": "2026-09-08T22:28:22Z",
+  "image_id": "sha256:e9ecc40d023d9d13ac3539cccb6a944cd1022da2a8b3f86ca61356086b38a209",
+  "decision": "docs/adr/ADR-073-benchmark-method-and-dataset.md",
+  "harness": {
+    "name": "criterion",
+    "version": "0.8.2",
+    "source": "fixtures/criterion-vendor (52 pinned archives, offline)"
+  },
+  "frozen_parameters": {
+    "warm_up_seconds": 3,
+    "measurement_seconds": 5,
+    "sample_size": 30,
+    "plots": "disabled",
+    "color": "never",
+    "cargo_flags": [
+      "--frozen",
+      "--offline"
+    ],
+    "criterion_home": "/criterion (tmpfs, noexec)"
+  },
+  "source_selection": {
+    "how": "--config on the cargo command line, highest Cargo precedence",
+    "why": "a project .cargo/config.toml overrode a CARGO_HOME config and could redirect source.crates-io at project-controlled bytes; the M5 flows now refuse a project Cargo config outright",
+    "observed_failure": "failed to read root of directory source: /source/../criterion-vendor/vendor"
+  },
+  "containment": {
+    "user": "65534:65534",
+    "network": "none",
+    "cap_drop": "ALL",
+    "no_new_privileges": true,
+    "seccomp": "seccomp-rust-quality.json",
+    "source_mount": "read-only",
+    "pids_limit": 128,
+    "cpus": 1
+  },
+  "exit_codes_observed": {
+    "0": "passed"
+  },
+  "captures": [
+    {
+      "file": "fixtures/benchmark-datasets/criterion-run-1.tar",
+      "role": "baseline",
+      "sha256": "adec1f0bc98f0892c6c4bceb79f11cff297e7dd6ce5367266d3e631e98845143",
+      "bytes": 40960,
+      "benchmarks": {
+        "reference": {
+          "sampling_mode": "Linear",
+          "samples": 30,
+          "median_ns": 3298.98,
+          "min_ns": 2975.19,
+          "max_ns": 3423.86,
+          "full_id": "m5/reference",
+          "directory_name": "m5/reference",
+          "group_id": "m5",
+          "function_id": "reference"
+        },
+        "slower_125": {
+          "sampling_mode": "Linear",
+          "samples": 30,
+          "median_ns": 4093.39,
+          "min_ns": 3842.07,
+          "max_ns": 4194.43,
+          "full_id": "m5/slower_125",
+          "directory_name": "m5/slower_125",
+          "group_id": "m5",
+          "function_id": "slower_125"
+        },
+        "control": {
+          "sampling_mode": "Linear",
+          "samples": 30,
+          "median_ns": 3203.46,
+          "min_ns": 3030.81,
+          "max_ns": 3357.18,
+          "full_id": "m5/control",
+          "directory_name": "m5/control",
+          "group_id": "m5",
+          "function_id": "control"
+        }
+      }
+    },
+    {
+      "file": "fixtures/benchmark-datasets/criterion-run-2.tar",
+      "role": "independent repeat of the same source",
+      "sha256": "e615f19cdf734a957b9645240041ad8167e43e40be46ef3016e1b5b87bddfec5",
+      "bytes": 40960,
+      "benchmarks": {
+        "reference": {
+          "sampling_mode": "Linear",
+          "samples": 30,
+          "median_ns": 3168.69,
+          "min_ns": 3060.33,
+          "max_ns": 3345.45,
+          "full_id": "m5/reference",
+          "directory_name": "m5/reference",
+          "group_id": "m5",
+          "function_id": "reference"
+        },
+        "slower_125": {
+          "sampling_mode": "Linear",
+          "samples": 30,
+          "median_ns": 4101.68,
+          "min_ns": 3867.7,
+          "max_ns": 4242.46,
+          "full_id": "m5/slower_125",
+          "directory_name": "m5/slower_125",
+          "group_id": "m5",
+          "function_id": "slower_125"
+        },
+        "control": {
+          "sampling_mode": "Linear",
+          "samples": 30,
+          "median_ns": 3300.74,
+          "min_ns": 2943.83,
+          "max_ns": 4184.3,
+          "full_id": "m5/control",
+          "directory_name": "m5/control",
+          "group_id": "m5",
+          "function_id": "control"
+        }
+      }
+    },
+    {
+      "file": "fixtures/benchmark-datasets/criterion-candidate.tar",
+      "role": "different source, same benchmark identity",
+      "sha256": "6fa8a7ce6aba92dd6ca299d65d62c818242637d0ce6e218d6667b4f344aed352",
+      "bytes": 40960,
+      "benchmarks": {
+        "reference": {
+          "sampling_mode": "Linear",
+          "samples": 30,
+          "median_ns": 3721.87,
+          "min_ns": 3683.84,
+          "max_ns": 3999.81,
+          "full_id": "m5/reference",
+          "directory_name": "m5/reference",
+          "group_id": "m5",
+          "function_id": "reference"
+        },
+        "slower_125": {
+          "sampling_mode": "Linear",
+          "samples": 30,
+          "median_ns": 3908.7,
+          "min_ns": 3735.85,
+          "max_ns": 4058.86,
+          "full_id": "m5/slower_125",
+          "directory_name": "m5/slower_125",
+          "group_id": "m5",
+          "function_id": "slower_125"
+        },
+        "control": {
+          "sampling_mode": "Linear",
+          "samples": 30,
+          "median_ns": 2894.36,
+          "min_ns": 2755.16,
+          "max_ns": 3833.22,
+          "full_id": "m5/control",
+          "directory_name": "m5/control",
+          "group_id": "m5",
+          "function_id": "control"
+        }
+      }
+    }
+  ],
+  "oracles": {
+    "self_compare_same_source": {
+      "baseline": "criterion-run-1.tar",
+      "candidate": "criterion-run-2.tar",
+      "benchmark": "m5/reference",
+      "observed_ratio": -0.0395,
+      "expected_verdict": "no_material_change or inconclusive, never a direction"
+    },
+    "known_direction_different_source": {
+      "baseline": "criterion-run-1.tar",
+      "candidate": "criterion-candidate.tar",
+      "benchmark": "m5/reference",
+      "observed_ratio": 0.1281,
+      "expected_verdict": "regression"
+    },
+    "same_artifact": {
+      "expected": "same_artifact incompatibility"
+    }
+  },
+  "limitations": [
+    "Run-to-run noise on the same source (-3.9%) is the same order as the 5% material threshold. That is why the method requires a minimum detectable ratio and admits inconclusive.",
+    "These medians describe these captures on this host. They are not a calibrated tolerance and do not generalize.",
+    "Only exit 0 is calibrated for cargo bench; BenchmarkExit::CALIBRATED stays false.",
+    "The fixture's `control` benchmark is NOT a 1.00x self-compare control: it measured -2.9% against `reference` on this host. The real self-compare control is comparing the same benchmark across two independent runs."
+  ],
+  "status": "passed"
+}

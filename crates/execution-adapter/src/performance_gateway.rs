@@ -43,7 +43,10 @@ const PROBE_OUTPUT: usize = 64 * 1024;
 /// ADR-076 §7 artifact ceilings: bloat ≤ 4 MiB, muestras ≤ 32 MiB.
 const BLOAT_OUTPUT: usize = 4 * 1024 * 1024;
 const PROFILE_ARCHIVE_OUTPUT: usize = 33 * 1024 * 1024;
-const CRITERION_ARCHIVE_OUTPUT: usize = 33 * 1024 * 1024;
+/// Exactly [`crate::criterion_dataset::MAX_CRITERION_ARCHIVE`]: an export the
+/// dataset parser would refuse is stopped here, as an output-limit failure,
+/// instead of being carried and then rejected.
+const CRITERION_ARCHIVE_OUTPUT: usize = 32 * 1024 * 1024;
 const MEASUREMENT_OUTPUT: usize = 4 * 1024;
 
 const CONFIG_ROOT: &str = "/performance";
@@ -52,6 +55,43 @@ const TARGET_ROOT: &str = "/work/target";
 const CRITERION_ROOT: &str = "/criterion";
 const PROFILE_ROOT: &str = "/profile";
 const CARGO_HOME: &str = "CARGO_HOME=/performance/cargo-home";
+
+/// The authoritative vendor selection, passed on the command line rather than
+/// left to a config file.
+///
+/// A `CARGO_HOME` config is overridden by a `.cargo/config.toml` inside the
+/// project, so a project could redirect `source.crates-io` at a directory it
+/// controls and substitute the very dependency bytes the measurement is about
+/// to describe — or install a `runner`, a `linker` or `rustflags`, which G2
+/// forbids outright. Cargo gives `--config` the highest precedence, above the
+/// environment and above every config file, so this selection cannot be
+/// overridden. The two strings are literals owned by this product; nothing in
+/// them comes from the caller. [`reject_project_cargo_configuration`] refuses
+/// the project config as well, so this is defence in depth, not the only line.
+const VENDOR_SELECTION: [&str; 4] = [
+    "--config",
+    "source.crates-io.replace-with=\"vendored-sources\"",
+    "--config",
+    "source.vendored-sources.directory=\"/rust-mcp-vendor\"",
+];
+
+fn with_vendor_selection(subcommand: &str, rest: &[&str]) -> Vec<String> {
+    let mut arguments = vec![subcommand.to_owned()];
+    arguments.extend(VENDOR_SELECTION.map(str::to_owned));
+    arguments.extend(rest.iter().map(|value| (*value).to_owned()));
+    arguments
+}
+
+/// ADR-067's rule, applied to the three measuring tools: a captured project
+/// that carries its own Cargo configuration is refused before any volume
+/// exists, because that file decides which sources, linker and rustflags the
+/// measurement would have used.
+fn reject_project_cargo_configuration(source: &SourceBundle) -> Result<(), PerformanceError> {
+    if rust_engineering_domain::security::source_has_cargo_configuration(source) {
+        return Err(PerformanceError::ProjectCargoConfiguration);
+    }
+    Ok(())
+}
 
 /// ADR-065's executable target volume options, reused verbatim: the same inode
 /// density and the same 512 MiB ceiling as the qualified `/work` build tmpfs,
@@ -68,6 +108,13 @@ pub(super) const PROFILE_BUDGET_MS: u64 = 300_000;
 pub(super) const BLOAT_BUDGET_MS: u64 = 300_000;
 /// ADR-074 §4 ceiling on the sampling window itself.
 pub(super) const PROFILE_MAX_SAMPLING_MS: u64 = 60_000;
+
+/// ADR-073 §2's frozen harness parameters. The server fixes them, they travel
+/// in the provenance of every dataset, and the project cannot reach them: they
+/// are argv, not configuration.
+pub(super) const BENCHMARK_WARM_UP_MS: u64 = 3_000;
+pub(super) const BENCHMARK_MEASUREMENT_MS: u64 = 5_000;
+pub(super) const BENCHMARK_SAMPLE_SIZE: u32 = 30;
 
 /// Remaining control allowance: 76 round trips x 250 ms + 2 s startup +
 /// 1 s output validation + 10 s joined cleanup, rounded up. The five volumes
@@ -179,9 +226,16 @@ impl PerformanceOperation<'_> {
 }
 
 /// The guest path of the binary under analysis. Built from the closed target
-/// name and the closed profile, never from tool output (ADR-076 §6).
-fn binary_path(target: &str, profile: BloatProfile) -> String {
-    format!("{TARGET_ROOT}/{}/{target}", profile.cargo_name())
+/// name, never from tool output (ADR-076 §6).
+///
+/// Both profiles build into `release`: LTO is expressed as an environment
+/// variable over the `release` profile rather than as a profile named
+/// `release-lto`, because `cargo-bloat` 0.12.1 derives `CARGO_PROFILE_<NAME>_*`
+/// from the profile name and `CARGO_PROFILE_RELEASE_LTO` would then be read by
+/// Cargo as `profile.release.lto` and rejected (calibrated in
+/// `docs/validation/M5-04-bloat-calibration.json`).
+fn binary_path(target: &str) -> String {
+    format!("{TARGET_ROOT}/release/{target}")
 }
 
 fn output_root(kind: PerformanceKind) -> &'static str {
@@ -290,18 +344,20 @@ impl PerformancePhase {
             (Self::BenchRun, PerformanceOperation::Benchmark { selection, .. }) => {
                 bench_arguments(selection)
             }
-            (Self::ProfileBuild, PerformanceOperation::Profile(options)) => [
-                "build",
-                "--release",
-                "--frozen",
-                "--offline",
-                "--color=never",
-                "--target-dir=/work/target",
-            ]
-            .iter()
-            .map(|value| (*value).to_owned())
-            .chain([format!("--bin={}", options.binary_target())])
-            .collect(),
+            (Self::ProfileBuild, PerformanceOperation::Profile(options)) => {
+                let mut arguments = with_vendor_selection(
+                    "build",
+                    &[
+                        "--release",
+                        "--frozen",
+                        "--offline",
+                        "--color=never",
+                        "--target-dir=/work/target",
+                    ],
+                );
+                arguments.push(format!("--bin={}", options.binary_target()));
+                arguments
+            }
             (Self::ProfileRun, PerformanceOperation::Profile(options)) => vec![
                 "--frequency-hz".into(),
                 options.frequency_hz().to_string(),
@@ -319,7 +375,7 @@ impl PerformancePhase {
                 "--manifest".into(),
                 format!("{PROFILE_ROOT}/manifest.json"),
                 "--".into(),
-                binary_path(options.binary_target(), BloatProfile::Release),
+                binary_path(options.binary_target()),
             ],
             (Self::BloatFunctions, PerformanceOperation::Bloat(options)) => {
                 bloat_arguments(options, false)
@@ -327,17 +383,15 @@ impl PerformancePhase {
             (Self::BloatCrates, PerformanceOperation::Bloat(options)) => {
                 bloat_arguments(options, true)
             }
-            (Self::BloatFileSize, PerformanceOperation::Bloat(options)) => vec![
-                "--format=%s".into(),
-                binary_path(options.binary_target(), options.profile()),
-            ],
-            (Self::BloatFileDigest, PerformanceOperation::Bloat(options)) => {
-                vec![binary_path(options.binary_target(), options.profile())]
+            (Self::BloatFileSize, PerformanceOperation::Bloat(options)) => {
+                vec!["--format=%s".into(), binary_path(options.binary_target())]
             }
-            (Self::BloatFileHeader, PerformanceOperation::Bloat(options)) => vec![
-                "-h".into(),
-                binary_path(options.binary_target(), options.profile()),
-            ],
+            (Self::BloatFileDigest, PerformanceOperation::Bloat(options)) => {
+                vec![binary_path(options.binary_target())]
+            }
+            (Self::BloatFileHeader, PerformanceOperation::Bloat(options)) => {
+                vec!["-h".into(), binary_path(options.binary_target())]
+            }
             // A phase is never created for an operation that does not list it;
             // an empty argv here would be a programming error, not a command.
             _ => Vec::new(),
@@ -444,7 +498,7 @@ impl PerformancePhase {
         }
     }
 
-    pub(super) fn environment(self) -> Vec<String> {
+    pub(super) fn environment(self, operation: PerformanceOperation<'_>) -> Vec<String> {
         let mut environment = crate::rust_gateway::environment();
         if let Some(home) = environment
             .iter_mut()
@@ -458,21 +512,32 @@ impl PerformancePhase {
         if self == Self::ProfileBuild {
             environment.push("RUSTFLAGS=-C force-frame-pointers=yes".into());
         }
+        // The only way to reach an LTO build through `cargo-bloat` 0.12.1; see
+        // [`bloat_arguments`]. The value is the product's, never the caller's.
+        if matches!(self, Self::BloatFunctions | Self::BloatCrates)
+            && matches!(
+                operation,
+                PerformanceOperation::Bloat(options)
+                    if options.profile() == BloatProfile::ReleaseLto
+            )
+        {
+            environment.push("CARGO_PROFILE_RELEASE_LTO=fat".into());
+        }
         environment.sort();
         environment
     }
 }
 
 fn bench_arguments(selection: &BenchmarkSelection) -> Vec<String> {
-    let mut arguments = [
+    let mut arguments = with_vendor_selection(
         "bench",
-        "--frozen",
-        "--offline",
-        "--color=never",
-        "--target-dir=/work/target",
-    ]
-    .map(str::to_owned)
-    .to_vec();
+        &[
+            "--frozen",
+            "--offline",
+            "--color=never",
+            "--target-dir=/work/target",
+        ],
+    );
     if let Some(target) = &selection.bench_target {
         arguments.push(format!("--bench={target}"));
     }
@@ -491,30 +556,26 @@ fn bench_arguments(selection: &BenchmarkSelection) -> Vec<String> {
     arguments.push("--".into());
     // ADR-073 §2: the server freezes warmup, measurement window and sample
     // size. They are argv, not configuration the project can reach.
-    arguments.extend(
-        [
-            "--noplot",
-            "--color",
-            "never",
-            "--warm-up-time",
-            "3",
-            "--measurement-time",
-            "5",
-            "--sample-size",
-            "30",
-        ]
-        .map(str::to_owned),
-    );
+    arguments.extend(["--noplot", "--color", "never"].map(str::to_owned));
+    arguments.extend([
+        "--warm-up-time".to_owned(),
+        (BENCHMARK_WARM_UP_MS / 1000).to_string(),
+        "--measurement-time".to_owned(),
+        (BENCHMARK_MEASUREMENT_MS / 1000).to_string(),
+        "--sample-size".to_owned(),
+        BENCHMARK_SAMPLE_SIZE.to_string(),
+    ]);
     arguments
 }
 
+/// `cargo-bloat` invoked directly refuses any first argument but `bloat`, and
+/// it refuses `--profile release-lto` outright: it pushes
+/// `CARGO_PROFILE_RELEASE_LTO`, which Cargo 1.98.1 reads as `profile.release.lto`
+/// and rejects. Link-time optimization is therefore requested through the
+/// product-owned environment of [`PerformancePhase::environment`], and the argv
+/// stays `--release` for both profiles.
 fn bloat_arguments(options: &BloatOptions, crates: bool) -> Vec<String> {
-    // `cargo-bloat` invoked directly refuses any first argument but `bloat`.
-    let mut arguments = vec!["bloat".to_owned()];
-    arguments.push(match options.profile() {
-        BloatProfile::Release => "--release".into(),
-        BloatProfile::ReleaseLto => format!("--profile={}", BloatProfile::ReleaseLto.cargo_name()),
-    });
+    let mut arguments = vec!["bloat".to_owned(), "--release".to_owned()];
     arguments.extend(["--frozen", "--message-format", "json", "-n", "0"].map(str::to_owned));
     arguments.push(format!("--bin={}", options.binary_target()));
     arguments.push(format!("--target-dir={TARGET_ROOT}"));
@@ -645,7 +706,7 @@ fn create_arguments_for_runtime(
     for (key, value) in labels(operation_id) {
         arguments.push(format!("--label={key}={value}"));
     }
-    for value in phase.environment() {
+    for value in phase.environment(operation) {
         arguments.push(format!("--env={value}"));
     }
     let profile = state_path.join(phase.seccomp_profile_name());
@@ -673,6 +734,10 @@ pub(super) enum PerformanceError {
     InvalidMetadata,
     InvalidOptions,
     MissingOfflineData,
+    /// The captured project carries `.cargo/config.toml` or `.cargo/config`.
+    /// Distinct on purpose: the tool reports the real reason instead of a
+    /// generic refusal (ADR-076 §3, and G2 on linker/runner/rustflags).
+    ProjectCargoConfiguration,
 }
 impl From<InspectionError> for PerformanceError {
     fn from(value: InspectionError) -> Self {
@@ -863,7 +928,7 @@ fn verify_applied(
         && applied.config.image == image
         && applied.config.entrypoint == [phase.program()]
         && applied.config.cmd.clone().unwrap_or_default() == phase.arguments(operation)
-        && env == phase.environment()
+        && env == phase.environment(operation)
         && host.readonly_rootfs
         && host.runtime == "runc"
         && host.network_mode == "none"
@@ -1792,6 +1857,7 @@ fn execute_operation(
         return Err(ExecutionError::Denied.into());
     }
     phase_result(gateway.approved_runtime(cancel), deadline, cancel)?;
+    reject_project_cargo_configuration(source)?;
     budget_error(deadline, cancel)?;
     validate_vendor(vendor)?;
     let source_archive = crate::source_archive::encode(source)?;
@@ -2066,9 +2132,13 @@ fn execute_operation(
         };
         match operation {
             PerformanceOperation::Benchmark { run_count, .. } => {
-                for index in 0..usize::from(run_count) {
+                for (index, output) in output_volumes
+                    .iter()
+                    .enumerate()
+                    .take(usize::from(run_count))
+                {
                     let volumes = PerformanceVolumes {
-                        output: Some(&output_volumes[index]),
+                        output: Some(output),
                         ..base
                     };
                     let run_deadline = phase_deadline(deadline, u64::from(run_count) * 2, cancel)?;
@@ -2506,6 +2576,10 @@ mod tests {
             base,
             [
                 "bench",
+                "--config",
+                "source.crates-io.replace-with=\"vendored-sources\"",
+                "--config",
+                "source.vendored-sources.directory=\"/rust-mcp-vendor\"",
                 "--frozen",
                 "--offline",
                 "--color=never",
@@ -2533,7 +2607,7 @@ mod tests {
             run_count: 1,
         });
         assert_eq!(
-            &full[5..10],
+            &full[9..14],
             [
                 "--bench=throughput",
                 "--package=member",
@@ -2542,7 +2616,7 @@ mod tests {
                 "--no-default-features",
             ]
         );
-        assert_eq!(full[10], "--");
+        assert_eq!(full[14], "--");
         assert_eq!(
             PerformancePhase::BenchExport.arguments(PerformanceOperation::Benchmark {
                 selection: &selection(),
@@ -2566,6 +2640,10 @@ mod tests {
             PerformancePhase::ProfileBuild.arguments(operation),
             [
                 "build",
+                "--config",
+                "source.crates-io.replace-with=\"vendored-sources\"",
+                "--config",
+                "source.vendored-sources.directory=\"/rust-mcp-vendor\"",
                 "--release",
                 "--frozen",
                 "--offline",
@@ -2622,6 +2700,10 @@ mod tests {
             PerformancePhase::BloatFunctions.arguments(operation),
             [
                 "bloat",
+                "--config",
+                "source.crates-io.replace-with=\"vendored-sources\"",
+                "--config",
+                "source.vendored-sources.directory=\"/rust-mcp-vendor\"",
                 "--release",
                 "--frozen",
                 "--message-format",
@@ -2634,7 +2716,7 @@ mod tests {
         );
         let crates = PerformancePhase::BloatCrates.arguments(operation);
         assert_eq!(crates.last().map(String::as_str), Some("--crates"));
-        assert_eq!(crates.len(), 10);
+        assert_eq!(crates.len(), 14);
         assert_eq!(
             PerformancePhase::BloatFileSize.arguments(operation),
             ["--format=%s", "/work/target/release/workload"]
@@ -2647,15 +2729,45 @@ mod tests {
             PerformancePhase::BloatFileHeader.arguments(operation),
             ["-h", "/work/target/release/workload"]
         );
+        // ADR-076 §6 keeps two profiles, but `cargo-bloat` 0.12.1 cannot be
+        // given `release-lto` as a profile name: the argv is identical and the
+        // difference travels in the product-owned environment instead. Both
+        // profiles therefore build into `release`, so the oracle path is too.
         let lto = bloat_options(BloatProfile::ReleaseLto)?;
         let operation = PerformanceOperation::Bloat(&lto);
         assert_eq!(
-            PerformancePhase::BloatFunctions.arguments(operation)[1],
-            "--profile=release-lto"
+            PerformancePhase::BloatFunctions.arguments(operation),
+            PerformancePhase::BloatFunctions.arguments(PerformanceOperation::Bloat(&release))
+        );
+        assert!(
+            !PerformancePhase::BloatFunctions
+                .arguments(operation)
+                .iter()
+                .any(|value| value.contains("release-lto"))
         );
         assert_eq!(
             PerformancePhase::BloatFileSize.arguments(operation)[1],
-            "/work/target/release-lto/workload"
+            "/work/target/release/workload"
+        );
+        assert!(
+            PerformancePhase::BloatFunctions
+                .environment(operation)
+                .contains(&"CARGO_PROFILE_RELEASE_LTO=fat".to_owned())
+        );
+        assert!(
+            PerformancePhase::BloatCrates
+                .environment(operation)
+                .contains(&"CARGO_PROFILE_RELEASE_LTO=fat".to_owned())
+        );
+        assert!(
+            !PerformancePhase::BloatFileSize
+                .environment(operation)
+                .contains(&"CARGO_PROFILE_RELEASE_LTO=fat".to_owned())
+        );
+        assert!(
+            !PerformancePhase::BloatFunctions
+                .environment(PerformanceOperation::Bloat(&release))
+                .contains(&"CARGO_PROFILE_RELEASE_LTO=fat".to_owned())
         );
         let packaged = BloatOptions::new(
             "workload".into(),
@@ -2664,8 +2776,8 @@ mod tests {
         )
         .map_err(|error| format!("{error:?}"))?;
         let argv = PerformancePhase::BloatCrates.arguments(PerformanceOperation::Bloat(&packaged));
-        assert_eq!(argv[9], "--package=member");
-        assert_eq!(argv[10], "--crates");
+        assert_eq!(argv[13], "--package=member");
+        assert_eq!(argv[14], "--crates");
         Ok(())
     }
 
@@ -2917,7 +3029,7 @@ mod tests {
     }
 
     #[test]
-    fn environment_redirects_cargo_home_and_scopes_criterion_and_rustflags() {
+    fn environment_redirects_cargo_home_and_scopes_criterion_and_rustflags() -> Result<(), String> {
         let base = [
             "CARGO_HOME=/performance/cargo-home",
             "CARGO_INCREMENTAL=0",
@@ -2930,36 +3042,49 @@ mod tests {
             "RUSTFMT=/opt/rust/bin/rustfmt",
             "TMPDIR=/tmp",
         ];
-        for phase in ALL_PHASES {
-            let environment = phase.environment();
-            let criterion = environment
-                .iter()
-                .any(|value| value == "CRITERION_HOME=/criterion");
-            let rustflags = environment
-                .iter()
-                .any(|value| value == "RUSTFLAGS=-C force-frame-pointers=yes");
-            assert_eq!(
-                criterion,
-                phase == PerformancePhase::BenchRun,
-                "CRITERION_HOME in {phase:?}"
-            );
-            assert_eq!(
-                rustflags,
-                phase == PerformancePhase::ProfileBuild,
-                "RUSTFLAGS in {phase:?}"
-            );
-            assert!(
-                environment
+        let selected = selection();
+        let profile = profile_options()?;
+        let bloat = bloat_options(BloatProfile::Release)?;
+        for operation in [
+            PerformanceOperation::Benchmark {
+                selection: &selected,
+                run_count: 3,
+            },
+            PerformanceOperation::Profile(&profile),
+            PerformanceOperation::Bloat(&bloat),
+        ] {
+            for phase in ALL_PHASES {
+                let environment = phase.environment(operation);
+                let criterion = environment
                     .iter()
-                    .all(|value| value != "CARGO_HOME=/opt/rust"),
-                "host CARGO_HOME leaked into {phase:?}"
-            );
-            if !criterion && !rustflags {
-                assert_eq!(environment, base, "environment for {phase:?}");
-            } else {
-                assert_eq!(environment.len(), base.len() + 1, "{phase:?}");
+                    .any(|value| value == "CRITERION_HOME=/criterion");
+                let rustflags = environment
+                    .iter()
+                    .any(|value| value == "RUSTFLAGS=-C force-frame-pointers=yes");
+                assert_eq!(
+                    criterion,
+                    phase == PerformancePhase::BenchRun,
+                    "CRITERION_HOME in {phase:?}"
+                );
+                assert_eq!(
+                    rustflags,
+                    phase == PerformancePhase::ProfileBuild,
+                    "RUSTFLAGS in {phase:?}"
+                );
+                assert!(
+                    environment
+                        .iter()
+                        .all(|value| value != "CARGO_HOME=/opt/rust"),
+                    "host CARGO_HOME leaked into {phase:?}"
+                );
+                if criterion || rustflags {
+                    assert_eq!(environment.len(), base.len() + 1, "{phase:?}");
+                } else {
+                    assert_eq!(environment, base, "environment for {phase:?}");
+                }
             }
         }
+        Ok(())
     }
 
     #[test]
@@ -3222,10 +3347,18 @@ mod tests {
             .ok_or_else(|| "invalid fixture limits".to_owned())?;
         let selected = selection();
         let bloat = bloat_options(BloatProfile::Release)?;
-        let captures = [capture(Some(0))];
-        let artifacts = [b"artifact".to_vec()];
-        let inputs =
-            |operation, limits, source_archive: &'static [u8], captures: &'static [Capture; 1]| {
+        let captures = [capture_identity(&capture(Some(0)))];
+        let artifacts = [digest(b"artifact")];
+        let fingerprint = |operation,
+                           image,
+                           state: &str,
+                           limits,
+                           source_archive: &[u8],
+                           captures: &[CaptureIdentity]| {
+            execution_fingerprint_for_runtime(
+                &configuration,
+                image,
+                std::path::Path::new(state),
                 PerformanceFingerprintInputs {
                     operation,
                     volumes: &volumes,
@@ -3237,30 +3370,10 @@ mod tests {
                     limits,
                     captures,
                     artifacts: &artifacts,
-                }
-            };
-        let _ = inputs;
-        let fingerprint =
-            |operation, image, state: &str, limits, source_archive: &[u8], captures: &[Capture]| {
-                execution_fingerprint_for_runtime(
-                    &configuration,
-                    image,
-                    std::path::Path::new(state),
-                    PerformanceFingerprintInputs {
-                        operation,
-                        volumes: &volumes,
-                        source_archive,
-                        vendor_archive: b"vendor",
-                        config_archive: b"config",
-                        metadata: b"metadata",
-                        vendor_fingerprint: &vendor_fingerprint,
-                        limits,
-                        captures,
-                        artifacts: &artifacts,
-                    },
-                )
-                .map_err(|error| format!("{error:?}"))
-            };
+                },
+            )
+            .map_err(|error| format!("{error:?}"))
+        };
         let bloat_operation = PerformanceOperation::Bloat(&bloat);
         let base = fingerprint(
             bloat_operation,
@@ -3358,7 +3471,7 @@ mod tests {
             )?
         );
         // observed output
-        let other = [capture(Some(1))];
+        let other = [capture_identity(&capture(Some(1)))];
         assert_ne!(
             base,
             fingerprint(
@@ -3579,7 +3692,7 @@ mod tests {
                 "OpenStdin": false,
                 "User": "65534:65534",
                 "Labels": {"org.rust-mcp.execution": "true", "org.rust-mcp.rust-job": "fixture"},
-                "Env": phase.environment(),
+                "Env": phase.environment(operation),
                 "Entrypoint": [phase.program()],
                 "Cmd": phase.arguments(operation),
                 "WorkingDir": "/source",
@@ -3713,6 +3826,76 @@ mod tests {
             assert!(phases.contains(&PerformancePhase::CpuProbe));
             assert!(phases.contains(&PerformancePhase::KernelProbe));
         }
+        Ok(())
+    }
+
+    #[test]
+    fn every_cargo_phase_selects_the_vendor_tree_on_the_command_line() -> Result<(), String> {
+        let selected = selection();
+        let profile = profile_options()?;
+        let bloat = bloat_options(BloatProfile::Release)?;
+        for (phase, operation) in [
+            (
+                PerformancePhase::BenchRun,
+                PerformanceOperation::Benchmark {
+                    selection: &selected,
+                    run_count: 3,
+                },
+            ),
+            (
+                PerformancePhase::ProfileBuild,
+                PerformanceOperation::Profile(&profile),
+            ),
+            (
+                PerformancePhase::BloatFunctions,
+                PerformanceOperation::Bloat(&bloat),
+            ),
+            (
+                PerformancePhase::BloatCrates,
+                PerformanceOperation::Bloat(&bloat),
+            ),
+        ] {
+            let arguments = phase.arguments(operation);
+            assert_eq!(&arguments[1..5], VENDOR_SELECTION, "{phase:?}");
+        }
+        // A phase that runs no cargo never carries the selection.
+        for phase in [
+            PerformancePhase::Metadata,
+            PerformancePhase::ProfileRun,
+            PerformancePhase::BloatFileSize,
+            PerformancePhase::BenchExport,
+        ] {
+            assert!(
+                !phase
+                    .arguments(PerformanceOperation::Bloat(&bloat))
+                    .iter()
+                    .any(|value| value == "--config"),
+                "{phase:?}"
+            );
+        }
+        Ok(())
+    }
+
+    #[test]
+    fn a_project_supplied_cargo_configuration_is_refused_before_any_volume() -> Result<(), String> {
+        for path in [
+            ".cargo/config.toml",
+            ".cargo/config",
+            "member/.cargo/config.toml",
+        ] {
+            let file = SourceFile::new(path.into(), b"[source.crates-io]\n".to_vec())
+                .map_err(|error| format!("{error:?}"))?;
+            let source = SourceBundle::new(vec![file]).map_err(|error| format!("{error:?}"))?;
+            assert_eq!(
+                reject_project_cargo_configuration(&source),
+                Err(PerformanceError::ProjectCargoConfiguration),
+                "accepted {path}"
+            );
+        }
+        let file = SourceFile::new("Cargo.toml".into(), b"[package]\n".to_vec())
+            .map_err(|error| format!("{error:?}"))?;
+        let source = SourceBundle::new(vec![file]).map_err(|error| format!("{error:?}"))?;
+        assert_eq!(reject_project_cargo_configuration(&source), Ok(()));
         Ok(())
     }
 

@@ -92,3 +92,4 @@ Accepted, Superseded y Rejected.
 - [ADR-074 — Capability de profiling, containment y helper propio](ADR-074-profiling-capability-and-containment.md): Accepted D24; positivo nativo con una sola syscall añadida, sin capability, sin contenedor privilegiado y sin cambio de sysctl.
 - [ADR-075 — Aprovisionamiento del runtime M5](ADR-075-m5-runtime-provisioning.md): Accepted tras autorización separada del owner; cargo-bloat 0.12.1, vendor de criterion y helper propio.
 - [ADR-076 — Contratos públicos de las cuatro tools M5](ADR-076-m5-performance-contracts.md): Accepted; veintisiete schemas previos intactos y tamaño exacto separado de atribución estimada.
+- [ADR-077 — Admisión del runtime M5 en el gateway](ADR-077-m5-runtime-admission.md): Accepted; un digest añadido a la lista cerrada, sin sustituir ni ampliar el alcance de las imágenes anteriores.

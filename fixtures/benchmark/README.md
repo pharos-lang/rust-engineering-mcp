@@ -95,3 +95,41 @@ plotters, rayon or HTML report outputs.
 
 `target/` is generated and is git-ignored; no build artifacts belong in this
 corpus.
+
+## Sin configuración de Cargo propia
+
+Esta fixture **no** trae `.cargo/config.toml`, y no debe traerlo. Los flujos M5
+rechazan una fuente que contenga configuración de Cargo del proyecto: G2 prohíbe
+wrappers, linkers y runners del proyecto, y ese archivo es además el sitio donde
+un proyecto podría redirigir `source.crates-io` a un directorio que él mismo
+controla, sustituyendo los bytes de las dependencias que la medición está a punto
+de describir. El entorno de compilación pertenece al servidor.
+
+Para construir en el host, pasa la sustitución de fuente por línea de comandos,
+que tiene la precedencia más alta de Cargo:
+
+```sh
+python3 -B fixtures/criterion-vendor/materialize.py
+cd fixtures/benchmark
+cargo bench --offline --bench perf \
+  --config 'source.crates-io.replace-with="vendored-sources"' \
+  --config 'source.vendored-sources.directory="../criterion-vendor/vendor"' \
+  -- --noplot --color never --warm-up-time 3 --measurement-time 5 --sample-size 30
+```
+
+El gateway hace exactamente lo mismo dentro del guest, con el directorio del
+vendor autenticado por el host.
+
+## El benchmark `control` no es un control 1,00x
+
+Se diseñó como control de auto-comparación, pero la medición real en el guest lo
+desmiente: `control` resultó un 2,9 % **más rápido** que `reference`
+([recibo](../../docs/validation/M5-01-benchmark-calibration.json)). Recorrer el
+mismo conjunto de índices en orden descendente no cuesta lo mismo que en orden
+ascendente en este hardware, aunque el número de operaciones sea idéntico.
+
+Se conserva como tercer punto de medida y como caso de familia de tres
+comparaciones, pero **no** se usa como control. El control de auto-comparación
+real es comparar el mismo benchmark entre dos ejecuciones independientes de la
+misma fuente, que es lo que hacen `criterion-run-1.tar` y `criterion-run-2.tar`
+en `fixtures/benchmark-datasets`.
