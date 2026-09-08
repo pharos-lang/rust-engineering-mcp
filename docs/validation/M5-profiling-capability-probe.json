@@ -1,0 +1,68 @@
+{
+  "schema": "rust-engineering-mcp.m5-profiling-capability-probe.v1",
+  "decision": "ADR-074",
+  "captured_at_utc": "2026-09-08T21:22:05Z",
+  "image_id": "sha256:25ed3626e710081a571a86a29521eaf2e890e796afd422ba5e409e0ce1891635",
+  "host": {
+    "platform": "macOS 26 ARM64",
+    "guest_kernel": "7.0.12-linuxkit aarch64",
+    "perf_event_paranoid": 2
+  },
+  "container_flags": [
+    "--cap-drop=ALL",
+    "--security-opt=no-new-privileges=true",
+    "--network=none",
+    "--pids-limit=128",
+    "--cpus=1",
+    "--memory=1g",
+    "--memory-swap=1g",
+    "--ipc=private",
+    "--cgroupns=private",
+    "--user=65534:65534",
+    "--runtime=runc",
+    "--init=false"
+  ],
+  "not_used": [
+    "sudo",
+    "--privileged",
+    "--cap-add",
+    "sysctl change",
+    "perf_event_paranoid write"
+  ],
+  "probe": {
+    "path": "fixtures/profile-probe/perf-capability-probe.rs",
+    "sha256": "cd85f861a4e1ec9850ec25af7c26396baef0c96f03cb348308de05f306acd7be",
+    "event": {
+      "type": "PERF_TYPE_SOFTWARE",
+      "config": "PERF_COUNT_SW_CPU_CLOCK",
+      "exclude_kernel": 1,
+      "exclude_hv": 1,
+      "freq": 99
+    }
+  },
+  "cases": [
+    {
+      "profile": "crates/execution-adapter/src/seccomp-rust-quality.json",
+      "sha256": "c288305c9fdba791926a9154fe47a1f53a30d61501cd9d059a78467866ccf938",
+      "expected": "denied",
+      "observed": [
+        "perf_event_open(user-space-only, self, any-cpu) -> -1",
+        "RESULT=perf_event_open_denied errno=1"
+      ]
+    },
+    {
+      "profile": "crates/execution-adapter/src/seccomp-rust-profile.json",
+      "sha256": "7358b540d747c6aab0d21a918e55ab137fe475001db7d7b0659b8f324c028393",
+      "expected": "samples_collected",
+      "observed": [
+        "perf_event_open(user-space-only, self, any-cpu) -> 3",
+        "mmap(ring buffer 8+1 pages) -> 0xffff91fe5000",
+        "ioctl(PERF_EVENT_IOC_ENABLE) -> 0",
+        "ioctl(PERF_EVENT_IOC_DISABLE) -> 0 (acc=9108155303484529879)",
+        "ring buffer data_head after workload = 560",
+        "RESULT=samples_collected"
+      ]
+    }
+  ],
+  "status": "passed"
+}
