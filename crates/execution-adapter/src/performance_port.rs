@@ -12,7 +12,6 @@
 //! `rust_engineering_application::benchmark::ProjectBenchmarkPort`,
 //! `::profile::ProjectProfilePort` and `::bloat::ProjectBloatPort` — so wiring
 //! is one `self.with_gateway(control, |gateway| …)` per tool.
-#![allow(dead_code)]
 use crate::RustGateway;
 use crate::bloat_json;
 use crate::criterion_dataset;

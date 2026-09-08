@@ -137,16 +137,16 @@ pub struct Comparison {
 pub struct Report {
     /// Absent only when the pair was refused before any statistic was computed.
     pub method: Option<Method>,
-    #[schemars(length(max = 128))]
+    #[schemars(length(max = 512))]
     pub comparisons: Vec<Comparison>,
     pub compared: u32,
     pub comparisons_omitted: u32,
     /// Benchmark keys present only in the baseline dataset, sorted.
-    #[schemars(length(max = 64))]
+    #[schemars(length(max = 256))]
     pub baseline_only: Vec<String>,
     pub baseline_only_omitted: u32,
     /// Benchmark keys present only in the candidate dataset, sorted.
-    #[schemars(length(max = 64))]
+    #[schemars(length(max = 256))]
     pub candidate_only: Vec<String>,
     pub candidate_only_omitted: u32,
     /// The complete sorted reason list when the two datasets are incompatible.

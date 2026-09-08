@@ -130,6 +130,12 @@ mod mac {
                 "seccomp-rust-fix.json",
                 include_bytes!("seccomp-rust-fix.json"),
             )?;
+            // ADR-074: the quality profile plus exactly `perf_event_open`, used
+            // by the single M5 profiling phase and by nothing else.
+            state.write(
+                "seccomp-rust-profile.json",
+                include_bytes!("seccomp-rust-profile.json"),
+            )?;
             Ok(state)
         }
         fn write(&self, name: &str, bytes: &[u8]) -> Result<(), ExecutionError> {
@@ -180,6 +186,11 @@ mod mac {
                 AtFlags::empty(),
             );
             let _ = unlinkat(&self.directory, "seccomp-rust-fix.json", AtFlags::empty());
+            let _ = unlinkat(
+                &self.directory,
+                "seccomp-rust-profile.json",
+                AtFlags::empty(),
+            );
             if self.check().is_ok() {
                 let _ = unlinkat(&self.root, &self.name, AtFlags::REMOVEDIR);
             }
