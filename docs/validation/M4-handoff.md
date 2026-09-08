@@ -80,16 +80,17 @@ fijados y el sysroot completo sin ejecutar código guest ni usar red.
 | [Full final](M4-full-gate.json) | PASS monolítico 33/33 sobre 990 inputs: 1250 tests Rust en el paso workspace, 1 doctest y 94 tests Python, además de las selecciones nativas. Se ejecutó después de la remediación del PR, sin descarga y con `source_inputs_unchanged=true`. |
 | [Runtime M4](M4-runtime.json) | PASS 19/19 sobre imagen final; [Rust security](M4-rust-security.json) 20/20, [M2](M4-m2-runtime.json) 10 selecciones y [M3](M4-m3-runtime.json) 62/62, conservando las imágenes propias de cada suite. |
 | [Benchmark](M4-budgets.json) | PASS 300/300, 10 grupos por 30 observaciones, máximo 17 044 ms frente al techo síncrono de 60 s. Mide el binario congelado `sha256:d27cbc5907ce7e985f3f1c162356714bb88efb87e596619b8866faa6bcda8b5f`; su [inventario fuente](M4-budgets/m4-budgets-inputs.json) es parte del recibo. Es evidencia histórica para presupuesto, no un binding de los últimos cambios de parser/routing. |
-| [Clientes, intento 5](M4-clients.json) | PASS ligado al candidato `4edb1b5e61bcd73b3f7299def7e52c5d3c253585fb2f4048b5271e2c6117a416`, a los mismos 990 inputs del full y a la imagen `25ed…`. Inspector 2.5.0 descubrió 27 tools, ejercitó las cinco M4, Resources y cancelación Tasks. Codex CLI 0.153.0 stock ejercitó las cinco de forma síncrona y en un turno dirigido; declara `tasks_declared: false` y no acredita cancelación Tasks. |
+| [Clientes, intento 6](M4-clients.json) | PASS ligado al candidato `5337ed4005522a0dc6521980e8d1943a5dd4b13d63219ff1a2e6de0f5f8cc497`, a los mismos 990 inputs del full y a la imagen `25ed…`. Inspector 2.5.0 descubrió 27 tools, ejercitó las cinco M4, Resources y cancelación Tasks. Codex CLI 0.153.0 stock ejercitó las cinco de forma síncrona y en un turno dirigido; declara `tasks_declared: false` y no acredita cancelación Tasks. |
 | [MCP de las cinco tools](M4-tools-mcp.json) | PASS de resultados y recursos privados sobre la imagen final. |
 | [Deny MCP y rollback](M4-deny-mcp.json) | Casos clean/finding/policy y revocación; al volver a M3 se retiran plugin y admisión M4, la nueva llamada queda unavailable y el mismo audit privado v1 se relee con una referencia nueva del mismo owner antes de revocar la fuente. La persistencia M3 no cambia. |
 | [Imagen alterada](M4-tampered-plugin.json) | PASS: una identidad derivada no admitida se rechaza antes de ejecutar guest, los inputs quedan iguales y cleanup queda verificado. |
 | [Privacidad runtime](M4-privacy-runtime.json) | PASS de control positivo y negativo. El canario host queda ausente; HTML de cobertura y diffs de mutation autorizados por el proyecto pueden conservar bytes de source, incluidos secretos presentes en esa fuente. Esos artifacts son privados y no se promete redacción universal del source autorizado. |
 
 Los intentos cliente [2](M4-clients-before-corpus-refresh.json),
-[3](M4-clients-before-stdout-diagnostic.json) y 4 bajo `m4-clients/attempt-4`
-también pasaron y quedan preservados. El intento 5 es el recibo vigente porque
-repite G4 sobre el refactor de handlers y la instrumentación de cobertura del PR.
+[3](M4-clients-before-stdout-diagnostic.json), 4 bajo `m4-clients/attempt-4`
+y 5 bajo `m4-clients/attempt-5` también pasaron y quedan preservados. El
+intento 6 es el recibo vigente porque repite G4 sobre el refactor final de
+handlers y la instrumentación de cobertura del PR.
 
 Los recibos finales [scanner native](M4-scanner-native.json) y
 [Miri native](M4-miri-native.json) ya vinculan los bytes actuales: siete casos

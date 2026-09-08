@@ -3,7 +3,7 @@
   "mode": "full",
   "platform": "macOS-26.6.2-arm64-arm-64bit-Mach-O",
   "machine": "arm64",
-  "started_at": "2026-09-08T14:07:09.837409Z",
+  "started_at": "2026-09-08T15:30:24.981079Z",
   "steps": [
     {
       "name": "fmt",
@@ -13,11 +13,11 @@
         "--all",
         "--check"
       ],
-      "started_at": "2026-09-08T14:07:10.025334Z",
+      "started_at": "2026-09-08T15:30:25.384702Z",
       "status": "passed",
       "exit_code": 0,
-      "finished_at": "2026-09-08T14:07:10.810117Z",
-      "seconds": 0.785,
+      "finished_at": "2026-09-08T15:30:26.266620Z",
+      "seconds": 0.882,
       "counts": {
         "output_lines": 0,
         "output_bytes_utf8": 0,
@@ -37,14 +37,14 @@
         "--locked",
         "--offline"
       ],
-      "started_at": "2026-09-08T14:07:10.810968Z",
+      "started_at": "2026-09-08T15:30:26.267558Z",
       "status": "passed",
       "exit_code": 0,
-      "finished_at": "2026-09-08T14:07:10.969591Z",
-      "seconds": 0.159,
+      "finished_at": "2026-09-08T15:30:50.332026Z",
+      "seconds": 24.065,
       "counts": {
-        "output_lines": 1,
-        "output_bytes_utf8": 72,
+        "output_lines": 3,
+        "output_bytes_utf8": 286,
         "test_groups": [],
         "rust_passed": 0,
         "rust_failed": 0,
@@ -64,14 +64,14 @@
         "-D",
         "warnings"
       ],
-      "started_at": "2026-09-08T14:07:10.970493Z",
+      "started_at": "2026-09-08T15:30:50.333452Z",
       "status": "passed",
       "exit_code": 0,
-      "finished_at": "2026-09-08T14:07:11.170798Z",
-      "seconds": 0.2,
+      "finished_at": "2026-09-08T15:31:10.025401Z",
+      "seconds": 19.692,
       "counts": {
-        "output_lines": 1,
-        "output_bytes_utf8": 72,
+        "output_lines": 3,
+        "output_bytes_utf8": 286,
         "test_groups": [],
         "rust_passed": 0,
         "rust_failed": 0,
@@ -88,14 +88,14 @@
         "--locked",
         "--offline"
       ],
-      "started_at": "2026-09-08T14:07:11.171584Z",
+      "started_at": "2026-09-08T15:31:10.026930Z",
       "status": "passed",
       "exit_code": 0,
-      "finished_at": "2026-09-08T14:08:06.441292Z",
-      "seconds": 55.27,
+      "finished_at": "2026-09-08T15:34:30.265334Z",
+      "seconds": 200.24,
       "counts": {
-        "output_lines": 1883,
-        "output_bytes_utf8": 143473,
+        "output_lines": 1885,
+        "output_bytes_utf8": 143687,
         "test_groups": [
           {
             "runner": "rust-test-harness",
@@ -842,11 +842,11 @@
         "--locked",
         "--offline"
       ],
-      "started_at": "2026-09-08T14:08:06.442635Z",
+      "started_at": "2026-09-08T15:34:30.266805Z",
       "status": "passed",
       "exit_code": 0,
-      "finished_at": "2026-09-08T14:08:14.870602Z",
-      "seconds": 8.428,
+      "finished_at": "2026-09-08T15:34:38.030302Z",
+      "seconds": 7.764,
       "counts": {
         "output_lines": 44,
         "output_bytes_utf8": 1199,
@@ -926,11 +926,11 @@
         "/opt/homebrew/opt/python@3.14/bin/python3.14",
         "scripts/check-architecture.py"
       ],
-      "started_at": "2026-09-08T14:08:14.871867Z",
+      "started_at": "2026-09-08T15:34:38.031310Z",
       "status": "passed",
       "exit_code": 0,
-      "finished_at": "2026-09-08T14:08:14.985304Z",
-      "seconds": 0.113,
+      "finished_at": "2026-09-08T15:34:38.160248Z",
+      "seconds": 0.129,
       "counts": {
         "output_lines": 1,
         "output_bytes_utf8": 127,
@@ -946,11 +946,11 @@
         "/opt/homebrew/opt/python@3.14/bin/python3.14",
         "scripts/test-gate-reporting.py"
       ],
-      "started_at": "2026-09-08T14:08:14.987086Z",
+      "started_at": "2026-09-08T15:34:38.161169Z",
       "status": "passed",
       "exit_code": 0,
-      "finished_at": "2026-09-08T14:08:15.348382Z",
-      "seconds": 0.361,
+      "finished_at": "2026-09-08T15:34:38.629709Z",
+      "seconds": 0.469,
       "counts": {
         "output_lines": 5,
         "output_bytes_utf8": 112,
@@ -972,11 +972,11 @@
         "-B",
         "scripts/test-release-artifact.py"
       ],
-      "started_at": "2026-09-08T14:08:15.349272Z",
+      "started_at": "2026-09-08T15:34:38.630618Z",
       "status": "passed",
       "exit_code": 0,
-      "finished_at": "2026-09-08T14:08:15.417826Z",
-      "seconds": 0.069,
+      "finished_at": "2026-09-08T15:34:38.701306Z",
+      "seconds": 0.071,
       "counts": {
         "output_lines": 16,
         "output_bytes_utf8": 1580,
@@ -998,11 +998,11 @@
         "-B",
         "scripts/test-release-smoke.py"
       ],
-      "started_at": "2026-09-08T14:08:15.418716Z",
+      "started_at": "2026-09-08T15:34:38.702314Z",
       "status": "passed",
       "exit_code": 0,
-      "finished_at": "2026-09-08T14:08:15.488838Z",
-      "seconds": 0.07,
+      "finished_at": "2026-09-08T15:34:38.776243Z",
+      "seconds": 0.074,
       "counts": {
         "output_lines": 14,
         "output_bytes_utf8": 1178,
@@ -1024,11 +1024,11 @@
         "-B",
         "scripts/test-codex-model-qualifier.py"
       ],
-      "started_at": "2026-09-08T14:08:15.489766Z",
+      "started_at": "2026-09-08T15:34:38.777293Z",
       "status": "passed",
       "exit_code": 0,
-      "finished_at": "2026-09-08T14:09:08.998609Z",
-      "seconds": 53.509,
+      "finished_at": "2026-09-08T15:35:31.428254Z",
+      "seconds": 52.651,
       "counts": {
         "output_lines": 6,
         "output_bytes_utf8": 232,
@@ -1050,11 +1050,11 @@
         "-B",
         "scripts/test-m4-clients-unit.py"
       ],
-      "started_at": "2026-09-08T14:09:08.999645Z",
+      "started_at": "2026-09-08T15:35:31.429376Z",
       "status": "passed",
       "exit_code": 0,
-      "finished_at": "2026-09-08T14:09:09.176683Z",
-      "seconds": 0.177,
+      "finished_at": "2026-09-08T15:35:31.789597Z",
+      "seconds": 0.36,
       "counts": {
         "output_lines": 5,
         "output_bytes_utf8": 106,
@@ -1076,11 +1076,11 @@
         "-B",
         "scripts/test-m4-safety-harnesses.py"
       ],
-      "started_at": "2026-09-08T14:09:09.177661Z",
+      "started_at": "2026-09-08T15:35:31.790554Z",
       "status": "passed",
       "exit_code": 0,
-      "finished_at": "2026-09-08T14:09:09.563434Z",
-      "seconds": 0.386,
+      "finished_at": "2026-09-08T15:35:32.169709Z",
+      "seconds": 0.379,
       "counts": {
         "output_lines": 5,
         "output_bytes_utf8": 105,
@@ -1104,11 +1104,11 @@
         "fixtures/unsafe-scanner-helper/Cargo.toml",
         "--check"
       ],
-      "started_at": "2026-09-08T14:09:09.565348Z",
+      "started_at": "2026-09-08T15:35:32.171200Z",
       "status": "passed",
       "exit_code": 0,
-      "finished_at": "2026-09-08T14:09:09.610499Z",
-      "seconds": 0.045,
+      "finished_at": "2026-09-08T15:35:32.224353Z",
+      "seconds": 0.053,
       "counts": {
         "output_lines": 0,
         "output_bytes_utf8": 0,
@@ -1130,11 +1130,11 @@
         "--target-dir",
         "target/unsafe-scanner-helper"
       ],
-      "started_at": "2026-09-08T14:09:09.611710Z",
+      "started_at": "2026-09-08T15:35:32.225326Z",
       "status": "passed",
       "exit_code": 0,
-      "finished_at": "2026-09-08T14:09:09.798494Z",
-      "seconds": 0.187,
+      "finished_at": "2026-09-08T15:35:32.377512Z",
+      "seconds": 0.152,
       "counts": {
         "output_lines": 30,
         "output_bytes_utf8": 1538,
@@ -1181,11 +1181,11 @@
         "unittest",
         "fixtures/rust-runtime/m4-scanner/test_provision.py"
       ],
-      "started_at": "2026-09-08T14:09:09.799638Z",
+      "started_at": "2026-09-08T15:35:32.378752Z",
       "status": "passed",
       "exit_code": 0,
-      "finished_at": "2026-09-08T14:09:09.847066Z",
-      "seconds": 0.047,
+      "finished_at": "2026-09-08T15:35:32.428104Z",
+      "seconds": 0.049,
       "counts": {
         "output_lines": 5,
         "output_bytes_utf8": 105,
@@ -1206,11 +1206,11 @@
         "/opt/homebrew/opt/python@3.14/bin/python3.14",
         "scripts/verify-vendor.py"
       ],
-      "started_at": "2026-09-08T14:09:09.847957Z",
+      "started_at": "2026-09-08T15:35:32.429099Z",
       "status": "passed",
       "exit_code": 0,
-      "finished_at": "2026-09-08T14:09:09.895535Z",
-      "seconds": 0.048,
+      "finished_at": "2026-09-08T15:35:32.487761Z",
+      "seconds": 0.059,
       "counts": {
         "output_lines": 1,
         "output_bytes_utf8": 87,
@@ -1229,11 +1229,11 @@
         "--cargo",
         "/Users/cburgosro/.rustup/toolchains/1.98.1-aarch64-apple-darwin/bin/cargo"
       ],
-      "started_at": "2026-09-08T14:09:09.896591Z",
+      "started_at": "2026-09-08T15:35:32.488906Z",
       "status": "passed",
       "exit_code": 0,
-      "finished_at": "2026-09-08T14:09:11.907226Z",
-      "seconds": 2.011,
+      "finished_at": "2026-09-08T15:35:34.512324Z",
+      "seconds": 2.023,
       "counts": {
         "output_lines": 13,
         "output_bytes_utf8": 1674,
@@ -1250,11 +1250,11 @@
         "audit",
         "--no-fetch"
       ],
-      "started_at": "2026-09-08T14:09:11.908562Z",
+      "started_at": "2026-09-08T15:35:34.513607Z",
       "status": "passed",
       "exit_code": 0,
-      "finished_at": "2026-09-08T14:09:12.243056Z",
-      "seconds": 0.335,
+      "finished_at": "2026-09-08T15:35:34.938689Z",
+      "seconds": 0.425,
       "counts": {
         "output_lines": 259,
         "output_bytes_utf8": 13452,
@@ -1279,11 +1279,11 @@
         "bans",
         "sources"
       ],
-      "started_at": "2026-09-08T14:09:12.243930Z",
+      "started_at": "2026-09-08T15:35:34.939657Z",
       "status": "passed",
       "exit_code": 0,
-      "finished_at": "2026-09-08T14:09:12.856379Z",
-      "seconds": 0.612,
+      "finished_at": "2026-09-08T15:35:35.630934Z",
+      "seconds": 0.691,
       "counts": {
         "output_lines": 213,
         "output_bytes_utf8": 16226,
@@ -1299,14 +1299,14 @@
         "sh",
         "scripts/test-execution.sh"
       ],
-      "started_at": "2026-09-08T14:09:12.857294Z",
+      "started_at": "2026-09-08T15:35:35.631983Z",
       "status": "passed",
       "exit_code": 0,
-      "finished_at": "2026-09-08T14:09:48.304432Z",
-      "seconds": 35.447,
+      "finished_at": "2026-09-08T15:36:09.406521Z",
+      "seconds": 33.775,
       "counts": {
         "output_lines": 46,
-        "output_bytes_utf8": 31632,
+        "output_bytes_utf8": 31761,
         "test_groups": [
           {
             "runner": "rust-test-harness",
@@ -1329,11 +1329,11 @@
         "/opt/homebrew/opt/python@3.14/bin/python3.14",
         "scripts/test-rust-execution.py"
       ],
-      "started_at": "2026-09-08T14:09:48.306044Z",
+      "started_at": "2026-09-08T15:36:09.408079Z",
       "status": "passed",
       "exit_code": 0,
-      "finished_at": "2026-09-08T14:18:47.405171Z",
-      "seconds": 539.095,
+      "finished_at": "2026-09-08T15:45:21.022928Z",
+      "seconds": 551.619,
       "counts": {
         "output_lines": 21,
         "output_bytes_utf8": 1928,
@@ -1349,11 +1349,11 @@
         "/opt/homebrew/opt/python@3.14/bin/python3.14",
         "scripts/test-m2-runtime.py"
       ],
-      "started_at": "2026-09-08T14:18:47.406732Z",
+      "started_at": "2026-09-08T15:45:21.024267Z",
       "status": "passed",
       "exit_code": 0,
-      "finished_at": "2026-09-08T14:25:04.767609Z",
-      "seconds": 377.361,
+      "finished_at": "2026-09-08T15:51:50.104595Z",
+      "seconds": 389.083,
       "counts": {
         "output_lines": 11,
         "output_bytes_utf8": 766,
@@ -1370,11 +1370,11 @@
         "-B",
         "scripts/test-m3-runtime.py"
       ],
-      "started_at": "2026-09-08T14:25:04.769577Z",
+      "started_at": "2026-09-08T15:51:50.106129Z",
       "status": "passed",
       "exit_code": 0,
-      "finished_at": "2026-09-08T14:45:59.266018Z",
-      "seconds": 1254.516,
+      "finished_at": "2026-09-08T16:12:58.265025Z",
+      "seconds": 1268.069,
       "counts": {
         "output_lines": 63,
         "output_bytes_utf8": 4622,
@@ -1393,11 +1393,11 @@
         "--server",
         "target/debug/rust-engineering-mcp"
       ],
-      "started_at": "2026-09-08T14:45:59.267924Z",
+      "started_at": "2026-09-08T16:12:58.266982Z",
       "status": "passed",
       "exit_code": 0,
-      "finished_at": "2026-09-08T14:46:02.715916Z",
-      "seconds": 3.448,
+      "finished_at": "2026-09-08T16:13:01.924161Z",
+      "seconds": 3.657,
       "counts": {
         "output_lines": 1,
         "output_bytes_utf8": 99,
@@ -1414,11 +1414,11 @@
         "-B",
         "scripts/test-m4-inventory.py"
       ],
-      "started_at": "2026-09-08T14:46:02.717404Z",
+      "started_at": "2026-09-08T16:13:01.925561Z",
       "status": "passed",
       "exit_code": 0,
-      "finished_at": "2026-09-08T14:46:03.959995Z",
-      "seconds": 1.243,
+      "finished_at": "2026-09-08T16:13:03.157317Z",
+      "seconds": 1.232,
       "counts": {
         "output_lines": 1,
         "output_bytes_utf8": 103,
@@ -1435,11 +1435,11 @@
         "-B",
         "scripts/test-m4-runtime.py"
       ],
-      "started_at": "2026-09-08T14:46:03.961681Z",
+      "started_at": "2026-09-08T16:13:03.158941Z",
       "status": "passed",
       "exit_code": 0,
-      "finished_at": "2026-09-08T14:57:57.556473Z",
-      "seconds": 713.598,
+      "finished_at": "2026-09-08T16:24:58.747759Z",
+      "seconds": 715.585,
       "counts": {
         "output_lines": 20,
         "output_bytes_utf8": 1738,
@@ -1455,11 +1455,11 @@
         "/opt/homebrew/opt/python@3.14/bin/python3.14",
         "scripts/test-audit-data.py"
       ],
-      "started_at": "2026-09-08T14:57:57.557885Z",
+      "started_at": "2026-09-08T16:24:58.749032Z",
       "status": "passed",
       "exit_code": 0,
-      "finished_at": "2026-09-08T14:58:01.703914Z",
-      "seconds": 4.146,
+      "finished_at": "2026-09-08T16:24:59.069846Z",
+      "seconds": 0.321,
       "counts": {
         "output_lines": 2,
         "output_bytes_utf8": 160,
@@ -1475,33 +1475,15 @@
         "/opt/homebrew/opt/python@3.14/bin/python3.14",
         "scripts/test-semantic.py"
       ],
-      "started_at": "2026-09-08T14:58:01.705401Z",
+      "started_at": "2026-09-08T16:24:59.070976Z",
       "status": "passed",
       "exit_code": 0,
-      "finished_at": "2026-09-08T14:58:20.797960Z",
-      "seconds": 19.093,
+      "finished_at": "2026-09-08T16:25:16.965869Z",
+      "seconds": 17.914,
       "counts": {
         "output_lines": 69,
         "output_bytes_utf8": 4301,
         "test_groups": [
-          {
-            "runner": "rust-test-harness",
-            "status": "ok",
-            "passed": 16,
-            "failed": 0,
-            "ignored": 0,
-            "measured": 0,
-            "filtered_out": 0
-          },
-          {
-            "runner": "rust-test-harness",
-            "status": "ok",
-            "passed": 0,
-            "failed": 0,
-            "ignored": 0,
-            "measured": 0,
-            "filtered_out": 16
-          },
           {
             "runner": "rust-test-harness",
             "status": "ok",
@@ -1519,6 +1501,24 @@
             "ignored": 0,
             "measured": 0,
             "filtered_out": 0
+          },
+          {
+            "runner": "rust-test-harness",
+            "status": "ok",
+            "passed": 16,
+            "failed": 0,
+            "ignored": 0,
+            "measured": 0,
+            "filtered_out": 0
+          },
+          {
+            "runner": "rust-test-harness",
+            "status": "ok",
+            "passed": 0,
+            "failed": 0,
+            "ignored": 0,
+            "measured": 0,
+            "filtered_out": 16
           }
         ],
         "rust_passed": 17,
@@ -1532,11 +1532,11 @@
         "/opt/homebrew/opt/python@3.14/bin/python3.14",
         "scripts/test-catalog.py"
       ],
-      "started_at": "2026-09-08T14:58:20.798984Z",
+      "started_at": "2026-09-08T16:25:16.966830Z",
       "status": "passed",
       "exit_code": 0,
-      "finished_at": "2026-09-08T14:59:02.305682Z",
-      "seconds": 41.507,
+      "finished_at": "2026-09-08T16:25:58.189311Z",
+      "seconds": 41.23,
       "counts": {
         "output_lines": 24,
         "output_bytes_utf8": 1325,
@@ -1571,11 +1571,11 @@
         "/opt/homebrew/opt/python@3.14/bin/python3.14",
         "scripts/test-catalog-status.py"
       ],
-      "started_at": "2026-09-08T14:59:02.306817Z",
+      "started_at": "2026-09-08T16:25:58.190433Z",
       "status": "passed",
       "exit_code": 0,
-      "finished_at": "2026-09-08T14:59:25.387259Z",
-      "seconds": 23.081,
+      "finished_at": "2026-09-08T16:26:21.168497Z",
+      "seconds": 22.978,
       "counts": {
         "output_lines": 20,
         "output_bytes_utf8": 1059,
@@ -1610,11 +1610,11 @@
         "/opt/homebrew/opt/python@3.14/bin/python3.14",
         "scripts/test-crate-search.py"
       ],
-      "started_at": "2026-09-08T14:59:25.388241Z",
+      "started_at": "2026-09-08T16:26:21.169543Z",
       "status": "passed",
       "exit_code": 0,
-      "finished_at": "2026-09-08T14:59:45.168102Z",
-      "seconds": 19.78,
+      "finished_at": "2026-09-08T16:26:40.467538Z",
+      "seconds": 19.298,
       "counts": {
         "output_lines": 20,
         "output_bytes_utf8": 1038,
@@ -1649,11 +1649,11 @@
         "/opt/homebrew/opt/python@3.14/bin/python3.14",
         "scripts/test-crate-inspect.py"
       ],
-      "started_at": "2026-09-08T14:59:45.169165Z",
+      "started_at": "2026-09-08T16:26:40.468563Z",
       "status": "passed",
       "exit_code": 0,
-      "finished_at": "2026-09-08T14:59:54.135092Z",
-      "seconds": 8.966,
+      "finished_at": "2026-09-08T16:26:49.252736Z",
+      "seconds": 8.784,
       "counts": {
         "output_lines": 11,
         "output_bytes_utf8": 575,
@@ -1679,11 +1679,11 @@
         "/opt/homebrew/opt/python@3.14/bin/python3.14",
         "scripts/test-doctor.py"
       ],
-      "started_at": "2026-09-08T14:59:54.136150Z",
+      "started_at": "2026-09-08T16:26:49.253811Z",
       "status": "passed",
       "exit_code": 0,
-      "finished_at": "2026-09-08T15:00:36.257742Z",
-      "seconds": 42.122,
+      "finished_at": "2026-09-08T16:27:28.428338Z",
+      "seconds": 39.174,
       "counts": {
         "output_lines": 8,
         "output_bytes_utf8": 568,
@@ -3011,8 +3011,8 @@
       "path": "crates/execution-adapter/src/security_gateway.rs",
       "kind": "file",
       "mode": "0o644",
-      "bytes": 73523,
-      "sha256": "0eb9ff26544001df213a391db856175cf26325034799ed006306c390b4d2aab3"
+      "bytes": 73552,
+      "sha256": "325eb52b82b5bae035ffa14b9c2ac299a29eab7979927f98ffefcd3bc799e167"
     },
     {
       "path": "crates/execution-adapter/src/security_graph_native.rs",
@@ -3578,8 +3578,8 @@
       "path": "crates/mcp-server/src/stdio/deny.rs",
       "kind": "file",
       "mode": "0o644",
-      "bytes": 30407,
-      "sha256": "e5e6bf686568751be4de8cb20d026bef551efc08c05fb74dfa2ee294cac9c158"
+      "bytes": 28533,
+      "sha256": "af4b68ec9d595b411a96b304a97f0384678f8b608091fe35a83f9e09c63fc054"
     },
     {
       "path": "crates/mcp-server/src/stdio/deny/schemas.rs",
@@ -3648,8 +3648,8 @@
       "path": "crates/mcp-server/src/stdio/miri.rs",
       "kind": "file",
       "mode": "0o644",
-      "bytes": 18961,
-      "sha256": "df9a2db2d0a6b622a331b73256bbd140f93d1396eb4f48091f05e0eed6a1d494"
+      "bytes": 17015,
+      "sha256": "bf2972db91fbd2072ad6fe4efc4339f3ad7398395a55bb2b24f62bb0cd3b7b9f"
     },
     {
       "path": "crates/mcp-server/src/stdio/miri/schemas.rs",
@@ -3753,8 +3753,8 @@
       "path": "crates/mcp-server/src/stdio/quality_v2.rs",
       "kind": "file",
       "mode": "0o644",
-      "bytes": 18039,
-      "sha256": "71791fa23ce1a9b284fb8d78aa8e053d46481d42073c6a257c44d3e6272bdcd9"
+      "bytes": 16174,
+      "sha256": "b83263290eebf191710f116d2975a99bbc677f4ddc46cd06039f86c736dfdff4"
     },
     {
       "path": "crates/mcp-server/src/stdio/quality_v2/schemas.rs",
@@ -3795,8 +3795,8 @@
       "path": "crates/mcp-server/src/stdio/security_tool.rs",
       "kind": "file",
       "mode": "0o644",
-      "bytes": 21631,
-      "sha256": "070a0f710b21732e8c6028c039fef012f052a5a178f29c230c8667fcb104133b"
+      "bytes": 26224,
+      "sha256": "68996e282deb6129b00f4dcb939e43c280e9a07baa49f908d89883c635c8ff06"
     },
     {
       "path": "crates/mcp-server/src/stdio/semver.rs",
@@ -3816,8 +3816,8 @@
       "path": "crates/mcp-server/src/stdio/supply_chain.rs",
       "kind": "file",
       "mode": "0o644",
-      "bytes": 15951,
-      "sha256": "09c51bc64ee8e16847a735b4081b85a81850764dcc7cf0d6fa0bf021d7b4293a"
+      "bytes": 14184,
+      "sha256": "b064f4973ad58c6aab6f6b2e2d1d12f69663c03d45093fe1c0fb89025245eb84"
     },
     {
       "path": "crates/mcp-server/src/stdio/supply_chain/schemas.rs",
@@ -3893,8 +3893,8 @@
       "path": "crates/mcp-server/src/stdio/unsafe_scan.rs",
       "kind": "file",
       "mode": "0o644",
-      "bytes": 17566,
-      "sha256": "c71ca438f3f4047fc89faa952747fddd4bcd8e9108a99ad7106907fb1b4e52b9"
+      "bytes": 15740,
+      "sha256": "b60bac74cdc9603cb4ea335167debe0f580f9d4aff5c91fda4e18f0f613c37b3"
     },
     {
       "path": "crates/mcp-server/src/stdio/unsafe_scan/schemas.rs",
@@ -8630,5 +8630,5 @@
     }
   ],
   "source_inputs_unchanged": true,
-  "finished_at": "2026-09-08T15:00:36.493996Z"
+  "finished_at": "2026-09-08T16:27:28.657089Z"
 }

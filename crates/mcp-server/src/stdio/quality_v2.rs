@@ -11,9 +11,9 @@ use super::{
     quality_artifacts::DurableSecurityPublisher,
     security_tool::{
         CommonFailure, SynchronousSelection, artifact_fields, capture_vendor, classify_error,
-        define_security_artifact, define_security_data, define_security_output,
-        define_security_tool, encode_bounded, load_policy, run_joined_security,
-        synchronous_selection,
+        define_fallible_security_outcome, define_security_artifact, define_security_data,
+        define_security_response_methods, define_security_tool, encode_bounded, load_policy,
+        run_joined_security, synchronous_selection,
     },
     workers::Workers,
 };
@@ -79,42 +79,7 @@ enum Code {
     OutputLimitExceeded,
     EvidenceIncomplete,
 }
-#[derive(Clone, serde::Serialize, JsonSchema)]
-#[serde(tag = "status", rename_all = "snake_case")]
-enum Outcome {
-    Passed {
-        error_code: (),
-        error_message: (),
-        data: Box<Data>,
-    },
-    Failed {
-        error_code: (),
-        error_message: (),
-        data: Box<Data>,
-    },
-    Blocked {
-        error_code: Code,
-        error_message: &'static str,
-        data: Option<Box<Data>>,
-    },
-    Unavailable {
-        error_code: Code,
-        error_message: &'static str,
-        data: Option<Box<Data>>,
-    },
-    Cancelled {
-        error_code: (),
-        error_message: (),
-        data: (),
-    },
-}
-define_security_output!(
-    Outcome::Passed { .. } => ToolStatus::Passed,
-    Outcome::Failed { .. } => ToolStatus::Failed,
-    Outcome::Blocked { .. } => ToolStatus::Blocked,
-    Outcome::Unavailable { .. } => ToolStatus::Unavailable,
-    Outcome::Cancelled { .. } => ToolStatus::Cancelled,
-);
+define_fallible_security_outcome!((), (), Option<Box<Data>>);
 define_security_artifact!("super::deny::schemas::ArtifactCompleteness");
 define_security_data!(QualityV2Observation, "schemas::Observation");
 pub(super) struct Runtime {
@@ -239,51 +204,15 @@ impl QualityV2Tool {
             Err(error) => self.error(error, duration),
         }
     }
-    fn blocked(
-        &self,
-        code: Code,
-        message: &'static str,
-        data: Option<Box<Data>>,
-        duration_ms: u64,
-    ) -> Result<CallToolResult, ErrorData> {
-        self.contract.encode(Output {
-            outcome: Outcome::Blocked {
-                error_code: code,
-                error_message: message,
-                data,
-            },
-            summary: message,
-            duration_ms,
-        })
-    }
-    fn unavailable(
-        &self,
-        code: Code,
-        message: &'static str,
-        duration_ms: u64,
-    ) -> Result<CallToolResult, ErrorData> {
-        self.contract.encode(Output {
-            outcome: Outcome::Unavailable {
-                error_code: code,
-                error_message: message,
-                data: None,
-            },
-            summary: message,
-            duration_ms,
-        })
-    }
+    define_security_response_methods!(self, None);
+
     fn error(&self, error: SecurityError, duration_ms: u64) -> Result<CallToolResult, ErrorData> {
         let (code, message) = match classify_error(error) {
             CommonFailure::Cancelled => {
-                return self.contract.encode(Output {
-                    outcome: Outcome::Cancelled {
-                        error_code: (),
-                        error_message: (),
-                        data: (),
-                    },
-                    summary: "Extended quality gate cancelled after joined cleanup",
+                return self.cancelled(
+                    "Extended quality gate cancelled after joined cleanup",
                     duration_ms,
-                });
+                );
             }
             CommonFailure::ToolNotInstalled => {
                 return self.unavailable(

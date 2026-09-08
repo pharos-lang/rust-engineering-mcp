@@ -9,8 +9,8 @@ use super::{
     security_tool::{
         CommonFailure, SynchronousSelection, artifact_fields, capture_vendor, classify_error,
         define_security_artifact, define_security_data, define_security_input,
-        define_security_output, define_security_tool, encode_bounded, run_joined_security,
-        synchronous_selection,
+        define_security_outcome, define_security_response_methods, define_security_tool,
+        encode_bounded, run_joined_security, synchronous_selection,
     },
     workers::Workers,
 };
@@ -22,7 +22,7 @@ use rust_engineering_application::InspectionError;
 use rust_engineering_application::security::SecurityError;
 use rust_engineering_application::unsafe_scan::{PublishedUnsafe, UnsafeObservation, UnsafePorts};
 use rust_engineering_domain::unsafe_scan::UnsafeScanOptions;
-use rust_engineering_domain::{ArtifactCompleteness, ProjectRef, ToolStatus};
+use rust_engineering_domain::{ArtifactCompleteness, ProjectRef};
 use rust_engineering_execution::RustProjectInspector;
 use std::sync::{
     Arc, Mutex,
@@ -48,36 +48,7 @@ enum Code {
     OutputLimitExceeded,
     SyntaxIncomplete,
 }
-#[derive(Clone, serde::Serialize, schemars::JsonSchema)]
-#[serde(tag = "status", rename_all = "snake_case")]
-enum Outcome {
-    Passed {
-        error_code: (),
-        error_message: (),
-        data: Box<Data>,
-    },
-    Blocked {
-        error_code: Code,
-        error_message: &'static str,
-        data: Option<Box<Data>>,
-    },
-    Unavailable {
-        error_code: Code,
-        error_message: &'static str,
-        data: (),
-    },
-    Cancelled {
-        error_code: (),
-        error_message: (),
-        data: (),
-    },
-}
-define_security_output!(
-    Outcome::Passed { .. } => ToolStatus::Passed,
-    Outcome::Blocked { .. } => ToolStatus::Blocked,
-    Outcome::Unavailable { .. } => ToolStatus::Unavailable,
-    Outcome::Cancelled { .. } => ToolStatus::Cancelled,
-);
+define_security_outcome!(());
 define_security_artifact!("super::deny::schemas::ArtifactCompleteness");
 define_security_data!(UnsafeObservation, "schemas::Observation");
 pub(super) struct Runtime {
@@ -182,51 +153,12 @@ impl UnsafeTool {
             Err(error) => self.error(error, duration),
         }
     }
-    fn blocked(
-        &self,
-        code: Code,
-        message: &'static str,
-        data: Option<Box<Data>>,
-        duration_ms: u64,
-    ) -> Result<CallToolResult, ErrorData> {
-        self.contract.encode(Output {
-            outcome: Outcome::Blocked {
-                error_code: code,
-                error_message: message,
-                data,
-            },
-            summary: message,
-            duration_ms,
-        })
-    }
-    fn unavailable(
-        &self,
-        code: Code,
-        message: &'static str,
-        duration_ms: u64,
-    ) -> Result<CallToolResult, ErrorData> {
-        self.contract.encode(Output {
-            outcome: Outcome::Unavailable {
-                error_code: code,
-                error_message: message,
-                data: (),
-            },
-            summary: message,
-            duration_ms,
-        })
-    }
+    define_security_response_methods!(self, ());
+
     fn error(&self, error: SecurityError, duration_ms: u64) -> Result<CallToolResult, ErrorData> {
         let (code, message) = match classify_error(error) {
             CommonFailure::Cancelled => {
-                return self.contract.encode(Output {
-                    outcome: Outcome::Cancelled {
-                        error_code: (),
-                        error_message: (),
-                        data: (),
-                    },
-                    summary: "Syntax scan cancelled after joined cleanup",
-                    duration_ms,
-                });
+                return self.cancelled("Syntax scan cancelled after joined cleanup", duration_ms);
             }
             CommonFailure::ToolNotInstalled => {
                 return self.unavailable(

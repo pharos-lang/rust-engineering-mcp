@@ -278,7 +278,7 @@ ADR-068 admite la imagen final exacta. El runtime no adquiere dependencias.
 | [Full](validation/M4-full-gate.json) | 33/33 monolítico posterior a la remediación del PR, sobre 990 inputs; paso workspace con 1250 tests Rust, 1 doctest, 94 tests Python y selecciones nativas; sin descarga y con fuentes sin cambios durante el gate. |
 | [Runtime M4](validation/M4-runtime.json) | 19/19 sobre `25ed…`, con rollback interno deliberado a M3. |
 | [Scanner](validation/M4-scanner-native.json) / [Miri](validation/M4-miri-native.json) | 7 casos scanner; 13 clasificaciones y 7 admisión/lifecycle Miri, todos ligados a fuentes actuales y cleanup verificado. |
-| [Clientes](validation/M4-clients.json) | Intento 5 PASS sobre los mismos 990 inputs: Inspector 2.5.0 y Codex stock 0.153.0, cinco tools reales y Resources; Tasks/cancelación en Inspector, sync/modelo en Codex. |
+| [Clientes](validation/M4-clients.json) | Intento 6 PASS sobre los mismos 990 inputs: Inspector 2.5.0 y Codex stock 0.153.0, cinco tools reales y Resources; Tasks/cancelación en Inspector, sync/modelo en Codex. |
 | [Hardening](validation/M4-hardening-map.md) | Privacidad, canarios, inventario pasivo, imagen alterada, cleanup/revocación y regresiones M2/M3 pasados. |
 | [Presupuestos](validation/M4-budgets.json) | 300/300, máximo 17044 ms; binario histórico explícito con inventario, separado de las rutas finales calificadas por clientes. |
 

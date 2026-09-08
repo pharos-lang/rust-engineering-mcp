@@ -1835,10 +1835,8 @@ mod tests {
                 arguments.contains(&"--interactive".to_owned()),
                 phase.interactive()
             );
-            assert!(arguments.contains(&format!(
-                "--security-opt=seccomp=/state/{}",
-                phase.profile_file()
-            )));
+            let profile = std::path::Path::new("/state").join(phase.profile_file());
+            assert!(arguments.contains(&format!("--security-opt=seccomp={}", profile.display())));
             for argument in phase.arguments() {
                 assert!(
                     arguments.contains(&(*argument).to_owned()),

@@ -320,7 +320,7 @@ Las regresiones M3 conservan sus propios 62 casos e imagen. El
 G4 se ejecuta aparte mediante `python3 -B scripts/test-m4-clients.py --run`, con
 socket explícito y `RUST_MCP_M4_CODEX_SYNC_QUALIFIED=1` sustentado en el
 [presupuesto registrado](validation/M4-client-execution.json). Requiere los
-clientes previamente instalados: Inspector 2.5.0 y Codex 0.153.0; el intento 5
+clientes previamente instalados: Inspector 2.5.0 y Codex 0.153.0; el intento 6
 [pasó](validation/M4-clients.json). No almacena credenciales del cliente en el
 repositorio. El [handoff](validation/M4-handoff.md) distingue los resultados
 locales de CI/Sonar remotos, que no se ejecutaron para este checkout.

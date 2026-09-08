@@ -264,6 +264,140 @@ macro_rules! define_security_output {
 }
 pub(super) use define_security_output;
 
+macro_rules! define_security_outcome {
+    ($unavailable_data:ty) => {
+        #[derive(Clone, serde::Serialize, schemars::JsonSchema)]
+        #[serde(tag = "status", rename_all = "snake_case")]
+        enum Outcome {
+            Passed {
+                error_code: (),
+                error_message: (),
+                data: Box<Data>,
+            },
+            Blocked {
+                error_code: Code,
+                error_message: &'static str,
+                data: Option<Box<Data>>,
+            },
+            Unavailable {
+                error_code: Code,
+                error_message: &'static str,
+                data: $unavailable_data,
+            },
+            Cancelled {
+                error_code: (),
+                error_message: (),
+                data: (),
+            },
+        }
+        super::security_tool::define_security_output!(
+            Outcome::Passed { .. } => rust_engineering_domain::ToolStatus::Passed,
+            Outcome::Blocked { .. } => rust_engineering_domain::ToolStatus::Blocked,
+            Outcome::Unavailable { .. } => rust_engineering_domain::ToolStatus::Unavailable,
+            Outcome::Cancelled { .. } => rust_engineering_domain::ToolStatus::Cancelled,
+        );
+    };
+}
+pub(super) use define_security_outcome;
+
+macro_rules! define_fallible_security_outcome {
+    ($failed_code:ty, $failed_message:ty, $unavailable_data:ty) => {
+        #[derive(Clone, serde::Serialize, schemars::JsonSchema)]
+        #[serde(tag = "status", rename_all = "snake_case")]
+        enum Outcome {
+            Passed {
+                error_code: (),
+                error_message: (),
+                data: Box<Data>,
+            },
+            Failed {
+                error_code: $failed_code,
+                error_message: $failed_message,
+                data: Box<Data>,
+            },
+            Blocked {
+                error_code: Code,
+                error_message: &'static str,
+                data: Option<Box<Data>>,
+            },
+            Unavailable {
+                error_code: Code,
+                error_message: &'static str,
+                data: $unavailable_data,
+            },
+            Cancelled {
+                error_code: (),
+                error_message: (),
+                data: (),
+            },
+        }
+        super::security_tool::define_security_output!(
+            Outcome::Passed { .. } => rust_engineering_domain::ToolStatus::Passed,
+            Outcome::Failed { .. } => rust_engineering_domain::ToolStatus::Failed,
+            Outcome::Blocked { .. } => rust_engineering_domain::ToolStatus::Blocked,
+            Outcome::Unavailable { .. } => rust_engineering_domain::ToolStatus::Unavailable,
+            Outcome::Cancelled { .. } => rust_engineering_domain::ToolStatus::Cancelled,
+        );
+    };
+}
+pub(super) use define_fallible_security_outcome;
+
+macro_rules! define_security_response_methods {
+    ($receiver:ident, $unavailable_data:expr) => {
+        fn blocked(
+            &$receiver,
+            code: Code,
+            message: &'static str,
+            data: Option<Box<Data>>,
+            duration_ms: u64,
+        ) -> Result<rmcp::model::CallToolResult, rmcp::model::ErrorData> {
+            $receiver.contract.encode(Output {
+                outcome: Outcome::Blocked {
+                    error_code: code,
+                    error_message: message,
+                    data,
+                },
+                summary: message,
+                duration_ms,
+            })
+        }
+
+        fn unavailable(
+            &$receiver,
+            code: Code,
+            message: &'static str,
+            duration_ms: u64,
+        ) -> Result<rmcp::model::CallToolResult, rmcp::model::ErrorData> {
+            $receiver.contract.encode(Output {
+                outcome: Outcome::Unavailable {
+                    error_code: code,
+                    error_message: message,
+                    data: $unavailable_data,
+                },
+                summary: message,
+                duration_ms,
+            })
+        }
+
+        fn cancelled(
+            &$receiver,
+            summary: &'static str,
+            duration_ms: u64,
+        ) -> Result<rmcp::model::CallToolResult, rmcp::model::ErrorData> {
+            $receiver.contract.encode(Output {
+                outcome: Outcome::Cancelled {
+                    error_code: (),
+                    error_message: (),
+                    data: (),
+                },
+                summary,
+                duration_ms,
+            })
+        }
+    };
+}
+pub(super) use define_security_response_methods;
+
 macro_rules! define_security_artifact {
     ($completeness_schema:literal) => {
         #[derive(Clone, serde::Serialize, schemars::JsonSchema)]
