@@ -507,6 +507,97 @@ mod tests {
         Ok(())
     }
     #[test]
+    fn published_security_encoding_preserves_pass_fail_and_incomplete_verdicts()
+    -> Result<(), Box<dyn std::error::Error>> {
+        use super::super::security_tool::test_fixtures as fixture;
+        use rust_engineering_application::security::{
+            DenyObservation, SecurityArtifactStreams, SecurityObservation,
+        };
+        use rust_engineering_domain::UnixSeconds;
+
+        let tool = DenyTool::new()?;
+        let reference = fixture::project_ref()?;
+        let fingerprint = fixture::source_fingerprint('4')?;
+        let execution_fingerprint = fixture::execution_fingerprint('3')?;
+        let deny = DenyObservation {
+            source_fingerprint: fingerprint.clone(),
+            vendor_fingerprint: fingerprint.clone(),
+            vendor_archive_fingerprint: fingerprint.clone(),
+            policy_fingerprint: fingerprint.clone(),
+            deny_config_fingerprint: fingerprint.clone(),
+            cargo_config_fingerprint: fingerprint.clone(),
+            metadata_original_fingerprint: fingerprint.clone(),
+            metadata_derived_fingerprint: fingerprint.clone(),
+            lock_fingerprint: fingerprint,
+            runtime: fixture::runtime()?,
+            execution_fingerprint,
+            packages: Vec::new(),
+            declared_licenses: Vec::new(),
+            license_files: Vec::new(),
+            enabled_features: Vec::new(),
+            dependency_indices: Vec::new(),
+            workspace_members: Vec::new(),
+            findings: Vec::new(),
+            findings_omitted: 0,
+            licenses: SecurityCounts::default(),
+            bans: SecurityCounts::default(),
+            sources: SecurityCounts::default(),
+            parse_complete: true,
+            termination: ExecutionTermination::Exited,
+            exit_code: Some(0),
+            artifacts: SecurityArtifactStreams::default(),
+        };
+        let encode = |completeness,
+                      policy_state,
+                      artifact_completeness|
+         -> Result<CallToolResult, Box<dyn std::error::Error>> {
+            Ok(tool.encode_result(
+                &reference,
+                PublishedSecurity {
+                    observation: SecurityObservation {
+                        audit: AuditObservation::unavailable(),
+                        deny: deny.clone(),
+                        findings: Vec::new(),
+                        findings_omitted: 0,
+                        completeness,
+                        policy_state,
+                        assessed_at: UnixSeconds(100),
+                    },
+                    artifact: fixture::artifact(artifact_completeness)?,
+                },
+                7,
+            )?)
+        };
+
+        for (completeness, policy_state, artifact_completeness, expected) in [
+            (
+                SecurityCompleteness::Complete,
+                SecurityPolicyState::Satisfied,
+                rust_engineering_domain::ArtifactCompleteness::Complete,
+                "passed",
+            ),
+            (
+                SecurityCompleteness::Complete,
+                SecurityPolicyState::Violated,
+                rust_engineering_domain::ArtifactCompleteness::Complete,
+                "failed",
+            ),
+            (
+                SecurityCompleteness::Partial,
+                SecurityPolicyState::Undetermined,
+                rust_engineering_domain::ArtifactCompleteness::Partial,
+                "blocked",
+            ),
+        ] {
+            let result = encode(completeness, policy_state, artifact_completeness)?;
+            let content = result.structured_content.ok_or("structured content")?;
+            assert_eq!(content["status"], expected);
+            assert_eq!(content["duration_ms"], 7);
+            assert_eq!(content["data"]["project_ref"], reference.to_string());
+        }
+        Ok(())
+    }
+    #[test]
     fn audit_summary_preserves_rustsec_provenance_in_its_schema()
     -> Result<(), Box<dyn std::error::Error>> {
         use rust_engineering_domain::{
