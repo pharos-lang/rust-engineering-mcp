@@ -4,57 +4,37 @@ mod schemas;
 use super::{
     HostCargoVendorConfig,
     clock::WallClock,
-    contract::{Contract, ToolOutput},
-    nextest::{ExecutionModeDto, ExecutionSelection, select_execution_mode},
     project::Registry,
     quality_artifacts::DurableSecurityPublisher,
-    workers::{Joined, WorkerError, Workers},
+    security_tool::{
+        CommonFailure, SynchronousSelection, artifact_fields, capture_vendor, classify_error,
+        define_security_artifact, define_security_data, define_security_input,
+        define_security_output, define_security_tool, encode_bounded, run_joined_security,
+        synchronous_selection,
+    },
+    workers::Workers,
 };
 use rmcp::{
-    model::{CallToolRequestParams, CallToolResult, ErrorData, Tool, ToolAnnotations},
+    model::{CallToolRequestParams, CallToolResult, ErrorData},
     service::{RequestContext, RoleServer},
 };
-use rust_engineering_application::job::JobPermit;
+use rust_engineering_application::InspectionError;
 use rust_engineering_application::miri::{MiriObservation, MiriPorts, PublishedMiri};
 use rust_engineering_application::security::SecurityError;
-use rust_engineering_application::{ExecutionError, InspectionError, ProjectError};
 use rust_engineering_domain::miri::MiriOptions;
-use rust_engineering_domain::{ArtifactCompleteness, OperationalErrorCode, ProjectRef, ToolStatus};
+use rust_engineering_domain::{ArtifactCompleteness, ProjectRef, ToolStatus};
 use rust_engineering_execution::RustProjectInspector;
-use schemars::JsonSchema;
-use serde::{Deserialize, Serialize};
-use std::{
-    sync::{
-        Arc, Mutex,
-        atomic::{AtomicBool, Ordering},
-    },
-    time::{Duration, Instant},
+use std::sync::{
+    Arc, Mutex,
+    atomic::{AtomicBool, Ordering},
 };
 
 pub(super) const NAME: &str = "rust.miri";
-const ADVERTISEMENT_READY: bool = true;
 pub(super) fn advertised() -> bool {
-    #[cfg(feature = "test-hooks")]
-    if std::env::var_os("RUST_MCP_TEST_MIRI_READY").as_deref() == Some(std::ffi::OsStr::new("1")) {
-        return true;
-    }
-    ADVERTISEMENT_READY
+    super::security_tool::advertised("RUST_MCP_TEST_MIRI_READY")
 }
-#[derive(Clone, Deserialize, JsonSchema)]
-#[serde(deny_unknown_fields)]
-struct Input {
-    #[schemars(with = "String", regex(pattern = "^prj_[0-9a-f]{32}$"))]
-    project_ref: ProjectRef,
-    #[serde(default = "default_timeout")]
-    #[schemars(range(min = 1, max = 1800))]
-    timeout_seconds: u64,
-    #[serde(default)]
-    execution_mode: ExecutionModeDto,
-}
-fn default_timeout() -> u64 {
-    300
-}
-#[derive(Clone, Serialize, JsonSchema)]
+define_security_input!(300, 1800);
+#[derive(Clone, serde::Serialize, schemars::JsonSchema)]
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
 enum Code {
     TasksRequired,
@@ -70,7 +50,7 @@ enum Code {
     ObservedFailure,
     ClassificationIntegrityUnsupported,
 }
-#[derive(Clone, Serialize, JsonSchema)]
+#[derive(Clone, serde::Serialize, schemars::JsonSchema)]
 #[serde(tag = "status", rename_all = "snake_case")]
 enum Outcome {
     Passed {
@@ -99,49 +79,15 @@ enum Outcome {
         data: (),
     },
 }
-#[derive(Clone, Serialize, JsonSchema)]
-#[serde(deny_unknown_fields)]
-struct Output {
-    #[serde(flatten)]
-    outcome: Outcome,
-    summary: &'static str,
-    duration_ms: u64,
-}
-impl ToolOutput for Output {
-    fn status(&self) -> ToolStatus {
-        match self.outcome {
-            Outcome::Passed { .. } => ToolStatus::Passed,
-            Outcome::Failed { .. } => ToolStatus::Failed,
-            Outcome::Blocked { .. } => ToolStatus::Blocked,
-            Outcome::Unavailable { .. } => ToolStatus::Unavailable,
-            Outcome::Cancelled { .. } => ToolStatus::Cancelled,
-        }
-    }
-}
-#[derive(Clone, Serialize, JsonSchema)]
-#[serde(deny_unknown_fields)]
-struct Artifact {
-    uri: String,
-    sha256: String,
-    size_bytes: u64,
-    #[schemars(with = "super::deny::schemas::ArtifactCompleteness")]
-    completeness: ArtifactCompleteness,
-}
-#[derive(Clone, Serialize, JsonSchema)]
-#[serde(deny_unknown_fields)]
-struct Data {
-    project_ref: String,
-    semantics: &'static str,
-    #[schemars(with = "schemas::Observation")]
-    observation: MiriObservation,
-    #[schemars(length(min = 1, max = 1))]
-    artifacts: Vec<Artifact>,
-}
-pub(super) struct MiriTool {
-    pub(super) definition: Tool,
-    contract: Contract<Input, Output>,
-    runtime: Option<Runtime>,
-}
+define_security_output!(
+    Outcome::Passed { .. } => ToolStatus::Passed,
+    Outcome::Failed { .. } => ToolStatus::Failed,
+    Outcome::Blocked { .. } => ToolStatus::Blocked,
+    Outcome::Unavailable { .. } => ToolStatus::Unavailable,
+    Outcome::Cancelled { .. } => ToolStatus::Cancelled,
+);
+define_security_artifact!("super::deny::schemas::ArtifactCompleteness");
+define_security_data!(MiriObservation, "schemas::Observation");
 pub(super) struct Runtime {
     pub(super) registry: Arc<Mutex<Registry>>,
     pub(super) workers: Workers,
@@ -150,43 +96,36 @@ pub(super) struct Runtime {
     pub(super) vendor: Option<HostCargoVendorConfig>,
     pub(super) publisher: Option<DurableSecurityPublisher>,
 }
+define_security_tool!(
+    MiriTool,
+    "Run library, binary and integration tests in the approved offline Miri interpreter. Reports observed UB, unsupported operations, ordinary test failures and compilation failures separately. Requires fixed nightly/sysroot and authenticated vendor. Auto or synchronous supports timeout_seconds at most 60; longer calls require negotiated MCP Tasks. The work budget excludes joined cleanup. Project proc macros, build scripts and custom harnesses are rejected to preserve diagnostic origin. Clean tests do not prove universal memory safety."
+);
 impl MiriTool {
-    pub(super) fn new() -> Result<Self, ErrorData> {
-        let contract = Contract::<Input, Output>::new()?;
-        let definition=Tool::new(NAME,"Run library, binary and integration tests in the approved offline Miri interpreter. Reports observed UB, unsupported operations, ordinary test failures and compilation failures separately. Requires fixed nightly/sysroot and authenticated vendor. Auto or synchronous supports timeout_seconds at most 60; longer calls require negotiated MCP Tasks. The work budget excludes joined cleanup. Project proc macros, build scripts and custom harnesses are rejected to preserve diagnostic origin. Clean tests do not prove universal memory safety.",(*contract.input_schema).clone()).with_raw_output_schema(Arc::clone(&contract.output_schema)).with_annotations(ToolAnnotations::new().read_only(true).destructive(false).idempotent(false).open_world(false));
-        Ok(Self {
-            definition,
-            contract,
-            runtime: None,
-        })
-    }
-    pub(super) fn with_runtime(mut self, runtime: Runtime) -> Self {
-        self.runtime = Some(runtime);
-        self
-    }
     pub(super) async fn call(
         &self,
         request: CallToolRequestParams,
         context: RequestContext<RoleServer>,
     ) -> Result<CallToolResult, ErrorData> {
+        self.call_with_token(request, context.ct).await
+    }
+
+    async fn call_with_token(
+        &self,
+        request: CallToolRequestParams,
+        request_token: tokio_util::sync::CancellationToken,
+    ) -> Result<CallToolResult, ErrorData> {
         let input = self.contract.decode(request.arguments)?;
         let options = MiriOptions::new(input.timeout_seconds)
             .map_err(|_| ErrorData::invalid_params("Invalid tool arguments", None))?;
-        match select_execution_mode(
-            input.execution_mode.into(),
-            false,
+        match synchronous_selection(
+            input.execution_mode,
             input.timeout_seconds <= 60,
+            "Tasks are not enabled for Miri",
         )? {
-            ExecutionSelection::Task => {
-                return Err(ErrorData::internal_error(
-                    "Tasks are not enabled for Miri",
-                    None,
-                ));
-            }
-            ExecutionSelection::TasksRequired => {
+            SynchronousSelection::TasksRequired => {
                 return self.blocked(Code::TasksRequired, "Miri requires MCP Tasks", None, 0);
             }
-            ExecutionSelection::Synchronous => {}
+            SynchronousSelection::Run => {}
         }
         let runtime = self.runtime.as_ref().ok_or_else(|| {
             ErrorData::internal_error("Interpreter runtime is not configured", None)
@@ -213,51 +152,33 @@ impl MiriTool {
                 0,
             );
         };
-        let started = Instant::now();
-        let permit = runtime
-            .workers
-            .admit_job()
-            .map_err(|_| ErrorData::internal_error("Interpreter worker unavailable", None))?;
         let registry = Arc::clone(&runtime.registry);
         let inspector = Arc::clone(&runtime.inspector);
         let reference = input.project_ref.clone();
-        let joined = runtime
-            .workers
-            .run_joined_with(
-                Arc::clone(&permit),
-                context.ct,
-                started + Duration::from_secs(options.timeout_seconds()),
-                move |control| {
-                    let vendor = rust_engineering_project::capture_with_expected(
-                        &vendor.directory,
-                        &vendor.fingerprint,
+        let (result, duration) = run_joined_security(
+            &runtime.workers,
+            request_token,
+            options.timeout_seconds(),
+            "Interpreter worker unavailable",
+            move |control| {
+                let vendor = capture_vendor(&vendor, control)?;
+                registry
+                    .lock()
+                    .map_err(|_| SecurityError::Inspection(InspectionError::Internal))?
+                    .miri_durable(
+                        &reference,
+                        &vendor,
+                        &options,
+                        MiriPorts {
+                            executor: inspector.as_ref(),
+                            publisher: &mut publisher,
+                        },
+                        &WallClock,
                         control,
-                    )?;
-                    registry
-                        .lock()
-                        .map_err(|_| SecurityError::Inspection(InspectionError::Internal))?
-                        .miri_durable(
-                            &reference,
-                            &vendor,
-                            &options,
-                            MiriPorts {
-                                executor: inspector.as_ref(),
-                                publisher: &mut publisher,
-                            },
-                            &WallClock,
-                            control,
-                        )
-                },
-            )
-            .await;
-        permit.release_after_cleanup();
-        let duration = started.elapsed().as_millis().try_into().unwrap_or(u64::MAX);
-        let result = match joined {
-            Ok(joined) => joined_result(joined),
-            Err(WorkerError::Cancelled) => Err(ProjectError::Cancelled.into()),
-            Err(WorkerError::TimedOut) => Err(SecurityError::Timeout),
-            Err(_) => Err(SecurityError::Inspection(InspectionError::Internal)),
-        };
+                    )
+            },
+        )
+        .await?;
         match result {
             Ok(result) => self.encode_result(&input.project_ref, result, duration),
             Err(error) => self.error(error, duration),
@@ -297,11 +218,8 @@ impl MiriTool {
         })
     }
     fn error(&self, error: SecurityError, duration_ms: u64) -> Result<CallToolResult, ErrorData> {
-        let (code, message) = match error {
-            SecurityError::Inspection(
-                InspectionError::Project(ProjectError::Cancelled)
-                | InspectionError::Execution(ExecutionError::Cancelled),
-            ) => {
+        let (code, message) = match classify_error(error) {
+            CommonFailure::Cancelled => {
                 return self.contract.encode(Output {
                     outcome: Outcome::Cancelled {
                         error_code: (),
@@ -312,38 +230,35 @@ impl MiriTool {
                     duration_ms,
                 });
             }
-            SecurityError::Inspection(InspectionError::Execution(ExecutionError::Unavailable)) => {
+            CommonFailure::ToolNotInstalled => {
                 return self.unavailable(
                     Code::ToolNotInstalled,
                     "Approved interpreter runtime is unavailable",
                     duration_ms,
                 );
             }
-            SecurityError::ClassificationIntegrityUnsupported => (
+            CommonFailure::Specific(SecurityError::ClassificationIntegrityUnsupported) => (
                 Code::ClassificationIntegrityUnsupported,
                 "Miri diagnostic integrity requires packages without build scripts, proc macros or custom harnesses",
             ),
-            SecurityError::Timeout => (Code::CommandTimeout, "Miri exceeded its deadline"),
-            SecurityError::MissingOfflineData => (
+            CommonFailure::Timeout => (Code::CommandTimeout, "Miri exceeded its deadline"),
+            CommonFailure::MissingOfflineData => (
                 Code::MissingOfflineData,
                 "Offline dependency source is missing or invalid",
             ),
-            SecurityError::OutputLimit
-            | SecurityError::Inspection(InspectionError::OutputLimit) => (
+            CommonFailure::OutputLimit => (
                 Code::OutputLimitExceeded,
                 "Interpreter evidence exceeded its fixed budget",
             ),
-            SecurityError::Inspection(InspectionError::Project(ProjectError::Rejected(
-                OperationalErrorCode::ProjectNotFound,
-            ))) => (
+            CommonFailure::ProjectNotFound => (
                 Code::ProjectNotFound,
                 "Project authority is missing or expired",
             ),
-            SecurityError::Inspection(InspectionError::Execution(_)) => (
+            CommonFailure::SandboxDenied => (
                 Code::SandboxDenied,
                 "Approved interpreter execution could not be established",
             ),
-            _ => (
+            CommonFailure::Specific(_) => (
                 Code::InvalidProject,
                 "Captured interpreter inputs or evidence could not be validated",
             ),
@@ -357,93 +272,208 @@ impl MiriTool {
         duration_ms: u64,
     ) -> Result<CallToolResult, ErrorData> {
         let descriptor = result.artifact;
-        descriptor.validate().map_err(|_| {
-            ErrorData::internal_error("Invalid interpreter artifact descriptor", None)
-        })?;
-        let mut data = Box::new(Data {
+        let data = Box::new(Data {
             project_ref: reference.to_string(),
             semantics: "observed_interpreter_evidence_not_a_proof_of_memory_safety",
             observation: result.observation,
-            artifacts: vec![Artifact {
-                uri: format!(
-                    "rust-quality-artifact://{reference}/{}?offset=0&length={}",
-                    descriptor.artifact_id,
-                    descriptor.size_bytes.min(320 * 1024)
-                ),
-                sha256: super::resources::hex(&descriptor.sha256),
-                size_bytes: descriptor.size_bytes,
-                completeness: descriptor.completeness,
-            }],
+            artifacts: vec![
+                artifact_fields(
+                    reference,
+                    &descriptor,
+                    "Invalid interpreter artifact descriptor",
+                )?
+                .into(),
+            ],
         });
-        loop {
-            let outcome = if data.observation.report.clean
-                && descriptor.completeness == ArtifactCompleteness::Complete
-            {
-                Outcome::Passed {
-                    error_code: (),
-                    error_message: (),
-                    data: data.clone(),
-                }
-            } else if data.observation.report.counts.failed > 0
-                || data.observation.report.counts.compile_failures > 0
-            {
-                Outcome::Failed {
-                    error_code: Code::ObservedFailure,
-                    error_message: "Interpreter or compilation failure observed; inspect categories and coverage",
-                    data: data.clone(),
-                }
-            } else {
-                Outcome::Blocked {
-                    error_code: Code::EvidenceIncomplete,
-                    error_message: "Interpreter evidence is partial",
-                    data: Some(data.clone()),
-                }
-            };
-            let result = self.contract.encode(Output {
-                outcome,
+        encode_bounded(
+            &self.contract,
+            data,
+            duration_ms,
+            "Interpreter serialization failed",
+            |data, duration_ms| Output {
+                outcome: if data.observation.report.clean
+                    && descriptor.completeness == ArtifactCompleteness::Complete
+                {
+                    Outcome::Passed {
+                        error_code: (),
+                        error_message: (),
+                        data: data.clone(),
+                    }
+                } else if data.observation.report.counts.failed > 0
+                    || data.observation.report.counts.compile_failures > 0
+                {
+                    Outcome::Failed {
+                        error_code: Code::ObservedFailure,
+                        error_message: "Interpreter or compilation failure observed; inspect categories and coverage",
+                        data: data.clone(),
+                    }
+                } else {
+                    Outcome::Blocked {
+                        error_code: Code::EvidenceIncomplete,
+                        error_message: "Interpreter evidence is partial",
+                        data: Some(data.clone()),
+                    }
+                },
                 summary: "Observed interpreter evidence; no proof of universal memory safety",
                 duration_ms,
-            })?;
-            if serde_json::to_vec(&result)
-                .map_err(|_| ErrorData::internal_error("Interpreter serialization failed", None))?
-                .len()
-                <= 512 * 1024
-            {
-                return Ok(result);
-            }
-            if data.observation.report.findings.pop().is_none() {
-                return self.blocked(
-                    Code::OutputLimitExceeded,
-                    "Interpreter response exceeds its fixed budget",
-                    None,
-                    duration_ms,
-                );
-            }
-            data.observation.report.findings_omitted += 1;
-            data.observation.report.complete = false;
-            data.observation.report.clean = false;
-        }
-    }
-}
-fn joined_result<T>(joined: Joined<T, SecurityError>) -> Result<T, SecurityError> {
-    match (joined.result, joined.interrupted) {
-        (
-            Err(SecurityError::Inspection(
-                InspectionError::Project(ProjectError::Cancelled)
-                | InspectionError::Execution(ExecutionError::Cancelled),
-            )),
-            Some(WorkerError::TimedOut),
-        ) => Err(SecurityError::Timeout),
-        (Err(error), _) => Err(error),
-        (Ok(result), None) => Ok(result),
-        (Ok(_), Some(WorkerError::TimedOut)) => Err(SecurityError::Timeout),
-        (Ok(_), Some(WorkerError::Cancelled)) => Err(ProjectError::Cancelled.into()),
-        _ => Err(SecurityError::Inspection(InspectionError::Internal)),
+            },
+            |data| {
+                if data.observation.report.findings.pop().is_none() {
+                    return false;
+                }
+                data.observation.report.findings_omitted += 1;
+                data.observation.report.complete = false;
+                data.observation.report.clean = false;
+                true
+            },
+            |duration_ms| Output {
+                outcome: Outcome::Blocked {
+                    error_code: Code::OutputLimitExceeded,
+                    error_message: "Interpreter response exceeds its fixed budget",
+                    data: None,
+                },
+                summary: "Interpreter response exceeds its fixed budget",
+                duration_ms,
+            },
+        )
     }
 }
 #[cfg(test)]
 mod tests {
+    use super::super::security_tool::assert_common_error_contract;
     use super::*;
+    #[test]
+    fn call_boundary_covers_task_gate_and_missing_runtime() -> Result<(), Box<dyn std::error::Error>>
+    {
+        let runtime = tokio::runtime::Builder::new_current_thread()
+            .enable_time()
+            .build()?;
+        runtime.block_on(async {
+            let tool = MiriTool::new()?;
+            let base = serde_json::from_str::<serde_json::Value>(
+                r#"{"project_ref":"prj_00000000000000000000000000000001"}"#,
+            )?;
+            let arguments = base.as_object().cloned().ok_or("arguments")?;
+            let required = tool
+                .call_with_token(
+                    CallToolRequestParams::new("rust.miri").with_arguments(arguments.clone()),
+                    tokio_util::sync::CancellationToken::new(),
+                )
+                .await?;
+            assert_eq!(
+                required.structured_content.ok_or("content")?["error_code"],
+                "TASKS_REQUIRED"
+            );
+            let mut synchronous = arguments;
+            synchronous.insert("execution_mode".into(), serde_json::json!("synchronous"));
+            synchronous.insert("timeout_seconds".into(), serde_json::json!(60));
+            let error = tool
+                .call_with_token(
+                    CallToolRequestParams::new("rust.miri").with_arguments(synchronous),
+                    tokio_util::sync::CancellationToken::new(),
+                )
+                .await
+                .err()
+                .ok_or("runtime must be required")?;
+            assert_eq!(error.message, "Interpreter runtime is not configured");
+            Ok::<_, Box<dyn std::error::Error>>(())
+        })
+    }
+    #[test]
+    fn operational_errors_have_closed_status_and_codes() -> Result<(), Box<dyn std::error::Error>> {
+        assert_common_error_contract!(
+            MiriTool::new()?,
+            error,
+            SecurityError::ClassificationIntegrityUnsupported => ("blocked", "CLASSIFICATION_INTEGRITY_UNSUPPORTED"),
+        );
+        Ok(())
+    }
+    fn observation(
+        report: rust_engineering_domain::miri::MiriReport,
+    ) -> Result<MiriObservation, Box<dyn std::error::Error>> {
+        use super::super::security_tool::test_fixtures as fixture;
+        Ok(MiriObservation {
+            report,
+            source_fingerprint: fixture::source_fingerprint('4')?,
+            vendor_fingerprint: fixture::source_fingerprint('5')?,
+            metadata_fingerprint: fixture::source_fingerprint('6')?,
+            config_fingerprint: fixture::source_fingerprint('7')?,
+            junit_fingerprint: Some(fixture::source_fingerprint('8')?),
+            runtime: fixture::runtime()?,
+            execution_fingerprint: fixture::execution_fingerprint('3')?,
+            nightly_commit: "5a2be9f5f075d31e3ca5526b5b029881ce441253".into(),
+            sysroot_fingerprint: fixture::source_fingerprint('9')?,
+        })
+    }
+
+    #[test]
+    fn result_encoding_distinguishes_clean_failure_and_partial_evidence()
+    -> Result<(), Box<dyn std::error::Error>> {
+        use super::super::security_tool::test_fixtures as fixture;
+        use rust_engineering_domain::miri::{MiriCategory, MiriCounts, MiriFinding, MiriReport};
+        let tool = MiriTool::new()?;
+        let reference = fixture::project_ref()?;
+        let clean = MiriReport {
+            counts: MiriCounts {
+                tests: 1,
+                passed: 1,
+                ..Default::default()
+            },
+            findings: Vec::new(),
+            findings_omitted: 0,
+            complete: true,
+            clean: true,
+            junit_present: true,
+            exit_code: Some(0),
+        };
+        let failed = MiriReport {
+            counts: MiriCounts {
+                tests: 1,
+                failed: 1,
+                test_failures: 1,
+                ..Default::default()
+            },
+            findings: vec![MiriFinding {
+                category: MiriCategory::TestFailure,
+                test_name: Some("case".into()),
+                test_binary: Some("suite".into()),
+            }],
+            findings_omitted: 0,
+            complete: true,
+            clean: false,
+            junit_present: true,
+            exit_code: Some(101),
+        };
+        let partial = MiriReport {
+            counts: MiriCounts::default(),
+            findings: Vec::new(),
+            findings_omitted: 0,
+            complete: false,
+            clean: false,
+            junit_present: false,
+            exit_code: None,
+        };
+        for (report, completeness, expected) in [
+            (clean, ArtifactCompleteness::Complete, "passed"),
+            (failed, ArtifactCompleteness::Complete, "failed"),
+            (partial, ArtifactCompleteness::Partial, "blocked"),
+        ] {
+            let encoded = tool.encode_result(
+                &reference,
+                PublishedMiri {
+                    observation: observation(report)?,
+                    artifact: fixture::artifact(completeness)?,
+                },
+                7,
+            )?;
+            assert_eq!(
+                encoded.structured_content.ok_or("content")?["status"],
+                expected
+            );
+        }
+        Ok(())
+    }
+
     #[test]
     fn closed_interpreter_input_rejects_expansion_paths_and_free_flags()
     -> Result<(), Box<dyn std::error::Error>> {

@@ -273,3 +273,40 @@ fn encode_result_trims_large_valid_report_without_preserving_pass() -> TestResul
     );
     Ok(())
 }
+
+#[test]
+fn encode_result_maps_every_small_quality_status() -> TestResult {
+    let tool = QualityV2Tool::new()?;
+    let reference: ProjectRef = "prj_00000000000000000000000000000001".parse()?;
+    let mut base = large_complete_observation()?;
+    for stage in &mut base.report.stages {
+        match stage.details.as_mut() {
+            Some(QualityV2Details::Audit { observation }) => observation.findings.clear(),
+            Some(QualityV2Details::Deny { observation }) => observation.findings.clear(),
+            _ => {}
+        }
+    }
+    for (status, complete, expected) in [
+        (ToolStatus::Passed, true, "passed"),
+        (ToolStatus::Failed, false, "failed"),
+        (ToolStatus::Unavailable, false, "unavailable"),
+        (ToolStatus::Blocked, false, "blocked"),
+    ] {
+        let mut observation = base.clone();
+        observation.report.status = status;
+        observation.report.complete = complete;
+        let encoded = tool.encode_result(
+            &reference,
+            PublishedQualityV2 {
+                observation,
+                artifact: descriptor()?,
+            },
+            7,
+        )?;
+        assert_eq!(
+            encoded.structured_content.ok_or("content")?["status"],
+            expected
+        );
+    }
+    Ok(())
+}

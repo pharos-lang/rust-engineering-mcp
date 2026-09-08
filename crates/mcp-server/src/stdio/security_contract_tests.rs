@@ -1,7 +1,8 @@
 use super::{
-    miri::MiriTool, quality_v2::QualityV2Tool, supply_chain::SupplyTool, unsafe_scan::UnsafeTool,
+    QualityInvocation, deny::DenyTool, miri::MiriTool, quality_v2::QualityV2Tool,
+    supply_chain::SupplyTool, task_materialization_requested, unsafe_scan::UnsafeTool,
 };
-use rmcp::model::{CallToolResult, Tool};
+use rmcp::model::{CallToolRequestParams, CallToolResult, ErrorData, Tool};
 use rust_engineering_domain::{
     AuditSource, AuditState, CatalogFingerprint, Clock, ExecutionFingerprint, ExecutionTermination,
     FreshnessPolicy, IntegrityStatus, Provenance, QualityIssue, RuntimeIdentity, SnapshotEvidence,
@@ -25,10 +26,84 @@ use rust_engineering_domain::{
     },
 };
 use serde_json::{Value, json};
+use std::sync::Arc;
 
 type TestResult = Result<(), Box<dyn std::error::Error>>;
 const MAX_RESULT_BYTES: usize = 512 * 1024;
 const PROJECT_REF: &str = "prj_00000000000000000000000000000001";
+
+#[test]
+fn m4_task_routing_preserves_kind_authority_and_budget() -> TestResult {
+    use rust_engineering_domain::job::JobKind;
+
+    let cases = [
+        (
+            QualityInvocation::Deny(Arc::new(DenyTool::new()?)),
+            JobKind::Deny,
+            120,
+        ),
+        (
+            QualityInvocation::UnsafeScan(Arc::new(UnsafeTool::new()?)),
+            JobKind::UnsafeScan,
+            120,
+        ),
+        (
+            QualityInvocation::SupplyChain(Arc::new(SupplyTool::new()?)),
+            JobKind::SupplyChain,
+            120,
+        ),
+        (
+            QualityInvocation::QualityGateV2(Arc::new(QualityV2Tool::new()?)),
+            JobKind::QualityGateV2,
+            3_600,
+        ),
+        (
+            QualityInvocation::Miri(Arc::new(MiriTool::new()?)),
+            JobKind::Miri,
+            1_800,
+        ),
+    ];
+    for (invocation, expected_kind, timeout_seconds) in cases {
+        let arguments = json!({
+            "project_ref": PROJECT_REF,
+            "timeout_seconds": timeout_seconds,
+        })
+        .as_object()
+        .cloned()
+        .ok_or("arguments")?;
+        let request = CallToolRequestParams::new("fixture").with_arguments(arguments);
+        assert_eq!(invocation.kind(), expected_kind);
+        assert_eq!(invocation.project_ref(&request)?.to_string(), PROJECT_REF);
+        assert_eq!(
+            invocation.budget(&request)?.work().0,
+            timeout_seconds.max(300) * 1_000,
+        );
+    }
+    Ok(())
+}
+
+#[test]
+fn only_exact_m4_task_materialization_errors_are_recognized() {
+    for message in [
+        "Tasks are not enabled for deny",
+        "Tasks are not enabled for unsafe scan",
+        "Tasks are not enabled for Miri",
+        "Tasks are not enabled for supply chain inspection",
+        "Tasks are not enabled for extended quality gate",
+    ] {
+        assert!(task_materialization_requested(&ErrorData::internal_error(
+            message, None,
+        )));
+    }
+    assert!(!task_materialization_requested(&ErrorData::invalid_params(
+        "Tasks are not enabled for deny",
+        None,
+    )));
+    assert!(!task_materialization_requested(&ErrorData::internal_error(
+        "Tasks are not enabled for unknown",
+        None,
+    )));
+}
 
 struct FixedClock;
 impl Clock for FixedClock {

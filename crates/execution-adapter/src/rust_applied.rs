@@ -102,9 +102,9 @@ struct Restart {
 /// groups, no OOM or cgroup tuning, no sysctls, no ulimits and the fixed masked
 /// and read-only proc paths, under runc without its init. `interactive` is the
 /// one shape that varies: only an ingesting or interactive phase opens stdin.
-/// The two labels bind the container to this product and to one job nonce, so a
+/// The two labels bind the container to this product and to one job operation_id, so a
 /// container created by anything else is never adopted.
-fn no_host_authority(c: &Created, nonce: &str, interactive: bool) -> bool {
+fn no_host_authority(c: &Created, operation_id: &str, interactive: bool) -> bool {
     let h = &c.host_config;
     !c.config.tty
         && c.config.open_stdin == interactive
@@ -113,7 +113,7 @@ fn no_host_authority(c: &Created, nonce: &str, interactive: bool) -> bool {
         && c.config.labels
             == BTreeMap::from([
                 ("org.rust-mcp.execution".into(), "true".into()),
-                ("org.rust-mcp.rust-job".into(), nonce.into()),
+                ("org.rust-mcp.rust-job".into(), operation_id.into()),
             ])
         && !h.auto_remove
         && h.group_add.as_ref().is_none_or(Vec::is_empty)
@@ -239,9 +239,9 @@ pub(super) fn verify(
     image: &str,
     phase: &Phase,
     volume: &Volume,
-    nonce: &str,
+    operation_id: &str,
 ) -> Result<(), ExecutionError> {
-    verify_rust(bytes, image, phase, volume, None, nonce)
+    verify_rust(bytes, image, phase, volume, None, operation_id)
 }
 
 pub(super) fn verify_nextest(
@@ -251,7 +251,7 @@ pub(super) fn verify_nextest(
     volume: &Volume,
     junit: &MutationVolume,
     junit_writable: bool,
-    nonce: &str,
+    operation_id: &str,
 ) -> Result<(), ExecutionError> {
     verify_rust(
         bytes,
@@ -259,7 +259,7 @@ pub(super) fn verify_nextest(
         phase,
         volume,
         Some((junit, junit_writable)),
-        nonce,
+        operation_id,
     )
 }
 
@@ -272,19 +272,21 @@ pub(super) fn verify_coverage(
     volume: &Volume,
     output: &MutationVolume,
     target: &MutationVolume,
-    nonce: &str,
+    operation_id: &str,
 ) -> Result<(), ExecutionError> {
     let output_writable = !matches!(
         phase,
         Phase::ExportCoverageJson | Phase::ExportCoverageLcov | Phase::ExportCoverageHtml
     );
-    if !named_tmpfs_volume_is_exact(output, super::mutation_gateway::VOLUME_OPTIONS, nonce)
-        || !named_tmpfs_volume_is_exact(
-            target,
-            super::coverage_gateway::COVERAGE_TARGET_VOLUME_OPTIONS,
-            nonce,
-        )
-    {
+    if !named_tmpfs_volume_is_exact(
+        output,
+        super::mutation_gateway::VOLUME_OPTIONS,
+        operation_id,
+    ) || !named_tmpfs_volume_is_exact(
+        target,
+        super::coverage_gateway::COVERAGE_TARGET_VOLUME_OPTIONS,
+        operation_id,
+    ) {
         return Err(ExecutionError::InvalidConfiguration);
     }
     verify_rust_generic(
@@ -298,11 +300,11 @@ pub(super) fn verify_coverage(
         phase
             .coverage_target_writable()
             .map(|writable| (target, writable)),
-        nonce,
+        operation_id,
     )
 }
 
-fn named_tmpfs_volume_is_exact(volume: &MutationVolume, options: &str, nonce: &str) -> bool {
+fn named_tmpfs_volume_is_exact(volume: &MutationVolume, options: &str, operation_id: &str) -> bool {
     volume.driver == "local"
         && volume.scope == "local"
         && volume.options
@@ -311,7 +313,7 @@ fn named_tmpfs_volume_is_exact(volume: &MutationVolume, options: &str, nonce: &s
                 ("o".into(), options.into()),
                 ("type".into(), "tmpfs".into()),
             ])
-        && volume.labels == super::rust_gateway::labels(nonce)
+        && volume.labels == super::rust_gateway::labels(operation_id)
         && volume.mountpoint.starts_with("/var/lib/docker/volumes/")
         && volume.mountpoint.ends_with("/_data")
         && volume.cluster_volume.is_none()
@@ -330,7 +332,7 @@ pub(super) fn verify_mutation_test(
     volume: &Volume,
     output: &MutationVolume,
     writable: bool,
-    nonce: &str,
+    operation_id: &str,
 ) -> Result<(), ExecutionError> {
     verify_rust_output(
         bytes,
@@ -340,7 +342,7 @@ pub(super) fn verify_mutation_test(
         output,
         writable,
         super::mutation_test_gateway::MUTATION_OUTPUT_TARGET,
-        nonce,
+        operation_id,
     )
 }
 
@@ -353,7 +355,7 @@ pub(super) fn verify_semver(
     phase: &Phase,
     volume: &Volume,
     baseline: &Volume,
-    nonce: &str,
+    operation_id: &str,
 ) -> Result<(), ExecutionError> {
     verify_rust_generic(
         bytes,
@@ -364,7 +366,7 @@ pub(super) fn verify_semver(
         None,
         Some(baseline),
         None,
-        nonce,
+        operation_id,
     )
 }
 
@@ -374,7 +376,7 @@ fn verify_rust(
     phase: &Phase,
     volume: &Volume,
     junit: Option<(&MutationVolume, bool)>,
-    nonce: &str,
+    operation_id: &str,
 ) -> Result<(), ExecutionError> {
     verify_rust_generic(
         bytes,
@@ -385,7 +387,7 @@ fn verify_rust(
         Some("/junit"),
         None,
         None,
-        nonce,
+        operation_id,
     )
 }
 
@@ -398,7 +400,7 @@ fn verify_rust_output(
     output: &MutationVolume,
     writable: bool,
     target: &str,
-    nonce: &str,
+    operation_id: &str,
 ) -> Result<(), ExecutionError> {
     verify_rust_generic(
         bytes,
@@ -409,7 +411,7 @@ fn verify_rust_output(
         Some(target),
         None,
         None,
-        nonce,
+        operation_id,
     )
 }
 
@@ -423,13 +425,13 @@ fn verify_rust_generic(
     output_target: Option<&str>,
     baseline: Option<&Volume>,
     coverage_target: Option<(&MutationVolume, bool)>,
-    nonce: &str,
+    operation_id: &str,
 ) -> Result<(), ExecutionError> {
     let c = only_created(bytes)?;
     let c = &c;
     let h = &c.host_config;
     let profile_ok = applied_profile_ok(c, phase.seccomp_profile_json())?;
-    let safe = no_host_authority(c, nonce, phase.ingesting())
+    let safe = no_host_authority(c, operation_id, phase.ingesting())
         && mounts_ok(
             c,
             phase,
@@ -664,7 +666,7 @@ pub(super) fn verify_mutation(
     image: &str,
     phase: MutationPhase,
     volume: &MutationVolume,
-    nonce: &str,
+    operation_id: &str,
 ) -> Result<(), ExecutionError> {
     let c = only_created(bytes)?;
     let c = &c;
@@ -677,7 +679,7 @@ pub(super) fn verify_mutation(
             include_str!("seccomp-rust.json")
         },
     )?;
-    let safe = no_host_authority(c, nonce, phase.interactive())
+    let safe = no_host_authority(c, operation_id, phase.interactive())
         && mutation_mounts_ok(c, phase, volume)?
         && applied_limits_ok(c, image)
         && profile_ok
@@ -801,13 +803,13 @@ pub(super) fn verify_resolution(
     phase: super::resolution_gateway::ResolutionPhase,
     source: &MutationVolume,
     vendor: &MutationVolume,
-    nonce: &str,
+    operation_id: &str,
 ) -> Result<(), ExecutionError> {
     let c = only_created(bytes)?;
     let c = &c;
     let h = &c.host_config;
     let profile_ok = applied_profile_ok(c, include_str!("seccomp-rust.json"))?;
-    let safe = no_host_authority(c, nonce, phase.interactive())
+    let safe = no_host_authority(c, operation_id, phase.interactive())
         && resolution_mounts_ok(c, phase, source, vendor)?
         && applied_limits_ok(c, image)
         && profile_ok
@@ -829,7 +831,7 @@ pub(super) fn verify_security(
     image: &str,
     phase: super::security_gateway::SecurityPhase,
     volumes: &super::security_gateway::SecurityVolumes<'_>,
-    nonce: &str,
+    operation_id: &str,
 ) -> Result<(), ExecutionError> {
     let c = only_created(bytes)?;
     let mut expected = Vec::new();
@@ -849,7 +851,7 @@ pub(super) fn verify_security(
             phase.junit_writable(),
         ));
     }
-    let safe = no_host_authority(&c, nonce, phase.interactive())
+    let safe = no_host_authority(&c, operation_id, phase.interactive())
         && expected_volume_mounts_ok(&c, expected)?
         && applied_limits_ok(&c, image)
         && applied_profile_ok(&c, phase.profile())?

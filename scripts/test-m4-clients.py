@@ -82,13 +82,20 @@ def source_hashes() -> dict[str, str]:
 
 def advertisement_state() -> dict[str, bool]:
     base = ROOT / "crates/mcp-server/src/stdio"
+    shared = (base / "security_tool.rs").read_text()
+    shared_ready = (
+        "pub(super) fn advertised(_test_variable: &str) -> bool" in shared
+        and "    true\n}" in shared
+    )
     state = {}
-    for tool, (name, _) in READY_MARKERS.items():
+    for tool, (name, marker) in READY_MARKERS.items():
         source = (base / name).read_text()
         if "const ADVERTISEMENT_READY: bool = true;" in source:
             state[tool] = True
         elif "const ADVERTISEMENT_READY: bool = false;" in source:
             state[tool] = False
+        elif f'super::security_tool::advertised("{marker}")' in source and shared_ready:
+            state[tool] = True
         else:
             raise RuntimeError(f"advertisement switch missing for {tool}")
     return state

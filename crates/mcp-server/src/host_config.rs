@@ -419,21 +419,37 @@ mod security_tests {
     use super::*;
     #[test]
     fn policy_flags_are_paired_closed_absolute_and_outside_project_roots() {
+        #[cfg(unix)]
+        const PROJECT_ROOT: &str = "/workspace";
+        #[cfg(unix)]
+        const POLICY: &str = "/trusted/policy.json";
+        #[cfg(unix)]
+        const PROJECT_POLICY: &str = "/workspace/policy.json";
+        #[cfg(unix)]
+        const OTHER_POLICY: &str = "/other.json";
+        #[cfg(windows)]
+        const PROJECT_ROOT: &str = r"C:\workspace";
+        #[cfg(windows)]
+        const POLICY: &str = r"C:\trusted\policy.json";
+        #[cfg(windows)]
+        const PROJECT_POLICY: &str = r"C:\workspace\policy.json";
+        #[cfg(windows)]
+        const OTHER_POLICY: &str = r"C:\other.json";
         let digest = format!("sha256:{}", "a".repeat(64));
         let make = |args: Vec<&str>| parse(args.into_iter().map(OsString::from));
         assert!(
             make(vec![
                 "--root",
-                "/workspace",
+                PROJECT_ROOT,
                 "--security-policy",
-                "/trusted/policy.json",
+                POLICY,
                 "--security-policy-sha256",
                 &digest
             ])
             .is_some()
         );
         for flags in [
-            vec!["--security-policy", "/trusted/policy.json"],
+            vec!["--security-policy", POLICY],
             vec!["--security-policy-sha256", &digest],
             vec![
                 "--security-policy",
@@ -443,25 +459,25 @@ mod security_tests {
             ],
             vec![
                 "--root",
-                "/workspace",
+                PROJECT_ROOT,
                 "--security-policy",
-                "/workspace/policy.json",
+                PROJECT_POLICY,
                 "--security-policy-sha256",
                 &digest,
             ],
             vec![
                 "--security-policy",
-                "/trusted/policy.json",
+                POLICY,
                 "--security-policy-sha256",
                 "sha256:bad",
             ],
             vec![
                 "--security-policy",
-                "/trusted/policy.json",
+                POLICY,
                 "--security-policy-sha256",
                 &digest,
                 "--security-policy",
-                "/other.json",
+                OTHER_POLICY,
             ],
         ] {
             assert!(make(flags).is_none());

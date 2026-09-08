@@ -6,48 +6,42 @@ use super::deny::HostSecurityConfig;
 use super::{
     HostCargoVendorConfig,
     clock::WallClock,
-    contract::{Contract, ToolOutput},
-    nextest::{ExecutionModeDto, ExecutionSelection, select_execution_mode},
+    nextest::ExecutionModeDto,
     project::Registry,
     quality_artifacts::DurableSecurityPublisher,
-    workers::{Joined, WorkerError, Workers},
+    security_tool::{
+        CommonFailure, SynchronousSelection, artifact_fields, capture_vendor, classify_error,
+        define_security_artifact, define_security_data, define_security_output,
+        define_security_tool, encode_bounded, load_policy, run_joined_security,
+        synchronous_selection,
+    },
+    workers::Workers,
 };
 use rmcp::{
-    model::{CallToolRequestParams, CallToolResult, ErrorData, Tool, ToolAnnotations},
+    model::{CallToolRequestParams, CallToolResult, ErrorData},
     service::{RequestContext, RoleServer},
 };
-use rust_engineering_application::job::JobPermit;
+use rust_engineering_application::InspectionError;
 use rust_engineering_application::quality_v2::QualityV2Options;
 use rust_engineering_application::quality_v2::{
     PublishedQualityV2, QualityV2Inputs, QualityV2Ports,
 };
 use rust_engineering_application::security::SecurityError;
-use rust_engineering_application::{ExecutionError, InspectionError, ProjectError};
-use rust_engineering_domain::Clock;
 use rust_engineering_domain::mutation_test::{MutationTestCommandOptions, MutationTestSelection};
 use rust_engineering_domain::quality_v2::QualityV2Observation;
 use rust_engineering_domain::quality_v2::QualityV2Profile;
-use rust_engineering_domain::{ArtifactCompleteness, OperationalErrorCode, ProjectRef, ToolStatus};
+use rust_engineering_domain::{ArtifactCompleteness, ProjectRef, ToolStatus};
 use rust_engineering_execution::RustProjectInspector;
 use schemars::JsonSchema;
-use serde::{Deserialize, Serialize};
-use std::{
-    sync::{
-        Arc, Mutex,
-        atomic::{AtomicBool, Ordering},
-    },
-    time::{Duration, Instant},
+use serde::Deserialize;
+use std::sync::{
+    Arc, Mutex,
+    atomic::{AtomicBool, Ordering},
 };
 
 pub(super) const NAME: &str = "rust.quality.gate.v2";
-const ADVERTISEMENT_READY: bool = true;
 pub(super) fn advertised() -> bool {
-    #[cfg(feature = "test-hooks")]
-    if std::env::var_os("RUST_MCP_TEST_GATE_V2_READY").as_deref() == Some(std::ffi::OsStr::new("1"))
-    {
-        return true;
-    }
-    ADVERTISEMENT_READY
+    super::security_tool::advertised("RUST_MCP_TEST_GATE_V2_READY")
 }
 #[derive(Clone, Deserialize, JsonSchema)]
 #[serde(deny_unknown_fields)]
@@ -71,7 +65,7 @@ struct Input {
 fn default_timeout() -> u64 {
     300
 }
-#[derive(Clone, Serialize, JsonSchema)]
+#[derive(Clone, serde::Serialize, JsonSchema)]
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
 enum Code {
     TasksRequired,
@@ -85,7 +79,7 @@ enum Code {
     OutputLimitExceeded,
     EvidenceIncomplete,
 }
-#[derive(Clone, Serialize, JsonSchema)]
+#[derive(Clone, serde::Serialize, JsonSchema)]
 #[serde(tag = "status", rename_all = "snake_case")]
 enum Outcome {
     Passed {
@@ -114,49 +108,15 @@ enum Outcome {
         data: (),
     },
 }
-#[derive(Clone, Serialize, JsonSchema)]
-#[serde(deny_unknown_fields)]
-struct Output {
-    #[serde(flatten)]
-    outcome: Outcome,
-    summary: &'static str,
-    duration_ms: u64,
-}
-impl ToolOutput for Output {
-    fn status(&self) -> ToolStatus {
-        match self.outcome {
-            Outcome::Passed { .. } => ToolStatus::Passed,
-            Outcome::Failed { .. } => ToolStatus::Failed,
-            Outcome::Blocked { .. } => ToolStatus::Blocked,
-            Outcome::Unavailable { .. } => ToolStatus::Unavailable,
-            Outcome::Cancelled { .. } => ToolStatus::Cancelled,
-        }
-    }
-}
-#[derive(Clone, Serialize, JsonSchema)]
-#[serde(deny_unknown_fields)]
-struct Artifact {
-    uri: String,
-    sha256: String,
-    size_bytes: u64,
-    #[schemars(with = "super::deny::schemas::ArtifactCompleteness")]
-    completeness: ArtifactCompleteness,
-}
-#[derive(Clone, Serialize, JsonSchema)]
-#[serde(deny_unknown_fields)]
-struct Data {
-    project_ref: String,
-    semantics: &'static str,
-    #[schemars(with = "schemas::Observation")]
-    observation: QualityV2Observation,
-    #[schemars(length(min = 1, max = 1))]
-    artifacts: Vec<Artifact>,
-}
-pub(super) struct QualityV2Tool {
-    pub(super) definition: Tool,
-    contract: Contract<Input, Output>,
-    runtime: Option<Runtime>,
-}
+define_security_output!(
+    Outcome::Passed { .. } => ToolStatus::Passed,
+    Outcome::Failed { .. } => ToolStatus::Failed,
+    Outcome::Blocked { .. } => ToolStatus::Blocked,
+    Outcome::Unavailable { .. } => ToolStatus::Unavailable,
+    Outcome::Cancelled { .. } => ToolStatus::Cancelled,
+);
+define_security_artifact!("super::deny::schemas::ArtifactCompleteness");
+define_security_data!(QualityV2Observation, "schemas::Observation");
 pub(super) struct Runtime {
     pub(super) registry: Arc<Mutex<Registry>>,
     pub(super) workers: Workers,
@@ -167,24 +127,23 @@ pub(super) struct Runtime {
     pub(super) audit: Option<HostAuditConfig>,
     pub(super) publisher: Option<DurableSecurityPublisher>,
 }
+define_security_tool!(
+    QualityV2Tool,
+    "Run strict (M1 standard defaults plus dependency policy and workspace coverage) or release (strict plus SemVer against an explicit baseline ProjectRef). One candidate capture and one shared RustSec audit. Each required stage retains its verdict and normalized evidence; partial, unavailable or skipped evidence never passes. Mutation is explicit and budgeted. Uses fixed offline runtime and host policy/vendor; executes project code in the sandbox. Auto or synchronous supports only strict without mutation and timeout_seconds at most 60; release, mutation and longer calls require negotiated MCP Tasks. The work budget excludes joined cleanup."
+);
 impl QualityV2Tool {
-    pub(super) fn new() -> Result<Self, ErrorData> {
-        let contract = Contract::<Input, Output>::new()?;
-        let definition=Tool::new(NAME,"Run strict (M1 standard defaults plus dependency policy and workspace coverage) or release (strict plus SemVer against an explicit baseline ProjectRef). One candidate capture and one shared RustSec audit. Each required stage retains its verdict and normalized evidence; partial, unavailable or skipped evidence never passes. Mutation is explicit and budgeted. Uses fixed offline runtime and host policy/vendor; executes project code in the sandbox. Auto or synchronous supports only strict without mutation and timeout_seconds at most 60; release, mutation and longer calls require negotiated MCP Tasks. The work budget excludes joined cleanup.",(*contract.input_schema).clone()).with_raw_output_schema(Arc::clone(&contract.output_schema)).with_annotations(ToolAnnotations::new().read_only(true).destructive(false).idempotent(false).open_world(false));
-        Ok(Self {
-            definition,
-            contract,
-            runtime: None,
-        })
-    }
-    pub(super) fn with_runtime(mut self, runtime: Runtime) -> Self {
-        self.runtime = Some(runtime);
-        self
-    }
     pub(super) async fn call(
         &self,
         request: CallToolRequestParams,
         context: RequestContext<RoleServer>,
+    ) -> Result<CallToolResult, ErrorData> {
+        self.call_with_token(request, context.ct).await
+    }
+
+    async fn call_with_token(
+        &self,
+        request: CallToolRequestParams,
+        request_token: tokio_util::sync::CancellationToken,
     ) -> Result<CallToolResult, ErrorData> {
         let input = self.contract.decode(request.arguments)?;
         let options = QualityV2Options {
@@ -199,20 +158,14 @@ impl QualityV2Tool {
                 .map_err(|_| ErrorData::invalid_params("Invalid mutation selection", None))?,
         };
         options.validate().map_err(|_|ErrorData::invalid_params("Release requires baseline, strict rejects baseline, and optional mutation needs its derived budget plus 300 seconds",None))?;
-        match select_execution_mode(
-            input.execution_mode.into(),
-            false,
+        match synchronous_selection(
+            input.execution_mode,
             input.timeout_seconds <= 60
                 && input.profile == QualityV2Profile::Strict
                 && input.mutation.is_none(),
+            "Tasks are not enabled for extended quality gate",
         )? {
-            ExecutionSelection::Task => {
-                return Err(ErrorData::internal_error(
-                    "Tasks are not enabled for extended quality gate",
-                    None,
-                ));
-            }
-            ExecutionSelection::TasksRequired => {
+            SynchronousSelection::TasksRequired => {
                 return self.blocked(
                     Code::TasksRequired,
                     "Extended quality gate requires MCP Tasks",
@@ -220,7 +173,7 @@ impl QualityV2Tool {
                     0,
                 );
             }
-            ExecutionSelection::Synchronous => {}
+            SynchronousSelection::Run => {}
         }
         let runtime = self.runtime.as_ref().ok_or_else(|| {
             ErrorData::internal_error("Extended quality runtime is not configured", None)
@@ -243,75 +196,44 @@ impl QualityV2Tool {
                 0,
             );
         };
-        let started = Instant::now();
-        let permit = runtime
-            .workers
-            .admit_job()
-            .map_err(|_| ErrorData::internal_error("Extended quality worker unavailable", None))?;
         let registry = Arc::clone(&runtime.registry);
         let inspector = Arc::clone(&runtime.inspector);
         let reference = input.project_ref.clone();
-        let joined = runtime
-            .workers
-            .run_joined_with(
-                Arc::clone(&permit),
-                context.ct,
-                started + Duration::from_secs(options.timeout_seconds),
-                move |control| {
-                    let vendor = vendor_config
-                        .as_ref()
-                        .map(|config| {
-                            rust_engineering_project::capture_with_expected(
-                                &config.directory,
-                                &config.fingerprint,
-                                control,
-                            )
-                        })
-                        .transpose()?;
-                    let policy = policy_config
-                        .as_ref()
-                        .map(|config| -> Result<_, SecurityError> {
-                            let bytes = rust_engineering_project::read_host_snapshot(
-                                &config.path,
-                                control,
-                            )?;
-                            rust_engineering_execution::parse_security_policy(
-                                &bytes,
-                                &config.fingerprint,
-                                WallClock.now().0,
-                            )
-                            .map_err(|_| SecurityError::InvalidPolicy)
-                        })
-                        .transpose()?;
-                    registry
-                        .lock()
-                        .map_err(|_| SecurityError::Inspection(InspectionError::Internal))?
-                        .quality_gate_v2(
-                            &reference,
-                            QualityV2Inputs {
-                                vendor: vendor.as_ref(),
-                                policy: policy.as_ref(),
-                                options: &options,
-                            },
-                            QualityV2Ports {
-                                executor: inspector.as_ref(),
-                                auditor: &auditor,
-                                publisher: &mut publisher,
-                            },
-                            &WallClock,
-                            control,
-                        )
-                },
-            )
-            .await;
-        permit.release_after_cleanup();
-        let duration = started.elapsed().as_millis().try_into().unwrap_or(u64::MAX);
-        let result = match joined {
-            Ok(joined) => joined_result(joined),
-            Err(WorkerError::Cancelled) => Err(ProjectError::Cancelled.into()),
-            Err(WorkerError::TimedOut) => Err(SecurityError::Timeout),
-            Err(_) => Err(SecurityError::Inspection(InspectionError::Internal)),
-        };
+        let (result, duration) = run_joined_security(
+            &runtime.workers,
+            request_token,
+            options.timeout_seconds,
+            "Extended quality worker unavailable",
+            move |control| {
+                let vendor = vendor_config
+                    .as_ref()
+                    .map(|config| capture_vendor(config, control))
+                    .transpose()?;
+                let policy = policy_config
+                    .as_ref()
+                    .map(|config| load_policy(config, control))
+                    .transpose()?;
+                registry
+                    .lock()
+                    .map_err(|_| SecurityError::Inspection(InspectionError::Internal))?
+                    .quality_gate_v2(
+                        &reference,
+                        QualityV2Inputs {
+                            vendor: vendor.as_ref(),
+                            policy: policy.as_ref(),
+                            options: &options,
+                        },
+                        QualityV2Ports {
+                            executor: inspector.as_ref(),
+                            auditor: &auditor,
+                            publisher: &mut publisher,
+                        },
+                        &WallClock,
+                        control,
+                    )
+            },
+        )
+        .await?;
         match result {
             Ok(result) => self.encode_result(&input.project_ref, result, duration),
             Err(error) => self.error(error, duration),
@@ -351,11 +273,8 @@ impl QualityV2Tool {
         })
     }
     fn error(&self, error: SecurityError, duration_ms: u64) -> Result<CallToolResult, ErrorData> {
-        let (code, message) = match error {
-            SecurityError::Inspection(
-                InspectionError::Project(ProjectError::Cancelled)
-                | InspectionError::Execution(ExecutionError::Cancelled),
-            ) => {
+        let (code, message) = match classify_error(error) {
+            CommonFailure::Cancelled => {
                 return self.contract.encode(Output {
                     outcome: Outcome::Cancelled {
                         error_code: (),
@@ -366,37 +285,34 @@ impl QualityV2Tool {
                     duration_ms,
                 });
             }
-            SecurityError::Inspection(InspectionError::Execution(ExecutionError::Unavailable)) => {
+            CommonFailure::ToolNotInstalled => {
                 return self.unavailable(
                     Code::ToolNotInstalled,
                     "Approved extended quality runtime is unavailable",
                     duration_ms,
                 );
             }
-            SecurityError::Timeout => (
+            CommonFailure::Timeout => (
                 Code::CommandTimeout,
                 "Extended quality gate exceeded its deadline",
             ),
-            SecurityError::MissingOfflineData => (
+            CommonFailure::MissingOfflineData => (
                 Code::MissingOfflineData,
                 "Offline dependency source is missing or invalid",
             ),
-            SecurityError::OutputLimit
-            | SecurityError::Inspection(InspectionError::OutputLimit) => (
+            CommonFailure::OutputLimit => (
                 Code::OutputLimitExceeded,
                 "Extended quality evidence exceeded its fixed budget",
             ),
-            SecurityError::Inspection(InspectionError::Project(ProjectError::Rejected(
-                OperationalErrorCode::ProjectNotFound,
-            ))) => (
+            CommonFailure::ProjectNotFound => (
                 Code::ProjectNotFound,
                 "Project authority is missing or expired",
             ),
-            SecurityError::Inspection(InspectionError::Execution(_)) => (
+            CommonFailure::SandboxDenied => (
                 Code::SandboxDenied,
                 "Approved extended quality execution could not be established",
             ),
-            _ => (
+            CommonFailure::Specific(_) => (
                 Code::InvalidProject,
                 "Captured extended quality inputs or evidence could not be validated",
             ),
@@ -410,97 +326,116 @@ impl QualityV2Tool {
         duration_ms: u64,
     ) -> Result<CallToolResult, ErrorData> {
         let descriptor = result.artifact;
-        descriptor.validate().map_err(|_| {
-            ErrorData::internal_error("Invalid extended quality artifact descriptor", None)
-        })?;
-        let mut data = Box::new(Data {
+        let data = Box::new(Data {
             project_ref: reference.to_string(),
             semantics: "complete_required_quality_stages_over_one_capture",
             observation: result.observation,
-            artifacts: vec![Artifact {
-                uri: format!(
-                    "rust-quality-artifact://{reference}/{}?offset=0&length={}",
-                    descriptor.artifact_id,
-                    descriptor.size_bytes.min(320 * 1024)
-                ),
-                sha256: super::resources::hex(&descriptor.sha256),
-                size_bytes: descriptor.size_bytes,
-                completeness: descriptor.completeness,
-            }],
+            artifacts: vec![
+                artifact_fields(
+                    reference,
+                    &descriptor,
+                    "Invalid extended quality artifact descriptor",
+                )?
+                .into(),
+            ],
         });
-        loop {
-            let outcome = if data.observation.report.status == ToolStatus::Passed
-                && data.observation.report.complete
-                && descriptor.completeness == ArtifactCompleteness::Complete
-            {
-                Outcome::Passed {
-                    error_code: (),
-                    error_message: (),
-                    data: data.clone(),
-                }
-            } else if data.observation.report.status == ToolStatus::Failed {
-                Outcome::Failed {
-                    error_code: (),
-                    error_message: (),
-                    data: data.clone(),
-                }
-            } else if data.observation.report.status == ToolStatus::Unavailable {
-                Outcome::Unavailable {
-                    error_code: Code::ToolNotInstalled,
-                    error_message: "Required quality stage unavailable",
-                    data: Some(data.clone()),
-                }
-            } else {
-                Outcome::Blocked {
-                    error_code: Code::EvidenceIncomplete,
-                    error_message: "Extended quality evidence is partial; inspect independent sources",
-                    data: Some(data.clone()),
-                }
-            };
-            let result = self.contract.encode(Output {
-                outcome,
+        encode_bounded(
+            &self.contract,
+            data,
+            duration_ms,
+            "Extended quality serialization failed",
+            |data, duration_ms| Output {
+                outcome: if data.observation.report.status == ToolStatus::Passed
+                    && data.observation.report.complete
+                    && descriptor.completeness == ArtifactCompleteness::Complete
+                {
+                    Outcome::Passed {
+                        error_code: (),
+                        error_message: (),
+                        data: data.clone(),
+                    }
+                } else if data.observation.report.status == ToolStatus::Failed {
+                    Outcome::Failed {
+                        error_code: (),
+                        error_message: (),
+                        data: data.clone(),
+                    }
+                } else if data.observation.report.status == ToolStatus::Unavailable {
+                    Outcome::Unavailable {
+                        error_code: Code::ToolNotInstalled,
+                        error_message: "Required quality stage unavailable",
+                        data: Some(data.clone()),
+                    }
+                } else {
+                    Outcome::Blocked {
+                        error_code: Code::EvidenceIncomplete,
+                        error_message: "Extended quality evidence is partial; inspect independent sources",
+                        data: Some(data.clone()),
+                    }
+                },
                 summary: "Recorded extended quality facts with independent source coverage",
                 duration_ms,
-            })?;
-            if serde_json::to_vec(&result)
-                .map_err(|_| {
-                    ErrorData::internal_error("Extended quality serialization failed", None)
-                })?
-                .len()
-                <= 512 * 1024
-            {
-                return Ok(result);
-            }
-            if !data.observation.report.trim_one() {
-                return self.blocked(
-                    Code::OutputLimitExceeded,
-                    "Extended quality response exceeds its fixed budget",
-                    None,
-                    duration_ms,
-                );
-            }
-        }
-    }
-}
-fn joined_result<T>(joined: Joined<T, SecurityError>) -> Result<T, SecurityError> {
-    match (joined.result, joined.interrupted) {
-        (
-            Err(SecurityError::Inspection(
-                InspectionError::Project(ProjectError::Cancelled)
-                | InspectionError::Execution(ExecutionError::Cancelled),
-            )),
-            Some(WorkerError::TimedOut),
-        ) => Err(SecurityError::Timeout),
-        (Err(error), _) => Err(error),
-        (Ok(result), None) => Ok(result),
-        (Ok(_), Some(WorkerError::TimedOut)) => Err(SecurityError::Timeout),
-        (Ok(_), Some(WorkerError::Cancelled)) => Err(ProjectError::Cancelled.into()),
-        _ => Err(SecurityError::Inspection(InspectionError::Internal)),
+            },
+            |data| data.observation.report.trim_one(),
+            |duration_ms| Output {
+                outcome: Outcome::Blocked {
+                    error_code: Code::OutputLimitExceeded,
+                    error_message: "Extended quality response exceeds its fixed budget",
+                    data: None,
+                },
+                summary: "Extended quality response exceeds its fixed budget",
+                duration_ms,
+            },
+        )
     }
 }
 #[cfg(test)]
 mod tests {
+    use super::super::security_tool::assert_common_error_contract;
     use super::*;
+    #[test]
+    fn call_boundary_covers_task_gate_and_missing_runtime() -> Result<(), Box<dyn std::error::Error>>
+    {
+        let runtime = tokio::runtime::Builder::new_current_thread()
+            .enable_time()
+            .build()?;
+        runtime.block_on(async {
+            let tool = QualityV2Tool::new()?;
+            let base = serde_json::from_str::<serde_json::Value>(
+                r#"{"project_ref":"prj_00000000000000000000000000000001","profile":"strict"}"#,
+            )?;
+            let arguments = base.as_object().cloned().ok_or("arguments")?;
+            let required = tool
+                .call_with_token(
+                    CallToolRequestParams::new("rust.quality.gate.v2")
+                        .with_arguments(arguments.clone()),
+                    tokio_util::sync::CancellationToken::new(),
+                )
+                .await?;
+            assert_eq!(
+                required.structured_content.ok_or("content")?["error_code"],
+                "TASKS_REQUIRED"
+            );
+            let mut synchronous = arguments;
+            synchronous.insert("execution_mode".into(), serde_json::json!("synchronous"));
+            synchronous.insert("timeout_seconds".into(), serde_json::json!(60));
+            let error = tool
+                .call_with_token(
+                    CallToolRequestParams::new("rust.quality.gate.v2").with_arguments(synchronous),
+                    tokio_util::sync::CancellationToken::new(),
+                )
+                .await
+                .err()
+                .ok_or("runtime must be required")?;
+            assert_eq!(error.message, "Extended quality runtime is not configured");
+            Ok::<_, Box<dyn std::error::Error>>(())
+        })
+    }
+    #[test]
+    fn operational_errors_have_closed_status_and_codes() -> Result<(), Box<dyn std::error::Error>> {
+        assert_common_error_contract!(QualityV2Tool::new()?, error);
+        Ok(())
+    }
     #[test]
     fn closed_quality_v2_input_rejects_expansion_paths_and_free_flags()
     -> Result<(), Box<dyn std::error::Error>> {

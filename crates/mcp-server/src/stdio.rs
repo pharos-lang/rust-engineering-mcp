@@ -31,6 +31,7 @@ mod project;
 mod quality;
 mod quality_artifacts;
 mod resources;
+mod security_tool;
 mod semver;
 mod tasks;
 mod testing;

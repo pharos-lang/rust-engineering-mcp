@@ -232,3 +232,28 @@ fn encode_result_trims_large_valid_report_within_complete_wire_budget() -> TestR
     );
     Ok(())
 }
+
+#[test]
+fn encode_result_keeps_small_complete_evidence_passed() -> TestResult {
+    let tool = SupplyTool::new()?;
+    let reference: ProjectRef = "prj_00000000000000000000000000000001".parse()?;
+    let mut observation = large_complete_observation()?;
+    observation.report.packages.truncate(1);
+    observation.report.packages_total = 1;
+    if let Some(audit) = observation.report.audit.as_mut() {
+        audit.packages_total = 1;
+        audit.workspace_packages_excluded = 1;
+    }
+    let encoded = tool.encode_result(
+        &reference,
+        PublishedSupply {
+            observation,
+            artifact: descriptor()?,
+        },
+        7,
+    )?;
+    let value = encoded.structured_content.ok_or("content")?;
+    assert_eq!(value["status"], "passed");
+    assert_eq!(value["data"]["observation"]["report"]["complete"], true);
+    Ok(())
+}

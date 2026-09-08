@@ -77,20 +77,19 @@ fijados y el sysroot completo sin ejecutar código guest ni usar red.
 | Evidencia | Resultado y alcance |
 | --- | --- |
 | [Core final de candidato](M4-core-gate.json) | PASS en 19 etapas: 1220 tests Rust, 1 doctest y 11 tests del helper, además de fmt, check, Clippy, arquitectura y verificaciones auxiliares. `source_inputs_unchanged` es `true`. |
-| [Full final](M4-full-gate.json) | PASS 33/33 reanudado: 27 pasos aprobados conservados, seis restantes ejecutados con assets E5 locales exactos recuperados. Mismos 987 inputs que core y clientes; sin descarga ni cambios de código/oráculos. [Driver](M4-full-gate-resume-driver.py) y [recuperación](M4-e5-local-recovery.json). |
+| [Full final](M4-full-gate.json) | PASS monolítico 33/33 sobre 990 inputs: 1250 tests Rust en el paso workspace, 1 doctest y 94 tests Python, además de las selecciones nativas. Se ejecutó después de la remediación del PR, sin descarga y con `source_inputs_unchanged=true`. |
 | [Runtime M4](M4-runtime.json) | PASS 19/19 sobre imagen final; [Rust security](M4-rust-security.json) 20/20, [M2](M4-m2-runtime.json) 10 selecciones y [M3](M4-m3-runtime.json) 62/62, conservando las imágenes propias de cada suite. |
 | [Benchmark](M4-budgets.json) | PASS 300/300, 10 grupos por 30 observaciones, máximo 17 044 ms frente al techo síncrono de 60 s. Mide el binario congelado `sha256:d27cbc5907ce7e985f3f1c162356714bb88efb87e596619b8866faa6bcda8b5f`; su [inventario fuente](M4-budgets/m4-budgets-inputs.json) es parte del recibo. Es evidencia histórica para presupuesto, no un binding de los últimos cambios de parser/routing. |
-| [Clientes, intento 4](M4-clients.json) | PASS ligado al candidato `f4e2c6d18982405d6674e9978352e1b9887df16adc729b5a43473adbd491f024` y a la imagen `25ed…`. Inspector 2.5.0 descubrió 27 tools, ejercitó las cinco M4, Resources y cancelación Tasks. Codex CLI 0.153.0 stock ejercitó las cinco de forma síncrona y el turno dirigido; declara `tasks_declared: false` y no acredita cancelación Tasks. |
+| [Clientes, intento 5](M4-clients.json) | PASS ligado al candidato `4edb1b5e61bcd73b3f7299def7e52c5d3c253585fb2f4048b5271e2c6117a416`, a los mismos 990 inputs del full y a la imagen `25ed…`. Inspector 2.5.0 descubrió 27 tools, ejercitó las cinco M4, Resources y cancelación Tasks. Codex CLI 0.153.0 stock ejercitó las cinco de forma síncrona y en un turno dirigido; declara `tasks_declared: false` y no acredita cancelación Tasks. |
 | [MCP de las cinco tools](M4-tools-mcp.json) | PASS de resultados y recursos privados sobre la imagen final. |
 | [Deny MCP y rollback](M4-deny-mcp.json) | Casos clean/finding/policy y revocación; al volver a M3 se retiran plugin y admisión M4, la nueva llamada queda unavailable y el mismo audit privado v1 se relee con una referencia nueva del mismo owner antes de revocar la fuente. La persistencia M3 no cambia. |
 | [Imagen alterada](M4-tampered-plugin.json) | PASS: una identidad derivada no admitida se rechaza antes de ejecutar guest, los inputs quedan iguales y cleanup queda verificado. |
 | [Privacidad runtime](M4-privacy-runtime.json) | PASS de control positivo y negativo. El canario host queda ausente; HTML de cobertura y diffs de mutation autorizados por el proyecto pueden conservar bytes de source, incluidos secretos presentes en esa fuente. Esos artifacts son privados y no se promete redacción universal del source autorizado. |
 
-Los intentos cliente [2](M4-clients-before-corpus-refresh.json) y
-[3](M4-clients-before-stdout-diagnostic.json) también pasaron y quedan
-preservados. El intento 4 es el recibo vigente porque repite G4 después de la
-actualización del corpus y liga el diagnóstico estricto de stdout sin cambiar su
-oracle.
+Los intentos cliente [2](M4-clients-before-corpus-refresh.json),
+[3](M4-clients-before-stdout-diagnostic.json) y 4 bajo `m4-clients/attempt-4`
+también pasaron y quedan preservados. El intento 5 es el recibo vigente porque
+repite G4 sobre el refactor de handlers y la instrumentación de cobertura del PR.
 
 Los recibos finales [scanner native](M4-scanner-native.json) y
 [Miri native](M4-miri-native.json) ya vinculan los bytes actuales: siete casos
@@ -112,8 +111,9 @@ seguridad y scripts de calificación acompañan cada corte.
 [CI local](../ci.md#m4--calificación-local-completa) detalla los comandos core/full,
 las variables de inputs explícitos y la ejecución de clientes. Los recibos
 conservan argv, toolchain, plataforma, timestamps, exit codes y hashes. El
-[índice final](M4-evidence-index.json) cruza los 987 inputs y el SHA del binario de
-clientes. El [archivo de logs](M4-log-archive.json) liga 38 copias `.txt` a los
+[índice final](M4-evidence-index.json) conserva el cruce original de 987 inputs;
+los recibos full y clientes posteriores a la remediación vinculan los 990 inputs
+actuales y el nuevo SHA del binario. El [archivo de logs](M4-log-archive.json) liga 38 copias `.txt` a los
 `.log` originales byte a byte para que la regla global de Git no descarte esa
 evidencia en una futura integración autorizada.
 
@@ -162,8 +162,8 @@ directorio temporal E5. Se verificaron tamaño/hash de cinco assets existentes
 (487352503 bytes), sin adquirirlos otra vez, y se completaron las seis etapas
 restantes mediante el runner original y el mismo source inventory. El recibo
 fallido original permanece en [full-attempt-2](M4-hardening-attempts/full-attempt-2/receipt.json).
-Los logs del primer segmento y de la reanudación son separados; 33/33 no significa
-que el primer intento monolítico haya pasado.
+Los logs del primer segmento y de la reanudación son separados. El recibo full
+vigente es una ejecución monolítica posterior e independiente que pasó 33/33.
 
 ## Cierre y parada
 
@@ -175,9 +175,10 @@ hashes reales; conserva los segmentos del full, los 23 baselines Git y los cinco
 assets E5 con pins esperados/observados. Las observaciones menores quedan
 resueltas por evidencia suplementaria o aceptadas con owner y límite explícitos.
 
-M4 está **Done local** en `ai/m4-security`. La implementación está en
-`07814664379628f00857feca13148b507de687b9` y se propone mediante el
+M4 está **Done local** en `ai/m4-security`. La implementación base está en
+`07814664379628f00857feca13148b507de687b9`; el PR incorpora además la remediación
+de sus gates y se propone mediante el
 [PR #15](https://github.com/pharos-lang/rust-engineering-mcp/pull/15). No hay tag,
 release ni autorización para M5. El siguiente documento de trabajo es
 [implement-m5.md](../prompts/implement-m5.md), solo como referencia de handoff.
-La revisión de CI/Sonar remotos corresponde a una futura integración autorizada.
+La revisión de CI/Sonar remotos se ejecuta en el PR y conserva su resultado en GitHub; no sustituye los recibos locales.

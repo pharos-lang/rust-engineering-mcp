@@ -4,58 +4,37 @@ mod schemas;
 use super::{
     HostCargoVendorConfig,
     clock::WallClock,
-    contract::{Contract, ToolOutput},
-    nextest::{ExecutionModeDto, ExecutionSelection, select_execution_mode},
     project::Registry,
     quality_artifacts::DurableSecurityPublisher,
-    workers::{Joined, WorkerError, Workers},
+    security_tool::{
+        CommonFailure, SynchronousSelection, artifact_fields, capture_vendor, classify_error,
+        define_security_artifact, define_security_data, define_security_input,
+        define_security_output, define_security_tool, encode_bounded, run_joined_security,
+        synchronous_selection,
+    },
+    workers::Workers,
 };
 use rmcp::{
-    model::{CallToolRequestParams, CallToolResult, ErrorData, Tool, ToolAnnotations},
+    model::{CallToolRequestParams, CallToolResult, ErrorData},
     service::{RequestContext, RoleServer},
 };
-use rust_engineering_application::job::JobPermit;
+use rust_engineering_application::InspectionError;
 use rust_engineering_application::security::SecurityError;
 use rust_engineering_application::unsafe_scan::{PublishedUnsafe, UnsafeObservation, UnsafePorts};
-use rust_engineering_application::{ExecutionError, InspectionError, ProjectError};
 use rust_engineering_domain::unsafe_scan::UnsafeScanOptions;
-use rust_engineering_domain::{ArtifactCompleteness, OperationalErrorCode, ProjectRef, ToolStatus};
+use rust_engineering_domain::{ArtifactCompleteness, ProjectRef, ToolStatus};
 use rust_engineering_execution::RustProjectInspector;
-use schemars::JsonSchema;
-use serde::{Deserialize, Serialize};
-use std::{
-    sync::{
-        Arc, Mutex,
-        atomic::{AtomicBool, Ordering},
-    },
-    time::{Duration, Instant},
+use std::sync::{
+    Arc, Mutex,
+    atomic::{AtomicBool, Ordering},
 };
 
 pub(super) const NAME: &str = "rust.unsafe.scan";
-const ADVERTISEMENT_READY: bool = true;
 pub(super) fn advertised() -> bool {
-    #[cfg(feature = "test-hooks")]
-    if std::env::var_os("RUST_MCP_TEST_SCANNER_READY").as_deref() == Some(std::ffi::OsStr::new("1"))
-    {
-        return true;
-    }
-    ADVERTISEMENT_READY
+    super::security_tool::advertised("RUST_MCP_TEST_SCANNER_READY")
 }
-#[derive(Clone, Deserialize, JsonSchema)]
-#[serde(deny_unknown_fields)]
-struct Input {
-    #[schemars(with = "String", regex(pattern = "^prj_[0-9a-f]{32}$"))]
-    project_ref: ProjectRef,
-    #[serde(default = "default_timeout")]
-    #[schemars(range(min = 1, max = 120))]
-    timeout_seconds: u64,
-    #[serde(default)]
-    execution_mode: ExecutionModeDto,
-}
-fn default_timeout() -> u64 {
-    120
-}
-#[derive(Clone, Serialize, JsonSchema)]
+define_security_input!(120, 120);
+#[derive(Clone, serde::Serialize, schemars::JsonSchema)]
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
 enum Code {
     TasksRequired,
@@ -69,7 +48,7 @@ enum Code {
     OutputLimitExceeded,
     SyntaxIncomplete,
 }
-#[derive(Clone, Serialize, JsonSchema)]
+#[derive(Clone, serde::Serialize, schemars::JsonSchema)]
 #[serde(tag = "status", rename_all = "snake_case")]
 enum Outcome {
     Passed {
@@ -93,48 +72,14 @@ enum Outcome {
         data: (),
     },
 }
-#[derive(Clone, Serialize, JsonSchema)]
-#[serde(deny_unknown_fields)]
-struct Output {
-    #[serde(flatten)]
-    outcome: Outcome,
-    summary: &'static str,
-    duration_ms: u64,
-}
-impl ToolOutput for Output {
-    fn status(&self) -> ToolStatus {
-        match self.outcome {
-            Outcome::Passed { .. } => ToolStatus::Passed,
-            Outcome::Blocked { .. } => ToolStatus::Blocked,
-            Outcome::Unavailable { .. } => ToolStatus::Unavailable,
-            Outcome::Cancelled { .. } => ToolStatus::Cancelled,
-        }
-    }
-}
-#[derive(Clone, Serialize, JsonSchema)]
-#[serde(deny_unknown_fields)]
-struct Artifact {
-    uri: String,
-    sha256: String,
-    size_bytes: u64,
-    #[schemars(with = "super::deny::schemas::ArtifactCompleteness")]
-    completeness: ArtifactCompleteness,
-}
-#[derive(Clone, Serialize, JsonSchema)]
-#[serde(deny_unknown_fields)]
-struct Data {
-    project_ref: String,
-    semantics: &'static str,
-    #[schemars(with = "schemas::Observation")]
-    observation: UnsafeObservation,
-    #[schemars(length(min = 1, max = 1))]
-    artifacts: Vec<Artifact>,
-}
-pub(super) struct UnsafeTool {
-    pub(super) definition: Tool,
-    contract: Contract<Input, Output>,
-    runtime: Option<Runtime>,
-}
+define_security_output!(
+    Outcome::Passed { .. } => ToolStatus::Passed,
+    Outcome::Blocked { .. } => ToolStatus::Blocked,
+    Outcome::Unavailable { .. } => ToolStatus::Unavailable,
+    Outcome::Cancelled { .. } => ToolStatus::Cancelled,
+);
+define_security_artifact!("super::deny::schemas::ArtifactCompleteness");
+define_security_data!(UnsafeObservation, "schemas::Observation");
 pub(super) struct Runtime {
     pub(super) registry: Arc<Mutex<Registry>>,
     pub(super) workers: Workers,
@@ -143,40 +88,33 @@ pub(super) struct Runtime {
     pub(super) vendor: Option<HostCargoVendorConfig>,
     pub(super) publisher: Option<DurableSecurityPublisher>,
 }
+define_security_tool!(
+    UnsafeTool,
+    "Scan captured Rust syntax in an isolated per-file parser. Reports unsafe and extern keyword spans by verified workspace/dependency origin. Does not expand macros, evaluate cfg or scan generated sources; zero findings never proves memory safety or absence of UB. Requires approved scanner runtime and offline vendor. Auto or synchronous supports timeout_seconds at most 60; longer calls require negotiated MCP Tasks. The work budget excludes joined cleanup."
+);
 impl UnsafeTool {
-    pub(super) fn new() -> Result<Self, ErrorData> {
-        let contract = Contract::<Input, Output>::new()?;
-        let definition=Tool::new(NAME,"Scan captured Rust syntax in an isolated per-file parser. Reports unsafe and extern keyword spans by verified workspace/dependency origin. Does not expand macros, evaluate cfg or scan generated sources; zero findings never proves memory safety or absence of UB. Requires approved scanner runtime and offline vendor. Auto or synchronous supports timeout_seconds at most 60; longer calls require negotiated MCP Tasks. The work budget excludes joined cleanup.",(*contract.input_schema).clone()).with_raw_output_schema(Arc::clone(&contract.output_schema)).with_annotations(ToolAnnotations::new().read_only(true).destructive(false).idempotent(false).open_world(false));
-        Ok(Self {
-            definition,
-            contract,
-            runtime: None,
-        })
-    }
-    pub(super) fn with_runtime(mut self, runtime: Runtime) -> Self {
-        self.runtime = Some(runtime);
-        self
-    }
     pub(super) async fn call(
         &self,
         request: CallToolRequestParams,
         context: RequestContext<RoleServer>,
     ) -> Result<CallToolResult, ErrorData> {
+        self.call_with_token(request, context.ct).await
+    }
+
+    async fn call_with_token(
+        &self,
+        request: CallToolRequestParams,
+        request_token: tokio_util::sync::CancellationToken,
+    ) -> Result<CallToolResult, ErrorData> {
         let input = self.contract.decode(request.arguments)?;
         let options = UnsafeScanOptions::new(input.timeout_seconds)
             .map_err(|_| ErrorData::invalid_params("Invalid tool arguments", None))?;
-        match select_execution_mode(
-            input.execution_mode.into(),
-            false,
+        match synchronous_selection(
+            input.execution_mode,
             input.timeout_seconds <= 60,
+            "Tasks are not enabled for unsafe scan",
         )? {
-            ExecutionSelection::Task => {
-                return Err(ErrorData::internal_error(
-                    "Tasks are not enabled for unsafe scan",
-                    None,
-                ));
-            }
-            ExecutionSelection::TasksRequired => {
+            SynchronousSelection::TasksRequired => {
                 return self.blocked(
                     Code::TasksRequired,
                     "Unsafe scan requires MCP Tasks",
@@ -184,7 +122,7 @@ impl UnsafeTool {
                     0,
                 );
             }
-            ExecutionSelection::Synchronous => {}
+            SynchronousSelection::Run => {}
         }
         let runtime = self
             .runtime
@@ -212,51 +150,33 @@ impl UnsafeTool {
                 0,
             );
         };
-        let started = Instant::now();
-        let permit = runtime
-            .workers
-            .admit_job()
-            .map_err(|_| ErrorData::internal_error("Scanner worker unavailable", None))?;
         let registry = Arc::clone(&runtime.registry);
         let inspector = Arc::clone(&runtime.inspector);
         let reference = input.project_ref.clone();
-        let joined = runtime
-            .workers
-            .run_joined_with(
-                Arc::clone(&permit),
-                context.ct,
-                started + Duration::from_secs(options.timeout_seconds()),
-                move |control| {
-                    let vendor = rust_engineering_project::capture_with_expected(
-                        &vendor.directory,
-                        &vendor.fingerprint,
+        let (result, duration) = run_joined_security(
+            &runtime.workers,
+            request_token,
+            options.timeout_seconds(),
+            "Scanner worker unavailable",
+            move |control| {
+                let vendor = capture_vendor(&vendor, control)?;
+                registry
+                    .lock()
+                    .map_err(|_| SecurityError::Inspection(InspectionError::Internal))?
+                    .unsafe_scan_durable(
+                        &reference,
+                        &vendor,
+                        &options,
+                        UnsafePorts {
+                            executor: inspector.as_ref(),
+                            publisher: &mut publisher,
+                        },
+                        &WallClock,
                         control,
-                    )?;
-                    registry
-                        .lock()
-                        .map_err(|_| SecurityError::Inspection(InspectionError::Internal))?
-                        .unsafe_scan_durable(
-                            &reference,
-                            &vendor,
-                            &options,
-                            UnsafePorts {
-                                executor: inspector.as_ref(),
-                                publisher: &mut publisher,
-                            },
-                            &WallClock,
-                            control,
-                        )
-                },
-            )
-            .await;
-        permit.release_after_cleanup();
-        let duration = started.elapsed().as_millis().try_into().unwrap_or(u64::MAX);
-        let result = match joined {
-            Ok(joined) => joined_result(joined),
-            Err(WorkerError::Cancelled) => Err(ProjectError::Cancelled.into()),
-            Err(WorkerError::TimedOut) => Err(SecurityError::Timeout),
-            Err(_) => Err(SecurityError::Inspection(InspectionError::Internal)),
-        };
+                    )
+            },
+        )
+        .await?;
         match result {
             Ok(result) => self.encode_result(&input.project_ref, result, duration),
             Err(error) => self.error(error, duration),
@@ -296,11 +216,8 @@ impl UnsafeTool {
         })
     }
     fn error(&self, error: SecurityError, duration_ms: u64) -> Result<CallToolResult, ErrorData> {
-        let (code, message) = match error {
-            SecurityError::Inspection(
-                InspectionError::Project(ProjectError::Cancelled)
-                | InspectionError::Execution(ExecutionError::Cancelled),
-            ) => {
+        let (code, message) = match classify_error(error) {
+            CommonFailure::Cancelled => {
                 return self.contract.encode(Output {
                     outcome: Outcome::Cancelled {
                         error_code: (),
@@ -311,34 +228,31 @@ impl UnsafeTool {
                     duration_ms,
                 });
             }
-            SecurityError::Inspection(InspectionError::Execution(ExecutionError::Unavailable)) => {
+            CommonFailure::ToolNotInstalled => {
                 return self.unavailable(
                     Code::ToolNotInstalled,
                     "Approved scanner runtime is unavailable",
                     duration_ms,
                 );
             }
-            SecurityError::Timeout => (Code::CommandTimeout, "Syntax scan exceeded its deadline"),
-            SecurityError::MissingOfflineData => (
+            CommonFailure::Timeout => (Code::CommandTimeout, "Syntax scan exceeded its deadline"),
+            CommonFailure::MissingOfflineData => (
                 Code::MissingOfflineData,
                 "Offline dependency source is missing or invalid",
             ),
-            SecurityError::OutputLimit
-            | SecurityError::Inspection(InspectionError::OutputLimit) => (
+            CommonFailure::OutputLimit => (
                 Code::OutputLimitExceeded,
                 "Scanner evidence exceeded its fixed budget",
             ),
-            SecurityError::Inspection(InspectionError::Project(ProjectError::Rejected(
-                OperationalErrorCode::ProjectNotFound,
-            ))) => (
+            CommonFailure::ProjectNotFound => (
                 Code::ProjectNotFound,
                 "Project authority is missing or expired",
             ),
-            SecurityError::Inspection(InspectionError::Execution(_)) => (
+            CommonFailure::SandboxDenied => (
                 Code::SandboxDenied,
                 "Approved scanner execution could not be established",
             ),
-            _ => (
+            CommonFailure::Specific(_) => (
                 Code::InvalidProject,
                 "Captured scanner inputs or evidence could not be validated",
             ),
@@ -352,84 +266,185 @@ impl UnsafeTool {
         duration_ms: u64,
     ) -> Result<CallToolResult, ErrorData> {
         let descriptor = result.artifact;
-        descriptor
-            .validate()
-            .map_err(|_| ErrorData::internal_error("Invalid scanner artifact descriptor", None))?;
-        let mut data = Box::new(Data {
+        let data = Box::new(Data {
             project_ref: reference.to_string(),
             semantics: "syntactic_evidence_only_not_memory_safety",
             observation: result.observation,
-            artifacts: vec![Artifact {
-                uri: format!(
-                    "rust-quality-artifact://{reference}/{}?offset=0&length={}",
-                    descriptor.artifact_id,
-                    descriptor.size_bytes.min(320 * 1024)
-                ),
-                sha256: super::resources::hex(&descriptor.sha256),
-                size_bytes: descriptor.size_bytes,
-                completeness: descriptor.completeness,
-            }],
+            artifacts: vec![
+                artifact_fields(
+                    reference,
+                    &descriptor,
+                    "Invalid scanner artifact descriptor",
+                )?
+                .into(),
+            ],
         });
-        loop {
-            let outcome = if data.observation.report.syntax_complete
-                && descriptor.completeness == ArtifactCompleteness::Complete
-            {
-                Outcome::Passed {
-                    error_code: (),
-                    error_message: (),
-                    data: data.clone(),
-                }
-            } else {
-                Outcome::Blocked {
-                    error_code: Code::SyntaxIncomplete,
-                    error_message: "Syntax evidence is partial; no complete scan claimed",
-                    data: Some(data.clone()),
-                }
-            };
-            let result = self.contract.encode(Output {
-                outcome,
+        encode_bounded(
+            &self.contract,
+            data,
+            duration_ms,
+            "Scanner serialization failed",
+            |data, duration_ms| Output {
+                outcome: if data.observation.report.syntax_complete
+                    && descriptor.completeness == ArtifactCompleteness::Complete
+                {
+                    Outcome::Passed {
+                        error_code: (),
+                        error_message: (),
+                        data: data.clone(),
+                    }
+                } else {
+                    Outcome::Blocked {
+                        error_code: Code::SyntaxIncomplete,
+                        error_message: "Syntax evidence is partial; no complete scan claimed",
+                        data: Some(data.clone()),
+                    }
+                },
                 summary: "Syntactic unsafe and extern evidence; no inference of memory safety",
                 duration_ms,
-            })?;
-            if serde_json::to_vec(&result)
-                .map_err(|_| ErrorData::internal_error("Scanner serialization failed", None))?
-                .len()
-                <= 512 * 1024
-            {
-                return Ok(result);
-            }
-            if data.observation.report.findings.pop().is_none() {
-                return self.blocked(
-                    Code::OutputLimitExceeded,
-                    "Scanner response exceeds its fixed budget",
-                    None,
-                    duration_ms,
-                );
-            }
-            data.observation.report.findings_omitted += 1;
-            data.observation.report.syntax_complete = false;
-        }
-    }
-}
-fn joined_result<T>(joined: Joined<T, SecurityError>) -> Result<T, SecurityError> {
-    match (joined.result, joined.interrupted) {
-        (
-            Err(SecurityError::Inspection(
-                InspectionError::Project(ProjectError::Cancelled)
-                | InspectionError::Execution(ExecutionError::Cancelled),
-            )),
-            Some(WorkerError::TimedOut),
-        ) => Err(SecurityError::Timeout),
-        (Err(error), _) => Err(error),
-        (Ok(result), None) => Ok(result),
-        (Ok(_), Some(WorkerError::TimedOut)) => Err(SecurityError::Timeout),
-        (Ok(_), Some(WorkerError::Cancelled)) => Err(ProjectError::Cancelled.into()),
-        _ => Err(SecurityError::Inspection(InspectionError::Internal)),
+            },
+            |data| {
+                if data.observation.report.findings.pop().is_none() {
+                    return false;
+                }
+                data.observation.report.findings_omitted += 1;
+                data.observation.report.syntax_complete = false;
+                true
+            },
+            |duration_ms| Output {
+                outcome: Outcome::Blocked {
+                    error_code: Code::OutputLimitExceeded,
+                    error_message: "Scanner response exceeds its fixed budget",
+                    data: None,
+                },
+                summary: "Scanner response exceeds its fixed budget",
+                duration_ms,
+            },
+        )
     }
 }
 #[cfg(test)]
 mod tests {
+    use super::super::security_tool::assert_common_error_contract;
     use super::*;
+    #[test]
+    fn call_boundary_covers_task_gate_and_missing_runtime() -> Result<(), Box<dyn std::error::Error>>
+    {
+        let runtime = tokio::runtime::Builder::new_current_thread()
+            .enable_time()
+            .build()?;
+        runtime.block_on(async {
+            let tool = UnsafeTool::new()?;
+            let base = serde_json::from_str::<serde_json::Value>(
+                r#"{"project_ref":"prj_00000000000000000000000000000001"}"#,
+            )?;
+            let arguments = base.as_object().cloned().ok_or("arguments")?;
+            let required = tool
+                .call_with_token(
+                    CallToolRequestParams::new("rust.unsafe.scan")
+                        .with_arguments(arguments.clone()),
+                    tokio_util::sync::CancellationToken::new(),
+                )
+                .await?;
+            assert_eq!(
+                required.structured_content.ok_or("content")?["error_code"],
+                "TASKS_REQUIRED"
+            );
+            let mut synchronous = arguments;
+            synchronous.insert("execution_mode".into(), serde_json::json!("synchronous"));
+            synchronous.insert("timeout_seconds".into(), serde_json::json!(60));
+            let error = tool
+                .call_with_token(
+                    CallToolRequestParams::new("rust.unsafe.scan").with_arguments(synchronous),
+                    tokio_util::sync::CancellationToken::new(),
+                )
+                .await
+                .err()
+                .ok_or("runtime must be required")?;
+            assert_eq!(error.message, "Scanner runtime is not configured");
+            Ok::<_, Box<dyn std::error::Error>>(())
+        })
+    }
+    #[test]
+    fn operational_errors_have_closed_status_and_codes() -> Result<(), Box<dyn std::error::Error>> {
+        assert_common_error_contract!(UnsafeTool::new()?, error);
+        Ok(())
+    }
+    fn observation(
+        report: rust_engineering_domain::unsafe_scan::UnsafeScanReport,
+    ) -> Result<UnsafeObservation, Box<dyn std::error::Error>> {
+        use super::super::security_tool::test_fixtures as fixture;
+        Ok(UnsafeObservation {
+            report,
+            source_fingerprint: fixture::source_fingerprint('4')?,
+            vendor_fingerprint: fixture::source_fingerprint('5')?,
+            vendor_archive_fingerprint: fixture::source_fingerprint('6')?,
+            metadata_fingerprint: fixture::source_fingerprint('7')?,
+            manifest_fingerprint: fixture::source_fingerprint('8')?,
+            runtime: fixture::runtime()?,
+            execution_fingerprint: fixture::execution_fingerprint('3')?,
+        })
+    }
+
+    #[test]
+    fn result_encoding_distinguishes_complete_and_partial_syntax()
+    -> Result<(), Box<dyn std::error::Error>> {
+        use super::super::security_tool::test_fixtures as fixture;
+        use rust_engineering_domain::unsafe_scan::{UnsafeCoverage, UnsafeScanReport};
+        let tool = UnsafeTool::new()?;
+        let reference = fixture::project_ref()?;
+        let complete = UnsafeScanReport {
+            coverage: UnsafeCoverage {
+                files_total: 1,
+                files_selected: 1,
+                files_parsed: 1,
+                workspace_files: 1,
+                ..Default::default()
+            },
+            findings: Vec::new(),
+            findings_total: 0,
+            findings_omitted: 0,
+            syntax_complete: true,
+            cfg_evaluated: false,
+            macros_expanded: false,
+            generated_sources_scanned: false,
+        };
+        let partial = UnsafeScanReport {
+            coverage: UnsafeCoverage {
+                files_total: 1,
+                files_selected: 1,
+                files_timed_out: 1,
+                workspace_files: 1,
+                ..Default::default()
+            },
+            findings: Vec::new(),
+            findings_total: 0,
+            findings_omitted: 0,
+            syntax_complete: false,
+            cfg_evaluated: false,
+            macros_expanded: false,
+            generated_sources_scanned: false,
+        };
+        for (report, completeness, expected) in [
+            (complete, ArtifactCompleteness::Complete, "passed"),
+            (partial, ArtifactCompleteness::Partial, "blocked"),
+        ] {
+            let encoded = tool.encode_result(
+                &reference,
+                PublishedUnsafe {
+                    observation: observation(report)?,
+                    artifact: fixture::artifact(completeness)?,
+                },
+                7,
+            )?;
+            assert_eq!(
+                encoded.structured_content.ok_or("content")?["status"],
+                expected
+            );
+        }
+        Ok(())
+    }
+
     #[test]
     fn closed_scanner_input_rejects_expansion_paths_and_free_flags()
     -> Result<(), Box<dyn std::error::Error>> {

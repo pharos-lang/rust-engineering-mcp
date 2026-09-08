@@ -5,47 +5,41 @@ use super::{
     HostCargoVendorConfig,
     auditing::provider::{AuditProvider, HostAuditConfig},
     clock::WallClock,
-    contract::{Contract, ToolOutput},
-    nextest::{ExecutionModeDto, ExecutionSelection, select_execution_mode},
     project::Registry,
     quality_artifacts::DurableSecurityPublisher,
-    workers::{Joined, WorkerError, Workers},
+    security_tool::{
+        CommonFailure, SynchronousSelection, artifact_fields, capture_vendor, classify_error,
+        define_security_artifact, define_security_input, define_security_output,
+        define_security_tool, encode_bounded, load_policy, run_joined_security,
+        synchronous_selection,
+    },
+    workers::Workers,
 };
 use rmcp::{
-    model::{CallToolRequestParams, CallToolResult, ErrorData, Tool, ToolAnnotations},
+    model::{CallToolRequestParams, CallToolResult, ErrorData},
     service::{RequestContext, RoleServer},
 };
-use rust_engineering_application::job::JobPermit;
+use rust_engineering_application::InspectionError;
 use rust_engineering_application::security::{PublishedSecurity, SecurityError, SecurityPorts};
-use rust_engineering_application::{ExecutionError, InspectionError, ProjectError};
 use rust_engineering_domain::security::*;
 use rust_engineering_domain::{
-    AuditDataError, AuditObservation, Clock, ExecutionTermination, OperationalErrorCode,
-    ProjectRef, RuntimeIdentity, SourceFingerprint, ToolStatus,
+    AuditObservation, ExecutionTermination, ProjectRef, RuntimeIdentity, SourceFingerprint,
+    ToolStatus,
 };
 use rust_engineering_execution::RustProjectInspector;
 use schemars::JsonSchema;
-use serde::{Deserialize, Serialize};
+use serde::Serialize;
 use std::{
     path::PathBuf,
     sync::{
         Arc, Mutex,
         atomic::{AtomicBool, Ordering},
     },
-    time::{Duration, Instant},
 };
 
 pub(super) const NAME: &str = "rust.deny";
-// The advertised candidate is qualified by the source-bound M4 gate and client receipts.
-const ADVERTISEMENT_READY: bool = true;
 pub(super) fn advertised() -> bool {
-    #[cfg(feature = "test-hooks")]
-    if std::env::var_os("RUST_MCP_TEST_SECURITY_READY").as_deref()
-        == Some(std::ffi::OsStr::new("1"))
-    {
-        return true;
-    }
-    ADVERTISEMENT_READY
+    super::security_tool::advertised("RUST_MCP_TEST_SECURITY_READY")
 }
 
 #[derive(Clone)]
@@ -53,20 +47,7 @@ pub struct HostSecurityConfig {
     pub path: PathBuf,
     pub fingerprint: SourceFingerprint,
 }
-#[derive(Clone, Deserialize, JsonSchema)]
-#[serde(deny_unknown_fields)]
-struct Input {
-    #[schemars(with = "String", regex(pattern = "^prj_[0-9a-f]{32}$"))]
-    project_ref: ProjectRef,
-    #[serde(default = "default_timeout")]
-    #[schemars(range(min = 1, max = 120))]
-    timeout_seconds: u64,
-    #[serde(default)]
-    execution_mode: ExecutionModeDto,
-}
-fn default_timeout() -> u64 {
-    DENY_DEFAULT_TIMEOUT_SECONDS
-}
+define_security_input!(DENY_DEFAULT_TIMEOUT_SECONDS, 120);
 #[derive(Clone, Serialize, JsonSchema)]
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
 enum Code {
@@ -112,34 +93,14 @@ enum Outcome {
         data: (),
     },
 }
-#[derive(Clone, Serialize, JsonSchema)]
-#[serde(deny_unknown_fields)]
-struct Output {
-    #[serde(flatten)]
-    outcome: Outcome,
-    summary: &'static str,
-    duration_ms: u64,
-}
-impl ToolOutput for Output {
-    fn status(&self) -> ToolStatus {
-        match self.outcome {
-            Outcome::Passed { .. } => ToolStatus::Passed,
-            Outcome::Failed { .. } => ToolStatus::Failed,
-            Outcome::Blocked { .. } => ToolStatus::Blocked,
-            Outcome::Unavailable { .. } => ToolStatus::Unavailable,
-            Outcome::Cancelled { .. } => ToolStatus::Cancelled,
-        }
-    }
-}
-#[derive(Clone, Serialize, JsonSchema)]
-#[serde(deny_unknown_fields)]
-struct Artifact {
-    uri: String,
-    sha256: String,
-    size_bytes: u64,
-    #[schemars(with = "schemas::ArtifactCompleteness")]
-    completeness: rust_engineering_domain::ArtifactCompleteness,
-}
+define_security_output!(
+    Outcome::Passed { .. } => ToolStatus::Passed,
+    Outcome::Failed { .. } => ToolStatus::Failed,
+    Outcome::Blocked { .. } => ToolStatus::Blocked,
+    Outcome::Unavailable { .. } => ToolStatus::Unavailable,
+    Outcome::Cancelled { .. } => ToolStatus::Cancelled,
+);
+define_security_artifact!("schemas::ArtifactCompleteness");
 #[derive(Clone, Serialize, JsonSchema)]
 #[serde(deny_unknown_fields)]
 struct Coverage {
@@ -239,11 +200,6 @@ struct Data {
     artifacts: Vec<Artifact>,
 }
 
-pub(super) struct DenyTool {
-    pub(super) definition: Tool,
-    contract: Contract<Input, Output>,
-    runtime: Option<Runtime>,
-}
 pub(super) struct Runtime {
     pub(super) registry: Arc<Mutex<Registry>>,
     pub(super) workers: Workers,
@@ -254,26 +210,23 @@ pub(super) struct Runtime {
     pub(super) audit: Option<HostAuditConfig>,
     pub(super) publisher: Option<DurableSecurityPublisher>,
 }
+define_security_tool!(
+    DenyTool,
+    "Evaluate a captured workspace with the existing RustSec audit and pinned cargo-deny licenses, bans and sources. Requires host-authenticated policy, offline vendor, approved runtime and durable evidence. Declared license strings are not license-text evidence. Findings retain exact suppressions; incomplete or stale input never passes. Auto or synchronous is supported with timeout_seconds at most 60; longer calls require negotiated MCP Tasks. The work budget excludes joined cleanup."
+);
 impl DenyTool {
-    pub(super) fn new() -> Result<Self, ErrorData> {
-        let contract = Contract::<Input, Output>::new()?;
-        let definition=Tool::new(NAME,"Evaluate a captured workspace with the existing RustSec audit and pinned cargo-deny licenses, bans and sources. Requires host-authenticated policy, offline vendor, approved runtime and durable evidence. Declared license strings are not license-text evidence. Findings retain exact suppressions; incomplete or stale input never passes. Auto or synchronous is supported with timeout_seconds at most 60; longer calls require negotiated MCP Tasks. The work budget excludes joined cleanup.",(*contract.input_schema).clone())
-            .with_raw_output_schema(Arc::clone(&contract.output_schema))
-            .with_annotations(ToolAnnotations::new().read_only(true).destructive(false).idempotent(false).open_world(false));
-        Ok(Self {
-            definition,
-            contract,
-            runtime: None,
-        })
-    }
-    pub(super) fn with_runtime(mut self, runtime: Runtime) -> Self {
-        self.runtime = Some(runtime);
-        self
-    }
     pub(super) async fn call(
         &self,
         request: CallToolRequestParams,
         context: RequestContext<RoleServer>,
+    ) -> Result<CallToolResult, ErrorData> {
+        self.call_with_token(request, context.ct).await
+    }
+
+    async fn call_with_token(
+        &self,
+        request: CallToolRequestParams,
+        request_token: tokio_util::sync::CancellationToken,
     ) -> Result<CallToolResult, ErrorData> {
         let input = self.contract.decode(request.arguments)?;
         let options = DenyOptions::try_from(DenySelection {
@@ -281,21 +234,15 @@ impl DenyTool {
         })
         .map_err(|_| ErrorData::invalid_params("Invalid tool arguments", None))?;
         // The operation budget is bounded independently from mandatory joined cleanup.
-        match select_execution_mode(
-            input.execution_mode.into(),
-            false,
+        match synchronous_selection(
+            input.execution_mode,
             input.timeout_seconds <= 60,
+            "Tasks are not enabled for deny",
         )? {
-            ExecutionSelection::Task => {
-                return Err(ErrorData::internal_error(
-                    "Tasks are not enabled for deny",
-                    None,
-                ));
-            }
-            ExecutionSelection::TasksRequired => {
+            SynchronousSelection::TasksRequired => {
                 return self.blocked(Code::TasksRequired, "Deny requires MCP Tasks", None, 0);
             }
-            ExecutionSelection::Synchronous => {}
+            SynchronousSelection::Run => {}
         }
         let runtime = self
             .runtime
@@ -330,62 +277,37 @@ impl DenyTool {
                 0,
             );
         };
-        let started = Instant::now();
-        let permit = runtime
-            .workers
-            .admit_job()
-            .map_err(|_| ErrorData::internal_error("Security worker unavailable", None))?;
         let registry = Arc::clone(&runtime.registry);
         let inspector = Arc::clone(&runtime.inspector);
         let auditor = AuditProvider(runtime.audit.clone());
         let reference = input.project_ref.clone();
-        let joined = runtime
-            .workers
-            .run_joined_with(
-                Arc::clone(&permit),
-                context.ct,
-                started + Duration::from_secs(options.timeout_seconds()),
-                move |control| {
-                    let bytes =
-                        rust_engineering_project::read_host_snapshot(&policy_config.path, control)?;
-                    let policy = rust_engineering_execution::parse_security_policy(
-                        &bytes,
-                        &policy_config.fingerprint,
-                        WallClock.now().0,
-                    )
-                    .map_err(|_| SecurityError::InvalidPolicy)?;
-                    let vendor = rust_engineering_project::capture_with_expected(
-                        &vendor_config.directory,
-                        &vendor_config.fingerprint,
+        let (result, duration) = run_joined_security(
+            &runtime.workers,
+            request_token,
+            options.timeout_seconds(),
+            "Security worker unavailable",
+            move |control| {
+                let policy = load_policy(&policy_config, control)?;
+                let vendor = capture_vendor(&vendor_config, control)?;
+                registry
+                    .lock()
+                    .map_err(|_| SecurityError::Inspection(InspectionError::Internal))?
+                    .deny_durable(
+                        &reference,
+                        &vendor,
+                        &policy,
+                        &options,
+                        SecurityPorts {
+                            executor: inspector.as_ref(),
+                            auditor: &auditor,
+                        },
+                        &mut publisher,
+                        &WallClock,
                         control,
-                    )?;
-                    registry
-                        .lock()
-                        .map_err(|_| SecurityError::Inspection(InspectionError::Internal))?
-                        .deny_durable(
-                            &reference,
-                            &vendor,
-                            &policy,
-                            &options,
-                            SecurityPorts {
-                                executor: inspector.as_ref(),
-                                auditor: &auditor,
-                            },
-                            &mut publisher,
-                            &WallClock,
-                            control,
-                        )
-                },
-            )
-            .await;
-        permit.release_after_cleanup();
-        let duration = started.elapsed().as_millis().try_into().unwrap_or(u64::MAX);
-        let result = match joined {
-            Ok(value) => joined_result(value),
-            Err(WorkerError::Cancelled) => Err(ProjectError::Cancelled.into()),
-            Err(WorkerError::TimedOut) => Err(SecurityError::Timeout),
-            Err(_) => Err(SecurityError::Inspection(InspectionError::Internal)),
-        };
+                    )
+            },
+        )
+        .await?;
         match result {
             Ok(result) => self.encode_result(&input.project_ref, result, duration),
             Err(error) => self.encode_error(error, duration),
@@ -429,11 +351,8 @@ impl DenyTool {
         error: SecurityError,
         duration_ms: u64,
     ) -> Result<CallToolResult, ErrorData> {
-        use SecurityError as E;
-        let (code, message) = match error {
-            E::Inspection(InspectionError::Project(ProjectError::Cancelled))
-            | E::Inspection(InspectionError::Execution(ExecutionError::Cancelled))
-            | E::Audit(AuditDataError::Cancelled) => {
+        let (code, message) = match classify_error(error) {
+            CommonFailure::Cancelled => {
                 return self.contract.encode(Output {
                     outcome: Outcome::Cancelled {
                         error_code: (),
@@ -444,50 +363,42 @@ impl DenyTool {
                     duration_ms,
                 });
             }
-            E::Inspection(InspectionError::Execution(ExecutionError::Unavailable)) => {
+            CommonFailure::ToolNotInstalled => {
                 return self.unavailable(
                     Code::ToolNotInstalled,
                     "Approved security runtime is unavailable",
                     duration_ms,
                 );
             }
-            E::InvalidPolicy => (
+            CommonFailure::Specific(SecurityError::InvalidPolicy) => (
                 Code::SecurityPolicyInvalid,
                 "Security policy is invalid, expired or overridden by project exceptions",
             ),
-            E::MissingOfflineData => (
+            CommonFailure::MissingOfflineData => (
                 Code::MissingOfflineData,
                 "Offline dependency source is missing or invalid",
             ),
-            E::Timeout
-            | E::Audit(AuditDataError::Timeout)
-            | E::Inspection(InspectionError::Project(ProjectError::Rejected(
-                OperationalErrorCode::CommandTimeout,
-            ))) => (
+            CommonFailure::Timeout => (
                 Code::CommandTimeout,
                 "Security analysis exceeded its deadline",
             ),
-            E::OutputLimit
-            | E::Audit(AuditDataError::Budget)
-            | E::Inspection(InspectionError::OutputLimit) => (
+            CommonFailure::OutputLimit => (
                 Code::OutputLimitExceeded,
                 "Security evidence exceeded its fixed budget",
             ),
-            E::Inspection(InspectionError::Project(ProjectError::Rejected(
-                OperationalErrorCode::ProjectNotFound,
-            ))) => (
+            CommonFailure::ProjectNotFound => (
                 Code::ProjectNotFound,
                 "Project authority is missing or expired",
             ),
-            E::Audit(_) => (
+            CommonFailure::Specific(SecurityError::Audit(_)) => (
                 Code::AuditSnapshotInvalid,
                 "RustSec snapshot could not be validated",
             ),
-            E::Inspection(InspectionError::Execution(_)) => (
+            CommonFailure::SandboxDenied => (
                 Code::SandboxDenied,
                 "Approved security execution could not be established",
             ),
-            _ => (
+            CommonFailure::Specific(_) => (
                 Code::InvalidProject,
                 "Security evidence could not be completed",
             ),
@@ -503,9 +414,7 @@ impl DenyTool {
         let observation = result.observation;
         let deny = observation.deny;
         let descriptor = result.artifact;
-        descriptor
-            .validate()
-            .map_err(|_| ErrorData::internal_error("Invalid security artifact", None))?;
+        let artifact = artifact_fields(reference, &descriptor, "Invalid security artifact")?;
         let artifact_complete =
             descriptor.completeness == rust_engineering_domain::ArtifactCompleteness::Complete;
         let data = Box::new(Data {
@@ -547,16 +456,7 @@ impl DenyTool {
             runtime: deny.runtime,
             execution_fingerprint: deny.execution_fingerprint.to_string(),
             assessed_at_utc_seconds: observation.assessed_at.0,
-            artifacts: vec![Artifact {
-                uri: format!(
-                    "rust-quality-artifact://{reference}/{}?offset=0&length={}",
-                    descriptor.artifact_id,
-                    descriptor.size_bytes.min(320 * 1024)
-                ),
-                sha256: super::resources::hex(&descriptor.sha256),
-                size_bytes: descriptor.size_bytes,
-                completeness: descriptor.completeness,
-            }],
+            artifacts: vec![artifact.into()],
         });
         let execution_complete =
             deny.termination == ExecutionTermination::Exited && artifact_complete;
@@ -564,84 +464,120 @@ impl DenyTool {
     }
     fn encode_bounded(
         &self,
-        mut data: Box<Data>,
+        data: Box<Data>,
         execution_complete: bool,
         duration_ms: u64,
     ) -> Result<CallToolResult, ErrorData> {
-        loop {
-            let outcome = if data.completeness != SecurityCompleteness::Complete
-                || !execution_complete
-                || data.policy_state == SecurityPolicyState::Undetermined
-            {
-                Outcome::Blocked {
-                    error_code: Code::SecurityIncomplete,
-                    error_message: "Security evidence is partial; no passing verdict",
-                    data: Some(data.clone()),
+        encode_bounded(
+            &self.contract,
+            data,
+            duration_ms,
+            "Security serialization failed",
+            |data, duration_ms| Output {
+                outcome: if data.completeness != SecurityCompleteness::Complete
+                    || !execution_complete
+                    || data.policy_state == SecurityPolicyState::Undetermined
+                {
+                    Outcome::Blocked {
+                        error_code: Code::SecurityIncomplete,
+                        error_message: "Security evidence is partial; no passing verdict",
+                        data: Some(data.clone()),
+                    }
+                } else if data.policy_state == SecurityPolicyState::Violated {
+                    Outcome::Failed {
+                        error_code: (),
+                        error_message: (),
+                        data: data.clone(),
+                    }
+                } else {
+                    Outcome::Passed {
+                        error_code: (),
+                        error_message: (),
+                        data: data.clone(),
+                    }
+                },
+                summary: "Security policy evaluated against captured sources and latest-known advisory data",
+                duration_ms,
+            },
+            |data| {
+                if data.findings.pop().is_none() {
+                    return false;
                 }
-            } else if data.policy_state == SecurityPolicyState::Violated {
-                Outcome::Failed {
-                    error_code: (),
-                    error_message: (),
-                    data: data.clone(),
+                data.findings_omitted = data.findings_omitted.saturating_add(1);
+                data.completeness = SecurityCompleteness::Partial;
+                if data.policy_state != SecurityPolicyState::Violated {
+                    data.policy_state = SecurityPolicyState::Undetermined;
                 }
-            } else {
-                Outcome::Passed {
-                    error_code: (),
-                    error_message: (),
-                    data: data.clone(),
-                }
-            };
-            let result=self.contract.encode(Output{outcome,summary:"Security policy evaluated against captured sources and latest-known advisory data",duration_ms})?;
-            if serde_json::to_vec(&result)
-                .map_err(|_| ErrorData::internal_error("Security serialization failed", None))?
-                .len()
-                <= 512 * 1024
-            {
-                return Ok(result);
-            }
-            if data.findings.pop().is_none() {
-                return self.blocked(
-                    Code::OutputLimitExceeded,
-                    "Security response exceeds its fixed budget",
-                    None,
-                    duration_ms,
-                );
-            }
-            data.findings_omitted = data.findings_omitted.saturating_add(1);
-            data.completeness = SecurityCompleteness::Partial;
-            if data.policy_state != SecurityPolicyState::Violated {
-                data.policy_state = SecurityPolicyState::Undetermined;
-            }
-        }
-    }
-}
-
-// Gateway cancellation uses a boolean, while the joined control retains whether
-// its work deadline expired. Preserve cleanup failures before refining that cause.
-fn joined_result<T>(joined: Joined<T, SecurityError>) -> Result<T, SecurityError> {
-    let cancelled = matches!(
-        joined.result,
-        Err(SecurityError::Inspection(InspectionError::Project(
-            ProjectError::Cancelled
-        ))) | Err(SecurityError::Inspection(InspectionError::Execution(
-            ExecutionError::Cancelled
-        ))) | Err(SecurityError::Audit(AuditDataError::Cancelled))
-    );
-    if cancelled && joined.interrupted == Some(WorkerError::TimedOut) {
-        return Err(SecurityError::Timeout);
-    }
-    match (joined.result, joined.interrupted) {
-        (Err(error), _) => Err(error),
-        (Ok(value), None) => Ok(value),
-        (Ok(_), Some(WorkerError::TimedOut)) => Err(SecurityError::Timeout),
-        (Ok(_), Some(WorkerError::Cancelled)) => Err(ProjectError::Cancelled.into()),
-        _ => Err(SecurityError::Inspection(InspectionError::Internal)),
+                true
+            },
+            |duration_ms| Output {
+                outcome: Outcome::Blocked {
+                    error_code: Code::OutputLimitExceeded,
+                    error_message: "Security response exceeds its fixed budget",
+                    data: None,
+                },
+                summary: "Security response exceeds its fixed budget",
+                duration_ms,
+            },
+        )
     }
 }
 
 #[cfg(test)]
 mod tests {
+    use super::super::{
+        security_tool::{assert_common_error_contract, joined_result},
+        workers::{Joined, WorkerError},
+    };
     use super::*;
+    use rust_engineering_application::{ExecutionError, ProjectError};
+    #[test]
+    fn call_boundary_covers_task_gate_and_missing_runtime() -> Result<(), Box<dyn std::error::Error>>
+    {
+        let runtime = tokio::runtime::Builder::new_current_thread()
+            .enable_time()
+            .build()?;
+        runtime.block_on(async {
+            let tool = DenyTool::new()?;
+            let base = serde_json::from_str::<serde_json::Value>(
+                r#"{"project_ref":"prj_00000000000000000000000000000001"}"#,
+            )?;
+            let arguments = base.as_object().cloned().ok_or("arguments")?;
+            let required = tool
+                .call_with_token(
+                    CallToolRequestParams::new("rust.deny").with_arguments(arguments.clone()),
+                    tokio_util::sync::CancellationToken::new(),
+                )
+                .await?;
+            assert_eq!(
+                required.structured_content.ok_or("content")?["error_code"],
+                "TASKS_REQUIRED"
+            );
+            let mut synchronous = arguments;
+            synchronous.insert("execution_mode".into(), serde_json::json!("synchronous"));
+            synchronous.insert("timeout_seconds".into(), serde_json::json!(60));
+            let error = tool
+                .call_with_token(
+                    CallToolRequestParams::new("rust.deny").with_arguments(synchronous),
+                    tokio_util::sync::CancellationToken::new(),
+                )
+                .await
+                .err()
+                .ok_or("runtime must be required")?;
+            assert_eq!(error.message, "Security runtime is not configured");
+            Ok::<_, Box<dyn std::error::Error>>(())
+        })
+    }
+    #[test]
+    fn operational_errors_have_closed_status_and_codes() -> Result<(), Box<dyn std::error::Error>> {
+        assert_common_error_contract!(
+            DenyTool::new()?,
+            encode_error,
+            SecurityError::InvalidPolicy => ("blocked", "SECURITY_POLICY_INVALID"),
+            SecurityError::Audit(rust_engineering_domain::AuditDataError::InvalidSnapshot) => ("blocked", "AUDIT_SNAPSHOT_INVALID"),
+        );
+        Ok(())
+    }
     #[test]
     fn audit_summary_preserves_rustsec_provenance_in_its_schema()
     -> Result<(), Box<dyn std::error::Error>> {
@@ -756,6 +692,23 @@ mod tests {
             }],
         });
         let tool = DenyTool::new()?;
+        let mut small = data.clone();
+        small.findings.clear();
+        small.completeness = SecurityCompleteness::Complete;
+        for (policy_state, execution_complete, expected) in [
+            (SecurityPolicyState::Satisfied, true, "passed"),
+            (SecurityPolicyState::Violated, true, "failed"),
+            (SecurityPolicyState::Undetermined, true, "blocked"),
+            (SecurityPolicyState::Satisfied, false, "blocked"),
+        ] {
+            let mut case = small.clone();
+            case.policy_state = policy_state;
+            let encoded = tool.encode_bounded(case, execution_complete, 1)?;
+            assert_eq!(
+                encoded.structured_content.ok_or("content")?["status"],
+                expected
+            );
+        }
         let result = tool.encode_bounded(data, true, 1)?;
         assert!(serde_json::to_vec(&result)?.len() <= 512 * 1024);
         let value = result.structured_content.ok_or("structured content")?;

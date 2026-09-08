@@ -20,8 +20,8 @@ las dependencias fijadas por `Cargo.lock`; el resultado se entrega como LCOV.
 Python usa Coverage.py 7.16.0 desde una wheel fijada por URL y SHA-256 y entrega
 Cobertura XML. `scripts/test-*.py` se clasifica como código de prueba; los demás
 scripts son fuentes medibles. El job ejecuta arquitectura, validación de reportes,
-gate reporting, artifact/smoke, calificador Codex y exportación pública: 79 tests
-Python en total. Los entrypoints que requieren un host release real permanecen
+gate reporting, artifact/smoke, calificador Codex, exportación pública y el
+resumen reproducible de presupuestos M4: 80 tests Python en total. Los entrypoints que requieren un host release real permanecen
 analizados por Sonar y probados por sus suites, pero se excluyen solo del porcentaje
 de cobertura; su evidencia end-to-end es separada y candidate-bound.
 
@@ -30,6 +30,12 @@ entero ni un comodín— y ninguno sale del análisis: siguen midiéndose fiabil
 seguridad, mantenibilidad y duplicación. Las exclusiones restantes son programas de operación/calificación, cuyo camino
 end-to-end necesita un host preparado; no se afirma que sus suites unitarias
 sean inejecutables. Cada grupo declara su evidencia adicional:
+
+Los cinco módulos `*_native.rs` de `execution-adapter` están declarados
+explícitamente como tests en `sonar.test.inclusions`: el compilador solo los incluye
+con `cfg(test)` y contienen los oráculos nativos de Docker, incluido el test Miri
+ignorado que ejecuta el gate M4. Esta clasificación evita contabilizar código de
+prueba como producto sin excluirlo del análisis.
 
 1. Programas de calificación maintainer-only: `scripts/codex-model-qualifier.py`,
    `scripts/release-artifact.py`, `scripts/release-smoke.py` y
@@ -43,10 +49,12 @@ sean inejecutables. Cada grupo declara su evidencia adicional:
    contenedores contra la imagen aprobada en un daemon local; el runner Ubuntu no
    tiene ni el socket ni la imagen. Recibos: los JSON `M2-*` que cada sonda emite
    y [`M3-rust-security.json`](validation/M3-rust-security.json).
-3. Cliente real: `scripts/m3-inspector-session.mjs`, que conduce una sesión MCP
-   contra un servidor con runtime/store nativos. Su evidencia está en
-   [`M3-runtime.json`](validation/M3-runtime.json) y
-   [`M3-full-gate.json`](validation/M3-full-gate.json).
+3. Clientes reales: `scripts/m3-inspector-session.mjs` y
+   `scripts/m4-inspector-session.mjs`, que conducen sesiones MCP contra un
+   servidor con runtime/store nativos. Su evidencia está en
+   [`M3-runtime.json`](validation/M3-runtime.json),
+   [`M3-full-gate.json`](validation/M3-full-gate.json) y
+   [`M4-clients.json`](validation/M4-clients.json).
 
 Ningún archivo Rust de producto está excluido del porcentaje de cobertura.
 Los caminos que solo ejecutan los gates nativos pueden reducir la cifra portable;
@@ -292,10 +300,12 @@ python3 -B scripts/gate.py full --report target/M4-full-gate.json
 Full exige un host macOS ARM64, propietario único del daemon Docker,
 `RUST_MCP_TEST_SOCKET`, `RUST_MCP_E5_DIR` y `ORT_LIB_LOCATION` explícitos. No
 instala ni actualiza inputs. El full M4 [aprobado](validation/M4-full-gate.json)
-conserva 27 pasos pasados y ejecuta los seis restantes mediante el runner original
-tras recuperar assets E5 locales exactos; [recuperación](validation/M4-e5-local-recovery.json)
-y [driver registrado](validation/M4-full-gate-resume-driver.py). No se presenta
-como éxito del primer intento monolítico. Core/full/clientes comparten 987 inputs.
+es una ejecución monolítica 33/33 posterior a la remediación del PR, sobre 990
+inputs y sin cambios de fuentes durante el gate. Los intentos anteriores y la
+recuperación local de E5 permanecen documentados en
+[recuperación](validation/M4-e5-local-recovery.json) y el
+[driver registrado](validation/M4-full-gate-resume-driver.py). El full y los
+clientes vigentes comparten los mismos 990 inputs; el core histórico conserva 987.
 
 Las etapas adicionales incluyen imagen alterada, inventario pasivo y
 `python3 -B scripts/test-m4-runtime.py`. Este último invoca 19 selecciones nativas
@@ -310,7 +320,7 @@ Las regresiones M3 conservan sus propios 62 casos e imagen. El
 G4 se ejecuta aparte mediante `python3 -B scripts/test-m4-clients.py --run`, con
 socket explícito y `RUST_MCP_M4_CODEX_SYNC_QUALIFIED=1` sustentado en el
 [presupuesto registrado](validation/M4-client-execution.json). Requiere los
-clientes previamente instalados: Inspector 2.5.0 y Codex 0.153.0; el intento 4
+clientes previamente instalados: Inspector 2.5.0 y Codex 0.153.0; el intento 5
 [pasó](validation/M4-clients.json). No almacena credenciales del cliente en el
 repositorio. El [handoff](validation/M4-handoff.md) distingue los resultados
 locales de CI/Sonar remotos, que no se ejecutaron para este checkout.

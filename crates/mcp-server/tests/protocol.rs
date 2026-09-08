@@ -46,15 +46,22 @@ impl Server {
             None => (Stdio::piped(), None),
         };
         // Test harness only; this never executes project-supplied programs.
-        let mut child = Command::new(env!("CARGO_BIN_EXE_rust-engineering-mcp"))
+        let mut command = Command::new(env!("CARGO_BIN_EXE_rust-engineering-mcp"));
+        command
             .args(["serve", "--stdio"])
             .args(args)
             .env_clear()
             .env("RUST_LOG", "trace")
             .stdin(Stdio::piped())
             .stdout(stdout_config)
-            .stderr(Stdio::piped())
-            .spawn()?;
+            .stderr(Stdio::piped());
+        // cargo-llvm-cov assigns a unique raw-profile pattern. Preserve only
+        // that instrumentation channel; the product process still receives no
+        // host PATH, credentials or ambient configuration.
+        if let Some(profile) = std::env::var_os("LLVM_PROFILE_FILE") {
+            command.env("LLVM_PROFILE_FILE", profile);
+        }
+        let mut child = command.spawn()?;
         let (out_tx, stdout) = mpsc::sync_channel(32);
         let (err_tx, stderr) = mpsc::sync_channel(1);
         let mut server = Self {

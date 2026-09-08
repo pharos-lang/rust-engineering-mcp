@@ -97,10 +97,10 @@ pub(super) struct MutationVolume {
     pub(super) status: Option<serde_json::Value>,
 }
 
-pub(super) fn labels(nonce: &str) -> BTreeMap<String, String> {
+pub(super) fn labels(operation_id: &str) -> BTreeMap<String, String> {
     BTreeMap::from([
         ("org.rust-mcp.execution".into(), "true".into()),
-        ("org.rust-mcp.rust-job".into(), nonce.into()),
+        ("org.rust-mcp.rust-job".into(), operation_id.into()),
     ])
 }
 
