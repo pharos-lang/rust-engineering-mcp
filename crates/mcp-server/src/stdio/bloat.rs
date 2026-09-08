@@ -58,9 +58,12 @@ use std::sync::{
 pub(super) const NAME: &str = "rust.binary.bloat";
 const DEFAULT_TIMEOUT_SECONDS: u64 = 120;
 /// The ranking is bounded, and the bound belongs to the product (ADR-076
-/// §5). It matches the analyzer parser's own row cap
-/// ([`BLOAT_MAX_ROWS`]): the 512 KiB response budget binds before this does.
-const MAX_RESPONSE_ROWS: usize = BLOAT_MAX_ROWS;
+/// §5). It is a ceiling, not a target: it is deliberately far above the
+/// analyzer parser's own row cap ([`BLOAT_MAX_ROWS`]), so the 512 KiB
+/// response budget — enforced row by row in [`trim_lowest_ranked_row`] — is
+/// what actually binds, not this cap.
+const MAX_RESPONSE_ROWS: usize = 4_096;
+const _: () = assert!(MAX_RESPONSE_ROWS > BLOAT_MAX_ROWS);
 
 pub(super) fn advertised() -> bool {
     super::security_tool::advertised("RUST_MCP_TEST_BLOAT_READY")
@@ -160,7 +163,9 @@ struct Data {
     project_ref: String,
     semantics: &'static str,
     observation: schemas::Observation,
-    #[schemars(length(min = 1, max = 1))]
+    /// At most one: the analyzer's JSON report, published only when the
+    /// analysis produced one. A build or analysis failure publishes none.
+    #[schemars(length(max = 1))]
     artifacts: Vec<Artifact>,
 }
 
@@ -199,8 +204,10 @@ impl BloatPublisher for DynPublisher<'_> {
         &mut self,
         capture: &rust_engineering_application::security::SecurityCapture,
         observation: &rust_engineering_application::bloat::BloatObservation,
-        revalidate: &mut dyn FnMut()
-        -> Result<rust_engineering_application::QualityOwnerFacts, InspectionError>,
+        revalidate: &mut dyn FnMut() -> Result<
+            rust_engineering_application::QualityOwnerFacts,
+            InspectionError,
+        >,
     ) -> Result<Vec<QualityArtifactDescriptor>, InspectionError> {
         self.0.publish_bloat(capture, observation, revalidate)
     }
@@ -312,7 +319,8 @@ impl BloatTool {
     fn error(&self, error: SecurityError, duration_ms: u64) -> Result<CallToolResult, ErrorData> {
         let (code, message) = match classify_error(error) {
             CommonFailure::Cancelled => {
-                return self.cancelled("Bloat analysis cancelled after joined cleanup", duration_ms);
+                return self
+                    .cancelled("Bloat analysis cancelled after joined cleanup", duration_ms);
             }
             CommonFailure::ToolNotInstalled => {
                 return self.unavailable(
@@ -321,10 +329,9 @@ impl BloatTool {
                     duration_ms,
                 );
             }
-            CommonFailure::Timeout => (
-                Code::CommandTimeout,
-                "Bloat analysis exceeded its deadline",
-            ),
+            CommonFailure::Timeout => {
+                (Code::CommandTimeout, "Bloat analysis exceeded its deadline")
+            }
             CommonFailure::MissingOfflineData => (
                 Code::MissingOfflineData,
                 "Offline dependency source is missing or invalid",
@@ -381,25 +388,7 @@ impl BloatTool {
                 summary: "Exact measured file size and cargo-bloat's estimated attribution",
                 duration_ms,
             },
-            |data| {
-                // The lowest-ranked function row leaves first; once none
-                // remain, the lowest-ranked crate row leaves. `measured`,
-                // `completeness` and `analyzer_version` are never touched.
-                let Some(attribution) = data.observation.attribution.as_mut() else {
-                    return false;
-                };
-                if attribution.functions.pop().is_some() {
-                    attribution.functions_omitted = attribution.functions_omitted.saturating_add(1);
-                    data.observation.complete = false;
-                    return true;
-                }
-                if attribution.crates.pop().is_some() {
-                    attribution.crates_omitted = attribution.crates_omitted.saturating_add(1);
-                    data.observation.complete = false;
-                    return true;
-                }
-                false
-            },
+            trim_lowest_ranked_row,
             |duration_ms| Output {
                 outcome: Outcome::Blocked {
                     error_code: Code::OutputLimitExceeded,
@@ -411,6 +400,29 @@ impl BloatTool {
             },
         )
     }
+}
+
+/// The lowest-ranked function row leaves first; once none remain, the
+/// lowest-ranked crate row leaves. `measured`, `completeness` and
+/// `analyzer_version` are never touched. Returns `false` once there is
+/// nothing left to drop — an absent `attribution`, or one whose `functions`
+/// and `crates` are both already empty — which is exactly the signal
+/// [`encode_bounded`] uses to fall back to its `exhausted` output.
+fn trim_lowest_ranked_row(data: &mut Data) -> bool {
+    let Some(attribution) = data.observation.attribution.as_mut() else {
+        return false;
+    };
+    if attribution.functions.pop().is_some() {
+        attribution.functions_omitted = attribution.functions_omitted.saturating_add(1);
+        data.observation.complete = false;
+        return true;
+    }
+    if attribution.crates.pop().is_some() {
+        attribution.crates_omitted = attribution.crates_omitted.saturating_add(1);
+        data.observation.complete = false;
+        return true;
+    }
+    false
 }
 
 fn outcome(data: &Data) -> Outcome {
@@ -536,19 +548,24 @@ fn observation(
             text_section_size_bytes: attribution.text_section_size_bytes,
             functions,
             crates,
-            functions_omitted: attribution.functions_omitted.saturating_add(extra_functions),
+            functions_omitted: attribution
+                .functions_omitted
+                .saturating_add(extra_functions),
             crates_omitted: attribution.crates_omitted.saturating_add(extra_crates),
         }
     });
-    let rows_complete = attribution
-        .as_ref()
-        .is_none_or(|attribution| attribution.functions_omitted == 0 && attribution.crates_omitted == 0);
-    let measured = value.measured.as_ref().map(|measured| schemas::MeasuredBinary {
-        size_bytes: measured.size_bytes,
-        sha256: measured.sha256.clone(),
-        format: format(measured.format),
-        analysis_build_symbols_forced: measured.analysis_build_symbols_forced,
+    let rows_complete = attribution.as_ref().is_none_or(|attribution| {
+        attribution.functions_omitted == 0 && attribution.crates_omitted == 0
     });
+    let measured = value
+        .measured
+        .as_ref()
+        .map(|measured| schemas::MeasuredBinary {
+            size_bytes: measured.size_bytes,
+            sha256: measured.sha256.clone(),
+            format: format(measured.format),
+            analysis_build_symbols_forced: measured.analysis_build_symbols_forced,
+        });
     let exit = exit(value.exit);
     let completeness = completeness(value.completeness);
     schemas::Observation {

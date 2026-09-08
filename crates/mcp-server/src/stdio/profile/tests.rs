@@ -32,7 +32,8 @@ pub(super) mod fixtures {
     ) -> TestResult<ProfileObservation> {
         use super::super::super::security_tool::test_fixtures as fixture;
         Ok(ProfileObservation {
-            options: ProfileOptions::new("workload".into(), 99, 10)?,
+            options: ProfileOptions::new("workload".into(), 99, 10)
+                .map_err(|error| format!("profile options: {error:?}"))?,
             backend: PROFILE_BACKEND,
             build,
             build_exit_code: Some(0),

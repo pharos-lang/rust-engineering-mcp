@@ -171,10 +171,10 @@ pub struct BloatAttribution {
     /// The analyzer's estimate of the `.text` section size.
     pub text_section_size_bytes: Option<u64>,
     /// The analyzer's per-function estimate, largest first.
-    #[schemars(length(max = 256))]
+    #[schemars(length(max = 4096))]
     pub functions: Vec<BloatFunction>,
     /// The analyzer's per-crate estimate, largest first.
-    #[schemars(length(max = 256))]
+    #[schemars(length(max = 4096))]
     pub crates: Vec<BloatCrate>,
     /// Function rows dropped from this response, either by the analyzer's own
     /// row cap or by this tool's response budget. The dropped rows were the

@@ -44,11 +44,55 @@ Con `--cap-drop=ALL`, `no-new-privileges`, `--network=none`, uid 65534 y
 
 | ID | Corte | Estado | Evidencia |
 | --- | --- | --- | --- |
-| M5-01 | `rust.benchmark.run` | In progress | — |
-| M5-02 | `rust.benchmark.compare` | In progress | — |
-| M5-03 | `rust.profile.flamegraph` | In progress | — |
-| M5-04 | `rust.binary.bloat` | In progress | — |
-| M5-05 | Cierre, clientes y gate conjunto | Not started | — |
+| M5-01 | `rust.benchmark.run` | **Blocked** para el positivo; negativos y controles calificados | [runtime](M5-01-runtime.json) · [bloqueo](M5-01-blocker.json) · [calibración](M5-01-benchmark-calibration.json) |
+| M5-02 | `rust.benchmark.compare` | Implementado y probado sobre datasets reales del guest | [calibración](M5-01-benchmark-calibration.json) · `criterion_dataset::real_guest_datasets` |
+| M5-03 | `rust.profile.flamegraph` | **Calificado nativamente** | [runtime](M5-03-runtime.json) · [positivo](M5-03-profiling-native.json) · [capability](M5-profiling-capability-probe.json) |
+| M5-04 | `rust.binary.bloat` | **Calificado nativamente** | [runtime](M5-04-runtime.json) · [calibración](M5-04-bloat-calibration.json) |
+| M5-05 | Cierre, clientes y gate conjunto | In progress | — |
+| — | Admisión de imagen | Calificada | [runtime](M5-00-admission-runtime.json) · [ADR-077](../adr/ADR-077-m5-runtime-admission.md) |
+
+### Selecciones nativas observadas
+
+Imagen `sha256:0e21c561488cb917e89e42943eb5138a7ddfd73d9de2f9cd4b9a0b516bdab820`.
+Recibo conjunto: [M5-runtime.json](M5-runtime.json).
+
+| Corte | Selección | Resultado |
+| --- | --- | --- |
+| M5-00 | `unqualified-image-refused` | passed |
+| M5-01 | `positive-run-count-1` | **blocked** (ver abajo) |
+| M5-01 | `pooled-run-count-2` | **blocked** (ver abajo) |
+| M5-01 | `unrecognised-harness` | passed; exit 0, sin dataset, `HarnessUnrecognized`, logs reportados |
+| M5-01 | `project-cargo-configuration-refused` | passed; rechazado antes de crear volumen, sin residuo |
+| M5-01 | `cancellation-mid-run` | passed; `cargo bench` observado vivo, cancelado, árbol unido, sin residuo |
+| M5-03 | `profile-positive` | passed |
+| M5-03 | `profile-cpus-sampled` | passed |
+| M5-03 | `zero-sample-control` | passed |
+| M5-03 | `cancellation-during-profiling` | passed |
+| M5-04 | `release-positive` | passed; tamaño medido == tamaño reportado |
+| M5-04 | `release-lto` | passed; binario estrictamente menor |
+| M5-04 | `missing-binary-target` | passed; fallo observado, no error de infraestructura |
+
+### M5-01 — condición de bloqueo reproducible
+
+`rust.benchmark.run` resuelve el harness offline desde un `CargoVendorSnapshot`
+autenticado por el host, igual que `rust.miri`. Un `SourceBundle` admite como
+máximo 4 096 entradas, 16 MiB en total y 1 MiB por archivo. El cierre de
+`criterion 0.8.2` para `aarch64-unknown-linux-gnu` son 52 paquetes, 6 014
+archivos, 779 directorios y 156 267 469 bytes, con cuatro archivos por encima
+del límite por archivo. Su subconjunto compilado ronda los 20 MiB, así que
+ninguna poda de archivos no compilados lo mete dentro del límite.
+
+**Los límites no se subieron.** Pertenecen al contrato de datos offline
+calificado en M2/M4 ([ADR-055](../adr/ADR-055-offline-cargo-data-and-lock-policy.md))
+y todos los flujos que comparten `SourceBundle` dependen de ellos; ampliarlos
+para poner en verde una prueba debilitaría una frontera de seguridad calificada
+sin decisión ni recalificación. Detalle y opciones para el owner en
+[M5-01-blocker.json](M5-01-blocker.json).
+
+Lo que **sí** queda demostrado del método: las tres capturas reales del guest
+en `fixtures/benchmark-datasets` se parsean y se comparan, con control de
+auto-comparación, regresión de dirección conocida y rechazo de `same_artifact`.
+El bloqueo es de ingesta del vendor, no del método de medición.
 
 ## Limitaciones declaradas hasta ahora
 

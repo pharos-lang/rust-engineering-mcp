@@ -12,11 +12,8 @@ pub(super) mod fixtures {
     use super::*;
 
     pub(in crate::stdio::bloat) fn options(profile: BloatProfile) -> TestResult<BloatOptions> {
-        Ok(BloatOptions::new(
-            "workload".into(),
-            Some("member".into()),
-            profile,
-        )?)
+        BloatOptions::new("workload".into(), Some("member".into()), profile)
+            .map_err(|error| format!("bloat options: {error:?}").into())
     }
 
     pub(in crate::stdio::bloat) fn measured(size_bytes: u64) -> MeasuredBinary {
@@ -81,9 +78,9 @@ pub(super) mod fixtures {
         completeness: ArtifactCompleteness,
     ) -> TestResult<QualityArtifactDescriptor> {
         use rust_engineering_domain::{
-            ArtifactPlugin, ArtifactRuntime, ArtifactSelection, ArtifactSensitivity, ArtifactSource,
-            GuestArtifactName, PayloadFormatVersion, PluginIdentity, QualityArtifactDraft,
-            QualityArtifactId, QualityJobId, QualityMimeType, UtcInstant,
+            ArtifactPlugin, ArtifactRuntime, ArtifactSelection, ArtifactSensitivity,
+            ArtifactSource, GuestArtifactName, PayloadFormatVersion, PluginIdentity,
+            QualityArtifactDraft, QualityArtifactId, QualityJobId, QualityMimeType, UtcInstant,
         };
         let created = UtcInstant::from_unix_seconds(1_788_000_000)?;
         Ok(QualityArtifactDraft {
