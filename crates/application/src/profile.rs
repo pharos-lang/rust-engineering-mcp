@@ -162,9 +162,7 @@ mod tests {
         source_fingerprint, vendor,
     };
     use rust_engineering_domain::profile::{ProfileBuildOutcome, ProfileChild, ProfileCounters};
-    use rust_engineering_domain::{
-        ExecutionTermination, QualityArtifactKind, SourceBundle, UnixSeconds,
-    };
+    use rust_engineering_domain::{ExecutionTermination, QualityArtifactKind, SourceBundle};
     use std::sync::Arc;
     use std::sync::atomic::{AtomicUsize, Ordering};
 
@@ -448,12 +446,5 @@ mod tests {
         );
         assert_eq!(harness.executed, 0);
         assert_eq!(harness.published, 0);
-    }
-
-    #[test]
-    fn the_capture_timestamp_comes_from_the_supplied_clock() {
-        // Guards the ordering: the clock is read during capture, before the port.
-        let clock = TestClock::at(1_788_000_000);
-        assert_eq!(Clock::now(&clock), UnixSeconds(1_788_000_000));
     }
 }

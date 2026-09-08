@@ -28,10 +28,9 @@ use std::thread::{self, JoinHandle};
 use std::time::{Duration, Instant};
 
 use rust_mcp_profile_helper::{
-    Arguments, EXIT_INTERNAL_FAILURE, EXIT_PROFILER_UNAVAILABLE, EXIT_SUCCESS, FoldedStacks,
-    Manifest, ModuleMap, ProfileStatus, Record, RunOutcome, SampleRecord, SymbolTable,
-    UNKNOWN_FRAME, classify_status, drain_ring, parse_elf_symbols, render_manifest, resolve_frame,
-    user_frames,
+    Arguments, EXIT_INTERNAL_FAILURE, EXIT_PROFILER_UNAVAILABLE, EXIT_SUCCESS, Manifest,
+    ProfileStatus, Record, RunOutcome, SampleTally, StackCollector, SymbolTable, clamp_cpu_count,
+    classify_status, drain_ring, merge_ring_records, parse_elf_symbols, render_manifest,
 };
 
 use crate::{UNSUPPORTED, report};
@@ -63,7 +62,6 @@ const ATTR_FREQ: u64 = 1 << 10;
 const PERF_EVENT_IOC_ENABLE: libc::c_long = 0x2400;
 const PERF_EVENT_IOC_DISABLE: libc::c_long = 0x2401;
 
-const ANY_CPU: libc::c_long = -1;
 const NO_GROUP: libc::c_long = -1;
 const NO_FLAGS: libc::c_long = 0;
 
@@ -118,6 +116,9 @@ const POLL_INTERVAL: Duration = Duration::from_millis(1);
 const CHILD_START_TIMEOUT: Duration = Duration::from_secs(10);
 const MAX_MODULE_BYTES: u64 = 512 * 1024 * 1024;
 const MAX_CACHED_MODULES: usize = 512;
+/// Bound on merge rounds per drain pass, so a busy child cannot keep the
+/// draining loop from returning to its own deadline checks.
+const MAX_DRAIN_ROUNDS: usize = 64;
 
 // -- entry point -------------------------------------------------------------
 
@@ -137,22 +138,24 @@ pub fn profile(arguments: &Arguments) -> i32 {
         return emit(arguments, "", &manifest, EXIT_INTERNAL_FAILURE);
     };
 
-    let fd = match open_perf_event(arguments.frequency_hz, child) {
-        Ok(fd) => fd,
+    let mut events = match open_events(arguments.frequency_hz, child) {
+        Ok(events) => events,
         Err(errno) => return abandon(arguments, spawner, child, errno),
     };
-    let ring = match map_ring(fd) {
-        Ok(ring) => ring,
+    // There is no group leader, so every event is enabled on its own. An event
+    // that refuses to arm is dropped, exactly like one that refused to open.
+    let mut enable_errno = libc::ENODEV;
+    events.retain(|event| match perf_ioctl(event.fd, PERF_EVENT_IOC_ENABLE) {
+        Ok(()) => true,
         Err(errno) => {
-            close_fd(fd);
-            return abandon(arguments, spawner, child, errno);
+            enable_errno = errno;
+            false
         }
-    };
-    if let Err(errno) = perf_ioctl(fd, PERF_EVENT_IOC_ENABLE) {
-        unmap_ring(&ring);
-        close_fd(fd);
-        return abandon(arguments, spawner, child, errno);
+    });
+    if events.is_empty() {
+        return abandon(arguments, spawner, child, enable_errno);
     }
+    let cpus_sampled = u32::try_from(events.len()).unwrap_or(u32::MAX);
 
     let started = Instant::now();
     signal_child(child, libc::SIGCONT);
@@ -172,8 +175,8 @@ pub fn profile(arguments: &Arguments) -> i32 {
     if !spawn_failed {
         let budget = Duration::from_millis(arguments.duration_ms);
         loop {
-            drain(&ring, &mut collector);
-            if collector.samples >= arguments.max_samples {
+            drain_all(&events, &mut collector);
+            if collector.tally().samples_collected >= arguments.max_samples {
                 outcome.sample_limit_reached = true;
                 break;
             }
@@ -192,46 +195,46 @@ pub fn profile(arguments: &Arguments) -> i32 {
         }
     }
 
-    let _ = perf_ioctl(fd, PERF_EVENT_IOC_DISABLE);
+    for event in &events {
+        let _ = perf_ioctl(event.fd, PERF_EVENT_IOC_DISABLE);
+    }
     if !reaped {
         signal_child(child, libc::SIGKILL);
         let (code, signal) = reap(child);
         child_exit_code = code;
         child_signal = signal;
     }
-    drain(&ring, &mut collector);
+    drain_all(&events, &mut collector);
     let observed = started.elapsed();
-    unmap_ring(&ring);
-    close_fd(fd);
+    // Dropping the events unmaps every ring and closes every descriptor.
+    drop(events);
 
-    outcome.samples_collected = collector.samples;
+    let tally = collector.tally();
+    outcome.samples_collected = tally.samples_collected;
     let manifest = Manifest {
         status: classify_status(&outcome),
         frequency_hz: arguments.frequency_hz,
         requested_duration_ms: arguments.duration_ms,
         observed_duration_ms: u64::try_from(observed.as_millis()).unwrap_or(u64::MAX),
-        samples_collected: collector.samples,
-        samples_lost: collector.lost,
-        stacks_written: u64::try_from(collector.folded.len()).unwrap_or(u64::MAX),
-        frames_total: collector.frames_total,
-        frames_unresolved: collector.frames_unresolved,
-        stacks_truncated: collector.stacks_truncated,
+        samples_collected: tally.samples_collected,
+        samples_lost: tally.samples_lost,
+        stacks_written: collector.stacks_written(),
+        frames_total: tally.frames_total,
+        frames_unresolved: tally.frames_unresolved,
+        stacks_truncated: tally.stacks_truncated,
         max_depth: arguments.max_depth,
-        modules_seen: collector.map.modules_seen(),
+        modules_seen: collector.modules_seen(),
+        cpus_sampled,
         child_exit_code,
         child_signal,
         perf_errno: None,
     };
-    emit(
-        arguments,
-        &collector.folded.render(),
-        &manifest,
-        EXIT_SUCCESS,
-    )
+    emit(arguments, &collector.render(), &manifest, EXIT_SUCCESS)
 }
 
-/// The `perf_event_open` (or ring buffer) refusal path: kill the stopped child,
-/// reap it, write an empty stacks file and a manifest carrying the errno.
+/// The refusal path, taken when no per-CPU event could be opened, mapped and
+/// armed: kill the stopped child, reap it, write an empty stacks file and a
+/// manifest carrying the errno and `cpus_sampled: 0`.
 fn abandon(
     arguments: &Arguments,
     spawner: JoinHandle<io::Result<Child>>,
@@ -241,7 +244,7 @@ fn abandon(
     signal_child(child, libc::SIGKILL);
     let spawned = matches!(spawner.join(), Ok(Ok(_)));
     let (code, signal) = if spawned { reap(child) } else { (None, None) };
-    report("profiler unavailable: perf_event_open was refused");
+    report("profiler unavailable: the kernel refused the performance events");
     let manifest = blank_manifest(
         arguments,
         ProfileStatus::ProfilerUnavailable,
@@ -272,6 +275,7 @@ fn blank_manifest(
         stacks_truncated: 0,
         max_depth: arguments.max_depth,
         modules_seen: 0,
+        cpus_sampled: 0,
         child_exit_code,
         child_signal,
         perf_errno,
@@ -428,9 +432,58 @@ fn build_attr(frequency_hz: u32) -> PerfEventAttr {
     }
 }
 
-/// `perf_event_open(&attr, child, -1, -1, 0)`. Only the helper's own child is
+/// One armed sampling event and the ring buffer it publishes into. Dropping it
+/// releases both, so every early return cleans up on its own.
+struct PerfEvent {
+    fd: libc::c_int,
+    ring: Ring,
+}
+
+impl Drop for PerfEvent {
+    fn drop(&mut self) {
+        unmap_ring(&self.ring);
+        close_fd(self.fd);
+    }
+}
+
+fn online_cpu_count() -> usize {
+    // SAFETY: `sysconf` takes a name and returns a long; no pointers involved.
+    let raw = unsafe { libc::sysconf(libc::_SC_NPROCESSORS_ONLN) };
+    clamp_cpu_count(raw)
+}
+
+/// Opens one inherited event, with its own ring buffer, per online CPU.
+///
+/// `inherit = 1` is what makes the profile follow the child's threads, but
+/// `perf_mmap` refuses an inherited event opened with `cpu == -1`: an inherited
+/// per-task event has no single ring buffer to map. The counter opens fine and
+/// only the `mmap` fails, with EINVAL. So the event is opened once per CPU with
+/// an explicit `cpu` index, each with its own ring, and the rings are merged on
+/// the way out.
+///
+/// A CPU whose event cannot be opened or mapped is skipped. As long as one
+/// event survives, the profile continues on the CPUs that worked and reports
+/// how many in `cpus_sampled`; only a total failure is `profiler_unavailable`.
+fn open_events(frequency_hz: u32, child: libc::pid_t) -> Result<Vec<PerfEvent>, i32> {
+    let cpus = online_cpu_count();
+    let mut events = Vec::with_capacity(cpus);
+    let mut last_errno = libc::ENODEV;
+    for cpu in 0..cpus {
+        let cpu = libc::c_long::try_from(cpu).unwrap_or(libc::c_long::MAX);
+        match open_event(frequency_hz, child, cpu) {
+            Ok(event) => events.push(event),
+            Err(errno) => last_errno = errno,
+        }
+    }
+    if events.is_empty() {
+        return Err(last_errno);
+    }
+    Ok(events)
+}
+
+/// `perf_event_open(&attr, child, cpu, -1, 0)`. Only the helper's own child is
 /// ever named here; no other pid and no cgroup is reachable from this call.
-fn open_perf_event(frequency_hz: u32, child: libc::pid_t) -> Result<libc::c_int, i32> {
+fn open_event(frequency_hz: u32, child: libc::pid_t, cpu: libc::c_long) -> Result<PerfEvent, i32> {
     let attr = build_attr(frequency_hz);
     // SAFETY: `attr` is a fully initialised `PerfEventAttr` whose `size` field
     // equals its real byte count, so the kernel copies exactly the bytes that
@@ -441,7 +494,7 @@ fn open_perf_event(frequency_hz: u32, child: libc::pid_t) -> Result<libc::c_int,
             libc::SYS_perf_event_open,
             ptr::from_ref(&attr).cast::<libc::c_void>(),
             libc::c_long::from(child),
-            ANY_CPU,
+            cpu,
             NO_GROUP,
             NO_FLAGS,
         )
@@ -449,7 +502,16 @@ fn open_perf_event(frequency_hz: u32, child: libc::pid_t) -> Result<libc::c_int,
     if result < 0 {
         return Err(last_errno());
     }
-    libc::c_int::try_from(result).map_err(|_| libc::EINVAL)
+    let Ok(fd) = libc::c_int::try_from(result) else {
+        return Err(libc::EINVAL);
+    };
+    match map_ring(fd) {
+        Ok(ring) => Ok(PerfEvent { fd, ring }),
+        Err(errno) => {
+            close_fd(fd);
+            Err(errno)
+        }
+    }
 }
 
 fn perf_ioctl(fd: libc::c_int, request: libc::c_long) -> Result<(), i32> {
@@ -547,111 +609,100 @@ fn metadata(ring: &Ring, offset: usize) -> &AtomicU64 {
     unsafe { &*ring.base.cast::<u8>().add(offset).cast::<AtomicU64>() }
 }
 
-/// Consumes everything the kernel has published, then republishes `data_tail`.
-fn drain(ring: &Ring, collector: &mut Collector) {
-    loop {
-        let head = metadata(ring, RING_DATA_HEAD).load(Ordering::Acquire);
-        let tail = metadata(ring, RING_DATA_TAIL).load(Ordering::Relaxed);
-        if head <= tail {
-            return;
-        }
-        // SAFETY: the data area is `data_size` bytes at `data_start` inside a
-        // mapping of `total` bytes that outlives this borrow. The kernel only
-        // appends at `data_head` and never rewrites the window below it that we
-        // have not yet released by publishing `data_tail`, so the bytes the
-        // decoder reads are stable for the duration of the borrow.
-        let data = unsafe {
-            std::slice::from_raw_parts(ring.base.cast::<u8>().add(ring.data_start), ring.data_size)
-        };
-        let drained = drain_ring(data, tail, head);
-        let progressed = drained.tail != tail;
-        for record in drained.records {
-            collector.consume(record);
-        }
+/// Consumes one pass over one ring and republishes its `data_tail`. Returns an
+/// empty vector when the window holds nothing but a partially written record,
+/// which is the signal that this ring has made no progress.
+fn drain_once(ring: &Ring) -> Vec<Record> {
+    let head = metadata(ring, RING_DATA_HEAD).load(Ordering::Acquire);
+    let tail = metadata(ring, RING_DATA_TAIL).load(Ordering::Relaxed);
+    if head <= tail {
+        return Vec::new();
+    }
+    // SAFETY: the data area is `data_size` bytes at `data_start` inside a
+    // mapping of `total` bytes that outlives this borrow. The kernel only
+    // appends at `data_head` and never rewrites the window below it that we
+    // have not yet released by publishing `data_tail`, so the bytes the
+    // decoder reads are stable for the duration of the borrow.
+    let data = unsafe {
+        std::slice::from_raw_parts(ring.base.cast::<u8>().add(ring.data_start), ring.data_size)
+    };
+    let drained = drain_ring(data, tail, head);
+    if drained.tail != tail {
         metadata(ring, RING_DATA_TAIL).store(drained.tail, Ordering::Release);
-        if !progressed || drained.tail >= head {
+    }
+    drained.records
+}
+
+/// Drains every per-CPU ring and feeds the merged record stream to one
+/// collector, so the counters and the folded stacks are totals over all CPUs.
+fn drain_all(events: &[PerfEvent], collector: &mut Collector) {
+    for _ in 0..MAX_DRAIN_ROUNDS {
+        let mut per_ring = Vec::with_capacity(events.len());
+        let mut drained_any = false;
+        for event in events {
+            let records = drain_once(&event.ring);
+            drained_any |= !records.is_empty();
+            per_ring.push(records);
+        }
+        if !drained_any {
             return;
+        }
+        for record in merge_ring_records(per_ring) {
+            collector.consume(record);
         }
     }
 }
 
 // -- sample collection -------------------------------------------------------
 
+/// The only part of collection that needs the filesystem: a cache of parsed
+/// ELF symbol tables, wrapped around the syscall-free [`StackCollector`] that
+/// does the module bookkeeping, folding and counting.
 struct Collector {
-    map: ModuleMap,
-    folded: FoldedStacks,
+    inner: StackCollector,
     tables: BTreeMap<String, Option<SymbolTable>>,
-    samples: u64,
-    lost: u64,
-    frames_total: u64,
-    frames_unresolved: u64,
-    stacks_truncated: u64,
-    max_depth: usize,
-    max_samples: u64,
 }
 
 impl Collector {
     fn new(arguments: &Arguments) -> Self {
         Self {
-            map: ModuleMap::new(),
-            folded: FoldedStacks::new(),
+            inner: StackCollector::new(
+                usize::try_from(arguments.max_depth).unwrap_or(1),
+                arguments.max_samples,
+            ),
             tables: BTreeMap::new(),
-            samples: 0,
-            lost: 0,
-            frames_total: 0,
-            frames_unresolved: 0,
-            stacks_truncated: 0,
-            max_depth: usize::try_from(arguments.max_depth).unwrap_or(1),
-            max_samples: arguments.max_samples,
         }
     }
 
     fn consume(&mut self, record: Record) {
-        match record {
-            Record::Mapping(mapping) => self.map.insert(mapping),
-            Record::Lost(lost) => self.lost = self.lost.saturating_add(lost),
-            Record::Sample(sample) => self.consume_sample(&sample),
-            Record::Ignored(_) => {}
-        }
+        let Self { inner, tables } = self;
+        inner.consume(record, |path, file_offset| {
+            if !tables.contains_key(path) && tables.len() >= MAX_CACHED_MODULES {
+                return None;
+            }
+            tables
+                .entry(path.to_owned())
+                .or_insert_with(|| load_symbol_table(path))
+                .as_ref()
+                .and_then(|table| table.resolve(file_offset))
+                .map(|symbol| symbol.to_vec())
+        });
     }
 
-    fn consume_sample(&mut self, sample: &SampleRecord) {
-        if self.samples >= self.max_samples {
-            return;
-        }
-        let stack = user_frames(sample, self.max_depth);
-        let mut names = Vec::with_capacity(stack.frames.len());
-        let mut unresolved: u64 = 0;
-        {
-            let map = &self.map;
-            let tables = &mut self.tables;
-            for &address in &stack.frames {
-                let name = resolve_frame(map, address, |path, file_offset| {
-                    if !tables.contains_key(path) && tables.len() >= MAX_CACHED_MODULES {
-                        return None;
-                    }
-                    tables
-                        .entry(path.to_owned())
-                        .or_insert_with(|| load_symbol_table(path))
-                        .as_ref()
-                        .and_then(|table| table.resolve(file_offset))
-                        .map(|symbol| symbol.to_vec())
-                });
-                if name == UNKNOWN_FRAME {
-                    unresolved = unresolved.saturating_add(1);
-                }
-                names.push(name);
-            }
-        }
-        self.samples = self.samples.saturating_add(1);
-        if stack.truncated {
-            self.stacks_truncated = self.stacks_truncated.saturating_add(1);
-        }
-        self.frames_total = self
-            .frames_total
-            .saturating_add(u64::try_from(names.len()).unwrap_or(0));
-        self.frames_unresolved = self.frames_unresolved.saturating_add(unresolved);
-        self.folded.record(&names, 1);
+    fn tally(&self) -> SampleTally {
+        self.inner.tally()
+    }
+
+    fn modules_seen(&self) -> u64 {
+        self.inner.modules_seen()
+    }
+
+    fn stacks_written(&self) -> u64 {
+        self.inner.stacks_written()
+    }
+
+    fn render(&self) -> String {
+        self.inner.folded().render()
     }
 }
 

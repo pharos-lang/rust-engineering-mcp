@@ -1,0 +1,102 @@
+{
+  "schema": "rust-engineering-mcp.m5-04-bloat-calibration.v1",
+  "captured_at_utc": "2026-09-08T22:11:33Z",
+  "image_id": "sha256:e9ecc40d023d9d13ac3539cccb6a944cd1022da2a8b3f86ca61356086b38a209",
+  "analyzer": {
+    "name": "cargo-bloat",
+    "version_reported": "0.12.1",
+    "invocation": "/opt/perf/bin/cargo-bloat bloat \u2026",
+    "binary_sha256": "e3eaea0d81679b8a14b8b435f54f00c0c952d4c4c5dc9a204fdbe42b3de7326a"
+  },
+  "fixture": "fixtures/bloat",
+  "containment": {
+    "user": "65534:65534",
+    "network": "none",
+    "cap_drop": "ALL",
+    "no_new_privileges": true,
+    "seccomp": "seccomp-rust-quality.json",
+    "source_mount": "read-only",
+    "cargo_flags": [
+      "--frozen"
+    ]
+  },
+  "cases": [
+    {
+      "case": "release/functions",
+      "exit": 0,
+      "reported_file_size": 4574312,
+      "text_section_size": 235268,
+      "rows": 634
+    },
+    {
+      "case": "release/crates",
+      "exit": 0,
+      "reported_file_size": 4574312,
+      "text_section_size": 235268,
+      "crates": {
+        "std": 224736,
+        "rust_mcp_bloat_fixture": 4280,
+        "bloat_inner": 4132,
+        "[Unknown]": 1848,
+        "__rustc": 20
+      }
+    },
+    {
+      "case": "release/independent-measurement",
+      "stat_size_bytes": 4574312,
+      "sha256": "c430c5508943557f0a53c83b1aed273de25fde919f46682887913fc13648ca86",
+      "readelf": [
+        "ELF64",
+        "AArch64",
+        "DYN (Position-Independent Executable file)"
+      ],
+      "matches_reported_file_size": true
+    },
+    {
+      "case": "release_lto via CARGO_PROFILE_RELEASE_LTO=fat",
+      "exit": 0,
+      "reported_file_size": 2150848,
+      "text_section_size": 217048,
+      "stat_size_bytes": 2150848,
+      "matches_reported_file_size": true,
+      "crates": {
+        "std": 204300,
+        "rust_mcp_bloat_fixture": 4912,
+        "bloat_inner": 4132,
+        "[Unknown]": 3200,
+        "__rustc": 212
+      }
+    },
+    {
+      "case": "--profile release-lto",
+      "exit": 1,
+      "supported": false,
+      "observed_error": "error in environment variable `CARGO_PROFILE_RELEASE`: could not load config key `profile.release` / Caused by: invalid type: Option value, expected a boolean or string",
+      "cause": "cargo-bloat 0.12.1 derives CARGO_PROFILE_<NAME>_STRIP from the profile name (src/main.rs:690-696); a profile literally named `release-lto` collides with Cargo's own `profile.release.lto` key"
+    },
+    {
+      "case": "CARGO_PROFILE_RELEASE_STRIP=symbols",
+      "exit": 0,
+      "reported_file_size": 4574312,
+      "stat_size_bytes": 4574312,
+      "strip_took_effect": false,
+      "cause": "the analyzer unconditionally pushes CARGO_PROFILE_<PROFILE>_STRIP=false because it needs symbols (src/main.rs:694-696)"
+    },
+    {
+      "case": "missing --bin target",
+      "exit": 1
+    }
+  ],
+  "calibrated_exits": {
+    "0": "passed",
+    "1": "analysis_failed"
+  },
+  "limitations": [
+    "The measured file is an ANALYSIS build: the analyzer forces strip off, so the binary is not byte-identical to what a project asking for stripping would ship. Recorded in the DTO as analysis_build_symbols_forced.",
+    "A stripped report is unreachable through this analyzer at all.",
+    "`--profile` is unusable with Cargo 1.98.1; LTO is expressed through a product-owned environment variable instead.",
+    "Only ELF64/AArch64 is exercised. Mach-O and PE are not qualified; WASM is unsupported by the analyzer.",
+    "Exit codes other than 0 and 1 remain uncalibrated."
+  ],
+  "status": "passed"
+}

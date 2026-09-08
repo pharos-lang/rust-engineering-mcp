@@ -121,6 +121,26 @@ Si el tamaño exacto medido por el producto y el `file-size` reportado por
 como si describiera ese archivo. WASM se rechaza porque el backend no lo soporta;
 Mach-O y PE no quedan calificados por el positivo ELF.
 
+**El archivo medido es un build de análisis.** La calibración en el guest
+([recibo](../validation/M5-04-bloat-calibration.json)) muestra que `cargo-bloat`
+0.12.1 empuja incondicionalmente `CARGO_PROFILE_<PERFIL>_STRIP=false` porque
+necesita la tabla de símbolos (`src/main.rs:694-696`); se comprobó que
+`CARGO_PROFILE_RELEASE_STRIP=symbols` no tiene efecto alguno sobre el archivo
+producido. El binario medido **no** es byte a byte el que enviaría un proyecto que
+pide stripping. El DTO lo declara en `analysis_build_symbols_forced`, siempre
+`true`, y un reporte de binario stripped es sencillamente inalcanzable con este
+analizador. El tamaño sigue siendo exacto *para ese archivo*; lo que no se afirma
+es que sea el artefacto distribuible del proyecto.
+
+`release_lto` **no** se pide con `--profile`. Un perfil llamado `release-lto` hace
+que el analizador derive la variable `CARGO_PROFILE_RELEASE_LTO`, que Cargo 1.98.1
+interpreta como `profile.release.lto` y rechaza con
+`invalid type: Option value, expected a boolean or string`; el fallo está
+registrado con su exit 1. Se expresa como `--release` más la variable de entorno
+propiedad del producto `CARGO_PROFILE_RELEASE_LTO=fat`, que es entorno cerrado y
+no un nombre de perfil suministrado por el peer. Ambos perfiles dejan el binario
+bajo `<target-dir>/release/`.
+
 ### 7. Presupuestos
 
 `run` 900 s, `profile` 300 s con 60 s de muestreo máximo, `compare` 30 s,

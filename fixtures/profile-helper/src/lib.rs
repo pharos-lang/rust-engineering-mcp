@@ -240,6 +240,22 @@ pub const MAX_DISTINCT_STACKS: usize = 250_000;
 /// Upper bound on records decoded in one [`drain_ring`] pass, so a single call
 /// cannot allocate without limit. The caller loops until the window is empty.
 pub const MAX_RECORDS_PER_PASS: usize = 16_384;
+/// Upper bound on the number of per-CPU events opened for one profile.
+pub const MAX_CPUS: usize = 256;
+
+/// Clamps a raw `sysconf(_SC_NPROCESSORS_ONLN)` result into the supported
+/// range. A failed or nonsensical answer degrades to a single CPU rather than
+/// aborting the profile, and an implausibly large one is capped.
+#[must_use]
+pub const fn clamp_cpu_count(raw: i64) -> usize {
+    if raw < 1 {
+        1
+    } else if raw > MAX_CPUS as i64 {
+        MAX_CPUS
+    } else {
+        raw as usize
+    }
+}
 
 /// An executable (or rejected data) mapping announced by `PERF_RECORD_MMAP`
 /// or `PERF_RECORD_MMAP2`.
@@ -379,6 +395,36 @@ pub fn drain_ring(data: &[u8], tail: u64, head: u64) -> RingDrain {
         tail: cursor,
         overrun: false,
     }
+}
+
+/// Merges the records drained from several per-CPU rings into one stream.
+///
+/// An inherited event cannot be opened with `cpu == -1` — `perf_mmap` refuses
+/// it, because an inherited per-task event has no single ring buffer to map —
+/// so a profile that follows the child's threads is assembled from one event
+/// and one ring per online CPU. The rings are independent, and a module can be
+/// announced on the ring of the CPU the task happened to be running on while a
+/// sample that needs it lands on another. Mapping records are therefore applied
+/// ahead of everything else in each pass; within each class every ring's own
+/// order is preserved and the rings are visited in ascending CPU order, so the
+/// merge is deterministic and loses no record.
+#[must_use]
+pub fn merge_ring_records(per_ring: Vec<Vec<Record>>) -> Vec<Record> {
+    let total = per_ring.iter().map(Vec::len).sum();
+    let mut mappings = Vec::new();
+    let mut rest = Vec::with_capacity(total);
+    for records in per_ring {
+        for record in records {
+            if matches!(record, Record::Mapping(_)) {
+                mappings.push(record);
+            } else {
+                rest.push(record);
+            }
+        }
+    }
+    mappings.reserve(rest.len());
+    mappings.append(&mut rest);
+    mappings
 }
 
 /// Copies `len` bytes starting at ring offset `offset` into `scratch`, joining
@@ -1042,6 +1088,115 @@ fn fold_key(frames_leaf_first: &[String]) -> String {
 }
 
 // ---------------------------------------------------------------------------
+// Record collection
+// ---------------------------------------------------------------------------
+
+/// The run counters the manifest reports. Every one is a total across all
+/// per-CPU rings, because every ring feeds the same collector.
+#[derive(Clone, Copy, Debug, Default, Eq, PartialEq)]
+pub struct SampleTally {
+    pub samples_collected: u64,
+    pub samples_lost: u64,
+    pub frames_total: u64,
+    pub frames_unresolved: u64,
+    pub stacks_truncated: u64,
+}
+
+/// Turns decoded ring-buffer records into a module map, a folded-stack
+/// aggregator and the run counters.
+///
+/// Symbolization is injected as a closure rather than performed here, so the
+/// whole pipeline is syscall-free and can be exercised on any host. Records
+/// from every per-CPU ring are fed to one collector, which is what makes the
+/// counters totals and the folded stacks a single merged profile.
+#[derive(Clone, Debug)]
+pub struct StackCollector {
+    map: ModuleMap,
+    folded: FoldedStacks,
+    tally: SampleTally,
+    max_depth: usize,
+    max_samples: u64,
+}
+
+impl StackCollector {
+    #[must_use]
+    pub fn new(max_depth: usize, max_samples: u64) -> Self {
+        Self {
+            map: ModuleMap::new(),
+            folded: FoldedStacks::new(),
+            tally: SampleTally::default(),
+            max_depth,
+            max_samples,
+        }
+    }
+
+    /// Applies one record. `lookup` receives a module's absolute path and a
+    /// mapping-relative file offset and returns the raw symbol name, if any.
+    pub fn consume<F>(&mut self, record: Record, lookup: F)
+    where
+        F: FnMut(&str, u64) -> Option<Vec<u8>>,
+    {
+        match record {
+            Record::Mapping(mapping) => self.map.insert(mapping),
+            Record::Lost(lost) => {
+                self.tally.samples_lost = self.tally.samples_lost.saturating_add(lost);
+            }
+            Record::Sample(sample) => self.consume_sample(&sample, lookup),
+            Record::Ignored(_) => {}
+        }
+    }
+
+    fn consume_sample<F>(&mut self, sample: &SampleRecord, mut lookup: F)
+    where
+        F: FnMut(&str, u64) -> Option<Vec<u8>>,
+    {
+        if self.tally.samples_collected >= self.max_samples {
+            return;
+        }
+        let stack = user_frames(sample, self.max_depth);
+        let mut names = Vec::with_capacity(stack.frames.len());
+        let mut unresolved: u64 = 0;
+        for &address in &stack.frames {
+            let name = resolve_frame(&self.map, address, &mut lookup);
+            if name == UNKNOWN_FRAME {
+                unresolved = unresolved.saturating_add(1);
+            }
+            names.push(name);
+        }
+        self.tally.samples_collected = self.tally.samples_collected.saturating_add(1);
+        if stack.truncated {
+            self.tally.stacks_truncated = self.tally.stacks_truncated.saturating_add(1);
+        }
+        self.tally.frames_total = self
+            .tally
+            .frames_total
+            .saturating_add(u64::try_from(names.len()).unwrap_or(0));
+        self.tally.frames_unresolved = self.tally.frames_unresolved.saturating_add(unresolved);
+        self.folded.record(&names, 1);
+    }
+
+    #[must_use]
+    pub const fn tally(&self) -> SampleTally {
+        self.tally
+    }
+
+    #[must_use]
+    pub const fn folded(&self) -> &FoldedStacks {
+        &self.folded
+    }
+
+    #[must_use]
+    pub fn modules_seen(&self) -> u64 {
+        self.map.modules_seen()
+    }
+
+    #[must_use]
+    pub fn stacks_written(&self) -> u64 {
+        u64::try_from(self.folded.len()).unwrap_or(u64::MAX)
+    }
+}
+
+// ---------------------------------------------------------------------------
 // Manifest
 // ---------------------------------------------------------------------------
 
@@ -1124,6 +1279,8 @@ pub struct Manifest {
     pub stacks_truncated: u64,
     pub max_depth: u32,
     pub modules_seen: u64,
+    /// Per-CPU events that actually opened, mapped and enabled.
+    pub cpus_sampled: u32,
     pub child_exit_code: Option<i32>,
     pub child_signal: Option<i32>,
     pub perf_errno: Option<i32>,
@@ -1162,6 +1319,8 @@ pub fn render_manifest(manifest: &Manifest) -> String {
     out.push_str(&manifest.max_depth.to_string());
     out.push_str(",\"modules_seen\":");
     out.push_str(&manifest.modules_seen.to_string());
+    out.push_str(",\"cpus_sampled\":");
+    out.push_str(&manifest.cpus_sampled.to_string());
     out.push_str(",\"child_exit_code\":");
     out.push_str(&optional_number(manifest.child_exit_code));
     out.push_str(",\"child_signal\":");
@@ -2043,6 +2202,199 @@ mod tests {
         assert_eq!(FoldedStacks::new().render(), "");
     }
 
+    // -- per-CPU rings ------------------------------------------------------
+
+    fn sample(ip: u64) -> Record {
+        Record::Sample(SampleRecord {
+            ip,
+            pid: 1,
+            tid: 1,
+            time: 0,
+            callchain: vec![PERF_CONTEXT_USER, ip],
+        })
+    }
+
+    fn map_record(addr: u64, name: &[u8]) -> Record {
+        Record::Mapping(mapping(addr, 0x1000, 0, name))
+    }
+
+    fn kinds(records: &[Record]) -> Vec<&'static str> {
+        records
+            .iter()
+            .map(|record| match record {
+                Record::Mapping(_) => "mapping",
+                Record::Lost(_) => "lost",
+                Record::Sample(_) => "sample",
+                Record::Ignored(_) => "ignored",
+            })
+            .collect()
+    }
+
+    #[test]
+    fn clamps_the_cpu_count_into_the_supported_range() {
+        // A failed or nonsensical sysconf degrades to one CPU.
+        assert_eq!(clamp_cpu_count(-1), 1);
+        assert_eq!(clamp_cpu_count(0), 1);
+        assert_eq!(clamp_cpu_count(i64::MIN), 1);
+        // Plausible answers pass through.
+        assert_eq!(clamp_cpu_count(1), 1);
+        assert_eq!(clamp_cpu_count(8), 8);
+        assert_eq!(clamp_cpu_count(MAX_CPUS as i64), MAX_CPUS);
+        // Implausible answers are capped, never trusted.
+        assert_eq!(clamp_cpu_count(MAX_CPUS as i64 + 1), MAX_CPUS);
+        assert_eq!(clamp_cpu_count(i64::MAX), MAX_CPUS);
+    }
+
+    #[test]
+    fn merging_rings_preserves_every_record_and_each_ring_order() {
+        let per_ring = vec![
+            vec![sample(0x10), Record::Lost(2), sample(0x11)],
+            vec![map_record(0x1_0000, b"/lib/one.so"), sample(0x20)],
+            vec![],
+            vec![Record::Lost(3), map_record(0x2_0000, b"/lib/two.so")],
+        ];
+        let flat: Vec<Record> = per_ring.iter().flatten().cloned().collect();
+        let merged = merge_ring_records(per_ring);
+
+        // Nothing is dropped and nothing is invented.
+        assert_eq!(merged.len(), flat.len());
+        for record in &flat {
+            assert!(merged.contains(record), "{record:?} was lost in the merge");
+        }
+
+        // Mappings are hoisted ahead of everything else, in ring order, so a
+        // module announced on one CPU's ring can symbolize a sample that
+        // landed on another.
+        assert_eq!(
+            kinds(&merged),
+            vec![
+                "mapping", "mapping", "sample", "lost", "sample", "sample", "lost"
+            ]
+        );
+        let Some(Record::Mapping(first)) = merged.first() else {
+            panic!("expected a mapping first");
+        };
+        assert_eq!(first.filename, b"/lib/one.so");
+
+        // Within each class every ring keeps its own order.
+        let samples: Vec<u64> = merged
+            .iter()
+            .filter_map(|record| match record {
+                Record::Sample(sample) => Some(sample.ip),
+                _ => None,
+            })
+            .collect();
+        assert_eq!(samples, vec![0x10, 0x11, 0x20]);
+    }
+
+    #[test]
+    fn merging_an_empty_set_of_rings_yields_nothing() {
+        assert!(merge_ring_records(Vec::new()).is_empty());
+        assert!(merge_ring_records(vec![Vec::new(), Vec::new()]).is_empty());
+    }
+
+    fn collect_all(
+        per_ring: Vec<Vec<Record>>,
+        max_depth: usize,
+        max_samples: u64,
+    ) -> StackCollector {
+        let mut collector = StackCollector::new(max_depth, max_samples);
+        for record in merge_ring_records(per_ring) {
+            collector.consume(record, |_, _| Some(b"frame".to_vec()));
+        }
+        collector
+    }
+
+    #[test]
+    fn counters_are_totals_across_every_ring() {
+        let collector = collect_all(
+            vec![
+                vec![sample(0x1_0010), Record::Lost(2), sample(0x1_0010)],
+                vec![map_record(0x1_0000, b"/lib/one.so"), sample(0x1_0020)],
+                vec![Record::Lost(3), Record::Lost(5), sample(0x9_0000)],
+            ],
+            16,
+            1000,
+        );
+        let tally = collector.tally();
+        // Four samples spread over three rings.
+        assert_eq!(tally.samples_collected, 4);
+        // 2 + 3 + 5, summed across rings rather than taken from one.
+        assert_eq!(tally.samples_lost, 10);
+        assert_eq!(tally.frames_total, 4);
+        // Only the 0x9_0000 sample falls outside every mapping.
+        assert_eq!(tally.frames_unresolved, 1);
+        assert_eq!(collector.modules_seen(), 1);
+        assert_eq!(collector.stacks_written(), 2);
+        assert_eq!(collector.folded().render(), "[unknown] 1\nframe 3\n");
+    }
+
+    #[test]
+    fn a_mapping_from_one_ring_symbolizes_a_sample_from_another() {
+        // The sample is drained from ring 0 and the module that explains it is
+        // announced on ring 1. Without the merge's mapping-first rule this
+        // frame would be `[unknown]`.
+        let collector = collect_all(
+            vec![
+                vec![sample(0x1_0010)],
+                vec![map_record(0x1_0000, b"/lib/one.so")],
+            ],
+            16,
+            1000,
+        );
+        assert_eq!(collector.tally().frames_unresolved, 0);
+        assert_eq!(collector.folded().render(), "frame 1\n");
+    }
+
+    #[test]
+    fn a_partial_open_still_profiles() {
+        // Four CPUs were attempted, two events opened. The profile is built
+        // from the rings that exist and the manifest says how many.
+        let opened = vec![
+            vec![map_record(0x1_0000, b"/lib/one.so"), sample(0x1_0010)],
+            vec![sample(0x1_0020), Record::Lost(1)],
+        ];
+        let collector = collect_all(opened, 16, 1000);
+        let tally = collector.tally();
+        assert_eq!(tally.samples_collected, 2);
+        assert_eq!(tally.samples_lost, 1);
+        assert_eq!(tally.frames_unresolved, 0);
+        assert_eq!(collector.folded().render(), "frame 2\n");
+
+        let mut partial = manifest();
+        partial.cpus_sampled = 2;
+        partial.samples_collected = tally.samples_collected;
+        assert!(render_manifest(&partial).contains("\"cpus_sampled\":2,"));
+    }
+
+    #[test]
+    fn the_sample_cap_applies_to_the_merged_stream() {
+        let collector = collect_all(
+            vec![
+                vec![sample(0x1_0010), sample(0x1_0010)],
+                vec![sample(0x1_0020), sample(0x1_0020)],
+            ],
+            16,
+            3,
+        );
+        assert_eq!(collector.tally().samples_collected, 3);
+    }
+
+    #[test]
+    fn truncation_is_counted_across_rings() {
+        let deep = Record::Sample(SampleRecord {
+            ip: 0x1_0010,
+            pid: 1,
+            tid: 1,
+            time: 0,
+            callchain: vec![PERF_CONTEXT_USER, 0x1_0010, 0x1_0020, 0x1_0030],
+        });
+        let collector = collect_all(vec![vec![deep.clone()], vec![deep]], 2, 1000);
+        let tally = collector.tally();
+        assert_eq!(tally.stacks_truncated, 2);
+        assert_eq!(tally.frames_total, 4);
+    }
+
     // -- manifest -----------------------------------------------------------
 
     fn manifest() -> Manifest {
@@ -2059,6 +2411,7 @@ mod tests {
             stacks_truncated: 3,
             max_depth: 128,
             modules_seen: 5,
+            cpus_sampled: 4,
             child_exit_code: Some(0),
             child_signal: None,
             perf_errno: None,
@@ -2083,6 +2436,7 @@ mod tests {
                 "\"stacks_truncated\":3,",
                 "\"max_depth\":128,",
                 "\"modules_seen\":5,",
+                "\"cpus_sampled\":4,",
                 "\"child_exit_code\":0,",
                 "\"child_signal\":null,",
                 "\"perf_errno\":null}\n",
@@ -2124,6 +2478,7 @@ mod tests {
             stacks_truncated: 0,
             max_depth: 128,
             modules_seen: 0,
+            cpus_sampled: 0,
             child_exit_code: None,
             child_signal: Some(9),
             perf_errno: Some(1),

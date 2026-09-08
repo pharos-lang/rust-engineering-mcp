@@ -19,6 +19,16 @@ pub enum BloatError {
 
 /// The two closed build profiles. `release_lto` exists so an LTO binary can be
 /// exercised; nothing else is selectable and no free profile name is accepted.
+///
+/// Neither is expressed with the analyzer's `--profile` flag. `cargo-bloat`
+/// 0.12.1 derives an environment key from the profile name, so `--profile
+/// release-lto` emits `CARGO_PROFILE_RELEASE_LTO`, which Cargo 1.98.1 reads as
+/// `profile.release.lto` and then rejects with
+/// `invalid type: Option value, expected a boolean or string`. The observed
+/// failure is recorded in `docs/validation/M5-04-bloat-calibration.json`.
+/// `release_lto` is therefore requested as `--release` plus the product-owned
+/// environment variable `CARGO_PROFILE_RELEASE_LTO=fat`, which is closed argv
+/// and closed environment, never a caller-supplied profile name.
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Serialize)]
 #[serde(rename_all = "snake_case")]
 pub enum BloatProfile {
@@ -104,6 +114,13 @@ pub struct MeasuredBinary {
     pub size_bytes: u64,
     pub sha256: String,
     pub format: BinaryFormat,
+    /// Always true, and serialized so no consumer can miss it: the analyzer
+    /// pushes `CARGO_PROFILE_<PROFILE>_STRIP=false` on every build because it
+    /// needs the symbol table (`cargo-bloat` 0.12.1, `src/main.rs:694-696`).
+    /// The measured file is therefore an **analysis build**. Its size is exact
+    /// for that file, and it is not the file a project that asks for stripping
+    /// would ship. A stripped report is unreachable through this analyzer.
+    pub analysis_build_symbols_forced: bool,
 }
 
 /// Estimated attribution. Every field here comes from the analyzer.
@@ -230,6 +247,7 @@ mod tests {
             size_bytes: size,
             sha256: format!("sha256:{}", "0".repeat(64)),
             format: BinaryFormat::Elf64Aarch64,
+            analysis_build_symbols_forced: true,
         }
     }
     fn observation(

@@ -275,12 +275,8 @@ fn collect(archive: &[u8]) -> Result<BTreeMap<String, DirectoryFiles>, Criterion
     let mut ended = false;
 
     while offset < archive.len() {
-        let end = offset
-            .checked_add(BLOCK)
-            .ok_or(CriterionError::Malformed)?;
-        let header = archive
-            .get(offset..end)
-            .ok_or(CriterionError::Malformed)?;
+        let end = offset.checked_add(BLOCK).ok_or(CriterionError::Malformed)?;
+        let header = archive.get(offset..end).ok_or(CriterionError::Malformed)?;
         if header.iter().all(|byte| *byte == 0) {
             // The terminator is two zero blocks; a blocking factor pads with
             // more. Anything non-zero after it is a member hidden past the end.
@@ -363,9 +359,7 @@ fn record(
     ) {
         return Ok(());
     }
-    if directories.len() >= MAX_CRITERION_BENCHMARKS
-        && !directories.contains_key(*directory_name)
-    {
+    if directories.len() >= MAX_CRITERION_BENCHMARKS && !directories.contains_key(*directory_name) {
         return Err(CriterionError::TooManyBenchmarks);
     }
     let entry = directories.entry((*directory_name).to_owned()).or_default();
@@ -399,7 +393,9 @@ fn raw_samples(sample: &SampleFile) -> Result<Vec<RawSample>, CriterionError> {
         if !total_ns.is_finite() || *total_ns <= 0.0 {
             return Err(CriterionError::InvalidSample);
         }
-        samples.push(RawSample::new(iterations, *total_ns).map_err(|_| CriterionError::InvalidSample)?);
+        samples.push(
+            RawSample::new(iterations, *total_ns).map_err(|_| CriterionError::InvalidSample)?,
+        );
     }
     Ok(samples)
 }
@@ -500,7 +496,10 @@ mod tests {
 
     fn octal_into(field: &mut [u8], value: usize) {
         let text = format!("{value:0width$o}", width = field.len() - 1);
-        assert!(text.len() < field.len(), "fixture value overflows its field");
+        assert!(
+            text.len() < field.len(),
+            "fixture value overflows its field"
+        );
         field[..text.len()].copy_from_slice(text.as_bytes());
     }
 
@@ -631,8 +630,7 @@ mod tests {
     }
 
     #[test]
-    fn ordering_is_a_function_of_the_full_id_not_of_member_order()
-    -> Result<(), CriterionError> {
+    fn ordering_is_a_function_of_the_full_id_not_of_member_order() -> Result<(), CriterionError> {
         let forward = parse_archive(&two_benchmarks(), 1, 1, 1)?;
         let alpha_sample = sample_json("Linear", "1.0, 2.0, 4.0", "100.0, 210.0, 440.0");
         let alpha_id = benchmark_json("alpha", "alpha/one", "alpha");
@@ -1032,8 +1030,7 @@ mod tests {
     }
 
     #[test]
-    fn base_report_and_planted_members_are_ignored_never_measured()
-    -> Result<(), CriterionError> {
+    fn base_report_and_planted_members_are_ignored_never_measured() -> Result<(), CriterionError> {
         let sample = sample_json("Linear", "1.0", "100.0");
         let identity = benchmark_json("alpha", "alpha/one", "alpha");
         // A `base/` tree from an earlier run, criterion's HTML report at both
@@ -1042,7 +1039,12 @@ mod tests {
         let mut output = Vec::new();
         push(&mut output, "alpha/", b"", b'5');
         push(&mut output, "alpha/new/", b"", b'5');
-        push(&mut output, "alpha/new/sample.json", sample.as_bytes(), b'0');
+        push(
+            &mut output,
+            "alpha/new/sample.json",
+            sample.as_bytes(),
+            b'0',
+        );
         push(
             &mut output,
             "alpha/new/benchmark.json",
@@ -1050,7 +1052,12 @@ mod tests {
             b'0',
         );
         push(&mut output, "alpha/new/planted.json", b"{}", b'0');
-        push(&mut output, "alpha/base/sample.json", sample.as_bytes(), b'0');
+        push(
+            &mut output,
+            "alpha/base/sample.json",
+            sample.as_bytes(),
+            b'0',
+        );
         push(
             &mut output,
             "alpha/base/benchmark.json",

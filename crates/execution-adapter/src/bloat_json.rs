@@ -129,8 +129,7 @@ fn document(bytes: &[u8]) -> Result<Document, BloatParseError> {
         return Err(BloatParseError::Empty);
     }
     let text = std::str::from_utf8(bytes).map_err(|_| BloatParseError::Malformed)?;
-    let document: Document =
-        serde_json::from_str(text).map_err(|_| BloatParseError::Malformed)?;
+    let document: Document = serde_json::from_str(text).map_err(|_| BloatParseError::Malformed)?;
     if document.text_section_size > document.file_size {
         return Err(BloatParseError::Malformed);
     }
@@ -410,7 +409,9 @@ mod tests {
 
     #[test]
     fn rows_cap_at_the_ceiling_keeping_the_largest() -> Result<(), BloatParseError> {
-        let names = (0..300).map(|index| format!("c{index:03}")).collect::<Vec<_>>();
+        let names = (0..300)
+            .map(|index| format!("c{index:03}"))
+            .collect::<Vec<_>>();
         let rows = names
             .iter()
             .enumerate()
@@ -420,10 +421,7 @@ mod tests {
         assert_eq!(report.crates.len(), BLOAT_MAX_ROWS);
         assert_eq!(report.omitted, 44);
         // The largest survive, the smallest are the ones dropped.
-        assert_eq!(
-            report.crates.first().map(|row| row.size_bytes),
-            Some(300)
-        );
+        assert_eq!(report.crates.first().map(|row| row.size_bytes), Some(300));
         assert_eq!(report.crates.last().map(|row| row.size_bytes), Some(45));
         assert!(report.crates.iter().all(|row| row.size_bytes >= 45));
         Ok(())

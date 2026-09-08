@@ -101,7 +101,10 @@ impl BenchmarkRunOptions {
         if package.as_deref().is_some_and(|name| !valid_name(name)) {
             return Err(BenchmarkOptionsError::InvalidPackage);
         }
-        if bench_target.as_deref().is_some_and(|name| !valid_name(name)) {
+        if bench_target
+            .as_deref()
+            .is_some_and(|name| !valid_name(name))
+        {
             return Err(BenchmarkOptionsError::InvalidBenchTarget);
         }
         if features.len() > BENCHMARK_MAX_FEATURES {
@@ -349,8 +352,11 @@ pub(crate) mod tests {
                 b"[package]\nname = \"member\"\nversion = \"0.1.0\"\nedition = \"2024\"\n".to_vec(),
             )
             .unwrap(),
-            SourceFile::new("src/lib.rs".into(), b"pub fn answer() -> u8 { 42 }\n".to_vec())
-                .unwrap(),
+            SourceFile::new(
+                "src/lib.rs".into(),
+                b"pub fn answer() -> u8 { 42 }\n".to_vec(),
+            )
+            .unwrap(),
         ])
         .unwrap()
     }
