@@ -112,3 +112,9 @@ pub mod unsafe_scan;
 pub mod supply_chain;
 
 pub mod quality_v2;
+
+pub mod benchmark;
+pub mod benchmark_compare;
+pub mod benchmark_run;
+pub mod bloat;
+pub mod profile;

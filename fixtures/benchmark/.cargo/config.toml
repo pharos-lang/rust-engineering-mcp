@@ -1,0 +1,15 @@
+# Offline directory source.
+#
+# `../criterion-vendor/vendor` is GENERATED and git-ignored. Run
+# `python3 -B fixtures/criterion-vendor/materialize.py` once before building
+# this fixture; it extracts the 52 committed `.crate` archives into that
+# directory after verifying every checksum.
+#
+# The guest ingests this fixture at a fixed absolute path and overrides
+# `directory` through its own CARGO_HOME config at ingest time; the relative
+# path below is what makes the fixture build on the host.
+[source.crates-io]
+replace-with = "vendored-sources"
+
+[source.vendored-sources]
+directory = "../criterion-vendor/vendor"

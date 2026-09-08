@@ -1,0 +1,7 @@
+# Frame pointers are forced so a sampling profiler can walk the stack by
+# following the frame-pointer chain, without needing `.eh_frame`/DWARF CFI. On
+# aarch64 the platform ABI already reserves x29, but the compiler is free to
+# omit the frame record in leaf and optimized frames; forcing it is what makes
+# `main;level_one;level_two;known_hot_frame` a stable, known shape.
+[build]
+rustflags = ["-C", "force-frame-pointers=yes"]

@@ -761,3 +761,6 @@ mod unsafe_native;
 
 mod quality_v2_log;
 pub use quality_v2_log::safe_gate_v2_log;
+
+mod profile_stacks;
+mod profile_svg;

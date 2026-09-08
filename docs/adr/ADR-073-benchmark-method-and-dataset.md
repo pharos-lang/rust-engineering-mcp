@@ -61,10 +61,16 @@ provenance de cada dataset:
 | warmup | 3 s | valor propuesto por el plan M5; queda fijado aquí |
 | muestras por benchmark | 30 mínimo (`--sample-size 30`) | mínimo del plan |
 | tiempo de medición | 5 s | acota el presupuesto de 900 s de spec §44 |
-| repeticiones independientes | 3 por candidato, orden alternado | plan M5 |
+| repeticiones independientes | 1..=3 por llamada, por defecto 3 | plan M5 |
 | unidad | nanosegundos por iteración | única unidad del dataset v1 |
 | plots | desactivados (`--noplot`) | no se distribuye plotters |
 | color | `never` | salida determinista |
+
+El orden de ejecución dentro de una repetición es el orden de declaración del
+harness y así se registra en el dataset. **La herramienta no alterna el orden y
+no lo afirma**: alternar baseline y candidate es un protocolo del operador, que
+la documentación describe, no un control que el producto implemente. Preferimos
+declarar el orden real a anunciar un control que no existe.
 
 `--sample-size`, `--warm-up-time` y `--measurement-time` se pasan como argv
 cerrado. El proyecto no puede alterarlos: un `criterion.toml` o un

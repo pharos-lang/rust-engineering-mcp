@@ -12,6 +12,7 @@ pub(crate) fn parse(mut args: impl Iterator<Item = OsString>) -> Option<stdio::H
         dependency_add_roots: Vec::new(),
         dependency_remove_roots: Vec::new(),
         cargo_vendor: None,
+        profiling: None,
         audit: None,
         security: None,
         catalog: None,
@@ -21,6 +22,7 @@ pub(crate) fn parse(mut args: impl Iterator<Item = OsString>) -> Option<stdio::H
     };
     let mut ttl_seen = false;
     let mut catalog_options: [Option<PathBuf>; 4] = std::array::from_fn(|_| None);
+    let mut profiling_grant = None;
     let mut vendor_path = None;
     let mut vendor_fingerprint = None;
     let mut security_path = None;
@@ -79,6 +81,13 @@ pub(crate) fn parse(mut args: impl Iterator<Item = OsString>) -> Option<stdio::H
                 return None;
             }
             catalog_options[index] = Some(path);
+        } else if flag == OsStr::new("--allow-profiling") && profiling_grant.is_none() {
+            // A single closed scope. An unknown value is a configuration error,
+            // never a silently narrower or wider grant.
+            if value != OsStr::new("user-space-sampling") {
+                return None;
+            }
+            profiling_grant = Some(stdio::ProfilingGrant::UserSpaceSampling);
         } else if flag == OsStr::new("--cargo-vendor-dir") && vendor_path.is_none() {
             let path = PathBuf::from(&value);
             if value.to_str().is_none() || !path.is_absolute() {
@@ -199,6 +208,13 @@ pub(crate) fn parse(mut args: impl Iterator<Item = OsString>) -> Option<stdio::H
             })
         }
         _ => return None,
+    };
+    // Profiling needs the qualified runtime: without the gateway there is no
+    // container to contain it, so the grant is refused rather than degraded.
+    config.profiling = match profiling_grant {
+        None => None,
+        Some(grant) if config.rust.is_some() => Some(stdio::HostProfilingConfig { grant }),
+        Some(_) => return None,
     };
     let has_writes = !config.manifest_write_roots.is_empty()
         || !config.fmt_write_roots.is_empty()

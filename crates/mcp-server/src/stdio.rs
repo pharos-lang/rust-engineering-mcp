@@ -91,6 +91,20 @@ fn server_capabilities(tasks_advertised: bool) -> ServerCapabilities {
     }
 }
 
+/// ADR-074: the host's positive, revocable profiling grant. There is exactly one
+/// admissible scope; the peer cannot request, widen or infer it.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum ProfilingGrant {
+    /// User-space sampling of the profiled child only: `exclude_kernel`,
+    /// `exclude_hv`, no added capability, no sysctl change.
+    UserSpaceSampling,
+}
+
+#[derive(Clone, Copy)]
+pub struct HostProfilingConfig {
+    pub grant: ProfilingGrant,
+}
+
 #[derive(Clone)]
 pub struct HostCargoVendorConfig {
     pub directory: PathBuf,
@@ -104,6 +118,7 @@ pub struct HostConfig {
     pub dependency_add_roots: Vec<PathBuf>,
     pub dependency_remove_roots: Vec<PathBuf>,
     pub cargo_vendor: Option<HostCargoVendorConfig>,
+    pub profiling: Option<HostProfilingConfig>,
     pub catalog: Option<HostCatalogConfig>,
     pub audit: Option<HostAuditConfig>,
     pub security: Option<HostSecurityConfig>,
