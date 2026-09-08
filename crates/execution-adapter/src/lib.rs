@@ -764,3 +764,6 @@ pub use quality_v2_log::safe_gate_v2_log;
 
 mod profile_stacks;
 mod profile_svg;
+
+mod bloat_json;
+mod criterion_dataset;

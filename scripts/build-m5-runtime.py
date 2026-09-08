@@ -1,0 +1,160 @@
+#!/usr/bin/env python3
+"""Build and receipt the M5 guest image. Verifies the base, never acquires inputs.
+
+The base is named by a local tag because BuildKit resolves a bare `FROM sha256:…`
+as a remote reference and Docker 29 removed the legacy builder. The digest
+guarantee is preserved here instead: the tag must resolve to the approved image
+id before anything is built, and the resolved id is recorded in the receipt.
+"""
+from __future__ import annotations
+
+import argparse
+import datetime
+import hashlib
+import json
+import os
+import pathlib
+import platform
+import subprocess
+import sys
+
+ROOT = pathlib.Path(__file__).resolve().parents[1]
+BASE_TAG = "rust-engineering-runtime:1.98.1-arm64-m4-scanner"
+BASE_IMAGE_ID = "sha256:25ed3626e710081a571a86a29521eaf2e890e796afd422ba5e409e0ce1891635"
+TARGET_TAG = "rust-engineering-runtime:1.98.1-arm64-m5"
+BINARIES = ("/opt/perf/bin/cargo-bloat", "/opt/perf/bin/rust-mcp-profile-helper")
+DOCKER = os.environ.get("RUST_MCP_DOCKER", "docker")
+BUILD_TIMEOUT_S = int(os.environ.get("RUST_MCP_M5_BUILD_TIMEOUT_S", "3600"))
+
+
+def utc_now() -> str:
+    return datetime.datetime.now(datetime.UTC).isoformat().replace("+00:00", "Z")
+
+
+def docker(*args: str, timeout: int = 120) -> str:
+    return subprocess.check_output(
+        [DOCKER, *args], cwd=ROOT, text=True, stderr=subprocess.PIPE, timeout=timeout
+    ).strip()
+
+
+def image_id(reference: str) -> str:
+    return docker("image", "inspect", "--format", "{{.Id}}", reference)
+
+
+def guest_capture(image: str, command: str) -> str:
+    """Read-only, network-free, unprivileged inspection of the built image."""
+    return docker(
+        "run", "--rm", "--pull=never", "--network=none", "--read-only",
+        "--cap-drop=ALL", "--security-opt=no-new-privileges=true",
+        "--user=65534:65534", "--entrypoint", "/bin/sh", image, "-c", command,
+    )
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--output", type=pathlib.Path,
+                        default=ROOT / "docs/validation/M5-provisioning.json")
+    parser.add_argument("--context", type=pathlib.Path,
+                        default=ROOT / "target/m5-provisioning")
+    arguments = parser.parse_args()
+
+    if sys.platform != "darwin" or platform.machine() != "arm64":
+        raise RuntimeError("the M5 image is provisioned only on macOS ARM64")
+
+    receipt: dict[str, object] = {
+        "schema": "rust-engineering-mcp.m5-provisioning.v1",
+        "started_at": utc_now(),
+        "authorization": "docs/roadmap/m5-provisioning-request.md",
+        "decision": "docs/adr/ADR-075-m5-runtime-provisioning.md",
+        "network_used": False,
+        "base_tag": BASE_TAG,
+        "base_image_id_expected": BASE_IMAGE_ID,
+    }
+
+    observed_base = image_id(BASE_TAG)
+    receipt["base_image_id_observed"] = observed_base
+    if observed_base != BASE_IMAGE_ID:
+        receipt["status"] = "failed"
+        receipt["error"] = "base tag does not resolve to the approved image id"
+        arguments.output.write_text(json.dumps(receipt, indent=2, sort_keys=True) + "\n")
+        raise RuntimeError(f"base image mismatch: {observed_base}")
+
+    prepare = subprocess.run(
+        [sys.executable, "-B", "fixtures/rust-runtime/m5/provision.py",
+         "--cargo-cache", str(pathlib.Path.home() / ".cargo/registry/cache"),
+         "--output", str(arguments.context)],
+        cwd=ROOT, text=True, capture_output=True, timeout=900, check=False,
+    )
+    if prepare.returncode != 0:
+        receipt["status"] = "failed"
+        receipt["error"] = "prepare failed"
+        receipt["prepare_stderr"] = prepare.stderr[-4000:]
+        arguments.output.write_text(json.dumps(receipt, indent=2, sort_keys=True) + "\n")
+        return 1
+    receipt["prepare"] = json.loads(prepare.stdout)
+
+    context = arguments.context / "build-context"
+    inputs = sorted(p for p in context.rglob("*") if p.is_file())
+    receipt["context_files"] = len(inputs)
+    receipt["context_bytes"] = sum(p.stat().st_size for p in inputs)
+    receipt["sha256sums_sha256"] = hashlib.sha256(
+        (context / "SHA256SUMS").read_bytes()
+    ).hexdigest()
+
+    build = subprocess.run(
+        [DOCKER, "build", "--network=none", "--pull=false",
+         "--build-arg", f"BASE_IMAGE={BASE_TAG}", "--tag", TARGET_TAG, str(context)],
+        cwd=ROOT, text=True, capture_output=True, timeout=BUILD_TIMEOUT_S, check=False,
+    )
+    receipt["build_exit_code"] = build.returncode
+    receipt["build_log_tail"] = build.stderr[-8000:] or build.stdout[-8000:]
+    if build.returncode != 0:
+        receipt["status"] = "failed"
+        arguments.output.write_text(json.dumps(receipt, indent=2, sort_keys=True) + "\n")
+        return 1
+
+    built = image_id(TARGET_TAG)
+    receipt["image_id"] = built
+    receipt["image_tag"] = TARGET_TAG
+
+    # The image must contain exactly the two new binaries and nothing else new
+    # on PATH; the recorded hashes are the ones the guest itself computed.
+    installed = json.loads(
+        guest_capture(built, "cat /usr/share/doc/rust-runtime/m5/installed.json")
+    )
+    receipt["installed"] = installed
+    receipt["binaries_present"] = guest_capture(
+        built, "for b in " + " ".join(BINARIES) + "; do [ -x $b ] && echo present || echo absent; done"
+    ).split()
+    receipt["not_on_path"] = guest_capture(
+        built,
+        "command -v cargo-bloat >/dev/null 2>&1 && echo on_path || echo off_path; "
+        "command -v rust-mcp-profile-helper >/dev/null 2>&1 && echo on_path || echo off_path",
+    ).split()
+    receipt["m4_binaries_intact"] = guest_capture(
+        built,
+        "for b in /opt/rust/bin/cargo /opt/rust/bin/rustc /opt/security/bin/cargo-deny "
+        "/opt/security/bin/rust-mcp-unsafe-helper; do [ -x $b ] && echo present || echo absent; done",
+    ).split()
+    receipt["toolchain"] = guest_capture(
+        built, "/opt/rust/bin/rustc --version && /opt/perf/bin/cargo-bloat --version 2>&1 | head -1"
+    ).splitlines()
+    receipt["build_context_removed"] = guest_capture(
+        built, "[ -e /opt/m5-input ] || [ -e /opt/m5-build ] && echo residue || echo clean"
+    )
+
+    ok = (
+        receipt["binaries_present"] == ["present", "present"]
+        and receipt["not_on_path"] == ["off_path", "off_path"]
+        and receipt["m4_binaries_intact"] == ["present"] * 4
+        and receipt["build_context_removed"] == "clean"
+    )
+    receipt["status"] = "passed" if ok else "failed"
+    receipt["finished_at"] = utc_now()
+    arguments.output.write_text(json.dumps(receipt, indent=2, sort_keys=True) + "\n")
+    print(json.dumps({"status": receipt["status"], "image_id": built}, sort_keys=True))
+    return 0 if ok else 1
+
+
+if __name__ == "__main__":
+    sys.exit(main())

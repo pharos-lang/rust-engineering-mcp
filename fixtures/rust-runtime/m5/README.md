@@ -17,14 +17,24 @@ ruta absoluta.
 ## Procedimiento
 
 ```sh
-python3 -B fixtures/rust-runtime/m5/provision.py \
-  --cargo-cache "$HOME/.cargo/registry/cache" \
-  --output target/m5-provisioning
-
-docker build --network=none \
-  --tag rust-engineering-runtime:1.98.1-arm64-m5 \
-  target/m5-provisioning/build-context
+python3 -B scripts/build-m5-runtime.py
 ```
+
+Ese script es el procedimiento completo y deja el recibo en
+`docs/validation/M5-provisioning.json`. Hace, en orden: comprobar que
+`rust-engineering-runtime:1.98.1-arm64-m4-scanner` resuelve exactamente a
+`sha256:25ed3626e710…` y abortar si no; preparar el contexto con `provision.py`;
+construir con `--network=none --pull=false`; y verificar sobre la imagen
+resultante que los dos binarios existen, que **ninguno** de los dos es alcanzable
+por `PATH`, que los binarios M3/M4 siguen presentes, y que el contexto de
+construcción no dejó residuos.
+
+La base se nombra por tag y no por digest en el `FROM` porque BuildKit resuelve
+un `FROM sha256:…` como referencia **remota** y falla con `DeadlineExceeded` bajo
+`--network=none`, y el builder clásico ya no funciona en Docker 29.7.2 (se queda
+colgado tras el aviso de deprecación). La garantía de digest no se pierde: se
+comprueba en el script inmediatamente antes de construir y el id observado queda
+en el recibo.
 
 `provision.py` **no accede a la red**. Toma cada archivo `.crate` de la caché
 local de Cargo y verifica su `sha256` contra el checksum que el propio Cargo
