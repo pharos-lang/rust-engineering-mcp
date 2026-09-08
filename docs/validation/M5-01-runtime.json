@@ -1,0 +1,161 @@
+{
+  "cut": "m5-01-benchmark",
+  "finished_utc": "2026-09-08T23:36:46Z",
+  "fixtures": {
+    "benchmark": {
+      "archive_sha256": "sha256:f55cb6fb7ff11708d1e3002b05065394bb1b9ec2d113eb8ffe2d3ea09268ca09",
+      "bytes": 23845,
+      "directories": 2,
+      "files": 6,
+      "tree_fingerprint": "sha256:ba2b45d629fadc27cb45c91766733dc19b1e64144402d55b639cb72c83fc82e8"
+    },
+    "bloat": {
+      "archive_sha256": "sha256:d93c1e9e05c0a4287ba39a95cd39af3c2add28816665d4d40dff4f6601f3c66d",
+      "bytes": 8938,
+      "directories": 3,
+      "files": 7,
+      "tree_fingerprint": "sha256:de4f7fd115fe74543f8613fa53633bd05aa8fbc1a3fea52e6cba035cd7fa5330"
+    },
+    "criterion_vendor": {
+      "bounds": {
+        "source_max_entries": 4096,
+        "source_max_file_bytes": 1048576,
+        "source_max_total_bytes": 16777216
+      },
+      "directories": 779,
+      "entries": 6793,
+      "files": 6014,
+      "files_over_source_max_file_bytes": [
+        "winapi-i686-pc-windows-gnu-0.4.0/lib/libwinapi_kernel32.a",
+        "winapi-i686-pc-windows-gnu-0.4.0/lib/libwinapi_ntdll.a",
+        "winapi-x86_64-pc-windows-gnu-0.4.0/lib/libwinapi_kernel32.a",
+        "winapi-x86_64-pc-windows-gnu-0.4.0/lib/libwinapi_ntdll.a"
+      ],
+      "fits_source_bundle_bounds": false,
+      "materialized": true,
+      "total_bytes": 156267469
+    }
+  },
+  "image_id": "sha256:0e21c561488cb917e89e42943eb5138a7ddfd73d9de2f9cd4b9a0b516bdab820",
+  "residue": {
+    "after": {
+      "containers": [],
+      "volumes": []
+    },
+    "before": {
+      "containers": [],
+      "volumes": []
+    }
+  },
+  "selections": [
+    {
+      "duration_ms": 0,
+      "observed": {
+        "reason": "criterion vendor closure exceeds SourceBundle bounds",
+        "run_count": 1,
+        "vendor": {
+          "bounds": {
+            "source_max_entries": 4096,
+            "source_max_file_bytes": 1048576,
+            "source_max_total_bytes": 16777216
+          },
+          "directories": 779,
+          "entries": 6793,
+          "files": 6014,
+          "files_over_source_max_file_bytes": [
+            "winapi-i686-pc-windows-gnu-0.4.0/lib/libwinapi_kernel32.a",
+            "winapi-i686-pc-windows-gnu-0.4.0/lib/libwinapi_ntdll.a",
+            "winapi-x86_64-pc-windows-gnu-0.4.0/lib/libwinapi_kernel32.a",
+            "winapi-x86_64-pc-windows-gnu-0.4.0/lib/libwinapi_ntdll.a"
+          ],
+          "fits_source_bundle_bounds": false,
+          "materialized": true,
+          "total_bytes": 156267469
+        }
+      },
+      "outcome": "blocked",
+      "selection": "positive-run-count-1"
+    },
+    {
+      "duration_ms": 0,
+      "observed": {
+        "reason": "criterion vendor closure exceeds SourceBundle bounds",
+        "run_count": 2,
+        "vendor": {
+          "bounds": {
+            "source_max_entries": 4096,
+            "source_max_file_bytes": 1048576,
+            "source_max_total_bytes": 16777216
+          },
+          "directories": 779,
+          "entries": 6793,
+          "files": 6014,
+          "files_over_source_max_file_bytes": [
+            "winapi-i686-pc-windows-gnu-0.4.0/lib/libwinapi_kernel32.a",
+            "winapi-i686-pc-windows-gnu-0.4.0/lib/libwinapi_ntdll.a",
+            "winapi-x86_64-pc-windows-gnu-0.4.0/lib/libwinapi_kernel32.a",
+            "winapi-x86_64-pc-windows-gnu-0.4.0/lib/libwinapi_ntdll.a"
+          ],
+          "fits_source_bundle_bounds": false,
+          "materialized": true,
+          "total_bytes": 156267469
+        }
+      },
+      "outcome": "blocked",
+      "selection": "pooled-run-count-2"
+    },
+    {
+      "duration_ms": 8050,
+      "observed": {
+        "execution_fingerprint": "sha256:6c858a8c8201f2349bc5f0129df55132ebbe2f8671f32494b1ca4d05019ecd96",
+        "exit": "Passed",
+        "exit_code": 0,
+        "harness": "Unrecognized",
+        "measurements": null,
+        "omission": "HarnessUnrecognized",
+        "runs_completed": 1,
+        "runs_requested": 1,
+        "stderr_bytes": 270,
+        "stdout_bytes": 235,
+        "termination": "Exited",
+        "vendor_fingerprint": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "outcome": "passed",
+      "selection": "unrecognised-harness"
+    },
+    {
+      "duration_ms": 475,
+      "observed": {
+        "gateway_error": "ProjectCargoConfiguration",
+        "residue_after": {
+          "containers": [],
+          "volumes": []
+        },
+        "residue_before": {
+          "containers": [],
+          "volumes": []
+        }
+      },
+      "outcome": "passed",
+      "selection": "project-cargo-configuration-refused"
+    },
+    {
+      "duration_ms": 14024,
+      "observed": {
+        "monitor": {
+          "inventory_failed": false,
+          "inventory_polls": 543,
+          "needle": "/opt/rust/bin/cargo bench",
+          "observed_running": true
+        },
+        "residue_after": {
+          "containers": [],
+          "volumes": []
+        }
+      },
+      "outcome": "passed",
+      "selection": "cancellation-mid-run"
+    }
+  ],
+  "started_utc": "2026-09-08T23:36:23Z"
+}

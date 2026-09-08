@@ -1,0 +1,54 @@
+{
+  "schema": "rust-engineering-mcp.m5-01-blocker.v1",
+  "cut": "M5-01 rust.benchmark.run",
+  "status": "blocked",
+  "condition": "The offline vendor contract cannot carry a Criterion closure.",
+  "reproduce": [
+    "python3 -B fixtures/criterion-vendor/materialize.py",
+    "RUST_MCP_TEST_SOCKET=<docker.sock> RUST_MCP_TEST_IMAGE=sha256:0e21c561488cb917e89e42943eb5138a7ddfd73d9de2f9cd4b9a0b516bdab820 cargo test -p rust-engineering-execution --lib --locked --offline -- --ignored --test-threads=1 m5_benchmark_run"
+  ],
+  "observed": {
+    "bounds": {
+      "source_max_entries": 4096,
+      "source_max_file_bytes": 1048576,
+      "source_max_total_bytes": 16777216
+    },
+    "directories": 779,
+    "entries": 6793,
+    "files": 6014,
+    "files_over_source_max_file_bytes": [
+      "winapi-i686-pc-windows-gnu-0.4.0/lib/libwinapi_kernel32.a",
+      "winapi-i686-pc-windows-gnu-0.4.0/lib/libwinapi_ntdll.a",
+      "winapi-x86_64-pc-windows-gnu-0.4.0/lib/libwinapi_kernel32.a",
+      "winapi-x86_64-pc-windows-gnu-0.4.0/lib/libwinapi_ntdll.a"
+    ],
+    "fits_source_bundle_bounds": false,
+    "materialized": true,
+    "total_bytes": 156267469
+  },
+  "why_it_blocks": [
+    "rust.benchmark.run resolves the harness offline from a host-authenticated CargoVendorSnapshot, exactly as rust.miri does.",
+    "A SourceBundle admits at most 4096 entries, 16 MiB in total and 1 MiB per file.",
+    "criterion 0.8.2's closure for aarch64-unknown-linux-gnu is 52 packages, 6014 files, 779 directories, about 156 MB extracted, with 4 files over the per-file bound. Its compiled subset alone is roughly 20 MiB.",
+    "No pruning of non-compiled files brings the closure inside the bound, so the positive cannot be reached through the product's own vendor path."
+  ],
+  "what_is_qualified_anyway": [
+    "unrecognised-harness: cargo bench runs, exit 0, no dataset, omission HarnessUnrecognized, logs reported",
+    "project-cargo-configuration-refused: refused before any volume exists, no residue",
+    "cancellation-mid-run: /opt/rust/bin/cargo bench observed running, cancelled, tree joined, no residue"
+  ],
+  "not_done": [
+    "The vendor bounds were NOT raised. They are part of the qualified M2/M4 offline-data contract (ADR-055) and every flow that shares SourceBundle depends on them; widening them to make one test pass would weaken a qualified security bound without a decision or a re-qualification.",
+    "No measurement was fabricated and no threshold was lowered."
+  ],
+  "options_for_the_owner": [
+    "Decide a separate offline-data path for large harness closures, with its own bounds, threat model and ADR, and re-qualify the flows that share SourceBundle.",
+    "Mount a host-authenticated vendor directory read-only instead of capturing it into a snapshot, which is a change to how the guest receives host data and needs its own security review.",
+    "Accept M5-01 as delivered-but-unqualified for the positive, with the three negative and control selections qualified as recorded."
+  ],
+  "evidence": [
+    "docs/validation/M5-01-runtime.json",
+    "docs/validation/M5-01-benchmark-calibration.json"
+  ],
+  "independent_of_this_blocker": "The measurement method itself IS qualified on real guest data: docs/validation/M5-01-benchmark-calibration.json records three criterion exports captured from this image, and crates/execution-adapter/src/criterion_dataset.rs parses and compares them, including a self-compare control and a known-direction regression."
+}

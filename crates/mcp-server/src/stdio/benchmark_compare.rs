@@ -356,7 +356,7 @@ impl ComparisonTool {
             "Comparison serialization failed",
             |data, duration_ms| Output {
                 outcome: comparison_outcome(data),
-                summary: "Observed difference between two measurements; no cause is attributed",
+                summary: "Observed difference between two measurements under the frozen method",
                 duration_ms,
             },
             |data| {

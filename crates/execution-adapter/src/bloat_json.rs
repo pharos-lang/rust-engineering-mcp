@@ -105,14 +105,23 @@ struct Document {
     crates: Option<Vec<CrateRow>>,
 }
 
+/// `crate` is a keyword; the wire key is not. It is also **optional**: the
+/// pinned analyzer omits it entirely for a symbol it cannot attribute to a
+/// crate — 81 of 634 rows in the real fixture report, e.g.
+/// `{"name":"__init_cpu_features_constructor","size":604}`. A missing key is
+/// therefore the analyzer's own unattributed bucket, named exactly as its
+/// per-crate view names it, and never a parse failure.
 #[derive(Deserialize)]
 struct FunctionRow {
-    // `crate` is a keyword; the wire key is not.
     #[serde(rename = "crate")]
-    crate_name: String,
+    crate_name: Option<String>,
     name: String,
     size: u64,
 }
+
+/// The spelling the analyzer itself uses for an unattributed crate in its
+/// per-crate view. Reusing it keeps the two views consistent.
+const UNATTRIBUTED_CRATE: &str = "[Unknown]";
 
 #[derive(Deserialize)]
 struct CrateRow {
@@ -187,7 +196,7 @@ pub(crate) fn parse_functions(bytes: &[u8]) -> Result<BloatFunctionsReport, Bloa
         .into_iter()
         .map(|row| {
             Ok(BloatFunction {
-                crate_name: report_name(&row.crate_name)?,
+                crate_name: report_name(row.crate_name.as_deref().unwrap_or(UNATTRIBUTED_CRATE))?,
                 name: report_name(&row.name)?,
                 size_bytes: attributed_size(row.size, document.file_size)?,
             })
@@ -518,5 +527,19 @@ mod tests {
             [("other", "m"), ("same", "a"), ("same", "z")]
         );
         Ok(())
+    }
+    #[test]
+    fn a_row_without_a_crate_key_is_the_analyzer_s_unattributed_bucket() {
+        // The pinned analyzer omits `crate` entirely for a symbol it cannot
+        // attribute; 81 of 634 rows did so in the real guest capture.
+        let payload = br#"{"file-size":4574312,"text-section-size":235268,"functions":[
+            {"crate":"std","name":"std::rt::init","size":9364},
+            {"name":"__init_cpu_features_constructor","size":604}]}"#;
+        let report = parse_functions(payload).unwrap();
+        assert_eq!(report.functions.len(), 2);
+        assert_eq!(report.functions[0].crate_name, "std");
+        assert_eq!(report.functions[1].crate_name, UNATTRIBUTED_CRATE);
+        assert_eq!(report.functions[1].name, "__init_cpu_features_constructor");
+        assert_eq!(report.functions[1].size_bytes, 604);
     }
 }

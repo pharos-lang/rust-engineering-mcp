@@ -27,4 +27,8 @@ docs/validation/**/*.sqlite-wal
 docs/validation/m3-delegation/**/stdout.txt
 
 # Python bytecode from the provisioning and fixture scripts.
-__pycache__/
+/.claude/settings.local.json
+*.profdata
+.coverage
+.coverage.*
+**/__pycache__/**

@@ -68,11 +68,17 @@ const CARGO_HOME: &str = "CARGO_HOME=/performance/cargo-home";
 /// overridden. The two strings are literals owned by this product; nothing in
 /// them comes from the caller. [`reject_project_cargo_configuration`] refuses
 /// the project config as well, so this is defence in depth, not the only line.
-const VENDOR_SELECTION: [&str; 4] = [
+///
+/// It names the source the ingested `CARGO_HOME` config already declares
+/// (`security_policy::SECURITY_CARGO_CONFIG`) instead of introducing a second
+/// one. Declaring a second name for the same directory is not a redundancy but
+/// a hard error — Cargo answers `source ... defines source dir /rust-mcp-vendor,
+/// but that source is already defined by ...; Sources are not allowed to be
+/// defined multiple times` — which is also what a project attempting to
+/// redefine it would get. One override, highest precedence, fail-closed.
+const VENDOR_SELECTION: [&str; 2] = [
     "--config",
-    "source.crates-io.replace-with=\"vendored-sources\"",
-    "--config",
-    "source.vendored-sources.directory=\"/rust-mcp-vendor\"",
+    "source.crates-io.replace-with=\"rust-mcp-vendor\"",
 ];
 
 fn with_vendor_selection(subcommand: &str, rest: &[&str]) -> Vec<String> {
@@ -172,6 +178,15 @@ pub(super) enum PerformanceOperation<'a> {
     Benchmark {
         selection: &'a BenchmarkSelection,
         run_count: u8,
+        /// Whether the resolved graph carries the approved harness. The frozen
+        /// warmup, measurement window and sample size are Criterion's own
+        /// options; a project on the default libtest harness rejects them
+        /// outright (`error: Unrecognized option: 'noplot'`, exit 101), so
+        /// sending them there would manufacture a failure that says nothing
+        /// about the project. When the harness is not the approved one the run
+        /// still happens and its logs are still reported (ADR-073 §1), just
+        /// without options only Criterion understands.
+        harness_parameters: bool,
     },
     Profile(&'a ProfileOptions),
     Bloat(&'a BloatOptions),
@@ -341,9 +356,14 @@ impl PerformancePhase {
             return fixed.iter().map(|value| (*value).to_owned()).collect();
         }
         match (self, operation) {
-            (Self::BenchRun, PerformanceOperation::Benchmark { selection, .. }) => {
-                bench_arguments(selection)
-            }
+            (
+                Self::BenchRun,
+                PerformanceOperation::Benchmark {
+                    selection,
+                    harness_parameters,
+                    ..
+                },
+            ) => bench_arguments(selection, harness_parameters),
             (Self::ProfileBuild, PerformanceOperation::Profile(options)) => {
                 let mut arguments = with_vendor_selection(
                     "build",
@@ -528,7 +548,7 @@ impl PerformancePhase {
     }
 }
 
-fn bench_arguments(selection: &BenchmarkSelection) -> Vec<String> {
+fn bench_arguments(selection: &BenchmarkSelection, harness_parameters: bool) -> Vec<String> {
     let mut arguments = with_vendor_selection(
         "bench",
         &[
@@ -552,6 +572,9 @@ fn bench_arguments(selection: &BenchmarkSelection) -> Vec<String> {
     }
     if selection.no_default_features {
         arguments.push("--no-default-features".into());
+    }
+    if !harness_parameters {
+        return arguments;
     }
     arguments.push("--".into());
     // ADR-073 §2: the server freezes warmup, measurement window and sample
@@ -1723,6 +1746,7 @@ pub(super) fn execute_benchmark(
         PerformanceOperation::Benchmark {
             selection,
             run_count,
+            harness_parameters: true,
         },
         limits,
         cancel,
@@ -2073,6 +2097,7 @@ fn execute_operation(
             );
         }
         let harness = detect_harness(&metadata_capture.stdout)?;
+        let harness_parameters = harness.measurable();
         revalidate(
             gateway,
             &guardians,
@@ -2145,7 +2170,19 @@ fn execute_operation(
             artifacts: Vec::new(),
         };
         match operation {
-            PerformanceOperation::Benchmark { run_count, .. } => {
+            PerformanceOperation::Benchmark {
+                selection,
+                run_count,
+                ..
+            } => {
+                // The harness is known only after `Metadata`; the run argv is
+                // rebuilt from what was actually resolved, never from what the
+                // caller assumed.
+                let operation = PerformanceOperation::Benchmark {
+                    selection,
+                    run_count,
+                    harness_parameters,
+                };
                 for (index, output) in output_volumes
                     .iter()
                     .enumerate()
@@ -2585,15 +2622,14 @@ mod tests {
         let base = PerformancePhase::BenchRun.arguments(PerformanceOperation::Benchmark {
             selection: &selection(),
             run_count: 3,
+            harness_parameters: true,
         });
         assert_eq!(
             base,
             [
                 "bench",
                 "--config",
-                "source.crates-io.replace-with=\"vendored-sources\"",
-                "--config",
-                "source.vendored-sources.directory=\"/rust-mcp-vendor\"",
+                "source.crates-io.replace-with=\"rust-mcp-vendor\"",
                 "--frozen",
                 "--offline",
                 "--color=never",
@@ -2619,9 +2655,10 @@ mod tests {
         let full = PerformancePhase::BenchRun.arguments(PerformanceOperation::Benchmark {
             selection: &selected,
             run_count: 1,
+            harness_parameters: true,
         });
         assert_eq!(
-            &full[9..14],
+            &full[7..12],
             [
                 "--bench=throughput",
                 "--package=member",
@@ -2630,11 +2667,12 @@ mod tests {
                 "--no-default-features",
             ]
         );
-        assert_eq!(full[14], "--");
+        assert_eq!(full[12], "--");
         assert_eq!(
             PerformancePhase::BenchExport.arguments(PerformanceOperation::Benchmark {
                 selection: &selection(),
                 run_count: 1,
+                harness_parameters: true,
             }),
             [
                 "--create",
@@ -2655,9 +2693,7 @@ mod tests {
             [
                 "build",
                 "--config",
-                "source.crates-io.replace-with=\"vendored-sources\"",
-                "--config",
-                "source.vendored-sources.directory=\"/rust-mcp-vendor\"",
+                "source.crates-io.replace-with=\"rust-mcp-vendor\"",
                 "--release",
                 "--frozen",
                 "--offline",
@@ -2715,9 +2751,7 @@ mod tests {
             [
                 "bloat",
                 "--config",
-                "source.crates-io.replace-with=\"vendored-sources\"",
-                "--config",
-                "source.vendored-sources.directory=\"/rust-mcp-vendor\"",
+                "source.crates-io.replace-with=\"rust-mcp-vendor\"",
                 "--release",
                 "--frozen",
                 "--message-format",
@@ -2730,7 +2764,7 @@ mod tests {
         );
         let crates = PerformancePhase::BloatCrates.arguments(operation);
         assert_eq!(crates.last().map(String::as_str), Some("--crates"));
-        assert_eq!(crates.len(), 14);
+        assert_eq!(crates.len(), 12);
         assert_eq!(
             PerformancePhase::BloatFileSize.arguments(operation),
             ["--format=%s", "/work/target/release/workload"]
@@ -2790,8 +2824,8 @@ mod tests {
         )
         .map_err(|error| format!("{error:?}"))?;
         let argv = PerformancePhase::BloatCrates.arguments(PerformanceOperation::Bloat(&packaged));
-        assert_eq!(argv[13], "--package=member");
-        assert_eq!(argv[14], "--crates");
+        assert_eq!(argv[11], "--package=member");
+        assert_eq!(argv[12], "--crates");
         Ok(())
     }
 
@@ -2800,6 +2834,7 @@ mod tests {
         let operation = PerformanceOperation::Benchmark {
             selection: &selection(),
             run_count: 1,
+            harness_parameters: true,
         };
         let metadata = PerformancePhase::Metadata.arguments(operation);
         assert_eq!(
@@ -3063,6 +3098,7 @@ mod tests {
             PerformanceOperation::Benchmark {
                 selection: &selected,
                 run_count: 3,
+                harness_parameters: true,
             },
             PerformanceOperation::Profile(&profile),
             PerformanceOperation::Bloat(&bloat),
@@ -3122,6 +3158,7 @@ mod tests {
             PerformanceOperation::Benchmark {
                 selection: &selected,
                 run_count: 3,
+                harness_parameters: true,
             },
             PerformanceOperation::Profile(&profile),
             PerformanceOperation::Bloat(&bloat),
@@ -3502,6 +3539,7 @@ mod tests {
             PerformanceOperation::Benchmark {
                 selection: &selected,
                 run_count: 1,
+                harness_parameters: true,
             },
             crate::APPROVED_M4_IMAGE,
             "/state",
@@ -3513,6 +3551,7 @@ mod tests {
             PerformanceOperation::Benchmark {
                 selection: &selected,
                 run_count: 3,
+                harness_parameters: true,
             },
             crate::APPROVED_M4_IMAGE,
             "/state",
@@ -3678,6 +3717,7 @@ mod tests {
             PerformancePhase::ConfigIngest.arguments(PerformanceOperation::Benchmark {
                 selection: &selection(),
                 run_count: 1,
+                harness_parameters: true,
             })[2],
             "--directory=/performance"
         );
@@ -3822,6 +3862,7 @@ mod tests {
         let benchmark = PerformanceOperation::Benchmark {
             selection: &selected,
             run_count: 3,
+            harness_parameters: true,
         }
         .phases();
         assert!(benchmark.contains(&PerformancePhase::BenchRun));
@@ -3854,6 +3895,7 @@ mod tests {
                 PerformanceOperation::Benchmark {
                     selection: &selected,
                     run_count: 3,
+                    harness_parameters: true,
                 },
             ),
             (
@@ -3870,7 +3912,7 @@ mod tests {
             ),
         ] {
             let arguments = phase.arguments(operation);
-            assert_eq!(&arguments[1..5], VENDOR_SELECTION, "{phase:?}");
+            assert_eq!(&arguments[1..3], VENDOR_SELECTION, "{phase:?}");
         }
         // A phase that runs no cargo never carries the selection.
         for phase in [

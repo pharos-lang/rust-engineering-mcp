@@ -436,14 +436,54 @@ fn a_report_publishes_the_whole_frozen_method_and_ranks_its_rows() -> TestResult
         value["data"]["report"]["candidate_only"],
         serde_json::json!(["bench/only-candidate"])
     );
-    // No field, enum spelling or summary in this contract names a cause.
-    let text = serde_json::to_string(&value)?;
-    for forbidden in [
-        "caused", "cause", "because", "due_to", "recommend", "should", "faster_because",
-    ] {
-        assert!(!text.contains(forbidden), "causal language: {forbidden}");
+    // No field name, enum spelling or summary in this contract names a cause,
+    // a reason for a value, or an action the reader ought to take.
+    let mut vocabulary = Vec::new();
+    collect_vocabulary(&value, &mut vocabulary);
+    vocabulary.push(
+        value["summary"]
+            .as_str()
+            .ok_or("summary")?
+            .to_ascii_lowercase(),
+    );
+    for word in &vocabulary {
+        for forbidden in [
+            "cause",
+            "because",
+            "due_to",
+            "due to",
+            "recommend",
+            "suggest",
+            "should",
+            "optimi",
+            "improve_by",
+            "explain",
+            "why",
+        ] {
+            assert!(!word.contains(forbidden), "causal language {forbidden:?} in {word:?}");
+        }
     }
     Ok(())
+}
+
+/// Every object key and every string value the payload publishes, lowercased.
+/// The vocabulary a peer reads is exactly this set.
+fn collect_vocabulary(value: &serde_json::Value, into: &mut Vec<String>) {
+    match value {
+        serde_json::Value::Object(map) => {
+            for (key, item) in map {
+                into.push(key.to_ascii_lowercase());
+                collect_vocabulary(item, into);
+            }
+        }
+        serde_json::Value::Array(items) => {
+            for item in items {
+                collect_vocabulary(item, into);
+            }
+        }
+        serde_json::Value::String(text) => into.push(text.to_ascii_lowercase()),
+        _ => {}
+    }
 }
 
 #[test]

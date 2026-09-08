@@ -1,0 +1,1458 @@
+//! Explicit M5 native qualification (ADR-073/074/075/076).
+//!
+//! Never part of runtime discovery: every test here is `#[ignore]`d, demands an
+//! explicit `RUST_MCP_TEST_SOCKET`, and assumes exclusive ownership of the local
+//! Docker engine. One `#[test]` per M5 cut runs that cut's selections in order,
+//! writes `target/m5-runtime/cut-<cut>.json`, and rebuilds the merged
+//! `target/m5-runtime/receipt.json` from every cut written so far.
+//!
+//! Two facts about this file are load-bearing and are stated once, here:
+//!
+//! * The selections exercise the three `pub(super)` port entry points — the
+//!   product path, DTO included — and drop to [`crate::performance_gateway`]
+//!   only where the assertion is about a gateway-level refusal the port maps
+//!   away (`ProjectCargoConfiguration`) or about a counter the DTO does not
+//!   carry (`cpus_sampled`, and the guest's own CPU count).
+//! * `rust.benchmark.run`'s two positive selections cannot execute: criterion
+//!   0.8.2's vendored closure does not fit
+//!   [`rust_engineering_domain::SOURCE_MAX_TOTAL_BYTES`], so no
+//!   `CargoVendorSnapshot` can carry it. The selection is attempted, the
+//!   observed shape of the tree is recorded, and the cut then fails rather than
+//!   reporting a qualification it did not perform.
+use crate::performance_gateway::{self, PerformanceError};
+use crate::performance_port;
+use crate::*;
+use rust_engineering_application::benchmark::BenchmarkRunOptions;
+use rust_engineering_application::security::SecurityError;
+use rust_engineering_application::{InspectionError, OperationControl, ProjectError};
+use rust_engineering_domain::benchmark_run::{
+    BenchmarkExit, BenchmarkObservation, DatasetOmission, HarnessDetection,
+};
+use rust_engineering_domain::bloat::{
+    APPROVED_CARGO_BLOAT_VERSION, BinaryFormat, BloatCompleteness, BloatExit, BloatObservation,
+    BloatOptions, BloatProfile,
+};
+use rust_engineering_domain::profile::{
+    PROFILE_BACKEND, ProfileBuildOutcome, ProfileCompleteness, ProfileObservation, ProfileOptions,
+    ProfileStatus,
+};
+use rust_engineering_domain::{
+    CargoVendorSnapshot, SOURCE_MAX_ENTRIES, SOURCE_MAX_FILE_BYTES, SOURCE_MAX_TOTAL_BYTES,
+    SourceBundle, SourceFile,
+};
+use serde_json::{Value, json};
+use std::collections::BTreeMap;
+use std::path::{Path, PathBuf};
+use std::sync::atomic::{AtomicBool, AtomicU64, Ordering};
+use std::time::Instant;
+
+type Failure = Box<dyn std::error::Error>;
+
+/// The Docker client this qualification drives. Overridable only so the same
+/// test can run on a host that installed the client elsewhere; the socket and
+/// the image always come from the environment contract.
+const DOCKER: &str = "/Applications/Docker.app/Contents/Resources/bin/docker";
+const LABEL: &str = "--filter=label=org.rust-mcp.execution=true";
+const RECEIPT_SCHEMA: &str = "rust-engineering-mcp.m5-runtime.v1";
+
+/// Log ceiling for every operation: the same 512 KiB the port applies.
+const LOG_BYTES: usize = 512 * 1024;
+
+// -- environment contract ----------------------------------------------------
+
+fn docker() -> PathBuf {
+    std::env::var_os("RUST_MCP_TEST_DOCKER").map_or_else(|| PathBuf::from(DOCKER), PathBuf::from)
+}
+
+fn socket() -> Result<PathBuf, Failure> {
+    let value = std::env::var_os("RUST_MCP_TEST_SOCKET").ok_or(
+        "RUST_MCP_TEST_SOCKET is required: this M5 qualification drives Docker directly and \
+         takes exclusive ownership of the engine. Set it to the absolute path of the socket \
+         (for example ~/.docker/run/docker.sock) and run with --test-threads=1.",
+    )?;
+    let path = PathBuf::from(value);
+    if !path.is_absolute() {
+        return Err("RUST_MCP_TEST_SOCKET must be an explicit absolute socket path".into());
+    }
+    Ok(path)
+}
+
+/// The image under qualification. `RUST_MCP_TEST_IMAGE` may name it explicitly,
+/// but it may only name the ADR-075 digest: every other image is refused by the
+/// port, so pointing this qualification at one would test nothing.
+fn m5_image() -> Result<String, Failure> {
+    let image = std::env::var("RUST_MCP_TEST_IMAGE")
+        .unwrap_or_else(|_| crate::APPROVED_M5_IMAGE.to_owned());
+    if image != crate::APPROVED_M5_IMAGE {
+        return Err(format!(
+            "RUST_MCP_TEST_IMAGE={image} is not the qualified M5 runtime {}",
+            crate::APPROVED_M5_IMAGE
+        )
+        .into());
+    }
+    Ok(image)
+}
+
+// -- session -----------------------------------------------------------------
+
+/// A gateway plus its state root, torn down on every exit path — return, error
+/// or unwind. The gateway is dropped inside `Drop` before the directory is
+/// removed, because the gateway's own teardown writes into it.
+struct Session {
+    gateway: Option<RustGateway>,
+    root: PathBuf,
+}
+
+impl Session {
+    fn open(image_id: &str) -> Result<Self, Failure> {
+        let root = PathBuf::from("/private/tmp").join(format!(
+            "m5-native-{}",
+            state::nonce().map_err(|error| format!("nonce: {error:?}"))?
+        ));
+        std::fs::create_dir(&root)?;
+        // The directory is owned from here on: a failure below must still take
+        // it down, so the session exists before the gateway does.
+        let mut session = Self {
+            gateway: None,
+            root: root.clone(),
+        };
+        let gateway = RustGateway::new(HostDockerConfig {
+            executable: docker(),
+            socket: socket()?,
+            state_root: root,
+            image_id: image_id.to_owned(),
+        })
+        .map_err(|error| format!("gateway on {image_id}: {error:?}"))?;
+        // The qualification does not re-run base calibration; ADR-075's
+        // provisioning receipt and the M4 base calibration already carry it.
+        gateway.set_verified(true);
+        session.gateway = Some(gateway);
+        Ok(session)
+    }
+
+    fn gateway(&self) -> Result<&RustGateway, Failure> {
+        Ok(self
+            .gateway
+            .as_ref()
+            .ok_or("session gateway already taken")?)
+    }
+}
+
+impl Drop for Session {
+    fn drop(&mut self) {
+        drop(self.gateway.take());
+        let _ = std::fs::remove_dir_all(&self.root);
+    }
+}
+
+// -- residue -----------------------------------------------------------------
+
+/// Every container and volume carrying this product's labels, by name.
+fn residue(gateway: &RustGateway) -> Result<Value, Failure> {
+    let mut found = serde_json::Map::new();
+    for (kind, all, format) in [
+        ("containers", true, "--format={{.Names}}"),
+        ("volumes", false, "--format={{.Name}}"),
+    ] {
+        let singular = kind.trim_end_matches('s');
+        let mut arguments = vec![singular.to_owned(), "ls".to_owned()];
+        if all {
+            arguments.push("--all".to_owned());
+        }
+        arguments.push(LABEL.to_owned());
+        arguments.push(format.to_owned());
+        let result = gateway
+            .inner
+            .control(&arguments)
+            .map_err(|error| format!("{kind} inventory: {error:?}"))?;
+        if result.code != Some(0) {
+            return Err(format!("{kind} inventory exited {:?}", result.code).into());
+        }
+        let names = String::from_utf8_lossy(&result.stdout)
+            .split_whitespace()
+            .map(str::to_owned)
+            .collect::<Vec<_>>();
+        found.insert(kind.to_owned(), json!(names));
+    }
+    Ok(Value::Object(found))
+}
+
+/// The residue inventory, refusing anything that survived.
+fn clean(gateway: &RustGateway, at: &str) -> Result<Value, Failure> {
+    let found = residue(gateway)?;
+    if found != json!({"containers": [], "volumes": []}) {
+        return Err(format!("{at}: labelled Docker residue survived: {found}").into());
+    }
+    Ok(found)
+}
+
+// -- controls ----------------------------------------------------------------
+
+/// The uncancelled control the product passes for a normal operation.
+struct Proceed;
+impl OperationControl for Proceed {
+    fn check(&self) -> Result<(), ProjectError> {
+        Ok(())
+    }
+}
+impl ExecutionCancellation for Proceed {
+    fn is_cancelled(&self) -> bool {
+        false
+    }
+}
+
+/// Cancels exactly once the named program is observed running inside a
+/// container this product owns, so a cancellation selection proves it cancelled
+/// real work rather than racing the operation's setup.
+struct CancelWhenObserved<'a> {
+    gateway: &'a RustGateway,
+    needle: &'static str,
+    observed: AtomicBool,
+    failed: AtomicBool,
+    polls: AtomicU64,
+}
+
+impl<'a> CancelWhenObserved<'a> {
+    fn new(gateway: &'a RustGateway, needle: &'static str) -> Self {
+        Self {
+            gateway,
+            needle,
+            observed: AtomicBool::new(false),
+            failed: AtomicBool::new(false),
+            polls: AtomicU64::new(0),
+        }
+    }
+    fn evidence(&self) -> Value {
+        json!({
+            "needle": self.needle,
+            "observed_running": self.observed.load(Ordering::SeqCst),
+            "inventory_polls": self.polls.load(Ordering::SeqCst),
+            "inventory_failed": self.failed.load(Ordering::SeqCst),
+        })
+    }
+}
+
+impl ExecutionCancellation for CancelWhenObserved<'_> {
+    fn is_cancelled(&self) -> bool {
+        if self.observed.load(Ordering::SeqCst) {
+            return true;
+        }
+        self.polls.fetch_add(1, Ordering::SeqCst);
+        match self.gateway.inner.control(&[
+            "container".into(),
+            "ls".into(),
+            LABEL.into(),
+            "--no-trunc".into(),
+            "--format={{.Command}}".into(),
+        ]) {
+            Ok(result) if result.code == Some(0) => {
+                if String::from_utf8_lossy(&result.stdout).contains(self.needle) {
+                    self.observed.store(true, Ordering::SeqCst);
+                    return true;
+                }
+                false
+            }
+            // An inventory this test cannot read is not evidence that nothing
+            // is running: stop the operation rather than keep it going blind.
+            _ => {
+                self.failed.store(true, Ordering::SeqCst);
+                true
+            }
+        }
+    }
+}
+
+impl OperationControl for CancelWhenObserved<'_> {
+    fn check(&self) -> Result<(), ProjectError> {
+        if self.observed.load(Ordering::SeqCst) {
+            Err(ProjectError::Cancelled)
+        } else {
+            Ok(())
+        }
+    }
+}
+
+// -- fixtures ----------------------------------------------------------------
+
+fn fixtures() -> PathBuf {
+    Path::new(env!("CARGO_MANIFEST_DIR")).join("../../fixtures")
+}
+
+fn source_file(path: &str, bytes: Vec<u8>) -> Result<SourceFile, Failure> {
+    Ok(SourceFile::new(path.to_owned(), bytes).map_err(|error| format!("{path}: {error:?}"))?)
+}
+
+/// Walks a fixture directory into the owned, bounded shape the product
+/// ingests. `target/` and `.git/` are build and VCS state, never fixture input.
+fn walk(
+    root: &Path,
+    at: &Path,
+    files: &mut Vec<SourceFile>,
+    directories: &mut Vec<String>,
+) -> Result<(), Failure> {
+    let mut entries = std::fs::read_dir(at)?.collect::<Result<Vec<_>, _>>()?;
+    entries.sort_by_key(std::fs::DirEntry::file_name);
+    for entry in entries {
+        let path = entry.path();
+        let name = entry.file_name();
+        let name = name.to_str().ok_or("non-UTF-8 fixture entry")?;
+        if matches!(name, "target" | ".git") {
+            continue;
+        }
+        let relative = path
+            .strip_prefix(root)?
+            .to_str()
+            .ok_or("non-UTF-8 fixture path")?
+            .to_owned();
+        let kind = entry.file_type()?;
+        if kind.is_dir() {
+            directories.push(relative);
+            walk(root, &path, files, directories)?;
+        } else if kind.is_file() {
+            files.push(source_file(&relative, std::fs::read(&path)?)?);
+        } else {
+            return Err(format!("special fixture entry: {relative}").into());
+        }
+    }
+    Ok(())
+}
+
+fn fixture_bundle(name: &str) -> Result<SourceBundle, Failure> {
+    let root = fixtures().join(name);
+    let mut files = Vec::new();
+    let mut directories = Vec::new();
+    walk(&root, &root, &mut files, &mut directories)?;
+    Ok(SourceBundle::with_directories(files, directories)
+        .map_err(|error| format!("fixtures/{name}: {error:?}"))?)
+}
+
+fn with_files(
+    source: &SourceBundle,
+    additions: impl IntoIterator<Item = (String, Vec<u8>)>,
+) -> Result<SourceBundle, Failure> {
+    let mut files = source.files().to_vec();
+    let mut directories = source.directories().to_vec();
+    for (path, bytes) in additions {
+        files.push(source_file(&path, bytes)?);
+    }
+    directories.sort();
+    directories.dedup();
+    Ok(SourceBundle::with_directories(files, directories)
+        .map_err(|error| format!("extended bundle: {error:?}"))?)
+}
+
+/// Replaces one member's bytes, keeping every other member untouched.
+fn replacing(source: &SourceBundle, path: &str, bytes: Vec<u8>) -> Result<SourceBundle, Failure> {
+    let mut files = source
+        .files()
+        .iter()
+        .filter(|file| file.path() != path)
+        .cloned()
+        .collect::<Vec<_>>();
+    files.push(source_file(path, bytes)?);
+    Ok(
+        SourceBundle::with_directories(files, source.directories().to_vec())
+            .map_err(|error| format!("replaced bundle: {error:?}"))?,
+    )
+}
+
+fn bundle_facts(name: &str, source: &SourceBundle) -> Result<Value, Failure> {
+    let archive = source_archive::encode(source).map_err(|error| format!("{name}: {error:?}"))?;
+    let fingerprint = resolution_gateway::tree_fingerprint(source)
+        .map_err(|error| format!("{name}: {error:?}"))?;
+    Ok(json!({
+        "files": source.files().len(),
+        "directories": source.directories().len(),
+        "bytes": source.files().iter().map(|file| file.bytes().len()).sum::<usize>(),
+        "tree_fingerprint": fingerprint.to_string(),
+        "archive_sha256": digest(&archive),
+    }))
+}
+
+/// An empty vendor tree. Three of the four M5 fixtures resolve entirely from
+/// path dependencies, so an empty directory source is the honest input for
+/// them: nothing is hidden, because nothing is needed.
+fn empty_vendor() -> Result<CargoVendorSnapshot, Failure> {
+    let empty = SourceBundle::new(vec![]).map_err(|error| format!("{error:?}"))?;
+    Ok(CargoVendorSnapshot {
+        tree_fingerprint: resolution_gateway::tree_fingerprint(&empty)
+            .map_err(|error| format!("{error:?}"))?,
+        source: empty,
+        packages: Vec::new(),
+    })
+}
+
+/// What the materialized criterion vendor tree actually is, measured against
+/// the bounds a [`CargoVendorSnapshot`] must satisfy.
+struct VendorShape {
+    files: usize,
+    directories: usize,
+    total_bytes: u64,
+    oversized: Vec<String>,
+    materialized: bool,
+}
+
+impl VendorShape {
+    fn fits(&self) -> bool {
+        self.materialized
+            && self.oversized.is_empty()
+            && self.files + self.directories <= SOURCE_MAX_ENTRIES
+            && self.total_bytes <= SOURCE_MAX_TOTAL_BYTES as u64
+    }
+    fn facts(&self) -> Value {
+        json!({
+            "materialized": self.materialized,
+            "files": self.files,
+            "directories": self.directories,
+            "entries": self.files + self.directories,
+            "total_bytes": self.total_bytes,
+            "files_over_source_max_file_bytes": self.oversized,
+            "bounds": {
+                "source_max_entries": SOURCE_MAX_ENTRIES,
+                "source_max_total_bytes": SOURCE_MAX_TOTAL_BYTES,
+                "source_max_file_bytes": SOURCE_MAX_FILE_BYTES,
+            },
+            "fits_source_bundle_bounds": self.fits(),
+        })
+    }
+}
+
+fn measure_vendor(root: &Path) -> Result<VendorShape, Failure> {
+    let mut shape = VendorShape {
+        files: 0,
+        directories: 0,
+        total_bytes: 0,
+        oversized: Vec::new(),
+        materialized: root.is_dir(),
+    };
+    if !shape.materialized {
+        return Ok(shape);
+    }
+    let mut stack = vec![root.to_path_buf()];
+    while let Some(at) = stack.pop() {
+        for entry in std::fs::read_dir(&at)? {
+            let entry = entry?;
+            let path = entry.path();
+            let kind = entry.file_type()?;
+            if kind.is_dir() {
+                shape.directories += 1;
+                stack.push(path);
+            } else if kind.is_file() {
+                shape.files += 1;
+                let bytes = entry.metadata()?.len();
+                shape.total_bytes = shape.total_bytes.saturating_add(bytes);
+                if bytes > SOURCE_MAX_FILE_BYTES as u64 {
+                    shape.oversized.push(
+                        path.strip_prefix(root)?
+                            .to_str()
+                            .unwrap_or("<non-utf8>")
+                            .to_owned(),
+                    );
+                }
+            } else {
+                return Err(format!("special vendor entry: {}", path.display()).into());
+            }
+        }
+    }
+    shape.oversized.sort();
+    Ok(shape)
+}
+
+// -- receipt -----------------------------------------------------------------
+
+fn receipt_root() -> PathBuf {
+    Path::new(env!("CARGO_MANIFEST_DIR")).join("../../target/m5-runtime")
+}
+
+fn unix_now() -> u64 {
+    std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .map_or(0, |elapsed| elapsed.as_secs())
+}
+
+/// `YYYY-MM-DDTHH:MM:SSZ` from a Unix second, by the civil-from-days algorithm.
+/// A clock this process cannot read stamps the epoch rather than a plausible
+/// time; the receipt's evidence is its fingerprints, not its stamp.
+fn utc(seconds: u64) -> String {
+    let days = i64::try_from(seconds / 86_400).unwrap_or(0);
+    let rest = seconds % 86_400;
+    let shifted = days + 719_468;
+    let era = shifted.div_euclid(146_097);
+    let day_of_era = shifted.rem_euclid(146_097);
+    let year_of_era =
+        (day_of_era - day_of_era / 1_460 + day_of_era / 36_524 - day_of_era / 146_096) / 365;
+    let year = year_of_era + era * 400;
+    let day_of_year = day_of_era - (365 * year_of_era + year_of_era / 4 - year_of_era / 100);
+    let shifted_month = (5 * day_of_year + 2) / 153;
+    let day = day_of_year - (153 * shifted_month + 2) / 5 + 1;
+    let month = if shifted_month < 10 {
+        shifted_month + 3
+    } else {
+        shifted_month - 9
+    };
+    let year = if month <= 2 { year + 1 } else { year };
+    format!(
+        "{year:04}-{month:02}-{day:02}T{:02}:{:02}:{:02}Z",
+        rest / 3_600,
+        (rest % 3_600) / 60,
+        rest % 60
+    )
+}
+
+fn elapsed_ms(started: Instant) -> u64 {
+    u64::try_from(started.elapsed().as_millis()).unwrap_or(u64::MAX)
+}
+
+fn selection(name: &str, started: Instant, outcome: &str, observed: Value) -> Value {
+    json!({
+        "selection": name,
+        "outcome": outcome,
+        "duration_ms": elapsed_ms(started),
+        "observed": observed,
+    })
+}
+
+struct Cut {
+    name: &'static str,
+    started_unix: u64,
+    selections: Vec<Value>,
+    fixtures: serde_json::Map<String, Value>,
+    residue_before: Value,
+    residue_after: Value,
+}
+
+impl Cut {
+    fn open(name: &'static str) -> Self {
+        Self {
+            name,
+            started_unix: unix_now(),
+            selections: Vec::new(),
+            fixtures: serde_json::Map::new(),
+            residue_before: Value::Null,
+            residue_after: Value::Null,
+        }
+    }
+    fn document(&self, image_id: &str) -> Value {
+        json!({
+            "cut": self.name,
+            "image_id": image_id,
+            "started_utc": utc(self.started_unix),
+            "finished_utc": utc(unix_now()),
+            "residue": {"before": self.residue_before, "after": self.residue_after},
+            "fixtures": Value::Object(self.fixtures.clone()),
+            "selections": self.selections,
+        })
+    }
+}
+
+/// Writes this cut's own document, then rebuilds the merged receipt from every
+/// cut document present. Cuts run one at a time, so the last one to finish
+/// leaves a complete `receipt.json`; each one on its own leaves a truthful
+/// partial receipt naming exactly the cuts that have run.
+fn publish(cut: &Cut, image_id: &str) -> Result<PathBuf, Failure> {
+    let root = receipt_root();
+    std::fs::create_dir_all(&root)?;
+    std::fs::write(
+        root.join(format!("cut-{}.json", cut.name)),
+        serde_json::to_vec_pretty(&cut.document(image_id))?,
+    )?;
+
+    let mut documents = BTreeMap::new();
+    for entry in std::fs::read_dir(&root)? {
+        let path = entry?.path();
+        let Some(name) = path.file_name().and_then(|name| name.to_str()) else {
+            continue;
+        };
+        if !name.starts_with("cut-") || !name.ends_with(".json") {
+            continue;
+        }
+        let document: Value = serde_json::from_slice(&std::fs::read(&path)?)?;
+        documents.insert(name.to_owned(), document);
+    }
+
+    let mut selections = Vec::new();
+    let mut fixtures = serde_json::Map::new();
+    let mut started = None::<String>;
+    let mut finished = None::<String>;
+    let mut before = Value::Null;
+    let mut after = Value::Null;
+    for document in documents.values() {
+        if let Some(Value::Array(entries)) = document.get("selections") {
+            selections.extend(entries.iter().cloned());
+        }
+        if let Some(Value::Object(entries)) = document.get("fixtures") {
+            for (key, value) in entries {
+                fixtures.insert(key.clone(), value.clone());
+            }
+        }
+        if let Some(Value::String(value)) = document.get("started_utc")
+            && started.as_ref().is_none_or(|current| value < current)
+        {
+            {
+                started = Some(value.clone());
+                before = document
+                    .get("residue")
+                    .and_then(|residue| residue.get("before"))
+                    .cloned()
+                    .unwrap_or(Value::Null);
+            }
+        }
+        if let Some(Value::String(value)) = document.get("finished_utc")
+            && finished.as_ref().is_none_or(|current| value > current)
+        {
+            {
+                finished = Some(value.clone());
+                after = document
+                    .get("residue")
+                    .and_then(|residue| residue.get("after"))
+                    .cloned()
+                    .unwrap_or(Value::Null);
+            }
+        }
+    }
+
+    let receipt = json!({
+        "schema": RECEIPT_SCHEMA,
+        "started_utc": started,
+        "finished_utc": finished,
+        "image_id": image_id,
+        "image_tag_at_provisioning": "rust-engineering-runtime:1.98.1-arm64-m5",
+        "fixtures": Value::Object(fixtures),
+        "residue": {"before": before, "after": after},
+        "cuts": documents.values().cloned().collect::<Vec<_>>(),
+        "selections": selections,
+    });
+    let path = root.join("receipt.json");
+    let bytes = serde_json::to_vec_pretty(&receipt)?;
+    std::fs::write(&path, &bytes)?;
+    println!("M5_RUNTIME_RECEIPT {} {}", digest(&bytes), path.display());
+    Ok(path)
+}
+
+// -- shared assertions -------------------------------------------------------
+
+fn benchmark_counters(observation: &BenchmarkObservation) -> Value {
+    json!({
+        "harness": format!("{:?}", observation.harness),
+        "exit": format!("{:?}", observation.exit),
+        "exit_code": observation.exit_code,
+        "termination": format!("{:?}", observation.termination),
+        "runs_completed": observation.runs_completed,
+        "runs_requested": observation.runs_requested,
+        "omission": observation.omission.map(|value| format!("{value:?}")),
+        "measurements": observation.dataset.as_ref().map(|dataset| {
+            dataset
+                .measurements()
+                .iter()
+                .map(|measurement| json!({
+                    "key": measurement.key(),
+                    "samples": measurement.samples().len(),
+                    "completeness": format!("{:?}", measurement.completeness()),
+                }))
+                .collect::<Vec<_>>()
+        }),
+        "stdout_bytes": observation.stdout.len(),
+        "stderr_bytes": observation.stderr.len(),
+        "execution_fingerprint": observation.execution_fingerprint.to_string(),
+        "vendor_fingerprint": observation.vendor_fingerprint.to_string(),
+    })
+}
+
+fn profile_counters(observation: &ProfileObservation) -> Value {
+    json!({
+        "build": format!("{:?}", observation.build),
+        "build_exit_code": observation.build_exit_code,
+        "status": format!("{:?}", observation.status),
+        "completeness": format!("{:?}", observation.completeness),
+        "backend": observation.backend,
+        "perf_errno": observation.perf_errno,
+        "child": {"exit_code": observation.child.exit_code, "signal": observation.child.signal},
+        "counters": {
+            "observed_duration_ms": observation.counters.observed_duration_ms,
+            "samples_collected": observation.counters.samples_collected,
+            "samples_lost": observation.counters.samples_lost,
+            "stacks_written": observation.counters.stacks_written,
+            "frames_total": observation.counters.frames_total,
+            "frames_unresolved": observation.counters.frames_unresolved,
+            "stacks_truncated": observation.counters.stacks_truncated,
+            "modules_seen": observation.counters.modules_seen,
+            "max_depth_applied": observation.counters.max_depth_applied,
+        },
+        "stacks_bytes": observation.stacks.len(),
+        "svg_bytes": observation.svg.len(),
+        "top_frames": observation.top_frames.len(),
+        "execution_fingerprint": observation.execution_fingerprint.to_string(),
+    })
+}
+
+fn bloat_counters(observation: &BloatObservation) -> Value {
+    json!({
+        "exit": format!("{:?}", observation.exit),
+        "exit_code": observation.exit_code,
+        "analyzer_version": observation.analyzer_version,
+        "completeness": format!("{:?}", observation.completeness),
+        "measured": observation.measured.as_ref().map(|measured| json!({
+            "size_bytes": measured.size_bytes,
+            "sha256": measured.sha256,
+            "format": format!("{:?}", measured.format),
+            "analysis_build_symbols_forced": measured.analysis_build_symbols_forced,
+        })),
+        "attribution": observation.attribution.as_ref().map(|attribution| json!({
+            "estimated": attribution.estimated,
+            "reported_file_size_bytes": attribution.reported_file_size_bytes,
+            "text_section_size_bytes": attribution.text_section_size_bytes,
+            "functions": attribution.functions.len(),
+            "functions_omitted": attribution.functions_omitted,
+            "crates": attribution.crates.iter().map(|entry| json!({
+                "name": entry.name, "size_bytes": entry.size_bytes,
+            })).collect::<Vec<_>>(),
+            "crates_omitted": attribution.crates_omitted,
+        })),
+        "execution_fingerprint": observation.execution_fingerprint.to_string(),
+    })
+}
+
+/// The frames of the heaviest stack in a collapsed artifact, plus its share.
+fn hottest(stacks: &str) -> Result<(Vec<String>, u64, u64), Failure> {
+    let mut total = 0u64;
+    let mut best: Option<(Vec<String>, u64)> = None;
+    for line in stacks.lines() {
+        if line.trim().is_empty() {
+            continue;
+        }
+        let (frames, count) = line
+            .rsplit_once(' ')
+            .ok_or_else(|| format!("collapsed line without a count: {line}"))?;
+        let count = count.trim().parse::<u64>()?;
+        total = total.saturating_add(count);
+        if best.as_ref().is_none_or(|(_, best)| count > *best) {
+            best = Some((frames.split(';').map(str::to_owned).collect(), count));
+        }
+    }
+    let (frames, count) = best.ok_or("collapsed artifact carried no stack")?;
+    Ok((frames, count, total))
+}
+
+// -- M5-01 rust.benchmark.run ------------------------------------------------
+
+#[test]
+#[ignore = "explicit M5 image, host Docker and exclusive native benchmark qualification"]
+fn m5_benchmark_run_is_qualified_natively() -> Result<(), Failure> {
+    let image = m5_image()?;
+    let mut cut = Cut::open("m5-01-benchmark");
+    let session = Session::open(&image)?;
+    let gateway = session.gateway()?;
+    cut.residue_before = clean(gateway, "m5-01 before")?;
+
+    let vendor_root = fixtures().join("criterion-vendor/vendor");
+    let shape = measure_vendor(&vendor_root)?;
+    let benchmark = fixture_bundle("benchmark")?;
+    let bloat = fixture_bundle("bloat")?;
+    cut.fixtures
+        .insert("benchmark".into(), bundle_facts("benchmark", &benchmark)?);
+    cut.fixtures
+        .insert("bloat".into(), bundle_facts("bloat", &bloat)?);
+    cut.fixtures
+        .insert("criterion_vendor".into(), shape.facts());
+
+    // -- selections 1 and 2: the criterion positives -------------------------
+    //
+    // A `CargoVendorSnapshot` is a `SourceBundle`, and the bounds on a
+    // `SourceBundle` are the product's own. criterion 0.8.2's closure exceeds
+    // them, so there is no snapshot to run these selections against. The shape
+    // is recorded and the cut fails at the end; nothing here is smoothed over.
+    let blocked = !shape.fits();
+    for (name, run_count) in [("positive-run-count-1", 1u8), ("pooled-run-count-2", 2u8)] {
+        let started = Instant::now();
+        if blocked {
+            cut.selections.push(selection(
+                name,
+                started,
+                "blocked",
+                json!({
+                    "run_count": run_count,
+                    "reason": "criterion vendor closure exceeds SourceBundle bounds",
+                    "vendor": shape.facts(),
+                }),
+            ));
+            continue;
+        }
+        return Err(format!(
+            "{name}: the criterion vendor now fits SourceBundle bounds; this selection must be \
+             implemented against it instead of recorded as blocked"
+        )
+        .into());
+    }
+
+    // -- selection 3: an unrecognised harness still reports ------------------
+    let started = Instant::now();
+    let options = BenchmarkRunOptions::new(None, None, Vec::new(), false, false, 1, 300)
+        .map_err(|error| format!("options: {error:?}"))?;
+    let observation =
+        performance_port::benchmark(gateway, &bloat, &empty_vendor()?, &options, &Proceed)
+            .map_err(|error| format!("unrecognised-harness: {error:?}"))?;
+    assert_eq!(
+        observation.harness,
+        HarnessDetection::Unrecognized,
+        "fixtures/bloat declares no criterion dependency"
+    );
+    assert!(
+        observation.dataset.is_none(),
+        "a project without the approved harness must publish no dataset"
+    );
+    assert_eq!(
+        observation.omission,
+        Some(DatasetOmission::HarnessUnrecognized)
+    );
+    assert_eq!(observation.exit, BenchmarkExit::Passed);
+    assert_eq!(observation.exit_code, Some(0));
+    assert_eq!(observation.runs_requested, 1);
+    assert_eq!(observation.runs_completed, 1);
+    assert_eq!(observation.runtime.image_id, crate::APPROVED_M5_IMAGE);
+    assert!(
+        !observation.stdout.is_empty() || !observation.stderr.is_empty(),
+        "execution logs must still be reported when no dataset is published"
+    );
+    assert!(observation.consistent());
+    cut.selections.push(selection(
+        "unrecognised-harness",
+        started,
+        "passed",
+        benchmark_counters(&observation),
+    ));
+    clean(gateway, "m5-01 after unrecognised-harness")?;
+
+    // -- selection 4: a project Cargo configuration is refused ---------------
+    let started = Instant::now();
+    let before = clean(gateway, "m5-01 before project-cargo-configuration")?;
+    let configured = with_files(
+        &benchmark,
+        [(
+            ".cargo/config.toml".into(),
+            b"[build]\nrustflags = [\"-C\", \"target-cpu=native\"]\n".to_vec(),
+        )],
+    )?;
+    let refused = performance_gateway::execute_benchmark(
+        gateway,
+        &configured,
+        &empty_vendor()?,
+        &options.selection(),
+        1,
+        ExecutionLimits::new_job(300_000, LOG_BYTES).ok_or("limits")?,
+        &Proceed,
+    );
+    let error = match refused {
+        Ok(_) => return Err("a project Cargo configuration was not refused".into()),
+        Err(error) => error,
+    };
+    assert_eq!(error, PerformanceError::ProjectCargoConfiguration);
+    // The same refusal, in the vocabulary the tool answers in: a containment
+    // refusal, never an unavailable capability.
+    let mapped =
+        performance_port::benchmark(gateway, &configured, &empty_vendor()?, &options, &Proceed);
+    assert_eq!(
+        mapped.err(),
+        Some(SecurityError::Inspection(InspectionError::Project(
+            ProjectError::Rejected(rust_engineering_domain::OperationalErrorCode::SandboxDenied)
+        )))
+    );
+    let after = clean(gateway, "m5-01 after project-cargo-configuration")?;
+    assert_eq!(before, after, "the refusal must create nothing at all");
+    cut.selections.push(selection(
+        "project-cargo-configuration-refused",
+        started,
+        "passed",
+        json!({
+            "gateway_error": format!("{error:?}"),
+            "residue_before": before,
+            "residue_after": after,
+        }),
+    ));
+
+    // -- selection 5: cancellation mid-run -----------------------------------
+    let started = Instant::now();
+    let monitor = CancelWhenObserved::new(gateway, "/opt/rust/bin/cargo bench");
+    let cancelled =
+        performance_port::benchmark(gateway, &bloat, &empty_vendor()?, &options, &monitor);
+    assert_eq!(
+        cancelled.err(),
+        Some(SecurityError::Inspection(InspectionError::Project(
+            ProjectError::Cancelled
+        ))),
+        "cancelling a benchmark must be reported as a cancellation"
+    );
+    assert!(
+        monitor.observed.load(Ordering::SeqCst),
+        "cargo bench was never observed running: {}",
+        monitor.evidence()
+    );
+    assert!(!monitor.failed.load(Ordering::SeqCst));
+    let after = clean(gateway, "m5-01 after cancellation")?;
+    cut.selections.push(selection(
+        "cancellation-mid-run",
+        started,
+        "passed",
+        json!({"monitor": monitor.evidence(), "residue_after": after}),
+    ));
+
+    cut.residue_after = clean(gateway, "m5-01 after")?;
+    publish(&cut, &image)?;
+    if blocked {
+        return Err(format!(
+            "M5-01 positives are unqualified: fixtures/criterion-vendor/vendor holds {} files and \
+             {} directories totalling {} bytes, with {} file(s) over SOURCE_MAX_FILE_BYTES; a \
+             CargoVendorSnapshot admits at most {SOURCE_MAX_ENTRIES} entries, \
+             {SOURCE_MAX_TOTAL_BYTES} total bytes and {SOURCE_MAX_FILE_BYTES} bytes per file. \
+             criterion 0.8.2's compiled closure alone is about 20 MiB, so no pruning of \
+             non-compiled files brings it inside the bound. rust.benchmark.run therefore cannot \
+             measure a criterion project through the product's own vendor contract.",
+            shape.files,
+            shape.directories,
+            shape.total_bytes,
+            shape.oversized.len(),
+        )
+        .into());
+    }
+    Ok(())
+}
+
+// -- M5-03 rust.profile.flamegraph -------------------------------------------
+
+/// The profile fixture, plus two binary targets this qualification needs and
+/// the product cannot reach otherwise: the gateway passes the profiled child no
+/// argv at all, so `rust-mcp-profile-workload --zero` is unreachable through
+/// `rust.profile.flamegraph`. Both added targets call the fixture's own
+/// `known_hot_frame` through `#[path]`, so the measured code is the fixture's.
+fn profile_bundle() -> Result<SourceBundle, Failure> {
+    let base = fixture_bundle("profile-workload")?;
+    let manifest = base
+        .files()
+        .iter()
+        .find(|file| file.path() == "Cargo.toml")
+        .ok_or("profile fixture has no Cargo.toml")?
+        .bytes()
+        .to_vec();
+    let mut manifest = String::from_utf8(manifest)?;
+    manifest.push_str(
+        "\n[[bin]]\nname = \"rust-mcp-profile-zero\"\npath = \"src/zero.rs\"\n\
+         \n[[bin]]\nname = \"rust-mcp-profile-hold\"\npath = \"src/hold.rs\"\n",
+    );
+    let base = replacing(&base, "Cargo.toml", manifest.into_bytes())?;
+    with_files(
+        &base,
+        [
+            (
+                "src/zero.rs".into(),
+                b"//! Zero-sample control: the fixture's `--zero` path, reached without argv.\n\
+                  #[path = \"main.rs\"]\n\
+                  mod workload;\n\
+                  fn main() {\n    \
+                      println!(\"{:016x}\", workload::known_hot_frame(std::time::Duration::ZERO));\n\
+                  }\n"
+                    .to_vec(),
+            ),
+            (
+                "src/hold.rs".into(),
+                b"//! Long-running variant, so a cancellation selection can observe the sampler.\n\
+                  #[path = \"main.rs\"]\n\
+                  mod workload;\n\
+                  fn main() {\n    \
+                      println!(\n        \"{:016x}\",\n        \
+                      workload::known_hot_frame(std::time::Duration::from_secs(30))\n    );\n\
+                  }\n"
+                    .to_vec(),
+            ),
+        ],
+    )
+}
+
+#[test]
+#[ignore = "explicit M5 image, host Docker and exclusive native profiling qualification"]
+fn m5_profile_flamegraph_is_qualified_natively() -> Result<(), Failure> {
+    let image = m5_image()?;
+    let mut cut = Cut::open("m5-03-profile");
+    let session = Session::open(&image)?;
+    let gateway = session.gateway()?;
+    cut.residue_before = clean(gateway, "m5-03 before")?;
+
+    let source = profile_bundle()?;
+    let vendor = empty_vendor()?;
+    cut.fixtures.insert(
+        "profile_workload".into(),
+        bundle_facts("profile-workload", &source)?,
+    );
+
+    // -- selection 6: the positive -------------------------------------------
+    let started = Instant::now();
+    let options = ProfileOptions::new("rust-mcp-profile-workload".into(), 99, 4)
+        .map_err(|error| format!("options: {error:?}"))?;
+    let observation = performance_port::profile(gateway, &source, &vendor, &options, &Proceed)
+        .map_err(|error| format!("profile positive: {error:?}"))?;
+    assert_eq!(observation.build, ProfileBuildOutcome::Built);
+    assert_eq!(observation.build_exit_code, Some(0));
+    assert_eq!(
+        observation.status,
+        ProfileStatus::Complete,
+        "counters: {}",
+        profile_counters(&observation)
+    );
+    assert_eq!(observation.backend, PROFILE_BACKEND);
+    assert!(observation.counters.samples_collected > 0);
+    assert!(
+        observation.counters.samples_collected >= 50,
+        "99 Hz over a 2 s workload should collect far more than 50 samples, got {}",
+        observation.counters.samples_collected
+    );
+    assert_eq!(observation.counters.samples_lost, 0);
+    assert_eq!(observation.counters.stacks_truncated, 0);
+    assert_eq!(observation.completeness, ProfileCompleteness::Complete);
+    assert_eq!(observation.perf_errno, None);
+    assert!(observation.consistent());
+    assert!(!observation.top_frames.is_empty());
+
+    let stacks = String::from_utf8(observation.stacks.clone())?;
+    let (frames, hot, total) = hottest(&stacks)?;
+    assert!(
+        frames.len() >= 4,
+        "the hottest stack is shorter than the known chain: {frames:?}"
+    );
+    let tail = &frames[frames.len() - 4..];
+    for (index, expected) in ["main", "level_one", "level_two", "known_hot_frame"]
+        .into_iter()
+        .enumerate()
+    {
+        assert!(
+            tail[index].contains(expected),
+            "the hottest stack does not end with the known chain: tail {tail:?}"
+        );
+    }
+    assert!(
+        hot * 4 >= total * 3,
+        "the known stack carried {hot} of {total} samples, not the large majority"
+    );
+    let mut all_frames = 0usize;
+    for line in stacks.lines() {
+        let Some((frames, _)) = line.rsplit_once(' ') else {
+            continue;
+        };
+        for frame in frames.split(';') {
+            all_frames += 1;
+            assert!(
+                !frame.contains('/'),
+                "an emitted frame carried a path separator: {frame}"
+            );
+        }
+    }
+
+    let svg = String::from_utf8(observation.svg.clone())?;
+    assert!(!svg.is_empty());
+    assert!(svg.starts_with("<svg"), "svg did not start with <svg");
+    for forbidden in [
+        "<script",
+        "href",
+        "xlink:",
+        "<foreignObject",
+        "<image",
+        "<use",
+        "javascript:",
+        "data:",
+        "<!ENTITY",
+        "<!DOCTYPE",
+    ] {
+        assert!(!svg.contains(forbidden), "the svg carried {forbidden}");
+    }
+    assert_eq!(
+        svg.matches("http").count(),
+        1,
+        "the only http occurrence permitted is the SVG namespace"
+    );
+    let mut positive = profile_counters(&observation);
+    if let Some(object) = positive.as_object_mut() {
+        object.insert(
+            "hottest_stack".into(),
+            json!({
+                "frames": frames,
+                "samples": hot,
+                "total_samples": total,
+                "distinct_frames_emitted": all_frames,
+            }),
+        );
+    }
+    cut.selections
+        .push(selection("profile-positive", started, "passed", positive));
+    clean(gateway, "m5-03 after positive")?;
+
+    // -- selection 6b: the counters the DTO does not carry --------------------
+    //
+    // `cpus_sampled` is the helper's own field and the port deliberately does
+    // not read it (ADR-074 §5 lets the helper gain fields ahead of the reader).
+    // It is still evidence, so it is read here from the raw manifest and
+    // compared with the CPU count the same execution probed from the guest.
+    let started = Instant::now();
+    let execution = performance_gateway::execute_profile(
+        gateway,
+        &source,
+        &vendor,
+        &options,
+        ExecutionLimits::new_job(300_000, LOG_BYTES).ok_or("limits")?,
+        &Proceed,
+    )
+    .map_err(|error| format!("profile counters: {error:?}"))?;
+    let output = execution.profile.as_ref().ok_or("no profile output")?;
+    let manifest: Value = serde_json::from_slice(&output.manifest)?;
+    let cpus_sampled = manifest
+        .get("cpus_sampled")
+        .and_then(Value::as_u64)
+        .ok_or("the helper manifest declared no cpus_sampled")?;
+    let cpu_cores = execution
+        .hardware
+        .cpu_cores
+        .ok_or("the CPU probe reported no core count")?;
+    assert!(cpus_sampled > 0, "the helper sampled no CPU at all");
+    assert_eq!(
+        cpus_sampled,
+        u64::from(cpu_cores),
+        "the helper must fan out over every online CPU the guest reports"
+    );
+    assert!(execution.hardware.cpu_model.is_some());
+    assert!(execution.hardware.os_kernel.is_some());
+    cut.selections.push(selection(
+        "profile-cpus-sampled",
+        started,
+        "passed",
+        json!({
+            "cpus_sampled": cpus_sampled,
+            "guest_cpu_cores": cpu_cores,
+            "cpu_model": execution.hardware.cpu_model,
+            "os_kernel": execution.hardware.os_kernel,
+            "manifest_status": manifest.get("status"),
+            "manifest_sha256": digest(&output.manifest),
+        }),
+    ));
+    drop(execution);
+    clean(gateway, "m5-03 after cpus-sampled")?;
+
+    // -- selection 7: the zero-sample control --------------------------------
+    let started = Instant::now();
+    let zero = ProfileOptions::new("rust-mcp-profile-zero".into(), 99, 4)
+        .map_err(|error| format!("options: {error:?}"))?;
+    let observation = performance_port::profile(gateway, &source, &vendor, &zero, &Proceed)
+        .map_err(|error| format!("zero-sample control: {error:?}"))?;
+    assert_eq!(observation.build, ProfileBuildOutcome::Built);
+    assert_eq!(observation.counters.samples_collected, 0);
+    assert_eq!(observation.counters.samples_lost, 0);
+    assert!(
+        observation.stacks.is_empty(),
+        "zero samples must publish an empty stacks artifact"
+    );
+    assert!(observation.top_frames.is_empty());
+    assert_eq!(observation.completeness, ProfileCompleteness::NoSamples);
+    assert_ne!(
+        observation.status,
+        ProfileStatus::ProfilerUnavailable,
+        "zero samples is not a profiler denial"
+    );
+    assert_eq!(observation.perf_errno, None);
+    assert!(observation.consistent());
+    cut.selections.push(selection(
+        "zero-sample-control",
+        started,
+        "passed",
+        profile_counters(&observation),
+    ));
+    clean(gateway, "m5-03 after zero-sample control")?;
+
+    // -- selection 8: cancellation during profiling --------------------------
+    let started = Instant::now();
+    let hold = ProfileOptions::new("rust-mcp-profile-hold".into(), 99, 20)
+        .map_err(|error| format!("options: {error:?}"))?;
+    let monitor = CancelWhenObserved::new(gateway, "/opt/perf/bin/rust-mcp-profile-helper");
+    let cancelled = performance_port::profile(gateway, &source, &vendor, &hold, &monitor);
+    assert_eq!(
+        cancelled.err(),
+        Some(SecurityError::Inspection(InspectionError::Project(
+            ProjectError::Cancelled
+        ))),
+        "cancelling a profile must be reported as a cancellation"
+    );
+    assert!(
+        monitor.observed.load(Ordering::SeqCst),
+        "the profiling helper was never observed running: {}",
+        monitor.evidence()
+    );
+    assert!(!monitor.failed.load(Ordering::SeqCst));
+    let after = clean(gateway, "m5-03 after cancellation")?;
+    cut.selections.push(selection(
+        "cancellation-during-profiling",
+        started,
+        "passed",
+        json!({"monitor": monitor.evidence(), "residue_after": after}),
+    ));
+
+    cut.residue_after = clean(gateway, "m5-03 after")?;
+    publish(&cut, &image)?;
+    Ok(())
+}
+
+// -- M5-04 rust.binary.bloat -------------------------------------------------
+
+#[test]
+#[ignore = "explicit M5 image, host Docker and exclusive native bloat qualification"]
+fn m5_binary_bloat_is_qualified_natively() -> Result<(), Failure> {
+    let image = m5_image()?;
+    let mut cut = Cut::open("m5-04-bloat");
+    let session = Session::open(&image)?;
+    let gateway = session.gateway()?;
+    cut.residue_before = clean(gateway, "m5-04 before")?;
+
+    let source = fixture_bundle("bloat")?;
+    let vendor = empty_vendor()?;
+    cut.fixtures
+        .insert("bloat".into(), bundle_facts("bloat", &source)?);
+
+    let mut sizes = BTreeMap::new();
+    for (name, profile) in [
+        ("release-positive", BloatProfile::Release),
+        ("release-lto", BloatProfile::ReleaseLto),
+    ] {
+        let started = Instant::now();
+        let options = BloatOptions::new("rust-mcp-bloat-fixture".into(), None, profile)
+            .map_err(|error| format!("options: {error:?}"))?;
+        let observation = performance_port::bloat(gateway, &source, &vendor, &options, &Proceed)
+            .map_err(|error| format!("{name}: {error:?}"))?;
+        assert_eq!(observation.exit, BloatExit::Passed, "{name}");
+        assert_eq!(observation.exit_code, Some(0), "{name}");
+        assert_eq!(observation.analyzer_version, APPROVED_CARGO_BLOAT_VERSION);
+        let measured = observation
+            .measured
+            .as_ref()
+            .ok_or_else(|| format!("{name}: the product measured no binary"))?;
+        let attribution = observation
+            .attribution
+            .as_ref()
+            .ok_or_else(|| format!("{name}: the analyzer attributed nothing"))?;
+        assert_eq!(
+            attribution.reported_file_size_bytes,
+            Some(measured.size_bytes),
+            "{name}: the analyzer's file-size must equal the product's own measurement"
+        );
+        assert!(measured.analysis_build_symbols_forced, "{name}");
+        assert_eq!(measured.format, BinaryFormat::Elf64Aarch64, "{name}");
+        assert!(attribution.estimated, "{name}");
+        assert!(!attribution.functions.is_empty(), "{name}");
+        for expected in ["rust_mcp_bloat_fixture", "bloat_inner"] {
+            assert!(
+                attribution
+                    .crates
+                    .iter()
+                    .any(|entry| entry.name == expected),
+                "{name}: {expected} is absent from the per-crate attribution"
+            );
+        }
+        // The fixture links 634 attributable functions and the product's ranking
+        // is bounded at 256, so the honest completeness for this binary is
+        // `Truncated`: the ranking was capped, and the report says so. What must
+        // be exact is the file, and that is asserted above -- the product's own
+        // measurement equals the analyzer's reported size, byte for byte.
+        assert_eq!(
+            observation.completeness,
+            BloatCompleteness::Truncated,
+            "{name}: {}",
+            bloat_counters(&observation)
+        );
+        assert!(
+            attribution.functions_omitted > 0,
+            "{name}: a truncated ranking must say how many rows it dropped"
+        );
+        assert_eq!(
+            attribution.reported_file_size_bytes,
+            Some(measured.size_bytes),
+            "{name}: the analyzer and the product must name the same file"
+        );
+        assert!(observation.consistent(), "{name}");
+        sizes.insert(name, measured.size_bytes);
+        cut.selections.push(selection(
+            name,
+            started,
+            "passed",
+            bloat_counters(&observation),
+        ));
+        clean(gateway, &format!("m5-04 after {name}"))?;
+    }
+    let release = *sizes.get("release-positive").ok_or("release size")?;
+    let lto = *sizes.get("release-lto").ok_or("lto size")?;
+    assert!(
+        lto < release,
+        "link-time optimization must produce a strictly smaller binary: {lto} vs {release}"
+    );
+
+    // -- selection 11: a missing target is an observed failure ---------------
+    let started = Instant::now();
+    let options = BloatOptions::new("rust-mcp-bloat-absent".into(), None, BloatProfile::Release)
+        .map_err(|error| format!("options: {error:?}"))?;
+    let observation = performance_port::bloat(gateway, &source, &vendor, &options, &Proceed)
+        .map_err(|error| format!("missing-target: {error:?}"))?;
+    assert_eq!(
+        observation.exit,
+        BloatExit::AnalysisFailed,
+        "a missing binary target is an observed analysis failure, not infrastructure"
+    );
+    assert_eq!(observation.exit_code, Some(1));
+    assert_eq!(observation.measured, None);
+    assert_eq!(observation.attribution, None);
+    assert_eq!(observation.completeness, BloatCompleteness::Unavailable);
+    assert!(observation.consistent());
+    cut.selections.push(selection(
+        "missing-binary-target",
+        started,
+        "passed",
+        bloat_counters(&observation),
+    ));
+
+    cut.residue_after = clean(gateway, "m5-04 after")?;
+    publish(&cut, &image)?;
+    Ok(())
+}
+
+// -- image admission ---------------------------------------------------------
+
+#[test]
+#[ignore = "explicit M4 image and host Docker; M5 admission refusal"]
+fn m5_tools_refuse_every_runtime_but_the_qualified_one() -> Result<(), Failure> {
+    // Named only so a mis-set environment cannot silently skip this cut.
+    m5_image()?;
+    let mut cut = Cut::open("m5-00-admission");
+    let session = Session::open(crate::APPROVED_M4_IMAGE)?;
+    let gateway = session.gateway()?;
+    cut.residue_before = clean(gateway, "admission before")?;
+    assert_ne!(gateway.image_id(), crate::APPROVED_M5_IMAGE);
+
+    let source = fixture_bundle("bloat")?;
+    let vendor = empty_vendor()?;
+    let unavailable = SecurityError::Inspection(InspectionError::Execution(
+        rust_engineering_application::ExecutionError::Unavailable,
+    ));
+
+    let started = Instant::now();
+    let options = BenchmarkRunOptions::new(None, None, Vec::new(), false, false, 1, 300)
+        .map_err(|error| format!("options: {error:?}"))?;
+    assert_eq!(
+        performance_port::benchmark(gateway, &source, &vendor, &options, &Proceed).err(),
+        Some(unavailable)
+    );
+    assert_eq!(
+        performance_port::profile(
+            gateway,
+            &source,
+            &vendor,
+            &ProfileOptions::new("rust-mcp-bloat-fixture".into(), 99, 4)
+                .map_err(|error| format!("{error:?}"))?,
+            &Proceed,
+        )
+        .err(),
+        Some(unavailable)
+    );
+    assert_eq!(
+        performance_port::bloat(
+            gateway,
+            &source,
+            &vendor,
+            &BloatOptions::new("rust-mcp-bloat-fixture".into(), None, BloatProfile::Release)
+                .map_err(|error| format!("{error:?}"))?,
+            &Proceed,
+        )
+        .err(),
+        Some(unavailable)
+    );
+    let after = clean(gateway, "admission after")?;
+    cut.selections.push(selection(
+        "unqualified-image-refused",
+        started,
+        "passed",
+        json!({
+            "image_id": gateway.image_id(),
+            "qualified_image_id": crate::APPROVED_M5_IMAGE,
+            "error": "Inspection(Execution(Unavailable))",
+            "residue_after": after,
+        }),
+    ));
+    cut.residue_after = after;
+    publish(&cut, crate::APPROVED_M4_IMAGE)?;
+    Ok(())
+}
+
+// -- unit checks that need no Docker -----------------------------------------
+
+#[cfg(test)]
+mod unit {
+    use super::*;
+
+    #[test]
+    fn the_receipt_stamps_a_real_utc_instant() {
+        assert_eq!(utc(0), "1970-01-01T00:00:00Z");
+        assert_eq!(utc(1_767_225_599), "2025-12-31T23:59:59Z");
+        assert_eq!(utc(1_767_225_600), "2026-01-01T00:00:00Z");
+        // A leap day, so the civil conversion is not merely 365-day arithmetic.
+        assert_eq!(utc(1_709_164_800), "2024-02-29T00:00:00Z");
+    }
+
+    #[test]
+    fn the_hottest_stack_is_the_one_with_the_most_samples() -> Result<(), Failure> {
+        let (frames, hot, total) = hottest("a;b 3\na;c;d 11\n")?;
+        assert_eq!(frames, ["a", "c", "d"]);
+        assert_eq!(hot, 11);
+        assert_eq!(total, 14);
+        assert!(hottest("").is_err());
+        Ok(())
+    }
+
+    #[test]
+    fn a_vendor_tree_over_any_source_bound_never_fits() {
+        let shape = VendorShape {
+            files: 10,
+            directories: 2,
+            total_bytes: 1024,
+            oversized: Vec::new(),
+            materialized: true,
+        };
+        assert!(shape.fits());
+        assert!(
+            !VendorShape {
+                materialized: false,
+                ..shape_of(&shape)
+            }
+            .fits()
+        );
+        assert!(
+            !VendorShape {
+                files: SOURCE_MAX_ENTRIES,
+                ..shape_of(&shape)
+            }
+            .fits()
+        );
+        assert!(
+            !VendorShape {
+                total_bytes: SOURCE_MAX_TOTAL_BYTES as u64 + 1,
+                ..shape_of(&shape)
+            }
+            .fits()
+        );
+        assert!(
+            !VendorShape {
+                oversized: vec!["big".into()],
+                ..shape_of(&shape)
+            }
+            .fits()
+        );
+    }
+
+    fn shape_of(shape: &VendorShape) -> VendorShape {
+        VendorShape {
+            files: shape.files,
+            directories: shape.directories,
+            total_bytes: shape.total_bytes,
+            oversized: shape.oversized.clone(),
+            materialized: shape.materialized,
+        }
+    }
+}

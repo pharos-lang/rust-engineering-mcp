@@ -763,6 +763,8 @@ mod quality_v2_log;
 pub use quality_v2_log::safe_gate_v2_log;
 
 mod performance_gateway;
+#[cfg(test)]
+mod performance_native;
 mod performance_port;
 /// Exact derived M5 runtime qualified by ADR-075; never a mutable build tag.
 pub use performance_port::M5_IMAGE as APPROVED_M5_IMAGE;
