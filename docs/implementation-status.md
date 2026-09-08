@@ -1,6 +1,6 @@
 # Estado de implementación — Rust Engineering MCP
 
-Actualizado: 2026-09-07
+Actualizado: 2026-09-08
 
 Fuente principal: [`spec/rust-engineering-mcp-propuesta-v0.3.md`](spec/rust-engineering-mcp-propuesta-v0.3.md)
 
@@ -148,7 +148,7 @@ y [validación/reviews](roadmap/planning-validation.md).
 | M2 / 0.2.x | Done local; sin release nueva | [Safe Mutation](roadmap/m2-safe-mutation.md) · [prompt M2](prompts/implement-m2.md) |
 | M3 / 0.3.x | Done; integrado en `main` como `57c4037` (PR #14); sin release nueva | [Quality](roadmap/m3-quality.md) · [matriz M3](validation/M3-matrix.md) · [integración](validation/M3-integration.json) |
 | M4 / 0.4.x | Done local; integración mediante PR #15; sin release nueva | [Security](roadmap/m4-security.md) · [handoff M4](validation/M4-handoff.md) · [confirmación final](reviews/m4-final-evidence/review.md) |
-| M5 / 0.5.x | Planned | [Performance](roadmap/m5-performance.md) · [prompt M5](prompts/implement-m5.md) |
+| M5 / 0.5.x | In progress; tres cortes calificados nativamente, M5-01 bloqueado | [Performance](roadmap/m5-performance.md) · [matriz M5](validation/M5-matrix.md) · [handoff M5](validation/M5-handoff.md) |
 | M6 / 0.6.x | Planned | [Analyzer](roadmap/m6-analyzer.md) · [prompt M6](prompts/implement-m6.md) |
 | M7 / 0.7.x | Conditional; ejecución Deferred sin Go | [Remote](roadmap/m7-remote.md) · [prompt M7](prompts/implement-m7.md) |
 | M8 / 0.8–0.9 / readiness 1.0 | Planned | [Stabilization](roadmap/m8-stabilization.md) · [prompt M8](prompts/implement-m8.md) |
@@ -293,6 +293,37 @@ en [PR #15](https://github.com/pharos-lang/rust-engineering-mcp/pull/15), sin ta
 release ni M5.
 
 [Matriz](validation/M4-matrix.md) · [Handoff y límites](validation/M4-handoff.md).
+
+## M5 — Performance en `ai/m5-performance`
+
+**In progress — 2026-09-08. No está Done.** Las decisiones D23 y D24 están
+cerradas (ADR-073/074) junto con el aprovisionamiento (ADR-075), los contratos
+(ADR-076) y la admisión de imagen (ADR-077). El inventario público sigue en
+veintisiete tools mientras el registro MCP no esté completo; no se anuncia
+ninguna tool nueva antes de su evidencia.
+
+| Corte | Estado | Evidencia |
+| --- | --- | --- |
+| M5-01 `rust.benchmark.run` | Blocked en el positivo; negativos y controles calificados | [runtime](validation/M5-01-runtime.json) · [bloqueo](validation/M5-01-blocker.json) |
+| M5-02 `rust.benchmark.compare` | Implementado; método probado sobre datasets reales del guest | [calibración](validation/M5-01-benchmark-calibration.json) |
+| M5-03 `rust.profile.flamegraph` | Calificado nativamente | [runtime](validation/M5-03-runtime.json) · [positivo](validation/M5-03-profiling-native.json) |
+| M5-04 `rust.binary.bloat` | Calificado nativamente | [runtime](validation/M5-04-runtime.json) · [calibración](validation/M5-04-bloat-calibration.json) |
+| M5-05 cierre | Not started | — |
+
+El positivo de profiling —la puerta que el plan señalaba— está demostrado: 195
+muestras y la pila esperada, con `--cap-drop=ALL`, `no-new-privileges`, uid
+65534, sin red, `perf_event_paranoid` intacto en 2, sin capability añadida, sin
+contenedor privilegiado, sin `sudo` y sin cambio de `sysctl`. Una sola syscall
+se añadió al perfil seccomp, y solo una fase la usa.
+
+**M5-01 está bloqueado por una condición reproducible**, no por falta de
+trabajo: el cierre de criterion (6 014 archivos, 156 MB) no cabe en el contrato
+de datos offline (`SourceBundle`: 4 096 entradas, 16 MiB, 1 MiB por archivo).
+Los límites **no** se subieron; pertenecen al contrato calificado en M2/M4 y
+ampliarlos exigiría decisión y recalificación. [Detalle y opciones](validation/M5-01-blocker.json).
+
+Sin tag, sin release, sin PR y sin push. M6 no está iniciado.
+[Matriz](validation/M5-matrix.md) · [Handoff](validation/M5-handoff.md).
 
 ## Technical Debt
 
