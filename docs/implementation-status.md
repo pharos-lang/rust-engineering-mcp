@@ -147,7 +147,7 @@ y [validación/reviews](roadmap/planning-validation.md).
 | --- | --- | --- |
 | M2 / 0.2.x | Done local; sin release nueva | [Safe Mutation](roadmap/m2-safe-mutation.md) · [prompt M2](prompts/implement-m2.md) |
 | M3 / 0.3.x | Done; integrado en `main` como `57c4037` (PR #14); sin release nueva | [Quality](roadmap/m3-quality.md) · [matriz M3](validation/M3-matrix.md) · [integración](validation/M3-integration.json) |
-| M4 / 0.4.x | Done local; sin commit ni release nueva | [Security](roadmap/m4-security.md) · [handoff M4](validation/M4-handoff.md) · [confirmación final](reviews/m4-final-evidence/review.md) |
+| M4 / 0.4.x | Done local; PR #15 abierto; sin release nueva | [Security](roadmap/m4-security.md) · [handoff M4](validation/M4-handoff.md) · [confirmación final](reviews/m4-final-evidence/review.md) |
 | M5 / 0.5.x | Planned | [Performance](roadmap/m5-performance.md) · [prompt M5](prompts/implement-m5.md) |
 | M6 / 0.6.x | Planned | [Analyzer](roadmap/m6-analyzer.md) · [prompt M6](prompts/implement-m6.md) |
 | M7 / 0.7.x | Conditional; ejecución Deferred sin Go | [Remote](roadmap/m7-remote.md) · [prompt M7](prompts/implement-m7.md) |
@@ -288,7 +288,9 @@ ni P2 nuevos. La renovación nativa resuelve la evidencia stale retenida; la
 P0/P1/P2 abiertos y el [Technical Owner](reviews/m4-final-evidence/disposition.md)
 cierra los seis cortes y G1–G9. Se preservan fallos e intentos
 sin atribuir causas no observadas. CI/Sonar remotos y host Linux/x86_64 no se
-acreditan. Versión `0.3.0-dev`, cambios locales sin commit/PR/tag/release ni M5.
+acreditan. Versión `0.3.0-dev`, implementación `07814664379628f00857feca13148b507de687b9`
+en [PR #15](https://github.com/pharos-lang/rust-engineering-mcp/pull/15), sin tag,
+release ni M5.
 
 [Matriz](validation/M4-matrix.md) · [Handoff y límites](validation/M4-handoff.md).
 

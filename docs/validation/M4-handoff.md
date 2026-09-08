@@ -9,10 +9,11 @@ no autoriza release, publicación ni M5.
 | Campo | Valor |
 | --- | --- |
 | Rama | `ai/m4-security` |
-| Base y HEAD | `c66a3704e1ad290603a3c1d10413df90d15c2b03` (`main`) |
+| Base | `c66a3704e1ad290603a3c1d10413df90d15c2b03` (`main`) |
+| Commit de implementación | `07814664379628f00857feca13148b507de687b9` |
 | Versión workspace | `0.3.0-dev` |
-| Estado de los cambios | Working tree M4 sin commit de integración |
-| Publicación | Sin PR, tag ni release |
+| Pull request | [#15](https://github.com/pharos-lang/rust-engineering-mcp/pull/15) |
+| Publicación | Sin tag ni release |
 | Plataforma calificada | Host local macOS 26.6.2 ARM64; runtime Linux ARM64 en Docker |
 
 No se acredita ejecución en CI remota, el servicio Sonar, un host Linux ni
@@ -174,8 +175,9 @@ hashes reales; conserva los segmentos del full, los 23 baselines Git y los cinco
 assets E5 con pins esperados/observados. Las observaciones menores quedan
 resueltas por evidencia suplementaria o aceptadas con owner y límite explícitos.
 
-M4 está **Done local** en el working tree de `ai/m4-security`, HEAD/base
-`c66a3704e1ad290603a3c1d10413df90d15c2b03`. No hay commit de integración, PR,
-tag, release ni autorización para M5. El siguiente documento de trabajo es
+M4 está **Done local** en `ai/m4-security`. La implementación está en
+`07814664379628f00857feca13148b507de687b9` y se propone mediante el
+[PR #15](https://github.com/pharos-lang/rust-engineering-mcp/pull/15). No hay tag,
+release ni autorización para M5. El siguiente documento de trabajo es
 [implement-m5.md](../prompts/implement-m5.md), solo como referencia de handoff.
 La revisión de CI/Sonar remotos corresponde a una futura integración autorizada.

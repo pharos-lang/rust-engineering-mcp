@@ -11,8 +11,9 @@
   [full](docs/validation/M4-full-gate.json), el [runtime](docs/validation/M4-runtime.json)
   y los [clientes](docs/validation/M4-clients.json) pasaron localmente. La
   [confirmación final](docs/reviews/m4-final-evidence/review.md) acepta el cierre
-  local de M4; no hay commit de integración,
-  nueva release, tag o PR.
+  local de M4. La implementación `07814664379628f00857feca13148b507de687b9`
+  está en el [PR #15](https://github.com/pharos-lang/rust-engineering-mcp/pull/15);
+  no hay nueva release ni tag.
 - El core pasó 19 etapas (1220 tests Rust, un doctest y 11 tests del helper); el
   full pasó 33 con inventario fuente idéntico. Tras encontrar un directorio E5
   temporal vacío, la reanudación conservó 27 etapas aprobadas y ejecutó seis

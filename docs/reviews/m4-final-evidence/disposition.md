@@ -1,8 +1,9 @@
 # Technical Owner — final M4 closure disposition
 
-Date: 2026-09-08. Verdict: **M4 Done locally** on `ai/m4-security`, base/HEAD
-`c66a3704e1ad290603a3c1d10413df90d15c2b03`, working tree uncommitted, workspace
-`0.3.0-dev`. The [independent Opus 5 High confirmation](review.md) accepts local
+Date: 2026-09-08. Verdict: **M4 Done locally** on `ai/m4-security`, based on
+`c66a3704e1ad290603a3c1d10413df90d15c2b03`; implementation commit
+`07814664379628f00857feca13148b507de687b9`, workspace `0.3.0-dev`. The
+[independent Opus 5 High confirmation](review.md) accepts local
 closure with no P0/P1/P2. Its original response and 59-file frozen package are
 preserved. The retained stale-native P2 is closed by fresh scanner/Miri receipts;
 the fingerprint-input P2 remains closed and is now bound to those receipts.
@@ -40,4 +41,7 @@ failures remain disclosed; no unobserved root cause or causal fix is claimed.
 All six cuts and G1–G9 are satisfied for the declared local target. Core 19/19,
 full 33/33 (27 retained + six resumed), M4 runtime 19/19 and final client attempt 4
 pass. Remote CI/Sonar and Linux/x86_64 host qualification are not credited.
-This decision authorizes no commit, PR, tag, release, publication or M5.
+The owner subsequently authorized commit and PR creation; implementation commit
+`07814664379628f00857feca13148b507de687b9` is proposed by
+[PR #15](https://github.com/pharos-lang/rust-engineering-mcp/pull/15). This
+decision still authorizes no tag, release, publication or M5.
