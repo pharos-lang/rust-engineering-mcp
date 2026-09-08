@@ -1,0 +1,12 @@
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.06s
+     Running unittests src/lib.rs (target/debug/deps/rust_engineering_execution-90533356044b11f0)
+
+running 1 test
+test security_native::m4_deny_native_text_licenses_and_bans_are_real_and_cleanup_is_joined ... M4_DENY_ORACLE {"bans":{"errors":0,"helps":0,"notes":0,"warnings":0},"case":"clean","execution_fingerprint":"sha256:932aa6e64fc4991c270e6fef3cdf936f26572b1d8a8d5f3a8441d43796144eb1","exit":0,"licenses":{"errors":0,"helps":1,"notes":0,"warnings":1},"metadata":"sha256:769c22bc62037b25f077ecb771bf9ac88da5dc093860d5a5c2c66a6e9212ee42","sources":{"errors":0,"helps":0,"notes":0,"warnings":0},"stderr_sha256":"sha256:f7898788c4dc53914e7fee49818a50f8d539c3587f0d61269c0331f361f10465"}
+M4_DENY_ORACLE {"bans":{"errors":0,"helps":0,"notes":0,"warnings":0},"case":"manifest-without-text","execution_fingerprint":"sha256:43df0bba8be14b158175a8bac87d38ce1f4fcaa6365bd1948762a05e16855116","exit":4,"licenses":{"errors":1,"helps":0,"notes":0,"warnings":3},"metadata":"sha256:769c22bc62037b25f077ecb771bf9ac88da5dc093860d5a5c2c66a6e9212ee42","sources":{"errors":0,"helps":0,"notes":0,"warnings":0},"stderr_sha256":"sha256:0470cf14db5694a421a38c8610e9fe6461a5a20ef2f22f4ab6d59c3204df4d2a"}
+M4_DENY_ORACLE {"bans":{"errors":0,"helps":0,"notes":0,"warnings":0},"case":"text-not-allowed","execution_fingerprint":"sha256:abb4106b1baebf3c09d5e4c71b4bc14647484385df23de7e1e91898c00d8b6b9","exit":4,"licenses":{"errors":1,"helps":0,"notes":0,"warnings":2},"metadata":"sha256:769c22bc62037b25f077ecb771bf9ac88da5dc093860d5a5c2c66a6e9212ee42","sources":{"errors":0,"helps":0,"notes":0,"warnings":0},"stderr_sha256":"sha256:a87d2c9139f8d068030dcb6d5881e5b29449da5069efddb5d40c3547b5b4dcba"}
+M4_DENY_ORACLE {"bans":{"errors":1,"helps":0,"notes":0,"warnings":0},"case":"banned-package","execution_fingerprint":"sha256:3620a4df85bb852495a2af147f21ea8c8440aae4bebb49b46286d219fcd25c88","exit":2,"licenses":{"errors":0,"helps":1,"notes":0,"warnings":1},"metadata":"sha256:769c22bc62037b25f077ecb771bf9ac88da5dc093860d5a5c2c66a6e9212ee42","sources":{"errors":0,"helps":0,"notes":0,"warnings":0},"stderr_sha256":"sha256:8358329e82100c99b89174e88f7742f030cd093429d77df99519f4843398969d"}
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 252 filtered out; finished in 21.77s
+

@@ -1,0 +1,7 @@
+{
+  "benign_socket_shutdown_observations": {
+    "[('read', b'')]": 2000
+  },
+  "cases": 2000,
+  "production_server_executed": false
+}

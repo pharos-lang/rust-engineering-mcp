@@ -1,0 +1,241 @@
+{
+  "schema": "rust-mcp-m4-prerequisite-v1",
+  "observed_at": "2026-09-07T22:07:54.592016+00:00",
+  "head": "c66a3704e1ad290603a3c1d10413df90d15c2b03",
+  "source_inventory_algorithm": "scripts/gate.py::source_inventory; SHA256(json.dumps(rows, sort_keys=True, separators=(comma, colon))) without newline",
+  "source_entries": 810,
+  "source_bytes": 46027636,
+  "source_inventory_sha256": "791856ed9325c55ade73809207e971d3fd76c0bc3abd73c5b97ead54dff0ac9e",
+  "gate_comparisons": [
+    {
+      "receipt": "docs/validation/M3-core-gate.json",
+      "sha256": "cf37ad509cad5c6feec76510bcc505c0cfcc6dd7ff693559eff6ae693938ccd4",
+      "status": "passed",
+      "steps": 14,
+      "passed_steps": 14,
+      "source_inputs_unchanged": true,
+      "current_source_diff": []
+    },
+    {
+      "receipt": "docs/validation/M3-full-gate.json",
+      "sha256": "a5261457fc99640d62f421a5395d8d795a7124871db21f90e926d32259b36259",
+      "status": "passed",
+      "steps": 25,
+      "passed_steps": 25,
+      "source_inputs_unchanged": true,
+      "current_source_diff": []
+    }
+  ],
+  "commands": [
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "HEAD"
+      ],
+      "started_at": "2026-09-07T22:07:54.458542+00:00",
+      "finished_at": "2026-09-07T22:07:54.470313+00:00",
+      "exit_code": 0,
+      "stdout": "c66a3704e1ad290603a3c1d10413df90d15c2b03\n",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "git",
+        "branch",
+        "--show-current"
+      ],
+      "started_at": "2026-09-07T22:07:54.470329+00:00",
+      "finished_at": "2026-09-07T22:07:54.480980+00:00",
+      "exit_code": 0,
+      "stdout": "ai/m4-security\n",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "git",
+        "remote",
+        "-v"
+      ],
+      "started_at": "2026-09-07T22:07:54.481000+00:00",
+      "finished_at": "2026-09-07T22:07:54.491596+00:00",
+      "exit_code": 0,
+      "stdout": "origin\thttps://github.com/pharos-lang/rust-engineering-mcp.git (fetch)\norigin\thttps://github.com/pharos-lang/rust-engineering-mcp.git (push)\n",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "rustup",
+        "toolchain",
+        "list"
+      ],
+      "started_at": "2026-09-07T22:07:54.491615+00:00",
+      "finished_at": "2026-09-07T22:07:54.511228+00:00",
+      "exit_code": 0,
+      "stdout": "stable-aarch64-apple-darwin (default)\nnightly-aarch64-apple-darwin\n1.92-aarch64-apple-darwin\n1.93.0-aarch64-apple-darwin\n1.95.0-aarch64-apple-darwin\n1.96-aarch64-apple-darwin\n1.96.1-aarch64-apple-darwin\n1.97.0-aarch64-apple-darwin\n1.97.1-aarch64-apple-darwin\n1.98.1-aarch64-apple-darwin (active)\n",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "cargo",
+        "deny",
+        "--version"
+      ],
+      "started_at": "2026-09-07T22:07:54.511244+00:00",
+      "finished_at": "2026-09-07T22:07:54.535614+00:00",
+      "exit_code": 0,
+      "stdout": "cargo-deny 0.19.7\n",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "cargo",
+        "audit",
+        "--version"
+      ],
+      "started_at": "2026-09-07T22:07:54.535633+00:00",
+      "finished_at": "2026-09-07T22:07:54.559803+00:00",
+      "exit_code": 0,
+      "stdout": "cargo-audit-audit 0.22.1\n",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "/Applications/Docker.app/Contents/Resources/bin/docker",
+        "--host",
+        "unix:///Users/cburgosro/.docker/run/docker.sock",
+        "image",
+        "ls",
+        "--no-trunc",
+        "--format",
+        "{{.ID}} {{.Repository}}:{{.Tag}}"
+      ],
+      "started_at": "2026-09-07T22:07:54.559822+00:00",
+      "finished_at": "2026-09-07T22:07:54.590877+00:00",
+      "exit_code": 0,
+      "stdout": "sha256:384a1742ecc53cdd3a9c0bf36c6f8b66db73ddd118aeeae6e55654ea998ae36a rust-engineering-runtime:1.98.1-arm64-m3\nsha256:8fac70723a8d04b6ec9633ab721806b8a55f4f083a1b3f988c61bf6a00fa1909 rust-engineering-runtime:1.98.1-arm64\nsha256:52121945d3dda71d906b0a9bfe09e591929789a3b24487f8fc543cff9fcb0fd1 rust-mcp-probe:m0\nsha256:88200866dfff7ea7f5cbcb6ec7c8a701889efe6fe859fe64d6990e4b07ea4171 debian:bookworm-slim\nsha256:312d63756b5474df384b1844af55b58ca48cbe0996871e1d6c4239bfcd6fcd29 hashicorp/terraform-mcp-server:1.1.0\n",
+      "stderr": ""
+    }
+  ],
+  "snapshots": [
+    {
+      "path": "crates/mcp-server/tests/snapshots/audit-tool.json",
+      "bytes": 20573,
+      "sha256": "b6bb173a199bd85919c1a8f97218c4f02162f106338abffef97e3a68b72269f2"
+    },
+    {
+      "path": "crates/mcp-server/tests/snapshots/catalog-status-tool.json",
+      "bytes": 19626,
+      "sha256": "9ac8e2964beb0ae3af9829776761d25612ad4a57252dc19f98fa684f3c46c1bc"
+    },
+    {
+      "path": "crates/mcp-server/tests/snapshots/check-tool.json",
+      "bytes": 20990,
+      "sha256": "a9281b713e3f8b91682b0d248cacb7fc1e978b6d8df9baf0ad0f315a5a43f014"
+    },
+    {
+      "path": "crates/mcp-server/tests/snapshots/clippy-tool.json",
+      "bytes": 21019,
+      "sha256": "a4afb5c9d2c854ed23fb256c9ecdfd40e0ca5129a9aa302553a957e5346511a0"
+    },
+    {
+      "path": "crates/mcp-server/tests/snapshots/coverage-tool.json",
+      "bytes": 9698,
+      "sha256": "2a84cb5603d8ccbe6fa11dbd3fc6295183d0080bfe05a4d8c794944a021162d4"
+    },
+    {
+      "path": "crates/mcp-server/tests/snapshots/crate-inspect-tool.json",
+      "bytes": 20912,
+      "sha256": "27af4b9f7c2df00fc2d528341ee781d350d09081bf2a7c9f3c5bc5538442d39d"
+    },
+    {
+      "path": "crates/mcp-server/tests/snapshots/crate-search-tool.json",
+      "bytes": 22052,
+      "sha256": "3d2a6d091a4a0ba0cfcdd1a4f8600e4cf4f883fc18ad4fee2412d4a1053f6039"
+    },
+    {
+      "path": "crates/mcp-server/tests/snapshots/dependency-add-tool.json",
+      "bytes": 17073,
+      "sha256": "426515577746d42235ee31edfe455a5057cb0c7ffd1912f534de26e323304be6"
+    },
+    {
+      "path": "crates/mcp-server/tests/snapshots/dependency-remove-tool.json",
+      "bytes": 15999,
+      "sha256": "e73dfb65c55c5de6852b77e947bb8ee79ce824f18ef3035b33f84836ab198cdd"
+    },
+    {
+      "path": "crates/mcp-server/tests/snapshots/doctor-report.json",
+      "bytes": 3840,
+      "sha256": "31378102881bf084c399ad60efbe900fa540b991bfa6fc5e84d07a6575831482"
+    },
+    {
+      "path": "crates/mcp-server/tests/snapshots/explain-tool.json",
+      "bytes": 11880,
+      "sha256": "f4e0ab8b25a32e07ba6a86c100b7ee2a5adcab7a35f691f16e82c9d3f4933b9f"
+    },
+    {
+      "path": "crates/mcp-server/tests/snapshots/fix-apply-tool.json",
+      "bytes": 15229,
+      "sha256": "89c93950abe47923644f1cb2457491fbf4823533b99a489a7723fc1786fd57d5"
+    },
+    {
+      "path": "crates/mcp-server/tests/snapshots/fmt-apply-tool.json",
+      "bytes": 15116,
+      "sha256": "78983f1e4c08d607a4504994237a3a053de0f5c779671c0da6357db0bf833dab"
+    },
+    {
+      "path": "crates/mcp-server/tests/snapshots/format-tool.json",
+      "bytes": 19404,
+      "sha256": "762e342a4b9e7e7e4a013583fb0f71ecefe1bf4c3ef47088b7c119a75dee56a4"
+    },
+    {
+      "path": "crates/mcp-server/tests/snapshots/manifest-patch-tool.json",
+      "bytes": 28198,
+      "sha256": "1a4f9891093f03db987ad9b53f3b862a0dc54183abf074d89096f6f294b814aa"
+    },
+    {
+      "path": "crates/mcp-server/tests/snapshots/mutation-test-tool.json",
+      "bytes": 15126,
+      "sha256": "d689048bf1ee860a95e9fde5d86852781abc046e3b746c5983d5445f9135507d"
+    },
+    {
+      "path": "crates/mcp-server/tests/snapshots/nextest-tool.json",
+      "bytes": 13704,
+      "sha256": "c05d55f0695b3996a4809a8228f94e9a77c00c4d65f054df91772625222d09f3"
+    },
+    {
+      "path": "crates/mcp-server/tests/snapshots/project-inspect-tool.json",
+      "bytes": 22557,
+      "sha256": "bf0838ace4f0f7f0709c76801de6f1b66307d90251eab6441a2d07208b913e07"
+    },
+    {
+      "path": "crates/mcp-server/tests/snapshots/project-open-tool.json",
+      "bytes": 5754,
+      "sha256": "bfab409498dc67517a96d4d034f403d24ad3ae31046df3afc09c1f3781148d9b"
+    },
+    {
+      "path": "crates/mcp-server/tests/snapshots/quality-tool.json",
+      "bytes": 35272,
+      "sha256": "95f2b8adf277a0d2d95b827a320c1f848bb1069482ad30d2e1592d418bdfffb3"
+    },
+    {
+      "path": "crates/mcp-server/tests/snapshots/semver-tool.json",
+      "bytes": 14101,
+      "sha256": "1c8df18de40655dd43265c75958ceed739cbd831f134cbe9a09822f41d31fdb5"
+    },
+    {
+      "path": "crates/mcp-server/tests/snapshots/test-tool.json",
+      "bytes": 21926,
+      "sha256": "a4f0904c89b34bd4eb3524f9de71c8d4c2036028b5905bcfdc17eea75085abf7"
+    },
+    {
+      "path": "crates/mcp-server/tests/snapshots/toolchain-inspect-tool.json",
+      "bytes": 13479,
+      "sha256": "bd57a8784387ac6939b3a12d2343660a1bf2c2fc1246c83790e6f7e0276ef518"
+    }
+  ],
+  "new_gate_execution": false,
+  "downloads_or_installation": false,
+  "review": "docs/reviews/m4-prerequisite/execution.json; pending independent verdict",
+  "m4_implemented": false
+}

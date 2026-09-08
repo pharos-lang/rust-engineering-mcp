@@ -1,0 +1,9 @@
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.06s
+     Running unittests src/lib.rs (target/debug/deps/rust_engineering_execution-90533356044b11f0)
+
+running 1 test
+test unsafe_native::m4_scanner_native_oracles_preserve_partial_results_inputs_and_cleanup ... M4_SCANNER_NATIVE sha256:42c56f7d3852a52090258d286c34ced70e85dee9f1eb53b1b5f0f3d49d70119a
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 252 filtered out; finished in 45.52s
+

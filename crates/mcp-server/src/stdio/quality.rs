@@ -1,6 +1,6 @@
 //! A single admitted quality run publishes all required stages and retained repair facts.
 #[allow(dead_code)]
-mod schemas;
+pub(super) mod schemas;
 use super::clock::WallClock;
 use super::workers::worker_error;
 use super::{

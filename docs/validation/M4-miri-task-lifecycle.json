@@ -1,0 +1,23 @@
+[
+  {
+    "cleanup_before_eof": true,
+    "cleanup_verified": true,
+    "join_ms": 947,
+    "miri_running_observed": true,
+    "scenario": "cancel"
+  },
+  {
+    "cleanup_before_eof": false,
+    "cleanup_verified": true,
+    "join_ms": 824,
+    "miri_running_observed": true,
+    "scenario": "eof"
+  },
+  {
+    "cleanup_before_eof": true,
+    "cleanup_verified": true,
+    "join_ms": 927,
+    "miri_running_observed": true,
+    "scenario": "revocation"
+  }
+]

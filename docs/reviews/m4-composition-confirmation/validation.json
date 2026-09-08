@@ -1,0 +1,13 @@
+{
+  "checks": {
+    "response_json_valid": true,
+    "exit_code_zero": true,
+    "response_success": true,
+    "stderr_empty": true,
+    "requested_model_used": true,
+    "no_permission_denials": true,
+    "required_sections_present": true,
+    "snapshot_hashes_match": true
+  },
+  "all_passed": true
+}

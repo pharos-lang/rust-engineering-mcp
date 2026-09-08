@@ -235,7 +235,7 @@ impl ArtifactInput for Bytes<'_> {
     }
 }
 
-fn classify(observation: &SemverObservation) -> SemverOutcome {
+pub(crate) fn classify(observation: &SemverObservation) -> SemverOutcome {
     if !matches!(observation.termination, ExecutionTermination::Exited) {
         return SemverOutcome::Incomplete;
     }

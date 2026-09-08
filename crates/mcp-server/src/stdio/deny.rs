@@ -1,0 +1,795 @@
+//! D19: one captured audit plus real licenses/bans/sources, owner-bound evidence.
+#[allow(dead_code)]
+pub(super) mod schemas;
+use super::{
+    HostCargoVendorConfig,
+    auditing::provider::{AuditProvider, HostAuditConfig},
+    clock::WallClock,
+    project::Registry,
+    quality_artifacts::DurableSecurityPublisher,
+    security_tool::{
+        CommonFailure, SynchronousSelection, artifact_fields, capture_vendor, classify_error,
+        define_fallible_security_outcome, define_security_artifact, define_security_input,
+        define_security_response_methods, define_security_tool, encode_bounded, load_policy,
+        run_joined_security, synchronous_selection,
+    },
+    workers::Workers,
+};
+use rmcp::{
+    model::{CallToolRequestParams, CallToolResult, ErrorData},
+    service::{RequestContext, RoleServer},
+};
+use rust_engineering_application::InspectionError;
+use rust_engineering_application::security::{PublishedSecurity, SecurityError, SecurityPorts};
+use rust_engineering_domain::security::*;
+use rust_engineering_domain::{
+    AuditObservation, ExecutionTermination, ProjectRef, RuntimeIdentity, SourceFingerprint,
+};
+use rust_engineering_execution::RustProjectInspector;
+use schemars::JsonSchema;
+use serde::Serialize;
+use std::{
+    path::PathBuf,
+    sync::{
+        Arc, Mutex,
+        atomic::{AtomicBool, Ordering},
+    },
+};
+
+pub(super) const NAME: &str = "rust.deny";
+pub(super) fn advertised() -> bool {
+    super::security_tool::advertised("RUST_MCP_TEST_SECURITY_READY")
+}
+
+#[derive(Clone)]
+pub struct HostSecurityConfig {
+    pub path: PathBuf,
+    pub fingerprint: SourceFingerprint,
+}
+define_security_input!(DENY_DEFAULT_TIMEOUT_SECONDS, 120);
+#[derive(Clone, Serialize, JsonSchema)]
+#[serde(rename_all = "SCREAMING_SNAKE_CASE")]
+enum Code {
+    TasksRequired,
+    SandboxDenied,
+    ProjectNotFound,
+    InvalidProject,
+    SecurityPolicyInvalid,
+    SecurityIncomplete,
+    MissingOfflineData,
+    CommandTimeout,
+    OutputLimitExceeded,
+    ToolNotInstalled,
+    AuditSnapshotInvalid,
+    ArtifactUnavailable,
+}
+define_fallible_security_outcome!((), (), ());
+define_security_artifact!("schemas::ArtifactCompleteness");
+#[derive(Clone, Serialize, JsonSchema)]
+#[serde(deny_unknown_fields)]
+struct Coverage {
+    workspace: bool,
+    normal_dependencies: bool,
+    build_dependencies: bool,
+    dev_dependencies: bool,
+    default_features: bool,
+    all_features: bool,
+    target_filter: Option<String>,
+    packages: u32,
+    license_evidence: &'static str,
+}
+#[derive(Clone, Serialize, JsonSchema)]
+#[serde(deny_unknown_fields)]
+struct Engines {
+    cargo_deny_version: &'static str,
+    #[schemars(with = "schemas::Counts")]
+    licenses: SecurityCounts,
+    #[schemars(with = "schemas::Counts")]
+    bans: SecurityCounts,
+    #[schemars(with = "schemas::Counts")]
+    sources: SecurityCounts,
+    parse_complete: bool,
+    exit_code: Option<i32>,
+}
+#[derive(Clone, Serialize, JsonSchema)]
+#[serde(deny_unknown_fields)]
+struct AuditSummary {
+    #[schemars(with = "super::auditing::schemas::AuditState")]
+    state: rust_engineering_domain::AuditState,
+    #[schemars(with = "Option<super::auditing::schemas::AuditIssue>")]
+    issue: Option<rust_engineering_domain::AuditIssue>,
+    validation_complete: bool,
+    lock_fingerprint: Option<String>,
+    snapshot_fingerprint: Option<String>,
+    #[schemars(with = "Option<super::auditing::schemas::RustSecEvidence>")]
+    snapshot: Option<rust_engineering_domain::SnapshotEvidence>,
+    snapshot_record_count: Option<u32>,
+    snapshot_sequence: Option<u64>,
+    packages_total: u32,
+    crates_io_scanned: u32,
+    workspace_packages_excluded: u32,
+    vulnerabilities_returned: u64,
+    informational_returned: u64,
+    findings_omitted: u64,
+}
+impl From<AuditObservation> for AuditSummary {
+    fn from(value: AuditObservation) -> Self {
+        Self {
+            state: value.state,
+            issue: value.issue,
+            validation_complete: value.validation_complete,
+            lock_fingerprint: value.lock_fingerprint.map(|v| v.to_string()),
+            snapshot_fingerprint: value.snapshot_fingerprint.map(|v| v.to_string()),
+            snapshot: value.snapshot,
+            snapshot_record_count: value.snapshot_record_count,
+            snapshot_sequence: value.snapshot_sequence,
+            packages_total: value.packages_total,
+            crates_io_scanned: value.crates_io_scanned,
+            workspace_packages_excluded: value.workspace_packages_excluded,
+            vulnerabilities_returned: value.findings.len() as u64,
+            informational_returned: value.informational.len() as u64,
+            findings_omitted: value.findings_omitted,
+        }
+    }
+}
+#[derive(Clone, Serialize, JsonSchema)]
+#[serde(deny_unknown_fields)]
+struct Data {
+    project_ref: String,
+    semantics: &'static str,
+    #[schemars(with = "schemas::Completeness")]
+    completeness: SecurityCompleteness,
+    #[schemars(with = "schemas::PolicyState")]
+    policy_state: SecurityPolicyState,
+    #[schemars(with = "Vec<schemas::Finding>", length(max = 128))]
+    findings: Vec<SecurityFinding>,
+    findings_omitted: u64,
+    audit: AuditSummary,
+    engines: Engines,
+    coverage: Coverage,
+    source_fingerprint: String,
+    vendor_fingerprint: String,
+    vendor_archive_fingerprint: String,
+    policy_fingerprint: String,
+    deny_config_fingerprint: String,
+    cargo_config_fingerprint: String,
+    metadata_original_fingerprint: String,
+    metadata_derived_fingerprint: String,
+    lock_fingerprint: String,
+    #[schemars(with = "super::inspection::schemas::RuntimeIdentity")]
+    runtime: RuntimeIdentity,
+    execution_fingerprint: String,
+    assessed_at_utc_seconds: u64,
+    #[schemars(length(min = 1, max = 1))]
+    artifacts: Vec<Artifact>,
+}
+
+pub(super) struct Runtime {
+    pub(super) registry: Arc<Mutex<Registry>>,
+    pub(super) workers: Workers,
+    pub(super) inspector: Arc<RustProjectInspector>,
+    pub(super) ready: Arc<AtomicBool>,
+    pub(super) policy: Option<HostSecurityConfig>,
+    pub(super) vendor: Option<HostCargoVendorConfig>,
+    pub(super) audit: Option<HostAuditConfig>,
+    pub(super) publisher: Option<DurableSecurityPublisher>,
+}
+define_security_tool!(
+    DenyTool,
+    "Evaluate a captured workspace with the existing RustSec audit and pinned cargo-deny licenses, bans and sources. Requires host-authenticated policy, offline vendor, approved runtime and durable evidence. Declared license strings are not license-text evidence. Findings retain exact suppressions; incomplete or stale input never passes. Auto or synchronous is supported with timeout_seconds at most 60; longer calls require negotiated MCP Tasks. The work budget excludes joined cleanup."
+);
+impl DenyTool {
+    pub(super) async fn call(
+        &self,
+        request: CallToolRequestParams,
+        context: RequestContext<RoleServer>,
+    ) -> Result<CallToolResult, ErrorData> {
+        self.call_with_token(request, context.ct).await
+    }
+
+    async fn call_with_token(
+        &self,
+        request: CallToolRequestParams,
+        request_token: tokio_util::sync::CancellationToken,
+    ) -> Result<CallToolResult, ErrorData> {
+        let input = self.contract.decode(request.arguments)?;
+        let options = DenyOptions::try_from(DenySelection {
+            timeout_seconds: input.timeout_seconds,
+        })
+        .map_err(|_| ErrorData::invalid_params("Invalid tool arguments", None))?;
+        // The operation budget is bounded independently from mandatory joined cleanup.
+        match synchronous_selection(
+            input.execution_mode,
+            input.timeout_seconds <= 60,
+            "Tasks are not enabled for deny",
+        )? {
+            SynchronousSelection::TasksRequired => {
+                return self.blocked(Code::TasksRequired, "Deny requires MCP Tasks", None, 0);
+            }
+            SynchronousSelection::Run => {}
+        }
+        let runtime = self
+            .runtime
+            .as_ref()
+            .ok_or_else(|| ErrorData::internal_error("Security runtime is not configured", None))?;
+        if !runtime.ready.load(Ordering::Acquire) {
+            return self.blocked(
+                Code::SandboxDenied,
+                "Discovery must complete before security work",
+                None,
+                0,
+            );
+        }
+        let Some(policy_config) = runtime.policy.clone() else {
+            return self.unavailable(
+                Code::SecurityPolicyInvalid,
+                "Host security policy is not configured",
+                0,
+            );
+        };
+        let Some(vendor_config) = runtime.vendor.clone() else {
+            return self.unavailable(
+                Code::MissingOfflineData,
+                "Authenticated offline vendor is not configured",
+                0,
+            );
+        };
+        let Some(mut publisher) = runtime.publisher.clone() else {
+            return self.unavailable(
+                Code::ArtifactUnavailable,
+                "Durable security evidence is unavailable",
+                0,
+            );
+        };
+        let registry = Arc::clone(&runtime.registry);
+        let inspector = Arc::clone(&runtime.inspector);
+        let auditor = AuditProvider(runtime.audit.clone());
+        let reference = input.project_ref.clone();
+        let (result, duration) = run_joined_security(
+            &runtime.workers,
+            request_token,
+            options.timeout_seconds(),
+            "Security worker unavailable",
+            move |control| {
+                let policy = load_policy(&policy_config, control)?;
+                let vendor = capture_vendor(&vendor_config, control)?;
+                registry
+                    .lock()
+                    .map_err(|_| SecurityError::Inspection(InspectionError::Internal))?
+                    .deny_durable(
+                        &reference,
+                        &vendor,
+                        &policy,
+                        &options,
+                        SecurityPorts {
+                            executor: inspector.as_ref(),
+                            auditor: &auditor,
+                        },
+                        &mut publisher,
+                        &WallClock,
+                        control,
+                    )
+            },
+        )
+        .await?;
+        match result {
+            Ok(result) => self.encode_result(&input.project_ref, result, duration),
+            Err(error) => self.encode_error(error, duration),
+        }
+    }
+    define_security_response_methods!(self, ());
+
+    fn encode_error(
+        &self,
+        error: SecurityError,
+        duration_ms: u64,
+    ) -> Result<CallToolResult, ErrorData> {
+        let (code, message) = match classify_error(error) {
+            CommonFailure::Cancelled => {
+                return self.cancelled(
+                    "Security analysis cancelled after joined cleanup",
+                    duration_ms,
+                );
+            }
+            CommonFailure::ToolNotInstalled => {
+                return self.unavailable(
+                    Code::ToolNotInstalled,
+                    "Approved security runtime is unavailable",
+                    duration_ms,
+                );
+            }
+            CommonFailure::Specific(SecurityError::InvalidPolicy) => (
+                Code::SecurityPolicyInvalid,
+                "Security policy is invalid, expired or overridden by project exceptions",
+            ),
+            CommonFailure::MissingOfflineData => (
+                Code::MissingOfflineData,
+                "Offline dependency source is missing or invalid",
+            ),
+            CommonFailure::Timeout => (
+                Code::CommandTimeout,
+                "Security analysis exceeded its deadline",
+            ),
+            CommonFailure::OutputLimit => (
+                Code::OutputLimitExceeded,
+                "Security evidence exceeded its fixed budget",
+            ),
+            CommonFailure::ProjectNotFound => (
+                Code::ProjectNotFound,
+                "Project authority is missing or expired",
+            ),
+            CommonFailure::Specific(SecurityError::Audit(_)) => (
+                Code::AuditSnapshotInvalid,
+                "RustSec snapshot could not be validated",
+            ),
+            CommonFailure::SandboxDenied => (
+                Code::SandboxDenied,
+                "Approved security execution could not be established",
+            ),
+            CommonFailure::Specific(_) => (
+                Code::InvalidProject,
+                "Security evidence could not be completed",
+            ),
+        };
+        self.blocked(code, message, None, duration_ms)
+    }
+    fn encode_result(
+        &self,
+        reference: &ProjectRef,
+        result: PublishedSecurity,
+        duration_ms: u64,
+    ) -> Result<CallToolResult, ErrorData> {
+        let observation = result.observation;
+        let deny = observation.deny;
+        let descriptor = result.artifact;
+        let artifact = artifact_fields(reference, &descriptor, "Invalid security artifact")?;
+        let artifact_complete =
+            descriptor.completeness == rust_engineering_domain::ArtifactCompleteness::Complete;
+        let data = Box::new(Data {
+            project_ref: reference.to_string(),
+            semantics: "latest_known",
+            completeness: observation.completeness,
+            policy_state: observation.policy_state,
+            findings: observation.findings,
+            findings_omitted: observation.findings_omitted,
+            audit: observation.audit.into(),
+            engines: Engines {
+                cargo_deny_version: "0.19.7",
+                licenses: deny.licenses,
+                bans: deny.bans,
+                sources: deny.sources,
+                parse_complete: deny.parse_complete,
+                exit_code: deny.exit_code,
+            },
+            coverage: Coverage {
+                workspace: true,
+                normal_dependencies: true,
+                build_dependencies: true,
+                dev_dependencies: true,
+                default_features: true,
+                all_features: false,
+                target_filter: None,
+                packages: deny.packages.len().try_into().unwrap_or(u32::MAX),
+                license_evidence: "verified_offline_source_text",
+            },
+            source_fingerprint: deny.source_fingerprint.to_string(),
+            vendor_fingerprint: deny.vendor_fingerprint.to_string(),
+            vendor_archive_fingerprint: deny.vendor_archive_fingerprint.to_string(),
+            policy_fingerprint: deny.policy_fingerprint.to_string(),
+            deny_config_fingerprint: deny.deny_config_fingerprint.to_string(),
+            cargo_config_fingerprint: deny.cargo_config_fingerprint.to_string(),
+            metadata_original_fingerprint: deny.metadata_original_fingerprint.to_string(),
+            metadata_derived_fingerprint: deny.metadata_derived_fingerprint.to_string(),
+            lock_fingerprint: deny.lock_fingerprint.to_string(),
+            runtime: deny.runtime,
+            execution_fingerprint: deny.execution_fingerprint.to_string(),
+            assessed_at_utc_seconds: observation.assessed_at.0,
+            artifacts: vec![artifact.into()],
+        });
+        let execution_complete =
+            deny.termination == ExecutionTermination::Exited && artifact_complete;
+        self.encode_bounded(data, execution_complete, duration_ms)
+    }
+    fn encode_bounded(
+        &self,
+        data: Box<Data>,
+        execution_complete: bool,
+        duration_ms: u64,
+    ) -> Result<CallToolResult, ErrorData> {
+        encode_bounded(
+            &self.contract,
+            data,
+            duration_ms,
+            "Security serialization failed",
+            |data, duration_ms| Output {
+                outcome: if data.completeness != SecurityCompleteness::Complete
+                    || !execution_complete
+                    || data.policy_state == SecurityPolicyState::Undetermined
+                {
+                    Outcome::Blocked {
+                        error_code: Code::SecurityIncomplete,
+                        error_message: "Security evidence is partial; no passing verdict",
+                        data: Some(data.clone()),
+                    }
+                } else if data.policy_state == SecurityPolicyState::Violated {
+                    Outcome::Failed {
+                        error_code: (),
+                        error_message: (),
+                        data: data.clone(),
+                    }
+                } else {
+                    Outcome::Passed {
+                        error_code: (),
+                        error_message: (),
+                        data: data.clone(),
+                    }
+                },
+                summary: "Security policy evaluated against captured sources and latest-known advisory data",
+                duration_ms,
+            },
+            |data| {
+                if data.findings.pop().is_none() {
+                    return false;
+                }
+                data.findings_omitted = data.findings_omitted.saturating_add(1);
+                data.completeness = SecurityCompleteness::Partial;
+                if data.policy_state != SecurityPolicyState::Violated {
+                    data.policy_state = SecurityPolicyState::Undetermined;
+                }
+                true
+            },
+            |duration_ms| Output {
+                outcome: Outcome::Blocked {
+                    error_code: Code::OutputLimitExceeded,
+                    error_message: "Security response exceeds its fixed budget",
+                    data: None,
+                },
+                summary: "Security response exceeds its fixed budget",
+                duration_ms,
+            },
+        )
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::super::{
+        security_tool::{assert_common_error_contract, joined_result},
+        workers::{Joined, WorkerError},
+    };
+    use super::*;
+    use rust_engineering_application::{ExecutionError, ProjectError};
+    #[test]
+    fn call_boundary_covers_task_gate_and_missing_runtime() -> Result<(), Box<dyn std::error::Error>>
+    {
+        let runtime = tokio::runtime::Builder::new_current_thread()
+            .enable_time()
+            .build()?;
+        runtime.block_on(async {
+            let tool = DenyTool::new()?;
+            let base = serde_json::from_str::<serde_json::Value>(
+                r#"{"project_ref":"prj_00000000000000000000000000000001"}"#,
+            )?;
+            let arguments = base.as_object().cloned().ok_or("arguments")?;
+            let required = tool
+                .call_with_token(
+                    CallToolRequestParams::new("rust.deny").with_arguments(arguments.clone()),
+                    tokio_util::sync::CancellationToken::new(),
+                )
+                .await?;
+            assert_eq!(
+                required.structured_content.ok_or("content")?["error_code"],
+                "TASKS_REQUIRED"
+            );
+            let mut synchronous = arguments;
+            synchronous.insert("execution_mode".into(), serde_json::json!("synchronous"));
+            synchronous.insert("timeout_seconds".into(), serde_json::json!(60));
+            let error = tool
+                .call_with_token(
+                    CallToolRequestParams::new("rust.deny").with_arguments(synchronous),
+                    tokio_util::sync::CancellationToken::new(),
+                )
+                .await
+                .err()
+                .ok_or("runtime must be required")?;
+            assert_eq!(error.message, "Security runtime is not configured");
+            Ok::<_, Box<dyn std::error::Error>>(())
+        })
+    }
+    #[test]
+    fn operational_errors_have_closed_status_and_codes() -> Result<(), Box<dyn std::error::Error>> {
+        assert_common_error_contract!(
+            DenyTool::new()?,
+            encode_error,
+            SecurityError::InvalidPolicy => ("blocked", "SECURITY_POLICY_INVALID"),
+            SecurityError::Audit(rust_engineering_domain::AuditDataError::InvalidSnapshot) => ("blocked", "AUDIT_SNAPSHOT_INVALID"),
+        );
+        Ok(())
+    }
+    #[test]
+    fn published_security_encoding_preserves_pass_fail_and_incomplete_verdicts()
+    -> Result<(), Box<dyn std::error::Error>> {
+        use super::super::security_tool::test_fixtures as fixture;
+        use rust_engineering_application::security::{
+            DenyObservation, SecurityArtifactStreams, SecurityObservation,
+        };
+        use rust_engineering_domain::UnixSeconds;
+
+        let tool = DenyTool::new()?;
+        let reference = fixture::project_ref()?;
+        let fingerprint = fixture::source_fingerprint('4')?;
+        let execution_fingerprint = fixture::execution_fingerprint('3')?;
+        let deny = DenyObservation {
+            source_fingerprint: fingerprint.clone(),
+            vendor_fingerprint: fingerprint.clone(),
+            vendor_archive_fingerprint: fingerprint.clone(),
+            policy_fingerprint: fingerprint.clone(),
+            deny_config_fingerprint: fingerprint.clone(),
+            cargo_config_fingerprint: fingerprint.clone(),
+            metadata_original_fingerprint: fingerprint.clone(),
+            metadata_derived_fingerprint: fingerprint.clone(),
+            lock_fingerprint: fingerprint,
+            runtime: fixture::runtime()?,
+            execution_fingerprint,
+            packages: Vec::new(),
+            declared_licenses: Vec::new(),
+            license_files: Vec::new(),
+            enabled_features: Vec::new(),
+            dependency_indices: Vec::new(),
+            workspace_members: Vec::new(),
+            findings: Vec::new(),
+            findings_omitted: 0,
+            licenses: SecurityCounts::default(),
+            bans: SecurityCounts::default(),
+            sources: SecurityCounts::default(),
+            parse_complete: true,
+            termination: ExecutionTermination::Exited,
+            exit_code: Some(0),
+            artifacts: SecurityArtifactStreams::default(),
+        };
+        let encode = |completeness,
+                      policy_state,
+                      artifact_completeness|
+         -> Result<CallToolResult, Box<dyn std::error::Error>> {
+            Ok(tool.encode_result(
+                &reference,
+                PublishedSecurity {
+                    observation: SecurityObservation {
+                        audit: AuditObservation::unavailable(),
+                        deny: deny.clone(),
+                        findings: Vec::new(),
+                        findings_omitted: 0,
+                        completeness,
+                        policy_state,
+                        assessed_at: UnixSeconds(100),
+                    },
+                    artifact: fixture::artifact(artifact_completeness)?,
+                },
+                7,
+            )?)
+        };
+
+        for (completeness, policy_state, artifact_completeness, expected) in [
+            (
+                SecurityCompleteness::Complete,
+                SecurityPolicyState::Satisfied,
+                rust_engineering_domain::ArtifactCompleteness::Complete,
+                "passed",
+            ),
+            (
+                SecurityCompleteness::Complete,
+                SecurityPolicyState::Violated,
+                rust_engineering_domain::ArtifactCompleteness::Complete,
+                "failed",
+            ),
+            (
+                SecurityCompleteness::Partial,
+                SecurityPolicyState::Undetermined,
+                rust_engineering_domain::ArtifactCompleteness::Partial,
+                "blocked",
+            ),
+        ] {
+            let result = encode(completeness, policy_state, artifact_completeness)?;
+            let content = result.structured_content.ok_or("structured content")?;
+            assert_eq!(content["status"], expected);
+            assert_eq!(content["duration_ms"], 7);
+            assert_eq!(content["data"]["project_ref"], reference.to_string());
+        }
+        Ok(())
+    }
+    #[test]
+    fn audit_summary_preserves_rustsec_provenance_in_its_schema()
+    -> Result<(), Box<dyn std::error::Error>> {
+        use rust_engineering_domain::{
+            FreshnessPolicy, IntegrityStatus, Provenance, SnapshotEvidence, SourceKind, UnixSeconds,
+        };
+        let mut audit = AuditObservation::unavailable();
+        audit.snapshot = Some(SnapshotEvidence::assess(
+            Provenance::new(
+                SourceKind::RustsecSnapshot,
+                "fixture-rustsec".parse()?,
+                Some(UnixSeconds(1)),
+                Some(UnixSeconds(1)),
+                IntegrityStatus::Verified,
+                false,
+            )?,
+            FreshnessPolicy::new("fixture".parse()?, 60, 120)?,
+            &WallClock,
+        ));
+        let schema = serde_json::to_value(schemars::schema_for!(AuditSummary))?;
+        let validator = jsonschema::validator_for(&schema)?;
+        let mut value = serde_json::to_value(AuditSummary::from(audit))?;
+        assert!(validator.is_valid(&value));
+        value["snapshot"]["provenance"]["source_kind"] = serde_json::json!("project_snapshot");
+        assert!(!validator.is_valid(&value));
+        Ok(())
+    }
+    #[test]
+    fn complete_mirrored_wire_budget_trims_findings_and_never_passes_omissions()
+    -> Result<(), Box<dyn std::error::Error>> {
+        let digest = format!("sha256:{}", "a".repeat(64));
+        let fingerprint: SourceFingerprint = digest.parse()?;
+        let finding = SecurityFinding {
+            engine: SecurityEngine::Bans,
+            rule: "banned".into(),
+            package: Some(SecurityPackage {
+                name: "a".repeat(64),
+                version: format!("1.2.3+{}", "a".repeat(120)),
+                source: SecuritySource::CratesIo,
+                source_fingerprint: Some(fingerprint.clone()),
+            }),
+            severity: SecuritySeverity::Error,
+            message: "\\\"".repeat(256),
+            disposition: FindingDisposition::Suppressed(SecuritySuppression {
+                id: "suppression".into(),
+                engine: SecurityEngine::Bans,
+                rule: "banned".into(),
+                package: "a".repeat(64),
+                package_source: SecuritySource::CratesIo,
+                version_requirement: "=1.2.3".into(),
+                reason: "\\\"".repeat(256),
+                owner: "\\\"".repeat(64),
+                expires_at: 2_000_000_000,
+                rules_digest: fingerprint,
+            }),
+        };
+        let data = Box::new(Data {
+            project_ref: "prj_00000000000000000000000000000001".into(),
+            semantics: "latest_known",
+            completeness: SecurityCompleteness::Complete,
+            policy_state: SecurityPolicyState::SatisfiedWithSuppressions,
+            findings: vec![finding; 128],
+            findings_omitted: 0,
+            audit: AuditObservation::unavailable().into(),
+            engines: Engines {
+                cargo_deny_version: "0.19.7",
+                licenses: SecurityCounts::default(),
+                bans: SecurityCounts {
+                    errors: 128,
+                    ..Default::default()
+                },
+                sources: SecurityCounts::default(),
+                parse_complete: true,
+                exit_code: Some(2),
+            },
+            coverage: Coverage {
+                workspace: true,
+                normal_dependencies: true,
+                build_dependencies: true,
+                dev_dependencies: true,
+                default_features: true,
+                all_features: false,
+                target_filter: None,
+                packages: 1,
+                license_evidence: "verified_offline_source_text",
+            },
+            source_fingerprint: digest.clone(),
+            vendor_fingerprint: digest.clone(),
+            vendor_archive_fingerprint: digest.clone(),
+            policy_fingerprint: digest.clone(),
+            deny_config_fingerprint: digest.clone(),
+            cargo_config_fingerprint: digest.clone(),
+            metadata_original_fingerprint: digest.clone(),
+            metadata_derived_fingerprint: digest.clone(),
+            lock_fingerprint: digest.clone(),
+            runtime: RuntimeIdentity {
+                platform: "linux/aarch64".into(),
+                image_id: rust_engineering_execution::APPROVED_SECURITY_IMAGE.into(),
+                configuration_fingerprint: digest.parse()?,
+                execution_fingerprint: digest.parse()?,
+                rust_version: "1.98.1".into(),
+                cargo_version: "1.98.1".into(),
+                declared_toolchain: None,
+            },
+            execution_fingerprint: digest.clone(),
+            assessed_at_utc_seconds: 1,
+            artifacts: vec![Artifact {
+                uri: "rust-quality-artifact://fixture".into(),
+                sha256: "a".repeat(64),
+                size_bytes: 100,
+                completeness: rust_engineering_domain::ArtifactCompleteness::Complete,
+            }],
+        });
+        let tool = DenyTool::new()?;
+        let mut small = data.clone();
+        small.findings.clear();
+        small.completeness = SecurityCompleteness::Complete;
+        for (policy_state, execution_complete, expected) in [
+            (SecurityPolicyState::Satisfied, true, "passed"),
+            (SecurityPolicyState::Violated, true, "failed"),
+            (SecurityPolicyState::Undetermined, true, "blocked"),
+            (SecurityPolicyState::Satisfied, false, "blocked"),
+        ] {
+            let mut case = small.clone();
+            case.policy_state = policy_state;
+            let encoded = tool.encode_bounded(case, execution_complete, 1)?;
+            assert_eq!(
+                encoded.structured_content.ok_or("content")?["status"],
+                expected
+            );
+        }
+        let result = tool.encode_bounded(data, true, 1)?;
+        assert!(serde_json::to_vec(&result)?.len() <= 512 * 1024);
+        let value = result.structured_content.ok_or("structured content")?;
+        assert_eq!(value["status"], "blocked");
+        assert_eq!(value["data"]["completeness"], "partial");
+        let emitted = value["data"]["findings"]
+            .as_array()
+            .ok_or("findings")?
+            .len() as u64;
+        let omitted = value["data"]["findings_omitted"]
+            .as_u64()
+            .ok_or("omissions")?;
+        assert!(emitted > 0 && omitted > 0);
+        assert_eq!(emitted + omitted, 128);
+        assert_eq!(
+            value["data"]["artifacts"][0]["uri"],
+            "rust-quality-artifact://fixture"
+        );
+        Ok(())
+    }
+    #[test]
+    fn work_timeout_is_distinct_from_cancel_and_cleanup_failure() {
+        let cancelled = SecurityError::from(ProjectError::Cancelled);
+        assert_eq!(
+            joined_result::<()>(Joined {
+                result: Err(cancelled),
+                interrupted: Some(WorkerError::TimedOut)
+            }),
+            Err(SecurityError::Timeout)
+        );
+        assert_eq!(
+            joined_result::<()>(Joined {
+                result: Err(cancelled),
+                interrupted: Some(WorkerError::Cancelled)
+            }),
+            Err(cancelled)
+        );
+        let cleanup = SecurityError::from(ExecutionError::CleanupUncertain);
+        assert_eq!(
+            joined_result::<()>(Joined {
+                result: Err(cleanup),
+                interrupted: Some(WorkerError::TimedOut)
+            }),
+            Err(cleanup)
+        );
+    }
+    #[test]
+    fn closed_contract_rejects_client_policy_paths_flags_and_budgets()
+    -> Result<(), Box<dyn std::error::Error>> {
+        let tool = DenyTool::new().map_err(|e| format!("{e:?}"))?;
+        let valid = serde_json::json!({"project_ref":"prj_00000000000000000000000000000001"});
+        assert!(tool.contract.decode(valid.as_object().cloned()).is_ok());
+        for (key, value) in [
+            ("policy", serde_json::json!("/tmp/evil")),
+            ("flags", serde_json::json!(["--disable-fetch"])),
+            ("timeout_seconds", serde_json::json!(0)),
+            ("timeout_seconds", serde_json::json!(121)),
+        ] {
+            let mut args = valid.as_object().ok_or("object")?.clone();
+            args.insert(key.into(), value);
+            assert!(tool.contract.decode(Some(args)).is_err());
+        }
+        Ok(())
+    }
+}

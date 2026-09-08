@@ -1,0 +1,6 @@
+{
+  "exit_code": 0,
+  "stdout": "Flag --pause has been deprecated, and enabled by default. Use --no-pause to disable pausing during commit.\nsha256:415fafe2f3ef326090ea9759b8bb8069a1300eb92327444383c3d1057781b6fc\n",
+  "stderr": "",
+  "never_started": true
+}

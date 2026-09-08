@@ -17,8 +17,9 @@ un catálogo local de crates.
 
 El servidor usa transporte MCP por `stdio`. Las trece tools de la release
 `0.1.0` observan y validan sin modificar el source. El checkout `0.3.0-dev`
-registra 22 tools: las 18 de M1/M2 y las cuatro tools de calidad M3; todavía no
-forma una release.
+registra 27 tools: las 18 de M1/M2, las cuatro tools de calidad M3 y cinco tools
+M4, implementadas y calificadas localmente. M4 está cerrado localmente; el
+checkout no forma una release.
 
 > [!IMPORTANT]
 > La versión estable actual es `0.1.0`. GitHub Releases publica un único binario core
@@ -42,6 +43,11 @@ forma una release.
 | Calidad (M3, desarrollo) | `rust.coverage` | Tool 20; cobertura tipada y acotada. Calificada en Docker: 8/8 selecciones. |
 | Calidad (M3, desarrollo) | `rust.semver.check` | Tool 21; comparación SemVer contra baseline. Calificada en Docker: 18/18 selecciones. |
 | Calidad (M3, desarrollo) | `rust.mutation.test` | Tool 22; mutation testing con bundle acotado. Calificada en Docker: 10/10 selecciones. |
+| Seguridad (M4, desarrollo) | `rust.deny` | Tool 23; audit y cargo-deny offline sobre una captura y policy del host. |
+| Seguridad (M4, desarrollo) | `rust.unsafe.scan` | Tool 24; inventario sintáctico acotado de construcciones unsafe. |
+| Supply chain (M4, desarrollo) | `rust.supply_chain.inspect` | Tool 25; facts de resolución, audit, deny y catálogo con provenance explícita. |
+| Calidad (M4, desarrollo) | `rust.quality.gate.v2` | Tool 26; gate `strict` o `release` sobre una captura compartida. |
+| Seguridad (M4, desarrollo) | `rust.miri` | Tool 27; evidencia tipada de Miri sobre tests seleccionados. |
 | Seguridad | `rust.dependencies.audit` | Contrasta `Cargo.lock` con un snapshot RustSec suministrado por el host. |
 | Diagnóstico | `rust.diagnostics.explain` | Obtiene la explicación de un código `rustc`, por ejemplo `E0502`. |
 | Calidad | `rust.quality.gate` | Ejecuta un gate `fast` o `standard` y devuelve el estado de cada etapa. |
@@ -56,6 +62,19 @@ forma una release.
 
 Los contratos completos, límites y ejemplos de respuesta están en
 [`docs/tools.md`](docs/tools.md).
+
+Las cinco tools M4 forman parte de `tools/list` y están calificadas localmente en
+macOS ARM64 con el runtime Docker Linux ARM64 fijado. Sus timeouts por defecto son
+120 s para deny/unsafe/supply y 300 s para gate v2/Miri, por lo que requieren MCP
+Tasks. Una selección de hasta 60 segundos puede usar el camino síncrono; en
+`rust.quality.gate.v2` se limita a `strict` sin mutation. `release` y mutation
+requieren Tasks. Consulta su [alcance y límites](docs/tools.md#contratos-m4-calificados-localmente)
+y el [handoff de evidencia](docs/validation/M4-handoff.md).
+
+Los Resources normalizados no sustituyen una revisión de privacidad. Los HTML de
+cobertura y diffs de mutation autorizados pueden contener source del proyecto,
+incluidos secretos presentes en esos archivos; se almacenan como artifacts
+privados y no se promete redacción universal del source autorizado.
 
 Las mutaciones máximas pueden consumir memoria considerable: el ciclo nativo de
 128 archivos/16 MiB midió aproximadamente 932 MiB de RSS después de optimizar el
@@ -153,12 +172,12 @@ cliente.
 
 | Cliente | Configuración | Evidencia actual |
 | --- | --- | --- |
-| Codex | [CLI o `config.toml`](docs/client-configuration.md#codex) | Codex 0.153.0 y `gpt-5.6-sol` completaron el flujo model-directed de error, reparación y runtime ausente sobre el binario 0.1.0. |
+| Codex | [CLI o `config.toml`](docs/client-configuration.md#codex) | Codex 0.153.0 stock calificó el camino síncrono M4 para las cinco tools y un turno model-directed con las cinco en `passed`; el cliente no declaró Tasks. [Recibo M4](docs/validation/M4-clients.json). |
 | Claude Code | [CLI o `.mcp.json`](docs/client-configuration.md#claude-code) | M2: Claude Code 2.1.260, Sonnet 5 medium, cinco preview/commit y receipt final; [PASS intento 5](docs/validation/M2-clients.json), con renovación de referencias explícita en el prompt. |
 | Gemini CLI | [`settings.json`](docs/client-configuration.md#gemini-cli) | Configuración documentada; calificación de este MCP pendiente. |
 | Cursor | [`.cursor/mcp.json`](docs/client-configuration.md#cursor) | Configuración documentada; calificación de este MCP pendiente. |
 | VS Code / GitHub Copilot | [`.vscode/mcp.json`](docs/client-configuration.md#vs-code-y-github-copilot) | Configuración documentada; calificación de este MCP pendiente. |
-| MCP Inspector | [Web, CLI o TUI](docs/client-configuration.md#mcp-inspector) | M1: 13 tools y paths positivos/fail-closed. M2: 18 tools, trece snapshots M1 idénticos, open positivo y cinco denegaciones sin grants; [recibo](docs/validation/M2-clients.json). |
+| MCP Inspector | [Web, CLI o TUI](docs/client-configuration.md#mcp-inspector) | Inspector 2.5.0 calificó 27 tools y, para M4, positivos, negativos, cancelación Tasks y cinco Resources. [Recibo M4](docs/validation/M4-clients.json). |
 
 La [guía de configuración por cliente](docs/client-configuration.md) contiene los
 archivos completos, comandos de verificación y enlaces a la documentación oficial.
@@ -237,6 +256,25 @@ Para `rust.dependencies.audit`, añade juntos un snapshot RustSec local y su has
 --rustsec-snapshot /ruta/absoluta/rustsec.json
 --rustsec-sha256 sha256:<64-hex>
 ```
+
+Las tools M4 reutilizan el runtime y aceptan un vendor Cargo
+offline autenticado. `rust.deny` requiere además el snapshot RustSec y una policy
+del host; supply chain y gate v2 consumen esos mismos inputs cuando están
+configurados y marcan incompleta su evidencia requerida cuando faltan:
+
+```text
+--cargo-vendor-dir /ruta/absoluta/al/vendor
+--cargo-vendor-tree-sha256 sha256:<64-hex>
+--security-policy /ruta/absoluta/security-policy.json
+--security-policy-sha256 sha256:<64-hex>
+```
+
+Cada opción forma un par obligatorio. El vendor y la policy deben quedar fuera de
+las roots autorizadas del proyecto; el runtime relee y verifica sus fingerprints.
+La imagen M4 admitida por identidad inmutable es
+`sha256:25ed3626e710081a571a86a29521eaf2e890e796afd422ba5e409e0ce1891635`.
+La calificación local de las cinco tools usa esa imagen; no amplía la release
+estable ni la matriz más allá de macOS ARM64 con guest Docker Linux ARM64.
 
 ## Configurar el catálogo local
 
@@ -367,10 +405,11 @@ recuperar la operación durable. Los locks coordinan procesos que comparten
 `--state-root`, pero no bloquean IDE, Git u otros escritores del mismo usuario. No
 hay CAS ni atomicidad visible para una publicación de varios archivos.
 
-El checkout de desarrollo descubre 22 tools: conserva las trece de M1, añade
+El checkout de desarrollo descubre 27 tools: conserva las trece de M1, añade
 `rust.manifest.patch`, `rust.fmt.apply`, `rust.fix.apply`,
 `rust.dependency.add` y `rust.dependency.remove`, e integra el contrato M3-01 de
-`rust.test.nextest`. Cada tool de escritura exige su grant de host:
+`rust.test.nextest`, las otras tres tools M3 y las cinco tools M4 calificadas
+localmente. Cada tool de escritura exige su grant de host:
 `--allow-manifest-write`, `--allow-fmt-write`, `--allow-fix-write`,
 `--allow-dependency-add` o `--allow-dependency-remove`, seguido de la raíz del
 workspace. Un grant no autoriza planes ni receipts de otra operación.
@@ -410,7 +449,8 @@ parte de la instalación de M1.
 
 ## M3 — calidad avanzada
 
-El checkout `0.3.0-dev` descubre 22 tools. `rust.test.nextest`, `rust.coverage`,
+El checkout `0.3.0-dev` descubre 27 tools.
+`rust.test.nextest`, `rust.coverage`,
 `rust.semver.check` y `rust.mutation.test` están implementadas y calificadas en el
 gate Docker M3: 62/62 selecciones (nextest 19, Tasks 7, coverage 8,
 SemVer 18 y mutation 10), más 20/20 controles de seguridad. Los detalles
@@ -447,3 +487,14 @@ plan ausente/expirado solo puede repetir un journal existente con ID, digest y k
 exactos, bajo grant vivo e identidad física original. No inicia efectos nuevos sin
 preview vigente. Prune retira ese replay; un receipt terminal describe historia,
 no el source actual. Véase [ADR-059](docs/adr/ADR-059-terminal-plan-retirement-and-durable-replay.md).
+
+Para consultar los requisitos compilados del runtime opcional de seguridad:
+
+```sh
+rust-engineering-mcp security-runtime inventory --json
+```
+
+El inventario incluye imagen, cargo-deny, helper, nightly y sysroot con sus hashes.
+`installation_observed=false` indica que el comando no inspecciona ni instala
+componentes. La operación real exige la configuración explícita descrita arriba
+y calibración del gateway; el reporte `doctor` existente conserva su formato.

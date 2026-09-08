@@ -1,0 +1,532 @@
+[
+  {
+    "iteration": 0,
+    "status": "passed",
+    "errors": [],
+    "cleanup": {
+      "missing_runtime": {
+        "exit_code": 0,
+        "forced": false,
+        "pgid": 88387,
+        "threads_joined": true,
+        "remaining_pids_observed_before_kill": [],
+        "remaining_pids": [],
+        "stderr_bytes": 0,
+        "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "failure": null,
+        "observed_pids": [
+          88387,
+          88393
+        ],
+        "descendant_identities": [
+          {
+            "role": "codex-code-mode-host",
+            "executable_sha256": "dbb33b547af68078b856a6b6e630e042cf85c182ae74e8fd520000dc9599117f",
+            "argv_sha256": "fabd7943fe5bf50065046898ec0f9771018b20b52eb9ab49b9d0227da663f37a"
+          }
+        ],
+        "code_host_observed": true
+      },
+      "repair": {
+        "exit_code": 0,
+        "forced": false,
+        "pgid": 88408,
+        "threads_joined": true,
+        "remaining_pids_observed_before_kill": [],
+        "remaining_pids": [],
+        "stderr_bytes": 0,
+        "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "failure": null,
+        "observed_pids": [
+          88408,
+          88410
+        ],
+        "descendant_identities": [
+          {
+            "role": "codex-code-mode-host",
+            "executable_sha256": "dbb33b547af68078b856a6b6e630e042cf85c182ae74e8fd520000dc9599117f",
+            "argv_sha256": "fabd7943fe5bf50065046898ec0f9771018b20b52eb9ab49b9d0227da663f37a"
+          }
+        ],
+        "code_host_observed": true
+      }
+    }
+  },
+  {
+    "iteration": 1,
+    "status": "passed",
+    "errors": [],
+    "cleanup": {
+      "missing_runtime": {
+        "exit_code": 0,
+        "forced": false,
+        "pgid": 88459,
+        "threads_joined": true,
+        "remaining_pids_observed_before_kill": [],
+        "remaining_pids": [],
+        "stderr_bytes": 0,
+        "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "failure": null,
+        "observed_pids": [
+          88459,
+          88461
+        ],
+        "descendant_identities": [
+          {
+            "role": "codex-code-mode-host",
+            "executable_sha256": "dbb33b547af68078b856a6b6e630e042cf85c182ae74e8fd520000dc9599117f",
+            "argv_sha256": "679279d30e8478a012f5aa5f4ca903032f505e3bdf983ff1d43d3170974a8406"
+          }
+        ],
+        "code_host_observed": true
+      },
+      "repair": {
+        "exit_code": 0,
+        "forced": false,
+        "pgid": 88476,
+        "threads_joined": true,
+        "remaining_pids_observed_before_kill": [],
+        "remaining_pids": [],
+        "stderr_bytes": 0,
+        "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "failure": null,
+        "observed_pids": [
+          88476,
+          88478
+        ],
+        "descendant_identities": [
+          {
+            "role": "codex-code-mode-host",
+            "executable_sha256": "dbb33b547af68078b856a6b6e630e042cf85c182ae74e8fd520000dc9599117f",
+            "argv_sha256": "679279d30e8478a012f5aa5f4ca903032f505e3bdf983ff1d43d3170974a8406"
+          }
+        ],
+        "code_host_observed": true
+      }
+    }
+  },
+  {
+    "iteration": 2,
+    "status": "passed",
+    "errors": [],
+    "cleanup": {
+      "missing_runtime": {
+        "exit_code": 0,
+        "forced": false,
+        "pgid": 88520,
+        "threads_joined": true,
+        "remaining_pids_observed_before_kill": [],
+        "remaining_pids": [],
+        "stderr_bytes": 0,
+        "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "failure": null,
+        "observed_pids": [
+          88520,
+          88522
+        ],
+        "descendant_identities": [
+          {
+            "role": "codex-code-mode-host",
+            "executable_sha256": "dbb33b547af68078b856a6b6e630e042cf85c182ae74e8fd520000dc9599117f",
+            "argv_sha256": "fc8db8385d09ab37f8b637616fed94c45087b08c89b367cb9274511c38a55791"
+          }
+        ],
+        "code_host_observed": true
+      },
+      "repair": {
+        "exit_code": 0,
+        "forced": false,
+        "pgid": 88538,
+        "threads_joined": true,
+        "remaining_pids_observed_before_kill": [],
+        "remaining_pids": [],
+        "stderr_bytes": 0,
+        "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "failure": null,
+        "observed_pids": [
+          88538,
+          88540
+        ],
+        "descendant_identities": [
+          {
+            "role": "codex-code-mode-host",
+            "executable_sha256": "dbb33b547af68078b856a6b6e630e042cf85c182ae74e8fd520000dc9599117f",
+            "argv_sha256": "fc8db8385d09ab37f8b637616fed94c45087b08c89b367cb9274511c38a55791"
+          }
+        ],
+        "code_host_observed": true
+      }
+    }
+  },
+  {
+    "iteration": 3,
+    "status": "passed",
+    "errors": [],
+    "cleanup": {
+      "missing_runtime": {
+        "exit_code": 0,
+        "forced": false,
+        "pgid": 88596,
+        "threads_joined": true,
+        "remaining_pids_observed_before_kill": [],
+        "remaining_pids": [],
+        "stderr_bytes": 0,
+        "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "failure": null,
+        "observed_pids": [
+          88596,
+          88598
+        ],
+        "descendant_identities": [
+          {
+            "role": "codex-code-mode-host",
+            "executable_sha256": "dbb33b547af68078b856a6b6e630e042cf85c182ae74e8fd520000dc9599117f",
+            "argv_sha256": "b9a90b2b96a6a29978dc22068be24096ea33a36f1adec5a738dd68db2cfccdc6"
+          }
+        ],
+        "code_host_observed": true
+      },
+      "repair": {
+        "exit_code": 0,
+        "forced": false,
+        "pgid": 88613,
+        "threads_joined": true,
+        "remaining_pids_observed_before_kill": [],
+        "remaining_pids": [],
+        "stderr_bytes": 0,
+        "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "failure": null,
+        "observed_pids": [
+          88613,
+          88615
+        ],
+        "descendant_identities": [
+          {
+            "role": "codex-code-mode-host",
+            "executable_sha256": "dbb33b547af68078b856a6b6e630e042cf85c182ae74e8fd520000dc9599117f",
+            "argv_sha256": "b9a90b2b96a6a29978dc22068be24096ea33a36f1adec5a738dd68db2cfccdc6"
+          }
+        ],
+        "code_host_observed": true
+      }
+    }
+  },
+  {
+    "iteration": 4,
+    "status": "passed",
+    "errors": [],
+    "cleanup": {
+      "missing_runtime": {
+        "exit_code": 0,
+        "forced": false,
+        "pgid": 88667,
+        "threads_joined": true,
+        "remaining_pids_observed_before_kill": [],
+        "remaining_pids": [],
+        "stderr_bytes": 0,
+        "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "failure": null,
+        "observed_pids": [
+          88667,
+          88669
+        ],
+        "descendant_identities": [
+          {
+            "role": "codex-code-mode-host",
+            "executable_sha256": "dbb33b547af68078b856a6b6e630e042cf85c182ae74e8fd520000dc9599117f",
+            "argv_sha256": "4a5e8b4fe39199081abd058500e510afe6362174b02c576e58a944956da08048"
+          }
+        ],
+        "code_host_observed": true
+      },
+      "repair": {
+        "exit_code": 0,
+        "forced": false,
+        "pgid": 88684,
+        "threads_joined": true,
+        "remaining_pids_observed_before_kill": [],
+        "remaining_pids": [],
+        "stderr_bytes": 0,
+        "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "failure": null,
+        "observed_pids": [
+          88684,
+          88686
+        ],
+        "descendant_identities": [
+          {
+            "role": "codex-code-mode-host",
+            "executable_sha256": "dbb33b547af68078b856a6b6e630e042cf85c182ae74e8fd520000dc9599117f",
+            "argv_sha256": "4a5e8b4fe39199081abd058500e510afe6362174b02c576e58a944956da08048"
+          }
+        ],
+        "code_host_observed": true
+      }
+    }
+  },
+  {
+    "iteration": 5,
+    "status": "passed",
+    "errors": [],
+    "cleanup": {
+      "missing_runtime": {
+        "exit_code": 0,
+        "forced": false,
+        "pgid": 88728,
+        "threads_joined": true,
+        "remaining_pids_observed_before_kill": [],
+        "remaining_pids": [],
+        "stderr_bytes": 0,
+        "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "failure": null,
+        "observed_pids": [
+          88728,
+          88730
+        ],
+        "descendant_identities": [
+          {
+            "role": "codex-code-mode-host",
+            "executable_sha256": "dbb33b547af68078b856a6b6e630e042cf85c182ae74e8fd520000dc9599117f",
+            "argv_sha256": "b8e7e5639069236bc6df0e53877d0dea6aee6c88fe7e0a718da67cdc4a2b3935"
+          }
+        ],
+        "code_host_observed": true
+      },
+      "repair": {
+        "exit_code": 0,
+        "forced": false,
+        "pgid": 88745,
+        "threads_joined": true,
+        "remaining_pids_observed_before_kill": [],
+        "remaining_pids": [],
+        "stderr_bytes": 0,
+        "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "failure": null,
+        "observed_pids": [
+          88745,
+          88747
+        ],
+        "descendant_identities": [
+          {
+            "role": "codex-code-mode-host",
+            "executable_sha256": "dbb33b547af68078b856a6b6e630e042cf85c182ae74e8fd520000dc9599117f",
+            "argv_sha256": "b8e7e5639069236bc6df0e53877d0dea6aee6c88fe7e0a718da67cdc4a2b3935"
+          }
+        ],
+        "code_host_observed": true
+      }
+    }
+  },
+  {
+    "iteration": 6,
+    "status": "passed",
+    "errors": [],
+    "cleanup": {
+      "missing_runtime": {
+        "exit_code": 0,
+        "forced": false,
+        "pgid": 88791,
+        "threads_joined": true,
+        "remaining_pids_observed_before_kill": [],
+        "remaining_pids": [],
+        "stderr_bytes": 0,
+        "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "failure": null,
+        "observed_pids": [
+          88791,
+          88793
+        ],
+        "descendant_identities": [
+          {
+            "role": "codex-code-mode-host",
+            "executable_sha256": "dbb33b547af68078b856a6b6e630e042cf85c182ae74e8fd520000dc9599117f",
+            "argv_sha256": "fcd4591e6072a7bfd2e3d960551fbf5a66dfd0c5584a4884c580247493b4ce60"
+          }
+        ],
+        "code_host_observed": true
+      },
+      "repair": {
+        "exit_code": 0,
+        "forced": false,
+        "pgid": 88809,
+        "threads_joined": true,
+        "remaining_pids_observed_before_kill": [],
+        "remaining_pids": [],
+        "stderr_bytes": 0,
+        "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "failure": null,
+        "observed_pids": [
+          88809,
+          88811
+        ],
+        "descendant_identities": [
+          {
+            "role": "codex-code-mode-host",
+            "executable_sha256": "dbb33b547af68078b856a6b6e630e042cf85c182ae74e8fd520000dc9599117f",
+            "argv_sha256": "fcd4591e6072a7bfd2e3d960551fbf5a66dfd0c5584a4884c580247493b4ce60"
+          }
+        ],
+        "code_host_observed": true
+      }
+    }
+  },
+  {
+    "iteration": 7,
+    "status": "passed",
+    "errors": [],
+    "cleanup": {
+      "missing_runtime": {
+        "exit_code": 0,
+        "forced": false,
+        "pgid": 88853,
+        "threads_joined": true,
+        "remaining_pids_observed_before_kill": [],
+        "remaining_pids": [],
+        "stderr_bytes": 0,
+        "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "failure": null,
+        "observed_pids": [
+          88853,
+          88855
+        ],
+        "descendant_identities": [
+          {
+            "role": "codex-code-mode-host",
+            "executable_sha256": "dbb33b547af68078b856a6b6e630e042cf85c182ae74e8fd520000dc9599117f",
+            "argv_sha256": "9aac0a0f809077665ac8025901f837eb1fe4043152ed8f514fc2e86066a7c186"
+          }
+        ],
+        "code_host_observed": true
+      },
+      "repair": {
+        "exit_code": 0,
+        "forced": false,
+        "pgid": 88870,
+        "threads_joined": true,
+        "remaining_pids_observed_before_kill": [],
+        "remaining_pids": [],
+        "stderr_bytes": 0,
+        "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "failure": null,
+        "observed_pids": [
+          88870,
+          88872
+        ],
+        "descendant_identities": [
+          {
+            "role": "codex-code-mode-host",
+            "executable_sha256": "dbb33b547af68078b856a6b6e630e042cf85c182ae74e8fd520000dc9599117f",
+            "argv_sha256": "9aac0a0f809077665ac8025901f837eb1fe4043152ed8f514fc2e86066a7c186"
+          }
+        ],
+        "code_host_observed": true
+      }
+    }
+  },
+  {
+    "iteration": 8,
+    "status": "passed",
+    "errors": [],
+    "cleanup": {
+      "missing_runtime": {
+        "exit_code": 0,
+        "forced": false,
+        "pgid": 88914,
+        "threads_joined": true,
+        "remaining_pids_observed_before_kill": [],
+        "remaining_pids": [],
+        "stderr_bytes": 0,
+        "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "failure": null,
+        "observed_pids": [
+          88914,
+          88916
+        ],
+        "descendant_identities": [
+          {
+            "role": "codex-code-mode-host",
+            "executable_sha256": "dbb33b547af68078b856a6b6e630e042cf85c182ae74e8fd520000dc9599117f",
+            "argv_sha256": "ffdf691ac1521f781a36e775bcbafbd37f322b01d6f28ec3234f509a7bfb2024"
+          }
+        ],
+        "code_host_observed": true
+      },
+      "repair": {
+        "exit_code": 0,
+        "forced": false,
+        "pgid": 88931,
+        "threads_joined": true,
+        "remaining_pids_observed_before_kill": [],
+        "remaining_pids": [],
+        "stderr_bytes": 0,
+        "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "failure": null,
+        "observed_pids": [
+          88931,
+          88933
+        ],
+        "descendant_identities": [
+          {
+            "role": "codex-code-mode-host",
+            "executable_sha256": "dbb33b547af68078b856a6b6e630e042cf85c182ae74e8fd520000dc9599117f",
+            "argv_sha256": "ffdf691ac1521f781a36e775bcbafbd37f322b01d6f28ec3234f509a7bfb2024"
+          }
+        ],
+        "code_host_observed": true
+      }
+    }
+  },
+  {
+    "iteration": 9,
+    "status": "passed",
+    "errors": [],
+    "cleanup": {
+      "missing_runtime": {
+        "exit_code": 0,
+        "forced": false,
+        "pgid": 88983,
+        "threads_joined": true,
+        "remaining_pids_observed_before_kill": [],
+        "remaining_pids": [],
+        "stderr_bytes": 0,
+        "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "failure": null,
+        "observed_pids": [
+          88983,
+          88985
+        ],
+        "descendant_identities": [
+          {
+            "role": "codex-code-mode-host",
+            "executable_sha256": "dbb33b547af68078b856a6b6e630e042cf85c182ae74e8fd520000dc9599117f",
+            "argv_sha256": "0fb010584e61745a5a5fa5948347060d96cf6d6c4253fd2427a8f3cbc3ffc440"
+          }
+        ],
+        "code_host_observed": true
+      },
+      "repair": {
+        "exit_code": 0,
+        "forced": false,
+        "pgid": 89000,
+        "threads_joined": true,
+        "remaining_pids_observed_before_kill": [],
+        "remaining_pids": [],
+        "stderr_bytes": 0,
+        "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "failure": null,
+        "observed_pids": [
+          89000,
+          89002
+        ],
+        "descendant_identities": [
+          {
+            "role": "codex-code-mode-host",
+            "executable_sha256": "dbb33b547af68078b856a6b6e630e042cf85c182ae74e8fd520000dc9599117f",
+            "argv_sha256": "0fb010584e61745a5a5fa5948347060d96cf6d6c4253fd2427a8f3cbc3ffc440"
+          }
+        ],
+        "code_host_observed": true
+      }
+    }
+  }
+]

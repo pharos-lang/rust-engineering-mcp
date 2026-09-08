@@ -1,0 +1,17 @@
+{
+  "status": "built_not_gateway_approved",
+  "recorded_at": "2026-09-07T22:49:25.36273863Z",
+  "image": "sha256:95dddeb5305f10b09b441e3cc4018ebb1a8a296d365c65106327d59f933c64e7",
+  "tag": "rust-engineering-runtime:1.98.1-arm64-m4",
+  "size": 590521838,
+  "config_digest": "sha256:7d4e58b9e29b2045c13d71542f7892ee071a6886a1b939c4cbfc3ff7ce40dc45",
+  "user": "65534:65534",
+  "env": ["PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"],
+  "workdir": "/work",
+  "os": "linux",
+  "architecture": "arm64",
+  "base_image": "sha256:384a1742ecc53cdd3a9c0bf36c6f8b66db73ddd118aeeae6e55654ea998ae36a",
+  "base_config_digest": "sha256:7d4e58b9e29b2045c13d71542f7892ee071a6886a1b939c4cbfc3ff7ce40dc45",
+  "base_tag_unchanged": true,
+  "gateway_approved": false
+}

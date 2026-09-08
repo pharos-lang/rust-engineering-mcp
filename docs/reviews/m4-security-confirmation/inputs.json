@@ -1,0 +1,162 @@
+[
+  {
+    "path": "docs/adr/ADR-067-security-policy-and-quality-contracts.md",
+    "sha256": "90766ae247f6bccc04f569e1a071c00f5ab0ffd9a84deea7cdf1af0c26250d92",
+    "bytes": 16828
+  },
+  {
+    "path": "docs/adr/ADR-068-m4-runtime-admission.md",
+    "sha256": "726352d190fcbad82de5f1791e71c12ccc59e2ae8b9bb47c6e3f2dc01ed7387f",
+    "bytes": 3929
+  },
+  {
+    "path": "docs/adr/ADR-069-isolated-unsafe-syntax-scanner.md",
+    "sha256": "66f527b970532587711cc93c696343193fcac4ac6b2afa216100098ffbfda1f4",
+    "bytes": 8940
+  },
+  {
+    "path": "docs/adr/ADR-072-miri-classification-integrity.md",
+    "sha256": "cd8015203a31651a61bfa658f45bb6973fd38e69ea541b6a4a84523c3ed0586f",
+    "bytes": 7780
+  },
+  {
+    "path": "crates/domain/src/security.rs",
+    "sha256": "98b21ebded10c80414481f2c1b7ff013e7409ec874b40f79fed2e01eabfe50c8",
+    "bytes": 21921
+  },
+  {
+    "path": "crates/domain/src/miri.rs",
+    "sha256": "e844231aabd199588fa19e8e26806ab7adc6e8b545e1a5e0e0b68dd6c59abe00",
+    "bytes": 3430
+  },
+  {
+    "path": "crates/application/src/security.rs",
+    "sha256": "834f4b60536aca46487069fe2ef7f6155093149e1b981a6bb7854410b56112a0",
+    "bytes": 13210
+  },
+  {
+    "path": "crates/application/src/miri.rs",
+    "sha256": "5556eb596036636bbedc58f3cbab83a5117a37c5cfd4562b15f3a98ecf7834d9",
+    "bytes": 2936
+  },
+  {
+    "path": "crates/execution-adapter/src/security_gateway.rs",
+    "sha256": "8e3bf671a02a4ce0afadd33f27480da5709f2b807280a21603b2a2873630145d",
+    "bytes": 51795
+  },
+  {
+    "path": "crates/execution-adapter/src/miri_admission.rs",
+    "sha256": "9b65bec45e60abc81eec6547e7dcbb03a7a29e461a5a776f99dd8f6b0cbd88b4",
+    "bytes": 7700
+  },
+  {
+    "path": "crates/execution-adapter/src/miri_output.rs",
+    "sha256": "2fea28fa3468066377a5243cc882d86c9a614c5d9e5ea0de936a097a49c24f7f",
+    "bytes": 57077
+  },
+  {
+    "path": "crates/execution-adapter/src/miri_port.rs",
+    "sha256": "9f4fe233b9db005bcfb65c7dea9f48a14f2e71982e86d6d84e710016c820b8d8",
+    "bytes": 2991
+  },
+  {
+    "path": "crates/execution-adapter/src/miri_log.rs",
+    "sha256": "f3f9f4b097f157006d11746d314bd01804c601066e85def214abdd5fc28b7140",
+    "bytes": 1017
+  },
+  {
+    "path": "crates/execution-adapter/src/miri_native.rs",
+    "sha256": "1fa720a4981c88ce399ec4402d46d1541babe7eee282c7ffbdcb0604f3576f20",
+    "bytes": 13497
+  },
+  {
+    "path": "crates/execution-adapter/src/deny_json.rs",
+    "sha256": "2c7a5ea1ee8ca7de592a10217266e8dece72924960a75e10f21d20434abda75a",
+    "bytes": 49486
+  },
+  {
+    "path": "crates/execution-adapter/src/security_policy.rs",
+    "sha256": "a64f21b828783b7a958b019330f1d632a9e38c15269f7b4db126dd5eab39e41f",
+    "bytes": 7837
+  },
+  {
+    "path": "crates/execution-adapter/src/unsafe_scan.rs",
+    "sha256": "e1703314b53eaef3ba187933003390fa3fefdec11583df42bcd01b51eaab407a",
+    "bytes": 34002
+  },
+  {
+    "path": "crates/execution-adapter/src/unsafe_port.rs",
+    "sha256": "2e2953fc9c891897084cea0662935bc169b68012483a542533cd17d313078d8d",
+    "bytes": 2567
+  },
+  {
+    "path": "crates/execution-adapter/src/unsafe_native.rs",
+    "sha256": "e0c2f9f762e864adc6b702f21debcebaac25c819733db6ee920dce483e7a3a27",
+    "bytes": 14534
+  },
+  {
+    "path": "crates/project-adapter/src/filesystem/macos/source.rs",
+    "sha256": "aebc1b3b3e664b9e3f8c4274c1493f8433c1ab86c5453f2b3c178467c76715b1",
+    "bytes": 24797
+  },
+  {
+    "path": "crates/mcp-server/src/stdio/miri.rs",
+    "sha256": "0dbbf5e62e99785c3293a3cc5a674faa554144f3298e4674a623f7b54c98d9da",
+    "bytes": 17565
+  },
+  {
+    "path": "crates/mcp-server/src/stdio/security_contract_tests.rs",
+    "sha256": "77638f0af02adf036f5dc1035b5e5ae8d6b5a880ac530d5bdc7adc14af6bf670",
+    "bytes": 29689
+  },
+  {
+    "path": "crates/mcp-server/src/stdio/quality_artifacts/security.rs",
+    "sha256": "ef3a53a6407e2ab7d6cace5d40d91db17043dd69765ed27438a21c7d43c72cbd",
+    "bytes": 9684
+  },
+  {
+    "path": "fixtures/unsafe-scanner-helper/src/lib.rs",
+    "sha256": "8e5396bfa59d49e764bc77ded67416880ac9308d965a36e179e8b768fc4f85e2",
+    "bytes": 50772
+  },
+  {
+    "path": "fixtures/unsafe-scanner-helper/src/main.rs",
+    "sha256": "50b2a308888332892871e8813ea1686f5fa2278dd5ab2e5d4703900c89f93675",
+    "bytes": 2228
+  },
+  {
+    "path": "docs/validation/M4-miri-native.json",
+    "sha256": "49bc40d2e963da418172e694fcd12ef73b66c2d5ab6d725f4ac719c8f61566be",
+    "bytes": 10144
+  },
+  {
+    "path": "docs/validation/M4-miri-native/adversarial-receipt.json",
+    "sha256": "6a10d5675dec5208ea601287a81ea64a81a3aa405db977ffc415b12a86833c48",
+    "bytes": 2040
+  },
+  {
+    "path": "docs/validation/M4-miri-native/receipt.json",
+    "sha256": "6d4888a8dc3386c8e6a485a31481a4f5ebafb7f88d1289040c1d0a94125fc797",
+    "bytes": 15115
+  },
+  {
+    "path": "docs/validation/M4-scanner-native.json",
+    "sha256": "c44fa663de61a34a39028deffbc7918aeb23ea7c8181b881bbaaae32a3828b1d",
+    "bytes": 2325
+  },
+  {
+    "path": "docs/validation/M4-scanner-native/oracles.json",
+    "sha256": "c30685ef7c959cf0bb34469ffc8b4b68f9a1f722188c93bfbe431e9fa886386e",
+    "bytes": 25456
+  },
+  {
+    "path": "docs/reviews/m4-miri-security/review.md",
+    "sha256": "181f49e6d72ccfd76b04e1236ec790306b37adb72272616e7152c088cf646bca",
+    "bytes": 22863
+  },
+  {
+    "path": "docs/reviews/m4-scanner-helper-v3/review.md",
+    "sha256": "cc47beb45467f99f612bd3f9fc6f3b5872d47b36b84164262604aade5b60fa58",
+    "bytes": 15276
+  }
+]

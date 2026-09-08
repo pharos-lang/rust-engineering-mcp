@@ -104,3 +104,11 @@ pub mod coverage;
 pub mod mutation_test;
 pub mod nextest;
 pub mod semver_check;
+
+pub mod miri;
+pub mod security;
+pub mod unsafe_scan;
+
+pub mod supply_chain;
+
+pub mod quality_v2;

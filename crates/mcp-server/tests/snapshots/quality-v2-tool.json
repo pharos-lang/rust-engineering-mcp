@@ -1,0 +1,1535 @@
+{
+  "name": "rust.quality.gate.v2",
+  "description": "Run strict (M1 standard defaults plus dependency policy and workspace coverage) or release (strict plus SemVer against an explicit baseline ProjectRef). One candidate capture and one shared RustSec audit. Each required stage retains its verdict and normalized evidence; partial, unavailable or skipped evidence never passes. Mutation is explicit and budgeted. Uses fixed offline runtime and host policy/vendor; executes project code in the sandbox. Auto or synchronous supports only strict without mutation and timeout_seconds at most 60; release, mutation and longer calls require negotiated MCP Tasks. The work budget excludes joined cleanup.",
+  "inputSchema": {
+    "$defs": {
+      "ExecutionModeDto": {
+        "enum": [
+          "auto",
+          "task",
+          "synchronous"
+        ],
+        "type": "string"
+      },
+      "MutationSelection": {
+        "additionalProperties": false,
+        "properties": {
+          "all_features": {
+            "default": false,
+            "type": "boolean"
+          },
+          "features": {
+            "default": [],
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 64,
+            "type": "array"
+          },
+          "max_mutants": {
+            "default": 100,
+            "format": "uint32",
+            "maximum": 100,
+            "minimum": 1,
+            "type": "integer"
+          },
+          "mutant_timeout_seconds": {
+            "default": 60,
+            "format": "uint64",
+            "maximum": 60,
+            "minimum": 1,
+            "type": "integer"
+          },
+          "no_default_features": {
+            "default": false,
+            "type": "boolean"
+          },
+          "package": {
+            "default": null,
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "target": {
+            "default": null,
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "type": "object"
+      },
+      "QualityV2Profile": {
+        "enum": [
+          "strict",
+          "release"
+        ],
+        "type": "string"
+      }
+    },
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "additionalProperties": false,
+    "properties": {
+      "baseline_project_ref": {
+        "default": null,
+        "type": [
+          "string",
+          "null"
+        ]
+      },
+      "execution_mode": {
+        "$ref": "#/$defs/ExecutionModeDto"
+      },
+      "mutation": {
+        "anyOf": [
+          {
+            "$ref": "#/$defs/MutationSelection"
+          },
+          {
+            "type": "null"
+          }
+        ]
+      },
+      "profile": {
+        "$ref": "#/$defs/QualityV2Profile"
+      },
+      "project_ref": {
+        "pattern": "^prj_[0-9a-f]{32}$",
+        "type": "string"
+      },
+      "timeout_seconds": {
+        "default": 300,
+        "format": "uint64",
+        "maximum": 3600,
+        "minimum": 1,
+        "type": "integer"
+      }
+    },
+    "required": [
+      "project_ref",
+      "profile"
+    ],
+    "title": "Input",
+    "type": "object"
+  },
+  "outputSchema": {
+    "$defs": {
+      "Artifact": {
+        "additionalProperties": false,
+        "properties": {
+          "completeness": {
+            "$ref": "#/$defs/ArtifactCompleteness"
+          },
+          "sha256": {
+            "type": "string"
+          },
+          "size_bytes": {
+            "format": "uint64",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "uri": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "uri",
+          "sha256",
+          "size_bytes",
+          "completeness"
+        ],
+        "type": "object"
+      },
+      "ArtifactCompleteness": {
+        "enum": [
+          "complete",
+          "truncated",
+          "partial",
+          "invalid",
+          "unavailable"
+        ],
+        "type": "string"
+      },
+      "AuditDataError": {
+        "enum": [
+          "unavailable",
+          "invalid_snapshot",
+          "integrity",
+          "missing_lockfile",
+          "invalid_lockfile",
+          "budget",
+          "cancelled",
+          "timeout",
+          "sandbox_denied",
+          "unsupported_platform",
+          "internal"
+        ],
+        "type": "string"
+      },
+      "AuditIssue": {
+        "enum": [
+          "snapshot_unavailable",
+          "snapshot_stale",
+          "snapshot_unknown_age",
+          "unsupported_sources",
+          "output_budget"
+        ],
+        "type": "string"
+      },
+      "AuditSource": {
+        "enum": [
+          "crates_io",
+          "workspace",
+          "unverified"
+        ],
+        "type": "string"
+      },
+      "AuditState": {
+        "enum": [
+          "passed",
+          "failed",
+          "incomplete",
+          "unavailable"
+        ],
+        "type": "string"
+      },
+      "Code": {
+        "enum": [
+          "TASKS_REQUIRED",
+          "SANDBOX_DENIED",
+          "MISSING_OFFLINE_DATA",
+          "ARTIFACT_UNAVAILABLE",
+          "TOOL_NOT_INSTALLED",
+          "INVALID_PROJECT",
+          "PROJECT_NOT_FOUND",
+          "COMMAND_TIMEOUT",
+          "OUTPUT_LIMIT_EXCEEDED",
+          "EVIDENCE_INCOMPLETE"
+        ],
+        "type": "string"
+      },
+      "CoverageMetric": {
+        "additionalProperties": false,
+        "properties": {
+          "count": {
+            "format": "uint64",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "covered": {
+            "format": "uint64",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "percent_millionths": {
+            "format": "uint32",
+            "minimum": 0,
+            "type": "integer"
+          }
+        },
+        "required": [
+          "count",
+          "covered",
+          "percent_millionths"
+        ],
+        "type": "object"
+      },
+      "CoverageMetrics": {
+        "additionalProperties": false,
+        "properties": {
+          "functions": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/CoverageMetric"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "lines": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/CoverageMetric"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "regions": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/CoverageMetric"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "lines",
+          "regions",
+          "functions"
+        ],
+        "type": "object"
+      },
+      "Data": {
+        "additionalProperties": false,
+        "properties": {
+          "artifacts": {
+            "items": {
+              "$ref": "#/$defs/Artifact"
+            },
+            "maxItems": 1,
+            "minItems": 1,
+            "type": "array"
+          },
+          "observation": {
+            "$ref": "#/$defs/Observation"
+          },
+          "project_ref": {
+            "type": "string"
+          },
+          "semantics": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "project_ref",
+          "semantics",
+          "observation",
+          "artifacts"
+        ],
+        "type": "object"
+      },
+      "Disposition": {
+        "oneOf": [
+          {
+            "additionalProperties": false,
+            "properties": {
+              "state": {
+                "const": "active",
+                "type": "string"
+              }
+            },
+            "required": [
+              "state"
+            ],
+            "type": "object"
+          },
+          {
+            "additionalProperties": false,
+            "properties": {
+              "state": {
+                "const": "suppressed",
+                "type": "string"
+              },
+              "suppression": {
+                "$ref": "#/$defs/Suppression"
+              }
+            },
+            "required": [
+              "state",
+              "suppression"
+            ],
+            "type": "object"
+          }
+        ]
+      },
+      "Engine": {
+        "enum": [
+          "rustsec",
+          "licenses",
+          "bans",
+          "sources"
+        ],
+        "type": "string"
+      },
+      "ExecutionTermination": {
+        "enum": [
+          "exited",
+          "timed_out",
+          "cancelled",
+          "output_limit"
+        ],
+        "type": "string"
+      },
+      "Finding": {
+        "additionalProperties": false,
+        "properties": {
+          "disposition": {
+            "$ref": "#/$defs/Disposition"
+          },
+          "engine": {
+            "$ref": "#/$defs/Engine"
+          },
+          "message": {
+            "maxLength": 512,
+            "type": "string"
+          },
+          "package": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/Package"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "rule": {
+            "maxLength": 96,
+            "minLength": 1,
+            "type": "string"
+          },
+          "severity": {
+            "$ref": "#/$defs/Severity"
+          }
+        },
+        "required": [
+          "engine",
+          "rule",
+          "package",
+          "severity",
+          "message",
+          "disposition"
+        ],
+        "type": "object"
+      },
+      "Freshness": {
+        "additionalProperties": false,
+        "properties": {
+          "age_seconds": {
+            "format": "uint64",
+            "minimum": 0,
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "assessed_at": {
+            "format": "uint64",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "policy": {
+            "$ref": "#/$defs/FreshnessPolicy"
+          },
+          "state": {
+            "$ref": "#/$defs/FreshnessState"
+          }
+        },
+        "required": [
+          "state",
+          "age_seconds",
+          "assessed_at",
+          "policy"
+        ],
+        "type": "object"
+      },
+      "FreshnessPolicy": {
+        "additionalProperties": false,
+        "properties": {
+          "fresh_for_seconds": {
+            "format": "uint64",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "id": {
+            "maxLength": 128,
+            "minLength": 1,
+            "type": "string"
+          },
+          "stale_after_seconds": {
+            "format": "uint64",
+            "minimum": 0,
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "fresh_for_seconds",
+          "stale_after_seconds"
+        ],
+        "type": "object"
+      },
+      "FreshnessState": {
+        "enum": [
+          "live",
+          "fresh",
+          "aging",
+          "stale",
+          "unknown"
+        ],
+        "type": "string"
+      },
+      "IntegrityStatus": {
+        "enum": [
+          "verified",
+          "unverified",
+          "failed",
+          "unknown"
+        ],
+        "type": "string"
+      },
+      "MutationBaseline": {
+        "enum": [
+          "passed",
+          "failed",
+          "missing"
+        ],
+        "type": "string"
+      },
+      "MutationCounts": {
+        "additionalProperties": false,
+        "properties": {
+          "caught": {
+            "format": "uint32",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "generated": {
+            "format": "uint32",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "missed": {
+            "format": "uint32",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "other": {
+            "format": "uint32",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "tested": {
+            "format": "uint32",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "timeout": {
+            "format": "uint32",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "unviable": {
+            "format": "uint32",
+            "minimum": 0,
+            "type": "integer"
+          }
+        },
+        "required": [
+          "generated",
+          "tested",
+          "caught",
+          "missed",
+          "timeout",
+          "unviable",
+          "other"
+        ],
+        "type": "object"
+      },
+      "Observation": {
+        "additionalProperties": false,
+        "properties": {
+          "execution_fingerprint": {
+            "type": "string"
+          },
+          "report": {
+            "$ref": "#/$defs/QualityV2Report"
+          },
+          "runtime": {
+            "$ref": "#/$defs/RuntimeIdentity"
+          }
+        },
+        "required": [
+          "report",
+          "runtime",
+          "execution_fingerprint"
+        ],
+        "type": "object"
+      },
+      "OperationalErrorCode": {
+        "enum": [
+          "PROJECT_NOT_FOUND",
+          "INVALID_PROJECT",
+          "TOOL_NOT_INSTALLED",
+          "LOCKFILE_UPDATE_REQUIRED",
+          "COMMAND_TIMEOUT",
+          "SANDBOX_DENIED",
+          "NETWORK_DENIED",
+          "UNSUPPORTED_PLATFORM",
+          "OUTPUT_LIMIT_EXCEEDED"
+        ],
+        "type": "string"
+      },
+      "Package": {
+        "additionalProperties": false,
+        "properties": {
+          "name": {
+            "maxLength": 64,
+            "minLength": 1,
+            "type": "string"
+          },
+          "source": {
+            "$ref": "#/$defs/Source"
+          },
+          "source_fingerprint": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "version": {
+            "maxLength": 128,
+            "minLength": 1,
+            "type": "string"
+          }
+        },
+        "required": [
+          "name",
+          "version",
+          "source",
+          "source_fingerprint"
+        ],
+        "type": "object"
+      },
+      "PolicyState": {
+        "enum": [
+          "satisfied",
+          "satisfied_with_suppressions",
+          "violated",
+          "undetermined"
+        ],
+        "type": "string"
+      },
+      "QualityIssue": {
+        "oneOf": [
+          {
+            "additionalProperties": false,
+            "properties": {
+              "code": {
+                "$ref": "#/$defs/OperationalErrorCode"
+              },
+              "kind": {
+                "const": "operational",
+                "type": "string"
+              }
+            },
+            "required": [
+              "kind",
+              "code"
+            ],
+            "type": "object"
+          },
+          {
+            "additionalProperties": false,
+            "properties": {
+              "code": {
+                "$ref": "#/$defs/AuditDataError"
+              },
+              "kind": {
+                "const": "audit",
+                "type": "string"
+              }
+            },
+            "required": [
+              "kind",
+              "code"
+            ],
+            "type": "object"
+          },
+          {
+            "additionalProperties": false,
+            "properties": {
+              "kind": {
+                "const": "incomplete",
+                "type": "string"
+              }
+            },
+            "required": [
+              "kind"
+            ],
+            "type": "object"
+          }
+        ]
+      },
+      "QualityV2Baseline": {
+        "additionalProperties": false,
+        "properties": {
+          "identity_fingerprint": {
+            "type": "string"
+          },
+          "project_ref": {
+            "type": "string"
+          },
+          "source_fingerprint": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "project_ref",
+          "identity_fingerprint",
+          "source_fingerprint"
+        ],
+        "type": "object"
+      },
+      "QualityV2Details": {
+        "oneOf": [
+          {
+            "additionalProperties": false,
+            "properties": {
+              "affected_files": {
+                "format": "uint64",
+                "minimum": 0,
+                "type": [
+                  "integer",
+                  "null"
+                ]
+              },
+              "build_succeeded": {
+                "type": [
+                  "boolean",
+                  "null"
+                ]
+              },
+              "diagnostics": {
+                "format": "uint32",
+                "minimum": 0,
+                "type": "integer"
+              },
+              "diagnostics_omitted": {
+                "format": "uint64",
+                "minimum": 0,
+                "type": "integer"
+              },
+              "exit_code": {
+                "format": "int32",
+                "type": [
+                  "integer",
+                  "null"
+                ]
+              },
+              "kind": {
+                "const": "validation",
+                "type": "string"
+              },
+              "termination": {
+                "$ref": "#/$defs/ExecutionTermination"
+              },
+              "validation_complete": {
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "kind",
+              "termination",
+              "exit_code",
+              "validation_complete",
+              "diagnostics",
+              "diagnostics_omitted",
+              "affected_files",
+              "build_succeeded"
+            ],
+            "type": "object"
+          },
+          {
+            "additionalProperties": false,
+            "properties": {
+              "kind": {
+                "const": "audit",
+                "type": "string"
+              },
+              "observation": {
+                "$ref": "#/$defs/SupplyAudit"
+              }
+            },
+            "required": [
+              "kind",
+              "observation"
+            ],
+            "type": "object"
+          },
+          {
+            "additionalProperties": false,
+            "properties": {
+              "kind": {
+                "const": "deny",
+                "type": "string"
+              },
+              "observation": {
+                "$ref": "#/$defs/SupplyDeny"
+              }
+            },
+            "required": [
+              "kind",
+              "observation"
+            ],
+            "type": "object"
+          },
+          {
+            "additionalProperties": false,
+            "properties": {
+              "aggregate": {
+                "$ref": "#/$defs/CoverageMetrics"
+              },
+              "doctests_run": {
+                "type": "boolean"
+              },
+              "exit_code": {
+                "format": "int32",
+                "type": [
+                  "integer",
+                  "null"
+                ]
+              },
+              "kind": {
+                "const": "coverage",
+                "type": "string"
+              },
+              "parse_complete": {
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "kind",
+              "aggregate",
+              "parse_complete",
+              "exit_code",
+              "doctests_run"
+            ],
+            "type": "object"
+          },
+          {
+            "additionalProperties": false,
+            "properties": {
+              "counts": {
+                "$ref": "#/$defs/SemverFindingCounts"
+              },
+              "exit_code": {
+                "format": "int32",
+                "type": [
+                  "integer",
+                  "null"
+                ]
+              },
+              "findings_completeness": {
+                "$ref": "#/$defs/SemverFindingCompleteness"
+              },
+              "kind": {
+                "const": "semver",
+                "type": "string"
+              }
+            },
+            "required": [
+              "kind",
+              "counts",
+              "findings_completeness",
+              "exit_code"
+            ],
+            "type": "object"
+          },
+          {
+            "additionalProperties": false,
+            "properties": {
+              "baseline": {
+                "$ref": "#/$defs/MutationBaseline"
+              },
+              "cap_exceeded": {
+                "type": "boolean"
+              },
+              "counts": {
+                "$ref": "#/$defs/MutationCounts"
+              },
+              "kind": {
+                "const": "mutation",
+                "type": "string"
+              },
+              "validation_complete": {
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "kind",
+              "baseline",
+              "counts",
+              "validation_complete",
+              "cap_exceeded"
+            ],
+            "type": "object"
+          }
+        ]
+      },
+      "QualityV2Profile": {
+        "enum": [
+          "strict",
+          "release"
+        ],
+        "type": "string"
+      },
+      "QualityV2Report": {
+        "additionalProperties": false,
+        "properties": {
+          "baseline": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/QualityV2Baseline"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "complete": {
+            "type": "boolean"
+          },
+          "mutation_requested": {
+            "type": "boolean"
+          },
+          "profile": {
+            "$ref": "#/$defs/QualityV2Profile"
+          },
+          "source_fingerprint": {
+            "type": "string"
+          },
+          "stages": {
+            "items": {
+              "$ref": "#/$defs/QualityV2Stage"
+            },
+            "type": "array"
+          },
+          "status": {
+            "$ref": "#/$defs/ToolStatus"
+          }
+        },
+        "required": [
+          "profile",
+          "mutation_requested",
+          "source_fingerprint",
+          "baseline",
+          "stages",
+          "complete",
+          "status"
+        ],
+        "type": "object"
+      },
+      "QualityV2Stage": {
+        "additionalProperties": false,
+        "properties": {
+          "details": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/QualityV2Details"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "duration_ms": {
+            "format": "uint64",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "execution_fingerprint": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "issue": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/QualityIssue"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "stage": {
+            "$ref": "#/$defs/QualityV2StageKind"
+          },
+          "status": {
+            "$ref": "#/$defs/ToolStatus"
+          }
+        },
+        "required": [
+          "stage",
+          "status",
+          "issue",
+          "duration_ms",
+          "execution_fingerprint",
+          "details"
+        ],
+        "type": "object"
+      },
+      "QualityV2StageKind": {
+        "enum": [
+          "format",
+          "check",
+          "clippy",
+          "test",
+          "audit",
+          "deny",
+          "coverage",
+          "semver",
+          "mutation"
+        ],
+        "type": "string"
+      },
+      "RuntimeIdentity": {
+        "additionalProperties": false,
+        "properties": {
+          "cargo_version": {
+            "maxLength": 4096,
+            "type": "string"
+          },
+          "configuration_fingerprint": {
+            "pattern": "^sha256:[0-9a-f]{64}$",
+            "type": "string"
+          },
+          "declared_toolchain": {
+            "maxLength": 6,
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "execution_fingerprint": {
+            "pattern": "^sha256:[0-9a-f]{64}$",
+            "type": "string"
+          },
+          "image_id": {
+            "pattern": "^sha256:[0-9a-f]{64}$",
+            "type": "string"
+          },
+          "platform": {
+            "maxLength": 4096,
+            "type": "string"
+          },
+          "rust_version": {
+            "maxLength": 4096,
+            "type": "string"
+          }
+        },
+        "required": [
+          "platform",
+          "image_id",
+          "configuration_fingerprint",
+          "execution_fingerprint",
+          "rust_version",
+          "cargo_version",
+          "declared_toolchain"
+        ],
+        "type": "object"
+      },
+      "RustSecEvidence": {
+        "additionalProperties": false,
+        "properties": {
+          "freshness": {
+            "$ref": "#/$defs/Freshness"
+          },
+          "provenance": {
+            "$ref": "#/$defs/RustSecProvenance"
+          }
+        },
+        "required": [
+          "provenance",
+          "freshness"
+        ],
+        "type": "object"
+      },
+      "RustSecProvenance": {
+        "additionalProperties": false,
+        "properties": {
+          "created_at": {
+            "format": "uint64",
+            "minimum": 0,
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "integrity": {
+            "$ref": "#/$defs/IntegrityStatus"
+          },
+          "network_used": {
+            "type": "boolean"
+          },
+          "observed_at": {
+            "format": "uint64",
+            "minimum": 0,
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "source_id": {
+            "type": "string"
+          },
+          "source_kind": {
+            "$ref": "#/$defs/RustSecSourceKind"
+          }
+        },
+        "required": [
+          "source_kind",
+          "source_id",
+          "created_at",
+          "observed_at",
+          "integrity",
+          "network_used"
+        ],
+        "type": "object"
+      },
+      "RustSecSourceKind": {
+        "enum": [
+          "rustsec_snapshot"
+        ],
+        "type": "string"
+      },
+      "SemverFindingCompleteness": {
+        "enum": [
+          "partial",
+          "incomplete"
+        ],
+        "type": "string"
+      },
+      "SemverFindingCounts": {
+        "additionalProperties": false,
+        "properties": {
+          "deny": {
+            "format": "uint32",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "warn": {
+            "format": "uint32",
+            "minimum": 0,
+            "type": "integer"
+          }
+        },
+        "required": [
+          "deny",
+          "warn"
+        ],
+        "type": "object"
+      },
+      "Severity": {
+        "enum": [
+          "error",
+          "warning",
+          "note",
+          "help"
+        ],
+        "type": "string"
+      },
+      "Source": {
+        "enum": [
+          "workspace",
+          "crates_io",
+          "unverified"
+        ],
+        "type": "string"
+      },
+      "SupplyAdvisory": {
+        "additionalProperties": false,
+        "properties": {
+          "advisory_id": {
+            "type": "string"
+          },
+          "informational": {
+            "type": "boolean"
+          },
+          "package_name": {
+            "type": "string"
+          },
+          "package_source": {
+            "$ref": "#/$defs/AuditSource"
+          },
+          "package_version": {
+            "type": "string"
+          },
+          "source_fingerprint": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "advisory_id",
+          "package_name",
+          "package_version",
+          "package_source",
+          "source_fingerprint",
+          "informational"
+        ],
+        "type": "object"
+      },
+      "SupplyAudit": {
+        "additionalProperties": false,
+        "properties": {
+          "crates_io_scanned": {
+            "format": "uint32",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "findings": {
+            "items": {
+              "$ref": "#/$defs/SupplyAdvisory"
+            },
+            "maxItems": 128,
+            "type": "array"
+          },
+          "findings_omitted": {
+            "format": "uint64",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "issue": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/AuditIssue"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "lock_fingerprint": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "packages_total": {
+            "format": "uint32",
+            "maximum": 4096,
+            "minimum": 0,
+            "type": "integer"
+          },
+          "snapshot": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/RustSecEvidence"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "snapshot_fingerprint": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "snapshot_sequence": {
+            "format": "uint64",
+            "minimum": 0,
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "state": {
+            "$ref": "#/$defs/AuditState"
+          },
+          "unsupported_packages": {
+            "format": "uint32",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "validation_complete": {
+            "type": "boolean"
+          },
+          "workspace_packages_excluded": {
+            "format": "uint32",
+            "minimum": 0,
+            "type": "integer"
+          }
+        },
+        "required": [
+          "state",
+          "issue",
+          "validation_complete",
+          "lock_fingerprint",
+          "snapshot_fingerprint",
+          "snapshot",
+          "snapshot_sequence",
+          "packages_total",
+          "crates_io_scanned",
+          "workspace_packages_excluded",
+          "unsupported_packages",
+          "findings",
+          "findings_omitted"
+        ],
+        "type": "object"
+      },
+      "SupplyDeny": {
+        "additionalProperties": false,
+        "properties": {
+          "complete": {
+            "type": "boolean"
+          },
+          "execution_fingerprint": {
+            "type": "string"
+          },
+          "findings": {
+            "items": {
+              "$ref": "#/$defs/Finding"
+            },
+            "maxItems": 128,
+            "type": "array"
+          },
+          "findings_omitted": {
+            "format": "uint64",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "policy_fingerprint": {
+            "type": "string"
+          },
+          "policy_state": {
+            "$ref": "#/$defs/PolicyState"
+          }
+        },
+        "required": [
+          "complete",
+          "policy_state",
+          "findings",
+          "findings_omitted",
+          "policy_fingerprint",
+          "execution_fingerprint"
+        ],
+        "type": "object"
+      },
+      "Suppression": {
+        "additionalProperties": false,
+        "properties": {
+          "engine": {
+            "$ref": "#/$defs/Engine"
+          },
+          "expires_at": {
+            "format": "uint64",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "id": {
+            "type": "string"
+          },
+          "owner": {
+            "type": "string"
+          },
+          "package": {
+            "type": "string"
+          },
+          "package_source": {
+            "$ref": "#/$defs/Source"
+          },
+          "reason": {
+            "type": "string"
+          },
+          "rule": {
+            "type": "string"
+          },
+          "rules_digest": {
+            "type": "string"
+          },
+          "version_requirement": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "engine",
+          "rule",
+          "package",
+          "package_source",
+          "version_requirement",
+          "reason",
+          "owner",
+          "expires_at",
+          "rules_digest"
+        ],
+        "type": "object"
+      },
+      "ToolStatus": {
+        "enum": [
+          "passed",
+          "failed",
+          "blocked",
+          "unavailable",
+          "cancelled"
+        ],
+        "type": "string"
+      }
+    },
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "oneOf": [
+      {
+        "properties": {
+          "data": {
+            "$ref": "#/$defs/Data"
+          },
+          "error_code": {
+            "type": "null"
+          },
+          "error_message": {
+            "type": "null"
+          },
+          "status": {
+            "const": "passed",
+            "type": "string"
+          }
+        },
+        "required": [
+          "status",
+          "error_code",
+          "error_message",
+          "data"
+        ],
+        "type": "object"
+      },
+      {
+        "properties": {
+          "data": {
+            "$ref": "#/$defs/Data"
+          },
+          "error_code": {
+            "type": "null"
+          },
+          "error_message": {
+            "type": "null"
+          },
+          "status": {
+            "const": "failed",
+            "type": "string"
+          }
+        },
+        "required": [
+          "status",
+          "error_code",
+          "error_message",
+          "data"
+        ],
+        "type": "object"
+      },
+      {
+        "properties": {
+          "data": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/Data"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "error_code": {
+            "$ref": "#/$defs/Code"
+          },
+          "error_message": {
+            "type": "string"
+          },
+          "status": {
+            "const": "blocked",
+            "type": "string"
+          }
+        },
+        "required": [
+          "status",
+          "error_code",
+          "error_message",
+          "data"
+        ],
+        "type": "object"
+      },
+      {
+        "properties": {
+          "data": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/Data"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "error_code": {
+            "$ref": "#/$defs/Code"
+          },
+          "error_message": {
+            "type": "string"
+          },
+          "status": {
+            "const": "unavailable",
+            "type": "string"
+          }
+        },
+        "required": [
+          "status",
+          "error_code",
+          "error_message",
+          "data"
+        ],
+        "type": "object"
+      },
+      {
+        "properties": {
+          "data": {
+            "type": "null"
+          },
+          "error_code": {
+            "type": "null"
+          },
+          "error_message": {
+            "type": "null"
+          },
+          "status": {
+            "const": "cancelled",
+            "type": "string"
+          }
+        },
+        "required": [
+          "status",
+          "error_code",
+          "error_message",
+          "data"
+        ],
+        "type": "object"
+      }
+    ],
+    "properties": {
+      "duration_ms": {
+        "format": "uint64",
+        "minimum": 0,
+        "type": "integer"
+      },
+      "summary": {
+        "type": "string"
+      }
+    },
+    "required": [
+      "summary",
+      "duration_ms"
+    ],
+    "title": "Output",
+    "type": "object",
+    "unevaluatedProperties": false
+  },
+  "annotations": {
+    "readOnlyHint": true,
+    "destructiveHint": false,
+    "idempotentHint": false,
+    "openWorldHint": false
+  }
+}

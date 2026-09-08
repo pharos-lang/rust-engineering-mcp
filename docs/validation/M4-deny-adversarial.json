@@ -1,0 +1,96 @@
+{
+  "cases": [
+    {
+      "case": "clean-vendored-license-text",
+      "expected": "exit 0 with captured license texts for workspace and unicode-ident",
+      "observed": "exit Some(0)",
+      "passed": true,
+      "stderr": "{\"fields\":{\"level\":\"INFO\",\"message\":\"network access disabled via --offline (or --frozen) flag, disabling advisory database fetching\",\"timestamp\":\"2026-09-08T06:16:54.69296721Z\"},\"type\":\"log\"}\n{\"fields\":{\"level\":\"INFO\",\"message\":\"using config from /security/deny.toml\",\"timestamp\":\"2026-09-08T06:16:54.693060001Z\"},\"type\":\"log\"}\n{\"fields\":{\"level\":\"DEBUG\",\"message\":\"loading license store...\",\"timestamp\":\"2026-09-08T06:16:54.693237543Z\"},\"type\":\"log\"}\n{\"fields\":{\"level\":\"INFO\",\"message\":\"fetching crates for /source/Cargo.toml\",\"timestamp\":\"2026-09-08T06:16:54.75802971Z\"},\"type\":\"log\"}\n{\"fields\":{\"level\":\"INFO\",\"message\":\"fetched crates in 20.031083ms\",\"timestamp\":\"2026-09-08T06:16:54.778060751Z\"},\"type\":\"log\"}\n{\"fields\":{\"level\":\"INFO\",\"message\":\"gathering crates for /source/Cargo.toml\",\"timestamp\":\"2026-09-08T06:16:54.778078918Z\"},\"type\":\"log\"}\n{\"fields\":{\"level\":\"DEBUG\",\"message\":\"gathering crate metadata\",\"timestamp\":\"2026-09-08T06:16:54.778088501Z\"},\"type\":\"log\"}\n{\"fields\":{\"level\":\"DEBUG\",\"message\":\"gathered crate metadata in 0ms\",\"timestamp\":\"2026-09-08T06:16:54.778098126Z\"},\"type\":\"log\"}\n{\"fields\":{\"level\":\"INFO\",\"message\":\"gathered 2 crates in 4ms\",\"timestamp\":\"2026-09-08T06:16:54.782947251Z\"},\"type\":\"log\"}\n{\"fields\":{\"level\":\"INFO\",\"message\":\"no workspace dependencies were declared\",\"timestamp\":\"2026-09-08T06:16:54.784731043Z\"},\"type\":\"log\"}\n{\"fields\":{\"level\":\"INFO\",\"message\":\"checking sources...\",\"timestamp\":\"2026-09-08T06:16:54.803339501Z\"},\"type\":\"log\"}\n{\"fields\":{\"level\":\"INFO\",\"message\":\"sources checked in 0ms\",\"timestamp\":\"2026-09-08T06:16:54.803359501Z\"},\"type\":\"log\"}\n{\"fields\":{\"level\":\"INFO\",\"message\":\"checking bans...\",\"timestamp\":\"2026-09-08T06:16:54.803370793Z\"},\"type\":\"log\"}\n{\"fields\":{\"level\":\"INFO\",\"message\":\"bans checked in 0ms\",\"timestamp\":\"2026-09-08T06:16:54.803392585Z\"},\"type\":\"log\"}\n{\"fields\":{\"level\":\"INFO\",\"message\":\"checking licenses...\",\"timestamp\":\"2026-09-08T06:16:54.803405876Z\"},\"type\":\"log\"}\n{\"fields\":{\"level\":\"INFO\",\"message\":\"licenses checked in 8ms\",\"timestamp\":\"2026-09-08T06:16:54.811860293Z\"},\"type\":\"log\"}\n{\"fields\":{\"code\":\"no-license-field\",\"graphs\":[{\"Krate\":{\"name\":\"m4-deny-adversarial\",\"version\":\"0.1.0\"}}],\"message\":\"license expression was not specified in manifest for crate 'm4-deny-adversarial = 0.1.0'\",\"severity\":\"warning\"},\"type\":\"diagnostic\"}\n{\"fields\":{\"code\":\"accepted\",\"graphs\":[{\"Krate\":{\"name\":\"m4-deny-adversarial\",\"version\":\"0.1.0\"}}],\"labels\":[{\"column\":15,\"line\":5,\"message\":\"license expression retrieved via license files: LICENSE-MIT\",\"span\":\"MIT\"},{\"column\":15,\"line\":5,\"message\":\"accepted: license is explicitly allowed\",\"span\":\"MIT\"}],\"message\":\"license requirements satisfied\",\"severity\":\"help\"},\"type\":\"diagnostic\"}\n{\"fields\":{\"code\":\"no-license-field\",\"graphs\":[{\"Krate\":{\"name\":\"unicode-ident\",\"version\":\"1.0.24\"},\"parents\":[{\"Krate\":{\"name\":\"m4-deny-adversarial\",\"version\":\"0.1.0\"}}]}],\"message\":\"license expression was not specified in manifest for crate 'unicode-ident = 1.0.24'\",\"severity\":\"warning\"},\"type\":\"diagnostic\"}\n{\"fields\":{\"code\":\"accepted\",\"graphs\":[{\"Krate\":{\"name\":\"unicode-ident\",\"version\":\"1.0.24\"},\"parents\":[{\"Krate\":{\"name\":\"m4-deny-adversarial\",\"version\":\"0.1.0\"}}]}],\"labels\":[{\"column\":15,\"line\":5,\"message\":\"license expression retrieved via license files: LICENSE-APACHE, LICENSE-MIT, and LICENSE-UNICODE\",\"span\":\"Apache-2.0 AND MIT AND Unicode-3.0\"},{\"column\":15,\"line\":5,\"message\":\"accepted: license is explicitly allowed\",\"span\":\"Apache-2.0\"},{\"column\":30,\"line\":5,\"message\":\"accepted: license is explicitly allowed\",\"span\":\"MIT\"},{\"column\":38,\"line\":5,\"message\":\"accepted: license is explicitly allowed\",\"span\":\"Unicode-3.0\"}],\"message\":\"license requirements satisfied\",\"notes\":[\"'LICENSE-APACHE' fuzzy matched to Pixar license, but it is actually a normal Apache-2.0 license\"],\"severity\":\"help\"},\"type\":\"diagnostic\"}\n{\"fields\":{\"bans\":{\"errors\":0,\"helps\":0,\"notes\":0,\"warnings\":0},\"licenses\":{\"errors\":0,\"helps\":2,\"notes\":0,\"warnings\":2},\"sources\":{\"errors\":0,\"helps\":0,\"notes\":0,\"warnings\":0}},\"type\":\"summary\"}\n",
+      "stderr_sha256": "sha256:225f019729997ac01737d02a9eeae5128f31f7a70636dd1076f67e73dc746f52",
+      "stdout": "",
+      "stdout_sha256": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "case": "corrupt-lock-checksum",
+      "expected": "InvalidMetadata",
+      "observed": "InvalidMetadata",
+      "passed": true,
+      "stderr": null,
+      "stderr_sha256": null,
+      "stdout": null,
+      "stdout_sha256": null
+    },
+    {
+      "case": "missing-offline-vendor-data",
+      "expected": "MissingOfflineData",
+      "observed": "MissingOfflineData",
+      "passed": true,
+      "stderr": null,
+      "stderr_sha256": null,
+      "stdout": null,
+      "stdout_sha256": null
+    },
+    {
+      "case": "project-deny-exceptions",
+      "expected": "InvalidPolicy",
+      "observed": "InvalidPolicy",
+      "passed": true,
+      "stderr": null,
+      "stderr_sha256": null,
+      "stdout": null,
+      "stdout_sha256": null
+    },
+    {
+      "case": "cancel-before-first-phase",
+      "expected": "Inspection(Project(Cancelled))",
+      "observed": "Inspection(Project(Cancelled))",
+      "passed": true,
+      "stderr": null,
+      "stderr_sha256": null,
+      "stdout": null,
+      "stdout_sha256": null
+    },
+    {
+      "case": "cancel-during-phase",
+      "expected": "Inspection(Project(Cancelled))",
+      "observed": "Inspection(Project(Cancelled))",
+      "passed": true,
+      "stderr": null,
+      "stderr_sha256": null,
+      "stdout": null,
+      "stdout_sha256": null
+    },
+    {
+      "case": "short-timeout",
+      "expected": "Timeout",
+      "observed": "Timeout",
+      "passed": true,
+      "stderr": null,
+      "stderr_sha256": null,
+      "stdout": null,
+      "stdout_sha256": null
+    },
+    {
+      "case": "bounded-output",
+      "expected": "OutputLimit",
+      "observed": "OutputLimit",
+      "passed": true,
+      "stderr": null,
+      "stderr_sha256": null,
+      "stdout": null,
+      "stdout_sha256": null
+    }
+  ],
+  "cleanup": {
+    "all_absent": true,
+    "containers_raw": "",
+    "volumes_raw": ""
+  },
+  "image_id": "sha256:25ed3626e710081a571a86a29521eaf2e890e796afd422ba5e409e0ce1891635",
+  "schema_version": 1,
+  "source_archive_fingerprint_after": "sha256:6f02f9c321af90e456e87633bd594a28486f5f56507de8c81257b42db476a528",
+  "suite": "m4-deny-adversarial",
+  "unicode_ident_package_checksum": "sha256:e6e4313cd5fcd3dad5cafa179702e2b244f760991f45397d14d4ebf38247da75",
+  "vendor_tree_fingerprint_after": "sha256:743947d5788c1a4385a4b59869c5b8bd0535f7fc0d875b51288f9b26b2d0eba1",
+  "vendor_tree_fingerprint_before": "sha256:743947d5788c1a4385a4b59869c5b8bd0535f7fc0d875b51288f9b26b2d0eba1"
+}

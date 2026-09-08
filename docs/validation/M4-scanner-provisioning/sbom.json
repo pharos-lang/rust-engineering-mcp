@@ -1,0 +1,134 @@
+{
+  "base_image_id": "sha256:95dddeb5305f10b09b441e3cc4018ebb1a8a296d365c65106327d59f933c64e7",
+  "helper": {
+    "license": "MIT OR Apache-2.0",
+    "name": "rust-mcp-unsafe-scanner-helper",
+    "source_files": [
+      {
+        "path": "Cargo.toml",
+        "sha256": "98e0402fad47fc0416f179f89e9533d556785e794d008c2a8c5d31a52b7fb21e",
+        "size": 683
+      },
+      {
+        "path": "Cargo.lock",
+        "sha256": "e446a33a37eb46ca6d4dd41abf8c4f3ffb0654d744b002c0c99e48e63effb1ad",
+        "size": 2711
+      },
+      {
+        "path": "src/lib.rs",
+        "sha256": "8e5396bfa59d49e764bc77ded67416880ac9308d965a36e179e8b768fc4f85e2",
+        "size": 50772
+      },
+      {
+        "path": "src/main.rs",
+        "sha256": "50b2a308888332892871e8813ea1686f5fa2278dd5ab2e5d4703900c89f93675",
+        "size": 2228
+      }
+    ],
+    "version": "0.1.0"
+  },
+  "network_required": false,
+  "registry_packages": [
+    {
+      "archive_member_count": 14,
+      "filename": "itoa-1.0.18.crate",
+      "license": "MIT OR Apache-2.0",
+      "name": "itoa",
+      "sha256": "8f42a60cbdf9a97f5d2305f08a87dc4e09308d1276d28c869c684d7777685682",
+      "size": 15935,
+      "version": "1.0.18"
+    },
+    {
+      "archive_member_count": 59,
+      "filename": "memchr-2.8.3.crate",
+      "license": "Unlicense OR MIT",
+      "name": "memchr",
+      "sha256": "cf8baf1c55e62ffcace7a9f06f4bd9cd3f0c4beb022d3b367256b91b87513d98",
+      "size": 99165,
+      "version": "2.8.3"
+    },
+    {
+      "archive_member_count": 33,
+      "filename": "proc-macro2-1.0.107.crate",
+      "license": "MIT OR Apache-2.0",
+      "name": "proc-macro2",
+      "sha256": "985e7ec9bb745e6ce6535b544d84d6cd6f7ad8bd711c398938ae983b91a766d9",
+      "size": 59588,
+      "version": "1.0.107"
+    },
+    {
+      "archive_member_count": 35,
+      "filename": "quote-1.0.47.crate",
+      "license": "MIT OR Apache-2.0",
+      "name": "quote",
+      "sha256": "1fbf4db142a473a8d80c26bbf18454ed458bf8d26c8219c331daecfdbd079001",
+      "size": 31622,
+      "version": "1.0.47"
+    },
+    {
+      "archive_member_count": 33,
+      "filename": "serde-1.0.229.crate",
+      "license": "MIT OR Apache-2.0",
+      "name": "serde",
+      "sha256": "4148590afebada386688f18773da617792bf2ef03ffc1e4cbd2b1d45b023e0ba",
+      "size": 83669,
+      "version": "1.0.229"
+    },
+    {
+      "archive_member_count": 27,
+      "filename": "serde_core-1.0.229.crate",
+      "license": "MIT OR Apache-2.0",
+      "name": "serde_core",
+      "sha256": "67dca2c9c51e58a4791a4b1ed58308b39c64224d349a935ab5039aa360942a48",
+      "size": 63100,
+      "version": "1.0.229"
+    },
+    {
+      "archive_member_count": 36,
+      "filename": "serde_derive-1.0.229.crate",
+      "license": "MIT OR Apache-2.0",
+      "name": "serde_derive",
+      "sha256": "e7a5d71263a5a7d47b41f6b3f06ba276f10cc18b0931f1799f710578e2309348",
+      "size": 59864,
+      "version": "1.0.229"
+    },
+    {
+      "archive_member_count": 89,
+      "filename": "serde_json-1.0.151.crate",
+      "license": "MIT OR Apache-2.0",
+      "name": "serde_json",
+      "sha256": "c841b55ecdae098c80dcae9cf767f6f8a0c2cdb3416bbef72181df4d0fe73f14",
+      "size": 156556,
+      "version": "1.0.151"
+    },
+    {
+      "archive_member_count": 104,
+      "filename": "syn-3.0.4.crate",
+      "license": "MIT OR Apache-2.0",
+      "name": "syn",
+      "sha256": "e6275cddf4610d1775e6d1fe9469b2e77d0f39fd98fb7450901b821e0c53649f",
+      "size": 313047,
+      "version": "3.0.4"
+    },
+    {
+      "archive_member_count": 26,
+      "filename": "unicode-ident-1.0.24.crate",
+      "license": "(MIT OR Apache-2.0) AND Unicode-3.0",
+      "name": "unicode-ident",
+      "sha256": "e6e4313cd5fcd3dad5cafa179702e2b244f760991f45397d14d4ebf38247da75",
+      "size": 49298,
+      "version": "1.0.24"
+    },
+    {
+      "archive_member_count": 17,
+      "filename": "zmij-1.0.23.crate",
+      "license": "MIT",
+      "name": "zmij",
+      "sha256": "29666d0abbfad1e3dc4dcf6144730dd3a3ab225bbbdac83319345b1b44ccfc1b",
+      "size": 28612,
+      "version": "1.0.23"
+    }
+  ],
+  "schema": "rust-engineering-mcp.m4-scanner-build-inputs.v1",
+  "target": "aarch64-unknown-linux-gnu"
+}

@@ -4,7 +4,38 @@ mod capabilities;
 mod coverage_gateway;
 pub mod coverage_json;
 mod coverage_port;
+mod deny_json;
+mod security_gateway;
+mod security_inventory;
+pub use security_inventory::{SecurityRuntimeInventory, security_runtime_inventory};
+mod security_log;
+pub use security_log::{SafeSecurityLog, safe_security_log};
+mod miri_log;
+#[cfg(all(test, target_os = "macos"))]
+mod security_graph_native;
+mod security_metadata;
+#[cfg(all(test, target_os = "macos"))]
+mod security_native;
+#[cfg(all(test, target_os = "macos"))]
+mod security_native_adversarial;
+mod security_policy;
+mod security_port;
+mod unsafe_log;
+pub use miri_log::safe_miri_log;
+mod miri_admission;
+mod miri_output;
+mod miri_port;
+mod unsafe_port;
+mod unsafe_scan;
 pub use capabilities::{CapabilityReport, CapabilityStatus};
+pub use miri_port::MIRI_IMAGE as APPROVED_MIRI_IMAGE;
+pub use security_policy::{SecurityPolicyError, parse_security_policy};
+pub use security_port::M4_IMAGE as APPROVED_SECURITY_IMAGE;
+/// Exact derived runtime qualified by ADR-068; never a mutable build tag.
+pub const APPROVED_M4_IMAGE: &str =
+    "sha256:25ed3626e710081a571a86a29521eaf2e890e796afd422ba5e409e0ce1891635";
+pub use unsafe_log::safe_unsafe_log;
+pub use unsafe_port::SCANNER_IMAGE as APPROVED_SCANNER_IMAGE;
 mod semver_gateway;
 mod semver_output;
 mod semver_port;
@@ -716,3 +747,17 @@ mod nextest_gateway;
 mod nextest_junit;
 mod nextest_port;
 pub use nextest_gateway::NextestExecution;
+
+mod supply_log;
+pub use supply_log::safe_supply_log;
+
+#[cfg(test)]
+mod miri_native;
+
+mod supply_facts;
+
+#[cfg(all(test, target_os = "macos"))]
+mod unsafe_native;
+
+mod quality_v2_log;
+pub use quality_v2_log::safe_gate_v2_log;

@@ -1,0 +1,24 @@
+{
+  "command": [
+    "/Users/cburgosro/.local/bin/claude",
+    "--model",
+    "claude-opus-5",
+    "--effort",
+    "high",
+    "--print",
+    "--output-format",
+    "json",
+    "--no-session-persistence",
+    "--restricted",
+    "--strict-mcp-config",
+    "--mcp-config",
+    "{\"mcpServers\":{}}",
+    "--tools",
+    "Read,Grep,Glob",
+    "--disallowedTools",
+    "Agent,Bash,Write,Edit,WebFetch,WebSearch,NotebookEdit"
+  ],
+  "started_at": "2026-09-08T01:18:18.600348+00:00",
+  "finished_at": "2026-09-08T01:26:16.210858+00:00",
+  "exit_code": 0
+}

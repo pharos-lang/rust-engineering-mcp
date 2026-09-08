@@ -1,0 +1,16 @@
+info: experimental features enabled: wrapper-scripts
+   Compiling optimized-panic v0.1.0 (/source)
+    Finished `test` profile [optimized + debuginfo] target(s) in 0.03s
+info: for the target platform, using target runner `/opt/rust-nightly-2026-09-07/bin/cargo-miri runner` defined by `target.cfg(all()).runner` specified by `--config`
+info: for the host platform, using target runner `/opt/rust-nightly-2026-09-07/bin/cargo-miri runner` defined by `target.cfg(all()).runner` specified by `--config`
+────────────
+ Nextest run ID b4ebc778-498a-444e-85b8-0c339b7a7c21 with nextest profile: rust-mcp-miri
+    Starting 1 test across 1 binary
+        FAIL [   0.409s] (1/1) optimized-panic hostile_output
+  stderr ───
+    {"$message_type":"diagnostic","message":"Miri does not support optimizations: the opt-level is ignored. The only effect of selecting a Cargo profile that enables optimizations (such as --release) is to apply its remaining settings, such as whether debug assertions and overflow checks are enabled.","code":null,"level":"warning","spans":[],"children":[],"rendered":"warning: Miri does not support optimizations: the opt-level is ignored. The only effect of selecting a Cargo profile that enables optimizations (such as --release) is to apply its remaining settings, such as whether debug assertions and overflow checks are enabled.\n\n"}
+
+────────────
+     Summary [   0.409s] 1 test run: 0 passed, 1 failed, 0 skipped
+        FAIL [   0.409s] (1/1) optimized-panic hostile_output
+error: test run failed

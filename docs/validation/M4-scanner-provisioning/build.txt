@@ -1,0 +1,74 @@
+#0 building with "default" instance using docker driver
+
+#1 [internal] load build definition from Dockerfile
+#1 transferring dockerfile: 367B done
+#1 DONE 0.0s
+
+#2 [internal] load metadata for docker.io/library/rust-engineering-runtime:1.98.1-arm64-m4
+#2 DONE 0.1s
+
+#3 [internal] load .dockerignore
+#3 transferring context: 2B done
+#3 DONE 0.0s
+
+#4 [internal] load build context
+#4 transferring context: 51.53kB done
+#4 DONE 0.0s
+
+#5 [builder 1/3] FROM docker.io/library/rust-engineering-runtime:1.98.1-arm64-m4@sha256:95dddeb5305f10b09b441e3cc4018ebb1a8a296d365c65106327d59f933c64e7
+#5 resolve docker.io/library/rust-engineering-runtime:1.98.1-arm64-m4@sha256:95dddeb5305f10b09b441e3cc4018ebb1a8a296d365c65106327d59f933c64e7 done
+#5 CACHED
+
+#6 [builder 2/3] COPY . /opt/m4-scanner-input/
+#6 DONE 0.0s
+
+#7 [builder 3/3] RUN /bin/sh /opt/m4-scanner-input/build.sh
+#7 0.028 Dockerfile: OK
+#7 0.028 build-inputs.json: OK
+#7 0.028 build.sh: OK
+#7 0.028 dependency-map.tsv: OK
+#7 0.028 helper/Cargo.lock: OK
+#7 0.028 helper/Cargo.toml: OK
+#7 0.028 helper/src/lib.rs: FAILED
+#7 0.028 helper/src/main.rs: OK
+#7 0.028 itoa-1.0.18.crate: OK
+#7 0.029 memchr-2.8.3.crate: OK
+#7 0.029 notices/LICENSE: OK
+#7 0.029 notices/LICENSE-APACHE: OK
+#7 0.029 notices/LICENSE-MIT: OK
+#7 0.029 notices/NOTICE: OK
+#7 0.029 proc-macro2-1.0.107.crate: OK
+#7 0.029 quote-1.0.47.crate: OK
+#7 0.029 serde-1.0.229.crate: OK
+#7 0.029 serde_core-1.0.229.crate: OK
+#7 0.029 serde_derive-1.0.229.crate: OK
+#7 0.030 serde_json-1.0.151.crate: OK
+#7 0.030 syn-3.0.4.crate: OK
+#7 0.030 unicode-ident-1.0.24.crate: OK
+#7 0.030 zmij-1.0.23.crate: OK
+#7 0.030 sha256sum: WARNING: 1 computed checksum did NOT match
+#7 ERROR: process "/bin/sh -c /bin/sh /opt/m4-scanner-input/build.sh" did not complete successfully: exit code: 1
+------
+ > [builder 3/3] RUN /bin/sh /opt/m4-scanner-input/build.sh:
+0.029 proc-macro2-1.0.107.crate: OK
+0.029 quote-1.0.47.crate: OK
+0.029 serde-1.0.229.crate: OK
+0.029 serde_core-1.0.229.crate: OK
+0.029 serde_derive-1.0.229.crate: OK
+0.030 serde_json-1.0.151.crate: OK
+0.030 syn-3.0.4.crate: OK
+0.030 unicode-ident-1.0.24.crate: OK
+0.030 zmij-1.0.23.crate: OK
+0.030 sha256sum: WARNING: 1 computed checksum did NOT match
+------
+Dockerfile:5
+--------------------
+   3 |     USER 0:0
+   4 |     COPY . /opt/m4-scanner-input/
+   5 | >>> RUN /bin/sh /opt/m4-scanner-input/build.sh
+   6 |     
+   7 |     FROM scratch
+--------------------
+ERROR: failed to build: failed to solve: process "/bin/sh -c /bin/sh /opt/m4-scanner-input/build.sh" did not complete successfully: exit code: 1
+
+View build details: docker-desktop://dashboard/build/default/default/8fppkpqna6h0vlaf5a5fum7yz

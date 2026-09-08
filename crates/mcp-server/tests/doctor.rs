@@ -166,6 +166,27 @@ fn passive_doctor_and_version_are_bounded_and_never_execute_path_tools() -> Test
     for e in fs::read_dir(&f.0)? {
         assert!(!e?.file_name().to_string_lossy().ends_with(".called"));
     }
+    let inventory = run(
+        &[
+            "security-runtime".into(),
+            "inventory".into(),
+            "--json".into(),
+        ],
+        Some(&f.0),
+    )?;
+    assert!(inventory.status.success());
+    assert!(inventory.stderr.is_empty());
+    assert!(inventory.stdout.len() < 4096);
+    let inventory: Value = serde_json::from_slice(&inventory.stdout)?;
+    assert_eq!(inventory["format_version"], 1);
+    assert_eq!(inventory["installation_observed"], false);
+    assert_eq!(
+        inventory["image_id"],
+        rust_engineering_execution::APPROVED_M4_IMAGE
+    );
+    for entry in fs::read_dir(&f.0)? {
+        assert!(!entry?.file_name().to_string_lossy().ends_with(".called"));
+    }
     let human = run(&["doctor".into()], Some(&f.0))?;
     assert!(human.status.success());
     assert!(String::from_utf8(human.stdout)?.contains("diagnostic scope only"));
@@ -246,6 +267,9 @@ fn doctor_rejects_closed_cli_syntax_and_reports_configured_access_failures() -> 
         vec!["doctor", "--active", "--active"],
         vec!["doctor", "--catalog-store", "/private/tmp"],
         vec!["doctor", "--download", "yes"],
+        vec!["security-runtime", "inventory", "--download"],
+        vec!["security-runtime", "inventory", "--json", "--json"],
+        vec!["security-runtime", "install"],
         vec!["version", "--json", "--json"],
         vec!["serve", "--stdio", "--active"],
     ] {

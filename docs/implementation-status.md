@@ -147,7 +147,7 @@ y [validación/reviews](roadmap/planning-validation.md).
 | --- | --- | --- |
 | M2 / 0.2.x | Done local; sin release nueva | [Safe Mutation](roadmap/m2-safe-mutation.md) · [prompt M2](prompts/implement-m2.md) |
 | M3 / 0.3.x | Done; integrado en `main` como `57c4037` (PR #14); sin release nueva | [Quality](roadmap/m3-quality.md) · [matriz M3](validation/M3-matrix.md) · [integración](validation/M3-integration.json) |
-| M4 / 0.4.x | Planned | [Security](roadmap/m4-security.md) · [prompt M4](prompts/implement-m4.md) |
+| M4 / 0.4.x | Done local; integración mediante PR #15; sin release nueva | [Security](roadmap/m4-security.md) · [handoff M4](validation/M4-handoff.md) · [confirmación final](reviews/m4-final-evidence/review.md) |
 | M5 / 0.5.x | Planned | [Performance](roadmap/m5-performance.md) · [prompt M5](prompts/implement-m5.md) |
 | M6 / 0.6.x | Planned | [Analyzer](roadmap/m6-analyzer.md) · [prompt M6](prompts/implement-m6.md) |
 | M7 / 0.7.x | Conditional; ejecución Deferred sin Go | [Remote](roadmap/m7-remote.md) · [prompt M7](prompts/implement-m7.md) |
@@ -259,7 +259,40 @@ de las 62 selecciones del runtime Docker re-ejecutadas como confirmación real.
    toca cinco gateways ya calificados y necesita su propio gate.
    [Evaluación](validation/M3-07.md#evaluación-codeql-33-alertas-check-no-obligatorio).
 
-No hay tag, release ni publicación en crates.io para M3, y M4 no está autorizado.
+No hay tag, release ni publicación en crates.io para M3. El encargo del owner del
+2026-09-07 autoriza implementar M4 mediante sus dos prompts; M5 y otra publicación
+permanecen fuera de alcance.
+
+## M4 — Security en `ai/m4-security`
+
+**Done local — 2026-09-08.**
+Las cinco tools M4 están implementadas: `rust.deny`, `rust.unsafe.scan`,
+`rust.supply_chain.inspect`, `rust.quality.gate.v2` y `rust.miri`. El inventario
+contiene 27 tools; cinco snapshots nuevos y 23 previos sin cambios. D19–D22 se
+resuelven en ADR-067/069/071/072; ADR-066 documenta la adquisición autorizada y
+ADR-068 admite la imagen final exacta. El runtime no adquiere dependencias.
+
+| Evidencia | Resultado |
+| --- | --- |
+| [Core](validation/M4-core-gate.json) | 19/19; 1220 tests Rust, 1 doctest, 11 helper, protocolo 44/44 y controles auxiliares. |
+| [Full](validation/M4-full-gate.json) | 33/33 monolítico posterior a la remediación del PR, sobre 990 inputs; paso workspace con 1250 tests Rust, 1 doctest, 94 tests Python y selecciones nativas; sin descarga y con fuentes sin cambios durante el gate. |
+| [Runtime M4](validation/M4-runtime.json) | 19/19 sobre `25ed…`, con rollback interno deliberado a M3. |
+| [Scanner](validation/M4-scanner-native.json) / [Miri](validation/M4-miri-native.json) | 7 casos scanner; 13 clasificaciones y 7 admisión/lifecycle Miri, todos ligados a fuentes actuales y cleanup verificado. |
+| [Clientes](validation/M4-clients.json) | Intento 6 PASS sobre los mismos 990 inputs: Inspector 2.5.0 y Codex stock 0.153.0, cinco tools reales y Resources; Tasks/cancelación en Inspector, sync/modelo en Codex. |
+| [Hardening](validation/M4-hardening-map.md) | Privacidad, canarios, inventario pasivo, imagen alterada, cleanup/revocación y regresiones M2/M3 pasados. |
+| [Presupuestos](validation/M4-budgets.json) | 300/300, máximo 17044 ms; binario histórico explícito con inventario, separado de las rutas finales calificadas por clientes. |
+
+La [revisión final de código](reviews/m4-final-closure/review.md) no halló P0/P1
+ni P2 nuevos. La renovación nativa resuelve la evidencia stale retenida; la
+[confirmación Opus](reviews/m4-final-evidence/review.md) acepta el cierre sin
+P0/P1/P2 abiertos y el [Technical Owner](reviews/m4-final-evidence/disposition.md)
+cierra los seis cortes y G1–G9. Se preservan fallos e intentos
+sin atribuir causas no observadas. CI/Sonar remotos y host Linux/x86_64 no se
+acreditan. Versión `0.3.0-dev`, implementación `07814664379628f00857feca13148b507de687b9`
+en [PR #15](https://github.com/pharos-lang/rust-engineering-mcp/pull/15), sin tag,
+release ni M5.
+
+[Matriz](validation/M4-matrix.md) · [Handoff y límites](validation/M4-handoff.md).
 
 ## Technical Debt
 

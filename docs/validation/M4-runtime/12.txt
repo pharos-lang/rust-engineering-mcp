@@ -1,0 +1,15 @@
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.06s
+     Running unittests src/lib.rs (target/debug/deps/rust_engineering_execution-90533356044b11f0)
+
+running 1 test
+test miri_native::m4_miri_rejects_native_producers_and_joins_timeout_and_cancel ... M4_MIRI_ADVERSARIAL build-script
+M4_MIRI_ADVERSARIAL proc-macro
+M4_MIRI_ADVERSARIAL custom-harness
+M4_MIRI_ADVERSARIAL cargo-config
+M4_MIRI_ADVERSARIAL nested-toolchain
+M4_MIRI_ADVERSARIAL timeout
+M4_MIRI_ADVERSARIAL cancel
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 252 filtered out; finished in 46.20s
+

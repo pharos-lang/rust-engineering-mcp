@@ -4,7 +4,7 @@ import json, pathlib, re, subprocess, tomllib
 if not __debug__: raise RuntimeError("Optimized Python mode is rejected")
 root=pathlib.Path(__file__).resolve().parents[1]
 meta=json.loads(subprocess.check_output(['cargo','metadata','--no-deps','--format-version','1','--locked','--offline'],cwd=root))
-allowed={'rust-engineering-domain':{'serde'},'rust-engineering-application':{'rust-engineering-domain'}}
+allowed={'rust-engineering-domain':{'serde','semver'},'rust-engineering-application':{'rust-engineering-domain'}}
 for package in meta['packages']:
     if package['name'] in allowed:
         normal={d['name'] for d in package['dependencies'] if d['kind'] is None}

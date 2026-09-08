@@ -1,5 +1,8 @@
 //! ADR-061 durable nextest publication and owner-bound Resource reads.
 
+mod security;
+pub(super) use security::DurableSecurityPublisher;
+
 use super::{project::Registry, resources::QualityResourceReader};
 use rust_engineering_application::coverage::{
     CoverageArtifactKind, CoverageArtifactReference, CoverageDurablePublisher, CoverageObservation,
@@ -38,6 +41,7 @@ pub(super) struct QualityRuntime {
     pub(super) publisher: DurableNextestPublisher,
     pub(super) coverage_publisher: DurableCoveragePublisher,
     pub(super) semver_publisher: DurableSemverPublisher,
+    pub(super) security_publisher: DurableSecurityPublisher,
     pub(super) reader: Arc<dyn QualityResourceReader>,
     pub(super) state_root_identity: ((i64, u64), u32),
 }
@@ -80,7 +84,10 @@ pub(super) fn attach(
         coverage_publisher: DurableCoveragePublisher {
             store: Arc::clone(&store),
         },
-        semver_publisher: DurableSemverPublisher { store },
+        semver_publisher: DurableSemverPublisher {
+            store: Arc::clone(&store),
+        },
+        security_publisher: DurableSecurityPublisher { store },
         reader: Arc::new(DurableQualityReader {
             store: Mutex::new(reader),
             authority: Mutex::new(LiveAuthority { registry }),

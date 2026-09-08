@@ -99,7 +99,8 @@ mod tests {
                 .ok_or("socket")?
                 .into(),
             state_root: root,
-            image_id: APPROVED_RUST_IMAGE.into(),
+            image_id: std::env::var("RUST_MCP_TEST_IMAGE")
+                .unwrap_or_else(|_| APPROVED_RUST_IMAGE.into()),
         })
         .map_err(|e| format!("{e:?}"))?;
         let result = gateway
@@ -144,7 +145,8 @@ mod tests {
                 .ok_or("socket")?
                 .into(),
             state_root: root,
-            image_id: APPROVED_RUST_IMAGE.into(),
+            image_id: std::env::var("RUST_MCP_TEST_IMAGE")
+                .unwrap_or_else(|_| APPROVED_RUST_IMAGE.into()),
         })
         .map_err(|e| format!("{e:?}"))?;
         let report = gateway
@@ -213,7 +215,8 @@ mod tests {
                 .ok_or("explicit socket required")?
                 .into(),
             state_root: root,
-            image_id: APPROVED_RUST_IMAGE.into(),
+            image_id: std::env::var("RUST_MCP_TEST_IMAGE")
+                .unwrap_or_else(|_| APPROVED_RUST_IMAGE.into()),
         })
         .map_err(|e| format!("{e:?}"))?;
         let limits = ExecutionLimits::new(30_000, 256 * 1024).ok_or("limits")?;
@@ -267,7 +270,8 @@ mod tests {
                 .ok_or("explicit socket required")?
                 .into(),
             state_root: root.clone(),
-            image_id: APPROVED_RUST_IMAGE.into(),
+            image_id: std::env::var("RUST_MCP_TEST_IMAGE")
+                .unwrap_or_else(|_| APPROVED_RUST_IMAGE.into()),
         })
         .map_err(|e| format!("{e:?}"))?;
         let calibration = gateway
@@ -334,7 +338,7 @@ mod tests {
             "status":"passed", "cases":2, "calibration_verified":true,
             "calibration_cases":calibration.observations.len(),
             "configuration_fingerprint":configuration,
-            "image_id":APPROVED_RUST_IMAGE, "fixture_fingerprint":calibration.fixture_fingerprint,
+            "image_id":gateway.image_id(), "fixture_fingerprint":calibration.fixture_fingerprint,
             "build_script_and_proc_macro_checks":true,
             "network_env_filesystem_process_cgroup_assertions":true,
             "cleanup":true, "quarantined":gateway.is_quarantined(), "executions":executions

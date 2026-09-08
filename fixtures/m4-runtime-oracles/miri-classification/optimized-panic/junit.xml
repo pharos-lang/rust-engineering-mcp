@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites name="nextest-run" tests="1" skipped="0" failures="1" errors="0" uuid="e1a45636-a531-404c-87b1-248d06dab80a" timestamp="2026-09-08T04:34:44.081+00:00" time="0.438">
+    <testsuite name="optimized-panic" tests="1" skipped="0" errors="0" failures="1">
+        <testcase name="hostile_output" classname="optimized-panic" timestamp="2026-09-08T04:34:44.081+00:00" time="0.438">
+            <failure type="test failure with exit code 101"/>
+            <system-out></system-out>
+            <system-err>{&quot;$message_type&quot;:&quot;diagnostic&quot;,&quot;message&quot;:&quot;Miri does not support optimizations: the opt-level is ignored. The only effect of selecting a Cargo profile that enables optimizations (such as --release) is to apply its remaining settings, such as whether debug assertions and overflow checks are enabled.&quot;,&quot;code&quot;:null,&quot;level&quot;:&quot;warning&quot;,&quot;spans&quot;:[],&quot;children&quot;:[],&quot;rendered&quot;:&quot;warning: Miri does not support optimizations: the opt-level is ignored. The only effect of selecting a Cargo profile that enables optimizations (such as --release) is to apply its remaining settings, such as whether debug assertions and overflow checks are enabled.\n\n&quot;}
+</system-err>
+        </testcase>
+    </testsuite>
+</testsuites>

@@ -919,9 +919,29 @@ impl RustGateway {
         super::semver_gateway::execute(self, baseline, candidate, options, limits, cancel)
     }
     pub fn new(config: HostDockerConfig) -> Result<Self, ExecutionError> {
-        if config.image_id != APPROVED_RUST_IMAGE {
+        if config.image_id != APPROVED_RUST_IMAGE
+            && config.image_id != crate::APPROVED_SECURITY_IMAGE
+            && config.image_id != crate::APPROVED_M4_IMAGE
+        {
             return Err(ExecutionError::InvalidConfiguration);
         }
+        Self::from_checked_image(config)
+    }
+    /// Exact M4 qualification constructor; no identity or containment bypass.
+    #[cfg(test)]
+    pub(super) fn new_m4_for_qualification(
+        config: HostDockerConfig,
+    ) -> Result<Self, ExecutionError> {
+        if config.image_id
+            != "sha256:25ed3626e710081a571a86a29521eaf2e890e796afd422ba5e409e0ce1891635"
+            && config.image_id
+                != "sha256:95dddeb5305f10b09b441e3cc4018ebb1a8a296d365c65106327d59f933c64e7"
+        {
+            return Err(ExecutionError::InvalidConfiguration);
+        }
+        Self::from_checked_image(config)
+    }
+    fn from_checked_image(config: HostDockerConfig) -> Result<Self, ExecutionError> {
         let inner = DockerGateway::new(config)?;
         let existing = inner.control(&[
             "volume".into(),

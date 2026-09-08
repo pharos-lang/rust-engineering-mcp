@@ -1,0 +1,14 @@
+   Compiling rust-engineering-execution v0.3.0-dev (/Users/cburgosro/Projects/rust-mcp/crates/execution-adapter)
+   Compiling rust-engineering-mcp v0.3.0-dev (/Users/cburgosro/Projects/rust-mcp/crates/mcp-server)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 4.77s
+     Running tests/inspection_runtime.rs (target/debug/deps/inspection_runtime-80e892a1e2aa889b)
+
+running 1 test
+test security_runtime::m4_tools_native_mcp_observations_composition_and_private_resources ... M4_NATIVE_MCP rust.unsafe.scan
+M4_NATIVE_MCP rust.miri
+M4_NATIVE_MCP rust.supply_chain.inspect
+M4_NATIVE_MCP rust.quality.gate.v2
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 45 filtered out; finished in 81.38s
+

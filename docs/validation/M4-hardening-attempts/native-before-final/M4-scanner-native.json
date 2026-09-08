@@ -1,0 +1,71 @@
+{
+  "schema": "rust-engineering-mcp.m4-scanner-native-receipt.v1",
+  "status": "passed",
+  "image_id": "sha256:25ed3626e710081a571a86a29521eaf2e890e796afd422ba5e409e0ce1891635",
+  "command": [
+    "cargo",
+    "test",
+    "-p",
+    "rust-engineering-execution",
+    "--lib",
+    "m4_scanner_native_oracles_preserve_partial_results_inputs_and_cleanup",
+    "--locked",
+    "--offline",
+    "--",
+    "--ignored",
+    "--nocapture",
+    "--test-threads=1"
+  ],
+  "exit_code": 0,
+  "test_count": 1,
+  "case_count": 7,
+  "seconds": 45.32,
+  "inputs": [
+    {
+      "path": "crates/execution-adapter/src/unsafe_native.rs",
+      "sha256": "e0c2f9f762e864adc6b702f21debcebaac25c819733db6ee920dce483e7a3a27"
+    },
+    {
+      "path": "crates/execution-adapter/src/unsafe_scan.rs",
+      "sha256": "e1703314b53eaef3ba187933003390fa3fefdec11583df42bcd01b51eaab407a"
+    },
+    {
+      "path": "crates/execution-adapter/src/security_gateway.rs",
+      "sha256": "592d1b100f0d1f158136c741c1681754db051ea113615ca42bd4409ba9066078"
+    },
+    {
+      "path": "crates/execution-adapter/src/security_metadata.rs",
+      "sha256": "5e4a039d0eec6195359eca7a5f6d55e32a408dd0d81a26f64662cc6deee84a00"
+    },
+    {
+      "path": "crates/execution-adapter/src/rust_applied.rs",
+      "sha256": "fdf5f627e476bf6cd960372e0760765db3057a2e56301cdcdbe07fae8fecb34c"
+    },
+    {
+      "path": "fixtures/unsafe-scanner-helper/src/lib.rs",
+      "sha256": "8e5396bfa59d49e764bc77ded67416880ac9308d965a36e179e8b768fc4f85e2"
+    },
+    {
+      "path": "fixtures/unsafe-scanner-helper/src/main.rs",
+      "sha256": "50b2a308888332892871e8813ea1686f5fa2278dd5ab2e5d4703900c89f93675"
+    },
+    {
+      "path": "fixtures/unsafe-scanner-helper/Cargo.lock",
+      "sha256": "e446a33a37eb46ca6d4dd41abf8c4f3ffb0654d744b002c0c99e48e63effb1ad"
+    }
+  ],
+  "outputs": [
+    {
+      "path": "docs/validation/M4-scanner-native/base-calibration.json",
+      "sha256": "19c5aafc96547fe6087ae7890f0ec7f7ac340527b51c0472570f1c56f39e2231"
+    },
+    {
+      "path": "docs/validation/M4-scanner-native/native.log",
+      "sha256": "1bc2d6e5e6f67ba890ceefce417554e00c431909ed18347711340551eb3e6ca8"
+    },
+    {
+      "path": "docs/validation/M4-scanner-native/oracles.json",
+      "sha256": "c30685ef7c959cf0bb34469ffc8b4b68f9a1f722188c93bfbe431e9fa886386e"
+    }
+  ]
+}

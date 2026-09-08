@@ -1,0 +1,21 @@
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.06s
+     Running unittests src/lib.rs (target/debug/deps/rust_engineering_execution-90533356044b11f0)
+
+running 1 test
+test miri_native::m4_miri_gateway_classifies_native_oracles ... M4_MIRI_GATEWAY optimized-panic
+M4_MIRI_GATEWAY binary-only
+M4_MIRI_GATEWAY runner-timeout
+M4_MIRI_GATEWAY clean
+M4_MIRI_GATEWAY uaf
+M4_MIRI_GATEWAY uninit
+M4_MIRI_GATEWAY alias
+M4_MIRI_GATEWAY race
+M4_MIRI_GATEWAY ffi
+M4_MIRI_GATEWAY benign-forged
+M4_MIRI_GATEWAY compile-fail
+M4_MIRI_GATEWAY empty
+M4_MIRI_GATEWAY ignored
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 252 filtered out; finished in 155.57s
+

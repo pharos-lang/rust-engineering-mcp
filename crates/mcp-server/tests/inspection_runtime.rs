@@ -2738,3 +2738,6 @@ mod semver_runtime;
 
 #[path = "inspection_runtime/tasks.rs"]
 mod tasks_runtime;
+
+#[path = "inspection_runtime/security.rs"]
+mod security_runtime;

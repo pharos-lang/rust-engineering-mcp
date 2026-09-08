@@ -1,0 +1,526 @@
+{
+  "name": "rust.miri",
+  "description": "Run library, binary and integration tests in the approved offline Miri interpreter. Reports observed UB, unsupported operations, ordinary test failures and compilation failures separately. Requires fixed nightly/sysroot and authenticated vendor. Auto or synchronous supports timeout_seconds at most 60; longer calls require negotiated MCP Tasks. The work budget excludes joined cleanup. Project proc macros, build scripts and custom harnesses are rejected to preserve diagnostic origin. Clean tests do not prove universal memory safety.",
+  "inputSchema": {
+    "$defs": {
+      "ExecutionModeDto": {
+        "enum": [
+          "auto",
+          "task",
+          "synchronous"
+        ],
+        "type": "string"
+      }
+    },
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "additionalProperties": false,
+    "properties": {
+      "execution_mode": {
+        "$ref": "#/$defs/ExecutionModeDto"
+      },
+      "project_ref": {
+        "pattern": "^prj_[0-9a-f]{32}$",
+        "type": "string"
+      },
+      "timeout_seconds": {
+        "default": 300,
+        "format": "uint64",
+        "maximum": 1800,
+        "minimum": 1,
+        "type": "integer"
+      }
+    },
+    "required": [
+      "project_ref"
+    ],
+    "title": "Input",
+    "type": "object"
+  },
+  "outputSchema": {
+    "$defs": {
+      "Artifact": {
+        "additionalProperties": false,
+        "properties": {
+          "completeness": {
+            "$ref": "#/$defs/ArtifactCompleteness"
+          },
+          "sha256": {
+            "type": "string"
+          },
+          "size_bytes": {
+            "format": "uint64",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "uri": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "uri",
+          "sha256",
+          "size_bytes",
+          "completeness"
+        ],
+        "type": "object"
+      },
+      "ArtifactCompleteness": {
+        "enum": [
+          "complete",
+          "truncated",
+          "partial",
+          "invalid",
+          "unavailable"
+        ],
+        "type": "string"
+      },
+      "Code": {
+        "enum": [
+          "TASKS_REQUIRED",
+          "SANDBOX_DENIED",
+          "MISSING_OFFLINE_DATA",
+          "ARTIFACT_UNAVAILABLE",
+          "TOOL_NOT_INSTALLED",
+          "INVALID_PROJECT",
+          "PROJECT_NOT_FOUND",
+          "COMMAND_TIMEOUT",
+          "OUTPUT_LIMIT_EXCEEDED",
+          "EVIDENCE_INCOMPLETE",
+          "OBSERVED_FAILURE",
+          "CLASSIFICATION_INTEGRITY_UNSUPPORTED"
+        ],
+        "type": "string"
+      },
+      "Data": {
+        "additionalProperties": false,
+        "properties": {
+          "artifacts": {
+            "items": {
+              "$ref": "#/$defs/Artifact"
+            },
+            "maxItems": 1,
+            "minItems": 1,
+            "type": "array"
+          },
+          "observation": {
+            "$ref": "#/$defs/Observation"
+          },
+          "project_ref": {
+            "type": "string"
+          },
+          "semantics": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "project_ref",
+          "semantics",
+          "observation",
+          "artifacts"
+        ],
+        "type": "object"
+      },
+      "MiriCategory": {
+        "enum": [
+          "undefined_behavior",
+          "unsupported_operation",
+          "test_failure",
+          "compile_failure",
+          "timeout",
+          "unclassified"
+        ],
+        "type": "string"
+      },
+      "MiriCounts": {
+        "additionalProperties": false,
+        "properties": {
+          "compile_failures": {
+            "format": "uint32",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "failed": {
+            "format": "uint32",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "passed": {
+            "format": "uint32",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "skipped": {
+            "format": "uint32",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "test_failures": {
+            "format": "uint32",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "tests": {
+            "format": "uint32",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "timeouts": {
+            "format": "uint32",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "unclassified": {
+            "format": "uint32",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "undefined_behavior": {
+            "format": "uint32",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "unsupported_operation": {
+            "format": "uint32",
+            "minimum": 0,
+            "type": "integer"
+          }
+        },
+        "required": [
+          "tests",
+          "passed",
+          "failed",
+          "skipped",
+          "undefined_behavior",
+          "unsupported_operation",
+          "test_failures",
+          "compile_failures",
+          "timeouts",
+          "unclassified"
+        ],
+        "type": "object"
+      },
+      "MiriFinding": {
+        "additionalProperties": false,
+        "properties": {
+          "category": {
+            "$ref": "#/$defs/MiriCategory"
+          },
+          "test_binary": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "test_name": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "category",
+          "test_name",
+          "test_binary"
+        ],
+        "type": "object"
+      },
+      "MiriReport": {
+        "additionalProperties": false,
+        "properties": {
+          "clean": {
+            "type": "boolean"
+          },
+          "complete": {
+            "type": "boolean"
+          },
+          "counts": {
+            "$ref": "#/$defs/MiriCounts"
+          },
+          "exit_code": {
+            "format": "int32",
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "findings": {
+            "items": {
+              "$ref": "#/$defs/MiriFinding"
+            },
+            "maxItems": 128,
+            "type": "array"
+          },
+          "findings_omitted": {
+            "format": "uint64",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "junit_present": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "counts",
+          "findings",
+          "findings_omitted",
+          "complete",
+          "clean",
+          "junit_present",
+          "exit_code"
+        ],
+        "type": "object"
+      },
+      "Observation": {
+        "additionalProperties": false,
+        "properties": {
+          "config_fingerprint": {
+            "type": "string"
+          },
+          "execution_fingerprint": {
+            "type": "string"
+          },
+          "junit_fingerprint": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "metadata_fingerprint": {
+            "type": "string"
+          },
+          "nightly_commit": {
+            "type": "string"
+          },
+          "report": {
+            "$ref": "#/$defs/MiriReport"
+          },
+          "runtime": {
+            "$ref": "#/$defs/RuntimeIdentity"
+          },
+          "source_fingerprint": {
+            "type": "string"
+          },
+          "sysroot_fingerprint": {
+            "type": "string"
+          },
+          "vendor_fingerprint": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "report",
+          "source_fingerprint",
+          "vendor_fingerprint",
+          "metadata_fingerprint",
+          "config_fingerprint",
+          "junit_fingerprint",
+          "runtime",
+          "execution_fingerprint",
+          "nightly_commit",
+          "sysroot_fingerprint"
+        ],
+        "type": "object"
+      },
+      "RuntimeIdentity": {
+        "additionalProperties": false,
+        "properties": {
+          "cargo_version": {
+            "maxLength": 4096,
+            "type": "string"
+          },
+          "configuration_fingerprint": {
+            "pattern": "^sha256:[0-9a-f]{64}$",
+            "type": "string"
+          },
+          "declared_toolchain": {
+            "maxLength": 6,
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "execution_fingerprint": {
+            "pattern": "^sha256:[0-9a-f]{64}$",
+            "type": "string"
+          },
+          "image_id": {
+            "pattern": "^sha256:[0-9a-f]{64}$",
+            "type": "string"
+          },
+          "platform": {
+            "maxLength": 4096,
+            "type": "string"
+          },
+          "rust_version": {
+            "maxLength": 4096,
+            "type": "string"
+          }
+        },
+        "required": [
+          "platform",
+          "image_id",
+          "configuration_fingerprint",
+          "execution_fingerprint",
+          "rust_version",
+          "cargo_version",
+          "declared_toolchain"
+        ],
+        "type": "object"
+      }
+    },
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "oneOf": [
+      {
+        "properties": {
+          "data": {
+            "$ref": "#/$defs/Data"
+          },
+          "error_code": {
+            "type": "null"
+          },
+          "error_message": {
+            "type": "null"
+          },
+          "status": {
+            "const": "passed",
+            "type": "string"
+          }
+        },
+        "required": [
+          "status",
+          "error_code",
+          "error_message",
+          "data"
+        ],
+        "type": "object"
+      },
+      {
+        "properties": {
+          "data": {
+            "$ref": "#/$defs/Data"
+          },
+          "error_code": {
+            "$ref": "#/$defs/Code"
+          },
+          "error_message": {
+            "type": "string"
+          },
+          "status": {
+            "const": "failed",
+            "type": "string"
+          }
+        },
+        "required": [
+          "status",
+          "error_code",
+          "error_message",
+          "data"
+        ],
+        "type": "object"
+      },
+      {
+        "properties": {
+          "data": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/Data"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "error_code": {
+            "$ref": "#/$defs/Code"
+          },
+          "error_message": {
+            "type": "string"
+          },
+          "status": {
+            "const": "blocked",
+            "type": "string"
+          }
+        },
+        "required": [
+          "status",
+          "error_code",
+          "error_message",
+          "data"
+        ],
+        "type": "object"
+      },
+      {
+        "properties": {
+          "data": {
+            "type": "null"
+          },
+          "error_code": {
+            "$ref": "#/$defs/Code"
+          },
+          "error_message": {
+            "type": "string"
+          },
+          "status": {
+            "const": "unavailable",
+            "type": "string"
+          }
+        },
+        "required": [
+          "status",
+          "error_code",
+          "error_message",
+          "data"
+        ],
+        "type": "object"
+      },
+      {
+        "properties": {
+          "data": {
+            "type": "null"
+          },
+          "error_code": {
+            "type": "null"
+          },
+          "error_message": {
+            "type": "null"
+          },
+          "status": {
+            "const": "cancelled",
+            "type": "string"
+          }
+        },
+        "required": [
+          "status",
+          "error_code",
+          "error_message",
+          "data"
+        ],
+        "type": "object"
+      }
+    ],
+    "properties": {
+      "duration_ms": {
+        "format": "uint64",
+        "minimum": 0,
+        "type": "integer"
+      },
+      "summary": {
+        "type": "string"
+      }
+    },
+    "required": [
+      "summary",
+      "duration_ms"
+    ],
+    "title": "Output",
+    "type": "object",
+    "unevaluatedProperties": false
+  },
+  "annotations": {
+    "readOnlyHint": true,
+    "destructiveHint": false,
+    "idempotentHint": false,
+    "openWorldHint": false
+  }
+}

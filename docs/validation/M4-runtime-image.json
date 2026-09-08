@@ -1,0 +1,5 @@
+{
+  "image": "sha256:25ed3626e710081a571a86a29521eaf2e890e796afd422ba5e409e0ce1891635",
+  "base_security_image": "sha256:95dddeb5305f10b09b441e3cc4018ebb1a8a296d365c65106327d59f933c64e7",
+  "provisioning": "docs/validation/M4-scanner-provisioning.json"
+}

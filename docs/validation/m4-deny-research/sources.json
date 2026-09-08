@@ -1,0 +1,77 @@
+{
+  "observed_at": "2026-09-07T22:17:13.320530+00:00",
+  "files": [
+    {
+      "url": "https://raw.githubusercontent.com/EmbarkStudios/cargo-deny/759a4946dcfe93a56fb42d464e193c4c448af4e3/src/cargo-deny/main.rs",
+      "path": "docs/validation/m4-deny-research/src_cargo-deny_main.rs",
+      "bytes": 15035,
+      "sha256": "b57e044eb745930c0d7ce22bd87c0dbfe0b30955aa27632c336e4059c8e80469"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/EmbarkStudios/cargo-deny/759a4946dcfe93a56fb42d464e193c4c448af4e3/src/cargo-deny/check.rs",
+      "path": "docs/validation/m4-deny-research/src_cargo-deny_check.rs",
+      "bytes": 19948,
+      "sha256": "970edf3d58d5483de603e4674896ccbc48f63ba9a68ed734cea86698b62f17c7"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/EmbarkStudios/cargo-deny/759a4946dcfe93a56fb42d464e193c4c448af4e3/src/diag.rs",
+      "path": "docs/validation/m4-deny-research/src_diag.rs",
+      "bytes": 22360,
+      "sha256": "73016679950136ae2a1a73a4700e76bb3ba8a0b93df222f0cdc006d4f2217d4c"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/EmbarkStudios/cargo-deny/759a4946dcfe93a56fb42d464e193c4c448af4e3/src/diag/sink.rs",
+      "path": "docs/validation/m4-deny-research/src_diag_sink.rs",
+      "bytes": 1780,
+      "sha256": "4c5b8b29ca3604eb6e0496ba4372fd40b25578af087068f8a0706e84effdcc67"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/EmbarkStudios/cargo-deny/759a4946dcfe93a56fb42d464e193c4c448af4e3/src/licenses.rs",
+      "path": "docs/validation/m4-deny-research/src_licenses.rs",
+      "bytes": 11821,
+      "sha256": "6f02bc1c06c2042ad149dd7b3264bb35b5b886a9083b36ab304905f5f1f7d05a"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/EmbarkStudios/cargo-deny/759a4946dcfe93a56fb42d464e193c4c448af4e3/src/licenses/cfg.rs",
+      "path": "docs/validation/m4-deny-research/src_licenses_cfg.rs",
+      "bytes": 20544,
+      "sha256": "43b5c690139e9f7a9e0418f4d505c85494bd51b1d7315a15a5f00d8645a8dea5"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/EmbarkStudios/cargo-deny/759a4946dcfe93a56fb42d464e193c4c448af4e3/src/cargo-deny/common.rs",
+      "path": "docs/validation/m4-deny-research/src_cargo-deny_common.rs",
+      "bytes": 20110,
+      "sha256": "a21367240fa076caa95b73c914e2e774a5db4f37616e636f1319dfbb94c74f14"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/EmbarkStudios/cargo-deny/759a4946dcfe93a56fb42d464e193c4c448af4e3/src/cargo-deny/stats.rs",
+      "path": "docs/validation/m4-deny-research/src_cargo-deny_stats.rs",
+      "bytes": 8355,
+      "sha256": "8b54ed3281e39796c63e2ee6d32b1e67222f3c2d8b8151a76ffaceadac9510d9"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/EmbarkStudios/cargo-deny/759a4946dcfe93a56fb42d464e193c4c448af4e3/src/diag/grapher.rs",
+      "path": "docs/validation/m4-deny-research/src_diag_grapher.rs",
+      "bytes": 11030,
+      "sha256": "8559cd78c597f773c595c49bc91d87f1757df33c3830706f02c85cdab94a08c2"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/EmbarkStudios/cargo-deny/759a4946dcfe93a56fb42d464e193c4c448af4e3/src/licenses/gather.rs",
+      "path": "docs/validation/m4-deny-research/src_licenses_gather.rs",
+      "bytes": 39408,
+      "sha256": "d321e8329b3b088820a2884bd9fad25b8803221cf79dffc87ec2f588d1e4ce7b"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/EmbarkStudios/cargo-deny/759a4946dcfe93a56fb42d464e193c4c448af4e3/LICENSE-MIT",
+      "path": "docs/validation/m4-deny-research/LICENSE-MIT",
+      "bytes": 1058,
+      "sha256": "090a294a492ab2f41388252312a65cf2f0e423330b721a68c6665ac64766753b"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/EmbarkStudios/cargo-deny/759a4946dcfe93a56fb42d464e193c4c448af4e3/LICENSE-APACHE",
+      "path": "docs/validation/m4-deny-research/LICENSE-APACHE",
+      "bytes": 10850,
+      "sha256": "8173d5c29b4f956d532781d2b86e4e30f83e6b7878dce18c919451d6ba707c90"
+    }
+  ]
+}

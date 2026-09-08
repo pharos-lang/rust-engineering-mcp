@@ -78,3 +78,12 @@ Accepted, Superseded y Rejected.
 - [ADR-063 — M3 guest plugin provisioning](ADR-063-m3-guest-plugin-provisioning.md): Accepted; implemented and runtime-qualified.
 - [ADR-064 — Quality job seccomp profile](ADR-064-quality-job-seccomp-profile.md): Accepted 2026-09-06; qualified by the [M3 runtime](../validation/M3-runtime.json) and [Rust security](../validation/M3-rust-security.json) receipts.
 - [ADR-065 — Dedicated persistent coverage target volume](ADR-065-coverage-target-volume.md): Accepted 2026-09-06; qualified by the [M3 runtime](../validation/M3-runtime.json) and [Rust security](../validation/M3-rust-security.json) receipts.
+- [ADR-066 — Aprovisionamiento aislado del runtime M4](ADR-066-m4-runtime-provisioning.md): Accepted para adquisición/construcción con autorización explícita del owner; admisión y calificación nativa pendientes.
+- [ADR-067 — Policy de seguridad, audit compartido y perfiles nuevos](ADR-067-security-policy-and-quality-contracts.md): Accepted como contrato D19; implementación/calificación M4-01 y M4-05 pendientes.
+
+- [ADR-068 — Admisión runtime M4](ADR-068-m4-runtime-admission.md): Accepted para base/deny; Miri pendiente.
+- [ADR-069 — Scanner AST aislado](ADR-069-isolated-unsafe-syntax-scanner.md): Accepted D20; implementación/calificación pendiente.
+- [ADR-070 — Cleanup y artefactos de Tasks](ADR-070-task-cleanup-attestation.md): Accepted, hardening M4-06.
+
+- [ADR-071 — Facts de supply chain](ADR-071-supply-chain-facts-without-catalog-migration.md): Accepted D22; implementación pendiente.
+- [ADR-072 — Integridad de clasificación Miri](ADR-072-miri-classification-integrity.md): Accepted D21; oráculo empírico 10/10, integración pendiente.

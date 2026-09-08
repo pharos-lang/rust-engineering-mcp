@@ -1,0 +1,20 @@
+{
+  "schema": "rust-engineering-mcp.m4-prepared-miri-oracle.v1",
+  "observed_at": "2026-09-07T22:58:32.851199+00:00",
+  "image_id": "sha256:95dddeb5305f10b09b441e3cc4018ebb1a8a296d365c65106327d59f933c64e7",
+  "image_config_digest": "sha256:7d4e58b9e29b2045c13d71542f7892ee071a6886a1b939c4cbfc3ff7ce40dc45",
+  "source_sha256": "sha256:2b4bd7c45cf21eacdfa755a50cbce1dc1c2c918862db609e836045ef7e814a0a",
+  "sysroot_before": "68324d8d8b2dcb55616ff2e53c7c91f4db78ada40ceafe189f933899d8a1f136  -",
+  "sysroot_after": "68324d8d8b2dcb55616ff2e53c7c91f4db78ada40ceafe189f933899d8a1f136  -",
+  "passed": true,
+  "gateway_approved": false,
+  "rootfs_readonly": true,
+  "source_readonly": true,
+  "network": "none",
+  "exit_code": 0,
+  "stdout": "WARNING: Ignoring `RUSTC` environment variable; set `MIRI` if you want to control the binary used as the driver.\n\nrunning 1 test\ntest prepared_sysroot_is_used ... ok\n\ntest result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.14s\n\n",
+  "stderr": "   Compiling m4-miri-probe v0.0.0 (/source)\n    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.03s\n     Running unittests src/lib.rs (/work/target/miri/aarch64-unknown-linux-gnu/debug/build/m4-miri-probe/a60a3a14760e914a/out/m4_miri_probe-a60a3a14760e914a)\n",
+  "cleanup_confirmed": true,
+  "script_sha256": "sha256:ac8e8c4f6eb56f024949cc23673874da38aae533d2916ad8fed6716b3b32c138",
+  "claim": "first-party fixture only; no hostile-project or gateway qualification"
+}

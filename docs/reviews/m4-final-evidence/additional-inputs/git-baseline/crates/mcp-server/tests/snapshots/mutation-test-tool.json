@@ -1,0 +1,594 @@
+{
+  "annotations": {
+    "destructiveHint": false,
+    "idempotentHint": false,
+    "openWorldHint": false,
+    "readOnlyHint": true
+  },
+  "description": "Run cargo-mutants over captured Rust source in the approved offline gateway. The baseline test run is mandatory and a failing baseline is reported as a failed outcome with its own evidence, never as a clean mutation report. Mutants are applied only inside a private writable copy in the sandbox: the captured source is mounted read-only, no mutated source is ever written back or exported, and only the machine-readable mutants.out report leaves the guest. Verdicts come only from outcomes.json plus its caught/missed/timeout/unviable lists; tool text is never an oracle. A surviving (missed) mutant fails; timeout, unviable and incomplete evidence never count as clean, and every count carries its denominator. At most 100 mutants per job with a per-mutant timeout of at most 60 seconds; a larger generated set is refused before anything is built. No mutation selection fits the 60-second synchronous budget, so auto requires negotiated MCP Tasks and task mode is accepted only when the peer declares io.modelcontextprotocol/tasks. Installs nothing and never shards.",
+  "inputSchema": {
+    "$defs": {
+      "ExecutionModeDto": {
+        "enum": [
+          "auto",
+          "task",
+          "synchronous"
+        ],
+        "type": "string"
+      },
+      "Feature": {
+        "maxLength": 128,
+        "minLength": 1,
+        "pattern": "^[A-Za-z0-9_][A-Za-z0-9_-]*(/[A-Za-z0-9_][A-Za-z0-9_-]*)?$",
+        "type": "string"
+      }
+    },
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "additionalProperties": false,
+    "properties": {
+      "all_features": {
+        "default": false,
+        "type": "boolean"
+      },
+      "execution_mode": {
+        "$ref": "#/$defs/ExecutionModeDto"
+      },
+      "features": {
+        "default": [],
+        "items": {
+          "$ref": "#/$defs/Feature"
+        },
+        "maxItems": 32,
+        "type": "array"
+      },
+      "max_mutants": {
+        "default": 100,
+        "format": "uint32",
+        "maximum": 100,
+        "minimum": 1,
+        "type": "integer"
+      },
+      "mutant_timeout_seconds": {
+        "default": 60,
+        "format": "uint64",
+        "maximum": 60,
+        "minimum": 1,
+        "type": "integer"
+      },
+      "no_default_features": {
+        "default": false,
+        "type": "boolean"
+      },
+      "package": {
+        "default": null,
+        "maxLength": 128,
+        "minLength": 1,
+        "pattern": "^[A-Za-z0-9_][A-Za-z0-9_-]*$",
+        "type": [
+          "string",
+          "null"
+        ]
+      },
+      "project_ref": {
+        "pattern": "^prj_[0-9a-f]{32}$",
+        "type": "string"
+      },
+      "target": {
+        "default": null,
+        "pattern": "^aarch64-unknown-linux-gnu$",
+        "type": [
+          "string",
+          "null"
+        ]
+      }
+    },
+    "required": [
+      "project_ref"
+    ],
+    "title": "Input",
+    "type": "object"
+  },
+  "name": "rust.mutation.test",
+  "outputSchema": {
+    "$defs": {
+      "Artifact": {
+        "additionalProperties": false,
+        "properties": {
+          "completeness": {
+            "$ref": "#/$defs/Completeness"
+          },
+          "kind": {
+            "$ref": "#/$defs/ArtifactKind"
+          },
+          "sha256": {
+            "pattern": "^[0-9a-f]{64}$",
+            "type": "string"
+          },
+          "size_bytes": {
+            "format": "uint64",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "uri": {
+            "maxLength": 512,
+            "minLength": 1,
+            "type": "string"
+          }
+        },
+        "required": [
+          "kind",
+          "uri",
+          "sha256",
+          "size_bytes",
+          "completeness"
+        ],
+        "type": "object"
+      },
+      "ArtifactKind": {
+        "enum": [
+          "outcomes_json",
+          "archive_bundle",
+          "tool_log"
+        ],
+        "type": "string"
+      },
+      "Baseline": {
+        "enum": [
+          "passed",
+          "failed",
+          "missing"
+        ],
+        "type": "string"
+      },
+      "Code": {
+        "enum": [
+          "PROJECT_NOT_FOUND",
+          "INVALID_PROJECT",
+          "COMMAND_TIMEOUT",
+          "OUTPUT_LIMIT_EXCEEDED",
+          "TOOL_NOT_INSTALLED",
+          "SANDBOX_DENIED",
+          "NETWORK_DENIED",
+          "UNSUPPORTED_PLATFORM",
+          "TASKS_REQUIRED",
+          "MUTANT_LIMIT_EXCEEDED"
+        ],
+        "type": "string"
+      },
+      "Completeness": {
+        "enum": [
+          "complete",
+          "partial",
+          "invalid",
+          "unavailable"
+        ],
+        "type": "string"
+      },
+      "Counts": {
+        "additionalProperties": false,
+        "description": "Every count carries the denominator it is measured against.",
+        "properties": {
+          "caught": {
+            "format": "uint32",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "generated": {
+            "description": "Mutants generated for this selection (the listing-pass denominator).",
+            "format": "uint32",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "missed": {
+            "format": "uint32",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "other": {
+            "description": "Mutant scenarios whose recorded class is not a mutation verdict.",
+            "format": "uint32",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "tested": {
+            "description": "Mutant scenarios with a recorded outcome, excluding the baseline.",
+            "format": "uint32",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "timeout": {
+            "format": "uint32",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "unviable": {
+            "format": "uint32",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "viable": {
+            "description": "Mutants that built and ran: the denominator for `caught` and `missed`.",
+            "format": "uint32",
+            "minimum": 0,
+            "type": "integer"
+          }
+        },
+        "required": [
+          "generated",
+          "tested",
+          "viable",
+          "caught",
+          "missed",
+          "timeout",
+          "unviable",
+          "other"
+        ],
+        "type": "object"
+      },
+      "Data": {
+        "additionalProperties": false,
+        "properties": {
+          "artifacts": {
+            "items": {
+              "$ref": "#/$defs/Artifact"
+            },
+            "maxItems": 128,
+            "type": "array"
+          },
+          "baseline": {
+            "$ref": "#/$defs/Baseline"
+          },
+          "completeness": {
+            "$ref": "#/$defs/Completeness"
+          },
+          "counts": {
+            "$ref": "#/$defs/Counts"
+          },
+          "exit_code": {
+            "format": "int32",
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "guest_identity": {
+            "$ref": "#/$defs/GuestIdentity",
+            "description": "The guest recorded its own identity in `mutants.out/lock.json`. The file\nitself is never published; only this verdict is."
+          },
+          "mutants": {
+            "items": {
+              "$ref": "#/$defs/Mutant"
+            },
+            "maxItems": 128,
+            "type": "array"
+          },
+          "omissions": {
+            "$ref": "#/$defs/Omissions"
+          },
+          "project_ref": {
+            "pattern": "^prj_[0-9a-f]{32}$",
+            "type": "string"
+          },
+          "runtime": {
+            "$ref": "#/$defs/RuntimeEvidence"
+          },
+          "termination": {
+            "$ref": "#/$defs/ExecutionTermination"
+          },
+          "validation_complete": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "project_ref",
+          "baseline",
+          "validation_complete",
+          "completeness",
+          "counts",
+          "mutants",
+          "guest_identity",
+          "termination",
+          "exit_code",
+          "runtime",
+          "artifacts",
+          "omissions"
+        ],
+        "type": "object"
+      },
+      "ExecutionTermination": {
+        "enum": [
+          "exited",
+          "timed_out",
+          "cancelled",
+          "output_limit"
+        ],
+        "type": "string"
+      },
+      "GuestIdentity": {
+        "enum": [
+          "guest",
+          "redacted",
+          "unavailable"
+        ],
+        "type": "string"
+      },
+      "Mutant": {
+        "additionalProperties": false,
+        "properties": {
+          "name": {
+            "maxLength": 256,
+            "minLength": 1,
+            "type": "string"
+          },
+          "outcome": {
+            "$ref": "#/$defs/MutantOutcome"
+          }
+        },
+        "required": [
+          "name",
+          "outcome"
+        ],
+        "type": "object"
+      },
+      "MutantOutcome": {
+        "enum": [
+          "caught",
+          "missed",
+          "timeout",
+          "unviable",
+          "success",
+          "failure"
+        ],
+        "type": "string"
+      },
+      "Omissions": {
+        "additionalProperties": false,
+        "properties": {
+          "artifacts_unavailable": {
+            "type": "boolean"
+          },
+          "mutant_limit_exceeded": {
+            "description": "The generated mutant set exceeded `max_mutants`; nothing was built.",
+            "type": "boolean"
+          },
+          "mutants_omitted": {
+            "format": "uint64",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "outcomes_truncated": {
+            "type": "boolean"
+          },
+          "report_bundle_entries": {
+            "format": "uint16",
+            "maximum": 65535,
+            "minimum": 0,
+            "type": "integer"
+          },
+          "report_bundle_unavailable": {
+            "type": "boolean"
+          },
+          "stderr_truncated": {
+            "type": "boolean"
+          },
+          "stdout_truncated": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "mutants_omitted",
+          "outcomes_truncated",
+          "report_bundle_unavailable",
+          "report_bundle_entries",
+          "stdout_truncated",
+          "stderr_truncated",
+          "artifacts_unavailable",
+          "mutant_limit_exceeded"
+        ],
+        "type": "object"
+      },
+      "RuntimeEvidence": {
+        "additionalProperties": false,
+        "properties": {
+          "cargo_version": {
+            "maxLength": 128,
+            "minLength": 1,
+            "type": "string"
+          },
+          "configuration_fingerprint": {
+            "pattern": "^sha256:[0-9a-f]{64}$",
+            "type": "string"
+          },
+          "declared_toolchain": {
+            "maxLength": 32,
+            "minLength": 1,
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "execution_fingerprint": {
+            "pattern": "^sha256:[0-9a-f]{64}$",
+            "type": "string"
+          },
+          "image_id": {
+            "pattern": "^sha256:[0-9a-f]{64}$",
+            "type": "string"
+          },
+          "mutants_version": {
+            "maxLength": 64,
+            "type": "string"
+          },
+          "platform": {
+            "maxLength": 128,
+            "minLength": 1,
+            "type": "string"
+          },
+          "rust_version": {
+            "maxLength": 128,
+            "minLength": 1,
+            "type": "string"
+          }
+        },
+        "required": [
+          "platform",
+          "image_id",
+          "configuration_fingerprint",
+          "execution_fingerprint",
+          "rust_version",
+          "cargo_version",
+          "declared_toolchain",
+          "mutants_version"
+        ],
+        "type": "object"
+      }
+    },
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "oneOf": [
+      {
+        "properties": {
+          "data": {
+            "$ref": "#/$defs/Data"
+          },
+          "error_code": {
+            "type": "null"
+          },
+          "error_message": {
+            "type": "null"
+          },
+          "status": {
+            "const": "passed",
+            "type": "string"
+          }
+        },
+        "required": [
+          "status",
+          "error_code",
+          "error_message",
+          "data"
+        ],
+        "type": "object"
+      },
+      {
+        "properties": {
+          "data": {
+            "$ref": "#/$defs/Data"
+          },
+          "error_code": {
+            "type": "null"
+          },
+          "error_message": {
+            "type": "null"
+          },
+          "status": {
+            "const": "failed",
+            "type": "string"
+          }
+        },
+        "required": [
+          "status",
+          "error_code",
+          "error_message",
+          "data"
+        ],
+        "type": "object"
+      },
+      {
+        "properties": {
+          "data": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/Data"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "error_code": {
+            "$ref": "#/$defs/Code"
+          },
+          "error_message": {
+            "type": "string"
+          },
+          "status": {
+            "const": "blocked",
+            "type": "string"
+          }
+        },
+        "required": [
+          "status",
+          "error_code",
+          "error_message",
+          "data"
+        ],
+        "type": "object"
+      },
+      {
+        "properties": {
+          "data": {
+            "type": "null"
+          },
+          "error_code": {
+            "$ref": "#/$defs/Code"
+          },
+          "error_message": {
+            "type": "string"
+          },
+          "status": {
+            "const": "unavailable",
+            "type": "string"
+          }
+        },
+        "required": [
+          "status",
+          "error_code",
+          "error_message",
+          "data"
+        ],
+        "type": "object"
+      },
+      {
+        "properties": {
+          "data": {
+            "type": "null"
+          },
+          "error_code": {
+            "type": "null"
+          },
+          "error_message": {
+            "type": "null"
+          },
+          "status": {
+            "const": "cancelled",
+            "type": "string"
+          }
+        },
+        "required": [
+          "status",
+          "error_code",
+          "error_message",
+          "data"
+        ],
+        "type": "object"
+      }
+    ],
+    "properties": {
+      "duration_ms": {
+        "format": "uint64",
+        "minimum": 0,
+        "type": "integer"
+      },
+      "summary": {
+        "type": "string"
+      }
+    },
+    "required": [
+      "summary",
+      "duration_ms"
+    ],
+    "title": "Output",
+    "type": "object",
+    "unevaluatedProperties": false
+  }
+}

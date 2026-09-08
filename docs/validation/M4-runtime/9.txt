@@ -1,0 +1,9 @@
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.07s
+     Running unittests src/lib.rs (target/debug/deps/rust_engineering_execution-90533356044b11f0)
+
+running 1 test
+test security_native_adversarial::m4_deny_adversarial_oracles_preserve_cleanup_and_inputs ... M4_DENY_ADVERSARIAL sha256:86c5c9c49fd55b980b80b0c5c110b9d25c495ddbbe4780d5347413d19128bb7c
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 252 filtered out; finished in 19.98s
+

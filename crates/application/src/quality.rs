@@ -141,7 +141,7 @@ fn match_fingerprint(
     }
     Ok(())
 }
-fn stage_issue(error: ProjectAuditError) -> Result<QualityIssue, InspectionError> {
+pub(crate) fn stage_issue(error: ProjectAuditError) -> Result<QualityIssue, InspectionError> {
     match error {
         ProjectAuditError::Inspection(error) => match error {
             InspectionError::Project(ProjectError::Rejected(code)) => {

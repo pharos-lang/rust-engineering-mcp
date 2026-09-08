@@ -118,7 +118,8 @@ fn actual_test_runtime_containment_and_descendant_cleanup() -> Result {
             .ok_or("explicit socket required")?
             .into(),
         state_root: root.clone(),
-        image_id: APPROVED_RUST_IMAGE.into(),
+        image_id: std::env::var("RUST_MCP_TEST_IMAGE")
+            .unwrap_or_else(|_| APPROVED_RUST_IMAGE.into()),
     }))?;
     clean(&gateway)?;
     assert!(checked(gateway.calibrate(&NeverCancel))?.verified);
@@ -238,7 +239,7 @@ fn actual_test_runtime_containment_and_descendant_cleanup() -> Result {
     }
     println!(
         "M1_TEST_CONTAINMENT_RECEIPT {}",
-        serde_json::json!({"scope":"actual_libtest_R2", "image_id":APPROVED_RUST_IMAGE,"observations":observations,"cleanup":true})
+        serde_json::json!({"scope":"actual_libtest_R2", "image_id":gateway.image_id(),"observations":observations,"cleanup":true})
     );
     drop(gateway);
     std::fs::remove_dir_all(root)?;
@@ -296,7 +297,8 @@ pub fn forge(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
             .ok_or("explicit socket required")?
             .into(),
         state_root: root.clone(),
-        image_id: APPROVED_RUST_IMAGE.into(),
+        image_id: std::env::var("RUST_MCP_TEST_IMAGE")
+            .unwrap_or_else(|_| APPROVED_RUST_IMAGE.into()),
     }))?;
     clean(&gateway)?;
     assert!(checked(gateway.calibrate(&NeverCancel))?.verified);
@@ -365,7 +367,7 @@ pub fn forge(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
     println!(
         "M1_TEST_FORGERY_RECEIPT {}",
         serde_json::json!({
-            "scope":"actual_proc_macro_stdout_forgery", "image_id":APPROVED_RUST_IMAGE,
+            "scope":"actual_proc_macro_stdout_forgery", "image_id":gateway.image_id(),
             "forged_success_forwarded":true, "later_consumer_diagnostic":"E0308",
             "later_cargo_build_failed":true, "parser_complete":parsed.complete,
             "parser_build_finished":parsed.build_finished, "execution":result,

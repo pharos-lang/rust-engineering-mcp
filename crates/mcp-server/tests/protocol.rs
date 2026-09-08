@@ -46,15 +46,22 @@ impl Server {
             None => (Stdio::piped(), None),
         };
         // Test harness only; this never executes project-supplied programs.
-        let mut child = Command::new(env!("CARGO_BIN_EXE_rust-engineering-mcp"))
+        let mut command = Command::new(env!("CARGO_BIN_EXE_rust-engineering-mcp"));
+        command
             .args(["serve", "--stdio"])
             .args(args)
             .env_clear()
             .env("RUST_LOG", "trace")
             .stdin(Stdio::piped())
             .stdout(stdout_config)
-            .stderr(Stdio::piped())
-            .spawn()?;
+            .stderr(Stdio::piped());
+        // cargo-llvm-cov assigns a unique raw-profile pattern. Preserve only
+        // that instrumentation channel; the product process still receives no
+        // host PATH, credentials or ambient configuration.
+        if let Some(profile) = std::env::var_os("LLVM_PROFILE_FILE") {
+            command.env("LLVM_PROFILE_FILE", profile);
+        }
+        let mut child = command.spawn()?;
         let (out_tx, stdout) = mpsc::sync_channel(32);
         let (err_tx, stderr) = mpsc::sync_channel(1);
         let mut server = Self {
@@ -421,6 +428,11 @@ fn bootstrap(server: &mut Server, version: &str) -> Result<Value, Box<dyn Error>
         (19, include_str!("snapshots/coverage-tool.json")),
         (20, include_str!("snapshots/semver-tool.json")),
         (21, include_str!("snapshots/mutation-test-tool.json")),
+        (22, include_str!("snapshots/deny-tool.json")),
+        (23, include_str!("snapshots/unsafe-scan-tool.json")),
+        (24, include_str!("snapshots/supply-chain-tool.json")),
+        (25, include_str!("snapshots/quality-v2-tool.json")),
+        (26, include_str!("snapshots/miri-tool.json")),
     ] {
         assert_eq!(
             response["result"]["tools"][index],
@@ -701,7 +713,7 @@ mod project_fixtures {
 fn assert_project_list(response: &Value, modern: bool) {
     assert!(response.get("error").is_none(), "{response}");
     let tools = response["result"]["tools"].as_array();
-    assert_eq!(tools.map(Vec::len), Some(22));
+    assert_eq!(tools.map(Vec::len), Some(27));
     let names: Vec<_> = response["result"]["tools"]
         .as_array()
         .into_iter()
@@ -732,7 +744,12 @@ fn assert_project_list(response: &Value, modern: bool) {
             "rust.dependency.remove",
             "rust.coverage",
             "rust.semver.check",
-            "rust.mutation.test"
+            "rust.mutation.test",
+            "rust.deny",
+            "rust.unsafe.scan",
+            "rust.supply_chain.inspect",
+            "rust.quality.gate.v2",
+            "rust.miri"
         ]
     );
     let tool = &response["result"]["tools"][0];
@@ -1092,10 +1109,34 @@ fn closed_stdout_exits_even_when_stdin_remains_open() -> TestResult {
         drop(shutdown);
         // macOS may accept writes to a shutdown socket until every peer handle
         // closes. EOF on the channel proves the reader thread dropped its handle.
-        assert!(matches!(
-            server.stdout.recv_timeout(TIMEOUT),
-            Err(mpsc::RecvTimeoutError::Disconnected)
-        ));
+        let started = Instant::now();
+        match server.stdout.recv_timeout(TIMEOUT) {
+            Err(mpsc::RecvTimeoutError::Disconnected) => {}
+            Err(error) => {
+                return Err(format!(
+                    "stdout reader (bootstrap={bootstrap}) after {:?}: {error:?}",
+                    started.elapsed()
+                )
+                .into());
+            }
+            Ok(Err(error)) => {
+                return Err(format!(
+                    "stdout reader (bootstrap={bootstrap}) after {:?}: I/O {:?}, OS {:?}",
+                    started.elapsed(),
+                    error.kind(),
+                    error.raw_os_error()
+                )
+                .into());
+            }
+            Ok(Ok(frame)) => {
+                return Err(format!(
+                    "stdout reader (bootstrap={bootstrap}) after {:?}: unexpected frame ({} bytes)",
+                    started.elapsed(),
+                    frame.len()
+                )
+                .into());
+            }
+        }
         server.send(modern(json!(2), "tools/list"))?;
         let status = server
             .wait()
@@ -1209,6 +1250,141 @@ fn named_inspect_call(id: i64, name: &str, arguments: Value, version: &str) -> V
     let mut request = inspect_call(id, arguments, version);
     request["params"]["name"] = json!(name);
     request
+}
+
+#[test]
+fn m4_security_tools_have_closed_task_and_synchronous_gates_in_all_wire_versions() -> TestResult {
+    const REFERENCE: &str = "prj_00000000000000000000000000000001";
+    for version in std::iter::once(VERSION).chain(LEGACY) {
+        let mut server = Server::start()?;
+        bootstrap(&mut server, version)?;
+        server.send(if version == VERSION {
+            modern(json!(90), "tools/list")
+        } else {
+            json!({"jsonrpc":"2.0","id":90,"method":"tools/list","params":{}})
+        })?;
+        let listing = server.response(json!(90))?;
+        let tools = listing["result"]["tools"].as_array().ok_or("tools array")?;
+
+        for (offset, (name, base)) in [
+            ("rust.deny", json!({"project_ref":REFERENCE})),
+            ("rust.unsafe.scan", json!({"project_ref":REFERENCE})),
+            (
+                "rust.supply_chain.inspect",
+                json!({"project_ref":REFERENCE}),
+            ),
+            (
+                "rust.quality.gate.v2",
+                json!({"project_ref":REFERENCE,"profile":"strict"}),
+            ),
+            ("rust.miri", json!({"project_ref":REFERENCE})),
+        ]
+        .into_iter()
+        .enumerate()
+        {
+            let tool = tools
+                .iter()
+                .find(|tool| tool["name"] == name)
+                .ok_or("M4 tool missing")?;
+            let validator = jsonschema::validator_for(&tool["inputSchema"])?;
+            assert!(validator.is_valid(&base), "{name}: {base}");
+            let first_id = 100 + i64::try_from(offset)? * 10;
+
+            // Auto keeps the long operation behind Tasks when the client did
+            // not negotiate the extension.
+            server.send(named_inspect_call(first_id, name, base.clone(), version))?;
+            let required = server.response(json!(first_id))?;
+            assert_output(&required, tool, true, version)?;
+            assert_eq!(
+                required["result"]["structuredContent"]["error_code"], "TASKS_REQUIRED",
+                "{name}: {required}"
+            );
+
+            let mut task = base.clone();
+            task["execution_mode"] = json!("task");
+            assert!(validator.is_valid(&task), "{name}: {task}");
+            server.send(named_inspect_call(first_id + 1, name, task, version))?;
+            assert_eq!(
+                server.response(json!(first_id + 1))?["error"]["code"],
+                -32602,
+                "{name}"
+            );
+
+            let mut over_budget = base.clone();
+            over_budget["execution_mode"] = json!("synchronous");
+            over_budget["timeout_seconds"] = json!(61);
+            assert!(validator.is_valid(&over_budget), "{name}: {over_budget}");
+            server.send(named_inspect_call(first_id + 2, name, over_budget, version))?;
+            assert_eq!(
+                server.response(json!(first_id + 2))?["error"]["code"],
+                -32602,
+                "{name}"
+            );
+
+            let mut synchronous = base.clone();
+            synchronous["execution_mode"] = json!("synchronous");
+            synchronous["timeout_seconds"] = json!(60);
+            assert!(validator.is_valid(&synchronous), "{name}: {synchronous}");
+            server.send(named_inspect_call(first_id + 3, name, synchronous, version))?;
+            let operational = server.response(json!(first_id + 3))?;
+            assert_output(&operational, tool, true, version)?;
+            let output = &operational["result"]["structuredContent"];
+            assert_ne!(output["status"], "passed", "{name}: {output}");
+            assert!(output["error_code"].as_str().is_some(), "{name}: {output}");
+
+            for (invalid_offset, key) in ["flags", "path"].into_iter().enumerate() {
+                let mut invalid = base.clone();
+                invalid[key] = if key == "flags" {
+                    json!(["--arbitrary"])
+                } else {
+                    json!("/host/path")
+                };
+                assert!(!validator.is_valid(&invalid), "{name}: {invalid}");
+                let id = first_id + 4 + i64::try_from(invalid_offset)?;
+                server.send(named_inspect_call(id, name, invalid, version))?;
+                assert_eq!(server.response(json!(id))?["error"]["code"], -32602);
+            }
+
+            if name == "rust.quality.gate.v2" {
+                let release_without_baseline = json!({
+                    "project_ref":REFERENCE,
+                    "profile":"release"
+                });
+                assert!(validator.is_valid(&release_without_baseline));
+                server.send(named_inspect_call(
+                    first_id + 6,
+                    name,
+                    release_without_baseline,
+                    version,
+                ))?;
+                assert_eq!(
+                    server.response(json!(first_id + 6))?["error"]["code"],
+                    -32602
+                );
+
+                let synchronous_mutation = json!({
+                    "project_ref":REFERENCE,
+                    "profile":"strict",
+                    "mutation":{},
+                    "execution_mode":"synchronous",
+                    "timeout_seconds":60
+                });
+                assert!(validator.is_valid(&synchronous_mutation));
+                server.send(named_inspect_call(
+                    first_id + 7,
+                    name,
+                    synchronous_mutation,
+                    version,
+                ))?;
+                assert_eq!(
+                    server.response(json!(first_id + 7))?["error"]["code"],
+                    -32602
+                );
+            }
+        }
+        server.finish(0)?;
+    }
+    Ok(())
 }
 
 #[test]

@@ -1,0 +1,82 @@
+[
+  {
+    "path": "crates/domain/src/security.rs",
+    "sha256": "98b21ebded10c80414481f2c1b7ff013e7409ec874b40f79fed2e01eabfe50c8",
+    "bytes": 21921
+  },
+  {
+    "path": "crates/domain/src/supply_chain.rs",
+    "sha256": "f35aa9776252729054ade0ac7dedc5e1663508c5d811d0fa655dc97eaa19d181",
+    "bytes": 8158
+  },
+  {
+    "path": "crates/domain/src/quality_v2.rs",
+    "sha256": "d319bf8eff39e773b9fde5b699843e611d2dd6eefc9713049011276990c005fe",
+    "bytes": 6952
+  },
+  {
+    "path": "crates/application/src/security.rs",
+    "sha256": "834f4b60536aca46487069fe2ef7f6155093149e1b981a6bb7854410b56112a0",
+    "bytes": 13210
+  },
+  {
+    "path": "crates/application/src/supply_chain.rs",
+    "sha256": "3e6eadd9170ae38deefcb2cf4d9ddb75ccb0bade7a35b7d35ef234a4d6633ef4",
+    "bytes": 10517
+  },
+  {
+    "path": "crates/application/src/quality_v2.rs",
+    "sha256": "3c34fbee8e8887413f766f60d8d86e6544ad4064fe376bd02f9ded22b31fe49a",
+    "bytes": 23147
+  },
+  {
+    "path": "crates/application/tests/security.rs",
+    "sha256": "245d5c812ce7bc9f5c5548327ad20be6f9f66e1722192b123c8a6cef72353f36",
+    "bytes": 58593
+  },
+  {
+    "path": "crates/application/tests/quality_v2.rs",
+    "sha256": "86ec6118fdcce11f8ae6eec479215a4b99dc423723c418a316aa44c98a07c424",
+    "bytes": 34114
+  },
+  {
+    "path": "crates/execution-adapter/src/deny_json.rs",
+    "sha256": "2c7a5ea1ee8ca7de592a10217266e8dece72924960a75e10f21d20434abda75a",
+    "bytes": 49486
+  },
+  {
+    "path": "crates/mcp-server/src/stdio/supply_chain.rs",
+    "sha256": "f4bbaa6dddc6b16bfb4a70874885d8c535a312c835c287c04f085ea1fddb6b71",
+    "bytes": 18597
+  },
+  {
+    "path": "crates/mcp-server/src/stdio/supply_chain/schemas.rs",
+    "sha256": "f8534c1813b97d0fb7a78114e008adbd92e428b5275241d4905c033fbcaa79b1",
+    "bytes": 4742
+  },
+  {
+    "path": "crates/mcp-server/src/stdio/supply_chain/trim_tests.rs",
+    "sha256": "24b8d70b83312a62d817eb782afae37585bbf8e0901ecca7beb15e0674284437",
+    "bytes": 8825
+  },
+  {
+    "path": "crates/mcp-server/src/stdio/quality_v2.rs",
+    "sha256": "4fade835b122a9c967197ae9c4de2b976446ee6540c490370a952adc039fef7f",
+    "bytes": 20226
+  },
+  {
+    "path": "crates/mcp-server/src/stdio/quality_v2/schemas.rs",
+    "sha256": "1c4fe9ed1e325e09c7ec6cbbc27663c7abafb60507b4edfe231692ea71c8a9ee",
+    "bytes": 4349
+  },
+  {
+    "path": "crates/mcp-server/src/stdio/quality_v2/trim_tests.rs",
+    "sha256": "0b3e52027c84711b760f62bdf942e04c653bc3dc61bf082296c957de5bdddd57",
+    "bytes": 10947
+  },
+  {
+    "path": "docs/reviews/m4-composition-contracts/review.md",
+    "sha256": "32290d4b9e4c7d96640c68a04671a2be2d9a86c86bed76758522f5918b6c870f",
+    "bytes": 15239
+  }
+]

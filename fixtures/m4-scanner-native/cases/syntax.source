@@ -1,0 +1,19 @@
+// é forces byte offsets and Unicode-scalar columns to differ.
+unsafe trait Marker {}
+unsafe impl Marker for u8 {}
+
+unsafe extern "C" {
+    unsafe static GLOBAL: u8;
+    fn foreign(value: u8);
+}
+
+#[cfg(feature = "gated")]
+unsafe fn conditional() {
+    unsafe {}
+}
+
+macro_rules! hidden {
+    () => { unsafe { extern "C" fn hidden() {} } };
+}
+
+const TEXT: &str = "unsafe extern";

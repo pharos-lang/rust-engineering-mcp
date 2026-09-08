@@ -1,0 +1,8 @@
+[package]
+name = "m4-scanner-native"
+version = "0.1.0"
+edition = "2024"
+license = "MIT"
+
+[dependencies]
+unicode-ident = "=1.0.24"

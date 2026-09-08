@@ -1,0 +1,198 @@
+{
+  "reason": "Record explicitly disclosed reads outside frozen package; preserve supporting attachments and baseline after review. Additional attachments are not represented as newly reviewed by Opus.",
+  "files": [
+    {
+      "path": "docs/validation/M4-full-gate-resume.txt",
+      "copy": "additional-inputs/docs/validation/M4-full-gate-resume.txt",
+      "sha256": "2b4fa184606a7b06f59f1f3729e437b55345543764a49bf06c003eb160d90448",
+      "reviewer_disclosed_read_outside_frozen_package": true
+    },
+    {
+      "path": "docs/validation/M4-hardening-attempts/full-attempt-2/gate.txt",
+      "copy": "additional-inputs/docs/validation/M4-hardening-attempts/full-attempt-2/gate.txt",
+      "sha256": "1378c96c74e708ff6026473ed2e7c4afe7fc5b80d94b6080d31ed4e6069cb60b",
+      "reviewer_disclosed_read_outside_frozen_package": true
+    },
+    {
+      "path": "crates/semantic-adapter/src/model.rs",
+      "copy": "additional-inputs/crates/semantic-adapter/src/model.rs",
+      "sha256": "08082cf321273ed502deafae11a5c5c6d7174db41c4cd8301439820d90cc8524",
+      "reviewer_disclosed_read_outside_frozen_package": true
+    },
+    {
+      "path": "docs/validation/M4-full-gate.txt",
+      "copy": "additional-inputs/docs/validation/M4-full-gate.txt",
+      "sha256": "1378c96c74e708ff6026473ed2e7c4afe7fc5b80d94b6080d31ed4e6069cb60b",
+      "reviewer_disclosed_read_outside_frozen_package": false
+    },
+    {
+      "path": "scripts/test-m4-runtime.py",
+      "copy": "additional-inputs/scripts/test-m4-runtime.py",
+      "sha256": "b0d2fd9e127ef564e0aa998aae7b7f5c0b068473c0d1a3d4caa4143a48feb00c",
+      "reviewer_disclosed_read_outside_frozen_package": false
+    }
+  ],
+  "baseline_snapshots": [
+    {
+      "path": "crates/mcp-server/tests/snapshots/audit-tool.json",
+      "baseline_copy": "additional-inputs/git-baseline/crates/mcp-server/tests/snapshots/audit-tool.json",
+      "baseline_sha256": "b6bb173a199bd85919c1a8f97218c4f02162f106338abffef97e3a68b72269f2",
+      "current_sha256": "b6bb173a199bd85919c1a8f97218c4f02162f106338abffef97e3a68b72269f2",
+      "equal": true
+    },
+    {
+      "path": "crates/mcp-server/tests/snapshots/catalog-status-tool.json",
+      "baseline_copy": "additional-inputs/git-baseline/crates/mcp-server/tests/snapshots/catalog-status-tool.json",
+      "baseline_sha256": "9ac8e2964beb0ae3af9829776761d25612ad4a57252dc19f98fa684f3c46c1bc",
+      "current_sha256": "9ac8e2964beb0ae3af9829776761d25612ad4a57252dc19f98fa684f3c46c1bc",
+      "equal": true
+    },
+    {
+      "path": "crates/mcp-server/tests/snapshots/check-tool.json",
+      "baseline_copy": "additional-inputs/git-baseline/crates/mcp-server/tests/snapshots/check-tool.json",
+      "baseline_sha256": "a9281b713e3f8b91682b0d248cacb7fc1e978b6d8df9baf0ad0f315a5a43f014",
+      "current_sha256": "a9281b713e3f8b91682b0d248cacb7fc1e978b6d8df9baf0ad0f315a5a43f014",
+      "equal": true
+    },
+    {
+      "path": "crates/mcp-server/tests/snapshots/clippy-tool.json",
+      "baseline_copy": "additional-inputs/git-baseline/crates/mcp-server/tests/snapshots/clippy-tool.json",
+      "baseline_sha256": "a4afb5c9d2c854ed23fb256c9ecdfd40e0ca5129a9aa302553a957e5346511a0",
+      "current_sha256": "a4afb5c9d2c854ed23fb256c9ecdfd40e0ca5129a9aa302553a957e5346511a0",
+      "equal": true
+    },
+    {
+      "path": "crates/mcp-server/tests/snapshots/coverage-tool.json",
+      "baseline_copy": "additional-inputs/git-baseline/crates/mcp-server/tests/snapshots/coverage-tool.json",
+      "baseline_sha256": "2a84cb5603d8ccbe6fa11dbd3fc6295183d0080bfe05a4d8c794944a021162d4",
+      "current_sha256": "2a84cb5603d8ccbe6fa11dbd3fc6295183d0080bfe05a4d8c794944a021162d4",
+      "equal": true
+    },
+    {
+      "path": "crates/mcp-server/tests/snapshots/crate-inspect-tool.json",
+      "baseline_copy": "additional-inputs/git-baseline/crates/mcp-server/tests/snapshots/crate-inspect-tool.json",
+      "baseline_sha256": "27af4b9f7c2df00fc2d528341ee781d350d09081bf2a7c9f3c5bc5538442d39d",
+      "current_sha256": "27af4b9f7c2df00fc2d528341ee781d350d09081bf2a7c9f3c5bc5538442d39d",
+      "equal": true
+    },
+    {
+      "path": "crates/mcp-server/tests/snapshots/crate-search-tool.json",
+      "baseline_copy": "additional-inputs/git-baseline/crates/mcp-server/tests/snapshots/crate-search-tool.json",
+      "baseline_sha256": "3d2a6d091a4a0ba0cfcdd1a4f8600e4cf4f883fc18ad4fee2412d4a1053f6039",
+      "current_sha256": "3d2a6d091a4a0ba0cfcdd1a4f8600e4cf4f883fc18ad4fee2412d4a1053f6039",
+      "equal": true
+    },
+    {
+      "path": "crates/mcp-server/tests/snapshots/dependency-add-tool.json",
+      "baseline_copy": "additional-inputs/git-baseline/crates/mcp-server/tests/snapshots/dependency-add-tool.json",
+      "baseline_sha256": "426515577746d42235ee31edfe455a5057cb0c7ffd1912f534de26e323304be6",
+      "current_sha256": "426515577746d42235ee31edfe455a5057cb0c7ffd1912f534de26e323304be6",
+      "equal": true
+    },
+    {
+      "path": "crates/mcp-server/tests/snapshots/dependency-remove-tool.json",
+      "baseline_copy": "additional-inputs/git-baseline/crates/mcp-server/tests/snapshots/dependency-remove-tool.json",
+      "baseline_sha256": "e73dfb65c55c5de6852b77e947bb8ee79ce824f18ef3035b33f84836ab198cdd",
+      "current_sha256": "e73dfb65c55c5de6852b77e947bb8ee79ce824f18ef3035b33f84836ab198cdd",
+      "equal": true
+    },
+    {
+      "path": "crates/mcp-server/tests/snapshots/doctor-report.json",
+      "baseline_copy": "additional-inputs/git-baseline/crates/mcp-server/tests/snapshots/doctor-report.json",
+      "baseline_sha256": "31378102881bf084c399ad60efbe900fa540b991bfa6fc5e84d07a6575831482",
+      "current_sha256": "31378102881bf084c399ad60efbe900fa540b991bfa6fc5e84d07a6575831482",
+      "equal": true
+    },
+    {
+      "path": "crates/mcp-server/tests/snapshots/explain-tool.json",
+      "baseline_copy": "additional-inputs/git-baseline/crates/mcp-server/tests/snapshots/explain-tool.json",
+      "baseline_sha256": "f4e0ab8b25a32e07ba6a86c100b7ee2a5adcab7a35f691f16e82c9d3f4933b9f",
+      "current_sha256": "f4e0ab8b25a32e07ba6a86c100b7ee2a5adcab7a35f691f16e82c9d3f4933b9f",
+      "equal": true
+    },
+    {
+      "path": "crates/mcp-server/tests/snapshots/fix-apply-tool.json",
+      "baseline_copy": "additional-inputs/git-baseline/crates/mcp-server/tests/snapshots/fix-apply-tool.json",
+      "baseline_sha256": "89c93950abe47923644f1cb2457491fbf4823533b99a489a7723fc1786fd57d5",
+      "current_sha256": "89c93950abe47923644f1cb2457491fbf4823533b99a489a7723fc1786fd57d5",
+      "equal": true
+    },
+    {
+      "path": "crates/mcp-server/tests/snapshots/fmt-apply-tool.json",
+      "baseline_copy": "additional-inputs/git-baseline/crates/mcp-server/tests/snapshots/fmt-apply-tool.json",
+      "baseline_sha256": "78983f1e4c08d607a4504994237a3a053de0f5c779671c0da6357db0bf833dab",
+      "current_sha256": "78983f1e4c08d607a4504994237a3a053de0f5c779671c0da6357db0bf833dab",
+      "equal": true
+    },
+    {
+      "path": "crates/mcp-server/tests/snapshots/format-tool.json",
+      "baseline_copy": "additional-inputs/git-baseline/crates/mcp-server/tests/snapshots/format-tool.json",
+      "baseline_sha256": "762e342a4b9e7e7e4a013583fb0f71ecefe1bf4c3ef47088b7c119a75dee56a4",
+      "current_sha256": "762e342a4b9e7e7e4a013583fb0f71ecefe1bf4c3ef47088b7c119a75dee56a4",
+      "equal": true
+    },
+    {
+      "path": "crates/mcp-server/tests/snapshots/manifest-patch-tool.json",
+      "baseline_copy": "additional-inputs/git-baseline/crates/mcp-server/tests/snapshots/manifest-patch-tool.json",
+      "baseline_sha256": "1a4f9891093f03db987ad9b53f3b862a0dc54183abf074d89096f6f294b814aa",
+      "current_sha256": "1a4f9891093f03db987ad9b53f3b862a0dc54183abf074d89096f6f294b814aa",
+      "equal": true
+    },
+    {
+      "path": "crates/mcp-server/tests/snapshots/mutation-test-tool.json",
+      "baseline_copy": "additional-inputs/git-baseline/crates/mcp-server/tests/snapshots/mutation-test-tool.json",
+      "baseline_sha256": "d689048bf1ee860a95e9fde5d86852781abc046e3b746c5983d5445f9135507d",
+      "current_sha256": "d689048bf1ee860a95e9fde5d86852781abc046e3b746c5983d5445f9135507d",
+      "equal": true
+    },
+    {
+      "path": "crates/mcp-server/tests/snapshots/nextest-tool.json",
+      "baseline_copy": "additional-inputs/git-baseline/crates/mcp-server/tests/snapshots/nextest-tool.json",
+      "baseline_sha256": "c05d55f0695b3996a4809a8228f94e9a77c00c4d65f054df91772625222d09f3",
+      "current_sha256": "c05d55f0695b3996a4809a8228f94e9a77c00c4d65f054df91772625222d09f3",
+      "equal": true
+    },
+    {
+      "path": "crates/mcp-server/tests/snapshots/project-inspect-tool.json",
+      "baseline_copy": "additional-inputs/git-baseline/crates/mcp-server/tests/snapshots/project-inspect-tool.json",
+      "baseline_sha256": "bf0838ace4f0f7f0709c76801de6f1b66307d90251eab6441a2d07208b913e07",
+      "current_sha256": "bf0838ace4f0f7f0709c76801de6f1b66307d90251eab6441a2d07208b913e07",
+      "equal": true
+    },
+    {
+      "path": "crates/mcp-server/tests/snapshots/project-open-tool.json",
+      "baseline_copy": "additional-inputs/git-baseline/crates/mcp-server/tests/snapshots/project-open-tool.json",
+      "baseline_sha256": "bfab409498dc67517a96d4d034f403d24ad3ae31046df3afc09c1f3781148d9b",
+      "current_sha256": "bfab409498dc67517a96d4d034f403d24ad3ae31046df3afc09c1f3781148d9b",
+      "equal": true
+    },
+    {
+      "path": "crates/mcp-server/tests/snapshots/quality-tool.json",
+      "baseline_copy": "additional-inputs/git-baseline/crates/mcp-server/tests/snapshots/quality-tool.json",
+      "baseline_sha256": "95f2b8adf277a0d2d95b827a320c1f848bb1069482ad30d2e1592d418bdfffb3",
+      "current_sha256": "95f2b8adf277a0d2d95b827a320c1f848bb1069482ad30d2e1592d418bdfffb3",
+      "equal": true
+    },
+    {
+      "path": "crates/mcp-server/tests/snapshots/semver-tool.json",
+      "baseline_copy": "additional-inputs/git-baseline/crates/mcp-server/tests/snapshots/semver-tool.json",
+      "baseline_sha256": "1c8df18de40655dd43265c75958ceed739cbd831f134cbe9a09822f41d31fdb5",
+      "current_sha256": "1c8df18de40655dd43265c75958ceed739cbd831f134cbe9a09822f41d31fdb5",
+      "equal": true
+    },
+    {
+      "path": "crates/mcp-server/tests/snapshots/test-tool.json",
+      "baseline_copy": "additional-inputs/git-baseline/crates/mcp-server/tests/snapshots/test-tool.json",
+      "baseline_sha256": "a4f0904c89b34bd4eb3524f9de71c8d4c2036028b5905bcfdc17eea75085abf7",
+      "current_sha256": "a4f0904c89b34bd4eb3524f9de71c8d4c2036028b5905bcfdc17eea75085abf7",
+      "equal": true
+    },
+    {
+      "path": "crates/mcp-server/tests/snapshots/toolchain-inspect-tool.json",
+      "baseline_copy": "additional-inputs/git-baseline/crates/mcp-server/tests/snapshots/toolchain-inspect-tool.json",
+      "baseline_sha256": "bd57a8784387ac6939b3a12d2343660a1bf2c2fc1246c83790e6f7e0276ef518",
+      "current_sha256": "bd57a8784387ac6939b3a12d2343660a1bf2c2fc1246c83790e6f7e0276ef518",
+      "equal": true
+    }
+  ]
+}

@@ -1,0 +1,409 @@
+{
+  "cleanup": {
+    "container_absent": true,
+    "container_removed": "fc3725f874624dcef908805d3a522eb4d2f57ce9c86bfd831232fe5618bbcbbb",
+    "errors": [],
+    "scratch_removed": true,
+    "verified": true
+  },
+  "commands": [
+    {
+      "argv": [
+        "/Applications/Docker.app/Contents/Resources/bin/docker",
+        "--host",
+        "<docker-socket>",
+        "image",
+        "inspect",
+        "sha256:25ed3626e710081a571a86a29521eaf2e890e796afd422ba5e409e0ce1891635"
+      ],
+      "argv_sha256": "1171869863db906d9f8a98ab5c900d937ae8c0c335503540741d9916c8c85c1b",
+      "exit_code": 0,
+      "seconds": 0.024,
+      "status": "exited",
+      "stderr_bytes": 0,
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_bytes": 1573,
+      "stdout_sha256": "030189cf862241d31127107dce7185dfd0cbf24220f4d226caac1ee32bedcc83",
+      "timeout_seconds": 30
+    },
+    {
+      "argv": [
+        "/Applications/Docker.app/Contents/Resources/bin/docker",
+        "--host",
+        "<docker-socket>",
+        "container",
+        "create",
+        "--pull=never",
+        "--name",
+        "rust-mcp-m4-inventory-7fc32fcab0ace8f2c27195007742c66c",
+        "--label",
+        "org.rust-mcp.m4-inventory=7fc32fcab0ace8f2c27195007742c66c",
+        "--network=none",
+        "--read-only",
+        "--cap-drop=ALL",
+        "--security-opt=no-new-privileges",
+        "--user=65534:65534",
+        "--entrypoint=/usr/bin/true",
+        "sha256:25ed3626e710081a571a86a29521eaf2e890e796afd422ba5e409e0ce1891635"
+      ],
+      "argv_sha256": "ebeb1e9a4921a30c1f9c700a8330ed5fae1a1458b113d91f85efcec885894872",
+      "exit_code": 0,
+      "seconds": 0.037,
+      "status": "exited",
+      "stderr_bytes": 0,
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_bytes": 65,
+      "stdout_sha256": "2d9976b778eaef80c2d5db99d19c0cc282e23e93939b6f43df0fb87ae3acd4a2",
+      "timeout_seconds": 30
+    },
+    {
+      "argv": [
+        "/Applications/Docker.app/Contents/Resources/bin/docker",
+        "--host",
+        "<docker-socket>",
+        "container",
+        "inspect",
+        "rust-mcp-m4-inventory-7fc32fcab0ace8f2c27195007742c66c"
+      ],
+      "argv_sha256": "2f3a17892a5444785da6a2ce20eab518b852ac64a01cb6ea27d3630e852c3513",
+      "exit_code": 0,
+      "seconds": 0.013,
+      "status": "exited",
+      "stderr_bytes": 0,
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_bytes": 6135,
+      "stdout_sha256": "de763e7ef91a70088d992f0b02ab0a68f3b5b43b14d8ed62aaa61bd336fe5462",
+      "timeout_seconds": 30
+    },
+    {
+      "argv": [
+        "/Applications/Docker.app/Contents/Resources/bin/docker",
+        "--host",
+        "<docker-socket>",
+        "container",
+        "cp",
+        "rust-mcp-m4-inventory-7fc32fcab0ace8f2c27195007742c66c:/opt/security/bin/cargo-deny",
+        "-"
+      ],
+      "argv_sha256": "74620c3271149d9cdf66aa8a102cc9751de30c1ecdd3a86c1e485c4a50e2899e",
+      "exit_code": 0,
+      "seconds": 0.047,
+      "status": "exited",
+      "stderr_bytes": 0,
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_bytes": 7871488,
+      "stdout_file": "file-0.tar",
+      "stdout_limit_bytes": 67108864,
+      "stdout_sha256": "d0309319901a41e75198ec8ad1511fb2a2dcb3fb820f9213e1d234f27359d253",
+      "timeout_seconds": 30
+    },
+    {
+      "argv": [
+        "/Applications/Docker.app/Contents/Resources/bin/docker",
+        "--host",
+        "<docker-socket>",
+        "container",
+        "cp",
+        "rust-mcp-m4-inventory-7fc32fcab0ace8f2c27195007742c66c:/opt/security/bin/rust-mcp-unsafe-helper",
+        "-"
+      ],
+      "argv_sha256": "a0afc4188cba5d1b401aa7dc3fad7ead25630d4d853def19d84f2bb1edada981",
+      "exit_code": 0,
+      "seconds": 0.024,
+      "status": "exited",
+      "stderr_bytes": 0,
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_bytes": 2452992,
+      "stdout_file": "file-1.tar",
+      "stdout_limit_bytes": 67108864,
+      "stdout_sha256": "fdd4a0be8ecd0104dc6cb9e133185ded5f3ae08490817edb6e5ca9100838674a",
+      "timeout_seconds": 30
+    },
+    {
+      "argv": [
+        "/Applications/Docker.app/Contents/Resources/bin/docker",
+        "--host",
+        "<docker-socket>",
+        "container",
+        "cp",
+        "rust-mcp-m4-inventory-7fc32fcab0ace8f2c27195007742c66c:/opt/rust-nightly-2026-09-07/bin/rustc",
+        "-"
+      ],
+      "argv_sha256": "3d9b0af16f7e065919dce0eaea0f3dcc7a433ef0ff4e604e0195b3e53ccbb6a7",
+      "exit_code": 0,
+      "seconds": 0.019,
+      "status": "exited",
+      "stderr_bytes": 0,
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_bytes": 1264640,
+      "stdout_file": "file-2.tar",
+      "stdout_limit_bytes": 67108864,
+      "stdout_sha256": "535876bd053db43991a2e255ea52a028ef76c850ceb4f3c2d0e5b607916e785e",
+      "timeout_seconds": 30
+    },
+    {
+      "argv": [
+        "/Applications/Docker.app/Contents/Resources/bin/docker",
+        "--host",
+        "<docker-socket>",
+        "container",
+        "cp",
+        "rust-mcp-m4-inventory-7fc32fcab0ace8f2c27195007742c66c:/opt/rust-nightly-2026-09-07/bin/cargo",
+        "-"
+      ],
+      "argv_sha256": "b9adfee0833f820529b9601595bd1906d2c4133c032201b9b77fe2b7c93d1e00",
+      "exit_code": 0,
+      "seconds": 0.152,
+      "status": "exited",
+      "stderr_bytes": 0,
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_bytes": 35495936,
+      "stdout_file": "file-3.tar",
+      "stdout_limit_bytes": 67108864,
+      "stdout_sha256": "f60cea38e81522ffda684242da3ee5e9c9caa7e6261cecb5e7b47b81af1bee05",
+      "timeout_seconds": 30
+    },
+    {
+      "argv": [
+        "/Applications/Docker.app/Contents/Resources/bin/docker",
+        "--host",
+        "<docker-socket>",
+        "container",
+        "cp",
+        "rust-mcp-m4-inventory-7fc32fcab0ace8f2c27195007742c66c:/opt/rust-nightly-2026-09-07/bin/miri",
+        "-"
+      ],
+      "argv_sha256": "daff3531d138cf0b6fd394f06e80875dd7394561a0d2652baadb9b569e6fe267",
+      "exit_code": 0,
+      "seconds": 0.041,
+      "status": "exited",
+      "stderr_bytes": 0,
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_bytes": 7121408,
+      "stdout_file": "file-4.tar",
+      "stdout_limit_bytes": 67108864,
+      "stdout_sha256": "cee9d1d0821b2fe3463213cbfd338807339e724643afdd7811c556752b81b775",
+      "timeout_seconds": 30
+    },
+    {
+      "argv": [
+        "/Applications/Docker.app/Contents/Resources/bin/docker",
+        "--host",
+        "<docker-socket>",
+        "container",
+        "cp",
+        "rust-mcp-m4-inventory-7fc32fcab0ace8f2c27195007742c66c:/opt/rust-nightly-2026-09-07/bin/cargo-miri",
+        "-"
+      ],
+      "argv_sha256": "14f053b0e8eb737fd57eabdd995d28d00a746d67093deadae1347e5e64998f67",
+      "exit_code": 0,
+      "seconds": 0.024,
+      "status": "exited",
+      "stderr_bytes": 0,
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_bytes": 2430976,
+      "stdout_file": "file-5.tar",
+      "stdout_limit_bytes": 67108864,
+      "stdout_sha256": "9fe0edd15d382c7794070d5a0c6790139c1dd3952e89d31767853759a5b8bad1",
+      "timeout_seconds": 30
+    },
+    {
+      "argv": [
+        "/Applications/Docker.app/Contents/Resources/bin/docker",
+        "--host",
+        "<docker-socket>",
+        "container",
+        "cp",
+        "rust-mcp-m4-inventory-7fc32fcab0ace8f2c27195007742c66c:/opt/miri-sysroot/2026-09-07/aarch64-unknown-linux-gnu",
+        "-"
+      ],
+      "argv_sha256": "9a21af6d7738093cf645b7fbf8e152f7ba70d730a0b3e67668a575883eb36f23",
+      "exit_code": 0,
+      "seconds": 0.448,
+      "status": "exited",
+      "stderr_bytes": 0,
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_bytes": 114395648,
+      "stdout_file": "sysroot.tar",
+      "stdout_limit_bytes": 201326592,
+      "stdout_sha256": "bdc80014f3616378640d21142b46469bf8e614ce365f1827f32e5d1be6cf80b5",
+      "timeout_seconds": 90
+    },
+    {
+      "argv": [
+        "/Applications/Docker.app/Contents/Resources/bin/docker",
+        "--host",
+        "<docker-socket>",
+        "container",
+        "inspect",
+        "rust-mcp-m4-inventory-7fc32fcab0ace8f2c27195007742c66c"
+      ],
+      "argv_sha256": "2f3a17892a5444785da6a2ce20eab518b852ac64a01cb6ea27d3630e852c3513",
+      "exit_code": 0,
+      "seconds": 0.013,
+      "status": "exited",
+      "stderr_bytes": 0,
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_bytes": 6135,
+      "stdout_sha256": "de763e7ef91a70088d992f0b02ab0a68f3b5b43b14d8ed62aaa61bd336fe5462",
+      "timeout_seconds": 30
+    },
+    {
+      "argv": [
+        "/Applications/Docker.app/Contents/Resources/bin/docker",
+        "--host",
+        "<docker-socket>",
+        "image",
+        "inspect",
+        "sha256:25ed3626e710081a571a86a29521eaf2e890e796afd422ba5e409e0ce1891635"
+      ],
+      "argv_sha256": "1171869863db906d9f8a98ab5c900d937ae8c0c335503540741d9916c8c85c1b",
+      "exit_code": 0,
+      "seconds": 0.018,
+      "status": "exited",
+      "stderr_bytes": 0,
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_bytes": 1573,
+      "stdout_sha256": "030189cf862241d31127107dce7185dfd0cbf24220f4d226caac1ee32bedcc83",
+      "timeout_seconds": 30
+    },
+    {
+      "argv": [
+        "/Applications/Docker.app/Contents/Resources/bin/docker",
+        "--host",
+        "<docker-socket>",
+        "container",
+        "inspect",
+        "rust-mcp-m4-inventory-7fc32fcab0ace8f2c27195007742c66c"
+      ],
+      "argv_sha256": "2f3a17892a5444785da6a2ce20eab518b852ac64a01cb6ea27d3630e852c3513",
+      "exit_code": 0,
+      "seconds": 0.012,
+      "status": "exited",
+      "stderr_bytes": 0,
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_bytes": 6135,
+      "stdout_sha256": "de763e7ef91a70088d992f0b02ab0a68f3b5b43b14d8ed62aaa61bd336fe5462",
+      "timeout_seconds": 30
+    },
+    {
+      "argv": [
+        "/Applications/Docker.app/Contents/Resources/bin/docker",
+        "--host",
+        "<docker-socket>",
+        "container",
+        "rm",
+        "--force",
+        "fc3725f874624dcef908805d3a522eb4d2f57ce9c86bfd831232fe5618bbcbbb"
+      ],
+      "argv_sha256": "ec3f99807d2abce54355e534c352dadecacbe20931026c1028228f96b58344ca",
+      "exit_code": 0,
+      "seconds": 0.018,
+      "status": "exited",
+      "stderr_bytes": 0,
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_bytes": 65,
+      "stdout_sha256": "2d9976b778eaef80c2d5db99d19c0cc282e23e93939b6f43df0fb87ae3acd4a2",
+      "timeout_seconds": 30
+    },
+    {
+      "argv": [
+        "/Applications/Docker.app/Contents/Resources/bin/docker",
+        "--host",
+        "<docker-socket>",
+        "container",
+        "inspect",
+        "rust-mcp-m4-inventory-7fc32fcab0ace8f2c27195007742c66c"
+      ],
+      "argv_sha256": "2f3a17892a5444785da6a2ce20eab518b852ac64a01cb6ea27d3630e852c3513",
+      "exit_code": 1,
+      "seconds": 0.011,
+      "status": "exited",
+      "stderr_bytes": 102,
+      "stderr_sha256": "d468f008480f809e3b6e05abf20ea695a48dafe6cf3ce38b8d4537f8bab9392e",
+      "stdout_bytes": 3,
+      "stdout_sha256": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570",
+      "timeout_seconds": 30
+    },
+    {
+      "argv": [
+        "/Applications/Docker.app/Contents/Resources/bin/docker",
+        "--host",
+        "<docker-socket>",
+        "container",
+        "inspect",
+        "rust-mcp-m4-inventory-7fc32fcab0ace8f2c27195007742c66c"
+      ],
+      "argv_sha256": "2f3a17892a5444785da6a2ce20eab518b852ac64a01cb6ea27d3630e852c3513",
+      "exit_code": 1,
+      "seconds": 0.018,
+      "status": "exited",
+      "stderr_bytes": 102,
+      "stderr_sha256": "d468f008480f809e3b6e05abf20ea695a48dafe6cf3ce38b8d4537f8bab9392e",
+      "stdout_bytes": 3,
+      "stdout_sha256": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570",
+      "timeout_seconds": 30
+    }
+  ],
+  "container": {
+    "configuration_sha256_after": "6dc374cda103a614d0ccce375238edf7f9b9badb5fba21df434247a9218770c2",
+    "configuration_sha256_before": "6dc374cda103a614d0ccce375238edf7f9b9badb5fba21df434247a9218770c2",
+    "id": "fc3725f874624dcef908805d3a522eb4d2f57ce9c86bfd831232fe5618bbcbbb",
+    "never_started": true
+  },
+  "files": [
+    {
+      "bytes": 7869760,
+      "path": "/opt/security/bin/cargo-deny",
+      "sha256": "e9bcd2f489b8dd22cc3f3fc3452cfa0483cf8b9236a5e2787c54f864d4e77715"
+    },
+    {
+      "bytes": 2451376,
+      "path": "/opt/security/bin/rust-mcp-unsafe-helper",
+      "sha256": "af8af1a021094003cd90023a882d707f7062cc98938bb06a4c105bf75e10120b"
+    },
+    {
+      "bytes": 1262944,
+      "path": "/opt/rust-nightly-2026-09-07/bin/rustc",
+      "sha256": "7a1126253fa42b9ebbc398431f2442620368b606927e0107f99a8051052c2d3d"
+    },
+    {
+      "bytes": 35494144,
+      "path": "/opt/rust-nightly-2026-09-07/bin/cargo",
+      "sha256": "21d5d6819852f96db1d9c15afc9554a46a4ec9f1e0d52dc23aa9be4a81a9ec83"
+    },
+    {
+      "bytes": 7119680,
+      "path": "/opt/rust-nightly-2026-09-07/bin/miri",
+      "sha256": "a3dad3cf43a3b8097b55f6c7ca08386af004c433c4e0e8125d3e62cecdc4ff85"
+    },
+    {
+      "bytes": 2429256,
+      "path": "/opt/rust-nightly-2026-09-07/bin/cargo-miri",
+      "sha256": "7faa3486e6a51ae74cdf404358fb028ddeaaa2bb56604b175d8e9fe8463c6842"
+    }
+  ],
+  "finished_at": "2026-09-08T06:12:56.896523Z",
+  "guest_code_executed": false,
+  "image_id": "sha256:25ed3626e710081a571a86a29521eaf2e890e796afd422ba5e409e0ce1891635",
+  "image_inspect_after_sha256": "e020d76dfa3da9ed1930c3e866e2fc90198bb5de18c250a7d310970c433442af",
+  "image_inspect_before_sha256": "e020d76dfa3da9ed1930c3e866e2fc90198bb5de18c250a7d310970c433442af",
+  "inputs_after": {
+    "docker_cli_sha256": "a6822407e207ff0b687419ccbe55700ffbf389d77de58ef625b3b1790d88747c",
+    "image_config_sha256": "d8d93acf90361870ba0096a58b14f9be58ebe92c29146464925ba5544901b51d",
+    "script_sha256": "9a5a3fffff618190dacd79916123543dfb916848a95513fa1460d54b63f3eb6b"
+  },
+  "inputs_before": {
+    "docker_cli_sha256": "a6822407e207ff0b687419ccbe55700ffbf389d77de58ef625b3b1790d88747c",
+    "image_config_sha256": "d8d93acf90361870ba0096a58b14f9be58ebe92c29146464925ba5544901b51d",
+    "script_sha256": "9a5a3fffff618190dacd79916123543dfb916848a95513fa1460d54b63f3eb6b"
+  },
+  "inputs_unchanged": true,
+  "network_used": false,
+  "schema": "rust-mcp-m4-inventory-v2",
+  "started_at": "2026-09-08T06:12:55.709555Z",
+  "status": "passed",
+  "sysroot_file_bytes": 114335161,
+  "sysroot_file_count": 82,
+  "sysroot_tree_sha256": "68324d8d8b2dcb55616ff2e53c7c91f4db78ada40ceafe189f933899d8a1f136"
+}

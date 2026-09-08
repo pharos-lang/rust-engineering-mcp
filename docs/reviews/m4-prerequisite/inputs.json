@@ -1,0 +1,256 @@
+{
+  "head": "c66a3704e1ad290603a3c1d10413df90d15c2b03",
+  "base": "e2ec7da",
+  "files": [
+    {
+      "path": "Cargo.lock",
+      "bytes": 158393,
+      "sha256": "d67b10b35167578a08022daa4edf6232ec08db6ff932b2394d1a203fade86019"
+    },
+    {
+      "path": "Cargo.toml",
+      "bytes": 2803,
+      "sha256": "77be724116fb6f86b2f696e0b596cf6d96638706f8e8487cec6d81cf2fa34150"
+    },
+    {
+      "path": "crates/execution-adapter/src/coverage_gateway.rs",
+      "bytes": 14700,
+      "sha256": "ead17016e6a9600434436f98b18cc60fecb63fd44b7803b030cf8fe9465d1f4b"
+    },
+    {
+      "path": "crates/execution-adapter/src/mutation_gateway.rs",
+      "bytes": 47053,
+      "sha256": "7239d1dafb73b7345fb07b906e7b762065274e4907d37ec7e4e912d509d8c112"
+    },
+    {
+      "path": "crates/execution-adapter/src/mutation_outcomes.rs",
+      "bytes": 42428,
+      "sha256": "ae379bbdd8c1a8f3f6af0c444a7aee595f9a25144cce5e8790406130734cefe2"
+    },
+    {
+      "path": "crates/execution-adapter/src/mutation_test_gateway.rs",
+      "bytes": 23783,
+      "sha256": "ba52597b4ca82b7f987adb900c5dc5160f6008f8b17c0d1993e666ca4129e72c"
+    },
+    {
+      "path": "crates/execution-adapter/src/nextest_gateway.rs",
+      "bytes": 18668,
+      "sha256": "5d1dd2e5e6736582b85279f098e90ab4fea6fbb4fd4f20e76277b45e695959d1"
+    },
+    {
+      "path": "crates/execution-adapter/src/rust_applied.rs",
+      "bytes": 62175,
+      "sha256": "0d213929c51a6da9e10fcc778340ac1de8e6b232b623f583be9ebf208dce6a51"
+    },
+    {
+      "path": "crates/execution-adapter/src/rust_gateway.rs",
+      "bytes": 106089,
+      "sha256": "5197f62f27c344215092e2bc68e2ef745696121346fa779b99020bcfa6842e85"
+    },
+    {
+      "path": "crates/execution-adapter/src/semver_gateway.rs",
+      "bytes": 6970,
+      "sha256": "62807990fa7163578fbbb938822c2c14c5f73462c022e0e869ea9d0c40e17f07"
+    },
+    {
+      "path": "crates/mcp-server/src/stdio.rs",
+      "bytes": 41773,
+      "sha256": "7fe6b498f3b103ad785ca9a04d79bb443df0bced88aab1e982c5f8686e5e4485"
+    },
+    {
+      "path": "crates/mcp-server/src/stdio/auditing.rs",
+      "bytes": 22651,
+      "sha256": "ee2c9f0cdc8063b87a6eac1914c9318b2ef978fe05a8fc2585a07e926c0b4c19"
+    },
+    {
+      "path": "crates/mcp-server/src/stdio/auditing/tests.rs",
+      "bytes": 19861,
+      "sha256": "6513aedfecfb8a8c7caceb5cf9f107787225d6bedb756a3090cdf21b2e7c1949"
+    },
+    {
+      "path": "crates/mcp-server/src/stdio/catalog.rs",
+      "bytes": 9735,
+      "sha256": "eee25e4d2d69025ae084a0bdde65534bb9572e1ca4b64ef753509c65dd8820ba"
+    },
+    {
+      "path": "crates/mcp-server/src/stdio/check.rs",
+      "bytes": 19963,
+      "sha256": "777580b05f0cc21f978d0bfcc5eef68427f5076738a54a6ee03ae754f51d5d08"
+    },
+    {
+      "path": "crates/mcp-server/src/stdio/check/tests.rs",
+      "bytes": 15699,
+      "sha256": "1f8a2cd182f98197142944f58e379c2c3ff128aadd738e4f3279e149bf89bea7"
+    },
+    {
+      "path": "crates/mcp-server/src/stdio/clippy.rs",
+      "bytes": 20051,
+      "sha256": "a66e19b91ef7ea059bb84c58982410e67f94611a60baf3c3118500f9ffd022ba"
+    },
+    {
+      "path": "crates/mcp-server/src/stdio/clippy/tests.rs",
+      "bytes": 17986,
+      "sha256": "1e79c8b73b3895b44907b0069cc1ac91c8fc5f8e07db6e3fcebb529708000f38"
+    },
+    {
+      "path": "crates/mcp-server/src/stdio/clock.rs",
+      "bytes": 918,
+      "sha256": "4100d0f37f8617be41b537b74f21ca60c02a67b4fd1076666c7bf70315cb0cc0"
+    },
+    {
+      "path": "crates/mcp-server/src/stdio/coverage.rs",
+      "bytes": 20555,
+      "sha256": "74f503bf95dd9fb331879fb8f0385b6997beb702c0070e0803b2f4e818c6ca5e"
+    },
+    {
+      "path": "crates/mcp-server/src/stdio/coverage/tests.rs",
+      "bytes": 17594,
+      "sha256": "338e68ff8bb9f96b7ca93f921bae9aaf8e5aba8556dc29b78f357145a10be7d4"
+    },
+    {
+      "path": "crates/mcp-server/src/stdio/crate_inspect.rs",
+      "bytes": 14289,
+      "sha256": "2171578d959c2009f8a3a181fe06b4cc1f046811c2b2410394f873738cb30942"
+    },
+    {
+      "path": "crates/mcp-server/src/stdio/crate_search.rs",
+      "bytes": 13259,
+      "sha256": "e4026dd4ebf4372931aa6fd96ee63bb7905fb85946c0752bc5e1e8f526333afb"
+    },
+    {
+      "path": "crates/mcp-server/src/stdio/explaining.rs",
+      "bytes": 14650,
+      "sha256": "a0e64b2902cb60a989821d5ec31f066ad45893d3eda9acea4ea0e48366a47c1b"
+    },
+    {
+      "path": "crates/mcp-server/src/stdio/explaining/tests.rs",
+      "bytes": 16061,
+      "sha256": "7fddc27d9371a7c86c48f59547bc49ea19b59375a4bf4058fa5c86c3f35b371b"
+    },
+    {
+      "path": "crates/mcp-server/src/stdio/format.rs",
+      "bytes": 21721,
+      "sha256": "0ca0e0bad31adcf983ee03b440ba019af24b0f29eb9d773663d3672f612bf914"
+    },
+    {
+      "path": "crates/mcp-server/src/stdio/format/tests.rs",
+      "bytes": 18507,
+      "sha256": "7ab7cf9236329d3981dd65d9332fc9798a31e754b9703e86cf0c7558b9d88ad2"
+    },
+    {
+      "path": "crates/mcp-server/src/stdio/inspection.rs",
+      "bytes": 12338,
+      "sha256": "4d42c7eb4cb4bf0442c34928b2e3e4cb8574ba4edde55f5c7275c696c788ed38"
+    },
+    {
+      "path": "crates/mcp-server/src/stdio/mutation_test.rs",
+      "bytes": 30573,
+      "sha256": "7231c785ea31effad25d8f65c8f83031e2ebcf78a6b498dbbfd06ea609bdffd1"
+    },
+    {
+      "path": "crates/mcp-server/src/stdio/mutation_test/tests.rs",
+      "bytes": 22760,
+      "sha256": "6a0f234d7786a1299527af6ca0bb0ea1a28c3502e3a1675e863143d0460cd135"
+    },
+    {
+      "path": "crates/mcp-server/src/stdio/nextest.rs",
+      "bytes": 49602,
+      "sha256": "edd2f1e7fa436ee2c787b04418d5f2c04df14ab37b19a4cf840f70b1390a3dce"
+    },
+    {
+      "path": "crates/mcp-server/src/stdio/operational.rs",
+      "bytes": 4487,
+      "sha256": "8708ca53728adaecb94e98663971d90955fb1e406c2699e5a2b30659e43d2f71"
+    },
+    {
+      "path": "crates/mcp-server/src/stdio/quality.rs",
+      "bytes": 31549,
+      "sha256": "46661255b530074dec127689aff71cacba3f39361f54043d51c5477537f55207"
+    },
+    {
+      "path": "crates/mcp-server/src/stdio/quality/tests.rs",
+      "bytes": 20850,
+      "sha256": "a6b46e27278dcae51a8ee5640fbc4dfe83701a35e7099355e22ed6edd78a58e8"
+    },
+    {
+      "path": "crates/mcp-server/src/stdio/resources.rs",
+      "bytes": 15883,
+      "sha256": "983d6bd476fe72951b82f3eb3b2dde675762b1dbd5a138c05a4e64d516b12c18"
+    },
+    {
+      "path": "crates/mcp-server/src/stdio/semver.rs",
+      "bytes": 27448,
+      "sha256": "8e09b356ff8b64503883d27bb1fff4cb00b4532d7ba0513f7856b25f654b8a22"
+    },
+    {
+      "path": "crates/mcp-server/src/stdio/semver/tests.rs",
+      "bytes": 20743,
+      "sha256": "f8c3c441defc99a5b906711f6a7db2d31941941138fd15bd06ef980b4fe9bda2"
+    },
+    {
+      "path": "crates/mcp-server/src/stdio/tasks/tests.rs",
+      "bytes": 33862,
+      "sha256": "0365cfcb37a0768224040050d56afe432c5c86a9015f12572dcaaf08b1857397"
+    },
+    {
+      "path": "crates/mcp-server/src/stdio/testing.rs",
+      "bytes": 21718,
+      "sha256": "011ba6699ed7f86d35a0eac67e0a94641e54292387db0b1080cec2ec15afb990"
+    },
+    {
+      "path": "crates/mcp-server/src/stdio/testing/tests.rs",
+      "bytes": 20585,
+      "sha256": "a7a35eb18749cfb833fe1426d19737ac560f55573b05fc45d715a782d7c28d30"
+    },
+    {
+      "path": "crates/mcp-server/src/stdio/toolchain.rs",
+      "bytes": 12693,
+      "sha256": "61ad6e3c131d0d5b6f026d0a6d5eea30736b3c785ef0adf1360137e741dcbd0c"
+    },
+    {
+      "path": "crates/mcp-server/src/stdio/toolchain/tests.rs",
+      "bytes": 15427,
+      "sha256": "69bb13cf66c2aba416e575299edb34491478e839b58fcc5f725d8295c0fa4ad0"
+    },
+    {
+      "path": "crates/mcp-server/src/stdio/workers.rs",
+      "bytes": 35561,
+      "sha256": "c55eaba0b228264fe6ce24793b1bc16172ce55d92ad8bec08a809f44a685291c"
+    },
+    {
+      "path": "crates/project-adapter/src/filesystem/macos/mutation.rs",
+      "bytes": 105764,
+      "sha256": "3eaf333a5f9b06c128b4bb711b2d7ab578eeadea087afdc321196685f033c169"
+    },
+    {
+      "path": "crates/project-adapter/tests/cargo_vendor.rs",
+      "bytes": 10390,
+      "sha256": "b4577bf56c840ca711dbe95fd723ef83cc9edd8d5af447476163353649863bd2"
+    },
+    {
+      "path": "crates/project-adapter/tests/mutation_digest.rs",
+      "bytes": 7037,
+      "sha256": "8b3e5b668e56cad38b9ba897cf308bbf2e20c8e31769809a18d8ca00510ce0a6"
+    },
+    {
+      "path": "crates/project-adapter/tests/support/native_mutation.rs",
+      "bytes": 115100,
+      "sha256": "f6af9229a13594601992eb0e7817a8257493a119abf9817e97d4f1c94d207a5d"
+    },
+    {
+      "path": "scripts/probe-m2-cargo-fix.py",
+      "bytes": 33966,
+      "sha256": "7adbb4ef623f8d322b867162bdd8b8f20490051a8e1746b499ee2455739ff976"
+    },
+    {
+      "path": "scripts/probe-m2-fix-socket-mask.py",
+      "bytes": 21339,
+      "sha256": "a0fa3a38d520743e10e0c68f5fe5be5d9d0ff7f6b5150c9cf89766e643cbdf48"
+    },
+    {
+      "path": "sonar-project.properties",
+      "bytes": 2902,
+      "sha256": "1bc393299761ae9da53c01307bf9494fd38fccde0365d0ac584b5a1a8047860c"
+    }
+  ]
+}

@@ -1,0 +1,61 @@
+{
+  "cases": [
+    {
+      "case": "build-script",
+      "cleanup_verified": true,
+      "elapsed_ms": 4583,
+      "error": "ClassificationIntegrityUnsupported",
+      "miri_running_observed": false,
+      "source": "sha256:4ddd1d31527074de2c957f164575a2b32f77d7cb8152a0cadea8bd38173d6e41"
+    },
+    {
+      "case": "proc-macro",
+      "cleanup_verified": true,
+      "elapsed_ms": 4620,
+      "error": "ClassificationIntegrityUnsupported",
+      "miri_running_observed": false,
+      "source": "sha256:fb59af86d5029ddf7979572e309b4b523e536213aa3e9256082f85bbda697123"
+    },
+    {
+      "case": "custom-harness",
+      "cleanup_verified": true,
+      "elapsed_ms": 4528,
+      "error": "ClassificationIntegrityUnsupported",
+      "miri_running_observed": false,
+      "source": "sha256:dd253258d5b68e1345f70ddac6402f31635522bfa707feb2bea57445e042f116"
+    },
+    {
+      "case": "cargo-config",
+      "cleanup_verified": true,
+      "elapsed_ms": 38,
+      "error": "ClassificationIntegrityUnsupported",
+      "miri_running_observed": false,
+      "source": "sha256:d2d40f10a08f28e31f52a9d7159b4a6c9d4a57aa9819470f4817de6ddf792bea"
+    },
+    {
+      "case": "nested-toolchain",
+      "cleanup_verified": true,
+      "elapsed_ms": 41,
+      "error": "ClassificationIntegrityUnsupported",
+      "miri_running_observed": false,
+      "source": "sha256:1edc9327d17bdbd529a71eaaacd00dadf09867c82d034e10b953dfeb8f10bf92"
+    },
+    {
+      "case": "timeout",
+      "cleanup_verified": true,
+      "elapsed_ms": 20789,
+      "error": "Timeout",
+      "miri_running_observed": true,
+      "source": "sha256:060b36d77c1ed66102feb3e8855bf7c7ad61daa0d667a8865505567d06f8e955"
+    },
+    {
+      "case": "cancel",
+      "cleanup_verified": true,
+      "elapsed_ms": 11292,
+      "error": "Inspection(Project(Cancelled))",
+      "miri_running_observed": true,
+      "source": "sha256:060b36d77c1ed66102feb3e8855bf7c7ad61daa0d667a8865505567d06f8e955"
+    }
+  ],
+  "image_id": "sha256:25ed3626e710081a571a86a29521eaf2e890e796afd422ba5e409e0ce1891635"
+}

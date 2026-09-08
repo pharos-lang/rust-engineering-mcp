@@ -1,0 +1,20 @@
+{"fields":{"level":"INFO","message":"network access disabled via --offline (or --frozen) flag, disabling advisory database fetching","timestamp":"2026-09-07T23:17:17.015653834Z"},"type":"log"}
+{"fields":{"level":"INFO","message":"using config from /security/deny.toml","timestamp":"2026-09-07T23:17:17.015733209Z"},"type":"log"}
+{"fields":{"level":"DEBUG","message":"loading license store...","timestamp":"2026-09-07T23:17:17.016033126Z"},"type":"log"}
+{"fields":{"level":"INFO","message":"fetching crates for /source/Cargo.toml","timestamp":"2026-09-07T23:17:17.080239043Z"},"type":"log"}
+{"fields":{"level":"INFO","message":"fetched crates in 21.212666ms","timestamp":"2026-09-07T23:17:17.101450626Z"},"type":"log"}
+{"fields":{"level":"INFO","message":"gathering crates for /source/Cargo.toml","timestamp":"2026-09-07T23:17:17.101465918Z"},"type":"log"}
+{"fields":{"level":"DEBUG","message":"gathering crate metadata","timestamp":"2026-09-07T23:17:17.101474168Z"},"type":"log"}
+{"fields":{"level":"DEBUG","message":"gathered crate metadata in 0ms","timestamp":"2026-09-07T23:17:17.101485334Z"},"type":"log"}
+{"fields":{"level":"INFO","message":"gathered 1 crates in 3ms","timestamp":"2026-09-07T23:17:17.105159084Z"},"type":"log"}
+{"fields":{"level":"INFO","message":"no workspace dependencies were declared","timestamp":"2026-09-07T23:17:17.106922584Z"},"type":"log"}
+{"fields":{"level":"INFO","message":"checking sources...","timestamp":"2026-09-07T23:17:17.111336918Z"},"type":"log"}
+{"fields":{"level":"INFO","message":"sources checked in 0ms","timestamp":"2026-09-07T23:17:17.111351584Z"},"type":"log"}
+{"fields":{"level":"INFO","message":"checking bans...","timestamp":"2026-09-07T23:17:17.111361459Z"},"type":"log"}
+{"fields":{"level":"INFO","message":"bans checked in 0ms","timestamp":"2026-09-07T23:17:17.111385084Z"},"type":"log"}
+{"fields":{"level":"INFO","message":"checking licenses...","timestamp":"2026-09-07T23:17:17.111398626Z"},"type":"log"}
+{"fields":{"level":"INFO","message":"licenses checked in 7ms","timestamp":"2026-09-07T23:17:17.118872501Z"},"type":"log"}
+{"fields":{"code":"no-license-field","graphs":[{"Krate":{"name":"m4-deny-probe","version":"0.1.0"}}],"message":"license expression was not specified in manifest for crate 'm4-deny-probe = 0.1.0'","severity":"warning"},"type":"diagnostic"}
+{"fields":{"code":"rejected","graphs":[{"Krate":{"name":"m4-deny-probe","version":"0.1.0"}}],"labels":[{"column":15,"line":5,"message":"license expression retrieved via license files: LICENSE","span":"MIT"},{"column":15,"line":5,"message":"rejected: license is not explicitly allowed","span":"MIT"}],"message":"failed to satisfy license requirements","notes":["MIT - MIT License:","  - OSI approved","  - FSF Free/Libre"],"severity":"error"},"type":"diagnostic"}
+{"fields":{"code":"license-not-encountered","graphs":[],"labels":[{"column":11,"line":9,"message":"unmatched license allowance","span":"Apache-2.0"}],"message":"license was not encountered","severity":"warning"},"type":"diagnostic"}
+{"fields":{"bans":{"errors":0,"helps":0,"notes":0,"warnings":0},"licenses":{"errors":1,"helps":0,"notes":0,"warnings":2},"sources":{"errors":0,"helps":0,"notes":0,"warnings":0}},"type":"summary"}

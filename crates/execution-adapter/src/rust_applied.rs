@@ -24,10 +24,18 @@ struct Config {
     labels: BTreeMap<String, String>,
     env: Vec<String>,
     entrypoint: Vec<String>,
+    #[serde(deserialize_with = "command_arguments")]
     cmd: Vec<String>,
     working_dir: String,
     image: String,
     volumes: Option<BTreeMap<String, serde_json::Value>>,
+}
+// Docker represents an explicitly empty argv as null. Missing Cmd still fails
+// deserialization; every phase compares the normalized argv with its closed list.
+fn command_arguments<'de, D: serde::Deserializer<'de>>(
+    deserializer: D,
+) -> Result<Vec<String>, D::Error> {
+    Option::<Vec<String>>::deserialize(deserializer).map(Option::unwrap_or_default)
 }
 #[derive(Deserialize)]
 #[serde(rename_all = "PascalCase")]
@@ -94,9 +102,9 @@ struct Restart {
 /// groups, no OOM or cgroup tuning, no sysctls, no ulimits and the fixed masked
 /// and read-only proc paths, under runc without its init. `interactive` is the
 /// one shape that varies: only an ingesting or interactive phase opens stdin.
-/// The two labels bind the container to this product and to one job nonce, so a
+/// The two labels bind the container to this product and to one job operation_id, so a
 /// container created by anything else is never adopted.
-fn no_host_authority(c: &Created, nonce: &str, interactive: bool) -> bool {
+fn no_host_authority(c: &Created, operation_id: &str, interactive: bool) -> bool {
     let h = &c.host_config;
     !c.config.tty
         && c.config.open_stdin == interactive
@@ -105,7 +113,7 @@ fn no_host_authority(c: &Created, nonce: &str, interactive: bool) -> bool {
         && c.config.labels
             == BTreeMap::from([
                 ("org.rust-mcp.execution".into(), "true".into()),
-                ("org.rust-mcp.rust-job".into(), nonce.into()),
+                ("org.rust-mcp.rust-job".into(), operation_id.into()),
             ])
         && !h.auto_remove
         && h.group_add.as_ref().is_none_or(Vec::is_empty)
@@ -231,9 +239,9 @@ pub(super) fn verify(
     image: &str,
     phase: &Phase,
     volume: &Volume,
-    nonce: &str,
+    operation_id: &str,
 ) -> Result<(), ExecutionError> {
-    verify_rust(bytes, image, phase, volume, None, nonce)
+    verify_rust(bytes, image, phase, volume, None, operation_id)
 }
 
 pub(super) fn verify_nextest(
@@ -243,7 +251,7 @@ pub(super) fn verify_nextest(
     volume: &Volume,
     junit: &MutationVolume,
     junit_writable: bool,
-    nonce: &str,
+    operation_id: &str,
 ) -> Result<(), ExecutionError> {
     verify_rust(
         bytes,
@@ -251,7 +259,7 @@ pub(super) fn verify_nextest(
         phase,
         volume,
         Some((junit, junit_writable)),
-        nonce,
+        operation_id,
     )
 }
 
@@ -264,19 +272,21 @@ pub(super) fn verify_coverage(
     volume: &Volume,
     output: &MutationVolume,
     target: &MutationVolume,
-    nonce: &str,
+    operation_id: &str,
 ) -> Result<(), ExecutionError> {
     let output_writable = !matches!(
         phase,
         Phase::ExportCoverageJson | Phase::ExportCoverageLcov | Phase::ExportCoverageHtml
     );
-    if !named_tmpfs_volume_is_exact(output, super::mutation_gateway::VOLUME_OPTIONS, nonce)
-        || !named_tmpfs_volume_is_exact(
-            target,
-            super::coverage_gateway::COVERAGE_TARGET_VOLUME_OPTIONS,
-            nonce,
-        )
-    {
+    if !named_tmpfs_volume_is_exact(
+        output,
+        super::mutation_gateway::VOLUME_OPTIONS,
+        operation_id,
+    ) || !named_tmpfs_volume_is_exact(
+        target,
+        super::coverage_gateway::COVERAGE_TARGET_VOLUME_OPTIONS,
+        operation_id,
+    ) {
         return Err(ExecutionError::InvalidConfiguration);
     }
     verify_rust_generic(
@@ -290,11 +300,11 @@ pub(super) fn verify_coverage(
         phase
             .coverage_target_writable()
             .map(|writable| (target, writable)),
-        nonce,
+        operation_id,
     )
 }
 
-fn named_tmpfs_volume_is_exact(volume: &MutationVolume, options: &str, nonce: &str) -> bool {
+fn named_tmpfs_volume_is_exact(volume: &MutationVolume, options: &str, operation_id: &str) -> bool {
     volume.driver == "local"
         && volume.scope == "local"
         && volume.options
@@ -303,7 +313,7 @@ fn named_tmpfs_volume_is_exact(volume: &MutationVolume, options: &str, nonce: &s
                 ("o".into(), options.into()),
                 ("type".into(), "tmpfs".into()),
             ])
-        && volume.labels == super::rust_gateway::labels(nonce)
+        && volume.labels == super::rust_gateway::labels(operation_id)
         && volume.mountpoint.starts_with("/var/lib/docker/volumes/")
         && volume.mountpoint.ends_with("/_data")
         && volume.cluster_volume.is_none()
@@ -322,7 +332,7 @@ pub(super) fn verify_mutation_test(
     volume: &Volume,
     output: &MutationVolume,
     writable: bool,
-    nonce: &str,
+    operation_id: &str,
 ) -> Result<(), ExecutionError> {
     verify_rust_output(
         bytes,
@@ -332,7 +342,7 @@ pub(super) fn verify_mutation_test(
         output,
         writable,
         super::mutation_test_gateway::MUTATION_OUTPUT_TARGET,
-        nonce,
+        operation_id,
     )
 }
 
@@ -345,7 +355,7 @@ pub(super) fn verify_semver(
     phase: &Phase,
     volume: &Volume,
     baseline: &Volume,
-    nonce: &str,
+    operation_id: &str,
 ) -> Result<(), ExecutionError> {
     verify_rust_generic(
         bytes,
@@ -356,7 +366,7 @@ pub(super) fn verify_semver(
         None,
         Some(baseline),
         None,
-        nonce,
+        operation_id,
     )
 }
 
@@ -366,7 +376,7 @@ fn verify_rust(
     phase: &Phase,
     volume: &Volume,
     junit: Option<(&MutationVolume, bool)>,
-    nonce: &str,
+    operation_id: &str,
 ) -> Result<(), ExecutionError> {
     verify_rust_generic(
         bytes,
@@ -377,7 +387,7 @@ fn verify_rust(
         Some("/junit"),
         None,
         None,
-        nonce,
+        operation_id,
     )
 }
 
@@ -390,7 +400,7 @@ fn verify_rust_output(
     output: &MutationVolume,
     writable: bool,
     target: &str,
-    nonce: &str,
+    operation_id: &str,
 ) -> Result<(), ExecutionError> {
     verify_rust_generic(
         bytes,
@@ -401,7 +411,7 @@ fn verify_rust_output(
         Some(target),
         None,
         None,
-        nonce,
+        operation_id,
     )
 }
 
@@ -415,13 +425,13 @@ fn verify_rust_generic(
     output_target: Option<&str>,
     baseline: Option<&Volume>,
     coverage_target: Option<(&MutationVolume, bool)>,
-    nonce: &str,
+    operation_id: &str,
 ) -> Result<(), ExecutionError> {
     let c = only_created(bytes)?;
     let c = &c;
     let h = &c.host_config;
     let profile_ok = applied_profile_ok(c, phase.seccomp_profile_json())?;
-    let safe = no_host_authority(c, nonce, phase.ingesting())
+    let safe = no_host_authority(c, operation_id, phase.ingesting())
         && mounts_ok(
             c,
             phase,
@@ -656,7 +666,7 @@ pub(super) fn verify_mutation(
     image: &str,
     phase: MutationPhase,
     volume: &MutationVolume,
-    nonce: &str,
+    operation_id: &str,
 ) -> Result<(), ExecutionError> {
     let c = only_created(bytes)?;
     let c = &c;
@@ -669,7 +679,7 @@ pub(super) fn verify_mutation(
             include_str!("seccomp-rust.json")
         },
     )?;
-    let safe = no_host_authority(c, nonce, phase.interactive())
+    let safe = no_host_authority(c, operation_id, phase.interactive())
         && mutation_mounts_ok(c, phase, volume)?
         && applied_limits_ok(c, image)
         && profile_ok
@@ -733,6 +743,13 @@ fn resolution_mounts_ok(
     if phase.vendor_mounted() {
         expected.push(("/rust-mcp-vendor", vendor, phase.vendor_writable()));
     }
+    expected_volume_mounts_ok(c, expected)
+}
+
+fn expected_volume_mounts_ok(
+    c: &Created,
+    expected: Vec<(&str, &MutationVolume, bool)>,
+) -> Result<bool, ExecutionError> {
     if c.mounts.len() != expected.len() || c.host_config.mounts.len() != expected.len() {
         return Ok(false);
     }
@@ -786,13 +803,13 @@ pub(super) fn verify_resolution(
     phase: super::resolution_gateway::ResolutionPhase,
     source: &MutationVolume,
     vendor: &MutationVolume,
-    nonce: &str,
+    operation_id: &str,
 ) -> Result<(), ExecutionError> {
     let c = only_created(bytes)?;
     let c = &c;
     let h = &c.host_config;
     let profile_ok = applied_profile_ok(c, include_str!("seccomp-rust.json"))?;
-    let safe = no_host_authority(c, nonce, phase.interactive())
+    let safe = no_host_authority(c, operation_id, phase.interactive())
         && resolution_mounts_ok(c, phase, source, vendor)?
         && applied_limits_ok(c, image)
         && profile_ok
@@ -801,6 +818,48 @@ pub(super) fn verify_resolution(
         && c.config.entrypoint == [phase.program()]
         && c.config.cmd == phase.arguments()
         && sorted_env(c) == super::rust_gateway::environment();
+    if safe {
+        Ok(())
+    } else {
+        Err(ExecutionError::InvalidConfiguration)
+    }
+}
+
+#[allow(clippy::too_many_arguments)] // Three independent mounts plus runtime/phase/ownership authority.
+pub(super) fn verify_security(
+    bytes: &[u8],
+    image: &str,
+    phase: super::security_gateway::SecurityPhase,
+    volumes: &super::security_gateway::SecurityVolumes<'_>,
+    operation_id: &str,
+) -> Result<(), ExecutionError> {
+    let c = only_created(bytes)?;
+    let mut expected = Vec::new();
+    if phase.source_mounted() {
+        expected.push(("/source", volumes.source, phase.source_writable()));
+    }
+    if phase.vendor_mounted() {
+        expected.push(("/rust-mcp-vendor", volumes.vendor, phase.vendor_writable()));
+    }
+    if phase.policy_mounted() {
+        expected.push(("/security", volumes.policy, phase.policy_writable()));
+    }
+    if phase.junit_mounted() {
+        expected.push((
+            "/junit",
+            volumes.junit.ok_or(ExecutionError::InvalidConfiguration)?,
+            phase.junit_writable(),
+        ));
+    }
+    let safe = no_host_authority(&c, operation_id, phase.interactive())
+        && expected_volume_mounts_ok(&c, expected)?
+        && applied_limits_ok(&c, image)
+        && applied_profile_ok(&c, phase.profile())?
+        && c.host_config.tmpfs.len() == 2
+        && c.config.user == "65534:65534"
+        && c.config.entrypoint == [phase.program()]
+        && c.config.cmd == phase.arguments()
+        && sorted_env(&c) == phase.environment();
     if safe {
         Ok(())
     } else {
@@ -1661,6 +1720,160 @@ mod tests {
                     );
                 }
             }
+        }
+        Ok(())
+    }
+
+    #[test]
+    fn security_phases_require_exact_three_volume_permissions_and_no_host_authority()
+    -> Result<(), Box<dyn std::error::Error>> {
+        use crate::security_gateway::SecurityPhase;
+        for phase in [
+            SecurityPhase::SourceGuardian,
+            SecurityPhase::VendorGuardian,
+            SecurityPhase::PolicyGuardian,
+            SecurityPhase::SourceIngest,
+            SecurityPhase::VendorIngest,
+            SecurityPhase::PolicyIngest,
+            SecurityPhase::Metadata,
+            SecurityPhase::MetadataIngest,
+            SecurityPhase::Deny,
+            SecurityPhase::UnsafeScan,
+            SecurityPhase::Miri,
+            SecurityPhase::MiriOutputGuardian,
+            SecurityPhase::MiriExport,
+        ] {
+            let (mut base, source, vendor) = resolution_fixture(ResolutionPhase::Frozen)?;
+            let policy = MutationVolume {
+                name: "policy-volume".into(),
+                mountpoint: "/var/lib/docker/volumes/policy-volume/_data".into(),
+                ..source.clone()
+            };
+            let junit = MutationVolume {
+                name: "junit-volume".into(),
+                mountpoint: "/var/lib/docker/volumes/junit-volume/_data".into(),
+                ..source.clone()
+            };
+            let volumes = crate::security_gateway::SecurityVolumes {
+                source: &source,
+                vendor: &vendor,
+                policy: &policy,
+                junit: Some(&junit),
+            };
+            let profile: Value = serde_json::from_str(phase.profile())?;
+            base[0]["HostConfig"]["SecurityOpt"] =
+                json!(["no-new-privileges=true", format!("seccomp={profile}")]);
+            base[0]["Config"]["OpenStdin"] = json!(phase.interactive());
+            base[0]["Config"]["AttachStdin"] = json!(phase.interactive());
+            base[0]["Config"]["StdinOnce"] = json!(phase.interactive());
+            base[0]["Config"]["Entrypoint"] = json!([phase.program()]);
+            base[0]["Config"]["Cmd"] = json!(phase.arguments());
+            base[0]["Config"]["Env"] = json!(phase.environment());
+            let a_template = base[0]["Mounts"][0].clone();
+            let r_template = base[0]["HostConfig"]["Mounts"][0].clone();
+            let mut applied = Vec::new();
+            let mut requested = Vec::new();
+            for (path, volume, mounted, writable) in [
+                (
+                    "/source",
+                    &source,
+                    phase.source_mounted(),
+                    phase.source_writable(),
+                ),
+                (
+                    "/rust-mcp-vendor",
+                    &vendor,
+                    phase.vendor_mounted(),
+                    phase.vendor_writable(),
+                ),
+                (
+                    "/security",
+                    &policy,
+                    phase.policy_mounted(),
+                    phase.policy_writable(),
+                ),
+                (
+                    "/junit",
+                    &junit,
+                    phase.junit_mounted(),
+                    phase.junit_writable(),
+                ),
+            ] {
+                if !mounted {
+                    continue;
+                }
+                let mut a = a_template.clone();
+                a["Destination"] = json!(path);
+                a["Source"] = json!(volume.mountpoint);
+                a["Name"] = json!(volume.name);
+                a["RW"] = json!(writable);
+                applied.push(a);
+                let mut r = r_template.clone();
+                r["Target"] = json!(path);
+                r["Source"] = json!(volume.name);
+                r["ReadOnly"] = json!(!writable);
+                requested.push(r);
+            }
+            base[0]["Mounts"] = json!(applied);
+            base[0]["HostConfig"]["Mounts"] = json!(requested);
+            let check = |value: &Value| {
+                verify_security(
+                    &serde_json::to_vec(value).unwrap_or_default(),
+                    crate::APPROVED_RUST_IMAGE,
+                    phase,
+                    &volumes,
+                    "fixture",
+                )
+            };
+            assert_eq!(check(&base), Ok(()), "{phase:?}");
+            let mut null_command = base.clone();
+            null_command[0]["Config"]["Cmd"] = Value::Null;
+            assert_eq!(
+                check(&null_command).is_ok(),
+                phase.arguments().is_empty(),
+                "null Cmd for {phase:?}"
+            );
+            let mut missing_command = base.clone();
+            missing_command[0]["Config"]
+                .as_object_mut()
+                .ok_or("Config object")?
+                .remove("Cmd");
+            assert!(
+                check(&missing_command).is_err(),
+                "missing Cmd for {phase:?}"
+            );
+
+            for (path, changed) in mutation_security_changes(MutationPhase::Guardian) {
+                // Per-phase stdin/argv and mounts have their own discriminators below.
+                if path.starts_with("/0/Mounts/") || path.starts_with("/0/HostConfig/Mounts/") {
+                    continue;
+                }
+                let mut invalid = base.clone();
+                if invalid.pointer(path) == Some(&changed) {
+                    continue;
+                }
+                set_fixture_value(&mut invalid, path, changed)?;
+                assert!(check(&invalid).is_err(), "{phase:?} accepted {path}");
+            }
+            for index in 0..applied.len() {
+                for requested_side in [false, true] {
+                    let mut invalid = base.clone();
+                    if requested_side {
+                        invalid[0]["HostConfig"]["Mounts"][index]["ReadOnly"] =
+                            json!(!requested[index]["ReadOnly"].as_bool().unwrap_or(false));
+                    } else {
+                        invalid[0]["Mounts"][index]["RW"] =
+                            json!(!applied[index]["RW"].as_bool().unwrap_or(false));
+                    }
+                    assert!(
+                        check(&invalid).is_err(),
+                        "{phase:?} accepted access flip {index}"
+                    );
+                }
+            }
+            let mut omitted = base.clone();
+            omitted[0]["Mounts"] = json!([]);
+            assert!(check(&omitted).is_err());
         }
         Ok(())
     }

@@ -356,7 +356,7 @@ fn normalized_graph(value: &Value) -> Option<Value> {
     Some(serde_json::json!({"packages":packages,"resolve":resolve,"workspace_members":members}))
 }
 
-fn metadata_graph(
+pub(super) fn metadata_graph(
     capture: &Capture,
     source: &SourceBundle,
     dataset: &CargoVendorSnapshot,
@@ -489,7 +489,7 @@ fn metadata_graph(
     normalized_graph(&value).ok_or(ResolutionError::Failed)
 }
 
-fn missing_offline_data(capture: &Capture) -> bool {
+pub(super) fn missing_offline_data(capture: &Capture) -> bool {
     if capture.stop != Stop::Exited
         || capture.code != Some(101)
         || capture.stdout_truncated
@@ -516,7 +516,7 @@ fn missing_offline_data(capture: &Capture) -> bool {
     directory && (absent || version)
 }
 
-fn tree_fingerprint(
+pub(super) fn tree_fingerprint(
     source: &SourceBundle,
 ) -> Result<rust_engineering_domain::SourceFingerprint, ResolutionError> {
     let mut hash = Sha256::new();

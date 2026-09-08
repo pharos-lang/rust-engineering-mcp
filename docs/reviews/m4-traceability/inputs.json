@@ -1,0 +1,38 @@
+[
+  {
+    "path": "docs/roadmap/m4-security.md",
+    "sha256": "938d5af23d51f2a12ddd40eba707098ad413ceb0d1528a06eeb22fcfb0202948"
+  },
+  {
+    "path": "docs/roadmap/m2-m8.md",
+    "sha256": "22bb916b14aefcb63d266f4fa725538e4734f6ea6c6e1fecfcd35533907e69cb"
+  },
+  {
+    "path": "docs/validation/M4-matrix.md",
+    "sha256": "46aa7d78ce43e8a64a13b75aae1c84b7e253fd044cdaafc9de349acf4c79932b"
+  },
+  {
+    "path": "docs/validation/M4-hardening-map.md",
+    "sha256": "238ec383b0d85bd315e53a456b9472d11a03e3bfe6e41f84d81ea1326947d8a0"
+  },
+  {
+    "path": "docs/adr/ADR-067-security-policy-and-quality-contracts.md",
+    "sha256": "90766ae247f6bccc04f569e1a071c00f5ab0ffd9a84deea7cdf1af0c26250d92"
+  },
+  {
+    "path": "docs/adr/ADR-069-isolated-unsafe-syntax-scanner.md",
+    "sha256": "b79233348b7d79f8def3fde838ee3b1a920380bcead4351f4b7bab331851bf0b"
+  },
+  {
+    "path": "docs/adr/ADR-071-supply-chain-facts-without-catalog-migration.md",
+    "sha256": "83d95de567ffd97719cef5f9182e1fff3c57dc5bf2df0bca2d0de1fbc5ba4f91"
+  },
+  {
+    "path": "docs/adr/ADR-072-miri-classification-integrity.md",
+    "sha256": "cd8015203a31651a61bfa658f45bb6973fd38e69ea541b6a4a84523c3ed0586f"
+  },
+  {
+    "path": "docs/reviews/m4-security-confirmation/disposition.md",
+    "sha256": "10b26eb61192387f1675834fc7d24e0f3a7192036c8eec66a40d3898bf7e3c34"
+  }
+]

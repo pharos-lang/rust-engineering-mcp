@@ -1,0 +1,72 @@
+[
+  {
+    "path": "fixtures/unsafe-scanner-helper/Cargo.toml",
+    "size": 683,
+    "sha256": "98e0402fad47fc0416f179f89e9533d556785e794d008c2a8c5d31a52b7fb21e"
+  },
+  {
+    "path": "fixtures/unsafe-scanner-helper/Cargo.lock",
+    "size": 2711,
+    "sha256": "e446a33a37eb46ca6d4dd41abf8c4f3ffb0654d744b002c0c99e48e63effb1ad"
+  },
+  {
+    "path": "fixtures/unsafe-scanner-helper/src/lib.rs",
+    "size": 50772,
+    "sha256": "8e5396bfa59d49e764bc77ded67416880ac9308d965a36e179e8b768fc4f85e2"
+  },
+  {
+    "path": "fixtures/unsafe-scanner-helper/src/main.rs",
+    "size": 2228,
+    "sha256": "50b2a308888332892871e8813ea1686f5fa2278dd5ab2e5d4703900c89f93675"
+  },
+  {
+    "path": "fixtures/unsafe-scanner-helper/README.md",
+    "size": 6337,
+    "sha256": "b293c1b8bcf5e17dda0fbc122d00291942117c46f2994f4b534f977d526cfc4e"
+  },
+  {
+    "path": "crates/execution-adapter/src/unsafe_scan.rs",
+    "size": 34002,
+    "sha256": "e1703314b53eaef3ba187933003390fa3fefdec11583df42bcd01b51eaab407a"
+  },
+  {
+    "path": "crates/domain/src/unsafe_scan.rs",
+    "size": 5912,
+    "sha256": "9b25a9ea34cf593a111cd69f0579f2dc99e3e0b6d3fbde5ebc9a2a5bdd1cfaad"
+  },
+  {
+    "path": "docs/adr/ADR-069-isolated-unsafe-syntax-scanner.md",
+    "size": 7504,
+    "sha256": "e831d7b97709aebf5b3397d4541a9410b762ded591dc9e3d6b3af778dbbb9e68"
+  },
+  {
+    "path": "docs/reviews/m4-scanner-helper/review.md",
+    "size": 14944,
+    "sha256": "257e93948700d4d6ac4e53e6aa9984e0196af436a7c3f5f27872bfbd3216e80d"
+  },
+  {
+    "path": "fixtures/unsafe-scanner-helper/hostile/generate.py",
+    "size": 1949,
+    "sha256": "509d248c4673f7ab75fc0b0e94917bb6d382f98c5b17538bec583fe1e2417473"
+  },
+  {
+    "path": "crates/domain/src/source.rs",
+    "size": 7938,
+    "sha256": "2fbc370dc6be5434bd64e137f5d97284f4faa11cca64164566957f1133e7e7d9"
+  },
+  {
+    "path": "crates/project-adapter/src/filesystem/macos/source.rs",
+    "size": 24797,
+    "sha256": "aebc1b3b3e664b9e3f8c4274c1493f8433c1ab86c5453f2b3c178467c76715b1"
+  },
+  {
+    "path": "crates/execution-adapter/src/security_gateway.rs",
+    "size": 50673,
+    "sha256": "aad421cd855ffb7104ef64a1e6588f242b7b51f7e2fc7856c56ab013b547f244"
+  },
+  {
+    "path": "docs/reviews/m4-scanner-helper-v2/review.md",
+    "size": 20008,
+    "sha256": "fdc87fd0e1a6f7d38f7d42dc2d99c579424a772fbc4896fc88c8f34f7b1a34cf"
+  }
+]

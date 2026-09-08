@@ -1,0 +1,61 @@
+{
+  "image_id": "sha256:25ed3626e710081a571a86a29521eaf2e890e796afd422ba5e409e0ce1891635",
+  "image_config": {
+    "Id": "sha256:25ed3626e710081a571a86a29521eaf2e890e796afd422ba5e409e0ce1891635",
+    "RepoTags": [
+      "rust-engineering-runtime:1.98.1-arm64-m4-scanner"
+    ],
+    "RepoDigests": [
+      "rust-engineering-runtime@sha256:25ed3626e710081a571a86a29521eaf2e890e796afd422ba5e409e0ce1891635"
+    ],
+    "Comment": "buildkit.dockerfile.v0",
+    "Created": "2026-09-08T02:18:37.910301301Z",
+    "Config": {
+      "User": "65534:65534",
+      "Env": [
+        "PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+      ],
+      "WorkingDir": "/work"
+    },
+    "Architecture": "arm64",
+    "Os": "linux",
+    "Size": 591399815,
+    "RootFS": {
+      "Type": "layers",
+      "Layers": [
+        "sha256:245bbc4f1aa9310b890762de92a0f73c30232c71eca5bb25f49430acf824fdef",
+        "sha256:5f70bf18a086007016e948b04aed3b82103a36bea41755b6cddfaf10ace3c6ef"
+      ]
+    },
+    "Metadata": {
+      "LastTagTime": "2026-09-08T02:19:03.379600382Z"
+    },
+    "Descriptor": {
+      "mediaType": "application/vnd.oci.image.index.v1+json",
+      "digest": "sha256:25ed3626e710081a571a86a29521eaf2e890e796afd422ba5e409e0ce1891635",
+      "size": 855
+    },
+    "Identity": {
+      "Build": [
+        {
+          "Ref": "l81wzti1ico0negngpop32md7",
+          "CreatedAt": "2026-09-08T02:19:08.949595301Z"
+        }
+      ]
+    }
+  },
+  "helper_sha256": "af8af1a021094003cd90023a882d707f7062cc98938bb06a4c105bf75e10120b",
+  "helper_source_verified": true,
+  "prepared": {
+    "base_image_id": "sha256:95dddeb5305f10b09b441e3cc4018ebb1a8a296d365c65106327d59f933c64e7",
+    "context_file_count": 24,
+    "context_sha256s_digest": "c82ee714a2cd5797d68124bcbecaf59e524d62fc94dbed7af88fae63f21710f3",
+    "network_used": false,
+    "schema": "rust-engineering-mcp.m4-scanner-prepare.v1",
+    "status": "prepared_not_built",
+    "target": "aarch64-unknown-linux-gnu"
+  },
+  "build_context_tar_sha256": "42a5784129cce1724d4b44574e830dc2f36b3ece256e376b7507587989263dd5",
+  "base_image_id": "sha256:95dddeb5305f10b09b441e3cc4018ebb1a8a296d365c65106327d59f933c64e7",
+  "qualified": false
+}
