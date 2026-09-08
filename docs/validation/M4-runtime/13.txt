@@ -1,0 +1,9 @@
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.11s
+     Running tests/inspection_runtime.rs (target/debug/deps/inspection_runtime-f7b3cab09880b72e)
+
+running 1 test
+test security_runtime::deny_native_mcp_tasks_policy_licenses_and_owner_bound_redacted_resource ... M4_DENY_MCP sha256:c08a5e20cf8d8cef7d269f0e508dbb523832c954b2de14c50033e2c06503c36a
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 47 filtered out; finished in 42.34s
+

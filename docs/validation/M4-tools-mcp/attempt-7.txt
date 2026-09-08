@@ -1,0 +1,27 @@
+   Compiling rust-engineering-execution v0.3.0-dev (/Users/cburgosro/Projects/rust-mcp/crates/execution-adapter)
+   Compiling rust-engineering-mcp v0.3.0-dev (/Users/cburgosro/Projects/rust-mcp/crates/mcp-server)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 8.61s
+     Running tests/inspection_runtime.rs (target/debug/deps/inspection_runtime-80e892a1e2aa889b)
+
+running 1 test
+test security_runtime::m4_tools_native_mcp_observations_composition_and_private_resources ... M4_NATIVE_MCP rust.unsafe.scan
+M4_NATIVE_MCP rust.miri
+M4_NATIVE_MCP rust.supply_chain.inspect
+M4_NATIVE_MCP rust.quality.gate.v2
+
+thread 'security_runtime::m4_tools_native_mcp_observations_composition_and_private_resources' (39909702) panicked at crates/mcp-server/tests/inspection_runtime/security.rs:243:5:
+assertion `left == right` failed: {"error":{"code":-32602,"message":"task unavailable"},"id":70000,"jsonrpc":"2.0"}
+  left: Null
+ right: "working"
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+inspection fixture retained after failure: /private/var/folders/hr/tglf6rl10w3b68rk0s47ddw00000gn/T/rust-mcp-inspection-wire-37349-1788836805582448000-0
+FAILED
+
+failures:
+
+failures:
+    security_runtime::m4_tools_native_mcp_observations_composition_and_private_resources
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 44 filtered out; finished in 65.22s
+
+error: test failed, to rerun pass `-p rust-engineering-mcp --test inspection_runtime`

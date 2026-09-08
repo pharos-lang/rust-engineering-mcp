@@ -1,0 +1,238 @@
+{
+  "cases": [
+    {
+      "case": "benign-forged",
+      "classification": [
+        "test_failure"
+      ],
+      "cleanup_confirmed": true,
+      "exit_code": 100,
+      "fixture_sha256": "sha256:8695d119e6e30c836dd2979a8d66b688ab92d3282858b79b28f5cd5cca16a052",
+      "forged_runtime_marker_present": false,
+      "junit_sha256": "sha256:68313e429181977e67bf9aa25ad6ac6465686b295e21fae9fe8d77b3154de7b2",
+      "passed": true,
+      "source_unchanged": true,
+      "stderr_sha256": "sha256:1cf0dac5a0834e8b0fd5296e3441a2629b37bcf0c68bbc944855fedb9462d0ab",
+      "stdout_sha256": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "case": "clean",
+      "classification": [
+        "clean"
+      ],
+      "cleanup_confirmed": true,
+      "exit_code": 0,
+      "fixture_sha256": "sha256:c67cd3778bbee691754f5033b0a81d610c7dcb15da4c6fbc3781e0fb844f7e8a",
+      "forged_runtime_marker_present": false,
+      "junit_sha256": "sha256:ff5a678c2396d00b7d7d5625c647c85d758bc135287eb64e204c4b86f4bb840f",
+      "passed": true,
+      "source_unchanged": true,
+      "stderr_sha256": "sha256:77bfa4fe0b1ed2522df7489df9388fb25ed359462825ef9a17319cfc90fb9fa4",
+      "stdout_sha256": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "case": "uaf",
+      "classification": [
+        "undefined_behavior"
+      ],
+      "cleanup_confirmed": true,
+      "exit_code": 100,
+      "fixture_sha256": "sha256:6568d0190d525dd1b8b305d9256460462e358df73eebde6148d7354ada5c76bf",
+      "forged_runtime_marker_present": false,
+      "junit_sha256": "sha256:cc2870e5bf064857b78a7e6dd474bb5218debc95bd78c58d363a2c2e544c2885",
+      "passed": true,
+      "source_unchanged": true,
+      "stderr_sha256": "sha256:a34c5e82ca7fdcbcd82052b75bc64219bab09173a234877a3e06a32d4e6dc1f3",
+      "stdout_sha256": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "case": "uninit",
+      "classification": [
+        "undefined_behavior"
+      ],
+      "cleanup_confirmed": true,
+      "exit_code": 100,
+      "fixture_sha256": "sha256:dfdc39e7c2b0e0638a181ae52d67878ee0dd98c623fb6053baa97b2f750ede48",
+      "forged_runtime_marker_present": false,
+      "junit_sha256": "sha256:b0dbb5079cc466c8561347482f5554e4dac7ef6943a73efe1705efe613f038d9",
+      "passed": true,
+      "source_unchanged": true,
+      "stderr_sha256": "sha256:a526331e61856e78b181e57fc36887b87b1494b80de35367b34f577d2a146e9a",
+      "stdout_sha256": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "case": "alias",
+      "classification": [
+        "undefined_behavior"
+      ],
+      "cleanup_confirmed": true,
+      "exit_code": 100,
+      "fixture_sha256": "sha256:c30ecfda0d2775dc68e6bf8ca5248767231d4151c6f1a9fae6492dbe3c5213d5",
+      "forged_runtime_marker_present": false,
+      "junit_sha256": "sha256:365dcf91767df644c34b40ca5f925011ebf69dfc28093acda11a7181769183ff",
+      "passed": true,
+      "source_unchanged": true,
+      "stderr_sha256": "sha256:821fccd06934935ea2fe741e077b03956cd8eba3c2556cb8a3ec50f6fbec1f82",
+      "stdout_sha256": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "case": "race",
+      "classification": [
+        "undefined_behavior"
+      ],
+      "cleanup_confirmed": true,
+      "exit_code": 100,
+      "fixture_sha256": "sha256:95b8cd146a69d1db872b6537ec797c6032db26810667a07d44c2802118162b3d",
+      "forged_runtime_marker_present": false,
+      "junit_sha256": "sha256:1b0fc0306a5ea6aeacb13e94911c08f91090ab805079ee0d5ef710274c259ff9",
+      "passed": true,
+      "source_unchanged": true,
+      "stderr_sha256": "sha256:14f6ba67c9e033f69083d7c5f2242061b57adaf3cec4f93283ef370c8de6cba9",
+      "stdout_sha256": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "case": "ffi",
+      "classification": [
+        "unsupported_operation"
+      ],
+      "cleanup_confirmed": true,
+      "exit_code": 100,
+      "fixture_sha256": "sha256:6120f9f3438f8e4dc3b32e5cfc22a5217e375c5c4b5dbc7c2c579db766a099a0",
+      "forged_runtime_marker_present": false,
+      "junit_sha256": "sha256:d8ca854bfb11f6c9bf424cf6b8bcd9201279fc1a6f3ac71c396e1664ad079e36",
+      "passed": true,
+      "source_unchanged": true,
+      "stderr_sha256": "sha256:515241cbb8169c8d7094c07cbf4cacf09e85b2fe73f8ea1179b5709494225c7c",
+      "stdout_sha256": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "case": "compile-fail",
+      "classification": [
+        "compile_failure"
+      ],
+      "cleanup_confirmed": true,
+      "exit_code": 104,
+      "fixture_sha256": "sha256:70a89edac95f3efee5bb079d3431b6eb1fc25d702f8db33c84f216bc9a515858",
+      "forged_runtime_marker_present": false,
+      "junit_sha256": null,
+      "passed": true,
+      "source_unchanged": true,
+      "stderr_sha256": "sha256:de536a2c509cb469654947e18cc07547e7a86aa52c300f969c60c2f5d4f31e48",
+      "stdout_sha256": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "case": "empty",
+      "classification": [
+        "incomplete_no_tests"
+      ],
+      "cleanup_confirmed": true,
+      "exit_code": 4,
+      "fixture_sha256": "sha256:89482c4c013866c8529f0bfbe1c9f7f043432dca156fb2b11ac11a28cb6d81f2",
+      "forged_runtime_marker_present": false,
+      "junit_sha256": "sha256:af964c3b634b8b4fe942f8bb5ae0eef540e04ddced9acebee7bd6c4953ec5f1b",
+      "passed": true,
+      "source_unchanged": true,
+      "stderr_sha256": "sha256:d60180d93b69d1d4cbc593f8336bee5d9e75a95e12321cf86aefba352f48cbf8",
+      "stdout_sha256": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "case": "ignored",
+      "classification": [
+        "incomplete_skipped_only"
+      ],
+      "cleanup_confirmed": true,
+      "exit_code": 4,
+      "fixture_sha256": "sha256:0bc9cab7a43f76a5d7f885b43007e4344933b4be47d8da5126a702e412b89b26",
+      "forged_runtime_marker_present": false,
+      "junit_sha256": "sha256:d3976fac6ee3b4b32bdf80a904cf3409db6e28b8d9058ae88c9b2b06c425d157",
+      "passed": true,
+      "source_unchanged": true,
+      "stderr_sha256": "sha256:870c5d0a18b519a125fd03b4b15f293e665452644dd691f3153e1d87cce44a3c",
+      "stdout_sha256": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "claim": "empirical first-party fixture oracle; not gateway qualification",
+  "docker_inventory_after": {
+    "containers": [
+      "70f8f3e29162 tender_goldstine Created"
+    ],
+    "volumes": [
+      "erp-local_kafka_data",
+      "erp-local_postgres_data",
+      "erp-monolith_postgres_data"
+    ]
+  },
+  "docker_inventory_before": {
+    "containers": [
+      "70f8f3e29162 tender_goldstine Created"
+    ],
+    "volumes": [
+      "erp-local_kafka_data",
+      "erp-local_postgres_data",
+      "erp-monolith_postgres_data"
+    ]
+  },
+  "docker_inventory_preserved": true,
+  "image_config_digest": "sha256:7d4e58b9e29b2045c13d71542f7892ee071a6886a1b939c4cbfc3ff7ce40dc45",
+  "image_id": "sha256:95dddeb5305f10b09b441e3cc4018ebb1a8a296d365c65106327d59f933c64e7",
+  "observed_at": "2026-09-08T01:25:26.377271+00:00",
+  "passed": true,
+  "probes": {
+    "binary_hashes": {
+      "argv": [
+        "/usr/bin/sha256sum",
+        "/opt/rust/bin/cargo-nextest",
+        "/opt/rust-nightly-2026-09-07/bin/cargo",
+        "/opt/rust-nightly-2026-09-07/bin/cargo-miri",
+        "/opt/rust-nightly-2026-09-07/bin/miri",
+        "/opt/rust-nightly-2026-09-07/bin/rustc"
+      ],
+      "exit_code": 0,
+      "stderr": "",
+      "stdout": "38dc9f7e6ef58ceb01771bd1d312bc892f367417be58a3683c635c160f4d7c2f  /opt/rust/bin/cargo-nextest\n21d5d6819852f96db1d9c15afc9554a46a4ec9f1e0d52dc23aa9be4a81a9ec83  /opt/rust-nightly-2026-09-07/bin/cargo\n7faa3486e6a51ae74cdf404358fb028ddeaaa2bb56604b175d8e9fe8463c6842  /opt/rust-nightly-2026-09-07/bin/cargo-miri\na3dad3cf43a3b8097b55f6c7ca08386af004c433c4e0e8125d3e62cecdc4ff85  /opt/rust-nightly-2026-09-07/bin/miri\n7a1126253fa42b9ebbc398431f2442620368b606927e0107f99a8051052c2d3d  /opt/rust-nightly-2026-09-07/bin/rustc\n"
+    },
+    "nextest_version": {
+      "argv": [
+        "/opt/rust/bin/cargo-nextest",
+        "nextest",
+        "--version"
+      ],
+      "exit_code": 0,
+      "stderr": "",
+      "stdout": "cargo-nextest 0.9.143 (60fa45f63 2026-08-04)\nrelease: 0.9.143\ncommit-hash: 60fa45f638ffc3f35e74afa65737f45fcd32db2a\ncommit-date: 2026-08-04\nhost: aarch64-unknown-linux-gnu\n"
+    },
+    "rustc_version": {
+      "argv": [
+        "/opt/rust-nightly-2026-09-07/bin/rustc",
+        "-vV"
+      ],
+      "exit_code": 0,
+      "stderr": "",
+      "stdout": "rustc 1.100.0-nightly (5a2be9f5f 2026-09-06)\nbinary: rustc\ncommit-hash: 5a2be9f5f075d31e3ca5526b5b029881ce441253\ncommit-date: 2026-09-06\nhost: aarch64-unknown-linux-gnu\nrelease: 1.100.0-nightly\nLLVM version: 23.1.1\n"
+    }
+  },
+  "schema": "rust-engineering-mcp.m4-miri-classification-oracle.v1",
+  "script_sha256": "sha256:5d970bfeb9205b2dfc0ba1b85dbb145fb7a54fbd2884cba676345b1ed0a36e36",
+  "source_tree_sha256": "sha256:70357556c1d2eb270e9347e7bcac74d570878bcd6d7add48aa56aeacb092d1a5",
+  "sysroot_after": {
+    "argv": [
+      "/bin/sh",
+      "-c",
+      "find /opt/miri-sysroot/2026-09-07/aarch64-unknown-linux-gnu -type f -print0 | sort -z | xargs -0 sha256sum | sha256sum"
+    ],
+    "exit_code": 0,
+    "stderr": "",
+    "stdout": "68324d8d8b2dcb55616ff2e53c7c91f4db78ada40ceafe189f933899d8a1f136  -\n"
+  },
+  "sysroot_before": {
+    "argv": [
+      "/bin/sh",
+      "-c",
+      "find /opt/miri-sysroot/2026-09-07/aarch64-unknown-linux-gnu -type f -print0 | sort -z | xargs -0 sha256sum | sha256sum"
+    ],
+    "exit_code": 0,
+    "stderr": "",
+    "stdout": "68324d8d8b2dcb55616ff2e53c7c91f4db78ada40ceafe189f933899d8a1f136  -\n"
+  },
+  "sysroot_unchanged": true
+}

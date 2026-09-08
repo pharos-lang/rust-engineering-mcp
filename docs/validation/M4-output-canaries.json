@@ -1,0 +1,62 @@
+[
+  {
+    "canary_absent": true,
+    "resources": [
+      {
+        "bytes": 1884,
+        "sha256": "sha256:4d4e3c0b990f4cd2e3e735dd2cf1f3147d6020d364bfbd8bee7661b7e7f3253b"
+      }
+    ],
+    "result_bytes": 9694,
+    "status": "passed",
+    "tool": "rust.deny"
+  },
+  {
+    "canary_absent": true,
+    "resources": [
+      {
+        "bytes": 1531,
+        "sha256": "sha256:30a3202fd5dbf210ca818a801d9d443d0e83a4885e9ef09eb45ed31198d0bf77"
+      }
+    ],
+    "result_bytes": 4416,
+    "status": "passed",
+    "tool": "rust.unsafe.scan"
+  },
+  {
+    "canary_absent": true,
+    "resources": [
+      {
+        "bytes": 1556,
+        "sha256": "sha256:d4300ac54bd8df259e34d66be1e8645f13f6f473ca38641483d585e4b2c2fdc9"
+      }
+    ],
+    "result_bytes": 4682,
+    "status": "failed",
+    "tool": "rust.miri"
+  },
+  {
+    "canary_absent": true,
+    "resources": [
+      {
+        "bytes": 4246,
+        "sha256": "sha256:57dd05bbe3ea8bfd0c6ba7f6d3a84e2e8cb08b9ebdff4628595a316d432a062c"
+      }
+    ],
+    "result_bytes": 10192,
+    "status": "passed",
+    "tool": "rust.supply_chain.inspect"
+  },
+  {
+    "canary_absent": true,
+    "resources": [
+      {
+        "bytes": 4960,
+        "sha256": "sha256:2c3dc119f1bad62b4e0b36bc8a8d25650dc711650260eed39370b2a7b6d9e005"
+      }
+    ],
+    "result_bytes": 11873,
+    "status": "blocked",
+    "tool": "rust.quality.gate.v2"
+  }
+]

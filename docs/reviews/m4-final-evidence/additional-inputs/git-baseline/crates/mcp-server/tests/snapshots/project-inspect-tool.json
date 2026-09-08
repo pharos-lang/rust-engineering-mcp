@@ -1,0 +1,958 @@
+{
+  "annotations": {
+    "destructiveHint": false,
+    "idempotentHint": true,
+    "openWorldHint": false,
+    "readOnlyHint": true
+  },
+  "description": "Inspect captured workspace/package declarations via the host-approved offline Rust runtime. Reports explicit MSRV, targets, declared features/dependencies/profiles, runtime identity and snapshot evidence; no resolved dependency graph. Requires a live project_ref, completed discovery and explicit host runtime policy; unsupported layouts fail closed.",
+  "inputSchema": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "additionalProperties": false,
+    "properties": {
+      "project_ref": {
+        "pattern": "^prj_[0-9a-f]{32}$",
+        "type": "string"
+      }
+    },
+    "required": [
+      "project_ref"
+    ],
+    "title": "Input",
+    "type": "object"
+  },
+  "name": "rust.project.inspect",
+  "outputSchema": {
+    "$defs": {
+      "CargoConfiguration": {
+        "additionalProperties": false,
+        "properties": {
+          "frozen": {
+            "type": "boolean"
+          },
+          "incremental": {
+            "type": "boolean"
+          },
+          "offline": {
+            "type": "boolean"
+          },
+          "project_config_policy": {
+            "$ref": "#/$defs/ProjectConfigPolicy"
+          },
+          "target_directory_ephemeral": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "project_config_policy",
+          "frozen",
+          "offline",
+          "incremental",
+          "target_directory_ephemeral"
+        ],
+        "type": "object"
+      },
+      "Code": {
+        "enum": [
+          "PROJECT_NOT_FOUND",
+          "INVALID_PROJECT",
+          "TOOL_NOT_INSTALLED",
+          "LOCKFILE_UPDATE_REQUIRED",
+          "COMMAND_TIMEOUT",
+          "SANDBOX_DENIED",
+          "NETWORK_DENIED",
+          "UNSUPPORTED_PLATFORM",
+          "OUTPUT_LIMIT_EXCEEDED"
+        ],
+        "type": "string"
+      },
+      "Data": {
+        "additionalProperties": false,
+        "properties": {
+          "project_identity_fingerprint": {
+            "pattern": "^sha256:[0-9a-f]{64}$",
+            "type": "string"
+          },
+          "project_ref": {
+            "pattern": "^prj_[0-9a-f]{32}$",
+            "type": "string"
+          },
+          "semantics": {
+            "$ref": "#/$defs/Semantics"
+          },
+          "structure": {
+            "$ref": "#/$defs/ProjectStructure"
+          }
+        },
+        "required": [
+          "project_ref",
+          "project_identity_fingerprint",
+          "semantics",
+          "structure"
+        ],
+        "type": "object"
+      },
+      "DeclaredDependencyKind": {
+        "enum": [
+          "normal",
+          "build",
+          "dev"
+        ],
+        "type": "string"
+      },
+      "DeclaredFeature": {
+        "additionalProperties": false,
+        "properties": {
+          "activations": {
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 256,
+            "type": "array"
+          },
+          "name": {
+            "maxLength": 4096,
+            "type": "string"
+          }
+        },
+        "required": [
+          "name",
+          "activations"
+        ],
+        "type": "object"
+      },
+      "DeclaredProfile": {
+        "additionalProperties": false,
+        "properties": {
+          "build_override": {
+            "items": {
+              "$ref": "#/$defs/ProfileSetting"
+            },
+            "maxItems": 512,
+            "type": "array"
+          },
+          "inherits": {
+            "maxLength": 128,
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "name": {
+            "maxLength": 4096,
+            "type": "string"
+          },
+          "package_overrides": {
+            "items": {
+              "$ref": "#/$defs/PackageProfile"
+            },
+            "maxItems": 128,
+            "type": "array"
+          },
+          "settings": {
+            "items": {
+              "$ref": "#/$defs/ProfileSetting"
+            },
+            "maxItems": 512,
+            "type": "array"
+          }
+        },
+        "required": [
+          "name",
+          "inherits",
+          "settings",
+          "package_overrides",
+          "build_override"
+        ],
+        "type": "object"
+      },
+      "DependencyOrigin": {
+        "additionalProperties": false,
+        "properties": {
+          "identity": {
+            "description": "Identity of the declared source, never a credential-bearing URL.",
+            "pattern": "^sha256:[0-9a-f]{64}$",
+            "type": "string"
+          },
+          "kind": {
+            "$ref": "#/$defs/DependencySourceKind"
+          },
+          "relative_path": {
+            "maxLength": 100,
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "kind",
+          "identity",
+          "relative_path"
+        ],
+        "type": "object"
+      },
+      "DependencySourceKind": {
+        "enum": [
+          "path",
+          "registry",
+          "git"
+        ],
+        "type": "string"
+      },
+      "DirectDependency": {
+        "additionalProperties": false,
+        "properties": {
+          "features": {
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 256,
+            "type": "array"
+          },
+          "kind": {
+            "$ref": "#/$defs/DeclaredDependencyKind"
+          },
+          "name": {
+            "maxLength": 4096,
+            "type": "string"
+          },
+          "optional": {
+            "type": "boolean"
+          },
+          "origin": {
+            "$ref": "#/$defs/DependencyOrigin"
+          },
+          "rename": {
+            "maxLength": 128,
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "target_condition": {
+            "maxLength": 1024,
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "uses_default_features": {
+            "type": "boolean"
+          },
+          "version_requirement": {
+            "maxLength": 4096,
+            "type": "string"
+          }
+        },
+        "required": [
+          "name",
+          "rename",
+          "version_requirement",
+          "kind",
+          "optional",
+          "uses_default_features",
+          "features",
+          "target_condition",
+          "origin"
+        ],
+        "type": "object"
+      },
+      "Evidence": {
+        "oneOf": [
+          {
+            "additionalProperties": false,
+            "properties": {
+              "kind": {
+                "const": "local",
+                "type": "string"
+              }
+            },
+            "required": [
+              "kind"
+            ],
+            "type": "object"
+          },
+          {
+            "additionalProperties": false,
+            "properties": {
+              "details": {
+                "$ref": "#/$defs/SnapshotEvidence"
+              },
+              "kind": {
+                "const": "snapshot",
+                "type": "string"
+              }
+            },
+            "required": [
+              "kind",
+              "details"
+            ],
+            "type": "object"
+          }
+        ]
+      },
+      "Freshness": {
+        "additionalProperties": false,
+        "properties": {
+          "age_seconds": {
+            "format": "uint64",
+            "minimum": 0,
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "assessed_at": {
+            "format": "uint64",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "policy": {
+            "$ref": "#/$defs/FreshnessPolicy"
+          },
+          "state": {
+            "$ref": "#/$defs/FreshnessState"
+          }
+        },
+        "required": [
+          "state",
+          "age_seconds",
+          "assessed_at",
+          "policy"
+        ],
+        "type": "object"
+      },
+      "FreshnessPolicy": {
+        "additionalProperties": false,
+        "properties": {
+          "fresh_for_seconds": {
+            "format": "uint64",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "id": {
+            "maxLength": 128,
+            "minLength": 1,
+            "type": "string"
+          },
+          "stale_after_seconds": {
+            "format": "uint64",
+            "minimum": 0,
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "fresh_for_seconds",
+          "stale_after_seconds"
+        ],
+        "type": "object"
+      },
+      "FreshnessState": {
+        "enum": [
+          "live",
+          "fresh",
+          "aging",
+          "stale",
+          "unknown"
+        ],
+        "type": "string"
+      },
+      "IntegrityStatus": {
+        "enum": [
+          "verified",
+          "unverified",
+          "failed",
+          "unknown"
+        ],
+        "type": "string"
+      },
+      "PackageProfile": {
+        "additionalProperties": false,
+        "properties": {
+          "package": {
+            "maxLength": 4096,
+            "type": "string"
+          },
+          "settings": {
+            "items": {
+              "$ref": "#/$defs/ProfileSetting"
+            },
+            "maxItems": 512,
+            "type": "array"
+          }
+        },
+        "required": [
+          "package",
+          "settings"
+        ],
+        "type": "object"
+      },
+      "ProfileSetting": {
+        "additionalProperties": false,
+        "properties": {
+          "name": {
+            "$ref": "#/$defs/ProfileSettingName"
+          },
+          "value": {
+            "$ref": "#/$defs/ProfileValue"
+          }
+        },
+        "required": [
+          "name",
+          "value"
+        ],
+        "type": "object"
+      },
+      "ProfileSettingName": {
+        "enum": [
+          "opt-level",
+          "debug",
+          "split-debuginfo",
+          "strip",
+          "debug-assertions",
+          "overflow-checks",
+          "lto",
+          "panic",
+          "incremental",
+          "codegen-units",
+          "rpath"
+        ],
+        "type": "string"
+      },
+      "ProfileValue": {
+        "oneOf": [
+          {
+            "additionalProperties": false,
+            "properties": {
+              "kind": {
+                "const": "boolean",
+                "type": "string"
+              },
+              "value": {
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "kind",
+              "value"
+            ],
+            "type": "object"
+          },
+          {
+            "additionalProperties": false,
+            "properties": {
+              "kind": {
+                "const": "integer",
+                "type": "string"
+              },
+              "value": {
+                "format": "uint32",
+                "minimum": 0,
+                "type": "integer"
+              }
+            },
+            "required": [
+              "kind",
+              "value"
+            ],
+            "type": "object"
+          },
+          {
+            "additionalProperties": false,
+            "properties": {
+              "kind": {
+                "const": "text",
+                "type": "string"
+              },
+              "value": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "kind",
+              "value"
+            ],
+            "type": "object"
+          }
+        ]
+      },
+      "ProjectConfigPolicy": {
+        "enum": [
+          "rejected"
+        ],
+        "type": "string"
+      },
+      "ProjectPackage": {
+        "additionalProperties": false,
+        "properties": {
+          "direct_dependencies": {
+            "items": {
+              "$ref": "#/$defs/DirectDependency"
+            },
+            "maxItems": 512,
+            "type": "array"
+          },
+          "edition": {
+            "$ref": "#/$defs/RustEdition"
+          },
+          "features": {
+            "items": {
+              "$ref": "#/$defs/DeclaredFeature"
+            },
+            "maxItems": 256,
+            "type": "array"
+          },
+          "manifest_path": {
+            "maxLength": 4096,
+            "type": "string"
+          },
+          "name": {
+            "maxLength": 4096,
+            "type": "string"
+          },
+          "package_index": {
+            "format": "uint32",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "rust_version": {
+            "maxLength": 32,
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "targets": {
+            "items": {
+              "$ref": "#/$defs/ProjectTarget"
+            },
+            "maxItems": 512,
+            "type": "array"
+          },
+          "version": {
+            "maxLength": 4096,
+            "type": "string"
+          }
+        },
+        "required": [
+          "package_index",
+          "name",
+          "version",
+          "manifest_path",
+          "edition",
+          "rust_version",
+          "targets",
+          "features",
+          "direct_dependencies"
+        ],
+        "type": "object"
+      },
+      "ProjectStructure": {
+        "additionalProperties": false,
+        "properties": {
+          "cargo_configuration": {
+            "$ref": "#/$defs/CargoConfiguration"
+          },
+          "packages": {
+            "items": {
+              "$ref": "#/$defs/ProjectPackage"
+            },
+            "maxItems": 128,
+            "type": "array"
+          },
+          "profiles": {
+            "items": {
+              "$ref": "#/$defs/DeclaredProfile"
+            },
+            "maxItems": 64,
+            "type": "array"
+          },
+          "runtime": {
+            "$ref": "#/$defs/RuntimeIdentity"
+          },
+          "source_fingerprint": {
+            "pattern": "^sha256:[0-9a-f]{64}$",
+            "type": "string"
+          },
+          "workspace_default_members": {
+            "items": {
+              "format": "uint32",
+              "minimum": 0,
+              "type": "integer"
+            },
+            "maxItems": 128,
+            "type": "array"
+          },
+          "workspace_members": {
+            "items": {
+              "format": "uint32",
+              "minimum": 0,
+              "type": "integer"
+            },
+            "maxItems": 128,
+            "type": "array"
+          }
+        },
+        "required": [
+          "workspace_members",
+          "workspace_default_members",
+          "packages",
+          "profiles",
+          "cargo_configuration",
+          "runtime",
+          "source_fingerprint"
+        ],
+        "type": "object"
+      },
+      "ProjectTarget": {
+        "additionalProperties": false,
+        "properties": {
+          "crate_types": {
+            "items": {
+              "$ref": "#/$defs/TargetKind"
+            },
+            "maxItems": 512,
+            "type": "array"
+          },
+          "doctest": {
+            "type": "boolean"
+          },
+          "edition": {
+            "$ref": "#/$defs/RustEdition"
+          },
+          "kinds": {
+            "items": {
+              "$ref": "#/$defs/TargetKind"
+            },
+            "maxItems": 512,
+            "type": "array"
+          },
+          "name": {
+            "maxLength": 4096,
+            "type": "string"
+          },
+          "required_features": {
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 512,
+            "type": "array"
+          },
+          "source_path": {
+            "maxLength": 4096,
+            "type": "string"
+          },
+          "test": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "name",
+          "kinds",
+          "crate_types",
+          "source_path",
+          "edition",
+          "required_features",
+          "test",
+          "doctest"
+        ],
+        "type": "object"
+      },
+      "Provenance": {
+        "additionalProperties": false,
+        "properties": {
+          "created_at": {
+            "format": "uint64",
+            "minimum": 0,
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "integrity": {
+            "$ref": "#/$defs/IntegrityStatus"
+          },
+          "network_used": {
+            "type": "boolean"
+          },
+          "observed_at": {
+            "format": "uint64",
+            "minimum": 0,
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "source_id": {
+            "pattern": "^sha256:[0-9a-f]{64}$",
+            "type": "string"
+          },
+          "source_kind": {
+            "$ref": "#/$defs/SourceKind"
+          }
+        },
+        "required": [
+          "source_kind",
+          "source_id",
+          "created_at",
+          "observed_at",
+          "integrity",
+          "network_used"
+        ],
+        "type": "object"
+      },
+      "RuntimeIdentity": {
+        "additionalProperties": false,
+        "properties": {
+          "cargo_version": {
+            "maxLength": 4096,
+            "type": "string"
+          },
+          "configuration_fingerprint": {
+            "pattern": "^sha256:[0-9a-f]{64}$",
+            "type": "string"
+          },
+          "declared_toolchain": {
+            "maxLength": 6,
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "execution_fingerprint": {
+            "pattern": "^sha256:[0-9a-f]{64}$",
+            "type": "string"
+          },
+          "image_id": {
+            "pattern": "^sha256:[0-9a-f]{64}$",
+            "type": "string"
+          },
+          "platform": {
+            "maxLength": 4096,
+            "type": "string"
+          },
+          "rust_version": {
+            "maxLength": 4096,
+            "type": "string"
+          }
+        },
+        "required": [
+          "platform",
+          "image_id",
+          "configuration_fingerprint",
+          "execution_fingerprint",
+          "rust_version",
+          "cargo_version",
+          "declared_toolchain"
+        ],
+        "type": "object"
+      },
+      "RustEdition": {
+        "enum": [
+          "2015",
+          "2018",
+          "2021",
+          "2024"
+        ],
+        "type": "string"
+      },
+      "Semantics": {
+        "enum": [
+          "latest_known"
+        ],
+        "type": "string"
+      },
+      "SnapshotEvidence": {
+        "additionalProperties": false,
+        "properties": {
+          "freshness": {
+            "$ref": "#/$defs/Freshness"
+          },
+          "provenance": {
+            "$ref": "#/$defs/Provenance"
+          }
+        },
+        "required": [
+          "provenance",
+          "freshness"
+        ],
+        "type": "object"
+      },
+      "SourceKind": {
+        "enum": [
+          "project_snapshot"
+        ],
+        "type": "string"
+      },
+      "TargetKind": {
+        "enum": [
+          "lib",
+          "bin",
+          "example",
+          "test",
+          "bench",
+          "custom_build",
+          "proc_macro",
+          "rlib",
+          "dylib",
+          "cdylib",
+          "staticlib"
+        ],
+        "type": "string"
+      },
+      "Truncation": {
+        "additionalProperties": false,
+        "properties": {
+          "diagnostics_omitted": {
+            "format": "uint64",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "stderr_truncated": {
+            "type": "boolean"
+          },
+          "stdout_truncated": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "stdout_truncated",
+          "stderr_truncated",
+          "diagnostics_omitted"
+        ],
+        "type": "object"
+      }
+    },
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "oneOf": [
+      {
+        "properties": {
+          "data": {
+            "$ref": "#/$defs/Data"
+          },
+          "error_code": {
+            "type": "null"
+          },
+          "error_message": {
+            "type": "null"
+          },
+          "status": {
+            "const": "passed",
+            "type": "string"
+          }
+        },
+        "required": [
+          "status",
+          "error_code",
+          "error_message",
+          "data"
+        ],
+        "type": "object"
+      },
+      {
+        "properties": {
+          "data": {
+            "type": "null"
+          },
+          "error_code": {
+            "$ref": "#/$defs/Code"
+          },
+          "error_message": {
+            "type": "string"
+          },
+          "status": {
+            "const": "blocked",
+            "type": "string"
+          }
+        },
+        "required": [
+          "status",
+          "error_code",
+          "error_message",
+          "data"
+        ],
+        "type": "object"
+      },
+      {
+        "properties": {
+          "data": {
+            "type": "null"
+          },
+          "error_code": {
+            "$ref": "#/$defs/Code"
+          },
+          "error_message": {
+            "type": "string"
+          },
+          "status": {
+            "const": "unavailable",
+            "type": "string"
+          }
+        },
+        "required": [
+          "status",
+          "error_code",
+          "error_message",
+          "data"
+        ],
+        "type": "object"
+      },
+      {
+        "properties": {
+          "data": {
+            "type": "null"
+          },
+          "error_code": {
+            "type": "null"
+          },
+          "error_message": {
+            "type": "null"
+          },
+          "status": {
+            "const": "cancelled",
+            "type": "string"
+          }
+        },
+        "required": [
+          "status",
+          "error_code",
+          "error_message",
+          "data"
+        ],
+        "type": "object"
+      }
+    ],
+    "properties": {
+      "diagnostics": {
+        "maxItems": 0,
+        "type": "array"
+      },
+      "duration_ms": {
+        "format": "uint64",
+        "minimum": 0,
+        "type": "integer"
+      },
+      "evidence": {
+        "$ref": "#/$defs/Evidence"
+      },
+      "summary": {
+        "type": "string"
+      },
+      "truncation": {
+        "$ref": "#/$defs/Truncation"
+      }
+    },
+    "required": [
+      "summary",
+      "duration_ms",
+      "diagnostics",
+      "truncation",
+      "evidence"
+    ],
+    "title": "Output",
+    "type": "object",
+    "unevaluatedProperties": false
+  }
+}

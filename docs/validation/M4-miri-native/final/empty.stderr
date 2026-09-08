@@ -1,0 +1,12 @@
+info: experimental features enabled: wrapper-scripts
+   Compiling m4-miri-empty v0.0.0 (/source)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.03s
+info: for the target platform, using target runner `/opt/rust-nightly-2026-09-07/bin/cargo-miri runner` defined by `target.cfg(all()).runner` specified by `--config`
+info: for the host platform, using target runner `/opt/rust-nightly-2026-09-07/bin/cargo-miri runner` defined by `target.cfg(all()).runner` specified by `--config`
+────────────
+ Nextest run ID ce8157b4-df7c-4c67-8028-3e140bd4a937 with nextest profile: rust-mcp-miri
+    Starting 0 tests across 1 binary
+────────────
+     Summary [   0.000s] 0 tests run: 0 passed, 0 skipped
+error: no tests to run
+(hint: use `--no-tests` to customize)

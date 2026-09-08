@@ -1,0 +1,9 @@
+   Compiling rust-engineering-execution v0.3.0-dev (/Users/cburgosro/Projects/rust-mcp/crates/execution-adapter)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 3.48s
+     Running tests/m4_privacy_runtime.rs (target/debug/deps/m4_privacy_runtime-091d95ae59e125d7)
+
+running 1 test
+test host_canary_cannot_enter_html_diffs_logs_or_diagnostics ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 18.46s
+

@@ -1,0 +1,9 @@
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.06s
+     Running unittests src/lib.rs (target/debug/deps/rust_engineering_execution-90533356044b11f0)
+
+running 1 test
+test rust_calibration::tests::actual_clippy_build_script_and_proc_macro_containment ... M1_CLIPPY_CONTAINMENT_RECEIPT {"build_script_and_proc_macro_checks":true,"calibration_cases":6,"calibration_verified":true,"cases":2,"cleanup":true,"configuration_fingerprint":"sha256:eafbea15a22ec167de43629407f952744c6f72dff5c0f852feb4d6cd502e51e6","executions":[{"execution_fingerprint":"sha256:736c6298066f4d551a0d443b68624800fc2ceedce5c66965524bdb80a447232d","exit_code":0,"joined_cleanup_verified":true,"marker":"RUST_CONTAINMENT_BUILD_CHECKS_PASSED","scenario":"build_script","termination":"exited"},{"execution_fingerprint":"sha256:22225e675b130e687d083d9a2d675d1badcd4696e689b59168f36f958103295c","exit_code":0,"joined_cleanup_verified":true,"marker":"RUST_CONTAINMENT_PROC_MACRO_CHECKS_PASSED","scenario":"proc_macro","termination":"exited"}],"fixture_fingerprint":"sha256:21cf7999fc3116aa53da3019dd631cdd598bce2d550a0e53b0a0d9c50d59502c","image_id":"sha256:25ed3626e710081a571a86a29521eaf2e890e796afd422ba5e409e0ce1891635","network_env_filesystem_process_cgroup_assertions":true,"quarantined":false,"status":"passed"}
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 252 filtered out; finished in 15.38s
+

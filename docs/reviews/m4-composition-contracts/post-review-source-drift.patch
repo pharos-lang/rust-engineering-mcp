@@ -1,0 +1,17 @@
+--- snapshot/docs/adr/ADR-067-security-policy-and-quality-contracts.md
++++ current/docs/adr/ADR-067-security-policy-and-quality-contracts.md
+@@ -4,10 +4,10 @@
+ 
+ ## Status
+ 
+-Accepted como contrato de implementación del Technical Owner. M4-01 y M4-05
+-siguen sin implementar/calificar; aceptar este diseño no anuncia ninguna tool.
+-Los detalles de salida/exit de cargo-deny se contrastarán con la imagen de
+-ADR-066 antes de aceptar su parser como evidencia positiva.
++Accepted e implementado internamente. Deny y gate v2 tienen pruebas nativas;
++la publicación de las tools depende todavía de clientes, mediciones, revisión y
++gate conjunto. Los detalles de salida/exit de cargo-deny 0.19.7 están contrastados
++con la imagen de ADR-066 y oráculos registrados.
+ 
+ ## Context
+ 

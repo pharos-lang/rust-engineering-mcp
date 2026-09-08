@@ -292,3 +292,12 @@ mod resolution;
 pub use resolution::{
     PreparedSemanticMutation, ProjectResolutionPort, ResolutionError, SemanticPreparationError,
 };
+
+pub mod security;
+pub mod unsafe_scan;
+
+pub mod miri;
+
+pub mod supply_chain;
+
+pub mod quality_v2;

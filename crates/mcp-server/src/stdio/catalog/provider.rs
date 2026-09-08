@@ -491,3 +491,121 @@ fn semantic_error(error: SemanticError) -> CatalogComponentUnavailable {
 
 #[cfg(test)]
 mod tests;
+
+impl rust_engineering_application::supply_chain::SupplyCatalogPort for CatalogProvider {
+    fn supply_catalog(
+        &self,
+        packages: &mut [rust_engineering_domain::supply_chain::SupplyPackage],
+        clock: &impl Clock,
+        control: &dyn InspectionControl,
+    ) -> Result<
+        rust_engineering_domain::supply_chain::SupplyCatalog,
+        rust_engineering_application::security::SecurityError,
+    > {
+        use rust_engineering_application::security::SecurityError;
+        use rust_engineering_domain::supply_chain::*;
+        if packages.len() > 128 {
+            return Err(SecurityError::OutputLimit);
+        }
+        control.check()?;
+        let mut state = self.state.lock().map_err(|_| ProjectError::Internal)?;
+        if state.is_none() {
+            *state = Some(self.load(control)?);
+        }
+        let loaded = state.as_ref().ok_or(ProjectError::Internal)?;
+        let Some(bundle) = loaded._bundle.as_ref() else {
+            for package in packages {
+                if package.source == SupplySource::CratesIo {
+                    package.yanked = YankedFact::CatalogUnavailable;
+                }
+            }
+            return Ok(SupplyCatalog {
+                availability: SupplyAvailability::Unavailable,
+                snapshot_fingerprint: None,
+                bundle_fingerprint: None,
+                sequence: None,
+                evidence: None,
+                lookups: 0,
+            });
+        };
+        let metadata = bundle.repository().metadata();
+        let policy = FreshnessPolicy::new(
+            "catalog-snapshot-v1"
+                .parse()
+                .map_err(|_| ProjectError::Internal)?,
+            86_400,
+            604_800,
+        )
+        .map_err(|_| ProjectError::Internal)?;
+        let mut report = SupplyCatalog {
+            availability: SupplyAvailability::Available,
+            snapshot_fingerprint: Some(metadata.fingerprint.clone()),
+            bundle_fingerprint: Some(
+                format!("sha256:{}", bundle.fingerprint())
+                    .parse()
+                    .map_err(|_| ProjectError::Internal)?,
+            ),
+            sequence: Some(metadata.sequence),
+            evidence: Some(SnapshotEvidence::assess(
+                metadata.provenance.clone(),
+                policy,
+                clock,
+            )),
+            lookups: 0,
+        };
+        for package in packages {
+            control.check()?;
+            if package.source != SupplySource::CratesIo {
+                package.yanked = YankedFact::NotApplicable;
+                continue;
+            }
+            let request = CrateInspectRequest {
+                name: package.name.clone(),
+                section: InspectSection::Overview,
+                version: Some(package.version.clone()),
+                limit: 1,
+                offset: 0,
+                snapshot_fingerprint: Some(metadata.fingerprint.clone()),
+            };
+            report.lookups += 1;
+            match rust_engineering_application::inspect_crate(
+                bundle.repository(),
+                &request,
+                clock,
+                control,
+            ) {
+                Ok(result) => {
+                    package.yanked = match result.lookup {
+                        InspectLookup::CrateNotFound => YankedFact::CrateAbsent,
+                        InspectLookup::VersionNotFound => YankedFact::VersionAbsent,
+                        InspectLookup::Found { page } => match page.data {
+                            InspectPageData::Overview {
+                                selected_version: Some(version),
+                            } => {
+                                if version.yanked {
+                                    YankedFact::Yanked
+                                } else {
+                                    YankedFact::NotYanked
+                                }
+                            }
+                            _ => return Err(SecurityError::InvalidMetadata),
+                        },
+                    };
+                }
+                Err(rust_engineering_application::CatalogInspectError::Project(error)) => {
+                    return Err(error.into());
+                }
+                Err(_) => {
+                    report.availability = SupplyAvailability::Partial;
+                    package.yanked = YankedFact::CatalogUnavailable;
+                }
+            }
+        }
+        control.check()?;
+        Ok(report)
+    }
+}
+
+#[cfg(all(test, target_os = "macos"))]
+#[path = "supply_tests.rs"]
+mod supply_tests;

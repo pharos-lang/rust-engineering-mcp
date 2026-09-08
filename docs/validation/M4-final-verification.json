@@ -1,0 +1,286 @@
+{
+  "schema": "rust-mcp-m4-final-verification-v1",
+  "status": "passed",
+  "observed_at": "2026-09-08T06:57:29.393322+00:00",
+  "review_verdict": "ACCEPT local M4 closure",
+  "review_response_sha256": "a6ae43b67c962e7b5a6111121d6102410c105e5e9f2c456022f8c525ce163a49",
+  "review_execution_sha256": "cd34c674c04a09cc31f9ff762ad43ee0bf8acdbc93d1ae49e25cfb0d71b032f7",
+  "review_original_package_unchanged": true,
+  "review_model_usage": {
+    "claude-haiku-4-5-20251001": {
+      "inputTokens": 1690,
+      "outputTokens": 19,
+      "cacheReadInputTokens": 0,
+      "cacheCreationInputTokens": 0,
+      "webSearchRequests": 0,
+      "costUSD": 0.0017850000000000001,
+      "contextWindow": 200000,
+      "maxOutputTokens": 32000,
+      "thinkingTokens": 0,
+      "canonicalModel": "claude-haiku-4-5",
+      "provider": "firstParty",
+      "costBasis": "list"
+    },
+    "claude-opus-5": {
+      "inputTokens": 160,
+      "outputTokens": 44362,
+      "cacheReadInputTokens": 8139649,
+      "cacheCreationInputTokens": 162292,
+      "webSearchRequests": 0,
+      "costUSD": 6.802594499999999,
+      "contextWindow": 1000000,
+      "maxOutputTokens": 64000,
+      "thinkingTokens": 17059,
+      "canonicalModel": "claude-opus-5",
+      "provider": "firstParty",
+      "costBasis": "list"
+    }
+  },
+  "review_model_note": "Substantive review used claude-opus-5. CLI also reports 19 auxiliary output tokens on Haiku; this was not a substituted review.",
+  "source_inventory_count": 987,
+  "core_full_clients_equal_current_elementwise": true,
+  "native_sources_and_configuration_equal_current": true,
+  "canonicalization": "SHA-256 of UTF-8 json.dumps(source_inputs, sort_keys=True, separators=(',', ':'), ensure_ascii=True)",
+  "source_inventory_sha256": "515dac7105b7a4942b76ba779d6a7b70de4bf513ba1d9e3ed9ba2ff2bf25409b",
+  "core_steps_passed": 19,
+  "full_steps_passed": 33,
+  "full_segments": [
+    {
+      "kind": "retained_passed",
+      "first_step": 1,
+      "last_step": 27,
+      "identical_to_original_receipt": true,
+      "original_receipt": "M4-hardening-attempts/full-attempt-2/receipt.json",
+      "started_at": "2026-09-08T05:33:44.165201Z",
+      "finished_at": "2026-09-08T06:25:11.078930Z"
+    },
+    {
+      "kind": "executed_after_local_asset_recovery",
+      "first_step": 28,
+      "last_step": 33,
+      "started_at": "2026-09-08T06:29:59.079171Z",
+      "finished_at": "2026-09-08T06:32:16.077803Z",
+      "driver": "M4-full-gate-resume-driver.py"
+    }
+  ],
+  "m4_native_steps_passed": 19,
+  "native_log_hashes_verified": 19,
+  "archived_log_copies_verified": 38,
+  "previous_snapshot_baseline_comparisons": [
+    {
+      "path": "crates/mcp-server/tests/snapshots/audit-tool.json",
+      "baseline_copy": "additional-inputs/git-baseline/crates/mcp-server/tests/snapshots/audit-tool.json",
+      "baseline_sha256": "b6bb173a199bd85919c1a8f97218c4f02162f106338abffef97e3a68b72269f2",
+      "current_sha256": "b6bb173a199bd85919c1a8f97218c4f02162f106338abffef97e3a68b72269f2",
+      "equal": true
+    },
+    {
+      "path": "crates/mcp-server/tests/snapshots/catalog-status-tool.json",
+      "baseline_copy": "additional-inputs/git-baseline/crates/mcp-server/tests/snapshots/catalog-status-tool.json",
+      "baseline_sha256": "9ac8e2964beb0ae3af9829776761d25612ad4a57252dc19f98fa684f3c46c1bc",
+      "current_sha256": "9ac8e2964beb0ae3af9829776761d25612ad4a57252dc19f98fa684f3c46c1bc",
+      "equal": true
+    },
+    {
+      "path": "crates/mcp-server/tests/snapshots/check-tool.json",
+      "baseline_copy": "additional-inputs/git-baseline/crates/mcp-server/tests/snapshots/check-tool.json",
+      "baseline_sha256": "a9281b713e3f8b91682b0d248cacb7fc1e978b6d8df9baf0ad0f315a5a43f014",
+      "current_sha256": "a9281b713e3f8b91682b0d248cacb7fc1e978b6d8df9baf0ad0f315a5a43f014",
+      "equal": true
+    },
+    {
+      "path": "crates/mcp-server/tests/snapshots/clippy-tool.json",
+      "baseline_copy": "additional-inputs/git-baseline/crates/mcp-server/tests/snapshots/clippy-tool.json",
+      "baseline_sha256": "a4afb5c9d2c854ed23fb256c9ecdfd40e0ca5129a9aa302553a957e5346511a0",
+      "current_sha256": "a4afb5c9d2c854ed23fb256c9ecdfd40e0ca5129a9aa302553a957e5346511a0",
+      "equal": true
+    },
+    {
+      "path": "crates/mcp-server/tests/snapshots/coverage-tool.json",
+      "baseline_copy": "additional-inputs/git-baseline/crates/mcp-server/tests/snapshots/coverage-tool.json",
+      "baseline_sha256": "2a84cb5603d8ccbe6fa11dbd3fc6295183d0080bfe05a4d8c794944a021162d4",
+      "current_sha256": "2a84cb5603d8ccbe6fa11dbd3fc6295183d0080bfe05a4d8c794944a021162d4",
+      "equal": true
+    },
+    {
+      "path": "crates/mcp-server/tests/snapshots/crate-inspect-tool.json",
+      "baseline_copy": "additional-inputs/git-baseline/crates/mcp-server/tests/snapshots/crate-inspect-tool.json",
+      "baseline_sha256": "27af4b9f7c2df00fc2d528341ee781d350d09081bf2a7c9f3c5bc5538442d39d",
+      "current_sha256": "27af4b9f7c2df00fc2d528341ee781d350d09081bf2a7c9f3c5bc5538442d39d",
+      "equal": true
+    },
+    {
+      "path": "crates/mcp-server/tests/snapshots/crate-search-tool.json",
+      "baseline_copy": "additional-inputs/git-baseline/crates/mcp-server/tests/snapshots/crate-search-tool.json",
+      "baseline_sha256": "3d2a6d091a4a0ba0cfcdd1a4f8600e4cf4f883fc18ad4fee2412d4a1053f6039",
+      "current_sha256": "3d2a6d091a4a0ba0cfcdd1a4f8600e4cf4f883fc18ad4fee2412d4a1053f6039",
+      "equal": true
+    },
+    {
+      "path": "crates/mcp-server/tests/snapshots/dependency-add-tool.json",
+      "baseline_copy": "additional-inputs/git-baseline/crates/mcp-server/tests/snapshots/dependency-add-tool.json",
+      "baseline_sha256": "426515577746d42235ee31edfe455a5057cb0c7ffd1912f534de26e323304be6",
+      "current_sha256": "426515577746d42235ee31edfe455a5057cb0c7ffd1912f534de26e323304be6",
+      "equal": true
+    },
+    {
+      "path": "crates/mcp-server/tests/snapshots/dependency-remove-tool.json",
+      "baseline_copy": "additional-inputs/git-baseline/crates/mcp-server/tests/snapshots/dependency-remove-tool.json",
+      "baseline_sha256": "e73dfb65c55c5de6852b77e947bb8ee79ce824f18ef3035b33f84836ab198cdd",
+      "current_sha256": "e73dfb65c55c5de6852b77e947bb8ee79ce824f18ef3035b33f84836ab198cdd",
+      "equal": true
+    },
+    {
+      "path": "crates/mcp-server/tests/snapshots/doctor-report.json",
+      "baseline_copy": "additional-inputs/git-baseline/crates/mcp-server/tests/snapshots/doctor-report.json",
+      "baseline_sha256": "31378102881bf084c399ad60efbe900fa540b991bfa6fc5e84d07a6575831482",
+      "current_sha256": "31378102881bf084c399ad60efbe900fa540b991bfa6fc5e84d07a6575831482",
+      "equal": true
+    },
+    {
+      "path": "crates/mcp-server/tests/snapshots/explain-tool.json",
+      "baseline_copy": "additional-inputs/git-baseline/crates/mcp-server/tests/snapshots/explain-tool.json",
+      "baseline_sha256": "f4e0ab8b25a32e07ba6a86c100b7ee2a5adcab7a35f691f16e82c9d3f4933b9f",
+      "current_sha256": "f4e0ab8b25a32e07ba6a86c100b7ee2a5adcab7a35f691f16e82c9d3f4933b9f",
+      "equal": true
+    },
+    {
+      "path": "crates/mcp-server/tests/snapshots/fix-apply-tool.json",
+      "baseline_copy": "additional-inputs/git-baseline/crates/mcp-server/tests/snapshots/fix-apply-tool.json",
+      "baseline_sha256": "89c93950abe47923644f1cb2457491fbf4823533b99a489a7723fc1786fd57d5",
+      "current_sha256": "89c93950abe47923644f1cb2457491fbf4823533b99a489a7723fc1786fd57d5",
+      "equal": true
+    },
+    {
+      "path": "crates/mcp-server/tests/snapshots/fmt-apply-tool.json",
+      "baseline_copy": "additional-inputs/git-baseline/crates/mcp-server/tests/snapshots/fmt-apply-tool.json",
+      "baseline_sha256": "78983f1e4c08d607a4504994237a3a053de0f5c779671c0da6357db0bf833dab",
+      "current_sha256": "78983f1e4c08d607a4504994237a3a053de0f5c779671c0da6357db0bf833dab",
+      "equal": true
+    },
+    {
+      "path": "crates/mcp-server/tests/snapshots/format-tool.json",
+      "baseline_copy": "additional-inputs/git-baseline/crates/mcp-server/tests/snapshots/format-tool.json",
+      "baseline_sha256": "762e342a4b9e7e7e4a013583fb0f71ecefe1bf4c3ef47088b7c119a75dee56a4",
+      "current_sha256": "762e342a4b9e7e7e4a013583fb0f71ecefe1bf4c3ef47088b7c119a75dee56a4",
+      "equal": true
+    },
+    {
+      "path": "crates/mcp-server/tests/snapshots/manifest-patch-tool.json",
+      "baseline_copy": "additional-inputs/git-baseline/crates/mcp-server/tests/snapshots/manifest-patch-tool.json",
+      "baseline_sha256": "1a4f9891093f03db987ad9b53f3b862a0dc54183abf074d89096f6f294b814aa",
+      "current_sha256": "1a4f9891093f03db987ad9b53f3b862a0dc54183abf074d89096f6f294b814aa",
+      "equal": true
+    },
+    {
+      "path": "crates/mcp-server/tests/snapshots/mutation-test-tool.json",
+      "baseline_copy": "additional-inputs/git-baseline/crates/mcp-server/tests/snapshots/mutation-test-tool.json",
+      "baseline_sha256": "d689048bf1ee860a95e9fde5d86852781abc046e3b746c5983d5445f9135507d",
+      "current_sha256": "d689048bf1ee860a95e9fde5d86852781abc046e3b746c5983d5445f9135507d",
+      "equal": true
+    },
+    {
+      "path": "crates/mcp-server/tests/snapshots/nextest-tool.json",
+      "baseline_copy": "additional-inputs/git-baseline/crates/mcp-server/tests/snapshots/nextest-tool.json",
+      "baseline_sha256": "c05d55f0695b3996a4809a8228f94e9a77c00c4d65f054df91772625222d09f3",
+      "current_sha256": "c05d55f0695b3996a4809a8228f94e9a77c00c4d65f054df91772625222d09f3",
+      "equal": true
+    },
+    {
+      "path": "crates/mcp-server/tests/snapshots/project-inspect-tool.json",
+      "baseline_copy": "additional-inputs/git-baseline/crates/mcp-server/tests/snapshots/project-inspect-tool.json",
+      "baseline_sha256": "bf0838ace4f0f7f0709c76801de6f1b66307d90251eab6441a2d07208b913e07",
+      "current_sha256": "bf0838ace4f0f7f0709c76801de6f1b66307d90251eab6441a2d07208b913e07",
+      "equal": true
+    },
+    {
+      "path": "crates/mcp-server/tests/snapshots/project-open-tool.json",
+      "baseline_copy": "additional-inputs/git-baseline/crates/mcp-server/tests/snapshots/project-open-tool.json",
+      "baseline_sha256": "bfab409498dc67517a96d4d034f403d24ad3ae31046df3afc09c1f3781148d9b",
+      "current_sha256": "bfab409498dc67517a96d4d034f403d24ad3ae31046df3afc09c1f3781148d9b",
+      "equal": true
+    },
+    {
+      "path": "crates/mcp-server/tests/snapshots/quality-tool.json",
+      "baseline_copy": "additional-inputs/git-baseline/crates/mcp-server/tests/snapshots/quality-tool.json",
+      "baseline_sha256": "95f2b8adf277a0d2d95b827a320c1f848bb1069482ad30d2e1592d418bdfffb3",
+      "current_sha256": "95f2b8adf277a0d2d95b827a320c1f848bb1069482ad30d2e1592d418bdfffb3",
+      "equal": true
+    },
+    {
+      "path": "crates/mcp-server/tests/snapshots/semver-tool.json",
+      "baseline_copy": "additional-inputs/git-baseline/crates/mcp-server/tests/snapshots/semver-tool.json",
+      "baseline_sha256": "1c8df18de40655dd43265c75958ceed739cbd831f134cbe9a09822f41d31fdb5",
+      "current_sha256": "1c8df18de40655dd43265c75958ceed739cbd831f134cbe9a09822f41d31fdb5",
+      "equal": true
+    },
+    {
+      "path": "crates/mcp-server/tests/snapshots/test-tool.json",
+      "baseline_copy": "additional-inputs/git-baseline/crates/mcp-server/tests/snapshots/test-tool.json",
+      "baseline_sha256": "a4f0904c89b34bd4eb3524f9de71c8d4c2036028b5905bcfdc17eea75085abf7",
+      "current_sha256": "a4f0904c89b34bd4eb3524f9de71c8d4c2036028b5905bcfdc17eea75085abf7",
+      "equal": true
+    },
+    {
+      "path": "crates/mcp-server/tests/snapshots/toolchain-inspect-tool.json",
+      "baseline_copy": "additional-inputs/git-baseline/crates/mcp-server/tests/snapshots/toolchain-inspect-tool.json",
+      "baseline_sha256": "bd57a8784387ac6939b3a12d2343660a1bf2c2fc1246c83790e6f7e0276ef518",
+      "current_sha256": "bd57a8784387ac6939b3a12d2343660a1bf2c2fc1246c83790e6f7e0276ef518",
+      "equal": true
+    }
+  ],
+  "e5_pin_source": "crates/semantic-adapter/src/model.rs",
+  "e5_pin_source_sha256": "08082cf321273ed502deafae11a5c5c6d7174db41c4cd8301439820d90cc8524",
+  "e5_assets": [
+    {
+      "path": "target/m1-15-candidate/assets/model/model.onnx",
+      "bytes": 470268510,
+      "expected_bytes": 470268510,
+      "sha256": "ca456c06b3a9505ddfd9131408916dd79290368331e7d76bb621f1cba6bc8665",
+      "expected_sha256": "ca456c06b3a9505ddfd9131408916dd79290368331e7d76bb621f1cba6bc8665",
+      "match": true
+    },
+    {
+      "path": "target/m1-15-candidate/assets/model/tokenizer.json",
+      "bytes": 17082730,
+      "expected_bytes": 17082730,
+      "sha256": "0b44a9d7b51c3c62626640cda0e2c2f70fdacdc25bbbd68038369d14ebdf4c39",
+      "expected_sha256": "0b44a9d7b51c3c62626640cda0e2c2f70fdacdc25bbbd68038369d14ebdf4c39",
+      "match": true
+    },
+    {
+      "path": "target/m1-15-candidate/assets/model/config.json",
+      "bytes": 653,
+      "expected_bytes": 653,
+      "sha256": "bbb7c1333fc4b3e27fbc9cd5d2070aabcc1d4dfb99917c3633e772f97545a6b6",
+      "expected_sha256": "bbb7c1333fc4b3e27fbc9cd5d2070aabcc1d4dfb99917c3633e772f97545a6b6",
+      "match": true
+    },
+    {
+      "path": "target/m1-15-candidate/assets/model/special_tokens_map.json",
+      "bytes": 167,
+      "expected_bytes": 167,
+      "sha256": "d05497f1da52c5e09554c0cd874037a083e1dc1b9cfd48034d1c717f1afc07a7",
+      "expected_sha256": "d05497f1da52c5e09554c0cd874037a083e1dc1b9cfd48034d1c717f1afc07a7",
+      "match": true
+    },
+    {
+      "path": "target/m1-15-candidate/assets/model/tokenizer_config.json",
+      "bytes": 443,
+      "expected_bytes": 443,
+      "sha256": "a1d6bc8734a6f635dc158508bef000f8e2e5a759c7d92f984b2c86e5ff53425b",
+      "expected_sha256": "a1d6bc8734a6f635dc158508bef000f8e2e5a759c7d92f984b2c86e5ff53425b",
+      "match": true
+    }
+  ],
+  "new_network_acquisition": false,
+  "server_binary_sha256": "f4e2c6d18982405d6674e9978352e1b9887df16adc729b5a43473adbd491f024",
+  "docker_owned_containers": [],
+  "docker_owned_volumes": [],
+  "no_credential_named_files_in_docs": true,
+  "credential_check_scope": "Filename guard only; no claim of universal content secret scanning.",
+  "git_head": "c66a3704e1ad290603a3c1d10413df90d15c2b03",
+  "branch": "ai/m4-security",
+  "verification_driver": "M4-final-verification-driver.py",
+  "verification_driver_sha256": "514aa7e3a2c9003a721bcd09fb305213a865f489054d0187b17c0bf41c407e76"
+}

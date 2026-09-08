@@ -1,0 +1,648 @@
+{
+  "cases": [
+    {
+      "case": "workspace-vendor-authentic",
+      "elapsed_ms": 5415,
+      "execution_sha256": "sha256:82ffa0b9b1127cd6c6395e2b72fabf6fc30ab0349b4f3cbf00c20e1a9ac7f4bb",
+      "exit_code": 0,
+      "manifest_sha256": "sha256:9dad4aa91104722361b7f3a4ddf61924b55f9497ec14197b5f330e972f15e379",
+      "report": {
+        "cfg_evaluated": false,
+        "coverage": {
+          "dependency_files": 11,
+          "files_budget_exhausted": 0,
+          "files_crashed": 0,
+          "files_invalid_utf8": 0,
+          "files_omitted": 0,
+          "files_parse_error": 0,
+          "files_parsed": 12,
+          "files_selected": 12,
+          "files_timed_out": 0,
+          "files_too_large": 0,
+          "files_total": 12,
+          "files_unavailable": 0,
+          "macro_boundaries_omitted": 19,
+          "opaque_syntax_omitted": 0,
+          "source_bytes": 141176,
+          "workspace_files": 1,
+          "workspace_unowned_files": 0
+        },
+        "findings": [
+          {
+            "byte_end": 12342,
+            "byte_start": 12336,
+            "column": 5,
+            "conditional": false,
+            "file_fingerprint": "sha256:078912e7c64ba3ea1081b88c2610deba31eeb057c28f9d78e929db4856b7774f",
+            "kind": "unsafe_block",
+            "line": 267,
+            "origin": "dependency",
+            "package": {
+              "name": "unicode-ident",
+              "source": "crates_io",
+              "source_fingerprint": "sha256:743947d5788c1a4385a4b59869c5b8bd0535f7fc0d875b51288f9b26b2d0eba1",
+              "version": "1.0.24"
+            },
+            "path": "unicode-ident-1.0.24/src/lib.rs"
+          },
+          {
+            "byte_end": 12798,
+            "byte_start": 12792,
+            "column": 5,
+            "conditional": false,
+            "file_fingerprint": "sha256:078912e7c64ba3ea1081b88c2610deba31eeb057c28f9d78e929db4856b7774f",
+            "kind": "unsafe_block",
+            "line": 280,
+            "origin": "dependency",
+            "package": {
+              "name": "unicode-ident",
+              "source": "crates_io",
+              "source_fingerprint": "sha256:743947d5788c1a4385a4b59869c5b8bd0535f7fc0d875b51288f9b26b2d0eba1",
+              "version": "1.0.24"
+            },
+            "path": "unicode-ident-1.0.24/src/lib.rs"
+          }
+        ],
+        "findings_omitted": 0,
+        "findings_total": 2,
+        "generated_sources_scanned": false,
+        "macros_expanded": false,
+        "syntax_complete": true
+      },
+      "source_archive_sha256": "sha256:f361673c0253f12ed10acabf4193df65ffdddfedef2ef339c89f9f0f5714c115",
+      "stderr_sha256": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_sha256": "sha256:e55781a746157b8bf0e594961ac03bee6e94745a44692dd3435ff0be0fee3d0a",
+      "vendor_tree_sha256": "sha256:743947d5788c1a4385a4b59869c5b8bd0535f7fc0d875b51288f9b26b2d0eba1"
+    },
+    {
+      "case": "syntax-unicode-cfg-macro",
+      "elapsed_ms": 5356,
+      "execution_sha256": "sha256:fd9fe106db95baa68c6667844267a39534556199741019e66876668f818d03ad",
+      "exit_code": 0,
+      "manifest_sha256": "sha256:aa7f6c3c0c682e989b599ebc36413533962ac993a0eb0984137ef3a0625dcc4c",
+      "report": {
+        "cfg_evaluated": false,
+        "coverage": {
+          "dependency_files": 11,
+          "files_budget_exhausted": 0,
+          "files_crashed": 0,
+          "files_invalid_utf8": 0,
+          "files_omitted": 0,
+          "files_parse_error": 0,
+          "files_parsed": 13,
+          "files_selected": 13,
+          "files_timed_out": 0,
+          "files_too_large": 0,
+          "files_total": 13,
+          "files_unavailable": 0,
+          "macro_boundaries_omitted": 20,
+          "opaque_syntax_omitted": 0,
+          "source_bytes": 141555,
+          "workspace_files": 2,
+          "workspace_unowned_files": 0
+        },
+        "findings": [
+          {
+            "byte_end": 70,
+            "byte_start": 64,
+            "column": 1,
+            "conditional": false,
+            "file_fingerprint": "sha256:686c34382652e7e202b77c37629db6b123572b941d9fca8d350cd98e8a0eca35",
+            "kind": "unsafe_trait",
+            "line": 2,
+            "origin": "workspace",
+            "package": {
+              "name": "m4-scanner-native",
+              "source": "workspace",
+              "source_fingerprint": "sha256:cd19b75322db9b6612454ee53a825aee0a617fe691ae738b4ad2d778d137d490",
+              "version": "0.1.0"
+            },
+            "path": "src/syntax.rs"
+          },
+          {
+            "byte_end": 93,
+            "byte_start": 87,
+            "column": 1,
+            "conditional": false,
+            "file_fingerprint": "sha256:686c34382652e7e202b77c37629db6b123572b941d9fca8d350cd98e8a0eca35",
+            "kind": "unsafe_impl",
+            "line": 3,
+            "origin": "workspace",
+            "package": {
+              "name": "m4-scanner-native",
+              "source": "workspace",
+              "source_fingerprint": "sha256:cd19b75322db9b6612454ee53a825aee0a617fe691ae738b4ad2d778d137d490",
+              "version": "0.1.0"
+            },
+            "path": "src/syntax.rs"
+          },
+          {
+            "byte_end": 123,
+            "byte_start": 117,
+            "column": 1,
+            "conditional": false,
+            "file_fingerprint": "sha256:686c34382652e7e202b77c37629db6b123572b941d9fca8d350cd98e8a0eca35",
+            "kind": "unsafe_extern_block",
+            "line": 5,
+            "origin": "workspace",
+            "package": {
+              "name": "m4-scanner-native",
+              "source": "workspace",
+              "source_fingerprint": "sha256:cd19b75322db9b6612454ee53a825aee0a617fe691ae738b4ad2d778d137d490",
+              "version": "0.1.0"
+            },
+            "path": "src/syntax.rs"
+          },
+          {
+            "byte_end": 130,
+            "byte_start": 124,
+            "column": 8,
+            "conditional": false,
+            "file_fingerprint": "sha256:686c34382652e7e202b77c37629db6b123572b941d9fca8d350cd98e8a0eca35",
+            "kind": "extern_block",
+            "line": 5,
+            "origin": "workspace",
+            "package": {
+              "name": "m4-scanner-native",
+              "source": "workspace",
+              "source_fingerprint": "sha256:cd19b75322db9b6612454ee53a825aee0a617fe691ae738b4ad2d778d137d490",
+              "version": "0.1.0"
+            },
+            "path": "src/syntax.rs"
+          },
+          {
+            "byte_end": 147,
+            "byte_start": 141,
+            "column": 5,
+            "conditional": false,
+            "file_fingerprint": "sha256:686c34382652e7e202b77c37629db6b123572b941d9fca8d350cd98e8a0eca35",
+            "kind": "unsafe_static",
+            "line": 6,
+            "origin": "workspace",
+            "package": {
+              "name": "m4-scanner-native",
+              "source": "workspace",
+              "source_fingerprint": "sha256:cd19b75322db9b6612454ee53a825aee0a617fe691ae738b4ad2d778d137d490",
+              "version": "0.1.0"
+            },
+            "path": "src/syntax.rs"
+          },
+          {
+            "byte_end": 229,
+            "byte_start": 223,
+            "column": 1,
+            "conditional": true,
+            "file_fingerprint": "sha256:686c34382652e7e202b77c37629db6b123572b941d9fca8d350cd98e8a0eca35",
+            "kind": "unsafe_fn",
+            "line": 11,
+            "origin": "workspace",
+            "package": {
+              "name": "m4-scanner-native",
+              "source": "workspace",
+              "source_fingerprint": "sha256:cd19b75322db9b6612454ee53a825aee0a617fe691ae738b4ad2d778d137d490",
+              "version": "0.1.0"
+            },
+            "path": "src/syntax.rs"
+          },
+          {
+            "byte_end": 259,
+            "byte_start": 253,
+            "column": 5,
+            "conditional": true,
+            "file_fingerprint": "sha256:686c34382652e7e202b77c37629db6b123572b941d9fca8d350cd98e8a0eca35",
+            "kind": "unsafe_block",
+            "line": 12,
+            "origin": "workspace",
+            "package": {
+              "name": "m4-scanner-native",
+              "source": "workspace",
+              "source_fingerprint": "sha256:cd19b75322db9b6612454ee53a825aee0a617fe691ae738b4ad2d778d137d490",
+              "version": "0.1.0"
+            },
+            "path": "src/syntax.rs"
+          },
+          {
+            "byte_end": 12342,
+            "byte_start": 12336,
+            "column": 5,
+            "conditional": false,
+            "file_fingerprint": "sha256:078912e7c64ba3ea1081b88c2610deba31eeb057c28f9d78e929db4856b7774f",
+            "kind": "unsafe_block",
+            "line": 267,
+            "origin": "dependency",
+            "package": {
+              "name": "unicode-ident",
+              "source": "crates_io",
+              "source_fingerprint": "sha256:743947d5788c1a4385a4b59869c5b8bd0535f7fc0d875b51288f9b26b2d0eba1",
+              "version": "1.0.24"
+            },
+            "path": "unicode-ident-1.0.24/src/lib.rs"
+          },
+          {
+            "byte_end": 12798,
+            "byte_start": 12792,
+            "column": 5,
+            "conditional": false,
+            "file_fingerprint": "sha256:078912e7c64ba3ea1081b88c2610deba31eeb057c28f9d78e929db4856b7774f",
+            "kind": "unsafe_block",
+            "line": 280,
+            "origin": "dependency",
+            "package": {
+              "name": "unicode-ident",
+              "source": "crates_io",
+              "source_fingerprint": "sha256:743947d5788c1a4385a4b59869c5b8bd0535f7fc0d875b51288f9b26b2d0eba1",
+              "version": "1.0.24"
+            },
+            "path": "unicode-ident-1.0.24/src/lib.rs"
+          }
+        ],
+        "findings_omitted": 0,
+        "findings_total": 9,
+        "generated_sources_scanned": false,
+        "macros_expanded": false,
+        "syntax_complete": true
+      },
+      "source_archive_sha256": "sha256:cd19b75322db9b6612454ee53a825aee0a617fe691ae738b4ad2d778d137d490",
+      "stderr_sha256": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_sha256": "sha256:bab44cf64212f104685ed8bae2f61b58a1cf17947a899ee5387a4370844fe6c8",
+      "vendor_tree_sha256": "sha256:743947d5788c1a4385a4b59869c5b8bd0535f7fc0d875b51288f9b26b2d0eba1"
+    },
+    {
+      "case": "invalid-utf8",
+      "elapsed_ms": 5438,
+      "execution_sha256": "sha256:8c5fba777b02096c21692c5978d916c2e067614c5a1905ee2639cb0a90c3573e",
+      "exit_code": 0,
+      "manifest_sha256": "sha256:39eaee2ab81e46d9bd304e60e821fbb24c9e5fe07db4e3de75fa28acc952f577",
+      "report": {
+        "cfg_evaluated": false,
+        "coverage": {
+          "dependency_files": 11,
+          "files_budget_exhausted": 0,
+          "files_crashed": 0,
+          "files_invalid_utf8": 1,
+          "files_omitted": 0,
+          "files_parse_error": 0,
+          "files_parsed": 12,
+          "files_selected": 13,
+          "files_timed_out": 0,
+          "files_too_large": 0,
+          "files_total": 13,
+          "files_unavailable": 0,
+          "macro_boundaries_omitted": 19,
+          "opaque_syntax_omitted": 0,
+          "source_bytes": 141193,
+          "workspace_files": 2,
+          "workspace_unowned_files": 0
+        },
+        "findings": [
+          {
+            "byte_end": 12342,
+            "byte_start": 12336,
+            "column": 5,
+            "conditional": false,
+            "file_fingerprint": "sha256:078912e7c64ba3ea1081b88c2610deba31eeb057c28f9d78e929db4856b7774f",
+            "kind": "unsafe_block",
+            "line": 267,
+            "origin": "dependency",
+            "package": {
+              "name": "unicode-ident",
+              "source": "crates_io",
+              "source_fingerprint": "sha256:743947d5788c1a4385a4b59869c5b8bd0535f7fc0d875b51288f9b26b2d0eba1",
+              "version": "1.0.24"
+            },
+            "path": "unicode-ident-1.0.24/src/lib.rs"
+          },
+          {
+            "byte_end": 12798,
+            "byte_start": 12792,
+            "column": 5,
+            "conditional": false,
+            "file_fingerprint": "sha256:078912e7c64ba3ea1081b88c2610deba31eeb057c28f9d78e929db4856b7774f",
+            "kind": "unsafe_block",
+            "line": 280,
+            "origin": "dependency",
+            "package": {
+              "name": "unicode-ident",
+              "source": "crates_io",
+              "source_fingerprint": "sha256:743947d5788c1a4385a4b59869c5b8bd0535f7fc0d875b51288f9b26b2d0eba1",
+              "version": "1.0.24"
+            },
+            "path": "unicode-ident-1.0.24/src/lib.rs"
+          }
+        ],
+        "findings_omitted": 0,
+        "findings_total": 2,
+        "generated_sources_scanned": false,
+        "macros_expanded": false,
+        "syntax_complete": false
+      },
+      "source_archive_sha256": "sha256:6c1e73bfa4a6fde56b1857eaed03c0009b8cdc8ced0b702d215a7226d8b2b711",
+      "stderr_sha256": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_sha256": "sha256:8f3be4a4ac0b8e87f65a6bf70e71f315c529f3468ecbe369a28517069d88ecb9",
+      "vendor_tree_sha256": "sha256:743947d5788c1a4385a4b59869c5b8bd0535f7fc0d875b51288f9b26b2d0eba1"
+    },
+    {
+      "case": "parse-error",
+      "elapsed_ms": 5532,
+      "execution_sha256": "sha256:4f0f95b4ccf3a24e67038da552b5e26c7b6a400b6f8df44c3f77116b37a8a1ab",
+      "exit_code": 0,
+      "manifest_sha256": "sha256:0a699c9b4a424a40408167511c91623637cf81a63fa0a63f66c5c9c7de1e6c46",
+      "report": {
+        "cfg_evaluated": false,
+        "coverage": {
+          "dependency_files": 11,
+          "files_budget_exhausted": 0,
+          "files_crashed": 0,
+          "files_invalid_utf8": 0,
+          "files_omitted": 0,
+          "files_parse_error": 1,
+          "files_parsed": 12,
+          "files_selected": 13,
+          "files_timed_out": 0,
+          "files_too_large": 0,
+          "files_total": 13,
+          "files_unavailable": 0,
+          "macro_boundaries_omitted": 19,
+          "opaque_syntax_omitted": 0,
+          "source_bytes": 141204,
+          "workspace_files": 2,
+          "workspace_unowned_files": 0
+        },
+        "findings": [
+          {
+            "byte_end": 12342,
+            "byte_start": 12336,
+            "column": 5,
+            "conditional": false,
+            "file_fingerprint": "sha256:078912e7c64ba3ea1081b88c2610deba31eeb057c28f9d78e929db4856b7774f",
+            "kind": "unsafe_block",
+            "line": 267,
+            "origin": "dependency",
+            "package": {
+              "name": "unicode-ident",
+              "source": "crates_io",
+              "source_fingerprint": "sha256:743947d5788c1a4385a4b59869c5b8bd0535f7fc0d875b51288f9b26b2d0eba1",
+              "version": "1.0.24"
+            },
+            "path": "unicode-ident-1.0.24/src/lib.rs"
+          },
+          {
+            "byte_end": 12798,
+            "byte_start": 12792,
+            "column": 5,
+            "conditional": false,
+            "file_fingerprint": "sha256:078912e7c64ba3ea1081b88c2610deba31eeb057c28f9d78e929db4856b7774f",
+            "kind": "unsafe_block",
+            "line": 280,
+            "origin": "dependency",
+            "package": {
+              "name": "unicode-ident",
+              "source": "crates_io",
+              "source_fingerprint": "sha256:743947d5788c1a4385a4b59869c5b8bd0535f7fc0d875b51288f9b26b2d0eba1",
+              "version": "1.0.24"
+            },
+            "path": "unicode-ident-1.0.24/src/lib.rs"
+          }
+        ],
+        "findings_omitted": 0,
+        "findings_total": 2,
+        "generated_sources_scanned": false,
+        "macros_expanded": false,
+        "syntax_complete": false
+      },
+      "source_archive_sha256": "sha256:9aa3cd70f19cab6595ed91482dad8314a4b1a4ec20fb7acc2d2aecd72b40634d",
+      "stderr_sha256": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_sha256": "sha256:fb2fc52e14119a1385e67df8afad1e7154d28747f4be9cf3e3fcc0e5ce89248f",
+      "vendor_tree_sha256": "sha256:743947d5788c1a4385a4b59869c5b8bd0535f7fc0d875b51288f9b26b2d0eba1"
+    },
+    {
+      "case": "exact-source-size-limit",
+      "elapsed_ms": 5590,
+      "execution_sha256": "sha256:68bb86e23fc9f218f790bb4fd40179bccbfab3ec52d64c0c15d1dd031a74853d",
+      "exit_code": 0,
+      "manifest_sha256": "sha256:20ba2306706305fb29f9cd4fb16347b8e51395418058461866a019ebd48c1512",
+      "report": {
+        "cfg_evaluated": false,
+        "coverage": {
+          "dependency_files": 11,
+          "files_budget_exhausted": 0,
+          "files_crashed": 0,
+          "files_invalid_utf8": 0,
+          "files_omitted": 0,
+          "files_parse_error": 0,
+          "files_parsed": 13,
+          "files_selected": 13,
+          "files_timed_out": 0,
+          "files_too_large": 0,
+          "files_total": 13,
+          "files_unavailable": 0,
+          "macro_boundaries_omitted": 19,
+          "opaque_syntax_omitted": 0,
+          "source_bytes": 1189752,
+          "workspace_files": 2,
+          "workspace_unowned_files": 0
+        },
+        "findings": [
+          {
+            "byte_end": 12342,
+            "byte_start": 12336,
+            "column": 5,
+            "conditional": false,
+            "file_fingerprint": "sha256:078912e7c64ba3ea1081b88c2610deba31eeb057c28f9d78e929db4856b7774f",
+            "kind": "unsafe_block",
+            "line": 267,
+            "origin": "dependency",
+            "package": {
+              "name": "unicode-ident",
+              "source": "crates_io",
+              "source_fingerprint": "sha256:743947d5788c1a4385a4b59869c5b8bd0535f7fc0d875b51288f9b26b2d0eba1",
+              "version": "1.0.24"
+            },
+            "path": "unicode-ident-1.0.24/src/lib.rs"
+          },
+          {
+            "byte_end": 12798,
+            "byte_start": 12792,
+            "column": 5,
+            "conditional": false,
+            "file_fingerprint": "sha256:078912e7c64ba3ea1081b88c2610deba31eeb057c28f9d78e929db4856b7774f",
+            "kind": "unsafe_block",
+            "line": 280,
+            "origin": "dependency",
+            "package": {
+              "name": "unicode-ident",
+              "source": "crates_io",
+              "source_fingerprint": "sha256:743947d5788c1a4385a4b59869c5b8bd0535f7fc0d875b51288f9b26b2d0eba1",
+              "version": "1.0.24"
+            },
+            "path": "unicode-ident-1.0.24/src/lib.rs"
+          }
+        ],
+        "findings_omitted": 0,
+        "findings_total": 2,
+        "generated_sources_scanned": false,
+        "macros_expanded": false,
+        "syntax_complete": true
+      },
+      "source_archive_sha256": "sha256:e04862c13ac34a56bde1de15043b8dfa402d09f75dafbe2a7b66e4ce9dc48bf0",
+      "stderr_sha256": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_sha256": "sha256:1b9a4200c245b0809aee3692078b4a7722295cdb33dff90bfbdccf7370aabb48",
+      "vendor_tree_sha256": "sha256:743947d5788c1a4385a4b59869c5b8bd0535f7fc0d875b51288f9b26b2d0eba1"
+    },
+    {
+      "case": "worker-crash",
+      "elapsed_ms": 5520,
+      "execution_sha256": "sha256:7cd68a77d481ad4042a578c687d9b2e8cca13df8d2751f7fff6f03ef2a7bc060",
+      "exit_code": 0,
+      "manifest_sha256": "sha256:eda3090ec217b19d7682efc254389f0ca004a399fb350159c3f04a05643af956",
+      "report": {
+        "cfg_evaluated": false,
+        "coverage": {
+          "dependency_files": 11,
+          "files_budget_exhausted": 0,
+          "files_crashed": 1,
+          "files_invalid_utf8": 0,
+          "files_omitted": 0,
+          "files_parse_error": 0,
+          "files_parsed": 14,
+          "files_selected": 15,
+          "files_timed_out": 0,
+          "files_too_large": 0,
+          "files_total": 15,
+          "files_unavailable": 0,
+          "macro_boundaries_omitted": 19,
+          "opaque_syntax_omitted": 0,
+          "source_bytes": 391248,
+          "workspace_files": 4,
+          "workspace_unowned_files": 0
+        },
+        "findings": [
+          {
+            "byte_end": 6,
+            "byte_start": 0,
+            "column": 1,
+            "conditional": false,
+            "file_fingerprint": "sha256:2dae664c51c61359b85d1076788c8b8805e4559c6452195af29cf3360667d38a",
+            "kind": "unsafe_fn",
+            "line": 1,
+            "origin": "workspace",
+            "package": {
+              "name": "m4-scanner-native",
+              "source": "workspace",
+              "source_fingerprint": "sha256:830f637b685c914d822da8fba3de2af1a1f179c1a88051111b96e5f59844bbbd",
+              "version": "0.1.0"
+            },
+            "path": "00-before.rs"
+          },
+          {
+            "byte_end": 6,
+            "byte_start": 0,
+            "column": 1,
+            "conditional": false,
+            "file_fingerprint": "sha256:8d52744ec38ff6b5dd078b556d8aacc6a50b85d366cae7fb8eceec69d1d603ae",
+            "kind": "unsafe_fn",
+            "line": 1,
+            "origin": "workspace",
+            "package": {
+              "name": "m4-scanner-native",
+              "source": "workspace",
+              "source_fingerprint": "sha256:830f637b685c914d822da8fba3de2af1a1f179c1a88051111b96e5f59844bbbd",
+              "version": "0.1.0"
+            },
+            "path": "02-after.rs"
+          },
+          {
+            "byte_end": 12342,
+            "byte_start": 12336,
+            "column": 5,
+            "conditional": false,
+            "file_fingerprint": "sha256:078912e7c64ba3ea1081b88c2610deba31eeb057c28f9d78e929db4856b7774f",
+            "kind": "unsafe_block",
+            "line": 267,
+            "origin": "dependency",
+            "package": {
+              "name": "unicode-ident",
+              "source": "crates_io",
+              "source_fingerprint": "sha256:743947d5788c1a4385a4b59869c5b8bd0535f7fc0d875b51288f9b26b2d0eba1",
+              "version": "1.0.24"
+            },
+            "path": "unicode-ident-1.0.24/src/lib.rs"
+          },
+          {
+            "byte_end": 12798,
+            "byte_start": 12792,
+            "column": 5,
+            "conditional": false,
+            "file_fingerprint": "sha256:078912e7c64ba3ea1081b88c2610deba31eeb057c28f9d78e929db4856b7774f",
+            "kind": "unsafe_block",
+            "line": 280,
+            "origin": "dependency",
+            "package": {
+              "name": "unicode-ident",
+              "source": "crates_io",
+              "source_fingerprint": "sha256:743947d5788c1a4385a4b59869c5b8bd0535f7fc0d875b51288f9b26b2d0eba1",
+              "version": "1.0.24"
+            },
+            "path": "unicode-ident-1.0.24/src/lib.rs"
+          }
+        ],
+        "findings_omitted": 0,
+        "findings_total": 4,
+        "generated_sources_scanned": false,
+        "macros_expanded": false,
+        "syntax_complete": false
+      },
+      "source_archive_sha256": "sha256:830f637b685c914d822da8fba3de2af1a1f179c1a88051111b96e5f59844bbbd",
+      "stderr_sha256": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_sha256": "sha256:0c2f4823e65e839b04f0f09307ec591e1b29cc678926fefd2d5d2094bd004480",
+      "vendor_tree_sha256": "sha256:743947d5788c1a4385a4b59869c5b8bd0535f7fc0d875b51288f9b26b2d0eba1"
+    },
+    {
+      "case": "global-budget-partial",
+      "elapsed_ms": 12108,
+      "execution_sha256": "sha256:fde0c48a147084a06bba02c4187c64e08e51eaec225c93c3e05a193499134c53",
+      "exit_code": 0,
+      "manifest_sha256": "sha256:1876ccc95b3f7bee0e44bba27a7edd892c6aa5c7543bffc2b1ae12e44ca71366",
+      "report": {
+        "cfg_evaluated": false,
+        "coverage": {
+          "dependency_files": 11,
+          "files_budget_exhausted": 3148,
+          "files_crashed": 0,
+          "files_invalid_utf8": 0,
+          "files_omitted": 0,
+          "files_parse_error": 0,
+          "files_parsed": 944,
+          "files_selected": 4092,
+          "files_timed_out": 0,
+          "files_too_large": 0,
+          "files_total": 4092,
+          "files_unavailable": 0,
+          "macro_boundaries_omitted": 0,
+          "opaque_syntax_omitted": 0,
+          "source_bytes": 141176,
+          "workspace_files": 4081,
+          "workspace_unowned_files": 0
+        },
+        "findings": [],
+        "findings_omitted": 0,
+        "findings_total": 0,
+        "generated_sources_scanned": false,
+        "macros_expanded": false,
+        "syntax_complete": false
+      },
+      "source_archive_sha256": "sha256:225f1020cac17448299bd14a02eab2a035a081f6de04e4bb14f3e58eb107190c",
+      "stderr_sha256": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_sha256": "sha256:fce9984b689df5d47c578062b97b57c4582f7d3c2df8d72a04a9666eff56079a",
+      "vendor_tree_sha256": "sha256:743947d5788c1a4385a4b59869c5b8bd0535f7fc0d875b51288f9b26b2d0eba1"
+    }
+  ],
+  "cleanup": {
+    "all_absent": true
+  },
+  "image_id": "sha256:25ed3626e710081a571a86a29521eaf2e890e796afd422ba5e409e0ce1891635",
+  "schema": "rust-engineering-mcp.m4-scanner-native.v1",
+  "status": "passed",
+  "timeout_disposition": "Per-file timeout and continuation are qualified by the helper subprocess IPC tests. The native corpus does not reliably exceed the fixed 2s per-file limit; global deadline exhaustion is exercised separately without claiming a per-file timeout.",
+  "too_large_disposition": "SourceFile rejects 1 MiB + 1 before gateway admission; helper too_large remains a defense validated by its unit test"
+}

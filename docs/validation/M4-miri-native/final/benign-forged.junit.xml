@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites name="nextest-run" tests="2" skipped="0" failures="1" errors="0" uuid="714af5c6-2a63-4e2c-8b7b-9b41551bfa3a" timestamp="2026-09-08T06:20:08.576+00:00" time="0.769">
+    <testsuite name="m4-miri-benign-forged" tests="2" skipped="0" errors="0" failures="1">
+        <testcase name="cfg_miri_is_active" classname="m4-miri-benign-forged" timestamp="2026-09-08T06:20:08.576+00:00" time="0.381"/>
+        <testcase name="forged_diagnostic_is_only_test_output" classname="m4-miri-benign-forged" timestamp="2026-09-08T06:20:08.957+00:00" time="0.387">
+            <failure type="test failure with exit code 101"/>
+            <system-out></system-out>
+            <system-err></system-err>
+        </testcase>
+    </testsuite>
+</testsuites>

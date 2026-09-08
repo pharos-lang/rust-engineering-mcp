@@ -1,0 +1,186 @@
+{
+  "argv": [
+    "run",
+    "--name=m4-miri-classification-ffi-b1234e66bd724d71b4516c549390d30a",
+    "--pull=never",
+    "--network=none",
+    "--read-only",
+    "--cap-drop=ALL",
+    "--security-opt=no-new-privileges=true",
+    "--user=65534:65534",
+    "--pids-limit=128",
+    "--memory=1g",
+    "--memory-swap=1g",
+    "--cpus=1",
+    "--tmpfs=/work:rw,exec,nosuid,nodev,size=512m,mode=1777",
+    "--tmpfs=/tmp:rw,noexec,nosuid,nodev,size=64m,mode=1777",
+    "--workdir=/source",
+    "--mount=type=bind,source=/Users/cburgosro/Projects/rust-mcp/fixtures/m4-runtime-oracles/miri-classification/ffi,target=/source,readonly",
+    "--mount=type=bind,source=/Users/cburgosro/Projects/rust-mcp/fixtures/m4-runtime-oracles/miri-classification/nextest.toml,target=/qualification/nextest.toml,readonly",
+    "--mount=type=volume,source=m4-miri-classification-junit-b1234e66bd724d71b4516c549390d30a,target=/junit",
+    "--entrypoint=/usr/bin/env",
+    "sha256:95dddeb5305f10b09b441e3cc4018ebb1a8a296d365c65106327d59f933c64e7",
+    "-i",
+    "PATH=/opt/rust-nightly-2026-09-07/bin:/opt/rust/bin:/usr/bin:/bin",
+    "HOME=/work",
+    "TMPDIR=/tmp",
+    "CARGO_HOME=/work/cargo",
+    "CARGO_TARGET_DIR=/work/target",
+    "CARGO_NET_OFFLINE=true",
+    "CARGO_INCREMENTAL=0",
+    "MIRI=/opt/rust-nightly-2026-09-07/bin/miri",
+    "MIRI_SYSROOT=/opt/miri-sysroot/2026-09-07/aarch64-unknown-linux-gnu",
+    "MIRIFLAGS=--error-format=json -Zmiri-isolation-error=abort -Zmiri-backtrace=0",
+    "RUSTC=/opt/rust-nightly-2026-09-07/bin/rustc",
+    "CARGO=/opt/rust-nightly-2026-09-07/bin/cargo",
+    "/opt/rust-nightly-2026-09-07/bin/cargo",
+    "miri",
+    "nextest",
+    "run",
+    "--manifest-path=/source/Cargo.toml",
+    "--config-file=/qualification/nextest.toml",
+    "--profile=rust-mcp-miri",
+    "--frozen",
+    "--offline",
+    "--color=never",
+    "--no-fail-fast",
+    "--build-jobs=1",
+    "--test-threads=1",
+    "--target=aarch64-unknown-linux-gnu"
+  ],
+  "case": "ffi",
+  "claim": "empirical first-party fixture oracle; not gateway qualification",
+  "classification": [
+    "unsupported_operation"
+  ],
+  "cleanup_confirmed": true,
+  "config_sha256": "sha256:621739d9514b0bf15a1dec7372e71d01a132aada67c63d486194166231dd75dc",
+  "elapsed_seconds": 1.210122,
+  "exit_code": 100,
+  "fixture_sha256": "sha256:6120f9f3438f8e4dc3b32e5cfc22a5217e375c5c4b5dbc7c2c579db766a099a0",
+  "forged_runtime_marker_present": false,
+  "guest_env": {
+    "CARGO": "/opt/rust-nightly-2026-09-07/bin/cargo",
+    "CARGO_HOME": "/work/cargo",
+    "CARGO_INCREMENTAL": "0",
+    "CARGO_NET_OFFLINE": "true",
+    "CARGO_TARGET_DIR": "/work/target",
+    "HOME": "/work",
+    "MIRI": "/opt/rust-nightly-2026-09-07/bin/miri",
+    "MIRIFLAGS_LIST": "--error-format=json -Zmiri-isolation-error=abort -Zmiri-backtrace=0",
+    "MIRIFLAGS_RUN": "--error-format=json -Zmiri-isolation-error=abort -Zmiri-backtrace=0 -Zmiri-mute-stdout-stderr",
+    "MIRI_SYSROOT": "/opt/miri-sysroot/2026-09-07/aarch64-unknown-linux-gnu",
+    "PATH": "/opt/rust-nightly-2026-09-07/bin:/opt/rust/bin:/usr/bin:/bin",
+    "RUSTC": "/opt/rust-nightly-2026-09-07/bin/rustc",
+    "TMPDIR": "/tmp"
+  },
+  "image_id": "sha256:95dddeb5305f10b09b441e3cc4018ebb1a8a296d365c65106327d59f933c64e7",
+  "junit": {
+    "complete": true,
+    "declared": {
+      "disabled": null,
+      "errors": "0",
+      "failures": "1",
+      "tests": "1"
+    },
+    "tests": [
+      {
+        "classname": "m4-miri-ffi",
+        "diagnostics": [
+          {
+            "$message_type": "diagnostic",
+            "children": [
+              {
+                "children": [],
+                "code": null,
+                "level": "help",
+                "message": "this means the program tried to do something Miri does not support; it does not indicate a bug in the program",
+                "rendered": null,
+                "spans": []
+              },
+              {
+                "children": [],
+                "code": null,
+                "level": "note",
+                "message": "this is on thread `unknown_ffi_is_`",
+                "rendered": null,
+                "spans": []
+              }
+            ],
+            "code": null,
+            "level": "error",
+            "message": "unsupported operation: can't call foreign function `m4_miri_deliberately_missing_foreign_function` on OS `linux`",
+            "rendered": "error: unsupported operation: can't call foreign function `m4_miri_deliberately_missing_foreign_function` on OS `linux`\n --> src/lib.rs:9:30\n  |\n9 |         std::hint::black_box(missing_foreign_function());\n  |                              ^^^^^^^^^^^^^^^^^^^^^^^^^^ unsupported operation occurred here\n  |\n  = help: this means the program tried to do something Miri does not support; it does not indicate a bug in the program\n  = note: this is on thread `unknown_ffi_is_`\n\n",
+            "spans": [
+              {
+                "byte_end": 242,
+                "byte_start": 216,
+                "column_end": 56,
+                "column_start": 30,
+                "expansion": null,
+                "file_name": "src/lib.rs",
+                "is_primary": true,
+                "label": "unsupported operation occurred here",
+                "line_end": 9,
+                "line_start": 9,
+                "suggested_replacement": null,
+                "suggestion_applicability": null,
+                "text": [
+                  {
+                    "highlight_end": 56,
+                    "highlight_start": 30,
+                    "text": "        std::hint::black_box(missing_foreign_function());"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "$message_type": "diagnostic",
+            "children": [],
+            "code": null,
+            "level": "error",
+            "message": "aborting due to 1 previous error",
+            "rendered": "error: aborting due to 1 previous error\n\n",
+            "spans": []
+          }
+        ],
+        "name": "unknown_ffi_is_unsupported",
+        "status": "failure",
+        "system_err": "{\"$message_type\":\"diagnostic\",\"message\":\"unsupported operation: can't call foreign function `m4_miri_deliberately_missing_foreign_function` on OS `linux`\",\"code\":null,\"level\":\"error\",\"spans\":[{\"file_name\":\"src/lib.rs\",\"byte_start\":216,\"byte_end\":242,\"line_start\":9,\"line_end\":9,\"column_start\":30,\"column_end\":56,\"is_primary\":true,\"text\":[{\"text\":\"        std::hint::black_box(missing_foreign_function());\",\"highlight_start\":30,\"highlight_end\":56}],\"label\":\"unsupported operation occurred here\",\"suggested_replacement\":null,\"suggestion_applicability\":null,\"expansion\":null}],\"children\":[{\"message\":\"this means the program tried to do something Miri does not support; it does not indicate a bug in the program\",\"code\":null,\"level\":\"help\",\"spans\":[],\"children\":[],\"rendered\":null},{\"message\":\"this is on thread `unknown_ffi_is_`\",\"code\":null,\"level\":\"note\",\"spans\":[],\"children\":[],\"rendered\":null}],\"rendered\":\"error: unsupported operation: can't call foreign function `m4_miri_deliberately_missing_foreign_function` on OS `linux`\\n --> src/lib.rs:9:30\\n  |\\n9 |         std::hint::black_box(missing_foreign_function());\\n  |                              ^^^^^^^^^^^^^^^^^^^^^^^^^^ unsupported operation occurred here\\n  |\\n  = help: this means the program tried to do something Miri does not support; it does not indicate a bug in the program\\n  = note: this is on thread `unknown_ffi_is_`\\n\\n\"}\n{\"$message_type\":\"diagnostic\",\"message\":\"aborting due to 1 previous error\",\"code\":null,\"level\":\"error\",\"spans\":[],\"children\":[],\"rendered\":\"error: aborting due to 1 previous error\\n\\n\"}\n",
+        "terminal": {
+          "message": null,
+          "text": "",
+          "type": "test failure with exit code 1"
+        }
+      }
+    ]
+  },
+  "junit_sha256": "sha256:d8ca854bfb11f6c9bf424cf6b8bcd9201279fc1a6f3ac71c396e1664ad079e36",
+  "junit_truncated": false,
+  "limits": {
+    "cpus": 1,
+    "junit_bytes": 524288,
+    "memory_bytes": 1073741824,
+    "pids": 128,
+    "stream_bytes_each": 524288,
+    "tmp_tmpfs_bytes": 67108864,
+    "wall_seconds": 240,
+    "work_tmpfs_bytes": 536870912
+  },
+  "network": "none",
+  "observed_at": "2026-09-08T01:25:23.428113+00:00",
+  "passed": true,
+  "rootfs_readonly": true,
+  "schema": "rust-engineering-mcp.m4-miri-classification-case.v1",
+  "source_readonly": true,
+  "source_unchanged": true,
+  "stderr": "info: experimental features enabled: wrapper-scripts\n   Compiling m4-miri-ffi v0.0.0 (/source)\nwarning: function `missing_foreign_function` is never used\n --> src/lib.rs:3:8\n  |\n3 |     fn missing_foreign_function() -> i32;\n  |        ^^^^^^^^^^^^^^^^^^^^^^^^\n  |\n  = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default\n\nwarning: `m4-miri-ffi` (lib) generated 1 warning\n    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.04s\ninfo: for the target platform, using target runner `/opt/rust-nightly-2026-09-07/bin/cargo-miri runner` defined by `target.cfg(all()).runner` specified by `--config`\ninfo: for the host platform, using target runner `/opt/rust-nightly-2026-09-07/bin/cargo-miri runner` defined by `target.cfg(all()).runner` specified by `--config`\n\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\n Nextest run ID 58e05211-f001-4e92-91b9-d3c71752c8e4 with nextest profile: rust-mcp-miri\n    Starting 1 test across 1 binary\n        FAIL [   0.359s] (1/1) m4-miri-ffi unknown_ffi_is_unsupported\n  stderr \u2500\u2500\u2500\n    {\"$message_type\":\"diagnostic\",\"message\":\"unsupported operation: can't call foreign function `m4_miri_deliberately_missing_foreign_function` on OS `linux`\",\"code\":null,\"level\":\"error\",\"spans\":[{\"file_name\":\"src/lib.rs\",\"byte_start\":216,\"byte_end\":242,\"line_start\":9,\"line_end\":9,\"column_start\":30,\"column_end\":56,\"is_primary\":true,\"text\":[{\"text\":\"        std::hint::black_box(missing_foreign_function());\",\"highlight_start\":30,\"highlight_end\":56}],\"label\":\"unsupported operation occurred here\",\"suggested_replacement\":null,\"suggestion_applicability\":null,\"expansion\":null}],\"children\":[{\"message\":\"this means the program tried to do something Miri does not support; it does not indicate a bug in the program\",\"code\":null,\"level\":\"help\",\"spans\":[],\"children\":[],\"rendered\":null},{\"message\":\"this is on thread `unknown_ffi_is_`\",\"code\":null,\"level\":\"note\",\"spans\":[],\"children\":[],\"rendered\":null}],\"rendered\":\"error: unsupported operation: can't call foreign function `m4_miri_deliberately_missing_foreign_function` on OS `linux`\\n --> src/lib.rs:9:30\\n  |\\n9 |         std::hint::black_box(missing_foreign_function());\\n  |                              ^^^^^^^^^^^^^^^^^^^^^^^^^^ unsupported operation occurred here\\n  |\\n  = help: this means the program tried to do something Miri does not support; it does not indicate a bug in the program\\n  = note: this is on thread `unknown_ffi_is_`\\n\\n\"}\n    {\"$message_type\":\"diagnostic\",\"message\":\"aborting due to 1 previous error\",\"code\":null,\"level\":\"error\",\"spans\":[],\"children\":[],\"rendered\":\"error: aborting due to 1 previous error\\n\\n\"}\n\n    (test failed with exit code 1)\n\n\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\n     Summary [   0.360s] 1 test run: 0 passed, 1 failed, 0 skipped\n        FAIL [   0.359s] (1/1) m4-miri-ffi unknown_ffi_is_unsupported\nerror: test run failed\n",
+  "stderr_sha256": "sha256:515241cbb8169c8d7094c07cbf4cacf09e85b2fe73f8ea1179b5709494225c7c",
+  "stderr_truncated": false,
+  "stdout": "",
+  "stdout_sha256": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "stdout_truncated": false,
+  "timed_out": false,
+  "user": "65534:65534"
+}

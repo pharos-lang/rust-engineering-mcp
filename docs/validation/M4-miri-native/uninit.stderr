@@ -1,0 +1,19 @@
+info: experimental features enabled: wrapper-scripts
+   Compiling m4-miri-uninit v0.0.0 (/source)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.03s
+info: for the target platform, using target runner `/opt/rust-nightly-2026-09-07/bin/cargo-miri runner` defined by `target.cfg(all()).runner` specified by `--config`
+info: for the host platform, using target runner `/opt/rust-nightly-2026-09-07/bin/cargo-miri runner` defined by `target.cfg(all()).runner` specified by `--config`
+────────────
+ Nextest run ID a8b3ac76-ba8f-4bdd-8fd1-81e1d0dd7bc4 with nextest profile: rust-mcp-miri
+    Starting 1 test across 1 binary
+        FAIL [   0.367s] (1/1) m4-miri-uninit uninitialized_integer_is_undefined_behavior
+  stderr ───
+    {"$message_type":"diagnostic","message":"Undefined Behavior: constructing invalid value of type u32: encountered uninitialized memory, but expected an integer","code":null,"level":"error","spans":[{"file_name":"src/lib.rs","byte_start":108,"byte_end":160,"line_start":4,"line_end":4,"column_start":26,"column_end":78,"is_primary":true,"text":[{"text":"    let value = unsafe { std::mem::MaybeUninit::<u32>::uninit().assume_init() };","highlight_start":26,"highlight_end":78}],"label":"Undefined Behavior occurred here","suggested_replacement":null,"suggestion_applicability":null,"expansion":null}],"children":[{"message":"this indicates a bug in the program: it performed an invalid operation, and caused Undefined Behavior","code":null,"level":"help","spans":[],"children":[],"rendered":null},{"message":"see https://doc.rust-lang.org/nightly/reference/behavior-considered-undefined.html for further information","code":null,"level":"help","spans":[],"children":[],"rendered":null},{"message":"this is on thread `uninitialized_i`","code":null,"level":"note","spans":[],"children":[],"rendered":null}],"rendered":"error: Undefined Behavior: constructing invalid value of type u32: encountered uninitialized memory, but expected an integer\n --> src/lib.rs:4:26\n  |\n4 |     let value = unsafe { std::mem::MaybeUninit::<u32>::uninit().assume_init() };\n  |                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ Undefined Behavior occurred here\n  |\n  = help: this indicates a bug in the program: it performed an invalid operation, and caused Undefined Behavior\n  = help: see https://doc.rust-lang.org/nightly/reference/behavior-considered-undefined.html for further information\n  = note: this is on thread `uninitialized_i`\n\n"}
+    {"$message_type":"diagnostic","message":"aborting due to 1 previous error","code":null,"level":"error","spans":[],"children":[],"rendered":"error: aborting due to 1 previous error\n\n"}
+
+    (test failed with exit code 1)
+
+────────────
+     Summary [   0.367s] 1 test run: 0 passed, 1 failed, 0 skipped
+        FAIL [   0.367s] (1/1) m4-miri-uninit uninitialized_integer_is_undefined_behavior
+error: test run failed

@@ -1,0 +1,142 @@
+{
+  "schema": "rust-mcp-m4-final-evidence-index-v1",
+  "observed_at": "2026-09-08T06:43:23.830456+00:00",
+  "status": "passed",
+  "source_input_count": 987,
+  "source_inventory_sha256": "515dac7105b7a4942b76ba779d6a7b70de4bf513ba1d9e3ed9ba2ff2bf25409b",
+  "core_full_clients_source_inventory_equal_current": true,
+  "native_source_config_hashes_equal_current": true,
+  "source_inputs_unchanged": true,
+  "core_steps_passed": 19,
+  "full_steps_passed": 33,
+  "full_resumption": {
+    "retained": 27,
+    "executed": 6,
+    "unchanged_sources": true,
+    "no_new_acquisition": true
+  },
+  "m4_runtime_steps_passed": 19,
+  "server_binary_sha256": "f4e2c6d18982405d6674e9978352e1b9887df16adc729b5a43473adbd491f024",
+  "platform": "macOS-26.6.2-arm64-arm-64bit-Mach-O",
+  "git_head": "c66a3704e1ad290603a3c1d10413df90d15c2b03",
+  "branch": "ai/m4-security",
+  "prior_snapshots_unchanged": 23,
+  "new_snapshots": 5,
+  "docker_owned_objects_observed": {
+    "containers": [],
+    "volumes": []
+  },
+  "auth_filename_guard": "No auth.json/tokens.json/credentials.json under docs; not a universal secret-content detector. Client authorization stayed outside repository.",
+  "receipts": [
+    {
+      "path": "M4-core-gate.json",
+      "bytes": 255012,
+      "sha256": "3ada1a80a45b90744979a0c0ded5926515b7c81a25c92189cd68a317dcd36e12"
+    },
+    {
+      "path": "M4-full-gate.json",
+      "bytes": 266505,
+      "sha256": "d95c8c57e238c85575bb9e7fcf7a3be1ee3604412b4f32fbc27bec63ec528a23"
+    },
+    {
+      "path": "M4-full-gate-resume-driver.py",
+      "bytes": 3795,
+      "sha256": "cb07753e963da5b6d1d57340d7521b2ce39e9c6a94af6492ee7f8f5a86d41715"
+    },
+    {
+      "path": "M4-runtime.json",
+      "bytes": 87659,
+      "sha256": "b9eb1d1d3489c509f81256370c239453e314cbe7b35856dbcd28d0ccade5490f"
+    },
+    {
+      "path": "M4-scanner-native.json",
+      "bytes": 70926,
+      "sha256": "604f632b92d1b7a67d4c1f0e8abbaf57d3598103ad09c72bccce9b07208f6b67"
+    },
+    {
+      "path": "M4-miri-native.json",
+      "bytes": 71610,
+      "sha256": "415265cc71cf161fa8d7e6f97e4a197cecd26272b282addd5e0e8ce830c05ef8"
+    },
+    {
+      "path": "M4-clients.json",
+      "bytes": 240292,
+      "sha256": "6729d05700a57b2f600626263c63a50a15bd05e42c667e57fdaee610cab65d0c"
+    },
+    {
+      "path": "M4-client-execution.json",
+      "bytes": 5555,
+      "sha256": "5c13e797440f80bc043703bdc85b85892038203c404dbc3384be0a8637888a6e"
+    },
+    {
+      "path": "M4-runtime-inventory.json",
+      "bytes": 15096,
+      "sha256": "a7706940ecd85add050426beabd96cf914da31a225af0448cb7f70159780211e"
+    },
+    {
+      "path": "M4-tampered-plugin.json",
+      "bytes": 46179,
+      "sha256": "751f30aec6fd3a333f134e90033f085331a570edafced84ea90e68e56639b1f0"
+    },
+    {
+      "path": "M4-privacy-runtime.json",
+      "bytes": 485,
+      "sha256": "6afd69e8e3a76ee6624d9c8bdd090c3302c454f84ae650d4d38ccf2109848bf9"
+    },
+    {
+      "path": "M4-output-canaries.json",
+      "bytes": 1374,
+      "sha256": "897925584bb6bcf6eb27049b78fb7811bf25aaf04adfc43f6b093fd45bd03d46"
+    },
+    {
+      "path": "M4-miri-task-lifecycle.json",
+      "bytes": 457,
+      "sha256": "6bc5fce00259c67734df0eedbaae97ebd46f6dc586f1ab99618714a6f1253f71"
+    },
+    {
+      "path": "M4-deny-mcp.json",
+      "bytes": 17046,
+      "sha256": "13e7f54ef8a01e7787e8fd4605516babcd2f1bdf47651d1545489c63a69c77bf"
+    },
+    {
+      "path": "M4-tools-mcp.json",
+      "bytes": 102564,
+      "sha256": "8339819ee2678b80792f320886b662a8a850069d3cbc392bbaff61efb8455770"
+    },
+    {
+      "path": "M4-e5-local-recovery.json",
+      "bytes": 1369,
+      "sha256": "4870387f8e22ea4f7c4a56f5189f9eb16ce8a509e766414c8083d7cfcbf35f8d"
+    },
+    {
+      "path": "M4-budgets.json",
+      "bytes": 3113,
+      "sha256": "84fe208b0fc946cfca5c2df424c3520e7e4da1cd8652653221e6c9eccc053f75"
+    },
+    {
+      "path": "M4-budgets/m4-budgets-inputs.json",
+      "bytes": 53011,
+      "sha256": "01a44f4fd79b2d3ec17f7554da53a52973988f71eb6eea348be9b72fe4a7b9cc"
+    },
+    {
+      "path": "M4-benchmark-source-continuity.json",
+      "bytes": 9393,
+      "sha256": "8b7f68b5df69d59b86ffd2caf420727579e05b4d72eebd14da746fcdbca19259"
+    },
+    {
+      "path": "M4-rust-security.json",
+      "bytes": 17307,
+      "sha256": "46eb2eb900abab28e06f118fe878c6aeed4bf158b5b5dffcdd10affeccb16bc5"
+    },
+    {
+      "path": "M4-m2-runtime.json",
+      "bytes": 61927,
+      "sha256": "dedbc91176abf6db15fc13458b0431e9cf71e167b7d2e3181029c72a61b5fcae"
+    },
+    {
+      "path": "M4-m3-runtime.json",
+      "bytes": 125481,
+      "sha256": "901fa8f6227da3e8dfb1f5d8ae9fa6158dc0ff49d9a03c2977afd4285c1cdcb5"
+    }
+  ]
+}

@@ -1,0 +1,79 @@
+#0 building with "default" instance using docker driver
+
+#1 [internal] load remote build context
+#1 DONE 0.0s
+
+#2 copy /context /
+#2 DONE 0.0s
+
+#3 [internal] load metadata for docker.io/library/rust-engineering-runtime:1.98.1-arm64-m4
+#3 DONE 0.0s
+
+#4 [builder 1/3] FROM docker.io/library/rust-engineering-runtime:1.98.1-arm64-m4@sha256:95dddeb5305f10b09b441e3cc4018ebb1a8a296d365c65106327d59f933c64e7
+#4 resolve docker.io/library/rust-engineering-runtime:1.98.1-arm64-m4@sha256:95dddeb5305f10b09b441e3cc4018ebb1a8a296d365c65106327d59f933c64e7 done
+#4 CACHED
+
+#5 [builder 2/3] COPY . /opt/m4-scanner-input/
+#5 DONE 0.0s
+
+#6 [builder 3/3] RUN /bin/sh /opt/m4-scanner-input/build.sh
+#6 0.024 Dockerfile: OK
+#6 0.024 build-inputs.json: OK
+#6 0.024 build.sh: OK
+#6 0.024 dependency-map.tsv: OK
+#6 0.024 helper/Cargo.lock: OK
+#6 0.024 helper/Cargo.toml: OK
+#6 0.024 helper/src/lib.rs: OK
+#6 0.024 helper/src/main.rs: OK
+#6 0.024 itoa-1.0.18.crate: OK
+#6 0.024 memchr-2.8.3.crate: OK
+#6 0.024 notices/LICENSE: OK
+#6 0.024 notices/LICENSE-APACHE: OK
+#6 0.024 notices/LICENSE-MIT: OK
+#6 0.024 notices/NOTICE: OK
+#6 0.024 proc-macro2-1.0.107.crate: OK
+#6 0.024 quote-1.0.47.crate: OK
+#6 0.025 serde-1.0.229.crate: OK
+#6 0.025 serde_core-1.0.229.crate: OK
+#6 0.025 serde_derive-1.0.229.crate: OK
+#6 0.025 serde_json-1.0.151.crate: OK
+#6 0.026 syn-3.0.4.crate: OK
+#6 0.026 unicode-ident-1.0.24.crate: OK
+#6 0.026 zmij-1.0.23.crate: OK
+#6 0.037 release: 1.98.1
+#6 0.041 host: aarch64-unknown-linux-gnu
+#6 0.283    Compiling proc-macro2 v1.0.107
+#6 0.283    Compiling quote v1.0.47
+#6 0.283    Compiling unicode-ident v1.0.24
+#6 0.283    Compiling serde_core v1.0.229
+#6 0.283    Compiling zmij v1.0.23
+#6 0.284    Compiling serde v1.0.229
+#6 0.284    Compiling serde_json v1.0.151
+#6 0.285    Compiling memchr v2.8.3
+#6 0.286    Compiling itoa v1.0.18
+#6 0.511    Compiling syn v3.0.4
+#6 1.061    Compiling serde_derive v1.0.229
+#6 2.103    Compiling rust-mcp-unsafe-scanner-helper v0.1.0 (/opt/m4-scanner-build/helper)
+#6 3.018     Finished `release` profile [optimized] target(s) in 2.78s
+#6 3.023   Machine:                           AArch64
+#6 DONE 3.1s
+
+#7 [stage-1 1/2] COPY --from=builder / /
+#7 DONE 2.2s
+
+#8 [stage-1 2/2] WORKDIR /work
+#8 DONE 0.6s
+
+#9 exporting to image
+#9 exporting layers
+#9 exporting layers 25.3s done
+#9 exporting manifest sha256:a1fb980e8a11e92d5b2aec091b4fb232a0d5af2afa547549d83c5b4b23773f21 0.1s done
+#9 exporting config sha256:57c7e84af0332b11604ce8c2471a333522324cd45470cf6ed132228793b5cb10 done
+#9 exporting attestation manifest sha256:88a7d4a97c4609baa73120c9863224117eeca82da1236ec769dc0e722b6a9132 done
+#9 exporting manifest list sha256:25ed3626e710081a571a86a29521eaf2e890e796afd422ba5e409e0ce1891635 done
+#9 naming to docker.io/library/rust-engineering-runtime:1.98.1-arm64-m4-scanner done
+#9 unpacking to docker.io/library/rust-engineering-runtime:1.98.1-arm64-m4-scanner
+#9 unpacking to docker.io/library/rust-engineering-runtime:1.98.1-arm64-m4-scanner 5.6s done
+#9 DONE 31.0s
+
+View build details: docker-desktop://dashboard/build/default/default/l81wzti1ico0negngpop32md7

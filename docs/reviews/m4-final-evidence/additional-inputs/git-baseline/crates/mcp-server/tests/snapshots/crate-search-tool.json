@@ -1,0 +1,954 @@
+{
+  "annotations": {
+    "destructiveHint": false,
+    "idempotentHint": true,
+    "openWorldHint": false,
+    "readOnlyHint": true
+  },
+  "description": "Search the verified local snapshot with lexical, semantic or hybrid retrieval and authoritative SQLite version filters. Scores measure retrieval, not crate quality or safety. Bounded candidate windows and output omissions are explicit; unavailable semantics fall back to lexical with the same filters. No downloads, refresh or project authority.",
+  "inputSchema": {
+    "$defs": {
+      "CrateSearchMode": {
+        "enum": [
+          "lexical",
+          "semantic",
+          "hybrid"
+        ],
+        "type": "string"
+      },
+      "Filters": {
+        "additionalProperties": false,
+        "properties": {
+          "allow_yanked": {
+            "default": false,
+            "type": "boolean"
+          },
+          "include_prerelease": {
+            "default": false,
+            "type": "boolean"
+          },
+          "msrv_lte": {
+            "maxLength": 32,
+            "minLength": 1,
+            "pattern": "^(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)(\\.(0|[1-9][0-9]*))?$",
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "type": "object"
+      }
+    },
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "additionalProperties": false,
+    "properties": {
+      "filters": {
+        "$ref": "#/$defs/Filters",
+        "default": {
+          "allow_yanked": false,
+          "include_prerelease": false,
+          "msrv_lte": null
+        }
+      },
+      "limit": {
+        "default": 10,
+        "format": "uint32",
+        "maximum": 50,
+        "minimum": 1,
+        "type": "integer"
+      },
+      "mode": {
+        "$ref": "#/$defs/CrateSearchMode",
+        "default": "hybrid"
+      },
+      "query": {
+        "maxLength": 256,
+        "minLength": 1,
+        "type": "string"
+      }
+    },
+    "required": [
+      "query"
+    ],
+    "title": "Input",
+    "type": "object"
+  },
+  "name": "rust.crate.search",
+  "outputSchema": {
+    "$defs": {
+      "AdvisoryInterpretation": {
+        "enum": [
+          "snapshot_listed_ids_only"
+        ],
+        "type": "string"
+      },
+      "CatalogComponentUnavailable": {
+        "enum": [
+          "not_configured",
+          "missing",
+          "invalid",
+          "identity_mismatch",
+          "unsupported_platform",
+          "feature_disabled",
+          "denied",
+          "io_unavailable",
+          "budget",
+          "dependency_unavailable"
+        ],
+        "type": "string"
+      },
+      "Code": {
+        "enum": [
+          "SANDBOX_DENIED",
+          "COMMAND_TIMEOUT",
+          "OUTPUT_LIMIT_EXCEEDED",
+          "CATALOG_UNAVAILABLE",
+          "CATALOG_INVALID"
+        ],
+        "type": "string"
+      },
+      "Coverage": {
+        "enum": [
+          "candidate_window_only"
+        ],
+        "type": "string"
+      },
+      "CrateSearchMode": {
+        "enum": [
+          "lexical",
+          "semantic",
+          "hybrid"
+        ],
+        "type": "string"
+      },
+      "CrateSearchResult": {
+        "additionalProperties": false,
+        "properties": {
+          "effective_mode": {
+            "$ref": "#/$defs/CrateSearchMode"
+          },
+          "evidence": {
+            "$ref": "#/$defs/SnapshotEvidence"
+          },
+          "fallback": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/SearchFallback"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "model_evidence": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/SnapshotEvidence"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "requested_mode": {
+            "$ref": "#/$defs/CrateSearchMode"
+          },
+          "results": {
+            "items": {
+              "$ref": "#/$defs/RankedCrate"
+            },
+            "type": "array"
+          },
+          "semantic_index": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/IndexMetadata"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "snapshot_fingerprint": {
+            "$ref": "#/$defs/Fingerprint"
+          },
+          "window": {
+            "$ref": "#/$defs/SearchWindow"
+          }
+        },
+        "required": [
+          "requested_mode",
+          "effective_mode",
+          "fallback",
+          "snapshot_fingerprint",
+          "evidence",
+          "semantic_index",
+          "model_evidence",
+          "results",
+          "window"
+        ],
+        "type": "object"
+      },
+      "Data": {
+        "additionalProperties": false,
+        "properties": {
+          "advisory_interpretation": {
+            "$ref": "#/$defs/AdvisoryInterpretation"
+          },
+          "coverage": {
+            "$ref": "#/$defs/Coverage"
+          },
+          "search": {
+            "$ref": "#/$defs/CrateSearchResult"
+          },
+          "semantics": {
+            "$ref": "#/$defs/Semantics"
+          }
+        },
+        "required": [
+          "semantics",
+          "coverage",
+          "advisory_interpretation",
+          "search"
+        ],
+        "type": "object"
+      },
+      "EmbeddingIdentity": {
+        "additionalProperties": false,
+        "properties": {
+          "artifact_fingerprint": {
+            "$ref": "#/$defs/Fingerprint"
+          },
+          "dimension": {
+            "format": "uint32",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "intra_threads": {
+            "format": "uint16",
+            "maximum": 65535,
+            "minimum": 0,
+            "type": "integer"
+          },
+          "max_tokens": {
+            "format": "uint32",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "model": {
+            "type": "string"
+          },
+          "normalization": {
+            "$ref": "#/$defs/Normalization"
+          },
+          "pooling": {
+            "$ref": "#/$defs/PoolingKind"
+          },
+          "provenance": {
+            "$ref": "#/$defs/Provenance"
+          },
+          "revision": {
+            "type": "string"
+          },
+          "runtime": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "model",
+          "revision",
+          "artifact_fingerprint",
+          "runtime",
+          "provenance",
+          "dimension",
+          "max_tokens",
+          "intra_threads",
+          "pooling",
+          "normalization"
+        ],
+        "type": "object"
+      },
+      "Fingerprint": {
+        "pattern": "^sha256:[0-9a-f]{64}$",
+        "type": "string"
+      },
+      "Freshness": {
+        "additionalProperties": false,
+        "properties": {
+          "age_seconds": {
+            "format": "uint64",
+            "minimum": 0,
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "assessed_at": {
+            "format": "uint64",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "policy": {
+            "$ref": "#/$defs/FreshnessPolicy"
+          },
+          "state": {
+            "$ref": "#/$defs/FreshnessState"
+          }
+        },
+        "required": [
+          "state",
+          "age_seconds",
+          "assessed_at",
+          "policy"
+        ],
+        "type": "object"
+      },
+      "FreshnessPolicy": {
+        "additionalProperties": false,
+        "properties": {
+          "fresh_for_seconds": {
+            "format": "uint64",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "id": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "stale_after_seconds": {
+            "format": "uint64",
+            "minimum": 0,
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "fresh_for_seconds",
+          "stale_after_seconds"
+        ],
+        "type": "object"
+      },
+      "FreshnessState": {
+        "enum": [
+          "live",
+          "fresh",
+          "aging",
+          "stale",
+          "unknown"
+        ],
+        "type": "string"
+      },
+      "IndexMetadata": {
+        "additionalProperties": false,
+        "properties": {
+          "model": {
+            "$ref": "#/$defs/EmbeddingIdentity"
+          },
+          "schema_version": {
+            "format": "uint32",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "snapshot_fingerprint": {
+            "$ref": "#/$defs/Fingerprint"
+          }
+        },
+        "required": [
+          "schema_version",
+          "snapshot_fingerprint",
+          "model"
+        ],
+        "type": "object"
+      },
+      "IntegrityStatus": {
+        "enum": [
+          "verified",
+          "unverified",
+          "failed",
+          "unknown"
+        ],
+        "type": "string"
+      },
+      "KnownVersion": {
+        "additionalProperties": false,
+        "properties": {
+          "license": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "rust_version": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "version": {
+            "type": "string"
+          },
+          "yanked": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "version",
+          "yanked",
+          "rust_version",
+          "license"
+        ],
+        "type": "object"
+      },
+      "LexicalScore": {
+        "additionalProperties": false,
+        "properties": {
+          "bm25": {
+            "format": "double",
+            "type": "number"
+          },
+          "rank": {
+            "format": "uint32",
+            "minimum": 0,
+            "type": "integer"
+          }
+        },
+        "required": [
+          "rank",
+          "bm25"
+        ],
+        "type": "object"
+      },
+      "LocalEvidence": {
+        "oneOf": [
+          {
+            "additionalProperties": false,
+            "properties": {
+              "kind": {
+                "const": "local",
+                "type": "string"
+              }
+            },
+            "required": [
+              "kind"
+            ],
+            "type": "object"
+          }
+        ]
+      },
+      "Normalization": {
+        "enum": [
+          "l2"
+        ],
+        "type": "string"
+      },
+      "PoolingKind": {
+        "enum": [
+          "mean"
+        ],
+        "type": "string"
+      },
+      "Provenance": {
+        "additionalProperties": false,
+        "properties": {
+          "created_at": {
+            "format": "uint64",
+            "minimum": 0,
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "integrity": {
+            "$ref": "#/$defs/IntegrityStatus"
+          },
+          "network_used": {
+            "type": "boolean"
+          },
+          "observed_at": {
+            "format": "uint64",
+            "minimum": 0,
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "source_id": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "source_kind": {
+            "$ref": "#/$defs/SourceKind"
+          }
+        },
+        "required": [
+          "source_kind",
+          "source_id",
+          "created_at",
+          "observed_at",
+          "integrity",
+          "network_used"
+        ],
+        "type": "object"
+      },
+      "RankedCrate": {
+        "additionalProperties": false,
+        "properties": {
+          "facts": {
+            "$ref": "#/$defs/SearchCrateFacts"
+          },
+          "fusion_score": {
+            "format": "double",
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "lexical": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/LexicalScore"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "semantic": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/SemanticScore"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "facts",
+          "lexical",
+          "semantic",
+          "fusion_score"
+        ],
+        "type": "object"
+      },
+      "SearchComponent": {
+        "enum": [
+          "model",
+          "semantic_index"
+        ],
+        "type": "string"
+      },
+      "SearchCrateFacts": {
+        "additionalProperties": false,
+        "properties": {
+          "description": {
+            "type": "string"
+          },
+          "latest_known_stable": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/KnownVersion"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "name": {
+            "type": "string"
+          },
+          "repository": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "selected_version": {
+            "$ref": "#/$defs/SearchVersionFacts"
+          },
+          "version_count": {
+            "format": "uint32",
+            "minimum": 0,
+            "type": "integer"
+          }
+        },
+        "required": [
+          "name",
+          "description",
+          "repository",
+          "latest_known_stable",
+          "selected_version",
+          "version_count"
+        ],
+        "type": "object"
+      },
+      "SearchFallback": {
+        "oneOf": [
+          {
+            "additionalProperties": false,
+            "properties": {
+              "component": {
+                "$ref": "#/$defs/SearchComponent"
+              },
+              "kind": {
+                "const": "unavailable",
+                "type": "string"
+              },
+              "reason": {
+                "$ref": "#/$defs/CatalogComponentUnavailable"
+              }
+            },
+            "required": [
+              "kind",
+              "component",
+              "reason"
+            ],
+            "type": "object"
+          },
+          {
+            "additionalProperties": false,
+            "properties": {
+              "kind": {
+                "const": "failed",
+                "type": "string"
+              },
+              "reason": {
+                "$ref": "#/$defs/SemanticError"
+              }
+            },
+            "required": [
+              "kind",
+              "reason"
+            ],
+            "type": "object"
+          }
+        ]
+      },
+      "SearchVersionFacts": {
+        "additionalProperties": false,
+        "properties": {
+          "known_advisory_ids": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "license": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "published_at": {
+            "format": "uint64",
+            "minimum": 0,
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "rust_version": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "version": {
+            "type": "string"
+          },
+          "yanked": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "version",
+          "yanked",
+          "rust_version",
+          "license",
+          "published_at",
+          "known_advisory_ids"
+        ],
+        "type": "object"
+      },
+      "SearchWindow": {
+        "additionalProperties": false,
+        "properties": {
+          "candidate_limit_per_channel": {
+            "format": "uint32",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "eligible": {
+            "format": "uint32",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "examined": {
+            "format": "uint32",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "filtered_out": {
+            "format": "uint32",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "lexical_candidates": {
+            "format": "uint32",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "limit_truncated": {
+            "format": "uint32",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "omitted_by_output": {
+            "format": "uint32",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "returned": {
+            "format": "uint32",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "semantic_candidates": {
+            "format": "uint32",
+            "minimum": 0,
+            "type": "integer"
+          }
+        },
+        "required": [
+          "candidate_limit_per_channel",
+          "lexical_candidates",
+          "semantic_candidates",
+          "examined",
+          "filtered_out",
+          "eligible",
+          "returned",
+          "limit_truncated",
+          "omitted_by_output"
+        ],
+        "type": "object"
+      },
+      "SemanticError": {
+        "enum": [
+          "missing_model",
+          "missing_index",
+          "invalid_artifact",
+          "invalid_index",
+          "identity_mismatch",
+          "invalid_input",
+          "budget",
+          "inference"
+        ],
+        "type": "string"
+      },
+      "SemanticScore": {
+        "additionalProperties": false,
+        "properties": {
+          "rank": {
+            "format": "uint32",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "squared_l2": {
+            "format": "float",
+            "type": "number"
+          }
+        },
+        "required": [
+          "rank",
+          "squared_l2"
+        ],
+        "type": "object"
+      },
+      "Semantics": {
+        "enum": [
+          "latest_known"
+        ],
+        "type": "string"
+      },
+      "SnapshotEvidence": {
+        "additionalProperties": false,
+        "properties": {
+          "freshness": {
+            "$ref": "#/$defs/Freshness"
+          },
+          "provenance": {
+            "$ref": "#/$defs/Provenance"
+          }
+        },
+        "required": [
+          "provenance",
+          "freshness"
+        ],
+        "type": "object"
+      },
+      "SourceKind": {
+        "enum": [
+          "registry_snapshot",
+          "project_snapshot",
+          "rustsec_snapshot",
+          "embedding_model",
+          "artifact"
+        ],
+        "type": "string"
+      },
+      "Truncation": {
+        "additionalProperties": false,
+        "properties": {
+          "diagnostics_omitted": {
+            "format": "uint64",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "stderr_truncated": {
+            "type": "boolean"
+          },
+          "stdout_truncated": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "stdout_truncated",
+          "stderr_truncated",
+          "diagnostics_omitted"
+        ],
+        "type": "object"
+      }
+    },
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "oneOf": [
+      {
+        "properties": {
+          "data": {
+            "$ref": "#/$defs/Data"
+          },
+          "error_code": {
+            "type": "null"
+          },
+          "error_message": {
+            "type": "null"
+          },
+          "status": {
+            "const": "passed",
+            "type": "string"
+          }
+        },
+        "required": [
+          "status",
+          "error_code",
+          "error_message",
+          "data"
+        ],
+        "type": "object"
+      },
+      {
+        "properties": {
+          "data": {
+            "type": "null"
+          },
+          "error_code": {
+            "$ref": "#/$defs/Code"
+          },
+          "error_message": {
+            "type": "string"
+          },
+          "status": {
+            "const": "blocked",
+            "type": "string"
+          }
+        },
+        "required": [
+          "status",
+          "error_code",
+          "error_message",
+          "data"
+        ],
+        "type": "object"
+      },
+      {
+        "properties": {
+          "data": {
+            "type": "null"
+          },
+          "error_code": {
+            "$ref": "#/$defs/Code"
+          },
+          "error_message": {
+            "type": "string"
+          },
+          "status": {
+            "const": "unavailable",
+            "type": "string"
+          }
+        },
+        "required": [
+          "status",
+          "error_code",
+          "error_message",
+          "data"
+        ],
+        "type": "object"
+      },
+      {
+        "properties": {
+          "data": {
+            "type": "null"
+          },
+          "error_code": {
+            "type": "null"
+          },
+          "error_message": {
+            "type": "null"
+          },
+          "status": {
+            "const": "cancelled",
+            "type": "string"
+          }
+        },
+        "required": [
+          "status",
+          "error_code",
+          "error_message",
+          "data"
+        ],
+        "type": "object"
+      }
+    ],
+    "properties": {
+      "diagnostics": {
+        "maxItems": 0,
+        "type": "array"
+      },
+      "duration_ms": {
+        "format": "uint64",
+        "minimum": 0,
+        "type": "integer"
+      },
+      "evidence": {
+        "$ref": "#/$defs/LocalEvidence"
+      },
+      "summary": {
+        "type": "string"
+      },
+      "truncation": {
+        "$ref": "#/$defs/Truncation"
+      }
+    },
+    "required": [
+      "summary",
+      "duration_ms",
+      "diagnostics",
+      "truncation",
+      "evidence"
+    ],
+    "title": "Output",
+    "type": "object",
+    "unevaluatedProperties": false
+  }
+}

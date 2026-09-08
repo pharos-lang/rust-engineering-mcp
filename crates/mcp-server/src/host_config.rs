@@ -13,6 +13,7 @@ pub(crate) fn parse(mut args: impl Iterator<Item = OsString>) -> Option<stdio::H
         dependency_remove_roots: Vec::new(),
         cargo_vendor: None,
         audit: None,
+        security: None,
         catalog: None,
         roots: Vec::new(),
         ttl_seconds: 1800,
@@ -22,6 +23,8 @@ pub(crate) fn parse(mut args: impl Iterator<Item = OsString>) -> Option<stdio::H
     let mut catalog_options: [Option<PathBuf>; 4] = std::array::from_fn(|_| None);
     let mut vendor_path = None;
     let mut vendor_fingerprint = None;
+    let mut security_path = None;
+    let mut security_fingerprint = None;
     let mut audit_path = None;
     let mut audit_fingerprint = None;
     let mut rust_options: [Option<std::ffi::OsString>; 4] = std::array::from_fn(|_| None);
@@ -89,6 +92,19 @@ pub(crate) fn parse(mut args: impl Iterator<Item = OsString>) -> Option<stdio::H
                     .parse::<rust_engineering_domain::SourceFingerprint>()
                     .ok()?,
             );
+        } else if flag == OsStr::new("--security-policy") && security_path.is_none() {
+            let path = PathBuf::from(&value);
+            if value.to_str().is_none() || !path.is_absolute() {
+                return None;
+            }
+            security_path = Some(path);
+        } else if flag == OsStr::new("--security-policy-sha256") && security_fingerprint.is_none() {
+            security_fingerprint = Some(
+                value
+                    .to_str()?
+                    .parse::<rust_engineering_domain::SourceFingerprint>()
+                    .ok()?,
+            );
         } else if flag == OsStr::new("--rustsec-snapshot") && audit_path.is_none() {
             let path = PathBuf::from(&value);
             if value.to_str().is_none() || !path.is_absolute() {
@@ -127,14 +143,17 @@ pub(crate) fn parse(mut args: impl Iterator<Item = OsString>) -> Option<stdio::H
         else {
             return None;
         };
-        if image != OsStr::new(rust_engineering_execution::APPROVED_RUST_IMAGE) {
+        if image != OsStr::new(rust_engineering_execution::APPROVED_RUST_IMAGE)
+            && image != OsStr::new(rust_engineering_execution::APPROVED_SECURITY_IMAGE)
+            && image != OsStr::new(rust_engineering_execution::APPROVED_M4_IMAGE)
+        {
             return None;
         }
         config.rust = Some(rust_engineering_execution::HostDockerConfig {
             executable: executable.into(),
             socket: socket.into(),
             state_root: state_root.into(),
-            image_id: rust_engineering_execution::APPROVED_RUST_IMAGE.into(),
+            image_id: image.to_str()?.into(),
         });
     }
     if catalog_options.iter().any(Option::is_some) {
@@ -151,6 +170,15 @@ pub(crate) fn parse(mut args: impl Iterator<Item = OsString>) -> Option<stdio::H
             index_store,
         });
     }
+    config.security = match (security_path, security_fingerprint) {
+        (None, None) => None,
+        (Some(path), Some(fingerprint))
+            if !config.roots.iter().any(|root| path.starts_with(root)) =>
+        {
+            Some(stdio::HostSecurityConfig { path, fingerprint })
+        }
+        _ => return None,
+    };
     config.audit = match (audit_path, audit_fingerprint) {
         (None, None) => None,
         (Some(path), Some(fingerprint)) => Some(stdio::HostAuditConfig { path, fingerprint }),
@@ -383,5 +411,60 @@ mod tests {
             )
             .is_none()
         );
+    }
+}
+
+#[cfg(test)]
+mod security_tests {
+    use super::*;
+    #[test]
+    fn policy_flags_are_paired_closed_absolute_and_outside_project_roots() {
+        let digest = format!("sha256:{}", "a".repeat(64));
+        let make = |args: Vec<&str>| parse(args.into_iter().map(OsString::from));
+        assert!(
+            make(vec![
+                "--root",
+                "/workspace",
+                "--security-policy",
+                "/trusted/policy.json",
+                "--security-policy-sha256",
+                &digest
+            ])
+            .is_some()
+        );
+        for flags in [
+            vec!["--security-policy", "/trusted/policy.json"],
+            vec!["--security-policy-sha256", &digest],
+            vec![
+                "--security-policy",
+                "relative.json",
+                "--security-policy-sha256",
+                &digest,
+            ],
+            vec![
+                "--root",
+                "/workspace",
+                "--security-policy",
+                "/workspace/policy.json",
+                "--security-policy-sha256",
+                &digest,
+            ],
+            vec![
+                "--security-policy",
+                "/trusted/policy.json",
+                "--security-policy-sha256",
+                "sha256:bad",
+            ],
+            vec![
+                "--security-policy",
+                "/trusted/policy.json",
+                "--security-policy-sha256",
+                &digest,
+                "--security-policy",
+                "/other.json",
+            ],
+        ] {
+            assert!(make(flags).is_none());
+        }
     }
 }

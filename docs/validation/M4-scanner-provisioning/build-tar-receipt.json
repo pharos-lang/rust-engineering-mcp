@@ -1,0 +1,164 @@
+{
+  "command": [
+    "/Applications/Docker.app/Contents/Resources/bin/docker",
+    "--host",
+    "unix:///Users/cburgosro/.docker/run/docker.sock",
+    "build",
+    "--platform",
+    "linux/arm64",
+    "--network=none",
+    "--pull=false",
+    "--no-cache",
+    "--build-arg",
+    "BASE_IMAGE=rust-engineering-runtime:1.98.1-arm64-m4",
+    "--tag",
+    "rust-engineering-runtime:1.98.1-arm64-m4-scanner",
+    "-"
+  ],
+  "started_at": "2026-09-08T02:18:30.457050+00:00",
+  "finished_at": "2026-09-08T02:19:09.010010+00:00",
+  "exit_code": 0,
+  "stdin_tar_sha256": "42a5784129cce1724d4b44574e830dc2f36b3ece256e376b7507587989263dd5",
+  "base_inspect_before": {
+    "Id": "sha256:95dddeb5305f10b09b441e3cc4018ebb1a8a296d365c65106327d59f933c64e7",
+    "RepoTags": [
+      "rust-engineering-runtime:1.98.1-arm64-m4"
+    ],
+    "RepoDigests": [
+      "rust-engineering-runtime@sha256:95dddeb5305f10b09b441e3cc4018ebb1a8a296d365c65106327d59f933c64e7"
+    ],
+    "Comment": "buildkit.dockerfile.v0",
+    "Created": "2026-09-07T22:49:25.36273863Z",
+    "Config": {
+      "User": "65534:65534",
+      "Env": [
+        "PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+      ],
+      "WorkingDir": "/work"
+    },
+    "Architecture": "arm64",
+    "Os": "linux",
+    "Size": 590521838,
+    "RootFS": {
+      "Type": "layers",
+      "Layers": [
+        "sha256:02f9e4ac3a33acd663f6555f723d9911af4e7a36636a19cdc11559b343d7b8cd",
+        "sha256:5f70bf18a086007016e948b04aed3b82103a36bea41755b6cddfaf10ace3c6ef"
+      ]
+    },
+    "Metadata": {
+      "LastTagTime": "2026-09-07T22:49:51.581939837Z"
+    },
+    "Descriptor": {
+      "mediaType": "application/vnd.oci.image.index.v1+json",
+      "digest": "sha256:95dddeb5305f10b09b441e3cc4018ebb1a8a296d365c65106327d59f933c64e7",
+      "size": 855
+    },
+    "Identity": {
+      "Pull": [
+        {
+          "Repository": "docker.io/library/rust-engineering-runtime"
+        }
+      ],
+      "Build": [
+        {
+          "Ref": "qtysvh4ex375grgrhfttf6k9w",
+          "CreatedAt": "2026-09-07T22:49:57.257405548Z"
+        }
+      ]
+    }
+  },
+  "base_inspect_after": {
+    "Id": "sha256:95dddeb5305f10b09b441e3cc4018ebb1a8a296d365c65106327d59f933c64e7",
+    "RepoTags": [
+      "rust-engineering-runtime:1.98.1-arm64-m4"
+    ],
+    "RepoDigests": [
+      "rust-engineering-runtime@sha256:95dddeb5305f10b09b441e3cc4018ebb1a8a296d365c65106327d59f933c64e7"
+    ],
+    "Comment": "buildkit.dockerfile.v0",
+    "Created": "2026-09-07T22:49:25.36273863Z",
+    "Config": {
+      "User": "65534:65534",
+      "Env": [
+        "PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+      ],
+      "WorkingDir": "/work"
+    },
+    "Architecture": "arm64",
+    "Os": "linux",
+    "Size": 590521838,
+    "RootFS": {
+      "Type": "layers",
+      "Layers": [
+        "sha256:02f9e4ac3a33acd663f6555f723d9911af4e7a36636a19cdc11559b343d7b8cd",
+        "sha256:5f70bf18a086007016e948b04aed3b82103a36bea41755b6cddfaf10ace3c6ef"
+      ]
+    },
+    "Metadata": {
+      "LastTagTime": "2026-09-07T22:49:51.581939837Z"
+    },
+    "Descriptor": {
+      "mediaType": "application/vnd.oci.image.index.v1+json",
+      "digest": "sha256:95dddeb5305f10b09b441e3cc4018ebb1a8a296d365c65106327d59f933c64e7",
+      "size": 855
+    },
+    "Identity": {
+      "Pull": [
+        {
+          "Repository": "docker.io/library/rust-engineering-runtime"
+        }
+      ],
+      "Build": [
+        {
+          "Ref": "qtysvh4ex375grgrhfttf6k9w",
+          "CreatedAt": "2026-09-07T22:49:57.257405548Z"
+        }
+      ]
+    }
+  },
+  "result_image": {
+    "Id": "sha256:25ed3626e710081a571a86a29521eaf2e890e796afd422ba5e409e0ce1891635",
+    "RepoTags": [
+      "rust-engineering-runtime:1.98.1-arm64-m4-scanner"
+    ],
+    "RepoDigests": [
+      "rust-engineering-runtime@sha256:25ed3626e710081a571a86a29521eaf2e890e796afd422ba5e409e0ce1891635"
+    ],
+    "Comment": "buildkit.dockerfile.v0",
+    "Created": "2026-09-08T02:18:37.910301301Z",
+    "Config": {
+      "User": "65534:65534",
+      "Env": [
+        "PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+      ],
+      "WorkingDir": "/work"
+    },
+    "Architecture": "arm64",
+    "Os": "linux",
+    "Size": 591399815,
+    "RootFS": {
+      "Type": "layers",
+      "Layers": [
+        "sha256:245bbc4f1aa9310b890762de92a0f73c30232c71eca5bb25f49430acf824fdef",
+        "sha256:5f70bf18a086007016e948b04aed3b82103a36bea41755b6cddfaf10ace3c6ef"
+      ]
+    },
+    "Metadata": {
+      "LastTagTime": "2026-09-08T02:19:03.379600382Z"
+    },
+    "Descriptor": {
+      "mediaType": "application/vnd.oci.image.index.v1+json",
+      "digest": "sha256:25ed3626e710081a571a86a29521eaf2e890e796afd422ba5e409e0ce1891635",
+      "size": 855
+    },
+    "Identity": {
+      "Build": [
+        {
+          "Ref": "l81wzti1ico0negngpop32md7",
+          "CreatedAt": "2026-09-08T02:19:08.949595301Z"
+        }
+      ]
+    }
+  }
+}

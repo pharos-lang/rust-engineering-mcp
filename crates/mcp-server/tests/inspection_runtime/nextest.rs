@@ -34,7 +34,7 @@ fn nextest_tool(server: &mut Server) -> Result<Value> {
         .as_array()
         .ok_or("tools missing")?;
     // Coverage is concurrently integrated after the 19-tool nextest cut.
-    assert_eq!(tools.len(), 22);
+    assert_eq!(tools.len(), 27);
     tools
         .iter()
         .find(|tool| tool["name"] == "rust.test.nextest")

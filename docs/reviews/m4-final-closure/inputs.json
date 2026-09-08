@@ -1,0 +1,181 @@
+{
+  "created_at": "2026-09-08T05:03:59.813197+00:00",
+  "scope": "final frozen source review; core/full confirmation follows",
+  "files": [
+    {
+      "path": "crates/execution-adapter/src/security_gateway.rs",
+      "bytes": 52011,
+      "sha256": "18563e7ce09bcb14c2fefd2886c63fc8327dedd3c4ad8560b6ada7a60d157a53"
+    },
+    {
+      "path": "crates/execution-adapter/src/miri_output.rs",
+      "bytes": 59736,
+      "sha256": "dac2f89d7f6a2785c70ae9d42cc072cb937293e051826329a3ad5b3071506a4e"
+    },
+    {
+      "path": "crates/execution-adapter/src/miri_native.rs",
+      "bytes": 13544,
+      "sha256": "a99cef24d9b0bd9c06578de18a521e4f2c05915de730f98e7c02d2589e69e156"
+    },
+    {
+      "path": "crates/execution-adapter/src/miri_admission.rs",
+      "bytes": 7700,
+      "sha256": "9b65bec45e60abc81eec6547e7dcbb03a7a29e461a5a776f99dd8f6b0cbd88b4"
+    },
+    {
+      "path": "crates/execution-adapter/src/miri_port.rs",
+      "bytes": 2991,
+      "sha256": "9f4fe233b9db005bcfb65c7dea9f48a14f2e71982e86d6d84e710016c820b8d8"
+    },
+    {
+      "path": "crates/execution-adapter/src/unsafe_scan.rs",
+      "bytes": 34002,
+      "sha256": "e1703314b53eaef3ba187933003390fa3fefdec11583df42bcd01b51eaab407a"
+    },
+    {
+      "path": "crates/execution-adapter/src/unsafe_port.rs",
+      "bytes": 2567,
+      "sha256": "2e2953fc9c891897084cea0662935bc169b68012483a542533cd17d313078d8d"
+    },
+    {
+      "path": "crates/execution-adapter/src/security_native.rs",
+      "bytes": 8700,
+      "sha256": "d12e58e2fcc262a23cd6d724f262126aaf9a00468958a907a0dbf03714cf87ee"
+    },
+    {
+      "path": "crates/execution-adapter/src/security_graph_native.rs",
+      "bytes": 7984,
+      "sha256": "7716417ac9d35c6beaca97840394104232372cdd5b003cf93507baaf3390fc3c"
+    },
+    {
+      "path": "crates/execution-adapter/src/security_native_adversarial.rs",
+      "bytes": 15535,
+      "sha256": "fe8295e59d2d2a7056403bd22a491d93109e285c6e3cc0922762780025b2ed34"
+    },
+    {
+      "path": "crates/execution-adapter/src/deny_json.rs",
+      "bytes": 49486,
+      "sha256": "2c7a5ea1ee8ca7de592a10217266e8dece72924960a75e10f21d20434abda75a"
+    },
+    {
+      "path": "crates/execution-adapter/src/security_inventory.rs",
+      "bytes": 1780,
+      "sha256": "26f9e5634824f8b362948e71a434948297b189eccd5fe36de32a65c067203746"
+    },
+    {
+      "path": "crates/mcp-server/tests/inspection_runtime/security.rs",
+      "bytes": 34235,
+      "sha256": "49e6d615dfdb3acac2e4d84cdb229b1a4aa2bc6a9c3fa1abde942cdad929e29f"
+    },
+    {
+      "path": "crates/execution-adapter/tests/m4_privacy_runtime.rs",
+      "bytes": 7914,
+      "sha256": "9ff650621f83f9d2d6be9e56d4bea77c4eaf82251bd7527220f7558e2b14704e"
+    },
+    {
+      "path": "crates/mcp-server/src/main.rs",
+      "bytes": 7772,
+      "sha256": "3d164d2b22a9fc64e75f1274ff155a0050995dccd6ca99dc739c5bf2b2fb47e4"
+    },
+    {
+      "path": "scripts/test-m4-tampered-plugin.py",
+      "bytes": 34986,
+      "sha256": "77d7a18f50450f7b7e691c0a10133efe32bbe9c78c733684c23163f0a6df1b9a"
+    },
+    {
+      "path": "scripts/test-m4-inventory.py",
+      "bytes": 20080,
+      "sha256": "9a5a3fffff618190dacd79916123543dfb916848a95513fa1460d54b63f3eb6b"
+    },
+    {
+      "path": "scripts/test-m4-safety-harnesses.py",
+      "bytes": 8740,
+      "sha256": "1c1f9ed905172c17882ef58f67527651cdd78dccb24bf42716c724f10623d986"
+    },
+    {
+      "path": "scripts/test-m4-clients.py",
+      "bytes": 27044,
+      "sha256": "66dd6931ecd2e61c985b476d3cd468be0b865adf23353093c58ad7e11013357f"
+    },
+    {
+      "path": "scripts/test-m4-clients-unit.py",
+      "bytes": 5644,
+      "sha256": "130181426e6a3754cb3aa27084f60434f854edbdff577331b2ca7944de947acf"
+    },
+    {
+      "path": "scripts/m4-inspector-session.mjs",
+      "bytes": 7375,
+      "sha256": "5a490e71104cb9e118f256a0c0b90f02509a9c31c6d685d30e7d57cfe4bec414"
+    },
+    {
+      "path": "scripts/test-m4-runtime.py",
+      "bytes": 11163,
+      "sha256": "b0d2fd9e127ef564e0aa998aae7b7f5c0b068473c0d1a3d4caa4143a48feb00c"
+    },
+    {
+      "path": "scripts/gate.py",
+      "bytes": 11516,
+      "sha256": "6a48718237da8691a52babde137c4a5c9f78feb313e40d892043583ade10b534"
+    },
+    {
+      "path": "docs/adr/ADR-072-miri-classification-integrity.md",
+      "bytes": 8958,
+      "sha256": "100a6b6b7b3712aee00f18a813961662c93bee449934e0114f18d23a1273ddfb"
+    },
+    {
+      "path": "docs/adr/ADR-067-security-policy-and-quality-contracts.md",
+      "bytes": 18825,
+      "sha256": "d20a498f404b9662b8936c681ac2b6f4ae44ba72eabee46536e271c07874d700"
+    },
+    {
+      "path": "docs/validation/M4-clients.json",
+      "bytes": 240292,
+      "sha256": "9005a96c9a0e872c97f0dcc5f7142b636db1f6dd9545ada94c1a2e10bd8ef184"
+    },
+    {
+      "path": "docs/validation/M4-tampered-plugin.json",
+      "bytes": 46181,
+      "sha256": "b2ff587ed6b5321af6b706133125c18de16576366d903b6662f7581855a2394b"
+    },
+    {
+      "path": "docs/validation/M4-runtime-inventory.json",
+      "bytes": 15094,
+      "sha256": "609a102bfce5bb26b48bd94be2233216292d1a762d8c9caf225818ed5fa59c84"
+    },
+    {
+      "path": "docs/validation/M4-budgets.json",
+      "bytes": 3113,
+      "sha256": "84fe208b0fc946cfca5c2df424c3520e7e4da1cd8652653221e6c9eccc053f75"
+    },
+    {
+      "path": "target/m4-new-native-cuts/receipt.json",
+      "bytes": 55453,
+      "sha256": "3261cac59d434904e63ec39204213cebf3d248562b615308000e136e71330fab"
+    },
+    {
+      "path": "target/m4-privacy-runtime.json",
+      "bytes": 485,
+      "sha256": "6afd69e8e3a76ee6624d9c8bdd090c3302c454f84ae650d4d38ccf2109848bf9"
+    },
+    {
+      "path": "docs/reviews/m4-security-confirmation/disposition.md",
+      "bytes": 3902,
+      "sha256": "10b26eb61192387f1675834fc7d24e0f3a7192036c8eec66a40d3898bf7e3c34"
+    },
+    {
+      "path": "docs/reviews/m4-traceability/disposition.md",
+      "bytes": 1853,
+      "sha256": "7daee3e8f8ce2a20347b252e3d1dc26894cb8e12dbb15efd96821c54078247fd"
+    },
+    {
+      "path": "docs/validation/M4-hardening-attempts/README.md",
+      "bytes": 1274,
+      "sha256": "d3a32c2f8a5147934b3290f37b9f32abb66bd7cbc49eda2d80607e7ca6dfef76"
+    },
+    {
+      "path": "docs/validation/M4-hardening-attempts/m4-tampered-plugin-attempt-2/cleanup-repair.json",
+      "bytes": 368,
+      "sha256": "7dd6d182835e198d9e877cd531883bf18d782ff244919204efcc7052255efa04"
+    }
+  ]
+}

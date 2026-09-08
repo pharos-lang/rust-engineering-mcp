@@ -1,0 +1,11 @@
+{
+  "schema": "rust-engineering-mcp.m4-scanner-installed.v1",
+  "base_image_id": "sha256:95dddeb5305f10b09b441e3cc4018ebb1a8a296d365c65106327d59f933c64e7",
+  "target": "aarch64-unknown-linux-gnu",
+  "helper": {
+    "name": "rust-mcp-unsafe-helper",
+    "version": "0.1.0",
+    "size": 2451376,
+    "sha256": "af8af1a021094003cd90023a882d707f7062cc98938bb06a4c105bf75e10120b"
+  }
+}

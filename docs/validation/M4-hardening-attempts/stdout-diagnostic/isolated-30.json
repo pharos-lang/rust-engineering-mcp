@@ -1,0 +1,159 @@
+{
+  "started_at": "2026-09-08T05:20:15.286198+00:00",
+  "binary_sha256": "5cc8de230062657f1d66eddc6a45bb6abd5f2a93088dc8b495c22e8c803b3e9d",
+  "source_sha256": "c5f81a1ce6a85004e1a543052f936d861f1858f24359cfbb52cfbe61aaa3dd13",
+  "observations": [
+    {
+      "iteration": 0,
+      "exit_code": 0,
+      "seconds": 0.363
+    },
+    {
+      "iteration": 1,
+      "exit_code": 0,
+      "seconds": 0.37
+    },
+    {
+      "iteration": 2,
+      "exit_code": 0,
+      "seconds": 0.38
+    },
+    {
+      "iteration": 3,
+      "exit_code": 0,
+      "seconds": 0.367
+    },
+    {
+      "iteration": 4,
+      "exit_code": 0,
+      "seconds": 0.372
+    },
+    {
+      "iteration": 5,
+      "exit_code": 0,
+      "seconds": 0.381
+    },
+    {
+      "iteration": 6,
+      "exit_code": 0,
+      "seconds": 0.381
+    },
+    {
+      "iteration": 7,
+      "exit_code": 0,
+      "seconds": 0.388
+    },
+    {
+      "iteration": 8,
+      "exit_code": 0,
+      "seconds": 0.389
+    },
+    {
+      "iteration": 9,
+      "exit_code": 0,
+      "seconds": 0.376
+    },
+    {
+      "iteration": 10,
+      "exit_code": 0,
+      "seconds": 0.373
+    },
+    {
+      "iteration": 11,
+      "exit_code": 0,
+      "seconds": 0.38
+    },
+    {
+      "iteration": 12,
+      "exit_code": 0,
+      "seconds": 0.378
+    },
+    {
+      "iteration": 13,
+      "exit_code": 0,
+      "seconds": 0.378
+    },
+    {
+      "iteration": 14,
+      "exit_code": 0,
+      "seconds": 0.381
+    },
+    {
+      "iteration": 15,
+      "exit_code": 0,
+      "seconds": 0.385
+    },
+    {
+      "iteration": 16,
+      "exit_code": 0,
+      "seconds": 0.392
+    },
+    {
+      "iteration": 17,
+      "exit_code": 0,
+      "seconds": 0.386
+    },
+    {
+      "iteration": 18,
+      "exit_code": 0,
+      "seconds": 0.381
+    },
+    {
+      "iteration": 19,
+      "exit_code": 0,
+      "seconds": 0.378
+    },
+    {
+      "iteration": 20,
+      "exit_code": 0,
+      "seconds": 0.368
+    },
+    {
+      "iteration": 21,
+      "exit_code": 0,
+      "seconds": 0.383
+    },
+    {
+      "iteration": 22,
+      "exit_code": 0,
+      "seconds": 0.385
+    },
+    {
+      "iteration": 23,
+      "exit_code": 0,
+      "seconds": 0.377
+    },
+    {
+      "iteration": 24,
+      "exit_code": 0,
+      "seconds": 0.384
+    },
+    {
+      "iteration": 25,
+      "exit_code": 0,
+      "seconds": 0.381
+    },
+    {
+      "iteration": 26,
+      "exit_code": 0,
+      "seconds": 0.385
+    },
+    {
+      "iteration": 27,
+      "exit_code": 0,
+      "seconds": 0.386
+    },
+    {
+      "iteration": 28,
+      "exit_code": 0,
+      "seconds": 0.369
+    },
+    {
+      "iteration": 29,
+      "exit_code": 0,
+      "seconds": 0.373
+    }
+  ],
+  "status": "passed",
+  "finished_at": "2026-09-08T05:20:26.669130+00:00"
+}

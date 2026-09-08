@@ -2,6 +2,51 @@
 
 ## 0.3.0-dev — Unreleased
 
+### M4 — 27 tools implementadas y calificadas localmente
+
+- Implementados `rust.deny`, `rust.unsafe.scan`, `rust.supply_chain.inspect`,
+  `rust.quality.gate.v2` y `rust.miri`, en ese orden después de las 22
+  definiciones existentes. Los 23 snapshots anteriores permanecen preservados y
+  se añadieron cinco nuevos. El [core](docs/validation/M4-core-gate.json), el
+  [full](docs/validation/M4-full-gate.json), el [runtime](docs/validation/M4-runtime.json)
+  y los [clientes](docs/validation/M4-clients.json) pasaron localmente. La
+  [confirmación final](docs/reviews/m4-final-evidence/review.md) acepta el cierre
+  local de M4; no hay commit de integración,
+  nueva release, tag o PR.
+- El core pasó 19 etapas (1220 tests Rust, un doctest y 11 tests del helper); el
+  full pasó 33 con inventario fuente idéntico. Tras encontrar un directorio E5
+  temporal vacío, la reanudación conservó 27 etapas aprobadas y ejecutó seis
+  frescas usando assets existentes reverificados, sin descarga ni cambios de
+  código. El [fallo original](docs/validation/M4-hardening-attempts/full-attempt-2/receipt.json)
+  permanece preservado. El runtime final pasó 19/19 sobre `25ed…`, con scanner
+  7/7 y Miri 13 clasificaciones más 7 admisiones.
+- La [revisión final de código Opus](docs/reviews/m4-final-closure/review.md) no
+  encontró P0, P1 ni un P2 nuevo. El P2 anterior de freshness nativa ya tiene
+  los casos renovados y quedó cerrado en la confirmación final. M4 está Done local.
+- Admitido por identidad el runtime Linux ARM64
+  `sha256:25ed3626e710081a571a86a29521eaf2e890e796afd422ba5e409e0ce1891635`
+  con cargo-deny 0.19.7, nightly/Miri fijado y scanner sintáctico aislado. La
+  admisión del runtime no equivale a publicación de las tools ni amplía la matriz
+  de plataformas.
+- Los cinco contratos conservan MCP Tasks para sus defaults y jobs largos. Una
+  selección de hasta 60 s admite el camino síncrono calificado; para
+  `rust.quality.gate.v2` se limita a `strict` sin mutation. Deny, scanner y supply
+  chain aceptan 1..120 s con 120 s por defecto; Miri acepta 1..1800 s con 300 s
+  por defecto; quality gate v2 acepta 1..3600 s con 300 s por defecto. Un timeout
+  síncrono mayor de 60 s es inválido; `release` y mutation requieren Tasks.
+- `rust.quality.gate.v2` añade perfiles cerrados `strict` y `release`, conserva
+  `rust.quality.gate` sin cambios y permite mutation solo como selección explícita.
+  El timeout debe cubrir el presupuesto derivado de mutation más 300 s para las
+  demás etapas.
+- La policy de seguridad, el vendor Cargo y RustSec siguen siendo inputs locales
+  autenticados por el host. El runtime MCP no instala, descarga ni actualiza esos
+  datos. Evidencia parcial, datos ausentes, timeout, cancelación o cleanup incierto
+  nunca producen un pass.
+- `security-runtime inventory [--json]` expone pasivamente la imagen, cargo-deny,
+  helper, nightly y sysroot compilados. No inspecciona instalaciones. Supply chain
+  usa únicamente la generación local de catálogo configurada por
+  `--catalog-store` y `--catalog-trust`; no sincroniza durante `serve`.
+
 ### M3 — calidad y seguridad
 
 - Añadidas `rust.test.nextest`, `rust.coverage`, `rust.semver.check` y

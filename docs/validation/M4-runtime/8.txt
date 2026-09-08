@@ -1,0 +1,10 @@
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.06s
+     Running unittests src/lib.rs (target/debug/deps/rust_engineering_execution-90533356044b11f0)
+
+running 1 test
+test security_graph_native::captures_workspace_dependency_graphs_through_the_gateway ... M4_DENY_GRAPH {"bans":{"errors":1,"helps":0,"notes":0,"warnings":0},"case":"wildcard","exit":2,"findings":5,"licenses":{"errors":0,"helps":2,"notes":0,"warnings":2},"parse_complete":true,"sources":{"errors":0,"helps":0,"notes":0,"warnings":0},"stderr_sha256":"sha256:8570579a6114c5cf9dfcfe76d159e66f51b5fa3942603c671e3516463c435edb","stdout_sha256":"sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"}
+M4_DENY_GRAPH {"bans":{"errors":0,"helps":0,"notes":0,"warnings":0},"case":"exact","exit":0,"findings":4,"licenses":{"errors":0,"helps":2,"notes":0,"warnings":2},"parse_complete":true,"sources":{"errors":0,"helps":0,"notes":0,"warnings":0},"stderr_sha256":"sha256:e68e38be8572049f706c741b4e01ca290d3f41012523c247b2cd958699aa7007","stdout_sha256":"sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"}
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 252 filtered out; finished in 11.11s
+

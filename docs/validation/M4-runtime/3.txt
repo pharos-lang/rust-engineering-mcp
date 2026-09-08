@@ -1,0 +1,8 @@
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.13s
+     Running tests/inspection_runtime.rs (target/debug/deps/inspection_runtime-f7b3cab09880b72e)
+
+running 1 test
+test security_runtime::m4_project_output_canaries_are_absent_from_security_results_and_resources ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 47 filtered out; finished in 54.41s
+

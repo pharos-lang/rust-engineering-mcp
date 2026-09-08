@@ -1,0 +1,28 @@
+{
+  "command": [
+    "/Users/cburgosro/.local/bin/claude",
+    "--model",
+    "claude-sonnet-5",
+    "--effort",
+    "medium",
+    "--print",
+    "--output-format",
+    "json",
+    "--no-session-persistence",
+    "--restricted",
+    "--strict-mcp-config",
+    "--mcp-config",
+    "{\"mcpServers\":{}}",
+    "--tools",
+    "Read,Grep,Glob",
+    "--disallowedTools",
+    "Agent,Bash,Write,Edit,WebFetch,WebSearch,NotebookEdit",
+    "--permission-mode",
+    "dontAsk",
+    "--permission-prompts",
+    "none"
+  ],
+  "started_at": "2026-09-08T03:12:15.471275+00:00",
+  "finished_at": "2026-09-08T03:18:06.233908+00:00",
+  "exit_code": 0
+}

@@ -1,0 +1,37 @@
+[
+  {
+    "path": "sonar-project.properties",
+    "bytes": 1434,
+    "sha256": "1192befea592a36b84bbbd0995eab5b32f89a59cc4f6e05e98123d7be5116e41"
+  },
+  {
+    "path": "scripts/gate.py",
+    "bytes": 10488,
+    "sha256": "d4dbd03b4b3d23795f9d6346c64ee1d1a0f1eecd362ca9875ddfb684b8543409"
+  },
+  {
+    "path": "scripts/test-gate-reporting.py",
+    "bytes": 8572,
+    "sha256": "a1ab72f539adcf2a9bd0022c554a4382b0bfaf2acac96fca9022a8dd10e9d82e"
+  },
+  {
+    "path": "docs/ci.md",
+    "bytes": 18257,
+    "sha256": "f4634e71db6f451797ef4d6e3c5b72075437e4905eb63202053c89a80716d81d"
+  },
+  {
+    "path": "docs/validation/M3-04.md",
+    "bytes": 1974,
+    "sha256": "675843191a78cb1bb7b1497a2562c34f3cf970e9f5bad87108a3cc59a730c0d8"
+  },
+  {
+    "path": "docs/validation/M3-05.md",
+    "bytes": 2144,
+    "sha256": "d8af6c4bf6c994e7213697269a76754d4d8f5bba30b4e88bb3bb5c18df11eed8"
+  },
+  {
+    "path": "docs/validation/M3-07.md",
+    "bytes": 41694,
+    "sha256": "08533406a1d4b2e803c748e36c63d4b4a514e8605812a368d9304aa3c9b826ba"
+  }
+]

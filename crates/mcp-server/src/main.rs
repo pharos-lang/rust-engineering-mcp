@@ -36,6 +36,8 @@ Commands:
                  Rebuild native Lance objects using the verified installed E5 model
   help           Show this help (-h, --help)
   version [--json] Show package version/build facts (-V, --version)
+  security-runtime inventory [--json]
+                 Show compiled security runtime requirements; does not inspect or install
   doctor [--active] [--json] [same host flags as serve]
                  Diagnose configured local state; --active calibrates approved Rust runtime
   capabilities [--json | --human] --docker PATH --docker-socket PATH --state-root PATH --probe-image sha256:ID
@@ -48,11 +50,12 @@ Commands:
         [--allow-dependency-add WORKSPACE_ROOT]...
         [--allow-dependency-remove WORKSPACE_ROOT]...
         [--cargo-vendor-dir PATH --cargo-vendor-tree-sha256 sha256:ID]
+        [--security-policy PATH --security-policy-sha256 sha256:ID]
         [--rustsec-snapshot PATH --rustsec-sha256 sha256:ID]
         [--docker PATH --docker-socket PATH --state-root PATH --rust-image sha256:ID]
                  Serve MCP with host-authorized physical roots (default: none)
 
-Available tools: rust.project.open; rust.project.inspect; rust.toolchain.inspect; rust.check; rust.fmt.check; rust.clippy; rust.test; rust.dependencies.audit; rust.diagnostics.explain; rust.quality.gate; rust.catalog.status; rust.crate.search; rust.crate.inspect; rust.manifest.patch; rust.fmt.apply; rust.fix.apply; rust.dependency.add; rust.dependency.remove (explicit approved Rust runtime required except project.open, catalog.status, crate.search and crate.inspect).
+Available tools: rust.project.open; rust.project.inspect; rust.toolchain.inspect; rust.check; rust.fmt.check; rust.clippy; rust.test; rust.dependencies.audit; rust.diagnostics.explain; rust.quality.gate; rust.catalog.status; rust.crate.search; rust.crate.inspect; rust.manifest.patch; rust.fmt.apply; rust.fix.apply; rust.dependency.add; rust.dependency.remove; rust.test.nextest; rust.coverage; rust.semver.check; rust.mutation.test; rust.deny; rust.unsafe.scan; rust.supply_chain.inspect; rust.quality.gate.v2; rust.miri (explicit approved Rust runtime required except project.open, catalog.status, crate.search and crate.inspect).
 ";
 
 const USAGE_ERROR: &str = "Unsupported invocation. Use 'rust-engineering-mcp --help'.\n";
@@ -63,6 +66,7 @@ enum Invocation {
     QualityArtifacts(quality_artifact_cli::Invocation),
     CargoVendor(cargo_vendor_cli::Invocation),
     Help,
+    SecurityInventory,
     Version { json: bool },
     Doctor(doctor::Invocation),
     ServeStdio(stdio::HostConfig),
@@ -75,6 +79,17 @@ fn invocation() -> Invocation {
     let Some(command) = args.next() else {
         return Invocation::Unsupported;
     };
+    if command == OsStr::new("security-runtime") {
+        if args.next().as_deref() != Some(OsStr::new("inventory")) {
+            return Invocation::Unsupported;
+        }
+        if let Some(flag) = args.next()
+            && (flag != OsStr::new("--json") || args.next().is_some())
+        {
+            return Invocation::Unsupported;
+        }
+        return Invocation::SecurityInventory;
+    }
     if command == OsStr::new("doctor") {
         return doctor::parse(args)
             .map(Invocation::Doctor)
@@ -148,6 +163,17 @@ fn main() -> ExitCode {
         Invocation::Mutation(config) => return mutation_cli::run(config),
         Invocation::QualityArtifacts(config) => return quality_artifact_cli::run(config),
         Invocation::CargoVendor(config) => return cargo_vendor_cli::run(config),
+        Invocation::SecurityInventory => {
+            let result = serde_json::to_writer_pretty(
+                io::stdout().lock(),
+                &rust_engineering_execution::security_runtime_inventory(),
+            );
+            return if result.is_ok() {
+                ExitCode::SUCCESS
+            } else {
+                ExitCode::FAILURE
+            };
+        }
         Invocation::Help => (io::stdout().lock().write_all(HELP.as_bytes()), 0),
         Invocation::Version { json } => return version::run(json),
         Invocation::Doctor(config) => return doctor_run::run(config),

@@ -1,0 +1,449 @@
+{
+  "cases": [
+    {
+      "case": "optimized-panic",
+      "execution": "sha256:e97c0745f142493d1cee41c9a9ee673444f7f07d0cac2d962dc0867e7d098e2d",
+      "junit_sha256": "sha256:92992e6bc8fdee8d6d0df42b52b6ac434222c927bd7902c445c1c3ad05107d61",
+      "metadata": "sha256:fa7339a60792eaea1d52b4771881ba4406a6c60cc38d13b32a75918f77bc30f7",
+      "report": {
+        "clean": false,
+        "complete": true,
+        "counts": {
+          "compile_failures": 0,
+          "failed": 1,
+          "passed": 0,
+          "skipped": 0,
+          "test_failures": 1,
+          "tests": 1,
+          "timeouts": 0,
+          "unclassified": 0,
+          "undefined_behavior": 0,
+          "unsupported_operation": 0
+        },
+        "exit_code": 100,
+        "findings": [
+          {
+            "category": "test_failure",
+            "test_binary": "optimized-panic",
+            "test_name": "hostile_output"
+          }
+        ],
+        "findings_omitted": 0,
+        "junit_present": true
+      },
+      "source": "sha256:4a2860dbca6bee42277b41fa6c9684799c9bf4b2155e9e0d6e2e7960ff56195c",
+      "stderr_sha256": "sha256:3811a9cd93d42daf20a77b376f1fd4c95708a5d442403f35d1f0f3fc0f91525e",
+      "stdout_sha256": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "case": "binary-only",
+      "execution": "sha256:3b3d1b1d375d6849bfe3842590084d238eaafc05c9e47608f285d9c71e2b8896",
+      "junit_sha256": "sha256:96fc0d11eebed7e768828234520c994106fac570ac6a102adb68b701a8e4fa76",
+      "metadata": "sha256:0eb24df16e22add9da057398c336427c53db0220a00a18ceab8d2475aadc8ef2",
+      "report": {
+        "clean": true,
+        "complete": true,
+        "counts": {
+          "compile_failures": 0,
+          "failed": 0,
+          "passed": 1,
+          "skipped": 0,
+          "test_failures": 0,
+          "tests": 1,
+          "timeouts": 0,
+          "unclassified": 0,
+          "undefined_behavior": 0,
+          "unsupported_operation": 0
+        },
+        "exit_code": 0,
+        "findings": [],
+        "findings_omitted": 0,
+        "junit_present": true
+      },
+      "source": "sha256:65e39251eede16829fa4a713e196cb3682a676a275934c3457eb5a40534dba58",
+      "stderr_sha256": "sha256:81cc254f90c6c5232ab6382a09b18dced98f232ee14a67431d9543d14e026cd6",
+      "stdout_sha256": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "case": "runner-timeout",
+      "execution": "sha256:f2090911a148039c34a2e91a25433d800784a9961abed1f60eb314b23427f09c",
+      "junit_sha256": "sha256:7269992e91729c41585f64a36b56e625335dd54e6b4ac8ba63321bf80d1c8cf7",
+      "metadata": "sha256:6b8092144e523e60ae6a3d17fc3a54d8d21a517815a0fb34cb3b5cd417def13f",
+      "report": {
+        "clean": false,
+        "complete": false,
+        "counts": {
+          "compile_failures": 0,
+          "failed": 1,
+          "passed": 0,
+          "skipped": 0,
+          "test_failures": 0,
+          "tests": 1,
+          "timeouts": 1,
+          "unclassified": 0,
+          "undefined_behavior": 0,
+          "unsupported_operation": 0
+        },
+        "exit_code": 100,
+        "findings": [
+          {
+            "category": "timeout",
+            "test_binary": "runner_timeout",
+            "test_name": "exceeds_test_budget"
+          }
+        ],
+        "findings_omitted": 0,
+        "junit_present": true
+      },
+      "source": "sha256:16ed7d770d5f70025df26856357e3e38ac0cbfe38c18777280da9c94c670e829",
+      "stderr_sha256": "sha256:cd070a05cb9179edb189caea31192d863398bd42bb1c8f1ba822127f98cd3166",
+      "stdout_sha256": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "case": "clean",
+      "execution": "sha256:1eceb6b7b9d2780b2c3ce0041326931fd77072af5cdbb2f7053dec373c39666d",
+      "junit_sha256": "sha256:540eb27a94341ff074fd83feba187cb6aadaa47597a8c69abd7378e291319ed0",
+      "metadata": "sha256:b84e658ff0c8b0ae71dfa9ee5cf9dc3bb0c4fd71b4f3970c62d8bd0d3109a9b0",
+      "report": {
+        "clean": true,
+        "complete": true,
+        "counts": {
+          "compile_failures": 0,
+          "failed": 0,
+          "passed": 1,
+          "skipped": 0,
+          "test_failures": 0,
+          "tests": 1,
+          "timeouts": 0,
+          "unclassified": 0,
+          "undefined_behavior": 0,
+          "unsupported_operation": 0
+        },
+        "exit_code": 0,
+        "findings": [],
+        "findings_omitted": 0,
+        "junit_present": true
+      },
+      "source": "sha256:6111a127a3ab3ee3aed0dc858e83e90268616716efed9c535e2f01f581fa313a",
+      "stderr_sha256": "sha256:0dcecf4e0721060c536b056b9ff35f7838c93faad3adbe149b5b743592de04f3",
+      "stdout_sha256": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "case": "uaf",
+      "execution": "sha256:fc2b16f901415803fed260ffb6e358fcd9c56268d5cf1901987668ca6e6013e2",
+      "junit_sha256": "sha256:6e5bb83afcef9c167dfa0a2c83c4a89aca41aeaf6b6d5db9454d7d768082030d",
+      "metadata": "sha256:1be33b723b922507f41ce62dab042c2f622c908110da24ef55ebcbcf58cb9844",
+      "report": {
+        "clean": false,
+        "complete": true,
+        "counts": {
+          "compile_failures": 0,
+          "failed": 1,
+          "passed": 0,
+          "skipped": 0,
+          "test_failures": 0,
+          "tests": 1,
+          "timeouts": 0,
+          "unclassified": 0,
+          "undefined_behavior": 1,
+          "unsupported_operation": 0
+        },
+        "exit_code": 100,
+        "findings": [
+          {
+            "category": "undefined_behavior",
+            "test_binary": "m4-miri-uaf",
+            "test_name": "use_after_free_is_undefined_behavior"
+          }
+        ],
+        "findings_omitted": 0,
+        "junit_present": true
+      },
+      "source": "sha256:f815e2b430b064c9e489656235e7c6b18bcdd2fc1f3223e982e2e946769908d5",
+      "stderr_sha256": "sha256:6f4e6e6aaa1cb87b1cf88e9395465fa7da8ba88ca4985c371440d82e19da868a",
+      "stdout_sha256": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "case": "uninit",
+      "execution": "sha256:6bdf7390637eb7b9168e689b41bdd7427e1e1808889abebc1e9fee20b6687905",
+      "junit_sha256": "sha256:9dc44ea4ea7dfa2381521d4a7032c79299b4c152103ead022e5a91d61fe3351d",
+      "metadata": "sha256:3714ef6ba6ad6993f84cb64edf81124f61032a5130fe31b4820436cb12e490d3",
+      "report": {
+        "clean": false,
+        "complete": true,
+        "counts": {
+          "compile_failures": 0,
+          "failed": 1,
+          "passed": 0,
+          "skipped": 0,
+          "test_failures": 0,
+          "tests": 1,
+          "timeouts": 0,
+          "unclassified": 0,
+          "undefined_behavior": 1,
+          "unsupported_operation": 0
+        },
+        "exit_code": 100,
+        "findings": [
+          {
+            "category": "undefined_behavior",
+            "test_binary": "m4-miri-uninit",
+            "test_name": "uninitialized_integer_is_undefined_behavior"
+          }
+        ],
+        "findings_omitted": 0,
+        "junit_present": true
+      },
+      "source": "sha256:7455d2e5e003927ed74babeee01f99ad365a313fd4ebedbcdda2aea83f821bc5",
+      "stderr_sha256": "sha256:b0c3594849ca6eb83e85b08ddc76860efc2fb09c3cc244ac36d938736445000c",
+      "stdout_sha256": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "case": "alias",
+      "execution": "sha256:b991397d9b8786e3d028673805490b6dc43caf3bc7113cef2e6bdf2abfc9ff99",
+      "junit_sha256": "sha256:b3b932fda0a735279cb746a495d8f0f04d1f9022836e9dad840003d2e687b76a",
+      "metadata": "sha256:9ec4099f5b0c7b1ffab7d412f58d41c2cacc573f7e23b45503c87d83747d0700",
+      "report": {
+        "clean": false,
+        "complete": true,
+        "counts": {
+          "compile_failures": 0,
+          "failed": 1,
+          "passed": 0,
+          "skipped": 0,
+          "test_failures": 0,
+          "tests": 1,
+          "timeouts": 0,
+          "unclassified": 0,
+          "undefined_behavior": 1,
+          "unsupported_operation": 0
+        },
+        "exit_code": 100,
+        "findings": [
+          {
+            "category": "undefined_behavior",
+            "test_binary": "m4-miri-alias",
+            "test_name": "invalidated_shared_reference_is_undefined_behavior"
+          }
+        ],
+        "findings_omitted": 0,
+        "junit_present": true
+      },
+      "source": "sha256:07b181f0d87fe0345adc66016c9191d0adc2e97212e0dff24ea6ccbedd51f502",
+      "stderr_sha256": "sha256:388a31c46f9b75e0a3b3bd18672b79fad0dadd6e72166f595fa55ae6ee85edc0",
+      "stdout_sha256": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "case": "race",
+      "execution": "sha256:c55ab3fa169f55a8c0154c13c60fce027a44c9a3cf65541aeb6e2b3827c1a09d",
+      "junit_sha256": "sha256:56d7ae7af7496ef7825033d8d94de7fb772bb373c582043ffe08c983550cbe7d",
+      "metadata": "sha256:5eaeeb947bcdf77f11c4be6aa8352df50782f3ed51963442e31ebb5eb4d4756f",
+      "report": {
+        "clean": false,
+        "complete": true,
+        "counts": {
+          "compile_failures": 0,
+          "failed": 1,
+          "passed": 0,
+          "skipped": 0,
+          "test_failures": 0,
+          "tests": 1,
+          "timeouts": 0,
+          "unclassified": 0,
+          "undefined_behavior": 1,
+          "unsupported_operation": 0
+        },
+        "exit_code": 100,
+        "findings": [
+          {
+            "category": "undefined_behavior",
+            "test_binary": "m4-miri-race",
+            "test_name": "unordered_thread_writes_are_a_data_race"
+          }
+        ],
+        "findings_omitted": 0,
+        "junit_present": true
+      },
+      "source": "sha256:0c3589bfff4aaba20a07a130e4d4ef2313a6132ed348ef9767e69fe4e2884443",
+      "stderr_sha256": "sha256:6dceada86b587d51f892eaab68191cfe498626a53784bf3ae1d1d4ae615bedce",
+      "stdout_sha256": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "case": "ffi",
+      "execution": "sha256:c784e98328a3703c7cb7f42f792b4b7d2f9210442c62e73bc536bcf9ea8a1b51",
+      "junit_sha256": "sha256:d592d391288ebadcb8adcaac3b1bf104658b112f8b4c96b63592fdb8ede4e3bd",
+      "metadata": "sha256:ee34b970a4f97a60adb701a919af4e54406e476c01a7325ed3b5b2b0cb6c2696",
+      "report": {
+        "clean": false,
+        "complete": true,
+        "counts": {
+          "compile_failures": 0,
+          "failed": 1,
+          "passed": 0,
+          "skipped": 0,
+          "test_failures": 0,
+          "tests": 1,
+          "timeouts": 0,
+          "unclassified": 0,
+          "undefined_behavior": 0,
+          "unsupported_operation": 1
+        },
+        "exit_code": 100,
+        "findings": [
+          {
+            "category": "unsupported_operation",
+            "test_binary": "m4-miri-ffi",
+            "test_name": "unknown_ffi_is_unsupported"
+          }
+        ],
+        "findings_omitted": 0,
+        "junit_present": true
+      },
+      "source": "sha256:a25d6d65ef24c2e0e408a2e0ceb6132103ecf1c4d5bd281907888c7aa4af0c30",
+      "stderr_sha256": "sha256:7afce284766ea49152951220ae250a4282049020456b9b48f9df024d7e1b1787",
+      "stdout_sha256": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "case": "benign-forged",
+      "execution": "sha256:1ffe6dddc72438864a9453123597905758b2898e8c6717e4579ba7e5aada3d61",
+      "junit_sha256": "sha256:46cd9e446276142a21cf84f5f4c5ba904b4fec79b198adb155bbb58dd5219fb7",
+      "metadata": "sha256:219ace39dda5abd20639403320504c9c1df8863eda07152c541936dd036d4b67",
+      "report": {
+        "clean": false,
+        "complete": true,
+        "counts": {
+          "compile_failures": 0,
+          "failed": 1,
+          "passed": 1,
+          "skipped": 0,
+          "test_failures": 1,
+          "tests": 2,
+          "timeouts": 0,
+          "unclassified": 0,
+          "undefined_behavior": 0,
+          "unsupported_operation": 0
+        },
+        "exit_code": 100,
+        "findings": [
+          {
+            "category": "test_failure",
+            "test_binary": "m4-miri-benign-forged",
+            "test_name": "forged_diagnostic_is_only_test_output"
+          }
+        ],
+        "findings_omitted": 0,
+        "junit_present": true
+      },
+      "source": "sha256:a0e626bb42429ccc2c03408dfaea28df09c3325f51f4ac3da62ace9a3a7212c6",
+      "stderr_sha256": "sha256:ba33cafa489029648c2fa0d52c8c21ca436c73d7cd34629371fd30e472472897",
+      "stdout_sha256": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "case": "compile-fail",
+      "execution": "sha256:70ffbf9ea5d20dc1e0738091b646b46eccedfd967db4da635e1c6191f732325b",
+      "junit_sha256": null,
+      "metadata": "sha256:abab61ed05a70b38ec39327d209bd47ed992612e56ecd270c68e6ca0ee4255d4",
+      "report": {
+        "clean": false,
+        "complete": true,
+        "counts": {
+          "compile_failures": 1,
+          "failed": 0,
+          "passed": 0,
+          "skipped": 0,
+          "test_failures": 0,
+          "tests": 0,
+          "timeouts": 0,
+          "unclassified": 0,
+          "undefined_behavior": 0,
+          "unsupported_operation": 0
+        },
+        "exit_code": 104,
+        "findings": [
+          {
+            "category": "compile_failure",
+            "test_binary": null,
+            "test_name": null
+          }
+        ],
+        "findings_omitted": 0,
+        "junit_present": false
+      },
+      "source": "sha256:2d719f6ad4d1bd8243cd6e4e29704326a2117f60e81a79d7efddf08ccb22add4",
+      "stderr_sha256": "sha256:b98945496b68ed257fb1eb71e5b8e13e5f4afff2aaf75aa1fe318ab31d6a53d0",
+      "stdout_sha256": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "case": "empty",
+      "execution": "sha256:94eb51e52c0d5abc42f48a5e18613648f79fc6e52032a6e2efbcb789b6d53403",
+      "junit_sha256": "sha256:a03735014c1b68c904473d0d3d136e1e7d94402ca3601a424ce9e6c36289350d",
+      "metadata": "sha256:24b38a474b809938f338b4e3bea4ecb523b7f0e1afdd225ae419d3107eac71fe",
+      "report": {
+        "clean": false,
+        "complete": false,
+        "counts": {
+          "compile_failures": 0,
+          "failed": 0,
+          "passed": 0,
+          "skipped": 0,
+          "test_failures": 0,
+          "tests": 0,
+          "timeouts": 0,
+          "unclassified": 1,
+          "undefined_behavior": 0,
+          "unsupported_operation": 0
+        },
+        "exit_code": 4,
+        "findings": [
+          {
+            "category": "unclassified",
+            "test_binary": null,
+            "test_name": null
+          }
+        ],
+        "findings_omitted": 0,
+        "junit_present": true
+      },
+      "source": "sha256:07e54d697a3d1b8fbbd5a019bc10b43edaf723fa8cc9a04b52bca445023e1f68",
+      "stderr_sha256": "sha256:ea5d9aa835020b1f266f3836dc44112d42ea6956b54ea867a73c291fa0edca64",
+      "stdout_sha256": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "case": "ignored",
+      "execution": "sha256:ab53cb2182660a67e7d8077b161f66731f4008c12862da78880e44276d600f93",
+      "junit_sha256": "sha256:2f1c9e1733a55b561b75b73b4d1744ab9d8d502a7bdcee67c72e385f2f3c9baf",
+      "metadata": "sha256:501ce471d35ba2b9b1f2b9dfe51d878746f44fe9d81b6083a653a3f1d961a577",
+      "report": {
+        "clean": false,
+        "complete": false,
+        "counts": {
+          "compile_failures": 0,
+          "failed": 0,
+          "passed": 0,
+          "skipped": 1,
+          "test_failures": 0,
+          "tests": 1,
+          "timeouts": 0,
+          "unclassified": 1,
+          "undefined_behavior": 0,
+          "unsupported_operation": 0
+        },
+        "exit_code": 4,
+        "findings": [
+          {
+            "category": "unclassified",
+            "test_binary": "m4-miri-ignored",
+            "test_name": "ignored_test_must_not_credit_clean"
+          }
+        ],
+        "findings_omitted": 0,
+        "junit_present": true
+      },
+      "source": "sha256:31e697894387e97307837b0fef0a2cf764e2224389a7e35be27bd1c7fe651f0b",
+      "stderr_sha256": "sha256:7272e99eba610399706bf214efab8a3f160bf2edc58d7b08844dbbdf83d95c37",
+      "stdout_sha256": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "cleanup_verified": true,
+  "image_id": "sha256:25ed3626e710081a571a86a29521eaf2e890e796afd422ba5e409e0ce1891635"
+}

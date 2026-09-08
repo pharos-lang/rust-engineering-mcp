@@ -94,6 +94,11 @@ pub enum JobKind {
     Coverage,
     SemverCheck,
     MutationTest,
+    Deny,
+    UnsafeScan,
+    SupplyChain,
+    QualityGateV2,
+    Miri,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]

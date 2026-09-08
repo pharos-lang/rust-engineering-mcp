@@ -1,0 +1,245 @@
+diff --git a/docs/ci.md b/docs/ci.md
+index 73021ae..2bb37f5 100644
+--- a/docs/ci.md
++++ b/docs/ci.md
+@@ -27,9 +27,9 @@ de cobertura; su evidencia end-to-end es separada y candidate-bound.
+ 
+ `sonar.coverage.exclusions` nombra cada archivo individualmente —nunca un crate
+ entero ni un comodín— y ninguno sale del análisis: siguen midiéndose fiabilidad,
+-seguridad, mantenibilidad y duplicación. Solo se excluye lo que el scanner
+-portable no puede ejecutar, y cada grupo declara el recibo que sí prueba su
+-comportamiento:
++seguridad, mantenibilidad y duplicación. Las exclusiones restantes son programas de operación/calificación, cuyo camino
++end-to-end necesita un host preparado; no se afirma que sus suites unitarias
++sean inejecutables. Cada grupo declara su evidencia adicional:
+ 
+ 1. Programas de calificación maintainer-only: `scripts/codex-model-qualifier.py`,
+    `scripts/release-artifact.py`, `scripts/release-smoke.py` y
+@@ -43,35 +43,26 @@ comportamiento:
+    contenedores contra la imagen aprobada en un daemon local; el runner Ubuntu no
+    tiene ni el socket ni la imagen. Recibos: los JSON `M2-*` que cada sonda emite
+    y [`M3-rust-security.json`](validation/M3-rust-security.json).
+-3. Gateway Docker cerrado y sus puertos: `crates/execution-adapter/src/lib.rs`,
+-   `rust_gateway.rs`, `mutation_gateway.rs`, `mutation_test_gateway.rs`,
+-   `nextest_gateway.rs`, `coverage_gateway.rs`, `semver_gateway.rs`,
+-   `resolution_gateway.rs`, `project_inspection.rs`, `coverage_port.rs`,
+-   `nextest_port.rs`, `mutation_test_port.rs` y `semver_port.rs`. Construyen y
+-   ejecutan las fases del contenedor; los puertos reciben `&RustGateway` concreto,
+-   así que sin daemon no hay ruta que un test portable pueda tomar. Los parsers
+-   que sí son puros viven aparte (`coverage_json.rs`, `nextest_junit.rs`,
+-   `semver_output.rs`, `mutation_outcomes.rs`) y siguen midiéndose. Recibos:
++3. Cliente real: `scripts/m3-inspector-session.mjs`, que conduce una sesión MCP
++   contra un servidor con runtime/store nativos. Su evidencia está en
+    [`M3-runtime.json`](validation/M3-runtime.json) y
+-   [`M3-rust-security.json`](validation/M3-rust-security.json).
+-4. Publicación durable ligada al store macOS ARM64:
+-   `crates/mcp-server/src/stdio/quality_artifacts.rs`. ADR-061 califica solo
+-   macOS ARM64/APFS y fuera de ese host `NativeQualityArtifactStore` no tiene
+-   constructor, así que ningún test portable puede alcanzar sus rutas de
+-   publicación. Los adaptadores del store —`mutation_store.rs`,
+-   `mutation_port.rs`, `quality_artifact_store.rs`, `cargo_vendor.rs` y
+-   `filesystem.rs`— **no** se excluyen: su digest de plan y de bytes es portable
+-   y `tests/mutation_digest.rs` lo prueba, junto con el rechazo
+-   `UnsupportedPlatform` que cada entrypoint debe dar en un host no calificado.
+-   Recibos: [`M3-runtime.json`](validation/M3-runtime.json) y
+-   [`M3-06-rollback.json`](validation/M3-06-rollback.json).
+-5. Entrypoints de host: `crates/mcp-server/src/stdio.rs` —ensamblado del servidor
+-   sobre transporte stdio real, store nativo y runtime Docker— y
+-   `crates/mcp-server/src/main.rs` —dispatch de argv del binario—, más
+-   `scripts/m3-inspector-session.mjs`, que conduce una sesión MCP contra un
+-   servidor real. Recibos: [`M3-runtime.json`](validation/M3-runtime.json) y
+    [`M3-full-gate.json`](validation/M3-full-gate.json).
+ 
++Ningún archivo Rust de producto está excluido del porcentaje de cobertura.
++Los caminos que solo ejecutan los gates nativos pueden reducir la cifra portable;
++ese límite de medición se conserva visible. Tener ramas que necesitan Docker o
++macOS no justifica ocultar las ramas portables del mismo archivo.
++
++La revisión de prerrequisitos M4 detectó exclusiones excesivas y una justificación
++incorrecta en los anteriores grupos 3/5. Se retiraron todas las exclusiones Rust
++de producto (16 rutas) y se añadieron
++oráculos para impedir su reintroducción mediante exclusiones exactas o glob.
++`sonar-project.properties` entra desde M4 en `gate.py::source_inventory`; cambiar
++el ámbito de cobertura modifica el hash del input. Los recibos M3 históricos no
++se reescriben: no incluían ese archivo y no acreditan una medición Sonar nueva.
++Esta corrección no afirma ningún porcentaje ni resultado remoto nuevo; la próxima
++corrida Sonar debe medir el ámbito ampliado sin reducir el umbral de calidad.
++
+ Los módulos de herramienta (`stdio/nextest.rs`, `coverage.rs`, `semver.rs`,
+ `mutation.rs`, `mutation_test.rs`, `tasks.rs`, `resources.rs`) no se excluyen:
+ su validación de opciones, sus conversiones DTO, sus proyecciones y su gramática
+diff --git a/docs/validation/M3-04.md b/docs/validation/M3-04.md
+index 67c5b82..ed40d4d 100644
+--- a/docs/validation/M3-04.md
++++ b/docs/validation/M3-04.md
+@@ -27,7 +27,7 @@ Evidencia principal:
+ 
+ Recibo: [`M3-runtime.json`](M3-runtime.json), corrida vigente de **62/62**
+ selecciones, SHA-256
+-`5cfab6c56eaa9d6ab0f306b4920eb61eea21cd4cbc371bf7199c7094a674bf25`.
++`0c2984052db8a8849be32f024002f86b381c3ee69679fb098fe50901f7cb3e0a`.
+ Detalle de calibración: [M3-04-semver-calibration.md](M3-04-semver-calibration.md).
+ La higiene posterior encontró cero containers/volumes etiquetados.
+ 
+@@ -37,6 +37,6 @@ Una falla individual al publicar stdout/stderr durable se representa como omisi
+ explícita y `Incomplete`; no aborta silenciosamente un lote ni deja un locator
+ inalcanzable. Las lecturas quality usan `try_lock` y conservan disponible el loop
+ de Tasks. W3 volvió a pasar las 18 selecciones SemVer dentro del gate completo
+-55/55; esa fue la corrida histórica de W3. La corrida vigente posterior de W6
++55/55; esa fue la corrida histórica de W3. La corrida vigente posterior de W9
+ es de **62/62** y está en [`M3-runtime.json`](M3-runtime.json), SHA-256
+-`5cfab6c56eaa9d6ab0f306b4920eb61eea21cd4cbc371bf7199c7094a674bf25`.
++`0c2984052db8a8849be32f024002f86b381c3ee69679fb098fe50901f7cb3e0a`.
+diff --git a/docs/validation/M3-05.md b/docs/validation/M3-05.md
+index 8cabfa4..5765458 100644
+--- a/docs/validation/M3-05.md
++++ b/docs/validation/M3-05.md
+@@ -24,7 +24,7 @@ privada; el source original sigue read-only.
+ 
+ Recibo: [`M3-runtime.json`](M3-runtime.json), corrida vigente de **62/62**
+ selecciones, SHA-256
+-`5cfab6c56eaa9d6ab0f306b4920eb61eea21cd4cbc371bf7199c7094a674bf25`.
++`0c2984052db8a8849be32f024002f86b381c3ee69679fb098fe50901f7cb3e0a`.
+ Detalle: [M3-05-mutation-calibration.md](M3-05-mutation-calibration.md).
+ La higiene posterior encontró cero containers/volumes etiquetados.
+ 
+@@ -40,5 +40,5 @@ a `08f37709c507b827f22a58fb75a1f80a35b19da510f22c449e5ba0e6a55a080a`;
+ los otros 22 snapshots de tool permanecen byte-identical.
+ 
+ W3 volvió a pasar mutation 10/10 dentro de su corrida histórica 55/55. La
+-corrida vigente posterior de W6 es de **62/62** en [`M3-runtime.json`](M3-runtime.json),
+-SHA-256 `5cfab6c56eaa9d6ab0f306b4920eb61eea21cd4cbc371bf7199c7094a674bf25`.
++corrida vigente posterior de W9 es de **62/62** en [`M3-runtime.json`](M3-runtime.json),
++SHA-256 `0c2984052db8a8849be32f024002f86b381c3ee69679fb098fe50901f7cb3e0a`.
+diff --git a/docs/validation/M3-07.md b/docs/validation/M3-07.md
+index 5954695..b197c64 100644
+--- a/docs/validation/M3-07.md
++++ b/docs/validation/M3-07.md
+@@ -202,10 +202,10 @@ neutralización del nombre de usuario personal descrita en la evaluación CodeQL
+ El inventario creció de 801 a **810 inputs** y de 45,966,311 a **46,027,636
+ bytes**; la suite workspace pasó de 1,072 a **1,105** pruebas.
+ 
+-Recibos M3 refrescados con la corrida de W7:
+-[M3-runtime.json](M3-runtime.json)
++Recibos históricos M3 de la corrida W7, conservados antes de la recalificación W9:
++[M3-runtime-v0.2.0-dev.json](M3-runtime-v0.2.0-dev.json)
+ (`5cfab6c56eaa9d6ab0f306b4920eb61eea21cd4cbc371bf7199c7094a674bf25`, 62/62) y
+-[M3-rust-security.json](M3-rust-security.json)
++[M3-rust-security-v0.2.0-dev.json](M3-rust-security-v0.2.0-dev.json)
+ (`4ad812a05b8683d049001d96b6f59871f1aa880fc865b93979dec58d5ff8df0b`, 20/20).
+ Ambas etapas corren dentro del full y escriben su recibo en
+ `target/m3-runtime/receipt.json` y `target/m3-rust-security/receipt.json`; W7 los
+diff --git a/scripts/gate.py b/scripts/gate.py
+index 29d6b80..be34312 100644
+--- a/scripts/gate.py
++++ b/scripts/gate.py
+@@ -84,7 +84,8 @@ def source_inventory(root, env):
+         ['git', 'ls-files', '--cached', '--others', '--exclude-standard', '-z'],
+         cwd=root, env=env).decode().split('\0')
+     roots = {'AGENTS.md', 'Cargo.toml', 'Cargo.lock', 'rust-toolchain.toml',
+-             'deny.toml', 'rustfmt.toml', 'clippy.toml', '.gitignore'}
++             'deny.toml', 'rustfmt.toml', 'clippy.toml', '.gitignore',
++             'sonar-project.properties'}
+     prefixes = ('crates/', 'scripts/', 'fixtures/', 'vendor/', '.cargo/', '.github/')
+     rows = []
+     for name in sorted(set(names)):
+diff --git a/scripts/test-gate-reporting.py b/scripts/test-gate-reporting.py
+index 91cd94e..93d0530 100644
+--- a/scripts/test-gate-reporting.py
++++ b/scripts/test-gate-reporting.py
+@@ -3,6 +3,8 @@
+ import importlib.util
+ import io
+ import os
++import fnmatch
++import subprocess
+ import tempfile
+ from pathlib import Path
+ import sys
+@@ -24,6 +26,51 @@ GATE = load_gate_module()
+ 
+ 
+ class GateReportingTests(unittest.TestCase):
++    def test_required_sonar_configuration_is_bound_through_real_git_inventory(self):
++        with tempfile.TemporaryDirectory() as temporary:
++            root = Path(temporary)
++            subprocess.run(['git', '-c', 'init.defaultBranch=fixture', 'init', '--quiet', str(root)],
++                           check=True, capture_output=True)
++            policy = root / 'sonar-project.properties'
++            policy.write_text('sonar.coverage.exclusions=\n')
++            before = GATE.source_inventory(root, os.environ)
++            self.assertEqual([row['path'] for row in before], ['sonar-project.properties'])
++            policy.write_text('sonar.coverage.exclusions=crates/**\n')
++            after = GATE.source_inventory(root, os.environ)
++            self.assertNotEqual(before[0]['sha256'], after[0]['sha256'])
++
++    def test_portable_product_paths_cannot_be_excluded_from_required_coverage(self):
++        root = Path(__file__).resolve().parents[1]
++        properties = dict(line.split('=', 1) for line in
++                          (root / 'sonar-project.properties').read_text().splitlines()
++                          if line and not line.startswith('#') and '=' in line)
++        excluded = [pattern for key in ['sonar.exclusions', 'sonar.coverage.exclusions']
++                    for pattern in properties.get(key, '').split(',') if pattern]
++        coverage_excluded = properties.get('sonar.coverage.exclusions', '').split(',')
++        for source in sorted(root.glob('crates/*/src/**/*.rs')):
++            path = source.relative_to(root).as_posix()
++            self.assertFalse(any(fnmatch.fnmatchcase(path, pattern)
++                                 for pattern in coverage_excluded if pattern),
++                             f'Rust source {path} is excluded from coverage')
++        portable = [
++            'crates/execution-adapter/src/lib.rs',
++            'crates/execution-adapter/src/mutation_gateway.rs',
++            'crates/execution-adapter/src/mutation_test_gateway.rs',
++            'crates/execution-adapter/src/nextest_gateway.rs',
++            'crates/execution-adapter/src/coverage_gateway.rs',
++            'crates/execution-adapter/src/resolution_gateway.rs',
++            'crates/execution-adapter/src/project_inspection.rs',
++            'crates/execution-adapter/src/nextest_port.rs',
++            'crates/execution-adapter/src/mutation_test_port.rs',
++            'crates/mcp-server/src/stdio.rs',
++            'crates/mcp-server/src/main.rs',
++        ]
++        for path in portable:
++            with self.subTest(path=path):
++                self.assertTrue((root / path).is_file())
++                self.assertFalse(any(fnmatch.fnmatchcase(path, pattern) for pattern in excluded),
++                                 f'{path} is portable product code excluded from coverage')
++
+     @unittest.skipIf(os.name == "nt", "native symlink fixture")
+     def test_source_binding_detects_new_bytes_and_records_links_without_following(self):
+         with tempfile.TemporaryDirectory() as temporary:
+diff --git a/sonar-project.properties b/sonar-project.properties
+index 66fc52d..8acab46 100644
+--- a/sonar-project.properties
++++ b/sonar-project.properties
+@@ -8,24 +8,12 @@ sonar.test.exclusions=crates/**/tests/fixtures/**,crates/**/tests/snapshots/**
+ sonar.sourceEncoding=UTF-8
+ sonar.rust.lcov.reportPaths=coverage/rust.lcov
+ sonar.python.coverage.reportPaths=coverage/python.xml
+-# Every path below stays analyzed by Sonar and keeps its own tests; only the
+-# coverage percentage ignores it, because the portable Linux scanner cannot
+-# execute it. Five groups, each named file by file and justified in docs/ci.md
+-# with the receipt that does prove its behaviour. Do not turn unavailable host
+-# paths into fake coverage, and do not extend this list to code a test can reach.
+-#
+-# 1. Maintainer-only qualification programs: a real Darwin release host,
+-#    Docker/Codex or both for their executable main paths.
+-# 2. M2 probes whose only executable path creates containers against the
+-#    approved image on a local Docker daemon.
+-# 3. Closed Docker gateway phase construction and execution, plus the ports that
+-#    only reach the application through a live `RustGateway`.
+-# 4. Durable quality publication bound to the macOS ARM64 store, which has no
+-#    constructor off that host. The store adapters themselves stay measured:
+-#    their portable digests and their unsupported-platform refusals are tested.
+-# 5. Host entrypoints: the stdio server assembly, the binary's argv dispatch and
+-#    the real-client inspector session.
+-sonar.coverage.exclusions=scripts/codex-model-qualifier.py,scripts/release-artifact.py,scripts/release-smoke.py,scripts/verify-vendor.py,scripts/probe-m2-cargo-fix.py,scripts/probe-m2-fix-socket-mask.py,scripts/probe-m2-guest-staging.py,scripts/probe-m2-offline-registry.py,scripts/probe-m2-vendor-data.py,scripts/probe-m2-write-primitives.py,scripts/m3-inspector-session.mjs,crates/execution-adapter/src/lib.rs,crates/execution-adapter/src/rust_gateway.rs,crates/execution-adapter/src/mutation_gateway.rs,crates/execution-adapter/src/mutation_test_gateway.rs,crates/execution-adapter/src/nextest_gateway.rs,crates/execution-adapter/src/coverage_gateway.rs,crates/execution-adapter/src/semver_gateway.rs,crates/execution-adapter/src/resolution_gateway.rs,crates/execution-adapter/src/project_inspection.rs,crates/execution-adapter/src/coverage_port.rs,crates/execution-adapter/src/nextest_port.rs,crates/execution-adapter/src/mutation_test_port.rs,crates/execution-adapter/src/semver_port.rs,crates/mcp-server/src/stdio/quality_artifacts.rs,crates/mcp-server/src/stdio.rs,crates/mcp-server/src/main.rs
++# Each exclusion is explicit and remains in static analysis. Native-only paths
++# retain their separate qualification receipts (docs/ci.md). Files with portable
++# tests or CLI paths are measured even when other branches require Docker/macOS.
++# scripts/test-gate-reporting.py prevents re-excluding the portable product paths
++# identified by the M4 prerequisite review. This configuration is source-bound.
++sonar.coverage.exclusions=scripts/codex-model-qualifier.py,scripts/release-artifact.py,scripts/release-smoke.py,scripts/verify-vendor.py,scripts/probe-m2-cargo-fix.py,scripts/probe-m2-fix-socket-mask.py,scripts/probe-m2-guest-staging.py,scripts/probe-m2-offline-registry.py,scripts/probe-m2-vendor-data.py,scripts/probe-m2-write-primitives.py,scripts/m3-inspector-session.mjs
+ sonar.python.version=3.11,3.12,3.13,3.14
+ sonar.plsql.file.suffixes=plsql
+ sonar.qualitygate.wait=true

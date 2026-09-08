@@ -20,16 +20,16 @@ las dependencias fijadas por `Cargo.lock`; el resultado se entrega como LCOV.
 Python usa Coverage.py 7.16.0 desde una wheel fijada por URL y SHA-256 y entrega
 Cobertura XML. `scripts/test-*.py` se clasifica como código de prueba; los demás
 scripts son fuentes medibles. El job ejecuta arquitectura, validación de reportes,
-gate reporting, artifact/smoke, calificador Codex y exportación pública: 74 tests
+gate reporting, artifact/smoke, calificador Codex y exportación pública: 79 tests
 Python en total. Los entrypoints que requieren un host release real permanecen
 analizados por Sonar y probados por sus suites, pero se excluyen solo del porcentaje
 de cobertura; su evidencia end-to-end es separada y candidate-bound.
 
 `sonar.coverage.exclusions` nombra cada archivo individualmente —nunca un crate
 entero ni un comodín— y ninguno sale del análisis: siguen midiéndose fiabilidad,
-seguridad, mantenibilidad y duplicación. Solo se excluye lo que el scanner
-portable no puede ejecutar, y cada grupo declara el recibo que sí prueba su
-comportamiento:
+seguridad, mantenibilidad y duplicación. Las exclusiones restantes son programas de operación/calificación, cuyo camino
+end-to-end necesita un host preparado; no se afirma que sus suites unitarias
+sean inejecutables. Cada grupo declara su evidencia adicional:
 
 1. Programas de calificación maintainer-only: `scripts/codex-model-qualifier.py`,
    `scripts/release-artifact.py`, `scripts/release-smoke.py` y
@@ -43,34 +43,25 @@ comportamiento:
    contenedores contra la imagen aprobada en un daemon local; el runner Ubuntu no
    tiene ni el socket ni la imagen. Recibos: los JSON `M2-*` que cada sonda emite
    y [`M3-rust-security.json`](validation/M3-rust-security.json).
-3. Gateway Docker cerrado y sus puertos: `crates/execution-adapter/src/lib.rs`,
-   `rust_gateway.rs`, `mutation_gateway.rs`, `mutation_test_gateway.rs`,
-   `nextest_gateway.rs`, `coverage_gateway.rs`, `semver_gateway.rs`,
-   `resolution_gateway.rs`, `project_inspection.rs`, `coverage_port.rs`,
-   `nextest_port.rs`, `mutation_test_port.rs` y `semver_port.rs`. Construyen y
-   ejecutan las fases del contenedor; los puertos reciben `&RustGateway` concreto,
-   así que sin daemon no hay ruta que un test portable pueda tomar. Los parsers
-   que sí son puros viven aparte (`coverage_json.rs`, `nextest_junit.rs`,
-   `semver_output.rs`, `mutation_outcomes.rs`) y siguen midiéndose. Recibos:
+3. Cliente real: `scripts/m3-inspector-session.mjs`, que conduce una sesión MCP
+   contra un servidor con runtime/store nativos. Su evidencia está en
    [`M3-runtime.json`](validation/M3-runtime.json) y
-   [`M3-rust-security.json`](validation/M3-rust-security.json).
-4. Publicación durable ligada al store macOS ARM64:
-   `crates/mcp-server/src/stdio/quality_artifacts.rs`. ADR-061 califica solo
-   macOS ARM64/APFS y fuera de ese host `NativeQualityArtifactStore` no tiene
-   constructor, así que ningún test portable puede alcanzar sus rutas de
-   publicación. Los adaptadores del store —`mutation_store.rs`,
-   `mutation_port.rs`, `quality_artifact_store.rs`, `cargo_vendor.rs` y
-   `filesystem.rs`— **no** se excluyen: su digest de plan y de bytes es portable
-   y `tests/mutation_digest.rs` lo prueba, junto con el rechazo
-   `UnsupportedPlatform` que cada entrypoint debe dar en un host no calificado.
-   Recibos: [`M3-runtime.json`](validation/M3-runtime.json) y
-   [`M3-06-rollback.json`](validation/M3-06-rollback.json).
-5. Entrypoints de host: `crates/mcp-server/src/stdio.rs` —ensamblado del servidor
-   sobre transporte stdio real, store nativo y runtime Docker— y
-   `crates/mcp-server/src/main.rs` —dispatch de argv del binario—, más
-   `scripts/m3-inspector-session.mjs`, que conduce una sesión MCP contra un
-   servidor real. Recibos: [`M3-runtime.json`](validation/M3-runtime.json) y
    [`M3-full-gate.json`](validation/M3-full-gate.json).
+
+Ningún archivo Rust de producto está excluido del porcentaje de cobertura.
+Los caminos que solo ejecutan los gates nativos pueden reducir la cifra portable;
+ese límite de medición se conserva visible. Tener ramas que necesitan Docker o
+macOS no justifica ocultar las ramas portables del mismo archivo.
+
+La revisión de prerrequisitos M4 detectó exclusiones excesivas y una justificación
+incorrecta en los anteriores grupos 3/5. Se retiraron todas las exclusiones Rust
+de producto (16 rutas) y se añadieron
+oráculos para impedir su reintroducción mediante exclusiones exactas o glob.
+`sonar-project.properties` entra desde M4 en `gate.py::source_inventory`; cambiar
+el ámbito de cobertura modifica el hash del input. Los recibos M3 históricos no
+se reescriben: no incluían ese archivo y no acreditan una medición Sonar nueva.
+Esta corrección no afirma ningún porcentaje ni resultado remoto nuevo; la próxima
+corrida Sonar debe medir el ámbito ampliado sin reducir el umbral de calidad.
 
 Los módulos de herramienta (`stdio/nextest.rs`, `coverage.rs`, `semver.rs`,
 `mutation.rs`, `mutation_test.rs`, `tasks.rs`, `resources.rs`) no se excluyen:
@@ -287,3 +278,39 @@ receipt de archive/SBOM/notices/install/smoke con un full gate v2 source-bound d
 perfil `local`, Inspector y stock Codex dirigido por modelo sobre los mismos bytes,
 reviews finales y la evidencia pública de PR, CI, tag, attestation y release. IUMotion
 Labs no publica catálogo oficial 0.1.0 y no se aprovisiona clave Ed25519 de producción.
+
+## M4 — calificación local completa
+
+El gate actual ejecuta 19 etapas core y 33 full. Las secciones M1/M3 anteriores
+conservan sus conteos históricos. Comandos, con inputs ya aprovisionados:
+
+```sh
+python3 -B scripts/gate.py core --report target/M4-core-gate.json
+python3 -B scripts/gate.py full --report target/M4-full-gate.json
+```
+
+Full exige un host macOS ARM64, propietario único del daemon Docker,
+`RUST_MCP_TEST_SOCKET`, `RUST_MCP_E5_DIR` y `ORT_LIB_LOCATION` explícitos. No
+instala ni actualiza inputs. El full M4 [aprobado](validation/M4-full-gate.json)
+conserva 27 pasos pasados y ejecuta los seis restantes mediante el runner original
+tras recuperar assets E5 locales exactos; [recuperación](validation/M4-e5-local-recovery.json)
+y [driver registrado](validation/M4-full-gate-resume-driver.py). No se presenta
+como éxito del primer intento monolítico. Core/full/clientes comparten 987 inputs.
+
+Las etapas adicionales incluyen imagen alterada, inventario pasivo y
+`python3 -B scripts/test-m4-runtime.py`. Este último invoca 19 selecciones nativas
+con `--exact --ignored --nocapture --test-threads=1`, exige exactamente un test
+pasado por selección y registra fuentes/config/imágenes/logs/cleanup. Las 19
+usan la imagen final M4 `25ed…`; una selección ejecuta rollback explícito a M3.
+Las regresiones M3 conservan sus propios 62 casos e imagen. El
+[mapa de hardening](validation/M4-hardening-map.md) enumera cada caso y límite;
+[scanner](validation/M4-scanner-native.json) pasó siete oráculos y
+[Miri](validation/M4-miri-native.json) 13 clasificaciones y siete admisiones.
+
+G4 se ejecuta aparte mediante `python3 -B scripts/test-m4-clients.py --run`, con
+socket explícito y `RUST_MCP_M4_CODEX_SYNC_QUALIFIED=1` sustentado en el
+[presupuesto registrado](validation/M4-client-execution.json). Requiere los
+clientes previamente instalados: Inspector 2.5.0 y Codex 0.153.0; el intento 4
+[pasó](validation/M4-clients.json). No almacena credenciales del cliente en el
+repositorio. El [handoff](validation/M4-handoff.md) distingue los resultados
+locales de CI/Sonar remotos, que no se ejecutaron para este checkout.

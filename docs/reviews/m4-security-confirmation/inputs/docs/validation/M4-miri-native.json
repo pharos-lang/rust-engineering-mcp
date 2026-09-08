@@ -1,0 +1,286 @@
+{
+  "schema": "rust-engineering-mcp.m4-miri-native.v1",
+  "status": "passed",
+  "platform": "macOS ARM64; guest linux/aarch64",
+  "image_id": "sha256:25ed3626e710081a571a86a29521eaf2e890e796afd422ba5e409e0ce1891635",
+  "command": [
+    "cargo",
+    "test",
+    "-p",
+    "rust-engineering-execution",
+    "--lib",
+    "miri_native::",
+    "--locked",
+    "--offline",
+    "--",
+    "--ignored",
+    "--nocapture",
+    "--test-threads=1"
+  ],
+  "exit_code": 0,
+  "rust_tests_passed": 2,
+  "classification_cases": 12,
+  "admission_and_lifecycle_cases": 7,
+  "seconds": 194.27,
+  "cleanup_verified": true,
+  "scope": "Direct gateway/parser qualification; MCP/publication and final workspace gate separate",
+  "source_inputs": [
+    {
+      "path": "crates/domain/src/miri.rs",
+      "sha256": "e844231aabd199588fa19e8e26806ab7adc6e8b545e1a5e0e0b68dd6c59abe00"
+    },
+    {
+      "path": "crates/application/src/miri.rs",
+      "sha256": "5556eb596036636bbedc58f3cbab83a5117a37c5cfd4562b15f3a98ecf7834d9"
+    },
+    {
+      "path": "crates/execution-adapter/src/miri_admission.rs",
+      "sha256": "9b65bec45e60abc81eec6547e7dcbb03a7a29e461a5a776f99dd8f6b0cbd88b4"
+    },
+    {
+      "path": "crates/execution-adapter/src/miri_output.rs",
+      "sha256": "2fea28fa3468066377a5243cc882d86c9a614c5d9e5ea0de936a097a49c24f7f"
+    },
+    {
+      "path": "crates/execution-adapter/src/miri_port.rs",
+      "sha256": "9f4fe233b9db005bcfb65c7dea9f48a14f2e71982e86d6d84e710016c820b8d8"
+    },
+    {
+      "path": "crates/execution-adapter/src/miri_log.rs",
+      "sha256": "f3f9f4b097f157006d11746d314bd01804c601066e85def214abdd5fc28b7140"
+    },
+    {
+      "path": "crates/execution-adapter/src/miri_native.rs",
+      "sha256": "1fa720a4981c88ce399ec4402d46d1541babe7eee282c7ffbdcb0604f3576f20"
+    },
+    {
+      "path": "crates/execution-adapter/src/security_gateway.rs",
+      "sha256": "8e3bf671a02a4ce0afadd33f27480da5709f2b807280a21603b2a2873630145d"
+    },
+    {
+      "path": "crates/execution-adapter/src/security_metadata.rs",
+      "sha256": "5e4a039d0eec6195359eca7a5f6d55e32a408dd0d81a26f64662cc6deee84a00"
+    },
+    {
+      "path": "crates/execution-adapter/src/rust_applied.rs",
+      "sha256": "fdf5f627e476bf6cd960372e0760765db3057a2e56301cdcdbe07fae8fecb34c"
+    },
+    {
+      "path": "crates/mcp-server/src/stdio/miri.rs",
+      "sha256": "0dbbf5e62e99785c3293a3cc5a674faa554144f3298e4674a623f7b54c98d9da"
+    },
+    {
+      "path": "crates/mcp-server/src/stdio/miri/schemas.rs",
+      "sha256": "2047b5c42d71433b331bcb287a9e195d1a39b5b5457fa714acd2d7249fc0c6ae"
+    },
+    {
+      "path": "crates/mcp-server/src/stdio/quality_artifacts/security.rs",
+      "sha256": "ef3a53a6407e2ab7d6cace5d40d91db17043dd69765ed27438a21c7d43c72cbd"
+    },
+    {
+      "path": "docs/adr/ADR-072-miri-classification-integrity.md",
+      "sha256": "875887c1750f219e13cf75399a603d27f2a28cd71738ea393f40abe9f75cd46e"
+    },
+    {
+      "path": "fixtures/m4-runtime-oracles/miri-classification/nextest.toml",
+      "sha256": "621739d9514b0bf15a1dec7372e71d01a132aada67c63d486194166231dd75dc"
+    }
+  ],
+  "outputs": [
+    {
+      "path": "docs/validation/M4-miri-native/adversarial-receipt.json",
+      "bytes": 2040,
+      "sha256": "6a10d5675dec5208ea601287a81ea64a81a3aa405db977ffc415b12a86833c48"
+    },
+    {
+      "path": "docs/validation/M4-miri-native/alias.junit.xml",
+      "bytes": 5211,
+      "sha256": "9d0ccb5b3715e5bad2d6c01768f7d2d873422acbeedf5c937e8850cde44aa6d0"
+    },
+    {
+      "path": "docs/validation/M4-miri-native/alias.stderr",
+      "bytes": 4389,
+      "sha256": "b6d86869f01e2fa15d963faf328f201d5fe0dc621b521100540dd858c102a6d6"
+    },
+    {
+      "path": "docs/validation/M4-miri-native/alias.stdout",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "docs/validation/M4-miri-native/benign-forged.junit.xml",
+      "bytes": 784,
+      "sha256": "926d0a8f09b3c8ef5237129c7557471f326e14d57d811f20f136fb421a848bf2"
+    },
+    {
+      "path": "docs/validation/M4-miri-native/benign-forged.stderr",
+      "bytes": 1054,
+      "sha256": "cdc6a9f33679b83961113e8d3f0294881dec5d9e5c921d6a37fe68616261b9cc"
+    },
+    {
+      "path": "docs/validation/M4-miri-native/benign-forged.stdout",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "docs/validation/M4-miri-native/binary-only.junit.xml",
+      "bytes": 479,
+      "sha256": "e7baaf216537fa9270aeec4e463ec07a3a7d224a09bc493048b29d8c3b132e86"
+    },
+    {
+      "path": "docs/validation/M4-miri-native/binary-only.stderr",
+      "bytes": 1433,
+      "sha256": "0dcd3ebb4298ee3ed9ddfd86c056b130ccc5338a1e1f4e6a1299370f108151e5"
+    },
+    {
+      "path": "docs/validation/M4-miri-native/binary-only.stdout",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "docs/validation/M4-miri-native/clean.junit.xml",
+      "bytes": 468,
+      "sha256": "cfb5a117c25b47b8bd1d7c57a78302229d87c0f866f8d4716f49a380cc0ee27e"
+    },
+    {
+      "path": "docs/validation/M4-miri-native/clean.stderr",
+      "bytes": 831,
+      "sha256": "275ed7ff700cfd12f544ef15d3acf293cd4bc8572fdf38da44e7e48a00b4c53f"
+    },
+    {
+      "path": "docs/validation/M4-miri-native/clean.stdout",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "docs/validation/M4-miri-native/compile-fail.stderr",
+      "bytes": 3186,
+      "sha256": "de536a2c509cb469654947e18cc07547e7a86aa52c300f969c60c2f5d4f31e48"
+    },
+    {
+      "path": "docs/validation/M4-miri-native/compile-fail.stdout",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "docs/validation/M4-miri-native/empty.junit.xml",
+      "bytes": 230,
+      "sha256": "6cd563c064a5f9b6d41f127afa00602f521a77c1eb58475bfe86b3729a678d7d"
+    },
+    {
+      "path": "docs/validation/M4-miri-native/empty.stderr",
+      "bytes": 819,
+      "sha256": "ec72a110bf131d59c09a5f7a33dabc66a43485137b84a7acee3dd7ede4ed8246"
+    },
+    {
+      "path": "docs/validation/M4-miri-native/empty.stdout",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "docs/validation/M4-miri-native/ffi.junit.xml",
+      "bytes": 2780,
+      "sha256": "15207d832304891d1065790b66a7e52f0af15b2a8c36c1be124a258a6c0d7f09"
+    },
+    {
+      "path": "docs/validation/M4-miri-native/ffi.stderr",
+      "bytes": 2572,
+      "sha256": "abce3addf94fc39a14ac019254213c66d3f0d38d97bca125085c5dc9dacce97a"
+    },
+    {
+      "path": "docs/validation/M4-miri-native/ffi.stdout",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "docs/validation/M4-miri-native/ignored.junit.xml",
+      "bytes": 539,
+      "sha256": "febace4ca8cf23b539c60da744beb9a502fe5965cce26d71fd48aa1cfd4c841b"
+    },
+    {
+      "path": "docs/validation/M4-miri-native/ignored.stderr",
+      "bytes": 838,
+      "sha256": "ff85704a7e8e05463058be2c80567de2666d5fd904a4cba700e753103c198fcc"
+    },
+    {
+      "path": "docs/validation/M4-miri-native/ignored.stdout",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "docs/validation/M4-miri-native/native.log",
+      "bytes": 1071,
+      "sha256": "d5e688b6f1e70ef1e03e36f331719dad1311043df40f2421d4540168c72f2448"
+    },
+    {
+      "path": "docs/validation/M4-miri-native/previous-receipt-10-5.json",
+      "bytes": 8841,
+      "sha256": "1d38da730a516ac6c488f5522bdebef824388b9a1ba6a8299ac4926ee2755d3f"
+    },
+    {
+      "path": "docs/validation/M4-miri-native/race.junit.xml",
+      "bytes": 5681,
+      "sha256": "c25eff73b4017484ab96f8af50732cd8e856dea7284eef008aedb5ffedeeb275"
+    },
+    {
+      "path": "docs/validation/M4-miri-native/race.stderr",
+      "bytes": 4691,
+      "sha256": "45de5a6a4586a77da7b7a7d8d60e00b117a74988acfd1af9bcee5e273b7d121b"
+    },
+    {
+      "path": "docs/validation/M4-miri-native/race.stdout",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "docs/validation/M4-miri-native/receipt.json",
+      "bytes": 15115,
+      "sha256": "6d4888a8dc3386c8e6a485a31481a4f5ebafb7f88d1289040c1d0a94125fc797"
+    },
+    {
+      "path": "docs/validation/M4-miri-native/runner-timeout.junit.xml",
+      "bytes": 600,
+      "sha256": "05a47d5e13c38f306a869f7acd7fe616cfb56279301ccc08d74717ead27bb911"
+    },
+    {
+      "path": "docs/validation/M4-miri-native/runner-timeout.stderr",
+      "bytes": 1020,
+      "sha256": "af37a45c29598c0f88dd24a7f1cfe40f82b43bc3cc2a6ae7df7089d101ea910e"
+    },
+    {
+      "path": "docs/validation/M4-miri-native/runner-timeout.stdout",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "docs/validation/M4-miri-native/uaf.junit.xml",
+      "bytes": 4803,
+      "sha256": "03d0c19d16366e19a0f53171c4aa801787d2722ec7ccee9ed1ff2f46b214392e"
+    },
+    {
+      "path": "docs/validation/M4-miri-native/uaf.stderr",
+      "bytes": 4009,
+      "sha256": "bcd7a3b259ff30bc926dcc479287a5e14a6345d422e7a553ac4e497f52a9d416"
+    },
+    {
+      "path": "docs/validation/M4-miri-native/uaf.stdout",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "docs/validation/M4-miri-native/uninit.junit.xml",
+      "bytes": 3248,
+      "sha256": "a1dd84d61ebf4967090d09f99a71c0d60f4869a3d7bd0b5ff522d431187a6305"
+    },
+    {
+      "path": "docs/validation/M4-miri-native/uninit.stderr",
+      "bytes": 2978,
+      "sha256": "29f6a073ccfca80668f54f9eb21229f61f0a17d20f8b79694487f3e6a546428d"
+    },
+    {
+      "path": "docs/validation/M4-miri-native/uninit.stdout",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ]
+}

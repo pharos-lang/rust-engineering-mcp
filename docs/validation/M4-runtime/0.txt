@@ -1,0 +1,8 @@
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.06s
+     Running tests/nextest_runtime.rs (target/debug/deps/nextest_runtime-07f8a472c4a41910)
+
+running 1 test
+test quality_profile_allows_only_the_required_anonymous_unix_stream_pair ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 14 filtered out; finished in 15.11s
+

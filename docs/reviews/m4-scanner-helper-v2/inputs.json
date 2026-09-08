@@ -1,0 +1,47 @@
+[
+  {
+    "path": "fixtures/unsafe-scanner-helper/Cargo.toml",
+    "size": 683,
+    "sha256": "98e0402fad47fc0416f179f89e9533d556785e794d008c2a8c5d31a52b7fb21e"
+  },
+  {
+    "path": "fixtures/unsafe-scanner-helper/Cargo.lock",
+    "size": 2711,
+    "sha256": "e446a33a37eb46ca6d4dd41abf8c4f3ffb0654d744b002c0c99e48e63effb1ad"
+  },
+  {
+    "path": "fixtures/unsafe-scanner-helper/src/lib.rs",
+    "size": 49343,
+    "sha256": "0d46cbb68f35d0105eda1103b1b73504f5711fdde96a26da313cfe11fe09598b"
+  },
+  {
+    "path": "fixtures/unsafe-scanner-helper/src/main.rs",
+    "size": 2228,
+    "sha256": "50b2a308888332892871e8813ea1686f5fa2278dd5ab2e5d4703900c89f93675"
+  },
+  {
+    "path": "fixtures/unsafe-scanner-helper/README.md",
+    "size": 6170,
+    "sha256": "35e447a8bec5afb4cb4c2fa8191b966aabca12d9b7cf1b1f5fd79f1f54ca6f8a"
+  },
+  {
+    "path": "crates/execution-adapter/src/unsafe_scan.rs",
+    "size": 34002,
+    "sha256": "e1703314b53eaef3ba187933003390fa3fefdec11583df42bcd01b51eaab407a"
+  },
+  {
+    "path": "crates/domain/src/unsafe_scan.rs",
+    "size": 5908,
+    "sha256": "04b0b9da7939fbf67f53cb6f247d2b78b9485a62a5ea70c6c834e8829da45c48"
+  },
+  {
+    "path": "docs/adr/ADR-069-isolated-unsafe-syntax-scanner.md",
+    "size": 7504,
+    "sha256": "e831d7b97709aebf5b3397d4541a9410b762ded591dc9e3d6b3af778dbbb9e68"
+  },
+  {
+    "path": "docs/reviews/m4-scanner-helper/review.md",
+    "size": 14944,
+    "sha256": "257e93948700d4d6ac4e53e6aa9984e0196af436a7c3f5f27872bfbd3216e80d"
+  }
+]

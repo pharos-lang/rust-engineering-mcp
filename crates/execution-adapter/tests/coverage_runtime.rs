@@ -35,7 +35,10 @@ impl Drop for StateRoot {
 fn gateway(root: &StateRoot) -> Result<RustGateway> {
     let image_id =
         std::env::var("RUST_MCP_TEST_IMAGE").unwrap_or_else(|_| APPROVED_RUST_IMAGE.into());
-    assert_eq!(image_id, APPROVED_RUST_IMAGE);
+    assert!(matches!(
+        image_id.as_str(),
+        APPROVED_RUST_IMAGE | rust_engineering_execution::APPROVED_M4_IMAGE
+    ));
     let gateway = RustGateway::new(HostDockerConfig {
         executable: "/Applications/Docker.app/Contents/Resources/bin/docker".into(),
         socket: std::env::var_os("RUST_MCP_TEST_SOCKET")

@@ -1,0 +1,3010 @@
+{
+  "binary_sha256": "sha256:d27cbc5907ce7e985f3f1c162356714bb88efb87e596619b8866faa6bcda8b5f",
+  "calibration_excluded_from_operation_timer": true,
+  "cold_definition": "first execution of each tool in a new calibrated MCP session; warm repeats same tool in that session; each guest build remains ephemeral",
+  "image_id": "sha256:25ed3626e710081a571a86a29521eaf2e890e796afd422ba5e409e0ce1891635",
+  "measurements": [
+    {
+      "calibration_ms": 14136,
+      "elapsed_ms": 6353,
+      "reply_bytes": 9692,
+      "result_sha256": "sha256:747f1586c0b02413185dd3602e1501eb42dcd49e00641ff7666164f9204be18b",
+      "sample": 0,
+      "temperature": "cold",
+      "tool": "rust.deny",
+      "tool_duration_ms": 6332
+    },
+    {
+      "calibration_ms": 14136,
+      "elapsed_ms": 6323,
+      "reply_bytes": 9692,
+      "result_sha256": "sha256:000ddc877410bde811773406708e6354a62fabdf11fe32bdda2aeeb9c123f052",
+      "sample": 0,
+      "temperature": "warm",
+      "tool": "rust.deny",
+      "tool_duration_ms": 6287
+    },
+    {
+      "calibration_ms": 14136,
+      "elapsed_ms": 5488,
+      "reply_bytes": 4416,
+      "result_sha256": "sha256:7e67985c43c03c46153194ad24bf62ffc26cec961cbef577a770d3db7ceb36ba",
+      "sample": 0,
+      "temperature": "cold",
+      "tool": "rust.unsafe.scan",
+      "tool_duration_ms": 5422
+    },
+    {
+      "calibration_ms": 14136,
+      "elapsed_ms": 5455,
+      "reply_bytes": 4416,
+      "result_sha256": "sha256:ba961430d4f44f8389201b8320ddbc308ca1be13ef79ed608bd25fd179680b9f",
+      "sample": 0,
+      "temperature": "warm",
+      "tool": "rust.unsafe.scan",
+      "tool_duration_ms": 5402
+    },
+    {
+      "calibration_ms": 14136,
+      "elapsed_ms": 9865,
+      "reply_bytes": 4332,
+      "result_sha256": "sha256:bb0be50a6e54316f0484e7f8dc5485d9b468f827fac5c0747e38f46efb115250",
+      "sample": 0,
+      "temperature": "cold",
+      "tool": "rust.miri",
+      "tool_duration_ms": 9816
+    },
+    {
+      "calibration_ms": 14136,
+      "elapsed_ms": 9440,
+      "reply_bytes": 4332,
+      "result_sha256": "sha256:b9ace54c67f05a5e71de6e59a61397cfdf33fd31752c3f88d8adf2c1df4f99aa",
+      "sample": 0,
+      "temperature": "warm",
+      "tool": "rust.miri",
+      "tool_duration_ms": 9358
+    },
+    {
+      "calibration_ms": 14136,
+      "elapsed_ms": 6922,
+      "reply_bytes": 10192,
+      "result_sha256": "sha256:727fba09a28299cf366eb6b6d1f8efd9c5d057da35c14f1a6e583e12d83dd170",
+      "sample": 0,
+      "temperature": "cold",
+      "tool": "rust.supply_chain.inspect",
+      "tool_duration_ms": 6824
+    },
+    {
+      "calibration_ms": 14136,
+      "elapsed_ms": 6822,
+      "reply_bytes": 10192,
+      "result_sha256": "sha256:4f111a1a9c50a1ab21ed5fe3ba22c291099dda3f19a75e14f5c4694efcbb10a9",
+      "sample": 0,
+      "temperature": "warm",
+      "tool": "rust.supply_chain.inspect",
+      "tool_duration_ms": 6790
+    },
+    {
+      "calibration_ms": 14136,
+      "elapsed_ms": 15042,
+      "reply_bytes": 12340,
+      "result_sha256": "sha256:5706ee82ea2536eabdc7d7acf4265dbc90f743968075795c4cc893b589370f9a",
+      "sample": 0,
+      "temperature": "cold",
+      "tool": "rust.quality.gate.v2",
+      "tool_duration_ms": 14975
+    },
+    {
+      "calibration_ms": 14136,
+      "elapsed_ms": 15168,
+      "reply_bytes": 12340,
+      "result_sha256": "sha256:4959cb9a3d40ccc64c96521bb6de585c56ab79507077c92233698a62be6c3d02",
+      "sample": 0,
+      "temperature": "warm",
+      "tool": "rust.quality.gate.v2",
+      "tool_duration_ms": 15135
+    },
+    {
+      "calibration_ms": 14481,
+      "elapsed_ms": 6938,
+      "reply_bytes": 9692,
+      "result_sha256": "sha256:9f70e4ddceee19e06933856d834bb989e282d0583f5393d415aa330c679894d3",
+      "sample": 1,
+      "temperature": "cold",
+      "tool": "rust.deny",
+      "tool_duration_ms": 6907
+    },
+    {
+      "calibration_ms": 14481,
+      "elapsed_ms": 6903,
+      "reply_bytes": 9692,
+      "result_sha256": "sha256:4c642f9feb1d0ea80e07e762fcfe0d67d86cbd57118bfc956b4b29f6406d5078",
+      "sample": 1,
+      "temperature": "warm",
+      "tool": "rust.deny",
+      "tool_duration_ms": 6885
+    },
+    {
+      "calibration_ms": 14481,
+      "elapsed_ms": 6003,
+      "reply_bytes": 4416,
+      "result_sha256": "sha256:0d2aabf05155ad589515bd6625039b107dd6aaa2240e67b51b7b311558eeba71",
+      "sample": 1,
+      "temperature": "cold",
+      "tool": "rust.unsafe.scan",
+      "tool_duration_ms": 5985
+    },
+    {
+      "calibration_ms": 14481,
+      "elapsed_ms": 5990,
+      "reply_bytes": 4416,
+      "result_sha256": "sha256:29519d39a334991039d2952ec089bb5671a8426c79b865bad890f127091cb164",
+      "sample": 1,
+      "temperature": "warm",
+      "tool": "rust.unsafe.scan",
+      "tool_duration_ms": 5972
+    },
+    {
+      "calibration_ms": 14481,
+      "elapsed_ms": 9446,
+      "reply_bytes": 4332,
+      "result_sha256": "sha256:4344c9b166e65b2ab88ae1e9cee2316f62c83faf56d62b79c332602dff6f73bc",
+      "sample": 1,
+      "temperature": "cold",
+      "tool": "rust.miri",
+      "tool_duration_ms": 9373
+    },
+    {
+      "calibration_ms": 14481,
+      "elapsed_ms": 9437,
+      "reply_bytes": 4332,
+      "result_sha256": "sha256:9eaaf12347d4c30cf4195c6760bec63e0e50892f75a60716b559a85f6a7cadd6",
+      "sample": 1,
+      "temperature": "warm",
+      "tool": "rust.miri",
+      "tool_duration_ms": 9411
+    },
+    {
+      "calibration_ms": 14481,
+      "elapsed_ms": 7045,
+      "reply_bytes": 10192,
+      "result_sha256": "sha256:405b2f85dbc4fb0581322c293d232da6c5dd04c811f98949b3aae23507794990",
+      "sample": 1,
+      "temperature": "cold",
+      "tool": "rust.supply_chain.inspect",
+      "tool_duration_ms": 6934
+    },
+    {
+      "calibration_ms": 14481,
+      "elapsed_ms": 7047,
+      "reply_bytes": 10192,
+      "result_sha256": "sha256:858c2eda3807e71d85f2dbc9c17525e5cd3015c4deaff2f9bad1a8d5131057cb",
+      "sample": 1,
+      "temperature": "warm",
+      "tool": "rust.supply_chain.inspect",
+      "tool_duration_ms": 6924
+    },
+    {
+      "calibration_ms": 14481,
+      "elapsed_ms": 16233,
+      "reply_bytes": 12340,
+      "result_sha256": "sha256:fc050d6fc0f4e0f58985bb6ce98dea396992a9edeb91401c2987ea53f6170c0f",
+      "sample": 1,
+      "temperature": "cold",
+      "tool": "rust.quality.gate.v2",
+      "tool_duration_ms": 16129
+    },
+    {
+      "calibration_ms": 14481,
+      "elapsed_ms": 15263,
+      "reply_bytes": 12340,
+      "result_sha256": "sha256:2a16726bf27aab91056a2be4c7f1fce751e3b3f6dbb418701ffb21e2aa330bd2",
+      "sample": 1,
+      "temperature": "warm",
+      "tool": "rust.quality.gate.v2",
+      "tool_duration_ms": 15183
+    },
+    {
+      "calibration_ms": 14699,
+      "elapsed_ms": 6925,
+      "reply_bytes": 9692,
+      "result_sha256": "sha256:e295ecd178653bf610b5b58cb947c14b53e9a47a8aee2c66db0d086ad4b22046",
+      "sample": 2,
+      "temperature": "cold",
+      "tool": "rust.deny",
+      "tool_duration_ms": 6891
+    },
+    {
+      "calibration_ms": 14699,
+      "elapsed_ms": 7026,
+      "reply_bytes": 9692,
+      "result_sha256": "sha256:ee2f6355aab8f88abb1fad0d3bad7f35ebfb75510c3f0e23c97fa37d326eae3a",
+      "sample": 2,
+      "temperature": "warm",
+      "tool": "rust.deny",
+      "tool_duration_ms": 6941
+    },
+    {
+      "calibration_ms": 14699,
+      "elapsed_ms": 6091,
+      "reply_bytes": 4416,
+      "result_sha256": "sha256:059abc1aba27ed63070d9c107349544dc9697724708746bb427f3448fc06e7a9",
+      "sample": 2,
+      "temperature": "cold",
+      "tool": "rust.unsafe.scan",
+      "tool_duration_ms": 6017
+    },
+    {
+      "calibration_ms": 14699,
+      "elapsed_ms": 5997,
+      "reply_bytes": 4416,
+      "result_sha256": "sha256:21a94272f546d950a62bd1d0822e1ac323092f112dbcaeba235544954c34f9c4",
+      "sample": 2,
+      "temperature": "warm",
+      "tool": "rust.unsafe.scan",
+      "tool_duration_ms": 5978
+    },
+    {
+      "calibration_ms": 14699,
+      "elapsed_ms": 9410,
+      "reply_bytes": 4332,
+      "result_sha256": "sha256:24ada28ebdce51e7a3710a96662816ce2251a9cc77b73badcca16d924dba628f",
+      "sample": 2,
+      "temperature": "cold",
+      "tool": "rust.miri",
+      "tool_duration_ms": 9349
+    },
+    {
+      "calibration_ms": 14699,
+      "elapsed_ms": 9515,
+      "reply_bytes": 4332,
+      "result_sha256": "sha256:cd3c790b9c6c3e5fbd04c7a9d5b23a3bc0fcf5cc1948b972c812a5cbf4cc1fd2",
+      "sample": 2,
+      "temperature": "warm",
+      "tool": "rust.miri",
+      "tool_duration_ms": 9444
+    },
+    {
+      "calibration_ms": 14699,
+      "elapsed_ms": 7028,
+      "reply_bytes": 10192,
+      "result_sha256": "sha256:5f41117fc5212dd4249bd29ec320d302384147ddca48dc34075a4bfaa8be7227",
+      "sample": 2,
+      "temperature": "cold",
+      "tool": "rust.supply_chain.inspect",
+      "tool_duration_ms": 6949
+    },
+    {
+      "calibration_ms": 14699,
+      "elapsed_ms": 7022,
+      "reply_bytes": 10192,
+      "result_sha256": "sha256:52380733f5aa02a51b0e560e1b932bbe8ecd062ec686ca28879687ec6690875c",
+      "sample": 2,
+      "temperature": "warm",
+      "tool": "rust.supply_chain.inspect",
+      "tool_duration_ms": 6981
+    },
+    {
+      "calibration_ms": 14699,
+      "elapsed_ms": 15354,
+      "reply_bytes": 12342,
+      "result_sha256": "sha256:52abc23777439f9b6187dad34cd6bcd20bece4572d350a3fdfd60aae43f83c5f",
+      "sample": 2,
+      "temperature": "cold",
+      "tool": "rust.quality.gate.v2",
+      "tool_duration_ms": 15302
+    },
+    {
+      "calibration_ms": 14699,
+      "elapsed_ms": 14756,
+      "reply_bytes": 12340,
+      "result_sha256": "sha256:0a1398f94c6058d06a97ab61a419328b48a6199240cc91f7153e3c91bc996efd",
+      "sample": 2,
+      "temperature": "warm",
+      "tool": "rust.quality.gate.v2",
+      "tool_duration_ms": 14652
+    },
+    {
+      "calibration_ms": 14506,
+      "elapsed_ms": 6605,
+      "reply_bytes": 9692,
+      "result_sha256": "sha256:9a40d3b79511784378d4d92bf24b2326d8a8e05e7ebec2a2759f59c5d438f00b",
+      "sample": 3,
+      "temperature": "cold",
+      "tool": "rust.deny",
+      "tool_duration_ms": 6538
+    },
+    {
+      "calibration_ms": 14506,
+      "elapsed_ms": 6607,
+      "reply_bytes": 9692,
+      "result_sha256": "sha256:1719d3008faa3771bac380a4bbebf50dcf8671d033d29e9f06de1492ddaba252",
+      "sample": 3,
+      "temperature": "warm",
+      "tool": "rust.deny",
+      "tool_duration_ms": 6555
+    },
+    {
+      "calibration_ms": 14506,
+      "elapsed_ms": 5691,
+      "reply_bytes": 4416,
+      "result_sha256": "sha256:a8b3e4d6b56dafb4ca5f5f1ee4b25fa2dff1c6678b152d998251d64ba8dda39a",
+      "sample": 3,
+      "temperature": "cold",
+      "tool": "rust.unsafe.scan",
+      "tool_duration_ms": 5576
+    },
+    {
+      "calibration_ms": 14506,
+      "elapsed_ms": 5604,
+      "reply_bytes": 4416,
+      "result_sha256": "sha256:29e5f995ba3c8095a802f618039c95e36b127879a133ffe6747282dfd3bcb0c1",
+      "sample": 3,
+      "temperature": "warm",
+      "tool": "rust.unsafe.scan",
+      "tool_duration_ms": 5496
+    },
+    {
+      "calibration_ms": 14506,
+      "elapsed_ms": 8602,
+      "reply_bytes": 4332,
+      "result_sha256": "sha256:f3a1ebd637888e4bcf2ed7d6879eaa52e8a946c4590053c3e4c301b0cbc72ddf",
+      "sample": 3,
+      "temperature": "cold",
+      "tool": "rust.miri",
+      "tool_duration_ms": 8542
+    },
+    {
+      "calibration_ms": 14506,
+      "elapsed_ms": 8802,
+      "reply_bytes": 4332,
+      "result_sha256": "sha256:65668614cd8f92133c5017990d7713e5bf708de50ff1c9015c279d660aa569c3",
+      "sample": 3,
+      "temperature": "warm",
+      "tool": "rust.miri",
+      "tool_duration_ms": 8693
+    },
+    {
+      "calibration_ms": 14506,
+      "elapsed_ms": 6509,
+      "reply_bytes": 10192,
+      "result_sha256": "sha256:581ea82d108e87316162fe1fc51c66a6b53d5fde0d3a1d05140967a268387ab8",
+      "sample": 3,
+      "temperature": "cold",
+      "tool": "rust.supply_chain.inspect",
+      "tool_duration_ms": 6461
+    },
+    {
+      "calibration_ms": 14506,
+      "elapsed_ms": 6425,
+      "reply_bytes": 10192,
+      "result_sha256": "sha256:e57871f06b6b73c2610ca3f4b1521bbb37635b5bba45e26e37082d918c35bdea",
+      "sample": 3,
+      "temperature": "warm",
+      "tool": "rust.supply_chain.inspect",
+      "tool_duration_ms": 6387
+    },
+    {
+      "calibration_ms": 14506,
+      "elapsed_ms": 13815,
+      "reply_bytes": 12340,
+      "result_sha256": "sha256:b6e353c6dc4e34f19fb5ab1f8d318846e9ca83bd8065c9fa06344f8b89c56ca9",
+      "sample": 3,
+      "temperature": "cold",
+      "tool": "rust.quality.gate.v2",
+      "tool_duration_ms": 13792
+    },
+    {
+      "calibration_ms": 14506,
+      "elapsed_ms": 13742,
+      "reply_bytes": 12340,
+      "result_sha256": "sha256:950107c4fa7dee1a672ca81f0933dd94ae54df42e56e288d28f48dfdfd97f01e",
+      "sample": 3,
+      "temperature": "warm",
+      "tool": "rust.quality.gate.v2",
+      "tool_duration_ms": 13655
+    },
+    {
+      "calibration_ms": 14304,
+      "elapsed_ms": 6569,
+      "reply_bytes": 9692,
+      "result_sha256": "sha256:5e41deaf828f78c706e5003afab3126ba30f633a858267e9c97d35823debb80b",
+      "sample": 4,
+      "temperature": "cold",
+      "tool": "rust.deny",
+      "tool_duration_ms": 6495
+    },
+    {
+      "calibration_ms": 14304,
+      "elapsed_ms": 6439,
+      "reply_bytes": 9692,
+      "result_sha256": "sha256:68d18d93c0733f94eb694ff7f0be87f04043ae95597829df58c6357ebca44613",
+      "sample": 4,
+      "temperature": "warm",
+      "tool": "rust.deny",
+      "tool_duration_ms": 6408
+    },
+    {
+      "calibration_ms": 14304,
+      "elapsed_ms": 5645,
+      "reply_bytes": 4416,
+      "result_sha256": "sha256:aae6b6505a233ee1b92ea801035b6ef7acbf77db1c4527a99826077c911d4769",
+      "sample": 4,
+      "temperature": "cold",
+      "tool": "rust.unsafe.scan",
+      "tool_duration_ms": 5525
+    },
+    {
+      "calibration_ms": 14304,
+      "elapsed_ms": 5489,
+      "reply_bytes": 4416,
+      "result_sha256": "sha256:6d460c5cf9ceef47bd2f85df6b30e7dbbd452dd1a721f25731f516643262ac39",
+      "sample": 4,
+      "temperature": "warm",
+      "tool": "rust.unsafe.scan",
+      "tool_duration_ms": 5428
+    },
+    {
+      "calibration_ms": 14304,
+      "elapsed_ms": 8816,
+      "reply_bytes": 4332,
+      "result_sha256": "sha256:61246c7dbdfce12362e5d229159117c78c854f7725eb93d9014dcd16285efa53",
+      "sample": 4,
+      "temperature": "cold",
+      "tool": "rust.miri",
+      "tool_duration_ms": 8700
+    },
+    {
+      "calibration_ms": 14304,
+      "elapsed_ms": 8674,
+      "reply_bytes": 4332,
+      "result_sha256": "sha256:e1fdfaf446af9ccafe7a7a8fbf740e968ab380908604d5b991200e587324902b",
+      "sample": 4,
+      "temperature": "warm",
+      "tool": "rust.miri",
+      "tool_duration_ms": 8568
+    },
+    {
+      "calibration_ms": 14304,
+      "elapsed_ms": 6325,
+      "reply_bytes": 10192,
+      "result_sha256": "sha256:b62522c75a59454c397575ff39822c10372ff0144760d762db516051f30ea39e",
+      "sample": 4,
+      "temperature": "cold",
+      "tool": "rust.supply_chain.inspect",
+      "tool_duration_ms": 6291
+    },
+    {
+      "calibration_ms": 14304,
+      "elapsed_ms": 6437,
+      "reply_bytes": 10192,
+      "result_sha256": "sha256:d92ec05bf2b52dc363abd0b8c41afa9e599d914e8dc45c62e2265738705482e0",
+      "sample": 4,
+      "temperature": "warm",
+      "tool": "rust.supply_chain.inspect",
+      "tool_duration_ms": 6354
+    },
+    {
+      "calibration_ms": 14304,
+      "elapsed_ms": 13738,
+      "reply_bytes": 12340,
+      "result_sha256": "sha256:bc39948e88b12a3157316bac074079ad8196d66007a44070efc872e0857d61fc",
+      "sample": 4,
+      "temperature": "cold",
+      "tool": "rust.quality.gate.v2",
+      "tool_duration_ms": 13663
+    },
+    {
+      "calibration_ms": 14304,
+      "elapsed_ms": 13719,
+      "reply_bytes": 12340,
+      "result_sha256": "sha256:299f1293ef0ebb1740465fc326b72bdbdbc74497b5cf19a061564f5e888386dd",
+      "sample": 4,
+      "temperature": "warm",
+      "tool": "rust.quality.gate.v2",
+      "tool_duration_ms": 13696
+    },
+    {
+      "calibration_ms": 14108,
+      "elapsed_ms": 6420,
+      "reply_bytes": 9692,
+      "result_sha256": "sha256:ef65e440e84ed4c7f1873b9cfdac934bbac9f5a8b5554fc4ad8a7475b6bf9cc9",
+      "sample": 5,
+      "temperature": "cold",
+      "tool": "rust.deny",
+      "tool_duration_ms": 6295
+    },
+    {
+      "calibration_ms": 14108,
+      "elapsed_ms": 6453,
+      "reply_bytes": 9692,
+      "result_sha256": "sha256:9bc1ea08576fc75c9b098f6150d15e74e4009cd67fd5181a4d129bb969885afe",
+      "sample": 5,
+      "temperature": "warm",
+      "tool": "rust.deny",
+      "tool_duration_ms": 6399
+    },
+    {
+      "calibration_ms": 14108,
+      "elapsed_ms": 5371,
+      "reply_bytes": 4416,
+      "result_sha256": "sha256:41951ecbe6fc66c3cc8bfdd0acb17ac774503157f43b2bb324d0635aa1ad43aa",
+      "sample": 5,
+      "temperature": "cold",
+      "tool": "rust.unsafe.scan",
+      "tool_duration_ms": 5332
+    },
+    {
+      "calibration_ms": 14108,
+      "elapsed_ms": 5483,
+      "reply_bytes": 4416,
+      "result_sha256": "sha256:4a289ce57de3cc81571af5387da742b2af25d71ad608702a3164e883517d30c2",
+      "sample": 5,
+      "temperature": "warm",
+      "tool": "rust.unsafe.scan",
+      "tool_duration_ms": 5462
+    },
+    {
+      "calibration_ms": 14108,
+      "elapsed_ms": 8825,
+      "reply_bytes": 4332,
+      "result_sha256": "sha256:fe392930b52cd255caaa9f62d1a7593000e8f3db64ff0fbf19e0eb482feba4e7",
+      "sample": 5,
+      "temperature": "cold",
+      "tool": "rust.miri",
+      "tool_duration_ms": 8767
+    },
+    {
+      "calibration_ms": 14108,
+      "elapsed_ms": 8663,
+      "reply_bytes": 4332,
+      "result_sha256": "sha256:da40b215e3c674690f20e7619b6eec5982587b0e937ca28a083f98ff03a5ab2c",
+      "sample": 5,
+      "temperature": "warm",
+      "tool": "rust.miri",
+      "tool_duration_ms": 8546
+    },
+    {
+      "calibration_ms": 14108,
+      "elapsed_ms": 6565,
+      "reply_bytes": 10192,
+      "result_sha256": "sha256:048d41b1c190a83e77e0a44c9da679720b84467ba0f02954de9e7ce19696fa1a",
+      "sample": 5,
+      "temperature": "cold",
+      "tool": "rust.supply_chain.inspect",
+      "tool_duration_ms": 6474
+    },
+    {
+      "calibration_ms": 14108,
+      "elapsed_ms": 6450,
+      "reply_bytes": 10192,
+      "result_sha256": "sha256:17ba30e82a52bd3420827243c7d07c8cc582bf9b42688266f2f10c1952b6566d",
+      "sample": 5,
+      "temperature": "warm",
+      "tool": "rust.supply_chain.inspect",
+      "tool_duration_ms": 6400
+    },
+    {
+      "calibration_ms": 14108,
+      "elapsed_ms": 14801,
+      "reply_bytes": 12340,
+      "result_sha256": "sha256:50294634896205e193eb7480e810627a165c904eea8d51a1e408895f9960ae55",
+      "sample": 5,
+      "temperature": "cold",
+      "tool": "rust.quality.gate.v2",
+      "tool_duration_ms": 14754
+    },
+    {
+      "calibration_ms": 14108,
+      "elapsed_ms": 14903,
+      "reply_bytes": 12342,
+      "result_sha256": "sha256:f07b59c9afebc2d61d08167d13b7f8de8d4192d94d547c74846fa424b3b3be8c",
+      "sample": 5,
+      "temperature": "warm",
+      "tool": "rust.quality.gate.v2",
+      "tool_duration_ms": 14823
+    },
+    {
+      "calibration_ms": 14090,
+      "elapsed_ms": 6250,
+      "reply_bytes": 9692,
+      "result_sha256": "sha256:74f6d574e5884f13aa7233958afe7ecac480b6789c04d76f98de1559f38c32ae",
+      "sample": 6,
+      "temperature": "cold",
+      "tool": "rust.deny",
+      "tool_duration_ms": 6213
+    },
+    {
+      "calibration_ms": 14090,
+      "elapsed_ms": 6429,
+      "reply_bytes": 9692,
+      "result_sha256": "sha256:a2eadc82bb3d6cee09b3f7f20c4daf43207703283ebdcfc5ee95f6849efe537b",
+      "sample": 6,
+      "temperature": "warm",
+      "tool": "rust.deny",
+      "tool_duration_ms": 6344
+    },
+    {
+      "calibration_ms": 14090,
+      "elapsed_ms": 5580,
+      "reply_bytes": 4416,
+      "result_sha256": "sha256:d726f9c38bd5d25266eeb0094a91860abcead5c8d726e312a7519df3ce0ee4fd",
+      "sample": 6,
+      "temperature": "cold",
+      "tool": "rust.unsafe.scan",
+      "tool_duration_ms": 5538
+    },
+    {
+      "calibration_ms": 14090,
+      "elapsed_ms": 5571,
+      "reply_bytes": 4416,
+      "result_sha256": "sha256:2840c03637d1def4a5c58c497aa42f6dd420df06c95e246f352062b84a7197be",
+      "sample": 6,
+      "temperature": "warm",
+      "tool": "rust.unsafe.scan",
+      "tool_duration_ms": 5527
+    },
+    {
+      "calibration_ms": 14090,
+      "elapsed_ms": 8585,
+      "reply_bytes": 4332,
+      "result_sha256": "sha256:e8ed1912722b0eb562a3ea0d1848dd2ccf9638ecab130153c3d0ee9c5cfaf35a",
+      "sample": 6,
+      "temperature": "cold",
+      "tool": "rust.miri",
+      "tool_duration_ms": 8532
+    },
+    {
+      "calibration_ms": 14090,
+      "elapsed_ms": 8578,
+      "reply_bytes": 4332,
+      "result_sha256": "sha256:88e4a0f7adce4a90892cefcb4f72c192564355d32c12759a3156363693611fa3",
+      "sample": 6,
+      "temperature": "warm",
+      "tool": "rust.miri",
+      "tool_duration_ms": 8557
+    },
+    {
+      "calibration_ms": 14090,
+      "elapsed_ms": 6351,
+      "reply_bytes": 10192,
+      "result_sha256": "sha256:a1d784eebc35cd943970a00778f2eac5310d91b0a2d8a359a72e0e163734507b",
+      "sample": 6,
+      "temperature": "cold",
+      "tool": "rust.supply_chain.inspect",
+      "tool_duration_ms": 6248
+    },
+    {
+      "calibration_ms": 14090,
+      "elapsed_ms": 6436,
+      "reply_bytes": 10192,
+      "result_sha256": "sha256:9a5ee07fe76cc6a1babc35a494ed9190a08bcc2892215a58db42f2984d92eb54",
+      "sample": 6,
+      "temperature": "warm",
+      "tool": "rust.supply_chain.inspect",
+      "tool_duration_ms": 6384
+    },
+    {
+      "calibration_ms": 14090,
+      "elapsed_ms": 13985,
+      "reply_bytes": 12340,
+      "result_sha256": "sha256:f20679168d459f582d2af08b569255cbc3cd39836ac351621ae627b7a46a213a",
+      "sample": 6,
+      "temperature": "cold",
+      "tool": "rust.quality.gate.v2",
+      "tool_duration_ms": 13875
+    },
+    {
+      "calibration_ms": 14090,
+      "elapsed_ms": 13870,
+      "reply_bytes": 12340,
+      "result_sha256": "sha256:f51d8a3638a2e6a3711b88a4fe67f6413f55f6ab1dc20497511eacb8113678dc",
+      "sample": 6,
+      "temperature": "warm",
+      "tool": "rust.quality.gate.v2",
+      "tool_duration_ms": 13849
+    },
+    {
+      "calibration_ms": 15089,
+      "elapsed_ms": 7873,
+      "reply_bytes": 9692,
+      "result_sha256": "sha256:1b71655aee157c62d97c41293fe8a6728443e58407704f3c1468e774d7f36583",
+      "sample": 7,
+      "temperature": "cold",
+      "tool": "rust.deny",
+      "tool_duration_ms": 7790
+    },
+    {
+      "calibration_ms": 15089,
+      "elapsed_ms": 7918,
+      "reply_bytes": 9692,
+      "result_sha256": "sha256:036cf3c1f009e319ffb568c63bfe19b8116f826af842d57721a248b3115a6d6e",
+      "sample": 7,
+      "temperature": "warm",
+      "tool": "rust.deny",
+      "tool_duration_ms": 7798
+    },
+    {
+      "calibration_ms": 15089,
+      "elapsed_ms": 6730,
+      "reply_bytes": 4416,
+      "result_sha256": "sha256:7140eab04389e0aabf8b562aa91a01c1ca2b384c231389b50ca1211e28230aac",
+      "sample": 7,
+      "temperature": "cold",
+      "tool": "rust.unsafe.scan",
+      "tool_duration_ms": 6669
+    },
+    {
+      "calibration_ms": 15089,
+      "elapsed_ms": 5927,
+      "reply_bytes": 4416,
+      "result_sha256": "sha256:5658610d6efebd803654c218447c48d7cc44c6d3ec24498b83f77821a972312a",
+      "sample": 7,
+      "temperature": "warm",
+      "tool": "rust.unsafe.scan",
+      "tool_duration_ms": 5863
+    },
+    {
+      "calibration_ms": 15089,
+      "elapsed_ms": 8663,
+      "reply_bytes": 4332,
+      "result_sha256": "sha256:4f8a95c5e6ee5748293a10f5c63285cf271d075dc7cb991269222843b82f7670",
+      "sample": 7,
+      "temperature": "cold",
+      "tool": "rust.miri",
+      "tool_duration_ms": 8633
+    },
+    {
+      "calibration_ms": 15089,
+      "elapsed_ms": 8797,
+      "reply_bytes": 4332,
+      "result_sha256": "sha256:1138d82c0279c38ab6d4966e651a4db860cc2a592216f7a0c1961c9da48be7a6",
+      "sample": 7,
+      "temperature": "warm",
+      "tool": "rust.miri",
+      "tool_duration_ms": 8779
+    },
+    {
+      "calibration_ms": 15089,
+      "elapsed_ms": 6524,
+      "reply_bytes": 10192,
+      "result_sha256": "sha256:74e6faee289fe7edabd07e83e626b820b8f9e04716946acea04ceb36523e436d",
+      "sample": 7,
+      "temperature": "cold",
+      "tool": "rust.supply_chain.inspect",
+      "tool_duration_ms": 6484
+    },
+    {
+      "calibration_ms": 15089,
+      "elapsed_ms": 6317,
+      "reply_bytes": 10192,
+      "result_sha256": "sha256:ed9530938e8b6ad5d652bb9a6aefe1b879c47378b1ad7227af038bdf046e6574",
+      "sample": 7,
+      "temperature": "warm",
+      "tool": "rust.supply_chain.inspect",
+      "tool_duration_ms": 6297
+    },
+    {
+      "calibration_ms": 15089,
+      "elapsed_ms": 13763,
+      "reply_bytes": 12340,
+      "result_sha256": "sha256:80d0f9ebf82ce382db63e651e79cb06c971ffc1c3a819c13ad7678da5d435783",
+      "sample": 7,
+      "temperature": "cold",
+      "tool": "rust.quality.gate.v2",
+      "tool_duration_ms": 13740
+    },
+    {
+      "calibration_ms": 15089,
+      "elapsed_ms": 13880,
+      "reply_bytes": 12340,
+      "result_sha256": "sha256:a5036a5b7dba947bacacb7151308e55364a7ee036790209d5854ccf40a9b9108",
+      "sample": 7,
+      "temperature": "warm",
+      "tool": "rust.quality.gate.v2",
+      "tool_duration_ms": 13827
+    },
+    {
+      "calibration_ms": 14120,
+      "elapsed_ms": 6499,
+      "reply_bytes": 9692,
+      "result_sha256": "sha256:95c423fad6f5d09f6a1d66ec464280e21ea1b0e23a3e867a80cabf7025058112",
+      "sample": 8,
+      "temperature": "cold",
+      "tool": "rust.deny",
+      "tool_duration_ms": 6454
+    },
+    {
+      "calibration_ms": 14120,
+      "elapsed_ms": 6344,
+      "reply_bytes": 9692,
+      "result_sha256": "sha256:91cdf3837ecb450b7b2ffa9e693f49c85bdca357e53156a174d75dc87c502e57",
+      "sample": 8,
+      "temperature": "warm",
+      "tool": "rust.deny",
+      "tool_duration_ms": 6286
+    },
+    {
+      "calibration_ms": 14120,
+      "elapsed_ms": 5726,
+      "reply_bytes": 4416,
+      "result_sha256": "sha256:194095f701ce2f8dd2ad1e259db61e1e9964b0addb807a03dfd21a101f3f4537",
+      "sample": 8,
+      "temperature": "cold",
+      "tool": "rust.unsafe.scan",
+      "tool_duration_ms": 5606
+    },
+    {
+      "calibration_ms": 14120,
+      "elapsed_ms": 5592,
+      "reply_bytes": 4416,
+      "result_sha256": "sha256:c959231e69bc0a22f341492665b067a2e2f5b2fa593dfd0e17fb9fff1e5a1b99",
+      "sample": 8,
+      "temperature": "warm",
+      "tool": "rust.unsafe.scan",
+      "tool_duration_ms": 5500
+    },
+    {
+      "calibration_ms": 14120,
+      "elapsed_ms": 8781,
+      "reply_bytes": 4332,
+      "result_sha256": "sha256:52874fa506f5af962c3f5a34be33b728ed1e274027f9587b1f2783ff7ace6642",
+      "sample": 8,
+      "temperature": "cold",
+      "tool": "rust.miri",
+      "tool_duration_ms": 8655
+    },
+    {
+      "calibration_ms": 14120,
+      "elapsed_ms": 8717,
+      "reply_bytes": 4332,
+      "result_sha256": "sha256:2975ae7759d5e7d406bd98941b51ff2ae5d0d0d28ae0aed07ec47db88023848e",
+      "sample": 8,
+      "temperature": "warm",
+      "tool": "rust.miri",
+      "tool_duration_ms": 8663
+    },
+    {
+      "calibration_ms": 14120,
+      "elapsed_ms": 6770,
+      "reply_bytes": 10192,
+      "result_sha256": "sha256:2dcedac8e37acd3a9c1de511a1d21fdecbd3511184155f8f5e336d1bb4959584",
+      "sample": 8,
+      "temperature": "cold",
+      "tool": "rust.supply_chain.inspect",
+      "tool_duration_ms": 6702
+    },
+    {
+      "calibration_ms": 14120,
+      "elapsed_ms": 6527,
+      "reply_bytes": 10192,
+      "result_sha256": "sha256:6d1826b6e994a6ffe94fd2ccee43ce18ad796a06dc2651e43562bff9406a7a13",
+      "sample": 8,
+      "temperature": "warm",
+      "tool": "rust.supply_chain.inspect",
+      "tool_duration_ms": 6406
+    },
+    {
+      "calibration_ms": 14120,
+      "elapsed_ms": 13811,
+      "reply_bytes": 12340,
+      "result_sha256": "sha256:1266c49b8753f1faa0ac38a9fb83323eb332e4073d6a3741f946679f1bb68597",
+      "sample": 8,
+      "temperature": "cold",
+      "tool": "rust.quality.gate.v2",
+      "tool_duration_ms": 13766
+    },
+    {
+      "calibration_ms": 14120,
+      "elapsed_ms": 13896,
+      "reply_bytes": 12340,
+      "result_sha256": "sha256:0698656584bd1dd4f21bd7bb5dee8f096cbf8efcd5184d3bf324aebfbac9db3d",
+      "sample": 8,
+      "temperature": "warm",
+      "tool": "rust.quality.gate.v2",
+      "tool_duration_ms": 13848
+    },
+    {
+      "calibration_ms": 14174,
+      "elapsed_ms": 6348,
+      "reply_bytes": 9692,
+      "result_sha256": "sha256:64653c4ce65cd0d08c16872c10f56c3378a304f332c7ebf911a6b5447549c163",
+      "sample": 9,
+      "temperature": "cold",
+      "tool": "rust.deny",
+      "tool_duration_ms": 6315
+    },
+    {
+      "calibration_ms": 14174,
+      "elapsed_ms": 6433,
+      "reply_bytes": 9692,
+      "result_sha256": "sha256:98fabc59c3a2deba76f38443038c0fd397a565dca41ca553a9f4939554408837",
+      "sample": 9,
+      "temperature": "warm",
+      "tool": "rust.deny",
+      "tool_duration_ms": 6355
+    },
+    {
+      "calibration_ms": 14174,
+      "elapsed_ms": 5481,
+      "reply_bytes": 4416,
+      "result_sha256": "sha256:a2a22537fd28f4ec59cb06666fc6a59eb65cbf58d36855fc224b51f57935128d",
+      "sample": 9,
+      "temperature": "cold",
+      "tool": "rust.unsafe.scan",
+      "tool_duration_ms": 5465
+    },
+    {
+      "calibration_ms": 14174,
+      "elapsed_ms": 5472,
+      "reply_bytes": 4416,
+      "result_sha256": "sha256:f140e170c516347fcd06d834b4175af42fa96461176f900d53a853611f617911",
+      "sample": 9,
+      "temperature": "warm",
+      "tool": "rust.unsafe.scan",
+      "tool_duration_ms": 5451
+    },
+    {
+      "calibration_ms": 14174,
+      "elapsed_ms": 8729,
+      "reply_bytes": 4332,
+      "result_sha256": "sha256:b2df36bec1267fbaf547311955e65df45e4e1cf257e0dc70a3518906e8ee198a",
+      "sample": 9,
+      "temperature": "cold",
+      "tool": "rust.miri",
+      "tool_duration_ms": 8711
+    },
+    {
+      "calibration_ms": 14174,
+      "elapsed_ms": 8898,
+      "reply_bytes": 4332,
+      "result_sha256": "sha256:b386af1d10a4be4deae378fa5b853f2fe741b0ff1cc6278cd4ead00c047415a2",
+      "sample": 9,
+      "temperature": "warm",
+      "tool": "rust.miri",
+      "tool_duration_ms": 8793
+    },
+    {
+      "calibration_ms": 14174,
+      "elapsed_ms": 6434,
+      "reply_bytes": 10192,
+      "result_sha256": "sha256:b2112255440bf1ad4126dcb46208cb86e8a482746d14b3206672b7a416e16d87",
+      "sample": 9,
+      "temperature": "cold",
+      "tool": "rust.supply_chain.inspect",
+      "tool_duration_ms": 6348
+    },
+    {
+      "calibration_ms": 14174,
+      "elapsed_ms": 6464,
+      "reply_bytes": 10192,
+      "result_sha256": "sha256:b96e9890f664dec91f8c2d4de2c78d9d9e7d1e0189348dd9deb6109aec303268",
+      "sample": 9,
+      "temperature": "warm",
+      "tool": "rust.supply_chain.inspect",
+      "tool_duration_ms": 6340
+    },
+    {
+      "calibration_ms": 14174,
+      "elapsed_ms": 13713,
+      "reply_bytes": 12340,
+      "result_sha256": "sha256:8588efcb2a211de410628c8631e5de35dc5a00c00a50839b61793ae48ea34ae6",
+      "sample": 9,
+      "temperature": "cold",
+      "tool": "rust.quality.gate.v2",
+      "tool_duration_ms": 13683
+    },
+    {
+      "calibration_ms": 14174,
+      "elapsed_ms": 14054,
+      "reply_bytes": 12340,
+      "result_sha256": "sha256:4a48ba1232a6f885d5cccaa1c24cad514f58f8afca70fcf24a10f9ddc16b6285",
+      "sample": 9,
+      "temperature": "warm",
+      "tool": "rust.quality.gate.v2",
+      "tool_duration_ms": 13952
+    },
+    {
+      "calibration_ms": 14073,
+      "elapsed_ms": 6315,
+      "reply_bytes": 9692,
+      "result_sha256": "sha256:a3d57974214436fe4bfc357bb0e6efb1aeb8f6f985936a639cb4bd46f31a810d",
+      "sample": 10,
+      "temperature": "cold",
+      "tool": "rust.deny",
+      "tool_duration_ms": 6219
+    },
+    {
+      "calibration_ms": 14073,
+      "elapsed_ms": 6449,
+      "reply_bytes": 9692,
+      "result_sha256": "sha256:42c12a0cde521139793761adb97e8c81ebac42353b8ecaa7a0e6eab38d645c7c",
+      "sample": 10,
+      "temperature": "warm",
+      "tool": "rust.deny",
+      "tool_duration_ms": 6394
+    },
+    {
+      "calibration_ms": 14073,
+      "elapsed_ms": 5585,
+      "reply_bytes": 4416,
+      "result_sha256": "sha256:122bcf9595a14984fff9012407e77f103dd4af2244270571957114b2194c414e",
+      "sample": 10,
+      "temperature": "cold",
+      "tool": "rust.unsafe.scan",
+      "tool_duration_ms": 5473
+    },
+    {
+      "calibration_ms": 14073,
+      "elapsed_ms": 5469,
+      "reply_bytes": 4416,
+      "result_sha256": "sha256:51435eed95c48f891c672a4dfa6f3c49d85fcce76199ea44d4c3cd4239695e7b",
+      "sample": 10,
+      "temperature": "warm",
+      "tool": "rust.unsafe.scan",
+      "tool_duration_ms": 5418
+    },
+    {
+      "calibration_ms": 14073,
+      "elapsed_ms": 8648,
+      "reply_bytes": 4332,
+      "result_sha256": "sha256:7524b93dd967bd1dfe79323cd1c393ec18f11a420f7c9a4d66293044b0c23ea6",
+      "sample": 10,
+      "temperature": "cold",
+      "tool": "rust.miri",
+      "tool_duration_ms": 8611
+    },
+    {
+      "calibration_ms": 14073,
+      "elapsed_ms": 8634,
+      "reply_bytes": 4332,
+      "result_sha256": "sha256:371a8bfac8dfcafa781596e4891f648b4b5553976a3e6fa2886684a789587e79",
+      "sample": 10,
+      "temperature": "warm",
+      "tool": "rust.miri",
+      "tool_duration_ms": 8528
+    },
+    {
+      "calibration_ms": 14073,
+      "elapsed_ms": 6452,
+      "reply_bytes": 10192,
+      "result_sha256": "sha256:57d6df4bd2c8d04d8639cec171e7acdc6620a155d0db9aa8e6b27a38f610c6f4",
+      "sample": 10,
+      "temperature": "cold",
+      "tool": "rust.supply_chain.inspect",
+      "tool_duration_ms": 6360
+    },
+    {
+      "calibration_ms": 14073,
+      "elapsed_ms": 6436,
+      "reply_bytes": 10192,
+      "result_sha256": "sha256:aa8f24df9e9669b240a999d20e39aeccc0e84202e429c0389c92b26d018b31b4",
+      "sample": 10,
+      "temperature": "warm",
+      "tool": "rust.supply_chain.inspect",
+      "tool_duration_ms": 6353
+    },
+    {
+      "calibration_ms": 14073,
+      "elapsed_ms": 13911,
+      "reply_bytes": 12340,
+      "result_sha256": "sha256:344655738607258699ec04ab4d2c0c11b9e3048c646bcbb89b4176b37f8bd0d4",
+      "sample": 10,
+      "temperature": "cold",
+      "tool": "rust.quality.gate.v2",
+      "tool_duration_ms": 13814
+    },
+    {
+      "calibration_ms": 14073,
+      "elapsed_ms": 13843,
+      "reply_bytes": 12340,
+      "result_sha256": "sha256:3a19c1328a74503e52e82f0428bcd3e54df321fc1b5db2b8c4e8ec8236670bf5",
+      "sample": 10,
+      "temperature": "warm",
+      "tool": "rust.quality.gate.v2",
+      "tool_duration_ms": 13741
+    },
+    {
+      "calibration_ms": 14216,
+      "elapsed_ms": 6405,
+      "reply_bytes": 9692,
+      "result_sha256": "sha256:176b9d220bafc983a51844fabca9265604084461b72d504ba21e34ac1866140a",
+      "sample": 11,
+      "temperature": "cold",
+      "tool": "rust.deny",
+      "tool_duration_ms": 6303
+    },
+    {
+      "calibration_ms": 14216,
+      "elapsed_ms": 6322,
+      "reply_bytes": 9692,
+      "result_sha256": "sha256:bb4fd723190f750d603bb8ee6719ecbcad9be74196aeda5f30eb4f5c0187cc0b",
+      "sample": 11,
+      "temperature": "warm",
+      "tool": "rust.deny",
+      "tool_duration_ms": 6194
+    },
+    {
+      "calibration_ms": 14216,
+      "elapsed_ms": 5488,
+      "reply_bytes": 4416,
+      "result_sha256": "sha256:521f1322c87372fe518dc81b03eba49329ede242d646031e3e25205d5553aea3",
+      "sample": 11,
+      "temperature": "cold",
+      "tool": "rust.unsafe.scan",
+      "tool_duration_ms": 5435
+    },
+    {
+      "calibration_ms": 14216,
+      "elapsed_ms": 5563,
+      "reply_bytes": 4416,
+      "result_sha256": "sha256:5c0ab1c9318ced1b547cc5c781cd0d56b4276f47b6245fbbc1e154a01b988e21",
+      "sample": 11,
+      "temperature": "warm",
+      "tool": "rust.unsafe.scan",
+      "tool_duration_ms": 5510
+    },
+    {
+      "calibration_ms": 14216,
+      "elapsed_ms": 8680,
+      "reply_bytes": 4332,
+      "result_sha256": "sha256:181f89a9ee602af5dd3d42b2fae441c5e7ac7a4781aa677b37915eacfd6542fe",
+      "sample": 11,
+      "temperature": "cold",
+      "tool": "rust.miri",
+      "tool_duration_ms": 8574
+    },
+    {
+      "calibration_ms": 14216,
+      "elapsed_ms": 8675,
+      "reply_bytes": 4332,
+      "result_sha256": "sha256:33063d7066be60757f9243e6dbbc6d469d0b731c537bd68bceeb8cd779908a33",
+      "sample": 11,
+      "temperature": "warm",
+      "tool": "rust.miri",
+      "tool_duration_ms": 8595
+    },
+    {
+      "calibration_ms": 14216,
+      "elapsed_ms": 6418,
+      "reply_bytes": 10192,
+      "result_sha256": "sha256:3df0096815c9cdce77456267b85237a4bed778670d6d34d0e491f377ce22238c",
+      "sample": 11,
+      "temperature": "cold",
+      "tool": "rust.supply_chain.inspect",
+      "tool_duration_ms": 6331
+    },
+    {
+      "calibration_ms": 14216,
+      "elapsed_ms": 6345,
+      "reply_bytes": 10192,
+      "result_sha256": "sha256:c59fca211e20cd7f43648ff5f05b8df890dd40d7efac81332b474790b8ef8bc5",
+      "sample": 11,
+      "temperature": "warm",
+      "tool": "rust.supply_chain.inspect",
+      "tool_duration_ms": 6272
+    },
+    {
+      "calibration_ms": 14216,
+      "elapsed_ms": 13805,
+      "reply_bytes": 12340,
+      "result_sha256": "sha256:4f410cf114b7a68e477c4b0f79686d9377703b1c4a8513c4d3c9aa570b2c8243",
+      "sample": 11,
+      "temperature": "cold",
+      "tool": "rust.quality.gate.v2",
+      "tool_duration_ms": 13742
+    },
+    {
+      "calibration_ms": 14216,
+      "elapsed_ms": 14453,
+      "reply_bytes": 12340,
+      "result_sha256": "sha256:c4f7498259c40c6f9672ff5688eaada751f65a27fa828761552a6729bfc9d20b",
+      "sample": 11,
+      "temperature": "warm",
+      "tool": "rust.quality.gate.v2",
+      "tool_duration_ms": 14364
+    },
+    {
+      "calibration_ms": 14440,
+      "elapsed_ms": 6304,
+      "reply_bytes": 9692,
+      "result_sha256": "sha256:9497bbb55fce1149055152fbfc221fc70cd5d959a9604749e408d6e97b710f58",
+      "sample": 12,
+      "temperature": "cold",
+      "tool": "rust.deny",
+      "tool_duration_ms": 6246
+    },
+    {
+      "calibration_ms": 14440,
+      "elapsed_ms": 6423,
+      "reply_bytes": 9692,
+      "result_sha256": "sha256:66259696bbf5428ca11ca780001aaf0bdbdbb55a8e3c46f258943c314d4a84bd",
+      "sample": 12,
+      "temperature": "warm",
+      "tool": "rust.deny",
+      "tool_duration_ms": 6386
+    },
+    {
+      "calibration_ms": 14440,
+      "elapsed_ms": 5580,
+      "reply_bytes": 4416,
+      "result_sha256": "sha256:72cc1dda02e1d3586fae9f1b1404b4cf8c1877b1db2d53f6821b56913837de01",
+      "sample": 12,
+      "temperature": "cold",
+      "tool": "rust.unsafe.scan",
+      "tool_duration_ms": 5535
+    },
+    {
+      "calibration_ms": 14440,
+      "elapsed_ms": 5489,
+      "reply_bytes": 4416,
+      "result_sha256": "sha256:6c4e1d3db3e39f4a7984c3c9daf9f1e81347be09fdc7e65b60984aa0f7f02b35",
+      "sample": 12,
+      "temperature": "warm",
+      "tool": "rust.unsafe.scan",
+      "tool_duration_ms": 5448
+    },
+    {
+      "calibration_ms": 14440,
+      "elapsed_ms": 8644,
+      "reply_bytes": 4332,
+      "result_sha256": "sha256:2fb8a686b4caa15c33715d5244e6a20e0710db52729b227be1274c7b838e492d",
+      "sample": 12,
+      "temperature": "cold",
+      "tool": "rust.miri",
+      "tool_duration_ms": 8597
+    },
+    {
+      "calibration_ms": 14440,
+      "elapsed_ms": 8715,
+      "reply_bytes": 4332,
+      "result_sha256": "sha256:8f5fe5eeca5e19052607ac9818c384e94a46148b3c01dda2c5cfc1776a3c82a8",
+      "sample": 12,
+      "temperature": "warm",
+      "tool": "rust.miri",
+      "tool_duration_ms": 8624
+    },
+    {
+      "calibration_ms": 14440,
+      "elapsed_ms": 6402,
+      "reply_bytes": 10192,
+      "result_sha256": "sha256:2c5e275536c4d8f53bbe66c8e673ce80b0d42cbbd8b10ea4e5d45af5e7840b4b",
+      "sample": 12,
+      "temperature": "cold",
+      "tool": "rust.supply_chain.inspect",
+      "tool_duration_ms": 6314
+    },
+    {
+      "calibration_ms": 14440,
+      "elapsed_ms": 6418,
+      "reply_bytes": 10192,
+      "result_sha256": "sha256:463d5543530929c5721c615fcd0aaadc4fd1827e04a3e2d99e34f7388c60fcdd",
+      "sample": 12,
+      "temperature": "warm",
+      "tool": "rust.supply_chain.inspect",
+      "tool_duration_ms": 6301
+    },
+    {
+      "calibration_ms": 14440,
+      "elapsed_ms": 13970,
+      "reply_bytes": 12340,
+      "result_sha256": "sha256:fd0f0fd17877cfb761f123b23d3bc9492540a3f3a31246d731a5a4c36b0fe8cf",
+      "sample": 12,
+      "temperature": "cold",
+      "tool": "rust.quality.gate.v2",
+      "tool_duration_ms": 13907
+    },
+    {
+      "calibration_ms": 14440,
+      "elapsed_ms": 13774,
+      "reply_bytes": 12340,
+      "result_sha256": "sha256:cbb7eafdf06e2c33f53cb91e45092de3d1bd8ea7642e2674fd1c28a3fe834874",
+      "sample": 12,
+      "temperature": "warm",
+      "tool": "rust.quality.gate.v2",
+      "tool_duration_ms": 13724
+    },
+    {
+      "calibration_ms": 14097,
+      "elapsed_ms": 6392,
+      "reply_bytes": 9692,
+      "result_sha256": "sha256:c113cc8c5665e10036e3fa557a9e42bff4c947e47f73e65e67ed78a804dd7f5a",
+      "sample": 13,
+      "temperature": "cold",
+      "tool": "rust.deny",
+      "tool_duration_ms": 6346
+    },
+    {
+      "calibration_ms": 14097,
+      "elapsed_ms": 6425,
+      "reply_bytes": 9692,
+      "result_sha256": "sha256:6d2ff6ab5c869b640079bcd37e1c87432d86f9a6bb156155786fcc483e0e03b0",
+      "sample": 13,
+      "temperature": "warm",
+      "tool": "rust.deny",
+      "tool_duration_ms": 6393
+    },
+    {
+      "calibration_ms": 14097,
+      "elapsed_ms": 5506,
+      "reply_bytes": 4416,
+      "result_sha256": "sha256:c111764375bb64340ced3531994d746a2343da08f27c0a390a5c68eb037800c0",
+      "sample": 13,
+      "temperature": "cold",
+      "tool": "rust.unsafe.scan",
+      "tool_duration_ms": 5474
+    },
+    {
+      "calibration_ms": 14097,
+      "elapsed_ms": 5642,
+      "reply_bytes": 4416,
+      "result_sha256": "sha256:188d59d043c02576a22c559a2587dba34dab5bfaf1f38724d13ae47a7ee2129e",
+      "sample": 13,
+      "temperature": "warm",
+      "tool": "rust.unsafe.scan",
+      "tool_duration_ms": 5526
+    },
+    {
+      "calibration_ms": 14097,
+      "elapsed_ms": 8774,
+      "reply_bytes": 4332,
+      "result_sha256": "sha256:c940d7db65adb9dc68a897b5e64e1c6aa92862b02238028411e5ccef237466cd",
+      "sample": 13,
+      "temperature": "cold",
+      "tool": "rust.miri",
+      "tool_duration_ms": 8662
+    },
+    {
+      "calibration_ms": 14097,
+      "elapsed_ms": 8609,
+      "reply_bytes": 4332,
+      "result_sha256": "sha256:473786f68a749d78b9b4dd5395ea6031caf70b99ed7ec56eca0724c85754e84f",
+      "sample": 13,
+      "temperature": "warm",
+      "tool": "rust.miri",
+      "tool_duration_ms": 8543
+    },
+    {
+      "calibration_ms": 14097,
+      "elapsed_ms": 6405,
+      "reply_bytes": 10192,
+      "result_sha256": "sha256:bb917d9492dbeb893933696f2e1cb97fa8054520ae2390b4e868fe1701846507",
+      "sample": 13,
+      "temperature": "cold",
+      "tool": "rust.supply_chain.inspect",
+      "tool_duration_ms": 6296
+    },
+    {
+      "calibration_ms": 14097,
+      "elapsed_ms": 6359,
+      "reply_bytes": 10192,
+      "result_sha256": "sha256:09b43a30b79dfc2006acfaea3c4848feb6656736e10a1fa19187e7a50af5db43",
+      "sample": 13,
+      "temperature": "warm",
+      "tool": "rust.supply_chain.inspect",
+      "tool_duration_ms": 6295
+    },
+    {
+      "calibration_ms": 14097,
+      "elapsed_ms": 13894,
+      "reply_bytes": 12340,
+      "result_sha256": "sha256:5f3cc41be506dace56f262b6d868343249b172fd8b0eb35a52877c871b98b92e",
+      "sample": 13,
+      "temperature": "cold",
+      "tool": "rust.quality.gate.v2",
+      "tool_duration_ms": 13832
+    },
+    {
+      "calibration_ms": 14097,
+      "elapsed_ms": 13724,
+      "reply_bytes": 12340,
+      "result_sha256": "sha256:f391c22e5d40f3708260053ccffe34f4fbd8321ad0642a3e2cc1fb15b1db8809",
+      "sample": 13,
+      "temperature": "warm",
+      "tool": "rust.quality.gate.v2",
+      "tool_duration_ms": 13649
+    },
+    {
+      "calibration_ms": 14219,
+      "elapsed_ms": 6431,
+      "reply_bytes": 9692,
+      "result_sha256": "sha256:35bd214c2a425fab8948c9a85336dc62c80cbf02838a22f36c36b59d4a99be98",
+      "sample": 14,
+      "temperature": "cold",
+      "tool": "rust.deny",
+      "tool_duration_ms": 6412
+    },
+    {
+      "calibration_ms": 14219,
+      "elapsed_ms": 6301,
+      "reply_bytes": 9692,
+      "result_sha256": "sha256:a648cf23a93828c57330d88666d7de5bcb0d2c99aa865f87b284dff79526d8c7",
+      "sample": 14,
+      "temperature": "warm",
+      "tool": "rust.deny",
+      "tool_duration_ms": 6283
+    },
+    {
+      "calibration_ms": 14219,
+      "elapsed_ms": 5486,
+      "reply_bytes": 4416,
+      "result_sha256": "sha256:9d1d0f1df74954c529607936ec8d1293a90225378315a0f2f9955be5a3513cad",
+      "sample": 14,
+      "temperature": "cold",
+      "tool": "rust.unsafe.scan",
+      "tool_duration_ms": 5455
+    },
+    {
+      "calibration_ms": 14219,
+      "elapsed_ms": 5496,
+      "reply_bytes": 4416,
+      "result_sha256": "sha256:8cdd78a4009bc8e9fd6bbf5c75e2ede547d959c1ace744d1d8a1902d9775cc4f",
+      "sample": 14,
+      "temperature": "warm",
+      "tool": "rust.unsafe.scan",
+      "tool_duration_ms": 5379
+    },
+    {
+      "calibration_ms": 14219,
+      "elapsed_ms": 8682,
+      "reply_bytes": 4332,
+      "result_sha256": "sha256:0f02ebb4ca3ec671714b9de951c74f89414a9ddc1720f1550dc2d54ac52aefc4",
+      "sample": 14,
+      "temperature": "cold",
+      "tool": "rust.miri",
+      "tool_duration_ms": 8645
+    },
+    {
+      "calibration_ms": 14219,
+      "elapsed_ms": 8764,
+      "reply_bytes": 4332,
+      "result_sha256": "sha256:addbe25d68ce35101fecc74793d1686a21e986d8d3fcef12694b057e0b909a12",
+      "sample": 14,
+      "temperature": "warm",
+      "tool": "rust.miri",
+      "tool_duration_ms": 8665
+    },
+    {
+      "calibration_ms": 14219,
+      "elapsed_ms": 6302,
+      "reply_bytes": 10192,
+      "result_sha256": "sha256:f0713940053da64ad65396738062800e8e5c36a5a0fc401f9be11de82109f91f",
+      "sample": 14,
+      "temperature": "cold",
+      "tool": "rust.supply_chain.inspect",
+      "tool_duration_ms": 6258
+    },
+    {
+      "calibration_ms": 14219,
+      "elapsed_ms": 6561,
+      "reply_bytes": 10192,
+      "result_sha256": "sha256:9014e1b52cc7b2622167a3e611c771e0a32902d991a6043e48d965c5b18ef733",
+      "sample": 14,
+      "temperature": "warm",
+      "tool": "rust.supply_chain.inspect",
+      "tool_duration_ms": 6463
+    },
+    {
+      "calibration_ms": 14219,
+      "elapsed_ms": 13806,
+      "reply_bytes": 12340,
+      "result_sha256": "sha256:6643bea16485b46c047536cd669e962f20ca76388f3ab67fd12cbf57e48f6296",
+      "sample": 14,
+      "temperature": "cold",
+      "tool": "rust.quality.gate.v2",
+      "tool_duration_ms": 13698
+    },
+    {
+      "calibration_ms": 14219,
+      "elapsed_ms": 13678,
+      "reply_bytes": 12340,
+      "result_sha256": "sha256:4b5f2e6b8a1853dfc0e5dfa05170087b0d86d80b12938d2d6284765117cb8849",
+      "sample": 14,
+      "temperature": "warm",
+      "tool": "rust.quality.gate.v2",
+      "tool_duration_ms": 13637
+    },
+    {
+      "calibration_ms": 15321,
+      "elapsed_ms": 7125,
+      "reply_bytes": 9692,
+      "result_sha256": "sha256:953098a9b38711ce97ab0d2381c5d1dab0ab52f5ac45b8d612459d61d9f1738c",
+      "sample": 15,
+      "temperature": "cold",
+      "tool": "rust.deny",
+      "tool_duration_ms": 7006
+    },
+    {
+      "calibration_ms": 15321,
+      "elapsed_ms": 6434,
+      "reply_bytes": 9692,
+      "result_sha256": "sha256:1d4fac2cc290130e90282de10c5e526fb8aeb1d0c0311d41bf4843d00506e4c5",
+      "sample": 15,
+      "temperature": "warm",
+      "tool": "rust.deny",
+      "tool_duration_ms": 6327
+    },
+    {
+      "calibration_ms": 15321,
+      "elapsed_ms": 5559,
+      "reply_bytes": 4416,
+      "result_sha256": "sha256:383993bcc7c497f030a17558a96a79ef5cf119e070d27ae10b71aa65972dbc2d",
+      "sample": 15,
+      "temperature": "cold",
+      "tool": "rust.unsafe.scan",
+      "tool_duration_ms": 5518
+    },
+    {
+      "calibration_ms": 15321,
+      "elapsed_ms": 5623,
+      "reply_bytes": 4416,
+      "result_sha256": "sha256:224e8b1135cfff84d2db887c10185958e1fa33ad2c1cbe7482598cac489dd300",
+      "sample": 15,
+      "temperature": "warm",
+      "tool": "rust.unsafe.scan",
+      "tool_duration_ms": 5530
+    },
+    {
+      "calibration_ms": 15321,
+      "elapsed_ms": 8674,
+      "reply_bytes": 4332,
+      "result_sha256": "sha256:bb310143254eebcb3e2d112dc36eb0146d8d4a44b0a950d1a8b69c595e99dabd",
+      "sample": 15,
+      "temperature": "cold",
+      "tool": "rust.miri",
+      "tool_duration_ms": 8604
+    },
+    {
+      "calibration_ms": 15321,
+      "elapsed_ms": 8694,
+      "reply_bytes": 4332,
+      "result_sha256": "sha256:b554d26511113e5f19a1824d5047ca5af7a15fba0f99142e04d181b2fada25d6",
+      "sample": 15,
+      "temperature": "warm",
+      "tool": "rust.miri",
+      "tool_duration_ms": 8595
+    },
+    {
+      "calibration_ms": 15321,
+      "elapsed_ms": 6445,
+      "reply_bytes": 10192,
+      "result_sha256": "sha256:f8dedac426e533a974dabafc9f1f380a87bd06174e3a5a29215e98407909934b",
+      "sample": 15,
+      "temperature": "cold",
+      "tool": "rust.supply_chain.inspect",
+      "tool_duration_ms": 6373
+    },
+    {
+      "calibration_ms": 15321,
+      "elapsed_ms": 6437,
+      "reply_bytes": 10192,
+      "result_sha256": "sha256:77dd550a0b12e3780ed9f9c21503045c1a9a353879d2ed97633cd93219ffae08",
+      "sample": 15,
+      "temperature": "warm",
+      "tool": "rust.supply_chain.inspect",
+      "tool_duration_ms": 6385
+    },
+    {
+      "calibration_ms": 15321,
+      "elapsed_ms": 14136,
+      "reply_bytes": 12340,
+      "result_sha256": "sha256:9567481424a48a6b3bbf75bd95a7dcd449ff73367aaec32793377ddff74f5850",
+      "sample": 15,
+      "temperature": "cold",
+      "tool": "rust.quality.gate.v2",
+      "tool_duration_ms": 14109
+    },
+    {
+      "calibration_ms": 15321,
+      "elapsed_ms": 13740,
+      "reply_bytes": 12340,
+      "result_sha256": "sha256:a7ee6ea7333458ce0f755ede58404f2eb6d11fca80608056a9ad44ecf166b226",
+      "sample": 15,
+      "temperature": "warm",
+      "tool": "rust.quality.gate.v2",
+      "tool_duration_ms": 13718
+    },
+    {
+      "calibration_ms": 14133,
+      "elapsed_ms": 6324,
+      "reply_bytes": 9692,
+      "result_sha256": "sha256:3564c97e843218fe9d1d4c54c426735a75a499b7039cdd1250361642b642368d",
+      "sample": 16,
+      "temperature": "cold",
+      "tool": "rust.deny",
+      "tool_duration_ms": 6286
+    },
+    {
+      "calibration_ms": 14133,
+      "elapsed_ms": 6452,
+      "reply_bytes": 9692,
+      "result_sha256": "sha256:ea7ebdf54ab14f7170d18bea1ac9d654ae1b4116a6041ea62ec21c3511c229ed",
+      "sample": 16,
+      "temperature": "warm",
+      "tool": "rust.deny",
+      "tool_duration_ms": 6346
+    },
+    {
+      "calibration_ms": 14133,
+      "elapsed_ms": 5584,
+      "reply_bytes": 4416,
+      "result_sha256": "sha256:f72845d00825c767a6b05dfd74a6ee922d0c13b0eccd1ffda667ecd1ccd09743",
+      "sample": 16,
+      "temperature": "cold",
+      "tool": "rust.unsafe.scan",
+      "tool_duration_ms": 5527
+    },
+    {
+      "calibration_ms": 14133,
+      "elapsed_ms": 5461,
+      "reply_bytes": 4416,
+      "result_sha256": "sha256:d21e271e36a4b2a62c15f0f992ecbd5c79fabc1a1a5c0fccc3ea7b6c46ece769",
+      "sample": 16,
+      "temperature": "warm",
+      "tool": "rust.unsafe.scan",
+      "tool_duration_ms": 5428
+    },
+    {
+      "calibration_ms": 14133,
+      "elapsed_ms": 8679,
+      "reply_bytes": 4332,
+      "result_sha256": "sha256:37005dac186b503dd84127dc170d9e03722e96c8f96f9179b5458554a19f8c92",
+      "sample": 16,
+      "temperature": "cold",
+      "tool": "rust.miri",
+      "tool_duration_ms": 8650
+    },
+    {
+      "calibration_ms": 14133,
+      "elapsed_ms": 8810,
+      "reply_bytes": 4332,
+      "result_sha256": "sha256:b7ad3d983e8d0471559d1304e7d9fa2539b260c3be8b2103ad507452242b1247",
+      "sample": 16,
+      "temperature": "warm",
+      "tool": "rust.miri",
+      "tool_duration_ms": 8780
+    },
+    {
+      "calibration_ms": 14133,
+      "elapsed_ms": 6434,
+      "reply_bytes": 10192,
+      "result_sha256": "sha256:1ca6f5608aaca9688ebc68997fcd70742233162ac06657524842e29c679e0df6",
+      "sample": 16,
+      "temperature": "cold",
+      "tool": "rust.supply_chain.inspect",
+      "tool_duration_ms": 6319
+    },
+    {
+      "calibration_ms": 14133,
+      "elapsed_ms": 6329,
+      "reply_bytes": 10192,
+      "result_sha256": "sha256:ab1f94e871f6af2eb7ecd5b0b284e373b1899823ce66e51ebc544c6db2115abe",
+      "sample": 16,
+      "temperature": "warm",
+      "tool": "rust.supply_chain.inspect",
+      "tool_duration_ms": 6299
+    },
+    {
+      "calibration_ms": 14133,
+      "elapsed_ms": 13869,
+      "reply_bytes": 12340,
+      "result_sha256": "sha256:ad4eafd3b4d4119da42c21d37e9e0a695ab4362c580e493ca5668e0b0fc47eb4",
+      "sample": 16,
+      "temperature": "cold",
+      "tool": "rust.quality.gate.v2",
+      "tool_duration_ms": 13787
+    },
+    {
+      "calibration_ms": 14133,
+      "elapsed_ms": 13709,
+      "reply_bytes": 12340,
+      "result_sha256": "sha256:18352286a5213bba120dd20bee6c74da5105549b1d5095b47ef1d9e03701e6e0",
+      "sample": 16,
+      "temperature": "warm",
+      "tool": "rust.quality.gate.v2",
+      "tool_duration_ms": 13654
+    },
+    {
+      "calibration_ms": 14081,
+      "elapsed_ms": 6636,
+      "reply_bytes": 9692,
+      "result_sha256": "sha256:05bcde69a06521b137765c578eb1ee90afc5e1f96a92aec4ed124d656576238b",
+      "sample": 17,
+      "temperature": "cold",
+      "tool": "rust.deny",
+      "tool_duration_ms": 6612
+    },
+    {
+      "calibration_ms": 14081,
+      "elapsed_ms": 6309,
+      "reply_bytes": 9692,
+      "result_sha256": "sha256:05e5634e70f35ff31563616fbaaaf1a9df95471b9ec8f80f5ba8f695028dff61",
+      "sample": 17,
+      "temperature": "warm",
+      "tool": "rust.deny",
+      "tool_duration_ms": 6286
+    },
+    {
+      "calibration_ms": 14081,
+      "elapsed_ms": 5669,
+      "reply_bytes": 4416,
+      "result_sha256": "sha256:019ee9f032ed3486c68fe00b0bf3cb4afed785d54dec805bb4b936dc61e2be17",
+      "sample": 17,
+      "temperature": "cold",
+      "tool": "rust.unsafe.scan",
+      "tool_duration_ms": 5570
+    },
+    {
+      "calibration_ms": 14081,
+      "elapsed_ms": 5627,
+      "reply_bytes": 4416,
+      "result_sha256": "sha256:13ae5494a67d4380679d16dc25fd30a2de3396ae44fb20594e059cf3c1e73c0c",
+      "sample": 17,
+      "temperature": "warm",
+      "tool": "rust.unsafe.scan",
+      "tool_duration_ms": 5535
+    },
+    {
+      "calibration_ms": 14081,
+      "elapsed_ms": 8663,
+      "reply_bytes": 4332,
+      "result_sha256": "sha256:8af941e1fd894d43e0f329a1986d50db3457dc20c661ab86d3ecedd162ae6145",
+      "sample": 17,
+      "temperature": "cold",
+      "tool": "rust.miri",
+      "tool_duration_ms": 8643
+    },
+    {
+      "calibration_ms": 14081,
+      "elapsed_ms": 8674,
+      "reply_bytes": 4332,
+      "result_sha256": "sha256:3243de783b678e6b04479d435de24b429f8b313e58295ae837b2a5858d54bde4",
+      "sample": 17,
+      "temperature": "warm",
+      "tool": "rust.miri",
+      "tool_duration_ms": 8591
+    },
+    {
+      "calibration_ms": 14081,
+      "elapsed_ms": 6479,
+      "reply_bytes": 10192,
+      "result_sha256": "sha256:efa773267e69b196ae217c407a736aafd868fb47fa27e6bef6fab092a77f7e66",
+      "sample": 17,
+      "temperature": "cold",
+      "tool": "rust.supply_chain.inspect",
+      "tool_duration_ms": 6441
+    },
+    {
+      "calibration_ms": 14081,
+      "elapsed_ms": 6344,
+      "reply_bytes": 10192,
+      "result_sha256": "sha256:5fbf396a3433623b5bc4eb7fce5882fe0a3c2636b2befbeb26c3ca9285ec0eab",
+      "sample": 17,
+      "temperature": "warm",
+      "tool": "rust.supply_chain.inspect",
+      "tool_duration_ms": 6324
+    },
+    {
+      "calibration_ms": 14081,
+      "elapsed_ms": 13995,
+      "reply_bytes": 12340,
+      "result_sha256": "sha256:d4c1a15a98bfcb14456b37899c454544a7365045562acd68f3acb75310725575",
+      "sample": 17,
+      "temperature": "cold",
+      "tool": "rust.quality.gate.v2",
+      "tool_duration_ms": 13881
+    },
+    {
+      "calibration_ms": 14081,
+      "elapsed_ms": 13917,
+      "reply_bytes": 12340,
+      "result_sha256": "sha256:205ccd37ef0ac62171c0cd1082f8bfb8fe47d2f255eb8e90166e19153883246c",
+      "sample": 17,
+      "temperature": "warm",
+      "tool": "rust.quality.gate.v2",
+      "tool_duration_ms": 13795
+    },
+    {
+      "calibration_ms": 14203,
+      "elapsed_ms": 6336,
+      "reply_bytes": 9692,
+      "result_sha256": "sha256:6a65a0f63460f03b5cf29fd049f093400a5582970b5df9ddd887bb6f4ccb990b",
+      "sample": 18,
+      "temperature": "cold",
+      "tool": "rust.deny",
+      "tool_duration_ms": 6262
+    },
+    {
+      "calibration_ms": 14203,
+      "elapsed_ms": 6413,
+      "reply_bytes": 9692,
+      "result_sha256": "sha256:fcdc0f91ac531cbd37b51e2ecf458b140b9fcb62ba7e3c754074e95dce123f5c",
+      "sample": 18,
+      "temperature": "warm",
+      "tool": "rust.deny",
+      "tool_duration_ms": 6302
+    },
+    {
+      "calibration_ms": 14203,
+      "elapsed_ms": 5479,
+      "reply_bytes": 4416,
+      "result_sha256": "sha256:06e335d19852a52d8c6dbc3843b013fe79217b27b709349e610753c59606bed0",
+      "sample": 18,
+      "temperature": "cold",
+      "tool": "rust.unsafe.scan",
+      "tool_duration_ms": 5384
+    },
+    {
+      "calibration_ms": 14203,
+      "elapsed_ms": 5579,
+      "reply_bytes": 4416,
+      "result_sha256": "sha256:256ebd3181635b181c71d23d40bc2f4568dc31f288060a4240249c1a91621057",
+      "sample": 18,
+      "temperature": "warm",
+      "tool": "rust.unsafe.scan",
+      "tool_duration_ms": 5491
+    },
+    {
+      "calibration_ms": 14203,
+      "elapsed_ms": 8615,
+      "reply_bytes": 4332,
+      "result_sha256": "sha256:38beb5c58a5706875e90cf9967b850feecdc963ef3d1b9baabb73e2cd1da564e",
+      "sample": 18,
+      "temperature": "cold",
+      "tool": "rust.miri",
+      "tool_duration_ms": 8553
+    },
+    {
+      "calibration_ms": 14203,
+      "elapsed_ms": 8625,
+      "reply_bytes": 4332,
+      "result_sha256": "sha256:d06bafba3bf73a8fb8c642177912c18589d59f10b69ebce2669b8c2d8d992e0c",
+      "sample": 18,
+      "temperature": "warm",
+      "tool": "rust.miri",
+      "tool_duration_ms": 8539
+    },
+    {
+      "calibration_ms": 14203,
+      "elapsed_ms": 6441,
+      "reply_bytes": 10192,
+      "result_sha256": "sha256:ff1d3a777efe569961c68c6089ac9565f8b6b9aeac8067f23efe31430644de61",
+      "sample": 18,
+      "temperature": "cold",
+      "tool": "rust.supply_chain.inspect",
+      "tool_duration_ms": 6313
+    },
+    {
+      "calibration_ms": 14203,
+      "elapsed_ms": 6390,
+      "reply_bytes": 10192,
+      "result_sha256": "sha256:94083da86e5cc9910c8e46e7c334e4ca9f84d80c13e18fe96493176f4ef160c2",
+      "sample": 18,
+      "temperature": "warm",
+      "tool": "rust.supply_chain.inspect",
+      "tool_duration_ms": 6355
+    },
+    {
+      "calibration_ms": 14203,
+      "elapsed_ms": 13772,
+      "reply_bytes": 12340,
+      "result_sha256": "sha256:68ba99ee9250732fc40a0d386dc7b15980180ac2434844f3964f5c12235d3a55",
+      "sample": 18,
+      "temperature": "cold",
+      "tool": "rust.quality.gate.v2",
+      "tool_duration_ms": 13741
+    },
+    {
+      "calibration_ms": 14203,
+      "elapsed_ms": 13848,
+      "reply_bytes": 12340,
+      "result_sha256": "sha256:df394f0d8c1f73d4a8de6cb615b2acf4ba63a8a2db405c548779c2da6ce924c7",
+      "sample": 18,
+      "temperature": "warm",
+      "tool": "rust.quality.gate.v2",
+      "tool_duration_ms": 13738
+    },
+    {
+      "calibration_ms": 14086,
+      "elapsed_ms": 6290,
+      "reply_bytes": 9692,
+      "result_sha256": "sha256:9e07aadb0deccff7addd4ebbf399d22c3a4d431286de6d72d166fe5ce1e5fd81",
+      "sample": 19,
+      "temperature": "cold",
+      "tool": "rust.deny",
+      "tool_duration_ms": 6235
+    },
+    {
+      "calibration_ms": 14086,
+      "elapsed_ms": 6314,
+      "reply_bytes": 9692,
+      "result_sha256": "sha256:2bbf0d78a68ec5e6fca383284093c3ec528f0ea0d688c5c4c8eb5a6656db7819",
+      "sample": 19,
+      "temperature": "warm",
+      "tool": "rust.deny",
+      "tool_duration_ms": 6273
+    },
+    {
+      "calibration_ms": 14086,
+      "elapsed_ms": 5509,
+      "reply_bytes": 4416,
+      "result_sha256": "sha256:a8119284e6ddd1f2880a1ef38d25187e8277f0016adc39d546cb525f5179aaf9",
+      "sample": 19,
+      "temperature": "cold",
+      "tool": "rust.unsafe.scan",
+      "tool_duration_ms": 5456
+    },
+    {
+      "calibration_ms": 14086,
+      "elapsed_ms": 5472,
+      "reply_bytes": 4416,
+      "result_sha256": "sha256:8ac6bb4530cef34400dd4aa3c4737c720cc773800e23bbb7d3060d9e55bcdef4",
+      "sample": 19,
+      "temperature": "warm",
+      "tool": "rust.unsafe.scan",
+      "tool_duration_ms": 5435
+    },
+    {
+      "calibration_ms": 14086,
+      "elapsed_ms": 8655,
+      "reply_bytes": 4332,
+      "result_sha256": "sha256:d2d5d92362255d16039ace110a1de3a997059d9cc6e5f6ce88ece54e9799dfcf",
+      "sample": 19,
+      "temperature": "cold",
+      "tool": "rust.miri",
+      "tool_duration_ms": 8619
+    },
+    {
+      "calibration_ms": 14086,
+      "elapsed_ms": 8537,
+      "reply_bytes": 4332,
+      "result_sha256": "sha256:52d8717965704ffe9e0fa4ca85377343d095d10495d1d899f6d51e027c291ed1",
+      "sample": 19,
+      "temperature": "warm",
+      "tool": "rust.miri",
+      "tool_duration_ms": 8497
+    },
+    {
+      "calibration_ms": 14086,
+      "elapsed_ms": 6302,
+      "reply_bytes": 10192,
+      "result_sha256": "sha256:6dc3f0e95aaba1153bc5b163d7bfd00abc7f22b142000456db31daada1b55b8f",
+      "sample": 19,
+      "temperature": "cold",
+      "tool": "rust.supply_chain.inspect",
+      "tool_duration_ms": 6242
+    },
+    {
+      "calibration_ms": 14086,
+      "elapsed_ms": 6334,
+      "reply_bytes": 10192,
+      "result_sha256": "sha256:c1e6b036f3e07dd53a67ba849e53e9e804edd4be13241fbe05717967d435bbf5",
+      "sample": 19,
+      "temperature": "warm",
+      "tool": "rust.supply_chain.inspect",
+      "tool_duration_ms": 6276
+    },
+    {
+      "calibration_ms": 14086,
+      "elapsed_ms": 13769,
+      "reply_bytes": 12340,
+      "result_sha256": "sha256:2f0beeeddca528d619bde9847222388e4ccfddd2f5f13cbb4f4ba33a095c5227",
+      "sample": 19,
+      "temperature": "cold",
+      "tool": "rust.quality.gate.v2",
+      "tool_duration_ms": 13710
+    },
+    {
+      "calibration_ms": 14086,
+      "elapsed_ms": 13946,
+      "reply_bytes": 12340,
+      "result_sha256": "sha256:69aa2258bfc6e4d10c1f73e9eda4380562a56656b3e6f225c5333e4242745c17",
+      "sample": 19,
+      "temperature": "warm",
+      "tool": "rust.quality.gate.v2",
+      "tool_duration_ms": 13884
+    },
+    {
+      "calibration_ms": 14107,
+      "elapsed_ms": 6333,
+      "reply_bytes": 9692,
+      "result_sha256": "sha256:4baf8e7243b7263bfc87daefc541db8957e2c3f1062095d1f5b1789800524b2f",
+      "sample": 20,
+      "temperature": "cold",
+      "tool": "rust.deny",
+      "tool_duration_ms": 6254
+    },
+    {
+      "calibration_ms": 14107,
+      "elapsed_ms": 6406,
+      "reply_bytes": 9692,
+      "result_sha256": "sha256:9b2d5c407b290066dd837df620fbf876e1194e2b086ef6504914a173c1b379c0",
+      "sample": 20,
+      "temperature": "warm",
+      "tool": "rust.deny",
+      "tool_duration_ms": 6380
+    },
+    {
+      "calibration_ms": 14107,
+      "elapsed_ms": 5561,
+      "reply_bytes": 4416,
+      "result_sha256": "sha256:3dc415937ae19572db5fc4206a5027dc907d53e611ddb08ecec5021a0eca0a7b",
+      "sample": 20,
+      "temperature": "cold",
+      "tool": "rust.unsafe.scan",
+      "tool_duration_ms": 5526
+    },
+    {
+      "calibration_ms": 14107,
+      "elapsed_ms": 5501,
+      "reply_bytes": 4416,
+      "result_sha256": "sha256:b3e337b6ed77736ccb9c6b8dfc7579d5240256565b1b97d5b4f07fa78bf357f5",
+      "sample": 20,
+      "temperature": "warm",
+      "tool": "rust.unsafe.scan",
+      "tool_duration_ms": 5474
+    },
+    {
+      "calibration_ms": 14107,
+      "elapsed_ms": 8687,
+      "reply_bytes": 4332,
+      "result_sha256": "sha256:a4bea1f7e50d8b84da4b9b694ede017fed80accf18749e30439fa9ca52fdf9f3",
+      "sample": 20,
+      "temperature": "cold",
+      "tool": "rust.miri",
+      "tool_duration_ms": 8593
+    },
+    {
+      "calibration_ms": 14107,
+      "elapsed_ms": 8684,
+      "reply_bytes": 4332,
+      "result_sha256": "sha256:51c6ffa369bd034de611e4383136259ead1359116080bf6f84a28e4ff018b662",
+      "sample": 20,
+      "temperature": "warm",
+      "tool": "rust.miri",
+      "tool_duration_ms": 8577
+    },
+    {
+      "calibration_ms": 14107,
+      "elapsed_ms": 6536,
+      "reply_bytes": 10192,
+      "result_sha256": "sha256:a6060ad0fe9f1ead3781d3ae126f972053cf0f9f84eeb17647753ab968007617",
+      "sample": 20,
+      "temperature": "cold",
+      "tool": "rust.supply_chain.inspect",
+      "tool_duration_ms": 6417
+    },
+    {
+      "calibration_ms": 14107,
+      "elapsed_ms": 6456,
+      "reply_bytes": 10192,
+      "result_sha256": "sha256:ebeaa1db546c57d6aa558629aa5c708239944dfd2cd2e95267567835a58f98d3",
+      "sample": 20,
+      "temperature": "warm",
+      "tool": "rust.supply_chain.inspect",
+      "tool_duration_ms": 6358
+    },
+    {
+      "calibration_ms": 14107,
+      "elapsed_ms": 13843,
+      "reply_bytes": 12340,
+      "result_sha256": "sha256:30e598ee55dc383e42406878537b7aea4329a4f6ee4700265312dbfb7864a5bc",
+      "sample": 20,
+      "temperature": "cold",
+      "tool": "rust.quality.gate.v2",
+      "tool_duration_ms": 13767
+    },
+    {
+      "calibration_ms": 14107,
+      "elapsed_ms": 13711,
+      "reply_bytes": 12340,
+      "result_sha256": "sha256:32d14ffefaad5934b46dc962ed7da768cef4b297850a2f105abd891ac37eb87b",
+      "sample": 20,
+      "temperature": "warm",
+      "tool": "rust.quality.gate.v2",
+      "tool_duration_ms": 13592
+    },
+    {
+      "calibration_ms": 14142,
+      "elapsed_ms": 6323,
+      "reply_bytes": 9692,
+      "result_sha256": "sha256:88bc76148709a58fa1416ce511218325a3d2714dca216c59069bd0dccffd6ccb",
+      "sample": 21,
+      "temperature": "cold",
+      "tool": "rust.deny",
+      "tool_duration_ms": 6273
+    },
+    {
+      "calibration_ms": 14142,
+      "elapsed_ms": 6354,
+      "reply_bytes": 9692,
+      "result_sha256": "sha256:7ce8b4321fc7998fd55dc59aa050e3a84899e545bc9bc0a58bfea52e64cf71d3",
+      "sample": 21,
+      "temperature": "warm",
+      "tool": "rust.deny",
+      "tool_duration_ms": 6288
+    },
+    {
+      "calibration_ms": 14142,
+      "elapsed_ms": 5478,
+      "reply_bytes": 4416,
+      "result_sha256": "sha256:ec902773331ba9f5bc714e14cb5eb788420e3412850d20a0f6df4aa5ca79d70b",
+      "sample": 21,
+      "temperature": "cold",
+      "tool": "rust.unsafe.scan",
+      "tool_duration_ms": 5420
+    },
+    {
+      "calibration_ms": 14142,
+      "elapsed_ms": 5569,
+      "reply_bytes": 4416,
+      "result_sha256": "sha256:a388670bd1123dd87547770d75110ef7d02a0e8adfc3a44bb2cc23e5742b9235",
+      "sample": 21,
+      "temperature": "warm",
+      "tool": "rust.unsafe.scan",
+      "tool_duration_ms": 5471
+    },
+    {
+      "calibration_ms": 14142,
+      "elapsed_ms": 8611,
+      "reply_bytes": 4332,
+      "result_sha256": "sha256:97a2b512015d346c91ecd5a8b22475c2f33914271cde8c88aa13f35276506e06",
+      "sample": 21,
+      "temperature": "cold",
+      "tool": "rust.miri",
+      "tool_duration_ms": 8552
+    },
+    {
+      "calibration_ms": 14142,
+      "elapsed_ms": 8616,
+      "reply_bytes": 4332,
+      "result_sha256": "sha256:b57458bf62892a1e9bb9c337ea49b5d8c2849174f9d0f9463dc01c4e4c872c33",
+      "sample": 21,
+      "temperature": "warm",
+      "tool": "rust.miri",
+      "tool_duration_ms": 8583
+    },
+    {
+      "calibration_ms": 14142,
+      "elapsed_ms": 6368,
+      "reply_bytes": 10192,
+      "result_sha256": "sha256:351b2a9b1237c8f26fc37e52d90749ac177417952b759720f602fa5809c1f546",
+      "sample": 21,
+      "temperature": "cold",
+      "tool": "rust.supply_chain.inspect",
+      "tool_duration_ms": 6272
+    },
+    {
+      "calibration_ms": 14142,
+      "elapsed_ms": 6395,
+      "reply_bytes": 10192,
+      "result_sha256": "sha256:a27304e90015683c2e0010cd7ea2c7f49b5222888fd5790a33097ef108702350",
+      "sample": 21,
+      "temperature": "warm",
+      "tool": "rust.supply_chain.inspect",
+      "tool_duration_ms": 6341
+    },
+    {
+      "calibration_ms": 14142,
+      "elapsed_ms": 13754,
+      "reply_bytes": 12340,
+      "result_sha256": "sha256:aad687651ab9e73f1603ea59fbdfb5a9f38c4ed93d4adec778aa8ab8514713ab",
+      "sample": 21,
+      "temperature": "cold",
+      "tool": "rust.quality.gate.v2",
+      "tool_duration_ms": 13701
+    },
+    {
+      "calibration_ms": 14142,
+      "elapsed_ms": 13753,
+      "reply_bytes": 12340,
+      "result_sha256": "sha256:6596460c744c69673d055a97c8d8d6df84b51b3e8315ea50d1b70b6832a3704f",
+      "sample": 21,
+      "temperature": "warm",
+      "tool": "rust.quality.gate.v2",
+      "tool_duration_ms": 13689
+    },
+    {
+      "calibration_ms": 13977,
+      "elapsed_ms": 6307,
+      "reply_bytes": 9692,
+      "result_sha256": "sha256:07e1f3b7bcaa4e921b064e02543427536231183f0de8503dd03b03e3561dd011",
+      "sample": 22,
+      "temperature": "cold",
+      "tool": "rust.deny",
+      "tool_duration_ms": 6241
+    },
+    {
+      "calibration_ms": 13977,
+      "elapsed_ms": 6249,
+      "reply_bytes": 9692,
+      "result_sha256": "sha256:245c01fa38a6733db6159376419f019035dc4520cd3abb5438f2c8873e4c7840",
+      "sample": 22,
+      "temperature": "warm",
+      "tool": "rust.deny",
+      "tool_duration_ms": 6153
+    },
+    {
+      "calibration_ms": 13977,
+      "elapsed_ms": 5745,
+      "reply_bytes": 4416,
+      "result_sha256": "sha256:16e7365da937881c348219c3d7555af8a28563b34800480d8a62d024a99cd8a1",
+      "sample": 22,
+      "temperature": "cold",
+      "tool": "rust.unsafe.scan",
+      "tool_duration_ms": 5634
+    },
+    {
+      "calibration_ms": 13977,
+      "elapsed_ms": 5586,
+      "reply_bytes": 4416,
+      "result_sha256": "sha256:7ea0220a37f831416499e4597e9029004ed2b966b29754ced4b8e8cc2acd6858",
+      "sample": 22,
+      "temperature": "warm",
+      "tool": "rust.unsafe.scan",
+      "tool_duration_ms": 5559
+    },
+    {
+      "calibration_ms": 13977,
+      "elapsed_ms": 8616,
+      "reply_bytes": 4332,
+      "result_sha256": "sha256:f5718e018d6a87783a8536a086260294e9e763cefa612d8dd37afd4746b49097",
+      "sample": 22,
+      "temperature": "cold",
+      "tool": "rust.miri",
+      "tool_duration_ms": 8544
+    },
+    {
+      "calibration_ms": 13977,
+      "elapsed_ms": 8801,
+      "reply_bytes": 4332,
+      "result_sha256": "sha256:5beb5c7b9b705c9e18fe76900efe4ea521be150f3b0a8824cd5508d966dbb0e7",
+      "sample": 22,
+      "temperature": "warm",
+      "tool": "rust.miri",
+      "tool_duration_ms": 8718
+    },
+    {
+      "calibration_ms": 13977,
+      "elapsed_ms": 6425,
+      "reply_bytes": 10192,
+      "result_sha256": "sha256:96ef583976f9c23fe256387ee078e57aa49bde5cbdc15141b58b94485ed4a199",
+      "sample": 22,
+      "temperature": "cold",
+      "tool": "rust.supply_chain.inspect",
+      "tool_duration_ms": 6315
+    },
+    {
+      "calibration_ms": 13977,
+      "elapsed_ms": 6399,
+      "reply_bytes": 10192,
+      "result_sha256": "sha256:84fc8ae424ca74859b8611606f52c4bab9b2b47bb57d4d1333dd886d80995a75",
+      "sample": 22,
+      "temperature": "warm",
+      "tool": "rust.supply_chain.inspect",
+      "tool_duration_ms": 6302
+    },
+    {
+      "calibration_ms": 13977,
+      "elapsed_ms": 13732,
+      "reply_bytes": 12340,
+      "result_sha256": "sha256:9dd76a151148d90383467a7919572b514b906a9b446363fb5be75fc476e13a5e",
+      "sample": 22,
+      "temperature": "cold",
+      "tool": "rust.quality.gate.v2",
+      "tool_duration_ms": 13691
+    },
+    {
+      "calibration_ms": 13977,
+      "elapsed_ms": 13754,
+      "reply_bytes": 12340,
+      "result_sha256": "sha256:fd05ca08040b72c44adb19be4752354d449abee574625ccf77422e466bb789f1",
+      "sample": 22,
+      "temperature": "warm",
+      "tool": "rust.quality.gate.v2",
+      "tool_duration_ms": 13699
+    },
+    {
+      "calibration_ms": 14121,
+      "elapsed_ms": 6471,
+      "reply_bytes": 9692,
+      "result_sha256": "sha256:4b4d05010374bfa90dbc53e835cc97d47b0ade5ff4d842fab8793a5d036f5fe0",
+      "sample": 23,
+      "temperature": "cold",
+      "tool": "rust.deny",
+      "tool_duration_ms": 6374
+    },
+    {
+      "calibration_ms": 14121,
+      "elapsed_ms": 6315,
+      "reply_bytes": 9692,
+      "result_sha256": "sha256:b2e6e7a339a29bf5882ffd16a1938de9ebab4ad5dd2d1518b9016381c4dad73c",
+      "sample": 23,
+      "temperature": "warm",
+      "tool": "rust.deny",
+      "tool_duration_ms": 6291
+    },
+    {
+      "calibration_ms": 14121,
+      "elapsed_ms": 5485,
+      "reply_bytes": 4416,
+      "result_sha256": "sha256:5eb2748ebcb9d6376314acf7c2b1779f25da5880d1d284950262d087ea97d662",
+      "sample": 23,
+      "temperature": "cold",
+      "tool": "rust.unsafe.scan",
+      "tool_duration_ms": 5413
+    },
+    {
+      "calibration_ms": 14121,
+      "elapsed_ms": 5565,
+      "reply_bytes": 4416,
+      "result_sha256": "sha256:1f547794167b4d27ad26349ecfb4bd0df92708a940169062fe1ddda5169d6b02",
+      "sample": 23,
+      "temperature": "warm",
+      "tool": "rust.unsafe.scan",
+      "tool_duration_ms": 5514
+    },
+    {
+      "calibration_ms": 14121,
+      "elapsed_ms": 8585,
+      "reply_bytes": 4332,
+      "result_sha256": "sha256:738d3dbce970901f43cb38cb233db3e53c0983128c60fd6085278aab7007633d",
+      "sample": 23,
+      "temperature": "cold",
+      "tool": "rust.miri",
+      "tool_duration_ms": 8554
+    },
+    {
+      "calibration_ms": 14121,
+      "elapsed_ms": 8714,
+      "reply_bytes": 4332,
+      "result_sha256": "sha256:6d2c17b82896ee182c3abcc1325be0842c5b287c910e3eefa0bffad03687c5e8",
+      "sample": 23,
+      "temperature": "warm",
+      "tool": "rust.miri",
+      "tool_duration_ms": 8675
+    },
+    {
+      "calibration_ms": 14121,
+      "elapsed_ms": 6353,
+      "reply_bytes": 10192,
+      "result_sha256": "sha256:a2ec8cc4386601dbb0697fcce67272b074c2b890fc68718893bd3aeabdf092f4",
+      "sample": 23,
+      "temperature": "cold",
+      "tool": "rust.supply_chain.inspect",
+      "tool_duration_ms": 6304
+    },
+    {
+      "calibration_ms": 14121,
+      "elapsed_ms": 6335,
+      "reply_bytes": 10192,
+      "result_sha256": "sha256:ad67d2967534b1de406bb4982a9fae2cd6014864bbde6dbd1896573fbc1872a7",
+      "sample": 23,
+      "temperature": "warm",
+      "tool": "rust.supply_chain.inspect",
+      "tool_duration_ms": 6302
+    },
+    {
+      "calibration_ms": 14121,
+      "elapsed_ms": 13750,
+      "reply_bytes": 12340,
+      "result_sha256": "sha256:ea69898f0b1ca2db1304c42fc7ddad3930e524b0ca86768d14baf50fa54bba23",
+      "sample": 23,
+      "temperature": "cold",
+      "tool": "rust.quality.gate.v2",
+      "tool_duration_ms": 13726
+    },
+    {
+      "calibration_ms": 14121,
+      "elapsed_ms": 13845,
+      "reply_bytes": 12340,
+      "result_sha256": "sha256:7cb4a711af1c73d90a351e3df6c9cd31b39f32d4ee95ec2df30e39b7bac13ffa",
+      "sample": 23,
+      "temperature": "warm",
+      "tool": "rust.quality.gate.v2",
+      "tool_duration_ms": 13754
+    },
+    {
+      "calibration_ms": 14084,
+      "elapsed_ms": 6421,
+      "reply_bytes": 9692,
+      "result_sha256": "sha256:aee56fb17629a5731a98e7d894cab7410c4ff65bfd9023cf29bc7bf2ca1266cf",
+      "sample": 24,
+      "temperature": "cold",
+      "tool": "rust.deny",
+      "tool_duration_ms": 6334
+    },
+    {
+      "calibration_ms": 14084,
+      "elapsed_ms": 6231,
+      "reply_bytes": 9692,
+      "result_sha256": "sha256:e0c15d40cc4856d3d5ffbe2f7961f6f8027f665cfcfc6b3fa2d65e8703f67798",
+      "sample": 24,
+      "temperature": "warm",
+      "tool": "rust.deny",
+      "tool_duration_ms": 6156
+    },
+    {
+      "calibration_ms": 14084,
+      "elapsed_ms": 5489,
+      "reply_bytes": 4416,
+      "result_sha256": "sha256:3d8b32e6cec8d8d32bbc1b0544d4f1358a5997530cb305ece6116dc00d320ee5",
+      "sample": 24,
+      "temperature": "cold",
+      "tool": "rust.unsafe.scan",
+      "tool_duration_ms": 5437
+    },
+    {
+      "calibration_ms": 14084,
+      "elapsed_ms": 5598,
+      "reply_bytes": 4416,
+      "result_sha256": "sha256:d285189ced85cfb9ad4f5ffaaef757484c21d9721e889f2ece3f13ff9391d5a4",
+      "sample": 24,
+      "temperature": "warm",
+      "tool": "rust.unsafe.scan",
+      "tool_duration_ms": 5500
+    },
+    {
+      "calibration_ms": 14084,
+      "elapsed_ms": 8692,
+      "reply_bytes": 4332,
+      "result_sha256": "sha256:0d8f907a52bb3aa0550d8560cc4f8b02cd0caf7100db09e086a5d09413f44878",
+      "sample": 24,
+      "temperature": "cold",
+      "tool": "rust.miri",
+      "tool_duration_ms": 8641
+    },
+    {
+      "calibration_ms": 14084,
+      "elapsed_ms": 8586,
+      "reply_bytes": 4332,
+      "result_sha256": "sha256:fd25a4ae6f37b09612b5de5285869d34c5b6b0eae9681ec8685f83e485a002ac",
+      "sample": 24,
+      "temperature": "warm",
+      "tool": "rust.miri",
+      "tool_duration_ms": 8521
+    },
+    {
+      "calibration_ms": 14084,
+      "elapsed_ms": 6431,
+      "reply_bytes": 10192,
+      "result_sha256": "sha256:d68fd2aa57247089f6cdc4f9cf39b2051d19f408717f51e24ffb586a82710668",
+      "sample": 24,
+      "temperature": "cold",
+      "tool": "rust.supply_chain.inspect",
+      "tool_duration_ms": 6372
+    },
+    {
+      "calibration_ms": 14084,
+      "elapsed_ms": 6422,
+      "reply_bytes": 10192,
+      "result_sha256": "sha256:9a360154d033038ca8730765024117675062a4a03636ecb20133f0d9b2366277",
+      "sample": 24,
+      "temperature": "warm",
+      "tool": "rust.supply_chain.inspect",
+      "tool_duration_ms": 6388
+    },
+    {
+      "calibration_ms": 14084,
+      "elapsed_ms": 14907,
+      "reply_bytes": 12340,
+      "result_sha256": "sha256:183f9ad03d88c4537158fce9ff388fbcfb7fc1305afbe20f0551dd97875b00c9",
+      "sample": 24,
+      "temperature": "cold",
+      "tool": "rust.quality.gate.v2",
+      "tool_duration_ms": 14858
+    },
+    {
+      "calibration_ms": 14084,
+      "elapsed_ms": 15168,
+      "reply_bytes": 12342,
+      "result_sha256": "sha256:829fcb839eaae1b2468333e5c2c8597cc60dfdca8b0e590e362207982bb71d15",
+      "sample": 24,
+      "temperature": "warm",
+      "tool": "rust.quality.gate.v2",
+      "tool_duration_ms": 15149
+    },
+    {
+      "calibration_ms": 14273,
+      "elapsed_ms": 6395,
+      "reply_bytes": 9692,
+      "result_sha256": "sha256:1cc6c3daff5c0aadde8703dc70bd144db9d2850155d9dd4914bd1e4faa6939c5",
+      "sample": 25,
+      "temperature": "cold",
+      "tool": "rust.deny",
+      "tool_duration_ms": 6282
+    },
+    {
+      "calibration_ms": 14273,
+      "elapsed_ms": 6323,
+      "reply_bytes": 9692,
+      "result_sha256": "sha256:f62ab8d2abeacfa85c2e64f61aa396426d6337b73852cb482c7975807ea5c1c2",
+      "sample": 25,
+      "temperature": "warm",
+      "tool": "rust.deny",
+      "tool_duration_ms": 6300
+    },
+    {
+      "calibration_ms": 14273,
+      "elapsed_ms": 5488,
+      "reply_bytes": 4416,
+      "result_sha256": "sha256:d23ef85d9c17e8a5f28ced85da715a116f0734cf2db02231112fddb51f614b2a",
+      "sample": 25,
+      "temperature": "cold",
+      "tool": "rust.unsafe.scan",
+      "tool_duration_ms": 5469
+    },
+    {
+      "calibration_ms": 14273,
+      "elapsed_ms": 5590,
+      "reply_bytes": 4416,
+      "result_sha256": "sha256:380d3900db27ea96fd0d279234e159ea8a06b1c5d7344571abe765df76ec2aba",
+      "sample": 25,
+      "temperature": "warm",
+      "tool": "rust.unsafe.scan",
+      "tool_duration_ms": 5473
+    },
+    {
+      "calibration_ms": 14273,
+      "elapsed_ms": 8567,
+      "reply_bytes": 4332,
+      "result_sha256": "sha256:ae907d523ce6ee225790b8953c83199b28c05902873602e0fe757c8d68619c48",
+      "sample": 25,
+      "temperature": "cold",
+      "tool": "rust.miri",
+      "tool_duration_ms": 8457
+    },
+    {
+      "calibration_ms": 14273,
+      "elapsed_ms": 8883,
+      "reply_bytes": 4332,
+      "result_sha256": "sha256:b666cc5d9ea81b3f7eda0daf630a00c81268c7cc426f9948eea9dca256a19e2c",
+      "sample": 25,
+      "temperature": "warm",
+      "tool": "rust.miri",
+      "tool_duration_ms": 8838
+    },
+    {
+      "calibration_ms": 14273,
+      "elapsed_ms": 7780,
+      "reply_bytes": 10192,
+      "result_sha256": "sha256:df9a5ab58465029f7852d6f4df8ebd176226b136dc150abce7756a21af9e1980",
+      "sample": 25,
+      "temperature": "cold",
+      "tool": "rust.supply_chain.inspect",
+      "tool_duration_ms": 7664
+    },
+    {
+      "calibration_ms": 14273,
+      "elapsed_ms": 7640,
+      "reply_bytes": 10192,
+      "result_sha256": "sha256:1cc4e2cb2e3072e5feb81dddc40ef0cf058190acd33731737690c15e3118d14c",
+      "sample": 25,
+      "temperature": "warm",
+      "tool": "rust.supply_chain.inspect",
+      "tool_duration_ms": 7563
+    },
+    {
+      "calibration_ms": 14273,
+      "elapsed_ms": 17044,
+      "reply_bytes": 12342,
+      "result_sha256": "sha256:abbec065b79639e85578d48d336d3e518552a96750fb88a83f6536b0d94b3be3",
+      "sample": 25,
+      "temperature": "cold",
+      "tool": "rust.quality.gate.v2",
+      "tool_duration_ms": 17022
+    },
+    {
+      "calibration_ms": 14273,
+      "elapsed_ms": 14892,
+      "reply_bytes": 12342,
+      "result_sha256": "sha256:e10505c76e1be6c758552788506bd28a9e79fa117a754831cdb8577ec6c9368d",
+      "sample": 25,
+      "temperature": "warm",
+      "tool": "rust.quality.gate.v2",
+      "tool_duration_ms": 14814
+    },
+    {
+      "calibration_ms": 14042,
+      "elapsed_ms": 6231,
+      "reply_bytes": 9692,
+      "result_sha256": "sha256:a655afabd5ff0ccfa76e6efb4688ebdeddbc62bc80ceeed1a4fe90aceaef9332",
+      "sample": 26,
+      "temperature": "cold",
+      "tool": "rust.deny",
+      "tool_duration_ms": 6135
+    },
+    {
+      "calibration_ms": 14042,
+      "elapsed_ms": 6398,
+      "reply_bytes": 9692,
+      "result_sha256": "sha256:7ddff73d39530f3f273e5285385e93a0b0fd11edd5dcff15a5e09bf6bc6ce32c",
+      "sample": 26,
+      "temperature": "warm",
+      "tool": "rust.deny",
+      "tool_duration_ms": 6286
+    },
+    {
+      "calibration_ms": 14042,
+      "elapsed_ms": 5594,
+      "reply_bytes": 4416,
+      "result_sha256": "sha256:423a5d6ab694b9dc57c6eb1acfd5f55b52beefb621ece80427d327cd8f5b880a",
+      "sample": 26,
+      "temperature": "cold",
+      "tool": "rust.unsafe.scan",
+      "tool_duration_ms": 5507
+    },
+    {
+      "calibration_ms": 14042,
+      "elapsed_ms": 5393,
+      "reply_bytes": 4416,
+      "result_sha256": "sha256:272d96f69f5df20298f479d994a9f9c52105ec63bc5faa539c9667eccab32a50",
+      "sample": 26,
+      "temperature": "warm",
+      "tool": "rust.unsafe.scan",
+      "tool_duration_ms": 5330
+    },
+    {
+      "calibration_ms": 14042,
+      "elapsed_ms": 8658,
+      "reply_bytes": 4332,
+      "result_sha256": "sha256:de194ee9c8f888852ca6464fdee12f1bd19329c497eab2741f4bb66eff71801b",
+      "sample": 26,
+      "temperature": "cold",
+      "tool": "rust.miri",
+      "tool_duration_ms": 8642
+    },
+    {
+      "calibration_ms": 14042,
+      "elapsed_ms": 8791,
+      "reply_bytes": 4332,
+      "result_sha256": "sha256:8b79b290c0bf92d717efdd69f46e1051b8a04f5cb3f688accbe1cd521ea077bf",
+      "sample": 26,
+      "temperature": "warm",
+      "tool": "rust.miri",
+      "tool_duration_ms": 8721
+    },
+    {
+      "calibration_ms": 14042,
+      "elapsed_ms": 7014,
+      "reply_bytes": 10192,
+      "result_sha256": "sha256:bddee86efdcd26479876c8dedaf2d3242a5d5f3982ec9c1c07cf90c3fa89a98c",
+      "sample": 26,
+      "temperature": "cold",
+      "tool": "rust.supply_chain.inspect",
+      "tool_duration_ms": 6985
+    },
+    {
+      "calibration_ms": 14042,
+      "elapsed_ms": 6305,
+      "reply_bytes": 10192,
+      "result_sha256": "sha256:521648d15d80eb7952641bdfa7b0ae147f64be78f8f62089492869fd26f9f59b",
+      "sample": 26,
+      "temperature": "warm",
+      "tool": "rust.supply_chain.inspect",
+      "tool_duration_ms": 6201
+    },
+    {
+      "calibration_ms": 14042,
+      "elapsed_ms": 13907,
+      "reply_bytes": 12340,
+      "result_sha256": "sha256:10a67abab3a28aa7680e5c37d733020c1716d6af9509cef3711bd23b871f7889",
+      "sample": 26,
+      "temperature": "cold",
+      "tool": "rust.quality.gate.v2",
+      "tool_duration_ms": 13828
+    },
+    {
+      "calibration_ms": 14042,
+      "elapsed_ms": 13868,
+      "reply_bytes": 12340,
+      "result_sha256": "sha256:055720ec38a4c68382c2315ecbfaf20cf02a601b02917c0e55405ab627cfc277",
+      "sample": 26,
+      "temperature": "warm",
+      "tool": "rust.quality.gate.v2",
+      "tool_duration_ms": 13845
+    },
+    {
+      "calibration_ms": 14174,
+      "elapsed_ms": 6331,
+      "reply_bytes": 9692,
+      "result_sha256": "sha256:b7ca5665a2da89a42b74f9a55ea18802e85ac86402fe0e3b598e41346c7f89eb",
+      "sample": 27,
+      "temperature": "cold",
+      "tool": "rust.deny",
+      "tool_duration_ms": 6315
+    },
+    {
+      "calibration_ms": 14174,
+      "elapsed_ms": 6410,
+      "reply_bytes": 9692,
+      "result_sha256": "sha256:3f3a6f656ca812bfa71af75506b9f51c238353187597d36166a28201f7b0804b",
+      "sample": 27,
+      "temperature": "warm",
+      "tool": "rust.deny",
+      "tool_duration_ms": 6328
+    },
+    {
+      "calibration_ms": 14174,
+      "elapsed_ms": 5593,
+      "reply_bytes": 4416,
+      "result_sha256": "sha256:dc8199bf15b182a7167ad5c1618cb0c0f753adf8c680396187040d5245078bca",
+      "sample": 27,
+      "temperature": "cold",
+      "tool": "rust.unsafe.scan",
+      "tool_duration_ms": 5560
+    },
+    {
+      "calibration_ms": 14174,
+      "elapsed_ms": 5564,
+      "reply_bytes": 4416,
+      "result_sha256": "sha256:eed4cad40291a8ef285e4c63acd783383a371777a492f31f12b1a7a12979aa84",
+      "sample": 27,
+      "temperature": "warm",
+      "tool": "rust.unsafe.scan",
+      "tool_duration_ms": 5464
+    },
+    {
+      "calibration_ms": 14174,
+      "elapsed_ms": 8766,
+      "reply_bytes": 4332,
+      "result_sha256": "sha256:1b7a7b0c8b12da161c0d722659bb7dc3ca3e3a03b5a77a3aff80aea1a511c5ba",
+      "sample": 27,
+      "temperature": "cold",
+      "tool": "rust.miri",
+      "tool_duration_ms": 8674
+    },
+    {
+      "calibration_ms": 14174,
+      "elapsed_ms": 8629,
+      "reply_bytes": 4332,
+      "result_sha256": "sha256:f59368459dd9486800ee43bbc34f9d695958956c1e402062556a6b041d3ec1cf",
+      "sample": 27,
+      "temperature": "warm",
+      "tool": "rust.miri",
+      "tool_duration_ms": 8581
+    },
+    {
+      "calibration_ms": 14174,
+      "elapsed_ms": 6438,
+      "reply_bytes": 10192,
+      "result_sha256": "sha256:26dc81f204b9934fedf3a34df9dca5d90d9223efeb92b593f43349e84fbf044b",
+      "sample": 27,
+      "temperature": "cold",
+      "tool": "rust.supply_chain.inspect",
+      "tool_duration_ms": 6406
+    },
+    {
+      "calibration_ms": 14174,
+      "elapsed_ms": 6313,
+      "reply_bytes": 10192,
+      "result_sha256": "sha256:e01a6bb451e4c0469aef7b5a87887a17e4b4cad7baaa0c4ceae171a9da85419b",
+      "sample": 27,
+      "temperature": "warm",
+      "tool": "rust.supply_chain.inspect",
+      "tool_duration_ms": 6288
+    },
+    {
+      "calibration_ms": 14174,
+      "elapsed_ms": 13911,
+      "reply_bytes": 12340,
+      "result_sha256": "sha256:52c5939148c806187c0c1bb4c9236c83ede9af0637f51600dec88f57cd4365ba",
+      "sample": 27,
+      "temperature": "cold",
+      "tool": "rust.quality.gate.v2",
+      "tool_duration_ms": 13793
+    },
+    {
+      "calibration_ms": 14174,
+      "elapsed_ms": 14022,
+      "reply_bytes": 12340,
+      "result_sha256": "sha256:8626c03eeb40263c8f14c22a566cfc9f7ecbc9ec6ad78427e42f924978f256a6",
+      "sample": 27,
+      "temperature": "warm",
+      "tool": "rust.quality.gate.v2",
+      "tool_duration_ms": 13953
+    },
+    {
+      "calibration_ms": 14103,
+      "elapsed_ms": 6453,
+      "reply_bytes": 9692,
+      "result_sha256": "sha256:12e53c2a5c0f896db3718eecb301abb2181c447fac5d3fe45ee937a2d4de7bf3",
+      "sample": 28,
+      "temperature": "cold",
+      "tool": "rust.deny",
+      "tool_duration_ms": 6346
+    },
+    {
+      "calibration_ms": 14103,
+      "elapsed_ms": 6342,
+      "reply_bytes": 9692,
+      "result_sha256": "sha256:f8c1b5a01a6d3810fd613bcc4ae5c73e0394c9b3ff11ffc2e49b42956d240543",
+      "sample": 28,
+      "temperature": "warm",
+      "tool": "rust.deny",
+      "tool_duration_ms": 6276
+    },
+    {
+      "calibration_ms": 14103,
+      "elapsed_ms": 5567,
+      "reply_bytes": 4416,
+      "result_sha256": "sha256:e9785e747310040f77231bb7e2ad68e2008a6d1b998940d49ed43749291cbd03",
+      "sample": 28,
+      "temperature": "cold",
+      "tool": "rust.unsafe.scan",
+      "tool_duration_ms": 5457
+    },
+    {
+      "calibration_ms": 14103,
+      "elapsed_ms": 5481,
+      "reply_bytes": 4416,
+      "result_sha256": "sha256:b08291430c96d2cb891da21efb4b8316c307c066be55ad1139ee9a6f4bcf5aba",
+      "sample": 28,
+      "temperature": "warm",
+      "tool": "rust.unsafe.scan",
+      "tool_duration_ms": 5414
+    },
+    {
+      "calibration_ms": 14103,
+      "elapsed_ms": 8667,
+      "reply_bytes": 4332,
+      "result_sha256": "sha256:75c7769e41685edba86e215a3e7b94ab795433d8be40aae9de353a49fb3af729",
+      "sample": 28,
+      "temperature": "cold",
+      "tool": "rust.miri",
+      "tool_duration_ms": 8589
+    },
+    {
+      "calibration_ms": 14103,
+      "elapsed_ms": 8725,
+      "reply_bytes": 4332,
+      "result_sha256": "sha256:d216002b24ccee62503f2dd3153ecbbffa3c924e4109e18b82184ec86cf37fdd",
+      "sample": 28,
+      "temperature": "warm",
+      "tool": "rust.miri",
+      "tool_duration_ms": 8643
+    },
+    {
+      "calibration_ms": 14103,
+      "elapsed_ms": 6522,
+      "reply_bytes": 10192,
+      "result_sha256": "sha256:0eae01ea2bbb3cb741d4fed81fd01b6848c8d8e914d1f4dac7011a44d4acd710",
+      "sample": 28,
+      "temperature": "cold",
+      "tool": "rust.supply_chain.inspect",
+      "tool_duration_ms": 6403
+    },
+    {
+      "calibration_ms": 14103,
+      "elapsed_ms": 6415,
+      "reply_bytes": 10192,
+      "result_sha256": "sha256:3b414947ed866e64f1d17cb5f9c9028915e93fed14c4e1ade921bc787688735f",
+      "sample": 28,
+      "temperature": "warm",
+      "tool": "rust.supply_chain.inspect",
+      "tool_duration_ms": 6351
+    },
+    {
+      "calibration_ms": 14103,
+      "elapsed_ms": 13843,
+      "reply_bytes": 12340,
+      "result_sha256": "sha256:928038c149408fc85b6e1f154427939be0cc497af67237df83b8ca6b41142631",
+      "sample": 28,
+      "temperature": "cold",
+      "tool": "rust.quality.gate.v2",
+      "tool_duration_ms": 13788
+    },
+    {
+      "calibration_ms": 14103,
+      "elapsed_ms": 13727,
+      "reply_bytes": 12340,
+      "result_sha256": "sha256:e7efd36e9ebda42214c14849b65f28abf6d0e070c5fff23e2b71bb335957725e",
+      "sample": 28,
+      "temperature": "warm",
+      "tool": "rust.quality.gate.v2",
+      "tool_duration_ms": 13698
+    },
+    {
+      "calibration_ms": 14168,
+      "elapsed_ms": 6317,
+      "reply_bytes": 9692,
+      "result_sha256": "sha256:3c4450989e5c1bc18f3e3b45d95df108b8cc72f471c628855e4868bd732bee84",
+      "sample": 29,
+      "temperature": "cold",
+      "tool": "rust.deny",
+      "tool_duration_ms": 6267
+    },
+    {
+      "calibration_ms": 14168,
+      "elapsed_ms": 6361,
+      "reply_bytes": 9692,
+      "result_sha256": "sha256:fcc3a73509fee99a3b60ed4f178c940b57572833adf5c54a4249e071527fbf46",
+      "sample": 29,
+      "temperature": "warm",
+      "tool": "rust.deny",
+      "tool_duration_ms": 6295
+    },
+    {
+      "calibration_ms": 14168,
+      "elapsed_ms": 5481,
+      "reply_bytes": 4416,
+      "result_sha256": "sha256:41181dea6fcd3992ea670d8c906eea2c96cbb0caf2084709410cf8c543b8c0db",
+      "sample": 29,
+      "temperature": "cold",
+      "tool": "rust.unsafe.scan",
+      "tool_duration_ms": 5455
+    },
+    {
+      "calibration_ms": 14168,
+      "elapsed_ms": 5469,
+      "reply_bytes": 4416,
+      "result_sha256": "sha256:f833cc4cb3c35fe6fc4bb79708716c7ed087da99a81b90ea9827d08a4aa7dfca",
+      "sample": 29,
+      "temperature": "warm",
+      "tool": "rust.unsafe.scan",
+      "tool_duration_ms": 5411
+    },
+    {
+      "calibration_ms": 14168,
+      "elapsed_ms": 8572,
+      "reply_bytes": 4332,
+      "result_sha256": "sha256:71333088969fbac1ed9c4e14b53ffabd8f37cf4025b6465e300c8ee0e09058db",
+      "sample": 29,
+      "temperature": "cold",
+      "tool": "rust.miri",
+      "tool_duration_ms": 8551
+    },
+    {
+      "calibration_ms": 14168,
+      "elapsed_ms": 8588,
+      "reply_bytes": 4332,
+      "result_sha256": "sha256:b4ce79a7dcb1e8ae2f4454e8270b10f1b14555d948999b61c893a41c33e0c5d0",
+      "sample": 29,
+      "temperature": "warm",
+      "tool": "rust.miri",
+      "tool_duration_ms": 8488
+    },
+    {
+      "calibration_ms": 14168,
+      "elapsed_ms": 6438,
+      "reply_bytes": 10192,
+      "result_sha256": "sha256:c3f511be2ac0428515aa9b0cbeba47fe5e90c174c969631a02e307cecb22b720",
+      "sample": 29,
+      "temperature": "cold",
+      "tool": "rust.supply_chain.inspect",
+      "tool_duration_ms": 6366
+    },
+    {
+      "calibration_ms": 14168,
+      "elapsed_ms": 6407,
+      "reply_bytes": 10192,
+      "result_sha256": "sha256:0368fa2805674b7a47bcd99646033301c81134dd9829e2cf0288571fa6268a7f",
+      "sample": 29,
+      "temperature": "warm",
+      "tool": "rust.supply_chain.inspect",
+      "tool_duration_ms": 6321
+    },
+    {
+      "calibration_ms": 14168,
+      "elapsed_ms": 13729,
+      "reply_bytes": 12340,
+      "result_sha256": "sha256:6f21c4b4ba80dccc666d60bbfa2343245a41f3a1d114264347f699df966a8ef0",
+      "sample": 29,
+      "temperature": "cold",
+      "tool": "rust.quality.gate.v2",
+      "tool_duration_ms": 13610
+    },
+    {
+      "calibration_ms": 14168,
+      "elapsed_ms": 13755,
+      "reply_bytes": 12340,
+      "result_sha256": "sha256:0f9ad14858f307e48a6c76c36f98c51ef3044ed61f47503c5c678f7aaf2be38e",
+      "sample": 29,
+      "temperature": "warm",
+      "tool": "rust.quality.gate.v2",
+      "tool_duration_ms": 13658
+    }
+  ],
+  "samples_each": 30,
+  "status": "passed"
+}

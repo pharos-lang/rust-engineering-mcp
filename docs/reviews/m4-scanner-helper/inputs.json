@@ -1,0 +1,37 @@
+[
+  {
+    "path": "docs/adr/ADR-069-isolated-unsafe-syntax-scanner.md",
+    "sha256": "ea8a4d66415295c6b78a40dd3cd0f470663460173c26e8b0c6d511aff9030c35",
+    "bytes": 5208
+  },
+  {
+    "path": "fixtures/unsafe-scanner-helper/Cargo.toml",
+    "sha256": "6ef99df592733f53b4876667ebe67d7b8152624e0bd874e907080c5dbac959b3",
+    "bytes": 641
+  },
+  {
+    "path": "fixtures/unsafe-scanner-helper/Cargo.lock",
+    "sha256": "e446a33a37eb46ca6d4dd41abf8c4f3ffb0654d744b002c0c99e48e63effb1ad",
+    "bytes": 2711
+  },
+  {
+    "path": "fixtures/unsafe-scanner-helper/src/lib.rs",
+    "sha256": "c99e5d763c02382c0d19f9299d57fbad77b24f24b335202d3560016bcfce3bb7",
+    "bytes": 33353
+  },
+  {
+    "path": "fixtures/unsafe-scanner-helper/src/main.rs",
+    "sha256": "594fcb05deaf2de4f2c69a270ac5271f07b7361637abb6d913f7ca0a02b85578",
+    "bytes": 2228
+  },
+  {
+    "path": "fixtures/unsafe-scanner-helper/README.md",
+    "sha256": "4986c41c3bc3db9f231a41a2bba55848cf33ba81740b607a916254649a56fee5",
+    "bytes": 4868
+  },
+  {
+    "path": "fixtures/unsafe-scanner-helper/hostile/generate.py",
+    "sha256": "cc8f21326feae20b675aca490b5bd00a1b3709511900d69367407315a04eb8dc",
+    "bytes": 1637
+  }
+]

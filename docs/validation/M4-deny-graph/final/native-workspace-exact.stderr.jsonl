@@ -1,0 +1,20 @@
+{"fields":{"level":"INFO","message":"network access disabled via --offline (or --frozen) flag, disabling advisory database fetching","timestamp":"2026-09-08T06:16:48.796971804Z"},"type":"log"}
+{"fields":{"level":"INFO","message":"using config from /security/deny.toml","timestamp":"2026-09-08T06:16:48.797065013Z"},"type":"log"}
+{"fields":{"level":"DEBUG","message":"loading license store...","timestamp":"2026-09-08T06:16:48.797256263Z"},"type":"log"}
+{"fields":{"level":"INFO","message":"fetching crates for /source/Cargo.toml","timestamp":"2026-09-08T06:16:48.860962846Z"},"type":"log"}
+{"fields":{"level":"INFO","message":"fetched crates in 19.491166ms","timestamp":"2026-09-08T06:16:48.88045468Z"},"type":"log"}
+{"fields":{"level":"INFO","message":"gathering crates for /source/Cargo.toml","timestamp":"2026-09-08T06:16:48.880475555Z"},"type":"log"}
+{"fields":{"level":"DEBUG","message":"gathering crate metadata","timestamp":"2026-09-08T06:16:48.880486096Z"},"type":"log"}
+{"fields":{"level":"DEBUG","message":"gathered crate metadata in 0ms","timestamp":"2026-09-08T06:16:48.880496763Z"},"type":"log"}
+{"fields":{"level":"INFO","message":"gathered 2 crates in 3ms","timestamp":"2026-09-08T06:16:48.883734513Z"},"type":"log"}
+{"fields":{"level":"INFO","message":"checking sources...","timestamp":"2026-09-08T06:16:48.891820721Z"},"type":"log"}
+{"fields":{"level":"INFO","message":"sources checked in 0ms","timestamp":"2026-09-08T06:16:48.891839055Z"},"type":"log"}
+{"fields":{"level":"INFO","message":"checking bans...","timestamp":"2026-09-08T06:16:48.891850055Z"},"type":"log"}
+{"fields":{"level":"INFO","message":"bans checked in 0ms","timestamp":"2026-09-08T06:16:48.891868971Z"},"type":"log"}
+{"fields":{"level":"INFO","message":"checking licenses...","timestamp":"2026-09-08T06:16:48.891877388Z"},"type":"log"}
+{"fields":{"level":"INFO","message":"licenses checked in 8ms","timestamp":"2026-09-08T06:16:48.900367596Z"},"type":"log"}
+{"fields":{"code":"no-license-field","graphs":[{"Krate":{"name":"app","version":"0.1.0"}}],"message":"license expression was not specified in manifest for crate 'app = 0.1.0'","severity":"warning"},"type":"diagnostic"}
+{"fields":{"code":"accepted","graphs":[{"Krate":{"name":"app","version":"0.1.0"}}],"labels":[{"column":15,"line":5,"message":"license expression retrieved via license files: LICENSE-MIT","span":"MIT"},{"column":15,"line":5,"message":"accepted: license is explicitly allowed","span":"MIT"}],"message":"license requirements satisfied","severity":"help"},"type":"diagnostic"}
+{"fields":{"code":"no-license-field","graphs":[{"Krate":{"name":"helper","version":"0.1.0"},"parents":[{"Krate":{"kind":"build","name":"app","version":"0.1.0"}}]}],"message":"license expression was not specified in manifest for crate 'helper = 0.1.0'","severity":"warning"},"type":"diagnostic"}
+{"fields":{"code":"accepted","graphs":[{"Krate":{"name":"helper","version":"0.1.0"},"parents":[{"Krate":{"kind":"build","name":"app","version":"0.1.0"}}]}],"labels":[{"column":15,"line":5,"message":"license expression retrieved via license files: LICENSE-MIT","span":"MIT"},{"column":15,"line":5,"message":"accepted: license is explicitly allowed","span":"MIT"}],"message":"license requirements satisfied","severity":"help"},"type":"diagnostic"}
+{"fields":{"bans":{"errors":0,"helps":0,"notes":0,"warnings":0},"licenses":{"errors":0,"helps":2,"notes":0,"warnings":2},"sources":{"errors":0,"helps":0,"notes":0,"warnings":0}},"type":"summary"}

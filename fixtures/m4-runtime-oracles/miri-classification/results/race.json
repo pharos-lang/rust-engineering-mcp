@@ -1,0 +1,279 @@
+{
+  "argv": [
+    "run",
+    "--name=m4-miri-classification-race-b5bacaf7a8794acdb84d36a9ca977d41",
+    "--pull=never",
+    "--network=none",
+    "--read-only",
+    "--cap-drop=ALL",
+    "--security-opt=no-new-privileges=true",
+    "--user=65534:65534",
+    "--pids-limit=128",
+    "--memory=1g",
+    "--memory-swap=1g",
+    "--cpus=1",
+    "--tmpfs=/work:rw,exec,nosuid,nodev,size=512m,mode=1777",
+    "--tmpfs=/tmp:rw,noexec,nosuid,nodev,size=64m,mode=1777",
+    "--workdir=/source",
+    "--mount=type=bind,source=/Users/cburgosro/Projects/rust-mcp/fixtures/m4-runtime-oracles/miri-classification/race,target=/source,readonly",
+    "--mount=type=bind,source=/Users/cburgosro/Projects/rust-mcp/fixtures/m4-runtime-oracles/miri-classification/nextest.toml,target=/qualification/nextest.toml,readonly",
+    "--mount=type=volume,source=m4-miri-classification-junit-b5bacaf7a8794acdb84d36a9ca977d41,target=/junit",
+    "--entrypoint=/usr/bin/env",
+    "sha256:95dddeb5305f10b09b441e3cc4018ebb1a8a296d365c65106327d59f933c64e7",
+    "-i",
+    "PATH=/opt/rust-nightly-2026-09-07/bin:/opt/rust/bin:/usr/bin:/bin",
+    "HOME=/work",
+    "TMPDIR=/tmp",
+    "CARGO_HOME=/work/cargo",
+    "CARGO_TARGET_DIR=/work/target",
+    "CARGO_NET_OFFLINE=true",
+    "CARGO_INCREMENTAL=0",
+    "MIRI=/opt/rust-nightly-2026-09-07/bin/miri",
+    "MIRI_SYSROOT=/opt/miri-sysroot/2026-09-07/aarch64-unknown-linux-gnu",
+    "MIRIFLAGS=--error-format=json -Zmiri-isolation-error=abort -Zmiri-backtrace=0",
+    "RUSTC=/opt/rust-nightly-2026-09-07/bin/rustc",
+    "CARGO=/opt/rust-nightly-2026-09-07/bin/cargo",
+    "/opt/rust-nightly-2026-09-07/bin/cargo",
+    "miri",
+    "nextest",
+    "run",
+    "--manifest-path=/source/Cargo.toml",
+    "--config-file=/qualification/nextest.toml",
+    "--profile=rust-mcp-miri",
+    "--frozen",
+    "--offline",
+    "--color=never",
+    "--no-fail-fast",
+    "--build-jobs=1",
+    "--test-threads=1",
+    "--target=aarch64-unknown-linux-gnu"
+  ],
+  "case": "race",
+  "claim": "empirical first-party fixture oracle; not gateway qualification",
+  "classification": [
+    "undefined_behavior"
+  ],
+  "cleanup_confirmed": true,
+  "config_sha256": "sha256:621739d9514b0bf15a1dec7372e71d01a132aada67c63d486194166231dd75dc",
+  "elapsed_seconds": 1.236258,
+  "exit_code": 100,
+  "fixture_sha256": "sha256:95b8cd146a69d1db872b6537ec797c6032db26810667a07d44c2802118162b3d",
+  "forged_runtime_marker_present": false,
+  "guest_env": {
+    "CARGO": "/opt/rust-nightly-2026-09-07/bin/cargo",
+    "CARGO_HOME": "/work/cargo",
+    "CARGO_INCREMENTAL": "0",
+    "CARGO_NET_OFFLINE": "true",
+    "CARGO_TARGET_DIR": "/work/target",
+    "HOME": "/work",
+    "MIRI": "/opt/rust-nightly-2026-09-07/bin/miri",
+    "MIRIFLAGS_LIST": "--error-format=json -Zmiri-isolation-error=abort -Zmiri-backtrace=0",
+    "MIRIFLAGS_RUN": "--error-format=json -Zmiri-isolation-error=abort -Zmiri-backtrace=0 -Zmiri-mute-stdout-stderr",
+    "MIRI_SYSROOT": "/opt/miri-sysroot/2026-09-07/aarch64-unknown-linux-gnu",
+    "PATH": "/opt/rust-nightly-2026-09-07/bin:/opt/rust/bin:/usr/bin:/bin",
+    "RUSTC": "/opt/rust-nightly-2026-09-07/bin/rustc",
+    "TMPDIR": "/tmp"
+  },
+  "image_id": "sha256:95dddeb5305f10b09b441e3cc4018ebb1a8a296d365c65106327d59f933c64e7",
+  "junit": {
+    "complete": true,
+    "declared": {
+      "disabled": null,
+      "errors": "0",
+      "failures": "1",
+      "tests": "1"
+    },
+    "tests": [
+      {
+        "classname": "m4-miri-race",
+        "diagnostics": [
+          {
+            "$message_type": "diagnostic",
+            "children": [
+              {
+                "children": [],
+                "code": null,
+                "level": "help",
+                "message": "and (1) occurred earlier here",
+                "rendered": null,
+                "spans": [
+                  {
+                    "byte_end": 525,
+                    "byte_start": 503,
+                    "column_end": 39,
+                    "column_start": 17,
+                    "expansion": null,
+                    "file_name": "src/lib.rs",
+                    "is_primary": true,
+                    "label": null,
+                    "line_end": 19,
+                    "line_start": 19,
+                    "suggested_replacement": null,
+                    "suggestion_applicability": null,
+                    "text": [
+                      {
+                        "highlight_end": 39,
+                        "highlight_start": 17,
+                        "text": "                *VALUE.0.get() = value;"
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "children": [],
+                "code": null,
+                "level": "help",
+                "message": "this indicates a bug in the program: it performed an invalid operation, and caused Undefined Behavior",
+                "rendered": null,
+                "spans": []
+              },
+              {
+                "children": [],
+                "code": null,
+                "level": "help",
+                "message": "see https://doc.rust-lang.org/nightly/reference/behavior-considered-undefined.html for further information",
+                "rendered": null,
+                "spans": []
+              },
+              {
+                "children": [],
+                "code": null,
+                "level": "note",
+                "message": "this is on thread `unnamed-2`",
+                "rendered": null,
+                "spans": []
+              },
+              {
+                "children": [],
+                "code": null,
+                "level": "note",
+                "message": "the current function got called indirectly due to this code",
+                "rendered": null,
+                "spans": [
+                  {
+                    "byte_end": 551,
+                    "byte_start": 409,
+                    "column_end": 11,
+                    "column_start": 22,
+                    "expansion": null,
+                    "file_name": "src/lib.rs",
+                    "is_primary": true,
+                    "label": null,
+                    "line_end": 21,
+                    "line_start": 16,
+                    "suggested_replacement": null,
+                    "suggestion_applicability": null,
+                    "text": [
+                      {
+                        "highlight_end": 50,
+                        "highlight_start": 22,
+                        "text": "        threads.push(std::thread::spawn(move || {"
+                      },
+                      {
+                        "highlight_end": 28,
+                        "highlight_start": 1,
+                        "text": "            barrier.wait();"
+                      },
+                      {
+                        "highlight_end": 21,
+                        "highlight_start": 1,
+                        "text": "            unsafe {"
+                      },
+                      {
+                        "highlight_end": 40,
+                        "highlight_start": 1,
+                        "text": "                *VALUE.0.get() = value;"
+                      },
+                      {
+                        "highlight_end": 14,
+                        "highlight_start": 1,
+                        "text": "            }"
+                      },
+                      {
+                        "highlight_end": 11,
+                        "highlight_start": 1,
+                        "text": "        }));"
+                      }
+                    ]
+                  }
+                ]
+              }
+            ],
+            "code": null,
+            "level": "error",
+            "message": "Undefined Behavior: Data race detected between (1) non-atomic write on thread `unnamed-3` and (2) non-atomic write on thread `unnamed-2` at alloc1",
+            "rendered": "error: Undefined Behavior: Data race detected between (1) non-atomic write on thread `unnamed-3` and (2) non-atomic write on thread `unnamed-2` at alloc1\n  --> src/lib.rs:19:17\n   |\n19 |                 *VALUE.0.get() = value;\n   |                 ^^^^^^^^^^^^^^^^^^^^^^ (2) just happened here\n   |\nhelp: and (1) occurred earlier here\n  --> src/lib.rs:19:17\n   |\n19 |                 *VALUE.0.get() = value;\n   |                 ^^^^^^^^^^^^^^^^^^^^^^\n   = help: this indicates a bug in the program: it performed an invalid operation, and caused Undefined Behavior\n   = help: see https://doc.rust-lang.org/nightly/reference/behavior-considered-undefined.html for further information\n   = note: this is on thread `unnamed-2`\nnote: the current function got called indirectly due to this code\n  --> src/lib.rs:16:22\n   |\n16 |           threads.push(std::thread::spawn(move || {\n   |  ______________________^\n17 | |             barrier.wait();\n18 | |             unsafe {\n19 | |                 *VALUE.0.get() = value;\n20 | |             }\n21 | |         }));\n   | |__________^\n\n",
+            "spans": [
+              {
+                "byte_end": 525,
+                "byte_start": 503,
+                "column_end": 39,
+                "column_start": 17,
+                "expansion": null,
+                "file_name": "src/lib.rs",
+                "is_primary": true,
+                "label": "(2) just happened here",
+                "line_end": 19,
+                "line_start": 19,
+                "suggested_replacement": null,
+                "suggestion_applicability": null,
+                "text": [
+                  {
+                    "highlight_end": 39,
+                    "highlight_start": 17,
+                    "text": "                *VALUE.0.get() = value;"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "$message_type": "diagnostic",
+            "children": [],
+            "code": null,
+            "level": "error",
+            "message": "aborting due to 1 previous error",
+            "rendered": "error: aborting due to 1 previous error\n\n",
+            "spans": []
+          }
+        ],
+        "name": "unordered_thread_writes_are_a_data_race",
+        "status": "failure",
+        "system_err": "{\"$message_type\":\"diagnostic\",\"message\":\"Undefined Behavior: Data race detected between (1) non-atomic write on thread `unnamed-3` and (2) non-atomic write on thread `unnamed-2` at alloc1\",\"code\":null,\"level\":\"error\",\"spans\":[{\"file_name\":\"src/lib.rs\",\"byte_start\":503,\"byte_end\":525,\"line_start\":19,\"line_end\":19,\"column_start\":17,\"column_end\":39,\"is_primary\":true,\"text\":[{\"text\":\"                *VALUE.0.get() = value;\",\"highlight_start\":17,\"highlight_end\":39}],\"label\":\"(2) just happened here\",\"suggested_replacement\":null,\"suggestion_applicability\":null,\"expansion\":null}],\"children\":[{\"message\":\"and (1) occurred earlier here\",\"code\":null,\"level\":\"help\",\"spans\":[{\"file_name\":\"src/lib.rs\",\"byte_start\":503,\"byte_end\":525,\"line_start\":19,\"line_end\":19,\"column_start\":17,\"column_end\":39,\"is_primary\":true,\"text\":[{\"text\":\"                *VALUE.0.get() = value;\",\"highlight_start\":17,\"highlight_end\":39}],\"label\":null,\"suggested_replacement\":null,\"suggestion_applicability\":null,\"expansion\":null}],\"children\":[],\"rendered\":null},{\"message\":\"this indicates a bug in the program: it performed an invalid operation, and caused Undefined Behavior\",\"code\":null,\"level\":\"help\",\"spans\":[],\"children\":[],\"rendered\":null},{\"message\":\"see https://doc.rust-lang.org/nightly/reference/behavior-considered-undefined.html for further information\",\"code\":null,\"level\":\"help\",\"spans\":[],\"children\":[],\"rendered\":null},{\"message\":\"this is on thread `unnamed-2`\",\"code\":null,\"level\":\"note\",\"spans\":[],\"children\":[],\"rendered\":null},{\"message\":\"the current function got called indirectly due to this code\",\"code\":null,\"level\":\"note\",\"spans\":[{\"file_name\":\"src/lib.rs\",\"byte_start\":409,\"byte_end\":551,\"line_start\":16,\"line_end\":21,\"column_start\":22,\"column_end\":11,\"is_primary\":true,\"text\":[{\"text\":\"        threads.push(std::thread::spawn(move || {\",\"highlight_start\":22,\"highlight_end\":50},{\"text\":\"            barrier.wait();\",\"highlight_start\":1,\"highlight_end\":28},{\"text\":\"            unsafe {\",\"highlight_start\":1,\"highlight_end\":21},{\"text\":\"                *VALUE.0.get() = value;\",\"highlight_start\":1,\"highlight_end\":40},{\"text\":\"            }\",\"highlight_start\":1,\"highlight_end\":14},{\"text\":\"        }));\",\"highlight_start\":1,\"highlight_end\":11}],\"label\":null,\"suggested_replacement\":null,\"suggestion_applicability\":null,\"expansion\":null}],\"children\":[],\"rendered\":null}],\"rendered\":\"error: Undefined Behavior: Data race detected between (1) non-atomic write on thread `unnamed-3` and (2) non-atomic write on thread `unnamed-2` at alloc1\\n  --> src/lib.rs:19:17\\n   |\\n19 |                 *VALUE.0.get() = value;\\n   |                 ^^^^^^^^^^^^^^^^^^^^^^ (2) just happened here\\n   |\\nhelp: and (1) occurred earlier here\\n  --> src/lib.rs:19:17\\n   |\\n19 |                 *VALUE.0.get() = value;\\n   |                 ^^^^^^^^^^^^^^^^^^^^^^\\n   = help: this indicates a bug in the program: it performed an invalid operation, and caused Undefined Behavior\\n   = help: see https://doc.rust-lang.org/nightly/reference/behavior-considered-undefined.html for further information\\n   = note: this is on thread `unnamed-2`\\nnote: the current function got called indirectly due to this code\\n  --> src/lib.rs:16:22\\n   |\\n16 |           threads.push(std::thread::spawn(move || {\\n   |  ______________________^\\n17 | |             barrier.wait();\\n18 | |             unsafe {\\n19 | |                 *VALUE.0.get() = value;\\n20 | |             }\\n21 | |         }));\\n   | |__________^\\n\\n\"}\n{\"$message_type\":\"diagnostic\",\"message\":\"aborting due to 1 previous error\",\"code\":null,\"level\":\"error\",\"spans\":[],\"children\":[],\"rendered\":\"error: aborting due to 1 previous error\\n\\n\"}\n",
+        "terminal": {
+          "message": null,
+          "text": "",
+          "type": "test failure with exit code 1"
+        }
+      }
+    ]
+  },
+  "junit_sha256": "sha256:1b0fc0306a5ea6aeacb13e94911c08f91090ab805079ee0d5ef710274c259ff9",
+  "junit_truncated": false,
+  "limits": {
+    "cpus": 1,
+    "junit_bytes": 524288,
+    "memory_bytes": 1073741824,
+    "pids": 128,
+    "stream_bytes_each": 524288,
+    "tmp_tmpfs_bytes": 67108864,
+    "wall_seconds": 240,
+    "work_tmpfs_bytes": 536870912
+  },
+  "network": "none",
+  "observed_at": "2026-09-08T01:25:22.051023+00:00",
+  "passed": true,
+  "rootfs_readonly": true,
+  "schema": "rust-engineering-mcp.m4-miri-classification-case.v1",
+  "source_readonly": true,
+  "source_unchanged": true,
+  "stderr": "info: experimental features enabled: wrapper-scripts\n   Compiling m4-miri-race v0.0.0 (/source)\nwarning: unused imports: `Arc` and `Barrier`\n --> src/lib.rs:2:17\n  |\n2 | use std::sync::{Arc, Barrier};\n  |                 ^^^  ^^^^^^^\n  |\n  = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default\n\nwarning: struct `Shared` is never constructed\n --> src/lib.rs:4:8\n  |\n4 | struct Shared(UnsafeCell<u32>);\n  |        ^^^^^^\n  |\n  = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default\n\nwarning: static `VALUE` is never used\n --> src/lib.rs:8:8\n  |\n8 | static VALUE: Shared = Shared(UnsafeCell::new(0));\n  |        ^^^^^\n\nwarning: `m4-miri-race` (lib) generated 3 warnings (run `cargo fix --lib -p m4-miri-race` to apply 1 suggestion)\n    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.04s\ninfo: for the target platform, using target runner `/opt/rust-nightly-2026-09-07/bin/cargo-miri runner` defined by `target.cfg(all()).runner` specified by `--config`\ninfo: for the host platform, using target runner `/opt/rust-nightly-2026-09-07/bin/cargo-miri runner` defined by `target.cfg(all()).runner` specified by `--config`\n\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\n Nextest run ID b850ae02-0554-4076-92a0-27a3e7bf9672 with nextest profile: rust-mcp-miri\n    Starting 1 test across 1 binary\n        FAIL [   0.368s] (1/1) m4-miri-race unordered_thread_writes_are_a_data_race\n  stderr \u2500\u2500\u2500\n    {\"$message_type\":\"diagnostic\",\"message\":\"Undefined Behavior: Data race detected between (1) non-atomic write on thread `unnamed-3` and (2) non-atomic write on thread `unnamed-2` at alloc1\",\"code\":null,\"level\":\"error\",\"spans\":[{\"file_name\":\"src/lib.rs\",\"byte_start\":503,\"byte_end\":525,\"line_start\":19,\"line_end\":19,\"column_start\":17,\"column_end\":39,\"is_primary\":true,\"text\":[{\"text\":\"                *VALUE.0.get() = value;\",\"highlight_start\":17,\"highlight_end\":39}],\"label\":\"(2) just happened here\",\"suggested_replacement\":null,\"suggestion_applicability\":null,\"expansion\":null}],\"children\":[{\"message\":\"and (1) occurred earlier here\",\"code\":null,\"level\":\"help\",\"spans\":[{\"file_name\":\"src/lib.rs\",\"byte_start\":503,\"byte_end\":525,\"line_start\":19,\"line_end\":19,\"column_start\":17,\"column_end\":39,\"is_primary\":true,\"text\":[{\"text\":\"                *VALUE.0.get() = value;\",\"highlight_start\":17,\"highlight_end\":39}],\"label\":null,\"suggested_replacement\":null,\"suggestion_applicability\":null,\"expansion\":null}],\"children\":[],\"rendered\":null},{\"message\":\"this indicates a bug in the program: it performed an invalid operation, and caused Undefined Behavior\",\"code\":null,\"level\":\"help\",\"spans\":[],\"children\":[],\"rendered\":null},{\"message\":\"see https://doc.rust-lang.org/nightly/reference/behavior-considered-undefined.html for further information\",\"code\":null,\"level\":\"help\",\"spans\":[],\"children\":[],\"rendered\":null},{\"message\":\"this is on thread `unnamed-2`\",\"code\":null,\"level\":\"note\",\"spans\":[],\"children\":[],\"rendered\":null},{\"message\":\"the current function got called indirectly due to this code\",\"code\":null,\"level\":\"note\",\"spans\":[{\"file_name\":\"src/lib.rs\",\"byte_start\":409,\"byte_end\":551,\"line_start\":16,\"line_end\":21,\"column_start\":22,\"column_end\":11,\"is_primary\":true,\"text\":[{\"text\":\"        threads.push(std::thread::spawn(move || {\",\"highlight_start\":22,\"highlight_end\":50},{\"text\":\"            barrier.wait();\",\"highlight_start\":1,\"highlight_end\":28},{\"text\":\"            unsafe {\",\"highlight_start\":1,\"highlight_end\":21},{\"text\":\"                *VALUE.0.get() = value;\",\"highlight_start\":1,\"highlight_end\":40},{\"text\":\"            }\",\"highlight_start\":1,\"highlight_end\":14},{\"text\":\"        }));\",\"highlight_start\":1,\"highlight_end\":11}],\"label\":null,\"suggested_replacement\":null,\"suggestion_applicability\":null,\"expansion\":null}],\"children\":[],\"rendered\":null}],\"rendered\":\"error: Undefined Behavior: Data race detected between (1) non-atomic write on thread `unnamed-3` and (2) non-atomic write on thread `unnamed-2` at alloc1\\n  --> src/lib.rs:19:17\\n   |\\n19 |                 *VALUE.0.get() = value;\\n   |                 ^^^^^^^^^^^^^^^^^^^^^^ (2) just happened here\\n   |\\nhelp: and (1) occurred earlier here\\n  --> src/lib.rs:19:17\\n   |\\n19 |                 *VALUE.0.get() = value;\\n   |                 ^^^^^^^^^^^^^^^^^^^^^^\\n   = help: this indicates a bug in the program: it performed an invalid operation, and caused Undefined Behavior\\n   = help: see https://doc.rust-lang.org/nightly/reference/behavior-considered-undefined.html for further information\\n   = note: this is on thread `unnamed-2`\\nnote: the current function got called indirectly due to this code\\n  --> src/lib.rs:16:22\\n   |\\n16 |           threads.push(std::thread::spawn(move || {\\n   |  ______________________^\\n17 | |             barrier.wait();\\n18 | |             unsafe {\\n19 | |                 *VALUE.0.get() = value;\\n20 | |             }\\n21 | |         }));\\n   | |__________^\\n\\n\"}\n    {\"$message_type\":\"diagnostic\",\"message\":\"aborting due to 1 previous error\",\"code\":null,\"level\":\"error\",\"spans\":[],\"children\":[],\"rendered\":\"error: aborting due to 1 previous error\\n\\n\"}\n\n    (test failed with exit code 1)\n\n\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\n     Summary [   0.369s] 1 test run: 0 passed, 1 failed, 0 skipped\n        FAIL [   0.368s] (1/1) m4-miri-race unordered_thread_writes_are_a_data_race\nerror: test run failed\n",
+  "stderr_sha256": "sha256:14f6ba67c9e033f69083d7c5f2242061b57adaf3cec4f93283ef370c8de6cba9",
+  "stderr_truncated": false,
+  "stdout": "",
+  "stdout_sha256": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "stdout_truncated": false,
+  "timed_out": false,
+  "user": "65534:65534"
+}

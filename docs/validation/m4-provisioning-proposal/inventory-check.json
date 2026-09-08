@@ -1,0 +1,11 @@
+{
+  "observed_at": "2026-09-07T22:14:10.569944+00:00",
+  "manifest_sha256": "5b7cb0f2c3fb66afb3095b0d40526c58d81ad757359e17c9f0815e960043976d",
+  "validation": "JSON, counts, hash grammar, positive sizes, licenses, static.crates.io URLs, consistent overlap; no archive download or hash verification of archives",
+  "deny_dependency_entries": 212,
+  "sysroot_dependency_entries": 31,
+  "unique_dependency_archives": 238,
+  "unique_dependency_archive_bytes": 36842305,
+  "total_unique_archives_bytes": 158043503,
+  "gateway_approved": false
+}

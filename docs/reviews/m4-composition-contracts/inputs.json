@@ -1,0 +1,77 @@
+[
+  {
+    "path": "crates/domain/src/supply_chain.rs",
+    "sha256": "f12775b2a98e2312c9e4b524a4115c457d76b5d622312264e533d0d157fe0e85",
+    "bytes": 6998
+  },
+  {
+    "path": "crates/domain/src/quality_v2.rs",
+    "sha256": "d319bf8eff39e773b9fde5b699843e611d2dd6eefc9713049011276990c005fe",
+    "bytes": 6952
+  },
+  {
+    "path": "crates/application/src/security.rs",
+    "sha256": "3eb63a906cd6325dea5b98ed8b12d099f67d0a416b29f0c4baf052bc51ce849f",
+    "bytes": 13210
+  },
+  {
+    "path": "crates/application/src/supply_chain.rs",
+    "sha256": "8ac7cc62a752f35f5e9a2519863b44babc8eebbcfe6d7663ae6e6c9df9e24a4c",
+    "bytes": 10402
+  },
+  {
+    "path": "crates/application/src/quality_v2.rs",
+    "sha256": "3c34fbee8e8887413f766f60d8d86e6544ad4064fe376bd02f9ded22b31fe49a",
+    "bytes": 23147
+  },
+  {
+    "path": "crates/mcp-server/src/stdio/supply_chain.rs",
+    "sha256": "4db96073664fa7ad3366a6b778bb4c5040f974e36b02de4f53cf8e66dd43df6f",
+    "bytes": 18529
+  },
+  {
+    "path": "crates/mcp-server/src/stdio/supply_chain/schemas.rs",
+    "sha256": "1b74b28b46322be946fcb9de52a016f853dae1755518e8346e187057bcfd1ba6",
+    "bytes": 4723
+  },
+  {
+    "path": "crates/mcp-server/src/stdio/quality_v2.rs",
+    "sha256": "26d5ba156a59d4016c1612cdbc29aabaedc475082774ddc599a2359011558bd4",
+    "bytes": 20160
+  },
+  {
+    "path": "crates/mcp-server/src/stdio/quality_v2/schemas.rs",
+    "sha256": "1c4fe9ed1e325e09c7ec6cbbc27663c7abafb60507b4edfe231692ea71c8a9ee",
+    "bytes": 4349
+  },
+  {
+    "path": "crates/application/tests/security.rs",
+    "sha256": "5c5c10449e201d1dfa230479f07bc6f80abf40ff2cc8162031c9a171dd04ae3e",
+    "bytes": 54140
+  },
+  {
+    "path": "crates/application/tests/quality_v2.rs",
+    "sha256": "bd5d1d9b5adbbff2526a6e04558f4c3a39c0f4198d31ad7df76005c249385ad9",
+    "bytes": 26991
+  },
+  {
+    "path": "crates/mcp-server/src/stdio/security_contract_tests.rs",
+    "sha256": "77638f0af02adf036f5dc1035b5e5ae8d6b5a880ac530d5bdc7adc14af6bf670",
+    "bytes": 29689
+  },
+  {
+    "path": "crates/mcp-server/src/stdio/catalog/supply_tests.rs",
+    "sha256": "53b052748017d4956bc6d8fcc1bce757bd9c423585f36eb4887a1c449c2ac7c6",
+    "bytes": 13033
+  },
+  {
+    "path": "docs/adr/ADR-067-security-policy-and-quality-contracts.md",
+    "sha256": "699872c8153cf79750ab91fe5f05edbbe5d5342f8373a6868e3f24deb1a002bf",
+    "bytes": 16827
+  },
+  {
+    "path": "docs/adr/ADR-071-supply-chain-facts-without-catalog-migration.md",
+    "sha256": "83d95de567ffd97719cef5f9182e1fff3c57dc5bf2df0bca2d0de1fbc5ba4f91",
+    "bytes": 3377
+  }
+]

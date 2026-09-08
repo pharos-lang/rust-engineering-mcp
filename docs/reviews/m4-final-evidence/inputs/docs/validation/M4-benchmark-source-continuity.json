@@ -1,0 +1,172 @@
+{
+  "schema": "rust-mcp-m4-benchmark-source-continuity-v1",
+  "observed_at": "2026-09-08T05:25:59.821387+00:00",
+  "frozen_binary_sha256": "d27cbc5907ce7e985f3f1c162356714bb88efb87e596619b8866faa6bcda8b5f",
+  "frozen_source_inventory": "M4-budgets/m4-budgets-inputs.json",
+  "frozen_source_inventory_sha256": "01a44f4fd79b2d3ec17f7554da53a52973988f71eb6eea348be9b72fe4a7b9cc",
+  "budget_receipt_sha256": "84fe208b0fc946cfca5c2df424c3520e7e4da1cd8652653221e6c9eccc053f75",
+  "scope": "Historical operation latency via Tasks, not a claim of 300 samples on the final binary. Final full/native and synchronous client receipts qualify current bytes separately.",
+  "unchanged_source_files": 309,
+  "changed_files": [
+    {
+      "path": "crates/application/tests/quality_v2.rs",
+      "benchmark_source_sha256": "bd5d1d9b5adbbff2526a6e04558f4c3a39c0f4198d31ad7df76005c249385ad9",
+      "final_source_sha256": "86ec6118fdcce11f8ae6eec479215a4b99dc423723c418a316aa44c98a07c424"
+    },
+    {
+      "path": "crates/application/tests/security.rs",
+      "benchmark_source_sha256": "5c5c10449e201d1dfa230479f07bc6f80abf40ff2cc8162031c9a171dd04ae3e",
+      "final_source_sha256": "245d5c812ce7bc9f5c5548327ad20be6f9f66e1722192b123c8a6cef72353f36"
+    },
+    {
+      "path": "crates/domain/src/lib.rs",
+      "benchmark_source_sha256": "d4b5764b87ec2b6ca1f52652134a1e09797f7db436605799144784df2b065361",
+      "final_source_sha256": "0791bc043645667af4bf175a5d9d997480f7b28ad80d3579c39d74b522ffed56"
+    },
+    {
+      "path": "crates/domain/src/supply_chain.rs",
+      "benchmark_source_sha256": "f12775b2a98e2312c9e4b524a4115c457d76b5d622312264e533d0d157fe0e85",
+      "final_source_sha256": "f35aa9776252729054ade0ac7dedc5e1663508c5d811d0fa655dc97eaa19d181"
+    },
+    {
+      "path": "crates/execution-adapter/src/lib.rs",
+      "benchmark_source_sha256": "37aa32b0e1586de4e5133e7b4b487d893f9916c539ccb3bb07265ca999d087f4",
+      "final_source_sha256": "a67c30cbf28da87c97af8e986e943e81afd1d2a6a9b267936cd7c9d1e9728cc7"
+    },
+    {
+      "path": "crates/execution-adapter/src/miri_native.rs",
+      "benchmark_source_sha256": "1fa720a4981c88ce399ec4402d46d1541babe7eee282c7ffbdcb0604f3576f20",
+      "final_source_sha256": "a99cef24d9b0bd9c06578de18a521e4f2c05915de730f98e7c02d2589e69e156"
+    },
+    {
+      "path": "crates/execution-adapter/src/miri_output.rs",
+      "benchmark_source_sha256": "2fea28fa3468066377a5243cc882d86c9a614c5d9e5ea0de936a097a49c24f7f",
+      "final_source_sha256": "dac2f89d7f6a2785c70ae9d42cc072cb937293e051826329a3ad5b3071506a4e"
+    },
+    {
+      "path": "crates/execution-adapter/src/rust_applied.rs",
+      "benchmark_source_sha256": "fdf5f627e476bf6cd960372e0760765db3057a2e56301cdcdbe07fae8fecb34c",
+      "final_source_sha256": "243494522c77aa2f6d17258abb70ab5644279a42d272585db4862e184673e59e"
+    },
+    {
+      "path": "crates/execution-adapter/src/rust_calibration.rs",
+      "benchmark_source_sha256": "d8bdb9625520c2eeeb737d6ac664cbf4eb23d879cfcaacfe0527d49da9118f0c",
+      "final_source_sha256": "43f803c8af3f2d443d21d7f89013af9b6a548927233836073a2a44b0afb34ea3"
+    },
+    {
+      "path": "crates/execution-adapter/src/rust_gateway/test_runtime.rs",
+      "benchmark_source_sha256": "e92adbbff7ca8db15151b4d5cc195bd45fd8de300f48a060086bd317208ff96d",
+      "final_source_sha256": "d97c73339e5e15ff00398c9c6675d38df338d5d0c4350542aa2452899b7f8099"
+    },
+    {
+      "path": "crates/execution-adapter/src/security_gateway.rs",
+      "benchmark_source_sha256": "8e3bf671a02a4ce0afadd33f27480da5709f2b807280a21603b2a2873630145d",
+      "final_source_sha256": "18563e7ce09bcb14c2fefd2886c63fc8327dedd3c4ad8560b6ada7a60d157a53"
+    },
+    {
+      "path": "crates/execution-adapter/src/security_graph_native.rs",
+      "benchmark_source_sha256": "5121bae893ee821c71049cffa19da80c57e15900caad59011b31e80f9453b2ff",
+      "final_source_sha256": "7716417ac9d35c6beaca97840394104232372cdd5b003cf93507baaf3390fc3c"
+    },
+    {
+      "path": "crates/execution-adapter/src/security_native.rs",
+      "benchmark_source_sha256": "0fde658a04dfcba19a2d2638d1085c8dfc0270c14c9e1159b793100cec45c196",
+      "final_source_sha256": "d12e58e2fcc262a23cd6d724f262126aaf9a00468958a907a0dbf03714cf87ee"
+    },
+    {
+      "path": "crates/execution-adapter/src/security_native_adversarial.rs",
+      "benchmark_source_sha256": "99e318086d59eedf777b4eaffd0266217a7488aee95a0ae094fecf45d9acf77e",
+      "final_source_sha256": "fe8295e59d2d2a7056403bd22a491d93109e285c6e3cc0922762780025b2ed34"
+    },
+    {
+      "path": "crates/execution-adapter/tests/coverage_runtime.rs",
+      "benchmark_source_sha256": "a777855ae6c3c23190d089b5f633e9e3de5a64c2856883d6e8c3303e23ab9d96",
+      "final_source_sha256": "fb68bf8a689987e696684027c95dcc82339078893678fcf7852ccf4cbf286ffa"
+    },
+    {
+      "path": "crates/mcp-server/src/main.rs",
+      "benchmark_source_sha256": "4f3a25a4e952872e23a0a4292f6081bbb725ed8195f22599812f554e8b9b9cda",
+      "final_source_sha256": "3d164d2b22a9fc64e75f1274ff155a0050995dccd6ca99dc739c5bf2b2fb47e4"
+    },
+    {
+      "path": "crates/mcp-server/src/stdio/deny/schemas.rs",
+      "benchmark_source_sha256": "af7da88e682726bc7a9bf26c7ac8623bc9a2ad19fa0361c6b9c60980e6864515",
+      "final_source_sha256": "df25ea2d584c54421af1db6ad1de04748f7332cb6cfa1f2827575192878e9057"
+    },
+    {
+      "path": "crates/mcp-server/src/stdio/deny.rs",
+      "benchmark_source_sha256": "3e9e2a97dcc83a7391ec8b03c4a2dc1c872aa198cb7cdbf66f1b9cf2596d8e46",
+      "final_source_sha256": "6fc4df469bdcc4a86cd3817432e30e8543c61239a914664b2d3597ce782af78d"
+    },
+    {
+      "path": "crates/mcp-server/src/stdio/miri.rs",
+      "benchmark_source_sha256": "0dbbf5e62e99785c3293a3cc5a674faa554144f3298e4674a623f7b54c98d9da",
+      "final_source_sha256": "21f157c678f0c77ba5de711875989329dec305e3c8a7b84e06c8d927ecbfb349"
+    },
+    {
+      "path": "crates/mcp-server/src/stdio/quality_v2.rs",
+      "benchmark_source_sha256": "26d5ba156a59d4016c1612cdbc29aabaedc475082774ddc599a2359011558bd4",
+      "final_source_sha256": "3150f65a54053fdc496e00bbb19c52984e9c320f6a23abdea3aac8f84791c3e0"
+    },
+    {
+      "path": "crates/mcp-server/src/stdio/supply_chain/schemas.rs",
+      "benchmark_source_sha256": "1b74b28b46322be946fcb9de52a016f853dae1755518e8346e187057bcfd1ba6",
+      "final_source_sha256": "f8534c1813b97d0fb7a78114e008adbd92e428b5275241d4905c033fbcaa79b1"
+    },
+    {
+      "path": "crates/mcp-server/src/stdio/supply_chain.rs",
+      "benchmark_source_sha256": "4db96073664fa7ad3366a6b778bb4c5040f974e36b02de4f53cf8e66dd43df6f",
+      "final_source_sha256": "a743db6ee78322cb1da71771b3d6cfec2c2be29476fd8cef36538f246db84de1"
+    },
+    {
+      "path": "crates/mcp-server/src/stdio/unsafe_scan/schemas.rs",
+      "benchmark_source_sha256": "77126a6ba9cf4fa3815ea18f702e9988dcc844fe3b32fa731aa2775745f43b62",
+      "final_source_sha256": "55eeaaf395d587562b98ce79845fc0267f2268739f5e48dd6a46f8709b008ee0"
+    },
+    {
+      "path": "crates/mcp-server/src/stdio/unsafe_scan.rs",
+      "benchmark_source_sha256": "0668e8afaefcf170ac77393f99451a2e1a02b02199952a4b3134b07b9dfc0945",
+      "final_source_sha256": "123582ec78bad65a47829d86effeb2584444d6f0d2d585cdc00d2cf404333e22"
+    },
+    {
+      "path": "crates/mcp-server/tests/catalog_status.rs",
+      "benchmark_source_sha256": "f50af8606eed4fbdea20802ea079d90d4412e746399aea898c90e681efcfb6ab",
+      "final_source_sha256": "564838c949017b71704798bbecc65e4cf8efa4868d037cab9edb374a68463974"
+    },
+    {
+      "path": "crates/mcp-server/tests/crate_inspect.rs",
+      "benchmark_source_sha256": "dc8d31db56c2d4246ba3bc64d7ab959adeca2a61a69a39dd3e2b0dc9ec9e0afd",
+      "final_source_sha256": "02280f0019509444ce0642b3514fb054fcdd98355df5491c2b5a6b21db31f3d7"
+    },
+    {
+      "path": "crates/mcp-server/tests/crate_search.rs",
+      "benchmark_source_sha256": "7512752db9a7eb6a4ed06545c4a6797c907c2ace2b794bd877bf6aee2c4682a9",
+      "final_source_sha256": "d1b9b6a3aa2743e2ad672e8a083266bd6d2d764ad5f73c073b5eed0f0480fa71"
+    },
+    {
+      "path": "crates/mcp-server/tests/doctor.rs",
+      "benchmark_source_sha256": "b29cf3fee4873d5d543105cb0cb1e893b32d0fbe5582faf84f27c18bb43e539f",
+      "final_source_sha256": "6cdd7fa69f8cb0d63482ffcb133ee1e49444e9aa817dce31dce937d64ca01f1d"
+    },
+    {
+      "path": "crates/mcp-server/tests/inspection_runtime/fix_mutation.rs",
+      "benchmark_source_sha256": "39e56a0d494dfe1dad2f0df0e96817288ceab5725ba398b17974cf2bf679fa63",
+      "final_source_sha256": "5749936bbb8cf8e238a3ae4cec2b60519004990b2cdcd2c48591a96b165f518c"
+    },
+    {
+      "path": "crates/mcp-server/tests/inspection_runtime/nextest.rs",
+      "benchmark_source_sha256": "35a41e22ddb02d38d0c86e4f0b518f5181129944d252b5ca7ab5083e41c5cd39",
+      "final_source_sha256": "b3a9633fa47d4554239471cd6cc90de3ad78df65f79f3f52adfb1c45842118e5"
+    },
+    {
+      "path": "crates/mcp-server/tests/inspection_runtime/security.rs",
+      "benchmark_source_sha256": "b658b1052dc0415bec8b560341ba936556feb15ab6bbb82b16b6457a5c5e89a9",
+      "final_source_sha256": "49e6d615dfdb3acac2e4d84cdb229b1a4aa2bc6a9c3fa1abde942cdad929e29f"
+    },
+    {
+      "path": "crates/mcp-server/tests/protocol.rs",
+      "benchmark_source_sha256": "78ff90985a6f5b90a6df098a7099b9d0249319f99db03586422c678a92db132f",
+      "final_source_sha256": "c5f81a1ce6a85004e1a543052f936d861f1858f24359cfbb52cfbe61aaa3dd13"
+    }
+  ]
+}

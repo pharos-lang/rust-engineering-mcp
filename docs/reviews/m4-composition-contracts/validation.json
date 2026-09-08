@@ -1,0 +1,151 @@
+{
+  "manifest_entries": 15,
+  "manifest_matches_snapshot": true,
+  "current_sources_match_snapshot": false,
+  "review_exit_code": 0,
+  "review_subtype": "success",
+  "review_is_error": false,
+  "permission_denials": [],
+  "subagent_stats": {
+    "spawned": 0,
+    "requested": {
+      "background": 0,
+      "foreground": 0,
+      "unset": 0
+    },
+    "started_in_background": 0,
+    "max_depth": 0,
+    "spawned_by_subagents": 0,
+    "completed": 0,
+    "failed": 0,
+    "killed": {
+      "parent": 0,
+      "user": 0,
+      "system": 0
+    },
+    "refused": {
+      "depth_limit": 0,
+      "concurrency_limit": 0,
+      "budget": 0
+    },
+    "by_type": {}
+  },
+  "model_usage": {
+    "claude-haiku-4-5-20251001": {
+      "inputTokens": 1778,
+      "outputTokens": 25,
+      "cacheReadInputTokens": 0,
+      "cacheCreationInputTokens": 0,
+      "webSearchRequests": 0,
+      "costUSD": 0.0019030000000000002,
+      "contextWindow": 200000,
+      "maxOutputTokens": 32000,
+      "thinkingTokens": 0,
+      "canonicalModel": "claude-haiku-4-5",
+      "provider": "firstParty",
+      "costBasis": "list"
+    },
+    "claude-sonnet-5": {
+      "inputTokens": 26,
+      "outputTokens": 30052,
+      "cacheReadInputTokens": 704732,
+      "cacheCreationInputTokens": 133222,
+      "webSearchRequests": 0,
+      "costUSD": 0.9744063999999999,
+      "contextWindow": 1000000,
+      "maxOutputTokens": 64000,
+      "thinkingTokens": 21388,
+      "canonicalModel": "claude-sonnet-5",
+      "provider": "firstParty",
+      "costBasis": "list"
+    }
+  },
+  "help_exit_code": 0,
+  "checks": [
+    {
+      "path": "crates/domain/src/supply_chain.rs",
+      "manifest_matches_snapshot": true,
+      "current_source_matches_snapshot": true
+    },
+    {
+      "path": "crates/domain/src/quality_v2.rs",
+      "manifest_matches_snapshot": true,
+      "current_source_matches_snapshot": true
+    },
+    {
+      "path": "crates/application/src/security.rs",
+      "manifest_matches_snapshot": true,
+      "current_source_matches_snapshot": true
+    },
+    {
+      "path": "crates/application/src/supply_chain.rs",
+      "manifest_matches_snapshot": true,
+      "current_source_matches_snapshot": true
+    },
+    {
+      "path": "crates/application/src/quality_v2.rs",
+      "manifest_matches_snapshot": true,
+      "current_source_matches_snapshot": true
+    },
+    {
+      "path": "crates/mcp-server/src/stdio/supply_chain.rs",
+      "manifest_matches_snapshot": true,
+      "current_source_matches_snapshot": true
+    },
+    {
+      "path": "crates/mcp-server/src/stdio/supply_chain/schemas.rs",
+      "manifest_matches_snapshot": true,
+      "current_source_matches_snapshot": true
+    },
+    {
+      "path": "crates/mcp-server/src/stdio/quality_v2.rs",
+      "manifest_matches_snapshot": true,
+      "current_source_matches_snapshot": true
+    },
+    {
+      "path": "crates/mcp-server/src/stdio/quality_v2/schemas.rs",
+      "manifest_matches_snapshot": true,
+      "current_source_matches_snapshot": true
+    },
+    {
+      "path": "crates/application/tests/security.rs",
+      "manifest_matches_snapshot": true,
+      "current_source_matches_snapshot": true
+    },
+    {
+      "path": "crates/application/tests/quality_v2.rs",
+      "manifest_matches_snapshot": true,
+      "current_source_matches_snapshot": true
+    },
+    {
+      "path": "crates/mcp-server/src/stdio/security_contract_tests.rs",
+      "manifest_matches_snapshot": true,
+      "current_source_matches_snapshot": true
+    },
+    {
+      "path": "crates/mcp-server/src/stdio/catalog/supply_tests.rs",
+      "manifest_matches_snapshot": true,
+      "current_source_matches_snapshot": true
+    },
+    {
+      "path": "docs/adr/ADR-067-security-policy-and-quality-contracts.md",
+      "manifest_matches_snapshot": true,
+      "current_source_matches_snapshot": false
+    },
+    {
+      "path": "docs/adr/ADR-071-supply-chain-facts-without-catalog-migration.md",
+      "manifest_matches_snapshot": true,
+      "current_source_matches_snapshot": true
+    }
+  ],
+  "response_result_matches_review": true,
+  "stderr_empty": true,
+  "requested_model": "claude-sonnet-5",
+  "requested_effort": "medium",
+  "restricted": true,
+  "strict_empty_mcp": true,
+  "allowed_tools": "Read,Grep,Glob",
+  "source_drift_paths": [
+    "docs/adr/ADR-067-security-policy-and-quality-contracts.md"
+  ]
+}

@@ -24,10 +24,18 @@ struct Config {
     labels: BTreeMap<String, String>,
     env: Vec<String>,
     entrypoint: Vec<String>,
+    #[serde(deserialize_with = "command_arguments")]
     cmd: Vec<String>,
     working_dir: String,
     image: String,
     volumes: Option<BTreeMap<String, serde_json::Value>>,
+}
+// Docker represents an explicitly empty argv as null. Missing Cmd still fails
+// deserialization; every phase compares the normalized argv with its closed list.
+fn command_arguments<'de, D: serde::Deserializer<'de>>(
+    deserializer: D,
+) -> Result<Vec<String>, D::Error> {
+    Option::<Vec<String>>::deserialize(deserializer).map(Option::unwrap_or_default)
 }
 #[derive(Deserialize)]
 #[serde(rename_all = "PascalCase")]
@@ -733,6 +741,13 @@ fn resolution_mounts_ok(
     if phase.vendor_mounted() {
         expected.push(("/rust-mcp-vendor", vendor, phase.vendor_writable()));
     }
+    expected_volume_mounts_ok(c, expected)
+}
+
+fn expected_volume_mounts_ok(
+    c: &Created,
+    expected: Vec<(&str, &MutationVolume, bool)>,
+) -> Result<bool, ExecutionError> {
     if c.mounts.len() != expected.len() || c.host_config.mounts.len() != expected.len() {
         return Ok(false);
     }
@@ -801,6 +816,48 @@ pub(super) fn verify_resolution(
         && c.config.entrypoint == [phase.program()]
         && c.config.cmd == phase.arguments()
         && sorted_env(c) == super::rust_gateway::environment();
+    if safe {
+        Ok(())
+    } else {
+        Err(ExecutionError::InvalidConfiguration)
+    }
+}
+
+#[allow(clippy::too_many_arguments)] // Three independent mounts plus runtime/phase/ownership authority.
+pub(super) fn verify_security(
+    bytes: &[u8],
+    image: &str,
+    phase: super::security_gateway::SecurityPhase,
+    volumes: &super::security_gateway::SecurityVolumes<'_>,
+    nonce: &str,
+) -> Result<(), ExecutionError> {
+    let c = only_created(bytes)?;
+    let mut expected = Vec::new();
+    if phase.source_mounted() {
+        expected.push(("/source", volumes.source, phase.source_writable()));
+    }
+    if phase.vendor_mounted() {
+        expected.push(("/rust-mcp-vendor", volumes.vendor, phase.vendor_writable()));
+    }
+    if phase.policy_mounted() {
+        expected.push(("/security", volumes.policy, phase.policy_writable()));
+    }
+    if phase.junit_mounted() {
+        expected.push((
+            "/junit",
+            volumes.junit.ok_or(ExecutionError::InvalidConfiguration)?,
+            phase.junit_writable(),
+        ));
+    }
+    let safe = no_host_authority(&c, nonce, phase.interactive())
+        && expected_volume_mounts_ok(&c, expected)?
+        && applied_limits_ok(&c, image)
+        && applied_profile_ok(&c, phase.profile())?
+        && c.host_config.tmpfs.len() == 2
+        && c.config.user == "65534:65534"
+        && c.config.entrypoint == [phase.program()]
+        && c.config.cmd == phase.arguments()
+        && sorted_env(&c) == phase.environment();
     if safe {
         Ok(())
     } else {
@@ -1661,6 +1718,160 @@ mod tests {
                     );
                 }
             }
+        }
+        Ok(())
+    }
+
+    #[test]
+    fn security_phases_require_exact_three_volume_permissions_and_no_host_authority()
+    -> Result<(), Box<dyn std::error::Error>> {
+        use crate::security_gateway::SecurityPhase;
+        for phase in [
+            SecurityPhase::SourceGuardian,
+            SecurityPhase::VendorGuardian,
+            SecurityPhase::PolicyGuardian,
+            SecurityPhase::SourceIngest,
+            SecurityPhase::VendorIngest,
+            SecurityPhase::PolicyIngest,
+            SecurityPhase::Metadata,
+            SecurityPhase::MetadataIngest,
+            SecurityPhase::Deny,
+            SecurityPhase::UnsafeScan,
+            SecurityPhase::Miri,
+            SecurityPhase::MiriOutputGuardian,
+            SecurityPhase::MiriExport,
+        ] {
+            let (mut base, source, vendor) = resolution_fixture(ResolutionPhase::Frozen)?;
+            let policy = MutationVolume {
+                name: "policy-volume".into(),
+                mountpoint: "/var/lib/docker/volumes/policy-volume/_data".into(),
+                ..source.clone()
+            };
+            let junit = MutationVolume {
+                name: "junit-volume".into(),
+                mountpoint: "/var/lib/docker/volumes/junit-volume/_data".into(),
+                ..source.clone()
+            };
+            let volumes = crate::security_gateway::SecurityVolumes {
+                source: &source,
+                vendor: &vendor,
+                policy: &policy,
+                junit: Some(&junit),
+            };
+            let profile: Value = serde_json::from_str(phase.profile())?;
+            base[0]["HostConfig"]["SecurityOpt"] =
+                json!(["no-new-privileges=true", format!("seccomp={profile}")]);
+            base[0]["Config"]["OpenStdin"] = json!(phase.interactive());
+            base[0]["Config"]["AttachStdin"] = json!(phase.interactive());
+            base[0]["Config"]["StdinOnce"] = json!(phase.interactive());
+            base[0]["Config"]["Entrypoint"] = json!([phase.program()]);
+            base[0]["Config"]["Cmd"] = json!(phase.arguments());
+            base[0]["Config"]["Env"] = json!(phase.environment());
+            let a_template = base[0]["Mounts"][0].clone();
+            let r_template = base[0]["HostConfig"]["Mounts"][0].clone();
+            let mut applied = Vec::new();
+            let mut requested = Vec::new();
+            for (path, volume, mounted, writable) in [
+                (
+                    "/source",
+                    &source,
+                    phase.source_mounted(),
+                    phase.source_writable(),
+                ),
+                (
+                    "/rust-mcp-vendor",
+                    &vendor,
+                    phase.vendor_mounted(),
+                    phase.vendor_writable(),
+                ),
+                (
+                    "/security",
+                    &policy,
+                    phase.policy_mounted(),
+                    phase.policy_writable(),
+                ),
+                (
+                    "/junit",
+                    &junit,
+                    phase.junit_mounted(),
+                    phase.junit_writable(),
+                ),
+            ] {
+                if !mounted {
+                    continue;
+                }
+                let mut a = a_template.clone();
+                a["Destination"] = json!(path);
+                a["Source"] = json!(volume.mountpoint);
+                a["Name"] = json!(volume.name);
+                a["RW"] = json!(writable);
+                applied.push(a);
+                let mut r = r_template.clone();
+                r["Target"] = json!(path);
+                r["Source"] = json!(volume.name);
+                r["ReadOnly"] = json!(!writable);
+                requested.push(r);
+            }
+            base[0]["Mounts"] = json!(applied);
+            base[0]["HostConfig"]["Mounts"] = json!(requested);
+            let check = |value: &Value| {
+                verify_security(
+                    &serde_json::to_vec(value).unwrap_or_default(),
+                    crate::APPROVED_RUST_IMAGE,
+                    phase,
+                    &volumes,
+                    "fixture",
+                )
+            };
+            assert_eq!(check(&base), Ok(()), "{phase:?}");
+            let mut null_command = base.clone();
+            null_command[0]["Config"]["Cmd"] = Value::Null;
+            assert_eq!(
+                check(&null_command).is_ok(),
+                phase.arguments().is_empty(),
+                "null Cmd for {phase:?}"
+            );
+            let mut missing_command = base.clone();
+            missing_command[0]["Config"]
+                .as_object_mut()
+                .ok_or("Config object")?
+                .remove("Cmd");
+            assert!(
+                check(&missing_command).is_err(),
+                "missing Cmd for {phase:?}"
+            );
+
+            for (path, changed) in mutation_security_changes(MutationPhase::Guardian) {
+                // Per-phase stdin/argv and mounts have their own discriminators below.
+                if path.starts_with("/0/Mounts/") || path.starts_with("/0/HostConfig/Mounts/") {
+                    continue;
+                }
+                let mut invalid = base.clone();
+                if invalid.pointer(path) == Some(&changed) {
+                    continue;
+                }
+                set_fixture_value(&mut invalid, path, changed)?;
+                assert!(check(&invalid).is_err(), "{phase:?} accepted {path}");
+            }
+            for index in 0..applied.len() {
+                for requested_side in [false, true] {
+                    let mut invalid = base.clone();
+                    if requested_side {
+                        invalid[0]["HostConfig"]["Mounts"][index]["ReadOnly"] =
+                            json!(!requested[index]["ReadOnly"].as_bool().unwrap_or(false));
+                    } else {
+                        invalid[0]["Mounts"][index]["RW"] =
+                            json!(!applied[index]["RW"].as_bool().unwrap_or(false));
+                    }
+                    assert!(
+                        check(&invalid).is_err(),
+                        "{phase:?} accepted access flip {index}"
+                    );
+                }
+            }
+            let mut omitted = base.clone();
+            omitted[0]["Mounts"] = json!([]);
+            assert!(check(&omitted).is_err());
         }
         Ok(())
     }

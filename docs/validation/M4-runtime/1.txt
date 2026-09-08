@@ -1,0 +1,2783 @@
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.07s
+     Running tests/mutation_runtime.rs (target/debug/deps/mutation_runtime-90ee799efb3ac41b)
+
+running 1 test
+test host_source_and_canary_are_unchanged_after_every_mutation_run ... MUTATION_OBSERVATION fixture=caught-all termination=Exited exit=Some(0) listed=Some(14) identity=Guest bundle_entries=39 bundle_unavailable=false
+MUTATION_STDOUT
+Found 14 mutants to test
+ok       Unmutated baseline
+14 mutants tested: 14 caught
+
+MUTATION_STDERR
+
+MUTATION_OUTCOMES
+{
+  "outcomes": [
+    {
+      "scenario": "Baseline",
+      "summary": "Success",
+      "log_path": "log/baseline.log",
+      "diff_path": null,
+      "phase_results": [
+        {
+          "phase": "Build",
+          "duration": 0.154941667,
+          "process_status": "Success",
+          "argv": [
+            "/opt/rust/bin/cargo",
+            "test",
+            "--no-run",
+            "--verbose",
+            "--package=fixture-mutation-caught-all@0.1.0",
+            "--offline",
+            "--frozen"
+          ]
+        },
+        {
+          "phase": "Test",
+          "duration": 0.050359041,
+          "process_status": "Success",
+          "argv": [
+            "/opt/rust/bin/cargo",
+            "test",
+            "--verbose",
+            "--package=fixture-mutation-caught-all@0.1.0",
+            "--offline",
+            "--frozen"
+          ]
+        }
+      ]
+    },
+    {
+      "scenario": {
+        "Mutant": {
+          "name": "src/lib.rs:2:5: replace add_three -> i32 with 0",
+          "package": "fixture-mutation-caught-all",
+          "file": "src/lib.rs",
+          "function": {
+            "function_name": "add_three",
+            "return_type": "-> i32",
+            "span": {
+              "start": {
+                "line": 1,
+                "column": 1
+              },
+              "end": {
+                "line": 3,
+                "column": 2
+              }
+            }
+          },
+          "span": {
+            "start": {
+              "line": 2,
+              "column": 5
+            },
+            "end": {
+              "line": 2,
+              "column": 14
+            }
+          },
+          "replacement": "0",
+          "genre": "FnValue"
+        }
+      },
+      "summary": "CaughtMutant",
+      "log_path": "log/src__lib.rs_line_2_col_5.log",
+      "diff_path": "diff/src__lib.rs_line_2_col_5.diff",
+      "phase_results": [
+        {
+          "phase": "Build",
+          "duration": 0.165289958,
+          "process_status": "Success",
+          "argv": [
+            "/opt/rust/bin/cargo",
+            "test",
+            "--no-run",
+            "--verbose",
+            "--package=fixture-mutation-caught-all@0.1.0",
+            "--offline",
+            "--frozen"
+          ]
+        },
+        {
+          "phase": "Test",
+          "duration": 0.051449917,
+          "process_status": {
+            "Failure": 101
+          },
+          "argv": [
+            "/opt/rust/bin/cargo",
+            "test",
+            "--verbose",
+            "--package=fixture-mutation-caught-all@0.1.0",
+            "--offline",
+            "--frozen"
+          ]
+        }
+      ]
+    },
+    {
+      "scenario": {
+        "Mutant": {
+          "name": "src/lib.rs:2:5: replace add_three -> i32 with 1",
+          "package": "fixture-mutation-caught-all",
+          "file": "src/lib.rs",
+          "function": {
+            "function_name": "add_three",
+            "return_type": "-> i32",
+            "span": {
+              "start": {
+                "line": 1,
+                "column": 1
+              },
+              "end": {
+                "line": 3,
+                "column": 2
+              }
+            }
+          },
+          "span": {
+            "start": {
+              "line": 2,
+              "column": 5
+            },
+            "end": {
+              "line": 2,
+              "column": 14
+            }
+          },
+          "replacement": "1",
+          "genre": "FnValue"
+        }
+      },
+      "summary": "CaughtMutant",
+      "log_path": "log/src__lib.rs_line_2_col_5_001.log",
+      "diff_path": "diff/src__lib.rs_line_2_col_5_001.diff",
+      "phase_results": [
+        {
+          "phase": "Build",
+          "duration": 0.161516084,
+          "process_status": "Success",
+          "argv": [
+            "/opt/rust/bin/cargo",
+            "test",
+            "--no-run",
+            "--verbose",
+            "--package=fixture-mutation-caught-all@0.1.0",
+            "--offline",
+            "--frozen"
+          ]
+        },
+        {
+          "phase": "Test",
+          "duration": 0.050361541,
+          "process_status": {
+            "Failure": 101
+          },
+          "argv": [
+            "/opt/rust/bin/cargo",
+            "test",
+            "--verbose",
+            "--package=fixture-mutation-caught-all@0.1.0",
+            "--offline",
+            "--frozen"
+          ]
+        }
+      ]
+    },
+    {
+      "scenario": {
+        "Mutant": {
+          "name": "src/lib.rs:2:5: replace add_three -> i32 with -1",
+          "package": "fixture-mutation-caught-all",
+          "file": "src/lib.rs",
+          "function": {
+            "function_name": "add_three",
+            "return_type": "-> i32",
+            "span": {
+              "start": {
+                "line": 1,
+                "column": 1
+              },
+              "end": {
+                "line": 3,
+                "column": 2
+              }
+            }
+          },
+          "span": {
+            "start": {
+              "line": 2,
+              "column": 5
+            },
+            "end": {
+              "line": 2,
+              "column": 14
+            }
+          },
+          "replacement": "-1",
+          "genre": "FnValue"
+        }
+      },
+      "summary": "CaughtMutant",
+      "log_path": "log/src__lib.rs_line_2_col_5_002.log",
+      "diff_path": "diff/src__lib.rs_line_2_col_5_002.diff",
+      "phase_results": [
+        {
+          "phase": "Build",
+          "duration": 0.163649375,
+          "process_status": "Success",
+          "argv": [
+            "/opt/rust/bin/cargo",
+            "test",
+            "--no-run",
+            "--verbose",
+            "--package=fixture-mutation-caught-all@0.1.0",
+            "--offline",
+            "--frozen"
+          ]
+        },
+        {
+          "phase": "Test",
+          "duration": 0.050568209,
+          "process_status": {
+            "Failure": 101
+          },
+          "argv": [
+            "/opt/rust/bin/cargo",
+            "test",
+            "--verbose",
+            "--package=fixture-mutation-caught-all@0.1.0",
+            "--offline",
+            "--frozen"
+          ]
+        }
+      ]
+    },
+    {
+      "scenario": {
+        "Mutant": {
+          "name": "src/lib.rs:2:11: replace + with - in add_three",
+          "package": "fixture-mutation-caught-all",
+          "file": "src/lib.rs",
+          "function": {
+            "function_name": "add_three",
+            "return_type": "-> i32",
+            "span": {
+              "start": {
+                "line": 1,
+                "column": 1
+              },
+              "end": {
+                "line": 3,
+                "column": 2
+              }
+            }
+          },
+          "span": {
+            "start": {
+              "line": 2,
+              "column": 11
+            },
+            "end": {
+              "line": 2,
+              "column": 12
+            }
+          },
+          "replacement": "-",
+          "genre": "BinaryOperator"
+        }
+      },
+      "summary": "CaughtMutant",
+      "log_path": "log/src__lib.rs_line_2_col_11.log",
+      "diff_path": "diff/src__lib.rs_line_2_col_11.diff",
+      "phase_results": [
+        {
+          "phase": "Build",
+          "duration": 0.170516084,
+          "process_status": "Success",
+          "argv": [
+            "/opt/rust/bin/cargo",
+            "test",
+            "--no-run",
+            "--verbose",
+            "--package=fixture-mutation-caught-all@0.1.0",
+            "--offline",
+            "--frozen"
+          ]
+        },
+        {
+          "phase": "Test",
+          "duration": 0.0506225,
+          "process_status": {
+            "Failure": 101
+          },
+          "argv": [
+            "/opt/rust/bin/cargo",
+            "test",
+            "--verbose",
+            "--package=fixture-mutation-caught-all@0.1.0",
+            "--offline",
+            "--frozen"
+          ]
+        }
+      ]
+    },
+    {
+      "scenario": {
+        "Mutant": {
+          "name": "src/lib.rs:2:11: replace + with * in add_three",
+          "package": "fixture-mutation-caught-all",
+          "file": "src/lib.rs",
+          "function": {
+            "function_name": "add_three",
+            "return_type": "-> i32",
+            "span": {
+              "start": {
+                "line": 1,
+                "column": 1
+              },
+              "end": {
+                "line": 3,
+                "column": 2
+              }
+            }
+          },
+          "span": {
+            "start": {
+              "line": 2,
+              "column": 11
+            },
+            "end": {
+              "line": 2,
+              "column": 12
+            }
+          },
+          "replacement": "*",
+          "genre": "BinaryOperator"
+        }
+      },
+      "summary": "CaughtMutant",
+      "log_path": "log/src__lib.rs_line_2_col_11_001.log",
+      "diff_path": "diff/src__lib.rs_line_2_col_11_001.diff",
+      "phase_results": [
+        {
+          "phase": "Build",
+          "duration": 0.161546875,
+          "process_status": "Success",
+          "argv": [
+            "/opt/rust/bin/cargo",
+            "test",
+            "--no-run",
+            "--verbose",
+            "--package=fixture-mutation-caught-all@0.1.0",
+            "--offline",
+            "--frozen"
+          ]
+        },
+        {
+          "phase": "Test",
+          "duration": 0.051789291,
+          "process_status": {
+            "Failure": 101
+          },
+          "argv": [
+            "/opt/rust/bin/cargo",
+            "test",
+            "--verbose",
+            "--package=fixture-mutation-caught-all@0.1.0",
+            "--offline",
+            "--frozen"
+          ]
+        }
+      ]
+    },
+    {
+      "scenario": {
+        "Mutant": {
+          "name": "src/lib.rs:6:5: replace is_even_and_positive -> bool with true",
+          "package": "fixture-mutation-caught-all",
+          "file": "src/lib.rs",
+          "function": {
+            "function_name": "is_even_and_positive",
+            "return_type": "-> bool",
+            "span": {
+              "start": {
+                "line": 5,
+                "column": 1
+              },
+              "end": {
+                "line": 7,
+                "column": 2
+              }
+            }
+          },
+          "span": {
+            "start": {
+              "line": 6,
+              "column": 5
+            },
+            "end": {
+              "line": 6,
+              "column": 32
+            }
+          },
+          "replacement": "true",
+          "genre": "FnValue"
+        }
+      },
+      "summary": "CaughtMutant",
+      "log_path": "log/src__lib.rs_line_6_col_5.log",
+      "diff_path": "diff/src__lib.rs_line_6_col_5.diff",
+      "phase_results": [
+        {
+          "phase": "Build",
+          "duration": 0.151312584,
+          "process_status": "Success",
+          "argv": [
+            "/opt/rust/bin/cargo",
+            "test",
+            "--no-run",
+            "--verbose",
+            "--package=fixture-mutation-caught-all@0.1.0",
+            "--offline",
+            "--frozen"
+          ]
+        },
+        {
+          "phase": "Test",
+          "duration": 0.051092292,
+          "process_status": {
+            "Failure": 101
+          },
+          "argv": [
+            "/opt/rust/bin/cargo",
+            "test",
+            "--verbose",
+            "--package=fixture-mutation-caught-all@0.1.0",
+            "--offline",
+            "--frozen"
+          ]
+        }
+      ]
+    },
+    {
+      "scenario": {
+        "Mutant": {
+          "name": "src/lib.rs:6:5: replace is_even_and_positive -> bool with false",
+          "package": "fixture-mutation-caught-all",
+          "file": "src/lib.rs",
+          "function": {
+            "function_name": "is_even_and_positive",
+            "return_type": "-> bool",
+            "span": {
+              "start": {
+                "line": 5,
+                "column": 1
+              },
+              "end": {
+                "line": 7,
+                "column": 2
+              }
+            }
+          },
+          "span": {
+            "start": {
+              "line": 6,
+              "column": 5
+            },
+            "end": {
+              "line": 6,
+              "column": 32
+            }
+          },
+          "replacement": "false",
+          "genre": "FnValue"
+        }
+      },
+      "summary": "CaughtMutant",
+      "log_path": "log/src__lib.rs_line_6_col_5_001.log",
+      "diff_path": "diff/src__lib.rs_line_6_col_5_001.diff",
+      "phase_results": [
+        {
+          "phase": "Build",
+          "duration": 0.1665185,
+          "process_status": "Success",
+          "argv": [
+            "/opt/rust/bin/cargo",
+            "test",
+            "--no-run",
+            "--verbose",
+            "--package=fixture-mutation-caught-all@0.1.0",
+            "--offline",
+            "--frozen"
+          ]
+        },
+        {
+          "phase": "Test",
+          "duration": 0.051814125,
+          "process_status": {
+            "Failure": 101
+          },
+          "argv": [
+            "/opt/rust/bin/cargo",
+            "test",
+            "--verbose",
+            "--package=fixture-mutation-caught-all@0.1.0",
+            "--offline",
+            "--frozen"
+          ]
+        }
+      ]
+    },
+    {
+      "scenario": {
+        "Mutant": {
+          "name": "src/lib.rs:6:15: replace && with || in is_even_and_positive",
+          "package": "fixture-mutation-caught-all",
+          "file": "src/lib.rs",
+          "function": {
+            "function_name": "is_even_and_positive",
+            "return_type": "-> bool",
+            "span": {
+              "start": {
+                "line": 5,
+                "column": 1
+              },
+              "end": {
+                "line": 7,
+                "column": 2
+              }
+            }
+          },
+          "span": {
+            "start": {
+              "line": 6,
+              "column": 15
+            },
+            "end": {
+              "line": 6,
+              "column": 17
+            }
+          },
+          "replacement": "||",
+          "genre": "BinaryOperator"
+        }
+      },
+      "summary": "CaughtMutant",
+      "log_path": "log/src__lib.rs_line_6_col_15.log",
+      "diff_path": "diff/src__lib.rs_line_6_col_15.diff",
+      "phase_results": [
+        {
+          "phase": "Build",
+          "duration": 0.170347709,
+          "process_status": "Success",
+          "argv": [
+            "/opt/rust/bin/cargo",
+            "test",
+            "--no-run",
+            "--verbose",
+            "--package=fixture-mutation-caught-all@0.1.0",
+            "--offline",
+            "--frozen"
+          ]
+        },
+        {
+          "phase": "Test",
+          "duration": 0.05096525,
+          "process_status": {
+            "Failure": 101
+          },
+          "argv": [
+            "/opt/rust/bin/cargo",
+            "test",
+            "--verbose",
+            "--package=fixture-mutation-caught-all@0.1.0",
+            "--offline",
+            "--frozen"
+          ]
+        }
+      ]
+    },
+    {
+      "scenario": {
+        "Mutant": {
+          "name": "src/lib.rs:6:11: replace > with == in is_even_and_positive",
+          "package": "fixture-mutation-caught-all",
+          "file": "src/lib.rs",
+          "function": {
+            "function_name": "is_even_and_positive",
+            "return_type": "-> bool",
+            "span": {
+              "start": {
+                "line": 5,
+                "column": 1
+              },
+              "end": {
+                "line": 7,
+                "column": 2
+              }
+            }
+          },
+          "span": {
+            "start": {
+              "line": 6,
+              "column": 11
+            },
+            "end": {
+              "line": 6,
+              "column": 12
+            }
+          },
+          "replacement": "==",
+          "genre": "BinaryOperator"
+        }
+      },
+      "summary": "CaughtMutant",
+      "log_path": "log/src__lib.rs_line_6_col_11.log",
+      "diff_path": "diff/src__lib.rs_line_6_col_11.diff",
+      "phase_results": [
+        {
+          "phase": "Build",
+          "duration": 0.162785792,
+          "process_status": "Success",
+          "argv": [
+            "/opt/rust/bin/cargo",
+            "test",
+            "--no-run",
+            "--verbose",
+            "--package=fixture-mutation-caught-all@0.1.0",
+            "--offline",
+            "--frozen"
+          ]
+        },
+        {
+          "phase": "Test",
+          "duration": 0.052965417,
+          "process_status": {
+            "Failure": 101
+          },
+          "argv": [
+            "/opt/rust/bin/cargo",
+            "test",
+            "--verbose",
+            "--package=fixture-mutation-caught-all@0.1.0",
+            "--offline",
+            "--frozen"
+          ]
+        }
+      ]
+    },
+    {
+      "scenario": {
+        "Mutant": {
+          "name": "src/lib.rs:6:11: replace > with < in is_even_and_positive",
+          "package": "fixture-mutation-caught-all",
+          "file": "src/lib.rs",
+          "function": {
+            "function_name": "is_even_and_positive",
+            "return_type": "-> bool",
+            "span": {
+              "start": {
+                "line": 5,
+                "column": 1
+              },
+              "end": {
+                "line": 7,
+                "column": 2
+              }
+            }
+          },
+          "span": {
+            "start": {
+              "line": 6,
+              "column": 11
+            },
+            "end": {
+              "line": 6,
+              "column": 12
+            }
+          },
+          "replacement": "<",
+          "genre": "BinaryOperator"
+        }
+      },
+      "summary": "CaughtMutant",
+      "log_path": "log/src__lib.rs_line_6_col_11_001.log",
+      "diff_path": "diff/src__lib.rs_line_6_col_11_001.diff",
+      "phase_results": [
+        {
+          "phase": "Build",
+          "duration": 0.161975291,
+          "process_status": "Success",
+          "argv": [
+            "/opt/rust/bin/cargo",
+            "test",
+            "--no-run",
+            "--verbose",
+            "--package=fixture-mutation-caught-all@0.1.0",
+            "--offline",
+            "--frozen"
+          ]
+        },
+        {
+          "phase": "Test",
+          "duration": 0.050931833,
+          "process_status": {
+            "Failure": 101
+          },
+          "argv": [
+            "/opt/rust/bin/cargo",
+            "test",
+            "--verbose",
+            "--package=fixture-mutation-caught-all@0.1.0",
+            "--offline",
+            "--frozen"
+          ]
+        }
+      ]
+    },
+    {
+      "scenario": {
+        "Mutant": {
+          "name": "src/lib.rs:6:11: replace > with >= in is_even_and_positive",
+          "package": "fixture-mutation-caught-all",
+          "file": "src/lib.rs",
+          "function": {
+            "function_name": "is_even_and_positive",
+            "return_type": "-> bool",
+            "span": {
+              "start": {
+                "line": 5,
+                "column": 1
+              },
+              "end": {
+                "line": 7,
+                "column": 2
+              }
+            }
+          },
+          "span": {
+            "start": {
+              "line": 6,
+              "column": 11
+            },
+            "end": {
+              "line": 6,
+              "column": 12
+            }
+          },
+          "replacement": ">=",
+          "genre": "BinaryOperator"
+        }
+      },
+      "summary": "CaughtMutant",
+      "log_path": "log/src__lib.rs_line_6_col_11_002.log",
+      "diff_path": "diff/src__lib.rs_line_6_col_11_002.diff",
+      "phase_results": [
+        {
+          "phase": "Build",
+          "duration": 0.161962833,
+          "process_status": "Success",
+          "argv": [
+            "/opt/rust/bin/cargo",
+            "test",
+            "--no-run",
+            "--verbose",
+            "--package=fixture-mutation-caught-all@0.1.0",
+            "--offline",
+            "--frozen"
+          ]
+        },
+        {
+          "phase": "Test",
+          "duration": 0.050994625,
+          "process_status": {
+            "Failure": 101
+          },
+          "argv": [
+            "/opt/rust/bin/cargo",
+            "test",
+            "--verbose",
+            "--package=fixture-mutation-caught-all@0.1.0",
+            "--offline",
+            "--frozen"
+          ]
+        }
+      ]
+    },
+    {
+      "scenario": {
+        "Mutant": {
+          "name": "src/lib.rs:6:28: replace == with != in is_even_and_positive",
+          "package": "fixture-mutation-caught-all",
+          "file": "src/lib.rs",
+          "function": {
+            "function_name": "is_even_and_positive",
+            "return_type": "-> bool",
+            "span": {
+              "start": {
+                "line": 5,
+                "column": 1
+              },
+              "end": {
+                "line": 7,
+                "column": 2
+              }
+            }
+          },
+          "span": {
+            "start": {
+              "line": 6,
+              "column": 28
+            },
+            "end": {
+              "line": 6,
+              "column": 30
+            }
+          },
+          "replacement": "!=",
+          "genre": "BinaryOperator"
+        }
+      },
+      "summary": "CaughtMutant",
+      "log_path": "log/src__lib.rs_line_6_col_28.log",
+      "diff_path": "diff/src__lib.rs_line_6_col_28.diff",
+      "phase_results": [
+        {
+          "phase": "Build",
+          "duration": 0.154412083,
+          "process_status": "Success",
+          "argv": [
+            "/opt/rust/bin/cargo",
+            "test",
+            "--no-run",
+            "--verbose",
+            "--package=fixture-mutation-caught-all@0.1.0",
+            "--offline",
+            "--frozen"
+          ]
+        },
+        {
+          "phase": "Test",
+          "duration": 0.052959583,
+          "process_status": {
+            "Failure": 101
+          },
+          "argv": [
+            "/opt/rust/bin/cargo",
+            "test",
+            "--verbose",
+            "--package=fixture-mutation-caught-all@0.1.0",
+            "--offline",
+            "--frozen"
+          ]
+        }
+      ]
+    },
+    {
+      "scenario": {
+        "Mutant": {
+          "name": "src/lib.rs:6:24: replace % with / in is_even_and_positive",
+          "package": "fixture-mutation-caught-all",
+          "file": "src/lib.rs",
+          "function": {
+            "function_name": "is_even_and_positive",
+            "return_type": "-> bool",
+            "span": {
+              "start": {
+                "line": 5,
+                "column": 1
+              },
+              "end": {
+                "line": 7,
+                "column": 2
+              }
+            }
+          },
+          "span": {
+            "start": {
+              "line": 6,
+              "column": 24
+            },
+            "end": {
+              "line": 6,
+              "column": 25
+            }
+          },
+          "replacement": "/",
+          "genre": "BinaryOperator"
+        }
+      },
+      "summary": "CaughtMutant",
+      "log_path": "log/src__lib.rs_line_6_col_24.log",
+      "diff_path": "diff/src__lib.rs_line_6_col_24.diff",
+      "phase_results": [
+        {
+          "phase": "Build",
+          "duration": 0.159996625,
+          "process_status": "Success",
+          "argv": [
+            "/opt/rust/bin/cargo",
+            "test",
+            "--no-run",
+            "--verbose",
+            "--package=fixture-mutation-caught-all@0.1.0",
+            "--offline",
+            "--frozen"
+          ]
+        },
+        {
+          "phase": "Test",
+          "duration": 0.050878834,
+          "process_status": {
+            "Failure": 101
+          },
+          "argv": [
+            "/opt/rust/bin/cargo",
+            "test",
+            "--verbose",
+            "--package=fixture-mutation-caught-all@0.1.0",
+            "--offline",
+            "--frozen"
+          ]
+        }
+      ]
+    },
+    {
+      "scenario": {
+        "Mutant": {
+          "name": "src/lib.rs:6:24: replace % with + in is_even_and_positive",
+          "package": "fixture-mutation-caught-all",
+          "file": "src/lib.rs",
+          "function": {
+            "function_name": "is_even_and_positive",
+            "return_type": "-> bool",
+            "span": {
+              "start": {
+                "line": 5,
+                "column": 1
+              },
+              "end": {
+                "line": 7,
+                "column": 2
+              }
+            }
+          },
+          "span": {
+            "start": {
+              "line": 6,
+              "column": 24
+            },
+            "end": {
+              "line": 6,
+              "column": 25
+            }
+          },
+          "replacement": "+",
+          "genre": "BinaryOperator"
+        }
+      },
+      "summary": "CaughtMutant",
+      "log_path": "log/src__lib.rs_line_6_col_24_001.log",
+      "diff_path": "diff/src__lib.rs_line_6_col_24_001.diff",
+      "phase_results": [
+        {
+          "phase": "Build",
+          "duration": 0.155285208,
+          "process_status": "Success",
+          "argv": [
+            "/opt/rust/bin/cargo",
+            "test",
+            "--no-run",
+            "--verbose",
+            "--package=fixture-mutation-caught-all@0.1.0",
+            "--offline",
+            "--frozen"
+          ]
+        },
+        {
+          "phase": "Test",
+          "duration": 0.050473083,
+          "process_status": {
+            "Failure": 101
+          },
+          "argv": [
+            "/opt/rust/bin/cargo",
+            "test",
+            "--verbose",
+            "--package=fixture-mutation-caught-all@0.1.0",
+            "--offline",
+            "--frozen"
+          ]
+        }
+      ]
+    }
+  ],
+  "total_mutants": 14,
+  "missed": 0,
+  "caught": 14,
+  "timeout": 0,
+  "unviable": 0,
+  "success": 0,
+  "start_time": "2026-09-08T06:13:26.723108544Z",
+  "end_time": "2026-09-08T06:13:29.915833087Z",
+  "cargo_mutants_version": "27.1.0"
+}
+MUTATION_MEMBER ./caught.txt
+src/lib.rs:2:5: replace add_three -> i32 with 0
+src/lib.rs:2:5: replace add_three -> i32 with 1
+src/lib.rs:2:5: replace add_three -> i32 with -1
+src/lib.rs:2:11: replace + with - in add_three
+src/lib.rs:2:11: replace + with * in add_three
+src/lib.rs:6:5: replace is_even_and_positive -> bool with true
+src/lib.rs:6:5: replace is_even_and_positive -> bool with false
+src/lib.rs:6:15: replace && with || in is_even_and_positive
+src/lib.rs:6:11: replace > with == in is_even_and_positive
+src/lib.rs:6:11: replace > with < in is_even_and_positive
+src/lib.rs:6:11: replace > with >= in is_even_and_positive
+src/lib.rs:6:28: replace == with != in is_even_and_positive
+src/lib.rs:6:24: replace % with / in is_even_and_positive
+src/lib.rs:6:24: replace % with + in is_even_and_positive
+
+MUTATION_MEMBER ./missed.txt
+
+MUTATION_MEMBER ./timeout.txt
+
+MUTATION_MEMBER ./unviable.txt
+
+MUTATION_OBSERVATION fixture=missed-one termination=Exited exit=Some(2) listed=Some(19) identity=Guest bundle_entries=49 bundle_unavailable=false
+MUTATION_STDOUT
+Found 19 mutants to test
+ok       Unmutated baseline
+MISSED   src/lib.rs:6:11: replace > with >= in is_even_and_positive
+MISSED   src/lib.rs:10:5: replace unchecked_value -> i32 with 0
+MISSED   src/lib.rs:10:5: replace unchecked_value -> i32 with 1
+MISSED   src/lib.rs:10:5: replace unchecked_value -> i32 with -1
+MISSED   src/lib.rs:10:11: replace * with + in unchecked_value
+MISSED   src/lib.rs:10:11: replace * with / in unchecked_value
+19 mutants tested: 6 missed, 13 caught
+
+MUTATION_STDERR
+
+MUTATION_OUTCOMES
+{
+  "outcomes": [
+    {
+      "scenario": "Baseline",
+      "summary": "Success",
+      "log_path": "log/baseline.log",
+      "diff_path": null,
+      "phase_results": [
+        {
+          "phase": "Build",
+          "duration": 0.1680985,
+          "process_status": "Success",
+          "argv": [
+            "/opt/rust/bin/cargo",
+            "test",
+            "--no-run",
+            "--verbose",
+            "--package=fixture-mutation-missed-one@0.1.0",
+            "--offline",
+            "--frozen"
+          ]
+        },
+        {
+          "phase": "Test",
+          "duration": 0.052980167,
+          "process_status": "Success",
+          "argv": [
+            "/opt/rust/bin/cargo",
+            "test",
+            "--verbose",
+            "--package=fixture-mutation-missed-one@0.1.0",
+            "--offline",
+            "--frozen"
+          ]
+        }
+      ]
+    },
+    {
+      "scenario": {
+        "Mutant": {
+          "name": "src/lib.rs:2:5: replace add_three -> i32 with 0",
+          "package": "fixture-mutation-missed-one",
+          "file": "src/lib.rs",
+          "function": {
+            "function_name": "add_three",
+            "return_type": "-> i32",
+            "span": {
+              "start": {
+                "line": 1,
+                "column": 1
+              },
+              "end": {
+                "line": 3,
+                "column": 2
+              }
+            }
+          },
+          "span": {
+            "start": {
+              "line": 2,
+              "column": 5
+            },
+            "end": {
+              "line": 2,
+              "column": 14
+            }
+          },
+          "replacement": "0",
+          "genre": "FnValue"
+        }
+      },
+      "summary": "CaughtMutant",
+      "log_path": "log/src__lib.rs_line_2_col_5.log",
+      "diff_path": "diff/src__lib.rs_line_2_col_5.diff",
+      "phase_results": [
+        {
+          "phase": "Build",
+          "duration": 0.170902042,
+          "process_status": "Success",
+          "argv": [
+            "/opt/rust/bin/cargo",
+            "test",
+            "--no-run",
+            "--verbose",
+            "--package=fixture-mutation-missed-one@0.1.0",
+            "--offline",
+            "--frozen"
+          ]
+        },
+        {
+          "phase": "Test",
+          "duration": 0.05184025,
+          "process_status": {
+            "Failure": 101
+          },
+          "argv": [
+            "/opt/rust/bin/cargo",
+            "test",
+            "--verbose",
+            "--package=fixture-mutation-missed-one@0.1.0",
+            "--offline",
+            "--frozen"
+          ]
+        }
+      ]
+    },
+    {
+      "scenario": {
+        "Mutant": {
+          "name": "src/lib.rs:2:5: replace add_three -> i32 with 1",
+          "package": "fixture-mutation-missed-one",
+          "file": "src/lib.rs",
+          "function": {
+            "function_name": "add_three",
+            "return_type": "-> i32",
+            "span": {
+              "start": {
+                "line": 1,
+                "column": 1
+              },
+              "end": {
+                "line": 3,
+                "column": 2
+              }
+            }
+          },
+          "span": {
+            "start": {
+              "line": 2,
+              "column": 5
+            },
+            "end": {
+              "line": 2,
+              "column": 14
+            }
+          },
+          "replacement": "1",
+          "genre": "FnValue"
+        }
+      },
+      "summary": "CaughtMutant",
+      "log_path": "log/src__lib.rs_line_2_col_5_001.log",
+      "diff_path": "diff/src__lib.rs_line_2_col_5_001.diff",
+      "phase_results": [
+        {
+          "phase": "Build",
+          "duration": 0.16285775,
+          "process_status": "Success",
+          "argv": [
+            "/opt/rust/bin/cargo",
+            "test",
+            "--no-run",
+            "--verbose",
+            "--package=fixture-mutation-missed-one@0.1.0",
+            "--offline",
+            "--frozen"
+          ]
+        },
+        {
+          "phase": "Test",
+          "duration": 0.0529345,
+          "process_status": {
+            "Failure": 101
+          },
+          "argv": [
+            "/opt/rust/bin/cargo",
+            "test",
+            "--verbose",
+            "--package=fixture-mutation-missed-one@0.1.0",
+            "--offline",
+            "--frozen"
+          ]
+        }
+      ]
+    },
+    {
+      "scenario": {
+        "Mutant": {
+          "name": "src/lib.rs:2:5: replace add_three -> i32 with -1",
+          "package": "fixture-mutation-missed-one",
+          "file": "src/lib.rs",
+          "function": {
+            "function_name": "add_three",
+            "return_type": "-> i32",
+            "span": {
+              "start": {
+                "line": 1,
+                "column": 1
+              },
+              "end": {
+                "line": 3,
+                "column": 2
+              }
+            }
+          },
+          "span": {
+            "start": {
+              "line": 2,
+              "column": 5
+            },
+            "end": {
+              "line": 2,
+              "column": 14
+            }
+          },
+          "replacement": "-1",
+          "genre": "FnValue"
+        }
+      },
+      "summary": "CaughtMutant",
+      "log_path": "log/src__lib.rs_line_2_col_5_002.log",
+      "diff_path": "diff/src__lib.rs_line_2_col_5_002.diff",
+      "phase_results": [
+        {
+          "phase": "Build",
+          "duration": 0.158679541,
+          "process_status": "Success",
+          "argv": [
+            "/opt/rust/bin/cargo",
+            "test",
+            "--no-run",
+            "--verbose",
+            "--package=fixture-mutation-missed-one@0.1.0",
+            "--offline",
+            "--frozen"
+          ]
+        },
+        {
+          "phase": "Test",
+          "duration": 0.051212959,
+          "process_status": {
+            "Failure": 101
+          },
+          "argv": [
+            "/opt/rust/bin/cargo",
+            "test",
+            "--verbose",
+            "--package=fixture-mutation-missed-one@0.1.0",
+            "--offline",
+            "--frozen"
+          ]
+        }
+      ]
+    },
+    {
+      "scenario": {
+        "Mutant": {
+          "name": "src/lib.rs:2:11: replace + with - in add_three",
+          "package": "fixture-mutation-missed-one",
+          "file": "src/lib.rs",
+          "function": {
+            "function_name": "add_three",
+            "return_type": "-> i32",
+            "span": {
+              "start": {
+                "line": 1,
+                "column": 1
+              },
+              "end": {
+                "line": 3,
+                "column": 2
+              }
+            }
+          },
+          "span": {
+            "start": {
+              "line": 2,
+              "column": 11
+            },
+            "end": {
+              "line": 2,
+              "column": 12
+            }
+          },
+          "replacement": "-",
+          "genre": "BinaryOperator"
+        }
+      },
+      "summary": "CaughtMutant",
+      "log_path": "log/src__lib.rs_line_2_col_11.log",
+      "diff_path": "diff/src__lib.rs_line_2_col_11.diff",
+      "phase_results": [
+        {
+          "phase": "Build",
+          "duration": 0.170839167,
+          "process_status": "Success",
+          "argv": [
+            "/opt/rust/bin/cargo",
+            "test",
+            "--no-run",
+            "--verbose",
+            "--package=fixture-mutation-missed-one@0.1.0",
+            "--offline",
+            "--frozen"
+          ]
+        },
+        {
+          "phase": "Test",
+          "duration": 0.0523425,
+          "process_status": {
+            "Failure": 101
+          },
+          "argv": [
+            "/opt/rust/bin/cargo",
+            "test",
+            "--verbose",
+            "--package=fixture-mutation-missed-one@0.1.0",
+            "--offline",
+            "--frozen"
+          ]
+        }
+      ]
+    },
+    {
+      "scenario": {
+        "Mutant": {
+          "name": "src/lib.rs:2:11: replace + with * in add_three",
+          "package": "fixture-mutation-missed-one",
+          "file": "src/lib.rs",
+          "function": {
+            "function_name": "add_three",
+            "return_type": "-> i32",
+            "span": {
+              "start": {
+                "line": 1,
+                "column": 1
+              },
+              "end": {
+                "line": 3,
+                "column": 2
+              }
+            }
+          },
+          "span": {
+            "start": {
+              "line": 2,
+              "column": 11
+            },
+            "end": {
+              "line": 2,
+              "column": 12
+            }
+          },
+          "replacement": "*",
+          "genre": "BinaryOperator"
+        }
+      },
+      "summary": "CaughtMutant",
+      "log_path": "log/src__lib.rs_line_2_col_11_001.log",
+      "diff_path": "diff/src__lib.rs_line_2_col_11_001.diff",
+      "phase_results": [
+        {
+          "phase": "Build",
+          "duration": 0.171112292,
+          "process_status": "Success",
+          "argv": [
+            "/opt/rust/bin/cargo",
+            "test",
+            "--no-run",
+            "--verbose",
+            "--package=fixture-mutation-missed-one@0.1.0",
+            "--offline",
+            "--frozen"
+          ]
+        },
+        {
+          "phase": "Test",
+          "duration": 0.057512208,
+          "process_status": {
+            "Failure": 101
+          },
+          "argv": [
+            "/opt/rust/bin/cargo",
+            "test",
+            "--verbose",
+            "--package=fixture-mutation-missed-one@0.1.0",
+            "--offline",
+            "--frozen"
+          ]
+        }
+      ]
+    },
+    {
+      "scenario": {
+        "Mutant": {
+          "name": "src/lib.rs:6:5: replace is_even_and_positive -> bool with true",
+          "package": "fixture-mutation-missed-one",
+          "file": "src/lib.rs",
+          "function": {
+            "function_name": "is_even_and_positive",
+            "return_type": "-> bool",
+            "span": {
+              "start": {
+                "line": 5,
+                "column": 1
+              },
+              "end": {
+                "line": 7,
+                "column": 2
+              }
+            }
+          },
+          "span": {
+            "start": {
+              "line": 6,
+              "column": 5
+            },
+            "end": {
+              "line": 6,
+              "column": 32
+            }
+          },
+          "replacement": "true",
+          "genre": "FnValue"
+        }
+      },
+      "summary": "CaughtMutant",
+      "log_path": "log/src__lib.rs_line_6_col_5.log",
+      "diff_path": "diff/src__lib.rs_line_6_col_5.diff",
+      "phase_results": [
+        {
+          "phase": "Build",
+          "duration": 0.160169042,
+          "process_status": "Success",
+          "argv": [
+            "/opt/rust/bin/cargo",
+            "test",
+            "--no-run",
+            "--verbose",
+            "--package=fixture-mutation-missed-one@0.1.0",
+            "--offline",
+            "--frozen"
+          ]
+        },
+        {
+          "phase": "Test",
+          "duration": 0.051717209,
+          "process_status": {
+            "Failure": 101
+          },
+          "argv": [
+            "/opt/rust/bin/cargo",
+            "test",
+            "--verbose",
+            "--package=fixture-mutation-missed-one@0.1.0",
+            "--offline",
+            "--frozen"
+          ]
+        }
+      ]
+    },
+    {
+      "scenario": {
+        "Mutant": {
+          "name": "src/lib.rs:6:5: replace is_even_and_positive -> bool with false",
+          "package": "fixture-mutation-missed-one",
+          "file": "src/lib.rs",
+          "function": {
+            "function_name": "is_even_and_positive",
+            "return_type": "-> bool",
+            "span": {
+              "start": {
+                "line": 5,
+                "column": 1
+              },
+              "end": {
+                "line": 7,
+                "column": 2
+              }
+            }
+          },
+          "span": {
+            "start": {
+              "line": 6,
+              "column": 5
+            },
+            "end": {
+              "line": 6,
+              "column": 32
+            }
+          },
+          "replacement": "false",
+          "genre": "FnValue"
+        }
+      },
+      "summary": "CaughtMutant",
+      "log_path": "log/src__lib.rs_line_6_col_5_001.log",
+      "diff_path": "diff/src__lib.rs_line_6_col_5_001.diff",
+      "phase_results": [
+        {
+          "phase": "Build",
+          "duration": 0.160909959,
+          "process_status": "Success",
+          "argv": [
+            "/opt/rust/bin/cargo",
+            "test",
+            "--no-run",
+            "--verbose",
+            "--package=fixture-mutation-missed-one@0.1.0",
+            "--offline",
+            "--frozen"
+          ]
+        },
+        {
+          "phase": "Test",
+          "duration": 0.052810625,
+          "process_status": {
+            "Failure": 101
+          },
+          "argv": [
+            "/opt/rust/bin/cargo",
+            "test",
+            "--verbose",
+            "--package=fixture-mutation-missed-one@0.1.0",
+            "--offline",
+            "--frozen"
+          ]
+        }
+      ]
+    },
+    {
+      "scenario": {
+        "Mutant": {
+          "name": "src/lib.rs:6:15: replace && with || in is_even_and_positive",
+          "package": "fixture-mutation-missed-one",
+          "file": "src/lib.rs",
+          "function": {
+            "function_name": "is_even_and_positive",
+            "return_type": "-> bool",
+            "span": {
+              "start": {
+                "line": 5,
+                "column": 1
+              },
+              "end": {
+                "line": 7,
+                "column": 2
+              }
+            }
+          },
+          "span": {
+            "start": {
+              "line": 6,
+              "column": 15
+            },
+            "end": {
+              "line": 6,
+              "column": 17
+            }
+          },
+          "replacement": "||",
+          "genre": "BinaryOperator"
+        }
+      },
+      "summary": "CaughtMutant",
+      "log_path": "log/src__lib.rs_line_6_col_15.log",
+      "diff_path": "diff/src__lib.rs_line_6_col_15.diff",
+      "phase_results": [
+        {
+          "phase": "Build",
+          "duration": 0.154153417,
+          "process_status": "Success",
+          "argv": [
+            "/opt/rust/bin/cargo",
+            "test",
+            "--no-run",
+            "--verbose",
+            "--package=fixture-mutation-missed-one@0.1.0",
+            "--offline",
+            "--frozen"
+          ]
+        },
+        {
+          "phase": "Test",
+          "duration": 0.051748875,
+          "process_status": {
+            "Failure": 101
+          },
+          "argv": [
+            "/opt/rust/bin/cargo",
+            "test",
+            "--verbose",
+            "--package=fixture-mutation-missed-one@0.1.0",
+            "--offline",
+            "--frozen"
+          ]
+        }
+      ]
+    },
+    {
+      "scenario": {
+        "Mutant": {
+          "name": "src/lib.rs:6:11: replace > with == in is_even_and_positive",
+          "package": "fixture-mutation-missed-one",
+          "file": "src/lib.rs",
+          "function": {
+            "function_name": "is_even_and_positive",
+            "return_type": "-> bool",
+            "span": {
+              "start": {
+                "line": 5,
+                "column": 1
+              },
+              "end": {
+                "line": 7,
+                "column": 2
+              }
+            }
+          },
+          "span": {
+            "start": {
+              "line": 6,
+              "column": 11
+            },
+            "end": {
+              "line": 6,
+              "column": 12
+            }
+          },
+          "replacement": "==",
+          "genre": "BinaryOperator"
+        }
+      },
+      "summary": "CaughtMutant",
+      "log_path": "log/src__lib.rs_line_6_col_11.log",
+      "diff_path": "diff/src__lib.rs_line_6_col_11.diff",
+      "phase_results": [
+        {
+          "phase": "Build",
+          "duration": 0.165260958,
+          "process_status": "Success",
+          "argv": [
+            "/opt/rust/bin/cargo",
+            "test",
+            "--no-run",
+            "--verbose",
+            "--package=fixture-mutation-missed-one@0.1.0",
+            "--offline",
+            "--frozen"
+          ]
+        },
+        {
+          "phase": "Test",
+          "duration": 0.053018666,
+          "process_status": {
+            "Failure": 101
+          },
+          "argv": [
+            "/opt/rust/bin/cargo",
+            "test",
+            "--verbose",
+            "--package=fixture-mutation-missed-one@0.1.0",
+            "--offline",
+            "--frozen"
+          ]
+        }
+      ]
+    },
+    {
+      "scenario": {
+        "Mutant": {
+          "name": "src/lib.rs:6:11: replace > with < in is_even_and_positive",
+          "package": "fixture-mutation-missed-one",
+          "file": "src/lib.rs",
+          "function": {
+            "function_name": "is_even_and_positive",
+            "return_type": "-> bool",
+            "span": {
+              "start": {
+                "line": 5,
+                "column": 1
+              },
+              "end": {
+                "line": 7,
+                "column": 2
+              }
+            }
+          },
+          "span": {
+            "start": {
+              "line": 6,
+              "column": 11
+            },
+            "end": {
+              "line": 6,
+              "column": 12
+            }
+          },
+          "replacement": "<",
+          "genre": "BinaryOperator"
+        }
+      },
+      "summary": "CaughtMutant",
+      "log_path": "log/src__lib.rs_line_6_col_11_001.log",
+      "diff_path": "diff/src__lib.rs_line_6_col_11_001.diff",
+      "phase_results": [
+        {
+          "phase": "Build",
+          "duration": 0.157487042,
+          "process_status": "Success",
+          "argv": [
+            "/opt/rust/bin/cargo",
+            "test",
+            "--no-run",
+            "--verbose",
+            "--package=fixture-mutation-missed-one@0.1.0",
+            "--offline",
+            "--frozen"
+          ]
+        },
+        {
+          "phase": "Test",
+          "duration": 0.0530085,
+          "process_status": {
+            "Failure": 101
+          },
+          "argv": [
+            "/opt/rust/bin/cargo",
+            "test",
+            "--verbose",
+            "--package=fixture-mutation-missed-one@0.1.0",
+            "--offline",
+            "--frozen"
+          ]
+        }
+      ]
+    },
+    {
+      "scenario": {
+        "Mutant": {
+          "name": "src/lib.rs:6:11: replace > with >= in is_even_and_positive",
+          "package": "fixture-mutation-missed-one",
+          "file": "src/lib.rs",
+          "function": {
+            "function_name": "is_even_and_positive",
+            "return_type": "-> bool",
+            "span": {
+              "start": {
+                "line": 5,
+                "column": 1
+              },
+              "end": {
+                "line": 7,
+                "column": 2
+              }
+            }
+          },
+          "span": {
+            "start": {
+              "line": 6,
+              "column": 11
+            },
+            "end": {
+              "line": 6,
+              "column": 12
+            }
+          },
+          "replacement": ">=",
+          "genre": "BinaryOperator"
+        }
+      },
+      "summary": "MissedMutant",
+      "log_path": "log/src__lib.rs_line_6_col_11_002.log",
+      "diff_path": "diff/src__lib.rs_line_6_col_11_002.diff",
+      "phase_results": [
+        {
+          "phase": "Build",
+          "duration": 0.170778708,
+          "process_status": "Success",
+          "argv": [
+            "/opt/rust/bin/cargo",
+            "test",
+            "--no-run",
+            "--verbose",
+            "--package=fixture-mutation-missed-one@0.1.0",
+            "--offline",
+            "--frozen"
+          ]
+        },
+        {
+          "phase": "Test",
+          "duration": 0.050571875,
+          "process_status": "Success",
+          "argv": [
+            "/opt/rust/bin/cargo",
+            "test",
+            "--verbose",
+            "--package=fixture-mutation-missed-one@0.1.0",
+            "--offline",
+            "--frozen"
+          ]
+        }
+      ]
+    },
+    {
+      "scenario": {
+        "Mutant": {
+          "name": "src/lib.rs:6:28: replace == with != in is_even_and_positive",
+          "package": "fixture-mutation-missed-one",
+          "file": "src/lib.rs",
+          "function": {
+            "function_name": "is_even_and_positive",
+            "return_type": "-> bool",
+            "span": {
+              "start": {
+                "line": 5,
+                "column": 1
+              },
+              "end": {
+                "line": 7,
+                "column": 2
+              }
+            }
+          },
+          "span": {
+            "start": {
+              "line": 6,
+              "column": 28
+            },
+            "end": {
+              "line": 6,
+              "column": 30
+            }
+          },
+          "replacement": "!=",
+          "genre": "BinaryOperator"
+        }
+      },
+      "summary": "CaughtMutant",
+      "log_path": "log/src__lib.rs_line_6_col_28.log",
+      "diff_path": "diff/src__lib.rs_line_6_col_28.diff",
+      "phase_results": [
+        {
+          "phase": "Build",
+          "duration": 0.154448584,
+          "process_status": "Success",
+          "argv": [
+            "/opt/rust/bin/cargo",
+            "test",
+            "--no-run",
+            "--verbose",
+            "--package=fixture-mutation-missed-one@0.1.0",
+            "--offline",
+            "--frozen"
+          ]
+        },
+        {
+          "phase": "Test",
+          "duration": 0.053496834,
+          "process_status": {
+            "Failure": 101
+          },
+          "argv": [
+            "/opt/rust/bin/cargo",
+            "test",
+            "--verbose",
+            "--package=fixture-mutation-missed-one@0.1.0",
+            "--offline",
+            "--frozen"
+          ]
+        }
+      ]
+    },
+    {
+      "scenario": {
+        "Mutant": {
+          "name": "src/lib.rs:6:24: replace % with / in is_even_and_positive",
+          "package": "fixture-mutation-missed-one",
+          "file": "src/lib.rs",
+          "function": {
+            "function_name": "is_even_and_positive",
+            "return_type": "-> bool",
+            "span": {
+              "start": {
+                "line": 5,
+                "column": 1
+              },
+              "end": {
+                "line": 7,
+                "column": 2
+              }
+            }
+          },
+          "span": {
+            "start": {
+              "line": 6,
+              "column": 24
+            },
+            "end": {
+              "line": 6,
+              "column": 25
+            }
+          },
+          "replacement": "/",
+          "genre": "BinaryOperator"
+        }
+      },
+      "summary": "CaughtMutant",
+      "log_path": "log/src__lib.rs_line_6_col_24.log",
+      "diff_path": "diff/src__lib.rs_line_6_col_24.diff",
+      "phase_results": [
+        {
+          "phase": "Build",
+          "duration": 0.161486542,
+          "process_status": "Success",
+          "argv": [
+            "/opt/rust/bin/cargo",
+            "test",
+            "--no-run",
+            "--verbose",
+            "--package=fixture-mutation-missed-one@0.1.0",
+            "--offline",
+            "--frozen"
+          ]
+        },
+        {
+          "phase": "Test",
+          "duration": 0.055695708,
+          "process_status": {
+            "Failure": 101
+          },
+          "argv": [
+            "/opt/rust/bin/cargo",
+            "test",
+            "--verbose",
+            "--package=fixture-mutation-missed-one@0.1.0",
+            "--offline",
+            "--frozen"
+          ]
+        }
+      ]
+    },
+    {
+      "scenario": {
+        "Mutant": {
+          "name": "src/lib.rs:6:24: replace % with + in is_even_and_positive",
+          "package": "fixture-mutation-missed-one",
+          "file": "src/lib.rs",
+          "function": {
+            "function_name": "is_even_and_positive",
+            "return_type": "-> bool",
+            "span": {
+              "start": {
+                "line": 5,
+                "column": 1
+              },
+              "end": {
+                "line": 7,
+                "column": 2
+              }
+            }
+          },
+          "span": {
+            "start": {
+              "line": 6,
+              "column": 24
+            },
+            "end": {
+              "line": 6,
+              "column": 25
+            }
+          },
+          "replacement": "+",
+          "genre": "BinaryOperator"
+        }
+      },
+      "summary": "CaughtMutant",
+      "log_path": "log/src__lib.rs_line_6_col_24_001.log",
+      "diff_path": "diff/src__lib.rs_line_6_col_24_001.diff",
+      "phase_results": [
+        {
+          "phase": "Build",
+          "duration": 0.160557625,
+          "process_status": "Success",
+          "argv": [
+            "/opt/rust/bin/cargo",
+            "test",
+            "--no-run",
+            "--verbose",
+            "--package=fixture-mutation-missed-one@0.1.0",
+            "--offline",
+            "--frozen"
+          ]
+        },
+        {
+          "phase": "Test",
+          "duration": 0.052388625,
+          "process_status": {
+            "Failure": 101
+          },
+          "argv": [
+            "/opt/rust/bin/cargo",
+            "test",
+            "--verbose",
+            "--package=fixture-mutation-missed-one@0.1.0",
+            "--offline",
+            "--frozen"
+          ]
+        }
+      ]
+    },
+    {
+      "scenario": {
+        "Mutant": {
+          "name": "src/lib.rs:10:5: replace unchecked_value -> i32 with 0",
+          "package": "fixture-mutation-missed-one",
+          "file": "src/lib.rs",
+          "function": {
+            "function_name": "unchecked_value",
+            "return_type": "-> i32",
+            "span": {
+              "start": {
+                "line": 9,
+                "column": 1
+              },
+              "end": {
+                "line": 11,
+                "column": 2
+              }
+            }
+          },
+          "span": {
+            "start": {
+              "line": 10,
+              "column": 5
+            },
+            "end": {
+              "line": 10,
+              "column": 14
+            }
+          },
+          "replacement": "0",
+          "genre": "FnValue"
+        }
+      },
+      "summary": "MissedMutant",
+      "log_path": "log/src__lib.rs_line_10_col_5.log",
+      "diff_path": "diff/src__lib.rs_line_10_col_5.diff",
+      "phase_results": [
+        {
+          "phase": "Build",
+          "duration": 0.160900458,
+          "process_status": "Success",
+          "argv": [
+            "/opt/rust/bin/cargo",
+            "test",
+            "--no-run",
+            "--verbose",
+            "--package=fixture-mutation-missed-one@0.1.0",
+            "--offline",
+            "--frozen"
+          ]
+        },
+        {
+          "phase": "Test",
+          "duration": 0.051978125,
+          "process_status": "Success",
+          "argv": [
+            "/opt/rust/bin/cargo",
+            "test",
+            "--verbose",
+            "--package=fixture-mutation-missed-one@0.1.0",
+            "--offline",
+            "--frozen"
+          ]
+        }
+      ]
+    },
+    {
+      "scenario": {
+        "Mutant": {
+          "name": "src/lib.rs:10:5: replace unchecked_value -> i32 with 1",
+          "package": "fixture-mutation-missed-one",
+          "file": "src/lib.rs",
+          "function": {
+            "function_name": "unchecked_value",
+            "return_type": "-> i32",
+            "span": {
+              "start": {
+                "line": 9,
+                "column": 1
+              },
+              "end": {
+                "line": 11,
+                "column": 2
+              }
+            }
+          },
+          "span": {
+            "start": {
+              "line": 10,
+              "column": 5
+            },
+            "end": {
+              "line": 10,
+              "column": 14
+            }
+          },
+          "replacement": "1",
+          "genre": "FnValue"
+        }
+      },
+      "summary": "MissedMutant",
+      "log_path": "log/src__lib.rs_line_10_col_5_001.log",
+      "diff_path": "diff/src__lib.rs_line_10_col_5_001.diff",
+      "phase_results": [
+        {
+          "phase": "Build",
+          "duration": 0.15105925,
+          "process_status": "Success",
+          "argv": [
+            "/opt/rust/bin/cargo",
+            "test",
+            "--no-run",
+            "--verbose",
+            "--package=fixture-mutation-missed-one@0.1.0",
+            "--offline",
+            "--frozen"
+          ]
+        },
+        {
+          "phase": "Test",
+          "duration": 0.051228917,
+          "process_status": "Success",
+          "argv": [
+            "/opt/rust/bin/cargo",
+            "test",
+            "--verbose",
+            "--package=fixture-mutation-missed-one@0.1.0",
+            "--offline",
+            "--frozen"
+          ]
+        }
+      ]
+    },
+    {
+      "scenario": {
+        "Mutant": {
+          "name": "src/lib.rs:10:5: replace unchecked_value -> i32 with -1",
+          "package": "fixture-mutation-missed-one",
+          "file": "src/lib.rs",
+          "function": {
+            "function_name": "unchecked_value",
+            "return_type": "-> i32",
+            "span": {
+              "start": {
+                "line": 9,
+                "column": 1
+              },
+              "end": {
+                "line": 11,
+                "column": 2
+              }
+            }
+          },
+          "span": {
+            "start": {
+              "line": 10,
+              "column": 5
+            },
+            "end": {
+              "line": 10,
+              "column": 14
+            }
+          },
+          "replacement": "-1",
+          "genre": "FnValue"
+        }
+      },
+      "summary": "MissedMutant",
+      "log_path": "log/src__lib.rs_line_10_col_5_002.log",
+      "diff_path": "diff/src__lib.rs_line_10_col_5_002.diff",
+      "phase_results": [
+        {
+          "phase": "Build",
+          "duration": 0.155245917,
+          "process_status": "Success",
+          "argv": [
+            "/opt/rust/bin/cargo",
+            "test",
+            "--no-run",
+            "--verbose",
+            "--package=fixture-mutation-missed-one@0.1.0",
+            "--offline",
+            "--frozen"
+          ]
+        },
+        {
+          "phase": "Test",
+          "duration": 0.050980375,
+          "process_status": "Success",
+          "argv": [
+            "/opt/rust/bin/cargo",
+            "test",
+            "--verbose",
+            "--package=fixture-mutation-missed-one@0.1.0",
+            "--offline",
+            "--frozen"
+          ]
+        }
+      ]
+    },
+    {
+      "scenario": {
+        "Mutant": {
+          "name": "src/lib.rs:10:11: replace * with + in unchecked_value",
+          "package": "fixture-mutation-missed-one",
+          "file": "src/lib.rs",
+          "function": {
+            "function_name": "unchecked_value",
+            "return_type": "-> i32",
+            "span": {
+              "start": {
+                "line": 9,
+                "column": 1
+              },
+              "end": {
+                "line": 11,
+                "column": 2
+              }
+            }
+          },
+          "span": {
+            "start": {
+              "line": 10,
+              "column": 11
+            },
+            "end": {
+              "line": 10,
+              "column": 12
+            }
+          },
+          "replacement": "+",
+          "genre": "BinaryOperator"
+        }
+      },
+      "summary": "MissedMutant",
+      "log_path": "log/src__lib.rs_line_10_col_11.log",
+      "diff_path": "diff/src__lib.rs_line_10_col_11.diff",
+      "phase_results": [
+        {
+          "phase": "Build",
+          "duration": 0.167926625,
+          "process_status": "Success",
+          "argv": [
+            "/opt/rust/bin/cargo",
+            "test",
+            "--no-run",
+            "--verbose",
+            "--package=fixture-mutation-missed-one@0.1.0",
+            "--offline",
+            "--frozen"
+          ]
+        },
+        {
+          "phase": "Test",
+          "duration": 0.05041125,
+          "process_status": "Success",
+          "argv": [
+            "/opt/rust/bin/cargo",
+            "test",
+            "--verbose",
+            "--package=fixture-mutation-missed-one@0.1.0",
+            "--offline",
+            "--frozen"
+          ]
+        }
+      ]
+    },
+    {
+      "scenario": {
+        "Mutant": {
+          "name": "src/lib.rs:10:11: replace * with / in unchecked_value",
+          "package": "fixture-mutation-missed-one",
+          "file": "src/lib.rs",
+          "function": {
+            "function_name": "unchecked_value",
+            "return_type": "-> i32",
+            "span": {
+              "start": {
+                "line": 9,
+                "column": 1
+              },
+              "end": {
+                "line": 11,
+                "column": 2
+              }
+            }
+          },
+          "span": {
+            "start": {
+              "line": 10,
+              "column": 11
+            },
+            "end": {
+              "line": 10,
+              "column": 12
+            }
+          },
+          "replacement": "/",
+          "genre": "BinaryOperator"
+        }
+      },
+      "summary": "MissedMutant",
+      "log_path": "log/src__lib.rs_line_10_col_11_001.log",
+      "diff_path": "diff/src__lib.rs_line_10_col_11_001.diff",
+      "phase_results": [
+        {
+          "phase": "Build",
+          "duration": 0.171703166,
+          "process_status": "Success",
+          "argv": [
+            "/opt/rust/bin/cargo",
+            "test",
+            "--no-run",
+            "--verbose",
+            "--package=fixture-mutation-missed-one@0.1.0",
+            "--offline",
+            "--frozen"
+          ]
+        },
+        {
+          "phase": "Test",
+          "duration": 0.051694292,
+          "process_status": "Success",
+          "argv": [
+            "/opt/rust/bin/cargo",
+            "test",
+            "--verbose",
+            "--package=fixture-mutation-missed-one@0.1.0",
+            "--offline",
+            "--frozen"
+          ]
+        }
+      ]
+    }
+  ],
+  "total_mutants": 19,
+  "missed": 6,
+  "caught": 13,
+  "timeout": 0,
+  "unviable": 0,
+  "success": 0,
+  "start_time": "2026-09-08T06:13:31.80383938Z",
+  "end_time": "2026-09-08T06:13:36.11141184Z",
+  "cargo_mutants_version": "27.1.0"
+}
+MUTATION_MEMBER ./caught.txt
+src/lib.rs:2:5: replace add_three -> i32 with 0
+src/lib.rs:2:5: replace add_three -> i32 with 1
+src/lib.rs:2:5: replace add_three -> i32 with -1
+src/lib.rs:2:11: replace + with - in add_three
+src/lib.rs:2:11: replace + with * in add_three
+src/lib.rs:6:5: replace is_even_and_positive -> bool with true
+src/lib.rs:6:5: replace is_even_and_positive -> bool with false
+src/lib.rs:6:15: replace && with || in is_even_and_positive
+src/lib.rs:6:11: replace > with == in is_even_and_positive
+src/lib.rs:6:11: replace > with < in is_even_and_positive
+src/lib.rs:6:28: replace == with != in is_even_and_positive
+src/lib.rs:6:24: replace % with / in is_even_and_positive
+src/lib.rs:6:24: replace % with + in is_even_and_positive
+
+MUTATION_MEMBER ./missed.txt
+src/lib.rs:6:11: replace > with >= in is_even_and_positive
+src/lib.rs:10:5: replace unchecked_value -> i32 with 0
+src/lib.rs:10:5: replace unchecked_value -> i32 with 1
+src/lib.rs:10:5: replace unchecked_value -> i32 with -1
+src/lib.rs:10:11: replace * with + in unchecked_value
+src/lib.rs:10:11: replace * with / in unchecked_value
+
+MUTATION_MEMBER ./timeout.txt
+
+MUTATION_MEMBER ./unviable.txt
+
+MUTATION_OBSERVATION fixture=hostile-writer termination=Exited exit=Some(2) listed=Some(4) identity=Guest bundle_entries=19 bundle_unavailable=false
+MUTATION_STDOUT
+Found 4 mutants to test
+ok       Unmutated baseline
+MISSED   src/lib.rs:7:5: replace attempt_external_writes with ()
+MISSED   src/lib.rs:13:5: replace attempt_detached_child with ()
+MISSED   src/lib.rs:22:5: replace attempt_network with ()
+MISSED   src/lib.rs:32:5: replace emit_forged_output with ()
+4 mutants tested: 4 missed
+
+MUTATION_STDERR
+
+MUTATION_OUTCOMES
+{
+  "outcomes": [
+    {
+      "scenario": "Baseline",
+      "summary": "Success",
+      "log_path": "log/baseline.log",
+      "diff_path": null,
+      "phase_results": [
+        {
+          "phase": "Build",
+          "duration": 0.151718125,
+          "process_status": "Success",
+          "argv": [
+            "/opt/rust/bin/cargo",
+            "test",
+            "--no-run",
+            "--verbose",
+            "--package=fixture-mutation-hostile-writer@0.1.0",
+            "--offline",
+            "--frozen"
+          ]
+        },
+        {
+          "phase": "Test",
+          "duration": 0.050528125,
+          "process_status": "Success",
+          "argv": [
+            "/opt/rust/bin/cargo",
+            "test",
+            "--verbose",
+            "--package=fixture-mutation-hostile-writer@0.1.0",
+            "--offline",
+            "--frozen"
+          ]
+        }
+      ]
+    },
+    {
+      "scenario": {
+        "Mutant": {
+          "name": "src/lib.rs:7:5: replace attempt_external_writes with ()",
+          "package": "fixture-mutation-hostile-writer",
+          "file": "src/lib.rs",
+          "function": {
+            "function_name": "attempt_external_writes",
+            "return_type": "",
+            "span": {
+              "start": {
+                "line": 6,
+                "column": 1
+              },
+              "end": {
+                "line": 10,
+                "column": 2
+              }
+            }
+          },
+          "span": {
+            "start": {
+              "line": 7,
+              "column": 5
+            },
+            "end": {
+              "line": 9,
+              "column": 76
+            }
+          },
+          "replacement": "()",
+          "genre": "FnValue"
+        }
+      },
+      "summary": "MissedMutant",
+      "log_path": "log/src__lib.rs_line_7_col_5.log",
+      "diff_path": "diff/src__lib.rs_line_7_col_5.diff",
+      "phase_results": [
+        {
+          "phase": "Build",
+          "duration": 0.160080042,
+          "process_status": "Success",
+          "argv": [
+            "/opt/rust/bin/cargo",
+            "test",
+            "--no-run",
+            "--verbose",
+            "--package=fixture-mutation-hostile-writer@0.1.0",
+            "--offline",
+            "--frozen"
+          ]
+        },
+        {
+          "phase": "Test",
+          "duration": 0.053029208,
+          "process_status": "Success",
+          "argv": [
+            "/opt/rust/bin/cargo",
+            "test",
+            "--verbose",
+            "--package=fixture-mutation-hostile-writer@0.1.0",
+            "--offline",
+            "--frozen"
+          ]
+        }
+      ]
+    },
+    {
+      "scenario": {
+        "Mutant": {
+          "name": "src/lib.rs:13:5: replace attempt_detached_child with ()",
+          "package": "fixture-mutation-hostile-writer",
+          "file": "src/lib.rs",
+          "function": {
+            "function_name": "attempt_detached_child",
+            "return_type": "",
+            "span": {
+              "start": {
+                "line": 12,
+                "column": 1
+              },
+              "end": {
+                "line": 19,
+                "column": 2
+              }
+            }
+          },
+          "span": {
+            "start": {
+              "line": 13,
+              "column": 5
+            },
+            "end": {
+              "line": 18,
+              "column": 18
+            }
+          },
+          "replacement": "()",
+          "genre": "FnValue"
+        }
+      },
+      "summary": "MissedMutant",
+      "log_path": "log/src__lib.rs_line_13_col_5.log",
+      "diff_path": "diff/src__lib.rs_line_13_col_5.diff",
+      "phase_results": [
+        {
+          "phase": "Build",
+          "duration": 0.163880333,
+          "process_status": "Success",
+          "argv": [
+            "/opt/rust/bin/cargo",
+            "test",
+            "--no-run",
+            "--verbose",
+            "--package=fixture-mutation-hostile-writer@0.1.0",
+            "--offline",
+            "--frozen"
+          ]
+        },
+        {
+          "phase": "Test",
+          "duration": 0.050585875,
+          "process_status": "Success",
+          "argv": [
+            "/opt/rust/bin/cargo",
+            "test",
+            "--verbose",
+            "--package=fixture-mutation-hostile-writer@0.1.0",
+            "--offline",
+            "--frozen"
+          ]
+        }
+      ]
+    },
+    {
+      "scenario": {
+        "Mutant": {
+          "name": "src/lib.rs:22:5: replace attempt_network with ()",
+          "package": "fixture-mutation-hostile-writer",
+          "file": "src/lib.rs",
+          "function": {
+            "function_name": "attempt_network",
+            "return_type": "",
+            "span": {
+              "start": {
+                "line": 21,
+                "column": 1
+              },
+              "end": {
+                "line": 29,
+                "column": 2
+              }
+            }
+          },
+          "span": {
+            "start": {
+              "line": 22,
+              "column": 5
+            },
+            "end": {
+              "line": 28,
+              "column": 6
+            }
+          },
+          "replacement": "()",
+          "genre": "FnValue"
+        }
+      },
+      "summary": "MissedMutant",
+      "log_path": "log/src__lib.rs_line_22_col_5.log",
+      "diff_path": "diff/src__lib.rs_line_22_col_5.diff",
+      "phase_results": [
+        {
+          "phase": "Build",
+          "duration": 0.152617792,
+          "process_status": "Success",
+          "argv": [
+            "/opt/rust/bin/cargo",
+            "test",
+            "--no-run",
+            "--verbose",
+            "--package=fixture-mutation-hostile-writer@0.1.0",
+            "--offline",
+            "--frozen"
+          ]
+        },
+        {
+          "phase": "Test",
+          "duration": 0.051242416,
+          "process_status": "Success",
+          "argv": [
+            "/opt/rust/bin/cargo",
+            "test",
+            "--verbose",
+            "--package=fixture-mutation-hostile-writer@0.1.0",
+            "--offline",
+            "--frozen"
+          ]
+        }
+      ]
+    },
+    {
+      "scenario": {
+        "Mutant": {
+          "name": "src/lib.rs:32:5: replace emit_forged_output with ()",
+          "package": "fixture-mutation-hostile-writer",
+          "file": "src/lib.rs",
+          "function": {
+            "function_name": "emit_forged_output",
+            "return_type": "",
+            "span": {
+              "start": {
+                "line": 31,
+                "column": 1
+              },
+              "end": {
+                "line": 38,
+                "column": 2
+              }
+            }
+          },
+          "span": {
+            "start": {
+              "line": 32,
+              "column": 5
+            },
+            "end": {
+              "line": 37,
+              "column": 28
+            }
+          },
+          "replacement": "()",
+          "genre": "FnValue"
+        }
+      },
+      "summary": "MissedMutant",
+      "log_path": "log/src__lib.rs_line_32_col_5.log",
+      "diff_path": "diff/src__lib.rs_line_32_col_5.diff",
+      "phase_results": [
+        {
+          "phase": "Build",
+          "duration": 0.153401,
+          "process_status": "Success",
+          "argv": [
+            "/opt/rust/bin/cargo",
+            "test",
+            "--no-run",
+            "--verbose",
+            "--package=fixture-mutation-hostile-writer@0.1.0",
+            "--offline",
+            "--frozen"
+          ]
+        },
+        {
+          "phase": "Test",
+          "duration": 0.052634208,
+          "process_status": "Success",
+          "argv": [
+            "/opt/rust/bin/cargo",
+            "test",
+            "--verbose",
+            "--package=fixture-mutation-hostile-writer@0.1.0",
+            "--offline",
+            "--frozen"
+          ]
+        }
+      ]
+    }
+  ],
+  "total_mutants": 4,
+  "missed": 4,
+  "caught": 0,
+  "timeout": 0,
+  "unviable": 0,
+  "success": 0,
+  "start_time": "2026-09-08T06:13:37.964533924Z",
+  "end_time": "2026-09-08T06:13:39.005133258Z",
+  "cargo_mutants_version": "27.1.0"
+}
+MUTATION_MEMBER ./caught.txt
+
+MUTATION_MEMBER ./missed.txt
+src/lib.rs:7:5: replace attempt_external_writes with ()
+src/lib.rs:13:5: replace attempt_detached_child with ()
+src/lib.rs:22:5: replace attempt_network with ()
+src/lib.rs:32:5: replace emit_forged_output with ()
+
+MUTATION_MEMBER ./timeout.txt
+
+MUTATION_MEMBER ./unviable.txt
+
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 9 filtered out; finished in 28.38s
+

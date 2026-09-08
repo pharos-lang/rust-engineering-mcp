@@ -1,0 +1,12 @@
+{
+  "actual_diff_present": true,
+  "authorized_source_canary_present_in_html_and_diff_bundle": true,
+  "cleanup_joined": true,
+  "coverage_html_bytes": 20480,
+  "host_canary_absent_from_html_json_lcov_diff_and_process_streams": true,
+  "host_canary_not_in_captured_source": true,
+  "host_read_attempt_denied": true,
+  "image_id": "sha256:25ed3626e710081a571a86a29521eaf2e890e796afd422ba5e409e0ce1891635",
+  "mutation_bundle_bytes": 30720,
+  "universal_source_secret_redaction": false
+}

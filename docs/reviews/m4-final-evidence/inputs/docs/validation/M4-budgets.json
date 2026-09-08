@@ -1,0 +1,122 @@
+{
+  "schema": "rust-mcp-m4-budgets-v1",
+  "status": "passed",
+  "synchronous_ceiling_ms": 60000,
+  "image_id": "sha256:25ed3626e710081a571a86a29521eaf2e890e796afd422ba5e409e0ce1891635",
+  "binary_sha256": "sha256:d27cbc5907ce7e985f3f1c162356714bb88efb87e596619b8866faa6bcda8b5f",
+  "qualification_scope": "Measured operation path via Tasks on a frozen binary; synchronous protocol routing and final source-bound gate require separate receipts",
+  "calibration_excluded": true,
+  "cold_definition": "first execution of each tool in a new calibrated MCP session; warm repeats same tool in that session; each guest build remains ephemeral",
+  "groups": [
+    {
+      "tool": "rust.deny",
+      "temperature": "cold",
+      "samples": 30,
+      "min_ms": 6231,
+      "median_ms": 6393.5,
+      "p95_ms": 7125,
+      "p99_ms": 7873,
+      "max_ms": 7873
+    },
+    {
+      "tool": "rust.deny",
+      "temperature": "warm",
+      "samples": 30,
+      "min_ms": 6231,
+      "median_ms": 6408.0,
+      "p95_ms": 7026,
+      "p99_ms": 7918,
+      "max_ms": 7918
+    },
+    {
+      "tool": "rust.miri",
+      "temperature": "cold",
+      "samples": 30,
+      "min_ms": 8567,
+      "median_ms": 8670.5,
+      "p95_ms": 9446,
+      "p99_ms": 9865,
+      "max_ms": 9865
+    },
+    {
+      "tool": "rust.miri",
+      "temperature": "warm",
+      "samples": 30,
+      "min_ms": 8537,
+      "median_ms": 8704.0,
+      "p95_ms": 9440,
+      "p99_ms": 9515,
+      "max_ms": 9515
+    },
+    {
+      "tool": "rust.quality.gate.v2",
+      "temperature": "cold",
+      "samples": 30,
+      "min_ms": 13713,
+      "median_ms": 13856.0,
+      "p95_ms": 16233,
+      "p99_ms": 17044,
+      "max_ms": 17044
+    },
+    {
+      "tool": "rust.quality.gate.v2",
+      "temperature": "warm",
+      "samples": 30,
+      "min_ms": 13678,
+      "median_ms": 13858.0,
+      "p95_ms": 15168,
+      "p99_ms": 15263,
+      "max_ms": 15263
+    },
+    {
+      "tool": "rust.supply_chain.inspect",
+      "temperature": "cold",
+      "samples": 30,
+      "min_ms": 6302,
+      "median_ms": 6439.5,
+      "p95_ms": 7045,
+      "p99_ms": 7780,
+      "max_ms": 7780
+    },
+    {
+      "tool": "rust.supply_chain.inspect",
+      "temperature": "warm",
+      "samples": 30,
+      "min_ms": 6305,
+      "median_ms": 6420.0,
+      "p95_ms": 7047,
+      "p99_ms": 7640,
+      "max_ms": 7640
+    },
+    {
+      "tool": "rust.unsafe.scan",
+      "temperature": "cold",
+      "samples": 30,
+      "min_ms": 5371,
+      "median_ms": 5564.0,
+      "p95_ms": 6091,
+      "p99_ms": 6730,
+      "max_ms": 6730
+    },
+    {
+      "tool": "rust.unsafe.scan",
+      "temperature": "warm",
+      "samples": 30,
+      "min_ms": 5393,
+      "median_ms": 5564.5,
+      "p95_ms": 5990,
+      "p99_ms": 5997,
+      "max_ms": 5997
+    }
+  ],
+  "outputs": [
+    {
+      "path": "docs/validation/M4-budgets/m4-budgets.json",
+      "sha256": "09343d449b0b93d8501592544edc32cd18b22387afd1af160046bb4dc7e020ad"
+    },
+    {
+      "path": "docs/validation/M4-budgets/m4-budgets-inputs.json",
+      "sha256": "01a44f4fd79b2d3ec17f7554da53a52973988f71eb6eea348be9b72fe4a7b9cc"
+    }
+  ]
+}

@@ -1,0 +1,10 @@
+   Compiling rust-engineering-mcp v0.3.0-dev (/Users/cburgosro/Projects/rust-mcp/crates/mcp-server)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 2.49s
+     Running unittests src/main.rs (target/debug/deps/rust_engineering_mcp-63f7949435965486)
+
+running 2 tests
+test stdio::supply_chain::trim_tests::encode_result_trims_large_valid_report_within_complete_wire_budget ... ok
+test stdio::quality_v2::trim_tests::encode_result_trims_large_valid_report_without_preserving_pass ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 287 filtered out; finished in 7.23s
+

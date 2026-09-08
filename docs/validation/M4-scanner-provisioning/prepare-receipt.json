@@ -1,0 +1,9 @@
+{
+  "base_image_id": "sha256:95dddeb5305f10b09b441e3cc4018ebb1a8a296d365c65106327d59f933c64e7",
+  "context_file_count": 24,
+  "context_sha256s_digest": "c82ee714a2cd5797d68124bcbecaf59e524d62fc94dbed7af88fae63f21710f3",
+  "network_used": false,
+  "schema": "rust-engineering-mcp.m4-scanner-prepare.v1",
+  "status": "prepared_not_built",
+  "target": "aarch64-unknown-linux-gnu"
+}

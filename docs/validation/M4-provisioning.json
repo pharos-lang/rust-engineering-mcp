@@ -1,0 +1,84 @@
+{
+  "schema": "rust-engineering-mcp.m4-provisioning-summary.v1",
+  "status": "blocked_upstream_readonly_probe",
+  "gateway_approved": false,
+  "image_id": "sha256:95dddeb5305f10b09b441e3cc4018ebb1a8a296d365c65106327d59f933c64e7",
+  "manifest_sha256": "5b7cb0f2c3fb66afb3095b0d40526c58d81ad757359e17c9f0815e960043976d",
+  "base_image_id": "sha256:384a1742ecc53cdd3a9c0bf36c6f8b66db73ddd118aeeae6e55654ea998ae36a",
+  "base_history_sha256": "2abd5a36a76bf367c4c4752bea8ff4e010ca36738ffb6bc36d777c15dd83b34e",
+  "acquisition": {
+    "host_only": true,
+    "input_count": 247,
+    "registry_archive_count": 238,
+    "verified_bytes": 159061363,
+    "hash_and_size_matches": 247,
+    "archive_safety_checked": true,
+    "cargo_deny_packaged_lock_byte_identical_to_tag": true
+  },
+  "build": {
+    "network": "none",
+    "pull": false,
+    "platform": "linux/arm64",
+    "project_source_or_credentials_mounted": false,
+    "build_log_sha256": "22eee41999317146c00d3c3adcdafd6b42dbbe8bdb1af0dcafd03bc6b2d3a53b"
+  },
+  "observed_components": {
+    "cargo_deny": "cargo-deny 0.19.7",
+    "cargo_deny_sha256": "e9bcd2f489b8dd22cc3f3fc3452cfa0483cf8b9236a5e2787c54f864d4e77715",
+    "cargo_deny_size": 7869760,
+    "cargo_deny_elf": "ELF64 AArch64 DYN",
+    "cargo_deny_interpreter": "/lib/ld-linux-aarch64.so.1",
+    "cargo_deny_ldd_missing": [],
+    "rustc": "1.100.0-nightly (5a2be9f5f 2026-09-06)",
+    "rustc_commit": "5a2be9f5f075d31e3ca5526b5b029881ce441253",
+    "cargo": "1.100.0-nightly (3c0b53475 2026-09-04)",
+    "cargo_commit": "3c0b534756e166d12eb9fd2e1abfe5b42ac6101e",
+    "miri_sha256": "a3dad3cf43a3b8097b55f6c7ca08386af004c433c4e0e8125d3e62cecdc4ff85",
+    "cargo_miri_sha256": "7faa3486e6a51ae74cdf404358fb028ddeaaa2bb56604b175d8e9fe8463c6842",
+    "sysroot_path": "/opt/miri-sysroot/2026-09-07/aarch64-unknown-linux-gnu",
+    "sysroot_size": 114355641,
+    "sysroot_tree_sha256": "68324d8d8b2dcb55616ff2e53c7c91f4db78ada40ceafe189f933899d8a1f136"
+  },
+  "final_inventory": {
+    "sbom_sha256": "f4e254c68cb32cdc2ccd33dcc344b87e762d4e81c78874fbd3c94142935d6e16",
+    "license_texts_tar_sha256": "d26d4b71fc4b86c1f4678387bf8dada6fa9e049f408074b2660c82b0fffa85d6",
+    "package_managers_installers_caches_and_network_tools_absent": true
+  },
+  "readonly_verification": {
+    "network": "none",
+    "read_only": true,
+    "cap_drop": "ALL",
+    "no_new_privileges": true,
+    "required_non_probe_checks_passed": 12,
+    "cargo_deny_json_debug": {
+      "passed": true,
+      "generated_tmpfs_fixture": true,
+      "exit_code": 4,
+      "stdout": "",
+      "stderr_json_events": 21,
+      "debug_event_present": true,
+      "summary": {"licenses": {"errors": 1, "warnings": 2}, "bans": {"errors": 0}, "sources": {"errors": 0}}
+    },
+    "probe": "cargo miri setup --print-sysroot --target aarch64-unknown-linux-gnu",
+    "probe_exit_code": 1,
+    "probe_stderr": "Preparing a sysroot for Miri; failed to create un-staging dir: Read-only file system",
+    "blocker": "cargo-miri in nightly-2026-09-07 always attempts an atomic sysroot rebuild for setup --print-sysroot even when MIRI_SYSROOT points at the prepared sysroot, so the ADR-066 read-only no-write oracle cannot pass"
+  },
+  "raw_artifacts": {
+    "provisioning_receipt": "target/m4-runtime-provisioning/provisioning-receipt.json",
+    "provisioning_receipt_sha256": "63dc95e15b757301efa545f4efe39343f55bf439c56764290fd63fa49209a4ae",
+    "verification": "target/m4-runtime-provisioning/verification.json",
+    "verification_sha256": "fb4606ae133f8ccf572d6a60f4aa3e48b712f8a4c990a32b5aafacd3ab4f38f7",
+    "image_inspect": "target/m4-runtime-provisioning/image-inspect.json",
+    "image_inspect_sha256": "9833f3f3aaabf63d1b17ec808ce97ae6946c6084d8ac10131f518f30385267a6"
+  },
+  "source_inventory": {
+    "fixtures/rust-runtime/m4/Dockerfile": "53be380409fe8b9ec0d033f18bf28b9158124ddc7a2ec419fdc8548906831259",
+    "fixtures/rust-runtime/m4/build.sh": "89de939c0f9ec7acc41cb4567c3b2ff038a94550e0c64c78f7726101e4b4a154",
+    "fixtures/rust-runtime/m4/provision.py": "03b365fe486dfd69097d878a9ed79b90fde49c7f4dc37bfe09072914ad6d5503",
+    "fixtures/rust-runtime/m4/verify.py": "35a35d44a23c8f0af1c0da751f7b598a632b9c3f2546a62c057e5190a54f7e22",
+    "fixtures/rust-runtime/m4/test_provision.py": "5e3b8d12b02a15ebd39694d71683d504dd4ed5ffb957e98472043bde835f2725",
+    "fixtures/rust-runtime/m4/README.md": "f8a918c89594011e73baafe00ac427be0647d5847d272e9cdce4c11ffd5b296d"
+  },
+  "claim_limit": "Provisioning evidence only. Runtime admission and hostile project qualification remain unperformed."
+}

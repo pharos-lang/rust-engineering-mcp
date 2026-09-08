@@ -3,6 +3,8 @@
 import importlib.util
 import io
 import os
+import fnmatch
+import subprocess
 import tempfile
 from pathlib import Path
 import sys
@@ -23,7 +25,118 @@ def load_gate_module():
 GATE = load_gate_module()
 
 
+def parse_sonar_properties(text):
+    """Parse the key/value subset used by the repository's Sonar properties."""
+    properties = {}
+    for raw_line in text.splitlines():
+        line = raw_line.strip()
+        if not line or line.startswith(('#', '!')) or '=' not in line:
+            continue
+        key, value = line.split('=', 1)
+        properties[key.strip()] = value.strip()
+    return properties
+
+
+def rust_source_exclusion_violations(root, properties_text):
+    """Return Rust product sources hidden from analysis or coverage."""
+    properties = parse_sonar_properties(properties_text)
+    excluded = [
+        pattern.strip()
+        for key in ('sonar.exclusions', 'sonar.coverage.exclusions')
+        for pattern in properties.get(key, '').split(',')
+        if pattern.strip()
+    ]
+    sources = sorted(root.glob('crates/*/src/**/*.rs'))
+    if not sources:
+        raise AssertionError('Rust product source inventory is empty')
+    return [
+        source.relative_to(root).as_posix()
+        for source in sources
+        if any(
+            fnmatch.fnmatchcase(source.relative_to(root).as_posix(), pattern)
+            for pattern in excluded
+        )
+    ]
+
+
+def isolated_git_fixture_env(root, inherited):
+    """Keep Git executable discovery while isolating fixtures from host config."""
+    allowed = ('PATH', 'PATHEXT', 'SYSTEMROOT', 'WINDIR', 'TMPDIR', 'TMP', 'TEMP')
+    env = {key: inherited[key] for key in allowed if key in inherited}
+    env.update(
+        HOME=str(root),
+        XDG_CONFIG_HOME=str(root / '.config'),
+        GIT_CONFIG_NOSYSTEM='1',
+        GIT_CONFIG_GLOBAL=os.devnull,
+    )
+    return env
+
+
 class GateReportingTests(unittest.TestCase):
+    def test_required_sonar_configuration_is_bound_through_real_git_inventory(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            excludes = root / 'host-excludes'
+            excludes.write_text('*.properties\n')
+            host_config = root / 'host-gitconfig'
+            host_config.write_text(f'[core]\n\texcludesFile = {excludes}\n')
+            polluted = dict(os.environ)
+            polluted.update(
+                GIT_DIR=str(root / 'wrong-git-dir'),
+                GIT_INDEX_FILE=str(root / 'wrong-index'),
+                GIT_CONFIG_GLOBAL=str(host_config),
+                GIT_CONFIG_SYSTEM=str(host_config),
+            )
+            env = isolated_git_fixture_env(root, polluted)
+            subprocess.run(['git', '-c', 'init.defaultBranch=fixture', 'init', '--quiet', str(root)],
+                           check=True, capture_output=True, env=env)
+            policy = root / 'sonar-project.properties'
+            policy.write_text('sonar.coverage.exclusions=\n')
+            before = GATE.source_inventory(root, env)
+            self.assertEqual([row['path'] for row in before], ['sonar-project.properties'])
+            policy.write_text('sonar.coverage.exclusions=crates/**\n')
+            after = GATE.source_inventory(root, env)
+            self.assertNotEqual(before[0]['sha256'], after[0]['sha256'])
+
+    def test_portable_product_paths_cannot_be_excluded_from_required_coverage(self):
+        root = Path(__file__).resolve().parents[1]
+        self.assertEqual(
+            [],
+            rust_source_exclusion_violations(
+                root,
+                (root / 'sonar-project.properties').read_text(),
+            ),
+            'Rust product sources must remain in analysis and coverage',
+        )
+
+    def test_whitespace_cannot_hide_a_coverage_exclusion_from_the_oracle(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            source = root / 'crates' / 'fixture' / 'src' / 'lib.rs'
+            source.parent.mkdir(parents=True)
+            source.write_text('pub fn fixture() {}\n')
+            self.assertEqual(
+                ['crates/fixture/src/lib.rs'],
+                rust_source_exclusion_violations(
+                    root,
+                    'sonar.coverage.exclusions = crates/**\n',
+                ),
+            )
+
+    def test_global_analysis_exclusion_cannot_hide_any_rust_source(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            source = root / 'crates' / 'fixture' / 'src' / 'nested' / 'lib.rs'
+            source.parent.mkdir(parents=True)
+            source.write_text('pub fn fixture() {}\n')
+            self.assertEqual(
+                ['crates/fixture/src/nested/lib.rs'],
+                rust_source_exclusion_violations(
+                    root,
+                    'sonar.exclusions=crates/fixture/src/**\n',
+                ),
+            )
+
     @unittest.skipIf(os.name == "nt", "native symlink fixture")
     def test_source_binding_detects_new_bytes_and_records_links_without_following(self):
         with tempfile.TemporaryDirectory() as temporary:

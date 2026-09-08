@@ -133,7 +133,7 @@ impl RustProjectInspector {
                     .configuration_fingerprint()
                     .map_err(InspectionError::Execution)?,
                 execution_fingerprint: result.execution_fingerprint,
-                // RustGateway::new accepts only APPROVED_RUST_IMAGE, verified during
+                // Both approved images preserve this stable toolchain, verified during
                 // explicit provisioning. These are facts of that immutable identity.
                 rust_version: super::rust_gateway::APPROVED_RUST_VERSION.into(),
                 cargo_version: super::rust_gateway::APPROVED_CARGO_VERSION.into(),
@@ -602,6 +602,106 @@ impl rust_engineering_application::coverage::ProjectCoveragePort for RustProject
     }
 }
 
+impl rust_engineering_application::security::ProjectDenyPort for RustProjectInspector {
+    fn deny(
+        &self,
+        source: &SourceBundle,
+        vendor: &rust_engineering_domain::CargoVendorSnapshot,
+        policy: &rust_engineering_domain::security::SecurityPolicy,
+        options: &rust_engineering_domain::security::DenyOptions,
+        control: &dyn InspectionControl,
+    ) -> Result<
+        rust_engineering_application::security::DenyObservation,
+        rust_engineering_application::security::SecurityError,
+    > {
+        use rust_engineering_application::security::SecurityError;
+        let result = self
+            .with_gateway(control, |gateway| {
+                Ok(super::security_port::run(
+                    gateway, source, vendor, policy, options, control,
+                ))
+            })
+            .map_err(SecurityError::from)
+            .and_then(|result| result);
+        if matches!(
+            result,
+            Err(SecurityError::Inspection(
+                InspectionError::Execution(ExecutionError::CleanupUncertain)
+                    | InspectionError::Internal
+            ))
+        ) {
+            self.quarantined.store(true, Ordering::Release);
+        }
+        result
+    }
+}
+
+impl rust_engineering_application::unsafe_scan::ProjectUnsafeScanPort for RustProjectInspector {
+    fn unsafe_scan(
+        &self,
+        source: &SourceBundle,
+        vendor: &rust_engineering_domain::CargoVendorSnapshot,
+        options: &rust_engineering_domain::unsafe_scan::UnsafeScanOptions,
+        control: &dyn InspectionControl,
+    ) -> Result<
+        rust_engineering_application::unsafe_scan::UnsafeObservation,
+        rust_engineering_application::security::SecurityError,
+    > {
+        use rust_engineering_application::security::SecurityError;
+        let result = self
+            .with_gateway(control, |gateway| {
+                Ok(super::unsafe_port::run(
+                    gateway, source, vendor, options, control,
+                ))
+            })
+            .map_err(SecurityError::from)
+            .and_then(|result| result);
+        if matches!(
+            result,
+            Err(SecurityError::Inspection(
+                InspectionError::Execution(ExecutionError::CleanupUncertain)
+                    | InspectionError::Internal
+            ))
+        ) {
+            self.quarantined.store(true, Ordering::Release);
+        }
+        result
+    }
+}
+
+impl rust_engineering_application::miri::ProjectMiriPort for RustProjectInspector {
+    fn miri(
+        &self,
+        source: &SourceBundle,
+        vendor: &rust_engineering_domain::CargoVendorSnapshot,
+        options: &rust_engineering_domain::miri::MiriOptions,
+        control: &dyn InspectionControl,
+    ) -> Result<
+        rust_engineering_application::miri::MiriObservation,
+        rust_engineering_application::security::SecurityError,
+    > {
+        use rust_engineering_application::security::SecurityError;
+        let result = self
+            .with_gateway(control, |gateway| {
+                Ok(super::miri_port::run(
+                    gateway, source, vendor, options, control,
+                ))
+            })
+            .map_err(SecurityError::from)
+            .and_then(|result| result);
+        if matches!(
+            result,
+            Err(SecurityError::Inspection(
+                InspectionError::Execution(ExecutionError::CleanupUncertain)
+                    | InspectionError::Internal
+            ))
+        ) {
+            self.quarantined.store(true, Ordering::Release);
+        }
+        result
+    }
+}
+
 impl rust_engineering_application::ProjectFormatPort for RustProjectInspector {
     fn format(
         &self,
@@ -922,6 +1022,21 @@ fn frozen_lock_error(
                     | "error: cannot create the lock file /source/Cargo.lock because --frozen was passed to prevent this"
             )
         )
+}
+
+impl rust_engineering_application::supply_chain::SupplyFactsPort for RustProjectInspector {
+    fn supply_facts(
+        &self,
+        source: &rust_engineering_domain::SourceBundle,
+        vendor: Option<&rust_engineering_domain::CargoVendorSnapshot>,
+        deny: Option<&rust_engineering_application::security::DenyObservation>,
+        control: &dyn rust_engineering_application::InspectionControl,
+    ) -> Result<
+        rust_engineering_domain::supply_chain::SupplyGraph,
+        rust_engineering_application::security::SecurityError,
+    > {
+        crate::supply_facts::facts(source, vendor, deny, control)
+    }
 }
 
 #[cfg(test)]

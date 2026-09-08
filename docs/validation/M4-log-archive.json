@@ -1,0 +1,234 @@
+{
+  "schema": "rust-mcp-m4-log-archive-v1",
+  "reason": "Repository ignores *.log. These byte-identical .txt copies retain qualification logs for future authorized integration; original receipts unchanged.",
+  "files": [
+    {
+      "original": "M4-core-gate.log",
+      "retained_copy": "M4-core-gate.txt",
+      "bytes": 179095,
+      "sha256": "cc66c6aa5733e5dd90984f1c7d4cfcff1651b6ca4431eb5bb7916897a117439a"
+    },
+    {
+      "original": "M4-full-gate-resume.log",
+      "retained_copy": "M4-full-gate-resume.txt",
+      "bytes": 9283,
+      "sha256": "2b4fa184606a7b06f59f1f3729e437b55345543764a49bf06c003eb160d90448"
+    },
+    {
+      "original": "M4-full-gate.log",
+      "retained_copy": "M4-full-gate.txt",
+      "bytes": 227572,
+      "sha256": "1378c96c74e708ff6026473ed2e7c4afe7fc5b80d94b6080d31ed4e6069cb60b"
+    },
+    {
+      "original": "M4-hardening-attempts/core-attempt-2/gate.log",
+      "retained_copy": "M4-hardening-attempts/core-attempt-2/gate.txt",
+      "bytes": 119785,
+      "sha256": "3880097a52ce736e37444b1cd5a5594019cea9d988aad2df9fd473121d3aa5c9"
+    },
+    {
+      "original": "M4-hardening-attempts/full-attempt-1/gate.log",
+      "retained_copy": "M4-hardening-attempts/full-attempt-1/gate.txt",
+      "bytes": 147189,
+      "sha256": "4c84d505363226aacc1faa65a5b677339423c731014d379256958efb4b80887d"
+    },
+    {
+      "original": "M4-hardening-attempts/full-attempt-2/gate.log",
+      "retained_copy": "M4-hardening-attempts/full-attempt-2/gate.txt",
+      "bytes": 227572,
+      "sha256": "1378c96c74e708ff6026473ed2e7c4afe7fc5b80d94b6080d31ed4e6069cb60b"
+    },
+    {
+      "original": "M4-miri-native/native.log",
+      "retained_copy": "M4-miri-native/native.txt",
+      "bytes": 1071,
+      "sha256": "d5e688b6f1e70ef1e03e36f331719dad1311043df40f2421d4540168c72f2448"
+    },
+    {
+      "original": "M4-runtime/0.log",
+      "retained_copy": "M4-runtime/0.txt",
+      "bytes": 358,
+      "sha256": "a1c36c420e91ed409f4b76841b815fa13a22d31b719497112391c0f33aadcfaf"
+    },
+    {
+      "original": "M4-runtime/1.log",
+      "retained_copy": "M4-runtime/1.txt",
+      "bytes": 73064,
+      "sha256": "68a6de1af1b8b86d0beb71528b85e0399fa663b9c99db92452e037d74e4185f0"
+    },
+    {
+      "original": "M4-runtime/10.log",
+      "retained_copy": "M4-runtime/10.txt",
+      "bytes": 473,
+      "sha256": "edc6774820d7c5e32504dbc0a1a63bb2b314a1bd9f40bc880a1fc9f67ad5524b"
+    },
+    {
+      "original": "M4-runtime/11.log",
+      "retained_copy": "M4-runtime/11.txt",
+      "bytes": 678,
+      "sha256": "7d818552b45099b4631307473db44d4975ba0c169fc47b721d494eff95e22cad"
+    },
+    {
+      "original": "M4-runtime/12.log",
+      "retained_copy": "M4-runtime/12.txt",
+      "bytes": 597,
+      "sha256": "9f2933e1704b8ff065164c8f5566cbd69c452e96fa36f07a2cbe1e1ca3925d04"
+    },
+    {
+      "original": "M4-runtime/13.log",
+      "retained_copy": "M4-runtime/13.txt",
+      "bytes": 470,
+      "sha256": "c235ad79d1ef27a481cd6a0d7c55cd05054b5fec47e4bb205bc68ba753af6d00"
+    },
+    {
+      "original": "M4-runtime/14.log",
+      "retained_copy": "M4-runtime/14.txt",
+      "bytes": 511,
+      "sha256": "e8a39f35b6c9325a25744dfaaa2e13ba4c7ec5d9acd3cdc9975a120298ee292b"
+    },
+    {
+      "original": "M4-runtime/15.log",
+      "retained_copy": "M4-runtime/15.txt",
+      "bytes": 28960,
+      "sha256": "c91324a30e100127d97dc1fa0d9e0a5c254391f78e6f3155139feb5bb7e047bc"
+    },
+    {
+      "original": "M4-runtime/16.log",
+      "retained_copy": "M4-runtime/16.txt",
+      "bytes": 1405,
+      "sha256": "86e4b3d11973eb771866671a1d7a8d257d5b4fc51df0d5c9e4faf096b93b29e4"
+    },
+    {
+      "original": "M4-runtime/17.log",
+      "retained_copy": "M4-runtime/17.txt",
+      "bytes": 25806,
+      "sha256": "9e8a92a7c20c0d9d49ed1a361cb9cb8e251d29bd7a45aad4a340991685e6e689"
+    },
+    {
+      "original": "M4-runtime/18.log",
+      "retained_copy": "M4-runtime/18.txt",
+      "bytes": 346,
+      "sha256": "bcab53a52ef9dd7e3ccd035ac431b4c66e2a5f1cf52c88f02b378e472b7005c2"
+    },
+    {
+      "original": "M4-runtime/2.log",
+      "retained_copy": "M4-runtime/2.txt",
+      "bytes": 464,
+      "sha256": "ce8eeb3b872b086cce2784d756f4b7e0fc3ecf67bec6e6800949e58dbfaf0ff6"
+    },
+    {
+      "original": "M4-runtime/3.log",
+      "retained_copy": "M4-runtime/3.txt",
+      "bytes": 388,
+      "sha256": "d49459c52ef99fcbce58d9396d6b787526878adcbf9ae633244aea561651d1ff"
+    },
+    {
+      "original": "M4-runtime/4.log",
+      "retained_copy": "M4-runtime/4.txt",
+      "bytes": 386,
+      "sha256": "6826261521016f932cdedd8f4468fc33d6074d01fe4f4674d8f66a3c092d25fc"
+    },
+    {
+      "original": "M4-runtime/5.log",
+      "retained_copy": "M4-runtime/5.txt",
+      "bytes": 2864,
+      "sha256": "daf22caefc04dbf545199edbcc57348ee03f781f4384104443ee797643bd5cef"
+    },
+    {
+      "original": "M4-runtime/6.log",
+      "retained_copy": "M4-runtime/6.txt",
+      "bytes": 466,
+      "sha256": "e6b18481aab951ceac623e7383b64f15ed7e5f2609bc3d3776ad8a3015090908"
+    },
+    {
+      "original": "M4-runtime/7.log",
+      "retained_copy": "M4-runtime/7.txt",
+      "bytes": 2340,
+      "sha256": "0b83a9fd3d4800d1fd903c5237ddaf80e064443a44aaa143ab7d43c238494fed"
+    },
+    {
+      "original": "M4-runtime/8.log",
+      "retained_copy": "M4-runtime/8.txt",
+      "bytes": 1223,
+      "sha256": "770e64dbedf271f59202e7d32b6316c7628d32c105de28a343e555d7447cca13"
+    },
+    {
+      "original": "M4-runtime/9.log",
+      "retained_copy": "M4-runtime/9.txt",
+      "bytes": 475,
+      "sha256": "ef5d97d7518479702ce6efc1d6ee992cb502d6bc1bd359afde75e8e2077f2a96"
+    },
+    {
+      "original": "M4-scanner-native/native.log",
+      "retained_copy": "M4-scanner-native/native.txt",
+      "bytes": 586,
+      "sha256": "1bc2d6e5e6f67ba890ceefce417554e00c431909ed18347711340551eb3e6ca8"
+    },
+    {
+      "original": "M4-scanner-provisioning/build-tar.log",
+      "retained_copy": "M4-scanner-provisioning/build-tar.txt",
+      "bytes": 3107,
+      "sha256": "4ba13f73b4c9e120b606e8d30857cb430a30bfbb4c69f2ea140278c8e23c03ae"
+    },
+    {
+      "original": "M4-scanner-provisioning/build.log",
+      "retained_copy": "M4-scanner-provisioning/build.txt",
+      "bytes": 2662,
+      "sha256": "821ed7290dcefab47c4b5e06e7043be4b09920a70aab75e1cf7d23cbaf4e1897"
+    },
+    {
+      "original": "M4-tools-mcp/attempt-1.log",
+      "retained_copy": "M4-tools-mcp/attempt-1.txt",
+      "bytes": 2051,
+      "sha256": "8f90d1f6ebf0247dd0eea3f3f8eead439e2f3cb9fef4930ca741e36d09af5dde"
+    },
+    {
+      "original": "M4-tools-mcp/attempt-2.log",
+      "retained_copy": "M4-tools-mcp/attempt-2.txt",
+      "bytes": 14938,
+      "sha256": "712a2c6516eca3316ea23aee3f6df237e968f583c6bf6abba000f9d55ad203a0"
+    },
+    {
+      "original": "M4-tools-mcp/attempt-3.log",
+      "retained_copy": "M4-tools-mcp/attempt-3.txt",
+      "bytes": 14838,
+      "sha256": "7d5d9263275ba212437069fabff1bcd3536696602d0e26479f91ccdc2ae713e8"
+    },
+    {
+      "original": "M4-tools-mcp/attempt-4.log",
+      "retained_copy": "M4-tools-mcp/attempt-4.txt",
+      "bytes": 15069,
+      "sha256": "20d08654ee24c381a3697ef01cc3479f97e9b504182f0ce017f4f13b456fa677"
+    },
+    {
+      "original": "M4-tools-mcp/attempt-5.log",
+      "retained_copy": "M4-tools-mcp/attempt-5.txt",
+      "bytes": 1547,
+      "sha256": "6785c20a585e72535bdafdc73d09abba6bc25105232f71303580a278539e7cf7"
+    },
+    {
+      "original": "M4-tools-mcp/attempt-6.log",
+      "retained_copy": "M4-tools-mcp/attempt-6.txt",
+      "bytes": 946,
+      "sha256": "fb62c5610fa542238fb0c37f5622296608fd69380229e1b329eccd752216154b"
+    },
+    {
+      "original": "M4-tools-mcp/attempt-7.log",
+      "retained_copy": "M4-tools-mcp/attempt-7.txt",
+      "bytes": 1487,
+      "sha256": "ba278bffd9b24689df92a4ee2c9342c3fac21c16b179b9f8cdf89c78f9409fc8"
+    },
+    {
+      "original": "M4-tools-mcp/attempt-8.log",
+      "retained_copy": "M4-tools-mcp/attempt-8.txt",
+      "bytes": 13773,
+      "sha256": "d4688548e8f462abb0c1484e8f8c0399545c49dbe221be6d032064e9e2f86d48"
+    },
+    {
+      "original": "M4-tools-mcp/native.log",
+      "retained_copy": "M4-tools-mcp/native.txt",
+      "bytes": 724,
+      "sha256": "3b8d96b2412b9a6acd11fa326a2d8a64b47ef611d17f4377ba2846a71fb772c6"
+    }
+  ]
+}

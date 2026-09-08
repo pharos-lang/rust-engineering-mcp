@@ -1,0 +1,32 @@
+{
+  "command": [
+    "python3",
+    "-B",
+    "scripts/test-gate-reporting.py"
+  ],
+  "started_at": "2026-09-07T22:35:41.578611+00:00",
+  "test_source_sha256": "a1ab72f539adcf2a9bd0022c554a4382b0bfaf2acac96fca9022a8dd10e9d82e",
+  "original_head_exit_code": 1,
+  "corrected_exit_code": 0,
+  "finished_at": "2026-09-07T22:35:41.932877+00:00",
+  "current_files": [
+    {
+      "path": "scripts/gate.py",
+      "sha256": "d4dbd03b4b3d23795f9d6346c64ee1d1a0f1eecd362ca9875ddfb684b8543409"
+    },
+    {
+      "path": "sonar-project.properties",
+      "sha256": "1192befea592a36b84bbbd0995eab5b32f89a59cc4f6e05e98123d7be5116e41"
+    }
+  ],
+  "logs": [
+    {
+      "path": "docs/reviews/m4-prerequisite/sonar-before.txt",
+      "sha256": "7121ff44f434c93d0c5aa2e30c7f4c7e21312e6d8d8101c08665834881e6b145"
+    },
+    {
+      "path": "docs/reviews/m4-prerequisite/sonar-after.txt",
+      "sha256": "eac4042357994c6eca97d1fc287b82006be13a43423ec2bdbdab2c7cd4eb03aa"
+    }
+  ]
+}

@@ -4865,6 +4865,7 @@ dependencies = [
 name = "rust-engineering-domain"
 version = "0.3.0-dev"
 dependencies = [
+ "semver",
  "serde",
  "serde_json",
 ]

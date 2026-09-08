@@ -1,0 +1,17 @@
+info: experimental features enabled: wrapper-scripts
+   Compiling m4-miri-compile-fail v0.0.0 (/source)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.03s
+info: for the target platform, using target runner `/opt/rust-nightly-2026-09-07/bin/cargo-miri runner` defined by `target.cfg(all()).runner` specified by `--config`
+info: for the host platform, using target runner `/opt/rust-nightly-2026-09-07/bin/cargo-miri runner` defined by `target.cfg(all()).runner` specified by `--config`
+error: creating test list failed
+
+Caused by:
+  for `m4-miri-compile-fail`, command `/opt/rust-nightly-2026-09-07/bin/cargo-miri runner /work/target/miri/aarch64-unknown-linux-gnu/debug/build/m4-miri-compile-fail/23f0b6be843c863c/out/m4_miri_compile_fail-23f0b6be843c863c --list --format terse` exited with exit code 1
+  --- stdout:
+
+  --- stderr:
+  {"$message_type":"diagnostic","message":"mismatched types","code":{"code":"E0308","explanation":"Expected type did not match the received type.\n\nErroneous code examples:\n\n```compile_fail,E0308\nfn plus_one(x: i32) -> i32 {\n    x + 1\n}\n\nplus_one(\"Not a number\");\n//       ^^^^^^^^^^^^^^ expected `i32`, found `&str`\n\nif \"Not a bool\" {\n// ^^^^^^^^^^^^ expected `bool`, found `&str`\n}\n\nlet x: f32 = \"Not a float\";\n//     ---   ^^^^^^^^^^^^^ expected `f32`, found `&str`\n//     |\n//     expected due to this\n```\n\nThis error occurs when an expression was used in a place where the compiler\nexpected an expression of a different type. It can occur in several cases, the\nmost common being when calling a function and passing an argument which has a\ndifferent type than the matching type in the function declaration.\n"},"level":"error","spans":[{"file_name":"src/lib.rs","byte_start":58,"byte_end":80,"line_start":3,"line_end":3,"column_start":24,"column_end":46,"is_primary":true,"text":[{"text":"    let _number: u32 = \"this is not a number\";","highlight_start":24,"highlight_end":46}],"label":"expected `u32`, found `&str`","suggested_replacement":null,"suggestion_applicability":null,"expansion":null},{"file_name":"src/lib.rs","byte_start":52,"byte_end":55,"line_start":3,"line_end":3,"column_start":18,"column_end":21,"is_primary":false,"text":[{"text":"    let _number: u32 = \"this is not a number\";","highlight_start":18,"highlight_end":21}],"label":"expected due to this","suggested_replacement":null,"suggestion_applicability":null,"expansion":null}],"children":[],"rendered":"error[E0308]: mismatched types\n --> src/lib.rs:3:24\n  |\n3 |     let _number: u32 = \"this is not a number\";\n  |                  ---   ^^^^^^^^^^^^^^^^^^^^^^ expected `u32`, found `&str`\n  |                  |\n  |                  expected due to this\n\n"}
+  {"$message_type":"diagnostic","message":"aborting due to 1 previous error","code":null,"level":"error","spans":[],"children":[],"rendered":"error: aborting due to 1 previous error\n\n"}
+  {"$message_type":"diagnostic","message":"For more information about this error, try `rustc --explain E0308`.","code":null,"level":"failure-note","spans":[],"children":[],"rendered":"For more information about this error, try `rustc --explain E0308`.\n"}
+
+  ---
