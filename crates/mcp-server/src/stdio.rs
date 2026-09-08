@@ -3,10 +3,14 @@
 mod admission;
 mod auditing;
 pub use auditing::provider::HostAuditConfig;
+mod benchmark;
+mod benchmark_compare;
+mod bloat;
 mod budget;
 mod catalog;
 mod check;
 mod clock;
+mod profile;
 pub(crate) use catalog::provider::CatalogProvider;
 pub use catalog::provider::HostCatalogConfig;
 mod clippy;

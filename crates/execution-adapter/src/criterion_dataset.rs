@@ -4,7 +4,15 @@
 //! What this module turns into a domain measurement is deliberately narrow.
 //! Criterion writes four JSON documents per benchmark under
 //! `<CRITERION_HOME>/<directory_name>/new/`, and only two of them are evidence
-//! a reader may build a verdict on:
+//! a reader may build a verdict on.
+//!
+//! `<directory_name>` is a PATH, not a single segment: criterion joins the group
+//! and function ids (`m5/reference`) and nests deeper for a parameterised
+//! benchmark. The captures under `fixtures/benchmark-datasets/` are the real
+//! guest bytes, exported with `tar --create --format=ustar --sort=name
+//! --directory=/criterion .`, so every member also carries a leading `./` and
+//! every benchmark has a sibling `base/` tree that criterion copies from `new/`
+//! on each run. The two documents that matter:
 //!
 //! * `sample.json` — the RAW samples. `times[i]` is the nanoseconds the harness
 //!   spent running the whole batch and `iters[i]` is that batch's iteration
@@ -62,13 +70,14 @@ pub(crate) struct CriterionParse {
     /// `sample.json`, sorted by `full_id` ascending so the result is a function
     /// of the archive's content and never of its member order.
     pub measurements: Vec<BenchmarkMeasurement>,
-    /// Distinct directories that carried at least one recognised
+    /// Distinct directory paths that carried at least one recognised
     /// `<directory_name>/new/<file>` member.
     ///
     /// A directory known only through `base/`, `report/` or a planted file is
     /// NOT counted: `new/` is where criterion writes the run that just
-    /// happened, and a stale `base/` left by an earlier run says nothing about
-    /// this one. Counting it would report every second run as truncated.
+    /// happened, and the sibling `base/` it copies from an earlier run says
+    /// nothing about this one. Counting it would report every real export —
+    /// which always carries `base/` — as truncated.
     pub benchmarks_seen: usize,
     /// `benchmarks_seen` minus the measurements produced: benchmark
     /// directories that exist in the export but could not yield a measurement
@@ -226,6 +235,11 @@ fn member_path(header: &[u8]) -> Result<String, CriterionError> {
 /// (`//`), a bare `.`, and a backslash — which is a directory separator on
 /// another platform and has no business in a criterion directory name.
 ///
+/// The guest exports with `tar --directory=/criterion .`, so every member is
+/// prefixed `./`. That prefix is stripped BEFORE the component checks, and
+/// stripping it cannot launder an escape: `./../x` still splits to a `..`
+/// component and is refused.
+///
 /// An empty result is the archive's own root entry (`./`), which is ignored.
 fn components(raw: &str) -> Result<Vec<&str>, CriterionError> {
     if raw.starts_with('/') || raw.contains('\\') {
@@ -341,28 +355,42 @@ fn collect(archive: &[u8]) -> Result<BTreeMap<String, DirectoryFiles>, Criterion
     Ok(directories)
 }
 
-/// Files a single member. Anything that is not `<dir>/new/<one of the four>`
-/// with a `<dir>` that has no separator of its own is ignored — a `base/`
-/// directory, an HTML report, or a file the project planted must never become a
-/// measurement — and ignoring it leaves every counter untouched.
+/// Files a single member.
+///
+/// A member counts only when its path is `<directory_name>/new/<one of the
+/// four>`, where `<directory_name>` is ONE OR MORE segments: criterion's
+/// directory name is the group and function joined (`m5/reference`), and a
+/// parameterised benchmark nests deeper still. `new/` must be the last segment
+/// before the file, which is what keeps the sibling `base/` tree — criterion
+/// copies `new/` to `base/` on every run — out of the measurement set.
+///
+/// Everything else is ignored: a `base/` document, a bare directory entry, an
+/// HTML report, or a file the project planted. Ignoring leaves every counter
+/// untouched, so a stale `base/` never reports the run as truncated.
 fn record(
     directories: &mut BTreeMap<String, DirectoryFiles>,
     parts: &[&str],
     data: &[u8],
 ) -> Result<(), CriterionError> {
-    let [directory_name, "new", file] = parts else {
+    let [segments @ .., "new", file] = parts else {
         return Ok(());
     };
-    if !matches!(
-        *file,
-        "sample.json" | "benchmark.json" | "estimates.json" | "tukey.json"
-    ) {
+    // `new/sample.json` at the archive root names no benchmark at all.
+    if segments.is_empty()
+        || !matches!(
+            *file,
+            "sample.json" | "benchmark.json" | "estimates.json" | "tukey.json"
+        )
+    {
         return Ok(());
     }
-    if directories.len() >= MAX_CRITERION_BENCHMARKS && !directories.contains_key(*directory_name) {
+    let directory_name = segments.join("/");
+    if directories.len() >= MAX_CRITERION_BENCHMARKS
+        && !directories.contains_key(directory_name.as_str())
+    {
         return Err(CriterionError::TooManyBenchmarks);
     }
-    let entry = directories.entry((*directory_name).to_owned()).or_default();
+    let entry = directories.entry(directory_name).or_default();
     match *file {
         "sample.json" => entry.sample = Some(data.to_vec()),
         "benchmark.json" => entry.benchmark = Some(data.to_vec()),
@@ -754,6 +782,11 @@ mod tests {
             "alpha\\new\\sample.json",
             "alpha//new/sample.json",
             "alpha/./new/sample.json",
+            // The guest's own `./` prefix must not launder an escape: it is
+            // stripped before the component checks, never after them.
+            "./../escape/new/sample.json",
+            "./alpha/../../etc/passwd",
+            "././alpha/new/sample.json",
         ] {
             let mut output = Vec::new();
             push(&mut output, path, sample.as_bytes(), b'0');
@@ -1035,7 +1068,8 @@ mod tests {
         let identity = benchmark_json("alpha", "alpha/one", "alpha");
         // A `base/` tree from an earlier run, criterion's HTML report at both
         // levels, a stray file the project planted inside `new/`, a root file,
-        // and a deeper path that only looks like a benchmark.
+        // a `new/` document at the archive root that names no benchmark, and a
+        // deeper path whose penultimate segment is not `new`.
         let mut output = Vec::new();
         push(&mut output, "alpha/", b"", b'5');
         push(&mut output, "alpha/new/", b"", b'5');
@@ -1067,9 +1101,10 @@ mod tests {
         push(&mut output, "alpha/report/index.html", b"<p>x</p>", b'0');
         push(&mut output, "report/index.html", b"<p>x</p>", b'0');
         push(&mut output, "planted.json", b"{}", b'0');
+        push(&mut output, "new/sample.json", sample.as_bytes(), b'0');
         push(
             &mut output,
-            "group/inner/new/sample.json",
+            "group/inner/old/sample.json",
             sample.as_bytes(),
             b'0',
         );
@@ -1090,6 +1125,142 @@ mod tests {
         assert_eq!(
             parse_archive(&stale, 1, 1, 1).err(),
             Some(CriterionError::NoMeasurement)
+        );
+        Ok(())
+    }
+
+    /// The real export's shape: a `./` prefix on every member and a
+    /// `<group>/<function>` directory name. A parameterised benchmark nests one
+    /// segment deeper, and the identity cross-check still binds the whole path.
+    #[test]
+    fn a_multi_segment_directory_name_under_a_dot_slash_prefix_is_a_benchmark()
+    -> Result<(), CriterionError> {
+        let sample = sample_json("Linear", "2.0", "500.0");
+        let flat = benchmark_json("m5", "m5/reference", "m5/reference");
+        let nested = benchmark_json("m5", "m5/sized/64", "m5/sized/64");
+        let parsed = parse_archive(
+            &archive(&[
+                ("./m5/reference/base/sample.json", sample.as_bytes()),
+                ("./m5/reference/new/sample.json", sample.as_bytes()),
+                ("./m5/reference/new/benchmark.json", flat.as_bytes()),
+                ("./m5/sized/64/new/sample.json", sample.as_bytes()),
+                ("./m5/sized/64/new/benchmark.json", nested.as_bytes()),
+            ]),
+            3_000,
+            5_000,
+            30,
+        )?;
+        assert_eq!(parsed.benchmarks_seen, 2);
+        assert_eq!(parsed.benchmarks_skipped, 0);
+        assert!(!parsed.truncated);
+        assert_eq!(
+            parsed
+                .measurements
+                .iter()
+                .map(BenchmarkMeasurement::key)
+                .collect::<Vec<_>>(),
+            ["m5/reference", "m5/sized/64"]
+        );
+        assert_eq!(
+            parsed
+                .measurements
+                .first()
+                .map(|measurement| measurement.identity().directory_name()),
+            Some("m5/reference")
+        );
+        assert_eq!(
+            parsed
+                .measurements
+                .first()
+                .and_then(|measurement| measurement.samples().first())
+                .map(RawSample::per_iteration_ns),
+            Some(250.0)
+        );
+
+        // The cross-check still binds the FULL directory path: a `benchmark.json`
+        // planted under one benchmark cannot claim a sibling's identity just
+        // because the first segment agrees.
+        let planted = benchmark_json("m5", "m5/reference", "m5/reference");
+        assert_eq!(
+            parse_archive(
+                &archive(&[
+                    ("./m5/other/new/sample.json", sample.as_bytes()),
+                    ("./m5/other/new/benchmark.json", planted.as_bytes()),
+                ]),
+                1,
+                1,
+                1,
+            )
+            .err(),
+            Some(CriterionError::Malformed)
+        );
+        Ok(())
+    }
+
+    /// A directory entry is a directory, whatever it is named. Treating one as a
+    /// file would let an empty `sample.json/` directory stand in for the samples
+    /// a benchmark never produced.
+    #[test]
+    fn a_directory_entry_is_never_mistaken_for_a_document() -> Result<(), CriterionError> {
+        let sample = sample_json("Linear", "1.0", "100.0");
+        let alpha = benchmark_json("alpha", "alpha/one", "alpha");
+        let beta = benchmark_json("beta", "beta/two", "beta");
+        let mut output = Vec::new();
+        // Every recognised name declared as a directory instead of a file.
+        for name in ["sample.json", "benchmark.json", "estimates.json"] {
+            push(&mut output, &format!("./alpha/new/{name}"), b"", b'5');
+        }
+        push(
+            &mut output,
+            "./alpha/new/tukey.json",
+            b"[1.0,2.0,3.0,4.0]",
+            b'0',
+        );
+        push(
+            &mut output,
+            "./beta/new/sample.json",
+            sample.as_bytes(),
+            b'0',
+        );
+        push(
+            &mut output,
+            "./beta/new/benchmark.json",
+            beta.as_bytes(),
+            b'0',
+        );
+        let parsed = parse_archive(&terminate(output), 1, 1, 1)?;
+        // `alpha` is seen only through its real `tukey.json`; the three
+        // directories contributed nothing, so it yields no measurement.
+        assert_eq!(parsed.benchmarks_seen, 2);
+        assert_eq!(parsed.benchmarks_skipped, 1);
+        assert!(parsed.truncated);
+        assert_eq!(
+            parsed
+                .measurements
+                .iter()
+                .map(BenchmarkMeasurement::key)
+                .collect::<Vec<_>>(),
+            ["beta/two"]
+        );
+
+        // A directory can never carry bytes, so a sized one is refused outright
+        // rather than read as the document it is named after.
+        let mut sized = Vec::new();
+        push(
+            &mut sized,
+            "./alpha/new/sample.json",
+            sample.as_bytes(),
+            b'5',
+        );
+        push(
+            &mut sized,
+            "./alpha/new/benchmark.json",
+            alpha.as_bytes(),
+            b'0',
+        );
+        assert_eq!(
+            parse_archive(&terminate(sized), 1, 1, 1).err(),
+            Some(CriterionError::Malformed)
         );
         Ok(())
     }
@@ -1165,11 +1336,13 @@ mod tests {
 mod real_guest_datasets {
     use super::{CriterionParse, parse_archive};
     use rust_engineering_domain::benchmark::{
-        BENCHMARK_DATASET_FORMAT, BenchmarkDataset, BenchmarkProvenance, BenchmarkSelection,
-        BenchmarkHarness, HardwareProfile, ResourceQuotas, SampleUnit, SamplingMode,
+        BENCHMARK_DATASET_FORMAT, BenchmarkDataset, BenchmarkHarness, BenchmarkProvenance,
+        BenchmarkSelection, HardwareProfile, ResourceQuotas, SampleUnit, SamplingMode,
         Virtualization,
     };
-    use rust_engineering_domain::benchmark_compare::{ComparisonVerdict, IncompatibilityReason, compare};
+    use rust_engineering_domain::benchmark_compare::{
+        ComparisonVerdict, IncompatibilityReason, compare,
+    };
 
     const RUN_1: &[u8] = include_bytes!("../../../fixtures/benchmark-datasets/criterion-run-1.tar");
     const RUN_2: &[u8] = include_bytes!("../../../fixtures/benchmark-datasets/criterion-run-2.tar");
@@ -1274,9 +1447,21 @@ mod real_guest_datasets {
                 assert_eq!(measurement.warm_up_ms(), WARM_UP_MS);
                 assert_eq!(measurement.measurement_ms(), MEASUREMENT_MS);
                 assert_eq!(measurement.sample_size_requested(), SAMPLE_SIZE);
-                assert!(measurement.samples().iter().all(|s| s.per_iteration_ns() > 0.0));
+                assert!(
+                    measurement
+                        .samples()
+                        .iter()
+                        .all(|s| s.per_iteration_ns() > 0.0)
+                );
             }
         }
+        // What the parser produces is accepted by the v1 dataset contract
+        // itself, not merely by this module's own checks.
+        let one = dataset(RUN_1, "sha256:base", "sha256:run1");
+        assert_eq!(one.format(), BENCHMARK_DATASET_FORMAT);
+        assert_eq!(one.format_version(), 1);
+        assert_eq!(one.unit(), SampleUnit::Nanoseconds);
+        assert!(one.validate().is_ok());
     }
 
     #[test]
@@ -1289,7 +1474,11 @@ mod real_guest_datasets {
         for (label, value, expected) in [
             ("run1 reference", median_ns(&one, "m5/reference"), 3299.0),
             ("run2 reference", median_ns(&two, "m5/reference"), 3168.7),
-            ("candidate reference", median_ns(&candidate, "m5/reference"), 3721.9),
+            (
+                "candidate reference",
+                median_ns(&candidate, "m5/reference"),
+                3721.9,
+            ),
         ] {
             assert!(
                 (value - expected).abs() < 1.0,

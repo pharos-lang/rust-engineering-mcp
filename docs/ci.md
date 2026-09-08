@@ -398,7 +398,7 @@ el id observado queda en el recibo.
 El recibo se escribe en `docs/validation/M5-provisioning.json`. La ejecución del
 2026-09-08 pasó con `network_used: false`, 46 archivos y 10 769 232 bytes de
 contexto, y produjo la imagen `rust-engineering-runtime:1.98.1-arm64-m5` con id
-`sha256:e9ecc40d023d9d13ac3539cccb6a944cd1022da2a8b3f86ca61356086b38a209`,
+`sha256:0e21c561488cb917e89e42943eb5138a7ddfd73d9de2f9cd4b9a0b516bdab820`,
 que contiene `/opt/perf/bin/cargo-bloat`
 (`sha256:e3eaea0d81679b8a14b8b435f54f00c0c952d4c4c5dc9a204fdbe42b3de7326a`) y
 `/opt/perf/bin/rust-mcp-profile-helper`

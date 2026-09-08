@@ -55,7 +55,7 @@ use std::collections::BTreeMap;
 /// No other image may execute a performance measurement, because the analyzer
 /// and helper versions this module reports are properties of this digest.
 pub const M5_IMAGE: &str =
-    "sha256:e9ecc40d023d9d13ac3539cccb6a944cd1022da2a8b3f86ca61356086b38a209";
+    "sha256:0e21c561488cb917e89e42943eb5138a7ddfd73d9de2f9cd4b9a0b516bdab820";
 
 /// ADR-076 §5: the ranking is bounded, and the bound belongs to the product.
 const TOP_FRAMES: usize = 64;
@@ -503,7 +503,16 @@ fn profile_observation(
     execution: &PerformanceExecution,
 ) -> ProfileObservation {
     let manifest: HelperManifest = serde_json::from_slice(&output.manifest).unwrap_or_default();
-    let status = helper_status(&manifest.status);
+    // A target that did not build never started a child, and the helper's own
+    // vocabulary for "the child never started" is `ChildExited`. It is not a
+    // profiler denial and is never reported as one: ADR-074 §3 makes a denial
+    // reportable only together with the errno that produced it, and there is no
+    // errno here because `perf_event_open` was never reached.
+    let status = if output.run.is_some() {
+        helper_status(&manifest.status)
+    } else {
+        ProfileStatus::ChildExited
+    };
     let counters = ProfileCounters {
         observed_duration_ms: manifest.observed_duration_ms,
         samples_collected: manifest.samples_collected,
@@ -516,8 +525,9 @@ fn profile_observation(
         max_depth_applied: manifest.max_depth,
     };
     let completeness = profile_completeness(status, &counters);
-    // A denied profiler collected nothing, so nothing is rendered for it.
-    let folded = (completeness != ProfileCompleteness::Unavailable)
+    // A denied profiler, and a target that never ran, collected nothing; there
+    // is nothing to render for either.
+    let folded = (output.run.is_some() && completeness != ProfileCompleteness::Unavailable)
         .then(|| profile_stacks::parse_folded(&output.stacks).ok())
         .flatten();
     let top_frames = folded.as_ref().map(frame_weights).unwrap_or_default();
@@ -1157,7 +1167,7 @@ mod tests {
         let sampled = ProfileOutput {
             build: capture(Some(0), b""),
             run: Some(capture(Some(0), b"")),
-            stacks: b"main;work 3\nmain;idle 1\n".to_vec(),
+            stacks: b"main;idle 1\nmain;work 3\n".to_vec(),
             manifest: br#"{"status":"complete","observed_duration_ms":9987,
                 "samples_collected":4,"samples_lost":0,"stacks_written":2,
                 "frames_total":4,"frames_unresolved":0,"stacks_truncated":0,
@@ -1190,8 +1200,15 @@ mod tests {
         let observed = profile_observation(&options, &unbuilt, identity()?, &execution);
         assert_eq!(observed.build, ProfileBuildOutcome::CompilationFailed);
         assert_eq!(observed.build_exit_code, Some(101));
-        assert_eq!(observed.completeness, ProfileCompleteness::Unavailable);
+        // Never a profiler denial: there is no errno, because the sampler was
+        // never reached. The application refuses a denial without one, and this
+        // is a project failure, not a denial.
+        assert_eq!(observed.status, ProfileStatus::ChildExited);
+        assert_eq!(observed.completeness, ProfileCompleteness::NoSamples);
+        assert_eq!(observed.perf_errno, None);
         assert!(observed.svg.is_empty());
+        assert!(observed.stacks.is_empty());
+        assert!(observed.consistent());
         Ok(())
     }
 

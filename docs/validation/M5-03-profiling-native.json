@@ -1,0 +1,141 @@
+{
+  "schema": "rust-engineering-mcp.m5-03-profiling-native.v1",
+  "captured_at_utc": "2026-09-08T22:38:10Z",
+  "decision": "docs/adr/ADR-074-profiling-capability-and-containment.md",
+  "image_id": "sha256:0e21c561488cb917e89e42943eb5138a7ddfd73d9de2f9cd4b9a0b516bdab820",
+  "helper": {
+    "path": "/opt/perf/bin/rust-mcp-profile-helper",
+    "sha256": "70fa813d65979f76faacc6785036e6ab66e9d9f085debd23f0fc18c6df10aec7",
+    "source": "fixtures/profile-helper"
+  },
+  "workload": {
+    "fixture": "fixtures/profile-workload",
+    "built_with": "RUSTFLAGS=-C force-frame-pointers=yes supplied by the gateway, not by the project",
+    "expected_stack_suffix": "main;level_one;level_two;known_hot_frame"
+  },
+  "containment": {
+    "user": "65534:65534",
+    "network": "none",
+    "cap_drop": "ALL",
+    "no_new_privileges": true,
+    "pids_limit": 128,
+    "cpus": 1,
+    "memory": "1g",
+    "source_mount": "read-only",
+    "work_mount": "read-only during profiling",
+    "profile_output": "tmpfs, noexec",
+    "perf_event_paranoid": 2,
+    "sysctl_changed": false,
+    "capabilities_added": [],
+    "privileged": false,
+    "sudo": false
+  },
+  "phases": [
+    {
+      "phase": "build",
+      "seccomp": "seccomp-rust-quality.json",
+      "sha256": "c288305c9fdba791926a9154fe47a1f53a30d61501cd9d059a78467866ccf938"
+    },
+    {
+      "phase": "profile",
+      "seccomp": "seccomp-rust-profile.json",
+      "sha256": "7358b540d747c6aab0d21a918e55ab137fe475001db7d7b0659b8f324c028393",
+      "delta_from_quality": "exactly one appended rule group allowing perf_event_open"
+    }
+  ],
+  "cases": [
+    {
+      "case": "positive",
+      "helper_exit": 0,
+      "manifest": {
+        "schema": "rust-engineering-mcp.profile-helper.v1",
+        "status": "complete",
+        "frequency_hz": 99,
+        "requested_duration_ms": 4000,
+        "observed_duration_ms": 2000,
+        "samples_collected": 195,
+        "samples_lost": 0,
+        "stacks_written": 2,
+        "frames_total": 2154,
+        "frames_unresolved": 198,
+        "stacks_truncated": 0,
+        "max_depth": 127,
+        "modules_seen": 5,
+        "cpus_sampled": 16,
+        "child_exit_code": 0,
+        "child_signal": null,
+        "perf_errno": null
+      },
+      "distinct_stacks": 2,
+      "known_hot_frame_stacks": 2,
+      "frames_containing_a_path": 0,
+      "hottest_stack_samples": 192,
+      "hottest_stack": "_start;__libc_start_main;[unknown];main;\u2026;main;level_one;level_two;known_hot_frame"
+    },
+    {
+      "case": "zero_sample_control",
+      "argv": [
+        "--zero"
+      ],
+      "helper_exit": 0,
+      "manifest": {
+        "schema": "rust-engineering-mcp.profile-helper.v1",
+        "status": "child_exited",
+        "frequency_hz": 99,
+        "requested_duration_ms": 4000,
+        "observed_duration_ms": 1,
+        "samples_collected": 0,
+        "samples_lost": 0,
+        "stacks_written": 0,
+        "frames_total": 0,
+        "frames_unresolved": 0,
+        "stacks_truncated": 0,
+        "max_depth": 127,
+        "modules_seen": 5,
+        "cpus_sampled": 16,
+        "child_exit_code": 0,
+        "child_signal": null,
+        "perf_errno": null
+      },
+      "distinct_stacks": 0,
+      "note": "zero samples is a declared result, not an error"
+    },
+    {
+      "case": "denial_control",
+      "seccomp": "seccomp-rust-quality.json",
+      "helper_exit": 3,
+      "manifest": {
+        "schema": "rust-engineering-mcp.profile-helper.v1",
+        "status": "profiler_unavailable",
+        "frequency_hz": 99,
+        "requested_duration_ms": 4000,
+        "observed_duration_ms": 0,
+        "samples_collected": 0,
+        "samples_lost": 0,
+        "stacks_written": 0,
+        "frames_total": 0,
+        "frames_unresolved": 0,
+        "stacks_truncated": 0,
+        "max_depth": 127,
+        "modules_seen": 0,
+        "cpus_sampled": 0,
+        "child_exit_code": null,
+        "child_signal": 9,
+        "perf_errno": 1
+      },
+      "note": "errno 1 is EPERM: the syscall is refused by the profile itself"
+    }
+  ],
+  "observations": [
+    "All 16 online CPUs opened, mapped and armed an inherited event; the kernel refuses to mmap the ring of an inherited event opened with cpu == -1, which is why the helper fans out per CPU.",
+    "Symbols are emitted in their raw v0 mangled form. The product does not demangle and does not claim to.",
+    "198 of 2154 frames did not resolve and are counted as such; they are not hidden.",
+    "No emitted frame contains a '/', so no module path reached the artifact."
+  ],
+  "limitations": [
+    "Qualified on the Linux ARM64 guest only. Mach-O and PE are not qualified by this positive.",
+    "Frame-pointer unwinding only: a binary built without frame pointers yields shorter stacks, which the counters declare.",
+    "Effective depth is additionally capped by the kernel's perf_event_max_stack (127 by default)."
+  ],
+  "status": "passed"
+}

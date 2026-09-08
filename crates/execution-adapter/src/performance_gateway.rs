@@ -575,8 +575,17 @@ fn bench_arguments(selection: &BenchmarkSelection) -> Vec<String> {
 /// product-owned environment of [`PerformancePhase::environment`], and the argv
 /// stays `--release` for both profiles.
 fn bloat_arguments(options: &BloatOptions, crates: bool) -> Vec<String> {
-    let mut arguments = vec!["bloat".to_owned(), "--release".to_owned()];
-    arguments.extend(["--frozen", "--message-format", "json", "-n", "0"].map(str::to_owned));
+    let mut arguments = with_vendor_selection(
+        "bloat",
+        &[
+            "--release",
+            "--frozen",
+            "--message-format",
+            "json",
+            "-n",
+            "0",
+        ],
+    );
     arguments.push(format!("--bin={}", options.binary_target()));
     arguments.push(format!("--target-dir={TARGET_ROOT}"));
     if let Some(package) = options.package() {
@@ -1438,9 +1447,14 @@ pub(super) fn detect_harness(metadata: &[u8]) -> Result<HarnessDetection, Perfor
 
 // -- option validation -------------------------------------------------------
 
+/// A leading `-` is refused even though cargo never accepts it in a target
+/// name: the value is interpolated into a single `--bench=<name>` token, so it
+/// could not become a flag, and refusing it keeps that true without depending
+/// on the interpolation staying that way.
 fn valid_name(value: &str) -> bool {
     !value.is_empty()
         && value.len() <= 64
+        && !value.starts_with('-')
         && value
             .bytes()
             .all(|byte| byte.is_ascii_alphanumeric() || byte == b'_' || byte == b'-')

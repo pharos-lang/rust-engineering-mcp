@@ -27,7 +27,7 @@ intactos y que el contexto de construcción no dejó residuos.
 Se añade exactamente un digest a la lista de admisión:
 
 ```text
-sha256:e9ecc40d023d9d13ac3539cccb6a944cd1022da2a8b3f86ca61356086b38a209
+sha256:0e21c561488cb917e89e42943eb5138a7ddfd73d9de2f9cd4b9a0b516bdab820
 ```
 
 Además, el puerto de performance exige esa imagen **y solo esa**: cualquier otro

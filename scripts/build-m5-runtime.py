@@ -15,6 +15,7 @@ import json
 import os
 import pathlib
 import platform
+import shutil
 import subprocess
 import sys
 
@@ -93,16 +94,52 @@ def main() -> int:
         return 1
     receipt["prepare"] = json.loads(prepare.stdout)
 
-    context = arguments.context / "build-context"
-    inputs = sorted(p for p in context.rglob("*") if p.is_file())
+    prepared = arguments.context / "build-context"
+    inputs = sorted(p for p in prepared.rglob("*") if p.is_file())
     receipt["context_files"] = len(inputs)
     receipt["context_bytes"] = sum(p.stat().st_size for p in inputs)
-    receipt["sha256sums_sha256"] = hashlib.sha256(
-        (context / "SHA256SUMS").read_bytes()
-    ).hexdigest()
+    sums_digest = hashlib.sha256((prepared / "SHA256SUMS").read_bytes()).hexdigest()
+    receipt["sha256sums_sha256"] = sums_digest
+
+    # BuildKit keys its local-context snapshot on path, size and mtime, and
+    # `provision.py` pins every mtime to epoch 0 so the image is reproducible.
+    # Two contexts at the same path with the same file sizes therefore look
+    # identical to BuildKit even when the bytes differ, and it serves the stale
+    # content -- `--no-cache` does not invalidate that snapshot. Building from a
+    # content-addressed directory keeps the zeroed mtimes and makes a stale
+    # snapshot unreachable, because different content is a different path.
+    context = arguments.context / f"build-context-{sums_digest[:16]}"
+    if context.exists():
+        shutil.rmtree(context)
+    shutil.copytree(prepared, context, copy_function=shutil.copy2)
+    receipt["build_context_directory"] = context.name
+
+    # BuildKit's local-context snapshot survives both `--no-cache` and a new
+    # context path. With `provision.py` pinning every mtime to epoch 0 for
+    # reproducibility, two different contexts can look identical to it, and it
+    # served stale helper sources until this prune. `build.sh` caught it only
+    # because it verifies SHA256SUMS inside the image. The prune is therefore
+    # part of the procedure, not an optimization; the build cache is
+    # regenerable and nothing else depends on it.
+    prune = subprocess.run(
+        [DOCKER, "builder", "prune", "--all", "--force"],
+        cwd=ROOT, text=True, capture_output=True, timeout=600, check=False,
+    )
+    receipt["builder_cache_pruned"] = prune.returncode == 0
+    if prune.returncode != 0:
+        receipt["status"] = "failed"
+        receipt["error"] = "could not prune the builder cache before building"
+        arguments.output.write_text(json.dumps(receipt, indent=2, sort_keys=True) + "\n")
+        return 1
 
     build = subprocess.run(
-        [DOCKER, "build", "--network=none", "--pull=false",
+        # `--no-cache` is mandatory, not caution. `provision.py` zeroes every
+        # mtime in the context so the build is reproducible, and BuildKit keys
+        # its local-context snapshot on path/size/mtime; with the timestamps
+        # pinned it reused a stale snapshot and built the PREVIOUS helper
+        # sources, which only surfaced because `build.sh` verifies SHA256SUMS
+        # inside the image and refused (2 computed checksums did NOT match).
+        [DOCKER, "build", "--network=none", "--pull=false", "--no-cache",
          "--build-arg", f"BASE_IMAGE={BASE_TAG}", "--tag", TARGET_TAG, str(context)],
         cwd=ROOT, text=True, capture_output=True, timeout=BUILD_TIMEOUT_S, check=False,
     )
