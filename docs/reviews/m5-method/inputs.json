@@ -1,0 +1,118 @@
+{
+  "schema": "rust-engineering-mcp.m5-review-inputs.v1",
+  "commit": "cef1546d7908d68e340411fe20afad3fe8dbfa33",
+  "branch": "ai/m5-performance",
+  "file_count": 22,
+  "files": [
+    {
+      "path": "crates/domain/src/benchmark.rs",
+      "bytes": 36104,
+      "sha256": "827a03692afa1d888c8a922b740094033f6e09950c7bcb5d011596922b2f1b0d"
+    },
+    {
+      "path": "crates/domain/src/benchmark_compare.rs",
+      "bytes": 64000,
+      "sha256": "7eaf8b8f9ee4bc780db28bcf6c7715765fe67a00ecb632e9d23a6a2f5a864abb"
+    },
+    {
+      "path": "crates/domain/src/benchmark_run.rs",
+      "bytes": 7198,
+      "sha256": "b469a53c4d886b131bf80eb2aafeeaeeea356629e97e88b3c5e088b615b45041"
+    },
+    {
+      "path": "crates/domain/src/bloat.rs",
+      "bytes": 13056,
+      "sha256": "78ac2b05fb454c886b872e47587fa4dcd8b1f74dfd8c98c0d113f94468f45157"
+    },
+    {
+      "path": "crates/domain/src/profile.rs",
+      "bytes": 8168,
+      "sha256": "6f10066322595a352fb8ba66fad28c296c18c943e66bdeb180293dd5c50f4f40"
+    },
+    {
+      "path": "crates/execution-adapter/src/criterion_dataset.rs",
+      "bytes": 61113,
+      "sha256": "4cbb1fa6f1c4ae53b3c0cb74dbc8e84786727e5761aee4f958c67f19f5076ada"
+    },
+    {
+      "path": "crates/execution-adapter/src/bloat_json.rs",
+      "bytes": 22045,
+      "sha256": "99c6953a1072c635e1895c5852741a5a5aa77a3aa9c175e243a5a563c49286f0"
+    },
+    {
+      "path": "crates/application/src/benchmark.rs",
+      "bytes": 40404,
+      "sha256": "30339b911562c52d004df787fccb2c63646e944038feea2f2a1207afee17a708"
+    },
+    {
+      "path": "crates/application/src/benchmark_compare.rs",
+      "bytes": 30454,
+      "sha256": "69787461830255df981789f78d6c92dcfacb0d3019bc4a4c751459a7b97aa3f6"
+    },
+    {
+      "path": "crates/application/src/bloat.rs",
+      "bytes": 16590,
+      "sha256": "8b36d5f34493f636f94fb20241c3069e69b5599ad47273d855d34eb185252e20"
+    },
+    {
+      "path": "crates/mcp-server/src/stdio/benchmark.rs",
+      "bytes": 29656,
+      "sha256": "0951e741a405dc8b1ae589327a4d20e2fb56372b9a47a18cae2a3e6dbcb1040f"
+    },
+    {
+      "path": "crates/mcp-server/src/stdio/benchmark_compare.rs",
+      "bytes": 26319,
+      "sha256": "71a3394c8525364e4d80c0e3cd8ca2debeb0dc728e4188beec6b1e6a5a29712c"
+    },
+    {
+      "path": "crates/mcp-server/src/stdio/profile.rs",
+      "bytes": 23490,
+      "sha256": "de4693367e91030ee9fba81278aa4abdfad7570a774a5b9c45176b0da28ceb56"
+    },
+    {
+      "path": "crates/mcp-server/src/stdio/bloat.rs",
+      "bytes": 26123,
+      "sha256": "e7d8d41a8823288c0db2a532d9b6d31a7054d477fe1845e927d5fe3aeebfed8d"
+    },
+    {
+      "path": "docs/adr/ADR-073-benchmark-method-and-dataset.md",
+      "bytes": 9693,
+      "sha256": "b513b63639b4f736f149e9aca972bed1dc58b6f9212860cc8e7d65a780c01ee3"
+    },
+    {
+      "path": "docs/adr/ADR-076-m5-performance-contracts.md",
+      "bytes": 9205,
+      "sha256": "1e54f6acfffce835d59d6427834e51e9481541a34328b255af36db6ae088027f"
+    },
+    {
+      "path": "docs/validation/M5-01-benchmark-calibration.json",
+      "bytes": 6420,
+      "sha256": "b15f218219449ac8603aaa60195a5d7a35b043795818b2931f01d5567b12c2a5"
+    },
+    {
+      "path": "docs/validation/M5-04-bloat-calibration.json",
+      "bytes": 3518,
+      "sha256": "52143d0d002f29609dd0f8dea31705c020a8285eaf3a9819c751853909111cb6"
+    },
+    {
+      "path": "docs/validation/M5-matrix.md",
+      "bytes": 6811,
+      "sha256": "d8692d1a35d2664e75926ee47c9bb6e715983b1e32e0374b2c012000f377690f"
+    },
+    {
+      "path": "docs/validation/M5-handoff.md",
+      "bytes": 7186,
+      "sha256": "8a650b5339ee9eedd4f41d393fed87c482538121b7077110b1eeff4410009f07"
+    },
+    {
+      "path": "fixtures/benchmark-datasets/README.md",
+      "bytes": 2368,
+      "sha256": "4280552dde60313cd2717463b831c3cf5948fde2bfe82ce53353b22d4f79bdb8"
+    },
+    {
+      "path": "fixtures/benchmark/README.md",
+      "bytes": 6569,
+      "sha256": "fa0ded2f9fe6ee9884e26a071ae678f40a451a3561ece1edf538a9766b7824d7"
+    }
+  ]
+}
