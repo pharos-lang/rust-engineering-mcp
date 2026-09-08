@@ -1,6 +1,14 @@
 # M5 — Performance / 0.5.x
 
-Estado: **Planned**. Entrada M4 cerrado. Fuentes: spec §28/29/50.4/82/92/93/97 M5,
+Estado: **In progress** (2026-09-08). Tres cortes calificados nativamente,
+M5-01 bloqueado por una condición reproducible, cierre conjunto sin ejecutar.
+El estado real por corte vive en [la matriz](../validation/M5-matrix.md) y
+[el handoff](../validation/M5-handoff.md); D23 y D24 quedaron decididos en
+[ADR-073](../adr/ADR-073-benchmark-method-and-dataset.md) y
+[ADR-074](../adr/ADR-074-profiling-capability-and-containment.md), y este plan
+se conserva como el encargo original, no como el registro de lo hecho.
+
+Entrada M4 cerrado. Fuentes: spec §28/29/50.4/82/92/93/97 M5,
 [ADR-008](../adr/ADR-008-execution-gateway.md),
 [ADR-048](../adr/ADR-048-0.1.0-qualification-and-artifact-boundary.md).
 Aplican [G1–G9](m2-m8.md). Objetivo: medir benchmarks existentes, comparar datasets
