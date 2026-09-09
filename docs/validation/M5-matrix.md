@@ -140,7 +140,10 @@ ejecuciones por lado, y eso es independiente de este bloqueo.
   respuesta (tamaño exacto incluido), así que es un problema de vocabulario del
   resultado, no de pérdida de información: un ranking acotado por un límite que
   el propio producto eligió y declara no es «evidencia incompleta», es la
-  atribución estimada que el contrato promete. **No se corrige en esta sesión a
+  atribución estimada que el contrato promete. La recaptura sobre la imagen
+  admitida mide el corte exactamente: de 634 filas se conservan 256 y se omiten
+  378, que son 23 304 de 235 016 bytes atribuidos, un 9,9 %. La fila más pequeña
+  conservada pesa 196 bytes y la mayor omitida 192. **No se corrige en esta sesión a
   propósito.** El hallazgo salió al construir la matriz de clientes, donde
   cambiarlo habría puesto una fila en verde; una corrección de contrato hecha con
   ese incentivo no es una corrección, es un ajuste al resultado. Merece su propia
