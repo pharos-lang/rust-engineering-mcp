@@ -76,9 +76,16 @@ Razones, en el orden de precedencia de AGENTS:
 Profiling exige una capability explícita concedida por el host confiable en su
 configuración. El peer, el proyecto, la URI y las annotations no la conceden. Sin
 esa capability, `rust.profile.flamegraph` responde `blocked` con
-`PROFILING_NOT_AUTHORIZED` **antes** de crear ningún contenedor. La capability es
-por servidor y revocable; su retirada cancela el trabajo en curso, hace join del
-árbol, conserva la evidencia y devuelve el runtime al perfil calificado.
+`PROFILING_NOT_AUTHORIZED` **antes** de crear ningún contenedor.
+
+La capability es por servidor y se retira quitando la bandera y reiniciando. **No
+existe revocación en caliente**: la concesión se lee una vez del argv de arranque
+y ningún camino la muta después. Un texto anterior de este ADR decía que su
+retirada cancelaba el trabajo en curso y hacía join del árbol; eso describía una
+intención, no el código, y se corrige aquí. Implementar revocación en caliente
+—una bandera que la tool relea, con la operación en vuelo cancelada por el
+`InspectionControl` existente y unida por el cleanup existente— es una decisión
+posterior, no algo que este ADR pueda dar por hecho.
 
 ### 3. Extensión mínima y explícita del sandbox
 

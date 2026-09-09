@@ -31,7 +31,7 @@ Cargo.lock scripts/` es vacío, así que los bytes calificados de M4 son los de
 | --- | --- | --- |
 | M5-01 `rust.benchmark.run` | **Blocked** en el positivo; negativos y controles calificados | [runtime](M5-01-runtime.json), [bloqueo](M5-01-blocker.json) |
 | M5-02 `rust.benchmark.compare` | Implementado; método probado sobre datos reales del guest | [calibración](M5-01-benchmark-calibration.json) |
-| M5-03 `rust.profile.flamegraph` | **Calificado nativamente** | [runtime](M5-03-runtime.json), [positivo](M5-03-profiling-native.json) |
+| M5-03 `rust.profile.flamegraph` | **Calificado nativamente**; oráculo de denegación pendiente en el recibo generado | [runtime](M5-03-runtime.json), [smoke manual](M5-03-profiling-native.json) |
 | M5-04 `rust.binary.bloat` | **Calificado nativamente** | [runtime](M5-04-runtime.json), [calibración](M5-04-bloat-calibration.json) |
 | M5-05 cierre | **No ejecutado** | — |
 

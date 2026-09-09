@@ -77,8 +77,11 @@ pub(super) fn dataset(keys: usize) -> TestResult<BenchmarkDataset> {
     )?)
 }
 
-pub(super) fn comparison_row(key: &str, verdict: ComparisonVerdict, ratio: f64)
--> BenchmarkComparison {
+pub(super) fn comparison_row(
+    key: &str,
+    verdict: ComparisonVerdict,
+    ratio: f64,
+) -> BenchmarkComparison {
     BenchmarkComparison {
         key: key.to_owned(),
         verdict,
@@ -268,10 +271,7 @@ fn call_boundary_requires_a_runtime_and_declares_an_absent_store() -> TestResult
             )
             .await?;
         assert_eq!(
-            blocked
-                .structured_content
-                .clone()
-                .ok_or("content")?["error_code"],
+            blocked.structured_content.clone().ok_or("content")?["error_code"],
             "SANDBOX_DENIED"
         );
         ready.store(true, Ordering::Release);
@@ -350,7 +350,10 @@ fn every_failure_shape_has_a_closed_status_and_code() -> TestResult {
         assert_eq!(value["error_code"], code);
         assert_eq!(value["duration_ms"], 7);
     }
-    assert!(tool.error(Failure::Body(BenchmarkCompareError::Internal), 7).is_err());
+    assert!(
+        tool.error(Failure::Body(BenchmarkCompareError::Internal), 7)
+            .is_err()
+    );
     Ok(())
 }
 
@@ -460,7 +463,10 @@ fn a_report_publishes_the_whole_frozen_method_and_ranks_its_rows() -> TestResult
             "explain",
             "why",
         ] {
-            assert!(!word.contains(forbidden), "causal language {forbidden:?} in {word:?}");
+            assert!(
+                !word.contains(forbidden),
+                "causal language {forbidden:?} in {word:?}"
+            );
         }
     }
     Ok(())

@@ -137,5 +137,12 @@
     "Frame-pointer unwinding only: a binary built without frame pointers yields shorter stacks, which the counters declare.",
     "Effective depth is additionally capped by the kernel's perf_event_max_stack (127 by default)."
   ],
-  "status": "passed"
+  "status": "passed_as_manual_smoke",
+  "provenance": "MANUAL SMOKE, not a product-path receipt. These cases were run by hand with docker directly, before the gateway existed, to decide ADR-074. They are evidence that the containment works; they are NOT the qualification of rust.profile.flamegraph.",
+  "qualification_receipt": "docs/validation/M5-03-runtime.json is the reproducible receipt written by the native test itself; prefer it.",
+  "known_divergences_from_the_product_path": [
+    "The zero-sample case passes `--zero` on the child's argv. The product passes the profiled child no argument at all, so this exact invocation is unreachable through the gateway; the native test uses a separate zero-sample binary target instead.",
+    "The positive counters here (195 samples, 2154 frames, 198 unresolved) differ from the reproducible receipt's, because they are a different run on a different day.",
+    "The denial case here has no corresponding selection in the generated receipt. Treat the denial oracle as pending until it appears in M5-03-runtime.json."
+  ]
 }

@@ -1,0 +1,682 @@
+{
+  "name": "rust.binary.bloat",
+  "description": "Measure one project binary's exact file size inside the approved sandbox, then run the pinned cargo-bloat analyzer over it and publish its raw JSON report as a private artifact. The binary is named by cargo target, never by path. The response separates two things that must never be read as one: `measured` is a fact this product verified itself (exact size and sha256), and `attribution` is cargo-bloat's estimate of where that size went, marked estimated on every field. The measured file is an analysis build: the analyzer forces symbol stripping off to read symbols, so its size is exact for that file but it is not what a project asking for stripping would ship. If the analyzer's own reported size disagrees with the size this product measured, the attribution is published as a declared size mismatch, never silently merged into the exact measurement.",
+  "inputSchema": {
+    "$defs": {
+      "BloatProfile": {
+        "description": "The two closed build profiles this tool accepts, echoed back from the\nrequest so a response is self-describing. Neither is requested from the\nanalyzer with `--profile`: `release_lto` is `--release` plus the\nproduct-owned `CARGO_PROFILE_RELEASE_LTO=fat` environment variable, never a\ncaller-supplied profile name (`docs/validation/M5-04-bloat-calibration.json`).",
+        "enum": [
+          "release",
+          "release_lto"
+        ],
+        "type": "string"
+      },
+      "ExecutionModeDto": {
+        "enum": [
+          "auto",
+          "task",
+          "synchronous"
+        ],
+        "type": "string"
+      }
+    },
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "additionalProperties": false,
+    "properties": {
+      "binary_target": {
+        "description": "A cargo target name, never a path, and the child receives no peer\nargument.",
+        "maxLength": 64,
+        "minLength": 1,
+        "pattern": "^[A-Za-z0-9_-]{1,64}$",
+        "type": "string"
+      },
+      "execution_mode": {
+        "$ref": "#/$defs/ExecutionModeDto"
+      },
+      "package": {
+        "default": null,
+        "maxLength": 64,
+        "minLength": 1,
+        "pattern": "^[A-Za-z0-9_-]{1,64}$",
+        "type": [
+          "string",
+          "null"
+        ]
+      },
+      "profile": {
+        "$ref": "#/$defs/BloatProfile",
+        "default": "release"
+      },
+      "project_ref": {
+        "pattern": "^prj_[0-9a-f]{32}$",
+        "type": "string"
+      },
+      "timeout_seconds": {
+        "default": 120,
+        "format": "uint64",
+        "maximum": 300,
+        "minimum": 1,
+        "type": "integer"
+      }
+    },
+    "required": [
+      "project_ref",
+      "binary_target"
+    ],
+    "title": "Input",
+    "type": "object"
+  },
+  "outputSchema": {
+    "$defs": {
+      "Artifact": {
+        "additionalProperties": false,
+        "properties": {
+          "completeness": {
+            "$ref": "#/$defs/ArtifactCompleteness"
+          },
+          "kind": {
+            "$ref": "#/$defs/ArtifactKind"
+          },
+          "sha256": {
+            "pattern": "^[0-9a-f]{64}$",
+            "type": "string"
+          },
+          "size_bytes": {
+            "format": "uint64",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "uri": {
+            "maxLength": 512,
+            "minLength": 1,
+            "type": "string"
+          }
+        },
+        "required": [
+          "kind",
+          "uri",
+          "sha256",
+          "size_bytes",
+          "completeness"
+        ],
+        "type": "object"
+      },
+      "ArtifactCompleteness": {
+        "enum": [
+          "complete",
+          "truncated",
+          "partial",
+          "invalid",
+          "unavailable"
+        ],
+        "type": "string"
+      },
+      "ArtifactKind": {
+        "enum": [
+          "bloat_json"
+        ],
+        "type": "string"
+      },
+      "BinaryFormat": {
+        "description": "The binary format the analyzer recognised. WASM is rejected because the\npinned backend does not support it; Mach-O and PE are not qualified by the\nELF positive and are reported, never silently treated as equivalent.",
+        "enum": [
+          "elf64_aarch64",
+          "other_elf",
+          "mach_o",
+          "pe",
+          "wasm",
+          "unknown"
+        ],
+        "type": "string"
+      },
+      "BloatAttribution": {
+        "additionalProperties": false,
+        "description": "Estimated attribution. Every field here comes from `cargo-bloat`, never\nfrom this product's own measurement, and none of it is exact.",
+        "properties": {
+          "crates": {
+            "description": "The analyzer's per-crate estimate, largest first.",
+            "items": {
+              "$ref": "#/$defs/BloatCrate"
+            },
+            "maxItems": 4096,
+            "type": "array"
+          },
+          "crates_omitted": {
+            "description": "Crate rows dropped from this response, for the same reasons.",
+            "format": "uint32",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "estimated": {
+            "description": "Always `true`. Serialized so no consumer can read the rows below as an\nexact measurement: everything in this object is the analyzer's own\nestimate of where size went, not a fact this product verified.",
+            "type": "boolean"
+          },
+          "functions": {
+            "description": "The analyzer's per-function estimate, largest first.",
+            "items": {
+              "$ref": "#/$defs/BloatFunction"
+            },
+            "maxItems": 4096,
+            "type": "array"
+          },
+          "functions_omitted": {
+            "description": "Function rows dropped from this response, either by the analyzer's own\nrow cap or by this tool's response budget. The dropped rows were the\nsmallest; every row that remains is estimated at least as large.",
+            "format": "uint32",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "reported_file_size_bytes": {
+            "description": "The file size the analyzer itself reported, in its own estimate. Not\nthe exact size: see `measured.size_bytes` in the sibling object for\nthat, and `completeness` for whether the two agreed.",
+            "format": "uint64",
+            "minimum": 0,
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "text_section_size_bytes": {
+            "description": "The analyzer's estimate of the `.text` section size.",
+            "format": "uint64",
+            "minimum": 0,
+            "type": [
+              "integer",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "estimated",
+          "reported_file_size_bytes",
+          "text_section_size_bytes",
+          "functions",
+          "crates",
+          "functions_omitted",
+          "crates_omitted"
+        ],
+        "type": "object"
+      },
+      "BloatCompleteness": {
+        "description": "How complete the published evidence is. Anything but `complete` is visible\nto the caller and is never smoothed into a clean result.",
+        "oneOf": [
+          {
+            "enum": [
+              "complete",
+              "truncated",
+              "unsupported_format",
+              "unavailable"
+            ],
+            "type": "string"
+          },
+          {
+            "const": "size_mismatch",
+            "description": "The analyzer's own reported file size disagreed with the size this\nproduct measured. The attribution rows below describe the analyzer's\nrun, but they are not published as a description of the measured file.",
+            "type": "string"
+          }
+        ]
+      },
+      "BloatCrate": {
+        "additionalProperties": false,
+        "description": "One estimated crate-level row from the analyzer's ranking. `[Unknown]` is\nthe analyzer's own bucket for bytes it could not attribute to a crate, and\nis preserved verbatim rather than treated as a parse failure.",
+        "properties": {
+          "name": {
+            "maxLength": 512,
+            "minLength": 1,
+            "type": "string"
+          },
+          "size_bytes": {
+            "description": "Estimated bytes attributed to this crate by the analyzer.",
+            "format": "uint64",
+            "minimum": 0,
+            "type": "integer"
+          }
+        },
+        "required": [
+          "name",
+          "size_bytes"
+        ],
+        "type": "object"
+      },
+      "BloatExit": {
+        "description": "The size analyzer's own terminal state. `compilation_failed` means the\nanalyzed project did not build; `analysis_failed` means the analyzer\nitself refused the request (an unresolvable target, an unsupported\nprofile derivation). Neither is an infrastructure fault.",
+        "enum": [
+          "passed",
+          "analysis_failed",
+          "compilation_failed",
+          "uncalibrated",
+          "incomplete"
+        ],
+        "type": "string"
+      },
+      "BloatFunction": {
+        "additionalProperties": false,
+        "description": "One estimated function-level row from the analyzer's ranking. `crate_name`\nand `name` are display text taken from a compiled symbol; they are not\nsanitized to a closed alphabet and are never a filesystem path.",
+        "properties": {
+          "crate_name": {
+            "maxLength": 512,
+            "minLength": 1,
+            "type": "string"
+          },
+          "name": {
+            "maxLength": 512,
+            "minLength": 1,
+            "type": "string"
+          },
+          "size_bytes": {
+            "description": "Estimated bytes attributed to this function by the analyzer.",
+            "format": "uint64",
+            "minimum": 0,
+            "type": "integer"
+          }
+        },
+        "required": [
+          "crate_name",
+          "name",
+          "size_bytes"
+        ],
+        "type": "object"
+      },
+      "BloatProfile": {
+        "description": "The two closed build profiles this tool accepts, echoed back from the\nrequest so a response is self-describing. Neither is requested from the\nanalyzer with `--profile`: `release_lto` is `--release` plus the\nproduct-owned `CARGO_PROFILE_RELEASE_LTO=fat` environment variable, never a\ncaller-supplied profile name (`docs/validation/M5-04-bloat-calibration.json`).",
+        "enum": [
+          "release",
+          "release_lto"
+        ],
+        "type": "string"
+      },
+      "Code": {
+        "enum": [
+          "TASKS_REQUIRED",
+          "SANDBOX_DENIED",
+          "MISSING_OFFLINE_DATA",
+          "ARTIFACT_UNAVAILABLE",
+          "TOOL_NOT_INSTALLED",
+          "INVALID_PROJECT",
+          "PROJECT_NOT_FOUND",
+          "COMMAND_TIMEOUT",
+          "OUTPUT_LIMIT_EXCEEDED",
+          "EVIDENCE_INCOMPLETE",
+          "OBSERVED_FAILURE",
+          "ANALYZER_UNAVAILABLE",
+          "UNSUPPORTED_FORMAT",
+          "SIZE_MISMATCH"
+        ],
+        "type": "string"
+      },
+      "Data": {
+        "additionalProperties": false,
+        "properties": {
+          "artifacts": {
+            "description": "At most one: the analyzer's JSON report, published only when the\nanalysis produced one. A build or analysis failure publishes none.",
+            "items": {
+              "$ref": "#/$defs/Artifact"
+            },
+            "maxItems": 1,
+            "type": "array"
+          },
+          "observation": {
+            "$ref": "#/$defs/Observation"
+          },
+          "project_ref": {
+            "pattern": "^prj_[0-9a-f]{32}$",
+            "type": "string"
+          },
+          "semantics": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "project_ref",
+          "semantics",
+          "observation",
+          "artifacts"
+        ],
+        "type": "object"
+      },
+      "ExecutionTermination": {
+        "enum": [
+          "exited",
+          "timed_out",
+          "cancelled",
+          "output_limit"
+        ],
+        "type": "string"
+      },
+      "MeasuredBinary": {
+        "additionalProperties": false,
+        "description": "Facts this product measured itself inside the guest, independent of\nanything the analyzer reported. This is an exact measurement of one file.\n\nIt is not, on its own, the artifact a project asking for stripping would\nship: see `analysis_build_symbols_forced`.",
+        "properties": {
+          "analysis_build_symbols_forced": {
+            "description": "Always `true`. The size analyzer forces symbol stripping off on every\nbuild it performs, because it needs the symbol table to attribute\nsize to functions and crates. The measured file is therefore an\n**analysis build**: its size above is exact for that file, but it is\nnot byte-identical to what a project that asks for stripping would\nship. A stripped report cannot be produced by this analyzer.",
+            "type": "boolean"
+          },
+          "format": {
+            "$ref": "#/$defs/BinaryFormat"
+          },
+          "sha256": {
+            "pattern": "^sha256:[0-9a-f]{64}$",
+            "type": "string"
+          },
+          "size_bytes": {
+            "description": "The exact size, in bytes, of the file this product measured.",
+            "format": "uint64",
+            "minimum": 0,
+            "type": "integer"
+          }
+        },
+        "required": [
+          "size_bytes",
+          "sha256",
+          "format",
+          "analysis_build_symbols_forced"
+        ],
+        "type": "object"
+      },
+      "Observation": {
+        "additionalProperties": false,
+        "description": "What this analysis measured and estimated for one binary target.",
+        "properties": {
+          "analyzer_version": {
+            "maxLength": 64,
+            "minLength": 1,
+            "type": "string"
+          },
+          "attribution": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/BloatAttribution"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "The analyzer's estimated attribution. Absent under the same\nconditions as `measured`, or when the analyzer produced no usable\nranking."
+          },
+          "binary_target": {
+            "maxLength": 64,
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9_-]{1,64}$",
+            "type": "string"
+          },
+          "complete": {
+            "description": "`false` whenever this response describes less than the analysis\nproduced: a build or analysis failure, a size disagreement, an\nincomplete artifact, or rows trimmed to fit the response budget.",
+            "type": "boolean"
+          },
+          "completeness": {
+            "$ref": "#/$defs/BloatCompleteness"
+          },
+          "execution_fingerprint": {
+            "pattern": "^sha256:[0-9a-f]{64}$",
+            "type": "string"
+          },
+          "exit": {
+            "$ref": "#/$defs/BloatExit"
+          },
+          "exit_code": {
+            "format": "int32",
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "measured": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/MeasuredBinary"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Facts this product measured itself. Absent only when no binary was\nproduced to measure (an unbuilt project, an unavailable analyzer)."
+          },
+          "package": {
+            "maxLength": 64,
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9_-]{1,64}$",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "profile": {
+            "$ref": "#/$defs/BloatProfile"
+          },
+          "runtime": {
+            "$ref": "#/$defs/RuntimeIdentity"
+          },
+          "stderr_truncated": {
+            "type": "boolean"
+          },
+          "stdout_truncated": {
+            "type": "boolean"
+          },
+          "termination": {
+            "$ref": "#/$defs/ExecutionTermination"
+          },
+          "vendor_fingerprint": {
+            "pattern": "^sha256:[0-9a-f]{64}$",
+            "type": "string"
+          }
+        },
+        "required": [
+          "binary_target",
+          "package",
+          "profile",
+          "analyzer_version",
+          "exit",
+          "exit_code",
+          "termination",
+          "measured",
+          "attribution",
+          "completeness",
+          "runtime",
+          "execution_fingerprint",
+          "vendor_fingerprint",
+          "stdout_truncated",
+          "stderr_truncated",
+          "complete"
+        ],
+        "type": "object"
+      },
+      "RuntimeIdentity": {
+        "additionalProperties": false,
+        "properties": {
+          "cargo_version": {
+            "maxLength": 128,
+            "type": "string"
+          },
+          "configuration_fingerprint": {
+            "pattern": "^sha256:[0-9a-f]{64}$",
+            "type": "string"
+          },
+          "declared_toolchain": {
+            "maxLength": 128,
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "execution_fingerprint": {
+            "pattern": "^sha256:[0-9a-f]{64}$",
+            "type": "string"
+          },
+          "image_id": {
+            "pattern": "^sha256:[0-9a-f]{64}$",
+            "type": "string"
+          },
+          "platform": {
+            "maxLength": 128,
+            "type": "string"
+          },
+          "rust_version": {
+            "maxLength": 128,
+            "type": "string"
+          }
+        },
+        "required": [
+          "platform",
+          "image_id",
+          "configuration_fingerprint",
+          "execution_fingerprint",
+          "rust_version",
+          "cargo_version",
+          "declared_toolchain"
+        ],
+        "type": "object"
+      }
+    },
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "oneOf": [
+      {
+        "properties": {
+          "data": {
+            "$ref": "#/$defs/Data"
+          },
+          "error_code": {
+            "type": "null"
+          },
+          "error_message": {
+            "type": "null"
+          },
+          "status": {
+            "const": "passed",
+            "type": "string"
+          }
+        },
+        "required": [
+          "status",
+          "error_code",
+          "error_message",
+          "data"
+        ],
+        "type": "object"
+      },
+      {
+        "properties": {
+          "data": {
+            "$ref": "#/$defs/Data"
+          },
+          "error_code": {
+            "$ref": "#/$defs/Code"
+          },
+          "error_message": {
+            "type": "string"
+          },
+          "status": {
+            "const": "failed",
+            "type": "string"
+          }
+        },
+        "required": [
+          "status",
+          "error_code",
+          "error_message",
+          "data"
+        ],
+        "type": "object"
+      },
+      {
+        "properties": {
+          "data": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/Data"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "error_code": {
+            "$ref": "#/$defs/Code"
+          },
+          "error_message": {
+            "type": "string"
+          },
+          "status": {
+            "const": "blocked",
+            "type": "string"
+          }
+        },
+        "required": [
+          "status",
+          "error_code",
+          "error_message",
+          "data"
+        ],
+        "type": "object"
+      },
+      {
+        "properties": {
+          "data": {
+            "type": "null"
+          },
+          "error_code": {
+            "$ref": "#/$defs/Code"
+          },
+          "error_message": {
+            "type": "string"
+          },
+          "status": {
+            "const": "unavailable",
+            "type": "string"
+          }
+        },
+        "required": [
+          "status",
+          "error_code",
+          "error_message",
+          "data"
+        ],
+        "type": "object"
+      },
+      {
+        "properties": {
+          "data": {
+            "type": "null"
+          },
+          "error_code": {
+            "type": "null"
+          },
+          "error_message": {
+            "type": "null"
+          },
+          "status": {
+            "const": "cancelled",
+            "type": "string"
+          }
+        },
+        "required": [
+          "status",
+          "error_code",
+          "error_message",
+          "data"
+        ],
+        "type": "object"
+      }
+    ],
+    "properties": {
+      "duration_ms": {
+        "format": "uint64",
+        "minimum": 0,
+        "type": "integer"
+      },
+      "summary": {
+        "type": "string"
+      }
+    },
+    "required": [
+      "summary",
+      "duration_ms"
+    ],
+    "title": "Output",
+    "type": "object",
+    "unevaluatedProperties": false
+  },
+  "annotations": {
+    "readOnlyHint": true,
+    "destructiveHint": false,
+    "idempotentHint": false,
+    "openWorldHint": false
+  }
+}

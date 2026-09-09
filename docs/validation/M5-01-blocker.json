@@ -29,8 +29,8 @@
   "why_it_blocks": [
     "rust.benchmark.run resolves the harness offline from a host-authenticated CargoVendorSnapshot, exactly as rust.miri does.",
     "A SourceBundle admits at most 4096 entries, 16 MiB in total and 1 MiB per file.",
-    "criterion 0.8.2's closure for aarch64-unknown-linux-gnu is 52 packages, 6014 files, 779 directories, about 156 MB extracted, with 4 files over the per-file bound. Its compiled subset alone is roughly 20 MiB.",
-    "No pruning of non-compiled files brings the closure inside the bound, so the positive cannot be reached through the product's own vendor path."
+    "No pruning of non-compiled files brings the closure inside the bound, so the positive cannot be reached through the product's own vendor path.",
+    "The four files above each exceed the 1 MiB per-file bound and cannot be pruned, because Cargo's directory source requires every lockfile package to be present whatever the target. That alone blocks the ingest, independently of the entry and byte totals."
   ],
   "what_is_qualified_anyway": [
     "unrecognised-harness: cargo bench runs, exit 0, no dataset, omission HarnessUnrecognized, logs reported",
@@ -44,11 +44,22 @@
   "options_for_the_owner": [
     "Decide a separate offline-data path for large harness closures, with its own bounds, threat model and ADR, and re-qualify the flows that share SourceBundle.",
     "Mount a host-authenticated vendor directory read-only instead of capturing it into a snapshot, which is a change to how the guest receives host data and needs its own security review.",
-    "Accept M5-01 as delivered-but-unqualified for the positive, with the three negative and control selections qualified as recorded."
+    "Accept M5-01 as delivered-but-unqualified for the positive, with the three negative and control selections qualified as recorded.",
+    "Vendor only the Linux-target closure: NOT viable, and measured. Cargo's directory source requires every lockfile package to be present regardless of target. Parking the three Windows-only packages that hold all four oversized files and rebuilding produced: `error: source `vendored-sources` ... failed to read root of directory source` -- specifically `no matching package named `winapi` found ... required by package `page_size v0.6.0` ... which satisfies dependency `criterion = \"=0.8.2\"`. So the four over-cap files cannot be dropped, and with them present the per-file bound is exceeded before the entry and byte bounds are even reached."
   ],
   "evidence": [
     "docs/validation/M5-01-runtime.json",
     "docs/validation/M5-01-benchmark-calibration.json"
   ],
-  "independent_of_this_blocker": "The measurement method itself IS qualified on real guest data: docs/validation/M5-01-benchmark-calibration.json records three criterion exports captured from this image, and crates/execution-adapter/src/criterion_dataset.rs parses and compares them, including a self-compare control and a known-direction regression."
+  "independent_of_this_blocker": "The measurement method itself IS qualified on real guest data: docs/validation/M5-01-benchmark-calibration.json records three criterion exports captured from this image, and crates/execution-adapter/src/criterion_dataset.rs parses and compares them, including a self-compare control and a known-direction regression.",
+  "measurements": {
+    "why_pruning_does_not_help": "Cargo's directory source demands every lockfile package, so the Windows-only packages carrying the four oversized files cannot be omitted; this was attempted and refused, with the error recorded above.",
+    "not_measured": "The 'compiled subset is about 20 MiB' figure in why_it_blocks was an estimate, not a measurement. It is not load-bearing: the per-file bound is already exceeded by four files that cannot be removed, which blocks the ingest on its own.",
+    "over_cap_files": [
+      "winapi-i686-pc-windows-gnu-0.4.0/lib/libwinapi_kernel32.a",
+      "winapi-i686-pc-windows-gnu-0.4.0/lib/libwinapi_ntdll.a",
+      "winapi-x86_64-pc-windows-gnu-0.4.0/lib/libwinapi_kernel32.a",
+      "winapi-x86_64-pc-windows-gnu-0.4.0/lib/libwinapi_ntdll.a"
+    ]
+  }
 }

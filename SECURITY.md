@@ -384,10 +384,16 @@ store privado, sin proceso ni contenedor.
 positiva, explícita, por servidor y revocable; el peer, el proyecto, la URI de un
 Resource y las annotations de la tool no la conceden ni permiten inferirla. Sin
 ella la llamada se rechaza antes de crear ningún contenedor. Se rechaza también
-la configuración misma cuando falta el runtime Docker calificado: sin gateway no
-hay contenedor que contener, así que el arranque falla en vez de degradar la
-garantía. Revocarla cancela el trabajo en curso, hace join del árbol de procesos,
-conserva la evidencia y devuelve el runtime al perfil calificado.
+la configuración misma cuando no hay ningún runtime Docker configurado: sin
+gateway no hay contenedor que contener, así que el arranque falla en vez de
+degradar la garantía. Que la imagen configurada sea además la calificada para
+M5 se comprueba por llamada, no al arrancar, y una imagen distinta devuelve
+`unavailable`.
+
+Retirar la concesión es quitar la bandera y reiniciar. **No hay revocación en
+caliente**: la concesión se lee una vez del argv y ningún camino la muta, así que
+retirarla no cancela ni une un trabajo ya en vuelo. La evidencia ya publicada se
+conserva.
 
 **La concesión no amplía nada más.** El perfil seccomp de profiling es el perfil
 de calidad más exactamente una syscall, `perf_event_open`, y esa syscall solo la

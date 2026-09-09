@@ -60,8 +60,7 @@ fn encode_result_trims_names_then_the_lowest_ranked_rows_into_the_wire_budget() 
     })?;
     assert!(serde_json::to_vec(&untrimmed)?.len() > MAX_RESULT_BYTES);
 
-    let encoded =
-        tool.encode_result(&input, CompareOutcome::Report(Box::new(wide_report())), 7)?;
+    let encoded = tool.encode_result(&input, CompareOutcome::Report(Box::new(wide_report())), 7)?;
     let wire = serde_json::to_vec(&encoded)?;
     assert!(wire.len() <= MAX_RESULT_BYTES, "{}", wire.len());
     let value = encoded.structured_content.ok_or("structured content")?;

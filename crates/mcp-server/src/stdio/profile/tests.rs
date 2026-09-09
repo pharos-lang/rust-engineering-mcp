@@ -72,9 +72,9 @@ pub(super) mod fixtures {
         completeness: ArtifactCompleteness,
     ) -> TestResult<QualityArtifactDescriptor> {
         use rust_engineering_domain::{
-            ArtifactPlugin, ArtifactRuntime, ArtifactSelection, ArtifactSensitivity, ArtifactSource,
-            GuestArtifactName, PayloadFormatVersion, PluginIdentity, QualityArtifactDraft,
-            QualityArtifactId, QualityJobId, QualityMimeType, UtcInstant,
+            ArtifactPlugin, ArtifactRuntime, ArtifactSelection, ArtifactSensitivity,
+            ArtifactSource, GuestArtifactName, PayloadFormatVersion, PluginIdentity,
+            QualityArtifactDraft, QualityArtifactId, QualityJobId, QualityMimeType, UtcInstant,
         };
         let (payload_format_version, mime_type, guest_name) = match kind {
             QualityArtifactKind::FlamegraphSvg => (
@@ -327,8 +327,8 @@ fn operational_errors_have_closed_status_and_codes() -> TestResult {
 }
 
 #[test]
-fn result_encoding_separates_a_build_failure_a_refused_sampler_and_partial_evidence()
--> TestResult {
+fn result_encoding_separates_a_build_failure_a_refused_sampler_and_partial_evidence() -> TestResult
+{
     let tool = ProfileTool::new()?;
     let reference = super::super::security_tool::test_fixtures::project_ref()?;
     let cases: Vec<(PublishedProfile, &str, serde_json::Value)> = vec![

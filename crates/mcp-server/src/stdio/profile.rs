@@ -178,8 +178,10 @@ impl ProfilePublisher for DynPublisher<'_> {
         &mut self,
         capture: &rust_engineering_application::security::SecurityCapture,
         observation: &ProfileObservation,
-        revalidate: &mut dyn FnMut()
-        -> Result<rust_engineering_application::QualityOwnerFacts, InspectionError>,
+        revalidate: &mut dyn FnMut() -> Result<
+            rust_engineering_application::QualityOwnerFacts,
+            InspectionError,
+        >,
     ) -> Result<Vec<QualityArtifactDescriptor>, InspectionError> {
         self.0.publish_profile(capture, observation, revalidate)
     }
@@ -217,10 +219,9 @@ impl ProfileTool {
                 0,
             );
         }
-        let runtime = self
-            .runtime
-            .as_ref()
-            .ok_or_else(|| ErrorData::internal_error("Profiling runtime is not configured", None))?;
+        let runtime = self.runtime.as_ref().ok_or_else(|| {
+            ErrorData::internal_error("Profiling runtime is not configured", None)
+        })?;
         // ADR-074 §2: the grant is decided before discovery, before the vendor
         // tree, before the worker and before any container.
         let authorization = match runtime.profiling {
@@ -463,7 +464,11 @@ fn artifact(
             ));
         }
     };
-    let fields = artifact_fields(reference, descriptor, "Invalid profiling artifact descriptor")?;
+    let fields = artifact_fields(
+        reference,
+        descriptor,
+        "Invalid profiling artifact descriptor",
+    )?;
     Ok(Artifact {
         kind,
         uri: fields.uri,

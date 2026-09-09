@@ -1,0 +1,609 @@
+{
+  "name": "rust.profile.flamegraph",
+  "description": "Sample one project binary on CPU inside the approved profiling sandbox and publish a sanitized flame graph and the collapsed stacks as private artifacts. Requires an explicit host profiling grant; without it the call is blocked before any container is created. The binary is named by cargo target, never by path, and the child receives no argument from the caller. The response reports the sampler identity and parameters, the requested and the observed duration, samples collected and lost, stacks written, frames total and unresolved, stacks truncated, modules seen, the child's exit or signal, and a bounded ranking of frames by self and total samples. Symbol names are sanitized to a closed alphabet and no filesystem path is emitted. Collecting zero samples is a valid, declared observation, not a failure.",
+  "inputSchema": {
+    "$defs": {
+      "ExecutionModeDto": {
+        "enum": [
+          "auto",
+          "task",
+          "synchronous"
+        ],
+        "type": "string"
+      }
+    },
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "additionalProperties": false,
+    "properties": {
+      "binary_target": {
+        "description": "A target name, never a path, and the child receives no peer argument.",
+        "maxLength": 64,
+        "minLength": 1,
+        "pattern": "^[A-Za-z0-9_-]{1,64}$",
+        "type": "string"
+      },
+      "duration_seconds": {
+        "default": 10,
+        "format": "uint64",
+        "maximum": 60,
+        "minimum": 1,
+        "type": "integer"
+      },
+      "execution_mode": {
+        "$ref": "#/$defs/ExecutionModeDto"
+      },
+      "frequency_hz": {
+        "default": 99,
+        "format": "uint32",
+        "maximum": 999,
+        "minimum": 1,
+        "type": "integer"
+      },
+      "project_ref": {
+        "pattern": "^prj_[0-9a-f]{32}$",
+        "type": "string"
+      },
+      "timeout_seconds": {
+        "default": 120,
+        "format": "uint64",
+        "maximum": 300,
+        "minimum": 1,
+        "type": "integer"
+      }
+    },
+    "required": [
+      "project_ref",
+      "binary_target"
+    ],
+    "title": "Input",
+    "type": "object"
+  },
+  "outputSchema": {
+    "$defs": {
+      "Artifact": {
+        "additionalProperties": false,
+        "properties": {
+          "completeness": {
+            "$ref": "#/$defs/ArtifactCompleteness"
+          },
+          "kind": {
+            "$ref": "#/$defs/ArtifactKind"
+          },
+          "sha256": {
+            "pattern": "^[0-9a-f]{64}$",
+            "type": "string"
+          },
+          "size_bytes": {
+            "format": "uint64",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "uri": {
+            "maxLength": 512,
+            "minLength": 1,
+            "type": "string"
+          }
+        },
+        "required": [
+          "kind",
+          "uri",
+          "sha256",
+          "size_bytes",
+          "completeness"
+        ],
+        "type": "object"
+      },
+      "ArtifactCompleteness": {
+        "enum": [
+          "complete",
+          "truncated",
+          "partial",
+          "invalid",
+          "unavailable"
+        ],
+        "type": "string"
+      },
+      "ArtifactKind": {
+        "enum": [
+          "flamegraph_svg",
+          "collapsed_stacks"
+        ],
+        "type": "string"
+      },
+      "BuildOutcome": {
+        "description": "What the build of the profiled target did. A project that does not compile\nis an observed project failure, never a profiler failure.",
+        "enum": [
+          "built",
+          "compilation_failed",
+          "target_not_found"
+        ],
+        "type": "string"
+      },
+      "Code": {
+        "enum": [
+          "TASKS_REQUIRED",
+          "PROFILING_NOT_AUTHORIZED",
+          "SANDBOX_DENIED",
+          "MISSING_OFFLINE_DATA",
+          "ARTIFACT_UNAVAILABLE",
+          "TOOL_NOT_INSTALLED",
+          "INVALID_PROJECT",
+          "PROJECT_NOT_FOUND",
+          "COMMAND_TIMEOUT",
+          "OUTPUT_LIMIT_EXCEEDED",
+          "EVIDENCE_INCOMPLETE",
+          "PROFILER_UNAVAILABLE",
+          "OBSERVED_FAILURE"
+        ],
+        "type": "string"
+      },
+      "Completeness": {
+        "description": "How complete the emitted evidence is. Anything but `complete` is visible to\nthe caller and is never smoothed into a clean result. `no_samples` is a\nvalid, declared observation, not a failure.",
+        "enum": [
+          "complete",
+          "lost_samples",
+          "no_samples",
+          "truncated",
+          "unavailable"
+        ],
+        "type": "string"
+      },
+      "Data": {
+        "additionalProperties": false,
+        "properties": {
+          "artifacts": {
+            "items": {
+              "$ref": "#/$defs/Artifact"
+            },
+            "maxItems": 2,
+            "type": "array"
+          },
+          "observation": {
+            "$ref": "#/$defs/Observation"
+          },
+          "project_ref": {
+            "pattern": "^prj_[0-9a-f]{32}$",
+            "type": "string"
+          },
+          "semantics": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "project_ref",
+          "semantics",
+          "observation",
+          "artifacts"
+        ],
+        "type": "object"
+      },
+      "ExecutionTermination": {
+        "enum": [
+          "exited",
+          "timed_out",
+          "cancelled",
+          "output_limit"
+        ],
+        "type": "string"
+      },
+      "FrameWeight": {
+        "additionalProperties": false,
+        "description": "One ranked frame. `self_samples` counts stacks whose leaf is this frame;\n`total_samples` counts stacks containing it, once per stack. A frame the\nsampler could not resolve is reported as `[unknown]` and counted.",
+        "properties": {
+          "frame": {
+            "description": "Sanitized to a closed alphabet and bounded by the stack parser; never\na filesystem path or a module name.",
+            "maxLength": 200,
+            "minLength": 1,
+            "type": "string"
+          },
+          "self_samples": {
+            "format": "uint64",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "total_samples": {
+            "format": "uint64",
+            "minimum": 0,
+            "type": "integer"
+          }
+        },
+        "required": [
+          "frame",
+          "self_samples",
+          "total_samples"
+        ],
+        "type": "object"
+      },
+      "Observation": {
+        "additionalProperties": false,
+        "description": "What the sampler was asked for and what it observed. Requested and observed\nduration are separate fields: a shortfall is reported, never smoothed.",
+        "properties": {
+          "backend": {
+            "maxLength": 128,
+            "minLength": 1,
+            "type": "string"
+          },
+          "binary_target": {
+            "maxLength": 64,
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9_-]{1,64}$",
+            "type": "string"
+          },
+          "build": {
+            "$ref": "#/$defs/BuildOutcome"
+          },
+          "build_exit_code": {
+            "format": "int32",
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "child_exit_code": {
+            "format": "int32",
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "child_signal": {
+            "format": "int32",
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "complete": {
+            "description": "False whenever this response describes less than the run produced.",
+            "type": "boolean"
+          },
+          "completeness": {
+            "$ref": "#/$defs/Completeness"
+          },
+          "execution_fingerprint": {
+            "pattern": "^sha256:[0-9a-f]{64}$",
+            "type": "string"
+          },
+          "frames_total": {
+            "format": "uint64",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "frames_unresolved": {
+            "format": "uint64",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "frequency_hz": {
+            "format": "uint32",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "max_depth_applied": {
+            "description": "The stack depth the kernel actually applied, never the depth requested.",
+            "format": "uint32",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "modules_seen": {
+            "format": "uint64",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "observed_duration_ms": {
+            "format": "uint64",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "perf_errno": {
+            "description": "The errno the sampler reported when `perf_event_open` was refused.",
+            "format": "int32",
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "requested_duration_seconds": {
+            "format": "uint64",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "runtime": {
+            "$ref": "#/$defs/RuntimeIdentity"
+          },
+          "samples_collected": {
+            "format": "uint64",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "samples_lost": {
+            "format": "uint64",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "stacks_truncated": {
+            "format": "uint64",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "stacks_written": {
+            "format": "uint64",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "status": {
+            "$ref": "#/$defs/ProfilerStatus"
+          },
+          "stderr_truncated": {
+            "type": "boolean"
+          },
+          "stdout_truncated": {
+            "description": "Sampler logs are evidence, not a measurement; only the fact that they\nwere cut travels here.",
+            "type": "boolean"
+          },
+          "termination": {
+            "$ref": "#/$defs/ExecutionTermination"
+          },
+          "top_frames": {
+            "items": {
+              "$ref": "#/$defs/FrameWeight"
+            },
+            "maxItems": 1024,
+            "type": "array"
+          },
+          "top_frames_omitted": {
+            "format": "uint32",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "vendor_fingerprint": {
+            "pattern": "^sha256:[0-9a-f]{64}$",
+            "type": "string"
+          }
+        },
+        "required": [
+          "backend",
+          "binary_target",
+          "frequency_hz",
+          "requested_duration_seconds",
+          "observed_duration_ms",
+          "build",
+          "build_exit_code",
+          "status",
+          "samples_collected",
+          "samples_lost",
+          "stacks_written",
+          "frames_total",
+          "frames_unresolved",
+          "stacks_truncated",
+          "modules_seen",
+          "max_depth_applied",
+          "child_exit_code",
+          "child_signal",
+          "perf_errno",
+          "completeness",
+          "top_frames",
+          "top_frames_omitted",
+          "termination",
+          "runtime",
+          "execution_fingerprint",
+          "vendor_fingerprint",
+          "stdout_truncated",
+          "stderr_truncated",
+          "complete"
+        ],
+        "type": "object"
+      },
+      "ProfilerStatus": {
+        "description": "The sampler's own terminal state, mapped one-to-one from its manifest.",
+        "enum": [
+          "complete",
+          "sample_limit",
+          "duration_limit",
+          "child_exited",
+          "profiler_unavailable"
+        ],
+        "type": "string"
+      },
+      "RuntimeIdentity": {
+        "additionalProperties": false,
+        "properties": {
+          "cargo_version": {
+            "maxLength": 128,
+            "type": "string"
+          },
+          "configuration_fingerprint": {
+            "pattern": "^sha256:[0-9a-f]{64}$",
+            "type": "string"
+          },
+          "declared_toolchain": {
+            "maxLength": 128,
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "execution_fingerprint": {
+            "pattern": "^sha256:[0-9a-f]{64}$",
+            "type": "string"
+          },
+          "image_id": {
+            "pattern": "^sha256:[0-9a-f]{64}$",
+            "type": "string"
+          },
+          "platform": {
+            "maxLength": 128,
+            "type": "string"
+          },
+          "rust_version": {
+            "maxLength": 128,
+            "type": "string"
+          }
+        },
+        "required": [
+          "platform",
+          "image_id",
+          "configuration_fingerprint",
+          "execution_fingerprint",
+          "rust_version",
+          "cargo_version",
+          "declared_toolchain"
+        ],
+        "type": "object"
+      }
+    },
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "oneOf": [
+      {
+        "properties": {
+          "data": {
+            "$ref": "#/$defs/Data"
+          },
+          "error_code": {
+            "type": "null"
+          },
+          "error_message": {
+            "type": "null"
+          },
+          "status": {
+            "const": "passed",
+            "type": "string"
+          }
+        },
+        "required": [
+          "status",
+          "error_code",
+          "error_message",
+          "data"
+        ],
+        "type": "object"
+      },
+      {
+        "properties": {
+          "data": {
+            "$ref": "#/$defs/Data"
+          },
+          "error_code": {
+            "$ref": "#/$defs/Code"
+          },
+          "error_message": {
+            "type": "string"
+          },
+          "status": {
+            "const": "failed",
+            "type": "string"
+          }
+        },
+        "required": [
+          "status",
+          "error_code",
+          "error_message",
+          "data"
+        ],
+        "type": "object"
+      },
+      {
+        "properties": {
+          "data": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/Data"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "error_code": {
+            "$ref": "#/$defs/Code"
+          },
+          "error_message": {
+            "type": "string"
+          },
+          "status": {
+            "const": "blocked",
+            "type": "string"
+          }
+        },
+        "required": [
+          "status",
+          "error_code",
+          "error_message",
+          "data"
+        ],
+        "type": "object"
+      },
+      {
+        "properties": {
+          "data": {
+            "type": "null"
+          },
+          "error_code": {
+            "$ref": "#/$defs/Code"
+          },
+          "error_message": {
+            "type": "string"
+          },
+          "status": {
+            "const": "unavailable",
+            "type": "string"
+          }
+        },
+        "required": [
+          "status",
+          "error_code",
+          "error_message",
+          "data"
+        ],
+        "type": "object"
+      },
+      {
+        "properties": {
+          "data": {
+            "type": "null"
+          },
+          "error_code": {
+            "type": "null"
+          },
+          "error_message": {
+            "type": "null"
+          },
+          "status": {
+            "const": "cancelled",
+            "type": "string"
+          }
+        },
+        "required": [
+          "status",
+          "error_code",
+          "error_message",
+          "data"
+        ],
+        "type": "object"
+      }
+    ],
+    "properties": {
+      "duration_ms": {
+        "format": "uint64",
+        "minimum": 0,
+        "type": "integer"
+      },
+      "summary": {
+        "type": "string"
+      }
+    },
+    "required": [
+      "summary",
+      "duration_ms"
+    ],
+    "title": "Output",
+    "type": "object",
+    "unevaluatedProperties": false
+  },
+  "annotations": {
+    "readOnlyHint": true,
+    "destructiveHint": false,
+    "idempotentHint": false,
+    "openWorldHint": false
+  }
+}

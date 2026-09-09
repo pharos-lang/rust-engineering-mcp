@@ -135,8 +135,10 @@ impl QualityArtifactStore for DynStore<'_> {
         member_index: u16,
         member_cap_bytes: u64,
         input: &mut dyn rust_engineering_application::QualityArtifactInput,
-    ) -> Result<rust_engineering_application::QualityIngest, rust_engineering_domain::QualityArtifactError>
-    {
+    ) -> Result<
+        rust_engineering_application::QualityIngest,
+        rust_engineering_domain::QualityArtifactError,
+    > {
         self.0
             .ingest_member(reservation, member_index, member_cap_bytes, input)
     }
@@ -173,8 +175,10 @@ impl QualityArtifactStore for DynStore<'_> {
     }
     fn reconcile_recover(
         &mut self,
-    ) -> Result<rust_engineering_domain::RecoveryReport, rust_engineering_domain::QualityArtifactError>
-    {
+    ) -> Result<
+        rust_engineering_domain::RecoveryReport,
+        rust_engineering_domain::QualityArtifactError,
+    > {
         self.0.reconcile_recover()
     }
     fn prune_expired(
@@ -264,9 +268,7 @@ impl ComparisonTool {
                 request_token,
                 started + Duration::from_secs(input.timeout_seconds),
                 move |control| {
-                    let mut store = store
-                        .lock()
-                        .map_err(|_| BenchmarkCompareError::Internal)?;
+                    let mut store = store.lock().map_err(|_| BenchmarkCompareError::Internal)?;
                     let mut store = DynStore(&mut *store);
                     registry
                         .lock()
@@ -453,10 +455,7 @@ fn report(outcome: CompareOutcome) -> schemas::Report {
                 baseline_only_omitted: 0,
                 candidate_only: Vec::new(),
                 candidate_only_omitted: 0,
-                incompatibility_reasons: reasons
-                    .into_iter()
-                    .map(incompatibility_reason)
-                    .collect(),
+                incompatibility_reasons: reasons.into_iter().map(incompatibility_reason).collect(),
                 // The pair was refused before any statistic ran, and every
                 // reason for that refusal is reported.
                 complete: true,
@@ -475,23 +474,23 @@ fn published_report(report: ComparisonReport) -> schemas::Report {
     comparisons.sort_by(|left, right| {
         rank(left.verdict)
             .cmp(&rank(right.verdict))
-            .then_with(|| {
-                right
-                    .effect_ratio
-                    .abs()
-                    .total_cmp(&left.effect_ratio.abs())
-            })
+            .then_with(|| right.effect_ratio.abs().total_cmp(&left.effect_ratio.abs()))
             .then_with(|| left.key.cmp(&right.key))
     });
     let comparisons_omitted =
-        u32::try_from(comparisons.len().saturating_sub(MAX_RESPONSE_COMPARISONS)).unwrap_or(u32::MAX);
+        u32::try_from(comparisons.len().saturating_sub(MAX_RESPONSE_COMPARISONS))
+            .unwrap_or(u32::MAX);
     comparisons.truncate(MAX_RESPONSE_COMPARISONS);
     let baseline_only_omitted =
         u32::try_from(report.baseline_only.len().saturating_sub(MAX_RESPONSE_KEYS))
             .unwrap_or(u32::MAX);
-    let candidate_only_omitted =
-        u32::try_from(report.candidate_only.len().saturating_sub(MAX_RESPONSE_KEYS))
-            .unwrap_or(u32::MAX);
+    let candidate_only_omitted = u32::try_from(
+        report
+            .candidate_only
+            .len()
+            .saturating_sub(MAX_RESPONSE_KEYS),
+    )
+    .unwrap_or(u32::MAX);
     let mut baseline_only = report.baseline_only;
     baseline_only.truncate(MAX_RESPONSE_KEYS);
     let mut candidate_only = report.candidate_only;

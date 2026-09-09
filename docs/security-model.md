@@ -602,10 +602,12 @@ mapping compartido de errores porque no se amplía un enum que otros cuatro
 motores ya comparten; la ortografía exacta en el wire pertenece al corte M5-03,
 todavía sin calificar.
 
-La capability es por servidor y revocable. Su retirada cancela el trabajo en
-curso, hace join del árbol de procesos, conserva la evidencia ya publicada y
-devuelve el runtime al perfil calificado (ADR-074 §2, ADR-075 §4). Revocarla no
-reconstruye ninguna imagen. La configuración del host la refuta de plano cuando
+La capability es por servidor y se retira quitando la bandera y reiniciando.
+**No hay revocación en caliente**: la concesión se lee una vez del argv de
+arranque y ningún camino la muta después, así que retirarla no cancela ni une
+un trabajo ya en vuelo. Un reinicio duro con una operación viva deja sus
+contenedores atrás, porque el cleanup corre en proceso. Revocarla no reconstruye
+ninguna imagen y conserva la evidencia ya publicada. La configuración del host la refuta de plano cuando
 el runtime Docker calificado no está configurado: sin gateway no hay contenedor
 que contener, así que `--allow-profiling` sin el grupo `--rust-*` completo hace
 inválida la invocación de `serve` en vez de degradar la garantía

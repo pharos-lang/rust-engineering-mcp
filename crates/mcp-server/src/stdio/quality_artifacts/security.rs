@@ -145,81 +145,46 @@ impl DurableSecurityPublisher {
         revalidate: &mut dyn FnMut() -> Result<QualityOwnerFacts, InspectionError>,
     ) -> Result<rust_engineering_domain::QualityArtifactDescriptor, InspectionError> {
         let bytes = evidence.bytes;
-        let mut entropy = [0_u8; 16];
-        getrandom::fill(&mut entropy).map_err(|_| InspectionError::Internal)?;
-        let job = QualityJobId::from_random_bytes(entropy);
-        getrandom::fill(&mut entropy).map_err(|_| InspectionError::Internal)?;
-        let artifact = QualityArtifactId::from_random_bytes(entropy);
-        let created = UtcInstant::from_unix_seconds(capture.captured_at.0)
-            .map_err(|_| InspectionError::Internal)?;
-        let expires = created
-            .checked_add_seconds(QUALITY_DEFAULT_TTL_SECONDS)
-            .map_err(|_| InspectionError::Internal)?;
-        let mut toolchain = Sha256::new();
-        toolchain.update(b"rust-mcp/quality-toolchain/v1\0");
-        toolchain.update(evidence.runtime.rust_version.as_bytes());
-        toolchain.update([0]);
-        toolchain.update(evidence.runtime.cargo_version.as_bytes());
-        let runtime = ArtifactRuntime {
-            image_digest: digest_text(&evidence.runtime.image_id)?,
-            toolchain_identity: toolchain.finalize().into(),
-            plugin: ArtifactPlugin {
-                identity: PluginIdentity::Builtin,
-                version: 1,
-                digest: Sha256::digest(evidence.normalizer).into(),
-            },
-            implementation_digest: digest_text(&evidence.execution_fingerprint.to_string())?,
-        };
-        let mut store = self.store.lock().map_err(|_| InspectionError::Internal)?;
-        let mut authority = CallbackAuthority { revalidate };
-        let mut access = QualityArtifactAccess {
-            store: &mut *store,
-            authority: &mut authority,
-            retention: QualityRetentionGrant::PotentiallySensitive,
-        };
-        let reservation = access
-            .begin(
-                &capture.project_ref,
-                job,
-                (bytes.len() as u64).max(1),
-                quality_member_charge(QualityArtifactKind::ToolLog, None).map_err(quality_error)?,
-                expires.clone(),
-            )
-            .map_err(quality_error)?;
-        let outcome = access
-            .publish(
-                &capture.project_ref,
-                &reservation,
-                QualityArtifactDraft {
-                    artifact_id: artifact,
-                    member_index: 0,
-                    kind: QualityArtifactKind::ToolLog,
-                    mime_type: QualityMimeType::TextPlain,
-                    payload_format_version: PayloadFormatVersion::Utf8LogV1,
-                    completeness: if evidence.complete {
-                        ArtifactCompleteness::Complete
-                    } else {
-                        ArtifactCompleteness::Partial
+        publish_job(
+            &self.store,
+            Job {
+                project: &capture.project_ref,
+                captured_at: capture.captured_at,
+                source: &capture.source,
+                selection: ArtifactSelection::Workspace,
+                runtime: ArtifactRuntime {
+                    image_digest: digest_text(&evidence.runtime.image_id)?,
+                    toolchain_identity: toolchain_identity(evidence.runtime),
+                    plugin: ArtifactPlugin {
+                        identity: PluginIdentity::Builtin,
+                        version: 1,
+                        digest: Sha256::digest(evidence.normalizer).into(),
                     },
-                    sensitivity: ArtifactSensitivity::PotentiallySensitive,
-                    created_at_utc: created,
-                    expires_at_utc: expires,
-                    source: ArtifactSource {
-                        captured_source_sha256: source_digest(&capture.source),
-                        guest_name: GuestArtifactName::ToolLog,
-                        selection: ArtifactSelection::Workspace,
-                    },
-                    runtime,
+                    implementation_digest: digest_text(
+                        &evidence.execution_fingerprint.to_string(),
+                    )?,
                 },
-                (bytes.len() as u64).max(1),
-                &mut Bytes(&bytes),
-            )
-            .map_err(quality_error);
-        if access.finish(&reservation).is_err() {
-            access.store.reconcile_recover().map_err(quality_error)?;
-            return Err(InspectionError::Internal);
-        }
-        outcome
+                // Configuring the private state root is the host's explicit
+                // grant for a normalized log that may still quote project text.
+                retention: QualityRetentionGrant::PotentiallySensitive,
+            },
+            &[JobMember {
+                kind: QualityArtifactKind::ToolLog,
+                mime_type: QualityMimeType::TextPlain,
+                payload_format_version: PayloadFormatVersion::Utf8LogV1,
+                guest_name: GuestArtifactName::ToolLog,
+                sensitivity: ArtifactSensitivity::PotentiallySensitive,
+                completeness: if evidence.complete {
+                    ArtifactCompleteness::Complete
+                } else {
+                    ArtifactCompleteness::Partial
+                },
+                bytes: &bytes,
+            }],
+            revalidate,
+        )?
+        .pop()
+        .ok_or(InspectionError::Internal)
     }
 }
 

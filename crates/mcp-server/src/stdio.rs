@@ -149,6 +149,14 @@ struct EngineeringServer {
     supply_chain: Arc<supply_chain::SupplyTool>,
     quality_v2: Arc<quality_v2::QualityV2Tool>,
     miri: Arc<miri::MiriTool>,
+    // The four M5 performance tools own no `JobKind`: the nine kinds are frozen
+    // at M3/M4, so none of them is ever materialized as an MCP Task and none
+    // joins `QualityInvocation`. They are dispatched directly, and a peer that
+    // asks for a task gets a declared `blocked`, never a protocol error.
+    benchmark: benchmark::BenchmarkTool,
+    benchmark_compare: benchmark_compare::ComparisonTool,
+    profile: profile::ProfileTool,
+    bloat: bloat::BloatTool,
     semver: Arc<semver::SemverTool>,
     audit: auditing::AuditTool,
     explain: explaining::ExplainTool,
@@ -349,6 +357,20 @@ impl EngineeringServer {
                 .map(Into::into),
             quality_v2::NAME if quality_v2::advertised() => {
                 self.quality_v2.call(request, context).await.map(Into::into)
+            }
+            benchmark::NAME if benchmark::advertised() => {
+                self.benchmark.call(request, context).await.map(Into::into)
+            }
+            benchmark_compare::NAME if benchmark_compare::advertised() => self
+                .benchmark_compare
+                .call(request, context)
+                .await
+                .map(Into::into),
+            profile::NAME if profile::advertised() => {
+                self.profile.call(request, context).await.map(Into::into)
+            }
+            bloat::NAME if bloat::advertised() => {
+                self.bloat.call(request, context).await.map(Into::into)
             }
             semver::NAME => self.semver.call(request, context).await.map(Into::into),
             auditing::NAME => self.audit.call(request, context).await.map(Into::into),
@@ -587,6 +609,12 @@ impl ServerHandler for EngineeringServer {
             quality_v2::NAME if quality_v2::advertised() => {
                 Some(self.quality_v2.definition.clone())
             }
+            benchmark::NAME if benchmark::advertised() => Some(self.benchmark.definition.clone()),
+            benchmark_compare::NAME if benchmark_compare::advertised() => {
+                Some(self.benchmark_compare.definition.clone())
+            }
+            profile::NAME if profile::advertised() => Some(self.profile.definition.clone()),
+            bloat::NAME if bloat::advertised() => Some(self.bloat.definition.clone()),
             semver::NAME => Some(self.semver.definition.clone()),
             auditing::NAME => Some(self.audit.definition.clone()),
             explaining::NAME => Some(self.explain.definition.clone()),
@@ -648,6 +676,18 @@ impl ServerHandler for EngineeringServer {
                 }
                 if miri::advertised() {
                     tools.push(self.miri.definition.clone());
+                }
+                if benchmark::advertised() {
+                    tools.push(self.benchmark.definition.clone());
+                }
+                if benchmark_compare::advertised() {
+                    tools.push(self.benchmark_compare.definition.clone());
+                }
+                if profile::advertised() {
+                    tools.push(self.profile.definition.clone());
+                }
+                if bloat::advertised() {
+                    tools.push(self.bloat.definition.clone());
                 }
                 tools
             },
@@ -1021,6 +1061,80 @@ pub fn run(config: HostConfig) -> ExitCode {
             return ExitCode::FAILURE;
         }
     };
+    // The inspector implements all three M5 execution ports; each tool takes the
+    // one it measures through, and never the other two.
+    let benchmark_port: Arc<dyn rust_engineering_application::benchmark::ProjectBenchmarkPort> =
+        inspector.clone();
+    let profile_port: Arc<dyn rust_engineering_application::profile::ProjectProfilePort> =
+        inspector.clone();
+    let bloat_port: Arc<dyn rust_engineering_application::bloat::ProjectBloatPort> =
+        inspector.clone();
+    let benchmark = match benchmark::BenchmarkTool::new() {
+        Ok(tool) => tool.with_runtime(benchmark::Runtime {
+            registry: project.registry(),
+            workers: workers.clone(),
+            ready: Arc::clone(&ready),
+            vendor: config.cargo_vendor.clone(),
+            executor: Some(benchmark_port),
+            publisher: quality_runtime
+                .as_ref()
+                .map(|runtime| runtime.performance_publisher.benchmark()),
+        }),
+        Err(_) => {
+            tracing::error!("MCP benchmark contract initialization failed");
+            return ExitCode::FAILURE;
+        }
+    };
+    let benchmark_compare = match benchmark_compare::ComparisonTool::new() {
+        Ok(tool) => tool.with_runtime(benchmark_compare::Runtime {
+            registry: project.registry(),
+            workers: workers.clone(),
+            ready: Arc::clone(&ready),
+            // The comparison reads datasets this project already published; it
+            // takes the publishing store itself and never publishes through it.
+            store: quality_runtime.as_ref().map(|runtime| {
+                Arc::clone(&runtime.store)
+                    as Arc<Mutex<dyn rust_engineering_application::QualityArtifactStore>>
+            }),
+        }),
+        Err(_) => {
+            tracing::error!("MCP benchmark comparison contract initialization failed");
+            return ExitCode::FAILURE;
+        }
+    };
+    let profile = match profile::ProfileTool::new() {
+        Ok(tool) => tool.with_runtime(profile::Runtime {
+            registry: project.registry(),
+            workers: workers.clone(),
+            ready: Arc::clone(&ready),
+            vendor: config.cargo_vendor.clone(),
+            profiling: config.profiling,
+            executor: Some(profile_port),
+            publisher: quality_runtime
+                .as_ref()
+                .map(|runtime| runtime.performance_publisher.profile()),
+        }),
+        Err(_) => {
+            tracing::error!("MCP profiling contract initialization failed");
+            return ExitCode::FAILURE;
+        }
+    };
+    let bloat = match bloat::BloatTool::new() {
+        Ok(tool) => tool.with_runtime(bloat::Runtime {
+            registry: project.registry(),
+            workers: workers.clone(),
+            ready: Arc::clone(&ready),
+            vendor: config.cargo_vendor.clone(),
+            executor: Some(bloat_port),
+            publisher: quality_runtime
+                .as_ref()
+                .map(|runtime| runtime.performance_publisher.bloat()),
+        }),
+        Err(_) => {
+            tracing::error!("MCP binary size contract initialization failed");
+            return ExitCode::FAILURE;
+        }
+    };
     let semver = match semver::SemverTool::new() {
         Ok(tool) => tool.with_runtime(
             project.registry(),
@@ -1275,6 +1389,10 @@ pub fn run(config: HostConfig) -> ExitCode {
                 supply_chain: Arc::new(supply_chain),
                 quality_v2: Arc::new(quality_v2),
                 miri: Arc::new(miri),
+                benchmark,
+                benchmark_compare,
+                profile,
+                bloat,
                 semver: Arc::new(semver),
                 audit,
                 explain,

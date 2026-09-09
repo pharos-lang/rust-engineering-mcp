@@ -433,6 +433,10 @@ fn bootstrap(server: &mut Server, version: &str) -> Result<Value, Box<dyn Error>
         (24, include_str!("snapshots/supply-chain-tool.json")),
         (25, include_str!("snapshots/quality-v2-tool.json")),
         (26, include_str!("snapshots/miri-tool.json")),
+        (27, include_str!("snapshots/benchmark-run-tool.json")),
+        (28, include_str!("snapshots/benchmark-compare-tool.json")),
+        (29, include_str!("snapshots/profile-flamegraph-tool.json")),
+        (30, include_str!("snapshots/binary-bloat-tool.json")),
     ] {
         assert_eq!(
             response["result"]["tools"][index],
@@ -713,7 +717,7 @@ mod project_fixtures {
 fn assert_project_list(response: &Value, modern: bool) {
     assert!(response.get("error").is_none(), "{response}");
     let tools = response["result"]["tools"].as_array();
-    assert_eq!(tools.map(Vec::len), Some(27));
+    assert_eq!(tools.map(Vec::len), Some(31));
     let names: Vec<_> = response["result"]["tools"]
         .as_array()
         .into_iter()
@@ -749,7 +753,11 @@ fn assert_project_list(response: &Value, modern: bool) {
             "rust.unsafe.scan",
             "rust.supply_chain.inspect",
             "rust.quality.gate.v2",
-            "rust.miri"
+            "rust.miri",
+            "rust.benchmark.run",
+            "rust.benchmark.compare",
+            "rust.profile.flamegraph",
+            "rust.binary.bloat"
         ]
     );
     let tool = &response["result"]["tools"][0];
