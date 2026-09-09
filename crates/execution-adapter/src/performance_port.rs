@@ -33,8 +33,8 @@ use rust_engineering_domain::benchmark::{
     SampleUnit, SamplingMode, Virtualization,
 };
 use rust_engineering_domain::benchmark_run::{
-    BENCHMARK_MAX_ARCHIVE_BYTES, BenchmarkExit, BenchmarkObservation, CriterionArchive,
-    DatasetOmission, HarnessDetection,
+    BENCHMARK_MAX_ARCHIVE_BYTES, BENCHMARK_MAX_LOG_BYTES, BenchmarkExit, BenchmarkObservation,
+    BenchmarkRunLog, CriterionArchive, DatasetOmission, HarnessDetection,
 };
 use rust_engineering_domain::bloat::{
     APPROVED_CARGO_BLOAT_VERSION, BinaryFormat, BloatAttribution, BloatCompleteness, BloatExit,
@@ -893,6 +893,44 @@ fn measured_binary(output: &BloatOutput) -> Option<MeasuredBinary> {
     })
 }
 
+/// The exit of one capture, on its own terms.
+fn capture_exit(capture: &crate::supervisor::Capture) -> BloatExit {
+    if capture.stop == crate::supervisor::Stop::Exited {
+        capture
+            .code
+            .map_or(BloatExit::Uncalibrated, BloatExit::classify)
+    } else {
+        BloatExit::Incomplete
+    }
+}
+
+/// The capture whose outcome the observation reports.
+///
+/// `rust.binary.bloat` runs the analyzer **twice** — once for the per-function
+/// view and once for the per-crate view — and both have to have succeeded for
+/// the analysis to have succeeded. Reporting only the first hid the second: an
+/// independent review built the case where the crates view exits non-zero while
+/// still writing parseable JSON that agrees about the file, and the failure
+/// simply vanished. Under ADR-079 that case then reached `passed`, because
+/// validity no longer depends on the row cap.
+///
+/// So the reported capture is the first one that did not exit cleanly, and the
+/// functions view only when both did. That keeps `exit`, `exit_code` and
+/// `termination` describing the same execution as each other.
+fn failed_capture(output: &BloatOutput) -> &crate::supervisor::Capture {
+    for capture in [&output.functions, &output.crates] {
+        if capture_exit(capture) != BloatExit::Passed {
+            return capture;
+        }
+    }
+    &output.functions
+}
+
+/// The exit of the analysis as a whole: `Passed` only when both views passed.
+fn analysis_exit(output: &BloatOutput) -> BloatExit {
+    capture_exit(failed_capture(output))
+}
+
 fn attribution(output: &BloatOutput) -> Option<BloatAttribution> {
     let functions = bloat_json::parse_functions(&output.functions.stdout).ok()?;
     let crates = bloat_json::parse_crates(&output.crates.stdout).ok()?;
@@ -971,16 +1009,9 @@ pub(super) fn bloat(
     let observation = BloatObservation {
         options: options.clone(),
         analyzer_version: APPROVED_CARGO_BLOAT_VERSION.into(),
-        exit: if output.functions.stop == crate::supervisor::Stop::Exited {
-            output
-                .functions
-                .code
-                .map_or(BloatExit::Uncalibrated, BloatExit::classify)
-        } else {
-            BloatExit::Incomplete
-        },
-        exit_code: output.functions.code,
-        termination: termination(&output.functions),
+        exit: analysis_exit(output),
+        exit_code: failed_capture(output).code,
+        termination: termination(failed_capture(output)),
         measured,
         attribution,
         completeness,
@@ -1785,6 +1816,49 @@ mod tests {
         "functions":[{"crate":"fixture","name":"main","size":128}]}"#;
     const CRATES: &[u8] = br#"{"file-size":4096,"text-section-size":2048,
         "crates":[{"name":"fixture","size":512}]}"#;
+
+    /// A failure of the SECOND analyzer execution must not disappear.
+    ///
+    /// `rust.binary.bloat` runs the analyzer twice, once per view. An external
+    /// independent review built this case: the crates view exits non-zero while
+    /// still writing parseable JSON that agrees with the functions view about
+    /// the file. Before ADR-079 the case was hidden but harmless, because the
+    /// row cap blocked success anyway; after it, validity no longer depends on
+    /// the cap, so the same run reached `passed` with a failed execution inside
+    /// it. The JSON stays valid on purpose — a parse failure would be caught by
+    /// a different rule and would not test this one.
+    #[test]
+    fn a_failed_second_execution_is_never_reported_as_a_passed_analysis() {
+        let mut output = bloat_output(b"4096\n", FUNCTIONS, CRATES);
+        output.crates = capture(Some(1), CRATES);
+        assert_eq!(
+            analysis_exit(&output),
+            BloatExit::AnalysisFailed,
+            "the crates view exited 1 and the analysis cannot be a success"
+        );
+        assert_eq!(
+            failed_capture(&output).code,
+            Some(1),
+            "the reported exit code must be the failing execution's"
+        );
+        // The two views still agree about the file, so the attribution parses
+        // and the measurement is intact. Validity is what refuses, and it
+        // refuses because of the exit rather than because of the rows.
+        assert!(attribution(&output).is_some());
+        assert!(measured_binary(&output).is_some());
+
+        // Both clean is still a pass, so the guard cannot be satisfied by
+        // refusing everything.
+        let clean = bloat_output(b"4096\n", FUNCTIONS, CRATES);
+        assert_eq!(analysis_exit(&clean), BloatExit::Passed);
+        assert_eq!(failed_capture(&clean).code, Some(0));
+
+        // A first-execution failure keeps being reported as before.
+        let mut first = bloat_output(b"4096\n", FUNCTIONS, CRATES);
+        first.functions = capture(Some(101), FUNCTIONS);
+        assert_eq!(analysis_exit(&first), BloatExit::CompilationFailed);
+        assert_eq!(failed_capture(&first).code, Some(101));
+    }
 
     #[test]
     fn the_exact_size_and_the_estimated_attribution_are_never_merged() {
