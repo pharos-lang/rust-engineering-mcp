@@ -29,6 +29,49 @@ offline calificado en M2/M4 y los comparten todos los flujos que llevan datos de
 host al guest; ampliarlos para poner en verde una prueba debilitaría una frontera
 de seguridad calificada sin decisión ni recalificación.
 
+### Corrección (2026-09-09) — no son tres límites, y uno no es un límite
+
+Las mediciones que §4 exige encontraron dos cosas que este documento decía mal, y
+la segunda cambia qué hay que decidir.
+
+**Son cuatro límites, no tres.** Además de entradas, bytes totales y tamaño por
+archivo, el cierre rompe `SOURCE_MAX_PATH_BYTES`: **123 rutas** pasan de 100
+bytes, la mayor de 112.
+
+**Y trece rutas no rompen ningún límite: rompen la gramática.**
+`validate_source_path` admite `[A-Za-z0-9._/-]` y nada más, así que rutas como
+`zerocopy-derive-0.8.56/src/output_tests/expected/into_bytes_enum.repr(i8).expected.rs`
+—paréntesis— devuelven `SourceError::Invalid`, no `Limits`. Verificado de forma
+independiente sobre el árbol real: 13 archivos.
+
+Eso es lo que cambia la decisión. **Ninguna cuota mueve esas trece rutas.** Un
+contrato nuevo con límites más generosos, por bien medidos que estén, seguiría sin
+poder ingerir este árbol. Así que el contrato tiene que decidir explícitamente
+sobre el **juego de caracteres de las rutas**, y no solo sobre cuántas hay y cómo
+de grandes son.
+
+Las opciones no son equivalentes y ninguna se elige aquí todavía:
+
+- **Ampliar el alfabeto** a lo que un `.crate` publicado en crates.io puede
+  contener legítimamente. Toca una frontera de seguridad —el alfabeto existe para
+  que una ruta no pueda expresar cosas que el guest interprete—, así que exige su
+  propio análisis de qué se vuelve expresable.
+- **Codificar la ruta** en la captura y reconstruirla en el guest, dejando el
+  alfabeto intacto. Mueve el problema a la fidelidad de la codificación.
+- **Rechazar el paquete** que las contiene. Medido y ya descartado por otra vía:
+  Cargo exige todo paquete del lockfile en un directory source.
+
+**Y una tercera cosa, observada sobre nuestro propio fixture.** El árbol
+materializado había acumulado un `.DS_Store` de 6 148 bytes que el fixture nunca
+escribió, git-ignorado y por tanto invisible para todo lo que mira el repo. Medir
+sobre él habría publicado 6 015 archivos y 156 273 617 bytes como forma del
+cierre, en vez de 6 014 y 156 267 469.
+
+Es exactamente la deriva de la que hablan §1 y §6 —un árbol del host que cambia
+sin que nadie lo pida— pero observada en casa y sin malicia de por medio. Refuerza
+la decisión de §1: capturar y autenticar, en vez de montar un directorio mutable y
+confiar en que nadie lo toque.
+
 ## Decision
 
 Se crea un contrato **distinto**, con su propio nombre, sus propios límites y su

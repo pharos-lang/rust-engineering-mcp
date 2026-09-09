@@ -99,8 +99,11 @@ aquí.
 autenticado por el host, igual que `rust.miri`. Un `SourceBundle` admite como
 máximo 4 096 entradas, 16 MiB en total y 1 MiB por archivo. El cierre de
 `criterion 0.8.2` para `aarch64-unknown-linux-gnu` son 52 paquetes, 6 014
-archivos, 779 directorios y 156 267 469 bytes, con cuatro archivos por encima
-del límite por archivo. Podar los no compilados tampoco sirve, y la razón está
+archivos, 779 directorios y 156 267 469 bytes, y rompe **cuatro** límites, no
+tres: entradas, bytes totales, cuatro archivos sobre el límite por archivo, y 123
+rutas sobre el límite de 100 bytes por ruta. Además, **trece rutas no rompen
+ningún límite: rompen la gramática** —llevan paréntesis, y el alfabeto admite solo
+`[A-Za-z0-9._/-]`—, así que devuelven `Invalid` y **ninguna cuota las arregla**. Podar los no compilados tampoco sirve, y la razón está
 medida, no estimada: los cuatro archivos que superan el límite pertenecen a
 paquetes solo-Windows y Cargo exige que todo paquete del lockfile esté presente
 en un directory source, así que no se pueden quitar. El «subconjunto compilado

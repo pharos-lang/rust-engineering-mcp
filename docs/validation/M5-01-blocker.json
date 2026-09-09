@@ -61,5 +61,15 @@
       "winapi-x86_64-pc-windows-gnu-0.4.0/lib/libwinapi_kernel32.a",
       "winapi-x86_64-pc-windows-gnu-0.4.0/lib/libwinapi_ntdll.a"
     ]
+  },
+  "path_findings_2026_09_09": {
+    "bounds_broken": 4,
+    "note": "The closure breaks four SourceBundle bounds, not three: entries (6014 files + 779 directories vs SOURCE_MAX_ENTRIES 4096), total bytes (156267469 vs 16 MiB), per-file bytes (4 files over 1 MiB), and SOURCE_MAX_PATH_BYTES (123 paths over 100 bytes, longest 112).",
+    "outside_the_grammar_not_a_limit": {
+      "count": 13,
+      "example": "zerocopy-derive-0.8.56/src/output_tests/expected/into_bytes_enum.repr(i8).expected.rs",
+      "why_it_matters": "validate_source_path admits only [A-Za-z0-9._/-], so these return SourceError::Invalid rather than Limits. NO quota change fixes them: a new contract with larger limits would still refuse this tree. ADR-078 must therefore decide on the path character set, not only on counts and sizes."
+    },
+    "fixture_drift_observed": "The materialized tree had accumulated a 6148-byte .DS_Store the fixture never wrote, gitignored and therefore invisible to anything reading the repo. Measuring over it would have published 6015 files / 156273617 bytes as the shape of the closure. Re-materialized before measuring. This is the drift ADR-078 §1 and §6 describe, observed on our own fixture and without malice."
   }
 }
