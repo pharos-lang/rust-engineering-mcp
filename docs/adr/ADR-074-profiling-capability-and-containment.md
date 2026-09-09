@@ -127,6 +127,42 @@ ellos. Reglas de construcción:
   `stacks_truncated`, frecuencia, duración observada y estado del hijo. Una
   pérdida de muestras o de símbolos se declara; no se rellena.
 
+### 5.1. El host no cree lo que el manifest le cuenta (enmienda de 2026-09-09)
+
+Una revisión independiente de containment mostró que la versión original de esta
+decisión tenía un agujero: el binario perfilado corre como el mismo uid, en el
+mismo contenedor, con `/profile` montado de lectura y escritura, así que podía
+pre-crear o sobrescribir los dos artifacts del propio perfilador — la variante
+determinista ni siquiera necesitaba ganar una carrera— y el host publicaba el
+manifest que encontrase sin comprobar ni su `schema`.
+
+El contenido de un artifact producido dentro del contenedor no es, por sí solo,
+evidencia de nada. Se decide en consecuencia:
+
+- **El helper vacía su namespace de PIDs antes de emitir.** Es PID 1 ahí, así que
+  `kill(-1)` y cosechar hasta `ECHILD` alcanza a todo descendiente, no solo al
+  hijo directo; el barrido se reemite en cada vuelta y está acotado en tiempo.
+  Fuera de PID 1 mata solo a su hijo conocido y lo declara. El resultado viaja en
+  el manifest (`descendants_reaped`, `namespace_drained`) en lugar de asumirse, y
+  un `namespace_drained: false` **invalida la ejecución**: no es un éxito
+  degradado. Esto cierra además un hueco anterior por el que los caminos de
+  límite de duración y de muestras dejaban nietos vivos.
+- **Los dos artifacts se abren con `O_EXCL`.** Un archivo pre-creado es un
+  rechazo declarado, nunca una sobrescritura silenciosa.
+- **El host reconcilia antes de publicar.** El manifest debe declarar su `schema`,
+  llevar exactamente el conjunto de claves esperado, devolver los parámetros que
+  el propio host puso en el argv, y sus contadores deben coincidir con lo que el
+  parser del host encontró en los stacks. Cualquier desacuerdo es
+  `InvalidMetadata`: los bytes pueden estar bien, pero el metadato que los
+  describe no se puede avalar. Esto atrapa también a un helper simplemente
+  defectuoso, no solo a un hijo hostil.
+
+Consecuencias que se aceptan: el host y el helper quedan acoplados por versión
+—viajan en una sola imagen construida de un solo árbol—, y la comprobación de
+`namespace_drained` convierte la topología del contenedor (`--init=false`,
+`--entrypoint`, namespace de PIDs privado) en una dependencia dura. Es la
+elección honesta: si el helper no es PID 1, no puede garantizar lo que afirma.
+
 ### 6. Frontera de target
 
 El positivo se califica en el guest **Linux ARM64** con la imagen M5 declarada.

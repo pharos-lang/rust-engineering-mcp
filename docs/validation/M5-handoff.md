@@ -100,8 +100,10 @@ El bloqueo es de ingesta del vendor, no de la medición.
 ## Rollback
 
 Volver a apuntar el gateway al digest M4 `sha256:25ed3626e710…`. No hay estado
-que migrar, la evidencia se conserva y las veintisiete tools anteriores siguen
-sirviendo. La capability de profiling se revoca por separado retirando
+que migrar y la evidencia se conserva. `tools/list` sigue devolviendo 31
+definiciones —el inventario no depende de la imagen—, las veintisiete anteriores
+siguen sirviendo igual y las cuatro de M5 responden `unavailable` antes de crear
+contenedor alguno, que es el resultado declarado y no un fallo. La capability de profiling se revoca por separado retirando
 `--allow-profiling`, sin reconstruir nada.
 
 ## Límites declarados
