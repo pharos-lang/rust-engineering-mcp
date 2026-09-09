@@ -3,7 +3,16 @@
 Fecha de apertura: 2026-09-08. Rama de trabajo: `ai/m5-performance`. Base:
 `c6099f27415b0be3838e84d21d25eed903c8c312`.
 
-Estado: **In progress**. Este documento se completa por corte; ninguna fila pasa
+Estado: **In progress**, y con cuatro decisiones nuevas del owner que reabren
+parte de lo ya medido. [ADR-078](../adr/ADR-078-offline-vendor-capture.md) abre
+una vía separada para el vendor grande sin tocar `SourceBundle`;
+[ADR-079](../adr/ADR-079-bloat-result-semantics.md) corrige la semántica de
+resultado de bloat; [ADR-080](../adr/ADR-080-harness-logs-as-artifacts.md) manda
+publicar los logs del harness que el contrato ya prometía; y
+[ADR-081](../adr/ADR-081-benchmark-statistical-requalification.md) congela los
+criterios de recalificación estadística **antes** de medir. Lo calificado contra
+los contratos anteriores queda como historia, no como acreditación de los nuevos.
+ Este documento se completa por corte; ninguna fila pasa
 a Done sin su recibo enlazado. Un gate anterior nunca acredita código nuevo.
 
 ## Entrada M4 verificada live
@@ -44,11 +53,11 @@ Con `--cap-drop=ALL`, `no-new-privileges`, `--network=none`, uid 65534 y
 
 | ID | Corte | Estado | Evidencia |
 | --- | --- | --- | --- |
-| M5-01 | `rust.benchmark.run` | **Blocked** para el positivo; negativos y controles calificados, y el bloqueo tiene su propio oráculo | [runtime](M5-01-runtime.json) · [oráculo del bloqueo](M5-01-blocked-runtime.json) · [bloqueo](M5-01-blocker.json) · [calibración](M5-01-benchmark-calibration.json) |
-| M5-02 | `rust.benchmark.compare` | Implementado y probado sobre datasets reales del guest | [calibración](M5-01-benchmark-calibration.json) · `criterion_dataset::real_guest_datasets` |
+| M5-01 | `rust.benchmark.run` | **Blocked**; el owner autorizó la vía separada de [ADR-078](../adr/ADR-078-offline-vendor-capture.md), que aún no autoriza límites hasta que existan las mediciones. Negativos y controles calificados, y el bloqueo tiene su propio oráculo | [runtime](M5-01-runtime.json) · [oráculo del bloqueo](M5-01-blocked-runtime.json) · [bloqueo](M5-01-blocker.json) · [calibración](M5-01-benchmark-calibration.json) |
+| M5-02 | `rust.benchmark.compare` | **Recalificación estadística reabierta** por [ADR-081](../adr/ADR-081-benchmark-statistical-requalification.md): la subcobertura documentada (0,84–0,89 frente a 0,95 nominal) no queda corregida por documentarla. Los veredictos direccionales y `no_material_change` siguen deshabilitados hasta que pasen los criterios congelados **y** el entorno sea observable | [calibración](M5-01-benchmark-calibration.json) · `criterion_dataset::real_guest_datasets` |
 | M5-03 | `rust.profile.flamegraph` | **Calificado nativamente**, con positivo y denegación en el mismo recibo generado | [runtime](M5-03-runtime.json) · [capability](M5-profiling-capability-probe.json) · [smoke manual anterior](M5-03-profiling-native.json) |
-| M5-04 | `rust.binary.bloat` | **Calificado nativamente** | [runtime](M5-04-runtime.json) · [calibración](M5-04-bloat-calibration.json) |
-| M5-05 | Cierre, clientes y gate conjunto | In progress | — |
+| M5-04 | `rust.binary.bloat` | **In progress otra vez.** [ADR-079](../adr/ADR-079-bloat-result-semantics.md) sustituye la semántica de resultado que la calificación anterior midió; se recalifica sobre bytes finales, con revisión independiente de por medio | [runtime anterior](M5-04-runtime.json) · [calibración](M5-04-bloat-calibration.json) |
+| M5-05 | Cierre, clientes y gate conjunto | In progress; la matriz de clientes de 2026-09-09 ([recibo](M5-clients.json)) mide contratos que ADR-079 y ADR-080 cambian, así que se rehace | [clientes, superado por decisión](M5-clients.json) |
 | — | Admisión de imagen | Calificada | [runtime](M5-00-admission-runtime.json) · [ADR-077](../adr/ADR-077-m5-runtime-admission.md) |
 
 ### Selecciones nativas observadas
