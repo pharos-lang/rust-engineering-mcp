@@ -44,9 +44,9 @@ Con `--cap-drop=ALL`, `no-new-privileges`, `--network=none`, uid 65534 y
 
 | ID | Corte | Estado | Evidencia |
 | --- | --- | --- | --- |
-| M5-01 | `rust.benchmark.run` | **Blocked** para el positivo; negativos y controles calificados | [runtime](M5-01-runtime.json) · [bloqueo](M5-01-blocker.json) · [calibración](M5-01-benchmark-calibration.json) |
+| M5-01 | `rust.benchmark.run` | **Blocked** para el positivo; negativos y controles calificados, y el bloqueo tiene su propio oráculo | [runtime](M5-01-runtime.json) · [oráculo del bloqueo](M5-01-blocked-runtime.json) · [bloqueo](M5-01-blocker.json) · [calibración](M5-01-benchmark-calibration.json) |
 | M5-02 | `rust.benchmark.compare` | Implementado y probado sobre datasets reales del guest | [calibración](M5-01-benchmark-calibration.json) · `criterion_dataset::real_guest_datasets` |
-| M5-03 | `rust.profile.flamegraph` | **Calificado nativamente**; el oráculo de denegación sigue pendiente en el recibo generado | [runtime](M5-03-runtime.json) · [smoke manual](M5-03-profiling-native.json) · [capability](M5-profiling-capability-probe.json) |
+| M5-03 | `rust.profile.flamegraph` | **Calificado nativamente**, con positivo y denegación en el mismo recibo generado | [runtime](M5-03-runtime.json) · [capability](M5-profiling-capability-probe.json) · [smoke manual anterior](M5-03-profiling-native.json) |
 | M5-04 | `rust.binary.bloat` | **Calificado nativamente** | [runtime](M5-04-runtime.json) · [calibración](M5-04-bloat-calibration.json) |
 | M5-05 | Cierre, clientes y gate conjunto | In progress | — |
 | — | Admisión de imagen | Calificada | [runtime](M5-00-admission-runtime.json) · [ADR-077](../adr/ADR-077-m5-runtime-admission.md) |
@@ -58,19 +58,29 @@ Recibo conjunto: [M5-runtime.json](M5-runtime.json).
 
 | Corte | Selección | Resultado |
 | --- | --- | --- |
-| M5-00 | `unqualified-image-refused` | passed |
-| M5-01 | `positive-run-count-1` | **blocked** (ver abajo) |
-| M5-01 | `pooled-run-count-2` | **blocked** (ver abajo) |
-| M5-01 | `unrecognised-harness` | passed; exit 0, sin dataset, `HarnessUnrecognized`, logs reportados |
-| M5-01 | `project-cargo-configuration-refused` | passed; rechazado antes de crear volumen, sin residuo |
-| M5-01 | `cancellation-mid-run` | passed; `cargo bench` observado vivo, cancelado, árbol unido, sin residuo |
-| M5-03 | `profile-positive` | passed |
-| M5-03 | `profile-cpus-sampled` | passed |
-| M5-03 | `zero-sample-control` | passed |
-| M5-03 | `cancellation-during-profiling` | passed |
-| M5-04 | `release-positive` | passed; tamaño medido == tamaño reportado |
-| M5-04 | `release-lto` | passed; binario estrictamente menor |
-| M5-04 | `missing-binary-target` | passed; fallo observado, no error de infraestructura |
+| M5-00 | `unqualified-image-refused` | passed, 38 ms; la imagen M4 recibe `Unavailable` antes de crear contenedor |
+| M5-01 | `positive-run-count-1` | **blocked**; el cierre de criterion no cabe en el `SourceBundle` (ver abajo) |
+| M5-01 | `pooled-run-count-2` | **blocked**; misma condición |
+| M5-01 | `unrecognised-harness` | passed, 8,1 s; exit 0, sin dataset, `HarnessUnrecognized`, logs reportados |
+| M5-01 | `project-cargo-configuration-refused` | passed, 0,5 s; rechazado antes de crear volumen, sin residuo |
+| M5-01 | `cancellation-mid-run` | passed, 13,6 s; `cargo bench` observado vivo, cancelado, árbol unido, sin residuo |
+| M5-03 | `profile-positive` | passed, 10,6 s; 195 muestras, 0 perdidas, 2 148 frames, 196 sin resolver, completo |
+| M5-03 | `profile-cpus-sampled` | passed, 10,3 s; 16 CPUs muestreadas de 16 del guest, `namespace_drained: true`, `descendants_reaped: 0` |
+| M5-03 | `zero-sample-control` | passed, 8,2 s; `NoSamples`, 0 muestras, SVG de 899 bytes sin ranking |
+| M5-03 | `cancellation-during-profiling` | passed, 15,8 s; helper observado vivo en 594 sondeos, cancelado, sin residuo |
+| M5-03 | `denial-control` | passed, 17,0 s; helper exit 3, `ProfilerUnavailable`, `perf_errno = 1` (EPERM), sin stacks ni SVG |
+| M5-04 | `release-positive` | passed, 8,9 s; tamaño medido == tamaño reportado |
+| M5-04 | `release-lto` | passed, 10,1 s; binario estrictamente menor |
+| M5-04 | `missing-binary-target` | passed, 8,4 s; fallo observado, no error de infraestructura |
+
+Residuo etiquetado tras la última selección: ningún contenedor y ningún volumen.
+
+Las dos selecciones `blocked` viven en su propio test,
+`m5_benchmark_run_positive_is_blocked_by_the_offline_data_bound`, que mide el
+árbol del vendor y **falla en cuanto deje de romper cualquiera de los tres
+límites**, exigiendo entonces que el positivo se implemente y se califique. El
+corte que conserva el nombre de calificación solo afirma lo que la tool sí hace
+aquí.
 
 ### M5-01 — condición de bloqueo reproducible
 

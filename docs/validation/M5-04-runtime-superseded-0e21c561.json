@@ -1,6 +1,6 @@
 {
   "cut": "m5-04-bloat",
-  "finished_utc": "2026-09-09T00:45:36Z",
+  "finished_utc": "2026-09-08T23:37:14Z",
   "fixtures": {
     "bloat": {
       "archive_sha256": "sha256:d93c1e9e05c0a4287ba39a95cd39af3c2add28816665d4d40dff4f6601f3c66d",
@@ -10,7 +10,7 @@
       "tree_fingerprint": "sha256:de4f7fd115fe74543f8613fa53633bd05aa8fbc1a3fea52e6cba035cd7fa5330"
     }
   },
-  "image_id": "sha256:e0a5ca1661b3e49d0a3d68ee3cc0963453078d08eb7fc43c30538c16b7998aac",
+  "image_id": "sha256:0e21c561488cb917e89e42943eb5138a7ddfd73d9de2f9cd4b9a0b516bdab820",
   "residue": {
     "after": {
       "containers": [],
@@ -23,7 +23,7 @@
   },
   "selections": [
     {
-      "duration_ms": 8877,
+      "duration_ms": 8772,
       "observed": {
         "analyzer_version": "0.12.1",
         "attribution": {
@@ -57,7 +57,7 @@
           "text_section_size_bytes": 235268
         },
         "completeness": "Truncated",
-        "execution_fingerprint": "sha256:b8d7fd2d0991ac3b4e0b412a59f13f18ffca678abca3bf73dfbf3ced941d4fb5",
+        "execution_fingerprint": "sha256:40be9c2439b44361bef63a12d2afd1ecff6884614695d142c791340872c13a91",
         "exit": "Passed",
         "exit_code": 0,
         "measured": {
@@ -71,7 +71,7 @@
       "selection": "release-positive"
     },
     {
-      "duration_ms": 10064,
+      "duration_ms": 10157,
       "observed": {
         "analyzer_version": "0.12.1",
         "attribution": {
@@ -105,7 +105,7 @@
           "text_section_size_bytes": 217048
         },
         "completeness": "Truncated",
-        "execution_fingerprint": "sha256:4541be5e3e6c2597548ab948b5f45f619c038b6c505efb2ec6cf38cde0129f5d",
+        "execution_fingerprint": "sha256:db829b1a9c13863dcaf9dc0d8e5c206a73d47d022b22430cb51a7412ce504ae7",
         "exit": "Passed",
         "exit_code": 0,
         "measured": {
@@ -119,12 +119,12 @@
       "selection": "release-lto"
     },
     {
-      "duration_ms": 8433,
+      "duration_ms": 8570,
       "observed": {
         "analyzer_version": "0.12.1",
         "attribution": null,
         "completeness": "Unavailable",
-        "execution_fingerprint": "sha256:9993c75a2393c0832acab28b6cf40e5163b304338f1a7287c9ef51a2bb7cc05e",
+        "execution_fingerprint": "sha256:1e12dcd94bb9950d1e51c35443b703972136915563c45c8782d957ea5c565eb8",
         "exit": "AnalysisFailed",
         "exit_code": 1,
         "measured": null
@@ -133,5 +133,5 @@
       "selection": "missing-binary-target"
     }
   ],
-  "started_utc": "2026-09-09T00:45:08Z"
+  "started_utc": "2026-09-08T23:36:46Z"
 }
