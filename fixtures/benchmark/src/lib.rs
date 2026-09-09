@@ -9,7 +9,7 @@
 //! | --------------- | -------------------- | --------------------------- |
 //! | `work_unit`     | `n`                  | 1.00x (reference)           |
 //! | `work_slower`   | `n + n / 4`          | 1.25x                       |
-//! | `work_noisy`    | `n`                  | 1.00x (self-compare control)|
+//! | `work_noisy`    | `n`                  | same operation count, NOT 1.00x |
 //!
 //! The 1.25x figure is exact in *operation count* only when `n` is a multiple
 //! of four, because `n / 4` truncates. It is a design ratio, never a validated
@@ -61,13 +61,22 @@ pub fn work_slower(n: u64) -> u64 {
     acc
 }
 
-/// The noise / self-compare control: exactly the same total work as
-/// [`work_unit`] — `n` calls to [`step`] over the same index set — but walked
-/// in descending order.
+/// Exactly the same total work as [`work_unit`] — `n` calls to [`step`] over
+/// the same index set — but walked in descending order.
 ///
-/// The pattern is fixed at compile time and depends on no input data, so the
-/// only difference an adapter can observe against `reference` is measurement
-/// noise. The expected design ratio is 1.00x.
+/// **This is not a 1.00x self-compare control, despite the name it was given.**
+/// It was designed as one, and the guest measurement refuted it: `control`
+/// came out 2.9% faster than `reference`
+/// (`docs/validation/M5-01-benchmark-calibration.json`). Walking the same
+/// indices downwards does not cost the same as walking them upwards on this
+/// hardware, even though the operation count is identical, so the difference is
+/// a systematic instruction-path effect and not measurement noise.
+///
+/// The real self-compare control is the same benchmark measured in two
+/// independent executions of the same source; `fixtures/benchmark-datasets`
+/// carries that pair. This function stays as a third measurement point and as a
+/// benchmark whose source does not change between captures, which makes it a
+/// useful null.
 #[inline(never)]
 pub fn work_noisy(n: u64) -> u64 {
     let mut acc = SEED;

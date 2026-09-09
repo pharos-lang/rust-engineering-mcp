@@ -108,6 +108,10 @@ sirviendo. La capability de profiling se revoca por separado retirando
 - El archivo que mide `rust.binary.bloat` es un build de análisis: el analizador
   fuerza `strip=false` para leer símbolos, así que no es byte a byte el que
   enviaría un proyecto que pide stripping.
+- El benchmark llamado `control` en la fixture **no es un control 1,00×**. Se
+  diseñó como tal y la medición en el guest lo desmintió: salió un 2,9 % más
+  rápido que `reference`. El control de auto-comparación real es el mismo
+  benchmark en dos ejecuciones independientes de la misma fuente.
 - `BenchmarkExit` y `BloatExit` conservan `CALIBRATED = false`; solo se
   observaron los exits 0 y 1.
 - El ruido entre dos ejecuciones del mismo código (−3,9 %) es del mismo orden

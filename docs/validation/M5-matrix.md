@@ -96,6 +96,11 @@ El bloqueo es de ingesta del vendor, no del método de medición.
 
 ## Limitaciones declaradas hasta ahora
 
+- El benchmark `control` de la fixture **no es un control 1,00×**, pese a su
+  nombre. La medición en el guest lo desmiente: salió un 2,9 % más rápido que
+  `reference`. El control de auto-comparación real es el mismo benchmark en dos
+  ejecuciones independientes de la misma fuente. Corregido en el código de la
+  fixture, en su README y aquí.
 - El ratio 1,25× de la fixture de benchmarks es un ratio **de diseño**, no una
   medición validada. Tres ejecuciones en el host dieron 1,256, 1,331 y 1,302 para
   `slower_125/reference` y 1,013, 1,002 y 0,976 para `control/reference`. Ninguna
