@@ -100,7 +100,22 @@ lectura. **No** se añade `CAP_PERFMON` ni `CAP_SYS_ADMIN`, **no** se usa
 con `sudo`. La tool no puede activar permisos de profiling: si el kernel del host
 denegara `perf_event_open`, el resultado es `unavailable` con el errno observado.
 
-El perfil aplicado se verifica contra el declarado por fase, igual que ADR-064.
+El perfil aplicado se verifica contra el declarado por fase. **No es paridad con
+ADR-064, y esta línea decía que lo era.** La comprobación M5 es un subconjunto
+estricto de la matriz `rust_applied` que usan los demás gateways: compara
+montajes, argv, entorno, usuario, entrypoint, capacidades, `Privileged` y el
+seccomp aplicado, pero **no** declara `PidMode`, `UsernsMode`, `Init`, `Sysctls`,
+`Devices`, `MaskedPaths`, `ReadonlyPaths`, `Ulimits` ni una docena más que M4 sí
+rechaza. Lo señaló una revisión independiente, está aceptado, y no se corrige
+aquí porque tocar `rust_applied.rs` —calificado en M1–M4— merece su propia
+decisión y su propia recalificación.
+
+Un caso concreto que sí queda cubierto, y no por esta comprobación: `Init` y
+`PidMode` romperían la suposición de que el helper es PID 1 de su namespace, de
+la que depende el vaciado de §5.1. No se deja al contraste de configuración —el
+helper **mide** su pid en tiempo de ejecución y un helper que no sea PID 1 emite
+`namespace_drained: false`, que el host convierte en `InvalidMetadata`. Es una
+observación del hecho, no una comparación de la configuración declarada.
 
 ### 4. Alcance de la medición
 

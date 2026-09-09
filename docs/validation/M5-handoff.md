@@ -31,7 +31,7 @@ Cargo.lock scripts/` es vacío, así que los bytes calificados de M4 son los de
 | --- | --- | --- |
 | M5-01 `rust.benchmark.run` | **Blocked** en el positivo; negativos y controles calificados | [runtime](M5-01-runtime.json), [bloqueo](M5-01-blocker.json) |
 | M5-02 `rust.benchmark.compare` | Implementado; método probado sobre datos reales del guest | [calibración](M5-01-benchmark-calibration.json) |
-| M5-03 `rust.profile.flamegraph` | **Calificado nativamente**; oráculo de denegación pendiente en el recibo generado | [runtime](M5-03-runtime.json), [smoke manual](M5-03-profiling-native.json) |
+| M5-03 `rust.profile.flamegraph` | **Calificado nativamente** sobre la imagen admitida, positivo y denegación en el mismo recibo generado | [runtime](M5-03-runtime.json), [clientes](M5-clients.json), [smoke manual anterior](M5-03-profiling-native.json) |
 | M5-04 `rust.binary.bloat` | **Calificado nativamente** | [runtime](M5-04-runtime.json), [calibración](M5-04-bloat-calibration.json) |
 | M5-05 cierre | **No ejecutado** | — |
 
@@ -40,11 +40,21 @@ Cargo.lock scripts/` es vacío, así que los bytes calificados de M4 son los de
 Es la puerta que el plan señalaba y está demostrada. En el guest calificado, con
 `--cap-drop=ALL`, `no-new-privileges`, uid 65534, `--network=none`,
 `perf_event_paranoid` intacto en 2, sin capability añadida, sin contenedor
-privilegiado, sin `sudo` y sin cambio de `sysctl`: 195 muestras, la pila exacta
-que la fixture fue diseñada para tener con 192 muestras en `known_hot_frame`,
-16 CPUs muestreadas, cero frames con un path. El control de cero muestras
-reporta cero como resultado y el control de denegación sigue devolviendo
-`profiler_unavailable` con EPERM bajo el perfil de calidad sin modificar.
+privilegiado, sin `sudo` y sin cambio de `sysctl`: 195 muestras sin ninguna
+perdida, 194 de ellas en la pila exacta que la fixture fue diseñada para tener,
+terminada en `known_hot_frame`, con las 16 CPUs del guest muestreadas y cero
+frames con un path. El control de cero muestras reporta cero como resultado, y
+el control de denegación —que ya **no** está pendiente— devuelve
+`profiler_unavailable` con `perf_errno = 1` (EPERM) bajo el perfil de calidad sin
+modificar, sin stacks y sin SVG.
+
+Los mismos 195 se reproducen a través de dos clientes reales: Inspector 2.5.0 y
+Codex stock devuelven `passed` con dos artifacts publicados y leídos como
+Resources ([matriz de clientes](M5-clients.json)).
+
+La cifra de «192 muestras» que este documento publicaba antes venía del smoke
+manual sobre la imagen retirada, no del recibo generado. El número del recibo es
+194 de 195.
 
 ### El bloqueo de M5-01
 

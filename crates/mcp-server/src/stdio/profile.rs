@@ -61,7 +61,10 @@ struct Input {
     #[schemars(with = "String", regex(pattern = "^prj_[0-9a-f]{32}$"))]
     project_ref: ProjectRef,
     /// A target name, never a path, and the child receives no peer argument.
-    #[schemars(length(min = 1, max = 64), regex(pattern = "^[A-Za-z0-9_-]{1,64}$"))]
+    #[schemars(
+        length(min = 1, max = 64),
+        regex(pattern = "^[A-Za-z0-9_][A-Za-z0-9_-]{0,63}$")
+    )]
     binary_target: String,
     #[serde(default = "default_frequency")]
     #[schemars(range(min = 1, max = 999))]

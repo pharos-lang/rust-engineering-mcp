@@ -76,10 +76,16 @@ struct Input {
     project_ref: ProjectRef,
     /// A cargo target name, never a path, and the child receives no peer
     /// argument.
-    #[schemars(length(min = 1, max = 64), regex(pattern = "^[A-Za-z0-9_-]{1,64}$"))]
+    #[schemars(
+        length(min = 1, max = 64),
+        regex(pattern = "^[A-Za-z0-9_][A-Za-z0-9_-]{0,63}$")
+    )]
     binary_target: String,
     #[serde(default)]
-    #[schemars(length(min = 1, max = 64), regex(pattern = "^[A-Za-z0-9_-]{1,64}$"))]
+    #[schemars(
+        length(min = 1, max = 64),
+        regex(pattern = "^[A-Za-z0-9_][A-Za-z0-9_-]{0,63}$")
+    )]
     package: Option<String>,
     #[serde(default)]
     profile: schemas::BloatProfile,

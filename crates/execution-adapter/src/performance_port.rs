@@ -625,7 +625,18 @@ fn manifest_describes_this_run(
     };
     // Samples come from armed per-CPU events; there is no other producer.
     let samples_had_a_source = manifest.samples_collected == 0 || manifest.cpus_sampled > 0;
-    echoes_the_request && artifacts_were_the_helper_s && denial_is_coherent && samples_had_a_source
+    // Four of the counters describe quantities the host cannot re-derive from
+    // the folded stacks, so they are published on the helper's word. That is
+    // not a reason to publish an arithmetic impossibility: an unresolved frame
+    // is one of the frames, so it cannot exceed their total. This catches a
+    // merely defective helper, which is the other half of what this
+    // reconciliation is for.
+    let counters_are_arithmetically_possible = manifest.frames_unresolved <= manifest.frames_total;
+    echoes_the_request
+        && artifacts_were_the_helper_s
+        && denial_is_coherent
+        && samples_had_a_source
+        && counters_are_arithmetically_possible
 }
 
 /// The manifest counts what the helper says it wrote; [`FoldedProfile`] is what
@@ -1507,6 +1518,25 @@ mod tests {
         // Samples without an armed event, and an errno on a run nothing denied.
         assert!(observe(manifest_bytes(&[("cpus_sampled", Some("0"))])).is_err());
         assert!(observe(manifest_bytes(&[("perf_errno", Some("1"))])).is_err());
+        // An unresolved frame is one of the frames. The host cannot re-derive
+        // either number from the stacks, but it can refuse a pair that no run
+        // could have produced.
+        assert!(
+            observe(manifest_bytes(&[
+                ("frames_total", Some("4")),
+                ("frames_unresolved", Some("5")),
+            ]))
+            .is_err(),
+            "published more unresolved frames than frames"
+        );
+        assert!(
+            observe(manifest_bytes(&[
+                ("frames_total", Some("4")),
+                ("frames_unresolved", Some("4")),
+            ]))
+            .is_ok(),
+            "every frame unresolved is a poor run, not an impossible one"
+        );
         // A stacks artifact this host cannot parse leaves the counters with
         // nothing to answer to, so they are refused rather than published
         // beside an empty graph.

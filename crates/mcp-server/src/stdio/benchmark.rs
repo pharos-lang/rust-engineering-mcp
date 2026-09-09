@@ -82,10 +82,16 @@ struct Input {
     #[schemars(with = "String", regex(pattern = "^prj_[0-9a-f]{32}$"))]
     project_ref: ProjectRef,
     #[serde(default)]
-    #[schemars(length(min = 1, max = 64), regex(pattern = "^[A-Za-z0-9_-]{1,64}$"))]
+    #[schemars(
+        length(min = 1, max = 64),
+        regex(pattern = "^[A-Za-z0-9_][A-Za-z0-9_-]{0,63}$")
+    )]
     package: Option<String>,
     #[serde(default)]
-    #[schemars(length(min = 1, max = 64), regex(pattern = "^[A-Za-z0-9_-]{1,64}$"))]
+    #[schemars(
+        length(min = 1, max = 64),
+        regex(pattern = "^[A-Za-z0-9_][A-Za-z0-9_-]{0,63}$")
+    )]
     bench_target: Option<String>,
     #[serde(default)]
     #[schemars(with = "Vec<schemas::Feature>", length(max = 16))]

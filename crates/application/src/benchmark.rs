@@ -58,10 +58,15 @@ impl std::fmt::Display for BenchmarkOptionsError {
 }
 impl std::error::Error for BenchmarkOptionsError {}
 
-/// `^[A-Za-z0-9_-]{1,64}$`. A path, an argument and a flag all fail it.
+/// `^[A-Za-z0-9_][A-Za-z0-9_-]{0,63}$`. A path, an argument and a flag all fail
+/// it — the leading `-` is excluded on purpose, because an alphabet that admits
+/// `-noplot` admits something that reads as an option wherever this name is
+/// later placed on an argv. A hyphen inside the name stays legal: that is an
+/// ordinary cargo target.
 fn valid_name(value: &str) -> bool {
     !value.is_empty()
         && value.len() <= 64
+        && !value.starts_with('-')
         && value
             .bytes()
             .all(|byte| byte.is_ascii_alphanumeric() || byte == b'_' || byte == b'-')
@@ -797,7 +802,31 @@ pub(crate) mod tests {
 
     #[test]
     fn options_reject_paths_flags_and_out_of_range_numbers() {
-        for name in ["", "/etc/passwd", "../bench", "a b", "a;b", &"a".repeat(65)] {
+        // A hyphen inside the name is an ordinary cargo target and stays legal.
+        assert!(
+            BenchmarkRunOptions::new(
+                Some("my-pkg_2".into()),
+                Some("bench-one".into()),
+                vec!["feat-a".into()],
+                false,
+                false,
+                3,
+                900
+            )
+            .is_ok()
+        );
+        // A leading `-` reads as an option wherever the name lands on an argv.
+        for name in [
+            "",
+            "/etc/passwd",
+            "../bench",
+            "a b",
+            "a;b",
+            "-noplot",
+            "--bench",
+            "-",
+            &"a".repeat(65),
+        ] {
             assert_eq!(
                 BenchmarkRunOptions::new(Some(name.into()), None, vec![], false, false, 3, 900),
                 Err(BenchmarkOptionsError::InvalidPackage),

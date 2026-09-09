@@ -19,7 +19,7 @@
         "description": "A target name, never a path, and the child receives no peer argument.",
         "maxLength": 64,
         "minLength": 1,
-        "pattern": "^[A-Za-z0-9_-]{1,64}$",
+        "pattern": "^[A-Za-z0-9_][A-Za-z0-9_-]{0,63}$",
         "type": "string"
       },
       "duration_seconds": {

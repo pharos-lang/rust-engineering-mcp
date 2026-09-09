@@ -634,7 +634,29 @@ uid/gid 65534 y el montaje `/source` de solo lectura. **No** se añade
 nada con `sudo` y **no** se modifica ningún `sysctl`:
 `/proc/sys/kernel/perf_event_paranoid` permanece en `2`, que es precisamente el
 valor que ya permite mediciones de espacio de usuario sin privilegio. El perfil
-aplicado se verifica contra el declarado por fase, igual que en ADR-064.
+aplicado se verifica contra el declarado por fase, pero **no con la cobertura de
+ADR-064**: la comprobación M5 es un subconjunto estricto de la matriz
+`rust_applied`, aceptado como P2 y sin corregir; el detalle y su mitigación están
+en [ADR-074 §3](adr/ADR-074-profiling-capability-and-containment.md).
+
+### Los artifacts del perfilador no se creen por venir del contenedor
+
+Una revisión independiente encontró que el binario perfilado —hostil por
+definición— corre como el mismo uid, en el mismo contenedor, con `/profile`
+montado de lectura y escritura, así que podía pre-crear o sobrescribir los dos
+artifacts del propio perfilador; y que el host publicaba el manifest sin
+comprobar ni su `schema`. Tres controles lo cierran, y los tres están descritos
+en [ADR-074 §5.1](adr/ADR-074-profiling-capability-and-containment.md):
+
+- **El helper vacía su namespace de PIDs antes de emitir.** Es PID 1 ahí, y lo
+  comprueba en vez de suponerlo. `namespace_drained: false` invalida la
+  ejecución; no es un éxito degradado.
+- **Los dos artifacts se abren con `O_EXCL`**, de modo que un archivo pre-creado
+  es un rechazo y nunca una sobrescritura silenciosa.
+- **El host reconcilia el manifest** contra los bytes que su propio parser leyó,
+  contra los parámetros que él mismo puso en el argv y contra el esquema y el
+  conjunto exacto de claves. Cualquier desacuerdo es `InvalidMetadata`: los bytes
+  pueden estar bien, pero el metadato que los describe no se puede avalar.
 
 La [prueba de capability](validation/M5-profiling-capability-probe.json) del
 2026-09-08 registra las dos filas sobre la imagen M4 aprobada
@@ -693,7 +715,7 @@ de ADR-061.
 | --- | --- | --- |
 | Artifact spoofing | Identificadores opacos `qa_` emitidos por el store, no componibles por el peer; autorización por proyecto propietario; descriptor con kind/format/mime validados; `same_artifact` rechazado por `execution_fingerprint` idéntico (ADR-076 §4) | El store acredita custodia y autoría de la publicación, no la verdad de la medida. Un dataset auténtico puede describir una ejecución poco informativa |
 | Secretos en nombres de símbolos | Alfabeto cerrado, sin path ni módulo, `[unknown]` contado; artifact privado owner-bound | Un nombre de símbolo sigue siendo metadata potencialmente sensible del proyecto. Esto no es detección universal de secretos, igual que en M4 |
-| Profiler que escapa del sandbox | Helper propio sin scripting, sin pid ajeno y sin red; una syscall añadida en una sola fase; perfil verificado por fase; `--cap-drop=ALL` y `no-new-privileges` intactos | El daemon Docker, el host, el kernel y el subsistema perf quedan fuera del claim de containment sin privilegios. El positivo es Linux ARM64 en la imagen M5 y su calificación nativa sigue abierta |
+| Profiler que escapa del sandbox | Helper propio sin scripting, sin pid ajeno y sin red; una syscall añadida en una sola fase; perfil verificado por fase; `--cap-drop=ALL` y `no-new-privileges` intactos | El daemon Docker, el host, el kernel y el subsistema perf quedan fuera del claim de containment sin privilegios. El positivo es Linux ARM64 en la imagen M5, calificado nativamente sobre el digest admitido con positivo, denegación y cancelación, y reproducido por dos clientes reales |
 | Exhaustión de recursos | Presupuestos 900 s (`run`), 300 s (`profile`, con 60 s de muestreo máximo), 30 s (`compare`) y 300 s (`bloat`); techos de CPU/RAM/PID del runtime calificado; artifacts SVG ≤ 8 MiB, bloat ≤ 4 MiB, muestras ≤ 32 MiB y resultado ≤ 512 KiB, con la cuota reservada antes de iniciar el trabajo (ADR-076 §7) | Los deadlines siguen siendo cooperativos y unidos, no preempción nativa dura, con la misma limitación ya declarada para M1–M4 |
 | Un benchmark que falsifica su propia salida | Warmup, tiempo de medición y tamaño muestral los fija el servidor en argv cerrado; el dataset declara el tamaño **solicitado** frente al **observado** y trata la diferencia como incompatibilidad de método; compatibilidad antes que estadística; MDR frente al umbral (ADR-073 §2/§4/§5) | **Ninguno de esos controles impide que un benchmark mienta.** Las muestras las produce el harness del **proyecto** y se describen como observaciones de origen no autenticado; el producto no afirma que un benchmark no pueda falsificar sus propios números (ADR-073 §6) |
 
