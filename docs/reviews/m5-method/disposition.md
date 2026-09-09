@@ -53,17 +53,20 @@ se cumple: ningún schema publicado anterior cambió.
 
 ## P1-3 — recibos capturados sobre una imagen no admitida
 
-**Aceptado.** Es cierto y lo sabía: las calibraciones se corrieron sobre
+**Aceptado y corregido.** Es cierto y lo sabía: las calibraciones se corrieron sobre
 `e9ecc40d…` antes de que existiera la imagen final `0e21c561…`. Barrí el digest
 en código y documentación pero no volví a capturar. Por la regla del propio
 ADR-077, una medición sobre otra imagen es una declaración que el producto no
 puede sostener.
 
-Se corrige recapturando ambas calibraciones sobre la imagen admitida final, no
-editando los recibos. Como la corrección del helper (P1 de la otra revisión)
-cambia la imagen otra vez, la recaptura se hace sobre el digest definitivo, en
-una sola pasada, junto con la requalificación nativa. La afirmación errónea de
-`M5-01-blocker.json:53` se corrige en la misma pasada.
+Se corrigió recapturando sobre la imagen admitida, no editando recibos. La
+corrección del helper (P1 de la otra revisión) cambió la imagen otra vez, así que
+la recaptura se hizo sobre el digest definitivo `sha256:e0a5ca16…`, junto con la
+requalificación nativa completa. La calibración de benchmark se rehízo con seis
+capturas —tres ejecuciones por lado, que el método v2 necesita— y con un script
+que se niega a medir sobre cualquier otra imagen, que es lo que evita que el
+recibo vuelva a derivar. La afirmación errónea de `M5-01-blocker.json` se
+corrigió en la misma pasada.
 
 ## P2-1 — dispersión degenerada
 
@@ -75,22 +78,33 @@ devuelve `inconclusive`.
 
 ## P2-2 — «unknown permanece unknown» solo de un campo
 
-**Aceptado.** El revisor detectó una contradicción interna de ADR-073: §3 dice
-que cualquier campo de hardware no observable bloquea la comparación y §5
-enumera un conjunto que solo bloquea por `cpu_model`; el código implementa §5.
-`cpu_governor` es el caso más agudo, porque es permanentemente desconocido dentro
-del contenedor y es el parámetro ambiental más capaz de fabricar una regresión.
-`configuration_fingerprint` es el otro: está documentado como el digest de la
-configuración congelada y no se consulta nunca.
+**Aceptado y corregido.** El revisor detectó una contradicción interna de
+ADR-073: §3 dice que cualquier campo de hardware no observable bloquea la
+comparación y §5 enumeraba un conjunto que solo bloqueaba por `cpu_model`; el
+código implementaba §5. `cpu_governor` es el caso más agudo, porque es
+permanentemente desconocido dentro del contenedor y es el parámetro ambiental más
+capaz de fabricar una regresión. `configuration_fingerprint` es el otro: estaba
+documentado como el digest de la configuración congelada y no se consultaba
+nunca.
 
-Pendiente. La corrección correcta es ampliar el conjunto bloqueante y el enum de
-razones, no relajar §3; hasta entonces §3 no debe leerse como una garantía.
+Se amplió el conjunto bloqueante, no se relajó §3, y se separaron tres
+situaciones que antes se confundían: conocido y distinto es incompatible;
+observado en un solo lado es incompatible; y la misma ceguera en los dos lados
+deja los datasets comparables pero no admite dirección
+(`inconclusive` / `unobservable_hardware`). Las dos secciones del ADR ya dicen lo
+mismo.
+
+**Lo que cuesta, dicho aquí y publicado en `docs/tools.md`:** dentro del
+contenedor el governor no es legible nunca, así que **ninguna comparación de este
+runtime emite dirección alguna**. Es la consecuencia correcta del hallazgo del
+revisor, no un efecto colateral que convenga esconder.
 
 ## P2-3 — compare no lleva provenance
 
-**Aceptado y pendiente.** Un llamador al que se le dice `["cpu_model"]` no puede
-ver qué dos CPUs, y no puede obtenerlas de esta tool. El plan pide diferencias
-visibles.
+**Aceptado y corregido.** Un llamador al que se le decía `["cpu_model"]` no podía
+ver qué dos CPUs, y no había otra tool a la que pedírselas. La respuesta lleva
+ahora las dos provenances comparadas —exactamente los campos que la comprobación
+de compatibilidad consulta— dentro del mismo presupuesto de 512 KiB.
 
 ## P2-4 — la fixture `control` seguía afirmándose como control
 
@@ -101,16 +115,26 @@ y en el handoff, que antes no lo mencionaba en absoluto.
 
 ## P2-5 — ningún recibo lleva MDR, intervalo ni veredicto observado
 
-**Aceptado y pendiente.** Es un criterio de aceptación del plan y no se cumple.
-Se corrige en la recaptura de P1-3, registrando veredicto, intervalo y MDR
-observados para los tres oráculos. Los ratios de host sin recibo que la matriz
-cita se anotarán o se retirarán.
+**Aceptado y corregido donde importa.** La recaptura sobre la imagen admitida
+publica las seis capturas con sus medianas y la deriva entre ejecuciones, y el
+oráculo `criterion_dataset::admitted_image_datasets` fija veredicto, efecto y MDR
+observados sobre datos reales: efecto +24,4 % para el único benchmark cuya fuente
+cambia, MDR por encima del umbral, veredicto retenido. Los ratios de host sin
+recibo se retiraron de la matriz.
 
 ## P2-6 — Bonferroni y el número de remuestreos
 
-**Aceptado y pendiente.** El análisis es correcto: desde familias de ~50 los
+**Aceptado y corregido.** El análisis es correcto: desde familias de ~50 los
 extremos del intervalo son estadísticos de orden extremos, y el comentario que
-justifica los 10 000 remuestreos está redactado para el nivel sin ajustar.
+justificaba los 10 000 remuestreos estaba redactado para el nivel sin ajustar.
+
+De las tres salidas —subir los remuestreos con la familia, acotar la familia, o
+declarar el límite y negarse más allá— se eligió la tercera, porque es la única
+que no cambia lo que el método afirma cuando sí afirma algo.
+`MAX_RESOLVABLE_FAMILY_SIZE = 25` se deriva de los remuestreos, la confianza y un
+mínimo de diez sorteos en la cola, y un test recomputa esa derivación. Una
+familia mayor describe las dos medidas pero no corre bootstrap, no afirma
+intervalo y no admite dirección.
 
 ## P3
 

@@ -72,8 +72,11 @@ caliente como decisión posterior.
   límite no se pueden podar, y eso basta para bloquear la ingesta.
 - **README del helper razonando sobre `cpu = -1`.** Aceptado; el razonamiento
   quedó obsoleto con el cambio a eventos por CPU. Se corrige junto al P1.
-- **`-` inicial admitido en nombres de target de profile y bloat.** Aceptado;
-  el mismo argumento que se escribió para benchmark aplica igual. Pendiente.
+- **`-` inicial admitido en nombres de target de profile y bloat.** Aceptado y
+  corregido en los tres sitios, con el comentario de benchmark rectificado: decía
+  que «una ruta, un argumento y un flag» fallaban la validación, y el flag no
+  fallaba. Un guion **dentro** del nombre sigue aceptándose, porque es un target
+  legítimo de cargo.
 - **Una ruta `CleanupUncertain` sin cuarentena, y 10 s para cinco cleanups.**
   Aceptados como observaciones correctas; ambos fallan cerrados. Pendientes.
 - **Perfil de profiling provisionado incondicionalmente.** Correcto; se anota
