@@ -117,6 +117,24 @@ ejecuciones por lado, y eso es independiente de este bloqueo.
 
 ## Limitaciones declaradas hasta ahora
 
+- **El camino de éxito de `rust.binary.bloat` es inalcanzable para cualquier
+  binario real, y es un defecto del producto, no del entorno.** El tope propio
+  del producto es `BLOAT_MAX_ROWS = 256`; cualquier binario que enlace `std` tiene
+  más funciones, así que la completeness sale `Truncated` —el positivo nativo de
+  esta misma sesión omitió 378 funciones en `release` y 234 en `release-lto`— y
+  el mapeo de la tool convierte cualquier cosa que no sea `Complete` en
+  `blocked` / `EVIDENCE_INCOMPLETE`. Los datos sí viajan completos en la
+  respuesta (tamaño exacto incluido), así que es un problema de vocabulario del
+  resultado, no de pérdida de información: un ranking acotado por un límite que
+  el propio producto eligió y declara no es «evidencia incompleta», es la
+  atribución estimada que el contrato promete. **No se corrige en esta sesión a
+  propósito.** El hallazgo salió al construir la matriz de clientes, donde
+  cambiarlo habría puesto una fila en verde; una corrección de contrato hecha con
+  ese incentivo no es una corrección, es un ajuste al resultado. Merece su propia
+  decisión y su propia re-revisión, junto al mismo problema en el recorte por
+  presupuesto de respuesta, que hoy comparte un único flag `complete` para dos
+  causas distintas.
+
 - El benchmark `control` de la fixture **no es un control 1,00×**, pese a su
   nombre. La medición en el guest lo desmiente: salió un 2,9 % más rápido que
   `reference`. El control de auto-comparación real es el mismo benchmark en dos

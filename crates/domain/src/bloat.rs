@@ -20,12 +20,14 @@ pub enum BloatError {
 /// The two closed build profiles. `release_lto` exists so an LTO binary can be
 /// exercised; nothing else is selectable and no free profile name is accepted.
 ///
-/// Neither is expressed with the analyzer's `--profile` flag. `cargo-bloat`
-/// 0.12.1 derives an environment key from the profile name, so `--profile
-/// release-lto` emits `CARGO_PROFILE_RELEASE_LTO`, which Cargo 1.98.1 reads as
-/// `profile.release.lto` and then rejects with
-/// `invalid type: Option value, expected a boolean or string`. The observed
-/// failure is recorded in `docs/validation/M5-04-bloat-calibration.json`.
+/// Neither is expressed with the analyzer's `--profile` flag. What was observed,
+/// and all that is claimed as observed, is that `--profile release-lto` exits 1
+/// with `error in environment variable CARGO_PROFILE_RELEASE: could not load
+/// config key profile.release / invalid type: Option value, expected a boolean
+/// or string`, recorded in `docs/validation/M5-04-bloat-calibration.json`. The
+/// mechanism — `cargo-bloat` 0.12.1 derives an environment key from the profile
+/// name, and a hyphenated name yields one Cargo re-splits over `profile.release`
+/// — is inferred from the analyzer's source, not measured.
 /// `release_lto` is therefore requested as `--release` plus the product-owned
 /// environment variable `CARGO_PROFILE_RELEASE_LTO=fat`, which is closed argv
 /// and closed environment, never a caller-supplied profile name.

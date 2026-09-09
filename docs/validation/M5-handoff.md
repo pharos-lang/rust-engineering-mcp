@@ -97,6 +97,23 @@ El bloqueo es de ingesta del vendor, no de la medición.
    `docs/client-configuration.md`, `docs/ci.md` y `docs/compatibility.md` ya
    están sincronizados.
 
+## Hallazgo abierto, deliberadamente sin corregir
+
+`rust.binary.bloat` no puede devolver `passed` para ningún binario que enlace
+`std`: el tope propio del producto son 256 filas, el positivo nativo omitió 378
+funciones, y la tool convierte toda completeness distinta de `Complete` en
+`blocked` / `EVIDENCE_INCOMPLETE`. La respuesta sí lleva los datos completos y el
+tamaño exacto, así que no se pierde información; lo que está mal es la palabra.
+Un ranking acotado por un límite que el producto eligió y declara es la
+atribución estimada que el contrato promete, no evidencia incompleta.
+
+Se deja abierto **a propósito**. Apareció al construir la matriz de clientes, es
+decir en el momento exacto en que corregirlo pone una fila en verde, y una
+corrección de contrato tomada con ese incentivo no se distingue de un ajuste al
+resultado. Necesita decisión propia, cambio de ADR-076 y re-revisión, junto al
+mismo defecto en el recorte por presupuesto de respuesta: hoy un solo flag
+`complete` cubre dos causas que no significan lo mismo.
+
 ## Rollback
 
 Volver a apuntar el gateway al digest M4 `sha256:25ed3626e710…`. No hay estado
