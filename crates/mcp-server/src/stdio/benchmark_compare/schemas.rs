@@ -100,6 +100,13 @@ pub enum InconclusiveReason {
     /// A descriptor the method requires was observed on neither side, so a
     /// difference in it cannot be excluded and no direction is claimed.
     UnobservableHardware,
+    /// The comparison method has not passed the statistical requalification
+    /// ADR-081 requires, so no direction and no `no_material_change` is claimed
+    /// from any interval it produces, however clean the samples are. Every other
+    /// reason here describes the caller's data; this one describes this product.
+    /// The two measurements, the interval and the minimum detectable ratio are
+    /// still reported.
+    MethodUnqualified,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, JsonSchema)]

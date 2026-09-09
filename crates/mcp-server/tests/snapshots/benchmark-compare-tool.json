@@ -377,6 +377,11 @@
             "const": "unobservable_hardware",
             "description": "A descriptor the method requires was observed on neither side, so a\ndifference in it cannot be excluded and no direction is claimed.",
             "type": "string"
+          },
+          {
+            "const": "method_unqualified",
+            "description": "The comparison method has not passed the statistical requalification\nADR-081 requires, so no direction and no `no_material_change` is claimed\nfrom any interval it produces, however clean the samples are. Every other\nreason here describes the caller's data; this one describes this product.\nThe two measurements, the interval and the minimum detectable ratio are\nstill reported.",
+            "type": "string"
           }
         ]
       },

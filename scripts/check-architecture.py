@@ -41,4 +41,24 @@ assert manifest['workspace']['dependencies']['cargo-lock']['version']=='=11.0.1'
 assert not manifest['workspace']['dependencies']['rustsec'].get('features')
 for path in [root/'crates/catalog-adapter/src/audit.rs', *(root/'crates/catalog-adapter/src/audit').glob('*.rs')]:
     assert not re.search(r'(?:Database::open|Database::fetch|Lockfile::load|Advisory::load_file|std::fs|File::open)',path.read_text(encoding='utf-8')), path
-print('PASS domain/application dependency and IO boundaries, sole process gateway, offline engine defaults, memory-only model adapter')
+# ADR-081 keeps directional verdicts and `no_material_change` disabled until the
+# statistical requalification passes. `METHOD_QUALIFIED_FOR_DIRECTION` is that
+# gate in code; this is the gate on the gate. Flipping the constant to `true`
+# without a receipt that says some candidate met every criterion of ADR-081 §1
+# would re-enable directions on the strength of a comment, which is the exact
+# failure the constant exists to prevent.
+compare_source=(root/'crates/domain/src/benchmark_compare.rs').read_text(encoding='utf-8')
+qualified=re.search(r'^pub const METHOD_QUALIFIED_FOR_DIRECTION: bool = (true|false);$',compare_source,re.M)
+assert qualified, 'METHOD_QUALIFIED_FOR_DIRECTION is missing; ADR-081 requires the statistical gate to exist in code'
+if qualified.group(1)=='true':
+    receipt=root/'docs/validation/M5-02-method-simulation.json'
+    assert receipt.is_file(), 'the method is marked qualified but there is no requalification receipt'
+    measured=json.loads(receipt.read_text(encoding='utf-8'))
+    assert measured.get('candidates_meeting_every_criterion'), (
+        'the method is marked qualified but no candidate in the receipt meets every '
+        'criterion of ADR-081 §1')
+    assert not measured.get('criteria_no_candidate_reaches'), (
+        'the method is marked qualified while the receipt still records criteria no '
+        'candidate reaches')
+
+print('PASS domain/application dependency and IO boundaries, sole process gateway, offline engine defaults, memory-only model adapter, statistical qualification gate')

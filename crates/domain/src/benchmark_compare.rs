@@ -148,6 +148,39 @@ pub const CONFIDENCE_LEVEL: f64 = 0.95;
 /// instead of being silently absorbed.
 pub const MIN_EXECUTIONS_FOR_DIRECTION: usize = 3;
 
+/// Whether this method has been qualified to turn two measurements into a
+/// DIRECTION. It has not.
+///
+/// ADR-081 says directional verdicts and `no_material_change` stay disabled
+/// until the statistical requalification passes, and that the hardware gate and
+/// the statistical gate are independent: both must open. Until this constant
+/// exists that sentence lives only in Markdown. In practice the only thing that
+/// has been withholding directions is that this container cannot read
+/// `cpu_governor`, which sets [`InconclusiveReason::UnobservableHardware`] — an
+/// accident of the runtime, not a decision. On a host where the governor IS
+/// observable, `decide` would start emitting `Regression`, `Improvement` and
+/// `NoMaterialChange` computed by an estimator whose own simulation puts its
+/// coverage at 0.84 against a published 0.95. This constant is the gate that
+/// sentence describes, written down where it can actually run.
+///
+/// To set it to `true`, ALL of the following must have happened, and the change
+/// is a method-version change ([`COMPARISON_METHOD`]) because the intervals of
+/// two estimators are not comparable:
+///
+/// 1. an estimator meets **every** criterion of ADR-081 §1 — coverage, false
+///    positives, power, incorrect `no_material_change` and budget — at **every**
+///    drift point of §2, recorded in `docs/validation/M5-02-method-simulation.json`;
+/// 2. the real controls of ADR-081 §3 reproduce on captures from the admitted
+///    image: positives with a known effect, and negatives for noise,
+///    incompatibility and insufficient data;
+/// 3. the independent statistical review of ADR-081 §6 has accepted it, having
+///    checked that the criteria were fixed before the numbers and not after.
+///
+/// A criterion that turns out unreachable does NOT license setting this to
+/// `true`: ADR-081 says an unreachable criterion is declared unreachable and the
+/// directional verdicts stay disabled.
+pub const METHOD_QUALIFIED_FOR_DIRECTION: bool = false;
+
 /// Smallest ratio the product is willing to call a material difference. Frozen
 /// at 5% before measuring, per the roadmap; it is a policy threshold, not an
 /// estimate of what any particular run can resolve.
@@ -278,6 +311,21 @@ pub enum InconclusiveReason {
     /// no interval is claimed and no direction is admissible. The two
     /// measurements are still described.
     FamilyBeyondResolution,
+    /// The comparison method itself is not qualified to claim a direction.
+    ///
+    /// Every other reason here is a fact about the CALLER's two sample sets.
+    /// This one is a fact about the PRODUCT: the method that would read the
+    /// interval has not passed the statistical requalification ADR-081 §1
+    /// requires, so no interval it produces is allowed to become a direction,
+    /// however clean the samples are. See [`METHOD_QUALIFIED_FOR_DIRECTION`].
+    ///
+    /// It is reported LAST among the gates on purpose. Everything wrong with
+    /// the caller's own data is named first, because that is what the caller can
+    /// act on; this reason appears exactly when the data would otherwise have
+    /// supported a verdict, and it says that what is missing is on this side.
+    /// The two measurements are still described in full, and the interval is
+    /// still computed and published — what is withheld is the direction.
+    MethodUnqualified,
     /// A hardware descriptor the method requires was UNOBSERVABLE on BOTH
     /// sides.
     ///
@@ -1167,6 +1215,13 @@ struct VerdictInput {
     family_beyond_resolution: bool,
     /// A descriptor the method requires was readable on neither side.
     unobservable_hardware: bool,
+    /// Whether the METHOD may claim a direction at all. Production always passes
+    /// [`METHOD_QUALIFIED_FOR_DIRECTION`]; it is a field rather than a direct
+    /// read of the constant so that the requalification harness can score what
+    /// the method WOULD decide if it were qualified, which is the whole question
+    /// the harness exists to answer. `only_the_frozen_constant_qualifies_a_comparison`
+    /// holds production to the constant.
+    method_qualified: bool,
     interval: (f64, f64),
     minimum_detectable_ratio: f64,
 }
@@ -1239,6 +1294,16 @@ fn decide(input: &VerdictInput) -> (ComparisonVerdict, Vec<InconclusiveReason>) 
     }
     if input.minimum_detectable_ratio > MATERIAL_THRESHOLD_RATIO {
         reasons.push(InconclusiveReason::PrecisionBelowThreshold);
+        return (ComparisonVerdict::Inconclusive, reasons);
+    }
+    // Last, and deliberately last. Everything above is a fact about the two
+    // sample sets and is worth telling the caller on its own; reaching this line
+    // means the samples WOULD have carried a verdict and the only thing missing
+    // is on this side of the wire. ADR-081 keeps directions and
+    // `no_material_change` disabled until the requalification passes, and this
+    // is that sentence as code rather than as prose.
+    if !input.method_qualified {
+        reasons.push(InconclusiveReason::MethodUnqualified);
         return (ComparisonVerdict::Inconclusive, reasons);
     }
 
@@ -1331,6 +1396,7 @@ fn compare_one(
                 || fewer_than_two_distinct_values(baseline_values, candidate_values)),
         family_beyond_resolution: family.beyond_resolution,
         unobservable_hardware: family.unobservable_hardware,
+        method_qualified: METHOD_QUALIFIED_FOR_DIRECTION,
         interval: outcome.interval,
         minimum_detectable_ratio,
     });
@@ -1585,6 +1651,50 @@ mod tests {
         report.comparisons.first().unwrap()
     }
 
+    /// The verdict the frozen rule reaches over a published comparison with the
+    /// qualification gate held OPEN.
+    ///
+    /// [`METHOD_QUALIFIED_FOR_DIRECTION`] is `false`, so every direction is
+    /// currently withheld and an oracle that only asserted `Inconclusive` would
+    /// stop discriminating anything about the estimator. These oracles are about
+    /// WHICH direction the samples support, a question that outlives the gate,
+    /// so they ask it with the gate open. It calls [`decide`] itself rather than
+    /// restating the rule, and every input it passes is read off the published
+    /// comparison except the three flags the caller states.
+    ///
+    /// Pair it with an assertion that the shipped verdict is `Inconclusive` for
+    /// [`InconclusiveReason::MethodUnqualified`], which is what says the gate —
+    /// and nothing else — is holding this direction back.
+    fn direction_if_qualified(comparison: &BenchmarkComparison) -> ComparisonVerdict {
+        decide(&VerdictInput {
+            baseline_completeness: MeasurementCompleteness::Complete,
+            candidate_completeness: MeasurementCompleteness::Complete,
+            baseline_samples: comparison.baseline_samples,
+            candidate_samples: comparison.candidate_samples,
+            baseline_executions: comparison.baseline_executions,
+            candidate_executions: comparison.candidate_executions,
+            baseline_median_ns: comparison.baseline_median_ns,
+            degenerate_dispersion: false,
+            family_beyond_resolution: false,
+            unobservable_hardware: false,
+            method_qualified: true,
+            interval: comparison.confidence_interval,
+            minimum_detectable_ratio: comparison.minimum_detectable_ratio,
+        })
+        .0
+    }
+
+    /// The shipped verdict of a comparison the gate — and only the gate — is
+    /// holding back.
+    fn held_only_by_the_qualification_gate(comparison: &BenchmarkComparison) {
+        assert_eq!(comparison.verdict, ComparisonVerdict::Inconclusive);
+        assert_eq!(
+            comparison.inconclusive_reasons,
+            vec![InconclusiveReason::MethodUnqualified],
+            "something other than the qualification gate withheld this verdict"
+        );
+    }
+
     // -- statistics primitives ---------------------------------------------
 
     #[test]
@@ -1712,7 +1822,11 @@ mod tests {
         )
         .unwrap();
         let comparison = only(&report);
-        assert_eq!(comparison.verdict, ComparisonVerdict::Regression);
+        held_only_by_the_qualification_gate(comparison);
+        assert_eq!(
+            direction_if_qualified(comparison),
+            ComparisonVerdict::Regression
+        );
         assert!(
             (comparison.effect_ratio - 0.20).abs() < 0.03,
             "{}",
@@ -1726,7 +1840,6 @@ mod tests {
             "{}",
             comparison.minimum_detectable_ratio
         );
-        assert!(comparison.inconclusive_reasons.is_empty());
     }
 
     #[test]
@@ -1739,7 +1852,11 @@ mod tests {
         )
         .unwrap();
         let comparison = only(&report);
-        assert_eq!(comparison.verdict, ComparisonVerdict::Improvement);
+        held_only_by_the_qualification_gate(comparison);
+        assert_eq!(
+            direction_if_qualified(comparison),
+            ComparisonVerdict::Improvement
+        );
         assert!(
             (comparison.effect_ratio + 0.20).abs() < 0.03,
             "{}",
@@ -1758,9 +1875,11 @@ mod tests {
         )
         .unwrap();
         let comparison = only(&report);
-        assert_ne!(comparison.verdict, ComparisonVerdict::Regression);
-        assert_ne!(comparison.verdict, ComparisonVerdict::Improvement);
-        assert_eq!(comparison.verdict, ComparisonVerdict::NoMaterialChange);
+        held_only_by_the_qualification_gate(comparison);
+        let would_be = direction_if_qualified(comparison);
+        assert_ne!(would_be, ComparisonVerdict::Regression);
+        assert_ne!(would_be, ComparisonVerdict::Improvement);
+        assert_eq!(would_be, ComparisonVerdict::NoMaterialChange);
         assert!(comparison.effect_ratio.abs() < MATERIAL_THRESHOLD_RATIO);
     }
 
@@ -1849,9 +1968,15 @@ mod tests {
         .unwrap();
         let comparison = only(&report);
         assert_eq!(comparison.verdict, ComparisonVerdict::Inconclusive);
+        // Both facts hold and both are reported: the summary describes a
+        // prefix of the run, AND the method may not turn any interval into a
+        // direction. The truncation is named first because it is the caller's.
         assert_eq!(
             comparison.inconclusive_reasons,
-            vec![InconclusiveReason::TruncatedMeasurement]
+            vec![
+                InconclusiveReason::TruncatedMeasurement,
+                InconclusiveReason::MethodUnqualified
+            ]
         );
         // The statistic was still computed and reported.
         assert!((comparison.effect_ratio - 0.20).abs() < 0.03);
@@ -1871,6 +1996,10 @@ mod tests {
             degenerate_dispersion: false,
             family_beyond_resolution: false,
             unobservable_hardware: false,
+            // These two tests are about the INTERVAL logic, so they hold the
+            // qualification gate open; `no_input_produces_a_direction_while_the_
+            // method_is_unqualified` is what covers it being shut.
+            method_qualified: true,
             interval,
             minimum_detectable_ratio: mdr,
         };
@@ -2135,8 +2264,176 @@ mod tests {
             comparison.candidate_executions,
             MIN_EXECUTIONS_FOR_DIRECTION
         );
-        assert_eq!(comparison.verdict, ComparisonVerdict::Regression);
-        assert!(comparison.inconclusive_reasons.is_empty());
+        // The execution gate no longer refuses it: what remains is the
+        // qualification gate, alone, and the interval underneath it is the one
+        // that supports a regression.
+        held_only_by_the_qualification_gate(comparison);
+        assert_eq!(
+            direction_if_qualified(comparison),
+            ComparisonVerdict::Regression
+        );
+    }
+
+    /// H-01. While the method is unqualified, NO combination of inputs may
+    /// produce a direction or a `no_material_change`.
+    ///
+    /// ADR-081 says both stay disabled until the requalification passes. Before
+    /// [`METHOD_QUALIFIED_FOR_DIRECTION`] existed, the only thing withholding
+    /// them was that this container cannot read `cpu_governor` — an accident of
+    /// the runtime, not a decision — so a host where that field IS readable
+    /// would have started emitting directions from an estimator whose measured
+    /// coverage is 0.84 against a published 0.95. This sweep is that sentence
+    /// made falsifiable: it walks the whole input space of [`decide`] and
+    /// asserts the answer is always `Inconclusive`.
+    #[test]
+    fn no_input_produces_a_direction_while_the_method_is_unqualified() {
+        use MeasurementCompleteness as Completeness;
+        let completeness = [
+            Completeness::Complete,
+            Completeness::Truncated,
+            Completeness::Missing,
+        ];
+        // Intervals chosen to land on every branch of the final rule: entirely
+        // above the threshold, entirely below it, entirely inside it, and
+        // straddling it.
+        let intervals = [
+            (0.06, 0.30),
+            (-0.30, -0.06),
+            (-0.01, 0.01),
+            (-0.10, 0.10),
+            (0.0, 0.0),
+        ];
+        let mut seen = 0_usize;
+        for baseline_completeness in completeness {
+            for candidate_completeness in completeness {
+                for samples in [
+                    0,
+                    MIN_SAMPLES_FOR_INFERENCE - 1,
+                    MIN_SAMPLES_FOR_INFERENCE,
+                    90,
+                ] {
+                    for executions in [0, 1, 2, MIN_EXECUTIONS_FOR_DIRECTION, 10] {
+                        for median in [-1.0, 0.0, 1_000.0] {
+                            for degenerate in [false, true] {
+                                for beyond in [false, true] {
+                                    for unobservable in [false, true] {
+                                        for interval in intervals {
+                                            for mdr in [0.0, 0.01, 0.049, 0.05, 0.5] {
+                                                let (verdict, reasons) = decide(&VerdictInput {
+                                                    baseline_completeness,
+                                                    candidate_completeness,
+                                                    baseline_samples: samples,
+                                                    candidate_samples: samples,
+                                                    baseline_executions: executions,
+                                                    candidate_executions: executions,
+                                                    baseline_median_ns: median,
+                                                    degenerate_dispersion: degenerate,
+                                                    family_beyond_resolution: beyond,
+                                                    unobservable_hardware: unobservable,
+                                                    method_qualified:
+                                                        METHOD_QUALIFIED_FOR_DIRECTION,
+                                                    interval,
+                                                    minimum_detectable_ratio: mdr,
+                                                });
+                                                seen += 1;
+                                                assert_eq!(
+                                                    verdict,
+                                                    ComparisonVerdict::Inconclusive,
+                                                    "samples {samples}, executions \
+                                                     {executions}, median {median}, \
+                                                     interval {interval:?}, mdr {mdr}, \
+                                                     reasons {reasons:?}"
+                                                );
+                                                assert!(
+                                                    !reasons.is_empty(),
+                                                    "an inconclusive verdict always names a reason"
+                                                );
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        assert!(seen > 10_000, "the sweep covered only {seen} inputs");
+    }
+
+    /// The sweep above would pass vacuously if something OTHER than the
+    /// qualification gate were refusing these inputs, so this pins the gate as
+    /// the thing that does it: the same inputs with the gate open produce all
+    /// three withheld verdicts, and with it shut produce `MethodUnqualified`
+    /// and nothing else.
+    #[test]
+    fn the_qualification_gate_is_what_withholds_each_of_the_three_verdicts() {
+        let input = |interval: (f64, f64), method_qualified: bool| VerdictInput {
+            baseline_completeness: MeasurementCompleteness::Complete,
+            candidate_completeness: MeasurementCompleteness::Complete,
+            baseline_samples: 90,
+            candidate_samples: 90,
+            baseline_executions: MIN_EXECUTIONS_FOR_DIRECTION,
+            candidate_executions: MIN_EXECUTIONS_FOR_DIRECTION,
+            baseline_median_ns: 1_000.0,
+            degenerate_dispersion: false,
+            family_beyond_resolution: false,
+            unobservable_hardware: false,
+            method_qualified,
+            interval,
+            minimum_detectable_ratio: 0.01,
+        };
+        for (interval, would_be) in [
+            ((0.06, 0.30), ComparisonVerdict::Regression),
+            ((-0.30, -0.06), ComparisonVerdict::Improvement),
+            ((-0.01, 0.01), ComparisonVerdict::NoMaterialChange),
+        ] {
+            assert_eq!(
+                decide(&input(interval, true)),
+                (would_be, Vec::new()),
+                "with the gate open, {interval:?} must read as {would_be:?}"
+            );
+            assert_eq!(
+                decide(&input(interval, false)),
+                (
+                    ComparisonVerdict::Inconclusive,
+                    vec![InconclusiveReason::MethodUnqualified]
+                ),
+                "with the gate shut, {interval:?} must be withheld by the gate alone"
+            );
+        }
+    }
+
+    /// Production never opens the gate on its own: the only value `compare`
+    /// puts into that field is the frozen constant. A future edit that passed
+    /// `true` from anywhere in the shipped path would make the sweep above
+    /// meaningless, and this is what notices.
+    #[test]
+    // Asserting a constant is the entire point: this test exists to fail the
+    // moment someone flips it without the receipt ADR-081 §1 requires.
+    #[allow(clippy::assertions_on_constants)]
+    fn only_the_frozen_constant_qualifies_a_comparison() {
+        assert!(
+            !METHOD_QUALIFIED_FOR_DIRECTION,
+            "the requalification has not passed; see ADR-081 §1 and the receipt at \
+             docs/validation/M5-02-method-simulation.json"
+        );
+        let baseline = jitter(1, 60, 1_000.0, 0.02);
+        let candidate = jitter(2, 60, 1_200.0, 0.02);
+        let report = compare(
+            &dataset("run-baseline", vec![measurement("bench/one", &baseline)]),
+            &dataset("run-candidate", vec![measurement("bench/one", &candidate)]),
+        )
+        .unwrap();
+        let comparison = only(&report);
+        // A 20% ratio with tight dispersion is the friendliest input this method
+        // has; if anything at all could still emit a direction today, it is this.
+        assert_eq!(comparison.verdict, ComparisonVerdict::Inconclusive);
+        assert!(
+            comparison
+                .inconclusive_reasons
+                .contains(&InconclusiveReason::MethodUnqualified)
+        );
     }
 
     /// The gate is the constant, not a literal that happens to equal it: every
@@ -2154,6 +2451,7 @@ mod tests {
             degenerate_dispersion: false,
             family_beyond_resolution: false,
             unobservable_hardware: false,
+            method_qualified: true,
             interval: (0.06, 0.30),
             minimum_detectable_ratio: 0.01,
         };
@@ -2579,14 +2877,20 @@ mod tests {
         // The measurement itself survives; only the direction does not.
         assert!((comparison.effect_ratio + 0.20).abs() < 0.03);
         assert!(comparison.confidence_interval.1 < -MATERIAL_THRESHOLD_RATIO);
-        // The same two datasets WITH the governor observed do receive one, so
-        // the refusal above is the unobservable field and nothing else.
+        // The same two datasets WITH the governor observed reach the interval,
+        // so the refusal above is the unobservable field and nothing else. What
+        // withholds the direction there is the qualification gate, which is a
+        // different fact and carries a different name.
         let observed = compare(
             &side("run-baseline", &values, Some("performance")),
             &side("run-candidate", &faster, Some("performance")),
         )
         .unwrap();
-        assert_eq!(only(&observed).verdict, ComparisonVerdict::Improvement);
+        held_only_by_the_qualification_gate(only(&observed));
+        assert_eq!(
+            direction_if_qualified(only(&observed)),
+            ComparisonVerdict::Improvement
+        );
     }
 
     /// The other unobservable descriptors take the same path, and one blind
@@ -3112,7 +3416,11 @@ mod tests {
                 comparison.key
             );
             assert!(comparison.confidence_interval.0 < comparison.confidence_interval.1);
-            assert_eq!(comparison.verdict, ComparisonVerdict::Regression);
+            held_only_by_the_qualification_gate(comparison);
+            assert_eq!(
+                direction_if_qualified(comparison),
+                ComparisonVerdict::Regression
+            );
         }
 
         // One benchmark further, the adjusted tail holds fewer than ten of the

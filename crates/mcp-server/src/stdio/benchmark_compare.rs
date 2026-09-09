@@ -710,6 +710,9 @@ fn comparison(value: BenchmarkComparison) -> schemas::Comparison {
                 InconclusiveReason::FamilyBeyondResolution => {
                     schemas::InconclusiveReason::FamilyBeyondResolution
                 }
+                InconclusiveReason::MethodUnqualified => {
+                    schemas::InconclusiveReason::MethodUnqualified
+                }
                 InconclusiveReason::UnobservableHardware => {
                     schemas::InconclusiveReason::UnobservableHardware
                 }

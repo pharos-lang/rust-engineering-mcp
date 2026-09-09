@@ -376,19 +376,37 @@ impl Estimator {
             Self::RandomEffects => "random_effects",
         }
     }
+
+    /// Short name used to build a candidate id. Separate from [`Self::wire`] so
+    /// the ids already published in `docs/validation/M5-02-method-simulation.json`
+    /// keep their exact spelling while the estimator keeps its descriptive one.
+    fn family(self) -> &'static str {
+        match self {
+            Self::Percentile => "percentile",
+            Self::PercentileClusterScaled => "cluster_scaled",
+            Self::PercentileStudentScaled => "student_scaled",
+            Self::BiasCorrectedAccelerated => "bca",
+            Self::RandomEffects => "random_effects",
+        }
+    }
 }
 
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Debug)]
 struct Candidate {
-    id: &'static str,
+    id: String,
     executions: usize,
     estimator: Estimator,
 }
 
 /// The candidate set. Every authorized lever of ADR-081 §5 appears, crossed with
 /// the execution counts: the shipped estimator as the baseline, each interval
-/// correction on its own so the levers can be told apart, and three execution
-/// counts so "more executions" is measured rather than assumed.
+/// correction on its own so the levers can be told apart, and the execution
+/// counts the caller asks for so "more executions" is measured rather than
+/// assumed.
+///
+/// The id is derived rather than tabulated, so a probe at any `k` — including
+/// `BENCHMARK_MAX_RUNS`, the most executions the dataset format can represent —
+/// gets a name without editing this function.
 fn candidates(execution_counts: &[usize]) -> Vec<Candidate> {
     let mut all = Vec::new();
     for &executions in execution_counts {
@@ -399,26 +417,8 @@ fn candidates(execution_counts: &[usize]) -> Vec<Candidate> {
             Estimator::BiasCorrectedAccelerated,
             Estimator::RandomEffects,
         ] {
-            let id: &'static str = match (estimator, executions) {
-                (Estimator::Percentile, 3) => "percentile_k3",
-                (Estimator::Percentile, 5) => "percentile_k5",
-                (Estimator::Percentile, 10) => "percentile_k10",
-                (Estimator::PercentileClusterScaled, 3) => "cluster_scaled_k3",
-                (Estimator::PercentileClusterScaled, 5) => "cluster_scaled_k5",
-                (Estimator::PercentileClusterScaled, 10) => "cluster_scaled_k10",
-                (Estimator::PercentileStudentScaled, 3) => "student_scaled_k3",
-                (Estimator::PercentileStudentScaled, 5) => "student_scaled_k5",
-                (Estimator::PercentileStudentScaled, 10) => "student_scaled_k10",
-                (Estimator::BiasCorrectedAccelerated, 3) => "bca_k3",
-                (Estimator::BiasCorrectedAccelerated, 5) => "bca_k5",
-                (Estimator::BiasCorrectedAccelerated, 10) => "bca_k10",
-                (Estimator::RandomEffects, 3) => "random_effects_k3",
-                (Estimator::RandomEffects, 5) => "random_effects_k5",
-                (Estimator::RandomEffects, 10) => "random_effects_k10",
-                _ => "other",
-            };
             all.push(Candidate {
-                id,
+                id: format!("{}_k{executions}", estimator.family()),
                 executions,
                 estimator,
             });
@@ -671,7 +671,7 @@ fn random_effects(baseline: &SideSamples, candidate: &SideSamples, alpha: f64) -
 }
 
 fn estimate(
-    candidate: Candidate,
+    candidate: &Candidate,
     draw: &SharedDraw,
     baseline: &SideSamples,
     candidate_side: &SideSamples,
@@ -719,6 +719,24 @@ fn estimate(
 // Tally
 // ---------------------------------------------------------------------------
 
+/// The float accumulators of one tally, kept apart from the integer counts
+/// because their reduction order is observable in the last bits of the reported
+/// means.
+#[derive(Clone, Copy, Default)]
+struct Sums {
+    width: f64,
+    mdr: f64,
+    effect: f64,
+}
+
+impl Sums {
+    fn add(&mut self, other: &Self) {
+        self.width += other.width;
+        self.mdr += other.mdr;
+        self.effect += other.effect;
+    }
+}
+
 #[derive(Clone, Default)]
 struct Tally {
     replicates: u64,
@@ -742,9 +760,7 @@ struct Tally {
     /// significance reading, which is laxer than this method's.
     interval_excludes_zero: u64,
     degenerate: u64,
-    width_sum: f64,
-    mdr_sum: f64,
-    effect_sum: f64,
+    sums: Sums,
     reasons: BTreeMap<&'static str, u64>,
 }
 
@@ -762,9 +778,10 @@ impl Tally {
         self.interval_beyond_threshold += other.interval_beyond_threshold;
         self.interval_excludes_zero += other.interval_excludes_zero;
         self.degenerate += other.degenerate;
-        self.width_sum += other.width_sum;
-        self.mdr_sum += other.mdr_sum;
-        self.effect_sum += other.effect_sum;
+        // The float sums are deliberately NOT merged here. Floating-point
+        // addition is not associative, so merging them in whatever order the
+        // threads happened to finish would make the reported means depend on
+        // scheduling. They are reduced in chunk order by `simulate` instead.
         for (reason, count) in &other.reasons {
             *self.reasons.entry(reason).or_default() += count;
         }
@@ -783,6 +800,7 @@ fn reason_wire(reason: InconclusiveReason) -> &'static str {
         InconclusiveReason::DegenerateDispersion => "degenerate_dispersion",
         InconclusiveReason::FamilyBeyondResolution => "family_beyond_resolution",
         InconclusiveReason::UnobservableHardware => "unobservable_hardware",
+        InconclusiveReason::MethodUnqualified => "method_unqualified",
     }
 }
 
@@ -808,6 +826,11 @@ struct Configuration {
     /// easiest for a false direction. ADR-073's own demonstration uses it for
     /// the same reason.
     family_size: u32,
+    /// Replicates handed to a worker at a time. Only the granularity of the
+    /// work queue: the reduction below is chunk-ordered, so the results do not
+    /// depend on it. Small values exist so a test can force many chunks over
+    /// few replicates and actually exercise the ordering.
+    work_chunk: usize,
 }
 
 impl Configuration {
@@ -861,7 +884,7 @@ fn run_replicate(
     let samples = cell.executions * SAMPLES_PER_EXECUTION;
 
     for (slot, candidate) in applicable {
-        let estimated = estimate(*candidate, &draw, &baseline, &candidate_side, alpha);
+        let estimated = estimate(candidate, &draw, &baseline, &candidate_side, alpha);
         let minimum_detectable_ratio =
             (inverse_standard_normal_cdf(1.0 - alpha / 2.0).unwrap_or(Z_TWO_SIDED_95) + Z_POWER_80)
                 * estimated.standard_error;
@@ -877,6 +900,13 @@ fn run_replicate(
                 || fewer_than_two_distinct_values(&baseline.values, &candidate_side.values),
             family_beyond_resolution: false,
             unobservable_hardware: false,
+            // The harness asks what the method WOULD decide if it were
+            // qualified: that is the question the requalification exists to
+            // answer, and scoring it through the shut gate would only ever
+            // report `method_unqualified`. Production passes
+            // METHOD_QUALIFIED_FOR_DIRECTION, and a test in the parent module
+            // holds it to that.
+            method_qualified: true,
             interval: estimated.interval,
             minimum_detectable_ratio,
         });
@@ -887,9 +917,9 @@ fn run_replicate(
         if low <= cell.true_effect && cell.true_effect <= high {
             tally.covered += 1;
         }
-        tally.width_sum += high - low;
-        tally.mdr_sum += minimum_detectable_ratio;
-        tally.effect_sum += draw.observed_effect;
+        tally.sums.width += high - low;
+        tally.sums.mdr += minimum_detectable_ratio;
+        tally.sums.effect += draw.observed_effect;
         if estimated.degenerate {
             tally.degenerate += 1;
         }
@@ -1000,6 +1030,11 @@ struct MethodConstants {
     material_threshold_ratio: f64,
     min_executions_for_direction: usize,
     min_samples_for_inference: usize,
+    /// The most independent executions the v2 dataset format can carry at all
+    /// (`BenchmarkDataset::validate` rejects a larger `run_count`). Published
+    /// here so a probe of the "more executions" lever can be read against the
+    /// contract's own ceiling instead of an assumed one.
+    benchmark_max_runs: u8,
     family_size: u32,
     adjusted_alpha: f64,
     detection_power: f64,
@@ -1061,16 +1096,23 @@ fn simulate(
                 .enumerate()
                 .filter(|(_, candidate)| candidate.executions == cell.executions)
                 .map(|(candidate_index, candidate)| {
-                    (cell_index * all.len() + candidate_index, *candidate)
+                    (cell_index * all.len() + candidate_index, candidate.clone())
                 })
                 .collect()
         })
         .collect();
 
-    let chunks_per_cell = configuration.replicates.div_ceil(WORK_CHUNK);
+    let chunk_size = configuration.work_chunk.max(1);
+    let chunks_per_cell = configuration.replicates.div_ceil(chunk_size);
     let total_chunks = cells.len() * chunks_per_cell;
     let next = AtomicUsize::new(0);
     let mut merged: Vec<Tally> = vec![Tally::default(); slots];
+    // One entry per chunk actually run, carrying that chunk's float sums. The
+    // integer counts merge in any order because integer addition IS
+    // associative; these do not, so they are collected with the chunk index and
+    // reduced in ascending chunk order below. That is what makes the reported
+    // means a function of the seed alone and not of how the work was scheduled.
+    let mut chunk_sums: Vec<(usize, Vec<Sums>)> = Vec::with_capacity(total_chunks);
 
     std::thread::scope(|scope| {
         let mut handles = Vec::with_capacity(threads);
@@ -1080,6 +1122,7 @@ fn simulate(
             let applicable = &applicable;
             handles.push(scope.spawn(move || {
                 let mut local: Vec<Tally> = vec![Tally::default(); slots];
+                let mut local_sums: Vec<(usize, Vec<Sums>)> = Vec::new();
                 loop {
                     let chunk = next.fetch_add(1, Ordering::Relaxed);
                     if chunk >= total_chunks {
@@ -1087,31 +1130,47 @@ fn simulate(
                     }
                     let cell_index = chunk / chunks_per_cell;
                     let within = chunk % chunks_per_cell;
-                    let start = within * WORK_CHUNK;
-                    let end = (start + WORK_CHUNK).min(configuration.replicates);
+                    let start = within * chunk_size;
+                    let end = (start + chunk_size).min(configuration.replicates);
                     let Some(cell) = cells.get(cell_index) else {
                         continue;
                     };
                     let Some(candidates_here) = applicable.get(cell_index) else {
                         continue;
                     };
+                    // Reset the float accumulators so this chunk's sums are its
+                    // own; the integer counts keep accumulating into `local`.
+                    for tally in &mut local {
+                        tally.sums = Sums::default();
+                    }
                     for replicate in start..end {
                         run_replicate(&configuration, cell, replicate, candidates_here, &mut local);
                     }
+                    local_sums.push((chunk, local.iter().map(|tally| tally.sums).collect()));
                 }
-                local
+                (local, local_sums)
             }));
         }
         for handle in handles {
-            if let Ok(local) = handle.join() {
+            if let Ok((local, local_sums)) = handle.join() {
                 for (slot, tally) in local.iter().enumerate() {
                     if let Some(target) = merged.get_mut(slot) {
                         target.merge(tally);
                     }
                 }
+                chunk_sums.extend(local_sums);
             }
         }
     });
+
+    chunk_sums.sort_unstable_by_key(|(chunk, _)| *chunk);
+    for (_, sums) in &chunk_sums {
+        for (slot, chunk_sum) in sums.iter().enumerate() {
+            if let Some(target) = merged.get_mut(slot) {
+                target.sums.add(chunk_sum);
+            }
+        }
+    }
 
     let mut points = Vec::with_capacity(slots);
     for (cell_index, cell) in cells.iter().enumerate() {
@@ -1151,9 +1210,9 @@ fn simulate(
                     / denominator,
                 interval_excludes_zero_rate: tally.interval_excludes_zero as f64 / denominator,
                 degenerate_rate: tally.degenerate as f64 / denominator,
-                mean_interval_width: tally.width_sum / denominator,
-                mean_minimum_detectable_ratio: tally.mdr_sum / denominator,
-                mean_observed_effect: tally.effect_sum / denominator,
+                mean_interval_width: tally.sums.width / denominator,
+                mean_minimum_detectable_ratio: tally.sums.mdr / denominator,
+                mean_observed_effect: tally.sums.effect / denominator,
                 inconclusive_reasons: tally
                     .reasons
                     .iter()
@@ -1191,6 +1250,7 @@ fn simulate(
             material_threshold_ratio: MATERIAL_THRESHOLD_RATIO,
             min_executions_for_direction: MIN_EXECUTIONS_FOR_DIRECTION,
             min_samples_for_inference: MIN_SAMPLES_FOR_INFERENCE,
+            benchmark_max_runs: crate::benchmark::BENCHMARK_MAX_RUNS,
             family_size: configuration.family_size,
             adjusted_alpha: method.adjusted_alpha(),
             detection_power: DETECTION_POWER,
@@ -1234,13 +1294,19 @@ struct BudgetReport {
     seconds_per_public_compare: Option<f64>,
 }
 
-fn budget(candidate: Candidate, family_size: usize, repetitions: usize, seed: u64) -> BudgetReport {
+fn budget(
+    candidate: &Candidate,
+    family_size: usize,
+    repetitions: usize,
+    seed: u64,
+) -> BudgetReport {
     let configuration = Configuration {
         seed,
         replicates: 1,
         resamples: BOOTSTRAP_RESAMPLES,
         within_execution_sd: DEFAULT_WITHIN_EXECUTION_CV,
         family_size: u32::try_from(family_size).unwrap_or(1),
+        work_chunk: WORK_CHUNK,
     };
     let cell = Cell {
         executions: candidate.executions,
@@ -1294,6 +1360,7 @@ fn budget(candidate: Candidate, family_size: usize, repetitions: usize, seed: u6
                 degenerate_dispersion: estimated.degenerate,
                 family_beyond_resolution: false,
                 unobservable_hardware: false,
+                method_qualified: true,
                 interval: estimated.interval,
                 minimum_detectable_ratio,
             });
@@ -1546,7 +1613,7 @@ fn the_harness_agrees_with_the_public_compare_on_the_shipped_estimator() {
         baseline_median_ns: BASELINE_MEDIAN_NS,
     };
     let candidate = Candidate {
-        id: "percentile_k3",
+        id: "percentile_k3".to_owned(),
         executions: 3,
         estimator: Estimator::Percentile,
     };
@@ -1565,7 +1632,7 @@ fn the_harness_agrees_with_the_public_compare_on_the_shipped_estimator() {
         let (_, left, right) = sides.first().unwrap();
         let alpha = report.method.adjusted_alpha();
         let draw = shared_draw(&key, left, right, BOOTSTRAP_RESAMPLES);
-        let estimated = estimate(candidate, &draw, left, right, alpha);
+        let estimated = estimate(&candidate, &draw, left, right, alpha);
         let minimum_detectable_ratio =
             (inverse_standard_normal_cdf(1.0 - alpha / 2.0).unwrap_or(Z_TWO_SIDED_95) + Z_POWER_80)
                 * estimated.standard_error;
@@ -1581,6 +1648,13 @@ fn the_harness_agrees_with_the_public_compare_on_the_shipped_estimator() {
                 || fewer_than_two_distinct_values(&left.values, &right.values),
             family_beyond_resolution: false,
             unobservable_hardware: false,
+            // The harness asks what the method WOULD decide if it were
+            // qualified: that is the question the requalification exists to
+            // answer, and scoring it through the shut gate would only ever
+            // report `method_unqualified`. Production passes
+            // METHOD_QUALIFIED_FOR_DIRECTION, and a test in the parent module
+            // holds it to that.
+            method_qualified: true,
             interval: estimated.interval,
             minimum_detectable_ratio,
         });
@@ -1616,19 +1690,28 @@ fn the_harness_agrees_with_the_public_compare_on_the_shipped_estimator() {
     }
 }
 
-/// Two threads must produce the same tallies as one, or nothing the harness
-/// reports is reproducible from the seed alone.
+/// Several threads must produce the same tallies as one, to the LAST BIT, or
+/// nothing the harness reports is reproducible from the seed alone.
+///
+/// `work_chunk: 1` is the point of this test. With the production chunk size a
+/// small replicate count fits in a single chunk per cell, every cell is then
+/// summed by one thread in one go, and the test passes without ever exercising
+/// what it claims — which is exactly what happened until a re-run caught a
+/// one-ULP disagreement in `mean_observed_effect`. One replicate per chunk
+/// spreads a cell's chunks across threads, so the float sums agree only if the
+/// reduction really is chunk-ordered.
 #[test]
 fn the_simulation_does_not_depend_on_the_thread_count() {
     let configuration = Configuration {
+        work_chunk: 1,
         seed: SIMULATION_ROOT_SEED,
-        replicates: 2,
+        replicates: 6,
         resamples: BOOTSTRAP_RESAMPLES,
         within_execution_sd: DEFAULT_WITHIN_EXECUTION_CV,
         family_size: 1,
     };
     let single = simulate(configuration, &[3], &[0.05], &[0.0], 1, "smoke");
-    let parallel = simulate(configuration, &[3], &[0.05], &[0.0], 3, "smoke");
+    let parallel = simulate(configuration, &[3], &[0.05], &[0.0], 4, "smoke");
     assert_eq!(single.points.len(), parallel.points.len());
     for (left, right) in single.points.iter().zip(&parallel.points) {
         assert_eq!(left.candidate, right.candidate);
@@ -1639,11 +1722,30 @@ fn the_simulation_does_not_depend_on_the_thread_count() {
         );
         assert_eq!(left.verdict_regression, right.verdict_regression);
         assert_eq!(left.verdict_inconclusive, right.verdict_inconclusive);
-        assert_eq!(
-            left.mean_interval_width
-                .total_cmp(&right.mean_interval_width),
-            std::cmp::Ordering::Equal
-        );
+        for (name, one, many) in [
+            (
+                "mean_interval_width",
+                left.mean_interval_width,
+                right.mean_interval_width,
+            ),
+            (
+                "mean_minimum_detectable_ratio",
+                left.mean_minimum_detectable_ratio,
+                right.mean_minimum_detectable_ratio,
+            ),
+            (
+                "mean_observed_effect",
+                left.mean_observed_effect,
+                right.mean_observed_effect,
+            ),
+        ] {
+            assert_eq!(
+                one.total_cmp(&many),
+                std::cmp::Ordering::Equal,
+                "{name} on {}: one thread gave {one:?}, four gave {many:?}",
+                left.candidate
+            );
+        }
     }
 }
 
@@ -1658,6 +1760,7 @@ fn every_candidate_decides_at_every_drift_point() {
         resamples: BOOTSTRAP_RESAMPLES,
         within_execution_sd: DEFAULT_WITHIN_EXECUTION_CV,
         family_size: 1,
+        work_chunk: WORK_CHUNK,
     };
     let report = simulate(
         configuration,
@@ -1717,7 +1820,7 @@ fn m5_02_requalification() {
             .unwrap_or(1);
         let wanted = environment("M5_SIM_CANDIDATE").unwrap_or_else(|| "percentile_k3".to_owned());
         let all = candidates(&[3, 5, 10]);
-        let Some(candidate) = all.iter().find(|entry| entry.id == wanted).copied() else {
+        let Some(candidate) = all.iter().find(|entry| entry.id == wanted) else {
             println!("{JSON_BEGIN}");
             println!("{{\"error\":\"unknown candidate\",\"requested\":\"{wanted}\"}}");
             println!("{JSON_END}");
@@ -1777,6 +1880,10 @@ fn m5_02_requalification() {
         resamples,
         within_execution_sd: within,
         family_size,
+        work_chunk: counts("M5_SIM_WORK_CHUNK", &[WORK_CHUNK])
+            .first()
+            .copied()
+            .unwrap_or(WORK_CHUNK),
     };
     let report = simulate(
         configuration,

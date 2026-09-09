@@ -73,8 +73,13 @@ END = "M5_SIMULATION_JSON_END"
 DRIFT_POINTS = (0.0, 0.01, 0.02, 0.05, 0.10)
 
 # True effects the criteria of §1 name: the null for coverage and false
-# positives, +5% (the material threshold itself) for power, and +/-10% for the
-# incorrect `no_material_change`.
+# positives, and +/-10% for both the corrected power row and the incorrect
+# `no_material_change` row.
+#
+# +5% is kept although no criterion scores it any more. It is the alternative
+# the ORIGINAL power row named, and ADR-081's correction rests on what was
+# measured there; a receipt that stopped measuring it would leave the reader
+# unable to see why the row changed.
 TRUE_EFFECTS = (0.0, 0.05, 0.10, -0.10)
 
 MIN_REPLICATES = 10_000
@@ -94,12 +99,23 @@ CRITERIA = {
         "measured_over": "true effect 0 at every drift point; the reported number is the worst drift point",
         "adr": "ADR-081 §1, row 2",
     },
-    "power_at_material_threshold": {
-        "statement": "Potencia para detectar un efecto igual al umbral material del 5 %",
+    "power_at_separated_alternative": {
+        "statement": "Potencia para detectar un efecto real del 10 %, el doble del umbral material",
         "threshold": 0.80,
         "direction": "at_least",
-        "measured_over": "true effect +0.05 at every drift point; the reported number is the worst drift point",
-        "adr": "ADR-081 §1, row 3",
+        "measured_over": (
+            "true effect +/-0.10 at every drift point, counting the verdict that "
+            "matches the true direction; the reported number is the worst cell, and "
+            "the +0.10-only reading is published beside it"
+        ),
+        "adr": "ADR-081 §1, row 3, as corrected by '#### Corrección (2026-09-09) — la fila de potencia era imposible'",
+        "supersedes": (
+            "the original row measured power at a true effect EQUAL to the material "
+            "threshold. That row was arithmetically impossible against the coverage "
+            "row of the same table and was corrected before any candidate was "
+            "re-scored; the measurement that showed it is kept in this receipt under "
+            "`superseded_power_row_at_the_threshold`."
+        ),
     },
     "incorrect_no_material_change_rate": {
         "statement": "`no_material_change` incorrecto cuando el efecto real supera el umbral",
@@ -400,6 +416,92 @@ def payload(output: str) -> dict:
 
 
 # ---------------------------------------------------------------------------
+# Budget
+# ---------------------------------------------------------------------------
+
+
+def load_average() -> list[float] | None:
+    try:
+        return [round(value, 2) for value in os.getloadavg()]
+    except (OSError, AttributeError):
+        return None
+
+
+def measure_budget(
+    binary: pathlib.Path, roster: list[dict], base_environment: dict[str, str]
+) -> tuple[list[dict], float, dict]:
+    """Wall time and peak RSS of one comparison, per candidate.
+
+    Taken BEFORE the long simulation and before anything else is launched on
+    this host, because a timing measured under load is a measurement of the
+    load. The load average is recorded on both sides so the reader sees the
+    conditions rather than assuming them.
+    """
+    before = load_average()
+    floor_output, _, floor_rss, _ = run_binary(
+        binary,
+        "benchmark_compare::simulation::the_cluster_shortfall_is_the_documented_factor",
+        base_environment,
+    )
+    del floor_output
+    budgets = []
+    for candidate in roster:
+        entry = {"candidate": candidate["id"], "families": []}
+        for family, repetitions in ((1, 5), (25, 1)):
+            budget_environment = dict(base_environment)
+            budget_environment.update(
+                {
+                    "M5_SIM_MODE": "budget",
+                    "M5_SIM_CANDIDATE": candidate["id"],
+                    "M5_SIM_FAMILY": str(family),
+                    "M5_SIM_REPETITIONS": str(repetitions),
+                }
+            )
+            budget_output, _, peak, budget_status = run_binary(
+                binary, TEST_PATH, budget_environment
+            )
+            if budget_status != 0:
+                continue
+            measured = payload(budget_output)
+            entry["families"].append(
+                {
+                    "family_size": family,
+                    "repetitions": repetitions,
+                    "seconds_per_comparison": round(
+                        measured["seconds_per_comparison"], 6
+                    ),
+                    "seconds_per_public_compare": (
+                        round(measured["seconds_per_public_compare"], 6)
+                        if measured.get("seconds_per_public_compare") is not None
+                        else None
+                    ),
+                    "process_peak_rss_mib": round(peak / (1024 * 1024), 2),
+                }
+            )
+        budgets.append(entry)
+        print(f"budget {candidate['id']}: {entry['families']}", file=sys.stderr)
+    after = load_average()
+    conditions = {
+        "captured_at_utc": utc_now(),
+        "measured_before_the_simulation": True,
+        "why": (
+            "a wall-clock number taken while the simulation saturates twelve threads "
+            "would measure the machine, not the method"
+        ),
+        "load_average_before": before,
+        "load_average_after": after,
+        "cpu_count": os.cpu_count(),
+        "one_process_at_a_time": True,
+        "note": (
+            "each candidate is timed in its own process, one at a time, and the peak "
+            "RSS is that process's own rusage from os.wait4 rather than a high-water "
+            "mark over every child"
+        ),
+    }
+    return budgets, round(floor_rss / (1024 * 1024), 2), conditions
+
+
+# ---------------------------------------------------------------------------
 # Criteria
 # ---------------------------------------------------------------------------
 
@@ -427,8 +529,39 @@ def evaluate(points: list[dict], replicates: int) -> dict[str, dict]:
             for cell in cells
         ]
         null_cells = [cell for cell in cells if cell["true_effect"] == 0.0]
-        power_cells = [cell for cell in cells if cell["true_effect"] == 0.05]
+        # ADR-081 §1 as corrected: power is measured against an alternative
+        # SEPARATED from the decision boundary, at twice the material threshold.
+        power_cells = [cell for cell in cells if abs(cell["true_effect"]) == 0.10]
+        # The row the correction replaced, kept as evidence and never scored.
+        superseded_cells = [cell for cell in cells if cell["true_effect"] == 0.05]
         material_cells = [cell for cell in cells if abs(cell["true_effect"]) == 0.10]
+
+        def gate_share(cell: dict) -> dict:
+            """Who decided this cell: the precision gate, or the interval.
+
+            H-02. `precision_below_threshold` fires when the run cannot resolve
+            the material threshold at all, and it is decided BEFORE the interval
+            is read. A candidate whose power fails because that gate fired is
+            not a bad estimator; it is an honest one reporting that this host's
+            drift is larger than the effect it was asked to resolve. The two
+            look identical in a bare power number and completely different here.
+            """
+            reasons = cell.get("inconclusive_reasons", {})
+            total = cell["replicates"]
+            precision = reasons.get("precision_below_threshold", 0)
+            spans = reasons.get("interval_spans_threshold", 0)
+            return {
+                "decided_by_the_precision_gate": round(precision / total, 6),
+                "decided_by_the_interval_spanning_the_threshold": round(
+                    spans / total, 6
+                ),
+                "reached_a_verdict_from_the_interval": round(
+                    (total
+                     - cell["verdict_inconclusive"]) / total,
+                    6,
+                ),
+                "counts": {"replicates": total, **reasons},
+            }
 
         false_positive_cells = [
             {
@@ -440,17 +573,30 @@ def evaluate(points: list[dict], replicates: int) -> dict[str, dict]:
                     cell["verdict_regression"] + cell["verdict_improvement"],
                     cell["replicates"],
                 ),
+                "who_decided_it": gate_share(cell),
             }
             for cell in null_cells
         ]
-        power_rows = [
-            {
+        def power_row(cell: dict) -> dict:
+            correct = (
+                cell["verdict_regression"]
+                if cell["true_effect"] > 0.0
+                else cell["verdict_improvement"]
+            )
+            return {
                 "drift_sd": cell["drift_sd"],
                 "true_effect": cell["true_effect"],
                 "value": cell["directional_correct_rate"],
                 "replicates": cell["replicates"],
-                "interval": wilson(cell["verdict_regression"], cell["replicates"]),
-                "supplementary": {
+                "interval": wilson(correct, cell["replicates"]),
+                "who_decided_it": gate_share(cell),
+                "supplementary_not_the_criterion": {
+                    "note": (
+                        "ADR-081 §1's correction declines both of these as the "
+                        "criterion: they are laxer, and picking one after seeing the "
+                        "results is what the freeze exists to prevent. Reported so a "
+                        "reader can see what was NOT used."
+                    ),
                     "interval_beyond_threshold_rate": cell[
                         "interval_beyond_threshold_rate"
                     ],
@@ -460,7 +606,18 @@ def evaluate(points: list[dict], replicates: int) -> dict[str, dict]:
                     ),
                 },
             }
-            for cell in power_cells
+
+        power_rows = [power_row(cell) for cell in power_cells]
+        superseded_rows = [
+            {
+                "drift_sd": cell["drift_sd"],
+                "true_effect": cell["true_effect"],
+                "power_at_the_threshold_itself": cell["directional_correct_rate"],
+                "coverage_at_same_cell": cell["coverage"],
+                "bound_1_minus_coverage": round(1.0 - cell["coverage"], 6),
+                "replicates": cell["replicates"],
+            }
+            for cell in superseded_cells
         ]
         material_rows = [
             {
@@ -493,14 +650,18 @@ def evaluate(points: list[dict], replicates: int) -> dict[str, dict]:
                 "cells": false_positive_cells,
                 "worst": worst(false_positive_cells, "at_most"),
             },
-            "power_at_material_threshold": {
+            "power_at_separated_alternative": {
                 "cells": power_rows,
                 "worst": worst(power_rows, "at_least"),
+                "worst_positive_only": worst(
+                    [row for row in power_rows if row["true_effect"] > 0.0], "at_least"
+                ),
             },
             "incorrect_no_material_change_rate": {
                 "cells": material_rows,
                 "worst": worst(material_rows, "at_most"),
             },
+            "superseded_power_row_at_the_threshold": superseded_rows,
             "replicates_per_point": replicates,
             "meets_replicate_floor": replicates >= MIN_REPLICATES,
         }
@@ -538,6 +699,22 @@ def main() -> int:
         action="store_true",
         help="skip the resample-count sensitivity probe",
     )
+    parser.add_argument(
+        "--skip-ceiling-probe",
+        action="store_true",
+        help="skip the execution-count probe at the dataset format's ceiling",
+    )
+    parser.add_argument(
+        "--reuse-raw",
+        action="store_true",
+        help=(
+            "re-score a previous run's raw tallies instead of simulating again. "
+            "Refused unless the stored seed, replicate count, drift points, true "
+            "effects and execution counts match this invocation exactly. Exists "
+            "because a criterion can be corrected after the numbers were taken, and "
+            "re-scoring must not require re-measuring."
+        ),
+    )
     arguments = parser.parse_args()
 
     if arguments.replicates < MIN_REPLICATES:
@@ -546,6 +723,38 @@ def main() -> int:
             f"point; the receipt will record {arguments.replicates} and say the floor "
             "was not met\n"
         )
+
+    # A budget number is only readable next to the conditions it was taken
+    # under. If this output file already holds one, keep it: two measurements of
+    # the same thing on the same host are evidence about the host, and dropping
+    # the older one would hide exactly that.
+    previous_budget = None
+    if arguments.out.is_file():
+        try:
+            earlier = json.loads(arguments.out.read_text(encoding="utf-8"))
+        except (json.JSONDecodeError, OSError):
+            earlier = None
+        if earlier:
+            previous_budget = {
+                "captured_at_utc": earlier.get("captured_at_utc"),
+                "schema": earlier.get("schema"),
+                "conditions": earlier.get(
+                    "budget_conditions",
+                    {
+                        "recorded": False,
+                        "note": (
+                            "this run predates the recording of load conditions. It was "
+                            "taken after its own simulation finished, on a host that was "
+                            "also running a full cargo gate, and no load average was "
+                            "captured. Read it as an upper bound taken under unknown load."
+                        ),
+                    },
+                ),
+                "per_candidate": {
+                    entry["id"]: entry.get("budget", [])
+                    for entry in earlier.get("candidates", [])
+                },
+            }
 
     arguments.target_dir.mkdir(parents=True, exist_ok=True)
     binary = build_harness(arguments.target_dir)
@@ -570,7 +779,38 @@ def main() -> int:
     if any(entry["result"] != "pass" for entry in validation):
         raise SystemExit("the harness failed its own equivalence tests; numbers withheld")
 
-    # 2. The simulation.
+    # 2. The candidate roster, from a one-replicate run: the budget phase needs
+    #    the candidate ids and must not wait for the long simulation to get them.
+    roster_environment = dict(base_environment)
+    roster_environment.update(
+        {
+            "M5_SIM_MODE": "simulate",
+            "M5_SIM_REPLICATES": "1",
+            "M5_SIM_THREADS": "1",
+            "M5_SIM_DRIFTS": "0.0",
+            "M5_SIM_EFFECTS": "0.0",
+            "M5_SIM_EXECUTIONS": "3,5,10",
+        }
+    )
+    roster_output, _, _, roster_status = run_binary(
+        binary, TEST_PATH, roster_environment
+    )
+    if roster_status != 0:
+        raise SystemExit("the harness could not list its candidates")
+    roster = payload(roster_output)["candidates"]
+
+    # 3. BUDGET, measured FIRST and deliberately.
+    #
+    #    A wall-clock number taken while twelve simulation threads saturate the
+    #    machine measures the machine, not the method. It is therefore taken
+    #    before the long run and before anything else is launched, and the load
+    #    average is recorded on both sides of it so a reader can see the
+    #    conditions instead of assuming them.
+    budgets, process_floor_mib, budget_conditions = measure_budget(
+        binary, roster, base_environment
+    )
+
+    # 4. The simulation.
     simulation_environment = dict(base_environment)
     simulation_environment.update(
         {
@@ -587,13 +827,94 @@ def main() -> int:
         f"x {len(TRUE_EFFECTS)} true effects on {arguments.threads} threads",
         file=sys.stderr,
     )
-    output, elapsed, _, status = run_binary(binary, TEST_PATH, simulation_environment)
-    if status != 0:
-        raise SystemExit("the simulation run failed")
-    run = payload(output)
-    print(f"simulation wall: {elapsed / 60.0:.1f} min", file=sys.stderr)
+    raw_path = arguments.target_dir / "raw-simulation.json"
+    signature = {
+        "seed": arguments.seed,
+        "replicates": arguments.replicates,
+        "drift_points": list(DRIFT_POINTS),
+        "true_effects": list(TRUE_EFFECTS),
+        "execution_counts": [3, 5, 10],
+    }
+    reused: dict | bool = False
+    run = None
+    elapsed = 0.0
+    if arguments.reuse_raw and raw_path.is_file():
+        stored = json.loads(raw_path.read_text(encoding="utf-8"))
+        if stored.get("signature") == signature:
+            # Reuse is only sound if the binary that would produce the tallies
+            # today still produces the SAME ones. The harness may have been
+            # rebuilt since, so one cell is recomputed fresh at the full
+            # replicate count and compared field by field. Twelve seconds to
+            # avoid asserting what can be checked.
+            recheck_environment = dict(simulation_environment)
+            recheck_environment.update(
+                {"M5_SIM_EXECUTIONS": "3", "M5_SIM_DRIFTS": "0.05", "M5_SIM_EFFECTS": "0.1"}
+            )
+            recheck_output, _, _, recheck_status = run_binary(
+                binary, TEST_PATH, recheck_environment
+            )
+            stored_cells = {
+                (point["candidate"], point["drift_sd"], point["true_effect"]): point
+                for point in stored["run"]["points"]
+            }
+            reuse_check = {"cell": "k=3, drift 0.05, true effect +0.10", "identical": False}
+            if recheck_status == 0:
+                fresh = payload(recheck_output)["points"]
+                differences = [
+                    point["candidate"]
+                    for point in fresh
+                    if stored_cells.get(
+                        (point["candidate"], point["drift_sd"], point["true_effect"])
+                    )
+                    != point
+                ]
+                reuse_check = {
+                    "cell": "k=3, drift 0.05, true effect +0.10",
+                    "candidates_recomputed": len(fresh),
+                    "identical": not differences,
+                    "differing_candidates": differences,
+                }
+            if reuse_check["identical"]:
+                run = stored["run"]
+                elapsed = stored.get("wall_seconds", 0.0)
+                reused = reuse_check
+                print(
+                    f"reusing raw tallies from {raw_path} (captured "
+                    f"{stored.get('captured_at_utc')}); recomputed cell is identical",
+                    file=sys.stderr,
+                )
+            else:
+                sys.stderr.write(
+                    "warning: the stored tallies do not match what this binary "
+                    "recomputes; simulating again rather than reusing them\n"
+                )
+        else:
+            sys.stderr.write(
+                "warning: --reuse-raw was asked for but the stored run does not match "
+                "this invocation; simulating again\n"
+            )
+    if run is None:
+        output, elapsed, _, status = run_binary(
+            binary, TEST_PATH, simulation_environment
+        )
+        if status != 0:
+            raise SystemExit("the simulation run failed")
+        run = payload(output)
+        raw_path.write_text(
+            json.dumps(
+                {
+                    "signature": signature,
+                    "captured_at_utc": utc_now(),
+                    "wall_seconds": elapsed,
+                    "run": run,
+                },
+                indent=1,
+            ),
+            encoding="utf-8",
+        )
+        print(f"simulation wall: {elapsed / 60.0:.1f} min", file=sys.stderr)
 
-    # 2b. The independent cross-check, seeded from the crate's OWN constant as
+    # 5. The independent cross-check, seeded from the crate's OWN constant as
     #     the harness reported it, so this script never restates it.
     method_seed = int(run["method_constants"]["bootstrap_seed_hex"], 16)
     reproduction = cross_check(method_seed, run["method_constants"]["bootstrap_resamples"])
@@ -609,7 +930,7 @@ def main() -> int:
             "simulation as confirmed until it is explained.\n"
         )
 
-    # 3. The resample-count lever, which ADR-081 §5 also authorizes. It is a
+    # 6. The resample-count lever, which ADR-081 §5 also authorizes. It is a
     #    probe and not a candidate: it is run at fewer replicates than §1 asks
     #    for, and the receipt says so rather than quietly counting it.
     probe = None
@@ -651,55 +972,119 @@ def main() -> int:
                 ],
             }
 
-    # 4. Budget, measured rather than estimated.
-    floor_output, _, floor_rss, _ = run_binary(
-        binary,
-        "benchmark_compare::simulation::the_cluster_shortfall_is_the_documented_factor",
-        base_environment,
-    )
-    del floor_output
-    budgets = []
-    for candidate in run["candidates"]:
-        entry = {"candidate": candidate["id"], "families": []}
-        for family, repetitions in ((1, 5), (25, 1)):
-            budget_environment = dict(base_environment)
-            budget_environment.update(
-                {
-                    "M5_SIM_MODE": "budget",
-                    "M5_SIM_CANDIDATE": candidate["id"],
-                    "M5_SIM_FAMILY": str(family),
-                    "M5_SIM_REPETITIONS": str(repetitions),
-                }
-            )
-            budget_output, _, peak, budget_status = run_binary(
-                binary, TEST_PATH, budget_environment
-            )
-            if budget_status != 0:
-                continue
-            measured = payload(budget_output)
-            entry["families"].append(
-                {
-                    "family_size": family,
-                    "repetitions": repetitions,
-                    "seconds_per_comparison": round(
-                        measured["seconds_per_comparison"], 6
-                    ),
-                    "seconds_per_public_compare": (
-                        round(measured["seconds_per_public_compare"], 6)
-                        if measured.get("seconds_per_public_compare") is not None
-                        else None
-                    ),
-                    "process_peak_rss_mib": round(peak / (1024 * 1024), 2),
-                }
-            )
-        budgets.append(entry)
-        print(f"budget {candidate['id']}: {entry['families']}", file=sys.stderr)
-
     budget_by_candidate = {entry["candidate"]: entry for entry in budgets}
-    process_floor_mib = round(floor_rss / (1024 * 1024), 2)
 
-    # 5. Assemble.
-    measured = evaluate(run["points"], arguments.replicates)
+    # 7. The execution-count lever, probed at the contract's own ceiling.
+    #
+    #    ADR-081 §5 authorizes raising the number of executions per side. If the
+    #    power row fails at some drift points, the question the owner needs
+    #    answered before "unreachable" is whether that lever reaches it. The
+    #    ceiling is not a matter of taste: `BenchmarkDataset::validate` refuses a
+    #    `run_count` above BENCHMARK_MAX_RUNS, so a `k` beyond it is not
+    #    representable in the v2 dataset at all, and changing the format is not
+    #    among the levers §5 authorizes. The probe therefore runs at exactly that
+    #    ceiling, at the drift points where the criterion failed.
+    interim = evaluate(run["points"], arguments.replicates)
+    failing_drifts = sorted(
+        {
+            cell["drift_sd"]
+            for name, block in interim.items()
+            for cell in block["power_at_separated_alternative"]["cells"]
+            if cell["value"] < CRITERIA["power_at_separated_alternative"]["threshold"]
+        }
+        - {
+            cell["drift_sd"]
+            for name, block in interim.items()
+            for cell in block["power_at_separated_alternative"]["cells"]
+            if cell["value"] >= CRITERIA["power_at_separated_alternative"]["threshold"]
+        }
+    )
+    ceiling = None
+    max_runs = run["method_constants"].get("benchmark_max_runs")
+    if failing_drifts and max_runs and not arguments.skip_ceiling_probe:
+        ceiling_environment = dict(simulation_environment)
+        ceiling_environment.update(
+            {
+                "M5_SIM_EXECUTIONS": str(max_runs),
+                "M5_SIM_DRIFTS": ",".join(str(value) for value in failing_drifts),
+                "M5_SIM_EFFECTS": "0.0,0.10,-0.10",
+            }
+        )
+        print(
+            f"probing the execution-count lever at k = {max_runs} (the dataset "
+            f"format's ceiling) on drift points {failing_drifts}",
+            file=sys.stderr,
+        )
+        ceiling_output, ceiling_elapsed, _, ceiling_status = run_binary(
+            binary, TEST_PATH, ceiling_environment
+        )
+        if ceiling_status == 0:
+            ceiling_run = payload(ceiling_output)
+            ceiling_scored = evaluate(ceiling_run["points"], arguments.replicates)
+            ceiling = {
+                "question": (
+                    "at the most executions per side the v2 dataset format can "
+                    "represent, does the power row reach 0.80 at the drift points "
+                    "where it failed?"
+                ),
+                "executions_per_side": max_runs,
+                "why_this_number": (
+                    "BenchmarkDataset::validate rejects a run_count above "
+                    f"BENCHMARK_MAX_RUNS = {max_runs}, so this is the largest k the "
+                    "contract admits. ADR-081 §5 authorizes raising the executions per "
+                    "side; it does not authorize changing the dataset format."
+                ),
+                "drift_points_probed": failing_drifts,
+                "not_a_candidate_because": (
+                    "it is evaluated only at the drift points where the criterion "
+                    "failed and at three true effects, so it does not meet every "
+                    "criterion at every point the way a candidate must"
+                ),
+                "replicates_per_point": arguments.replicates,
+                "wall_seconds": round(ceiling_elapsed, 1),
+                "per_candidate": {
+                    name: {
+                        "power": [
+                            {
+                                "drift_sd": cell["drift_sd"],
+                                "true_effect": cell["true_effect"],
+                                "value": cell["value"],
+                                "wilson_95": cell["interval"],
+                                "reaches_0_80": cell["value"]
+                                >= CRITERIA["power_at_separated_alternative"][
+                                    "threshold"
+                                ],
+                            }
+                            for cell in block["power_at_separated_alternative"]["cells"]
+                        ],
+                        "coverage": [
+                            {
+                                "drift_sd": cell["drift_sd"],
+                                "true_effect": cell["true_effect"],
+                                "value": cell["value"],
+                            }
+                            for cell in block["coverage"]["cells"]
+                        ],
+                        "directional_false_positive_rate": [
+                            {"drift_sd": cell["drift_sd"], "value": cell["value"]}
+                            for cell in block["directional_false_positive_rate"]["cells"]
+                        ],
+                    }
+                    for name, block in ceiling_scored.items()
+                },
+            }
+            ceiling["any_candidate_reaches_0_80_everywhere_probed"] = any(
+                all(row["reaches_0_80"] for row in entry["power"])
+                for entry in ceiling["per_candidate"].values()
+            )
+            print(
+                "  ceiling probe: reaches 0.80 everywhere probed = "
+                f"{ceiling['any_candidate_reaches_0_80_everywhere_probed']}",
+                file=sys.stderr,
+            )
+
+    # 8. Assemble.
+    measured = interim
     candidates_report = []
     for candidate in run["candidates"]:
         name = candidate["id"]
@@ -714,7 +1099,7 @@ def main() -> int:
         for key in (
             "coverage",
             "directional_false_positive_rate",
-            "power_at_material_threshold",
+            "power_at_separated_alternative",
             "incorrect_no_material_change_rate",
         ):
             block = cells.get(key, {})
@@ -732,41 +1117,38 @@ def main() -> int:
                 "verdict": verdict_for(key, value),
                 "per_point": block.get("cells", []),
             }
-            if key == "power_at_material_threshold":
-                # The frozen rule emits `regression` exactly when the interval's
-                # lower endpoint exceeds +5%. With a TRUE effect of +5% that is
-                # the event "the interval lies entirely above the true value",
-                # which is a NON-COVERAGE event. So at this point, and for any
-                # interval whatsoever, power <= 1 - coverage. Both numbers are in
-                # this receipt at the same cells, so the bound is checkable here
-                # rather than taken on trust.
+            if key == "power_at_separated_alternative":
+                # The corrected row measures power against an alternative
+                # SEPARATED from the decision boundary. At a true effect of
+                # +10% the event {lower endpoint > +5%} is NOT a non-coverage
+                # event: an interval can sit entirely above the threshold and
+                # still contain the truth. That is precisely why separating the
+                # alternative removes the contradiction, and it is worth showing
+                # rather than asserting.
                 paired = {
                     (cell["drift_sd"], cell["true_effect"]): cell["value"]
                     for cell in criteria_report["coverage"]["per_point"]
                 }
-                criteria_report[key]["structural_bound"] = {
-                    "identity": (
-                        "verdict == regression at a true effect of exactly +5% IS the "
-                        "event {interval lower endpoint > true effect}, a one-sided "
-                        "non-coverage event; therefore power <= 1 - coverage at the "
-                        "same cell, for any interval and any drift model"
-                    ),
-                    "consequence": (
-                        "power >= 0.80 would require coverage <= 0.20 at that point, "
-                        "which contradicts the >= 0.93 the coverage row of the same "
-                        "table demands. The two rows cannot both hold."
+                criteria_report[key]["no_longer_bounded_by_coverage"] = {
+                    "why": (
+                        "at a true effect of +/-10% the directional event "
+                        "{|endpoint| beyond the 5% threshold on the true side} is "
+                        "compatible with covering the truth, so power and coverage are "
+                        "no longer in direct opposition the way they were at a true "
+                        "effect equal to the threshold"
                     ),
                     "per_point": [
                         {
                             "drift_sd": cell["drift_sd"],
+                            "true_effect": cell["true_effect"],
                             "power": cell["value"],
                             "coverage_at_same_cell": paired.get(
                                 (cell["drift_sd"], cell["true_effect"])
                             ),
-                            "bound_1_minus_coverage": (
+                            "power_plus_coverage": (
                                 round(
-                                    1.0
-                                    - paired[(cell["drift_sd"], cell["true_effect"])],
+                                    cell["value"]
+                                    + paired[(cell["drift_sd"], cell["true_effect"])],
                                     6,
                                 )
                                 if (cell["drift_sd"], cell["true_effect"]) in paired
@@ -775,34 +1157,66 @@ def main() -> int:
                         }
                         for cell in block.get("cells", [])
                     ],
+                    "read_this_as": (
+                        "power + coverage above 1.0 in a cell is the arithmetic proof "
+                        "that the two are no longer mutually exclusive there; at a true "
+                        "effect equal to the threshold their sum could never exceed 1.0"
+                    ),
                 }
-                criteria_report[key]["other_readings_of_detect"] = {
+                if worst is not None:
+                    at_worst = next(
+                        (
+                            cell
+                            for cell in block.get("cells", [])
+                            if cell["drift_sd"] == worst["drift_sd"]
+                            and cell["true_effect"] == worst["true_effect"]
+                        ),
+                        None,
+                    )
+                    criteria_report[key]["who_decided_the_worst_cell"] = (
+                        at_worst.get("who_decided_it") if at_worst else None
+                    )
+                    criteria_report[key]["reading_the_failure"] = (
+                        "if `decided_by_the_precision_gate` is near 1.0, the verdict "
+                        "never reached the interval: the run could not resolve the 5% "
+                        "material threshold at this drift, and the method said so. That "
+                        "is the precision gate working, not the estimator failing. A "
+                        "failure with a LOW precision-gate share would instead be the "
+                        "estimator's interval being too wide or mis-centred."
+                    )
+                criteria_report[key]["worst_at_positive_alternative_only"] = cells.get(
+                    key, {}
+                ).get("worst_positive_only")
+                criteria_report[key]["verdict_at_positive_alternative_only"] = (
+                    verdict_for(
+                        key,
+                        (cells.get(key, {}).get("worst_positive_only") or {}).get(
+                            "value"
+                        ),
+                    )
+                )
+                criteria_report[key]["readings_not_adopted"] = {
                     "note": (
-                        "ADR-081 says 'potencia para detectar un efecto igual al umbral "
-                        "material del 5 %' without naming which event counts as "
-                        "detection. Three readings are reported; only the first is the "
-                        "product's own directional verdict, and only the owner may "
-                        "decide that a different one is what the frozen row meant."
+                        "ADR-081 §1's correction explicitly declines these two as the "
+                        "criterion: both are laxer than the product's own directional "
+                        "verdict, and choosing one after seeing the results is what the "
+                        "freeze exists to prevent. They are published so a reader can "
+                        "see what was measured and NOT used."
                     ),
-                    "as_the_frozen_rule_decides": "verdict == regression (the value above)",
-                    "as_adr_073_defines_detection_for_the_mdr": (
-                        "the interval excludes ZERO on the true effect's side, which is "
-                        "the convention behind MDR = (z_{1-alpha/2} + z_{0.80}) * SE"
-                    ),
-                    "as_not_calling_it_unchanged": "verdict != no_material_change",
                     "per_point": [
                         {
                             "drift_sd": cell["drift_sd"],
-                            "verdict_regression": cell["value"],
-                            "interval_excludes_zero": cell["supplementary"][
-                                "interval_excludes_zero_rate"
-                            ],
-                            "not_no_material_change": cell["supplementary"][
-                                "not_no_material_change_rate"
-                            ],
-                            "interval_beyond_threshold": cell["supplementary"][
-                                "interval_beyond_threshold_rate"
-                            ],
+                            "true_effect": cell["true_effect"],
+                            "the_criterion_directional_verdict": cell["value"],
+                            "not_adopted_interval_excludes_zero": cell[
+                                "supplementary_not_the_criterion"
+                            ]["interval_excludes_zero_rate"],
+                            "not_adopted_not_no_material_change": cell[
+                                "supplementary_not_the_criterion"
+                            ]["not_no_material_change_rate"],
+                            "interval_beyond_threshold_before_the_precision_gate": cell[
+                                "supplementary_not_the_criterion"
+                            ]["interval_beyond_threshold_rate"],
                         }
                         for cell in block.get("cells", [])
                     ],
@@ -904,18 +1318,56 @@ def main() -> int:
                     else value < best[1]
                 ):
                     best = (entry["id"], value)
-            unreachable.append(
-                {
-                    "criterion": key,
-                    "threshold": CRITERIA[key]["threshold"],
-                    "direction": CRITERIA[key]["direction"],
-                    "best_candidate": best[0] if best else None,
-                    "best_value": best[1] if best else None,
+            entry = {
+                "criterion": key,
+                "threshold": CRITERIA[key]["threshold"],
+                "direction": CRITERIA[key]["direction"],
+                "best_candidate": best[0] if best else None,
+                "best_value": best[1] if best else None,
+                "adr_rule": (
+                    "ADR-081 Status: 'si un criterio resulta inalcanzable, se declara "
+                    "inalcanzable y el veredicto direccional no se habilita'. This "
+                    "receipt records the measurement; the declaration is the owner's."
+                ),
+            }
+            if key == "power_at_separated_alternative":
+                shares = [
+                    candidate["criteria"][key].get("who_decided_the_worst_cell")
+                    for candidate in candidates_report
+                ]
+                shares = [share for share in shares if share]
+                entry["mechanism"] = {
+                    "what_decided_the_failing_cells": (
+                        "the precision gate, `precision_below_threshold`, which fires "
+                        "before the interval is read when the minimum detectable ratio "
+                        "exceeds the 5% material threshold"
+                    ),
+                    "precision_gate_share_at_each_candidate_worst_cell": [
+                        share["decided_by_the_precision_gate"] for share in shares
+                    ],
+                    "therefore": (
+                        "the failure is a property of this host's drift against the "
+                        "protocol's execution count, not of any estimator. No candidate "
+                        "estimator can lift it, because the gate is decided before any "
+                        "of them is consulted, and ADR-081 §4 does not permit moving the "
+                        "5% threshold."
+                    ),
+                    "what_would_lift_it": (
+                        "only more executions per side, which is an ADR-081 §5 lever. "
+                        "See lever_probe_execution_count_at_the_format_ceiling for what "
+                        "the largest k the dataset format can represent actually "
+                        "achieves."
+                    ),
                 }
-            )
+            unreachable.append(entry)
 
     receipt = {
-        "schema": "rust-engineering-mcp.m5-02-method-simulation.v1",
+        "schema": "rust-engineering-mcp.m5-02-method-simulation.v2",
+        "schema_change": (
+            "v2 scores the power row against a true effect of 10% (ADR-081 §1's "
+            "'Corrección (2026-09-09)') instead of 5%. v1 receipts are not comparable "
+            "on that row and are comparable on every other."
+        ),
         "captured_at_utc": utc_now(),
         "captured_by": "scripts/simulate-m5-comparison-method.py",
         "decision": "docs/adr/ADR-081-benchmark-statistical-requalification.md",
@@ -927,10 +1379,17 @@ def main() -> int:
         ),
         "reproduce": (
             "python3 -B scripts/simulate-m5-comparison-method.py "
-            f"--replicates {arguments.replicates} --threads {arguments.threads}"
+            f"--replicates {arguments.replicates} --threads {arguments.threads} "
+            f"--seed {run['seed_hex']}"
         ),
+        "raw_tallies_reused": reused,
         "seed": run["seed"],
         "seed_hex": run["seed_hex"],
+        "seed_reused_deliberately": (
+            "0x4d355f5245515541 is the seed of the first run against these criteria "
+            "(2026-09-09). It is reused so that everything except the corrected power "
+            "row is directly comparable between the two receipts."
+        ),
         "seed_note": (
             "seed of the SIMULATION's data generator. The method's own "
             f"BOOTSTRAP_SEED is {run['method_constants']['bootstrap_seed_hex']} and is "
@@ -1041,11 +1500,45 @@ def main() -> int:
         "candidates_meeting_every_criterion": passing,
         "candidates_failing": failing,
         "criteria_no_candidate_reaches": unreachable,
+        "budget_conditions": budget_conditions,
+        "previous_budget_measurement": previous_budget,
+        "superseded_power_row_at_the_threshold": {
+            "what": (
+                "the row ADR-081 §1 originally froze: power >= 0.80 at a true effect "
+                "EQUAL to the 5% material threshold. It was corrected on 2026-09-09, "
+                "before any candidate was re-scored, because it was arithmetically "
+                "incompatible with the coverage row of the same table."
+            ),
+            "the_identity": (
+                "`regression` is emitted if and only if the interval's lower endpoint "
+                "exceeds the threshold. When the true effect IS the threshold, that "
+                "event is exactly 'the interval lies entirely above the true value', a "
+                "one-sided non-coverage event. Hence power <= 1 - coverage, for any "
+                "interval, any estimator and any drift model."
+            ),
+            "the_consequence": (
+                "coverage >= 0.93 forces power <= 0.07 there, so >= 0.80 was "
+                "unreachable by construction rather than by any defect of the method."
+            ),
+            "kept_because": (
+                "it is the reason the criterion changed, and a reader of this receipt "
+                "must be able to see the measurement rather than take the correction on "
+                "trust. It is EVIDENCE and is scored against nothing."
+            ),
+            "per_candidate": {
+                entry["id"]: measured.get(entry["id"], {}).get(
+                    "superseded_power_row_at_the_threshold", []
+                )
+                for entry in candidates_report
+            },
+        },
         "structural_findings": [
             {
                 "finding": (
-                    "the power row and the coverage row of ADR-081 §1 cannot both be "
-                    "satisfied by ANY method that keeps the frozen decision rule"
+                    "a power criterion measured AT the decision boundary is "
+                    "unsatisfiable alongside a coverage criterion, for any method that "
+                    "keeps the frozen decision rule. This is what the first run against "
+                    "these criteria found, and ADR-081 §1 was corrected because of it."
                 ),
                 "why": (
                     "`regression` is emitted exactly when the interval's lower endpoint "
@@ -1054,10 +1547,17 @@ def main() -> int:
                     "event, so power <= 1 - coverage at that point. Power >= 0.80 "
                     "requires coverage <= 0.20 there; the coverage row requires >= 0.93."
                 ),
+                "status": (
+                    "RESOLVED IN THE CRITERION, not in the method. The corrected row "
+                    "measures power against a true effect of 10%, an alternative "
+                    "separated from the boundary, where the two are no longer opposed."
+                ),
                 "depends_on_the_drift_model": False,
                 "depends_on_the_estimator": False,
                 "checkable_in_this_receipt": (
-                    "candidates[].criteria.power_at_material_threshold.structural_bound.per_point"
+                    "superseded_power_row_at_the_threshold.per_candidate, whose "
+                    "`power_at_the_threshold_itself` never exceeds its own "
+                    "`bound_1_minus_coverage` in any cell"
                 ),
             },
             {
@@ -1094,6 +1594,32 @@ def main() -> int:
             },
             {
                 "finding": (
+                    "at drift the size this host actually shows, the precision gate "
+                    "decides the verdict before any estimator's interval is read"
+                ),
+                "why": (
+                    "MDR = (z + z_0.80) * SE with SE ~ tau * sqrt(2/k), so MDR <= 0.05 "
+                    "needs SE <= 0.01785: tau <= 2.19% at k=3 and tau <= 3.99% at k=10. "
+                    "The real captures in fixtures/benchmark-datasets/ show 6.1%-28.7% "
+                    "of range between executions of identical source. Above that, "
+                    "`precision_below_threshold` fires and no direction is claimed."
+                ),
+                "consequence": (
+                    "a power criterion evaluated across the whole drift range of "
+                    "ADR-081 §2 cannot be met by ANY estimator, because the gate that "
+                    "stops it is decided before the estimator is consulted. The receipt "
+                    "reports the gate's share per cell so this is visible rather than "
+                    "inferred."
+                ),
+                "depends_on_the_drift_model": False,
+                "depends_on_the_estimator": False,
+                "checkable_in_this_receipt": (
+                    "candidates[].criteria.power_at_separated_alternative.per_point[]."
+                    "who_decided_it.decided_by_the_precision_gate"
+                ),
+            },
+            {
+                "finding": (
                     "the MAGNITUDE of every coverage, false-positive and "
                     "no_material_change number here is a property of the drift model"
                 ),
@@ -1109,6 +1635,7 @@ def main() -> int:
             },
         ],
         "sensitivity_probe_resample_count": probe,
+        "lever_probe_execution_count_at_the_format_ceiling": ceiling,
         "not_covered_here": [
             "ADR-081 §3's real controls on guest captures: reproducible positives and "
             "negatives on the admitted image. This receipt is the simulation half only.",
