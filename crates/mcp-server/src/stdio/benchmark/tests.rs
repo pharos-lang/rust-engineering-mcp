@@ -144,7 +144,7 @@ pub(super) mod fixtures {
         };
         let (payload_format_version, mime_type, guest_name, identity) = match kind {
             QualityArtifactKind::BenchmarkDataset => (
-                PayloadFormatVersion::BenchmarkDatasetV1,
+                PayloadFormatVersion::BenchmarkDatasetV2,
                 QualityMimeType::ApplicationJson,
                 GuestArtifactName::BenchmarkDataset,
                 PluginIdentity::Criterion,

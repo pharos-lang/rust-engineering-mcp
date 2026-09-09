@@ -290,7 +290,7 @@ fn benchmark_members<'a>(
     let mut members = vec![JobMember {
         kind: QualityArtifactKind::BenchmarkDataset,
         mime_type: QualityMimeType::ApplicationJson,
-        payload_format_version: PayloadFormatVersion::BenchmarkDatasetV1,
+        payload_format_version: PayloadFormatVersion::BenchmarkDatasetV2,
         guest_name: GuestArtifactName::BenchmarkDataset,
         sensitivity: ArtifactSensitivity::SourceDerived,
         completeness: dataset_completeness(observation, dataset),
@@ -383,7 +383,7 @@ mod tests {
             (
                 QualityArtifactKind::BenchmarkDataset,
                 QualityMimeType::ApplicationJson,
-                PayloadFormatVersion::BenchmarkDatasetV1,
+                PayloadFormatVersion::BenchmarkDatasetV2,
                 GuestArtifactName::BenchmarkDataset,
             ),
             (

@@ -335,7 +335,7 @@ pub enum PayloadFormatVersion {
     UstarV1,
     MutationDiffV1,
     Utf8LogV1,
-    BenchmarkDatasetV1,
+    BenchmarkDatasetV2,
     CollapsedStacksV1,
     FlamegraphSvgV1,
     BloatJsonV1,
@@ -531,7 +531,7 @@ impl QualityArtifactDescriptor {
                 )
                 | (
                     QualityArtifactKind::BenchmarkDataset,
-                    PayloadFormatVersion::BenchmarkDatasetV1
+                    PayloadFormatVersion::BenchmarkDatasetV2
                 )
                 | (
                     QualityArtifactKind::CriterionArchive,

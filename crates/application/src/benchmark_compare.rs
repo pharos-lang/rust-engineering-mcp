@@ -11,7 +11,7 @@
 //!   the same live grant, so an id belonging to another project does not
 //!   resolve — it does not exist for this call, exactly as ADR-076 §4 requires.
 //! * **A kind is checked before a parse.** The stored descriptor must already
-//!   say `benchmark_dataset`/`benchmark_dataset_v1`. A JUnit or coverage id is
+//!   say `benchmark_dataset`/`benchmark_dataset_v2`. A JUnit or coverage id is
 //!   `NotADataset`, never a decoder failure, so a wrong id never reaches a
 //!   parser and never produces a diagnostic about someone else's bytes.
 use crate::quality_artifact::{QUALITY_RESOURCE_CHUNK_BYTES, QualityArtifactStore};
@@ -142,7 +142,7 @@ fn read_dataset_bytes(
             return Err(BenchmarkCompareError::ArtifactNotFound);
         }
         if descriptor.kind != QualityArtifactKind::BenchmarkDataset
-            || descriptor.payload_format_version != PayloadFormatVersion::BenchmarkDatasetV1
+            || descriptor.payload_format_version != PayloadFormatVersion::BenchmarkDatasetV2
         {
             return Err(BenchmarkCompareError::NotADataset);
         }

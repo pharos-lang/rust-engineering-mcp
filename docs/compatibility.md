@@ -429,7 +429,7 @@ byte a byte igual, bajo un test de invariancia sobre los 27 snapshots previos
 
 | Artifact kind | MIME | Versión de payload | Origen |
 | --- | --- | --- | --- |
-| `benchmark_dataset` | `application_json` | `benchmark_dataset_v1` | `rust.benchmark.run` |
+| `benchmark_dataset` | `application_json` | `benchmark_dataset_v2` | `rust.benchmark.run` |
 | `criterion_archive` | `application_x_tar` | `ustar_v1` | `rust.benchmark.run` |
 | `collapsed_stacks` | `text_plain` | `collapsed_stacks_v1` | `rust.profile.flamegraph` |
 | `flamegraph_svg` | `image_svg_xml` | `flamegraph_svg_v1` | `rust.profile.flamegraph` |
