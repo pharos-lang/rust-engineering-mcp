@@ -72,7 +72,14 @@ def admitted_image():
     if not match:
         raise RuntimeError(f"M5_IMAGE constant not found in {PORT_SOURCE}")
     image = match.group(1)
-    decision = sorted(set(re.findall(DIGEST, ADMISSION_DECISION.read_text())))
+    # The ADR names superseded digests in its amendments, which are history and
+    # not admission, so this reads the one labelled line that declares what is
+    # admitted -- and requires exactly one of them, so a second declaration is a
+    # refusal rather than a preference.
+    decision = re.findall(
+        rf"(?m)^\*\*Digest admitido:\*\* `({DIGEST})`\s*$",
+        ADMISSION_DECISION.read_text(),
+    )
     built = json.loads(PROVISIONING_RECEIPT.read_text()).get("image_id")
     if decision != [image] or built != image:
         raise RuntimeError(

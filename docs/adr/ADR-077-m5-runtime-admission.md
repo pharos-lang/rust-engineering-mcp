@@ -24,11 +24,12 @@ intactos y que el contexto de construcción no dejó residuos.
 
 ## Decision
 
-Se añade exactamente un digest a la lista de admisión:
+Se admite exactamente un digest M5. La línea siguiente es la **única** de este
+documento que declara cuál es, y es la que el gate lee para comprobar que la
+decisión y el código no se han separado; cualquier otro digest que aparezca aquí
+es historia, no admisión:
 
-```text
-sha256:e0a5ca1661b3e49d0a3d68ee3cc0963453078d08eb7fc43c30538c16b7998aac
-```
+**Digest admitido:** `sha256:e0a5ca1661b3e49d0a3d68ee3cc0963453078d08eb7fc43c30538c16b7998aac`
 
 Además, el puerto de performance exige esa imagen **y solo esa**: cualquier otro
 digest devuelve `Unavailable` antes de crear contenedor alguno. Las versiones del
