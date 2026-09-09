@@ -960,11 +960,206 @@ fn m5_benchmark_run_positive_is_blocked_by_the_offline_data_bound() -> Result<()
 
 // -- M5-03 rust.profile.flamegraph -------------------------------------------
 
-/// The profile fixture, plus two binary targets this qualification needs and
+/// The profiled program that leaves a descendant behind, and the only fixture
+/// source in this file long enough to deserve being written as one.
+///
+/// It is project code, compiled inside the guest at run time from the bundle
+/// below, so it needs no change to the admitted image; the profiled binary is
+/// exec'd by absolute path, so `argv[0]` is that path and the program can
+/// re-exec itself without `/proc`, which the sampling container does not mount.
+const FORK_SOURCE: &str = r##"//! Containment oracle: a profiled program that leaves a descendant behind.
+//!
+//! Nothing else in this fixture forks, so before this target existed the
+//! helper's drain had nothing to reap in any recorded run: the child was
+//! already reaped when the drain ran, `kill(-1)` reached an empty namespace and
+//! `descendants_reaped` was `0` in every manifest. This target gives it work.
+//!
+//! Three processes, two re-execs of this one binary:
+//!
+//! * the *root* is what the profiler started. It re-execs itself as the relay,
+//!   waits for it, and is then the hot workload the profiler measures;
+//! * the *relay* re-execs this binary once more as the orphan and exits
+//!   immediately, without waiting for it;
+//! * the *orphan* outlives the relay and is reparented by the kernel onto pid 1
+//!   of the sampling container's PID namespace, which is the profiler helper.
+//!
+//! The orphan outliving its parent is structural rather than a matter of
+//! timing: `Command::spawn` returns only once the spawned process has reached
+//! `exec`, the relay exits on the next statement, and the orphan holds a loop
+//! that outlasts any sampling window. The root waits for the relay, so past
+//! that point the orphan exists and is already the helper's own child.
+//!
+//! While it lives, the orphan goes after the artifact the helper has not
+//! written yet. In the default shape the open carries no `O_CREAT`, so the
+//! orphan can only ever corrupt a file that is already there and can never
+//! create one: if the drain does its job, every one of those opens fails and
+//! both artifacts are exactly what the helper wrote. In the `--create` shape
+//! the orphan creates the file first instead, and the helper's own `O_EXCL`
+//! then refuses to write over it.
+
+#[path = "main.rs"]
+mod workload;
+
+use std::io::Write;
+use std::process::{Child, Command, Stdio};
+use std::time::{Duration, Instant};
+
+/// The root's busy-loop budget: the fixture's own default, so the sampled
+/// stack is the same known hot frame.
+const BUDGET: Duration = Duration::from_millis(2000);
+
+/// How long the orphan keeps going. Far past any sampling window this fixture
+/// is used with, so what ends it is the helper's drain -- or, if the drain ever
+/// failed, pid 1 exiting and taking the whole namespace with it.
+const ORPHAN_BUDGET: Duration = Duration::from_secs(600);
+
+/// Interval between two attempts, and between two looks for the artifact.
+const POLL: Duration = Duration::from_millis(1);
+
+/// The artifact the orphan goes after. The helper writes this one first, so a
+/// pre-created copy is also the first thing its `O_EXCL` meets.
+const ARTIFACT: &str = "/profile/stacks.txt";
+
+/// What the orphan writes if it ever gets the chance. It is not a collapsed
+/// stack, so an artifact carrying it cannot reconcile with the manifest.
+const TAMPER: &[u8] = b"# a descendant wrote this after the drain\n";
+
+const RELAY: &str = "--relay";
+const ORPHAN: &str = "--orphan";
+const CREATE: &str = "--create";
+const KEEP: &str = "--no-create";
+
+/// Exit codes. Anything but `0` says the descendant was never created, which is
+/// a failure of this fixture and not an observation about the drain.
+const EXIT_SPAWN_FAILED: i32 = 10;
+const EXIT_RELAY_FAILED: i32 = 11;
+const EXIT_NO_ARTIFACT: i32 = 12;
+const EXIT_UNKNOWN_ROLE: i32 = 13;
+
+/// Re-execs this binary in another role. The caller decides whether to wait.
+///
+/// The three descriptors are closed rather than inherited on purpose: the
+/// orphan outlives everything else here, and a long-lived process holding the
+/// parent's stdout open is a process that can keep whoever reads that stream
+/// waiting long after the profiled program is gone.
+fn respawn(role: &str, shape: &str) -> Option<Child> {
+    let program = std::env::args_os().next()?;
+    Command::new(program)
+        .arg(role)
+        .arg(shape)
+        .stdin(Stdio::null())
+        .stdout(Stdio::null())
+        .stderr(Stdio::null())
+        .spawn()
+        .ok()
+}
+
+/// The process the profiler started.
+fn root(create: bool) -> i32 {
+    let shape = if create { CREATE } else { KEEP };
+    let Some(mut relay) = respawn(RELAY, shape) else {
+        return EXIT_SPAWN_FAILED;
+    };
+    // The synchronization point: the relay spawns the orphan and returns at
+    // once, so a relay that has exited is a relay whose child has exec'd and
+    // has already been reparented onto pid 1.
+    match relay.wait() {
+        Ok(status) if status.success() => {}
+        _ => return EXIT_RELAY_FAILED,
+    }
+    // In the pre-creating shape the file has to be on the volume before this
+    // process does anything else, so the helper's own write can only ever come
+    // second. That is an ordering, not a race: the helper does not write until
+    // this process exits or its window closes, and this process does not
+    // proceed until the file is there.
+    if create && !await_artifact() {
+        return EXIT_NO_ARTIFACT;
+    }
+    println!("{:016x}", workload::known_hot_frame(BUDGET));
+    0
+}
+
+/// The middle process. It exists only to die, which is what orphans its child.
+fn relay(shape: &str) -> i32 {
+    // Deliberately never waited for. Dropping a `Child` neither kills nor
+    // reaps, so the orphan survives this process by the whole of its budget.
+    if respawn(ORPHAN, shape).is_some() {
+        0
+    } else {
+        EXIT_SPAWN_FAILED
+    }
+}
+
+/// The descendant the drain has to find.
+fn orphan(create: bool) -> i32 {
+    let deadline = Instant::now() + ORPHAN_BUDGET;
+    let mut options = std::fs::OpenOptions::new();
+    options.append(true).create(create);
+    while Instant::now() < deadline {
+        if let Ok(mut file) = options.open(ARTIFACT) {
+            let _ = file.write_all(TAMPER);
+        }
+        std::thread::sleep(POLL);
+    }
+    0
+}
+
+/// Blocks until the orphan has created the artifact.
+fn await_artifact() -> bool {
+    let deadline = Instant::now() + ORPHAN_BUDGET;
+    while Instant::now() < deadline {
+        if std::fs::metadata(ARTIFACT).is_ok() {
+            return true;
+        }
+        std::thread::sleep(POLL);
+    }
+    false
+}
+
+/// Routes the three roles. The profiler passes the program no argv at all, so
+/// the argv-less case is the root by construction and `create` can only come
+/// from which of the two binary targets was built.
+pub fn dispatch(create: bool) -> i32 {
+    let mut argv = std::env::args().skip(1);
+    let role = argv.next();
+    let creates = argv.next().as_deref() == Some(CREATE);
+    match role.as_deref() {
+        None => root(create),
+        Some(value) if value == RELAY => relay(if creates { CREATE } else { KEEP }),
+        Some(value) if value == ORPHAN => orphan(creates),
+        Some(_) => EXIT_UNKNOWN_ROLE,
+    }
+}
+
+fn main() {
+    std::process::exit(dispatch(false));
+}
+"##;
+
+/// The pre-creating shape of the same descendant, as its own binary target
+/// because the gateway gives the profiled program no argv to select one with.
+const PRECREATE_SOURCE: &str = r##"//! The same descendant, in the shape that gets to the artifact first.
+//!
+//! Identical to `rust-mcp-profile-fork` in every respect but one: the orphan is
+//! allowed to *create* `/profile/stacks.txt`, and the root does not start its
+//! workload until the file is on the volume. The helper then opens its own
+//! output `O_WRONLY|O_CREAT|O_EXCL` onto a path it did not write, refuses to
+//! overwrite it, and exits 4 with nothing exported.
+
+#[path = "fork.rs"]
+mod fork;
+
+fn main() {
+    std::process::exit(fork::dispatch(true));
+}
+"##;
+
+/// The profile fixture, plus four binary targets this qualification needs and
 /// the product cannot reach otherwise: the gateway passes the profiled child no
 /// argv at all, so `rust-mcp-profile-workload --zero` is unreachable through
-/// `rust.profile.flamegraph`. Both added targets call the fixture's own
-/// `known_hot_frame` through `#[path]`, so the measured code is the fixture's.
+/// `rust.profile.flamegraph`, and so is any other shape of the same program.
+/// Every added target calls the fixture's own `known_hot_frame` through
+/// `#[path]`, so the measured code is the fixture's.
 fn profile_bundle() -> Result<SourceBundle, Failure> {
     let base = fixture_bundle("profile-workload")?;
     let manifest = base
@@ -977,7 +1172,9 @@ fn profile_bundle() -> Result<SourceBundle, Failure> {
     let mut manifest = String::from_utf8(manifest)?;
     manifest.push_str(
         "\n[[bin]]\nname = \"rust-mcp-profile-zero\"\npath = \"src/zero.rs\"\n\
-         \n[[bin]]\nname = \"rust-mcp-profile-hold\"\npath = \"src/hold.rs\"\n",
+         \n[[bin]]\nname = \"rust-mcp-profile-hold\"\npath = \"src/hold.rs\"\n\
+         \n[[bin]]\nname = \"rust-mcp-profile-fork\"\npath = \"src/fork.rs\"\n\
+         \n[[bin]]\nname = \"rust-mcp-profile-precreate\"\npath = \"src/precreate.rs\"\n",
     );
     let base = replacing(&base, "Cargo.toml", manifest.into_bytes())?;
     with_files(
@@ -1003,6 +1200,11 @@ fn profile_bundle() -> Result<SourceBundle, Failure> {
                       workload::known_hot_frame(std::time::Duration::from_secs(30))\n    );\n\
                   }\n"
                     .to_vec(),
+            ),
+            ("src/fork.rs".into(), FORK_SOURCE.as_bytes().to_vec()),
+            (
+                "src/precreate.rs".into(),
+                PRECREATE_SOURCE.as_bytes().to_vec(),
             ),
         ],
     )
@@ -1394,6 +1596,234 @@ fn m5_profile_flamegraph_is_qualified_natively() -> Result<(), Failure> {
     cut.selections
         .push(selection("denial-control", started, "passed", denial));
     clean(gateway, "m5-03 after denial control")?;
+
+    // -- selection 10: the PID-namespace drain, observed reaping -------------
+    //
+    // Until this selection every profiling manifest on this tree reported
+    // `descendants_reaped: 0`. `rust-mcp-profile-workload` is straight-line, so
+    // its child was always already reaped when the drain ran: `kill(-1)`
+    // reached an empty namespace and the reap loop returned on its first
+    // `ECHILD`. The drain had therefore never been observed reaping anything,
+    // and it is the last barrier between a surviving descendant and the two
+    // artifacts the export phase tars — a descendant alive across `emit` could
+    // rewrite both files after the helper created them.
+    //
+    // `rust-mcp-profile-fork` leaves a grandchild parented onto the helper
+    // itself, so here the drain has work to do; and the run must still be
+    // accepted, because an artifact written after a real reap is still the
+    // helper's own.
+    let started = Instant::now();
+    let forking = ProfileOptions::new("rust-mcp-profile-fork".into(), 99, 4)
+        .map_err(|error| format!("options: {error:?}"))?;
+    let observation = performance_port::profile(gateway, &source, &vendor, &forking, &Proceed)
+        .map_err(|error| format!("descendant drain: {error:?}"))?;
+    assert_eq!(observation.build, ProfileBuildOutcome::Built);
+    assert_eq!(
+        observation.status,
+        ProfileStatus::Complete,
+        "counters: {}",
+        profile_counters(&observation)
+    );
+    // The fixture returns non-zero from every path on which the descendant was
+    // not created, so this is the profiled program's own account of the double
+    // fork having happened at all.
+    assert_eq!(
+        observation.child.exit_code,
+        Some(0),
+        "the profiled program did not complete its double fork: {:?}",
+        observation.child
+    );
+    assert_eq!(observation.child.signal, None);
+    assert!(observation.counters.samples_collected > 0);
+    assert_eq!(observation.perf_errno, None);
+    assert!(observation.consistent());
+    assert!(!observation.top_frames.is_empty());
+    // The application's own gate over the published observation, the same one
+    // the denial control uses.
+    rust_engineering_application::profile::validate_profile_observation(
+        &observation,
+        &forking,
+        &vendor,
+    )
+    .map_err(|error| format!("the drained observation did not validate: {error:?}"))?;
+    let stacks = String::from_utf8(observation.stacks.clone())?;
+    let (frames, hot, total) = hottest(&stacks)?;
+    assert!(
+        frames.iter().any(|frame| frame.contains("known_hot_frame")),
+        "the hottest stack is not the fixture's own hot frame: {frames:?}"
+    );
+    // What the descendant writes if it ever reaches the artifact. Finding it
+    // here would mean the file was rewritten after the helper published it.
+    assert!(
+        !stacks.contains("a descendant wrote this"),
+        "a descendant reached the artifact the helper published"
+    );
+
+    // The drain's own two counters, which the DTO does not carry, plus the
+    // reconciliation the port performs — recomputed here over the bytes of one
+    // execution, so that the reap and the reconciliation are observed on the
+    // same run rather than on two.
+    let execution = performance_gateway::execute_profile(
+        gateway,
+        &source,
+        &vendor,
+        &forking,
+        ExecutionLimits::new_job(300_000, LOG_BYTES).ok_or("limits")?,
+        &Proceed,
+    )
+    .map_err(|error| format!("descendant drain manifest: {error:?}"))?;
+    let output = execution.profile.as_ref().ok_or("no profile output")?;
+    let run = output.run.as_ref().ok_or("the sampler never ran")?;
+    assert_eq!(
+        run.code,
+        Some(0),
+        "the helper did not profile the forking target: {:?}",
+        run.code
+    );
+    let manifest: Value = serde_json::from_slice(&output.manifest)?;
+    let descendants_reaped = manifest
+        .get("descendants_reaped")
+        .and_then(Value::as_u64)
+        .ok_or("the helper manifest declared no descendants_reaped")?;
+    assert!(
+        descendants_reaped > 0,
+        "the profiled program left a descendant behind and the drain reaped nothing: {manifest}"
+    );
+    assert_eq!(
+        manifest.get("namespace_drained").and_then(Value::as_bool),
+        Some(true),
+        "the helper could not empty its PID namespace before writing"
+    );
+    assert_eq!(
+        manifest.get("child_exit_code").and_then(Value::as_i64),
+        Some(0),
+        "the profiled program did not complete its double fork: {manifest}"
+    );
+    // `manifest_matches_the_artifact`, recomputed: one line per distinct stack
+    // and one sample per unit of count, with no rounding on either side.
+    let drained_stacks = String::from_utf8(output.stacks.clone())?;
+    let (_, _, artifact_samples) = hottest(&drained_stacks)?;
+    let artifact_stacks = drained_stacks
+        .lines()
+        .filter(|line| !line.trim().is_empty())
+        .count();
+    assert_eq!(
+        manifest.get("stacks_written").and_then(Value::as_u64),
+        u64::try_from(artifact_stacks).ok(),
+        "the manifest and the artifact disagree on how many stacks were written"
+    );
+    assert_eq!(
+        manifest.get("samples_collected").and_then(Value::as_u64),
+        Some(artifact_samples),
+        "the manifest and the artifact disagree on how many samples were collected"
+    );
+    assert!(
+        !drained_stacks.contains("a descendant wrote this"),
+        "a descendant reached the artifact the helper published"
+    );
+    let mut drained = profile_counters(&observation);
+    if let Some(object) = drained.as_object_mut() {
+        object.insert(
+            "hottest_stack".into(),
+            json!({"frames": frames, "samples": hot, "total_samples": total}),
+        );
+        object.insert("helper_exit".into(), json!(run.code));
+        object.insert("descendants_reaped".into(), json!(descendants_reaped));
+        object.insert("namespace_drained".into(), json!(true));
+        object.insert(
+            "reconciled_artifact".into(),
+            json!({
+                "distinct_stacks": artifact_stacks,
+                "total_samples": artifact_samples,
+            }),
+        );
+        object.insert("helper_manifest".into(), manifest);
+        object.insert("manifest_sha256".into(), json!(digest(&output.manifest)));
+    }
+    drop(execution);
+    cut.selections.push(selection(
+        "profile-descendant-drained",
+        started,
+        "passed",
+        drained,
+    ));
+    clean(gateway, "m5-03 after descendant drain")?;
+
+    // -- selection 11: a descendant that got to the artifact first ------------
+    //
+    // The other half of the containment claim, and the one the `O_EXCL` in the
+    // helper's `emit` exists for. Here the grandchild creates
+    // `/profile/stacks.txt` before the profiled program starts its workload, so
+    // the helper opens its own output onto a path it did not write. It refuses
+    // to overwrite it, reports an internal failure rather than a denial and
+    // exits 4; the gateway exports nothing on that exit, so the host has no
+    // manifest to vouch for and refuses the operation instead of publishing an
+    // artifact somebody else authored.
+    //
+    // The ordering is structural rather than a race: the profiled program does
+    // not start its budget until the file is on the volume, and the helper does
+    // not write until that program exits or its sampling window closes.
+    let started = Instant::now();
+    let precreated = ProfileOptions::new("rust-mcp-profile-precreate".into(), 99, 4)
+        .map_err(|error| format!("options: {error:?}"))?;
+    let refused = performance_port::profile(gateway, &source, &vendor, &precreated, &Proceed);
+    assert_eq!(
+        refused.err(),
+        Some(SecurityError::InvalidMetadata),
+        "an artifact a descendant created first must refuse the run, not be published"
+    );
+    let execution = performance_gateway::execute_profile(
+        gateway,
+        &source,
+        &vendor,
+        &precreated,
+        ExecutionLimits::new_job(300_000, LOG_BYTES).ok_or("limits")?,
+        &Proceed,
+    )
+    .map_err(|error| format!("pre-created artifact: {error:?}"))?;
+    let output = execution.profile.as_ref().ok_or("no profile output")?;
+    assert_eq!(
+        output.build.code,
+        Some(0),
+        "the pre-creating target did not build"
+    );
+    let run = output.run.as_ref().ok_or("the sampler never ran")?;
+    assert_eq!(
+        run.code,
+        Some(4),
+        "a pre-created output must be an internal failure, not {:?}",
+        run.code
+    );
+    assert!(
+        output.stacks.is_empty(),
+        "the gateway exported a stacks artifact from a refused run"
+    );
+    assert!(
+        output.manifest.is_empty(),
+        "the gateway exported a manifest from a refused run"
+    );
+    let stderr = String::from_utf8_lossy(&run.stderr).into_owned();
+    assert!(
+        stderr.contains("the profile outputs could not be written"),
+        "the helper did not announce the refusal: {stderr:?}"
+    );
+    let helper_exit = run.code;
+    let stderr_bytes = run.stderr.len();
+    drop(execution);
+    cut.selections.push(selection(
+        "profile-precreated-artifact-refused",
+        started,
+        "passed",
+        json!({
+            "port_error": "InvalidMetadata",
+            "helper_exit": helper_exit,
+            "exported_stacks_bytes": 0,
+            "exported_manifest_bytes": 0,
+            "helper_stderr_bytes": stderr_bytes,
+            "helper_stderr": stderr,
+        }),
+    ));
+    clean(gateway, "m5-03 after pre-created artifact")?;
 
     cut.residue_after = clean(gateway, "m5-03 after")?;
     publish(&cut, &image)?;

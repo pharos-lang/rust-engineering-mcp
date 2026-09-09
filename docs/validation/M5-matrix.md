@@ -64,11 +64,13 @@ Recibo conjunto: [M5-runtime.json](M5-runtime.json).
 | M5-01 | `unrecognised-harness` | passed, 8,1 s; exit 0, sin dataset, `HarnessUnrecognized`, logs reportados |
 | M5-01 | `project-cargo-configuration-refused` | passed, 0,5 s; rechazado antes de crear volumen, sin residuo |
 | M5-01 | `cancellation-mid-run` | passed, 13,6 s; `cargo bench` observado vivo, cancelado, árbol unido, sin residuo |
-| M5-03 | `profile-positive` | passed, 10,6 s; 195 muestras, 0 perdidas, 2 148 frames, 196 sin resolver, completo |
-| M5-03 | `profile-cpus-sampled` | passed, 10,3 s; 16 CPUs muestreadas de 16 del guest, `namespace_drained: true`, `descendants_reaped: 0` |
-| M5-03 | `zero-sample-control` | passed, 8,2 s; `NoSamples`, 0 muestras, SVG de 899 bytes sin ranking |
-| M5-03 | `cancellation-during-profiling` | passed, 15,8 s; helper observado vivo en 594 sondeos, cancelado, sin residuo |
-| M5-03 | `denial-control` | passed, 17,0 s; helper exit 3, `ProfilerUnavailable`, `perf_errno = 1` (EPERM), sin stacks ni SVG |
+| M5-03 | `profile-positive` | passed, 11,1 s; 197 muestras, 0 perdidas, 2 170 frames, 198 sin resolver, completo |
+| M5-03 | `profile-cpus-sampled` | passed, 10,9 s; 16 CPUs muestreadas de 16 del guest, `namespace_drained: true`, `descendants_reaped: 0` |
+| M5-03 | `zero-sample-control` | passed, 8,8 s; `NoSamples`, 0 muestras, SVG de 899 bytes sin ranking |
+| M5-03 | `cancellation-during-profiling` | passed, 15,2 s; helper observado vivo en 586 sondeos, cancelado, sin residuo |
+| M5-03 | `denial-control` | passed, 17,4 s; helper exit 3, `ProfilerUnavailable`, `perf_errno = 1` (EPERM), sin stacks ni SVG |
+| M5-03 | `profile-descendant-drained` | passed, 21,9 s; nieto vivo tras el doble fork, **`descendants_reaped: 1`**, `namespace_drained: true`, helper exit 0, hijo exit 0, 194 muestras y la pila caliente en `known_hot_frame`; manifest y artifact reconcilian (3 pilas, 195 muestras) y el artifact no lleva escritura del descendiente |
+| M5-03 | `profile-precreated-artifact-refused` | passed, 21,1 s; el nieto crea `/profile/stacks.txt` antes del workload, helper exit 4 (`internal failure: the profile outputs could not be written`), el gateway no exporta nada y el host devuelve `InvalidMetadata` |
 | M5-04 | `release-positive` | passed, 8,9 s; tamaño medido == tamaño reportado |
 | M5-04 | `release-lto` | passed, 10,1 s; binario estrictamente menor |
 | M5-04 | `missing-binary-target` | passed, 8,4 s; fallo observado, no error de infraestructura |

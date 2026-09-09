@@ -172,6 +172,24 @@ evidencia de nada. Se decide en consecuencia:
   describe no se puede avalar. Esto atrapa también a un helper simplemente
   defectuoso, no solo a un hijo hostil.
 
+Las tres afirmaciones están **observadas**, no solo razonadas. Hasta el
+2026-09-09 ninguna ejecución registrada había hecho trabajar al vaciado:
+`rust-mcp-profile-workload` es de línea recta, su hijo ya estaba cosechado
+cuando el vaciado corría, `kill(-1)` alcanzaba un namespace vacío y
+`descendants_reaped` era `0` en todos los recibos del árbol. Dos selecciones
+nativas del corte M5-03, sobre la imagen admitida, lo cierran
+(`docs/validation/M5-03-runtime.json`):
+
+- `profile-descendant-drained` perfila un binario que deja un nieto vivo por
+  doble fork —reparentado sobre el propio helper, que es PID 1— y observa
+  `descendants_reaped: 1` con `namespace_drained: true`, helper exit 0, hijo
+  exit 0, manifest y artifact reconciliando (3 pilas, 195 muestras) y ninguna
+  escritura del descendiente en el artifact publicado.
+- `profile-precreated-artifact-refused` deja que el nieto cree
+  `/profile/stacks.txt` antes de que el programa perfilado arranque su workload
+  y observa el `O_EXCL`: helper exit 4, el gateway no exporta nada e
+  `InvalidMetadata` en el host.
+
 Consecuencias que se aceptan: el host y el helper quedan acoplados por versión
 —viajan en una sola imagen construida de un solo árbol—, y la comprobación de
 `namespace_drained` convierte la topología del contenedor (`--init=false`,

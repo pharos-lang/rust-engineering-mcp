@@ -658,6 +658,16 @@ en [ADR-074 §5.1](adr/ADR-074-profiling-capability-and-containment.md):
   conjunto exacto de claves. Cualquier desacuerdo es `InvalidMetadata`: los bytes
   pueden estar bien, pero el metadato que los describe no se puede avalar.
 
+Los dos primeros están observados sobre la imagen admitida, no solo razonados.
+El corte M5-03 perfila un binario que deja un nieto vivo por doble fork:
+`profile-descendant-drained` registra `descendants_reaped: 1` con
+`namespace_drained: true` y la ejecución aceptada, y
+`profile-precreated-artifact-refused` deja que ese nieto cree
+`/profile/stacks.txt` primero y registra helper exit 4, nada exportado e
+`InvalidMetadata` ([recibo](validation/M5-03-runtime.json)). Antes de esas dos
+selecciones `descendants_reaped` era `0` en todos los recibos del árbol, así que
+el vaciado nunca se había visto cosechar nada.
+
 La [prueba de capability](validation/M5-profiling-capability-probe.json) del
 2026-09-08 registra las dos filas sobre la imagen M4 aprobada
 `sha256:25ed3626e710…`, con las banderas del gateway y sin `sudo`, `--privileged`,
