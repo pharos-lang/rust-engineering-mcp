@@ -58,7 +58,39 @@ a closed set and never echo caller-supplied bytes.
    the child exits, `--duration-ms` elapses on the monotonic clock, or
    `--max-samples` is reached.
 7. `ioctl(PERF_EVENT_IOC_DISABLE)` on every event, `SIGKILL` and reap the child
-   if it is still alive, then drain what is left in the rings.
+   if it is still alive, then **empty the PID namespace** (below), then drain
+   what is left in the rings.
+8. Create both output files with `O_WRONLY|O_CREAT|O_EXCL` and write them. A
+   path that already exists is `EEXIST` and exits 4; the helper is the only
+   writer of those two paths, so a file already sitting there was put there by
+   the profiled program and is never overwritten.
+
+## Emptying the PID namespace
+
+The gateway starts the sampling container with `--init=false` and this helper
+as the entrypoint, so the helper is **pid 1 of a PID namespace that holds the
+profiled program and nothing else**. Between the last sample and the two
+`write` calls there is a window in which the profiled program can still run:
+killing only the direct child leaves any process it double-forked alive across
+the render and both writes, and the last write before pid 1 exits is the one
+the export phase tars. The manifest would then be the grandchild's, not the
+helper's.
+
+So, after disabling the events and before writing anything, the helper sends
+`kill(-1, SIGKILL)` and reaps with `waitpid(-1, …, WNOHANG)` until it answers
+`ECHILD`, under a 5 s deadline. `-1` reaches every process in the namespace,
+the caller excepted, and nothing outside it. This also closes the same window
+on the `duration_limit` and `sample_limit` paths, which previously killed the
+direct child and left its descendants running.
+
+Being pid 1 is checked, not assumed. `getpid()` is compared against 1 in
+`drain_plan`, which lives in `src/lib.rs` and is unit tested; anywhere but pid
+1, `kill(-1, …)` would signal every process this uid can reach, so the helper
+falls back to killing the known child only and reports `namespace_drained:
+false`. The deadline expiring with children still alive reports the same thing.
+`namespace_drained: false` means the artifacts were written while something
+else could still have rewritten them, so nothing in that manifest is
+corroborated.
 
 `Command::spawn` blocks reading the exec status pipe until the child execs, and
 the child stops before `exec`, so the spawn runs on a helper thread while the
@@ -193,6 +225,8 @@ Exactly these keys, always all present, in this order, followed by one LF:
   "max_depth": 128,
   "modules_seen": 5,
   "cpus_sampled": 4,
+  "descendants_reaped": 1,
+  "namespace_drained": true,
   "child_exit_code": 0,
   "child_signal": null,
   "perf_errno": null
@@ -209,6 +243,15 @@ were refused, and is `0` on the `profiler_unavailable` path. A value below the
 machine's CPU count means the profile is real but covers only part of the
 machine, so compare it against `nproc` before treating sample counts as
 absolute.
+
+`descendants_reaped` is how many processes the helper reaped when it emptied the
+PID namespace after the sampling window. It is `0` on a run whose child had
+already been reaped, and larger than `1` when the profiled program forked.
+`namespace_drained` is `true` only when the whole namespace was signalled *and*
+`waitpid` reported nothing left before the deadline. **`false` invalidates the
+rest of the manifest**: it means some process was still able to rewrite the two
+artifacts while they were being written, so a consumer must refuse the run
+rather than read its counters.
 
 The five statuses are closed and mutually exclusive:
 
@@ -237,9 +280,12 @@ quietly under-reporting.
   CPUs were refused is not this case: it exits 0 with a lower `cpus_sampled`.
 - `4` — internal or I/O failure: the child process could not be created at all
   (the `fork` failed, or it never reported itself stopped), an output file could
-  not be written, or the binary is running off-target. A child that was created
-  but whose `exec` failed is not this case: that is a child failure, so it exits
-  0 with `"status":"child_exited"` and a null `child_exit_code`.
+  not be written **or already existed**, or the binary is running off-target. A
+  child that was created but whose `exec` failed is not this case: that is a
+  child failure, so it exits 0 with `"status":"child_exited"` and a null
+  `child_exit_code`. A pre-created output path is not this case either way
+  round: an output the helper may not write is not the profiler being
+  unavailable, so it never becomes `profiler_unavailable`.
 
 The helper never panics on a normal path; a panic hook and `catch_unwind` map
 any residual fault to exit 4 with one fixed line.
@@ -259,6 +305,13 @@ maps.
   task, no cgroup events, no kernel or hypervisor samples. The per-CPU events
   are still per-task: each is opened with the child's pid, so it observes that
   task's time on that CPU and never another tenant's.
+- **Nothing of the workload is alive when the artifacts are written.** The
+  helper is pid 1 of its own PID namespace and empties it — `kill(-1, SIGKILL)`
+  plus a bounded reap loop — after the last sample and before the render and the
+  two `O_EXCL` creates. A double-forked grandchild therefore cannot rewrite
+  `stacks.txt` or `manifest.json` behind the helper's back, a pre-created file
+  is refused rather than overwritten, and a namespace that could not be emptied
+  is declared in the manifest instead of being passed off as a clean run.
 - **It emits no paths.** Module paths are used to open ELF files and are then
   discarded. The stacks file contains symbol names in a closed alphabet; the
   manifest contains only numbers and fixed strings. Neither output can carry a

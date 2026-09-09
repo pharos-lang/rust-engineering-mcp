@@ -18,8 +18,8 @@ use crate::criterion_dataset;
 use crate::performance_gateway::{
     self, APPLIED_CPU_MILLICORES, APPLIED_MEMORY_BYTES, APPLIED_PIDS, BENCHMARK_BUDGET_MS,
     BENCHMARK_MEASUREMENT_MS, BENCHMARK_SAMPLE_SIZE, BENCHMARK_WARM_UP_MS, BLOAT_BUDGET_MS,
-    BloatOutput, HardwareProbe, PROFILE_BUDGET_MS, PerformanceError, PerformanceExecution,
-    PerformanceKind, ProfileOutput,
+    BloatOutput, HardwareProbe, PROFILE_BUDGET_MS, PROFILE_MAX_SAMPLING_MS, PerformanceError,
+    PerformanceExecution, PerformanceKind, ProfileOutput,
 };
 use crate::profile_stacks::{self, FoldedProfile};
 use crate::profile_svg::{self, SvgOptions};
@@ -40,8 +40,8 @@ use rust_engineering_domain::bloat::{
     BloatObservation, BloatOptions, MeasuredBinary,
 };
 use rust_engineering_domain::profile::{
-    PROFILE_BACKEND, ProfileBuildOutcome, ProfileChild, ProfileCompleteness, ProfileCounters,
-    ProfileFrameWeight, ProfileObservation, ProfileOptions, ProfileStatus,
+    PROFILE_BACKEND, PROFILE_MAX_DEPTH, ProfileBuildOutcome, ProfileChild, ProfileCompleteness,
+    ProfileCounters, ProfileFrameWeight, ProfileObservation, ProfileOptions, ProfileStatus,
 };
 use rust_engineering_domain::{
     CargoVendorSnapshot, ExecutionLimits, ExecutionTermination, RuntimeIdentity, SourceBundle,
@@ -411,37 +411,154 @@ pub(super) fn benchmark(
 
 // -- rust.profile.flamegraph -------------------------------------------------
 
-/// The helper's own manifest. Unknown keys are tolerated on purpose: the helper
-/// gains fields (`cpus_sampled`) ahead of this reader, and refusing a whole
-/// profile over a key this adapter does not use would discard real evidence.
+/// The one manifest this adapter reads: the document
+/// `fixtures/profile-helper` writes, in the version it writes today.
+const HELPER_MANIFEST_SCHEMA: &str = "rust-engineering-mcp.profile-helper.v1";
+
+/// Every key the helper writes, and the complete set this reader accepts.
+///
+/// The document's own key set is checked against this before it is typed,
+/// because `serde` reads an absent `Option` field as `None`: without the check
+/// the three `number | null` keys would silently default, which is the
+/// tolerance this reader exists to remove. `deny_unknown_fields` on
+/// [`HelperManifest`] then keeps the two lists from drifting apart.
+const HELPER_MANIFEST_KEYS: [&str; 19] = [
+    "schema",
+    "status",
+    "frequency_hz",
+    "requested_duration_ms",
+    "observed_duration_ms",
+    "samples_collected",
+    "samples_lost",
+    "stacks_written",
+    "frames_total",
+    "frames_unresolved",
+    "stacks_truncated",
+    "max_depth",
+    "modules_seen",
+    "cpus_sampled",
+    "descendants_reaped",
+    "namespace_drained",
+    "child_exit_code",
+    "child_signal",
+    "perf_errno",
+];
+
+/// The helper's own manifest, exactly as the helper writes it.
+///
+/// Every key is required and no unknown key is accepted. That is deliberately
+/// the opposite of what this reader used to do: with every field
+/// `#[serde(default)]` and the document read through `unwrap_or_default()`, an
+/// empty, truncated or fabricated manifest deserialized into a clean-looking
+/// set of counters, and the adapter published them as a measurement. The host
+/// cannot re-run the sampler, so this document is its only account of what
+/// happened inside a container full of the project's own code; a document that
+/// is not exactly the one this helper version writes is not that account, and
+/// tolerance here buys a forger far more than it buys a future helper.
+///
+/// A helper that gains a field is therefore a breaking change for this reader,
+/// on purpose: helper and adapter ship in one image (`M5_IMAGE`) built from one
+/// tree, so they are versioned together and there is no skew to tolerate.
+///
+/// The `Default` impl is a host-side "no helper ran" value used when the build
+/// failed, never a deserialization fallback: `serde` fills nothing in.
 #[derive(Debug, Default, Deserialize)]
+#[serde(deny_unknown_fields)]
 struct HelperManifest {
-    #[serde(default)]
+    schema: String,
     status: String,
-    #[serde(default)]
+    frequency_hz: u32,
+    requested_duration_ms: u64,
     observed_duration_ms: u64,
-    #[serde(default)]
     samples_collected: u64,
-    #[serde(default)]
     samples_lost: u64,
-    #[serde(default)]
     stacks_written: u64,
-    #[serde(default)]
     frames_total: u64,
-    #[serde(default)]
     frames_unresolved: u64,
-    #[serde(default)]
     stacks_truncated: u64,
-    #[serde(default)]
     max_depth: u32,
-    #[serde(default)]
     modules_seen: u64,
-    #[serde(default)]
+    cpus_sampled: u32,
+    descendants_reaped: u64,
+    namespace_drained: bool,
     child_exit_code: Option<i32>,
-    #[serde(default)]
     child_signal: Option<i32>,
-    #[serde(default)]
     perf_errno: Option<i32>,
+}
+
+/// Reads the helper's manifest and refuses anything that is not it.
+///
+/// `InvalidMetadata` is the closest existing error and the exact one: the
+/// artifact bytes may be fine, it is the metadata describing them that this
+/// host cannot vouch for. It is also what [`profile`] already returns for an
+/// observation that contradicts itself, and what the application maps to a
+/// refusal rather than to a project failure.
+fn parse_helper_manifest(bytes: &[u8]) -> Result<HelperManifest, SecurityError> {
+    let document: serde_json::Map<String, serde_json::Value> =
+        serde_json::from_slice(bytes).map_err(|_| SecurityError::InvalidMetadata)?;
+    if document.len() != HELPER_MANIFEST_KEYS.len()
+        || !HELPER_MANIFEST_KEYS
+            .iter()
+            .all(|key| document.contains_key(*key))
+    {
+        return Err(SecurityError::InvalidMetadata);
+    }
+    let manifest: HelperManifest =
+        serde_json::from_slice(bytes).map_err(|_| SecurityError::InvalidMetadata)?;
+    if manifest.schema != HELPER_MANIFEST_SCHEMA {
+        return Err(SecurityError::InvalidMetadata);
+    }
+    Ok(manifest)
+}
+
+/// Whether the manifest is an account of *this* run, checked against what this
+/// host itself put on the helper's argv and against the container it created.
+///
+/// None of this needs the artifact; it is the part a merely buggy helper fails
+/// just as readily as a forged one.
+fn manifest_describes_this_run(
+    manifest: &HelperManifest,
+    options: &ProfileOptions,
+    status: ProfileStatus,
+) -> bool {
+    // The three numbers the gateway put on the argv, echoed back. A manifest
+    // that does not repeat the request is not the answer to it.
+    let echoes_the_request = manifest.frequency_hz == options.frequency_hz()
+        && manifest.requested_duration_ms == options.duration_ms().min(PROFILE_MAX_SAMPLING_MS)
+        && manifest.max_depth == PROFILE_MAX_DEPTH;
+    // The helper empties its PID namespace before writing either artifact. When
+    // it reports that it could not, it is telling us the artifacts were written
+    // while another process could still rewrite them; there is then nothing
+    // here to corroborate, whatever the numbers say.
+    let artifacts_were_the_helper_s =
+        manifest.namespace_drained && manifest.descendants_reaped <= u64::from(APPLIED_PIDS);
+    // ADR-074 §3: a denial is reportable only with the errno that produced it,
+    // and a denial sampled no CPU and collected nothing. The converse holds
+    // too: a run that was not denied has no errno to report.
+    let denial_is_coherent = if status == ProfileStatus::ProfilerUnavailable {
+        manifest.perf_errno.is_some()
+            && manifest.cpus_sampled == 0
+            && manifest.samples_collected == 0
+            && manifest.stacks_written == 0
+    } else {
+        manifest.perf_errno.is_none()
+    };
+    // Samples come from armed per-CPU events; there is no other producer.
+    let samples_had_a_source = manifest.samples_collected == 0 || manifest.cpus_sampled > 0;
+    echoes_the_request && artifacts_were_the_helper_s && denial_is_coherent && samples_had_a_source
+}
+
+/// The manifest counts what the helper says it wrote; [`FoldedProfile`] is what
+/// this host parsed back out of the artifact. Two independent accounts of one
+/// run, so they must agree exactly — the helper writes one line per distinct
+/// stack and one sample per unit of count, with no rounding and no sampling of
+/// its own.
+///
+/// This is the check a fabricated manifest cannot pass without also fabricating
+/// the stacks file, and the one a helper with an off-by-one counter fails.
+fn manifest_matches_the_artifact(manifest: &HelperManifest, profile: &FoldedProfile) -> bool {
+    u64::try_from(profile.distinct_stacks).is_ok_and(|distinct| distinct == manifest.stacks_written)
+        && profile.total_samples == manifest.samples_collected
 }
 
 fn helper_status(value: &str) -> ProfileStatus {
@@ -500,17 +617,21 @@ fn profile_observation(
     output: &ProfileOutput,
     identity: RuntimeIdentity,
     execution: &PerformanceExecution,
-) -> ProfileObservation {
-    let manifest: HelperManifest = serde_json::from_slice(&output.manifest).unwrap_or_default();
+) -> Result<ProfileObservation, SecurityError> {
     // A target that did not build never started a child, and the helper's own
     // vocabulary for "the child never started" is `ChildExited`. It is not a
     // profiler denial and is never reported as one: ADR-074 §3 makes a denial
     // reportable only together with the errno that produced it, and there is no
     // errno here because `perf_event_open` was never reached.
-    let status = if output.run.is_some() {
-        helper_status(&manifest.status)
+    let (manifest, status) = if output.run.is_some() {
+        let manifest = parse_helper_manifest(&output.manifest)?;
+        let status = helper_status(&manifest.status);
+        if !manifest_describes_this_run(&manifest, options, status) {
+            return Err(SecurityError::InvalidMetadata);
+        }
+        (manifest, status)
     } else {
-        ProfileStatus::ChildExited
+        (HelperManifest::default(), ProfileStatus::ChildExited)
     };
     let counters = ProfileCounters {
         observed_duration_ms: manifest.observed_duration_ms,
@@ -529,6 +650,24 @@ fn profile_observation(
     let folded = (output.run.is_some() && completeness != ProfileCompleteness::Unavailable)
         .then(|| profile_stacks::parse_folded(&output.stacks).ok())
         .flatten();
+    match &folded {
+        Some(profile) => {
+            if !manifest_matches_the_artifact(&manifest, profile) {
+                return Err(SecurityError::InvalidMetadata);
+            }
+        }
+        // A sampler that ran and was not denied wrote a stacks file this host
+        // could not parse, so the counters have nothing to answer to. They are
+        // refused rather than published beside an empty artifact: an
+        // uncorroborated count is exactly what this reconciliation exists to
+        // stop. The other two ways to reach `None` — a denial, or a target that
+        // never built — are declared and have nothing to compare against.
+        None => {
+            if output.run.is_some() && completeness != ProfileCompleteness::Unavailable {
+                return Err(SecurityError::InvalidMetadata);
+            }
+        }
+    }
     let top_frames = folded.as_ref().map(frame_weights).unwrap_or_default();
     let title = format!(
         "{} @ {} Hz",
@@ -540,7 +679,7 @@ fn profile_observation(
         .and_then(|profile| profile_svg::render(profile, &title, SvgOptions::default()).ok())
         .unwrap_or_default();
     let reported = output.run.as_ref().unwrap_or(&output.build);
-    ProfileObservation {
+    Ok(ProfileObservation {
         options: options.clone(),
         backend: PROFILE_BACKEND,
         build: build_outcome(&output.build),
@@ -568,7 +707,7 @@ fn profile_observation(
         stderr: reported.stderr.clone(),
         stdout_truncated: reported.stdout_truncated,
         stderr_truncated: reported.stderr_truncated,
-    }
+    })
 }
 
 pub(super) fn profile(
@@ -592,7 +731,7 @@ pub(super) fn profile(
         .profile
         .as_ref()
         .ok_or(SecurityError::InvalidMetadata)?;
-    let observation = profile_observation(options, output, identity, &execution);
+    let observation = profile_observation(options, output, identity, &execution)?;
     if observation.consistent() {
         Ok(observation)
     } else {
@@ -1079,23 +1218,264 @@ mod tests {
         Ok(())
     }
 
+    /// The manifest `fixtures/profile-helper` writes for [`sampled_output`],
+    /// as an ordered key/value list so a test can bend exactly one key.
+    fn helper_fields() -> Vec<(String, String)> {
+        [
+            ("schema", format!("\"{HELPER_MANIFEST_SCHEMA}\"")),
+            ("status", "\"complete\"".to_owned()),
+            ("frequency_hz", "99".to_owned()),
+            ("requested_duration_ms", "10000".to_owned()),
+            ("observed_duration_ms", "9987".to_owned()),
+            ("samples_collected", "4".to_owned()),
+            ("samples_lost", "0".to_owned()),
+            ("stacks_written", "2".to_owned()),
+            ("frames_total", "4".to_owned()),
+            ("frames_unresolved", "0".to_owned()),
+            ("stacks_truncated", "0".to_owned()),
+            ("max_depth", "127".to_owned()),
+            ("modules_seen", "1".to_owned()),
+            ("cpus_sampled", "4".to_owned()),
+            ("descendants_reaped", "0".to_owned()),
+            ("namespace_drained", "true".to_owned()),
+            ("child_exit_code", "0".to_owned()),
+            ("child_signal", "null".to_owned()),
+            ("perf_errno", "null".to_owned()),
+        ]
+        .into_iter()
+        .map(|(key, value)| (key.to_owned(), value))
+        .collect()
+    }
+
+    fn render_fields(fields: &[(String, String)]) -> Vec<u8> {
+        let body = fields
+            .iter()
+            .map(|(key, value)| format!("\"{key}\":{value}"))
+            .collect::<Vec<_>>()
+            .join(",");
+        format!("{{{body}}}\n").into_bytes()
+    }
+
+    /// The helper's manifest with `edits` applied: a key the document already
+    /// carries is replaced, a key it does not is appended (which is how the
+    /// unknown-field refusal is driven), and `None` removes it.
+    fn manifest_bytes(edits: &[(&str, Option<&str>)]) -> Vec<u8> {
+        let mut fields = helper_fields();
+        for (key, value) in edits {
+            match value {
+                Some(value) => {
+                    if let Some(field) = fields.iter_mut().find(|field| field.0 == *key) {
+                        field.1 = (*value).to_owned();
+                    } else {
+                        fields.push(((*key).to_owned(), (*value).to_owned()));
+                    }
+                }
+                None => fields.retain(|field| field.0 != *key),
+            }
+        }
+        render_fields(&fields)
+    }
+
+    /// A run of the sampler that collected four samples over two stacks. The
+    /// stacks artifact and the manifest agree, which is what makes it the base
+    /// every refusal below departs from by exactly one key.
+    fn sampled_output(manifest: Vec<u8>) -> ProfileOutput {
+        ProfileOutput {
+            build: capture(Some(0), b""),
+            run: Some(capture(Some(0), b"")),
+            stacks: b"main;idle 1\nmain;work 3\n".to_vec(),
+            manifest,
+        }
+    }
+
+    fn profile_options() -> Result<ProfileOptions, String> {
+        ProfileOptions::new("workload".into(), 99, 10).map_err(|error| format!("{error:?}"))
+    }
+
     #[test]
-    fn the_helper_manifest_is_read_field_by_field_and_tolerates_new_keys() {
-        let manifest = br#"{"schema":"rust-engineering-mcp.profile-manifest.v1",
-            "status":"complete","frequency_hz":99,"requested_duration_ms":10000,
-            "observed_duration_ms":9987,"samples_collected":812,"samples_lost":0,
-            "stacks_written":31,"frames_total":244,"frames_unresolved":2,
-            "stacks_truncated":0,"max_depth":127,"modules_seen":3,"cpus_sampled":4,
-            "child_exit_code":0,"child_signal":null,"perf_errno":null}"#;
-        let parsed: HelperManifest = serde_json::from_slice(manifest).unwrap_or_default();
+    fn the_helper_manifest_is_read_field_by_field() -> Result<(), String> {
+        let parsed = parse_helper_manifest(&manifest_bytes(&[]))
+            .map_err(|error| format!("the base manifest was refused: {error:?}"))?;
+        assert_eq!(parsed.schema, HELPER_MANIFEST_SCHEMA);
         assert_eq!(parsed.status, "complete");
+        assert_eq!(parsed.frequency_hz, 99);
+        assert_eq!(parsed.requested_duration_ms, 10_000);
         assert_eq!(parsed.observed_duration_ms, 9_987);
-        assert_eq!(parsed.samples_collected, 812);
-        assert_eq!(parsed.frames_unresolved, 2);
+        assert_eq!(parsed.samples_collected, 4);
+        assert_eq!(parsed.stacks_written, 2);
+        assert_eq!(parsed.frames_unresolved, 0);
         assert_eq!(parsed.max_depth, 127);
-        assert_eq!(parsed.modules_seen, 3);
+        assert_eq!(parsed.modules_seen, 1);
+        assert_eq!(parsed.cpus_sampled, 4);
+        assert_eq!(parsed.descendants_reaped, 0);
+        assert!(parsed.namespace_drained);
         assert_eq!(parsed.child_exit_code, Some(0));
+        assert_eq!(parsed.child_signal, None);
         assert_eq!(parsed.perf_errno, None);
+        Ok(())
+    }
+
+    #[test]
+    fn the_manifest_reader_refuses_every_document_but_the_helper_s() {
+        // A schema this adapter does not know how to read, including the one
+        // the manual smoke record misspells.
+        for schema in [
+            "\"rust-engineering-mcp.profile-manifest.v1\"",
+            "\"rust-engineering-mcp.profile-helper.v2\"",
+            "\"\"",
+            "null",
+        ] {
+            assert!(
+                parse_helper_manifest(&manifest_bytes(&[("schema", Some(schema))])).is_err(),
+                "accepted schema {schema}"
+            );
+        }
+        // A key the helper does not write. Tolerating it is what let a forged
+        // document pass as a measurement, so it is now a refusal.
+        assert!(
+            parse_helper_manifest(&manifest_bytes(&[("stacks_forged", Some("1"))])).is_err(),
+            "accepted an unknown key"
+        );
+        // Every key the helper always writes is required: an absent one used to
+        // default to a clean zero, and the three `number | null` keys still
+        // would if presence were left to `serde`.
+        for key in HELPER_MANIFEST_KEYS {
+            assert!(
+                parse_helper_manifest(&manifest_bytes(&[(key, None)])).is_err(),
+                "accepted a manifest with no {key}"
+            );
+        }
+        // The two documents the old reader turned into a clean set of counters.
+        assert!(parse_helper_manifest(b"").is_err());
+        assert!(parse_helper_manifest(b"{}").is_err());
+    }
+
+    #[test]
+    fn a_manifest_that_contradicts_the_artifact_is_refused() -> Result<(), String> {
+        let options = profile_options()?;
+        let execution = execution()?;
+        let identity = identity()?;
+        let observe = |manifest: Vec<u8>| {
+            profile_observation(
+                &options,
+                &sampled_output(manifest),
+                identity.clone(),
+                &execution,
+            )
+        };
+        // The base agrees with the two-stack, four-sample artifact.
+        assert!(observe(manifest_bytes(&[])).is_ok());
+        // Both cross-checks, in both directions. These catch a helper that
+        // merely counts wrong just as readily as a fabricated manifest.
+        for (key, value) in [
+            ("stacks_written", "1"),
+            ("stacks_written", "3"),
+            ("samples_collected", "3"),
+            ("samples_collected", "5"),
+            ("samples_collected", "812"),
+        ] {
+            assert!(
+                observe(manifest_bytes(&[(key, Some(value))])).is_err(),
+                "published a manifest claiming {key} = {value} over a 2-stack, \
+                 4-sample artifact"
+            );
+        }
+        // The request this host itself put on the helper's argv, echoed back.
+        for (key, value) in [
+            ("frequency_hz", "98"),
+            ("requested_duration_ms", "4000"),
+            ("max_depth", "128"),
+        ] {
+            assert!(
+                observe(manifest_bytes(&[(key, Some(value))])).is_err(),
+                "published a manifest whose {key} is not the one requested"
+            );
+        }
+        // A namespace the helper could not empty means the artifacts were
+        // written while something else could still rewrite them.
+        assert!(
+            observe(manifest_bytes(&[("namespace_drained", Some("false"))])).is_err(),
+            "published a run whose helper declared an undrained namespace"
+        );
+        // More descendants than the container's own pid limit allows is not a
+        // count of this run's processes.
+        assert!(
+            observe(manifest_bytes(&[("descendants_reaped", Some("129"))])).is_err(),
+            "published a descendant count the pid limit forbids"
+        );
+        assert!(observe(manifest_bytes(&[("descendants_reaped", Some("128"))])).is_ok());
+        // Samples without an armed event, and an errno on a run nothing denied.
+        assert!(observe(manifest_bytes(&[("cpus_sampled", Some("0"))])).is_err());
+        assert!(observe(manifest_bytes(&[("perf_errno", Some("1"))])).is_err());
+        // A stacks artifact this host cannot parse leaves the counters with
+        // nothing to answer to, so they are refused rather than published
+        // beside an empty graph.
+        let unparseable = ProfileOutput {
+            stacks: b"main;work not-a-count\n".to_vec(),
+            ..sampled_output(manifest_bytes(&[]))
+        };
+        assert!(
+            profile_observation(&options, &unparseable, identity.clone(), &execution).is_err(),
+            "published counters over a stacks artifact that did not parse"
+        );
+        Ok(())
+    }
+
+    #[test]
+    fn a_denial_is_reportable_only_with_the_errno_that_produced_it() -> Result<(), String> {
+        let options = profile_options()?;
+        let execution = execution()?;
+        let denial = |edits: &[(&str, Option<&str>)]| {
+            let mut fields = vec![
+                ("status", Some("\"profiler_unavailable\"")),
+                ("observed_duration_ms", Some("0")),
+                ("samples_collected", Some("0")),
+                ("stacks_written", Some("0")),
+                ("frames_total", Some("0")),
+                ("modules_seen", Some("0")),
+                ("cpus_sampled", Some("0")),
+                ("child_exit_code", Some("null")),
+                ("child_signal", Some("9")),
+                ("perf_errno", Some("1")),
+            ];
+            fields.extend_from_slice(edits);
+            ProfileOutput {
+                // The helper writes an empty stacks file on this path; the
+                // guest's sampler never armed an event.
+                stacks: Vec::new(),
+                ..sampled_output(manifest_bytes(&fields))
+            }
+        };
+        let observed = profile_observation(&options, &denial(&[]), identity()?, &execution)
+            .map_err(|error| format!("a well-formed denial was refused: {error:?}"))?;
+        assert_eq!(observed.status, ProfileStatus::ProfilerUnavailable);
+        assert_eq!(observed.completeness, ProfileCompleteness::Unavailable);
+        assert_eq!(observed.perf_errno, Some(1));
+        assert!(observed.svg.is_empty());
+        assert!(observed.stacks.is_empty());
+        assert!(observed.top_frames.is_empty());
+        assert!(observed.consistent());
+
+        // ADR-074 §3: without the errno there is no denial to report, and a
+        // denial that claims to have sampled something is not one either.
+        for edit in [
+            ("perf_errno", Some("null")),
+            ("cpus_sampled", Some("4")),
+            ("samples_collected", Some("2")),
+            ("stacks_written", Some("2")),
+        ] {
+            assert!(
+                profile_observation(&options, &denial(&[edit]), identity()?, &execution).is_err(),
+                "published a denial with {} = {:?}",
+                edit.0,
+                edit.1
+            );
+        }
+        Ok(())
+    }
+
+    #[test]
+    fn the_helper_status_vocabulary_is_closed() {
         assert_eq!(helper_status("complete"), ProfileStatus::Complete);
         assert_eq!(helper_status("sample_limit"), ProfileStatus::SampleLimit);
         assert_eq!(
@@ -1143,38 +1523,12 @@ mod tests {
     }
 
     #[test]
-    fn a_denied_profiler_publishes_no_graph_and_carries_its_errno() -> Result<(), String> {
-        let options =
-            ProfileOptions::new("workload".into(), 99, 10).map_err(|e| format!("{e:?}"))?;
+    fn a_sampled_profile_publishes_a_graph_of_the_stacks_it_parsed() -> Result<(), String> {
+        let options = profile_options()?;
         let execution = execution()?;
-        let denied = ProfileOutput {
-            build: capture(Some(0), b""),
-            run: Some(capture(Some(1), b"")),
-            stacks: b"main;work 3\n".to_vec(),
-            manifest: br#"{"status":"profiler_unavailable","samples_collected":0,"perf_errno":1}"#
-                .to_vec(),
-        };
-        let observed = profile_observation(&options, &denied, identity()?, &execution);
-        assert_eq!(observed.status, ProfileStatus::ProfilerUnavailable);
-        assert_eq!(observed.completeness, ProfileCompleteness::Unavailable);
-        assert_eq!(observed.perf_errno, Some(1));
-        assert!(observed.svg.is_empty());
-        assert!(observed.stacks.is_empty());
-        assert!(observed.top_frames.is_empty());
-        assert!(observed.consistent());
-
-        let sampled = ProfileOutput {
-            build: capture(Some(0), b""),
-            run: Some(capture(Some(0), b"")),
-            stacks: b"main;idle 1\nmain;work 3\n".to_vec(),
-            manifest: br#"{"status":"complete","observed_duration_ms":9987,
-                "samples_collected":4,"samples_lost":0,"stacks_written":2,
-                "frames_total":4,"frames_unresolved":0,"stacks_truncated":0,
-                "max_depth":127,"modules_seen":1,"cpus_sampled":4,
-                "child_exit_code":0,"child_signal":null,"perf_errno":null}"#
-                .to_vec(),
-        };
-        let observed = profile_observation(&options, &sampled, identity()?, &execution);
+        let sampled = sampled_output(manifest_bytes(&[]));
+        let observed = profile_observation(&options, &sampled, identity()?, &execution)
+            .map_err(|error| format!("the base profile was refused: {error:?}"))?;
         assert_eq!(observed.completeness, ProfileCompleteness::Complete);
         assert_eq!(observed.counters.samples_collected, 4);
         assert_eq!(observed.counters.max_depth_applied, 127);
@@ -1196,7 +1550,10 @@ mod tests {
             stacks: Vec::new(),
             manifest: Vec::new(),
         };
-        let observed = profile_observation(&options, &unbuilt, identity()?, &execution);
+        // No helper ran, so there is no manifest to read and none is demanded:
+        // the empty document is a fact about the build, not a forgery.
+        let observed = profile_observation(&options, &unbuilt, identity()?, &execution)
+            .map_err(|error| format!("an unbuilt target was refused: {error:?}"))?;
         assert_eq!(observed.build, ProfileBuildOutcome::CompilationFailed);
         assert_eq!(observed.build_exit_code, Some(101));
         // Never a profiler denial: there is no errno, because the sampler was

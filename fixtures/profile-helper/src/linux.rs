@@ -15,7 +15,16 @@
 //! 5. `PERF_EVENT_IOC_ENABLE` on every event, then `SIGCONT`;
 //! 6. drain and merge all the rings until the child exits, the duration
 //!    elapses or the sample cap is reached;
-//! 7. `PERF_EVENT_IOC_DISABLE`, kill and reap, drain what is left.
+//! 7. `PERF_EVENT_IOC_DISABLE`, kill and reap, empty the PID namespace, drain
+//!    what is left, then write the two artifacts.
+//!
+//! Step 7 empties the namespace before anything is rendered or written. The
+//! helper is pid 1 of a namespace of its own, and the profiled program is free
+//! to double-fork: killing only the direct child leaves grandchildren running
+//! across the render and both writes, and the last write before pid 1 exits is
+//! the one the export phase tars. `kill(-1, SIGKILL)` plus a bounded
+//! `waitpid(-1, …)` loop closes that, and it also closes the same gap on the
+//! `duration_limit` and `sample_limit` paths.
 //!
 //! The per-CPU fan-out in steps 3 and 4 is forced by the kernel: `perf_mmap`
 //! refuses an inherited event opened with `cpu == -1`, so keeping `inherit = 1`
@@ -23,8 +32,9 @@
 
 use std::collections::BTreeMap;
 use std::fs;
-use std::io;
+use std::io::{self, Write};
 use std::os::unix::process::CommandExt;
+use std::path::Path;
 use std::process::{Child, Command, Stdio};
 use std::ptr;
 use std::sync::atomic::{AtomicU64, Ordering};
@@ -32,9 +42,10 @@ use std::thread::{self, JoinHandle};
 use std::time::{Duration, Instant};
 
 use rust_mcp_profile_helper::{
-    Arguments, EXIT_INTERNAL_FAILURE, EXIT_PROFILER_UNAVAILABLE, EXIT_SUCCESS, Manifest,
-    ProfileStatus, Record, RunOutcome, SampleTally, StackCollector, SymbolTable, clamp_cpu_count,
-    classify_status, drain_ring, merge_ring_records, parse_elf_symbols, render_manifest,
+    Arguments, DrainPlan, EXIT_INTERNAL_FAILURE, EXIT_PROFILER_UNAVAILABLE, EXIT_SUCCESS, Manifest,
+    NamespaceDrain, ProfileStatus, Record, RunOutcome, SampleTally, StackCollector, SymbolTable,
+    clamp_cpu_count, classify_status, drain_plan, drain_ring, merge_ring_records,
+    parse_elf_symbols, render_manifest,
 };
 
 use crate::{UNSUPPORTED, report};
@@ -123,6 +134,10 @@ const MAX_CACHED_MODULES: usize = 512;
 /// Bound on merge rounds per drain pass, so a busy child cannot keep the
 /// draining loop from returning to its own deadline checks.
 const MAX_DRAIN_ROUNDS: usize = 64;
+/// Bound on emptying the PID namespace. SIGKILL cannot be caught, so this is
+/// reached only if the kernel keeps a task unreapable; when it expires the
+/// manifest says so instead of claiming a clean run.
+const NAMESPACE_DRAIN_TIMEOUT: Duration = Duration::from_secs(5);
 
 // -- entry point -------------------------------------------------------------
 
@@ -138,7 +153,15 @@ pub fn profile(arguments: &Arguments) -> i32 {
     let Some(child) = await_stopped_child(&spawner) else {
         let _ = spawner.join();
         report("internal failure: the program could not be started");
-        let manifest = blank_manifest(arguments, ProfileStatus::ChildExited, None, None, None);
+        let drained = drain_namespace(None);
+        let manifest = blank_manifest(
+            arguments,
+            ProfileStatus::ChildExited,
+            drained,
+            None,
+            None,
+            None,
+        );
         return emit(arguments, "", &manifest, EXIT_INTERNAL_FAILURE);
     };
 
@@ -208,6 +231,10 @@ pub fn profile(arguments: &Arguments) -> i32 {
         child_exit_code = code;
         child_signal = signal;
     }
+    // Nothing of the profiled program may still be running while the profile is
+    // rendered and written: a double-forked grandchild survives the kill above,
+    // and whatever it writes last is what the export phase would tar.
+    let drained = drain_namespace(Some(child));
     drain_all(&events, &mut collector);
     let observed = started.elapsed();
     // Dropping the events unmaps every ring and closes every descriptor.
@@ -229,6 +256,8 @@ pub fn profile(arguments: &Arguments) -> i32 {
         max_depth: arguments.max_depth,
         modules_seen: collector.modules_seen(),
         cpus_sampled,
+        descendants_reaped: drained.descendants_reaped,
+        namespace_drained: drained.namespace_drained,
         child_exit_code,
         child_signal,
         perf_errno: None,
@@ -248,10 +277,14 @@ fn abandon(
     signal_child(child, libc::SIGKILL);
     let spawned = matches!(spawner.join(), Ok(Ok(_)));
     let (code, signal) = if spawned { reap(child) } else { (None, None) };
+    // The refusal path writes artifacts too, so it empties the namespace on the
+    // same rule the sampled path does.
+    let drained = drain_namespace(Some(child));
     report("profiler unavailable: the kernel refused the performance events");
     let manifest = blank_manifest(
         arguments,
         ProfileStatus::ProfilerUnavailable,
+        drained,
         code,
         signal,
         Some(errno),
@@ -262,6 +295,7 @@ fn abandon(
 fn blank_manifest(
     arguments: &Arguments,
     status: ProfileStatus,
+    drained: NamespaceDrain,
     child_exit_code: Option<i32>,
     child_signal: Option<i32>,
     perf_errno: Option<i32>,
@@ -280,25 +314,43 @@ fn blank_manifest(
         max_depth: arguments.max_depth,
         modules_seen: 0,
         cpus_sampled: 0,
+        descendants_reaped: drained.descendants_reaped,
+        namespace_drained: drained.namespace_drained,
         child_exit_code,
         child_signal,
         perf_errno,
     }
 }
 
+/// Creates and writes both artifacts. Neither may already exist: the helper is
+/// the only writer of these two paths, so a file that is already there was put
+/// there by the profiled program, and overwriting it would hide that. A refusal
+/// here is an internal failure — the profiler was not unavailable, the output
+/// was — so it keeps [`EXIT_INTERNAL_FAILURE`] and never becomes
+/// `profiler_unavailable`.
 fn emit(arguments: &Arguments, stacks: &str, manifest: &Manifest, code: i32) -> i32 {
-    let stacks_written = fs::write(&arguments.stacks_path, stacks.as_bytes()).is_ok();
-    let manifest_written = fs::write(
+    let stacks_written = create_new(&arguments.stacks_path, stacks.as_bytes());
+    let manifest_written = create_new(
         &arguments.manifest_path,
         render_manifest(manifest).as_bytes(),
-    )
-    .is_ok();
+    );
     if stacks_written && manifest_written {
         code
     } else {
         report("internal failure: the profile outputs could not be written");
         EXIT_INTERNAL_FAILURE
     }
+}
+
+/// `O_WRONLY|O_CREAT|O_EXCL`: a pre-created path is `EEXIST`, never a silent
+/// overwrite of somebody else's file.
+fn create_new(path: &Path, bytes: &[u8]) -> bool {
+    fs::OpenOptions::new()
+        .write(true)
+        .create_new(true)
+        .open(path)
+        .and_then(|mut file| file.write_all(bytes))
+        .is_ok()
 }
 
 // -- child lifecycle ---------------------------------------------------------
@@ -399,6 +451,120 @@ fn signal_child(child: libc::pid_t, signal: libc::c_int) {
     // SAFETY: `child` is this process's own child and `kill` takes only
     // scalars. A failure here is not actionable and is deliberately ignored.
     let _ = unsafe { libc::kill(child, signal) };
+}
+
+// -- PID namespace drain -----------------------------------------------------
+
+/// One non-blocking pass of `waitpid(-1, …)`.
+enum Waited {
+    /// One process was reaped; there may be more.
+    Reaped,
+    /// Children remain but none has exited yet.
+    Pending,
+    /// `ECHILD`: nothing is left to wait for.
+    Empty,
+    /// `waitpid` failed for a reason this helper cannot act on.
+    Failed,
+}
+
+fn self_pid() -> libc::pid_t {
+    // SAFETY: `getpid` takes no argument, returns a scalar and cannot fail.
+    unsafe { libc::getpid() }
+}
+
+/// SIGKILLs every process this namespace holds, the caller excepted.
+///
+/// Only ever called after [`drain_plan`] has answered
+/// [`DrainPlan::WholeNamespace`], i.e. only when this process is pid 1 of its
+/// own PID namespace and `-1` therefore names that namespace and nothing else.
+fn kill_namespace() {
+    // SAFETY: `kill` takes only scalars. The pid argument is `-1`, whose reach
+    // is bounded by the caller's PID namespace and by its uid; the call site
+    // has already established that this process is that namespace's init.
+    let _ = unsafe { libc::kill(-1, libc::SIGKILL) };
+}
+
+fn wait_any() -> Waited {
+    let mut status: libc::c_int = 0;
+    // SAFETY: `status` is a live, writable `c_int`; `-1` asks about any child
+    // of this process and WNOHANG keeps the call non-blocking.
+    let waited = unsafe { libc::waitpid(-1, &mut status, libc::WNOHANG) };
+    if waited > 0 {
+        return Waited::Reaped;
+    }
+    if waited == 0 {
+        return Waited::Pending;
+    }
+    match last_errno() {
+        libc::ECHILD => Waited::Empty,
+        libc::EINTR => Waited::Pending,
+        _ => Waited::Failed,
+    }
+}
+
+/// Empties the process tree before any artifact is rendered or written, and
+/// reports honestly whether it managed to.
+///
+/// The gateway runs the sampling container with `--init=false` and this helper
+/// as its entrypoint, so the helper is pid 1 of a PID namespace that holds the
+/// profiled program and nothing else, and `kill(-1, SIGKILL)` reaches every
+/// descendant however many times the child forked. That assumption is checked
+/// rather than trusted: off pid 1, `-1` would reach processes this run never
+/// created, so only `child` is signalled and the namespace is reported as not
+/// drained.
+///
+/// Reaping is bounded by [`NAMESPACE_DRAIN_TIMEOUT`]. A deadline that expires
+/// with children still alive yields `namespace_drained: false`, which is the
+/// caller's signal that the artifacts were written while something could still
+/// have rewritten them.
+fn drain_namespace(child: Option<libc::pid_t>) -> NamespaceDrain {
+    let plan = drain_plan(self_pid());
+    match plan {
+        DrainPlan::WholeNamespace => kill_namespace(),
+        DrainPlan::DirectChildOnly => {
+            if let Some(child) = child {
+                signal_child(child, libc::SIGKILL);
+            }
+        }
+    }
+    let deadline = Instant::now() + NAMESPACE_DRAIN_TIMEOUT;
+    let mut descendants_reaped: u64 = 0;
+    loop {
+        match wait_any() {
+            Waited::Reaped => descendants_reaped = descendants_reaped.saturating_add(1),
+            Waited::Empty => {
+                return NamespaceDrain {
+                    descendants_reaped,
+                    // Nothing is left to reap, but only the wide plan can claim
+                    // the namespace is empty: the narrow one never signalled
+                    // anything but the direct child.
+                    namespace_drained: plan == DrainPlan::WholeNamespace,
+                };
+            }
+            Waited::Pending => {
+                if Instant::now() >= deadline {
+                    return NamespaceDrain {
+                        descendants_reaped,
+                        namespace_drained: false,
+                    };
+                }
+                thread::sleep(POLL_INTERVAL);
+                // Signal again: a process forked between the previous sweep and
+                // its delivery was never in that sweep's process list. Repeating
+                // it converges against a child that forks while dying, and the
+                // container's own pid limit bounds how long that can go on.
+                if plan == DrainPlan::WholeNamespace {
+                    kill_namespace();
+                }
+            }
+            Waited::Failed => {
+                return NamespaceDrain {
+                    descendants_reaped,
+                    namespace_drained: false,
+                };
+            }
+        }
+    }
 }
 
 // -- perf event --------------------------------------------------------------

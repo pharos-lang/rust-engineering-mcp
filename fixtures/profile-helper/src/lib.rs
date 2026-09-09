@@ -1197,6 +1197,57 @@ impl StackCollector {
 }
 
 // ---------------------------------------------------------------------------
+// PID namespace drain
+// ---------------------------------------------------------------------------
+
+/// How far the helper may go when it empties the process tree before writing
+/// its artifacts.
+///
+/// The distinction is a safety property, not an optimisation: `kill(-1, …)`
+/// signals *every* process the caller's uid may signal, which is exactly the
+/// namespace when the caller is its init and is very much more than that when
+/// it is not.
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub enum DrainPlan {
+    /// The helper is pid 1 of its own PID namespace, so `kill(-1, SIGKILL)`
+    /// reaches every process in that namespace, itself excepted, and nothing
+    /// outside it.
+    WholeNamespace,
+    /// The helper is not pid 1. `kill(-1, …)` would reach processes this run
+    /// did not create, so only the known child is signalled and the namespace
+    /// is reported as *not* drained.
+    DirectChildOnly,
+}
+
+/// Decides the drain from the helper's own pid, and from nothing else.
+///
+/// The gateway starts the sampling container with `--init=false` and the
+/// helper as its entrypoint, so the helper is pid 1. This function exists so
+/// that assumption is checked at run time rather than trusted: any pid but 1
+/// falls back to the narrow plan.
+#[must_use]
+pub const fn drain_plan(pid: i32) -> DrainPlan {
+    if pid == 1 {
+        DrainPlan::WholeNamespace
+    } else {
+        DrainPlan::DirectChildOnly
+    }
+}
+
+/// What emptying the process tree actually achieved. Both numbers are reported
+/// in the manifest: a namespace that could not be emptied is a fact the caller
+/// must see, because the artifacts were then written while another process was
+/// still able to rewrite them.
+#[derive(Clone, Copy, Debug, Default, Eq, PartialEq)]
+pub struct NamespaceDrain {
+    /// Processes reaped after the sampling window closed.
+    pub descendants_reaped: u64,
+    /// `true` only when the whole namespace was signalled *and* `waitpid`
+    /// reported that nothing was left to reap before the deadline.
+    pub namespace_drained: bool,
+}
+
+// ---------------------------------------------------------------------------
 // Manifest
 // ---------------------------------------------------------------------------
 
@@ -1281,6 +1332,13 @@ pub struct Manifest {
     pub modules_seen: u64,
     /// Per-CPU events that actually opened, mapped and enabled.
     pub cpus_sampled: u32,
+    /// Processes reaped when the process tree was emptied, after the sampling
+    /// window closed and before either artifact was written.
+    pub descendants_reaped: u64,
+    /// Whether that emptying is known to have succeeded. `false` means the
+    /// artifacts were written while some process could still have rewritten
+    /// them, so nothing in this manifest is corroborated.
+    pub namespace_drained: bool,
     pub child_exit_code: Option<i32>,
     pub child_signal: Option<i32>,
     pub perf_errno: Option<i32>,
@@ -1321,6 +1379,14 @@ pub fn render_manifest(manifest: &Manifest) -> String {
     out.push_str(&manifest.modules_seen.to_string());
     out.push_str(",\"cpus_sampled\":");
     out.push_str(&manifest.cpus_sampled.to_string());
+    out.push_str(",\"descendants_reaped\":");
+    out.push_str(&manifest.descendants_reaped.to_string());
+    out.push_str(",\"namespace_drained\":");
+    out.push_str(if manifest.namespace_drained {
+        "true"
+    } else {
+        "false"
+    });
     out.push_str(",\"child_exit_code\":");
     out.push_str(&optional_number(manifest.child_exit_code));
     out.push_str(",\"child_signal\":");
@@ -2412,6 +2478,8 @@ mod tests {
             max_depth: 128,
             modules_seen: 5,
             cpus_sampled: 4,
+            descendants_reaped: 2,
+            namespace_drained: true,
             child_exit_code: Some(0),
             child_signal: None,
             perf_errno: None,
@@ -2437,6 +2505,8 @@ mod tests {
                 "\"max_depth\":128,",
                 "\"modules_seen\":5,",
                 "\"cpus_sampled\":4,",
+                "\"descendants_reaped\":2,",
+                "\"namespace_drained\":true,",
                 "\"child_exit_code\":0,",
                 "\"child_signal\":null,",
                 "\"perf_errno\":null}\n",
@@ -2479,6 +2549,8 @@ mod tests {
             max_depth: 128,
             modules_seen: 0,
             cpus_sampled: 0,
+            descendants_reaped: 1,
+            namespace_drained: true,
             child_exit_code: None,
             child_signal: Some(9),
             perf_errno: Some(1),
@@ -2487,6 +2559,51 @@ mod tests {
         assert!(rendered.contains("\"status\":\"profiler_unavailable\""));
         assert!(rendered.contains("\"perf_errno\":1}"));
         assert!(rendered.contains("\"samples_collected\":0,"));
+        assert!(rendered.contains("\"descendants_reaped\":1,"));
+        assert!(rendered.contains("\"namespace_drained\":true,"));
+    }
+
+    #[test]
+    fn a_namespace_that_could_not_be_drained_is_declared() {
+        let mut leaked = manifest();
+        leaked.descendants_reaped = 0;
+        leaked.namespace_drained = false;
+        let rendered = render_manifest(&leaked);
+        assert!(rendered.contains("\"descendants_reaped\":0,"));
+        assert!(rendered.contains("\"namespace_drained\":false,"));
+        // Every other key keeps its place; the two new ones sit between
+        // `cpus_sampled` and `child_exit_code` and nowhere else.
+        assert!(rendered.contains(concat!(
+            "\"cpus_sampled\":4,",
+            "\"descendants_reaped\":0,",
+            "\"namespace_drained\":false,",
+            "\"child_exit_code\":0,"
+        )));
+        assert_eq!(rendered.matches("namespace_drained").count(), 1);
+    }
+
+    // -- PID namespace drain -------------------------------------------------
+
+    #[test]
+    fn only_pid_one_may_signal_the_whole_namespace() {
+        assert_eq!(drain_plan(1), DrainPlan::WholeNamespace);
+        // Every other pid, including the ones `getpid` can never return, keeps
+        // the narrow plan: `kill(-1, …)` off pid 1 would reach processes this
+        // run did not create.
+        for pid in [0, 2, 3, 1000, i32::MAX, -1, i32::MIN] {
+            assert_eq!(
+                drain_plan(pid),
+                DrainPlan::DirectChildOnly,
+                "pid {pid} was allowed to signal everything"
+            );
+        }
+    }
+
+    #[test]
+    fn an_undrained_namespace_is_never_a_default_success() {
+        let unknown = NamespaceDrain::default();
+        assert_eq!(unknown.descendants_reaped, 0);
+        assert!(!unknown.namespace_drained);
     }
 
     #[test]

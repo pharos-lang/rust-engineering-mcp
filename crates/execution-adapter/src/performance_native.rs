@@ -966,6 +966,40 @@ fn profile_bundle() -> Result<SourceBundle, Failure> {
     )
 }
 
+/// Arms [`performance_gateway::DENY_PERF_EVENT_OPEN`] for one selection and
+/// disarms it however that selection ends.
+///
+/// This is the one test-only hook in the M5 qualification, and it exists
+/// because ADR-074's `denial_control` cannot be produced any other way: the
+/// seccomp profile the sampling phase names is the only mechanism in the
+/// product that refuses `perf_event_open`, and nothing a caller, an option or a
+/// project can express reaches it — that is the whole point of the containment.
+/// The alternative was to leave the mandatory negative oracle as a hand-run
+/// docker session recorded in `docs/validation/M5-03-profiling-native.json`,
+/// which is not a receipt of the product path. With the switch armed the
+/// selection below still goes through `performance_port::profile` and every
+/// phase, argv and `verify_applied` comparison it always performs; the only
+/// difference is that the sampling phase names the committed quality profile,
+/// under which `perf_event_open` returns EPERM.
+struct DeniedPerfEventOpen;
+
+impl DeniedPerfEventOpen {
+    fn arm() -> Self {
+        performance_gateway::DENY_PERF_EVENT_OPEN.with(|switch| switch.set(true));
+        Self
+    }
+}
+
+impl Drop for DeniedPerfEventOpen {
+    fn drop(&mut self) {
+        performance_gateway::DENY_PERF_EVENT_OPEN.with(|switch| switch.set(false));
+    }
+}
+
+/// `defaultErrnoRet` of both committed seccomp profiles: a syscall the profile
+/// does not allow returns EPERM rather than killing the process.
+const SECCOMP_EPERM: i32 = 1;
+
 #[test]
 #[ignore = "explicit M5 image, host Docker and exclusive native profiling qualification"]
 fn m5_profile_flamegraph_is_qualified_natively() -> Result<(), Failure> {
@@ -1116,6 +1150,18 @@ fn m5_profile_flamegraph_is_qualified_natively() -> Result<(), Failure> {
     );
     assert!(execution.hardware.cpu_model.is_some());
     assert!(execution.hardware.os_kernel.is_some());
+    // The same integrity claim on the positive path: the helper is pid 1 of its
+    // own namespace and emptied it before rendering or writing anything, so no
+    // descendant of the profiled binary was alive across either write.
+    assert_eq!(
+        manifest.get("namespace_drained").and_then(Value::as_bool),
+        Some(true),
+        "the helper could not empty its PID namespace before writing"
+    );
+    let descendants_reaped = manifest
+        .get("descendants_reaped")
+        .and_then(Value::as_u64)
+        .ok_or("the helper manifest declared no descendants_reaped")?;
     cut.selections.push(selection(
         "profile-cpus-sampled",
         started,
@@ -1123,6 +1169,8 @@ fn m5_profile_flamegraph_is_qualified_natively() -> Result<(), Failure> {
         json!({
             "cpus_sampled": cpus_sampled,
             "guest_cpu_cores": cpu_cores,
+            "namespace_drained": true,
+            "descendants_reaped": descendants_reaped,
             "cpu_model": execution.hardware.cpu_model,
             "os_kernel": execution.hardware.os_kernel,
             "manifest_status": manifest.get("status"),
@@ -1188,6 +1236,122 @@ fn m5_profile_flamegraph_is_qualified_natively() -> Result<(), Failure> {
         "passed",
         json!({"monitor": monitor.evidence(), "residue_after": after}),
     ));
+
+    // -- selection 9: the denial control -------------------------------------
+    //
+    // ADR-074 §3's mandatory negative: `perf_event_open` refused, reported as
+    // data with the errno that refused it, and never as a profile. The sampling
+    // phase is moved to the committed quality profile — the only committed
+    // mechanism that denies the syscall — and everything else is the product
+    // path, port included. See [`DeniedPerfEventOpen`] for why this needs a
+    // hook at all.
+    let started = Instant::now();
+    let denied = {
+        let _seccomp = DeniedPerfEventOpen::arm();
+        performance_port::profile(gateway, &source, &vendor, &options, &Proceed)
+    };
+    let observation = denied.map_err(|error| format!("denial control: {error:?}"))?;
+    assert_eq!(observation.build, ProfileBuildOutcome::Built);
+    assert_eq!(
+        observation.status,
+        ProfileStatus::ProfilerUnavailable,
+        "a refused perf_event_open must be reported as a denial: {}",
+        profile_counters(&observation)
+    );
+    assert_eq!(observation.completeness, ProfileCompleteness::Unavailable);
+    assert_eq!(
+        observation.perf_errno,
+        Some(SECCOMP_EPERM),
+        "the denial must carry the errno that produced it"
+    );
+    assert_eq!(observation.counters.samples_collected, 0);
+    assert_eq!(observation.counters.stacks_written, 0);
+    assert!(
+        observation.stacks.is_empty(),
+        "a denied profiler published stacks"
+    );
+    assert!(
+        observation.svg.is_empty(),
+        "a denied profiler published a graph"
+    );
+    assert!(observation.top_frames.is_empty());
+    assert!(observation.consistent());
+    // The application's own gate, which is what makes this the oracle: a denial
+    // without its errno, or with a graph, is refused there.
+    rust_engineering_application::profile::validate_profile_observation(
+        &observation,
+        &options,
+        &vendor,
+    )
+    .map_err(|error| format!("the published denial did not validate: {error:?}"))?;
+    let stderr = String::from_utf8_lossy(&observation.stderr).into_owned();
+    assert!(
+        stderr.contains("profiler unavailable"),
+        "the helper did not announce the refusal: {stderr:?}"
+    );
+
+    // The helper's own exit code and manifest, which the DTO does not carry and
+    // which `docs/validation/M5-03-profiling-native.json` declares for this
+    // case.
+    let execution = {
+        let _seccomp = DeniedPerfEventOpen::arm();
+        performance_gateway::execute_profile(
+            gateway,
+            &source,
+            &vendor,
+            &options,
+            ExecutionLimits::new_job(300_000, LOG_BYTES).ok_or("limits")?,
+            &Proceed,
+        )
+    }
+    .map_err(|error| format!("denial manifest: {error:?}"))?;
+    let output = execution.profile.as_ref().ok_or("no profile output")?;
+    let run = output.run.as_ref().ok_or("the sampler never ran")?;
+    assert_eq!(
+        run.code,
+        Some(3),
+        "a refused perf_event_open must exit 3, not {:?}",
+        run.code
+    );
+    let manifest: Value = serde_json::from_slice(&output.manifest)?;
+    assert_eq!(
+        manifest.get("status").and_then(Value::as_str),
+        Some("profiler_unavailable")
+    );
+    assert_eq!(
+        manifest.get("cpus_sampled").and_then(Value::as_u64),
+        Some(0)
+    );
+    assert_eq!(
+        manifest.get("perf_errno").and_then(Value::as_i64),
+        Some(i64::from(SECCOMP_EPERM))
+    );
+    assert!(
+        output.stacks.is_empty(),
+        "the denial path wrote a non-empty stacks artifact"
+    );
+    // The helper's own artifact-integrity claim: it emptied its PID namespace
+    // before either file was written, so nothing of the workload could have
+    // rewritten them. The port refuses a manifest that says otherwise.
+    assert_eq!(
+        manifest.get("namespace_drained").and_then(Value::as_bool),
+        Some(true),
+        "the helper could not empty its PID namespace before writing"
+    );
+    let mut denial = profile_counters(&observation);
+    if let Some(object) = denial.as_object_mut() {
+        object.insert("helper_exit".into(), json!(run.code));
+        object.insert("helper_manifest".into(), manifest);
+        object.insert("manifest_sha256".into(), json!(digest(&output.manifest)));
+        object.insert(
+            "seccomp".into(),
+            json!("seccomp-rust-quality.json (perf_event_open not allowed)"),
+        );
+    }
+    drop(execution);
+    cut.selections
+        .push(selection("denial-control", started, "passed", denial));
+    clean(gateway, "m5-03 after denial control")?;
 
     cut.residue_after = clean(gateway, "m5-03 after")?;
     publish(&cut, &image)?;

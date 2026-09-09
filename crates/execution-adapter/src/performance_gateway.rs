@@ -115,6 +115,55 @@ pub(super) const BLOAT_BUDGET_MS: u64 = 300_000;
 /// ADR-074 §4 ceiling on the sampling window itself.
 pub(super) const PROFILE_MAX_SAMPLING_MS: u64 = 60_000;
 
+/// `fixtures/profile-helper` exit 0: it profiled, and both artifacts are on the
+/// output volume.
+const HELPER_EXIT_PROFILED: i32 = 0;
+/// `fixtures/profile-helper` exit 3: `perf_event_open` was refused, and an
+/// empty stacks file stands beside a manifest carrying the errno that refused
+/// it. Every other exit leaves the volume in a state this gateway does not
+/// export.
+const HELPER_EXIT_PROFILER_UNAVAILABLE: i32 = 3;
+
+// Whether the sampling phase must run under a seccomp profile that refuses
+// `perf_event_open`. Always `false` outside `cfg(test)`, where it compiles to a
+// constant and no shipped binary carries the switch at all.
+//
+// ADR-074's `denial_control` is the mandatory negative oracle for
+// `rust.profile.flamegraph`, and the seccomp profile the sampling phase names
+// is the only mechanism in this product that denies `perf_event_open`: no
+// caller, option, project or fixture can reach it, because the whole point of
+// the containment is that the guest cannot influence its own policy. Without
+// this switch the oracle can only be produced by running docker by hand beside
+// the product, which is what `docs/validation/M5-03-profiling-native.json`
+// records and which is not a receipt of the product path. With it, the native
+// qualification drives the denial through `performance_port::profile`
+// unchanged — same phases, same argv, same `verify_applied` comparison — and
+// the only difference is which of the two committed profiles
+// `PerformancePhase::ProfileRun` selects.
+#[cfg(test)]
+fn perf_event_open_denied() -> bool {
+    DENY_PERF_EVENT_OPEN.with(std::cell::Cell::get)
+}
+
+#[cfg(not(test))]
+const fn perf_event_open_denied() -> bool {
+    false
+}
+
+#[cfg(test)]
+thread_local! {
+    /// Test-only switch behind [`perf_event_open_denied`].
+    ///
+    /// Thread-local rather than global, so a selection that arms it cannot
+    /// perturb any test running beside it: this gateway builds every argv,
+    /// computes every fingerprint and performs every `verify_applied`
+    /// comparison on the thread that called it, and spawns no thread of its
+    /// own. Arm it through an RAII guard so a failed assertion still disarms
+    /// it.
+    pub(super) static DENY_PERF_EVENT_OPEN: std::cell::Cell<bool> =
+        const { std::cell::Cell::new(false) };
+}
+
 /// ADR-073 §2's frozen harness parameters. The server fixes them, they travel
 /// in the provenance of every dataset, and the project cannot reach them: they
 /// are argv, not configuration.
@@ -499,7 +548,7 @@ impl PerformancePhase {
     /// profile plus `perf_event_open`. Every other phase keeps the ADR-064
     /// quality profile it would otherwise have.
     fn profiling_profile(self) -> bool {
-        self == Self::ProfileRun
+        self == Self::ProfileRun && !perf_event_open_denied()
     }
 
     pub(super) fn seccomp_profile_name(self) -> &'static str {
@@ -2292,7 +2341,17 @@ fn execute_operation(
                 } else {
                     None
                 };
-                let exported = if run.as_ref().is_some_and(|run| run.code == Some(0)) {
+                // A refused `perf_event_open` writes its artifacts too, and the
+                // manifest is the only place the errno appears; exporting only
+                // exit 0 made ADR-074 §3's denial unreportable by construction,
+                // because the application refuses a denial that arrives without
+                // the errno that produced it.
+                let exported = if run.as_ref().is_some_and(|run| {
+                    matches!(
+                        run.code,
+                        Some(HELPER_EXIT_PROFILED | HELPER_EXIT_PROFILER_UNAVAILABLE)
+                    )
+                }) {
                     let exported = run_phase(
                         gateway,
                         &PhaseRequest {
@@ -2916,6 +2975,40 @@ mod tests {
             assert_eq!(phase.seccomp_profile_name(), expected.0, "{phase:?}");
             assert_eq!(phase.seccomp_profile_json(), expected.1, "{phase:?}");
         }
+    }
+
+    /// The test-only switch the native denial control arms. It moves exactly
+    /// one phase to the other committed profile and changes nothing else: the
+    /// phase list, the argv and the profile bytes are the shipped ones, so the
+    /// denial it produces is the product's own refusal path and not a mock.
+    #[test]
+    fn the_denial_switch_moves_only_the_sampling_phase_to_the_quality_profile() {
+        assert!(!perf_event_open_denied());
+        DENY_PERF_EVENT_OPEN.with(|switch| switch.set(true));
+        assert_eq!(
+            PerformancePhase::ProfileRun.seccomp_profile_name(),
+            "seccomp-rust-quality.json"
+        );
+        assert_eq!(
+            PerformancePhase::ProfileRun.seccomp_profile_json(),
+            include_str!("seccomp-rust-quality.json")
+        );
+        assert!(
+            ALL_PHASES
+                .iter()
+                .all(|phase| phase.seccomp_profile_name() == "seccomp-rust-quality.json")
+        );
+        // Only the profile moves: the phase still runs the helper with the argv
+        // it always had.
+        assert_eq!(
+            PerformancePhase::ProfileRun.program(),
+            "/opt/perf/bin/rust-mcp-profile-helper"
+        );
+        DENY_PERF_EVENT_OPEN.with(|switch| switch.set(false));
+        assert_eq!(
+            PerformancePhase::ProfileRun.seccomp_profile_name(),
+            "seccomp-rust-profile.json"
+        );
     }
 
     #[test]
