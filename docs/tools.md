@@ -1261,8 +1261,9 @@ hardware que el runtime no puede observar se serializa ausente y bloquea la
 comparación, nunca se rellena.
 
 **Las muestras crudas no viajan en la respuesta.** Se publican como artifact
-`benchmark_dataset` en formato `rust-engineering-mcp.benchmark-dataset.v1`
-(`format_version = 1`), junto al árbol de salida del harness como
+`benchmark_dataset` en formato `rust-engineering-mcp.benchmark-dataset.v2`
+(`format_version = 2`; cada muestra lleva el `run_index` de la ejecución que la
+produjo), junto al árbol de salida del harness como
 `criterion_archive`, que es donde quedan los logs; la respuesta solo declara si
 `stdout`/`stderr` fueron recortados. Un lector que no reconozca exactamente ese
 identificador y esa versión falla cerrado y nunca migra medidas (ADR-073 §3).
@@ -1302,12 +1303,12 @@ emitidos por el store y no componibles por el peer) y `timeout_seconds`
 
 El método está congelado antes de medir y se publica entero en cada informe
 (ADR-073 §4), bajo el identificador
-`rust-engineering-mcp.benchmark-comparison.v1`:
+`rust-engineering-mcp.benchmark-comparison.v2`:
 
 | Elemento | Valor |
 | --- | --- |
 | Estadístico | mediana del tiempo por iteración (`median_per_iteration_nanoseconds`) |
-| Intervalo | bootstrap percentil, 10 000 remuestreos |
+| Intervalo | bootstrap percentil **por conglomerados**, 10 000 remuestreos: se remuestrean las ejecuciones y, dentro de cada una, sus muestras |
 | Semilla | fija, derivada de una constante del producto mezclada con la clave del benchmark |
 | Confianza | 0,95 nominal; con familia de más de una comparación, Bonferroni `1 - (1 - 0,95)/n` |
 | Multiplicidad | `none` o `bonferroni`, con `family_size` y `adjusted_confidence_level` emitidos |
@@ -1322,14 +1323,20 @@ muestral y esa dispersión podrían detectar con 80 % de potencia al nivel
 ajustado. **El MDR no se iguala al umbral del 5 %**; se emite por comparación.
 
 El veredicto se decide en este orden: muestra ausente o truncada, menos de diez
-muestras o mediana de baseline no positiva ⇒ `inconclusive`; `MDR` mayor que el
+muestras o mediana de baseline no positiva ⇒ `inconclusive`; **menos de dos
+ejecuciones distintas en cualquiera de los dos lados ⇒ `inconclusive` por
+`single_execution_per_side`**, antes de mirar el intervalo, porque con una sola
+ejecución por lado nada distingue un cambio en el código de un cambio en la
+máquina; **dispersión degenerada (error estándar cero) ⇒ `inconclusive` por
+`degenerate_dispersion`**, porque una dispersión observada de cero es ausencia de
+información sobre la dispersión y no precisión infinita; `MDR` mayor que el
 umbral ⇒ `inconclusive` por precisión insuficiente; intervalo completamente por
 encima de `+5 %` ⇒ `regression`; completamente por debajo de `-5 %` ⇒
 `improvement`; completamente dentro de `±5 %` ⇒ `no_material_change`; en
 cualquier otro caso `inconclusive` porque el intervalo cruza el umbral. Las
 razones se enumeran (`insufficient_samples`, `precision_below_threshold`,
 `interval_spans_threshold`, `zero_or_negative_baseline`, `missing_measurement`,
-`truncated_measurement`).
+`truncated_measurement`, `single_execution_per_side`, `degenerate_dispersion`).
 
 Por comparación se publican clave, veredicto, `effect_ratio`
 (`candidate_median_ns / baseline_median_ns - 1`; positivo significa que el
@@ -1356,7 +1363,7 @@ identificador no nombra un artifact de este proyecto), `ARTIFACT_UNREADABLE`
 (los bytes almacenados no se pudieron leer enteros), `ARTIFACT_TOO_LARGE` (un
 dataset supera el techo de lectura de 32 MiB), `NOT_A_DATASET` (el identificador
 nombra un artifact que no es un dataset de benchmark), `INVALID_DATASET` (no es
-el contrato v1 que este lector implementa), `NO_COMMON_BENCHMARK` (los dos
+el contrato v2 que este lector implementa), `NO_COMMON_BENCHMARK` (los dos
 datasets no comparten ninguna clave), `COMMAND_TIMEOUT`,
 `OUTPUT_LIMIT_EXCEEDED` y `EVIDENCE_INCOMPLETE`.
 

@@ -43,10 +43,10 @@
   `benchmark_dataset`, `criterion_archive`, `collapsed_stacks`, `flamegraph_svg`
   y `bloat_json` —, el mime `image/svg+xml` y sus versiones de payload. Ninguna
   variante nueva aparece en el schema público de una tool anterior. El dataset usa
-  el formato versionado `rust-engineering-mcp.benchmark-dataset.v1`
-  (`format_version = 1`) con las muestras crudas y una provenance completa; un
-  lector que no reconozca exactamente ese identificador falla cerrado y nunca
-  migra medidas. Techos: SVG ≤ 8 MiB, bloat ≤ 4 MiB, muestras ≤ 32 MiB y
+  el formato versionado `rust-engineering-mcp.benchmark-dataset.v2`
+  (`format_version = 2`) con las muestras crudas —cada una con el `run_index` de
+  la ejecución que la produjo— y una provenance completa; un lector que no
+  reconozca exactamente ese identificador falla cerrado y nunca migra medidas. Techos: SVG ≤ 8 MiB, bloat ≤ 4 MiB, muestras ≤ 32 MiB y
   resultado MCP completo ≤ 512 KiB.
 - Provisionada una imagen guest derivada por digest de la imagen M4, que añade
   exactamente `cargo-bloat 0.12.1` (MIT, con su cierre de veinte paquetes

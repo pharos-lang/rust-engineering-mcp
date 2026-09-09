@@ -586,6 +586,12 @@ fn comparison(value: BenchmarkComparison) -> schemas::Comparison {
                 InconclusiveReason::TruncatedMeasurement => {
                     schemas::InconclusiveReason::TruncatedMeasurement
                 }
+                InconclusiveReason::SingleExecutionPerSide => {
+                    schemas::InconclusiveReason::SingleExecutionPerSide
+                }
+                InconclusiveReason::DegenerateDispersion => {
+                    schemas::InconclusiveReason::DegenerateDispersion
+                }
             })
             .collect(),
     }

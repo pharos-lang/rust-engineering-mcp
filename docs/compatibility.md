@@ -448,8 +448,8 @@ SemVer del servidor y del contrato de las tools** (G6):
 
 | Identificador | Contenido |
 | --- | --- |
-| `rust-engineering-mcp.benchmark-dataset.v1` | Dataset de benchmark: identidad, muestras crudas, `sampling_mode`, parámetros solicitados y provenance |
-| `rust-engineering-mcp.benchmark-comparison.v1` | Método de comparación congelado: estadístico, remuestreos, semilla, confianza, corrección por multiplicidad, umbral y política de outliers |
+| `rust-engineering-mcp.benchmark-dataset.v2` | Dataset de benchmark: identidad, muestras crudas con su `run_index`, `sampling_mode`, parámetros solicitados y provenance |
+| `rust-engineering-mcp.benchmark-comparison.v2` | Método de comparación congelado: estadístico, remuestreos por conglomerados sobre ejecuciones, semilla, confianza, corrección por multiplicidad, umbral y política de outliers |
 | `rust-engineering-mcp.collapsed-stacks.v1` | Stacks colapsados |
 | `rust-engineering-mcp.flamegraph-svg.v1` | Flame graph renderizado por el producto |
 | `rust-engineering-mcp.bloat-report.v1` | Reporte de tamaño y atribución |

@@ -14,19 +14,34 @@
 //! samples show under this method on this host; it never attributes the
 //! difference to any change, and it never generalizes to another host, another
 //! project or another workload.
+//!
+//! The unit that is resampled is the EXECUTION, not the sample. Two datasets
+//! may only be compared when their `execution_fingerprint`s differ, so the
+//! quantity a verdict is about is how much the statistic moves BETWEEN
+//! executions. Resampling the samples inside one execution estimates something
+//! else — how much the statistic would move if the same execution were read
+//! again — and that number is far smaller, which is what turns host drift into
+//! a confident direction. See the "Corrección" note in
+//! docs/adr/ADR-073-benchmark-method-and-dataset.md §4.
 
 use crate::benchmark::{
     BENCHMARK_DATASET_FORMAT, BENCHMARK_DATASET_FORMAT_VERSION, BenchmarkDataset, BenchmarkError,
-    BenchmarkMeasurement, MeasurementCompleteness, RawSample,
+    BenchmarkMeasurement, MeasurementCompleteness,
 };
 use serde::{Deserialize, Serialize};
-use std::collections::BTreeSet;
+use std::collections::{BTreeMap, BTreeSet};
 use std::{error::Error, fmt};
 
 /// Wire identity of the comparison method. A report that carries a different
 /// value was produced by a different method and its numbers are not comparable
 /// with these.
-pub const COMPARISON_METHOD: &str = "rust-engineering-mcp.benchmark-comparison.v1";
+///
+/// v2 resamples executions and then samples within them (a cluster bootstrap).
+/// v1 resampled samples inside one execution, so its intervals are narrower
+/// than v2's for the same data and the two cannot be read side by side. The
+/// statistic, seed, resample count, confidence level, multiplicity correction,
+/// threshold and outlier policy are unchanged.
+pub const COMPARISON_METHOD: &str = "rust-engineering-mcp.benchmark-comparison.v2";
 
 /// Bootstrap resamples per benchmark. Ten thousand keeps the Monte-Carlo error
 /// of a 95% percentile interval well below the reporting precision while
@@ -124,6 +139,25 @@ pub enum InconclusiveReason {
     ZeroOrNegativeBaseline,
     MissingMeasurement,
     TruncatedMeasurement,
+    /// One side's samples all come from a single execution.
+    ///
+    /// One execution per side cannot separate a change in the code from a
+    /// change in the machine: everything that drifted between the two runs —
+    /// frequency, thermal state, page cache, co-tenants, address layout —
+    /// is folded into the same difference the verdict would attribute to the
+    /// source. With no second execution on a side there is no estimate of that
+    /// drift at all, so no interval computed here can exclude it, and no
+    /// direction is admissible however wide the observed gap is.
+    SingleExecutionPerSide,
+    /// The two sample sets carry no dispersion to measure.
+    ///
+    /// When every sample is identical the bootstrap standard error is zero, so
+    /// the minimum detectable ratio is zero and the precision gate can never
+    /// fire: a harness that emits a constant would otherwise receive the most
+    /// confident verdict this method can produce, with a zero-width interval.
+    /// Zero observed dispersion is an ABSENCE of information about dispersion,
+    /// not infinite precision, and this method refuses to read it as the latter.
+    DegenerateDispersion,
 }
 
 /// Multiplicity correction applied to the family of benchmarks in one report.
@@ -492,32 +526,104 @@ fn standard_deviation(values: &[f64]) -> f64 {
     variance.sqrt()
 }
 
+/// One side's per-iteration values, kept grouped by the execution that produced
+/// them. The grouping is the point: it is what the bootstrap resamples.
+struct SideSamples {
+    /// One vector per distinct `run_index`, ordered by that index so a draw
+    /// depends on the data and never on the order samples arrived in.
+    executions: Vec<Vec<f64>>,
+    /// Every value of every execution, pooled. The reported median, the
+    /// outlier count and the sample count are computed over this.
+    values: Vec<f64>,
+}
+
+impl SideSamples {
+    /// Groups one measurement's samples by the execution each came from.
+    fn of(measurement: &BenchmarkMeasurement) -> Self {
+        let mut grouped: BTreeMap<u8, Vec<f64>> = BTreeMap::new();
+        for sample in measurement.samples() {
+            grouped
+                .entry(sample.run_index())
+                .or_default()
+                .push(sample.per_iteration_ns());
+        }
+        let executions: Vec<Vec<f64>> = grouped.into_values().collect();
+        let values = executions.iter().flatten().copied().collect();
+        Self { executions, values }
+    }
+
+    /// How many independent executions this side pools. Fewer than two is not
+    /// a small number of executions; it is no estimate of between-execution
+    /// drift at all.
+    fn execution_count(&self) -> usize {
+        self.executions.len()
+    }
+}
+
 struct BootstrapOutcome {
     interval: (f64, f64),
     standard_error: f64,
+    /// The ten thousand resampled ratios were all the same number, so the
+    /// bootstrap distribution has no width: the standard error is zero.
+    ///
+    /// It is read off the distribution rather than off `standard_error > 0.0`
+    /// because summing ten thousand identical values leaves a last-unit
+    /// rounding residue, and a standard error of 1e-17 is zero dispersion
+    /// reported as spectacular precision — exactly the reading this flag
+    /// exists to prevent.
+    degenerate: bool,
 }
 
-/// Paired percentile bootstrap of the ratio of medians. Each group is resampled
-/// independently with replacement; both medians are recomputed on every
-/// resample and the recorded value is `candidate/baseline - 1`.
-fn bootstrap_ratio(key: &str, baseline: &[f64], candidate: &[f64], alpha: f64) -> BootstrapOutcome {
+/// One two-stage draw: `k` executions taken with replacement from the `k` this
+/// side ran, then, inside each execution drawn, as many samples with
+/// replacement as that execution reported. Returns the median of the pooled
+/// draw.
+///
+/// The two stages are what put between-execution variance into the interval. A
+/// side that ran one execution can only ever draw that one, which is why a
+/// direction is refused earlier rather than read off a draw that cannot vary
+/// the way the underlying quantity does.
+fn cluster_draw(rng: &mut SplitMix64, side: &SideSamples, draw: &mut Vec<f64>) -> f64 {
+    draw.clear();
+    let count = side.executions.len();
+    for _ in 0..count {
+        // `index` is always below the bound it is given, so `get` cannot be
+        // `None` here; it is used anyway because a statistic never panics.
+        let Some(execution) = side.executions.get(rng.index(count)) else {
+            continue;
+        };
+        for _ in 0..execution.len() {
+            if let Some(value) = execution.get(rng.index(execution.len())) {
+                draw.push(*value);
+            }
+        }
+    }
+    draw.sort_unstable_by(f64::total_cmp);
+    median_sorted(draw)
+}
+
+/// Paired percentile CLUSTER bootstrap of the ratio of medians. Each side is
+/// resampled independently and in two stages — executions, then samples within
+/// each execution drawn; both medians are recomputed on every resample and the
+/// recorded value is `candidate/baseline - 1`.
+///
+/// Resampling only the samples, as an earlier form of this method did, holds
+/// the executions fixed and so reports the precision of ONE execution's median.
+/// The verdict is about a difference between executions, so that interval
+/// answered a question nobody asked and answered it far too tightly.
+fn bootstrap_ratio(
+    key: &str,
+    baseline: &SideSamples,
+    candidate: &SideSamples,
+    alpha: f64,
+) -> BootstrapOutcome {
     let mut rng = SplitMix64::for_benchmark(key);
     let mut ratios = Vec::with_capacity(BOOTSTRAP_RESAMPLES as usize);
-    let mut baseline_draw = vec![0.0f64; baseline.len()];
-    let mut candidate_draw = vec![0.0f64; candidate.len()];
+    let mut baseline_draw = Vec::with_capacity(baseline.values.len());
+    let mut candidate_draw = Vec::with_capacity(candidate.values.len());
     for _ in 0..BOOTSTRAP_RESAMPLES {
-        for slot in &mut baseline_draw {
-            *slot = baseline[rng.index(baseline.len())];
-        }
-        baseline_draw.sort_unstable_by(f64::total_cmp);
-        let baseline_median = median_sorted(&baseline_draw);
-
-        for slot in &mut candidate_draw {
-            *slot = candidate[rng.index(candidate.len())];
-        }
-        candidate_draw.sort_unstable_by(f64::total_cmp);
-        let candidate_median = median_sorted(&candidate_draw);
-
+        let baseline_median = cluster_draw(&mut rng, baseline, &mut baseline_draw);
+        let candidate_median = cluster_draw(&mut rng, candidate, &mut candidate_draw);
         ratios.push(if baseline_median > 0.0 {
             candidate_median / baseline_median - 1.0
         } else {
@@ -526,13 +632,34 @@ fn bootstrap_ratio(key: &str, baseline: &[f64], candidate: &[f64], alpha: f64) -
     }
     let standard_error = standard_deviation(&ratios);
     ratios.sort_unstable_by(f64::total_cmp);
+    let degenerate = match (ratios.first(), ratios.last()) {
+        (Some(low), Some(high)) => low.total_cmp(high) == std::cmp::Ordering::Equal,
+        // No resample at all is not a dispersion this method observed either.
+        _ => true,
+    };
     BootstrapOutcome {
         interval: (
             quantile_sorted(&ratios, alpha / 2.0),
             quantile_sorted(&ratios, 1.0 - alpha / 2.0),
         ),
         standard_error,
+        degenerate,
     }
+}
+
+/// Whether the two sides carry fewer than two distinct per-iteration values
+/// between them. A single value repeated is a sample set with no dispersion to
+/// measure, whatever its size.
+fn fewer_than_two_distinct_values(baseline: &[f64], candidate: &[f64]) -> bool {
+    let mut first: Option<f64> = None;
+    for value in baseline.iter().chain(candidate) {
+        match first {
+            None => first = Some(*value),
+            Some(seen) if seen.total_cmp(value) != std::cmp::Ordering::Equal => return false,
+            Some(_) => (),
+        }
+    }
+    true
 }
 
 // ---------------------------------------------------------------------------
@@ -623,13 +750,21 @@ struct VerdictInput {
     candidate_completeness: MeasurementCompleteness,
     baseline_samples: usize,
     candidate_samples: usize,
+    /// Distinct executions behind each side's samples.
+    baseline_executions: usize,
+    candidate_executions: usize,
     baseline_median_ns: f64,
+    /// The bootstrap standard error was zero, or the two sides carry a single
+    /// per-iteration value between them.
+    degenerate_dispersion: bool,
     interval: (f64, f64),
     minimum_detectable_ratio: f64,
 }
 
-/// The frozen decision rule, in order. It reads the interval and the reported
-/// precision only; it describes the two measurements and attributes nothing.
+/// The frozen decision rule, in order. It reads what the two sample sets are —
+/// their completeness, their size, how many executions they came from, whether
+/// they carry any dispersion at all — and then the interval and the reported
+/// precision; it describes the two measurements and attributes nothing.
 fn decide(input: &VerdictInput) -> (ComparisonVerdict, Vec<InconclusiveReason>) {
     use MeasurementCompleteness as Completeness;
 
@@ -661,6 +796,19 @@ fn decide(input: &VerdictInput) -> (ComparisonVerdict, Vec<InconclusiveReason>) 
         reasons.push(InconclusiveReason::ZeroOrNegativeBaseline);
         return (ComparisonVerdict::Inconclusive, reasons);
     }
+    // Both of the next two guards run BEFORE the interval and before the
+    // precision gate, because both describe data that makes those two
+    // meaningless: one execution per side gives an interval that measures the
+    // wrong thing, and zero dispersion gives a minimum detectable ratio of zero
+    // that no threshold can ever exceed.
+    if input.baseline_executions < 2 || input.candidate_executions < 2 {
+        reasons.push(InconclusiveReason::SingleExecutionPerSide);
+        return (ComparisonVerdict::Inconclusive, reasons);
+    }
+    if input.degenerate_dispersion {
+        reasons.push(InconclusiveReason::DegenerateDispersion);
+        return (ComparisonVerdict::Inconclusive, reasons);
+    }
     if input.minimum_detectable_ratio > MATERIAL_THRESHOLD_RATIO {
         reasons.push(InconclusiveReason::PrecisionBelowThreshold);
         return (ComparisonVerdict::Inconclusive, reasons);
@@ -690,18 +838,12 @@ fn compare_one(
     alpha: f64,
     z_two_sided: f64,
 ) -> BenchmarkComparison {
-    let baseline_values: Vec<f64> = baseline
-        .samples()
-        .iter()
-        .map(RawSample::per_iteration_ns)
-        .collect();
-    let candidate_values: Vec<f64> = candidate
-        .samples()
-        .iter()
-        .map(RawSample::per_iteration_ns)
-        .collect();
-    let baseline_sorted = sorted_copy(&baseline_values);
-    let candidate_sorted = sorted_copy(&candidate_values);
+    let baseline_side = SideSamples::of(baseline);
+    let candidate_side = SideSamples::of(candidate);
+    let baseline_values = &baseline_side.values;
+    let candidate_values = &candidate_side.values;
+    let baseline_sorted = sorted_copy(baseline_values);
+    let candidate_sorted = sorted_copy(candidate_values);
     let baseline_median = median_sorted(&baseline_sorted);
     let candidate_median = median_sorted(&candidate_sorted);
 
@@ -713,11 +855,12 @@ fn compare_one(
         0.0
     };
     let outcome = if usable {
-        bootstrap_ratio(key, &baseline_values, &candidate_values, alpha)
+        bootstrap_ratio(key, &baseline_side, &candidate_side, alpha)
     } else {
         BootstrapOutcome {
             interval: (0.0, 0.0),
             standard_error: 0.0,
+            degenerate: true,
         }
     };
     let minimum_detectable_ratio = if usable {
@@ -731,7 +874,12 @@ fn compare_one(
         candidate_completeness: candidate.completeness(),
         baseline_samples: baseline_values.len(),
         candidate_samples: candidate_values.len(),
+        baseline_executions: baseline_side.execution_count(),
+        candidate_executions: candidate_side.execution_count(),
         baseline_median_ns: baseline_median,
+        degenerate_dispersion: usable
+            && (outcome.degenerate
+                || fewer_than_two_distinct_values(baseline_values, candidate_values)),
         interval: outcome.interval,
         minimum_detectable_ratio,
     });
@@ -832,7 +980,7 @@ mod tests {
     use super::*;
     use crate::benchmark::{
         APPROVED_CRITERION_VERSION, BenchmarkHarness, BenchmarkIdentity, BenchmarkProvenance,
-        BenchmarkSelection, HardwareProfile, ResourceQuotas, SampleUnit, SamplingMode,
+        BenchmarkSelection, HardwareProfile, RawSample, ResourceQuotas, SampleUnit, SamplingMode,
         Virtualization,
     };
 
@@ -847,6 +995,11 @@ mod tests {
         .unwrap()
     }
 
+    /// The frozen protocol runs three independent executions per call, so a
+    /// fixture measurement deals its values over three `run_index` values. A
+    /// fixture that pretended one execution produced everything would be
+    /// refused a direction by the method itself, which is the point of
+    /// `single_execution` below.
     fn measurement_with(
         name: &str,
         values: &[f64],
@@ -854,7 +1007,8 @@ mod tests {
     ) -> BenchmarkMeasurement {
         let samples = values
             .iter()
-            .map(|value| RawSample::new(1, *value).unwrap())
+            .enumerate()
+            .map(|(index, value)| RawSample::new(1, *value, (index % 3) as u8 + 1).unwrap())
             .collect();
         BenchmarkMeasurement::new(
             identity(name),
@@ -870,6 +1024,24 @@ mod tests {
 
     fn measurement(name: &str, values: &[f64]) -> BenchmarkMeasurement {
         measurement_with(name, values, MeasurementCompleteness::Complete)
+    }
+
+    /// Every sample from one and the same execution.
+    fn single_execution(name: &str, values: &[f64]) -> BenchmarkMeasurement {
+        let samples = values
+            .iter()
+            .map(|value| RawSample::new(1, *value, 1).unwrap())
+            .collect();
+        BenchmarkMeasurement::new(
+            identity(name),
+            SamplingMode::Flat,
+            samples,
+            3_000,
+            5_000,
+            u32::try_from(values.len()).unwrap_or(u32::MAX),
+            MeasurementCompleteness::Complete,
+        )
+        .unwrap()
     }
 
     fn provenance(execution: &str) -> BenchmarkProvenance {
@@ -1201,7 +1373,10 @@ mod tests {
             candidate_completeness: MeasurementCompleteness::Complete,
             baseline_samples: 30,
             candidate_samples: 30,
+            baseline_executions: 3,
+            candidate_executions: 3,
             baseline_median_ns: median,
+            degenerate_dispersion: false,
             interval,
             minimum_detectable_ratio: mdr,
         };
@@ -1244,6 +1419,197 @@ mod tests {
         assert_eq!(
             decide(&base(1_000.0, (0.06, 0.30), 0.9)).1,
             vec![InconclusiveReason::PrecisionBelowThreshold]
+        );
+        // A single execution on either side refuses the direction the interval
+        // would otherwise support, and is read before the precision gate.
+        for (baseline_executions, candidate_executions) in [(1, 3), (3, 1), (1, 1), (0, 3)] {
+            let input = VerdictInput {
+                baseline_executions,
+                candidate_executions,
+                ..base(1_000.0, (0.06, 0.30), 0.01)
+            };
+            assert_eq!(
+                decide(&input),
+                (
+                    ComparisonVerdict::Inconclusive,
+                    vec![InconclusiveReason::SingleExecutionPerSide]
+                ),
+                "{baseline_executions}/{candidate_executions}"
+            );
+        }
+        // A zero-width interval with a zero minimum detectable ratio is the
+        // shape a constant-emitting harness produces. It is refused for what it
+        // is: no dispersion was observed, so nothing was learned about it.
+        assert_eq!(
+            decide(&VerdictInput {
+                degenerate_dispersion: true,
+                ..base(1_000.0, (0.20, 0.20), 0.0)
+            }),
+            (
+                ComparisonVerdict::Inconclusive,
+                vec![InconclusiveReason::DegenerateDispersion]
+            )
+        );
+    }
+
+    #[test]
+    fn one_execution_per_side_never_receives_a_direction() {
+        // A 20% gap, sixty samples a side, tight dispersion: everything the
+        // method needs except a second execution to compare against.
+        let baseline = jitter(1, 60, 1_000.0, 0.02);
+        let candidate = jitter(2, 60, 1_200.0, 0.02);
+        let report = compare(
+            &dataset(
+                "run-baseline",
+                vec![single_execution("bench/one", &baseline)],
+            ),
+            &dataset(
+                "run-candidate",
+                vec![single_execution("bench/one", &candidate)],
+            ),
+        )
+        .unwrap();
+        let comparison = only(&report);
+        assert_eq!(comparison.verdict, ComparisonVerdict::Inconclusive);
+        assert_eq!(
+            comparison.inconclusive_reasons,
+            vec![InconclusiveReason::SingleExecutionPerSide]
+        );
+        // The measurement itself is still reported; only the direction is not.
+        assert!((comparison.effect_ratio - 0.20).abs() < 0.03);
+        assert_eq!(comparison.baseline_samples, 60);
+        assert_eq!(comparison.candidate_samples, 60);
+    }
+
+    #[test]
+    fn one_execution_on_a_single_side_is_enough_to_withhold_the_direction() {
+        let baseline = jitter(3, 60, 1_000.0, 0.02);
+        let candidate = jitter(4, 60, 1_200.0, 0.02);
+        let report = compare(
+            &dataset("run-baseline", vec![measurement("bench/one", &baseline)]),
+            &dataset(
+                "run-candidate",
+                vec![single_execution("bench/one", &candidate)],
+            ),
+        )
+        .unwrap();
+        assert_eq!(
+            only(&report).inconclusive_reasons,
+            vec![InconclusiveReason::SingleExecutionPerSide]
+        );
+    }
+
+    #[test]
+    fn a_harness_that_emits_a_constant_receives_no_verdict() {
+        // Two constants, one per side: the bootstrap moves nothing, so the
+        // standard error is zero and the precision gate can never fire.
+        let baseline = vec![1_000.0; 60];
+        let candidate = vec![1_200.0; 60];
+        let report = compare(
+            &dataset("run-baseline", vec![measurement("bench/one", &baseline)]),
+            &dataset("run-candidate", vec![measurement("bench/one", &candidate)]),
+        )
+        .unwrap();
+        let comparison = only(&report);
+        assert_eq!(comparison.verdict, ComparisonVerdict::Inconclusive);
+        assert_eq!(
+            comparison.inconclusive_reasons,
+            vec![InconclusiveReason::DegenerateDispersion]
+        );
+        // The reported minimum detectable ratio is a rounding residue of
+        // summing ten thousand identical numbers, not a resolution this run
+        // achieved. It is orders of magnitude below the threshold, which is
+        // precisely why the degeneracy is decided from the width of the
+        // bootstrap distribution and never from this number.
+        assert!(
+            comparison.minimum_detectable_ratio < 1e-9,
+            "{}",
+            comparison.minimum_detectable_ratio
+        );
+        // A zero-width interval: every resample returned the same ratio.
+        let (low, high) = comparison.confidence_interval;
+        assert_eq!(low, high);
+        assert!((low - 0.20).abs() < 1e-12, "{low}");
+        assert!((comparison.effect_ratio - 0.20).abs() < 1e-12);
+
+        // The same constant on both sides is equally uninformative: a
+        // zero-width interval around zero is not "no material change".
+        let flat = compare(
+            &dataset("run-baseline", vec![measurement("bench/one", &baseline)]),
+            &dataset("run-candidate", vec![measurement("bench/one", &baseline)]),
+        )
+        .unwrap();
+        assert_eq!(
+            only(&flat).inconclusive_reasons,
+            vec![InconclusiveReason::DegenerateDispersion]
+        );
+    }
+
+    /// The defect this method was corrected for, stated as an oracle.
+    ///
+    /// Each side ran two executions whose medians sit ~6% apart — ordinary host
+    /// drift — and the two sides differ by ~7.5%. Resampling the samples inside
+    /// the executions treats the 120 pooled samples as 120 independent draws
+    /// and reports a standard error small enough to call a regression.
+    /// Resampling the executions reports the drift as well, and the drift alone
+    /// is larger than the material threshold, so no direction is claimed.
+    #[test]
+    fn drift_between_executions_is_not_read_as_a_difference_between_datasets() {
+        let two_executions = |name: &str, first: &[f64], second: &[f64]| {
+            let samples = first
+                .iter()
+                .map(|value| RawSample::new(1, *value, 1).unwrap())
+                .chain(
+                    second
+                        .iter()
+                        .map(|value| RawSample::new(1, *value, 2).unwrap()),
+                )
+                .collect::<Vec<_>>();
+            BenchmarkMeasurement::new(
+                identity(name),
+                SamplingMode::Flat,
+                samples,
+                3_000,
+                5_000,
+                60,
+                MeasurementCompleteness::Complete,
+            )
+            .unwrap()
+        };
+        let baseline = two_executions(
+            "bench/one",
+            &jitter(301, 30, 1_000.0, 0.005),
+            &jitter(311, 30, 1_060.0, 0.005),
+        );
+        let candidate = two_executions(
+            "bench/one",
+            &jitter(321, 30, 1_075.0, 0.005),
+            &jitter(331, 30, 1_140.0, 0.005),
+        );
+        let report = compare(
+            &dataset("run-baseline", vec![baseline]),
+            &dataset("run-candidate", vec![candidate]),
+        )
+        .unwrap();
+        let comparison = only(&report);
+        assert!(
+            (comparison.effect_ratio - 0.075).abs() < 0.01,
+            "{}",
+            comparison.effect_ratio
+        );
+        assert_eq!(
+            comparison.verdict,
+            ComparisonVerdict::Inconclusive,
+            "effect {:.4}, interval {:.4}..{:.4}, mdr {:.4}",
+            comparison.effect_ratio,
+            comparison.confidence_interval.0,
+            comparison.confidence_interval.1,
+            comparison.minimum_detectable_ratio
+        );
+        assert!(
+            comparison.minimum_detectable_ratio > MATERIAL_THRESHOLD_RATIO,
+            "{}",
+            comparison.minimum_detectable_ratio
         );
     }
 
@@ -1389,7 +1755,8 @@ mod tests {
             SamplingMode::Flat,
             values
                 .iter()
-                .map(|v| RawSample::new(1, *v).unwrap())
+                .enumerate()
+                .map(|(index, v)| RawSample::new(1, *v, (index % 3) as u8 + 1).unwrap())
                 .collect(),
             3_000,
             5_000,
@@ -1409,7 +1776,8 @@ mod tests {
             SamplingMode::Linear,
             values
                 .iter()
-                .map(|v| RawSample::new(1, *v).unwrap())
+                .enumerate()
+                .map(|(index, v)| RawSample::new(1, *v, (index % 3) as u8 + 1).unwrap())
                 .collect(),
             3_000,
             5_000,
@@ -1435,8 +1803,8 @@ mod tests {
             vec![measurement("bench/one", &values)],
         ))?;
         let future: BenchmarkDataset = serde_json::from_str(&encoded.replacen(
-            r#""format_version":1"#,
             r#""format_version":2"#,
+            r#""format_version":3"#,
             1,
         ))?;
         assert_eq!(

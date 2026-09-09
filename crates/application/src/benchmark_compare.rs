@@ -277,7 +277,10 @@ mod tests {
             SamplingMode::Flat,
             values
                 .iter()
-                .map(|value| RawSample::new(1, *value).unwrap())
+                .enumerate()
+                // Dealt over the three executions the provenance declares, so
+                // the frozen method has a between-execution estimate to use.
+                .map(|(index, value)| RawSample::new(1, *value, (index % 3) as u8 + 1).unwrap())
                 .collect(),
             3_000,
             5_000,

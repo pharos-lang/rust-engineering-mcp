@@ -5,8 +5,9 @@
 //! medir") requires the dataset format to be independent of the server's own
 //! SemVer and requires an unknown reader to fail closed: a payload whose
 //! [`BenchmarkDataset::format`] is not exactly [`BENCHMARK_DATASET_FORMAT`], or
-//! whose `format_version` is not `1`, is rejected by [`BenchmarkDataset::validate`]
-//! and is never coerced, migrated or reinterpreted here.
+//! whose `format_version` is not [`BENCHMARK_DATASET_FORMAT_VERSION`], is
+//! rejected by [`BenchmarkDataset::validate`] and is never coerced, migrated or
+//! reinterpreted here — the previous v1 payload included.
 //!
 //! Nothing in this module measures anything. It only models what a measurement
 //! run produced, and every field that was not observed stays `None`, meaning
@@ -22,14 +23,22 @@ use std::collections::BTreeSet;
 use std::{error::Error, fmt};
 
 /// Wire identity of the dataset format. Deliberately a full string and not a
-/// bare integer: a foreign producer that reuses `format_version: 1` for its own
+/// bare integer: a foreign producer that reuses `format_version: 2` for its own
 /// unrelated schema must still be rejected.
-pub const BENCHMARK_DATASET_FORMAT: &str = "rust-engineering-mcp.benchmark-dataset.v1";
+///
+/// v2 adds [`RawSample::run_index`]: which of the protocol's independent
+/// executions produced each sample. v1 carried no such field, so a v1 payload
+/// cannot say which execution any of its samples came from, and the comparison
+/// method needs exactly that to separate a change in the code from a change in
+/// the machine. The format was never released, so v1 is retired rather than
+/// migrated: a v1 payload is refused here like any other foreign one.
+pub const BENCHMARK_DATASET_FORMAT: &str = "rust-engineering-mcp.benchmark-dataset.v2";
 
-/// The only accepted `format_version`. A dataset carrying any other value is
-/// rejected; migration either preserves the raw samples under a new reader or
-/// requires a rerun, and never rewrites measurements into "equivalent" ones.
-pub const BENCHMARK_DATASET_FORMAT_VERSION: u8 = 1;
+/// The only accepted `format_version`. A dataset carrying any other value —
+/// the older `1` included — is rejected; migration either preserves the raw
+/// samples under a new reader or requires a rerun, and never rewrites
+/// measurements into "equivalent" ones.
+pub const BENCHMARK_DATASET_FORMAT_VERSION: u8 = 2;
 
 /// Verified once during explicit M5 provisioning; never inferred from an
 /// installed-file heuristic. A mismatch makes the harness unavailable, checked
@@ -66,9 +75,10 @@ pub enum BenchmarkError {
     InvalidSample,
     /// Two measurements in one dataset shared a benchmark key.
     DuplicateBenchmark,
-    /// The `format` string or `format_version` was not the v1 contract.
+    /// The `format` string or `format_version` was not the current contract.
     UnknownFormat,
-    /// `run_index`/`run_count` were outside the 1-based closed range.
+    /// A `run_index` — a sample's or the provenance's — was outside the 1-based
+    /// closed range its `run_count` allows.
     InvalidRunIndex,
     /// A dataset carried no measurement at all.
     EmptyDataset,
@@ -86,7 +96,7 @@ impl fmt::Display for BenchmarkError {
             Self::TooManySamples => "benchmark measurement exceeds the sample ceiling",
             Self::InvalidSample => "raw sample is not a bounded positive duration",
             Self::DuplicateBenchmark => "dataset repeats a benchmark key",
-            Self::UnknownFormat => "dataset format is not the v1 contract",
+            Self::UnknownFormat => "dataset format is not the current contract",
             Self::InvalidRunIndex => "run index is outside its 1-based run count",
             Self::EmptyDataset => "dataset carries no measurement",
             Self::InvalidProvenance => "provenance field is empty",
@@ -239,13 +249,22 @@ impl BenchmarkIdentity {
 }
 
 /// One raw timing: the total time the harness spent running `iterations`
-/// iterations. Raw samples are kept as reported; per-iteration time is derived,
-/// never stored, so a later reader can recompute any statistic it needs.
+/// iterations, and which of the protocol's independent executions produced it.
+/// Raw samples are kept as reported; per-iteration time is derived, never
+/// stored, so a later reader can recompute any statistic it needs.
+///
+/// `run_index` is carried per sample and not per measurement because one
+/// measurement pools the repetitions of one benchmark key: a reader that only
+/// saw the pooled set could not tell one execution's samples from another's,
+/// and the comparison method resamples executions, not samples.
 #[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case", deny_unknown_fields)]
 pub struct RawSample {
     iterations: u64,
     total_ns: f64,
+    /// 1-based position of the execution this sample came from, inside the
+    /// `run_count` the dataset's provenance declares.
+    run_index: u8,
 }
 
 impl RawSample {
@@ -253,10 +272,15 @@ impl RawSample {
     /// the ceiling also keeps every derived sum inside f64's exact range.
     pub const MAX_TOTAL_NS: f64 = 1e15;
 
-    pub fn new(iterations: u64, total_ns: f64) -> Result<Self, BenchmarkError> {
+    /// `run_index` is the execution that produced this sample. It is a fact the
+    /// producer observed — which repetition it was reading — and is never
+    /// inferred here: there is no default, because a defaulted index would
+    /// claim every sample came from one execution.
+    pub fn new(iterations: u64, total_ns: f64, run_index: u8) -> Result<Self, BenchmarkError> {
         let sample = Self {
             iterations,
             total_ns,
+            run_index,
         };
         sample.validate()?;
         Ok(sample)
@@ -270,6 +294,12 @@ impl RawSample {
         {
             return Err(BenchmarkError::InvalidSample);
         }
+        // The bound against the dataset's own `run_count` is checked where that
+        // number lives, in `BenchmarkDataset::validate`; here the index is only
+        // required to be a 1-based position inside the protocol's ceiling.
+        if self.run_index < 1 || self.run_index > BENCHMARK_MAX_RUNS {
+            return Err(BenchmarkError::InvalidRunIndex);
+        }
         Ok(())
     }
 
@@ -278,6 +308,9 @@ impl RawSample {
     }
     pub fn total_ns(&self) -> f64 {
         self.total_ns
+    }
+    pub fn run_index(&self) -> u8 {
+        self.run_index
     }
 
     /// Derived per-iteration time. Meaningful only on a validated sample; a
@@ -305,6 +338,12 @@ pub struct BenchmarkMeasurement {
 impl BenchmarkMeasurement {
     /// An empty sample set is only representable as `Missing`: a benchmark that
     /// reported nothing is never recorded as a complete measurement of nothing.
+    ///
+    /// Each sample carries its own [`RawSample::run_index`], so one measurement
+    /// may pool the repetitions of one benchmark key without losing which
+    /// execution produced which sample. The constructor validates every one of
+    /// them; the bound against the dataset's `run_count` is checked by
+    /// [`BenchmarkDataset::validate`], where that number lives.
     pub fn new(
         identity: BenchmarkIdentity,
         sampling_mode: SamplingMode,
@@ -352,6 +391,12 @@ impl BenchmarkMeasurement {
     }
     pub fn samples(&self) -> &[RawSample] {
         &self.samples
+    }
+    /// The distinct executions this measurement pools, ascending. A set of one
+    /// says every sample came from a single execution, which is a fact about
+    /// what can be inferred from it, not a defect of the measurement.
+    pub fn run_indices(&self) -> BTreeSet<u8> {
+        self.samples.iter().map(|sample| sample.run_index).collect()
     }
     pub fn warm_up_ms(&self) -> u64 {
         self.warm_up_ms
@@ -492,7 +537,9 @@ impl BenchmarkProvenance {
 }
 
 /// One frozen dataset: raw samples for one or more benchmarks, produced by one
-/// execution, plus that execution's provenance.
+/// call, plus that call's provenance. A call runs `run_count` independent
+/// executions of the same protocol, and every sample records which of them it
+/// came from.
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case", deny_unknown_fields)]
 pub struct BenchmarkDataset {
@@ -544,7 +591,20 @@ impl BenchmarkDataset {
                 return Err(BenchmarkError::DuplicateBenchmark);
             }
         }
-        self.provenance.validate()
+        self.provenance.validate()?;
+        // A sample cannot come from an execution this dataset does not claim to
+        // have run. The bound is checked here because `run_count` lives in the
+        // provenance, and only after the provenance itself is known valid.
+        for measurement in &self.measurements {
+            if measurement
+                .samples()
+                .iter()
+                .any(|sample| sample.run_index() > self.provenance.run_count)
+            {
+                return Err(BenchmarkError::InvalidRunIndex);
+            }
+        }
+        Ok(())
     }
 
     pub fn measurement(&self, key: &str) -> Option<&BenchmarkMeasurement> {
@@ -623,9 +683,11 @@ mod tests {
         .unwrap()
     }
 
+    /// Samples spread over three executions, the way the frozen protocol runs
+    /// them: index 0 belongs to run 1, index 1 to run 2, and so on.
     fn samples(count: usize) -> Vec<RawSample> {
         (0..count)
-            .map(|index| RawSample::new(1, 1_000.0 + index as f64).unwrap())
+            .map(|index| RawSample::new(1, 1_000.0 + index as f64, (index % 3) as u8 + 1).unwrap())
             .collect()
     }
 
@@ -778,15 +840,75 @@ mod tests {
             (1, RawSample::MAX_TOTAL_NS * 10.0),
         ] {
             assert_eq!(
-                RawSample::new(iterations, total_ns).unwrap_err(),
+                RawSample::new(iterations, total_ns, 1).unwrap_err(),
                 BenchmarkError::InvalidSample,
                 "{iterations} {total_ns}"
             );
         }
-        let sample = RawSample::new(4, 1_000.0).unwrap();
+        let sample = RawSample::new(4, 1_000.0, 2).unwrap();
         assert_eq!(sample.iterations(), 4);
         assert_eq!(sample.total_ns(), 1_000.0);
         assert_eq!(sample.per_iteration_ns(), 250.0);
+        assert_eq!(sample.run_index(), 2);
+    }
+
+    #[test]
+    fn a_sample_outside_the_one_based_run_range_is_rejected() {
+        for run_index in [0, BENCHMARK_MAX_RUNS + 1, u8::MAX] {
+            assert_eq!(
+                RawSample::new(1, 1_000.0, run_index).unwrap_err(),
+                BenchmarkError::InvalidRunIndex,
+                "{run_index}"
+            );
+        }
+        assert!(RawSample::new(1, 1_000.0, 1).is_ok());
+        assert!(RawSample::new(1, 1_000.0, BENCHMARK_MAX_RUNS).is_ok());
+    }
+
+    #[test]
+    fn a_measurement_reports_the_distinct_executions_it_pools() {
+        let measurement = measurement("bench/one");
+        // Twelve samples dealt round-robin over the three executions.
+        assert_eq!(
+            measurement.run_indices(),
+            BTreeSet::from([1, 2, 3]),
+            "pooled measurement lost its executions"
+        );
+        let single = BenchmarkMeasurement::new(
+            identity("bench/two"),
+            SamplingMode::Flat,
+            vec![RawSample::new(1, 1_000.0, 1).unwrap(); 12],
+            3_000,
+            5_000,
+            12,
+            MeasurementCompleteness::Complete,
+        )
+        .unwrap();
+        assert_eq!(single.run_indices(), BTreeSet::from([1]));
+    }
+
+    #[test]
+    fn a_sample_from_an_execution_the_provenance_never_ran_is_rejected() {
+        // `provenance` declares three repetitions; a fourth did not happen.
+        let measurement = BenchmarkMeasurement::new(
+            identity("bench/one"),
+            SamplingMode::Flat,
+            vec![RawSample::new(1, 1_000.0, 4).unwrap()],
+            3_000,
+            5_000,
+            1,
+            MeasurementCompleteness::Complete,
+        )
+        .unwrap();
+        assert_eq!(
+            BenchmarkDataset::new(
+                SampleUnit::Nanoseconds,
+                vec![measurement],
+                provenance("sha256:aa", "sha256:run-1"),
+            )
+            .unwrap_err(),
+            BenchmarkError::InvalidRunIndex
+        );
     }
 
     #[test]
@@ -825,7 +947,7 @@ mod tests {
 
     #[test]
     fn measurement_beyond_the_sample_ceiling_is_rejected() {
-        let sample = RawSample::new(1, 10.0).unwrap();
+        let sample = RawSample::new(1, 10.0, 1).unwrap();
         assert_eq!(
             BenchmarkMeasurement::new(
                 identity("bench"),
@@ -930,7 +1052,7 @@ mod tests {
         assert_eq!(decoded, dataset);
         assert!(decoded.validate().is_ok());
         assert_eq!(decoded.format(), BENCHMARK_DATASET_FORMAT);
-        assert_eq!(decoded.format_version(), 1);
+        assert_eq!(decoded.format_version(), 2);
         assert_eq!(decoded.unit(), SampleUnit::Nanoseconds);
         assert_eq!(decoded.measurements().len(), 1);
         assert!(decoded.measurement("bench/one").is_some());
@@ -950,9 +1072,10 @@ mod tests {
     fn an_unknown_format_or_version_fails_closed() -> Result<(), serde_json::Error> {
         let encoded = serde_json::to_string(&dataset())?;
 
+        // A format from the future.
         let future_format = encoded.replace(
             BENCHMARK_DATASET_FORMAT,
-            "rust-engineering-mcp.benchmark-dataset.v2",
+            "rust-engineering-mcp.benchmark-dataset.v3",
         );
         let decoded: BenchmarkDataset = serde_json::from_str(&future_format)?;
         assert_eq!(
@@ -960,12 +1083,40 @@ mod tests {
             BenchmarkError::UnknownFormat
         );
 
-        let future_version = encoded.replacen(r#""format_version":1"#, r#""format_version":2"#, 1);
-        let decoded: BenchmarkDataset = serde_json::from_str(&future_version)?;
+        // And the retired v1 of this product's own format: it is refused, not
+        // migrated, exactly like any other identifier this reader does not
+        // implement.
+        let retired_format = encoded.replace(
+            BENCHMARK_DATASET_FORMAT,
+            "rust-engineering-mcp.benchmark-dataset.v1",
+        );
+        let decoded: BenchmarkDataset = serde_json::from_str(&retired_format)?;
         assert_eq!(
             decoded.validate().unwrap_err(),
             BenchmarkError::UnknownFormat
         );
+
+        for version in [r#""format_version":1"#, r#""format_version":3"#] {
+            let other = encoded.replacen(r#""format_version":2"#, version, 1);
+            let decoded: BenchmarkDataset = serde_json::from_str(&other)?;
+            assert_eq!(
+                decoded.validate().unwrap_err(),
+                BenchmarkError::UnknownFormat,
+                "{version}"
+            );
+        }
+        Ok(())
+    }
+
+    /// A v1 sample carried no `run_index` at all. The reader does not fill one
+    /// in: an absent execution identity is missing information, and inventing
+    /// one would claim every sample came from the same execution.
+    #[test]
+    fn a_sample_without_a_run_index_does_not_deserialize() -> Result<(), serde_json::Error> {
+        let encoded = serde_json::to_string(&dataset())?;
+        assert!(encoded.contains(r#""run_index":1"#));
+        let stripped = encoded.replace(r#","run_index":1"#, "");
+        assert!(serde_json::from_str::<BenchmarkDataset>(&stripped).is_err());
         Ok(())
     }
 
@@ -1018,7 +1169,7 @@ mod tests {
     #[test]
     fn approved_harness_version_is_pinned() {
         assert_eq!(APPROVED_CRITERION_VERSION, "0.8.2");
-        assert_eq!(BENCHMARK_DATASET_FORMAT_VERSION, 1);
-        assert!(BENCHMARK_DATASET_FORMAT.ends_with(".v1"));
+        assert_eq!(BENCHMARK_DATASET_FORMAT_VERSION, 2);
+        assert!(BENCHMARK_DATASET_FORMAT.ends_with(".v2"));
     }
 }

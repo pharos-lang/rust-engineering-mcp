@@ -22,7 +22,7 @@ pub(super) fn dataset(keys: usize) -> TestResult<BenchmarkDataset> {
                 key.replace('/', "_"),
             )?;
             let samples = (0..32)
-                .map(|sample| RawSample::new(1, 1_000.0 + f64::from(sample)))
+                .map(|sample| RawSample::new(1, 1_000.0 + f64::from(sample), 1))
                 .collect::<Result<Vec<_>, _>>()?;
             Ok(BenchmarkMeasurement::new(
                 identity,

@@ -27,10 +27,10 @@ use rust_engineering_application::benchmark::BenchmarkRunOptions;
 use rust_engineering_application::security::SecurityError;
 use rust_engineering_application::{ExecutionError, InspectionControl, InspectionError};
 use rust_engineering_domain::benchmark::{
-    APPROVED_CRITERION_VERSION, BENCHMARK_MAX_SAMPLES, BenchmarkDataset, BenchmarkHarness,
-    BenchmarkIdentity, BenchmarkMeasurement, BenchmarkProvenance, BenchmarkSelection,
-    HardwareProfile, MeasurementCompleteness, RawSample, ResourceQuotas, SampleUnit, SamplingMode,
-    Virtualization,
+    APPROVED_CRITERION_VERSION, BENCHMARK_MAX_RUNS, BENCHMARK_MAX_SAMPLES, BenchmarkDataset,
+    BenchmarkHarness, BenchmarkIdentity, BenchmarkMeasurement, BenchmarkProvenance,
+    BenchmarkSelection, HardwareProfile, MeasurementCompleteness, RawSample, ResourceQuotas,
+    SampleUnit, SamplingMode, Virtualization,
 };
 use rust_engineering_domain::benchmark_run::{
     BenchmarkExit, BenchmarkObservation, DatasetOmission, HarnessDetection,
@@ -175,9 +175,11 @@ pub(super) fn hardware_profile(probe: &HardwareProbe) -> HardwareProfile {
 /// The provenance ADR-073 §3 requires of every dataset this server emits.
 ///
 /// `run_index` is `1` because one call publishes exactly one dataset: the
-/// samples of every completed repetition, pooled per benchmark key. `run_count`
+/// samples of every completed repetition, merged per benchmark key. `run_count`
 /// stays the number of repetitions requested, so a reader still sees how many
-/// independent executions the pooled samples came from.
+/// independent executions the samples came from — and each sample carries its
+/// own `run_index`, so a reader can tell them apart rather than take that
+/// number on trust.
 pub(super) fn provenance(
     identity: &RuntimeIdentity,
     execution: &PerformanceExecution,
@@ -205,7 +207,7 @@ pub(super) fn provenance(
 
 // -- rust.benchmark.run ------------------------------------------------------
 
-/// One benchmark key's pooled samples, in the shape the domain rebuilds a
+/// One benchmark key's merged samples, in the shape the domain rebuilds a
 /// measurement from. Identity comes from the first repetition that reported the
 /// key; the parser already refuses two directories claiming one `full_id`, so a
 /// later repetition cannot redefine it.
@@ -216,12 +218,17 @@ struct PooledMeasurement {
     truncated: bool,
 }
 
-/// Pools the independent repetitions per benchmark key.
+/// Merges the independent repetitions per benchmark key, WITHOUT flattening
+/// them into one undifferentiated sample set.
 ///
 /// ADR-073 §2 runs each repetition into its own `CRITERION_HOME`, so the raw
-/// samples arrive per run. They are concatenated, never averaged: a reader that
-/// wants a per-run statistic still has every sample, and a statistic computed
-/// here would be one this product could not later justify.
+/// samples arrive per run and each already carries the `run_index` the parser
+/// was given. They are merged, never averaged and never anonymised: a reader
+/// that wants a per-run statistic still has every sample and knows which
+/// execution produced it, and a statistic computed here would be one this
+/// product could not later justify. The comparison method depends on exactly
+/// that: it resamples executions, and a merge that dropped the boundary
+/// between them would leave it estimating the wrong quantity.
 fn pool(runs: &[Vec<BenchmarkMeasurement>]) -> Result<Vec<BenchmarkMeasurement>, SecurityError> {
     let mut pooled: BTreeMap<String, PooledMeasurement> = BTreeMap::new();
     for measurements in runs {
@@ -301,16 +308,29 @@ fn criterion_omission(failure: criterion_dataset::CriterionError) -> DatasetOmis
 }
 
 /// Decodes every exported repetition, or names the first refusal.
+///
+/// The position each archive is decoded under is its position in the run list,
+/// counted before empty exports are dropped: a repetition that exported nothing
+/// still happened, and renumbering the rest around it would move samples into an
+/// execution that did not produce them. A position the domain cannot represent
+/// is refused rather than clamped — `run_count` is bounded to three by the
+/// options, so this is a guard, not a case that occurs.
 fn parse_runs(
     execution: &PerformanceExecution,
 ) -> Result<Vec<Vec<BenchmarkMeasurement>>, DatasetOmission> {
     execution
         .runs
         .iter()
-        .filter(|run| !run.archive.is_empty())
-        .map(|run| {
+        .enumerate()
+        .filter(|(_, run)| !run.archive.is_empty())
+        .map(|(position, run)| {
+            let run_index = u8::try_from(position + 1)
+                .ok()
+                .filter(|index| *index <= BENCHMARK_MAX_RUNS)
+                .ok_or(DatasetOmission::OutputUnparsable)?;
             criterion_dataset::parse_archive(
                 &run.archive,
+                run_index,
                 BENCHMARK_WARM_UP_MS,
                 BENCHMARK_MEASUREMENT_MS,
                 BENCHMARK_SAMPLE_SIZE,
@@ -909,6 +929,7 @@ pub(super) fn bloat(
 mod tests {
     use super::*;
     use crate::supervisor::{Capture, Stop};
+    use std::collections::BTreeSet;
 
     fn capture(code: Option<i32>, stdout: &[u8]) -> Capture {
         Capture {
@@ -959,9 +980,13 @@ mod tests {
         })
     }
 
+    /// One repetition's measurement of one benchmark: every sample carries the
+    /// `run_index` of the execution that produced it, the way the parser emits
+    /// them.
     fn measurement(
         key: &str,
         samples: usize,
+        run_index: u8,
         completeness: MeasurementCompleteness,
     ) -> Result<BenchmarkMeasurement, String> {
         let identity = BenchmarkIdentity::new(
@@ -974,7 +999,8 @@ mod tests {
         .map_err(|error| format!("{error:?}"))?;
         let samples = (0..samples)
             .map(|index| {
-                RawSample::new(1, 1_000.0 + index as f64).map_err(|error| format!("{error:?}"))
+                RawSample::new(1, 1_000.0 + index as f64, run_index)
+                    .map_err(|error| format!("{error:?}"))
             })
             .collect::<Result<Vec<_>, _>>()?;
         BenchmarkMeasurement::new(
@@ -1174,16 +1200,17 @@ mod tests {
     }
 
     #[test]
-    fn independent_repetitions_pool_per_benchmark_key_and_declare_truncation() -> Result<(), String>
+    fn independent_repetitions_merge_per_key_without_losing_their_executions() -> Result<(), String>
     {
         let runs = vec![
             vec![
-                measurement("bench/one", 30, MeasurementCompleteness::Complete)?,
-                measurement("bench/two", 30, MeasurementCompleteness::Complete)?,
+                measurement("bench/one", 30, 1, MeasurementCompleteness::Complete)?,
+                measurement("bench/two", 30, 1, MeasurementCompleteness::Complete)?,
             ],
             vec![measurement(
                 "bench/one",
                 30,
+                2,
                 MeasurementCompleteness::Complete,
             )?],
         ];
@@ -1194,6 +1221,17 @@ mod tests {
             .find(|measurement| measurement.key() == "bench/one")
             .ok_or("bench/one")?;
         assert_eq!(one.samples().len(), 60);
+        // The merge keeps the two executions apart. Flattening them here would
+        // leave the comparison method resampling inside a single execution,
+        // which is the defect ADR-073 §4 "Corrección" records.
+        assert_eq!(one.run_indices(), BTreeSet::from([1, 2]));
+        assert_eq!(
+            one.samples()
+                .iter()
+                .filter(|sample| sample.run_index() == 1)
+                .count(),
+            30
+        );
         assert_eq!(one.completeness(), MeasurementCompleteness::Complete);
         assert_eq!(one.sample_size_requested(), BENCHMARK_SAMPLE_SIZE);
         assert_eq!(one.warm_up_ms(), BENCHMARK_WARM_UP_MS);
@@ -1203,10 +1241,12 @@ mod tests {
             .find(|measurement| measurement.key() == "bench/two")
             .ok_or("bench/two")?;
         assert_eq!(two.samples().len(), 30);
-        // A truncated repetition truncates the pooled set; it never disappears.
+        assert_eq!(two.run_indices(), BTreeSet::from([1]));
+        // A truncated repetition truncates the merged set; it never disappears.
         let runs = vec![vec![measurement(
             "bench/one",
             30,
+            1,
             MeasurementCompleteness::Truncated,
         )?]];
         let pooled = pool(&runs).map_err(|error| format!("{error:?}"))?;

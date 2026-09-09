@@ -22,7 +22,7 @@ fn wide_dataset(keys: usize) -> TestResult<BenchmarkDataset> {
                 format!("bench-{index:04}"),
             )?;
             let samples = (0..24)
-                .map(|sample| RawSample::new(1, 1_000.0 + f64::from(index as u32 + sample)))
+                .map(|sample| RawSample::new(1, 1_000.0 + f64::from(index as u32 + sample), 1))
                 .collect::<Result<Vec<_>, _>>()?;
             Ok(BenchmarkMeasurement::new(
                 identity,

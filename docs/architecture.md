@@ -373,10 +373,12 @@ it neither installs components nor claims an observed runtime.
 ### M5 — medición de rendimiento sobre las primitivas existentes
 
 El dominio añade `benchmark.rs` con el dataset versionado
-`rust-engineering-mcp.benchmark-dataset.v1` —identidad del benchmark, muestras
-crudas y provenance, con validación que falla cerrado ante otro formato o versión—,
+`rust-engineering-mcp.benchmark-dataset.v2` —identidad del benchmark, muestras
+crudas con la ejecución (`run_index`) que produjo cada una, y provenance, con
+validación que falla cerrado ante otro formato o versión—,
 `benchmark_run.rs` con la detección de harness, y `benchmark_compare.rs` con el
-método congelado: mediana por iteración, bootstrap percentil de semilla fija,
+método congelado: mediana por iteración, bootstrap percentil por conglomerados
+sobre ejecuciones con semilla fija,
 corrección por multiplicidad, umbral material, política de outliers, MDR y los
 cuatro veredictos, más la lista de razones de incompatibilidad. `profile.rs` y
 `bloat.rs` aportan opciones y observaciones tipadas. Domain y application siguen

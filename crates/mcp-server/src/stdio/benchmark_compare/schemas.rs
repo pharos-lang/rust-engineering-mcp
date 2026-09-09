@@ -79,6 +79,8 @@ pub enum InconclusiveReason {
     ZeroOrNegativeBaseline,
     MissingMeasurement,
     TruncatedMeasurement,
+    SingleExecutionPerSide,
+    DegenerateDispersion,
 }
 
 /// The frozen method, published with every report so a reader can reproduce it.

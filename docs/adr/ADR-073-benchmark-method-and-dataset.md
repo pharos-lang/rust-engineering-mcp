@@ -81,18 +81,28 @@ la comparación lo trata como incompatibilidad de método.
 
 ### 3. Dataset versionado
 
-Formato `rust-engineering-mcp.benchmark-dataset.v1`, con versión propia,
+Formato `rust-engineering-mcp.benchmark-dataset.v2`, con versión propia,
 independiente del SemVer del servidor y del contrato de las tools (G6). Un lector
-que no reconozca exactamente ese identificador y `format_version = 1` **falla
-cerrado**; nunca coerciona ni migra medidas.
+que no reconozca exactamente ese identificador y `format_version = 2` **falla
+cerrado**; nunca coerciona ni migra medidas. El v1 —descrito abajo en
+«Corrección»— queda retirado, no migrado: nunca se publicó, y un payload v1 se
+rechaza como cualquier otro formato ajeno.
 
 Contiene: identidad del benchmark (los cinco campos de criterion), muestras
-crudas (`iterations` y `total_ns` por muestra), `sampling_mode`, warmup, tiempo de
+crudas (`iterations`, `total_ns` y `run_index` por muestra), `sampling_mode`, warmup, tiempo de
 medición, tamaño solicitado, completeness, y una provenance con `source_fingerprint`,
 harness y versión, `rust_version`, `cargo_version`, toolchain declarado, digest de
 imagen, plataforma, `configuration_fingerprint`, `execution_fingerprint`, selección
 (paquete, target de bench, features, perfil), hardware (modelo de CPU, núcleos,
 kernel, arquitectura, virtualización, governor) y cuotas de CPU/RAM/PID.
+
+`run_index` es la novedad del v2: la posición 1-based de la ejecución
+independiente que produjo **cada muestra**, dentro del `run_count` que declara la
+provenance. Va en la muestra y no en la medición porque una medición agrupa las
+repeticiones de una misma clave de benchmark; sin el campo, un lector no puede
+distinguir las muestras de una ejecución de las de otra. Lo fija el gateway —que
+es quien sabe qué repetición acaba de ejecutar—, nunca el proyecto: un archivo de
+criterion no puede nombrar su propia repetición.
 
 **Unknown permanece unknown.** Un campo de hardware que el runtime no puede
 observar se serializa ausente y bloquea la comparación; no se rellena con un valor
@@ -101,13 +111,25 @@ plausible. Una baseline **no** se identifica por nombre de rama.
 ### 4. Método estadístico congelado
 
 `rust.benchmark.compare` es cálculo puro sobre bytes autorizados. No ejecuta
-procesos, no lee paths del peer y no toca el proyecto.
+procesos, no lee paths del peer y no toca el proyecto. El método se identifica en
+cada informe como `rust-engineering-mcp.benchmark-comparison.v2`; el v1 lleva otro
+identificador porque sus intervalos no son comparables con estos (ver
+«Corrección» más abajo).
 
 - Estadístico: **mediana** del tiempo por iteración. Es robusto frente a los
   outliers que el propio protocolo prohíbe descartar.
-- Intervalo: **bootstrap percentil** con 10 000 remuestreos, semilla fija
-  derivada de una constante del producto mezclada con la clave del benchmark, de
-  modo que el resultado es reproducible y no depende del orden de ejecución.
+- Intervalo: **bootstrap percentil por conglomerados (cluster bootstrap)** con
+  10 000 remuestreos, semilla fija derivada de una constante del producto
+  mezclada con la clave del benchmark, de modo que el resultado es reproducible y
+  no depende del orden de ejecución. **La unidad que se remuestrea es la
+  ejecución, no la muestra**: en cada remuestreo se toman con reemplazo tantas
+  ejecuciones como ejecuciones tenga ese lado y, dentro de cada ejecución
+  extraída, tantas muestras con reemplazo como muestras reportó; la mediana se
+  recalcula sobre el conjunto resultante. Así la varianza **entre** ejecuciones
+  entra en el intervalo y en el `SE`. Es la varianza que el veredicto necesita:
+  dos datasets solo son comparables si su `execution_fingerprint` difiere, de
+  modo que la cantidad sobre la que se opina es cuánto se mueve el estadístico
+  entre ejecuciones, no cuánto se movería al releer una sola.
 - Confianza: 95 %. Con familia de más de una comparación se aplica **Bonferroni**:
   `1 - (1 - 0.95)/n`. La familia y la corrección se emiten en el resultado.
 - Umbral material: **5 %**.
@@ -120,12 +142,62 @@ procesos, no lee paths del peer y no toca el proyecto.
   no se iguala al umbral del 5 %.**
 
 Veredicto, en este orden: muestra ausente o truncada, o menos de 10 muestras, o
-mediana de baseline no positiva ⇒ `inconclusive` con su razón. `MDR` mayor que el
-umbral ⇒ `inconclusive` por precisión insuficiente: la ejecución no puede
-discriminar el umbral y no se emite veredicto. Intervalo completamente por encima
-de `+5 %` ⇒ `regression`; completamente por debajo de `-5 %` ⇒ `improvement`;
-completamente dentro de `±5 %` ⇒ `no_material_change`; en cualquier otro caso
-`inconclusive` porque el intervalo cruza el umbral.
+mediana de baseline no positiva ⇒ `inconclusive` con su razón. **Menos de dos
+`run_index` distintos en cualquiera de los dos lados ⇒ `inconclusive` por
+`single_execution_per_side`**, antes de mirar el intervalo: con una sola
+ejecución por lado no existe estimación alguna de la deriva entre ejecuciones, y
+sin ella ninguna dirección distingue un cambio en el código de un cambio en la
+máquina. **Dispersión degenerada ⇒ `inconclusive` por `degenerate_dispersion`**:
+si el error estándar del bootstrap es cero —o los dos lados juntos
+tienen menos de dos valores por iteración distintos— el `MDR` vale cero y la
+puerta de precisión no puede dispararse nunca; una dispersión observada de cero
+es **ausencia de información** sobre la dispersión, no precisión infinita, y un
+harness que emita una constante recibiría si no el veredicto más confiado que
+este método sabe producir. `MDR` mayor que el umbral ⇒ `inconclusive` por
+precisión insuficiente: la ejecución no puede discriminar el umbral y no se emite
+veredicto. Intervalo completamente por encima de `+5 %` ⇒ `regression`;
+completamente por debajo de `-5 %` ⇒ `improvement`; completamente dentro de
+`±5 %` ⇒ `no_material_change`; en cualquier otro caso `inconclusive` porque el
+intervalo cruza el umbral.
+
+#### Corrección (2026-09-08)
+
+La forma anterior de este método —`rust-engineering-mcp.benchmark-comparison.v1`,
+sobre el dataset v1— remuestreaba **las muestras dentro de una sola ejecución**.
+Eso estima cuánto se movería la mediana al releer esa misma ejecución, no cuánto
+se mueve entre ejecuciones, que es lo único sobre lo que el veredicto opina. El
+`SE` así calculado es mucho menor, y con él el `MDR`, de modo que la puerta de
+precisión dejaba pasar ruido del host como dirección.
+
+Una revisión independiente lo demostró sobre las capturas reales del propio
+proyecto, en `fixtures/benchmark-datasets/`. Entre `criterion-run-1.tar`,
+`criterion-run-2.tar` y `criterion-candidate.tar` solo cambia el fuente de
+`work_unit` (detrás de `m5/reference`); `work_noisy` (`m5/control`) y
+`work_slower` (`m5/slower_125`) son **el mismo fuente** en los tres archivos.
+Comparando `m5/control` solo —familia de uno, la corrección por multiplicidad más
+laxa y por tanto el intervalo más estrecho—, baseline `criterion-run-2.tar` contra
+candidate `criterion-candidate.tar`, el método v1 devolvía:
+
+```
+verdict = Improvement, effect -0.1231, interval -0.1492..-0.0756, mdr 0.0488
+```
+
+Una dirección, con intervalo que excluye el umbral del 5 % y un `MDR` que pasa su
+puerta (0.0488 ≤ 0.05), para código que no cambió. Los mismos benchmarks
+inalterados abarcan 14,0 % y 4,9 % entre las tres capturas. Con el método v2 el
+mismo par devuelve `Inconclusive` por `single_execution_per_side`: cada captura es
+**una** ejecución, y con una ejecución por lado el intervalo no puede rescatar
+nada —remuestrear un único conglomerado devuelve el mismo intervalo estrecho
+(-0.1494..-0.0751, `MDR` 0.0490)—, por eso la negativa es estructural y se decide
+antes de mirarlo.
+
+Lo que **no** cambia: el estadístico (mediana del tiempo por iteración), la
+semilla y su derivación, los 10 000 remuestreos, el 95 % de confianza, Bonferroni,
+el umbral material del 5 % y la política de outliers. Cambia la unidad de
+remuestreo y se añaden dos negativas explícitas. El razonamiento original queda
+arriba, corregido, no borrado: era correcto sobre qué estadístico usar y sobre no
+descartar outliers, y era incorrecto al suponer que un bootstrap sobre las
+muestras describía la variabilidad relevante.
 
 ### 5. Compatibilidad antes que estadística
 
@@ -145,7 +217,10 @@ se generaliza a otro hardware ni a otro proyecto, y no se emite ninguna
 recomendación de optimización: spec §29 prohíbe una tool de heurísticas y §92
 prohíbe las recomendaciones universales. Las muestras producidas por el harness
 del **proyecto** se describen como observaciones de origen no autenticado; el
-producto no afirma que un benchmark no pueda falsificar su propia salida.
+producto no afirma que un benchmark no pueda falsificar su propia salida. El caso
+más barato de esa falsificación —emitir una constante para obtener un intervalo de
+ancho cero— tiene ahora una negativa nombrada, `degenerate_dispersion`, que no
+convierte la ausencia de dispersión en precisión.
 
 ## Alternatives considered
 
@@ -167,7 +242,10 @@ producto no afirma que un benchmark no pueda falsificar su propia salida.
 Tres repeticiones no prueban causalidad ni generalización; el plan ya lo advierte
 y el contrato lo hace explícito en la salida. Un proyecto sin criterion 0.8.2
 vendorizado offline no puede medirse: es un resultado declarado, no una
-degradación silenciosa. El formato v1 fija una frontera de migración: conservar
+degradación silenciosa. El formato v2 fija una frontera de migración: conservar
 muestras crudas o volver a ejecutar, nunca transformar mediciones incompatibles en
-equivalentes. Añadir un segundo harness exigirá una decisión nueva y su propio
+equivalentes. Con una sola ejecución por lado el producto no emite dirección: es
+menos de lo que la spec insinuaba y es lo único que las muestras sostienen; para
+obtener una dirección hay que capturar al menos dos ejecuciones independientes
+por lado, que es lo que el protocolo de tres repeticiones ya ejecuta. Añadir un segundo harness exigirá una decisión nueva y su propio
 oráculo.

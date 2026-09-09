@@ -615,7 +615,12 @@ pub(crate) mod tests {
         run_count: u8,
     ) -> BenchmarkDataset {
         let samples = (0..12)
-            .map(|index| RawSample::new(1, 1_000.0 + f64::from(index)).unwrap())
+            // Dealt over exactly the executions the provenance below declares,
+            // so the dataset's own run-index bound is satisfied by construction.
+            .map(|index| {
+                let run_index = (index % u32::from(run_count.max(1))) as u8 + 1;
+                RawSample::new(1, 1_000.0 + f64::from(index), run_index).unwrap()
+            })
             .collect();
         let measurement = BenchmarkMeasurement::new(
             BenchmarkIdentity::new(

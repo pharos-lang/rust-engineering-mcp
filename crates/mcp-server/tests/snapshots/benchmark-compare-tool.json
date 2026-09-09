@@ -191,7 +191,9 @@
           "interval_spans_threshold",
           "zero_or_negative_baseline",
           "missing_measurement",
-          "truncated_measurement"
+          "truncated_measurement",
+          "single_execution_per_side",
+          "degenerate_dispersion"
         ],
         "type": "string"
       },

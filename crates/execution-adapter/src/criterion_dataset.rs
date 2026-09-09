@@ -31,6 +31,14 @@
 //! unaudited statistical method into a verdict. They may only ever be published
 //! as an opaque artifact byte-stream, which is not this module's job.
 //!
+//! One archive is one execution. ADR-073 §2 runs each repetition into its own
+//! `CRITERION_HOME` and exports it separately, so the caller — which is the
+//! only party that knows which repetition it just ran — passes that position in
+//! as `run_index`, and every sample decoded here carries it. Nothing in the
+//! archive is consulted for it: a project that could name its own repetition
+//! could make one execution look like three, and the comparison method
+//! resamples executions.
+//!
 //! Nothing here trusts the project. The archive is decoded under an explicit
 //! byte ceiling with a strict USTAR profile, benchmark identity is cross-checked
 //! against the directory the data actually came from, and every value violation
@@ -408,7 +416,7 @@ fn record(
 /// would leave a set that looks complete and is not, and dropping the whole
 /// benchmark would let a project delete an inconvenient measurement by
 /// corrupting one number.
-fn raw_samples(sample: &SampleFile) -> Result<Vec<RawSample>, CriterionError> {
+fn raw_samples(sample: &SampleFile, run_index: u8) -> Result<Vec<RawSample>, CriterionError> {
     if sample.iters.is_empty()
         || sample.iters.len() != sample.times.len()
         || sample.iters.len() > BENCHMARK_MAX_SAMPLES
@@ -422,20 +430,27 @@ fn raw_samples(sample: &SampleFile) -> Result<Vec<RawSample>, CriterionError> {
             return Err(CriterionError::InvalidSample);
         }
         samples.push(
-            RawSample::new(iterations, *total_ns).map_err(|_| CriterionError::InvalidSample)?,
+            RawSample::new(iterations, *total_ns, run_index)
+                .map_err(|_| CriterionError::InvalidSample)?,
         );
     }
     Ok(samples)
 }
 
-/// Decodes the export into domain measurements.
+/// Decodes the export of ONE execution into domain measurements.
 ///
-/// `warm_up_ms`, `measurement_ms` and `sample_size_requested` are the values the
-/// gateway PASSED to the harness. They are never read back from the project:
-/// the request is the caller's own fact, and a project that could restate it
-/// could make a short run look like a long one.
+/// `run_index`, `warm_up_ms`, `measurement_ms` and `sample_size_requested` are
+/// the values the gateway PASSED to the harness, or knows about the run it just
+/// performed. They are never read back from the project: the request is the
+/// caller's own fact, and a project that could restate it could make a short
+/// run look like a long one, or one execution look like several.
+///
+/// An out-of-range `run_index` is refused by the domain's own sample validation
+/// and surfaces as [`CriterionError::InvalidSample`]; it is never clamped into
+/// a believable position.
 pub(crate) fn parse_archive(
     archive: &[u8],
+    run_index: u8,
     warm_up_ms: u64,
     measurement_ms: u64,
     sample_size_requested: u32,
@@ -483,7 +498,7 @@ pub(crate) fn parse_archive(
         }
         let sample: SampleFile =
             serde_json::from_slice(sample_bytes).map_err(|_| CriterionError::Malformed)?;
-        let samples = raw_samples(&sample)?;
+        let samples = raw_samples(&sample, run_index)?;
         samples_total = samples_total
             .checked_add(samples.len())
             .ok_or(CriterionError::InvalidSample)?;
@@ -604,7 +619,7 @@ mod tests {
 
     #[test]
     fn a_two_benchmark_export_yields_exact_per_iteration_values() -> Result<(), CriterionError> {
-        let parsed = parse_archive(&two_benchmarks(), 3_000, 5_000, 100)?;
+        let parsed = parse_archive(&two_benchmarks(), 1, 3_000, 5_000, 100)?;
         assert_eq!(parsed.benchmarks_seen, 2);
         assert_eq!(parsed.benchmarks_skipped, 0);
         assert!(!parsed.truncated);
@@ -659,7 +674,7 @@ mod tests {
 
     #[test]
     fn ordering_is_a_function_of_the_full_id_not_of_member_order() -> Result<(), CriterionError> {
-        let forward = parse_archive(&two_benchmarks(), 1, 1, 1)?;
+        let forward = parse_archive(&two_benchmarks(), 1, 1, 1, 1)?;
         let alpha_sample = sample_json("Linear", "1.0, 2.0, 4.0", "100.0, 210.0, 440.0");
         let alpha_id = benchmark_json("alpha", "alpha/one", "alpha");
         let beta_sample = sample_json("Flat", "10.0, 10.0", "5000.0, 6000.0");
@@ -670,7 +685,7 @@ mod tests {
             ("alpha/new/sample.json", alpha_sample.as_bytes()),
             ("beta/new/sample.json", beta_sample.as_bytes()),
         ]);
-        let backward = parse_archive(&reordered, 1, 1, 1)?;
+        let backward = parse_archive(&reordered, 1, 1, 1, 1)?;
         assert_eq!(
             forward
                 .measurements
@@ -695,6 +710,7 @@ mod tests {
                 ("beta/new/benchmark.json", beta_id.as_bytes()),
                 ("beta/new/estimates.json", br#"{"mean":{}}"#),
             ]),
+            1,
             1,
             1,
             1,
@@ -723,6 +739,7 @@ mod tests {
                 1,
                 1,
                 1,
+                1,
             )
             .err(),
             Some(CriterionError::NoMeasurement)
@@ -741,6 +758,7 @@ mod tests {
                     ("gamma/new/sample.json", sample.as_bytes()),
                     ("gamma/new/benchmark.json", planted.as_bytes()),
                 ]),
+                1,
                 1,
                 1,
                 1,
@@ -763,6 +781,7 @@ mod tests {
                     ("second/new/sample.json", sample.as_bytes()),
                     ("second/new/benchmark.json", second.as_bytes()),
                 ]),
+                1,
                 1,
                 1,
                 1,
@@ -797,7 +816,7 @@ mod tests {
                 b'0',
             );
             assert_eq!(
-                parse_archive(&terminate(output), 1, 1, 1).err(),
+                parse_archive(&terminate(output), 1, 1, 1, 1).err(),
                 Some(CriterionError::Malformed),
                 "{path}"
             );
@@ -808,7 +827,7 @@ mod tests {
             let mut output = Vec::new();
             push(&mut output, "alpha/new/sample.json", b"", flag);
             assert_eq!(
-                parse_archive(&terminate(output), 1, 1, 1).err(),
+                parse_archive(&terminate(output), 1, 1, 1, 1).err(),
                 Some(CriterionError::Malformed),
                 "type flag {flag}"
             );
@@ -823,13 +842,13 @@ mod tests {
             ("alpha/new/sample.json", sample.as_bytes()),
             ("alpha/new/benchmark.json", identity.as_bytes()),
         ]);
-        assert!(parse_archive(&valid, 1, 1, 1).is_ok());
+        assert!(parse_archive(&valid, 1, 1, 1, 1).is_ok());
 
         // Not a multiple of the block size.
         let mut short = valid.clone();
         short.truncate(short.len() - 1);
         assert_eq!(
-            parse_archive(&short, 1, 1, 1).err(),
+            parse_archive(&short, 1, 1, 1, 1).err(),
             Some(CriterionError::Malformed)
         );
 
@@ -837,7 +856,7 @@ mod tests {
         let mut unterminated = valid.clone();
         unterminated.truncate(unterminated.len() - 2 * BLOCK);
         assert_eq!(
-            parse_archive(&unterminated, 1, 1, 1).err(),
+            parse_archive(&unterminated, 1, 1, 1, 1).err(),
             Some(CriterionError::Malformed)
         );
 
@@ -847,7 +866,7 @@ mod tests {
             *last = 1;
         }
         assert_eq!(
-            parse_archive(&after_end, 1, 1, 1).err(),
+            parse_archive(&after_end, 1, 1, 1, 1).err(),
             Some(CriterionError::Malformed)
         );
 
@@ -855,7 +874,7 @@ mod tests {
         let mut bad_checksum = valid.clone();
         bad_checksum[0] ^= 1;
         assert_eq!(
-            parse_archive(&bad_checksum, 1, 1, 1).err(),
+            parse_archive(&bad_checksum, 1, 1, 1, 1).err(),
             Some(CriterionError::Malformed)
         );
 
@@ -864,7 +883,7 @@ mod tests {
         bad_octal[124] = b'9';
         seal(&mut bad_octal[..BLOCK]);
         assert_eq!(
-            parse_archive(&bad_octal, 1, 1, 1).err(),
+            parse_archive(&bad_octal, 1, 1, 1, 1).err(),
             Some(CriterionError::Malformed)
         );
 
@@ -873,7 +892,7 @@ mod tests {
         let tail = BLOCK + sample.len();
         dirty_padding[tail] = 1;
         assert_eq!(
-            parse_archive(&dirty_padding, 1, 1, 1).err(),
+            parse_archive(&dirty_padding, 1, 1, 1, 1).err(),
             Some(CriterionError::Malformed)
         );
 
@@ -884,7 +903,7 @@ mod tests {
             ("alpha/new/sample.json", sample.as_bytes()),
         ]);
         assert_eq!(
-            parse_archive(&duplicate, 1, 1, 1).err(),
+            parse_archive(&duplicate, 1, 1, 1, 1).err(),
             Some(CriterionError::Malformed)
         );
     }
@@ -892,11 +911,11 @@ mod tests {
     #[test]
     fn byte_ceilings_are_refused_before_the_bytes_are_read() {
         assert_eq!(
-            parse_archive(&[], 1, 1, 1).err(),
+            parse_archive(&[], 1, 1, 1, 1).err(),
             Some(CriterionError::Empty)
         );
         assert_eq!(
-            parse_archive(&vec![0u8; MAX_CRITERION_ARCHIVE + BLOCK], 1, 1, 1).err(),
+            parse_archive(&vec![0u8; MAX_CRITERION_ARCHIVE + BLOCK], 1, 1, 1, 1).err(),
             Some(CriterionError::TooLarge)
         );
         // A header claiming a member above the per-file ceiling is refused
@@ -908,13 +927,13 @@ mod tests {
             b'0',
         ));
         assert_eq!(
-            parse_archive(&terminate(oversize), 1, 1, 1).err(),
+            parse_archive(&terminate(oversize), 1, 1, 1, 1).err(),
             Some(CriterionError::TooLarge)
         );
         // Exactly at the archive ceiling the length check passes and the
         // content decides; an all-zero archive carries no benchmark.
         assert_eq!(
-            parse_archive(&vec![0u8; MAX_CRITERION_ARCHIVE], 1, 1, 1).err(),
+            parse_archive(&vec![0u8; MAX_CRITERION_ARCHIVE], 1, 1, 1, 1).err(),
             Some(CriterionError::NoMeasurement)
         );
     }
@@ -949,7 +968,7 @@ mod tests {
                 ("alpha/new/benchmark.json", identity.as_bytes()),
             ]);
             assert_eq!(
-                parse_archive(&built, 1, 1, 1).err(),
+                parse_archive(&built, 1, 1, 1, 1).err(),
                 Some(CriterionError::InvalidSample),
                 "{sample:.64}"
             );
@@ -972,7 +991,7 @@ mod tests {
                 ("alpha/new/benchmark.json", identity.as_bytes()),
             ]);
             assert_eq!(
-                parse_archive(&built, 1, 1, 1).err(),
+                parse_archive(&built, 1, 1, 1, 1).err(),
                 Some(CriterionError::Malformed)
             );
         }
@@ -990,11 +1009,14 @@ mod tests {
                 "{value}"
             );
             assert_eq!(
-                raw_samples(&SampleFile {
-                    sampling_mode: None,
-                    iters: vec![1.0],
-                    times: vec![value],
-                })
+                raw_samples(
+                    &SampleFile {
+                        sampling_mode: None,
+                        iters: vec![1.0],
+                        times: vec![value],
+                    },
+                    1,
+                )
                 .err(),
                 Some(CriterionError::InvalidSample),
                 "{value}"
@@ -1008,6 +1030,42 @@ mod tests {
         );
         assert_eq!(integral_iterations(MAX_EXACT_INTEGER), Ok(1 << 53));
         assert_eq!(integral_iterations(1.0), Ok(1));
+    }
+
+    #[test]
+    fn every_sample_carries_the_run_index_the_caller_declared() -> Result<(), CriterionError> {
+        let identity = benchmark_json("alpha", "alpha/one", "alpha");
+        let sample = sample_json("Linear", "1.0, 2.0", "100.0, 220.0");
+        let built = archive(&[
+            ("alpha/new/sample.json", sample.as_bytes()),
+            ("alpha/new/benchmark.json", identity.as_bytes()),
+        ]);
+        for run_index in [1, 2, 3] {
+            let parsed = parse_archive(&built, run_index, 1, 1, 1)?;
+            let measurement = parsed
+                .measurements
+                .first()
+                .ok_or(CriterionError::NoMeasurement)?;
+            assert_eq!(
+                measurement
+                    .samples()
+                    .iter()
+                    .map(RawSample::run_index)
+                    .collect::<Vec<_>>(),
+                vec![run_index; 2],
+                "run {run_index}"
+            );
+        }
+        // A position outside the protocol's 1-based range is refused by the
+        // domain, not clamped into a believable one.
+        for run_index in [0, u8::MAX] {
+            assert_eq!(
+                parse_archive(&built, run_index, 1, 1, 1).err(),
+                Some(CriterionError::InvalidSample),
+                "{run_index}"
+            );
+        }
+        Ok(())
     }
 
     #[test]
@@ -1026,6 +1084,7 @@ mod tests {
                     ("alpha/new/sample.json", sample.as_bytes()),
                     ("alpha/new/benchmark.json", identity.as_bytes()),
                 ]),
+                1,
                 1,
                 1,
                 1,
@@ -1048,6 +1107,7 @@ mod tests {
                 ),
                 ("alpha/new/benchmark.json", identity.as_bytes()),
             ]),
+            1,
             1,
             1,
             1,
@@ -1108,7 +1168,7 @@ mod tests {
             sample.as_bytes(),
             b'0',
         );
-        let parsed = parse_archive(&terminate(output), 1, 1, 1)?;
+        let parsed = parse_archive(&terminate(output), 1, 1, 1, 1)?;
         assert_eq!(parsed.benchmarks_seen, 1);
         assert_eq!(parsed.benchmarks_skipped, 0);
         assert!(!parsed.truncated);
@@ -1123,7 +1183,7 @@ mod tests {
             ("report/index.html", b"<p>x</p>"),
         ]);
         assert_eq!(
-            parse_archive(&stale, 1, 1, 1).err(),
+            parse_archive(&stale, 1, 1, 1, 1).err(),
             Some(CriterionError::NoMeasurement)
         );
         Ok(())
@@ -1146,6 +1206,7 @@ mod tests {
                 ("./m5/sized/64/new/sample.json", sample.as_bytes()),
                 ("./m5/sized/64/new/benchmark.json", nested.as_bytes()),
             ]),
+            1,
             3_000,
             5_000,
             30,
@@ -1190,6 +1251,7 @@ mod tests {
                 1,
                 1,
                 1,
+                1,
             )
             .err(),
             Some(CriterionError::Malformed)
@@ -1228,7 +1290,7 @@ mod tests {
             beta.as_bytes(),
             b'0',
         );
-        let parsed = parse_archive(&terminate(output), 1, 1, 1)?;
+        let parsed = parse_archive(&terminate(output), 1, 1, 1, 1)?;
         // `alpha` is seen only through its real `tukey.json`; the three
         // directories contributed nothing, so it yields no measurement.
         assert_eq!(parsed.benchmarks_seen, 2);
@@ -1259,7 +1321,7 @@ mod tests {
             b'0',
         );
         assert_eq!(
-            parse_archive(&terminate(sized), 1, 1, 1).err(),
+            parse_archive(&terminate(sized), 1, 1, 1, 1).err(),
             Some(CriterionError::Malformed)
         );
         Ok(())
@@ -1278,7 +1340,7 @@ mod tests {
             );
         }
         assert_eq!(
-            parse_archive(&terminate(output), 1, 1, 1).err(),
+            parse_archive(&terminate(output), 1, 1, 1, 1).err(),
             Some(CriterionError::TooManyBenchmarks)
         );
 
@@ -1294,7 +1356,7 @@ mod tests {
             );
         }
         assert_eq!(
-            parse_archive(&terminate(at_ceiling), 1, 1, 1).err(),
+            parse_archive(&terminate(at_ceiling), 1, 1, 1, 1).err(),
             Some(CriterionError::NoMeasurement)
         );
     }
@@ -1316,7 +1378,7 @@ mod tests {
                 ("alpha/new/benchmark.json", identity.as_bytes()),
             ]);
             assert_eq!(
-                parse_archive(&built, 1, 1, 1).err(),
+                parse_archive(&built, 1, 1, 1, 1).err(),
                 Some(CriterionError::Malformed),
                 "{identity}"
             );
@@ -1331,6 +1393,14 @@ mod tests {
 /// ADR-073 parameters. They are the M5-01/M5-02 oracle: a baseline, an
 /// independent repeat of the *same* source, and a candidate built from a
 /// genuinely different source with the same benchmark identity and selection.
+///
+/// Each archive is ONE execution, so every dataset built here declares
+/// `run_count: 1` and carries samples from a single `run_index`. That is the
+/// whole story these captures can tell, and the comparison method now says so:
+/// with one execution per side there is no estimate of how much the host moved
+/// between the two, and no direction is admissible. `work_noisy` (behind
+/// `m5/control`) is the proof that this matters — it is byte-identical source
+/// across the three captures and its medians still span 14%.
 #[cfg(test)]
 #[allow(clippy::expect_used, clippy::unwrap_used)] // Fixed real captures are malformed only by mistake.
 mod real_guest_datasets {
@@ -1341,7 +1411,7 @@ mod real_guest_datasets {
         Virtualization,
     };
     use rust_engineering_domain::benchmark_compare::{
-        ComparisonVerdict, IncompatibilityReason, compare,
+        ComparisonVerdict, IncompatibilityReason, InconclusiveReason, compare,
     };
 
     const RUN_1: &[u8] = include_bytes!("../../../fixtures/benchmark-datasets/criterion-run-1.tar");
@@ -1354,8 +1424,12 @@ mod real_guest_datasets {
     const MEASUREMENT_MS: u64 = 5_000;
     const SAMPLE_SIZE: u32 = 30;
 
+    /// Every capture is the first (and only) execution of its own call.
+    const RUN_INDEX: u8 = 1;
+
     fn parsed(archive: &[u8]) -> CriterionParse {
-        parse_archive(archive, WARM_UP_MS, MEASUREMENT_MS, SAMPLE_SIZE).expect("real archive")
+        parse_archive(archive, RUN_INDEX, WARM_UP_MS, MEASUREMENT_MS, SAMPLE_SIZE)
+            .expect("real archive")
     }
 
     fn provenance(source: &str, execution: &str) -> BenchmarkProvenance {
@@ -1459,7 +1533,7 @@ mod real_guest_datasets {
         // itself, not merely by this module's own checks.
         let one = dataset(RUN_1, "sha256:base", "sha256:run1");
         assert_eq!(one.format(), BENCHMARK_DATASET_FORMAT);
-        assert_eq!(one.format_version(), 1);
+        assert_eq!(one.format_version(), 2);
         assert_eq!(one.unit(), SampleUnit::Nanoseconds);
         assert!(one.validate().is_ok());
     }
@@ -1508,12 +1582,26 @@ mod real_guest_datasets {
             "self-compare produced {:?}",
             reference.verdict
         );
+        // With one execution captured per side, the method also names why it
+        // will not go further than that.
+        assert_eq!(
+            reference.inconclusive_reasons,
+            vec![InconclusiveReason::SingleExecutionPerSide]
+        );
         assert_eq!(report.compared, 3);
         assert!(report.baseline_only.is_empty() && report.candidate_only.is_empty());
     }
 
+    /// `work_unit` really is slower in the candidate — it is the one source
+    /// change between the captures — and the measurement says so: the observed
+    /// ratio is well above the material threshold. The verdict still is not a
+    /// regression, and that is the honest outcome, not a regression of this
+    /// test: one execution per side cannot separate that change from the drift
+    /// the unchanged benchmarks in the very same captures show (14% on
+    /// `m5/control`). The measurement is pinned here; the direction is refused
+    /// where it is refused for every other benchmark in these captures.
     #[test]
-    fn a_genuinely_slower_candidate_is_reported_as_a_regression() {
+    fn a_genuinely_slower_candidate_measured_once_per_side_yields_no_direction() {
         let baseline = dataset(RUN_1, "sha256:base", "sha256:run1");
         let candidate = dataset(CANDIDATE, "sha256:cand", "sha256:cand");
         let report = compare(&baseline, &candidate).expect("comparable");
@@ -1522,13 +1610,18 @@ mod real_guest_datasets {
             .iter()
             .find(|c| c.key == "m5/reference")
             .expect("reference compared");
-        assert_eq!(reference.verdict, ComparisonVerdict::Regression);
+        assert_eq!(reference.verdict, ComparisonVerdict::Inconclusive);
+        assert_eq!(
+            reference.inconclusive_reasons,
+            vec![InconclusiveReason::SingleExecutionPerSide]
+        );
+        // The observed effect is unchanged by the correction: what the samples
+        // show is still reported, only no longer read as a direction.
         assert!(
             reference.effect_ratio > 0.05,
             "effect {} did not exceed the material threshold",
             reference.effect_ratio
         );
-        assert!(reference.confidence_interval.0 > 0.05);
         assert_eq!(reference.baseline_samples, 30);
         assert_eq!(reference.candidate_samples, 30);
         // Three benchmarks compared at once, so the method must say it corrected.
@@ -1585,8 +1678,24 @@ mod real_guest_datasets {
     #[test]
     fn unchanged_benchmarks_never_receive_a_direction_across_captures() {
         let pairs = [
-            ("run2-vs-candidate", RUN_2, "sha256:base", "sha256:run2", CANDIDATE, "sha256:cand", "sha256:cand"),
-            ("run1-vs-candidate", RUN_1, "sha256:base", "sha256:run1", CANDIDATE, "sha256:cand", "sha256:cand"),
+            (
+                "run2-vs-candidate",
+                RUN_2,
+                "sha256:base",
+                "sha256:run2",
+                CANDIDATE,
+                "sha256:cand",
+                "sha256:cand",
+            ),
+            (
+                "run1-vs-candidate",
+                RUN_1,
+                "sha256:base",
+                "sha256:run1",
+                CANDIDATE,
+                "sha256:cand",
+                "sha256:cand",
+            ),
         ];
         for (label, baseline_bytes, bsrc, bexec, candidate_bytes, csrc, cexec) in pairs {
             let baseline = dataset(baseline_bytes, bsrc, bexec);

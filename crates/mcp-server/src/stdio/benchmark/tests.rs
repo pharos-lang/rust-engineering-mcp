@@ -35,7 +35,7 @@ pub(super) mod fixtures {
             key.replace('/', "_"),
         )?;
         let samples = (0..samples)
-            .map(|index| RawSample::new(1, 1_000.0 + index as f64))
+            .map(|index| RawSample::new(1, 1_000.0 + index as f64, 1))
             .collect::<Result<Vec<_>, _>>()?;
         Ok(BenchmarkMeasurement::new(
             identity,
