@@ -245,7 +245,9 @@ mod tests {
         BenchmarkSelection, HardwareProfile, MeasurementCompleteness, RawSample, ResourceQuotas,
         SampleUnit, SamplingMode, Virtualization,
     };
-    use rust_engineering_domain::benchmark_compare::{ComparisonVerdict, IncompatibilityReason};
+    use rust_engineering_domain::benchmark_compare::{
+        ComparisonVerdict, IncompatibilityReason, InconclusiveReason,
+    };
     use rust_engineering_domain::{
         PruneReport, QualityArtifactDescriptor, QualityJobId, RecoveryReport,
     };
@@ -612,7 +614,26 @@ mod tests {
         assert!(report.candidate_only.is_empty());
         let comparison = report.comparisons.first().expect("one comparison");
         assert_eq!(comparison.key, "bench/one");
-        assert_eq!(comparison.verdict, ComparisonVerdict::Regression);
+        // What this layer owns is the plumbing: two authorized artifacts were
+        // read, decoded and handed to the domain, and a report came back for the
+        // right key. Which direction the samples support is the domain's
+        // question and has its own oracles there.
+        //
+        // This assertion used to read `Regression`, which was the domain's
+        // answer before ADR-081 put a qualification gate in front of it. The
+        // gate now withholds every direction until the method is requalified,
+        // so asserting a direction here would be asserting that the gate is
+        // open — a fact this test has no business pinning, and one that would
+        // pass again for the wrong reason the day someone opened it.
+        assert_eq!(comparison.verdict, ComparisonVerdict::Inconclusive);
+        assert!(
+            comparison
+                .inconclusive_reasons
+                .contains(&InconclusiveReason::MethodUnqualified),
+            "the direction must be withheld by the qualification gate and not by \
+             something wrong with these fixtures: {:?}",
+            comparison.inconclusive_reasons
+        );
     }
 
     #[test]

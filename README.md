@@ -48,7 +48,7 @@ implementado y **no calificado por completo**. El checkout no forma una release.
 | Supply chain (M4, desarrollo) | `rust.supply_chain.inspect` | Tool 25; facts de resolución, audit, deny y catálogo con provenance explícita. |
 | Calidad (M4, desarrollo) | `rust.quality.gate.v2` | Tool 26; gate `strict` o `release` sobre una captura compartida. |
 | Seguridad (M4, desarrollo) | `rust.miri` | Tool 27; evidencia tipada de Miri sobre tests seleccionados. |
-| Rendimiento (M5, desarrollo) | `rust.benchmark.run` | Tool 28; mide los benchmarks Criterion que el proyecto ya tiene y publica las muestras crudas como dataset privado. Positivo bloqueado. |
+| Rendimiento (M5, desarrollo) | `rust.benchmark.run` | Tool 28; mide los benchmarks Criterion que el proyecto ya tiene y publica las muestras crudas como dataset privado, junto al árbol de salida del harness y al `stdout`/`stderr` de cada repetición como artifacts propios. Positivo bloqueado. |
 | Rendimiento (M5, desarrollo) | `rust.benchmark.compare` | Tool 29; compara dos datasets propios con un método estadístico congelado. No ejecuta nada. |
 | Rendimiento (M5, desarrollo) | `rust.profile.flamegraph` | Tool 30; muestreo en CPU de un binario del proyecto; exige la capability de profiling del host. |
 | Rendimiento (M5, desarrollo) | `rust.binary.bloat` | Tool 31; tamaño exacto del binario más la atribución estimada del analizador fijado. |

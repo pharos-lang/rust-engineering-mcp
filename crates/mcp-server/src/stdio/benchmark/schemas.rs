@@ -5,10 +5,11 @@
 //! added for the durable store would otherwise widen an already frozen tool
 //! schema without anyone editing this file (ADR-076 §2).
 //!
-//! These types are also the *only* projection of a benchmark observation. The
-//! raw samples never reach them: they travel in the `benchmark_dataset`
-//! artifact (ADR-076 §3), and what appears here is a bounded description of
-//! them.
+//! These types are also the *only* projection of a benchmark observation.
+//! Neither the raw samples nor the harness logs reach them: the samples travel
+//! in the `benchmark_dataset` artifact (ADR-076 §3) and each repetition's
+//! `stdout`/`stderr` in their own artifacts (ADR-080 §1), and what appears here
+//! is a bounded description of both.
 use schemars::JsonSchema;
 use serde::Serialize;
 
@@ -245,6 +246,31 @@ pub struct BenchmarkSummary {
     pub completeness: MeasurementCompleteness,
 }
 
+/// What one repetition wrote, and what was published of it.
+///
+/// The logs themselves never travel in the response (ADR-080 §3): they are
+/// published as `harness_stdout` and `harness_stderr` artifacts, each naming
+/// the same `run_index` this row does. What travels here is how many bytes were
+/// retained and whether the stream was cut at the server's ceiling, so a reader
+/// knows before fetching whether the artifact is the whole stream.
+///
+/// `0` retained bytes means the repetition wrote nothing to that stream, and no
+/// artifact was published for it.
+#[derive(Clone, Copy, Debug, Serialize, JsonSchema)]
+#[serde(deny_unknown_fields)]
+pub struct HarnessLog {
+    /// 1-based repetition inside the requested run set, the same numbering the
+    /// dataset's samples and the criterion archive carry.
+    #[schemars(range(min = 1, max = 3))]
+    pub run_index: u8,
+    pub stdout_bytes: u64,
+    /// The repetition wrote more than the ceiling and `stdout_bytes` is the
+    /// prefix that was kept. A cut log is never published as a whole one.
+    pub stdout_truncated: bool,
+    pub stderr_bytes: u64,
+    pub stderr_truncated: bool,
+}
+
 #[derive(Clone, Debug, Serialize, JsonSchema)]
 #[serde(deny_unknown_fields)]
 pub struct Observation {
@@ -253,6 +279,15 @@ pub struct Observation {
     pub exit: Exit,
     pub exit_code: Option<i32>,
     pub termination: ExecutionTermination,
+    /// The 1-based repetition whose `exit`, `exit_code` and `termination` the
+    /// three fields above describe: the last repetition that ran.
+    ///
+    /// It is not necessarily the repetition whose tree `criterion_archive`
+    /// retained. The retained tree is the last repetition that *exported* one,
+    /// which an earlier repetition can be, so both indices are published and a
+    /// reader compares them instead of assuming they agree.
+    #[schemars(range(min = 1, max = 3))]
+    pub exit_run_index: u8,
     pub runs_requested: u8,
     pub runs_completed: u8,
     pub dataset_published: bool,
@@ -266,8 +301,17 @@ pub struct Observation {
     pub execution_fingerprint: String,
     #[schemars(regex(pattern = "^sha256:[0-9a-f]{64}$"))]
     pub vendor_fingerprint: String,
-    /// Harness logs are evidence, not a measurement: they stay in the criterion
-    /// archive artifact. Only the fact that they were cut travels here.
+    /// Harness logs are evidence, not a measurement, so they never travel in
+    /// this response and never reach the server's stdout, which is the protocol
+    /// transport. Each repetition's `stdout` and `stderr` are published as
+    /// their own private `harness_stdout` / `harness_stderr` artifacts, listed
+    /// in `artifacts` with the `run_index` they belong to; this row says how
+    /// much of each was kept.
+    #[schemars(length(max = 3))]
+    pub logs: Vec<HarnessLog>,
+    /// True when ANY repetition's stream was cut at the ceiling. `logs` says
+    /// which; these two summarize it for a reader that only needs to know
+    /// whether some log is a prefix.
     pub stdout_truncated: bool,
     pub stderr_truncated: bool,
     /// False whenever this response describes less than the run produced.

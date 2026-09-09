@@ -89,11 +89,7 @@ fn encode_result_trims_the_lowest_ranked_rows_into_the_wire_budget() -> TestResu
     let tool = BenchmarkTool::new()?;
     let reference = super::super::security_tool::test_fixtures::project_ref()?;
     let result = published(MAX_RESPONSE_BENCHMARKS)?;
-    let artifacts = result
-        .artifacts
-        .iter()
-        .map(|descriptor| artifact(&reference, descriptor))
-        .collect::<Result<Vec<_>, _>>()?;
+    let artifacts = artifacts(&reference, &result)?;
     let untrimmed = tool.contract.encode(Output {
         outcome: Outcome::Passed {
             error_code: (),

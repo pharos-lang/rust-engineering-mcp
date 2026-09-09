@@ -1,0 +1,19 @@
+[package]
+name = "rust-mcp-benchmark-compile-error-fixture"
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+[workspace]
+
+[lib]
+path = "src/lib.rs"
+bench = false
+
+[[bench]]
+name = "perf"
+path = "benches/perf.rs"
+harness = false
+
+[dev-dependencies]
+criterion = { version = "=0.8.2", default-features = false, features = ["cargo_bench_support"] }

@@ -338,7 +338,7 @@ pub(crate) mod tests {
         SampleUnit, SamplingMode, Virtualization,
     };
     use rust_engineering_domain::benchmark_run::{
-        BenchmarkExit, CriterionArchive, DatasetOmission,
+        BenchmarkExit, BenchmarkRunLog, CriterionArchive, DatasetOmission,
     };
     use rust_engineering_domain::{
         ArtifactCompleteness, ArtifactPlugin, ArtifactRuntime, ArtifactSelection,
@@ -701,6 +701,7 @@ pub(crate) mod tests {
             exit: BenchmarkExit::Passed,
             exit_code: Some(0),
             termination: ExecutionTermination::Exited,
+            exit_run_index: options.run_count(),
             dataset: Some(dataset_with(
                 options.selection(),
                 APPROVED_CRITERION_VERSION,
@@ -720,10 +721,16 @@ pub(crate) mod tests {
             runtime: runtime(31),
             execution_fingerprint: execution_fingerprint(31),
             vendor_fingerprint: source_fingerprint(21),
-            stdout: Vec::new(),
-            stderr: Vec::new(),
-            stdout_truncated: false,
-            stderr_truncated: false,
+            // One entry per repetition that ran, each with its own bytes.
+            logs: (1..=options.run_count())
+                .map(|run_index| BenchmarkRunLog {
+                    run_index,
+                    stdout: format!("repetition {run_index} stdout").into_bytes(),
+                    stdout_truncated: false,
+                    stderr: Vec::new(),
+                    stderr_truncated: false,
+                })
+                .collect(),
         }
     }
 

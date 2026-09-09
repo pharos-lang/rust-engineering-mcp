@@ -350,8 +350,16 @@ fn parse_runs(
 /// ADR-073 §2 gives every repetition its own `CRITERION_HOME`, so a run exports
 /// one independent tree per repetition and their directory names all collide.
 /// They are never merged and never concatenated: the retained tree is the LAST
-/// repetition that exported one — the same repetition whose exit, termination
-/// and logs this observation reports — and `run_index` names it.
+/// repetition that **exported one**, and `archive.run_index` names it.
+///
+/// That is not always the repetition whose exit this observation reports
+/// (ADR-080 §4). A run whose third repetition failed before exporting, after
+/// the first two exported, keeps the second repetition's tree while `exit`,
+/// `exit_code` and `termination` describe the third. The response used to hide
+/// that: it published neither index. Now the tree carries `run_index`, the exit
+/// carries `exit_run_index`, and every repetition's logs carry their own, so
+/// the two cases — coincide, differ — are distinguishable on the wire instead
+/// of being asserted to be the same.
 ///
 /// ADR-076 §7 caps it at [`BENCHMARK_MAX_ARCHIVE_BYTES`]. A USTAR stream cut at
 /// that ceiling is not an archive, so an oversize tree is declared
@@ -398,6 +406,60 @@ fn benchmark_archive(
     )
 }
 
+/// One stream, bounded by the published ceiling, plus whether it was cut.
+///
+/// The cut lands on a UTF-8 boundary. The member is published as
+/// `Utf8LogV1`/`text/plain`, and a prefix that ends inside a multi-byte
+/// sequence is not text: it would be a payload whose declared format its own
+/// bytes contradict. Backing off at most three continuation bytes costs
+/// nothing and keeps the declaration true. A stream the supervisor had already
+/// cut carries that fact forward even when it fits here.
+fn bounded_log(bytes: &[u8], captured_truncated: bool) -> (Vec<u8>, bool) {
+    if bytes.len() <= BENCHMARK_MAX_LOG_BYTES {
+        // A stream that kept nothing has no cut to declare; the supervisor
+        // cannot have truncated an empty capture either.
+        return (bytes.to_vec(), captured_truncated && !bytes.is_empty());
+    }
+    let mut end = BENCHMARK_MAX_LOG_BYTES;
+    while end > 0 && bytes[end] & 0b1100_0000 == 0b1000_0000 {
+        end -= 1;
+    }
+    (bytes[..end].to_vec(), true)
+}
+
+/// Every repetition's harness logs, numbered exactly as `parse_runs` numbers
+/// the samples: 1-based, counted before anything is dropped.
+///
+/// One entry per repetition that ran, including a repetition that wrote
+/// nothing — it happened, and the last entry is what ties the reported exit to
+/// a repetition. ADR-080 §2 forbids concatenating them; keeping them in a
+/// vector keyed by `run_index` is what makes that forbidden state
+/// unrepresentable rather than merely unintended.
+fn benchmark_logs(execution: &PerformanceExecution) -> Result<Vec<BenchmarkRunLog>, SecurityError> {
+    execution
+        .runs
+        .iter()
+        .enumerate()
+        .map(|(position, run)| {
+            let run_index = u8::try_from(position + 1)
+                .ok()
+                .filter(|index| *index <= BENCHMARK_MAX_RUNS)
+                .ok_or(SecurityError::InvalidMetadata)?;
+            let (stdout, stdout_truncated) =
+                bounded_log(&run.capture.stdout, run.capture.stdout_truncated);
+            let (stderr, stderr_truncated) =
+                bounded_log(&run.capture.stderr, run.capture.stderr_truncated);
+            Ok(BenchmarkRunLog {
+                run_index,
+                stdout,
+                stdout_truncated,
+                stderr,
+                stderr_truncated,
+            })
+        })
+        .collect()
+}
+
 pub(super) fn benchmark(
     gateway: &RustGateway,
     source: &SourceBundle,
@@ -429,6 +491,14 @@ pub(super) fn benchmark(
     )
     .unwrap_or(u8::MAX);
     let archived = execution.runs.iter().any(|run| !run.archive.is_empty());
+    let logs = benchmark_logs(&execution)?;
+    // The reported exit belongs to the last repetition that ran, and saying so
+    // on the wire is what lets a reader see when the retained tree is a
+    // different one (ADR-080 §4).
+    let exit_run_index = logs
+        .last()
+        .map(|log| log.run_index)
+        .ok_or(SecurityError::InvalidMetadata)?;
     let last = execution
         .runs
         .last()
@@ -468,6 +538,7 @@ pub(super) fn benchmark(
         exit,
         exit_code: last.capture.code,
         termination: termination(&last.capture),
+        exit_run_index,
         dataset,
         omission,
         archive,
@@ -477,10 +548,7 @@ pub(super) fn benchmark(
         runtime: identity,
         execution_fingerprint: execution.execution_fingerprint.clone(),
         vendor_fingerprint: execution.vendor_fingerprint.clone(),
-        stdout: last.capture.stdout.clone(),
-        stderr: last.capture.stderr.clone(),
-        stdout_truncated: last.capture.stdout_truncated,
-        stderr_truncated: last.capture.stderr_truncated,
+        logs,
     };
     if observation.consistent() {
         Ok(observation)
@@ -1250,6 +1318,97 @@ mod tests {
         assert_eq!(provenance.hardware.quotas, applied_quotas());
         assert_eq!(provenance.validate(), Ok(()));
         Ok(())
+    }
+
+    /// One repetition of a benchmark run, with the two streams it wrote and the
+    /// tree it exported (empty when it exported none).
+    fn bench_run(
+        stdout: &[u8],
+        stderr: &[u8],
+        archive: &[u8],
+    ) -> crate::performance_gateway::BenchmarkRunOutput {
+        crate::performance_gateway::BenchmarkRunOutput {
+            capture: Capture {
+                code: Some(0),
+                stdout: stdout.to_vec(),
+                stderr: stderr.to_vec(),
+                stdout_truncated: false,
+                stderr_truncated: false,
+                stop: Stop::Exited,
+                duration_ms: 1,
+            },
+            archive: archive.to_vec(),
+        }
+    }
+
+    /// ADR-080 §2. Three repetitions produce three sets of logs, each naming
+    /// its own repetition, and nothing merges them. The bytes are distinct per
+    /// repetition on purpose: a concatenation would be detectable as one entry
+    /// holding another repetition's text.
+    #[test]
+    fn every_repetition_keeps_its_own_logs_under_its_own_index() -> Result<(), String> {
+        let mut execution = execution()?;
+        execution.kind = PerformanceKind::Benchmark;
+        execution.runs = vec![
+            bench_run(b"out-1", b"err-1", b"tree-1"),
+            bench_run(b"out-2", b"err-2", b""),
+            bench_run(b"out-3", b"err-3", b"tree-3"),
+        ];
+        let logs = benchmark_logs(&execution).map_err(|error| format!("{error:?}"))?;
+        assert_eq!(logs.len(), 3);
+        for (position, log) in logs.iter().enumerate() {
+            let expected = u8::try_from(position + 1).map_err(|error| format!("{error:?}"))?;
+            assert_eq!(log.run_index, expected);
+            assert_eq!(log.stdout, format!("out-{expected}").into_bytes());
+            assert_eq!(log.stderr, format!("err-{expected}").into_bytes());
+            assert!(!log.stdout_truncated);
+            assert!(!log.stderr_truncated);
+        }
+        // The repetition that exported nothing still has its logs: an export is
+        // not what makes a repetition observable.
+        assert_eq!(logs[1].stdout, b"out-2");
+        Ok(())
+    }
+
+    /// ADR-080 §3. A stream over the ceiling is published as a declared prefix,
+    /// never as a whole stream, and the prefix ends on a UTF-8 boundary so the
+    /// `Utf8LogV1` declaration stays true.
+    #[test]
+    fn a_stream_over_the_ceiling_is_cut_declared_and_left_valid_utf8() {
+        let (kept, truncated) = bounded_log(b"short", false);
+        assert_eq!(kept, b"short");
+        assert!(!truncated);
+
+        let exact = vec![b'a'; BENCHMARK_MAX_LOG_BYTES];
+        let (kept, truncated) = bounded_log(&exact, false);
+        assert_eq!(kept.len(), BENCHMARK_MAX_LOG_BYTES);
+        assert!(!truncated, "exactly at the ceiling is whole");
+
+        let over = vec![b'a'; BENCHMARK_MAX_LOG_BYTES + 1];
+        let (kept, truncated) = bounded_log(&over, false);
+        assert_eq!(kept.len(), BENCHMARK_MAX_LOG_BYTES);
+        assert!(truncated, "a cut stream must declare the cut");
+
+        // A three-byte code point straddling the ceiling: the naive cut would
+        // publish half of it under a UTF-8 payload format.
+        let mut split = vec![b'a'; BENCHMARK_MAX_LOG_BYTES - 1];
+        split.extend_from_slice("€".as_bytes());
+        let (kept, truncated) = bounded_log(&split, false);
+        assert!(truncated);
+        assert_eq!(kept.len(), BENCHMARK_MAX_LOG_BYTES - 1);
+        assert!(
+            std::str::from_utf8(&kept).is_ok(),
+            "cut inside a code point"
+        );
+
+        // A capture the supervisor had already cut says so even when it fits.
+        let (kept, truncated) = bounded_log(b"partial", true);
+        assert_eq!(kept, b"partial");
+        assert!(truncated);
+        // An empty capture has nothing to have been cut from.
+        let (kept, truncated) = bounded_log(b"", true);
+        assert!(kept.is_empty());
+        assert!(!truncated);
     }
 
     #[test]

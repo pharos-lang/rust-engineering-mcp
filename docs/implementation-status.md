@@ -316,7 +316,7 @@ realmente midieron.
 
 | Corte | Estado | Evidencia |
 | --- | --- | --- |
-| M5-01 `rust.benchmark.run` | Blocked en el positivo; negativos y controles calificados, y el bloqueo tiene su propio oráculo | [runtime](validation/M5-01-runtime.json) · [oráculo](validation/M5-01-blocked-runtime.json) · [bloqueo](validation/M5-01-blocker.json) |
+| M5-01 `rust.benchmark.run` | Blocked en el positivo; negativos y controles calificados, y el bloqueo tiene su propio oráculo. Los logs del harness pasan a publicarse por repetición ([ADR-080](adr/ADR-080-harness-logs-as-artifacts.md)): implementado y cubierto por pruebas de dominio, adapter y publicación; **la calificación nativa y la matriz de clientes se rehacen sobre bytes finales y no están hechas** | [runtime](validation/M5-01-runtime.json) · [oráculo](validation/M5-01-blocked-runtime.json) · [bloqueo](validation/M5-01-blocker.json) |
 | M5-02 `rust.benchmark.compare` | Implementado; el modelo de varianza está **en corrección** tras la revisión de método | [revisión](reviews/m5-method/review.md) · [disposición](reviews/m5-method/disposition.md) |
 | M5-03 `rust.profile.flamegraph` | Calificado nativamente, positivo y denegación, sobre la imagen admitida | [runtime](validation/M5-03-runtime.json) · [capability](validation/M5-profiling-capability-probe.json) |
 | M5-04 `rust.binary.bloat` | Calificado nativamente sobre la imagen admitida | [runtime](validation/M5-04-runtime.json) |

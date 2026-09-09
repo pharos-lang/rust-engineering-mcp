@@ -655,8 +655,17 @@ fn benchmark_counters(observation: &BenchmarkObservation) -> Value {
                 }))
                 .collect::<Vec<_>>()
         }),
-        "stdout_bytes": observation.stdout.len(),
-        "stderr_bytes": observation.stderr.len(),
+        "exit_run_index": observation.exit_run_index,
+        // Per repetition, never summed: the receipt records the same shape the
+        // response publishes (ADR-080 §2).
+        "logs": observation.logs.iter().map(|log| json!({
+            "run_index": log.run_index,
+            "stdout_bytes": log.stdout.len(),
+            "stdout_truncated": log.stdout_truncated,
+            "stderr_bytes": log.stderr.len(),
+            "stderr_truncated": log.stderr_truncated,
+        })).collect::<Vec<_>>(),
+        "archive_run_index": observation.archive.as_ref().map(|archive| archive.run_index),
         "execution_fingerprint": observation.execution_fingerprint.to_string(),
         "vendor_fingerprint": observation.vendor_fingerprint.to_string(),
     })
@@ -789,8 +798,24 @@ fn m5_benchmark_run_negatives_and_controls_are_qualified_natively() -> Result<()
     assert_eq!(observation.runs_requested, 1);
     assert_eq!(observation.runs_completed, 1);
     assert_eq!(observation.runtime.image_id, crate::APPROVED_M5_IMAGE);
+    // ADR-080 §1/§6: an unrecognised harness publishes no dataset, and its logs
+    // are the whole of what the caller gets back. They are per repetition and
+    // the response carries them as artifacts, so the oracle checks the shape the
+    // publisher will actually see: one entry for the one repetition, carrying
+    // bytes.
+    assert_eq!(
+        observation.logs.len(),
+        1,
+        "one repetition ran and must leave exactly one log entry"
+    );
+    assert_eq!(observation.exit_run_index, 1);
+    let logs = observation
+        .logs
+        .first()
+        .ok_or("the one repetition's logs are missing")?;
+    assert_eq!(logs.run_index, 1);
     assert!(
-        !observation.stdout.is_empty() || !observation.stderr.is_empty(),
+        !logs.stdout.is_empty() || !logs.stderr.is_empty(),
         "execution logs must still be reported when no dataset is published"
     );
     assert!(observation.consistent());

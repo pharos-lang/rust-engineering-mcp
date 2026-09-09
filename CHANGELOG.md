@@ -16,6 +16,29 @@
   fija el servidor como argv cerrado y viajan en la provenance; el proyecto no
   los alcanza. Un harness distinto o una versión no aprobada son resultados
   observados sin dataset. Las muestras crudas no viajan en la respuesta.
+- **Los logs del harness se publican como artifacts, uno por repetición y por
+  stream.** El schema congelado, `docs/tools.md` y ADR-076 decían que los logs
+  «quedan en el artifact de criterion»; no quedaban en ninguna parte —ese payload
+  es un export USTAR de `CRITERION_HOME` sin log alguno— y el adapter capturaba
+  `stdout`/`stderr` y los descartaba. Un `OBSERVED_FAILURE` dirigía al llamador a
+  un archivo que no puede contener el error del compilador, y
+  `harness_unrecognized` no publicaba artifact alguno.
+  [ADR-080](docs/adr/ADR-080-harness-logs-as-artifacts.md) implementa la
+  capacidad en vez de borrar la promesa: `harness_stdout` y `harness_stderr`
+  privados, owner-bound, con TTL y sensibilidad `source_derived`, acotados en
+  256 KiB por stream y por repetición, con el recorte declarado
+  (`completeness: truncated` y `size_bytes` = lo que sobrevivió). No se
+  concatenan entre repeticiones y nunca salen por el `stdout` del servidor. La
+  respuesta admite hasta ocho artifacts en vez de dos.
+- **Se corrige la asociación repetición ↔ archivo ↔ logs.** La regla publicada
+  decía que el árbol retenido es «la última repetición que exportó uno, la misma
+  cuyo exit y logs reporta la respuesta», y era falsa en un caso alcanzable: el
+  archivo se elegía con `rfind` sobre las repeticiones que exportaron algo
+  mientras el exit venía de la última sin más, así que con la tercera fallando
+  sin exportar el archivo era de la segunda y nada en la respuesta permitía
+  detectarlo. Ahora cada artifact lleva su `run_index`, la observación lleva
+  `exit_run_index`, cada repetición lleva su fila en `observation.logs`, y los
+  tres textos publicados describen lo que el código hace.
 - `rust.benchmark.compare` publica el método congelado con cada informe: mediana
   del tiempo por iteración, bootstrap percentil de 10 000 remuestreos con semilla
   fija, confianza 0,95 **nominal** con Bonferroni cuando la familia es mayor que
@@ -74,7 +97,10 @@
   tamaño se publica como `size_mismatch`, nunca fundido con la medición exacta.
 - Añadidos artifact kinds nuevos en el store durable privado —
   `benchmark_dataset`, `criterion_archive`, `collapsed_stacks`, `flamegraph_svg`
-  y `bloat_json` —, el mime `image/svg+xml` y sus versiones de payload. Ninguna
+  y `bloat_json` —, el mime `image/svg+xml` y sus versiones de payload. Los logs
+  del harness reutilizan el `tool_log`/`utf8-log.v1` ya existente, sin variante
+  nueva en el store; el DTO de la tool es el que los separa en `harness_stdout` y
+  `harness_stderr`. Ninguna
   variante nueva aparece en el schema público de una tool anterior. El dataset usa
   el formato versionado `rust-engineering-mcp.benchmark-dataset.v2`
   (`format_version = 2`) con las muestras crudas —cada una con el `run_index` de

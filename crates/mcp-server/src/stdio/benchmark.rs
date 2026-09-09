@@ -1,9 +1,12 @@
 //! M5-01: `rust.benchmark.run`, one measured benchmark execution.
 //!
-//! The response never carries a raw sample. ADR-076 §3 puts the samples in the
-//! `benchmark_dataset` artifact and the harness's own output tree in the
-//! `criterion_archive` artifact; what travels here is a bounded description of
-//! them plus the complete provenance a later comparison needs.
+//! The response never carries a raw sample and never a byte of harness log.
+//! ADR-076 §3 puts the samples in the `benchmark_dataset` artifact and the
+//! harness's own output tree in the `criterion_archive` artifact, and ADR-080
+//! puts each repetition's `stdout` and `stderr` in their own `harness_stdout` /
+//! `harness_stderr` artifacts. What travels here is a bounded description of
+//! them — counts, cut flags and the repetition each belongs to — plus the
+//! complete provenance a later comparison needs.
 #[allow(dead_code)]
 mod schemas;
 use super::{
@@ -11,6 +14,7 @@ use super::{
     clock::WallClock,
     nextest::ExecutionModeDto,
     project::Registry,
+    quality_artifacts::performance::BenchmarkMemberKind,
     security_tool::{
         CommonFailure, artifact_fields, capture_vendor, classify_error,
         define_fallible_security_outcome, define_security_response_methods, define_security_tool,
@@ -37,7 +41,7 @@ use rust_engineering_domain::benchmark_run::{
 };
 use rust_engineering_domain::{
     ArtifactCompleteness, ExecutionTermination, ProjectRef, QualityArtifactDescriptor,
-    QualityArtifactKind, RuntimeIdentity,
+    RuntimeIdentity,
 };
 use std::sync::{
     Arc, Mutex,
@@ -152,17 +156,32 @@ define_fallible_security_outcome!(Code, &'static str, ());
 #[derive(Clone, Copy, serde::Serialize, schemars::JsonSchema)]
 #[serde(rename_all = "snake_case")]
 enum ArtifactKind {
+    /// The pooled samples of every repetition, in the versioned dataset format.
     BenchmarkDataset,
+    /// One repetition's criterion output tree, exactly as the harness exported
+    /// it: the last repetition that exported one.
     CriterionArchive,
+    /// One repetition's `stdout`, as the harness wrote it (ADR-080 §1).
+    HarnessStdout,
+    /// One repetition's `stderr`. For an observed compilation failure this is
+    /// where the compiler's own text is.
+    HarnessStderr,
 }
 #[derive(Clone, serde::Serialize, schemars::JsonSchema)]
 #[serde(deny_unknown_fields)]
 struct Artifact {
     kind: ArtifactKind,
+    /// The 1-based repetition this evidence came from, numbered exactly as the
+    /// dataset's samples are. `null` only for `benchmark_dataset`, which pools
+    /// every repetition and carries the index on each sample instead.
+    #[schemars(range(min = 1, max = 3))]
+    run_index: Option<u8>,
     #[schemars(length(min = 1, max = 512))]
     uri: String,
     #[schemars(regex(pattern = "^[0-9a-f]{64}$"))]
     sha256: String,
+    /// Bytes published. For a log whose `completeness` is `truncated` this is
+    /// how many bytes survived the cut, never how many the harness wrote.
     size_bytes: u64,
     completeness: schemas::ArtifactCompleteness,
 }
@@ -173,7 +192,10 @@ struct Data {
     project_ref: String,
     semantics: &'static str,
     observation: schemas::Observation,
-    #[schemars(length(max = 2))]
+    /// At most eight: the dataset, the criterion tree, and one `stdout` and one
+    /// `stderr` for each of the three repetitions `run_count` admits
+    /// (ADR-080 §1).
+    #[schemars(length(max = 8))]
     artifacts: Vec<Artifact>,
 }
 
@@ -224,7 +246,7 @@ impl BenchmarkPublisher for DynPublisher<'_> {
 
 define_security_tool!(
     BenchmarkTool,
-    "Run the project's own criterion benchmarks once in the approved offline runtime and publish the raw samples as a private versioned dataset artifact plus the harness output tree. The response carries no raw sample: it reports the detected harness, the exit, per-benchmark median, minimum, maximum, median absolute deviation, counted outliers and completeness, and the full provenance a later comparison needs. Requires an authenticated host cargo vendor tree. Warm-up, measurement time and sample size are fixed by the server and travel in the provenance; no harness flag, path or free argument is accepted. An unrecognized or unapproved harness is an observed result that publishes no dataset. Measurements describe this host and this execution and attribute no cause."
+    "Run the project's own criterion benchmarks once in the approved offline runtime and publish the raw samples as a private versioned dataset artifact, plus the harness output tree of one repetition and each repetition's own stdout and stderr as separate private artifacts. Every published artifact but the pooled dataset names the repetition it came from. The response carries no raw sample and no log text: it reports the detected harness, the exit and which repetition it belongs to, per-benchmark median, minimum, maximum, median absolute deviation, counted outliers and completeness, per-repetition retained log sizes and whether either stream was cut at the server ceiling, and the full provenance a later comparison needs. Requires an authenticated host cargo vendor tree. Warm-up, measurement time and sample size are fixed by the server and travel in the provenance; no harness flag, path or free argument is accepted. An unrecognized or unapproved harness and a failed compilation are observed results that publish no dataset and still publish their logs. Measurements describe this host and this execution and attribute no cause."
 );
 
 impl BenchmarkTool {
@@ -367,11 +389,7 @@ impl BenchmarkTool {
         result: PublishedBenchmark,
         duration_ms: u64,
     ) -> Result<CallToolResult, ErrorData> {
-        let artifacts = result
-            .artifacts
-            .iter()
-            .map(|descriptor| artifact(reference, descriptor))
-            .collect::<Result<Vec<_>, _>>()?;
+        let artifacts = artifacts(reference, &result)?;
         let artifacts_complete = !artifacts.is_empty()
             && result
                 .artifacts
@@ -457,19 +475,48 @@ fn outcome(data: &Data) -> Outcome {
     }
 }
 
+/// The published members, tied back to the repetition each came from.
+///
+/// A `ToolLog` descriptor cannot say by itself whether it holds a `stdout` or a
+/// `stderr`, nor which repetition wrote it — the store's kind vocabulary has one
+/// value for both. So the association is not guessed from the descriptor: the
+/// same plan the publisher committed is re-derived from the observation and
+/// walked beside the descriptors it returned. A publisher that returned some
+/// other set fails closed here rather than producing artifacts whose
+/// `run_index` is a fabrication.
+fn artifacts(
+    reference: &ProjectRef,
+    result: &PublishedBenchmark,
+) -> Result<Vec<Artifact>, ErrorData> {
+    let plan = super::quality_artifacts::performance::benchmark_member_plan(&result.observation);
+    if plan.len() != result.artifacts.len() {
+        return Err(ErrorData::internal_error(
+            "Benchmark artifacts do not match the published members",
+            None,
+        ));
+    }
+    plan.into_iter()
+        .zip(result.artifacts.iter())
+        .map(|(planned, descriptor)| artifact(reference, descriptor, planned))
+        .collect()
+}
+
 fn artifact(
     reference: &ProjectRef,
     descriptor: &QualityArtifactDescriptor,
+    planned: BenchmarkMemberKind,
 ) -> Result<Artifact, ErrorData> {
-    let kind = match descriptor.kind {
-        QualityArtifactKind::BenchmarkDataset => ArtifactKind::BenchmarkDataset,
-        QualityArtifactKind::CriterionArchive => ArtifactKind::CriterionArchive,
-        _ => {
-            return Err(ErrorData::internal_error(
-                "Benchmark artifact kind is invalid",
-                None,
-            ));
-        }
+    if descriptor.kind != planned.artifact_kind() {
+        return Err(ErrorData::internal_error(
+            "Benchmark artifact kind is invalid",
+            None,
+        ));
+    }
+    let kind = match planned {
+        BenchmarkMemberKind::Dataset => ArtifactKind::BenchmarkDataset,
+        BenchmarkMemberKind::CriterionArchive { .. } => ArtifactKind::CriterionArchive,
+        BenchmarkMemberKind::HarnessStdout { .. } => ArtifactKind::HarnessStdout,
+        BenchmarkMemberKind::HarnessStderr { .. } => ArtifactKind::HarnessStderr,
     };
     let fields = artifact_fields(
         reference,
@@ -478,6 +525,7 @@ fn artifact(
     )?;
     Ok(Artifact {
         kind,
+        run_index: planned.run_index(),
         uri: fields.uri,
         sha256: fields.sha256,
         size_bytes: fields.size_bytes,
@@ -540,6 +588,7 @@ fn observation(value: &BenchmarkObservation, artifacts_complete: bool) -> schema
         },
         exit_code: value.exit_code,
         termination: termination(value.termination),
+        exit_run_index: value.exit_run_index,
         runs_requested: value.runs_requested,
         runs_completed: value.runs_completed,
         dataset_published: value.dataset.is_some(),
@@ -564,8 +613,21 @@ fn observation(value: &BenchmarkObservation, artifacts_complete: bool) -> schema
         runtime: runtime_identity(&value.runtime),
         execution_fingerprint: value.execution_fingerprint.to_string(),
         vendor_fingerprint: value.vendor_fingerprint.to_string(),
-        stdout_truncated: value.stdout_truncated,
-        stderr_truncated: value.stderr_truncated,
+        // Byte counts and cut flags, never the bytes: the logs travel as
+        // artifacts, and the server's stdout stays the protocol transport.
+        logs: value
+            .logs
+            .iter()
+            .map(|log| schemas::HarnessLog {
+                run_index: log.run_index,
+                stdout_bytes: log.stdout.len() as u64,
+                stdout_truncated: log.stdout_truncated,
+                stderr_bytes: log.stderr.len() as u64,
+                stderr_truncated: log.stderr_truncated,
+            })
+            .collect(),
+        stdout_truncated: value.any_stdout_truncated(),
+        stderr_truncated: value.any_stderr_truncated(),
     }
 }
 

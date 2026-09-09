@@ -171,11 +171,28 @@ try {
         throw new Error(`Inspector ${label} published ${artifacts?.length ?? 0} artifacts, expected at least ${row.expect_min_artifacts}`);
       }
       published = artifacts.length;
+      const allowedKinds = row.expect_artifact_kinds ?? [];
+      const forbiddenKinds = row.expect_no_artifact_kinds ?? [];
       for (const artifact of artifacts) {
         if (typeof artifact.uri !== "string" || !artifact.uri.startsWith(ARTIFACT_SCHEME)
             || !/^[0-9a-f]{64}$/.test(artifact.sha256 ?? "")
             || !isInteger(artifact.size_bytes) || artifact.size_bytes <= 0) {
           throw new Error(`Inspector ${label} published an invalid artifact descriptor`);
+        }
+        if (forbiddenKinds.includes(artifact.kind)) {
+          throw new Error(`Inspector ${label} published a forbidden artifact kind ${artifact.kind}`);
+        }
+        if (allowedKinds.length > 0 && !allowedKinds.includes(artifact.kind)) {
+          throw new Error(`Inspector ${label} published an unplanned artifact kind ${artifact.kind}`);
+        }
+        // ADR-080 §2: only the pooled dataset may omit its repetition.
+        if (artifact.kind === "benchmark_dataset") {
+          if (artifact.run_index !== null && artifact.run_index !== undefined) {
+            throw new Error(`Inspector ${label} gave the pooled dataset a run_index`);
+          }
+        } else if (row.tool === "rust.benchmark.run"
+                   && !(isInteger(artifact.run_index) && artifact.run_index >= 1)) {
+          throw new Error(`Inspector ${label} published ${artifact.kind} without its repetition`);
         }
         const resource = await client.readResource(artifact.uri);
         const contents = resource.result?.contents;

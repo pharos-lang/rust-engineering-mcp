@@ -56,11 +56,19 @@ Salida: identidad y exit de la ejecución, resumen por benchmark (clave, muestra
 mediana, mínimo, máximo, desviación absoluta mediana, outliers contados,
 `sampling_mode`, completeness) y la provenance completa. Las **muestras crudas no
 viajan en la respuesta**: se publican como artifact `benchmark_dataset` en el store
-privado, junto con el árbol de salida de criterion como `criterion_archive`. La
-respuesta se recorta contra el techo de 512 KiB por el mismo mecanismo que M4.
+privado, junto con el árbol de salida de criterion como `criterion_archive` y, por
+ADR-080, con el `stdout` y el `stderr` de **cada repetición** como artifacts
+`harness_stdout`/`harness_stderr` propios. La respuesta se recorta contra el techo
+de 512 KiB por el mismo mecanismo que M4.
 
-`harness_unrecognized` es un resultado observado: reporta ejecución, exit y logs y
-no emite dataset.
+El árbol retenido es el de la última repetición que **exportó** uno, que no
+siempre es la repetición cuyo exit reporta la respuesta; ambos índices viajan
+(`exit_run_index` y el `run_index` del artifact) para que el lector los compare
+(ADR-080 §4).
+
+`harness_unrecognized` es un resultado observado: reporta ejecución y exit, no
+emite dataset, y **publica sus logs** como artifacts —esa es la evidencia que
+sustituye al dataset que no existe.
 
 ### 4. `rust.benchmark.compare`
 

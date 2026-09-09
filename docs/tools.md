@@ -1247,7 +1247,10 @@ método. Los tres valores viajan en la provenance de cada dataset
 La respuesta publica identidad y exit de la ejecución
 (`passed|benchmark_failed|compilation_failed|uncalibrated|incomplete`),
 `exit_code`, `termination` (`exited|timed_out|cancelled|output_limit`),
-repeticiones solicitadas y completadas, selección, identidad de runtime, si se
+`exit_run_index` —la repetición a la que pertenecen esos tres campos, que es la
+última que se ejecutó—, repeticiones solicitadas y completadas,
+`logs` (por repetición: bytes retenidos y recorte de cada stream),
+selección, identidad de runtime, si se
 publicó dataset y, si no, por qué (`harness_unrecognized`, `harness_unapproved`,
 `execution_failed`, `output_missing`, `output_unparsable`, `output_too_large`,
 `cancelled`), y hasta 128 resúmenes por benchmark con clave, identidad criterion,
@@ -1263,21 +1266,51 @@ comparación, nunca se rellena.
 **Las muestras crudas no viajan en la respuesta.** Se publican como artifact
 `benchmark_dataset` en formato `rust-engineering-mcp.benchmark-dataset.v2`
 (`format_version = 2`; cada muestra lleva el `run_index` de la ejecución que la
-produjo), junto al árbol de salida del harness como
-`criterion_archive`, que es donde quedan los logs; la respuesta solo declara si
-`stdout`/`stderr` fueron recortados. Un lector que no reconozca exactamente ese
-identificador y esa versión falla cerrado y nunca migra medidas (ADR-073 §3).
+produjo), junto al árbol de salida del harness como `criterion_archive`. Un
+lector que no reconozca exactamente ese identificador y esa versión falla cerrado
+y nunca migra medidas (ADR-073 §3).
 
-`criterion_archive` es el árbol de **una** repetición: la última que exportó
-uno, que es la misma cuyo exit, terminación y logs reporta la respuesta. No es
-una fusión ni una concatenación de las tres, porque cada repetición escribe su
-propio `CRITERION_HOME` y sus rutas colisionan; el dataset publicado al lado sí
-agrupa todas y cada muestra lleva su `run_index`. Su `completeness` es
-`complete` solo cuando se pidió una única repetición y esa repetición terminó;
-con varias repeticiones el árbol publicado es evidencia parcial de la ejecución
-y se declara `partial`. Un árbol que exceda el techo de 32 MiB de ADR-076 §7 no
-se recorta —un tar cortado no es un tar—: se declara como omisión
-(`output_too_large`) y la ejecución publica solo el dataset.
+**Los logs del harness se publican como artifacts propios, uno por repetición y
+por stream** (ADR-080): `harness_stdout` y `harness_stderr`, privados,
+owner-bound, con TTL y sensibilidad `source_derived` como el resto de la
+evidencia M5. No se concatenan entre repeticiones y nunca salen por el `stdout`
+del servidor, que es el transporte del protocolo. Cada entrada de `artifacts`
+lleva el `run_index` de la repetición de la que procede; solo `benchmark_dataset`
+lo lleva a `null`, porque agrupa todas las repeticiones y el índice viaja en cada
+muestra. Una repetición que no escribió nada en un stream no publica ese member:
+un artifact de cero bytes sería una ausencia disfrazada de evidencia.
+
+Cada stream se acota en 256 KiB por repetición y **el recorte se declara**: el
+member sale con `completeness: truncated`, su `size_bytes` es lo que sobrevivió
+—nunca lo que el harness escribió— y `observation.logs` publica, por repetición,
+`stdout_bytes`/`stderr_bytes` retenidos y `stdout_truncated`/`stderr_truncated`.
+Un log recortado no se publica jamás como completo. Los dos booleanos sueltos
+`observation.stdout_truncated`/`stderr_truncated` son el resumen: `true` si
+alguna repetición fue recortada. Una respuesta con hasta tres repeticiones puede
+llevar hasta ocho artifacts: dataset, árbol y dos logs por repetición.
+
+`criterion_archive` es el árbol de **una** repetición: la última que **exportó**
+uno, y su `run_index` dice cuál. No tiene por qué ser la repetición cuyo exit
+reporta la respuesta: si la tercera falla sin exportar y las dos primeras
+exportaron, el árbol es el de la segunda mientras `exit`, `exit_code` y
+`termination` describen la tercera. Por eso la respuesta publica los dos índices
+—`observation.exit_run_index` y el `run_index` del artifact— y el lector los
+compara en vez de suponer que coinciden. No es una fusión ni una concatenación
+de las tres, porque cada repetición escribe su propio `CRITERION_HOME` y sus
+rutas colisionan; el dataset publicado al lado sí agrupa todas y cada muestra
+lleva su `run_index`. Su `completeness` es `complete` solo cuando se pidió una
+única repetición y esa repetición terminó; con varias repeticiones el árbol
+publicado es evidencia parcial de la ejecución y se declara `partial`. Un árbol
+que exceda el techo de 32 MiB de ADR-076 §7 no se recorta —un tar cortado no es
+un tar—: se declara como omisión (`output_too_large`) y la ejecución publica el
+resto de members sin él.
+
+Una ejecución sin dataset **sí publica sus logs**. `harness_unrecognized`,
+`harness_unapproved` y un fallo de compilación observado siguen siendo resultados
+declarados sin dataset, pero su evidencia —el texto del compilador o del
+harness— es exactamente lo que hace accionable el `OBSERVED_FAILURE`, y viaja en
+`harness_stderr`/`harness_stdout`. Solo una ejecución que no produjo byte alguno
+publica cero artifacts.
 
 Códigos de error: `TASKS_REQUIRED` (no se admite como MCP Task), `SANDBOX_DENIED`
 (capacidad o discovery del sandbox), `MISSING_OFFLINE_DATA` (vendor autenticado

@@ -1,6 +1,6 @@
 {
   "name": "rust.benchmark.run",
-  "description": "Run the project's own criterion benchmarks once in the approved offline runtime and publish the raw samples as a private versioned dataset artifact plus the harness output tree. The response carries no raw sample: it reports the detected harness, the exit, per-benchmark median, minimum, maximum, median absolute deviation, counted outliers and completeness, and the full provenance a later comparison needs. Requires an authenticated host cargo vendor tree. Warm-up, measurement time and sample size are fixed by the server and travel in the provenance; no harness flag, path or free argument is accepted. An unrecognized or unapproved harness is an observed result that publishes no dataset. Measurements describe this host and this execution and attribute no cause.",
+  "description": "Run the project's own criterion benchmarks once in the approved offline runtime and publish the raw samples as a private versioned dataset artifact, plus the harness output tree of one repetition and each repetition's own stdout and stderr as separate private artifacts. Every published artifact but the pooled dataset names the repetition it came from. The response carries no raw sample and no log text: it reports the detected harness, the exit and which repetition it belongs to, per-benchmark median, minimum, maximum, median absolute deviation, counted outliers and completeness, per-repetition retained log sizes and whether either stream was cut at the server ceiling, and the full provenance a later comparison needs. Requires an authenticated host cargo vendor tree. Warm-up, measurement time and sample size are fixed by the server and travel in the provenance; no harness flag, path or free argument is accepted. An unrecognized or unapproved harness and a failed compilation are observed results that publish no dataset and still publish their logs. Measurements describe this host and this execution and attribute no cause.",
   "inputSchema": {
     "$defs": {
       "ExecutionModeDto": {
@@ -96,11 +96,22 @@
           "kind": {
             "$ref": "#/$defs/ArtifactKind"
           },
+          "run_index": {
+            "description": "The 1-based repetition this evidence came from, numbered exactly as the\ndataset's samples are. `null` only for `benchmark_dataset`, which pools\nevery repetition and carries the index on each sample instead.",
+            "format": "uint8",
+            "maximum": 3,
+            "minimum": 1,
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
           "sha256": {
             "pattern": "^[0-9a-f]{64}$",
             "type": "string"
           },
           "size_bytes": {
+            "description": "Bytes published. For a log whose `completeness` is `truncated` this is\nhow many bytes survived the cut, never how many the harness wrote.",
             "format": "uint64",
             "minimum": 0,
             "type": "integer"
@@ -113,6 +124,7 @@
         },
         "required": [
           "kind",
+          "run_index",
           "uri",
           "sha256",
           "size_bytes",
@@ -131,11 +143,28 @@
         "type": "string"
       },
       "ArtifactKind": {
-        "enum": [
-          "benchmark_dataset",
-          "criterion_archive"
-        ],
-        "type": "string"
+        "oneOf": [
+          {
+            "const": "benchmark_dataset",
+            "description": "The pooled samples of every repetition, in the versioned dataset format.",
+            "type": "string"
+          },
+          {
+            "const": "criterion_archive",
+            "description": "One repetition's criterion output tree, exactly as the harness exported\nit: the last repetition that exported one.",
+            "type": "string"
+          },
+          {
+            "const": "harness_stdout",
+            "description": "One repetition's `stdout`, as the harness wrote it (ADR-080 \u00a71).",
+            "type": "string"
+          },
+          {
+            "const": "harness_stderr",
+            "description": "One repetition's `stderr`. For an observed compilation failure this is\nwhere the compiler's own text is.",
+            "type": "string"
+          }
+        ]
       },
       "BenchmarkHarnessName": {
         "enum": [
@@ -262,10 +291,11 @@
         "additionalProperties": false,
         "properties": {
           "artifacts": {
+            "description": "At most eight: the dataset, the criterion tree, and one `stdout` and one\n`stderr` for each of the three repetitions `run_count` admits\n(ADR-080 \u00a71).",
             "items": {
               "$ref": "#/$defs/Artifact"
             },
-            "maxItems": 2,
+            "maxItems": 8,
             "type": "array"
           },
           "observation": {
@@ -439,6 +469,44 @@
           }
         ]
       },
+      "HarnessLog": {
+        "additionalProperties": false,
+        "description": "What one repetition wrote, and what was published of it.\n\nThe logs themselves never travel in the response (ADR-080 \u00a73): they are\npublished as `harness_stdout` and `harness_stderr` artifacts, each naming\nthe same `run_index` this row does. What travels here is how many bytes were\nretained and whether the stream was cut at the server's ceiling, so a reader\nknows before fetching whether the artifact is the whole stream.\n\n`0` retained bytes means the repetition wrote nothing to that stream, and no\nartifact was published for it.",
+        "properties": {
+          "run_index": {
+            "description": "1-based repetition inside the requested run set, the same numbering the\ndataset's samples and the criterion archive carry.",
+            "format": "uint8",
+            "maximum": 3,
+            "minimum": 1,
+            "type": "integer"
+          },
+          "stderr_bytes": {
+            "format": "uint64",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "stderr_truncated": {
+            "type": "boolean"
+          },
+          "stdout_bytes": {
+            "format": "uint64",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "stdout_truncated": {
+            "description": "The repetition wrote more than the ceiling and `stdout_bytes` is the\nprefix that was kept. A cut log is never published as a whole one.",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "run_index",
+          "stdout_bytes",
+          "stdout_truncated",
+          "stderr_bytes",
+          "stderr_truncated"
+        ],
+        "type": "object"
+      },
       "MeasurementCompleteness": {
         "enum": [
           "complete",
@@ -493,8 +561,23 @@
               "null"
             ]
           },
+          "exit_run_index": {
+            "description": "The 1-based repetition whose `exit`, `exit_code` and `termination` the\nthree fields above describe: the last repetition that ran.\n\nIt is not necessarily the repetition whose tree `criterion_archive`\nretained. The retained tree is the last repetition that *exported* one,\nwhich an earlier repetition can be, so both indices are published and a\nreader compares them instead of assuming they agree.",
+            "format": "uint8",
+            "maximum": 3,
+            "minimum": 1,
+            "type": "integer"
+          },
           "harness": {
             "$ref": "#/$defs/Harness"
+          },
+          "logs": {
+            "description": "Harness logs are evidence, not a measurement, so they never travel in\nthis response and never reach the server's stdout, which is the protocol\ntransport. Each repetition's `stdout` and `stderr` are published as\ntheir own private `harness_stdout` / `harness_stderr` artifacts, listed\nin `artifacts` with the `run_index` they belong to; this row says how\nmuch of each was kept.",
+            "items": {
+              "$ref": "#/$defs/HarnessLog"
+            },
+            "maxItems": 3,
+            "type": "array"
           },
           "provenance": {
             "anyOf": [
@@ -528,7 +611,7 @@
             "type": "boolean"
           },
           "stdout_truncated": {
-            "description": "Harness logs are evidence, not a measurement: they stay in the criterion\narchive artifact. Only the fact that they were cut travels here.",
+            "description": "True when ANY repetition's stream was cut at the ceiling. `logs` says\nwhich; these two summarize it for a reader that only needs to know\nwhether some log is a prefix.",
             "type": "boolean"
           },
           "termination": {
@@ -545,6 +628,7 @@
           "exit",
           "exit_code",
           "termination",
+          "exit_run_index",
           "runs_requested",
           "runs_completed",
           "dataset_published",
@@ -555,6 +639,7 @@
           "runtime",
           "execution_fingerprint",
           "vendor_fingerprint",
+          "logs",
           "stdout_truncated",
           "stderr_truncated",
           "complete"

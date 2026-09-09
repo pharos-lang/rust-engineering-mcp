@@ -98,18 +98,62 @@ class DockerFreePlanTests(unittest.TestCase):
 
 
 class RuntimePlanTests(unittest.TestCase):
-    def test_runtime_plan_covers_profile_and_bloat_only(self):
-        self.assertEqual(M5.runtime_tools(),
-                         ("rust.profile.flamegraph", "rust.binary.bloat"))
+    # CORRECTED for ADR-080 §6.  This asserted `runtime_tools()` was exactly
+    # profile and bloat, which pinned the state the ADR exists to change: the
+    # harness-log recovery has to be exercised from a real client, so
+    # `rust.benchmark.run` now has runtime rows too.
+    def test_runtime_plan_covers_profile_bloat_and_benchmark(self):
+        self.assertEqual(
+            M5.runtime_tools(),
+            ("rust.profile.flamegraph", "rust.binary.bloat", "rust.benchmark.run"))
         for row in M5.runtime_call_plan():
             self.assertEqual(row["mode"], M5.RUNTIME)
             self.assertEqual(row["shape"], "positive")
             self.assertGreaterEqual(row["expect_min_artifacts"], 1)
             self.assertTrue(row["rationale"])
 
-    def test_the_two_tools_without_a_client_positive_are_named(self):
+    # CORRECTED for ADR-080 §6: `rust.benchmark.run` is no longer among them.
+    def test_the_tool_without_a_client_positive_is_named(self):
         missing = [tool for tool in M5.M5_TOOLS if tool not in M5.runtime_tools()]
-        self.assertEqual(missing, ["rust.benchmark.run", "rust.benchmark.compare"])
+        self.assertEqual(missing, ["rust.benchmark.compare"])
+
+    def test_the_log_recovery_rows_publish_logs_and_no_measurement(self):
+        """ADR-080 §6: an observed compilation failure and an unrecognized
+        harness, each publishing harness logs and no dataset."""
+        rows = [row for row in M5.runtime_call_plan()
+                if row["tool"] == "rust.benchmark.run"]
+        self.assertEqual(len(rows), 2)
+        self.assertEqual([row["expect_error_code"] for row in rows],
+                         ["OBSERVED_FAILURE", "HARNESS_UNRECOGNIZED"])
+        for row in rows:
+            # A declared observed result, not a refusal: a row that never
+            # reached the runtime would be blocked/unavailable instead.
+            self.assertEqual(row["expect_status"], "failed")
+            self.assertFalse(row["expect_is_error"])
+            self.assertFalse(row["expect_measured"])
+            self.assertEqual(row["expect_observation"]["dataset_published"], False)
+            self.assertEqual(row["expect_observation"]["exit_run_index"], 1)
+            # Every artifact must be a log, and a dataset or a criterion tree
+            # would fail the row even though the artifact count would pass.
+            self.assertEqual(row["expect_artifact_kinds"],
+                             ["harness_stdout", "harness_stderr"])
+            self.assertEqual(row["expect_no_artifact_kinds"],
+                             ["benchmark_dataset", "criterion_archive"])
+            self.assertGreaterEqual(row["expect_min_artifacts"], 1)
+            self.assertIn("logs", row["report_fields"])
+
+    def test_a_plan_naming_an_artifact_kind_the_tool_cannot_publish_is_refused(self):
+        broken = list(M5.RUNTIME_CALL_PLAN)
+        broken[-1] = dict(broken[-1], expect_artifact_kinds=["flamegraph_svg"])
+        with mock.patch.object(M5, "RUNTIME_CALL_PLAN", tuple(broken)):
+            with self.assertRaisesRegex(RuntimeError, "cannot publish"):
+                M5.runtime_call_plan()
+
+    def test_the_benchmark_artifact_kinds_come_from_the_servers_own_enum(self):
+        self.assertEqual(
+            M5.declared_artifact_kinds("rust.benchmark.run"),
+            frozenset({"benchmark_dataset", "criterion_archive",
+                       "harness_stdout", "harness_stderr"}))
 
     def test_profile_expects_a_real_passed_with_two_artifacts(self):
         row = next(item for item in M5.runtime_call_plan()
@@ -334,10 +378,12 @@ class PreflightTests(unittest.TestCase):
         })
         self.assertTrue(all(len(value) == 64 for value in result["source_sha256"].values()))
 
-    def test_preflight_names_the_tools_without_a_client_positive(self):
+    # CORRECTED for ADR-080 §6: `rust.benchmark.run` gained two client
+    # positives, so only the comparison is left without one.
+    def test_preflight_names_the_tool_without_a_client_positive(self):
         result = M5.preflight()
         self.assertEqual(result["tools_without_a_client_positive"],
-                         ["rust.benchmark.run", "rust.benchmark.compare"])
+                         ["rust.benchmark.compare"])
 
     def test_runtime_preflight_adds_the_runtime_preconditions(self):
         plain = set(M5.preflight(False, None)["preconditions"])

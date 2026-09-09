@@ -98,6 +98,11 @@ TOOL_MODULES = {
 # absolute host paths stay inside the closed server argv.
 FIXTURES = {
     "benchmark": "fixtures/benchmark",
+    # ADR-080 §6: the harness-log recovery needs a run that really fails to
+    # compile.  This root resolves the approved criterion and its bench does
+    # not typecheck, so the tool observes the harness AND a compilation
+    # failure, and the compiler's own text is the only evidence there is.
+    "benchmark_compile_error": "fixtures/benchmark-compile-error",
     "profile": "fixtures/profile-workload",
     "bloat": "fixtures/bloat",
 }
@@ -238,6 +243,69 @@ RUNTIME_CALL_PLAN = (
         "rationale": "a real size analysis in the qualified image; the measured file is exact "
                      "and the published attribution is read back as a Resource",
     },
+    # ---- ADR-080 §6: the harness-log recovery, from a real client ----------
+    #
+    # Both rows below are the cases the old contract left with nothing to
+    # fetch.  Each publishes no dataset and no criterion tree, so every
+    # artifact the row asserts IS a harness log, and each one is read back as a
+    # `rust-quality-artifact://` Resource by the same oracle the two rows above
+    # use.  `expect_status` is `failed` — a declared observed result with
+    # `isError: false`, not a refusal — so neither row can pass by having been
+    # blocked before the runtime.
+    #
+    # `exit` is deliberately NOT asserted.  `BenchmarkExit::CALIBRATED` is
+    # false: no Docker receipt has yet pinned which code `cargo bench` returns
+    # for a rustc failure, and `100` (`compilation_failed`) versus `101`
+    # (`benchmark_failed`) is exactly what a receipt is supposed to settle.
+    # Asserting one here would freeze a guess as an expectation.  What is
+    # asserted is what ADR-080 changes: no dataset, the omission the adapter
+    # observed, and published logs.
+    {
+        "tool": "rust.benchmark.run", "shape": "positive", "project": "benchmark_compile_error",
+        "arguments": {"package": "rust-mcp-benchmark-compile-error-fixture",
+                      "bench_target": "perf", "run_count": 1, "timeout_seconds": 300,
+                      "execution_mode": "synchronous"},
+        "expect_status": "failed", "expect_error_code": "OBSERVED_FAILURE",
+        "expect_observation": {"dataset_published": False,
+                               "dataset_omission": "execution_failed",
+                               "runs_requested": 1, "exit_run_index": 1},
+        "expect_positive_fields": [],
+        "expect_zero_fields": [],
+        "expect_measured": False,
+        # The bench does not typecheck, so rustc writes to stderr and at least
+        # that one log member exists.  Whether cargo also wrote to stdout is
+        # not this row's business.
+        "expect_min_artifacts": 1,
+        "expect_artifact_kinds": ["harness_stdout", "harness_stderr"],
+        "expect_no_artifact_kinds": ["benchmark_dataset", "criterion_archive"],
+        "report_fields": ["exit", "exit_code", "exit_run_index", "runs_completed",
+                          "dataset_published", "dataset_omission", "logs"],
+        "requires_profiling_grant": False,
+        "rationale": "an observed compilation failure: the compiler's own text is published as "
+                     "a per-repetition harness log artifact and read back as a Resource, which "
+                     "is the evidence ADR-076 promised and the server did not publish",
+    },
+    {
+        "tool": "rust.benchmark.run", "shape": "positive", "project": "bloat",
+        "arguments": {"package": "rust-mcp-bloat-fixture", "run_count": 1,
+                      "timeout_seconds": 300, "execution_mode": "synchronous"},
+        "expect_status": "failed", "expect_error_code": "HARNESS_UNRECOGNIZED",
+        "expect_observation": {"harness": "unrecognized", "dataset_published": False,
+                               "dataset_omission": "harness_unrecognized",
+                               "runs_requested": 1, "exit_run_index": 1},
+        "expect_positive_fields": [],
+        "expect_zero_fields": [],
+        "expect_measured": False,
+        "expect_min_artifacts": 1,
+        "expect_artifact_kinds": ["harness_stdout", "harness_stderr"],
+        "expect_no_artifact_kinds": ["benchmark_dataset", "criterion_archive"],
+        "report_fields": ["exit", "exit_code", "exit_run_index", "runs_completed",
+                          "harness", "dataset_published", "dataset_omission", "logs"],
+        "requires_profiling_grant": False,
+        "rationale": "an unrecognized harness: the native oracle already proves the adapter "
+                     "captures logs here, and this row proves the client can fetch them — the "
+                     "case that used to publish no artifact at all",
+    },
 )
 
 SAFE_PROTOCOL_KEYS = frozenset({
@@ -326,6 +394,24 @@ def declared_error_codes(tool: str) -> tuple[str, ...]:
     return codes
 
 
+def declared_artifact_kinds(tool: str) -> frozenset[str]:
+    """The closed artifact-kind vocabulary one M5 tool can publish.
+
+    Re-derived from the tool's own `ArtifactKind` enum, in the `snake_case`
+    serde renders it, so a plan cannot name a kind the server has no way to
+    emit — and adding a kind to the server without teaching the matrix about it
+    stays visible here rather than passing silently.
+    """
+    source = (STDIO_DIR / f"{TOOL_MODULES[tool]}.rs").read_text()
+    start = source.index("enum ArtifactKind {") + len("enum ArtifactKind {")
+    block = source[start:source.index("\n}", start)]
+    names = re.findall(r"^\s{4}([A-Z][A-Za-z0-9]*),$", block, re.M)
+    kinds = frozenset(screaming(name).lower() for name in names)
+    if not kinds or len(kinds) != len(names):
+        raise RuntimeError(f"artifact kind vocabulary is invalid for {tool}")
+    return kinds
+
+
 def advertisement_state() -> dict[str, bool]:
     shared = (STDIO_DIR / "security_tool.rs").read_text()
     shared_ready = (
@@ -411,16 +497,32 @@ def call_plan() -> list[dict[str, object]]:
 
 
 def runtime_call_plan() -> list[dict[str, object]]:
-    """The Docker-backed matrix: every row is a real measurement with evidence."""
+    """The Docker-backed matrix: every row is a real execution with evidence.
+
+    Not every row is a *measurement*.  ADR-080 §6 adds two rows whose whole
+    point is that the execution produced no dataset — an observed compilation
+    failure and an unrecognized harness — and whose evidence is the harness
+    logs the server now publishes.  What every row shares is that it reaches
+    the qualified runtime, publishes at least one artifact, reads every one of
+    them back as a Resource, and asserts observation facts rather than only a
+    status.
+    """
     rows = []
     for row in RUNTIME_CALL_PLAN:
         check_expectation(row)
         if row["shape"] != "positive":
             raise RuntimeError("the runtime plan carries positives only")
         if row["expect_min_artifacts"] < 1:
-            raise RuntimeError("a real measurement must publish evidence")
+            raise RuntimeError("a real execution must publish evidence")
         if not (row["expect_observation"] or row["expect_positive_fields"] or row["expect_measured"]):
-            raise RuntimeError("a real measurement must assert observation facts")
+            raise RuntimeError("a real execution must assert observation facts")
+        kinds = tuple(row.get("expect_artifact_kinds", ()))
+        forbidden = tuple(row.get("expect_no_artifact_kinds", ()))
+        if set(kinds) & set(forbidden):
+            raise RuntimeError("an artifact kind is both required and forbidden")
+        declared = declared_artifact_kinds(row["tool"])
+        if not (set(kinds) | set(forbidden)) <= declared:
+            raise RuntimeError("the plan names an artifact kind the tool cannot publish")
         rows.append({
             "tool": row["tool"], "shape": row["shape"], "mode": RUNTIME,
             "project": row["project"], "arguments": row["arguments"],
@@ -432,6 +534,13 @@ def runtime_call_plan() -> list[dict[str, object]]:
             "expect_zero_fields": row["expect_zero_fields"],
             "expect_measured": row["expect_measured"],
             "expect_min_artifacts": row["expect_min_artifacts"],
+            # Closed sets, both optional: every artifact the call publishes
+            # must be one of `expect_artifact_kinds`, and none may be one of
+            # `expect_no_artifact_kinds`.  The second is what makes a
+            # log-recovery row discriminating: a run that quietly published a
+            # dataset would satisfy the artifact count and fail here.
+            "expect_artifact_kinds": list(kinds),
+            "expect_no_artifact_kinds": list(forbidden),
             "report_fields": row["report_fields"],
             "requires_profiling_grant": row["requires_profiling_grant"],
             "rationale": row["rationale"],
@@ -580,8 +689,9 @@ def preflight(with_runtime: bool = False, socket: str | None = None) -> dict[str
         "resource_plan": {
             "docker_free": "no declared refusal publishes a quality artifact, so the Resource "
                            "oracle is the missing-artifact refusal on " + MISSING_RESOURCE_URI,
-            "runtime": "every artifact a real measurement publishes is read back as a "
-                       "rust-quality-artifact:// Resource",
+            "runtime": "every artifact a real execution publishes is read back as a "
+                       "rust-quality-artifact:// Resource, including the per-repetition "
+                       "harness logs of a run that published no dataset (ADR-080)",
         },
         "source_sha256": source_hashes(),
         "m3_reuse": ["proxy", "run_bounded", "digest", "file_digest", "save_json",
@@ -806,6 +916,8 @@ def check_runtime_observation(client: str, row: dict[str, object],
     artifacts = data.get("artifacts")
     if not isinstance(artifacts, list) or len(artifacts) < row["expect_min_artifacts"]:
         raise RuntimeError(f"{label} published too few artifacts")
+    allowed = set(row.get("expect_artifact_kinds", ()))
+    forbidden = set(row.get("expect_no_artifact_kinds", ()))
     for artifact in artifacts:
         if (not isinstance(artifact, dict)
                 or not str(artifact.get("uri", "")).startswith("rust-quality-artifact://")
@@ -813,6 +925,20 @@ def check_runtime_observation(client: str, row: dict[str, object],
                 or not isinstance(artifact.get("size_bytes"), int)
                 or artifact["size_bytes"] <= 0):
             raise RuntimeError(f"{label} published an invalid artifact descriptor")
+        kind = artifact.get("kind")
+        if kind in forbidden:
+            raise RuntimeError(f"{label} published a forbidden artifact kind {kind}")
+        if allowed and kind not in allowed:
+            raise RuntimeError(f"{label} published an unplanned artifact kind {kind}")
+        # ADR-080 §2: everything but the pooled dataset names its repetition,
+        # and the dataset is the only member allowed to leave it absent.
+        index = artifact.get("run_index")
+        if kind == "benchmark_dataset":
+            if index is not None:
+                raise RuntimeError(f"{label} gave the pooled dataset a run_index")
+        elif row["tool"] == "rust.benchmark.run" and not (
+                isinstance(index, int) and not isinstance(index, bool) and index >= 1):
+            raise RuntimeError(f"{label} published {kind} without its repetition")
     facts = {"artifacts_published": len(artifacts)}
     facts.update({key: observation[key] for key in row["report_fields"] if key in observation})
     return {"artifacts": artifacts, "facts": facts}

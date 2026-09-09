@@ -1,6 +1,6 @@
 //! ADR-061 durable nextest publication and owner-bound Resource reads.
 
-mod performance;
+pub(super) mod performance;
 mod security;
 pub(super) use performance::DurablePerformancePublisher;
 pub(super) use security::DurableSecurityPublisher;

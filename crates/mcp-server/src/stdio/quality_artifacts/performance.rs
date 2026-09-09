@@ -7,6 +7,11 @@
 //! results (ADR-076 §3, §5, §6), so each of them legitimately publishes fewer
 //! members — or none — instead of committing an artifact that claims to
 //! describe evidence that does not exist.
+//!
+//! "Fewer" is not "none" for a benchmark run: ADR-080 §1 publishes each
+//! repetition's harness logs whether or not a dataset came out of it, because
+//! for an unrecognised harness or a failed compilation those logs are the only
+//! evidence the caller can act on.
 use super::*;
 use rust_engineering_application::benchmark::{BenchmarkObservation, BenchmarkPublisher};
 use rust_engineering_application::bloat::{BloatObservation, BloatPublisher};
@@ -71,15 +76,20 @@ impl BenchmarkPublisher for DurablePerformancePublisher {
         observation: &BenchmarkObservation,
         revalidate: &mut dyn FnMut() -> Result<QualityOwnerFacts, InspectionError>,
     ) -> Result<Vec<QualityArtifactDescriptor>, InspectionError> {
-        // A run without a dataset published nothing to describe: an
-        // unrecognised or unapproved harness, a failed execution and an
-        // unparsable export are all declared omissions (ADR-076 §3), and the
-        // empty vector is the application's own legitimate answer for them.
-        let Some(dataset) = observation.dataset.as_ref() else {
-            return Ok(Vec::new());
+        // A run without a dataset is still a run that happened. Its harness
+        // logs are the evidence ADR-080 §1 publishes — for an unrecognised
+        // harness or a compilation failure they are the *only* evidence — so
+        // the absent dataset removes one member here rather than the whole
+        // publication. The empty vector remains the honest answer for a run
+        // that produced no bytes of any kind.
+        let bytes = match observation.dataset.as_ref() {
+            Some(dataset) => serde_json::to_vec(dataset).map_err(|_| InspectionError::Internal)?,
+            None => Vec::new(),
         };
-        let bytes = serde_json::to_vec(dataset).map_err(|_| InspectionError::Internal)?;
-        let members = benchmark_members(observation, dataset, &bytes);
+        let members = benchmark_members(observation, &bytes);
+        if members.is_empty() {
+            return Ok(Vec::new());
+        }
         self.publish(
             capture,
             benchmark_selection(observation),
@@ -272,42 +282,187 @@ fn dataset_completeness(
     }
 }
 
-/// The members one benchmark run publishes, in the order they are committed.
+/// What one benchmark run publishes, in the exact order it is committed.
 ///
-/// The dataset is member zero. The criterion output tree is the second member
-/// ADR-076 §3 names, and it is published only when the run actually retained
+/// This is the single description of the member plan. The publisher below turns
+/// it into `JobMember`s and the tool's response encoder turns the descriptors
+/// that come back into wire artifacts; deriving both from one function is what
+/// keeps a `ToolLog` descriptor — which cannot say by itself whether it is a
+/// `stdout` or a `stderr`, nor which repetition it came from — from being
+/// guessed at on the way out.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub(in crate::stdio) enum BenchmarkMemberKind {
+    /// The pooled dataset. It has no `run_index`: every repetition is in it,
+    /// and each of its samples carries its own.
+    Dataset,
+    CriterionArchive {
+        run_index: u8,
+    },
+    HarnessStdout {
+        run_index: u8,
+    },
+    HarnessStderr {
+        run_index: u8,
+    },
+}
+
+impl BenchmarkMemberKind {
+    /// The store kind this member is committed under.
+    pub(in crate::stdio) fn artifact_kind(self) -> QualityArtifactKind {
+        match self {
+            Self::Dataset => QualityArtifactKind::BenchmarkDataset,
+            Self::CriterionArchive { .. } => QualityArtifactKind::CriterionArchive,
+            Self::HarnessStdout { .. } | Self::HarnessStderr { .. } => QualityArtifactKind::ToolLog,
+        }
+    }
+
+    /// The repetition this member is evidence of, or `None` for the pooled
+    /// dataset.
+    pub(in crate::stdio) fn run_index(self) -> Option<u8> {
+        match self {
+            Self::Dataset => None,
+            Self::CriterionArchive { run_index }
+            | Self::HarnessStdout { run_index }
+            | Self::HarnessStderr { run_index } => Some(run_index),
+        }
+    }
+}
+
+/// The plan, derived from the observation alone.
+///
+/// The dataset comes first when there is one, then the retained criterion tree
+/// when there is one, then each repetition's `stdout` and `stderr` in run
+/// order. A stream that wrote nothing publishes no member: a zero-byte artifact
+/// would be an absence dressed as evidence, and the repetition's entry in the
+/// observation already says the stream was empty.
+///
+/// A run with no dataset and no tree still plans its logs. That is the whole
+/// point of ADR-080: `harness_unrecognized` and an observed compilation failure
+/// used to publish nothing at all.
+pub(in crate::stdio) fn benchmark_member_plan(
+    observation: &BenchmarkObservation,
+) -> Vec<BenchmarkMemberKind> {
+    let mut plan = Vec::new();
+    if observation.dataset.is_some() {
+        plan.push(BenchmarkMemberKind::Dataset);
+    }
+    if let Some(archive) = observation.archive.as_ref() {
+        plan.push(BenchmarkMemberKind::CriterionArchive {
+            run_index: archive.run_index,
+        });
+    }
+    for log in &observation.logs {
+        if !log.stdout.is_empty() {
+            plan.push(BenchmarkMemberKind::HarnessStdout {
+                run_index: log.run_index,
+            });
+        }
+        if !log.stderr.is_empty() {
+            plan.push(BenchmarkMemberKind::HarnessStderr {
+                run_index: log.run_index,
+            });
+        }
+    }
+    plan
+}
+
+/// The members one benchmark run publishes, walking [`benchmark_member_plan`]
+/// so the committed order and the published order cannot drift apart.
+///
+/// The criterion output tree is published only when the run actually retained
 /// one repetition's tree: a run that exported none, or whose export exceeded
 /// the 32 MiB ceiling of ADR-076 §7, carries a declared `archive_omission`
-/// instead and publishes the dataset alone rather than a member describing
+/// instead and publishes without it rather than committing a member describing
 /// bytes this server does not hold. The tree travels verbatim, so it is the
 /// same source-derived evidence the dataset is, in the framing the harness
 /// wrote it in.
+///
+/// The logs are `SourceDerived` for the same reason both of those are: they
+/// come from compiling and running the project's own code, so they can carry
+/// fragments of its source and guest paths. That is exactly the retention this
+/// producer already asks the host for, and no wider.
 fn benchmark_members<'a>(
     observation: &'a BenchmarkObservation,
-    dataset: &BenchmarkDataset,
     dataset_bytes: &'a [u8],
 ) -> Vec<JobMember<'a>> {
-    let mut members = vec![JobMember {
-        kind: QualityArtifactKind::BenchmarkDataset,
-        mime_type: QualityMimeType::ApplicationJson,
-        payload_format_version: PayloadFormatVersion::BenchmarkDatasetV2,
-        guest_name: GuestArtifactName::BenchmarkDataset,
+    let empty: &[u8] = &[];
+    benchmark_member_plan(observation)
+        .into_iter()
+        .map(|planned| match planned {
+            BenchmarkMemberKind::Dataset => JobMember {
+                kind: QualityArtifactKind::BenchmarkDataset,
+                mime_type: QualityMimeType::ApplicationJson,
+                payload_format_version: PayloadFormatVersion::BenchmarkDatasetV2,
+                guest_name: GuestArtifactName::BenchmarkDataset,
+                sensitivity: ArtifactSensitivity::SourceDerived,
+                completeness: observation
+                    .dataset
+                    .as_ref()
+                    .map_or(ArtifactCompleteness::Unavailable, |dataset| {
+                        dataset_completeness(observation, dataset)
+                    }),
+                bytes: dataset_bytes,
+            },
+            BenchmarkMemberKind::CriterionArchive { .. } => JobMember {
+                kind: QualityArtifactKind::CriterionArchive,
+                mime_type: QualityMimeType::ApplicationXTar,
+                payload_format_version: PayloadFormatVersion::UstarV1,
+                guest_name: GuestArtifactName::CriterionArchive,
+                sensitivity: ArtifactSensitivity::SourceDerived,
+                completeness: archive_completeness(observation),
+                bytes: observation
+                    .archive
+                    .as_ref()
+                    .map_or(empty, |archive| archive.bytes.as_slice()),
+            },
+            BenchmarkMemberKind::HarnessStdout { run_index } => {
+                log_member(observation, run_index, true, empty)
+            }
+            BenchmarkMemberKind::HarnessStderr { run_index } => {
+                log_member(observation, run_index, false, empty)
+            }
+        })
+        .collect()
+}
+
+/// One repetition's stream, as its own member.
+///
+/// `completeness` is the stream's own: `truncated` when the adapter cut it at
+/// the published ceiling, `complete` otherwise. Unlike the criterion tree, a
+/// log is not partial evidence of the run just because the run had three
+/// repetitions — it is the whole of what *that* repetition wrote to *that*
+/// stream, and the descriptor says so rather than borrowing the archive's
+/// reasoning.
+fn log_member<'a>(
+    observation: &'a BenchmarkObservation,
+    run_index: u8,
+    stdout: bool,
+    empty: &'a [u8],
+) -> JobMember<'a> {
+    let entry = observation
+        .logs
+        .iter()
+        .find(|log| log.run_index == run_index);
+    let (bytes, truncated) = entry.map_or((empty, false), |log| {
+        if stdout {
+            (log.stdout.as_slice(), log.stdout_truncated)
+        } else {
+            (log.stderr.as_slice(), log.stderr_truncated)
+        }
+    });
+    JobMember {
+        kind: QualityArtifactKind::ToolLog,
+        mime_type: QualityMimeType::TextPlain,
+        payload_format_version: PayloadFormatVersion::Utf8LogV1,
+        guest_name: GuestArtifactName::ToolLog,
         sensitivity: ArtifactSensitivity::SourceDerived,
-        completeness: dataset_completeness(observation, dataset),
-        bytes: dataset_bytes,
-    }];
-    if let Some(archive) = observation.archive.as_ref() {
-        members.push(JobMember {
-            kind: QualityArtifactKind::CriterionArchive,
-            mime_type: QualityMimeType::ApplicationXTar,
-            payload_format_version: PayloadFormatVersion::UstarV1,
-            guest_name: GuestArtifactName::CriterionArchive,
-            sensitivity: ArtifactSensitivity::SourceDerived,
-            completeness: archive_completeness(observation),
-            bytes: &archive.bytes,
-        });
+        completeness: if truncated {
+            ArtifactCompleteness::Truncated
+        } else {
+            ArtifactCompleteness::Complete
+        },
+        bytes,
     }
-    members
 }
 
 /// What the criterion archive member is, as the run observed it.
@@ -365,7 +520,7 @@ fn bloat_completeness(value: BloatCompleteness) -> ArtifactCompleteness {
 mod tests {
     use super::*;
     use rust_engineering_domain::benchmark::BenchmarkSelection;
-    use rust_engineering_domain::benchmark_run::DatasetOmission;
+    use rust_engineering_domain::benchmark_run::{BenchmarkRunLog, DatasetOmission};
 
     fn selection(package: Option<&str>, bench_target: Option<&str>) -> BenchmarkSelection {
         BenchmarkSelection {
@@ -558,11 +713,13 @@ mod tests {
     /// bytes verbatim rather than anything derived from them.
     #[test]
     fn a_retained_tree_is_published_as_the_second_member() {
-        let observation = fixture::observation();
+        let mut observation = fixture::observation();
         let dataset = fixture::dataset(MeasurementCompleteness::Complete);
+        observation.dataset = Some(dataset.clone());
         let bytes = serde_json::to_vec(&dataset).expect("dataset bytes");
-        let members = benchmark_members(&observation, &dataset, &bytes);
-        assert_eq!(members.len(), 2);
+        let members = benchmark_members(&observation, &bytes);
+        // Two measurement members, then this fixture's six log members.
+        assert_eq!(members.len(), 8);
         assert_eq!(members[0].kind, QualityArtifactKind::BenchmarkDataset);
         let archive = observation.archive.as_ref().expect("fixture tree");
         assert_eq!(members[1].kind, QualityArtifactKind::CriterionArchive);
@@ -588,8 +745,18 @@ mod tests {
         observation.archive = None;
         observation.archive_omission = Some(DatasetOmission::OutputTooLarge);
         let dataset = fixture::dataset(MeasurementCompleteness::Complete);
+        observation.dataset = Some(dataset.clone());
+        // The one repetition wrote nothing, so no log member joins it either;
+        // the dataset is genuinely alone.
+        observation.logs = vec![BenchmarkRunLog {
+            run_index: 3,
+            stdout: Vec::new(),
+            stdout_truncated: false,
+            stderr: Vec::new(),
+            stderr_truncated: false,
+        }];
         let bytes = serde_json::to_vec(&dataset).expect("dataset bytes");
-        let members = benchmark_members(&observation, &dataset, &bytes);
+        let members = benchmark_members(&observation, &bytes);
         assert_eq!(members.len(), 1);
         assert_eq!(members[0].kind, QualityArtifactKind::BenchmarkDataset);
         assert_eq!(
@@ -620,6 +787,142 @@ mod tests {
         assert_eq!(
             archive_completeness(&observation),
             ArtifactCompleteness::Partial
+        );
+    }
+
+    /// ADR-080 §1 and §2. Every repetition's two streams become their own
+    /// members, in run order, after the two measurement members. Nothing is
+    /// concatenated: each member's bytes are exactly one repetition's stream,
+    /// and the plan names the repetition it belongs to.
+    #[test]
+    fn every_repetitions_logs_are_published_as_their_own_members() {
+        let mut observation = fixture::observation();
+        let dataset = fixture::dataset(MeasurementCompleteness::Complete);
+        let bytes = serde_json::to_vec(&dataset).expect("dataset bytes");
+        observation.dataset = Some(dataset);
+        let plan = benchmark_member_plan(&observation);
+        assert_eq!(
+            plan,
+            vec![
+                BenchmarkMemberKind::Dataset,
+                BenchmarkMemberKind::CriterionArchive { run_index: 3 },
+                BenchmarkMemberKind::HarnessStdout { run_index: 1 },
+                BenchmarkMemberKind::HarnessStderr { run_index: 1 },
+                BenchmarkMemberKind::HarnessStdout { run_index: 2 },
+                BenchmarkMemberKind::HarnessStderr { run_index: 2 },
+                BenchmarkMemberKind::HarnessStdout { run_index: 3 },
+                BenchmarkMemberKind::HarnessStderr { run_index: 3 },
+            ]
+        );
+        let members = benchmark_members(&observation, &bytes);
+        assert_eq!(members.len(), plan.len());
+        for (member, planned) in members.iter().zip(plan.iter()) {
+            assert_eq!(member.kind, planned.artifact_kind());
+        }
+        for (index, member) in members.iter().skip(2).enumerate() {
+            assert_eq!(member.kind, QualityArtifactKind::ToolLog);
+            assert_eq!(member.mime_type, QualityMimeType::TextPlain);
+            assert_eq!(
+                member.payload_format_version,
+                PayloadFormatVersion::Utf8LogV1
+            );
+            assert_eq!(member.guest_name, GuestArtifactName::ToolLog);
+            // The logs come out of compiling and running the project's own
+            // code; they are exactly as source-derived as the dataset, and the
+            // producer's own retention grant admits them.
+            assert_eq!(member.sensitivity, ArtifactSensitivity::SourceDerived);
+            assert!(M5_RETENTION.permits(member.sensitivity));
+            assert_eq!(member.completeness, ArtifactCompleteness::Complete);
+            let run_index = index / 2 + 1;
+            let stream = if index % 2 == 0 { "stdout" } else { "stderr" };
+            assert_eq!(
+                member.bytes,
+                format!("{stream} of repetition {run_index}").as_bytes(),
+                "member {index} carries some other repetition's stream"
+            );
+        }
+        // A concatenation would show up as one member longer than a single
+        // stream; every log member is exactly one stream long.
+        let widest = members
+            .iter()
+            .skip(2)
+            .map(|member| member.bytes.len())
+            .max()
+            .expect("six log members");
+        assert_eq!(widest, "stdout of repetition 1".len());
+    }
+
+    /// ADR-080 §1: a run with no dataset and no tree is exactly the case the
+    /// old publisher answered with an empty vector, leaving `OBSERVED_FAILURE`
+    /// and `harness_unrecognized` with nothing to fetch. Its logs are now the
+    /// evidence, and they are published.
+    #[test]
+    fn a_run_without_a_dataset_still_publishes_its_logs() {
+        let mut observation = fixture::observation();
+        observation.harness = HarnessDetection::Unrecognized;
+        observation.dataset = None;
+        observation.omission = Some(DatasetOmission::HarnessUnrecognized);
+        observation.archive = None;
+        observation.archive_omission = Some(DatasetOmission::HarnessUnrecognized);
+        observation.runs_requested = 1;
+        observation.runs_completed = 1;
+        observation.exit_run_index = 1;
+        observation.logs = vec![BenchmarkRunLog {
+            run_index: 1,
+            stdout: Vec::new(),
+            stdout_truncated: false,
+            stderr: b"error[E0308]: mismatched types".to_vec(),
+            stderr_truncated: false,
+        }];
+        let members = benchmark_members(&observation, &[]);
+        assert_eq!(
+            benchmark_member_plan(&observation),
+            vec![BenchmarkMemberKind::HarnessStderr { run_index: 1 }],
+            "the empty stdout publishes nothing; the stderr is the evidence"
+        );
+        assert_eq!(members.len(), 1);
+        assert_eq!(members[0].kind, QualityArtifactKind::ToolLog);
+        assert_eq!(members[0].bytes, b"error[E0308]: mismatched types");
+        assert!(observation.consistent());
+    }
+
+    /// ADR-080 §3. A cut stream is published as `truncated`; it is never
+    /// committed as a complete member, and the member's bytes are the prefix
+    /// that survived rather than a claim about what the harness wrote.
+    #[test]
+    fn a_cut_log_is_published_as_truncated_and_never_as_whole() {
+        let mut observation = fixture::observation();
+        observation.logs = vec![
+            fixture::log(1),
+            fixture::log(2),
+            BenchmarkRunLog {
+                run_index: 3,
+                stdout: b"the prefix that survived".to_vec(),
+                stdout_truncated: true,
+                stderr: b"whole".to_vec(),
+                stderr_truncated: false,
+            },
+        ];
+        // The tree is member zero here (this observation has no dataset), so
+        // the six log members are 1..=6 and repetition three's stdout is 5.
+        let members = benchmark_members(&observation, &[]);
+        assert_eq!(members.len(), 7);
+        assert_eq!(
+            members[5].completeness,
+            ArtifactCompleteness::Truncated,
+            "the cut stdout of repetition three"
+        );
+        assert_eq!(members[5].bytes, b"the prefix that survived");
+        assert_eq!(
+            members[6].completeness,
+            ArtifactCompleteness::Complete,
+            "the stderr beside it was not cut and does not inherit the cut"
+        );
+        // Truncation is per stream, so the earlier repetitions stay complete.
+        assert!(
+            members[1..5]
+                .iter()
+                .all(|member| member.completeness == ArtifactCompleteness::Complete)
         );
     }
 
@@ -663,11 +966,13 @@ mod tests {
                 exit: BenchmarkExit::Passed,
                 exit_code: Some(0),
                 termination: ExecutionTermination::Exited,
+                exit_run_index: 3,
                 dataset: None,
                 omission: None,
                 archive: Some(CriterionArchive {
-                    // The last repetition's tree: the one this observation's
-                    // own exit, termination and logs describe.
+                    // The last repetition that exported a tree. Here it is also
+                    // the repetition whose exit is reported; the fixture below
+                    // moves them apart where that is what is under test.
                     run_index: 3,
                     bytes: b"criterion output tree".to_vec(),
                 }),
@@ -678,9 +983,19 @@ mod tests {
                 execution_fingerprint: shared::execution_fingerprint('3')
                     .expect("execution fingerprint"),
                 vendor_fingerprint: shared::source_fingerprint('5').expect("source fingerprint"),
-                stdout: Vec::new(),
-                stderr: Vec::new(),
+                logs: (1..=3).map(log).collect(),
+            }
+        }
+
+        /// One repetition's logs, with bytes distinct per repetition and per
+        /// stream so a merged or misattributed member is visible as a value,
+        /// not just as a count.
+        pub(super) fn log(run_index: u8) -> BenchmarkRunLog {
+            BenchmarkRunLog {
+                run_index,
+                stdout: format!("stdout of repetition {run_index}").into_bytes(),
                 stdout_truncated: false,
+                stderr: format!("stderr of repetition {run_index}").into_bytes(),
                 stderr_truncated: false,
             }
         }
