@@ -241,6 +241,16 @@ pub fn validate_benchmark_observation(
     {
         return Err(SecurityError::InvalidMetadata);
     }
+    // ADR-076 §3 publishes the harness output tree BESIDE the dataset, never
+    // instead of it. A `criterion_archive` on its own would be bytes this
+    // server never turned into a measurement, committed where the artifact pair
+    // means one. The observation's own bounds cannot decide this — an export
+    // without a measurement is a coherent thing to have observed — so the
+    // publication precondition is checked here, against the adapter whose claim
+    // it is, exactly like `analysis_build_symbols_forced` in the bloat path.
+    if observation.archive.is_some() && observation.dataset.is_none() {
+        return Err(SecurityError::InvalidMetadata);
+    }
     let Some(dataset) = &observation.dataset else {
         return Ok(());
     };
@@ -322,7 +332,9 @@ pub(crate) mod tests {
         BenchmarkProvenance, HardwareProfile, MeasurementCompleteness, RawSample, ResourceQuotas,
         SampleUnit, SamplingMode, Virtualization,
     };
-    use rust_engineering_domain::benchmark_run::{BenchmarkExit, DatasetOmission};
+    use rust_engineering_domain::benchmark_run::{
+        BenchmarkExit, CriterionArchive, DatasetOmission,
+    };
     use rust_engineering_domain::{
         ArtifactCompleteness, ArtifactPlugin, ArtifactRuntime, ArtifactSelection,
         ArtifactSensitivity, ArtifactSource, CargoVendorPackage, ExecutionFingerprint,
@@ -691,6 +703,13 @@ pub(crate) mod tests {
                 options.run_count(),
             )),
             omission: None,
+            // The last repetition's tree, which is the one the observation's
+            // own exit and logs describe.
+            archive: Some(CriterionArchive {
+                run_index: options.run_count(),
+                bytes: b"criterion output tree".to_vec(),
+            }),
+            archive_omission: None,
             runs_completed: 3,
             runs_requested: options.run_count(),
             runtime: runtime(31),
@@ -871,10 +890,87 @@ pub(crate) mod tests {
         observed.harness = HarnessDetection::Unrecognized;
         observed.dataset = None;
         observed.omission = Some(DatasetOmission::HarnessUnrecognized);
+        // A harness this server does not recognise exports no criterion tree
+        // either; both absences are declared.
+        observed.archive = None;
+        observed.archive_omission = Some(DatasetOmission::HarnessUnrecognized);
         observed.runs_completed = 0;
         let (result, published) = run(observed, &options);
         assert!(result.is_ok());
         assert_eq!(published.load(Ordering::SeqCst), 1);
+    }
+
+    /// The two members are published together or the tree is not published at
+    /// all. Bytes offered where a measurement is what the pair means would be
+    /// an artifact claiming more than the run produced.
+    #[test]
+    fn a_retained_tree_is_never_published_without_the_dataset_it_belongs_to() {
+        let options = options();
+        let mut observed = observation(&options);
+        observed.dataset = None;
+        observed.omission = Some(DatasetOmission::OutputMissing);
+        // The tree itself is a perfectly coherent observation, so the domain
+        // accepts it; the refusal is the application's publication rule.
+        assert!(observed.consistent());
+        assert_eq!(
+            validate_benchmark_observation(&observed, &options, &vendor()),
+            Err(SecurityError::InvalidMetadata)
+        );
+        let (result, published) = run(observed, &options);
+        assert_eq!(result.err(), Some(SecurityError::InvalidMetadata));
+        assert_eq!(published.load(Ordering::SeqCst), 0);
+    }
+
+    /// A run whose export this server could not retain still publishes its
+    /// dataset, and says why the tree is missing rather than omitting it
+    /// silently.
+    #[test]
+    fn a_declared_missing_tree_still_publishes_the_dataset() {
+        let options = options();
+        let mut observed = observation(&options);
+        observed.archive = None;
+        observed.archive_omission = Some(DatasetOmission::OutputTooLarge);
+        assert_eq!(
+            validate_benchmark_observation(&observed, &options, &vendor()),
+            Ok(())
+        );
+        let (result, published) = run(observed, &options);
+        let result = result.expect("published");
+        assert_eq!(published.load(Ordering::SeqCst), 1);
+        assert!(result.observation.dataset.is_some());
+        assert!(result.observation.archive.is_none());
+        assert_eq!(
+            result.observation.archive_omission,
+            Some(DatasetOmission::OutputTooLarge)
+        );
+    }
+
+    /// An undeclared absence is not a result: a run that carries neither a tree
+    /// nor a reason never reaches the store.
+    #[test]
+    fn a_tree_that_is_neither_retained_nor_declared_is_never_published() {
+        let options = options();
+        let mut observed = observation(&options);
+        observed.archive = None;
+        observed.archive_omission = None;
+        let (result, published) = run(observed, &options);
+        assert_eq!(result.err(), Some(SecurityError::InvalidMetadata));
+        assert_eq!(published.load(Ordering::SeqCst), 0);
+    }
+
+    /// A tree naming a repetition outside the requested run set describes some
+    /// other execution.
+    #[test]
+    fn a_tree_from_outside_the_requested_run_set_is_never_published() {
+        let options = options();
+        let mut observed = observation(&options);
+        observed.archive = Some(CriterionArchive {
+            run_index: options.run_count() + 1,
+            bytes: b"criterion output tree".to_vec(),
+        });
+        let (result, published) = run(observed, &options);
+        assert_eq!(result.err(), Some(SecurityError::InvalidMetadata));
+        assert_eq!(published.load(Ordering::SeqCst), 0);
     }
 
     #[test]

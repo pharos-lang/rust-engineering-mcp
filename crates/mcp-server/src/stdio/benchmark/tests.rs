@@ -10,6 +10,7 @@ pub(super) type TestResult<T = ()> = Result<T, Box<dyn std::error::Error>>;
 pub(super) mod fixtures {
     use super::*;
     use rust_engineering_domain::ExecutionTermination;
+    use rust_engineering_domain::benchmark_run::CriterionArchive;
 
     pub(in crate::stdio::benchmark) fn selection() -> BenchmarkSelection {
         BenchmarkSelection {
@@ -104,6 +105,17 @@ pub(super) mod fixtures {
             exit,
             exit_code: Some(0),
             termination: ExecutionTermination::Exited,
+            // The tree travels with the dataset or not at all: a run that
+            // published no dataset exported no criterion tree either, and the
+            // observation must declare which of the two it is.
+            archive: dataset.as_ref().map(|_| CriterionArchive {
+                run_index: 3,
+                bytes: b"ustar-bytes".to_vec(),
+            }),
+            archive_omission: match dataset {
+                Some(_) => None,
+                None => omission.or(Some(DatasetOmission::OutputMissing)),
+            },
             dataset,
             omission,
             runs_completed: 3,

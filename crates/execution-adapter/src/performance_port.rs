@@ -33,7 +33,8 @@ use rust_engineering_domain::benchmark::{
     SampleUnit, SamplingMode, Virtualization,
 };
 use rust_engineering_domain::benchmark_run::{
-    BenchmarkExit, BenchmarkObservation, DatasetOmission, HarnessDetection,
+    BENCHMARK_MAX_ARCHIVE_BYTES, BenchmarkExit, BenchmarkObservation, CriterionArchive,
+    DatasetOmission, HarnessDetection,
 };
 use rust_engineering_domain::bloat::{
     APPROVED_CARGO_BLOAT_VERSION, BinaryFormat, BloatAttribution, BloatCompleteness, BloatExit,
@@ -229,7 +230,9 @@ struct PooledMeasurement {
 /// product could not later justify. The comparison method depends on exactly
 /// that: it resamples executions, and a merge that dropped the boundary
 /// between them would leave it estimating the wrong quantity.
-fn pool(runs: &[Vec<BenchmarkMeasurement>]) -> Result<Vec<BenchmarkMeasurement>, SecurityError> {
+pub(crate) fn pool(
+    runs: &[Vec<BenchmarkMeasurement>],
+) -> Result<Vec<BenchmarkMeasurement>, SecurityError> {
     let mut pooled: BTreeMap<String, PooledMeasurement> = BTreeMap::new();
     for measurements in runs {
         for measurement in measurements {
@@ -341,6 +344,60 @@ fn parse_runs(
         .collect()
 }
 
+/// The one criterion output tree this run retains, or the reason it retains
+/// none.
+///
+/// ADR-073 §2 gives every repetition its own `CRITERION_HOME`, so a run exports
+/// one independent tree per repetition and their directory names all collide.
+/// They are never merged and never concatenated: the retained tree is the LAST
+/// repetition that exported one — the same repetition whose exit, termination
+/// and logs this observation reports — and `run_index` names it.
+///
+/// ADR-076 §7 caps it at [`BENCHMARK_MAX_ARCHIVE_BYTES`]. A USTAR stream cut at
+/// that ceiling is not an archive, so an oversize tree is declared
+/// `OutputTooLarge` rather than trimmed into a member that would misdescribe
+/// what it contains. A run with no dataset retains no tree either: the two
+/// members are published together, and the dataset's own omission is the reason
+/// for both.
+fn benchmark_archive(
+    execution: &PerformanceExecution,
+    run_count: u8,
+    dataset_omission: Option<DatasetOmission>,
+) -> (Option<CriterionArchive>, Option<DatasetOmission>) {
+    if let Some(reason) = dataset_omission {
+        return (None, Some(reason));
+    }
+    let Some((position, run)) = execution
+        .runs
+        .iter()
+        .enumerate()
+        .rfind(|(_, run)| !run.archive.is_empty())
+    else {
+        return (None, Some(DatasetOmission::OutputMissing));
+    };
+    // Same 1-based numbering `parse_runs` decodes under, counted before empty
+    // exports are dropped so a repetition that exported nothing cannot shift
+    // the others. A position the domain cannot represent is refused, not
+    // clamped; `run_count` is bounded to three by the options, so this is a
+    // guard rather than a case that occurs.
+    let Some(run_index) = u8::try_from(position + 1)
+        .ok()
+        .filter(|index| *index >= 1 && *index <= run_count)
+    else {
+        return (None, Some(DatasetOmission::OutputUnparsable));
+    };
+    if run.archive.len() > BENCHMARK_MAX_ARCHIVE_BYTES {
+        return (None, Some(DatasetOmission::OutputTooLarge));
+    }
+    (
+        Some(CriterionArchive {
+            run_index,
+            bytes: run.archive.clone(),
+        }),
+        None,
+    )
+}
+
 pub(super) fn benchmark(
     gateway: &RustGateway,
     source: &SourceBundle,
@@ -404,6 +461,7 @@ pub(super) fn benchmark(
             }
         },
     };
+    let (archive, archive_omission) = benchmark_archive(&execution, options.run_count(), omission);
     let observation = BenchmarkObservation {
         selection,
         harness: execution.harness.clone(),
@@ -412,6 +470,8 @@ pub(super) fn benchmark(
         termination: termination(&last.capture),
         dataset,
         omission,
+        archive,
+        archive_omission,
         runs_completed,
         runs_requested: options.run_count(),
         runtime: identity,

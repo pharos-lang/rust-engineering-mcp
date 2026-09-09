@@ -79,21 +79,7 @@ impl BenchmarkPublisher for DurablePerformancePublisher {
             return Ok(Vec::new());
         };
         let bytes = serde_json::to_vec(dataset).map_err(|_| InspectionError::Internal)?;
-        // The criterion output tree is the second member ADR-076 §3 names, and
-        // it is not published here: `BenchmarkObservation` does not carry the
-        // exported archive. The execution adapter consumes `run.archive` to
-        // parse the dataset and drops it, so no byte of it reaches this
-        // boundary. Publishing anything else under `CriterionArchive` would
-        // make the descriptor a claim about evidence this server never held.
-        let members = [JobMember {
-            kind: QualityArtifactKind::BenchmarkDataset,
-            mime_type: QualityMimeType::ApplicationJson,
-            payload_format_version: PayloadFormatVersion::BenchmarkDatasetV1,
-            guest_name: GuestArtifactName::BenchmarkDataset,
-            sensitivity: ArtifactSensitivity::SourceDerived,
-            completeness: dataset_completeness(observation, dataset),
-            bytes: &bytes,
-        }];
+        let members = benchmark_members(observation, dataset, &bytes);
         self.publish(
             capture,
             benchmark_selection(observation),
@@ -286,6 +272,65 @@ fn dataset_completeness(
     }
 }
 
+/// The members one benchmark run publishes, in the order they are committed.
+///
+/// The dataset is member zero. The criterion output tree is the second member
+/// ADR-076 §3 names, and it is published only when the run actually retained
+/// one repetition's tree: a run that exported none, or whose export exceeded
+/// the 32 MiB ceiling of ADR-076 §7, carries a declared `archive_omission`
+/// instead and publishes the dataset alone rather than a member describing
+/// bytes this server does not hold. The tree travels verbatim, so it is the
+/// same source-derived evidence the dataset is, in the framing the harness
+/// wrote it in.
+fn benchmark_members<'a>(
+    observation: &'a BenchmarkObservation,
+    dataset: &BenchmarkDataset,
+    dataset_bytes: &'a [u8],
+) -> Vec<JobMember<'a>> {
+    let mut members = vec![JobMember {
+        kind: QualityArtifactKind::BenchmarkDataset,
+        mime_type: QualityMimeType::ApplicationJson,
+        payload_format_version: PayloadFormatVersion::BenchmarkDatasetV1,
+        guest_name: GuestArtifactName::BenchmarkDataset,
+        sensitivity: ArtifactSensitivity::SourceDerived,
+        completeness: dataset_completeness(observation, dataset),
+        bytes: dataset_bytes,
+    }];
+    if let Some(archive) = observation.archive.as_ref() {
+        members.push(JobMember {
+            kind: QualityArtifactKind::CriterionArchive,
+            mime_type: QualityMimeType::ApplicationXTar,
+            payload_format_version: PayloadFormatVersion::UstarV1,
+            guest_name: GuestArtifactName::CriterionArchive,
+            sensitivity: ArtifactSensitivity::SourceDerived,
+            completeness: archive_completeness(observation),
+            bytes: &archive.bytes,
+        });
+    }
+    members
+}
+
+/// What the criterion archive member is, as the run observed it.
+///
+/// It is never `Truncated`. The tree travels verbatim and a USTAR stream cut
+/// short is not an archive, so an oversize export is refused upstream and
+/// declared as an omission rather than published as a partial file.
+///
+/// What remains is whether the retained tree is the run's *whole* harness
+/// output. ADR-073 §2 gives every repetition its own `CRITERION_HOME`, and this
+/// member is one repetition's tree — never a merge of several, which would be a
+/// layout criterion never wrote. So the tree is the complete harness output
+/// only when a single repetition was requested and that repetition completed;
+/// a three-repetition run publishes one of its three trees, and that is partial
+/// evidence of the run whatever else was measured.
+fn archive_completeness(observation: &BenchmarkObservation) -> ArtifactCompleteness {
+    if observation.runs_requested == 1 && observation.runs_completed == 1 {
+        ArtifactCompleteness::Complete
+    } else {
+        ArtifactCompleteness::Partial
+    }
+}
+
 fn profile_completeness(value: ProfileCompleteness) -> ArtifactCompleteness {
     match value {
         ProfileCompleteness::Complete => ArtifactCompleteness::Complete,
@@ -317,6 +362,7 @@ fn bloat_completeness(value: BloatCompleteness) -> ArtifactCompleteness {
 mod tests {
     use super::*;
     use rust_engineering_domain::benchmark::BenchmarkSelection;
+    use rust_engineering_domain::benchmark_run::DatasetOmission;
 
     fn selection(package: Option<&str>, bench_target: Option<&str>) -> BenchmarkSelection {
         BenchmarkSelection {
@@ -508,6 +554,76 @@ mod tests {
         );
     }
 
+    /// ADR-076 §3 promises two members. When the run retained a tree, both are
+    /// declared, in that order, and the archive member carries the exported
+    /// bytes verbatim rather than anything derived from them.
+    #[test]
+    fn a_retained_tree_is_published_as_the_second_member() {
+        let observation = fixture::observation();
+        let dataset = fixture::dataset(MeasurementCompleteness::Complete);
+        let bytes = serde_json::to_vec(&dataset).expect("dataset bytes");
+        let members = benchmark_members(&observation, &dataset, &bytes);
+        assert_eq!(members.len(), 2);
+        assert_eq!(members[0].kind, QualityArtifactKind::BenchmarkDataset);
+        let archive = observation.archive.as_ref().expect("fixture tree");
+        assert_eq!(members[1].kind, QualityArtifactKind::CriterionArchive);
+        assert_eq!(members[1].mime_type, QualityMimeType::ApplicationXTar);
+        assert_eq!(
+            members[1].payload_format_version,
+            PayloadFormatVersion::UstarV1
+        );
+        assert_eq!(members[1].guest_name, GuestArtifactName::CriterionArchive);
+        // The tree is the project's own benchmark output; it is exactly as
+        // source-derived as the dataset beside it, and no wider.
+        assert_eq!(members[1].sensitivity, ArtifactSensitivity::SourceDerived);
+        assert!(M5_RETENTION.permits(members[1].sensitivity));
+        assert_eq!(members[1].bytes, archive.bytes.as_slice());
+    }
+
+    /// A run that retained no tree publishes the dataset alone. The absence is
+    /// the observation's own declared `archive_omission`, so no member is
+    /// invented to stand in for it.
+    #[test]
+    fn a_run_without_a_tree_publishes_the_dataset_alone() {
+        let mut observation = fixture::observation();
+        observation.archive = None;
+        observation.archive_omission = Some(DatasetOmission::OutputTooLarge);
+        let dataset = fixture::dataset(MeasurementCompleteness::Complete);
+        let bytes = serde_json::to_vec(&dataset).expect("dataset bytes");
+        let members = benchmark_members(&observation, &dataset, &bytes);
+        assert_eq!(members.len(), 1);
+        assert_eq!(members[0].kind, QualityArtifactKind::BenchmarkDataset);
+        assert_eq!(
+            observation.archive_omission,
+            Some(DatasetOmission::OutputTooLarge),
+            "the reason travels with the observation, not as an empty member"
+        );
+    }
+
+    /// One tree of a three-repetition run is part of that run's harness output,
+    /// and the descriptor says so. Only a single-repetition run that completed
+    /// publishes a tree that is the whole of it.
+    #[test]
+    fn one_repetitions_tree_never_claims_to_be_the_whole_run() {
+        let mut observation = fixture::observation();
+        assert_eq!(observation.runs_requested, 3);
+        assert_eq!(
+            archive_completeness(&observation),
+            ArtifactCompleteness::Partial
+        );
+        observation.runs_completed = 1;
+        observation.runs_requested = 1;
+        assert_eq!(
+            archive_completeness(&observation),
+            ArtifactCompleteness::Complete
+        );
+        observation.runs_completed = 0;
+        assert_eq!(
+            archive_completeness(&observation),
+            ArtifactCompleteness::Partial
+        );
+    }
+
     #[test]
     fn a_plugin_identity_separates_two_backends_and_two_versions() {
         assert_ne!(
@@ -537,7 +653,7 @@ mod tests {
             BenchmarkHarness, BenchmarkIdentity, BenchmarkMeasurement, BenchmarkProvenance,
             HardwareProfile, RawSample, ResourceQuotas, SampleUnit, SamplingMode, Virtualization,
         };
-        use rust_engineering_domain::benchmark_run::BenchmarkExit;
+        use rust_engineering_domain::benchmark_run::{BenchmarkExit, CriterionArchive};
 
         pub(super) fn observation() -> BenchmarkObservation {
             BenchmarkObservation {
@@ -550,6 +666,13 @@ mod tests {
                 termination: ExecutionTermination::Exited,
                 dataset: None,
                 omission: None,
+                archive: Some(CriterionArchive {
+                    // The last repetition's tree: the one this observation's
+                    // own exit, termination and logs describe.
+                    run_index: 3,
+                    bytes: b"criterion output tree".to_vec(),
+                }),
+                archive_omission: None,
                 runs_completed: 3,
                 runs_requested: 3,
                 runtime: shared::runtime().expect("runtime identity"),
@@ -575,7 +698,8 @@ mod tests {
             let samples = if completeness == MeasurementCompleteness::Missing {
                 Vec::new()
             } else {
-                vec![RawSample::new(1, 1_000.0).expect("sample")]
+                // One fixture execution, so every sample is repetition one.
+                vec![RawSample::new(1, 1_000.0, 1).expect("sample")]
             };
             let measurement = BenchmarkMeasurement::new(
                 identity,
