@@ -92,6 +92,54 @@ veredicto no sea `no_material_change`— **no** se adoptan como criterio. Ambas 
 más laxas y elegir una después de ver los resultados sería exactamente lo que
 este documento existe para impedir.
 
+#### Corrección (2026-09-09, segunda) — qué exige de verdad emitir una dirección
+
+Una revisión independiente externa —Gemini 3.8 vía `agy`, deliberadamente de otra
+familia de modelo que quien escribió esto— devolvió **Block** con dos P1, y los
+dos son correctos.
+
+**La puerta estadística no existía en el código.** Este documento decía que los
+veredictos direccionales quedan deshabilitados hasta pasar la recalificación, y
+eso era una frase en Markdown. Lo único que impedía una dirección era que el
+adapter fija `cpu_governor: None`, es decir **un accidente del entorno**, no un
+control. Volver observable el entorno —trabajo que estaba planificado— habría
+abierto la puerta en silencio con un estimador que reprueba su propia cobertura.
+Se instrumenta como guarda explícita en `decide()`, detrás de una constante que
+hoy vale `false`.
+
+**Y la potencia sigue siendo inalcanzable, ahora por una razón distinta y sana.**
+La puerta de precisión rechaza cuando `MDR > 5 %`, y
+
+```text
+MDR = 2,8016 · SE        SE ≈ τ · sqrt(2/k)
+```
+
+luego `MDR ≤ 0,05` exige `SE ≤ 0,01785`, es decir:
+
+| Ejecuciones por lado | Deriva máxima admisible (τ) |
+| --- | --- |
+| k = 3 | **2,19 %** |
+| k = 5 | 2,82 % |
+| k = 10 | 3,99 % |
+| k = 20 | 5,64 % |
+| k = 60 | 9,78 % |
+
+Este host mide entre ejecuciones del **mismo** código un recorrido de 6,1 % a
+28,7 %. Así que con el protocolo actual ningún candidato alcanza 0,80 de potencia,
+y **eso no es un defecto del estimador**: es la puerta de precisión funcionando.
+Quitarla o subir el umbral sería exactamente el fraude que §4 prohíbe.
+
+**Conclusión, conforme a la regla de cierre de este documento:** el criterio de
+potencia se declara **inalcanzable en este entorno**, y los veredictos
+direccionales y `no_material_change` **siguen deshabilitados**. No se elige otro
+estimador para esquivarlo, porque ninguno lo esquiva.
+
+Lo que sí queda fijado es el objetivo del trabajo de entorno, que deja de ser una
+intención y pasa a ser un número: para decidir a un umbral del 5 % con tres
+ejecuciones por lado hace falta **deriva entre ejecuciones por debajo del 2,2 %**,
+con el governor observado y no supuesto. Un entorno que no llegue ahí no habilita
+direcciones por mucho que mejore el estimador.
+
 ### 2. El rango de deriva está fijado aquí
 
 `τ ∈ {0, 1, 2, 5, 10} %` de desviación típica entre ejecuciones, que es el rango
