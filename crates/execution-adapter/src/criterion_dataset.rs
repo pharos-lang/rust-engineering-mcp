@@ -1535,6 +1535,86 @@ mod real_guest_datasets {
         assert_eq!(report.method.family_size(), 3);
     }
 
+    /// The same null, but with one benchmark in the dataset instead of three.
+    /// A bench target with a single benchmark is ordinary, and `bench_target`
+    /// is a published input, so family size one is not an exotic case: it is
+    /// the case with the least multiplicity correction and therefore the
+    /// tightest interval.
+    #[test]
+    fn an_unchanged_benchmark_alone_in_its_dataset_never_receives_a_direction() {
+        let only = |archive: &[u8], key: &str, src: &str, exec: &str| {
+            let full = dataset(archive, src, exec);
+            let kept = full
+                .measurements()
+                .iter()
+                .filter(|m| m.key() == key)
+                .cloned()
+                .collect::<Vec<_>>();
+            assert_eq!(kept.len(), 1, "{key} missing from the capture");
+            BenchmarkDataset::new(SampleUnit::Nanoseconds, kept, provenance(src, exec))
+                .expect("single-benchmark dataset")
+        };
+        for key in ["m5/control", "m5/slower_125"] {
+            let baseline = only(RUN_2, key, "sha256:base", "sha256:run2");
+            let candidate = only(CANDIDATE, key, "sha256:cand", "sha256:cand");
+            let report = compare(&baseline, &candidate).expect("comparable");
+            assert_eq!(report.method.family_size(), 1);
+            let comparison = &report.comparisons[0];
+            assert!(
+                !matches!(
+                    comparison.verdict,
+                    ComparisonVerdict::Regression | ComparisonVerdict::Improvement
+                ),
+                "{key} alone: unchanged source produced {:?} \
+                 (effect {:.4}, interval {:.4}..{:.4}, mdr {:.4})",
+                comparison.verdict,
+                comparison.effect_ratio,
+                comparison.confidence_interval.0,
+                comparison.confidence_interval.1,
+                comparison.minimum_detectable_ratio
+            );
+        }
+    }
+
+    /// An independent review claimed the frozen method returns a directional
+    /// verdict for source that did not change. `work_noisy` (behind
+    /// `m5/control`) and `work_slower` (behind `m5/slower_125`) are identical
+    /// in all three captures; only `work_unit` differs in the candidate. So
+    /// every comparison of those two benchmarks is a null: the honest answer is
+    /// no direction. This test states that claim as an oracle.
+    #[test]
+    fn unchanged_benchmarks_never_receive_a_direction_across_captures() {
+        let pairs = [
+            ("run2-vs-candidate", RUN_2, "sha256:base", "sha256:run2", CANDIDATE, "sha256:cand", "sha256:cand"),
+            ("run1-vs-candidate", RUN_1, "sha256:base", "sha256:run1", CANDIDATE, "sha256:cand", "sha256:cand"),
+        ];
+        for (label, baseline_bytes, bsrc, bexec, candidate_bytes, csrc, cexec) in pairs {
+            let baseline = dataset(baseline_bytes, bsrc, bexec);
+            let candidate = dataset(candidate_bytes, csrc, cexec);
+            let report = compare(&baseline, &candidate).expect("comparable");
+            for key in ["m5/control", "m5/slower_125"] {
+                let comparison = report
+                    .comparisons
+                    .iter()
+                    .find(|c| c.key == key)
+                    .expect("benchmark compared");
+                assert!(
+                    !matches!(
+                        comparison.verdict,
+                        ComparisonVerdict::Regression | ComparisonVerdict::Improvement
+                    ),
+                    "{label}/{key}: unchanged source produced {:?} \
+                     (effect {:.4}, interval {:.4}..{:.4}, mdr {:.4})",
+                    comparison.verdict,
+                    comparison.effect_ratio,
+                    comparison.confidence_interval.0,
+                    comparison.confidence_interval.1,
+                    comparison.minimum_detectable_ratio
+                );
+            }
+        }
+    }
+
     #[test]
     fn comparing_a_capture_with_itself_is_refused_as_the_same_artifact() {
         let one = dataset(RUN_1, "sha256:base", "sha256:run1");
