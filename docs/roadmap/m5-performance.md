@@ -1,7 +1,10 @@
 # M5 — Performance / 0.5.x
 
-Estado: **In progress** (2026-09-08). Tres cortes calificados nativamente,
-M5-01 bloqueado por una condición reproducible, cierre conjunto sin ejecutar.
+Estado: **In progress** (2026-09-09). Profiling y bloat calificados nativamente
+sobre la imagen admitida —con positivo y denegación en el mismo recibo—, M5-01
+bloqueado por una condición reproducible y con su propio oráculo, método de
+comparación corregido tras una revisión G8 que lo bloqueó, cierre conjunto y
+matriz de clientes sin ejecutar.
 El estado real por corte vive en [la matriz](../validation/M5-matrix.md) y
 [el handoff](../validation/M5-handoff.md); D23 y D24 quedaron decididos en
 [ADR-073](../adr/ADR-073-benchmark-method-and-dataset.md) y
