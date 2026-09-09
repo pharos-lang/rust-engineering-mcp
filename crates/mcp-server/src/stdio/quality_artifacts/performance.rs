@@ -752,8 +752,10 @@ mod tests {
             run_index: 3,
             stdout: Vec::new(),
             stdout_truncated: false,
+            stdout_replaced: false,
             stderr: Vec::new(),
             stderr_truncated: false,
+            stderr_replaced: false,
         }];
         let bytes = serde_json::to_vec(&dataset).expect("dataset bytes");
         let members = benchmark_members(&observation, &bytes);
@@ -871,8 +873,10 @@ mod tests {
             run_index: 1,
             stdout: Vec::new(),
             stdout_truncated: false,
+            stdout_replaced: false,
             stderr: b"error[E0308]: mismatched types".to_vec(),
             stderr_truncated: false,
+            stderr_replaced: false,
         }];
         let members = benchmark_members(&observation, &[]);
         assert_eq!(
@@ -899,8 +903,10 @@ mod tests {
                 run_index: 3,
                 stdout: b"the prefix that survived".to_vec(),
                 stdout_truncated: true,
+                stdout_replaced: false,
                 stderr: b"whole".to_vec(),
                 stderr_truncated: false,
+                stderr_replaced: false,
             },
         ];
         // The tree is member zero here (this observation has no dataset), so
@@ -995,8 +1001,10 @@ mod tests {
                 run_index,
                 stdout: format!("stdout of repetition {run_index}").into_bytes(),
                 stdout_truncated: false,
+                stdout_replaced: false,
                 stderr: format!("stderr of repetition {run_index}").into_bytes(),
                 stderr_truncated: false,
+                stderr_replaced: false,
             }
         }
 

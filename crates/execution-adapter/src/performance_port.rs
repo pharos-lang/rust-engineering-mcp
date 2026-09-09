@@ -414,17 +414,40 @@ fn benchmark_archive(
 /// bytes contradict. Backing off at most three continuation bytes costs
 /// nothing and keeps the declaration true. A stream the supervisor had already
 /// cut carries that fact forward even when it fits here.
-fn bounded_log(bytes: &[u8], captured_truncated: bool) -> (Vec<u8>, bool) {
-    if bytes.len() <= BENCHMARK_MAX_LOG_BYTES {
+fn bounded_log(bytes: &[u8], captured_truncated: bool) -> (Vec<u8>, bool, bool) {
+    let (prefix, cut) = if bytes.len() <= BENCHMARK_MAX_LOG_BYTES {
         // A stream that kept nothing has no cut to declare; the supervisor
         // cannot have truncated an empty capture either.
-        return (bytes.to_vec(), captured_truncated && !bytes.is_empty());
+        (bytes, captured_truncated && !bytes.is_empty())
+    } else {
+        let mut end = BENCHMARK_MAX_LOG_BYTES;
+        while end > 0 && bytes[end] & 0b1100_0000 == 0b1000_0000 {
+            end -= 1;
+        }
+        (&bytes[..end], true)
+    };
+    // These bytes come from a benchmark the PROJECT wrote, so they are
+    // arbitrary: `stdout().write_all(&[0xff])` is a program a caller can
+    // legitimately have. They are published under `PayloadFormatVersion::Utf8LogV1`,
+    // and an artifact whose declared format its bytes do not satisfy is exactly
+    // the class of defect this milestone keeps finding, so validity is
+    // guaranteed here rather than assumed.
+    //
+    // Invalid sequences are replaced rather than refused: the reason these logs
+    // are published at all is diagnosing a failed run, and a run that failed
+    // while emitting one stray byte is precisely when the operator needs the
+    // rest of the text. The replacement is DECLARED, never silent -- the same
+    // rule the cut follows. Backing off to a code-point boundary above is still
+    // worth doing: it keeps a clean cut clean instead of ending every oversize
+    // log with a replacement character.
+    match std::str::from_utf8(prefix) {
+        Ok(_) => (prefix.to_vec(), cut, false),
+        Err(_) => (
+            String::from_utf8_lossy(prefix).into_owned().into_bytes(),
+            cut,
+            true,
+        ),
     }
-    let mut end = BENCHMARK_MAX_LOG_BYTES;
-    while end > 0 && bytes[end] & 0b1100_0000 == 0b1000_0000 {
-        end -= 1;
-    }
-    (bytes[..end].to_vec(), true)
 }
 
 /// Every repetition's harness logs, numbered exactly as `parse_runs` numbers
@@ -445,16 +468,18 @@ fn benchmark_logs(execution: &PerformanceExecution) -> Result<Vec<BenchmarkRunLo
                 .ok()
                 .filter(|index| *index <= BENCHMARK_MAX_RUNS)
                 .ok_or(SecurityError::InvalidMetadata)?;
-            let (stdout, stdout_truncated) =
+            let (stdout, stdout_truncated, stdout_replaced) =
                 bounded_log(&run.capture.stdout, run.capture.stdout_truncated);
-            let (stderr, stderr_truncated) =
+            let (stderr, stderr_truncated, stderr_replaced) =
                 bounded_log(&run.capture.stderr, run.capture.stderr_truncated);
             Ok(BenchmarkRunLog {
                 run_index,
                 stdout,
                 stdout_truncated,
+                stdout_replaced,
                 stderr,
                 stderr_truncated,
+                stderr_replaced,
             })
         })
         .collect()
@@ -1373,19 +1398,69 @@ mod tests {
     /// ADR-080 §3. A stream over the ceiling is published as a declared prefix,
     /// never as a whole stream, and the prefix ends on a UTF-8 boundary so the
     /// `Utf8LogV1` declaration stays true.
+    /// A benchmark the PROJECT wrote can emit any byte, and these logs are
+    /// published declaring `Utf8LogV1`.
+    ///
+    /// An external independent review built the case: `stdout().write_all(&[0xff])`
+    /// from a custom harness, exiting normally, under both size limits. Before
+    /// this guard the artifact went out as `completeness: complete` with a
+    /// declared UTF-8 format its bytes did not satisfy — the same class of
+    /// defect as an artifact describing evidence it does not contain, which is
+    /// what this milestone has been correcting all along. The boundary backoff
+    /// below only ever helped when the input was ALREADY valid, and nothing
+    /// guaranteed that.
+    #[test]
+    fn a_log_published_as_utf8_is_utf8_whatever_the_project_wrote() {
+        // The reviewer's exact case: one stray byte, well under the ceiling.
+        let (kept, truncated, replaced) = bounded_log(b"before\xffafter", false);
+        assert!(
+            replaced,
+            "an invalid byte must be declared, not published raw"
+        );
+        assert!(
+            !truncated,
+            "replacing is not cutting; they are different facts"
+        );
+        assert!(
+            std::str::from_utf8(&kept).is_ok(),
+            "the payload declares Utf8LogV1 and must satisfy it"
+        );
+        let text = String::from_utf8(kept).expect("valid utf-8");
+        assert!(
+            text.contains("before") && text.contains("after"),
+            "the text around the bad byte is why these logs exist: {text:?}"
+        );
+
+        // Valid input is untouched and declares nothing.
+        let (kept, _, replaced) = bounded_log("clean output\n".as_bytes(), false);
+        assert!(!replaced);
+        assert_eq!(kept, b"clean output\n");
+
+        // An invalid byte surviving inside an oversize log is caught too: the
+        // cut and the replacement are independent, and both are declared.
+        let mut over = vec![b'a'; BENCHMARK_MAX_LOG_BYTES + 64];
+        over[10] = 0xff;
+        let (kept, truncated, replaced) = bounded_log(&over, false);
+        assert!(
+            truncated && replaced,
+            "both facts hold and both are reported"
+        );
+        assert!(std::str::from_utf8(&kept).is_ok());
+    }
+
     #[test]
     fn a_stream_over_the_ceiling_is_cut_declared_and_left_valid_utf8() {
-        let (kept, truncated) = bounded_log(b"short", false);
+        let (kept, truncated, _replaced) = bounded_log(b"short", false);
         assert_eq!(kept, b"short");
         assert!(!truncated);
 
         let exact = vec![b'a'; BENCHMARK_MAX_LOG_BYTES];
-        let (kept, truncated) = bounded_log(&exact, false);
+        let (kept, truncated, _replaced) = bounded_log(&exact, false);
         assert_eq!(kept.len(), BENCHMARK_MAX_LOG_BYTES);
         assert!(!truncated, "exactly at the ceiling is whole");
 
         let over = vec![b'a'; BENCHMARK_MAX_LOG_BYTES + 1];
-        let (kept, truncated) = bounded_log(&over, false);
+        let (kept, truncated, _replaced) = bounded_log(&over, false);
         assert_eq!(kept.len(), BENCHMARK_MAX_LOG_BYTES);
         assert!(truncated, "a cut stream must declare the cut");
 
@@ -1393,7 +1468,7 @@ mod tests {
         // publish half of it under a UTF-8 payload format.
         let mut split = vec![b'a'; BENCHMARK_MAX_LOG_BYTES - 1];
         split.extend_from_slice("€".as_bytes());
-        let (kept, truncated) = bounded_log(&split, false);
+        let (kept, truncated, _replaced) = bounded_log(&split, false);
         assert!(truncated);
         assert_eq!(kept.len(), BENCHMARK_MAX_LOG_BYTES - 1);
         assert!(
@@ -1402,11 +1477,11 @@ mod tests {
         );
 
         // A capture the supervisor had already cut says so even when it fits.
-        let (kept, truncated) = bounded_log(b"partial", true);
+        let (kept, truncated, _replaced) = bounded_log(b"partial", true);
         assert_eq!(kept, b"partial");
         assert!(truncated);
         // An empty capture has nothing to have been cut from.
-        let (kept, truncated) = bounded_log(b"", true);
+        let (kept, truncated, _replaced) = bounded_log(b"", true);
         assert!(kept.is_empty());
         assert!(!truncated);
     }

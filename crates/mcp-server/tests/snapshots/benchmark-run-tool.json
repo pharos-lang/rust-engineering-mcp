@@ -473,6 +473,12 @@
         "additionalProperties": false,
         "description": "What one repetition wrote, and what was published of it.\n\nThe logs themselves never travel in the response (ADR-080 \u00a73): they are\npublished as `harness_stdout` and `harness_stderr` artifacts, each naming\nthe same `run_index` this row does. What travels here is how many bytes were\nretained and whether the stream was cut at the server's ceiling, so a reader\nknows before fetching whether the artifact is the whole stream.\n\n`0` retained bytes means the repetition wrote nothing to that stream, and no\nartifact was published for it.",
         "properties": {
+          "retained_ceiling_bytes": {
+            "description": "The server's own per-stream, per-repetition ceiling, in bytes.\n\nPublished so a reader can tell a stream that happened to be short from\none the server cut, without knowing the build's constants (ADR-080 \u00a73).",
+            "format": "uint64",
+            "minimum": 0,
+            "type": "integer"
+          },
           "run_index": {
             "description": "1-based repetition inside the requested run set, the same numbering the\ndataset's samples and the criterion archive carry.",
             "format": "uint8",
@@ -485,6 +491,10 @@
             "minimum": 0,
             "type": "integer"
           },
+          "stderr_replaced": {
+            "description": "The repetition wrote bytes that are not valid UTF-8 on `stderr` and they\nwere replaced. See `stdout_replaced`.",
+            "type": "boolean"
+          },
           "stderr_truncated": {
             "type": "boolean"
           },
@@ -493,8 +503,12 @@
             "minimum": 0,
             "type": "integer"
           },
+          "stdout_replaced": {
+            "description": "The repetition wrote bytes that are not valid UTF-8 and they were\nreplaced.\n\nThese logs come from a benchmark the PROJECT wrote, so they can contain\nany byte, and they are published declaring a UTF-8 payload format. The\nserver guarantees that declaration rather than assuming it, and this\nfield is how a reader learns it had to intervene. Replacing rather than\nrefusing is deliberate: the logs exist to diagnose a failed run, and one\nstray byte is exactly when the surrounding text matters.",
+            "type": "boolean"
+          },
           "stdout_truncated": {
-            "description": "The repetition wrote more than the ceiling and `stdout_bytes` is the\nprefix that was kept. A cut log is never published as a whole one.",
+            "description": "The repetition wrote more than `retained_ceiling_bytes` and\n`stdout_bytes` is the prefix that was kept. A cut log is never published\nas a whole one.",
             "type": "boolean"
           }
         },
@@ -502,8 +516,11 @@
           "run_index",
           "stdout_bytes",
           "stdout_truncated",
+          "stdout_replaced",
           "stderr_bytes",
-          "stderr_truncated"
+          "stderr_truncated",
+          "stderr_replaced",
+          "retained_ceiling_bytes"
         ],
         "type": "object"
       },

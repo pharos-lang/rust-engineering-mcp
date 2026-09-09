@@ -264,11 +264,30 @@ pub struct HarnessLog {
     #[schemars(range(min = 1, max = 3))]
     pub run_index: u8,
     pub stdout_bytes: u64,
-    /// The repetition wrote more than the ceiling and `stdout_bytes` is the
-    /// prefix that was kept. A cut log is never published as a whole one.
+    /// The repetition wrote more than `retained_ceiling_bytes` and
+    /// `stdout_bytes` is the prefix that was kept. A cut log is never published
+    /// as a whole one.
     pub stdout_truncated: bool,
+    /// The repetition wrote bytes that are not valid UTF-8 and they were
+    /// replaced.
+    ///
+    /// These logs come from a benchmark the PROJECT wrote, so they can contain
+    /// any byte, and they are published declaring a UTF-8 payload format. The
+    /// server guarantees that declaration rather than assuming it, and this
+    /// field is how a reader learns it had to intervene. Replacing rather than
+    /// refusing is deliberate: the logs exist to diagnose a failed run, and one
+    /// stray byte is exactly when the surrounding text matters.
+    pub stdout_replaced: bool,
     pub stderr_bytes: u64,
     pub stderr_truncated: bool,
+    /// The repetition wrote bytes that are not valid UTF-8 on `stderr` and they
+    /// were replaced. See `stdout_replaced`.
+    pub stderr_replaced: bool,
+    /// The server's own per-stream, per-repetition ceiling, in bytes.
+    ///
+    /// Published so a reader can tell a stream that happened to be short from
+    /// one the server cut, without knowing the build's constants (ADR-080 §3).
+    pub retained_ceiling_bytes: u64,
 }
 
 #[derive(Clone, Debug, Serialize, JsonSchema)]

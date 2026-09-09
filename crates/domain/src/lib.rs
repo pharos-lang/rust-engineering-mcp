@@ -57,6 +57,7 @@ pub use quality_artifact::*;
 mod source;
 pub use source::*;
 mod rust_execution;
+pub mod vendor_capture;
 pub use rust_execution::*;
 
 mod inspection;

@@ -37,7 +37,7 @@ use rust_engineering_domain::benchmark::{
     SamplingMode, Virtualization,
 };
 use rust_engineering_domain::benchmark_run::{
-    BenchmarkExit, BenchmarkObservation, DatasetOmission, HarnessDetection,
+    BENCHMARK_MAX_LOG_BYTES, BenchmarkExit, BenchmarkObservation, DatasetOmission, HarnessDetection,
 };
 use rust_engineering_domain::{
     ArtifactCompleteness, ExecutionTermination, ProjectRef, QualityArtifactDescriptor,
@@ -622,8 +622,11 @@ fn observation(value: &BenchmarkObservation, artifacts_complete: bool) -> schema
                 run_index: log.run_index,
                 stdout_bytes: log.stdout.len() as u64,
                 stdout_truncated: log.stdout_truncated,
+                stdout_replaced: log.stdout_replaced,
                 stderr_bytes: log.stderr.len() as u64,
                 stderr_truncated: log.stderr_truncated,
+                stderr_replaced: log.stderr_replaced,
+                retained_ceiling_bytes: BENCHMARK_MAX_LOG_BYTES as u64,
             })
             .collect(),
         stdout_truncated: value.any_stdout_truncated(),

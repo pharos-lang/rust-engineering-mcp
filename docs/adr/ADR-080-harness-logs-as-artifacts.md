@@ -42,6 +42,41 @@ Un `rust.benchmark.run` con `run_count = 3` produce tres repeticiones, y sus log
 no se concatenan en uno. Cada artifact declara a qué repetición pertenece, con el
 mismo `run_index` 1-based que llevan las muestras del dataset.
 
+#### Corrección (2026-09-09) — dos cosas que este ADR prometía y el código no hacía
+
+Una revisión independiente externa devolvió **Block** sobre la implementación, y
+dos de sus hallazgos son sobre este documento, no sobre el código que lo
+implementa.
+
+**El payload declaraba UTF-8 sin garantizarlo.** §1 manda publicar los logs, y se
+publican con formato `Utf8LogV1`. Pero los bytes vienen de un benchmark que
+escribió el proyecto, así que pueden ser cualquier cosa: un
+`stdout().write_all(&[0xff])` que termina normalmente y cabe bajo el techo salía
+publicado con `completeness: complete` declarando un formato que no cumplía. El
+retroceso a frontera de code point solo ayudaba si la entrada ya era válida, y
+nada lo garantizaba.
+
+Se corrige garantizando la validez en el adapter y **declarando la
+intervención**: una secuencia inválida se sustituye y el DTO lo dice, por
+repetición y por flujo. Sustituir en vez de rechazar es deliberado —estos logs
+existen para diagnosticar una ejecución fallida, y un byte suelto es exactamente
+cuando hace falta el texto que lo rodea— y la sustitución es un hecho distinto del
+corte: pueden ocurrir por separado y se publican por separado.
+
+**La cuota se reserva después de ejecutar, no antes.** §1 dice «cuota reservada
+antes del job». No es lo que ocurre: el port ejecuta el benchmark entero y la
+publicación empieza después, así que la reserva se calcula sobre bytes ya
+producidos. Un propietario con la cuota agotada compila y ejecuta su proyecto,
+consume su presupuesto, y solo entonces pierde la evidencia.
+
+**Se acepta y no se corrige aquí**, con la razón dicha: la reserva tardía es del
+flujo de publicación **compartido** con las tools M3 y M4 calificadas, no de este
+cambio, y arreglarla toca un camino ya calificado que merece su propia decisión y
+su propia recalificación —igual que `verify_applied` en ADR-074. Lo que sí se
+corrige es esta frase: hasta entonces, §1 **no** debe leerse como que la admisión
+ocurre antes de producir los bytes. La contabilidad y el respeto de la cuota al
+publicar sí se cumplen; la admisión previa no.
+
 ### 3. Acotados, con truncación explícita
 
 Con su propio techo, declarado en el DTO. Un log que se cortó lo dice, y dice

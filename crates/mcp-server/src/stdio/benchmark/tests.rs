@@ -137,8 +137,10 @@ pub(super) mod fixtures {
             run_index,
             stdout: format!("stdout of repetition {run_index}").into_bytes(),
             stdout_truncated: false,
+            stdout_replaced: false,
             stderr: format!("stderr of repetition {run_index}").into_bytes(),
             stderr_truncated: false,
+            stderr_replaced: false,
         }
     }
 
@@ -572,8 +574,10 @@ fn a_truncated_log_is_declared_on_the_wire_with_the_bytes_that_survived() -> Tes
         run_index: 2,
         stdout: vec![b'o'; 4_096],
         stdout_truncated: true,
+        stdout_replaced: false,
         stderr: b"stderr of repetition 2".to_vec(),
         stderr_truncated: false,
+        stderr_replaced: false,
     };
     assert!(observation.consistent());
     let published = fixtures::published(observation, ArtifactCompleteness::Complete)?;
@@ -611,8 +615,10 @@ fn an_unrecognized_harness_publishes_its_logs_and_nothing_else() -> TestResult {
         run_index: 3,
         stdout: Vec::new(),
         stdout_truncated: false,
+        stdout_replaced: false,
         stderr: b"error: no benchmark harness".to_vec(),
         stderr_truncated: false,
+        stderr_replaced: false,
     }];
     assert!(observation.consistent());
     let published = fixtures::published(observation, ArtifactCompleteness::Complete)?;

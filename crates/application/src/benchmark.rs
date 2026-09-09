@@ -727,8 +727,10 @@ pub(crate) mod tests {
                     run_index,
                     stdout: format!("repetition {run_index} stdout").into_bytes(),
                     stdout_truncated: false,
+                    stdout_replaced: false,
                     stderr: Vec::new(),
                     stderr_truncated: false,
+                    stderr_replaced: false,
                 })
                 .collect(),
         }

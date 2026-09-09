@@ -111,8 +111,20 @@ pub struct BenchmarkRunLog {
     /// The harness wrote more `stdout` than [`BENCHMARK_MAX_LOG_BYTES`], and
     /// `stdout` is the prefix that was kept.
     pub stdout_truncated: bool,
+    /// `stdout` carried bytes that are not valid UTF-8 and they were replaced.
+    ///
+    /// The bytes come from a benchmark the project wrote, so they are
+    /// arbitrary. They are published declaring `Utf8LogV1`, and an artifact
+    /// whose bytes do not satisfy its declared format is a lie about the
+    /// evidence — so the adapter guarantees validity and this flag says when it
+    /// had to intervene. Replacing rather than refusing is deliberate: these
+    /// logs exist to diagnose a failed run, and a run that failed while
+    /// emitting one stray byte is exactly when the rest of the text matters.
+    pub stdout_replaced: bool,
     pub stderr: Vec<u8>,
     pub stderr_truncated: bool,
+    /// `stderr` carried bytes that are not valid UTF-8 and they were replaced.
+    pub stderr_replaced: bool,
 }
 
 /// The harness output tree of **exactly one repetition**, retained verbatim.
@@ -349,8 +361,10 @@ mod tests {
             run_index,
             stdout: format!("stdout of repetition {run_index}").into_bytes(),
             stdout_truncated: false,
+            stdout_replaced: false,
             stderr: format!("stderr of repetition {run_index}").into_bytes(),
             stderr_truncated: false,
+            stderr_replaced: false,
         }
     }
 
@@ -564,8 +578,10 @@ mod tests {
                 run_index: 3,
                 stdout: vec![b'o'; BENCHMARK_MAX_LOG_BYTES],
                 stdout_truncated: true,
+                stdout_replaced: false,
                 stderr: vec![b'e'; BENCHMARK_MAX_LOG_BYTES],
                 stderr_truncated: true,
+                stderr_replaced: false,
             },
         ];
         assert!(

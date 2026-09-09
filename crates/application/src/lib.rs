@@ -306,3 +306,4 @@ pub mod benchmark;
 pub mod benchmark_compare;
 pub mod bloat;
 pub mod profile;
+pub mod vendor_capture;
