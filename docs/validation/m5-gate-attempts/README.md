@@ -43,3 +43,34 @@ después de ver el resultado:
 
 Nada de este intento acredita bytes finales en ningún caso: ADR-079 y ADR-080
 cambian contratos que este gate midió, así que la pasada que cuenta es posterior.
+
+### Disposición: flake de planificación, causado por el owner
+
+Reproducido a solas el 2026-09-09 con `load` 3,25:
+
+```
+test security_runtime::deny_native_mcp_tasks_policy_licenses_and_owner_bound_redacted_resource ... ok
+test result: ok. 1 passed; 0 failed. finished in 42.55s
+```
+
+**42,55 s contra los 42,505 s del recibo calificado de M4**: no solo pasa, tarda
+lo mismo. El fallo del intento 1 abortó a los 28,1 s, o sea que el deadline
+interno saltó *antes* de que el trabajo terminara, que es la firma de una prueba
+a la que el planificador no le dio CPU a tiempo. Se cumple la primera rama del
+criterio.
+
+En consecuencia, y conforme a lo fijado antes de reproducir:
+
+- **No se toca el test ni se amplía su timeout.** Ampliarlo convertiría un arné
+  que detecta cuelgues reales en uno que no puede.
+- **No se relanza el gate buscando un verde.** El intento 1 queda como está,
+  fallido y conservado, y la pasada que acredite bytes finales será otra.
+- La causa es del owner, no del producto: se lanzaron dos agentes compilando en
+  paralelo al gate, incumpliendo la regla operativa que este proyecto ya tenía
+  registrada hoy tras dos flakes de la misma clase. La regla se reafirma: **el
+  gate corre solo**.
+
+Es el tercer flake de esta clase en un día, los tres con la misma firma —un bound
+de subproceso o de deadline interno que solo falla bajo carga alta— y los tres
+verdes al relanzarlos a solas. La lección operativa vale más que los tres
+diagnósticos por separado.
