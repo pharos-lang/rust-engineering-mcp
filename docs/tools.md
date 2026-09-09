@@ -1362,16 +1362,27 @@ completamente dentro de `±5 %` ⇒ `no_material_change`; en cualquier otro caso
 
 > [!IMPORTANT]
 > **En el runtime M5 tal como se entrega, `rust.benchmark.compare` no emite
-> ninguna dirección.** El governor de CPU no es legible dentro del contenedor, de
-> modo que es desconocido en los dos lados y la comparación sale `inconclusive`
-> con `unobservable_hardware`. Aunque lo fuera, la deriva medida entre
-> ejecuciones del mismo código en el host calificado va del 15 % al 29 % contra un
-> umbral material del 5 %, así que el MDR queda por encima del umbral y la puerta
-> de precisión se negaría igual. La tool **sí** mide y publica el efecto —sobre
-> las capturas reales, un cambio de fuente del +25 % se mide como +24,4 %—; lo que
-> no hace es llamarlo regresión. Cambiar eso exige un host cuyo governor sea
-> observable y cuya deriva entre ejecuciones esté por debajo del umbral, no un
-> ajuste del método.
+> ninguna dirección**, y `inconclusive` es de hecho el **único** veredicto
+> alcanzable: la puerta de hardware se lee antes que el intervalo, así que
+> `no_material_change` tampoco se emite nunca.
+>
+> La causa inmediata **no** es el host. El adapter fija `cpu_governor: None`
+> incondicionalmente (`performance_port.rs`, `hardware_profile`): nadie lo
+> observa, así que es desconocido en los dos lados y la comparación sale
+> `inconclusive` con `unobservable_hardware`. Cambiar de máquina no altera ese
+> camino en absoluto; haría falta observación verificable del entorno, que hoy no
+> existe.
+>
+> Y aunque existiera, no bastaría: la deriva medida entre ejecuciones del mismo
+> código en el host calificado va del 6,1 % al 28,7 % contra un umbral material
+> del 5 %, así que el MDR queda por encima del umbral y la puerta de precisión se
+> negaría igual. Habilitar veredictos direccionales exige las dos cosas —entorno
+> observado y protocolo que controle la variación entre ejecuciones—, más la
+> recalificación estadística que ADR-073 tiene pendiente. No un ajuste del umbral.
+>
+> La tool **sí** mide y publica el efecto: sobre las capturas reales, un cambio de
+> fuente del +25 % se mide como `effect_ratio` +0,2433. Lo que no hace es llamarlo
+> regresión.
 
 > [!IMPORTANT]
 > **`confidence_level: 0.95` es el nivel nominal, no la cobertura entregada.** El
