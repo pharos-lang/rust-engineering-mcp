@@ -26,7 +26,8 @@
 
 use crate::benchmark::{
     BENCHMARK_DATASET_FORMAT, BENCHMARK_DATASET_FORMAT_VERSION, BenchmarkDataset, BenchmarkError,
-    BenchmarkMeasurement, MeasurementCompleteness,
+    BenchmarkHarness, BenchmarkIdentity, BenchmarkMeasurement, BenchmarkSelection, HardwareProfile,
+    MeasurementCompleteness, SampleUnit, SamplingMode, Virtualization,
 };
 use serde::{Deserialize, Serialize};
 use std::collections::{BTreeMap, BTreeSet};
@@ -44,9 +45,44 @@ use std::{error::Error, fmt};
 pub const COMPARISON_METHOD: &str = "rust-engineering-mcp.benchmark-comparison.v2";
 
 /// Bootstrap resamples per benchmark. Ten thousand keeps the Monte-Carlo error
-/// of a 95% percentile interval well below the reporting precision while
-/// staying inside the compare budget for a family of benchmarks.
+/// of a percentile interval well below the reporting precision **at the
+/// UNADJUSTED 95% level**, and stays inside the compare budget for a family of
+/// benchmarks.
+///
+/// It says nothing about the level the method actually computes. Bonferroni
+/// divides alpha by the family size, so the tail probability a report of `n`
+/// benchmarks asks this distribution for is `0.025/n`, and the number of
+/// resampled ratios beyond an endpoint is `BOOTSTRAP_RESAMPLES * 0.025/n` —
+/// ten at `n = 25`, five at `n = 50`, one at `n = 250`, where the endpoint IS
+/// the smallest ratio drawn. [`MAX_RESOLVABLE_FAMILY_SIZE`] is where that
+/// arithmetic stops, and the method refuses beyond it instead of quoting an
+/// extreme order statistic as an interval endpoint.
 pub const BOOTSTRAP_RESAMPLES: u32 = 10_000;
+
+/// Smallest number of resampled ratios that must fall beyond an interval
+/// endpoint for that endpoint to be an interpolation INSIDE the bootstrap
+/// distribution rather than one of its extreme order statistics.
+///
+/// Ten is the count at which `quantile_sorted` interpolates between the tenth
+/// and eleventh draws. Below it the endpoint is decided by two or three
+/// individual draws whose Monte-Carlo fluctuation is of the same order as the
+/// endpoint's distance from the extreme, and the error is not symmetric: the
+/// distribution is bounded on that side, so too few tail draws pull the
+/// endpoint INWARD and the interval reads narrower — that is, more confident —
+/// than the level it claims.
+pub const MIN_TAIL_RESAMPLES: u32 = 10;
+
+/// The largest family of benchmarks for which this method claims a percentile
+/// interval, derived from [`BOOTSTRAP_RESAMPLES`], [`CONFIDENCE_LEVEL`] and
+/// [`MIN_TAIL_RESAMPLES`]: the largest `n` with
+/// `BOOTSTRAP_RESAMPLES * ((1 - CONFIDENCE_LEVEL) / n) / 2 >= MIN_TAIL_RESAMPLES`.
+///
+/// A report of a larger family still describes both measurements — medians,
+/// sample counts, outliers and the observed ratio are all reported — but claims
+/// no interval and no direction, with [`InconclusiveReason::FamilyBeyondResolution`]
+/// saying so. `resolvable_family_size_matches_the_resample_budget` derives this
+/// number from those three constants so it cannot drift away from them.
+pub const MAX_RESOLVABLE_FAMILY_SIZE: u32 = 25;
 
 /// Fixed root seed. The resampling draw is pseudo-random but not random: fixing
 /// the seed makes every interval in this module exactly reproducible from the
@@ -115,13 +151,28 @@ pub enum IncompatibilityReason {
     /// The runtime image digest differs.
     RuntimeImage,
     Platform,
+    /// The digest over the frozen run configuration differs, so the two runs
+    /// were not measured under the same configuration.
+    Configuration,
     Architecture,
     CpuModel,
+    CpuCores,
+    OsKernel,
+    /// The two runs observed different frequency governors. It is the ambient
+    /// parameter most able to manufacture a difference that is not in the code.
+    CpuGovernor,
+    Virtualization,
     Quotas,
     Selection,
     SamplingMode,
-    /// A hardware descriptor the method requires is UNKNOWN on at least one
-    /// side. Unknown stays unknown and blocks the comparison.
+    /// A descriptor the method requires is UNKNOWN on EXACTLY ONE side.
+    ///
+    /// This is an asymmetry, not a shared blindness: one capture observed the
+    /// field and the other did not, so the two were not even observed alike and
+    /// nothing here can establish that they agree. Unknown stays unknown and
+    /// blocks the comparison. The case where NEITHER side could observe the
+    /// field is a different fact and carries a different name; see
+    /// [`InconclusiveReason::UnobservableHardware`].
     UnknownHardware,
     /// Both sides are the same execution, not two observations of it.
     SameArtifact,
@@ -158,6 +209,31 @@ pub enum InconclusiveReason {
     /// Zero observed dispersion is an ABSENCE of information about dispersion,
     /// not infinite precision, and this method refuses to read it as the latter.
     DegenerateDispersion,
+    /// The family is larger than the resample budget can resolve.
+    ///
+    /// Bonferroni divides alpha by the family size, so the interval endpoints
+    /// of a large family are extreme order statistics of a fixed-size bootstrap
+    /// distribution — at a family of 250 the lower endpoint is the smallest of
+    /// the ten thousand draws. This method does not quote such an endpoint as
+    /// an interval: beyond [`MAX_RESOLVABLE_FAMILY_SIZE`] no bootstrap is run,
+    /// no interval is claimed and no direction is admissible. The two
+    /// measurements are still described.
+    FamilyBeyondResolution,
+    /// A hardware descriptor the method requires was UNOBSERVABLE on BOTH
+    /// sides.
+    ///
+    /// Neither capture could read the field — inside this container nobody can
+    /// read the frequency governor — so the two runs may have been taken under
+    /// different values of it and nothing in either dataset can exclude that.
+    /// That is not the same fact as a field that is known and different, nor as
+    /// one observed on a single side: those two are refusals of the comparison
+    /// itself ([`IncompatibilityReason::CpuGovernor`],
+    /// [`IncompatibilityReason::UnknownHardware`]). A blindness identical on
+    /// both sides leaves the two datasets structurally comparable and their
+    /// measurements worth reporting; what it forbids is reading a direction out
+    /// of them, because the ambient parameter that could have produced the
+    /// difference was never observed.
+    UnobservableHardware,
 }
 
 /// Multiplicity correction applied to the family of benchmarks in one report.
@@ -192,6 +268,10 @@ pub struct ComparisonMethod {
     multiplicity: MultiplicityCorrection,
     family_size: u32,
     adjusted_confidence_level: f64,
+    /// The largest family this resample budget can resolve an interval for,
+    /// published so a reader can see the limit next to the family it applies
+    /// to instead of inferring it.
+    max_resolvable_family_size: u32,
     outlier_policy: OutlierPolicy,
 }
 
@@ -216,8 +296,15 @@ impl ComparisonMethod {
             multiplicity,
             family_size,
             adjusted_confidence_level: 1.0 - (1.0 - CONFIDENCE_LEVEL) / f64::from(family_size),
+            max_resolvable_family_size: MAX_RESOLVABLE_FAMILY_SIZE,
             outlier_policy: OutlierPolicy::ReportedNotRemoved,
         }
+    }
+
+    /// Whether this family is small enough for the fixed resample budget to
+    /// place an interval endpoint inside the bootstrap distribution.
+    pub fn resolves_family(&self) -> bool {
+        self.family_size <= self.max_resolvable_family_size
     }
 
     /// Two-sided alpha after the multiplicity correction.
@@ -252,9 +339,83 @@ impl ComparisonMethod {
     pub fn adjusted_confidence_level(&self) -> f64 {
         self.adjusted_confidence_level
     }
+    pub fn max_resolvable_family_size(&self) -> u32 {
+        self.max_resolvable_family_size
+    }
     pub fn outlier_policy(&self) -> OutlierPolicy {
         self.outlier_policy
     }
+}
+
+/// Exactly the provenance the compatibility check reads, projected for one
+/// side of a comparison.
+///
+/// It exists so a reported reason can be read against the two values that
+/// produced it: a caller told `cpu_model` sees WHICH two CPUs, from this call,
+/// without going back to the artifact it no longer has. The projection is
+/// deliberately not the whole provenance record — `source_fingerprint`,
+/// `declared_toolchain`, `run_index`, `run_count` and `captured_at_unix` are
+/// not consulted by the compatibility check, and publishing a field the check
+/// ignores would invite a reader to conclude something the method did not.
+/// `provenance_projection_carries_every_consulted_field` holds the two sets
+/// together.
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case", deny_unknown_fields)]
+pub struct ComparedProvenance {
+    pub format: String,
+    pub format_version: u8,
+    pub unit: SampleUnit,
+    pub harness: BenchmarkHarness,
+    pub harness_version: String,
+    pub rust_version: String,
+    pub cargo_version: String,
+    pub image_digest: String,
+    pub platform: String,
+    pub configuration_fingerprint: String,
+    pub execution_fingerprint: String,
+    pub selection: BenchmarkSelection,
+    pub hardware: HardwareProfile,
+}
+
+impl ComparedProvenance {
+    /// Projects one dataset. Copies only; nothing here is derived, defaulted or
+    /// normalized, so an UNKNOWN field stays absent exactly as the dataset
+    /// recorded it.
+    pub fn of(dataset: &BenchmarkDataset) -> Self {
+        let provenance = dataset.provenance();
+        Self {
+            format: dataset.format().to_owned(),
+            format_version: dataset.format_version(),
+            unit: dataset.unit(),
+            harness: provenance.harness,
+            harness_version: provenance.harness_version.clone(),
+            rust_version: provenance.rust_version.clone(),
+            cargo_version: provenance.cargo_version.clone(),
+            image_digest: provenance.image_digest.clone(),
+            platform: provenance.platform.clone(),
+            configuration_fingerprint: provenance.configuration_fingerprint.clone(),
+            execution_fingerprint: provenance.execution_fingerprint.clone(),
+            selection: provenance.selection.clone(),
+            hardware: provenance.hardware.clone(),
+        }
+    }
+}
+
+/// One benchmark key whose two measurements disagree on something the method
+/// requires to be identical.
+///
+/// The dataset-level reasons are readable from the two [`ComparedProvenance`]
+/// records; these two are not, because they are properties of one benchmark
+/// inside the dataset. Both observed values travel with the key so
+/// `benchmark_identity` and `sampling_mode` are not bare tags either.
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case", deny_unknown_fields)]
+pub struct MeasurementDisagreement {
+    pub key: String,
+    pub baseline_identity: BenchmarkIdentity,
+    pub candidate_identity: BenchmarkIdentity,
+    pub baseline_sampling_mode: SamplingMode,
+    pub candidate_sampling_mode: SamplingMode,
 }
 
 /// One benchmark compared across the two datasets.
@@ -299,13 +460,34 @@ pub struct ComparisonReport {
     pub baseline_only: Vec<String>,
     /// Benchmark keys present only in the candidate dataset, sorted.
     pub candidate_only: Vec<String>,
+    /// What the compatibility check read on each side. Published for a
+    /// compatible pair too: the two contexts are what a verdict is about, and a
+    /// reader that cannot see them cannot see what the verdict describes.
+    pub baseline_provenance: ComparedProvenance,
+    pub candidate_provenance: ComparedProvenance,
+}
+
+/// Everything the compatibility check found, when it found something.
+///
+/// It carries the two provenance records as well as the reasons, so a refusal
+/// shows the values it refused on. That is the whole point of reporting a
+/// reason: `["cpu_model"]` alone names a field, not a difference.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct Incompatibility {
+    /// Sorted and deduplicated.
+    pub reasons: Vec<IncompatibilityReason>,
+    pub baseline_provenance: ComparedProvenance,
+    pub candidate_provenance: ComparedProvenance,
+    /// The keys behind a `BenchmarkIdentity` or `SamplingMode` reason, with
+    /// both observed values. Empty for every other reason.
+    pub disagreements: Vec<MeasurementDisagreement>,
 }
 
 /// Why no report could be produced.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum CompareError {
     /// The two datasets do not describe comparable executions.
-    Incompatible(Vec<IncompatibilityReason>),
+    Incompatible(Box<Incompatibility>),
     /// The datasets are compatible but share no benchmark key.
     NoCommonBenchmark,
     /// One of the datasets is not structurally valid.
@@ -313,18 +495,42 @@ pub enum CompareError {
 }
 
 impl CompareError {
-    fn incompatible(mut reasons: Vec<IncompatibilityReason>) -> Self {
+    fn incompatible(
+        mut reasons: Vec<IncompatibilityReason>,
+        baseline: &BenchmarkDataset,
+        candidate: &BenchmarkDataset,
+        disagreements: Vec<MeasurementDisagreement>,
+    ) -> Self {
         reasons.sort_unstable();
         reasons.dedup();
-        Self::Incompatible(reasons)
+        Self::Incompatible(Box::new(Incompatibility {
+            reasons,
+            baseline_provenance: ComparedProvenance::of(baseline),
+            candidate_provenance: ComparedProvenance::of(candidate),
+            disagreements,
+        }))
+    }
+
+    /// The reasons of an incompatibility, or an empty slice for any other
+    /// error. Callers that only assert on the reasons do not have to reach
+    /// through the box.
+    pub fn reasons(&self) -> &[IncompatibilityReason] {
+        match self {
+            Self::Incompatible(details) => &details.reasons,
+            _ => &[],
+        }
     }
 }
 
 impl fmt::Display for CompareError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            Self::Incompatible(reasons) => {
-                write!(f, "datasets are incompatible ({} reasons)", reasons.len())
+            Self::Incompatible(details) => {
+                write!(
+                    f,
+                    "datasets are incompatible ({} reasons)",
+                    details.reasons.len()
+                )
             }
             Self::NoCommonBenchmark => f.write_str("datasets share no benchmark key"),
             Self::InvalidDataset(error) => write!(f, "invalid dataset: {error}"),
@@ -666,18 +872,67 @@ fn fewer_than_two_distinct_values(baseline: &[f64], candidate: &[f64]) -> bool {
 // Compatibility
 // ---------------------------------------------------------------------------
 
+/// How two observations of one descriptor relate. The last two are separated
+/// because they are different facts: one side blind is an asymmetry between the
+/// two captures, both sides blind is a property of the environment they share.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+enum Agreement {
+    Equal,
+    Different,
+    OneSideUnknown,
+    NeitherObserved,
+}
+
+fn agreement<T: PartialEq>(left: Option<&T>, right: Option<&T>) -> Agreement {
+    match (left, right) {
+        (Some(one), Some(other)) if one == other => Agreement::Equal,
+        (Some(_), Some(_)) => Agreement::Different,
+        (None, None) => Agreement::NeitherObserved,
+        _ => Agreement::OneSideUnknown,
+    }
+}
+
+/// Records one descriptor's verdict.
+///
+/// A difference blocks under its own name. An asymmetric unknown blocks as
+/// `UnknownHardware`: one capture saw the field and the other did not, so the
+/// two were not observed alike. A field NEITHER capture could read blocks no
+/// comparison — the blindness is identical on both sides and is a property of
+/// the runtime image, which is itself compared and must be equal — but it does
+/// set `unobservable`, and every verdict in the report is withheld for it.
+fn descriptor(
+    observed: Agreement,
+    differs: IncompatibilityReason,
+    reasons: &mut Vec<IncompatibilityReason>,
+    unobservable: &mut bool,
+) {
+    match observed {
+        Agreement::Equal => {}
+        Agreement::Different => reasons.push(differs),
+        Agreement::OneSideUnknown => reasons.push(IncompatibilityReason::UnknownHardware),
+        Agreement::NeitherObserved => *unobservable = true,
+    }
+}
+
 /// Dataset-level compatibility. `source_fingerprint` is deliberately absent:
 /// the two sides are expected to be different code, and that difference is the
-/// subject of the comparison.
+/// subject of the comparison. `declared_toolchain` is absent for a related
+/// reason: it is what the project's own files asked for, so it belongs to the
+/// source under test, and the toolchain that actually measured is
+/// `rust_version`/`cargo_version`, both of which do block.
 ///
-/// The blocking set is frozen at v1. `cpu_cores`, `os_kernel`, `cpu_governor`,
-/// `virtualization`, `declared_toolchain` and `configuration_fingerprint` are
-/// carried in provenance for the reader but are not part of it; widening the
-/// set is a method version change, not a silent tightening.
+/// Every other field of the provenance is consulted. `configuration_fingerprint`
+/// is the digest of the frozen run configuration and blocks when it differs;
+/// `cpu_cores`, `os_kernel`, `cpu_governor` and `virtualization` are hardware
+/// descriptors and take the three-way treatment [`descriptor`] describes.
+///
+/// Sets `unobservable` when at least one required descriptor was readable on
+/// neither side.
 fn dataset_compatibility(
     baseline: &BenchmarkDataset,
     candidate: &BenchmarkDataset,
     reasons: &mut Vec<IncompatibilityReason>,
+    unobservable: &mut bool,
 ) {
     if baseline.format() != candidate.format()
         || baseline.format() != BENCHMARK_DATASET_FORMAT
@@ -708,17 +963,63 @@ fn dataset_compatibility(
     if left.platform != right.platform {
         reasons.push(IncompatibilityReason::Platform);
     }
+    if left.configuration_fingerprint != right.configuration_fingerprint {
+        reasons.push(IncompatibilityReason::Configuration);
+    }
     if left.selection != right.selection {
         reasons.push(IncompatibilityReason::Selection);
     }
     if left.hardware.arch != right.hardware.arch {
         reasons.push(IncompatibilityReason::Architecture);
     }
-    match (&left.hardware.cpu_model, &right.hardware.cpu_model) {
-        (Some(one), Some(other)) if one == other => {}
-        (Some(_), Some(_)) => reasons.push(IncompatibilityReason::CpuModel),
-        _ => reasons.push(IncompatibilityReason::UnknownHardware),
-    }
+    descriptor(
+        agreement(
+            left.hardware.cpu_model.as_ref(),
+            right.hardware.cpu_model.as_ref(),
+        ),
+        IncompatibilityReason::CpuModel,
+        reasons,
+        unobservable,
+    );
+    descriptor(
+        agreement(
+            left.hardware.cpu_cores.as_ref(),
+            right.hardware.cpu_cores.as_ref(),
+        ),
+        IncompatibilityReason::CpuCores,
+        reasons,
+        unobservable,
+    );
+    descriptor(
+        agreement(
+            left.hardware.os_kernel.as_ref(),
+            right.hardware.os_kernel.as_ref(),
+        ),
+        IncompatibilityReason::OsKernel,
+        reasons,
+        unobservable,
+    );
+    descriptor(
+        agreement(
+            left.hardware.cpu_governor.as_ref(),
+            right.hardware.cpu_governor.as_ref(),
+        ),
+        IncompatibilityReason::CpuGovernor,
+        reasons,
+        unobservable,
+    );
+    // `Virtualization::Unknown` is this field's absent value: the enum has no
+    // `Option` around it, and an environment the runtime could not classify is
+    // exactly as unobserved as an absent CPU model.
+    descriptor(
+        agreement(
+            observed_virtualization(left.hardware.virtualization).as_ref(),
+            observed_virtualization(right.hardware.virtualization).as_ref(),
+        ),
+        IncompatibilityReason::Virtualization,
+        reasons,
+        unobservable,
+    );
     if left.hardware.quotas != right.hardware.quotas {
         reasons.push(IncompatibilityReason::Quotas);
     }
@@ -727,17 +1028,41 @@ fn dataset_compatibility(
     }
 }
 
+fn observed_virtualization(value: Virtualization) -> Option<Virtualization> {
+    match value {
+        Virtualization::Unknown => None,
+        observed => Some(observed),
+    }
+}
+
 /// Per-benchmark compatibility for the keys the two datasets share.
+///
+/// A disagreement is recorded with both observed values, not only its name:
+/// these two reasons are about one benchmark inside the dataset and cannot be
+/// read off the two provenance records the way every other reason can.
 fn measurement_compatibility(
+    key: &str,
     baseline: &BenchmarkMeasurement,
     candidate: &BenchmarkMeasurement,
     reasons: &mut Vec<IncompatibilityReason>,
+    disagreements: &mut Vec<MeasurementDisagreement>,
 ) {
-    if baseline.identity() != candidate.identity() {
+    let identity_differs = baseline.identity() != candidate.identity();
+    let mode_differs = baseline.sampling_mode() != candidate.sampling_mode();
+    if identity_differs {
         reasons.push(IncompatibilityReason::BenchmarkIdentity);
     }
-    if baseline.sampling_mode() != candidate.sampling_mode() {
+    if mode_differs {
         reasons.push(IncompatibilityReason::SamplingMode);
+    }
+    if identity_differs || mode_differs {
+        disagreements.push(MeasurementDisagreement {
+            key: key.to_owned(),
+            baseline_identity: baseline.identity().clone(),
+            candidate_identity: candidate.identity().clone(),
+            baseline_sampling_mode: baseline.sampling_mode(),
+            candidate_sampling_mode: candidate.sampling_mode(),
+        });
     }
 }
 
@@ -757,6 +1082,11 @@ struct VerdictInput {
     /// The bootstrap standard error was zero, or the two sides carry a single
     /// per-iteration value between them.
     degenerate_dispersion: bool,
+    /// The family is larger than the resample budget can resolve, so no
+    /// bootstrap was run and there is no interval to read.
+    family_beyond_resolution: bool,
+    /// A descriptor the method requires was readable on neither side.
+    unobservable_hardware: bool,
     interval: (f64, f64),
     minimum_detectable_ratio: f64,
 }
@@ -796,17 +1126,32 @@ fn decide(input: &VerdictInput) -> (ComparisonVerdict, Vec<InconclusiveReason>) 
         reasons.push(InconclusiveReason::ZeroOrNegativeBaseline);
         return (ComparisonVerdict::Inconclusive, reasons);
     }
-    // Both of the next two guards run BEFORE the interval and before the
-    // precision gate, because both describe data that makes those two
-    // meaningless: one execution per side gives an interval that measures the
-    // wrong thing, and zero dispersion gives a minimum detectable ratio of zero
-    // that no threshold can ever exceed.
+    // The next three guards run BEFORE the interval and before the precision
+    // gate, because each describes something that makes those two meaningless:
+    // one execution per side gives an interval that measures the wrong thing,
+    // a family past the resolution limit has no interval at all because no
+    // bootstrap was run for it, and zero dispersion gives a minimum detectable
+    // ratio of zero that no threshold can ever exceed. The family gate is read
+    // before the dispersion one because skipping the bootstrap leaves an empty
+    // distribution, and an empty distribution is not a degenerate measurement.
     if input.baseline_executions < 2 || input.candidate_executions < 2 {
         reasons.push(InconclusiveReason::SingleExecutionPerSide);
         return (ComparisonVerdict::Inconclusive, reasons);
     }
+    if input.family_beyond_resolution {
+        reasons.push(InconclusiveReason::FamilyBeyondResolution);
+        return (ComparisonVerdict::Inconclusive, reasons);
+    }
     if input.degenerate_dispersion {
         reasons.push(InconclusiveReason::DegenerateDispersion);
+        return (ComparisonVerdict::Inconclusive, reasons);
+    }
+    // The samples are sound and an interval exists; what is missing is the
+    // ambient condition under which both were taken. A difference the method
+    // could otherwise call is not attributable while a parameter that could
+    // have produced it was observed on neither side.
+    if input.unobservable_hardware {
+        reasons.push(InconclusiveReason::UnobservableHardware);
         return (ComparisonVerdict::Inconclusive, reasons);
     }
     if input.minimum_detectable_ratio > MATERIAL_THRESHOLD_RATIO {
@@ -831,12 +1176,23 @@ fn decide(input: &VerdictInput) -> (ComparisonVerdict, Vec<InconclusiveReason>) 
     (verdict, reasons)
 }
 
+/// The report-level facts every benchmark in one comparison shares.
+#[derive(Clone, Copy)]
+struct FamilyContext {
+    alpha: f64,
+    z_two_sided: f64,
+    /// The family is past what [`BOOTSTRAP_RESAMPLES`] can resolve, so no
+    /// bootstrap is run for any benchmark in it.
+    beyond_resolution: bool,
+    /// A required descriptor was readable on neither side.
+    unobservable_hardware: bool,
+}
+
 fn compare_one(
     key: &str,
     baseline: &BenchmarkMeasurement,
     candidate: &BenchmarkMeasurement,
-    alpha: f64,
-    z_two_sided: f64,
+    family: FamilyContext,
 ) -> BenchmarkComparison {
     let baseline_side = SideSamples::of(baseline);
     let candidate_side = SideSamples::of(candidate);
@@ -847,15 +1203,23 @@ fn compare_one(
     let baseline_median = median_sorted(&baseline_sorted);
     let candidate_median = median_sorted(&candidate_sorted);
 
-    let usable =
+    // What the two sample sets support a ratio for. The observed ratio is
+    // reported whenever it exists, including for a family this method will not
+    // claim an interval for: the measurement is still a measurement.
+    let measurable =
         !baseline_values.is_empty() && !candidate_values.is_empty() && baseline_median > 0.0;
-    let effect_ratio = if usable {
+    // An interval this method has already decided it cannot resolve is not
+    // computed at all: ten thousand resamples of a family of five hundred would
+    // cost the whole compare budget to produce an endpoint that is the minimum
+    // of the draws, and publishing that endpoint is the defect.
+    let usable = measurable && !family.beyond_resolution;
+    let effect_ratio = if measurable {
         candidate_median / baseline_median - 1.0
     } else {
         0.0
     };
     let outcome = if usable {
-        bootstrap_ratio(key, &baseline_side, &candidate_side, alpha)
+        bootstrap_ratio(key, &baseline_side, &candidate_side, family.alpha)
     } else {
         BootstrapOutcome {
             interval: (0.0, 0.0),
@@ -864,7 +1228,7 @@ fn compare_one(
         }
     };
     let minimum_detectable_ratio = if usable {
-        (z_two_sided + Z_POWER_80) * outcome.standard_error
+        (family.z_two_sided + Z_POWER_80) * outcome.standard_error
     } else {
         0.0
     };
@@ -880,6 +1244,8 @@ fn compare_one(
         degenerate_dispersion: usable
             && (outcome.degenerate
                 || fewer_than_two_distinct_values(baseline_values, candidate_values)),
+        family_beyond_resolution: family.beyond_resolution,
+        unobservable_hardware: family.unobservable_hardware,
         interval: outcome.interval,
         minimum_detectable_ratio,
     });
@@ -912,9 +1278,20 @@ pub fn compare(
     candidate: &BenchmarkDataset,
 ) -> Result<ComparisonReport, CompareError> {
     let mut reasons = Vec::new();
-    dataset_compatibility(baseline, candidate, &mut reasons);
+    let mut unobservable_hardware = false;
+    dataset_compatibility(
+        baseline,
+        candidate,
+        &mut reasons,
+        &mut unobservable_hardware,
+    );
     if !reasons.is_empty() {
-        return Err(CompareError::incompatible(reasons));
+        return Err(CompareError::incompatible(
+            reasons,
+            baseline,
+            candidate,
+            Vec::new(),
+        ));
     }
     baseline.validate().map_err(CompareError::InvalidDataset)?;
     candidate.validate().map_err(CompareError::InvalidDataset)?;
@@ -938,25 +1315,36 @@ pub fn compare(
     }
 
     let mut pairs = Vec::with_capacity(common.len());
+    let mut disagreements = Vec::new();
     for key in &common {
         let (Some(left), Some(right)) = (baseline.measurement(key), candidate.measurement(key))
         else {
             continue;
         };
-        measurement_compatibility(left, right, &mut reasons);
+        measurement_compatibility(key, left, right, &mut reasons, &mut disagreements);
         pairs.push((*key, left, right));
     }
     if !reasons.is_empty() {
-        return Err(CompareError::incompatible(reasons));
+        return Err(CompareError::incompatible(
+            reasons,
+            baseline,
+            candidate,
+            disagreements,
+        ));
     }
 
     let method = ComparisonMethod::frozen(u32::try_from(pairs.len()).unwrap_or(u32::MAX));
     let alpha = method.adjusted_alpha();
-    let z_two_sided = inverse_standard_normal_cdf(1.0 - alpha / 2.0).unwrap_or(Z_TWO_SIDED_95);
+    let family = FamilyContext {
+        alpha,
+        z_two_sided: inverse_standard_normal_cdf(1.0 - alpha / 2.0).unwrap_or(Z_TWO_SIDED_95),
+        beyond_resolution: !method.resolves_family(),
+        unobservable_hardware,
+    };
 
     let comparisons = pairs
         .into_iter()
-        .map(|(key, left, right)| compare_one(key, left, right, alpha, z_two_sided))
+        .map(|(key, left, right)| compare_one(key, left, right, family))
         .collect::<Vec<_>>();
 
     Ok(ComparisonReport {
@@ -971,6 +1359,8 @@ pub fn compare(
             .difference(&baseline_keys)
             .map(|key| (*key).to_owned())
             .collect(),
+        baseline_provenance: ComparedProvenance::of(baseline),
+        candidate_provenance: ComparedProvenance::of(candidate),
     })
 }
 
@@ -1377,6 +1767,8 @@ mod tests {
             candidate_executions: 3,
             baseline_median_ns: median,
             degenerate_dispersion: false,
+            family_beyond_resolution: false,
+            unobservable_hardware: false,
             interval,
             minimum_detectable_ratio: mdr,
         };
@@ -1449,6 +1841,68 @@ mod tests {
                 ComparisonVerdict::Inconclusive,
                 vec![InconclusiveReason::DegenerateDispersion]
             )
+        );
+        // The two gates added for the G8 review, and the order they sit in.
+        assert_eq!(
+            decide(&VerdictInput {
+                family_beyond_resolution: true,
+                ..base(1_000.0, (0.06, 0.30), 0.01)
+            })
+            .1,
+            vec![InconclusiveReason::FamilyBeyondResolution]
+        );
+        assert_eq!(
+            decide(&VerdictInput {
+                unobservable_hardware: true,
+                ..base(1_000.0, (0.06, 0.30), 0.01)
+            })
+            .1,
+            vec![InconclusiveReason::UnobservableHardware]
+        );
+        // A defect of the samples outranks a defect of the report: one
+        // execution per side is named even when the family is also past the
+        // limit, so a caller is told the thing it has to fix first. The real
+        // guest captures depend on this ordering to keep saying what they say.
+        assert_eq!(
+            decide(&VerdictInput {
+                baseline_executions: 1,
+                family_beyond_resolution: true,
+                unobservable_hardware: true,
+                ..base(1_000.0, (0.06, 0.30), 0.01)
+            })
+            .1,
+            vec![InconclusiveReason::SingleExecutionPerSide]
+        );
+        // A family past the limit ran no bootstrap, so the empty distribution
+        // it leaves behind must not be reported as a degenerate measurement.
+        assert_eq!(
+            decide(&VerdictInput {
+                family_beyond_resolution: true,
+                degenerate_dispersion: true,
+                ..base(1_000.0, (0.0, 0.0), 0.0)
+            })
+            .1,
+            vec![InconclusiveReason::FamilyBeyondResolution]
+        );
+        // An unobservable ambient parameter is read after the sample-set
+        // defects and before the precision gate: the interval exists, and what
+        // is missing is the condition it was measured under.
+        assert_eq!(
+            decide(&VerdictInput {
+                unobservable_hardware: true,
+                ..base(1_000.0, (0.06, 0.30), 0.9)
+            })
+            .1,
+            vec![InconclusiveReason::UnobservableHardware]
+        );
+        assert_eq!(
+            decide(&VerdictInput {
+                unobservable_hardware: true,
+                degenerate_dispersion: true,
+                ..base(1_000.0, (0.20, 0.20), 0.0)
+            })
+            .1,
+            vec![InconclusiveReason::DegenerateDispersion]
         );
     }
 
@@ -1632,9 +2086,28 @@ mod tests {
         match compare(&baseline, &candidate) {
             // A compatible pair reports no reason, which fails the caller's
             // assertion with the expected reason still in the message.
-            Err(CompareError::Incompatible(reasons)) => reasons,
+            Err(CompareError::Incompatible(details)) => details.reasons,
             _ => Vec::new(),
         }
+    }
+
+    /// The reasons of a refusal, or an empty list for anything else. Used where
+    /// the assertion is about the exact sorted reason list and not about the
+    /// provenance that now travels beside it.
+    fn refusal(result: Result<ComparisonReport, CompareError>) -> Vec<IncompatibilityReason> {
+        match result {
+            Err(error) => error.reasons().to_vec(),
+            Ok(_) => Vec::new(),
+        }
+    }
+
+    /// The provenance pair a refusal carries.
+    fn refusal_details(result: Result<ComparisonReport, CompareError>) -> Incompatibility {
+        match result {
+            Err(CompareError::Incompatible(details)) => Some(*details),
+            _ => None,
+        }
+        .unwrap()
     }
 
     #[test]
@@ -1680,10 +2153,326 @@ mod tests {
                 |record| record.hardware.quotas.pids = Some(1),
                 IncompatibilityReason::Quotas,
             ),
+            // Consulted since the G8 review: ADR-073 §3 says an unobservable or
+            // differing hardware field blocks, and until now only `cpu_model`
+            // did. A differing value under any of these is a different machine
+            // or a different frozen configuration, not a different program.
+            (
+                |record| record.configuration_fingerprint = format!("sha256:{}", "9".repeat(64)),
+                IncompatibilityReason::Configuration,
+            ),
+            (
+                |record| record.hardware.cpu_cores = Some(8),
+                IncompatibilityReason::CpuCores,
+            ),
+            (
+                |record| record.hardware.cpu_cores = None,
+                IncompatibilityReason::UnknownHardware,
+            ),
+            (
+                |record| record.hardware.os_kernel = Some("Linux 5.15.0".to_owned()),
+                IncompatibilityReason::OsKernel,
+            ),
+            (
+                |record| record.hardware.os_kernel = None,
+                IncompatibilityReason::UnknownHardware,
+            ),
+            (
+                |record| record.hardware.cpu_governor = Some("powersave".to_owned()),
+                IncompatibilityReason::CpuGovernor,
+            ),
+            (
+                |record| record.hardware.cpu_governor = None,
+                IncompatibilityReason::UnknownHardware,
+            ),
+            (
+                |record| record.hardware.virtualization = Virtualization::Bare,
+                IncompatibilityReason::Virtualization,
+            ),
+            (
+                |record| record.hardware.virtualization = Virtualization::Unknown,
+                IncompatibilityReason::UnknownHardware,
+            ),
         ];
         for (mutate, expected) in cases {
             assert_eq!(incompatibility(mutate), vec![expected]);
         }
+    }
+
+    /// `declared_toolchain` stays out of the blocking set for the same reason
+    /// `source_fingerprint` does: it describes what the project asked for, and
+    /// the toolchain that actually measured is `rust_version`/`cargo_version`,
+    /// which do block.
+    #[test]
+    fn a_differing_declared_toolchain_is_never_a_reason() {
+        assert_eq!(
+            incompatibility(|record| record.declared_toolchain = Some("nightly".to_owned())),
+            Vec::new()
+        );
+        assert_eq!(
+            incompatibility(|record| record.declared_toolchain = None),
+            Vec::new()
+        );
+    }
+
+    /// P2-2. The three ways a descriptor can fail to agree are three different
+    /// facts and the caller is told which one it got.
+    #[test]
+    fn one_side_blind_and_both_sides_blind_are_different_answers() {
+        let values = jitter(1_101, 60, 1_000.0, 0.02);
+        let faster = jitter(1_111, 60, 800.0, 0.02);
+        let side = |execution: &str, samples: &[f64], governor: Option<&str>| {
+            let mut record = provenance(execution);
+            record.hardware.cpu_governor = governor.map(str::to_owned);
+            BenchmarkDataset::new(
+                SampleUnit::Nanoseconds,
+                vec![measurement("bench/one", samples)],
+                record,
+            )
+            .unwrap()
+        };
+
+        // Known and different: its own reason, and the comparison is refused.
+        assert_eq!(
+            refusal(compare(
+                &side("run-baseline", &values, Some("performance")),
+                &side("run-candidate", &faster, Some("powersave")),
+            )),
+            vec![IncompatibilityReason::CpuGovernor]
+        );
+
+        // Observed on one side only: an asymmetry between the two captures, so
+        // they were not observed alike and the comparison is refused too.
+        assert_eq!(
+            refusal(compare(
+                &side("run-baseline", &values, Some("performance")),
+                &side("run-candidate", &faster, None),
+            )),
+            vec![IncompatibilityReason::UnknownHardware]
+        );
+
+        // Readable on NEITHER side: the blindness is a property of the runtime
+        // image, which is itself compared and equal. The two datasets stay
+        // comparable and their measurements are still reported -- but the
+        // direction the interval would otherwise support is withheld, and the
+        // reason names the parameter nobody could see.
+        let report = compare(
+            &side("run-baseline", &values, None),
+            &side("run-candidate", &faster, None),
+        )
+        .unwrap();
+        let comparison = only(&report);
+        assert_eq!(comparison.verdict, ComparisonVerdict::Inconclusive);
+        assert_eq!(
+            comparison.inconclusive_reasons,
+            vec![InconclusiveReason::UnobservableHardware]
+        );
+        // The measurement itself survives; only the direction does not.
+        assert!((comparison.effect_ratio + 0.20).abs() < 0.03);
+        assert!(comparison.confidence_interval.1 < -MATERIAL_THRESHOLD_RATIO);
+        // The same two datasets WITH the governor observed do receive one, so
+        // the refusal above is the unobservable field and nothing else.
+        let observed = compare(
+            &side("run-baseline", &values, Some("performance")),
+            &side("run-candidate", &faster, Some("performance")),
+        )
+        .unwrap();
+        assert_eq!(only(&observed).verdict, ComparisonVerdict::Improvement);
+    }
+
+    /// The other unobservable descriptors take the same path, and one blind
+    /// field is enough.
+    #[test]
+    fn every_unobservable_descriptor_withholds_the_direction() {
+        let values = jitter(1_121, 60, 1_000.0, 0.02);
+        let faster = jitter(1_131, 60, 800.0, 0.02);
+        let blind: [ProvenanceMutation; 4] = [
+            |record| record.hardware.cpu_model = None,
+            |record| record.hardware.cpu_cores = None,
+            |record| record.hardware.os_kernel = None,
+            |record| record.hardware.virtualization = Virtualization::Unknown,
+        ];
+        for mutate in blind {
+            let side = |execution: &str, samples: &[f64]| {
+                let mut record = provenance(execution);
+                mutate(&mut record);
+                BenchmarkDataset::new(
+                    SampleUnit::Nanoseconds,
+                    vec![measurement("bench/one", samples)],
+                    record,
+                )
+                .unwrap()
+            };
+            let report = compare(
+                &side("run-baseline", &values),
+                &side("run-candidate", &faster),
+            )
+            .unwrap();
+            assert_eq!(
+                only(&report).inconclusive_reasons,
+                vec![InconclusiveReason::UnobservableHardware]
+            );
+        }
+    }
+
+    /// Whether one mutation moves the published projection.
+    fn projection_changed(mutate: ProvenanceMutation) -> bool {
+        let values = jitter(1_201, 12, 1_000.0, 0.01);
+        let build = |record: BenchmarkProvenance| {
+            BenchmarkDataset::new(
+                SampleUnit::Nanoseconds,
+                vec![measurement("bench/one", &values)],
+                record,
+            )
+            .unwrap()
+        };
+        let untouched = build(provenance("run-candidate"));
+        let mut record = provenance("run-candidate");
+        mutate(&mut record);
+        ComparedProvenance::of(&untouched) != ComparedProvenance::of(&build(record))
+    }
+
+    /// P2-3. The published projection and the blocking set are the same set of
+    /// fields, asserted as a biconditional over every provenance field: a field
+    /// that can block a comparison is visible to the caller, and a field that
+    /// cannot block is not published as if it mattered.
+    ///
+    /// `format`, `format_version` and `unit` sit on the dataset rather than the
+    /// provenance record, so they are not reachable through a
+    /// [`ProvenanceMutation`]; `an_unknown_dataset_format_is_incompatible_before_any_statistic`
+    /// covers them and asserts both published versions.
+    #[test]
+    fn provenance_projection_carries_every_consulted_field() {
+        let cases: Vec<(&str, ProvenanceMutation)> = vec![
+            ("harness_version", |record| {
+                record.harness_version = "0.7.0".to_owned();
+            }),
+            ("rust_version", |record| {
+                record.rust_version = "1.97.0".to_owned();
+            }),
+            ("cargo_version", |record| {
+                record.cargo_version = "1.97.0".to_owned();
+            }),
+            ("image_digest", |record| {
+                record.image_digest = format!("sha256:{}", "e".repeat(64));
+            }),
+            ("platform", |record| {
+                record.platform = "x86_64-unknown-linux-gnu".to_owned();
+            }),
+            ("configuration_fingerprint", |record| {
+                record.configuration_fingerprint = format!("sha256:{}", "9".repeat(64));
+            }),
+            ("execution_fingerprint", |record| {
+                // Equal fingerprints are one artifact, not two observations, so
+                // for this field the blocking mutation is making it MATCH.
+                record.execution_fingerprint = "run-baseline".to_owned();
+            }),
+            ("selection", |record| record.selection.all_features = true),
+            ("hardware.arch", |record| {
+                record.hardware.arch = "x86_64".to_owned();
+            }),
+            ("hardware.cpu_model", |record| {
+                record.hardware.cpu_model = Some("Skylake".to_owned());
+            }),
+            ("hardware.cpu_cores", |record| {
+                record.hardware.cpu_cores = Some(8);
+            }),
+            ("hardware.os_kernel", |record| {
+                record.hardware.os_kernel = Some("Linux 5.15.0".to_owned());
+            }),
+            ("hardware.cpu_governor", |record| {
+                record.hardware.cpu_governor = Some("powersave".to_owned());
+            }),
+            ("hardware.virtualization", |record| {
+                record.hardware.virtualization = Virtualization::Bare;
+            }),
+            ("hardware.quotas", |record| {
+                record.hardware.quotas.pids = Some(1);
+            }),
+            // Not consulted, and therefore not published.
+            ("source_fingerprint", |record| {
+                record.source_fingerprint = format!("sha256:{}", "f".repeat(64));
+            }),
+            ("declared_toolchain", |record| {
+                record.declared_toolchain = Some("nightly".to_owned());
+            }),
+            ("run_index", |record| record.run_index = 2),
+            ("captured_at_unix", |record| {
+                record.captured_at_unix = 1_800_000_000;
+            }),
+        ];
+        for (field, mutate) in cases {
+            let blocks = !incompatibility(mutate).is_empty();
+            assert_eq!(
+                blocks,
+                projection_changed(mutate),
+                "{field}: blocks={blocks} but the published projection disagrees"
+            );
+        }
+    }
+
+    /// A refusal that names a field shows the two values it refused on.
+    #[test]
+    fn a_refusal_carries_both_sides_of_what_it_refused() {
+        let values = jitter(1_211, 12, 1_000.0, 0.01);
+        let baseline = dataset("run-baseline", vec![measurement("bench/one", &values)]);
+        let mut record = provenance("run-candidate");
+        record.hardware.cpu_model = Some("Skylake".to_owned());
+        let candidate = BenchmarkDataset::new(
+            SampleUnit::Nanoseconds,
+            vec![measurement("bench/one", &values)],
+            record,
+        )
+        .unwrap();
+        let refused = refusal_details(compare(&baseline, &candidate));
+        assert_eq!(refused.reasons, vec![IncompatibilityReason::CpuModel]);
+        assert_eq!(
+            refused.baseline_provenance.hardware.cpu_model.as_deref(),
+            Some("Neoverse-N1")
+        );
+        assert_eq!(
+            refused.candidate_provenance.hardware.cpu_model.as_deref(),
+            Some("Skylake")
+        );
+        assert!(refused.disagreements.is_empty());
+    }
+
+    /// A compatible pair publishes the same two contexts: a verdict is about
+    /// them, so a reader that cannot see them cannot see what it describes.
+    #[test]
+    fn a_successful_report_carries_both_provenances() {
+        let values = jitter(1_221, 30, 1_000.0, 0.01);
+        let baseline = dataset("run-baseline", vec![measurement("bench/one", &values)]);
+        let candidate = dataset("run-candidate", vec![measurement("bench/one", &values)]);
+        let report = compare(&baseline, &candidate).unwrap();
+        assert_eq!(
+            report.baseline_provenance,
+            ComparedProvenance::of(&baseline)
+        );
+        assert_eq!(
+            report.candidate_provenance,
+            ComparedProvenance::of(&candidate)
+        );
+        assert_eq!(
+            report.baseline_provenance.execution_fingerprint,
+            "run-baseline"
+        );
+        assert_eq!(
+            report.candidate_provenance.execution_fingerprint,
+            "run-candidate"
+        );
+        assert_eq!(report.baseline_provenance.format, BENCHMARK_DATASET_FORMAT);
+        // The projection is a copy, never a reconstruction: an absent field
+        // stays absent rather than acquiring a plausible value.
+        let mut blind = provenance("run-blind");
+        blind.hardware.cpu_governor = None;
+        let dataset = BenchmarkDataset::new(
+            SampleUnit::Nanoseconds,
+            vec![measurement("bench/one", &values)],
+            blind,
+        )
+        .unwrap();
+        assert_eq!(ComparedProvenance::of(&dataset).hardware.cpu_governor, None);
     }
 
     #[test]
@@ -1706,10 +2495,8 @@ mod tests {
         let values = jitter(121, 12, 1_000.0, 0.01);
         let one = dataset("run-identical", vec![measurement("bench/one", &values)]);
         assert_eq!(
-            compare(&one, &one),
-            Err(CompareError::Incompatible(vec![
-                IncompatibilityReason::SameArtifact
-            ]))
+            refusal(compare(&one, &one)),
+            vec![IncompatibilityReason::SameArtifact]
         );
     }
 
@@ -1728,13 +2515,13 @@ mod tests {
         )
         .unwrap();
         assert_eq!(
-            compare(&baseline, &candidate),
-            Err(CompareError::Incompatible(vec![
+            refusal(compare(&baseline, &candidate)),
+            vec![
                 IncompatibilityReason::RustVersion,
                 IncompatibilityReason::Platform,
                 IncompatibilityReason::Architecture,
                 IncompatibilityReason::SameArtifact,
-            ]))
+            ]
         );
     }
 
@@ -1764,11 +2551,22 @@ mod tests {
             MeasurementCompleteness::Complete,
         )
         .unwrap();
+        let renamed_refusal =
+            refusal_details(compare(&baseline, &dataset("run-candidate", vec![renamed])));
         assert_eq!(
-            compare(&baseline, &dataset("run-candidate", vec![renamed])),
-            Err(CompareError::Incompatible(vec![
-                IncompatibilityReason::BenchmarkIdentity
-            ]))
+            renamed_refusal.reasons,
+            vec![IncompatibilityReason::BenchmarkIdentity]
+        );
+        // The reason is not a bare tag: the key and BOTH observed identities
+        // travel with it, because neither is readable from the provenance.
+        assert_eq!(renamed_refusal.disagreements.len(), 1);
+        let disagreement = &renamed_refusal.disagreements[0];
+        assert_eq!(disagreement.key, "bench/one");
+        assert_eq!(disagreement.baseline_identity.group_id(), "group");
+        assert_eq!(disagreement.candidate_identity.group_id(), "other-group");
+        assert_eq!(
+            disagreement.baseline_sampling_mode,
+            disagreement.candidate_sampling_mode
         );
 
         let remoded = BenchmarkMeasurement::new(
@@ -1785,11 +2583,20 @@ mod tests {
             MeasurementCompleteness::Complete,
         )
         .unwrap();
+        let remoded_refusal =
+            refusal_details(compare(&baseline, &dataset("run-candidate", vec![remoded])));
         assert_eq!(
-            compare(&baseline, &dataset("run-candidate", vec![remoded])),
-            Err(CompareError::Incompatible(vec![
-                IncompatibilityReason::SamplingMode
-            ]))
+            remoded_refusal.reasons,
+            vec![IncompatibilityReason::SamplingMode]
+        );
+        assert_eq!(remoded_refusal.disagreements.len(), 1);
+        assert_eq!(
+            remoded_refusal.disagreements[0].baseline_sampling_mode,
+            SamplingMode::Flat
+        );
+        assert_eq!(
+            remoded_refusal.disagreements[0].candidate_sampling_mode,
+            SamplingMode::Linear
         );
     }
 
@@ -1807,12 +2614,11 @@ mod tests {
             r#""format_version":3"#,
             1,
         ))?;
-        assert_eq!(
-            compare(&baseline, &future),
-            Err(CompareError::Incompatible(vec![
-                IncompatibilityReason::FormatVersion
-            ]))
-        );
+        let refused = refusal_details(compare(&baseline, &future));
+        assert_eq!(refused.reasons, vec![IncompatibilityReason::FormatVersion]);
+        // The refusal shows the two versions it refused on.
+        assert_eq!(refused.baseline_provenance.format_version, 2);
+        assert_eq!(refused.candidate_provenance.format_version, 3);
         Ok(())
     }
 
@@ -1925,6 +2731,99 @@ mod tests {
         assert!((family.method.adjusted_confidence_level() - 0.99).abs() < 1e-12);
         assert!((family.method.adjusted_alpha() - 0.01).abs() < 1e-12);
         assert_eq!(ComparisonMethod::frozen(0).family_size(), 1);
+    }
+
+    /// P2-6. The published limit is not a hand-picked number: it is the largest
+    /// family whose Bonferroni-adjusted tail still holds
+    /// [`MIN_TAIL_RESAMPLES`] of the fixed [`BOOTSTRAP_RESAMPLES`] draws. If
+    /// any of the three constants moves, this recomputes and the limit has to
+    /// move with it.
+    #[test]
+    fn the_resolvable_family_size_is_derived_from_the_resample_budget() {
+        let tail_draws = |family: u32| {
+            let alpha = (1.0 - CONFIDENCE_LEVEL) / f64::from(family);
+            f64::from(BOOTSTRAP_RESAMPLES) * alpha / 2.0
+        };
+        let derived = (1..10_000)
+            .take_while(|family| tail_draws(*family) >= f64::from(MIN_TAIL_RESAMPLES))
+            .last()
+            .unwrap();
+        assert_eq!(derived, MAX_RESOLVABLE_FAMILY_SIZE);
+        // The boundary, stated in the units the reviewer used: at the limit the
+        // endpoint still interpolates between the tenth and eleventh draws; one
+        // benchmark further it does not.
+        assert!(tail_draws(MAX_RESOLVABLE_FAMILY_SIZE) >= 10.0);
+        assert!(tail_draws(MAX_RESOLVABLE_FAMILY_SIZE + 1) < 10.0);
+        // And the method publishes it beside the family it applies to.
+        let method = ComparisonMethod::frozen(MAX_RESOLVABLE_FAMILY_SIZE);
+        assert_eq!(
+            method.max_resolvable_family_size(),
+            MAX_RESOLVABLE_FAMILY_SIZE
+        );
+        assert!(method.resolves_family());
+        assert!(!ComparisonMethod::frozen(MAX_RESOLVABLE_FAMILY_SIZE + 1).resolves_family());
+    }
+
+    /// One benchmark past the limit and the whole report stops claiming
+    /// intervals — including for a difference large enough that the same data
+    /// in a resolvable family is called.
+    #[test]
+    fn a_family_past_the_resolution_limit_claims_no_interval() {
+        let baseline_values = jitter(1_301, 60, 1_000.0, 0.005);
+        let candidate_values = jitter(1_311, 60, 1_500.0, 0.005);
+        let family = |count: u32| {
+            let names: Vec<String> = (0..count)
+                .map(|index| format!("bench/{index:04}"))
+                .collect();
+            let side = |execution: &str, values: &[f64]| {
+                dataset(
+                    execution,
+                    names
+                        .iter()
+                        .map(|name| measurement(name, values))
+                        .collect::<Vec<_>>(),
+                )
+            };
+            compare(
+                &side("run-baseline", &baseline_values),
+                &side("run-candidate", &candidate_values),
+            )
+            .unwrap()
+        };
+
+        // At the limit the method still resolves an endpoint and reads it.
+        let resolved = family(MAX_RESOLVABLE_FAMILY_SIZE);
+        assert_eq!(resolved.method.family_size(), MAX_RESOLVABLE_FAMILY_SIZE);
+        for comparison in &resolved.comparisons {
+            assert!(
+                !comparison
+                    .inconclusive_reasons
+                    .contains(&InconclusiveReason::FamilyBeyondResolution),
+                "{} refused at the limit itself",
+                comparison.key
+            );
+            assert!(comparison.confidence_interval.0 < comparison.confidence_interval.1);
+            assert_eq!(comparison.verdict, ComparisonVerdict::Regression);
+        }
+
+        // One benchmark further, the adjusted tail holds fewer than ten of the
+        // ten thousand draws, so no bootstrap is run and no endpoint is quoted.
+        let refused = family(MAX_RESOLVABLE_FAMILY_SIZE + 1);
+        assert_eq!(refused.method.family_size(), MAX_RESOLVABLE_FAMILY_SIZE + 1);
+        assert!(!refused.method.resolves_family());
+        for comparison in &refused.comparisons {
+            assert_eq!(comparison.verdict, ComparisonVerdict::Inconclusive);
+            assert_eq!(
+                comparison.inconclusive_reasons,
+                vec![InconclusiveReason::FamilyBeyondResolution]
+            );
+            assert_eq!(comparison.confidence_interval, (0.0, 0.0));
+            assert_eq!(comparison.minimum_detectable_ratio, 0.0);
+            // The measurement is still described: only the interval is absent.
+            assert!((comparison.effect_ratio - 0.50).abs() < 0.03);
+            assert_eq!(comparison.baseline_samples, 60);
+            assert_eq!(comparison.candidate_samples, 60);
+        }
     }
 
     #[test]

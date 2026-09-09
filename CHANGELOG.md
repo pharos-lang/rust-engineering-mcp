@@ -23,8 +23,24 @@
   un minimum detectable ratio que no se iguala al umbral. Cuatro veredictos:
   `regression`, `improvement`, `no_material_change` e `inconclusive`. Un par
   incompatible es `status = failed` con `INCOMPATIBLE_DATASETS` y la lista
-  completa de razones, no un error de infraestructura. El resultado describe una
+  completa de razones, con las dos provenances comparadas para que el llamador
+  vea *qué* difería; no es un error de infraestructura. El resultado describe una
   medición y nunca una causa ([ADR-073](docs/adr/ADR-073-benchmark-method-and-dataset.md)).
+- **La unidad de remuestreo es la ejecución, no la muestra.** Una revisión
+  independiente demostró, sobre las capturas reales del propio proyecto, que un
+  bootstrap dentro de una sola ejecución produce `improvement` para código que no
+  cambió. El método pasa a `benchmark-comparison.v2` con bootstrap por
+  conglomerados; el dataset pasa a `benchmark-dataset.v2` con `run_index` por
+  muestra, y un payload v1 ya no deserializa. Se añaden cuatro negativas
+  estructurales, todas antes de mirar el intervalo: una sola ejecución por lado,
+  dispersión degenerada, familia mayor de la que 10 000 remuestreos resuelven, y
+  un campo de hardware no observable en los dos lados.
+- **En este runtime `rust.benchmark.compare` no emite dirección alguna**, y son
+  dos razones independientes: el governor de CPU es ilegible dentro del
+  contenedor, y la deriva medida entre ejecuciones del mismo código en el host
+  calificado (15–29 %) supera el umbral material del 5 %. La tool mide y publica
+  el efecto —un cambio de fuente del +25 % se mide como +24,4 %—; lo que no hace
+  es llamarlo regresión.
 - `rust.profile.flamegraph` exige la capability positiva del host
   `--allow-profiling user-space-sampling`; sin ella responde `blocked` con
   `PROFILING_NOT_AUTHORIZED` antes de crear contenedor alguno. El muestreo es solo

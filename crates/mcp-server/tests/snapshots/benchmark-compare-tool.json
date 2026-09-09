@@ -1,6 +1,6 @@
 {
   "name": "rust.benchmark.compare",
-  "description": "Compare two benchmark datasets this project already published, by their opaque store identifiers. Runs no process and reads no project source, so it has no execution mode. Publishes the complete frozen method (median of per-iteration time, percentile bootstrap, fixed seed, confidence level, multiplicity correction, material threshold, outliers counted and never removed) and, per shared benchmark, the verdict, effect ratio, interval, both medians, both sample counts, both outlier counts, the minimum detectable ratio and the reasons any verdict was withheld. Datasets that do not describe comparable executions are an observed result carrying the complete sorted reason list, not an infrastructure failure. The result describes these two executions on this host: it attributes no cause, generalizes to no other hardware and recommends nothing.",
+  "description": "Compare two benchmark datasets this project already published, by their opaque store identifiers. Runs no process and reads no project source, so it has no execution mode. Publishes the complete frozen method (median of per-iteration time, cluster percentile bootstrap over executions, fixed seed, confidence level, multiplicity correction, the largest family that resample budget resolves, material threshold, outliers counted and never removed) and, per shared benchmark, the verdict, effect ratio, interval, both medians, both sample counts, both outlier counts, the minimum detectable ratio and the reasons any verdict was withheld. Also publishes, for both datasets, every provenance field the compatibility check reads -- toolchain, image digest, platform, configuration digest, execution digest, selection and hardware -- so each reported reason can be read against the two values behind it. Datasets that do not describe comparable executions are an observed result carrying the complete sorted reason list and those two records, not an infrastructure failure. The result describes these two executions on this host: it attributes no cause, generalizes to no other hardware and recommends nothing.",
   "inputSchema": {
     "$schema": "https://json-schema.org/draft/2020-12/schema",
     "additionalProperties": false,
@@ -161,41 +161,207 @@
         ],
         "type": "object"
       },
-      "IncompatibilityReason": {
-        "description": "Why two datasets may not be compared at all. Checked before any statistic is\ncomputed, and reported in full, sorted and deduplicated.",
-        "enum": [
-          "format_version",
-          "unit",
-          "harness",
-          "harness_version",
-          "benchmark_identity",
-          "rust_version",
-          "cargo_version",
-          "runtime_image",
-          "platform",
-          "architecture",
+      "Disagreement": {
+        "additionalProperties": false,
+        "description": "One benchmark key whose two measurements disagree on identity or sampling\nmode. Those two reasons are properties of a single benchmark and cannot be\nread off the two provenance records, so both observed values travel here.",
+        "properties": {
+          "baseline": {
+            "$ref": "#/$defs/Identity"
+          },
+          "candidate": {
+            "$ref": "#/$defs/Identity"
+          },
+          "key": {
+            "maxLength": 512,
+            "minLength": 1,
+            "type": "string"
+          }
+        },
+        "required": [
+          "key",
+          "baseline",
+          "candidate"
+        ],
+        "type": "object"
+      },
+      "Feature": {
+        "maxLength": 64,
+        "minLength": 1,
+        "pattern": "^[A-Za-z0-9_-]{1,64}$",
+        "type": "string"
+      },
+      "HardwareProfile": {
+        "additionalProperties": false,
+        "description": "What was observable about each measuring host. An absent field is UNKNOWN\nand is never replaced by a plausible default; absent on ONE side is\n`unknown_hardware` and absent on BOTH is `unobservable_hardware`.",
+        "properties": {
+          "arch": {
+            "maxLength": 512,
+            "minLength": 1,
+            "type": "string"
+          },
+          "cpu_cores": {
+            "format": "uint16",
+            "maximum": 65535,
+            "minimum": 0,
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "cpu_governor": {
+            "maxLength": 512,
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "cpu_model": {
+            "maxLength": 512,
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "os_kernel": {
+            "maxLength": 512,
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "quotas": {
+            "$ref": "#/$defs/ResourceQuotas"
+          },
+          "virtualization": {
+            "$ref": "#/$defs/Virtualization"
+          }
+        },
+        "required": [
           "cpu_model",
-          "quotas",
-          "selection",
-          "sampling_mode",
-          "unknown_hardware",
-          "same_artifact"
+          "cpu_cores",
+          "os_kernel",
+          "arch",
+          "virtualization",
+          "cpu_governor",
+          "quotas"
+        ],
+        "type": "object"
+      },
+      "Harness": {
+        "enum": [
+          "criterion"
         ],
         "type": "string"
       },
+      "Identity": {
+        "additionalProperties": false,
+        "description": "One benchmark's identity as the harness named it.",
+        "properties": {
+          "directory_name": {
+            "maxLength": 512,
+            "minLength": 1,
+            "type": "string"
+          },
+          "full_id": {
+            "maxLength": 512,
+            "minLength": 1,
+            "type": "string"
+          },
+          "function_id": {
+            "maxLength": 512,
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "group_id": {
+            "maxLength": 512,
+            "minLength": 1,
+            "type": "string"
+          },
+          "sampling_mode": {
+            "$ref": "#/$defs/SamplingMode"
+          },
+          "value_str": {
+            "maxLength": 512,
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "group_id",
+          "function_id",
+          "value_str",
+          "full_id",
+          "directory_name",
+          "sampling_mode"
+        ],
+        "type": "object"
+      },
+      "IncompatibilityReason": {
+        "description": "Why two datasets may not be compared at all. Checked before any statistic is\ncomputed, and reported in full, sorted and deduplicated. Every tag here can\nbe read against the two `provenance` records the same response carries.",
+        "oneOf": [
+          {
+            "enum": [
+              "format_version",
+              "unit",
+              "harness",
+              "harness_version",
+              "benchmark_identity",
+              "rust_version",
+              "cargo_version",
+              "runtime_image",
+              "platform",
+              "configuration",
+              "architecture",
+              "cpu_model",
+              "cpu_cores",
+              "os_kernel",
+              "cpu_governor",
+              "virtualization",
+              "quotas",
+              "selection",
+              "sampling_mode",
+              "same_artifact"
+            ],
+            "type": "string"
+          },
+          {
+            "const": "unknown_hardware",
+            "description": "A descriptor the method requires was observed on exactly one side.",
+            "type": "string"
+          }
+        ]
+      },
       "InconclusiveReason": {
         "description": "Why a verdict was withheld for one benchmark.",
-        "enum": [
-          "insufficient_samples",
-          "precision_below_threshold",
-          "interval_spans_threshold",
-          "zero_or_negative_baseline",
-          "missing_measurement",
-          "truncated_measurement",
-          "single_execution_per_side",
-          "degenerate_dispersion"
-        ],
-        "type": "string"
+        "oneOf": [
+          {
+            "enum": [
+              "insufficient_samples",
+              "precision_below_threshold",
+              "interval_spans_threshold",
+              "zero_or_negative_baseline",
+              "missing_measurement",
+              "truncated_measurement",
+              "single_execution_per_side",
+              "degenerate_dispersion"
+            ],
+            "type": "string"
+          },
+          {
+            "const": "family_beyond_resolution",
+            "description": "The family is larger than `max_resolvable_family_size`, so the\nmultiplicity-adjusted interval endpoints would be extreme order\nstatistics of the bootstrap distribution. No interval is claimed.",
+            "type": "string"
+          },
+          {
+            "const": "unobservable_hardware",
+            "description": "A descriptor the method requires was observed on neither side, so a\ndifference in it cannot be excluded and no direction is claimed.",
+            "type": "string"
+          }
+        ]
       },
       "Interval": {
         "additionalProperties": false,
@@ -242,6 +408,12 @@
             "format": "double",
             "type": "number"
           },
+          "max_resolvable_family_size": {
+            "description": "The largest family this resample budget resolves an interval for. A\n`family_size` above it withholds every verdict with\n`family_beyond_resolution`, because the multiplicity-adjusted endpoints\nwould be extreme order statistics of the bootstrap distribution rather\nthan points inside it.",
+            "format": "uint32",
+            "minimum": 0,
+            "type": "integer"
+          },
           "method": {
             "maxLength": 512,
             "minLength": 1,
@@ -272,6 +444,7 @@
           "multiplicity",
           "family_size",
           "adjusted_confidence_level",
+          "max_resolvable_family_size",
           "outlier_policy"
         ],
         "type": "object"
@@ -291,6 +464,86 @@
         ],
         "type": "string"
       },
+      "Provenance": {
+        "additionalProperties": false,
+        "description": "Exactly the provenance the compatibility check reads, for one side.\n\nIt is a projection and not the whole record: `source_fingerprint`,\n`declared_toolchain`, `run_index`, `run_count` and `captured_at_unix` are\nnot consulted by the check, and this tool does not publish a field the check\nignores. Nothing here is a path, a source or a name from the project tree.",
+        "properties": {
+          "cargo_version": {
+            "maxLength": 128,
+            "minLength": 1,
+            "type": "string"
+          },
+          "configuration_fingerprint": {
+            "maxLength": 512,
+            "minLength": 1,
+            "type": "string"
+          },
+          "execution_fingerprint": {
+            "maxLength": 512,
+            "minLength": 1,
+            "type": "string"
+          },
+          "format": {
+            "maxLength": 512,
+            "minLength": 1,
+            "type": "string"
+          },
+          "format_version": {
+            "format": "uint8",
+            "maximum": 255,
+            "minimum": 0,
+            "type": "integer"
+          },
+          "hardware": {
+            "$ref": "#/$defs/HardwareProfile"
+          },
+          "harness": {
+            "$ref": "#/$defs/Harness"
+          },
+          "harness_version": {
+            "maxLength": 128,
+            "minLength": 1,
+            "type": "string"
+          },
+          "image_digest": {
+            "maxLength": 512,
+            "minLength": 1,
+            "type": "string"
+          },
+          "platform": {
+            "maxLength": 128,
+            "minLength": 1,
+            "type": "string"
+          },
+          "rust_version": {
+            "maxLength": 128,
+            "minLength": 1,
+            "type": "string"
+          },
+          "selection": {
+            "$ref": "#/$defs/Selection"
+          },
+          "unit": {
+            "$ref": "#/$defs/SampleUnit"
+          }
+        },
+        "required": [
+          "format",
+          "format_version",
+          "unit",
+          "harness",
+          "harness_version",
+          "rust_version",
+          "cargo_version",
+          "image_digest",
+          "platform",
+          "configuration_fingerprint",
+          "execution_fingerprint",
+          "selection",
+          "hardware"
+        ],
+        "type": "object"
+      },
       "Report": {
         "additionalProperties": false,
         "properties": {
@@ -307,6 +560,10 @@
             "minimum": 0,
             "type": "integer"
           },
+          "baseline_provenance": {
+            "$ref": "#/$defs/Provenance",
+            "description": "What the compatibility check read on each side, published whether or not\nit refused. Every dataset-level reason above names a field of these two\nrecords, so a reader sees the two values behind the tag."
+          },
           "candidate_only": {
             "description": "Benchmark keys present only in the candidate dataset, sorted.",
             "items": {
@@ -319,6 +576,9 @@
             "format": "uint32",
             "minimum": 0,
             "type": "integer"
+          },
+          "candidate_provenance": {
+            "$ref": "#/$defs/Provenance"
           },
           "compared": {
             "format": "uint32",
@@ -341,12 +601,25 @@
             "description": "False whenever this response describes less than the comparison produced.",
             "type": "boolean"
           },
+          "disagreements": {
+            "description": "The keys behind a `benchmark_identity` or `sampling_mode` reason, with\nboth observed identities. Empty for every other reason.",
+            "items": {
+              "$ref": "#/$defs/Disagreement"
+            },
+            "maxItems": 64,
+            "type": "array"
+          },
+          "disagreements_omitted": {
+            "format": "uint32",
+            "minimum": 0,
+            "type": "integer"
+          },
           "incompatibility_reasons": {
             "description": "The complete sorted reason list when the two datasets are incompatible.",
             "items": {
               "$ref": "#/$defs/IncompatibilityReason"
             },
-            "maxItems": 16,
+            "maxItems": 24,
             "type": "array"
           },
           "method": {
@@ -371,7 +644,111 @@
           "candidate_only",
           "candidate_only_omitted",
           "incompatibility_reasons",
+          "baseline_provenance",
+          "candidate_provenance",
+          "disagreements",
+          "disagreements_omitted",
           "complete"
+        ],
+        "type": "object"
+      },
+      "ResourceQuotas": {
+        "additionalProperties": false,
+        "description": "Resource ceilings the measuring runtime was placed under. `null` is UNKNOWN\nand never means \"unlimited\".",
+        "properties": {
+          "cpu_quota_millicores": {
+            "format": "uint32",
+            "minimum": 0,
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "memory_bytes": {
+            "format": "uint64",
+            "minimum": 0,
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "pids": {
+            "format": "uint32",
+            "minimum": 0,
+            "type": [
+              "integer",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "cpu_quota_millicores",
+          "memory_bytes",
+          "pids"
+        ],
+        "type": "object"
+      },
+      "SampleUnit": {
+        "enum": [
+          "nanoseconds"
+        ],
+        "type": "string"
+      },
+      "SamplingMode": {
+        "enum": [
+          "linear",
+          "flat",
+          "auto",
+          "unknown"
+        ],
+        "type": "string"
+      },
+      "Selection": {
+        "additionalProperties": false,
+        "description": "The closed build/target selection each run executed under, compared\nverbatim, so it is published verbatim.",
+        "properties": {
+          "all_features": {
+            "type": "boolean"
+          },
+          "bench_target": {
+            "maxLength": 64,
+            "minLength": 1,
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "features": {
+            "items": {
+              "$ref": "#/$defs/Feature"
+            },
+            "maxItems": 16,
+            "type": "array"
+          },
+          "no_default_features": {
+            "type": "boolean"
+          },
+          "package": {
+            "maxLength": 64,
+            "minLength": 1,
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "profile": {
+            "maxLength": 64,
+            "minLength": 1,
+            "type": "string"
+          }
+        },
+        "required": [
+          "package",
+          "bench_target",
+          "features",
+          "all_features",
+          "no_default_features",
+          "profile"
         ],
         "type": "object"
       },
@@ -406,6 +783,15 @@
             "type": "string"
           }
         ]
+      },
+      "Virtualization": {
+        "enum": [
+          "unknown",
+          "container",
+          "virtual_machine",
+          "bare"
+        ],
+        "type": "string"
       }
     },
     "$schema": "https://json-schema.org/draft/2020-12/schema",

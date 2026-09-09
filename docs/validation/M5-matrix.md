@@ -117,6 +117,19 @@ ejecuciones por lado, y eso es independiente de este bloqueo.
 
 ## Limitaciones declaradas hasta ahora
 
+- **`rust.benchmark.compare` no puede devolver una dirección en este runtime, y
+  hay dos razones independientes.** (1) El governor de CPU es ilegible dentro del
+  contenedor, así que es desconocido en los dos lados; tras cerrar el P2-2 de la
+  revisión de método eso da `inconclusive` con razón `unobservable_hardware`,
+  porque el parámetro ambiental con más capacidad de fabricar una regresión nunca
+  se observó y ninguna cantidad de muestreo adicional lo arregla. (2) Aunque se
+  observara, la deriva medida entre ejecuciones del mismo código en este host es
+  del 15 % al 29 % contra un umbral material del 5 %, así que el MDR queda muy por
+  encima del umbral y la puerta de precisión también se negaría. Ambas se
+  comprueban sobre las seis capturas reales en
+  `criterion_dataset::admitted_image_datasets`. El efecto real de +24,4 % **sí**
+  se mide y se publica; lo que no se emite es una dirección.
+
 - **El camino de éxito de `rust.binary.bloat` es inalcanzable para cualquier
   binario real, y es un defecto del producto, no del entorno.** El tope propio
   del producto es `BLOAT_MAX_ROWS = 256`; cualquier binario que enlace `std` tiene

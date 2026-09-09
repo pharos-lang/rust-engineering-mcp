@@ -24,11 +24,14 @@ use rust_engineering_application::benchmark_compare::{
     BenchmarkCompareError, COMPARE_MAX_DATASET_BYTES, CompareOutcome, CompareRequest,
     DatasetDecoder,
 };
-use rust_engineering_domain::benchmark::{BenchmarkDataset, BenchmarkError};
+use rust_engineering_domain::benchmark::{
+    BenchmarkDataset, BenchmarkError, BenchmarkHarness, BenchmarkIdentity, SampleUnit,
+    SamplingMode, Virtualization,
+};
 use rust_engineering_domain::benchmark_compare::{
-    BenchmarkComparison, ComparisonMethod, ComparisonReport, ComparisonStatistic,
-    ComparisonVerdict, IncompatibilityReason, InconclusiveReason, MultiplicityCorrection,
-    OutlierPolicy,
+    BenchmarkComparison, ComparedProvenance, ComparisonMethod, ComparisonReport,
+    ComparisonStatistic, ComparisonVerdict, IncompatibilityReason, InconclusiveReason,
+    MeasurementDisagreement, MultiplicityCorrection, OutlierPolicy,
 };
 use rust_engineering_domain::{ProjectRef, QualityArtifactId};
 use std::sync::{
@@ -41,6 +44,10 @@ pub(super) const NAME: &str = "rust.benchmark.compare";
 const DEFAULT_TIMEOUT_SECONDS: u64 = 30;
 const MAX_RESPONSE_COMPARISONS: usize = 512;
 const MAX_RESPONSE_KEYS: usize = 256;
+/// Per-benchmark disagreements published with an incompatible pair. A pair is
+/// refused on the first reason whatever its count, so this bounds a list that
+/// exists to be read, not to be exhaustive.
+const MAX_RESPONSE_DISAGREEMENTS: usize = 64;
 
 pub(super) fn advertised() -> bool {
     super::security_tool::advertised("RUST_MCP_TEST_BENCHMARK_COMPARE_READY")
@@ -219,7 +226,7 @@ enum Failure {
 
 define_security_tool!(
     ComparisonTool,
-    "Compare two benchmark datasets this project already published, by their opaque store identifiers. Runs no process and reads no project source, so it has no execution mode. Publishes the complete frozen method (median of per-iteration time, percentile bootstrap, fixed seed, confidence level, multiplicity correction, material threshold, outliers counted and never removed) and, per shared benchmark, the verdict, effect ratio, interval, both medians, both sample counts, both outlier counts, the minimum detectable ratio and the reasons any verdict was withheld. Datasets that do not describe comparable executions are an observed result carrying the complete sorted reason list, not an infrastructure failure. The result describes these two executions on this host: it attributes no cause, generalizes to no other hardware and recommends nothing."
+    "Compare two benchmark datasets this project already published, by their opaque store identifiers. Runs no process and reads no project source, so it has no execution mode. Publishes the complete frozen method (median of per-iteration time, cluster percentile bootstrap over executions, fixed seed, confidence level, multiplicity correction, the largest family that resample budget resolves, material threshold, outliers counted and never removed) and, per shared benchmark, the verdict, effect ratio, interval, both medians, both sample counts, both outlier counts, the minimum detectable ratio and the reasons any verdict was withheld. Also publishes, for both datasets, every provenance field the compatibility check reads -- toolchain, image digest, platform, configuration digest, execution digest, selection and hardware -- so each reported reason can be read against the two values behind it. Datasets that do not describe comparable executions are an observed result carrying the complete sorted reason list and those two records, not an infrastructure failure. The result describes these two executions on this host: it attributes no cause, generalizes to no other hardware and recommends nothing."
 );
 
 impl ComparisonTool {
@@ -363,7 +370,11 @@ impl ComparisonTool {
             },
             |data| {
                 // Names carry no measurement, so they leave first; then the
-                // lowest-ranked comparison rows.
+                // lowest-ranked comparison rows; then the per-benchmark
+                // disagreements. The two provenance records are never trimmed:
+                // they are what every reported reason is read against, and a
+                // reason without its two values is the defect this tool was
+                // corrected for.
                 let report = &mut data.report;
                 if report.candidate_only.pop().is_some() {
                     report.candidate_only_omitted = report.candidate_only_omitted.saturating_add(1);
@@ -371,6 +382,8 @@ impl ComparisonTool {
                     report.baseline_only_omitted = report.baseline_only_omitted.saturating_add(1);
                 } else if report.comparisons.pop().is_some() {
                     report.comparisons_omitted = report.comparisons_omitted.saturating_add(1);
+                } else if report.disagreements.pop().is_some() {
+                    report.disagreements_omitted = report.disagreements_omitted.saturating_add(1);
                 } else {
                     return false;
                 }
@@ -443,9 +456,24 @@ fn comparison_outcome(data: &Data) -> Outcome {
 
 fn report(outcome: CompareOutcome) -> schemas::Report {
     match outcome {
-        CompareOutcome::Incompatible(mut reasons) => {
+        CompareOutcome::Incompatible(details) => {
+            let details = *details;
+            let mut reasons = details.reasons;
             reasons.sort_unstable();
             reasons.dedup();
+            let disagreements_omitted = u32::try_from(
+                details
+                    .disagreements
+                    .len()
+                    .saturating_sub(MAX_RESPONSE_DISAGREEMENTS),
+            )
+            .unwrap_or(u32::MAX);
+            let disagreements: Vec<schemas::Disagreement> = details
+                .disagreements
+                .into_iter()
+                .take(MAX_RESPONSE_DISAGREEMENTS)
+                .map(disagreement)
+                .collect();
             schemas::Report {
                 method: None,
                 comparisons: Vec::new(),
@@ -456,9 +484,13 @@ fn report(outcome: CompareOutcome) -> schemas::Report {
                 candidate_only: Vec::new(),
                 candidate_only_omitted: 0,
                 incompatibility_reasons: reasons.into_iter().map(incompatibility_reason).collect(),
-                // The pair was refused before any statistic ran, and every
-                // reason for that refusal is reported.
-                complete: true,
+                // Refused before any statistic ran -- but not silently: the two
+                // records the check read are what every reason above names.
+                baseline_provenance: provenance(&details.baseline_provenance),
+                candidate_provenance: provenance(&details.candidate_provenance),
+                disagreements,
+                disagreements_omitted,
+                complete: disagreements_omitted == 0,
             }
         }
         CompareOutcome::Report(report) => published_report(*report),
@@ -508,6 +540,12 @@ fn published_report(report: ComparisonReport) -> schemas::Report {
         candidate_only,
         candidate_only_omitted,
         incompatibility_reasons: Vec::new(),
+        baseline_provenance: provenance(&report.baseline_provenance),
+        candidate_provenance: provenance(&report.candidate_provenance),
+        // A comparison that produced a report found no per-benchmark
+        // disagreement; one would have refused the pair before any statistic.
+        disagreements: Vec::new(),
+        disagreements_omitted: 0,
     }
 }
 
@@ -537,9 +575,84 @@ fn method(value: &ComparisonMethod) -> schemas::Method {
         },
         family_size: value.family_size(),
         adjusted_confidence_level: finite(value.adjusted_confidence_level()),
+        max_resolvable_family_size: value.max_resolvable_family_size(),
         outlier_policy: match value.outlier_policy() {
             OutlierPolicy::ReportedNotRemoved => schemas::OutlierPolicy::ReportedNotRemoved,
         },
+    }
+}
+
+fn provenance(value: &ComparedProvenance) -> schemas::Provenance {
+    schemas::Provenance {
+        format: value.format.clone(),
+        format_version: value.format_version,
+        unit: match value.unit {
+            SampleUnit::Nanoseconds => schemas::SampleUnit::Nanoseconds,
+        },
+        harness: match value.harness {
+            BenchmarkHarness::Criterion => schemas::Harness::Criterion,
+        },
+        harness_version: value.harness_version.clone(),
+        rust_version: value.rust_version.clone(),
+        cargo_version: value.cargo_version.clone(),
+        image_digest: value.image_digest.clone(),
+        platform: value.platform.clone(),
+        configuration_fingerprint: value.configuration_fingerprint.clone(),
+        execution_fingerprint: value.execution_fingerprint.clone(),
+        selection: schemas::Selection {
+            package: value.selection.package.clone(),
+            bench_target: value.selection.bench_target.clone(),
+            features: value.selection.features.clone(),
+            all_features: value.selection.all_features,
+            no_default_features: value.selection.no_default_features,
+            profile: value.selection.profile.clone(),
+        },
+        hardware: schemas::HardwareProfile {
+            cpu_model: value.hardware.cpu_model.clone(),
+            cpu_cores: value.hardware.cpu_cores,
+            os_kernel: value.hardware.os_kernel.clone(),
+            arch: value.hardware.arch.clone(),
+            virtualization: match value.hardware.virtualization {
+                Virtualization::Unknown => schemas::Virtualization::Unknown,
+                Virtualization::Container => schemas::Virtualization::Container,
+                Virtualization::VirtualMachine => schemas::Virtualization::VirtualMachine,
+                Virtualization::Bare => schemas::Virtualization::Bare,
+            },
+            cpu_governor: value.hardware.cpu_governor.clone(),
+            quotas: schemas::ResourceQuotas {
+                cpu_quota_millicores: value.hardware.quotas.cpu_quota_millicores,
+                memory_bytes: value.hardware.quotas.memory_bytes,
+                pids: value.hardware.quotas.pids,
+            },
+        },
+    }
+}
+
+fn sampling_mode(value: SamplingMode) -> schemas::SamplingMode {
+    match value {
+        SamplingMode::Linear => schemas::SamplingMode::Linear,
+        SamplingMode::Flat => schemas::SamplingMode::Flat,
+        SamplingMode::Auto => schemas::SamplingMode::Auto,
+        SamplingMode::Unknown => schemas::SamplingMode::Unknown,
+    }
+}
+
+fn identity(value: &BenchmarkIdentity, mode: SamplingMode) -> schemas::Identity {
+    schemas::Identity {
+        group_id: value.group_id().to_owned(),
+        function_id: value.function_id().map(str::to_owned),
+        value_str: value.value_str().map(str::to_owned),
+        full_id: value.full_id().to_owned(),
+        directory_name: value.directory_name().to_owned(),
+        sampling_mode: sampling_mode(mode),
+    }
+}
+
+fn disagreement(value: MeasurementDisagreement) -> schemas::Disagreement {
+    schemas::Disagreement {
+        key: value.key,
+        baseline: identity(&value.baseline_identity, value.baseline_sampling_mode),
+        candidate: identity(&value.candidate_identity, value.candidate_sampling_mode),
     }
 }
 
@@ -592,6 +705,12 @@ fn comparison(value: BenchmarkComparison) -> schemas::Comparison {
                 InconclusiveReason::DegenerateDispersion => {
                     schemas::InconclusiveReason::DegenerateDispersion
                 }
+                InconclusiveReason::FamilyBeyondResolution => {
+                    schemas::InconclusiveReason::FamilyBeyondResolution
+                }
+                InconclusiveReason::UnobservableHardware => {
+                    schemas::InconclusiveReason::UnobservableHardware
+                }
             })
             .collect(),
     }
@@ -610,8 +729,13 @@ fn incompatibility_reason(value: IncompatibilityReason) -> schemas::Incompatibil
         IncompatibilityReason::CargoVersion => schemas::IncompatibilityReason::CargoVersion,
         IncompatibilityReason::RuntimeImage => schemas::IncompatibilityReason::RuntimeImage,
         IncompatibilityReason::Platform => schemas::IncompatibilityReason::Platform,
+        IncompatibilityReason::Configuration => schemas::IncompatibilityReason::Configuration,
         IncompatibilityReason::Architecture => schemas::IncompatibilityReason::Architecture,
         IncompatibilityReason::CpuModel => schemas::IncompatibilityReason::CpuModel,
+        IncompatibilityReason::CpuCores => schemas::IncompatibilityReason::CpuCores,
+        IncompatibilityReason::OsKernel => schemas::IncompatibilityReason::OsKernel,
+        IncompatibilityReason::CpuGovernor => schemas::IncompatibilityReason::CpuGovernor,
+        IncompatibilityReason::Virtualization => schemas::IncompatibilityReason::Virtualization,
         IncompatibilityReason::Quotas => schemas::IncompatibilityReason::Quotas,
         IncompatibilityReason::Selection => schemas::IncompatibilityReason::Selection,
         IncompatibilityReason::SamplingMode => schemas::IncompatibilityReason::SamplingMode,

@@ -1735,3 +1735,194 @@ mod real_guest_datasets {
         );
     }
 }
+
+/// The six captures taken on the image ADR-077 admits, three executions per
+/// side, decoded and compared through the product's own pooling.
+///
+/// The three single-execution captures above can no longer support a direction
+/// by construction, which is correct but proves nothing about detection. These
+/// six can: `m5/reference` is the only benchmark whose source differs, by a
+/// known +25% of work, while `m5/slower_125` and `m5/control` are byte-identical
+/// on both sides and therefore a real null.
+#[cfg(test)]
+#[allow(clippy::expect_used)] // Committed captures are malformed only by mistake; fail immediately.
+mod admitted_image_datasets {
+    use super::parse_archive;
+    use crate::performance_port::pool;
+    use rust_engineering_domain::benchmark::{
+        BenchmarkDataset, BenchmarkHarness, BenchmarkProvenance, BenchmarkSelection,
+        HardwareProfile, ResourceQuotas, SampleUnit, Virtualization,
+    };
+    use rust_engineering_domain::benchmark_compare::{
+        ComparisonVerdict, InconclusiveReason, compare,
+    };
+
+    const BASELINE: [&[u8]; 3] = [
+        include_bytes!("../../../fixtures/benchmark-datasets/criterion-baseline-1.tar"),
+        include_bytes!("../../../fixtures/benchmark-datasets/criterion-baseline-2.tar"),
+        include_bytes!("../../../fixtures/benchmark-datasets/criterion-baseline-3.tar"),
+    ];
+    const CANDIDATE: [&[u8]; 3] = [
+        include_bytes!("../../../fixtures/benchmark-datasets/criterion-candidate-1.tar"),
+        include_bytes!("../../../fixtures/benchmark-datasets/criterion-candidate-2.tar"),
+        include_bytes!("../../../fixtures/benchmark-datasets/criterion-candidate-3.tar"),
+    ];
+    const WARM_UP_MS: u64 = 3_000;
+    const MEASUREMENT_MS: u64 = 5_000;
+    const SAMPLE_SIZE: u32 = 30;
+    const RUNS: u8 = 3;
+
+    fn side(archives: [&[u8]; 3], source: &str, execution: &str) -> BenchmarkDataset {
+        let runs = archives
+            .iter()
+            .enumerate()
+            .map(|(position, archive)| {
+                let index = u8::try_from(position + 1).expect("three runs fit in a u8");
+                parse_archive(archive, index, WARM_UP_MS, MEASUREMENT_MS, SAMPLE_SIZE)
+                    .expect("a committed capture decodes")
+                    .measurements
+            })
+            .collect::<Vec<_>>();
+        BenchmarkDataset::new(
+            SampleUnit::Nanoseconds,
+            pool(&runs).expect("pooling three real executions"),
+            provenance(source, execution),
+        )
+        .expect("dataset")
+    }
+
+    fn provenance(source: &str, execution: &str) -> BenchmarkProvenance {
+        BenchmarkProvenance {
+            source_fingerprint: source.into(),
+            harness: BenchmarkHarness::Criterion,
+            harness_version: "0.8.2".into(),
+            rust_version: "1.98.1".into(),
+            cargo_version: "1.98.1".into(),
+            declared_toolchain: None,
+            image_digest: crate::APPROVED_M5_IMAGE.into(),
+            platform: "linux/aarch64".into(),
+            configuration_fingerprint: format!("sha256:{}", "a".repeat(64)),
+            execution_fingerprint: execution.into(),
+            selection: BenchmarkSelection {
+                package: None,
+                bench_target: Some("perf".into()),
+                features: Vec::new(),
+                all_features: false,
+                no_default_features: false,
+                profile: "bench".into(),
+            },
+            hardware: HardwareProfile {
+                cpu_model: Some("Apple silicon guest".into()),
+                cpu_cores: Some(1),
+                os_kernel: Some("7.0.12-linuxkit".into()),
+                arch: "aarch64".into(),
+                virtualization: Virtualization::Container,
+                cpu_governor: None,
+                quotas: ResourceQuotas {
+                    cpu_quota_millicores: Some(1000),
+                    memory_bytes: Some(2 * 1024 * 1024 * 1024),
+                    pids: Some(128),
+                },
+            },
+            run_index: RUNS,
+            run_count: RUNS,
+            captured_at_unix: 1_788_100_000,
+        }
+    }
+
+    fn compared() -> Vec<(String, ComparisonVerdict, f64, f64, Vec<InconclusiveReason>)> {
+        let baseline = side(BASELINE, "sha256:baseline", "sha256:exec-baseline");
+        let candidate = side(CANDIDATE, "sha256:candidate", "sha256:exec-candidate");
+        compare(&baseline, &candidate)
+            .expect("two compatible datasets")
+            .comparisons
+            .into_iter()
+            .map(|row| {
+                (
+                    row.key,
+                    row.verdict,
+                    row.effect_ratio,
+                    row.minimum_detectable_ratio,
+                    row.inconclusive_reasons,
+                )
+            })
+            .collect()
+    }
+
+    #[test]
+    fn three_executions_a_side_pool_into_one_dataset_that_knows_its_executions() {
+        let baseline = side(BASELINE, "sha256:baseline", "sha256:exec-baseline");
+        for key in ["m5/control", "m5/reference", "m5/slower_125"] {
+            let measurement = baseline.measurement(key).expect("measurement");
+            assert_eq!(
+                measurement.samples().len(),
+                90,
+                "{key}: three executions of thirty samples"
+            );
+            let indices = measurement.run_indices();
+            assert_eq!(
+                indices.iter().copied().collect::<Vec<_>>(),
+                vec![1, 2, 3],
+                "{key}: every execution must be identifiable in the pooled set"
+            );
+        }
+    }
+
+    #[test]
+    fn a_real_effect_survives_as_an_effect_even_when_the_host_cannot_resolve_it() {
+        let rows = compared();
+        let (_, verdict, effect, mdr, reasons) = rows
+            .iter()
+            .find(|(key, ..)| key == "m5/reference")
+            .expect("the changed benchmark");
+        // The only source difference in the corpus is +25% of the same work.
+        assert!(
+            (0.15..0.35).contains(effect),
+            "the measured effect drifted away from the modification: {effect}"
+        );
+        // Three executions per side is enough to stop withholding structurally.
+        assert!(
+            !reasons.contains(&InconclusiveReason::SingleExecutionPerSide),
+            "three executions a side must not be treated as one: {reasons:?}"
+        );
+        // ...and not enough to resolve a 5% threshold on this host. The
+        // between-execution drift of this corpus is 15-29% on source that does
+        // not change, so a method that returned a direction here would be
+        // claiming precision the machine does not have.
+        assert!(
+            *mdr > 0.05,
+            "this host resolved the material threshold; re-derive the claim: mdr {mdr}"
+        );
+        assert_eq!(
+            *verdict,
+            ComparisonVerdict::Inconclusive,
+            "effect {effect}, mdr {mdr}, reasons {reasons:?}"
+        );
+        // Two independent reasons hold here and only the first is reported: the
+        // CPU governor is unreadable inside this container on both sides, and
+        // the run's own precision does not reach the threshold either. The
+        // refusal is named after the blindness because that is what the reader
+        // must act on -- no amount of extra sampling would fix it.
+        assert!(
+            reasons.contains(&InconclusiveReason::UnobservableHardware),
+            "the refusal must name the unreadable governor: {reasons:?}"
+        );
+    }
+
+    #[test]
+    fn a_benchmark_whose_source_never_changed_is_never_given_a_direction() {
+        for (key, verdict, effect, mdr, reasons) in compared() {
+            if key == "m5/reference" {
+                continue;
+            }
+            assert!(
+                matches!(
+                    verdict,
+                    ComparisonVerdict::Inconclusive | ComparisonVerdict::NoMaterialChange
+                ),
+                "{key}: identical source produced {verdict:?} \
+                 (effect {effect}, mdr {mdr}, reasons {reasons:?})"
+            );
+        }
+    }
+}

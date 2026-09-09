@@ -97,6 +97,20 @@ El bloqueo es de ingesta del vendor, no de la medición.
    `docs/client-configuration.md`, `docs/ci.md` y `docs/compatibility.md` ya
    están sincronizados.
 
+## Dos caminos de éxito que este runtime no alcanza
+
+Ambos son propiedades medidas, no fallos del entorno, y los dos se publican.
+
+1. **`rust.benchmark.compare` no emite dirección.** El governor de CPU es
+   ilegible dentro del contenedor, así que es desconocido en los dos lados:
+   `inconclusive` con `unobservable_hardware`. Y aunque se observara, la deriva
+   entre ejecuciones del mismo código en este host es del 15 % al 29 % contra un
+   umbral del 5 %, de modo que el MDR tampoco lo resuelve. El efecto real se mide
+   —un cambio de fuente del +25 % sale como +24,4 % sobre las seis capturas—; lo
+   que no se emite es el veredicto. Oráculo:
+   `criterion_dataset::admitted_image_datasets`.
+2. **`rust.binary.bloat` no devuelve `passed`.** Detallado abajo.
+
 ## Hallazgo abierto, deliberadamente sin corregir
 
 `rust.binary.bloat` no puede devolver `passed` para ningún binario que enlace

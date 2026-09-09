@@ -47,7 +47,8 @@ pub enum OutlierPolicy {
 }
 
 /// Why two datasets may not be compared at all. Checked before any statistic is
-/// computed, and reported in full, sorted and deduplicated.
+/// computed, and reported in full, sorted and deduplicated. Every tag here can
+/// be read against the two `provenance` records the same response carries.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, JsonSchema)]
 #[serde(rename_all = "snake_case")]
 pub enum IncompatibilityReason {
@@ -60,11 +61,17 @@ pub enum IncompatibilityReason {
     CargoVersion,
     RuntimeImage,
     Platform,
+    Configuration,
     Architecture,
     CpuModel,
+    CpuCores,
+    OsKernel,
+    CpuGovernor,
+    Virtualization,
     Quotas,
     Selection,
     SamplingMode,
+    /// A descriptor the method requires was observed on exactly one side.
     UnknownHardware,
     SameArtifact,
 }
@@ -81,6 +88,156 @@ pub enum InconclusiveReason {
     TruncatedMeasurement,
     SingleExecutionPerSide,
     DegenerateDispersion,
+    /// The family is larger than `max_resolvable_family_size`, so the
+    /// multiplicity-adjusted interval endpoints would be extreme order
+    /// statistics of the bootstrap distribution. No interval is claimed.
+    FamilyBeyondResolution,
+    /// A descriptor the method requires was observed on neither side, so a
+    /// difference in it cannot be excluded and no direction is claimed.
+    UnobservableHardware,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, JsonSchema)]
+#[serde(rename_all = "snake_case")]
+pub enum SampleUnit {
+    Nanoseconds,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, JsonSchema)]
+#[serde(rename_all = "snake_case")]
+pub enum Harness {
+    Criterion,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, JsonSchema)]
+#[serde(rename_all = "snake_case")]
+pub enum Virtualization {
+    Unknown,
+    Container,
+    VirtualMachine,
+    Bare,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, JsonSchema)]
+#[serde(rename_all = "snake_case")]
+pub enum SamplingMode {
+    Linear,
+    Flat,
+    Auto,
+    Unknown,
+}
+
+#[derive(Serialize, JsonSchema)]
+#[serde(transparent)]
+pub struct Feature(
+    #[schemars(length(min = 1, max = 64), regex(pattern = "^[A-Za-z0-9_-]{1,64}$"))] pub String,
+);
+
+/// Resource ceilings the measuring runtime was placed under. `null` is UNKNOWN
+/// and never means "unlimited".
+#[derive(Clone, Copy, Debug, Serialize, JsonSchema)]
+#[serde(deny_unknown_fields)]
+pub struct ResourceQuotas {
+    pub cpu_quota_millicores: Option<u32>,
+    pub memory_bytes: Option<u64>,
+    pub pids: Option<u32>,
+}
+
+/// What was observable about each measuring host. An absent field is UNKNOWN
+/// and is never replaced by a plausible default; absent on ONE side is
+/// `unknown_hardware` and absent on BOTH is `unobservable_hardware`.
+#[derive(Clone, Debug, Serialize, JsonSchema)]
+#[serde(deny_unknown_fields)]
+pub struct HardwareProfile {
+    #[schemars(length(max = 512))]
+    pub cpu_model: Option<String>,
+    pub cpu_cores: Option<u16>,
+    #[schemars(length(max = 512))]
+    pub os_kernel: Option<String>,
+    #[schemars(length(min = 1, max = 512))]
+    pub arch: String,
+    pub virtualization: Virtualization,
+    #[schemars(length(max = 512))]
+    pub cpu_governor: Option<String>,
+    pub quotas: ResourceQuotas,
+}
+
+/// The closed build/target selection each run executed under, compared
+/// verbatim, so it is published verbatim.
+#[derive(Clone, Debug, Serialize, JsonSchema)]
+#[serde(deny_unknown_fields)]
+pub struct Selection {
+    #[schemars(length(min = 1, max = 64))]
+    pub package: Option<String>,
+    #[schemars(length(min = 1, max = 64))]
+    pub bench_target: Option<String>,
+    #[schemars(with = "Vec<Feature>", length(max = 16))]
+    pub features: Vec<String>,
+    pub all_features: bool,
+    pub no_default_features: bool,
+    #[schemars(length(min = 1, max = 64))]
+    pub profile: String,
+}
+
+/// Exactly the provenance the compatibility check reads, for one side.
+///
+/// It is a projection and not the whole record: `source_fingerprint`,
+/// `declared_toolchain`, `run_index`, `run_count` and `captured_at_unix` are
+/// not consulted by the check, and this tool does not publish a field the check
+/// ignores. Nothing here is a path, a source or a name from the project tree.
+#[derive(Clone, Debug, Serialize, JsonSchema)]
+#[serde(deny_unknown_fields)]
+pub struct Provenance {
+    #[schemars(length(min = 1, max = 512))]
+    pub format: String,
+    pub format_version: u8,
+    pub unit: SampleUnit,
+    pub harness: Harness,
+    #[schemars(length(min = 1, max = 128))]
+    pub harness_version: String,
+    #[schemars(length(min = 1, max = 128))]
+    pub rust_version: String,
+    #[schemars(length(min = 1, max = 128))]
+    pub cargo_version: String,
+    #[schemars(length(min = 1, max = 512))]
+    pub image_digest: String,
+    #[schemars(length(min = 1, max = 128))]
+    pub platform: String,
+    #[schemars(length(min = 1, max = 512))]
+    pub configuration_fingerprint: String,
+    #[schemars(length(min = 1, max = 512))]
+    pub execution_fingerprint: String,
+    pub selection: Selection,
+    pub hardware: HardwareProfile,
+}
+
+/// One benchmark's identity as the harness named it.
+#[derive(Clone, Debug, Serialize, JsonSchema)]
+#[serde(deny_unknown_fields)]
+pub struct Identity {
+    #[schemars(length(min = 1, max = 512))]
+    pub group_id: String,
+    #[schemars(length(max = 512))]
+    pub function_id: Option<String>,
+    #[schemars(length(max = 512))]
+    pub value_str: Option<String>,
+    #[schemars(length(min = 1, max = 512))]
+    pub full_id: String,
+    #[schemars(length(min = 1, max = 512))]
+    pub directory_name: String,
+    pub sampling_mode: SamplingMode,
+}
+
+/// One benchmark key whose two measurements disagree on identity or sampling
+/// mode. Those two reasons are properties of a single benchmark and cannot be
+/// read off the two provenance records, so both observed values travel here.
+#[derive(Clone, Debug, Serialize, JsonSchema)]
+#[serde(deny_unknown_fields)]
+pub struct Disagreement {
+    #[schemars(length(min = 1, max = 512))]
+    pub key: String,
+    pub baseline: Identity,
+    pub candidate: Identity,
 }
 
 /// The frozen method, published with every report so a reader can reproduce it.
@@ -97,6 +254,12 @@ pub struct Method {
     pub multiplicity: Multiplicity,
     pub family_size: u32,
     pub adjusted_confidence_level: f64,
+    /// The largest family this resample budget resolves an interval for. A
+    /// `family_size` above it withholds every verdict with
+    /// `family_beyond_resolution`, because the multiplicity-adjusted endpoints
+    /// would be extreme order statistics of the bootstrap distribution rather
+    /// than points inside it.
+    pub max_resolvable_family_size: u32,
     pub outlier_policy: OutlierPolicy,
 }
 
@@ -152,8 +315,18 @@ pub struct Report {
     pub candidate_only: Vec<String>,
     pub candidate_only_omitted: u32,
     /// The complete sorted reason list when the two datasets are incompatible.
-    #[schemars(length(max = 16))]
+    #[schemars(length(max = 24))]
     pub incompatibility_reasons: Vec<IncompatibilityReason>,
+    /// What the compatibility check read on each side, published whether or not
+    /// it refused. Every dataset-level reason above names a field of these two
+    /// records, so a reader sees the two values behind the tag.
+    pub baseline_provenance: Provenance,
+    pub candidate_provenance: Provenance,
+    /// The keys behind a `benchmark_identity` or `sampling_mode` reason, with
+    /// both observed identities. Empty for every other reason.
+    #[schemars(length(max = 64))]
+    pub disagreements: Vec<Disagreement>,
+    pub disagreements_omitted: u32,
     /// False whenever this response describes less than the comparison produced.
     pub complete: bool,
 }

@@ -105,8 +105,10 @@ es quien sabe qué repetición acaba de ejecutar—, nunca el proyecto: un archi
 criterion no puede nombrar su propia repetición.
 
 **Unknown permanece unknown.** Un campo de hardware que el runtime no puede
-observar se serializa ausente y bloquea la comparación; no se rellena con un valor
-plausible. Una baseline **no** se identifica por nombre de rama.
+observar se serializa ausente; jamás se rellena con un valor plausible. Lo que ese
+hueco impide se decide en §5, y no todos los huecos significan lo mismo: uno
+observado en un solo lado no es lo mismo que la misma ceguera en los dos. Una
+baseline **no** se identifica por nombre de rama.
 
 ### 4. Método estadístico congelado
 
@@ -203,12 +205,62 @@ muestras describía la variabilidad relevante.
 
 Se rechaza la comparación, enumerando **todas** las razones, si difieren formato,
 unidad, harness, versión de harness, `rust_version`, `cargo_version`, digest de
-imagen, plataforma, arquitectura, selección, cuotas o modelo de CPU, o si el
-modelo de CPU es desconocido en cualquiera de los dos lados. `source_fingerprint`
-**puede** diferir: baseline y candidate son código distinto, y esa es la razón de
-comparar. Comparar un artifact con **el mismo** `execution_fingerprint` se rechaza
-como `same_artifact`; comparar dos ejecuciones independientes del mismo código es
-un control legítimo y esperado.
+imagen, plataforma, arquitectura, selección, cuotas, modelo de CPU,
+`configuration_fingerprint` o governor de CPU. `source_fingerprint` **puede**
+diferir: baseline y candidate son código distinto, y esa es la razón de comparar.
+Comparar un artifact con **el mismo** `execution_fingerprint` se rechaza como
+`same_artifact`; comparar dos ejecuciones independientes del mismo código es un
+control legítimo y esperado.
+
+#### Corrección (2026-09-09) — qué hace exactamente un campo desconocido
+
+La versión anterior de esta sección decía «o si el modelo de CPU es desconocido en
+cualquiera de los dos lados», y el código implementaba eso: un solo campo bloqueaba
+por ausencia. §3 prometía algo más fuerte —cualquier campo no observable bloquea— y
+las dos afirmaciones no podían ser ciertas a la vez. Una revisión independiente lo
+señaló y nombró los dos casos que más duelen: `cpu_governor`, que dentro del
+contenedor es permanentemente desconocido y es el parámetro ambiental con más
+capacidad de fabricar una regresión, y `configuration_fingerprint`, documentado
+como el digest de la configuración congelada y que no se consultaba nunca.
+
+Se amplía el conjunto que bloquea, en vez de relajar §3, y se distinguen tres
+situaciones que antes se confundían en una:
+
+- **Conocido y distinto** en los dos lados: incompatible. Son dos máquinas o dos
+  configuraciones, y compararlas no mide el código.
+- **Observado en un solo lado**: incompatible (`unknown_hardware`). No se sabe si
+  coincidían, y suponer que sí es exactamente el relleno plausible que §3 prohíbe.
+- **No observable en los dos lados por la misma razón estructural** —nadie puede
+  leer el governor dentro de este contenedor—: los datasets siguen siendo
+  estructuralmente comparables y sus medidas se publican, pero **no se admite
+  dirección alguna**: `inconclusive` con razón `unobservable_hardware`. La ceguera
+  es simétrica y no rompe la comparación; lo que impide es atribuir la diferencia
+  al código, porque el parámetro que podría haberla causado nunca se observó.
+
+#### Corrección (2026-09-09) — hasta qué familia se afirma un intervalo
+
+Bonferroni divide alpha por el tamaño de la familia, así que el cuantil que el
+método pide a la distribución bootstrap es `0.025/n`. Con 10 000 remuestreos eso
+son diez sorteos más allá del extremo con `n = 25`, cinco con `n = 50` y **uno**
+con `n = 250`: a partir de cierto tamaño el extremo del intervalo deja de ser una
+interpolación dentro de la distribución y pasa a ser un estadístico de orden
+extremo. El error no es simétrico —la distribución está acotada por ese lado—, de
+modo que muy pocos sorteos en la cola empujan el extremo hacia dentro y el
+intervalo se lee **más estrecho**, es decir más confiado, que el nivel que declara.
+
+De las tres salidas posibles —subir los remuestreos con la familia, acotar la
+familia, o declarar el límite y negarse más allá— se elige la tercera. Subirlos
+haría el coste cuadrático en el tamaño de la familia sin cota superior conocida;
+acotar la familia obligaría a partir un informe legítimo en trozos arbitrarios y
+cambiaría la corrección por multiplicidad que a cada trozo le toca. Negarse es lo
+único que no cambia lo que el método afirma cuando sí afirma algo.
+
+`MAX_RESOLVABLE_FAMILY_SIZE = 25` se **deriva** de los remuestreos, el nivel de
+confianza y un mínimo de diez sorteos en la cola, y un test recomputa esa
+derivación para que no pueda separarse de sus constantes. Una familia mayor sigue
+describiendo las dos medidas —medianas, muestras, outliers y el ratio observado—,
+pero no corre bootstrap, no afirma intervalo y no admite dirección:
+`inconclusive` con razón `family_beyond_resolution`.
 
 ### 6. Límites de interpretación
 

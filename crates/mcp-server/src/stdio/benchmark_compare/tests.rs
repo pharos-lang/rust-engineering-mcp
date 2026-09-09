@@ -4,6 +4,7 @@ use rust_engineering_domain::benchmark::{
     BenchmarkProvenance, BenchmarkSelection, HardwareProfile, MeasurementCompleteness, RawSample,
     ResourceQuotas, SampleUnit, SamplingMode, Virtualization,
 };
+use rust_engineering_domain::benchmark_compare::Incompatibility;
 
 pub(super) type TestResult<T = ()> = Result<T, Box<dyn std::error::Error>>;
 
@@ -102,6 +103,17 @@ pub(super) fn comparison_row(
     }
 }
 
+/// The projection the compatibility check publishes, with the two fields a
+/// caller most needs to tell the sides apart made distinct.
+#[allow(clippy::expect_used)] // Fixed fixture dataset; malformed only by mistake, so fail immediately.
+pub(super) fn compared_provenance(execution: &str, cpu: &str) -> ComparedProvenance {
+    let mut projection =
+        ComparedProvenance::of(&dataset(1).expect("a fixture dataset is well formed"));
+    projection.execution_fingerprint = execution.to_owned();
+    projection.hardware.cpu_model = Some(cpu.to_owned());
+    projection
+}
+
 pub(super) fn comparison_report(rows: Vec<BenchmarkComparison>) -> ComparisonReport {
     let compared = rows.len();
     ComparisonReport {
@@ -110,6 +122,8 @@ pub(super) fn comparison_report(rows: Vec<BenchmarkComparison>) -> ComparisonRep
         compared,
         baseline_only: vec!["bench/only-baseline".into()],
         candidate_only: vec!["bench/only-candidate".into()],
+        baseline_provenance: compared_provenance("exec-baseline", "Neoverse-N1"),
+        candidate_provenance: compared_provenance("exec-candidate", "Neoverse-V2"),
     }
 }
 
@@ -203,24 +217,37 @@ fn the_decoder_fails_closed_on_anything_that_is_not_this_dataset_format() -> Tes
         ));
     }
 
-    // A payload that claims a format version this reader does not implement,
-    // and one that claims another producer's format entirely.
-    let mut value: serde_json::Value = serde_json::from_slice(&bytes)?;
-    value["format_version"] = serde_json::json!(2);
-    assert!(matches!(
-        decoder.decode(&serde_json::to_vec(&value)?),
-        Err(BenchmarkCompareError::InvalidDataset(
-            BenchmarkError::UnknownFormat
-        ))
-    ));
-    let mut value: serde_json::Value = serde_json::from_slice(&bytes)?;
-    value["format"] = serde_json::json!("rust-engineering-mcp.benchmark-dataset.v2");
-    assert!(matches!(
-        decoder.decode(&serde_json::to_vec(&value)?),
-        Err(BenchmarkCompareError::InvalidDataset(
-            BenchmarkError::UnknownFormat
-        ))
-    ));
+    // A version this reader does not implement, in both directions: v1 is
+    // retired and is never migrated, v3 does not exist yet. Neither is coerced
+    // into the format this reader does understand.
+    for (field, replacement) in [
+        ("format_version", serde_json::json!(1)),
+        ("format_version", serde_json::json!(3)),
+        (
+            "format",
+            serde_json::json!("rust-engineering-mcp.benchmark-dataset.v1"),
+        ),
+        (
+            "format",
+            serde_json::json!("rust-engineering-mcp.benchmark-dataset.v3"),
+        ),
+        (
+            "format",
+            serde_json::json!("some-other-producer.dataset.v2"),
+        ),
+    ] {
+        let mut value: serde_json::Value = serde_json::from_slice(&bytes)?;
+        value[field] = replacement.clone();
+        assert!(
+            matches!(
+                decoder.decode(&serde_json::to_vec(&value)?),
+                Err(BenchmarkCompareError::InvalidDataset(
+                    BenchmarkError::UnknownFormat
+                ))
+            ),
+            "{field} = {replacement} was not refused"
+        );
+    }
 
     // Oversize, refused before a single field is believed.
     let oversize = vec![b' '; usize::try_from(COMPARE_MAX_DATASET_BYTES)? + 1];
@@ -363,12 +390,17 @@ fn an_incompatible_pair_is_an_observed_result_and_not_a_protocol_error() -> Test
     let input = input()?;
     let encoded = tool.encode_result(
         &input,
-        CompareOutcome::Incompatible(vec![
-            IncompatibilityReason::SameArtifact,
-            IncompatibilityReason::CpuModel,
-            IncompatibilityReason::CpuModel,
-            IncompatibilityReason::RustVersion,
-        ]),
+        CompareOutcome::Incompatible(Box::new(Incompatibility {
+            reasons: vec![
+                IncompatibilityReason::SameArtifact,
+                IncompatibilityReason::CpuModel,
+                IncompatibilityReason::CpuModel,
+                IncompatibilityReason::RustVersion,
+            ],
+            baseline_provenance: compared_provenance("exec-baseline", "Neoverse-N1"),
+            candidate_provenance: compared_provenance("exec-candidate", "Skylake"),
+            disagreements: Vec::new(),
+        })),
         7,
     )?;
     assert_eq!(encoded.is_error, Some(false));
@@ -382,6 +414,81 @@ fn an_incompatible_pair_is_an_observed_result_and_not_a_protocol_error() -> Test
     assert_eq!(value["data"]["report"]["method"], serde_json::Value::Null);
     assert_eq!(value["data"]["baseline_artifact_id"], BASELINE);
     assert_eq!(value["data"]["candidate_artifact_id"], CANDIDATE);
+    // A refusal that names `cpu_model` shows WHICH two CPUs, from this call.
+    let report = &value["data"]["report"];
+    assert_eq!(
+        report["baseline_provenance"]["hardware"]["cpu_model"],
+        "Neoverse-N1"
+    );
+    assert_eq!(
+        report["candidate_provenance"]["hardware"]["cpu_model"],
+        "Skylake"
+    );
+    assert_eq!(
+        report["baseline_provenance"]["execution_fingerprint"],
+        "exec-baseline"
+    );
+    assert_eq!(
+        report["candidate_provenance"]["execution_fingerprint"],
+        "exec-candidate"
+    );
+    // Provenance only: nothing the artifact boundary does not already publish.
+    for side in ["baseline_provenance", "candidate_provenance"] {
+        let record = report[side].as_object().ok_or("provenance object")?;
+        for absent in [
+            "source_fingerprint",
+            "declared_toolchain",
+            "run_index",
+            "run_count",
+            "captured_at_unix",
+        ] {
+            assert!(!record.contains_key(absent), "{side} published {absent}");
+        }
+    }
+    assert_eq!(report["disagreements"], serde_json::json!([]));
+    assert_eq!(report["disagreements_omitted"], 0);
+    assert_eq!(report["complete"], true);
+    Ok(())
+}
+
+#[test]
+#[allow(clippy::expect_used)] // Fixed fixture identities; malformed only by mistake.
+fn a_per_benchmark_disagreement_publishes_both_observed_identities() -> TestResult {
+    let tool = ComparisonTool::new()?;
+    let input = input()?;
+    let identity = |group: &str| {
+        BenchmarkIdentity::new(
+            group.to_owned(),
+            Some("function".to_owned()),
+            None,
+            "bench/one".to_owned(),
+            "bench_one".to_owned(),
+        )
+        .expect("a fixture identity is well formed")
+    };
+    let encoded = tool.encode_result(
+        &input,
+        CompareOutcome::Incompatible(Box::new(Incompatibility {
+            reasons: vec![IncompatibilityReason::BenchmarkIdentity],
+            baseline_provenance: compared_provenance("exec-baseline", "Neoverse-N1"),
+            candidate_provenance: compared_provenance("exec-candidate", "Neoverse-N1"),
+            disagreements: vec![MeasurementDisagreement {
+                key: "bench/one".to_owned(),
+                baseline_identity: identity("group"),
+                candidate_identity: identity("other-group"),
+                baseline_sampling_mode: SamplingMode::Flat,
+                candidate_sampling_mode: SamplingMode::Linear,
+            }],
+        })),
+        7,
+    )?;
+    let value = encoded.structured_content.ok_or("content")?;
+    let row = &value["data"]["report"]["disagreements"][0];
+    assert_eq!(row["key"], "bench/one");
+    assert_eq!(row["baseline"]["group_id"], "group");
+    assert_eq!(row["candidate"]["group_id"], "other-group");
+    assert_eq!(row["baseline"]["sampling_mode"], "flat");
+    assert_eq!(row["candidate"]["sampling_mode"], "linear");
     Ok(())
 }
 
@@ -407,7 +514,21 @@ fn a_report_publishes_the_whole_frozen_method_and_ranks_its_rows() -> TestResult
     assert_eq!(method["material_threshold_ratio"], 0.05);
     assert_eq!(method["multiplicity"], "bonferroni");
     assert_eq!(method["family_size"], 4);
+    assert_eq!(
+        method["max_resolvable_family_size"],
+        rust_engineering_domain::benchmark_compare::MAX_RESOLVABLE_FAMILY_SIZE
+    );
     assert_eq!(method["outlier_policy"], "reported_not_removed");
+    // A compatible pair publishes the same two records a refusal would.
+    let report = &value["data"]["report"];
+    assert_eq!(
+        report["baseline_provenance"]["execution_fingerprint"],
+        "exec-baseline"
+    );
+    assert_eq!(
+        report["candidate_provenance"]["hardware"]["cpu_model"],
+        "Neoverse-V2"
+    );
     assert_eq!(
         method["seed"],
         rust_engineering_domain::benchmark_compare::BOOTSTRAP_SEED

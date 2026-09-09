@@ -36,6 +36,8 @@ fn wide_report() -> ComparisonReport {
         candidate_only: (0..WIDE_NAMES)
             .map(|index| format!("c{filler}{index:03}"))
             .collect(),
+        baseline_provenance: super::tests::compared_provenance("exec-baseline", "Neoverse-N1"),
+        candidate_provenance: super::tests::compared_provenance("exec-candidate", "Neoverse-V2"),
     }
 }
 
@@ -106,6 +108,16 @@ fn encode_result_trims_names_then_the_lowest_ranked_rows_into_the_wire_budget() 
             .all(|verdict| *verdict != "inconclusive")
     );
     assert_eq!(report["method"]["family_size"], WIDE_COMPARISONS as u64);
+    // Whatever else the budget forced out, both provenance records survived:
+    // they are what every reason in this response is read against.
+    assert_eq!(
+        report["baseline_provenance"]["execution_fingerprint"],
+        "exec-baseline"
+    );
+    assert_eq!(
+        report["candidate_provenance"]["hardware"]["cpu_model"],
+        "Neoverse-V2"
+    );
     Ok(())
 }
 

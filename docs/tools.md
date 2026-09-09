@@ -1268,6 +1268,17 @@ produjo), junto al árbol de salida del harness como
 `stdout`/`stderr` fueron recortados. Un lector que no reconozca exactamente ese
 identificador y esa versión falla cerrado y nunca migra medidas (ADR-073 §3).
 
+`criterion_archive` es el árbol de **una** repetición: la última que exportó
+uno, que es la misma cuyo exit, terminación y logs reporta la respuesta. No es
+una fusión ni una concatenación de las tres, porque cada repetición escribe su
+propio `CRITERION_HOME` y sus rutas colisionan; el dataset publicado al lado sí
+agrupa todas y cada muestra lleva su `run_index`. Su `completeness` es
+`complete` solo cuando se pidió una única repetición y esa repetición terminó;
+con varias repeticiones el árbol publicado es evidencia parcial de la ejecución
+y se declara `partial`. Un árbol que exceda el techo de 32 MiB de ADR-076 §7 no
+se recorta —un tar cortado no es un tar—: se declara como omisión
+(`output_too_large`) y la ejecución publica solo el dataset.
+
 Códigos de error: `TASKS_REQUIRED` (no se admite como MCP Task), `SANDBOX_DENIED`
 (capacidad o discovery del sandbox), `MISSING_OFFLINE_DATA` (vendor autenticado
 ausente o inválido), `ARTIFACT_UNAVAILABLE` (store durable no disponible),
@@ -1330,13 +1341,33 @@ ejecución por lado nada distingue un cambio en el código de un cambio en la
 máquina; **dispersión degenerada (error estándar cero) ⇒ `inconclusive` por
 `degenerate_dispersion`**, porque una dispersión observada de cero es ausencia de
 información sobre la dispersión y no precisión infinita; `MDR` mayor que el
-umbral ⇒ `inconclusive` por precisión insuficiente; intervalo completamente por
-encima de `+5 %` ⇒ `regression`; completamente por debajo de `-5 %` ⇒
-`improvement`; completamente dentro de `±5 %` ⇒ `no_material_change`; en
-cualquier otro caso `inconclusive` porque el intervalo cruza el umbral. Las
-razones se enumeran (`insufficient_samples`, `precision_below_threshold`,
-`interval_spans_threshold`, `zero_or_negative_baseline`, `missing_measurement`,
-`truncated_measurement`, `single_execution_per_side`, `degenerate_dispersion`).
+**familia mayor que 25 ⇒ `inconclusive` por `family_beyond_resolution`**, sin
+correr bootstrap y sin afirmar intervalo, porque con Bonferroni el extremo que
+pediría a 10 000 remuestreos sería un estadístico de orden extremo y no una
+interpolación; **campo de hardware no observable en los dos lados ⇒
+`inconclusive` por `unobservable_hardware`**, porque el parámetro ambiental que
+pudo causar la diferencia nunca se observó; `MDR` mayor que el umbral ⇒
+`inconclusive` por precisión insuficiente; intervalo completamente por encima de
+`+5 %` ⇒ `regression`; completamente por debajo de `-5 %` ⇒ `improvement`;
+completamente dentro de `±5 %` ⇒ `no_material_change`; en cualquier otro caso
+`inconclusive` porque el intervalo cruza el umbral. Las razones se enumeran
+(`insufficient_samples`, `precision_below_threshold`, `interval_spans_threshold`,
+`zero_or_negative_baseline`, `missing_measurement`, `truncated_measurement`,
+`single_execution_per_side`, `degenerate_dispersion`, `family_beyond_resolution`,
+`unobservable_hardware`).
+
+> [!IMPORTANT]
+> **En el runtime M5 tal como se entrega, `rust.benchmark.compare` no emite
+> ninguna dirección.** El governor de CPU no es legible dentro del contenedor, de
+> modo que es desconocido en los dos lados y la comparación sale `inconclusive`
+> con `unobservable_hardware`. Aunque lo fuera, la deriva medida entre
+> ejecuciones del mismo código en el host calificado va del 15 % al 29 % contra un
+> umbral material del 5 %, así que el MDR queda por encima del umbral y la puerta
+> de precisión se negaría igual. La tool **sí** mide y publica el efecto —sobre
+> las capturas reales, un cambio de fuente del +25 % se mide como +24,4 %—; lo que
+> no hace es llamarlo regresión. Cambiar eso exige un host cuyo governor sea
+> observable y cuya deriva entre ejecuciones esté por debajo del umbral, no un
+> ajuste del método.
 
 Por comparación se publican clave, veredicto, `effect_ratio`
 (`candidate_median_ns / baseline_median_ns - 1`; positivo significa que el
@@ -1350,9 +1381,15 @@ una, con sus contadores).
 respuesta es `status = failed` con `error_code = INCOMPATIBLE_DATASETS`,
 `isError` en `false` y la lista completa y ordenada de razones, de entre
 `format_version`, `unit`, `harness`, `harness_version`, `benchmark_identity`,
-`rust_version`, `cargo_version`, `runtime_image`, `platform`, `architecture`,
-`cpu_model`, `quotas`, `selection`, `sampling_mode`, `unknown_hardware` y
-`same_artifact`. El `source_fingerprint` **puede** diferir —esa es la razón de
+`rust_version`, `cargo_version`, `runtime_image`, `platform`, `configuration`,
+`architecture`, `cpu_model`, `cpu_cores`, `os_kernel`, `cpu_governor`,
+`virtualization`, `quotas`, `selection`, `sampling_mode`, `unknown_hardware` y
+`same_artifact`. La respuesta de un par incompatible lleva además las **dos
+provenances comparadas** —formato y versión, unidad, harness y versión, toolchain,
+digest de imagen, plataforma, `configuration_fingerprint`,
+`execution_fingerprint`, selección y hardware—, de modo que un llamador al que se
+le dice `cpu_model` puede ver *qué dos* CPUs, en lugar de tener que pedirlas a
+otra tool que no existe. El `source_fingerprint` **puede** diferir —esa es la razón de
 comparar—, pero comparar un artifact consigo mismo se rechaza como
 `same_artifact`; comparar dos ejecuciones independientes del mismo código es un
 control legítimo.

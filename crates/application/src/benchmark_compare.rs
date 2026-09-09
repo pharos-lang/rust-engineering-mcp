@@ -21,7 +21,7 @@ use crate::{
 };
 use rust_engineering_domain::benchmark::{BenchmarkDataset, BenchmarkError};
 use rust_engineering_domain::benchmark_compare::{
-    CompareError, ComparisonReport, IncompatibilityReason, compare,
+    CompareError, ComparisonReport, Incompatibility, compare,
 };
 use rust_engineering_domain::{
     PayloadFormatVersion, ProjectRef, QualityArtifactError, QualityArtifactId, QualityArtifactKind,
@@ -49,7 +49,9 @@ pub struct CompareRequest {
 #[derive(Clone, Debug, PartialEq)]
 pub enum CompareOutcome {
     Report(Box<ComparisonReport>),
-    Incompatible(Vec<IncompatibilityReason>),
+    /// The refusal carries the two provenance records the check read, so a
+    /// caller can see the values behind each reason without the artifacts.
+    Incompatible(Box<Incompatibility>),
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -220,7 +222,7 @@ impl<B: QualityProjectBackend, G: ReferenceGenerator, C: RegistryClock> ProjectR
         control.check()?;
         match compare(&baseline, &candidate) {
             Ok(report) => Ok(CompareOutcome::Report(Box::new(report))),
-            Err(CompareError::Incompatible(reasons)) => Ok(CompareOutcome::Incompatible(reasons)),
+            Err(CompareError::Incompatible(details)) => Ok(CompareOutcome::Incompatible(details)),
             Err(CompareError::NoCommonBenchmark) => Err(BenchmarkCompareError::NoCommonBenchmark),
             Err(CompareError::InvalidDataset(error)) => {
                 Err(BenchmarkCompareError::InvalidDataset(error))
@@ -243,7 +245,7 @@ mod tests {
         BenchmarkSelection, HardwareProfile, MeasurementCompleteness, RawSample, ResourceQuotas,
         SampleUnit, SamplingMode, Virtualization,
     };
-    use rust_engineering_domain::benchmark_compare::ComparisonVerdict;
+    use rust_engineering_domain::benchmark_compare::{ComparisonVerdict, IncompatibilityReason};
     use rust_engineering_domain::{
         PruneReport, QualityArtifactDescriptor, QualityJobId, RecoveryReport,
     };
@@ -741,10 +743,12 @@ mod tests {
     fn the_same_id_twice_reaches_the_domain_and_returns_same_artifact() {
         let mut fixture = seeded();
         let outcome = fixture.compare(BASELINE, BASELINE);
-        assert_eq!(
-            outcome,
-            CompareOutcome::Incompatible(vec![IncompatibilityReason::SameArtifact])
-        );
+        let details = match outcome {
+            CompareOutcome::Incompatible(details) => Some(details),
+            CompareOutcome::Report(_) => None,
+        }
+        .expect("expected an incompatible pair");
+        assert_eq!(details.reasons, vec![IncompatibilityReason::SameArtifact]);
         // Both sides were actually read; nothing was short-circuited here.
         assert_eq!(fixture.decoder.calls.load(Ordering::SeqCst), 2);
     }
@@ -760,10 +764,16 @@ mod tests {
                 vec![measurement("bench/one", &jitter(2, 60, 1_200.0))],
             ),
         );
-        assert_eq!(
-            fixture.compare(BASELINE, CANDIDATE),
-            CompareOutcome::Incompatible(vec![IncompatibilityReason::RustVersion])
-        );
+        let details = match fixture.compare(BASELINE, CANDIDATE) {
+            CompareOutcome::Incompatible(details) => Some(details),
+            CompareOutcome::Report(_) => None,
+        }
+        .expect("expected an incompatible pair");
+        assert_eq!(details.reasons, vec![IncompatibilityReason::RustVersion]);
+        // The refusal reaches this layer with the two values behind it, so the
+        // adapter can publish what actually differed.
+        assert_eq!(details.baseline_provenance.rust_version, "1.98.1");
+        assert_eq!(details.candidate_provenance.rust_version, "1.99.0");
     }
 
     #[test]
