@@ -344,10 +344,13 @@ fn profile_completeness(value: ProfileCompleteness) -> ArtifactCompleteness {
     }
 }
 
+/// The member published here is the analyzer's **raw JSON report**, so its
+/// completeness is the report's own and never the published ranking's: the
+/// product's row cap bounds what the DTO shows, not what this file contains.
+/// That is why no arm maps to `Truncated` (ADR-079 §1 and §4).
 fn bloat_completeness(value: BloatCompleteness) -> ArtifactCompleteness {
     match value {
         BloatCompleteness::Complete => ArtifactCompleteness::Complete,
-        BloatCompleteness::Truncated => ArtifactCompleteness::Truncated,
         // The analyzer's own file size disagreed with the size this product
         // measured: the ranking describes some other file (ADR-076 §6).
         BloatCompleteness::SizeMismatch => ArtifactCompleteness::Invalid,
@@ -492,10 +495,6 @@ mod tests {
         assert_eq!(
             bloat_completeness(BloatCompleteness::SizeMismatch),
             ArtifactCompleteness::Invalid
-        );
-        assert_eq!(
-            bloat_completeness(BloatCompleteness::Truncated),
-            ArtifactCompleteness::Truncated
         );
         assert_eq!(
             bloat_completeness(BloatCompleteness::UnsupportedFormat),

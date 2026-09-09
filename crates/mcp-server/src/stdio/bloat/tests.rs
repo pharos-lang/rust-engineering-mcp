@@ -39,9 +39,20 @@ pub(super) mod fixtures {
                 name: "member".into(),
                 size_bytes: 1_024,
             }],
-            functions_omitted: 0,
-            crates_omitted: 0,
+            functions_omitted_by_row_cap: 0,
+            crates_omitted_by_row_cap: 0,
         }
+    }
+
+    /// The shape of every binary that links `std`: the analyzer ranked more
+    /// functions than the product's own cap admits, so the cap dropped the
+    /// smallest ones and says how many. The real native positive dropped 378
+    /// of 634 function rows.
+    pub(in crate::stdio::bloat) fn capped_attribution(reported: Option<u64>) -> BloatAttribution {
+        let mut capped = attribution(reported);
+        capped.functions_omitted_by_row_cap = 378;
+        capped.crates_omitted_by_row_cap = 3;
+        capped
     }
 
     #[allow(clippy::too_many_arguments)]
@@ -484,17 +495,54 @@ fn result_encoding_separates_build_and_analyzer_failures_from_declared_completen
             "blocked",
             serde_json::json!("SIZE_MISMATCH"),
         ),
+        // ADR-079 §2: a ranking the product's own cap bounded is a validated
+        // analysis. This is the case that could not be `passed` before.
         (
             fixtures::published(
                 fixtures::observation(
                     options.clone(),
                     BloatExit::Passed,
                     Some(0),
-                    BloatCompleteness::Truncated,
+                    BloatCompleteness::Complete,
+                    Some(fixtures::measured(4_096)),
+                    Some(fixtures::capped_attribution(Some(4_096))),
+                )?,
+                ArtifactCompleteness::Complete,
+                true,
+            )?,
+            "passed",
+            serde_json::Value::Null,
+        ),
+        // ADR-079 §3, last bullet: a valid measurement whose backing artifact
+        // was never published has no success to declare.
+        (
+            fixtures::published(
+                fixtures::observation(
+                    options.clone(),
+                    BloatExit::Passed,
+                    Some(0),
+                    BloatCompleteness::Complete,
                     Some(fixtures::measured(4_096)),
                     Some(fixtures::attribution(Some(4_096))),
                 )?,
                 ArtifactCompleteness::Complete,
+                false,
+            )?,
+            "blocked",
+            serde_json::json!("EVIDENCE_INCOMPLETE"),
+        ),
+        // Nor one whose artifact was published as anything but complete.
+        (
+            fixtures::published(
+                fixtures::observation(
+                    options.clone(),
+                    BloatExit::Passed,
+                    Some(0),
+                    BloatCompleteness::Complete,
+                    Some(fixtures::measured(4_096)),
+                    Some(fixtures::attribution(Some(4_096))),
+                )?,
+                ArtifactCompleteness::Partial,
                 true,
             )?,
             "blocked",
@@ -507,6 +555,199 @@ fn result_encoding_separates_build_and_analyzer_failures_from_declared_completen
         assert_eq!(value["status"], status, "{value}");
         assert_eq!(value["error_code"], code);
         assert_eq!(value["duration_ms"], 7);
+        // `passed` and "the analysis validated" are the same statement
+        // (ADR-079 §2), and nothing else in the payload may decide it.
+        assert_eq!(
+            value["data"]["observation"]["analysis_validated"],
+            serde_json::json!(status == "passed"),
+            "{value}"
+        );
+    }
+    Ok(())
+}
+
+/// ADR-079 §2, on the wire. The case that motivated the decision: every binary
+/// that links `std` ranks more than `BLOAT_MAX_ROWS` functions, so the cap acts
+/// on every real analysis. The result is `passed`, the cap is named with the
+/// limit it applied and the rows it dropped, and the response-budget counters
+/// stay at zero so a reader can tell the two limits apart.
+///
+/// This fails the moment ranking coverage is wired back into the status.
+#[test]
+fn a_ranking_bounded_by_the_products_own_cap_is_passed_and_says_what_the_cap_dropped() -> TestResult
+{
+    let tool = BloatTool::new()?;
+    let reference = super::super::security_tool::test_fixtures::project_ref()?;
+    let observation = fixtures::observation(
+        fixtures::options(BloatProfile::Release)?,
+        BloatExit::Passed,
+        Some(0),
+        BloatCompleteness::Complete,
+        Some(fixtures::measured(4_096)),
+        Some(fixtures::capped_attribution(Some(4_096))),
+    )?;
+    let value = tool
+        .encode_result(
+            &reference,
+            fixtures::published(observation, ArtifactCompleteness::Complete, true)?,
+            7,
+        )?
+        .structured_content
+        .ok_or("content")?;
+    assert_eq!(value["status"], "passed", "{value}");
+    assert!(value["error_code"].is_null());
+    let observation = &value["data"]["observation"];
+    assert_eq!(observation["analysis_validated"], true);
+    // Validity is untouched by the cap, and says so in its own vocabulary.
+    assert_eq!(observation["completeness"], "complete");
+    let cap = &observation["attribution"]["ranking_cap"];
+    assert_eq!(cap["max_rows"], BLOAT_MAX_ROWS as u64);
+    assert_eq!(cap["functions_omitted"], 378);
+    assert_eq!(cap["crates_omitted"], 3);
+    // The other limit did not act, and says so separately.
+    let trim = &observation["attribution"]["response_trim"];
+    assert_eq!(trim["functions_omitted"], 0);
+    assert_eq!(trim["crates_omitted"], 0);
+    assert_eq!(trim["budget_bytes"], RESPONSE_BUDGET_BYTES as u64);
+    // A capped ranking is still an exactly measured file.
+    assert_eq!(observation["measured"]["size_bytes"], 4_096);
+    Ok(())
+}
+
+/// ADR-079 §3. A one-byte disagreement between the size this product measured
+/// and the size the analyzer reported is not `passed`, and the payload does not
+/// present the attribution as a description of the measured file: the
+/// completeness names the disagreement, validity is false, and the two sizes
+/// stay visibly different instead of being reconciled.
+#[test]
+fn a_size_mismatch_is_not_passed_and_its_attribution_never_describes_the_measured_file()
+-> TestResult {
+    let tool = BloatTool::new()?;
+    let reference = super::super::security_tool::test_fixtures::project_ref()?;
+    let observation = fixtures::observation(
+        fixtures::options(BloatProfile::Release)?,
+        BloatExit::Passed,
+        Some(0),
+        BloatCompleteness::SizeMismatch,
+        Some(fixtures::measured(4_096)),
+        Some(fixtures::attribution(Some(4_095))),
+    )?;
+    let value = tool
+        .encode_result(
+            &reference,
+            fixtures::published(observation, ArtifactCompleteness::Invalid, true)?,
+            7,
+        )?
+        .structured_content
+        .ok_or("content")?;
+    assert_eq!(value["status"], "blocked", "{value}");
+    assert_eq!(value["error_code"], "SIZE_MISMATCH");
+    let observation = &value["data"]["observation"];
+    assert_eq!(observation["analysis_validated"], false);
+    assert_eq!(observation["completeness"], "size_mismatch");
+    assert_eq!(observation["measured"]["size_bytes"], 4_096);
+    assert_eq!(
+        observation["attribution"]["reported_file_size_bytes"],
+        4_095
+    );
+    assert_ne!(
+        observation["measured"]["size_bytes"],
+        observation["attribution"]["reported_file_size_bytes"]
+    );
+    // And the artifact behind it is declared invalid, not complete evidence.
+    assert_eq!(value["data"]["artifacts"][0]["completeness"], "invalid");
+    Ok(())
+}
+
+/// The exact measured file size is what `passed` rests on (ADR-079 §2), so it
+/// must survive every path that publishes a measurement at all — including the
+/// three that block. A path that dropped it would leave the analyzer's estimate
+/// unchecked.
+#[test]
+fn the_exact_measured_size_survives_every_path_that_measured_a_file() -> TestResult {
+    let tool = BloatTool::new()?;
+    let reference = super::super::security_tool::test_fixtures::project_ref()?;
+    let options = fixtures::options(BloatProfile::Release)?;
+    let cases: Vec<(&str, PublishedBloat)> = vec![
+        (
+            "capped ranking",
+            fixtures::published(
+                fixtures::observation(
+                    options.clone(),
+                    BloatExit::Passed,
+                    Some(0),
+                    BloatCompleteness::Complete,
+                    Some(fixtures::measured(4_096)),
+                    Some(fixtures::capped_attribution(Some(4_096))),
+                )?,
+                ArtifactCompleteness::Complete,
+                true,
+            )?,
+        ),
+        (
+            "size mismatch",
+            fixtures::published(
+                fixtures::observation(
+                    options.clone(),
+                    BloatExit::Passed,
+                    Some(0),
+                    BloatCompleteness::SizeMismatch,
+                    Some(fixtures::measured(4_096)),
+                    Some(fixtures::attribution(Some(4_095))),
+                )?,
+                ArtifactCompleteness::Invalid,
+                true,
+            )?,
+        ),
+        (
+            "unsupported format",
+            fixtures::published(
+                fixtures::observation(
+                    options.clone(),
+                    BloatExit::Passed,
+                    Some(0),
+                    BloatCompleteness::UnsupportedFormat,
+                    Some(MeasuredBinary {
+                        size_bytes: 4_096,
+                        sha256: format!("sha256:{}", "c".repeat(64)),
+                        format: BinaryFormat::Wasm,
+                        analysis_build_symbols_forced: true,
+                    }),
+                    None,
+                )?,
+                ArtifactCompleteness::Unavailable,
+                false,
+            )?,
+        ),
+        (
+            "unpublished evidence",
+            fixtures::published(
+                fixtures::observation(
+                    options.clone(),
+                    BloatExit::Passed,
+                    Some(0),
+                    BloatCompleteness::Complete,
+                    Some(fixtures::measured(4_096)),
+                    Some(fixtures::attribution(Some(4_096))),
+                )?,
+                ArtifactCompleteness::Complete,
+                false,
+            )?,
+        ),
+    ];
+    for (name, published) in cases {
+        let value = tool
+            .encode_result(&reference, published, 7)?
+            .structured_content
+            .ok_or("content")?;
+        assert_eq!(
+            value["data"]["observation"]["measured"]["size_bytes"], 4_096,
+            "{name}: {value}"
+        );
+        assert_eq!(
+            value["data"]["observation"]["measured"]["analysis_build_symbols_forced"], true,
+            "{name}"
+        );
     }
     Ok(())
 }

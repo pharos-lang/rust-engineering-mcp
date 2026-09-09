@@ -909,15 +909,22 @@ fn attribution(output: &BloatOutput) -> Option<BloatAttribution> {
         text_section_size_bytes: Some(functions.text_section_size_bytes),
         functions: functions.functions,
         crates: crates.crates,
-        functions_omitted: functions.omitted,
-        crates_omitted: crates.omitted,
+        functions_omitted_by_row_cap: functions.omitted,
+        crates_omitted_by_row_cap: crates.omitted,
     })
 }
 
 /// ADR-076 §6, in order: no measurement of our own is `Unavailable`; a format
 /// the ELF positive does not qualify is `UnsupportedFormat`; an attribution
 /// whose file size disagrees with ours describes another file and is
-/// `SizeMismatch`; a ranking the report capped is `Truncated`.
+/// `SizeMismatch`.
+///
+/// A ranking the product's own `BLOAT_MAX_ROWS` cap bounded is **not** a
+/// completeness state, and used to be: ADR-079 §1 separates coverage from
+/// validity, so the row counters travel on the attribution and this function
+/// answers only whether the measurement is valid. Every binary that links `std`
+/// has more than 256 attributable functions, so folding the cap in here made the
+/// tool's success path unreachable.
 fn bloat_completeness(
     measured: Option<&MeasuredBinary>,
     attribution: Option<&BloatAttribution>,
@@ -936,9 +943,6 @@ fn bloat_completeness(
     };
     if attribution.reported_file_size_bytes != Some(measured.size_bytes) {
         return BloatCompleteness::SizeMismatch;
-    }
-    if attribution.functions_omitted > 0 || attribution.crates_omitted > 0 {
-        return BloatCompleteness::Truncated;
     }
     BloatCompleteness::Complete
 }
@@ -1000,6 +1004,7 @@ pub(super) fn bloat(
 mod tests {
     use super::*;
     use crate::supervisor::{Capture, Stop};
+    use rust_engineering_domain::bloat::BLOAT_MAX_ROWS;
     use std::collections::BTreeSet;
 
     fn capture(code: Option<i32>, stdout: &[u8]) -> Capture {
@@ -1831,6 +1836,52 @@ mod tests {
                 attribution(&inconsistent).as_ref()
             ),
             BloatCompleteness::Unavailable
+        );
+    }
+
+    /// ADR-079 §1, at the layer that decides completeness. The real positive
+    /// links 634 attributable functions against a 256-row cap, so this is the
+    /// shape of every `std` binary: the cap acts, says how many rows it
+    /// dropped, and leaves the measurement valid. If a `Truncated`-style
+    /// downgrade ever returns here, `rust.binary.bloat` becomes unable to
+    /// succeed on any real binary again, and this assertion is what catches it.
+    #[test]
+    fn a_ranking_the_row_cap_bounded_stays_a_complete_measurement() {
+        let rows = (0..BLOAT_MAX_ROWS + 378)
+            .map(|index| format!(r#"{{"crate":"fixture","name":"f{index:04}","size":{}}}"#, 1))
+            .collect::<Vec<_>>()
+            .join(",");
+        let functions =
+            format!(r#"{{"file-size":4096,"text-section-size":2048,"functions":[{rows}]}}"#)
+                .into_bytes();
+        let output = bloat_output(b"4096\n", &functions, CRATES);
+        let measured = measured_binary(&output);
+        let attributed = attribution(&output);
+        assert_eq!(
+            attributed.as_ref().map(|rows| rows.functions.len()),
+            Some(BLOAT_MAX_ROWS)
+        );
+        assert_eq!(
+            attributed
+                .as_ref()
+                .map(|rows| rows.functions_omitted_by_row_cap),
+            Some(378)
+        );
+        assert_eq!(
+            attributed
+                .as_ref()
+                .map(|rows| rows.crates_omitted_by_row_cap),
+            Some(0)
+        );
+        assert_eq!(
+            bloat_completeness(measured.as_ref(), attributed.as_ref()),
+            BloatCompleteness::Complete,
+            "the product's own row cap is coverage, never a validity downgrade"
+        );
+        // And the exact size the whole result rests on is untouched by the cap.
+        assert_eq!(
+            measured.as_ref().map(|binary| binary.size_bytes),
+            Some(4096)
         );
     }
 

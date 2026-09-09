@@ -124,21 +124,28 @@ class RuntimePlanTests(unittest.TestCase):
         self.assertIn("samples_lost", row["expect_zero_fields"])
 
     def test_bloat_expects_the_status_the_product_actually_produces(self):
-        # `bloat_completeness` returns Truncated whenever a row was omitted and
-        # the parser caps functions at BLOAT_MAX_ROWS, so `complete` is false
-        # and `outcome` maps it to blocked/EVIDENCE_INCOMPLETE.  The
-        # measurement is still real, which is what this row asserts.
+        # ADR-079: the parser still caps functions at BLOAT_MAX_ROWS, but the
+        # cap is declared coverage now, not a completeness downgrade, so a real
+        # binary reaches passed with the exact measurement in hand.  Before, the
+        # cap became Truncated -> complete=false -> blocked/EVIDENCE_INCOMPLETE,
+        # which no binary linking std could avoid.
         row = next(item for item in M5.runtime_call_plan()
                    if item["tool"] == "rust.binary.bloat")
-        self.assertEqual(row["expect_status"], "blocked")
-        self.assertEqual(row["expect_error_code"], "EVIDENCE_INCOMPLETE")
+        self.assertEqual(row["expect_status"], "passed")
+        self.assertIsNone(row["expect_error_code"])
         self.assertTrue(row["expect_measured"])
         self.assertEqual(row["expect_observation"]["exit"], "passed")
+        self.assertEqual(row["expect_observation"]["completeness"], "complete")
+        self.assertTrue(row["expect_observation"]["analysis_validated"])
         self.assertFalse(row["requires_profiling_grant"])
         source = (M5.STDIO_DIR / "bloat.rs").read_text()
-        self.assertIn("&& completeness == schemas::BloatCompleteness::Complete", source)
-        self.assertIn("pub const BLOAT_MAX_ROWS: usize = 256;",
-                      (M5.ROOT / "crates/domain/src/bloat.rs").read_text())
+        # Only measurement validity decides the status; neither omission
+        # counter is read where the outcome is chosen.
+        self.assertIn("if observation.analysis_validated {", source)
+        self.assertNotIn("BloatCompleteness::Truncated", source)
+        domain = (M5.ROOT / "crates/domain/src/bloat.rs").read_text()
+        self.assertIn("pub const BLOAT_MAX_ROWS: usize = 256;", domain)
+        self.assertIn("pub fn analysis_validated(&self) -> bool {", domain)
 
     def test_a_runtime_row_without_evidence_is_refused(self):
         broken = ({**M5.RUNTIME_CALL_PLAN[0], "expect_min_artifacts": 0},)
@@ -207,14 +214,26 @@ class ObservationOracleTests(unittest.TestCase):
 
     def test_bloat_requires_an_exact_measured_file(self):
         row = next(item for item in M5.runtime_call_plan() if item["tool"] == "rust.binary.bloat")
-        payload = {"status": "blocked", "error_code": "EVIDENCE_INCOMPLETE", "data": {
-            "observation": {"exit": "passed", "complete": False, "completeness": "truncated",
+        # ADR-079's shape: the ranking cap dropped 378 rows and says so, the
+        # measurement is valid regardless, and the artifact behind it is
+        # complete because the raw report is complete whatever the cap showed.
+        payload = {"status": "passed", "error_code": None, "data": {
+            "observation": {"exit": "passed", "analysis_validated": True,
+                            "completeness": "complete",
                             "exit_code": 0, "analyzer_version": "0.12.1",
+                            "attribution": {"estimated": True,
+                                            "reported_file_size_bytes": 4574312,
+                                            "ranking_cap": {"max_rows": 256,
+                                                            "functions_omitted": 378,
+                                                            "crates_omitted": 0},
+                                            "response_trim": {"budget_bytes": 524288,
+                                                              "functions_omitted": 0,
+                                                              "crates_omitted": 0}},
                             "measured": {"size_bytes": 4574312, "sha256": "sha256:" + "d" * 64,
                                          "format": "elf64_aarch64",
                                          "analysis_build_symbols_forced": True}},
             "artifacts": [{"kind": "bloat_json", "uri": "rust-quality-artifact://" + "a" * 32 + "/1",
-                           "sha256": "e" * 64, "size_bytes": 20480, "completeness": "truncated"}]}}
+                           "sha256": "e" * 64, "size_bytes": 20480, "completeness": "complete"}]}}
         checked = M5.check_runtime_observation("Inspector", row, payload)
         self.assertEqual(checked["facts"]["exit"], "passed")
         payload["data"]["observation"]["measured"]["analysis_build_symbols_forced"] = False

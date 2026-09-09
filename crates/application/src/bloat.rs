@@ -27,7 +27,8 @@ use crate::{
 };
 use rust_engineering_domain::bloat::{APPROVED_CARGO_BLOAT_VERSION, BloatCompleteness};
 use rust_engineering_domain::{
-    CargoVendorSnapshot, Clock, ProjectRef, QualityArtifactDescriptor, SourceBundle,
+    ArtifactCompleteness, CargoVendorSnapshot, Clock, ProjectRef, QualityArtifactDescriptor,
+    SourceBundle,
 };
 
 pub use rust_engineering_domain::bloat::{BloatObservation, BloatOptions};
@@ -62,6 +63,31 @@ pub struct BloatPorts<'a, E, P> {
 pub struct PublishedBloat {
     pub observation: BloatObservation,
     pub artifacts: Vec<QualityArtifactDescriptor>,
+}
+
+impl PublishedBloat {
+    /// The complete success condition of ADR-079 §2 and §3: a measurement this
+    /// product validated (the domain's rule) **and** the evidence that backs it
+    /// actually published.
+    ///
+    /// The second half belongs here and nowhere else, because publication is
+    /// this layer's job. A ranking with no durable artifact behind it is an
+    /// assertion the caller cannot check, so ADR-079 §3's last bullet keeps it
+    /// out of `passed` — while a ranking the product's own cap bounded stays in,
+    /// because that is coverage and not lost evidence.
+    pub fn analysis_validated(&self) -> bool {
+        self.observation.analysis_validated() && self.evidence_published()
+    }
+
+    /// Exactly one artifact backs a bloat analysis: the analyzer's raw JSON
+    /// report. It is published, or there is no success to declare.
+    fn evidence_published(&self) -> bool {
+        !self.artifacts.is_empty()
+            && self
+                .artifacts
+                .iter()
+                .all(|descriptor| descriptor.completeness == ArtifactCompleteness::Complete)
+    }
 }
 
 /// Everything that must hold before a size analysis may be published.
@@ -186,8 +212,8 @@ mod tests {
                 name: "member".into(),
                 size_bytes: 1_024,
             }],
-            functions_omitted: 0,
-            crates_omitted: 0,
+            functions_omitted_by_row_cap: 0,
+            crates_omitted_by_row_cap: 0,
         }
     }
 
@@ -338,6 +364,99 @@ mod tests {
             BloatCompleteness::SizeMismatch
         );
         assert_eq!(harness.published, 1);
+    }
+
+    /// ADR-079 §2: a ranking the product's own `BLOAT_MAX_ROWS` cap bounded is
+    /// published as a validated analysis, and the counters say how many rows the
+    /// cap dropped. Nothing about the cap reaches validity — this is the
+    /// assertion that fails if the row counters are wired back into it.
+    #[test]
+    fn a_ranking_bounded_by_the_product_s_own_cap_is_published_and_validated() {
+        let options = options();
+        let mut observed = observation(&options);
+        let mut capped = attribution(Some(MEASURED_SIZE));
+        capped.functions_omitted_by_row_cap = 378;
+        capped.crates_omitted_by_row_cap = 2;
+        observed.attribution = Some(capped);
+        let harness = run(observed, &options, false);
+        let published = harness.result.expect("published");
+        assert_eq!(harness.published, 1);
+        assert_eq!(
+            published.observation.completeness,
+            BloatCompleteness::Complete
+        );
+        assert!(published.analysis_validated());
+        let declared = published
+            .observation
+            .attribution
+            .as_ref()
+            .expect("attribution");
+        assert_eq!(declared.functions_omitted_by_row_cap, 378);
+        assert_eq!(declared.crates_omitted_by_row_cap, 2);
+        // The exact measurement is the thing `passed` rests on, and it is here.
+        assert_eq!(
+            published
+                .observation
+                .measured
+                .as_ref()
+                .map(|binary| binary.size_bytes),
+            Some(MEASURED_SIZE)
+        );
+    }
+
+    /// ADR-079 §3's last bullet: the artifact that backs the attribution is the
+    /// only evidence a caller can check the ranking against. Without it — never
+    /// published, or published as anything but complete — there is no success to
+    /// declare, whatever the measurement said.
+    #[test]
+    fn an_attribution_whose_artifact_was_not_published_is_never_validated() {
+        let options = options();
+        let complete = PublishedBloat {
+            observation: observation(&options),
+            artifacts: vec![descriptor(QualityArtifactKind::BloatJson)],
+        };
+        assert!(complete.analysis_validated());
+
+        let unpublished = PublishedBloat {
+            observation: observation(&options),
+            artifacts: Vec::new(),
+        };
+        assert!(!unpublished.analysis_validated());
+
+        for degraded in [
+            rust_engineering_domain::ArtifactCompleteness::Truncated,
+            rust_engineering_domain::ArtifactCompleteness::Partial,
+            rust_engineering_domain::ArtifactCompleteness::Invalid,
+            rust_engineering_domain::ArtifactCompleteness::Unavailable,
+        ] {
+            let mut artifact = descriptor(QualityArtifactKind::BloatJson);
+            artifact.completeness = degraded;
+            let partial = PublishedBloat {
+                observation: observation(&options),
+                artifacts: vec![artifact],
+            };
+            assert!(!partial.analysis_validated(), "{degraded:?}");
+        }
+    }
+
+    /// A size disagreement is publishable — the caller must see it — but never
+    /// as a validated analysis, and the exact measurement still travels.
+    #[test]
+    fn a_published_size_mismatch_is_never_a_validated_analysis() {
+        let options = options();
+        let mut downgraded = observation(&options);
+        downgraded.attribution = Some(attribution(Some(MEASURED_SIZE - 1)));
+        downgraded.completeness = BloatCompleteness::SizeMismatch;
+        let published = run(downgraded, &options, false).result.expect("published");
+        assert!(!published.analysis_validated());
+        assert_eq!(
+            published
+                .observation
+                .measured
+                .as_ref()
+                .map(|binary| binary.size_bytes),
+            Some(MEASURED_SIZE)
+        );
     }
 
     #[test]

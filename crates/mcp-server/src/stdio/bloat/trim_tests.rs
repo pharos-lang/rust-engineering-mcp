@@ -2,7 +2,10 @@ use super::tests::{TestResult, fixtures};
 use super::*;
 use rust_engineering_domain::bloat::{BloatAttribution, BloatCrate, BloatFunction, BloatProfile};
 
-const MAX_RESULT_BYTES: usize = 512 * 1024;
+/// The budget the tool actually enforces, not a copy of it: a divergence
+/// between the two would make every assertion below test the wrong limit.
+const MAX_RESULT_BYTES: usize = super::super::security_tool::MAX_RESULT_BYTES;
+const _: () = assert!(MAX_RESULT_BYTES == RESPONSE_BUDGET_BYTES as usize);
 
 /// Rows whose names sit near the DTO's 512-byte ceiling, so a few hundred of
 /// them push the complete response past the wire budget while every value in
@@ -45,15 +48,12 @@ fn a_small_complete_report_stays_passed_and_untrimmed() -> TestResult {
     assert!(serde_json::to_vec(&encoded)?.len() <= MAX_RESULT_BYTES);
     let value = encoded.structured_content.ok_or("structured content")?;
     assert_eq!(value["status"], "passed");
-    assert_eq!(value["data"]["observation"]["complete"], true);
-    assert_eq!(
-        value["data"]["observation"]["attribution"]["functions_omitted"],
-        0
-    );
-    assert_eq!(
-        value["data"]["observation"]["attribution"]["crates_omitted"],
-        0
-    );
+    assert_eq!(value["data"]["observation"]["analysis_validated"], true);
+    let attribution = &value["data"]["observation"]["attribution"];
+    assert_eq!(attribution["ranking_cap"]["functions_omitted"], 0);
+    assert_eq!(attribution["ranking_cap"]["crates_omitted"], 0);
+    assert_eq!(attribution["response_trim"]["functions_omitted"], 0);
+    assert_eq!(attribution["response_trim"]["crates_omitted"], 0);
     Ok(())
 }
 
@@ -67,8 +67,8 @@ fn encode_result_trims_the_lowest_ranked_function_rows_before_touching_crates() 
         text_section_size_bytes: Some(2_048),
         functions: wide_functions(700),
         crates: wide_crates(5),
-        functions_omitted: 0,
-        crates_omitted: 0,
+        functions_omitted_by_row_cap: 0,
+        crates_omitted_by_row_cap: 0,
     };
     let observed = fixtures::observation(
         fixtures::options(BloatProfile::Release)?,
@@ -105,15 +105,24 @@ fn encode_result_trims_the_lowest_ranked_function_rows_before_touching_crates() 
     let wire = serde_json::to_vec(&encoded)?;
     assert!(wire.len() <= MAX_RESULT_BYTES, "{}", wire.len());
     let value = encoded.structured_content.ok_or("structured content")?;
-    assert_eq!(value["status"], "blocked");
-    assert_eq!(value["error_code"], "EVIDENCE_INCOMPLETE");
-    assert_eq!(value["data"]["observation"]["complete"], false);
+    // ADR-079 §1: a response that had to shed rows to fit its budget is still a
+    // validated measurement. It was `blocked`/`EVIDENCE_INCOMPLETE` before.
+    assert_eq!(value["status"], "passed", "{}", value["error_code"]);
+    assert_eq!(value["data"]["observation"]["analysis_validated"], true);
 
     let attribution_value = &value["data"]["observation"]["attribution"];
-    let functions_omitted = attribution_value["functions_omitted"]
+    // The budget acted; the product's ranking cap did not. A reader can tell
+    // which limit cost them which rows, which is the whole point of §1.
+    assert_eq!(attribution_value["ranking_cap"]["functions_omitted"], 0);
+    assert_eq!(attribution_value["ranking_cap"]["crates_omitted"], 0);
+    assert_eq!(
+        attribution_value["response_trim"]["budget_bytes"],
+        MAX_RESULT_BYTES as u64
+    );
+    let functions_omitted = attribution_value["response_trim"]["functions_omitted"]
         .as_u64()
         .ok_or("functions_omitted")?;
-    let crates_omitted = attribution_value["crates_omitted"]
+    let crates_omitted = attribution_value["response_trim"]["crates_omitted"]
         .as_u64()
         .ok_or("crates_omitted")?;
     assert!(functions_omitted > 0);
@@ -164,8 +173,8 @@ fn encode_result_trims_crate_rows_once_every_function_row_is_gone() -> TestResul
         text_section_size_bytes: Some(2_048),
         functions: wide_functions(20),
         crates: wide_crates(1_200),
-        functions_omitted: 0,
-        crates_omitted: 0,
+        functions_omitted_by_row_cap: 0,
+        crates_omitted_by_row_cap: 0,
     };
     let observed = fixtures::observation(
         fixtures::options(BloatProfile::Release)?,
@@ -180,14 +189,16 @@ fn encode_result_trims_crate_rows_once_every_function_row_is_gone() -> TestResul
     let wire = serde_json::to_vec(&encoded)?;
     assert!(wire.len() <= MAX_RESULT_BYTES, "{}", wire.len());
     let value = encoded.structured_content.ok_or("structured content")?;
-    assert_eq!(value["status"], "blocked");
-    assert_eq!(value["error_code"], "EVIDENCE_INCOMPLETE");
+    assert_eq!(value["status"], "passed", "{}", value["error_code"]);
+    assert_eq!(value["data"]["observation"]["analysis_validated"], true);
 
     let attribution_value = &value["data"]["observation"]["attribution"];
-    let functions_omitted = attribution_value["functions_omitted"]
+    assert_eq!(attribution_value["ranking_cap"]["functions_omitted"], 0);
+    assert_eq!(attribution_value["ranking_cap"]["crates_omitted"], 0);
+    let functions_omitted = attribution_value["response_trim"]["functions_omitted"]
         .as_u64()
         .ok_or("functions_omitted")?;
-    let crates_omitted = attribution_value["crates_omitted"]
+    let crates_omitted = attribution_value["response_trim"]["crates_omitted"]
         .as_u64()
         .ok_or("crates_omitted")?;
     assert_eq!(
@@ -213,6 +224,72 @@ fn encode_result_trims_crate_rows_once_every_function_row_is_gone() -> TestResul
         .filter_map(|row| row["size_bytes"].as_u64())
         .collect();
     assert!(sizes.windows(2).all(|pair| pair[0] >= pair[1]));
+    Ok(())
+}
+
+/// The discriminating case for ADR-079 §1's third concept: both limits act on
+/// the same response, and the payload keeps them apart. The product's own cap
+/// dropped 378 function rows from the ranking before the DTO ever saw it, and
+/// then the 512 KiB budget dropped more from what was left. A reader must be
+/// able to say which limit cost which rows without inferring anything, and the
+/// result must still be `passed` — neither limit is a validity failure.
+///
+/// A regression that merged the two counters back into one, or that let either
+/// of them decide the status, fails here.
+#[test]
+fn the_products_cap_and_the_response_budget_are_counted_apart_when_both_act() -> TestResult {
+    let tool = BloatTool::new()?;
+    let reference = super::super::security_tool::test_fixtures::project_ref()?;
+    let attribution = BloatAttribution {
+        estimated: true,
+        reported_file_size_bytes: Some(4_096),
+        text_section_size_bytes: Some(2_048),
+        functions: wide_functions(700),
+        crates: wide_crates(5),
+        // What the product's own row cap had already dropped upstream.
+        functions_omitted_by_row_cap: 378,
+        crates_omitted_by_row_cap: 3,
+    };
+    let observed = fixtures::observation(
+        fixtures::options(BloatProfile::Release)?,
+        BloatExit::Passed,
+        Some(0),
+        BloatCompleteness::Complete,
+        Some(fixtures::measured(4_096)),
+        Some(attribution),
+    )?;
+    let published = fixtures::published(observed, ArtifactCompleteness::Complete, true)?;
+    let encoded = tool.encode_result(&reference, published, 7)?;
+    let wire = serde_json::to_vec(&encoded)?;
+    assert!(wire.len() <= MAX_RESULT_BYTES, "{}", wire.len());
+    let value = encoded.structured_content.ok_or("structured content")?;
+    assert_eq!(value["status"], "passed", "{}", value["error_code"]);
+    assert_eq!(value["data"]["observation"]["analysis_validated"], true);
+
+    let attribution_value = &value["data"]["observation"]["attribution"];
+    let cap = &attribution_value["ranking_cap"];
+    let trim = &attribution_value["response_trim"];
+    // The cap's counts are exactly what the analysis reported, untouched by
+    // trimming; the trim's counts are exactly what trimming removed.
+    assert_eq!(cap["max_rows"], BLOAT_MAX_ROWS as u64);
+    assert_eq!(cap["functions_omitted"], 378);
+    assert_eq!(cap["crates_omitted"], 3);
+    let trimmed = trim["functions_omitted"].as_u64().ok_or("trimmed")?;
+    assert!(trimmed > 0);
+    assert_eq!(trim["crates_omitted"], 0);
+    assert_eq!(trim["budget_bytes"], MAX_RESULT_BYTES as u64);
+    // Every row that left the response is accounted to exactly one limit.
+    let kept = attribution_value["functions"]
+        .as_array()
+        .map(Vec::len)
+        .ok_or("functions")?;
+    assert_eq!(kept as u64 + trimmed, 700);
+    // And the measurement the whole result rests on is untouched by either.
+    assert_eq!(
+        value["data"]["observation"]["measured"]["size_bytes"],
+        4_096
+    );
+    assert_eq!(value["data"]["observation"]["completeness"], "complete");
     Ok(())
 }
 

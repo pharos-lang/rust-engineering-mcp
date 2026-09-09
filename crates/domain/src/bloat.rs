@@ -131,6 +131,12 @@ pub struct MeasuredBinary {
 }
 
 /// Estimated attribution. Every field here comes from the analyzer.
+///
+/// The two omission counters are **ranking coverage**, which ADR-079 §1 keeps
+/// apart from measurement validity: they say how much of the analyzer's ranking
+/// this product's own row cap ([`BLOAT_MAX_ROWS`]) left out. A capped ranking is
+/// the attribution the contract promises, not incomplete evidence, so nothing
+/// here may feed [`BloatObservation::analysis_validated`].
 #[derive(Clone, Debug, PartialEq, Eq, Serialize)]
 #[serde(rename_all = "snake_case", deny_unknown_fields)]
 pub struct BloatAttribution {
@@ -140,8 +146,11 @@ pub struct BloatAttribution {
     pub text_section_size_bytes: Option<u64>,
     pub functions: Vec<BloatFunction>,
     pub crates: Vec<BloatCrate>,
-    pub functions_omitted: u32,
-    pub crates_omitted: u32,
+    /// Function rows [`BLOAT_MAX_ROWS`] left out of the ranking. The dropped
+    /// rows were the smallest; every row kept is estimated at least as large.
+    pub functions_omitted_by_row_cap: u32,
+    /// Crate rows [`BLOAT_MAX_ROWS`] left out of the ranking.
+    pub crates_omitted_by_row_cap: u32,
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, Serialize)]
@@ -159,6 +168,15 @@ pub struct BloatCrate {
     pub size_bytes: u64,
 }
 
+/// Whether the measurement itself is valid, and nothing else (ADR-079 §1).
+///
+/// This vocabulary answers one question: did the analyzer run, produce a report
+/// this product could parse, and report a file size that agrees with the size
+/// this product measured on its own? It deliberately has no variant for a
+/// ranking the product's own cap bounded, because that is coverage rather than
+/// validity: it is declared in [`BloatAttribution`]'s omission counters and it
+/// never downgrades this enum. A `Truncated` variant lived here until ADR-079
+/// and was the whole defect — a declared product cap read as invalid evidence.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize)]
 #[serde(rename_all = "snake_case")]
 pub enum BloatCompleteness {
@@ -167,7 +185,6 @@ pub enum BloatCompleteness {
     /// The attribution then describes some other file and is not published as
     /// if it described this one.
     SizeMismatch,
-    Truncated,
     UnsupportedFormat,
     Unavailable,
 }
@@ -214,6 +231,33 @@ pub struct BloatObservation {
     pub stderr_truncated: bool,
 }
 impl BloatObservation {
+    /// Measurement validity, which is the only one of ADR-079 §1's three
+    /// concepts allowed to decide a status.
+    ///
+    /// True means exactly what ADR-079 §2 lets `passed` mean: the analyzer
+    /// executed, this product could parse what it produced, and **the exact
+    /// measured file size is present and the analyzer agrees with it**. It does
+    /// not mean the binary is optimized, and it does not mean the attribution is
+    /// exhaustive — a ranking bounded by [`BLOAT_MAX_ROWS`] is still a valid
+    /// measurement, and how many rows that cap left out is declared beside the
+    /// rows instead of being folded in here.
+    ///
+    /// The exact size is load-bearing on purpose: without a measurement of our
+    /// own there is nothing to check the analyzer against, and its estimate
+    /// would be publishable as if it described a file we never measured.
+    pub fn analysis_validated(&self) -> bool {
+        if self.exit != BloatExit::Passed || self.completeness != BloatCompleteness::Complete {
+            return false;
+        }
+        match (&self.measured, &self.attribution) {
+            (Some(measured), Some(attribution)) => {
+                attribution.estimated
+                    && attribution.reported_file_size_bytes == Some(measured.size_bytes)
+            }
+            _ => false,
+        }
+    }
+
     /// `Complete` requires both an exact measurement and an attribution whose
     /// reported size matches it. Anything else downgrades completeness.
     pub fn consistent(&self) -> bool {
@@ -245,8 +289,8 @@ mod tests {
             text_section_size_bytes: Some(1024),
             functions: Vec::new(),
             crates: Vec::new(),
-            functions_omitted: 0,
-            crates_omitted: 0,
+            functions_omitted_by_row_cap: 0,
+            crates_omitted_by_row_cap: 0,
         }
     }
     fn measured(size: u64) -> MeasuredBinary {
@@ -383,6 +427,92 @@ mod tests {
             .consistent()
         );
         assert!(!observation(None, None, BloatCompleteness::Complete).consistent());
+    }
+
+    /// ADR-079 §2. The product's own row cap is not a defect in the
+    /// measurement: a ranking it bounded is still a validated analysis, and the
+    /// number of rows it dropped travels beside the rows. This is the assertion
+    /// that fails the moment ranking coverage is folded back into validity.
+    #[test]
+    fn a_ranking_the_product_s_own_cap_bounded_is_still_a_validated_analysis() {
+        let mut capped = attribution(Some(4096));
+        capped.functions_omitted_by_row_cap = 378;
+        capped.crates_omitted_by_row_cap = 4;
+        let observed = observation(
+            Some(measured(4096)),
+            Some(capped),
+            BloatCompleteness::Complete,
+        );
+        assert!(observed.analysis_validated());
+        assert!(observed.consistent());
+        let declared = observed.attribution.as_ref().expect("attribution");
+        assert_eq!(declared.functions_omitted_by_row_cap, 378);
+        assert_eq!(declared.crates_omitted_by_row_cap, 4);
+        // And the exact measured size survives the capped ranking untouched.
+        assert_eq!(
+            observed.measured.as_ref().map(|binary| binary.size_bytes),
+            Some(4096)
+        );
+    }
+
+    /// The four states ADR-079 §3 keeps out of `passed`, plus the two shapes
+    /// that leave nothing to check the analyzer against.
+    #[test]
+    fn validity_still_refuses_every_state_adr_079_keeps_blocking() {
+        // A size disagreement: the attribution describes some other file.
+        assert!(
+            !observation(
+                Some(measured(4096)),
+                Some(attribution(Some(4095))),
+                BloatCompleteness::SizeMismatch
+            )
+            .analysis_validated()
+        );
+        for refused in [
+            BloatCompleteness::Unavailable,
+            BloatCompleteness::UnsupportedFormat,
+        ] {
+            assert!(
+                !observation(Some(measured(4096)), Some(attribution(Some(4096))), refused)
+                    .analysis_validated(),
+                "{refused:?}"
+            );
+        }
+        for failure in [BloatExit::CompilationFailed, BloatExit::AnalysisFailed] {
+            let mut failed = observation(None, None, BloatCompleteness::Unavailable);
+            failed.exit = failure;
+            failed.exit_code = Some(1);
+            assert!(!failed.analysis_validated(), "{failure:?}");
+        }
+        // No exact measurement of our own: nothing checks the analyzer.
+        assert!(
+            !observation(
+                None,
+                Some(attribution(Some(4096))),
+                BloatCompleteness::Complete
+            )
+            .analysis_validated()
+        );
+        // A measurement the analyzer never named a size for.
+        assert!(
+            !observation(
+                Some(measured(4096)),
+                Some(attribution(None)),
+                BloatCompleteness::Complete
+            )
+            .analysis_validated()
+        );
+        // Rows that do not declare themselves estimated.
+        let mut exact_looking = attribution(Some(4096));
+        exact_looking.estimated = false;
+        assert!(
+            !observation(
+                Some(measured(4096)),
+                Some(exact_looking),
+                BloatCompleteness::Complete
+            )
+            .analysis_validated()
+        );
     }
 
     #[test]

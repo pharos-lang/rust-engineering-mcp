@@ -1529,9 +1529,18 @@ en bytes del archivo, su `sha256` y su formato
 (`elf64_aarch64|other_elf|mach_o|pe|wasm|unknown`). `attribution` es la
 estimación de `cargo-bloat` sobre a dónde fue ese tamaño: lleva `estimated`
 siempre en `true` e incluye `text_section_size_bytes`, el tamaño de archivo que
-el propio analizador reporta y los rankings por función y por crate (hasta 4 096
-filas cada uno, con sus contadores de omisión; las filas descartadas son las más
-pequeñas). El bucket `[Unknown]` del analizador se conserva literal.
+el propio analizador reporta y los rankings por función y por crate. El bucket
+`[Unknown]` del analizador se conserva literal.
+
+**El ranking está acotado, y la respuesta declara por separado cada límite que
+actuó** ([ADR-079](adr/ADR-079-bloat-result-semantics.md) §1). `ranking_cap`
+nombra el tope propio del producto (`max_rows`, hoy 256 filas por vista) y
+cuántas filas de función y de crate dejó fuera; `response_trim` nombra el
+presupuesto de respuesta (`budget_bytes`) y cuántas filas se quitaron **además**
+para caber en él. Las filas descartadas son siempre las más pequeñas. Ninguno de
+los dos contadores es evidencia incompleta ni decide el `status`: un ranking
+acotado por un tope que el producto eligió y declara es la atribución que el
+contrato promete.
 
 **El archivo medido es un build de análisis.** El analizador fuerza
 incondicionalmente `CARGO_PROFILE_<PERFIL>_STRIP=false` porque necesita la tabla
@@ -1545,10 +1554,20 @@ analizador. `release_lto` tampoco se pide con `--profile`: es `--release` más l
 variable de entorno propiedad del producto `CARGO_PROFILE_RELEASE_LTO=fat`, y
 ambos perfiles dejan el binario bajo `<target-dir>/release/`.
 
+**`passed` significa «análisis ejecutado y validado», y nada más**
+([ADR-079](adr/ADR-079-bloat-result-semantics.md) §2). No afirma que el binario
+esté optimizado, ni que la atribución sea exhaustiva, ni que el ranking describa
+todo el archivo. El DTO lo publica como `analysis_validated`, y exige que el
+analizador saliera limpio, que la completeness sea `complete`, que esté el
+**tamaño exacto medido** y que coincida con el que reportó el analizador, y que
+se haya publicado el artifact que sostiene la atribución.
+
 Si el tamaño exacto que midió el producto y el `file-size` que reporta
 `cargo-bloat` no coinciden, la completeness es `size_mismatch` y la atribución
-**no** se publica como descripción del archivo medido. Las demás completitudes
-son `complete`, `truncated`, `unsupported_format` y `unavailable`; el exit es
+**no** se publica como descripción del archivo medido. La completeness es
+validez de la medición y solo eso: sus valores son `complete`, `size_mismatch`,
+`unsupported_format` y `unavailable` —no hay un `truncated`, porque el tope del
+producto es cobertura y se declara en `ranking_cap`—; el exit es
 `passed|analysis_failed|compilation_failed|uncalibrated|incomplete`. El artifact
 es como máximo uno, `bloat_json` (≤ 4 MiB), con el reporte crudo del analizador;
 un fallo de build o de análisis no publica ninguno.
@@ -1560,10 +1579,16 @@ Códigos de error: `TASKS_REQUIRED`, `SANDBOX_DENIED`, `MISSING_OFFLINE_DATA`,
 petición), `ANALYZER_UNAVAILABLE` (el analizador aprobado no está disponible o no
 es el aprobado; no se produjo medida), `UNSUPPORTED_FORMAT` (el formato del
 binario no lo soporta el analizador fijado), `SIZE_MISMATCH` y
-`EVIDENCE_INCOMPLETE`.
+`EVIDENCE_INCOMPLETE` (la salida del analizador no se observó como una ejecución
+limpia, o no se publicó el artifact que sostiene la atribución).
 
 Límites: WASM se rechaza porque el backend no lo soporta, y Mach-O y PE no quedan
 calificados por el positivo ELF. `BloatExit` conserva `CALIBRATED = false`: solo
-se observaron los exits 0 y 1. El corte está **calificado nativamente** con
-`release-positive`, `release-lto` y `missing-binary-target`
-([runtime](validation/M5-04-runtime.json)).
+se observaron los exits 0 y 1.
+
+El corte está **In progress otra vez**, no calificado.
+[ADR-079](adr/ADR-079-bloat-result-semantics.md) sustituye la semántica de
+resultado que la calificación anterior midió, así que su
+[recibo](validation/M5-04-runtime.json) —`release-positive`, `release-lto` y
+`missing-binary-target`— acredita el contrato viejo y no este. Se recalifica
+sobre bytes finales, con revisión independiente de por medio.

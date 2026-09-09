@@ -189,17 +189,18 @@ CALL_PLAN = (
 # `rust.profile.flamegraph` reaches `passed`: its observation is complete when
 # the sampler ran, lost nothing and published both artifacts.
 #
-# `rust.binary.bloat` cannot reach `passed` on any realistic binary, and that
-# is a product property, not a harness compromise.  `bloat_completeness`
-# (crates/execution-adapter/src/performance_port.rs) returns `Truncated`
-# whenever the analyzer omitted a row, and the parser caps functions at
-# `BLOAT_MAX_ROWS = 256`; the native receipt for this exact image and fixture
-# (docs/validation/M5-04-runtime.json) shows `functions_omitted` 378 for
-# `release` and 234 for `release-lto`.  `Truncated` makes `observation.complete`
-# false, which `bloat.rs::outcome` maps to `blocked`/`EVIDENCE_INCOMPLETE`.  The
-# measurement is real regardless, so this row asserts the exit, the measured
-# file and the published artifact rather than a status the product does not
-# produce.
+# `rust.binary.bloat` reaches `passed` under ADR-079, and used to be unable to.
+# The parser caps functions at `BLOAT_MAX_ROWS = 256` and the native receipt for
+# this exact image and fixture (docs/validation/M5-04-runtime.json) recorded 378
+# omitted rows for `release` and 234 for `release-lto`; that cap used to become
+# `Truncated`, then `observation.complete = false`, then
+# `blocked`/`EVIDENCE_INCOMPLETE`, so the success path was unreachable for any
+# binary linking `std`.  ADR-079 separates the three concepts: the cap is
+# declared coverage in `attribution.ranking_cap`, the response budget is
+# declared in `attribution.response_trim`, and only measurement validity decides
+# the status.  This row therefore expects `passed` together with the exit, the
+# exact measured file and the published artifact.  It is an expectation, not a
+# qualification: the receipts are re-captured separately.
 RUNTIME_CALL_PLAN = (
     {
         "tool": "rust.profile.flamegraph", "shape": "positive", "project": "profile",
@@ -224,13 +225,15 @@ RUNTIME_CALL_PLAN = (
         "arguments": {"binary_target": "rust-mcp-bloat-fixture",
                       "package": "rust-mcp-bloat-fixture", "profile": "release",
                       "timeout_seconds": 300, "execution_mode": "synchronous"},
-        "expect_status": "blocked", "expect_error_code": "EVIDENCE_INCOMPLETE",
-        "expect_observation": {"exit": "passed", "complete": False},
+        "expect_status": "passed", "expect_error_code": None,
+        "expect_observation": {"exit": "passed", "completeness": "complete",
+                               "analysis_validated": True},
         "expect_positive_fields": [],
         "expect_zero_fields": [],
         "expect_measured": True,
         "expect_min_artifacts": 1,
-        "report_fields": ["exit", "exit_code", "completeness", "analyzer_version"],
+        "report_fields": ["exit", "exit_code", "completeness", "analyzer_version",
+                          "analysis_validated"],
         "requires_profiling_grant": False,
         "rationale": "a real size analysis in the qualified image; the measured file is exact "
                      "and the published attribution is read back as a Resource",

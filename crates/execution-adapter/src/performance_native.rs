@@ -706,12 +706,13 @@ fn bloat_counters(observation: &BloatObservation) -> Value {
             "reported_file_size_bytes": attribution.reported_file_size_bytes,
             "text_section_size_bytes": attribution.text_section_size_bytes,
             "functions": attribution.functions.len(),
-            "functions_omitted": attribution.functions_omitted,
+            "functions_omitted_by_row_cap": attribution.functions_omitted_by_row_cap,
             "crates": attribution.crates.iter().map(|entry| json!({
                 "name": entry.name, "size_bytes": entry.size_bytes,
             })).collect::<Vec<_>>(),
-            "crates_omitted": attribution.crates_omitted,
+            "crates_omitted_by_row_cap": attribution.crates_omitted_by_row_cap,
         })),
+        "analysis_validated": observation.analysis_validated(),
         "execution_fingerprint": observation.execution_fingerprint.to_string(),
     })
 }
@@ -1886,19 +1887,27 @@ fn m5_binary_bloat_is_qualified_natively() -> Result<(), Failure> {
             );
         }
         // The fixture links 634 attributable functions and the product's ranking
-        // is bounded at 256, so the honest completeness for this binary is
-        // `Truncated`: the ranking was capped, and the report says so. What must
-        // be exact is the file, and that is asserted above -- the product's own
-        // measurement equals the analyzer's reported size, byte for byte.
+        // is bounded at 256, so this binary is exactly the case ADR-079 §1
+        // separates: the cap acted, the report says how many rows it dropped,
+        // and the measurement is still valid. Completeness is validity only, so
+        // it is `Complete`; what must be exact is the file, and that is asserted
+        // above -- the product's own measurement equals the analyzer's reported
+        // size, byte for byte. Before ADR-079 this asserted `Truncated`, which
+        // is what made the tool's success path unreachable for any binary that
+        // links `std`.
         assert_eq!(
             observation.completeness,
-            BloatCompleteness::Truncated,
+            BloatCompleteness::Complete,
             "{name}: {}",
             bloat_counters(&observation)
         );
         assert!(
-            attribution.functions_omitted > 0,
-            "{name}: a truncated ranking must say how many rows it dropped"
+            attribution.functions_omitted_by_row_cap > 0,
+            "{name}: a capped ranking must say how many rows the cap dropped"
+        );
+        assert!(
+            observation.analysis_validated(),
+            "{name}: a capped ranking over an exactly measured file is a validated analysis"
         );
         assert_eq!(
             attribution.reported_file_size_bytes,

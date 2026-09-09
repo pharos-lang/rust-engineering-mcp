@@ -21,6 +21,23 @@
 //! validate_bloat_observation`) is what refuses to publish that disagreement
 //! as `complete`; this module surfaces the resulting `SizeMismatch`
 //! completeness as a declared, visible state rather than smoothing it away.
+//!
+//! ADR-079 adds the second rule this file must not blur, and [`outcome`] is
+//! where it is enforced. Three things used to collapse into one `complete`
+//! boolean, and the boolean decided the status:
+//!
+//! 1. **validity of the measurement** — did the analysis run, and does the
+//!    exact size this product measured agree with what the analyzer reported;
+//! 2. **coverage of the ranking** against the product's own `BLOAT_MAX_ROWS`
+//!    cap;
+//! 3. **trimming of the response** to fit the fixed byte budget.
+//!
+//! Only (1) decides the status. (2) and (3) are declared separately, with their
+//! own counters, in `attribution.ranking_cap` and `attribution.response_trim`,
+//! so a reader can tell "the product bounded the ranking at 256" from "the
+//! response did not fit" from "the evidence is not valid". `passed` therefore
+//! means *analysis executed and validated* and nothing more — never that the
+//! binary is optimized, and never that the attribution is exhaustive.
 #[allow(dead_code)]
 mod schemas;
 use super::{
@@ -30,7 +47,7 @@ use super::{
     nextest::ExecutionModeDto,
     project::Registry,
     security_tool::{
-        CommonFailure, artifact_fields, capture_vendor, classify_error,
+        CommonFailure, MAX_RESULT_BYTES, artifact_fields, capture_vendor, classify_error,
         define_fallible_security_outcome, define_security_response_methods, define_security_tool,
         encode_bounded, run_joined_security,
     },
@@ -64,6 +81,10 @@ const DEFAULT_TIMEOUT_SECONDS: u64 = 120;
 /// what actually binds, not this cap.
 const MAX_RESPONSE_ROWS: usize = 4_096;
 const _: () = assert!(MAX_RESPONSE_ROWS > BLOAT_MAX_ROWS);
+/// The response budget this tool's trimming serves, declared to the caller in
+/// `attribution.response_trim.budget_bytes` so the second limit is as visible as
+/// the first. It is the same budget [`encode_bounded`] enforces.
+const RESPONSE_BUDGET_BYTES: u32 = MAX_RESULT_BYTES as u32;
 
 pub(super) fn advertised() -> bool {
     super::security_tool::advertised("RUST_MCP_TEST_BLOAT_READY")
@@ -221,7 +242,7 @@ impl BloatPublisher for DynPublisher<'_> {
 
 define_security_tool!(
     BloatTool,
-    "Measure one project binary's exact file size inside the approved sandbox, then run the pinned cargo-bloat analyzer over it and publish its raw JSON report as a private artifact. The binary is named by cargo target, never by path. The response separates two things that must never be read as one: `measured` is a fact this product verified itself (exact size and sha256), and `attribution` is cargo-bloat's estimate of where that size went, marked estimated on every field. The measured file is an analysis build: the analyzer forces symbol stripping off to read symbols, so its size is exact for that file but it is not what a project asking for stripping would ship. If the analyzer's own reported size disagrees with the size this product measured, the attribution is published as a declared size mismatch, never silently merged into the exact measurement."
+    "Measure one project binary's exact file size inside the approved sandbox, then run the pinned cargo-bloat analyzer over it and publish its raw JSON report as a private artifact. The binary is named by cargo target, never by path. The response separates two things that must never be read as one: `measured` is a fact this product verified itself (exact size and sha256), and `attribution` is cargo-bloat's estimate of where that size went, marked estimated on every field. The measured file is an analysis build: the analyzer forces symbol stripping off to read symbols, so its size is exact for that file but it is not what a project asking for stripping would ship. If the analyzer's own reported size disagrees with the size this product measured, the attribution is published as a declared size mismatch, never silently merged into the exact measurement. A passed result means the analysis executed and this product validated it against its own measurement; it never means the binary is optimized or that the attribution is exhaustive. The ranking is bounded by a cap this product owns, and the response may drop further rows to fit its byte budget: both are declared separately, with their own counts, in `attribution.ranking_cap` and `attribution.response_trim`, and neither is incomplete evidence."
 );
 
 impl BloatTool {
@@ -373,15 +394,16 @@ impl BloatTool {
             .iter()
             .map(|descriptor| artifact(reference, descriptor))
             .collect::<Result<Vec<_>, _>>()?;
-        let artifacts_complete = !artifacts.is_empty()
-            && result
-                .artifacts
-                .iter()
-                .all(|descriptor| descriptor.completeness == ArtifactCompleteness::Complete);
+        // ADR-079 §2 and §3, decided once and by the layer that owns the rule:
+        // the application knows both whether the measurement validated and
+        // whether the evidence behind it was published. Trimming below cannot
+        // change it, which is exactly what keeps a response that did not fit
+        // from reading as evidence that is not valid.
+        let validated = result.analysis_validated();
         let data = Box::new(Data {
             project_ref: reference.to_string(),
             semantics: "measured_file_size_is_exact_attribution_rankings_are_estimated",
-            observation: observation(&result.observation, artifacts_complete),
+            observation: observation(&result.observation, validated),
             artifacts,
         });
         encode_bounded(
@@ -409,31 +431,42 @@ impl BloatTool {
 }
 
 /// The lowest-ranked function row leaves first; once none remain, the
-/// lowest-ranked crate row leaves. `measured`, `completeness` and
-/// `analyzer_version` are never touched. Returns `false` once there is
-/// nothing left to drop — an absent `attribution`, or one whose `functions`
-/// and `crates` are both already empty — which is exactly the signal
-/// [`encode_bounded`] uses to fall back to its `exhausted` output.
+/// lowest-ranked crate row leaves. `measured`, `completeness`,
+/// `analysis_validated` and `analyzer_version` are never touched. Returns
+/// `false` once there is nothing left to drop — an absent `attribution`, or one
+/// whose `functions` and `crates` are both already empty — which is exactly the
+/// signal [`encode_bounded`] uses to fall back to its `exhausted` output.
+///
+/// Every row dropped here is counted in `response_trim` and never in
+/// `ranking_cap` (ADR-079 §1). The two causes stay apart in the payload, and
+/// neither reaches `analysis_validated`: a response that had to shed rows to fit
+/// 512 KiB is still a valid measurement, and the caller can see precisely which
+/// limit cost it which rows.
 fn trim_lowest_ranked_row(data: &mut Data) -> bool {
     let Some(attribution) = data.observation.attribution.as_mut() else {
         return false;
     };
     if attribution.functions.pop().is_some() {
-        attribution.functions_omitted = attribution.functions_omitted.saturating_add(1);
-        data.observation.complete = false;
+        attribution.response_trim.functions_omitted = attribution
+            .response_trim
+            .functions_omitted
+            .saturating_add(1);
         return true;
     }
     if attribution.crates.pop().is_some() {
-        attribution.crates_omitted = attribution.crates_omitted.saturating_add(1);
-        data.observation.complete = false;
+        attribution.response_trim.crates_omitted =
+            attribution.response_trim.crates_omitted.saturating_add(1);
         return true;
     }
     false
 }
 
+/// The status mapping, and the single place ADR-079 §2's meaning of `passed`
+/// is decided: the analysis executed and this product validated it. Neither
+/// omission counter is read here, on purpose.
 fn outcome(data: &Data) -> Outcome {
     let observation = &data.observation;
-    if observation.complete {
+    if observation.analysis_validated {
         return Outcome::Passed {
             error_code: (),
             error_message: (),
@@ -463,9 +496,13 @@ fn outcome(data: &Data) -> Outcome {
             Code::SizeMismatch,
             "The analyzer's reported file size disagrees with the size this product measured; the attribution is not published as a description of the measured file",
         ),
-        schemas::BloatCompleteness::Truncated | schemas::BloatCompleteness::Complete => (
+        // A valid measurement that still did not validate: the analyzer's exit
+        // was not an observed clean run, or the artifact backing the
+        // attribution was not published complete (ADR-079 §3). A bounded
+        // ranking never lands here — it is declared, not incomplete.
+        schemas::BloatCompleteness::Complete => (
             Code::EvidenceIncomplete,
-            "Bloat analysis evidence is partial",
+            "The analyzer's exit was not an observed clean run, or the artifact backing this attribution was not published",
         ),
     };
     Outcome::Blocked {
@@ -506,7 +543,7 @@ fn artifact(
 
 fn observation(
     value: &rust_engineering_application::bloat::BloatObservation,
-    artifacts_complete: bool,
+    analysis_validated: bool,
 ) -> schemas::Observation {
     let attribution = value.attribution.as_ref().map(|attribution| {
         let mut functions: Vec<schemas::BloatFunction> = attribution
@@ -526,6 +563,9 @@ fn observation(
                 .then_with(|| left.crate_name.cmp(&right.crate_name))
                 .then_with(|| left.name.cmp(&right.name))
         });
+        // The DTO's own ceiling sits above `BLOAT_MAX_ROWS`, so it can only act
+        // on a ranking the product's cap did not already bound. It is another
+        // product cap, never the response budget, and it is counted as such.
         let extra_functions =
             u32::try_from(functions.len().saturating_sub(MAX_RESPONSE_ROWS)).unwrap_or(u32::MAX);
         functions.truncate(MAX_RESPONSE_ROWS);
@@ -554,14 +594,23 @@ fn observation(
             text_section_size_bytes: attribution.text_section_size_bytes,
             functions,
             crates,
-            functions_omitted: attribution
-                .functions_omitted
-                .saturating_add(extra_functions),
-            crates_omitted: attribution.crates_omitted.saturating_add(extra_crates),
+            ranking_cap: schemas::BloatRankingCap {
+                max_rows: u32::try_from(BLOAT_MAX_ROWS).unwrap_or(u32::MAX),
+                functions_omitted: attribution
+                    .functions_omitted_by_row_cap
+                    .saturating_add(extra_functions),
+                crates_omitted: attribution
+                    .crates_omitted_by_row_cap
+                    .saturating_add(extra_crates),
+            },
+            // Nothing is trimmed yet: `trim_lowest_ranked_row` is what fills
+            // this in, and only if the encoded response does not fit.
+            response_trim: schemas::BloatResponseTrim {
+                budget_bytes: RESPONSE_BUDGET_BYTES,
+                functions_omitted: 0,
+                crates_omitted: 0,
+            },
         }
-    });
-    let rows_complete = attribution.as_ref().is_none_or(|attribution| {
-        attribution.functions_omitted == 0 && attribution.crates_omitted == 0
     });
     let measured = value
         .measured
@@ -582,10 +631,7 @@ fn observation(
         exit,
         exit_code: value.exit_code,
         termination: termination(value.termination),
-        complete: exit == schemas::BloatExit::Passed
-            && completeness == schemas::BloatCompleteness::Complete
-            && rows_complete
-            && artifacts_complete,
+        analysis_validated,
         measured,
         attribution,
         completeness,
@@ -622,7 +668,6 @@ fn completeness(value: BloatCompleteness) -> schemas::BloatCompleteness {
     match value {
         BloatCompleteness::Complete => schemas::BloatCompleteness::Complete,
         BloatCompleteness::SizeMismatch => schemas::BloatCompleteness::SizeMismatch,
-        BloatCompleteness::Truncated => schemas::BloatCompleteness::Truncated,
         BloatCompleteness::UnsupportedFormat => schemas::BloatCompleteness::UnsupportedFormat,
         BloatCompleteness::Unavailable => schemas::BloatCompleteness::Unavailable,
     }
