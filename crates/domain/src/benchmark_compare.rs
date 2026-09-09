@@ -1451,6 +1451,14 @@ pub fn compare(
     })
 }
 
+/// The ADR-081 requalification instrument. Test-only, and a CHILD of this
+/// module on purpose: it drives this module's own private `decide`,
+/// `cluster_draw`, `bootstrap_ratio` and `SideSamples` rather than a paraphrase
+/// of them. It adds candidate INTERVAL estimators for comparison; it changes
+/// nothing the product computes.
+#[cfg(test)]
+mod simulation;
+
 #[cfg(test)]
 #[allow(clippy::unwrap_used)] // Fixed fixtures are malformed only by mistake; fail immediately.
 mod tests {
