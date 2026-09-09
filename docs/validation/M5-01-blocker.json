@@ -51,7 +51,7 @@
     "docs/validation/M5-01-runtime.json",
     "docs/validation/M5-01-benchmark-calibration.json"
   ],
-  "independent_of_this_blocker": "The measurement method itself IS qualified on real guest data: docs/validation/M5-01-benchmark-calibration.json records three criterion exports captured from this image, and crates/execution-adapter/src/criterion_dataset.rs parses and compares them, including a self-compare control and a known-direction regression.",
+  "independent_of_this_blocker": "The measurement method is exercised on real guest data, not on hand-written fixtures: crates/execution-adapter/src/criterion_dataset.rs parses criterion exports captured from the qualified image and compares them, including a self-compare control and the rejection of same_artifact. What those captures can NOT demonstrate is a direction: they are one execution per side, and after the variance-model correction of 2026-09-09 a single execution per side yields Inconclusive[SingleExecutionPerSide] by construction, because drift between executions cannot be separated from an effect of the source. A capture with several executions per side is what would demonstrate detection, and it is independent of this blocker: the blocker is vendor ingestion, not measurement.",
   "measurements": {
     "why_pruning_does_not_help": "Cargo's directory source demands every lockfile package, so the Windows-only packages carrying the four oversized files cannot be omitted; this was attempted and refused, with the error recorded above.",
     "not_measured": "The 'compiled subset is about 20 MiB' figure in why_it_blocks was an estimate, not a measurement. It is not load-bearing: the per-file bound is already exceeded by four files that cannot be removed, which blocks the ingest on its own.",

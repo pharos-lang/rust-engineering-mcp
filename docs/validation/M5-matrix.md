@@ -103,10 +103,17 @@ para poner en verde una prueba debilitaría una frontera de seguridad calificada
 sin decisión ni recalificación. Detalle y opciones para el owner en
 [M5-01-blocker.json](M5-01-blocker.json).
 
-Lo que **sí** queda demostrado del método: las tres capturas reales del guest
-en `fixtures/benchmark-datasets` se parsean y se comparan, con control de
-auto-comparación, regresión de dirección conocida y rechazo de `same_artifact`.
-El bloqueo es de ingesta del vendor, no del método de medición.
+Lo que **sí** queda demostrado del método: las capturas reales del guest en
+`fixtures/benchmark-datasets` se parsean y se comparan, con control de
+auto-comparación y rechazo de `same_artifact`. El bloqueo es de ingesta del
+vendor, no del método de medición.
+
+Lo que esas tres primeras capturas **no** demuestran, desde la corrección del
+modelo de varianza, es una dirección: son una ejecución por lado, y el método
+ahora devuelve `inconclusive` con razón `single_execution_per_side` por
+construcción, porque sin una segunda ejecución no hay estimación de la deriva que
+separar del efecto de la fuente. Demostrar detección exige capturar varias
+ejecuciones por lado, y eso es independiente de este bloqueo.
 
 ## Limitaciones declaradas hasta ahora
 
