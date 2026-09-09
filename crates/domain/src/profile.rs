@@ -44,8 +44,13 @@ impl ProfileOptions {
         frequency_hz: u32,
         duration_seconds: u64,
     ) -> Result<Self, ProfileError> {
+        // `^[A-Za-z0-9_][A-Za-z0-9_-]{0,63}$`. A path and an argument fail it,
+        // and so does a flag: the leading `-` is excluded on purpose, because
+        // an alphabet that admits `-noplot` admits something that reads as an
+        // option wherever this name is later placed on an argv.
         if binary_target.is_empty()
             || binary_target.len() > 64
+            || binary_target.starts_with('-')
             || !binary_target
                 .bytes()
                 .all(|b| b.is_ascii_alphanumeric() || b == b'_' || b == b'-')
@@ -197,6 +202,7 @@ mod tests {
     #[test]
     fn options_reject_paths_arguments_and_out_of_range_numbers() {
         assert!(ProfileOptions::new("workload".into(), 99, 10).is_ok());
+        assert!(ProfileOptions::new("work-load_2".into(), 99, 10).is_ok());
         for target in [
             "",
             "/usr/bin/workload",
@@ -204,6 +210,10 @@ mod tests {
             "work load",
             "work;load",
             "work$load",
+            // A name that reads as an option wherever it lands on an argv.
+            "-noplot",
+            "--bin",
+            "-",
             &"a".repeat(65),
         ] {
             assert_eq!(

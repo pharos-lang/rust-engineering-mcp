@@ -48,9 +48,14 @@ impl BloatProfile {
     }
 }
 
+/// `^[A-Za-z0-9_][A-Za-z0-9_-]{0,63}$`. A path and an argument fail it, and so
+/// does a flag: the leading `-` is excluded on purpose, because an alphabet that
+/// admits `-noplot` admits something that reads as an option wherever this name
+/// is later placed on an argv.
 fn valid_name(value: &str) -> bool {
     !value.is_empty()
         && value.len() <= 64
+        && !value.starts_with('-')
         && value
             .bytes()
             .all(|b| b.is_ascii_alphanumeric() || b == b'_' || b == b'-')
@@ -310,12 +315,30 @@ mod tests {
             )
             .is_ok()
         );
-        for target in ["", "/bin/sh", "a b", "a;b", &"a".repeat(65)] {
+        assert!(
+            BloatOptions::new("fix-ture_2".into(), None, BloatProfile::Release).is_ok(),
+            "a hyphen inside the name is a legitimate cargo target"
+        );
+        // A leading `-` reads as an option wherever the name lands on an argv.
+        for target in [
+            "",
+            "/bin/sh",
+            "a b",
+            "a;b",
+            "-release",
+            "--bin",
+            "-",
+            &"a".repeat(65),
+        ] {
             assert_eq!(
                 BloatOptions::new(target.into(), None, BloatProfile::Release).unwrap_err(),
                 BloatError::InvalidTarget
             );
         }
+        assert_eq!(
+            BloatOptions::new("ok".into(), Some("-p".into()), BloatProfile::Release).unwrap_err(),
+            BloatError::InvalidPackage
+        );
         assert_eq!(
             BloatOptions::new("ok".into(), Some("bad name".into()), BloatProfile::Release)
                 .unwrap_err(),
