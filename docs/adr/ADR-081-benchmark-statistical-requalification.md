@@ -46,6 +46,52 @@ que se exige es que el intervalo **no sea más confiado que lo que declara** por
 más de dos puntos, en todo el rango, y que el nivel publicado sea el entregado o
 se publique el entregado.
 
+#### Corrección (2026-09-09) — la fila de potencia era imposible, y el error es mío
+
+La primera simulación contra estos criterios encontró que **ningún candidato**
+puede cumplirlos, y la razón no es el método: **las filas de cobertura y de
+potencia de la tabla de arriba son incompatibles entre sí tal como las escribí**.
+
+La prueba es de dos líneas y sale de la regla del propio producto. `regression`
+se emite si y solo si el extremo inferior del intervalo supera el umbral:
+`low > MATERIAL_THRESHOLD_RATIO`. Si el efecto verdadero es **exactamente** el
+umbral, ese evento es idéntico a «el intervalo quedó entero por encima del valor
+verdadero», que es un caso de no-cobertura. Por tanto, para cualquier intervalo:
+
+```text
+potencia(Δ = umbral) ≤ 1 − cobertura(Δ = umbral)
+```
+
+Exigir cobertura ≥ 0,93 obliga a potencia ≤ 0,07. Pedir 0,80 a la vez es pedir
+un imposible aritmético, y la simulación lo confirma en los datos: la mejor
+potencia observada en cualquiera de las 75 celdas es 0,0539, contra su propia
+cota de no-cobertura en la misma celda.
+
+El defecto está en el criterio, no en el estimador. Un criterio de potencia se
+evalúa contra una alternativa **separada** del borde de decisión; medirla
+justo en el umbral pregunta al método si resuelve el punto que él mismo declara
+como el límite de lo material, y la respuesta correcta ahí es no resolverlo.
+
+**Se corrige la fila, y se corrige antes de volver a puntuar a nadie.** Este
+párrafo se commitea sin haber consultado todavía las cifras de potencia en la
+alternativa nueva, por la misma razón que existía la congelación original.
+
+| Criterio | Antes | Ahora |
+| --- | --- | --- |
+| Potencia | ≥ 0,80 con efecto real **igual** al umbral del 5 % | ≥ 0,80 con efecto real del **10 %**, el doble del umbral |
+
+Todo lo demás de §1 y §4 queda igual. En particular el umbral material **sigue
+siendo el 5 %**: lo que cambia es en qué alternativa se mide la potencia, no qué
+se considera material. Si con la alternativa separada tampoco se alcanza 0,80,
+se declara inalcanzable y los veredictos direccionales siguen deshabilitados, que
+es la regla original y no se toca.
+
+Dos lecturas alternativas de «detectar» que la simulación también midió —que el
+intervalo excluya el cero, que es la convención del MDR de ADR-073, y que el
+veredicto no sea `no_material_change`— **no** se adoptan como criterio. Ambas son
+más laxas y elegir una después de ver los resultados sería exactamente lo que
+este documento existe para impedir.
+
 ### 2. El rango de deriva está fijado aquí
 
 `τ ∈ {0, 1, 2, 5, 10} %` de desviación típica entre ejecuciones, que es el rango
