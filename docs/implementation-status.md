@@ -148,7 +148,7 @@ y [validación/reviews](roadmap/planning-validation.md).
 | M2 / 0.2.x | Done local; sin release nueva | [Safe Mutation](roadmap/m2-safe-mutation.md) · [prompt M2](prompts/implement-m2.md) |
 | M3 / 0.3.x | Done; integrado en `main` como `57c4037` (PR #14); sin release nueva | [Quality](roadmap/m3-quality.md) · [matriz M3](validation/M3-matrix.md) · [integración](validation/M3-integration.json) |
 | M4 / 0.4.x | Done local; integración mediante PR #15; sin release nueva | [Security](roadmap/m4-security.md) · [handoff M4](validation/M4-handoff.md) · [confirmación final](reviews/m4-final-evidence/review.md) |
-| M5 / 0.5.x | In progress; tres cortes calificados nativamente, M5-01 bloqueado | [Performance](roadmap/m5-performance.md) · [matriz M5](validation/M5-matrix.md) · [handoff M5](validation/M5-handoff.md) |
+| M5 / 0.5.x | In progress; profiling y bloat calificados nativamente sobre la imagen admitida, M5-01 bloqueado, método de comparación en corrección tras revisión G8 | [Performance](roadmap/m5-performance.md) · [matriz M5](validation/M5-matrix.md) · [handoff M5](validation/M5-handoff.md) |
 | M6 / 0.6.x | Planned | [Analyzer](roadmap/m6-analyzer.md) · [prompt M6](prompts/implement-m6.md) |
 | M7 / 0.7.x | Conditional; ejecución Deferred sin Go | [Remote](roadmap/m7-remote.md) · [prompt M7](prompts/implement-m7.md) |
 | M8 / 0.8–0.9 / readiness 1.0 | Planned | [Stabilization](roadmap/m8-stabilization.md) · [prompt M8](prompts/implement-m8.md) |
@@ -296,25 +296,39 @@ release ni M5.
 
 ## M5 — Performance en `ai/m5-performance`
 
-**In progress — 2026-09-08. No está Done.** Las decisiones D23 y D24 están
+**In progress — 2026-09-09. No está Done.** Las decisiones D23 y D24 están
 cerradas (ADR-073/074) junto con el aprovisionamiento (ADR-075), los contratos
-(ADR-076) y la admisión de imagen (ADR-077). El inventario público sigue en
-veintisiete tools mientras el registro MCP no esté completo; no se anuncia
-ninguna tool nueva antes de su evidencia.
+(ADR-076) y la admisión de imagen (ADR-077). Las cuatro tools están registradas
+y el inventario público es de treinta y una; que estén anunciadas **no** las
+califica, y esta tabla dice qué está demostrado.
+
+Dos revisiones independientes G8 —seguridad/containment y método/contratos—
+devolvieron `Block` con hallazgos reales. Sus textos íntegros, sus resúmenes y
+las disposiciones del owner están en `docs/reviews/m5-security/` y
+`docs/reviews/m5-method/`. El defecto de containment está corregido y
+recalificado; el del modelo de varianza está en corrección y M5 no puede
+cerrarse antes de que aterrice.
+
+La imagen M5 se reconstruyó tras la corrección del helper, así que ADR-077
+sustituyó su digest: la evidencia nativa se volvió a capturar entera sobre la
+imagen admitida y los recibos anteriores se archivan con el digest que
+realmente midieron.
 
 | Corte | Estado | Evidencia |
 | --- | --- | --- |
-| M5-01 `rust.benchmark.run` | Blocked en el positivo; negativos y controles calificados | [runtime](validation/M5-01-runtime.json) · [bloqueo](validation/M5-01-blocker.json) |
-| M5-02 `rust.benchmark.compare` | Implementado; método probado sobre datasets reales del guest | [calibración](validation/M5-01-benchmark-calibration.json) |
-| M5-03 `rust.profile.flamegraph` | Calificado nativamente | [runtime](validation/M5-03-runtime.json) · [positivo](validation/M5-03-profiling-native.json) |
-| M5-04 `rust.binary.bloat` | Calificado nativamente | [runtime](validation/M5-04-runtime.json) · [calibración](validation/M5-04-bloat-calibration.json) |
-| M5-05 cierre | Not started | — |
+| M5-01 `rust.benchmark.run` | Blocked en el positivo; negativos y controles calificados, y el bloqueo tiene su propio oráculo | [runtime](validation/M5-01-runtime.json) · [oráculo](validation/M5-01-blocked-runtime.json) · [bloqueo](validation/M5-01-blocker.json) |
+| M5-02 `rust.benchmark.compare` | Implementado; el modelo de varianza está **en corrección** tras la revisión de método | [revisión](reviews/m5-method/review.md) · [disposición](reviews/m5-method/disposition.md) |
+| M5-03 `rust.profile.flamegraph` | Calificado nativamente, positivo y denegación, sobre la imagen admitida | [runtime](validation/M5-03-runtime.json) · [capability](validation/M5-profiling-capability-probe.json) |
+| M5-04 `rust.binary.bloat` | Calificado nativamente sobre la imagen admitida | [runtime](validation/M5-04-runtime.json) |
+| M5-05 cierre | In progress; gate conjunto y matriz de clientes sin ejecutar | — |
 
 El positivo de profiling —la puerta que el plan señalaba— está demostrado: 195
-muestras y la pila esperada, con `--cap-drop=ALL`, `no-new-privileges`, uid
-65534, sin red, `perf_event_paranoid` intacto en 2, sin capability añadida, sin
-contenedor privilegiado, sin `sudo` y sin cambio de `sysctl`. Una sola syscall
-se añadió al perfil seccomp, y solo una fase la usa.
+muestras sin ninguna perdida sobre las 16 CPUs del guest y la pila esperada, con
+`--cap-drop=ALL`, `no-new-privileges`, uid 65534, sin red, `perf_event_paranoid`
+intacto en 2, sin capability añadida, sin contenedor privilegiado, sin `sudo` y
+sin cambio de `sysctl`. Una sola syscall se añadió al perfil seccomp, y solo una
+fase la usa. El negativo obligatorio —permiso denegado— también está en el mismo
+recibo generado: EPERM, sin stacks y sin SVG.
 
 **M5-01 está bloqueado por una condición reproducible**, no por falta de
 trabajo: el cierre de criterion (6 014 archivos, 156 MB) no cabe en el contrato
