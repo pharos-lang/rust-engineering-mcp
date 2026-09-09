@@ -132,14 +132,21 @@ pide stripping. El DTO lo declara en `analysis_build_symbols_forced`, siempre
 analizador. El tamaño sigue siendo exacto *para ese archivo*; lo que no se afirma
 es que sea el artefacto distribuible del proyecto.
 
-`release_lto` **no** se pide con `--profile`. Un perfil llamado `release-lto` hace
-que el analizador derive la variable `CARGO_PROFILE_RELEASE_LTO`, que Cargo 1.98.1
-interpreta como `profile.release.lto` y rechaza con
-`invalid type: Option value, expected a boolean or string`; el fallo está
-registrado con su exit 1. Se expresa como `--release` más la variable de entorno
-propiedad del producto `CARGO_PROFILE_RELEASE_LTO=fat`, que es entorno cerrado y
-no un nombre de perfil suministrado por el peer. Ambos perfiles dejan el binario
-bajo `<target-dir>/release/`.
+`release_lto` **no** se pide con `--profile`. Lo observado, y lo único que se
+afirma como observado, es el
+[recibo](../validation/M5-04-bloat-calibration.json): pasar `--profile
+release-lto` sale con exit 1 y con `error in environment variable
+CARGO_PROFILE_RELEASE: could not load config key profile.release / invalid type:
+Option value, expected a boolean or string`. El mecanismo —que `cargo-bloat`
+0.12.1 deriva del nombre del perfil una variable `CARGO_PROFILE_<PERFIL>_STRIP`
+(`src/main.rs:690-696`) y que un perfil con guion produce una variable que Cargo
+vuelve a partir sobre `profile.release`— está **inferido de la fuente del
+analizador, no medido**: el recibo registra el fallo y su texto, no la variable
+exacta que el analizador exportó. Se expresa entonces como `--release` más la
+variable de entorno propiedad del producto `CARGO_PROFILE_RELEASE_LTO=fat`, que
+es entorno cerrado y no un nombre de perfil suministrado por el peer; esa forma
+sí está medida, con el binario resultante estrictamente menor. Ambos perfiles
+dejan el binario bajo `<target-dir>/release/`.
 
 ### 7. Presupuestos
 

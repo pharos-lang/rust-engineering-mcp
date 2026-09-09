@@ -79,8 +79,12 @@ autenticado por el host, igual que `rust.miri`. Un `SourceBundle` admite como
 máximo 4 096 entradas, 16 MiB en total y 1 MiB por archivo. El cierre de
 `criterion 0.8.2` para `aarch64-unknown-linux-gnu` son 52 paquetes, 6 014
 archivos, 779 directorios y 156 267 469 bytes, con cuatro archivos por encima
-del límite por archivo. Su subconjunto compilado ronda los 20 MiB, así que
-ninguna poda de archivos no compilados lo mete dentro del límite.
+del límite por archivo. Podar los no compilados tampoco sirve, y la razón está
+medida, no estimada: los cuatro archivos que superan el límite pertenecen a
+paquetes solo-Windows y Cargo exige que todo paquete del lockfile esté presente
+en un directory source, así que no se pueden quitar. El «subconjunto compilado
+ronda los 20 MiB» que figuraba aquí era una estimación y se retira; no sostiene
+nada, porque el límite por archivo ya se rompe antes de llegar a los otros dos.
 
 **Los límites no se subieron.** Pertenecen al contrato de datos offline
 calificado en M2/M4 ([ADR-055](../adr/ADR-055-offline-cargo-data-and-lock-policy.md))

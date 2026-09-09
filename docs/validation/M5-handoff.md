@@ -11,7 +11,7 @@ con qué evidencia.
 ## Entrada M4 verificada live
 
 `gh pr view 15` devuelve `MERGED`, merge `90d72f2c…`, head `e1be3a37…` y diez
-checks en `SUCCESS`. `git diff --stat e1be3a37..HEAD -- crates/ Cargo.toml
+checks en `SUCCESS`. `git diff --stat e1be3a37..main -- crates/ Cargo.toml
 Cargo.lock scripts/` es vacío, así que los bytes calificados de M4 son los de
 `main`. No se detectó discrepancia con lo que declaraba el encargo.
 
