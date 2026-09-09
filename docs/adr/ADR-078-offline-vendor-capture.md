@@ -137,6 +137,59 @@ todo en RAM.
 - **Limpieza tras cancelación**: una captura interrumpida no deja residuo ni un
   artefacto a medias que otra ejecución pueda tomar por completo.
 
+## Los límites, ahora que las mediciones existen (2026-09-09)
+
+§4 no autorizaba ningún número hasta tener memoria, disco, tiempo y concurrencia
+medidos. Están en
+[el recibo](../validation/M5-01-vendor-capture-measurements.json). Estos son los
+números y de dónde sale cada uno.
+
+**Lo primero que dicen las mediciones es que la máquina no es la restricción.**
+Con lectura incremental el pico de RSS sobre el suelo del intérprete es 2,7 MB
+—sigue el tamaño del buffer, no el del árbol— frente a 171 MB si se residencia el
+árbol y 341 MB si se residencia el artifact. Captura, verificación e ingesta del
+cierre de 156 MB suman **1,00 s**. Dos capturas concurrentes cuestan 1,16× de
+reloj cada una y **no cambian ningún resultado**: los diez artifacts concurrentes
+dieron un único digest, idéntico al serie.
+
+Eso obliga a ser honesto sobre qué justifica cada límite. Decir «lo medimos» de un
+número que la medición no obliga sería el razonamiento circular que este ADR
+prohíbe. Así que se separan:
+
+| Límite | Valor | Qué lo justifica |
+| --- | --- | --- |
+| Buffer de lectura | 64 KiB | **Medido.** Es lo que fija el pico de memoria; con 1 MiB el pico sube a 4,4 MB sobre el suelo sin ganar tiempo (0,3706 s frente a 0,3792 s, dentro del ruido) |
+| Bytes totales | 512 MiB | **Política, informada por medición.** A 156 MB el ciclo completo es 1,0 s; proyectado a 512 MiB son ~3,5 s de reloj y ~1,1 GB de disco del host entre captura y árbol ingerido. Es el punto donde el coste sigue siendo el de una operación interactiva |
+| Entradas | 32 768 | **Política.** El cierre medido usa 6 793. El factor de holgura es deliberado y no se justifica por la medición: se justifica por no querer volver a esta decisión con el siguiente harness |
+| Bytes por archivo | 8 MiB | **Argumentado, no elegido.** La curva acumulada del cierre real es 96,5 % de los bytes en archivos ≤ 1 MiB y el mayor es 1 670 630 B. Un límite derivado de la mediana (5 344 B) y uno derivado del máximo difieren en tres órdenes de magnitud, así que ninguno de los dos sirve. 8 MiB es ~5× el mayor archivo observado: deja pasar el cierre medido con margen y sigue rechazando un archivo que ningún vendor legítimo produce |
+| Bytes por ruta | 200 | **Medido.** El máximo observado es 112 y el p99 es 104. El doble del máximo observado |
+| Profundidad | 16 | **Medido.** El máximo observado es 9 |
+
+Ninguno de estos números se eligió para que el cierre de criterion quepa. Se
+comprueba al revés: **el cierre cabría también con la mitad de las entradas y un
+tercio de los bytes totales.** Que quepa es consecuencia, no criterio.
+
+### El alfabeto de rutas, que no es un límite
+
+Trece rutas del cierre —las de `zerocopy-derive` con paréntesis— no rompen ninguna
+cuota: rompen la gramática. **Se decide ampliar el alfabeto**, no codificar ni
+rechazar el paquete, y se decide con su coste declarado:
+
+- El alfabeto pasa a admitir además `()+,=@[]{}~` y espacio, que es lo que un
+  `.crate` publicado puede contener legítimamente en nombres de archivo de tests.
+- **Lo que no se admite sigue siendo lo que importa**: ningún byte de control,
+  ningún byte no ASCII, ningún `\`, ninguna `:` , ningún componente vacío, `.` o
+  `..`, ninguna ruta absoluta. La razón por la que el alfabeto existe —que una
+  ruta no pueda expresar algo que el guest interprete como otra cosa— se conserva
+  entera.
+- **La ampliación es del contrato nuevo, no de `SourceBundle`.** `validate_source_path`
+  no se toca: los flujos M2/M4 calificados siguen con su alfabeto cerrado.
+
+La alternativa de codificar la ruta se descarta porque mueve el problema a la
+fidelidad de la codificación y añade un camino donde el nombre que ve el guest no
+es el que viajó. La de rechazar el paquete ya estaba descartada por medición:
+Cargo exige todo paquete del lockfile.
+
 ## Alternatives considered
 
 - **Subir los límites de `SourceBundle`.** Descartado, y es la razón de que este
