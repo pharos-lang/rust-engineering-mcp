@@ -226,7 +226,7 @@ enum Failure {
 
 define_security_tool!(
     ComparisonTool,
-    "Compare two benchmark datasets this project already published, by their opaque store identifiers. Runs no process and reads no project source, so it has no execution mode. Publishes the complete frozen method (median of per-iteration time, cluster percentile bootstrap over executions, fixed seed, confidence level, multiplicity correction, the largest family that resample budget resolves, material threshold, outliers counted and never removed) and, per shared benchmark, the verdict, effect ratio, interval, both medians, both sample counts, both outlier counts, the minimum detectable ratio and the reasons any verdict was withheld. Also publishes, for both datasets, every provenance field the compatibility check reads -- toolchain, image digest, platform, configuration digest, execution digest, selection and hardware -- so each reported reason can be read against the two values behind it. Datasets that do not describe comparable executions are an observed result carrying the complete sorted reason list and those two records, not an infrastructure failure. The result describes these two executions on this host: it attributes no cause, generalizes to no other hardware and recommends nothing."
+    "Compare two benchmark datasets this project already published, by their opaque store identifiers. Runs no process and reads no project source, so it has no execution mode. Publishes the complete frozen method (median of per-iteration time, cluster percentile bootstrap over executions, fixed seed, confidence level, multiplicity correction, the largest family that resample budget resolves, material threshold, outliers counted and never removed) and, per shared benchmark, the verdict, effect ratio, interval, both medians, both sample counts, both counts of independent executions pooled, both outlier counts, the minimum detectable ratio and the reasons any verdict was withheld. Fewer than three executions on either side withholds every direction, so the execution counts are what a reader checks before reading a verdict. Also publishes, for both datasets, every provenance field the compatibility check reads -- toolchain, image digest, platform, configuration digest, execution digest, selection and hardware -- so each reported reason can be read against the two values behind it. Datasets that do not describe comparable executions are an observed result carrying the complete sorted reason list and those two records, not an infrastructure failure. The result describes these two executions on this host: it attributes no cause, generalizes to no other hardware and recommends nothing."
 );
 
 impl ComparisonTool {
@@ -674,6 +674,8 @@ fn comparison(value: BenchmarkComparison) -> schemas::Comparison {
         candidate_median_ns: finite(value.candidate_median_ns),
         baseline_samples: u32::try_from(value.baseline_samples).unwrap_or(u32::MAX),
         candidate_samples: u32::try_from(value.candidate_samples).unwrap_or(u32::MAX),
+        baseline_executions: u32::try_from(value.baseline_executions).unwrap_or(u32::MAX),
+        candidate_executions: u32::try_from(value.candidate_executions).unwrap_or(u32::MAX),
         baseline_outliers: u32::try_from(value.baseline_outliers).unwrap_or(u32::MAX),
         candidate_outliers: u32::try_from(value.candidate_outliers).unwrap_or(u32::MAX),
         minimum_detectable_ratio: finite(value.minimum_detectable_ratio),
@@ -699,8 +701,8 @@ fn comparison(value: BenchmarkComparison) -> schemas::Comparison {
                 InconclusiveReason::TruncatedMeasurement => {
                     schemas::InconclusiveReason::TruncatedMeasurement
                 }
-                InconclusiveReason::SingleExecutionPerSide => {
-                    schemas::InconclusiveReason::SingleExecutionPerSide
+                InconclusiveReason::InsufficientExecutions => {
+                    schemas::InconclusiveReason::InsufficientExecutions
                 }
                 InconclusiveReason::DegenerateDispersion => {
                     schemas::InconclusiveReason::DegenerateDispersion

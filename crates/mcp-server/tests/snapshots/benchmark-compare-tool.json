@@ -1,6 +1,6 @@
 {
   "name": "rust.benchmark.compare",
-  "description": "Compare two benchmark datasets this project already published, by their opaque store identifiers. Runs no process and reads no project source, so it has no execution mode. Publishes the complete frozen method (median of per-iteration time, cluster percentile bootstrap over executions, fixed seed, confidence level, multiplicity correction, the largest family that resample budget resolves, material threshold, outliers counted and never removed) and, per shared benchmark, the verdict, effect ratio, interval, both medians, both sample counts, both outlier counts, the minimum detectable ratio and the reasons any verdict was withheld. Also publishes, for both datasets, every provenance field the compatibility check reads -- toolchain, image digest, platform, configuration digest, execution digest, selection and hardware -- so each reported reason can be read against the two values behind it. Datasets that do not describe comparable executions are an observed result carrying the complete sorted reason list and those two records, not an infrastructure failure. The result describes these two executions on this host: it attributes no cause, generalizes to no other hardware and recommends nothing.",
+  "description": "Compare two benchmark datasets this project already published, by their opaque store identifiers. Runs no process and reads no project source, so it has no execution mode. Publishes the complete frozen method (median of per-iteration time, cluster percentile bootstrap over executions, fixed seed, confidence level, multiplicity correction, the largest family that resample budget resolves, material threshold, outliers counted and never removed) and, per shared benchmark, the verdict, effect ratio, interval, both medians, both sample counts, both counts of independent executions pooled, both outlier counts, the minimum detectable ratio and the reasons any verdict was withheld. Fewer than three executions on either side withholds every direction, so the execution counts are what a reader checks before reading a verdict. Also publishes, for both datasets, every provenance field the compatibility check reads -- toolchain, image digest, platform, configuration digest, execution digest, selection and hardware -- so each reported reason can be read against the two values behind it. Datasets that do not describe comparable executions are an observed result carrying the complete sorted reason list and those two records, not an infrastructure failure. The result describes these two executions on this host: it attributes no cause, generalizes to no other hardware and recommends nothing.",
   "inputSchema": {
     "$schema": "https://json-schema.org/draft/2020-12/schema",
     "additionalProperties": false,
@@ -57,6 +57,12 @@
         "additionalProperties": false,
         "description": "One benchmark compared across the two datasets. When the verdict is\n`inconclusive` for a missing measurement the numeric fields carry zeros:\na zero here is an absence, not an observation of no difference.",
         "properties": {
+          "baseline_executions": {
+            "description": "Distinct executions each side's samples were pooled from. Below the\nthree the protocol runs by default no direction is claimed, so two\notherwise identical reports differing only here were not entitled to\nthe same verdicts.",
+            "format": "uint32",
+            "minimum": 0,
+            "type": "integer"
+          },
           "baseline_median_ns": {
             "format": "double",
             "type": "number"
@@ -67,6 +73,11 @@
             "type": "integer"
           },
           "baseline_samples": {
+            "format": "uint32",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "candidate_executions": {
             "format": "uint32",
             "minimum": 0,
             "type": "integer"
@@ -123,6 +134,8 @@
           "candidate_median_ns",
           "baseline_samples",
           "candidate_samples",
+          "baseline_executions",
+          "candidate_executions",
           "baseline_outliers",
           "candidate_outliers",
           "minimum_detectable_ratio",
@@ -346,9 +359,13 @@
               "zero_or_negative_baseline",
               "missing_measurement",
               "truncated_measurement",
-              "single_execution_per_side",
               "degenerate_dispersion"
             ],
+            "type": "string"
+          },
+          {
+            "const": "insufficient_executions",
+            "description": "One side pooled fewer than the three independent executions the frozen\nprotocol runs by default. Below three the cluster bootstrap's standard\nerror is understated by `sqrt(k / (k - 1))` -- 1.41x at two executions,\nand at one there is no estimate of between-execution drift at all -- so\nno direction is claimed. Both sides' counts are published per comparison.",
             "type": "string"
           },
           {
@@ -396,6 +413,7 @@
             "type": "integer"
           },
           "confidence_level": {
+            "description": "The NOMINAL two-sided level the method targets, not the coverage the\ninterval delivers. The cluster bootstrap's standard error over `k`\nexecutions is understated by `sqrt(k / (k - 1))` -- 1.22x at the three\nexecutions a direction requires -- and the percentile endpoints carry no\n`t_{k-1}` widening for it. Both push the same way: the interval is\nnarrower, that is more confident, than this level warrants, never wider.\nMeasured under one Gaussian random-effects null, delivered coverage was\n0.84-0.89 with three executions per side; the magnitude depends on the\ndrift model, the mechanism does not (ADR-073 section 4).",
             "format": "double",
             "type": "number"
           },

@@ -86,7 +86,12 @@ pub enum InconclusiveReason {
     ZeroOrNegativeBaseline,
     MissingMeasurement,
     TruncatedMeasurement,
-    SingleExecutionPerSide,
+    /// One side pooled fewer than the three independent executions the frozen
+    /// protocol runs by default. Below three the cluster bootstrap's standard
+    /// error is understated by `sqrt(k / (k - 1))` -- 1.41x at two executions,
+    /// and at one there is no estimate of between-execution drift at all -- so
+    /// no direction is claimed. Both sides' counts are published per comparison.
+    InsufficientExecutions,
     DegenerateDispersion,
     /// The family is larger than `max_resolvable_family_size`, so the
     /// multiplicity-adjusted interval endpoints would be extreme order
@@ -249,6 +254,15 @@ pub struct Method {
     pub statistic: Statistic,
     pub bootstrap_resamples: u32,
     pub seed: u64,
+    /// The NOMINAL two-sided level the method targets, not the coverage the
+    /// interval delivers. The cluster bootstrap's standard error over `k`
+    /// executions is understated by `sqrt(k / (k - 1))` -- 1.22x at the three
+    /// executions a direction requires -- and the percentile endpoints carry no
+    /// `t_{k-1}` widening for it. Both push the same way: the interval is
+    /// narrower, that is more confident, than this level warrants, never wider.
+    /// Measured under one Gaussian random-effects null, delivered coverage was
+    /// 0.84-0.89 with three executions per side; the magnitude depends on the
+    /// drift model, the mechanism does not (ADR-073 section 4).
     pub confidence_level: f64,
     pub material_threshold_ratio: f64,
     pub multiplicity: Multiplicity,
@@ -288,6 +302,12 @@ pub struct Comparison {
     pub candidate_median_ns: f64,
     pub baseline_samples: u32,
     pub candidate_samples: u32,
+    /// Distinct executions each side's samples were pooled from. Below the
+    /// three the protocol runs by default no direction is claimed, so two
+    /// otherwise identical reports differing only here were not entitled to
+    /// the same verdicts.
+    pub baseline_executions: u32,
+    pub candidate_executions: u32,
     pub baseline_outliers: u32,
     pub candidate_outliers: u32,
     /// The smallest true ratio this sample size and dispersion could detect at

@@ -1586,7 +1586,7 @@ mod real_guest_datasets {
         // will not go further than that.
         assert_eq!(
             reference.inconclusive_reasons,
-            vec![InconclusiveReason::SingleExecutionPerSide]
+            vec![InconclusiveReason::InsufficientExecutions]
         );
         assert_eq!(report.compared, 3);
         assert!(report.baseline_only.is_empty() && report.candidate_only.is_empty());
@@ -1613,7 +1613,7 @@ mod real_guest_datasets {
         assert_eq!(reference.verdict, ComparisonVerdict::Inconclusive);
         assert_eq!(
             reference.inconclusive_reasons,
-            vec![InconclusiveReason::SingleExecutionPerSide]
+            vec![InconclusiveReason::InsufficientExecutions]
         );
         // The observed effect is unchanged by the correction: what the samples
         // show is still reported, only no longer read as a direction.
@@ -1866,6 +1866,20 @@ mod admitted_image_datasets {
                 "{key}: every execution must be identifiable in the pooled set"
             );
         }
+        // And what the comparison publishes is that same count, per side, read
+        // off the real pooled captures rather than off a hand-built fixture.
+        let candidate = side(CANDIDATE, "sha256:candidate", "sha256:exec-candidate");
+        for row in compare(&baseline, &candidate)
+            .expect("two compatible datasets")
+            .comparisons
+        {
+            assert_eq!(
+                (row.baseline_executions, row.candidate_executions),
+                (usize::from(RUNS), usize::from(RUNS)),
+                "{}: the published execution counts must be the ones pooled",
+                row.key
+            );
+        }
     }
 
     #[test]
@@ -1880,10 +1894,11 @@ mod admitted_image_datasets {
             (0.15..0.35).contains(effect),
             "the measured effect drifted away from the modification: {effect}"
         );
-        // Three executions per side is enough to stop withholding structurally.
+        // Three executions per side is what the frozen protocol runs and what
+        // the method requires, so the structural refusal must not fire here.
         assert!(
-            !reasons.contains(&InconclusiveReason::SingleExecutionPerSide),
-            "three executions a side must not be treated as one: {reasons:?}"
+            !reasons.contains(&InconclusiveReason::InsufficientExecutions),
+            "three executions a side must satisfy the execution gate: {reasons:?}"
         );
         // ...and not enough to resolve a 5% threshold on this host. The
         // between-execution drift of this corpus is 15-29% on source that does

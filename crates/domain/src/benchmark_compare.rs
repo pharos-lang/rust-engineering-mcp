@@ -90,7 +90,63 @@ pub const MAX_RESOLVABLE_FAMILY_SIZE: u32 = 25;
 pub const BOOTSTRAP_SEED: u64 = 0x0005_EEDB_0075_7241u64;
 
 /// Nominal two-sided confidence level before any multiplicity correction.
+///
+/// It is the level this method TARGETS, and it is not the coverage the
+/// published interval delivers. Two approximations sit between the two, both
+/// consequences of resampling the handful of executions a run actually has:
+///
+/// - the nonparametric cluster bootstrap's variance over `k` clusters has
+///   expectation `((k - 1) / k) · σ²_between`, so the standard error it reports
+///   is short of the one it estimates by a factor of `sqrt(k / (k - 1))` —
+///   1.22× at the `k = 3` [`MIN_EXECUTIONS_FOR_DIRECTION`] requires;
+/// - the endpoints are percentiles of that same bootstrap distribution, taken
+///   with no `t_{k-1}` widening for a scale estimated from `k` clusters.
+///
+/// Both err in the SAME direction: the interval is NARROWER than 0.95 warrants
+/// — more confident, never less — so every direction this method does claim is
+/// claimed at a true coverage below the level published beside it. Measured
+/// under one Gaussian random-effects null, an independent review put that
+/// coverage at 0.84–0.89 with three executions per side. The MAGNITUDE of the
+/// gap depends on that drift model and would be a different pair of numbers
+/// under another one; the MECHANISM does not depend on it and does not vanish
+/// at any `k` the published `run_count` range can reach.
+///
+/// The constant stays 0.95 and is published as 0.95 deliberately. It is what
+/// the frozen method asks the distribution for, and substituting an
+/// "effective" number measured under one drift model would publish that
+/// model's assumptions as if they were the method's. The disclosure is the
+/// correction; see ADR-073 §4, "Corrección (2026-09-09) — la cobertura que
+/// entrega el intervalo".
 pub const CONFIDENCE_LEVEL: f64 = 0.95;
+
+/// Executions each side must pool before any direction is admissible.
+///
+/// The outer stage of [`cluster_draw`] takes `k` executions with replacement
+/// from the `k` executions that side ran. For a statistic behaving like a mean
+/// over clusters, the variance of that draw has expectation
+/// `((k - 1) / k) · σ²_between`, so the standard error is understated by
+/// `sqrt(k / (k - 1))` and the percentile endpoints inherit the understatement
+/// with no `t_{k-1}` correction applied to them. The factor is a function of
+/// `k` alone — `the_cluster_shortfall_is_a_function_of_the_execution_count`
+/// computes it rather than restating it — and it is worst at the smallest `k`:
+/// 1.41× at `k = 2` against 1.22× at `k = 3`.
+///
+/// `k = 2` is the worst row this contract can reach, because `run_count` is a
+/// published input over `1..=3`. It is also the row an independent review
+/// measured a false direction in: under a Gaussian random-effects null with 5%
+/// drift, 27 of 1000 comparisons of IDENTICAL source emitted a direction at
+/// `k = 2`, with delivered coverage 0.66–0.75 there against 0.84–0.89 at
+/// `k = 3`. Requiring three executions removes that row entirely rather than
+/// shrinking it: below three the direction is refused as
+/// [`InconclusiveReason::InsufficientExecutions`] before any interval is read.
+///
+/// Three is not a new demand. It is the number of independent executions the
+/// frozen protocol already runs by default (`BENCHMARK_DEFAULT_RUN_COUNT`, the
+/// default of that same published input), so the gate asks that the protocol
+/// was followed, not that anything extra be captured. What remains at `k = 3`
+/// is the 1.22× understatement, which is disclosed at [`CONFIDENCE_LEVEL`]
+/// instead of being silently absorbed.
+pub const MIN_EXECUTIONS_FOR_DIRECTION: usize = 3;
 
 /// Smallest ratio the product is willing to call a material difference. Frozen
 /// at 5% before measuring, per the roadmap; it is a policy threshold, not an
@@ -190,16 +246,19 @@ pub enum InconclusiveReason {
     ZeroOrNegativeBaseline,
     MissingMeasurement,
     TruncatedMeasurement,
-    /// One side's samples all come from a single execution.
+    /// One side pooled fewer than [`MIN_EXECUTIONS_FOR_DIRECTION`] executions.
     ///
-    /// One execution per side cannot separate a change in the code from a
-    /// change in the machine: everything that drifted between the two runs —
-    /// frequency, thermal state, page cache, co-tenants, address layout —
-    /// is folded into the same difference the verdict would attribute to the
-    /// source. With no second execution on a side there is no estimate of that
-    /// drift at all, so no interval computed here can exclude it, and no
-    /// direction is admissible however wide the observed gap is.
-    SingleExecutionPerSide,
+    /// At one execution there is no estimate of between-execution drift at all:
+    /// everything that moved between the two runs — frequency, thermal state,
+    /// page cache, co-tenants, address layout — is folded into the same
+    /// difference a direction would attribute to the source, and no interval
+    /// computed here can exclude it however wide the observed gap is. At two
+    /// there is an estimate, and it is the one this method understates most:
+    /// the cluster bootstrap's standard error is short by `sqrt(k / (k - 1))`,
+    /// which is 1.41× at `k = 2`. Both are the same refusal because both are
+    /// the same fact about the samples — the side did not pool the executions
+    /// a direction needs — and the reported count says which one it was.
+    InsufficientExecutions,
     /// The two sample sets carry no dispersion to measure.
     ///
     /// When every sample is identical the bootstrap standard error is zero, so
@@ -359,6 +418,13 @@ impl ComparisonMethod {
 /// ignores would invite a reader to conclude something the method did not.
 /// `provenance_projection_carries_every_consulted_field` holds the two sets
 /// together.
+///
+/// How many executions each side pooled is published too, but on
+/// [`BenchmarkComparison`] rather than here, and for both halves of that rule:
+/// the compatibility check does not consult it, and it is a property of one
+/// benchmark's samples rather than of the dataset — a measurement missing from
+/// one repetition leaves that benchmark with fewer executions than its
+/// neighbours in the very same pair of datasets.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case", deny_unknown_fields)]
 pub struct ComparedProvenance {
@@ -438,6 +504,16 @@ pub struct BenchmarkComparison {
     pub candidate_median_ns: f64,
     pub baseline_samples: usize,
     pub candidate_samples: usize,
+    /// Distinct executions the samples above were pooled from, per side.
+    ///
+    /// Published beside the sample counts because it is a property of the same
+    /// two sample sets and, unlike them, it decides whether a direction may be
+    /// claimed at all: below [`MIN_EXECUTIONS_FOR_DIRECTION`] no interval is
+    /// read. Two reports that agree on every other field can differ only here,
+    /// and then one of them was allowed a verdict the other was refused, so a
+    /// reader that cannot see this number cannot tell the two apart.
+    pub baseline_executions: usize,
+    pub candidate_executions: usize,
     /// Counted with Tukey fences and kept in the sample set.
     pub baseline_outliers: usize,
     pub candidate_outliers: usize,
@@ -758,9 +834,10 @@ impl SideSamples {
         Self { executions, values }
     }
 
-    /// How many independent executions this side pools. Fewer than two is not
-    /// a small number of executions; it is no estimate of between-execution
-    /// drift at all.
+    /// How many independent executions this side pools. One is not a small
+    /// number of executions; it is no estimate of between-execution drift at
+    /// all. Two is an estimate this method understates most
+    /// ([`MIN_EXECUTIONS_FOR_DIRECTION`]).
     fn execution_count(&self) -> usize {
         self.executions.len()
     }
@@ -788,7 +865,10 @@ struct BootstrapOutcome {
 /// The two stages are what put between-execution variance into the interval. A
 /// side that ran one execution can only ever draw that one, which is why a
 /// direction is refused earlier rather than read off a draw that cannot vary
-/// the way the underlying quantity does.
+/// the way the underlying quantity does. The same outer stage is why a small
+/// `k` understates the standard error by `sqrt(k / (k - 1))`, and why the
+/// refusal covers every `k` below [`MIN_EXECUTIONS_FOR_DIRECTION`] rather than
+/// only `k = 1`.
 fn cluster_draw(rng: &mut SplitMix64, side: &SideSamples, draw: &mut Vec<f64>) -> f64 {
     draw.clear();
     let count = side.executions.len();
@@ -1128,14 +1208,17 @@ fn decide(input: &VerdictInput) -> (ComparisonVerdict, Vec<InconclusiveReason>) 
     }
     // The next three guards run BEFORE the interval and before the precision
     // gate, because each describes something that makes those two meaningless:
-    // one execution per side gives an interval that measures the wrong thing,
-    // a family past the resolution limit has no interval at all because no
+    // too few executions per side give an interval that measures the wrong
+    // thing or measures it with a standard error this method understates, a
+    // family past the resolution limit has no interval at all because no
     // bootstrap was run for it, and zero dispersion gives a minimum detectable
     // ratio of zero that no threshold can ever exceed. The family gate is read
     // before the dispersion one because skipping the bootstrap leaves an empty
     // distribution, and an empty distribution is not a degenerate measurement.
-    if input.baseline_executions < 2 || input.candidate_executions < 2 {
-        reasons.push(InconclusiveReason::SingleExecutionPerSide);
+    if input.baseline_executions < MIN_EXECUTIONS_FOR_DIRECTION
+        || input.candidate_executions < MIN_EXECUTIONS_FOR_DIRECTION
+    {
+        reasons.push(InconclusiveReason::InsufficientExecutions);
         return (ComparisonVerdict::Inconclusive, reasons);
     }
     if input.family_beyond_resolution {
@@ -1233,13 +1316,15 @@ fn compare_one(
         0.0
     };
 
+    let baseline_executions = baseline_side.execution_count();
+    let candidate_executions = candidate_side.execution_count();
     let (verdict, inconclusive_reasons) = decide(&VerdictInput {
         baseline_completeness: baseline.completeness(),
         candidate_completeness: candidate.completeness(),
         baseline_samples: baseline_values.len(),
         candidate_samples: candidate_values.len(),
-        baseline_executions: baseline_side.execution_count(),
-        candidate_executions: candidate_side.execution_count(),
+        baseline_executions,
+        candidate_executions,
         baseline_median_ns: baseline_median,
         degenerate_dispersion: usable
             && (outcome.degenerate
@@ -1259,6 +1344,8 @@ fn compare_one(
         candidate_median_ns: candidate_median,
         baseline_samples: baseline_values.len(),
         candidate_samples: candidate_values.len(),
+        baseline_executions,
+        candidate_executions,
         baseline_outliers: tukey_outliers(&baseline_sorted),
         candidate_outliers: tukey_outliers(&candidate_sorted),
         minimum_detectable_ratio,
@@ -1594,6 +1681,13 @@ mod tests {
         assert_eq!(comparison.candidate_outliers, 1);
         assert_eq!(comparison.baseline_samples, 10);
         assert_eq!(comparison.candidate_samples, 10);
+        // The ten values were dealt over the protocol's three executions, and
+        // the report says so beside the sample counts.
+        assert_eq!(comparison.baseline_executions, MIN_EXECUTIONS_FOR_DIRECTION);
+        assert_eq!(
+            comparison.candidate_executions,
+            MIN_EXECUTIONS_FOR_DIRECTION
+        );
         assert_eq!(comparison.baseline_median_ns, 5.5);
         assert_eq!(comparison.candidate_median_ns, 5.5);
     }
@@ -1763,8 +1857,8 @@ mod tests {
             candidate_completeness: MeasurementCompleteness::Complete,
             baseline_samples: 30,
             candidate_samples: 30,
-            baseline_executions: 3,
-            candidate_executions: 3,
+            baseline_executions: MIN_EXECUTIONS_FOR_DIRECTION,
+            candidate_executions: MIN_EXECUTIONS_FOR_DIRECTION,
             baseline_median_ns: median,
             degenerate_dispersion: false,
             family_beyond_resolution: false,
@@ -1812,9 +1906,12 @@ mod tests {
             decide(&base(1_000.0, (0.06, 0.30), 0.9)).1,
             vec![InconclusiveReason::PrecisionBelowThreshold]
         );
-        // A single execution on either side refuses the direction the interval
-        // would otherwise support, and is read before the precision gate.
-        for (baseline_executions, candidate_executions) in [(1, 3), (3, 1), (1, 1), (0, 3)] {
+        // Too few executions on either side refuses the direction the interval
+        // would otherwise support, and is read before the precision gate. Two
+        // is included: it is the row the cluster bootstrap understates most.
+        for (baseline_executions, candidate_executions) in
+            [(1, 3), (3, 1), (1, 1), (0, 3), (2, 3), (3, 2), (2, 2)]
+        {
             let input = VerdictInput {
                 baseline_executions,
                 candidate_executions,
@@ -1824,7 +1921,7 @@ mod tests {
                 decide(&input),
                 (
                     ComparisonVerdict::Inconclusive,
-                    vec![InconclusiveReason::SingleExecutionPerSide]
+                    vec![InconclusiveReason::InsufficientExecutions]
                 ),
                 "{baseline_executions}/{candidate_executions}"
             );
@@ -1859,8 +1956,8 @@ mod tests {
             .1,
             vec![InconclusiveReason::UnobservableHardware]
         );
-        // A defect of the samples outranks a defect of the report: one
-        // execution per side is named even when the family is also past the
+        // A defect of the samples outranks a defect of the report: too few
+        // executions per side is named even when the family is also past the
         // limit, so a caller is told the thing it has to fix first. The real
         // guest captures depend on this ordering to keep saying what they say.
         assert_eq!(
@@ -1871,7 +1968,7 @@ mod tests {
                 ..base(1_000.0, (0.06, 0.30), 0.01)
             })
             .1,
-            vec![InconclusiveReason::SingleExecutionPerSide]
+            vec![InconclusiveReason::InsufficientExecutions]
         );
         // A family past the limit ran no bootstrap, so the empty distribution
         // it leaves behind must not be reported as a degenerate measurement.
@@ -1909,7 +2006,7 @@ mod tests {
     #[test]
     fn one_execution_per_side_never_receives_a_direction() {
         // A 20% gap, sixty samples a side, tight dispersion: everything the
-        // method needs except a second execution to compare against.
+        // method needs except the executions to compare against.
         let baseline = jitter(1, 60, 1_000.0, 0.02);
         let candidate = jitter(2, 60, 1_200.0, 0.02);
         let report = compare(
@@ -1927,12 +2024,14 @@ mod tests {
         assert_eq!(comparison.verdict, ComparisonVerdict::Inconclusive);
         assert_eq!(
             comparison.inconclusive_reasons,
-            vec![InconclusiveReason::SingleExecutionPerSide]
+            vec![InconclusiveReason::InsufficientExecutions]
         );
         // The measurement itself is still reported; only the direction is not.
         assert!((comparison.effect_ratio - 0.20).abs() < 0.03);
         assert_eq!(comparison.baseline_samples, 60);
         assert_eq!(comparison.candidate_samples, 60);
+        assert_eq!(comparison.baseline_executions, 1);
+        assert_eq!(comparison.candidate_executions, 1);
     }
 
     #[test]
@@ -1947,10 +2046,191 @@ mod tests {
             ),
         )
         .unwrap();
+        let comparison = only(&report);
         assert_eq!(
-            only(&report).inconclusive_reasons,
-            vec![InconclusiveReason::SingleExecutionPerSide]
+            comparison.inconclusive_reasons,
+            vec![InconclusiveReason::InsufficientExecutions]
         );
+        // And the two counts show WHICH side failed the gate.
+        assert_eq!(comparison.baseline_executions, 3);
+        assert_eq!(comparison.candidate_executions, 1);
+    }
+
+    /// The G8 residue, stated as an oracle over `compare` and not only over
+    /// `decide`: two executions a side is the worst row the cluster bootstrap
+    /// has — its standard error is short by `sqrt(2/1) = 1.41` — and it is
+    /// reachable from the published `run_count` range, so the direction is
+    /// refused there too. The same data with the protocol's three executions
+    /// is admitted, which is what keeps this a gate on the protocol and not a
+    /// blanket refusal.
+    #[test]
+    fn two_executions_per_side_are_refused_and_three_are_admitted() {
+        // One deterministic population per side, dealt over `k` executions, so
+        // the ONLY difference between the two cases below is `k` itself.
+        let deal = |name: &str, values: &[f64], executions: u8| {
+            let samples = values
+                .iter()
+                .enumerate()
+                .map(|(index, value)| {
+                    RawSample::new(1, *value, (index as u8) % executions + 1).unwrap()
+                })
+                .collect();
+            BenchmarkMeasurement::new(
+                identity(name),
+                SamplingMode::Flat,
+                samples,
+                3_000,
+                5_000,
+                u32::try_from(values.len()).unwrap_or(u32::MAX),
+                MeasurementCompleteness::Complete,
+            )
+            .unwrap()
+        };
+        let baseline = jitter(401, 60, 1_000.0, 0.02);
+        let candidate = jitter(411, 60, 1_200.0, 0.02);
+        let compared = |executions: u8| {
+            compare(
+                &dataset(
+                    "run-baseline",
+                    vec![deal("bench/one", &baseline, executions)],
+                ),
+                &dataset(
+                    "run-candidate",
+                    vec![deal("bench/one", &candidate, executions)],
+                ),
+            )
+            .unwrap()
+        };
+
+        let refused = compared(2);
+        let comparison = only(&refused);
+        assert_eq!(comparison.baseline_executions, 2);
+        assert_eq!(comparison.candidate_executions, 2);
+        assert_eq!(comparison.verdict, ComparisonVerdict::Inconclusive);
+        assert_eq!(
+            comparison.inconclusive_reasons,
+            vec![InconclusiveReason::InsufficientExecutions],
+            "interval {:?}, mdr {}",
+            comparison.confidence_interval,
+            comparison.minimum_detectable_ratio
+        );
+        // The measurement is still described, and it is a measurement the
+        // method WOULD have called a regression: the refusal is about the
+        // execution count, not about the data being uninformative.
+        assert!((comparison.effect_ratio - 0.20).abs() < 0.03);
+        assert!(comparison.confidence_interval.0 > MATERIAL_THRESHOLD_RATIO);
+
+        let admitted = compared(u8::try_from(MIN_EXECUTIONS_FOR_DIRECTION).unwrap());
+        let comparison = only(&admitted);
+        assert_eq!(comparison.baseline_executions, MIN_EXECUTIONS_FOR_DIRECTION);
+        assert_eq!(
+            comparison.candidate_executions,
+            MIN_EXECUTIONS_FOR_DIRECTION
+        );
+        assert_eq!(comparison.verdict, ComparisonVerdict::Regression);
+        assert!(comparison.inconclusive_reasons.is_empty());
+    }
+
+    /// The gate is the constant, not a literal that happens to equal it: every
+    /// count below it is refused and every count from it upward is not.
+    #[test]
+    fn the_direction_gate_reads_the_frozen_execution_constant() {
+        let input = |baseline_executions: usize, candidate_executions: usize| VerdictInput {
+            baseline_completeness: MeasurementCompleteness::Complete,
+            candidate_completeness: MeasurementCompleteness::Complete,
+            baseline_samples: 30,
+            candidate_samples: 30,
+            baseline_executions,
+            candidate_executions,
+            baseline_median_ns: 1_000.0,
+            degenerate_dispersion: false,
+            family_beyond_resolution: false,
+            unobservable_hardware: false,
+            interval: (0.06, 0.30),
+            minimum_detectable_ratio: 0.01,
+        };
+        for count in 0..MIN_EXECUTIONS_FOR_DIRECTION {
+            for (baseline, candidate) in [
+                (count, MIN_EXECUTIONS_FOR_DIRECTION),
+                (MIN_EXECUTIONS_FOR_DIRECTION, count),
+            ] {
+                assert_eq!(
+                    decide(&input(baseline, candidate)),
+                    (
+                        ComparisonVerdict::Inconclusive,
+                        vec![InconclusiveReason::InsufficientExecutions]
+                    ),
+                    "{baseline}/{candidate}"
+                );
+            }
+        }
+        for count in MIN_EXECUTIONS_FOR_DIRECTION..MIN_EXECUTIONS_FOR_DIRECTION + 3 {
+            assert_eq!(
+                decide(&input(count, count)).0,
+                ComparisonVerdict::Regression,
+                "{count} executions a side"
+            );
+        }
+    }
+
+    /// The mechanism [`MIN_EXECUTIONS_FOR_DIRECTION`] answers, computed here
+    /// instead of asserted from the algebra.
+    ///
+    /// The outer stage of [`cluster_draw`] takes `k` clusters with replacement
+    /// from `k`. Enumerate EVERY draw it can make — all `k^k`, equally likely —
+    /// and take the exact variance of the cluster mean over that distribution.
+    /// It lands at `((k - 1) / k)` of `s²/k`, which is what a standard error of
+    /// a mean over `k` clusters is supposed to estimate. So the reported
+    /// standard error is short by `sqrt(k / (k - 1))`, worst at the smallest
+    /// `k` and never 1.0 at any `k` this contract can reach.
+    #[test]
+    fn the_cluster_shortfall_is_a_function_of_the_execution_count() {
+        // Exact variance of the resampled mean over the whole draw space.
+        let bootstrap_variance = |values: &[f64]| {
+            let count = values.len();
+            let draws = count.pow(u32::try_from(count).unwrap());
+            let mut sum = 0.0;
+            let mut sum_squares = 0.0;
+            for draw in 0..draws {
+                let mut position = draw;
+                let mut total = 0.0;
+                for _ in 0..count {
+                    total += values[position % count];
+                    position /= count;
+                }
+                let mean = total / count as f64;
+                sum += mean;
+                sum_squares += mean * mean;
+            }
+            let draws = draws as f64;
+            let mean = sum / draws;
+            sum_squares / draws - mean * mean
+        };
+
+        let mut shortfalls = Vec::new();
+        for values in [vec![1.0, 3.0], vec![1.0, 3.0, 8.0]] {
+            let k = values.len() as f64;
+            let observed = bootstrap_variance(&values);
+            // What the interval would need the resampling to reproduce.
+            let deviation = standard_deviation(&values);
+            let target = deviation * deviation / k;
+            assert!(
+                (observed / target - (k - 1.0) / k).abs() < 1e-9,
+                "k={k}: bootstrap variance {observed} is not (k-1)/k of {target}"
+            );
+            shortfalls.push((k, (target / observed).sqrt()));
+        }
+        let (two, three) = (shortfalls[0].1, shortfalls[1].1);
+        // The two magnitudes the constant's doc comment quotes, recomputed.
+        assert!((two - std::f64::consts::SQRT_2).abs() < 1e-9, "{two}");
+        assert!((1.224..1.225).contains(&three), "{three}");
+        // Worst at the smallest k, and never absent at any k this contract can
+        // reach: the admitted threshold bounds the shortfall, it does not
+        // remove it. What remains is what CONFIDENCE_LEVEL discloses.
+        assert!(two > three);
+        assert!(three > 1.0, "{three}");
+        assert_eq!(shortfalls[1].0 as usize, MIN_EXECUTIONS_FOR_DIRECTION);
+        assert_eq!(CONFIDENCE_LEVEL, 0.95);
     }
 
     #[test]
@@ -2001,23 +2281,27 @@ mod tests {
 
     /// The defect this method was corrected for, stated as an oracle.
     ///
-    /// Each side ran two executions whose medians sit ~6% apart — ordinary host
-    /// drift — and the two sides differ by ~7.5%. Resampling the samples inside
-    /// the executions treats the 120 pooled samples as 120 independent draws
-    /// and reports a standard error small enough to call a regression.
-    /// Resampling the executions reports the drift as well, and the drift alone
-    /// is larger than the material threshold, so no direction is claimed.
+    /// Each side ran the protocol's three executions, whose medians span ~6% —
+    /// ordinary host drift — while the two sides differ by ~7.5%. Resampling
+    /// the samples inside the executions treats the 180 pooled samples as 180
+    /// independent draws and reports a standard error small enough to call a
+    /// regression. Resampling the executions reports the drift as well, and the
+    /// drift alone is larger than the material threshold, so no direction is
+    /// claimed. Three executions a side is what keeps this test about the
+    /// variance model: the execution gate is satisfied here, so the refusal it
+    /// asserts is the precision gate reading a real between-execution spread.
     #[test]
     fn drift_between_executions_is_not_read_as_a_difference_between_datasets() {
-        let two_executions = |name: &str, first: &[f64], second: &[f64]| {
-            let samples = first
+        let three_executions = |name: &str, runs: [&[f64]; 3]| {
+            let samples = runs
                 .iter()
-                .map(|value| RawSample::new(1, *value, 1).unwrap())
-                .chain(
-                    second
+                .enumerate()
+                .flat_map(|(position, values)| {
+                    let index = u8::try_from(position + 1).unwrap();
+                    values
                         .iter()
-                        .map(|value| RawSample::new(1, *value, 2).unwrap()),
-                )
+                        .map(move |value| RawSample::new(1, *value, index).unwrap())
+                })
                 .collect::<Vec<_>>();
             BenchmarkMeasurement::new(
                 identity(name),
@@ -2030,15 +2314,21 @@ mod tests {
             )
             .unwrap()
         };
-        let baseline = two_executions(
+        let baseline = three_executions(
             "bench/one",
-            &jitter(301, 30, 1_000.0, 0.005),
-            &jitter(311, 30, 1_060.0, 0.005),
+            [
+                &jitter(301, 20, 1_000.0, 0.005),
+                &jitter(306, 20, 1_030.0, 0.005),
+                &jitter(311, 20, 1_060.0, 0.005),
+            ],
         );
-        let candidate = two_executions(
+        let candidate = three_executions(
             "bench/one",
-            &jitter(321, 30, 1_075.0, 0.005),
-            &jitter(331, 30, 1_140.0, 0.005),
+            [
+                &jitter(321, 20, 1_075.0, 0.005),
+                &jitter(326, 20, 1_107.0, 0.005),
+                &jitter(331, 20, 1_140.0, 0.005),
+            ],
         );
         let report = compare(
             &dataset("run-baseline", vec![baseline]),
@@ -2046,6 +2336,11 @@ mod tests {
         )
         .unwrap();
         let comparison = only(&report);
+        assert_eq!(comparison.baseline_executions, MIN_EXECUTIONS_FOR_DIRECTION);
+        assert_eq!(
+            comparison.candidate_executions,
+            MIN_EXECUTIONS_FOR_DIRECTION
+        );
         assert!(
             (comparison.effect_ratio - 0.075).abs() < 0.01,
             "{}",
@@ -2059,6 +2354,12 @@ mod tests {
             comparison.confidence_interval.0,
             comparison.confidence_interval.1,
             comparison.minimum_detectable_ratio
+        );
+        // Refused for the precision the drift leaves, not for the execution
+        // count: the protocol's three executions are present.
+        assert_eq!(
+            comparison.inconclusive_reasons,
+            vec![InconclusiveReason::PrecisionBelowThreshold]
         );
         assert!(
             comparison.minimum_detectable_ratio > MATERIAL_THRESHOLD_RATIO,
@@ -2908,6 +3209,8 @@ mod tests {
         assert_eq!(left.inconclusive_reasons, right.inconclusive_reasons);
         assert_eq!(left.baseline_samples, right.baseline_samples);
         assert_eq!(left.candidate_samples, right.candidate_samples);
+        assert_eq!(left.baseline_executions, right.baseline_executions);
+        assert_eq!(left.candidate_executions, right.candidate_executions);
         assert_eq!(left.baseline_outliers, right.baseline_outliers);
         assert_eq!(left.candidate_outliers, right.candidate_outliers);
         for (one, other) in [
@@ -2945,6 +3248,14 @@ mod tests {
         assert_eq!(
             serde_json::to_string(&InconclusiveReason::PrecisionBelowThreshold)?,
             "\"precision_below_threshold\""
+        );
+        // The token states the fact the gate checks. It is not
+        // `single_execution_per_side`: the threshold is three executions, so
+        // the reason is emitted for two as well, and two are not "a single
+        // execution".
+        assert_eq!(
+            serde_json::to_string(&InconclusiveReason::InsufficientExecutions)?,
+            "\"insufficient_executions\""
         );
         Ok(())
     }

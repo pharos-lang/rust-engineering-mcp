@@ -872,6 +872,27 @@ pub(crate) mod tests {
         assert_eq!(options.timeout_seconds(), BENCHMARK_DEFAULT_TIMEOUT_SECONDS);
     }
 
+    /// The comparison method refuses a direction below three executions a side
+    /// (`MIN_EXECUTIONS_FOR_DIRECTION`), and this is the call that produces
+    /// them. The two numbers are one decision seen from two crates: if the
+    /// default run count ever drops, the product would ship a protocol whose
+    /// own output can never be given a direction, and if the compare threshold
+    /// ever rises above it the default would stop being sufficient. Neither is
+    /// a change to make silently, so it fails here.
+    #[test]
+    fn the_default_run_count_is_what_the_comparison_method_requires() {
+        assert_eq!(
+            u8::try_from(rust_engineering_domain::benchmark_compare::MIN_EXECUTIONS_FOR_DIRECTION)
+                .expect("the execution threshold fits the run-count contract"),
+            BENCHMARK_DEFAULT_RUN_COUNT
+        );
+        // And the caller can still ask for fewer -- the published range starts
+        // at one -- which is exactly why the comparison gate reads the samples
+        // it was given instead of trusting the request that produced them.
+        assert_eq!(BENCHMARK_MIN_RUN_COUNT, 1);
+        assert_eq!(BENCHMARK_MAX_RUN_COUNT, BENCHMARK_DEFAULT_RUN_COUNT);
+    }
+
     #[test]
     fn the_selection_is_normalized_once_and_never_names_a_profile() {
         let options = BenchmarkRunOptions::new(

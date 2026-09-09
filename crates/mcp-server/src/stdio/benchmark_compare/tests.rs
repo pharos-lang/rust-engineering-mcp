@@ -92,6 +92,8 @@ pub(super) fn comparison_row(
         candidate_median_ns: 1_000.0 * (1.0 + ratio),
         baseline_samples: 32,
         candidate_samples: 32,
+        baseline_executions: 3,
+        candidate_executions: 3,
         baseline_outliers: 1,
         candidate_outliers: 2,
         minimum_detectable_ratio: 0.02,
@@ -619,4 +621,60 @@ fn a_non_finite_statistic_is_published_as_an_absence_rather_than_failing_to_enco
     assert_eq!(finite(f64::NAN), 0.0);
     assert_eq!(finite(f64::INFINITY), 0.0);
     assert_eq!(finite(f64::NEG_INFINITY), 0.0);
+}
+
+/// The second P2 of the G8 re-review: two reports whose only difference is how
+/// many executions each side pooled were indistinguishable on the wire, even
+/// though that count is what decides whether a direction may be claimed at all.
+/// Both counts are published per comparison, and the refusal they cause carries
+/// the token that states the fact.
+#[test]
+fn the_execution_counts_and_the_refusal_they_cause_reach_the_published_report() -> TestResult {
+    let tool = ComparisonTool::new()?;
+    let input = input()?;
+    let mut withheld = comparison_row("bench/two", ComparisonVerdict::Inconclusive, 0.20);
+    withheld.baseline_executions = 2;
+    withheld.candidate_executions = 3;
+    withheld.inconclusive_reasons = vec![InconclusiveReason::InsufficientExecutions];
+    let mut admitted = comparison_row("bench/three", ComparisonVerdict::Regression, 0.20);
+    admitted.baseline_executions = 3;
+    admitted.candidate_executions = 3;
+    let encoded = tool.encode_result(
+        &input,
+        CompareOutcome::Report(Box::new(comparison_report(vec![withheld, admitted]))),
+        7,
+    )?;
+    let value = encoded.structured_content.ok_or("content")?;
+    let rows = value["data"]["report"]["comparisons"]
+        .as_array()
+        .ok_or("comparisons")?;
+    // A material verdict ranks ahead of a withheld one, so the admitted row is
+    // first. The two rows agree on every published number except the execution
+    // counts -- which is precisely the pair that was indistinguishable before.
+    assert_eq!(rows[0]["key"], "bench/three");
+    assert_eq!(rows[0]["verdict"], "regression");
+    assert_eq!(rows[0]["baseline_executions"], 3);
+    assert_eq!(rows[0]["candidate_executions"], 3);
+    assert_eq!(rows[1]["key"], "bench/two");
+    assert_eq!(rows[1]["verdict"], "inconclusive");
+    assert_eq!(rows[1]["baseline_executions"], 2);
+    assert_eq!(rows[1]["candidate_executions"], 3);
+    assert_eq!(rows[0]["effect_ratio"], rows[1]["effect_ratio"]);
+    assert_eq!(rows[0]["baseline_samples"], rows[1]["baseline_samples"]);
+    assert_ne!(
+        rows[0]["baseline_executions"],
+        rows[1]["baseline_executions"]
+    );
+    assert_eq!(
+        rows[1]["inconclusive_reasons"],
+        serde_json::json!(["insufficient_executions"])
+    );
+    // The retired token names a fact the gate no longer checks: the threshold
+    // is three executions, so two are refused too, and two are not "a single
+    // execution". It must not survive anywhere in the payload.
+    assert!(
+        !value.to_string().contains("single_execution_per_side"),
+        "the retired reason token is still published"
+    );
+    Ok(())
 }

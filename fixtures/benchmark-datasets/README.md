@@ -140,7 +140,7 @@ Sus medianas, para que el archivo no quede sin describir:
 | `m5/slower_125` | 4093,39 | 4101,68 | 3908,70 |
 | `m5/control` | 3203,46 | 3300,74 | 2894,36 |
 
-Cada uno es **una** ejecución. Bajo el método corregido, un lado con una sola
-ejecución no puede sostener ninguna dirección: la negativa es
-`single_execution_per_side` y se decide antes de mirar el intervalo. Para eso
-existen las seis capturas nuevas.
+Cada uno es **una** ejecución. Bajo el método corregido, un lado con menos de
+tres ejecuciones no puede sostener ninguna dirección: la negativa es
+`insufficient_executions` y se decide antes de mirar el intervalo. Para eso
+existen las seis capturas nuevas, que son tres ejecuciones por lado.

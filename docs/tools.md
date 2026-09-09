@@ -1321,11 +1321,12 @@ El método está congelado antes de medir y se publica entero en cada informe
 | Estadístico | mediana del tiempo por iteración (`median_per_iteration_nanoseconds`) |
 | Intervalo | bootstrap percentil **por conglomerados**, 10 000 remuestreos: se remuestrean las ejecuciones y, dentro de cada una, sus muestras |
 | Semilla | fija, derivada de una constante del producto mezclada con la clave del benchmark |
-| Confianza | 0,95 nominal; con familia de más de una comparación, Bonferroni `1 - (1 - 0,95)/n` |
+| Confianza | 0,95 **nominal**: el nivel que el método pide, no la cobertura que entrega (ver el aviso más abajo); con familia de más de una comparación, Bonferroni `1 - (1 - 0,95)/n` |
 | Multiplicidad | `none` o `bonferroni`, con `family_size` y `adjusted_confidence_level` emitidos |
 | Umbral material | 0,05 |
 | Outliers | vallas de Tukey; política `reported_not_removed`, se cuentan y **no** se eliminan |
 | Muestras mínimas | 10 por lado para reclamar cualquier intervalo |
+| Ejecuciones mínimas | 3 por lado para reclamar cualquier dirección: las que el protocolo ejecuta por defecto |
 
 El **minimum detectable ratio** es
 `MDR = (z_{1-α/2 ajustado} + z_{0,80}) · SE`, con `SE` la desviación típica de la
@@ -1334,12 +1335,15 @@ muestral y esa dispersión podrían detectar con 80 % de potencia al nivel
 ajustado. **El MDR no se iguala al umbral del 5 %**; se emite por comparación.
 
 El veredicto se decide en este orden: muestra ausente o truncada, menos de diez
-muestras o mediana de baseline no positiva ⇒ `inconclusive`; **menos de dos
+muestras o mediana de baseline no positiva ⇒ `inconclusive`; **menos de tres
 ejecuciones distintas en cualquiera de los dos lados ⇒ `inconclusive` por
-`single_execution_per_side`**, antes de mirar el intervalo, porque con una sola
+`insufficient_executions`**, antes de mirar el intervalo, porque con una sola
 ejecución por lado nada distingue un cambio en el código de un cambio en la
-máquina; **dispersión degenerada (error estándar cero) ⇒ `inconclusive` por
-`degenerate_dispersion`**, porque una dispersión observada de cero es ausencia de
+máquina y con dos la estimación de la deriva es la que este bootstrap más
+subestima —el `SE` queda corto por `sqrt(k/(k−1))`, 1,41× con `k = 2`—; tres es
+el `run_count` por defecto, así que la puerta pide que el protocolo se haya
+seguido, no una captura extra; **dispersión degenerada (error estándar cero) ⇒
+`inconclusive` por `degenerate_dispersion`**, porque una dispersión observada de cero es ausencia de
 información sobre la dispersión y no precisión infinita; `MDR` mayor que el
 **familia mayor que 25 ⇒ `inconclusive` por `family_beyond_resolution`**, sin
 correr bootstrap y sin afirmar intervalo, porque con Bonferroni el extremo que
@@ -1353,7 +1357,7 @@ completamente dentro de `±5 %` ⇒ `no_material_change`; en cualquier otro caso
 `inconclusive` porque el intervalo cruza el umbral. Las razones se enumeran
 (`insufficient_samples`, `precision_below_threshold`, `interval_spans_threshold`,
 `zero_or_negative_baseline`, `missing_measurement`, `truncated_measurement`,
-`single_execution_per_side`, `degenerate_dispersion`, `family_beyond_resolution`,
+`insufficient_executions`, `degenerate_dispersion`, `family_beyond_resolution`,
 `unobservable_hardware`).
 
 > [!IMPORTANT]
@@ -1369,10 +1373,30 @@ completamente dentro de `±5 %` ⇒ `no_material_change`; en cualquier otro caso
 > observable y cuya deriva entre ejecuciones esté por debajo del umbral, no un
 > ajuste del método.
 
+> [!IMPORTANT]
+> **`confidence_level: 0.95` es el nivel nominal, no la cobertura entregada.** El
+> bootstrap por conglomerados sortea `k` ejecuciones con reemplazo de las `k` que
+> ese lado ejecutó, y su varianza tiene esperanza `((k − 1)/k)·σ²_entre`: el `SE`
+> publicado queda corto por `sqrt(k/(k−1))` —1,22× con las tres ejecuciones
+> exigidas— y los extremos percentiles se toman sin ensanchamiento `t_{k−1}`. Las
+> dos aproximaciones empujan en el mismo sentido: **el intervalo sale más estrecho,
+> es decir más confiado, que el 0,95 que declara**, nunca más ancho. Medida bajo un
+> nulo gaussiano de efectos aleatorios, una re-revisión independiente situó la
+> cobertura real en 0,84–0,89 con tres ejecuciones por lado. La **magnitud** de esa
+> brecha depende del modelo de deriva con el que se mida; el **mecanismo** no, y no
+> desaparece en ningún `run_count` que la tool acepte. El valor publicado sigue
+> siendo 0,95 a propósito: es lo que el método congelado pide, y sustituirlo por un
+> número «efectivo» de un solo modelo publicaría los supuestos de ese modelo como
+> si fueran los del método (ADR-073 §4).
+
 Por comparación se publican clave, veredicto, `effect_ratio`
 (`candidate_median_ns / baseline_median_ns - 1`; positivo significa que el
 candidato es la medición más lenta), intervalo, ambas medianas, ambos tamaños
-muestrales, ambos conteos de outliers, el MDR y las razones. El informe añade
+muestrales, **ambos conteos de ejecuciones independientes agrupadas**
+(`baseline_executions` y `candidate_executions`, junto a los tamaños muestrales:
+son lo que decide si se admite dirección, de modo que dos informes iguales en
+todo lo demás pero distintos ahí no tenían derecho al mismo veredicto), ambos
+conteos de outliers, el MDR y las razones. El informe añade
 `compared`, hasta 512 comparaciones con su contador de omisión, y las claves
 presentes en un solo lado (`baseline_only` y `candidate_only`, hasta 256 cada
 una, con sus contadores).

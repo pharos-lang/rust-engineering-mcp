@@ -112,10 +112,11 @@ vendor, no del método de medición.
 
 Lo que esas tres primeras capturas **no** demuestran, desde la corrección del
 modelo de varianza, es una dirección: son una ejecución por lado, y el método
-ahora devuelve `inconclusive` con razón `single_execution_per_side` por
-construcción, porque sin una segunda ejecución no hay estimación de la deriva que
-separar del efecto de la fuente. Demostrar detección exige capturar varias
-ejecuciones por lado, y eso es independiente de este bloqueo.
+ahora devuelve `inconclusive` con razón `insufficient_executions` por
+construcción, porque sin más ejecuciones no hay estimación de la deriva que
+separar del efecto de la fuente. El umbral son **tres** ejecuciones por lado —el
+`run_count` por defecto del protocolo—, así que demostrar detección exige capturar
+las tres, y eso es independiente de este bloqueo.
 
 ## Limitaciones declaradas hasta ahora
 

@@ -132,8 +132,12 @@ identificador porque sus intervalos no son comparables con estos (ver
   dos datasets solo son comparables si su `execution_fingerprint` difiere, de
   modo que la cantidad sobre la que se opina es cuánto se mueve el estadístico
   entre ejecuciones, no cuánto se movería al releer una sola.
-- Confianza: 95 %. Con familia de más de una comparación se aplica **Bonferroni**:
-  `1 - (1 - 0.95)/n`. La familia y la corrección se emiten en el resultado.
+- Confianza: 95 % **nominal**. Es el nivel que el método pide a la distribución
+  bootstrap, no la cobertura que el intervalo entrega con tres conglomerados; la
+  diferencia y su mecanismo están en la «Corrección (2026-09-09) — la cobertura
+  que entrega el intervalo». Con familia de más de una comparación se aplica
+  **Bonferroni**: `1 - (1 - 0.95)/n`. La familia y la corrección se emiten en el
+  resultado.
 - Umbral material: **5 %**.
 - Outliers: se cuentan con vallas de Tukey (`Q1 - 1.5·IQR`, `Q3 + 1.5·IQR`) y
   **se reportan sin eliminarlos**. No hay descarte a posteriori.
@@ -144,12 +148,15 @@ identificador porque sus intervalos no son comparables con estos (ver
   no se iguala al umbral del 5 %.**
 
 Veredicto, en este orden: muestra ausente o truncada, o menos de 10 muestras, o
-mediana de baseline no positiva ⇒ `inconclusive` con su razón. **Menos de dos
+mediana de baseline no positiva ⇒ `inconclusive` con su razón. **Menos de tres
 `run_index` distintos en cualquiera de los dos lados ⇒ `inconclusive` por
-`single_execution_per_side`**, antes de mirar el intervalo: con una sola
-ejecución por lado no existe estimación alguna de la deriva entre ejecuciones, y
-sin ella ninguna dirección distingue un cambio en el código de un cambio en la
-máquina. **Dispersión degenerada ⇒ `inconclusive` por `degenerate_dispersion`**:
+`insufficient_executions`**, antes de mirar el intervalo: con una sola ejecución
+por lado no existe estimación alguna de la deriva entre ejecuciones, y con dos la
+estimación existe pero es la que este bootstrap más subestima (ver la
+«Corrección (2026-09-09) — cuántas ejecuciones hacen falta»). Tres es el número
+de repeticiones independientes que el propio protocolo ejecuta por defecto, así
+que la puerta exige que el protocolo se haya seguido, no una captura extra.
+**Dispersión degenerada ⇒ `inconclusive` por `degenerate_dispersion`**:
 si el error estándar del bootstrap es cero —o los dos lados juntos
 tienen menos de dos valores por iteración distintos— el `MDR` vale cero y la
 puerta de precisión no puede dispararse nunca; una dispersión observada de cero
@@ -187,7 +194,7 @@ verdict = Improvement, effect -0.1231, interval -0.1492..-0.0756, mdr 0.0488
 Una dirección, con intervalo que excluye el umbral del 5 % y un `MDR` que pasa su
 puerta (0.0488 ≤ 0.05), para código que no cambió. Los mismos benchmarks
 inalterados abarcan 14,0 % y 4,9 % entre las tres capturas. Con el método v2 el
-mismo par devuelve `Inconclusive` por `single_execution_per_side`: cada captura es
+mismo par devuelve `Inconclusive` por `insufficient_executions`: cada captura es
 **una** ejecución, y con una ejecución por lado el intervalo no puede rescatar
 nada —remuestrear un único conglomerado devuelve el mismo intervalo estrecho
 (-0.1494..-0.0751, `MDR` 0.0490)—, por eso la negativa es estructural y se decide
@@ -200,6 +207,80 @@ remuestreo y se añaden dos negativas explícitas. El razonamiento original qued
 arriba, corregido, no borrado: era correcto sobre qué estadístico usar y sobre no
 descartar outliers, y era incorrecto al suponer que un bootstrap sobre las
 muestras describía la variabilidad relevante.
+
+#### Corrección (2026-09-09) — cuántas ejecuciones hacen falta
+
+La puerta anterior exigía **dos** `run_index` distintos por lado. La etapa
+externa del bootstrap por conglomerados sortea `k` ejecuciones con reemplazo de
+las `k` que ese lado ejecutó, y para un estadístico que se comporta como una
+media sobre conglomerados la varianza de ese sorteo tiene esperanza
+`((k − 1)/k)·σ²_entre`: el error estándar queda **corto** por un factor
+`sqrt(k/(k−1))` —1,41× con `k = 2` y 1,22× con `k = 3`— y los extremos
+percentiles se leen de esa misma distribución sin corrección `t_{k−1}`.
+
+`run_count` es una entrada publicada con rango `1..=3`, así que `k = 2` es
+alcanzable por un llamador, y es la peor fila del contrato. Una re-revisión
+independiente la midió bajo un nulo gaussiano de efectos aleatorios: cobertura
+0,66–0,75 con `k = 2` frente a 0,84–0,89 con `k = 3`, y con 5 % de deriva **27 de
+1000 comparaciones de código idéntico emitieron dirección** con `k = 2`. (Para
+escala: el método anterior a la corrección del 2026-09-08 puntuaba 0,29 de
+cobertura con esa misma deriva. Esto es el residuo de v2, no una regresión.)
+
+Se elige eliminar la fila entera en vez de encogerla: **menos de tres ejecuciones
+por lado ⇒ `inconclusive` por `insufficient_executions`**, decidido antes de
+mirar el intervalo. Tres no es un número nuevo —es el `BENCHMARK_DEFAULT_RUN_COUNT`
+que el protocolo congelado ya ejecuta por defecto—, de modo que la puerta exige
+que el protocolo se haya seguido y no una captura adicional. Un test en la capa
+de aplicación ata las dos constantes para que no puedan separarse en silencio.
+
+El nombre de la razón cambia con el umbral: `single_execution_per_side` describía
+un hecho que la puerta ya no comprueba, porque ahora también se emite con dos
+ejecuciones, que no son «una sola ejecución». `insufficient_executions` dice lo
+que la puerta mide. El identificador del método **no** cambia: sigue siendo
+`rust-engineering-mcp.benchmark-comparison.v2`, que nunca se publicó fuera de esta
+rama, y un token de razón renombrado dentro de un formato inédito no crea dos
+poblaciones de informes que un lector pudiera confundir.
+
+Además, cada comparación publica ahora **`baseline_executions` y
+`candidate_executions`**, junto a los tamaños muestrales. Sin ellos, dos informes
+`regression` producidos con `run_count = 2` y `run_count = 3` eran
+indistinguibles en el cable, aunque ese conteo es justo lo que decide si se puede
+reclamar dirección. Van en la comparación y no en `ComparedProvenance` por dos
+razones: la proyección de provenance publica **exactamente** los campos que
+consulta el chequeo de compatibilidad —una regla que un test mantiene como
+bicondicional—, y el conteo de ejecuciones es una propiedad de las muestras de
+*ese* benchmark, no del dataset: una medición ausente en una repetición deja a un
+benchmark con menos ejecuciones que a sus vecinos en el mismo par de datasets.
+
+#### Corrección (2026-09-09) — la cobertura que entrega el intervalo
+
+`confidence_level: 0.95` es el nivel **nominal** que el método persigue, y con
+tres conglomerados no es la cobertura que el intervalo entrega. Dos
+aproximaciones separan una cosa de la otra, y ambas son consecuencia de
+remuestrear un puñado de ejecuciones:
+
+- la varianza del bootstrap por conglomerados sobre `k` clusters tiene esperanza
+  `((k − 1)/k)` de la varianza entre ejecuciones, de modo que el `SE` publicado
+  queda corto por `sqrt(k/(k−1))`, 1,22× con las tres ejecuciones que ahora se
+  exigen;
+- los extremos son percentiles de esa misma distribución, tomados sin
+  ensanchamiento `t_{k−1}` por haber estimado la escala con `k` conglomerados.
+
+Las dos apuntan en la **misma dirección**: el intervalo sale **más estrecho** —es
+decir, más confiado— de lo que el 0,95 declarado justifica, nunca más ancho. Toda
+dirección que este método sí emite se emite con una cobertura verdadera por
+debajo del nivel publicado a su lado. Medida bajo un nulo gaussiano de efectos
+aleatorios, la re-revisión independiente situó esa cobertura en 0,84–0,89 con tres
+ejecuciones por lado. **La magnitud depende del modelo de deriva** con el que se
+mida y sería otro par de números bajo otro modelo; **el mecanismo no depende de
+él** y no desaparece en ningún `k` que el rango publicado de `run_count` alcance.
+
+La constante se mantiene en 0,95 y se publica como 0,95. Es lo que el método
+congelado le pide a la distribución, y sustituirla por un número «efectivo»
+medido bajo un único modelo de deriva publicaría los supuestos de ese modelo como
+si fueran los del método. Lo que corrige el defecto es la declaración, no un
+número distinto: queda escrita aquí, en el doc de la constante `CONFIDENCE_LEVEL`
+y en `docs/tools.md`, donde el método se publica.
 
 ### 5. Compatibilidad antes que estadística
 
@@ -296,8 +377,9 @@ y el contrato lo hace explícito en la salida. Un proyecto sin criterion 0.8.2
 vendorizado offline no puede medirse: es un resultado declarado, no una
 degradación silenciosa. El formato v2 fija una frontera de migración: conservar
 muestras crudas o volver a ejecutar, nunca transformar mediciones incompatibles en
-equivalentes. Con una sola ejecución por lado el producto no emite dirección: es
-menos de lo que la spec insinuaba y es lo único que las muestras sostienen; para
-obtener una dirección hay que capturar al menos dos ejecuciones independientes
-por lado, que es lo que el protocolo de tres repeticiones ya ejecuta. Añadir un segundo harness exigirá una decisión nueva y su propio
-oráculo.
+equivalentes. Con menos de tres ejecuciones por lado el producto no emite
+dirección: es menos de lo que la spec insinuaba y es lo único que las muestras
+sostienen; para obtener una dirección hay que capturar las tres ejecuciones
+independientes por lado que el protocolo ya ejecuta por defecto, de modo que un
+`run_count` de 1 o 2 mide y publica, pero nunca concluye. Añadir un segundo
+harness exigirá una decisión nueva y su propio oráculo.

@@ -18,9 +18,11 @@
   observados sin dataset. Las muestras crudas no viajan en la respuesta.
 - `rust.benchmark.compare` publica el método congelado con cada informe: mediana
   del tiempo por iteración, bootstrap percentil de 10 000 remuestreos con semilla
-  fija, confianza 0,95 con Bonferroni cuando la familia es mayor que uno, umbral
+  fija, confianza 0,95 **nominal** con Bonferroni cuando la familia es mayor que
+  uno, umbral
   material del 5 %, outliers contados por vallas de Tukey y nunca eliminados, y
-  un minimum detectable ratio que no se iguala al umbral. Cuatro veredictos:
+  un minimum detectable ratio que no se iguala al umbral. Cada comparación
+  publica también cuántas ejecuciones independientes agrupó cada lado. Cuatro veredictos:
   `regression`, `improvement`, `no_material_change` e `inconclusive`. Un par
   incompatible es `status = failed` con `INCOMPATIBLE_DATASETS` y la lista
   completa de razones, con las dos provenances comparadas para que el llamador
@@ -32,9 +34,23 @@
   cambió. El método pasa a `benchmark-comparison.v2` con bootstrap por
   conglomerados; el dataset pasa a `benchmark-dataset.v2` con `run_index` por
   muestra, y un payload v1 ya no deserializa. Se añaden cuatro negativas
-  estructurales, todas antes de mirar el intervalo: una sola ejecución por lado,
-  dispersión degenerada, familia mayor de la que 10 000 remuestreos resuelven, y
-  un campo de hardware no observable en los dos lados.
+  estructurales, todas antes de mirar el intervalo: menos de tres ejecuciones por
+  lado (`insufficient_executions`), dispersión degenerada, familia mayor de la
+  que 10 000 remuestreos resuelven, y un campo de hardware no observable en los
+  dos lados.
+- **El umbral de ejecuciones sube de dos a tres por lado y la cobertura entregada
+  se declara.** La etapa externa del bootstrap por conglomerados subestima el
+  error estándar por `sqrt(k/(k−1))` —1,41× con `k = 2`, 1,22× con `k = 3`— sin
+  corrección `t_{k−1}` en los percentiles, y `run_count` admite `1..=3`, así que
+  `k = 2` era alcanzable: una re-revisión independiente midió 27 de 1000
+  comparaciones de código idéntico emitiendo dirección ahí. El mínimo pasa a las
+  tres ejecuciones que el protocolo ya ejecuta por defecto, lo que elimina esa
+  fila; la razón se renombra a `insufficient_executions` porque también se emite
+  con dos ejecuciones, que no son «una sola». El `confidence_level: 0.95` se
+  mantiene y se declara como nominal: el intervalo entregado es **más estrecho**
+  —más confiado— que ese nivel, con cobertura medida en 0,84–0,89 bajo un nulo
+  gaussiano con tres ejecuciones. La magnitud depende del modelo de deriva; el
+  mecanismo no.
 - **En este runtime `rust.benchmark.compare` no emite dirección alguna**, y son
   dos razones independientes: el governor de CPU es ilegible dentro del
   contenedor, y la deriva medida entre ejecuciones del mismo código en el host
