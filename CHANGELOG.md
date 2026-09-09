@@ -55,7 +55,7 @@
   el gateway los invoca por ruta absoluta y la construcción corre con
   `--network=none` ([ADR-075](docs/adr/ADR-075-m5-runtime-provisioning.md)).
   [ADR-077](docs/adr/ADR-077-m5-runtime-admission.md) añade exactamente el digest
-  `sha256:0e21c561488cb917e89e42943eb5138a7ddfd73d9de2f9cd4b9a0b516bdab820` a la
+  `sha256:e0a5ca1661b3e49d0a3d68ee3cc0963453078d08eb7fc43c30538c16b7998aac` a la
   lista cerrada de admisión, y el puerto de performance exige esa imagen y solo
   esa. Las tres imágenes anteriores conservan su admisión y su alcance.
 - **Limitación M5-01**: `rust.benchmark.run` no puede alcanzar hoy su positivo a

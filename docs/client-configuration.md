@@ -377,7 +377,7 @@ dataset ni medidas), nunca una medida degradada.
 #### Imagen del runtime M5
 
 La imagen guest M5 `rust-engineering-runtime:1.98.1-arm64-m5`
-(`sha256:0e21c561488cb917e89e42943eb5138a7ddfd73d9de2f9cd4b9a0b516bdab820`)
+(`sha256:e0a5ca1661b3e49d0a3d68ee3cc0963453078d08eb7fc43c30538c16b7998aac`)
 está construida y con [recibo](validation/M5-provisioning.json), y
 [ADR-077](adr/ADR-077-m5-runtime-admission.md) añade exactamente ese digest a la
 lista de admisión del gateway. El puerto de performance exige esa imagen **y solo

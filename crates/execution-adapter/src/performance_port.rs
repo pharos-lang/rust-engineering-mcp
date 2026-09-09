@@ -54,7 +54,7 @@ use std::collections::BTreeMap;
 /// No other image may execute a performance measurement, because the analyzer
 /// and helper versions this module reports are properties of this digest.
 pub const M5_IMAGE: &str =
-    "sha256:0e21c561488cb917e89e42943eb5138a7ddfd73d9de2f9cd4b9a0b516bdab820";
+    "sha256:e0a5ca1661b3e49d0a3d68ee3cc0963453078d08eb7fc43c30538c16b7998aac";
 
 /// ADR-076 §5: the ranking is bounded, and the bound belongs to the product.
 const TOP_FRAMES: usize = 64;

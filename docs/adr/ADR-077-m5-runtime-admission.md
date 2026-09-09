@@ -27,7 +27,7 @@ intactos y que el contexto de construcción no dejó residuos.
 Se añade exactamente un digest a la lista de admisión:
 
 ```text
-sha256:0e21c561488cb917e89e42943eb5138a7ddfd73d9de2f9cd4b9a0b516bdab820
+sha256:e0a5ca1661b3e49d0a3d68ee3cc0963453078d08eb7fc43c30538c16b7998aac
 ```
 
 Además, el puerto de performance exige esa imagen **y solo esa**: cualquier otro
@@ -39,6 +39,34 @@ producto no puede sostener.
 Las tres imágenes anteriores conservan su admisión y su alcance: M5 no las
 sustituye, no las amplía y no cambia lo que ellas pueden ejecutar. Las tools M1
 a M4 siguen calificadas contra sus propios digests.
+
+### Enmienda de 2026-09-09 — el primer digest M5 queda sustituido
+
+El digest admitido inicialmente por esta decisión fue
+`sha256:0e21c561488cb917e89e42943eb5138a7ddfd73d9de2f9cd4b9a0b516bdab820`. Una
+revisión independiente de containment encontró que el binario perfilado podía
+sobrescribir los artifacts del propio perfilador, y la corrección cambió el
+helper. La imagen que lo contiene es por tanto otra:
+
+```text
+sha256:e0a5ca1661b3e49d0a3d68ee3cc0963453078d08eb7fc43c30538c16b7998aac
+```
+
+**Sustituye, no acompaña.** La lista de admisión vuelve a tener exactamente un
+digest M5. Admitir los dos dejaría admitido un runtime cuyo helper tiene el
+defecto corregido, y ninguna calificación puede acreditar a los dos a la vez.
+El digest anterior nunca llegó a `main`, nunca se publicó y no acreditó ninguna
+release; lo que sí produjo son recibos, que **se conservan sin tocar** con el
+digest que realmente midieron. El [recibo de aprovisionamiento anterior](../validation/M5-provisioning-superseded-0e21c561.json)
+se archiva completo junto al nuevo.
+
+Toda la evidencia nativa capturada sobre el digest anterior queda invalidada por
+esta enmienda y se vuelve a capturar sobre el nuevo, que es la consecuencia que
+la propia decisión ya anunciaba. La reconstrucción es la del mismo script, sin
+red (`--network=none`, `pull=false`), sobre la misma base M4 verificada por
+digest: `cargo-bloat` sale byte a byte idéntico —`e3eaea0d…`, 1 644 120 bytes— y
+solo cambia el helper —`70fa813d…` → `18eaac41…`—, que es exactamente lo que se
+corrigió y nada más.
 
 ## Alternatives considered
 

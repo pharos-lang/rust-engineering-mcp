@@ -471,7 +471,7 @@ resultado observado (`INCOMPATIBLE_DATASETS`), no un error de infraestructura.
 
 | Elemento | Identidad / versión | Estado |
 | --- | --- | --- |
-| Guest Linux ARM64 M5 | `sha256:0e21c561488cb917e89e42943eb5138a7ddfd73d9de2f9cd4b9a0b516bdab820` (`rust-engineering-runtime:1.98.1-arm64-m5`) | Construida y con [recibo](validation/M5-provisioning.json); admitida por digest en el gateway ([ADR-077](adr/ADR-077-m5-runtime-admission.md)), sin calificación nativa de las tools |
+| Guest Linux ARM64 M5 | `sha256:e0a5ca1661b3e49d0a3d68ee3cc0963453078d08eb7fc43c30538c16b7998aac` (`rust-engineering-runtime:1.98.1-arm64-m5`) | Construida y con [recibo](validation/M5-provisioning.json); admitida por digest en el gateway ([ADR-077](adr/ADR-077-m5-runtime-admission.md)), sin calificación nativa de las tools |
 | Base | `sha256:25ed3626e710081a571a86a29521eaf2e890e796afd422ba5e409e0ce1891635` | Imagen M4 aprobada, intacta y verificada por digest antes de construir |
 | `cargo-bloat` | 0.12.1, MIT, en `/opt/perf/bin` | Provisionado, fuera del `PATH` del contenedor de trabajo |
 | `rust-mcp-profile-helper` | Construido desde `fixtures/profile-helper` | Provisionado, fuera del `PATH` del contenedor de trabajo |

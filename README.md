@@ -306,7 +306,7 @@ Las tools de rendimiento exigen la imagen guest M5 **y solo esa**; cualquier otr
 digest devuelve `unavailable` antes de crear contenedor alguno:
 
 ```text
---rust-image sha256:0e21c561488cb917e89e42943eb5138a7ddfd73d9de2f9cd4b9a0b516bdab820
+--rust-image sha256:e0a5ca1661b3e49d0a3d68ee3cc0963453078d08eb7fc43c30538c16b7998aac
 ```
 
 `rust.benchmark.run` resuelve su harness **offline**, así que necesita el mismo
