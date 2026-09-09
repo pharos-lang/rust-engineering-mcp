@@ -38,7 +38,8 @@
 - **En este runtime `rust.benchmark.compare` no emite dirección alguna**, y son
   dos razones independientes: el governor de CPU es ilegible dentro del
   contenedor, y la deriva medida entre ejecuciones del mismo código en el host
-  calificado (15–29 %) supera el umbral material del 5 %. La tool mide y publica
+  calificado (6,1–28,7 %, las seis medidas de los dos lados) supera el umbral
+  material del 5 %. La tool mide y publica
   el efecto —un cambio de fuente del +25 % se mide como +24,4 %—; lo que no hace
   es llamarlo regresión.
 - `rust.profile.flamegraph` exige la capability positiva del host

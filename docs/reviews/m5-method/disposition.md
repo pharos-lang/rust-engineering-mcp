@@ -138,15 +138,40 @@ intervalo y no admite dirección.
 
 ## P3
 
-Todos aceptados como observaciones correctas. Los de redacción —«paired» donde el
-remuestreo es independiente, los `summary` constantes que afirman resultados que
-no ocurrieron, `const: true` en los schemas, el orden de la puerta MDR, las
-razones sin ordenar, el comentario que sitúa el decoder en el adapter— se
-corrigen con el resto. Las discrepancias de estado entre matriz y handoff que el
-revisor señala se corrigen en el cierre. La cita circular de ADR-076 sobre
-cargo-bloat y el desacuerdo de tres formas sobre el mecanismo `--profile` se
-anotan: el resultado observado está bien recibido, la explicación publicada no
-coincide con lo que el recibo registra.
+Todos aceptados como observaciones correctas.
+
+**Corrección de este documento (2026-09-09).** La versión anterior de esta
+sección decía que los P3 de redacción «se corrigen con el resto». Una re-revisión
+independiente los comprobó uno a uno contra el árbol y encontró que la mayoría
+seguían abiertos: «paired» seguía en el comentario del bootstrap, los `summary`
+constantes seguían igual, `const: true` seguía sin estar en los schemas, las
+razones seguían sin ordenar, el comentario del decoder seguía situándolo en el
+adapter, y la retractación del control `control` había llegado a `lib.rs` pero
+**no** a la tabla ni a la prosa de su README. También encontró que «los ratios de
+host se retiraron de la matriz» era falso: siguen impresos, anotados.
+
+Esa frase era el error que más importa de todo este documento. Una disposición
+que declara cerrado lo que sigue abierto convierte a G8 en un trámite: el
+siguiente revisor confía en ella y deja de mirar. Lo que se corrige ahora se dice
+como corregido; lo que sigue abierto se nombra:
+
+- **Corregidos ahora**: la tabla y la prosa del README de la fixture sobre
+  `control`; los identificadores `v1` que quedaron sueltos en
+  `quality_artifact.rs`, ADR-076 y el handoff; la atribución errónea de las
+  capturas en `M5-01-blocker.json`; el rango de deriva publicado como «15–29 %»,
+  que era solo el lado baseline cuando el recibo registra 6,1–28,7 % en los dos;
+  y los ratios de host, que ahora dicen que son del host y no acreditan el
+  runtime, en vez de afirmarse retirados.
+- **Siguen abiertos y se nombran como tales**: el comentario «paired», los
+  `summary` constantes, `const: true`, el orden de las razones, el comentario del
+  decoder, `provenance.run_index` vestigial, y la regla publicada sobre qué
+  repetición es el tar, que es falsa en un caso alcanzable. Ninguno falsea una
+  medición; todos son deuda de publicación y están registrados en la matriz.
+
+La cita circular de ADR-076 sobre cargo-bloat y el desacuerdo sobre el mecanismo
+`--profile` **sí** se corrigieron: la explicación publicada dice ahora que está
+inferida de la fuente del analizador y no medida, y el recibo registra el fallo
+observado.
 
 ## Sobre lo verificado
 

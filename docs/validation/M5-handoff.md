@@ -3,9 +3,11 @@
 Fecha: 2026-09-08. Rama: `ai/m5-performance`.
 Base: `c6099f27415b0be3838e84d21d25eed903c8c312` (`main` == `origin/main`).
 
-Estado: **M5 no está Done.** Tres de los cinco cortes están calificados
-nativamente, uno está bloqueado por una condición reproducible y el cierre
-conjunto no se ha ejecutado. Este documento dice qué está demostrado, qué no, y
+Estado: **M5 no está Done.** Dos de los cuatro cortes de tool están calificados
+nativamente sobre la imagen admitida y reproducidos por dos clientes reales, uno
+está bloqueado por una condición reproducible y con su propio oráculo, y el
+cuarto —`rust.benchmark.compare`— está implementado y probado pero no puede
+emitir dirección alguna en este runtime. Este documento dice qué está demostrado, qué no, y
 con qué evidencia.
 
 ## Entrada M4 verificada live
@@ -19,7 +21,7 @@ Cargo.lock scripts/` es vacío, así que los bytes calificados de M4 son los de
 
 | Decisión | ADR | Qué fija |
 | --- | --- | --- |
-| D23 | [ADR-073](../adr/ADR-073-benchmark-method-and-dataset.md) | Criterion 0.8.2 como único harness, parámetros congelados por el servidor, dataset v1 con muestras crudas, método estadístico completo antes de medir |
+| D23 | [ADR-073](../adr/ADR-073-benchmark-method-and-dataset.md) | Criterion 0.8.2 como único harness, parámetros congelados por el servidor, dataset v2 con muestras crudas y su `run_index`, método estadístico completo antes de medir |
 | D24 | [ADR-074](../adr/ADR-074-profiling-capability-and-containment.md) | Capability positiva del host, helper propio, una sola syscall añadida |
 | Aprovisionamiento | [ADR-075](../adr/ADR-075-m5-runtime-provisioning.md) | Inputs exactos con licencia y hash, autorizados por separado |
 | Contratos | [ADR-076](../adr/ADR-076-m5-performance-contracts.md) | Las cuatro tools, con tamaño exacto separado de atribución estimada |
@@ -62,7 +64,9 @@ manual sobre la imagen retirada, no del recibo generado. El número del recibo e
 autenticado por el host. Un `SourceBundle` admite 4 096 entradas, 16 MiB en
 total y 1 MiB por archivo. El cierre de criterion 0.8.2 son 6 014 archivos,
 779 directorios y 156 267 469 bytes, con cuatro archivos por encima del límite
-por archivo; su subconjunto compilado ronda 20 MiB. Ninguna poda lo mete dentro.
+por archivo. Podar no sirve, y la razón está medida: esos cuatro archivos
+pertenecen a paquetes solo-Windows y Cargo exige todo paquete del lockfile en un
+directory source, así que no se pueden quitar.
 
 **No se subieron los límites.** Son parte del contrato de datos offline
 calificado en M2/M4 y compartido por todos los flujos que usan `SourceBundle`.

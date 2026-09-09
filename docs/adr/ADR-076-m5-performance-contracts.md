@@ -34,7 +34,7 @@ el proyecto: las cuatro son `read_only(true)`, `destructive(false)`,
 `QualityArtifactKind`, `QualityMimeType`, `PayloadFormatVersion`,
 `GuestArtifactName` y `PluginIdentity` reciben variantes nuevas
 (`BenchmarkDataset`, `CriterionArchive`, `CollapsedStacks`, `FlamegraphSvg`,
-`BloatJson`; `ImageSvgXml`; `BenchmarkDatasetV1`, `CollapsedStacksV1`,
+`BloatJson`; `ImageSvgXml`; `BenchmarkDatasetV2`, `CollapsedStacksV1`,
 `FlamegraphSvgV1`, `BloatJsonV1`; `Criterion`, `ProfileHelper`, `Bloat`).
 
 Esas variantes son internas al store durable. **Ninguna aparece en el schema

@@ -14,7 +14,7 @@ criterion benchmarks in a single group, `m5`:
 | --- | --- | --- | --- |
 | `m5/reference` | `work_unit(n)` | `n` | 1.00x, the reference |
 | `m5/slower_125` | `work_slower(n)` | `n + n / 4` | 1.25x |
-| `m5/control` | `work_noisy(n)` | `n` | 1.00x, noise / self-compare control |
+| `m5/control` | `work_noisy(n)` | `n` | 1.00x **de diseño, desmentido por la medición** — ver abajo |
 
 `n` is fixed at `4096`, a multiple of four, so `n + n / 4` is exactly `5120`
 operations and the truncating division introduces no rounding.
@@ -23,8 +23,10 @@ All three workloads run the same `#[inline(always)] step` operation, seeded
 identically. `work_slower` differs from `work_unit` only in how many times the
 loop body runs. `work_noisy` runs the loop body exactly as many times as
 `work_unit` but walks the index set in descending order, so its instruction path
-differs while its operation count does not; it exists so an adapter has a
-self-compare case that should report "no meaningful change".
+differs while its operation count does not. It was designed as a self-compare
+case that should report "no meaningful change"; **the measurement in the guest
+refuted that** and the design intent is not the observed behaviour. See "El
+benchmark `control` no es un control 1,00x" below before using it as one.
 
 Every bench passes both its input and its output through `criterion::black_box`.
 That re-export is deprecated in criterion 0.8.2 — its body is literally
@@ -131,5 +133,9 @@ ascendente en este hardware, aunque el número de operaciones sea idéntico.
 Se conserva como tercer punto de medida y como caso de familia de tres
 comparaciones, pero **no** se usa como control. El control de auto-comparación
 real es comparar el mismo benchmark entre dos ejecuciones independientes de la
-misma fuente, que es lo que hacen `criterion-run-1.tar` y `criterion-run-2.tar`
-en `fixtures/benchmark-datasets`.
+misma fuente. Eso lo dan las seis capturas de la imagen admitida en
+`fixtures/benchmark-datasets`: `slower_125` y `control` tienen fuente idéntica en
+los dos lados, así que cualquier dirección que se reportara ahí sería deriva de la
+máquina. Las tres capturas antiguas (`criterion-run-1.tar`, `criterion-run-2.tar`,
+`criterion-candidate.tar`) son de una imagen que ADR-077 no admite y son corpus
+del parser, no evidencia sobre el runtime.

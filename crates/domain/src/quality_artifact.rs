@@ -303,7 +303,7 @@ pub enum QualityArtifactKind {
     MutationLog,
     ToolLog,
     /// M5-01: the versioned benchmark dataset this server derived from the
-    /// harness output. Its bytes are `rust-engineering-mcp.benchmark-dataset.v1`.
+    /// harness output. Its bytes are `rust-engineering-mcp.benchmark-dataset.v2`.
     BenchmarkDataset,
     /// M5-01: the harness's own output tree, retained verbatim as evidence.
     CriterionArchive,

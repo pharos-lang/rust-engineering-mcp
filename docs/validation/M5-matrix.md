@@ -119,6 +119,20 @@ ejecuciones por lado, y eso es independiente de este bloqueo.
 
 ## Limitaciones declaradas hasta ahora
 
+- **Deuda de publicación abierta, nombrada tras la re-revisión G8.** Ninguna
+  falsea una medición y ninguna se presenta como cerrada: el comentario del
+  bootstrap dice «paired» donde cada lado se remuestrea de forma independiente;
+  los `summary` de `benchmark.compare` y `binary.bloat` son constantes y afirman
+  un resultado que no siempre ocurrió; dos campos «siempre `true`» se publican
+  como `boolean` en vez de `const`; `inconclusive_reasons` se emite sin ordenar;
+  un comentario sitúa el decoder de datasets en el execution adapter cuando la
+  única implementación de producto está en el servidor MCP;
+  `provenance.run_index` quedó vestigial y contradictorio tras el v2 —el adapter
+  lo fija en 1 para un dataset que agrupa todas las repeticiones—; y la regla
+  publicada de qué repetición es el tar («la última que exportó, la misma cuyos
+  logs se reportan») es falsa en un caso alcanzable, porque el tar se elige con
+  `rfind` y los logs vienen de la última repetición.
+
 - **`rust.benchmark.compare` no puede devolver una dirección en este runtime, y
   hay dos razones independientes.** (1) El governor de CPU es ilegible dentro del
   contenedor, así que es desconocido en los dos lados; tras cerrar el P2-2 de la
@@ -126,8 +140,10 @@ ejecuciones por lado, y eso es independiente de este bloqueo.
   porque el parámetro ambiental con más capacidad de fabricar una regresión nunca
   se observó y ninguna cantidad de muestreo adicional lo arregla. (2) Aunque se
   observara, la deriva medida entre ejecuciones del mismo código en este host es
-  del 15 % al 29 % contra un umbral material del 5 %, así que el MDR queda muy por
-  encima del umbral y la puerta de precisión también se negaría. Ambas se
+  del 6,1 % al 28,7 % contra un umbral material del 5 %, así que el MDR queda muy
+  por encima del umbral y la puerta de precisión también se negaría. (Las seis
+  cifras del recibo: 15,82 / 28,72 / 18,36 en baseline y 15,40 / 11,21 / 6,12 en
+  candidate. Publicar «15–29 %» era citar solo un lado.) Ambas se
   comprueban sobre las seis capturas reales en
   `criterion_dataset::admitted_image_datasets`. El efecto real de +24,4 % **sí**
   se mide y se publica; lo que no se emite es una dirección.
@@ -159,7 +175,8 @@ ejecuciones por lado, y eso es independiente de este bloqueo.
   ejecuciones independientes de la misma fuente. Corregido en el código de la
   fixture, en su README y aquí.
 - El ratio 1,25× de la fixture de benchmarks es un ratio **de diseño**, no una
-  medición validada. Tres ejecuciones en el host dieron 1,256, 1,331 y 1,302 para
+  medición validada, y estos números son del **host**, no del guest, así que no
+  acreditan nada sobre el runtime: 1,256, 1,331 y 1,302 para
   `slower_125/reference` y 1,013, 1,002 y 0,976 para `control/reference`. Ninguna
   tolerancia se deriva de esos números; la calibración pertenece al guest.
 - Toda la evidencia de fixtures registrada hasta aquí es macOS ARM64. El
