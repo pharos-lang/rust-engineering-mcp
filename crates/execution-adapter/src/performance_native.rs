@@ -14,11 +14,15 @@
 //!   away (`ProjectCargoConfiguration`) or about a counter the DTO does not
 //!   carry (`cpus_sampled`, and the guest's own CPU count).
 //! * `rust.benchmark.run`'s two positive selections cannot execute: criterion
-//!   0.8.2's vendored closure does not fit
-//!   [`rust_engineering_domain::SOURCE_MAX_TOTAL_BYTES`], so no
-//!   `CargoVendorSnapshot` can carry it. The selection is attempted, the
-//!   observed shape of the tree is recorded, and the cut then fails rather than
-//!   reporting a qualification it did not perform.
+//!   0.8.2's vendored closure fits neither
+//!   [`rust_engineering_domain::SOURCE_MAX_ENTRIES`] nor
+//!   [`rust_engineering_domain::SOURCE_MAX_TOTAL_BYTES`] nor
+//!   [`rust_engineering_domain::SOURCE_MAX_FILE_BYTES`], so no
+//!   `CargoVendorSnapshot` can carry it. That condition has its own test, which
+//!   measures the tree, asserts all three violations and fails the moment any
+//!   of them stops holding. The M5-01 cut therefore qualifies only what the
+//!   tool really does here, and no test in this file reports a qualification it
+//!   did not perform.
 use crate::performance_gateway::{self, PerformanceError};
 use crate::performance_port;
 use crate::*;
@@ -737,52 +741,27 @@ fn hottest(stacks: &str) -> Result<(Vec<String>, u64, u64), Failure> {
 
 #[test]
 #[ignore = "explicit M5 image, host Docker and exclusive native benchmark qualification"]
-fn m5_benchmark_run_is_qualified_natively() -> Result<(), Failure> {
+fn m5_benchmark_run_negatives_and_controls_are_qualified_natively() -> Result<(), Failure> {
     let image = m5_image()?;
     let mut cut = Cut::open("m5-01-benchmark");
     let session = Session::open(&image)?;
     let gateway = session.gateway()?;
     cut.residue_before = clean(gateway, "m5-01 before")?;
 
-    let vendor_root = fixtures().join("criterion-vendor/vendor");
-    let shape = measure_vendor(&vendor_root)?;
     let benchmark = fixture_bundle("benchmark")?;
     let bloat = fixture_bundle("bloat")?;
     cut.fixtures
         .insert("benchmark".into(), bundle_facts("benchmark", &benchmark)?);
     cut.fixtures
         .insert("bloat".into(), bundle_facts("bloat", &bloat)?);
-    cut.fixtures
-        .insert("criterion_vendor".into(), shape.facts());
 
-    // -- selections 1 and 2: the criterion positives -------------------------
-    //
-    // A `CargoVendorSnapshot` is a `SourceBundle`, and the bounds on a
-    // `SourceBundle` are the product's own. criterion 0.8.2's closure exceeds
-    // them, so there is no snapshot to run these selections against. The shape
-    // is recorded and the cut fails at the end; nothing here is smoothed over.
-    let blocked = !shape.fits();
-    for (name, run_count) in [("positive-run-count-1", 1u8), ("pooled-run-count-2", 2u8)] {
-        let started = Instant::now();
-        if blocked {
-            cut.selections.push(selection(
-                name,
-                started,
-                "blocked",
-                json!({
-                    "run_count": run_count,
-                    "reason": "criterion vendor closure exceeds SourceBundle bounds",
-                    "vendor": shape.facts(),
-                }),
-            ));
-            continue;
-        }
-        return Err(format!(
-            "{name}: the criterion vendor now fits SourceBundle bounds; this selection must be \
-             implemented against it instead of recorded as blocked"
-        )
-        .into());
-    }
+    // Selections 1 and 2, the two criterion positives, are not here. They
+    // cannot execute at all — the harness closure does not fit the
+    // offline-data contract — and that condition is qualified by its own oracle,
+    // `m5_benchmark_run_positive_is_blocked_by_the_offline_data_bound`. What
+    // this cut qualifies is everything `rust.benchmark.run` really does do on
+    // this host: the harness it refuses to measure, the project configuration
+    // it refuses to obey, and the cancellation of a live `cargo bench`.
 
     // -- selection 3: an unrecognised harness still reports ------------------
     let started = Instant::now();
@@ -897,15 +876,57 @@ fn m5_benchmark_run_is_qualified_natively() -> Result<(), Failure> {
 
     cut.residue_after = clean(gateway, "m5-01 after")?;
     publish(&cut, &image)?;
-    if blocked {
+    Ok(())
+}
+
+/// The M5-01 positive is unreachable, and this pins exactly why.
+///
+/// `rust.benchmark.run` resolves its harness offline from a
+/// `CargoVendorSnapshot`, which is a `SourceBundle`, and criterion 0.8.2's
+/// closure does not fit a `SourceBundle`. The bounds were not widened: they
+/// belong to the offline-data contract qualified in M2/M4 and shared by every
+/// flow that carries host data into the guest.
+///
+/// This oracle passes while that is true and **fails the moment it stops being
+/// true**, which is the only reason it may pass at all: a blocker that can
+/// disappear silently is not recorded, it is forgotten. It executes nothing and
+/// needs no container — there is no snapshot to run anything against — so it
+/// measures the tree the product would have had to ingest and checks it against
+/// the product's own constants.
+#[test]
+#[ignore = "explicit M5 image; records the M5-01 blocking condition"]
+fn m5_benchmark_run_positive_is_blocked_by_the_offline_data_bound() -> Result<(), Failure> {
+    let image = m5_image()?;
+    let mut cut = Cut::open("m5-01-benchmark-blocked");
+    let vendor_root = fixtures().join("criterion-vendor/vendor");
+    let shape = measure_vendor(&vendor_root)?;
+    cut.fixtures
+        .insert("criterion_vendor".into(), shape.facts());
+
+    if !shape.materialized {
         return Err(format!(
-            "M5-01 positives are unqualified: fixtures/criterion-vendor/vendor holds {} files and \
-             {} directories totalling {} bytes, with {} file(s) over SOURCE_MAX_FILE_BYTES; a \
-             CargoVendorSnapshot admits at most {SOURCE_MAX_ENTRIES} entries, \
-             {SOURCE_MAX_TOTAL_BYTES} total bytes and {SOURCE_MAX_FILE_BYTES} bytes per file. \
-             criterion 0.8.2's compiled closure alone is about 20 MiB, so no pruning of \
-             non-compiled files brings it inside the bound. rust.benchmark.run therefore cannot \
-             measure a criterion project through the product's own vendor contract.",
+            "the criterion vendor tree is absent at {}; run \
+             fixtures/criterion-vendor/materialize.py. Its absence is a host condition, not the \
+             blocking condition this oracle exists to record",
+            vendor_root.display()
+        )
+        .into());
+    }
+
+    // Each violation is asserted on its own, because they are not
+    // interchangeable: the per-file bound is the one that cannot be pruned
+    // away, and it is what makes every proposed workaround fail.
+    let started = Instant::now();
+    let over_entries = shape.files + shape.directories > SOURCE_MAX_ENTRIES;
+    let over_total = shape.total_bytes > SOURCE_MAX_TOTAL_BYTES as u64;
+    let over_per_file = !shape.oversized.is_empty();
+    if !(over_entries && over_total && over_per_file) {
+        return Err(format!(
+            "the criterion closure no longer breaks all three bounds (entries {over_entries}, \
+             total {over_total}, per-file {over_per_file}); the M5-01 positive must now be \
+             implemented and qualified instead of recorded as blocked. Observed: {} files, {} \
+             directories, {} bytes, {} file(s) over {SOURCE_MAX_FILE_BYTES}; bounds are \
+             {SOURCE_MAX_ENTRIES} entries and {SOURCE_MAX_TOTAL_BYTES} bytes",
             shape.files,
             shape.directories,
             shape.total_bytes,
@@ -913,6 +934,27 @@ fn m5_benchmark_run_is_qualified_natively() -> Result<(), Failure> {
         )
         .into());
     }
+    assert!(
+        !shape.fits(),
+        "a closure that breaks three bounds cannot be admissible"
+    );
+
+    for (name, run_count) in [("positive-run-count-1", 1u8), ("pooled-run-count-2", 2u8)] {
+        cut.selections.push(selection(
+            name,
+            started,
+            "blocked",
+            json!({
+                "run_count": run_count,
+                "reason": "criterion vendor closure exceeds SourceBundle bounds",
+                "over_entries": over_entries,
+                "over_total_bytes": over_total,
+                "over_per_file_bytes": over_per_file,
+                "vendor": shape.facts(),
+            }),
+        ));
+    }
+    publish(&cut, &image)?;
     Ok(())
 }
 
