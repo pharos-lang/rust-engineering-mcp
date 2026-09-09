@@ -80,9 +80,12 @@ El bloqueo es de ingesta del vendor, no de la medición.
 
 ## Trabajo pendiente para cerrar M5
 
-1. **MCP**: los cuatro módulos de tool existen y compilan; falta registrarlos en
-   `stdio.rs`, generar los cuatro snapshots y actualizar los cinco conteos de
-   tools. El inventario público sigue en 27; `tools/list` no anuncia nada nuevo.
+1. **MCP**: registrado. `stdio.rs` anuncia las cuatro tools, existen 32 snapshots
+   —los 27 anteriores sin cambio byte a byte contra el merge M4, los cuatro
+   nuevos y `doctor-report`— y los seis conteos dicen 31. Queda una brecha de
+   contrato: la descripción publicada de `rust.benchmark.run` promete publicar
+   «the harness output tree» y hoy solo se publica el dataset, porque
+   `BenchmarkObservation` no transporta los bytes del archivo de criterion.
 2. **M5-01**: decisión del owner sobre el contrato de datos offline.
 3. **Gates**: `scripts/gate.py core` y `full` sobre los bytes finales, con una
    etapa `m5-runtime` en full que hoy no existe.

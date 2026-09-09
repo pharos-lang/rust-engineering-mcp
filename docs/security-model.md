@@ -559,7 +559,8 @@ fail closed before project execution.
 Estado: las cuatro definiciones M5 están implementadas en dominio, aplicación y
 execution adapter, y **pendientes de calificación**. La
 [matriz M5](validation/M5-matrix.md) conserva M5-01..04 en `In progress` y M5-05
-en `Not started`, y `tools/list` sigue devolviendo 27 definiciones. Lo que sigue
+en `Not started`. `tools/list` devuelve 31 definiciones, con las 27 anteriores
+sin cambio. Lo que sigue
 describe contratos y controles implementados; solo se presenta como calificado
 aquello que enlaza un recibo.
 

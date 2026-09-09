@@ -5,7 +5,7 @@
 | Componente | Foundation implementada |
 | --- | --- |
 | Release soportada | `0.1.0` |
-| Checkout de desarrollo | `0.3.0-dev`; 27 tools: 18 M1/M2, cuatro M3 y cinco M4 calificadas localmente; Tasks anunciado con negociación mutua; sin commit de integración, PR, tag ni publicación |
+| Checkout de desarrollo | `0.3.0-dev`; 31 tools: 18 M1/M2, cuatro M3 y cinco M4 calificadas localmente, más cuatro M5 implementadas y sin calificar; Tasks anunciado con negociación mutua; sin commit de integración, PR, tag ni publicación |
 | Toolchain fijado / MSRV inicial | Rust y Cargo `1.98.1`, edition 2024 |
 | Target de validación local | `aarch64-apple-darwin` |
 | SDK | `rmcp =3.2.0`, features `server`, `transport-io`, sin defaults |
@@ -412,8 +412,9 @@ incluso tras TTL/reinicio. No permite iniciar efectos nuevos sin preview vigente
 
 Las cuatro definiciones M5 están implementadas y **pendientes de calificación**:
 la [matriz M5](validation/M5-matrix.md) conserva M5-01..04 en `In progress` y
-M5-05 en `Not started`. `tools/list` sigue devolviendo 27 definiciones y las
-cinco versiones de protocolo no cambian. Nada de esta sección forma parte de la
+M5-05 en `Not started`. `tools/list` devuelve 31 definiciones: las 27 anteriores
+intactas byte a byte en sus snapshots y las cuatro nuevas, sin recibo de cliente.
+Las cinco versiones de protocolo no cambian. Nada de esta sección forma parte de la
 release `0.1.0`.
 
 ### Artifact kinds, MIME y versiones de payload nuevos

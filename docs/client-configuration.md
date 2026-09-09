@@ -239,7 +239,8 @@ datos, runtime y archivos de confianza son locales y los aporta el operador.
 
 ### Configurar las tools M4
 
-El checkout anuncia 27 tools al añadir las cinco definiciones M4. Las tools están
+Las cinco definiciones M4 llevaron el inventario del checkout a 27 tools; hoy son
+31 con las cuatro de M5. Las tools M4 están
 calificadas localmente con el [runtime](validation/M4-runtime.json) y los
 [clientes](validation/M4-clients.json); configurar los argumentos en otra máquina
 no reproduce esa calificación ni cambia la release `0.1.0`.
@@ -309,8 +310,9 @@ limitada a Inspector 2.5.0 y Codex 0.153.0 en el host local documentado.
 ### Configurar las tools M5
 
 Las cuatro definiciones M5 están implementadas y **pendientes de calificación**:
-la [matriz M5](validation/M5-matrix.md) conserva M5-01..04 en `In progress` y
-`tools/list` sigue devolviendo 27 definiciones. Esta sección documenta la
+la [matriz M5](validation/M5-matrix.md) conserva M5-01..04 en `In progress`.
+`tools/list` devuelve 31 definiciones —las 27 anteriores sin cambio y las cuatro
+nuevas—, pero ninguna de las cuatro tiene recibo de cliente. Esta sección documenta la
 configuración del host que esos contratos exigen; no acredita una calificación ni
 cambia la release `0.1.0`.
 

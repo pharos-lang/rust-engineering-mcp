@@ -17,9 +17,9 @@ un catálogo local de crates.
 
 El servidor usa transporte MCP por `stdio`. Las trece tools de la release
 `0.1.0` observan y validan sin modificar el source. El checkout `0.3.0-dev`
-registra 27 tools: las 18 de M1/M2, las cuatro tools de calidad M3 y cinco tools
-M4, implementadas y calificadas localmente. M4 está cerrado localmente; el
-checkout no forma una release.
+registra 31 tools: las 18 de M1/M2, las cuatro tools de calidad M3, cinco tools
+M4 y cuatro tools de rendimiento M5. M4 está cerrado localmente; M5 está
+implementado y **no calificado por completo**. El checkout no forma una release.
 
 > [!IMPORTANT]
 > La versión estable actual es `0.1.0`. GitHub Releases publica un único binario core
@@ -48,6 +48,10 @@ checkout no forma una release.
 | Supply chain (M4, desarrollo) | `rust.supply_chain.inspect` | Tool 25; facts de resolución, audit, deny y catálogo con provenance explícita. |
 | Calidad (M4, desarrollo) | `rust.quality.gate.v2` | Tool 26; gate `strict` o `release` sobre una captura compartida. |
 | Seguridad (M4, desarrollo) | `rust.miri` | Tool 27; evidencia tipada de Miri sobre tests seleccionados. |
+| Rendimiento (M5, desarrollo) | `rust.benchmark.run` | Tool 28; mide los benchmarks Criterion que el proyecto ya tiene y publica las muestras crudas como dataset privado. Positivo bloqueado. |
+| Rendimiento (M5, desarrollo) | `rust.benchmark.compare` | Tool 29; compara dos datasets propios con un método estadístico congelado. No ejecuta nada. |
+| Rendimiento (M5, desarrollo) | `rust.profile.flamegraph` | Tool 30; muestreo en CPU de un binario del proyecto; exige la capability de profiling del host. |
+| Rendimiento (M5, desarrollo) | `rust.binary.bloat` | Tool 31; tamaño exacto del binario más la atribución estimada del analizador fijado. |
 | Seguridad | `rust.dependencies.audit` | Contrasta `Cargo.lock` con un snapshot RustSec suministrado por el host. |
 | Diagnóstico | `rust.diagnostics.explain` | Obtiene la explicación de un código `rustc`, por ejemplo `E0502`. |
 | Calidad | `rust.quality.gate` | Ejecuta un gate `fast` o `standard` y devuelve el estado de cada etapa. |
@@ -70,6 +74,26 @@ Tasks. Una selección de hasta 60 segundos puede usar el camino síncrono; en
 `rust.quality.gate.v2` se limita a `strict` sin mutation. `release` y mutation
 requieren Tasks. Consulta su [alcance y límites](docs/tools.md#contratos-m4-calificados-localmente)
 y el [handoff de evidencia](docs/validation/M4-handoff.md).
+
+Las cuatro tools M5 miden rendimiento y tamaño sin modificar el checkout.
+`rust.benchmark.run`, `rust.profile.flamegraph` y `rust.binary.bloat` exigen la
+imagen guest M5 y el vendor Cargo offline autenticado por el host;
+`rust.profile.flamegraph` exige además `--allow-profiling user-space-sampling`;
+`rust.benchmark.compare` no ejecuta nada y opera sobre dos datasets que un `run`
+previo del mismo proyecto ya publicó. Ninguna admite MCP Tasks: en las tres que
+aceptan `execution_mode`, `task` devuelve `TASKS_REQUIRED` como resultado
+declarado; `rust.benchmark.compare` no tiene modo de ejecución.
+
+> [!WARNING]
+> **`rust.benchmark.run` no puede medir hoy un proyecto Criterion a través del
+> contrato de vendor offline del producto**: el cierre de Criterion 0.8.2 no cabe
+> en los límites del `SourceBundle` y esos límites no se subieron, así que su
+> camino positivo está bloqueado ([M5-01-blocker.json](docs/validation/M5-01-blocker.json)).
+> `rust.profile.flamegraph` y `rust.binary.bloat` están calificados nativamente,
+> `rust.benchmark.compare` está probado sobre datasets reales del guest, y el
+> gate conjunto y la matriz de clientes M5 todavía no se han ejecutado
+> ([matriz M5](docs/validation/M5-matrix.md), [handoff](docs/validation/M5-handoff.md)).
+> Sus contratos completos están en [`docs/tools.md`](docs/tools.md#contratos-m5--medición-de-rendimiento).
 
 Los Resources normalizados no sustituyen una revisión de privacidad. Los HTML de
 cobertura y diffs de mutation autorizados pueden contener source del proyecto,
@@ -276,6 +300,40 @@ La imagen M4 admitida por identidad inmutable es
 La calificación local de las cinco tools usa esa imagen; no amplía la release
 estable ni la matriz más allá de macOS ARM64 con guest Docker Linux ARM64.
 
+### Habilitar las tools M5
+
+Las tools de rendimiento exigen la imagen guest M5 **y solo esa**; cualquier otro
+digest devuelve `unavailable` antes de crear contenedor alguno:
+
+```text
+--rust-image sha256:0e21c561488cb917e89e42943eb5138a7ddfd73d9de2f9cd4b9a0b516bdab820
+```
+
+`rust.benchmark.run` resuelve su harness **offline**, así que necesita el mismo
+par de vendor Cargo autenticado ya documentado arriba
+(`--cargo-vendor-dir` y `--cargo-vendor-tree-sha256`); sin él responde que faltan
+datos offline en lugar de descargar o sustituir el harness.
+`rust.profile.flamegraph` y `rust.binary.bloat` usan ese mismo árbol para
+construir el binario que miden.
+
+El profiling exige además una concesión explícita del host, con un único valor
+admitido:
+
+```text
+--allow-profiling user-space-sampling
+```
+
+Concede exactamente el muestreo de espacio de usuario sobre el proceso hijo que
+lanza el perfilador y sus hilos, con una sola syscall añadida al perfil seccomp.
+No añade capabilities Linux, no usa contenedores privilegiados, no ejecuta `sudo`
+y no toca `perf_event_paranoid`. Cualquier otro valor, repetir la opción o
+usarla sin el grupo Docker completo hace inválida la invocación de `serve`. Sin
+la concesión, `rust.profile.flamegraph` responde `blocked` con
+`PROFILING_NOT_AUTHORIZED` antes de crear ningún contenedor. La capability es por
+servidor y se retira quitando la bandera y reiniciando; ninguna otra tool cambia
+de comportamiento por concederla. Detalles en la
+[guía por cliente](docs/client-configuration.md#configurar-las-tools-m5).
+
 ## Configurar el catálogo local
 
 El servidor no descarga ni actualiza catálogos durante una sesión MCP. Si ya tienes
@@ -405,11 +463,11 @@ recuperar la operación durable. Los locks coordinan procesos que comparten
 `--state-root`, pero no bloquean IDE, Git u otros escritores del mismo usuario. No
 hay CAS ni atomicidad visible para una publicación de varios archivos.
 
-El checkout de desarrollo descubre 27 tools: conserva las trece de M1, añade
+El checkout de desarrollo descubre 31 tools: conserva las trece de M1, añade
 `rust.manifest.patch`, `rust.fmt.apply`, `rust.fix.apply`,
 `rust.dependency.add` y `rust.dependency.remove`, e integra el contrato M3-01 de
-`rust.test.nextest`, las otras tres tools M3 y las cinco tools M4 calificadas
-localmente. Cada tool de escritura exige su grant de host:
+`rust.test.nextest`, las otras tres tools M3, las cinco tools M4 calificadas
+localmente y las cuatro tools M5 aún sin calificar por completo. Cada tool de escritura exige su grant de host:
 `--allow-manifest-write`, `--allow-fmt-write`, `--allow-fix-write`,
 `--allow-dependency-add` o `--allow-dependency-remove`, seguido de la raíz del
 workspace. Un grant no autoriza planes ni receipts de otra operación.
@@ -449,7 +507,7 @@ parte de la instalación de M1.
 
 ## M3 — calidad avanzada
 
-El checkout `0.3.0-dev` descubre 27 tools.
+El checkout `0.3.0-dev` descubre 31 tools.
 `rust.test.nextest`, `rust.coverage`,
 `rust.semver.check` y `rust.mutation.test` están implementadas y calificadas en el
 gate Docker M3: 62/62 selecciones (nextest 19, Tasks 7, coverage 8,

@@ -2,6 +2,79 @@
 
 ## 0.3.0-dev — Unreleased
 
+### M5 — cuatro tools de rendimiento, implementadas y sin calificar por completo
+
+- Implementadas `rust.benchmark.run`, `rust.benchmark.compare`,
+  `rust.profile.flamegraph` y `rust.binary.bloat`, en ese orden después de las 27
+  definiciones existentes; el inventario público pasa de 27 a 31. Los 27
+  snapshots anteriores se conservan byte a byte bajo un test de invariancia y se
+  añaden cuatro nuevos. Las cuatro son `read_only`, no escriben el checkout y no
+  admiten MCP Tasks: `task` devuelve `TASKS_REQUIRED` como resultado declarado.
+  Contratos en [ADR-076](docs/adr/ADR-076-m5-performance-contracts.md).
+- `rust.benchmark.run` mide benchmarks Criterion 0.8.2 que el proyecto ya tiene y
+  no genera ninguno. Warmup 3 s, tiempo de medición 5 s y `--sample-size 30` los
+  fija el servidor como argv cerrado y viajan en la provenance; el proyecto no
+  los alcanza. Un harness distinto o una versión no aprobada son resultados
+  observados sin dataset. Las muestras crudas no viajan en la respuesta.
+- `rust.benchmark.compare` publica el método congelado con cada informe: mediana
+  del tiempo por iteración, bootstrap percentil de 10 000 remuestreos con semilla
+  fija, confianza 0,95 con Bonferroni cuando la familia es mayor que uno, umbral
+  material del 5 %, outliers contados por vallas de Tukey y nunca eliminados, y
+  un minimum detectable ratio que no se iguala al umbral. Cuatro veredictos:
+  `regression`, `improvement`, `no_material_change` e `inconclusive`. Un par
+  incompatible es `status = failed` con `INCOMPATIBLE_DATASETS` y la lista
+  completa de razones, no un error de infraestructura. El resultado describe una
+  medición y nunca una causa ([ADR-073](docs/adr/ADR-073-benchmark-method-and-dataset.md)).
+- `rust.profile.flamegraph` exige la capability positiva del host
+  `--allow-profiling user-space-sampling`; sin ella responde `blocked` con
+  `PROFILING_NOT_AUTHORIZED` antes de crear contenedor alguno. El muestreo es solo
+  de espacio de usuario sobre el proceso hijo y sus hilos, con un perfil seccomp
+  que es el de calidad más una sola syscall (`perf_event_open`), sin
+  `--cap-add`, sin contenedor privilegiado, sin `sudo` y sin tocar
+  `perf_event_paranoid`. Cero muestras es un resultado válido y declarado
+  ([ADR-074](docs/adr/ADR-074-profiling-capability-and-containment.md)).
+- `rust.binary.bloat` separa el tamaño exacto que mide el producto (bytes y
+  `sha256`) de la atribución estimada de `cargo-bloat`, marcada como estimación en
+  el propio DTO. El archivo medido es un build de análisis: el analizador fuerza
+  `strip=false` para leer símbolos, así que no es byte a byte el que enviaría un
+  proyecto que pide stripping, y el DTO lo declara siempre. Un desacuerdo de
+  tamaño se publica como `size_mismatch`, nunca fundido con la medición exacta.
+- Añadidos artifact kinds nuevos en el store durable privado —
+  `benchmark_dataset`, `criterion_archive`, `collapsed_stacks`, `flamegraph_svg`
+  y `bloat_json` —, el mime `image/svg+xml` y sus versiones de payload. Ninguna
+  variante nueva aparece en el schema público de una tool anterior. El dataset usa
+  el formato versionado `rust-engineering-mcp.benchmark-dataset.v1`
+  (`format_version = 1`) con las muestras crudas y una provenance completa; un
+  lector que no reconozca exactamente ese identificador falla cerrado y nunca
+  migra medidas. Techos: SVG ≤ 8 MiB, bloat ≤ 4 MiB, muestras ≤ 32 MiB y
+  resultado MCP completo ≤ 512 KiB.
+- Provisionada una imagen guest derivada por digest de la imagen M4, que añade
+  exactamente `cargo-bloat 0.12.1` (MIT, con su cierre de veinte paquetes
+  verificados contra el lockfile publicado) y `rust-mcp-profile-helper`,
+  construido desde `fixtures/profile-helper/`. Ninguno es alcanzable por `PATH`;
+  el gateway los invoca por ruta absoluta y la construcción corre con
+  `--network=none` ([ADR-075](docs/adr/ADR-075-m5-runtime-provisioning.md)).
+  [ADR-077](docs/adr/ADR-077-m5-runtime-admission.md) añade exactamente el digest
+  `sha256:0e21c561488cb917e89e42943eb5138a7ddfd73d9de2f9cd4b9a0b516bdab820` a la
+  lista cerrada de admisión, y el puerto de performance exige esa imagen y solo
+  esa. Las tres imágenes anteriores conservan su admisión y su alcance.
+- **Limitación M5-01**: `rust.benchmark.run` no puede alcanzar hoy su positivo a
+  través del contrato de vendor offline del producto. El cierre de Criterion
+  0.8.2 son 6 014 archivos y 156 267 469 bytes, con cuatro archivos por encima
+  del límite de 1 MiB por archivo, y un `SourceBundle` admite 4 096 entradas,
+  16 MiB en total y 1 MiB por archivo. **Los límites no se subieron**: pertenecen
+  al contrato de datos offline calificado en M2/M4 y ampliarlos habría debilitado
+  una frontera de seguridad sin decisión ni recalificación. Detalle y opciones
+  para el owner en [M5-01-blocker.json](docs/validation/M5-01-blocker.json). Sus
+  selecciones negativas y de control sí están calificadas.
+- Estado: M5 **no está Done**. `rust.profile.flamegraph` y `rust.binary.bloat`
+  están calificados nativamente, `rust.benchmark.compare` está probado sobre
+  datasets reales del guest, el positivo de `rust.benchmark.run` está bloqueado, y
+  el gate conjunto y la matriz de clientes M5 no se han ejecutado
+  ([matriz](docs/validation/M5-matrix.md),
+  [handoff](docs/validation/M5-handoff.md)). `BenchmarkExit` y `BloatExit`
+  conservan `CALIBRATED = false`. No hay release, tag ni cambio de versión.
+
 ### M4 — 27 tools implementadas y calificadas localmente
 
 - Implementados `rust.deny`, `rust.unsafe.scan`, `rust.supply_chain.inspect`,
