@@ -102,26 +102,30 @@ class RuntimePlanTests(unittest.TestCase):
     # profile and bloat, which pinned the state the ADR exists to change: the
     # harness-log recovery has to be exercised from a real client, so
     # `rust.benchmark.run` now has runtime rows too.
-    def test_runtime_plan_covers_profile_bloat_and_benchmark(self):
+    def test_runtime_plan_covers_all_four_m5_tools(self):
         self.assertEqual(
             M5.runtime_tools(),
-            ("rust.profile.flamegraph", "rust.binary.bloat", "rust.benchmark.run"))
+            ("rust.benchmark.run", "rust.benchmark.compare",
+             "rust.profile.flamegraph", "rust.binary.bloat"))
         for row in M5.runtime_call_plan():
             self.assertEqual(row["mode"], M5.RUNTIME)
             self.assertEqual(row["shape"], "positive")
-            self.assertGreaterEqual(row["expect_min_artifacts"], 1)
+            if row["tool"] == "rust.benchmark.compare":
+                self.assertEqual(row["expect_min_artifacts"], 0)
+            else:
+                self.assertGreaterEqual(row["expect_min_artifacts"], 1)
             self.assertTrue(row["rationale"])
 
-    # CORRECTED for ADR-080 §6: `rust.benchmark.run` is no longer among them.
+    # The capture-backed positives close the final client-visible gap.
     def test_the_tool_without_a_client_positive_is_named(self):
         missing = [tool for tool in M5.M5_TOOLS if tool not in M5.runtime_tools()]
-        self.assertEqual(missing, ["rust.benchmark.compare"])
+        self.assertEqual(missing, [])
 
     def test_the_log_recovery_rows_publish_logs_and_no_measurement(self):
         """ADR-080 §6: an observed compilation failure and an unrecognized
         harness, each publishing harness logs and no dataset."""
         rows = [row for row in M5.runtime_call_plan()
-                if row["tool"] == "rust.benchmark.run"]
+                if row["tool"] == "rust.benchmark.run" and row["expect_status"] == "failed"]
         self.assertEqual(len(rows), 2)
         self.assertEqual([row["expect_error_code"] for row in rows],
                          ["OBSERVED_FAILURE", "HARNESS_UNRECOGNIZED"])
@@ -141,6 +145,31 @@ class RuntimePlanTests(unittest.TestCase):
                              ["benchmark_dataset", "criterion_archive"])
             self.assertGreaterEqual(row["expect_min_artifacts"], 1)
             self.assertIn("logs", row["report_fields"])
+
+    def test_benchmark_positive_rows_feed_the_real_comparison(self):
+        rows = M5.runtime_call_plan()
+        measured = [row for row in rows if row.get("dataset_role")]
+        self.assertEqual([row["dataset_role"] for row in measured],
+                         ["baseline", "candidate"])
+        for row in measured:
+            self.assertEqual(row["expect_status"], "passed")
+            self.assertEqual(row["expect_observation"]["dataset_published"], True)
+            self.assertEqual(row["expect_observation"]["runs_completed"], 1)
+            self.assertIn("benchmark_dataset", row["expect_artifact_kinds"])
+        comparison = next(row for row in rows
+                          if row["tool"] == "rust.benchmark.compare")
+        self.assertEqual(comparison["arguments"], {"timeout_seconds": 30})
+        self.assertEqual(comparison["compare_dataset_roles"], ["baseline", "candidate"])
+        self.assertEqual(comparison["expect_all_verdicts"], "inconclusive")
+        self.assertEqual(comparison["expect_inconclusive_reason"], "method_unqualified")
+
+    def test_a_blind_comparison_plan_is_refused(self):
+        comparison = next(row for row in M5.RUNTIME_CALL_PLAN
+                          if row["tool"] == "rust.benchmark.compare")
+        broken = ({**comparison, "expect_report": {}},)
+        with mock.patch.object(M5, "RUNTIME_CALL_PLAN", broken):
+            with self.assertRaisesRegex(RuntimeError, "must assert report facts"):
+                M5.runtime_call_plan()
 
     def test_a_plan_naming_an_artifact_kind_the_tool_cannot_publish_is_refused(self):
         broken = list(M5.RUNTIME_CALL_PLAN)
@@ -192,11 +221,13 @@ class RuntimePlanTests(unittest.TestCase):
         self.assertIn("pub fn analysis_validated(&self) -> bool {", domain)
 
     def test_a_runtime_row_without_evidence_is_refused(self):
-        broken = ({**M5.RUNTIME_CALL_PLAN[0], "expect_min_artifacts": 0},)
+        execution = next(row for row in M5.RUNTIME_CALL_PLAN
+                         if row["tool"] == "rust.profile.flamegraph")
+        broken = ({**execution, "expect_min_artifacts": 0},)
         with mock.patch.object(M5, "RUNTIME_CALL_PLAN", broken):
             with self.assertRaisesRegex(RuntimeError, "must publish evidence"):
                 M5.runtime_call_plan()
-        blind = ({**M5.RUNTIME_CALL_PLAN[0], "expect_observation": {},
+        blind = ({**execution, "expect_observation": {},
                   "expect_positive_fields": [], "expect_measured": False},)
         with mock.patch.object(M5, "RUNTIME_CALL_PLAN", blind):
             with self.assertRaisesRegex(RuntimeError, "must assert observation facts"):
@@ -284,6 +315,62 @@ class ObservationOracleTests(unittest.TestCase):
         with self.assertRaisesRegex(RuntimeError, "no measured binary"):
             M5.check_runtime_observation("Inspector", row, payload)
 
+    def comparison_row(self):
+        return next(item for item in M5.runtime_call_plan()
+                    if item["tool"] == "rust.benchmark.compare")
+
+    def comparison_payload(self, verdict="inconclusive", reasons=None):
+        if reasons is None:
+            reasons = ["insufficient_executions", "method_unqualified"]
+        return {"status": "passed", "error_code": None, "data": {
+            "baseline_artifact_id": "qart_" + "a" * 32,
+            "candidate_artifact_id": "qart_" + "b" * 32,
+            "report": {"complete": True, "incompatibility_reasons": [], "compared": 1,
+                       "comparisons": [{"key": "m5/control", "verdict": verdict,
+                                        "inconclusive_reasons": reasons}]}}}
+
+    def test_store_issued_dataset_ids_are_extracted_and_materialized(self):
+        uri = ("rust-quality-artifact://prj_" + "1" * 32 + "/qart_" + "a" * 32
+               + "?offset=0&length=42")
+        self.assertEqual(M5.artifact_id_from_uri(uri), "qart_" + "a" * 32)
+        with self.assertRaisesRegex(RuntimeError, "store-issued identifier"):
+            M5.artifact_id_from_uri("qart_" + "a" * 32)
+        datasets = {"baseline": "qart_" + "a" * 32,
+                    "candidate": "qart_" + "b" * 32}
+        args = M5.materialize_arguments(self.comparison_row(), "prj_" + "1" * 32, datasets)
+        self.assertEqual(args["baseline_artifact_id"], datasets["baseline"])
+        self.assertEqual(args["candidate_artifact_id"], datasets["candidate"])
+        with self.assertRaisesRegex(RuntimeError, "not captured"):
+            M5.materialize_arguments(self.comparison_row(), "prj_" + "1" * 32, {})
+
+    def test_comparison_accepts_only_complete_method_unqualified_verdicts(self):
+        checked = M5.check_runtime_comparison(
+            "Codex", self.comparison_row(), self.comparison_payload())
+        self.assertEqual(checked["artifacts"], [])
+        self.assertEqual(checked["facts"]["verdicts"], ["inconclusive"])
+        with self.assertRaisesRegex(RuntimeError, "directional"):
+            M5.check_runtime_comparison(
+                "Codex", self.comparison_row(), self.comparison_payload("regression", []))
+        with self.assertRaisesRegex(RuntimeError, "qualification refusal"):
+            M5.check_runtime_comparison(
+                "Codex", self.comparison_row(), self.comparison_payload(reasons=[]))
+        empty = self.comparison_payload()
+        empty["data"]["report"]["comparisons"] = []
+        with self.assertRaisesRegex(RuntimeError, "no benchmark comparisons"):
+            M5.check_runtime_comparison("Codex", self.comparison_row(), empty)
+
+    def test_dataset_role_requires_one_unique_pooled_artifact(self):
+        row = next(item for item in M5.runtime_call_plan()
+                   if item.get("dataset_role") == "baseline")
+        artifact = {"kind": "benchmark_dataset",
+                    "uri": "rust-quality-artifact://prj_" + "1" * 32
+                           + "/qart_" + "a" * 32 + "?offset=0&length=42"}
+        datasets = {}
+        M5.capture_dataset_id(row, [artifact], datasets)
+        self.assertEqual(datasets, {"baseline": "qart_" + "a" * 32})
+        with self.assertRaisesRegex(RuntimeError, "invalid or duplicated"):
+            M5.capture_dataset_id(row, [artifact], datasets)
+
 
 class HostConfigurationTests(unittest.TestCase):
     def test_docker_free_argv_is_closed_and_grants_nothing(self):
@@ -306,14 +393,34 @@ class HostConfigurationTests(unittest.TestCase):
         socket = pathlib.Path("/private/tmp/m5-unit-real.sock")
         vendor = (M5.ROOT / M5.VENDOR_FIXTURE).resolve()
         fingerprint = "sha256:" + "f" * 64
-        argv = M5.runtime_server_argv(state, socket, vendor, fingerprint)
+        capture = pathlib.Path("/private/tmp/m5-unit-capture")
+        capture_fingerprint = "sha256:" + "e" * 64
+        argv = M5.runtime_server_argv(
+            state, socket, vendor, fingerprint, capture, capture_fingerprint)
         base = M5.server_argv(state, socket)
         self.assertEqual(argv[:len(base)], base)
         self.assertEqual(argv[len(base):], [
             "--cargo-vendor-dir", str(vendor),
             "--cargo-vendor-tree-sha256", fingerprint,
+            "--vendor-capture", str(capture),
+            "--vendor-capture-tree-sha256", capture_fingerprint,
             "--allow-profiling", M5.PROFILING_GRANT,
         ])
+
+    def test_capture_discovery_requires_one_regular_digest_named_artifact(self):
+        with tempfile.TemporaryDirectory() as directory:
+            store = pathlib.Path(directory)
+            self.assertIsNone(M5.find_vendor_capture(store))
+            artifact = store / ("a" * 64)
+            artifact.write_bytes(b"capture")
+            self.assertEqual(M5.find_vendor_capture(store),
+                             (artifact.resolve(), "sha256:" + "a" * 64))
+            (store / ("b" * 64)).symlink_to(artifact)
+            self.assertEqual(M5.find_vendor_capture(store),
+                             (artifact.resolve(), "sha256:" + "a" * 64))
+            (store / ("b" * 64)).unlink()
+            (store / ("b" * 64)).write_bytes(b"second")
+            self.assertIsNone(M5.find_vendor_capture(store))
 
     def test_both_handlers_really_demand_the_offline_vendor_tree(self):
         # The runtime mode supplies one because the handlers require it, not
@@ -378,18 +485,18 @@ class PreflightTests(unittest.TestCase):
         })
         self.assertTrue(all(len(value) == 64 for value in result["source_sha256"].values()))
 
-    # CORRECTED for ADR-080 §6: `rust.benchmark.run` gained two client
-    # positives, so only the comparison is left without one.
+    # The capture-backed benchmark and its real comparison cover all four.
     def test_preflight_names_the_tool_without_a_client_positive(self):
         result = M5.preflight()
         self.assertEqual(result["tools_without_a_client_positive"],
-                         ["rust.benchmark.compare"])
+                         [])
 
     def test_runtime_preflight_adds_the_runtime_preconditions(self):
         plain = set(M5.preflight(False, None)["preconditions"])
         runtime = set(M5.preflight(True, None)["preconditions"])
         self.assertEqual(runtime - plain, {
             "docker_socket", "docker_binary", "vendor_fixture",
+            "vendor_capture",
             "profiling_grant_supported", "qualified_image_admitted"})
         self.assertTrue(M5.preflight(True, None)["docker_required"])
 

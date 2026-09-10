@@ -10,8 +10,8 @@
 //
 // The same driver serves both modes.  In the Docker-free mode every planned
 // call is a declared refusal the server produces before a container exists; in
-// the runtime mode two calls are real measurements whose published artifacts
-// are read back as Resources.
+// the runtime mode performs real measurements, reads every published artifact
+// as a Resource and compares the store-issued benchmark datasets.
 import process from "node:process";
 import { Buffer } from "node:buffer";
 import { createHash } from "node:crypto";
@@ -70,6 +70,53 @@ function toolByName(tools, name) {
 function isInteger(value) {
   return typeof value === "number" && Number.isInteger(value);
 }
+function artifactIdFromUri(uri) {
+  const match = /^rust-quality-artifact:\/\/prj_[0-9a-f]{32}\/(qart_[0-9a-f]{32})\?offset=0&length=[1-9][0-9]*$/.exec(uri ?? "");
+  if (match === null) throw new Error("dataset artifact URI carries no store-issued identifier");
+  return match[1];
+}
+function materializeArguments(row, reference, datasets) {
+  const args = { project_ref: reference, ...row.arguments };
+  if (row.compare_dataset_roles === null || row.compare_dataset_roles === undefined) return args;
+  if (JSON.stringify(row.compare_dataset_roles) !== JSON.stringify(["baseline", "candidate"])) {
+    throw new Error("comparison dataset roles are invalid");
+  }
+  if (typeof datasets.baseline !== "string" || typeof datasets.candidate !== "string") {
+    throw new Error("comparison dataset was not captured from a preceding run");
+  }
+  args.baseline_artifact_id = datasets.baseline;
+  args.candidate_artifact_id = datasets.candidate;
+  return args;
+}
+function checkComparison(label, row, structured) {
+  const report = structured?.data?.report;
+  if (report === null || typeof report !== "object") {
+    throw new Error(`Inspector ${label} published no comparison report`);
+  }
+  for (const [key, value] of Object.entries(row.expect_report ?? {})) {
+    if (JSON.stringify(report[key]) !== JSON.stringify(value)) {
+      throw new Error(`Inspector ${label} report.${key} did not match`);
+    }
+  }
+  if (!Array.isArray(report.comparisons) || report.comparisons.length === 0) {
+    throw new Error(`Inspector ${label} published no benchmark comparisons`);
+  }
+  for (const comparison of report.comparisons) {
+    if (comparison?.verdict !== row.expect_all_verdicts) {
+      throw new Error(`Inspector ${label} claimed a directional benchmark verdict`);
+    }
+    if (!Array.isArray(comparison.inconclusive_reasons)
+        || !comparison.inconclusive_reasons.includes(row.expect_inconclusive_reason)) {
+      throw new Error(`Inspector ${label} omitted the method qualification refusal`);
+    }
+  }
+  return {
+    ...Object.fromEntries((row.report_fields ?? [])
+      .filter((key) => report[key] !== undefined).map((key) => [key, report[key]])),
+    verdicts: [...new Set(report.comparisons.map((comparison) => comparison.verdict))].sort(),
+    method_unqualified: true, artifacts_published: 0, artifacts_read: 0,
+  };
+}
 
 const serverConfig = {
   type: "stdio", command: serverArgv[0], args: serverArgv.slice(1),
@@ -109,11 +156,12 @@ try {
 
   const rows = [];
   const facts = {};
+  const datasets = {};
   const refusalUris = new Set();
   for (const row of plan.calls) {
     const reference = row.project === null ? plan.unknown_project_ref : refs[row.project];
     if (typeof reference !== "string") throw new Error(`project authority missing for ${row.tool}`);
-    const args = { project_ref: reference, ...row.arguments };
+    const args = materializeArguments(row, reference, datasets);
     const request = measure(args);
     let result;
     try {
@@ -140,12 +188,19 @@ try {
     let published = 0;
     let read = 0;
     if (row.mode === "runtime") {
+      if (row.tool === "rust.benchmark.compare") {
+        if (structured?.data?.baseline_artifact_id !== args.baseline_artifact_id
+            || structured?.data?.candidate_artifact_id !== args.candidate_artifact_id) {
+          throw new Error("Inspector comparison did not echo the consumed datasets");
+        }
+        facts[row.fact_key] = checkComparison(label, row, structured);
+      } else {
       const observation = structured?.data?.observation;
       if (observation === null || typeof observation !== "object") {
         throw new Error(`Inspector ${label} published no observation`);
       }
       for (const [key, value] of Object.entries(row.expect_observation ?? {})) {
-        if (observation[key] !== value) {
+        if (JSON.stringify(stable(observation[key])) !== JSON.stringify(stable(value))) {
           throw new Error(`Inspector ${label} observation.${key} ${observation[key]} != ${value}`);
         }
       }
@@ -171,6 +226,7 @@ try {
         throw new Error(`Inspector ${label} published ${artifacts?.length ?? 0} artifacts, expected at least ${row.expect_min_artifacts}`);
       }
       published = artifacts.length;
+      let datasetId = null;
       const allowedKinds = row.expect_artifact_kinds ?? [];
       const forbiddenKinds = row.expect_no_artifact_kinds ?? [];
       for (const artifact of artifacts) {
@@ -190,6 +246,8 @@ try {
           if (artifact.run_index !== null && artifact.run_index !== undefined) {
             throw new Error(`Inspector ${label} gave the pooled dataset a run_index`);
           }
+          if (datasetId !== null) throw new Error(`Inspector ${label} published two datasets`);
+          datasetId = artifactIdFromUri(artifact.uri);
         } else if (row.tool === "rust.benchmark.run"
                    && !(isInteger(artifact.run_index) && artifact.run_index >= 1)) {
           throw new Error(`Inspector ${label} published ${artifact.kind} without its repetition`);
@@ -202,12 +260,21 @@ try {
         read += 1;
       }
       if (read !== published) throw new Error(`Inspector ${label} did not read every published artifact`);
-      facts[row.tool] = {
+      if (row.dataset_role !== null && row.dataset_role !== undefined) {
+        if (!["baseline", "candidate"].includes(row.dataset_role) || datasetId === null
+            || datasets[row.dataset_role] !== undefined
+            || Object.values(datasets).includes(datasetId)) {
+          throw new Error(`Inspector ${label} dataset role is invalid or ambiguous`);
+        }
+        datasets[row.dataset_role] = datasetId;
+      }
+      facts[row.fact_key] = {
         artifacts_published: published, artifacts_read: read,
         ...Object.fromEntries((row.report_fields ?? [])
           .filter((key) => observation[key] !== undefined)
           .map((key) => [key, observation[key]])),
       };
+      }
     } else {
       for (const uri of valuesFor(result, "uri")) {
         if (typeof uri === "string" && uri.startsWith(ARTIFACT_SCHEME)) refusalUris.add(uri);

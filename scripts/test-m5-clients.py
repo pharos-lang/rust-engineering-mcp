@@ -33,6 +33,7 @@ import pathlib
 import queue
 import re
 import shutil
+import stat
 import subprocess
 import sys
 import tempfile
@@ -112,6 +113,7 @@ FIXTURES = {
 # empty directory is refused by `cargo-vendor inspect`, which is why the
 # checked M4 tree is reused instead of inventing one.
 VENDOR_FIXTURE = "fixtures/cargo-vendor-data/vendor"
+VENDOR_CAPTURE_STORE = "fixtures/criterion-vendor/capture"
 UNKNOWN_PROJECT_REF = "prj_" + "0" * 32
 MISSING_RESOURCE_URI = "rust-quality-artifact://" + "0" * 32 + "/index"
 
@@ -189,7 +191,7 @@ CALL_PLAN = (
     },
 )
 
-# The two calls that produce a real measurement through the qualified runtime.
+# The runtime calls that produce real evidence through the qualified runtime.
 #
 # `rust.profile.flamegraph` reaches `passed`: its observation is complete when
 # the sampler ran, lost nothing and published both artifacts.
@@ -207,6 +209,73 @@ CALL_PLAN = (
 # exact measured file and the published artifact.  It is an expectation, not a
 # qualification: the receipts are re-captured separately.
 RUNTIME_CALL_PLAN = (
+    {
+        "tool": "rust.benchmark.run", "shape": "positive", "project": "benchmark",
+        "arguments": {"package": "rust-mcp-benchmark-fixture", "bench_target": "perf",
+                      "run_count": 1, "timeout_seconds": 300,
+                      "execution_mode": "synchronous"},
+        "expect_status": "passed", "expect_error_code": None,
+        "expect_observation": {"harness": {"harness": "criterion", "version": "0.8.2"},
+                               "exit": "passed", "dataset_published": True,
+                               "dataset_omission": None, "runs_requested": 1,
+                               "runs_completed": 1, "exit_run_index": 1,
+                               "complete": True},
+        "expect_positive_fields": [], "expect_zero_fields": [],
+        "expect_measured": False, "expect_min_artifacts": 2,
+        "expect_artifact_kinds": ["benchmark_dataset", "criterion_archive",
+                                  "harness_stdout", "harness_stderr"],
+        "expect_no_artifact_kinds": [],
+        "report_fields": ["harness", "exit", "exit_code", "exit_run_index",
+                          "runs_requested", "runs_completed", "dataset_published",
+                          "dataset_omission", "complete"],
+        "requires_profiling_grant": False,
+        "dataset_role": "baseline", "fact_key": "benchmark_baseline",
+        "rationale": "a real criterion measurement through the provisioned ADR-078 capture; "
+                     "its store-issued dataset identifier is retained for the comparison and "
+                     "every published artifact is read back as a Resource",
+    },
+    {
+        "tool": "rust.benchmark.run", "shape": "positive", "project": "benchmark",
+        "arguments": {"package": "rust-mcp-benchmark-fixture", "bench_target": "perf",
+                      "run_count": 1, "timeout_seconds": 300,
+                      "execution_mode": "synchronous"},
+        "expect_status": "passed", "expect_error_code": None,
+        "expect_observation": {"harness": {"harness": "criterion", "version": "0.8.2"},
+                               "exit": "passed", "dataset_published": True,
+                               "dataset_omission": None, "runs_requested": 1,
+                               "runs_completed": 1, "exit_run_index": 1,
+                               "complete": True},
+        "expect_positive_fields": [], "expect_zero_fields": [],
+        "expect_measured": False, "expect_min_artifacts": 2,
+        "expect_artifact_kinds": ["benchmark_dataset", "criterion_archive",
+                                  "harness_stdout", "harness_stderr"],
+        "expect_no_artifact_kinds": [],
+        "report_fields": ["harness", "exit", "exit_code", "exit_run_index",
+                          "runs_requested", "runs_completed", "dataset_published",
+                          "dataset_omission", "complete"],
+        "requires_profiling_grant": False,
+        "dataset_role": "candidate", "fact_key": "benchmark_candidate",
+        "rationale": "a second independent criterion measurement through the same verified "
+                     "capture; its actual dataset identifier becomes the candidate and every "
+                     "published artifact is read back as a Resource",
+    },
+    {
+        "tool": "rust.benchmark.compare", "shape": "positive", "project": "benchmark",
+        "arguments": {"timeout_seconds": 30},
+        "compare_dataset_roles": ["baseline", "candidate"],
+        "expect_status": "passed", "expect_error_code": None,
+        "expect_observation": {}, "expect_positive_fields": [], "expect_zero_fields": [],
+        "expect_measured": False, "expect_min_artifacts": 0,
+        "expect_artifact_kinds": [], "expect_no_artifact_kinds": [],
+        "expect_report": {"complete": True, "incompatibility_reasons": []},
+        "expect_all_verdicts": "inconclusive",
+        "expect_inconclusive_reason": "method_unqualified",
+        "report_fields": ["compared", "complete", "incompatibility_reasons"],
+        "requires_profiling_grant": False, "fact_key": "benchmark_compare",
+        "rationale": "compare the two store-issued datasets without inventing identifiers; "
+                     "METHOD_QUALIFIED_FOR_DIRECTION=false requires every observed difference "
+                     "to remain inconclusive",
+    },
     {
         "tool": "rust.profile.flamegraph", "shape": "positive", "project": "profile",
         "arguments": {"binary_target": "rust-mcp-profile-workload", "frequency_hz": 99,
@@ -502,27 +571,37 @@ def runtime_call_plan() -> list[dict[str, object]]:
     Not every row is a *measurement*.  ADR-080 §6 adds two rows whose whole
     point is that the execution produced no dataset — an observed compilation
     failure and an unrecognized harness — and whose evidence is the harness
-    logs the server now publishes.  What every row shares is that it reaches
-    the qualified runtime, publishes at least one artifact, reads every one of
-    them back as a Resource, and asserts observation facts rather than only a
-    status.
+    logs the server now publishes. The comparison row instead consumes the two
+    real dataset identifiers from the preceding calls and asserts the complete
+    report. Execution rows publish and read at least one artifact and assert
+    observation facts rather than only a status.
     """
     rows = []
     for row in RUNTIME_CALL_PLAN:
         check_expectation(row)
         if row["shape"] != "positive":
             raise RuntimeError("the runtime plan carries positives only")
-        if row["expect_min_artifacts"] < 1:
-            raise RuntimeError("a real execution must publish evidence")
-        if not (row["expect_observation"] or row["expect_positive_fields"] or row["expect_measured"]):
-            raise RuntimeError("a real execution must assert observation facts")
+        comparison = row["tool"] == "rust.benchmark.compare"
+        if comparison:
+            if (row.get("compare_dataset_roles") != ["baseline", "candidate"]
+                    or row["expect_min_artifacts"] != 0):
+                raise RuntimeError("a comparison must consume both captured datasets")
+            if not row.get("expect_report") or not row.get("expect_all_verdicts"):
+                raise RuntimeError("a comparison must assert report facts")
+        else:
+            if row["expect_min_artifacts"] < 1:
+                raise RuntimeError("a real execution must publish evidence")
+            if not (row["expect_observation"] or row["expect_positive_fields"]
+                    or row["expect_measured"]):
+                raise RuntimeError("a real execution must assert observation facts")
         kinds = tuple(row.get("expect_artifact_kinds", ()))
         forbidden = tuple(row.get("expect_no_artifact_kinds", ()))
         if set(kinds) & set(forbidden):
             raise RuntimeError("an artifact kind is both required and forbidden")
-        declared = declared_artifact_kinds(row["tool"])
-        if not (set(kinds) | set(forbidden)) <= declared:
-            raise RuntimeError("the plan names an artifact kind the tool cannot publish")
+        if not comparison:
+            declared = declared_artifact_kinds(row["tool"])
+            if not (set(kinds) | set(forbidden)) <= declared:
+                raise RuntimeError("the plan names an artifact kind the tool cannot publish")
         rows.append({
             "tool": row["tool"], "shape": row["shape"], "mode": RUNTIME,
             "project": row["project"], "arguments": row["arguments"],
@@ -544,6 +623,12 @@ def runtime_call_plan() -> list[dict[str, object]]:
             "report_fields": row["report_fields"],
             "requires_profiling_grant": row["requires_profiling_grant"],
             "rationale": row["rationale"],
+            "dataset_role": row.get("dataset_role"),
+            "compare_dataset_roles": row.get("compare_dataset_roles"),
+            "expect_report": row.get("expect_report", {}),
+            "expect_all_verdicts": row.get("expect_all_verdicts"),
+            "expect_inconclusive_reason": row.get("expect_inconclusive_reason"),
+            "fact_key": row.get("fact_key", row["tool"]),
         })
     if not rows:
         raise RuntimeError("the runtime plan is empty")
@@ -605,6 +690,10 @@ def runtime_preconditions(socket: str | None) -> dict[str, tuple[bool, str]]:
         "vendor_fixture": (
             (ROOT / VENDOR_FIXTURE).is_dir(),
             f"the authenticated offline vendor tree {VENDOR_FIXTURE} must exist",
+        ),
+        "vendor_capture": (
+            find_vendor_capture(capture_store()) is not None,
+            "exactly one regular, digest-named ADR-078 vendor capture must be provisioned",
         ),
         "profiling_grant_supported": (
             f'"--allow-profiling"' in host and f'"{PROFILING_GRANT}"' in host,
@@ -783,21 +872,53 @@ def server_argv(state: pathlib.Path, socket: pathlib.Path) -> list[str]:
 
 
 def runtime_server_argv(state: pathlib.Path, socket: pathlib.Path,
-                        vendor: pathlib.Path, fingerprint: str) -> list[str]:
+                        vendor: pathlib.Path, fingerprint: str,
+                        capture: pathlib.Path, capture_fingerprint: str) -> list[str]:
     """The Docker-backed host configuration.
 
-    Exactly three additions over the Docker-free one, each of which the
-    handlers demand before they will measure: the host-authenticated offline
+    The handlers demand a host-authenticated offline
     vendor tree (`profile.rs` and `bloat.rs` both answer
     `unavailable`/`MISSING_OFFLINE_DATA` without it), its approved fingerprint,
-    and the revocable profiling grant `profile.rs` checks before anything is
-    dispatched.  The socket here is the real one.
+    a provisioned ADR-078 capture and its declared tree digest for benchmarks,
+    and the revocable profiling grant `profile.rs` checks before dispatch.
+    The socket here is the real one.
     """
     return base_argv(state, socket) + [
         "--cargo-vendor-dir", str(vendor),
         "--cargo-vendor-tree-sha256", fingerprint,
+        "--vendor-capture", str(capture),
+        "--vendor-capture-tree-sha256", capture_fingerprint,
         "--allow-profiling", PROFILING_GRANT,
     ]
+
+
+def capture_store() -> pathlib.Path:
+    configured = os.environ.get("RUST_MCP_TEST_VENDOR_CAPTURE_STORE")
+    return pathlib.Path(configured).resolve() if configured else (ROOT / VENDOR_CAPTURE_STORE).resolve()
+
+
+def find_vendor_capture(store: pathlib.Path) -> tuple[pathlib.Path, str] | None:
+    """Find the single regular artifact whose name declares its tree digest."""
+    if not store.is_dir():
+        return None
+    found = []
+    for path in store.iterdir():
+        try:
+            regular = stat.S_ISREG(path.stat(follow_symlinks=False).st_mode)
+        except OSError:
+            continue
+        if regular and re.fullmatch(r"[0-9a-f]{64}", path.name):
+            found.append(path)
+    if len(found) != 1:
+        return None
+    return found[0].resolve(), "sha256:" + found[0].name
+
+
+def provisioned_vendor_capture() -> tuple[pathlib.Path, str]:
+    found = find_vendor_capture(capture_store())
+    if found is None:
+        raise RuntimeError("exactly one digest-named ADR-078 vendor capture is required")
+    return found
 
 
 def vendor_fingerprint(vendor: pathlib.Path) -> str:
@@ -885,6 +1006,85 @@ def measure(m3, value: object) -> dict[str, object]:
     payload = json.dumps(value, separators=(",", ":"), ensure_ascii=False,
                          sort_keys=True).encode()
     return {"bytes": len(payload), "sha256": m3.digest(payload)}
+
+
+def artifact_id_from_uri(uri: object) -> str:
+    match = re.fullmatch(
+        r"rust-quality-artifact://prj_[0-9a-f]{32}/(qart_[0-9a-f]{32})"
+        r"\?offset=0&length=[1-9][0-9]*",
+        str(uri),
+    )
+    if match is None:
+        raise RuntimeError("dataset artifact URI carries no store-issued identifier")
+    return match.group(1)
+
+
+def materialize_arguments(row: dict[str, object], reference: str,
+                          datasets: dict[str, str]) -> dict[str, object]:
+    arguments = {"project_ref": reference, **row["arguments"]}
+    roles = row.get("compare_dataset_roles")
+    if roles is None:
+        return arguments
+    if roles != ["baseline", "candidate"]:
+        raise RuntimeError("comparison dataset roles are invalid")
+    try:
+        arguments["baseline_artifact_id"] = datasets["baseline"]
+        arguments["candidate_artifact_id"] = datasets["candidate"]
+    except KeyError as error:
+        raise RuntimeError("comparison dataset was not captured from a preceding run") from error
+    return arguments
+
+
+def capture_dataset_id(row: dict[str, object], artifacts: list[dict[str, object]],
+                       datasets: dict[str, str]) -> None:
+    role = row.get("dataset_role")
+    if role is None:
+        return
+    if role not in {"baseline", "candidate"} or role in datasets:
+        raise RuntimeError("benchmark dataset role is invalid or duplicated")
+    published = [artifact for artifact in artifacts
+                 if artifact.get("kind") == "benchmark_dataset"]
+    if len(published) != 1:
+        raise RuntimeError("benchmark run did not publish exactly one pooled dataset")
+    artifact_id = artifact_id_from_uri(published[0].get("uri"))
+    if artifact_id in datasets.values():
+        raise RuntimeError("independent benchmark runs published the same dataset identifier")
+    datasets[str(role)] = artifact_id
+
+
+def check_runtime_comparison(client: str, row: dict[str, object],
+                             structured: dict[str, object]) -> dict[str, object]:
+    label = f"{client} {row['tool']} {row['mode']}"
+    data = structured.get("data")
+    report = data.get("report") if isinstance(data, dict) else None
+    if not isinstance(report, dict):
+        raise RuntimeError(f"{label} published no comparison report")
+    for key, value in row["expect_report"].items():
+        if report.get(key) != value:
+            raise RuntimeError(f"{label} report.{key} is not {value}")
+    comparisons = report.get("comparisons")
+    if not isinstance(comparisons, list) or not comparisons:
+        raise RuntimeError(f"{label} published no benchmark comparisons")
+    expected_verdict = row["expect_all_verdicts"]
+    expected_reason = row["expect_inconclusive_reason"]
+    for comparison in comparisons:
+        if not isinstance(comparison, dict) or comparison.get("verdict") != expected_verdict:
+            raise RuntimeError(f"{label} claimed a directional benchmark verdict")
+        reasons = comparison.get("inconclusive_reasons")
+        if not isinstance(reasons, list) or expected_reason not in reasons:
+            raise RuntimeError(f"{label} omitted the method qualification refusal")
+    facts = {key: report[key] for key in row["report_fields"] if key in report}
+    facts["verdicts"] = sorted({comparison["verdict"] for comparison in comparisons})
+    facts["method_unqualified"] = True
+    facts["artifacts_published"] = 0
+    return {"artifacts": [], "facts": facts}
+
+
+def check_runtime_result(client: str, row: dict[str, object],
+                         structured: dict[str, object]) -> dict[str, object]:
+    if row["tool"] == "rust.benchmark.compare":
+        return check_runtime_comparison(client, row, structured)
+    return check_runtime_observation(client, row, structured)
 
 
 def check_runtime_observation(client: str, row: dict[str, object],
@@ -1011,11 +1211,12 @@ def codex_gate(attempt: pathlib.Path, mode: str, argv: list[str],
             refs[name] = found.pop()
         rows = []
         facts = {}
+        datasets = {}
         refusal_uris = set()
         resources_read = 0
         for row in plan:
             reference = UNKNOWN_PROJECT_REF if row["project"] is None else refs[row["project"]]
-            arguments = {"project_ref": reference, **row["arguments"]}
+            arguments = materialize_arguments(row, reference, datasets)
             result = call(row["tool"], arguments, call_timeout)
             structured = result.get("structuredContent")
             label = f"Codex {row['tool']} {row['mode']} {row['shape']}"
@@ -1030,7 +1231,13 @@ def codex_gate(attempt: pathlib.Path, mode: str, argv: list[str],
             published = 0
             read = 0
             if row["mode"] == RUNTIME:
-                checked = check_runtime_observation("Codex", row, structured)
+                checked = check_runtime_result("Codex", row, structured)
+                if row["tool"] == "rust.benchmark.compare" and (
+                        structured.get("data", {}).get("baseline_artifact_id")
+                        != arguments["baseline_artifact_id"]
+                        or structured.get("data", {}).get("candidate_artifact_id")
+                        != arguments["candidate_artifact_id"]):
+                    raise RuntimeError("Codex comparison did not echo the consumed datasets")
                 published = len(checked["artifacts"])
                 for artifact in checked["artifacts"]:
                     controller.validate_resource(transport.rpc("mcpServer/resource/read", {
@@ -1038,7 +1245,8 @@ def codex_gate(attempt: pathlib.Path, mode: str, argv: list[str],
                         "uri": artifact["uri"]}, 120))
                     read += 1
                 resources_read += read
-                facts[row["tool"]] = {**checked["facts"], "artifacts_read": read}
+                capture_dataset_id(row, checked["artifacts"], datasets)
+                facts[row["fact_key"]] = {**checked["facts"], "artifacts_read": read}
             else:
                 refusal_uris.update(
                     value for value in m3.find_values(result, "uri")
@@ -1215,9 +1423,14 @@ def run(with_runtime: bool, docker_socket: str | None) -> int:
                  + receipt["codex_app_server"][DOCKER_FREE].pop("calls"))
         if with_runtime:
             fingerprint = vendor_fingerprint(vendor)
+            capture, capture_fingerprint = provisioned_vendor_capture()
             receipt["modes"][RUNTIME]["cargo_vendor_tree_sha256"] = fingerprint
+            receipt["modes"][RUNTIME]["vendor_capture"] = str(capture.relative_to(ROOT)) \
+                if capture.is_relative_to(ROOT) else capture.name
+            receipt["modes"][RUNTIME]["vendor_capture_tree_sha256"] = capture_fingerprint
             runtime_argv = runtime_server_argv(
-                attempt / f"state-{RUNTIME}", pathlib.Path(docker_socket), vendor, fingerprint)
+                attempt / f"state-{RUNTIME}", pathlib.Path(docker_socket), vendor, fingerprint,
+                capture, capture_fingerprint)
             receipt["inspector"][RUNTIME] = inspector_gate(
                 attempt, RUNTIME, runtime_argv, runtime_plan, 1800, 600_000)
             receipt["codex_app_server"][RUNTIME] = codex_gate(

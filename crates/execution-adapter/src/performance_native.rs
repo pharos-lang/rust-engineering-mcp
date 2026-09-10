@@ -13,23 +13,32 @@
 //!   only where the assertion is about a gateway-level refusal the port maps
 //!   away (`ProjectCargoConfiguration`) or about a counter the DTO does not
 //!   carry (`cpus_sampled`, and the guest's own CPU count).
-//! * `rust.benchmark.run`'s two positive selections cannot execute: criterion
-//!   0.8.2's vendored closure fits neither
+//! * `rust.benchmark.run`'s two positive selections cannot execute *through a
+//!   `CargoVendorSnapshot`*: criterion 0.8.2's vendored closure fits neither
 //!   [`rust_engineering_domain::SOURCE_MAX_ENTRIES`] nor
 //!   [`rust_engineering_domain::SOURCE_MAX_TOTAL_BYTES`] nor
 //!   [`rust_engineering_domain::SOURCE_MAX_FILE_BYTES`], so no
 //!   `CargoVendorSnapshot` can carry it. That condition has its own test, which
 //!   measures the tree, asserts all three violations and fails the moment any
-//!   of them stops holding. The M5-01 cut therefore qualifies only what the
-//!   tool really does here, and no test in this file reports a qualification it
-//!   did not perform.
+//!   of them stops holding. The `m5-01-benchmark` cut therefore qualifies only
+//!   what the tool really does through that arm, and no test in this file
+//!   reports a qualification it did not perform.
+//! * ADR-078's capture is the *other* arm of [`BenchmarkVendor`], and it has
+//!   its own cut, `m5-01-benchmark-capture`. It is a different contract rather
+//!   than a widening of the one above: the bound the blocked oracle records
+//!   stays exactly where it is, and both statements are true at once.
 use crate::performance_gateway::{self, PerformanceError};
 use crate::performance_port;
 use crate::*;
 use rust_engineering_application::benchmark::BenchmarkRunOptions;
 use rust_engineering_application::security::SecurityError;
-use rust_engineering_application::vendor_capture::BenchmarkVendor;
+use rust_engineering_application::vendor_capture::{
+    BenchmarkVendor, VendorCaptureAccess, VerifiedVendorCapture,
+};
 use rust_engineering_application::{InspectionError, OperationControl, ProjectError};
+use rust_engineering_domain::benchmark::{
+    APPROVED_CRITERION_VERSION, BenchmarkHarness, MeasurementCompleteness, SampleUnit, SamplingMode,
+};
 use rust_engineering_domain::benchmark_run::{
     BenchmarkExit, BenchmarkObservation, DatasetOmission, HarnessDetection,
 };
@@ -41,9 +50,13 @@ use rust_engineering_domain::profile::{
     PROFILE_BACKEND, ProfileBuildOutcome, ProfileCompleteness, ProfileObservation, ProfileOptions,
     ProfileStatus,
 };
+use rust_engineering_domain::vendor_capture::{
+    CaptureHasher, VENDOR_CAPTURE_MAX_ENTRIES, VENDOR_CAPTURE_MAX_TOTAL_BYTES,
+    VENDOR_CAPTURE_READ_BUFFER_BYTES, VendorCapture, VendorCaptureError, VendorCaptureVerifier,
+};
 use rust_engineering_domain::{
     CargoVendorSnapshot, SOURCE_MAX_ENTRIES, SOURCE_MAX_FILE_BYTES, SOURCE_MAX_TOTAL_BYTES,
-    SourceBundle, SourceFile,
+    SourceBundle, SourceFile, SourceFingerprint,
 };
 use serde_json::{Value, json};
 use std::collections::BTreeMap;
@@ -996,6 +1009,717 @@ fn m5_benchmark_run_positive_is_blocked_by_the_offline_data_bound() -> Result<()
             }),
         ));
     }
+    publish(&cut, &image)?;
+    Ok(())
+}
+
+// -- M5-01 rust.benchmark.run through an ADR-078 vendor capture --------------
+
+/// SHA-256 behind the domain's framing-only hasher.
+///
+/// This is the same construction `rust_engineering_project`'s `Sha256Hasher`
+/// is, and it is repeated here for exactly one reason:
+/// `rust-engineering-execution` does not depend on the project adapter, and
+/// adding that edge would rewrite `Cargo.lock`. What is repeated is the *hash*
+/// and nothing else — the decision that refuses a capture whose digest is not
+/// the declared one is [`VendorCaptureVerifier::verified`], which is the
+/// product's own and is reached below unchanged.
+#[derive(Default)]
+struct CaptureSha256(sha2::Sha256);
+
+impl CaptureHasher for CaptureSha256 {
+    fn update(&mut self, bytes: &[u8]) {
+        sha2::Digest::update(&mut self.0, bytes);
+    }
+    fn finish(self) -> Result<SourceFingerprint, VendorCaptureError> {
+        let mut encoded = String::from("sha256:");
+        for byte in sha2::Digest::finalize(self.0) {
+            use std::fmt::Write;
+            write!(&mut encoded, "{byte:02x}").map_err(|_| VendorCaptureError::Invalid)?;
+        }
+        encoded.parse().map_err(|_| VendorCaptureError::Invalid)
+    }
+}
+
+/// An artifact whose digest was checked against the declared one, held at the
+/// descriptor the verification read — the shape
+/// [`BenchmarkVendor::Capture`] takes.
+struct OpenedCapture {
+    capture: VendorCapture,
+    artifact: std::sync::Mutex<std::fs::File>,
+}
+
+impl VerifiedVendorCapture for OpenedCapture {
+    fn capture(&self) -> &VendorCapture {
+        &self.capture
+    }
+    fn rewind(&self) -> Result<(), VendorCaptureAccess> {
+        use std::io::Seek;
+        let mut artifact = self.artifact.lock().map_err(|_| VendorCaptureAccess::Io)?;
+        artifact
+            .seek(std::io::SeekFrom::Start(0))
+            .map(|_| ())
+            .map_err(|_| VendorCaptureAccess::Io)
+    }
+    fn read(&self, buffer: &mut [u8]) -> Result<usize, VendorCaptureAccess> {
+        use std::io::Read;
+        let mut artifact = self.artifact.lock().map_err(|_| VendorCaptureAccess::Io)?;
+        artifact.read(buffer).map_err(|_| VendorCaptureAccess::Io)
+    }
+}
+
+/// Re-derives the artifact's identity incrementally and refuses it unless the
+/// digest it recovers is `declared` (ADR-078 §2).
+///
+/// The read is one [`VENDOR_CAPTURE_READ_BUFFER_BYTES`] buffer at a time and
+/// never the artifact (ADR-078 §5), which is why this verifies 161 MB without
+/// residency.
+fn open_capture(
+    artifact: &Path,
+    declared: &SourceFingerprint,
+) -> Result<OpenedCapture, VendorCaptureError> {
+    use std::io::{Read, Seek};
+    let mut file = std::fs::File::open(artifact).map_err(|_| VendorCaptureError::Invalid)?;
+    let mut verifier =
+        VendorCaptureVerifier::new(CaptureSha256::default(), CaptureSha256::default());
+    let mut buffer = vec![0_u8; VENDOR_CAPTURE_READ_BUFFER_BYTES];
+    loop {
+        let read = file
+            .read(&mut buffer)
+            .map_err(|_| VendorCaptureError::Invalid)?;
+        if read == 0 {
+            break;
+        }
+        verifier.chunk(&buffer[..read])?;
+    }
+    let capture = verifier.verified(declared)?;
+    file.seek(std::io::SeekFrom::Start(0))
+        .map_err(|_| VendorCaptureError::Invalid)?;
+    Ok(OpenedCapture {
+        capture,
+        artifact: std::sync::Mutex::new(file),
+    })
+}
+
+/// Where a provisioned capture is read from.
+///
+/// ADR-078 §3 makes a capture *provisioning*: the tool never captures as a side
+/// effect of a measurement, so this qualification never captures either. The
+/// artifact is produced once, by the product's own CLI, and this cut consumes
+/// it exactly as a host does.
+fn capture_store() -> PathBuf {
+    std::env::var_os("RUST_MCP_TEST_VENDOR_CAPTURE_STORE").map_or_else(
+        || fixtures().join("criterion-vendor/capture"),
+        PathBuf::from,
+    )
+}
+
+/// The one artifact in the store, and the digest its **name** declares.
+///
+/// The name is the declaration: ADR-078 §2 publishes a capture under the 64 hex
+/// digits of its tree digest, so a store that finds a capture by digest and a
+/// verifier that re-derives that digest from the bytes are two independent
+/// statements about the same artifact. This cut plays them against each other
+/// rather than trusting either alone.
+fn provisioned_capture() -> Result<(PathBuf, SourceFingerprint), Failure> {
+    let store = capture_store();
+    let entries = std::fs::read_dir(&store).map_err(|error| {
+        format!(
+            "no vendor capture store at {} ({error}). ADR-078 §3 provisions a capture explicitly, \
+             so this qualification does not capture one: run `rust-engineering-mcp cargo-vendor \
+             capture --directory <repo>/fixtures/criterion-vendor/vendor --into {}` first, or \
+             point RUST_MCP_TEST_VENDOR_CAPTURE_STORE at an existing store. Its absence is a host \
+             condition, not the property this cut exists to qualify",
+            store.display(),
+            store.display()
+        )
+    })?;
+    let mut found = Vec::new();
+    for entry in entries {
+        let path = entry?.path();
+        let Some(name) = path.file_name().and_then(|name| name.to_str()) else {
+            continue;
+        };
+        if name.len() == 64
+            && name
+                .bytes()
+                .all(|byte| matches!(byte, b'0'..=b'9' | b'a'..=b'f'))
+        {
+            let declared = format!("sha256:{name}");
+            found.push((path, declared));
+        }
+    }
+    found.sort();
+    let (path, declared) = match found.len() {
+        1 => found.remove(0),
+        count => {
+            return Err(format!(
+                "{} holds {count} digest-named captures; this cut needs exactly one so the \
+                 artifact it ingests is unambiguous",
+                store.display()
+            )
+            .into());
+        }
+    };
+    Ok((
+        path,
+        declared
+            .parse()
+            .map_err(|_| "capture name is not a fingerprint")?,
+    ))
+}
+
+fn capture_facts(capture: &VendorCapture, artifact: &Path) -> Value {
+    json!({
+        "artifact": artifact.display().to_string(),
+        "tree_digest": capture.tree_digest().to_string(),
+        "artifact_digest": capture.artifact_digest().to_string(),
+        "artifact_bytes": capture.artifact_bytes(),
+        "entries": capture.entries(),
+        "files": capture.files(),
+        "directories": capture.directories(),
+        "total_bytes": capture.total_bytes(),
+    })
+}
+
+/// A benchmark that goes after the capture it is measured against.
+///
+/// Two attempts, because they fail for different reasons if the mount is not
+/// what ADR-078 §6 requires: creating a file the capture never carried, and
+/// truncating one it did. Both are reported with the errno the guest kernel
+/// answered, so the oracle reads a refusal rather than an absence — a probe
+/// that merely printed "failed" would look identical to one that never ran.
+const VENDOR_WRITE_BENCH: &str = r##"//! Containment oracle: a benchmark that tries to write into the vendor mount.
+#![allow(deprecated)]
+
+use criterion::{Criterion, black_box, criterion_group, criterion_main};
+use rust_mcp_benchmark_fixture::work_unit;
+
+const N: u64 = 4_096;
+
+/// A path the capture never carried, so creating it needs a writable mount.
+const CREATED: &str = "/rust-mcp-vendor/rust-mcp-vendor-write-probe";
+/// A path the capture did carry, so truncating it rewrites vendored source.
+const EXISTING: &str = "/rust-mcp-vendor/criterion-0.8.2/Cargo.toml";
+
+fn announce(label: &str, result: std::io::Result<std::fs::File>) {
+    match result {
+        Ok(_) => println!("VENDOR_WRITE {label} opened"),
+        Err(error) => println!(
+            "VENDOR_WRITE {label} refused errno={:?} kind={:?}",
+            error.raw_os_error(),
+            error.kind()
+        ),
+    }
+}
+
+fn vendor(c: &mut Criterion) {
+    announce(
+        "create",
+        std::fs::OpenOptions::new()
+            .write(true)
+            .create(true)
+            .truncate(true)
+            .open(CREATED),
+    );
+    announce(
+        "truncate",
+        std::fs::OpenOptions::new().write(true).truncate(true).open(EXISTING),
+    );
+    let mut group = c.benchmark_group("vendor");
+    group.bench_function("readonly", |b| {
+        b.iter(|| black_box(work_unit(black_box(N))));
+    });
+    group.finish();
+}
+
+criterion_group!(benches, vendor);
+criterion_main!(benches);
+"##;
+
+/// The benchmark fixture plus the one bench target that probes the vendor
+/// mount. The fixture's own `perf` bench is untouched, so the positive above
+/// measures exactly the qualified fixture and this selection measures its own
+/// target, selected by name.
+fn vendor_write_bundle() -> Result<SourceBundle, Failure> {
+    let base = fixture_bundle("benchmark")?;
+    let manifest = base
+        .files()
+        .iter()
+        .find(|file| file.path() == "Cargo.toml")
+        .ok_or("benchmark fixture has no Cargo.toml")?
+        .bytes()
+        .to_vec();
+    let mut manifest = String::from_utf8(manifest)?;
+    manifest.push_str(
+        "\n[[bench]]\nname = \"vendor_write\"\npath = \"benches/vendor_write.rs\"\n\
+         harness = false\n",
+    );
+    let base = replacing(&base, "Cargo.toml", manifest.into_bytes())?;
+    with_files(
+        &base,
+        [(
+            "benches/vendor_write.rs".into(),
+            VENDOR_WRITE_BENCH.as_bytes().to_vec(),
+        )],
+    )
+}
+
+/// Every measurement's key, sample count, mode and frozen parameters.
+fn measurement_facts(dataset: &rust_engineering_domain::benchmark::BenchmarkDataset) -> Value {
+    json!(
+        dataset
+            .measurements()
+            .iter()
+            .map(|measurement| json!({
+                "key": measurement.key(),
+                "group_id": measurement.identity().group_id(),
+                "function_id": measurement.identity().function_id(),
+                "samples": measurement.samples().len(),
+                "sampling_mode": format!("{:?}", measurement.sampling_mode()),
+                "completeness": format!("{:?}", measurement.completeness()),
+                "warm_up_ms": measurement.warm_up_ms(),
+                "measurement_ms": measurement.measurement_ms(),
+                "sample_size_requested": measurement.sample_size_requested(),
+                "run_indices": measurement.run_indices().into_iter().collect::<Vec<_>>(),
+                "total_iterations": measurement
+                    .samples()
+                    .iter()
+                    .map(|sample| sample.iterations())
+                    .sum::<u64>(),
+            }))
+            .collect::<Vec<_>>()
+    )
+}
+
+/// The M5-01 positive, and the three refusals that have to survive it.
+///
+/// This is the cut ADR-078 exists for. It runs only against a capture that was
+/// provisioned beforehand — the tool never captures for itself — and every
+/// selection goes through [`performance_port::benchmark`], the same entry point
+/// the snapshot arm is qualified through.
+#[test]
+#[ignore = "explicit M5 image, host Docker, a provisioned ADR-078 capture and exclusive ownership"]
+fn m5_benchmark_run_measures_criterion_through_a_vendor_capture() -> Result<(), Failure> {
+    let image = m5_image()?;
+    let mut cut = Cut::open("m5-01-benchmark-capture");
+    let (artifact, declared) = provisioned_capture()?;
+    let session = Session::open(&image)?;
+    let gateway = session.gateway()?;
+    cut.residue_before = clean(gateway, "m5-01-capture before")?;
+
+    let benchmark = fixture_bundle("benchmark")?;
+    cut.fixtures
+        .insert("benchmark".into(), bundle_facts("benchmark", &benchmark)?);
+
+    // -- selection 1: the criterion positive, measured through the capture ---
+    //
+    // The whole of M5-01 was blocked on this. What it asserts is that a real
+    // dataset came back: the benchmark identities criterion published, the
+    // sample counts, the sampling mode it reported, the frozen parameters the
+    // server put on the command line, and the capture's own digest in the
+    // provenance of the measurement that used it.
+    let started = Instant::now();
+    let opened = open_capture(&artifact, &declared)
+        .map_err(|error| format!("the provisioned capture did not verify: {error:?}"))?;
+    let capture = opened.capture().clone();
+    assert_eq!(
+        capture.tree_digest(),
+        &declared,
+        "a verified capture carries the digest it was declared under"
+    );
+    assert_eq!(
+        capture.artifact_bytes(),
+        std::fs::metadata(&artifact)?.len(),
+        "the verified artifact ends exactly where the file does"
+    );
+    cut.fixtures
+        .insert("vendor_capture".into(), capture_facts(&capture, &artifact));
+
+    let options = BenchmarkRunOptions::new(None, None, Vec::new(), false, false, 3, 900)
+        .map_err(|error| format!("options: {error:?}"))?;
+    let observation = performance_port::benchmark(
+        gateway,
+        &benchmark,
+        BenchmarkVendor::Capture(&opened),
+        &options,
+        &Proceed,
+    )
+    .map_err(|error| {
+        format!(
+            "criterion positive through a verified capture failed: {error:?}; capture facts: \
+             {} bytes, {} entries, ADR-078 ceilings {VENDOR_CAPTURE_MAX_TOTAL_BYTES} bytes and \
+             {VENDOR_CAPTURE_MAX_ENTRIES} entries",
+            capture.total_bytes(),
+            capture.entries(),
+        )
+    })?;
+
+    // The harness resolved offline, from the captured vendor, inside the guest.
+    assert_eq!(
+        observation.harness,
+        HarnessDetection::Criterion {
+            version: APPROVED_CRITERION_VERSION.to_owned()
+        },
+        "the harness must resolve from the capture: {}",
+        benchmark_counters(&observation)
+    );
+    assert_eq!(observation.exit, BenchmarkExit::Passed);
+    assert_eq!(observation.exit_code, Some(0));
+    assert_eq!(
+        observation.omission, None,
+        "a measured run omits no dataset"
+    );
+    assert_eq!(observation.runs_requested, 3);
+    assert_eq!(observation.runs_completed, 3);
+    assert_eq!(observation.exit_run_index, 3);
+    assert_eq!(observation.runtime.image_id, crate::APPROVED_M5_IMAGE);
+    assert!(observation.consistent());
+
+    let dataset = observation
+        .dataset
+        .as_ref()
+        .ok_or("the run published no dataset")?;
+    assert_eq!(dataset.unit(), SampleUnit::Nanoseconds);
+    let keys = dataset
+        .measurements()
+        .iter()
+        .map(|measurement| measurement.key().to_owned())
+        .collect::<Vec<_>>();
+    assert_eq!(
+        keys,
+        ["m5/control", "m5/reference", "m5/slower_125"],
+        "the dataset must name the three benchmarks fixtures/benchmark declares"
+    );
+    for measurement in dataset.measurements() {
+        let key = measurement.key();
+        assert_eq!(
+            measurement.samples().len(),
+            performance_gateway::BENCHMARK_SAMPLE_SIZE as usize * 3,
+            "{key}: the frozen sample size is what criterion must have collected"
+        );
+        assert_eq!(
+            measurement.completeness(),
+            MeasurementCompleteness::Complete,
+            "{key}"
+        );
+        assert_eq!(
+            measurement.sampling_mode(),
+            SamplingMode::Linear,
+            "{key}: criterion reports the mode it sampled in, and unknown stays unknown"
+        );
+        // ADR-073 §2's frozen parameters, as they came back from the run.
+        assert_eq!(
+            measurement.warm_up_ms(),
+            performance_gateway::BENCHMARK_WARM_UP_MS,
+            "{key}"
+        );
+        assert_eq!(
+            measurement.measurement_ms(),
+            performance_gateway::BENCHMARK_MEASUREMENT_MS,
+            "{key}"
+        );
+        assert_eq!(
+            measurement.sample_size_requested(),
+            performance_gateway::BENCHMARK_SAMPLE_SIZE,
+            "{key}"
+        );
+        assert_eq!(
+            measurement.run_indices().into_iter().collect::<Vec<_>>(),
+            [1, 2, 3],
+            "{key}: every independent repetition must remain identifiable after pooling"
+        );
+        for sample in measurement.samples() {
+            assert!(sample.iterations() > 0, "{key}: a sample of no iterations");
+            assert!(sample.total_ns() > 0.0, "{key}: a sample of no time");
+        }
+    }
+
+    // The provenance, and the one field this cut exists for: the capture's tree
+    // digest is what identifies the offline data the measurement used.
+    let provenance = dataset.provenance();
+    assert_eq!(provenance.harness, BenchmarkHarness::Criterion);
+    assert_eq!(provenance.harness_version, APPROVED_CRITERION_VERSION);
+    assert_eq!(provenance.run_count, 3);
+    assert_eq!(provenance.run_index, 1);
+    assert_eq!(provenance.image_digest, crate::APPROVED_M5_IMAGE);
+    assert_eq!(
+        observation.vendor_fingerprint,
+        *capture.tree_digest(),
+        "the measurement must carry the digest of the capture it resolved from"
+    );
+    assert_eq!(
+        observation.vendor_fingerprint, declared,
+        "and that digest is the one the store declared"
+    );
+    let archive = observation
+        .archive
+        .as_ref()
+        .ok_or("the run retained no criterion tree")?;
+    assert_eq!(archive.run_index, 3);
+    assert!(!archive.bytes.is_empty());
+
+    // The frozen parameters, as the harness itself echoed them. The dataset
+    // carries what the parser was told; this is what criterion was told, and
+    // the two agreeing is what rules out a parser that invented them.
+    //
+    // Both streams are searched because which one carries the progress report
+    // is criterion's choice, not a property this cut is qualifying; what is
+    // asserted is that the harness announced the server's numbers at all.
+    assert_eq!(observation.logs.len(), 3);
+    assert_eq!(
+        observation
+            .logs
+            .iter()
+            .map(|log| log.run_index)
+            .collect::<Vec<_>>(),
+        [1, 2, 3],
+        "each repetition's logs must retain the same index as its pooled samples"
+    );
+    let logs = observation
+        .logs
+        .last()
+        .ok_or("the repetitions left no logs")?;
+    let harness_output = format!(
+        "{}{}",
+        String::from_utf8_lossy(&logs.stdout),
+        String::from_utf8_lossy(&logs.stderr)
+    );
+    let echoed = [
+        "Warming up for 3.0000 s",
+        "Collecting 30 samples in estimated 5.0",
+    ];
+    for expected in echoed {
+        assert!(
+            harness_output.contains(expected),
+            "the harness did not receive the frozen parameters: {expected:?} absent. stdout \
+             ({} bytes): {:?}; stderr ({} bytes): {:?}",
+            logs.stdout.len(),
+            String::from_utf8_lossy(&logs.stdout[..logs.stdout.len().min(1500)]),
+            logs.stderr.len(),
+            String::from_utf8_lossy(&logs.stderr[..logs.stderr.len().min(1500)]),
+        );
+    }
+
+    let mut positive = benchmark_counters(&observation);
+    if let Some(object) = positive.as_object_mut() {
+        object.insert("measurements".into(), measurement_facts(dataset));
+        object.insert("vendor_capture".into(), capture_facts(&capture, &artifact));
+        object.insert(
+            "provenance".into(),
+            json!({
+                "harness_version": provenance.harness_version,
+                "rust_version": provenance.rust_version,
+                "cargo_version": provenance.cargo_version,
+                "image_digest": provenance.image_digest,
+                "platform": provenance.platform,
+                "run_index": provenance.run_index,
+                "run_count": provenance.run_count,
+            }),
+        );
+        object.insert("archive_bytes".into(), json!(archive.bytes.len()));
+    }
+    drop(observation);
+    cut.selections.push(selection(
+        "criterion-positive-through-a-capture",
+        started,
+        "passed",
+        positive,
+    ));
+    clean(gateway, "m5-01-capture after positive")?;
+
+    // -- selection 2: a capture whose bytes are not what it declares ---------
+    //
+    // ADR-078 §2 refuses it, and the refusal is on the host: there is no
+    // capture to hand the port, so nothing is created, started or removed. The
+    // control matters as much as the refusal — the same artifact under its own
+    // digest verifies — because a verifier that refused everything would pass
+    // this selection while measuring nothing.
+    let started = Instant::now();
+    let before = clean(gateway, "m5-01-capture before digest mismatch")?;
+    let wrong = format!("sha256:{}", "0".repeat(64))
+        .parse::<SourceFingerprint>()
+        .map_err(|_| "the mismatched digest is not a fingerprint")?;
+    assert_ne!(wrong, declared);
+    let refused = open_capture(&artifact, &wrong);
+    let error = match refused {
+        Ok(_) => return Err("a capture was accepted under a digest that is not its own".into()),
+        Err(error) => error,
+    };
+    assert_eq!(
+        error,
+        VendorCaptureError::Digest,
+        "a digest that does not match the bytes is a digest refusal, not a limit or a grammar one"
+    );
+    let control = open_capture(&artifact, &declared)
+        .map_err(|error| format!("the same artifact stopped verifying: {error:?}"))?;
+    assert_eq!(control.capture(), &capture);
+    drop(control);
+    let after = clean(gateway, "m5-01-capture after digest mismatch")?;
+    assert_eq!(
+        before, after,
+        "a refused capture must reach no container and no volume at all"
+    );
+    cut.selections.push(selection(
+        "declared-digest-mismatch-refused",
+        started,
+        "passed",
+        json!({
+            "declared": wrong.to_string(),
+            "capture_error": format!("{error:?}"),
+            "control_tree_digest": capture.tree_digest().to_string(),
+            "residue_before": before,
+            "residue_after": after,
+        }),
+    ));
+
+    // -- selection 3: the guest sees the capture read-only -------------------
+    //
+    // ADR-078 §6 mounts the capture read-only everywhere but its own ingest.
+    // The oracle is the benchmark itself: it goes after the mount twice — a
+    // file the capture never carried and one it did — and reports the errno it
+    // got. The run must still measure, because a refused write is not a failed
+    // benchmark, and the capture must still verify to the same digest.
+    let started = Instant::now();
+    let probing = vendor_write_bundle()?;
+    cut.fixtures.insert(
+        "benchmark_vendor_write".into(),
+        bundle_facts("benchmark+vendor_write", &probing)?,
+    );
+    let selected = BenchmarkRunOptions::new(
+        None,
+        Some("vendor_write".into()),
+        Vec::new(),
+        false,
+        false,
+        1,
+        900,
+    )
+    .map_err(|error| format!("options: {error:?}"))?;
+    let opened = open_capture(&artifact, &declared)
+        .map_err(|error| format!("re-opening the capture: {error:?}"))?;
+    let observation = performance_port::benchmark(
+        gateway,
+        &probing,
+        BenchmarkVendor::Capture(&opened),
+        &selected,
+        &Proceed,
+    )
+    .map_err(|error| format!("vendor write probe: {error:?}"))?;
+    assert_eq!(
+        observation.harness,
+        HarnessDetection::Criterion {
+            version: APPROVED_CRITERION_VERSION.to_owned()
+        }
+    );
+    assert_eq!(observation.exit, BenchmarkExit::Passed);
+    assert_eq!(observation.exit_code, Some(0));
+    let dataset = observation
+        .dataset
+        .as_ref()
+        .ok_or("the probing run published no dataset")?;
+    assert_eq!(
+        dataset
+            .measurements()
+            .iter()
+            .map(|measurement| measurement.key().to_owned())
+            .collect::<Vec<_>>(),
+        ["vendor/readonly"],
+        "the selected bench target is the only one that may have run"
+    );
+    let stdout = observation
+        .logs
+        .first()
+        .map(|log| String::from_utf8_lossy(&log.stdout).into_owned())
+        .ok_or("the probing repetition left no logs")?;
+    let announced = stdout
+        .lines()
+        .filter(|line| line.starts_with("VENDOR_WRITE "))
+        .map(str::to_owned)
+        .collect::<Vec<_>>();
+    assert_eq!(
+        announced.len(),
+        2,
+        "both write attempts must report what the kernel answered: {stdout:?}"
+    );
+    for line in &announced {
+        assert!(
+            line.contains("refused"),
+            "a benchmark reached the capture it was measured against: {line}"
+        );
+        // EROFS. The mount is what refuses, so the errno is the mount's, not a
+        // permission bit that a different uid could have satisfied.
+        assert!(
+            line.contains("errno=Some(30)"),
+            "the refusal did not come from a read-only mount: {line}"
+        );
+    }
+    drop(observation);
+    drop(opened);
+    // The capture is immutable, and this is the check that says so after the
+    // guest had it: the same artifact still verifies to the same identity.
+    let after_run = open_capture(&artifact, &declared)
+        .map_err(|error| format!("the capture stopped verifying after the run: {error:?}"))?;
+    assert_eq!(
+        after_run.capture(),
+        &capture,
+        "the capture's identity changed across a run that tried to write into it"
+    );
+    drop(after_run);
+    let after = clean(gateway, "m5-01-capture after read-only probe")?;
+    cut.selections.push(selection(
+        "capture-is-read-only-in-the-guest",
+        started,
+        "passed",
+        json!({
+            "announced": announced,
+            "tree_digest_after_run": capture.tree_digest().to_string(),
+            "artifact_digest_after_run": capture.artifact_digest().to_string(),
+            "residue_after": after,
+        }),
+    ));
+
+    // -- selection 4: cancellation during the ingest -------------------------
+    //
+    // The ingest is the one phase that streams 161 MB into the guest, so it is
+    // the one where a cancellation can leave a half-materialized tree. The
+    // monitor cancels only once the vendor ingest is observed running, so this
+    // cancels real work; what must then be true is that the volume the tree was
+    // being written into is gone, which is also the only way the tree can be.
+    let started = Instant::now();
+    let opened = open_capture(&artifact, &declared)
+        .map_err(|error| format!("re-opening the capture: {error:?}"))?;
+    let monitor = CancelWhenObserved::new(gateway, "--directory=/rust-mcp-vendor");
+    let cancelled = performance_port::benchmark(
+        gateway,
+        &benchmark,
+        BenchmarkVendor::Capture(&opened),
+        &options,
+        &monitor,
+    );
+    assert_eq!(
+        cancelled.err(),
+        Some(SecurityError::Inspection(InspectionError::Project(
+            ProjectError::Cancelled
+        ))),
+        "cancelling a capture ingest must be reported as a cancellation"
+    );
+    assert!(
+        monitor.observed.load(Ordering::SeqCst),
+        "the vendor ingest was never observed running: {}",
+        monitor.evidence()
+    );
+    assert!(!monitor.failed.load(Ordering::SeqCst));
+    drop(opened);
+    let after = clean(gateway, "m5-01-capture after cancellation")?;
+    cut.selections.push(selection(
+        "cancellation-during-capture-ingest",
+        started,
+        "passed",
+        json!({"monitor": monitor.evidence(), "residue_after": after}),
+    ));
+
+    cut.residue_after = clean(gateway, "m5-01-capture after")?;
     publish(&cut, &image)?;
     Ok(())
 }
