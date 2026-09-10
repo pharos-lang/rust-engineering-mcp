@@ -89,6 +89,25 @@ Claude Sonnet 5 no produjo revisión autenticada; Opus 5 no fue invocado. Se us�
 el fallback Sol autorizado, sin atribuirle revisión de otra familia ni afirmar
 agotamiento de cuota. [Intentos](m5-delegation/closure-sonnet5-semantics/attempts.md).
 
+## Deuda editorial de `a2464c4`: disposición sobre el código final
+
+La lista de «Deuda de publicación» que publicaba la matriz en `a2464c4` se
+contrastó con el código de `HEAD`, cuyo diff de código respecto a `a2464c4` es
+vacío. Ninguna entrada falsea una medición, altera un número de recibo ni
+debilita una guarda de producto; ninguna alcanza P2 según G8. No se modifica
+código en el cierre: hacerlo invalidaría los recibos nativos que acreditan
+exactamente estos bytes sin una causa que lo justifique.
+
+| Entrada | Estado en `HEAD` | Disposición |
+| --- | --- | --- |
+| Asociación repetición ↔ archivo ↔ logs | **Corregida.** `performance_port.rs::benchmark_archive` publica `archive.run_index` —la última repetición que exportó— y la observación `exit_run_index` —la última que corrió—; ADR-080 §4 y `docs/tools.md` los distinguen en el wire | Cerrada |
+| `inconclusive_reasons` sin ordenar | **Parcial.** `IncompatibilityReason` se ordena y deduplica en dominio (`CompareError::incompatible`) y otra vez en el servidor (`report`). `InconclusiveReason` sale de `decide` en orden de evaluación de guardas: determinista, a lo sumo dos entradas (`truncated_measurement` y la guarda que decidió), sin orden lexicográfico ni de enum. El contrato publicado no promete orden | P3 abierto: `crates/domain/src/benchmark_compare.rs::decide`; ordenar o documentar en la siguiente edición del contrato |
+| `provenance.run_index` = 1 | **Limitación documentada, no corregida.** `performance_port.rs::provenance` fija `1` porque una llamada publica un único dataset que agrupa todas las repeticiones; el dominio exige `1 ≤ run_index ≤ run_count` y su doc-comment describe el campo como «posición de esta ejecución», que ya no describe el v2. La repetición real la identifica `RawSample::run_index` —la captura registra 1, 2 y 3— y `run_count` declara cuántas se pidieron. Un lector no debe leer `provenance.run_index = 1` como «solo la primera repetición» | P3 abierto: retirar o redefinir el campo exige un v3 del dataset o una enmienda a ADR-073 §3; fuera del cierre |
+| Comentario «paired» del bootstrap | **Parcial.** El doc-comment de `bootstrap_ratio` conserva la palabra «Paired» y declara en la misma frase que cada lado se remuestrea de forma independiente en dos etapas; el algoritmo es el descrito | P3 abierto: solo el término, en `crates/domain/src/benchmark_compare.rs` |
+| `summary` constantes | **Abierta.** `rust.benchmark.compare` publica «Observed difference between two measurements…» también con `failed`/`INCOMPATIBLE_DATASETS` y `blocked`/`EVIDENCE_INCOMPLETE`; `rust.binary.bloat` publica «Exact measured file size…» también con `failed`/`OBSERVED_FAILURE` y los `blocked` de completeness. `outcome`, `error_code` y `error_message` sí describen el resultado real y son lo que los clientes evalúan | P3 abierto: `stdio/benchmark_compare.rs::encode_result` y `stdio/bloat.rs`; texto humano, no dato |
+| `bool` frente a `const` | **Abierta.** `MeasuredBinary.analysis_build_symbols_forced` y `BloatAttribution.estimated` siguen como `bool` en `stdio/bloat/schemas.rs` con doc «Always true»; el valor emitido es siempre `true` | P3 abierto: endurecer el JSON Schema es aditivo y se hace con el siguiente cambio de contrato |
+| Comentario del decoder | **Abierta.** `application/benchmark_compare.rs::DatasetDecoder` dice que el execution adapter aporta la implementación; la de producto es `JsonDatasetDecoder` en `mcp-server/src/stdio/benchmark_compare.rs`. El adapter solo posee el decoder de archivos Criterion | P3 abierto: comentario |
+
 ## Límites que permanecen
 
 - No se califican veredictos direccionales ni `no_material_change`: la guarda
