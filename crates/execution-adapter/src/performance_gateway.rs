@@ -24,6 +24,7 @@ use crate::mutation_gateway::{
     start_attached, start_attached_source,
 };
 use crate::performance_environment::{self, GovernorPaths, GuestCpuTopology};
+use crate::rust_applied::{AppliedPhaseExpectation, AppliedVolumeExpectation};
 use crate::rust_gateway::RustGateway;
 use rust_engineering_application::vendor_capture::{BenchmarkVendor, VerifiedVendorCapture};
 use rust_engineering_application::{InspectionError, ProjectError};
@@ -965,66 +966,7 @@ fn phase_deadline(
 
 // -- applied configuration ---------------------------------------------------
 
-#[derive(Deserialize)]
-#[serde(rename_all = "PascalCase")]
-struct Applied {
-    config: AppliedConfig,
-    host_config: AppliedHostConfig,
-}
-#[derive(Deserialize)]
-#[serde(rename_all = "PascalCase")]
-struct AppliedConfig {
-    tty: bool,
-    open_stdin: bool,
-    user: String,
-    labels: BTreeMap<String, String>,
-    env: Vec<String>,
-    entrypoint: Vec<String>,
-    #[serde(default)]
-    cmd: Option<Vec<String>>,
-    working_dir: String,
-    image: String,
-}
-#[derive(Deserialize)]
-#[serde(rename_all = "PascalCase")]
-struct AppliedHostConfig {
-    readonly_rootfs: bool,
-    runtime: String,
-    network_mode: String,
-    ipc_mode: String,
-    cgroupns_mode: String,
-    cap_drop: Vec<String>,
-    cap_add: Option<Vec<String>>,
-    security_opt: Vec<String>,
-    pids_limit: i64,
-    nano_cpus: i64,
-    memory: i64,
-    memory_swap: i64,
-    shm_size: i64,
-    privileged: bool,
-    binds: Option<Vec<String>>,
-    tmpfs: BTreeMap<String, String>,
-    #[serde(default)]
-    mounts: Vec<AppliedMount>,
-}
-#[derive(Deserialize)]
-#[serde(rename_all = "PascalCase")]
-struct AppliedMount {
-    #[serde(rename = "Type")]
-    kind: String,
-    source: String,
-    target: String,
-    #[serde(default)]
-    read_only: bool,
-}
-
 /// Everything the daemon actually applied must equal what this phase asked for.
-///
-/// The generic host-authority matrix already lives in [`crate::rust_applied`],
-/// but its helpers are private to that module and it has no M5 phase type; this
-/// check therefore repeats the invariants that matter for a container which is
-/// about to run project code, and adds the per-phase mount, user, argv,
-/// environment and seccomp comparison that only this gateway can make.
 fn verify_applied(
     bytes: &[u8],
     image: &str,
@@ -1054,68 +996,73 @@ fn verify_applied_with_command(
     operation_id: &str,
     command: &[String],
 ) -> Result<(), ExecutionError> {
-    let containers: Vec<Applied> =
-        serde_json::from_slice(bytes).map_err(|_| ExecutionError::Infrastructure)?;
-    let mut containers = containers.into_iter();
-    let (Some(applied), None) = (containers.next(), containers.next()) else {
-        return Err(ExecutionError::Infrastructure);
-    };
-    let host = &applied.host_config;
-    let profile: serde_json::Value = serde_json::from_str(phase.seccomp_profile_json())
-        .map_err(|_| ExecutionError::Infrastructure)?;
-    let seccomp = host
-        .security_opt
-        .iter()
-        .filter_map(|value| value.strip_prefix("seccomp="))
-        .collect::<Vec<_>>();
-    let mut env = applied.config.env.clone();
-    env.sort();
-    let safe = !applied.config.tty
-        && applied.config.open_stdin == phase.interactive()
-        && applied.config.labels == labels(operation_id)
-        && applied.config.user == "65534:65534"
-        && applied.config.working_dir == "/source"
-        && applied.config.image == image
-        && applied.config.entrypoint == [phase.program()]
-        && applied.config.cmd.as_deref().unwrap_or_default() == command
-        && env == phase.environment(operation)
-        && host.readonly_rootfs
-        && host.runtime == "runc"
-        && host.network_mode == "none"
-        && host.ipc_mode == "private"
-        && host.cgroupns_mode == "private"
-        && host.cap_drop == ["ALL"]
-        && host.cap_add.as_ref().is_none_or(Vec::is_empty)
-        && !host.privileged
-        && host.binds.as_ref().is_none_or(Vec::is_empty)
-        && host.pids_limit == 128
-        && host.nano_cpus == 1_000_000_000
-        && host.memory == 1_073_741_824
-        && host.memory_swap == 1_073_741_824
-        && host.shm_size == 1_048_576
-        && host.tmpfs.len() == 2
-        && host
-            .tmpfs
-            .get("/work")
-            .is_some_and(|value| value == "rw,exec,nosuid,nodev,size=512m,mode=1777")
-        && host
-            .tmpfs
-            .get("/tmp")
-            .is_some_and(|value| value == "rw,nosuid,nodev,noexec,size=64m,mode=1777")
-        && host.security_opt.len() == 2
-        && host
-            .security_opt
-            .iter()
-            .any(|value| value == "no-new-privileges=true" || value == "no-new-privileges")
-        && seccomp.len() == 1
-        && serde_json::from_str::<serde_json::Value>(seccomp[0])
-            .is_ok_and(|value| value == profile)
-        && applied_mounts_ok(host, phase, volumes, operation.kind());
-    if safe {
-        Ok(())
-    } else {
-        Err(ExecutionError::InvalidConfiguration)
+    let environment = phase.environment(operation);
+    let mounts = applied_mount_expectations(phase, volumes, operation.kind())?;
+    crate::rust_applied::verify_phase(
+        bytes,
+        &AppliedPhaseExpectation {
+            image,
+            operation_id,
+            interactive: phase.interactive(),
+            user: "65534:65534",
+            program: phase.program(),
+            command,
+            environment: &environment,
+            seccomp_profile: phase.seccomp_profile_json(),
+            mounts,
+        },
+    )
+}
+
+fn applied_mount_expectations<'a>(
+    phase: PerformancePhase,
+    volumes: &PerformanceVolumes<'a>,
+    kind: PerformanceKind,
+) -> Result<Vec<AppliedVolumeExpectation<'a>>, ExecutionError> {
+    let mounted = phase.mounts();
+    let writable = phase.permissions();
+    let mut expected = Vec::new();
+    for (mounted, writable, volume, target) in [
+        (
+            mounted.source,
+            writable.source,
+            Some(volumes.source),
+            "/source",
+        ),
+        (
+            mounted.vendor,
+            writable.vendor,
+            Some(volumes.vendor),
+            VENDOR_ROOT,
+        ),
+        (
+            mounted.config,
+            writable.config,
+            Some(volumes.config),
+            CONFIG_ROOT,
+        ),
+        (
+            mounted.target,
+            writable.target,
+            Some(volumes.target),
+            TARGET_ROOT,
+        ),
+        (
+            mounted.output,
+            writable.output,
+            volumes.output,
+            output_root(kind),
+        ),
+    ] {
+        if mounted {
+            expected.push(AppliedVolumeExpectation {
+                volume: volume.ok_or(ExecutionError::InvalidConfiguration)?,
+                target,
+                writable,
+            });
+        }
     }
+    Ok(expected)
 }
 
 fn create_governor_phase(
@@ -1171,65 +1118,6 @@ fn create_governor_phase(
         paths.as_slice(),
     )?;
     Ok(())
-}
-
-fn applied_mounts_ok(
-    host: &AppliedHostConfig,
-    phase: PerformancePhase,
-    volumes: &PerformanceVolumes<'_>,
-    kind: PerformanceKind,
-) -> bool {
-    let mounted = phase.mounts();
-    let writable = phase.permissions();
-    let mut expected: Vec<(&str, &str, bool)> = Vec::new();
-    for (mounted, writable, volume, target) in [
-        (
-            mounted.source,
-            writable.source,
-            Some(volumes.source),
-            "/source",
-        ),
-        (
-            mounted.vendor,
-            writable.vendor,
-            Some(volumes.vendor),
-            VENDOR_ROOT,
-        ),
-        (
-            mounted.config,
-            writable.config,
-            Some(volumes.config),
-            CONFIG_ROOT,
-        ),
-        (
-            mounted.target,
-            writable.target,
-            Some(volumes.target),
-            TARGET_ROOT,
-        ),
-        (
-            mounted.output,
-            writable.output,
-            volumes.output,
-            output_root(kind),
-        ),
-    ] {
-        if mounted {
-            let Some(volume) = volume else {
-                return false;
-            };
-            expected.push((volume.name.as_str(), target, !writable));
-        }
-    }
-    host.mounts.len() == expected.len()
-        && expected.iter().all(|(name, target, read_only)| {
-            host.mounts.iter().any(|applied| {
-                applied.kind == "volume"
-                    && applied.source == *name
-                    && applied.target == *target
-                    && applied.read_only == *read_only
-            })
-        })
 }
 
 // -- phase lifecycle ---------------------------------------------------------
@@ -1919,6 +1807,7 @@ fn execution_fingerprint_for_runtime(
         (
             digest(include_bytes!("performance_gateway.rs")),
             digest(include_bytes!("performance_environment.rs")),
+            digest(include_bytes!("rust_applied.rs")),
             digest(include_bytes!("mutation_gateway.rs")),
             digest(include_bytes!("security_policy.rs")),
             digest(include_bytes!("profile_stacks.rs")),
@@ -2958,6 +2847,140 @@ mod tests {
             stop: Stop::Exited,
             duration_ms: 1,
         }
+    }
+
+    fn applied_fixture(
+        phase: PerformancePhase,
+        volumes: &PerformanceVolumes<'_>,
+        operation: PerformanceOperation<'_>,
+        command: &[String],
+    ) -> Result<serde_json::Value, String> {
+        let mounts = applied_mount_expectations(phase, volumes, operation.kind())
+            .map_err(|error| format!("{error:?}"))?;
+        let applied = mounts
+            .iter()
+            .map(|mount| {
+                serde_json::json!({
+                    "Type": "volume",
+                    "Name": mount.volume.name,
+                    "Source": mount.volume.mountpoint,
+                    "Destination": mount.target,
+                    "Driver": "local",
+                    "Mode": "z",
+                    "RW": mount.writable,
+                    "Propagation": ""
+                })
+            })
+            .collect::<Vec<_>>();
+        let requested = mounts
+            .iter()
+            .map(|mount| {
+                serde_json::json!({
+                    "Type": "volume",
+                    "Source": mount.volume.name,
+                    "Target": mount.target,
+                    "ReadOnly": !mount.writable,
+                    "VolumeOptions": {
+                        "NoCopy": true,
+                        "Labels": {},
+                        "Subpath": "",
+                        "DriverConfig": {"Name": "local", "Options": {}}
+                    }
+                })
+            })
+            .collect::<Vec<_>>();
+        Ok(serde_json::json!([{
+            "Config": {
+                "Tty": false,
+                "OpenStdin": phase.interactive(),
+                "AttachStdin": phase.interactive(),
+                "StdinOnce": phase.interactive(),
+                "User": "65534:65534",
+                "Labels": labels("fixture"),
+                "Env": phase.environment(operation),
+                "Entrypoint": [phase.program()],
+                "Cmd": command,
+                "WorkingDir": "/source",
+                "Image": crate::APPROVED_M4_IMAGE,
+                "Volumes": {}
+            },
+            "HostConfig": {
+                "AutoRemove": false,
+                "GroupAdd": [],
+                "UTSMode": "",
+                "OomKillDisable": false,
+                "OomScoreAdj": 0,
+                "DeviceCgroupRules": [],
+                "StorageOpt": {},
+                "Annotations": {},
+                "ReadonlyRootfs": true,
+                "Runtime": "runc",
+                "Init": false,
+                "MaskedPaths": [
+                    "/proc/acpi", "/proc/asound", "/proc/interrupts", "/proc/kcore",
+                    "/proc/keys", "/proc/latency_stats", "/proc/sched_debug", "/proc/scsi",
+                    "/proc/timer_list", "/proc/timer_stats",
+                    "/sys/devices/virtual/powercap", "/sys/firmware"
+                ],
+                "ReadonlyPaths": [
+                    "/proc/bus", "/proc/fs", "/proc/irq", "/proc/sys", "/proc/sysrq-trigger"
+                ],
+                "UsernsMode": "",
+                "CgroupParent": "",
+                "Sysctls": {},
+                "Ulimits": [],
+                "NetworkMode": "none",
+                "PidMode": "",
+                "IpcMode": "private",
+                "CgroupnsMode": "private",
+                "CapDrop": ["ALL"],
+                "CapAdd": [],
+                "VolumesFrom": [],
+                "SecurityOpt": [
+                    "no-new-privileges=true",
+                    format!("seccomp={}", phase.seccomp_profile_json())
+                ],
+                "PidsLimit": 128,
+                "NanoCpus": 1_000_000_000i64,
+                "Memory": 1_073_741_824i64,
+                "MemorySwap": 1_073_741_824i64,
+                "ShmSize": 1_048_576i64,
+                "Privileged": false,
+                "Binds": [],
+                "Tmpfs": {
+                    "/work": "rw,exec,nosuid,nodev,size=512m,mode=1777",
+                    "/tmp": "rw,nosuid,nodev,noexec,size=64m,mode=1777"
+                },
+                "LogConfig": {"Type": "none"},
+                "Mounts": requested,
+                "Devices": [],
+                "DeviceRequests": [],
+                "PublishAllPorts": false,
+                "PortBindings": {},
+                "RestartPolicy": {"Name": "no"}
+            },
+            "Mounts": applied
+        }]))
+    }
+
+    fn set_fixture_value(
+        document: &mut serde_json::Value,
+        pointer: &str,
+        changed: serde_json::Value,
+    ) -> Result<(), String> {
+        if let Some(slot) = document.pointer_mut(pointer) {
+            *slot = changed;
+            return Ok(());
+        }
+        let (parent, key) = pointer
+            .rsplit_once('/')
+            .ok_or_else(|| format!("mutation path {pointer}"))?;
+        document
+            .pointer_mut(parent)
+            .and_then(serde_json::Value::as_object_mut)
+            .ok_or_else(|| format!("mutation path {pointer}"))?
+            .insert(key.to_owned(), changed);
+        Ok(())
     }
 
     #[test]
@@ -4252,132 +4275,384 @@ mod tests {
     }
 
     #[test]
-    fn applied_configuration_must_match_the_requested_phase() -> Result<(), String> {
+    fn every_m5_phase_accepts_the_complete_shared_applied_matrix() -> Result<(), String> {
         let source = volume("source", VOLUME_OPTIONS);
         let vendor = volume("vendor", VOLUME_OPTIONS);
         let config = volume("config", VOLUME_OPTIONS);
         let target = volume("target", TARGET_VOLUME_OPTIONS);
-        let volumes = PerformanceVolumes {
+        let output = volume("output", VOLUME_OPTIONS);
+        let with_output = PerformanceVolumes {
+            source: &source,
+            vendor: &vendor,
+            config: &config,
+            target: &target,
+            output: Some(&output),
+        };
+        let without_output = PerformanceVolumes {
             source: &source,
             vendor: &vendor,
             config: &config,
             target: &target,
             output: None,
         };
+        let selected = selection();
+        let profile = profile_options()?;
         let bloat = bloat_options(BloatProfile::Release)?;
-        let operation = PerformanceOperation::Bloat(&bloat);
-        let phase = PerformancePhase::BloatFileDigest;
-        let applied = serde_json::json!([{
-            "Config": {
-                "Tty": false,
-                "OpenStdin": false,
-                "User": "65534:65534",
-                "Labels": {"org.rust-mcp.execution": "true", "org.rust-mcp.rust-job": "fixture"},
-                "Env": phase.environment(operation),
-                "Entrypoint": [phase.program()],
-                "Cmd": phase.arguments(operation),
-                "WorkingDir": "/source",
-                "Image": crate::APPROVED_M4_IMAGE
-            },
-            "HostConfig": {
-                "ReadonlyRootfs": true,
-                "Runtime": "runc",
-                "NetworkMode": "none",
-                "IpcMode": "private",
-                "CgroupnsMode": "private",
-                "CapDrop": ["ALL"],
-                "CapAdd": [],
-                "SecurityOpt": [
-                    "no-new-privileges=true",
-                    format!("seccomp={}", phase.seccomp_profile_json())
-                ],
-                "PidsLimit": 128,
-                "NanoCpus": 1_000_000_000i64,
-                "Memory": 1_073_741_824i64,
-                "MemorySwap": 1_073_741_824i64,
-                "ShmSize": 1_048_576i64,
-                "Privileged": false,
-                "Binds": [],
-                "Tmpfs": {
-                    "/work": "rw,exec,nosuid,nodev,size=512m,mode=1777",
-                    "/tmp": "rw,nosuid,nodev,noexec,size=64m,mode=1777"
+        for (operation, volumes) in [
+            (
+                PerformanceOperation::Benchmark {
+                    selection: &selected,
+                    run_count: 3,
+                    harness_parameters: true,
                 },
-                "Mounts": [
-                    {"Type": "volume", "Source": "target", "Target": "/work/target", "ReadOnly": true}
-                ]
+                &with_output,
+            ),
+            (PerformanceOperation::Profile(&profile), &with_output),
+            (PerformanceOperation::Bloat(&bloat), &without_output),
+        ] {
+            for phase in operation.phases() {
+                let command = if phase == PerformancePhase::GovernorProbe {
+                    vec![
+                        "/sys/devices/system/cpu/cpu0/cpufreq/scaling_governor".into(),
+                        "/sys/devices/system/cpu/cpu1/cpufreq/scaling_governor".into(),
+                    ]
+                } else {
+                    phase.arguments(operation)
+                };
+                let applied = applied_fixture(phase, volumes, operation, &command)?;
+                assert_eq!(
+                    verify_applied_with_command(
+                        &serde_json::to_vec(&applied).map_err(|error| error.to_string())?,
+                        crate::APPROVED_M4_IMAGE,
+                        phase,
+                        volumes,
+                        operation,
+                        "fixture",
+                        &command,
+                    ),
+                    Ok(()),
+                    "{phase:?}"
+                );
             }
-        }]);
+        }
+        Ok(())
+    }
+
+    #[test]
+    fn every_m5_phase_rejects_drift_in_its_applied_configuration() -> Result<(), String> {
+        let source = volume("source", VOLUME_OPTIONS);
+        let vendor = volume("vendor", VOLUME_OPTIONS);
+        let config = volume("config", VOLUME_OPTIONS);
+        let target = volume("target", TARGET_VOLUME_OPTIONS);
+        let output = volume("output", VOLUME_OPTIONS);
+        let with_output = PerformanceVolumes {
+            source: &source,
+            vendor: &vendor,
+            config: &config,
+            target: &target,
+            output: Some(&output),
+        };
+        let without_output = PerformanceVolumes {
+            source: &source,
+            vendor: &vendor,
+            config: &config,
+            target: &target,
+            output: None,
+        };
+        let selected = selection();
+        let profile = profile_options()?;
+        let bloat = bloat_options(BloatProfile::Release)?;
+        for (operation, volumes) in [
+            (
+                PerformanceOperation::Benchmark {
+                    selection: &selected,
+                    run_count: 3,
+                    harness_parameters: true,
+                },
+                &with_output,
+            ),
+            (PerformanceOperation::Profile(&profile), &with_output),
+            (PerformanceOperation::Bloat(&bloat), &without_output),
+        ] {
+            for phase in operation.phases() {
+                let command = if phase == PerformancePhase::GovernorProbe {
+                    vec![
+                        "/sys/devices/system/cpu/cpu0/cpufreq/scaling_governor".into(),
+                        "/sys/devices/system/cpu/cpu1/cpufreq/scaling_governor".into(),
+                    ]
+                } else {
+                    phase.arguments(operation)
+                };
+                let applied = applied_fixture(phase, volumes, operation, &command)?;
+                let check = |value: &serde_json::Value| {
+                    verify_applied_with_command(
+                        &serde_json::to_vec(value).unwrap_or_default(),
+                        crate::APPROVED_M4_IMAGE,
+                        phase,
+                        volumes,
+                        operation,
+                        "fixture",
+                        &command,
+                    )
+                };
+                for (pointer, changed) in [
+                    (
+                        "/0/Config/AttachStdin",
+                        serde_json::json!(!phase.interactive()),
+                    ),
+                    (
+                        "/0/Config/StdinOnce",
+                        serde_json::json!(!phase.interactive()),
+                    ),
+                    (
+                        "/0/Config/Entrypoint",
+                        serde_json::json!(["/usr/bin/false"]),
+                    ),
+                    ("/0/Config/Env", serde_json::json!(["HOST_SECRET=sentinel"])),
+                    (
+                        "/0/HostConfig/SecurityOpt",
+                        serde_json::json!(["no-new-privileges=true", "seccomp=unconfined"]),
+                    ),
+                ] {
+                    let mut invalid = applied.clone();
+                    set_fixture_value(&mut invalid, pointer, changed)?;
+                    assert_eq!(
+                        check(&invalid),
+                        Err(ExecutionError::InvalidConfiguration),
+                        "{phase:?} accepted {pointer}"
+                    );
+                }
+                let mut wrong_command = applied.clone();
+                wrong_command[0]["Config"]["Cmd"]
+                    .as_array_mut()
+                    .ok_or_else(|| "Cmd array".to_owned())?
+                    .push(serde_json::json!("--untrusted"));
+                assert_eq!(
+                    check(&wrong_command),
+                    Err(ExecutionError::InvalidConfiguration),
+                    "{phase:?} accepted argv drift"
+                );
+
+                let mut wrong_access = applied.clone();
+                if wrong_access[0]["Mounts"]
+                    .as_array()
+                    .is_some_and(Vec::is_empty)
+                {
+                    wrong_access[0]["Mounts"] = serde_json::json!([{
+                        "Type": "volume", "Name": "source", "Source": source.mountpoint,
+                        "Destination": "/source", "Driver": "local", "Mode": "z",
+                        "RW": false, "Propagation": ""
+                    }]);
+                } else {
+                    let writable = wrong_access[0]["Mounts"][0]["RW"]
+                        .as_bool()
+                        .ok_or_else(|| "RW bool".to_owned())?;
+                    wrong_access[0]["Mounts"][0]["RW"] = serde_json::json!(!writable);
+                }
+                assert_eq!(
+                    check(&wrong_access),
+                    Err(ExecutionError::InvalidConfiguration),
+                    "{phase:?} accepted applied mount drift"
+                );
+            }
+        }
+        Ok(())
+    }
+
+    #[test]
+    fn m5_rejects_every_authority_field_from_the_shared_matrix() -> Result<(), String> {
+        let source = volume("source", VOLUME_OPTIONS);
+        let vendor = volume("vendor", VOLUME_OPTIONS);
+        let config = volume("config", VOLUME_OPTIONS);
+        let target = volume("target", TARGET_VOLUME_OPTIONS);
+        let output = volume("output", VOLUME_OPTIONS);
+        let volumes = PerformanceVolumes {
+            source: &source,
+            vendor: &vendor,
+            config: &config,
+            target: &target,
+            output: Some(&output),
+        };
+        let profile = profile_options()?;
+        let operation = PerformanceOperation::Profile(&profile);
+        let phase = PerformancePhase::ProfileRun;
+        let command = phase.arguments(operation);
+        let applied = applied_fixture(phase, &volumes, operation, &command)?;
         let check = |value: &serde_json::Value| {
-            verify_applied(
+            verify_applied_with_command(
                 &serde_json::to_vec(value).unwrap_or_default(),
                 crate::APPROVED_M4_IMAGE,
                 phase,
                 &volumes,
                 operation,
                 "fixture",
+                &command,
             )
         };
         assert_eq!(check(&applied), Ok(()));
-        let mut writable = applied.clone();
-        writable[0]["HostConfig"]["Mounts"][0]["ReadOnly"] = serde_json::json!(false);
-        assert_eq!(check(&writable), Err(ExecutionError::InvalidConfiguration));
-        let mut extra = applied.clone();
-        extra[0]["HostConfig"]["Mounts"]
-            .as_array_mut()
-            .ok_or("mounts")?
-            .push(serde_json::json!({
-                "Type": "volume", "Source": "source", "Target": "/source", "ReadOnly": true
-            }));
-        assert_eq!(check(&extra), Err(ExecutionError::InvalidConfiguration));
-        for pointer in [
-            "/0/Config/User",
-            "/0/Config/WorkingDir",
-            "/0/Config/Image",
-            "/0/HostConfig/NetworkMode",
-            "/0/HostConfig/Runtime",
+        for (pointer, changed) in [
+            ("/0/Config/AttachStdin", serde_json::json!(true)),
+            ("/0/Config/StdinOnce", serde_json::json!(true)),
+            ("/0/Config/Volumes", serde_json::json!({"/host": {}})),
+            ("/0/HostConfig/AutoRemove", serde_json::json!(true)),
+            ("/0/HostConfig/GroupAdd", serde_json::json!(["0"])),
+            ("/0/HostConfig/UTSMode", serde_json::json!("host")),
+            ("/0/HostConfig/OomKillDisable", serde_json::json!(true)),
+            ("/0/HostConfig/OomScoreAdj", serde_json::json!(-1000)),
+            (
+                "/0/HostConfig/DeviceCgroupRules",
+                serde_json::json!(["a *:* rwm"]),
+            ),
+            (
+                "/0/HostConfig/StorageOpt",
+                serde_json::json!({"size": "unbounded"}),
+            ),
+            (
+                "/0/HostConfig/Annotations",
+                serde_json::json!({"host": "trusted"}),
+            ),
+            ("/0/HostConfig/Init", serde_json::json!(true)),
+            ("/0/HostConfig/MaskedPaths", serde_json::json!([])),
+            ("/0/HostConfig/ReadonlyPaths", serde_json::json!([])),
+            ("/0/HostConfig/UsernsMode", serde_json::json!("host")),
+            ("/0/HostConfig/CgroupParent", serde_json::json!("root")),
+            (
+                "/0/HostConfig/Sysctls",
+                serde_json::json!({"kernel.core_pattern": "/host"}),
+            ),
+            (
+                "/0/HostConfig/Ulimits",
+                serde_json::json!([{"Name": "nofile", "Soft": 1, "Hard": 1}]),
+            ),
+            ("/0/HostConfig/PidMode", serde_json::json!("host")),
+            ("/0/HostConfig/VolumesFrom", serde_json::json!(["other:rw"])),
+            (
+                "/0/HostConfig/LogConfig/Type",
+                serde_json::json!("json-file"),
+            ),
+            (
+                "/0/HostConfig/Devices",
+                serde_json::json!([{"PathOnHost": "/dev/mem"}]),
+            ),
+            (
+                "/0/HostConfig/DeviceRequests",
+                serde_json::json!([{"Driver": "nvidia"}]),
+            ),
+            ("/0/HostConfig/PublishAllPorts", serde_json::json!(true)),
+            (
+                "/0/HostConfig/PortBindings",
+                serde_json::json!({"22/tcp": [{"HostPort": "22"}]}),
+            ),
+            (
+                "/0/HostConfig/RestartPolicy/Name",
+                serde_json::json!("always"),
+            ),
         ] {
-            let mut changed = applied.clone();
-            if let Some(value) = changed.pointer_mut(pointer) {
-                *value = serde_json::json!("changed");
-            }
+            let mut invalid = applied.clone();
+            set_fixture_value(&mut invalid, pointer, changed)?;
             assert_eq!(
-                check(&changed),
+                check(&invalid),
                 Err(ExecutionError::InvalidConfiguration),
-                "{pointer}"
+                "accepted {pointer}"
             );
         }
-        let mut capability = applied.clone();
-        capability[0]["HostConfig"]["CapAdd"] = serde_json::json!(["CAP_PERFMON"]);
+        let mut missing_command = applied.clone();
+        missing_command[0]["Config"]
+            .as_object_mut()
+            .ok_or_else(|| "Config object".to_owned())?
+            .remove("Cmd");
         assert_eq!(
-            check(&capability),
-            Err(ExecutionError::InvalidConfiguration)
+            check(&missing_command),
+            Err(ExecutionError::Infrastructure),
+            "a missing Cmd is not Docker's explicit null argv"
         );
-        let mut wrong_profile = applied.clone();
-        wrong_profile[0]["HostConfig"]["SecurityOpt"] = serde_json::json!([
-            "no-new-privileges=true",
-            format!(
-                "seccomp={}",
-                PerformancePhase::ProfileRun.seccomp_profile_json()
-            )
-        ]);
-        assert_eq!(
-            check(&wrong_profile),
-            Err(ExecutionError::InvalidConfiguration)
-        );
-        let mut argv = applied.clone();
-        argv[0]["Config"]["Cmd"] = serde_json::json!(["/etc/passwd"]);
-        assert_eq!(check(&argv), Err(ExecutionError::InvalidConfiguration));
-        assert_eq!(
-            verify_applied(
-                b"[]",
+        Ok(())
+    }
+
+    #[test]
+    fn m5_mounts_match_both_docker_views_and_the_phase_access_mode() -> Result<(), String> {
+        let source = volume("source", VOLUME_OPTIONS);
+        let vendor = volume("vendor", VOLUME_OPTIONS);
+        let config = volume("config", VOLUME_OPTIONS);
+        let target = volume("target", TARGET_VOLUME_OPTIONS);
+        let output = volume("output", VOLUME_OPTIONS);
+        let volumes = PerformanceVolumes {
+            source: &source,
+            vendor: &vendor,
+            config: &config,
+            target: &target,
+            output: Some(&output),
+        };
+        let profile = profile_options()?;
+        let operation = PerformanceOperation::Profile(&profile);
+        let phase = PerformancePhase::ProfileRun;
+        let command = phase.arguments(operation);
+        let applied = applied_fixture(phase, &volumes, operation, &command)?;
+        let check = |value: &serde_json::Value| {
+            verify_applied_with_command(
+                &serde_json::to_vec(value).unwrap_or_default(),
                 crate::APPROVED_M4_IMAGE,
                 phase,
                 &volumes,
                 operation,
-                "fixture"
+                "fixture",
+                &command,
+            )
+        };
+        for (pointer, changed) in [
+            ("/0/Mounts/0/Type", serde_json::json!("bind")),
+            ("/0/Mounts/0/Name", serde_json::json!("other")),
+            ("/0/Mounts/0/Source", serde_json::json!("/host")),
+            ("/0/Mounts/0/Destination", serde_json::json!("/other")),
+            ("/0/Mounts/0/Driver", serde_json::json!("other")),
+            ("/0/Mounts/0/Mode", serde_json::json!("rw")),
+            ("/0/Mounts/0/RW", serde_json::json!(true)),
+            ("/0/Mounts/0/Propagation", serde_json::json!("rshared")),
+            ("/0/HostConfig/Mounts/0/Type", serde_json::json!("bind")),
+            ("/0/HostConfig/Mounts/0/Source", serde_json::json!("other")),
+            ("/0/HostConfig/Mounts/0/Target", serde_json::json!("/other")),
+            ("/0/HostConfig/Mounts/0/ReadOnly", serde_json::json!(false)),
+            (
+                "/0/HostConfig/Mounts/0/VolumeOptions/NoCopy",
+                serde_json::json!(false),
             ),
-            Err(ExecutionError::Infrastructure)
-        );
+            (
+                "/0/HostConfig/Mounts/0/VolumeOptions/Labels",
+                serde_json::json!({"host": "trusted"}),
+            ),
+            (
+                "/0/HostConfig/Mounts/0/VolumeOptions/Subpath",
+                serde_json::json!("outside"),
+            ),
+            (
+                "/0/HostConfig/Mounts/0/VolumeOptions/DriverConfig/Name",
+                serde_json::json!("bind"),
+            ),
+            (
+                "/0/HostConfig/Mounts/0/VolumeOptions/DriverConfig/Options",
+                serde_json::json!({"device": "/"}),
+            ),
+            ("/0/Mounts/0/Unknown", serde_json::json!(true)),
+            ("/0/HostConfig/Mounts/0/Unknown", serde_json::json!(true)),
+        ] {
+            let mut invalid = applied.clone();
+            set_fixture_value(&mut invalid, pointer, changed)?;
+            assert_eq!(
+                check(&invalid),
+                Err(ExecutionError::InvalidConfiguration),
+                "accepted {pointer}"
+            );
+        }
+        let mut omitted = applied.clone();
+        omitted[0]["Mounts"] = serde_json::json!([]);
+        assert_eq!(check(&omitted), Err(ExecutionError::InvalidConfiguration));
+        let mut extra = applied.clone();
+        let duplicate = extra[0]["Mounts"][0].clone();
+        extra[0]["Mounts"]
+            .as_array_mut()
+            .ok_or_else(|| "Mounts array".to_owned())?
+            .push(duplicate);
+        assert_eq!(check(&extra), Err(ExecutionError::InvalidConfiguration));
         Ok(())
     }
 

@@ -1143,7 +1143,7 @@ pub(super) fn bloat(
 mod tests {
     use super::*;
     use crate::supervisor::{Capture, Stop};
-    use rust_engineering_domain::bloat::BLOAT_MAX_ROWS;
+    use rust_engineering_domain::bloat::{BLOAT_MAX_ROWS, BloatProfile};
     use std::collections::BTreeSet;
 
     fn capture(code: Option<i32>, stdout: &[u8]) -> Capture {

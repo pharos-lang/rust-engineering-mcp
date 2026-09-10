@@ -117,6 +117,20 @@ helper **mide** su pid en tiempo de ejecución y un helper que no sea PID 1 emit
 `namespace_drained: false`, que el host convierte en `InvalidMetadata`. Es una
 observación del hecho, no una comparación de la configuración declarada.
 
+### 3.1. Corrección de paridad para el cierre local — 2026-09-10
+
+**Decidido; calificación pendiente.** El P2 de §3 bloquea el cierre M5 según G8.
+M5 debe delegar las matrices comunes de autoridad y límites en `rust_applied`,
+incluida la verificación de la configuración y los montajes efectivos. Mantiene
+las expectativas cerradas de argv, entorno, seccomp y permisos por fase. Los
+callers M1–M4 conservan sus controles y contratos actuales.
+
+Se descarta duplicar una matriz parcial o aceptar el P2 como deuda de cierre.
+La frontera nueva es interna al execution adapter: no añade permisos, gateway,
+dependencias ni contratos MCP. La evidencia requerida son pruebas adversariales
+de los campos antes omitidos, recalificación M5 y el gate full de M1–M5. Hasta
+que esos recibos pasen no se afirma paridad calificada.
+
 ### 4. Alcance de la medición
 
 Solo eventos de espacio de usuario: `exclude_kernel = 1`, `exclude_hv = 1`, y
