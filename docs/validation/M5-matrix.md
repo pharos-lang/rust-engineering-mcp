@@ -93,7 +93,12 @@ Activar `remote` exige cambiar `Cargo.lock` y descargar dependencias; el patch
 vendor es la 0.31.0 con ediciones de manifest y `verify-vendor.py` está anclado
 a esa versión; revertir la subida del owner está prohibido. Detalle y opciones
 en [m5-gate-attempts](m5-gate-attempts/README.md#intento-2--2026-09-10-full-failed-en-el-paso-32-de-34).
-Hasta la decisión del owner, M5 no se declara Done.
+Decisión del owner (2026-09-10): **opción 2a**, `lancedb` vuelve a `0.31.0` /
+Lance 8 conservando las otras tres subidas, y la actualización de paquetería
+pasa a una [tarea post-M8](../roadmap/m8-stabilization.md#tarea-post-m8--actualización-de-paquetería-decisión-del-owner-2026-09-10).
+El lock cambia, así que la suite nativa, la matriz de clientes, `core` y `full`
+se repiten sobre los nuevos bytes; los recibos anteriores de esta sesión pasan a
+ser historia de esa versión del lock.
 
 ## Correcciones de cierre
 

@@ -30,7 +30,7 @@ cargo-lock = { version = "=11.0.1", default-features = false }
 base64 = "=0.22.1"
 rust-engineering-artifact = { path = "crates/artifact-adapter" }
 rust-engineering-semantic = { path = "crates/semantic-adapter" }
-lancedb = { version = "=0.38.0", default-features = false }
+lancedb = { version = "=0.31.0", default-features = false }
 ort = { version = "=2.0.0-rc.13", default-features = false, features = ["std", "api-24"] }
 fastembed = { version = "=6.0.3", default-features = false }
 arrow-array = "=58.4.0"

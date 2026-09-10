@@ -332,6 +332,10 @@ una autorización separada. Sin tag, release, PR ni push; M6 no está iniciado.
 
 ## Technical Debt
 
+- **Post-M8, decisión del owner (2026-09-10): actualizar la paquetería del
+  workspace, incluida `lancedb`,** con las implicaciones por paquete documentadas
+  en [m8-stabilization](roadmap/m8-stabilization.md#tarea-post-m8--actualización-de-paquetería-decisión-del-owner-2026-09-10).
+  Hasta entonces `lancedb` permanece en `0.31.0` según ADR-027.
 - La propuesta contiene ejemplos con versiones placeholder (`1.xx`) y referencias
   temporales; la implementación debe generar datos reales, no copiarlos.
 - El layout de muchos crates es una propuesta, no un mandato. M0 debe empezar con el

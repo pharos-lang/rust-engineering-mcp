@@ -168,6 +168,15 @@
   hashear al artifact publicado. El harness fue revisado por Gemini 3.8 y
   Claude Sonnet 5; el driver Inspector aplica ahora su timeout por llamada.
   [Recibo](docs/validation/M5-clients.json).
+- **`lancedb` vuelve a `=0.31.0` / Lance 8** (opción 2a, decisión del owner del
+  2026-09-10) conforme a [ADR-027](docs/adr/ADR-027-semantic-offline-foundation.md):
+  la 0.38.0 no compilaba con `default-features = false` y Lance 11 exigía un
+  spill store en disco incompatible con `memory://` y con el gate semántico. Se
+  conservan `fastembed 6.0.3`, `jsonschema 0.55.1` y `tokio-rustls 0.26.5`; el
+  lock se regeneró offline desde el lock anterior a la subida. La actualización
+  general de paquetería queda como
+  [tarea post-M8](docs/roadmap/m8-stabilization.md#tarea-post-m8--actualización-de-paquetería-decisión-del-owner-2026-09-10).
+  Todos los recibos M5 se recapturan sobre el nuevo lock.
 - Estado: M5 **no está Done**. M5-01..04 están calificados nativamente
   ([gate nativo](docs/validation/M5-native-gate.json), 6/6) y por clientes, y
   `core` pasa sobre las fuentes finales
