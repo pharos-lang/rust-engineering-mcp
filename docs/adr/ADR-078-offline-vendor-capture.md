@@ -211,6 +211,46 @@ directorio en una pila mientras llega su subárbol. El orden por componentes es 
 que ya produce un recorrido en profundidad ordenado, mantiene la memoria del
 verificador en O(profundidad), y está fijado por su propia prueba.
 
+### Corrección (2026-09-09, tercera) — fijé los límites sin mirar el lado que recibe
+
+La calificación nativa encontró que **el positivo no funciona, y que la causa es
+esta decisión**. El volumen del vendor en el guest se crea con las opciones
+compartidas `VOLUME_OPTIONS`: un tmpfs de **64 MiB** con 8 192 inodos. Los límites
+que la tabla de arriba fija son 512 MiB y 32 768 entradas. Nada dimensiona el
+volumen a partir de ellos.
+
+Consecuencia, medida en vez de deducida: al ingerir el cierre real, `tar` emitió
+**2 717** líneas de `Cannot write: No space left on device` y salió con 2, que el
+gateway mapea a `Infrastructure`. **Ninguna captura en los límites de este
+contrato podría ingerirse jamás.** El contrato era inusable en sus propios
+términos desde el momento en que se escribió.
+
+El error es exactamente el mismo que cometí con el criterio de potencia de
+ADR-081: fijar un número correcto en su propio marco sin comprobar la restricción
+con la que interactúa. Ahí la puerta de precisión, aquí el volumen que recibe.
+
+**Decisión.** El volumen del vendor se dimensiona **desde los límites de este
+contrato**, no desde las opciones compartidas: `size` al límite de bytes totales y
+`nr_inodes` al de entradas. Lo demás —uid, gid, mode, `nosuid`, `nodev`,
+`noexec`— queda idéntico a `VOLUME_OPTIONS`, y los flujos M2/M4 no se tocan.
+
+**La interacción que esto crea, declarada en vez de escondida.** El tmpfs cuenta
+contra el cgroup de memoria del contenedor, que tiene 1 GiB. `size=` es un tope y
+no una reserva, así que una captura de 156 MB consume 156 MB y no 512; pero una
+captura cerca del techo del contrato dejaría al build alrededor de la mitad de la
+memoria del contenedor. El punto medido es el que hay: con el cierre real de
+156 MB, `cargo bench` compila los 52 paquetes en 24,4 s y mide en ~30 s bajo
+`--cpus=1 --memory=1g`. Una captura sustancialmente mayor **no está calificada**,
+y este documento no afirma que funcione.
+
+**Y un segundo defecto en el mismo camino.** `cleanup_until` valida el volumen del
+vendor contra `VOLUME_OPTIONS`, así que un volumen dimensionado de otra forma se
+rechaza al limpiar: se observó `CleanupUncertain` **y un volumen superviviente**.
+La corrección es usar `cleanup_until_with_options`, que ya existe para
+exactamente esta razón en el volumen de target, y llevar las opciones al
+fingerprint. Cambia todas las huellas de ejecución M5, así que exige recalificar
+los cinco cortes.
+
 ## Alternatives considered
 
 - **Subir los límites de `SourceBundle`.** Descartado, y es la razón de que este
