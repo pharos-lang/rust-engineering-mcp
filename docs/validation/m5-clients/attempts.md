@@ -95,3 +95,20 @@ servidor —el plan de attempt-1 no la tenía— y era el P3 que la revisión Co
 bloat señaló. Se corrige solo la expectativa y se liga al snapshot: cualquier
 `expect_observation.harness` debe ser una variante del `oneOf` de `Harness`,
 con test que rechaza el string. Sin residuo Docker.
+
+## attempt-6 — 2026-09-10, `passed`
+
+HEAD `dc7ce3e`, servidor `9aaa85f0…`. Recibo publicado en
+[M5-clients.json](../M5-clients.json). Inspector 2.5.0: quince filas —ocho
+docker-free y siete runtime— con catorce Resources leídas en runtime (dos
+mediciones Criterion de una ejecución, comparación `inconclusive` con
+`insufficient_executions`, profiling con 195 muestras y 0 perdidas, bloat
+validado con cargo-bloat 0.12.1, y las dos filas de recuperación de logs de
+ADR-080 §6). Claude Code 2.1.267 (`claude-sonnet-5`): turno docker-free con los
+cuatro rechazos declarados ligados a sus roots (15,8 s) y turno runtime con
+siete llamadas exactas —open, discovery, dos mediciones propias, comparación
+positiva `inconclusive`/`insufficient_executions`, `NOT_A_DATASET` con su
+`criterion_archive` y lectura nativa de esa Resource, cuyos 40960 bytes hashean
+al `sha256` publicado (174,7 s)—. Ningún mensaje `assistant` de otro modelo;
+`permission_denials` vacío; el único archivo que el cliente dejó bajo su home
+se contó y eliminó. Sin contenedores ni volúmenes residuales.
