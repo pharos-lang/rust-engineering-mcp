@@ -311,12 +311,61 @@ situaciones que antes se confundían en una:
   configuraciones, y compararlas no mide el código.
 - **Observado en un solo lado**: incompatible (`unknown_hardware`). No se sabe si
   coincidían, y suponer que sí es exactamente el relleno plausible que §3 prohíbe.
-- **No observable en los dos lados por la misma razón estructural** —nadie puede
-  leer el governor dentro de este contenedor—: los datasets siguen siendo
+- **No observable en los dos lados por la misma razón estructural** —por ejemplo,
+  un guest donde sysfs no expone el governor—: los datasets siguen siendo
   estructuralmente comparables y sus medidas se publican, pero **no se admite
   dirección alguna**: `inconclusive` con razón `unobservable_hardware`. La ceguera
   es simétrica y no rompe la comparación; lo que impide es atribuir la diferencia
   al código, porque el parámetro que podría haberla causado nunca se observó.
+
+#### Corrección (2026-09-09) — observación uniforme del governor del guest
+
+La frase «nadie puede leer el governor dentro de este contenedor» describía la
+implementación de entonces, no una imposibilidad del contrato. Se sustituye por
+una observación cerrada del **guest Linux que ejecuta la medición**; no observa ni
+declara el host físico, macOS ni una política de energía que Docker no exponga.
+
+CPUFreq modela políticas, no un único governor global: varios CPUs pueden apuntar
+a políticas distintas y esas políticas pueden usar governors distintos. La fuente
+primaria es [CPU Performance Scaling del kernel Linux](https://docs.kernel.org/admin-guide/pm/cpufreq.html),
+que documenta tanto `policyX` como los enlaces `cpuY/cpufreq` y el atributo
+`scaling_governor` por política. Por tanto, leer solo `cpu0` no acredita el
+entorno completo y queda prohibido como sustituto.
+
+El gateway lee primero los IDs `processor` que el `/proc/cpuinfo` del guest
+declara, sin suponer que sean contiguos. En una fase adicional sin mounts, red ni
+privilegios, invoca el `cat` aprobado con una ruta derivada solo de cada ID entero
+validado: `/sys/devices/system/cpu/cpu{N}/cpufreq/scaling_governor`. Publica
+`cpu_governor` únicamente si la lectura cubre **todos** esos CPUs y todos devuelven
+el mismo valor válido. Un archivo sysfs ausente, un exit no cero limpio, un valor
+inválido, una topología que exceda la capacidad de la sonda o governors distintos
+dejan el campo ausente. La ausencia es conservadora: no se inventa una etiqueta
+para la heterogeneidad ni se presenta un valor parcial como global.
+
+La fase conserva el lifecycle fail-closed del gateway. Timeout, cancelación,
+`Stop::OutputLimit` o cualquier stdout/stderr truncado no se reinterpretan como
+un governor desconocido: `finish_phase` los convierte en error operativo unido,
+limpia el árbol de contenedores y no publica dataset. Solo después de una fase
+que terminó limpiamente puede un exit no cero de `cat` representar sysfs ausente
+y, por tanto, `cpu_governor = None`.
+
+El mismo parser aplica consenso a `cpu_model`: se publica únicamente cuando los
+valores de modelo que el `/proc/cpuinfo` guest expone son válidos y unánimes; un
+valor malformado o modelos discordantes producen ausencia. `cpu_cores` solo se
+publica si los IDs `processor` observados están completos y son válidos. Son
+hechos del guest, no claims sobre el host físico.
+
+La capacidad de la sonda no es un umbral de método: está derivada del techo ya
+fijado de 64 KiB para capturas de probe y el máximo de 512 bytes del texto del
+perfil. Como cada CPU necesita como máximo 513 bytes incluido el salto de línea,
+la fase cubre como máximo `floor(65536 / 513) = 127` CPUs; sobre ese número el
+campo queda ausente en vez de permitir una captura incompleta. El argv efectivo,
+incluidas las rutas derivadas, forma parte del `execution_fingerprint`.
+
+Esto solo elimina una causa de `unobservable_hardware` cuando el guest expone una
+política uniforme. No habilita direcciones ni `no_material_change`:
+`METHOD_QUALIFIED_FOR_DIRECTION` sigue en `false` hasta satisfacer ADR-081, y la
+puerta de precisión y el umbral material del 5 % no cambian.
 
 #### Corrección (2026-09-09) — hasta qué familia se afirma un intervalo
 

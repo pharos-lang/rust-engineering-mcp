@@ -19,10 +19,11 @@
 //!   against `/rust-mcp-vendor` and never against the network.
 use super::*;
 use crate::mutation_gateway::{
-    MutationVolume, VOLUME_OPTIONS, absent, cleanup_until, labels, mutation_control,
-    parse_volume_with_options, query_control, remove_if_present, running, start_attached,
-    start_attached_source,
+    MutationVolume, VOLUME_OPTIONS, absent, cleanup_until, cleanup_until_with_options, labels,
+    mutation_control, parse_volume_with_options, query_control, remove_if_present, running,
+    start_attached, start_attached_source,
 };
+use crate::performance_environment::{self, GovernorPaths, GuestCpuTopology};
 use crate::rust_gateway::RustGateway;
 use rust_engineering_application::vendor_capture::{BenchmarkVendor, VerifiedVendorCapture};
 use rust_engineering_application::{InspectionError, ProjectError};
@@ -42,7 +43,7 @@ use std::time::{Duration, Instant};
 
 const CLEANUP: Duration = Duration::from_secs(10);
 const METADATA_OUTPUT: usize = 1024 * 1024;
-const PROBE_OUTPUT: usize = 64 * 1024;
+const PROBE_OUTPUT: usize = performance_environment::PROBE_CAPTURE_BYTES;
 /// ADR-076 §7 artifact ceilings: bloat ≤ 4 MiB, muestras ≤ 32 MiB.
 const BLOAT_OUTPUT: usize = 4 * 1024 * 1024;
 const PROFILE_ARCHIVE_OUTPUT: usize = 33 * 1024 * 1024;
@@ -109,6 +110,12 @@ fn reject_project_cargo_configuration(source: &SourceBundle) -> Result<(), Perfo
 pub(super) const TARGET_VOLUME_OPTIONS: &str =
     "size=512m,nr_inodes=65536,uid=65534,gid=65534,mode=0700,nosuid,nodev";
 
+/// ADR-078's capture ceilings expressed as the tmpfs that receives the
+/// authenticated tree. The remaining ownership, mode and hardening options
+/// stay identical to [`VOLUME_OPTIONS`].
+pub(super) const VENDOR_CAPTURE_VOLUME_OPTIONS: &str =
+    "size=512m,nr_inodes=32768,uid=65534,gid=65534,mode=0700,nosuid,nodev,noexec";
+
 /// ADR-076 §7. These are wall budgets for the whole operation, control plane
 /// included; [`work_budget_ms`] takes the control reserve out before any phase
 /// is given a share.
@@ -174,11 +181,13 @@ pub(super) const BENCHMARK_WARM_UP_MS: u64 = 3_000;
 pub(super) const BENCHMARK_MEASUREMENT_MS: u64 = 5_000;
 pub(super) const BENCHMARK_SAMPLE_SIZE: u32 = 30;
 
-/// Remaining control allowance: 76 round trips x 250 ms + 2 s startup +
-/// 1 s output validation + 10 s joined cleanup, rounded up. The five volumes
+/// Remaining control allowance: 84 round trips x 250 ms + 2 s startup +
+/// 1 s output validation + 10 s joined cleanup, rounded up. `GovernorProbe`
+/// adds one normal non-interactive phase (eight control round trips) to the
+/// prior accounting. The five volumes
 /// and five guardians of this gateway cost more round trips than ADR-069's
 /// three-volume scan, so the reserve is larger than `SCAN_CONTROL_RESERVE_MS`.
-const CONTROL_RESERVE_MS: u64 = 32_000;
+const CONTROL_RESERVE_MS: u64 = 34_000;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize)]
 pub(super) enum PerformanceKind {
@@ -200,6 +209,7 @@ pub(super) enum PerformancePhase {
     Metadata,
     CpuProbe,
     KernelProbe,
+    GovernorProbe,
     BenchRun,
     BenchExport,
     ProfileBuild,
@@ -267,6 +277,7 @@ impl PerformanceOperation<'_> {
             PerformancePhase::Metadata,
             PerformancePhase::CpuProbe,
             PerformancePhase::KernelProbe,
+            PerformancePhase::GovernorProbe,
         ];
         match self.kind() {
             PerformanceKind::Benchmark => phases.extend([
@@ -329,7 +340,7 @@ impl PerformancePhase {
             | Self::BenchExport
             | Self::ProfileExport => "/usr/bin/tar",
             Self::Metadata | Self::BenchRun | Self::ProfileBuild => "/opt/rust/bin/cargo",
-            Self::CpuProbe => "/usr/bin/cat",
+            Self::CpuProbe | Self::GovernorProbe => "/usr/bin/cat",
             Self::KernelProbe => "/usr/bin/uname",
             Self::ProfileRun => "/opt/perf/bin/rust-mcp-profile-helper",
             Self::BloatFunctions | Self::BloatCrates => "/opt/perf/bin/cargo-bloat",
@@ -381,6 +392,10 @@ impl PerformancePhase {
             ],
             Self::CpuProbe => &["/proc/cpuinfo"],
             Self::KernelProbe => &["-s", "-r", "-m"],
+            // The actual, topology-derived paths are accepted only by the
+            // dedicated governor phase below. This branch intentionally never
+            // manufactures an argv for a general phase invocation.
+            Self::GovernorProbe => &[],
             Self::BenchExport => &[
                 "--create",
                 "--file=-",
@@ -506,7 +521,9 @@ impl PerformancePhase {
                 output: true,
                 ..PerformanceMounts::default()
             },
-            Self::CpuProbe | Self::KernelProbe => PerformanceMounts::default(),
+            Self::CpuProbe | Self::KernelProbe | Self::GovernorProbe => {
+                PerformanceMounts::default()
+            }
             Self::Metadata => all,
             Self::BenchRun => PerformanceMounts {
                 target: true,
@@ -810,6 +827,34 @@ fn create_arguments_for_runtime(
     Ok(arguments)
 }
 
+/// Builds the only dynamic performance argv. Each path came from an unsigned
+/// CPU ID parsed from the guest kernel's `/proc/cpuinfo`; no peer or project text
+/// can reach this command.
+fn governor_arguments_for_runtime(
+    image_id: &str,
+    state_path: &std::path::Path,
+    name: &str,
+    operation_id: &str,
+    volumes: &PerformanceVolumes<'_>,
+    operation: PerformanceOperation<'_>,
+    paths: &GovernorPaths,
+) -> Result<Vec<String>, ExecutionError> {
+    if paths.as_slice().is_empty() {
+        return Err(ExecutionError::InvalidConfiguration);
+    }
+    let mut arguments = create_arguments_for_runtime(
+        image_id,
+        state_path,
+        name,
+        operation_id,
+        volumes,
+        PerformancePhase::GovernorProbe,
+        operation,
+    )?;
+    arguments.extend(paths.as_slice().iter().cloned());
+    Ok(arguments)
+}
+
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub(super) enum PerformanceError {
     Inspection(InspectionError),
@@ -988,6 +1033,27 @@ fn verify_applied(
     operation: PerformanceOperation<'_>,
     operation_id: &str,
 ) -> Result<(), ExecutionError> {
+    let command = phase.arguments(operation);
+    verify_applied_with_command(
+        bytes,
+        image,
+        phase,
+        volumes,
+        operation,
+        operation_id,
+        &command,
+    )
+}
+
+fn verify_applied_with_command(
+    bytes: &[u8],
+    image: &str,
+    phase: PerformancePhase,
+    volumes: &PerformanceVolumes<'_>,
+    operation: PerformanceOperation<'_>,
+    operation_id: &str,
+    command: &[String],
+) -> Result<(), ExecutionError> {
     let containers: Vec<Applied> =
         serde_json::from_slice(bytes).map_err(|_| ExecutionError::Infrastructure)?;
     let mut containers = containers.into_iter();
@@ -1011,7 +1077,7 @@ fn verify_applied(
         && applied.config.working_dir == "/source"
         && applied.config.image == image
         && applied.config.entrypoint == [phase.program()]
-        && applied.config.cmd.clone().unwrap_or_default() == phase.arguments(operation)
+        && applied.config.cmd.as_deref().unwrap_or_default() == command
         && env == phase.environment(operation)
         && host.readonly_rootfs
         && host.runtime == "runc"
@@ -1050,6 +1116,61 @@ fn verify_applied(
     } else {
         Err(ExecutionError::InvalidConfiguration)
     }
+}
+
+fn create_governor_phase(
+    gateway: &RustGateway,
+    request: &PhaseRequest<'_, '_>,
+    paths: &GovernorPaths,
+    cancel: &dyn ExecutionCancellation,
+) -> Result<(), PerformanceError> {
+    let deadline = request.deadline;
+    budget_error(deadline, cancel)?;
+    phase_result(gateway.approved_runtime(cancel), deadline, cancel)?;
+    if !phase_result(
+        absent(gateway, "container", request.name, deadline, cancel),
+        deadline,
+        cancel,
+    )? {
+        return Err(ExecutionError::CleanupUncertain.into());
+    }
+    let arguments = governor_arguments_for_runtime(
+        gateway.image_id(),
+        gateway.inner.state.path(),
+        request.name,
+        request.operation_id,
+        request.volumes,
+        request.operation,
+        paths,
+    )?;
+    phase_result(
+        mutation_control(gateway, &arguments, deadline, cancel),
+        deadline,
+        cancel,
+    )?;
+    let inspected = phase_result(
+        query_control(
+            gateway,
+            &["container".into(), "inspect".into(), request.name.into()],
+            deadline,
+            cancel,
+        ),
+        deadline,
+        cancel,
+    )?;
+    if inspected.code != Some(0) {
+        return Err(ExecutionError::Infrastructure.into());
+    }
+    verify_applied_with_command(
+        &inspected.stdout,
+        gateway.image_id(),
+        PerformancePhase::GovernorProbe,
+        request.volumes,
+        request.operation,
+        request.operation_id,
+        paths.as_slice(),
+    )?;
+    Ok(())
 }
 
 fn applied_mounts_ok(
@@ -1502,6 +1623,42 @@ fn run_phase(
     Ok(capture)
 }
 
+/// Runs the one closed, topology-derived CPUFreq observation. It deliberately
+/// shares the normal lifecycle and containment verification with every other
+/// phase; only its already-validated argv differs from `PerformancePhase`'s
+/// static command table.
+fn run_governor_probe(
+    gateway: &RustGateway,
+    request: &PhaseRequest<'_, '_>,
+    paths: &GovernorPaths,
+    outer: Instant,
+    cancel: &dyn ExecutionCancellation,
+) -> Result<Capture, PerformanceError> {
+    create_governor_phase(gateway, request, paths, cancel)?;
+    let capture = phase_result(
+        start_attached(
+            gateway,
+            request.name,
+            false,
+            &[],
+            request.deadline,
+            request.output_limit,
+            cancel,
+        ),
+        outer,
+        cancel,
+    )?;
+    finish_phase(
+        gateway,
+        request.name,
+        request.operation_id,
+        &capture,
+        request.deadline,
+        cancel,
+    )?;
+    Ok(capture)
+}
+
 // -- archives ----------------------------------------------------------------
 
 fn config_archive() -> Result<Vec<u8>, PerformanceError> {
@@ -1679,6 +1836,7 @@ struct PerformanceFingerprintInputs<'a, 'v> {
     vendor_archive: &'a [u8],
     config_archive: &'a [u8],
     metadata: &'a [u8],
+    governor_paths: Option<&'a GovernorPaths>,
     vendor_fingerprint: &'a SourceFingerprint,
     limits: ExecutionLimits,
     captures: &'a [CaptureIdentity],
@@ -1708,12 +1866,22 @@ fn execution_fingerprint_for_runtime(
     state_path: &std::path::Path,
     inputs: PerformanceFingerprintInputs<'_, '_>,
 ) -> Result<ExecutionFingerprint, PerformanceError> {
-    let commands = inputs
-        .operation
-        .phases()
-        .into_iter()
-        .map(|phase| {
-            create_arguments_for_runtime(
+    let mut commands = Vec::new();
+    for phase in inputs.operation.phases() {
+        if phase == PerformancePhase::GovernorProbe {
+            if let Some(paths) = inputs.governor_paths {
+                commands.push(governor_arguments_for_runtime(
+                    image_id,
+                    state_path,
+                    "<container>",
+                    "<operation_id>",
+                    inputs.volumes,
+                    inputs.operation,
+                    paths,
+                )?);
+            }
+        } else {
+            commands.push(create_arguments_for_runtime(
                 image_id,
                 state_path,
                 "<container>",
@@ -1721,18 +1889,24 @@ fn execution_fingerprint_for_runtime(
                 inputs.volumes,
                 phase,
                 inputs.operation,
-            )
-        })
-        .collect::<Result<Vec<_>, _>>()?;
+            )?);
+        }
+    }
+    let volume_options = [
+        inputs.volumes.source.options.get("o"),
+        inputs.volumes.vendor.options.get("o"),
+        inputs.volumes.config.options.get("o"),
+        inputs.volumes.target.options.get("o"),
+        inputs
+            .volumes
+            .output
+            .and_then(|volume| volume.options.get("o")),
+    ];
     let bytes = serde_json::to_vec(&(
         configuration_fingerprint,
         commands,
-        [
-            "--opt=type=tmpfs",
-            "--opt=device=tmpfs",
-            VOLUME_OPTIONS,
-            TARGET_VOLUME_OPTIONS,
-        ],
+        ["--opt=type=tmpfs", "--opt=device=tmpfs"],
+        volume_options,
         inputs.operation.kind(),
         digest(inputs.source_archive),
         digest(inputs.vendor_archive),
@@ -1744,6 +1918,7 @@ fn execution_fingerprint_for_runtime(
         inputs.artifacts,
         (
             digest(include_bytes!("performance_gateway.rs")),
+            digest(include_bytes!("performance_environment.rs")),
             digest(include_bytes!("mutation_gateway.rs")),
             digest(include_bytes!("security_policy.rs")),
             digest(include_bytes!("profile_stacks.rs")),
@@ -1791,6 +1966,10 @@ pub(super) struct HardwareProbe {
     pub(super) cpu_model: Option<String>,
     pub(super) cpu_cores: Option<u16>,
     pub(super) os_kernel: Option<String>,
+    /// A uniform value observed through CPUFreq links for every logical CPU the
+    /// guest exposed. `None` is unknown or heterogeneous; it is never a CPU0
+    /// default and never describes the physical host.
+    pub(super) cpu_governor: Option<String>,
 }
 
 /// The ceilings this gateway itself applied. It knows them exactly, so they are
@@ -1809,49 +1988,6 @@ pub(super) struct PerformanceExecution {
     pub(super) execution_fingerprint: ExecutionFingerprint,
     pub(super) source_fingerprint: SourceFingerprint,
     pub(super) vendor_fingerprint: SourceFingerprint,
-}
-
-/// Parses `/proc/cpuinfo` as the kernel printed it. On aarch64 there is no
-/// `model name` line, so the composed implementer/part/variant/revision tuple
-/// is used: it is observed, not a plausible substitute. When neither is
-/// present the model stays UNKNOWN.
-fn parse_cpuinfo(bytes: &[u8]) -> HardwareProbe {
-    let Ok(text) = std::str::from_utf8(bytes) else {
-        return HardwareProbe::default();
-    };
-    let mut cores = 0u16;
-    let mut model = None;
-    let mut parts: BTreeMap<&str, String> = BTreeMap::new();
-    for line in text.lines() {
-        let Some((key, value)) = line.split_once(':') else {
-            continue;
-        };
-        let (key, value) = (key.trim(), value.trim());
-        match key {
-            "processor" => cores = cores.saturating_add(1),
-            "model name" | "Model" if model.is_none() && !value.is_empty() => {
-                model = Some(value.to_owned());
-            }
-            "CPU implementer" | "CPU part" | "CPU variant" | "CPU revision" => {
-                parts.entry(key).or_insert_with(|| value.to_owned());
-            }
-            _ => (),
-        }
-    }
-    if model.is_none() && parts.len() == 4 {
-        model = Some(
-            parts
-                .iter()
-                .map(|(key, value)| format!("{key}={value}"))
-                .collect::<Vec<_>>()
-                .join(" "),
-        );
-    }
-    HardwareProbe {
-        cpu_model: model.filter(|value| value.len() <= 512),
-        cpu_cores: (cores > 0).then_some(cores),
-        os_kernel: None,
-    }
 }
 
 fn parse_uname(bytes: &[u8]) -> Option<String> {
@@ -1986,6 +2122,7 @@ fn names(operation_id: String, outputs: usize) -> Names {
         format!("{prefix}-work-3-{operation_id}"),
         format!("{prefix}-work-4-{operation_id}"),
         format!("{prefix}-work-5-{operation_id}"),
+        format!("{prefix}-governor-{operation_id}"),
     ]
     .to_vec();
     Names {
@@ -2005,6 +2142,7 @@ struct Work {
     harness: HarnessDetection,
     hardware: HardwareProbe,
     metadata: Vec<u8>,
+    governor_paths: Option<GovernorPaths>,
     runs: Vec<BenchmarkRunOutput>,
     profile: Option<ProfileOutput>,
     bloat: Option<BloatOutput>,
@@ -2041,6 +2179,10 @@ fn execute_operation(
     validate_vendor(&vendor)?;
     let source_archive = crate::source_archive::encode(source)?;
     budget_error(deadline, cancel)?;
+    let vendor_options = match &vendor {
+        BenchmarkVendor::Capture(_) => VENDOR_CAPTURE_VOLUME_OPTIONS,
+        BenchmarkVendor::Snapshot(_) => VOLUME_OPTIONS,
+    };
     let vendor_archive = match &vendor {
         BenchmarkVendor::Snapshot(snapshot) => {
             VendorIngest::Bytes(crate::source_archive::encode(&snapshot.source)?)
@@ -2096,7 +2238,7 @@ fn execute_operation(
             gateway,
             &names.vendor_volume,
             &names.operation_id,
-            VOLUME_OPTIONS,
+            vendor_options,
             deadline,
             cancel,
         )?;
@@ -2221,7 +2363,7 @@ fn execute_operation(
             )?;
         }
 
-        // Reading phases: metadata identity and the two hardware probes. They
+        // Reading phases: metadata identity and guest hardware probes. They
         // execute no project code and share one small budget slice.
         let identity_deadline = phase_deadline(deadline, 8, cancel)?;
         let metadata_capture = run_phase(
@@ -2260,6 +2402,7 @@ fn execute_operation(
         )?;
 
         let mut hardware = HardwareProbe::default();
+        let mut governor_paths = None;
         let probe_deadline = phase_deadline(deadline, 8, cancel)?;
         let cpu = run_phase(
             gateway,
@@ -2277,7 +2420,14 @@ fn execute_operation(
         )?;
         removed.push(&names.containers[4]);
         if cpu.code == Some(0) {
-            hardware = parse_cpuinfo(&cpu.stdout);
+            let topology: GuestCpuTopology = performance_environment::parse_cpuinfo(&cpu.stdout);
+            hardware.cpu_model = topology.cpu_model.clone();
+            hardware.cpu_cores = topology
+                .cpu_ids_complete
+                .then(|| u16::try_from(topology.logical_cpu_ids.len()).ok())
+                .flatten()
+                .filter(|count| *count > 0);
+            governor_paths = performance_environment::governor_paths(&topology);
         }
         let kernel = run_phase(
             gateway,
@@ -2297,6 +2447,31 @@ fn execute_operation(
         if kernel.code == Some(0) {
             hardware.os_kernel = parse_uname(&kernel.stdout);
         }
+        let governor = if let Some(paths) = governor_paths.as_ref() {
+            let capture = run_governor_probe(
+                gateway,
+                &PhaseRequest {
+                    name: &names.containers[12],
+                    operation_id: &names.operation_id,
+                    volumes: &base,
+                    phase: PerformancePhase::GovernorProbe,
+                    operation,
+                    deadline: probe_deadline,
+                    output_limit: PROBE_OUTPUT,
+                },
+                paths,
+                deadline,
+                cancel,
+            )?;
+            removed.push(&names.containers[12]);
+            if capture.code == Some(0) {
+                hardware.cpu_governor =
+                    performance_environment::parse_uniform_governor(&capture.stdout, paths.len());
+            }
+            Some(capture)
+        } else {
+            None
+        };
         revalidate(
             gateway,
             &guardians,
@@ -2306,19 +2481,23 @@ fn execute_operation(
             cancel,
         )?;
 
-        let identities = [
+        let mut identities = vec![
             capture_identity(&metadata_capture),
             capture_identity(&cpu),
             capture_identity(&kernel),
         ];
+        if let Some(capture) = &governor {
+            identities.push(capture_identity(capture));
+        }
         let mut work = Work {
             harness,
             hardware,
             metadata: metadata_capture.stdout,
+            governor_paths,
             runs: Vec::new(),
             profile: None,
             bloat: None,
-            captures: identities.to_vec(),
+            captures: identities,
             artifacts: Vec::new(),
         };
         match operation {
@@ -2602,11 +2781,12 @@ fn execute_operation(
         &names.operation_id,
         cleanup_deadline,
     );
-    let vendor_cleanup = cleanup_until(
+    let vendor_cleanup = cleanup_until_with_options(
         gateway,
         &[],
         &names.vendor_volume,
         &names.operation_id,
+        vendor_options,
         cleanup_deadline,
     );
     let config_cleanup = cleanup_until(
@@ -2638,7 +2818,7 @@ fn execute_operation(
     budget_error(deadline, cancel)?;
 
     let source_volume = fingerprint_volume("<source-volume>", "<source>", VOLUME_OPTIONS);
-    let vendor_volume = fingerprint_volume("<vendor-volume>", "<vendor>", VOLUME_OPTIONS);
+    let vendor_volume = fingerprint_volume("<vendor-volume>", "<vendor>", vendor_options);
     let config_volume = fingerprint_volume("<config-volume>", "<config>", VOLUME_OPTIONS);
     let target_volume = fingerprint_volume("<target-volume>", "<target>", TARGET_VOLUME_OPTIONS);
     let output_volume = fingerprint_volume("<output-volume>", "<output>", VOLUME_OPTIONS);
@@ -2660,6 +2840,7 @@ fn execute_operation(
             vendor_archive: vendor_archive.commitment(),
             config_archive: &config,
             metadata: &work.metadata,
+            governor_paths: work.governor_paths.as_ref(),
             vendor_fingerprint: vendor.tree_fingerprint(),
             limits,
             captures: &work.captures,
@@ -3015,6 +3196,12 @@ mod tests {
             PerformancePhase::CpuProbe.arguments(operation),
             ["/proc/cpuinfo"]
         );
+        assert_eq!(PerformancePhase::GovernorProbe.program(), "/usr/bin/cat");
+        assert!(
+            PerformancePhase::GovernorProbe
+                .arguments(operation)
+                .is_empty()
+        );
         assert_eq!(PerformancePhase::KernelProbe.program(), "/usr/bin/uname");
         assert_eq!(
             PerformancePhase::KernelProbe.arguments(operation),
@@ -3031,7 +3218,7 @@ mod tests {
         );
     }
 
-    const ALL_PHASES: [PerformancePhase; 21] = [
+    const ALL_PHASES: [PerformancePhase; 22] = [
         PerformancePhase::SourceGuardian,
         PerformancePhase::VendorGuardian,
         PerformancePhase::ConfigGuardian,
@@ -3043,6 +3230,7 @@ mod tests {
         PerformancePhase::Metadata,
         PerformancePhase::CpuProbe,
         PerformancePhase::KernelProbe,
+        PerformancePhase::GovernorProbe,
         PerformancePhase::BenchRun,
         PerformancePhase::BenchExport,
         PerformancePhase::ProfileBuild,
@@ -3189,11 +3377,16 @@ mod tests {
             PerformancePhase::Metadata,
             PerformancePhase::CpuProbe,
             PerformancePhase::KernelProbe,
+            PerformancePhase::GovernorProbe,
         ] {
             assert!(!phase.mounts().output, "output mounted in {phase:?}");
             assert!(!phase.mounts().target, "target mounted in {phase:?}");
         }
-        for phase in [PerformancePhase::CpuProbe, PerformancePhase::KernelProbe] {
+        for phase in [
+            PerformancePhase::CpuProbe,
+            PerformancePhase::KernelProbe,
+            PerformancePhase::GovernorProbe,
+        ] {
             assert_eq!(phase.mounts(), PerformanceMounts::default(), "{phase:?}");
         }
     }
@@ -3461,6 +3654,145 @@ mod tests {
     }
 
     #[test]
+    fn vendor_capture_volume_matches_adr_078_and_changes_the_fingerprint() -> Result<(), String> {
+        assert_eq!(
+            VENDOR_CAPTURE_VOLUME_OPTIONS,
+            "size=512m,nr_inodes=32768,uid=65534,gid=65534,mode=0700,nosuid,nodev,noexec"
+        );
+        assert_eq!(
+            rust_engineering_domain::vendor_capture::VENDOR_CAPTURE_MAX_TOTAL_BYTES / (1024 * 1024),
+            512
+        );
+        assert_eq!(
+            rust_engineering_domain::vendor_capture::VENDOR_CAPTURE_MAX_ENTRIES,
+            32_768
+        );
+
+        let source = fingerprint_volume("<source-volume>", "<source>", VOLUME_OPTIONS);
+        let small_vendor = fingerprint_volume("<vendor-volume>", "<vendor>", VOLUME_OPTIONS);
+        let captured_vendor =
+            fingerprint_volume("<vendor-volume>", "<vendor>", VENDOR_CAPTURE_VOLUME_OPTIONS);
+        let config = fingerprint_volume("<config-volume>", "<config>", VOLUME_OPTIONS);
+        let target = fingerprint_volume("<target-volume>", "<target>", TARGET_VOLUME_OPTIONS);
+        assert_eq!(
+            captured_vendor.options.get("o").map(String::as_str),
+            Some(VENDOR_CAPTURE_VOLUME_OPTIONS)
+        );
+
+        let configuration: ExecutionFingerprint = format!("sha256:{}", "a".repeat(64))
+            .parse()
+            .map_err(|error| format!("{error:?}"))?;
+        let vendor_fingerprint: SourceFingerprint = format!("sha256:{}", "b".repeat(64))
+            .parse()
+            .map_err(|error| format!("{error:?}"))?;
+        let limits = ExecutionLimits::new_job(BLOAT_BUDGET_MS, 512 * 1024)
+            .ok_or_else(|| "invalid fixture limits".to_owned())?;
+        let bloat = bloat_options(BloatProfile::Release)?;
+        let operation = PerformanceOperation::Bloat(&bloat);
+        let fingerprint = |vendor| {
+            let volumes = PerformanceVolumes {
+                source: &source,
+                vendor,
+                config: &config,
+                target: &target,
+                output: None,
+            };
+            execution_fingerprint_for_runtime(
+                &configuration,
+                crate::APPROVED_M4_IMAGE,
+                std::path::Path::new("/state"),
+                PerformanceFingerprintInputs {
+                    operation,
+                    volumes: &volumes,
+                    source_archive: b"source",
+                    vendor_archive: b"vendor",
+                    config_archive: b"config",
+                    metadata: b"metadata",
+                    governor_paths: None,
+                    vendor_fingerprint: &vendor_fingerprint,
+                    limits,
+                    captures: &[],
+                    artifacts: &[],
+                },
+            )
+            .map_err(|error| format!("{error:?}"))
+        };
+        assert_ne!(fingerprint(&small_vendor)?, fingerprint(&captured_vendor)?);
+        Ok(())
+    }
+
+    #[test]
+    fn governor_probe_uses_only_closed_paths_and_binds_its_effective_argv() -> Result<(), String> {
+        let source = volume("source", VOLUME_OPTIONS);
+        let vendor = volume("vendor", VOLUME_OPTIONS);
+        let config = volume("config", VOLUME_OPTIONS);
+        let target = volume("target", TARGET_VOLUME_OPTIONS);
+        let volumes = PerformanceVolumes {
+            source: &source,
+            vendor: &vendor,
+            config: &config,
+            target: &target,
+            output: None,
+        };
+        let selected = selection();
+        let operation = PerformanceOperation::Benchmark {
+            selection: &selected,
+            run_count: 3,
+            harness_parameters: true,
+        };
+        let topology = performance_environment::parse_cpuinfo(b"processor: 7\nprocessor: 1\n");
+        let paths = performance_environment::governor_paths(&topology)
+            .ok_or_else(|| "fixture topology is not observable".to_owned())?;
+        let argv = governor_arguments_for_runtime(
+            crate::APPROVED_M4_IMAGE,
+            std::path::Path::new("/state"),
+            "container",
+            "fixture",
+            &volumes,
+            operation,
+            &paths,
+        )
+        .map_err(|error| format!("{error:?}"))?;
+        assert!(argv.contains(&"--entrypoint=/usr/bin/cat".to_owned()));
+        assert!(argv.ends_with(paths.as_slice()));
+        assert!(
+            mount_arguments(PerformancePhase::GovernorProbe, &volumes, operation.kind()).is_empty()
+        );
+
+        let configuration: ExecutionFingerprint = format!("sha256:{}", "a".repeat(64))
+            .parse()
+            .map_err(|error| format!("{error:?}"))?;
+        let vendor_fingerprint: SourceFingerprint = format!("sha256:{}", "b".repeat(64))
+            .parse()
+            .map_err(|error| format!("{error:?}"))?;
+        let limits = ExecutionLimits::new_job(BENCHMARK_BUDGET_MS, 512 * 1024)
+            .ok_or_else(|| "invalid fixture limits".to_owned())?;
+        let fingerprint = |governor_paths: Option<&GovernorPaths>| {
+            execution_fingerprint_for_runtime(
+                &configuration,
+                crate::APPROVED_M4_IMAGE,
+                std::path::Path::new("/state"),
+                PerformanceFingerprintInputs {
+                    operation,
+                    volumes: &volumes,
+                    source_archive: b"source",
+                    vendor_archive: b"vendor",
+                    config_archive: b"config",
+                    metadata: b"metadata",
+                    governor_paths,
+                    vendor_fingerprint: &vendor_fingerprint,
+                    limits,
+                    captures: &[],
+                    artifacts: &[],
+                },
+            )
+            .map_err(|error| format!("{error:?}"))
+        };
+        assert_ne!(fingerprint(None)?, fingerprint(Some(&paths))?);
+        Ok(())
+    }
+
+    #[test]
     fn phase_deadline_never_outlives_the_operation_deadline() -> Result<(), String> {
         let deadline = Instant::now() + Duration::from_millis(BLOAT_BUDGET_MS);
         let share = phase_deadline(deadline, 4, &NeverCancel).map_err(|e| format!("{e:?}"))?;
@@ -3541,27 +3873,25 @@ mod tests {
     fn hardware_probes_leave_an_unobservable_field_unknown() {
         let intel = b"processor\t: 0\nmodel name\t: Fixture CPU\nprocessor\t: 1\nmodel name\t: Fixture CPU\n";
         assert_eq!(
-            parse_cpuinfo(intel),
-            HardwareProbe {
-                cpu_model: Some("Fixture CPU".into()),
-                cpu_cores: Some(2),
-                os_kernel: None,
-            }
+            performance_environment::parse_cpuinfo(intel).logical_cpu_ids,
+            [0, 1]
         );
         let arm = b"processor\t: 0\nCPU implementer\t: 0x61\nCPU architecture: 8\nCPU variant\t: 0x0\nCPU part\t: 0x000\nCPU revision\t: 0\n";
         assert_eq!(
-            parse_cpuinfo(arm),
-            HardwareProbe {
-                cpu_model: Some(
-                    "CPU implementer=0x61 CPU part=0x000 CPU revision=0 CPU variant=0x0".into()
-                ),
-                cpu_cores: Some(1),
-                os_kernel: None,
-            }
+            performance_environment::parse_cpuinfo(arm)
+                .cpu_model
+                .as_deref(),
+            Some("CPU implementer=0x61 CPU part=0x000 CPU revision=0 CPU variant=0x0")
         );
         // Nothing observable: unknown stays unknown, never a plausible value.
-        assert_eq!(parse_cpuinfo(b""), HardwareProbe::default());
-        assert_eq!(parse_cpuinfo(b"processor\t: 0\n").cpu_model, None);
+        assert_eq!(
+            performance_environment::parse_cpuinfo(b""),
+            GuestCpuTopology::default()
+        );
+        assert_eq!(
+            performance_environment::parse_cpuinfo(b"processor\t: 0\n").cpu_model,
+            None
+        );
         assert_eq!(
             parse_uname(b"Linux 6.6.0 aarch64\n"),
             Some("Linux 6.6.0 aarch64".into())
@@ -3613,6 +3943,7 @@ mod tests {
                     vendor_archive: b"vendor",
                     config_archive: b"config",
                     metadata: b"metadata",
+                    governor_paths: None,
                     vendor_fingerprint: &vendor_fingerprint,
                     limits,
                     captures,
@@ -4076,6 +4407,7 @@ mod tests {
             assert!(phases.contains(&PerformancePhase::ConfigIngest));
             assert!(phases.contains(&PerformancePhase::CpuProbe));
             assert!(phases.contains(&PerformancePhase::KernelProbe));
+            assert!(phases.contains(&PerformancePhase::GovernorProbe));
         }
         Ok(())
     }

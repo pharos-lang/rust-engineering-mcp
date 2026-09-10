@@ -167,9 +167,9 @@ pub(super) fn hardware_profile(probe: &HardwareProbe) -> HardwareProfile {
         os_kernel: probe.os_kernel.clone(),
         arch: "aarch64".into(),
         virtualization: Virtualization::Container,
-        // No governor is observable from inside the container; unknown stays
-        // unknown rather than becoming "performance".
-        cpu_governor: None,
+        // The gateway publishes this only after every CPU visible to the guest
+        // reported the same CPUFreq governor; unknown stays unknown.
+        cpu_governor: probe.cpu_governor.clone(),
         quotas: applied_quotas(),
     }
 }
@@ -1301,6 +1301,7 @@ mod tests {
             cpu_model: Some("Fixture CPU".into()),
             cpu_cores: Some(4),
             os_kernel: Some("Linux 7.0.12-linuxkit aarch64".into()),
+            cpu_governor: Some("schedutil".into()),
         });
         assert_eq!(observed.cpu_model.as_deref(), Some("Fixture CPU"));
         assert_eq!(observed.cpu_cores, Some(4));
@@ -1308,6 +1309,7 @@ mod tests {
             observed.os_kernel.as_deref(),
             Some("Linux 7.0.12-linuxkit aarch64")
         );
+        assert_eq!(observed.cpu_governor.as_deref(), Some("schedutil"));
     }
 
     #[test]

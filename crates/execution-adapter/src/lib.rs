@@ -762,6 +762,7 @@ mod unsafe_native;
 mod quality_v2_log;
 pub use quality_v2_log::safe_gate_v2_log;
 
+mod performance_environment;
 mod performance_gateway;
 #[cfg(test)]
 mod performance_native;

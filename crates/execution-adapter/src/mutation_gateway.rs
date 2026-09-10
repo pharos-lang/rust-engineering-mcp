@@ -572,7 +572,7 @@ pub(super) fn cleanup_until(
     cleanup_until_with_options(gateway, names, volume, nonce, VOLUME_OPTIONS, deadline)
 }
 
-fn cleanup_until_with_options(
+pub(super) fn cleanup_until_with_options(
     gateway: &RustGateway,
     names: &[&str],
     volume: &str,
