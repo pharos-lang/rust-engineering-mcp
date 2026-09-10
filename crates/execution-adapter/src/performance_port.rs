@@ -25,6 +25,7 @@ use crate::profile_stacks::{self, FoldedProfile};
 use crate::profile_svg::{self, SvgOptions};
 use rust_engineering_application::benchmark::BenchmarkRunOptions;
 use rust_engineering_application::security::SecurityError;
+use rust_engineering_application::vendor_capture::BenchmarkVendor;
 use rust_engineering_application::{ExecutionError, InspectionControl, InspectionError};
 use rust_engineering_domain::benchmark::{
     APPROVED_CRITERION_VERSION, BENCHMARK_MAX_RUNS, BENCHMARK_MAX_SAMPLES, BenchmarkDataset,
@@ -488,7 +489,7 @@ fn benchmark_logs(execution: &PerformanceExecution) -> Result<Vec<BenchmarkRunLo
 pub(super) fn benchmark(
     gateway: &RustGateway,
     source: &SourceBundle,
-    vendor: &CargoVendorSnapshot,
+    vendor: BenchmarkVendor<'_>,
     options: &BenchmarkRunOptions,
     control: &dyn InspectionControl,
 ) -> Result<BenchmarkObservation, SecurityError> {
@@ -1425,7 +1426,9 @@ mod tests {
             std::str::from_utf8(&kept).is_ok(),
             "the payload declares Utf8LogV1 and must satisfy it"
         );
-        let text = String::from_utf8(kept).expect("valid utf-8");
+        // The assertion above already established validity; this is the same
+        // bytes read as text, without a second way to fail.
+        let text = String::from_utf8_lossy(&kept);
         assert!(
             text.contains("before") && text.contains("after"),
             "the text around the bad byte is why these logs exist: {text:?}"

@@ -1197,7 +1197,17 @@ solo esa**: cualquier otro digest devuelve `unavailable` antes de crear
 contenedor alguno ([ADR-077](adr/ADR-077-m5-runtime-admission.md)). Exigen
 también el vendor Cargo offline autenticado por el host (`--cargo-vendor-dir` y
 `--cargo-vendor-tree-sha256`); sin ese par el resultado es `MISSING_OFFLINE_DATA`
-y no hay descarga, sustitución ni medida degradada. `rust.profile.flamegraph`
+y no hay descarga, sustitución ni medida degradada. `rust.benchmark.run` acepta
+además, y prefiere, una captura de vendor
+([ADR-078](adr/ADR-078-offline-vendor-capture.md)): el par
+`--vendor-capture PATH --vendor-capture-tree-sha256 sha256:<64-hex>` nombra un
+artifact inmutable y el digest que ese artifact debe volver a producir. El
+servidor lo relee y lo recalcula de forma incremental antes de que el guest vea
+un byte, y lo rechaza si el digest no es el declarado; ese digest es el
+`vendor_fingerprint` que viaja en la provenance de la medición. La captura se
+aprovisiona aparte con `cargo-vendor capture`, nunca como efecto secundario de
+una medición, y el guest sigue montando de solo lectura un volumen construido a
+partir de esos bytes, jamás el directorio original del host. `rust.profile.flamegraph`
 exige además la capability del host `--allow-profiling user-space-sampling`
 ([ADR-074](adr/ADR-074-profiling-capability-and-containment.md) §2).
 `rust.benchmark.compare` no necesita ninguno de los tres: es cálculo puro sobre

@@ -190,6 +190,27 @@ fidelidad de la codificación y añade un camino donde el nombre que ve el guest
 es el que viajó. La de rechazar el paquete ya estaba descartada por medición:
 Cargo exige todo paquete del lockfile.
 
+### Dos decisiones que la implementación necesitó y este ADR no nombraba
+
+Ninguna amplía ni estrecha un límite; las dos existen para que el único límite que
+actúe sea el que este documento fija.
+
+**El encuadre del artifact.** USTAR sin extensiones no puede expresar una ruta
+cuyo último componente pase de 100 bytes, y el límite de 200 bytes por ruta que
+fija la tabla de arriba admite un nombre de archivo de 150. Rechazarlo habría sido
+añadir un límite que este ADR no nombra. El artifact es entonces USTAR con una
+cabecera extendida pax `path=` para exactamente esas rutas, y con un nombre de
+respaldo **deliberadamente inservible** (`PaxLongPath/<n>`): un extractor que
+ignore pax falla de forma ruidosa en vez de producir un árbol plausible con
+nombres equivocados. El cierre de criterion no llega nunca a esa rama; está para
+que el alfabeto sea la única frontera.
+
+**El orden canónico es por componentes, no por bytes.** En orden de bytes `a-b`
+cae entre `a` y `a/b`, lo que rompería a cualquier lector que mantenga un
+directorio en una pila mientras llega su subárbol. El orden por componentes es el
+que ya produce un recorrido en profundidad ordenado, mantiene la memoria del
+verificador en O(profundidad), y está fijado por su propia prueba.
+
 ## Alternatives considered
 
 - **Subir los límites de `SourceBundle`.** Descartado, y es la razón de que este

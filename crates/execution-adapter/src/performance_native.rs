@@ -28,6 +28,7 @@ use crate::performance_port;
 use crate::*;
 use rust_engineering_application::benchmark::BenchmarkRunOptions;
 use rust_engineering_application::security::SecurityError;
+use rust_engineering_application::vendor_capture::BenchmarkVendor;
 use rust_engineering_application::{InspectionError, OperationControl, ProjectError};
 use rust_engineering_domain::benchmark_run::{
     BenchmarkExit, BenchmarkObservation, DatasetOmission, HarnessDetection,
@@ -777,9 +778,14 @@ fn m5_benchmark_run_negatives_and_controls_are_qualified_natively() -> Result<()
     let started = Instant::now();
     let options = BenchmarkRunOptions::new(None, None, Vec::new(), false, false, 1, 300)
         .map_err(|error| format!("options: {error:?}"))?;
-    let observation =
-        performance_port::benchmark(gateway, &bloat, &empty_vendor()?, &options, &Proceed)
-            .map_err(|error| format!("unrecognised-harness: {error:?}"))?;
+    let observation = performance_port::benchmark(
+        gateway,
+        &bloat,
+        BenchmarkVendor::Snapshot(&empty_vendor()?),
+        &options,
+        &Proceed,
+    )
+    .map_err(|error| format!("unrecognised-harness: {error:?}"))?;
     assert_eq!(
         observation.harness,
         HarnessDetection::Unrecognized,
@@ -840,7 +846,7 @@ fn m5_benchmark_run_negatives_and_controls_are_qualified_natively() -> Result<()
     let refused = performance_gateway::execute_benchmark(
         gateway,
         &configured,
-        &empty_vendor()?,
+        BenchmarkVendor::Snapshot(&empty_vendor()?),
         &options.selection(),
         1,
         ExecutionLimits::new_job(300_000, LOG_BYTES).ok_or("limits")?,
@@ -853,8 +859,13 @@ fn m5_benchmark_run_negatives_and_controls_are_qualified_natively() -> Result<()
     assert_eq!(error, PerformanceError::ProjectCargoConfiguration);
     // The same refusal, in the vocabulary the tool answers in: a containment
     // refusal, never an unavailable capability.
-    let mapped =
-        performance_port::benchmark(gateway, &configured, &empty_vendor()?, &options, &Proceed);
+    let mapped = performance_port::benchmark(
+        gateway,
+        &configured,
+        BenchmarkVendor::Snapshot(&empty_vendor()?),
+        &options,
+        &Proceed,
+    );
     assert_eq!(
         mapped.err(),
         Some(SecurityError::Inspection(InspectionError::Project(
@@ -877,8 +888,13 @@ fn m5_benchmark_run_negatives_and_controls_are_qualified_natively() -> Result<()
     // -- selection 5: cancellation mid-run -----------------------------------
     let started = Instant::now();
     let monitor = CancelWhenObserved::new(gateway, "/opt/rust/bin/cargo bench");
-    let cancelled =
-        performance_port::benchmark(gateway, &bloat, &empty_vendor()?, &options, &monitor);
+    let cancelled = performance_port::benchmark(
+        gateway,
+        &bloat,
+        BenchmarkVendor::Snapshot(&empty_vendor()?),
+        &options,
+        &monitor,
+    );
     assert_eq!(
         cancelled.err(),
         Some(SecurityError::Inspection(InspectionError::Project(
@@ -2007,7 +2023,14 @@ fn m5_tools_refuse_every_runtime_but_the_qualified_one() -> Result<(), Failure> 
     let options = BenchmarkRunOptions::new(None, None, Vec::new(), false, false, 1, 300)
         .map_err(|error| format!("options: {error:?}"))?;
     assert_eq!(
-        performance_port::benchmark(gateway, &source, &vendor, &options, &Proceed).err(),
+        performance_port::benchmark(
+            gateway,
+            &source,
+            BenchmarkVendor::Snapshot(&vendor),
+            &options,
+            &Proceed,
+        )
+        .err(),
         Some(unavailable)
     );
     assert_eq!(

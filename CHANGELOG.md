@@ -4,6 +4,29 @@
 
 ### M5 — cuatro tools de rendimiento, implementadas y sin calificar por completo
 
+- **Captura de vendor offline, un contrato separado de `SourceBundle`**
+  ([ADR-078](docs/adr/ADR-078-offline-vendor-capture.md)). El cierre de
+  `criterion 0.8.2` rompe cuatro límites de `SourceBundle` a la vez y trece de
+  sus rutas no rompen ninguno: rompen la gramática, porque llevan paréntesis.
+  Ninguna cuota mueve esas trece, así que el contrato nuevo decide también sobre
+  el alfabeto. Se implementa con los límites que la tabla del ADR fija —buffer de
+  lectura 64 KiB, 512 MiB totales, 32 768 entradas, 8 MiB por archivo, 200 bytes
+  por ruta, profundidad 16—, alfabeto ampliado solo a `()+,=@[]{}~` y el espacio,
+  y con cada rechazo (byte de control, byte no ASCII, `\`, `:`, componente
+  vacío, `.`, `..`, ruta absoluta) fijado por su propia prueba. Captura y
+  verificación son incrementales y no residencian el árbol ni el artifact; la
+  identidad es el digest, viaja en la provenance y una captura cuyo digest no es
+  el declarado se rechaza; enlaces y entradas no regulares se rechazan en vez de
+  saltarse; un árbol que cambia durante la captura la hace fallar; una captura
+  cancelada no deja residuo ni artifact a medias. Se aprovisiona con
+  `cargo-vendor capture --directory DIR --into DIR` y se declara al servidor con
+  `--vendor-capture PATH --vendor-capture-tree-sha256 sha256:<64-hex>`.
+  `rust.benchmark.run` la resuelve además del `CargoVendorSnapshot` de siempre,
+  que sigue funcionando sin cambios para todos los flujos que ya lo usan;
+  `SourceBundle`, `validate_source_path` y las cuotas de ADR-055 quedan
+  intactos. La calificación nativa de la ingesta en el guest **no** está hecha y
+  M5-01 sigue Blocked hasta que lo esté.
+
 - Implementadas `rust.benchmark.run`, `rust.benchmark.compare`,
   `rust.profile.flamegraph` y `rust.binary.bloat`, en ese orden después de las 27
   definiciones existentes; el inventario público pasa de 27 a 31. Los 27

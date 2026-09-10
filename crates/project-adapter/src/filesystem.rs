@@ -3,6 +3,8 @@ mod macos;
 
 #[cfg(target_os = "macos")]
 pub(crate) use macos::capture_cargo_vendor;
+#[cfg(target_os = "macos")]
+pub(crate) use macos::{capture_vendor_tree, verify_vendor_capture};
 
 #[cfg(target_os = "macos")]
 pub use macos::{

@@ -589,6 +589,62 @@ decidiría qué sources, linker y rustflags usaría la medición, y podría redi
 prueba nada sobre un proyecto que no lleva configuración, solo rechaza a los que
 sí la llevan.
 
+### La captura de vendor: autenticada en el host, no montada desde el host
+
+`rust.benchmark.run` puede resolver su harness desde una **captura de vendor**
+([ADR-078](adr/ADR-078-offline-vendor-capture.md)) en lugar de un
+`CargoVendorSnapshot`. Es un contrato distinto, con sus propios límites y su
+propio threat model, y no amplía el de `SourceBundle`: `validate_source_path` y
+las cuotas de ADR-055 siguen exactamente donde estaban, y todos los flujos M2/M4
+calificados que las comparten quedan intactos.
+
+Lo que la captura cambia, y por qué:
+
+- **Se captura, no se monta.** Montar de solo lectura un directorio mutable del
+  host no impide que otro proceso del host lo cambie mientras se usa, ni durante
+  la propia captura, y `.cargo-checksum.json` no protege frente a modificación
+  maliciosa por documentación explícita de Cargo. La autenticación ocurre en el
+  host, antes de que el guest vea nada, y el guest monta de solo lectura un
+  volumen construido a partir de la captura, nunca el directorio original.
+- **Identidad por digest.** El artifact se llama por su propio digest de árbol,
+  ese digest viaja como `vendor_fingerprint` en la provenance de la medición, y
+  una captura cuyo digest no coincide con el declarado se **rechaza**: no se usa
+  degradada. La verificación relee el artifact y recalcula ambos digests de forma
+  incremental, aplicando otra vez el alfabeto, el orden, la topología y todas las
+  cuotas, así que un artifact no puede colar una ruta o una entrada que la
+  captura habría rechazado.
+- **Alfabeto ampliado, y solo lo que el ADR amplía.** Se añaden `()+,=@[]{}~` y
+  el espacio, que es lo que un `.crate` publicado puede llevar legítimamente en
+  nombres de tests. Lo que sigue prohibido es lo que importa: ningún byte de
+  control, ningún byte no ASCII, ningún `\`, ninguna `:`, ningún componente
+  vacío, `.` o `..`, ninguna ruta absoluta. La razón por la que el alfabeto
+  existe —que una ruta no pueda expresar algo que el guest interprete como otra
+  cosa— se conserva entera, y cada rechazo tiene su prueba propia.
+- **Cuotas durante la lectura.** Tamaño por archivo, bytes totales, número de
+  entradas, bytes por ruta y profundidad se cobran en el punto de la lectura que
+  los cruza, nunca después, y una entrada por encima del techo se rechaza antes
+  de abrirse para leer.
+- **Enlaces y entradas no regulares: rechazo, no salto.** Un symlink, un hard
+  link (un inodo con más de un enlace), un dispositivo, un socket o un fifo hacen
+  fallar la captura.
+- **Un árbol que se mueve no se publica.** Cada archivo se sella antes y después
+  de leerse, cada directorio antes y después de enumerarse, y al cerrar se
+  reobservan todas las entradas a través de la autoridad original. Cualquier
+  diferencia hace fallar la captura.
+- **Cancelación sin residuo.** El artifact se escribe en un hermano `.partial` y
+  solo se renombra al nombre-digest cuando su digest ya se conoce; el borrado del
+  parcial es un `Drop`, no una rama, y el último checkpoint cooperativo está
+  *antes* del rename. Una captura interrumpida no deja nada que otra ejecución
+  pueda tomar por completa.
+- **Aprovisionamiento explícito.** La captura la produce `cargo-vendor capture`
+  fuera del runtime MCP. Ninguna tool captura por su cuenta como efecto
+  secundario de una medición, y no hay descarga en ningún punto.
+
+Ni la captura ni su verificación cargan el árbol ni el artifact en memoria: el
+estado de ambas es un buffer de lectura, una entrada abierta, una ruta anterior y
+una pila de directorios acotada por el límite de profundidad. La ingesta hacia el
+guest tampoco: el artifact se transmite al `tar` del contenedor buffer a buffer.
+
 ### La capability de profiling la concede el host, nunca el peer
 
 Profiling exige una capability positiva y explícita del host confiable

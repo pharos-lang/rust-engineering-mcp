@@ -21,13 +21,16 @@ use super::*;
 use crate::mutation_gateway::{
     MutationVolume, VOLUME_OPTIONS, absent, cleanup_until, labels, mutation_control,
     parse_volume_with_options, query_control, remove_if_present, running, start_attached,
+    start_attached_source,
 };
 use crate::rust_gateway::RustGateway;
+use rust_engineering_application::vendor_capture::{BenchmarkVendor, VerifiedVendorCapture};
 use rust_engineering_application::{InspectionError, ProjectError};
 use rust_engineering_domain::benchmark::BenchmarkSelection;
 use rust_engineering_domain::benchmark_run::HarnessDetection;
 use rust_engineering_domain::bloat::{BloatOptions, BloatProfile};
 use rust_engineering_domain::profile::ProfileOptions;
+use rust_engineering_domain::vendor_capture::VENDOR_CAPTURE_READ_BUFFER_BYTES;
 use rust_engineering_domain::{
     CargoVendorSnapshot, ExecutionFingerprint, ExecutionLimits, SourceBundle, SourceFile,
     SourceFingerprint,
@@ -1349,23 +1352,105 @@ fn revalidate(
     budget_error(deadline, cancel)
 }
 
+/// What the vendor ingest phase writes into the guest's `tar`.
+enum VendorIngest<'a> {
+    /// A `SourceBundle`-backed vendor, or the source and config archives:
+    /// small, owned and bounded by ADR-031, exactly as before ADR-078.
+    Bytes(Vec<u8>),
+    /// ADR-078's capture, streamed from the artifact the host verified. The
+    /// guest still receives a read-only volume built from these bytes, never
+    /// the host directory they were captured from (ADR-078 §1, §6).
+    Capture(&'a dyn VerifiedVendorCapture),
+}
+
+impl VendorIngest<'_> {
+    /// What stands for these bytes inside the execution fingerprint.
+    ///
+    /// An owned archive is hashed whole, so every pre-ADR-078 flow keeps the
+    /// fingerprint it had. A capture is never resident, so what is hashed is
+    /// the artifact digest the host already computed over exactly those bytes:
+    /// the same commitment, reached incrementally.
+    fn commitment(&self) -> &[u8] {
+        match self {
+            Self::Bytes(bytes) => bytes,
+            Self::Capture(capture) => capture.capture().artifact_digest().as_str().as_bytes(),
+        }
+    }
+}
+
+/// Pulls a verified capture into the supervisor one ADR-078 read buffer at a
+/// time. Its whole state is that buffer.
+struct CaptureSource<'a> {
+    capture: &'a dyn VerifiedVendorCapture,
+    buffer: Vec<u8>,
+    filled: usize,
+    position: usize,
+    ended: bool,
+}
+impl<'a> CaptureSource<'a> {
+    fn new(capture: &'a dyn VerifiedVendorCapture) -> Self {
+        Self {
+            capture,
+            buffer: vec![0; VENDOR_CAPTURE_READ_BUFFER_BYTES],
+            filled: 0,
+            position: 0,
+            ended: false,
+        }
+    }
+}
+impl crate::supervisor::InputSource for CaptureSource<'_> {
+    fn fill(&mut self) -> std::io::Result<&[u8]> {
+        if self.position == self.filled && !self.ended {
+            self.filled = self
+                .capture
+                .read(&mut self.buffer)
+                .map_err(std::io::Error::other)?;
+            self.position = 0;
+            if self.filled == 0 {
+                self.ended = true;
+            }
+        }
+        Ok(&self.buffer[self.position..self.filled])
+    }
+    fn consume(&mut self, count: usize) {
+        self.position = self.position.saturating_add(count).min(self.filled);
+    }
+}
+
 fn ingest(
     gateway: &RustGateway,
     request: &PhaseRequest<'_, '_>,
-    archive: &[u8],
+    archive: &VendorIngest<'_>,
     cancel: &dyn ExecutionCancellation,
 ) -> Result<(), PerformanceError> {
     create_phase(gateway, request, cancel)?;
     let capture = phase_result(
-        start_attached(
-            gateway,
-            request.name,
-            true,
-            archive,
-            request.deadline,
-            request.output_limit,
-            cancel,
-        ),
+        match archive {
+            VendorIngest::Bytes(bytes) => start_attached(
+                gateway,
+                request.name,
+                true,
+                bytes,
+                request.deadline,
+                request.output_limit,
+                cancel,
+            ),
+            // ADR-078 §5: the capture is streamed into `tar` one 64 KiB buffer
+            // at a time. Nothing here ever holds the artifact.
+            VendorIngest::Capture(capture) => {
+                capture.rewind().map_err(|_| ExecutionError::Denied)?;
+                let mut source = CaptureSource::new(*capture);
+                start_attached_source(
+                    gateway,
+                    request.name,
+                    &mut source,
+                    capture.capture().artifact_bytes(),
+                    request.deadline,
+                    request.output_limit,
+                    cancel,
+                )
+            }
+        },
         request.deadline,
         cancel,
     )?;
@@ -1781,7 +1866,7 @@ fn parse_uname(bytes: &[u8]) -> Option<String> {
 pub(super) fn execute_benchmark(
     gateway: &RustGateway,
     source: &SourceBundle,
-    vendor: &CargoVendorSnapshot,
+    vendor: BenchmarkVendor<'_>,
     selection: &BenchmarkSelection,
     run_count: u8,
     limits: ExecutionLimits,
@@ -1813,7 +1898,7 @@ pub(super) fn execute_profile(
     execute_operation(
         gateway,
         source,
-        vendor,
+        BenchmarkVendor::Snapshot(vendor),
         PerformanceOperation::Profile(options),
         limits,
         cancel,
@@ -1831,17 +1916,24 @@ pub(super) fn execute_bloat(
     execute_operation(
         gateway,
         source,
-        vendor,
+        BenchmarkVendor::Snapshot(vendor),
         PerformanceOperation::Bloat(options),
         limits,
         cancel,
     )
 }
 
-fn validate_vendor(vendor: &CargoVendorSnapshot) -> Result<(), PerformanceError> {
-    if crate::resolution_gateway::tree_fingerprint(&vendor.source)
+fn validate_vendor(vendor: &BenchmarkVendor<'_>) -> Result<(), PerformanceError> {
+    let Some(snapshot) = vendor.snapshot() else {
+        // A capture arrives already verified: `open_verified_capture` re-derived
+        // its tree digest from the artifact, incrementally, and refused it if it
+        // was not the declared one. Re-reading 512 MiB here to reach the same
+        // answer would be the residency ADR-078 §5 forbids.
+        return Ok(());
+    };
+    if crate::resolution_gateway::tree_fingerprint(&snapshot.source)
         .map_err(|_| PerformanceError::MissingOfflineData)?
-        != vendor.tree_fingerprint
+        != snapshot.tree_fingerprint
     {
         return Err(PerformanceError::MissingOfflineData);
     }
@@ -1928,7 +2020,7 @@ struct Work {
 fn execute_operation(
     gateway: &RustGateway,
     source: &SourceBundle,
-    vendor: &CargoVendorSnapshot,
+    vendor: BenchmarkVendor<'_>,
     operation: PerformanceOperation<'_>,
     limits: ExecutionLimits,
     cancel: &dyn ExecutionCancellation,
@@ -1946,10 +2038,15 @@ fn execute_operation(
     phase_result(gateway.approved_runtime(cancel), deadline, cancel)?;
     reject_project_cargo_configuration(source)?;
     budget_error(deadline, cancel)?;
-    validate_vendor(vendor)?;
+    validate_vendor(&vendor)?;
     let source_archive = crate::source_archive::encode(source)?;
     budget_error(deadline, cancel)?;
-    let vendor_archive = crate::source_archive::encode(&vendor.source)?;
+    let vendor_archive = match &vendor {
+        BenchmarkVendor::Snapshot(snapshot) => {
+            VendorIngest::Bytes(crate::source_archive::encode(&snapshot.source)?)
+        }
+        BenchmarkVendor::Capture(capture) => VendorIngest::Capture(*capture),
+    };
     budget_error(deadline, cancel)?;
     let config = config_archive()?;
     budget_error(deadline, cancel)?;
@@ -2086,9 +2183,15 @@ fn execute_operation(
 
         let mut removed: Vec<&str> = Vec::new();
         for (index, (phase, archive)) in [
-            (PerformancePhase::SourceIngest, &source_archive),
+            (
+                PerformancePhase::SourceIngest,
+                &VendorIngest::Bytes(source_archive.clone()),
+            ),
             (PerformancePhase::VendorIngest, &vendor_archive),
-            (PerformancePhase::ConfigIngest, &config),
+            (
+                PerformancePhase::ConfigIngest,
+                &VendorIngest::Bytes(config.clone()),
+            ),
         ]
         .into_iter()
         .enumerate()
@@ -2554,10 +2657,10 @@ fn execute_operation(
             operation,
             volumes: &volumes,
             source_archive: &source_archive,
-            vendor_archive: &vendor_archive,
+            vendor_archive: vendor_archive.commitment(),
             config_archive: &config,
             metadata: &work.metadata,
-            vendor_fingerprint: &vendor.tree_fingerprint,
+            vendor_fingerprint: vendor.tree_fingerprint(),
             limits,
             captures: &work.captures,
             artifacts: &work.artifacts,
@@ -2572,7 +2675,7 @@ fn execute_operation(
         bloat: work.bloat,
         execution_fingerprint,
         source_fingerprint: bytes_fingerprint(&source_archive)?,
-        vendor_fingerprint: vendor.tree_fingerprint.clone(),
+        vendor_fingerprint: vendor.tree_fingerprint().clone(),
     })
 }
 
@@ -4053,5 +4156,156 @@ mod tests {
         assert_eq!(APPLIED_CPU_MILLICORES, 1_000);
         assert_eq!(APPLIED_MEMORY_BYTES, 1_073_741_824);
         assert_eq!(APPLIED_PIDS, 128);
+    }
+}
+
+#[cfg(test)]
+#[allow(clippy::expect_used, clippy::unwrap_used)] // Fixed fixtures are malformed only by mistake; fail immediately.
+mod capture_ingest_tests {
+    //! What the vendor ingest does with ADR-078's capture, and what it still
+    //! does with everything else.
+    use super::*;
+    use crate::supervisor::InputSource;
+    use rust_engineering_application::vendor_capture::{
+        VendorCaptureAccess, VerifiedVendorCapture,
+    };
+    use rust_engineering_domain::vendor_capture::{
+        CaptureHasher, VendorCapture, VendorCaptureBuilder, VendorCaptureError,
+    };
+    use std::sync::Mutex;
+
+    struct Toy(u64);
+    impl CaptureHasher for Toy {
+        fn update(&mut self, bytes: &[u8]) {
+            for byte in bytes {
+                self.0 = (self.0 ^ u64::from(*byte)).wrapping_mul(0x0100_0000_01b3);
+            }
+        }
+        fn finish(self) -> Result<SourceFingerprint, VendorCaptureError> {
+            format!("sha256:{}", format!("{:016x}", self.0).repeat(4))
+                .parse()
+                .map_err(|_| VendorCaptureError::Invalid)
+        }
+    }
+
+    /// A capture that already passed verification, standing in for the one the
+    /// project adapter hands over.
+    struct Verified {
+        capture: VendorCapture,
+        artifact: Vec<u8>,
+        position: Mutex<usize>,
+    }
+    impl VerifiedVendorCapture for Verified {
+        fn capture(&self) -> &VendorCapture {
+            &self.capture
+        }
+        fn rewind(&self) -> Result<(), VendorCaptureAccess> {
+            *self.position.lock().map_err(|_| VendorCaptureAccess::Io)? = 0;
+            Ok(())
+        }
+        fn read(&self, buffer: &mut [u8]) -> Result<usize, VendorCaptureAccess> {
+            let mut position = self.position.lock().map_err(|_| VendorCaptureAccess::Io)?;
+            let take = buffer.len().min(self.artifact.len() - *position);
+            buffer[..take].copy_from_slice(&self.artifact[*position..*position + take]);
+            *position += take;
+            Ok(take)
+        }
+    }
+
+    /// One package, one source directory and one file large enough that the
+    /// stream is several read buffers rather than one.
+    fn verified() -> Verified {
+        let body = vec![b'x'; 200 * 1024];
+        let mut builder = VendorCaptureBuilder::new(Toy(0), Toy(0));
+        let mut artifact = Vec::new();
+        for directory in ["criterion-0.8.2", "criterion-0.8.2/src"] {
+            artifact.extend_from_slice(builder.directory(directory).unwrap().as_slice());
+        }
+        artifact.extend_from_slice(
+            builder
+                .begin_file("criterion-0.8.2/src/lib.rs", body.len() as u64)
+                .unwrap()
+                .as_slice(),
+        );
+        builder.chunk(&body).unwrap();
+        artifact.extend_from_slice(&body);
+        artifact.extend_from_slice(builder.end_file().unwrap().as_slice());
+        let (capture, trailer) = builder.finish().unwrap();
+        artifact.extend_from_slice(trailer.as_slice());
+        assert_eq!(capture.artifact_bytes() as usize, artifact.len());
+        Verified {
+            capture,
+            artifact,
+            position: Mutex::new(0),
+        }
+    }
+
+    #[test]
+    fn the_capture_reaches_the_ingest_whole_without_ever_being_resident() {
+        let verified = verified();
+        let mut source = CaptureSource::new(&verified);
+        let mut delivered = Vec::new();
+        loop {
+            let chunk = source.fill().expect("fill");
+            if chunk.is_empty() {
+                break;
+            }
+            assert!(
+                chunk.len() <= VENDOR_CAPTURE_READ_BUFFER_BYTES,
+                "the source never holds more than one ADR-078 read buffer"
+            );
+            let take = chunk.len().min(8192);
+            delivered.extend_from_slice(&chunk[..take]);
+            source.consume(take);
+        }
+        assert_eq!(delivered, verified.artifact);
+        assert_eq!(delivered.len() as u64, verified.capture.artifact_bytes());
+        assert_eq!(
+            source.buffer.len(),
+            VENDOR_CAPTURE_READ_BUFFER_BYTES,
+            "and its whole state is that buffer"
+        );
+    }
+
+    #[test]
+    fn rewinding_replays_the_same_artifact() {
+        let verified = verified();
+        let mut first = Vec::new();
+        let mut source = CaptureSource::new(&verified);
+        while let Ok(chunk) = source.fill() {
+            if chunk.is_empty() {
+                break;
+            }
+            let take = chunk.len();
+            first.extend_from_slice(chunk);
+            source.consume(take);
+        }
+        verified.rewind().expect("rewind");
+        let mut second = Vec::new();
+        let mut source = CaptureSource::new(&verified);
+        while let Ok(chunk) = source.fill() {
+            if chunk.is_empty() {
+                break;
+            }
+            let take = chunk.len();
+            second.extend_from_slice(chunk);
+            source.consume(take);
+        }
+        assert_eq!(first, second);
+    }
+
+    #[test]
+    fn the_fingerprint_commitment_is_the_bytes_for_a_snapshot_and_the_digest_for_a_capture() {
+        // Nothing changes for the flows that were already qualified: an owned
+        // archive still commits to its own bytes.
+        let bytes = VendorIngest::Bytes(vec![1, 2, 3]);
+        assert_eq!(bytes.commitment(), &[1, 2, 3]);
+        let verified = verified();
+        let capture = VendorIngest::Capture(&verified);
+        assert_eq!(
+            capture.commitment(),
+            verified.capture.artifact_digest().as_str().as_bytes()
+        );
+        assert_ne!(capture.commitment(), verified.artifact.as_slice());
     }
 }

@@ -9,15 +9,14 @@
 //! execution identity are all re-derived from what *we* asked for and compared
 //! against what the dataset claims, before a byte is published.
 use crate::security::{SecurityCapture, SecurityError};
+use crate::vendor_capture::BenchmarkVendor;
 use crate::{
     InspectionControl, InspectionError, ProjectRegistry, ProjectSourceBackend, QualityOwnerFacts,
     QualityProjectBackend, ReferenceGenerator, RegistryClock,
 };
 use rust_engineering_domain::benchmark::{APPROVED_CRITERION_VERSION, BenchmarkSelection};
 use rust_engineering_domain::benchmark_run::HarnessDetection;
-use rust_engineering_domain::{
-    CargoVendorSnapshot, Clock, ProjectRef, QualityArtifactDescriptor, SourceBundle,
-};
+use rust_engineering_domain::{Clock, ProjectRef, QualityArtifactDescriptor, SourceBundle};
 
 pub use rust_engineering_domain::benchmark_run::BenchmarkObservation;
 
@@ -192,11 +191,17 @@ impl BenchmarkRunOptions {
 /// Runs `cargo bench` over one owned source generation and one approved vendor
 /// tree. The implementation owns the containment, the frozen harness argv and
 /// the criterion output parsing; it never receives a host path from here.
+///
+/// The vendor tree arrives as a [`BenchmarkVendor`], not as a
+/// `CargoVendorSnapshot`, because ADR-078 gives a criterion-sized closure its
+/// own contract. Both arms are host-authenticated and neither is a host
+/// directory: what the implementation receives is owned bytes or a verified,
+/// replayable capture, never a path it could open.
 pub trait ProjectBenchmarkPort: Send + Sync {
     fn benchmark(
         &self,
         source: &SourceBundle,
-        vendor: &CargoVendorSnapshot,
+        vendor: BenchmarkVendor<'_>,
         options: &BenchmarkRunOptions,
         control: &dyn InspectionControl,
     ) -> Result<BenchmarkObservation, SecurityError>;
@@ -234,14 +239,14 @@ pub struct PublishedBenchmark {
 pub fn validate_benchmark_observation(
     observation: &BenchmarkObservation,
     options: &BenchmarkRunOptions,
-    vendor: &CargoVendorSnapshot,
+    vendor: &BenchmarkVendor<'_>,
 ) -> Result<(), SecurityError> {
     let selection = options.selection();
     if !observation.consistent()
         || observation.selection != selection
         || observation.runs_requested != options.run_count()
         || observation.runs_completed > observation.runs_requested
-        || observation.vendor_fingerprint != vendor.tree_fingerprint
+        || &observation.vendor_fingerprint != vendor.tree_fingerprint()
         || observation.runtime.execution_fingerprint != observation.execution_fingerprint
     {
         return Err(SecurityError::InvalidMetadata);
@@ -288,18 +293,24 @@ impl<B: ProjectSourceBackend + QualityProjectBackend, G: ReferenceGenerator, C: 
     pub fn benchmark_durable(
         &mut self,
         reference: &ProjectRef,
-        vendor: &CargoVendorSnapshot,
+        vendor: BenchmarkVendor<'_>,
         options: &BenchmarkRunOptions,
         ports: BenchmarkPorts<'_, impl ProjectBenchmarkPort, impl BenchmarkPublisher>,
         clock: &impl Clock,
         control: &dyn InspectionControl,
     ) -> Result<PublishedBenchmark, SecurityError> {
         let capture = self.capture_security(reference, clock, control)?;
-        let observation = ports
-            .executor
-            .benchmark(&capture.source, vendor, options, control)?;
+        let observation = ports.executor.benchmark(
+            &capture.source,
+            match &vendor {
+                BenchmarkVendor::Snapshot(snapshot) => BenchmarkVendor::Snapshot(snapshot),
+                BenchmarkVendor::Capture(capture) => BenchmarkVendor::Capture(*capture),
+            },
+            options,
+            control,
+        )?;
         control.check()?;
-        validate_benchmark_observation(&observation, options, vendor)?;
+        validate_benchmark_observation(&observation, options, &vendor)?;
         let mut revalidate = || {
             self.quality_owner_facts(reference, control)
                 .map_err(InspectionError::from)
@@ -342,11 +353,11 @@ pub(crate) mod tests {
     };
     use rust_engineering_domain::{
         ArtifactCompleteness, ArtifactPlugin, ArtifactRuntime, ArtifactSelection,
-        ArtifactSensitivity, ArtifactSource, CargoVendorPackage, ExecutionFingerprint,
-        ExecutionTermination, GuestArtifactName, PayloadFormatVersion, PluginIdentity,
-        ProjectIdentityFingerprint, QualityArtifactDraft, QualityArtifactId, QualityArtifactKind,
-        QualityJobId, QualityMimeType, RuntimeIdentity, SourceFile, SourceFingerprint, UnixSeconds,
-        UtcInstant,
+        ArtifactSensitivity, ArtifactSource, CargoVendorPackage, CargoVendorSnapshot,
+        ExecutionFingerprint, ExecutionTermination, GuestArtifactName, PayloadFormatVersion,
+        PluginIdentity, ProjectIdentityFingerprint, QualityArtifactDraft, QualityArtifactId,
+        QualityArtifactKind, QualityJobId, QualityMimeType, RuntimeIdentity, SourceFile,
+        SourceFingerprint, UnixSeconds, UtcInstant,
     };
     use std::sync::Arc;
     use std::sync::atomic::{AtomicBool, AtomicU64, AtomicUsize, Ordering};
@@ -746,7 +757,7 @@ pub(crate) mod tests {
         fn benchmark(
             &self,
             _: &SourceBundle,
-            _: &CargoVendorSnapshot,
+            _: BenchmarkVendor<'_>,
             _: &BenchmarkRunOptions,
             control: &dyn InspectionControl,
         ) -> Result<BenchmarkObservation, SecurityError> {
@@ -795,7 +806,7 @@ pub(crate) mod tests {
         let published = publisher.calls.clone();
         let result = registry.benchmark_durable(
             &opened.project_ref,
-            &vendor(),
+            BenchmarkVendor::Snapshot(&vendor()),
             options,
             BenchmarkPorts {
                 executor: &executor,
@@ -972,7 +983,11 @@ pub(crate) mod tests {
         // accepts it; the refusal is the application's publication rule.
         assert!(observed.consistent());
         assert_eq!(
-            validate_benchmark_observation(&observed, &options, &vendor()),
+            validate_benchmark_observation(
+                &observed,
+                &options,
+                &BenchmarkVendor::Snapshot(&vendor())
+            ),
             Err(SecurityError::InvalidMetadata)
         );
         let (result, published) = run(observed, &options);
@@ -990,7 +1005,11 @@ pub(crate) mod tests {
         observed.archive = None;
         observed.archive_omission = Some(DatasetOmission::OutputTooLarge);
         assert_eq!(
-            validate_benchmark_observation(&observed, &options, &vendor()),
+            validate_benchmark_observation(
+                &observed,
+                &options,
+                &BenchmarkVendor::Snapshot(&vendor())
+            ),
             Ok(())
         );
         let (result, published) = run(observed, &options);
@@ -1158,7 +1177,7 @@ pub(crate) mod tests {
         let result = {
             let outcome = registry.benchmark_durable(
                 &opened.project_ref,
-                &vendor(),
+                BenchmarkVendor::Snapshot(&vendor()),
                 &options,
                 BenchmarkPorts {
                     executor: &executor,
@@ -1171,7 +1190,7 @@ pub(crate) mod tests {
             revoked.store(true, Ordering::SeqCst);
             registry.benchmark_durable(
                 &opened.project_ref,
-                &vendor(),
+                BenchmarkVendor::Snapshot(&vendor()),
                 &options,
                 BenchmarkPorts {
                     executor: &executor,
@@ -1203,7 +1222,7 @@ pub(crate) mod tests {
         control.cancel();
         let result = registry.benchmark_durable(
             &opened.project_ref,
-            &vendor(),
+            BenchmarkVendor::Snapshot(&vendor()),
             &options,
             BenchmarkPorts {
                 executor: &executor,

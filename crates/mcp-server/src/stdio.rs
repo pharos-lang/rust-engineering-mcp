@@ -115,6 +115,18 @@ pub struct HostCargoVendorConfig {
     pub fingerprint: rust_engineering_domain::SourceFingerprint,
 }
 
+/// ADR-078: an offline vendor capture the host provisioned and declared.
+///
+/// It names an artifact and the tree digest that artifact must re-derive to,
+/// never a directory the guest could be pointed at: §1 refuses mounting a
+/// mutable host directory, and §2 refuses using a capture whose digest is not
+/// the declared one.
+#[derive(Clone)]
+pub struct HostVendorCaptureConfig {
+    pub artifact: PathBuf,
+    pub tree_digest: rust_engineering_domain::SourceFingerprint,
+}
+
 pub struct HostConfig {
     pub manifest_write_roots: Vec<PathBuf>,
     pub fmt_write_roots: Vec<PathBuf>,
@@ -122,6 +134,7 @@ pub struct HostConfig {
     pub dependency_add_roots: Vec<PathBuf>,
     pub dependency_remove_roots: Vec<PathBuf>,
     pub cargo_vendor: Option<HostCargoVendorConfig>,
+    pub vendor_capture: Option<HostVendorCaptureConfig>,
     pub profiling: Option<HostProfilingConfig>,
     pub catalog: Option<HostCatalogConfig>,
     pub audit: Option<HostAuditConfig>,
@@ -1075,6 +1088,7 @@ pub fn run(config: HostConfig) -> ExitCode {
             workers: workers.clone(),
             ready: Arc::clone(&ready),
             vendor: config.cargo_vendor.clone(),
+            capture: config.vendor_capture.clone(),
             executor: Some(benchmark_port),
             publisher: quality_runtime
                 .as_ref()

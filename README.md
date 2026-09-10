@@ -309,12 +309,27 @@ digest devuelve `unavailable` antes de crear contenedor alguno:
 --rust-image sha256:e0a5ca1661b3e49d0a3d68ee3cc0963453078d08eb7fc43c30538c16b7998aac
 ```
 
-`rust.benchmark.run` resuelve su harness **offline**, así que necesita el mismo
-par de vendor Cargo autenticado ya documentado arriba
-(`--cargo-vendor-dir` y `--cargo-vendor-tree-sha256`); sin él responde que faltan
-datos offline en lugar de descargar o sustituir el harness.
-`rust.profile.flamegraph` y `rust.binary.bloat` usan ese mismo árbol para
-construir el binario que miden.
+`rust.benchmark.run` resuelve su harness **offline**, así que necesita datos de
+vendor autenticados por el host. Admite dos formas y ninguna descarga nada:
+
+- el par de vendor Cargo ya documentado arriba (`--cargo-vendor-dir` y
+  `--cargo-vendor-tree-sha256`), suficiente para un harness pequeño;
+- una **captura de vendor** ([ADR-078](docs/adr/ADR-078-offline-vendor-capture.md)),
+  para un cierre grande como el de `criterion`, que no cabe en el contrato
+  `SourceBundle` ni por cuotas ni por alfabeto de rutas:
+
+```text
+--vendor-capture /ruta/absoluta/al/artifact
+--vendor-capture-tree-sha256 sha256:<64-hex>
+```
+
+También es un par obligatorio, también debe quedar fuera de las roots del
+proyecto, y el servidor **no captura nunca por su cuenta**: relee el artifact,
+recalcula su digest de forma incremental y lo rechaza si no coincide con el
+declarado. Cuando ambos están configurados manda la captura. Sin ninguno de los
+dos, la tool responde que faltan datos offline en lugar de descargar o sustituir
+el harness. `rust.profile.flamegraph` y `rust.binary.bloat` siguen usando el
+árbol `--cargo-vendor-dir` para construir el binario que miden.
 
 El profiling exige además una concesión explícita del host, con un único valor
 admitido:
@@ -500,7 +515,14 @@ admisión y `task` se rechaza. Véanse los
 La CLI de desarrollo `cargo-vendor inspect --directory /ruta/vendor --json`
 verifica un directory source preparado mediante
 `cargo vendor --locked --versioned-dirs /ruta/vendor`. Devuelve el fingerprint y
-los paquetes verificados, sin ejecutar Cargo ni descargar datos. El operador
+los paquetes verificados, sin ejecutar Cargo ni descargar datos.
+
+`cargo-vendor capture --directory /ruta/vendor --into /ruta/capturas --json`
+produce en cambio una captura ADR-078: lee el árbol de forma incremental, escribe
+un artifact inmutable cuyo nombre es su propio digest y devuelve ese digest, que
+es el valor de `--vendor-capture-tree-sha256`. Rechaza symlinks, hard links y
+cualquier entrada que no sea archivo o directorio regular, falla si el árbol
+cambia durante la captura y no deja residuo si se cancela. Tampoco descarga nada. El operador
 ejecuta ambos comandos de preparación fuera del runtime MCP; el servidor no hereda
 `CARGO_HOME`, no instala herramientas y no descarga crates. Esta fuente es opcional y no forma
 parte de la instalación de M1.

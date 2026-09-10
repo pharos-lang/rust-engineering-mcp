@@ -10,30 +10,54 @@ use std::{
     time::{Duration, Instant},
 };
 
-pub struct Invocation {
-    directory: PathBuf,
-    json: bool,
+pub enum Invocation {
+    /// The M2/M4 path: capture a `SourceBundle`-sized directory source and
+    /// report the fingerprint a host approves.
+    Inspect { directory: PathBuf, json: bool },
+    /// ADR-078 §3: provision a large vendor capture explicitly. It writes one
+    /// artifact named by its own digest and reports that digest; it downloads
+    /// nothing, and no measurement ever reaches this path.
+    Capture {
+        directory: PathBuf,
+        store: PathBuf,
+        json: bool,
+    },
 }
-pub fn parse(mut args: impl Iterator<Item = OsString>) -> Option<Invocation> {
-    if args.next()?.to_str()? != "inspect" {
+
+fn absolute(value: OsString) -> Option<PathBuf> {
+    let path = PathBuf::from(value);
+    if !path.is_absolute() || path.to_str().is_none() {
         return None;
     }
-    let (mut directory, mut json) = (None, false);
+    Some(path)
+}
+
+pub fn parse(mut args: impl Iterator<Item = OsString>) -> Option<Invocation> {
+    let subcommand = args.next()?.to_str()?.to_owned();
+    if !matches!(subcommand.as_str(), "inspect" | "capture") {
+        return None;
+    }
+    let (mut directory, mut store, mut json) = (None, None, false);
     while let Some(flag) = args.next() {
         match flag.to_str()? {
-            "--directory" if directory.is_none() => {
-                let path = PathBuf::from(args.next()?);
-                if !path.is_absolute() || path.to_str().is_none() {
-                    return None;
-                }
-                directory = Some(path);
+            "--directory" if directory.is_none() => directory = Some(absolute(args.next()?)?),
+            "--into" if store.is_none() && subcommand == "capture" => {
+                store = Some(absolute(args.next()?)?);
             }
             "--json" if !json => json = true,
             _ => return None,
         }
     }
-    Some(Invocation {
-        directory: directory?,
+    let directory = directory?;
+    if subcommand == "inspect" {
+        if store.is_some() {
+            return None;
+        }
+        return Some(Invocation::Inspect { directory, json });
+    }
+    Some(Invocation::Capture {
+        directory,
+        store: store?,
         json,
     })
 }
@@ -113,22 +137,88 @@ fn report(result: Result<CargoVendorSnapshot, ProjectError>) -> Report {
         },
     }
 }
+/// Capture, then read the published artifact back through the same verifier the
+/// server uses, and report `passed` only if it re-derives the declared digest.
+///
+/// ADR-078 §2 makes a capture whose digest is not the declared one a refusal.
+/// Applying that at the moment of provisioning is what lets the receipt mean
+/// "this artifact verifies" rather than "these bytes were written": the digest
+/// an operator is about to configure is one this binary already recovered from
+/// the artifact, incrementally, and not one it only computed while writing.
+fn capture_and_read_back(
+    directory: &std::path::Path,
+    store: &std::path::Path,
+    control: &Deadline,
+) -> Result<rust_engineering_domain::vendor_capture::VendorCapture, ProjectError> {
+    use rust_engineering_project::vendor_capture::{capture_artifact_name, open_verified_capture};
+    let captured =
+        rust_engineering_project::vendor_capture::capture_vendor_tree(directory, store, control)?;
+    let name = capture_artifact_name(captured.tree_digest()).ok_or(ProjectError::Internal)?;
+    let verified = open_verified_capture(&store.join(name), captured.tree_digest(), control)?;
+    if verified.capture() != &captured {
+        return Err(ProjectError::Rejected(OperationalErrorCode::InvalidProject));
+    }
+    Ok(captured)
+}
+
+/// The same receipt shape as `inspect`, so an operator reads one report.
+///
+/// `file_count` and `total_bytes` are the capture's own counts, and
+/// `tree_fingerprint` is the value the host configures as
+/// `--vendor-capture-tree-sha256`.
+fn capture_report(
+    result: Result<rust_engineering_domain::vendor_capture::VendorCapture, ProjectError>,
+) -> Report {
+    match result {
+        Ok(capture) => Report {
+            format_version: 1,
+            status: "passed",
+            error_code: None,
+            message: "Captured the vendor tree into an immutable artifact named by its digest, and read it back to the same digest; approve this exact fingerprint in host configuration",
+            tree_fingerprint: Some(capture.tree_digest().to_string()),
+            file_count: capture.files(),
+            total_bytes: usize::try_from(capture.total_bytes()).unwrap_or(usize::MAX),
+            packages: vec![],
+        },
+        Err(error) => report(Err(error)),
+    }
+}
+
 pub fn run(invocation: Invocation) -> ExitCode {
-    let result = rust_engineering_project::inspect_cargo_vendor(
-        &invocation.directory,
-        &Deadline(Instant::now() + Duration::from_secs(30)),
-    );
-    let report = report(result);
+    let (directory, store, json) = match invocation {
+        Invocation::Inspect { directory, json } => (directory, None, json),
+        Invocation::Capture {
+            directory,
+            store,
+            json,
+        } => (directory, Some(store), json),
+    };
+    // ADR-078 §4 projects 512 MiB to about 3,5 s of wall clock; the capture
+    // budget is the inspect budget, which is already an order of magnitude
+    // above that.
+    let control = Deadline(Instant::now() + Duration::from_secs(30));
+    let report = match &store {
+        Some(store) => capture_report(capture_and_read_back(&directory, store, &control)),
+        None => report(rust_engineering_project::inspect_cargo_vendor(
+            &directory, &control,
+        )),
+    };
     let code = u8::from(report.error_code.is_some());
-    let mut bytes = if invocation.json {
+    let mut bytes = if json {
         match serde_json::to_vec(&report) {
             Ok(bytes) => bytes,
             Err(_) => return ExitCode::FAILURE,
         }
     } else {
         let mut text = format!(
-            "cargo-vendor inspect: {}\n{}",
-            report.status, report.message
+            "cargo-vendor {}: {}\n{}",
+            if store.is_some() {
+                "capture"
+            } else {
+                "inspect"
+            },
+            report.status,
+            report.message
         );
         if let Some(hash) = &report.tree_fingerprint {
             use std::fmt::Write;
@@ -194,6 +284,60 @@ mod tests {
             vec!["inspect", "--directory", "relative"],
             vec!["inspect", "--directory", VENDOR_DIR, "--allow-network"],
             vec!["inspect", "--directory", VENDOR_DIR, "--json", "--json"],
+            // `--into` belongs to `capture`; `inspect` writes nothing.
+            vec!["inspect", "--directory", VENDOR_DIR, "--into", STORE_DIR],
+        ] {
+            assert!(parse(args.into_iter().map(OsString::from)).is_none());
+        }
+    }
+
+    #[cfg(not(windows))]
+    const STORE_DIR: &str = "/private/captures";
+    #[cfg(windows)]
+    const STORE_DIR: &str = r"C:\private\captures";
+
+    /// ADR-078 §3: capture is provisioning. It takes an explicit destination,
+    /// accepts no network flag, and is a subcommand rather than something a
+    /// measurement can reach.
+    #[test]
+    fn capture_requires_an_explicit_absolute_destination_and_nothing_else() {
+        for args in [
+            vec!["capture", "--directory", VENDOR_DIR, "--into", STORE_DIR],
+            vec![
+                "capture",
+                "--directory",
+                VENDOR_DIR,
+                "--into",
+                STORE_DIR,
+                "--json",
+            ],
+        ] {
+            assert!(matches!(
+                parse(args.into_iter().map(OsString::from)),
+                Some(Invocation::Capture { .. })
+            ));
+        }
+        for args in [
+            vec!["capture", "--directory", VENDOR_DIR],
+            vec!["capture", "--into", STORE_DIR],
+            vec!["capture", "--directory", VENDOR_DIR, "--into", "relative"],
+            vec![
+                "capture",
+                "--directory",
+                VENDOR_DIR,
+                "--into",
+                STORE_DIR,
+                "--allow-network",
+            ],
+            vec![
+                "capture",
+                "--directory",
+                VENDOR_DIR,
+                "--into",
+                STORE_DIR,
+                "--into",
+                STORE_DIR,
+            ],
         ] {
             assert!(parse(args.into_iter().map(OsString::from)).is_none());
         }

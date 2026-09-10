@@ -336,6 +336,17 @@ de datos offline (`SourceBundle`: 4 096 entradas, 16 MiB, 1 MiB por archivo).
 Los límites **no** se subieron; pertenecen al contrato calificado en M2/M4 y
 ampliarlos exigiría decisión y recalificación. [Detalle y opciones](validation/M5-01-blocker.json).
 
+El contrato separado que [ADR-078](adr/ADR-078-offline-vendor-capture.md) decide
+**ya está implementado**: tipo de dominio propio con los límites de la tabla del
+ADR, alfabeto ampliado solo a lo que el ADR admite, captura y verificación
+incrementales, identidad por digest, rechazo de enlaces y de un árbol que se
+mueve, limpieza sin residuo tras cancelación, provisión explícita
+(`cargo-vendor capture`) y `rust.benchmark.run` resolviendo su vendor desde una
+captura además de desde el `CargoVendorSnapshot` de siempre. Lo que **no** está
+hecho, y no cambia el estado Blocked, es la calificación nativa: ingerir la
+captura del cierre real en el guest exige Docker y bytes finales, y ese paso se
+ejecuta aparte. `SourceBundle` y `validate_source_path` quedan intactos.
+
 Sin tag, sin release, sin PR y sin push. M6 no está iniciado.
 [Matriz](validation/M5-matrix.md) · [Handoff](validation/M5-handoff.md).
 

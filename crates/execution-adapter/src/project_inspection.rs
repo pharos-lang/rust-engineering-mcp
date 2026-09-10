@@ -706,7 +706,7 @@ impl rust_engineering_application::benchmark::ProjectBenchmarkPort for RustProje
     fn benchmark(
         &self,
         source: &SourceBundle,
-        vendor: &rust_engineering_domain::CargoVendorSnapshot,
+        vendor: rust_engineering_application::vendor_capture::BenchmarkVendor<'_>,
         options: &rust_engineering_application::benchmark::BenchmarkRunOptions,
         control: &dyn InspectionControl,
     ) -> Result<

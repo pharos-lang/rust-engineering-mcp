@@ -394,6 +394,46 @@ pub(super) fn start_attached(
     )
 }
 
+/// The same attached start as [`start_attached`], fed by a source instead of a
+/// slice.
+///
+/// ADR-078 §5: a vendor capture is up to 512 MiB at rest and is streamed into
+/// the ingest container's `tar` one buffer at a time. `expected` is the byte
+/// count of an already verified capture, never a length a peer chose.
+pub(super) fn start_attached_source(
+    gateway: &RustGateway,
+    name: &str,
+    source: &mut dyn crate::supervisor::InputSource,
+    expected: u64,
+    deadline: Instant,
+    output_limit: usize,
+    cancel: &dyn ExecutionCancellation,
+) -> Result<Capture, ExecutionError> {
+    let mut command = DockerGateway::command(&gateway.inner.config, &gateway.inner.state)?;
+    command.args(["container", "start", "--attach", "--interactive", name]);
+    if cancel.is_cancelled() {
+        return Err(ExecutionError::Cancelled);
+    }
+    if deadline.saturating_duration_since(Instant::now()).is_zero() {
+        return Err(ExecutionError::Infrastructure);
+    }
+    fail_closed_state_change(
+        &gateway.inner.quarantined,
+        move || {
+            supervisor::run_with_source(
+                command,
+                deadline.saturating_duration_since(Instant::now()),
+                output_limit,
+                cancel,
+                source,
+                expected,
+            )
+            .map_err(|error| (error, true))
+        },
+        |_| true,
+    )
+}
+
 pub(super) fn running(
     gateway: &RustGateway,
     name: &str,

@@ -10,7 +10,7 @@
 #[allow(dead_code)]
 mod schemas;
 use super::{
-    HostCargoVendorConfig,
+    HostCargoVendorConfig, HostVendorCaptureConfig,
     clock::WallClock,
     nextest::ExecutionModeDto,
     project::Registry,
@@ -32,6 +32,7 @@ use rust_engineering_application::benchmark::{
     PublishedBenchmark,
 };
 use rust_engineering_application::security::SecurityError;
+use rust_engineering_application::vendor_capture::BenchmarkVendor;
 use rust_engineering_domain::benchmark::{
     BenchmarkDataset, BenchmarkMeasurement, BenchmarkSelection, MeasurementCompleteness,
     SamplingMode, Virtualization,
@@ -211,6 +212,10 @@ pub(super) struct Runtime {
     pub(super) workers: Workers,
     pub(super) ready: Arc<AtomicBool>,
     pub(super) vendor: Option<HostCargoVendorConfig>,
+    /// ADR-078's capture, when the host provisioned one. It takes precedence
+    /// over the directory source: a host that declared both meant the capture,
+    /// which is the only one of the two that can carry a criterion closure.
+    pub(super) capture: Option<HostVendorCaptureConfig>,
     pub(super) executor: Option<Arc<dyn ProjectBenchmarkPort>>,
     pub(super) publisher: Option<Arc<Mutex<dyn BenchmarkPublisher>>>,
 }
@@ -222,7 +227,7 @@ impl ProjectBenchmarkPort for DynExecutor<'_> {
     fn benchmark(
         &self,
         source: &rust_engineering_domain::SourceBundle,
-        vendor: &rust_engineering_domain::CargoVendorSnapshot,
+        vendor: rust_engineering_application::vendor_capture::BenchmarkVendor<'_>,
         options: &BenchmarkRunOptions,
         control: &dyn rust_engineering_application::InspectionControl,
     ) -> Result<BenchmarkObservation, SecurityError> {
@@ -287,13 +292,15 @@ impl BenchmarkTool {
                 0,
             );
         }
-        let Some(vendor) = runtime.vendor.clone() else {
+        let capture = runtime.capture.clone();
+        let vendor = runtime.vendor.clone();
+        if capture.is_none() && vendor.is_none() {
             return self.unavailable(
                 Code::MissingOfflineData,
                 "Host-authenticated offline vendor is required",
                 0,
             );
-        };
+        }
         let Some(publisher) = runtime.publisher.clone() else {
             return self.unavailable(
                 Code::ArtifactUnavailable,
@@ -316,7 +323,29 @@ impl BenchmarkTool {
             options.timeout_seconds(),
             "Benchmark worker unavailable",
             move |control| {
-                let vendor = capture_vendor(&vendor, control)?;
+                // Either arm is host-authenticated before the runtime sees a
+                // byte: the directory source by re-capture against the approved
+                // fingerprint, the capture by re-deriving its tree digest from
+                // the artifact and refusing it when it is not the declared one.
+                let opened;
+                let snapshot;
+                let resolved = match &capture {
+                    Some(config) => {
+                        opened = rust_engineering_project::vendor_capture::open_verified_capture(
+                            &config.artifact,
+                            &config.tree_digest,
+                            control,
+                        )?;
+                        BenchmarkVendor::Capture(&opened)
+                    }
+                    None => {
+                        let config = vendor
+                            .as_ref()
+                            .ok_or(SecurityError::Inspection(InspectionError::Internal))?;
+                        snapshot = capture_vendor(config, control)?;
+                        BenchmarkVendor::Snapshot(&snapshot)
+                    }
+                };
                 let executor = DynExecutor(executor.as_ref());
                 let mut published = publisher
                     .lock()
@@ -327,7 +356,7 @@ impl BenchmarkTool {
                     .map_err(|_| SecurityError::Inspection(InspectionError::Internal))?
                     .benchmark_durable(
                         &reference,
-                        &vendor,
+                        resolved,
                         &options,
                         BenchmarkPorts {
                             executor: &executor,
