@@ -122,3 +122,29 @@ El gate `full` conjunto —y con él la etapa `m5-runtime` dentro del conjunto�
 queda **bloqueado** hasta esa decisión. La feature `local` del producto
 (búsqueda semántica con LanceDB) tampoco compila en este HEAD; el binario por
 defecto no la incluye.
+
+### Sondas sobre las opciones para `lancedb 0.38.0` (2026-09-10, worktrees temporales, nada commiteado en Cargo)
+
+Recibos en [`closure-full-attempt-2/lancedb-0.38-probes/`](closure-full-attempt-2/lancedb-0.38-probes/).
+
+- **`cargo audit`** sobre el lock anterior a `a3cb48c` (0.31.0) y el actual
+  (0.38.0): idéntico —solo `paste` 1.0.15 no mantenido, permitido—. La subida no
+  corrigió ningún advisory.
+- **Opción 1, `remote`**: resuelve offline desde el índice en caché y añade 11
+  crates ([delta del lock](closure-full-attempt-2/lancedb-0.38-probes/option-1-remote-lock-delta.diff)),
+  entre ellos `axum` 0.7.9, `axum-core`, `matchit`, `tower-http` 0.5.2 (vía
+  `lance-namespace-impls/rest-adapter`), `urlencoding`, `system-configuration`,
+  `windows-registry`; 8 de los 11 `.crate` no están en caché. `deny.toml` prohíbe
+  la feature (`[[bans.features]] crate = "lancedb" deny = ["remote", …]`).
+- **Opción 3, parche `cfg` de dos brazos en `job.rs::decode`**
+  ([patch](closure-full-attempt-2/lancedb-0.38-probes/option-3-job-rs.patch)):
+  el adapter semántico **compila** contra la API 0.38.0
+  ([check](closure-full-attempt-2/lancedb-0.38-probes/option-3-cfg-patch-check.txt)),
+  pero **todas las pruebas que abren una tabla LanceDB fallan** bajo las
+  condiciones del gate semántico: `lance-io 11.0.0/src/spill.rs:233` «failed to
+  create temp directory for LocalSpillStore» con `TMPDIR` inexistente, incluida
+  la integración real `real_offline_e5_lance_sqlite_roundtrip`
+  ([salida](closure-full-attempt-2/lancedb-0.38-probes/option-3-semantic-tests-under-gate-conditions.txt)).
+  Es exactamente el segundo motivo por el que [ADR-027](../../adr/ADR-027-semantic-offline-foundation.md)
+  descartó 0.38.0/Lance 11: crea un spill store en disco aunque la base sea
+  `memory://`. Las opciones 1 y 3 comparten Lance 11 y por tanto este fallo.
