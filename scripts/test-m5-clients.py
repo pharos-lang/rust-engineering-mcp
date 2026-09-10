@@ -23,17 +23,27 @@ There are two gate modes, both closed by default:
     This mode needs the real Docker socket, the qualified image, an
     authenticated host cargo vendor tree and the host profiling grant, and it
     starts containers.  Every row in the receipt says which mode produced it.
+
+Two stock clients take part.  The MCP Inspector converts every planned row
+deterministically and reads every published Resource.  Claude Code, restricted
+to the configured server and to the MCP Resource tools, runs the two
+model-directed flows: the four declared refusals in the Docker-free mode, and
+in the runtime mode two measurements of its own, their comparison, a declared
+``NOT_A_DATASET`` refusal against one of its own non-dataset artifacts and a
+native read of that artifact as a Resource.  Codex is not used by this gate.
 """
 from __future__ import annotations
 
 import argparse
+import base64
+import binascii
 import importlib.util
 import json
 import os
 import pathlib
-import queue
 import re
 import shutil
+import signal
 import stat
 import subprocess
 import sys
@@ -44,12 +54,12 @@ ROOT = pathlib.Path(__file__).resolve().parents[1]
 M3_PATH = ROOT / "scripts/test-m3-clients.py"
 SESSION = ROOT / "scripts/m5-inspector-session.mjs"
 UNIT = ROOT / "scripts/test-m5-clients-unit.py"
-CONTROLLER = ROOT / "docs/validation/m1-17-codex-client/controller.py"
 ATTEMPTS = ROOT / "docs/validation/m5-clients"
 CURRENT = ROOT / "docs/validation/M5-clients.json"
 PREFLIGHT = ROOT / "docs/validation/M5-clients-preflight.json"
 SERVER = ROOT / "target/release/rust-engineering-mcp"
 NODE = pathlib.Path("/Users/cburgosro/.nvm/versions/node/v24.15.0/bin/node")
+CLAUDE = pathlib.Path("/Users/cburgosro/.local/bin/claude")
 INSPECTOR = ROOT / "target/m1-17-inspector/node_modules/@modelcontextprotocol/inspector/clients/cli/build/index.js"
 INSPECTOR_PACKAGE = ROOT / "target/m1-17-inspector/node_modules/@modelcontextprotocol/inspector/package.json"
 DOCKER = pathlib.Path("/Applications/Docker.app/Contents/Resources/bin/docker")
@@ -61,7 +71,18 @@ HOST_CONFIG = ROOT / "crates/mcp-server/src/host_config.rs"
 BENCHMARK_COMPARE_DOMAIN = ROOT / "crates/domain/src/benchmark_compare.rs"
 
 INSPECTOR_VERSION = "2.5.0"
-CODEX_VERSION = "codex-cli 0.153.0"
+# The stock agentic client.  Version and model are pinned: the session's own
+# `init` event must report both, and a fallback to another model is a failure.
+CLAUDE_VERSION = "2.1.267 (Claude Code)"
+CLAUDE_MODEL = "claude-sonnet-5"
+CLAUDE_EFFORT = "medium"
+CLAUDE_CLIENT = "claude-code"
+CLAUDE_SERVER = "rust_engineering"
+# The only built-ins the session keeps: native MCP Resource discovery and read.
+CLAUDE_RESOURCE_TOOLS = ("ListMcpResourcesTool", "ReadMcpResourceTool")
+# Claude Code's wall-clock bound per MCP tool call, in milliseconds.  A
+# synchronous measurement may legitimately take its whole 300 s budget.
+MCP_TOOL_TIMEOUT_MS = 900_000
 PROFILING_GRANT = "user-space-sampling"
 
 M3_TOOLS = (
@@ -388,7 +409,7 @@ SAFE_CALL_KEYS = frozenset({
     "artifacts_published", "artifacts_read",
     "request_bytes", "request_sha256", "response_bytes", "response_sha256",
 })
-CALL_CLIENTS = frozenset({"inspector", "codex-app-server"})
+CALL_CLIENTS = frozenset({"inspector"})
 CALL_SHAPES = frozenset({"positive", "negative"})
 CALL_MODES = frozenset({DOCKER_FREE, RUNTIME})
 CALL_STATUSES = frozenset({"passed", "failed", "blocked", "unavailable", "cancelled"})
@@ -407,7 +428,7 @@ def load_m3():
 
 def source_hashes() -> dict[str, str]:
     m3 = load_m3()
-    paths = (M3_PATH, pathlib.Path(__file__).resolve(), SESSION, UNIT, CONTROLLER)
+    paths = (M3_PATH, pathlib.Path(__file__).resolve(), SESSION, UNIT)
     return {str(path.relative_to(ROOT)): m3.file_digest(path) for path in paths if path.is_file()}
 
 
@@ -666,18 +687,34 @@ def client_versions() -> dict[str, object]:
     package_version = None
     if INSPECTOR_PACKAGE.is_file():
         package_version = json.loads(INSPECTOR_PACKAGE.read_text()).get("version")
-    codex_name = shutil.which("codex")
-    codex_version = None
-    if codex_name:
-        result = subprocess.run([codex_name, "--version"], capture_output=True,
-                                text=True, timeout=10, check=False)
-        codex_version = result.stdout.strip()
     return {
         "inspector": {"expected": INSPECTOR_VERSION, "observed": package_version,
                       "tasks": True, "resource": True},
-        "codex_app_server": {"expected": CODEX_VERSION, "observed": codex_version,
-                             "tasks": False, "resource": True},
+        "claude_code": {"expected": CLAUDE_VERSION, "observed": claude_version(),
+                        "model": CLAUDE_MODEL, "effort": CLAUDE_EFFORT,
+                        "tasks": False, "resource": True},
     }
+
+
+def claude_version() -> str | None:
+    if not CLAUDE.is_file():
+        return None
+    result = subprocess.run([str(CLAUDE), "--version"], capture_output=True,
+                            text=True, timeout=10, check=False)
+    return result.stdout.strip() or None
+
+
+def claude_logged_in() -> bool:
+    """`claude auth status` reads the installed login in place; nothing is copied."""
+    if not CLAUDE.is_file():
+        return False
+    result = subprocess.run([str(CLAUDE), "auth", "status"], capture_output=True,
+                            text=True, timeout=20, check=False)
+    try:
+        status = json.loads(result.stdout)
+    except json.JSONDecodeError:
+        return False
+    return result.returncode == 0 and isinstance(status, dict) and status.get("loggedIn") is True
 
 
 def runtime_preconditions(socket: str | None) -> dict[str, tuple[bool, str]]:
@@ -732,7 +769,6 @@ def direction_guard_evidence() -> dict[str, object]:
 
 def preconditions(versions: dict[str, object], with_runtime: bool,
                   socket: str | None) -> dict[str, dict[str, object]]:
-    codex_home = pathlib.Path(os.environ.get("CODEX_HOME", pathlib.Path.home() / ".codex"))
     checks: dict[str, tuple[bool, str]] = {
         "candidate_server_binary": (
             SERVER.is_file(),
@@ -748,13 +784,13 @@ def preconditions(versions: dict[str, object], with_runtime: bool,
             versions["inspector"]["observed"] == INSPECTOR_VERSION,
             f"the pinned Inspector must report {INSPECTOR_VERSION}",
         ),
-        "codex_binary": (shutil.which("codex") is not None, "stock Codex must be on PATH"),
-        "codex_version": (
-            versions["codex_app_server"]["observed"] == CODEX_VERSION,
-            f"stock Codex must report {CODEX_VERSION}",
+        "claude_binary": (CLAUDE.is_file(), "the pinned stock Claude Code executable must exist"),
+        "claude_version": (
+            versions["claude_code"]["observed"] == CLAUDE_VERSION,
+            f"stock Claude Code must report {CLAUDE_VERSION}",
         ),
-        "codex_auth": ((codex_home / "auth.json").is_file(), "stock Codex must be authenticated"),
-        "codex_controller": (CONTROLLER.is_file(), "the reusable app-server controller must exist"),
+        "claude_auth": (claude_logged_in(),
+                        "stock Claude Code must be logged in; no credential is copied"),
         "inspector_session": (SESSION.is_file(), "the M5 Inspector session driver must exist"),
         "docker_binary_present": (
             DOCKER.is_file(),
@@ -810,7 +846,7 @@ def preflight(with_runtime: bool = False, socket: str | None = None) -> dict[str
         "source_sha256": source_hashes(),
         "m3_reuse": ["proxy", "run_bounded", "digest", "file_digest", "save_json",
                      "protocol_summary", "assert_no_credentials", "find_values",
-                     "append_observation", "controller.py transport"],
+                     "append_observation"],
     }
 
 
@@ -1077,102 +1113,401 @@ def capture_dataset_id(row: dict[str, object], artifacts: list[dict[str, object]
     datasets[str(role)] = artifact_id
 
 
-def validate_model_resource_read(item: dict[str, object], expected_uri: str) -> None:
-    """Require a completed native Resource read of the session-issued URI."""
-    if (item.get("server") != "rust_engineering"
-            or item.get("tool") != "read_mcp_resource"
-            or item.get("arguments") != {"server": "rust_engineering", "uri": expected_uri}
+# -- model-directed flows through the stock Claude Code client ----------------
+#
+# Claude Code relays an MCP tool result as the server's own JSON text and sets
+# `is_error` from the server's `isError`; its two MCP Resource built-ins put
+# their structured outcome in the `user` event's `tool_use_result`.  The
+# normalizer below turns one stream-json transcript into a closed item shape,
+# so the two flow oracles read Claude exactly as strictly as any other client.
+
+def normalize_claude_tool(name: object) -> str:
+    """Map Claude's `mcp__<server>__<tool>` name back to the advertised tool."""
+    prefix = f"mcp__{CLAUDE_SERVER}__"
+    if not isinstance(name, str) or not name.startswith(prefix):
+        raise RuntimeError(f"Claude used a capability outside the configured server: {name}")
+    suffix = name.removeprefix(prefix)
+    for tool in EXPECTED_TOOLS:
+        if suffix in (tool, tool.replace(".", "_")):
+            return tool
+    raise RuntimeError(f"Claude called a tool the server does not advertise: {suffix}")
+
+
+def claude_structured_payload(content: object) -> dict[str, object] | None:
+    """The single JSON object carrying `status` that a relayed tool result is."""
+    texts: list[str] = []
+    if isinstance(content, str):
+        texts.append(content)
+    elif isinstance(content, list):
+        for block in content:
+            if (isinstance(block, dict) and block.get("type") == "text"
+                    and isinstance(block.get("text"), str)):
+                texts.append(block["text"])
+    candidates = []
+    for text in texts:
+        try:
+            parsed = json.loads(text.removeprefix("Error: "))
+        except json.JSONDecodeError:
+            continue
+        if isinstance(parsed, dict) and "status" in parsed:
+            candidates.append(parsed)
+    return candidates[0] if len(candidates) == 1 else None
+
+
+def claude_item(call: dict[str, object], result: dict[str, object]) -> dict[str, object]:
+    name = call["name"]
+    arguments = call["input"] if isinstance(call["input"], dict) else {}
+    failed = result["is_error"] is True
+    if name == "ListMcpResourcesTool":
+        listed = result["structured"]
+        return {
+            "type": "mcpToolCall", "server": arguments.get("server"),
+            "tool": "list_mcp_resources", "arguments": arguments,
+            "status": "failed" if failed or not isinstance(listed, list) else "completed",
+            "error": None,
+            "result": {"structuredContent": None,
+                       "resources": len(listed) if isinstance(listed, list) else None},
+        }
+    if name == "ReadMcpResourceTool":
+        structured = result["structured"] if isinstance(result["structured"], dict) else {}
+        contents = structured.get("contents")
+        error = structured.get("error")
+        content = ([{"type": "resource", "resource": entry}
+                    for entry in contents if isinstance(entry, dict)]
+                   if isinstance(contents, list) else [])
+        return {
+            "type": "mcpToolCall", "server": arguments.get("server"),
+            "tool": "read_mcp_resource", "arguments": arguments,
+            "status": "failed" if failed or error is not None or not content else "completed",
+            "error": error if isinstance(error, str) else None,
+            "result": {"structuredContent": None, "content": content},
+        }
+    return {
+        "type": "mcpToolCall", "server": CLAUDE_SERVER, "tool": normalize_claude_tool(name),
+        "arguments": arguments, "status": "failed" if failed else "completed", "error": None,
+        "result": {"structuredContent": claude_structured_payload(result["content"]),
+                   "isError": failed},
+    }
+
+
+def claude_items(events: list[object]) -> tuple[dict[str, object], list[dict[str, object]],
+                                                dict[str, object]]:
+    """(init event, tool items in call order, final result) of one transcript."""
+    init = None
+    final = None
+    calls: list[dict[str, object]] = []
+    by_id: dict[str, dict[str, object]] = {}
+    results: dict[str, dict[str, object]] = {}
+    for event in events:
+        if not isinstance(event, dict):
+            raise RuntimeError("Claude transcript carries a non-object event")
+        kind = event.get("type")
+        if kind == "system" and event.get("subtype") == "init":
+            if init is not None:
+                raise RuntimeError("Claude transcript carries two init events")
+            init = event
+        elif kind == "result":
+            if final is not None:
+                raise RuntimeError("Claude transcript carries two result events")
+            final = event
+        elif kind in {"assistant", "user"}:
+            message = event.get("message")
+            blocks = message.get("content") if isinstance(message, dict) else None
+            for block in blocks if isinstance(blocks, list) else []:
+                if not isinstance(block, dict):
+                    continue
+                if block.get("type") == "tool_use":
+                    identifier = block.get("id")
+                    if not isinstance(identifier, str) or identifier in by_id:
+                        raise RuntimeError("Claude tool_use identifier is duplicated or missing")
+                    call = {"id": identifier, "name": block.get("name"), "input": block.get("input")}
+                    calls.append(call)
+                    by_id[identifier] = call
+                elif block.get("type") == "tool_result":
+                    identifier = block.get("tool_use_id")
+                    if not isinstance(identifier, str) or identifier in results:
+                        raise RuntimeError("Claude tool_result identifier is duplicated or missing")
+                    results[identifier] = {"content": block.get("content"),
+                                           "is_error": block.get("is_error") is True,
+                                           "structured": event.get("tool_use_result")}
+    if init is None or final is None:
+        raise RuntimeError("Claude transcript lacks its init or result event")
+    if set(results) != set(by_id):
+        raise RuntimeError("Claude transcript has unmatched tool results")
+    return init, [claude_item(call, results[call["id"]]) for call in calls], final
+
+
+def validate_claude_session(init: dict[str, object], final: dict[str, object],
+                            events: list[object] = ()) -> dict[str, object]:
+    """Pinned client and model, only the configured server, a clean finish.
+
+    `modelUsage` legitimately lists the small auxiliary model Claude Code uses
+    beside the session model, so it cannot prove which model ran the turn. The
+    `model` of every `assistant` message can: each one must be the pinned model.
+    """
+    if init.get("model") != CLAUDE_MODEL:
+        raise RuntimeError(f"Claude resolved another model: {init.get('model')}")
+    message_models = []
+    for event in events:
+        if isinstance(event, dict) and event.get("type") == "assistant":
+            message = event.get("message")
+            message_models.append(message.get("model") if isinstance(message, dict) else None)
+    if not message_models or any(model != CLAUDE_MODEL for model in message_models):
+        raise RuntimeError("Claude turn carried a message from another model or none at all")
+    if init.get("claude_code_version") != CLAUDE_VERSION.split(" ")[0]:
+        raise RuntimeError(f"Claude ran another version: {init.get('claude_code_version')}")
+    servers = init.get("mcp_servers")
+    if (not isinstance(servers, list)
+            or [(server.get("name"), server.get("status")) if isinstance(server, dict) else None
+                for server in servers] != [(CLAUDE_SERVER, "connected")]):
+        raise RuntimeError("Claude did not connect to exactly the configured server")
+    tools = init.get("tools")
+    prefix = f"mcp__{CLAUDE_SERVER}__"
+    if (not isinstance(tools, list) or not tools
+            or any(not (tool in CLAUDE_RESOURCE_TOOLS
+                        or (isinstance(tool, str) and tool.startswith(prefix))) for tool in tools)):
+        raise RuntimeError("Claude session exposed a built-in capability the gate did not allow")
+    if final.get("subtype") != "success" or final.get("is_error") is True:
+        raise RuntimeError("Claude turn did not finish successfully")
+    if final.get("permission_denials"):
+        raise RuntimeError("Claude turn was denied a capability it tried to use")
+    usage = final.get("modelUsage")
+    if not isinstance(usage, dict) or CLAUDE_MODEL not in usage:
+        raise RuntimeError("Claude turn reports no usage for the pinned model")
+    return {
+        "resolved_model": init["model"],
+        "claude_code_version": init["claude_code_version"],
+        "observed_models": sorted(usage),
+        "assistant_messages": len(message_models),
+        "api_key_source": init.get("apiKeySource"),
+        "num_turns": final.get("num_turns"),
+        "duration_ms": final.get("duration_ms"),
+    }
+
+
+def opened_references(items: list[dict[str, object]],
+                      planned: frozenset[str]) -> dict[str, str]:
+    """Fixture name -> project_ref for every open; roots outside the plan are refused."""
+    roots = {str(ROOT / FIXTURES[name]): name for name in planned}
+    refs: dict[str, str] = {}
+    for item in items:
+        if item["tool"] != "rust.project.open":
+            continue
+        path = item["arguments"].get("path")
+        payload = item["result"].get("structuredContent")
+        if (item["arguments"] != {"path": path} or path not in roots
+                or item["status"] != "completed" or not isinstance(payload, dict)
+                or payload.get("status") != "passed"):
+            raise RuntimeError("Claude opened a root outside the plan or the open did not pass")
+        data = payload.get("data")
+        reference = data.get("project_ref") if isinstance(data, dict) else None
+        if not isinstance(reference, str) or not re.fullmatch(r"prj_[0-9a-f]{32}", reference):
+            raise RuntimeError("Claude open returned no project reference")
+        if roots[path] in refs:
+            raise RuntimeError("Claude model-directed flow retried or omitted a required call")
+        refs[roots[path]] = reference
+    return refs
+
+
+def resource_chunk_length(uri: str) -> int:
+    match = re.search(r"[?&]length=([1-9][0-9]*)$", uri)
+    if match is None:
+        raise RuntimeError("Resource URI declares no chunk length")
+    return int(match.group(1))
+
+
+def resource_content_evidence(resource: dict[str, object],
+                              descriptor: dict[str, object]) -> dict[str, object]:
+    """What the client really received, measured; a client-side note is not content.
+
+    Claude Code returns small text Resources inline, but writes a binary
+    Resource to a file of its own and puts a human note in `text` beside
+    `blobSavedTo`.  That note names the artifact without carrying it, so the
+    evidence here is the decoded blob, the saved file, or inline text of a
+    non-binary type — never the note — and its length must be the chunk's.
+    """
+    m3 = load_m3()
+    expected_bytes = resource_chunk_length(str(resource.get("uri")))
+    blob = resource.get("blob")
+    saved = resource.get("blobSavedTo")
+    text = resource.get("text")
+    mime = resource.get("mimeType")
+    if isinstance(blob, str) and blob:
+        try:
+            data = base64.b64decode(blob, validate=True)
+        except (binascii.Error, ValueError) as error:
+            raise RuntimeError("Claude model Resource blob is not base64") from error
+        evidence = {"kind": "blob", "bytes": len(data), "sha256": m3.digest(data)}
+    elif isinstance(saved, str) and saved:
+        path = pathlib.Path(saved)
+        if not path.is_file():
+            raise RuntimeError("Claude reported a saved Resource blob that does not exist")
+        data = path.read_bytes()
+        evidence = {"kind": "blob_saved_by_client", "bytes": len(data), "sha256": m3.digest(data)}
+    elif (isinstance(text, str) and text and isinstance(mime, str)
+            and not mime.startswith("application/octet-stream")):
+        data = text.encode()
+        evidence = {"kind": "text", "mime_type": mime, "bytes": len(data), "sha256": m3.digest(data)}
+    else:
+        raise RuntimeError("Claude model Resource read carried no content")
+    if evidence["bytes"] != expected_bytes:
+        raise RuntimeError("Claude model Resource content length is not the chunk it read")
+    # A chunk that covers the whole artifact must hash to the digest the
+    # server published with the descriptor; a prefix can only be measured.
+    evidence["whole_artifact"] = expected_bytes == descriptor.get("size_bytes")
+    if evidence["whole_artifact"] and evidence["sha256"] != descriptor.get("sha256"):
+        raise RuntimeError("Claude model Resource content does not hash to the published artifact")
+    return evidence
+
+
+def validate_model_resource_read(item: dict[str, object],
+                                 descriptor: dict[str, object]) -> dict[str, object]:
+    """Require one completed native read of the session-issued artifact, with content."""
+    expected_uri = str(descriptor.get("uri"))
+    if (item.get("server") != CLAUDE_SERVER or item.get("tool") != "read_mcp_resource"
+            or item.get("arguments") != {"server": CLAUDE_SERVER, "uri": expected_uri}
             or item.get("status") != "completed" or item.get("error") is not None):
-        raise RuntimeError("Codex model Resource read did not match the issued artifact")
+        raise RuntimeError("Claude model Resource read did not match the issued artifact")
     result = item.get("result")
     content = result.get("content") if isinstance(result, dict) else None
     if not isinstance(content, list) or len(content) != 1:
-        raise RuntimeError("Codex model Resource read carried no content")
+        raise RuntimeError("Claude model Resource read carried no content")
     block = content[0]
-    if not isinstance(block, dict) or block.get("type") not in {"text", "resource"}:
-        raise RuntimeError("Codex model Resource read carried an invalid content block")
-    if block["type"] == "resource":
-        resource = block.get("resource")
-        if (not isinstance(resource, dict) or resource.get("uri") != expected_uri
-                or not any(isinstance(resource.get(key), str) and resource[key]
-                           for key in ("text", "blob"))):
-            raise RuntimeError("Codex model Resource read returned another artifact")
-        return
-    try:
-        envelope = json.loads(block.get("text", ""))
-    except (TypeError, json.JSONDecodeError) as error:
-        raise RuntimeError("Codex model Resource envelope was invalid") from error
-    if (not isinstance(envelope, dict) or envelope.get("server") != "rust_engineering"
-            or envelope.get("uri") != expected_uri
-            or not isinstance(envelope.get("contents"), list)
-            or len(envelope["contents"]) != 1
-            or envelope["contents"][0].get("uri") != expected_uri
-            or not any(isinstance(envelope["contents"][0].get(key), str)
-                       and envelope["contents"][0][key]
-                       for key in ("text", "blob"))):
-        raise RuntimeError("Codex model Resource envelope did not match the issued artifact")
+    resource = block.get("resource") if isinstance(block, dict) else None
+    if not isinstance(resource, dict) or resource.get("uri") != expected_uri:
+        raise RuntimeError("Claude model Resource read returned another artifact")
+    return resource_content_evidence(resource, descriptor)
 
 
-def validate_runtime_model_flow(items: list[dict[str, object]], project_ref: str,
-                                baseline_id: str, candidate_id: str,
-                                non_dataset_id: str, resource_uri: str) -> dict[str, object]:
-    """Validate the exact model-directed G4 flow from completed native items."""
+def validate_docker_free_model_flow(items: list[dict[str, object]],
+                                    plan: list[dict[str, object]]) -> dict[str, object]:
+    """The four declared refusals, each exactly once with the planned arguments."""
     completed = [item for item in items if item.get("type") == "mcpToolCall"]
-    discoveries = [item for item in completed if item.get("tool") == "list_mcp_resources"]
-    comparisons = [item for item in completed if item.get("tool") == "rust.benchmark.compare"]
-    reads = [item for item in completed if item.get("tool") == "read_mcp_resource"]
-    if len(discoveries) != 1 or len(comparisons) != 2 or len(reads) != 1:
-        raise RuntimeError("Codex model-directed runtime flow retried or omitted a required call")
-    allowed = {"list_mcp_resources", "rust.benchmark.compare", "read_mcp_resource"}
-    if any(item.get("tool") not in allowed for item in completed):
-        raise RuntimeError("Codex model-directed runtime flow used another MCP capability")
+    allowed = {"rust.project.open", *M5_TOOLS}
+    if any(item["tool"] not in allowed for item in completed):
+        raise RuntimeError("Claude model-directed refusal flow used another MCP capability")
+    positive = {row["tool"]: row for row in plan
+                if row["shape"] == "positive" and row["mode"] == DOCKER_FREE}
+    if set(positive) != set(M5_TOOLS):
+        raise RuntimeError("Docker-free plan does not carry one positive row per M5 tool")
+    refs = opened_references(completed, frozenset(row["project"] for row in positive.values()))
+    opens = {}
+    for index, item in enumerate(completed):
+        if item["tool"] == "rust.project.open":
+            opens[item["arguments"]["path"]] = index
+    refusals = {}
+    for tool in M5_TOOLS:
+        calls = [item for item in completed if item["tool"] == tool]
+        if len(calls) != 1:
+            raise RuntimeError("Claude model-directed refusal flow retried or omitted a required call")
+        call = calls[0]
+        row = positive[tool]
+        reference = refs.get(row["project"])
+        if reference is None or completed.index(call) < opens[str(ROOT / FIXTURES[row["project"]])]:
+            raise RuntimeError(f"Claude called {tool} before opening its planned root")
+        if call["arguments"] != {"project_ref": reference, **row["arguments"]}:
+            raise RuntimeError(f"Claude {tool} call did not use the planned arguments")
+        payload = call["result"].get("structuredContent")
+        if not isinstance(payload, dict):
+            raise RuntimeError(f"Claude {tool} refusal carried no structured result")
+        observed = (payload.get("status"), payload.get("error_code"),
+                    call["result"].get("isError") is True)
+        expected = (row["expect_status"], row["expect_error_code"], row["expect_is_error"])
+        if observed != expected:
+            raise RuntimeError(f"Claude {tool} answered a result the plan does not declare")
+        refusals[tool] = {"status": observed[0], "error_code": observed[1]}
+    # Every open precedes every refusal.  The four refusals are independent
+    # declared results, each bound above to its own plan row and root, so their
+    # relative order is not a product fact and a client that batches them is
+    # not refused for it.
+    first_refusal = min(completed.index(item) for item in completed if item["tool"] in M5_TOOLS)
+    if max(opens.values()) > first_refusal:
+        raise RuntimeError("Claude model-directed refusal flow ran out of order")
+    return {"opened_roots": sorted(refs), "refusals": refusals}
 
+
+def validate_runtime_model_flow(items: list[dict[str, object]],
+                                plan: list[dict[str, object]]) -> dict[str, object]:
+    """Open, discover, measure twice, compare, be refused, read: exactly once each."""
+    completed = [item for item in items if item.get("type") == "mcpToolCall"]
+    allowed = {"rust.project.open", "list_mcp_resources", "rust.benchmark.run",
+               "rust.benchmark.compare", "read_mcp_resource"}
+    if any(item["tool"] not in allowed for item in completed):
+        raise RuntimeError("Claude model-directed runtime flow used another MCP capability")
+    refs = opened_references(completed, frozenset({"benchmark"}))
+    if set(refs) != {"benchmark"}:
+        raise RuntimeError("Claude model-directed runtime flow did not open exactly the benchmark root")
+    reference = refs["benchmark"]
+    rows = {row["fact_key"]: row for row in plan if row["mode"] == RUNTIME}
+    discoveries = [item for item in completed if item["tool"] == "list_mcp_resources"]
+    runs = [item for item in completed if item["tool"] == "rust.benchmark.run"]
+    comparisons = [item for item in completed if item["tool"] == "rust.benchmark.compare"]
+    reads = [item for item in completed if item["tool"] == "read_mcp_resource"]
+    if len(discoveries) != 1 or len(runs) != 2 or len(comparisons) != 2 or len(reads) != 1:
+        raise RuntimeError("Claude model-directed runtime flow retried or omitted a required call")
     discovery = discoveries[0]
-    expected_discovery_arguments = ({} if discovery.get("server") == "codex"
-                                    else {"server": "rust_engineering"})
-    if (discovery.get("server") not in {"codex", "rust_engineering"}
-            or discovery.get("arguments") != expected_discovery_arguments
+    if (discovery.get("server") != CLAUDE_SERVER
+            or discovery.get("arguments") != {"server": CLAUDE_SERVER}
             or discovery.get("status") != "completed" or discovery.get("error") is not None):
-        raise RuntimeError("Codex model Resource discovery was not completed")
+        raise RuntimeError("Claude model Resource discovery was not completed")
 
-    positive_arguments = {
-        "project_ref": project_ref,
-        "baseline_artifact_id": baseline_id,
-        "candidate_artifact_id": candidate_id,
-        "timeout_seconds": 30,
-    }
-    negative_arguments = {**positive_arguments, "candidate_artifact_id": non_dataset_id}
+    datasets: dict[str, str] = {}
+    other_artifacts: dict[str, dict[str, object]] = {}
+    for role, run in zip(("baseline", "candidate"), runs):
+        row = rows[f"benchmark_{role}"]
+        if run["arguments"] != {"project_ref": reference, **row["arguments"]}:
+            raise RuntimeError(f"Claude {role} measurement did not use the planned arguments")
+        payload = run["result"].get("structuredContent")
+        if (run["status"] != "completed" or not isinstance(payload, dict)
+                or payload.get("status") != row["expect_status"]
+                or payload.get("error_code") != row["expect_error_code"]):
+            raise RuntimeError(f"Claude {role} measurement did not pass")
+        checked = check_runtime_observation("Claude", row, payload)
+        capture_dataset_id(row, checked["artifacts"], datasets)
+        for artifact in checked["artifacts"]:
+            if artifact.get("kind") != "benchmark_dataset":
+                other_artifacts[artifact_id_from_uri(artifact["uri"])] = artifact
+    if not other_artifacts:
+        raise RuntimeError("Claude measurements published no artifact of another kind")
+
+    compare_row = rows["benchmark_compare"]
+    positive_arguments = {"project_ref": reference, **compare_row["arguments"],
+                          "baseline_artifact_id": datasets["baseline"],
+                          "candidate_artifact_id": datasets["candidate"]}
     positive, negative = comparisons
-    positive_payload = positive.get("result", {}).get("structuredContent", {}) \
-        if isinstance(positive.get("result"), dict) else {}
-    negative_payload = negative.get("result", {}).get("structuredContent", {}) \
-        if isinstance(negative.get("result"), dict) else {}
+    positive_payload = positive["result"].get("structuredContent")
     positive_data = positive_payload.get("data") if isinstance(positive_payload, dict) else None
-    if (positive.get("server") != "rust_engineering"
-            or positive.get("arguments") != positive_arguments
-            or positive.get("status") != "completed" or positive.get("error") is not None
-            or positive_payload.get("status") != "passed"
+    if (positive["arguments"] != positive_arguments or positive["status"] != "completed"
+            or not isinstance(positive_payload, dict) or positive_payload.get("status") != "passed"
             or not isinstance(positive_data, dict)
-            or positive_data.get("baseline_artifact_id") != baseline_id
-            or positive_data.get("candidate_artifact_id") != candidate_id):
-        raise RuntimeError("Codex model positive comparison was not observed")
-    if (negative.get("server") != "rust_engineering"
-            or negative.get("arguments") != negative_arguments
-            or negative.get("status") != "failed" or negative.get("error") is not None
+            or positive_data.get("baseline_artifact_id") != datasets["baseline"]
+            or positive_data.get("candidate_artifact_id") != datasets["candidate"]):
+        raise RuntimeError("Claude model positive comparison was not observed")
+    comparison = check_runtime_comparison("Claude", compare_row, positive_payload)["facts"]
+    negative_payload = negative["result"].get("structuredContent")
+    non_dataset = negative["arguments"].get("candidate_artifact_id")
+    if (non_dataset not in other_artifacts
+            or negative["arguments"] != {**positive_arguments, "candidate_artifact_id": non_dataset}
+            or negative["status"] != "failed" or not isinstance(negative_payload, dict)
             or negative_payload.get("status") != "blocked"
             or negative_payload.get("error_code") != "NOT_A_DATASET"):
-        raise RuntimeError("Codex model declared comparison failure was not observed")
-    validate_model_resource_read(reads[0], resource_uri)
+        raise RuntimeError("Claude model declared comparison failure was not observed")
+    resource_uri = str(other_artifacts[non_dataset]["uri"])
+    resource_content = validate_model_resource_read(reads[0], other_artifacts[non_dataset])
 
-    positions = [completed.index(discovery), completed.index(positive),
-                 completed.index(negative), completed.index(reads[0])]
+    positions = [completed.index(item) for item in (
+        next(item for item in completed if item["tool"] == "rust.project.open"),
+        discovery, runs[0], runs[1], positive, negative, reads[0])]
     if positions != sorted(positions):
-        raise RuntimeError("Codex model-directed runtime flow ran out of order")
+        raise RuntimeError("Claude model-directed runtime flow ran out of order")
     return {
         "discovery": "list_mcp_resources",
+        "measurements": 2,
         "positive": "rust.benchmark.compare",
+        "comparison": comparison,
         "failure": "NOT_A_DATASET",
         "resource_uri_sha256": load_m3().digest(resource_uri.encode()),
+        "resource_content": resource_content,
     }
 
 
@@ -1268,238 +1603,225 @@ def check_runtime_observation(client: str, row: dict[str, object],
     return {"artifacts": artifacts, "facts": facts}
 
 
-def codex_gate(attempt: pathlib.Path, mode: str, argv: list[str],
-               plan: list[dict[str, object]], codex: pathlib.Path,
-               model_turn: bool, call_timeout: int) -> dict[str, object]:
-    """Stock app-server conversion gate; no Tasks calls and no auth copy."""
+CLAUDE_SYSTEM_PROMPT = (
+    "You are a bounded third-party MCP client qualifier. Use only the explicitly "
+    "configured Rust Engineering MCP server and the MCP Resource tools. Perform the "
+    "requested steps exactly once each, in the given order, never retry a call even "
+    "when it is refused, and finish with a short account of every returned status."
+)
+
+
+def project_root(name: str) -> str:
+    return str(ROOT / FIXTURES[name])
+
+
+def render_arguments(arguments: dict[str, object]) -> str:
+    return ", ".join(f"{key} {json.dumps(value)}" for key, value in arguments.items())
+
+
+def claude_prompt(mode: str, plan: list[dict[str, object]]) -> str:
+    """Prompts are rendered from the plan rows, never written by hand."""
+    if mode == DOCKER_FREE:
+        positive = {row["tool"]: row for row in plan if row["shape"] == "positive"}
+        roots = dict.fromkeys(positive[tool]["project"] for tool in M5_TOOLS)
+        lines = [
+            "Use only the configured Rust Engineering MCP server. Perform these steps exactly "
+            "once each, in order, and do not retry any call even if it is refused: every "
+            "refusal here is an expected, declared result.",
+            "(1) Call rust.project.open once for each of these roots and keep every returned "
+            "data.project_ref: " + "; ".join(f"{name} root {project_root(name)}" for name in roots) + ".",
+        ]
+        for index, tool in enumerate(M5_TOOLS, start=2):
+            row = positive[tool]
+            lines.append(f"({index}) Call {tool} with project_ref = the reference returned for "
+                         f"the {row['project']} root, {render_arguments(row['arguments'])}.")
+        lines.append(f"({len(M5_TOOLS) + 2}) Report the status and error_code of every call "
+                     "exactly as returned. Do not call any other capability.")
+        return " ".join(lines)
+    rows = {row["fact_key"]: row for row in plan}
+    baseline = rows["benchmark_baseline"]
+    compare = rows["benchmark_compare"]
+    return " ".join([
+        "Use only the configured Rust Engineering MCP server and the MCP Resource tools. "
+        "Perform these steps exactly once each, in order, without retrying any call.",
+        f"(1) Call rust.project.open with path {project_root('benchmark')}; keep data.project_ref "
+        "and use it as project_ref in every later call.",
+        f"(2) List the MCP resources of server {CLAUDE_SERVER} with ListMcpResourcesTool.",
+        f"(3) Call rust.benchmark.run with {render_arguments(baseline['arguments'])}; this real "
+        "measurement may take several minutes, wait for it. From its data.artifacts keep the "
+        "artifact of kind benchmark_dataset as BASELINE (its identifier is the qart_ segment of "
+        "its uri, without the query string), and keep the artifact of kind criterion_archive: "
+        "its full uri as ARCHIVE_URI and its qart_ identifier as ARCHIVE_ID.",
+        "(4) Call rust.benchmark.run again with exactly the same arguments and keep its "
+        "benchmark_dataset identifier as CANDIDATE.",
+        f"(5) Call rust.benchmark.compare with {render_arguments(compare['arguments'])}, "
+        "baseline_artifact_id BASELINE and candidate_artifact_id CANDIDATE; this is the "
+        "positive comparison.",
+        f"(6) Call rust.benchmark.compare again with {render_arguments(compare['arguments'])}, "
+        "baseline_artifact_id BASELINE and candidate_artifact_id ARCHIVE_ID; that artifact has "
+        "another kind and must return the declared NOT_A_DATASET refusal.",
+        f"(7) Read ARCHIVE_URI from server {CLAUDE_SERVER} with ReadMcpResourceTool.",
+        "(8) Report the status, error_code and every comparison verdict exactly as returned. "
+        "Do not call any other capability.",
+    ])
+
+
+CREDENTIAL_TEXT = (b"authorization", b"access_token", b"refresh_token", b"auth.json",
+                   b"sk-ant-", b"bearer ")
+
+
+def assert_no_credential_text(path: pathlib.Path) -> None:
+    """Raw client output is staged as evidence only if nothing in it is credential-shaped."""
+    encoded = path.read_bytes().lower()
+    found = sorted(needle.decode() for needle in CREDENTIAL_TEXT if needle in encoded)
+    if found:
+        raise RuntimeError(f"credential-shaped text in {path.name}: " + ", ".join(found))
+
+
+def client_home_residue(cwd: pathlib.Path) -> dict[str, object]:
+    """What Claude Code left under its own home for this private working directory.
+
+    `--no-session-persistence` keeps the conversation out of the resumable
+    session list, but the client still writes tool results it saved to disk
+    (a binary Resource, for instance) under `~/.claude/projects/<cwd slug>/`.
+    The receipt states what was found; the harness then removes that directory
+    because it exists only for this run's throwaway cwd.
+    """
+    m3 = load_m3()
+    slug = re.sub(r"[^A-Za-z0-9]", "-", str(cwd))
+    directory = pathlib.Path.home() / ".claude" / "projects" / slug
+    residue = {"directory_sha256": m3.digest(str(directory).encode()),
+               "present": directory.is_dir(), "files": 0, "transcripts": 0, "removed": False}
+    if directory.is_dir():
+        files = [path for path in directory.rglob("*") if path.is_file()]
+        residue["files"] = len(files)
+        residue["transcripts"] = sum(1 for path in files if path.suffix == ".jsonl")
+        shutil.rmtree(directory, ignore_errors=True)
+        residue["removed"] = not directory.exists()
+    return residue
+
+
+def claude_environment(private: pathlib.Path) -> dict[str, str]:
+    # Claude's installed login is read in place by the CLI; restricted mode,
+    # empty setting sources, strict MCP config and no other built-ins keep that
+    # account home out of the model's workspace.  Nothing is copied.
+    environment = {
+        "HOME": os.environ["HOME"],
+        "PATH": "/Users/cburgosro/.local/bin:/usr/bin:/bin:/usr/sbin:/sbin",
+        "TMPDIR": str(private / "tmp"),
+        "LANG": "en_US.UTF-8",
+        "MCP_TOOL_TIMEOUT": str(MCP_TOOL_TIMEOUT_MS),
+    }
+    for name in ("USER", "LOGNAME", "SHELL"):
+        if name in os.environ:
+            environment[name] = os.environ[name]
+    return environment
+
+
+def run_claude(argv: list[str], cwd: pathlib.Path, environment: dict[str, str],
+               timeout: int) -> dict[str, object]:
+    started = time.monotonic()
+    child = subprocess.Popen(argv, cwd=cwd, env=environment, stdin=subprocess.DEVNULL,
+                             stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                             start_new_session=True)
+    timed_out = False
+    try:
+        stdout, stderr = child.communicate(timeout=timeout)
+    except subprocess.TimeoutExpired:
+        timed_out = True
+        try:
+            os.killpg(child.pid, signal.SIGKILL)
+        except ProcessLookupError:
+            pass
+        stdout, stderr = child.communicate()
+    return {"exit_code": child.returncode, "stdout": stdout, "stderr": stderr,
+            "timed_out": timed_out, "duration_seconds": round(time.monotonic() - started, 3)}
+
+
+def claude_gate(attempt: pathlib.Path, mode: str, argv: list[str],
+                plan: list[dict[str, object]], timeout: int) -> dict[str, object]:
+    """One model-directed turn of the stock Claude Code client; no credential copy."""
     m3 = load_m3()
     observation = attempt / "protocol.jsonl"
     state = pathlib.Path(argv[argv.index("--state-root") + 1])
     state.mkdir(mode=0o700, parents=True, exist_ok=True)
-    spec = importlib.util.spec_from_file_location("m5_codex_controller", CONTROLLER)
-    if spec is None or spec.loader is None:
-        raise RuntimeError("Codex controller unavailable")
-    controller = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(controller)
-    controller.TOOLS = EXPECTED_TOOLS
-    controller.DISABLED_HOST_SERVERS = ()
-    base = controller.overrides
-
-    def overrides(plan_values):
-        values = base(plan_values)
-        values["features.code_mode_host"] = True
-        values["features.mcp_2026_07_28"] = True
-        values["features.skip_host_skill_discovery"] = True
-        return values
-
-    controller.overrides = overrides
     proxy = [sys.executable, str(pathlib.Path(__file__).resolve()), "proxy",
-             "--client", "codex-app-server", "--observation", str(observation),
+             "--client", CLAUDE_CLIENT, "--observation", str(observation),
              "--server-argv-json", json.dumps(argv, separators=(",", ":"))]
-    invocation = {"codex": str(codex), "server_binary": proxy[0], "server_args": proxy[1:],
-                  "model": "gpt-5.6-sol", "effort": "medium"}
-    source_home = pathlib.Path(os.environ.get("CODEX_HOME", pathlib.Path.home() / ".codex"))
-    auth = source_home / "auth.json"
-    private = pathlib.Path(tempfile.mkdtemp(prefix="rust-mcp-m5-codex-", dir="/private/tmp"))
+    private = pathlib.Path(tempfile.mkdtemp(prefix="rust-mcp-m5-claude-", dir="/private/tmp"))
     os.chmod(private, 0o700)
-    if not auth.is_file():
-        shutil.rmtree(private, ignore_errors=True)
-        raise RuntimeError("Codex auth unavailable")
-    # A symlink, never a copy: no credential byte is duplicated for this gate.
-    os.symlink(auth, private / "auth.json")
-    previous = os.environ.get("CODEX_HOME")
-    os.environ["CODEX_HOME"] = str(private)
-    transport = None
+    events_path = attempt / f"claude-{mode}-model-events.jsonl"
+    stderr_path = attempt / f"claude-{mode}-model.stderr"
     try:
-        transport = controller.Transport(controller.command(invocation), attempt)
-        controller.init(transport, attempt)
-        started = controller.thread_start(transport, invocation, attempt)
-        thread = started.get("thread", {}).get("id")
-        if not isinstance(thread, str):
-            raise RuntimeError("Codex thread missing")
-
-        def call(name, arguments, timeout):
-            value = transport.rpc("mcpServer/tool/call", {
-                "threadId": thread, "server": "rust_engineering",
-                "tool": name, "arguments": arguments}, timeout)
-            if not isinstance(value, dict):
-                raise RuntimeError(f"Codex conversion failed for {name}")
-            return value
-
-        refs = {}
-        for name, path in FIXTURES.items():
-            opened = call("rust.project.open", {"path": str(ROOT / path)}, 60)
-            found = {value for value in m3.find_values(opened, "project_ref") if isinstance(value, str)}
-            if len(found) != 1:
-                raise RuntimeError(f"Codex ProjectRef ambiguous for {name}")
-            refs[name] = found.pop()
-        rows = []
-        facts = {}
-        datasets = {}
-        refusal_uris = set()
-        resources_read = 0
-        model_resource_uri = None
-        model_non_dataset_id = None
-        for row in plan:
-            reference = UNKNOWN_PROJECT_REF if row["project"] is None else refs[row["project"]]
-            arguments = materialize_arguments(row, reference, datasets)
-            result = call(row["tool"], arguments, call_timeout)
-            structured = result.get("structuredContent")
-            label = f"Codex {row['tool']} {row['mode']} {row['shape']}"
-            if not isinstance(structured, dict):
-                raise RuntimeError(f"{label} carried no structured result")
-            if structured.get("status") != row["expect_status"]:
-                raise RuntimeError(f"{label} status was not preserved")
-            if structured.get("error_code") != row["expect_error_code"]:
-                raise RuntimeError(f"{label} error code was not preserved")
-            if bool(result.get("isError")) is not row["expect_is_error"]:
-                raise RuntimeError(f"{label} isError was not preserved")
-            published = 0
-            read = 0
-            if row["mode"] == RUNTIME:
-                checked = check_runtime_result("Codex", row, structured)
-                if row["tool"] == "rust.benchmark.compare" and (
-                        structured.get("data", {}).get("baseline_artifact_id")
-                        != arguments["baseline_artifact_id"]
-                        or structured.get("data", {}).get("candidate_artifact_id")
-                        != arguments["candidate_artifact_id"]):
-                    raise RuntimeError("Codex comparison did not echo the consumed datasets")
-                published = len(checked["artifacts"])
-                for artifact in checked["artifacts"]:
-                    controller.validate_resource(transport.rpc("mcpServer/resource/read", {
-                        "threadId": thread, "server": "rust_engineering",
-                        "uri": artifact["uri"]}, 120))
-                    read += 1
-                    if (row["tool"] == "rust.benchmark.run"
-                            and artifact.get("kind") == "criterion_archive"
-                            and model_resource_uri is None):
-                        model_resource_uri = artifact["uri"]
-                        model_non_dataset_id = artifact_id_from_uri(artifact["uri"])
-                resources_read += read
-                capture_dataset_id(row, checked["artifacts"], datasets)
-                facts[row["fact_key"]] = {**checked["facts"], "artifacts_read": read}
-            else:
-                refusal_uris.update(
-                    value for value in m3.find_values(result, "uri")
-                    if isinstance(value, str) and value.startswith("rust-quality-artifact://"))
-            request = measure(m3, arguments)
-            response = measure(m3, result)
-            rows.append({
-                "client": "codex-app-server", "tool": row["tool"], "shape": row["shape"],
-                "mode": row["mode"], "status": structured["status"],
-                "error_code": structured.get("error_code"),
-                "is_error": bool(result.get("isError")),
-                "artifacts_published": published, "artifacts_read": read,
-                "request_bytes": request["bytes"], "request_sha256": request["sha256"],
-                "response_bytes": response["bytes"], "response_sha256": response["sha256"],
-            })
-        for uri in sorted(refusal_uris):
-            controller.validate_resource(transport.rpc("mcpServer/resource/read", {
-                "threadId": thread, "server": "rust_engineering", "uri": uri}, 60))
-            resources_read += 1
-        missing_refused = False
-        if resources_read == 0:
+        for child in ("cwd", "tmp"):
+            (private / child).mkdir(mode=0o700)
+        config = private / "mcp.json"
+        m3.save_json(config, {"mcpServers": {CLAUDE_SERVER: {
+            "command": proxy[0], "args": proxy[1:], "env": {}}}}, exclusive=True)
+        prompt = claude_prompt(mode, plan)
+        claude_argv = [
+            str(CLAUDE), "--print", "--output-format", "stream-json", "--verbose",
+            "--model", CLAUDE_MODEL, "--effort", CLAUDE_EFFORT, "--no-session-persistence",
+            "--restricted", "--setting-sources", "", "--strict-mcp-config",
+            "--mcp-config", str(config), "--disable-slash-commands", "--no-chrome",
+            "--tools", ",".join(CLAUDE_RESOURCE_TOOLS),
+            "--allowedTools", ",".join((f"mcp__{CLAUDE_SERVER}", *CLAUDE_RESOURCE_TOOLS)),
+            "--permission-mode", "dontAsk", "--permission-prompts", "none",
+            "--max-turns", "24", "--system-prompt", CLAUDE_SYSTEM_PROMPT, prompt,
+        ]
+        outcome = run_claude(claude_argv, private / "cwd", claude_environment(private), timeout)
+        events_path.write_bytes(outcome["stdout"])
+        stderr_path.write_bytes(outcome["stderr"])
+        assert_no_credential_text(events_path)
+        assert_no_credential_text(stderr_path)
+        if outcome["timed_out"] or outcome["exit_code"] != 0:
+            raise RuntimeError(f"Claude {mode} turn failed: exit {outcome['exit_code']}, "
+                               f"timed_out={outcome['timed_out']}")
+        events = []
+        for number, line in enumerate(outcome["stdout"].splitlines(), start=1):
+            if not line.strip():
+                continue
             try:
-                resource = transport.rpc("mcpServer/resource/read", {
-                    "threadId": thread, "server": "rust_engineering",
-                    "uri": MISSING_RESOURCE_URI}, 60)
-                missing_refused = isinstance(resource, dict) and (
-                    resource.get("isError") is True or resource.get("error") is not None)
-            except RuntimeError:
-                missing_refused = True
-            if not missing_refused:
-                raise RuntimeError("Codex missing-Resource oracle was not observed")
-
-        result_row: dict[str, object] = {
-            "mode": mode, "version": CODEX_VERSION, "model": "gpt-5.6-sol", "effort": "medium",
-            "tasks_declared": False, "auth_copy": False,
-            "task_cancel": "not supported by stock client",
+                events.append(json.loads(line))
+            except json.JSONDecodeError as error:
+                raise RuntimeError(f"Claude {mode} transcript line {number} is not JSON") from error
+        init, items, final = claude_items(events)
+        session = validate_claude_session(init, final, events)
+        if mode == RUNTIME:
+            flow = validate_runtime_model_flow(items, plan)
+            resources_read = 1
+        else:
+            flow = validate_docker_free_model_flow(items, plan)
+            resources_read = 0
+        # Derived, not asserted: nothing credential-shaped may exist in the
+        # private directory this gate created, and whatever the client wrote
+        # under its own home for this cwd is counted and removed.
+        m3.assert_no_credentials(private)
+        residue = client_home_residue(private / "cwd")
+        return {
+            "mode": mode, "client": CLAUDE_CLIENT, "version": CLAUDE_VERSION,
+            "model": CLAUDE_MODEL, "effort": CLAUDE_EFFORT,
+            "executable_sha256": m3.file_digest(CLAUDE),
+            "tasks_declared": False, "credentials_copied": False,
+            "private_directory_credential_scan": "clean",
+            "session_persistence_flag": "--no-session-persistence",
+            "client_home_residue": residue,
+            "builtins": list(CLAUDE_RESOURCE_TOOLS),
+            "mcp_tool_timeout_ms": MCP_TOOL_TIMEOUT_MS,
+            "prompt_sha256": m3.digest(prompt.encode()),
+            "argv_sha256": m3.digest(json.dumps(claude_argv).encode()),
+            "exit_code": outcome["exit_code"],
+            "duration_seconds": outcome["duration_seconds"],
+            "tool_calls": len(items),
             "artifact_resources_read": resources_read,
-            "missing_resource_refused": missing_refused,
-            "runtime_facts": facts,
-            "model_turn_completed": False,
-            "calls": validate_call_rows(rows, "codex-app-server", plan),
+            "session": session,
+            "model_flow": flow,
+            "model_turn_completed": True,
+            "model_events_sha256": m3.file_digest(events_path),
+            "stderr_sha256": m3.file_digest(stderr_path),
         }
-        if model_turn:
-            if mode == RUNTIME:
-                if (set(datasets) != {"baseline", "candidate"}
-                        or not isinstance(model_resource_uri, str)
-                        or not isinstance(model_non_dataset_id, str)):
-                    raise RuntimeError("Codex model flow has no session-issued artifacts")
-                prompt = (
-                    "Use only native MCP capabilities and perform these four steps exactly once, "
-                    "in order, without retrying. (1) Discover the configured Rust Engineering "
-                    "Resources with list_mcp_resources for server rust_engineering. "
-                    "(2) Call rust.benchmark.compare with project_ref " + refs["benchmark"]
-                    + ", baseline_artifact_id " + datasets["baseline"]
-                    + ", candidate_artifact_id " + datasets["candidate"]
-                    + ", and timeout_seconds 30; this is the positive call. "
-                    "(3) Call rust.benchmark.compare again with the same project_ref, baseline "
-                    "and timeout, but candidate_artifact_id " + model_non_dataset_id
-                    + "; this real session artifact has another kind and must return the declared "
-                    "NOT_A_DATASET refusal. (4) Read Resource " + model_resource_uri
-                    + " with read_mcp_resource for server rust_engineering. Report the returned "
-                    "statuses and do not call any other capability."
-                )
-            else:
-                prompt = (
-                    "Use only the configured Rust Engineering MCP tools. Open the three configured "
-                    "project roots, then call rust.benchmark.run, rust.benchmark.compare, "
-                    "rust.profile.flamegraph and rust.binary.bloat once each with synchronous "
-                    "execution. Every one of them will answer a declared refusal on this host; "
-                    "report each structured status and error_code exactly as returned and do not "
-                    "retry. Do not use any non-MCP capability."
-                )
-            turn = transport.rpc("turn/start", {
-                "threadId": thread, "input": [{"type": "text", "text": prompt}]}, 30).get("turn", {})
-            turn_id = turn.get("id")
-            if not isinstance(turn_id, str):
-                raise RuntimeError("Codex model turn did not start")
-            completed = False
-            observed = set()
-            completed_items = []
-            events = attempt / f"codex-{mode}-model-events.jsonl"
-            deadline = time.monotonic() + 900
-            while time.monotonic() < deadline and not completed:
-                try:
-                    event = transport.q.get(timeout=0.25)
-                except queue.Empty:
-                    if transport.failure:
-                        raise RuntimeError(transport.failure)
-                    continue
-                m3.append_observation(events, event)
-                item = event.get("params", {}).get("item", {})
-                if item.get("type") == "mcpToolCall" and isinstance(item.get("tool"), str):
-                    observed.add(item["tool"])
-                    if event.get("method") == "item/completed":
-                        completed_items.append(item)
-                if (event.get("method") == "turn/completed"
-                        and event.get("params", {}).get("turn", {}).get("id") == turn_id):
-                    completed = True
-            if not completed:
-                raise RuntimeError("Codex model-directed M5 flow incomplete")
-            if mode == RUNTIME:
-                result_row["model_flow"] = validate_runtime_model_flow(
-                    completed_items, refs["benchmark"], datasets["baseline"],
-                    datasets["candidate"], model_non_dataset_id, model_resource_uri)
-            elif not set(M5_TOOLS).issubset(observed):
-                raise RuntimeError("Codex model-directed M5 refusal flow incomplete")
-            result_row["model_turn_completed"] = True
-            result_row["model_turn_tools"] = sorted(observed)
-            result_row["model_events_sha256"] = m3.file_digest(events)
-        return result_row
     finally:
-        try:
-            if transport is not None:
-                cleanup = transport.close()
-                if not cleanup.get("cleanup_verified", False):
-                    raise RuntimeError("Codex cleanup unverified")
-        finally:
-            if previous is None:
-                os.environ.pop("CODEX_HOME", None)
-            else:
-                os.environ["CODEX_HOME"] = previous
-            shutil.rmtree(private, ignore_errors=True)
+        shutil.rmtree(private, ignore_errors=True)
 
 
 def next_attempt() -> pathlib.Path:
@@ -1521,10 +1843,6 @@ def run(with_runtime: bool, docker_socket: str | None) -> int:
     check = preflight(with_runtime, docker_socket)
     if check["unsatisfied"]:
         raise RuntimeError("M5 client preconditions are unsatisfied: " + ", ".join(check["unsatisfied"]))
-    codex_name = shutil.which("codex")
-    if codex_name is None:
-        raise RuntimeError("stock Codex disappeared between preflight and run")
-    codex = pathlib.Path(codex_name)
     plan = check["call_plan"]
     runtime_plan = check["runtime_call_plan"] if with_runtime else []
     gate_spec = importlib.util.spec_from_file_location("m5_gate_inventory", ROOT / "scripts/gate.py")
@@ -1575,14 +1893,13 @@ def run(with_runtime: bool, docker_socket: str | None) -> int:
         receipt["inspector"] = {
             DOCKER_FREE: inspector_gate(attempt, DOCKER_FREE, free_argv, plan, 600, 120_000),
         }
-        receipt["codex_app_server"] = {
-            DOCKER_FREE: codex_gate(attempt, DOCKER_FREE, free_argv, plan, codex, True, 120),
+        receipt["claude_code"] = {
+            DOCKER_FREE: claude_gate(attempt, DOCKER_FREE, free_argv, plan, 900),
         }
         if closed_socket.exists():
             raise RuntimeError("a docker socket was created during the Docker-free mode")
         receipt["docker_free_socket_created"] = False
-        calls = (receipt["inspector"][DOCKER_FREE].pop("calls")
-                 + receipt["codex_app_server"][DOCKER_FREE].pop("calls"))
+        calls = receipt["inspector"][DOCKER_FREE].pop("calls")
         if with_runtime:
             fingerprint = vendor_fingerprint(vendor)
             capture, capture_fingerprint = provisioned_vendor_capture()
@@ -1595,16 +1912,16 @@ def run(with_runtime: bool, docker_socket: str | None) -> int:
                 capture, capture_fingerprint)
             receipt["inspector"][RUNTIME] = inspector_gate(
                 attempt, RUNTIME, runtime_argv, runtime_plan, 1800, 600_000)
-            receipt["codex_app_server"][RUNTIME] = codex_gate(
-                attempt, RUNTIME, runtime_argv, runtime_plan, codex, True, 600)
-            calls += (receipt["inspector"][RUNTIME].pop("calls")
-                      + receipt["codex_app_server"][RUNTIME].pop("calls"))
+            receipt["claude_code"][RUNTIME] = claude_gate(
+                attempt, RUNTIME, runtime_argv, runtime_plan, 2400)
+            calls += receipt["inspector"][RUNTIME].pop("calls")
         receipt["calls"] = calls
         receipt["protocol"] = validate_protocol_metadata(attempt / "protocol.jsonl")
         receipt["clients"] = {
             "inspector": {"version": INSPECTOR_VERSION,
                           "bundle_sha256": receipt["inspector"][DOCKER_FREE]["bundle_sha256"]},
-            "codex_app_server": {"version": CODEX_VERSION},
+            "claude_code": {"version": CLAUDE_VERSION, "model": CLAUDE_MODEL,
+                            "effort": CLAUDE_EFFORT, "executable_sha256": m3.file_digest(CLAUDE)},
         }
         if (candidate_sources != gate.source_inventory(ROOT, os.environ.copy())
                 or receipt["candidate"]["server_sha256"] != m3.file_digest(SERVER)

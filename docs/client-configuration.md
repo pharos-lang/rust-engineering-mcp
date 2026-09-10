@@ -315,7 +315,11 @@ la [matriz M5](validation/M5-matrix.md) conserva M5-01..04 en `In progress`.
 nuevas—. Los recibos previos no acreditan los contratos M5 finales; la matriz
 indica la evidencia pendiente. Esta sección documenta la configuración del host
 que esos contratos exigen; no acredita una calificación ni cambia la release
-`0.1.0`.
+`0.1.0`. La matriz de clientes M5 usa Inspector 2.5.0 como cliente determinista
+y Claude Code 2.1.267 (`claude-sonnet-5`, `--restricted`, `--strict-mcp-config`,
+solo el servidor configurado más `ListMcpResourcesTool`/`ReadMcpResourceTool`)
+como cliente agentic; Codex no participa en M5 por decisión del owner del
+2026-09-10.
 
 #### `--allow-profiling`
 

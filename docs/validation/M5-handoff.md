@@ -38,10 +38,16 @@ reemplazarlos. Se declaran truncación y reemplazo por separado.
 2. Seis selecciones nativas ignoradas, una por vez con `--exact --ignored
    --test-threads=1`: admisión, negativos/controles, límite de snapshot, captura
    positiva, profiling y bloat.
-3. `scripts/test-m5-clients.py --run --with-runtime`: Inspector y Codex stock,
-   incluidos dos benchmarks, comparación con IDs reales y recuperación de
-   artifacts. El turno dirigido por modelo debe demostrar discovery, positivo,
-   fallo declarado y lectura de Resource.
+3. `scripts/test-m5-clients.py --run --with-runtime`: Inspector 2.5.0 como
+   cliente determinista —dos benchmarks, comparación con IDs reales y lectura de
+   todos los artifacts— y Claude Code 2.1.267 (`claude-sonnet-5`, restringido al
+   servidor configurado y a las tools de Resources) como cliente agentic. El
+   owner retiró Codex de este cierre el 2026-09-10 tras agotarse su cuota. El
+   turno runtime dirigido por modelo debe abrir el proyecto, descubrir
+   Resources, medir dos veces por sí mismo, comparar en positivo, obtener el
+   rechazo `NOT_A_DATASET` con un artifact propio de otro tipo y leerlo como
+   Resource; el turno docker-free debe obtener los cuatro rechazos declarados
+   con los argumentos del plan.
 4. `scripts/gate.py core` y `full` en exclusiva, con sus inventarios de fuentes.
 5. Disposición final G1–G9 y sincronización del tablero con los recibos.
 

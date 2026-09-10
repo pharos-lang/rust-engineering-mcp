@@ -381,75 +381,422 @@ class ObservationOracleTests(unittest.TestCase):
             M5.capture_dataset_id(row, [artifact], datasets)
 
 
-class ModelDirectedRuntimeTests(unittest.TestCase):
-    def setUp(self):
-        self.project_ref = "prj_" + "1" * 32
-        self.baseline = "qart_" + "a" * 32
-        self.candidate = "qart_" + "b" * 32
-        self.non_dataset = "qart_" + "c" * 32
-        self.uri = ("rust-quality-artifact://" + self.project_ref + "/"
-                    + self.non_dataset + "?offset=0&length=42")
+class ClaudeTranscriptTests(unittest.TestCase):
+    """Event shapes copied from a real `claude -p --output-format stream-json` probe."""
+
+    PROJECT_REF = "prj_06638fd78de867ba11cda2cbe0c85bc3"
 
     @staticmethod
-    def call(tool, arguments, status, payload, server="rust_engineering"):
-        return {"type": "mcpToolCall", "server": server, "tool": tool,
-                "arguments": arguments, "status": status, "error": None,
-                "result": {"structuredContent": payload}}
+    def init(model="claude-sonnet-5", version="2.1.267", tools=None, servers=None):
+        return {"type": "system", "subtype": "init", "model": model,
+                "claude_code_version": version, "apiKeySource": "none",
+                "mcp_servers": servers if servers is not None
+                else [{"name": "rust_engineering", "status": "connected"}],
+                "tools": tools if tools is not None
+                else ["ListMcpResourcesTool", "ReadMcpResourceTool",
+                      "mcp__rust_engineering__rust_benchmark_compare",
+                      "mcp__rust_engineering__rust_project_open"]}
 
-    def items(self):
-        positive = {"project_ref": self.project_ref,
-                    "baseline_artifact_id": self.baseline,
-                    "candidate_artifact_id": self.candidate,
-                    "timeout_seconds": 30}
-        negative = {**positive, "candidate_artifact_id": self.non_dataset}
-        envelope = {"server": "rust_engineering", "uri": self.uri,
-                    "contents": [{"uri": self.uri, "blob": "YQ=="}]}
+    @staticmethod
+    def final(subtype="success", is_error=False, denials=(), usage=None):
+        return {"type": "result", "subtype": subtype, "is_error": is_error, "num_turns": 5,
+                "duration_ms": 11130, "permission_denials": list(denials),
+                "modelUsage": usage if usage is not None
+                else {"claude-haiku-4-5-20251001": {}, "claude-sonnet-5": {}}}
+
+    @staticmethod
+    def use(identifier, name, arguments, model="claude-sonnet-5"):
+        return {"type": "assistant", "message": {"model": model, "content": [
+            {"type": "tool_use", "id": identifier, "name": name, "input": arguments}]}}
+
+    @staticmethod
+    def result(identifier, content, is_error=None, structured=None):
+        block = {"type": "tool_result", "tool_use_id": identifier, "content": content}
+        if is_error is not None:
+            block["is_error"] = is_error
+        event = {"type": "user", "message": {"content": [block]}}
+        if structured is not None:
+            event["tool_use_result"] = structured
+        return event
+
+    def transcript(self):
+        opened = json.dumps({"data": {"project_ref": self.PROJECT_REF}, "status": "passed",
+                             "error_code": None})
+        refused = json.dumps({"data": None, "status": "blocked",
+                              "error_code": "ARTIFACT_NOT_FOUND"})
         return [
-            self.call("list_mcp_resources", {"server": "rust_engineering"},
-                      "completed", None),
-            self.call("rust.benchmark.compare", positive, "completed",
-                      {"status": "passed", "error_code": None,
-                       "data": {"baseline_artifact_id": self.baseline,
-                                "candidate_artifact_id": self.candidate}}),
-            self.call("rust.benchmark.compare", negative, "failed",
-                      {"status": "blocked", "error_code": "NOT_A_DATASET"}),
-            {"type": "mcpToolCall", "server": "rust_engineering",
-             "tool": "read_mcp_resource",
-             "arguments": {"server": "rust_engineering", "uri": self.uri},
-             "status": "completed", "error": None,
-             "result": {"structuredContent": None,
-                        "content": [{"type": "text", "text": json.dumps(envelope)}]}},
+            self.init(),
+            {"type": "rate_limit_event", "rate_limit_info": {"status": "allowed"}},
+            self.use("t1", "ListMcpResourcesTool", {"server": "rust_engineering"}),
+            self.result("t1", "No resources found.", structured=[]),
+            self.use("t2", "mcp__rust_engineering__rust_project_open", {"path": "/p"}),
+            self.result("t2", opened, structured={"content": opened}),
+            self.use("t3", "mcp__rust_engineering__rust_benchmark_compare",
+                     {"project_ref": self.PROJECT_REF}),
+            self.result("t3", refused, is_error=True, structured="Error: " + refused),
+            self.use("t4", "ReadMcpResourceTool",
+                     {"server": "rust_engineering", "uri": "rust-quality-artifact://x/y"}),
+            self.result("t4", "Resource not found", structured={"contents": [],
+                                                                "error": "Resource not found"}),
+            self.final(),
         ]
 
-    def validate(self, items):
-        return M5.validate_runtime_model_flow(
-            items, self.project_ref, self.baseline, self.candidate,
-            self.non_dataset, self.uri)
+    def test_transcript_normalizes_to_closed_items_in_call_order(self):
+        init, items, final = M5.claude_items(self.transcript())
+        self.assertEqual([item["tool"] for item in items], [
+            "list_mcp_resources", "rust.project.open", "rust.benchmark.compare",
+            "read_mcp_resource"])
+        self.assertEqual(items[0]["status"], "completed")
+        self.assertEqual(items[0]["result"]["resources"], 0)
+        self.assertEqual(items[1]["result"]["structuredContent"]["data"]["project_ref"],
+                         self.PROJECT_REF)
+        self.assertEqual(items[2]["status"], "failed")
+        self.assertTrue(items[2]["result"]["isError"])
+        self.assertEqual(items[2]["result"]["structuredContent"]["error_code"],
+                         "ARTIFACT_NOT_FOUND")
+        self.assertEqual(items[3]["status"], "failed")
+        self.assertEqual(items[3]["error"], "Resource not found")
+        session = M5.validate_claude_session(init, final, self.transcript())
+        self.assertEqual(session["resolved_model"], M5.CLAUDE_MODEL)
+        self.assertEqual(session["assistant_messages"], 4)
+        self.assertEqual(session["observed_models"],
+                         ["claude-haiku-4-5-20251001", "claude-sonnet-5"])
 
-    def test_runtime_model_flow_binds_success_failure_and_resource_to_real_ids(self):
-        facts = self.validate(self.items())
-        self.assertEqual(facts["positive"], "rust.benchmark.compare")
-        self.assertEqual(facts["failure"], "NOT_A_DATASET")
-        self.assertEqual(facts["discovery"], "list_mcp_resources")
-        self.assertEqual(len(facts["resource_uri_sha256"]), 64)
+    def test_a_read_resource_carries_its_measured_contents(self):
+        uri = "rust-quality-artifact://prj_" + "1" * 32 + "/qart_" + "2" * 32 + "?offset=0&length=1"
+        def read(structured):
+            events = [self.init(), self.use("r", "ReadMcpResourceTool",
+                                            {"server": "rust_engineering", "uri": uri}),
+                      self.result("r", "ok", structured=structured), self.final()]
+            return M5.claude_items(events)[1][0]
+        digest = M5.load_m3().digest
+        descriptor = {"uri": uri, "sha256": digest(b"a"), "size_bytes": 1}
+        inline = read({"contents": [{"uri": uri, "blob": "YQ=="}]})
+        evidence = M5.validate_model_resource_read(inline, descriptor)
+        self.assertEqual((evidence["kind"], evidence["whole_artifact"]), ("blob", True))
+        with self.assertRaisesRegex(RuntimeError, "did not match the issued artifact"):
+            M5.validate_model_resource_read(
+                inline, {**descriptor, "uri": uri.replace("length=1", "length=2")})
+        with self.assertRaisesRegex(RuntimeError, "another artifact"):
+            M5.validate_model_resource_read(
+                read({"contents": [{"uri": uri + "1", "blob": "YQ=="}]}), descriptor)
+        with self.assertRaisesRegex(RuntimeError, "not the chunk it read"):
+            M5.validate_model_resource_read(
+                read({"contents": [{"uri": uri, "blob": "YWI="}]}), descriptor)
+        with self.assertRaisesRegex(RuntimeError, "does not hash to the published artifact"):
+            M5.validate_model_resource_read(
+                read({"contents": [{"uri": uri, "blob": "Yg=="}]}), descriptor)
+        # A chunk shorter than the artifact is measured, never hashed against it.
+        prefix = M5.validate_model_resource_read(
+            read({"contents": [{"uri": uri, "blob": "Yg=="}]}),
+            {**descriptor, "size_bytes": 2})
+        self.assertFalse(prefix["whole_artifact"])
+        text = read({"contents": [{"uri": uri, "mimeType": "text/plain", "text": "a"}]})
+        self.assertEqual(M5.validate_model_resource_read(text, descriptor)["kind"], "text")
+        # Claude's own note beside a binary it saved elsewhere is not content.
+        note = read({"contents": [{"uri": uri, "mimeType": "application/octet-stream",
+                                   "blob": "", "text": "[Resource ...] Binary content saved"}]})
+        with self.assertRaisesRegex(RuntimeError, "carried no content"):
+            M5.validate_model_resource_read(note, descriptor)
+        with tempfile.TemporaryDirectory() as directory:
+            saved = pathlib.Path(directory) / "blob.bin"
+            saved.write_bytes(b"a")
+            item = read({"contents": [{"uri": uri, "mimeType": "application/octet-stream",
+                                       "blob": "", "text": "note", "blobSavedTo": str(saved)}]})
+            evidence = M5.validate_model_resource_read(item, descriptor)
+            self.assertEqual(evidence["kind"], "blob_saved_by_client")
+            self.assertEqual(evidence["bytes"], 1)
+            missing = read({"contents": [{"uri": uri, "blob": "", "text": "note",
+                                          "blobSavedTo": str(saved) + ".gone"}]})
+            with self.assertRaisesRegex(RuntimeError, "does not exist"):
+                M5.validate_model_resource_read(missing, descriptor)
 
-    def test_runtime_model_flow_rejects_prompt_only_or_retried_evidence(self):
+    def test_an_error_prefixed_payload_still_parses(self):
+        refused = json.dumps({"status": "blocked", "error_code": "NOT_A_DATASET"})
+        self.assertEqual(M5.claude_structured_payload("Error: " + refused)["error_code"],
+                         "NOT_A_DATASET")
+        self.assertIsNone(M5.claude_structured_payload("Error: not json"))
+
+    def test_credential_shaped_transcripts_are_refused(self):
+        with tempfile.TemporaryDirectory() as directory:
+            clean = pathlib.Path(directory) / "clean.jsonl"
+            clean.write_text('{"type":"result","status":"PROFILING_NOT_AUTHORIZED"}\n')
+            M5.assert_no_credential_text(clean)
+            leaky = pathlib.Path(directory) / "leaky.stderr"
+            leaky.write_text("debug: Authorization: Bearer sk-ant-abc\n")
+            with self.assertRaisesRegex(RuntimeError, "credential-shaped text"):
+                M5.assert_no_credential_text(leaky)
+
+    def test_malformed_transcripts_are_refused(self):
+        events = self.transcript()
+        with self.assertRaisesRegex(RuntimeError, "lacks its init or result"):
+            M5.claude_items(events[1:])
+        with self.assertRaisesRegex(RuntimeError, "unmatched tool results"):
+            M5.claude_items([event for event in events if event.get("type") != "user"])
+        duplicated = [*events[:3], events[2], *events[3:]]
+        with self.assertRaisesRegex(RuntimeError, "duplicated or missing"):
+            M5.claude_items(duplicated)
+        foreign = [self.init(), self.use("f", "Bash", {"command": "id"}),
+                   self.result("f", "uid=0"), self.final()]
+        with self.assertRaisesRegex(RuntimeError, "outside the configured server"):
+            M5.claude_items(foreign)
+        unknown = [self.init(), self.use("u", "mcp__rust_engineering__rust_nope", {}),
+                   self.result("u", "{}"), self.final()]
+        with self.assertRaisesRegex(RuntimeError, "does not advertise"):
+            M5.claude_items(unknown)
+
+    def test_session_must_be_the_pinned_client_and_model_on_the_configured_server(self):
+        final = self.final()
+        turn = self.transcript()
+        M5.validate_claude_session(self.init(), final, turn)
+        with self.assertRaisesRegex(RuntimeError, "another model"):
+            M5.validate_claude_session(self.init(model="claude-haiku-4-5"), final, turn)
+        # A fallback mid-turn shows up as an assistant message from another
+        # model while the pinned one still appears in modelUsage.
+        fallback = [*turn, self.use("t9", "ListMcpResourcesTool", {"server": "rust_engineering"},
+                                    model="claude-opus-5"),
+                    self.result("t9", "No resources found.", structured=[])]
+        with self.assertRaisesRegex(RuntimeError, "message from another model"):
+            M5.validate_claude_session(self.init(), final, fallback)
+        with self.assertRaisesRegex(RuntimeError, "message from another model"):
+            M5.validate_claude_session(self.init(), final, [self.init(), final])
+        with self.assertRaisesRegex(RuntimeError, "another version"):
+            M5.validate_claude_session(self.init(version="2.1.260"), final, turn)
+        M5.validate_claude_session(self.init(servers=[
+            {"name": "rust_engineering", "status": "connected", "type": "stdio"}]), final, turn)
+        with self.assertRaisesRegex(RuntimeError, "exactly the configured server"):
+            M5.validate_claude_session(self.init(servers=[
+                {"name": "rust_engineering", "status": "connected"},
+                {"name": "other", "status": "connected"}]), final, turn)
+        with self.assertRaisesRegex(RuntimeError, "built-in capability"):
+            M5.validate_claude_session(self.init(tools=["Bash", "ListMcpResourcesTool"]), final, turn)
+        with self.assertRaisesRegex(RuntimeError, "did not finish"):
+            M5.validate_claude_session(self.init(), self.final(subtype="error_max_turns"), turn)
+        with self.assertRaisesRegex(RuntimeError, "denied a capability"):
+            M5.validate_claude_session(self.init(), self.final(denials=[{"tool_name": "Bash"}]), turn)
+        with self.assertRaisesRegex(RuntimeError, "no usage for the pinned model"):
+            M5.validate_claude_session(self.init(), self.final(usage={"claude-opus-5": {}}), turn)
+
+
+def item(tool, arguments, payload, is_error=False, server="rust_engineering"):
+    """The closed item shape `claude_items` produces for one MCP tool call."""
+    return {"type": "mcpToolCall", "server": server, "tool": tool, "arguments": arguments,
+            "status": "failed" if is_error else "completed", "error": None,
+            "result": {"structuredContent": payload, "isError": is_error}}
+
+
+def opened(name, reference):
+    return item("rust.project.open", {"path": str(M5.ROOT / M5.FIXTURES[name])},
+                {"status": "passed", "error_code": None, "data": {"project_ref": reference}})
+
+
+class ModelDirectedDockerFreeTests(unittest.TestCase):
+    def setUp(self):
+        self.plan = M5.call_plan()
+        self.positive = {row["tool"]: row for row in self.plan if row["shape"] == "positive"}
+        self.refs = {name: "prj_" + str(index) * 32
+                     for index, name in enumerate(("benchmark", "profile", "bloat"), start=1)}
+
+    def items(self):
+        items = [opened(name, reference) for name, reference in self.refs.items()]
+        for tool in M5.M5_TOOLS:
+            row = self.positive[tool]
+            items.append(item(tool, {"project_ref": self.refs[row["project"]], **row["arguments"]},
+                              {"status": row["expect_status"],
+                               "error_code": row["expect_error_code"], "data": None},
+                              is_error=row["expect_is_error"]))
+        return items
+
+    def test_the_four_planned_refusals_are_bound_to_their_opened_roots(self):
+        facts = M5.validate_docker_free_model_flow(self.items(), self.plan)
+        self.assertEqual(facts["opened_roots"], ["benchmark", "bloat", "profile"])
+        self.assertEqual(set(facts["refusals"]), set(M5.M5_TOOLS))
+        self.assertEqual(facts["refusals"]["rust.profile.flamegraph"]["error_code"],
+                         "PROFILING_NOT_AUTHORIZED")
+
+    def test_retries_foreign_capabilities_wrong_arguments_and_undeclared_results_are_refused(self):
         items = self.items()
         with self.assertRaisesRegex(RuntimeError, "retried or omitted"):
-            self.validate(items[:-1])
+            M5.validate_docker_free_model_flow([*items, items[-1]], self.plan)
         with self.assertRaisesRegex(RuntimeError, "retried or omitted"):
-            self.validate([*items, items[1]])
+            M5.validate_docker_free_model_flow(items[:-1], self.plan)
         with self.assertRaisesRegex(RuntimeError, "another MCP capability"):
-            self.validate([*items, self.call("rust.binary.bloat", {}, "completed",
-                                             {"status": "passed"})])
+            M5.validate_docker_free_model_flow(
+                [*items, item("rust.check", {"project_ref": self.refs["benchmark"]},
+                              {"status": "passed"})], self.plan)
         wrong = self.items()
-        wrong[2]["arguments"]["candidate_artifact_id"] = self.candidate
+        wrong[-1]["arguments"]["timeout_seconds"] = 1
+        with self.assertRaisesRegex(RuntimeError, "planned arguments"):
+            M5.validate_docker_free_model_flow(wrong, self.plan)
+        undeclared = self.items()
+        undeclared[-1]["result"]["structuredContent"]["status"] = "passed"
+        with self.assertRaisesRegex(RuntimeError, "does not declare"):
+            M5.validate_docker_free_model_flow(undeclared, self.plan)
+        unopened = [entry for entry in self.items() if entry["tool"] != "rust.project.open"]
+        with self.assertRaisesRegex(RuntimeError, "before opening"):
+            M5.validate_docker_free_model_flow(unopened, self.plan)
+        outside = self.items()
+        outside[0]["arguments"]["path"] = "/Users/somebody/project"
+        with self.assertRaisesRegex(RuntimeError, "outside the plan"):
+            M5.validate_docker_free_model_flow(outside, self.plan)
+        unplanned = [opened("benchmark_compile_error", "prj_" + "9" * 32), *self.items()]
+        with self.assertRaisesRegex(RuntimeError, "outside the plan"):
+            M5.validate_docker_free_model_flow(unplanned, self.plan)
+        reopened = [*self.items(), opened("benchmark", self.refs["benchmark"])]
+        with self.assertRaisesRegex(RuntimeError, "retried or omitted"):
+            M5.validate_docker_free_model_flow(reopened, self.plan)
+        discovery = self.items()
+        discovery.insert(3, {"type": "mcpToolCall", "server": "rust_engineering",
+                             "tool": "list_mcp_resources",
+                             "arguments": {"server": "rust_engineering"},
+                             "status": "completed", "error": None,
+                             "result": {"structuredContent": None, "resources": 0}})
+        with self.assertRaisesRegex(RuntimeError, "another MCP capability"):
+            M5.validate_docker_free_model_flow(discovery, self.plan)
+        # The four refusals are independent declared results: a client that
+        # batches them in another order is accepted, an open after them is not.
+        swapped = self.items()
+        swapped[-1], swapped[-2] = swapped[-2], swapped[-1]
+        M5.validate_docker_free_model_flow(swapped, self.plan)
+        late_open = self.items()
+        late_open.append(late_open.pop(0))
+        with self.assertRaisesRegex(RuntimeError, "before opening|out of order"):
+            M5.validate_docker_free_model_flow(late_open, self.plan)
+        late_unrelated_open = self.items()
+        late_unrelated_open.append(late_unrelated_open.pop(2))
+        with self.assertRaisesRegex(RuntimeError, "before opening|out of order"):
+            M5.validate_docker_free_model_flow(late_unrelated_open, self.plan)
+
+
+class ModelDirectedRuntimeTests(unittest.TestCase):
+    def setUp(self):
+        self.plan = M5.runtime_call_plan()
+        self.rows = {row["fact_key"]: row for row in self.plan}
+        self.reference = "prj_" + "1" * 32
+        self.baseline = "qart_" + "a" * 32
+        self.candidate = "qart_" + "b" * 32
+        self.archive = "qart_" + "c" * 32
+        self.log = "qart_" + "d" * 32
+        self.archive_uri = self.uri(self.archive)
+
+    def uri(self, identifier):
+        return f"rust-quality-artifact://{self.reference}/{identifier}?offset=0&length=1"
+
+    def artifact(self, kind, identifier, run_index=1):
+        return {"uri": self.uri(identifier), "sha256": M5.load_m3().digest(b"a"), "size_bytes": 1,
+                "kind": kind, "run_index": run_index}
+
+    def run_payload(self, dataset, other):
+        row = self.rows["benchmark_baseline"]
+        observation = {**row["expect_observation"], "exit_code": 0}
+        return {"status": "passed", "error_code": None, "data": {
+            "observation": observation,
+            "artifacts": [self.artifact("benchmark_dataset", dataset, None),
+                          self.artifact("criterion_archive", other),
+                          self.artifact("harness_stdout", self.log)]}}
+
+    def compare_payload(self, baseline, candidate):
+        return {"status": "passed", "error_code": None, "data": {
+            "baseline_artifact_id": baseline, "candidate_artifact_id": candidate,
+            "report": {"complete": True, "incompatibility_reasons": [], "compared": 3,
+                       "comparisons": [{"verdict": "inconclusive",
+                                        "inconclusive_reasons": ["insufficient_executions"]}]}}}
+
+    def discovery(self):
+        return {"type": "mcpToolCall", "server": "rust_engineering",
+                "tool": "list_mcp_resources", "arguments": {"server": "rust_engineering"},
+                "status": "completed", "error": None,
+                "result": {"structuredContent": None, "resources": 0}}
+
+    def read(self, uri):
+        return {"type": "mcpToolCall", "server": "rust_engineering", "tool": "read_mcp_resource",
+                "arguments": {"server": "rust_engineering", "uri": uri},
+                "status": "completed", "error": None,
+                "result": {"structuredContent": None,
+                           "content": [{"type": "resource",
+                                        "resource": {"uri": uri, "blob": "YQ=="}}]}}
+
+    def items(self):
+        run_arguments = {"project_ref": self.reference, **self.rows["benchmark_baseline"]["arguments"]}
+        positive = {"project_ref": self.reference, **self.rows["benchmark_compare"]["arguments"],
+                    "baseline_artifact_id": self.baseline, "candidate_artifact_id": self.candidate}
+        return [
+            opened("benchmark", self.reference),
+            self.discovery(),
+            item("rust.benchmark.run", run_arguments, self.run_payload(self.baseline, self.archive)),
+            item("rust.benchmark.run", run_arguments,
+                 self.run_payload(self.candidate, "qart_" + "f" * 32)),
+            item("rust.benchmark.compare", positive,
+                 self.compare_payload(self.baseline, self.candidate)),
+            item("rust.benchmark.compare", {**positive, "candidate_artifact_id": self.archive},
+                 {"status": "blocked", "error_code": "NOT_A_DATASET", "data": None},
+                 is_error=True),
+            self.read(self.archive_uri),
+        ]
+
+    def test_runtime_model_flow_binds_measurements_comparison_failure_and_resource(self):
+        facts = M5.validate_runtime_model_flow(self.items(), self.plan)
+        self.assertEqual(facts["measurements"], 2)
+        self.assertEqual(facts["failure"], "NOT_A_DATASET")
+        self.assertEqual(facts["comparison"]["verdicts"], ["inconclusive"])
+        self.assertEqual(facts["comparison"]["inconclusive_reasons"], ["insufficient_executions"])
+        self.assertEqual(len(facts["resource_uri_sha256"]), 64)
+        self.assertEqual(facts["resource_content"], {
+            "kind": "blob", "bytes": 1, "sha256": M5.load_m3().digest(b"a"),
+            "whole_artifact": True})
+
+    def test_runtime_model_flow_rejects_prompt_only_retried_or_forged_evidence(self):
+        items = self.items()
+        with self.assertRaisesRegex(RuntimeError, "retried or omitted"):
+            M5.validate_runtime_model_flow(items[:-1], self.plan)
+        with self.assertRaisesRegex(RuntimeError, "retried or omitted"):
+            M5.validate_runtime_model_flow([*items, items[4]], self.plan)
+        with self.assertRaisesRegex(RuntimeError, "another MCP capability"):
+            M5.validate_runtime_model_flow(
+                [*items, item("rust.binary.bloat", {}, {"status": "passed"})], self.plan)
+        same_dataset = self.items()
+        same_dataset[3]["result"]["structuredContent"]["data"]["artifacts"][0] = \
+            self.artifact("benchmark_dataset", self.baseline, None)
+        with self.assertRaisesRegex(RuntimeError, "same dataset identifier"):
+            M5.validate_runtime_model_flow(same_dataset, self.plan)
+        forged = self.items()
+        forged[5]["arguments"]["candidate_artifact_id"] = "qart_" + "9" * 32
         with self.assertRaisesRegex(RuntimeError, "declared comparison failure"):
-            self.validate(wrong)
+            M5.validate_runtime_model_flow(forged, self.plan)
+        directional = self.items()
+        directional[4]["result"]["structuredContent"]["data"]["report"]["comparisons"][0] = {
+            "verdict": "regression", "inconclusive_reasons": []}
+        with self.assertRaisesRegex(RuntimeError, "directional"):
+            M5.validate_runtime_model_flow(directional, self.plan)
+        other_resource = self.items()
+        other_resource[6] = self.read(self.uri(self.log))
+        with self.assertRaisesRegex(RuntimeError, "did not match the issued artifact"):
+            M5.validate_runtime_model_flow(other_resource, self.plan)
         out_of_order = self.items()
-        out_of_order[1], out_of_order[2] = out_of_order[2], out_of_order[1]
+        out_of_order[4], out_of_order[5] = out_of_order[5], out_of_order[4]
         with self.assertRaisesRegex(RuntimeError, "positive comparison"):
-            self.validate(out_of_order)
+            M5.validate_runtime_model_flow(out_of_order, self.plan)
+        late_open = self.items()
+        late_open.append(late_open.pop(0))
+        with self.assertRaisesRegex(RuntimeError, "out of order"):
+            M5.validate_runtime_model_flow(late_open, self.plan)
+        unopened = self.items()[1:]
+        with self.assertRaisesRegex(RuntimeError, "exactly the benchmark root"):
+            M5.validate_runtime_model_flow(unopened, self.plan)
+
+
+class PromptTests(unittest.TestCase):
+    def test_prompts_are_rendered_from_the_plan_rows(self):
+        docker_free = M5.claude_prompt(M5.DOCKER_FREE, M5.call_plan())
+        for tool in M5.M5_TOOLS:
+            self.assertIn(f"Call {tool} with project_ref", docker_free)
+        self.assertIn(str(M5.ROOT / M5.FIXTURES["benchmark"]), docker_free)
+        self.assertIn('binary_target "rust-mcp-profile-workload"', docker_free)
+        runtime = M5.claude_prompt(M5.RUNTIME, M5.runtime_call_plan())
+        self.assertIn('bench_target "perf"', runtime)
+        self.assertIn("NOT_A_DATASET", runtime)
+        self.assertIn("ReadMcpResourceTool", runtime)
+        self.assertNotIn("qart_", runtime.replace("qart_ ", ""))
 
 
 class HostConfigurationTests(unittest.TestCase):
@@ -565,11 +912,12 @@ class PreflightTests(unittest.TestCase):
         self.assertFalse(result["docker_used"])
         self.assertEqual(result["expected_tools"], list(M5.EXPECTED_TOOLS))
         self.assertEqual(result["clients"]["inspector"]["expected"], M5.INSPECTOR_VERSION)
-        self.assertEqual(result["clients"]["codex_app_server"]["expected"], M5.CODEX_VERSION)
+        self.assertEqual(result["clients"]["claude_code"]["expected"], M5.CLAUDE_VERSION)
+        self.assertEqual(result["clients"]["claude_code"]["model"], M5.CLAUDE_MODEL)
+        self.assertNotIn("codex_app_server", result["clients"])
         self.assertEqual(set(result["source_sha256"]), {
             "scripts/test-m3-clients.py", "scripts/test-m5-clients.py",
             "scripts/m5-inspector-session.mjs", "scripts/test-m5-clients-unit.py",
-            "docs/validation/m1-17-codex-client/controller.py",
         })
         self.assertTrue(all(len(value) == 64 for value in result["source_sha256"].values()))
 
@@ -745,7 +1093,7 @@ class EvidenceTests(unittest.TestCase):
 
     def test_call_row_validator_rejects_a_foreign_client(self):
         plan = M5.call_plan()
-        rows = [self._row(planned, client="codex-app-server") for planned in plan]
+        rows = [self._row(planned, client="claude-code") for planned in plan]
         with self.assertRaisesRegex(RuntimeError, "unexpected client"):
             M5.validate_call_rows(rows, "inspector", plan)
 

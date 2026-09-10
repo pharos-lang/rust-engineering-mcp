@@ -66,9 +66,14 @@ El gate full posterior debe volver a acreditar su etapa M5 dentro del conjunto.
 - Los logs respetan 256 KiB después de normalizar UTF-8. Bloat alinea exit,
   terminación, report y logs con la ejecución que determina el fallo.
 - Los clientes comparan IDs emitidos por dos mediciones reales. Con una ejecución
-  por lado, el oráculo es exactamente `insufficient_executions`. El turno stock
-  dirigido por modelo añade comparación positiva, rechazo de otro tipo de
-  artifact y lectura de una Resource real.
+  por lado, el oráculo es exactamente `insufficient_executions`. El cliente
+  agentic es Claude Code 2.1.267 con `claude-sonnet-5` (decisión del owner del
+  2026-09-10: Codex queda fuera de este cierre). Como los artifacts están ligados
+  al `ProjectRef` del proceso que los publicó, su turno runtime mide dos veces
+  por sí mismo antes de comparar en positivo, obtener `NOT_A_DATASET` con un
+  artifact propio de otro tipo y leerlo como Resource; el oráculo exige cada
+  paso exactamente una vez, con los argumentos del plan y los IDs emitidos en
+  esa misma sesión.
 
 ## Revisiones y disposición
 
