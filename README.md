@@ -19,7 +19,7 @@ El servidor usa transporte MCP por `stdio`. Las trece tools de la release
 `0.1.0` observan y validan sin modificar el source. El checkout `0.3.0-dev`
 registra 31 tools: las 18 de M1/M2, las cuatro tools de calidad M3, cinco tools
 M4 y cuatro tools de rendimiento M5. M4 está cerrado localmente; M5 está
-implementado y **no calificado por completo**. El checkout no forma una release.
+implementado y en **recalificación en curso**. El checkout no forma una release.
 
 > [!IMPORTANT]
 > La versión estable actual es `0.1.0`. GitHub Releases publica un único binario core
@@ -48,7 +48,7 @@ implementado y **no calificado por completo**. El checkout no forma una release.
 | Supply chain (M4, desarrollo) | `rust.supply_chain.inspect` | Tool 25; facts de resolución, audit, deny y catálogo con provenance explícita. |
 | Calidad (M4, desarrollo) | `rust.quality.gate.v2` | Tool 26; gate `strict` o `release` sobre una captura compartida. |
 | Seguridad (M4, desarrollo) | `rust.miri` | Tool 27; evidencia tipada de Miri sobre tests seleccionados. |
-| Rendimiento (M5, desarrollo) | `rust.benchmark.run` | Tool 28; mide los benchmarks Criterion que el proyecto ya tiene y publica las muestras crudas como dataset privado, junto al árbol de salida del harness y al `stdout`/`stderr` de cada repetición como artifacts propios. Positivo bloqueado. |
+| Rendimiento (M5, desarrollo) | `rust.benchmark.run` | Tool 28; mide los benchmarks Criterion que el proyecto ya tiene y publica las muestras crudas como dataset privado, junto al árbol de salida del harness y al `stdout`/`stderr` de cada repetición como artifacts propios. Recalificación en curso. |
 | Rendimiento (M5, desarrollo) | `rust.benchmark.compare` | Tool 29; compara dos datasets propios con un método estadístico congelado. No ejecuta nada. |
 | Rendimiento (M5, desarrollo) | `rust.profile.flamegraph` | Tool 30; muestreo en CPU de un binario del proyecto; exige la capability de profiling del host. |
 | Rendimiento (M5, desarrollo) | `rust.binary.bloat` | Tool 31; tamaño exacto del binario más la atribución estimada del analizador fijado. |
@@ -77,7 +77,9 @@ y el [handoff de evidencia](docs/validation/M4-handoff.md).
 
 Las cuatro tools M5 miden rendimiento y tamaño sin modificar el checkout.
 `rust.benchmark.run`, `rust.profile.flamegraph` y `rust.binary.bloat` exigen la
-imagen guest M5 y el vendor Cargo offline autenticado por el host;
+imagen guest M5 y datos offline autenticados por el host. Para Criterion,
+`rust.benchmark.run` usa la captura de vendor de ADR-078; profile y bloat usan el
+`CargoVendorSnapshot` configurado por el host;
 `rust.profile.flamegraph` exige además `--allow-profiling user-space-sampling`;
 `rust.benchmark.compare` no ejecuta nada y opera sobre dos datasets que un `run`
 previo del mismo proyecto ya publicó. Ninguna admite MCP Tasks: en las tres que
@@ -85,14 +87,10 @@ aceptan `execution_mode`, `task` devuelve `TASKS_REQUIRED` como resultado
 declarado; `rust.benchmark.compare` no tiene modo de ejecución.
 
 > [!WARNING]
-> **`rust.benchmark.run` no puede medir hoy un proyecto Criterion a través del
-> contrato de vendor offline del producto**: el cierre de Criterion 0.8.2 no cabe
-> en los límites del `SourceBundle` y esos límites no se subieron, así que su
-> camino positivo está bloqueado ([M5-01-blocker.json](docs/validation/M5-01-blocker.json)).
-> `rust.profile.flamegraph` y `rust.binary.bloat` están calificados nativamente,
-> `rust.benchmark.compare` está probado sobre datasets reales del guest, y el
-> gate conjunto y la matriz de clientes M5 todavía no se han ejecutado
-> ([matriz M5](docs/validation/M5-matrix.md), [handoff](docs/validation/M5-handoff.md)).
+> M5 está en **recalificación**. La captura de vendor de ADR-078 permite tratar
+> el cierre de Criterion sin ampliar `SourceBundle`; los recibos previos no
+> acreditan el contrato final de captura, logs ni semántica de bloat. El estado y
+> los recibos que faltan están en la [matriz M5](docs/validation/M5-matrix.md).
 > Sus contratos completos están en [`docs/tools.md`](docs/tools.md#contratos-m5--medición-de-rendimiento).
 
 Los Resources normalizados no sustituyen una revisión de privacidad. Los HTML de
@@ -482,7 +480,7 @@ El checkout de desarrollo descubre 31 tools: conserva las trece de M1, añade
 `rust.manifest.patch`, `rust.fmt.apply`, `rust.fix.apply`,
 `rust.dependency.add` y `rust.dependency.remove`, e integra el contrato M3-01 de
 `rust.test.nextest`, las otras tres tools M3, las cinco tools M4 calificadas
-localmente y las cuatro tools M5 aún sin calificar por completo. Cada tool de escritura exige su grant de host:
+localmente y las cuatro tools M5 en recalificación. Cada tool de escritura exige su grant de host:
 `--allow-manifest-write`, `--allow-fmt-write`, `--allow-fix-write`,
 `--allow-dependency-add` o `--allow-dependency-remove`, seguido de la raíz del
 workspace. Un grant no autoriza planes ni receipts de otra operación.

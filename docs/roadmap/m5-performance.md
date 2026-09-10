@@ -1,10 +1,9 @@
 # M5 — Performance / 0.5.x
 
-Estado: **In progress** (2026-09-09). Profiling y bloat calificados nativamente
-sobre la imagen admitida —con positivo y denegación en el mismo recibo—, M5-01
-bloqueado por una condición reproducible y con su propio oráculo, método de
-comparación corregido tras una revisión G8 que lo bloqueó, cierre conjunto y
-matriz de clientes sin ejecutar.
+Estado: **In progress** (2026-09-10). Cierre local autorizado mediante
+`docs/prompts/complete-m5.md`: fixes de captura, observación del entorno,
+recalificación nativa, clientes y gates conjuntos en curso. Los recibos previos
+son históricos cuando cambian los contratos o fingerprints que midieron.
 El estado real por corte vive en [la matriz](../validation/M5-matrix.md) y
 [el handoff](../validation/M5-handoff.md); D23 y D24 quedaron decididos en
 [ADR-073](../adr/ADR-073-benchmark-method-and-dataset.md) y

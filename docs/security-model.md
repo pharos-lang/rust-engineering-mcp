@@ -557,9 +557,9 @@ fail closed before project execution.
 ## M5 — medición, capability de profiling y containment
 
 Estado: las cuatro definiciones M5 están implementadas en dominio, aplicación y
-execution adapter, y **pendientes de calificación**. La
+execution adapter, y en **recalificación en curso**. La
 [matriz M5](validation/M5-matrix.md) conserva M5-01..04 en `In progress` y M5-05
-en `Not started`. `tools/list` devuelve 31 definiciones, con las 27 anteriores
+en `In progress`. `tools/list` devuelve 31 definiciones, con las 27 anteriores
 sin cambio. Lo que sigue
 describe contratos y controles implementados; solo se presenta como calificado
 aquello que enlaza un recibo.
@@ -640,10 +640,28 @@ Lo que la captura cambia, y por qué:
   fuera del runtime MCP. Ninguna tool captura por su cuenta como efecto
   secundario de una medición, y no hay descarga en ningún punto.
 
+Durante el replay se comprueba el sello del descriptor antes y después de cada
+lectura. Un SHA-256 incremental autentica los bytes reproducidos y se compara,
+junto con la longitud y la ausencia de bytes extra, antes de entregar el último
+bloque a la ingesta. Detectar una modificación invalida ese handle de forma
+permanente. La ingesta aislada puede haber recibido bloques previos; no puede
+completar ni iniciar la medición con un replay rechazado.
+
 Ni la captura ni su verificación cargan el árbol ni el artifact en memoria: el
 estado de ambas es un buffer de lectura, una entrada abierta, una ruta anterior y
 una pila de directorios acotada por el límite de profundidad. La ingesta hacia el
 guest tampoco: el artifact se transmite al `tar` del contenedor buffer a buffer.
+
+### Logs del harness: evidencia privada y texto válido
+
+`criterion_archive` contiene la salida del harness, no sus logs. Cada repetición
+puede publicar `harness_stdout` y `harness_stderr` como artifacts privados
+`source_derived`, ligados a su `run_index`; no se concatenan ni se escriben en
+el `stdout` MCP. El adapter convierte bytes inválidos a UTF-8 válido y declara
+`stdout_replaced`/`stderr_replaced` por stream, aparte de
+`stdout_truncated`/`stderr_truncated`. La cuota del store se aplica cuando se
+publican esos bytes después de ejecutar; no constituye una reserva de admisión
+antes del benchmark (ADR-080).
 
 ### La capability de profiling la concede el host, nunca el peer
 
@@ -779,10 +797,10 @@ de ADR-061.
 
 | Amenaza | Control | Riesgo residual honesto |
 | --- | --- | --- |
-| Artifact spoofing | Identificadores opacos `qa_` emitidos por el store, no componibles por el peer; autorización por proyecto propietario; descriptor con kind/format/mime validados; `same_artifact` rechazado por `execution_fingerprint` idéntico (ADR-076 §4) | El store acredita custodia y autoría de la publicación, no la verdad de la medida. Un dataset auténtico puede describir una ejecución poco informativa |
+| Artifact spoofing | Identificadores opacos `qart_` emitidos por el store, no componibles por el peer; autorización por proyecto propietario; descriptor con kind/format/mime validados; `same_artifact` rechazado por `execution_fingerprint` idéntico (ADR-076 §4) | El store acredita custodia y autoría de la publicación, no la verdad de la medida. Un dataset auténtico puede describir una ejecución poco informativa |
 | Secretos en nombres de símbolos | Alfabeto cerrado, sin path ni módulo, `[unknown]` contado; artifact privado owner-bound | Un nombre de símbolo sigue siendo metadata potencialmente sensible del proyecto. Esto no es detección universal de secretos, igual que en M4 |
-| Profiler que escapa del sandbox | Helper propio sin scripting, sin pid ajeno y sin red; una syscall añadida en una sola fase; perfil verificado por fase; `--cap-drop=ALL` y `no-new-privileges` intactos | El daemon Docker, el host, el kernel y el subsistema perf quedan fuera del claim de containment sin privilegios. El positivo es Linux ARM64 en la imagen M5, calificado nativamente sobre el digest admitido con positivo, denegación y cancelación, y reproducido por dos clientes reales |
-| Exhaustión de recursos | Presupuestos 900 s (`run`), 300 s (`profile`, con 60 s de muestreo máximo), 30 s (`compare`) y 300 s (`bloat`); techos de CPU/RAM/PID del runtime calificado; artifacts SVG ≤ 8 MiB, bloat ≤ 4 MiB, muestras ≤ 32 MiB y resultado ≤ 512 KiB, con la cuota reservada antes de iniciar el trabajo (ADR-076 §7) | Los deadlines siguen siendo cooperativos y unidos, no preempción nativa dura, con la misma limitación ya declarada para M1–M4 |
+| Profiler que escapa del sandbox | Helper propio sin scripting, sin pid ajeno y sin red; una syscall añadida en una sola fase; perfil verificado por fase; `--cap-drop=ALL` y `no-new-privileges` intactos | El daemon Docker, el host, el kernel y el subsistema perf quedan fuera del claim de containment sin privilegios. El alcance positivo se limita a Linux ARM64 guest; M5-03 está en recalificación según la matriz M5 |
+| Exhaustión de recursos | Presupuestos 900 s (`run`), 300 s (`profile`, con 60 s de muestreo máximo), 30 s (`compare`) y 300 s (`bloat`); techos de CPU/RAM/PID; artifacts SVG ≤ 8 MiB, bloat ≤ 4 MiB, muestras ≤ 32 MiB y resultado ≤ 512 KiB. La cuota se comprueba al publicar después de ejecutar (ADR-080), sin promesa de reserva previa | Los deadlines siguen siendo cooperativos y unidos, no preempción nativa dura, con la misma limitación ya declarada para M1–M4 |
 | Un benchmark que falsifica su propia salida | Warmup, tiempo de medición y tamaño muestral los fija el servidor en argv cerrado; el dataset declara el tamaño **solicitado** frente al **observado** y trata la diferencia como incompatibilidad de método; compatibilidad antes que estadística; MDR frente al umbral (ADR-073 §2/§4/§5) | **Ninguno de esos controles impide que un benchmark mienta.** Las muestras las produce el harness del **proyecto** y se describen como observaciones de origen no autenticado; el producto no afirma que un benchmark no pueda falsificar sus propios números (ADR-073 §6) |
 
 La tool tampoco alterna el orden de ejecución entre baseline y candidate:
@@ -802,5 +820,5 @@ reporte de binario stripped es inalcanzable con este analizador. El DTO lo
 declara en `analysis_build_symbols_forced`, siempre `true`. El tamaño sigue
 siendo exacto *para ese archivo* —medido por el producto con `stat` y su
 `sha256`, y cotejado contra el `file-size` que reporta el analizador; si no
-coinciden, la completeness es `invalid` y no se publica ranking—, pero no se
+coinciden, la completeness es `size_mismatch` y no se publica ranking—, pero no se
 afirma que sea el artefacto distribuible del proyecto (ADR-076 §6).

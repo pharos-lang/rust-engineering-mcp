@@ -309,12 +309,13 @@ limitada a Inspector 2.5.0 y Codex 0.153.0 en el host local documentado.
 
 ### Configurar las tools M5
 
-Las cuatro definiciones M5 están implementadas y **pendientes de calificación**:
+Las cuatro definiciones M5 están implementadas y en **recalificación en curso**:
 la [matriz M5](validation/M5-matrix.md) conserva M5-01..04 en `In progress`.
 `tools/list` devuelve 31 definiciones —las 27 anteriores sin cambio y las cuatro
-nuevas—, pero ninguna de las cuatro tiene recibo de cliente. Esta sección documenta la
-configuración del host que esos contratos exigen; no acredita una calificación ni
-cambia la release `0.1.0`.
+nuevas—. Los recibos previos no acreditan los contratos M5 finales; la matriz
+indica la evidencia pendiente. Esta sección documenta la configuración del host
+que esos contratos exigen; no acredita una calificación ni cambia la release
+`0.1.0`.
 
 #### `--allow-profiling`
 
@@ -338,10 +339,10 @@ ejecuta `sudo` y no toca `perf_event_paranoid`. Detalles en el
 **La opción se rechaza de plano si no configuras el runtime Docker.** Sin el
 grupo `--docker` / `--docker-socket` / `--state-root` / `--rust-image` completo
 no hay contenedor que contener, así que `--allow-profiling` no se degrada: el
-arranque de `serve` falla. La capability es por servidor y revocable; retirarla
-del arreglo `args` y reiniciar cancela el trabajo en curso, hace join del árbol
-de procesos, conserva la evidencia publicada y devuelve el runtime al perfil
-calificado. Ninguna otra tool cambia de comportamiento por concederla.
+arranque de `serve` falla. La capability es por servidor y se retira quitando la
+bandera y reiniciando; no hay revocación en caliente de trabajo ya iniciado. La
+evidencia publicada se conserva. Ninguna otra tool cambia de comportamiento por
+concederla.
 
 Sin la concesión, un cliente ve `rust.profile.flamegraph` responder `blocked` con
 `PROFILING_NOT_AUTHORIZED` (ADR-076 §5), **antes** de que se cree ningún
@@ -353,19 +354,21 @@ de Resource o por las annotations de la tool.
 
 El harness de benchmarks es una dependencia de desarrollo del proyecto
 (Criterion 0.8.2, la única integración que M5 sabe medir) y se resuelve
-**offline**. Por eso `rust.benchmark.run` exige el directorio vendor autenticado
-por el host, el mismo par ya documentado para las tools M4:
+**offline**. Para Criterion, `rust.benchmark.run` usa una captura de vendor
+autenticada por el host, separada del `CargoVendorSnapshot` de las tools M4:
 
 ```text
---cargo-vendor-dir /ruta/absoluta/al/vendor
---cargo-vendor-tree-sha256 sha256:<64-hex>
+--vendor-capture /ruta/absoluta/al/artifact
+--vendor-capture-tree-sha256 sha256:<64-hex>
 ```
 
-Sin ese par, la tool **reporta que faltan datos offline** —el mismo camino
-`MISSING_OFFLINE_DATA` que ya usan las tools M4 cuando el vendor autenticado no
-está configurado— en lugar de degradarse: no descarga el harness, no lo sustituye
-y no emite un dataset parcial. `rust.profile.flamegraph` y `rust.binary.bloat`
-consumen el mismo árbol vendor para construir el binario que miden.
+Si no se configura captura, la tool puede usar el `CargoVendorSnapshot`
+configurado con `--cargo-vendor-dir`/`--cargo-vendor-tree-sha256`, sujeto a sus
+límites originales. Sin ninguno de los dos, reporta que faltan datos offline.
+No descarga ni sustituye el harness.
+`rust.profile.flamegraph` y `rust.binary.bloat` consumen el árbol configurado con
+`--cargo-vendor-dir`/`--cargo-vendor-tree-sha256` para construir el binario que
+miden.
 `rust.benchmark.compare` no lo necesita: no ejecuta nada y opera sobre dos
 artifacts del store privado identificados por sus IDs opacos, que solo emite un
 `run` previo del mismo proyecto.

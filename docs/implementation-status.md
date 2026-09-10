@@ -148,7 +148,7 @@ y [validación/reviews](roadmap/planning-validation.md).
 | M2 / 0.2.x | Done local; sin release nueva | [Safe Mutation](roadmap/m2-safe-mutation.md) · [prompt M2](prompts/implement-m2.md) |
 | M3 / 0.3.x | Done; integrado en `main` como `57c4037` (PR #14); sin release nueva | [Quality](roadmap/m3-quality.md) · [matriz M3](validation/M3-matrix.md) · [integración](validation/M3-integration.json) |
 | M4 / 0.4.x | Done local; integración mediante PR #15; sin release nueva | [Security](roadmap/m4-security.md) · [handoff M4](validation/M4-handoff.md) · [confirmación final](reviews/m4-final-evidence/review.md) |
-| M5 / 0.5.x | In progress; profiling y bloat calificados nativamente sobre la imagen admitida, M5-01 bloqueado, método de comparación en corrección tras revisión G8 | [Performance](roadmap/m5-performance.md) · [matriz M5](validation/M5-matrix.md) · [handoff M5](validation/M5-handoff.md) |
+| M5 / 0.5.x | In progress; cierre local autorizado, fixes y recalificación de M5-01..05 en curso | [Performance](roadmap/m5-performance.md) · [matriz M5](validation/M5-matrix.md) · [handoff M5](validation/M5-handoff.md) |
 | M6 / 0.6.x | Planned | [Analyzer](roadmap/m6-analyzer.md) · [prompt M6](prompts/implement-m6.md) |
 | M7 / 0.7.x | Conditional; ejecución Deferred sin Go | [Remote](roadmap/m7-remote.md) · [prompt M7](prompts/implement-m7.md) |
 | M8 / 0.8–0.9 / readiness 1.0 | Planned | [Stabilization](roadmap/m8-stabilization.md) · [prompt M8](prompts/implement-m8.md) |
@@ -296,58 +296,32 @@ release ni M5.
 
 ## M5 — Performance en `ai/m5-performance`
 
-**In progress — 2026-09-09. No está Done.** Las decisiones D23 y D24 están
-cerradas (ADR-073/074) junto con el aprovisionamiento (ADR-075), los contratos
-(ADR-076) y la admisión de imagen (ADR-077). Las cuatro tools están registradas
-y el inventario público es de treinta y una; que estén anunciadas **no** las
-califica, y esta tabla dice qué está demostrado.
+**In progress — 2026-09-10. Cierre local en ejecución.** El owner autorizó
+`docs/prompts/complete-m5.md`; M6 y cualquier publicación permanecen fuera de
+alcance. D23/D24 y ADR-073..081 fijan método, capability, imagen, contratos,
+captura offline, semántica bloat, logs y límites de interpretación.
 
-Dos revisiones independientes G8 —seguridad/containment y método/contratos—
-devolvieron `Block` con hallazgos reales. Sus textos íntegros, sus resúmenes y
-las disposiciones del owner están en `docs/reviews/m5-security/` y
-`docs/reviews/m5-method/`. El defecto de containment está corregido y
-recalificado; el del modelo de varianza está en corrección y M5 no puede
-cerrarse antes de que aterrice.
-
-La imagen M5 se reconstruyó tras la corrección del helper, así que ADR-077
-sustituyó su digest: la evidencia nativa se volvió a capturar entera sobre la
-imagen admitida y los recibos anteriores se archivan con el digest que
-realmente midieron.
-
-| Corte | Estado | Evidencia |
+| Corte | Estado | Evidencia vigente o pendiente |
 | --- | --- | --- |
-| M5-01 `rust.benchmark.run` | Blocked en el positivo; negativos y controles calificados, y el bloqueo tiene su propio oráculo. Los logs del harness pasan a publicarse por repetición ([ADR-080](adr/ADR-080-harness-logs-as-artifacts.md)): implementado y cubierto por pruebas de dominio, adapter y publicación; **la calificación nativa y la matriz de clientes se rehacen sobre bytes finales y no están hechas** | [runtime](validation/M5-01-runtime.json) · [oráculo](validation/M5-01-blocked-runtime.json) · [bloqueo](validation/M5-01-blocker.json) |
-| M5-02 `rust.benchmark.compare` | Implementado; el modelo de varianza está **en corrección** tras la revisión de método | [revisión](reviews/m5-method/review.md) · [disposición](reviews/m5-method/disposition.md) |
-| M5-03 `rust.profile.flamegraph` | Calificado nativamente, positivo y denegación, sobre la imagen admitida | [runtime](validation/M5-03-runtime.json) · [capability](validation/M5-profiling-capability-probe.json) |
-| M5-04 `rust.binary.bloat` | Calificado nativamente sobre la imagen admitida | [runtime](validation/M5-04-runtime.json) |
-| M5-05 cierre | In progress; gate conjunto y matriz de clientes sin ejecutar | — |
+| M5-01 `rust.benchmark.run` | Implementación del volumen ADR-078 y positivo Criterion con tres repeticiones; recalificación pendiente | `performance_gateway.rs`, `performance_native.rs`; recibos anteriores históricos |
+| M5-02 `rust.benchmark.compare` | Observación verificable del governor implementada; guarda direccional congelada en `false` | ADR-073/081; `performance_environment.rs`, `benchmark_compare.rs`; gate final pendiente |
+| M5-03 `rust.profile.flamegraph` | Recalificación requerida por cambio de fingerprint | Positivo/denegación anteriores conservados en `validation/M5-03-runtime.json` |
+| M5-04 `rust.binary.bloat` | ADR-079 implementado; revisión de evidencia y recalificación en curso | Revisión `validation/m5-delegation/closure-local-semantics/review.md` |
+| M5-05 cierre | In progress | Clientes dirigidos por modelo, core/full, revisión y documentación final pendientes |
 
-El positivo de profiling —la puerta que el plan señalaba— está demostrado: 195
-muestras sin ninguna perdida sobre las 16 CPUs del guest y la pila esperada, con
-`--cap-drop=ALL`, `no-new-privileges`, uid 65534, sin red, `perf_event_paranoid`
-intacto en 2, sin capability añadida, sin contenedor privilegiado, sin `sudo` y
-sin cambio de `sysctl`. Una sola syscall se añadió al perfil seccomp, y solo una
-fase la usa. El negativo obligatorio —permiso denegado— también está en el mismo
-recibo generado: EPERM, sin stacks y sin SVG.
+La captura independiente conserva los límites de `SourceBundle`. El volumen
+vendor de captura tiene 512 MiB/32768 inodos; creación, fingerprint y cleanup
+usan las mismas opciones. La lectura del governor observa únicamente el guest,
+con argv cerrado y el mismo sandbox. No presume acceso al governor físico.
 
-**M5-01 está bloqueado por una condición reproducible**, no por falta de
-trabajo: el cierre de criterion (6 014 archivos, 156 MB) no cabe en el contrato
-de datos offline (`SourceBundle`: 4 096 entradas, 16 MiB, 1 MiB por archivo).
-Los límites **no** se subieron; pertenecen al contrato calificado en M2/M4 y
-ampliarlos exigiría decisión y recalificación. [Detalle y opciones](validation/M5-01-blocker.json).
+La revisión independiente de esta sesión detectó replay de captura mutable,
+expansión de logs al reemplazar UTF-8 inválido y pérdida de diagnóstico cuando
+falla la segunda ejecución de bloat. Se corrigen y re-revisan antes de medir.
+Claude no produjo revisión autenticada; el fallback Sol está declarado.
 
-El contrato separado que [ADR-078](adr/ADR-078-offline-vendor-capture.md) decide
-**ya está implementado**: tipo de dominio propio con los límites de la tabla del
-ADR, alfabeto ampliado solo a lo que el ADR admite, captura y verificación
-incrementales, identidad por digest, rechazo de enlaces y de un árbol que se
-mueve, limpieza sin residuo tras cancelación, provisión explícita
-(`cargo-vendor capture`) y `rust.benchmark.run` resolviendo su vendor desde una
-captura además de desde el `CargoVendorSnapshot` de siempre. Lo que **no** está
-hecho, y no cambia el estado Blocked, es la calificación nativa: ingerir la
-captura del cierre real en el guest exige Docker y bytes finales, y ese paso se
-ejecuta aparte. `SourceBundle` y `validate_source_path` quedan intactos.
-
-Sin tag, sin release, sin PR y sin push. M6 no está iniciado.
+Los recibos anteriores conservan los bytes y contratos que midieron; no acreditan
+el código nuevo. La integración remota y su smoke siguen pendientes y requieren
+una autorización separada. Sin tag, release, PR ni push; M6 no está iniciado.
 [Matriz](validation/M5-matrix.md) · [Handoff](validation/M5-handoff.md).
 
 ## Technical Debt

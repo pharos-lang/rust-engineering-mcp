@@ -2,7 +2,7 @@
 
 ## 0.3.0-dev — Unreleased
 
-### M5 — cuatro tools de rendimiento, implementadas y sin calificar por completo
+### M5 — cuatro tools de rendimiento implementadas; recalificación en curso
 
 - **Captura de vendor offline, un contrato separado de `SourceBundle`**
   ([ADR-078](docs/adr/ADR-078-offline-vendor-capture.md)). El cierre de
@@ -24,8 +24,8 @@
   `rust.benchmark.run` la resuelve además del `CargoVendorSnapshot` de siempre,
   que sigue funcionando sin cambios para todos los flujos que ya lo usan;
   `SourceBundle`, `validate_source_path` y las cuotas de ADR-055 quedan
-  intactos. La calificación nativa de la ingesta en el guest **no** está hecha y
-  M5-01 sigue Blocked hasta que lo esté.
+  intactos. La ruta de captura y su ingesta guest deben recalificarse antes de
+  que M5-01 pueda recibir evidencia final.
 
 - Implementadas `rust.benchmark.run`, `rust.benchmark.compare`,
   `rust.profile.flamegraph` y `rust.binary.bloat`, en ese orden después de las 27
@@ -51,8 +51,12 @@
   privados, owner-bound, con TTL y sensibilidad `source_derived`, acotados en
   256 KiB por stream y por repetición, con el recorte declarado
   (`completeness: truncated` y `size_bytes` = lo que sobrevivió). No se
-  concatenan entre repeticiones y nunca salen por el `stdout` del servidor. La
-  respuesta admite hasta ocho artifacts en vez de dos.
+  concatenan entre repeticiones y nunca salen por el `stdout` del servidor. Los
+  bytes inválidos se sustituyen para que el payload sea UTF-8 válido; esa
+  sustitución se declara independientemente del recorte, por stream y
+  repetición. La cuota se comprueba al publicar después de ejecutar, por lo que
+  no promete admitir el trabajo antes de iniciarlo. La respuesta admite hasta
+  ocho artifacts en vez de dos.
 - **Se corrige la asociación repetición ↔ archivo ↔ logs.** La regla publicada
   decía que el árbol retenido es «la última repetición que exportó uno, la misma
   cuyo exit y logs reporta la respuesta», y era falsa en un caso alcanzable: el
@@ -97,13 +101,17 @@
   —más confiado— que ese nivel, con cobertura medida en 0,84–0,89 bajo un nulo
   gaussiano con tres ejecuciones. La magnitud depende del modelo de deriva; el
   mecanismo no.
-- **En este runtime `rust.benchmark.compare` no emite dirección alguna**, y son
-  dos razones independientes: el governor de CPU es ilegible dentro del
-  contenedor, y la deriva medida entre ejecuciones del mismo código en el host
-  calificado (6,1–28,7 %, las seis medidas de los dos lados) supera el umbral
-  material del 5 %. La tool mide y publica
-  el efecto —un cambio de fuente del +25 % se mide como +24,4 %—; lo que no hace
-  es llamarlo regresión.
+- **La dirección sigue descalificada independientemente de la observación de
+  governor.** El gateway observa, dentro del guest Linux, los IDs de CPU
+  visibles y el `scaling_governor` de cada uno; solo publica un valor si todos
+  son observables y uniformes. No infiere el host físico ni macOS, y ausencia,
+  exit no cero limpio, heterogeneidad o un conjunto incompleto producen `None`.
+  Timeout, cancelación, output limit o truncamiento siguen el lifecycle
+  fail-closed y son error operativo, no `None`. `cpu_model` también requiere
+  consenso de valores guest válidos. Aun así
+  `METHOD_QUALIFIED_FOR_DIRECTION=false` bloquea siempre `regression`,
+  `improvement` y `no_material_change`; esa puerta estadística es independiente
+  del hardware y requiere su propia recalificación.
 - `rust.profile.flamegraph` exige la capability positiva del host
   `--allow-profiling user-space-sampling`; sin ella responde `blocked` con
   `PROFILING_NOT_AUTHORIZED` antes de crear contenedor alguno. El muestreo es solo
@@ -140,22 +148,22 @@
   `sha256:e0a5ca1661b3e49d0a3d68ee3cc0963453078d08eb7fc43c30538c16b7998aac` a la
   lista cerrada de admisión, y el puerto de performance exige esa imagen y solo
   esa. Las tres imágenes anteriores conservan su admisión y su alcance.
-- **Limitación M5-01**: `rust.benchmark.run` no puede alcanzar hoy su positivo a
-  través del contrato de vendor offline del producto. El cierre de Criterion
+- **Limitación histórica M5-01, sustituida por ADR-078**: antes de la captura de
+  vendor, `rust.benchmark.run` no podía alcanzar su positivo a través del
+  contrato de `SourceBundle`. El cierre de Criterion
   0.8.2 son 6 014 archivos y 156 267 469 bytes, con cuatro archivos por encima
   del límite de 1 MiB por archivo, y un `SourceBundle` admite 4 096 entradas,
   16 MiB en total y 1 MiB por archivo. **Los límites no se subieron**: pertenecen
   al contrato de datos offline calificado en M2/M4 y ampliarlos habría debilitado
   una frontera de seguridad sin decisión ni recalificación. Detalle y opciones
-  para el owner en [M5-01-blocker.json](docs/validation/M5-01-blocker.json). Sus
-  selecciones negativas y de control sí están calificadas.
-- Estado: M5 **no está Done**. `rust.profile.flamegraph` y `rust.binary.bloat`
-  están calificados nativamente, `rust.benchmark.compare` está probado sobre
-  datasets reales del guest, el positivo de `rust.benchmark.run` está bloqueado, y
-  el gate conjunto y la matriz de clientes M5 no se han ejecutado
-  ([matriz](docs/validation/M5-matrix.md),
-  [handoff](docs/validation/M5-handoff.md)). `BenchmarkExit` y `BloatExit`
-  conservan `CALIBRATED = false`. No hay release, tag ni cambio de versión.
+  para el owner en [M5-01-blocker.json](docs/validation/M5-01-blocker.json).
+  ADR-078 no amplía esos límites: introduce una captura separada cuya ruta
+  completa está en recalificación.
+- Estado: M5 **no está Done**. Las cuatro tools y sus contratos cruzados están
+  en recalificación; los recibos históricos no acreditan el resultado final.
+  La [matriz M5](docs/validation/M5-matrix.md) enumera la evidencia pendiente.
+  `BenchmarkExit` y `BloatExit` conservan `CALIBRATED = false`. No hay release,
+  tag ni cambio de versión.
 
 ### M4 — 27 tools implementadas y calificadas localmente
 

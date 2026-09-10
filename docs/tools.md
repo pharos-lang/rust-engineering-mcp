@@ -1179,15 +1179,10 @@ proyecto dentro del sandbox, igual que `rust.test` o `rust.miri`—; solo
 `rust.benchmark.compare` no ejecuta nada.
 Véase [ADR-076](adr/ADR-076-m5-performance-contracts.md).
 
-**Estado.** M5 no está Done. Según la [matriz M5](validation/M5-matrix.md) y el
-[handoff](validation/M5-handoff.md): `rust.profile.flamegraph` y
-`rust.binary.bloat` están calificados nativamente, `rust.benchmark.compare` está
-implementado y probado sobre datasets reales del guest, y el positivo de
-`rust.benchmark.run` está **bloqueado** por una condición reproducible
-([M5-01-blocker.json](validation/M5-01-blocker.json)); sus negativos y controles
-sí están calificados. El cierre conjunto M5-05 no se ha ejecutado y la matriz de
-clientes tampoco. Nada de esto acredita una release, un tag ni un cambio de
-versión.
+**Estado.** M5 no está Done. Está en **recalificación en curso**; los recibos
+anteriores no acreditan los contratos finales de captura, logs, bloat y método.
+La [matriz M5](validation/M5-matrix.md) enumera los cortes y recibos pendientes.
+Nada de esto acredita una release, un tag ni un cambio de versión.
 
 ### Runtime, inputs del host y modo de ejecución M5
 
@@ -1195,10 +1190,11 @@ Las tres tools que ejecutan un proceso exigen la imagen guest M5
 `sha256:e0a5ca1661b3e49d0a3d68ee3cc0963453078d08eb7fc43c30538c16b7998aac` **y
 solo esa**: cualquier otro digest devuelve `unavailable` antes de crear
 contenedor alguno ([ADR-077](adr/ADR-077-m5-runtime-admission.md)). Exigen
-también el vendor Cargo offline autenticado por el host (`--cargo-vendor-dir` y
-`--cargo-vendor-tree-sha256`); sin ese par el resultado es `MISSING_OFFLINE_DATA`
-y no hay descarga, sustitución ni medida degradada. `rust.benchmark.run` acepta
-además, y prefiere, una captura de vendor
+también datos offline autenticados por el host. Profile y bloat usan el
+`CargoVendorSnapshot` configurado con `--cargo-vendor-dir` y
+`--cargo-vendor-tree-sha256`; sin él el resultado es `MISSING_OFFLINE_DATA` y no
+hay descarga, sustitución ni medida degradada. Para Criterion,
+`rust.benchmark.run` acepta además, y prefiere, una captura de vendor
 ([ADR-078](adr/ADR-078-offline-vendor-capture.md)): el par
 `--vendor-capture PATH --vendor-capture-tree-sha256 sha256:<64-hex>` nombra un
 artifact inmutable y el digest que ese artifact debe volver a producir. El
@@ -1225,9 +1221,10 @@ entrada ya acota. No hay camino MCP Tasks para estas cuatro tools.
 Presupuestos y techos ([ADR-076](adr/ADR-076-m5-performance-contracts.md) §7):
 `run` 900 s, `profile` 300 s con 60 s de ventana de muestreo máxima, `bloat`
 300 s y `compare` 30 s; SVG ≤ 8 MiB, JSON de bloat ≤ 4 MiB, muestras ≤ 32 MiB y
-resultado MCP completo ≤ 512 KiB. La cuota se reserva antes de iniciar el
-trabajo; los artifacts se publican en el store durable privado de ADR-061,
-ligados al `project_ref` y a su owner, y se leen como Resources privados.
+resultado MCP completo ≤ 512 KiB. La cuota se comprueba al publicar los
+artifacts, después de ejecutar; no reserva admisión antes de iniciar el trabajo.
+Los artifacts se publican en el store durable privado de ADR-061, ligados al
+`project_ref` y a su owner, y se leen como Resources privados.
 
 ### `rust.benchmark.run`
 
@@ -1296,8 +1293,11 @@ member sale con `completeness: truncated`, su `size_bytes` es lo que sobrevivió
 `stdout_bytes`/`stderr_bytes` retenidos y `stdout_truncated`/`stderr_truncated`.
 Un log recortado no se publica jamás como completo. Los dos booleanos sueltos
 `observation.stdout_truncated`/`stderr_truncated` son el resumen: `true` si
-alguna repetición fue recortada. Una respuesta con hasta tres repeticiones puede
-llevar hasta ocho artifacts: dataset, árbol y dos logs por repetición.
+alguna repetición fue recortada. El payload se hace UTF-8 válido sustituyendo
+bytes inválidos; `stdout_replaced` y `stderr_replaced` declaran esa
+sustitución por stream y repetición, sin confundirla con el recorte. Una respuesta
+con hasta tres repeticiones puede llevar hasta ocho artifacts: dataset, árbol y
+dos logs por repetición.
 
 `criterion_archive` es el árbol de **una** repetición: la última que **exportó**
 uno, y su `run_index` dice cuál. No tiene por qué ser la repetición cuyo exit
@@ -1404,24 +1404,24 @@ completamente dentro de `±5 %` ⇒ `no_material_change`; en cualquier otro caso
 `unobservable_hardware`).
 
 > [!IMPORTANT]
-> **En el runtime M5 tal como se entrega, `rust.benchmark.compare` no emite
-> ninguna dirección**, y `inconclusive` es de hecho el **único** veredicto
-> alcanzable: la puerta de hardware se lee antes que el intervalo, así que
-> `no_material_change` tampoco se emite nunca.
+> **En el runtime M5, `rust.benchmark.compare` no emite ninguna dirección.**
+> `METHOD_QUALIFIED_FOR_DIRECTION=false` cierra de manera independiente
+> `regression`, `improvement` y `no_material_change`; `inconclusive` es el único
+> veredicto direccionalmente seguro hasta la recalificación del método.
 >
-> La causa inmediata **no** es el host. El adapter fija `cpu_governor: None`
-> incondicionalmente (`performance_port.rs`, `hardware_profile`): nadie lo
-> observa, así que es desconocido en los dos lados y la comparación sale
-> `inconclusive` con `unobservable_hardware`. Cambiar de máquina no altera ese
-> camino en absoluto; haría falta observación verificable del entorno, que hoy no
-> existe.
+> El gateway observa exclusivamente el guest Linux: descubre todos los IDs de
+> CPU visibles y lee el governor de cada uno mediante fases tipadas y acotadas.
+> Solo publica `cpu_governor` cuando cada CPU observada responde y todos los
+> valores coinciden. Sysfs ausente, un exit no cero limpio, una CPU faltante o
+> governors heterogéneos producen `None`; timeout, cancelación, límite de salida
+> o truncamiento producen el error operativo unido del gateway. `cpu_model` se
+> publica solo con valores guest válidos y unánimes. No hay afirmación sobre el
+> host físico ni macOS.
 >
-> Y aunque existiera, no bastaría: la deriva medida entre ejecuciones del mismo
-> código en el host calificado va del 6,1 % al 28,7 % contra un umbral material
-> del 5 %, así que el MDR queda por encima del umbral y la puerta de precisión se
-> negaría igual. Habilitar veredictos direccionales exige las dos cosas —entorno
-> observado y protocolo que controle la variación entre ejecuciones—, más la
-> recalificación estadística que ADR-073 tiene pendiente. No un ajuste del umbral.
+> La observación uniforme permite comprobar el governor; si falta, la comparación
+> conserva la razón de entorno desconocido correspondiente.
+> No califica el método ni habilita dirección: eso exige recalificación
+> estadística separada, sin cambiar umbrales por esta observación.
 >
 > La tool **sí** mide y publica el efecto: sobre las capturas reales, un cambio de
 > fuente del +25 % se mide como `effect_ratio` +0,2433. Lo que no hace es llamarlo
@@ -1551,11 +1551,11 @@ perdidas o stacks truncados declarados).
 
 Límites: presupuesto 300 s con 60 s de ventana de muestreo máxima. El unwinding
 depende de frame pointers; un binario sin ellos produce stacks poco profundos y
-eso se declara. El positivo se califica solo en el guest Linux ARM64 con la
-imagen M5: Mach-O y PE no quedan calificados. El corte está **calificado
-nativamente** ([runtime](validation/M5-03-runtime.json),
-[smoke](validation/M5-03-profiling-native.json)), con el oráculo de denegación
-todavía pendiente en el recibo generado.
+eso se declara. El positivo se limita al guest Linux ARM64 con la imagen M5:
+Mach-O y PE no quedan calificados. M5-03 está en recalificación; los recibos
+([runtime](validation/M5-03-runtime.json),
+[smoke](validation/M5-03-profiling-native.json)) no sustituyen la evidencia final
+enumerada en la [matriz M5](validation/M5-matrix.md).
 
 ### `rust.binary.bloat`
 

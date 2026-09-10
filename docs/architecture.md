@@ -289,7 +289,7 @@ OS ante escritores externos, CAS ni una transacción visible multiarchivo. La po
 `preserve_presence` incluye el lock raíz actualizado si existía y elimina del
 candidato un lock creado solo para validar. Esta arquitectura está integrada en el
 checkout `0.3.0-dev`, que registra 31 tools —27 calificadas localmente y las
-cuatro M5 pendientes de calificación—, con [calificación M2](validation/M2-07.md) para las
+cuatro M5 en recalificación—, con [calificación M2](validation/M2-07.md) para las
 18 anteriores y las cuatro tools M3 calificadas en sus cortes síncronos; la release `0.1.0`
 conserva 13.
 
@@ -402,14 +402,24 @@ salida— y añade dos volúmenes que M4 no necesitaba: `/work/target`, ejecutab
 compartido entre las fases de una misma operación para que el analizador y el
 oráculo propio observen el mismo archivo y el perfilador ejecute lo que otra fase
 construyó, y `/performance`, el `CARGO_HOME` respaldado por el vendor. La
-selección del vendor viaja por `--config` con la precedencia más alta, y una
-fuente capturada que traiga su propio archivo de configuración de Cargo se
+selección del vendor viaja por `--config` con la precedencia más alta. Para
+Criterion, `BenchRun` recibe la captura de vendor autenticada de ADR-078; profile
+y bloat conservan el `CargoVendorSnapshot` del host. Una fuente capturada que
+traiga su propio archivo de configuración de Cargo se
 rechaza antes de crear ningún volumen. Las fases son guardianes e ingestas,
-metadata, probes de CPU y kernel, y luego las propias de cada operación:
+metadata, discovery de CPUs visibles, probes de CPU y kernel, y luego las propias de cada operación:
 `BenchRun`/`BenchExport`, `ProfileBuild`/`ProfileRun`/`ProfileExport` y las cinco
 de bloat, incluidas las que miden tamaño, digest y cabecera del archivo. Los
 parsers son puros y están en `criterion_dataset.rs`, `profile_stacks.rs`,
-`profile_svg.rs` y `bloat_json.rs`.
+`profile_svg.rs` y `bloat_json.rs`. La observación de governor se queda dentro
+del gateway: enumera IDs de CPU guest observados, construye solo rutas sysfs
+tipadas y acotadas, y acepta el valor únicamente si todas las CPUs visibles
+devuelven el mismo governor. Sysfs ausente, exit no cero limpio o heterogeneidad
+se serializan como desconocidos; timeout, cancelación, output limit o truncamiento
+cierran la operación mediante el lifecycle unido existente. `cpu_model` exige
+consenso de los valores guest válidos. No observa ni declara el host físico. La puerta
+estadística `METHOD_QUALIFIED_FOR_DIRECTION=false` sigue cerrando por separado
+toda dirección.
 
 El perfilador es código de este repositorio: `fixtures/profile-helper` produce
 `rust-mcp-profile-helper`, construido offline e instalado en la imagen guest,
@@ -424,7 +434,9 @@ En la frontera MCP, los handlers están en
 argv de arranque (`HostProfilingConfig`) y ningún camino la muta después. Los DTO
 y sus schemas cerrados, el decodificador del dataset y el presupuesto de 512 KiB
 del resultado permanecen en el adapter; los artifacts se publican en el store
-durable privado de ADR-061 y se leen como Resources privados. Las decisiones están
-en [ADR-073](adr/ADR-073-benchmark-method-and-dataset.md) a
-[ADR-077](adr/ADR-077-m5-runtime-admission.md), y el estado por corte en la
-[matriz M5](validation/M5-matrix.md): M5 no está Done.
+durable privado de ADR-061 y se leen como Resources privados. Los logs del
+harness se publican por `run_index` y stream, UTF-8 válido con sustitución
+declarada separadamente del recorte; su cuota se comprueba al publicar después de
+la ejecución. Las decisiones están en [ADR-073](adr/ADR-073-benchmark-method-and-dataset.md)
+a [ADR-080](adr/ADR-080-harness-logs-as-artifacts.md), y el estado por corte en
+la [matriz M5](validation/M5-matrix.md): M5 sigue en recalificación, no Done.

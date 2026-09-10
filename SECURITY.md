@@ -363,9 +363,10 @@ retention of source explicitly granted by the host.
 
 Las cuatro definiciones M5 —`rust.benchmark.run`, `rust.benchmark.compare`,
 `rust.profile.flamegraph` y `rust.binary.bloat`— están implementadas y
-**pendientes de calificación**: la [matriz M5](docs/validation/M5-matrix.md)
-conserva M5-01..04 en `In progress`, `tools/list` sigue devolviendo 27
-definiciones y ninguna forma parte de la release `0.1.0`.
+**en recalificación**: la [matriz M5](docs/validation/M5-matrix.md)
+conserva M5-01..04 en `In progress`, `tools/list` devuelve 31 definiciones y
+ninguna forma parte de la release `0.1.0`. La recalificación de M5 está en curso;
+los recibos anteriores no acreditan los contratos finales.
 
 Las tres que ejecutan compilan y corren código del proyecto (R2/R1), igual que
 tests, mutation y Miri. `readOnlyHint` describe que la tool no escribe el
@@ -375,9 +376,9 @@ store privado, sin proceso ni contenedor.
 
 | Tool | Ejecuta código del proyecto | Permisos del host que exige |
 | --- | --- | --- |
-| `rust.benchmark.run` | Sí (R2/R1) | Grupo Docker completo con la imagen aprobada, vendor Cargo autenticado y store durable |
+| `rust.benchmark.run` | Sí (R2/R1) | Grupo Docker completo con imagen aprobada, captura de vendor autenticada para Criterion y store durable |
 | `rust.benchmark.compare` | No | Store durable con dos artifacts del mismo owner |
-| `rust.profile.flamegraph` | Sí (R2/R1) | Lo anterior **más** la capability de profiling concedida explícitamente por el operador |
+| `rust.profile.flamegraph` | Sí (R2/R1) | Grupo Docker completo, imagen aprobada, `CargoVendorSnapshot`, store durable y capability de profiling concedida explícitamente por el operador |
 | `rust.binary.bloat` | Sí (R2/R1) | Grupo Docker completo, vendor Cargo autenticado y store durable |
 
 **El profiling está apagado salvo que el operador lo conceda.** La capability es
@@ -427,6 +428,13 @@ tamaño mide un build de análisis: el analizador fuerza el stripping a `false`
 porque necesita símbolos, así que el archivo medido no es el artefacto que
 enviaría un proyecto que pide stripping; el tamaño es exacto para ese archivo y
 el DTO lo declara. No hay recomendación de optimización ni afirmación causal.
+
+Los `stdout` y `stderr` del harness son artifacts privados `source_derived`,
+separados por repetición y stream; nunca se escriben en el `stdout` MCP. Su
+payload se normaliza a UTF-8 válido mediante sustitución de bytes inválidos y
+declara esa sustitución por separado del recorte. La publicación se somete a la
+cuota del store después de ejecutar: una cuota disponible no es una reserva de
+admisión previa al trabajo.
 
 Esta sección no cambia el procedimiento de reporte de vulnerabilidades descrito
 arriba.

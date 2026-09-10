@@ -410,10 +410,11 @@ incluso tras TTL/reinicio. No permite iniciar efectos nuevos sin preview vigente
 
 ## Rendimiento M5 en desarrollo
 
-Las cuatro definiciones M5 están implementadas y **pendientes de calificación**:
+Las cuatro definiciones M5 están implementadas y en **recalificación en curso**:
 la [matriz M5](validation/M5-matrix.md) conserva M5-01..04 en `In progress` y
-M5-05 en `Not started`. `tools/list` devuelve 31 definiciones: las 27 anteriores
-intactas byte a byte en sus snapshots y las cuatro nuevas, sin recibo de cliente.
+M5-05 en `In progress`. `tools/list` devuelve 31 definiciones: las 27 anteriores
+intactas byte a byte en sus snapshots y las cuatro nuevas. Los recibos históricos
+no califican los contratos M5 finales; la matriz identifica la evidencia pendiente.
 Las cinco versiones de protocolo no cambian. Nada de esta sección forma parte de la
 release `0.1.0`.
 
@@ -440,6 +441,10 @@ existía y se reutiliza sin cambio. `GuestArtifactName` y `PluginIdentity` recib
 las variantes correspondientes (`Criterion`, `ProfileHelper`, `Bloat`). Estos
 enums son internos al store durable: son la identidad con la que el store valida
 un descriptor, no una ampliación de un contrato ya publicado.
+Los logs de benchmark reutilizan el artifact privado `tool_log`/`utf8-log.v1`;
+no están dentro de `criterion_archive`. Se asocian al `run_index` y stream,
+declaran sustitución UTF-8 separada de truncamiento y se publican tras ejecutar,
+sujetos a la cuota del store.
 
 ### Formatos versionados con ciclo propio
 
@@ -466,6 +471,14 @@ CPU es desconocido en cualquiera de los dos lados; un campo de hardware que el
 runtime no puede observar se serializa ausente y bloquea la comparación en vez de
 rellenarse con un valor plausible (ADR-073 §3/§5). Un par incompatible es un
 resultado observado (`INCOMPATIBLE_DATASETS`), no un error de infraestructura.
+El governor, cuando existe, describe únicamente un consenso de las CPUs visibles
+del guest Linux. No identifica el host físico; sysfs ausente, exit no cero limpio,
+conjunto incompleto o heterogeneidad se serializan como desconocidos. Timeout,
+cancelación, output limit o truncamiento son errores operativos unidos, no
+hardware desconocido. `cpu_model` también exige consenso de valores guest válidos.
+Aun con consenso,
+`METHOD_QUALIFIED_FOR_DIRECTION=false` mantiene cerrada toda dirección hasta la
+recalificación estadística.
 
 ### Imagen guest M5
 
