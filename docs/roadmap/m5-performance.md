@@ -1,8 +1,10 @@
 # M5 — Performance / 0.5.x
 
-Estado: **In progress** (2026-09-10). Cierre local autorizado mediante
-`docs/prompts/complete-m5.md`: fixes de captura, observación del entorno,
-recalificación nativa, clientes y gates conjuntos en curso. Los recibos previos
+Estado: **In progress, bloqueado en el gate `full`** (2026-09-10). Cierre local
+autorizado mediante `docs/prompts/complete-m5.md`: captura, observación del
+entorno, recalificación nativa (6/6), clientes (PASS) y `core` (PASS) hechos;
+`full` falla en `semantic` porque `lancedb 0.38.0` no compila con
+`default-features = false`, pendiente de decisión del owner. Los recibos previos
 son históricos cuando cambian los contratos o fingerprints que midieron.
 El estado real por corte vive en [la matriz](../validation/M5-matrix.md) y
 [el handoff](../validation/M5-handoff.md); D23 y D24 quedaron decididos en
@@ -124,16 +126,22 @@ congelados antes de medir, fixtures positivos/negativos. DoD: M5-01..05 y G1–G
 profiling positivo con permisos mínimos, Sonnet de contrato/estadística y Opus High
 del permiso de profiling. P0/P1 y P2 de método/evidencia que falsee veredicto bloquean.
 
-- [ ] Cuatro tools entregan artifacts/medidas reales y compare rechaza identidades
-  incompatibles. Fuente: spec §28/104, M5-01..04 y D23.
-- [ ] Samples/warmup/variabilidad/CI/MDR son visibles y casos ruidosos dan
-  inconclusive, sin claim causal. Fuente: spec §92/116, M5-01/02.
-- [ ] Flamegraph tiene prueba positiva nativa y negativa de permiso; no sudo ni
-  sandbox privilegiado. Fuente: ADR-009/048, M5-03 y D24.
-- [ ] Artifact privacy, límites, cancelación activa y cleanup pasan con code
+- [x] Cuatro tools entregan artifacts/medidas reales y compare rechaza identidades
+  incompatibles. Fuente: spec §28/104, M5-01..04 y D23. Evidencia: gate nativo
+  6/6 y [clientes](../validation/M5-clients.json).
+- [x] Samples/warmup/variabilidad/CI/MDR son visibles y casos ruidosos dan
+  inconclusive, sin claim causal. Fuente: spec §92/116, M5-01/02. Evidencia:
+  ADR-081, `insufficient_executions` en clientes; sin dirección habilitada.
+- [x] Flamegraph tiene prueba positiva nativa y negativa de permiso; no sudo ni
+  sandbox privilegiado. Fuente: ADR-009/048, M5-03 y D24. Evidencia:
+  [M5-03-runtime.json](../validation/M5-03-runtime.json), clientes.
+- [x] Artifact privacy, límites, cancelación activa y cleanup pasan con code
   hostil; size exacto se distingue de atribución. Fuente: spec §36–45/77; M5-03/04.
+  Evidencia: recibos nativos con `residue` vacío, ADR-079 en clientes.
 - [ ] Full gate y cliente sobre bytes finales, inventory/SBOM/provenance y
-  budgets MCP conservan la frontera target real. Fuente: G4–G8, M5-05.
+  budgets MCP conservan la frontera target real. Fuente: G4–G8, M5-05. Cliente y
+  `core` aprobados; **`full` bloqueado** por `lancedb 0.38.0`
+  ([intento 2](../validation/m5-gate-attempts/README.md)).
 
 Handoff: datasets/método/hardware, receipts/reviews, capability profiling y límites;
 detener antes de M6.

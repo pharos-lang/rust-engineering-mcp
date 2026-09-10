@@ -1179,10 +1179,12 @@ proyecto dentro del sandbox, igual que `rust.test` o `rust.miri`—; solo
 `rust.benchmark.compare` no ejecuta nada.
 Véase [ADR-076](adr/ADR-076-m5-performance-contracts.md).
 
-**Estado.** M5 no está Done. Está en **recalificación en curso**; los recibos
-anteriores no acreditan los contratos finales de captura, logs, bloat y método.
-La [matriz M5](validation/M5-matrix.md) enumera los cortes y recibos pendientes.
-Nada de esto acredita una release, un tag ni un cambio de versión.
+**Estado.** M5 no está Done. M5-01..04 están calificados nativamente
+([gate nativo](validation/M5-native-gate.json)) y por clientes
+([recibo](validation/M5-clients.json)) sobre los contratos finales de captura,
+logs, bloat y método; `core` pasa y `full` está bloqueado en `semantic` por
+`lancedb 0.38.0`. La [matriz M5](validation/M5-matrix.md) enumera los recibos y el
+bloqueo. Nada de esto acredita una release, un tag ni un cambio de versión.
 
 ### Runtime, inputs del host y modo de ejecución M5
 
@@ -1552,10 +1554,10 @@ perdidas o stacks truncados declarados).
 Límites: presupuesto 300 s con 60 s de ventana de muestreo máxima. El unwinding
 depende de frame pointers; un binario sin ellos produce stacks poco profundos y
 eso se declara. El positivo se limita al guest Linux ARM64 con la imagen M5:
-Mach-O y PE no quedan calificados. M5-03 está en recalificación; los recibos
-([runtime](validation/M5-03-runtime.json),
-[smoke](validation/M5-03-profiling-native.json)) no sustituyen la evidencia final
-enumerada en la [matriz M5](validation/M5-matrix.md).
+Mach-O y PE no quedan calificados. M5-03 está calificado nativamente
+([runtime](validation/M5-03-runtime.json)) y por clientes
+([recibo](validation/M5-clients.json)); el cierre conjunto sigue el estado de la
+[matriz M5](validation/M5-matrix.md).
 
 ### `rust.binary.bloat`
 

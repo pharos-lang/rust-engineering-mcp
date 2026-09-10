@@ -557,9 +557,9 @@ fail closed before project execution.
 ## M5 — medición, capability de profiling y containment
 
 Estado: las cuatro definiciones M5 están implementadas en dominio, aplicación y
-execution adapter, y en **recalificación en curso**. La
-[matriz M5](validation/M5-matrix.md) conserva M5-01..04 en `In progress` y M5-05
-en `In progress`. `tools/list` devuelve 31 definiciones, con las 27 anteriores
+execution adapter, calificadas nativamente y por clientes, y **sin Done**: la
+[matriz M5](validation/M5-matrix.md) mantiene M5-05 `In progress` con el gate
+`full` bloqueado por `lancedb 0.38.0`. `tools/list` devuelve 31 definiciones, con las 27 anteriores
 sin cambio. Lo que sigue
 describe contratos y controles implementados; solo se presenta como calificado
 aquello que enlaza un recibo.
@@ -754,8 +754,9 @@ La [prueba de capability](validation/M5-profiling-capability-probe.json) del
 | `seccomp-rust-quality.json` | `perf_event_open(user-space-only, self, any-cpu) -> -1`; `RESULT=perf_event_open_denied errno=1` (EPERM). Denegado. |
 | `seccomp-rust-profile.json` | `perf_event_open(...) -> 3`; ring buffer de 8+1 páginas mapeado; `PERF_EVENT_IOC_ENABLE -> 0`; `data_head = 560` tras el workload; `RESULT=samples_collected`. |
 
-El recibo es el positivo de viabilidad de D24 sobre la imagen M4; no es la
-calificación nativa de `rust.profile.flamegraph`, que sigue abierta en M5-03.
+El recibo es el positivo de viabilidad de D24 sobre la imagen M4; la
+calificación nativa de `rust.profile.flamegraph` está en
+[M5-03-runtime.json](validation/M5-03-runtime.json).
 
 ### Alcance de la medición
 

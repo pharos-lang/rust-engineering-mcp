@@ -16,7 +16,7 @@
 | Artifact 0.1.0 publicado | Un único archive core `aarch64-apple-darwin`; checksum, SBOM/notices y provenance verificados |
 | Linux / Windows / macOS x86_64 nativos | CI pública compila y prueba el código fuente; la calificación nativa del sandbox y filesystem sigue pendiente para ampliar soporte en una release futura |
 | Licencia / redistribución | Código original `MIT OR Apache-2.0`; assets `local` no se redistribuyen en 0.1.0 |
-| Clientes de terceros | M4: Inspector 2.5.0 con Tasks y Codex 0.153.0 stock por sincronía; [recibo](validation/M4-clients.json). M1/M2 conservan sus matrices anteriores. |
+| Clientes de terceros | M4: Inspector 2.5.0 con Tasks y Codex 0.153.0 stock por sincronía; [recibo](validation/M4-clients.json). M5: Inspector 2.5.0 (quince filas, catorce Resources) y Claude Code 2.1.267 `claude-sonnet-5` como cliente agentic; [recibo](validation/M5-clients.json). M1/M2 conservan sus matrices anteriores. |
 | Sandbox | Probes M0 separados; ejecución M1–M4 habilitada solo en runtimes aprobados Docker/Linux ARM64 calibrados por sus ADR |
 | SQLite / FTS5 | rusqlite 0.40.2, SQLite bundled 3.53.2; memoria, pruebas ARM64 macOS |
 | LanceDB / embeddings | M0-09: E5/ORT y LanceDB0.31 memory://; feature local, gate macOS ARM64 |
@@ -410,9 +410,9 @@ incluso tras TTL/reinicio. No permite iniciar efectos nuevos sin preview vigente
 
 ## Rendimiento M5 en desarrollo
 
-Las cuatro definiciones M5 están implementadas y en **recalificación en curso**:
-la [matriz M5](validation/M5-matrix.md) conserva M5-01..04 en `In progress` y
-M5-05 en `In progress`. `tools/list` devuelve 31 definiciones: las 27 anteriores
+Las cuatro definiciones M5 están implementadas, calificadas nativamente y por
+clientes, y **sin Done**: la [matriz M5](validation/M5-matrix.md) mantiene M5-05
+`In progress` con el gate `full` bloqueado por `lancedb 0.38.0`. `tools/list` devuelve 31 definiciones: las 27 anteriores
 intactas byte a byte en sus snapshots y las cuatro nuevas. Los recibos históricos
 no califican los contratos M5 finales; la matriz identifica la evidencia pendiente.
 Las cinco versiones de protocolo no cambian. Nada de esta sección forma parte de la
@@ -484,7 +484,7 @@ recalificación estadística.
 
 | Elemento | Identidad / versión | Estado |
 | --- | --- | --- |
-| Guest Linux ARM64 M5 | `sha256:e0a5ca1661b3e49d0a3d68ee3cc0963453078d08eb7fc43c30538c16b7998aac` (`rust-engineering-runtime:1.98.1-arm64-m5`) | Construida y con [recibo](validation/M5-provisioning.json); admitida por digest en el gateway ([ADR-077](adr/ADR-077-m5-runtime-admission.md)), sin calificación nativa de las tools |
+| Guest Linux ARM64 M5 | `sha256:e0a5ca1661b3e49d0a3d68ee3cc0963453078d08eb7fc43c30538c16b7998aac` (`rust-engineering-runtime:1.98.1-arm64-m5`) | Construida y con [recibo](validation/M5-provisioning.json); admitida por digest en el gateway ([ADR-077](adr/ADR-077-m5-runtime-admission.md)); seis selecciones nativas aprobadas ([gate nativo](validation/M5-native-gate.json)) |
 | Base | `sha256:25ed3626e710081a571a86a29521eaf2e890e796afd422ba5e409e0ce1891635` | Imagen M4 aprobada, intacta y verificada por digest antes de construir |
 | `cargo-bloat` | 0.12.1, MIT, en `/opt/perf/bin` | Provisionado, fuera del `PATH` del contenedor de trabajo |
 | `rust-mcp-profile-helper` | Construido desde `fixtures/profile-helper` | Provisionado, fuera del `PATH` del contenedor de trabajo |

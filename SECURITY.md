@@ -363,10 +363,10 @@ retention of source explicitly granted by the host.
 
 Las cuatro definiciones M5 —`rust.benchmark.run`, `rust.benchmark.compare`,
 `rust.profile.flamegraph` y `rust.binary.bloat`— están implementadas y
-**en recalificación**: la [matriz M5](docs/validation/M5-matrix.md)
-conserva M5-01..04 en `In progress`, `tools/list` devuelve 31 definiciones y
-ninguna forma parte de la release `0.1.0`. La recalificación de M5 está en curso;
-los recibos anteriores no acreditan los contratos finales.
+**sin Done**: la [matriz M5](docs/validation/M5-matrix.md) registra M5-01..04
+calificados nativamente y por clientes y `core` aprobado, con el cierre conjunto
+bloqueado en el gate `full` por `lancedb 0.38.0`; `tools/list` devuelve 31
+definiciones y ninguna forma parte de la release `0.1.0`.
 
 Las tres que ejecutan compilan y corren código del proyecto (R2/R1), igual que
 tests, mutation y Miri. `readOnlyHint` describe que la tool no escribe el

@@ -159,9 +159,23 @@
   para el owner en [M5-01-blocker.json](docs/validation/M5-01-blocker.json).
   ADR-078 no amplía esos límites: introduce una captura separada cuya ruta
   completa está en recalificación.
-- Estado: M5 **no está Done**. Las cuatro tools y sus contratos cruzados están
-  en recalificación; los recibos históricos no acreditan el resultado final.
-  La [matriz M5](docs/validation/M5-matrix.md) enumera la evidencia pendiente.
+- La matriz de clientes M5 usa Inspector 2.5.0 como cliente determinista y
+  **Claude Code 2.1.267 (`claude-sonnet-5`) como cliente agentic** en lugar de
+  Codex, por decisión del owner del 2026-09-10. El turno runtime dirigido por
+  modelo mide dos veces por sí mismo —los artifacts están ligados al `ProjectRef`
+  del proceso que los publica—, compara en positivo, obtiene `NOT_A_DATASET`
+  con su propio `criterion_archive` y lee esa Resource, cuyo contenido debe
+  hashear al artifact publicado. El harness fue revisado por Gemini 3.8 y
+  Claude Sonnet 5; el driver Inspector aplica ahora su timeout por llamada.
+  [Recibo](docs/validation/M5-clients.json).
+- Estado: M5 **no está Done**. M5-01..04 están calificados nativamente
+  ([gate nativo](docs/validation/M5-native-gate.json), 6/6) y por clientes, y
+  `core` pasa sobre las fuentes finales
+  ([recibo](docs/validation/M5-core-gate.json)); `full` falla en `semantic`
+  porque `lancedb 0.38.0` no compila con `default-features = false`
+  (`Error::Http` solo existe con `remote`), lo que también deja sin compilar la
+  feature `local` del producto en este checkout. La decisión sobre LanceDB es
+  del owner ([intentos](docs/validation/m5-gate-attempts/README.md)).
   `BenchmarkExit` y `BloatExit` conservan `CALIBRATED = false`. No hay release,
   tag ni cambio de versión.
 

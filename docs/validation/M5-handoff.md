@@ -3,8 +3,10 @@
 Fecha: 2026-09-10. Rama `ai/m5-performance`; base `main`
 `c6099f27415b0be3838e84d21d25eed903c8c312`.
 
-**Cierre local en ejecución.** La [matriz M5](M5-matrix.md) es el estado por
-corte. El owner autorizó completar M5 con commits locales; no autorizó push,
+**Cierre local bloqueado en el gate `full`.** La [matriz M5](M5-matrix.md) es
+el estado por corte: cortes calificados nativamente y por clientes, `core`
+aprobado, `full` detenido en `semantic` porque `lancedb 0.38.0` no compila con
+`default-features = false` (decisión pendiente del owner). El owner autorizó completar M5 con commits locales; no autorizó push,
 PR, merge, tag, release ni M6. Las subidas de dependencias ya incorporadas en
 `a3cb48c` se conservan sin separarlas ni modificarlas.
 
@@ -32,13 +34,13 @@ Los logs de benchmarks se publican por repetición como artifacts privados. Su
 límite se aplica al UTF-8 final, incluso si bytes inválidos se expanden al
 reemplazarlos. Se declaran truncación y reemplazo por separado.
 
-## Validación pendiente del candidato final
+## Validación del candidato final
 
-1. Pruebas focalizadas de captura y performance.
+1. Pruebas focalizadas de captura y performance: **hechas** (12, 68 y 11 tests).
 2. Seis selecciones nativas ignoradas, una por vez con `--exact --ignored
-   --test-threads=1`: admisión, negativos/controles, límite de snapshot, captura
-   positiva, profiling y bloat.
-3. `scripts/test-m5-clients.py --run --with-runtime`: Inspector 2.5.0 como
+   --test-threads=1`: **6/6 aprobadas** ([M5-native-gate.json](M5-native-gate.json)).
+3. **PASS** ([M5-clients.json](M5-clients.json), attempt-6).
+   `scripts/test-m5-clients.py --run --with-runtime`: Inspector 2.5.0 como
    cliente determinista —dos benchmarks, comparación con IDs reales y lectura de
    todos los artifacts— y Claude Code 2.1.267 (`claude-sonnet-5`, restringido al
    servidor configurado y a las tools de Resources) como cliente agentic. El
@@ -48,8 +50,20 @@ reemplazarlos. Se declaran truncación y reemplazo por separado.
    rechazo `NOT_A_DATASET` con un artifact propio de otro tipo y leerlo como
    Resource; el turno docker-free debe obtener los cuatro rechazos declarados
    con los argumentos del plan.
-4. `scripts/gate.py core` y `full` en exclusiva, con sus inventarios de fuentes.
-5. Disposición final G1–G9 y sincronización del tablero con los recibos.
+4. `scripts/gate.py core`: **PASS** ([M5-core-gate.json](M5-core-gate.json)).
+   `scripts/gate.py full`: **failed** en `semantic`, 31/34 pasos
+   ([intento 2](m5-gate-attempts/README.md)); `m5-runtime` conjunto sin recibo.
+5. Disposición final G1–G9: [escrita](m5-delegation/closure-local-semantics/g1-g9-disposition.md),
+   NOT DONE por G5; tablero sincronizado.
+
+## Bloqueo que decide el owner
+
+`lancedb 0.38.0` con `default-features = false` no compila (`Error::Http` solo
+existe con `remote`; `job.rs` lo usa sin `cfg`). Opciones, todas fuera de esta
+autorización: activar `remote` (lock nuevo, descargas, más superficie), otra
+versión de LanceDB, o vendorizar 0.38.0 con parche de fuente cambiando la
+política manifest-only. La feature `local` del producto tampoco compila en este
+HEAD; el binario por defecto no la incluye.
 
 El worktree de medición es `/private/tmp/rust-mcp-m5-closure`. La imagen
 admitida sigue siendo

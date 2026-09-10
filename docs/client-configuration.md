@@ -27,6 +27,7 @@ La evidencia preservada del proyecto cubre:
 | MCP Inspector 2.5.0 | M4: 27 tools, cinco positivos, cinco negativos, cinco Resource reads y cancelación Tasks; M1/M2 conservan sus recibos. [Recibo M4](validation/M4-clients.json). |
 | Codex 0.153.0 stock | M4: las cinco tools pasaron por el camino síncrono de hasta 60 s y un turno model-directed usó las cinco con resultado `passed`. El cliente no declaró Tasks ni acredita cancelación Tasks. [Recibo M4](validation/M4-clients.json). |
 | Claude Code 2.1.260, Sonnet 5 medium (M2) | Cliente stock restringido a MCP: 17 llamadas/resultados passed, cinco preview/commit, seis opens y receipt final committed. [Intento 5](validation/M2-clients.json), con renovación de referencias explícita en prompt v2; intentos 1–4 fallidos preservados. |
+| Claude Code 2.1.267, `claude-sonnet-5` medium (M5) | Cliente agentic restringido al servidor configurado más `ListMcpResourcesTool`/`ReadMcpResourceTool`: docker-free con los cuatro rechazos declarados ligados a sus roots; runtime con siete llamadas exactas —open, discovery, dos `rust.benchmark.run` propios, comparación positiva `inconclusive`/`insufficient_executions`, `NOT_A_DATASET` con su `criterion_archive` y lectura de esa Resource cuyos bytes hashean al artifact publicado—. Inspector 2.5.0 convierte las quince filas deterministas. [Recibo M5](validation/M5-clients.json); [intentos](validation/m5-clients/attempts.md) 2–5 fallidos preservados. |
 | Gemini CLI, Cursor y VS Code | Configuración derivada del soporte `stdio` oficial de cada cliente; pendiente de calificación con este servidor. |
 
 La [matriz de compatibilidad](compatibility.md) conserva el alcance de plataforma,
@@ -309,8 +310,9 @@ limitada a Inspector 2.5.0 y Codex 0.153.0 en el host local documentado.
 
 ### Configurar las tools M5
 
-Las cuatro definiciones M5 están implementadas y en **recalificación en curso**:
-la [matriz M5](validation/M5-matrix.md) conserva M5-01..04 en `In progress`.
+Las cuatro definiciones M5 están implementadas, calificadas nativamente y por
+clientes, y **sin Done**: la [matriz M5](validation/M5-matrix.md) mantiene M5-05
+`In progress` con el gate `full` bloqueado por `lancedb 0.38.0`.
 `tools/list` devuelve 31 definiciones —las 27 anteriores sin cambio y las cuatro
 nuevas—. Los recibos previos no acreditan los contratos M5 finales; la matriz
 indica la evidencia pendiente. Esta sección documenta la configuración del host
