@@ -69,3 +69,15 @@ dentro de la prosa final del modelo («per host/authorization/vendor-data
 policy»). El patrón heredado del escaneo de metadatos de protocolo era
 vocabulario, no forma; se restringe a `authorization:` (cabecera) y a los
 prefijos de token. Ningún contenedor se creó; sin residuo Docker.
+
+## attempt-4 — 2026-09-10, `failed`: timeout por llamada del Inspector
+
+HEAD `09ddae7`. Docker-free completo: Inspector ocho filas y turno Claude con
+los cuatro rechazos ligados a sus roots (17,7 s). En runtime, la primera fila
+`rust.benchmark.run` (presupuesto 300 s) recibió `REQUEST_TIMEOUT` a los 61 s:
+el driver pasaba `request_timeout_ms` como `serverSettings.requestTimeout`, una
+entrada de configuración que el cliente no consulta, y el SDK aplicó su
+`DEFAULT_REQUEST_TIMEOUT_MSEC` de 60 s. Ninguna fila anterior había superado
+ese umbral. El Inspector envió `notifications/cancelled`, el servidor canceló
+la medición y no quedó artifact ni contenedor: comportamiento correcto del
+producto. Se corrige el driver (`timeout: plan.request_timeout_ms`).

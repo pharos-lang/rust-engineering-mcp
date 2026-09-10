@@ -1,0 +1,15 @@
+Traceback (most recent call last):
+  File "/private/tmp/rust-mcp-m5-closure/scripts/test-m5-clients.py", line 1998, in <module>
+    raise SystemExit(main())
+                     ~~~~^^
+  File "/private/tmp/rust-mcp-m5-closure/scripts/test-m5-clients.py", line 1994, in main
+    return run(options.with_runtime, options.docker_socket)
+  File "/private/tmp/rust-mcp-m5-closure/scripts/test-m5-clients.py", line 1916, in run
+    receipt["inspector"][RUNTIME] = inspector_gate(
+                                    ~~~~~~~~~~~~~~^
+        attempt, RUNTIME, runtime_argv, runtime_plan, 1800, 600_000)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/private/tmp/rust-mcp-m5-closure/scripts/test-m5-clients.py", line 1038, in inspector_gate
+    raise RuntimeError(f"Inspector M5 {mode} session failed")
+RuntimeError: Inspector M5 runtime session failed
+EXIT=1

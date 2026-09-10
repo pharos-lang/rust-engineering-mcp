@@ -1,0 +1,12 @@
+unknown format "uint64" ignored in schema at path "#/properties/duration_ms"
+unknown format "uint64" ignored in schema at path "#/properties/duration_ms"
+unknown format "uint64" ignored in schema at path "#/$defs/Truncation/properties/diagnostics_omitted"
+unknown format "uint64" ignored in schema at path "#/$defs/Truncation/properties/diagnostics_omitted"
+file:///private/tmp/rust-mcp-m5-closure/scripts/m5-inspector-session.mjs:173
+      throw new Error(`Inspector ${row.tool} ${row.shape} produced a protocol error: ${error?.code ?? "unknown"}`);
+            ^
+
+Error: Inspector rust.benchmark.run positive produced a protocol error: REQUEST_TIMEOUT
+    at file:///private/tmp/rust-mcp-m5-closure/scripts/m5-inspector-session.mjs:173:13
+
+Node.js v24.15.0

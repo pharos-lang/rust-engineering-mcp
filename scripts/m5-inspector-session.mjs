@@ -130,6 +130,12 @@ const client = new InspectorClient(serverConfig, {
   sample: false, elicit: false, progress: false, roots: [],
   advertisedExtensions: { [TASKS]: true },
   versionNegotiation: { mode: { pin: "2026-07-28" } },
+  // The per-request bound the SDK applies is the client option `timeout`
+  // (`this.requestTimeout = options.timeout`, read by `getRequestOptions`);
+  // `serverSettings.requestTimeout` is a stored configuration entry that no
+  // call consults. Until the runtime plan carried a 300 s measurement every
+  // row finished under the SDK's 60 s default, which hid the difference.
+  timeout: plan.request_timeout_ms,
   serverSettings: {
     protocolEra: "modern", connectionTimeout: 15_000,
     requestTimeout: plan.request_timeout_ms,
