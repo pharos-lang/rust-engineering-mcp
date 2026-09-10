@@ -1,6 +1,6 @@
 {
   "cut": "m5-00-admission",
-  "finished_utc": "2026-09-09T00:43:08Z",
+  "finished_utc": "2026-09-10T15:55:57Z",
   "fixtures": {},
   "image_id": "sha256:25ed3626e710081a571a86a29521eaf2e890e796afd422ba5e409e0ce1891635",
   "residue": {
@@ -29,5 +29,5 @@
       "selection": "unqualified-image-refused"
     }
   ],
-  "started_utc": "2026-09-09T00:43:07Z"
+  "started_utc": "2026-09-10T15:55:56Z"
 }

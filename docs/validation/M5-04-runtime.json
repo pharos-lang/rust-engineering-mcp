@@ -1,6 +1,6 @@
 {
   "cut": "m5-04-bloat",
-  "finished_utc": "2026-09-09T00:45:36Z",
+  "finished_utc": "2026-09-10T16:02:10Z",
   "fixtures": {
     "bloat": {
       "archive_sha256": "sha256:d93c1e9e05c0a4287ba39a95cd39af3c2add28816665d4d40dff4f6601f3c66d",
@@ -23,8 +23,9 @@
   },
   "selections": [
     {
-      "duration_ms": 8877,
+      "duration_ms": 9547,
       "observed": {
+        "analysis_validated": true,
         "analyzer_version": "0.12.1",
         "attribution": {
           "crates": [
@@ -49,15 +50,15 @@
               "size_bytes": 20
             }
           ],
-          "crates_omitted": 0,
+          "crates_omitted_by_row_cap": 0,
           "estimated": true,
           "functions": 256,
-          "functions_omitted": 378,
+          "functions_omitted_by_row_cap": 378,
           "reported_file_size_bytes": 4574312,
           "text_section_size_bytes": 235268
         },
-        "completeness": "Truncated",
-        "execution_fingerprint": "sha256:b8d7fd2d0991ac3b4e0b412a59f13f18ffca678abca3bf73dfbf3ced941d4fb5",
+        "completeness": "Complete",
+        "execution_fingerprint": "sha256:e83bdcb9d3bc92dc69548681a0da740ab422e64d65b941be9eced0b7160ba04d",
         "exit": "Passed",
         "exit_code": 0,
         "measured": {
@@ -71,8 +72,9 @@
       "selection": "release-positive"
     },
     {
-      "duration_ms": 10064,
+      "duration_ms": 11158,
       "observed": {
+        "analysis_validated": true,
         "analyzer_version": "0.12.1",
         "attribution": {
           "crates": [
@@ -97,15 +99,15 @@
               "size_bytes": 212
             }
           ],
-          "crates_omitted": 0,
+          "crates_omitted_by_row_cap": 0,
           "estimated": true,
           "functions": 256,
-          "functions_omitted": 234,
+          "functions_omitted_by_row_cap": 234,
           "reported_file_size_bytes": 2150848,
           "text_section_size_bytes": 217048
         },
-        "completeness": "Truncated",
-        "execution_fingerprint": "sha256:4541be5e3e6c2597548ab948b5f45f619c038b6c505efb2ec6cf38cde0129f5d",
+        "completeness": "Complete",
+        "execution_fingerprint": "sha256:e136804b01dc847578040401148b46e8b36f46290f4f9e68cd1d56fc6ac22b74",
         "exit": "Passed",
         "exit_code": 0,
         "measured": {
@@ -119,12 +121,13 @@
       "selection": "release-lto"
     },
     {
-      "duration_ms": 8433,
+      "duration_ms": 9212,
       "observed": {
+        "analysis_validated": false,
         "analyzer_version": "0.12.1",
         "attribution": null,
         "completeness": "Unavailable",
-        "execution_fingerprint": "sha256:9993c75a2393c0832acab28b6cf40e5163b304338f1a7287c9ef51a2bb7cc05e",
+        "execution_fingerprint": "sha256:0a138583a60222d30b657fe51e7c7b89d32ce1b08dcee31d7cacadf57b02a88b",
         "exit": "AnalysisFailed",
         "exit_code": 1,
         "measured": null
@@ -133,5 +136,5 @@
       "selection": "missing-binary-target"
     }
   ],
-  "started_utc": "2026-09-09T00:45:08Z"
+  "started_utc": "2026-09-10T16:01:40Z"
 }

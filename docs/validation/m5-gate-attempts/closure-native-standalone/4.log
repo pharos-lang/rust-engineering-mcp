@@ -1,0 +1,14 @@
+warning: patch `lancedb v0.31.0 (/private/tmp/rust-mcp-m5-closure/vendor/lancedb)` was not used in the crate graph
+help: Check that the patched package version and available features are compatible
+      with the dependency requirements. If the patch has a different version from
+      what is locked in the Cargo.lock file, run `cargo update` to use the new
+      version. This may also occur with an optional dependency that is not enabled.
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.19s
+     Running unittests src/lib.rs (target/debug/deps/rust_engineering_execution-90533356044b11f0)
+
+running 1 test
+test performance_native::m5_profile_flamegraph_is_qualified_natively ... M5_RUNTIME_RECEIPT sha256:b1463e86abe8aeba9878c78a9c4f6c1e90f21518df6b74970324b6d24e83a887 /private/tmp/rust-mcp-m5-closure/crates/execution-adapter/../../target/m5-runtime/receipt.json
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 401 filtered out; finished in 109.69s
+

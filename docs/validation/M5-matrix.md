@@ -25,11 +25,31 @@ quedan fuera de esta autorización. M6 no está iniciado.
 
 | ID | Corte | Estado actual | Evidencia |
 | --- | --- | --- | --- |
-| M5-01 | Benchmark existente → dataset, archivo Criterion y logs | Implementado; calificación final en ejecución | `performance_native::m5_benchmark_run_measures_criterion_through_a_vendor_capture` y suite descubierta por `scripts/test-m5-runtime.py` |
+| M5-01 | Benchmark existente → dataset, archivo Criterion y logs | Calificado nativamente; cierre conjunto pendiente | [captura](M5-01-capture-runtime.json), [negativos](M5-01-runtime.json), [gate nativo](M5-native-gate.json) |
 | M5-02 | Dos datasets del store → compatibilidad → comparación | Implementado; guardas conservadas; gate final pendiente | `benchmark_compare.rs`, fixtures de datasets reales, `performance_environment.rs`, matriz de clientes final pendiente |
-| M5-03 | Capability → muestras/stacks/SVG → Resource | Recalificación por cambio de fingerprint en ejecución | Positivo, cero muestras, denegación, descendiente, cancelación y artifact precreado en `performance_native.rs` |
-| M5-04 | Build → tamaño exacto y atribución estimada | ADR-079 implementado y re-revisado; recalificación pendiente | [Revisión](m5-delegation/closure-local-semantics/review.md), tests de bloat |
+| M5-03 | Capability → muestras/stacks/SVG → Resource | Recalificado nativamente; cierre conjunto pendiente | [runtime](M5-03-runtime.json): positivo, cero muestras, denegación, descendiente, cancelación y artifact precreado |
+| M5-04 | Build → tamaño exacto y atribución estimada | Recalificado nativamente; cierre conjunto pendiente | [runtime](M5-04-runtime.json), [revisión](m5-delegation/closure-local-semantics/review.md) |
 | M5-05 | Clientes, G1–G9 y cierre conjunto | In progress | Gates finales pendientes |
+
+## Gate nativo independiente
+
+[M5-native-gate.json](M5-native-gate.json) registra seis selecciones aprobadas,
+cada una exacta, ignorada y serial, sobre el candidato `a2464c4`. Los commits
+posteriores hasta `aa935e6` solo modifican documentación y recibos; su diff sobre
+código, scripts, fixtures, manifests y AGENTS es vacío.
+
+La captura real tiene 161361408 bytes de artifact y 156267469 bytes de archivos.
+El positivo completó tres ejecuciones y produjo 90 muestras para cada uno de los
+tres benchmarks, con warmup solicitado de 3000 ms y medición de 5000 ms por
+benchmark y ejecución. No se deriva de ello un veredicto direccional. Los
+controles de digest, solo lectura y cancelación pasaron. Los cortes que usaron
+Docker terminaron con inventario propio vacío; el oráculo del snapshot pequeño
+no ejecuta contenedores.
+
+El primer intento confinado al sandbox devolvió `Unavailable` al abrir el
+runtime. El reintento con acceso Docker autorizado pasó completo, sin cambios de
+código ni imagen. Ambos intentos se conservan en `m5-gate-attempts/`.
+El gate full posterior debe volver a acreditar su etapa M5 dentro del conjunto.
 
 ## Correcciones de cierre
 

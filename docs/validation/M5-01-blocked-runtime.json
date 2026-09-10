@@ -1,6 +1,6 @@
 {
   "cut": "m5-01-benchmark-blocked",
-  "finished_utc": "2026-09-09T00:43:03Z",
+  "finished_utc": "2026-09-10T15:56:22Z",
   "fixtures": {
     "criterion_vendor": {
       "bounds": {
@@ -91,5 +91,5 @@
       "selection": "pooled-run-count-2"
     }
   ],
-  "started_utc": "2026-09-09T00:43:03Z"
+  "started_utc": "2026-09-10T15:56:22Z"
 }

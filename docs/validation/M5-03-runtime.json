@@ -1,6 +1,6 @@
 {
   "cut": "m5-03-profile",
-  "finished_utc": "2026-09-09T16:06:46Z",
+  "finished_utc": "2026-09-10T16:01:39Z",
   "fixtures": {
     "profile_workload": {
       "archive_sha256": "sha256:7d78b4e816a061f6fa0b1d30313122529102cae09be7f076bc83c2fd9f52bf1d",
@@ -23,7 +23,7 @@
   },
   "selections": [
     {
-      "duration_ms": 11117,
+      "duration_ms": 11301,
       "observed": {
         "backend": "perf_event_software_cpu_clock",
         "build": "Built",
@@ -34,8 +34,8 @@
         },
         "completeness": "Complete",
         "counters": {
-          "frames_total": 2170,
-          "frames_unresolved": 198,
+          "frames_total": 2176,
+          "frames_unresolved": 200,
           "max_depth_applied": 127,
           "modules_seen": 5,
           "observed_duration_ms": 2001,
@@ -44,7 +44,7 @@
           "stacks_truncated": 0,
           "stacks_written": 2
         },
-        "execution_fingerprint": "sha256:cb53e9d95567fc3a10adc4276f25b6654a26d6191caec3f17c345c1ffb36420c",
+        "execution_fingerprint": "sha256:12ac59ec5b7f07d2735e162217ea8f28c99aa38cfa81e9697d8c653e75d6969a",
         "hottest_stack": {
           "distinct_frames_emitted": 25,
           "frames": [
@@ -60,26 +60,26 @@
             "_RNvCskHqGhPDynrU_25rust_mcp_profile_workload9level_two",
             "_RNvCskHqGhPDynrU_25rust_mcp_profile_workload15known_hot_frame"
           ],
-          "samples": 196,
+          "samples": 194,
           "total_samples": 197
         },
         "perf_errno": null,
         "stacks_bytes": 1170,
         "status": "Complete",
-        "svg_bytes": 3969,
+        "svg_bytes": 3972,
         "top_frames": 13
       },
       "outcome": "passed",
       "selection": "profile-positive"
     },
     {
-      "duration_ms": 10905,
+      "duration_ms": 11171,
       "observed": {
         "cpu_model": "CPU implementer=0x61 CPU part=0x000 CPU revision=0 CPU variant=0x0",
         "cpus_sampled": 16,
         "descendants_reaped": 0,
         "guest_cpu_cores": 16,
-        "manifest_sha256": "sha256:c94ce71ea8cc17166ebfca58e0fb974dd5f4886bd9152a314ce49af73b0c11b9",
+        "manifest_sha256": "sha256:6e922882531c2189d44a85df0af220b3dd1bd4c734be1d7ed130e2bde2ba5583",
         "manifest_status": "complete",
         "namespace_drained": true,
         "os_kernel": "Linux 7.0.12-linuxkit aarch64"
@@ -88,7 +88,7 @@
       "selection": "profile-cpus-sampled"
     },
     {
-      "duration_ms": 8831,
+      "duration_ms": 9025,
       "observed": {
         "backend": "perf_event_software_cpu_clock",
         "build": "Built",
@@ -109,7 +109,7 @@
           "stacks_truncated": 0,
           "stacks_written": 0
         },
-        "execution_fingerprint": "sha256:397bed68528f95f165698d54f1a17d135bf4e52ca82dea51c455d21534e103ae",
+        "execution_fingerprint": "sha256:4ad0d44a6015a0c02a185387c35826522987d46ed27a020725e453c36a659fb1",
         "perf_errno": null,
         "stacks_bytes": 0,
         "status": "ChildExited",
@@ -120,11 +120,11 @@
       "selection": "zero-sample-control"
     },
     {
-      "duration_ms": 15207,
+      "duration_ms": 15904,
       "observed": {
         "monitor": {
           "inventory_failed": false,
-          "inventory_polls": 586,
+          "inventory_polls": 623,
           "needle": "/opt/perf/bin/rust-mcp-profile-helper",
           "observed_running": true
         },
@@ -137,7 +137,7 @@
       "selection": "cancellation-during-profiling"
     },
     {
-      "duration_ms": 17362,
+      "duration_ms": 18218,
       "observed": {
         "backend": "perf_event_software_cpu_clock",
         "build": "Built",
@@ -158,7 +158,7 @@
           "stacks_truncated": 0,
           "stacks_written": 0
         },
-        "execution_fingerprint": "sha256:4267f13bdd74454dba6aba2a091d8e4a6094768d28e9f23737b7668ae12d805f",
+        "execution_fingerprint": "sha256:1d8f2e4efd9e17e7cfbeecc076c1b07f910336000ae79d6c6d13374650351cc7",
         "helper_exit": 3,
         "helper_manifest": {
           "child_exit_code": null,
@@ -193,7 +193,7 @@
       "selection": "denial-control"
     },
     {
-      "duration_ms": 21855,
+      "duration_ms": 22223,
       "observed": {
         "backend": "perf_event_software_cpu_clock",
         "build": "Built",
@@ -204,26 +204,26 @@
         },
         "completeness": "Complete",
         "counters": {
-          "frames_total": 1943,
-          "frames_unresolved": 195,
+          "frames_total": 1975,
+          "frames_unresolved": 201,
           "max_depth_applied": 127,
           "modules_seen": 5,
           "observed_duration_ms": 2002,
-          "samples_collected": 194,
+          "samples_collected": 196,
           "samples_lost": 0,
           "stacks_truncated": 0,
           "stacks_written": 2
         },
         "descendants_reaped": 1,
-        "execution_fingerprint": "sha256:fc9ffecea6d745c011821d4c0dbbbb9b9be37db74f03e1634200224942ccc86b",
+        "execution_fingerprint": "sha256:9266bd419160b630ebeae48342d37990b901916c53e9c149dda6e74af95fb38e",
         "helper_exit": 0,
         "helper_manifest": {
           "child_exit_code": 0,
           "child_signal": null,
           "cpus_sampled": 16,
           "descendants_reaped": 1,
-          "frames_total": 1959,
-          "frames_unresolved": 198,
+          "frames_total": 1969,
+          "frames_unresolved": 199,
           "frequency_hz": 99,
           "max_depth": 127,
           "modules_seen": 5,
@@ -231,11 +231,11 @@
           "observed_duration_ms": 2002,
           "perf_errno": null,
           "requested_duration_ms": 4000,
-          "samples_collected": 195,
+          "samples_collected": 196,
           "samples_lost": 0,
           "schema": "rust-engineering-mcp.profile-helper.v1",
           "stacks_truncated": 0,
-          "stacks_written": 3,
+          "stacks_written": 2,
           "status": "complete"
         },
         "hottest_stack": {
@@ -251,26 +251,26 @@
             "_RNvCsai5KdxhHUDv_21rust_mcp_profile_fork8dispatch",
             "_RNvNtCsai5KdxhHUDv_21rust_mcp_profile_fork8workload15known_hot_frame"
           ],
-          "samples": 193,
-          "total_samples": 194
+          "samples": 191,
+          "total_samples": 196
         },
-        "manifest_sha256": "sha256:064706b4ed6c837e412a54e75196df8b06a116a3442174c287171fcf9ff1849e",
+        "manifest_sha256": "sha256:13dd577e1d8911a4c49ee6adc82806c43bfcd36fe8cbff4a5277c647bfb24de4",
         "namespace_drained": true,
         "perf_errno": null,
         "reconciled_artifact": {
-          "distinct_stacks": 3,
-          "total_samples": 195
+          "distinct_stacks": 2,
+          "total_samples": 196
         },
         "stacks_bytes": 1038,
         "status": "Complete",
-        "svg_bytes": 3680,
+        "svg_bytes": 3800,
         "top_frames": 12
       },
       "outcome": "passed",
       "selection": "profile-descendant-drained"
     },
     {
-      "duration_ms": 21068,
+      "duration_ms": 21278,
       "observed": {
         "exported_manifest_bytes": 0,
         "exported_stacks_bytes": 0,
@@ -283,5 +283,5 @@
       "selection": "profile-precreated-artifact-refused"
     }
   ],
-  "started_utc": "2026-09-09T16:04:59Z"
+  "started_utc": "2026-09-10T15:59:50Z"
 }

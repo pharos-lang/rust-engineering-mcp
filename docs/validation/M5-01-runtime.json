@@ -1,13 +1,13 @@
 {
   "cut": "m5-01-benchmark",
-  "finished_utc": "2026-09-09T00:46:09Z",
+  "finished_utc": "2026-09-10T15:56:21Z",
   "fixtures": {
     "benchmark": {
-      "archive_sha256": "sha256:337ab18d72d8eaf143570df0b862f79b5d01d7702f906ae34af3cdb5bc301291",
-      "bytes": 24437,
+      "archive_sha256": "sha256:d59a7a40c438a20850e990aff2eca594627dcd41fd7fe48792ae1254f02e07d8",
+      "bytes": 24968,
       "directories": 2,
       "files": 6,
-      "tree_fingerprint": "sha256:40c28def3715d94c3ede1f336337dafb866a169b63c241c20f04ff6d3a53c168"
+      "tree_fingerprint": "sha256:63d8bed8389385314b927ac629c73cb7f270891328a7658a658e54791eeb94d2"
     },
     "bloat": {
       "archive_sha256": "sha256:d93c1e9e05c0a4287ba39a95cd39af3c2add28816665d4d40dff4f6601f3c66d",
@@ -30,18 +30,27 @@
   },
   "selections": [
     {
-      "duration_ms": 8123,
+      "duration_ms": 8945,
       "observed": {
-        "execution_fingerprint": "sha256:3f2a78f7da4340aedcaa05e50d02a5cc383616cfe997ee6634aa114e064a3850",
+        "archive_run_index": null,
+        "execution_fingerprint": "sha256:bb183fafa678481a5a3c17e741ed83e1bfc6a85db4465febf55dc5c8d415073c",
         "exit": "Passed",
         "exit_code": 0,
+        "exit_run_index": 1,
         "harness": "Unrecognized",
+        "logs": [
+          {
+            "run_index": 1,
+            "stderr_bytes": 270,
+            "stderr_truncated": false,
+            "stdout_bytes": 235,
+            "stdout_truncated": false
+          }
+        ],
         "measurements": null,
         "omission": "HarnessUnrecognized",
         "runs_completed": 1,
         "runs_requested": 1,
-        "stderr_bytes": 270,
-        "stdout_bytes": 235,
         "termination": "Exited",
         "vendor_fingerprint": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
       },
@@ -49,7 +58,7 @@
       "selection": "unrecognised-harness"
     },
     {
-      "duration_ms": 492,
+      "duration_ms": 481,
       "observed": {
         "gateway_error": "ProjectCargoConfiguration",
         "residue_after": {
@@ -65,11 +74,11 @@
       "selection": "project-cargo-configuration-refused"
     },
     {
-      "duration_ms": 13586,
+      "duration_ms": 14948,
       "observed": {
         "monitor": {
           "inventory_failed": false,
-          "inventory_polls": 542,
+          "inventory_polls": 583,
           "needle": "/opt/rust/bin/cargo bench",
           "observed_running": true
         },
@@ -82,5 +91,5 @@
       "selection": "cancellation-mid-run"
     }
   ],
-  "started_utc": "2026-09-09T00:45:46Z"
+  "started_utc": "2026-09-10T15:55:57Z"
 }
