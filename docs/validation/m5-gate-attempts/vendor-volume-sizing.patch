@@ -1,0 +1,90 @@
+--- /private/tmp/claude-501/-Users-cburgosro-Projects-rust-mcp/1fed1243-edad-44a6-82dd-f0bad7c8cf7d/scratchpad/performance_gateway.rs.orig	2026-09-09 19:30:31
++++ /private/tmp/claude-501/-Users-cburgosro-Projects-rust-mcp/1fed1243-edad-44a6-82dd-f0bad7c8cf7d/scratchpad/performance_gateway.rs.diagnostic	2026-09-09 19:40:47
+@@ -19,9 +19,9 @@
+ //!   against `/rust-mcp-vendor` and never against the network.
+ use super::*;
+ use crate::mutation_gateway::{
+-    MutationVolume, VOLUME_OPTIONS, absent, cleanup_until, labels, mutation_control,
+-    parse_volume_with_options, query_control, remove_if_present, running, start_attached,
+-    start_attached_source,
++    MutationVolume, VOLUME_OPTIONS, absent, cleanup_until, cleanup_until_with_options, labels,
++    mutation_control, parse_volume_with_options, query_control, remove_if_present, running,
++    start_attached, start_attached_source,
+ };
+ use crate::rust_gateway::RustGateway;
+ use rust_engineering_application::vendor_capture::{BenchmarkVendor, VerifiedVendorCapture};
+@@ -106,6 +106,12 @@
+ /// density and the same 512 MiB ceiling as the qualified `/work` build tmpfs,
+ /// with `noexec` removed because cargo executes build scripts and the profiler
+ /// executes the binary it built.
++/// TEMPORARY DIAGNOSTIC, NOT A DECISION. ADR-078 §4's own ceilings expressed as
++/// the guest volume that has to hold an ingested capture. Reverted before this
++/// task ends; it exists only to prove which constant blocks the ingest.
++pub(super) const VENDOR_CAPTURE_VOLUME_OPTIONS: &str =
++    "size=512m,nr_inodes=32768,uid=65534,gid=65534,mode=0700,nosuid,nodev,noexec";
++
+ pub(super) const TARGET_VOLUME_OPTIONS: &str =
+     "size=512m,nr_inodes=65536,uid=65534,gid=65534,mode=0700,nosuid,nodev";
+ 
+@@ -1731,6 +1737,7 @@
+             "--opt=type=tmpfs",
+             "--opt=device=tmpfs",
+             VOLUME_OPTIONS,
++            VENDOR_CAPTURE_VOLUME_OPTIONS,
+             TARGET_VOLUME_OPTIONS,
+         ],
+         inputs.operation.kind(),
+@@ -2041,6 +2048,10 @@
+     validate_vendor(&vendor)?;
+     let source_archive = crate::source_archive::encode(source)?;
+     budget_error(deadline, cancel)?;
++    let vendor_options = match &vendor {
++        BenchmarkVendor::Capture(_) => VENDOR_CAPTURE_VOLUME_OPTIONS,
++        BenchmarkVendor::Snapshot(_) => VOLUME_OPTIONS,
++    };
+     let vendor_archive = match &vendor {
+         BenchmarkVendor::Snapshot(snapshot) => {
+             VendorIngest::Bytes(crate::source_archive::encode(&snapshot.source)?)
+@@ -2096,7 +2107,7 @@
+             gateway,
+             &names.vendor_volume,
+             &names.operation_id,
+-            VOLUME_OPTIONS,
++            vendor_options,
+             deadline,
+             cancel,
+         )?;
+@@ -2602,11 +2613,12 @@
+         &names.operation_id,
+         cleanup_deadline,
+     );
+-    let vendor_cleanup = cleanup_until(
++    let vendor_cleanup = cleanup_until_with_options(
+         gateway,
+         &[],
+         &names.vendor_volume,
+         &names.operation_id,
++        vendor_options,
+         cleanup_deadline,
+     );
+     let config_cleanup = cleanup_until(
+@@ -2638,7 +2650,7 @@
+     budget_error(deadline, cancel)?;
+ 
+     let source_volume = fingerprint_volume("<source-volume>", "<source>", VOLUME_OPTIONS);
+-    let vendor_volume = fingerprint_volume("<vendor-volume>", "<vendor>", VOLUME_OPTIONS);
++    let vendor_volume = fingerprint_volume("<vendor-volume>", "<vendor>", vendor_options);
+     let config_volume = fingerprint_volume("<config-volume>", "<config>", VOLUME_OPTIONS);
+     let target_volume = fingerprint_volume("<target-volume>", "<target>", TARGET_VOLUME_OPTIONS);
+     let output_volume = fingerprint_volume("<output-volume>", "<output>", VOLUME_OPTIONS);
+--- /private/tmp/claude-501/-Users-cburgosro-Projects-rust-mcp/1fed1243-edad-44a6-82dd-f0bad7c8cf7d/scratchpad/mutation_gateway.rs.orig	2026-09-09 19:34:03
++++ /private/tmp/claude-501/-Users-cburgosro-Projects-rust-mcp/1fed1243-edad-44a6-82dd-f0bad7c8cf7d/scratchpad/mutation_gateway.rs.diagnostic	2026-09-09 19:40:47
+@@ -572,7 +572,7 @@
+     cleanup_until_with_options(gateway, names, volume, nonce, VOLUME_OPTIONS, deadline)
+ }
+ 
+-fn cleanup_until_with_options(
++pub(super) fn cleanup_until_with_options(
+     gateway: &RustGateway,
+     names: &[&str],
+     volume: &str,
