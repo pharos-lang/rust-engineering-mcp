@@ -58,3 +58,14 @@ debilita la exigencia del turno dirigido por modelo, no se cambia el modelo ni
 se copian credenciales. La matriz se repite, sin cambiar código, cuando la
 cuota se restablezca. Mientras tanto M5-05 no puede declararse Done y M5 sigue
 `In progress` aunque los gates nativo, `core` y `full` acrediten el candidato.
+
+## attempt-3 — 2026-09-10, `failed`: falso positivo del escaneo de credenciales del harness
+
+Primer intento con Claude Code como cliente agentic (HEAD `c3cb12a`). Inspector
+docker-free pasó sus ocho filas y el turno docker-free de Claude se completó
+(`claude-docker_free-model-events.jsonl`), pero el escaneo de texto con forma de
+credencial que la revisión Sonnet pidió añadir marcó la palabra `authorization`
+dentro de la prosa final del modelo («per host/authorization/vendor-data
+policy»). El patrón heredado del escaneo de metadatos de protocolo era
+vocabulario, no forma; se restringe a `authorization:` (cabecera) y a los
+prefijos de token. Ningún contenedor se creó; sin residuo Docker.

@@ -1666,7 +1666,10 @@ def claude_prompt(mode: str, plan: list[dict[str, object]]) -> str:
     ])
 
 
-CREDENTIAL_TEXT = (b"authorization", b"access_token", b"refresh_token", b"auth.json",
+# Header and token shapes, not vocabulary: a model may legitimately write the
+# word "authorization" in prose (attempt-3 did), a credential never appears
+# without its header colon or its token prefix.
+CREDENTIAL_TEXT = (b"authorization:", b"access_token", b"refresh_token", b"auth.json",
                    b"sk-ant-", b"bearer ")
 
 
