@@ -708,10 +708,12 @@ uid/gid 65534 y el montaje `/source` de solo lectura. **No** se añade
 nada con `sudo` y **no** se modifica ningún `sysctl`:
 `/proc/sys/kernel/perf_event_paranoid` permanece en `2`, que es precisamente el
 valor que ya permite mediciones de espacio de usuario sin privilegio. El perfil
-aplicado se verifica contra el declarado por fase, pero **no con la cobertura de
-ADR-064**: la comprobación M5 es un subconjunto estricto de la matriz
-`rust_applied`, aceptado como P2 y sin corregir; el detalle y su mitigación están
-en [ADR-074 §3](adr/ADR-074-profiling-capability-and-containment.md).
+aplicado se verifica contra el declarado por fase. La corrección de cierre
+delega la autoridad y los límites en la misma matriz `rust_applied` de M1–M4 y
+compara los montajes solicitados y efectivos, además de argv, entorno, usuario
+y seccomp propios de cada fase. La recalificación de esta corrección está en la
+[matriz M5](validation/M5-matrix.md); la decisión y el P2 histórico permanecen en
+[ADR-074 §3/3.1](adr/ADR-074-profiling-capability-and-containment.md).
 
 ### Los artifacts del perfilador no se creen por venir del contenedor
 

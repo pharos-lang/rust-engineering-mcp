@@ -318,6 +318,8 @@ La revisión independiente de esta sesión detectó replay de captura mutable,
 expansión de logs al reemplazar UTF-8 inválido y pérdida de diagnóstico cuando
 falla la segunda ejecución de bloat. Se corrigen y re-revisan antes de medir.
 Claude no produjo revisión autenticada; el fallback Sol está declarado.
+La auditoría G1–G9 recuperó además el P2 histórico de paridad `verify_applied`:
+su corrección y recalificación son obligatorias antes de Done (ADR-074 §3.1).
 
 Los recibos anteriores conservan los bytes y contratos que midieron; no acreditan
 el código nuevo. La integración remota y su smoke siguen pendientes y requieren

@@ -1,0 +1,41 @@
+{
+  "purpose": "Receipts anteriores a la recalificacion de cierre M5; bytes preservados sin editar.",
+  "source_commit": "9f889af",
+  "receipts": [
+    {
+      "file": "M5-clients.json",
+      "sha256": "22e2cb9fba6fa283ed717bf3bab34f3260fae975022f3d361a44c2322067e4b4",
+      "bytes": 297104
+    },
+    {
+      "file": "M5-runtime.json",
+      "sha256": "41a4b407c6609415063d5641ead34f4094f7d167697af3ec78beb50dae80b478",
+      "bytes": 40190
+    },
+    {
+      "file": "M5-00-admission-runtime.json",
+      "sha256": "c8c1113875ec4e1c91e56dafc96adb1d0ec85f4ca96a2bdb902200e36f639501",
+      "bytes": 879
+    },
+    {
+      "file": "M5-01-runtime.json",
+      "sha256": "ccf475001580d90dbbe767f4251a4c00e1f020d2911b83a490283c2a90aaebc4",
+      "bytes": 2427
+    },
+    {
+      "file": "M5-01-blocked-runtime.json",
+      "sha256": "50505b6f4efeab646ffc31080d315ae08975f04ff4172dcc5463db4a7aa81282",
+      "bytes": 3142
+    },
+    {
+      "file": "M5-03-runtime.json",
+      "sha256": "5c6ac512081e144349d32b64f41e50bf617245d3d6f89c471629ecd07baeed90",
+      "bytes": 9335
+    },
+    {
+      "file": "M5-04-runtime.json",
+      "sha256": "e9f13751393e7b97dce8257804f84d25f579d58fcc7dc1440b8e0fbd7e014333",
+      "bytes": 3885
+    }
+  ]
+}

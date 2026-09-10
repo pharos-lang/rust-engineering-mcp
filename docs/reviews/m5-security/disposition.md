@@ -44,6 +44,14 @@ propio corte y su propio gate en vez de un cambio apresurado al final de la
 sesión. Queda anotado como trabajo obligatorio antes de cerrar M5, y ADR-074 §3
 no debe leerse como paridad con ADR-064 hasta entonces.
 
+**Actualización de cierre local, 2026-09-10:** corregido en `89ec114` según
+ADR-074 §3.1. M5 delega a `rust_applied` y verifica ambas vistas de mounts;
+los callers M1–M4 no cambian. La
+[re-review independiente](../../validation/m5-delegation/closure-applied-security/review.md)
+no encuentra P0–P2 en el delta. La disposición técnica requiere todavía los
+gates nativos y conjuntos registrados en la matriz M5; no se presenta la
+revisión estática como calificación de ejecución.
+
 ## P2 — el oráculo de permiso denegado no está en el recibo generado
 
 **Aceptado y corregido en la documentación; la selección nativa está en curso.**

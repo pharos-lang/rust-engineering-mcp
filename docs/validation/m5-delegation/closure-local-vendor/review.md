@@ -9,7 +9,7 @@ congelado en `reviewed-files.sha256`.
 ## Result
 
 **PASS WITH P3 FOLLOW-UP.** V-01 quedó corregido en los bytes congelados con hash
-`088b3ce0dea5a90c38ec97ae6692ffed509b291ee95235d19d8eb14cd3f6e395`.
+`9457a561bd3851866eb449a20c034faec4b3d71ac6a013d806cdb077cd039fca`.
 No quedan findings P0-P2 en este paquete.
 
 ## Files changed
@@ -75,7 +75,8 @@ delta, pero debe correr con el gate focalizado y conjunto sobre los bytes finale
 
 ## Open issues
 
-- Ejecutar los tests Rust y la matriz runtime final.
+- La repetición del gate focal tras retirar el import de test no usado y la
+  matriz runtime final siguen pendientes.
 - Considerar V-03 como hardening posterior.
 - Claude Sonnet 5 fue el único modelo externo invocado: el primer intento no
   pudo autenticarse y el reintento escalado fue interrumpido sin salida. Opus 5

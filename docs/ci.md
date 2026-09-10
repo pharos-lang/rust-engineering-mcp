@@ -357,15 +357,16 @@ etapas nativas ya documentadas (`docker-security`, `rust-security`,
 `crate-inspect`, `doctor`). Ese conteo describe la configuración vigente del
 script, no una ejecución acreditada: no existe todavía un recibo de gate M5.
 
-### Hueco declarado: no hay etapa full para el runtime nativo M5
+### Etapa full para el runtime nativo M5
 
-`full` **no** incorpora ninguna etapa que ejercite la imagen M5, el helper de
-profiling dentro del guest ni `cargo-bloat` sobre el runtime. Las tres etapas
-nuevas son portables: comprueban el formato y los tests del helper compilado en
-el host y la integridad de las fixtures vendorizadas. La calificación nativa de
-M5 sigue abierta —la [matriz M5](validation/M5-matrix.md) mantiene M5-01..04 en
-`In progress` y M5-05 en `Not started`— y su etapa de gate pertenece a ese
-cierre. Este documento no debe leerse como si esa etapa existiera.
+`full` incorpora `m5-runtime`, que ejecuta `scripts/test-m5-runtime.py` sobre
+la imagen admitida. El script descubre las seis selecciones ignoradas de
+`performance_native.rs` y las ejecuta una por vez con `--exact --ignored
+--test-threads=1`. Comprueba admisión antes de medir y registra sources, fixtures,
+logs, resultado y digest del recibo nativo por selección. No aprovisiona ni
+reconstruye imágenes. El estado de calificación está en la
+[matriz M5](validation/M5-matrix.md); la existencia de la etapa no constituye
+por sí sola un gate aprobado.
 
 ### Imagen guest M5
 

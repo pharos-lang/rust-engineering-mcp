@@ -1,0 +1,46 @@
+{
+  "worktree": "/private/tmp/rust-mcp-m5-closure",
+  "scope": "Historical focused attempts; not final qualification",
+  "attempts": [
+    {
+      "head": "e40962d",
+      "command": "cargo test -p rust-engineering-execution --lib performance_ --locked --offline",
+      "exit_code": 101,
+      "log": "m5-focused-execution.txt",
+      "sha256": "bbb251a401f0ed2b4199476adf113968ad94e5980391f35646e1665f33594613",
+      "timing": "not recorded by these focused invocations"
+    },
+    {
+      "head": "9f889af",
+      "command": "cargo test -p rust-engineering-project vendor_capture --locked --offline",
+      "exit_code": 0,
+      "log": "m5-closure-vendor-capture.txt",
+      "sha256": "cb90fa03c50532dfc808328d0c666383a2c3c49fb0aa560ca84e9777fba3bdcd",
+      "timing": "not recorded by these focused invocations"
+    },
+    {
+      "head": "9f889af",
+      "command": "cargo test -p rust-engineering-execution --lib performance_ --locked --offline",
+      "exit_code": 101,
+      "log": "m5-closure-performance.txt",
+      "sha256": "07b08bef0de36047411cb9a656e43929dce07497139984b13c577ecbe55cd696",
+      "timing": "not recorded by these focused invocations"
+    },
+    {
+      "head": "89ec114",
+      "command": "cargo test -p rust-engineering-project --lib vendor_capture --locked --offline",
+      "exit_code": 0,
+      "log": "89ec114-capture.txt",
+      "sha256": "d78827ae41403dc9c18afd7b9e7750910dad962c569cf1ca6b8909cadc08cc72",
+      "timing": "not recorded by these focused invocations"
+    },
+    {
+      "head": "89ec114",
+      "command": "cargo test -p rust-engineering-execution --lib performance_ --locked --offline",
+      "exit_code": 101,
+      "log": "89ec114-performance.txt",
+      "sha256": "04431bb8ec896259cebe716bd00369cae7d9f643f2d405bdd7f0aa5c0e4f715c",
+      "timing": "not recorded by these focused invocations"
+    }
+  ]
+}

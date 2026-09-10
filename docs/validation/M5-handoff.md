@@ -1,172 +1,83 @@
 # M5 — handoff
 
-Fecha: 2026-09-08. Rama: `ai/m5-performance`.
-Base: `c6099f27415b0be3838e84d21d25eed903c8c312` (`main` == `origin/main`).
+Fecha: 2026-09-10. Rama `ai/m5-performance`; base `main`
+`c6099f27415b0be3838e84d21d25eed903c8c312`.
 
-Estado: **M5 no está Done.** Dos de los cuatro cortes de tool están calificados
-nativamente sobre la imagen admitida y reproducidos por dos clientes reales, uno
-está bloqueado por una condición reproducible y con su propio oráculo, y el
-cuarto —`rust.benchmark.compare`— está implementado y probado pero no puede
-emitir dirección alguna en este runtime. Este documento dice qué está demostrado, qué no, y
-con qué evidencia.
+**Cierre local en ejecución.** La [matriz M5](M5-matrix.md) es el estado por
+corte. El owner autorizó completar M5 con commits locales; no autorizó push,
+PR, merge, tag, release ni M6. Las subidas de dependencias ya incorporadas en
+`a3cb48c` se conservan sin separarlas ni modificarlas.
 
-## Entrada M4 verificada live
+## Contratos y cambios integrados
 
-`gh pr view 15` devuelve `MERGED`, merge `90d72f2c…`, head `e1be3a37…` y diez
-checks en `SUCCESS`. `git diff --stat e1be3a37..main -- crates/ Cargo.toml
-Cargo.lock scripts/` es vacío, así que los bytes calificados de M4 son los de
-`main`. No se detectó discrepancia con lo que declaraba el encargo.
+Las decisiones ADR-073..081 gobiernan las cuatro tools de rendimiento y sus
+límites. `rust.benchmark.run` consume el vendor como snapshot pequeño o captura
+ADR-078. La captura real se ingiere con el volumen de 512 MiB/32768 inodos,
+con creación, fingerprint y cleanup coherentes. El replay revalida el descriptor
+y autentica el digest antes de entregar su último bloque. Ningún límite de
+SourceBundle fue ampliado.
 
-## Decisiones cerradas
+El gateway observa el governor dentro del guest por argv cerrado. Si no hay
+observación completa y uniforme, publica desconocido; no infiere el governor
+físico. La guarda `METHOD_QUALIFIED_FOR_DIRECTION=false`, el umbral material del
+5 % y los criterios de precisión/potencia permanecen intactos. Una comparación
+puede terminar correctamente y seguir siendo `inconclusive`.
 
-| Decisión | ADR | Qué fija |
-| --- | --- | --- |
-| D23 | [ADR-073](../adr/ADR-073-benchmark-method-and-dataset.md) | Criterion 0.8.2 como único harness, parámetros congelados por el servidor, dataset v2 con muestras crudas y su `run_index`, método estadístico completo antes de medir |
-| D24 | [ADR-074](../adr/ADR-074-profiling-capability-and-containment.md) | Capability positiva del host, helper propio, una sola syscall añadida |
-| Aprovisionamiento | [ADR-075](../adr/ADR-075-m5-runtime-provisioning.md) | Inputs exactos con licencia y hash, autorizados por separado |
-| Contratos | [ADR-076](../adr/ADR-076-m5-performance-contracts.md) | Las cuatro tools, con tamaño exacto separado de atribución estimada |
-| Admisión | [ADR-077](../adr/ADR-077-m5-runtime-admission.md) | Un digest añadido a la lista cerrada |
+`rust.binary.bloat` sigue ADR-079: un ranking limitado no convierte por sí solo
+un análisis válido en fallo. Tamaño exacto, atribución estimada, filas omitidas y
+recorte de respuesta permanecen diferenciados. Cuando falla la segunda vista,
+los logs y el report describen esa misma ejecución.
 
-## Estado por corte
+Los logs de benchmarks se publican por repetición como artifacts privados. Su
+límite se aplica al UTF-8 final, incluso si bytes inválidos se expanden al
+reemplazarlos. Se declaran truncación y reemplazo por separado.
 
-| Corte | Estado | Evidencia |
-| --- | --- | --- |
-| M5-01 `rust.benchmark.run` | **Blocked** en el positivo; negativos y controles calificados | [runtime](M5-01-runtime.json), [bloqueo](M5-01-blocker.json) |
-| M5-02 `rust.benchmark.compare` | Implementado; método probado sobre datos reales del guest | [calibración](M5-01-benchmark-calibration.json) |
-| M5-03 `rust.profile.flamegraph` | **Calificado nativamente** sobre la imagen admitida, positivo y denegación en el mismo recibo generado | [runtime](M5-03-runtime.json), [clientes](M5-clients.json), [smoke manual anterior](M5-03-profiling-native.json) |
-| M5-04 `rust.binary.bloat` | **Calificado nativamente** | [runtime](M5-04-runtime.json), [calibración](M5-04-bloat-calibration.json) |
-| M5-05 cierre | **No ejecutado** | — |
+## Validación pendiente del candidato final
 
-### El positivo de profiling
+1. Pruebas focalizadas de captura y performance.
+2. Seis selecciones nativas ignoradas, una por vez con `--exact --ignored
+   --test-threads=1`: admisión, negativos/controles, límite de snapshot, captura
+   positiva, profiling y bloat.
+3. `scripts/test-m5-clients.py --run --with-runtime`: Inspector y Codex stock,
+   incluidos dos benchmarks, comparación con IDs reales y recuperación de
+   artifacts. El turno dirigido por modelo debe demostrar discovery, positivo,
+   fallo declarado y lectura de Resource.
+4. `scripts/gate.py core` y `full` en exclusiva, con sus inventarios de fuentes.
+5. Disposición final G1–G9 y sincronización del tablero con los recibos.
 
-Es la puerta que el plan señalaba y está demostrada. En el guest calificado, con
-`--cap-drop=ALL`, `no-new-privileges`, uid 65534, `--network=none`,
-`perf_event_paranoid` intacto en 2, sin capability añadida, sin contenedor
-privilegiado, sin `sudo` y sin cambio de `sysctl`: 195 muestras sin ninguna
-perdida, 194 de ellas en la pila exacta que la fixture fue diseñada para tener,
-terminada en `known_hot_frame`, con las 16 CPUs del guest muestreadas y cero
-frames con un path. El control de cero muestras reporta cero como resultado, y
-el control de denegación —que ya **no** está pendiente— devuelve
-`profiler_unavailable` con `perf_errno = 1` (EPERM) bajo el perfil de calidad sin
-modificar, sin stacks y sin SVG.
+El worktree de medición es `/private/tmp/rust-mcp-m5-closure`. La imagen
+admitida sigue siendo
+`sha256:e0a5ca1661b3e49d0a3d68ee3cc0963453078d08eb7fc43c30538c16b7998aac`;
+no se reconstruyó. La captura provisionada está en
+`fixtures/criterion-vendor/capture/` y es un input local, no una descarga runtime.
 
-Los mismos 195 se reproducen a través de dos clientes reales: Inspector 2.5.0 y
-Codex stock devuelven `passed` con dos artifacts publicados y leídos como
-Resources ([matriz de clientes](M5-clients.json)).
+## Revisión y riesgos restantes
 
-La cifra de «192 muestras» que este documento publicaba antes venía del smoke
-manual sobre la imagen retirada, no del recibo generado. El número del recibo es
-194 de 195.
+Las revisiones [vendor](m5-delegation/closure-local-vendor/review.md) y
+[semántica](m5-delegation/closure-local-semantics/review.md) detectaron y
+revisaron los fixes de replay, normalización de logs y diagnóstico bloat. No
+quedan P0–P2 de esos paquetes. Dos P3 quedan trazados en los informes.
+La auditoría G1–G9 recuperó el P2 histórico de paridad `verify_applied`;
+su corrección reutiliza `rust_applied` y requiere pruebas, re-review y full.
 
-### El bloqueo de M5-01
+Claude Sonnet 5 respondió sin autenticación y el reintento no produjo informe;
+Opus 5 no se invocó. Sol ejecutó el fallback autorizado. No se afirma revisión
+Claude ni agotamiento de cuota. Sus [intentos](m5-delegation/closure-sonnet5-semantics/attempts.md)
+se conservan.
 
-`rust.benchmark.run` resuelve el harness desde un `CargoVendorSnapshot`
-autenticado por el host. Un `SourceBundle` admite 4 096 entradas, 16 MiB en
-total y 1 MiB por archivo. El cierre de criterion 0.8.2 son 6 014 archivos,
-779 directorios y 156 267 469 bytes, con cuatro archivos por encima del límite
-por archivo. Podar no sirve, y la razón está medida: esos cuatro archivos
-pertenecen a paquetes solo-Windows y Cargo exige todo paquete del lockfile en un
-directory source, así que no se pueden quitar.
+El alcance positivo es macOS ARM64 con guest Linux ARM64. La observación del
+guest no acredita control del hardware físico. Los datos estadísticos siguen
+sin habilitar direcciones. Los límites de vendor cercanos al techo son política,
+no una calificación de todos los extremos posibles. Las muestras provienen del
+harness del proyecto, que puede falsearlas.
 
-**No se subieron los límites.** Son parte del contrato de datos offline
-calificado en M2/M4 y compartido por todos los flujos que usan `SourceBundle`.
-Ampliarlos para poner una prueba en verde habría debilitado una frontera de
-seguridad calificada sin decisión ni recalificación. Las opciones para el owner
-están en [M5-01-blocker.json](M5-01-blocker.json).
+## Historia e integración
 
-Lo que sí queda demostrado es el **método**: tres capturas reales del guest
-(`fixtures/benchmark-datasets`) se parsean y se comparan con control de
-auto-comparación, regresión de dirección conocida y rechazo de `same_artifact`.
-El bloqueo es de ingesta del vendor, no de la medición.
+Los [recibos anteriores](m5-closure-history/inventory.json) se preservan sin
+editar. Los gates nuevos deberán apuntar a los bytes exactos que midieron;
+ningún recibo histórico acredita código posterior. El control de que Criterion
+no cabe en el snapshot pequeño sigue siendo correcto para ese contrato y no
+sustituye el positivo de la captura separada.
 
-## Defectos reales encontrados y corregidos
-
-| Defecto | Cómo se encontró | Consecuencia si hubiera pasado |
-| --- | --- | --- |
-| El kernel rechaza `perf_mmap` de un evento heredado con `cpu == -1` | smoke en el guest | Profiling parecería una denegación del sandbox para siempre |
-| El perfil seccomp de profiling nunca se escribía al state dir | revisión del gateway | Docker habría rechazado el contenedor; la tool nunca podría funcionar |
-| `directory_name` de criterion contiene `/` | bytes reales del guest | El parser rechazaba todo export real |
-| BuildKit servía fuentes obsoletas pese a `--no-cache` | `SHA256SUMS` dentro de la imagen | La imagen habría llevado el helper equivocado |
-| El vendor se definía dos veces (CARGO_HOME + `--config`) | prueba nativa | Ninguna build offline funcionaba |
-| El analizador omite la clave `crate` en 81 de 634 filas | prueba nativa | Ninguna atribución se publicaba |
-| Se pasaban flags de Criterion a un harness libtest | prueba nativa | Exit 101 fabricado que no dice nada del proyecto |
-| Un `.cargo/config.toml` del proyecto redirigía el vendor | smoke en el guest | El proyecto podría sustituir los bytes de sus dependencias |
-
-## Trabajo pendiente para cerrar M5
-
-1. **MCP**: registrado. `stdio.rs` anuncia las cuatro tools, existen 32 snapshots
-   —los 27 anteriores sin cambio byte a byte contra el merge M4, los cuatro
-   nuevos y `doctor-report`— y los seis conteos dicen 31. Queda una brecha de
-   contrato: la descripción publicada de `rust.benchmark.run` promete publicar
-   «the harness output tree» y hoy solo se publica el dataset, porque
-   `BenchmarkObservation` no transporta los bytes del archivo de criterion.
-2. **M5-01**: decisión del owner sobre el contrato de datos offline.
-3. **Gates**: `scripts/gate.py core` y `full` sobre los bytes finales, con una
-   etapa `m5-runtime` en full que hoy no existe.
-4. **Clientes**: Inspector y Codex stock contra las tools nuevas.
-5. **Revisiones G8** independientes de contratos, estadística, seguridad y
-   profiling, y sus dispositions.
-6. **Docs**: README, CHANGELOG, `docs/tools.md`, `docs/architecture.md` y el
-   tablero. `docs/security-model.md`, `SECURITY.md`,
-   `docs/client-configuration.md`, `docs/ci.md` y `docs/compatibility.md` ya
-   están sincronizados.
-
-## Dos caminos de éxito que este runtime no alcanza
-
-Ambos son propiedades medidas, no fallos del entorno, y los dos se publican.
-
-1. **`rust.benchmark.compare` no emite dirección.** El governor de CPU es
-   ilegible dentro del contenedor, así que es desconocido en los dos lados:
-   `inconclusive` con `unobservable_hardware`. Y aunque se observara, la deriva
-   entre ejecuciones del mismo código en este host es del 15 % al 29 % contra un
-   umbral del 5 %, de modo que el MDR tampoco lo resuelve. El efecto real se mide
-   —un cambio de fuente del +25 % sale como +24,4 % sobre las seis capturas—; lo
-   que no se emite es el veredicto. Oráculo:
-   `criterion_dataset::admitted_image_datasets`.
-2. **`rust.binary.bloat` no devuelve `passed`.** Detallado abajo.
-
-## Hallazgo abierto, deliberadamente sin corregir
-
-`rust.binary.bloat` no puede devolver `passed` para ningún binario que enlace
-`std`: el tope propio del producto son 256 filas, el positivo nativo omitió 378
-funciones, y la tool convierte toda completeness distinta de `Complete` en
-`blocked` / `EVIDENCE_INCOMPLETE`. La respuesta sí lleva los datos completos y el
-tamaño exacto, así que no se pierde información; lo que está mal es la palabra.
-Un ranking acotado por un límite que el producto eligió y declara es la
-atribución estimada que el contrato promete, no evidencia incompleta.
-
-Se deja abierto **a propósito**. Apareció al construir la matriz de clientes, es
-decir en el momento exacto en que corregirlo pone una fila en verde, y una
-corrección de contrato tomada con ese incentivo no se distingue de un ajuste al
-resultado. Necesita decisión propia, cambio de ADR-076 y re-revisión, junto al
-mismo defecto en el recorte por presupuesto de respuesta: hoy un solo flag
-`complete` cubre dos causas que no significan lo mismo.
-
-## Rollback
-
-Volver a apuntar el gateway al digest M4 `sha256:25ed3626e710…`. No hay estado
-que migrar y la evidencia se conserva. `tools/list` sigue devolviendo 31
-definiciones —el inventario no depende de la imagen—, las veintisiete anteriores
-siguen sirviendo igual y las cuatro de M5 responden `unavailable` antes de crear
-contenedor alguno, que es el resultado declarado y no un fallo. La capability de profiling se revoca por separado retirando
-`--allow-profiling`, sin reconstruir nada.
-
-## Límites declarados
-
-- Positivo solo en Linux ARM64. Mach-O y PE no quedan calificados; WASM no lo
-  soporta el analizador.
-- El archivo que mide `rust.binary.bloat` es un build de análisis: el analizador
-  fuerza `strip=false` para leer símbolos, así que no es byte a byte el que
-  enviaría un proyecto que pide stripping.
-- El benchmark llamado `control` en la fixture **no es un control 1,00×**. Se
-  diseñó como tal y la medición en el guest lo desmintió: salió un 2,9 % más
-  rápido que `reference`. El control de auto-comparación real es el mismo
-  benchmark en dos ejecuciones independientes de la misma fuente.
-- `BenchmarkExit` y `BloatExit` conservan `CALIBRATED = false`; solo se
-  observaron los exits 0 y 1.
-- El ruido entre dos ejecuciones del mismo código (−3,9 %) es del mismo orden
-  que el umbral material (5 %). Por eso el método exige MDR y admite
-  `inconclusive` en lugar de forzar un veredicto.
-- El id de la imagen no es reproducible entre construcciones; los binarios
-  instalados sí lo son (`cargo-bloat` dio el mismo `sha256` en dos builds).
-- No hay tag, release, PR ni push. M6 no está iniciado.
+La integración remota y su smoke quedan pendientes de autorización; no forman
+parte de una publicación implícita al terminar el gate local. Detener antes de M6.
