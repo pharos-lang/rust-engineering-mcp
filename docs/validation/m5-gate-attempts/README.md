@@ -148,3 +148,42 @@ Recibos en [`closure-full-attempt-2/lancedb-0.38-probes/`](closure-full-attempt-
   Es exactamente el segundo motivo por el que [ADR-027](../../adr/ADR-027-semantic-offline-foundation.md)
   descartó 0.38.0/Lance 11: crea un spill store en disco aunque la base sea
   `memory://`. Las opciones 1 y 3 comparten Lance 11 y por tanto este fallo.
+
+## Intento 3 — 2026-09-10, `full` sobre el lock 0.31.0, **failed** en el paso 27 de 34
+
+Recibos: [gate](closure-full-attempt-3/full-gate.json) ·
+[log](closure-full-attempt-3/full-gate.txt) ·
+[paso `m3-runtime`](closure-full-attempt-3/m3-runtime-step.txt) ·
+[recibo M3](closure-full-attempt-3/m3-runtime-receipt.json) ·
+[muestra de pila](closure-full-attempt-3/hung-test-sample.txt). Corrido a solas
+sobre el worktree limpio en `ab4eed9`, tras el `core` aprobado sobre los mismos
+bytes. Veintiséis pasos pasaron —`semantic` incluido, ya con Lance 8— y la
+selección 19 de M3, `tasks_runtime::tasks_revocation_during_active_child_masks_cancels_and_prevents_publication`,
+fue matada por el límite de 900 s del paso.
+
+### Diagnóstico, medido
+
+- El límite se consumió así: 448 s de recompilación del target
+  `inspection_runtime` con `--features test-hooks` (primer target con esa
+  feature tras el cambio de lock) y después el binario recién enlazado no
+  emitió ni una línea. Históricamente la selección tarda 23–27 s.
+- Repetida a solas con su comando exacto, volvió a colgarse: el proceso de
+  test estuvo diez minutos al 0 % de CPU, **sin hijo `rust-engineering-mcp`**,
+  sin eventos Docker y con el hilo principal detenido en `_dyld_start`.
+  `codesign -dvv` sobre ese archivo también se bloqueaba y `exec --list` del
+  mismo binario no arrancaba en 45 s, mientras el binario hermano sin
+  `test-hooks` arrancaba en 0,02 s y **una copia byte a byte del binario
+  colgado ejecutaba en 0,72 s**.
+- No es el producto ni el test: es el estado de firma/vnode del artefacto de
+  build recién enlazado en este host (cargo no lo reenlaza porque lo considera
+  fresco). Una primera reproducción sin `--features test-hooks` fue inválida y
+  se descarta: sin la feature el servidor no expone Tasks y el test agota su
+  `JOIN_TIMEOUT` de 300 s por diseño.
+
+### Disposición
+
+Se eliminó únicamente el artefacto envenenado bajo `target/debug/deps/`
+(salida de build, fuera del inventario de fuentes del gate); cargo lo reenlazó
+en 1 m 41 s y la selección pasó en 16,3 s
+(`M3_TASK_REVOCATION_RECEIPT {"active_child":true,"joined_cleanup":true,"masked_ms":370,"publication_visible":false}`).
+No se tocó el test ni su timeout. `full` se repite entero.

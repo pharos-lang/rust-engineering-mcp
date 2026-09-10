@@ -1,0 +1,43 @@
+GATE m3-runtime
+M3 RUNTIME all_passing_tests_report_the_hypothesized_success_exit_code
+M3 RUNTIME build_error_reports_the_observed_runner_failure_exit_code
+M3 RUNTIME quality_profile_allows_only_the_required_anonymous_unix_stream_pair
+M3 RUNTIME slow_test_timeout_is_a_test_failure_with_junit_evidence
+M3 RUNTIME passing_fixture_records_five_cold_and_five_warm_sync_samples
+M3 RUNTIME passing_and_failing_tests_produce_exact_junit_and_hypothesized_exit_codes
+M3 RUNTIME ignored_fixture_reports_skipped_tests_when_report_skipped_is_all
+M3 RUNTIME flaky_fixture_is_classified_flaky_when_retries_are_requested
+M3 RUNTIME leaky_fixture_is_observed_and_never_hangs_the_gateway
+M3 RUNTIME doc_only_fixture_never_runs_doctests
+M3 RUNTIME no_tests_fixture_still_exits_with_evidence
+M3 RUNTIME hostile_output_flood_is_bounded_and_reported_as_output_limit
+M3 RUNTIME hostile_symlink_at_the_fixed_junit_path_is_rejected_and_never_followed
+M3 RUNTIME active_cancellation_with_an_observed_child_terminates_and_joins_cleanly
+M3 RUNTIME source_is_immutable_across_the_run_and_a_second_job_reuses_the_gateway_cleanly
+M3 RUNTIME nextest_runtime::synchronous_passing_failing_ignored_doc_only_and_no_tests_are_observable
+M3 RUNTIME nextest_runtime::synchronous_flaky_and_leaky_are_derived_from_junit
+M3 RUNTIME nextest_runtime::hostile_output_is_bounded_forged_markers_are_ignored_and_source_is_immutable
+M3 RUNTIME nextest_runtime::slow_timeout_cancellation_and_eof_observe_active_children_and_join_cleanup
+M3 RUNTIME tasks_runtime::tasks_revocation_during_active_child_masks_cancels_and_prevents_publication
+Traceback (most recent call last):
+  File "/private/tmp/rust-mcp-m5-closure/scripts/test-m3-runtime.py", line 302, in <module>
+    main()
+    ~~~~^^
+  File "/private/tmp/rust-mcp-m5-closure/scripts/test-m3-runtime.py", line 285, in main
+    raise RuntimeError(
+        f"M3 test exceeded the {STEP_TIMEOUT_S}s step bound and was killed: {log}")
+RuntimeError: M3 test exceeded the 900s step bound and was killed: /private/tmp/rust-mcp-m5-closure/target/m3-runtime/19.log
+Traceback (most recent call last):
+  File "/private/tmp/rust-mcp-m5-closure/scripts/gate.py", line 211, in <module>
+    main()
+    ~~~~^^
+  File "/private/tmp/rust-mcp-m5-closure/scripts/gate.py", line 188, in main
+    run('m3-runtime',[sys.executable,'-B','scripts/test-m3-runtime.py'])
+    ~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/private/tmp/rust-mcp-m5-closure/scripts/gate.py", line 130, in run
+    run_step(report,save,name,command,env,require_test_groups)
+    ~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/private/tmp/rust-mcp-m5-closure/scripts/gate.py", line 77, in run_step
+    raise RuntimeError(f'{name} failed ({returncode})')
+RuntimeError: m3-runtime failed (1)
+EXIT=1
