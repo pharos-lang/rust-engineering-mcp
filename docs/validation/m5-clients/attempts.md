@@ -112,3 +112,17 @@ positiva `inconclusive`/`insufficient_executions`, `NOT_A_DATASET` con su
 al `sha256` publicado (174,7 s)—. Ningún mensaje `assistant` de otro modelo;
 `permission_denials` vacío; el único archivo que el cliente dejó bajo su home
 se contó y eliminó. Sin contenedores ni volúmenes residuales.
+
+## attempt-7 — 2026-09-10, `passed` (lock con `lancedb 0.31.0`, opción 2a)
+
+HEAD `a19d741`, servidor `2c396063…` reconstruido sobre el lock revertido. Mismo
+resultado que attempt-6 sobre los nuevos bytes: Inspector 2.5.0 quince filas y
+catorce Resources en runtime (profiling 193 muestras, 0 perdidas; bloat
+validado); Claude Code 2.1.267 (`claude-sonnet-5`) con los dos turnos dirigidos
+por modelo —docker-free 17,7 s; runtime 184,8 s con dos mediciones propias,
+comparación `inconclusive`/`insufficient_executions`, `NOT_A_DATASET` y lectura
+de su `criterion_archive` con 40960 bytes que hashean al artifact publicado—.
+Sin residuo Docker; escaneo de credenciales limpio. Este recibo sustituye a
+attempt-6, que queda como historia del lock 0.38.0. Un arranque previo sobre
+`37805f6` se abortó en su primer minuto porque el worktree aún contenía el
+`M5-clients.json` anterior; no midió nada y no dejó residuo.
