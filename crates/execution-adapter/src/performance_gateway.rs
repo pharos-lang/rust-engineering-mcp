@@ -2889,22 +2889,22 @@ mod tests {
                 })
             })
             .collect::<Vec<_>>();
-        Ok(serde_json::json!([{
-            "Config": {
-                "Tty": false,
-                "OpenStdin": phase.interactive(),
-                "AttachStdin": phase.interactive(),
-                "StdinOnce": phase.interactive(),
-                "User": "65534:65534",
-                "Labels": labels("fixture"),
-                "Env": phase.environment(operation),
-                "Entrypoint": [phase.program()],
-                "Cmd": command,
-                "WorkingDir": "/source",
-                "Image": crate::APPROVED_M4_IMAGE,
-                "Volumes": {}
-            },
-            "HostConfig": {
+        let config = serde_json::json!({
+            "Tty": false,
+            "OpenStdin": phase.interactive(),
+            "AttachStdin": phase.interactive(),
+            "StdinOnce": phase.interactive(),
+            "User": "65534:65534",
+            "Labels": labels("fixture"),
+            "Env": phase.environment(operation),
+            "Entrypoint": [phase.program()],
+            "Cmd": command,
+            "WorkingDir": "/source",
+            "Image": crate::APPROVED_M4_IMAGE,
+            "Volumes": {}
+        });
+        let host_chunks = [
+            serde_json::json!({
                 "AutoRemove": false,
                 "GroupAdd": [],
                 "UTSMode": "",
@@ -2915,7 +2915,9 @@ mod tests {
                 "Annotations": {},
                 "ReadonlyRootfs": true,
                 "Runtime": "runc",
-                "Init": false,
+                "Init": false
+            }),
+            serde_json::json!({
                 "MaskedPaths": [
                     "/proc/acpi", "/proc/asound", "/proc/interrupts", "/proc/kcore",
                     "/proc/keys", "/proc/latency_stats", "/proc/sched_debug", "/proc/scsi",
@@ -2928,7 +2930,9 @@ mod tests {
                 "UsernsMode": "",
                 "CgroupParent": "",
                 "Sysctls": {},
-                "Ulimits": [],
+                "Ulimits": []
+            }),
+            serde_json::json!({
                 "NetworkMode": "none",
                 "PidMode": "",
                 "IpcMode": "private",
@@ -2939,14 +2943,18 @@ mod tests {
                 "SecurityOpt": [
                     "no-new-privileges=true",
                     format!("seccomp={}", phase.seccomp_profile_json())
-                ],
+                ]
+            }),
+            serde_json::json!({
                 "PidsLimit": 128,
                 "NanoCpus": 1_000_000_000i64,
                 "Memory": 1_073_741_824i64,
                 "MemorySwap": 1_073_741_824i64,
                 "ShmSize": 1_048_576i64,
                 "Privileged": false,
-                "Binds": [],
+                "Binds": []
+            }),
+            serde_json::json!({
                 "Tmpfs": {
                     "/work": "rw,exec,nosuid,nodev,size=512m,mode=1777",
                     "/tmp": "rw,nosuid,nodev,noexec,size=64m,mode=1777"
@@ -2958,7 +2966,18 @@ mod tests {
                 "PublishAllPorts": false,
                 "PortBindings": {},
                 "RestartPolicy": {"Name": "no"}
-            },
+            }),
+        ];
+        let mut host = serde_json::Map::new();
+        for chunk in host_chunks {
+            let serde_json::Value::Object(chunk) = chunk else {
+                return Err("HostConfig fixture object".to_owned());
+            };
+            host.extend(chunk);
+        }
+        Ok(serde_json::json!([{
+            "Config": config,
+            "HostConfig": host,
             "Mounts": applied
         }]))
     }
