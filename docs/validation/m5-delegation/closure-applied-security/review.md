@@ -66,6 +66,14 @@ incluido `GovernorProbe`; mutan los 26 campos recuperados y cada propiedad de
 ambas vistas de mounts; y rechazan mounts ausentes, extra y con campos
 desconocidos. No se modificaron callers ni verificadores existentes de M1–M4.
 
+### AS-04 — REVIEWED — partición del fixture por límite de macro
+
+El último delta separa el JSON de prueba en `Config` y cinco objetos parciales
+de `HostConfig`, combinados mediante `Map::extend` antes de construir el valor
+final. Los cinco objetos tienen claves disjuntas y conservan las mismas 40
+claves y valores del fixture anterior. El cambio queda dentro de `#[cfg(test)]`;
+no modifica el verificador ni una ruta runtime.
+
 ## Risks
 
 La conclusión es estática. Compilación, Clippy, tests focales, tests conjuntos y
