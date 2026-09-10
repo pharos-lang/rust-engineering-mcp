@@ -146,6 +146,22 @@ class RuntimePlanTests(unittest.TestCase):
             self.assertGreaterEqual(row["expect_min_artifacts"], 1)
             self.assertIn("logs", row["report_fields"])
 
+    def test_harness_expectations_are_variants_of_the_frozen_contract(self):
+        variants = M5.harness_variants()
+        self.assertEqual(set(variants), {"criterion", "criterion_unapproved", "unrecognized"})
+        self.assertEqual(variants["unrecognized"], frozenset({"harness"}))
+        rows = [row for row in M5.runtime_call_plan() if "harness" in row["expect_observation"]]
+        self.assertTrue(rows)
+        self.assertEqual({json.dumps(row["expect_observation"]["harness"], sort_keys=True)
+                          for row in rows},
+                         {json.dumps({"harness": "criterion", "version": "0.8.2"}, sort_keys=True),
+                          json.dumps({"harness": "unrecognized"}, sort_keys=True)})
+        for wrong in ("unrecognized", {"harness": "gnuplot"},
+                      {"harness": "unrecognized", "version": "1"}):
+            with self.assertRaisesRegex(RuntimeError, "frozen contract does not declare"):
+                M5.check_harness_expectation({"tool": "rust.benchmark.run",
+                                              "expect_observation": {"harness": wrong}})
+
     def test_benchmark_positive_rows_feed_the_real_comparison(self):
         rows = M5.runtime_call_plan()
         measured = [row for row in rows if row.get("dataset_role")]

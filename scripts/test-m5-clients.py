@@ -382,7 +382,7 @@ RUNTIME_CALL_PLAN = (
         "arguments": {"package": "rust-mcp-bloat-fixture", "run_count": 1,
                       "timeout_seconds": 300, "execution_mode": "synchronous"},
         "expect_status": "failed", "expect_error_code": "HARNESS_UNRECOGNIZED",
-        "expect_observation": {"harness": "unrecognized", "dataset_published": False,
+        "expect_observation": {"harness": {"harness": "unrecognized"}, "dataset_published": False,
                                "dataset_omission": "harness_unrecognized",
                                "runs_requested": 1, "exit_run_index": 1},
         "expect_positive_fields": [],
@@ -548,7 +548,42 @@ def inventory_check() -> dict[str, object]:
     }
 
 
+BENCHMARK_RUN_SNAPSHOT = ROOT / "crates/mcp-server/tests/snapshots/benchmark-run-tool.json"
+
+
+def harness_variants() -> dict[str, frozenset[str]]:
+    """Tag -> property names of every `Harness` variant in the frozen contract.
+
+    `observation.harness` is an internally tagged object (`{"harness":
+    "criterion", "version": ...}`, `{"harness": "unrecognized"}`), never a bare
+    string; attempt-5 was stopped by a plan row that expected the string.
+    """
+    # The snapshot is the frozen tool definition; its result contract is the
+    # `outputSchema`, whose `$defs` carry the `Harness` variants.
+    output = json.loads(BENCHMARK_RUN_SNAPSHOT.read_text())["outputSchema"]
+    definitions = output.get("$defs") or output.get("definitions") or {}
+    variants = {}
+    for variant in definitions["Harness"]["oneOf"]:
+        properties = variant["properties"]
+        variants[properties["harness"]["const"]] = frozenset(properties)
+    if not variants:
+        raise RuntimeError("frozen benchmark contract declares no harness variant")
+    return variants
+
+
+def check_harness_expectation(row: dict[str, object]) -> None:
+    expected = row.get("expect_observation", {}).get("harness")
+    if expected is None:
+        return
+    variants = harness_variants()
+    tag = expected.get("harness") if isinstance(expected, dict) else None
+    if tag not in variants or set(expected) - variants[tag]:
+        raise RuntimeError(f"{row['tool']} expects a harness shape the frozen contract "
+                           f"does not declare: {expected!r}")
+
+
 def check_expectation(row: dict[str, object]) -> None:
+    check_harness_expectation(row)
     """Both plans agree on this much: a closed tool, shape and error vocabulary."""
     if row["tool"] not in M5_TOOLS or row["shape"] not in CALL_SHAPES:
         raise RuntimeError("call plan names an unknown tool or shape")

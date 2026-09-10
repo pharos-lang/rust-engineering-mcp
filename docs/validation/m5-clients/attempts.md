@@ -81,3 +81,17 @@ entrada de configuración que el cliente no consulta, y el SDK aplicó su
 ese umbral. El Inspector envió `notifications/cancelled`, el servidor canceló
 la medición y no quedó artifact ni contenedor: comportamiento correcto del
 producto. Se corrige el driver (`timeout: plan.request_timeout_ms`).
+
+## attempt-5 — 2026-09-10, `failed`: expectativa de plan contraria al contrato congelado
+
+HEAD `b20a4c6`. Docker-free completo (Inspector y Claude). En runtime pasaron
+las dos mediciones, la comparación, el profiling, el bloat y la primera fila de
+recuperación de logs (fallo de compilación observado); la sesión duró 227,8 s.
+Falló la última fila, harness no reconocido: el plan esperaba
+`observation.harness == "unrecognized"` y el contrato congelado
+(`benchmark-run-tool.json`, `Harness` con `serde(tag = "harness")`) publica el
+objeto `{"harness": "unrecognized"}`. Esa fila nunca se había ejecutado contra el
+servidor —el plan de attempt-1 no la tenía— y era el P3 que la revisión Codex de
+bloat señaló. Se corrige solo la expectativa y se liga al snapshot: cualquier
+`expect_observation.harness` debe ser una variante del `oneOf` de `Harness`,
+con test que rechaza el string. Sin residuo Docker.
