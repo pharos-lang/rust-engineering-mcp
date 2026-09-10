@@ -97,11 +97,7 @@ pub(super) fn parse_cpuinfo(bytes: &[u8]) -> GuestCpuTopology {
         Some(
             parts
                 .iter()
-                .filter_map(|(key, values)| {
-                    values
-                        .first()
-                        .map(|value| format!("{key}={value}"))
-                })
+                .filter_map(|(key, values)| values.first().map(|value| format!("{key}={value}")))
                 .collect::<Vec<_>>()
                 .join(" "),
         )
@@ -164,9 +160,7 @@ mod tests {
 
     #[test]
     fn cpuinfo_preserves_a_non_contiguous_guest_cpu_set() -> Result<(), String> {
-        let topology = parse_cpuinfo(
-            b"processor : 7\nmodel name : Fixture CPU\nprocessor : 1\n",
-        );
+        let topology = parse_cpuinfo(b"processor : 7\nmodel name : Fixture CPU\nprocessor : 1\n");
         assert_eq!(topology.cpu_model.as_deref(), Some("Fixture CPU"));
         assert_eq!(topology.logical_cpu_ids, [1, 7]);
         let paths = governor_paths(&topology)

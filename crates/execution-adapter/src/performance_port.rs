@@ -409,14 +409,14 @@ fn benchmark_archive(
 
 /// One stream, bounded by the published ceiling, plus whether it was cut.
 ///
-/// The cut lands on a UTF-8 boundary. The member is published as
-/// `Utf8LogV1`/`text/plain`, and a prefix that ends inside a multi-byte
-/// sequence is not text: it would be a payload whose declared format its own
-/// bytes contradict. Backing off at most three continuation bytes costs
-/// nothing and keeps the declaration true. A stream the supervisor had already
-/// cut carries that fact forward even when it fits here.
+/// The published bytes are capped *after* UTF-8 normalization. A raw invalid
+/// byte expands to U+FFFD's three UTF-8 bytes, so capping only the raw prefix
+/// could make the `Utf8LogV1` payload exceed its advertised 256 KiB limit. The
+/// initial boundary backs valid input away from a partial code point; the final
+/// boundary bounds the valid normalized text. A stream the supervisor had
+/// already cut carries that fact forward even when it fits here.
 fn bounded_log(bytes: &[u8], captured_truncated: bool) -> (Vec<u8>, bool, bool) {
-    let (prefix, cut) = if bytes.len() <= BENCHMARK_MAX_LOG_BYTES {
+    let (prefix, raw_cut) = if bytes.len() <= BENCHMARK_MAX_LOG_BYTES {
         // A stream that kept nothing has no cut to declare; the supervisor
         // cannot have truncated an empty capture either.
         (bytes, captured_truncated && !bytes.is_empty())
@@ -441,14 +441,18 @@ fn bounded_log(bytes: &[u8], captured_truncated: bool) -> (Vec<u8>, bool, bool) 
     // rule the cut follows. Backing off to a code-point boundary above is still
     // worth doing: it keeps a clean cut clean instead of ending every oversize
     // log with a replacement character.
-    match std::str::from_utf8(prefix) {
-        Ok(_) => (prefix.to_vec(), cut, false),
-        Err(_) => (
-            String::from_utf8_lossy(prefix).into_owned().into_bytes(),
-            cut,
-            true,
-        ),
+    let normalized = String::from_utf8_lossy(prefix);
+    let replaced = matches!(&normalized, std::borrow::Cow::Owned(_));
+    let normalized_bytes = normalized.as_bytes();
+    let mut end = normalized_bytes.len().min(BENCHMARK_MAX_LOG_BYTES);
+    while end > 0 && !normalized.is_char_boundary(end) {
+        end -= 1;
     }
+    let final_cut = end < normalized_bytes.len();
+    let kept = normalized_bytes[..end].to_vec();
+    let truncated =
+        (raw_cut || final_cut || (captured_truncated && !kept.is_empty())) && !kept.is_empty();
+    (kept, truncated, replaced)
 }
 
 /// Every repetition's harness logs, numbered exactly as `parse_runs` numbers
@@ -1025,6 +1029,36 @@ fn analysis_exit(output: &BloatOutput) -> BloatExit {
     capture_exit(failed_capture(output))
 }
 
+fn bloat_observation(
+    options: &BloatOptions,
+    output: &BloatOutput,
+    identity: RuntimeIdentity,
+    execution: &PerformanceExecution,
+) -> BloatObservation {
+    let reported = failed_capture(output);
+    let measured = measured_binary(output);
+    let attribution = attribution(output);
+    let completeness = bloat_completeness(measured.as_ref(), attribution.as_ref());
+    BloatObservation {
+        options: options.clone(),
+        analyzer_version: APPROVED_CARGO_BLOAT_VERSION.into(),
+        exit: analysis_exit(output),
+        exit_code: reported.code,
+        termination: termination(reported),
+        measured,
+        attribution,
+        completeness,
+        report: reported.stdout.clone(),
+        runtime: identity,
+        execution_fingerprint: execution.execution_fingerprint.clone(),
+        vendor_fingerprint: execution.vendor_fingerprint.clone(),
+        stdout: reported.stdout.clone(),
+        stderr: reported.stderr.clone(),
+        stdout_truncated: reported.stdout_truncated,
+        stderr_truncated: reported.stderr_truncated,
+    }
+}
+
 fn attribution(output: &BloatOutput) -> Option<BloatAttribution> {
     let functions = bloat_json::parse_functions(&output.functions.stdout).ok()?;
     let crates = bloat_json::parse_crates(&output.crates.stdout).ok()?;
@@ -1097,27 +1131,7 @@ pub(super) fn bloat(
         .bloat
         .as_ref()
         .ok_or(SecurityError::InvalidMetadata)?;
-    let measured = measured_binary(output);
-    let attribution = attribution(output);
-    let completeness = bloat_completeness(measured.as_ref(), attribution.as_ref());
-    let observation = BloatObservation {
-        options: options.clone(),
-        analyzer_version: APPROVED_CARGO_BLOAT_VERSION.into(),
-        exit: analysis_exit(output),
-        exit_code: failed_capture(output).code,
-        termination: termination(failed_capture(output)),
-        measured,
-        attribution,
-        completeness,
-        report: output.functions.stdout.clone(),
-        runtime: identity,
-        execution_fingerprint: execution.execution_fingerprint.clone(),
-        vendor_fingerprint: execution.vendor_fingerprint.clone(),
-        stdout: output.functions.stdout.clone(),
-        stderr: output.functions.stderr.clone(),
-        stdout_truncated: output.functions.stdout_truncated,
-        stderr_truncated: output.functions.stderr_truncated,
-    };
+    let observation = bloat_observation(options, output, identity, &execution);
     if observation.consistent() {
         Ok(observation)
     } else {
@@ -1451,6 +1465,22 @@ mod tests {
             "both facts hold and both are reported"
         );
         assert!(std::str::from_utf8(&kept).is_ok());
+        assert!(
+            kept.len() <= BENCHMARK_MAX_LOG_BYTES,
+            "normalizing one invalid byte may expand the raw prefix but never the final artifact"
+        );
+
+        // Every invalid byte expands to the three-byte U+FFFD encoding. The
+        // raw capture is exactly at the limit, yet its normalized payload is
+        // three times as large unless this second, final cap is enforced.
+        let expanded = vec![0xff; BENCHMARK_MAX_LOG_BYTES];
+        let (kept, truncated, replaced) = bounded_log(&expanded, false);
+        assert!(
+            replaced && truncated,
+            "replacement-driven trimming is declared"
+        );
+        assert!(std::str::from_utf8(&kept).is_ok());
+        assert!(kept.len() <= BENCHMARK_MAX_LOG_BYTES);
     }
 
     #[test]
@@ -2067,9 +2097,12 @@ mod tests {
     /// it. The JSON stays valid on purpose — a parse failure would be caught by
     /// a different rule and would not test this one.
     #[test]
-    fn a_failed_second_execution_is_never_reported_as_a_passed_analysis() {
+    fn a_failed_second_execution_is_never_reported_as_a_passed_analysis() -> Result<(), String> {
         let mut output = bloat_output(b"4096\n", FUNCTIONS, CRATES);
-        output.crates = capture(Some(1), CRATES);
+        let mut crates_failure = capture(Some(1), CRATES);
+        crates_failure.stderr = b"crates view failed".to_vec();
+        crates_failure.stdout_truncated = true;
+        output.crates = crates_failure;
         assert_eq!(
             analysis_exit(&output),
             BloatExit::AnalysisFailed,
@@ -2086,6 +2119,24 @@ mod tests {
         assert!(attribution(&output).is_some());
         assert!(measured_binary(&output).is_some());
 
+        // The report and diagnostics must describe the same capture as exit
+        // and termination. Returning the functions view here hid the failure
+        // text of the crates view even after `failed_capture` fixed the exit.
+        let options = BloatOptions::new("fixture".into(), None, BloatProfile::Release)
+            .map_err(|error| format!("{error:?}"))?;
+        let mut executed = execution()?;
+        executed.kind = PerformanceKind::Bloat;
+        let observed = bloat_observation(&options, &output, identity()?, &executed);
+        assert_eq!(observed.exit, BloatExit::AnalysisFailed);
+        assert_eq!(observed.exit_code, Some(1));
+        assert_eq!(observed.report, CRATES);
+        assert_eq!(observed.stdout, CRATES);
+        assert_eq!(observed.stderr, b"crates view failed");
+        assert!(observed.stdout_truncated);
+        assert!(!observed.stderr_truncated);
+        assert_ne!(observed.report, FUNCTIONS);
+        assert!(observed.consistent());
+
         // Both clean is still a pass, so the guard cannot be satisfied by
         // refusing everything.
         let clean = bloat_output(b"4096\n", FUNCTIONS, CRATES);
@@ -2097,6 +2148,7 @@ mod tests {
         first.functions = capture(Some(101), FUNCTIONS);
         assert_eq!(analysis_exit(&first), BloatExit::CompilationFailed);
         assert_eq!(failed_capture(&first).code, Some(101));
+        Ok(())
     }
 
     #[test]

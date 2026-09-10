@@ -3638,12 +3638,12 @@ mod tests {
             Err(PerformanceError::Timeout)
         );
         assert_eq!(work_budget_ms(CONTROL_RESERVE_MS + 1), Ok(1));
-        assert_eq!(work_budget_ms(BENCHMARK_BUDGET_MS), Ok(868_000));
-        assert_eq!(work_budget_ms(PROFILE_BUDGET_MS), Ok(268_000));
-        assert_eq!(work_budget_ms(BLOAT_BUDGET_MS), Ok(268_000));
+        assert_eq!(work_budget_ms(BENCHMARK_BUDGET_MS), Ok(866_000));
+        assert_eq!(work_budget_ms(PROFILE_BUDGET_MS), Ok(266_000));
+        assert_eq!(work_budget_ms(BLOAT_BUDGET_MS), Ok(266_000));
         assert_eq!(work_budget_ms(0), Err(PerformanceError::Timeout));
-        assert_eq!(share_ms(868_000, 6), Ok(144_666));
-        assert_eq!(share_ms(868_000, 1), Ok(868_000));
+        assert_eq!(share_ms(866_000, 6), Ok(144_333));
+        assert_eq!(share_ms(866_000, 1), Ok(866_000));
         assert_eq!(share_ms(10, 0), Err(PerformanceError::Timeout));
         assert_eq!(share_ms(3, 4), Err(PerformanceError::Timeout));
         // The three budgets are the ADR-076 §7 ceilings, sampling included.
