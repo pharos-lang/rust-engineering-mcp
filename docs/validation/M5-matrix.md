@@ -53,7 +53,7 @@ Con `--cap-drop=ALL`, `no-new-privileges`, `--network=none`, uid 65534 y
 
 | ID | Corte | Estado | Evidencia |
 | --- | --- | --- | --- |
-| M5-01 | `rust.benchmark.run` | **Blocked**; el owner autorizó la vía separada de [ADR-078](../adr/ADR-078-offline-vendor-capture.md), que aún no autoriza límites hasta que existan las mediciones. Negativos y controles calificados, y el bloqueo tiene su propio oráculo | [runtime](M5-01-runtime.json) · [oráculo del bloqueo](M5-01-blocked-runtime.json) · [bloqueo](M5-01-blocker.json) · [calibración](M5-01-benchmark-calibration.json) |
+| M5-01 | `rust.benchmark.run` | **Blocked todavía, pero por menos.** [ADR-078](../adr/ADR-078-offline-vendor-capture.md) tiene sus límites fijados desde [mediciones reales](M5-01-vendor-capture-measurements.json) y la captura **resuelve el cierre de criterion en el host**: 6 014 archivos, 156 267 469 bytes, artifact de 161 361 408 bytes verificado leyéndolo de vuelta. Lo que falta es la **ingesta en el guest**, sin la cual no hay positivo. Negativos y controles calificados, y el bloqueo tiene su propio oráculo | [runtime](M5-01-runtime.json) · [oráculo del bloqueo](M5-01-blocked-runtime.json) · [bloqueo](M5-01-blocker.json) · [calibración](M5-01-benchmark-calibration.json) |
 | M5-02 | `rust.benchmark.compare` | **Recalificación estadística reabierta** por [ADR-081](../adr/ADR-081-benchmark-statistical-requalification.md): la subcobertura documentada (0,84–0,89 frente a 0,95 nominal) no queda corregida por documentarla. Los veredictos direccionales y `no_material_change` siguen deshabilitados hasta que pasen los criterios congelados **y** el entorno sea observable | [calibración](M5-01-benchmark-calibration.json) · `criterion_dataset::real_guest_datasets` |
 | M5-03 | `rust.profile.flamegraph` | **Calificado nativamente**, con positivo y denegación en el mismo recibo generado | [runtime](M5-03-runtime.json) · [capability](M5-profiling-capability-probe.json) · [smoke manual anterior](M5-03-profiling-native.json) |
 | M5-04 | `rust.binary.bloat` | **In progress otra vez.** [ADR-079](../adr/ADR-079-bloat-result-semantics.md) sustituye la semántica de resultado que la calificación anterior midió; se recalifica sobre bytes finales, con revisión independiente de por medio | [runtime anterior](M5-04-runtime.json) · [calibración](M5-04-bloat-calibration.json) |
@@ -131,6 +131,14 @@ separar del efecto de la fuente. El umbral son **tres** ejecuciones por lado —
 las tres, y eso es independiente de este bloqueo.
 
 ## Limitaciones declaradas hasta ahora
+
+- **La captura de vendor funciona en el host y no está calificada en el guest.**
+  Resuelve el cierre real —6 014 archivos, 156 267 469 bytes, artifact verificado
+  leyéndolo de vuelta con el mismo verificador que corre el servidor— y tiene
+  holgura en los seis límites. Pero `rust.benchmark.run` no ha medido todavía un
+  benchmark de criterion de extremo a extremo, porque la ingesta dentro del
+  contenedor no se ha ejercitado. Hasta que un recibo generado lo registre, M5-01
+  sigue **Blocked** y el positivo sigue sin existir.
 
 - **Deuda de publicación abierta, nombrada tras la re-revisión G8.** Ninguna
   falsea una medición y ninguna se presenta como cerrada: el comentario del
