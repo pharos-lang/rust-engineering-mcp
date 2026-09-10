@@ -16,9 +16,10 @@ There are two gate modes, both closed by default:
     was created" is an assertion and not a claim.
 
 ``--run --with-runtime``
-    The Docker-free matrix *plus* two real measurements through the qualified
-    M5 runtime: a sampled CPU profile and a binary size analysis, each with its
-    published artifacts read back as ``rust-quality-artifact://`` Resources.
+    The Docker-free matrix plus two benchmark measurements, their comparison,
+    a sampled CPU profile and a binary size analysis through the qualified M5
+    runtime. Every published artifact is read back as a
+    ``rust-quality-artifact://`` Resource.
     This mode needs the real Docker socket, the qualified image, an
     authenticated host cargo vendor tree and the host profiling grant, and it
     starts containers.  Every row in the receipt says which mode produced it.
@@ -57,6 +58,7 @@ STDIO_DIR = ROOT / "crates/mcp-server/src/stdio"
 PROTOCOL_TEST = ROOT / "crates/mcp-server/tests/protocol.rs"
 PERFORMANCE_PORT = ROOT / "crates/execution-adapter/src/performance_port.rs"
 HOST_CONFIG = ROOT / "crates/mcp-server/src/host_config.rs"
+BENCHMARK_COMPARE_DOMAIN = ROOT / "crates/domain/src/benchmark_compare.rs"
 
 INSPECTOR_VERSION = "2.5.0"
 CODEX_VERSION = "codex-cli 0.153.0"
@@ -269,12 +271,12 @@ RUNTIME_CALL_PLAN = (
         "expect_artifact_kinds": [], "expect_no_artifact_kinds": [],
         "expect_report": {"complete": True, "incompatibility_reasons": []},
         "expect_all_verdicts": "inconclusive",
-        "expect_inconclusive_reason": "method_unqualified",
+        "expect_inconclusive_reasons": ["insufficient_executions"],
         "report_fields": ["compared", "complete", "incompatibility_reasons"],
         "requires_profiling_grant": False, "fact_key": "benchmark_compare",
-        "rationale": "compare the two store-issued datasets without inventing identifiers; "
-                     "METHOD_QUALIFIED_FOR_DIRECTION=false requires every observed difference "
-                     "to remain inconclusive",
+        "rationale": "compare the two store-issued one-execution datasets without inventing "
+                     "identifiers; the frozen method withholds every verdict because neither "
+                     "side has enough independent executions",
     },
     {
         "tool": "rust.profile.flamegraph", "shape": "positive", "project": "profile",
@@ -586,7 +588,8 @@ def runtime_call_plan() -> list[dict[str, object]]:
             if (row.get("compare_dataset_roles") != ["baseline", "candidate"]
                     or row["expect_min_artifacts"] != 0):
                 raise RuntimeError("a comparison must consume both captured datasets")
-            if not row.get("expect_report") or not row.get("expect_all_verdicts"):
+            if (not row.get("expect_report") or not row.get("expect_all_verdicts")
+                    or not row.get("expect_inconclusive_reasons")):
                 raise RuntimeError("a comparison must assert report facts")
         else:
             if row["expect_min_artifacts"] < 1:
@@ -627,7 +630,7 @@ def runtime_call_plan() -> list[dict[str, object]]:
             "compare_dataset_roles": row.get("compare_dataset_roles"),
             "expect_report": row.get("expect_report", {}),
             "expect_all_verdicts": row.get("expect_all_verdicts"),
-            "expect_inconclusive_reason": row.get("expect_inconclusive_reason"),
+            "expect_inconclusive_reasons": row.get("expect_inconclusive_reasons", []),
             "fact_key": row.get("fact_key", row["tool"]),
         })
     if not rows:
@@ -706,6 +709,27 @@ def runtime_preconditions(socket: str | None) -> dict[str, tuple[bool, str]]:
     }
 
 
+def direction_guard_evidence() -> dict[str, object]:
+    """Bind the global direction guard to its source and dedicated unit test.
+
+    The one-execution client datasets stop at `insufficient_executions`, before
+    this guard is consulted. This records the separate evidence without
+    pretending the runtime comparison exercised it.
+    """
+    source = BENCHMARK_COMPARE_DOMAIN.read_text()
+    declaration = "pub const METHOD_QUALIFIED_FOR_DIRECTION: bool = false;"
+    test_name = "only_the_frozen_constant_qualifies_a_comparison"
+    if declaration not in source or f"fn {test_name}()" not in source:
+        raise RuntimeError("benchmark direction guard source evidence is missing")
+    return {
+        "qualified": False,
+        "source": str(BENCHMARK_COMPARE_DOMAIN.relative_to(ROOT)),
+        "unit_test": test_name,
+        "exercised_by_runtime_comparison": False,
+        "runtime_guard": "insufficient_executions",
+    }
+
+
 def preconditions(versions: dict[str, object], with_runtime: bool,
                   socket: str | None) -> dict[str, dict[str, object]]:
     codex_home = pathlib.Path(os.environ.get("CODEX_HOME", pathlib.Path.home() / ".codex"))
@@ -769,6 +793,7 @@ def preflight(with_runtime: bool = False, socket: str | None = None) -> dict[str
         "call_plan": call_plan(),
         "runtime_call_plan": runtime,
         "runtime_tools": list(runtime_tools()),
+        "direction_guard": direction_guard_evidence(),
         "tools_without_a_client_positive": [
             tool for tool in M5_TOOLS if tool not in runtime_tools()
         ],
@@ -1052,6 +1077,105 @@ def capture_dataset_id(row: dict[str, object], artifacts: list[dict[str, object]
     datasets[str(role)] = artifact_id
 
 
+def validate_model_resource_read(item: dict[str, object], expected_uri: str) -> None:
+    """Require a completed native Resource read of the session-issued URI."""
+    if (item.get("server") != "rust_engineering"
+            or item.get("tool") != "read_mcp_resource"
+            or item.get("arguments") != {"server": "rust_engineering", "uri": expected_uri}
+            or item.get("status") != "completed" or item.get("error") is not None):
+        raise RuntimeError("Codex model Resource read did not match the issued artifact")
+    result = item.get("result")
+    content = result.get("content") if isinstance(result, dict) else None
+    if not isinstance(content, list) or len(content) != 1:
+        raise RuntimeError("Codex model Resource read carried no content")
+    block = content[0]
+    if not isinstance(block, dict) or block.get("type") not in {"text", "resource"}:
+        raise RuntimeError("Codex model Resource read carried an invalid content block")
+    if block["type"] == "resource":
+        resource = block.get("resource")
+        if (not isinstance(resource, dict) or resource.get("uri") != expected_uri
+                or not any(isinstance(resource.get(key), str) and resource[key]
+                           for key in ("text", "blob"))):
+            raise RuntimeError("Codex model Resource read returned another artifact")
+        return
+    try:
+        envelope = json.loads(block.get("text", ""))
+    except (TypeError, json.JSONDecodeError) as error:
+        raise RuntimeError("Codex model Resource envelope was invalid") from error
+    if (not isinstance(envelope, dict) or envelope.get("server") != "rust_engineering"
+            or envelope.get("uri") != expected_uri
+            or not isinstance(envelope.get("contents"), list)
+            or len(envelope["contents"]) != 1
+            or envelope["contents"][0].get("uri") != expected_uri
+            or not any(isinstance(envelope["contents"][0].get(key), str)
+                       and envelope["contents"][0][key]
+                       for key in ("text", "blob"))):
+        raise RuntimeError("Codex model Resource envelope did not match the issued artifact")
+
+
+def validate_runtime_model_flow(items: list[dict[str, object]], project_ref: str,
+                                baseline_id: str, candidate_id: str,
+                                non_dataset_id: str, resource_uri: str) -> dict[str, object]:
+    """Validate the exact model-directed G4 flow from completed native items."""
+    completed = [item for item in items if item.get("type") == "mcpToolCall"]
+    discoveries = [item for item in completed if item.get("tool") == "list_mcp_resources"]
+    comparisons = [item for item in completed if item.get("tool") == "rust.benchmark.compare"]
+    reads = [item for item in completed if item.get("tool") == "read_mcp_resource"]
+    if len(discoveries) != 1 or len(comparisons) != 2 or len(reads) != 1:
+        raise RuntimeError("Codex model-directed runtime flow retried or omitted a required call")
+    allowed = {"list_mcp_resources", "rust.benchmark.compare", "read_mcp_resource"}
+    if any(item.get("tool") not in allowed for item in completed):
+        raise RuntimeError("Codex model-directed runtime flow used another MCP capability")
+
+    discovery = discoveries[0]
+    expected_discovery_arguments = ({} if discovery.get("server") == "codex"
+                                    else {"server": "rust_engineering"})
+    if (discovery.get("server") not in {"codex", "rust_engineering"}
+            or discovery.get("arguments") != expected_discovery_arguments
+            or discovery.get("status") != "completed" or discovery.get("error") is not None):
+        raise RuntimeError("Codex model Resource discovery was not completed")
+
+    positive_arguments = {
+        "project_ref": project_ref,
+        "baseline_artifact_id": baseline_id,
+        "candidate_artifact_id": candidate_id,
+        "timeout_seconds": 30,
+    }
+    negative_arguments = {**positive_arguments, "candidate_artifact_id": non_dataset_id}
+    positive, negative = comparisons
+    positive_payload = positive.get("result", {}).get("structuredContent", {}) \
+        if isinstance(positive.get("result"), dict) else {}
+    negative_payload = negative.get("result", {}).get("structuredContent", {}) \
+        if isinstance(negative.get("result"), dict) else {}
+    positive_data = positive_payload.get("data") if isinstance(positive_payload, dict) else None
+    if (positive.get("server") != "rust_engineering"
+            or positive.get("arguments") != positive_arguments
+            or positive.get("status") != "completed" or positive.get("error") is not None
+            or positive_payload.get("status") != "passed"
+            or not isinstance(positive_data, dict)
+            or positive_data.get("baseline_artifact_id") != baseline_id
+            or positive_data.get("candidate_artifact_id") != candidate_id):
+        raise RuntimeError("Codex model positive comparison was not observed")
+    if (negative.get("server") != "rust_engineering"
+            or negative.get("arguments") != negative_arguments
+            or negative.get("status") != "failed" or negative.get("error") is not None
+            or negative_payload.get("status") != "blocked"
+            or negative_payload.get("error_code") != "NOT_A_DATASET"):
+        raise RuntimeError("Codex model declared comparison failure was not observed")
+    validate_model_resource_read(reads[0], resource_uri)
+
+    positions = [completed.index(discovery), completed.index(positive),
+                 completed.index(negative), completed.index(reads[0])]
+    if positions != sorted(positions):
+        raise RuntimeError("Codex model-directed runtime flow ran out of order")
+    return {
+        "discovery": "list_mcp_resources",
+        "positive": "rust.benchmark.compare",
+        "failure": "NOT_A_DATASET",
+        "resource_uri_sha256": load_m3().digest(resource_uri.encode()),
+    }
+
+
 def check_runtime_comparison(client: str, row: dict[str, object],
                              structured: dict[str, object]) -> dict[str, object]:
     label = f"{client} {row['tool']} {row['mode']}"
@@ -1066,16 +1190,16 @@ def check_runtime_comparison(client: str, row: dict[str, object],
     if not isinstance(comparisons, list) or not comparisons:
         raise RuntimeError(f"{label} published no benchmark comparisons")
     expected_verdict = row["expect_all_verdicts"]
-    expected_reason = row["expect_inconclusive_reason"]
+    expected_reasons = row["expect_inconclusive_reasons"]
     for comparison in comparisons:
         if not isinstance(comparison, dict) or comparison.get("verdict") != expected_verdict:
             raise RuntimeError(f"{label} claimed a directional benchmark verdict")
         reasons = comparison.get("inconclusive_reasons")
-        if not isinstance(reasons, list) or expected_reason not in reasons:
-            raise RuntimeError(f"{label} omitted the method qualification refusal")
+        if reasons != expected_reasons:
+            raise RuntimeError(f"{label} inconclusive reasons do not match the dataset guard")
     facts = {key: report[key] for key in row["report_fields"] if key in report}
     facts["verdicts"] = sorted({comparison["verdict"] for comparison in comparisons})
-    facts["method_unqualified"] = True
+    facts["inconclusive_reasons"] = expected_reasons
     facts["artifacts_published"] = 0
     return {"artifacts": [], "facts": facts}
 
@@ -1214,6 +1338,8 @@ def codex_gate(attempt: pathlib.Path, mode: str, argv: list[str],
         datasets = {}
         refusal_uris = set()
         resources_read = 0
+        model_resource_uri = None
+        model_non_dataset_id = None
         for row in plan:
             reference = UNKNOWN_PROJECT_REF if row["project"] is None else refs[row["project"]]
             arguments = materialize_arguments(row, reference, datasets)
@@ -1244,6 +1370,11 @@ def codex_gate(attempt: pathlib.Path, mode: str, argv: list[str],
                         "threadId": thread, "server": "rust_engineering",
                         "uri": artifact["uri"]}, 120))
                     read += 1
+                    if (row["tool"] == "rust.benchmark.run"
+                            and artifact.get("kind") == "criterion_archive"
+                            and model_resource_uri is None):
+                        model_resource_uri = artifact["uri"]
+                        model_non_dataset_id = artifact_id_from_uri(artifact["uri"])
                 resources_read += read
                 capture_dataset_id(row, checked["artifacts"], datasets)
                 facts[row["fact_key"]] = {**checked["facts"], "artifacts_read": read}
@@ -1290,14 +1421,35 @@ def codex_gate(attempt: pathlib.Path, mode: str, argv: list[str],
             "calls": validate_call_rows(rows, "codex-app-server", plan),
         }
         if model_turn:
-            prompt = (
-                "Use only the configured Rust Engineering MCP tools. Open the three configured "
-                "project roots, then call rust.benchmark.run, rust.benchmark.compare, "
-                "rust.profile.flamegraph and rust.binary.bloat once each with synchronous "
-                "execution. Every one of them will answer a declared refusal on this host; "
-                "report each structured status and error_code exactly as returned and do not "
-                "retry. Do not use any non-MCP capability."
-            )
+            if mode == RUNTIME:
+                if (set(datasets) != {"baseline", "candidate"}
+                        or not isinstance(model_resource_uri, str)
+                        or not isinstance(model_non_dataset_id, str)):
+                    raise RuntimeError("Codex model flow has no session-issued artifacts")
+                prompt = (
+                    "Use only native MCP capabilities and perform these four steps exactly once, "
+                    "in order, without retrying. (1) Discover the configured Rust Engineering "
+                    "Resources with list_mcp_resources for server rust_engineering. "
+                    "(2) Call rust.benchmark.compare with project_ref " + refs["benchmark"]
+                    + ", baseline_artifact_id " + datasets["baseline"]
+                    + ", candidate_artifact_id " + datasets["candidate"]
+                    + ", and timeout_seconds 30; this is the positive call. "
+                    "(3) Call rust.benchmark.compare again with the same project_ref, baseline "
+                    "and timeout, but candidate_artifact_id " + model_non_dataset_id
+                    + "; this real session artifact has another kind and must return the declared "
+                    "NOT_A_DATASET refusal. (4) Read Resource " + model_resource_uri
+                    + " with read_mcp_resource for server rust_engineering. Report the returned "
+                    "statuses and do not call any other capability."
+                )
+            else:
+                prompt = (
+                    "Use only the configured Rust Engineering MCP tools. Open the three configured "
+                    "project roots, then call rust.benchmark.run, rust.benchmark.compare, "
+                    "rust.profile.flamegraph and rust.binary.bloat once each with synchronous "
+                    "execution. Every one of them will answer a declared refusal on this host; "
+                    "report each structured status and error_code exactly as returned and do not "
+                    "retry. Do not use any non-MCP capability."
+                )
             turn = transport.rpc("turn/start", {
                 "threadId": thread, "input": [{"type": "text", "text": prompt}]}, 30).get("turn", {})
             turn_id = turn.get("id")
@@ -1305,6 +1457,7 @@ def codex_gate(attempt: pathlib.Path, mode: str, argv: list[str],
                 raise RuntimeError("Codex model turn did not start")
             completed = False
             observed = set()
+            completed_items = []
             events = attempt / f"codex-{mode}-model-events.jsonl"
             deadline = time.monotonic() + 900
             while time.monotonic() < deadline and not completed:
@@ -1318,11 +1471,19 @@ def codex_gate(attempt: pathlib.Path, mode: str, argv: list[str],
                 item = event.get("params", {}).get("item", {})
                 if item.get("type") == "mcpToolCall" and isinstance(item.get("tool"), str):
                     observed.add(item["tool"])
+                    if event.get("method") == "item/completed":
+                        completed_items.append(item)
                 if (event.get("method") == "turn/completed"
                         and event.get("params", {}).get("turn", {}).get("id") == turn_id):
                     completed = True
-            if not completed or not set(M5_TOOLS).issubset(observed):
+            if not completed:
                 raise RuntimeError("Codex model-directed M5 flow incomplete")
+            if mode == RUNTIME:
+                result_row["model_flow"] = validate_runtime_model_flow(
+                    completed_items, refs["benchmark"], datasets["baseline"],
+                    datasets["candidate"], model_non_dataset_id, model_resource_uri)
+            elif not set(M5_TOOLS).issubset(observed):
+                raise RuntimeError("Codex model-directed M5 refusal flow incomplete")
             result_row["model_turn_completed"] = True
             result_row["model_turn_tools"] = sorted(observed)
             result_row["model_events_sha256"] = m3.file_digest(events)
@@ -1402,6 +1563,7 @@ def run(with_runtime: bool, docker_socket: str | None) -> int:
             },
         },
         "runtime_tools": list(runtime_tools()) if with_runtime else [],
+        "direction_guard": check["direction_guard"],
         "tools_without_a_client_positive": check["tools_without_a_client_positive"],
         "source_sha256": check["source_sha256"],
         "candidate": {"server_sha256": m3.file_digest(SERVER), "sources": candidate_sources},
@@ -1434,7 +1596,7 @@ def run(with_runtime: bool, docker_socket: str | None) -> int:
             receipt["inspector"][RUNTIME] = inspector_gate(
                 attempt, RUNTIME, runtime_argv, runtime_plan, 1800, 600_000)
             receipt["codex_app_server"][RUNTIME] = codex_gate(
-                attempt, RUNTIME, runtime_argv, runtime_plan, codex, False, 600)
+                attempt, RUNTIME, runtime_argv, runtime_plan, codex, True, 600)
             calls += (receipt["inspector"][RUNTIME].pop("calls")
                       + receipt["codex_app_server"][RUNTIME].pop("calls"))
         receipt["calls"] = calls

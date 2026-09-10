@@ -105,16 +105,17 @@ function checkComparison(label, row, structured) {
     if (comparison?.verdict !== row.expect_all_verdicts) {
       throw new Error(`Inspector ${label} claimed a directional benchmark verdict`);
     }
-    if (!Array.isArray(comparison.inconclusive_reasons)
-        || !comparison.inconclusive_reasons.includes(row.expect_inconclusive_reason)) {
-      throw new Error(`Inspector ${label} omitted the method qualification refusal`);
+    if (JSON.stringify(comparison.inconclusive_reasons)
+        !== JSON.stringify(row.expect_inconclusive_reasons)) {
+      throw new Error(`Inspector ${label} inconclusive reasons do not match the dataset guard`);
     }
   }
   return {
     ...Object.fromEntries((row.report_fields ?? [])
       .filter((key) => report[key] !== undefined).map((key) => [key, report[key]])),
     verdicts: [...new Set(report.comparisons.map((comparison) => comparison.verdict))].sort(),
-    method_unqualified: true, artifacts_published: 0, artifacts_read: 0,
+    inconclusive_reasons: row.expect_inconclusive_reasons,
+    artifacts_published: 0, artifacts_read: 0,
   };
 }
 

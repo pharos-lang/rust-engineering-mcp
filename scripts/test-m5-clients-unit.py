@@ -161,7 +161,8 @@ class RuntimePlanTests(unittest.TestCase):
         self.assertEqual(comparison["arguments"], {"timeout_seconds": 30})
         self.assertEqual(comparison["compare_dataset_roles"], ["baseline", "candidate"])
         self.assertEqual(comparison["expect_all_verdicts"], "inconclusive")
-        self.assertEqual(comparison["expect_inconclusive_reason"], "method_unqualified")
+        self.assertEqual(comparison["expect_inconclusive_reasons"],
+                         ["insufficient_executions"])
 
     def test_a_blind_comparison_plan_is_refused(self):
         comparison = next(row for row in M5.RUNTIME_CALL_PLAN
@@ -321,7 +322,7 @@ class ObservationOracleTests(unittest.TestCase):
 
     def comparison_payload(self, verdict="inconclusive", reasons=None):
         if reasons is None:
-            reasons = ["insufficient_executions", "method_unqualified"]
+            reasons = ["insufficient_executions"]
         return {"status": "passed", "error_code": None, "data": {
             "baseline_artifact_id": "qart_" + "a" * 32,
             "candidate_artifact_id": "qart_" + "b" * 32,
@@ -343,17 +344,25 @@ class ObservationOracleTests(unittest.TestCase):
         with self.assertRaisesRegex(RuntimeError, "not captured"):
             M5.materialize_arguments(self.comparison_row(), "prj_" + "1" * 32, {})
 
-    def test_comparison_accepts_only_complete_method_unqualified_verdicts(self):
+    def test_comparison_requires_the_exact_early_dataset_guard(self):
         checked = M5.check_runtime_comparison(
             "Codex", self.comparison_row(), self.comparison_payload())
         self.assertEqual(checked["artifacts"], [])
         self.assertEqual(checked["facts"]["verdicts"], ["inconclusive"])
+        self.assertEqual(checked["facts"]["inconclusive_reasons"],
+                         ["insufficient_executions"])
+        self.assertNotIn("method_unqualified", checked["facts"]["inconclusive_reasons"])
         with self.assertRaisesRegex(RuntimeError, "directional"):
             M5.check_runtime_comparison(
                 "Codex", self.comparison_row(), self.comparison_payload("regression", []))
-        with self.assertRaisesRegex(RuntimeError, "qualification refusal"):
+        with self.assertRaisesRegex(RuntimeError, "dataset guard"):
             M5.check_runtime_comparison(
                 "Codex", self.comparison_row(), self.comparison_payload(reasons=[]))
+        with self.assertRaisesRegex(RuntimeError, "dataset guard"):
+            M5.check_runtime_comparison(
+                "Codex", self.comparison_row(),
+                self.comparison_payload(reasons=["insufficient_executions",
+                                                 "method_unqualified"]))
         empty = self.comparison_payload()
         empty["data"]["report"]["comparisons"] = []
         with self.assertRaisesRegex(RuntimeError, "no benchmark comparisons"):
@@ -370,6 +379,77 @@ class ObservationOracleTests(unittest.TestCase):
         self.assertEqual(datasets, {"baseline": "qart_" + "a" * 32})
         with self.assertRaisesRegex(RuntimeError, "invalid or duplicated"):
             M5.capture_dataset_id(row, [artifact], datasets)
+
+
+class ModelDirectedRuntimeTests(unittest.TestCase):
+    def setUp(self):
+        self.project_ref = "prj_" + "1" * 32
+        self.baseline = "qart_" + "a" * 32
+        self.candidate = "qart_" + "b" * 32
+        self.non_dataset = "qart_" + "c" * 32
+        self.uri = ("rust-quality-artifact://" + self.project_ref + "/"
+                    + self.non_dataset + "?offset=0&length=42")
+
+    @staticmethod
+    def call(tool, arguments, status, payload, server="rust_engineering"):
+        return {"type": "mcpToolCall", "server": server, "tool": tool,
+                "arguments": arguments, "status": status, "error": None,
+                "result": {"structuredContent": payload}}
+
+    def items(self):
+        positive = {"project_ref": self.project_ref,
+                    "baseline_artifact_id": self.baseline,
+                    "candidate_artifact_id": self.candidate,
+                    "timeout_seconds": 30}
+        negative = {**positive, "candidate_artifact_id": self.non_dataset}
+        envelope = {"server": "rust_engineering", "uri": self.uri,
+                    "contents": [{"uri": self.uri, "blob": "YQ=="}]}
+        return [
+            self.call("list_mcp_resources", {"server": "rust_engineering"},
+                      "completed", None),
+            self.call("rust.benchmark.compare", positive, "completed",
+                      {"status": "passed", "error_code": None,
+                       "data": {"baseline_artifact_id": self.baseline,
+                                "candidate_artifact_id": self.candidate}}),
+            self.call("rust.benchmark.compare", negative, "failed",
+                      {"status": "blocked", "error_code": "NOT_A_DATASET"}),
+            {"type": "mcpToolCall", "server": "rust_engineering",
+             "tool": "read_mcp_resource",
+             "arguments": {"server": "rust_engineering", "uri": self.uri},
+             "status": "completed", "error": None,
+             "result": {"structuredContent": None,
+                        "content": [{"type": "text", "text": json.dumps(envelope)}]}},
+        ]
+
+    def validate(self, items):
+        return M5.validate_runtime_model_flow(
+            items, self.project_ref, self.baseline, self.candidate,
+            self.non_dataset, self.uri)
+
+    def test_runtime_model_flow_binds_success_failure_and_resource_to_real_ids(self):
+        facts = self.validate(self.items())
+        self.assertEqual(facts["positive"], "rust.benchmark.compare")
+        self.assertEqual(facts["failure"], "NOT_A_DATASET")
+        self.assertEqual(facts["discovery"], "list_mcp_resources")
+        self.assertEqual(len(facts["resource_uri_sha256"]), 64)
+
+    def test_runtime_model_flow_rejects_prompt_only_or_retried_evidence(self):
+        items = self.items()
+        with self.assertRaisesRegex(RuntimeError, "retried or omitted"):
+            self.validate(items[:-1])
+        with self.assertRaisesRegex(RuntimeError, "retried or omitted"):
+            self.validate([*items, items[1]])
+        with self.assertRaisesRegex(RuntimeError, "another MCP capability"):
+            self.validate([*items, self.call("rust.binary.bloat", {}, "completed",
+                                             {"status": "passed"})])
+        wrong = self.items()
+        wrong[2]["arguments"]["candidate_artifact_id"] = self.candidate
+        with self.assertRaisesRegex(RuntimeError, "declared comparison failure"):
+            self.validate(wrong)
+        out_of_order = self.items()
+        out_of_order[1], out_of_order[2] = out_of_order[2], out_of_order[1]
+        with self.assertRaisesRegex(RuntimeError, "positive comparison"):
+            self.validate(out_of_order)
 
 
 class HostConfigurationTests(unittest.TestCase):
@@ -469,6 +549,14 @@ class HostConfigurationTests(unittest.TestCase):
 
 
 class PreflightTests(unittest.TestCase):
+    def test_direction_guard_is_separate_source_bound_evidence(self):
+        evidence = M5.direction_guard_evidence()
+        self.assertEqual(evidence["qualified"], False)
+        self.assertEqual(evidence["runtime_guard"], "insufficient_executions")
+        self.assertEqual(evidence["exercised_by_runtime_comparison"], False)
+        self.assertEqual(evidence["unit_test"],
+                         "only_the_frozen_constant_qualifies_a_comparison")
+
     def test_preflight_is_non_executing_client_free_and_source_bound(self):
         result = M5.preflight()
         self.assertFalse(result["execution_performed"])
