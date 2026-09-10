@@ -320,7 +320,7 @@ pub fn capture_artifact_name(digest: &SourceFingerprint) -> Option<String> {
 #[cfg(all(test, target_os = "macos"))]
 mod tests {
     use super::*;
-    use std::io::{Read as _, Seek as _, Write as _};
+    use std::io::{Seek as _, Write as _};
     use std::path::PathBuf;
 
     struct Never;
