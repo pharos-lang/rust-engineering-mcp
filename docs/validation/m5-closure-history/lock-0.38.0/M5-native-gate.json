@@ -1,7 +1,7 @@
 {
   "schema": "rust-mcp-m5-runtime-v1",
   "status": "passed",
-  "started_at": "2026-09-10T20:37:30.058714Z",
+  "started_at": "2026-09-10T15:55:55.379830Z",
   "image_id": "sha256:e0a5ca1661b3e49d0a3d68ee3cc0963453078d08eb7fc43c30538c16b7998aac",
   "step_timeout_s": 900,
   "steps": [
@@ -27,9 +27,9 @@
       "exit_code": 0,
       "timed_out": false,
       "expected_executed": 1,
-      "seconds": 13.272,
-      "log_sha256": "e59df9a44aec856c4ceee49dac008b7b96b03a2ce4abac78835f9aa1ef5c5aac",
-      "native_receipt_sha256": "a390ef8dc4a03281d70e70d4b592a5dde82a4f093738ad991006a87f1af0a7c9"
+      "seconds": 0.723,
+      "log_sha256": "56a6eefb952a7cb71e9751c9996850e03fba0554a75f7d16678162a270df2a1d",
+      "native_receipt_sha256": "ee18282a4e730e38ca9ebf5a35bef828490782c515bc319df3a85a5e93078ac1"
     },
     {
       "selection": "performance_native::m5_benchmark_run_negatives_and_controls_are_qualified_natively",
@@ -53,9 +53,9 @@
       "exit_code": 0,
       "timed_out": false,
       "expected_executed": 1,
-      "seconds": 22.495,
-      "log_sha256": "398b2f28cca1651eff3e85a6211660ebee00494340eabb8b9e8bcec020b9d435",
-      "native_receipt_sha256": "3150e5c22b0c83b2d26a5f00364589444c3e717fe78ca59ee8ef87ea2d677041"
+      "seconds": 24.87,
+      "log_sha256": "f39f26e4521427c4c8531149ddc124d68a281c2f8d2b364cf88000ee545685b4",
+      "native_receipt_sha256": "76d66c76bbf97f32da396f5e3d1ad3b56a16b0e4479f47884fbee021febe7edb"
     },
     {
       "selection": "performance_native::m5_benchmark_run_positive_is_blocked_by_the_offline_data_bound",
@@ -79,9 +79,9 @@
       "exit_code": 0,
       "timed_out": false,
       "expected_executed": 1,
-      "seconds": 0.131,
-      "log_sha256": "0f9fe9eefd6b96de9212a550e41b90b710e6c0c63af919a7df2110d5e42f4cea",
-      "native_receipt_sha256": "f139ecd6416431b652c4b27ab60d8f1e59b6bb636379bb5b236e008edf77cd26"
+      "seconds": 0.235,
+      "log_sha256": "698a511849c0c0a84aaec32251a6528a80d1176f0b061db3f4727c3724a6e608",
+      "native_receipt_sha256": "d4f5971772eeb8a30bb61b596747950ed1cbda4eac75c1523724f2dd6a8437a2"
     },
     {
       "selection": "performance_native::m5_benchmark_run_measures_criterion_through_a_vendor_capture",
@@ -105,9 +105,9 @@
       "exit_code": 0,
       "timed_out": false,
       "expected_executed": 1,
-      "seconds": 203.909,
-      "log_sha256": "cd972e0ae17a5e97dcec18817424f7e360d001ce843d5de7f88a4da5c83fcda9",
-      "native_receipt_sha256": "acbb49255f2afc3bf66306008622f89b4df9c8242124a8f30a7f7acb01a70e4c"
+      "seconds": 207.866,
+      "log_sha256": "419aaa5aa657c6406ecdadae3c14e3735939d5fd2dd9005da67e4f120cca6d7b",
+      "native_receipt_sha256": "90fac0a7fd80fd42d09d6295201bb1c54039a6c17af48e18406fe7feb0b236f5"
     },
     {
       "selection": "performance_native::m5_profile_flamegraph_is_qualified_natively",
@@ -131,9 +131,9 @@
       "exit_code": 0,
       "timed_out": false,
       "expected_executed": 1,
-      "seconds": 103.251,
-      "log_sha256": "ffba97597335f1512a051869cf3e9c87c4bb6d66387eb63befeef424dda352d6",
-      "native_receipt_sha256": "a3368e23e391deb97fedeea4d19fe2487550dcf5d5784e6c54fba0e639b26b60"
+      "seconds": 109.934,
+      "log_sha256": "fb64ca67428d326965ddaa7b7871680ded41f1108ef91193dce674cd5c97d41d",
+      "native_receipt_sha256": "b1463e86abe8aeba9878c78a9c4f6c1e90f21518df6b74970324b6d24e83a887"
     },
     {
       "selection": "performance_native::m5_binary_bloat_is_qualified_natively",
@@ -157,9 +157,9 @@
       "exit_code": 0,
       "timed_out": false,
       "expected_executed": 1,
-      "seconds": 29.545,
-      "log_sha256": "5356c68650cbff8a8096db24efa8ece2de8664ccd4973d4306ee41a4714364bf",
-      "native_receipt_sha256": "1c7c095f0ced75f0665f3954beaad655005a50940424d0d348c4e0dcef813107"
+      "seconds": 30.487,
+      "log_sha256": "9205a801a10a4a08ed15b25d13ce6268e1a195b427dfc906832c26341f03185e",
+      "native_receipt_sha256": "2a1848376b851c347d5e17182a4f3863d28aac8d2844da2ce2f6ef90d8a348dc"
     }
   ],
   "sources": [
@@ -1715,11 +1715,11 @@
   "configuration_inputs": [
     {
       "path": "Cargo.toml",
-      "sha256": "286e4a67349d705dd421b46b820e66f7e29de58d2b866bb8e09ddb258a4d1adc"
+      "sha256": "a37b567d2dfb82e3c0495a6f4728087c4ef54f2e886590f7868a333506b707b3"
     },
     {
       "path": "Cargo.lock",
-      "sha256": "340edc1611cdc39afe73e52845409d6147242bb6b078e4ade305700e21c1d055"
+      "sha256": "4219c38fcd9c3dfe2f5c2c157b16b900f40e90557400c5ea7f0f03dbb09766b0"
     },
     {
       "path": "rust-toolchain.toml",
@@ -2163,5 +2163,5 @@
       "rollup_sha256": "8329d22bffa8c0efce9c6c35e203be4a71d7e3f2aebd33b7d69b25b45a1a03da"
     }
   ],
-  "finished_at": "2026-09-10T20:43:43.656016Z"
+  "finished_at": "2026-09-10T16:02:10.505979Z"
 }

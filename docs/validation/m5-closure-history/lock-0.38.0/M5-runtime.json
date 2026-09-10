@@ -2,7 +2,7 @@
   "cuts": [
     {
       "cut": "m5-00-admission",
-      "finished_utc": "2026-09-10T20:37:44Z",
+      "finished_utc": "2026-09-10T15:55:57Z",
       "fixtures": {},
       "image_id": "sha256:25ed3626e710081a571a86a29521eaf2e890e796afd422ba5e409e0ce1891635",
       "residue": {
@@ -17,7 +17,7 @@
       },
       "selections": [
         {
-          "duration_ms": 37,
+          "duration_ms": 38,
           "observed": {
             "error": "Inspection(Execution(Unavailable))",
             "image_id": "sha256:25ed3626e710081a571a86a29521eaf2e890e796afd422ba5e409e0ce1891635",
@@ -31,11 +31,11 @@
           "selection": "unqualified-image-refused"
         }
       ],
-      "started_utc": "2026-09-10T20:37:43Z"
+      "started_utc": "2026-09-10T15:55:56Z"
     },
     {
       "cut": "m5-01-benchmark-blocked",
-      "finished_utc": "2026-09-10T20:38:06Z",
+      "finished_utc": "2026-09-10T15:56:22Z",
       "fixtures": {
         "criterion_vendor": {
           "bounds": {
@@ -126,11 +126,11 @@
           "selection": "pooled-run-count-2"
         }
       ],
-      "started_utc": "2026-09-10T20:38:06Z"
+      "started_utc": "2026-09-10T15:56:22Z"
     },
     {
       "cut": "m5-01-benchmark-capture",
-      "finished_utc": "2026-09-10T20:41:30Z",
+      "finished_utc": "2026-09-10T15:59:50Z",
       "fixtures": {
         "benchmark": {
           "archive_sha256": "sha256:d59a7a40c438a20850e990aff2eca594627dcd41fd7fe48792ae1254f02e07d8",
@@ -170,11 +170,11 @@
       },
       "selections": [
         {
-          "duration_ms": 133262,
+          "duration_ms": 135852,
           "observed": {
             "archive_bytes": 40960,
             "archive_run_index": 3,
-            "execution_fingerprint": "sha256:fefd8d35bf6b3609131c954c25c296e4088bcbc25f53ec89f3a54c7e64164ef5",
+            "execution_fingerprint": "sha256:063d1dc27b44e5799ad7abd1ea5b9c03fb3f4fb9f05c921a55eb427d82eef039",
             "exit": "Passed",
             "exit_code": 0,
             "exit_run_index": 3,
@@ -184,21 +184,21 @@
                 "run_index": 1,
                 "stderr_bytes": 2106,
                 "stderr_truncated": false,
-                "stdout_bytes": 366,
+                "stdout_bytes": 273,
                 "stdout_truncated": false
               },
               {
                 "run_index": 2,
                 "stderr_bytes": 744,
                 "stderr_truncated": false,
-                "stdout_bytes": 271,
+                "stdout_bytes": 202,
                 "stdout_truncated": false
               },
               {
                 "run_index": 3,
                 "stderr_bytes": 744,
                 "stderr_truncated": false,
-                "stdout_bytes": 271,
+                "stdout_bytes": 437,
                 "stdout_truncated": false
               }
             ],
@@ -217,7 +217,7 @@
                 "sample_size_requested": 30,
                 "samples": 90,
                 "sampling_mode": "Linear",
-                "total_iterations": 5252175,
+                "total_iterations": 5168010,
                 "warm_up_ms": 3000
               },
               {
@@ -234,7 +234,7 @@
                 "sample_size_requested": 30,
                 "samples": 90,
                 "sampling_mode": "Linear",
-                "total_iterations": 5196375,
+                "total_iterations": 5230320,
                 "warm_up_ms": 3000
               },
               {
@@ -251,7 +251,7 @@
                 "sample_size_requested": 30,
                 "samples": 90,
                 "sampling_mode": "Linear",
-                "total_iterations": 4224060,
+                "total_iterations": 4060380,
                 "warm_up_ms": 3000
               }
             ],
@@ -284,7 +284,7 @@
           "selection": "criterion-positive-through-a-capture"
         },
         {
-          "duration_ms": 2854,
+          "duration_ms": 2897,
           "observed": {
             "capture_error": "Digest",
             "control_tree_digest": "sha256:8e1c814b7e2868b722aa476ae6e5e45967c3ccc840bf434663b14a1cdd7cdb84",
@@ -302,7 +302,7 @@
           "selection": "declared-digest-mismatch-refused"
         },
         {
-          "duration_ms": 57145,
+          "duration_ms": 57331,
           "observed": {
             "announced": [
               "VENDOR_WRITE create refused errno=Some(30) kind=ReadOnlyFilesystem",
@@ -319,11 +319,11 @@
           "selection": "capture-is-read-only-in-the-guest"
         },
         {
-          "duration_ms": 10174,
+          "duration_ms": 11286,
           "observed": {
             "monitor": {
               "inventory_failed": false,
-              "inventory_polls": 335,
+              "inventory_polls": 336,
               "needle": "--directory=/rust-mcp-vendor",
               "observed_running": true
             },
@@ -336,11 +336,11 @@
           "selection": "cancellation-during-capture-ingest"
         }
       ],
-      "started_utc": "2026-09-10T20:38:07Z"
+      "started_utc": "2026-09-10T15:56:22Z"
     },
     {
       "cut": "m5-01-benchmark",
-      "finished_utc": "2026-09-10T20:38:06Z",
+      "finished_utc": "2026-09-10T15:56:21Z",
       "fixtures": {
         "benchmark": {
           "archive_sha256": "sha256:d59a7a40c438a20850e990aff2eca594627dcd41fd7fe48792ae1254f02e07d8",
@@ -370,10 +370,10 @@
       },
       "selections": [
         {
-          "duration_ms": 8206,
+          "duration_ms": 8945,
           "observed": {
             "archive_run_index": null,
-            "execution_fingerprint": "sha256:0c5eb56d37c2d9e5d0d90299cf936e0e239b9876434d0cda074c4585abaa9838",
+            "execution_fingerprint": "sha256:bb183fafa678481a5a3c17e741ed83e1bfc6a85db4465febf55dc5c8d415073c",
             "exit": "Passed",
             "exit_code": 0,
             "exit_run_index": 1,
@@ -398,7 +398,7 @@
           "selection": "unrecognised-harness"
         },
         {
-          "duration_ms": 465,
+          "duration_ms": 481,
           "observed": {
             "gateway_error": "ProjectCargoConfiguration",
             "residue_after": {
@@ -414,7 +414,7 @@
           "selection": "project-cargo-configuration-refused"
         },
         {
-          "duration_ms": 13354,
+          "duration_ms": 14948,
           "observed": {
             "monitor": {
               "inventory_failed": false,
@@ -431,11 +431,11 @@
           "selection": "cancellation-mid-run"
         }
       ],
-      "started_utc": "2026-09-10T20:37:44Z"
+      "started_utc": "2026-09-10T15:55:57Z"
     },
     {
       "cut": "m5-03-profile",
-      "finished_utc": "2026-09-10T20:43:14Z",
+      "finished_utc": "2026-09-10T16:01:39Z",
       "fixtures": {
         "profile_workload": {
           "archive_sha256": "sha256:7d78b4e816a061f6fa0b1d30313122529102cae09be7f076bc83c2fd9f52bf1d",
@@ -458,7 +458,7 @@
       },
       "selections": [
         {
-          "duration_ms": 10478,
+          "duration_ms": 11301,
           "observed": {
             "backend": "perf_event_software_cpu_clock",
             "build": "Built",
@@ -469,17 +469,17 @@
             },
             "completeness": "Complete",
             "counters": {
-              "frames_total": 2162,
-              "frames_unresolved": 198,
+              "frames_total": 2176,
+              "frames_unresolved": 200,
               "max_depth_applied": 127,
               "modules_seen": 5,
               "observed_duration_ms": 2001,
-              "samples_collected": 196,
+              "samples_collected": 197,
               "samples_lost": 0,
               "stacks_truncated": 0,
               "stacks_written": 2
             },
-            "execution_fingerprint": "sha256:7afa696b6c38f5f6be8cecc418ea86a07cf1a713906b3351c77746e8d75f2924",
+            "execution_fingerprint": "sha256:12ac59ec5b7f07d2735e162217ea8f28c99aa38cfa81e9697d8c653e75d6969a",
             "hottest_stack": {
               "distinct_frames_emitted": 25,
               "frames": [
@@ -496,7 +496,7 @@
                 "_RNvCskHqGhPDynrU_25rust_mcp_profile_workload15known_hot_frame"
               ],
               "samples": 194,
-              "total_samples": 196
+              "total_samples": 197
             },
             "perf_errno": null,
             "stacks_bytes": 1170,
@@ -508,13 +508,13 @@
           "selection": "profile-positive"
         },
         {
-          "duration_ms": 10463,
+          "duration_ms": 11171,
           "observed": {
             "cpu_model": "CPU implementer=0x61 CPU part=0x000 CPU revision=0 CPU variant=0x0",
             "cpus_sampled": 16,
             "descendants_reaped": 0,
             "guest_cpu_cores": 16,
-            "manifest_sha256": "sha256:d7049e80982a0ebd6a6b2f593117bc9cb94b413871624de641eb1d3062c1aaa7",
+            "manifest_sha256": "sha256:6e922882531c2189d44a85df0af220b3dd1bd4c734be1d7ed130e2bde2ba5583",
             "manifest_status": "complete",
             "namespace_drained": true,
             "os_kernel": "Linux 7.0.12-linuxkit aarch64"
@@ -523,7 +523,7 @@
           "selection": "profile-cpus-sampled"
         },
         {
-          "duration_ms": 8346,
+          "duration_ms": 9025,
           "observed": {
             "backend": "perf_event_software_cpu_clock",
             "build": "Built",
@@ -544,7 +544,7 @@
               "stacks_truncated": 0,
               "stacks_written": 0
             },
-            "execution_fingerprint": "sha256:5c9dbf135f599fd171c55b6802ccc84f7012fedad034274ee3b86cbcc0faa8de",
+            "execution_fingerprint": "sha256:4ad0d44a6015a0c02a185387c35826522987d46ed27a020725e453c36a659fb1",
             "perf_errno": null,
             "stacks_bytes": 0,
             "status": "ChildExited",
@@ -555,11 +555,11 @@
           "selection": "zero-sample-control"
         },
         {
-          "duration_ms": 14260,
+          "duration_ms": 15904,
           "observed": {
             "monitor": {
               "inventory_failed": false,
-              "inventory_polls": 625,
+              "inventory_polls": 623,
               "needle": "/opt/perf/bin/rust-mcp-profile-helper",
               "observed_running": true
             },
@@ -572,7 +572,7 @@
           "selection": "cancellation-during-profiling"
         },
         {
-          "duration_ms": 16904,
+          "duration_ms": 18218,
           "observed": {
             "backend": "perf_event_software_cpu_clock",
             "build": "Built",
@@ -593,7 +593,7 @@
               "stacks_truncated": 0,
               "stacks_written": 0
             },
-            "execution_fingerprint": "sha256:a06de0ae254e4964665ae9d77107def6bc8bc1debad522e88624fc8fbc9370d5",
+            "execution_fingerprint": "sha256:1d8f2e4efd9e17e7cfbeecc076c1b07f910336000ae79d6c6d13374650351cc7",
             "helper_exit": 3,
             "helper_manifest": {
               "child_exit_code": null,
@@ -628,7 +628,7 @@
           "selection": "denial-control"
         },
         {
-          "duration_ms": 21141,
+          "duration_ms": 22223,
           "observed": {
             "backend": "perf_event_software_cpu_clock",
             "build": "Built",
@@ -639,26 +639,26 @@
             },
             "completeness": "Complete",
             "counters": {
-              "frames_total": 1956,
-              "frames_unresolved": 197,
+              "frames_total": 1975,
+              "frames_unresolved": 201,
               "max_depth_applied": 127,
               "modules_seen": 5,
               "observed_duration_ms": 2002,
-              "samples_collected": 195,
+              "samples_collected": 196,
               "samples_lost": 0,
               "stacks_truncated": 0,
               "stacks_written": 2
             },
             "descendants_reaped": 1,
-            "execution_fingerprint": "sha256:a958e4d9d4f252e509b327fb795728627b2eb84eb2240d3c6644434053b0e05b",
+            "execution_fingerprint": "sha256:9266bd419160b630ebeae48342d37990b901916c53e9c149dda6e74af95fb38e",
             "helper_exit": 0,
             "helper_manifest": {
               "child_exit_code": 0,
               "child_signal": null,
               "cpus_sampled": 16,
               "descendants_reaped": 1,
-              "frames_total": 1956,
-              "frames_unresolved": 197,
+              "frames_total": 1969,
+              "frames_unresolved": 199,
               "frequency_hz": 99,
               "max_depth": 127,
               "modules_seen": 5,
@@ -666,7 +666,7 @@
               "observed_duration_ms": 2002,
               "perf_errno": null,
               "requested_duration_ms": 4000,
-              "samples_collected": 195,
+              "samples_collected": 196,
               "samples_lost": 0,
               "schema": "rust-engineering-mcp.profile-helper.v1",
               "stacks_truncated": 0,
@@ -686,26 +686,26 @@
                 "_RNvCsai5KdxhHUDv_21rust_mcp_profile_fork8dispatch",
                 "_RNvNtCsai5KdxhHUDv_21rust_mcp_profile_fork8workload15known_hot_frame"
               ],
-              "samples": 193,
-              "total_samples": 195
+              "samples": 191,
+              "total_samples": 196
             },
-            "manifest_sha256": "sha256:9e337aa2ce0b5278eace676c2eb8b4a15223efe7dfa3c7ce9de496aa9ccf537b",
+            "manifest_sha256": "sha256:13dd577e1d8911a4c49ee6adc82806c43bfcd36fe8cbff4a5277c647bfb24de4",
             "namespace_drained": true,
             "perf_errno": null,
             "reconciled_artifact": {
               "distinct_stacks": 2,
-              "total_samples": 195
+              "total_samples": 196
             },
             "stacks_bytes": 1038,
             "status": "Complete",
-            "svg_bytes": 3683,
+            "svg_bytes": 3800,
             "top_frames": 12
           },
           "outcome": "passed",
           "selection": "profile-descendant-drained"
         },
         {
-          "duration_ms": 20943,
+          "duration_ms": 21278,
           "observed": {
             "exported_manifest_bytes": 0,
             "exported_stacks_bytes": 0,
@@ -718,11 +718,11 @@
           "selection": "profile-precreated-artifact-refused"
         }
       ],
-      "started_utc": "2026-09-10T20:41:31Z"
+      "started_utc": "2026-09-10T15:59:50Z"
     },
     {
       "cut": "m5-04-bloat",
-      "finished_utc": "2026-09-10T20:43:43Z",
+      "finished_utc": "2026-09-10T16:02:10Z",
       "fixtures": {
         "bloat": {
           "archive_sha256": "sha256:d93c1e9e05c0a4287ba39a95cd39af3c2add28816665d4d40dff4f6601f3c66d",
@@ -745,7 +745,7 @@
       },
       "selections": [
         {
-          "duration_ms": 9373,
+          "duration_ms": 9547,
           "observed": {
             "analysis_validated": true,
             "analyzer_version": "0.12.1",
@@ -780,7 +780,7 @@
               "text_section_size_bytes": 235268
             },
             "completeness": "Complete",
-            "execution_fingerprint": "sha256:35179f89fa97cc4f6ca692917cf1459e3b3948843d35e03e6d8f6070c49eeda3",
+            "execution_fingerprint": "sha256:e83bdcb9d3bc92dc69548681a0da740ab422e64d65b941be9eced0b7160ba04d",
             "exit": "Passed",
             "exit_code": 0,
             "measured": {
@@ -794,7 +794,7 @@
           "selection": "release-positive"
         },
         {
-          "duration_ms": 10608,
+          "duration_ms": 11158,
           "observed": {
             "analysis_validated": true,
             "analyzer_version": "0.12.1",
@@ -829,7 +829,7 @@
               "text_section_size_bytes": 217048
             },
             "completeness": "Complete",
-            "execution_fingerprint": "sha256:a75d8dd7adbe7eb5c509698956f8f28da0a52932001b671b15e37fa009857b17",
+            "execution_fingerprint": "sha256:e136804b01dc847578040401148b46e8b36f46290f4f9e68cd1d56fc6ac22b74",
             "exit": "Passed",
             "exit_code": 0,
             "measured": {
@@ -843,13 +843,13 @@
           "selection": "release-lto"
         },
         {
-          "duration_ms": 8948,
+          "duration_ms": 9212,
           "observed": {
             "analysis_validated": false,
             "analyzer_version": "0.12.1",
             "attribution": null,
             "completeness": "Unavailable",
-            "execution_fingerprint": "sha256:2ad95bf6ad73237300ca960d1fbef8fffbee2a33ac5c8dec7540c9736c2605a7",
+            "execution_fingerprint": "sha256:0a138583a60222d30b657fe51e7c7b89d32ce1b08dcee31d7cacadf57b02a88b",
             "exit": "AnalysisFailed",
             "exit_code": 1,
             "measured": null
@@ -858,10 +858,10 @@
           "selection": "missing-binary-target"
         }
       ],
-      "started_utc": "2026-09-10T20:43:14Z"
+      "started_utc": "2026-09-10T16:01:40Z"
     }
   ],
-  "finished_utc": "2026-09-10T20:43:43Z",
+  "finished_utc": "2026-09-10T16:02:10Z",
   "fixtures": {
     "benchmark": {
       "archive_sha256": "sha256:d59a7a40c438a20850e990aff2eca594627dcd41fd7fe48792ae1254f02e07d8",
@@ -936,7 +936,7 @@
   "schema": "rust-engineering-mcp.m5-runtime.v1",
   "selections": [
     {
-      "duration_ms": 37,
+      "duration_ms": 38,
       "observed": {
         "error": "Inspection(Execution(Unavailable))",
         "image_id": "sha256:25ed3626e710081a571a86a29521eaf2e890e796afd422ba5e409e0ce1891635",
@@ -1012,11 +1012,11 @@
       "selection": "pooled-run-count-2"
     },
     {
-      "duration_ms": 133262,
+      "duration_ms": 135852,
       "observed": {
         "archive_bytes": 40960,
         "archive_run_index": 3,
-        "execution_fingerprint": "sha256:fefd8d35bf6b3609131c954c25c296e4088bcbc25f53ec89f3a54c7e64164ef5",
+        "execution_fingerprint": "sha256:063d1dc27b44e5799ad7abd1ea5b9c03fb3f4fb9f05c921a55eb427d82eef039",
         "exit": "Passed",
         "exit_code": 0,
         "exit_run_index": 3,
@@ -1026,21 +1026,21 @@
             "run_index": 1,
             "stderr_bytes": 2106,
             "stderr_truncated": false,
-            "stdout_bytes": 366,
+            "stdout_bytes": 273,
             "stdout_truncated": false
           },
           {
             "run_index": 2,
             "stderr_bytes": 744,
             "stderr_truncated": false,
-            "stdout_bytes": 271,
+            "stdout_bytes": 202,
             "stdout_truncated": false
           },
           {
             "run_index": 3,
             "stderr_bytes": 744,
             "stderr_truncated": false,
-            "stdout_bytes": 271,
+            "stdout_bytes": 437,
             "stdout_truncated": false
           }
         ],
@@ -1059,7 +1059,7 @@
             "sample_size_requested": 30,
             "samples": 90,
             "sampling_mode": "Linear",
-            "total_iterations": 5252175,
+            "total_iterations": 5168010,
             "warm_up_ms": 3000
           },
           {
@@ -1076,7 +1076,7 @@
             "sample_size_requested": 30,
             "samples": 90,
             "sampling_mode": "Linear",
-            "total_iterations": 5196375,
+            "total_iterations": 5230320,
             "warm_up_ms": 3000
           },
           {
@@ -1093,7 +1093,7 @@
             "sample_size_requested": 30,
             "samples": 90,
             "sampling_mode": "Linear",
-            "total_iterations": 4224060,
+            "total_iterations": 4060380,
             "warm_up_ms": 3000
           }
         ],
@@ -1126,7 +1126,7 @@
       "selection": "criterion-positive-through-a-capture"
     },
     {
-      "duration_ms": 2854,
+      "duration_ms": 2897,
       "observed": {
         "capture_error": "Digest",
         "control_tree_digest": "sha256:8e1c814b7e2868b722aa476ae6e5e45967c3ccc840bf434663b14a1cdd7cdb84",
@@ -1144,7 +1144,7 @@
       "selection": "declared-digest-mismatch-refused"
     },
     {
-      "duration_ms": 57145,
+      "duration_ms": 57331,
       "observed": {
         "announced": [
           "VENDOR_WRITE create refused errno=Some(30) kind=ReadOnlyFilesystem",
@@ -1161,11 +1161,11 @@
       "selection": "capture-is-read-only-in-the-guest"
     },
     {
-      "duration_ms": 10174,
+      "duration_ms": 11286,
       "observed": {
         "monitor": {
           "inventory_failed": false,
-          "inventory_polls": 335,
+          "inventory_polls": 336,
           "needle": "--directory=/rust-mcp-vendor",
           "observed_running": true
         },
@@ -1178,10 +1178,10 @@
       "selection": "cancellation-during-capture-ingest"
     },
     {
-      "duration_ms": 8206,
+      "duration_ms": 8945,
       "observed": {
         "archive_run_index": null,
-        "execution_fingerprint": "sha256:0c5eb56d37c2d9e5d0d90299cf936e0e239b9876434d0cda074c4585abaa9838",
+        "execution_fingerprint": "sha256:bb183fafa678481a5a3c17e741ed83e1bfc6a85db4465febf55dc5c8d415073c",
         "exit": "Passed",
         "exit_code": 0,
         "exit_run_index": 1,
@@ -1206,7 +1206,7 @@
       "selection": "unrecognised-harness"
     },
     {
-      "duration_ms": 465,
+      "duration_ms": 481,
       "observed": {
         "gateway_error": "ProjectCargoConfiguration",
         "residue_after": {
@@ -1222,7 +1222,7 @@
       "selection": "project-cargo-configuration-refused"
     },
     {
-      "duration_ms": 13354,
+      "duration_ms": 14948,
       "observed": {
         "monitor": {
           "inventory_failed": false,
@@ -1239,7 +1239,7 @@
       "selection": "cancellation-mid-run"
     },
     {
-      "duration_ms": 10478,
+      "duration_ms": 11301,
       "observed": {
         "backend": "perf_event_software_cpu_clock",
         "build": "Built",
@@ -1250,17 +1250,17 @@
         },
         "completeness": "Complete",
         "counters": {
-          "frames_total": 2162,
-          "frames_unresolved": 198,
+          "frames_total": 2176,
+          "frames_unresolved": 200,
           "max_depth_applied": 127,
           "modules_seen": 5,
           "observed_duration_ms": 2001,
-          "samples_collected": 196,
+          "samples_collected": 197,
           "samples_lost": 0,
           "stacks_truncated": 0,
           "stacks_written": 2
         },
-        "execution_fingerprint": "sha256:7afa696b6c38f5f6be8cecc418ea86a07cf1a713906b3351c77746e8d75f2924",
+        "execution_fingerprint": "sha256:12ac59ec5b7f07d2735e162217ea8f28c99aa38cfa81e9697d8c653e75d6969a",
         "hottest_stack": {
           "distinct_frames_emitted": 25,
           "frames": [
@@ -1277,7 +1277,7 @@
             "_RNvCskHqGhPDynrU_25rust_mcp_profile_workload15known_hot_frame"
           ],
           "samples": 194,
-          "total_samples": 196
+          "total_samples": 197
         },
         "perf_errno": null,
         "stacks_bytes": 1170,
@@ -1289,13 +1289,13 @@
       "selection": "profile-positive"
     },
     {
-      "duration_ms": 10463,
+      "duration_ms": 11171,
       "observed": {
         "cpu_model": "CPU implementer=0x61 CPU part=0x000 CPU revision=0 CPU variant=0x0",
         "cpus_sampled": 16,
         "descendants_reaped": 0,
         "guest_cpu_cores": 16,
-        "manifest_sha256": "sha256:d7049e80982a0ebd6a6b2f593117bc9cb94b413871624de641eb1d3062c1aaa7",
+        "manifest_sha256": "sha256:6e922882531c2189d44a85df0af220b3dd1bd4c734be1d7ed130e2bde2ba5583",
         "manifest_status": "complete",
         "namespace_drained": true,
         "os_kernel": "Linux 7.0.12-linuxkit aarch64"
@@ -1304,7 +1304,7 @@
       "selection": "profile-cpus-sampled"
     },
     {
-      "duration_ms": 8346,
+      "duration_ms": 9025,
       "observed": {
         "backend": "perf_event_software_cpu_clock",
         "build": "Built",
@@ -1325,7 +1325,7 @@
           "stacks_truncated": 0,
           "stacks_written": 0
         },
-        "execution_fingerprint": "sha256:5c9dbf135f599fd171c55b6802ccc84f7012fedad034274ee3b86cbcc0faa8de",
+        "execution_fingerprint": "sha256:4ad0d44a6015a0c02a185387c35826522987d46ed27a020725e453c36a659fb1",
         "perf_errno": null,
         "stacks_bytes": 0,
         "status": "ChildExited",
@@ -1336,11 +1336,11 @@
       "selection": "zero-sample-control"
     },
     {
-      "duration_ms": 14260,
+      "duration_ms": 15904,
       "observed": {
         "monitor": {
           "inventory_failed": false,
-          "inventory_polls": 625,
+          "inventory_polls": 623,
           "needle": "/opt/perf/bin/rust-mcp-profile-helper",
           "observed_running": true
         },
@@ -1353,7 +1353,7 @@
       "selection": "cancellation-during-profiling"
     },
     {
-      "duration_ms": 16904,
+      "duration_ms": 18218,
       "observed": {
         "backend": "perf_event_software_cpu_clock",
         "build": "Built",
@@ -1374,7 +1374,7 @@
           "stacks_truncated": 0,
           "stacks_written": 0
         },
-        "execution_fingerprint": "sha256:a06de0ae254e4964665ae9d77107def6bc8bc1debad522e88624fc8fbc9370d5",
+        "execution_fingerprint": "sha256:1d8f2e4efd9e17e7cfbeecc076c1b07f910336000ae79d6c6d13374650351cc7",
         "helper_exit": 3,
         "helper_manifest": {
           "child_exit_code": null,
@@ -1409,7 +1409,7 @@
       "selection": "denial-control"
     },
     {
-      "duration_ms": 21141,
+      "duration_ms": 22223,
       "observed": {
         "backend": "perf_event_software_cpu_clock",
         "build": "Built",
@@ -1420,26 +1420,26 @@
         },
         "completeness": "Complete",
         "counters": {
-          "frames_total": 1956,
-          "frames_unresolved": 197,
+          "frames_total": 1975,
+          "frames_unresolved": 201,
           "max_depth_applied": 127,
           "modules_seen": 5,
           "observed_duration_ms": 2002,
-          "samples_collected": 195,
+          "samples_collected": 196,
           "samples_lost": 0,
           "stacks_truncated": 0,
           "stacks_written": 2
         },
         "descendants_reaped": 1,
-        "execution_fingerprint": "sha256:a958e4d9d4f252e509b327fb795728627b2eb84eb2240d3c6644434053b0e05b",
+        "execution_fingerprint": "sha256:9266bd419160b630ebeae48342d37990b901916c53e9c149dda6e74af95fb38e",
         "helper_exit": 0,
         "helper_manifest": {
           "child_exit_code": 0,
           "child_signal": null,
           "cpus_sampled": 16,
           "descendants_reaped": 1,
-          "frames_total": 1956,
-          "frames_unresolved": 197,
+          "frames_total": 1969,
+          "frames_unresolved": 199,
           "frequency_hz": 99,
           "max_depth": 127,
           "modules_seen": 5,
@@ -1447,7 +1447,7 @@
           "observed_duration_ms": 2002,
           "perf_errno": null,
           "requested_duration_ms": 4000,
-          "samples_collected": 195,
+          "samples_collected": 196,
           "samples_lost": 0,
           "schema": "rust-engineering-mcp.profile-helper.v1",
           "stacks_truncated": 0,
@@ -1467,26 +1467,26 @@
             "_RNvCsai5KdxhHUDv_21rust_mcp_profile_fork8dispatch",
             "_RNvNtCsai5KdxhHUDv_21rust_mcp_profile_fork8workload15known_hot_frame"
           ],
-          "samples": 193,
-          "total_samples": 195
+          "samples": 191,
+          "total_samples": 196
         },
-        "manifest_sha256": "sha256:9e337aa2ce0b5278eace676c2eb8b4a15223efe7dfa3c7ce9de496aa9ccf537b",
+        "manifest_sha256": "sha256:13dd577e1d8911a4c49ee6adc82806c43bfcd36fe8cbff4a5277c647bfb24de4",
         "namespace_drained": true,
         "perf_errno": null,
         "reconciled_artifact": {
           "distinct_stacks": 2,
-          "total_samples": 195
+          "total_samples": 196
         },
         "stacks_bytes": 1038,
         "status": "Complete",
-        "svg_bytes": 3683,
+        "svg_bytes": 3800,
         "top_frames": 12
       },
       "outcome": "passed",
       "selection": "profile-descendant-drained"
     },
     {
-      "duration_ms": 20943,
+      "duration_ms": 21278,
       "observed": {
         "exported_manifest_bytes": 0,
         "exported_stacks_bytes": 0,
@@ -1499,7 +1499,7 @@
       "selection": "profile-precreated-artifact-refused"
     },
     {
-      "duration_ms": 9373,
+      "duration_ms": 9547,
       "observed": {
         "analysis_validated": true,
         "analyzer_version": "0.12.1",
@@ -1534,7 +1534,7 @@
           "text_section_size_bytes": 235268
         },
         "completeness": "Complete",
-        "execution_fingerprint": "sha256:35179f89fa97cc4f6ca692917cf1459e3b3948843d35e03e6d8f6070c49eeda3",
+        "execution_fingerprint": "sha256:e83bdcb9d3bc92dc69548681a0da740ab422e64d65b941be9eced0b7160ba04d",
         "exit": "Passed",
         "exit_code": 0,
         "measured": {
@@ -1548,7 +1548,7 @@
       "selection": "release-positive"
     },
     {
-      "duration_ms": 10608,
+      "duration_ms": 11158,
       "observed": {
         "analysis_validated": true,
         "analyzer_version": "0.12.1",
@@ -1583,7 +1583,7 @@
           "text_section_size_bytes": 217048
         },
         "completeness": "Complete",
-        "execution_fingerprint": "sha256:a75d8dd7adbe7eb5c509698956f8f28da0a52932001b671b15e37fa009857b17",
+        "execution_fingerprint": "sha256:e136804b01dc847578040401148b46e8b36f46290f4f9e68cd1d56fc6ac22b74",
         "exit": "Passed",
         "exit_code": 0,
         "measured": {
@@ -1597,13 +1597,13 @@
       "selection": "release-lto"
     },
     {
-      "duration_ms": 8948,
+      "duration_ms": 9212,
       "observed": {
         "analysis_validated": false,
         "analyzer_version": "0.12.1",
         "attribution": null,
         "completeness": "Unavailable",
-        "execution_fingerprint": "sha256:2ad95bf6ad73237300ca960d1fbef8fffbee2a33ac5c8dec7540c9736c2605a7",
+        "execution_fingerprint": "sha256:0a138583a60222d30b657fe51e7c7b89d32ce1b08dcee31d7cacadf57b02a88b",
         "exit": "AnalysisFailed",
         "exit_code": 1,
         "measured": null
@@ -1612,5 +1612,5 @@
       "selection": "missing-binary-target"
     }
   ],
-  "started_utc": "2026-09-10T20:37:43Z"
+  "started_utc": "2026-09-10T15:55:56Z"
 }
