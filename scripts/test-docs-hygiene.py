@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import hashlib
 import importlib.util
+import io
 import json
 import os
 import pathlib
@@ -148,10 +149,9 @@ class RepoBacked(unittest.TestCase):
 
     def test_check_links_reports_living_frozen_and_excluded(self) -> None:
         self.seed()
-        report = self.repo.root / "report.json"
         with mock.patch("builtins.print"):
-            code = DH.check_links(report)
-        summary = json.loads(report.read_text())
+            code = DH.check_links(True)
+        summary = json.loads((self.repo.root / "target/docs-hygiene/links-check.json").read_text())
         self.assertEqual(code, 1)
         self.assertEqual([r["resolved"] for r in summary["broken_living"]], ["docs/validation/nope.json"])
         self.assertEqual([r["resolved"] for r in summary["excluded_evidence"]], ["docs/validation/run.log"])
@@ -160,23 +160,21 @@ class RepoBacked(unittest.TestCase):
         # An unstaged new document takes part in resolution and can fix the broken link.
         self.repo.write("docs/validation/nope.json", "{}\n")
         with mock.patch("builtins.print"):
-            self.assertEqual(DH.check_links(None), 0)
+            self.assertEqual(DH.check_links(False), 0)
 
     def test_apply_moves_relinks_rewrites_and_verifies_bytes(self) -> None:
         self.seed()
-        plan = self.repo.root / "plan.json"
-        plan.write_text(json.dumps([
+        plan = [
             {"from": "docs/validation/M5-core-gate.json", "to": "docs/validation/M5/core-gate.json"},
             {"from": "docs/validation/M5-matrix.md", "to": "docs/validation/M5/matrix.md"},
             {"from": "docs/validation/m5-clients", "to": "docs/validation/M5/clients"},
-        ]))
+        ]
         with mock.patch("builtins.print"):
-            self.assertEqual(DH.apply_moves(plan, True, None), 0)
+            self.assertEqual(DH.apply_moves(plan, True, False), 0)
         self.assertIn("docs/validation/M5-core-gate.json", self.repo.tracked())
-        report = self.repo.root / "moves.json"
         with mock.patch("builtins.print"):
-            self.assertEqual(DH.apply_moves(plan, False, report), 0)
-        summary = json.loads(report.read_text())
+            self.assertEqual(DH.apply_moves(plan, False, True), 0)
+        summary = json.loads((self.repo.root / "target/docs-hygiene/apply-moves.json").read_text())
         self.assertEqual(summary["moved"], 4)
         self.assertEqual(summary["hash_mismatches"], [])
         self.assertEqual(summary["moved_living_documents"], ["docs/validation/M5/clients/attempts.md",
@@ -204,7 +202,7 @@ class RepoBacked(unittest.TestCase):
         self.assertEqual(read("docs/reviews/pkg/inputs/copy.md"), "[broken](../../../nowhere.md)\n")
         self.assertEqual(read("docs/validation/M5/core-gate.json"), '{"status": "passed"}\n')
         with mock.patch("builtins.print"):
-            self.assertEqual(DH.check_links(None), 1)  # only the pre-existing broken link remains
+            self.assertEqual(DH.check_links(False), 1)  # only the pre-existing broken link remains
 
     def test_expand_plan_rejects_untracked_sources_and_collisions(self) -> None:
         self.seed()
@@ -254,11 +252,17 @@ class RepoBacked(unittest.TestCase):
         with mock.patch("builtins.print"):
             self.assertEqual(DH.main(["links-check"]), 1)
             self.assertEqual(DH.main(["verify-inventories"]), 0)
-            plan = self.repo.root / "plan.json"
-            plan.write_text(json.dumps([{"from": "docs/tools.md", "to": "docs/guide/tools.md"}]))
-            self.assertEqual(DH.main(["apply-moves", str(plan), "--dry-run"]), 0)
-            self.assertEqual(DH.main(["apply-moves", str(plan)]), 0)
+            plan = json.dumps([{"from": "docs/tools.md", "to": "docs/guide/tools.md"}])
+            with mock.patch("sys.stdin", io.StringIO(plan)):
+                self.assertEqual(DH.main(["apply-moves", "--dry-run"]), 0)
+            with mock.patch("sys.stdin", io.StringIO(plan)):
+                self.assertEqual(DH.main(["apply-moves", "--report"]), 0)
+            with mock.patch("sys.stdin", io.StringIO('{"not": "a list"}')), self.assertRaises(SystemExit):
+                DH.main(["apply-moves"])
+            self.assertEqual(DH.main(["links-check", "--report"]), 1)
         self.assertIn("docs/guide/tools.md", self.repo.tracked())
+        self.assertTrue((self.repo.root / "target/docs-hygiene/apply-moves.json").is_file())
+        self.assertTrue((self.repo.root / "target/docs-hygiene/links-check.json").is_file())
         self.assertEqual((self.repo.root / "docs/validation/M5-matrix.md").read_text(),
                          "[core](M5-core-gate.json) [self](../guide/tools.md)\n")
         self.assertEqual(os.getcwd(), str(self.repo.root))

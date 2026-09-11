@@ -4,16 +4,16 @@
 Three read-mostly operations used by the evidence layout convention described in
 docs/validation/README.md:
 
-  links-check [--report PATH]
+  links-check [--report]
       Resolve every Markdown link and every ``docs/...`` path string in the
       living documentation set. Broken links in living documents fail the
       command; broken links in frozen records (agent transcripts, review input
       snapshots) are only reported, because those bytes are never edited.
 
-  apply-moves PLAN [--dry-run] [--report PATH]
-      Move files with ``git mv`` following a JSON plan (a list of
-      ``{"from": ..., "to": ...}`` entries; ``from`` may be a tracked file or a
-      tracked directory), then rewrite the affected Markdown links and
+  apply-moves [--dry-run] [--report] < PLAN.json
+      Move files with ``git mv`` following a JSON plan read from stdin (a
+      list of ``{"from": ..., "to": ...}`` entries; ``from`` may be a tracked
+      file or a tracked directory), then rewrite the affected Markdown links and
       root-relative path strings in the living set, scripts and Git metadata.
       Receipts and other moved bytes are never edited.
 
@@ -22,7 +22,9 @@ docs/validation/README.md:
       ``docs/research/**``: retained entries must exist with the recorded
       SHA-256 and byte count; retired entries must be absent from the tree.
 
-Only the standard library is used. Exit status is non-zero on any failure.
+``--report`` writes a JSON report to ``target/docs-hygiene/<subcommand>.json``;
+no path is taken from the command line. Only the standard library is used.
+Exit status is non-zero on any failure.
 """
 
 from __future__ import annotations
@@ -79,6 +81,13 @@ PATH_STRING_PREFIXES = (
 INLINE_LINK = re.compile(r"(!?\[[^\]]*\]\()(<[^>]*>|[^)\s]+)((?:\s+\"[^\"]*\")?\))")
 REFERENCE_DEF = re.compile(r"^(\s{0,3}\[(?!\^)[^\]]+\]:\s*)(\S+)", re.MULTILINE)
 SCHEME = re.compile(r"^[a-zA-Z][a-zA-Z0-9+.-]*:")
+
+
+def report_path(subcommand: str) -> pathlib.Path:
+    """Fixed report location under the build directory; never a caller-supplied path."""
+    directory = ROOT / "target" / "docs-hygiene"
+    directory.mkdir(parents=True, exist_ok=True)
+    return directory / f"{subcommand}.json"
 
 
 def git(*args: str) -> str:
@@ -178,7 +187,7 @@ def ignored_paths(paths: Iterable[str]) -> set[str]:
     return {p for p in result.stdout.split("\0") if p}
 
 
-def check_links(report_path: pathlib.Path | None) -> int:
+def check_links(write_report: bool) -> int:
     files = tracked_files(include_untracked=True)
     tree = Tree(files)
     broken_living: list[dict] = []
@@ -207,8 +216,8 @@ def check_links(report_path: pathlib.Path | None) -> int:
     broken_frozen = [r for r in broken_frozen if r["resolved"] not in excluded]
     summary = {"checked": checked, "broken_living": broken_living, "broken_frozen": broken_frozen,
                "excluded_evidence": excluded_rows}
-    if report_path:
-        report_path.write_text(json.dumps(summary, indent=2) + "\n")
+    if write_report:
+        report_path("links-check").write_text(json.dumps(summary, indent=2) + "\n")
     print(f"links-check: {checked} links resolved; "
           f"{len(broken_living)} broken in living documents; "
           f"{len(excluded_rows)} point at evidence excluded by .gitignore; "
@@ -334,8 +343,7 @@ def rewrite_path_strings(path: str, text: str, file_moves: dict[str, str],
     return pattern.sub(replace, text)
 
 
-def apply_moves(plan_path: pathlib.Path, dry_run: bool, report_path: pathlib.Path | None) -> int:
-    plan = json.loads(plan_path.read_text())
+def apply_moves(plan: list[dict], dry_run: bool, write_report: bool) -> int:
     files_before = tracked_files()
     old_tree = Tree(files_before)
     file_moves, dir_moves = expand_plan(plan, files_before)
@@ -362,13 +370,13 @@ def apply_moves(plan_path: pathlib.Path, dry_run: bool, report_path: pathlib.Pat
     rewritten_docs = sorted(dst for dst in file_moves.values() if is_living(dst))
     mismatched = [src for src, dst in file_moves.items()
                   if not is_living(dst) and sha256_of(ROOT / dst) != hashes_before[src]]
-    summary = {"plan": str(plan_path), "moved": len(file_moves),
+    summary = {"moved": len(file_moves),
                "moved_bytes": sum((ROOT / dst).stat().st_size for dst in file_moves.values()),
                "hashes_verified": len(file_moves) - len(rewritten_docs), "hash_mismatches": mismatched,
                "moved_living_documents": rewritten_docs, "rewrites": rewrites,
                "file_moves": file_moves, "dir_moves": dir_moves}
-    if report_path:
-        report_path.write_text(json.dumps(summary, indent=2) + "\n")
+    if write_report:
+        report_path("apply-moves").write_text(json.dumps(summary, indent=2) + "\n")
     print(f"apply-moves: {len(file_moves)} files moved ({len(file_moves) - len(rewritten_docs)} byte-identical, "
           f"{len(rewritten_docs)} living documents relinked), {len(rewrites)} references rewritten in "
           f"{len({r['file'] for r in rewrites})} files, {len(mismatched)} hash mismatches")
@@ -414,18 +422,20 @@ def main(argv: list[str]) -> int:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     sub = parser.add_subparsers(dest="command", required=True)
     check = sub.add_parser("links-check")
-    check.add_argument("--report", type=pathlib.Path)
-    apply = sub.add_parser("apply-moves")
-    apply.add_argument("plan", type=pathlib.Path)
+    check.add_argument("--report", action="store_true", help="write target/docs-hygiene/links-check.json")
+    apply = sub.add_parser("apply-moves", help="plan JSON is read from stdin")
     apply.add_argument("--dry-run", action="store_true")
-    apply.add_argument("--report", type=pathlib.Path)
+    apply.add_argument("--report", action="store_true", help="write target/docs-hygiene/apply-moves.json")
     sub.add_parser("verify-inventories")
     args = parser.parse_args(argv)
     os.chdir(ROOT)
     if args.command == "links-check":
         return check_links(args.report)
     if args.command == "apply-moves":
-        return apply_moves(args.plan, args.dry_run, args.report)
+        plan = json.load(sys.stdin)
+        if not isinstance(plan, list):
+            raise SystemExit("apply-moves expects a JSON list of {from, to} entries on stdin")
+        return apply_moves(plan, args.dry_run, args.report)
     return verify_inventories()
 
 

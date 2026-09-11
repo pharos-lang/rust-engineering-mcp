@@ -88,7 +88,7 @@ clasifica como evidencia excluida, no como enlace roto.
 
 ```text
 python3 -B scripts/docs-hygiene.py links-check            # antes y después
-python3 -B scripts/docs-hygiene.py apply-moves plan.json  # git mv + reescritura de enlaces
+python3 -B scripts/docs-hygiene.py apply-moves < plan.json  # git mv + reescritura de enlaces
 python3 -B scripts/docs-hygiene.py verify-inventories
 ```
 
