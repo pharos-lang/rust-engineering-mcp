@@ -126,3 +126,14 @@ Sin residuo Docker; escaneo de credenciales limpio. Este recibo sustituye a
 attempt-6, que queda como historia del lock 0.38.0. Un arranque previo sobre
 `37805f6` se abortó en su primer minuto porque el worktree aún contenía el
 `M5-clients.json` anterior; no midió nada y no dejó residuo.
+
+## attempt-8 — 2026-09-10, `passed` (workspace `0.3.0`, bytes de release)
+
+HEAD `ecf4ba8`, servidor `53be298c…` reconstruido tras el bump a `0.3.0`
+(`Cargo.toml`/`Cargo.lock` cambian solo en la versión de los cuatro crates).
+Mismo resultado que attempt-7: Inspector quince filas y catorce Resources;
+Claude Code 2.1.267 (ejecutable fijado por versión tras la autoactualización
+del symlink a 2.1.268; SHA-256 `a681f300…` idéntico) con los dos turnos
+dirigidos por modelo, docker-free 15,6 s y runtime 182,8 s. Un arranque previo
+sobre `d372e8b` se detuvo en el preflight por `claude_version` (el symlink ya
+apuntaba a 2.1.268); no midió nada.
