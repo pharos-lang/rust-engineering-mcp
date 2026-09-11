@@ -279,7 +279,7 @@ HOME/CARGO_HOME efímeros y ejecución offline con red aislada. La policy
 ausentes, corruptos o cambiados bloquean la operación completa; no hay fallback a
 descarga ni a edición solo del manifest.
 
-La [calificación local M2](docs/validation/M2-07.md) está completada. El checkout se identifica como `0.3.0-dev`,
+La [calificación local M2](docs/validation/M2-07.md) está completada. El checkout se identifica como `0.3.0`,
 pero estas cinco tools no forman parte de la release estable `0.1.0`.
 
 Los journals M2 parciales/corruptos pueden bloquear nuevas mutaciones del store

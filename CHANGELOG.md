@@ -1,6 +1,10 @@
 # Changelog
 
-## 0.3.0-dev — Unreleased
+## 0.3.0 — 2026-09-11
+
+Primera release desde `0.1.0`. Incluye M2, M3, M4 y M5 calificados localmente;
+la sección `0.2.0-dev` de abajo describe los cambios de M2 que nunca se
+publicaron por separado y forman parte de esta versión.
 
 ### M5 — cuatro tools de rendimiento implementadas y calificadas localmente
 
@@ -257,7 +261,7 @@
   el cierre del milestone sigue pendiente de la aceptación formal de ADR-064/065
   y de un re-review independiente.
 
-## 0.2.0-dev — Unreleased
+## 0.2.0-dev — incluido en 0.3.0, nunca publicado por separado
 
 ### M2 calificado localmente — mutación segura
 

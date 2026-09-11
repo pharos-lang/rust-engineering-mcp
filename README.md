@@ -16,7 +16,7 @@ de calidad dentro de un runtime controlado, consultar diagnósticos y trabajar c
 un catálogo local de crates.
 
 El servidor usa transporte MCP por `stdio`. Las trece tools de la release
-`0.1.0` observan y validan sin modificar el source. El checkout `0.3.0-dev`
+`0.1.0` observan y validan sin modificar el source. El checkout `0.3.0`
 registra 31 tools: las 18 de M1/M2, las cuatro tools de calidad M3, cinco tools
 M4 y cuatro tools de rendimiento M5. M4 y M5 están cerrados localmente, sin
 integración remota ni release. El checkout no forma una release.
@@ -501,7 +501,7 @@ dedicado de fix conserva `network=none` y permite TCP loopback solo dentro de su
 namespace para la coordinación interna de Cargo; build scripts y proc macros pueden
 influir en los cambios `.rs`, por lo que se debe revisar el diff exacto. La
 calificación local M2 está completada con [evidencia reproducible](docs/validation/M2-07.md). El paquete del checkout informa
-`0.3.0-dev`; la release estable continúa siendo `0.1.0`.
+`0.3.0`.
 
 `rust.test.nextest` usa el perfil quality dedicado, no ejecuta doctests y publica
 JUnit/stdout/stderr como Resources privadas. M3-02 habilitó el anuncio de MCP Tasks
@@ -529,7 +529,7 @@ parte de la instalación de M1.
 
 ## M3 — calidad avanzada
 
-El checkout `0.3.0-dev` descubre 31 tools.
+El checkout `0.3.0` descubre 31 tools.
 `rust.test.nextest`, `rust.coverage`,
 `rust.semver.check` y `rust.mutation.test` están implementadas y calificadas en el
 gate Docker M3: 62/62 selecciones (nextest 19, Tasks 7, coverage 8,

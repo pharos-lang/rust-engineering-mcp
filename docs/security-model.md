@@ -347,7 +347,7 @@ hereda CARGO_HOME, proxies, credenciales o configuración host y no descarga. Da
 ausentes o corruptos impiden el candidato. `preserve_presence` evita crear
 Cargo.lock en el host cuando el proyecto no lo tenía y actualiza el existente en
 el mismo plan cuando sí lo tenía. La [calificación M2](validation/M2-07.md) del
-checkout `0.3.0-dev` está completada; la release estable sigue siendo `0.1.0`.
+checkout `0.3.0` está completada.
 
 No existe un canal de upgrade/downgrade gestionado para M2. Un operador debe
 reconciliar los journals pendientes antes de ejecutar un binario anterior; la

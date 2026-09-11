@@ -417,7 +417,7 @@ errores de proyecto, runtime, RustSec y catálogo.
 
 [ADR-050](adr/ADR-050-local-coordinated-mutation.md) fija el modo
 `local_coordinated`. La release `0.1.0` conserva 13 tools; el binario compilado
-desde el checkout `0.3.0-dev` descubre cinco tools M2 adicionales
+desde el checkout `0.3.0` descubre cinco tools M2 adicionales
 [calificadas localmente](validation/M2-07.md).
 
 ### Permisos y runtime

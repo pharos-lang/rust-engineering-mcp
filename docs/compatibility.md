@@ -5,7 +5,7 @@
 | Componente | Foundation implementada |
 | --- | --- |
 | Release soportada | `0.1.0` |
-| Checkout de desarrollo | `0.3.0-dev`; 31 tools: 18 M1/M2, cuatro M3, cinco M4 y cuatro M5 calificadas localmente; Tasks anunciado con negociación mutua; sin commit de integración, PR, tag ni publicación |
+| Checkout de desarrollo | `0.3.0`; 31 tools: 18 M1/M2, cuatro M3, cinco M4 y cuatro M5 calificadas localmente; Tasks anunciado con negociación mutua; sin commit de integración, PR, tag ni publicación |
 | Toolchain fijado / MSRV inicial | Rust y Cargo `1.98.1`, edition 2024 |
 | Target de validación local | `aarch64-apple-darwin` |
 | SDK | `rmcp =3.2.0`, features `server`, `transport-io`, sin defaults |
@@ -401,7 +401,7 @@ evita escritores simultáneos durante commit. No ofrece CAS, exclusión OS de ot
 programas ni atomicidad visible multiarchivo. `preserve_presence` mantiene la
 presencia o ausencia inicial de Cargo.lock. La [calificación conjunta](validation/M2-07.md)
 M2 está completada sobre los bytes que entonces se identificaban como `0.2.0-dev`;
-el checkout actual es `0.3.0-dev` y la release soportada continúa siendo `0.1.0`
+el checkout actual es `0.3.0`; la release soportada anterior es `0.1.0`
 con 13 tools.
 
 M2 ADR-059 conserva schemas y formato de journal: libera planes terminales y

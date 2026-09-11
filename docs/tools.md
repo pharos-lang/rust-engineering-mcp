@@ -1,7 +1,7 @@
 # Tools
 
 `rust.project.open`, `rust.project.inspect`, `rust.toolchain.inspect`, `rust.check`, `rust.fmt.check`, `rust.clippy`, `rust.test`, `rust.dependencies.audit`, `rust.diagnostics.explain`, `rust.quality.gate`, `rust.catalog.status`, `rust.crate.search` y `rust.crate.inspect` están implementadas en este checkout; los gates de [M1-11](validation/M1-11.md) y [M1-12](validation/M1-12.md) están registrados; M1-13 tiene [gate aprobado](validation/M1-13.md). rmcp 3.2.0 gestiona discovery, negociación y dispatch. La release `0.1.0`
-devuelve trece definiciones sin cursor. El checkout `0.3.0-dev` devuelve 31:
+devuelve trece definiciones sin cursor. El checkout `0.3.0` devuelve 31:
 añade cinco tools M2, cuatro M3, cinco M4 y cuatro M5. Las cinco M4 están
 implementadas y calificadas localmente; el hito espera la confirmación final de
 evidencia. Las cuatro M5 están implementadas y **calificadas localmente**; su
@@ -615,7 +615,7 @@ continúa siendo M1 y se califica separadamente desde fuente según ADR-048.
 ## Escritura local M2 en desarrollo
 
 La release `0.1.0` conserva exactamente las trece tools M1 anteriores. El checkout
-`0.3.0-dev` añade cinco definiciones [calificadas localmente](validation/M2-07.md): `rust.manifest.patch`,
+`0.3.0` añade cinco definiciones [calificadas localmente](validation/M2-07.md): `rust.manifest.patch`,
 `rust.fmt.apply`, `rust.fix.apply`, `rust.dependency.add` y
 `rust.dependency.remove`. Todas usan input cerrado, un worker joined con deadline
 de 240 s, respuesta MCP completa de 512 KiB y el ciclo `preview` → `commit` →
