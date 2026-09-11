@@ -68,33 +68,76 @@ pub fn run(
 const MAX_INPUT_BYTES: usize = 24 * 1024 * 1024;
 const INPUT_CHUNK_BYTES: usize = 8192;
 
+/// Where a child's stdin bytes come from.
+///
+/// Everything that already owns its input hands over a slice and nothing is
+/// copied. ADR-078's vendor capture cannot: it is up to 512 MiB at rest, and
+/// §5 forbids a path that makes it resident just to hand it to `tar`. So the
+/// supervisor pulls, one buffer at a time, from whichever source it was given.
+pub trait InputSource {
+    /// The bytes still to be written, empty exactly at the end of the input.
+    fn fill(&mut self) -> std::io::Result<&[u8]>;
+    /// Advance past `count` bytes of the slice [`Self::fill`] last returned.
+    fn consume(&mut self, count: usize);
+}
+
+/// The owned-bytes source every pre-ADR-078 caller uses. It borrows, so the
+/// existing paths still copy nothing.
+pub struct SliceSource<'a> {
+    input: &'a [u8],
+    position: usize,
+}
+impl<'a> SliceSource<'a> {
+    pub fn new(input: &'a [u8]) -> Self {
+        Self { input, position: 0 }
+    }
+}
+impl InputSource for SliceSource<'_> {
+    fn fill(&mut self) -> std::io::Result<&[u8]> {
+        Ok(&self.input[self.position..])
+    }
+    fn consume(&mut self, count: usize) {
+        self.position = self.position.saturating_add(count).min(self.input.len());
+    }
+}
+
 /// Writes only from the supervisor thread. Each nonblocking step leaves the
 /// cancellation/deadline/output checks runnable while reader threads drain both
 /// output pipes; there is no detached writer or additional process boundary.
 struct InputWriter<'a, W> {
     stream: Option<W>,
-    input: &'a [u8],
-    written: usize,
+    source: &'a mut dyn InputSource,
+    /// The exact byte count the caller promised. A child that exited before
+    /// this many bytes were written is an infrastructure failure, exactly as it
+    /// was when the promise was a slice length.
+    expected: u64,
+    written: u64,
 }
 
-impl<'a, W: Write> InputWriter<'a, W> {
+impl<W: Write> InputWriter<'_, W> {
     fn step(&mut self) -> std::io::Result<bool> {
-        if self.written == self.input.len() {
+        if self.written == self.expected {
             self.stream.take();
             return Ok(false);
         }
+        let chunk = self.source.fill()?;
+        if chunk.is_empty() {
+            // The source ended early: it promised more than it had.
+            return Err(std::io::Error::other("input source ended early"));
+        }
+        let end = INPUT_CHUNK_BYTES.min(chunk.len());
         let Some(stream) = self.stream.as_mut() else {
             return Err(std::io::Error::other("input pipe unavailable"));
         };
-        let end = self.written + INPUT_CHUNK_BYTES.min(self.input.len() - self.written);
-        match stream.write(&self.input[self.written..end]) {
+        match stream.write(&chunk[..end]) {
             Ok(0) => Err(std::io::Error::new(
                 std::io::ErrorKind::WriteZero,
                 "input pipe made no progress",
             )),
             Ok(count) => {
-                self.written += count;
-                if self.written == self.input.len() {
+                self.source.consume(count);
+                self.written += count as u64;
+                if self.written == self.expected {
                     // EOF is essential: a reader such as tar/cat may await it
                     // before exiting. ChildStdin is unbuffered; no flush needed.
                     self.stream.take();
@@ -114,12 +157,12 @@ impl<'a, W: Write> InputWriter<'a, W> {
     }
 
     fn complete(&self) -> bool {
-        self.written == self.input.len()
+        self.written == self.expected
     }
 }
 
 pub fn run_with_input(
-    mut command: Command,
+    command: Command,
     deadline: Duration,
     limit: usize,
     cancel: &dyn ExecutionCancellation,
@@ -128,8 +171,33 @@ pub fn run_with_input(
     if input.len() > MAX_INPUT_BYTES {
         return Err(ExecutionError::Denied);
     }
+    let mut source = SliceSource::new(input);
+    run_with_source(
+        command,
+        deadline,
+        limit,
+        cancel,
+        &mut source,
+        input.len() as u64,
+    )
+}
+
+/// The same supervisor, fed by a source instead of a slice.
+///
+/// `expected` is the exact number of bytes the source will produce, and the
+/// caller owes that promise: for ADR-078 it is the artifact byte count of an
+/// already **verified** capture, so nothing here is trusting a length a peer
+/// chose. The bound is the caller's too, for the same reason.
+pub fn run_with_source(
+    mut command: Command,
+    deadline: Duration,
+    limit: usize,
+    cancel: &dyn ExecutionCancellation,
+    source: &mut dyn InputSource,
+    expected: u64,
+) -> Result<Capture, ExecutionError> {
     command
-        .stdin(if input.is_empty() {
+        .stdin(if expected == 0 {
             Stdio::null()
         } else {
             Stdio::piped()
@@ -137,7 +205,7 @@ pub fn run_with_input(
         .stdout(Stdio::piped())
         .stderr(Stdio::piped());
     let mut child = ChildGuard(command.spawn().map_err(|_| ExecutionError::Unavailable)?);
-    let stdin = if input.is_empty() {
+    let stdin = if expected == 0 {
         None
     } else {
         let stdin = child.0.stdin.take().ok_or(ExecutionError::Infrastructure)?;
@@ -146,7 +214,8 @@ pub fn run_with_input(
     };
     let mut writer = InputWriter {
         stream: stdin,
-        input,
+        source,
+        expected,
         written: 0,
     };
     let stdout = child
@@ -317,6 +386,7 @@ mod tests {
     fn nonblocking_steps_preserve_input_after_short_writes_and_retries() -> io::Result<()> {
         let received = Arc::new(std::sync::Mutex::new(Vec::new()));
         let closed = Arc::new(AtomicBool::new(false));
+        let mut source = SliceSource::new(b"abcde");
         let mut writer = InputWriter {
             stream: Some(ScriptedWriter {
                 actions: VecDeque::from([
@@ -328,7 +398,8 @@ mod tests {
                 received: received.clone(),
                 closed: closed.clone(),
             }),
-            input: b"abcde",
+            source: &mut source,
+            expected: 5,
             written: 0,
         };
         assert!(writer.step()?);
@@ -350,17 +421,21 @@ mod tests {
     #[test]
     fn each_input_step_is_bounded_and_zero_write_is_an_error() -> io::Result<()> {
         let input = vec![b'x'; INPUT_CHUNK_BYTES * 2];
+        let mut source = SliceSource::new(&input);
         let mut writer = InputWriter {
             stream: Some(io::sink()),
-            input: &input,
+            source: &mut source,
+            expected: input.len() as u64,
             written: 0,
         };
         assert!(writer.step()?);
-        assert_eq!(writer.written, INPUT_CHUNK_BYTES);
+        assert_eq!(writer.written, INPUT_CHUNK_BYTES as u64);
         assert!(!writer.complete());
+        let mut source = SliceSource::new(b"x");
         let mut writer = InputWriter {
             stream: Some(&mut [][..]),
-            input: b"x",
+            source: &mut source,
+            expected: 1,
             written: 0,
         };
         assert_eq!(
@@ -411,6 +486,81 @@ mod tests {
         assert_eq!(output.code, Some(0));
         assert_eq!(output.stdout, input);
         assert!(output.stderr.is_empty());
+        Ok(())
+    }
+
+    /// A source that never holds more than one buffer, standing in for
+    /// ADR-078's capture. The point of the assertion is the byte count: it is
+    /// larger than `MAX_INPUT_BYTES`, so this input could not have travelled
+    /// through `run_with_input` at all. Only the macOS pipe tests drive it, so
+    /// it is gated with them: on the portable targets it would be dead code.
+    #[cfg(target_os = "macos")]
+    struct ChunkedSource {
+        remaining: u64,
+        buffer: Vec<u8>,
+        filled: usize,
+        position: usize,
+    }
+    #[cfg(target_os = "macos")]
+    impl InputSource for ChunkedSource {
+        fn fill(&mut self) -> io::Result<&[u8]> {
+            if self.position == self.filled && self.remaining > 0 {
+                let take = (self.buffer.capacity() as u64).min(self.remaining) as usize;
+                self.buffer.clear();
+                self.buffer.resize(take, b'z');
+                self.filled = take;
+                self.position = 0;
+                self.remaining -= take as u64;
+            }
+            Ok(&self.buffer[self.position..self.filled])
+        }
+        fn consume(&mut self, count: usize) {
+            self.position = (self.position + count).min(self.filled);
+        }
+    }
+
+    #[test]
+    #[cfg(target_os = "macos")]
+    fn a_streamed_source_delivers_more_than_the_owned_input_bound_holds() -> io::Result<()> {
+        let expected = MAX_INPUT_BYTES as u64 + 1;
+        let mut source = ChunkedSource {
+            remaining: expected,
+            buffer: Vec::with_capacity(64 * 1024),
+            filled: 0,
+            position: 0,
+        };
+        let output = capture(run_with_source(
+            trusted("/usr/bin/wc"),
+            Duration::from_secs(60),
+            1024,
+            &NeverCancel,
+            &mut source,
+            expected,
+        ))?;
+        assert_eq!(output.stop, Stop::Exited);
+        assert_eq!(output.code, Some(0));
+        let counted: u64 = String::from_utf8_lossy(&output.stdout)
+            .split_whitespace()
+            .last()
+            .and_then(|value| value.parse().ok())
+            .unwrap_or_default();
+        assert_eq!(counted, expected, "every streamed byte reached the child");
+        Ok(())
+    }
+
+    #[test]
+    fn a_source_that_ends_before_the_promised_length_is_an_error() -> io::Result<()> {
+        let mut source = SliceSource::new(b"ab");
+        let mut writer = InputWriter {
+            stream: Some(io::sink()),
+            source: &mut source,
+            expected: 4,
+            written: 0,
+        };
+        assert!(writer.step()?);
+        assert_eq!(writer.written, 2);
+        assert!(writer.step().is_err(), "a short source is not a clean EOF");
+        assert!(!writer.complete());
         Ok(())
     }
 

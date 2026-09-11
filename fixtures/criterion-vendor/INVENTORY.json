@@ -1,0 +1,532 @@
+{
+  "schema": "rust-engineering-mcp.criterion-vendor.v1",
+  "target": "aarch64-unknown-linux-gnu",
+  "criterion_version": "0.8.2",
+  "network_used": false,
+  "storage": "crate-archives",
+  "storage_note": "This directory stores the 52 packages as pinned crates.io `.crate` archives, not as an extracted tree. Run `python3 -B materialize.py` to extract them into `vendor/` (git-ignored) before building a fixture against them. `sha256` is the Cargo lockfile package checksum and is also the sha256 of the stored archive, repeated as `archive_sha256`; `files` and `bytes` describe the materialized tree.",
+  "materializer": "materialize.py",
+  "materialized_directory": "vendor",
+  "packages": [
+    {
+      "name": "aho-corasick",
+      "version": "1.1.5",
+      "sha256": "c982642fa9e8606056828ee9a8505737230110bb1099153c79efe865c59d12ba",
+      "archive_sha256": "c982642fa9e8606056828ee9a8505737230110bb1099153c79efe865c59d12ba",
+      "archive_bytes": 184315,
+      "license": "Unlicense OR MIT",
+      "files": 48,
+      "bytes": 835991
+    },
+    {
+      "name": "alloca",
+      "version": "0.4.0",
+      "sha256": "e5a7d05ea6aea7e9e64d25b9156ba2fee3fdd659e34e41063cd2fc7cd020d7f4",
+      "archive_sha256": "e5a7d05ea6aea7e9e64d25b9156ba2fee3fdd659e34e41063cd2fc7cd020d7f4",
+      "archive_bytes": 4257,
+      "license": "MIT",
+      "files": 13,
+      "bytes": 9334
+    },
+    {
+      "name": "anes",
+      "version": "0.1.6",
+      "sha256": "4b46cbb362ab8752921c97e041f5e366ee6297bd428a31275b9fcf1e380f7299",
+      "archive_sha256": "4b46cbb362ab8752921c97e041f5e366ee6297bd428a31275b9fcf1e380f7299",
+      "archive_bytes": 23857,
+      "license": "MIT OR Apache-2.0",
+      "files": 33,
+      "bytes": 124310
+    },
+    {
+      "name": "anstyle",
+      "version": "1.0.14",
+      "sha256": "940b3a0ca603d1eade50a4846a2afffd5ef57a9feac2c0e2ec2e14f9ead76000",
+      "archive_sha256": "940b3a0ca603d1eade50a4846a2afffd5ef57a9feac2c0e2ec2e14f9ead76000",
+      "archive_bytes": 17787,
+      "license": "MIT OR Apache-2.0",
+      "files": 14,
+      "bytes": 75175
+    },
+    {
+      "name": "autocfg",
+      "version": "1.5.1",
+      "sha256": "f2032f911046de80f0a198e0901378627c33f59ea0ac00e363d481118bd70a53",
+      "archive_sha256": "f2032f911046de80f0a198e0901378627c33f59ea0ac00e363d481118bd70a53",
+      "archive_bytes": 18911,
+      "license": "Apache-2.0 OR MIT",
+      "files": 23,
+      "bytes": 62094
+    },
+    {
+      "name": "cast",
+      "version": "0.3.0",
+      "sha256": "37b2a672a2cb129a2e41c10b1224bb368f9f37a2b16b612598138befd7b37eb5",
+      "archive_sha256": "37b2a672a2cb129a2e41c10b1224bb368f9f37a2b16b612598138befd7b37eb5",
+      "archive_bytes": 11452,
+      "license": "MIT OR Apache-2.0",
+      "files": 11,
+      "bytes": 44315
+    },
+    {
+      "name": "cc",
+      "version": "1.4.4",
+      "sha256": "0ad534f4357a5264cce5019c989cf66a4f0dc4e0d1b1d15f8aacec0ff7360273",
+      "archive_sha256": "0ad534f4357a5264cce5019c989cf66a4f0dc4e0d1b1d15f8aacec0ff7360273",
+      "archive_bytes": 100602,
+      "license": "MIT OR Apache-2.0",
+      "files": 28,
+      "bytes": 414682
+    },
+    {
+      "name": "cfg-if",
+      "version": "1.0.4",
+      "sha256": "9330f8b2ff13f34540b44e946ef35111825727b38d33286ef986142615121801",
+      "archive_sha256": "9330f8b2ff13f34540b44e946ef35111825727b38d33286ef986142615121801",
+      "archive_bytes": 9360,
+      "license": "MIT OR Apache-2.0",
+      "files": 14,
+      "bytes": 25721
+    },
+    {
+      "name": "ciborium",
+      "version": "0.2.2",
+      "sha256": "42e69ffd6f0917f5c029256a24d0161db17cea3997d185db0d35926308770f0e",
+      "archive_sha256": "42e69ffd6f0917f5c029256a24d0161db17cea3997d185db0d35926308770f0e",
+      "archive_bytes": 35611,
+      "license": "Apache-2.0",
+      "files": 25,
+      "bytes": 195117
+    },
+    {
+      "name": "ciborium-io",
+      "version": "0.2.2",
+      "sha256": "05afea1e0a06c9be33d539b876f1ce3692f4afea2cb41f740e7743225ed1c757",
+      "archive_sha256": "05afea1e0a06c9be33d539b876f1ce3692f4afea2cb41f740e7743225ed1c757",
+      "archive_bytes": 6697,
+      "license": "Apache-2.0",
+      "files": 6,
+      "bytes": 21547
+    },
+    {
+      "name": "ciborium-ll",
+      "version": "0.2.2",
+      "sha256": "57663b653d948a338bfb3eeba9bb2fd5fcfaecb9e199e87e1eda4d9e8b240fd9",
+      "archive_sha256": "57663b653d948a338bfb3eeba9bb2fd5fcfaecb9e199e87e1eda4d9e8b240fd9",
+      "archive_bytes": 14695,
+      "license": "Apache-2.0",
+      "files": 10,
+      "bytes": 56621
+    },
+    {
+      "name": "clap",
+      "version": "4.6.6",
+      "sha256": "473c7e07f409a8d772161724aa8db6a765a2532a70f9667eeb7b49d3d02fbdca",
+      "archive_sha256": "473c7e07f409a8d772161724aa8db6a765a2532a70f9667eeb7b49d3d02fbdca",
+      "archive_bytes": 64815,
+      "license": "MIT OR Apache-2.0",
+      "files": 147,
+      "bytes": 273157
+    },
+    {
+      "name": "clap_builder",
+      "version": "4.6.6",
+      "sha256": "7b48fea5a88e9ae728a2dcbedbfc0e730f7d60da42e1cb049a83c9fb8b789889",
+      "archive_sha256": "7b48fea5a88e9ae728a2dcbedbfc0e730f7d60da42e1cb049a83c9fb8b789889",
+      "archive_bytes": 171756,
+      "license": "MIT OR Apache-2.0",
+      "files": 64,
+      "bytes": 979377
+    },
+    {
+      "name": "clap_lex",
+      "version": "1.1.0",
+      "sha256": "c8d4a3bb8b1e0c1050499d1815f5ab16d04f0959b233085fb31653fbfc9d98f9",
+      "archive_sha256": "c8d4a3bb8b1e0c1050499d1815f5ab16d04f0959b233085fb31653fbfc9d98f9",
+      "archive_bytes": 13470,
+      "license": "MIT OR Apache-2.0",
+      "files": 9,
+      "bytes": 45597
+    },
+    {
+      "name": "criterion",
+      "version": "0.8.2",
+      "sha256": "950046b2aa2492f9a536f5f4f9a3de7b9e2476e575e05bd6c333371add4d98f3",
+      "archive_sha256": "950046b2aa2492f9a536f5f4f9a3de7b9e2476e575e05bd6c333371add4d98f3",
+      "archive_bytes": 122924,
+      "license": "Apache-2.0 OR MIT",
+      "files": 92,
+      "bytes": 556894
+    },
+    {
+      "name": "criterion-plot",
+      "version": "0.8.2",
+      "sha256": "d8d80a2f4f5b554395e47b5d8305bc3d27813bacb73493eb1001e8f76dae29ea",
+      "archive_sha256": "d8d80a2f4f5b554395e47b5d8305bc3d27813bacb73493eb1001e8f76dae29ea",
+      "archive_bytes": 24800,
+      "license": "Apache-2.0 OR MIT",
+      "files": 24,
+      "bytes": 100670
+    },
+    {
+      "name": "crunchy",
+      "version": "0.2.4",
+      "sha256": "460fbee9c2c2f33933d720630a6a0bac33ba7053db5344fac858d4b8952d77d5",
+      "archive_sha256": "460fbee9c2c2f33933d720630a6a0bac33ba7053db5344fac858d4b8952d77d5",
+      "archive_bytes": 3887,
+      "license": "MIT",
+      "files": 9,
+      "bytes": 11945
+    },
+    {
+      "name": "either",
+      "version": "1.18.0",
+      "sha256": "252afb9ae5eaa683babdc6a068b3f5726eb19e05070c731f9b2a23a7c3e8ed34",
+      "archive_sha256": "252afb9ae5eaa683babdc6a068b3f5726eb19e05070c731f9b2a23a7c3e8ed34",
+      "archive_bytes": 22357,
+      "license": "MIT OR Apache-2.0",
+      "files": 15,
+      "bytes": 93182
+    },
+    {
+      "name": "find-msvc-tools",
+      "version": "0.1.11",
+      "sha256": "d45db016d36b838f563236e9193d0ee6ce38f3f68b6c94e914b4929c96bbb890",
+      "archive_sha256": "d45db016d36b838f563236e9193d0ee6ce38f3f68b6c94e914b4929c96bbb890",
+      "archive_bytes": 31517,
+      "license": "MIT OR Apache-2.0",
+      "files": 18,
+      "bytes": 116587
+    },
+    {
+      "name": "half",
+      "version": "2.7.1",
+      "sha256": "6ea2d84b969582b4b1864a92dc5d27cd2b77b622a8d79306834f1be5ba20d84b",
+      "archive_sha256": "6ea2d84b969582b4b1864a92dc5d27cd2b77b622a8d79306834f1be5ba20d84b",
+      "archive_bytes": 61040,
+      "license": "MIT OR Apache-2.0",
+      "files": 24,
+      "bytes": 342696
+    },
+    {
+      "name": "itertools",
+      "version": "0.13.0",
+      "sha256": "413ee7dfc52ee1a4949ceeb7dbc8a33f2d6c088194d9f922fb8318faf1f01186",
+      "archive_sha256": "413ee7dfc52ee1a4949ceeb7dbc8a33f2d6c088194d9f922fb8318faf1f01186",
+      "archive_bytes": 146261,
+      "license": "MIT OR Apache-2.0",
+      "files": 86,
+      "bytes": 709422
+    },
+    {
+      "name": "itoa",
+      "version": "1.0.18",
+      "sha256": "8f42a60cbdf9a97f5d2305f08a87dc4e09308d1276d28c869c684d7777685682",
+      "archive_sha256": "8f42a60cbdf9a97f5d2305f08a87dc4e09308d1276d28c869c684d7777685682",
+      "archive_bytes": 15935,
+      "license": "MIT OR Apache-2.0",
+      "files": 14,
+      "bytes": 51096
+    },
+    {
+      "name": "libc",
+      "version": "0.2.189",
+      "sha256": "3eaf3ede3fee6db1a4c2ee091bf8a8b4dccdc6d17f656fb07896ee72867612f2",
+      "archive_sha256": "3eaf3ede3fee6db1a4c2ee091bf8a8b4dccdc6d17f656fb07896ee72867612f2",
+      "archive_bytes": 851502,
+      "license": "MIT OR Apache-2.0",
+      "files": 404,
+      "bytes": 4503684
+    },
+    {
+      "name": "memchr",
+      "version": "2.8.3",
+      "sha256": "cf8baf1c55e62ffcace7a9f06f4bd9cd3f0c4beb022d3b367256b91b87513d98",
+      "archive_sha256": "cf8baf1c55e62ffcace7a9f06f4bd9cd3f0c4beb022d3b367256b91b87513d98",
+      "archive_bytes": 99165,
+      "license": "Unlicense OR MIT",
+      "files": 59,
+      "bytes": 588682
+    },
+    {
+      "name": "num-traits",
+      "version": "0.2.19",
+      "sha256": "071dfc062690e90b734c0b2273ce72ad0ffa95f0c74596bc250dcfd960262841",
+      "archive_sha256": "071dfc062690e90b734c0b2273ce72ad0ffa95f0c74596bc250dcfd960262841",
+      "archive_bytes": 51631,
+      "license": "MIT OR Apache-2.0",
+      "files": 29,
+      "bytes": 273981
+    },
+    {
+      "name": "oorandom",
+      "version": "11.1.5",
+      "sha256": "d6790f58c7ff633d8771f42965289203411a5e5c68388703c06e14f24770b41e",
+      "archive_sha256": "d6790f58c7ff633d8771f42965289203411a5e5c68388703c06e14f24770b41e",
+      "archive_bytes": 23750,
+      "license": "MIT",
+      "files": 6,
+      "bytes": 123559
+    },
+    {
+      "name": "page_size",
+      "version": "0.6.0",
+      "sha256": "30d5b2194ed13191c1999ae0704b7839fb18384fa22e49b57eeaa97d79ce40da",
+      "archive_sha256": "30d5b2194ed13191c1999ae0704b7839fb18384fa22e49b57eeaa97d79ce40da",
+      "archive_bytes": 8479,
+      "license": "MIT/Apache-2.0",
+      "files": 10,
+      "bytes": 29059
+    },
+    {
+      "name": "proc-macro2",
+      "version": "1.0.107",
+      "sha256": "985e7ec9bb745e6ce6535b544d84d6cd6f7ad8bd711c398938ae983b91a766d9",
+      "archive_sha256": "985e7ec9bb745e6ce6535b544d84d6cd6f7ad8bd711c398938ae983b91a766d9",
+      "archive_bytes": 59588,
+      "license": "MIT OR Apache-2.0",
+      "files": 33,
+      "bytes": 270283
+    },
+    {
+      "name": "quote",
+      "version": "1.0.47",
+      "sha256": "1fbf4db142a473a8d80c26bbf18454ed458bf8d26c8219c331daecfdbd079001",
+      "archive_sha256": "1fbf4db142a473a8d80c26bbf18454ed458bf8d26c8219c331daecfdbd079001",
+      "archive_bytes": 31622,
+      "license": "MIT OR Apache-2.0",
+      "files": 35,
+      "bytes": 136860
+    },
+    {
+      "name": "regex",
+      "version": "1.13.1",
+      "sha256": "f020237b6c8eed93db2e2cb53c00c60a8e1bc73da7d073199a1180401450218d",
+      "archive_sha256": "f020237b6c8eed93db2e2cb53c00c60a8e1bc73da7d073199a1180401450218d",
+      "archive_bytes": 157118,
+      "license": "MIT OR Apache-2.0",
+      "files": 55,
+      "bytes": 731338
+    },
+    {
+      "name": "regex-automata",
+      "version": "0.4.18",
+      "sha256": "ad8553b9b26413251cbf30e620595c7a41b3887f03da04579c0e6b0d6a06b4b2",
+      "archive_sha256": "ad8553b9b26413251cbf30e620595c7a41b3887f03da04579c0e6b0d6a06b4b2",
+      "archive_bytes": 628707,
+      "license": "MIT OR Apache-2.0",
+      "files": 107,
+      "bytes": 2733416
+    },
+    {
+      "name": "regex-syntax",
+      "version": "0.8.11",
+      "sha256": "d6f6ff9a378485b298a5286656da665ba74413d36db0979633275d2e708145d4",
+      "archive_sha256": "d6f6ff9a378485b298a5286656da665ba74413d36db0979633275d2e708145d4",
+      "archive_bytes": 359055,
+      "license": "MIT OR Apache-2.0",
+      "files": 42,
+      "bytes": 1682181
+    },
+    {
+      "name": "same-file",
+      "version": "1.0.6",
+      "sha256": "93fc1dc3aaa9bfed95e02e6eadabb4baf7e3078b0bd1b4d7b6b0b68378900502",
+      "archive_sha256": "93fc1dc3aaa9bfed95e02e6eadabb4baf7e3078b0bd1b4d7b6b0b68378900502",
+      "archive_bytes": 10183,
+      "license": "Unlicense/MIT",
+      "files": 16,
+      "bytes": 34899
+    },
+    {
+      "name": "serde",
+      "version": "1.0.229",
+      "sha256": "4148590afebada386688f18773da617792bf2ef03ffc1e4cbd2b1d45b023e0ba",
+      "archive_sha256": "4148590afebada386688f18773da617792bf2ef03ffc1e4cbd2b1d45b023e0ba",
+      "archive_bytes": 83669,
+      "license": "MIT OR Apache-2.0",
+      "files": 33,
+      "bytes": 561555
+    },
+    {
+      "name": "serde_core",
+      "version": "1.0.229",
+      "sha256": "67dca2c9c51e58a4791a4b1ed58308b39c64224d349a935ab5039aa360942a48",
+      "archive_sha256": "67dca2c9c51e58a4791a4b1ed58308b39c64224d349a935ab5039aa360942a48",
+      "archive_bytes": 63100,
+      "license": "MIT OR Apache-2.0",
+      "files": 27,
+      "bytes": 392878
+    },
+    {
+      "name": "serde_derive",
+      "version": "1.0.229",
+      "sha256": "e7a5d71263a5a7d47b41f6b3f06ba276f10cc18b0931f1799f710578e2309348",
+      "archive_sha256": "e7a5d71263a5a7d47b41f6b3f06ba276f10cc18b0931f1799f710578e2309348",
+      "archive_bytes": 59864,
+      "license": "MIT OR Apache-2.0",
+      "files": 36,
+      "bytes": 333931
+    },
+    {
+      "name": "serde_json",
+      "version": "1.0.151",
+      "sha256": "c841b55ecdae098c80dcae9cf767f6f8a0c2cdb3416bbef72181df4d0fe73f14",
+      "archive_sha256": "c841b55ecdae098c80dcae9cf767f6f8a0c2cdb3416bbef72181df4d0fe73f14",
+      "archive_bytes": 156556,
+      "license": "MIT OR Apache-2.0",
+      "files": 89,
+      "bytes": 750028
+    },
+    {
+      "name": "shlex",
+      "version": "2.0.1",
+      "sha256": "f8fadd59c855ef2080decdef8ff161eb6661b86933c9d82e5ba29dc602a55aba",
+      "archive_sha256": "f8fadd59c855ef2080decdef8ff161eb6661b86933c9d82e5ba29dc602a55aba",
+      "archive_bytes": 19332,
+      "license": "MIT OR Apache-2.0",
+      "files": 13,
+      "bytes": 57763
+    },
+    {
+      "name": "syn",
+      "version": "2.0.119",
+      "sha256": "872831b642d1a07999a962a351ed35b955ea2cfc8f3862091e2a240a84f17297",
+      "archive_sha256": "872831b642d1a07999a962a351ed35b955ea2cfc8f3862091e2a240a84f17297",
+      "archive_bytes": 307407,
+      "license": "MIT OR Apache-2.0",
+      "files": 105,
+      "bytes": 2306623
+    },
+    {
+      "name": "syn",
+      "version": "3.0.4",
+      "sha256": "e6275cddf4610d1775e6d1fe9469b2e77d0f39fd98fb7450901b821e0c53649f",
+      "archive_sha256": "e6275cddf4610d1775e6d1fe9469b2e77d0f39fd98fb7450901b821e0c53649f",
+      "archive_bytes": 313047,
+      "license": "MIT OR Apache-2.0",
+      "files": 104,
+      "bytes": 2360905
+    },
+    {
+      "name": "tinytemplate",
+      "version": "1.2.1",
+      "sha256": "be4d6b5f19ff7664e8c98d03e2139cb510db9b0a60b55f8e8709b689d939b6bc",
+      "archive_sha256": "be4d6b5f19ff7664e8c98d03e2139cb510db9b0a60b55f8e8709b689d939b6bc",
+      "archive_bytes": 26490,
+      "license": "Apache-2.0 OR MIT",
+      "files": 17,
+      "bytes": 112105
+    },
+    {
+      "name": "unicode-ident",
+      "version": "1.0.24",
+      "sha256": "e6e4313cd5fcd3dad5cafa179702e2b244f760991f45397d14d4ebf38247da75",
+      "archive_sha256": "e6e4313cd5fcd3dad5cafa179702e2b244f760991f45397d14d4ebf38247da75",
+      "archive_bytes": 49298,
+      "license": "(MIT OR Apache-2.0) AND Unicode-3.0",
+      "files": 26,
+      "bytes": 336823
+    },
+    {
+      "name": "walkdir",
+      "version": "2.5.0",
+      "sha256": "29790946404f91d9c5d06f9874efddea1dc06c5efe94541a7d6863108e3a5e4b",
+      "archive_sha256": "29790946404f91d9c5d06f9874efddea1dc06c5efe94541a7d6863108e3a5e4b",
+      "archive_bytes": 23951,
+      "license": "Unlicense/MIT",
+      "files": 19,
+      "bytes": 112748
+    },
+    {
+      "name": "winapi",
+      "version": "0.3.9",
+      "sha256": "5c839a674fcd7a98952e593242ea400abe93992746761e38641405d28b00f419",
+      "archive_sha256": "5c839a674fcd7a98952e593242ea400abe93992746761e38641405d28b00f419",
+      "archive_bytes": 1200382,
+      "license": "MIT/Apache-2.0",
+      "files": 411,
+      "bytes": 6942552
+    },
+    {
+      "name": "winapi-i686-pc-windows-gnu",
+      "version": "0.4.0",
+      "sha256": "ac3b87c63620426dd9b991e5ce0329eff545bccbbb34f3be09ff6fb6ab51b7b6",
+      "archive_sha256": "ac3b87c63620426dd9b991e5ce0329eff545bccbbb34f3be09ff6fb6ab51b7b6",
+      "archive_bytes": 2918815,
+      "license": "MIT/Apache-2.0",
+      "files": 1391,
+      "bytes": 50931525
+    },
+    {
+      "name": "winapi-util",
+      "version": "0.1.11",
+      "sha256": "c2a7b1c03c876122aa43f3020e6c3c3ee5c05081c9a00739faf7503aeba10d22",
+      "archive_sha256": "c2a7b1c03c876122aa43f3020e6c3c3ee5c05081c9a00739faf7503aeba10d22",
+      "archive_bytes": 13368,
+      "license": "Unlicense OR MIT",
+      "files": 17,
+      "bytes": 45511
+    },
+    {
+      "name": "winapi-x86_64-pc-windows-gnu",
+      "version": "0.4.0",
+      "sha256": "712e227841d057c1ee1cd2fb22fa7e5a5461ae8e48fa2ca79ec42cfc1931183f",
+      "archive_sha256": "712e227841d057c1ee1cd2fb22fa7e5a5461ae8e48fa2ca79ec42cfc1931183f",
+      "archive_bytes": 2947998,
+      "license": "MIT/Apache-2.0",
+      "files": 1420,
+      "bytes": 53158180
+    },
+    {
+      "name": "windows-link",
+      "version": "0.2.1",
+      "sha256": "f0805222e57f7521d6a62e36fa9163bc891acd422f971defe97d64e70d0a4fe5",
+      "archive_sha256": "f0805222e57f7521d6a62e36fa9163bc891acd422f971defe97d64e70d0a4fe5",
+      "archive_bytes": 6133,
+      "license": "MIT OR Apache-2.0",
+      "files": 8,
+      "bytes": 16196
+    },
+    {
+      "name": "windows-sys",
+      "version": "0.61.2",
+      "sha256": "ae137229bcbd6cdf0f7b80a31df61766145077ddf49416a728b02cb3921ff3fc",
+      "archive_sha256": "ae137229bcbd6cdf0f7b80a31df61766145077ddf49416a728b02cb3921ff3fc",
+      "archive_bytes": 2517186,
+      "license": "MIT OR Apache-2.0",
+      "files": 257,
+      "bytes": 18183406
+    },
+    {
+      "name": "zerocopy",
+      "version": "0.8.56",
+      "sha256": "556764e583adb45a9f8d413c2a147fa7e8d821e48e12b14fd560b607998b75eb",
+      "archive_sha256": "556764e583adb45a9f8d413c2a147fa7e8d821e48e12b14fd560b607998b75eb",
+      "archive_bytes": 284907,
+      "license": "BSD-2-Clause OR Apache-2.0 OR MIT",
+      "files": 315,
+      "bytes": 1671149
+    },
+    {
+      "name": "zerocopy-derive",
+      "version": "0.8.56",
+      "sha256": "f2ab42fc20575779bd240faa45f94a74256f755c0fa9e89f0ede20d91d0cdfc1",
+      "archive_sha256": "f2ab42fc20575779bd240faa45f94a74256f755c0fa9e89f0ede20d91d0cdfc1",
+      "archive_bytes": 105007,
+      "license": "BSD-2-Clause OR Apache-2.0 OR MIT",
+      "files": 134,
+      "bytes": 1004370
+    },
+    {
+      "name": "zmij",
+      "version": "1.0.23",
+      "sha256": "29666d0abbfad1e3dc4dcf6144730dd3a3ab225bbbdac83319345b1b44ccfc1b",
+      "archive_sha256": "29666d0abbfad1e3dc4dcf6144730dd3a3ab225bbbdac83319345b1b44ccfc1b",
+      "archive_bytes": 28612,
+      "license": "MIT",
+      "files": 17,
+      "bytes": 106132
+    }
+  ]
+}

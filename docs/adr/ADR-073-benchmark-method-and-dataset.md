@@ -1,0 +1,434 @@
+# ADR-073 — Método de benchmark, dataset versionado y comparación (D23)
+
+Fecha: 2026-09-08.
+
+## Status
+
+Accepted como contrato D23. Cierra la decisión que el
+[backlog](../roadmap/adr-backlog-m2-m8.md#d23--método-de-benchmark-y-size-report)
+dejaba Proposed con fecha límite M5-01/M5-04. La implementación y la calificación
+nativa se registran por separado en `docs/validation/M5-*`.
+
+## Context
+
+M5 debe medir benchmarks existentes y comparar resultados sin afirmar causalidad.
+La spec describe `rust.benchmark.run` y `rust.benchmark.compare` en §28.1/§28.2 y
+un ejemplo de payload con `baseline_ns`/`candidate_ns`/`change_percent`, pero no
+contiene ninguna metodología: una búsqueda exhaustiva del término `sample`,
+`warmup`, `statistic`, `MDR`, `confidence` e `interval` sobre las 5 367 líneas de
+la propuesta no devuelve ninguna aparición. El plan M5 propone un protocolo
+(warmup 3 s, 30 muestras, tres ejecuciones, umbral 5 %) y dice explícitamente que
+**es una propuesta a aprobar en D23, no un claim estadístico validado**.
+
+`cargo bench` admite harnesses distintos. Un harness desconocido puede reportar
+ejecución y logs, pero no puede producir medidas comparables. El harness libtest
+(`#[bench]`) solo publica mediana ± desviación: no expone muestras crudas, así que
+no permite recalcular un intervalo ni estimar precisión.
+
+Se inspeccionó el código de `criterion 0.8.2` extraído del archivo `.crate`
+verificado (`950046b2aa2492f9a536f5f4f9a3de7b9e2476e575e05bd6c333371add4d98f3`):
+
+- `src/analysis/mod.rs:163-165` escribe `<out>/<id>/new/sample.json`.
+- `src/lib.rs:1519` define ese archivo como
+  `{ sampling_mode, iters: Vec<f64>, times: Vec<f64> }` — **muestras crudas**.
+- `src/analysis/mod.rs:244-246` escribe `<out>/<id>/new/benchmark.json` con la
+  identidad (`group_id`, `function_id`, `value_str`, `full_id`, `directory_name`).
+- `src/lib.rs:146` acepta `CRITERION_HOME` para reubicar la salida.
+- El harness acepta `--warm-up-time`, `--measurement-time`, `--sample-size`,
+  `--noplot`, `--color` y `--output-format` como flags cerrados.
+
+## Decision
+
+### 1. Harness exacto
+
+La primera integración es **Criterion 0.8.2**, con `default-features = false` y
+`features = ["cargo_bench_support"]`. Es el único harness que M5 sabe medir.
+Cualquier otro harness produce `harness_unrecognized`: la tool reporta ejecución,
+exit y logs, y **no** emite dataset ni medidas. No se infiere un harness por el
+nombre del target ni por el contenido del manifest del proyecto.
+
+La versión se verifica antes de medir con una fase de identidad dedicada, igual
+que `SemverChecksVersion` en ADR-062: si la versión observada no es exactamente
+la aprobada, la operación es `unavailable`, no una medida degradada.
+
+### 2. Parámetros congelados antes de medir
+
+El servidor —no el proyecto ni el peer— fija estos valores y los emite en la
+provenance de cada dataset:
+
+| Parámetro | Valor | Razón |
+| --- | --- | --- |
+| warmup | 3 s | valor propuesto por el plan M5; queda fijado aquí |
+| muestras por benchmark | 30 mínimo (`--sample-size 30`) | mínimo del plan |
+| tiempo de medición | 5 s | acota el presupuesto de 900 s de spec §44 |
+| repeticiones independientes | 1..=3 por llamada, por defecto 3 | plan M5 |
+| unidad | nanosegundos por iteración | única unidad del dataset v1 |
+| plots | desactivados (`--noplot`) | no se distribuye plotters |
+| color | `never` | salida determinista |
+
+El orden de ejecución dentro de una repetición es el orden de declaración del
+harness y así se registra en el dataset. **La herramienta no alterna el orden y
+no lo afirma**: alternar baseline y candidate es un protocolo del operador, que
+la documentación describe, no un control que el producto implemente. Preferimos
+declarar el orden real a anunciar un control que no existe.
+
+`--sample-size`, `--warm-up-time` y `--measurement-time` se pasan como argv
+cerrado. El proyecto no puede alterarlos: un `criterion.toml` o un
+`Criterion::default().sample_size(..)` del proyecto sigue siendo código del
+proyecto y su efecto queda registrado en el dataset como el valor **solicitado**
+frente al número de muestras **observado**. Si difieren, el dataset lo declara y
+la comparación lo trata como incompatibilidad de método.
+
+### 3. Dataset versionado
+
+Formato `rust-engineering-mcp.benchmark-dataset.v2`, con versión propia,
+independiente del SemVer del servidor y del contrato de las tools (G6). Un lector
+que no reconozca exactamente ese identificador y `format_version = 2` **falla
+cerrado**; nunca coerciona ni migra medidas. El v1 —descrito abajo en
+«Corrección»— queda retirado, no migrado: nunca se publicó, y un payload v1 se
+rechaza como cualquier otro formato ajeno.
+
+Contiene: identidad del benchmark (los cinco campos de criterion), muestras
+crudas (`iterations`, `total_ns` y `run_index` por muestra), `sampling_mode`, warmup, tiempo de
+medición, tamaño solicitado, completeness, y una provenance con `source_fingerprint`,
+harness y versión, `rust_version`, `cargo_version`, toolchain declarado, digest de
+imagen, plataforma, `configuration_fingerprint`, `execution_fingerprint`, selección
+(paquete, target de bench, features, perfil), hardware (modelo de CPU, núcleos,
+kernel, arquitectura, virtualización, governor) y cuotas de CPU/RAM/PID.
+
+`run_index` es la novedad del v2: la posición 1-based de la ejecución
+independiente que produjo **cada muestra**, dentro del `run_count` que declara la
+provenance. Va en la muestra y no en la medición porque una medición agrupa las
+repeticiones de una misma clave de benchmark; sin el campo, un lector no puede
+distinguir las muestras de una ejecución de las de otra. Lo fija el gateway —que
+es quien sabe qué repetición acaba de ejecutar—, nunca el proyecto: un archivo de
+criterion no puede nombrar su propia repetición.
+
+**Unknown permanece unknown.** Un campo de hardware que el runtime no puede
+observar se serializa ausente; jamás se rellena con un valor plausible. Lo que ese
+hueco impide se decide en §5, y no todos los huecos significan lo mismo: uno
+observado en un solo lado no es lo mismo que la misma ceguera en los dos. Una
+baseline **no** se identifica por nombre de rama.
+
+### 4. Método estadístico congelado
+
+`rust.benchmark.compare` es cálculo puro sobre bytes autorizados. No ejecuta
+procesos, no lee paths del peer y no toca el proyecto. El método se identifica en
+cada informe como `rust-engineering-mcp.benchmark-comparison.v2`; el v1 lleva otro
+identificador porque sus intervalos no son comparables con estos (ver
+«Corrección» más abajo).
+
+- Estadístico: **mediana** del tiempo por iteración. Es robusto frente a los
+  outliers que el propio protocolo prohíbe descartar.
+- Intervalo: **bootstrap percentil por conglomerados (cluster bootstrap)** con
+  10 000 remuestreos, semilla fija derivada de una constante del producto
+  mezclada con la clave del benchmark, de modo que el resultado es reproducible y
+  no depende del orden de ejecución. **La unidad que se remuestrea es la
+  ejecución, no la muestra**: en cada remuestreo se toman con reemplazo tantas
+  ejecuciones como ejecuciones tenga ese lado y, dentro de cada ejecución
+  extraída, tantas muestras con reemplazo como muestras reportó; la mediana se
+  recalcula sobre el conjunto resultante. Así la varianza **entre** ejecuciones
+  entra en el intervalo y en el `SE`. Es la varianza que el veredicto necesita:
+  dos datasets solo son comparables si su `execution_fingerprint` difiere, de
+  modo que la cantidad sobre la que se opina es cuánto se mueve el estadístico
+  entre ejecuciones, no cuánto se movería al releer una sola.
+- Confianza: 95 % **nominal**. Es el nivel que el método pide a la distribución
+  bootstrap, no la cobertura que el intervalo entrega con tres conglomerados; la
+  diferencia y su mecanismo están en la «Corrección (2026-09-09) — la cobertura
+  que entrega el intervalo». Con familia de más de una comparación se aplica
+  **Bonferroni**: `1 - (1 - 0.95)/n`. La familia y la corrección se emiten en el
+  resultado.
+- Umbral material: **5 %**.
+- Outliers: se cuentan con vallas de Tukey (`Q1 - 1.5·IQR`, `Q3 + 1.5·IQR`) y
+  **se reportan sin eliminarlos**. No hay descarte a posteriori.
+- **Minimum detectable ratio**: `MDR = (z_{1-α/2 ajustado} + z_{0.80}) · SE`, con
+  `SE` la desviación típica de la distribución bootstrap del ratio. Es la
+  definición explícita: el menor ratio verdadero que ese tamaño muestral y esa
+  dispersión podrían detectar, con 80 % de potencia, al nivel ajustado. **El MDR
+  no se iguala al umbral del 5 %.**
+
+Veredicto, en este orden: muestra ausente o truncada, o menos de 10 muestras, o
+mediana de baseline no positiva ⇒ `inconclusive` con su razón. **Menos de tres
+`run_index` distintos en cualquiera de los dos lados ⇒ `inconclusive` por
+`insufficient_executions`**, antes de mirar el intervalo: con una sola ejecución
+por lado no existe estimación alguna de la deriva entre ejecuciones, y con dos la
+estimación existe pero es la que este bootstrap más subestima (ver la
+«Corrección (2026-09-09) — cuántas ejecuciones hacen falta»). Tres es el número
+de repeticiones independientes que el propio protocolo ejecuta por defecto, así
+que la puerta exige que el protocolo se haya seguido, no una captura extra.
+**Dispersión degenerada ⇒ `inconclusive` por `degenerate_dispersion`**:
+si el error estándar del bootstrap es cero —o los dos lados juntos
+tienen menos de dos valores por iteración distintos— el `MDR` vale cero y la
+puerta de precisión no puede dispararse nunca; una dispersión observada de cero
+es **ausencia de información** sobre la dispersión, no precisión infinita, y un
+harness que emita una constante recibiría si no el veredicto más confiado que
+este método sabe producir. `MDR` mayor que el umbral ⇒ `inconclusive` por
+precisión insuficiente: la ejecución no puede discriminar el umbral y no se emite
+veredicto. Intervalo completamente por encima de `+5 %` ⇒ `regression`;
+completamente por debajo de `-5 %` ⇒ `improvement`; completamente dentro de
+`±5 %` ⇒ `no_material_change`; en cualquier otro caso `inconclusive` porque el
+intervalo cruza el umbral.
+
+#### Corrección (2026-09-08)
+
+La forma anterior de este método —`rust-engineering-mcp.benchmark-comparison.v1`,
+sobre el dataset v1— remuestreaba **las muestras dentro de una sola ejecución**.
+Eso estima cuánto se movería la mediana al releer esa misma ejecución, no cuánto
+se mueve entre ejecuciones, que es lo único sobre lo que el veredicto opina. El
+`SE` así calculado es mucho menor, y con él el `MDR`, de modo que la puerta de
+precisión dejaba pasar ruido del host como dirección.
+
+Una revisión independiente lo demostró sobre las capturas reales del propio
+proyecto, en `fixtures/benchmark-datasets/`. Entre `criterion-run-1.tar`,
+`criterion-run-2.tar` y `criterion-candidate.tar` solo cambia el fuente de
+`work_unit` (detrás de `m5/reference`); `work_noisy` (`m5/control`) y
+`work_slower` (`m5/slower_125`) son **el mismo fuente** en los tres archivos.
+Comparando `m5/control` solo —familia de uno, la corrección por multiplicidad más
+laxa y por tanto el intervalo más estrecho—, baseline `criterion-run-2.tar` contra
+candidate `criterion-candidate.tar`, el método v1 devolvía:
+
+```
+verdict = Improvement, effect -0.1231, interval -0.1492..-0.0756, mdr 0.0488
+```
+
+Una dirección, con intervalo que excluye el umbral del 5 % y un `MDR` que pasa su
+puerta (0.0488 ≤ 0.05), para código que no cambió. Los mismos benchmarks
+inalterados abarcan 14,0 % y 4,9 % entre las tres capturas. Con el método v2 el
+mismo par devuelve `Inconclusive` por `insufficient_executions`: cada captura es
+**una** ejecución, y con una ejecución por lado el intervalo no puede rescatar
+nada —remuestrear un único conglomerado devuelve el mismo intervalo estrecho
+(-0.1494..-0.0751, `MDR` 0.0490)—, por eso la negativa es estructural y se decide
+antes de mirarlo.
+
+Lo que **no** cambia: el estadístico (mediana del tiempo por iteración), la
+semilla y su derivación, los 10 000 remuestreos, el 95 % de confianza, Bonferroni,
+el umbral material del 5 % y la política de outliers. Cambia la unidad de
+remuestreo y se añaden dos negativas explícitas. El razonamiento original queda
+arriba, corregido, no borrado: era correcto sobre qué estadístico usar y sobre no
+descartar outliers, y era incorrecto al suponer que un bootstrap sobre las
+muestras describía la variabilidad relevante.
+
+#### Corrección (2026-09-09) — cuántas ejecuciones hacen falta
+
+La puerta anterior exigía **dos** `run_index` distintos por lado. La etapa
+externa del bootstrap por conglomerados sortea `k` ejecuciones con reemplazo de
+las `k` que ese lado ejecutó, y para un estadístico que se comporta como una
+media sobre conglomerados la varianza de ese sorteo tiene esperanza
+`((k − 1)/k)·σ²_entre`: el error estándar queda **corto** por un factor
+`sqrt(k/(k−1))` —1,41× con `k = 2` y 1,22× con `k = 3`— y los extremos
+percentiles se leen de esa misma distribución sin corrección `t_{k−1}`.
+
+`run_count` es una entrada publicada con rango `1..=3`, así que `k = 2` es
+alcanzable por un llamador, y es la peor fila del contrato. Una re-revisión
+independiente la midió bajo un nulo gaussiano de efectos aleatorios: cobertura
+0,66–0,75 con `k = 2` frente a 0,84–0,89 con `k = 3`, y con 5 % de deriva **27 de
+1000 comparaciones de código idéntico emitieron dirección** con `k = 2`. (Para
+escala: el método anterior a la corrección del 2026-09-08 puntuaba 0,29 de
+cobertura con esa misma deriva. Esto es el residuo de v2, no una regresión.)
+
+Se elige eliminar la fila entera en vez de encogerla: **menos de tres ejecuciones
+por lado ⇒ `inconclusive` por `insufficient_executions`**, decidido antes de
+mirar el intervalo. Tres no es un número nuevo —es el `BENCHMARK_DEFAULT_RUN_COUNT`
+que el protocolo congelado ya ejecuta por defecto—, de modo que la puerta exige
+que el protocolo se haya seguido y no una captura adicional. Un test en la capa
+de aplicación ata las dos constantes para que no puedan separarse en silencio.
+
+El nombre de la razón cambia con el umbral: `single_execution_per_side` describía
+un hecho que la puerta ya no comprueba, porque ahora también se emite con dos
+ejecuciones, que no son «una sola ejecución». `insufficient_executions` dice lo
+que la puerta mide. El identificador del método **no** cambia: sigue siendo
+`rust-engineering-mcp.benchmark-comparison.v2`, que nunca se publicó fuera de esta
+rama, y un token de razón renombrado dentro de un formato inédito no crea dos
+poblaciones de informes que un lector pudiera confundir.
+
+Además, cada comparación publica ahora **`baseline_executions` y
+`candidate_executions`**, junto a los tamaños muestrales. Sin ellos, dos informes
+`regression` producidos con `run_count = 2` y `run_count = 3` eran
+indistinguibles en el cable, aunque ese conteo es justo lo que decide si se puede
+reclamar dirección. Van en la comparación y no en `ComparedProvenance` por dos
+razones: la proyección de provenance publica **exactamente** los campos que
+consulta el chequeo de compatibilidad —una regla que un test mantiene como
+bicondicional—, y el conteo de ejecuciones es una propiedad de las muestras de
+*ese* benchmark, no del dataset: una medición ausente en una repetición deja a un
+benchmark con menos ejecuciones que a sus vecinos en el mismo par de datasets.
+
+#### Corrección (2026-09-09) — la cobertura que entrega el intervalo
+
+`confidence_level: 0.95` es el nivel **nominal** que el método persigue, y con
+tres conglomerados no es la cobertura que el intervalo entrega. Dos
+aproximaciones separan una cosa de la otra, y ambas son consecuencia de
+remuestrear un puñado de ejecuciones:
+
+- la varianza del bootstrap por conglomerados sobre `k` clusters tiene esperanza
+  `((k − 1)/k)` de la varianza entre ejecuciones, de modo que el `SE` publicado
+  queda corto por `sqrt(k/(k−1))`, 1,22× con las tres ejecuciones que ahora se
+  exigen;
+- los extremos son percentiles de esa misma distribución, tomados sin
+  ensanchamiento `t_{k−1}` por haber estimado la escala con `k` conglomerados.
+
+Las dos apuntan en la **misma dirección**: el intervalo sale **más estrecho** —es
+decir, más confiado— de lo que el 0,95 declarado justifica, nunca más ancho. Toda
+dirección que este método sí emite se emite con una cobertura verdadera por
+debajo del nivel publicado a su lado. Medida bajo un nulo gaussiano de efectos
+aleatorios, la re-revisión independiente situó esa cobertura en 0,84–0,89 con tres
+ejecuciones por lado. **La magnitud depende del modelo de deriva** con el que se
+mida y sería otro par de números bajo otro modelo; **el mecanismo no depende de
+él** y no desaparece en ningún `k` que el rango publicado de `run_count` alcance.
+
+La constante se mantiene en 0,95 y se publica como 0,95. Es lo que el método
+congelado le pide a la distribución, y sustituirla por un número «efectivo»
+medido bajo un único modelo de deriva publicaría los supuestos de ese modelo como
+si fueran los del método. Lo que corrige el defecto es la declaración, no un
+número distinto: queda escrita aquí, en el doc de la constante `CONFIDENCE_LEVEL`
+y en `docs/tools.md`, donde el método se publica.
+
+### 5. Compatibilidad antes que estadística
+
+Se rechaza la comparación, enumerando **todas** las razones, si difieren formato,
+unidad, harness, versión de harness, `rust_version`, `cargo_version`, digest de
+imagen, plataforma, arquitectura, selección, cuotas, modelo de CPU,
+`configuration_fingerprint` o governor de CPU. `source_fingerprint` **puede**
+diferir: baseline y candidate son código distinto, y esa es la razón de comparar.
+Comparar un artifact con **el mismo** `execution_fingerprint` se rechaza como
+`same_artifact`; comparar dos ejecuciones independientes del mismo código es un
+control legítimo y esperado.
+
+#### Corrección (2026-09-09) — qué hace exactamente un campo desconocido
+
+La versión anterior de esta sección decía «o si el modelo de CPU es desconocido en
+cualquiera de los dos lados», y el código implementaba eso: un solo campo bloqueaba
+por ausencia. §3 prometía algo más fuerte —cualquier campo no observable bloquea— y
+las dos afirmaciones no podían ser ciertas a la vez. Una revisión independiente lo
+señaló y nombró los dos casos que más duelen: `cpu_governor`, que dentro del
+contenedor es permanentemente desconocido y es el parámetro ambiental con más
+capacidad de fabricar una regresión, y `configuration_fingerprint`, documentado
+como el digest de la configuración congelada y que no se consultaba nunca.
+
+Se amplía el conjunto que bloquea, en vez de relajar §3, y se distinguen tres
+situaciones que antes se confundían en una:
+
+- **Conocido y distinto** en los dos lados: incompatible. Son dos máquinas o dos
+  configuraciones, y compararlas no mide el código.
+- **Observado en un solo lado**: incompatible (`unknown_hardware`). No se sabe si
+  coincidían, y suponer que sí es exactamente el relleno plausible que §3 prohíbe.
+- **No observable en los dos lados por la misma razón estructural** —por ejemplo,
+  un guest donde sysfs no expone el governor—: los datasets siguen siendo
+  estructuralmente comparables y sus medidas se publican, pero **no se admite
+  dirección alguna**: `inconclusive` con razón `unobservable_hardware`. La ceguera
+  es simétrica y no rompe la comparación; lo que impide es atribuir la diferencia
+  al código, porque el parámetro que podría haberla causado nunca se observó.
+
+#### Corrección (2026-09-09) — observación uniforme del governor del guest
+
+La frase «nadie puede leer el governor dentro de este contenedor» describía la
+implementación de entonces, no una imposibilidad del contrato. Se sustituye por
+una observación cerrada del **guest Linux que ejecuta la medición**; no observa ni
+declara el host físico, macOS ni una política de energía que Docker no exponga.
+
+CPUFreq modela políticas, no un único governor global: varios CPUs pueden apuntar
+a políticas distintas y esas políticas pueden usar governors distintos. La fuente
+primaria es [CPU Performance Scaling del kernel Linux](https://docs.kernel.org/admin-guide/pm/cpufreq.html),
+que documenta tanto `policyX` como los enlaces `cpuY/cpufreq` y el atributo
+`scaling_governor` por política. Por tanto, leer solo `cpu0` no acredita el
+entorno completo y queda prohibido como sustituto.
+
+El gateway lee primero los IDs `processor` que el `/proc/cpuinfo` del guest
+declara, sin suponer que sean contiguos. En una fase adicional sin mounts, red ni
+privilegios, invoca el `cat` aprobado con una ruta derivada solo de cada ID entero
+validado: `/sys/devices/system/cpu/cpu{N}/cpufreq/scaling_governor`. Publica
+`cpu_governor` únicamente si la lectura cubre **todos** esos CPUs y todos devuelven
+el mismo valor válido. Un archivo sysfs ausente, un exit no cero limpio, un valor
+inválido, una topología que exceda la capacidad de la sonda o governors distintos
+dejan el campo ausente. La ausencia es conservadora: no se inventa una etiqueta
+para la heterogeneidad ni se presenta un valor parcial como global.
+
+La fase conserva el lifecycle fail-closed del gateway. Timeout, cancelación,
+`Stop::OutputLimit` o cualquier stdout/stderr truncado no se reinterpretan como
+un governor desconocido: `finish_phase` los convierte en error operativo unido,
+limpia el árbol de contenedores y no publica dataset. Solo después de una fase
+que terminó limpiamente puede un exit no cero de `cat` representar sysfs ausente
+y, por tanto, `cpu_governor = None`.
+
+El mismo parser aplica consenso a `cpu_model`: se publica únicamente cuando los
+valores de modelo que el `/proc/cpuinfo` guest expone son válidos y unánimes; un
+valor malformado o modelos discordantes producen ausencia. `cpu_cores` solo se
+publica si los IDs `processor` observados están completos y son válidos. Son
+hechos del guest, no claims sobre el host físico.
+
+La capacidad de la sonda no es un umbral de método: está derivada del techo ya
+fijado de 64 KiB para capturas de probe y el máximo de 512 bytes del texto del
+perfil. Como cada CPU necesita como máximo 513 bytes incluido el salto de línea,
+la fase cubre como máximo `floor(65536 / 513) = 127` CPUs; sobre ese número el
+campo queda ausente en vez de permitir una captura incompleta. El argv efectivo,
+incluidas las rutas derivadas, forma parte del `execution_fingerprint`.
+
+Esto solo elimina una causa de `unobservable_hardware` cuando el guest expone una
+política uniforme. No habilita direcciones ni `no_material_change`:
+`METHOD_QUALIFIED_FOR_DIRECTION` sigue en `false` hasta satisfacer ADR-081, y la
+puerta de precisión y el umbral material del 5 % no cambian.
+
+#### Corrección (2026-09-09) — hasta qué familia se afirma un intervalo
+
+Bonferroni divide alpha por el tamaño de la familia, así que el cuantil que el
+método pide a la distribución bootstrap es `0.025/n`. Con 10 000 remuestreos eso
+son diez sorteos más allá del extremo con `n = 25`, cinco con `n = 50` y **uno**
+con `n = 250`: a partir de cierto tamaño el extremo del intervalo deja de ser una
+interpolación dentro de la distribución y pasa a ser un estadístico de orden
+extremo. El error no es simétrico —la distribución está acotada por ese lado—, de
+modo que muy pocos sorteos en la cola empujan el extremo hacia dentro y el
+intervalo se lee **más estrecho**, es decir más confiado, que el nivel que declara.
+
+De las tres salidas posibles —subir los remuestreos con la familia, acotar la
+familia, o declarar el límite y negarse más allá— se elige la tercera. Subirlos
+haría el coste cuadrático en el tamaño de la familia sin cota superior conocida;
+acotar la familia obligaría a partir un informe legítimo en trozos arbitrarios y
+cambiaría la corrección por multiplicidad que a cada trozo le toca. Negarse es lo
+único que no cambia lo que el método afirma cuando sí afirma algo.
+
+`MAX_RESOLVABLE_FAMILY_SIZE = 25` se **deriva** de los remuestreos, el nivel de
+confianza y un mínimo de diez sorteos en la cola, y un test recomputa esa
+derivación para que no pueda separarse de sus constantes. Una familia mayor sigue
+describiendo las dos medidas —medianas, muestras, outliers y el ratio observado—,
+pero no corre bootstrap, no afirma intervalo y no admite dirección:
+`inconclusive` con razón `family_beyond_resolution`.
+
+### 6. Límites de interpretación
+
+El resultado describe una medición en un host concreto. No se atribuye causa, no
+se generaliza a otro hardware ni a otro proyecto, y no se emite ninguna
+recomendación de optimización: spec §29 prohíbe una tool de heurísticas y §92
+prohíbe las recomendaciones universales. Las muestras producidas por el harness
+del **proyecto** se describen como observaciones de origen no autenticado; el
+producto no afirma que un benchmark no pueda falsificar su propia salida. El caso
+más barato de esa falsificación —emitir una constante para obtener un intervalo de
+ancho cero— tiene ahora una negativa nombrada, `degenerate_dispersion`, que no
+convierte la ausencia de dispersión en precisión.
+
+## Alternatives considered
+
+- **Harness libtest en nightly.** Descartado: sin muestras crudas, el intervalo y
+  el MDR serían incomputables y el dataset perdería su propiedad esencial.
+- **`cargo-criterion` como plugin externo.** Descartado: añade un componente de
+  terceros al runtime sin aportar nada que `criterion` no escriba ya en disco.
+- **Reutilizar los `estimates.json` de criterion.** Descartado: el intervalo
+  quedaría definido por la versión del harness, no por el producto, y cambiaría en
+  silencio con una actualización. Se conserva el archivo como artifact, pero el
+  veredicto se calcula sobre las muestras crudas.
+- **Umbral fijo del 5 % como criterio único.** Descartado: sin MDR, un umbral
+  aislado convierte ruido en veredicto.
+- **Media en vez de mediana.** Descartado: obliga a descartar outliers para ser
+  estable, y el protocolo lo prohíbe.
+
+## Consequences
+
+Tres repeticiones no prueban causalidad ni generalización; el plan ya lo advierte
+y el contrato lo hace explícito en la salida. Un proyecto sin criterion 0.8.2
+vendorizado offline no puede medirse: es un resultado declarado, no una
+degradación silenciosa. El formato v2 fija una frontera de migración: conservar
+muestras crudas o volver a ejecutar, nunca transformar mediciones incompatibles en
+equivalentes. Con menos de tres ejecuciones por lado el producto no emite
+dirección: es menos de lo que la spec insinuaba y es lo único que las muestras
+sostienen; para obtener una dirección hay que capturar las tres ejecuciones
+independientes por lado que el protocolo ya ejecuta por defecto, de modo que un
+`run_count` de 1 o 2 mide y publica, pero nunca concluye. Añadir un segundo
+harness exigirá una decisión nueva y su propio oráculo.

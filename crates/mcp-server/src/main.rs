@@ -55,7 +55,7 @@ Commands:
         [--docker PATH --docker-socket PATH --state-root PATH --rust-image sha256:ID]
                  Serve MCP with host-authorized physical roots (default: none)
 
-Available tools: rust.project.open; rust.project.inspect; rust.toolchain.inspect; rust.check; rust.fmt.check; rust.clippy; rust.test; rust.dependencies.audit; rust.diagnostics.explain; rust.quality.gate; rust.catalog.status; rust.crate.search; rust.crate.inspect; rust.manifest.patch; rust.fmt.apply; rust.fix.apply; rust.dependency.add; rust.dependency.remove; rust.test.nextest; rust.coverage; rust.semver.check; rust.mutation.test; rust.deny; rust.unsafe.scan; rust.supply_chain.inspect; rust.quality.gate.v2; rust.miri (explicit approved Rust runtime required except project.open, catalog.status, crate.search and crate.inspect).
+Available tools: rust.project.open; rust.project.inspect; rust.toolchain.inspect; rust.check; rust.fmt.check; rust.clippy; rust.test; rust.dependencies.audit; rust.diagnostics.explain; rust.quality.gate; rust.catalog.status; rust.crate.search; rust.crate.inspect; rust.manifest.patch; rust.fmt.apply; rust.fix.apply; rust.dependency.add; rust.dependency.remove; rust.test.nextest; rust.coverage; rust.semver.check; rust.mutation.test; rust.deny; rust.unsafe.scan; rust.supply_chain.inspect; rust.quality.gate.v2; rust.miri; rust.benchmark.run; rust.benchmark.compare; rust.profile.flamegraph; rust.binary.bloat (explicit approved Rust runtime required except project.open, catalog.status, crate.search and crate.inspect).
 ";
 
 const USAGE_ERROR: &str = "Unsupported invocation. Use 'rust-engineering-mcp --help'.\n";

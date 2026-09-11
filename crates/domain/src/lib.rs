@@ -57,6 +57,7 @@ pub use quality_artifact::*;
 mod source;
 pub use source::*;
 mod rust_execution;
+pub mod vendor_capture;
 pub use rust_execution::*;
 
 mod inspection;
@@ -112,3 +113,9 @@ pub mod unsafe_scan;
 pub mod supply_chain;
 
 pub mod quality_v2;
+
+pub mod benchmark;
+pub mod benchmark_compare;
+pub mod benchmark_run;
+pub mod bloat;
+pub mod profile;

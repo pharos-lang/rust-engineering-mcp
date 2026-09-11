@@ -301,3 +301,9 @@ pub mod miri;
 pub mod supply_chain;
 
 pub mod quality_v2;
+
+pub mod benchmark;
+pub mod benchmark_compare;
+pub mod bloat;
+pub mod profile;
+pub mod vendor_capture;

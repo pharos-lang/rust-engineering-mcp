@@ -1,5 +1,9 @@
 #!/usr/bin/env python3
-"""Fail-closed offline installation and MCP smoke for the core 0.1.0 archive."""
+"""Fail-closed offline installation and MCP smoke for the core release archive.
+
+The tool inventory, schemas and annotations are pinned to the frozen contract
+snapshots under crates/mcp-server/tests/snapshots (31 tools since 0.3.0).
+"""
 
 from __future__ import annotations
 
@@ -34,12 +38,30 @@ TOOLS = (
     "rust.fmt.check",
     "rust.clippy",
     "rust.test",
+    "rust.test.nextest",
     "rust.dependencies.audit",
     "rust.diagnostics.explain",
     "rust.quality.gate",
     "rust.catalog.status",
     "rust.crate.search",
     "rust.crate.inspect",
+    "rust.manifest.patch",
+    "rust.fmt.apply",
+    "rust.fix.apply",
+    "rust.dependency.add",
+    "rust.dependency.remove",
+    "rust.coverage",
+    "rust.semver.check",
+    "rust.mutation.test",
+    "rust.deny",
+    "rust.unsafe.scan",
+    "rust.supply_chain.inspect",
+    "rust.quality.gate.v2",
+    "rust.miri",
+    "rust.benchmark.run",
+    "rust.benchmark.compare",
+    "rust.profile.flamegraph",
+    "rust.binary.bloat",
 )
 TOOL_SCHEMA_SHA256 = {
     "rust.project.open": "e7b454f9d9f026bf9cedf3bb999ff0bd931f8b7472e913638dcd960a142bec17",
@@ -49,12 +71,64 @@ TOOL_SCHEMA_SHA256 = {
     "rust.fmt.check": "d820af9a35d5cc936363b6fd37813ab1821a98d582b14cd47477b56b6d487f90",
     "rust.clippy": "8b2aa1245ab48dcaeb208a5e3bda1bee2dd28686b8977b3f2e352173d0b96699",
     "rust.test": "8ff987c184896ee85e84636660a1d0cff28dc0cc434859e9a04c49bf0d1fb688",
+    "rust.test.nextest": "d659a33ec2ffa4088e2f27f3244991ae250c14ed48a107588c56292cd1708d5b",
     "rust.dependencies.audit": "307a7c7d0b6da4a84a5ff8b2bc33981234f9b470204ce6915d45eea5492b67f9",
     "rust.diagnostics.explain": "ea89376e81c525e1c058ef84f2e65f61d80d136694a2061987985a17f05eb5f2",
     "rust.quality.gate": "0aa0689b5a571706afc1655029872db8b56f5af511ae692e69f075b9a3b43da4",
     "rust.catalog.status": "476ef687538f375c1cdec0a905a3b47a1d0aea9389d12a7c1599c6d77cc19754",
     "rust.crate.search": "b2d5b33fbc204d3a78c02044eb967936cf3d5db74d7d5b85e394b6511d7a4cfa",
     "rust.crate.inspect": "7793f5ddc99755fd6b756689c555611ca14bb022653b545b288dde092a7e28c1",
+    "rust.manifest.patch": "ad0a6e127f9838280296b2f3c238ff0c6d1a8a22df4e26ca70eb4a0e15163510",
+    "rust.fmt.apply": "5d3fca3260c7d2f0a7f1f70207be387c2fc8be10dfbe52198a0ab375c2eaabbe",
+    "rust.fix.apply": "92d588e549b2f5d0e5ec2370803b578499a351d5afa91a3b8d3badc85f133b55",
+    "rust.dependency.add": "c43f310dce69b17ed8628592002f26e28a0409d7e03e7855722ab4a04e15881b",
+    "rust.dependency.remove": "3fd79d67f3245e1c236f3762f79c5bac6244c8d16181ada07859cfec1ef90e8c",
+    "rust.coverage": "956837dbe470e1e6b9de710111ce6fe1cc578d804d9568565ad2a7fa0ed9c343",
+    "rust.semver.check": "90d959a1a28adcf9fb7ca9517ec9eb9816e7a118fef7e6fd61d23791e8e54e2a",
+    "rust.mutation.test": "705a6898f52ad2c92b615f872de46f0dde358340f9f2e8aced25f46d67194a42",
+    "rust.deny": "ecdb8d9100c818da36873cf24bac66e9f54c52bbb3017c360a5541b2baa437be",
+    "rust.unsafe.scan": "ff612d21502a6b77ecdc3830f53e9f548775de2971168ad7f4f0d02f33782388",
+    "rust.supply_chain.inspect": "404026505c49f19eb0bc1381c0389bd1373c844dd13323467b16bf8917b4c36b",
+    "rust.quality.gate.v2": "2b0bac515658f68e5a3dffea1e14cce6fb7eca047b43cdc6e40eeedf549c1be3",
+    "rust.miri": "6513d90b8e21b1c9750e33a0c4215df79a617556e4b008558f2ea96229920931",
+    "rust.benchmark.run": "48f9aece603cc52ff418c067c34b669b821cf527c2ad7a49bdda5a8b80495151",
+    "rust.benchmark.compare": "abaf63a23c1a13e76cb7e155343093f75cb825ec5e0bc1d534c8925ae2940024",
+    "rust.profile.flamegraph": "b9348e9e714703ddf718a137673b20208d969e9ccc4c4fbc003216ea8a86d808",
+    "rust.binary.bloat": "3973462accce7aa341d115544f2a4ad464d2fad1ba2c0e6cce11707e3422488b",
+}
+# The frozen per-tool annotations: the write tools of M2 are not read-only.
+TOOL_ANNOTATIONS = {
+    "rust.project.open": {"readOnlyHint": True, "destructiveHint": False, "idempotentHint": False, "openWorldHint": False},
+    "rust.project.inspect": {"readOnlyHint": True, "destructiveHint": False, "idempotentHint": True, "openWorldHint": False},
+    "rust.toolchain.inspect": {"readOnlyHint": True, "destructiveHint": False, "idempotentHint": True, "openWorldHint": False},
+    "rust.check": {"readOnlyHint": True, "destructiveHint": False, "idempotentHint": False, "openWorldHint": False},
+    "rust.fmt.check": {"readOnlyHint": True, "destructiveHint": False, "idempotentHint": False, "openWorldHint": False},
+    "rust.clippy": {"readOnlyHint": True, "destructiveHint": False, "idempotentHint": False, "openWorldHint": False},
+    "rust.test": {"readOnlyHint": True, "destructiveHint": False, "idempotentHint": False, "openWorldHint": False},
+    "rust.test.nextest": {"readOnlyHint": True, "destructiveHint": False, "idempotentHint": False, "openWorldHint": False},
+    "rust.dependencies.audit": {"readOnlyHint": True, "destructiveHint": False, "idempotentHint": True, "openWorldHint": False},
+    "rust.diagnostics.explain": {"readOnlyHint": True, "destructiveHint": False, "idempotentHint": True, "openWorldHint": False},
+    "rust.quality.gate": {"readOnlyHint": True, "destructiveHint": False, "idempotentHint": False, "openWorldHint": False},
+    "rust.catalog.status": {"readOnlyHint": True, "destructiveHint": False, "idempotentHint": True, "openWorldHint": False},
+    "rust.crate.search": {"readOnlyHint": True, "destructiveHint": False, "idempotentHint": True, "openWorldHint": False},
+    "rust.crate.inspect": {"readOnlyHint": True, "destructiveHint": False, "idempotentHint": True, "openWorldHint": False},
+    "rust.manifest.patch": {"readOnlyHint": False, "destructiveHint": True, "idempotentHint": False, "openWorldHint": False},
+    "rust.fmt.apply": {"readOnlyHint": False, "destructiveHint": True, "idempotentHint": False, "openWorldHint": False},
+    "rust.fix.apply": {"readOnlyHint": False, "destructiveHint": True, "idempotentHint": False, "openWorldHint": False},
+    "rust.dependency.add": {"readOnlyHint": False, "destructiveHint": True, "idempotentHint": False, "openWorldHint": False},
+    "rust.dependency.remove": {"readOnlyHint": False, "destructiveHint": True, "idempotentHint": False, "openWorldHint": False},
+    "rust.coverage": {"readOnlyHint": True, "destructiveHint": False, "idempotentHint": False, "openWorldHint": False},
+    "rust.semver.check": {"readOnlyHint": True, "destructiveHint": False, "idempotentHint": False, "openWorldHint": False},
+    "rust.mutation.test": {"readOnlyHint": True, "destructiveHint": False, "idempotentHint": False, "openWorldHint": False},
+    "rust.deny": {"readOnlyHint": True, "destructiveHint": False, "idempotentHint": False, "openWorldHint": False},
+    "rust.unsafe.scan": {"readOnlyHint": True, "destructiveHint": False, "idempotentHint": False, "openWorldHint": False},
+    "rust.supply_chain.inspect": {"readOnlyHint": True, "destructiveHint": False, "idempotentHint": False, "openWorldHint": False},
+    "rust.quality.gate.v2": {"readOnlyHint": True, "destructiveHint": False, "idempotentHint": False, "openWorldHint": False},
+    "rust.miri": {"readOnlyHint": True, "destructiveHint": False, "idempotentHint": False, "openWorldHint": False},
+    "rust.benchmark.run": {"readOnlyHint": True, "destructiveHint": False, "idempotentHint": False, "openWorldHint": False},
+    "rust.benchmark.compare": {"readOnlyHint": True, "destructiveHint": False, "idempotentHint": False, "openWorldHint": False},
+    "rust.profile.flamegraph": {"readOnlyHint": True, "destructiveHint": False, "idempotentHint": False, "openWorldHint": False},
+    "rust.binary.bloat": {"readOnlyHint": True, "destructiveHint": False, "idempotentHint": False, "openWorldHint": False},
 }
 PROHIBITED_PACKAGES = {"fastembed", "kanaria", "lance", "lancedb", "ort", "ort-sys"}
 PROHIBITED_ASSET_TOKENS = {
@@ -894,7 +968,11 @@ def validate_discovery(response: object, version: str) -> None:
     versions = result.get("supportedVersions")
     if not isinstance(versions, list) or PROTOCOL_VERSION not in versions:
         raise ValueError("modern protocol version is not advertised")
-    if result.get("capabilities") != {"tools": {}, "resources": {}}:
+    if result.get("capabilities") != {
+        "tools": {},
+        "resources": {},
+        "extensions": {"io.modelcontextprotocol/tasks": {}},
+    }:
         raise ValueError("modern discovery capabilities mismatch")
     meta = result.get("_meta")
     info = meta.get("io.modelcontextprotocol/serverInfo") if isinstance(meta, dict) else None
@@ -910,7 +988,7 @@ def validate_tools(response: object) -> list[dict[str, object]]:
     if result.get("resultType") != "complete" or result.get("nextCursor") is not None:
         raise ValueError("tools/list must be complete and unpaginated")
     if not isinstance(definitions, list) or tuple(row.get("name") for row in definitions) != TOOLS:
-        raise ValueError("tools/list does not contain exactly the approved thirteen tools")
+        raise ValueError("tools/list does not contain exactly the approved thirty-one tools")
     for row in definitions:
         if not isinstance(row.get("description"), str) or not row["description"]:
             raise ValueError(f"tool description is absent: {row.get('name')}")
@@ -934,19 +1012,14 @@ def validate_tools(response: object) -> list[dict[str, object]]:
             "openWorldHint",
         }:
             raise ValueError(f"tool annotations mismatch: {row['name']}")
-        if (
-            annotations["readOnlyHint"] is not True
-            or annotations["destructiveHint"] is not False
-            or annotations["openWorldHint"] is not False
-            or not isinstance(annotations["idempotentHint"], bool)
-        ):
+        if annotations != TOOL_ANNOTATIONS[row["name"]]:
             raise ValueError(f"tool annotation values mismatch: {row['name']}")
         schemas = {
             "inputSchema": row["inputSchema"],
             "outputSchema": row["outputSchema"],
         }
         if sha256(canonical_json(schemas)) != TOOL_SCHEMA_SHA256[row["name"]]:
-            raise ValueError(f"tool schemas differ from the frozen M1 contract: {row['name']}")
+            raise ValueError(f"tool schemas differ from the frozen contract: {row['name']}")
     return definitions
 
 

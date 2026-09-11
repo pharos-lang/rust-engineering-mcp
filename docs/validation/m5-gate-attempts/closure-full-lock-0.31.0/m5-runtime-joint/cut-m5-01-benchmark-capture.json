@@ -1,0 +1,210 @@
+{
+  "cut": "m5-01-benchmark-capture",
+  "finished_utc": "2026-09-11T02:07:45Z",
+  "fixtures": {
+    "benchmark": {
+      "archive_sha256": "sha256:d59a7a40c438a20850e990aff2eca594627dcd41fd7fe48792ae1254f02e07d8",
+      "bytes": 24968,
+      "directories": 2,
+      "files": 6,
+      "tree_fingerprint": "sha256:63d8bed8389385314b927ac629c73cb7f270891328a7658a658e54791eeb94d2"
+    },
+    "benchmark_vendor_write": {
+      "archive_sha256": "sha256:d3d0a8d67df81c97d9312847191bcbc5f86fd608ede5fd2e72298a3be31d5acc",
+      "bytes": 26478,
+      "directories": 2,
+      "files": 7,
+      "tree_fingerprint": "sha256:f361ec92bcff0621c4f132a5b3fc529f398565740222ce61a6d84ec2b0d724f8"
+    },
+    "vendor_capture": {
+      "artifact": "/private/tmp/rust-mcp-m5-closure/crates/execution-adapter/../../fixtures/criterion-vendor/capture/8e1c814b7e2868b722aa476ae6e5e45967c3ccc840bf434663b14a1cdd7cdb84",
+      "artifact_bytes": 161361408,
+      "artifact_digest": "sha256:e9594ec2fbe95ae14e4ea1e0e66f91855a7db47412c4c33dff79d78c657765ba",
+      "directories": 779,
+      "entries": 6793,
+      "files": 6014,
+      "total_bytes": 156267469,
+      "tree_digest": "sha256:8e1c814b7e2868b722aa476ae6e5e45967c3ccc840bf434663b14a1cdd7cdb84"
+    }
+  },
+  "image_id": "sha256:e0a5ca1661b3e49d0a3d68ee3cc0963453078d08eb7fc43c30538c16b7998aac",
+  "residue": {
+    "after": {
+      "containers": [],
+      "volumes": []
+    },
+    "before": {
+      "containers": [],
+      "volumes": []
+    }
+  },
+  "selections": [
+    {
+      "duration_ms": 135341,
+      "observed": {
+        "archive_bytes": 40960,
+        "archive_run_index": 3,
+        "execution_fingerprint": "sha256:ffda843b0488131b40a9a57da014645356397b0745cf6bbd538b7adfe1cb8820",
+        "exit": "Passed",
+        "exit_code": 0,
+        "exit_run_index": 3,
+        "harness": "Criterion { version: \"0.8.2\" }",
+        "logs": [
+          {
+            "run_index": 1,
+            "stderr_bytes": 2106,
+            "stderr_truncated": false,
+            "stdout_bytes": 411,
+            "stdout_truncated": false
+          },
+          {
+            "run_index": 2,
+            "stderr_bytes": 744,
+            "stderr_truncated": false,
+            "stdout_bytes": 478,
+            "stdout_truncated": false
+          },
+          {
+            "run_index": 3,
+            "stderr_bytes": 744,
+            "stderr_truncated": false,
+            "stdout_bytes": 365,
+            "stdout_truncated": false
+          }
+        ],
+        "measurements": [
+          {
+            "completeness": "Complete",
+            "function_id": "control",
+            "group_id": "m5",
+            "key": "m5/control",
+            "measurement_ms": 5000,
+            "run_indices": [
+              1,
+              2,
+              3
+            ],
+            "sample_size_requested": 30,
+            "samples": 90,
+            "sampling_mode": "Linear",
+            "total_iterations": 4932720,
+            "warm_up_ms": 3000
+          },
+          {
+            "completeness": "Complete",
+            "function_id": "reference",
+            "group_id": "m5",
+            "key": "m5/reference",
+            "measurement_ms": 5000,
+            "run_indices": [
+              1,
+              2,
+              3
+            ],
+            "sample_size_requested": 30,
+            "samples": 90,
+            "sampling_mode": "Linear",
+            "total_iterations": 5126625,
+            "warm_up_ms": 3000
+          },
+          {
+            "completeness": "Complete",
+            "function_id": "slower_125",
+            "group_id": "m5",
+            "key": "m5/slower_125",
+            "measurement_ms": 5000,
+            "run_indices": [
+              1,
+              2,
+              3
+            ],
+            "sample_size_requested": 30,
+            "samples": 90,
+            "sampling_mode": "Linear",
+            "total_iterations": 3979470,
+            "warm_up_ms": 3000
+          }
+        ],
+        "omission": null,
+        "provenance": {
+          "cargo_version": "1.98.1",
+          "harness_version": "0.8.2",
+          "image_digest": "sha256:e0a5ca1661b3e49d0a3d68ee3cc0963453078d08eb7fc43c30538c16b7998aac",
+          "platform": "linux/aarch64",
+          "run_count": 3,
+          "run_index": 1,
+          "rust_version": "1.98.1"
+        },
+        "runs_completed": 3,
+        "runs_requested": 3,
+        "termination": "Exited",
+        "vendor_capture": {
+          "artifact": "/private/tmp/rust-mcp-m5-closure/crates/execution-adapter/../../fixtures/criterion-vendor/capture/8e1c814b7e2868b722aa476ae6e5e45967c3ccc840bf434663b14a1cdd7cdb84",
+          "artifact_bytes": 161361408,
+          "artifact_digest": "sha256:e9594ec2fbe95ae14e4ea1e0e66f91855a7db47412c4c33dff79d78c657765ba",
+          "directories": 779,
+          "entries": 6793,
+          "files": 6014,
+          "total_bytes": 156267469,
+          "tree_digest": "sha256:8e1c814b7e2868b722aa476ae6e5e45967c3ccc840bf434663b14a1cdd7cdb84"
+        },
+        "vendor_fingerprint": "sha256:8e1c814b7e2868b722aa476ae6e5e45967c3ccc840bf434663b14a1cdd7cdb84"
+      },
+      "outcome": "passed",
+      "selection": "criterion-positive-through-a-capture"
+    },
+    {
+      "duration_ms": 3008,
+      "observed": {
+        "capture_error": "Digest",
+        "control_tree_digest": "sha256:8e1c814b7e2868b722aa476ae6e5e45967c3ccc840bf434663b14a1cdd7cdb84",
+        "declared": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
+        "residue_after": {
+          "containers": [],
+          "volumes": []
+        },
+        "residue_before": {
+          "containers": [],
+          "volumes": []
+        }
+      },
+      "outcome": "passed",
+      "selection": "declared-digest-mismatch-refused"
+    },
+    {
+      "duration_ms": 58079,
+      "observed": {
+        "announced": [
+          "VENDOR_WRITE create refused errno=Some(30) kind=ReadOnlyFilesystem",
+          "VENDOR_WRITE truncate refused errno=Some(30) kind=ReadOnlyFilesystem"
+        ],
+        "artifact_digest_after_run": "sha256:e9594ec2fbe95ae14e4ea1e0e66f91855a7db47412c4c33dff79d78c657765ba",
+        "residue_after": {
+          "containers": [],
+          "volumes": []
+        },
+        "tree_digest_after_run": "sha256:8e1c814b7e2868b722aa476ae6e5e45967c3ccc840bf434663b14a1cdd7cdb84"
+      },
+      "outcome": "passed",
+      "selection": "capture-is-read-only-in-the-guest"
+    },
+    {
+      "duration_ms": 10528,
+      "observed": {
+        "monitor": {
+          "inventory_failed": false,
+          "inventory_polls": 334,
+          "needle": "--directory=/rust-mcp-vendor",
+          "observed_running": true
+        },
+        "residue_after": {
+          "containers": [],
+          "volumes": []
+        }
+      },
+      "outcome": "passed",
+      "selection": "cancellation-during-capture-ingest"
+    }
+  ],
+  "started_utc": "2026-09-11T02:04:18Z"
+}

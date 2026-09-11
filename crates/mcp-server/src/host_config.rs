@@ -12,6 +12,8 @@ pub(crate) fn parse(mut args: impl Iterator<Item = OsString>) -> Option<stdio::H
         dependency_add_roots: Vec::new(),
         dependency_remove_roots: Vec::new(),
         cargo_vendor: None,
+        vendor_capture: None,
+        profiling: None,
         audit: None,
         security: None,
         catalog: None,
@@ -21,8 +23,11 @@ pub(crate) fn parse(mut args: impl Iterator<Item = OsString>) -> Option<stdio::H
     };
     let mut ttl_seen = false;
     let mut catalog_options: [Option<PathBuf>; 4] = std::array::from_fn(|_| None);
+    let mut profiling_grant = None;
     let mut vendor_path = None;
     let mut vendor_fingerprint = None;
+    let mut capture_path = None;
+    let mut capture_fingerprint = None;
     let mut security_path = None;
     let mut security_fingerprint = None;
     let mut audit_path = None;
@@ -79,6 +84,13 @@ pub(crate) fn parse(mut args: impl Iterator<Item = OsString>) -> Option<stdio::H
                 return None;
             }
             catalog_options[index] = Some(path);
+        } else if flag == OsStr::new("--allow-profiling") && profiling_grant.is_none() {
+            // A single closed scope. An unknown value is a configuration error,
+            // never a silently narrower or wider grant.
+            if value != OsStr::new("user-space-sampling") {
+                return None;
+            }
+            profiling_grant = Some(stdio::ProfilingGrant::UserSpaceSampling);
         } else if flag == OsStr::new("--cargo-vendor-dir") && vendor_path.is_none() {
             let path = PathBuf::from(&value);
             if value.to_str().is_none() || !path.is_absolute() {
@@ -87,6 +99,21 @@ pub(crate) fn parse(mut args: impl Iterator<Item = OsString>) -> Option<stdio::H
             vendor_path = Some(path);
         } else if flag == OsStr::new("--cargo-vendor-tree-sha256") && vendor_fingerprint.is_none() {
             vendor_fingerprint = Some(
+                value
+                    .to_str()?
+                    .parse::<rust_engineering_domain::SourceFingerprint>()
+                    .ok()?,
+            );
+        } else if flag == OsStr::new("--vendor-capture") && capture_path.is_none() {
+            let path = PathBuf::from(&value);
+            if value.to_str().is_none() || !path.is_absolute() {
+                return None;
+            }
+            capture_path = Some(path);
+        } else if flag == OsStr::new("--vendor-capture-tree-sha256")
+            && capture_fingerprint.is_none()
+        {
+            capture_fingerprint = Some(
                 value
                     .to_str()?
                     .parse::<rust_engineering_domain::SourceFingerprint>()
@@ -146,6 +173,7 @@ pub(crate) fn parse(mut args: impl Iterator<Item = OsString>) -> Option<stdio::H
         if image != OsStr::new(rust_engineering_execution::APPROVED_RUST_IMAGE)
             && image != OsStr::new(rust_engineering_execution::APPROVED_SECURITY_IMAGE)
             && image != OsStr::new(rust_engineering_execution::APPROVED_M4_IMAGE)
+            && image != OsStr::new(rust_engineering_execution::APPROVED_M5_IMAGE)
         {
             return None;
         }
@@ -199,6 +227,33 @@ pub(crate) fn parse(mut args: impl Iterator<Item = OsString>) -> Option<stdio::H
             })
         }
         _ => return None,
+    };
+    // ADR-078 §3: a capture is provisioned, declared by digest, and admitted
+    // on exactly the terms the directory source is — the qualified runtime must
+    // exist, and the artifact may not live inside a project root, where project
+    // code could rewrite the bytes a measurement is about to trust.
+    config.vendor_capture = match (capture_path, capture_fingerprint) {
+        (None, None) => None,
+        (Some(artifact), Some(tree_digest))
+            if config.rust.is_some()
+                && !config
+                    .roots
+                    .iter()
+                    .any(|root| artifact.starts_with(root) || root.starts_with(&artifact)) =>
+        {
+            Some(stdio::HostVendorCaptureConfig {
+                artifact,
+                tree_digest,
+            })
+        }
+        _ => return None,
+    };
+    // Profiling needs the qualified runtime: without the gateway there is no
+    // container to contain it, so the grant is refused rather than degraded.
+    config.profiling = match profiling_grant {
+        None => None,
+        Some(grant) if config.rust.is_some() => Some(stdio::HostProfilingConfig { grant }),
+        Some(_) => return None,
     };
     let has_writes = !config.manifest_write_roots.is_empty()
         || !config.fmt_write_roots.is_empty()
@@ -405,6 +460,100 @@ mod tests {
                     DATA_VENDOR,
                     "--cargo-vendor-tree-sha256",
                     &fingerprint
+                ]
+                .into_iter()
+                .map(OsString::from)
+            )
+            .is_none()
+        );
+    }
+
+    /// ADR-078 §2 and §3: a capture is admitted only as a complete
+    /// (artifact, declared digest) pair, on the qualified runtime, and from
+    /// outside every project root — the artifact a measurement is about to
+    /// trust may not live where project code can rewrite it.
+    #[test]
+    fn a_vendor_capture_requires_a_complete_pair_runtime_and_a_disjoint_artifact() {
+        let fingerprint = format!("sha256:{}", "a".repeat(64));
+        #[cfg(unix)]
+        const ARTIFACT: &str = "/data/captures/0123";
+        #[cfg(not(unix))]
+        const ARTIFACT: &str = r"C:/data/captures/0123";
+        let base = [
+            "--root",
+            WORK_PROJECT,
+            "--docker",
+            USR_LOCAL_BIN_DOCKER,
+            "--docker-socket",
+            TMP_DOCKER_SOCK,
+            "--state-root",
+            PRIVATE_STATE,
+            "--rust-image",
+            rust_engineering_execution::APPROVED_RUST_IMAGE,
+        ];
+        let configured = |extra: &[&str]| {
+            parse(
+                base.iter()
+                    .copied()
+                    .chain(extra.iter().copied())
+                    .map(OsString::from),
+            )
+        };
+        let capture = configured(&[
+            "--vendor-capture",
+            ARTIFACT,
+            "--vendor-capture-tree-sha256",
+            &fingerprint,
+        ])
+        .and_then(|config| config.vendor_capture);
+        assert!(
+            matches!(&capture, Some(capture)
+                if capture.artifact.as_os_str() == OsStr::new(ARTIFACT)
+                    && capture.tree_digest.as_str() == fingerprint),
+            "a complete pair on the qualified runtime is accepted verbatim"
+        );
+        for arguments in [
+            vec!["--vendor-capture", ARTIFACT],
+            vec!["--vendor-capture-tree-sha256", &fingerprint],
+            vec![
+                "--vendor-capture",
+                "relative",
+                "--vendor-capture-tree-sha256",
+                &fingerprint,
+            ],
+            vec![
+                "--vendor-capture",
+                WORK_PROJECT_VENDOR,
+                "--vendor-capture-tree-sha256",
+                &fingerprint,
+            ],
+            vec![
+                "--vendor-capture",
+                ARTIFACT,
+                "--vendor-capture-tree-sha256",
+                "sha256:bad",
+            ],
+            vec![
+                "--vendor-capture",
+                ARTIFACT,
+                "--vendor-capture-tree-sha256",
+                &fingerprint,
+                "--vendor-capture",
+                ARTIFACT,
+            ],
+        ] {
+            assert!(configured(&arguments).is_none(), "accepted {arguments:?}");
+        }
+        // Without the qualified runtime there is nothing to contain a capture.
+        assert!(
+            parse(
+                [
+                    "--root",
+                    WORK_PROJECT,
+                    "--vendor-capture",
+                    ARTIFACT,
+                    "--vendor-capture-tree-sha256",
+                    &fingerprint,
                 ]
                 .into_iter()
                 .map(OsString::from)

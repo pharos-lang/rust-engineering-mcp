@@ -1,6 +1,6 @@
 # Estado de implementación — Rust Engineering MCP
 
-Actualizado: 2026-09-07
+Actualizado: 2026-09-08
 
 Fuente principal: [`spec/rust-engineering-mcp-propuesta-v0.3.md`](spec/rust-engineering-mcp-propuesta-v0.3.md)
 
@@ -20,7 +20,7 @@ Fuente principal: [`spec/rust-engineering-mcp-propuesta-v0.3.md`](spec/rust-engi
 | Historial | M0-01..12 integrados mediante ramas ai/ y merges no-ff locales. | Cada validation/M0-*.md registra integración; no remoto. |
 | Especificación/instrucciones | v0.3.1 y AGENTS.md revisados; decisiones ADR-001..059. | spec, ADRs y dispositions de reviewers. |
 | Código Rust | Ocho crates: domain, application, MCP, project, execution, catalog, semantic y artifact. | Workspace real; domain soloSerde, application soloDomain. |
-| MCP | Trece tools M1 estables; checkout 0.3.0-dev conserva las cinco M2 e integra nextest, coverage, SemVer y mutation (22 tools). Tasks está anunciado y exige declaración mutua. | protocol/contract tests; [matriz M3](validation/M3-matrix.md), [M3-02](validation/M3-02.md), [M3-04](validation/M3-04-semver-calibration.md) y [M3-05](validation/M3-05-mutation-calibration.md). |
+| MCP | Trece tools M1 estables; checkout 0.3.0 conserva las cinco M2 e integra nextest, coverage, SemVer y mutation (22 tools). Tasks está anunciado y exige declaración mutua. | protocol/contract tests; [matriz M3](validation/M3-matrix.md), [M3-02](validation/M3-02.md), [M3-04](validation/M3-04-semver-calibration.md) y [M3-05](validation/M3-05-mutation-calibration.md). |
 | Seguridad | I/O propio macOS/APFS no-follow; gateway Docker Linux ARM64 de probes y camino Rust ADR-031 revisado. | M0-04/05/06; [calibración Rust](validation/M1-01-rust-gateway.md), integración MCP ADR-032 validada. |
 | Datos locales | SQLite/FTS5 autoritativo, E5 verificado/LanceDB derivado, ArtifactStore M1 efímero y store privado M3 persistente disponible en macOS ARM64/APFS. | M0-08/09/10a; [ADR-061](adr/ADR-061-private-quality-artifact-store.md), CLI y tests de calidad. |
 | Imagen guest M3 | Imagen Linux ARM64 provisionada con plugins exactos; nextest calificado con el perfil mínimo quality de ADR-064. | [Digest/configuración](validation/M3-image-config.json), [provisioning](validation/M3-provisioning.json), [M3-01](validation/M3-01.md). |
@@ -148,7 +148,7 @@ y [validación/reviews](roadmap/planning-validation.md).
 | M2 / 0.2.x | Done local; sin release nueva | [Safe Mutation](roadmap/m2-safe-mutation.md) · [prompt M2](prompts/implement-m2.md) |
 | M3 / 0.3.x | Done; integrado en `main` como `57c4037` (PR #14); sin release nueva | [Quality](roadmap/m3-quality.md) · [matriz M3](validation/M3-matrix.md) · [integración](validation/M3-integration.json) |
 | M4 / 0.4.x | Done local; integración mediante PR #15; sin release nueva | [Security](roadmap/m4-security.md) · [handoff M4](validation/M4-handoff.md) · [confirmación final](reviews/m4-final-evidence/review.md) |
-| M5 / 0.5.x | Planned | [Performance](roadmap/m5-performance.md) · [prompt M5](prompts/implement-m5.md) |
+| M5 / 0.5.x | Done local; sin integración remota, PR, tag ni release | [Performance](roadmap/m5-performance.md) · [matriz M5](validation/M5-matrix.md) · [handoff M5](validation/M5-handoff.md) |
 | M6 / 0.6.x | Planned | [Analyzer](roadmap/m6-analyzer.md) · [prompt M6](prompts/implement-m6.md) |
 | M7 / 0.7.x | Conditional; ejecución Deferred sin Go | [Remote](roadmap/m7-remote.md) · [prompt M7](prompts/implement-m7.md) |
 | M8 / 0.8–0.9 / readiness 1.0 | Planned | [Stabilization](roadmap/m8-stabilization.md) · [prompt M8](prompts/implement-m8.md) |
@@ -294,8 +294,48 @@ release ni M5.
 
 [Matriz](validation/M4-matrix.md) · [Handoff y límites](validation/M4-handoff.md).
 
+## M5 — Performance en `ai/m5-performance`
+
+**Done local — 2026-09-10.** El owner autorizó `docs/prompts/complete-m5.md` y
+`finish-m5-fable.md`; M6 y cualquier publicación permanecen fuera de alcance.
+Suite nativa 6/6, matriz de clientes, `core` 23/23 y `full` 38/38 sobre el lock
+con `lancedb 0.31.0` (opción 2a del owner tras el fallo de `semantic` con
+0.38.0; [intentos](validation/m5-gate-attempts/README.md)). D23/D24 y ADR-073..081 fijan método, capability, imagen, contratos,
+captura offline, semántica bloat, logs y límites de interpretación.
+
+| Corte | Estado | Evidencia vigente o pendiente |
+| --- | --- | --- |
+| M5-01 `rust.benchmark.run` | Done local: captura real, tres repeticiones, 90 muestras por benchmark; clientes | [gate nativo](validation/M5-native-gate.json), [captura](validation/M5-01-capture-runtime.json), [clientes](validation/M5-clients.json) |
+| M5-02 `rust.benchmark.compare` | Done local: clientes con datasets propios (`inconclusive`/`insufficient_executions`, `NOT_A_DATASET`); guarda direccional congelada en `false` | [clientes](validation/M5-clients.json); ADR-073/081 |
+| M5-03 `rust.profile.flamegraph` | Done local: nativo y clientes (193 muestras, 0 perdidas) | [runtime](validation/M5-03-runtime.json), [clientes](validation/M5-clients.json) |
+| M5-04 `rust.binary.bloat` | Done local bajo ADR-079 | [runtime](validation/M5-04-runtime.json), [clientes](validation/M5-clients.json) |
+| M5-05 cierre | Done local: clientes, `core`, `full` y G1–G9 | [clientes](validation/M5-clients.json), [core](validation/M5-core-gate.json), [full](validation/M5-full-gate.json), [G1–G9](validation/m5-delegation/closure-local-semantics/g1-g9-disposition.md) |
+
+La captura independiente conserva los límites de `SourceBundle`. El volumen
+vendor de captura tiene 512 MiB/32768 inodos; creación, fingerprint y cleanup
+usan las mismas opciones. La lectura del governor observa únicamente el guest,
+con argv cerrado y el mismo sandbox. No presume acceso al governor físico.
+
+La revisión independiente de esta sesión detectó replay de captura mutable,
+expansión de logs al reemplazar UTF-8 inválido y pérdida de diagnóstico cuando
+falla la segunda ejecución de bloat. Se corrigen y re-revisan antes de medir.
+Claude no produjo revisión autenticada; el fallback Sol está declarado.
+La auditoría G1–G9 recuperó además el P2 histórico de paridad `verify_applied`,
+corregido en `89ec114` y re-revisado. El cliente agentic de la matriz es Claude
+Code 2.1.267 (`claude-sonnet-5`); Codex quedó fuera por decisión del owner del
+2026-09-10. La disposición final G1–G9 es Done local.
+
+Los recibos anteriores conservan los bytes y contratos que midieron; no acreditan
+el código nuevo. La integración remota y su smoke siguen pendientes y requieren
+una autorización separada. Sin tag, release, PR ni push; M6 no está iniciado.
+[Matriz](validation/M5-matrix.md) · [Handoff](validation/M5-handoff.md).
+
 ## Technical Debt
 
+- **Post-M8, decisión del owner (2026-09-10): actualizar la paquetería del
+  workspace, incluida `lancedb`,** con las implicaciones por paquete documentadas
+  en [m8-stabilization](roadmap/m8-stabilization.md#tarea-post-m8--actualización-de-paquetería-decisión-del-owner-2026-09-10).
+  Hasta entonces `lancedb` permanece en `0.31.0` según ADR-027.
 - La propuesta contiene ejemplos con versiones placeholder (`1.xx`) y referencias
   temporales; la implementación debe generar datos reales, no copiarlos.
 - El layout de muchos crates es una propuesta, no un mandato. M0 debe empezar con el

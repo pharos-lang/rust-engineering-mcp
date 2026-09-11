@@ -1,9 +1,11 @@
 # Tools
 
 `rust.project.open`, `rust.project.inspect`, `rust.toolchain.inspect`, `rust.check`, `rust.fmt.check`, `rust.clippy`, `rust.test`, `rust.dependencies.audit`, `rust.diagnostics.explain`, `rust.quality.gate`, `rust.catalog.status`, `rust.crate.search` y `rust.crate.inspect` están implementadas en este checkout; los gates de [M1-11](validation/M1-11.md) y [M1-12](validation/M1-12.md) están registrados; M1-13 tiene [gate aprobado](validation/M1-13.md). rmcp 3.2.0 gestiona discovery, negociación y dispatch. La release `0.1.0`
-devuelve trece definiciones sin cursor. El checkout `0.3.0-dev` devuelve 27:
-añade cinco tools M2, cuatro M3 y cinco M4. Las cinco M4 están implementadas y
-calificadas localmente; el hito espera la confirmación final de evidencia.
+devuelve trece definiciones sin cursor. El checkout `0.3.0` devuelve 31:
+añade cinco tools M2, cuatro M3, cinco M4 y cuatro M5. Las cinco M4 están
+implementadas y calificadas localmente; el hito espera la confirmación final de
+evidencia. Las cuatro M5 están implementadas y **calificadas localmente**; su
+estado por corte está en los [contratos M5](#contratos-m5--medición-de-rendimiento).
 
 ## rust.project.open
 
@@ -133,7 +135,7 @@ por el usuario. Los resultados unavailable/blocked/degraded son parte del contra
 ## Vertical M3-01 en el checkout de desarrollo
 
 `rust.test.nextest` se incorporó como la tool número 19; el checkout integrado
-conserva las cuatro definiciones M3 dentro del inventario de 27 tools.
+conserva las cuatro definiciones M3 dentro del inventario, hoy de 31 tools.
 Selecciona
 package/features/target y un filtro cerrado, usa siempre el perfil `rust-mcp`, no
 ejecuta doctests y obtiene
@@ -613,7 +615,7 @@ continúa siendo M1 y se califica separadamente desde fuente según ADR-048.
 ## Escritura local M2 en desarrollo
 
 La release `0.1.0` conserva exactamente las trece tools M1 anteriores. El checkout
-`0.3.0-dev` añade cinco definiciones [calificadas localmente](validation/M2-07.md): `rust.manifest.patch`,
+`0.3.0` añade cinco definiciones [calificadas localmente](validation/M2-07.md): `rust.manifest.patch`,
 `rust.fmt.apply`, `rust.fix.apply`, `rust.dependency.add` y
 `rust.dependency.remove`. Todas usan input cerrado, un worker joined con deadline
 de 240 s, respuesta MCP completa de 512 KiB y el ciclo `preview` → `commit` →
@@ -1112,9 +1114,12 @@ generación local autenticada:
 El catálogo es read-only durante `serve`; import, sync y rebuild pertenecen a la
 CLI explícita y nunca ocurren como efecto de una tool MCP.
 
-La configuración unificada de las 27 tools usa la imagen M4 exacta
+La configuración unificada de las 27 tools M1–M4 usa la imagen M4 exacta
 `sha256:25ed3626e710081a571a86a29521eaf2e890e796afd422ba5e409e0ce1891635`.
 Scanner y Miri exigen esa identidad; las tools M1–M3 conservan su imagen aprobada.
+Las cuatro tools M5 exigen en cambio el digest M5 y devuelven `unavailable` sobre
+esta imagen, que es el resultado correcto y declarado
+([ADR-077](adr/ADR-077-m5-runtime-admission.md)).
 El runtime no adquiere ni construye imágenes durante `serve --stdio`.
 
 El operador puede consultar el inventario compilado sin probar instalaciones:
@@ -1160,3 +1165,476 @@ Los contratos y sus fronteras están fijados en [ADR-067](adr/ADR-067-security-p
 [ADR-071](adr/ADR-071-supply-chain-facts-without-catalog-migration.md) y
 [ADR-072](adr/ADR-072-miri-classification-integrity.md). La atestación de cleanup
 compartida se describe en [ADR-070](adr/ADR-070-task-cleanup-attestation.md).
+
+## Contratos M5 — medición de rendimiento
+
+El checkout añade cuatro definiciones a `tools/list`, después de las 27 tools
+M1–M4 y en este orden: `rust.benchmark.run`, `rust.benchmark.compare`,
+`rust.profile.flamegraph` y `rust.binary.bloat` (`stdio.rs`, `list_tools`). Los
+27 snapshots anteriores se conservan byte a byte bajo un test de invariancia y se
+añaden cuatro nuevos. Las cuatro son `read_only(true)`, `destructive(false)`,
+`idempotent(false)` y `open_world(false)`: ninguna escribe en el checkout. Eso no
+significa que lo medido sea inocuo —tres de ellas compilan y ejecutan código del
+proyecto dentro del sandbox, igual que `rust.test` o `rust.miri`—; solo
+`rust.benchmark.compare` no ejecuta nada.
+Véase [ADR-076](adr/ADR-076-m5-performance-contracts.md).
+
+**Estado.** M5 está calificado localmente: suite nativa
+([gate nativo](validation/M5-native-gate.json)), clientes
+([recibo](validation/M5-clients.json)) y gates `core`/`full`
+([full](validation/M5-full-gate.json)) sobre los contratos finales de captura,
+logs, bloat y método. La [matriz M5](validation/M5-matrix.md) enumera recibos y
+límites. Nada de esto acredita una release, un tag, una integración remota ni
+un cambio de versión.
+
+### Runtime, inputs del host y modo de ejecución M5
+
+Las tres tools que ejecutan un proceso exigen la imagen guest M5
+`sha256:e0a5ca1661b3e49d0a3d68ee3cc0963453078d08eb7fc43c30538c16b7998aac` **y
+solo esa**: cualquier otro digest devuelve `unavailable` antes de crear
+contenedor alguno ([ADR-077](adr/ADR-077-m5-runtime-admission.md)). Exigen
+también datos offline autenticados por el host. Profile y bloat usan el
+`CargoVendorSnapshot` configurado con `--cargo-vendor-dir` y
+`--cargo-vendor-tree-sha256`; sin él el resultado es `MISSING_OFFLINE_DATA` y no
+hay descarga, sustitución ni medida degradada. Para Criterion,
+`rust.benchmark.run` acepta además, y prefiere, una captura de vendor
+([ADR-078](adr/ADR-078-offline-vendor-capture.md)): el par
+`--vendor-capture PATH --vendor-capture-tree-sha256 sha256:<64-hex>` nombra un
+artifact inmutable y el digest que ese artifact debe volver a producir. El
+servidor lo relee y lo recalcula de forma incremental antes de que el guest vea
+un byte, y lo rechaza si el digest no es el declarado; ese digest es el
+`vendor_fingerprint` que viaja en la provenance de la medición. La captura se
+aprovisiona aparte con `cargo-vendor capture`, nunca como efecto secundario de
+una medición, y el guest sigue montando de solo lectura un volumen construido a
+partir de esos bytes, jamás el directorio original del host. `rust.profile.flamegraph`
+exige además la capability del host `--allow-profiling user-space-sampling`
+([ADR-074](adr/ADR-074-profiling-capability-and-containment.md) §2).
+`rust.benchmark.compare` no necesita ninguno de los tres: es cálculo puro sobre
+bytes ya autorizados del store privado.
+
+Una fuente capturada que traiga su propio `.cargo/config.toml` o `.cargo/config`
+en cualquier punto del árbol se rechaza antes de que exista ningún volumen: ese
+archivo decidiría qué sources, linker y rustflags usaría la medición.
+
+`execution_mode` conserva el vocabulario cerrado `auto|task|synchronous`, pero
+M5 no posee ningún `JobKind`: `task` devuelve `blocked`/`TASKS_REQUIRED` como
+resultado declarado, y `auto` y `synchronous` ejecutan dentro del timeout que la
+entrada ya acota. No hay camino MCP Tasks para estas cuatro tools.
+
+Presupuestos y techos ([ADR-076](adr/ADR-076-m5-performance-contracts.md) §7):
+`run` 900 s, `profile` 300 s con 60 s de ventana de muestreo máxima, `bloat`
+300 s y `compare` 30 s; SVG ≤ 8 MiB, JSON de bloat ≤ 4 MiB, muestras ≤ 32 MiB y
+resultado MCP completo ≤ 512 KiB. La cuota se comprueba al publicar los
+artifacts, después de ejecutar; no reserva admisión antes de iniciar el trabajo.
+Los artifacts se publican en el store durable privado de ADR-061, ligados al
+`project_ref` y a su owner, y se leen como Resources privados.
+
+### `rust.benchmark.run`
+
+`rust.benchmark.run` **mide los benchmarks que el proyecto ya tiene y no genera
+ninguno**: no escribe un bench, no lo infiere del nombre de un target y no
+sustituye un harness ausente. El único harness que sabe medir es
+Criterion 0.8.2, verificado por una fase de identidad antes de medir; cualquier
+otro es un resultado observado y no una medida degradada
+([ADR-073](adr/ADR-073-benchmark-method-and-dataset.md) §1).
+
+Entrada cerrada, sin campos desconocidos, sin flags libres y sin rutas:
+`project_ref` (obligatorio, `^prj_[0-9a-f]{32}$`), `package` y `bench_target`
+(`null` por defecto, 1..64 caracteres `^[A-Za-z0-9_-]{1,64}$`), `features`
+(hasta 16, el mismo patrón, vacío por defecto), `all_features` y
+`no_default_features` (`false`), `run_count` (1..=3, por defecto 3),
+`timeout_seconds` (1..=900, por defecto 900) y `execution_mode`.
+
+**Los parámetros del harness los fija el servidor y el proyecto no los alcanza**:
+warmup 3 s, tiempo de medición 5 s y `--sample-size 30`, más `--noplot` y color
+`never`, se pasan como argv cerrado. Un `criterion.toml` o un
+`Criterion::default().sample_size(..)` del proyecto sigue siendo código del
+proyecto: su efecto queda registrado como el tamaño **solicitado** frente a las
+muestras **observadas**, y la comparación lo trata como incompatibilidad de
+método. Los tres valores viajan en la provenance de cada dataset
+(ADR-073 §2).
+
+La respuesta publica identidad y exit de la ejecución
+(`passed|benchmark_failed|compilation_failed|uncalibrated|incomplete`),
+`exit_code`, `termination` (`exited|timed_out|cancelled|output_limit`),
+`exit_run_index` —la repetición a la que pertenecen esos tres campos, que es la
+última que se ejecutó—, repeticiones solicitadas y completadas,
+`logs` (por repetición: bytes retenidos y recorte de cada stream),
+selección, identidad de runtime, si se
+publicó dataset y, si no, por qué (`harness_unrecognized`, `harness_unapproved`,
+`execution_failed`, `output_missing`, `output_unparsable`, `output_too_large`,
+`cancelled`), y hasta 128 resúmenes por benchmark con clave, identidad criterion,
+número de muestras, tamaño solicitado, mediana, mínimo, máximo, desviación
+absoluta mediana, outliers contados con vallas de Tukey **sin eliminarlos**,
+`sampling_mode`, warmup, tiempo de medición y completeness. La provenance incluye
+`source_fingerprint`, harness y versión, `rust_version`, `cargo_version`,
+toolchain declarado, digest de imagen, plataforma, los tres fingerprints de
+configuración/ejecución, selección y hardware con sus cuotas; un campo de
+hardware que el runtime no puede observar se serializa ausente y bloquea la
+comparación, nunca se rellena.
+
+**Las muestras crudas no viajan en la respuesta.** Se publican como artifact
+`benchmark_dataset` en formato `rust-engineering-mcp.benchmark-dataset.v2`
+(`format_version = 2`; cada muestra lleva el `run_index` de la ejecución que la
+produjo), junto al árbol de salida del harness como `criterion_archive`. Un
+lector que no reconozca exactamente ese identificador y esa versión falla cerrado
+y nunca migra medidas (ADR-073 §3).
+
+**Los logs del harness se publican como artifacts propios, uno por repetición y
+por stream** (ADR-080): `harness_stdout` y `harness_stderr`, privados,
+owner-bound, con TTL y sensibilidad `source_derived` como el resto de la
+evidencia M5. No se concatenan entre repeticiones y nunca salen por el `stdout`
+del servidor, que es el transporte del protocolo. Cada entrada de `artifacts`
+lleva el `run_index` de la repetición de la que procede; solo `benchmark_dataset`
+lo lleva a `null`, porque agrupa todas las repeticiones y el índice viaja en cada
+muestra. Una repetición que no escribió nada en un stream no publica ese member:
+un artifact de cero bytes sería una ausencia disfrazada de evidencia.
+
+Cada stream se acota en 256 KiB por repetición y **el recorte se declara**: el
+member sale con `completeness: truncated`, su `size_bytes` es lo que sobrevivió
+—nunca lo que el harness escribió— y `observation.logs` publica, por repetición,
+`stdout_bytes`/`stderr_bytes` retenidos y `stdout_truncated`/`stderr_truncated`.
+Un log recortado no se publica jamás como completo. Los dos booleanos sueltos
+`observation.stdout_truncated`/`stderr_truncated` son el resumen: `true` si
+alguna repetición fue recortada. El payload se hace UTF-8 válido sustituyendo
+bytes inválidos; `stdout_replaced` y `stderr_replaced` declaran esa
+sustitución por stream y repetición, sin confundirla con el recorte. Una respuesta
+con hasta tres repeticiones puede llevar hasta ocho artifacts: dataset, árbol y
+dos logs por repetición.
+
+`criterion_archive` es el árbol de **una** repetición: la última que **exportó**
+uno, y su `run_index` dice cuál. No tiene por qué ser la repetición cuyo exit
+reporta la respuesta: si la tercera falla sin exportar y las dos primeras
+exportaron, el árbol es el de la segunda mientras `exit`, `exit_code` y
+`termination` describen la tercera. Por eso la respuesta publica los dos índices
+—`observation.exit_run_index` y el `run_index` del artifact— y el lector los
+compara en vez de suponer que coinciden. No es una fusión ni una concatenación
+de las tres, porque cada repetición escribe su propio `CRITERION_HOME` y sus
+rutas colisionan; el dataset publicado al lado sí agrupa todas y cada muestra
+lleva su `run_index`. Su `completeness` es `complete` solo cuando se pidió una
+única repetición y esa repetición terminó; con varias repeticiones el árbol
+publicado es evidencia parcial de la ejecución y se declara `partial`. Un árbol
+que exceda el techo de 32 MiB de ADR-076 §7 no se recorta —un tar cortado no es
+un tar—: se declara como omisión (`output_too_large`) y la ejecución publica el
+resto de members sin él.
+
+Una ejecución sin dataset **sí publica sus logs**. `harness_unrecognized`,
+`harness_unapproved` y un fallo de compilación observado siguen siendo resultados
+declarados sin dataset, pero su evidencia —el texto del compilador o del
+harness— es exactamente lo que hace accionable el `OBSERVED_FAILURE`, y viaja en
+`harness_stderr`/`harness_stdout`. Solo una ejecución que no produjo byte alguno
+publica cero artifacts.
+
+Códigos de error: `TASKS_REQUIRED` (no se admite como MCP Task), `SANDBOX_DENIED`
+(capacidad o discovery del sandbox), `MISSING_OFFLINE_DATA` (vendor autenticado
+ausente o inválido), `ARTIFACT_UNAVAILABLE` (store durable no disponible),
+`TOOL_NOT_INSTALLED` (runtime aprobado ausente), `INVALID_PROJECT` (entradas o
+evidencia capturadas que no validan), `PROJECT_NOT_FOUND` (autoridad ausente o
+expirada), `COMMAND_TIMEOUT`, `OUTPUT_LIMIT_EXCEEDED`, `EVIDENCE_INCOMPLETE`
+(evidencia parcial), `OBSERVED_FAILURE` (la ejecución reportó fallo),
+`HARNESS_UNRECOGNIZED` (no se resolvió ningún harness reconocido; sin dataset) y
+`HARNESS_UNAPPROVED` (la versión de criterion resuelta no es la aprobada; sin
+dataset).
+
+Límites declarados: el positivo **está bloqueado**. El cierre de criterion 0.8.2
+son 6 014 archivos y 156 267 469 bytes, con cuatro archivos por encima del límite
+de 1 MiB por archivo, y un `SourceBundle` admite 4 096 entradas, 16 MiB en total
+y 1 MiB por archivo; los límites **no se subieron** porque pertenecen al contrato
+de datos offline calificado en M2/M4 ([M5-01-blocker.json](validation/M5-01-blocker.json)).
+Lo calificado en el guest son `unrecognised-harness`,
+`project-cargo-configuration-refused` y `cancellation-mid-run`
+([recibo](validation/M5-01-runtime.json)). `BenchmarkExit` conserva
+`CALIBRATED = false`: solo se observaron los exits 0 y 1. La herramienta tampoco
+alterna el orden de baseline y candidate: ejecuta en el orden de declaración del
+harness y lo registra; alternar es un protocolo del operador, no un control del
+producto.
+
+### `rust.benchmark.compare`
+
+`rust.benchmark.compare` compara dos datasets que el mismo proyecto ya publicó.
+No ejecuta procesos, no crea contenedor, no lee fuente del proyecto y por eso no
+tiene `execution_mode`. Entrada cerrada: `project_ref`,
+`baseline_artifact_id` y `candidate_artifact_id` (`^qart_[0-9a-f]{32}$`, opacos,
+emitidos por el store y no componibles por el peer) y `timeout_seconds`
+(1..=30, por defecto 30). Un artifact de otro owner no existe para esta llamada.
+
+El método está congelado antes de medir y se publica entero en cada informe
+(ADR-073 §4), bajo el identificador
+`rust-engineering-mcp.benchmark-comparison.v2`:
+
+| Elemento | Valor |
+| --- | --- |
+| Estadístico | mediana del tiempo por iteración (`median_per_iteration_nanoseconds`) |
+| Intervalo | bootstrap percentil **por conglomerados**, 10 000 remuestreos: se remuestrean las ejecuciones y, dentro de cada una, sus muestras |
+| Semilla | fija, derivada de una constante del producto mezclada con la clave del benchmark |
+| Confianza | 0,95 **nominal**: el nivel que el método pide, no la cobertura que entrega (ver el aviso más abajo); con familia de más de una comparación, Bonferroni `1 - (1 - 0,95)/n` |
+| Multiplicidad | `none` o `bonferroni`, con `family_size` y `adjusted_confidence_level` emitidos |
+| Umbral material | 0,05 |
+| Outliers | vallas de Tukey; política `reported_not_removed`, se cuentan y **no** se eliminan |
+| Muestras mínimas | 10 por lado para reclamar cualquier intervalo |
+| Ejecuciones mínimas | 3 por lado para reclamar cualquier dirección: las que el protocolo ejecuta por defecto |
+
+El **minimum detectable ratio** es
+`MDR = (z_{1-α/2 ajustado} + z_{0,80}) · SE`, con `SE` la desviación típica de la
+distribución bootstrap del ratio: el menor ratio verdadero que ese tamaño
+muestral y esa dispersión podrían detectar con 80 % de potencia al nivel
+ajustado. **El MDR no se iguala al umbral del 5 %**; se emite por comparación.
+
+El veredicto se decide en este orden: muestra ausente o truncada, menos de diez
+muestras o mediana de baseline no positiva ⇒ `inconclusive`; **menos de tres
+ejecuciones distintas en cualquiera de los dos lados ⇒ `inconclusive` por
+`insufficient_executions`**, antes de mirar el intervalo, porque con una sola
+ejecución por lado nada distingue un cambio en el código de un cambio en la
+máquina y con dos la estimación de la deriva es la que este bootstrap más
+subestima —el `SE` queda corto por `sqrt(k/(k−1))`, 1,41× con `k = 2`—; tres es
+el `run_count` por defecto, así que la puerta pide que el protocolo se haya
+seguido, no una captura extra; **dispersión degenerada (error estándar cero) ⇒
+`inconclusive` por `degenerate_dispersion`**, porque una dispersión observada de cero es ausencia de
+información sobre la dispersión y no precisión infinita; `MDR` mayor que el
+**familia mayor que 25 ⇒ `inconclusive` por `family_beyond_resolution`**, sin
+correr bootstrap y sin afirmar intervalo, porque con Bonferroni el extremo que
+pediría a 10 000 remuestreos sería un estadístico de orden extremo y no una
+interpolación; **campo de hardware no observable en los dos lados ⇒
+`inconclusive` por `unobservable_hardware`**, porque el parámetro ambiental que
+pudo causar la diferencia nunca se observó; `MDR` mayor que el umbral ⇒
+`inconclusive` por precisión insuficiente; intervalo completamente por encima de
+`+5 %` ⇒ `regression`; completamente por debajo de `-5 %` ⇒ `improvement`;
+completamente dentro de `±5 %` ⇒ `no_material_change`; en cualquier otro caso
+`inconclusive` porque el intervalo cruza el umbral. Las razones se enumeran
+(`insufficient_samples`, `precision_below_threshold`, `interval_spans_threshold`,
+`zero_or_negative_baseline`, `missing_measurement`, `truncated_measurement`,
+`insufficient_executions`, `degenerate_dispersion`, `family_beyond_resolution`,
+`unobservable_hardware`).
+
+> [!IMPORTANT]
+> **En el runtime M5, `rust.benchmark.compare` no emite ninguna dirección.**
+> `METHOD_QUALIFIED_FOR_DIRECTION=false` cierra de manera independiente
+> `regression`, `improvement` y `no_material_change`; `inconclusive` es el único
+> veredicto direccionalmente seguro hasta la recalificación del método.
+>
+> El gateway observa exclusivamente el guest Linux: descubre todos los IDs de
+> CPU visibles y lee el governor de cada uno mediante fases tipadas y acotadas.
+> Solo publica `cpu_governor` cuando cada CPU observada responde y todos los
+> valores coinciden. Sysfs ausente, un exit no cero limpio, una CPU faltante o
+> governors heterogéneos producen `None`; timeout, cancelación, límite de salida
+> o truncamiento producen el error operativo unido del gateway. `cpu_model` se
+> publica solo con valores guest válidos y unánimes. No hay afirmación sobre el
+> host físico ni macOS.
+>
+> La observación uniforme permite comprobar el governor; si falta, la comparación
+> conserva la razón de entorno desconocido correspondiente.
+> No califica el método ni habilita dirección: eso exige recalificación
+> estadística separada, sin cambiar umbrales por esta observación.
+>
+> La tool **sí** mide y publica el efecto: sobre las capturas reales, un cambio de
+> fuente del +25 % se mide como `effect_ratio` +0,2433. Lo que no hace es llamarlo
+> regresión.
+
+> [!IMPORTANT]
+> **`confidence_level: 0.95` es el nivel nominal, no la cobertura entregada.** El
+> bootstrap por conglomerados sortea `k` ejecuciones con reemplazo de las `k` que
+> ese lado ejecutó, y su varianza tiene esperanza `((k − 1)/k)·σ²_entre`: el `SE`
+> publicado queda corto por `sqrt(k/(k−1))` —1,22× con las tres ejecuciones
+> exigidas— y los extremos percentiles se toman sin ensanchamiento `t_{k−1}`. Las
+> dos aproximaciones empujan en el mismo sentido: **el intervalo sale más estrecho,
+> es decir más confiado, que el 0,95 que declara**, nunca más ancho. Medida bajo un
+> nulo gaussiano de efectos aleatorios, una re-revisión independiente situó la
+> cobertura real en 0,84–0,89 con tres ejecuciones por lado. La **magnitud** de esa
+> brecha depende del modelo de deriva con el que se mida; el **mecanismo** no, y no
+> desaparece en ningún `run_count` que la tool acepte. El valor publicado sigue
+> siendo 0,95 a propósito: es lo que el método congelado pide, y sustituirlo por un
+> número «efectivo» de un solo modelo publicaría los supuestos de ese modelo como
+> si fueran los del método (ADR-073 §4).
+
+Por comparación se publican clave, veredicto, `effect_ratio`
+(`candidate_median_ns / baseline_median_ns - 1`; positivo significa que el
+candidato es la medición más lenta), intervalo, ambas medianas, ambos tamaños
+muestrales, **ambos conteos de ejecuciones independientes agrupadas**
+(`baseline_executions` y `candidate_executions`, junto a los tamaños muestrales:
+son lo que decide si se admite dirección, de modo que dos informes iguales en
+todo lo demás pero distintos ahí no tenían derecho al mismo veredicto), ambos
+conteos de outliers, el MDR y las razones. El informe añade
+`compared`, hasta 512 comparaciones con su contador de omisión, y las claves
+presentes en un solo lado (`baseline_only` y `candidate_only`, hasta 256 cada
+una, con sus contadores).
+
+**Un par incompatible es un resultado, no un error de infraestructura**: la
+respuesta es `status = failed` con `error_code = INCOMPATIBLE_DATASETS`,
+`isError` en `false` y la lista completa y ordenada de razones, de entre
+`format_version`, `unit`, `harness`, `harness_version`, `benchmark_identity`,
+`rust_version`, `cargo_version`, `runtime_image`, `platform`, `configuration`,
+`architecture`, `cpu_model`, `cpu_cores`, `os_kernel`, `cpu_governor`,
+`virtualization`, `quotas`, `selection`, `sampling_mode`, `unknown_hardware` y
+`same_artifact`. La respuesta de un par incompatible lleva además las **dos
+provenances comparadas** —formato y versión, unidad, harness y versión, toolchain,
+digest de imagen, plataforma, `configuration_fingerprint`,
+`execution_fingerprint`, selección y hardware—, de modo que un llamador al que se
+le dice `cpu_model` puede ver *qué dos* CPUs, en lugar de tener que pedirlas a
+otra tool que no existe. El `source_fingerprint` **puede** diferir —esa es la razón de
+comparar—, pero comparar un artifact consigo mismo se rechaza como
+`same_artifact`; comparar dos ejecuciones independientes del mismo código es un
+control legítimo.
+
+Otros códigos: `SANDBOX_DENIED` (no hay capacidad de comparación en este host),
+`ARTIFACT_UNAVAILABLE` (store durable no disponible), `ARTIFACT_NOT_FOUND` (un
+identificador no nombra un artifact de este proyecto), `ARTIFACT_UNREADABLE`
+(los bytes almacenados no se pudieron leer enteros), `ARTIFACT_TOO_LARGE` (un
+dataset supera el techo de lectura de 32 MiB), `NOT_A_DATASET` (el identificador
+nombra un artifact que no es un dataset de benchmark), `INVALID_DATASET` (no es
+el contrato v2 que este lector implementa), `NO_COMMON_BENCHMARK` (los dos
+datasets no comparten ninguna clave), `COMMAND_TIMEOUT`,
+`OUTPUT_LIMIT_EXCEEDED` y `EVIDENCE_INCOMPLETE`.
+
+**El resultado reporta una medición, nunca una causa.** Describe dos ejecuciones
+en un host concreto: no atribuye causa, no generaliza a otro hardware ni a otro
+proyecto y no emite ninguna recomendación de optimización (ADR-073 §6). Las
+muestras las produce el harness del proyecto y se describen como observaciones de
+origen no autenticado. `compare` depende de un `run` previo del mismo proyecto:
+sin él no hay nada que comparar, y eso es deliberado. El método está probado
+sobre tres capturas reales del guest, con control de auto-comparación, regresión
+de dirección conocida y rechazo de `same_artifact`
+([calibración](validation/M5-01-benchmark-calibration.json)).
+
+### `rust.profile.flamegraph`
+
+`rust.profile.flamegraph` muestrea en CPU un binario del proyecto dentro del
+sandbox de profiling y publica un flame graph saneado y los stacks colapsados.
+
+**Exige una capability positiva del host.** El peer, el proyecto, la URI de un
+Resource y las annotations de la tool no la conceden y no permiten inferirla. Sin
+`--allow-profiling user-space-sampling` la llamada responde `blocked` con
+`PROFILING_NOT_AUTHORIZED` **antes** de discovery, del vendor, del worker y de
+crear ningún contenedor: no hay build, no hay ejecución y no hay artifact. La
+capability es por servidor y se retira quitando la bandera y reiniciando; no hay
+revocación en caliente (ADR-074 §2).
+
+Entrada cerrada: `project_ref`, `binary_target` (nombre de target cargo, **nunca
+una ruta**, 1..64 caracteres `^[A-Za-z0-9_-]{1,64}$`; el hijo no recibe ningún
+argumento del peer), `frequency_hz` (1..=999, por defecto 99),
+`duration_seconds` (1..=60, por defecto 10), `timeout_seconds` (1..=300, por
+defecto 120) y `execution_mode`.
+
+El alcance del muestreo es estrecho y fijo: solo eventos de espacio de usuario
+(`exclude_kernel`, `exclude_hv`) del tipo software de reloj de CPU, solo el
+proceso hijo que lanza el helper y sus hilos, nunca un pid ajeno ni todo el
+sistema. El perfil seccomp de profiling es el de calidad **más una syscall**,
+`perf_event_open`; se conservan `--cap-drop=ALL`, `no-new-privileges`,
+`--network=none`, rootfs read-only, uid/gid 65534 y el `/source` read-only, y no
+se añade `CAP_PERFMON`, no se usa contenedor privilegiado, no se ejecuta `sudo`
+y no se toca `perf_event_paranoid` (ADR-074 §3 y §4).
+
+La respuesta declara backend, target, resultado del build
+(`built|compilation_failed|target_not_found`) y su exit, exit o señal del hijo,
+frecuencia, duración solicitada frente a la observada, muestras recogidas y
+perdidas, stacks escritos y truncados, frames totales y no resueltos, módulos
+vistos, la profundidad de pila que el kernel aplicó realmente, el errno cuando
+`perf_event_open` fue rechazado, `status`
+(`complete|sample_limit|duration_limit|child_exited|profiler_unavailable`),
+`completeness` (`complete|lost_samples|no_samples|truncated|unavailable`) y un
+ranking acotado de hasta 1 024 frames con muestras propias y totales, con su
+contador de omisión. Los nombres de frame se sanean a un alfabeto cerrado; nunca
+se emite una ruta del sistema de archivos ni el módulo, y un frame no resuelto se
+reporta como `[unknown]` y se cuenta. El SVG lo genera el producto y no contiene
+`<script>`, `on*`, `href`, `xlink:href`, `<foreignObject>`, `<image>`, entidades
+externas ni ninguna URL (ADR-074 §5). Los artifacts son `flamegraph_svg`
+(≤ 8 MiB) y `collapsed_stacks`.
+
+**Cero muestras es un resultado válido y declarado**, no un fallo: se reporta
+como `no_samples` con sus contadores, sin rellenar nada. Una pérdida de muestras
+o de símbolos se declara igual.
+
+Códigos de error: `PROFILING_NOT_AUTHORIZED` (el host no concedió la
+capability), `TASKS_REQUIRED`, `SANDBOX_DENIED`, `MISSING_OFFLINE_DATA`,
+`ARTIFACT_UNAVAILABLE`, `TOOL_NOT_INSTALLED`, `INVALID_PROJECT`,
+`PROJECT_NOT_FOUND`, `COMMAND_TIMEOUT`, `OUTPUT_LIMIT_EXCEEDED`,
+`PROFILER_UNAVAILABLE` (el sampler no pudo abrir el evento de rendimiento; el
+errno reportado es la negativa), `OBSERVED_FAILURE` (el target no compiló o no
+existe en el proyecto) y `EVIDENCE_INCOMPLETE` (evidencia parcial: muestras
+perdidas o stacks truncados declarados).
+
+Límites: presupuesto 300 s con 60 s de ventana de muestreo máxima. El unwinding
+depende de frame pointers; un binario sin ellos produce stacks poco profundos y
+eso se declara. El positivo se limita al guest Linux ARM64 con la imagen M5:
+Mach-O y PE no quedan calificados. M5-03 está calificado nativamente
+([runtime](validation/M5-03-runtime.json)) y por clientes
+([recibo](validation/M5-clients.json)); el cierre conjunto sigue el estado de la
+[matriz M5](validation/M5-matrix.md).
+
+### `rust.binary.bloat`
+
+`rust.binary.bloat` mide el tamaño exacto de un binario del proyecto dentro del
+sandbox y después ejecuta el analizador fijado `cargo-bloat 0.12.1` sobre él.
+Entrada cerrada: `project_ref`, `binary_target` (nombre de target cargo, nunca
+una ruta), `package` (`null` por defecto), `profile` (`release` o `release_lto`,
+por defecto `release`), `timeout_seconds` (1..=300, por defecto 120) y
+`execution_mode`. Sin flags libres y sin `--symbols-section` configurable.
+
+**La respuesta separa dos cosas que no deben leerse como una.** `measured` son
+hechos que este producto verificó por sí mismo dentro del guest: el tamaño exacto
+en bytes del archivo, su `sha256` y su formato
+(`elf64_aarch64|other_elf|mach_o|pe|wasm|unknown`). `attribution` es la
+estimación de `cargo-bloat` sobre a dónde fue ese tamaño: lleva `estimated`
+siempre en `true` e incluye `text_section_size_bytes`, el tamaño de archivo que
+el propio analizador reporta y los rankings por función y por crate. El bucket
+`[Unknown]` del analizador se conserva literal.
+
+**El ranking está acotado, y la respuesta declara por separado cada límite que
+actuó** ([ADR-079](adr/ADR-079-bloat-result-semantics.md) §1). `ranking_cap`
+nombra el tope propio del producto (`max_rows`, hoy 256 filas por vista) y
+cuántas filas de función y de crate dejó fuera; `response_trim` nombra el
+presupuesto de respuesta (`budget_bytes`) y cuántas filas se quitaron **además**
+para caber en él. Las filas descartadas son siempre las más pequeñas. Ninguno de
+los dos contadores es evidencia incompleta ni decide el `status`: un ranking
+acotado por un tope que el producto eligió y declara es la atribución que el
+contrato promete.
+
+**El archivo medido es un build de análisis.** El analizador fuerza
+incondicionalmente `CARGO_PROFILE_<PERFIL>_STRIP=false` porque necesita la tabla
+de símbolos, y se comprobó que `CARGO_PROFILE_RELEASE_STRIP=symbols` no tiene
+efecto alguno sobre el archivo producido
+([calibración](validation/M5-04-bloat-calibration.json)). El DTO lo declara en
+`analysis_build_symbols_forced`, siempre `true`. El tamaño sigue siendo exacto
+*para ese archivo*, pero **no** es byte a byte el que enviaría un proyecto que
+pide stripping, y un reporte de binario stripped es inalcanzable con este
+analizador. `release_lto` tampoco se pide con `--profile`: es `--release` más la
+variable de entorno propiedad del producto `CARGO_PROFILE_RELEASE_LTO=fat`, y
+ambos perfiles dejan el binario bajo `<target-dir>/release/`.
+
+**`passed` significa «análisis ejecutado y validado», y nada más**
+([ADR-079](adr/ADR-079-bloat-result-semantics.md) §2). No afirma que el binario
+esté optimizado, ni que la atribución sea exhaustiva, ni que el ranking describa
+todo el archivo. El DTO lo publica como `analysis_validated`, y exige que el
+analizador saliera limpio, que la completeness sea `complete`, que esté el
+**tamaño exacto medido** y que coincida con el que reportó el analizador, y que
+se haya publicado el artifact que sostiene la atribución.
+
+Si el tamaño exacto que midió el producto y el `file-size` que reporta
+`cargo-bloat` no coinciden, la completeness es `size_mismatch` y la atribución
+**no** se publica como descripción del archivo medido. La completeness es
+validez de la medición y solo eso: sus valores son `complete`, `size_mismatch`,
+`unsupported_format` y `unavailable` —no hay un `truncated`, porque el tope del
+producto es cobertura y se declara en `ranking_cap`—; el exit es
+`passed|analysis_failed|compilation_failed|uncalibrated|incomplete`. El artifact
+es como máximo uno, `bloat_json` (≤ 4 MiB), con el reporte crudo del analizador;
+un fallo de build o de análisis no publica ninguno.
+
+Códigos de error: `TASKS_REQUIRED`, `SANDBOX_DENIED`, `MISSING_OFFLINE_DATA`,
+`ARTIFACT_UNAVAILABLE`, `TOOL_NOT_INSTALLED`, `INVALID_PROJECT`,
+`PROJECT_NOT_FOUND`, `COMMAND_TIMEOUT`, `OUTPUT_LIMIT_EXCEEDED`,
+`OBSERVED_FAILURE` (el target no compiló, no existe o el analizador rechazó la
+petición), `ANALYZER_UNAVAILABLE` (el analizador aprobado no está disponible o no
+es el aprobado; no se produjo medida), `UNSUPPORTED_FORMAT` (el formato del
+binario no lo soporta el analizador fijado), `SIZE_MISMATCH` y
+`EVIDENCE_INCOMPLETE` (la salida del analizador no se observó como una ejecución
+limpia, o no se publicó el artifact que sostiene la atribución).
+
+Límites: WASM se rechaza porque el backend no lo soporta, y Mach-O y PE no quedan
+calificados por el positivo ELF. `BloatExit` conserva `CALIBRATED = false`: solo
+se observaron los exits 0 y 1.
+
+El corte está **In progress otra vez**, no calificado.
+[ADR-079](adr/ADR-079-bloat-result-semantics.md) sustituye la semántica de
+resultado que la calificación anterior midió, así que su
+[recibo](validation/M5-04-runtime.json) —`release-positive`, `release-lto` y
+`missing-binary-target`— acredita el contrato viejo y no este. Se recalifica
+sobre bytes finales, con revisión independiente de por medio.

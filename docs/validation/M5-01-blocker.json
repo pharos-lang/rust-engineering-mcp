@@ -1,0 +1,75 @@
+{
+  "schema": "rust-engineering-mcp.m5-01-blocker.v1",
+  "cut": "M5-01 rust.benchmark.run",
+  "status": "blocked",
+  "condition": "The offline vendor contract cannot carry a Criterion closure.",
+  "reproduce": [
+    "python3 -B fixtures/criterion-vendor/materialize.py",
+    "RUST_MCP_TEST_SOCKET=<docker.sock> RUST_MCP_TEST_IMAGE=sha256:0e21c561488cb917e89e42943eb5138a7ddfd73d9de2f9cd4b9a0b516bdab820 cargo test -p rust-engineering-execution --lib --locked --offline -- --ignored --test-threads=1 m5_benchmark_run"
+  ],
+  "observed": {
+    "bounds": {
+      "source_max_entries": 4096,
+      "source_max_file_bytes": 1048576,
+      "source_max_total_bytes": 16777216
+    },
+    "directories": 779,
+    "entries": 6793,
+    "files": 6014,
+    "files_over_source_max_file_bytes": [
+      "winapi-i686-pc-windows-gnu-0.4.0/lib/libwinapi_kernel32.a",
+      "winapi-i686-pc-windows-gnu-0.4.0/lib/libwinapi_ntdll.a",
+      "winapi-x86_64-pc-windows-gnu-0.4.0/lib/libwinapi_kernel32.a",
+      "winapi-x86_64-pc-windows-gnu-0.4.0/lib/libwinapi_ntdll.a"
+    ],
+    "fits_source_bundle_bounds": false,
+    "materialized": true,
+    "total_bytes": 156267469
+  },
+  "why_it_blocks": [
+    "rust.benchmark.run resolves the harness offline from a host-authenticated CargoVendorSnapshot, exactly as rust.miri does.",
+    "A SourceBundle admits at most 4096 entries, 16 MiB in total and 1 MiB per file.",
+    "No pruning of non-compiled files brings the closure inside the bound, so the positive cannot be reached through the product's own vendor path.",
+    "The four files above each exceed the 1 MiB per-file bound and cannot be pruned, because Cargo's directory source requires every lockfile package to be present whatever the target. That alone blocks the ingest, independently of the entry and byte totals."
+  ],
+  "what_is_qualified_anyway": [
+    "unrecognised-harness: cargo bench runs, exit 0, no dataset, omission HarnessUnrecognized, logs reported",
+    "project-cargo-configuration-refused: refused before any volume exists, no residue",
+    "cancellation-mid-run: /opt/rust/bin/cargo bench observed running, cancelled, tree joined, no residue"
+  ],
+  "not_done": [
+    "The vendor bounds were NOT raised. They are part of the qualified M2/M4 offline-data contract (ADR-055) and every flow that shares SourceBundle depends on them; widening them to make one test pass would weaken a qualified security bound without a decision or a re-qualification.",
+    "No measurement was fabricated and no threshold was lowered."
+  ],
+  "options_for_the_owner": [
+    "Decide a separate offline-data path for large harness closures, with its own bounds, threat model and ADR, and re-qualify the flows that share SourceBundle.",
+    "Mount a host-authenticated vendor directory read-only instead of capturing it into a snapshot, which is a change to how the guest receives host data and needs its own security review.",
+    "Accept M5-01 as delivered-but-unqualified for the positive, with the three negative and control selections qualified as recorded.",
+    "Vendor only the Linux-target closure: NOT viable, and measured. Cargo's directory source requires every lockfile package to be present regardless of target. Parking the three Windows-only packages that hold all four oversized files and rebuilding produced: `error: source `vendored-sources` ... failed to read root of directory source` -- specifically `no matching package named `winapi` found ... required by package `page_size v0.6.0` ... which satisfies dependency `criterion = \"=0.8.2\"`. So the four over-cap files cannot be dropped, and with them present the per-file bound is exceeded before the entry and byte bounds are even reached."
+  ],
+  "evidence": [
+    "docs/validation/M5-01-runtime.json",
+    "docs/validation/M5-01-benchmark-calibration.json"
+  ],
+  "independent_of_this_blocker": "The measurement method is exercised on real guest data rather than hand-written fixtures, and on two different corpora that must not be confused. The three captures criterion_dataset.rs embeds as its parser corpus (criterion-run-1, criterion-run-2, criterion-candidate) were taken on sha256:e9ecc40d..., which ADR-077 does NOT admit; they demonstrate that the parser reads real criterion bytes and nothing about the admitted runtime. The six captures taken on the admitted image (criterion-baseline-{1,2,3}, criterion-candidate-{1,2,3}) are three executions per side and are what the method is exercised against: the one benchmark whose source changed measures +24.3%, the two whose source is identical are refused a direction, and same_artifact is rejected. All of this is independent of this blocker, which is about vendor ingestion and not about measurement.",
+  "measurements": {
+    "why_pruning_does_not_help": "Cargo's directory source demands every lockfile package, so the Windows-only packages carrying the four oversized files cannot be omitted; this was attempted and refused, with the error recorded above.",
+    "not_measured": "The 'compiled subset is about 20 MiB' figure in why_it_blocks was an estimate, not a measurement. It is not load-bearing: the per-file bound is already exceeded by four files that cannot be removed, which blocks the ingest on its own.",
+    "over_cap_files": [
+      "winapi-i686-pc-windows-gnu-0.4.0/lib/libwinapi_kernel32.a",
+      "winapi-i686-pc-windows-gnu-0.4.0/lib/libwinapi_ntdll.a",
+      "winapi-x86_64-pc-windows-gnu-0.4.0/lib/libwinapi_kernel32.a",
+      "winapi-x86_64-pc-windows-gnu-0.4.0/lib/libwinapi_ntdll.a"
+    ]
+  },
+  "path_findings_2026_09_09": {
+    "bounds_broken": 4,
+    "note": "The closure breaks four SourceBundle bounds, not three: entries (6014 files + 779 directories vs SOURCE_MAX_ENTRIES 4096), total bytes (156267469 vs 16 MiB), per-file bytes (4 files over 1 MiB), and SOURCE_MAX_PATH_BYTES (123 paths over 100 bytes, longest 112).",
+    "outside_the_grammar_not_a_limit": {
+      "count": 13,
+      "example": "zerocopy-derive-0.8.56/src/output_tests/expected/into_bytes_enum.repr(i8).expected.rs",
+      "why_it_matters": "validate_source_path admits only [A-Za-z0-9._/-], so these return SourceError::Invalid rather than Limits. NO quota change fixes them: a new contract with larger limits would still refuse this tree. ADR-078 must therefore decide on the path character set, not only on counts and sizes."
+    },
+    "fixture_drift_observed": "The materialized tree had accumulated a 6148-byte .DS_Store the fixture never wrote, gitignored and therefore invisible to anything reading the repo. Measuring over it would have published 6015 files / 156273617 bytes as the shape of the closure. Re-materialized before measuring. This is the drift ADR-078 §1 and §6 describe, observed on our own fixture and without malice."
+  }
+}

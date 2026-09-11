@@ -216,7 +216,7 @@ jobs:
               or release.get("tag") != tag
               or release.get("target") != "aarch64-apple-darwin"
               or release.get("archive_sha256") != digest
-              or receipt.get("counts", {}).get("tools") != 13
+              or receipt.get("counts", {}).get("tools") != 31
               or receipt.get("cleanup", {}).get("process_group_clean") is not True
           ):
               raise SystemExit("release smoke receipt mismatch")

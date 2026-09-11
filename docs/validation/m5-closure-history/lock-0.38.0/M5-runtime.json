@@ -1,0 +1,1616 @@
+{
+  "cuts": [
+    {
+      "cut": "m5-00-admission",
+      "finished_utc": "2026-09-10T15:55:57Z",
+      "fixtures": {},
+      "image_id": "sha256:25ed3626e710081a571a86a29521eaf2e890e796afd422ba5e409e0ce1891635",
+      "residue": {
+        "after": {
+          "containers": [],
+          "volumes": []
+        },
+        "before": {
+          "containers": [],
+          "volumes": []
+        }
+      },
+      "selections": [
+        {
+          "duration_ms": 38,
+          "observed": {
+            "error": "Inspection(Execution(Unavailable))",
+            "image_id": "sha256:25ed3626e710081a571a86a29521eaf2e890e796afd422ba5e409e0ce1891635",
+            "qualified_image_id": "sha256:e0a5ca1661b3e49d0a3d68ee3cc0963453078d08eb7fc43c30538c16b7998aac",
+            "residue_after": {
+              "containers": [],
+              "volumes": []
+            }
+          },
+          "outcome": "passed",
+          "selection": "unqualified-image-refused"
+        }
+      ],
+      "started_utc": "2026-09-10T15:55:56Z"
+    },
+    {
+      "cut": "m5-01-benchmark-blocked",
+      "finished_utc": "2026-09-10T15:56:22Z",
+      "fixtures": {
+        "criterion_vendor": {
+          "bounds": {
+            "source_max_entries": 4096,
+            "source_max_file_bytes": 1048576,
+            "source_max_total_bytes": 16777216
+          },
+          "directories": 779,
+          "entries": 6793,
+          "files": 6014,
+          "files_over_source_max_file_bytes": [
+            "winapi-i686-pc-windows-gnu-0.4.0/lib/libwinapi_kernel32.a",
+            "winapi-i686-pc-windows-gnu-0.4.0/lib/libwinapi_ntdll.a",
+            "winapi-x86_64-pc-windows-gnu-0.4.0/lib/libwinapi_kernel32.a",
+            "winapi-x86_64-pc-windows-gnu-0.4.0/lib/libwinapi_ntdll.a"
+          ],
+          "fits_source_bundle_bounds": false,
+          "materialized": true,
+          "total_bytes": 156267469
+        }
+      },
+      "image_id": "sha256:e0a5ca1661b3e49d0a3d68ee3cc0963453078d08eb7fc43c30538c16b7998aac",
+      "residue": {
+        "after": null,
+        "before": null
+      },
+      "selections": [
+        {
+          "duration_ms": 0,
+          "observed": {
+            "over_entries": true,
+            "over_per_file_bytes": true,
+            "over_total_bytes": true,
+            "reason": "criterion vendor closure exceeds SourceBundle bounds",
+            "run_count": 1,
+            "vendor": {
+              "bounds": {
+                "source_max_entries": 4096,
+                "source_max_file_bytes": 1048576,
+                "source_max_total_bytes": 16777216
+              },
+              "directories": 779,
+              "entries": 6793,
+              "files": 6014,
+              "files_over_source_max_file_bytes": [
+                "winapi-i686-pc-windows-gnu-0.4.0/lib/libwinapi_kernel32.a",
+                "winapi-i686-pc-windows-gnu-0.4.0/lib/libwinapi_ntdll.a",
+                "winapi-x86_64-pc-windows-gnu-0.4.0/lib/libwinapi_kernel32.a",
+                "winapi-x86_64-pc-windows-gnu-0.4.0/lib/libwinapi_ntdll.a"
+              ],
+              "fits_source_bundle_bounds": false,
+              "materialized": true,
+              "total_bytes": 156267469
+            }
+          },
+          "outcome": "blocked",
+          "selection": "positive-run-count-1"
+        },
+        {
+          "duration_ms": 0,
+          "observed": {
+            "over_entries": true,
+            "over_per_file_bytes": true,
+            "over_total_bytes": true,
+            "reason": "criterion vendor closure exceeds SourceBundle bounds",
+            "run_count": 2,
+            "vendor": {
+              "bounds": {
+                "source_max_entries": 4096,
+                "source_max_file_bytes": 1048576,
+                "source_max_total_bytes": 16777216
+              },
+              "directories": 779,
+              "entries": 6793,
+              "files": 6014,
+              "files_over_source_max_file_bytes": [
+                "winapi-i686-pc-windows-gnu-0.4.0/lib/libwinapi_kernel32.a",
+                "winapi-i686-pc-windows-gnu-0.4.0/lib/libwinapi_ntdll.a",
+                "winapi-x86_64-pc-windows-gnu-0.4.0/lib/libwinapi_kernel32.a",
+                "winapi-x86_64-pc-windows-gnu-0.4.0/lib/libwinapi_ntdll.a"
+              ],
+              "fits_source_bundle_bounds": false,
+              "materialized": true,
+              "total_bytes": 156267469
+            }
+          },
+          "outcome": "blocked",
+          "selection": "pooled-run-count-2"
+        }
+      ],
+      "started_utc": "2026-09-10T15:56:22Z"
+    },
+    {
+      "cut": "m5-01-benchmark-capture",
+      "finished_utc": "2026-09-10T15:59:50Z",
+      "fixtures": {
+        "benchmark": {
+          "archive_sha256": "sha256:d59a7a40c438a20850e990aff2eca594627dcd41fd7fe48792ae1254f02e07d8",
+          "bytes": 24968,
+          "directories": 2,
+          "files": 6,
+          "tree_fingerprint": "sha256:63d8bed8389385314b927ac629c73cb7f270891328a7658a658e54791eeb94d2"
+        },
+        "benchmark_vendor_write": {
+          "archive_sha256": "sha256:d3d0a8d67df81c97d9312847191bcbc5f86fd608ede5fd2e72298a3be31d5acc",
+          "bytes": 26478,
+          "directories": 2,
+          "files": 7,
+          "tree_fingerprint": "sha256:f361ec92bcff0621c4f132a5b3fc529f398565740222ce61a6d84ec2b0d724f8"
+        },
+        "vendor_capture": {
+          "artifact": "/private/tmp/rust-mcp-m5-closure/crates/execution-adapter/../../fixtures/criterion-vendor/capture/8e1c814b7e2868b722aa476ae6e5e45967c3ccc840bf434663b14a1cdd7cdb84",
+          "artifact_bytes": 161361408,
+          "artifact_digest": "sha256:e9594ec2fbe95ae14e4ea1e0e66f91855a7db47412c4c33dff79d78c657765ba",
+          "directories": 779,
+          "entries": 6793,
+          "files": 6014,
+          "total_bytes": 156267469,
+          "tree_digest": "sha256:8e1c814b7e2868b722aa476ae6e5e45967c3ccc840bf434663b14a1cdd7cdb84"
+        }
+      },
+      "image_id": "sha256:e0a5ca1661b3e49d0a3d68ee3cc0963453078d08eb7fc43c30538c16b7998aac",
+      "residue": {
+        "after": {
+          "containers": [],
+          "volumes": []
+        },
+        "before": {
+          "containers": [],
+          "volumes": []
+        }
+      },
+      "selections": [
+        {
+          "duration_ms": 135852,
+          "observed": {
+            "archive_bytes": 40960,
+            "archive_run_index": 3,
+            "execution_fingerprint": "sha256:063d1dc27b44e5799ad7abd1ea5b9c03fb3f4fb9f05c921a55eb427d82eef039",
+            "exit": "Passed",
+            "exit_code": 0,
+            "exit_run_index": 3,
+            "harness": "Criterion { version: \"0.8.2\" }",
+            "logs": [
+              {
+                "run_index": 1,
+                "stderr_bytes": 2106,
+                "stderr_truncated": false,
+                "stdout_bytes": 273,
+                "stdout_truncated": false
+              },
+              {
+                "run_index": 2,
+                "stderr_bytes": 744,
+                "stderr_truncated": false,
+                "stdout_bytes": 202,
+                "stdout_truncated": false
+              },
+              {
+                "run_index": 3,
+                "stderr_bytes": 744,
+                "stderr_truncated": false,
+                "stdout_bytes": 437,
+                "stdout_truncated": false
+              }
+            ],
+            "measurements": [
+              {
+                "completeness": "Complete",
+                "function_id": "control",
+                "group_id": "m5",
+                "key": "m5/control",
+                "measurement_ms": 5000,
+                "run_indices": [
+                  1,
+                  2,
+                  3
+                ],
+                "sample_size_requested": 30,
+                "samples": 90,
+                "sampling_mode": "Linear",
+                "total_iterations": 5168010,
+                "warm_up_ms": 3000
+              },
+              {
+                "completeness": "Complete",
+                "function_id": "reference",
+                "group_id": "m5",
+                "key": "m5/reference",
+                "measurement_ms": 5000,
+                "run_indices": [
+                  1,
+                  2,
+                  3
+                ],
+                "sample_size_requested": 30,
+                "samples": 90,
+                "sampling_mode": "Linear",
+                "total_iterations": 5230320,
+                "warm_up_ms": 3000
+              },
+              {
+                "completeness": "Complete",
+                "function_id": "slower_125",
+                "group_id": "m5",
+                "key": "m5/slower_125",
+                "measurement_ms": 5000,
+                "run_indices": [
+                  1,
+                  2,
+                  3
+                ],
+                "sample_size_requested": 30,
+                "samples": 90,
+                "sampling_mode": "Linear",
+                "total_iterations": 4060380,
+                "warm_up_ms": 3000
+              }
+            ],
+            "omission": null,
+            "provenance": {
+              "cargo_version": "1.98.1",
+              "harness_version": "0.8.2",
+              "image_digest": "sha256:e0a5ca1661b3e49d0a3d68ee3cc0963453078d08eb7fc43c30538c16b7998aac",
+              "platform": "linux/aarch64",
+              "run_count": 3,
+              "run_index": 1,
+              "rust_version": "1.98.1"
+            },
+            "runs_completed": 3,
+            "runs_requested": 3,
+            "termination": "Exited",
+            "vendor_capture": {
+              "artifact": "/private/tmp/rust-mcp-m5-closure/crates/execution-adapter/../../fixtures/criterion-vendor/capture/8e1c814b7e2868b722aa476ae6e5e45967c3ccc840bf434663b14a1cdd7cdb84",
+              "artifact_bytes": 161361408,
+              "artifact_digest": "sha256:e9594ec2fbe95ae14e4ea1e0e66f91855a7db47412c4c33dff79d78c657765ba",
+              "directories": 779,
+              "entries": 6793,
+              "files": 6014,
+              "total_bytes": 156267469,
+              "tree_digest": "sha256:8e1c814b7e2868b722aa476ae6e5e45967c3ccc840bf434663b14a1cdd7cdb84"
+            },
+            "vendor_fingerprint": "sha256:8e1c814b7e2868b722aa476ae6e5e45967c3ccc840bf434663b14a1cdd7cdb84"
+          },
+          "outcome": "passed",
+          "selection": "criterion-positive-through-a-capture"
+        },
+        {
+          "duration_ms": 2897,
+          "observed": {
+            "capture_error": "Digest",
+            "control_tree_digest": "sha256:8e1c814b7e2868b722aa476ae6e5e45967c3ccc840bf434663b14a1cdd7cdb84",
+            "declared": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
+            "residue_after": {
+              "containers": [],
+              "volumes": []
+            },
+            "residue_before": {
+              "containers": [],
+              "volumes": []
+            }
+          },
+          "outcome": "passed",
+          "selection": "declared-digest-mismatch-refused"
+        },
+        {
+          "duration_ms": 57331,
+          "observed": {
+            "announced": [
+              "VENDOR_WRITE create refused errno=Some(30) kind=ReadOnlyFilesystem",
+              "VENDOR_WRITE truncate refused errno=Some(30) kind=ReadOnlyFilesystem"
+            ],
+            "artifact_digest_after_run": "sha256:e9594ec2fbe95ae14e4ea1e0e66f91855a7db47412c4c33dff79d78c657765ba",
+            "residue_after": {
+              "containers": [],
+              "volumes": []
+            },
+            "tree_digest_after_run": "sha256:8e1c814b7e2868b722aa476ae6e5e45967c3ccc840bf434663b14a1cdd7cdb84"
+          },
+          "outcome": "passed",
+          "selection": "capture-is-read-only-in-the-guest"
+        },
+        {
+          "duration_ms": 11286,
+          "observed": {
+            "monitor": {
+              "inventory_failed": false,
+              "inventory_polls": 336,
+              "needle": "--directory=/rust-mcp-vendor",
+              "observed_running": true
+            },
+            "residue_after": {
+              "containers": [],
+              "volumes": []
+            }
+          },
+          "outcome": "passed",
+          "selection": "cancellation-during-capture-ingest"
+        }
+      ],
+      "started_utc": "2026-09-10T15:56:22Z"
+    },
+    {
+      "cut": "m5-01-benchmark",
+      "finished_utc": "2026-09-10T15:56:21Z",
+      "fixtures": {
+        "benchmark": {
+          "archive_sha256": "sha256:d59a7a40c438a20850e990aff2eca594627dcd41fd7fe48792ae1254f02e07d8",
+          "bytes": 24968,
+          "directories": 2,
+          "files": 6,
+          "tree_fingerprint": "sha256:63d8bed8389385314b927ac629c73cb7f270891328a7658a658e54791eeb94d2"
+        },
+        "bloat": {
+          "archive_sha256": "sha256:d93c1e9e05c0a4287ba39a95cd39af3c2add28816665d4d40dff4f6601f3c66d",
+          "bytes": 8938,
+          "directories": 3,
+          "files": 7,
+          "tree_fingerprint": "sha256:de4f7fd115fe74543f8613fa53633bd05aa8fbc1a3fea52e6cba035cd7fa5330"
+        }
+      },
+      "image_id": "sha256:e0a5ca1661b3e49d0a3d68ee3cc0963453078d08eb7fc43c30538c16b7998aac",
+      "residue": {
+        "after": {
+          "containers": [],
+          "volumes": []
+        },
+        "before": {
+          "containers": [],
+          "volumes": []
+        }
+      },
+      "selections": [
+        {
+          "duration_ms": 8945,
+          "observed": {
+            "archive_run_index": null,
+            "execution_fingerprint": "sha256:bb183fafa678481a5a3c17e741ed83e1bfc6a85db4465febf55dc5c8d415073c",
+            "exit": "Passed",
+            "exit_code": 0,
+            "exit_run_index": 1,
+            "harness": "Unrecognized",
+            "logs": [
+              {
+                "run_index": 1,
+                "stderr_bytes": 270,
+                "stderr_truncated": false,
+                "stdout_bytes": 235,
+                "stdout_truncated": false
+              }
+            ],
+            "measurements": null,
+            "omission": "HarnessUnrecognized",
+            "runs_completed": 1,
+            "runs_requested": 1,
+            "termination": "Exited",
+            "vendor_fingerprint": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          "outcome": "passed",
+          "selection": "unrecognised-harness"
+        },
+        {
+          "duration_ms": 481,
+          "observed": {
+            "gateway_error": "ProjectCargoConfiguration",
+            "residue_after": {
+              "containers": [],
+              "volumes": []
+            },
+            "residue_before": {
+              "containers": [],
+              "volumes": []
+            }
+          },
+          "outcome": "passed",
+          "selection": "project-cargo-configuration-refused"
+        },
+        {
+          "duration_ms": 14948,
+          "observed": {
+            "monitor": {
+              "inventory_failed": false,
+              "inventory_polls": 583,
+              "needle": "/opt/rust/bin/cargo bench",
+              "observed_running": true
+            },
+            "residue_after": {
+              "containers": [],
+              "volumes": []
+            }
+          },
+          "outcome": "passed",
+          "selection": "cancellation-mid-run"
+        }
+      ],
+      "started_utc": "2026-09-10T15:55:57Z"
+    },
+    {
+      "cut": "m5-03-profile",
+      "finished_utc": "2026-09-10T16:01:39Z",
+      "fixtures": {
+        "profile_workload": {
+          "archive_sha256": "sha256:7d78b4e816a061f6fa0b1d30313122529102cae09be7f076bc83c2fd9f52bf1d",
+          "bytes": 18889,
+          "directories": 1,
+          "files": 9,
+          "tree_fingerprint": "sha256:0585bd5e615b20ac71c5d1ee06e1e8c11141be0c9e7e84529d44cd54cbf85d8d"
+        }
+      },
+      "image_id": "sha256:e0a5ca1661b3e49d0a3d68ee3cc0963453078d08eb7fc43c30538c16b7998aac",
+      "residue": {
+        "after": {
+          "containers": [],
+          "volumes": []
+        },
+        "before": {
+          "containers": [],
+          "volumes": []
+        }
+      },
+      "selections": [
+        {
+          "duration_ms": 11301,
+          "observed": {
+            "backend": "perf_event_software_cpu_clock",
+            "build": "Built",
+            "build_exit_code": 0,
+            "child": {
+              "exit_code": 0,
+              "signal": null
+            },
+            "completeness": "Complete",
+            "counters": {
+              "frames_total": 2176,
+              "frames_unresolved": 200,
+              "max_depth_applied": 127,
+              "modules_seen": 5,
+              "observed_duration_ms": 2001,
+              "samples_collected": 197,
+              "samples_lost": 0,
+              "stacks_truncated": 0,
+              "stacks_written": 2
+            },
+            "execution_fingerprint": "sha256:12ac59ec5b7f07d2735e162217ea8f28c99aa38cfa81e9697d8c653e75d6969a",
+            "hottest_stack": {
+              "distinct_frames_emitted": 25,
+              "frames": [
+                "_start",
+                "__libc_start_main",
+                "[unknown]",
+                "main",
+                "_RNvNtCsfr5T3GFabw_3std2rt19lang_start_internal",
+                "_RNCINvNtCsfr5T3GFabw_3std2rt10lang_startuE0CskHqGhPDynrU_25rust_mcp_profile_workload",
+                "_RINvNtNtCsfr5T3GFabw_3std3sys9backtrace28___rust_begin_short_backtraceFEuuECskHqGhPDynrU_25rust_mcp_profile_workload",
+                "_RNvCskHqGhPDynrU_25rust_mcp_profile_workload4main",
+                "_RNvCskHqGhPDynrU_25rust_mcp_profile_workload9level_one",
+                "_RNvCskHqGhPDynrU_25rust_mcp_profile_workload9level_two",
+                "_RNvCskHqGhPDynrU_25rust_mcp_profile_workload15known_hot_frame"
+              ],
+              "samples": 194,
+              "total_samples": 197
+            },
+            "perf_errno": null,
+            "stacks_bytes": 1170,
+            "status": "Complete",
+            "svg_bytes": 3972,
+            "top_frames": 13
+          },
+          "outcome": "passed",
+          "selection": "profile-positive"
+        },
+        {
+          "duration_ms": 11171,
+          "observed": {
+            "cpu_model": "CPU implementer=0x61 CPU part=0x000 CPU revision=0 CPU variant=0x0",
+            "cpus_sampled": 16,
+            "descendants_reaped": 0,
+            "guest_cpu_cores": 16,
+            "manifest_sha256": "sha256:6e922882531c2189d44a85df0af220b3dd1bd4c734be1d7ed130e2bde2ba5583",
+            "manifest_status": "complete",
+            "namespace_drained": true,
+            "os_kernel": "Linux 7.0.12-linuxkit aarch64"
+          },
+          "outcome": "passed",
+          "selection": "profile-cpus-sampled"
+        },
+        {
+          "duration_ms": 9025,
+          "observed": {
+            "backend": "perf_event_software_cpu_clock",
+            "build": "Built",
+            "build_exit_code": 0,
+            "child": {
+              "exit_code": 0,
+              "signal": null
+            },
+            "completeness": "NoSamples",
+            "counters": {
+              "frames_total": 0,
+              "frames_unresolved": 0,
+              "max_depth_applied": 127,
+              "modules_seen": 5,
+              "observed_duration_ms": 1,
+              "samples_collected": 0,
+              "samples_lost": 0,
+              "stacks_truncated": 0,
+              "stacks_written": 0
+            },
+            "execution_fingerprint": "sha256:4ad0d44a6015a0c02a185387c35826522987d46ed27a020725e453c36a659fb1",
+            "perf_errno": null,
+            "stacks_bytes": 0,
+            "status": "ChildExited",
+            "svg_bytes": 899,
+            "top_frames": 0
+          },
+          "outcome": "passed",
+          "selection": "zero-sample-control"
+        },
+        {
+          "duration_ms": 15904,
+          "observed": {
+            "monitor": {
+              "inventory_failed": false,
+              "inventory_polls": 623,
+              "needle": "/opt/perf/bin/rust-mcp-profile-helper",
+              "observed_running": true
+            },
+            "residue_after": {
+              "containers": [],
+              "volumes": []
+            }
+          },
+          "outcome": "passed",
+          "selection": "cancellation-during-profiling"
+        },
+        {
+          "duration_ms": 18218,
+          "observed": {
+            "backend": "perf_event_software_cpu_clock",
+            "build": "Built",
+            "build_exit_code": 0,
+            "child": {
+              "exit_code": null,
+              "signal": 9
+            },
+            "completeness": "Unavailable",
+            "counters": {
+              "frames_total": 0,
+              "frames_unresolved": 0,
+              "max_depth_applied": 127,
+              "modules_seen": 0,
+              "observed_duration_ms": 0,
+              "samples_collected": 0,
+              "samples_lost": 0,
+              "stacks_truncated": 0,
+              "stacks_written": 0
+            },
+            "execution_fingerprint": "sha256:1d8f2e4efd9e17e7cfbeecc076c1b07f910336000ae79d6c6d13374650351cc7",
+            "helper_exit": 3,
+            "helper_manifest": {
+              "child_exit_code": null,
+              "child_signal": 9,
+              "cpus_sampled": 0,
+              "descendants_reaped": 0,
+              "frames_total": 0,
+              "frames_unresolved": 0,
+              "frequency_hz": 99,
+              "max_depth": 127,
+              "modules_seen": 0,
+              "namespace_drained": true,
+              "observed_duration_ms": 0,
+              "perf_errno": 1,
+              "requested_duration_ms": 4000,
+              "samples_collected": 0,
+              "samples_lost": 0,
+              "schema": "rust-engineering-mcp.profile-helper.v1",
+              "stacks_truncated": 0,
+              "stacks_written": 0,
+              "status": "profiler_unavailable"
+            },
+            "manifest_sha256": "sha256:662407c407b871a195ebb7aad6a6859e9ddf01efab4e2c376ffacd6c17238a89",
+            "perf_errno": 1,
+            "seccomp": "seccomp-rust-quality.json (perf_event_open not allowed)",
+            "stacks_bytes": 0,
+            "status": "ProfilerUnavailable",
+            "svg_bytes": 0,
+            "top_frames": 0
+          },
+          "outcome": "passed",
+          "selection": "denial-control"
+        },
+        {
+          "duration_ms": 22223,
+          "observed": {
+            "backend": "perf_event_software_cpu_clock",
+            "build": "Built",
+            "build_exit_code": 0,
+            "child": {
+              "exit_code": 0,
+              "signal": null
+            },
+            "completeness": "Complete",
+            "counters": {
+              "frames_total": 1975,
+              "frames_unresolved": 201,
+              "max_depth_applied": 127,
+              "modules_seen": 5,
+              "observed_duration_ms": 2002,
+              "samples_collected": 196,
+              "samples_lost": 0,
+              "stacks_truncated": 0,
+              "stacks_written": 2
+            },
+            "descendants_reaped": 1,
+            "execution_fingerprint": "sha256:9266bd419160b630ebeae48342d37990b901916c53e9c149dda6e74af95fb38e",
+            "helper_exit": 0,
+            "helper_manifest": {
+              "child_exit_code": 0,
+              "child_signal": null,
+              "cpus_sampled": 16,
+              "descendants_reaped": 1,
+              "frames_total": 1969,
+              "frames_unresolved": 199,
+              "frequency_hz": 99,
+              "max_depth": 127,
+              "modules_seen": 5,
+              "namespace_drained": true,
+              "observed_duration_ms": 2002,
+              "perf_errno": null,
+              "requested_duration_ms": 4000,
+              "samples_collected": 196,
+              "samples_lost": 0,
+              "schema": "rust-engineering-mcp.profile-helper.v1",
+              "stacks_truncated": 0,
+              "stacks_written": 2,
+              "status": "complete"
+            },
+            "hottest_stack": {
+              "frames": [
+                "_start",
+                "__libc_start_main",
+                "[unknown]",
+                "main",
+                "_RNvNtCsfr5T3GFabw_3std2rt19lang_start_internal",
+                "_RNCINvNtCsfr5T3GFabw_3std2rt10lang_startuE0Csai5KdxhHUDv_21rust_mcp_profile_fork",
+                "_RINvNtNtCsfr5T3GFabw_3std3sys9backtrace28___rust_begin_short_backtraceFEuuECsai5KdxhHUDv_21rust_mcp_profile_fork",
+                "_RNvCsai5KdxhHUDv_21rust_mcp_profile_fork4main",
+                "_RNvCsai5KdxhHUDv_21rust_mcp_profile_fork8dispatch",
+                "_RNvNtCsai5KdxhHUDv_21rust_mcp_profile_fork8workload15known_hot_frame"
+              ],
+              "samples": 191,
+              "total_samples": 196
+            },
+            "manifest_sha256": "sha256:13dd577e1d8911a4c49ee6adc82806c43bfcd36fe8cbff4a5277c647bfb24de4",
+            "namespace_drained": true,
+            "perf_errno": null,
+            "reconciled_artifact": {
+              "distinct_stacks": 2,
+              "total_samples": 196
+            },
+            "stacks_bytes": 1038,
+            "status": "Complete",
+            "svg_bytes": 3800,
+            "top_frames": 12
+          },
+          "outcome": "passed",
+          "selection": "profile-descendant-drained"
+        },
+        {
+          "duration_ms": 21278,
+          "observed": {
+            "exported_manifest_bytes": 0,
+            "exported_stacks_bytes": 0,
+            "helper_exit": 4,
+            "helper_stderr": "internal failure: the profile outputs could not be written\n",
+            "helper_stderr_bytes": 59,
+            "port_error": "InvalidMetadata"
+          },
+          "outcome": "passed",
+          "selection": "profile-precreated-artifact-refused"
+        }
+      ],
+      "started_utc": "2026-09-10T15:59:50Z"
+    },
+    {
+      "cut": "m5-04-bloat",
+      "finished_utc": "2026-09-10T16:02:10Z",
+      "fixtures": {
+        "bloat": {
+          "archive_sha256": "sha256:d93c1e9e05c0a4287ba39a95cd39af3c2add28816665d4d40dff4f6601f3c66d",
+          "bytes": 8938,
+          "directories": 3,
+          "files": 7,
+          "tree_fingerprint": "sha256:de4f7fd115fe74543f8613fa53633bd05aa8fbc1a3fea52e6cba035cd7fa5330"
+        }
+      },
+      "image_id": "sha256:e0a5ca1661b3e49d0a3d68ee3cc0963453078d08eb7fc43c30538c16b7998aac",
+      "residue": {
+        "after": {
+          "containers": [],
+          "volumes": []
+        },
+        "before": {
+          "containers": [],
+          "volumes": []
+        }
+      },
+      "selections": [
+        {
+          "duration_ms": 9547,
+          "observed": {
+            "analysis_validated": true,
+            "analyzer_version": "0.12.1",
+            "attribution": {
+              "crates": [
+                {
+                  "name": "std",
+                  "size_bytes": 224736
+                },
+                {
+                  "name": "rust_mcp_bloat_fixture",
+                  "size_bytes": 4280
+                },
+                {
+                  "name": "bloat_inner",
+                  "size_bytes": 4132
+                },
+                {
+                  "name": "[Unknown]",
+                  "size_bytes": 1848
+                },
+                {
+                  "name": "__rustc",
+                  "size_bytes": 20
+                }
+              ],
+              "crates_omitted_by_row_cap": 0,
+              "estimated": true,
+              "functions": 256,
+              "functions_omitted_by_row_cap": 378,
+              "reported_file_size_bytes": 4574312,
+              "text_section_size_bytes": 235268
+            },
+            "completeness": "Complete",
+            "execution_fingerprint": "sha256:e83bdcb9d3bc92dc69548681a0da740ab422e64d65b941be9eced0b7160ba04d",
+            "exit": "Passed",
+            "exit_code": 0,
+            "measured": {
+              "analysis_build_symbols_forced": true,
+              "format": "Elf64Aarch64",
+              "sha256": "sha256:c430c5508943557f0a53c83b1aed273de25fde919f46682887913fc13648ca86",
+              "size_bytes": 4574312
+            }
+          },
+          "outcome": "passed",
+          "selection": "release-positive"
+        },
+        {
+          "duration_ms": 11158,
+          "observed": {
+            "analysis_validated": true,
+            "analyzer_version": "0.12.1",
+            "attribution": {
+              "crates": [
+                {
+                  "name": "std",
+                  "size_bytes": 204300
+                },
+                {
+                  "name": "rust_mcp_bloat_fixture",
+                  "size_bytes": 4912
+                },
+                {
+                  "name": "bloat_inner",
+                  "size_bytes": 4132
+                },
+                {
+                  "name": "[Unknown]",
+                  "size_bytes": 3200
+                },
+                {
+                  "name": "__rustc",
+                  "size_bytes": 212
+                }
+              ],
+              "crates_omitted_by_row_cap": 0,
+              "estimated": true,
+              "functions": 256,
+              "functions_omitted_by_row_cap": 234,
+              "reported_file_size_bytes": 2150848,
+              "text_section_size_bytes": 217048
+            },
+            "completeness": "Complete",
+            "execution_fingerprint": "sha256:e136804b01dc847578040401148b46e8b36f46290f4f9e68cd1d56fc6ac22b74",
+            "exit": "Passed",
+            "exit_code": 0,
+            "measured": {
+              "analysis_build_symbols_forced": true,
+              "format": "Elf64Aarch64",
+              "sha256": "sha256:7b75a48f2f65da6538bdaeec04dbec57eba024147f0530be05b6f0d275ecb5f4",
+              "size_bytes": 2150848
+            }
+          },
+          "outcome": "passed",
+          "selection": "release-lto"
+        },
+        {
+          "duration_ms": 9212,
+          "observed": {
+            "analysis_validated": false,
+            "analyzer_version": "0.12.1",
+            "attribution": null,
+            "completeness": "Unavailable",
+            "execution_fingerprint": "sha256:0a138583a60222d30b657fe51e7c7b89d32ce1b08dcee31d7cacadf57b02a88b",
+            "exit": "AnalysisFailed",
+            "exit_code": 1,
+            "measured": null
+          },
+          "outcome": "passed",
+          "selection": "missing-binary-target"
+        }
+      ],
+      "started_utc": "2026-09-10T16:01:40Z"
+    }
+  ],
+  "finished_utc": "2026-09-10T16:02:10Z",
+  "fixtures": {
+    "benchmark": {
+      "archive_sha256": "sha256:d59a7a40c438a20850e990aff2eca594627dcd41fd7fe48792ae1254f02e07d8",
+      "bytes": 24968,
+      "directories": 2,
+      "files": 6,
+      "tree_fingerprint": "sha256:63d8bed8389385314b927ac629c73cb7f270891328a7658a658e54791eeb94d2"
+    },
+    "benchmark_vendor_write": {
+      "archive_sha256": "sha256:d3d0a8d67df81c97d9312847191bcbc5f86fd608ede5fd2e72298a3be31d5acc",
+      "bytes": 26478,
+      "directories": 2,
+      "files": 7,
+      "tree_fingerprint": "sha256:f361ec92bcff0621c4f132a5b3fc529f398565740222ce61a6d84ec2b0d724f8"
+    },
+    "bloat": {
+      "archive_sha256": "sha256:d93c1e9e05c0a4287ba39a95cd39af3c2add28816665d4d40dff4f6601f3c66d",
+      "bytes": 8938,
+      "directories": 3,
+      "files": 7,
+      "tree_fingerprint": "sha256:de4f7fd115fe74543f8613fa53633bd05aa8fbc1a3fea52e6cba035cd7fa5330"
+    },
+    "criterion_vendor": {
+      "bounds": {
+        "source_max_entries": 4096,
+        "source_max_file_bytes": 1048576,
+        "source_max_total_bytes": 16777216
+      },
+      "directories": 779,
+      "entries": 6793,
+      "files": 6014,
+      "files_over_source_max_file_bytes": [
+        "winapi-i686-pc-windows-gnu-0.4.0/lib/libwinapi_kernel32.a",
+        "winapi-i686-pc-windows-gnu-0.4.0/lib/libwinapi_ntdll.a",
+        "winapi-x86_64-pc-windows-gnu-0.4.0/lib/libwinapi_kernel32.a",
+        "winapi-x86_64-pc-windows-gnu-0.4.0/lib/libwinapi_ntdll.a"
+      ],
+      "fits_source_bundle_bounds": false,
+      "materialized": true,
+      "total_bytes": 156267469
+    },
+    "profile_workload": {
+      "archive_sha256": "sha256:7d78b4e816a061f6fa0b1d30313122529102cae09be7f076bc83c2fd9f52bf1d",
+      "bytes": 18889,
+      "directories": 1,
+      "files": 9,
+      "tree_fingerprint": "sha256:0585bd5e615b20ac71c5d1ee06e1e8c11141be0c9e7e84529d44cd54cbf85d8d"
+    },
+    "vendor_capture": {
+      "artifact": "/private/tmp/rust-mcp-m5-closure/crates/execution-adapter/../../fixtures/criterion-vendor/capture/8e1c814b7e2868b722aa476ae6e5e45967c3ccc840bf434663b14a1cdd7cdb84",
+      "artifact_bytes": 161361408,
+      "artifact_digest": "sha256:e9594ec2fbe95ae14e4ea1e0e66f91855a7db47412c4c33dff79d78c657765ba",
+      "directories": 779,
+      "entries": 6793,
+      "files": 6014,
+      "total_bytes": 156267469,
+      "tree_digest": "sha256:8e1c814b7e2868b722aa476ae6e5e45967c3ccc840bf434663b14a1cdd7cdb84"
+    }
+  },
+  "image_id": "sha256:e0a5ca1661b3e49d0a3d68ee3cc0963453078d08eb7fc43c30538c16b7998aac",
+  "image_tag_at_provisioning": "rust-engineering-runtime:1.98.1-arm64-m5",
+  "residue": {
+    "after": {
+      "containers": [],
+      "volumes": []
+    },
+    "before": {
+      "containers": [],
+      "volumes": []
+    }
+  },
+  "schema": "rust-engineering-mcp.m5-runtime.v1",
+  "selections": [
+    {
+      "duration_ms": 38,
+      "observed": {
+        "error": "Inspection(Execution(Unavailable))",
+        "image_id": "sha256:25ed3626e710081a571a86a29521eaf2e890e796afd422ba5e409e0ce1891635",
+        "qualified_image_id": "sha256:e0a5ca1661b3e49d0a3d68ee3cc0963453078d08eb7fc43c30538c16b7998aac",
+        "residue_after": {
+          "containers": [],
+          "volumes": []
+        }
+      },
+      "outcome": "passed",
+      "selection": "unqualified-image-refused"
+    },
+    {
+      "duration_ms": 0,
+      "observed": {
+        "over_entries": true,
+        "over_per_file_bytes": true,
+        "over_total_bytes": true,
+        "reason": "criterion vendor closure exceeds SourceBundle bounds",
+        "run_count": 1,
+        "vendor": {
+          "bounds": {
+            "source_max_entries": 4096,
+            "source_max_file_bytes": 1048576,
+            "source_max_total_bytes": 16777216
+          },
+          "directories": 779,
+          "entries": 6793,
+          "files": 6014,
+          "files_over_source_max_file_bytes": [
+            "winapi-i686-pc-windows-gnu-0.4.0/lib/libwinapi_kernel32.a",
+            "winapi-i686-pc-windows-gnu-0.4.0/lib/libwinapi_ntdll.a",
+            "winapi-x86_64-pc-windows-gnu-0.4.0/lib/libwinapi_kernel32.a",
+            "winapi-x86_64-pc-windows-gnu-0.4.0/lib/libwinapi_ntdll.a"
+          ],
+          "fits_source_bundle_bounds": false,
+          "materialized": true,
+          "total_bytes": 156267469
+        }
+      },
+      "outcome": "blocked",
+      "selection": "positive-run-count-1"
+    },
+    {
+      "duration_ms": 0,
+      "observed": {
+        "over_entries": true,
+        "over_per_file_bytes": true,
+        "over_total_bytes": true,
+        "reason": "criterion vendor closure exceeds SourceBundle bounds",
+        "run_count": 2,
+        "vendor": {
+          "bounds": {
+            "source_max_entries": 4096,
+            "source_max_file_bytes": 1048576,
+            "source_max_total_bytes": 16777216
+          },
+          "directories": 779,
+          "entries": 6793,
+          "files": 6014,
+          "files_over_source_max_file_bytes": [
+            "winapi-i686-pc-windows-gnu-0.4.0/lib/libwinapi_kernel32.a",
+            "winapi-i686-pc-windows-gnu-0.4.0/lib/libwinapi_ntdll.a",
+            "winapi-x86_64-pc-windows-gnu-0.4.0/lib/libwinapi_kernel32.a",
+            "winapi-x86_64-pc-windows-gnu-0.4.0/lib/libwinapi_ntdll.a"
+          ],
+          "fits_source_bundle_bounds": false,
+          "materialized": true,
+          "total_bytes": 156267469
+        }
+      },
+      "outcome": "blocked",
+      "selection": "pooled-run-count-2"
+    },
+    {
+      "duration_ms": 135852,
+      "observed": {
+        "archive_bytes": 40960,
+        "archive_run_index": 3,
+        "execution_fingerprint": "sha256:063d1dc27b44e5799ad7abd1ea5b9c03fb3f4fb9f05c921a55eb427d82eef039",
+        "exit": "Passed",
+        "exit_code": 0,
+        "exit_run_index": 3,
+        "harness": "Criterion { version: \"0.8.2\" }",
+        "logs": [
+          {
+            "run_index": 1,
+            "stderr_bytes": 2106,
+            "stderr_truncated": false,
+            "stdout_bytes": 273,
+            "stdout_truncated": false
+          },
+          {
+            "run_index": 2,
+            "stderr_bytes": 744,
+            "stderr_truncated": false,
+            "stdout_bytes": 202,
+            "stdout_truncated": false
+          },
+          {
+            "run_index": 3,
+            "stderr_bytes": 744,
+            "stderr_truncated": false,
+            "stdout_bytes": 437,
+            "stdout_truncated": false
+          }
+        ],
+        "measurements": [
+          {
+            "completeness": "Complete",
+            "function_id": "control",
+            "group_id": "m5",
+            "key": "m5/control",
+            "measurement_ms": 5000,
+            "run_indices": [
+              1,
+              2,
+              3
+            ],
+            "sample_size_requested": 30,
+            "samples": 90,
+            "sampling_mode": "Linear",
+            "total_iterations": 5168010,
+            "warm_up_ms": 3000
+          },
+          {
+            "completeness": "Complete",
+            "function_id": "reference",
+            "group_id": "m5",
+            "key": "m5/reference",
+            "measurement_ms": 5000,
+            "run_indices": [
+              1,
+              2,
+              3
+            ],
+            "sample_size_requested": 30,
+            "samples": 90,
+            "sampling_mode": "Linear",
+            "total_iterations": 5230320,
+            "warm_up_ms": 3000
+          },
+          {
+            "completeness": "Complete",
+            "function_id": "slower_125",
+            "group_id": "m5",
+            "key": "m5/slower_125",
+            "measurement_ms": 5000,
+            "run_indices": [
+              1,
+              2,
+              3
+            ],
+            "sample_size_requested": 30,
+            "samples": 90,
+            "sampling_mode": "Linear",
+            "total_iterations": 4060380,
+            "warm_up_ms": 3000
+          }
+        ],
+        "omission": null,
+        "provenance": {
+          "cargo_version": "1.98.1",
+          "harness_version": "0.8.2",
+          "image_digest": "sha256:e0a5ca1661b3e49d0a3d68ee3cc0963453078d08eb7fc43c30538c16b7998aac",
+          "platform": "linux/aarch64",
+          "run_count": 3,
+          "run_index": 1,
+          "rust_version": "1.98.1"
+        },
+        "runs_completed": 3,
+        "runs_requested": 3,
+        "termination": "Exited",
+        "vendor_capture": {
+          "artifact": "/private/tmp/rust-mcp-m5-closure/crates/execution-adapter/../../fixtures/criterion-vendor/capture/8e1c814b7e2868b722aa476ae6e5e45967c3ccc840bf434663b14a1cdd7cdb84",
+          "artifact_bytes": 161361408,
+          "artifact_digest": "sha256:e9594ec2fbe95ae14e4ea1e0e66f91855a7db47412c4c33dff79d78c657765ba",
+          "directories": 779,
+          "entries": 6793,
+          "files": 6014,
+          "total_bytes": 156267469,
+          "tree_digest": "sha256:8e1c814b7e2868b722aa476ae6e5e45967c3ccc840bf434663b14a1cdd7cdb84"
+        },
+        "vendor_fingerprint": "sha256:8e1c814b7e2868b722aa476ae6e5e45967c3ccc840bf434663b14a1cdd7cdb84"
+      },
+      "outcome": "passed",
+      "selection": "criterion-positive-through-a-capture"
+    },
+    {
+      "duration_ms": 2897,
+      "observed": {
+        "capture_error": "Digest",
+        "control_tree_digest": "sha256:8e1c814b7e2868b722aa476ae6e5e45967c3ccc840bf434663b14a1cdd7cdb84",
+        "declared": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
+        "residue_after": {
+          "containers": [],
+          "volumes": []
+        },
+        "residue_before": {
+          "containers": [],
+          "volumes": []
+        }
+      },
+      "outcome": "passed",
+      "selection": "declared-digest-mismatch-refused"
+    },
+    {
+      "duration_ms": 57331,
+      "observed": {
+        "announced": [
+          "VENDOR_WRITE create refused errno=Some(30) kind=ReadOnlyFilesystem",
+          "VENDOR_WRITE truncate refused errno=Some(30) kind=ReadOnlyFilesystem"
+        ],
+        "artifact_digest_after_run": "sha256:e9594ec2fbe95ae14e4ea1e0e66f91855a7db47412c4c33dff79d78c657765ba",
+        "residue_after": {
+          "containers": [],
+          "volumes": []
+        },
+        "tree_digest_after_run": "sha256:8e1c814b7e2868b722aa476ae6e5e45967c3ccc840bf434663b14a1cdd7cdb84"
+      },
+      "outcome": "passed",
+      "selection": "capture-is-read-only-in-the-guest"
+    },
+    {
+      "duration_ms": 11286,
+      "observed": {
+        "monitor": {
+          "inventory_failed": false,
+          "inventory_polls": 336,
+          "needle": "--directory=/rust-mcp-vendor",
+          "observed_running": true
+        },
+        "residue_after": {
+          "containers": [],
+          "volumes": []
+        }
+      },
+      "outcome": "passed",
+      "selection": "cancellation-during-capture-ingest"
+    },
+    {
+      "duration_ms": 8945,
+      "observed": {
+        "archive_run_index": null,
+        "execution_fingerprint": "sha256:bb183fafa678481a5a3c17e741ed83e1bfc6a85db4465febf55dc5c8d415073c",
+        "exit": "Passed",
+        "exit_code": 0,
+        "exit_run_index": 1,
+        "harness": "Unrecognized",
+        "logs": [
+          {
+            "run_index": 1,
+            "stderr_bytes": 270,
+            "stderr_truncated": false,
+            "stdout_bytes": 235,
+            "stdout_truncated": false
+          }
+        ],
+        "measurements": null,
+        "omission": "HarnessUnrecognized",
+        "runs_completed": 1,
+        "runs_requested": 1,
+        "termination": "Exited",
+        "vendor_fingerprint": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "outcome": "passed",
+      "selection": "unrecognised-harness"
+    },
+    {
+      "duration_ms": 481,
+      "observed": {
+        "gateway_error": "ProjectCargoConfiguration",
+        "residue_after": {
+          "containers": [],
+          "volumes": []
+        },
+        "residue_before": {
+          "containers": [],
+          "volumes": []
+        }
+      },
+      "outcome": "passed",
+      "selection": "project-cargo-configuration-refused"
+    },
+    {
+      "duration_ms": 14948,
+      "observed": {
+        "monitor": {
+          "inventory_failed": false,
+          "inventory_polls": 583,
+          "needle": "/opt/rust/bin/cargo bench",
+          "observed_running": true
+        },
+        "residue_after": {
+          "containers": [],
+          "volumes": []
+        }
+      },
+      "outcome": "passed",
+      "selection": "cancellation-mid-run"
+    },
+    {
+      "duration_ms": 11301,
+      "observed": {
+        "backend": "perf_event_software_cpu_clock",
+        "build": "Built",
+        "build_exit_code": 0,
+        "child": {
+          "exit_code": 0,
+          "signal": null
+        },
+        "completeness": "Complete",
+        "counters": {
+          "frames_total": 2176,
+          "frames_unresolved": 200,
+          "max_depth_applied": 127,
+          "modules_seen": 5,
+          "observed_duration_ms": 2001,
+          "samples_collected": 197,
+          "samples_lost": 0,
+          "stacks_truncated": 0,
+          "stacks_written": 2
+        },
+        "execution_fingerprint": "sha256:12ac59ec5b7f07d2735e162217ea8f28c99aa38cfa81e9697d8c653e75d6969a",
+        "hottest_stack": {
+          "distinct_frames_emitted": 25,
+          "frames": [
+            "_start",
+            "__libc_start_main",
+            "[unknown]",
+            "main",
+            "_RNvNtCsfr5T3GFabw_3std2rt19lang_start_internal",
+            "_RNCINvNtCsfr5T3GFabw_3std2rt10lang_startuE0CskHqGhPDynrU_25rust_mcp_profile_workload",
+            "_RINvNtNtCsfr5T3GFabw_3std3sys9backtrace28___rust_begin_short_backtraceFEuuECskHqGhPDynrU_25rust_mcp_profile_workload",
+            "_RNvCskHqGhPDynrU_25rust_mcp_profile_workload4main",
+            "_RNvCskHqGhPDynrU_25rust_mcp_profile_workload9level_one",
+            "_RNvCskHqGhPDynrU_25rust_mcp_profile_workload9level_two",
+            "_RNvCskHqGhPDynrU_25rust_mcp_profile_workload15known_hot_frame"
+          ],
+          "samples": 194,
+          "total_samples": 197
+        },
+        "perf_errno": null,
+        "stacks_bytes": 1170,
+        "status": "Complete",
+        "svg_bytes": 3972,
+        "top_frames": 13
+      },
+      "outcome": "passed",
+      "selection": "profile-positive"
+    },
+    {
+      "duration_ms": 11171,
+      "observed": {
+        "cpu_model": "CPU implementer=0x61 CPU part=0x000 CPU revision=0 CPU variant=0x0",
+        "cpus_sampled": 16,
+        "descendants_reaped": 0,
+        "guest_cpu_cores": 16,
+        "manifest_sha256": "sha256:6e922882531c2189d44a85df0af220b3dd1bd4c734be1d7ed130e2bde2ba5583",
+        "manifest_status": "complete",
+        "namespace_drained": true,
+        "os_kernel": "Linux 7.0.12-linuxkit aarch64"
+      },
+      "outcome": "passed",
+      "selection": "profile-cpus-sampled"
+    },
+    {
+      "duration_ms": 9025,
+      "observed": {
+        "backend": "perf_event_software_cpu_clock",
+        "build": "Built",
+        "build_exit_code": 0,
+        "child": {
+          "exit_code": 0,
+          "signal": null
+        },
+        "completeness": "NoSamples",
+        "counters": {
+          "frames_total": 0,
+          "frames_unresolved": 0,
+          "max_depth_applied": 127,
+          "modules_seen": 5,
+          "observed_duration_ms": 1,
+          "samples_collected": 0,
+          "samples_lost": 0,
+          "stacks_truncated": 0,
+          "stacks_written": 0
+        },
+        "execution_fingerprint": "sha256:4ad0d44a6015a0c02a185387c35826522987d46ed27a020725e453c36a659fb1",
+        "perf_errno": null,
+        "stacks_bytes": 0,
+        "status": "ChildExited",
+        "svg_bytes": 899,
+        "top_frames": 0
+      },
+      "outcome": "passed",
+      "selection": "zero-sample-control"
+    },
+    {
+      "duration_ms": 15904,
+      "observed": {
+        "monitor": {
+          "inventory_failed": false,
+          "inventory_polls": 623,
+          "needle": "/opt/perf/bin/rust-mcp-profile-helper",
+          "observed_running": true
+        },
+        "residue_after": {
+          "containers": [],
+          "volumes": []
+        }
+      },
+      "outcome": "passed",
+      "selection": "cancellation-during-profiling"
+    },
+    {
+      "duration_ms": 18218,
+      "observed": {
+        "backend": "perf_event_software_cpu_clock",
+        "build": "Built",
+        "build_exit_code": 0,
+        "child": {
+          "exit_code": null,
+          "signal": 9
+        },
+        "completeness": "Unavailable",
+        "counters": {
+          "frames_total": 0,
+          "frames_unresolved": 0,
+          "max_depth_applied": 127,
+          "modules_seen": 0,
+          "observed_duration_ms": 0,
+          "samples_collected": 0,
+          "samples_lost": 0,
+          "stacks_truncated": 0,
+          "stacks_written": 0
+        },
+        "execution_fingerprint": "sha256:1d8f2e4efd9e17e7cfbeecc076c1b07f910336000ae79d6c6d13374650351cc7",
+        "helper_exit": 3,
+        "helper_manifest": {
+          "child_exit_code": null,
+          "child_signal": 9,
+          "cpus_sampled": 0,
+          "descendants_reaped": 0,
+          "frames_total": 0,
+          "frames_unresolved": 0,
+          "frequency_hz": 99,
+          "max_depth": 127,
+          "modules_seen": 0,
+          "namespace_drained": true,
+          "observed_duration_ms": 0,
+          "perf_errno": 1,
+          "requested_duration_ms": 4000,
+          "samples_collected": 0,
+          "samples_lost": 0,
+          "schema": "rust-engineering-mcp.profile-helper.v1",
+          "stacks_truncated": 0,
+          "stacks_written": 0,
+          "status": "profiler_unavailable"
+        },
+        "manifest_sha256": "sha256:662407c407b871a195ebb7aad6a6859e9ddf01efab4e2c376ffacd6c17238a89",
+        "perf_errno": 1,
+        "seccomp": "seccomp-rust-quality.json (perf_event_open not allowed)",
+        "stacks_bytes": 0,
+        "status": "ProfilerUnavailable",
+        "svg_bytes": 0,
+        "top_frames": 0
+      },
+      "outcome": "passed",
+      "selection": "denial-control"
+    },
+    {
+      "duration_ms": 22223,
+      "observed": {
+        "backend": "perf_event_software_cpu_clock",
+        "build": "Built",
+        "build_exit_code": 0,
+        "child": {
+          "exit_code": 0,
+          "signal": null
+        },
+        "completeness": "Complete",
+        "counters": {
+          "frames_total": 1975,
+          "frames_unresolved": 201,
+          "max_depth_applied": 127,
+          "modules_seen": 5,
+          "observed_duration_ms": 2002,
+          "samples_collected": 196,
+          "samples_lost": 0,
+          "stacks_truncated": 0,
+          "stacks_written": 2
+        },
+        "descendants_reaped": 1,
+        "execution_fingerprint": "sha256:9266bd419160b630ebeae48342d37990b901916c53e9c149dda6e74af95fb38e",
+        "helper_exit": 0,
+        "helper_manifest": {
+          "child_exit_code": 0,
+          "child_signal": null,
+          "cpus_sampled": 16,
+          "descendants_reaped": 1,
+          "frames_total": 1969,
+          "frames_unresolved": 199,
+          "frequency_hz": 99,
+          "max_depth": 127,
+          "modules_seen": 5,
+          "namespace_drained": true,
+          "observed_duration_ms": 2002,
+          "perf_errno": null,
+          "requested_duration_ms": 4000,
+          "samples_collected": 196,
+          "samples_lost": 0,
+          "schema": "rust-engineering-mcp.profile-helper.v1",
+          "stacks_truncated": 0,
+          "stacks_written": 2,
+          "status": "complete"
+        },
+        "hottest_stack": {
+          "frames": [
+            "_start",
+            "__libc_start_main",
+            "[unknown]",
+            "main",
+            "_RNvNtCsfr5T3GFabw_3std2rt19lang_start_internal",
+            "_RNCINvNtCsfr5T3GFabw_3std2rt10lang_startuE0Csai5KdxhHUDv_21rust_mcp_profile_fork",
+            "_RINvNtNtCsfr5T3GFabw_3std3sys9backtrace28___rust_begin_short_backtraceFEuuECsai5KdxhHUDv_21rust_mcp_profile_fork",
+            "_RNvCsai5KdxhHUDv_21rust_mcp_profile_fork4main",
+            "_RNvCsai5KdxhHUDv_21rust_mcp_profile_fork8dispatch",
+            "_RNvNtCsai5KdxhHUDv_21rust_mcp_profile_fork8workload15known_hot_frame"
+          ],
+          "samples": 191,
+          "total_samples": 196
+        },
+        "manifest_sha256": "sha256:13dd577e1d8911a4c49ee6adc82806c43bfcd36fe8cbff4a5277c647bfb24de4",
+        "namespace_drained": true,
+        "perf_errno": null,
+        "reconciled_artifact": {
+          "distinct_stacks": 2,
+          "total_samples": 196
+        },
+        "stacks_bytes": 1038,
+        "status": "Complete",
+        "svg_bytes": 3800,
+        "top_frames": 12
+      },
+      "outcome": "passed",
+      "selection": "profile-descendant-drained"
+    },
+    {
+      "duration_ms": 21278,
+      "observed": {
+        "exported_manifest_bytes": 0,
+        "exported_stacks_bytes": 0,
+        "helper_exit": 4,
+        "helper_stderr": "internal failure: the profile outputs could not be written\n",
+        "helper_stderr_bytes": 59,
+        "port_error": "InvalidMetadata"
+      },
+      "outcome": "passed",
+      "selection": "profile-precreated-artifact-refused"
+    },
+    {
+      "duration_ms": 9547,
+      "observed": {
+        "analysis_validated": true,
+        "analyzer_version": "0.12.1",
+        "attribution": {
+          "crates": [
+            {
+              "name": "std",
+              "size_bytes": 224736
+            },
+            {
+              "name": "rust_mcp_bloat_fixture",
+              "size_bytes": 4280
+            },
+            {
+              "name": "bloat_inner",
+              "size_bytes": 4132
+            },
+            {
+              "name": "[Unknown]",
+              "size_bytes": 1848
+            },
+            {
+              "name": "__rustc",
+              "size_bytes": 20
+            }
+          ],
+          "crates_omitted_by_row_cap": 0,
+          "estimated": true,
+          "functions": 256,
+          "functions_omitted_by_row_cap": 378,
+          "reported_file_size_bytes": 4574312,
+          "text_section_size_bytes": 235268
+        },
+        "completeness": "Complete",
+        "execution_fingerprint": "sha256:e83bdcb9d3bc92dc69548681a0da740ab422e64d65b941be9eced0b7160ba04d",
+        "exit": "Passed",
+        "exit_code": 0,
+        "measured": {
+          "analysis_build_symbols_forced": true,
+          "format": "Elf64Aarch64",
+          "sha256": "sha256:c430c5508943557f0a53c83b1aed273de25fde919f46682887913fc13648ca86",
+          "size_bytes": 4574312
+        }
+      },
+      "outcome": "passed",
+      "selection": "release-positive"
+    },
+    {
+      "duration_ms": 11158,
+      "observed": {
+        "analysis_validated": true,
+        "analyzer_version": "0.12.1",
+        "attribution": {
+          "crates": [
+            {
+              "name": "std",
+              "size_bytes": 204300
+            },
+            {
+              "name": "rust_mcp_bloat_fixture",
+              "size_bytes": 4912
+            },
+            {
+              "name": "bloat_inner",
+              "size_bytes": 4132
+            },
+            {
+              "name": "[Unknown]",
+              "size_bytes": 3200
+            },
+            {
+              "name": "__rustc",
+              "size_bytes": 212
+            }
+          ],
+          "crates_omitted_by_row_cap": 0,
+          "estimated": true,
+          "functions": 256,
+          "functions_omitted_by_row_cap": 234,
+          "reported_file_size_bytes": 2150848,
+          "text_section_size_bytes": 217048
+        },
+        "completeness": "Complete",
+        "execution_fingerprint": "sha256:e136804b01dc847578040401148b46e8b36f46290f4f9e68cd1d56fc6ac22b74",
+        "exit": "Passed",
+        "exit_code": 0,
+        "measured": {
+          "analysis_build_symbols_forced": true,
+          "format": "Elf64Aarch64",
+          "sha256": "sha256:7b75a48f2f65da6538bdaeec04dbec57eba024147f0530be05b6f0d275ecb5f4",
+          "size_bytes": 2150848
+        }
+      },
+      "outcome": "passed",
+      "selection": "release-lto"
+    },
+    {
+      "duration_ms": 9212,
+      "observed": {
+        "analysis_validated": false,
+        "analyzer_version": "0.12.1",
+        "attribution": null,
+        "completeness": "Unavailable",
+        "execution_fingerprint": "sha256:0a138583a60222d30b657fe51e7c7b89d32ce1b08dcee31d7cacadf57b02a88b",
+        "exit": "AnalysisFailed",
+        "exit_code": 1,
+        "measured": null
+      },
+      "outcome": "passed",
+      "selection": "missing-binary-target"
+    }
+  ],
+  "started_utc": "2026-09-10T15:55:56Z"
+}

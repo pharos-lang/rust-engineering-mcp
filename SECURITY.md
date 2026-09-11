@@ -279,7 +279,7 @@ HOME/CARGO_HOME efímeros y ejecución offline con red aislada. La policy
 ausentes, corruptos o cambiados bloquean la operación completa; no hay fallback a
 descarga ni a edición solo del manifest.
 
-La [calificación local M2](docs/validation/M2-07.md) está completada. El checkout se identifica como `0.3.0-dev`,
+La [calificación local M2](docs/validation/M2-07.md) está completada. El checkout se identifica como `0.3.0`,
 pero estas cinco tools no forman parte de la release estable `0.1.0`.
 
 Los journals M2 parciales/corruptos pueden bloquear nuevas mutaciones del store
@@ -358,3 +358,83 @@ text, including secrets already present in that source. They remain private,
 opaque artifacts; normalization of new M4 reports is not a sanitizer for those
 archives. The canary controls distinguish exclusion of host-only secrets from
 retention of source explicitly granted by the host.
+
+## Rendimiento M5, calificado localmente
+
+Las cuatro definiciones M5 —`rust.benchmark.run`, `rust.benchmark.compare`,
+`rust.profile.flamegraph` y `rust.binary.bloat`— están implementadas y
+**calificadas localmente**: la [matriz M5](docs/validation/M5-matrix.md)
+registra suite nativa, clientes y gates `core`/`full` sobre las fuentes finales;
+`tools/list` devuelve 31 definiciones y ninguna forma parte de la release
+`0.1.0` ni de una integración remota.
+
+Las tres que ejecutan compilan y corren código del proyecto (R2/R1), igual que
+tests, mutation y Miri. `readOnlyHint` describe que la tool no escribe el
+checkout, no que el benchmark o el binario perfilado sean inocuos. Solo
+`rust.benchmark.compare` no ejecuta nada: calcula sobre bytes ya autorizados del
+store privado, sin proceso ni contenedor.
+
+| Tool | Ejecuta código del proyecto | Permisos del host que exige |
+| --- | --- | --- |
+| `rust.benchmark.run` | Sí (R2/R1) | Grupo Docker completo con imagen aprobada, captura de vendor autenticada para Criterion y store durable |
+| `rust.benchmark.compare` | No | Store durable con dos artifacts del mismo owner |
+| `rust.profile.flamegraph` | Sí (R2/R1) | Grupo Docker completo, imagen aprobada, `CargoVendorSnapshot`, store durable y capability de profiling concedida explícitamente por el operador |
+| `rust.binary.bloat` | Sí (R2/R1) | Grupo Docker completo, vendor Cargo autenticado y store durable |
+
+**El profiling está apagado salvo que el operador lo conceda.** La capability es
+positiva, explícita, por servidor y revocable; el peer, el proyecto, la URI de un
+Resource y las annotations de la tool no la conceden ni permiten inferirla. Sin
+ella la llamada se rechaza antes de crear ningún contenedor. Se rechaza también
+la configuración misma cuando no hay ningún runtime Docker configurado: sin
+gateway no hay contenedor que contener, así que el arranque falla en vez de
+degradar la garantía. Que la imagen configurada sea además la calificada para
+M5 se comprueba por llamada, no al arrancar, y una imagen distinta devuelve
+`unavailable`.
+
+Retirar la concesión es quitar la bandera y reiniciar. **No hay revocación en
+caliente**: la concesión se lee una vez del argv y ningún camino la muta, así que
+retirarla no cancela ni une un trabajo ya en vuelo. La evidencia ya publicada se
+conserva.
+
+**La concesión no amplía nada más.** El perfil seccomp de profiling es el perfil
+de calidad más exactamente una syscall, `perf_event_open`, y esa syscall solo la
+usa la fase de muestreo; el resto de fases conserva el perfil de calidad
+anterior. No se añade `CAP_PERFMON` ni `CAP_SYS_ADMIN`, no se usa `--privileged`,
+no se ejecuta nada con `sudo` y no se modifica ningún `sysctl`:
+`perf_event_paranoid` permanece en `2`. `--cap-drop=ALL`, `no-new-privileges`,
+`--network=none`, `--read-only`, uid/gid 65534 y el montaje de fuente de solo
+lectura no cambian. La medición se limita a espacio de usuario
+(`exclude_kernel`, `exclude_hv`) con eventos software de reloj de CPU, sobre el
+proceso hijo que el propio helper lanza y sus hilos: nunca un pid ajeno, nunca
+todo el sistema. El perfilador es un binario construido desde la fuente de este
+repositorio; no se aprovisiona `perf`, `cargo-flamegraph`, `samply` ni `inferno`.
+[Prueba de capability](docs/validation/M5-profiling-capability-probe.json) y
+[ADR-074](docs/adr/ADR-074-profiling-capability-and-containment.md).
+
+Los stacks colapsados contienen nombres de símbolo y nada más: el alfabeto
+cerrado excluye paths del sistema de archivos y paths de módulo, y un frame no
+resuelto es `[unknown]` contado explícitamente. El SVG lo genera este producto y
+es estático: sin `<script>`, sin atributos `on*`, sin `href`/`xlink:href`, sin
+`<foreignObject>`, `<image>` o `<use>`, sin entidades externas y sin más URL que
+el namespace SVG obligatorio. Un nombre de símbolo sigue siendo metadata
+potencialmente sensible del proyecto; esto no es detección universal de secretos.
+
+Las muestras las produce el harness del **proyecto** y se declaran como
+observaciones de origen no autenticado. El servidor fija warmup, tiempo de
+medición y tamaño muestral en argv cerrado, publica el tamaño solicitado junto al
+observado y verifica compatibilidad antes de cualquier estadística, pero **no se
+afirma que un benchmark no pueda falsificar sus propios números**. El análisis de
+tamaño mide un build de análisis: el analizador fuerza el stripping a `false`
+porque necesita símbolos, así que el archivo medido no es el artefacto que
+enviaría un proyecto que pide stripping; el tamaño es exacto para ese archivo y
+el DTO lo declara. No hay recomendación de optimización ni afirmación causal.
+
+Los `stdout` y `stderr` del harness son artifacts privados `source_derived`,
+separados por repetición y stream; nunca se escriben en el `stdout` MCP. Su
+payload se normaliza a UTF-8 válido mediante sustitución de bytes inválidos y
+declara esa sustitución por separado del recorte. La publicación se somete a la
+cuota del store después de ejecutar: una cuota disponible no es una reserva de
+admisión previa al trabajo.
+
+Esta sección no cambia el procedimiento de reporte de vulnerabilidades descrito
+arriba.

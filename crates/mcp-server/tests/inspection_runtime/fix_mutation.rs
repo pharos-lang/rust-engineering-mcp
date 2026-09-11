@@ -259,7 +259,7 @@ fn fix_active_descendants_join_on_cancellation_timeout_and_eof_without_host_chan
         server.receive(11, DISCOVERY_TIMEOUT)?["result"]["tools"]
             .as_array()
             .map(Vec::len),
-        Some(27)
+        Some(31)
     );
 
     server.send(fix_call(20, &opened, preview(&opened)))?;

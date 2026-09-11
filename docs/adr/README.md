@@ -87,3 +87,10 @@ Accepted, Superseded y Rejected.
 
 - [ADR-071 — Facts de supply chain](ADR-071-supply-chain-facts-without-catalog-migration.md): Accepted D22; implementación pendiente.
 - [ADR-072 — Integridad de clasificación Miri](ADR-072-miri-classification-integrity.md): Accepted D21; oráculo empírico 10/10, integración pendiente.
+
+- [ADR-073 — Método de benchmark, dataset versionado y comparación](ADR-073-benchmark-method-and-dataset.md): Accepted D23; harness Criterion 0.8.2 exacto, muestras crudas y método estadístico congelado antes de medir.
+- [ADR-074 — Capability de profiling, containment y helper propio](ADR-074-profiling-capability-and-containment.md): Accepted D24; positivo nativo con una sola syscall añadida, sin capability, sin contenedor privilegiado y sin cambio de sysctl.
+- [ADR-075 — Aprovisionamiento del runtime M5](ADR-075-m5-runtime-provisioning.md): Accepted tras autorización separada del owner; cargo-bloat 0.12.1, vendor de criterion y helper propio.
+- [ADR-076 — Contratos públicos de las cuatro tools M5](ADR-076-m5-performance-contracts.md): Accepted; veintisiete schemas previos intactos y tamaño exacto separado de atribución estimada.
+- [ADR-077 — Admisión del runtime M5 en el gateway](ADR-077-m5-runtime-admission.md): Accepted; un digest añadido a la lista cerrada, sin sustituir ni ampliar el alcance de las imágenes anteriores.
+- [ADR-080 — Los logs del harness se publican como artifacts](ADR-080-harness-logs-as-artifacts.md): Accepted; implementado — `harness_stdout`/`harness_stderr` por repetición, acotados y con el recorte declarado, y la asociación repetición ↔ archivo ↔ logs corregida en el contrato publicado. Calificación de cliente pendiente.

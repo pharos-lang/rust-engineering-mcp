@@ -1,0 +1,32 @@
+Analysis of sampling inspection_runtime-63c98eef688eb28a (pid 23322) every 1 millisecond
+Process:         inspection_runtime-63c98eef688eb28a [23322]
+Path:            /private/tmp/*/inspection_runtime-63c98eef688eb28a
+Load Address:    0x102eec000
+Identifier:      inspection_runtime-63c98eef688eb28a
+Version:         ???
+Code Type:       ARM64
+Parent Process:  cargo [23318]
+Target Type:     live task
+
+Date/Time:       2026-09-10 18:39:55.413 -0500
+Launch Time:     2026-09-10 18:29:23.677 -0500
+OS Version:      macOS 26.6.2 (25G83)
+Report Version:  7
+Analysis Tool:   /usr/bin/sample
+
+Physical footprint:         112K
+Physical footprint (peak):  112K
+Idle exit:                  untracked
+----
+
+Call graph:
+    792 Thread_52850447: Main Thread   DispatchQueue_<multiple>
+      792 _dyld_start  (in dyld) + 0  [0x1050a49c0]
+
+Total number in stack (recursive counted multiple, when >=5):
+
+Sort by top of stack, same collapsed (when >= 5):
+        _dyld_start  (in dyld)        792
+
+Binary images description not available
+

@@ -16,10 +16,10 @@ de calidad dentro de un runtime controlado, consultar diagnósticos y trabajar c
 un catálogo local de crates.
 
 El servidor usa transporte MCP por `stdio`. Las trece tools de la release
-`0.1.0` observan y validan sin modificar el source. El checkout `0.3.0-dev`
-registra 27 tools: las 18 de M1/M2, las cuatro tools de calidad M3 y cinco tools
-M4, implementadas y calificadas localmente. M4 está cerrado localmente; el
-checkout no forma una release.
+`0.1.0` observan y validan sin modificar el source. El checkout `0.3.0`
+registra 31 tools: las 18 de M1/M2, las cuatro tools de calidad M3, cinco tools
+M4 y cuatro tools de rendimiento M5. M4 y M5 están cerrados localmente, sin
+integración remota ni release. El checkout no forma una release.
 
 > [!IMPORTANT]
 > La versión estable actual es `0.1.0`. GitHub Releases publica un único binario core
@@ -48,6 +48,10 @@ checkout no forma una release.
 | Supply chain (M4, desarrollo) | `rust.supply_chain.inspect` | Tool 25; facts de resolución, audit, deny y catálogo con provenance explícita. |
 | Calidad (M4, desarrollo) | `rust.quality.gate.v2` | Tool 26; gate `strict` o `release` sobre una captura compartida. |
 | Seguridad (M4, desarrollo) | `rust.miri` | Tool 27; evidencia tipada de Miri sobre tests seleccionados. |
+| Rendimiento (M5, desarrollo) | `rust.benchmark.run` | Tool 28; mide los benchmarks Criterion que el proyecto ya tiene y publica las muestras crudas como dataset privado, junto al árbol de salida del harness y al `stdout`/`stderr` de cada repetición como artifacts propios. Calificada localmente. |
+| Rendimiento (M5, desarrollo) | `rust.benchmark.compare` | Tool 29; compara dos datasets propios con un método estadístico congelado. No ejecuta nada. |
+| Rendimiento (M5, desarrollo) | `rust.profile.flamegraph` | Tool 30; muestreo en CPU de un binario del proyecto; exige la capability de profiling del host. |
+| Rendimiento (M5, desarrollo) | `rust.binary.bloat` | Tool 31; tamaño exacto del binario más la atribución estimada del analizador fijado. |
 | Seguridad | `rust.dependencies.audit` | Contrasta `Cargo.lock` con un snapshot RustSec suministrado por el host. |
 | Diagnóstico | `rust.diagnostics.explain` | Obtiene la explicación de un código `rustc`, por ejemplo `E0502`. |
 | Calidad | `rust.quality.gate` | Ejecuta un gate `fast` o `standard` y devuelve el estado de cada etapa. |
@@ -70,6 +74,26 @@ Tasks. Una selección de hasta 60 segundos puede usar el camino síncrono; en
 `rust.quality.gate.v2` se limita a `strict` sin mutation. `release` y mutation
 requieren Tasks. Consulta su [alcance y límites](docs/tools.md#contratos-m4-calificados-localmente)
 y el [handoff de evidencia](docs/validation/M4-handoff.md).
+
+Las cuatro tools M5 miden rendimiento y tamaño sin modificar el checkout.
+`rust.benchmark.run`, `rust.profile.flamegraph` y `rust.binary.bloat` exigen la
+imagen guest M5 y datos offline autenticados por el host. Para Criterion,
+`rust.benchmark.run` usa la captura de vendor de ADR-078; profile y bloat usan el
+`CargoVendorSnapshot` configurado por el host;
+`rust.profile.flamegraph` exige además `--allow-profiling user-space-sampling`;
+`rust.benchmark.compare` no ejecuta nada y opera sobre dos datasets que un `run`
+previo del mismo proyecto ya publicó. Ninguna admite MCP Tasks: en las tres que
+aceptan `execution_mode`, `task` devuelve `TASKS_REQUIRED` como resultado
+declarado; `rust.benchmark.compare` no tiene modo de ejecución.
+
+> [!WARNING]
+> M5 está **calificado localmente** (sin integración remota, PR, tag ni release):
+> suite nativa 6/6 ([gate nativo](docs/validation/M5-native-gate.json)), matriz
+> de clientes ([recibo](docs/validation/M5-clients.json)) y gates `core`/`full`
+> sobre las fuentes finales. `rust.benchmark.compare` no emite veredictos
+> direccionales: publica efecto, intervalo y razones declaradas. Estado y límites
+> en la [matriz M5](docs/validation/M5-matrix.md).
+> Sus contratos completos están en [`docs/tools.md`](docs/tools.md#contratos-m5--medición-de-rendimiento).
 
 Los Resources normalizados no sustituyen una revisión de privacidad. Los HTML de
 cobertura y diffs de mutation autorizados pueden contener source del proyecto,
@@ -173,7 +197,7 @@ cliente.
 | Cliente | Configuración | Evidencia actual |
 | --- | --- | --- |
 | Codex | [CLI o `config.toml`](docs/client-configuration.md#codex) | Codex 0.153.0 stock calificó el camino síncrono M4 para las cinco tools y un turno model-directed con las cinco en `passed`; el cliente no declaró Tasks. [Recibo M4](docs/validation/M4-clients.json). |
-| Claude Code | [CLI o `.mcp.json`](docs/client-configuration.md#claude-code) | M2: Claude Code 2.1.260, Sonnet 5 medium, cinco preview/commit y receipt final; [PASS intento 5](docs/validation/M2-clients.json), con renovación de referencias explícita en el prompt. |
+| Claude Code | [CLI o `.mcp.json`](docs/client-configuration.md#claude-code) | M2: Claude Code 2.1.260, Sonnet 5 medium, cinco preview/commit y receipt final; [PASS intento 5](docs/validation/M2-clients.json), con renovación de referencias explícita en el prompt. M5: Claude Code 2.1.267 (`claude-sonnet-5`) como cliente agentic restringido a MCP: cuatro rechazos declarados en docker-free y, en runtime, dos mediciones propias, comparación `inconclusive`, rechazo `NOT_A_DATASET` y lectura nativa de una Resource ligada por hash; [recibo M5](docs/validation/M5-clients.json). |
 | Gemini CLI | [`settings.json`](docs/client-configuration.md#gemini-cli) | Configuración documentada; calificación de este MCP pendiente. |
 | Cursor | [`.cursor/mcp.json`](docs/client-configuration.md#cursor) | Configuración documentada; calificación de este MCP pendiente. |
 | VS Code / GitHub Copilot | [`.vscode/mcp.json`](docs/client-configuration.md#vs-code-y-github-copilot) | Configuración documentada; calificación de este MCP pendiente. |
@@ -275,6 +299,55 @@ La imagen M4 admitida por identidad inmutable es
 `sha256:25ed3626e710081a571a86a29521eaf2e890e796afd422ba5e409e0ce1891635`.
 La calificación local de las cinco tools usa esa imagen; no amplía la release
 estable ni la matriz más allá de macOS ARM64 con guest Docker Linux ARM64.
+
+### Habilitar las tools M5
+
+Las tools de rendimiento exigen la imagen guest M5 **y solo esa**; cualquier otro
+digest devuelve `unavailable` antes de crear contenedor alguno:
+
+```text
+--rust-image sha256:e0a5ca1661b3e49d0a3d68ee3cc0963453078d08eb7fc43c30538c16b7998aac
+```
+
+`rust.benchmark.run` resuelve su harness **offline**, así que necesita datos de
+vendor autenticados por el host. Admite dos formas y ninguna descarga nada:
+
+- el par de vendor Cargo ya documentado arriba (`--cargo-vendor-dir` y
+  `--cargo-vendor-tree-sha256`), suficiente para un harness pequeño;
+- una **captura de vendor** ([ADR-078](docs/adr/ADR-078-offline-vendor-capture.md)),
+  para un cierre grande como el de `criterion`, que no cabe en el contrato
+  `SourceBundle` ni por cuotas ni por alfabeto de rutas:
+
+```text
+--vendor-capture /ruta/absoluta/al/artifact
+--vendor-capture-tree-sha256 sha256:<64-hex>
+```
+
+También es un par obligatorio, también debe quedar fuera de las roots del
+proyecto, y el servidor **no captura nunca por su cuenta**: relee el artifact,
+recalcula su digest de forma incremental y lo rechaza si no coincide con el
+declarado. Cuando ambos están configurados manda la captura. Sin ninguno de los
+dos, la tool responde que faltan datos offline en lugar de descargar o sustituir
+el harness. `rust.profile.flamegraph` y `rust.binary.bloat` siguen usando el
+árbol `--cargo-vendor-dir` para construir el binario que miden.
+
+El profiling exige además una concesión explícita del host, con un único valor
+admitido:
+
+```text
+--allow-profiling user-space-sampling
+```
+
+Concede exactamente el muestreo de espacio de usuario sobre el proceso hijo que
+lanza el perfilador y sus hilos, con una sola syscall añadida al perfil seccomp.
+No añade capabilities Linux, no usa contenedores privilegiados, no ejecuta `sudo`
+y no toca `perf_event_paranoid`. Cualquier otro valor, repetir la opción o
+usarla sin el grupo Docker completo hace inválida la invocación de `serve`. Sin
+la concesión, `rust.profile.flamegraph` responde `blocked` con
+`PROFILING_NOT_AUTHORIZED` antes de crear ningún contenedor. La capability es por
+servidor y se retira quitando la bandera y reiniciando; ninguna otra tool cambia
+de comportamiento por concederla. Detalles en la
+[guía por cliente](docs/client-configuration.md#configurar-las-tools-m5).
 
 ## Configurar el catálogo local
 
@@ -405,11 +478,11 @@ recuperar la operación durable. Los locks coordinan procesos que comparten
 `--state-root`, pero no bloquean IDE, Git u otros escritores del mismo usuario. No
 hay CAS ni atomicidad visible para una publicación de varios archivos.
 
-El checkout de desarrollo descubre 27 tools: conserva las trece de M1, añade
+El checkout de desarrollo descubre 31 tools: conserva las trece de M1, añade
 `rust.manifest.patch`, `rust.fmt.apply`, `rust.fix.apply`,
 `rust.dependency.add` y `rust.dependency.remove`, e integra el contrato M3-01 de
-`rust.test.nextest`, las otras tres tools M3 y las cinco tools M4 calificadas
-localmente. Cada tool de escritura exige su grant de host:
+`rust.test.nextest`, las otras tres tools M3, las cinco tools M4 calificadas
+localmente y las cuatro tools M5 calificadas localmente. Cada tool de escritura exige su grant de host:
 `--allow-manifest-write`, `--allow-fmt-write`, `--allow-fix-write`,
 `--allow-dependency-add` o `--allow-dependency-remove`, seguido de la raíz del
 workspace. Un grant no autoriza planes ni receipts de otra operación.
@@ -428,7 +501,7 @@ dedicado de fix conserva `network=none` y permite TCP loopback solo dentro de su
 namespace para la coordinación interna de Cargo; build scripts y proc macros pueden
 influir en los cambios `.rs`, por lo que se debe revisar el diff exacto. La
 calificación local M2 está completada con [evidencia reproducible](docs/validation/M2-07.md). El paquete del checkout informa
-`0.3.0-dev`; la release estable continúa siendo `0.1.0`.
+`0.3.0`.
 
 `rust.test.nextest` usa el perfil quality dedicado, no ejecuta doctests y publica
 JUnit/stdout/stderr como Resources privadas. M3-02 habilitó el anuncio de MCP Tasks
@@ -442,14 +515,21 @@ admisión y `task` se rechaza. Véanse los
 La CLI de desarrollo `cargo-vendor inspect --directory /ruta/vendor --json`
 verifica un directory source preparado mediante
 `cargo vendor --locked --versioned-dirs /ruta/vendor`. Devuelve el fingerprint y
-los paquetes verificados, sin ejecutar Cargo ni descargar datos. El operador
+los paquetes verificados, sin ejecutar Cargo ni descargar datos.
+
+`cargo-vendor capture --directory /ruta/vendor --into /ruta/capturas --json`
+produce en cambio una captura ADR-078: lee el árbol de forma incremental, escribe
+un artifact inmutable cuyo nombre es su propio digest y devuelve ese digest, que
+es el valor de `--vendor-capture-tree-sha256`. Rechaza symlinks, hard links y
+cualquier entrada que no sea archivo o directorio regular, falla si el árbol
+cambia durante la captura y no deja residuo si se cancela. Tampoco descarga nada. El operador
 ejecuta ambos comandos de preparación fuera del runtime MCP; el servidor no hereda
 `CARGO_HOME`, no instala herramientas y no descarga crates. Esta fuente es opcional y no forma
 parte de la instalación de M1.
 
 ## M3 — calidad avanzada
 
-El checkout `0.3.0-dev` descubre 27 tools.
+El checkout `0.3.0` descubre 31 tools.
 `rust.test.nextest`, `rust.coverage`,
 `rust.semver.check` y `rust.mutation.test` están implementadas y calificadas en el
 gate Docker M3: 62/62 selecciones (nextest 19, Tasks 7, coverage 8,

@@ -431,3 +431,5 @@ mod source;
 pub use snapshot::read_host_snapshot;
 mod cargo_vendor;
 pub(crate) use cargo_vendor::capture_cargo_vendor;
+mod vendor_capture;
+pub(crate) use vendor_capture::{capture_vendor_tree, verify_vendor_capture};

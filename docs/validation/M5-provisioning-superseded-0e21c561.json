@@ -1,0 +1,69 @@
+{
+  "authorization": "docs/roadmap/m5-provisioning-request.md",
+  "base_image_id_expected": "sha256:25ed3626e710081a571a86a29521eaf2e890e796afd422ba5e409e0ce1891635",
+  "base_image_id_observed": "sha256:25ed3626e710081a571a86a29521eaf2e890e796afd422ba5e409e0ce1891635",
+  "base_tag": "rust-engineering-runtime:1.98.1-arm64-m4-scanner",
+  "binaries_present": [
+    "present",
+    "present"
+  ],
+  "build_context_directory": "build-context-f7eded0ffede03fa",
+  "build_context_removed": "clean",
+  "build_exit_code": 0,
+  "build_log_tail": "#0 building with \"desktop-linux\" instance using docker driver\n\n#1 [internal] load build definition from Dockerfile\n#1 transferring dockerfile: 787B done\n#1 DONE 0.0s\n\n#2 [internal] load metadata for docker.io/library/rust-engineering-runtime:1.98.1-arm64-m4-scanner\n#2 DONE 0.0s\n\n#3 [internal] load .dockerignore\n#3 transferring context: 2B done\n#3 DONE 0.0s\n\n#4 [builder 1/3] FROM docker.io/library/rust-engineering-runtime:1.98.1-arm64-m4-scanner@sha256:25ed3626e710081a571a86a29521eaf2e890e796afd422ba5e409e0ce1891635\n#4 resolve docker.io/library/rust-engineering-runtime:1.98.1-arm64-m4-scanner@sha256:25ed3626e710081a571a86a29521eaf2e890e796afd422ba5e409e0ce1891635 0.0s done\n#4 DONE 0.0s\n\n#5 [internal] load build context\n#5 transferring context: 10.79MB 0.1s done\n#5 DONE 0.1s\n\n#6 [builder 2/3] COPY . /opt/m5-input/\n#6 DONE 0.1s\n\n#7 [builder 3/3] RUN /bin/sh /opt/m5-input/build.sh\n#7 0.050 Dockerfile: OK\n#7 0.050 aho-corasick-1.1.3.crate: OK\n#7 0.050 binfarce-0.2.1.crate: OK\n#7 0.050 build-inputs.json: OK\n#7 0.050 build.sh: OK\n#7 0.050 cargo-bloat-src/.cargo_vcs_info.json: OK\n#7 0.050 cargo-bloat-src/.github/workflows/main.yml: OK\n#7 0.050 cargo-bloat-src/.gitignore: OK\n#7 0.050 cargo-bloat-src/CHANGELOG.md: OK\n#7 0.050 cargo-bloat-src/Cargo.lock: OK\n#7 0.050 cargo-bloat-src/Cargo.toml: OK\n#7 0.050 cargo-bloat-src/Cargo.toml.orig: OK\n#7 0.050 cargo-bloat-src/LICENSE: OK\n#7 0.050 cargo-bloat-src/README.md: OK\n#7 0.050 cargo-bloat-src/src/crate_name.rs: OK\n#7 0.050 cargo-bloat-src/src/main.rs: OK\n#7 0.050 cargo-bloat-src/src/table.rs: OK\n#7 0.051 dependency-map.tsv: OK\n#7 0.051 fallible-iterator-0.2.0.crate: OK\n#7 0.051 helper/Cargo.lock: OK\n#7 0.051 helper/Cargo.toml: OK\n#7 0.051 helper/src/lib.rs: OK\n#7 0.051 helper/src/linux.rs: OK\n#7 0.051 helper/src/main.rs: OK\n#7 0.051 json-0.12.4.crate: OK\n#7 0.053 libc-0.2.154.crate: OK\n#7 0.054 libc-0.2.189.crate: OK\n#7 0.054 memchr-2.7.2.crate: OK\n#7 0.054 memmap2-0.9.4.crate: OK\n#7 0.054 multimap-0.10.0.crate: OK\n#7 0.054 notices/LICENSE: OK\n#7 0.055 notices/LICENSE-APACHE: OK\n#7 0.055 notices/LICENSE-MIT: OK\n#7 0.055 notices/NOTICE: OK\n#7 0.055 pdb-0.8.0.crate: OK\n#7 0.055 pico-args-0.5.0.crate: OK\n#7 0.055 regex-1.10.4.crate: OK\n#7 0.056 regex-automata-0.4.6.crate: OK\n#7 0.057 regex-syntax-0.8.3.crate: OK\n#7 0.057 scroll-0.11.0.crate: OK\n#7 0.057 term_size-0.3.2.crate: OK\n#7 0.057 uuid-1.8.0.crate: OK\n#7 0.059 winapi-0.3.9.crate: OK\n#7 0.065 winapi-i686-pc-windows-gnu-0.4.0.crate: OK\n#7 0.070 winapi-x86_64-pc-windows-gnu-0.4.0.crate: OK\n#7 0.075 release: 1.98.1\n#7 0.079 host: aarch64-unknown-linux-gnu\n#7 2.135    Compiling libc v0.2.154\n#7 2.135    Compiling regex-syntax v0.8.3\n#7 2.135    Compiling uuid v1.8.0\n#7 2.135    Compiling fallible-iterator v0.2.0\n#7 2.135    Compiling scroll v0.11.0\n#7 2.135    Compiling json v0.12.4\n#7 2.135    Compiling multimap v0.10.0\n#7 2.135    Compiling binfarce v0.2.1\n#7 2.136    Compiling pico-args v0.5.0\n#7 2.268    Compiling pdb v0.8.0\n#7 2.405    Compiling memmap2 v0.9.4\n#7 2.405    Compiling term_size v0.3.2\n#7 2.596    Compiling regex-automata v0.4.6\n#7 3.093    Compiling regex v1.10.4\n#7 3.267    Compiling cargo-bloat v0.12.1 (/opt/m5-build/cargo-bloat)\n#7 5.211     Finished `release` profile [optimized] target(s) in 3.13s\n#7 5.214   Machine:                           AArch64\n#7 5.237    Compiling libc v0.2.189\n#7 5.562    Compiling rust-mcp-profile-helper v0.1.0 (/opt/m5-build/helper)\n#7 5.993     Finished `release` profile [optimized] target(s) in 0.77s\n#7 5.996   Machine:                           AArch64\n#7 DONE 6.1s\n\n#8 [stage-1 1/2] COPY --from=builder / /\n#8 DONE 1.8s\n\n#9 [stage-1 2/2] WORKDIR /work\n#9 DONE 0.4s\n\n#10 exporting to image\n#10 exporting layers\n#10 exporting layers 29.1s done\n#10 exporting manifest sha256:9f695cf1964a7c2ea34a8062ce45f36e5516fbd0d2728c46f33c338a79b18ffe done\n#10 exporting config sha256:a3b04c213aca302c3c5dd7783e4387c3b170f67e6a5e18b14908cfd041fce81c done\n#10 exporting attestation manifest sha256:67c9b5980247067f9467fa07758b6ec9ac19ce1428243c1ee950b43dfd84c12d done\n#10 exporting manifest list sha256:0e21c561488cb917e89e42943eb5138a7ddfd73d9de2f9cd4b9a0b516bdab820 done\n#10 naming to docker.io/library/rust-engineering-runtime:1.98.1-arm64-m5 done\n#10 unpacking to docker.io/library/rust-engineering-runtime:1.98.1-arm64-m5\n#10 unpacking to docker.io/library/rust-engineering-runtime:1.98.1-arm64-m5 5.8s done\n#10 DONE 35.0s\n\nView build details: docker-desktop://dashboard/build/desktop-linux/desktop-linux/l1l0d0l0hw0ven3r9b916vayv\n",
+  "builder_cache_pruned": true,
+  "context_bytes": 10784142,
+  "context_files": 46,
+  "decision": "docs/adr/ADR-075-m5-runtime-provisioning.md",
+  "finished_at": "2026-09-08T22:35:54.245795Z",
+  "image_id": "sha256:0e21c561488cb917e89e42943eb5138a7ddfd73d9de2f9cd4b9a0b516bdab820",
+  "image_tag": "rust-engineering-runtime:1.98.1-arm64-m5",
+  "installed": {
+    "base_image_id": "sha256:25ed3626e710081a571a86a29521eaf2e890e796afd422ba5e409e0ce1891635",
+    "binaries": [
+      {
+        "name": "cargo-bloat",
+        "path": "/opt/perf/bin/cargo-bloat",
+        "sha256": "e3eaea0d81679b8a14b8b435f54f00c0c952d4c4c5dc9a204fdbe42b3de7326a",
+        "size": 1644120
+      },
+      {
+        "name": "rust-mcp-profile-helper",
+        "path": "/opt/perf/bin/rust-mcp-profile-helper",
+        "sha256": "70fa813d65979f76faacc6785036e6ab66e9d9f085debd23f0fc18c6df10aec7",
+        "size": 658984
+      }
+    ],
+    "schema": "rust-engineering-mcp.m5-installed.v1",
+    "target": "aarch64-unknown-linux-gnu"
+  },
+  "m4_binaries_intact": [
+    "present",
+    "present",
+    "present",
+    "present"
+  ],
+  "network_used": false,
+  "not_on_path": [
+    "off_path",
+    "off_path"
+  ],
+  "prepare": {
+    "base_image_id": "sha256:25ed3626e710081a571a86a29521eaf2e890e796afd422ba5e409e0ce1891635",
+    "context_file_count": 46,
+    "context_sha256s_digest": "f7eded0ffede03fa53aa64fcbada566242c52cef7d44a284b793aef7fb9c8f4e",
+    "network_used": false,
+    "registry_package_count": 20,
+    "schema": "rust-engineering-mcp.m5-prepare.v1",
+    "status": "prepared_not_built",
+    "target": "aarch64-unknown-linux-gnu"
+  },
+  "schema": "rust-engineering-mcp.m5-provisioning.v1",
+  "sha256sums_sha256": "f7eded0ffede03fa53aa64fcbada566242c52cef7d44a284b793aef7fb9c8f4e",
+  "started_at": "2026-09-08T22:35:07.132119Z",
+  "status": "passed",
+  "toolchain": [
+    "rustc 1.98.1 (48a229cea 2026-09-01)",
+    "Error: can be run only via `cargo bloat`."
+  ]
+}

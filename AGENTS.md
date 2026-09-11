@@ -47,7 +47,10 @@ versión fijada en `Cargo.lock`.
 M0 y M1/0.1.0 están cerrados. El owner autorizó el 2026-09-05 integrar primero la
 planificación M2–M8 y después implementar únicamente M2. La planificación quedó
 integrada localmente en `2f54b360e1e81f21e7efeff7c451cdd6f663a04f`.
-No avanzar a M3 ni publicar otra release/tag sin autorización explícita adicional.
+Ese alcance histórico fue ampliado por autorizaciones posteriores: M2, M3 y M4
+están integrados. El owner autorizó ejecutar `docs/prompts/complete-m5.md` para
+completar y calificar M5 en `ai/m5-performance`, con commits locales. No avanzar
+a M6, hacer push/PR/merge ni publicar otra release/tag en este encargo.
 M2 sigue su [plan](docs/roadmap/m2-safe-mutation.md), incluida la puerta D02 antes
 de un writer. El owner delegó resolver D02 sin cargar instalación/uso;
 [ADR-050](docs/adr/ADR-050-local-coordinated-mutation.md) adopta local_coordinated,

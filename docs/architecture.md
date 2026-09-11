@@ -288,7 +288,7 @@ journal. `local_coordinated` detecta cambios observados, pero no ofrece exclusi�
 OS ante escritores externos, CAS ni una transacción visible multiarchivo. La policy
 `preserve_presence` incluye el lock raíz actualizado si existía y elimina del
 candidato un lock creado solo para validar. Esta arquitectura está integrada en el
-checkout `0.3.0-dev` de 27 tools calificadas localmente, con [calificación M2](validation/M2-07.md) para las
+checkout `0.3.0`, que registra 31 tools calificadas localmente, con [calificación M2](validation/M2-07.md) para las
 18 anteriores y las cuatro tools M3 calificadas en sus cortes síncronos; la release `0.1.0`
 conserva 13.
 
@@ -330,7 +330,7 @@ persisten el store durable privado bajo el state root; `crates/mcp-server/src/ma
 y `crates/mcp-server/src/quality_artifact_cli.rs` implementan
 `quality-artifacts recover|prune`.
 
-El adapter MCP registra las 27 tools en `crates/mcp-server/src/stdio.rs`; los
+El adapter MCP registra las 31 tools en `crates/mcp-server/src/stdio.rs`; los
 handlers M3 están en `stdio/{nextest,coverage,semver,mutation_test}.rs` y el
 lifecycle negociado en `stdio/tasks.rs`. `stdio/resources.rs` publica el índice y
 los miembros como Resources bajo `rust-quality-artifact://`; Tasks está
@@ -368,3 +368,75 @@ private resource authorization. Image admission, policy and classification are
 recorded in ADR-067 through ADR-072. A passive `security-runtime inventory --json`
 CLI exposes compiled optional-runtime requirements separately from doctor v1;
 it neither installs components nor claims an observed runtime.
+
+### M5 — medición de rendimiento sobre las primitivas existentes
+
+El dominio añade `benchmark.rs` con el dataset versionado
+`rust-engineering-mcp.benchmark-dataset.v2` —identidad del benchmark, muestras
+crudas con la ejecución (`run_index`) que produjo cada una, y provenance, con
+validación que falla cerrado ante otro formato o versión—,
+`benchmark_run.rs` con la detección de harness, y `benchmark_compare.rs` con el
+método congelado: mediana por iteración, bootstrap percentil por conglomerados
+sobre ejecuciones con semilla fija,
+corrección por multiplicidad, umbral material, política de outliers, MDR y los
+cuatro veredictos, más la lista de razones de incompatibilidad. `profile.rs` y
+`bloat.rs` aportan opciones y observaciones tipadas. Domain y application siguen
+sin Cargo, Docker, rmcp, almacenamiento ni `serde_json::Value`.
+
+La aplicación añade los ports `ProjectBenchmarkPort`, `ProjectProfilePort` y
+`ProjectBloatPort` con sus publishers, y el caso de uso de comparación sobre el
+store durable con un port `DatasetDecoder`; el decodificador JSON vive en el
+adapter MCP porque la aplicación solo puede depender del dominio
+(`scripts/check-architecture.py`). El gate de capability es un argumento
+explícito, `ProfilingAuthorization`, no estado ambiental: sin concesión la
+operación se rechaza antes de la captura de fuente, antes del executor y antes de
+crear ningún contenedor.
+
+`crates/execution-adapter/src/performance_gateway.rs` es **una sola pasarela**
+para las tres tools que ejecutan un proceso; `rust.benchmark.compare` no la toca.
+**No se añade un segundo executor**: conserva la forma ya calificada —un enum de
+fases, un orquestador parametrizado por la operación, contenedores guardianes por
+volumen tmpfs con nombre, ingesta por `tar` sobre stdin y cleanup joined en toda
+salida— y añade dos volúmenes que M4 no necesitaba: `/work/target`, ejecutable y
+compartido entre las fases de una misma operación para que el analizador y el
+oráculo propio observen el mismo archivo y el perfilador ejecute lo que otra fase
+construyó, y `/performance`, el `CARGO_HOME` respaldado por el vendor. La
+selección del vendor viaja por `--config` con la precedencia más alta. Para
+Criterion, `BenchRun` recibe la captura de vendor autenticada de ADR-078; profile
+y bloat conservan el `CargoVendorSnapshot` del host. Una fuente capturada que
+traiga su propio archivo de configuración de Cargo se
+rechaza antes de crear ningún volumen. Las fases son guardianes e ingestas,
+metadata, discovery de CPUs visibles, probes de CPU y kernel, y luego las propias de cada operación:
+`BenchRun`/`BenchExport`, `ProfileBuild`/`ProfileRun`/`ProfileExport` y las cinco
+de bloat, incluidas las que miden tamaño, digest y cabecera del archivo. Los
+parsers son puros y están en `criterion_dataset.rs`, `profile_stacks.rs`,
+`profile_svg.rs` y `bloat_json.rs`. La observación de governor se queda dentro
+del gateway: enumera IDs de CPU guest observados, construye solo rutas sysfs
+tipadas y acotadas, y acepta el valor únicamente si todas las CPUs visibles
+devuelven el mismo governor. Sysfs ausente, exit no cero limpio o heterogeneidad
+se serializan como desconocidos; timeout, cancelación, output limit o truncamiento
+cierran la operación mediante el lifecycle unido existente. `cpu_model` exige
+consenso de los valores guest válidos. No observa ni declara el host físico. La puerta
+estadística `METHOD_QUALIFIED_FOR_DIRECTION=false` sigue cerrando por separado
+toda dirección.
+
+El perfilador es código de este repositorio: `fixtures/profile-helper` produce
+`rust-mcp-profile-helper`, construido offline e instalado en la imagen guest,
+igual que el helper de scanner de M4. No se aprovisiona `perf`,
+`cargo-flamegraph`, `samply` ni `inferno`. El helper acepta un argv cerrado,
+lanza un solo programa, muestrea únicamente a ese hijo y sus hilos y escribe
+stacks colapsados; el SVG lo renderiza el producto a partir de ellos.
+
+En la frontera MCP, los handlers están en
+`stdio/{benchmark,benchmark_compare,profile,bloat}.rs` y se registran en
+`stdio.rs` después de `rust.miri`. La concesión de profiling se lee una vez del
+argv de arranque (`HostProfilingConfig`) y ningún camino la muta después. Los DTO
+y sus schemas cerrados, el decodificador del dataset y el presupuesto de 512 KiB
+del resultado permanecen en el adapter; los artifacts se publican en el store
+durable privado de ADR-061 y se leen como Resources privados. Los logs del
+harness se publican por `run_index` y stream, UTF-8 válido con sustitución
+declarada separadamente del recorte; su cuota se comprueba al publicar después de
+la ejecución. Las decisiones están en [ADR-073](adr/ADR-073-benchmark-method-and-dataset.md)
+a [ADR-080](adr/ADR-080-harness-logs-as-artifacts.md), y el estado por corte en
+la [matriz M5](validation/M5-matrix.md): M5 calificado localmente (suite
+nativa, clientes, `core` y `full`); sin integración remota ni release.

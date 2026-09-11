@@ -1,0 +1,29 @@
+[package]
+name = "rust-mcp-bloat-fixture"
+version = "0.1.0"
+edition = "2024"
+publish = false
+
+[workspace]
+members = ["bloat-inner"]
+resolver = "3"
+
+[[bin]]
+name = "rust-mcp-bloat-fixture"
+path = "src/main.rs"
+
+[dependencies]
+bloat-inner = { path = "bloat-inner" }
+
+# Baseline profile: no LTO, no debug info, no stripping. Both crates therefore
+# survive as distinct symbols in the linked binary.
+[profile.release]
+lto = false
+debug = false
+strip = "none"
+
+# LTO variant, so a per-crate report can be compared with and without cross-crate
+# inlining. `cargo build --profile release-lto`.
+[profile.release-lto]
+inherits = "release"
+lto = "fat"

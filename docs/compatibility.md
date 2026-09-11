@@ -5,7 +5,7 @@
 | Componente | Foundation implementada |
 | --- | --- |
 | Release soportada | `0.1.0` |
-| Checkout de desarrollo | `0.3.0-dev`; 27 tools: 18 M1/M2, cuatro M3 y cinco M4 calificadas localmente; Tasks anunciado con negociación mutua; sin commit de integración, PR, tag ni publicación |
+| Checkout de desarrollo | `0.3.0`; 31 tools: 18 M1/M2, cuatro M3, cinco M4 y cuatro M5 calificadas localmente; Tasks anunciado con negociación mutua; sin commit de integración, PR, tag ni publicación |
 | Toolchain fijado / MSRV inicial | Rust y Cargo `1.98.1`, edition 2024 |
 | Target de validación local | `aarch64-apple-darwin` |
 | SDK | `rmcp =3.2.0`, features `server`, `transport-io`, sin defaults |
@@ -16,7 +16,7 @@
 | Artifact 0.1.0 publicado | Un único archive core `aarch64-apple-darwin`; checksum, SBOM/notices y provenance verificados |
 | Linux / Windows / macOS x86_64 nativos | CI pública compila y prueba el código fuente; la calificación nativa del sandbox y filesystem sigue pendiente para ampliar soporte en una release futura |
 | Licencia / redistribución | Código original `MIT OR Apache-2.0`; assets `local` no se redistribuyen en 0.1.0 |
-| Clientes de terceros | M4: Inspector 2.5.0 con Tasks y Codex 0.153.0 stock por sincronía; [recibo](validation/M4-clients.json). M1/M2 conservan sus matrices anteriores. |
+| Clientes de terceros | M4: Inspector 2.5.0 con Tasks y Codex 0.153.0 stock por sincronía; [recibo](validation/M4-clients.json). M5: Inspector 2.5.0 (quince filas, catorce Resources) y Claude Code 2.1.267 `claude-sonnet-5` como cliente agentic; [recibo](validation/M5-clients.json). M1/M2 conservan sus matrices anteriores. |
 | Sandbox | Probes M0 separados; ejecución M1–M4 habilitada solo en runtimes aprobados Docker/Linux ARM64 calibrados por sus ADR |
 | SQLite / FTS5 | rusqlite 0.40.2, SQLite bundled 3.53.2; memoria, pruebas ARM64 macOS |
 | LanceDB / embeddings | M0-09: E5/ORT y LanceDB0.31 memory://; feature local, gate macOS ARM64 |
@@ -401,9 +401,118 @@ evita escritores simultáneos durante commit. No ofrece CAS, exclusión OS de ot
 programas ni atomicidad visible multiarchivo. `preserve_presence` mantiene la
 presencia o ausencia inicial de Cargo.lock. La [calificación conjunta](validation/M2-07.md)
 M2 está completada sobre los bytes que entonces se identificaban como `0.2.0-dev`;
-el checkout actual es `0.3.0-dev` y la release soportada continúa siendo `0.1.0`
+el checkout actual es `0.3.0`; la release soportada anterior es `0.1.0`
 con 13 tools.
 
 M2 ADR-059 conserva schemas y formato de journal: libera planes terminales y
 permite commit replay exacto desde el journal con ID/digest/key y autoridad viva
 incluso tras TTL/reinicio. No permite iniciar efectos nuevos sin preview vigente.
+
+## Rendimiento M5, calificado localmente
+
+Las cuatro definiciones M5 están implementadas y **calificadas localmente**
+(suite nativa, clientes, `core` y `full`); la [matriz M5](validation/M5-matrix.md)
+registra recibos y límites. `tools/list` devuelve 31 definiciones: las 27 anteriores
+intactas byte a byte en sus snapshots y las cuatro nuevas. Los recibos históricos
+no califican los contratos M5 finales; la matriz identifica la evidencia pendiente.
+Las cinco versiones de protocolo no cambian. Nada de esta sección forma parte de la
+release `0.1.0`.
+
+### Artifact kinds, MIME y versiones de payload nuevos
+
+El store privado de calidad (ADR-061) recibe cinco kinds nuevos con su MIME y su
+versión de payload. **Ninguno aparece en el schema público de una tool anterior**:
+los DTO M1–M4 declaran su propio enum cerrado por tool mediante
+`#[schemars(with = …)]`, de modo que el schema publicado de `rust.test.nextest`,
+`rust.coverage`, `rust.semver.check`, `rust.mutation.test` y las cinco M4 queda
+byte a byte igual, bajo un test de invariancia sobre los 27 snapshots previos
+([ADR-076](adr/ADR-076-m5-performance-contracts.md) §1/§2).
+
+| Artifact kind | MIME | Versión de payload | Origen |
+| --- | --- | --- | --- |
+| `benchmark_dataset` | `application_json` | `benchmark_dataset_v2` | `rust.benchmark.run` |
+| `criterion_archive` | `application_x_tar` | `ustar_v1` | `rust.benchmark.run` |
+| `collapsed_stacks` | `text_plain` | `collapsed_stacks_v1` | `rust.profile.flamegraph` |
+| `flamegraph_svg` | `image_svg_xml` | `flamegraph_svg_v1` | `rust.profile.flamegraph` |
+| `bloat_json` | `application_json` | `bloat_json_v1` | `rust.binary.bloat` |
+
+`image_svg_xml` es el único valor nuevo de `QualityMimeType`; `ustar_v1` ya
+existía y se reutiliza sin cambio. `GuestArtifactName` y `PluginIdentity` reciben
+las variantes correspondientes (`Criterion`, `ProfileHelper`, `Bloat`). Estos
+enums son internos al store durable: son la identidad con la que el store valida
+un descriptor, no una ampliación de un contrato ya publicado.
+Los logs de benchmark reutilizan el artifact privado `tool_log`/`utf8-log.v1`;
+no están dentro de `criterion_archive`. Se asocian al `run_index` y stream,
+declaran sustitución UTF-8 separada de truncamiento y se publican tras ejecutar,
+sujetos a la cuota del store.
+
+### Formatos versionados con ciclo propio
+
+Los bytes de los artifacts declaran su propio identificador, **independiente del
+SemVer del servidor y del contrato de las tools** (G6):
+
+| Identificador | Contenido |
+| --- | --- |
+| `rust-engineering-mcp.benchmark-dataset.v2` | Dataset de benchmark: identidad, muestras crudas con su `run_index`, `sampling_mode`, parámetros solicitados y provenance |
+| `rust-engineering-mcp.benchmark-comparison.v2` | Método de comparación congelado: estadístico, remuestreos por conglomerados sobre ejecuciones, semilla, confianza, corrección por multiplicidad, umbral y política de outliers |
+| `rust-engineering-mcp.collapsed-stacks.v1` | Stacks colapsados |
+| `rust-engineering-mcp.flamegraph-svg.v1` | Flame graph renderizado por el producto |
+| `rust-engineering-mcp.bloat-report.v1` | Reporte de tamaño y atribución |
+
+**Regla de migración.** Un lector que no reconozca exactamente el identificador y
+su `format_version` **falla cerrado**: no coerciona, no migra y no reinterpreta.
+Migrar significa conservar las muestras crudas o repetir la ejecución; **nunca
+transformar mediciones incompatibles en equivalentes**
+([ADR-073](adr/ADR-073-benchmark-method-and-dataset.md) §3). La comparación
+rechaza el par, enumerando todas las razones, si difieren formato, unidad,
+harness, versión de harness, `rust_version`, `cargo_version`, digest de imagen,
+plataforma, arquitectura, selección, cuotas o modelo de CPU, o si el modelo de
+CPU es desconocido en cualquiera de los dos lados; un campo de hardware que el
+runtime no puede observar se serializa ausente y bloquea la comparación en vez de
+rellenarse con un valor plausible (ADR-073 §3/§5). Un par incompatible es un
+resultado observado (`INCOMPATIBLE_DATASETS`), no un error de infraestructura.
+El governor, cuando existe, describe únicamente un consenso de las CPUs visibles
+del guest Linux. No identifica el host físico; sysfs ausente, exit no cero limpio,
+conjunto incompleto o heterogeneidad se serializan como desconocidos. Timeout,
+cancelación, output limit o truncamiento son errores operativos unidos, no
+hardware desconocido. `cpu_model` también exige consenso de valores guest válidos.
+Aun con consenso,
+`METHOD_QUALIFIED_FOR_DIRECTION=false` mantiene cerrada toda dirección hasta la
+recalificación estadística.
+
+### Imagen guest M5
+
+| Elemento | Identidad / versión | Estado |
+| --- | --- | --- |
+| Guest Linux ARM64 M5 | `sha256:e0a5ca1661b3e49d0a3d68ee3cc0963453078d08eb7fc43c30538c16b7998aac` (`rust-engineering-runtime:1.98.1-arm64-m5`) | Construida y con [recibo](validation/M5-provisioning.json); admitida por digest en el gateway ([ADR-077](adr/ADR-077-m5-runtime-admission.md)); seis selecciones nativas aprobadas ([gate nativo](validation/M5-native-gate.json)) |
+| Base | `sha256:25ed3626e710081a571a86a29521eaf2e890e796afd422ba5e409e0ce1891635` | Imagen M4 aprobada, intacta y verificada por digest antes de construir |
+| `cargo-bloat` | 0.12.1, MIT, en `/opt/perf/bin` | Provisionado, fuera del `PATH` del contenedor de trabajo |
+| `rust-mcp-profile-helper` | Construido desde `fixtures/profile-helper` | Provisionado, fuera del `PATH` del contenedor de trabajo |
+| Perfil seccomp de profiling | `seccomp-rust-profile.json` = perfil quality + `perf_event_open` | [Prueba de capability](validation/M5-profiling-capability-probe.json) pasada sobre la imagen M4 |
+
+La imagen no cambia toolchain, plugins M3, binarios M4, usuario, `WORKDIR` ni
+`PATH`, y el gateway invoca ambos binarios por ruta absoluta. La imagen M4
+permanece aprobada mientras M5 no califique; revocar M5 es volver a apuntar el
+gateway a ese digest, sin estado que migrar
+([ADR-075](adr/ADR-075-m5-runtime-provisioning.md) §2/§4). M5 no sustituye ni
+amplía las tres imágenes anteriores: las tools M1–M4 conservan su calificación
+contra sus propios digests y un host configurado con la imagen M4 recibe
+`unavailable` en las cuatro tools nuevas. El puerto de performance exige el
+digest M5 y solo ese, porque las versiones del analizador y del helper que el
+resultado declara son propiedades de esa identidad.
+
+### Frontera de target
+
+El positivo de análisis de tamaño está calibrado sobre **ELF64/AArch64** en el
+guest Linux ARM64: la
+[calibración](validation/M5-04-bloat-calibration.json) registra `ELF64`,
+`AArch64` y `DYN (Position-Independent Executable file)`. Ese positivo **no
+califica Mach-O ni PE**, y **WASM no está soportado por el analizador**. Solo se
+calibraron los exits 0 (`passed`) y 1 (`analysis_failed`); los demás siguen sin
+calibrar. `--profile release-lto` es inusable con Cargo 1.98.1 —el analizador
+deriva `CARGO_PROFILE_RELEASE_LTO` a partir del nombre del perfil y Cargo lo
+rechaza con `invalid type: Option value, expected a boolean or string`—, así que
+LTO se expresa con `--release` más una variable de entorno propiedad del
+producto. El positivo de profiling también se califica únicamente en el guest
+Linux ARM64; cambiar el target exige D13 y un oráculo nativo nuevo
+([ADR-074](adr/ADR-074-profiling-capability-and-containment.md) §6).

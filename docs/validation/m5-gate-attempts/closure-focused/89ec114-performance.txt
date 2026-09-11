@@ -1,0 +1,23 @@
+warning: patch `lancedb v0.31.0 (/private/tmp/rust-mcp-m5-closure/vendor/lancedb)` was not used in the crate graph
+help: Check that the patched package version and available features are compatible
+      with the dependency requirements. If the patch has a different version from
+      what is locked in the Cargo.lock file, run `cargo update` to use the new
+      version. This may also occur with an optional dependency that is not enabled.
+   Compiling rust-engineering-execution v0.3.0-dev (/private/tmp/rust-mcp-m5-closure/crates/execution-adapter)
+error: recursion limit reached while expanding `$crate::json_internal!`
+    --> crates/execution-adapter/src/performance_gateway.rs:2892:12
+     |
+2892 |           Ok(serde_json::json!([{
+     |  ____________^
+2893 | |             "Config": {
+2894 | |                 "Tty": false,
+2895 | |                 "OpenStdin": phase.interactive(),
+...    |
+2962 | |             "Mounts": applied
+2963 | |         }]))
+     | |___________^
+     |
+     = help: consider increasing the recursion limit by adding a `#![recursion_limit = "256"]` attribute to your crate (`rust_engineering_execution`)
+     = note: this error originates in the macro `$crate::json_internal` which comes from the expansion of the macro `serde_json::json` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error: could not compile `rust-engineering-execution` (lib test) due to 1 previous error

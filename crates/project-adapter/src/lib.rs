@@ -67,3 +67,4 @@ impl RegistryClock for MonotonicClock {
 }
 mod cargo_vendor;
 pub use cargo_vendor::{capture_with_expected, inspect_cargo_vendor};
+pub mod vendor_capture;

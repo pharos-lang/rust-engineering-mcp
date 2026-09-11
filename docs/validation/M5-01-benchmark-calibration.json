@@ -1,0 +1,668 @@
+{
+  "schema": "rust-engineering-mcp.m5-01-benchmark-calibration.v1",
+  "captured_at_utc": "2026-09-09T01:24:40Z",
+  "image_id": "sha256:e0a5ca1661b3e49d0a3d68ee3cc0963453078d08eb7fc43c30538c16b7998aac",
+  "image_admitted_by": "docs/adr/ADR-077-m5-runtime-admission.md",
+  "decision": "docs/adr/ADR-073-benchmark-method-and-dataset.md",
+  "captured_by": "scripts/capture-m5-benchmark-datasets.py",
+  "harness": {
+    "name": "criterion",
+    "version": "0.8.2",
+    "source": "fixtures/criterion-vendor (52 pinned archives, offline)"
+  },
+  "frozen_parameters": {
+    "warm_up_seconds": 3,
+    "measurement_seconds": 5,
+    "sample_size": 30,
+    "plots": "disabled",
+    "color": "never",
+    "cargo_flags": [
+      "--frozen",
+      "--offline"
+    ],
+    "criterion_home": "/criterion (per-execution tmpfs volume, noexec)"
+  },
+  "execution_protocol": {
+    "executions_per_side": 3,
+    "order": [
+      "baseline-1",
+      "candidate-1",
+      "baseline-2",
+      "candidate-2",
+      "baseline-3",
+      "candidate-3"
+    ],
+    "independence": "one container run and one fresh CRITERION_HOME volume per execution; the side's three executions share one target volume, as the product's repetitions of a single operation do, so the binary is built once and measured three times",
+    "output_guardian": "a sleeping container holds the tmpfs output volume read-only between the benchmark and the export, exactly as PerformancePhase::OutputGuardian does; without it the tmpfs is discarded and the export archives an empty tree",
+    "alternation": "the operator alternates the two sides (ADR-073 \u00a72); the product does not, and this receipt records the order actually executed"
+  },
+  "candidate_modification": {
+    "file": "src/lib.rs",
+    "function": "work_unit",
+    "change": "loop bound n replaced by n + n / 4, i.e. 25% more of the identical inner step",
+    "unchanged": [
+      "work_slower",
+      "work_noisy",
+      "step",
+      "SEED",
+      "benches/perf.rs"
+    ],
+    "applied_to": "a copy under target/m5-benchmark-capture; fixtures/benchmark is never written",
+    "verified": "the guest hashed its own read-only /source before every execution; the three executions of a side hashed identically and the two sides differ only in src/lib.rs"
+  },
+  "sources_as_the_guest_hashed_them": {
+    "baseline": {
+      "/source/Cargo.lock": "eede4973960749ed7e03b822dc31608734ef37208d95f641a01fbb9e517382dd",
+      "/source/Cargo.toml": "c4ad4deb641e160001438eafcf4e8b603f4d53e8b42b49f202fc65335bcef59a",
+      "/source/benches/perf.rs": "be17b022882ead3f10343db241236aac85f51c0f71a4487f81b08025ee24bb54",
+      "/source/src/lib.rs": "9f0f73a39c1dd54b463d3746ecf3eea5e5d3349b8780edbd3c45b7b80be8e909"
+    },
+    "candidate": {
+      "/source/Cargo.lock": "eede4973960749ed7e03b822dc31608734ef37208d95f641a01fbb9e517382dd",
+      "/source/Cargo.toml": "c4ad4deb641e160001438eafcf4e8b603f4d53e8b42b49f202fc65335bcef59a",
+      "/source/benches/perf.rs": "be17b022882ead3f10343db241236aac85f51c0f71a4487f81b08025ee24bb54",
+      "/source/src/lib.rs": "880d5e71ae70fb587cb2907f2daeca1a381c65828fc2f05683802cf062ae5bc1"
+    }
+  },
+  "source_selection": {
+    "how": "--config on the cargo command line, highest Cargo precedence",
+    "why": "a project .cargo/config.toml overrides a CARGO_HOME config and could redirect source.crates-io at project-controlled bytes; the M5 flows refuse a project Cargo config outright",
+    "arguments": [
+      "--config",
+      "source.crates-io.replace-with=\"rust-mcp-vendor\"",
+      "--config",
+      "source.rust-mcp-vendor.directory=\"/rust-mcp-vendor\""
+    ]
+  },
+  "containment": {
+    "user": "65534:65534",
+    "network": "none",
+    "cap_drop": "ALL",
+    "no_new_privileges": true,
+    "seccomp": "seccomp-rust-quality.json",
+    "source_mount": "read-only",
+    "vendor_mount": "read-only",
+    "root_filesystem": "read-only",
+    "pids_limit": 128,
+    "cpus": 1,
+    "memory_bytes": 1073741824,
+    "pull": "never"
+  },
+  "commands": {
+    "source_digest": [
+      "docker",
+      "run",
+      "--rm",
+      "--pull=never",
+      "--runtime=runc",
+      "--init=false",
+      "--network=none",
+      "--read-only",
+      "--cap-drop=ALL",
+      "--security-opt=no-new-privileges=true",
+      "--security-opt=seccomp=/Users/cburgosro/Projects/rust-mcp/crates/execution-adapter/src/seccomp-rust-quality.json",
+      "--ipc=private",
+      "--cgroupns=private",
+      "--pids-limit=128",
+      "--cpus=1",
+      "--memory=1g",
+      "--memory-swap=1g",
+      "--shm-size=1m",
+      "--no-healthcheck",
+      "--workdir=/source",
+      "--hostname=sandbox",
+      "--user=65534:65534",
+      "--name=<container>",
+      "--mount=type=bind,source=/Users/cburgosro/Projects/rust-mcp/target/m5-benchmark-capture/baseline,target=/source,readonly",
+      "--entrypoint=/usr/bin/sha256sum",
+      "sha256:e0a5ca1661b3e49d0a3d68ee3cc0963453078d08eb7fc43c30538c16b7998aac",
+      "/source/Cargo.lock",
+      "/source/Cargo.toml",
+      "/source/benches/perf.rs",
+      "/source/src/lib.rs"
+    ],
+    "output_guardian": [
+      "docker",
+      "run",
+      "--detach",
+      "--pull=never",
+      "--runtime=runc",
+      "--init=false",
+      "--network=none",
+      "--read-only",
+      "--cap-drop=ALL",
+      "--security-opt=no-new-privileges=true",
+      "--security-opt=seccomp=/Users/cburgosro/Projects/rust-mcp/crates/execution-adapter/src/seccomp-rust-quality.json",
+      "--ipc=private",
+      "--cgroupns=private",
+      "--pids-limit=128",
+      "--cpus=1",
+      "--memory=1g",
+      "--memory-swap=1g",
+      "--shm-size=1m",
+      "--no-healthcheck",
+      "--hostname=sandbox",
+      "--user=65534:65534",
+      "--name=<container>",
+      "--mount=type=volume,source=<output-volume>,target=/criterion,readonly,volume-nocopy,volume-driver=local",
+      "--entrypoint=/usr/bin/sleep",
+      "sha256:e0a5ca1661b3e49d0a3d68ee3cc0963453078d08eb7fc43c30538c16b7998aac",
+      "3600"
+    ],
+    "target_guardian": [
+      "docker",
+      "run",
+      "--detach",
+      "--pull=never",
+      "--runtime=runc",
+      "--init=false",
+      "--network=none",
+      "--read-only",
+      "--cap-drop=ALL",
+      "--security-opt=no-new-privileges=true",
+      "--security-opt=seccomp=/Users/cburgosro/Projects/rust-mcp/crates/execution-adapter/src/seccomp-rust-quality.json",
+      "--ipc=private",
+      "--cgroupns=private",
+      "--pids-limit=128",
+      "--cpus=1",
+      "--memory=1g",
+      "--memory-swap=1g",
+      "--shm-size=1m",
+      "--no-healthcheck",
+      "--hostname=sandbox",
+      "--user=65534:65534",
+      "--name=<container>",
+      "--mount=type=volume,source=<target-volume>,target=/work/target,readonly,volume-nocopy,volume-driver=local",
+      "--entrypoint=/usr/bin/sleep",
+      "sha256:e0a5ca1661b3e49d0a3d68ee3cc0963453078d08eb7fc43c30538c16b7998aac",
+      "3600"
+    ],
+    "benchmark": [
+      "docker",
+      "run",
+      "--rm",
+      "--pull=never",
+      "--runtime=runc",
+      "--init=false",
+      "--network=none",
+      "--read-only",
+      "--cap-drop=ALL",
+      "--security-opt=no-new-privileges=true",
+      "--security-opt=seccomp=/Users/cburgosro/Projects/rust-mcp/crates/execution-adapter/src/seccomp-rust-quality.json",
+      "--ipc=private",
+      "--cgroupns=private",
+      "--pids-limit=128",
+      "--cpus=1",
+      "--memory=1g",
+      "--memory-swap=1g",
+      "--shm-size=1m",
+      "--no-healthcheck",
+      "--tmpfs=/work:rw,exec,nosuid,nodev,size=512m,mode=1777",
+      "--tmpfs=/tmp:rw,nosuid,nodev,noexec,size=64m,mode=1777",
+      "--tmpfs=/performance:rw,nosuid,nodev,noexec,size=64m,mode=0700,uid=65534,gid=65534",
+      "--workdir=/source",
+      "--hostname=sandbox",
+      "--user=65534:65534",
+      "--name=<container>",
+      "--env=CARGO_HOME=/performance/cargo-home",
+      "--env=CARGO_INCREMENTAL=0",
+      "--env=CARGO_NET_OFFLINE=true",
+      "--env=CARGO_TARGET_DIR=/work/target",
+      "--env=CRITERION_HOME=/criterion",
+      "--env=HOME=/work",
+      "--env=PATH=/opt/rust/bin:/usr/bin:/bin",
+      "--env=RUSTC=/opt/rust/bin/rustc",
+      "--env=RUSTDOC=/opt/rust/bin/rustdoc",
+      "--env=RUSTFMT=/opt/rust/bin/rustfmt",
+      "--env=TMPDIR=/tmp",
+      "--mount=type=bind,source=/Users/cburgosro/Projects/rust-mcp/target/m5-benchmark-capture/baseline,target=/source,readonly",
+      "--mount=type=bind,source=/Users/cburgosro/Projects/rust-mcp/fixtures/criterion-vendor/vendor,target=/rust-mcp-vendor,readonly",
+      "--mount=type=volume,source=<target-volume>,target=/work/target,volume-nocopy,volume-driver=local",
+      "--mount=type=volume,source=<output-volume>,target=/criterion,volume-nocopy,volume-driver=local",
+      "--entrypoint=/opt/rust/bin/cargo",
+      "sha256:e0a5ca1661b3e49d0a3d68ee3cc0963453078d08eb7fc43c30538c16b7998aac",
+      "bench",
+      "--config",
+      "source.crates-io.replace-with=\"rust-mcp-vendor\"",
+      "--config",
+      "source.rust-mcp-vendor.directory=\"/rust-mcp-vendor\"",
+      "--frozen",
+      "--offline",
+      "--color=never",
+      "--target-dir=/work/target",
+      "--bench=perf",
+      "--",
+      "--noplot",
+      "--color",
+      "never",
+      "--warm-up-time",
+      "3",
+      "--measurement-time",
+      "5",
+      "--sample-size",
+      "30"
+    ],
+    "export": [
+      "docker",
+      "run",
+      "--rm",
+      "--pull=never",
+      "--runtime=runc",
+      "--init=false",
+      "--network=none",
+      "--read-only",
+      "--cap-drop=ALL",
+      "--security-opt=no-new-privileges=true",
+      "--security-opt=seccomp=/Users/cburgosro/Projects/rust-mcp/crates/execution-adapter/src/seccomp-rust-quality.json",
+      "--ipc=private",
+      "--cgroupns=private",
+      "--pids-limit=128",
+      "--cpus=1",
+      "--memory=1g",
+      "--memory-swap=1g",
+      "--shm-size=1m",
+      "--no-healthcheck",
+      "--workdir=/criterion",
+      "--hostname=sandbox",
+      "--user=65534:65534",
+      "--name=<container>",
+      "--mount=type=volume,source=<output-volume>,target=/criterion,readonly,volume-nocopy,volume-driver=local",
+      "--entrypoint=/usr/bin/tar",
+      "sha256:e0a5ca1661b3e49d0a3d68ee3cc0963453078d08eb7fc43c30538c16b7998aac",
+      "--create",
+      "--file=-",
+      "--format=ustar",
+      "--sort=name",
+      "--one-file-system",
+      "--directory=/criterion",
+      "."
+    ],
+    "output_volume_create": [
+      "docker",
+      "volume",
+      "create",
+      "--driver=local",
+      "--opt=type=tmpfs",
+      "--opt=device=tmpfs",
+      "--opt=o=size=64m,nr_inodes=8192,uid=65534,gid=65534,mode=0700,nosuid,nodev,noexec",
+      "<output-volume>"
+    ],
+    "target_volume_create": [
+      "docker",
+      "volume",
+      "create",
+      "--driver=local",
+      "--opt=type=tmpfs",
+      "--opt=device=tmpfs",
+      "--opt=o=size=512m,nr_inodes=65536,uid=65534,gid=65534,mode=0700,nosuid,nodev",
+      "<target-volume>"
+    ]
+  },
+  "exit_codes_observed": {
+    "0": "passed"
+  },
+  "captures": [
+    {
+      "file": "fixtures/benchmark-datasets/criterion-baseline-1.tar",
+      "side": "baseline",
+      "execution_index": 1,
+      "role": "unmodified fixture",
+      "sha256": "cfa3e616c7e511c79c9507d8c447ac92daa97bb9fcf2efbe2e743831e7f3e945",
+      "bytes": 40960,
+      "guest_source_sha256": {
+        "/source/Cargo.lock": "eede4973960749ed7e03b822dc31608734ef37208d95f641a01fbb9e517382dd",
+        "/source/Cargo.toml": "c4ad4deb641e160001438eafcf4e8b603f4d53e8b42b49f202fc65335bcef59a",
+        "/source/benches/perf.rs": "be17b022882ead3f10343db241236aac85f51c0f71a4487f81b08025ee24bb54",
+        "/source/src/lib.rs": "9f0f73a39c1dd54b463d3746ecf3eea5e5d3349b8780edbd3c45b7b80be8e909"
+      },
+      "bench_exit_code": 0,
+      "export_exit_code": 0,
+      "wall_seconds": 51.9,
+      "benchmarks": {
+        "reference": {
+          "sampling_mode": "Linear",
+          "samples": 30,
+          "median_ns": 3140.47,
+          "min_ns": 3024.51,
+          "max_ns": 3348.69,
+          "full_id": "m5/reference",
+          "directory_name": "m5/reference",
+          "group_id": "m5",
+          "function_id": "reference"
+        },
+        "slower_125": {
+          "sampling_mode": "Linear",
+          "samples": 30,
+          "median_ns": 3472.51,
+          "min_ns": 3433.52,
+          "max_ns": 3745.85,
+          "full_id": "m5/slower_125",
+          "directory_name": "m5/slower_125",
+          "group_id": "m5",
+          "function_id": "slower_125"
+        },
+        "control": {
+          "sampling_mode": "Linear",
+          "samples": 30,
+          "median_ns": 2776.87,
+          "min_ns": 2741.95,
+          "max_ns": 3152.39,
+          "full_id": "m5/control",
+          "directory_name": "m5/control",
+          "group_id": "m5",
+          "function_id": "control"
+        }
+      }
+    },
+    {
+      "file": "fixtures/benchmark-datasets/criterion-candidate-1.tar",
+      "side": "candidate",
+      "execution_index": 1,
+      "role": "work_unit performs n + n / 4 operations",
+      "sha256": "0cf924a534b5efb07f032d1e4889110d9f4a8341f0d03da96a42f10a2a44b29c",
+      "bytes": 40960,
+      "guest_source_sha256": {
+        "/source/Cargo.lock": "eede4973960749ed7e03b822dc31608734ef37208d95f641a01fbb9e517382dd",
+        "/source/Cargo.toml": "c4ad4deb641e160001438eafcf4e8b603f4d53e8b42b49f202fc65335bcef59a",
+        "/source/benches/perf.rs": "be17b022882ead3f10343db241236aac85f51c0f71a4487f81b08025ee24bb54",
+        "/source/src/lib.rs": "880d5e71ae70fb587cb2907f2daeca1a381c65828fc2f05683802cf062ae5bc1"
+      },
+      "bench_exit_code": 0,
+      "export_exit_code": 0,
+      "wall_seconds": 60.5,
+      "benchmarks": {
+        "reference": {
+          "sampling_mode": "Linear",
+          "samples": 30,
+          "median_ns": 3906.48,
+          "min_ns": 3446.53,
+          "max_ns": 4040.11,
+          "full_id": "m5/reference",
+          "directory_name": "m5/reference",
+          "group_id": "m5",
+          "function_id": "reference"
+        },
+        "slower_125": {
+          "sampling_mode": "Linear",
+          "samples": 30,
+          "median_ns": 4443.32,
+          "min_ns": 3532.23,
+          "max_ns": 4751.54,
+          "full_id": "m5/slower_125",
+          "directory_name": "m5/slower_125",
+          "group_id": "m5",
+          "function_id": "slower_125"
+        },
+        "control": {
+          "sampling_mode": "Linear",
+          "samples": 30,
+          "median_ns": 3150.67,
+          "min_ns": 3116.96,
+          "max_ns": 3727.47,
+          "full_id": "m5/control",
+          "directory_name": "m5/control",
+          "group_id": "m5",
+          "function_id": "control"
+        }
+      }
+    },
+    {
+      "file": "fixtures/benchmark-datasets/criterion-baseline-2.tar",
+      "side": "baseline",
+      "execution_index": 2,
+      "role": "unmodified fixture",
+      "sha256": "65baa5aec588267cef3a6157f6a95e87de3af2408edc7e153b4faee62206f917",
+      "bytes": 40960,
+      "guest_source_sha256": {
+        "/source/Cargo.lock": "eede4973960749ed7e03b822dc31608734ef37208d95f641a01fbb9e517382dd",
+        "/source/Cargo.toml": "c4ad4deb641e160001438eafcf4e8b603f4d53e8b42b49f202fc65335bcef59a",
+        "/source/benches/perf.rs": "be17b022882ead3f10343db241236aac85f51c0f71a4487f81b08025ee24bb54",
+        "/source/src/lib.rs": "9f0f73a39c1dd54b463d3746ecf3eea5e5d3349b8780edbd3c45b7b80be8e909"
+      },
+      "bench_exit_code": 0,
+      "export_exit_code": 0,
+      "wall_seconds": 26.8,
+      "benchmarks": {
+        "reference": {
+          "sampling_mode": "Linear",
+          "samples": 30,
+          "median_ns": 3637.42,
+          "min_ns": 3252.82,
+          "max_ns": 4109.49,
+          "full_id": "m5/reference",
+          "directory_name": "m5/reference",
+          "group_id": "m5",
+          "function_id": "reference"
+        },
+        "slower_125": {
+          "sampling_mode": "Linear",
+          "samples": 30,
+          "median_ns": 4469.82,
+          "min_ns": 4024.18,
+          "max_ns": 4670.88,
+          "full_id": "m5/slower_125",
+          "directory_name": "m5/slower_125",
+          "group_id": "m5",
+          "function_id": "slower_125"
+        },
+        "control": {
+          "sampling_mode": "Linear",
+          "samples": 30,
+          "median_ns": 3020.74,
+          "min_ns": 2922.78,
+          "max_ns": 3448.86,
+          "full_id": "m5/control",
+          "directory_name": "m5/control",
+          "group_id": "m5",
+          "function_id": "control"
+        }
+      }
+    },
+    {
+      "file": "fixtures/benchmark-datasets/criterion-candidate-2.tar",
+      "side": "candidate",
+      "execution_index": 2,
+      "role": "work_unit performs n + n / 4 operations",
+      "sha256": "3bd00e4e31a99549007ae4d459f09434624ee965a51b6092fe1ec610a512a5fb",
+      "bytes": 40960,
+      "guest_source_sha256": {
+        "/source/Cargo.lock": "eede4973960749ed7e03b822dc31608734ef37208d95f641a01fbb9e517382dd",
+        "/source/Cargo.toml": "c4ad4deb641e160001438eafcf4e8b603f4d53e8b42b49f202fc65335bcef59a",
+        "/source/benches/perf.rs": "be17b022882ead3f10343db241236aac85f51c0f71a4487f81b08025ee24bb54",
+        "/source/src/lib.rs": "880d5e71ae70fb587cb2907f2daeca1a381c65828fc2f05683802cf062ae5bc1"
+      },
+      "bench_exit_code": 0,
+      "export_exit_code": 0,
+      "wall_seconds": 28.2,
+      "benchmarks": {
+        "reference": {
+          "sampling_mode": "Linear",
+          "samples": 30,
+          "median_ns": 4507.92,
+          "min_ns": 4312.37,
+          "max_ns": 4668.09,
+          "full_id": "m5/reference",
+          "directory_name": "m5/reference",
+          "group_id": "m5",
+          "function_id": "reference"
+        },
+        "slower_125": {
+          "sampling_mode": "Linear",
+          "samples": 30,
+          "median_ns": 4561.18,
+          "min_ns": 4483.24,
+          "max_ns": 5718.67,
+          "full_id": "m5/slower_125",
+          "directory_name": "m5/slower_125",
+          "group_id": "m5",
+          "function_id": "slower_125"
+        },
+        "control": {
+          "sampling_mode": "Linear",
+          "samples": 30,
+          "median_ns": 3265.99,
+          "min_ns": 3131.39,
+          "max_ns": 3723.69,
+          "full_id": "m5/control",
+          "directory_name": "m5/control",
+          "group_id": "m5",
+          "function_id": "control"
+        }
+      }
+    },
+    {
+      "file": "fixtures/benchmark-datasets/criterion-baseline-3.tar",
+      "side": "baseline",
+      "execution_index": 3,
+      "role": "unmodified fixture",
+      "sha256": "295c0ea267b0293001c8c1bc30b121397d7fff4e3c6ff811d4047e68eeb11a79",
+      "bytes": 40960,
+      "guest_source_sha256": {
+        "/source/Cargo.lock": "eede4973960749ed7e03b822dc31608734ef37208d95f641a01fbb9e517382dd",
+        "/source/Cargo.toml": "c4ad4deb641e160001438eafcf4e8b603f4d53e8b42b49f202fc65335bcef59a",
+        "/source/benches/perf.rs": "be17b022882ead3f10343db241236aac85f51c0f71a4487f81b08025ee24bb54",
+        "/source/src/lib.rs": "9f0f73a39c1dd54b463d3746ecf3eea5e5d3349b8780edbd3c45b7b80be8e909"
+      },
+      "bench_exit_code": 0,
+      "export_exit_code": 0,
+      "wall_seconds": 26.4,
+      "benchmarks": {
+        "reference": {
+          "sampling_mode": "Linear",
+          "samples": 30,
+          "median_ns": 3292.42,
+          "min_ns": 3089.87,
+          "max_ns": 3364.08,
+          "full_id": "m5/reference",
+          "directory_name": "m5/reference",
+          "group_id": "m5",
+          "function_id": "reference"
+        },
+        "slower_125": {
+          "sampling_mode": "Linear",
+          "samples": 30,
+          "median_ns": 4106.11,
+          "min_ns": 3847.18,
+          "max_ns": 4314.3,
+          "full_id": "m5/slower_125",
+          "directory_name": "m5/slower_125",
+          "group_id": "m5",
+          "function_id": "slower_125"
+        },
+        "control": {
+          "sampling_mode": "Linear",
+          "samples": 30,
+          "median_ns": 3286.67,
+          "min_ns": 3104.25,
+          "max_ns": 3692.45,
+          "full_id": "m5/control",
+          "directory_name": "m5/control",
+          "group_id": "m5",
+          "function_id": "control"
+        }
+      }
+    },
+    {
+      "file": "fixtures/benchmark-datasets/criterion-candidate-3.tar",
+      "side": "candidate",
+      "execution_index": 3,
+      "role": "work_unit performs n + n / 4 operations",
+      "sha256": "6a4b725050b876e57f99f58ee25719951e9aab1b39703f5740a6c1ce5684a84a",
+      "bytes": 40960,
+      "guest_source_sha256": {
+        "/source/Cargo.lock": "eede4973960749ed7e03b822dc31608734ef37208d95f641a01fbb9e517382dd",
+        "/source/Cargo.toml": "c4ad4deb641e160001438eafcf4e8b603f4d53e8b42b49f202fc65335bcef59a",
+        "/source/benches/perf.rs": "be17b022882ead3f10343db241236aac85f51c0f71a4487f81b08025ee24bb54",
+        "/source/src/lib.rs": "880d5e71ae70fb587cb2907f2daeca1a381c65828fc2f05683802cf062ae5bc1"
+      },
+      "bench_exit_code": 0,
+      "export_exit_code": 0,
+      "wall_seconds": 27.0,
+      "benchmarks": {
+        "reference": {
+          "sampling_mode": "Linear",
+          "samples": 30,
+          "median_ns": 4095.82,
+          "min_ns": 3776.32,
+          "max_ns": 4273.45,
+          "full_id": "m5/reference",
+          "directory_name": "m5/reference",
+          "group_id": "m5",
+          "function_id": "reference"
+        },
+        "slower_125": {
+          "sampling_mode": "Linear",
+          "samples": 30,
+          "median_ns": 4101.57,
+          "min_ns": 3843.95,
+          "max_ns": 4299.58,
+          "full_id": "m5/slower_125",
+          "directory_name": "m5/slower_125",
+          "group_id": "m5",
+          "function_id": "slower_125"
+        },
+        "control": {
+          "sampling_mode": "Linear",
+          "samples": 30,
+          "median_ns": 3077.58,
+          "min_ns": 2912.99,
+          "max_ns": 3219.89,
+          "full_id": "m5/control",
+          "directory_name": "m5/control",
+          "group_id": "m5",
+          "function_id": "control"
+        }
+      }
+    }
+  ],
+  "observed": {
+    "reference": {
+      "baseline_median_of_medians_ns": 3292.42,
+      "candidate_median_of_medians_ns": 4095.82,
+      "baseline_spread": 0.1582,
+      "candidate_spread": 0.154,
+      "material_threshold": 0.05
+    },
+    "slower_125": {
+      "baseline_median_of_medians_ns": 4106.11,
+      "candidate_median_of_medians_ns": 4443.32,
+      "baseline_spread": 0.2872,
+      "candidate_spread": 0.1121,
+      "material_threshold": 0.05
+    },
+    "control": {
+      "baseline_median_of_medians_ns": 3020.74,
+      "candidate_median_of_medians_ns": 3150.67,
+      "baseline_spread": 0.1836,
+      "candidate_spread": 0.0612,
+      "material_threshold": 0.05
+    }
+  },
+  "oracles": {
+    "known_direction_different_source": {
+      "baseline": "the three criterion-baseline-*.tar",
+      "candidate": "the three criterion-candidate-*.tar",
+      "benchmark": "m5/reference",
+      "why": "work_unit performs 25% more operations in the candidate and only there"
+    },
+    "unchanged_benchmarks_null": {
+      "baseline": "the three criterion-baseline-*.tar",
+      "candidate": "the three criterion-candidate-*.tar",
+      "benchmarks": [
+        "m5/control",
+        "m5/slower_125"
+      ],
+      "why": "work_noisy and work_slower are byte-identical on both sides, so any direction reported for them is host drift and not an effect"
+    },
+    "same_artifact": {
+      "expected": "same_artifact incompatibility"
+    }
+  },
+  "limitations": [
+    "These medians describe these captures on this host. They are not a calibrated tolerance and do not generalize.",
+    "Only the exit codes listed in exit_codes_observed were observed; nothing else is calibrated, and BenchmarkExit::CALIBRATED stays false.",
+    "The three older captures in fixtures/benchmark-datasets (criterion-run-1.tar, criterion-run-2.tar, criterion-candidate.tar) were taken on image sha256:e9ecc40d023d9d13ac3539cccb6a944cd1022da2a8b3f86ca61356086b38a209, which ADR-077 does not admit. They are retained as parser fixtures and are not evidence about the admitted runtime.",
+    "The fixture's `control` benchmark is not a 1.00x self-compare control; the real self-compare control is a benchmark whose source is identical on both sides, measured across independent executions."
+  ],
+  "status": "passed"
+}

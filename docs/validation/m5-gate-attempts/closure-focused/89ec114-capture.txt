@@ -1,0 +1,25 @@
+warning: patch `lancedb v0.31.0 (/private/tmp/rust-mcp-m5-closure/vendor/lancedb)` was not used in the crate graph
+help: Check that the patched package version and available features are compatible
+      with the dependency requirements. If the patch has a different version from
+      what is locked in the Cargo.lock file, run `cargo update` to use the new
+      version. This may also occur with an optional dependency that is not enabled.
+   Compiling rust-engineering-project v0.3.0-dev (/private/tmp/rust-mcp-m5-closure/crates/project-adapter)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 4.06s
+     Running unittests src/lib.rs (target/debug/deps/rust_engineering_project-916d5512b6a4e660)
+
+running 12 tests
+test filesystem::macos::vendor_capture::tests::the_store_may_not_be_the_tree_it_captures ... ok
+test filesystem::macos::vendor_capture::tests::a_symlink_in_the_tree_is_refused_rather_than_skipped ... ok
+test filesystem::macos::vendor_capture::tests::a_path_outside_the_widened_alphabet_is_refused ... ok
+test filesystem::macos::vendor_capture::tests::a_hard_link_in_the_tree_is_refused_rather_than_skipped ... ok
+test vendor_capture::tests::same_length_rewrite_is_refused_before_the_final_chunk_is_returned ... ok
+test filesystem::macos::vendor_capture::tests::an_artifact_whose_digest_is_not_the_declared_one_is_refused ... ok
+test vendor_capture::tests::replay_authenticates_the_final_chunk_before_returning_declared_length ... ok
+test filesystem::macos::vendor_capture::tests::a_truncated_artifact_is_not_accepted_as_a_capture ... ok
+test filesystem::macos::vendor_capture::tests::a_capture_publishes_one_artifact_named_by_its_digest_and_verifies_back ... ok
+test filesystem::macos::vendor_capture::tests::a_cancelled_capture_leaves_nothing_behind ... ok
+test filesystem::macos::vendor_capture::tests::a_tree_that_changes_mid_capture_fails_instead_of_publishing_what_moved ... ok
+test filesystem::macos::vendor_capture::tests::a_file_that_grows_while_it_is_read_fails_the_capture ... ok
+
+test result: ok. 12 passed; 0 failed; 0 ignored; 0 measured; 67 filtered out; finished in 0.66s
+

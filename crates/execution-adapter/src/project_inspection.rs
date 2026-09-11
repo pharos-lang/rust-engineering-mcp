@@ -702,6 +702,105 @@ impl rust_engineering_application::miri::ProjectMiriPort for RustProjectInspecto
     }
 }
 
+impl rust_engineering_application::benchmark::ProjectBenchmarkPort for RustProjectInspector {
+    fn benchmark(
+        &self,
+        source: &SourceBundle,
+        vendor: rust_engineering_application::vendor_capture::BenchmarkVendor<'_>,
+        options: &rust_engineering_application::benchmark::BenchmarkRunOptions,
+        control: &dyn InspectionControl,
+    ) -> Result<
+        rust_engineering_application::benchmark::BenchmarkObservation,
+        rust_engineering_application::security::SecurityError,
+    > {
+        use rust_engineering_application::security::SecurityError;
+        let result = self
+            .with_gateway(control, |gateway| {
+                Ok(super::performance_port::benchmark(
+                    gateway, source, vendor, options, control,
+                ))
+            })
+            .map_err(SecurityError::from)
+            .and_then(|result| result);
+        if matches!(
+            result,
+            Err(SecurityError::Inspection(
+                InspectionError::Execution(ExecutionError::CleanupUncertain)
+                    | InspectionError::Internal
+            ))
+        ) {
+            self.quarantined.store(true, Ordering::Release);
+        }
+        result
+    }
+}
+
+impl rust_engineering_application::profile::ProjectProfilePort for RustProjectInspector {
+    fn profile(
+        &self,
+        source: &SourceBundle,
+        vendor: &rust_engineering_domain::CargoVendorSnapshot,
+        options: &rust_engineering_domain::profile::ProfileOptions,
+        control: &dyn InspectionControl,
+    ) -> Result<
+        rust_engineering_application::profile::ProfileObservation,
+        rust_engineering_application::security::SecurityError,
+    > {
+        use rust_engineering_application::security::SecurityError;
+        let result = self
+            .with_gateway(control, |gateway| {
+                Ok(super::performance_port::profile(
+                    gateway, source, vendor, options, control,
+                ))
+            })
+            .map_err(SecurityError::from)
+            .and_then(|result| result);
+        if matches!(
+            result,
+            Err(SecurityError::Inspection(
+                InspectionError::Execution(ExecutionError::CleanupUncertain)
+                    | InspectionError::Internal
+            ))
+        ) {
+            self.quarantined.store(true, Ordering::Release);
+        }
+        result
+    }
+}
+
+impl rust_engineering_application::bloat::ProjectBloatPort for RustProjectInspector {
+    fn bloat(
+        &self,
+        source: &SourceBundle,
+        vendor: &rust_engineering_domain::CargoVendorSnapshot,
+        options: &rust_engineering_domain::bloat::BloatOptions,
+        control: &dyn InspectionControl,
+    ) -> Result<
+        rust_engineering_application::bloat::BloatObservation,
+        rust_engineering_application::security::SecurityError,
+    > {
+        use rust_engineering_application::security::SecurityError;
+        let result = self
+            .with_gateway(control, |gateway| {
+                Ok(super::performance_port::bloat(
+                    gateway, source, vendor, options, control,
+                ))
+            })
+            .map_err(SecurityError::from)
+            .and_then(|result| result);
+        if matches!(
+            result,
+            Err(SecurityError::Inspection(
+                InspectionError::Execution(ExecutionError::CleanupUncertain)
+                    | InspectionError::Internal
+            ))
+        ) {
+            self.quarantined.store(true, Ordering::Release);
+        }
+        result
+    }
+}
+
 impl rust_engineering_application::ProjectFormatPort for RustProjectInspector {
     fn format(
         &self,

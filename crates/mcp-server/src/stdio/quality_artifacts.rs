@@ -1,6 +1,8 @@
 //! ADR-061 durable nextest publication and owner-bound Resource reads.
 
+pub(super) mod performance;
 mod security;
+pub(super) use performance::DurablePerformancePublisher;
 pub(super) use security::DurableSecurityPublisher;
 
 use super::{project::Registry, resources::QualityResourceReader};
@@ -23,9 +25,9 @@ use rust_engineering_domain::semver_check::SemverFindingCompleteness;
 use rust_engineering_domain::{
     ArtifactCompleteness, ArtifactPlugin, ArtifactRuntime, ArtifactSelection, ArtifactSensitivity,
     ArtifactSource, GuestArtifactName, PayloadFormatVersion, PluginIdentity, ProjectRef,
-    QUALITY_DEFAULT_TTL_SECONDS, QUALITY_MAX_ARTIFACT_BYTES, QualityArtifactDraft,
-    QualityArtifactError, QualityArtifactId, QualityArtifactKind, QualityJobId, QualityMimeType,
-    SourceBundle, UnixSeconds, UtcInstant,
+    QUALITY_DEFAULT_TTL_SECONDS, QUALITY_MAX_ARTIFACT_BYTES, QualityArtifactDescriptor,
+    QualityArtifactDraft, QualityArtifactError, QualityArtifactId, QualityArtifactKind,
+    QualityJobId, QualityMimeType, SourceBundle, UnixSeconds, UtcInstant,
 };
 use rust_engineering_project::NativeQualityArtifactStore;
 use sha2::{Digest, Sha256};
@@ -42,6 +44,11 @@ pub(super) struct QualityRuntime {
     pub(super) coverage_publisher: DurableCoveragePublisher,
     pub(super) semver_publisher: DurableSemverPublisher,
     pub(super) security_publisher: DurableSecurityPublisher,
+    pub(super) performance_publisher: DurablePerformancePublisher,
+    /// The same publishing store the publishers hold. `rust.benchmark.compare`
+    /// reads already-published datasets through it and never publishes, so it
+    /// takes the store itself rather than a publisher handle.
+    pub(super) store: Arc<Mutex<NativeQualityArtifactStore>>,
     pub(super) reader: Arc<dyn QualityResourceReader>,
     pub(super) state_root_identity: ((i64, u64), u32),
 }
@@ -87,7 +94,13 @@ pub(super) fn attach(
         semver_publisher: DurableSemverPublisher {
             store: Arc::clone(&store),
         },
-        security_publisher: DurableSecurityPublisher { store },
+        security_publisher: DurableSecurityPublisher {
+            store: Arc::clone(&store),
+        },
+        performance_publisher: DurablePerformancePublisher {
+            store: Arc::clone(&store),
+        },
+        store,
         reader: Arc::new(DurableQualityReader {
             store: Mutex::new(reader),
             authority: Mutex::new(LiveAuthority { registry }),
@@ -212,6 +225,143 @@ impl QualityArtifactInput for Bytes<'_> {
         self.0 = &self.0[take..];
         Ok(take)
     }
+}
+
+/// One artifact of a durable job, described before its bytes exist.
+///
+/// The kind/format/mime/guest-name quadruple is the store's own closed pairing
+/// (`QualityArtifactDescriptor::validate`); stating it per member keeps a
+/// producer from claiming a combination the descriptor validator rejects.
+pub(super) struct JobMember<'a> {
+    pub(super) kind: QualityArtifactKind,
+    pub(super) mime_type: QualityMimeType,
+    pub(super) payload_format_version: PayloadFormatVersion,
+    pub(super) guest_name: GuestArtifactName,
+    pub(super) sensitivity: ArtifactSensitivity,
+    /// Always derived from the observation. A hardcoded `Complete` would make
+    /// the descriptor a claim about the payload rather than a record of it.
+    pub(super) completeness: ArtifactCompleteness,
+    pub(super) bytes: &'a [u8],
+}
+
+/// Everything one durable job declares once, for every member it publishes.
+pub(super) struct Job<'a> {
+    pub(super) project: &'a ProjectRef,
+    pub(super) captured_at: UnixSeconds,
+    pub(super) source: &'a SourceBundle,
+    pub(super) selection: ArtifactSelection,
+    pub(super) runtime: ArtifactRuntime,
+    /// The host's retention permission for this evidence. It is fixed by the
+    /// producer, never widened by a peer, a project or a tool argument.
+    pub(super) retention: QualityRetentionGrant,
+}
+
+/// Reserves one job, streams its members in declared order and commits their
+/// descriptors, revalidating the owner immediately before every member's bytes.
+///
+/// All or nothing: a member that cannot be published fails the whole
+/// publication rather than returning a set that silently omits evidence, and
+/// the reservation is released on every path. `member_index` is the member's
+/// position in `members`, which is the order the caller declared.
+///
+/// This is the single site for the reservation, quota and revalidation logic;
+/// every durable publisher that commits owner-bound evidence reaches the store
+/// through it rather than restating it.
+pub(super) fn publish_job(
+    store: &Arc<Mutex<NativeQualityArtifactStore>>,
+    job: Job<'_>,
+    members: &[JobMember<'_>],
+    revalidate: &mut dyn FnMut() -> Result<QualityOwnerFacts, InspectionError>,
+) -> Result<Vec<QualityArtifactDescriptor>, InspectionError> {
+    if members.is_empty() {
+        return Ok(Vec::new());
+    }
+    let reserved_bytes = members
+        .iter()
+        .try_fold(0_u64, |sum, member| {
+            sum.checked_add(member.bytes.len() as u64)
+        })
+        .ok_or(InspectionError::OutputLimit)?
+        .max(1);
+    let declared_members = members.iter().try_fold(0_u16, |sum, member| {
+        sum.checked_add(quality_member_charge(member.kind, None).map_err(quality_error)?)
+            .ok_or(InspectionError::OutputLimit)
+    })?;
+    let mut entropy = [0_u8; 16];
+    getrandom::fill(&mut entropy).map_err(|_| InspectionError::Internal)?;
+    let job_id = QualityJobId::from_random_bytes(entropy);
+    let created =
+        UtcInstant::from_unix_seconds(job.captured_at.0).map_err(|_| InspectionError::Internal)?;
+    let expires = created
+        .checked_add_seconds(QUALITY_DEFAULT_TTL_SECONDS)
+        .map_err(|_| InspectionError::Internal)?;
+    let captured_source_sha256 = source_digest(job.source);
+    let mut store = store.lock().map_err(|_| InspectionError::Internal)?;
+    let mut authority = CallbackAuthority { revalidate };
+    let mut access = QualityArtifactAccess {
+        store: &mut *store,
+        authority: &mut authority,
+        retention: job.retention,
+    };
+    let reservation = access
+        .begin(
+            job.project,
+            job_id,
+            reserved_bytes,
+            declared_members,
+            expires.clone(),
+        )
+        .map_err(quality_error)?;
+    let mut published = Vec::with_capacity(members.len());
+    let outcome = (|| -> Result<(), InspectionError> {
+        for (index, member) in members.iter().enumerate() {
+            let mut id = [0_u8; 16];
+            getrandom::fill(&mut id).map_err(|_| InspectionError::Internal)?;
+            let descriptor = access
+                .publish(
+                    job.project,
+                    &reservation,
+                    QualityArtifactDraft {
+                        artifact_id: QualityArtifactId::from_random_bytes(id),
+                        member_index: u16::try_from(index)
+                            .map_err(|_| InspectionError::OutputLimit)?,
+                        kind: member.kind,
+                        mime_type: member.mime_type,
+                        payload_format_version: member.payload_format_version,
+                        completeness: member.completeness,
+                        sensitivity: member.sensitivity,
+                        created_at_utc: created.clone(),
+                        expires_at_utc: expires.clone(),
+                        source: ArtifactSource {
+                            captured_source_sha256,
+                            guest_name: member.guest_name,
+                            selection: job.selection,
+                        },
+                        runtime: job.runtime.clone(),
+                    },
+                    (member.bytes.len() as u64).max(1),
+                    &mut Bytes(member.bytes),
+                )
+                .map_err(quality_error)?;
+            published.push(descriptor);
+        }
+        Ok(())
+    })();
+    if access.finish(&reservation).is_err() {
+        access.store.reconcile_recover().map_err(quality_error)?;
+        return Err(InspectionError::Internal);
+    }
+    outcome.map(|()| published)
+}
+
+/// Domain-separated identity of the toolchain an observation ran under.
+fn toolchain_identity(runtime: &rust_engineering_domain::RuntimeIdentity) -> [u8; 32] {
+    let mut toolchain = Sha256::new();
+    toolchain.update(b"rust-mcp/quality-toolchain/v1\0");
+    toolchain.update(runtime.rust_version.as_bytes());
+    toolchain.update([0]);
+    toolchain.update(runtime.cargo_version.as_bytes());
+    toolchain.finalize().into()
 }
 
 fn keep_or_omit<K: Copy, T>(
@@ -727,14 +877,9 @@ fn semver_source_digest(baseline: &SourceBundle, candidate: &SourceBundle) -> [u
 }
 
 fn artifact_runtime(observation: &NextestObservation) -> Result<ArtifactRuntime, InspectionError> {
-    let mut toolchain = Sha256::new();
-    toolchain.update(b"rust-mcp/quality-toolchain/v1\0");
-    toolchain.update(observation.runtime.rust_version.as_bytes());
-    toolchain.update([0]);
-    toolchain.update(observation.runtime.cargo_version.as_bytes());
     Ok(ArtifactRuntime {
         image_digest: digest_text(&observation.runtime.image_id)?,
-        toolchain_identity: toolchain.finalize().into(),
+        toolchain_identity: toolchain_identity(&observation.runtime),
         plugin: ArtifactPlugin {
             identity: PluginIdentity::Nextest,
             version: 1,
@@ -747,17 +892,12 @@ fn artifact_runtime(observation: &NextestObservation) -> Result<ArtifactRuntime,
 fn coverage_artifact_runtime(
     observation: &CoverageObservation,
 ) -> Result<ArtifactRuntime, InspectionError> {
-    let mut toolchain = Sha256::new();
-    toolchain.update(b"rust-mcp/quality-toolchain/v1\0");
-    toolchain.update(observation.runtime.rust_version.as_bytes());
-    toolchain.update([0]);
-    toolchain.update(observation.runtime.cargo_version.as_bytes());
     let mut plugin = Sha256::new();
     plugin.update(b"cargo-llvm-cov\0");
     plugin.update(observation.identity.cargo_llvm_cov_version.as_bytes());
     Ok(ArtifactRuntime {
         image_digest: digest_text(&observation.runtime.image_id)?,
-        toolchain_identity: toolchain.finalize().into(),
+        toolchain_identity: toolchain_identity(&observation.runtime),
         plugin: ArtifactPlugin {
             identity: PluginIdentity::Coverage,
             version: 1,
@@ -770,14 +910,9 @@ fn coverage_artifact_runtime(
 fn semver_artifact_runtime(
     observation: &SemverObservation,
 ) -> Result<ArtifactRuntime, InspectionError> {
-    let mut toolchain = Sha256::new();
-    toolchain.update(b"rust-mcp/quality-toolchain/v1\0");
-    toolchain.update(observation.runtime.rust_version.as_bytes());
-    toolchain.update([0]);
-    toolchain.update(observation.runtime.cargo_version.as_bytes());
     Ok(ArtifactRuntime {
         image_digest: digest_text(&observation.runtime.image_id)?,
-        toolchain_identity: toolchain.finalize().into(),
+        toolchain_identity: toolchain_identity(&observation.runtime),
         plugin: ArtifactPlugin {
             identity: PluginIdentity::Semver,
             version: 1,

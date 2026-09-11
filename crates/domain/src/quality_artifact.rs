@@ -302,6 +302,17 @@ pub enum QualityArtifactKind {
     MutationDiff,
     MutationLog,
     ToolLog,
+    /// M5-01: the versioned benchmark dataset this server derived from the
+    /// harness output. Its bytes are `rust-engineering-mcp.benchmark-dataset.v2`.
+    BenchmarkDataset,
+    /// M5-01: the harness's own output tree, retained verbatim as evidence.
+    CriterionArchive,
+    /// M5-03: folded stacks, one line per distinct stack.
+    CollapsedStacks,
+    /// M5-03: the flame graph this server rendered from those stacks.
+    FlamegraphSvg,
+    /// M5-04: the size analyzer's raw JSON report.
+    BloatJson,
     OtherDeclared,
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
@@ -312,6 +323,7 @@ pub enum QualityMimeType {
     TextPlain,
     TextXDiff,
     ApplicationXTar,
+    ImageSvgXml,
     ApplicationOctetStream,
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
@@ -323,6 +335,10 @@ pub enum PayloadFormatVersion {
     UstarV1,
     MutationDiffV1,
     Utf8LogV1,
+    BenchmarkDatasetV2,
+    CollapsedStacksV1,
+    FlamegraphSvgV1,
+    BloatJsonV1,
     DeclaredV1,
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
@@ -355,6 +371,11 @@ pub enum GuestArtifactName {
     MutationLog,
     ToolLog,
     ReportArchive,
+    BenchmarkDataset,
+    CriterionArchive,
+    CollapsedStacks,
+    FlamegraphSvg,
+    BloatJson,
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
@@ -394,6 +415,9 @@ pub enum PluginIdentity {
     Coverage,
     Semver,
     Mutation,
+    Criterion,
+    ProfileHelper,
+    Bloat,
 }
 
 /// Everything a producer declares before its bytes exist. Size and digest are
@@ -506,6 +530,26 @@ impl QualityArtifactDescriptor {
                     PayloadFormatVersion::Utf8LogV1
                 )
                 | (
+                    QualityArtifactKind::BenchmarkDataset,
+                    PayloadFormatVersion::BenchmarkDatasetV2
+                )
+                | (
+                    QualityArtifactKind::CriterionArchive,
+                    PayloadFormatVersion::UstarV1
+                )
+                | (
+                    QualityArtifactKind::CollapsedStacks,
+                    PayloadFormatVersion::CollapsedStacksV1
+                )
+                | (
+                    QualityArtifactKind::FlamegraphSvg,
+                    PayloadFormatVersion::FlamegraphSvgV1
+                )
+                | (
+                    QualityArtifactKind::BloatJson,
+                    PayloadFormatVersion::BloatJsonV1
+                )
+                | (
                     QualityArtifactKind::OtherDeclared,
                     PayloadFormatVersion::DeclaredV1
                 )
@@ -516,16 +560,22 @@ impl QualityArtifactDescriptor {
                 QualityArtifactKind::JunitXml,
                 QualityMimeType::ApplicationJunitXml
             ) | (
-                QualityArtifactKind::CoverageJson,
+                QualityArtifactKind::CoverageJson
+                    | QualityArtifactKind::BenchmarkDataset
+                    | QualityArtifactKind::BloatJson,
                 QualityMimeType::ApplicationJson
             ) | (
                 QualityArtifactKind::Lcov
                     | QualityArtifactKind::MutationLog
-                    | QualityArtifactKind::ToolLog,
+                    | QualityArtifactKind::ToolLog
+                    | QualityArtifactKind::CollapsedStacks,
                 QualityMimeType::TextPlain
             ) | (
-                QualityArtifactKind::ArchiveBundle,
+                QualityArtifactKind::ArchiveBundle | QualityArtifactKind::CriterionArchive,
                 QualityMimeType::ApplicationXTar
+            ) | (
+                QualityArtifactKind::FlamegraphSvg,
+                QualityMimeType::ImageSvgXml
             ) | (
                 QualityArtifactKind::MutationDiff,
                 QualityMimeType::TextXDiff
@@ -555,6 +605,23 @@ impl QualityArtifactDescriptor {
                     GuestArtifactName::MutationLog
                 )
                 | (QualityArtifactKind::ToolLog, GuestArtifactName::ToolLog)
+                | (
+                    QualityArtifactKind::BenchmarkDataset,
+                    GuestArtifactName::BenchmarkDataset
+                )
+                | (
+                    QualityArtifactKind::CriterionArchive,
+                    GuestArtifactName::CriterionArchive
+                )
+                | (
+                    QualityArtifactKind::CollapsedStacks,
+                    GuestArtifactName::CollapsedStacks
+                )
+                | (
+                    QualityArtifactKind::FlamegraphSvg,
+                    GuestArtifactName::FlamegraphSvg
+                )
+                | (QualityArtifactKind::BloatJson, GuestArtifactName::BloatJson)
                 | (
                     QualityArtifactKind::OtherDeclared,
                     GuestArtifactName::OutcomesJson

@@ -347,7 +347,7 @@ hereda CARGO_HOME, proxies, credenciales o configuración host y no descarga. Da
 ausentes o corruptos impiden el candidato. `preserve_presence` evita crear
 Cargo.lock en el host cuando el proyecto no lo tenía y actualiza el existente en
 el mismo plan cuando sí lo tenía. La [calificación M2](validation/M2-07.md) del
-checkout `0.3.0-dev` está completada; la release estable sigue siendo `0.1.0`.
+checkout `0.3.0` está completada.
 
 No existe un canal de upgrade/downgrade gestionado para M2. Un operador debe
 reconciliar los journals pendientes antes de ejecutar un binario anterior; la
@@ -553,3 +553,275 @@ their required host configuration, and retains compatible artifact evidence.
 Catalog trust/sequence floors must never be lowered. Re-admission requires a new
 calibration after any runtime identity change; arbitrary/plugin-modified images
 fail closed before project execution.
+
+## M5 — medición, capability de profiling y containment
+
+Estado: las cuatro definiciones M5 están implementadas en dominio, aplicación y
+execution adapter y **calificadas localmente** (suite nativa, clientes,
+`core` y `full`); la [matriz M5](validation/M5-matrix.md) registra recibos y
+límites. `tools/list` devuelve 31 definiciones, con las 27 anteriores
+sin cambio. Lo que sigue
+describe contratos y controles implementados; solo se presenta como calificado
+aquello que enlaza un recibo.
+
+### Los benchmarks y los builds de tamaño ejecutan código del proyecto
+
+`rust.benchmark.run`, `rust.profile.flamegraph` y `rust.binary.bloat` compilan y
+ejecutan código del proyecto, exactamente igual que `rust.test`,
+`rust.mutation.test` y `rust.miri`: son operaciones R2/R1, no lecturas. El plan
+M5 las clasifica así de forma explícita («Benchmarks/builds ejecutan código de
+proyecto (R2/R1)», [roadmap](roadmap/m5-performance.md)). Que las cuatro
+definiciones declaren `read_only(true)`
+([ADR-076](adr/ADR-076-m5-performance-contracts.md) §1) describe que la tool no
+escribe el checkout; no describe que el código medido sea inocuo. Un benchmark
+es código del proyecto con `build.rs`, proc macros y dependencias de desarrollo
+propias, y el binario perfilado se ejecuta dentro del sandbox como cualquier
+test. Solo `rust.benchmark.compare` no ejecuta nada: es cálculo puro sobre bytes
+ya autorizados del store privado, sin proceso, sin contenedor y sin tocar el
+proyecto (ADR-076 §4).
+
+Las tres que miden rechazan además una fuente capturada que traiga su propio
+archivo de configuración de Cargo (`.cargo/config.toml` o `.cargo/config` en
+cualquier punto del árbol), antes de que exista ningún volumen: ese archivo
+decidiría qué sources, linker y rustflags usaría la medición, y podría redirigir
+`source.crates-io` a un directorio del propio proyecto
+(`performance_gateway.rs`). El predicado es conservador y basado en el nombre: no
+prueba nada sobre un proyecto que no lleva configuración, solo rechaza a los que
+sí la llevan.
+
+### La captura de vendor: autenticada en el host, no montada desde el host
+
+`rust.benchmark.run` puede resolver su harness desde una **captura de vendor**
+([ADR-078](adr/ADR-078-offline-vendor-capture.md)) en lugar de un
+`CargoVendorSnapshot`. Es un contrato distinto, con sus propios límites y su
+propio threat model, y no amplía el de `SourceBundle`: `validate_source_path` y
+las cuotas de ADR-055 siguen exactamente donde estaban, y todos los flujos M2/M4
+calificados que las comparten quedan intactos.
+
+Lo que la captura cambia, y por qué:
+
+- **Se captura, no se monta.** Montar de solo lectura un directorio mutable del
+  host no impide que otro proceso del host lo cambie mientras se usa, ni durante
+  la propia captura, y `.cargo-checksum.json` no protege frente a modificación
+  maliciosa por documentación explícita de Cargo. La autenticación ocurre en el
+  host, antes de que el guest vea nada, y el guest monta de solo lectura un
+  volumen construido a partir de la captura, nunca el directorio original.
+- **Identidad por digest.** El artifact se llama por su propio digest de árbol,
+  ese digest viaja como `vendor_fingerprint` en la provenance de la medición, y
+  una captura cuyo digest no coincide con el declarado se **rechaza**: no se usa
+  degradada. La verificación relee el artifact y recalcula ambos digests de forma
+  incremental, aplicando otra vez el alfabeto, el orden, la topología y todas las
+  cuotas, así que un artifact no puede colar una ruta o una entrada que la
+  captura habría rechazado.
+- **Alfabeto ampliado, y solo lo que el ADR amplía.** Se añaden `()+,=@[]{}~` y
+  el espacio, que es lo que un `.crate` publicado puede llevar legítimamente en
+  nombres de tests. Lo que sigue prohibido es lo que importa: ningún byte de
+  control, ningún byte no ASCII, ningún `\`, ninguna `:`, ningún componente
+  vacío, `.` o `..`, ninguna ruta absoluta. La razón por la que el alfabeto
+  existe —que una ruta no pueda expresar algo que el guest interprete como otra
+  cosa— se conserva entera, y cada rechazo tiene su prueba propia.
+- **Cuotas durante la lectura.** Tamaño por archivo, bytes totales, número de
+  entradas, bytes por ruta y profundidad se cobran en el punto de la lectura que
+  los cruza, nunca después, y una entrada por encima del techo se rechaza antes
+  de abrirse para leer.
+- **Enlaces y entradas no regulares: rechazo, no salto.** Un symlink, un hard
+  link (un inodo con más de un enlace), un dispositivo, un socket o un fifo hacen
+  fallar la captura.
+- **Un árbol que se mueve no se publica.** Cada archivo se sella antes y después
+  de leerse, cada directorio antes y después de enumerarse, y al cerrar se
+  reobservan todas las entradas a través de la autoridad original. Cualquier
+  diferencia hace fallar la captura.
+- **Cancelación sin residuo.** El artifact se escribe en un hermano `.partial` y
+  solo se renombra al nombre-digest cuando su digest ya se conoce; el borrado del
+  parcial es un `Drop`, no una rama, y el último checkpoint cooperativo está
+  *antes* del rename. Una captura interrumpida no deja nada que otra ejecución
+  pueda tomar por completa.
+- **Aprovisionamiento explícito.** La captura la produce `cargo-vendor capture`
+  fuera del runtime MCP. Ninguna tool captura por su cuenta como efecto
+  secundario de una medición, y no hay descarga en ningún punto.
+
+Durante el replay se comprueba el sello del descriptor antes y después de cada
+lectura. Un SHA-256 incremental autentica los bytes reproducidos y se compara,
+junto con la longitud y la ausencia de bytes extra, antes de entregar el último
+bloque a la ingesta. Detectar una modificación invalida ese handle de forma
+permanente. La ingesta aislada puede haber recibido bloques previos; no puede
+completar ni iniciar la medición con un replay rechazado.
+
+Ni la captura ni su verificación cargan el árbol ni el artifact en memoria: el
+estado de ambas es un buffer de lectura, una entrada abierta, una ruta anterior y
+una pila de directorios acotada por el límite de profundidad. La ingesta hacia el
+guest tampoco: el artifact se transmite al `tar` del contenedor buffer a buffer.
+
+### Logs del harness: evidencia privada y texto válido
+
+`criterion_archive` contiene la salida del harness, no sus logs. Cada repetición
+puede publicar `harness_stdout` y `harness_stderr` como artifacts privados
+`source_derived`, ligados a su `run_index`; no se concatenan ni se escriben en
+el `stdout` MCP. El adapter convierte bytes inválidos a UTF-8 válido y declara
+`stdout_replaced`/`stderr_replaced` por stream, aparte de
+`stdout_truncated`/`stderr_truncated`. La cuota del store se aplica cuando se
+publican esos bytes después de ejecutar; no constituye una reserva de admisión
+antes del benchmark (ADR-080).
+
+### La capability de profiling la concede el host, nunca el peer
+
+Profiling exige una capability positiva y explícita del host confiable
+([ADR-074](adr/ADR-074-profiling-capability-and-containment.md) §2). El peer, el
+proyecto, la URI de un Resource y las annotations de la tool **no** la conceden y
+no permiten inferirla: `ProfilingAuthorization` es un argumento explícito del
+registry, no estado ambiental. Sin ella, la operación se rechaza **antes** de la
+captura de fuente, antes del executor y antes de crear ningún contenedor; el
+contrato la nombra `PROFILING_NOT_AUTHORIZED` y su estado es `blocked`
+(ADR-076 §5). La implementación actual la expresa como `SandboxDenied` sobre el
+mapping compartido de errores porque no se amplía un enum que otros cuatro
+motores ya comparten; la ortografía exacta en el wire pertenece al corte M5-03,
+todavía sin calificar.
+
+La capability es por servidor y se retira quitando la bandera y reiniciando.
+**No hay revocación en caliente**: la concesión se lee una vez del argv de
+arranque y ningún camino la muta después, así que retirarla no cancela ni une
+un trabajo ya en vuelo. Un reinicio duro con una operación viva deja sus
+contenedores atrás, porque el cleanup corre en proceso. Revocarla no reconstruye
+ninguna imagen y conserva la evidencia ya publicada. La configuración del host la refuta de plano cuando
+el runtime Docker calificado no está configurado: sin gateway no hay contenedor
+que contener, así que `--allow-profiling` sin el grupo `--rust-*` completo hace
+inválida la invocación de `serve` en vez de degradar la garantía
+(`host_config.rs`). La tool tampoco puede activar permisos de profiling: si el
+kernel del host denegara `perf_event_open`, el resultado es `unavailable` con el
+errno observado (ADR-074 §3).
+
+### El delta exacto del sandbox: una syscall y una sola fase
+
+`seccomp-rust-profile.json` es `seccomp-rust-quality.json` **más un grupo de
+reglas al final que permite exactamente `perf_event_open`**, y nada más: 121
+syscalls pasan a 122, `defaultAction` sigue siendo `SCMP_ACT_ERRNO` y
+`defaultErrnoRet`/`archMap` no cambian. Ese perfil lo usa **una única fase**,
+`ProfileRun`; todas las demás fases de las cuatro operaciones conservan el perfil
+quality de ADR-064 (`performance_gateway.rs`, con un test que afirma que la lista
+de fases con perfil de profiling es exactamente `[ProfileRun]`).
+
+Se conservan sin cambio `--cap-drop=ALL`,
+`--security-opt=no-new-privileges=true`, `--network=none`, `--read-only`,
+`--ipc=private`, `--cgroupns=private`, `--pids-limit`, `--cpus`, `--memory`,
+uid/gid 65534 y el montaje `/source` de solo lectura. **No** se añade
+`CAP_PERFMON` ni `CAP_SYS_ADMIN`, **no** se usa `--privileged`, **no** se ejecuta
+nada con `sudo` y **no** se modifica ningún `sysctl`:
+`/proc/sys/kernel/perf_event_paranoid` permanece en `2`, que es precisamente el
+valor que ya permite mediciones de espacio de usuario sin privilegio. El perfil
+aplicado se verifica contra el declarado por fase. La corrección de cierre
+delega la autoridad y los límites en la misma matriz `rust_applied` de M1–M4 y
+compara los montajes solicitados y efectivos, además de argv, entorno, usuario
+y seccomp propios de cada fase. La recalificación de esta corrección está en la
+[matriz M5](validation/M5-matrix.md); la decisión y el P2 histórico permanecen en
+[ADR-074 §3/3.1](adr/ADR-074-profiling-capability-and-containment.md).
+
+### Los artifacts del perfilador no se creen por venir del contenedor
+
+Una revisión independiente encontró que el binario perfilado —hostil por
+definición— corre como el mismo uid, en el mismo contenedor, con `/profile`
+montado de lectura y escritura, así que podía pre-crear o sobrescribir los dos
+artifacts del propio perfilador; y que el host publicaba el manifest sin
+comprobar ni su `schema`. Tres controles lo cierran, y los tres están descritos
+en [ADR-074 §5.1](adr/ADR-074-profiling-capability-and-containment.md):
+
+- **El helper vacía su namespace de PIDs antes de emitir.** Es PID 1 ahí, y lo
+  comprueba en vez de suponerlo. `namespace_drained: false` invalida la
+  ejecución; no es un éxito degradado.
+- **Los dos artifacts se abren con `O_EXCL`**, de modo que un archivo pre-creado
+  es un rechazo y nunca una sobrescritura silenciosa.
+- **El host reconcilia el manifest** contra los bytes que su propio parser leyó,
+  contra los parámetros que él mismo puso en el argv y contra el esquema y el
+  conjunto exacto de claves. Cualquier desacuerdo es `InvalidMetadata`: los bytes
+  pueden estar bien, pero el metadato que los describe no se puede avalar.
+
+Los dos primeros están observados sobre la imagen admitida, no solo razonados.
+El corte M5-03 perfila un binario que deja un nieto vivo por doble fork:
+`profile-descendant-drained` registra `descendants_reaped: 1` con
+`namespace_drained: true` y la ejecución aceptada, y
+`profile-precreated-artifact-refused` deja que ese nieto cree
+`/profile/stacks.txt` primero y registra helper exit 4, nada exportado e
+`InvalidMetadata` ([recibo](validation/M5-03-runtime.json)). Antes de esas dos
+selecciones `descendants_reaped` era `0` en todos los recibos del árbol, así que
+el vaciado nunca se había visto cosechar nada.
+
+La [prueba de capability](validation/M5-profiling-capability-probe.json) del
+2026-09-08 registra las dos filas sobre la imagen M4 aprobada
+`sha256:25ed3626e710…`, con las banderas del gateway y sin `sudo`, `--privileged`,
+`--cap-add` ni escritura de `perf_event_paranoid`:
+
+| Perfil seccomp | Resultado observado |
+| --- | --- |
+| `seccomp-rust-quality.json` | `perf_event_open(user-space-only, self, any-cpu) -> -1`; `RESULT=perf_event_open_denied errno=1` (EPERM). Denegado. |
+| `seccomp-rust-profile.json` | `perf_event_open(...) -> 3`; ring buffer de 8+1 páginas mapeado; `PERF_EVENT_IOC_ENABLE -> 0`; `data_head = 560` tras el workload; `RESULT=samples_collected`. |
+
+El recibo es el positivo de viabilidad de D24 sobre la imagen M4; la
+calificación nativa de `rust.profile.flamegraph` está en
+[M5-03-runtime.json](validation/M5-03-runtime.json).
+
+### Alcance de la medición
+
+Solo eventos de espacio de usuario: `exclude_kernel = 1`, `exclude_hv = 1`, y
+únicamente `PERF_TYPE_SOFTWARE`/`PERF_COUNT_SW_CPU_CLOCK`. No se usa ningún
+contador PMU. Se observa **solo el proceso hijo que el propio helper lanza y sus
+hilos** (`inherit = 1`); nunca un pid ajeno y nunca todo el sistema. La
+frecuencia y la duración las acota el producto: 99 Hz por defecto con techo de
+999 Hz, y 10 s por defecto con techo de 60 s (ADR-074 §4, ADR-076 §5). El
+backend es `rust-mcp-profile-helper`, código de este repositorio construido desde
+fuente e instalado en la imagen guest: no se aprovisiona `perf`,
+`cargo-flamegraph`, `samply` ni `inferno`, de modo que no entra un motor de
+scripting ni una superficie de terceros en el runtime (ADR-074 §1, ADR-075 §1).
+
+### Privacidad de los artifacts de profiling
+
+Los stacks colapsados llevan **nombres de símbolo y nada más**. El alfabeto
+cerrado del parser no admite separadores de path, espacios, comillas, paréntesis,
+signos de igualdad ni bytes no ASCII, así que un path del sistema de archivos o
+un path de módulo no puede llegar a un artifact por esa vía; una línea no saneada
+se rechaza, no se repara (`profile_stacks.rs`). Un frame no resuelto es
+`[unknown]` y **se cuenta**: se declaran siempre `samples_collected`,
+`samples_lost`, `frames_unresolved`, `stacks_truncated`, la frecuencia, la
+duración observada y el estado del hijo. Cero muestras es un resultado válido y
+declarado, no un fallo (ADR-074 §5, ADR-076 §5).
+
+El SVG lo genera este producto a partir de esos stacks, de modo que la
+sanitización es una propiedad de construcción y no una inspección de bytes
+ajenos. El documento es estático: solo `<svg>`, `<style>`, `<g>`, `<title>`,
+`<rect>` y `<text>`, con un conjunto fijo de atributos. No contiene `<script>`,
+ni atributos de evento `on*`, ni `href`, ni `xlink:href`, ni `<foreignObject>`,
+ni `<image>`, ni `<use>`, ni entidades externas, ni ninguna URL salvo el
+namespace SVG obligatorio. El escape es más fuerte que el XML: además de `&<>"'`
+sustituye `:` y `=` por referencias numéricas y rompe el token `href`, de modo
+que ningún texto no confiable puede ensamblar `javascript:`, `data:`, `xlink:`,
+`http://` ni `on…=` (`profile_svg.rs`, con test de contrato sobre los bytes
+generados). El artifact es privado, owner-bound, con TTL y cuota sobre el store
+de ADR-061.
+
+### Threat delta declarado por el plan
+
+| Amenaza | Control | Riesgo residual honesto |
+| --- | --- | --- |
+| Artifact spoofing | Identificadores opacos `qart_` emitidos por el store, no componibles por el peer; autorización por proyecto propietario; descriptor con kind/format/mime validados; `same_artifact` rechazado por `execution_fingerprint` idéntico (ADR-076 §4) | El store acredita custodia y autoría de la publicación, no la verdad de la medida. Un dataset auténtico puede describir una ejecución poco informativa |
+| Secretos en nombres de símbolos | Alfabeto cerrado, sin path ni módulo, `[unknown]` contado; artifact privado owner-bound | Un nombre de símbolo sigue siendo metadata potencialmente sensible del proyecto. Esto no es detección universal de secretos, igual que en M4 |
+| Profiler que escapa del sandbox | Helper propio sin scripting, sin pid ajeno y sin red; una syscall añadida en una sola fase; perfil verificado por fase; `--cap-drop=ALL` y `no-new-privileges` intactos | El daemon Docker, el host, el kernel y el subsistema perf quedan fuera del claim de containment sin privilegios. El alcance positivo se limita a Linux ARM64 guest; M5-03 está en recalificación según la matriz M5 |
+| Exhaustión de recursos | Presupuestos 900 s (`run`), 300 s (`profile`, con 60 s de muestreo máximo), 30 s (`compare`) y 300 s (`bloat`); techos de CPU/RAM/PID; artifacts SVG ≤ 8 MiB, bloat ≤ 4 MiB, muestras ≤ 32 MiB y resultado ≤ 512 KiB. La cuota se comprueba al publicar después de ejecutar (ADR-080), sin promesa de reserva previa | Los deadlines siguen siendo cooperativos y unidos, no preempción nativa dura, con la misma limitación ya declarada para M1–M4 |
+| Un benchmark que falsifica su propia salida | Warmup, tiempo de medición y tamaño muestral los fija el servidor en argv cerrado; el dataset declara el tamaño **solicitado** frente al **observado** y trata la diferencia como incompatibilidad de método; compatibilidad antes que estadística; MDR frente al umbral (ADR-073 §2/§4/§5) | **Ninguno de esos controles impide que un benchmark mienta.** Las muestras las produce el harness del **proyecto** y se describen como observaciones de origen no autenticado; el producto no afirma que un benchmark no pueda falsificar sus propios números (ADR-073 §6) |
+
+La tool tampoco alterna el orden de ejecución entre baseline y candidate:
+alternar es un protocolo del operador que la documentación describe, no un
+control que el producto implemente, y el dataset registra el orden real
+(ADR-073 §2).
+
+### El archivo medido por bloat es un build de análisis
+
+`cargo-bloat` 0.12.1 empuja incondicionalmente `CARGO_PROFILE_<PERFIL>_STRIP=false`
+porque necesita la tabla de símbolos, y la
+[calibración en el guest](validation/M5-04-bloat-calibration.json) comprueba que
+`CARGO_PROFILE_RELEASE_STRIP=symbols` **no tiene efecto alguno** sobre el archivo
+producido (4 574 312 bytes con y sin esa variable). Por tanto el binario medido
+**no** es byte a byte el que enviaría un proyecto que pide stripping, y un
+reporte de binario stripped es inalcanzable con este analizador. El DTO lo
+declara en `analysis_build_symbols_forced`, siempre `true`. El tamaño sigue
+siendo exacto *para ese archivo* —medido por el producto con `stat` y su
+`sha256`, y cotejado contra el `file-size` que reporta el analizador; si no
+coinciden, la completeness es `size_mismatch` y no se publica ranking—, pero no se
+afirma que sea el artefacto distribuible del proyecto (ADR-076 §6).

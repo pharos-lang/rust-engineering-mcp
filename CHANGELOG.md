@@ -1,6 +1,194 @@
 # Changelog
 
-## 0.3.0-dev — Unreleased
+## 0.3.0 — 2026-09-11
+
+Primera release desde `0.1.0`. Incluye M2, M3, M4 y M5 calificados localmente;
+la sección `0.2.0-dev` de abajo describe los cambios de M2 que nunca se
+publicaron por separado y forman parte de esta versión.
+
+### M5 — cuatro tools de rendimiento implementadas y calificadas localmente
+
+- **Captura de vendor offline, un contrato separado de `SourceBundle`**
+  ([ADR-078](docs/adr/ADR-078-offline-vendor-capture.md)). El cierre de
+  `criterion 0.8.2` rompe cuatro límites de `SourceBundle` a la vez y trece de
+  sus rutas no rompen ninguno: rompen la gramática, porque llevan paréntesis.
+  Ninguna cuota mueve esas trece, así que el contrato nuevo decide también sobre
+  el alfabeto. Se implementa con los límites que la tabla del ADR fija —buffer de
+  lectura 64 KiB, 512 MiB totales, 32 768 entradas, 8 MiB por archivo, 200 bytes
+  por ruta, profundidad 16—, alfabeto ampliado solo a `()+,=@[]{}~` y el espacio,
+  y con cada rechazo (byte de control, byte no ASCII, `\`, `:`, componente
+  vacío, `.`, `..`, ruta absoluta) fijado por su propia prueba. Captura y
+  verificación son incrementales y no residencian el árbol ni el artifact; la
+  identidad es el digest, viaja en la provenance y una captura cuyo digest no es
+  el declarado se rechaza; enlaces y entradas no regulares se rechazan en vez de
+  saltarse; un árbol que cambia durante la captura la hace fallar; una captura
+  cancelada no deja residuo ni artifact a medias. Se aprovisiona con
+  `cargo-vendor capture --directory DIR --into DIR` y se declara al servidor con
+  `--vendor-capture PATH --vendor-capture-tree-sha256 sha256:<64-hex>`.
+  `rust.benchmark.run` la resuelve además del `CargoVendorSnapshot` de siempre,
+  que sigue funcionando sin cambios para todos los flujos que ya lo usan;
+  `SourceBundle`, `validate_source_path` y las cuotas de ADR-055 quedan
+  intactos. La ruta de captura y su ingesta guest deben recalificarse antes de
+  que M5-01 pueda recibir evidencia final.
+
+- Implementadas `rust.benchmark.run`, `rust.benchmark.compare`,
+  `rust.profile.flamegraph` y `rust.binary.bloat`, en ese orden después de las 27
+  definiciones existentes; el inventario público pasa de 27 a 31. Los 27
+  snapshots anteriores se conservan byte a byte bajo un test de invariancia y se
+  añaden cuatro nuevos. Las cuatro son `read_only`, no escriben el checkout y no
+  admiten MCP Tasks: `task` devuelve `TASKS_REQUIRED` como resultado declarado.
+  Contratos en [ADR-076](docs/adr/ADR-076-m5-performance-contracts.md).
+- `rust.benchmark.run` mide benchmarks Criterion 0.8.2 que el proyecto ya tiene y
+  no genera ninguno. Warmup 3 s, tiempo de medición 5 s y `--sample-size 30` los
+  fija el servidor como argv cerrado y viajan en la provenance; el proyecto no
+  los alcanza. Un harness distinto o una versión no aprobada son resultados
+  observados sin dataset. Las muestras crudas no viajan en la respuesta.
+- **Los logs del harness se publican como artifacts, uno por repetición y por
+  stream.** El schema congelado, `docs/tools.md` y ADR-076 decían que los logs
+  «quedan en el artifact de criterion»; no quedaban en ninguna parte —ese payload
+  es un export USTAR de `CRITERION_HOME` sin log alguno— y el adapter capturaba
+  `stdout`/`stderr` y los descartaba. Un `OBSERVED_FAILURE` dirigía al llamador a
+  un archivo que no puede contener el error del compilador, y
+  `harness_unrecognized` no publicaba artifact alguno.
+  [ADR-080](docs/adr/ADR-080-harness-logs-as-artifacts.md) implementa la
+  capacidad en vez de borrar la promesa: `harness_stdout` y `harness_stderr`
+  privados, owner-bound, con TTL y sensibilidad `source_derived`, acotados en
+  256 KiB por stream y por repetición, con el recorte declarado
+  (`completeness: truncated` y `size_bytes` = lo que sobrevivió). No se
+  concatenan entre repeticiones y nunca salen por el `stdout` del servidor. Los
+  bytes inválidos se sustituyen para que el payload sea UTF-8 válido; esa
+  sustitución se declara independientemente del recorte, por stream y
+  repetición. La cuota se comprueba al publicar después de ejecutar, por lo que
+  no promete admitir el trabajo antes de iniciarlo. La respuesta admite hasta
+  ocho artifacts en vez de dos.
+- **Se corrige la asociación repetición ↔ archivo ↔ logs.** La regla publicada
+  decía que el árbol retenido es «la última repetición que exportó uno, la misma
+  cuyo exit y logs reporta la respuesta», y era falsa en un caso alcanzable: el
+  archivo se elegía con `rfind` sobre las repeticiones que exportaron algo
+  mientras el exit venía de la última sin más, así que con la tercera fallando
+  sin exportar el archivo era de la segunda y nada en la respuesta permitía
+  detectarlo. Ahora cada artifact lleva su `run_index`, la observación lleva
+  `exit_run_index`, cada repetición lleva su fila en `observation.logs`, y los
+  tres textos publicados describen lo que el código hace.
+- `rust.benchmark.compare` publica el método congelado con cada informe: mediana
+  del tiempo por iteración, bootstrap percentil de 10 000 remuestreos con semilla
+  fija, confianza 0,95 **nominal** con Bonferroni cuando la familia es mayor que
+  uno, umbral
+  material del 5 %, outliers contados por vallas de Tukey y nunca eliminados, y
+  un minimum detectable ratio que no se iguala al umbral. Cada comparación
+  publica también cuántas ejecuciones independientes agrupó cada lado. Cuatro veredictos:
+  `regression`, `improvement`, `no_material_change` e `inconclusive`. Un par
+  incompatible es `status = failed` con `INCOMPATIBLE_DATASETS` y la lista
+  completa de razones, con las dos provenances comparadas para que el llamador
+  vea *qué* difería; no es un error de infraestructura. El resultado describe una
+  medición y nunca una causa ([ADR-073](docs/adr/ADR-073-benchmark-method-and-dataset.md)).
+- **La unidad de remuestreo es la ejecución, no la muestra.** Una revisión
+  independiente demostró, sobre las capturas reales del propio proyecto, que un
+  bootstrap dentro de una sola ejecución produce `improvement` para código que no
+  cambió. El método pasa a `benchmark-comparison.v2` con bootstrap por
+  conglomerados; el dataset pasa a `benchmark-dataset.v2` con `run_index` por
+  muestra, y un payload v1 ya no deserializa. Se añaden cuatro negativas
+  estructurales, todas antes de mirar el intervalo: menos de tres ejecuciones por
+  lado (`insufficient_executions`), dispersión degenerada, familia mayor de la
+  que 10 000 remuestreos resuelven, y un campo de hardware no observable en los
+  dos lados.
+- **El umbral de ejecuciones sube de dos a tres por lado y la cobertura entregada
+  se declara.** La etapa externa del bootstrap por conglomerados subestima el
+  error estándar por `sqrt(k/(k−1))` —1,41× con `k = 2`, 1,22× con `k = 3`— sin
+  corrección `t_{k−1}` en los percentiles, y `run_count` admite `1..=3`, así que
+  `k = 2` era alcanzable: una re-revisión independiente midió 27 de 1000
+  comparaciones de código idéntico emitiendo dirección ahí. El mínimo pasa a las
+  tres ejecuciones que el protocolo ya ejecuta por defecto, lo que elimina esa
+  fila; la razón se renombra a `insufficient_executions` porque también se emite
+  con dos ejecuciones, que no son «una sola». El `confidence_level: 0.95` se
+  mantiene y se declara como nominal: el intervalo entregado es **más estrecho**
+  —más confiado— que ese nivel, con cobertura medida en 0,84–0,89 bajo un nulo
+  gaussiano con tres ejecuciones. La magnitud depende del modelo de deriva; el
+  mecanismo no.
+- **La dirección sigue descalificada independientemente de la observación de
+  governor.** El gateway observa, dentro del guest Linux, los IDs de CPU
+  visibles y el `scaling_governor` de cada uno; solo publica un valor si todos
+  son observables y uniformes. No infiere el host físico ni macOS, y ausencia,
+  exit no cero limpio, heterogeneidad o un conjunto incompleto producen `None`.
+  Timeout, cancelación, output limit o truncamiento siguen el lifecycle
+  fail-closed y son error operativo, no `None`. `cpu_model` también requiere
+  consenso de valores guest válidos. Aun así
+  `METHOD_QUALIFIED_FOR_DIRECTION=false` bloquea siempre `regression`,
+  `improvement` y `no_material_change`; esa puerta estadística es independiente
+  del hardware y requiere su propia recalificación.
+- `rust.profile.flamegraph` exige la capability positiva del host
+  `--allow-profiling user-space-sampling`; sin ella responde `blocked` con
+  `PROFILING_NOT_AUTHORIZED` antes de crear contenedor alguno. El muestreo es solo
+  de espacio de usuario sobre el proceso hijo y sus hilos, con un perfil seccomp
+  que es el de calidad más una sola syscall (`perf_event_open`), sin
+  `--cap-add`, sin contenedor privilegiado, sin `sudo` y sin tocar
+  `perf_event_paranoid`. Cero muestras es un resultado válido y declarado
+  ([ADR-074](docs/adr/ADR-074-profiling-capability-and-containment.md)).
+- `rust.binary.bloat` separa el tamaño exacto que mide el producto (bytes y
+  `sha256`) de la atribución estimada de `cargo-bloat`, marcada como estimación en
+  el propio DTO. El archivo medido es un build de análisis: el analizador fuerza
+  `strip=false` para leer símbolos, así que no es byte a byte el que enviaría un
+  proyecto que pide stripping, y el DTO lo declara siempre. Un desacuerdo de
+  tamaño se publica como `size_mismatch`, nunca fundido con la medición exacta.
+- Añadidos artifact kinds nuevos en el store durable privado —
+  `benchmark_dataset`, `criterion_archive`, `collapsed_stacks`, `flamegraph_svg`
+  y `bloat_json` —, el mime `image/svg+xml` y sus versiones de payload. Los logs
+  del harness reutilizan el `tool_log`/`utf8-log.v1` ya existente, sin variante
+  nueva en el store; el DTO de la tool es el que los separa en `harness_stdout` y
+  `harness_stderr`. Ninguna
+  variante nueva aparece en el schema público de una tool anterior. El dataset usa
+  el formato versionado `rust-engineering-mcp.benchmark-dataset.v2`
+  (`format_version = 2`) con las muestras crudas —cada una con el `run_index` de
+  la ejecución que la produjo— y una provenance completa; un lector que no
+  reconozca exactamente ese identificador falla cerrado y nunca migra medidas. Techos: SVG ≤ 8 MiB, bloat ≤ 4 MiB, muestras ≤ 32 MiB y
+  resultado MCP completo ≤ 512 KiB.
+- Provisionada una imagen guest derivada por digest de la imagen M4, que añade
+  exactamente `cargo-bloat 0.12.1` (MIT, con su cierre de veinte paquetes
+  verificados contra el lockfile publicado) y `rust-mcp-profile-helper`,
+  construido desde `fixtures/profile-helper/`. Ninguno es alcanzable por `PATH`;
+  el gateway los invoca por ruta absoluta y la construcción corre con
+  `--network=none` ([ADR-075](docs/adr/ADR-075-m5-runtime-provisioning.md)).
+  [ADR-077](docs/adr/ADR-077-m5-runtime-admission.md) añade exactamente el digest
+  `sha256:e0a5ca1661b3e49d0a3d68ee3cc0963453078d08eb7fc43c30538c16b7998aac` a la
+  lista cerrada de admisión, y el puerto de performance exige esa imagen y solo
+  esa. Las tres imágenes anteriores conservan su admisión y su alcance.
+- **Limitación histórica M5-01, sustituida por ADR-078**: antes de la captura de
+  vendor, `rust.benchmark.run` no podía alcanzar su positivo a través del
+  contrato de `SourceBundle`. El cierre de Criterion
+  0.8.2 son 6 014 archivos y 156 267 469 bytes, con cuatro archivos por encima
+  del límite de 1 MiB por archivo, y un `SourceBundle` admite 4 096 entradas,
+  16 MiB en total y 1 MiB por archivo. **Los límites no se subieron**: pertenecen
+  al contrato de datos offline calificado en M2/M4 y ampliarlos habría debilitado
+  una frontera de seguridad sin decisión ni recalificación. Detalle y opciones
+  para el owner en [M5-01-blocker.json](docs/validation/M5-01-blocker.json).
+  ADR-078 no amplía esos límites: introduce una captura separada cuya ruta
+  completa está en recalificación.
+- La matriz de clientes M5 usa Inspector 2.5.0 como cliente determinista y
+  **Claude Code 2.1.267 (`claude-sonnet-5`) como cliente agentic** en lugar de
+  Codex, por decisión del owner del 2026-09-10. El turno runtime dirigido por
+  modelo mide dos veces por sí mismo —los artifacts están ligados al `ProjectRef`
+  del proceso que los publica—, compara en positivo, obtiene `NOT_A_DATASET`
+  con su propio `criterion_archive` y lee esa Resource, cuyo contenido debe
+  hashear al artifact publicado. El harness fue revisado por Gemini 3.8 y
+  Claude Sonnet 5; el driver Inspector aplica ahora su timeout por llamada.
+  [Recibo](docs/validation/M5-clients.json).
+- **`lancedb` vuelve a `=0.31.0` / Lance 8** (opción 2a, decisión del owner del
+  2026-09-10) conforme a [ADR-027](docs/adr/ADR-027-semantic-offline-foundation.md):
+  la 0.38.0 no compilaba con `default-features = false` y Lance 11 exigía un
+  spill store en disco incompatible con `memory://` y con el gate semántico. Se
+  conservan `fastembed 6.0.3`, `jsonschema 0.55.1` y `tokio-rustls 0.26.5`; el
+  lock se regeneró offline desde el lock anterior a la subida. La actualización
+  general de paquetería queda como
+  [tarea post-M8](docs/roadmap/m8-stabilization.md#tarea-post-m8--actualización-de-paquetería-decisión-del-owner-2026-09-10).
+  Todos los recibos M5 se recapturan sobre el nuevo lock.
+- Estado: M5 **Done local**. Suite nativa 6/6
+  ([gate nativo](docs/validation/M5-native-gate.json)), matriz de clientes
+  ([recibo](docs/validation/M5-clients.json)), `core` 23/23
+  ([recibo](docs/validation/M5-core-gate.json)) y `full` 38/38
+  ([recibo](docs/validation/M5-full-gate.json)) sobre el lock con `lancedb
+  0.31.0`. `BenchmarkExit` y `BloatExit` conservan `CALIBRATED = false`; la
+  guarda direccional sigue en `false`. Sin integración remota, PR, tag, release
+  ni cambio de versión.
 
 ### M4 — 27 tools implementadas y calificadas localmente
 
@@ -73,7 +261,7 @@
   el cierre del milestone sigue pendiente de la aceptación formal de ADR-064/065
   y de un re-review independiente.
 
-## 0.2.0-dev — Unreleased
+## 0.2.0-dev — incluido en 0.3.0, nunca publicado por separado
 
 ### M2 calificado localmente — mutación segura
 

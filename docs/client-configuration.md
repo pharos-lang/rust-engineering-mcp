@@ -27,6 +27,7 @@ La evidencia preservada del proyecto cubre:
 | MCP Inspector 2.5.0 | M4: 27 tools, cinco positivos, cinco negativos, cinco Resource reads y cancelación Tasks; M1/M2 conservan sus recibos. [Recibo M4](validation/M4-clients.json). |
 | Codex 0.153.0 stock | M4: las cinco tools pasaron por el camino síncrono de hasta 60 s y un turno model-directed usó las cinco con resultado `passed`. El cliente no declaró Tasks ni acredita cancelación Tasks. [Recibo M4](validation/M4-clients.json). |
 | Claude Code 2.1.260, Sonnet 5 medium (M2) | Cliente stock restringido a MCP: 17 llamadas/resultados passed, cinco preview/commit, seis opens y receipt final committed. [Intento 5](validation/M2-clients.json), con renovación de referencias explícita en prompt v2; intentos 1–4 fallidos preservados. |
+| Claude Code 2.1.267, `claude-sonnet-5` medium (M5) | Cliente agentic restringido al servidor configurado más `ListMcpResourcesTool`/`ReadMcpResourceTool`: docker-free con los cuatro rechazos declarados ligados a sus roots; runtime con siete llamadas exactas —open, discovery, dos `rust.benchmark.run` propios, comparación positiva `inconclusive`/`insufficient_executions`, `NOT_A_DATASET` con su `criterion_archive` y lectura de esa Resource cuyos bytes hashean al artifact publicado—. Inspector 2.5.0 convierte las quince filas deterministas. [Recibo M5](validation/M5-clients.json); [intentos](validation/m5-clients/attempts.md) 2–5 fallidos preservados. |
 | Gemini CLI, Cursor y VS Code | Configuración derivada del soporte `stdio` oficial de cada cliente; pendiente de calificación con este servidor. |
 
 La [matriz de compatibilidad](compatibility.md) conserva el alcance de plataforma,
@@ -229,7 +230,9 @@ runtime, agrega al final de `args` el grupo completo:
 Agrega juntos `--rustsec-snapshot` y `--rustsec-sha256` para audit. Agrega juntos
 `--catalog-store` y `--catalog-trust` para catálogo léxico. El catálogo semántico
 requiere, además, un binario compilado con `--features local`,
-`--catalog-model-dir` y `--catalog-index-store`.
+`--catalog-model-dir` y `--catalog-index-store`. `--allow-profiling
+user-space-sampling` es la única concesión de profiling y exige el grupo Docker
+completo; se documenta [más abajo](#configurar-las-tools-m5).
 
 No pongas secretos en `args` ni habilites una confianza global para evitar las
 confirmaciones. Rust Engineering MCP no necesita claves API para funcionar: sus
@@ -237,7 +240,8 @@ datos, runtime y archivos de confianza son locales y los aporta el operador.
 
 ### Configurar las tools M4
 
-El checkout anuncia 27 tools al añadir las cinco definiciones M4. Las tools están
+Las cinco definiciones M4 llevaron el inventario del checkout a 27 tools; hoy son
+31 con las cuatro de M5. Las tools M4 están
 calificadas localmente con el [runtime](validation/M4-runtime.json) y los
 [clientes](validation/M4-clients.json); configurar los argumentos en otra máquina
 no reproduce esa calificación ni cambia la release `0.1.0`.
@@ -304,6 +308,99 @@ proyecto dentro del sandbox; `readOnlyHint` describe que la tool no escribe el
 checkout, no que el código evaluado sea inocuo. La calificación cliente M4 está
 limitada a Inspector 2.5.0 y Codex 0.153.0 en el host local documentado.
 
+### Configurar las tools M5
+
+Las cuatro definiciones M5 están implementadas y **calificadas localmente**
+(suite nativa, clientes, `core` y `full`); la [matriz M5](validation/M5-matrix.md)
+registra recibos y límites.
+`tools/list` devuelve 31 definiciones —las 27 anteriores sin cambio y las cuatro
+nuevas—. Los recibos previos no acreditan los contratos M5 finales; la matriz
+indica la evidencia pendiente. Esta sección documenta la configuración del host
+que esos contratos exigen; no acredita una calificación ni cambia la release
+`0.1.0`. La matriz de clientes M5 usa Inspector 2.5.0 como cliente determinista
+y Claude Code 2.1.267 (`claude-sonnet-5`, `--restricted`, `--strict-mcp-config`,
+solo el servidor configurado más `ListMcpResourcesTool`/`ReadMcpResourceTool`)
+como cliente agentic; Codex no participa en M5 por decisión del owner del
+2026-09-10.
+
+#### `--allow-profiling`
+
+`rust.profile.flamegraph` exige una capability positiva del host. Se concede con
+una única opción, que acepta **un solo valor**:
+
+```text
+--allow-profiling user-space-sampling
+```
+
+Cualquier otro valor —y repetir la opción— hace inválida la invocación de
+`serve`; un valor desconocido es un error de configuración, nunca una concesión
+más estrecha o más amplia en silencio. `user-space-sampling` concede exactamente
+el muestreo de espacio de usuario (`exclude_kernel`, `exclude_hv`, eventos
+software de reloj de CPU) sobre el proceso hijo que lanza el perfilador y sus
+hilos, con una sola syscall añadida al perfil seccomp y solo en la fase de
+muestreo. No añade capabilities Linux, no usa contenedores privilegiados, no
+ejecuta `sudo` y no toca `perf_event_paranoid`. Detalles en el
+[modelo de seguridad](security-model.md#m5--medición-capability-de-profiling-y-containment).
+
+**La opción se rechaza de plano si no configuras el runtime Docker.** Sin el
+grupo `--docker` / `--docker-socket` / `--state-root` / `--rust-image` completo
+no hay contenedor que contener, así que `--allow-profiling` no se degrada: el
+arranque de `serve` falla. La capability es por servidor y se retira quitando la
+bandera y reiniciando; no hay revocación en caliente de trabajo ya iniciado. La
+evidencia publicada se conserva. Ninguna otra tool cambia de comportamiento por
+concederla.
+
+Sin la concesión, un cliente ve `rust.profile.flamegraph` responder `blocked` con
+`PROFILING_NOT_AUTHORIZED` (ADR-076 §5), **antes** de que se cree ningún
+contenedor: no hay build, no hay ejecución del binario y no hay artifact. El peer
+no puede pedir la capability, ni inferirla del proyecto, ni obtenerla por una URI
+de Resource o por las annotations de la tool.
+
+#### Vendor Cargo para `rust.benchmark.run`
+
+El harness de benchmarks es una dependencia de desarrollo del proyecto
+(Criterion 0.8.2, la única integración que M5 sabe medir) y se resuelve
+**offline**. Para Criterion, `rust.benchmark.run` usa una captura de vendor
+autenticada por el host, separada del `CargoVendorSnapshot` de las tools M4:
+
+```text
+--vendor-capture /ruta/absoluta/al/artifact
+--vendor-capture-tree-sha256 sha256:<64-hex>
+```
+
+Si no se configura captura, la tool puede usar el `CargoVendorSnapshot`
+configurado con `--cargo-vendor-dir`/`--cargo-vendor-tree-sha256`, sujeto a sus
+límites originales. Sin ninguno de los dos, reporta que faltan datos offline.
+No descarga ni sustituye el harness.
+`rust.profile.flamegraph` y `rust.binary.bloat` consumen el árbol configurado con
+`--cargo-vendor-dir`/`--cargo-vendor-tree-sha256` para construir el binario que
+miden.
+`rust.benchmark.compare` no lo necesita: no ejecuta nada y opera sobre dos
+artifacts del store privado identificados por sus IDs opacos, que solo emite un
+`run` previo del mismo proyecto.
+
+Si el proyecto no tiene Criterion 0.8.2 vendorizado, o usa otro harness, el
+resultado es declarado (`harness_unrecognized`: ejecución, exit y logs, sin
+dataset ni medidas), nunca una medida degradada.
+
+#### Imagen del runtime M5
+
+La imagen guest M5 `rust-engineering-runtime:1.98.1-arm64-m5`
+(`sha256:e0a5ca1661b3e49d0a3d68ee3cc0963453078d08eb7fc43c30538c16b7998aac`)
+está construida y con [recibo](validation/M5-provisioning.json), y
+[ADR-077](adr/ADR-077-m5-runtime-admission.md) añade exactamente ese digest a la
+lista de admisión del gateway. El puerto de performance exige esa imagen **y solo
+esa**: cualquier otro digest devuelve `unavailable` antes de crear contenedor
+alguno. Un host configurado con la imagen M4 sigue sirviendo las 27 tools
+anteriores y recibe `unavailable` en las cuatro nuevas, que es el resultado
+correcto y declarado.
+
+La lista de digests que `serve` acepta en `--rust-image` es una comprobación
+distinta de la del gateway. Comprueba que el binario que vas a ejecutar admita el
+digest M5 antes de configurarlo: un digest no admitido no degrada nada, hace
+fallar el arranque. Admitir la imagen tampoco califica las tools; la calificación
+nativa M5 sigue abierta.
+
 ## Diagnóstico
 
 1. Ejecuta `rust-engineering-mcp version --json` con la misma ruta configurada.
@@ -320,7 +417,7 @@ errores de proyecto, runtime, RustSec y catálogo.
 
 [ADR-050](adr/ADR-050-local-coordinated-mutation.md) fija el modo
 `local_coordinated`. La release `0.1.0` conserva 13 tools; el binario compilado
-desde el checkout `0.3.0-dev` descubre cinco tools M2 adicionales
+desde el checkout `0.3.0` descubre cinco tools M2 adicionales
 [calificadas localmente](validation/M2-07.md).
 
 ### Permisos y runtime

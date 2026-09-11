@@ -1,0 +1,16 @@
+Traceback (most recent call last):
+  File "/private/tmp/rust-mcp-m5-closure/scripts/test-m5-clients.py", line 1995, in <module>
+    raise SystemExit(main())
+                     ~~~~^^
+  File "/private/tmp/rust-mcp-m5-closure/scripts/test-m5-clients.py", line 1991, in main
+    return run(options.with_runtime, options.docker_socket)
+  File "/private/tmp/rust-mcp-m5-closure/scripts/test-m5-clients.py", line 1897, in run
+    DOCKER_FREE: claude_gate(attempt, DOCKER_FREE, free_argv, plan, 900),
+                 ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/private/tmp/rust-mcp-m5-closure/scripts/test-m5-clients.py", line 1775, in claude_gate
+    assert_no_credential_text(events_path)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "/private/tmp/rust-mcp-m5-closure/scripts/test-m5-clients.py", line 1678, in assert_no_credential_text
+    raise RuntimeError(f"credential-shaped text in {path.name}: " + ", ".join(found))
+RuntimeError: credential-shaped text in claude-docker_free-model-events.jsonl: authorization
+EXIT=1

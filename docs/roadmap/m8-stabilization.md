@@ -141,6 +141,40 @@ un criterio 1.0. No publicar RC/tags/releases sin autorización de esa sesión.
 Rollback: detener promoción ante regresión, cuarentenar estado incierto, servir
 solo versión/formato compatible y volver a ejecutar el gate que falló.
 
+## Tarea post-M8 — actualización de paquetería (decisión del owner, 2026-09-10)
+
+**Cuándo:** después de cerrar M8; no antes, y nunca dentro de una ventana de
+cierre de milestone. **Qué:** evaluar y, donde sea posible, subir las versiones
+de la paquetería del workspace, incluida `lancedb`, con un ADR sucesor de
+[ADR-027](../adr/ADR-027-semantic-offline-foundation.md) cuando toque la capa
+semántica. Todo pin usa `=`; cada subida cambia `Cargo.lock` y por tanto obliga a
+recalificar (el inventario de fuentes de los gates y los recibos nativos ligan
+el lock). Origen: durante el cierre de M5 la subida `lancedb 0.31.0 → 0.38.0` no
+compilaba con `default-features = false` y Lance 11 creaba un spill store en
+disco aunque la base fuera `memory://`; se revirtió a 0.31.0 conservando las
+otras tres subidas ([sondas](../validation/m5-gate-attempts/README.md)).
+
+Implicaciones conocidas por paquete (medidas o documentadas; lo demás requiere
+red y se evalúa en la propia tarea):
+
+| Paquete(s) | Pin actual | Qué implica subirlo |
+| --- | --- | --- |
+| `lancedb` + `lance*` | `=0.31.0` / Lance 8, vendor manifest-only, `verify-vendor.py` anclado por SHA-256 | Cualquier 0.38+ exige: (1) que upstream haya corregido `job.rs` (`Error::Http` sin `cfg`) o activar `remote`, que `deny.toml` prohíbe y añade `axum`/`tower-http`/`urlencoding`… (11 crates); (2) resolver el `LocalSpillStore` eager de `lance-io ≥ 11` (`spill.rs`), incompatible con el modelo `memory://` sin filesystem y con el gate semántico (`TMPDIR` ausente) — o cambiar ese modelo por ADR; (3) reescribir el patch vendor y `verify-vendor.py` para la nueva versión o retirarlos si `lance-testing` ya no es dependencia normal; (4) revisar `tinyvec` (pin 1.12.0 por fallo de compilación de 1.13.0 en el grafo Lance 8) y `datafusion`/`sqlparser`/`arrow` arrastrados |
+| `arrow-array`, `arrow-schema` | `=58.4.0` | Deben coincidir con la versión de Arrow que exija `lancedb`/`fastembed`; subir por separado rompe el grafo |
+| `fastembed` + `ort` | `=6.0.3` / `=2.0.0-rc.13` (`download-binaries`/`load-dynamic` prohibidos) | ORT estático suministrado por el host y verificado por SHA-256 (`ORT_LIB_LOCATION`); una subida de `ort` cambia el artifact nativo calibrado y su digest en `test-semantic.py`; `fastembed` arrastra `tokenizers` (6.0.3 → 0.23.2) y debe seguir sin `hf-hub` |
+| `rmcp` | `=3.2.0` | Contrato MCP: negociación, Tasks, schemas; cualquier subida exige repetir los tests de protocolo y las matrices de clientes (Inspector, Claude Code, Codex) y revisar `docs/compatibility.md` |
+| `jsonschema` | `=0.55.1` (`resolve-http`/`resolve-file` prohibidos) | Validación de contratos y snapshots congelados; cambios de semántica de validación afectan a `tools/list`/snapshots |
+| `tokio`, `tokio-util`, `tokio-rustls`, `reqwest`, `ring`, `rustix` | `=1.53.1`, `=0.7.19`, `=0.26.5`, `=0.12.28`, `=0.17.14`, `=1.1.4` | Runtime, TLS y fronteras de I/O del gateway; `rustix` sostiene las primitivas no-follow/handles del publisher: recalificar M2 (mutación) y seguridad M4 |
+| `rusqlite` | `=0.40.2` (`bundled`) | SQLite embebido: versión del motor, FTS5 y formato de catálogo; recalificar catálogo M1 y migraciones |
+| `rustsec`, `cargo-lock` | `=0.32.0`, `=11.0.1` | Formato de advisories y lockfile; recalificar `rust.dependencies.audit`/`rust.deny`/supply chain M4 |
+| `serde`, `serde_json`, `schemars`, `semver`, `toml`, `toml_edit`, `base64`, `zstd`, `sha2`, `getrandom`, `futures`, `tracing*`, `unicode-ident` | pins `=` | Cambios de serialización o de schema alteran snapshots y receipts; `toml_edit` afecta a `rust.manifest.patch` byte a byte |
+| Herramientas fijadas fuera del lock | Rust/Cargo 1.98.1, imágenes guest por digest, `cargo-bloat` 0.12.1, criterion 0.8.2 (captura vendor), Inspector 2.5.0, Claude Code 2.1.267 | Cada una tiene su propio recibo de admisión/calibración; subirlas invalida esos recibos |
+
+Definition of Done de la tarea: ADR con la lista de subidas aceptadas y
+rechazadas y sus motivos; `cargo audit`/`cargo deny` sin nuevas advertencias;
+`core` y `full` aprobados sobre el nuevo lock; matrices de clientes repetidas
+para lo que toque protocolo; documentación pública sincronizada.
+
 ## Checklist verificable 1.0 y DoD
 
 Cada casilla requiere receipt enlazado en la futura matriz M8, no una declaración.

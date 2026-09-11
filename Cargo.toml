@@ -13,7 +13,7 @@ members = [
 resolver = "3"
 
 [workspace.package]
-version = "0.3.0-dev"
+version = "0.3.0"
 edition = "2024"
 rust-version = "1.98.1"
 publish = false
@@ -32,7 +32,7 @@ rust-engineering-artifact = { path = "crates/artifact-adapter" }
 rust-engineering-semantic = { path = "crates/semantic-adapter" }
 lancedb = { version = "=0.31.0", default-features = false }
 ort = { version = "=2.0.0-rc.13", default-features = false, features = ["std", "api-24"] }
-fastembed = { version = "=6.0.2", default-features = false }
+fastembed = { version = "=6.0.3", default-features = false }
 arrow-array = "=58.4.0"
 arrow-schema = "=58.4.0"
 futures = "=0.3.34"
@@ -58,7 +58,7 @@ toml = { version = "=0.9.12", default-features = false, features = ["std", "serd
 toml_edit = { version = "=0.25.13", default-features = false, features = ["parse", "display"] }
 schemars = "=1.2.2"
 semver = "=1.0.28"
-jsonschema = { version = "=0.53.0", default-features = false }
+jsonschema = { version = "=0.55.1", default-features = false }
 
 [workspace.lints.rust]
 unsafe_code = "deny"

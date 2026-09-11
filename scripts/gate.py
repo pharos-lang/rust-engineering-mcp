@@ -168,6 +168,15 @@ def main():
         run('m4-helper-fmt',['cargo','fmt','--manifest-path','fixtures/unsafe-scanner-helper/Cargo.toml','--check'])
         run('m4-helper-tests',['cargo','test','--manifest-path','fixtures/unsafe-scanner-helper/Cargo.toml','--locked','--offline','--target-dir','target/unsafe-scanner-helper'],require_test_groups=True)
         run('m4-provisioning-tests',[sys.executable,'-B','-m','unittest','fixtures/rust-runtime/m4-scanner/test_provision.py'],require_test_groups=True)
+        run('m5-helper-fmt',['cargo','fmt','--manifest-path','fixtures/profile-helper/Cargo.toml','--check'])
+        # The helper's whole syscall path is `#[cfg(target_os = "linux")]`, so on this
+        # macOS host neither the fmt step nor the test step below compiles a line of it:
+        # the containment (PID-namespace drain, kill(-1), the reap loop, O_EXCL) was
+        # type-checked only by the guest image build. Clippy against the guest target
+        # puts it under a gate. No linker is needed: clippy never links a binary.
+        run('m5-helper-guest-clippy',['cargo','clippy','--manifest-path','fixtures/profile-helper/Cargo.toml','--target','aarch64-unknown-linux-gnu','--all-targets','--locked','--offline','--target-dir','target/profile-helper-guest','--','-D','warnings'])
+        run('m5-helper-tests',['cargo','test','--manifest-path','fixtures/profile-helper/Cargo.toml','--locked','--offline','--target-dir','target/profile-helper'],require_test_groups=True)
+        run('m5-vendor-tests',[sys.executable,'-B','-m','unittest','discover','-s','fixtures/criterion-vendor','-p','test_*.py'],require_test_groups=True)
         run('vendor',[sys.executable,'scripts/verify-vendor.py'])
         run('cargo-fixtures',[sys.executable,'scripts/test-fixtures.py',str(ROOT),'--cargo',cargo])
         run('audit',['cargo','audit','--no-fetch'])
@@ -187,6 +196,7 @@ def main():
             run('crate-search',[sys.executable,'scripts/test-crate-search.py'])
             run('crate-inspect',[sys.executable,'scripts/test-crate-inspect.py'])
             run('doctor',[sys.executable,'scripts/test-doctor.py'])
+            run('m5-runtime',[sys.executable,'-B','scripts/test-m5-runtime.py'])
         report['source_inputs_unchanged'] = source_inventory(ROOT, env) == report['source_inputs']
         if not report['source_inputs_unchanged']:
             raise RuntimeError('code/config/fixture inputs changed during gate; qualification rejected')

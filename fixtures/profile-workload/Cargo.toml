@@ -1,0 +1,17 @@
+[package]
+name = "rust-mcp-profile-workload"
+version = "0.1.0"
+edition = "2024"
+publish = false
+
+[workspace]
+
+[[bin]]
+name = "rust-mcp-profile-workload"
+path = "src/main.rs"
+
+# `debug = 1` emits line tables without full debug info: enough for a sampler to
+# resolve `main;level_one;level_two;known_hot_frame` to names and lines, without
+# the size of a full `debug = 2` build.
+[profile.release]
+debug = 1

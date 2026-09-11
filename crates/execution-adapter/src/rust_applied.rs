@@ -234,6 +234,65 @@ fn sorted_env(c: &Created) -> Vec<String> {
     env
 }
 
+/// One named volume a caller expects on both sides of Docker's inspect shape.
+///
+/// The volume was already authenticated when it was created. This expectation
+/// binds that identity to the exact guest path and access mode the phase uses.
+pub(super) struct AppliedVolumeExpectation<'a> {
+    pub(super) volume: &'a MutationVolume,
+    pub(super) target: &'a str,
+    pub(super) writable: bool,
+}
+
+/// Phase-owned values layered over the authority and resource matrices shared
+/// by every Rust container.
+pub(super) struct AppliedPhaseExpectation<'a> {
+    pub(super) image: &'a str,
+    pub(super) operation_id: &'a str,
+    pub(super) interactive: bool,
+    pub(super) user: &'a str,
+    pub(super) program: &'a str,
+    pub(super) command: &'a [String],
+    pub(super) environment: &'a [String],
+    pub(super) seccomp_profile: &'a str,
+    pub(super) mounts: Vec<AppliedVolumeExpectation<'a>>,
+}
+
+/// Apply the complete M1--M4 authority matrix to a phase whose command,
+/// environment, seccomp profile and volume topology are owned by another
+/// gateway.
+///
+/// `only_created` also makes `Cmd` mandatory while normalizing Docker's null
+/// representation to an empty argv. Mounts are compared on both the applied
+/// top-level side and the requested `HostConfig` side.
+pub(super) fn verify_phase(
+    bytes: &[u8],
+    expected: &AppliedPhaseExpectation<'_>,
+) -> Result<(), ExecutionError> {
+    let c = only_created(bytes)?;
+    let mut environment = expected.environment.to_vec();
+    environment.sort();
+    let mounts = expected
+        .mounts
+        .iter()
+        .map(|mount| (mount.target, mount.volume, mount.writable))
+        .collect();
+    let safe = no_host_authority(&c, expected.operation_id, expected.interactive)
+        && expected_volume_mounts_ok(&c, mounts)?
+        && applied_limits_ok(&c, expected.image)
+        && applied_profile_ok(&c, expected.seccomp_profile)?
+        && c.host_config.tmpfs.len() == 2
+        && c.config.user == expected.user
+        && c.config.entrypoint == [expected.program]
+        && c.config.cmd.as_slice() == expected.command
+        && sorted_env(&c) == environment;
+    if safe {
+        Ok(())
+    } else {
+        Err(ExecutionError::InvalidConfiguration)
+    }
+}
+
 pub(super) fn verify(
     bytes: &[u8],
     image: &str,

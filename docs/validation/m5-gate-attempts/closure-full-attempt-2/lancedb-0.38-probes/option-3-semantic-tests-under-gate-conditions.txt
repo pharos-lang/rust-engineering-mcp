@@ -1,0 +1,35 @@
+build exit 0 172.4 s
+binaries ['rust_engineering_semantic', 'local']
+rust_engineering_semantic [] exit 101 4.1 s ['test index::persistence::tests::authentic_native_bytes_with_wrong_schema_are_rejected ... FAILED', 'test index::persistence::tests::corrupt_truncated_and_hostile_archive_keys_fail_closed ... FAILED', 'test index::persistence::tests::empty_table_round_trips ... FAILED', 'test index::persistence::tests::memory_registry_cannot_resolve_local_or_remote_references ... FAILED', 'test index::persistence::tests::metadata_and_model_are_bound_before_native_open ... FAILED', 'test index::persistence::tests::native_manifest_remote_and_traversal_references_are_rejected ... FAILED', 'test index::persistence::tests::native_objects_survive_destroying_every_original_handle ... FAILED', 'test index::persistence::tests::restored_rows_validate_ids_vectors_nulls_and_count ... FAILED']
+kind: NotFound, error: PathError { path: "/var/folders/hr/tglf6rl10w3b68rk0s47ddw00000gn/T/rust-mcp-semantic-probe-zdqop_31/no-temp-directory/.tmpX60d19", err: Os { code: 2, kind: NotFound, message: "No such file or directory" } } }, location: Location { file: "/Users/cburgosro/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/lance-io-11.0.0/src/spill.rs", line: 213, column: 32 }, backtrace: MaybeBacktrace }
+
+thread 'index::tests::memory_generations_do_not_share_tables' (52168347) panicked at /Users/cburgosro/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/lance-io-11.0.0/src/spill.rs:233:21:
+failed to create temp directory for LocalSpillStore: IO { source: Custom { kind: NotFound, error: PathError { path: "/var/folders/hr/tglf6rl10w3b68rk0s47ddw00000gn/T/rust-mcp-semantic-probe-zdqop_31/no-temp-directory/.tmp4AxcBm", err: Os { code: 2, kind: NotFound, message: "No such file or directory" } } }, location: Location { file: "/Users/cburgosro/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/lance-io-11.0.0/src/spill.rs", line: 213, column: 32 }, backtrace: MaybeBacktrace }
+
+thread 'index::tests::query_limits_and_vectors_are_validated_even_for_empty_table' (52168348) panicked at /Users/cburgosro/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/lance-io-11.0.0/src/spill.rs:233:21:
+failed to create temp directory for LocalSpillStore: IO { source: Custom { kind: NotFound, error: PathError { path: "/var/folders/hr/tglf6rl10w3b68rk0s47ddw00000gn/T/rust-mcp-semantic-probe-zdqop_31/no-temp-directory/.tmpsd6U9v", err: Os { code: 2, kind: NotFound, message: "No such file or directory" } } }, location: Location { file: "/Users/cburgosro/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/lance-io-11.0.0/src/spill.rs", line: 213, column: 32 }, backtrace: MaybeBacktrace }
+
+thread 'index::tests::real_table_returns_only_bounded_ids_and_distances' (52168349) panicked at /Users/cburgosro/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/lance-io-11.0.0/src/spill.rs:233:21:
+failed to create temp directory for LocalSpillStore: IO { source: Custom { kind: NotFound, error: PathError { path: "/var/folders/hr/tglf6rl10w3b68rk0s47ddw00000gn/T/rust-mcp-semantic-probe-zdqop_31/no-temp-directory/.tmpnA69hR", err: Os { code: 2, kind: NotFound, message: "No such file or directory" } } }, location: Location { file: "/Users/cburgosro/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/lance-io-11.0.0/src/spill.rs", line: 213, column: 32 }, backtrace: MaybeBacktrace }
+
+rust_engineering_semantic ['--ignored'] exit 0 0.0 s ['test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 16 filtered out; finished in 0.00s']
+local [] exit 0 4.0 s ['test result: ok. 0 passed; 0 failed; 1 ignored; 0 measured; 0 filtered out; finished in 0.00s']
+local ['--ignored'] exit 101 5.7 s ['test real_offline_e5_lance_sqlite_roundtrip ... FAILED', 'test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 5.61s', "thread 'real_offline_e5_lance_sqlite_roundtrip' (52168474) panicked at /Users/cburgosro/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/lance-io-11.0.0/src/spill.rs:233:21:", 'failed to create temp directory for LocalSpillStore: IO { source: Custom { kind: NotFound, error: PathError { path: "/var/folders/hr/tglf6rl10w3b68rk0s47ddw00000gn/T/rust-mcp-semantic-probe-zdqop_31/no-temp-directory/.tmpewuU3F", err: Os { code: 2, kind: NotFound, message: "No such file or directory" } } }, location: Location { file: "/Users/cburgosro/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/lance-io-11.0.0/src/spill.rs", line: 213, column: 32 }, backtrace: MaybeBacktrace }']
+
+running 1 test
+test real_offline_e5_lance_sqlite_roundtrip ... FAILED
+
+failures:
+
+failures:
+    real_offline_e5_lance_sqlite_roundtrip
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 5.61s
+
+
+thread 'real_offline_e5_lance_sqlite_roundtrip' (52168474) panicked at /Users/cburgosro/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/lance-io-11.0.0/src/spill.rs:233:21:
+failed to create temp directory for LocalSpillStore: IO { source: Custom { kind: NotFound, error: PathError { path: "/var/folders/hr/tglf6rl10w3b68rk0s47ddw00000gn/T/rust-mcp-semantic-probe-zdqop_31/no-temp-directory/.tmpewuU3F", err: Os { code: 2, kind: NotFound, message: "No such file or directory" } } }, location: Location { file: "/Users/cburgosro/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/lance-io-11.0.0/src/spill.rs", line: 213, column: 32 }, backtrace: MaybeBacktrace }
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+TMPDIR created? False
+EXIT=0

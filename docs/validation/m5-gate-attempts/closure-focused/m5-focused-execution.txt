@@ -1,0 +1,101 @@
+warning: patch `lancedb v0.31.0 (/private/tmp/rust-mcp-m5-closure/vendor/lancedb)` was not used in the crate graph
+help: Check that the patched package version and available features are compatible
+      with the dependency requirements. If the patch has a different version from
+      what is locked in the Cargo.lock file, run `cargo update` to use the new
+      version. This may also occur with an optional dependency that is not enabled.
+   Compiling rust-engineering-domain v0.3.0-dev (/private/tmp/rust-mcp-m5-closure/crates/domain)
+   Compiling rust-engineering-application v0.3.0-dev (/private/tmp/rust-mcp-m5-closure/crates/application)
+   Compiling rust-engineering-execution v0.3.0-dev (/private/tmp/rust-mcp-m5-closure/crates/execution-adapter)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 52.27s
+     Running unittests src/lib.rs (target/debug/deps/rust_engineering_execution-f4fe6e542bc31df8)
+
+running 71 tests
+test performance_gateway::tests::applied_quotas_are_the_ones_this_gateway_asked_for ... ok
+test performance_environment::tests::a_governor_is_observable_only_when_every_cpu_agrees ... ok
+test performance_gateway::tests::a_project_supplied_cargo_configuration_is_refused_before_any_volume ... ok
+test performance_gateway::tests::bloat_argv_starts_with_the_subcommand_and_measures_a_gateway_built_path ... ok
+test performance_gateway::tests::environment_redirects_cargo_home_and_scopes_criterion_and_rustflags ... ok
+test performance_gateway::tests::every_operation_lists_exactly_the_phases_it_creates ... ok
+test performance_gateway::tests::every_cargo_phase_selects_the_vendor_tree_on_the_command_line ... ok
+test performance_gateway::tests::benchmark_argv_is_closed_and_carries_the_frozen_harness_parameters ... ok
+test performance_gateway::tests::exactly_one_phase_selects_the_profiling_seccomp_profile ... ok
+test performance_gateway::tests::metadata_resolves_the_whole_graph_and_probes_read_only_facts ... ok
+test performance_environment::tests::a_missing_or_oversized_topology_never_yields_partial_paths ... ok
+test performance_gateway::tests::mount_arguments_are_exact_ordered_and_read_only_outside_the_producing_phase ... ok
+test performance_environment::tests::cpuinfo_preserves_a_non_contiguous_guest_cpu_set ... ok
+test performance_gateway::tests::container_arguments_reject_a_non_utf8_profile_path ... ok
+test performance_gateway::tests::options_that_could_reach_argv_as_a_flag_or_a_path_are_refused ... ok
+test performance_gateway::tests::output_and_target_volumes_are_absent_from_every_phase_that_must_not_see_them ... ok
+test performance_gateway::tests::phase_deadline_never_outlives_the_operation_deadline ... ok
+test performance_gateway::tests::phase_error_mapping_preserves_cleanup_and_separates_deadline_from_cancel ... ok
+test performance_gateway::tests::budget_reserves_control_headroom_before_dividing_it ... FAILED
+test performance_environment::tests::cpu_model_requires_consensus_across_the_guest ... ok
+test performance_gateway::tests::the_denial_switch_moves_only_the_sampling_phase_to_the_quality_profile ... ok
+test performance_gateway::tests::source_is_writable_only_in_its_ingest_and_scratch_only_where_it_is_produced ... ok
+test performance_native::m5_benchmark_run_measures_criterion_through_a_vendor_capture ... ignored, explicit M5 image, host Docker, a provisioned ADR-078 capture and exclusive ownership
+test performance_native::m5_benchmark_run_negatives_and_controls_are_qualified_natively ... ignored, explicit M5 image, host Docker and exclusive native benchmark qualification
+test performance_native::m5_benchmark_run_positive_is_blocked_by_the_offline_data_bound ... ignored, explicit M5 image; records the M5-01 blocking condition
+test performance_native::m5_binary_bloat_is_qualified_natively ... ignored, explicit M5 image, host Docker and exclusive native bloat qualification
+test performance_native::m5_profile_flamegraph_is_qualified_natively ... ignored, explicit M5 image, host Docker and exclusive native profiling qualification
+test performance_gateway::tests::hardware_probes_leave_an_unobservable_field_unknown ... ok
+test performance_native::m5_tools_refuse_every_runtime_but_the_qualified_one ... ignored, explicit M4 image and host Docker; M5 admission refusal
+test performance_gateway::tests::profile_argv_never_carries_a_peer_path_or_argument ... ok
+test performance_gateway::capture_ingest_tests::the_fingerprint_commitment_is_the_bytes_for_a_snapshot_and_the_digest_for_a_capture ... ok
+test performance_gateway::tests::profiling_profile_only_adds_perf_event_open ... ok
+test performance_gateway::tests::capture_and_container_completion_are_validated_before_publication ... ok
+test performance_gateway::tests::the_ingested_cargo_home_is_the_vendor_backed_one_and_nothing_else ... ok
+test performance_gateway::tests::harness_detection_reads_the_resolved_graph_and_never_a_target_name ... ok
+test performance_gateway::tests::the_profiling_export_accepts_exactly_its_two_fixed_members ... ok
+test performance_gateway::capture_ingest_tests::rewinding_replays_the_same_artifact ... ok
+test performance_native::unit::a_vendor_tree_over_any_source_bound_never_fits ... ok
+test performance_gateway::capture_ingest_tests::the_capture_reaches_the_ingest_whole_without_ever_being_resident ... ok
+test performance_native::unit::the_hottest_stack_is_the_one_with_the_most_samples ... ok
+test performance_native::unit::the_receipt_stamps_a_real_utc_instant ... ok
+test performance_port::tests::a_failed_build_is_a_project_outcome_not_a_profiler_outcome ... ok
+test performance_port::tests::a_log_published_as_utf8_is_utf8_whatever_the_project_wrote ... ok
+test performance_port::tests::a_timeout_over_its_adr_ceiling_is_refused_before_any_container ... ok
+test performance_port::tests::an_unobserved_hardware_field_stays_unknown_and_is_never_defaulted ... ok
+test performance_port::tests::completeness_declares_every_loss_the_counters_report ... ok
+test performance_port::tests::frame_ranking_is_bounded_and_carries_self_and_total_weight ... ok
+test performance_port::tests::gateway_failures_keep_their_meaning_in_the_application_vocabulary ... ok
+test performance_port::tests::a_stream_over_the_ceiling_is_cut_declared_and_left_valid_utf8 ... ok
+test performance_port::tests::only_the_qualified_m5_runtime_is_admitted ... ok
+test performance_port::tests::every_repetition_keeps_its_own_logs_under_its_own_index ... ok
+test performance_port::tests::a_failed_second_execution_is_never_reported_as_a_passed_analysis ... ok
+test performance_port::tests::a_binary_the_product_cannot_measure_is_never_reported_as_measured ... ok
+test performance_port::tests::a_sampled_profile_publishes_a_graph_of_the_stacks_it_parsed ... ok
+test performance_port::tests::provenance_carries_the_frozen_method_and_this_executions_identity ... ok
+test performance_port::tests::quotas_come_from_the_limits_the_gateway_applied ... ok
+test performance_port::tests::independent_repetitions_merge_per_key_without_losing_their_executions ... ok
+test performance_port::tests::the_helper_status_vocabulary_is_closed ... ok
+test performance_port::tests::a_denial_is_reportable_only_with_the_errno_that_produced_it ... ok
+test performance_port::tests::the_omission_names_what_the_adapter_actually_observed ... ok
+test performance_port::tests::the_helper_manifest_is_read_field_by_field ... ok
+test performance_port::tests::the_exact_size_and_the_estimated_attribution_are_never_merged ... ok
+test performance_port::tests::the_products_own_measurements_are_the_oracle_against_the_analyzer ... ok
+test performance_port::tests::a_manifest_that_contradicts_the_artifact_is_refused ... ok
+test performance_gateway::tests::complete_container_arguments_cover_every_phase_without_a_runtime ... ok
+test performance_port::tests::a_ranking_the_row_cap_bounded_stays_a_complete_measurement ... ok
+test performance_port::tests::the_manifest_reader_refuses_every_document_but_the_helper_s ... ok
+test performance_gateway::tests::applied_configuration_must_match_the_requested_phase ... ok
+test performance_gateway::tests::governor_probe_uses_only_closed_paths_and_binds_its_effective_argv ... ok
+test performance_gateway::tests::vendor_capture_volume_matches_adr_078_and_changes_the_fingerprint ... ok
+test performance_gateway::tests::fingerprint_inputs_bind_image_argv_limits_source_and_seccomp ... ok
+
+failures:
+
+---- performance_gateway::tests::budget_reserves_control_headroom_before_dividing_it stdout ----
+
+thread 'performance_gateway::tests::budget_reserves_control_headroom_before_dividing_it' (50362554) panicked at crates/execution-adapter/src/performance_gateway.rs:3641:9:
+assertion `left == right` failed
+  left: Ok(866000)
+ right: Ok(868000)
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    performance_gateway::tests::budget_reserves_control_headroom_before_dividing_it
+
+test result: FAILED. 64 passed; 1 failed; 6 ignored; 0 measured; 328 filtered out; finished in 0.03s
+
+error: test failed, to rerun pass `-p rust-engineering-execution --lib`

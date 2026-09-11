@@ -897,6 +897,12 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "db756b5eb7d81d31f31f660f4132f8cf5698de52fca144c143d0ae0cbb5f2e06"
 
 [[package]]
+name = "daachorse"
+version = "3.0.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "5614204febbc33cc07a2806aa6440b904ac012b68eecc37f4493ea4a76455a3d"
+
+[[package]]
 name = "darling"
 version = "0.20.11"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1853,9 +1859,9 @@ checksum = "c6e8948ce679d00a02a94739ea185595dca7118ed04feb991127e443bd3d761f"
 
 [[package]]
 name = "fastembed"
-version = "6.0.2"
+version = "6.0.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b5e6a29ef0fc303e63ce89f2b71d98bee9df51d79cbbedb78dd0d6ba9f3b172f"
+checksum = "cba9e2163602348eff03af6e9a7b24c63edc1529de4239fde99a5178621d2fbe"
 dependencies = [
  "ndarray 0.17.2",
  "ort",
@@ -2736,9 +2742,9 @@ dependencies = [
 
 [[package]]
 name = "jsonschema"
-version = "0.53.0"
+version = "0.55.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ca2ea2207f8ccb34b6d4d041fe9deb08fff3cbc43750012caa2c3d1e860188e4"
+checksum = "b68339c3d874e48151d74ffe256d93a58cffa240983cb0967d3cbaea083a44fe"
 dependencies = [
  "ahash",
  "bytecount",
@@ -2764,18 +2770,18 @@ dependencies = [
 
 [[package]]
 name = "jsonschema-regex"
-version = "0.53.0"
+version = "0.55.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5426a01d944d044c9c5e459f603419d1b539358f5496b1041df45a7a86d2d38f"
+checksum = "6307b5b51216ec9b941b52244c74043fa0b1d6b657b56199f57cb1416d3641c5"
 dependencies = [
  "regex-syntax",
 ]
 
 [[package]]
 name = "jsonschema-value"
-version = "0.53.0"
+version = "0.55.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "65b6ec7deaeaab6320efc3084d8a9e91d5b4985ee36ffffef45dbff9516ff7a8"
+checksum = "0230ac05e09c6111e96c147b75c390579f5cbd45654b980c68ac60fe17b3f129"
 dependencies = [
  "ahash",
  "bytecount",
@@ -3528,7 +3534,7 @@ dependencies = [
  "anyhow",
  "byteorder",
  "csv",
- "daachorse",
+ "daachorse 2.1.1",
  "kanaria",
  "lindera-dictionary",
  "log",
@@ -3555,7 +3561,7 @@ dependencies = [
  "anyhow",
  "byteorder",
  "csv",
- "daachorse",
+ "daachorse 2.1.1",
  "derive_builder",
  "encoding_rs",
  "encoding_rs_io",
@@ -4636,9 +4642,9 @@ dependencies = [
 
 [[package]]
 name = "referencing"
-version = "0.53.0"
+version = "0.55.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "fb406ba984c08d1b91781d7507d103296cf6dec3256c33c388b468957f4b43bb"
+checksum = "a196a5b4a8a12f46b6353174df865a05d41a6055aff212ec30877492788618b6"
 dependencies = [
  "ahash",
  "fluent-uri",
@@ -4826,7 +4832,7 @@ dependencies = [
 
 [[package]]
 name = "rust-engineering-application"
-version = "0.3.0-dev"
+version = "0.3.0"
 dependencies = [
  "rust-engineering-domain",
  "serde_json",
@@ -4834,7 +4840,7 @@ dependencies = [
 
 [[package]]
 name = "rust-engineering-artifact"
-version = "0.3.0-dev"
+version = "0.3.0"
 dependencies = [
  "getrandom 0.4.3",
  "rust-engineering-application",
@@ -4844,7 +4850,7 @@ dependencies = [
 
 [[package]]
 name = "rust-engineering-catalog"
-version = "0.3.0-dev"
+version = "0.3.0"
 dependencies = [
  "cargo-lock",
  "ring",
@@ -4863,7 +4869,7 @@ dependencies = [
 
 [[package]]
 name = "rust-engineering-domain"
-version = "0.3.0-dev"
+version = "0.3.0"
 dependencies = [
  "semver",
  "serde",
@@ -4872,7 +4878,7 @@ dependencies = [
 
 [[package]]
 name = "rust-engineering-execution"
-version = "0.3.0-dev"
+version = "0.3.0"
 dependencies = [
  "getrandom 0.4.3",
  "rust-engineering-application",
@@ -4887,7 +4893,7 @@ dependencies = [
 
 [[package]]
 name = "rust-engineering-mcp"
-version = "0.3.0-dev"
+version = "0.3.0"
 dependencies = [
  "base64 0.22.1",
  "getrandom 0.4.3",
@@ -4917,7 +4923,7 @@ dependencies = [
 
 [[package]]
 name = "rust-engineering-project"
-version = "0.3.0-dev"
+version = "0.3.0"
 dependencies = [
  "base64 0.22.1",
  "getrandom 0.4.3",
@@ -4934,7 +4940,7 @@ dependencies = [
 
 [[package]]
 name = "rust-engineering-semantic"
-version = "0.3.0-dev"
+version = "0.3.0"
 dependencies = [
  "arrow-array",
  "arrow-schema",
@@ -5633,7 +5639,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "32497e9a4c7b38532efcdebeef879707aa9f794296a4f0244f6f69e9bc8574bd"
 dependencies = [
  "fastrand",
- "getrandom 0.4.3",
+ "getrandom 0.3.4",
  "once_cell",
  "rustix",
  "windows-sys 0.61.2",
@@ -5745,13 +5751,13 @@ checksum = "1f3ccbac311fea05f86f61904b462b55fb3df8837a366dfc601a0161d0532f20"
 
 [[package]]
 name = "tokenizers"
-version = "0.22.2"
+version = "0.23.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b238e22d44a15349529690fb07bd645cf58149a1b1e44d6cb5bd1641ff1a6223"
+checksum = "7afbf6e88718afcc138bad01d6ccc3051dbbc3b2ce9793d8b8a3aeb610969cfc"
 dependencies = [
  "ahash",
- "aho-corasick",
  "compact_str",
+ "daachorse 3.0.3",
  "dary_heap",
  "derive_builder",
  "esaxx-rs",
@@ -5806,9 +5812,9 @@ dependencies = [
 
 [[package]]
 name = "tokio-rustls"
-version = "0.26.4"
+version = "0.26.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1729aa945f29d91ba541258c8df89027d5792d85a8841fb65e8bf0f4ede4ef61"
+checksum = "b0c85f2c3ef0b1cd58b36682f4b17aaa995f0e5db534d85692b4903abce21f67"
 dependencies = [
  "rustls",
  "tokio",

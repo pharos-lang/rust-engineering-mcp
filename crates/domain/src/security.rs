@@ -24,6 +24,27 @@ pub fn security_source_has_exceptions(source: &crate::SourceBundle) -> bool {
         })
 }
 
+/// A project-supplied Cargo configuration file anywhere in the captured source.
+///
+/// G2 forbids project wrappers, linkers and runners, and Cargo's config is
+/// exactly where a project would install one. It can also redirect
+/// `source.crates-io` at a directory the project itself controls, which would
+/// let the project substitute the dependency bytes an analysis or a measurement
+/// is about to describe. The M5 flows refuse such a source rather than trying to
+/// decide which settings are harmless: the environment they run in is closed and
+/// belongs to the server.
+///
+/// This predicate is deliberately name-based and conservative. It proves nothing
+/// about a project that ships no config; it only refuses the ones that do.
+pub fn source_has_cargo_configuration(source: &crate::SourceBundle) -> bool {
+    source.files().iter().map(|file| file.path()).any(|path| {
+        let mut segments = path.rsplit('/');
+        let name = segments.next();
+        let parent = segments.next();
+        parent == Some(".cargo") && matches!(name, Some("config.toml" | "config"))
+    })
+}
+
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(try_from = "DenySelection")]
 pub struct DenyOptions {
@@ -642,5 +663,52 @@ mod tests {
         let mut json = serde_json::to_value(document()).unwrap();
         json["rules"]["exceptions"] = serde_json::json!([]);
         assert!(serde_json::from_value::<SecurityPolicyDocument>(json).is_err());
+    }
+}
+
+#[cfg(test)]
+#[allow(clippy::expect_used, clippy::unwrap_used)] // Fixed fixtures are malformed only by mistake.
+mod cargo_configuration_tests {
+    use crate::{SourceBundle, SourceFile, security::source_has_cargo_configuration};
+
+    fn bundle(paths: &[&str]) -> SourceBundle {
+        let files = paths
+            .iter()
+            .map(|path| SourceFile::new((*path).into(), b"x".to_vec()).expect("file"))
+            .collect::<Vec<_>>();
+        SourceBundle::new(files).expect("bundle")
+    }
+
+    #[test]
+    fn a_project_cargo_configuration_is_detected_wherever_it_sits() {
+        for path in [
+            ".cargo/config.toml",
+            ".cargo/config",
+            "crates/inner/.cargo/config.toml",
+            "a/b/c/.cargo/config",
+        ] {
+            assert!(
+                source_has_cargo_configuration(&bundle(&[path])),
+                "missed {path}"
+            );
+        }
+    }
+
+    #[test]
+    fn unrelated_files_are_not_mistaken_for_one() {
+        for path in [
+            "Cargo.toml",
+            "config.toml",
+            "src/config.toml",
+            "cargo/config.toml",
+            "docs/.cargo-config.toml",
+            ".cargo/audit.toml",
+            ".cargo/config.toml.bak",
+        ] {
+            assert!(
+                !source_has_cargo_configuration(&bundle(&[path])),
+                "false positive on {path}"
+            );
+        }
     }
 }

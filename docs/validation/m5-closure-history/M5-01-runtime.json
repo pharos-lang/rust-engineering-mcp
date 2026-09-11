@@ -1,0 +1,86 @@
+{
+  "cut": "m5-01-benchmark",
+  "finished_utc": "2026-09-09T00:46:09Z",
+  "fixtures": {
+    "benchmark": {
+      "archive_sha256": "sha256:337ab18d72d8eaf143570df0b862f79b5d01d7702f906ae34af3cdb5bc301291",
+      "bytes": 24437,
+      "directories": 2,
+      "files": 6,
+      "tree_fingerprint": "sha256:40c28def3715d94c3ede1f336337dafb866a169b63c241c20f04ff6d3a53c168"
+    },
+    "bloat": {
+      "archive_sha256": "sha256:d93c1e9e05c0a4287ba39a95cd39af3c2add28816665d4d40dff4f6601f3c66d",
+      "bytes": 8938,
+      "directories": 3,
+      "files": 7,
+      "tree_fingerprint": "sha256:de4f7fd115fe74543f8613fa53633bd05aa8fbc1a3fea52e6cba035cd7fa5330"
+    }
+  },
+  "image_id": "sha256:e0a5ca1661b3e49d0a3d68ee3cc0963453078d08eb7fc43c30538c16b7998aac",
+  "residue": {
+    "after": {
+      "containers": [],
+      "volumes": []
+    },
+    "before": {
+      "containers": [],
+      "volumes": []
+    }
+  },
+  "selections": [
+    {
+      "duration_ms": 8123,
+      "observed": {
+        "execution_fingerprint": "sha256:3f2a78f7da4340aedcaa05e50d02a5cc383616cfe997ee6634aa114e064a3850",
+        "exit": "Passed",
+        "exit_code": 0,
+        "harness": "Unrecognized",
+        "measurements": null,
+        "omission": "HarnessUnrecognized",
+        "runs_completed": 1,
+        "runs_requested": 1,
+        "stderr_bytes": 270,
+        "stdout_bytes": 235,
+        "termination": "Exited",
+        "vendor_fingerprint": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "outcome": "passed",
+      "selection": "unrecognised-harness"
+    },
+    {
+      "duration_ms": 492,
+      "observed": {
+        "gateway_error": "ProjectCargoConfiguration",
+        "residue_after": {
+          "containers": [],
+          "volumes": []
+        },
+        "residue_before": {
+          "containers": [],
+          "volumes": []
+        }
+      },
+      "outcome": "passed",
+      "selection": "project-cargo-configuration-refused"
+    },
+    {
+      "duration_ms": 13586,
+      "observed": {
+        "monitor": {
+          "inventory_failed": false,
+          "inventory_polls": 542,
+          "needle": "/opt/rust/bin/cargo bench",
+          "observed_running": true
+        },
+        "residue_after": {
+          "containers": [],
+          "volumes": []
+        }
+      },
+      "outcome": "passed",
+      "selection": "cancellation-mid-run"
+    }
+  ],
+  "started_utc": "2026-09-09T00:45:46Z"
+}

@@ -1,4 +1,11 @@
 {
+  "amendments": [
+    {
+      "commit": "dcbe2c21f3d99061352683dba4080fecf531b314",
+      "date": "2026-09-10",
+      "reason": "jsonschema 0.53.0 -> 0.55.1 in the 0.3.0 lock; jsonschema-regex/jsonschema-value 0.55.1 ship no LICENSE file"
+    }
+  ],
   "approval": "none; source evidence only",
   "base_inventory_sha256": "c0b8c7de88053f9efd7a50d2b03451a5b49c5ec4a8f420cedde39537143ab452",
   "base_rebinding": "Package rows and exact candidate notice bytes verified unchanged after source revision/script provenance update",
@@ -754,6 +761,55 @@
           "sha256": "ed60d479b8fd1f64e9cbc3de449a16a53ac1b3d1b6aeb9bf9d190a8e93061b44",
           "source_path": "LICENSE",
           "source_url": "https://raw.githubusercontent.com/tokio-rs/valuable/9efc29b6e58cef28f6566a47aa7e142a55fead77/LICENSE"
+        }
+      ]
+    },
+    {
+      "commit": "dcbe2c21f3d99061352683dba4080fecf531b314",
+      "packages": [
+        {
+          "declared_license": "MIT",
+          "name": "jsonschema-regex",
+          "path_in_vcs": "crates/jsonschema-regex",
+          "repository_inference": null,
+          "vcs_info_sha256": "3408a7b2b5cdc0a6b782d1e556afdbe19a24834664291651bfb78573e0a87103",
+          "version": "0.55.1"
+        },
+        {
+          "declared_license": "MIT",
+          "name": "jsonschema-value",
+          "path_in_vcs": "crates/jsonschema-value",
+          "repository_inference": null,
+          "vcs_info_sha256": "59704dd86a999dfb1bb6ba5084dad645ae4a5bf96fd234b2014bceecfcb359bd",
+          "version": "0.55.1"
+        }
+      ],
+      "pending": [],
+      "repository": "https://github.com/Stranger6667/jsonschema",
+      "requests": [
+        {
+          "final_url": "https://api.github.com/repos/Stranger6667/jsonschema/contents?ref=dcbe2c21f3d99061352683dba4080fecf531b314",
+          "http_status": 200,
+          "sha256": "5718e1de61ed7b2ecf7b207f609a3caa3b2e32dc9aedc37898ff94aba95f9bcb",
+          "url": "https://api.github.com/repos/Stranger6667/jsonschema/contents?ref=dcbe2c21f3d99061352683dba4080fecf531b314"
+        },
+        {
+          "final_url": "https://raw.githubusercontent.com/Stranger6667/jsonschema/dcbe2c21f3d99061352683dba4080fecf531b314/LICENSE",
+          "http_status": 200,
+          "sha256": "117829c3ca21efb132d81a44b55363d395ab8eea18526873bc828da4c0e5f038",
+          "url": "https://raw.githubusercontent.com/Stranger6667/jsonschema/dcbe2c21f3d99061352683dba4080fecf531b314/LICENSE"
+        }
+      ],
+      "texts": [
+        {
+          "bytes": 1075,
+          "file": "docs/release/upstream-licenses/Stranger6667--jsonschema--dcbe2c21f3d9/LICENSE",
+          "git_blob_sha": "20c070f6401feda6f47be1b158f4f5a4a9d14062",
+          "git_blob_sha_verified": true,
+          "scope": "Repository-root/monorepo text; applicability to listed crate inferred from path_in_vcs and license declaration, requires review.",
+          "sha256": "117829c3ca21efb132d81a44b55363d395ab8eea18526873bc828da4c0e5f038",
+          "source_path": "LICENSE",
+          "source_url": "https://raw.githubusercontent.com/Stranger6667/jsonschema/dcbe2c21f3d99061352683dba4080fecf531b314/LICENSE"
         }
       ]
     }

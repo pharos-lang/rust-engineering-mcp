@@ -1,0 +1,140 @@
+{
+  "cut": "m5-04-bloat",
+  "finished_utc": "2026-09-10T16:02:10Z",
+  "fixtures": {
+    "bloat": {
+      "archive_sha256": "sha256:d93c1e9e05c0a4287ba39a95cd39af3c2add28816665d4d40dff4f6601f3c66d",
+      "bytes": 8938,
+      "directories": 3,
+      "files": 7,
+      "tree_fingerprint": "sha256:de4f7fd115fe74543f8613fa53633bd05aa8fbc1a3fea52e6cba035cd7fa5330"
+    }
+  },
+  "image_id": "sha256:e0a5ca1661b3e49d0a3d68ee3cc0963453078d08eb7fc43c30538c16b7998aac",
+  "residue": {
+    "after": {
+      "containers": [],
+      "volumes": []
+    },
+    "before": {
+      "containers": [],
+      "volumes": []
+    }
+  },
+  "selections": [
+    {
+      "duration_ms": 9547,
+      "observed": {
+        "analysis_validated": true,
+        "analyzer_version": "0.12.1",
+        "attribution": {
+          "crates": [
+            {
+              "name": "std",
+              "size_bytes": 224736
+            },
+            {
+              "name": "rust_mcp_bloat_fixture",
+              "size_bytes": 4280
+            },
+            {
+              "name": "bloat_inner",
+              "size_bytes": 4132
+            },
+            {
+              "name": "[Unknown]",
+              "size_bytes": 1848
+            },
+            {
+              "name": "__rustc",
+              "size_bytes": 20
+            }
+          ],
+          "crates_omitted_by_row_cap": 0,
+          "estimated": true,
+          "functions": 256,
+          "functions_omitted_by_row_cap": 378,
+          "reported_file_size_bytes": 4574312,
+          "text_section_size_bytes": 235268
+        },
+        "completeness": "Complete",
+        "execution_fingerprint": "sha256:e83bdcb9d3bc92dc69548681a0da740ab422e64d65b941be9eced0b7160ba04d",
+        "exit": "Passed",
+        "exit_code": 0,
+        "measured": {
+          "analysis_build_symbols_forced": true,
+          "format": "Elf64Aarch64",
+          "sha256": "sha256:c430c5508943557f0a53c83b1aed273de25fde919f46682887913fc13648ca86",
+          "size_bytes": 4574312
+        }
+      },
+      "outcome": "passed",
+      "selection": "release-positive"
+    },
+    {
+      "duration_ms": 11158,
+      "observed": {
+        "analysis_validated": true,
+        "analyzer_version": "0.12.1",
+        "attribution": {
+          "crates": [
+            {
+              "name": "std",
+              "size_bytes": 204300
+            },
+            {
+              "name": "rust_mcp_bloat_fixture",
+              "size_bytes": 4912
+            },
+            {
+              "name": "bloat_inner",
+              "size_bytes": 4132
+            },
+            {
+              "name": "[Unknown]",
+              "size_bytes": 3200
+            },
+            {
+              "name": "__rustc",
+              "size_bytes": 212
+            }
+          ],
+          "crates_omitted_by_row_cap": 0,
+          "estimated": true,
+          "functions": 256,
+          "functions_omitted_by_row_cap": 234,
+          "reported_file_size_bytes": 2150848,
+          "text_section_size_bytes": 217048
+        },
+        "completeness": "Complete",
+        "execution_fingerprint": "sha256:e136804b01dc847578040401148b46e8b36f46290f4f9e68cd1d56fc6ac22b74",
+        "exit": "Passed",
+        "exit_code": 0,
+        "measured": {
+          "analysis_build_symbols_forced": true,
+          "format": "Elf64Aarch64",
+          "sha256": "sha256:7b75a48f2f65da6538bdaeec04dbec57eba024147f0530be05b6f0d275ecb5f4",
+          "size_bytes": 2150848
+        }
+      },
+      "outcome": "passed",
+      "selection": "release-lto"
+    },
+    {
+      "duration_ms": 9212,
+      "observed": {
+        "analysis_validated": false,
+        "analyzer_version": "0.12.1",
+        "attribution": null,
+        "completeness": "Unavailable",
+        "execution_fingerprint": "sha256:0a138583a60222d30b657fe51e7c7b89d32ce1b08dcee31d7cacadf57b02a88b",
+        "exit": "AnalysisFailed",
+        "exit_code": 1,
+        "measured": null
+      },
+      "outcome": "passed",
+      "selection": "missing-binary-target"
+    }
+  ],
+  "started_utc": "2026-09-10T16:01:40Z"
+}

@@ -1,0 +1,33 @@
+{
+  "cut": "m5-00-admission",
+  "finished_utc": "2026-09-10T20:37:44Z",
+  "fixtures": {},
+  "image_id": "sha256:25ed3626e710081a571a86a29521eaf2e890e796afd422ba5e409e0ce1891635",
+  "residue": {
+    "after": {
+      "containers": [],
+      "volumes": []
+    },
+    "before": {
+      "containers": [],
+      "volumes": []
+    }
+  },
+  "selections": [
+    {
+      "duration_ms": 37,
+      "observed": {
+        "error": "Inspection(Execution(Unavailable))",
+        "image_id": "sha256:25ed3626e710081a571a86a29521eaf2e890e796afd422ba5e409e0ce1891635",
+        "qualified_image_id": "sha256:e0a5ca1661b3e49d0a3d68ee3cc0963453078d08eb7fc43c30538c16b7998aac",
+        "residue_after": {
+          "containers": [],
+          "volumes": []
+        }
+      },
+      "outcome": "passed",
+      "selection": "unqualified-image-refused"
+    }
+  ],
+  "started_utc": "2026-09-10T20:37:43Z"
+}

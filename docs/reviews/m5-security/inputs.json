@@ -1,0 +1,138 @@
+{
+  "schema": "rust-engineering-mcp.m5-review-inputs.v1",
+  "commit": "cef1546d7908d68e340411fe20afad3fe8dbfa33",
+  "branch": "ai/m5-performance",
+  "file_count": 26,
+  "files": [
+    {
+      "path": "crates/execution-adapter/src/seccomp-rust-profile.json",
+      "bytes": 3912,
+      "sha256": "7358b540d747c6aab0d21a918e55ab137fe475001db7d7b0659b8f324c028393"
+    },
+    {
+      "path": "crates/execution-adapter/src/seccomp-rust-quality.json",
+      "bytes": 3814,
+      "sha256": "c288305c9fdba791926a9154fe47a1f53a30d61501cd9d059a78467866ccf938"
+    },
+    {
+      "path": "crates/execution-adapter/src/state.rs",
+      "bytes": 10741,
+      "sha256": "374356a80e958ce35e68d41aaae8f8272ec6f2a99f2f482a1ef96136849ef76a"
+    },
+    {
+      "path": "crates/execution-adapter/src/performance_gateway.rs",
+      "bytes": 141204,
+      "sha256": "f5b815f3d3511dbc265921d1b42de571dc4a7b6fc35fbda3a9716731f9c50b1c"
+    },
+    {
+      "path": "crates/execution-adapter/src/performance_port.rs",
+      "bytes": 55117,
+      "sha256": "d98bc0389402189cedc0ded3129b4b8361298918c3c56790b50b7d02c1c60e29"
+    },
+    {
+      "path": "crates/execution-adapter/src/profile_stacks.rs",
+      "bytes": 23178,
+      "sha256": "9ebe52e8d7f766296cade78da97bb46f3d0b777e5c679399de52c00cc6ba49e5"
+    },
+    {
+      "path": "crates/execution-adapter/src/profile_svg.rs",
+      "bytes": 29649,
+      "sha256": "f9f2b180fbc9e571d7da788560aff2b009f84fcbe3a35bff69f917e8c454e59d"
+    },
+    {
+      "path": "crates/execution-adapter/src/performance_native.rs",
+      "bytes": 55327,
+      "sha256": "03d5139ad33496ee590765bc008be958a23a345428edd400ad8753e4152edbfa"
+    },
+    {
+      "path": "fixtures/profile-helper/src/lib.rs",
+      "bytes": 89872,
+      "sha256": "0bc618c87ef2e7c55109ae4c823e2bb9add3416a68842c846dd357037fce92ab"
+    },
+    {
+      "path": "fixtures/profile-helper/src/linux.rs",
+      "bytes": 25644,
+      "sha256": "550c37b4a4a02d7bbb01c11952a028a419be9f94c3fe653b99986ddaf6168d72"
+    },
+    {
+      "path": "fixtures/profile-helper/src/main.rs",
+      "bytes": 1778,
+      "sha256": "40f1d51a595a5b1709279b792306658ee0ccf04387c677bb5bfde64046d25f67"
+    },
+    {
+      "path": "fixtures/rust-runtime/m5/Dockerfile",
+      "bytes": 758,
+      "sha256": "f09ef7b3b52f816e61691fe3851baa3984764adcddde69facbcb5b1ce3f8bbbd"
+    },
+    {
+      "path": "fixtures/rust-runtime/m5/README.md",
+      "bytes": 3063,
+      "sha256": "7405d7d3a15af66dd426e718f8b60ece1fe167dc9e130daac5a4b1242d8f55cd"
+    },
+    {
+      "path": "fixtures/rust-runtime/m5/build.sh",
+      "bytes": 4450,
+      "sha256": "788d3390f232531223a0ff0ff1d65c84dad739fe036e0c48aee7d6ac261100f7"
+    },
+    {
+      "path": "fixtures/rust-runtime/m5/provision.py",
+      "bytes": 12718,
+      "sha256": "7680c6bacfedf8eac91f1b92cf628e819be83caa4a658e4cef8548ebdcbb809f"
+    },
+    {
+      "path": "scripts/build-m5-runtime.py",
+      "bytes": 8993,
+      "sha256": "f876b601aa9d0b2f7d3520f8385d6f392afe90bdcacfe44fc1802d9a5ed06008"
+    },
+    {
+      "path": "crates/mcp-server/src/host_config.rs",
+      "bytes": 18248,
+      "sha256": "eab7fad3f270b0c1b1b0cef57f70c5b830433243092ff39bb38d76bf4d3238ad"
+    },
+    {
+      "path": "crates/application/src/profile.rs",
+      "bytes": 16777,
+      "sha256": "851d8e664283f6dd4773486dd02475c63c82c1e640e4ea84fdc5d065218999b2"
+    },
+    {
+      "path": "docs/adr/ADR-074-profiling-capability-and-containment.md",
+      "bytes": 8484,
+      "sha256": "0f898e141cf62b97ce505de11d50b6196c9daeee823b5b6544e5f4078a152f38"
+    },
+    {
+      "path": "docs/adr/ADR-075-m5-runtime-provisioning.md",
+      "bytes": 6538,
+      "sha256": "0091eeaa849e5141a7df077b0ee315b90adbcf78df9f5169253fea2228ad8482"
+    },
+    {
+      "path": "docs/adr/ADR-077-m5-runtime-admission.md",
+      "bytes": 2717,
+      "sha256": "3f918cbdc15c002382e33cd14e8237ed4cf9adb1916a6dec56e15d2fa8eed843"
+    },
+    {
+      "path": "docs/validation/M5-profiling-capability-probe.json",
+      "bytes": 2071,
+      "sha256": "250d72817e377490c80381950303854d9670ae31e119194607d3b2b449879ce9"
+    },
+    {
+      "path": "docs/validation/M5-03-profiling-native.json",
+      "bytes": 4905,
+      "sha256": "2da85cf3695c8c83e08d2a010caf1100c19140d0c99cb72c937def58d041051d"
+    },
+    {
+      "path": "docs/validation/M5-provisioning.json",
+      "bytes": 7123,
+      "sha256": "b47b693884b97e88dd13747c250af714d75494f9591c434a1469508e40e52db1"
+    },
+    {
+      "path": "docs/validation/M5-03-runtime.json",
+      "bytes": 4337,
+      "sha256": "c934e126d611054b0584b5e9b822676fc839bf8919ace08826958bf9cae8c5a1"
+    },
+    {
+      "path": "docs/validation/M5-01-blocker.json",
+      "bytes": 3474,
+      "sha256": "f3a5653bf710a4c1ce9393da13a4bbb22a81c5a2683c839d18f0bcbf3b39f58b"
+    }
+  ]
+}

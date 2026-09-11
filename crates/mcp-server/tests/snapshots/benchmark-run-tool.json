@@ -1,0 +1,1090 @@
+{
+  "name": "rust.benchmark.run",
+  "description": "Run the project's own criterion benchmarks once in the approved offline runtime and publish the raw samples as a private versioned dataset artifact, plus the harness output tree of one repetition and each repetition's own stdout and stderr as separate private artifacts. Every published artifact but the pooled dataset names the repetition it came from. The response carries no raw sample and no log text: it reports the detected harness, the exit and which repetition it belongs to, per-benchmark median, minimum, maximum, median absolute deviation, counted outliers and completeness, per-repetition retained log sizes and whether either stream was cut at the server ceiling, and the full provenance a later comparison needs. Requires an authenticated host cargo vendor tree. Warm-up, measurement time and sample size are fixed by the server and travel in the provenance; no harness flag, path or free argument is accepted. An unrecognized or unapproved harness and a failed compilation are observed results that publish no dataset and still publish their logs. Measurements describe this host and this execution and attribute no cause.",
+  "inputSchema": {
+    "$defs": {
+      "ExecutionModeDto": {
+        "enum": [
+          "auto",
+          "task",
+          "synchronous"
+        ],
+        "type": "string"
+      },
+      "Feature": {
+        "maxLength": 64,
+        "minLength": 1,
+        "pattern": "^[A-Za-z0-9_-]{1,64}$",
+        "type": "string"
+      }
+    },
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "additionalProperties": false,
+    "properties": {
+      "all_features": {
+        "default": false,
+        "type": "boolean"
+      },
+      "bench_target": {
+        "default": null,
+        "maxLength": 64,
+        "minLength": 1,
+        "pattern": "^[A-Za-z0-9_][A-Za-z0-9_-]{0,63}$",
+        "type": [
+          "string",
+          "null"
+        ]
+      },
+      "execution_mode": {
+        "$ref": "#/$defs/ExecutionModeDto"
+      },
+      "features": {
+        "default": [],
+        "items": {
+          "$ref": "#/$defs/Feature"
+        },
+        "maxItems": 16,
+        "type": "array"
+      },
+      "no_default_features": {
+        "default": false,
+        "type": "boolean"
+      },
+      "package": {
+        "default": null,
+        "maxLength": 64,
+        "minLength": 1,
+        "pattern": "^[A-Za-z0-9_][A-Za-z0-9_-]{0,63}$",
+        "type": [
+          "string",
+          "null"
+        ]
+      },
+      "project_ref": {
+        "pattern": "^prj_[0-9a-f]{32}$",
+        "type": "string"
+      },
+      "run_count": {
+        "default": 3,
+        "format": "uint8",
+        "maximum": 3,
+        "minimum": 1,
+        "type": "integer"
+      },
+      "timeout_seconds": {
+        "default": 900,
+        "format": "uint64",
+        "maximum": 900,
+        "minimum": 1,
+        "type": "integer"
+      }
+    },
+    "required": [
+      "project_ref"
+    ],
+    "title": "Input",
+    "type": "object"
+  },
+  "outputSchema": {
+    "$defs": {
+      "Artifact": {
+        "additionalProperties": false,
+        "properties": {
+          "completeness": {
+            "$ref": "#/$defs/ArtifactCompleteness"
+          },
+          "kind": {
+            "$ref": "#/$defs/ArtifactKind"
+          },
+          "run_index": {
+            "description": "The 1-based repetition this evidence came from, numbered exactly as the\ndataset's samples are. `null` only for `benchmark_dataset`, which pools\nevery repetition and carries the index on each sample instead.",
+            "format": "uint8",
+            "maximum": 3,
+            "minimum": 1,
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "sha256": {
+            "pattern": "^[0-9a-f]{64}$",
+            "type": "string"
+          },
+          "size_bytes": {
+            "description": "Bytes published. For a log whose `completeness` is `truncated` this is\nhow many bytes survived the cut, never how many the harness wrote.",
+            "format": "uint64",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "uri": {
+            "maxLength": 512,
+            "minLength": 1,
+            "type": "string"
+          }
+        },
+        "required": [
+          "kind",
+          "run_index",
+          "uri",
+          "sha256",
+          "size_bytes",
+          "completeness"
+        ],
+        "type": "object"
+      },
+      "ArtifactCompleteness": {
+        "enum": [
+          "complete",
+          "truncated",
+          "partial",
+          "invalid",
+          "unavailable"
+        ],
+        "type": "string"
+      },
+      "ArtifactKind": {
+        "oneOf": [
+          {
+            "const": "benchmark_dataset",
+            "description": "The pooled samples of every repetition, in the versioned dataset format.",
+            "type": "string"
+          },
+          {
+            "const": "criterion_archive",
+            "description": "One repetition's criterion output tree, exactly as the harness exported\nit: the last repetition that exported one.",
+            "type": "string"
+          },
+          {
+            "const": "harness_stdout",
+            "description": "One repetition's `stdout`, as the harness wrote it (ADR-080 \u00a71).",
+            "type": "string"
+          },
+          {
+            "const": "harness_stderr",
+            "description": "One repetition's `stderr`. For an observed compilation failure this is\nwhere the compiler's own text is.",
+            "type": "string"
+          }
+        ]
+      },
+      "BenchmarkHarnessName": {
+        "enum": [
+          "criterion"
+        ],
+        "type": "string"
+      },
+      "BenchmarkSummary": {
+        "additionalProperties": false,
+        "description": "A bounded description of one benchmark's raw samples. Every statistic here\nis descriptive of the sample set the dataset carries; none of it is a\ncomparison, a verdict or a claim about what produced any value.",
+        "properties": {
+          "completeness": {
+            "$ref": "#/$defs/MeasurementCompleteness"
+          },
+          "function_id": {
+            "maxLength": 512,
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "group_id": {
+            "maxLength": 512,
+            "minLength": 1,
+            "type": "string"
+          },
+          "key": {
+            "maxLength": 512,
+            "minLength": 1,
+            "type": "string"
+          },
+          "maximum_per_iteration_ns": {
+            "format": "double",
+            "type": "number"
+          },
+          "measurement_ms": {
+            "format": "uint64",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "median_absolute_deviation_ns": {
+            "description": "Median of the absolute deviations from the median. Reported, like the\noutlier count, so a reader can see dispersion without the raw samples.",
+            "format": "double",
+            "type": "number"
+          },
+          "median_per_iteration_ns": {
+            "format": "double",
+            "type": "number"
+          },
+          "minimum_per_iteration_ns": {
+            "format": "double",
+            "type": "number"
+          },
+          "outliers_counted": {
+            "description": "Counted with Tukey fences and kept in the sample set; nothing is removed.",
+            "format": "uint32",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "sample_size_requested": {
+            "format": "uint32",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "samples": {
+            "format": "uint32",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "sampling_mode": {
+            "$ref": "#/$defs/SamplingMode"
+          },
+          "value_str": {
+            "maxLength": 512,
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "warm_up_ms": {
+            "format": "uint64",
+            "minimum": 0,
+            "type": "integer"
+          }
+        },
+        "required": [
+          "key",
+          "group_id",
+          "function_id",
+          "value_str",
+          "samples",
+          "sample_size_requested",
+          "warm_up_ms",
+          "measurement_ms",
+          "median_per_iteration_ns",
+          "minimum_per_iteration_ns",
+          "maximum_per_iteration_ns",
+          "median_absolute_deviation_ns",
+          "outliers_counted",
+          "sampling_mode",
+          "completeness"
+        ],
+        "type": "object"
+      },
+      "Code": {
+        "enum": [
+          "TASKS_REQUIRED",
+          "SANDBOX_DENIED",
+          "MISSING_OFFLINE_DATA",
+          "ARTIFACT_UNAVAILABLE",
+          "TOOL_NOT_INSTALLED",
+          "INVALID_PROJECT",
+          "PROJECT_NOT_FOUND",
+          "COMMAND_TIMEOUT",
+          "OUTPUT_LIMIT_EXCEEDED",
+          "EVIDENCE_INCOMPLETE",
+          "OBSERVED_FAILURE",
+          "HARNESS_UNRECOGNIZED",
+          "HARNESS_UNAPPROVED"
+        ],
+        "type": "string"
+      },
+      "Data": {
+        "additionalProperties": false,
+        "properties": {
+          "artifacts": {
+            "description": "At most eight: the dataset, the criterion tree, and one `stdout` and one\n`stderr` for each of the three repetitions `run_count` admits\n(ADR-080 \u00a71).",
+            "items": {
+              "$ref": "#/$defs/Artifact"
+            },
+            "maxItems": 8,
+            "type": "array"
+          },
+          "observation": {
+            "$ref": "#/$defs/Observation"
+          },
+          "project_ref": {
+            "pattern": "^prj_[0-9a-f]{32}$",
+            "type": "string"
+          },
+          "semantics": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "project_ref",
+          "semantics",
+          "observation",
+          "artifacts"
+        ],
+        "type": "object"
+      },
+      "DatasetOmission": {
+        "description": "Why a run published no dataset, or an incomplete one.",
+        "enum": [
+          "harness_unrecognized",
+          "harness_unapproved",
+          "execution_failed",
+          "output_missing",
+          "output_unparsable",
+          "output_too_large",
+          "cancelled"
+        ],
+        "type": "string"
+      },
+      "ExecutionTermination": {
+        "enum": [
+          "exited",
+          "timed_out",
+          "cancelled",
+          "output_limit"
+        ],
+        "type": "string"
+      },
+      "Exit": {
+        "description": "Classification of the `cargo bench` exit code. `uncalibrated` is published\nas such: no Docker receipt has pinned a meaning for that code yet.",
+        "enum": [
+          "passed",
+          "benchmark_failed",
+          "compilation_failed",
+          "uncalibrated",
+          "incomplete"
+        ],
+        "type": "string"
+      },
+      "Feature": {
+        "maxLength": 64,
+        "minLength": 1,
+        "pattern": "^[A-Za-z0-9_-]{1,64}$",
+        "type": "string"
+      },
+      "HardwareProfile": {
+        "additionalProperties": false,
+        "description": "What was observable about the measuring host. An absent field is UNKNOWN and\nis never replaced by a plausible default.",
+        "properties": {
+          "arch": {
+            "maxLength": 512,
+            "minLength": 1,
+            "type": "string"
+          },
+          "cpu_cores": {
+            "format": "uint16",
+            "maximum": 65535,
+            "minimum": 0,
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "cpu_governor": {
+            "maxLength": 512,
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "cpu_model": {
+            "maxLength": 512,
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "os_kernel": {
+            "maxLength": 512,
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "quotas": {
+            "$ref": "#/$defs/ResourceQuotas"
+          },
+          "virtualization": {
+            "$ref": "#/$defs/Virtualization"
+          }
+        },
+        "required": [
+          "cpu_model",
+          "cpu_cores",
+          "os_kernel",
+          "arch",
+          "virtualization",
+          "cpu_governor",
+          "quotas"
+        ],
+        "type": "object"
+      },
+      "Harness": {
+        "description": "The harness the adapter found in the resolved dependency graph. It is never\ninferred from a target name, and only `criterion` at the approved version\ncan carry a measurement.",
+        "oneOf": [
+          {
+            "additionalProperties": false,
+            "properties": {
+              "harness": {
+                "const": "criterion",
+                "type": "string"
+              },
+              "version": {
+                "maxLength": 128,
+                "minLength": 1,
+                "type": "string"
+              }
+            },
+            "required": [
+              "harness",
+              "version"
+            ],
+            "type": "object"
+          },
+          {
+            "additionalProperties": false,
+            "properties": {
+              "harness": {
+                "const": "criterion_unapproved",
+                "type": "string"
+              },
+              "version": {
+                "maxLength": 128,
+                "minLength": 1,
+                "type": "string"
+              }
+            },
+            "required": [
+              "harness",
+              "version"
+            ],
+            "type": "object"
+          },
+          {
+            "additionalProperties": false,
+            "properties": {
+              "harness": {
+                "const": "unrecognized",
+                "type": "string"
+              }
+            },
+            "required": [
+              "harness"
+            ],
+            "type": "object"
+          }
+        ]
+      },
+      "HarnessLog": {
+        "additionalProperties": false,
+        "description": "What one repetition wrote, and what was published of it.\n\nThe logs themselves never travel in the response (ADR-080 \u00a73): they are\npublished as `harness_stdout` and `harness_stderr` artifacts, each naming\nthe same `run_index` this row does. What travels here is how many bytes were\nretained and whether the stream was cut at the server's ceiling, so a reader\nknows before fetching whether the artifact is the whole stream.\n\n`0` retained bytes means the repetition wrote nothing to that stream, and no\nartifact was published for it.",
+        "properties": {
+          "retained_ceiling_bytes": {
+            "description": "The server's own per-stream, per-repetition ceiling, in bytes.\n\nPublished so a reader can tell a stream that happened to be short from\none the server cut, without knowing the build's constants (ADR-080 \u00a73).",
+            "format": "uint64",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "run_index": {
+            "description": "1-based repetition inside the requested run set, the same numbering the\ndataset's samples and the criterion archive carry.",
+            "format": "uint8",
+            "maximum": 3,
+            "minimum": 1,
+            "type": "integer"
+          },
+          "stderr_bytes": {
+            "format": "uint64",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "stderr_replaced": {
+            "description": "The repetition wrote bytes that are not valid UTF-8 on `stderr` and they\nwere replaced. See `stdout_replaced`.",
+            "type": "boolean"
+          },
+          "stderr_truncated": {
+            "type": "boolean"
+          },
+          "stdout_bytes": {
+            "format": "uint64",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "stdout_replaced": {
+            "description": "The repetition wrote bytes that are not valid UTF-8 and they were\nreplaced.\n\nThese logs come from a benchmark the PROJECT wrote, so they can contain\nany byte, and they are published declaring a UTF-8 payload format. The\nserver guarantees that declaration rather than assuming it, and this\nfield is how a reader learns it had to intervene. Replacing rather than\nrefusing is deliberate: the logs exist to diagnose a failed run, and one\nstray byte is exactly when the surrounding text matters.",
+            "type": "boolean"
+          },
+          "stdout_truncated": {
+            "description": "The repetition wrote more than `retained_ceiling_bytes` and\n`stdout_bytes` is the prefix that was kept. A cut log is never published\nas a whole one.",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "run_index",
+          "stdout_bytes",
+          "stdout_truncated",
+          "stdout_replaced",
+          "stderr_bytes",
+          "stderr_truncated",
+          "stderr_replaced",
+          "retained_ceiling_bytes"
+        ],
+        "type": "object"
+      },
+      "MeasurementCompleteness": {
+        "enum": [
+          "complete",
+          "truncated",
+          "missing"
+        ],
+        "type": "string"
+      },
+      "Observation": {
+        "additionalProperties": false,
+        "properties": {
+          "benchmarks": {
+            "items": {
+              "$ref": "#/$defs/BenchmarkSummary"
+            },
+            "maxItems": 128,
+            "type": "array"
+          },
+          "benchmarks_omitted": {
+            "format": "uint32",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "complete": {
+            "description": "False whenever this response describes less than the run produced.",
+            "type": "boolean"
+          },
+          "dataset_omission": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/DatasetOmission"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "dataset_published": {
+            "type": "boolean"
+          },
+          "execution_fingerprint": {
+            "pattern": "^sha256:[0-9a-f]{64}$",
+            "type": "string"
+          },
+          "exit": {
+            "$ref": "#/$defs/Exit"
+          },
+          "exit_code": {
+            "format": "int32",
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "exit_run_index": {
+            "description": "The 1-based repetition whose `exit`, `exit_code` and `termination` the\nthree fields above describe: the last repetition that ran.\n\nIt is not necessarily the repetition whose tree `criterion_archive`\nretained. The retained tree is the last repetition that *exported* one,\nwhich an earlier repetition can be, so both indices are published and a\nreader compares them instead of assuming they agree.",
+            "format": "uint8",
+            "maximum": 3,
+            "minimum": 1,
+            "type": "integer"
+          },
+          "harness": {
+            "$ref": "#/$defs/Harness"
+          },
+          "logs": {
+            "description": "Harness logs are evidence, not a measurement, so they never travel in\nthis response and never reach the server's stdout, which is the protocol\ntransport. Each repetition's `stdout` and `stderr` are published as\ntheir own private `harness_stdout` / `harness_stderr` artifacts, listed\nin `artifacts` with the `run_index` they belong to; this row says how\nmuch of each was kept.",
+            "items": {
+              "$ref": "#/$defs/HarnessLog"
+            },
+            "maxItems": 3,
+            "type": "array"
+          },
+          "provenance": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/Provenance"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "runs_completed": {
+            "format": "uint8",
+            "maximum": 255,
+            "minimum": 0,
+            "type": "integer"
+          },
+          "runs_requested": {
+            "format": "uint8",
+            "maximum": 255,
+            "minimum": 0,
+            "type": "integer"
+          },
+          "runtime": {
+            "$ref": "#/$defs/RuntimeIdentity"
+          },
+          "selection": {
+            "$ref": "#/$defs/Selection"
+          },
+          "stderr_truncated": {
+            "type": "boolean"
+          },
+          "stdout_truncated": {
+            "description": "True when ANY repetition's stream was cut at the ceiling. `logs` says\nwhich; these two summarize it for a reader that only needs to know\nwhether some log is a prefix.",
+            "type": "boolean"
+          },
+          "termination": {
+            "$ref": "#/$defs/ExecutionTermination"
+          },
+          "vendor_fingerprint": {
+            "pattern": "^sha256:[0-9a-f]{64}$",
+            "type": "string"
+          }
+        },
+        "required": [
+          "selection",
+          "harness",
+          "exit",
+          "exit_code",
+          "termination",
+          "exit_run_index",
+          "runs_requested",
+          "runs_completed",
+          "dataset_published",
+          "dataset_omission",
+          "benchmarks",
+          "benchmarks_omitted",
+          "provenance",
+          "runtime",
+          "execution_fingerprint",
+          "vendor_fingerprint",
+          "logs",
+          "stdout_truncated",
+          "stderr_truncated",
+          "complete"
+        ],
+        "type": "object"
+      },
+      "Provenance": {
+        "additionalProperties": false,
+        "description": "Everything a later comparison needs before it may quote these numbers.",
+        "properties": {
+          "captured_at_unix": {
+            "format": "uint64",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "cargo_version": {
+            "maxLength": 128,
+            "minLength": 1,
+            "type": "string"
+          },
+          "configuration_fingerprint": {
+            "maxLength": 512,
+            "minLength": 1,
+            "type": "string"
+          },
+          "dataset_format": {
+            "maxLength": 512,
+            "minLength": 1,
+            "type": "string"
+          },
+          "dataset_format_version": {
+            "format": "uint8",
+            "maximum": 255,
+            "minimum": 0,
+            "type": "integer"
+          },
+          "declared_toolchain": {
+            "maxLength": 128,
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "execution_fingerprint": {
+            "maxLength": 512,
+            "minLength": 1,
+            "type": "string"
+          },
+          "hardware": {
+            "$ref": "#/$defs/HardwareProfile"
+          },
+          "harness": {
+            "$ref": "#/$defs/BenchmarkHarnessName"
+          },
+          "harness_version": {
+            "maxLength": 128,
+            "minLength": 1,
+            "type": "string"
+          },
+          "image_digest": {
+            "maxLength": 512,
+            "minLength": 1,
+            "type": "string"
+          },
+          "platform": {
+            "maxLength": 128,
+            "minLength": 1,
+            "type": "string"
+          },
+          "run_count": {
+            "format": "uint8",
+            "maximum": 255,
+            "minimum": 0,
+            "type": "integer"
+          },
+          "run_index": {
+            "format": "uint8",
+            "maximum": 255,
+            "minimum": 0,
+            "type": "integer"
+          },
+          "rust_version": {
+            "maxLength": 128,
+            "minLength": 1,
+            "type": "string"
+          },
+          "selection": {
+            "$ref": "#/$defs/Selection"
+          },
+          "source_fingerprint": {
+            "maxLength": 512,
+            "minLength": 1,
+            "type": "string"
+          },
+          "unit": {
+            "$ref": "#/$defs/SampleUnit"
+          }
+        },
+        "required": [
+          "dataset_format",
+          "dataset_format_version",
+          "unit",
+          "source_fingerprint",
+          "harness",
+          "harness_version",
+          "rust_version",
+          "cargo_version",
+          "declared_toolchain",
+          "image_digest",
+          "platform",
+          "configuration_fingerprint",
+          "execution_fingerprint",
+          "selection",
+          "hardware",
+          "run_index",
+          "run_count",
+          "captured_at_unix"
+        ],
+        "type": "object"
+      },
+      "ResourceQuotas": {
+        "additionalProperties": false,
+        "description": "Resource ceilings the measuring runtime was placed under. `null` is UNKNOWN\nand never means \"unlimited\".",
+        "properties": {
+          "cpu_quota_millicores": {
+            "format": "uint32",
+            "minimum": 0,
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "memory_bytes": {
+            "format": "uint64",
+            "minimum": 0,
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "pids": {
+            "format": "uint32",
+            "minimum": 0,
+            "type": [
+              "integer",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "cpu_quota_millicores",
+          "memory_bytes",
+          "pids"
+        ],
+        "type": "object"
+      },
+      "RuntimeIdentity": {
+        "additionalProperties": false,
+        "properties": {
+          "cargo_version": {
+            "maxLength": 128,
+            "type": "string"
+          },
+          "configuration_fingerprint": {
+            "pattern": "^sha256:[0-9a-f]{64}$",
+            "type": "string"
+          },
+          "declared_toolchain": {
+            "maxLength": 128,
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "execution_fingerprint": {
+            "pattern": "^sha256:[0-9a-f]{64}$",
+            "type": "string"
+          },
+          "image_id": {
+            "pattern": "^sha256:[0-9a-f]{64}$",
+            "type": "string"
+          },
+          "platform": {
+            "maxLength": 128,
+            "type": "string"
+          },
+          "rust_version": {
+            "maxLength": 128,
+            "type": "string"
+          }
+        },
+        "required": [
+          "platform",
+          "image_id",
+          "configuration_fingerprint",
+          "execution_fingerprint",
+          "rust_version",
+          "cargo_version",
+          "declared_toolchain"
+        ],
+        "type": "object"
+      },
+      "SampleUnit": {
+        "enum": [
+          "nanoseconds"
+        ],
+        "type": "string"
+      },
+      "SamplingMode": {
+        "enum": [
+          "linear",
+          "flat",
+          "auto",
+          "unknown"
+        ],
+        "type": "string"
+      },
+      "Selection": {
+        "additionalProperties": false,
+        "description": "The closed build/target selection the run executed under. Compared verbatim\nbetween two datasets, so it is published verbatim here.",
+        "properties": {
+          "all_features": {
+            "type": "boolean"
+          },
+          "bench_target": {
+            "maxLength": 64,
+            "minLength": 1,
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "features": {
+            "items": {
+              "$ref": "#/$defs/Feature"
+            },
+            "maxItems": 16,
+            "type": "array"
+          },
+          "no_default_features": {
+            "type": "boolean"
+          },
+          "package": {
+            "maxLength": 64,
+            "minLength": 1,
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "profile": {
+            "maxLength": 64,
+            "minLength": 1,
+            "type": "string"
+          }
+        },
+        "required": [
+          "package",
+          "bench_target",
+          "features",
+          "all_features",
+          "no_default_features",
+          "profile"
+        ],
+        "type": "object"
+      },
+      "Virtualization": {
+        "enum": [
+          "unknown",
+          "container",
+          "virtual_machine",
+          "bare"
+        ],
+        "type": "string"
+      }
+    },
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "oneOf": [
+      {
+        "properties": {
+          "data": {
+            "$ref": "#/$defs/Data"
+          },
+          "error_code": {
+            "type": "null"
+          },
+          "error_message": {
+            "type": "null"
+          },
+          "status": {
+            "const": "passed",
+            "type": "string"
+          }
+        },
+        "required": [
+          "status",
+          "error_code",
+          "error_message",
+          "data"
+        ],
+        "type": "object"
+      },
+      {
+        "properties": {
+          "data": {
+            "$ref": "#/$defs/Data"
+          },
+          "error_code": {
+            "$ref": "#/$defs/Code"
+          },
+          "error_message": {
+            "type": "string"
+          },
+          "status": {
+            "const": "failed",
+            "type": "string"
+          }
+        },
+        "required": [
+          "status",
+          "error_code",
+          "error_message",
+          "data"
+        ],
+        "type": "object"
+      },
+      {
+        "properties": {
+          "data": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/Data"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "error_code": {
+            "$ref": "#/$defs/Code"
+          },
+          "error_message": {
+            "type": "string"
+          },
+          "status": {
+            "const": "blocked",
+            "type": "string"
+          }
+        },
+        "required": [
+          "status",
+          "error_code",
+          "error_message",
+          "data"
+        ],
+        "type": "object"
+      },
+      {
+        "properties": {
+          "data": {
+            "type": "null"
+          },
+          "error_code": {
+            "$ref": "#/$defs/Code"
+          },
+          "error_message": {
+            "type": "string"
+          },
+          "status": {
+            "const": "unavailable",
+            "type": "string"
+          }
+        },
+        "required": [
+          "status",
+          "error_code",
+          "error_message",
+          "data"
+        ],
+        "type": "object"
+      },
+      {
+        "properties": {
+          "data": {
+            "type": "null"
+          },
+          "error_code": {
+            "type": "null"
+          },
+          "error_message": {
+            "type": "null"
+          },
+          "status": {
+            "const": "cancelled",
+            "type": "string"
+          }
+        },
+        "required": [
+          "status",
+          "error_code",
+          "error_message",
+          "data"
+        ],
+        "type": "object"
+      }
+    ],
+    "properties": {
+      "duration_ms": {
+        "format": "uint64",
+        "minimum": 0,
+        "type": "integer"
+      },
+      "summary": {
+        "type": "string"
+      }
+    },
+    "required": [
+      "summary",
+      "duration_ms"
+    ],
+    "title": "Output",
+    "type": "object",
+    "unevaluatedProperties": false
+  },
+  "annotations": {
+    "readOnlyHint": true,
+    "destructiveHint": false,
+    "idempotentHint": false,
+    "openWorldHint": false
+  }
+}
