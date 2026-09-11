@@ -103,7 +103,7 @@ privados y no se promete redacción universal del source autorizado.
 Las mutaciones máximas pueden consumir memoria considerable: el ciclo nativo de
 128 archivos/16 MiB midió aproximadamente 932 MiB de RSS después de optimizar el
 journal; no es un límite del proceso MCP completo. Consulta los [límites y la
-medición](docs/validation/M2-matrix.md). M2 emite eventos operativos acotados por
+medición](docs/validation/M2/matrix.md). M2 emite eventos operativos acotados por
 stderr, sin source, rutas ni credenciales y sin colector adicional; su retención
 la controla el host. stdout queda reservado al protocolo.
 El store privado admite hasta 128 journals/256 MiB; la admisión reserva 48 MiB
@@ -197,7 +197,7 @@ cliente.
 | Cliente | Configuración | Evidencia actual |
 | --- | --- | --- |
 | Codex | [CLI o `config.toml`](docs/client-configuration.md#codex) | Codex 0.153.0 stock calificó el camino síncrono M4 para las cinco tools y un turno model-directed con las cinco en `passed`; el cliente no declaró Tasks. [Recibo M4](docs/validation/M4-clients.json). |
-| Claude Code | [CLI o `.mcp.json`](docs/client-configuration.md#claude-code) | M2: Claude Code 2.1.260, Sonnet 5 medium, cinco preview/commit y receipt final; [PASS intento 5](docs/validation/M2-clients.json), con renovación de referencias explícita en el prompt. M5: Claude Code 2.1.267 (`claude-sonnet-5`) como cliente agentic restringido a MCP: cuatro rechazos declarados en docker-free y, en runtime, dos mediciones propias, comparación `inconclusive`, rechazo `NOT_A_DATASET` y lectura nativa de una Resource ligada por hash; [recibo M5](docs/validation/M5-clients.json). |
+| Claude Code | [CLI o `.mcp.json`](docs/client-configuration.md#claude-code) | M2: Claude Code 2.1.260, Sonnet 5 medium, cinco preview/commit y receipt final; [PASS intento 5](docs/validation/M2/clients.json), con renovación de referencias explícita en el prompt. M5: Claude Code 2.1.267 (`claude-sonnet-5`) como cliente agentic restringido a MCP: cuatro rechazos declarados en docker-free y, en runtime, dos mediciones propias, comparación `inconclusive`, rechazo `NOT_A_DATASET` y lectura nativa de una Resource ligada por hash; [recibo M5](docs/validation/M5-clients.json). |
 | Gemini CLI | [`settings.json`](docs/client-configuration.md#gemini-cli) | Configuración documentada; calificación de este MCP pendiente. |
 | Cursor | [`.cursor/mcp.json`](docs/client-configuration.md#cursor) | Configuración documentada; calificación de este MCP pendiente. |
 | VS Code / GitHub Copilot | [`.vscode/mcp.json`](docs/client-configuration.md#vs-code-y-github-copilot) | Configuración documentada; calificación de este MCP pendiente. |
@@ -500,7 +500,7 @@ sin ejecutar Cargo del host ni descargar datos durante una llamada MCP. El perfi
 dedicado de fix conserva `network=none` y permite TCP loopback solo dentro de su
 namespace para la coordinación interna de Cargo; build scripts y proc macros pueden
 influir en los cambios `.rs`, por lo que se debe revisar el diff exacto. La
-calificación local M2 está completada con [evidencia reproducible](docs/validation/M2-07.md). El paquete del checkout informa
+calificación local M2 está completada con [evidencia reproducible](docs/validation/M2/07.md). El paquete del checkout informa
 `0.3.0`.
 
 `rust.test.nextest` usa el perfil quality dedicado, no ejecuta doctests y publica

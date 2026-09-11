@@ -77,11 +77,11 @@ pruebas y revisión del perfil de producción son necesarias antes de M2-03 Done
 
 ## Evidence
 
-- [Probe real de ambas máscaras y fuentes libseccomp/runc](../validation/M2-fix-socket-mask.json).
-- [D06: 121 observaciones, cancelación y cleanup](../validation/M2-D06-cargo-fix-qualification.md).
+- [Probe real de ambas máscaras y fuentes libseccomp/runc](../validation/M2/fix-socket-mask.json).
+- [D06: 121 observaciones, cancelación y cleanup](../validation/M2/D06-cargo-fix-qualification.md).
 - [Cargo fix oficial](https://doc.rust-lang.org/cargo/commands/cargo-fix.html).
 - [Implementación en el commit del runtime](https://github.com/rust-lang/cargo/blob/797e8a9bca276c1c9f9f738d2a20f484fa4eea9d/src/cargo/ops/fix/mod.rs).
 
 ## Status
 
-Accepted. M2-03 calificado en [M2](../validation/M2-07.md). No cambia el perfil de M1.
+Accepted. M2-03 calificado en [M2](../validation/M2/07.md). No cambia el perfil de M1.

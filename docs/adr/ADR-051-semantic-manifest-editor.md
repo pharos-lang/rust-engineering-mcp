@@ -43,7 +43,7 @@ variantes sin camino implementado. El editor no cambia permisos ni contratos M1.
 
 ## Status
 
-Accepted por el Technical Owner. D03 resuelto y calificado end-to-end en [M2](../validation/M2-07.md).
+Accepted por el Technical Owner. D03 resuelto y calificado end-to-end en [M2](../validation/M2/07.md).
 
 ADR-057 añade una excepción posterior: retirar una entrada completa de dependencia
 puede conservar exactamente una representación propia en tabla o dotted; no habilita

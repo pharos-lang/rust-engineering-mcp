@@ -295,7 +295,7 @@ publicaron por separado y forman parte de esta versión.
   dedicado con `network=none` y TCP loopback interno para la coordinación de Cargo;
   el candidato se comprueba después de aplicar fixes.
 
-La calificación conjunta M2 está completada: [full y clientes](docs/validation/M2-07.md).
+La calificación conjunta M2 está completada: [full y clientes](docs/validation/M2/07.md).
 No se ha publicado otra release.
 
 ## 0.1.0 — 2026-09-05

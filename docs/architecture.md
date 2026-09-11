@@ -288,7 +288,7 @@ journal. `local_coordinated` detecta cambios observados, pero no ofrece exclusi�
 OS ante escritores externos, CAS ni una transacción visible multiarchivo. La policy
 `preserve_presence` incluye el lock raíz actualizado si existía y elimina del
 candidato un lock creado solo para validar. Esta arquitectura está integrada en el
-checkout `0.3.0`, que registra 31 tools calificadas localmente, con [calificación M2](validation/M2-07.md) para las
+checkout `0.3.0`, que registra 31 tools calificadas localmente, con [calificación M2](validation/M2/07.md) para las
 18 anteriores y las cuatro tools M3 calificadas en sus cortes síncronos; la release `0.1.0`
 conserva 13.
 

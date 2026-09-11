@@ -346,7 +346,7 @@ roots, verifica el SHA-256 esperado y lo monta read-only desde bytes propios. No
 hereda CARGO_HOME, proxies, credenciales o configuración host y no descarga. Datos
 ausentes o corruptos impiden el candidato. `preserve_presence` evita crear
 Cargo.lock en el host cuando el proyecto no lo tenía y actualiza el existente en
-el mismo plan cuando sí lo tenía. La [calificación M2](validation/M2-07.md) del
+el mismo plan cuando sí lo tenía. La [calificación M2](validation/M2/07.md) del
 checkout `0.3.0` está completada.
 
 No existe un canal de upgrade/downgrade gestionado para M2. Un operador debe

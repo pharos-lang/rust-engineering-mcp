@@ -55,4 +55,4 @@ auditoría resistente a un host malicioso ni supervivencia de logs ante crash.
 
 ## Status
 
-Accepted. Redacción y lifecycle calificados en el [cierre M2](../validation/M2-07.md).
+Accepted. Redacción y lifecycle calificados en el [cierre M2](../validation/M2/07.md).

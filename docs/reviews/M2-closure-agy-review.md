@@ -64,6 +64,6 @@ La redacción del auditor contiene generalizaciones que no cambian el contrato:
 
 Decisions: mantener ADR-050..059 y avanzar únicamente al merge local autorizado.
 Open issues del paquete: registrar integración/smoke, resueltos en el
-[cierre del owner](../validation/M2-07.md#integración). M3+ sigue sin autorización.
+[cierre del owner](../validation/M2/07.md#integración). M3+ sigue sin autorización.
 Los enlaces añadidos y registros de integración posteriores tienen revisión del
 owner y verificación mecánica propias, sin atribuir sus nuevos hashes a AGY.

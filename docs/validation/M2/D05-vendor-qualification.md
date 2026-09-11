@@ -64,9 +64,9 @@ The developer workflow is one `cargo vendor` command only when an appropriate `C
 - `fixtures/cargo-vendor-data/README.md`
 - `fixtures/cargo-vendor-data/manifest.json`
 - `fixtures/cargo-vendor-data/vendor/**`
-- `docs/validation/M2-D05-vendor-qualification.json`
-- `docs/validation/M2-D05-vendor-summary.json`
-- `docs/validation/M2-D05-vendor-qualification.md`
+- `docs/validation/M2/D05-vendor-qualification.json`
+- `docs/validation/M2/D05-vendor-summary.json`
+- `docs/validation/M2/D05-vendor-qualification.md`
 
 No production source, global ADR, public contract, dependency, `Cargo.lock`, corpus baseline, or previous local-registry artifact was changed by this work.
 

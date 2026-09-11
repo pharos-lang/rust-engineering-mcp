@@ -95,26 +95,26 @@ fixtures, Docker ni toolchain; no existe catálogo oficial ni clave Ed25519 de p
 
 Done con calificación conjunta y sin release nueva: 18 tools, los trece contratos
 M1 intactos, full posterior a ADR-059, cliente stock y revisiones Accepted.
-[Cierre, límites e integración](validation/M2-07.md). Integrado localmente con
-merge no-ff `7554bcc` y [smoke y hashes](validation/M2-local-integration.json)
+[Cierre, límites e integración](validation/M2/07.md). Integrado localmente con
+merge no-ff `7554bcc` y [smoke y hashes](validation/M2/local-integration.json)
 aprobados; llegó a `main` dentro del mismo PR #14 que M3. El detalle histórico
 por corte permanece más abajo en este mismo tablero.
 
 | ID | Corte | Estado | Evidencia / límite actual |
 | --- | --- | --- | --- |
-| M2-01 | Lints con preview/commit/receipt y Scratch | Done (histórico) | [Core 14/14](validation/M2-02-core-gate.json), [runtime](validation/M2-02-runtime-gate.json), [revisión](reviews/M2-01-review.md). |
-| M2-02 | `rust.fmt.apply` y writer nativo | Done (histórico) | [fmt runtime 2/2](validation/M2-02-runtime-gate.json), [contrato Sonnet](reviews/M2-02-contract-review.md), [writer Opus](reviews/M2-02-native-review.md). |
-| M2-03 | `rust.fix.apply` con perfil dedicado | Done | [ADR-056](adr/ADR-056-cargo-fix-isolated-loopback.md) y [máscara socket real](validation/M2-fix-socket-mask.json); no amplía el seccomp M1. |
-| M2-04/05 | `rust.dependency.add` / `.remove` | Done | [ADR-055](adr/ADR-055-offline-cargo-data-and-lock-policy.md), [ADR-057](adr/ADR-057-typed-manifest-and-dependency-operations.md), [runtime 4/4](validation/M2-04-runtime-gate.json); vendor optativo y `preserve_presence`. |
-| M2-06 | `rust.manifest.patch` tipado | Done | Cuatro familias tipadas sobre el editor LF/CRLF; runtime anterior. [Matriz](validation/M2-matrix.md). |
-| M2-07 | Cierre conjunto | Done | [Full 24/24](validation/M2-full-gate.json) sobre 574 inputs con 836 resultados Rust y 1 doctest; [runtime 17/17 en 10 selecciones](validation/M2-final-runtime.json); [cliente PASS](validation/M2-clients.json). [Cierre](validation/M2-07.md) · [Trazabilidad](validation/M2-traceability.md). |
+| M2-01 | Lints con preview/commit/receipt y Scratch | Done (histórico) | [Core 14/14](validation/M2/02-core-gate.json), [runtime](validation/M2/02-runtime-gate.json), [revisión](reviews/M2-01-review.md). |
+| M2-02 | `rust.fmt.apply` y writer nativo | Done (histórico) | [fmt runtime 2/2](validation/M2/02-runtime-gate.json), [contrato Sonnet](reviews/M2-02-contract-review.md), [writer Opus](reviews/M2-02-native-review.md). |
+| M2-03 | `rust.fix.apply` con perfil dedicado | Done | [ADR-056](adr/ADR-056-cargo-fix-isolated-loopback.md) y [máscara socket real](validation/M2/fix-socket-mask.json); no amplía el seccomp M1. |
+| M2-04/05 | `rust.dependency.add` / `.remove` | Done | [ADR-055](adr/ADR-055-offline-cargo-data-and-lock-policy.md), [ADR-057](adr/ADR-057-typed-manifest-and-dependency-operations.md), [runtime 4/4](validation/M2/04-runtime-gate.json); vendor optativo y `preserve_presence`. |
+| M2-06 | `rust.manifest.patch` tipado | Done | Cuatro familias tipadas sobre el editor LF/CRLF; runtime anterior. [Matriz](validation/M2/matrix.md). |
+| M2-07 | Cierre conjunto | Done | [Full 24/24](validation/M2/full-gate.json) sobre 574 inputs con 836 resultados Rust y 1 doctest; [runtime 17/17 en 10 selecciones](validation/M2/final-runtime.json); [cliente PASS](validation/M2/clients.json). [Cierre](validation/M2/07.md) · [Trazabilidad](validation/M2/traceability.md). |
 
 | Decisión / entregable | Estado | Evidencia |
 | --- | --- | --- |
 | D02 — edición local coordinada | Done (decided) | [ADR-050](adr/ADR-050-local-coordinated-mutation.md); el No-go histórico sigue válido para exclusión OS fuerte, que el producto no anuncia. |
 | D05 — datos Cargo offline y política de lock | Done (decided) | [ADR-055](adr/ADR-055-offline-cargo-data-and-lock-policy.md); los probes son evidencia de decisión, no implementación. |
 | M2-03 — perfil dedicado de Cargo fix | Done (decided) | [ADR-056](adr/ADR-056-cargo-fix-isolated-loopback.md), aceptado tras D06 (121 observaciones). |
-| ADR-059 — cuota RAM del cliente stock | Done (decided) | [Recheck Accepted](reviews/M2-059-review.md), [full posterior](validation/M2-full-gate.json) y [cliente PASS](validation/M2-clients.json). |
+| ADR-059 — cuota RAM del cliente stock | Done (decided) | [Recheck Accepted](reviews/M2-059-review.md), [full posterior](validation/M2/full-gate.json) y [cliente PASS](validation/M2/clients.json). |
 
 ## M3 — Quality
 
@@ -186,16 +186,16 @@ oficial. La [matriz M1-17](validation/M1/17-matrix.md) conserva esas limitacione
 ## Done
 
 M0-00..12, M0-10a y M1-01..17: cada fila enlaza pruebas, revisión e integración
-correspondientes. M2-01..07: [matriz](validation/M2-matrix.md), [full final](validation/M2-full-gate.json),
-[cliente PASS](validation/M2-clients.json) y [trazabilidad](validation/M2-traceability.md).
+correspondientes. M2-01..07: [matriz](validation/M2/matrix.md), [full final](validation/M2/full-gate.json),
+[cliente PASS](validation/M2/clients.json) y [trazabilidad](validation/M2/traceability.md).
 Los números de los reportes por corte son históricos; el total observado más
 reciente se registra en el assessment y su evidencia enlazada. M0-12 conserva
 el cierre histórico de M0. El handoff M1 sustituye los prompts antiguos.
 
 M2-01..07 tiene calificación conjunta: 18 tools, trece contratos M1 intactos,
 full posterior a ADR-059, cliente stock y revisiones Accepted.
-[Cierre, límites e integración](validation/M2-07.md). Integrado localmente con
-merge no-ff `7554bcc`; [smoke y hashes](validation/M2-local-integration.json)
+[Cierre, límites e integración](validation/M2/07.md). Integrado localmente con
+merge no-ff `7554bcc`; [smoke y hashes](validation/M2/local-integration.json)
 posteriores aprobados. Llegó a `main` dentro del mismo PR #14 que M3.
 
 ### M3 — integrado en `main` como `57c4037`
@@ -398,18 +398,18 @@ M1-14 integrada a72216d/20689cf; main limpio para smoke3 doctor +9 capabilities
 
 El corte mínimo de lints y fmt.apply tienen preview/commit/receipt/recovery,
 autorización separada, captura protegida y publicación recuperable.
-[Gate core](validation/M2-02-core-gate.json): 14/14, 748 pruebas Rust y un doctest.
-[Runtime actual](validation/M2-02-runtime-gate.json): manifest 1/1 y fmt 2/2,
+[Gate core](validation/M2/02-core-gate.json): 14/14, 748 pruebas Rust y un doctest.
+[Runtime actual](validation/M2/02-runtime-gate.json): manifest 1/1 y fmt 2/2,
 con comandos, hashes y source inventory del snapshot. Trece contratos M1 intactos.
 [Contrato Sonnet](reviews/M2-02-contract-review.md) y
 [writer Opus](reviews/M2-02-native-review.md) aceptados sin P0/P1 pendientes.
-[Medición APFS](validation/M2-02-native-performance.json): 128 archivos/16 MiB,
+[Medición APFS](validation/M2/02-native-performance.json): 128 archivos/16 MiB,
 commit 5.687 s, replay 173 ms y recuperación terminal 103 ms, una observación.
 
 La revisión registra P2 sobre headroom de recovery heterogéneo, pico RSS no medido
 y precisión del harness cfg(test). Se siguen en el cierre conjunto; no se afirma
 atomicidad multiarchivo ni exclusión de editores externos. En ese snapshot, M2 completo seguía In
-Progress. El [cierre posterior](validation/M2-07.md) acredita full/client de las
+Progress. El [cierre posterior](validation/M2/07.md) acredita full/client de las
 cinco tools y las extensiones con sus propios gates. No hay tag, push ni release nueva.
 
 
@@ -422,6 +422,6 @@ implementado con pruebas reales de preview/commit/restart y fallos. No amplía
 seccomp M1. El cierre depende del gate conjunto y revisión de esta ampliación.
 
 M2 cliente stock detectó cuota RAM consumida por terminales. ADR-059 lo corrigió;
-[recheck Accepted](reviews/M2-059-review.md), [full posterior](validation/M2-full-gate.json)
-y [cliente PASS intento 5](validation/M2-clients.json) acreditan el cierre.
+[recheck Accepted](reviews/M2-059-review.md), [full posterior](validation/M2/full-gate.json)
+y [cliente PASS intento 5](validation/M2/clients.json) acreditan el cierre.
 El full anterior y los intentos fallidos permanecen históricos y preservados.

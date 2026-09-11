@@ -30,7 +30,7 @@ No quedan P0/P1. Disposición de P2 no bloqueantes para evidencia negativa:
 | P2-5 timings nombrados por binario | Cuatro nombres distintos en esta ejecución, verificados sin colisión. Usar ID de paso explícito si se añaden llamadas repetidas en M2-01. |
 
 El Technical Owner verificó por separado [SHA, timings, inodes y ausencia de cambios
-de producto](../validation/m2-d02-verification.json). Los cambios posteriores al
+de producto](../validation/M2/d02-verification.json). Los cambios posteriores al
 manifest de re-review son aclaraciones documentales; no se atribuye al revisor
 lectura de esos bytes posteriores. No se ejecuta Cargo/full por un probe aislado
 sin modificaciones Rust, manifests, schemas o workflows; ese gate sigue pendiente

@@ -44,7 +44,7 @@ sí se solicitó explícitamente como GPT-5.6 Sol/Medium. Claude Code 2.1.260 se
 con Opus 5/high, sin tools ni MCP, y registró ese modelo más uso auxiliar Haiku.
 Los modelos aportan revisión estática, no certificación de ejecución.
 
-El [cierre verificable](../validation/M2-07.md) registra el resultado final del full,
+El [cierre verificable](../validation/M2/07.md) registra el resultado final del full,
 cliente, build core y smoke. El owner conserva los residuales de taxonomía, coste,
 observabilidad y remediación del store dentro de sus límites publicados. No se
 inicia otro corte de mantenimiento, M3 ni distribución en esta continuación.

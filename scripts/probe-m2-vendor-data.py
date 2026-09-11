@@ -24,7 +24,7 @@ ROOT = Path(__file__).resolve().parent.parent
 LOCAL_FIXTURE = ROOT / "fixtures/cargo-local-registry"
 VENDOR_FIXTURE = ROOT / "fixtures/cargo-vendor-data"
 BASE_PATH = ROOT / "scripts/probe-m2-offline-registry.py"
-RAW_REPORT = ROOT / "docs/validation/M2-D05-vendor-qualification.json"
+RAW_REPORT = ROOT / "docs/validation/M2/D05-vendor-qualification.json"
 EXPECTED_DIRECTORIES = {
     "proc-macro2-1.0.107",
     "quote-1.0.47",

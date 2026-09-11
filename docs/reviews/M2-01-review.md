@@ -58,7 +58,7 @@ composición genérica de tools de M2-02 son código posterior: requieren otra r
 
 ## Validación
 
-[Gate core v2](../validation/M2-01-core-gate-v2.json): 14/14, 711 pruebas Rust y un
+[Gate core v2](../validation/M2/01-core-gate-v2.json): 14/14, 711 pruebas Rust y un
 doctest, antes del último cambio Scratch y de M2-02. Se conserva también el primer
 gate fallido por formato. No se reutiliza este gate como resultado de la fuente
 final. Las pruebas nativas posteriores de Scratch pasaron 109 casos del paquete;

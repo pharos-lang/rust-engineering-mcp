@@ -13,8 +13,8 @@ writer nativo. El revisor declara límites y verificaciones fuera del paquete.
 | Finding | Disposición del Technical Owner |
 | --- | --- |
 | P0-1 original, socket supuestamente imposible | Refutado y retirado por el revisor: probe del filtro aplicado y libseccomp real admiten STREAM con 1/15. Se conserva el error original de revisión. |
-| Precisión residual del socket | Corregida: 15/1 conserva STREAM/CLOEXEC y rechaza RAW antes del kernel; prueba semántica distingue el orden. [Evidencia](../validation/M2-fix-socket-mask.json). |
-| P1-1 metadata/dataset | Corregido: cada manifest acreditado por captura o inventario vendor, grafo coherente offline/frozen y SHA de ambos documentos reales en provenance. [D05](../validation/M2-D05-hardening-gate.json). |
+| Precisión residual del socket | Corregida: 15/1 conserva STREAM/CLOEXEC y rechaza RAW antes del kernel; prueba semántica distingue el orden. [Evidencia](../validation/M2/fix-socket-mask.json). |
+| P1-1 metadata/dataset | Corregido: cada manifest acreditado por captura o inventario vendor, grafo coherente offline/frozen y SHA de ambos documentos reales en provenance. [D05](../validation/M2/D05-hardening-gate.json). |
 | P1-2 grants | Cerrado: parser y wiring distintos por operación, publisher kind-specific y digest por dominio. Sonnet revisó la integración; no se confunde un archivo omitido del paquete con código ausente. |
 | P2-1 decoder fingerprint | Corregido: decoder incluido. |
 | P2-2/4 cardinalidad y texto | Frontera aceptada ADR-057: aplicación controla una operación/editor preserva texto; publisher repite allowlist semántica sobre bytes exactos aprobados. No se afirma segunda prueba de procedencia textual. |
@@ -22,7 +22,7 @@ writer nativo. El revisor declara límites y verificaciones fuera del paquete.
 | P2-5 coste vendor | Deuda acotada aceptada: dataset host aprobado y 4096 entradas/16 MiB; no se promete coste constante ni resistencia DoS universal. |
 | P2-6 límites | 30 s / 1 MiB son límites deliberados y publicados, con fallo cerrado. No se promete resolución de todo workspace. |
 | P2-7 zip de scope | Corregido length/directories antes de zip, pruebas adversas en ambas direcciones. |
-| P2-N1 helpers fingerprint | [Follow-up](../validation/M2-D05-hardening-followup.json) agrega mutation_gateway.rs al fingerprint de resolución; no cambia schema ni autoridad. |
+| P2-N1 helpers fingerprint | [Follow-up](../validation/M2/D05-hardening-followup.json) agrega mutation_gateway.rs al fingerprint de resolución; no cambia schema ni autoridad. |
 | P2-N2 clasificación de scope | Residuo aceptado: rechazo de bytes guest fuera de scope se muestra como toolchain_unavailable, sin plan ni efecto. Tests hostiles prueban la detección; no debe interpretarse como diagnóstico preciso de instalación. Refinar taxonomía requiere un cambio posterior explícito. |
 | P2-N3 versión offline | Follow-up agrega quote=9.9.9 contra vendor1.0.47 y comprueba clasificación real. |
 | P2-N4 deadline entre fases | Residuo aceptado: agotamiento previo a dispatch puede aparecer como infraestructura; no se ejecuta la fase ni se omite cleanup. La cancelación/timeout con descendientes activos tiene evidencia separada. |
@@ -30,7 +30,7 @@ writer nativo. El revisor declara límites y verificaciones fuera del paquete.
 
 Verificaciones: SourceBundle ordena y exige paths únicos; state path incluye un subdirectorio aleatorio por sesión bajo el state-root autorizado; los fingerprints describen esa configuración exacta y no prometen igualdad entre sesiones. Send/recv proceden del perfil M1 previo. Source
 rechaza `.cargo/config` y `.cargo/config.toml`, HOME/CARGO_HOME son tmpfs guest
-fijos. La imagen exacta tiene pruebas positivas reales y [ausencia comprobada de configuración Cargo raíz](../validation/M2-image-config.json); no se generaliza a otras imágenes. El runtime no importa configuraciones ni credenciales host.
+fijos. La imagen exacta tiene pruebas positivas reales y [ausencia comprobada de configuración Cargo raíz](../validation/M2/image-config.json); no se generaliza a otras imágenes. El runtime no importa configuraciones ni credenciales host.
 
 La nota final del revisor que equipara cambiar el fingerprint a invalidar receipts
 anteriores **no se adopta**: un receipt conserva su validación histórica ligada al

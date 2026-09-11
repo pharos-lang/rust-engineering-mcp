@@ -178,7 +178,7 @@ and the [M3-01 security receipt](../validation/M3-01-rust-security.json).
 - `docs/roadmap/m2-m8.md` (G7)
 - `docs/adr/ADR-031-rust-source-transfer.md`
 - `docs/adr/ADR-033-toolchain-inspection.md`
-- `docs/validation/M2-image-config.json`
+- `docs/validation/M2/image-config.json`
 - `docs/validation/M1/artifacts/M1-01-runtime-base-inspect.json`
 - `docs/validation/M1/artifacts/M1-01-runtime-image-inspect.json`
 - `docs/validation/M1/artifacts/M1-01-runtime-verification.json`

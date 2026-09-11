@@ -399,7 +399,7 @@ Windows ni convierte el soporte de compilación CI en soporte de escritura.
 El modo `local_coordinated` presupone que el host mantiene estables roots/state y
 evita escritores simultáneos durante commit. No ofrece CAS, exclusión OS de otros
 programas ni atomicidad visible multiarchivo. `preserve_presence` mantiene la
-presencia o ausencia inicial de Cargo.lock. La [calificación conjunta](validation/M2-07.md)
+presencia o ausencia inicial de Cargo.lock. La [calificación conjunta](validation/M2/07.md)
 M2 está completada sobre los bytes que entonces se identificaban como `0.2.0-dev`;
 el checkout actual es `0.3.0`; la release soportada anterior es `0.1.0`
 con 13 tools.

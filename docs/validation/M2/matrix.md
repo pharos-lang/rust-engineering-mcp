@@ -3,22 +3,22 @@
 Fecha: 2026-09-05. Estado: **M2-01..07 Done: cinco tools implementadas y calificadas localmente**.
 La planificación fue commit `8b35cf6`, merge local `2f54b360e1e81f21e7efeff7c451cdd6f663a04f`.
 La implementación `0.2.0-dev` se integra localmente desde `ai/m2-write-qualification`;
-[full, clientes, reviews e integración](M2-07.md).
+[full, clientes, reviews e integración](07.md).
 No hubo push, PR, tag ni release nueva. Los recibos históricos identifican sus propios bytes.
 
 | Elemento | Estado | Evidencia y límite |
 | --- | --- | --- |
-| Planificación M2–M8 | Integrada localmente | [Validación/reviews](../roadmap/planning-validation.md); M3+ no implementado |
-| Scope M2 | Cinco tools adicionales implementadas | [AGENTS](../../AGENTS.md), [contratos](../tools.md); 18 totales en desarrollo, 13 en release estable 0.1.0 |
-| D02 | Exclusión fuerte No-go; contrato local_coordinated Accepted | [ADR-050](../adr/ADR-050-local-coordinated-mutation.md); host/editor confiables, sin broker ni exclusión OS |
-| M2-01 | Done histórico | Lints preview/commit/receipt y Scratch; [revisión](../reviews/M2-01-review.md), [core 14/14](M2-02-core-gate.json), [runtime](M2-02-runtime-gate.json) |
-| M2-02 | Done histórico | [fmt runtime 2/2](M2-02-runtime-gate.json), [Sonnet](../reviews/M2-02-contract-review.md), [Opus](../reviews/M2-02-native-review.md), [nativo](M2-02-native-qualification.json) |
-| M2-03 | Done | [ADR-056](../adr/ADR-056-cargo-fix-isolated-loopback.md), [Fix runtime](../../crates/mcp-server/tests/inspection_runtime/fix_mutation.rs), [proc macros hostiles](../../crates/mcp-server/tests/inspection_runtime/fix_hostile.rs), [máscara socket real](M2-fix-socket-mask.json) |
-| M2-04/05 | Done | [ADR-055](../adr/ADR-055-offline-cargo-data-and-lock-policy.md), [ADR-057](../adr/ADR-057-typed-manifest-and-dependency-operations.md), [runtime 4/4](M2-04-runtime-gate.json); vendor opcional y preserve_presence |
-| M2-06 | Done | Cuatro familias tipadas; runtime anterior y [editor LF/CRLF/herencia](../../crates/project-adapter/tests/manifest_edit.rs) |
-| M2-07 | Done | [contrato Sonnet Accepted](../reviews/M2-final-contract-review.md); [seguridad Opus Accepted](../reviews/M2-final-security-review.md) y [writer Opus Accepted](../reviews/M2-final-native-review.md); [full final](M2-full-gate.json), [runtime 17/17](M2-final-runtime.json), [cliente PASS](M2-clients.json), [ADR-059 Accepted](../reviews/M2-059-review.md), [AGY trazabilidad](../reviews/M2-closure-agy-review.md) |
-| Memoria nativa | Medida, optimizada y limitada en alcance | [medición](M2-07-native-memory.json): 976,666,624 B RSS ciclo máximo, 798,769,152 B commit aislado; observaciones, no cap ni RSS MCP completo |
-| Observabilidad local | Done | [ADR-058](../adr/ADR-058-local-mutation-observability.md); sin collector ni telemetría |
+| Planificación M2–M8 | Integrada localmente | [Validación/reviews](../../roadmap/planning-validation.md); M3+ no implementado |
+| Scope M2 | Cinco tools adicionales implementadas | [AGENTS](../../../AGENTS.md), [contratos](../../tools.md); 18 totales en desarrollo, 13 en release estable 0.1.0 |
+| D02 | Exclusión fuerte No-go; contrato local_coordinated Accepted | [ADR-050](../../adr/ADR-050-local-coordinated-mutation.md); host/editor confiables, sin broker ni exclusión OS |
+| M2-01 | Done histórico | Lints preview/commit/receipt y Scratch; [revisión](../../reviews/M2-01-review.md), [core 14/14](02-core-gate.json), [runtime](02-runtime-gate.json) |
+| M2-02 | Done histórico | [fmt runtime 2/2](02-runtime-gate.json), [Sonnet](../../reviews/M2-02-contract-review.md), [Opus](../../reviews/M2-02-native-review.md), [nativo](02-native-qualification.json) |
+| M2-03 | Done | [ADR-056](../../adr/ADR-056-cargo-fix-isolated-loopback.md), [Fix runtime](../../../crates/mcp-server/tests/inspection_runtime/fix_mutation.rs), [proc macros hostiles](../../../crates/mcp-server/tests/inspection_runtime/fix_hostile.rs), [máscara socket real](fix-socket-mask.json) |
+| M2-04/05 | Done | [ADR-055](../../adr/ADR-055-offline-cargo-data-and-lock-policy.md), [ADR-057](../../adr/ADR-057-typed-manifest-and-dependency-operations.md), [runtime 4/4](04-runtime-gate.json); vendor opcional y preserve_presence |
+| M2-06 | Done | Cuatro familias tipadas; runtime anterior y [editor LF/CRLF/herencia](../../../crates/project-adapter/tests/manifest_edit.rs) |
+| M2-07 | Done | [contrato Sonnet Accepted](../../reviews/M2-final-contract-review.md); [seguridad Opus Accepted](../../reviews/M2-final-security-review.md) y [writer Opus Accepted](../../reviews/M2-final-native-review.md); [full final](full-gate.json), [runtime 17/17](final-runtime.json), [cliente PASS](clients.json), [ADR-059 Accepted](../../reviews/M2-059-review.md), [AGY trazabilidad](../../reviews/M2-closure-agy-review.md) |
+| Memoria nativa | Medida, optimizada y limitada en alcance | [medición](07-native-memory.json): 976,666,624 B RSS ciclo máximo, 798,769,152 B commit aislado; observaciones, no cap ni RSS MCP completo |
+| Observabilidad local | Done | [ADR-058](../../adr/ADR-058-local-mutation-observability.md); sin collector ni telemetría |
 
 ## Límites de la calificación
 
@@ -52,10 +52,10 @@ Exit 0 significa que coincidieron las observaciones esperadas, incluyendo ataque
 que demuestran insuficiencia del diseño. El resultado de producto es explícitamente
 `no_go_current_candidate`, no pass de M2. Exit78 significa host no calificable;
 exit1 indica observación inesperada y exit70 error de infraestructura con JSON.
-La [primera ejecución](m2-d02-probe-attempt1.json)
+La [primera ejecución](d02-probe-attempt1.json)
 salió78 por un error del harness: `stat -f %T` en macOS no devuelve tipo de filesystem.
 Se corrigió usando device de df y plist de diskutil. No fue ausencia real de APFS.
-La [segunda ejecución](m2-d02-probe-attempt2.json) ya reprodujo el No-go; una revisión
+La [segunda ejecución](d02-probe-attempt2.json) ya reprodujo el No-go; una revisión
 Opus pidió mejorar su recibo. La ejecución final añade hashes/bytes counts/inodes,
 identidad del root handle, errno simbólico, aserciones de fullfsync, flags derivados
 de medición y timings monotónicos. El total y cada subprocess constan en el JSON;
@@ -82,9 +82,9 @@ Sin pruebas de EXDEV entre volúmenes, hardlinks, mmap, crash de kernel, power l
 real. Es un no-go de los mecanismos evaluados con esta autoridad, no una demostración
 de imposibilidad universal ni un defecto nuevo de M1.
 
-[Verificación externa al script](m2-d02-verification.json): SHA, reconciliación de
+[Verificación externa al script](d02-verification.json): SHA, reconciliación de
 timings/inodes/hashes, trece snapshots y producto/manifests/workflows sin cambios.
-La [revisión Opus 5 High](../reviews/M2-D02-review.md) aceptó el recibo corregido
+La [revisión Opus 5 High](../../reviews/M2-D02-review.md) aceptó el recibo corregido
 sin P0/P1; conserva las limitaciones y mejoras de evidencia pendientes.
 
 ## Bloqueo histórico anterior a ADR-050
@@ -96,7 +96,7 @@ la garantía y exige ADR/spec/criterios/docs públicos; no equivale a enforcemen
 No cambiar cuentas, ownership, ACLs, entitlements ni servicios para forzar un positivo.
 
 Siguiente acción histórica (sustituida por ADR-050): resolver D02 con el owner, actualizar ADR-049 y decisiones D01/D03,
-calificar positivamente la frontera y continuar M2-01. El [prompt M2](../prompts/implement-m2.md)
+calificar positivamente la frontera y continuar M2-01. El [prompt M2](../../prompts/implement-m2.md)
 sigue siendo la entrada completa. No continuar a M3. No afirmar cinco tools,
 journal/receipts ni M2 implementados a partir de este experimento.
 

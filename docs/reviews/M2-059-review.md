@@ -34,13 +34,13 @@ no se atribuye una medición nueva al recheck.
 El owner verificó el 2026-09-05 que todos los hashes `current_sha256` del recheck
 coincidían con el checkout antes de congelar el full posterior. La consolidación
 documental de cierre es posterior y no se atribuye a este reviewer. El nuevo
-[full](../validation/M2-full-gate.json) ejecuta archivos completos de application
-y native, además del [runtime](../validation/M2-final-runtime.json); solo su
+[full](../validation/M2/full-gate.json) ejecuta archivos completos de application
+y native, además del [runtime](../validation/M2/final-runtime.json); solo su
 resultado final acredita esa ejecución, no este informe.
 
 La frase histórica del recheck sobre clientes fallidos describe su paquete previo.
-El [recibo posterior](../validation/M2-clients.json) es PASS estricto en intento 5:
+El [recibo posterior](../validation/M2/clients.json) es PASS estricto en intento 5:
 Claude stock con prompt v2 que exige explícitamente renovar referencias. No prueba
 que basten las descripciones ni éxito al primer intento. Los intentos 1–4 permanecen
-fallidos en [histórico](../validation/m2-clients/). No se repiten dictámenes Accepted
+fallidos en [histórico](../validation/M2/clients/). No se repiten dictámenes Accepted
 sin un delta concreto que lo requiera.

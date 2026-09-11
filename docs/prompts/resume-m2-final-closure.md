@@ -22,8 +22,8 @@ CAS, publicación multiarchivo visible atómica ni resistencia a power loss.
 
 1. Lee `AGENTS.md` y completamente la especificación
    `docs/spec/rust-engineering-mcp-propuesta-v0.3.md`; revisa los documentos públicos,
-   `docs/implementation-status.md`, `docs/validation/M2-matrix.md`,
-   `docs/validation/M2-07.md`, roadmap M2 y ADRs relevantes, especialmente 049–059.
+   `docs/implementation-status.md`, `docs/validation/M2/matrix.md`,
+   `docs/validation/M2/07.md`, roadmap M2 y ADRs relevantes, especialmente 049–059.
 2. Inspecciona estado Git, árbol, manifests, lockfile, tests y CI. Comprueba este
    handoff contra archivos reales; los documentos de cierre siguen provisionales.
 3. La autorización final del adjunto original prevalece sobre su instrucción
@@ -96,7 +96,7 @@ como cliente MCP y su revisión estática son evidencias distintas.
   `rust.fmt.apply`, `rust.fix.apply`, `rust.dependency.add`,
   `rust.dependency.remove`. La release pública 0.1.0 no cambia.
 - Contratos M1 conservados byte por byte contra baseline pública `aa61bce`:
-  `docs/validation/M2-m1-contract-preservation.json`.
+  `docs/validation/M2/m1-contract-preservation.json`.
 - Las cinco operaciones están implementadas con preview/commit/receipt/recovery,
   grants, confinamiento, resolución offline, conflictos, cancelación, cuotas y
   observabilidad local. No falta otra vertical funcional conocida.
@@ -127,7 +127,7 @@ la expiración se cubre por composición con pruebas de reloj y la rama comparti
 
 ## Gate de clientes: PASS estricto, ya finalizado
 
-- `docs/validation/M2-clients.json`, schema v2, status `passed`.
+- `docs/validation/M2/clients.json`, schema v2, status `passed`.
 - SHA-256 del receipt:
   `61958b34778bd8a62c52bff14135a1c0976a71d5ef7dfdd2ec139e4254509150`.
 - Binario local calificado, 22,647,376 bytes:
@@ -139,7 +139,7 @@ la expiración se cubre por composición con pruebas de reloj y la rama comparti
 - Claude Code 2.1.260, Sonnet 5 medium, cliente stock restringido a MCP: 17 llamadas
   y 17 resultados passed; cinco preview+commit, seis opens, receipt final committed;
   árboles finales exactos y Docker sin recursos propios restantes.
-- Prueba PASS en `docs/validation/m2-clients/attempt-5/`. El prompt v2 explicita
+- Prueba PASS en `docs/validation/M2/clients/attempt-5/`. El prompt v2 explicita
   la referencia vigente; no afirmar que bastaron las descripciones por sí solas,
   pase al primer intento o una tasa general de fiabilidad.
 - Intentos 1–4 permanecen fallidos y preservados: 1 expectativa incorrecta del
@@ -173,10 +173,10 @@ intento5: el recibo posterior PASS es la evidencia de cliente actual.
    lo justifique. Aplica la sección de agentes anterior para cualquier revisión
    adicional y la auditoría de trazabilidad AGY; registra cobertura o limitación.
 2. Ejecuta NUEVO gate completo posterior a ADR-059. El actual
-   `docs/validation/M2-full-gate.json` es PASS 24/24 de ANTES de ADR-059:
+   `docs/validation/M2/full-gate.json` es PASS 24/24 de ANTES de ADR-059:
    830 resultados Rust + 1 doctest, 68 Python, 16 runtime M2/9 selecciones,
    573 inputs sin cambios. No acredita el código final.
-   Sus JSON y logs ya están preservados bajo `docs/validation/m2-pre-059/` con
+   Sus JSON y logs ya están preservados bajo `docs/validation/M2/history/pre-059/` con
    README e inventario; conserva también `M2-full-attempt1.json` y attempt2.
 3. El nuevo runtime debe ejecutar 17 casos en 10 selecciones, incluido
    `terminal_plan_runtime::terminal_plans_free_quota_and_replay_only_from_exact_durable_identity`.
@@ -213,7 +213,7 @@ Docker simultáneos con el gate. Duración previa aproximada: 20 minutos.
 env RUST_MCP_TEST_SOCKET=/Users/cburgosro/.docker/run/docker.sock \
   RUST_MCP_E5_DIR=/private/tmp/rust-mcp-e5-m009/onnx \
   ORT_LIB_LOCATION=/Users/cburgosro/Library/Caches/ort.pyke.io/dfbin/aarch64-apple-darwin/612739f75438dc0a075461e1fb454226b4a1eb175e60a7271ba966bbbb972cd4 \
-  python3 scripts/gate.py full --report docs/validation/M2-full-gate.json \
+  python3 scripts/gate.py full --report docs/validation/M2/full-gate.json \
   > /tmp/M2-full-gate.log 2>&1
 ```
 

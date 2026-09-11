@@ -11,7 +11,7 @@ no ejecutó las pruebas ni certificó el gate conjunto o M2 Done.
 
 El P1 inicial sobre un journal parcial que bloquea el store compartido se cierra
 como P1 y se acepta como P2 residual de disponibilidad. El owner publicó el límite
-y la remediación manual de ADR-052; la [prueba reproducible](../validation/M2-native-remediation.json)
+y la remediación manual de ADR-052; la [prueba reproducible](../validation/M2/native-remediation.json)
 fija propagación a otro workspace, receipt intacto por ID, rechazo de la root
 original en el store nuevo, continuación en una copia física nueva y preservación
 de nombres/bytes originales. Se detienen todas las instancias; cada workspace que
@@ -26,10 +26,10 @@ a 8 KiB por registro. El techo no concede holgura retroactiva a stores de desarr
 poblados bajo 208 MiB. Las dos precisiones documentales solicitadas en el recheck
 (continuación por cada workspace y no retroactividad) están en ADR-052 y la guía.
 
-La [medición histórica de memoria](../validation/M2-07-native-memory.json) aclara
+La [medición histórica de memoria](../validation/M2/07-native-memory.json) aclara
 que permanece el clone de JournalBody de peor caso. El reordenamiento posterior no
 se presenta como una nueva medición RSS. El enum de fault productivo no-op se acepta
-como P2. Los [faults nativos](../validation/M2-native-io-faults.json) son inyecciones
+como P2. Los [faults nativos](../validation/M2/native-io-faults.json) son inyecciones
 acotadas, no disco APFS físicamente lleno, fallos de todas las primitivas ni corte
 de energía. El helper abrupt_checkpoint_helper requiere su variable de entorno;
 un retorno vacío en el gate normal no es evidencia de un crash adicional.
