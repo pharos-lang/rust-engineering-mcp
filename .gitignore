@@ -38,3 +38,22 @@ docs/validation/M3/delegation/**/stdout.txt
 .coverage
 .coverage.*
 **/__pycache__/**
+
+# OS and editor droppings, patch leftovers, probe build directories and
+# packaging output. `.DS_Store` above has no slash, so it already matches at
+# every depth.
+*.dSYM/
+*.orig
+*.rej
+*.swp
+.pytest_cache/
+node_modules/
+target-*/
+dist/
+*.tar.gz
+# Captured crates ship Cargo.toml.orig and fixtures may ship archives: those
+# stay stageable so a re-vendor or a new fixture cannot silently drop them.
+!vendor/**/Cargo.toml.orig
+!fixtures/**/Cargo.toml.orig
+!docs/research/**/Cargo.toml.orig
+!fixtures/**/*.tar.gz
