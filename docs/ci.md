@@ -344,18 +344,23 @@ M4 y antes de `vendor`:
 | `m5-vendor-tests` | core (y full) | `python3 -B -m unittest discover -s fixtures/criterion-vendor -p 'test_*.py'` |
 
 Las dos últimas se declaran con `require_test_groups=True`: una etapa que no
-ejecuta ningún test es un fallo, no un pase. Con ellas, el conteo de `run(` en
-`scripts/gate.py` pasa a **22 etapas core** (`fmt`, `check`, `clippy`, `test`,
-`doctests`, `architecture`, `gate-reporting`, `release-artifact-tests`,
+ejecuta ningún test es un fallo, no un pase. Con ellas —y con las dos etapas
+`m6-provisioning-tests`/`m6-provisioning-unit-tests` que añade M6 (ver
+[Imagen guest M6](#imagen-guest-m6))—, el conteo de `run(` en `scripts/gate.py`
+pasa a **25 etapas core** (`fmt`, `check`, `clippy`, `test`, `doctests`,
+`architecture`, `gate-reporting`, `release-artifact-tests`,
 `release-smoke-tests`, `codex-qualifier-tests`, `m4-client-harness-tests`,
 `m4-safety-harness-tests`, `m4-helper-fmt`, `m4-helper-tests`,
-`m4-provisioning-tests`, `m5-helper-fmt`, `m5-helper-tests`, `m5-vendor-tests`,
-`vendor`, `cargo-fixtures`, `audit`, `deny`) y **36 en full**, que añade las 14
-etapas nativas ya documentadas (`docker-security`, `rust-security`,
-`m2-runtime`, `m3-runtime`, `m4-tampered-plugin`, `m4-inventory`, `m4-runtime`,
+`m4-provisioning-tests`, `m5-helper-fmt`, `m5-helper-guest-clippy`,
+`m5-helper-tests`, `m5-vendor-tests`,
+`m6-provisioning-tests`, `m6-provisioning-unit-tests`, `vendor`,
+`cargo-fixtures`, `audit`, `deny`) y **40 en full**, que añade las 14 etapas
+nativas ya documentadas (`docker-security`, `rust-security`, `m2-runtime`,
+`m3-runtime`, `m4-tampered-plugin`, `m4-inventory`, `m4-runtime`,
 `audit-data`, `semantic`, `catalog`, `catalog-status`, `crate-search`,
 `crate-inspect`, `doctor`). Ese conteo describe la configuración vigente del
-script, no una ejecución acreditada: no existe todavía un recibo de gate M5.
+script, no una ejecución acreditada: no existe todavía un recibo de gate M5 ni
+de gate M6.
 
 ### Etapa full para el runtime nativo M5
 
@@ -427,3 +432,38 @@ extraer nada, aplica las mismas reglas de seguridad de archivo que
 `.cargo-checksum.json` y nunca accede a la red. `--verify-only` comprueba sin
 escribir. La etapa `m5-vendor-tests` ejercita esas comprobaciones; no sustituye a
 la materialización, que sigue siendo un paso explícito del operador.
+
+## M6 — aprovisionamiento de rust-analyzer y rust-src
+
+### Imagen guest M6
+
+`rust-engineering-runtime:1.98.1-arm64-m6` deriva por digest de la imagen M5
+admitida y añade `rust-analyzer` 1.98.1 (`/opt/analyzer/bin/rust-analyzer`,
+fuera de `PATH`) y `rust-src` 1.98.1
+(`/opt/rust/lib/rustlib/src/rust/library`), autorizados en
+[m6-provisioning-request](roadmap/m6-provisioning-request.md) y decididos en
+[ADR-082](adr/ADR-082-m6-runtime-provisioning.md). El procedimiento completo:
+
+```sh
+python3 -B scripts/build-m6-runtime.py
+```
+
+El script comprueba **antes de construir** que el tag base
+`rust-engineering-runtime:1.98.1-arm64-m5` resuelve exactamente a
+`sha256:e0a5ca1661b3e49d0a3d68ee3cc0963453078d08eb7fc43c30538c16b7998aac` y
+aborta si no; prepara el contexto con `fixtures/rust-runtime/m6/provision.py`;
+construye con `--network=none --pull=false`; y verifica sobre la imagen
+resultante que ambos componentes existen, que `rust-analyzer` **no** es
+alcanzable por `PATH`, que los binarios M3/M4/M5 siguen presentes, y que el
+contexto de construcción no dejó residuos.
+
+`provision.py` es el único paso de M6 autorizado a usar la red: descarga el
+manifest `channel-rust-1.98.1.toml` (verificado por `sha256`), cruza sus
+entradas `xz_url`/`xz_hash` contra las constantes fijadas en el dossier de
+autorización, y solo entonces descarga los dos tarballs `.tar.xz`
+—reutilizando, sin red, cualquier byte ya verificado de una ejecución
+anterior—. El `docker build` en sí corre con `--network=none`, igual que M4/M5.
+
+El recibo se escribe en `docs/validation/M6/provisioning.json`. Construir esa
+imagen no la admite en el gateway: la admisión es una decisión separada con su
+propia calificación nativa, igual que en M5.

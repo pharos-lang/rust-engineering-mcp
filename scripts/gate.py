@@ -177,6 +177,8 @@ def main():
         run('m5-helper-guest-clippy',['cargo','clippy','--manifest-path','fixtures/profile-helper/Cargo.toml','--target','aarch64-unknown-linux-gnu','--all-targets','--locked','--offline','--target-dir','target/profile-helper-guest','--','-D','warnings'])
         run('m5-helper-tests',['cargo','test','--manifest-path','fixtures/profile-helper/Cargo.toml','--locked','--offline','--target-dir','target/profile-helper'],require_test_groups=True)
         run('m5-vendor-tests',[sys.executable,'-B','-m','unittest','discover','-s','fixtures/criterion-vendor','-p','test_*.py'],require_test_groups=True)
+        run('m6-provisioning-tests',[sys.executable,'-B','-m','unittest','fixtures/rust-runtime/m6/test_provision.py'],require_test_groups=True)
+        run('m6-provisioning-unit-tests',[sys.executable,'-B','scripts/test-m6-provisioning.py'],require_test_groups=True)
         run('vendor',[sys.executable,'scripts/verify-vendor.py'])
         run('cargo-fixtures',[sys.executable,'scripts/test-fixtures.py',str(ROOT),'--cargo',cargo])
         run('audit',['cargo','audit','--no-fetch'])

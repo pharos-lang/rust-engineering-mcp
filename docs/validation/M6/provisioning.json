@@ -1,0 +1,145 @@
+{
+  "authorization": "docs/roadmap/m6-provisioning-request.md",
+  "authorized_by_owner": "2026-09-11",
+  "base_image_id_expected": "sha256:e0a5ca1661b3e49d0a3d68ee3cc0963453078d08eb7fc43c30538c16b7998aac",
+  "base_image_id_observed": "sha256:e0a5ca1661b3e49d0a3d68ee3cc0963453078d08eb7fc43c30538c16b7998aac",
+  "base_tag": "rust-engineering-runtime:1.98.1-arm64-m5",
+  "build_context_directory": "build-context-a258be11b882acf1",
+  "build_exit_code": 0,
+  "build_log_tail": "#0 building with \"desktop-linux\" instance using docker driver\n\n#1 [internal] load build definition from Dockerfile\n#1 transferring dockerfile: 779B done\n#1 DONE 0.0s\n\n#2 [internal] load metadata for docker.io/library/rust-engineering-runtime:1.98.1-arm64-m5\n#2 DONE 0.0s\n\n#3 [internal] load .dockerignore\n#3 transferring context: 2B done\n#3 DONE 0.0s\n\n#4 [builder 1/3] FROM docker.io/library/rust-engineering-runtime:1.98.1-arm64-m5@sha256:e0a5ca1661b3e49d0a3d68ee3cc0963453078d08eb7fc43c30538c16b7998aac\n#4 resolve docker.io/library/rust-engineering-runtime:1.98.1-arm64-m5@sha256:e0a5ca1661b3e49d0a3d68ee3cc0963453078d08eb7fc43c30538c16b7998aac done\n#4 DONE 0.0s\n\n#5 [internal] load build context\n#5 transferring context: 14.46MB 0.1s done\n#5 DONE 0.1s\n\n#6 [builder 2/3] COPY . /opt/m6-input/\n#6 DONE 0.1s\n\n#7 [builder 3/3] RUN /bin/sh /opt/m6-input/build.sh\n#7 0.034 Dockerfile: OK\n#7 0.034 build-inputs.json: OK\n#7 0.034 build.sh: OK\n#7 0.034 notices/rust-analyzer/LICENSE-APACHE: OK\n#7 0.034 notices/rust-analyzer/LICENSE-MIT: OK\n#7 0.034 notices/rust-src/COPYRIGHT: OK\n#7 0.034 notices/rust-src/LICENSE-APACHE: OK\n#7 0.034 notices/rust-src/LICENSE-MIT: OK\n#7 0.049 rust-analyzer-1.98.1-aarch64-unknown-linux-gnu.tar.xz: OK\n#7 0.059 rust-src-1.98.1.tar.xz: OK\n#7 0.076 release: 1.98.1\n#7 0.080 host: aarch64-unknown-linux-gnu\n#7 0.549 install: creating uninstall script at /opt/analyzer/lib/rustlib/uninstall.sh\n#7 0.551 install: installing component 'rust-analyzer-preview'\n#7 0.574 \n#7 0.574     rust analyzer installed.\n#7 0.574 \n#7 0.973 install: creating uninstall script at /opt/rust/lib/rustlib/uninstall.sh\n#7 0.974 install: installing component 'rust-src'\n#7 14.15 \n#7 14.15     rust src installed.\n#7 14.15 \n#7 14.15   Machine:                           AArch64\n#7 DONE 14.5s\n\n#8 [stage-1 1/2] COPY --from=builder / /\n#8 DONE 2.9s\n\n#9 [stage-1 2/2] WORKDIR /work\n#9 DONE 0.5s\n\n#10 exporting to image\n#10 exporting layers\n#10 exporting layers 28.9s done\n#10 exporting manifest sha256:8ca4517afdf6d4356158d8b6ae24f3e8518016434145841de5206afaf7e2aa9d\n#10 exporting manifest sha256:8ca4517afdf6d4356158d8b6ae24f3e8518016434145841de5206afaf7e2aa9d 0.0s done\n#10 exporting config sha256:8c81b1ac8ceaa174ac4bc423b84c50cafaa15824fbbd66144e2e27057a7be072 done\n#10 exporting attestation manifest sha256:55ab9eae28c97f6251953f775bc6716270210b441d59e8c94bf56c65705defe6 done\n#10 exporting manifest list sha256:f39a5b33ee7d54243664162eb635f8ec223d512042beb7cd18ecf071046b310c done\n#10 naming to docker.io/library/rust-engineering-runtime:1.98.1-arm64-m6 done\n#10 unpacking to docker.io/library/rust-engineering-runtime:1.98.1-arm64-m6\n#10 unpacking to docker.io/library/rust-engineering-runtime:1.98.1-arm64-m6 6.5s done\n#10 DONE 35.4s\n\nView build details: docker-desktop://dashboard/build/desktop-linux/desktop-linux/418w3madoxio98rpm14cmogkb\n",
+  "build_network": "none",
+  "builder_cache_pruned": true,
+  "carried_binaries_present": [
+    "present",
+    "present",
+    "present",
+    "present",
+    "present",
+    "present"
+  ],
+  "context_bytes": 14454592,
+  "context_files": 11,
+  "context_residue": "clean",
+  "decision": "docs/adr/ADR-082-m6-runtime-provisioning.md",
+  "finished_at": "2026-09-11T22:47:23.099638Z",
+  "image_id": "sha256:f39a5b33ee7d54243664162eb635f8ec223d512042beb7cd18ecf071046b310c",
+  "image_tag": "rust-engineering-runtime:1.98.1-arm64-m6",
+  "inputs": [
+    {
+      "archive_member_count": 21,
+      "archive_root": "rust-analyzer-1.98.1-aarch64-unknown-linux-gnu",
+      "filename": "rust-analyzer-1.98.1-aarch64-unknown-linux-gnu.tar.xz",
+      "label": "rust-analyzer",
+      "license": "MIT OR Apache-2.0",
+      "manifest_target": "aarch64-unknown-linux-gnu",
+      "notice_files": [
+        "LICENSE-APACHE",
+        "LICENSE-MIT"
+      ],
+      "package": "rust-analyzer-preview",
+      "sha256": "a0fd960a9ab36193ae9ba4310e5f780f6ca38fa86160fae739be4ac541b6d10c",
+      "size": 8682148,
+      "url": "https://static.rust-lang.org/dist/2026-09-03/rust-analyzer-1.98.1-aarch64-unknown-linux-gnu.tar.xz"
+    },
+    {
+      "archive_member_count": 4556,
+      "archive_root": "rust-src-1.98.1",
+      "filename": "rust-src-1.98.1.tar.xz",
+      "label": "rust-src",
+      "license": "MIT OR Apache-2.0",
+      "manifest_target": "*",
+      "notice_files": [
+        "LICENSE-APACHE",
+        "LICENSE-MIT",
+        "COPYRIGHT"
+      ],
+      "package": "rust-src",
+      "sha256": "5c846ebcebcc7e2e0777a4cdaa12051691593f16a7e94edbae5e6241cc62d98c",
+      "size": 5741168,
+      "url": "https://static.rust-lang.org/dist/2026-09-03/rust-src-1.98.1.tar.xz"
+    }
+  ],
+  "installed": {
+    "base_image_id": "sha256:e0a5ca1661b3e49d0a3d68ee3cc0963453078d08eb7fc43c30538c16b7998aac",
+    "components": [
+      {
+        "name": "rust-analyzer",
+        "path": "/opt/analyzer/bin/rust-analyzer",
+        "sha256": "a0c3f11a153e5d5f12a6de6ceabd2def60c2793293e901a4a045946050456e2f",
+        "size": 43854544
+      },
+      {
+        "cargo_lock_sha256": "d1c5dbdf53bfebd7de60f26a171819db3b28ebfd75f3fa99c3286893a5a7b7a6",
+        "file_count": 3539,
+        "name": "rust-src",
+        "path": "/opt/rust/lib/rustlib/src/rust/library"
+      }
+    ],
+    "schema": "rust-engineering-mcp.m6-installed.v1",
+    "target": "aarch64-unknown-linux-gnu"
+  },
+  "network_used_for": [
+    "manifest",
+    "rust-analyzer tarball",
+    "rust-src tarball"
+  ],
+  "new_components_present": [
+    "present"
+  ],
+  "prepare": {
+    "base_image_id": "sha256:e0a5ca1661b3e49d0a3d68ee3cc0963453078d08eb7fc43c30538c16b7998aac",
+    "context_file_count": 11,
+    "context_sha256s_digest": "a258be11b882acf1326011735bf13efedc883b1876eb6a3fc44d62ec794b27cf",
+    "inputs": [
+      {
+        "archive_member_count": 21,
+        "archive_root": "rust-analyzer-1.98.1-aarch64-unknown-linux-gnu",
+        "filename": "rust-analyzer-1.98.1-aarch64-unknown-linux-gnu.tar.xz",
+        "label": "rust-analyzer",
+        "license": "MIT OR Apache-2.0",
+        "manifest_target": "aarch64-unknown-linux-gnu",
+        "notice_files": [
+          "LICENSE-APACHE",
+          "LICENSE-MIT"
+        ],
+        "package": "rust-analyzer-preview",
+        "sha256": "a0fd960a9ab36193ae9ba4310e5f780f6ca38fa86160fae739be4ac541b6d10c",
+        "size": 8682148,
+        "url": "https://static.rust-lang.org/dist/2026-09-03/rust-analyzer-1.98.1-aarch64-unknown-linux-gnu.tar.xz"
+      },
+      {
+        "archive_member_count": 4556,
+        "archive_root": "rust-src-1.98.1",
+        "filename": "rust-src-1.98.1.tar.xz",
+        "label": "rust-src",
+        "license": "MIT OR Apache-2.0",
+        "manifest_target": "*",
+        "notice_files": [
+          "LICENSE-APACHE",
+          "LICENSE-MIT",
+          "COPYRIGHT"
+        ],
+        "package": "rust-src",
+        "sha256": "5c846ebcebcc7e2e0777a4cdaa12051691593f16a7e94edbae5e6241cc62d98c",
+        "size": 5741168,
+        "url": "https://static.rust-lang.org/dist/2026-09-03/rust-src-1.98.1.tar.xz"
+      }
+    ],
+    "manifest_sha256_verified": true,
+    "network_used_for": [
+      "manifest",
+      "rust-analyzer tarball",
+      "rust-src tarball"
+    ],
+    "schema": "rust-engineering-mcp.m6-prepare.v1",
+    "status": "prepared_not_built",
+    "target": "aarch64-unknown-linux-gnu"
+  },
+  "rust_analyzer_on_path": "off_path",
+  "rust_analyzer_version": "rust-analyzer 1.98.1 (48a229c 2026-09-01)",
+  "rust_src_present": "present",
+  "schema": "rust-engineering-mcp.m6-provisioning.v1",
+  "sha256sums_sha256": "a258be11b882acf1326011735bf13efedc883b1876eb6a3fc44d62ec794b27cf",
+  "started_at": "2026-09-11T22:46:24.893070Z",
+  "status": "passed"
+}

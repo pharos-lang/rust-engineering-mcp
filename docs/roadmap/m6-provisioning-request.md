@@ -1,12 +1,12 @@
 # M6 — solicitud de aprovisionamiento (G5/G7)
 
-Estado: **Pendiente de autorización del owner**. Fecha: 2026-09-11.
+Estado: **Autorizado por el owner el 2026-09-11** («aprobado opción a+b+c», sesión de orquestación Fable 5.1). Fecha de la solicitud: 2026-09-11.
 Rama: `ai/m6-analyzer`. Base: `main` `627729a48b2912c7e3b43d6fc5678a20f0a046a0`.
 
 Las autorizaciones M4 ([ADR-066](../adr/ADR-066-m4-runtime-provisioning.md)) y
 M5 ([ADR-075](../adr/ADR-075-m5-runtime-provisioning.md)) no se extienden a M6.
 Este documento es el paquete revisable que G5/G7 exigen antes de adquirir
-cualquier input nuevo. **Nada de lo descrito aquí se ha ejecutado.** El plan
+cualquier input nuevo. La ejecución (worker W01) queda ligada a esta autorización y a su recibo `docs/validation/M6/provisioning.json`. El plan
 M6 lo anticipa: «Artifact RA de toolchain 1.98.1 es un candidato a comprobar,
 no runtime ya aprobado» y «No distribuir RA en core sin decisión».
 
