@@ -60,6 +60,8 @@ FROZEN_PATTERNS = (
     re.compile(r"^docs/validation/(M3/delegation|m3-delegation)/"),
     re.compile(r"^docs/research/m1-16/corpus/selection/sources/"),
     re.compile(r"^docs/research/m1-16/measurement/results/"),
+    # Describes the pre-hygiene tree on purpose; its paths are a measurement, not links.
+    re.compile(r"^docs/prompts/(history/)?cleanup-repository\.md$"),
 )
 # Files that carry root-relative path strings outside Markdown links.
 PATH_STRING_EXTRA = ("scripts/", "docs/release/reproduction/", ".github/")
