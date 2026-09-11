@@ -1,7 +1,7 @@
 {
   "schema": "rust-mcp-evidence-history-inventory-v1",
   "milestone": "M4",
-  "recorded_at": "2026-09-11T17:41:08.077561+00:00",
+  "recorded_at": "2026-09-11T17:41:43.936200+00:00",
   "source_commit": "d3b5ad7f9d046ede51752e10ebac32261fd47e10",
   "purpose": "Superseded or failed evidence kept next to the current receipts of this milestone. Bytes are moved with git mv, never edited: each entry records the pre-hygiene path, SHA-256 and size. Retired entries were removed from the tree after their hash was recorded; their bytes remain reachable in Git history at source_commit. Entries marked living are prose kept next to the receipts; they are verified by presence only.",
   "retained": [
@@ -1623,6 +1623,144 @@
       "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
       "bytes": 0,
       "kind": "A-superseded receipts and failed-attempt logs"
+    },
+    {
+      "original_path": "docs/validation/M4/clients/attempt-1/inspector-session.json",
+      "sha256": "a08346f6dbd0dae68811ba380123305f5ddf6d593a9b2dffe1279b5c3485181b",
+      "bytes": 379,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M4/clients/attempt-1/inspector-session.stderr",
+      "sha256": "ed54aa3aadedd44578e2995ae98d02a11cf88e1b4fa39c91e754f859b64b9f77",
+      "bytes": 32417,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M4/clients/attempt-1/inspector-session.stdout",
+      "sha256": "7c7008a7abac1da1230cce2e0236b5a8733a1d8611afe65ebd46fdec56bb0a67",
+      "bytes": 239,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M4/clients/attempt-2/codex-m4-model-events.jsonl",
+      "sha256": "391a0da2877aa41aada7e548af9ce108a65d4e3beee107a44b7cf9b26fbc186d",
+      "bytes": 301228,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M4/clients/attempt-2/inspector-session.json",
+      "sha256": "8f342365528d587a1bcde82ce73d6e7cbcd5797b1a9838194d777e1427b0fff3",
+      "bytes": 379,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M4/clients/attempt-2/inspector-session.stderr",
+      "sha256": "1adaf6dc95b5a2674e91f9a4dcbb053d91f510864399e476807fe7b7241a7b78",
+      "bytes": 32417,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M4/clients/attempt-2/inspector-session.stdout",
+      "sha256": "7c7008a7abac1da1230cce2e0236b5a8733a1d8611afe65ebd46fdec56bb0a67",
+      "bytes": 239,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M4/clients/attempt-3/codex-m4-model-events.jsonl",
+      "sha256": "1fe1d24008fbdfebc6dbcd164c360f1d0eb5968513ded1f39c6c7231b58479c4",
+      "bytes": 314305,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M4/clients/attempt-3/inspector-session.json",
+      "sha256": "10286ff3e1e325d0895b0574f420e0adfa922a0aab19993b31c9d88d6c6a3e88",
+      "bytes": 379,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M4/clients/attempt-3/inspector-session.stderr",
+      "sha256": "d24da0b08a132ca3689ca674e952841f12681c5a70b12dcfde9ccfa96a70ba9d",
+      "bytes": 32417,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M4/clients/attempt-3/inspector-session.stdout",
+      "sha256": "7c7008a7abac1da1230cce2e0236b5a8733a1d8611afe65ebd46fdec56bb0a67",
+      "bytes": 239,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M4/clients/attempt-4/codex-m4-model-events.jsonl",
+      "sha256": "c44a4781dda4ecdfac9055a69c4b7dfe0389f5ee5270ff14a5f89029cf162b65",
+      "bytes": 305914,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M4/clients/attempt-4/inspector-session.json",
+      "sha256": "ae572764016ce37c60eada440a1324dfaea284e4448216771540500b4ef2c604",
+      "bytes": 379,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M4/clients/attempt-4/inspector-session.stderr",
+      "sha256": "62e752cf5975a39b0a249267d33e051f4b6f2af084350eba78be8d4a7d5afcbe",
+      "bytes": 32417,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M4/clients/attempt-4/inspector-session.stdout",
+      "sha256": "7c7008a7abac1da1230cce2e0236b5a8733a1d8611afe65ebd46fdec56bb0a67",
+      "bytes": 239,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M4/clients/attempt-5/codex-m4-model-events.jsonl",
+      "sha256": "1ebd38c1cd8924d02147ab230f30d29a591eaaafb36a69325fd284a9a51bd03c",
+      "bytes": 273936,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M4/clients/attempt-5/inspector-session.json",
+      "sha256": "30208137b1397b7eb5c982b8dddcccadd344d9046a8e3c853cd5d7e8fa5f08a3",
+      "bytes": 379,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M4/clients/attempt-5/inspector-session.stderr",
+      "sha256": "f3c8381954c49373b2dafba6425da3b377506d80c36fa8277dbab474aadfb9e7",
+      "bytes": 32417,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M4/clients/attempt-5/inspector-session.stdout",
+      "sha256": "7c7008a7abac1da1230cce2e0236b5a8733a1d8611afe65ebd46fdec56bb0a67",
+      "bytes": 239,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M4/clients/attempt-6/codex-m4-model-events.jsonl",
+      "sha256": "5208e159ef46088b7ffa540480bf47a90b09d18472f8e23b1a2d347ed9a0095c",
+      "bytes": 288552,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M4/clients/attempt-6/inspector-session.json",
+      "sha256": "071ceb6884c5856e3a47ee49b2db955f5b95366b02c6310268c8ca700651b483",
+      "bytes": 379,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M4/clients/attempt-6/inspector-session.stderr",
+      "sha256": "6dea07124c0fba1add7d7bbe3c5fdfa3f6bbfca0d298d29af378f09dd478ecf7",
+      "bytes": 32417,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M4/clients/attempt-6/inspector-session.stdout",
+      "sha256": "7c7008a7abac1da1230cce2e0236b5a8733a1d8611afe65ebd46fdec56bb0a67",
+      "bytes": 239,
+      "kind": "B-client-qualification transcripts"
     }
   ],
   "retired_groups": [
@@ -1635,6 +1773,16 @@
       "aggregate_rule": "sha256 over the sorted lines \"<sha256>  <original_path>\\n\"",
       "last_commit_with_bytes": "d796ff57bd87cf7fb7269f9dceef9090bc66e749",
       "retired_at": "2026-09-11T17:40:14.242436+00:00"
+    },
+    {
+      "kind": "B-client-qualification transcripts",
+      "reason": "client-qualification transcripts: each attempt keeps receipt.json and protocol.jsonl, which carry the hashes and outcomes; raw inspector/model stdout, stderr and event streams are forensic detail",
+      "files": 23,
+      "bytes": 1682145,
+      "aggregate_sha256": "f6525f4d896a1f127c410596025868b692a04f02bd64b2bb1c13e726a2088bde",
+      "aggregate_rule": "sha256 over the sorted lines \"<sha256>  <original_path>\\n\"",
+      "last_commit_with_bytes": "e31af914d12bef34e11fbe67b87f942d75de294c",
+      "retired_at": "2026-09-11T17:41:43.936200+00:00"
     }
   ]
 }

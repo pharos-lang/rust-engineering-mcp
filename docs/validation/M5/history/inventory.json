@@ -1,7 +1,7 @@
 {
   "schema": "rust-mcp-evidence-history-inventory-v1",
   "milestone": "M5",
-  "recorded_at": "2026-09-11T17:41:08.077561+00:00",
+  "recorded_at": "2026-09-11T17:41:43.936200+00:00",
   "source_commit": "9546c85697b2e8e3a8756a188b502b4f02aa59b0",
   "purpose": "Superseded or failed evidence kept next to the current receipts of this milestone. Bytes are moved with git mv, never edited: each entry records the pre-hygiene path, SHA-256 and size. Retired entries were removed from the tree after their hash was recorded; their bytes remain reachable in Git history at source_commit. Entries marked living are prose kept next to the receipts; they are verified by presence only.",
   "retained": [
@@ -1926,6 +1926,486 @@
       "bytes": 3431,
       "kind": "A-superseded",
       "superseded_reason": "pre-hygiene inventory of receipts that are now listed here; redundant"
+    },
+    {
+      "original_path": "docs/validation/M5/clients/attempt-1/codex-docker_free-model-events.jsonl",
+      "sha256": "d15a448f33c705346f52dbcf1bf4660528e9e45fd120f6b28c62fcb37d1592fa",
+      "bytes": 234350,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M5/clients/attempt-1/inspector-docker_free-session.json",
+      "sha256": "628dccabeeb3321d83f0cb00c4b324868a0399c00ec9a25caa88f19a42729b12",
+      "bytes": 379,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M5/clients/attempt-1/inspector-docker_free-session.stderr",
+      "sha256": "d489631067064311a8b541ae6fb693d03fc1f204e8d6eb89dfa0fbc09b0dfb4c",
+      "bytes": 10714,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M5/clients/attempt-1/inspector-docker_free-session.stdout",
+      "sha256": "a2f5b8e6651551960e31e814c5913cfedbbe588c075341d0cb62d2ae1f71351d",
+      "bytes": 3630,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M5/clients/attempt-1/inspector-runtime-session.json",
+      "sha256": "005bfc3be4f71d555509cfdced7bd89b5fd22da5730f12dfb55e818b5039e5a1",
+      "bytes": 379,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M5/clients/attempt-1/inspector-runtime-session.stderr",
+      "sha256": "5afe6c9641d00148f230a372b1d3a1ccb20f38a061932a13d7ca2001aee3bd3d",
+      "bytes": 4540,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M5/clients/attempt-1/inspector-runtime-session.stdout",
+      "sha256": "fbb75826983c91519220d7333c061ed51fbc15801b0d63a2a40afd52bde916a4",
+      "bytes": 1495,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M5/clients/attempt-2/codex-docker_free-model-events.jsonl",
+      "sha256": "020d98fd99c8080dfbc9c1fc9f66abfb86318ddb4daa758f34772159d70037a2",
+      "bytes": 63769,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M5/clients/attempt-2/harness-stderr.txt",
+      "sha256": "2aad2f74cf9af0234f36865fc7703257897193215d1680fb495765c427a7da99",
+      "bytes": 831,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M5/clients/attempt-2/inspector-docker_free-session.json",
+      "sha256": "7973ee55e0d19a1662eaf45a51baa8a386c9d21e3292b83145417ef86ebd8921",
+      "bytes": 379,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M5/clients/attempt-2/inspector-docker_free-session.stderr",
+      "sha256": "df3da6fc8511b41a535ebc012bdebec5a28b075c42bb88bba6dea3875c2ec6a7",
+      "bytes": 13040,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M5/clients/attempt-2/inspector-docker_free-session.stdout",
+      "sha256": "d6b9b909c4c98bcc112e1f821f1168b5dda59ea4b3dc30913904b9945a564a07",
+      "bytes": 3630,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M5/clients/attempt-3/claude-docker_free-model-events.jsonl",
+      "sha256": "2727b46364cde6339b624c9449c2b72b8d3d473bed82e02ce80c5855c130d422",
+      "bytes": 27362,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M5/clients/attempt-3/claude-docker_free-model.stderr",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M5/clients/attempt-3/harness-stderr.txt",
+      "sha256": "82f6e89c9120df98f2561f470bfe6a15b9fbc3cea0264dbfc8fde893acea75ea",
+      "bytes": 1047,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M5/clients/attempt-3/inspector-docker_free-session.json",
+      "sha256": "d04c0ac4bac5ccbb1a0c734c931845a9a4573974ee6ca2a02ad2a54712e0490f",
+      "bytes": 379,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M5/clients/attempt-3/inspector-docker_free-session.stderr",
+      "sha256": "df3da6fc8511b41a535ebc012bdebec5a28b075c42bb88bba6dea3875c2ec6a7",
+      "bytes": 13040,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M5/clients/attempt-3/inspector-docker_free-session.stdout",
+      "sha256": "1ff93d86bd091f032081d4deae6ff4deb1834b08d9ef0b7907352e3dff58d50b",
+      "bytes": 3630,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M5/clients/attempt-4/claude-docker_free-model-events.jsonl",
+      "sha256": "83dd97ac2fbb4dbadc4f133786f8e8549d07cef1a8c3532577142732d3f94f46",
+      "bytes": 27458,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M5/clients/attempt-4/claude-docker_free-model.stderr",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M5/clients/attempt-4/harness-stderr.txt",
+      "sha256": "803efb010988b6e9e28de07d572df0befed7184ab454b47fe0c87365d15d9444",
+      "bytes": 882,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M5/clients/attempt-4/inspector-docker_free-session.json",
+      "sha256": "771590395ce1cb2c615c997af227e4efe960da03ade900ecd10f9e22b5c7e4d2",
+      "bytes": 377,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M5/clients/attempt-4/inspector-docker_free-session.stderr",
+      "sha256": "df3da6fc8511b41a535ebc012bdebec5a28b075c42bb88bba6dea3875c2ec6a7",
+      "bytes": 13040,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M5/clients/attempt-4/inspector-docker_free-session.stdout",
+      "sha256": "701381812eb8f9ddd99628318d53f89c7727db2aec035d89abbac70c22dbe11a",
+      "bytes": 3630,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M5/clients/attempt-4/inspector-runtime-session.json",
+      "sha256": "2dab65fd410c13f488824f684d2f244c25da00b5bb2566d19f03c2b45b131423",
+      "bytes": 375,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M5/clients/attempt-4/inspector-runtime-session.stderr",
+      "sha256": "a0985c8edfbc7be95ec9563620642c40c7a34faa1f4361e05de3a694ce94e11e",
+      "bytes": 759,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M5/clients/attempt-4/inspector-runtime-session.stdout",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M5/clients/attempt-5/claude-docker_free-model-events.jsonl",
+      "sha256": "d06f56cd82d55b409e98fc93afb6436269e90513d477ca3c994e4959d3dda2eb",
+      "bytes": 29600,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M5/clients/attempt-5/claude-docker_free-model.stderr",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M5/clients/attempt-5/harness-stderr.txt",
+      "sha256": "803efb010988b6e9e28de07d572df0befed7184ab454b47fe0c87365d15d9444",
+      "bytes": 882,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M5/clients/attempt-5/inspector-docker_free-session.json",
+      "sha256": "cc79ba91580d05b0700662c7e4458a9b20682e4aa52583b0933d16b069cf40f3",
+      "bytes": 379,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M5/clients/attempt-5/inspector-docker_free-session.stderr",
+      "sha256": "df3da6fc8511b41a535ebc012bdebec5a28b075c42bb88bba6dea3875c2ec6a7",
+      "bytes": 13040,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M5/clients/attempt-5/inspector-docker_free-session.stdout",
+      "sha256": "ba2819355d3386a9e8a815cdc0a2228e4007826a92a1a33c1162c37ced124ac2",
+      "bytes": 3630,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M5/clients/attempt-5/inspector-runtime-session.json",
+      "sha256": "af12066e4545dc6ecf813f04f928fd7ee3b14feda47416296cf6bdd9d8c370f0",
+      "bytes": 378,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M5/clients/attempt-5/inspector-runtime-session.stderr",
+      "sha256": "d463af9519915db5ff9ad6c4b797660b6e6c7b254413ab3968eebdc338d2222b",
+      "bytes": 13529,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M5/clients/attempt-5/inspector-runtime-session.stdout",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M5/clients/attempt-6/claude-docker_free-model-events.jsonl",
+      "sha256": "f82aa1c6dcc191bbea32fad12966173436ba0278c934777535fb7456449655ad",
+      "bytes": 28087,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M5/clients/attempt-6/claude-docker_free-model.stderr",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M5/clients/attempt-6/claude-runtime-model-events.jsonl",
+      "sha256": "b8d0b2adfc2f37d257a8b93d3ac4c893b4a3efaa7ceeca1fee5585c12899f34d",
+      "bytes": 77097,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M5/clients/attempt-6/claude-runtime-model.stderr",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M5/clients/attempt-6/harness-stderr.txt",
+      "sha256": "418a5c17f33c70e99b0cc0a07fce69191489cfedc94164bfa903785777c5bd4b",
+      "bytes": 7,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M5/clients/attempt-6/inspector-docker_free-session.json",
+      "sha256": "9a6bf10ca5e42d7d2991f2ac689e1f1d23bba2e9b704b2670c9462c894989346",
+      "bytes": 379,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M5/clients/attempt-6/inspector-docker_free-session.stderr",
+      "sha256": "df3da6fc8511b41a535ebc012bdebec5a28b075c42bb88bba6dea3875c2ec6a7",
+      "bytes": 13040,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M5/clients/attempt-6/inspector-docker_free-session.stdout",
+      "sha256": "27b6c5c1b44bcc63f56fe94286a2c7738ab657f8f103baa09912d3c4608828da",
+      "bytes": 3630,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M5/clients/attempt-6/inspector-runtime-session.json",
+      "sha256": "7f8cea03f9c36e880e78833101caa67cf0c7ef2c38e1931ceff912f28ab1e44b",
+      "bytes": 381,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M5/clients/attempt-6/inspector-runtime-session.stderr",
+      "sha256": "df3da6fc8511b41a535ebc012bdebec5a28b075c42bb88bba6dea3875c2ec6a7",
+      "bytes": 13040,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M5/clients/attempt-6/inspector-runtime-session.stdout",
+      "sha256": "eb6e5a9bef3dd4c4719a5285c298053be7eab49073c5b6e874929fe2aabdcf7e",
+      "bytes": 4687,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M5/clients/attempt-7/claude-docker_free-model-events.jsonl",
+      "sha256": "cab6013fa457999722a91542a76c6e0135566912ad945c13778a1e9a4e336d41",
+      "bytes": 30282,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M5/clients/attempt-7/claude-docker_free-model.stderr",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M5/clients/attempt-7/claude-runtime-model-events.jsonl",
+      "sha256": "34d7d9bd9abf67baeedb56edf20ab1f38211918ce5631a1a99d54206eeb712af",
+      "bytes": 76067,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M5/clients/attempt-7/claude-runtime-model.stderr",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M5/clients/attempt-7/harness-stderr.txt",
+      "sha256": "418a5c17f33c70e99b0cc0a07fce69191489cfedc94164bfa903785777c5bd4b",
+      "bytes": 7,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M5/clients/attempt-7/inspector-docker_free-session.json",
+      "sha256": "c72e7fd9d326f23f9f9ff87a5379991ef90f191d81b5944a55f2c632d755a0d5",
+      "bytes": 379,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M5/clients/attempt-7/inspector-docker_free-session.stderr",
+      "sha256": "df3da6fc8511b41a535ebc012bdebec5a28b075c42bb88bba6dea3875c2ec6a7",
+      "bytes": 13040,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M5/clients/attempt-7/inspector-docker_free-session.stdout",
+      "sha256": "9cc210f7f150202028086fa214805d2c1dbb575b09a1b352b396d3b3e23a6333",
+      "bytes": 3630,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M5/clients/attempt-7/inspector-runtime-session.json",
+      "sha256": "10df69fa0d41684a171e525fc6c7527488399195fe7f451e13035199c2413920",
+      "bytes": 381,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M5/clients/attempt-7/inspector-runtime-session.stderr",
+      "sha256": "df3da6fc8511b41a535ebc012bdebec5a28b075c42bb88bba6dea3875c2ec6a7",
+      "bytes": 13040,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M5/clients/attempt-7/inspector-runtime-session.stdout",
+      "sha256": "8fd0caf03bae5b441ad38d761a486b53bef62a4d30e7e5cc3bd1a2e877011b62",
+      "bytes": 4687,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M5/clients/attempt-8/claude-docker_free-model-events.jsonl",
+      "sha256": "201b32c78073558936e26f6526f99b2ec197cfac11199b7db7466c909fa9c9d8",
+      "bytes": 28014,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M5/clients/attempt-8/claude-docker_free-model.stderr",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M5/clients/attempt-8/claude-runtime-model-events.jsonl",
+      "sha256": "946f1105f3d36d3d13edfd22d8655bb0b12e2b7ed06e5ca76b284344fefb69da",
+      "bytes": 76535,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M5/clients/attempt-8/claude-runtime-model.stderr",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M5/clients/attempt-8/harness-stderr.txt",
+      "sha256": "418a5c17f33c70e99b0cc0a07fce69191489cfedc94164bfa903785777c5bd4b",
+      "bytes": 7,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M5/clients/attempt-8/inspector-docker_free-session.json",
+      "sha256": "8b685dcda96a9d67e38e0d27e26a8f20120f4e1d2dd099365c9d9b1815093ca0",
+      "bytes": 379,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M5/clients/attempt-8/inspector-docker_free-session.stderr",
+      "sha256": "df3da6fc8511b41a535ebc012bdebec5a28b075c42bb88bba6dea3875c2ec6a7",
+      "bytes": 13040,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M5/clients/attempt-8/inspector-docker_free-session.stdout",
+      "sha256": "04fe1c0b65527cd8f75fda27b9fc6987b8fc9c8bc897b9f43f1e0bf1988d35a2",
+      "bytes": 3630,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M5/clients/attempt-8/inspector-runtime-session.json",
+      "sha256": "9f2053a4098f83d20afc51aaf3c0ee20d0f67a9ef5a84eae6ec38c1473cf3a8f",
+      "bytes": 381,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M5/clients/attempt-8/inspector-runtime-session.stderr",
+      "sha256": "df3da6fc8511b41a535ebc012bdebec5a28b075c42bb88bba6dea3875c2ec6a7",
+      "bytes": 13040,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M5/clients/attempt-8/inspector-runtime-session.stdout",
+      "sha256": "e80c67540b22b09a72dfb0dfabdace25aed45a686667d80fb5106a789ddf2713",
+      "bytes": 4687,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M5/clients/attempt-9/claude-docker_free-model-events.jsonl",
+      "sha256": "5a080e111df844fec41ab50de7ce0f6911bbd372b7c521d95741ae5fb9ea00f3",
+      "bytes": 30890,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M5/clients/attempt-9/claude-docker_free-model.stderr",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M5/clients/attempt-9/claude-runtime-model-events.jsonl",
+      "sha256": "12ea0e85508ee414d40a7bed15701019ebcc8ac9ad80b52d2dfe5f99d79b3926",
+      "bytes": 76059,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M5/clients/attempt-9/claude-runtime-model.stderr",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M5/clients/attempt-9/harness-stderr.txt",
+      "sha256": "418a5c17f33c70e99b0cc0a07fce69191489cfedc94164bfa903785777c5bd4b",
+      "bytes": 7,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M5/clients/attempt-9/inspector-docker_free-session.json",
+      "sha256": "620f863aa18390a3c0d12adc845fdb520f97cb0ffda49cf37f1a92b5571c7560",
+      "bytes": 379,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M5/clients/attempt-9/inspector-docker_free-session.stderr",
+      "sha256": "df3da6fc8511b41a535ebc012bdebec5a28b075c42bb88bba6dea3875c2ec6a7",
+      "bytes": 13040,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M5/clients/attempt-9/inspector-docker_free-session.stdout",
+      "sha256": "bd4c8e06a438b3b3264ac67660081dad928d3d73d14620fd39f7ac0e42c13b37",
+      "bytes": 3630,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M5/clients/attempt-9/inspector-runtime-session.json",
+      "sha256": "5686032a0f30b861105b451d5c757a04455f0ea4e013bc14276c06a6f247b0f3",
+      "bytes": 381,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M5/clients/attempt-9/inspector-runtime-session.stderr",
+      "sha256": "df3da6fc8511b41a535ebc012bdebec5a28b075c42bb88bba6dea3875c2ec6a7",
+      "bytes": 13040,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M5/clients/attempt-9/inspector-runtime-session.stdout",
+      "sha256": "8455bb8682de0e63cf8a84b98e773453dc09a6c284c818b2481482707036d4dc",
+      "bytes": 4687,
+      "kind": "B-client-qualification transcripts"
     }
   ],
   "retired_groups": [
@@ -1938,6 +2418,16 @@
       "aggregate_rule": "sha256 over the sorted lines \"<sha256>  <original_path>\\n\"",
       "last_commit_with_bytes": "d796ff57bd87cf7fb7269f9dceef9090bc66e749",
       "retired_at": "2026-09-11T17:40:14.242436+00:00"
+    },
+    {
+      "kind": "B-client-qualification transcripts",
+      "reason": "client-qualification transcripts: each attempt keeps receipt.json and protocol.jsonl, which carry the hashes and outcomes; raw inspector/model stdout, stderr and event streams are forensic detail",
+      "files": 80,
+      "bytes": 1054240,
+      "aggregate_sha256": "a8833cf61a3315e7117179bd9b7aa3f191bfed68c58bc072968271f31ada647b",
+      "aggregate_rule": "sha256 over the sorted lines \"<sha256>  <original_path>\\n\"",
+      "last_commit_with_bytes": "e31af914d12bef34e11fbe67b87f942d75de294c",
+      "retired_at": "2026-09-11T17:41:43.936200+00:00"
     }
   ]
 }

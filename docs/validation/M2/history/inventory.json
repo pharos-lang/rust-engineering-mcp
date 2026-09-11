@@ -1,7 +1,7 @@
 {
   "schema": "rust-mcp-evidence-history-inventory-v1",
   "milestone": "M2",
-  "recorded_at": "2026-09-11T17:41:08.077561+00:00",
+  "recorded_at": "2026-09-11T17:41:43.936200+00:00",
   "source_commit": "08857cc01dc058add53a72d138c68ef6de7af6dd",
   "purpose": "Superseded or failed evidence kept next to the current receipts of this milestone. Bytes are moved with git mv, never edited: each entry records the pre-hygiene path, SHA-256 and size. Retired entries were removed from the tree after their hash was recorded; their bytes remain reachable in Git history at source_commit. Entries marked living are prose kept next to the receipts; they are verified by presence only.",
   "retained": [
@@ -375,6 +375,768 @@
       "bytes": 8704,
       "kind": "A-superseded",
       "superseded_reason": "pre-hygiene inventory of receipts that are now listed here; redundant"
+    },
+    {
+      "original_path": "docs/validation/M2/clients/attempt-1/M2-clients.json",
+      "sha256": "2652574f9bb4bf33e8134a86eab94ba4001aadb94f6262ddb28d9307d8bccff1",
+      "bytes": 2644,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M2/clients/attempt-1/inspector-deny-1.json",
+      "sha256": "692d3093d8738ab424a403924e8a6d9fc392ee0b14bcca6c2a40a8783295c2ce",
+      "bytes": 1648,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M2/clients/attempt-1/inspector-deny-1.stderr",
+      "sha256": "e36cfad623754014b89cb1987f7ec106f6e2c4653de7414d5ead14142f005f81",
+      "bytes": 1931,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M2/clients/attempt-1/inspector-deny-1.stdout",
+      "sha256": "42311e2beec657951f63fc9204496e87b29c6d6858d9e44eb991bb5fbf05014d",
+      "bytes": 1359,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M2/clients/attempt-1/inspector-discovery.json",
+      "sha256": "31e030052cb8670e6ec8a0136e529b1f02b47f8e81122a26156c8ebcaa6592fd",
+      "bytes": 1251,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M2/clients/attempt-1/inspector-discovery.stderr",
+      "sha256": "0e1c383e57c44caf46802d07da00a46f6bb66eb6156590d3e9d5ae80f25eef54",
+      "bytes": 76524,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M2/clients/attempt-1/inspector-discovery.stdout",
+      "sha256": "9bf8268624ead5dc514729f235764ee2f76dc127d03422c0b712d257ed56e516",
+      "bytes": 261739,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M2/clients/attempt-1/inspector-open.json",
+      "sha256": "047e066a87ed6ffbd174cd91cb5e4a9656cb446a764845b50fa63b660b04c271",
+      "bytes": 1404,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M2/clients/attempt-1/inspector-open.stderr",
+      "sha256": "847b6d06095ddbd390cec3b9d26a7015d61e300cd29458b338a653faa69bcc8a",
+      "bytes": 358,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M2/clients/attempt-1/inspector-open.stdout",
+      "sha256": "a18f051dd5dd10daeb611cb612bae051d93582503b2681bc2d5001c39c0c792b",
+      "bytes": 1276,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M2/clients/attempt-2/M2-clients.json",
+      "sha256": "33f04f43f3582ae531e80b880672c729ea2472bc2c25cb4587fb86d1728cbbbc",
+      "bytes": 5774,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M2/clients/attempt-2/claude-model-session.json",
+      "sha256": "dc2e024291f3afc9be3f1a234dd0a034d73d4c83f2ee3f2674a1cbd0012c155f",
+      "bytes": 3091,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M2/clients/attempt-2/claude-model-session.stderr",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M2/clients/attempt-2/claude-model-session.stdout",
+      "sha256": "504e51aa5c73d4ab0d81f9a68dc27edbd0ea511c1b59ed79154e3c71a315ce9e",
+      "bytes": 121397,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M2/clients/attempt-2/inspector-deny-1.json",
+      "sha256": "e71e73074b16c23a77313d3780a5757ffcaa3c8e44ea4bb7c8654355a7b1c2bb",
+      "bytes": 1648,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M2/clients/attempt-2/inspector-deny-1.stderr",
+      "sha256": "e36cfad623754014b89cb1987f7ec106f6e2c4653de7414d5ead14142f005f81",
+      "bytes": 1931,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M2/clients/attempt-2/inspector-deny-1.stdout",
+      "sha256": "42311e2beec657951f63fc9204496e87b29c6d6858d9e44eb991bb5fbf05014d",
+      "bytes": 1359,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M2/clients/attempt-2/inspector-deny-2.json",
+      "sha256": "832453357415daf208e5e03226d77b4a85b6146180f776649b0adbd2f4189756",
+      "bytes": 1503,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M2/clients/attempt-2/inspector-deny-2.stderr",
+      "sha256": "1348e4d64127d36c3716e14813db377991acd6d18dc0e27c4d141e270e2edeca",
+      "bytes": 1921,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M2/clients/attempt-2/inspector-deny-2.stdout",
+      "sha256": "42311e2beec657951f63fc9204496e87b29c6d6858d9e44eb991bb5fbf05014d",
+      "bytes": 1359,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M2/clients/attempt-2/inspector-deny-3.json",
+      "sha256": "73aa902d18ea17f3f9c725a1cf90168ffb6a4b1dae595532ea3f42f3a74b204c",
+      "bytes": 1504,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M2/clients/attempt-2/inspector-deny-3.stderr",
+      "sha256": "329d0ad8fa6c72b18ff34b41dc10e6d4c51cd02ff1a3d4ac66961b7acba8ddc8",
+      "bytes": 1921,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M2/clients/attempt-2/inspector-deny-3.stdout",
+      "sha256": "42311e2beec657951f63fc9204496e87b29c6d6858d9e44eb991bb5fbf05014d",
+      "bytes": 1359,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M2/clients/attempt-2/inspector-deny-4.json",
+      "sha256": "ebceb77a2c81aa7ce791a8fefefb8cf22a67d2f003003cc8356eb6f6015b6941",
+      "bytes": 1556,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M2/clients/attempt-2/inspector-deny-4.stderr",
+      "sha256": "e0668ba61610d8694612ef3b60da029bc2951787311fdbec25f4dd5f0c1f47ef",
+      "bytes": 1931,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M2/clients/attempt-2/inspector-deny-4.stdout",
+      "sha256": "42311e2beec657951f63fc9204496e87b29c6d6858d9e44eb991bb5fbf05014d",
+      "bytes": 1359,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M2/clients/attempt-2/inspector-deny-5.json",
+      "sha256": "1db20def9e4098cce310a14866c6b0f1c83ff61ce69f8ee144152044e797e3f3",
+      "bytes": 1531,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M2/clients/attempt-2/inspector-deny-5.stderr",
+      "sha256": "006fc8a4c12357ad9c296628756e0cd29e8084456d5b853991cfca54166e96b0",
+      "bytes": 1937,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M2/clients/attempt-2/inspector-deny-5.stdout",
+      "sha256": "42311e2beec657951f63fc9204496e87b29c6d6858d9e44eb991bb5fbf05014d",
+      "bytes": 1359,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M2/clients/attempt-2/inspector-discovery.json",
+      "sha256": "e1458a81ddb2fd4cb4b2e41afdb1f5b95092332c674e0ffb03b2780605f91036",
+      "bytes": 1251,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M2/clients/attempt-2/inspector-discovery.stderr",
+      "sha256": "0e1c383e57c44caf46802d07da00a46f6bb66eb6156590d3e9d5ae80f25eef54",
+      "bytes": 76524,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M2/clients/attempt-2/inspector-discovery.stdout",
+      "sha256": "9bf8268624ead5dc514729f235764ee2f76dc127d03422c0b712d257ed56e516",
+      "bytes": 261739,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M2/clients/attempt-2/inspector-open.json",
+      "sha256": "adc98602348f77e46f067040f77b29a1bc8718047c5f468c7da9b16a2ffdb762",
+      "bytes": 1404,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M2/clients/attempt-2/inspector-open.stderr",
+      "sha256": "847b6d06095ddbd390cec3b9d26a7015d61e300cd29458b338a653faa69bcc8a",
+      "bytes": 358,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M2/clients/attempt-2/inspector-open.stdout",
+      "sha256": "bbcd836fe87e9fbdecfd0e539c817eea088c53cacdc8fb1dbae84b71a8076e38",
+      "bytes": 1276,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M2/clients/attempt-3/M2-clients.json",
+      "sha256": "41b9b88ab790145e8db97406537daa6c862033dde58e4a86c86f2a00dc239342",
+      "bytes": 5770,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M2/clients/attempt-3/claude-model-session.json",
+      "sha256": "f173b2e29a997fbd4890157fd64525cb8a7b63101211bed23e377a6793cf5d16",
+      "bytes": 3091,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M2/clients/attempt-3/claude-model-session.stderr",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M2/clients/attempt-3/claude-model-session.stdout",
+      "sha256": "c83eb50be8836d973f3785ed2fc6854c1284e12d67daa1fcb8a283b1175ebb5e",
+      "bytes": 149571,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M2/clients/attempt-3/inspector-deny-1.json",
+      "sha256": "26419297d9ceb0e74b574a719e56fb7cad75854aeb929e2c4cea6f36eaeb8444",
+      "bytes": 1648,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M2/clients/attempt-3/inspector-deny-1.stderr",
+      "sha256": "e36cfad623754014b89cb1987f7ec106f6e2c4653de7414d5ead14142f005f81",
+      "bytes": 1931,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M2/clients/attempt-3/inspector-deny-1.stdout",
+      "sha256": "42311e2beec657951f63fc9204496e87b29c6d6858d9e44eb991bb5fbf05014d",
+      "bytes": 1359,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M2/clients/attempt-3/inspector-deny-2.json",
+      "sha256": "1b931bc6643bdda4548bd7650df6c1febc47534ab9dc089e8042e8659d6351a8",
+      "bytes": 1504,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M2/clients/attempt-3/inspector-deny-2.stderr",
+      "sha256": "1348e4d64127d36c3716e14813db377991acd6d18dc0e27c4d141e270e2edeca",
+      "bytes": 1921,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M2/clients/attempt-3/inspector-deny-2.stdout",
+      "sha256": "42311e2beec657951f63fc9204496e87b29c6d6858d9e44eb991bb5fbf05014d",
+      "bytes": 1359,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M2/clients/attempt-3/inspector-deny-3.json",
+      "sha256": "3331b445f8e074e5a22e2fad10e66117447f6c4478f389eb72c505a335d0b2f0",
+      "bytes": 1504,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M2/clients/attempt-3/inspector-deny-3.stderr",
+      "sha256": "329d0ad8fa6c72b18ff34b41dc10e6d4c51cd02ff1a3d4ac66961b7acba8ddc8",
+      "bytes": 1921,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M2/clients/attempt-3/inspector-deny-3.stdout",
+      "sha256": "42311e2beec657951f63fc9204496e87b29c6d6858d9e44eb991bb5fbf05014d",
+      "bytes": 1359,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M2/clients/attempt-3/inspector-deny-4.json",
+      "sha256": "f18e7a3b4576a480e37f3e072d47ab31ac53477b05fce21ca89de2fa30e5d6d9",
+      "bytes": 1556,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M2/clients/attempt-3/inspector-deny-4.stderr",
+      "sha256": "e0668ba61610d8694612ef3b60da029bc2951787311fdbec25f4dd5f0c1f47ef",
+      "bytes": 1931,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M2/clients/attempt-3/inspector-deny-4.stdout",
+      "sha256": "42311e2beec657951f63fc9204496e87b29c6d6858d9e44eb991bb5fbf05014d",
+      "bytes": 1359,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M2/clients/attempt-3/inspector-deny-5.json",
+      "sha256": "ee813c520e55b37d2d52f59836d40200b5d977b64fc70ed06a9f303e5a8ca4aa",
+      "bytes": 1531,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M2/clients/attempt-3/inspector-deny-5.stderr",
+      "sha256": "006fc8a4c12357ad9c296628756e0cd29e8084456d5b853991cfca54166e96b0",
+      "bytes": 1937,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M2/clients/attempt-3/inspector-deny-5.stdout",
+      "sha256": "42311e2beec657951f63fc9204496e87b29c6d6858d9e44eb991bb5fbf05014d",
+      "bytes": 1359,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M2/clients/attempt-3/inspector-discovery.json",
+      "sha256": "495870143d378c00e98fe0c435f8c2738c16c0ab85e5754fc20b7ebe80782a9d",
+      "bytes": 1251,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M2/clients/attempt-3/inspector-discovery.stderr",
+      "sha256": "0e1c383e57c44caf46802d07da00a46f6bb66eb6156590d3e9d5ae80f25eef54",
+      "bytes": 76524,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M2/clients/attempt-3/inspector-discovery.stdout",
+      "sha256": "9bf8268624ead5dc514729f235764ee2f76dc127d03422c0b712d257ed56e516",
+      "bytes": 261739,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M2/clients/attempt-3/inspector-open.json",
+      "sha256": "7ea237aa34996ce192131daa2729c7b13d860d756fc6aff84cee90487a1ee8c6",
+      "bytes": 1404,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M2/clients/attempt-3/inspector-open.stderr",
+      "sha256": "847b6d06095ddbd390cec3b9d26a7015d61e300cd29458b338a653faa69bcc8a",
+      "bytes": 358,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M2/clients/attempt-3/inspector-open.stdout",
+      "sha256": "4c4f58783f2d63c252f2460b465b49f4ea268eaa0e4331efebc27fd071593f8e",
+      "bytes": 1276,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M2/clients/attempt-4/M2-clients.json",
+      "sha256": "d5af5ab2214041cc87878a37cfeadf1e6481e3547e3ef354f95ceda1155a52ea",
+      "bytes": 5770,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M2/clients/attempt-4/claude-model-session.json",
+      "sha256": "c77b27322cf3ef3c191bcc88870a379ee56bb6ef47795690d2b8a47a4b18183c",
+      "bytes": 3090,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M2/clients/attempt-4/claude-model-session.stderr",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M2/clients/attempt-4/claude-model-session.stdout",
+      "sha256": "ad290346a056ecd55e8fb66144b23b99f64a5f6e7bc328c20e2204b4ed4758d2",
+      "bytes": 149114,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M2/clients/attempt-4/inspector-deny-1.json",
+      "sha256": "71a2f16bdbd353de5d686fb99d9f9418fa176e37ee4366a54ed520da9197fe92",
+      "bytes": 1648,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M2/clients/attempt-4/inspector-deny-1.stderr",
+      "sha256": "e36cfad623754014b89cb1987f7ec106f6e2c4653de7414d5ead14142f005f81",
+      "bytes": 1931,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M2/clients/attempt-4/inspector-deny-1.stdout",
+      "sha256": "42311e2beec657951f63fc9204496e87b29c6d6858d9e44eb991bb5fbf05014d",
+      "bytes": 1359,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M2/clients/attempt-4/inspector-deny-2.json",
+      "sha256": "1b5e9fdf68d8db85690a9c49689d7c7e2a1e1681fcba24ae94fb3501d60c2b2a",
+      "bytes": 1504,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M2/clients/attempt-4/inspector-deny-2.stderr",
+      "sha256": "1348e4d64127d36c3716e14813db377991acd6d18dc0e27c4d141e270e2edeca",
+      "bytes": 1921,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M2/clients/attempt-4/inspector-deny-2.stdout",
+      "sha256": "42311e2beec657951f63fc9204496e87b29c6d6858d9e44eb991bb5fbf05014d",
+      "bytes": 1359,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M2/clients/attempt-4/inspector-deny-3.json",
+      "sha256": "690a39e2772c7faf69bc07001db4be48ec0845c72cbfd51fef3f68300aa51afd",
+      "bytes": 1504,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M2/clients/attempt-4/inspector-deny-3.stderr",
+      "sha256": "329d0ad8fa6c72b18ff34b41dc10e6d4c51cd02ff1a3d4ac66961b7acba8ddc8",
+      "bytes": 1921,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M2/clients/attempt-4/inspector-deny-3.stdout",
+      "sha256": "42311e2beec657951f63fc9204496e87b29c6d6858d9e44eb991bb5fbf05014d",
+      "bytes": 1359,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M2/clients/attempt-4/inspector-deny-4.json",
+      "sha256": "091fbde327e34cb38f2a6fa5c8d76ad92aa4034a3b1927e4afee05afa406e6ca",
+      "bytes": 1555,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M2/clients/attempt-4/inspector-deny-4.stderr",
+      "sha256": "e0668ba61610d8694612ef3b60da029bc2951787311fdbec25f4dd5f0c1f47ef",
+      "bytes": 1931,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M2/clients/attempt-4/inspector-deny-4.stdout",
+      "sha256": "42311e2beec657951f63fc9204496e87b29c6d6858d9e44eb991bb5fbf05014d",
+      "bytes": 1359,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M2/clients/attempt-4/inspector-deny-5.json",
+      "sha256": "2c28dc7905e8853f9ee1cee9f4731f5f6131f1672a65c12bdc1515f3b3b28428",
+      "bytes": 1531,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M2/clients/attempt-4/inspector-deny-5.stderr",
+      "sha256": "006fc8a4c12357ad9c296628756e0cd29e8084456d5b853991cfca54166e96b0",
+      "bytes": 1937,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M2/clients/attempt-4/inspector-deny-5.stdout",
+      "sha256": "42311e2beec657951f63fc9204496e87b29c6d6858d9e44eb991bb5fbf05014d",
+      "bytes": 1359,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M2/clients/attempt-4/inspector-discovery.json",
+      "sha256": "cc3ab1dea34ecac29a3b1ea41eeabbca37aa3af8d9db308f07eb235016729e6f",
+      "bytes": 1251,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M2/clients/attempt-4/inspector-discovery.stderr",
+      "sha256": "0e1c383e57c44caf46802d07da00a46f6bb66eb6156590d3e9d5ae80f25eef54",
+      "bytes": 76524,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M2/clients/attempt-4/inspector-discovery.stdout",
+      "sha256": "9bf8268624ead5dc514729f235764ee2f76dc127d03422c0b712d257ed56e516",
+      "bytes": 261739,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M2/clients/attempt-4/inspector-open.json",
+      "sha256": "34d8b92db1153082e4789abea46b514ef82c7eeb402311f174ff0bcce888a71b",
+      "bytes": 1403,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M2/clients/attempt-4/inspector-open.stderr",
+      "sha256": "847b6d06095ddbd390cec3b9d26a7015d61e300cd29458b338a653faa69bcc8a",
+      "bytes": 358,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M2/clients/attempt-4/inspector-open.stdout",
+      "sha256": "cf4f51325357d7c55e5be660d96ce52b587d21f2ac10ba482b376c7d62afeecd",
+      "bytes": 1276,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M2/clients/attempt-5/M2-clients.json",
+      "sha256": "61958b34778bd8a62c52bff14135a1c0976a71d5ef7dfdd2ec139e4254509150",
+      "bytes": 17048,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M2/clients/attempt-5/claude-model-session.json",
+      "sha256": "81751cae8f474b9678820b83a9bed1607b102c7b39bd18aa31bc0ee382827fa6",
+      "bytes": 3494,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M2/clients/attempt-5/claude-model-session.stderr",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M2/clients/attempt-5/claude-model-session.stdout",
+      "sha256": "05ad418e5467650148b91f567871099e85bca80f4d0afe90b13e01e02daa3673",
+      "bytes": 146687,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M2/clients/attempt-5/inspector-deny-1.json",
+      "sha256": "db17ec11372a986fb7d7835eaf2f62b4519ce90ffe8ff3de285ad04de104bd8c",
+      "bytes": 1648,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M2/clients/attempt-5/inspector-deny-1.stderr",
+      "sha256": "e36cfad623754014b89cb1987f7ec106f6e2c4653de7414d5ead14142f005f81",
+      "bytes": 1931,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M2/clients/attempt-5/inspector-deny-1.stdout",
+      "sha256": "42311e2beec657951f63fc9204496e87b29c6d6858d9e44eb991bb5fbf05014d",
+      "bytes": 1359,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M2/clients/attempt-5/inspector-deny-2.json",
+      "sha256": "0f6851760bbb269f205db035012641b7600240158d74a50b7cb75867658f51ca",
+      "bytes": 1504,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M2/clients/attempt-5/inspector-deny-2.stderr",
+      "sha256": "1348e4d64127d36c3716e14813db377991acd6d18dc0e27c4d141e270e2edeca",
+      "bytes": 1921,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M2/clients/attempt-5/inspector-deny-2.stdout",
+      "sha256": "42311e2beec657951f63fc9204496e87b29c6d6858d9e44eb991bb5fbf05014d",
+      "bytes": 1359,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M2/clients/attempt-5/inspector-deny-3.json",
+      "sha256": "7f23aeaa9592fd9a0f0c02ef96e6cd704a68a69b8da2a6557dfb128bc0f92839",
+      "bytes": 1504,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M2/clients/attempt-5/inspector-deny-3.stderr",
+      "sha256": "329d0ad8fa6c72b18ff34b41dc10e6d4c51cd02ff1a3d4ac66961b7acba8ddc8",
+      "bytes": 1921,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M2/clients/attempt-5/inspector-deny-3.stdout",
+      "sha256": "42311e2beec657951f63fc9204496e87b29c6d6858d9e44eb991bb5fbf05014d",
+      "bytes": 1359,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M2/clients/attempt-5/inspector-deny-4.json",
+      "sha256": "e32854f198480cd3e24052f96913ef596eccb86a5b773a22beb07200a93a2a6a",
+      "bytes": 1556,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M2/clients/attempt-5/inspector-deny-4.stderr",
+      "sha256": "e0668ba61610d8694612ef3b60da029bc2951787311fdbec25f4dd5f0c1f47ef",
+      "bytes": 1931,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M2/clients/attempt-5/inspector-deny-4.stdout",
+      "sha256": "42311e2beec657951f63fc9204496e87b29c6d6858d9e44eb991bb5fbf05014d",
+      "bytes": 1359,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M2/clients/attempt-5/inspector-deny-5.json",
+      "sha256": "12a1d62db4734d5c36248fb47b2d0f7acedae81536f8156c4db5aff8060ac7c1",
+      "bytes": 1531,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M2/clients/attempt-5/inspector-deny-5.stderr",
+      "sha256": "006fc8a4c12357ad9c296628756e0cd29e8084456d5b853991cfca54166e96b0",
+      "bytes": 1937,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M2/clients/attempt-5/inspector-deny-5.stdout",
+      "sha256": "42311e2beec657951f63fc9204496e87b29c6d6858d9e44eb991bb5fbf05014d",
+      "bytes": 1359,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M2/clients/attempt-5/inspector-discovery.json",
+      "sha256": "15cad7f744b416232ad760f6cb145fcbeb931e05085a0667506fa6b6b01022db",
+      "bytes": 1251,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M2/clients/attempt-5/inspector-discovery.stderr",
+      "sha256": "0e1c383e57c44caf46802d07da00a46f6bb66eb6156590d3e9d5ae80f25eef54",
+      "bytes": 76524,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M2/clients/attempt-5/inspector-discovery.stdout",
+      "sha256": "d5f6a61d8ebcd8077c77f64e2a1765769920313733749ea6f97111442c93fc68",
+      "bytes": 263029,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M2/clients/attempt-5/inspector-exit-policy.json",
+      "sha256": "576c40f55fe2bb370f500f1df40ac77aaf785c201e91817f88c24dbe9ba7204d",
+      "bytes": 1204,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M2/clients/attempt-5/inspector-open.json",
+      "sha256": "0136f91bc1abf7f005190201419513de89163c96d9c484740a0ac2325177da46",
+      "bytes": 1404,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M2/clients/attempt-5/inspector-open.stderr",
+      "sha256": "847b6d06095ddbd390cec3b9d26a7015d61e300cd29458b338a653faa69bcc8a",
+      "bytes": 358,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M2/clients/attempt-5/inspector-open.stdout",
+      "sha256": "f37644f8f4e9597976b5a516bee78c12fde51c02afdf56aa4a07b3335e46c22e",
+      "bytes": 1276,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M2/clients/claude-model-session.stderr",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M2/clients/claude-model-session.stdout",
+      "sha256": "05ad418e5467650148b91f567871099e85bca80f4d0afe90b13e01e02daa3673",
+      "bytes": 146687,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M2/clients/inspector-deny-1.stderr",
+      "sha256": "e36cfad623754014b89cb1987f7ec106f6e2c4653de7414d5ead14142f005f81",
+      "bytes": 1931,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M2/clients/inspector-deny-1.stdout",
+      "sha256": "42311e2beec657951f63fc9204496e87b29c6d6858d9e44eb991bb5fbf05014d",
+      "bytes": 1359,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M2/clients/inspector-deny-2.stderr",
+      "sha256": "1348e4d64127d36c3716e14813db377991acd6d18dc0e27c4d141e270e2edeca",
+      "bytes": 1921,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M2/clients/inspector-deny-2.stdout",
+      "sha256": "42311e2beec657951f63fc9204496e87b29c6d6858d9e44eb991bb5fbf05014d",
+      "bytes": 1359,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M2/clients/inspector-deny-3.stderr",
+      "sha256": "329d0ad8fa6c72b18ff34b41dc10e6d4c51cd02ff1a3d4ac66961b7acba8ddc8",
+      "bytes": 1921,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M2/clients/inspector-deny-3.stdout",
+      "sha256": "42311e2beec657951f63fc9204496e87b29c6d6858d9e44eb991bb5fbf05014d",
+      "bytes": 1359,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M2/clients/inspector-deny-4.stderr",
+      "sha256": "e0668ba61610d8694612ef3b60da029bc2951787311fdbec25f4dd5f0c1f47ef",
+      "bytes": 1931,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M2/clients/inspector-deny-4.stdout",
+      "sha256": "42311e2beec657951f63fc9204496e87b29c6d6858d9e44eb991bb5fbf05014d",
+      "bytes": 1359,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M2/clients/inspector-deny-5.stderr",
+      "sha256": "006fc8a4c12357ad9c296628756e0cd29e8084456d5b853991cfca54166e96b0",
+      "bytes": 1937,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M2/clients/inspector-deny-5.stdout",
+      "sha256": "42311e2beec657951f63fc9204496e87b29c6d6858d9e44eb991bb5fbf05014d",
+      "bytes": 1359,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M2/clients/inspector-discovery.stderr",
+      "sha256": "0e1c383e57c44caf46802d07da00a46f6bb66eb6156590d3e9d5ae80f25eef54",
+      "bytes": 76524,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M2/clients/inspector-discovery.stdout",
+      "sha256": "d5f6a61d8ebcd8077c77f64e2a1765769920313733749ea6f97111442c93fc68",
+      "bytes": 263029,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M2/clients/inspector-open.stderr",
+      "sha256": "847b6d06095ddbd390cec3b9d26a7015d61e300cd29458b338a653faa69bcc8a",
+      "bytes": 358,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M2/clients/inspector-open.stdout",
+      "sha256": "f37644f8f4e9597976b5a516bee78c12fde51c02afdf56aa4a07b3335e46c22e",
+      "bytes": 1276,
+      "kind": "B-client-qualification transcripts"
     }
   ],
   "retired_groups": [
@@ -387,6 +1149,16 @@
       "aggregate_rule": "sha256 over the sorted lines \"<sha256>  <original_path>\\n\"",
       "last_commit_with_bytes": "d796ff57bd87cf7fb7269f9dceef9090bc66e749",
       "retired_at": "2026-09-11T17:40:14.242436+00:00"
+    },
+    {
+      "kind": "B-client-qualification transcripts",
+      "reason": "client-qualification transcripts: each attempt keeps receipt.json and protocol.jsonl, which carry the hashes and outcomes; raw inspector/model stdout, stderr and event streams are forensic detail",
+      "files": 127,
+      "bytes": 2937756,
+      "aggregate_sha256": "9bdbf05b9caa9cc9ae55bc87920b5b25d66cc800e88577ea5c1ff674dc3098da",
+      "aggregate_rule": "sha256 over the sorted lines \"<sha256>  <original_path>\\n\"",
+      "last_commit_with_bytes": "e31af914d12bef34e11fbe67b87f942d75de294c",
+      "retired_at": "2026-09-11T17:41:43.936200+00:00"
     }
   ]
 }

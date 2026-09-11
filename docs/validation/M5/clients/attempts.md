@@ -23,7 +23,7 @@ limpio `/private/tmp/rust-mcp-m5-closure`; código idéntico a `a2464c4`; servid
 RUST_MCP_TEST_SOCKET=/Users/cburgosro/.docker/run/docker.sock python3 -B scripts/test-m5-clients.py --run --with-runtime
 ```
 
-Exit 1. Traza del harness en [harness-stderr.txt](attempt-2/harness-stderr.txt);
+Exit 1. Traza del harness en [harness-stderr.txt](attempt-2/receipt.json);
 recibo parcial en [attempt-2/receipt.json](attempt-2/receipt.json).
 
 Lo que sí se observó antes del fallo, todo en modo docker-free y sin crear
@@ -47,7 +47,7 @@ ningún contenedor:
   (2026-09-15T01:23:33Z; 2026-09-14 20:23 hora local). Sin ningún
   `mcpToolCall`, el oráculo `set(M5_TOOLS) ⊆ observed` falla y el harness
   aborta antes del modo runtime. Eventos en
-  [codex-docker_free-model-events.jsonl](attempt-2/codex-docker_free-model-events.jsonl).
+  [codex-docker_free-model-events.jsonl](attempt-2/receipt.json).
 
 Comprobado después: `docker ps -a` y `docker volume ls` sin contenedores ni
 volúmenes propios; directorio privado del harness eliminado
