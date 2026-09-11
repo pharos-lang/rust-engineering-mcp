@@ -288,8 +288,7 @@ journal. `local_coordinated` detecta cambios observados, pero no ofrece exclusi�
 OS ante escritores externos, CAS ni una transacción visible multiarchivo. La policy
 `preserve_presence` incluye el lock raíz actualizado si existía y elimina del
 candidato un lock creado solo para validar. Esta arquitectura está integrada en el
-checkout `0.3.0-dev`, que registra 31 tools —27 calificadas localmente y las
-cuatro M5 en recalificación—, con [calificación M2](validation/M2-07.md) para las
+checkout `0.3.0-dev`, que registra 31 tools calificadas localmente, con [calificación M2](validation/M2-07.md) para las
 18 anteriores y las cuatro tools M3 calificadas en sus cortes síncronos; la release `0.1.0`
 conserva 13.
 
@@ -439,5 +438,5 @@ harness se publican por `run_index` y stream, UTF-8 válido con sustitución
 declarada separadamente del recorte; su cuota se comprueba al publicar después de
 la ejecución. Las decisiones están en [ADR-073](adr/ADR-073-benchmark-method-and-dataset.md)
 a [ADR-080](adr/ADR-080-harness-logs-as-artifacts.md), y el estado por corte en
-la [matriz M5](validation/M5-matrix.md): M5 calificado nativamente y por
-clientes, no Done mientras el gate `full` siga bloqueado por `lancedb 0.38.0`.
+la [matriz M5](validation/M5-matrix.md): M5 calificado localmente (suite
+nativa, clientes, `core` y `full`); sin integración remota ni release.

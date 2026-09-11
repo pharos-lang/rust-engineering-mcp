@@ -187,3 +187,17 @@ Se eliminó únicamente el artefacto envenenado bajo `target/debug/deps/`
 en 1 m 41 s y la selección pasó en 16,3 s
 (`M3_TASK_REVOCATION_RECEIPT {"active_child":true,"joined_cleanup":true,"masked_ms":370,"publication_visible":false}`).
 No se tocó el test ni su timeout. `full` se repite entero.
+
+## Resultado — 2026-09-10, `full` sobre el lock 0.31.0, **passed**
+
+[M5-full-gate.json](../M5-full-gate.json) · [log](closure-full-lock-0.31.0/full-gate.txt) ·
+[etapa `m5-runtime` conjunta](closure-full-lock-0.31.0/m5-runtime-joint/). Corrido a
+solas sobre el worktree limpio en `ab4eed9` tras reenlazar el artefacto del
+intento 3: 38/38 pasos en 2 h 16 min, 1752 tests Rust y 108 Python, inventario
+de 1148 fuentes idéntico al inicio y al final. `semantic` pasó con Lance 8 en
+219 s; `m3-runtime` completó sus selecciones en 33 min; la etapa `m5-runtime`
+produjo su recibo dentro del conjunto (6/6, 368 s, residuo vacío), que se
+conserva junto al [gate nativo independiente](../M5-native-gate.json) sin
+sustituirlo. Los recibos `core` y `full` de la primera pasada (lock 0.38.0)
+permanecen en [`closure-core-lock-0.38.0`](closure-core-lock-0.38.0/) y
+[`closure-full-attempt-2`](closure-full-attempt-2/).

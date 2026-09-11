@@ -5,7 +5,7 @@
 | Componente | Foundation implementada |
 | --- | --- |
 | Release soportada | `0.1.0` |
-| Checkout de desarrollo | `0.3.0-dev`; 31 tools: 18 M1/M2, cuatro M3 y cinco M4 calificadas localmente, más cuatro M5 implementadas y sin calificar; Tasks anunciado con negociación mutua; sin commit de integración, PR, tag ni publicación |
+| Checkout de desarrollo | `0.3.0-dev`; 31 tools: 18 M1/M2, cuatro M3, cinco M4 y cuatro M5 calificadas localmente; Tasks anunciado con negociación mutua; sin commit de integración, PR, tag ni publicación |
 | Toolchain fijado / MSRV inicial | Rust y Cargo `1.98.1`, edition 2024 |
 | Target de validación local | `aarch64-apple-darwin` |
 | SDK | `rmcp =3.2.0`, features `server`, `transport-io`, sin defaults |
@@ -408,11 +408,11 @@ M2 ADR-059 conserva schemas y formato de journal: libera planes terminales y
 permite commit replay exacto desde el journal con ID/digest/key y autoridad viva
 incluso tras TTL/reinicio. No permite iniciar efectos nuevos sin preview vigente.
 
-## Rendimiento M5 en desarrollo
+## Rendimiento M5, calificado localmente
 
-Las cuatro definiciones M5 están implementadas, calificadas nativamente y por
-clientes, y **sin Done**: la [matriz M5](validation/M5-matrix.md) mantiene M5-05
-`In progress` con el gate `full` bloqueado por `lancedb 0.38.0`. `tools/list` devuelve 31 definiciones: las 27 anteriores
+Las cuatro definiciones M5 están implementadas y **calificadas localmente**
+(suite nativa, clientes, `core` y `full`); la [matriz M5](validation/M5-matrix.md)
+registra recibos y límites. `tools/list` devuelve 31 definiciones: las 27 anteriores
 intactas byte a byte en sus snapshots y las cuatro nuevas. Los recibos históricos
 no califican los contratos M5 finales; la matriz identifica la evidencia pendiente.
 Las cinco versiones de protocolo no cambian. Nada de esta sección forma parte de la

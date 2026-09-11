@@ -359,14 +359,14 @@ opaque artifacts; normalization of new M4 reports is not a sanitizer for those
 archives. The canary controls distinguish exclusion of host-only secrets from
 retention of source explicitly granted by the host.
 
-## Rendimiento M5 en desarrollo
+## Rendimiento M5, calificado localmente
 
 Las cuatro definiciones M5 —`rust.benchmark.run`, `rust.benchmark.compare`,
 `rust.profile.flamegraph` y `rust.binary.bloat`— están implementadas y
-**sin Done**: la [matriz M5](docs/validation/M5-matrix.md) registra M5-01..04
-calificados nativamente y por clientes y `core` aprobado, con el cierre conjunto
-bloqueado en el gate `full` por `lancedb 0.38.0`; `tools/list` devuelve 31
-definiciones y ninguna forma parte de la release `0.1.0`.
+**calificadas localmente**: la [matriz M5](docs/validation/M5-matrix.md)
+registra suite nativa, clientes y gates `core`/`full` sobre las fuentes finales;
+`tools/list` devuelve 31 definiciones y ninguna forma parte de la release
+`0.1.0` ni de una integración remota.
 
 Las tres que ejecutan compilan y corren código del proyecto (R2/R1), igual que
 tests, mutation y Miri. `readOnlyHint` describe que la tool no escribe el

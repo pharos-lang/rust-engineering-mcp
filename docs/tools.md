@@ -4,8 +4,8 @@
 devuelve trece definiciones sin cursor. El checkout `0.3.0-dev` devuelve 31:
 añade cinco tools M2, cuatro M3, cinco M4 y cuatro M5. Las cinco M4 están
 implementadas y calificadas localmente; el hito espera la confirmación final de
-evidencia. Las cuatro M5 están implementadas y **no calificadas por completo**:
-su estado por corte está en los [contratos M5](#contratos-m5--medición-de-rendimiento).
+evidencia. Las cuatro M5 están implementadas y **calificadas localmente**; su
+estado por corte está en los [contratos M5](#contratos-m5--medición-de-rendimiento).
 
 ## rust.project.open
 
@@ -1179,12 +1179,13 @@ proyecto dentro del sandbox, igual que `rust.test` o `rust.miri`—; solo
 `rust.benchmark.compare` no ejecuta nada.
 Véase [ADR-076](adr/ADR-076-m5-performance-contracts.md).
 
-**Estado.** M5 no está Done. M5-01..04 están calificados nativamente
-([gate nativo](validation/M5-native-gate.json)) y por clientes
-([recibo](validation/M5-clients.json)) sobre los contratos finales de captura,
-logs, bloat y método; `core` pasa y `full` está bloqueado en `semantic` por
-`lancedb 0.38.0`. La [matriz M5](validation/M5-matrix.md) enumera los recibos y el
-bloqueo. Nada de esto acredita una release, un tag ni un cambio de versión.
+**Estado.** M5 está calificado localmente: suite nativa
+([gate nativo](validation/M5-native-gate.json)), clientes
+([recibo](validation/M5-clients.json)) y gates `core`/`full`
+([full](validation/M5-full-gate.json)) sobre los contratos finales de captura,
+logs, bloat y método. La [matriz M5](validation/M5-matrix.md) enumera recibos y
+límites. Nada de esto acredita una release, un tag, una integración remota ni
+un cambio de versión.
 
 ### Runtime, inputs del host y modo de ejecución M5
 

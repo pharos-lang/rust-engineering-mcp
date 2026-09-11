@@ -1,10 +1,9 @@
 # M5 — Performance / 0.5.x
 
-Estado: **In progress, bloqueado en el gate `full`** (2026-09-10). Cierre local
-autorizado mediante `docs/prompts/complete-m5.md`: captura, observación del
-entorno, recalificación nativa (6/6), clientes (PASS) y `core` (PASS) hechos;
-`full` falla en `semantic` porque `lancedb 0.38.0` no compila con
-`default-features = false`, pendiente de decisión del owner. Los recibos previos
+Estado: **Done local** (2026-09-10). Cierre local autorizado mediante
+`docs/prompts/complete-m5.md`: captura, observación del entorno, recalificación
+nativa 6/6, clientes, `core` 23/23 y `full` 38/38 sobre el lock con `lancedb
+0.31.0`. Sin integración remota, PR, tag ni release. Los recibos previos
 son históricos cuando cambian los contratos o fingerprints que midieron.
 El estado real por corte vive en [la matriz](../validation/M5-matrix.md) y
 [el handoff](../validation/M5-handoff.md); D23 y D24 quedaron decididos en
@@ -138,10 +137,10 @@ del permiso de profiling. P0/P1 y P2 de método/evidencia que falsee veredicto b
 - [x] Artifact privacy, límites, cancelación activa y cleanup pasan con code
   hostil; size exacto se distingue de atribución. Fuente: spec §36–45/77; M5-03/04.
   Evidencia: recibos nativos con `residue` vacío, ADR-079 en clientes.
-- [ ] Full gate y cliente sobre bytes finales, inventory/SBOM/provenance y
-  budgets MCP conservan la frontera target real. Fuente: G4–G8, M5-05. Cliente y
-  `core` aprobados; **`full` bloqueado** por `lancedb 0.38.0`
-  ([intento 2](../validation/m5-gate-attempts/README.md)).
+- [x] Full gate y cliente sobre bytes finales, inventory/SBOM/provenance y
+  budgets MCP conservan la frontera target real. Fuente: G4–G8, M5-05.
+  Evidencia: [clientes](../validation/M5-clients.json),
+  [core](../validation/M5-core-gate.json), [full](../validation/M5-full-gate.json).
 
 Handoff: datasets/método/hardware, receipts/reviews, capability profiling y límites;
 detener antes de M6.

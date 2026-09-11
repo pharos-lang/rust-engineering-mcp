@@ -1,12 +1,13 @@
 # M5 — matriz de implementación y calificación
 
-Estado: **In progress — bloqueado en el gate `full`**, 2026-09-10. Cierre local
-autorizado por [complete-m5](../prompts/complete-m5.md) y continuado por
+Estado: **Done local**, 2026-09-10. Cierre local autorizado por
+[complete-m5](../prompts/complete-m5.md) y continuado por
 [finish-m5-fable](../prompts/finish-m5-fable.md). Rama `ai/m5-performance`;
-`main` permanece en `c6099f27415b0be3838e84d21d25eed903c8c312`. Los cortes
-M5-01..04 están calificados nativamente y por clientes y `core` pasa sobre las
-fuentes finales; `full` falla en `semantic` porque `lancedb 0.38.0` no compila
-con `default-features = false` (véase [Bloqueo](#bloqueo-lancedb-0380)).
+`main` permanece en `c6099f27415b0be3838e84d21d25eed903c8c312`. M5-01..05 y
+G1–G9 están demostrados sobre el lock con `lancedb 0.31.0` (opción 2a): suite
+nativa 6/6, matriz de clientes, `core` 23/23 y `full` 38/38. La integración
+remota, su smoke y cualquier release siguen pendientes de autorización; M6 no
+está iniciado.
 
 El candidato se integra en commits locales y se mide desde el worktree limpio
 `/private/tmp/rust-mcp-m5-closure`. La integración remota, su smoke y una release
@@ -29,18 +30,19 @@ quedan fuera de esta autorización. M6 no está iniciado.
 
 | ID | Corte | Estado actual | Evidencia |
 | --- | --- | --- | --- |
-| M5-01 | Benchmark existente → dataset, archivo Criterion y logs | Calificado nativamente y por clientes; cierre conjunto bloqueado | [captura](M5-01-capture-runtime.json), [negativos](M5-01-runtime.json), [gate nativo](M5-native-gate.json), [clientes](M5-clients.json) |
-| M5-02 | Dos datasets del store → compatibilidad → comparación | Calificado por clientes con IDs reales; guardas conservadas; cierre conjunto bloqueado | [clientes](M5-clients.json): Inspector y Claude Code comparan datasets propios, `inconclusive`/`insufficient_executions`, `NOT_A_DATASET`; `benchmark_compare.rs`, `performance_environment.rs` |
-| M5-03 | Capability → muestras/stacks/SVG → Resource | Calificado nativamente y por clientes; cierre conjunto bloqueado | [runtime](M5-03-runtime.json): positivo, cero muestras, denegación, descendiente, cancelación y artifact precreado; [clientes](M5-clients.json): 195 muestras, 0 perdidas, dos artifacts leídos |
-| M5-04 | Build → tamaño exacto y atribución estimada | Calificado nativamente y por clientes; cierre conjunto bloqueado | [runtime](M5-04-runtime.json), [clientes](M5-clients.json) (`analysis_validated`, cargo-bloat 0.12.1), [revisión](m5-delegation/closure-local-semantics/review.md) |
-| M5-05 | Clientes, G1–G9 y cierre conjunto | Clientes y `core` aprobados; `full` bloqueado | [clientes](M5-clients.json), [core](M5-core-gate.json), [full fallido](m5-gate-attempts/closure-full-attempt-2/full-gate.json), [G1–G9](m5-delegation/closure-local-semantics/g1-g9-disposition.md) |
+| M5-01 | Benchmark existente → dataset, archivo Criterion y logs | **Done local** | [captura](M5-01-capture-runtime.json), [negativos](M5-01-runtime.json), [gate nativo](M5-native-gate.json), [clientes](M5-clients.json) |
+| M5-02 | Dos datasets del store → compatibilidad → comparación | **Done local**; guardas conservadas, sin dirección habilitada | [clientes](M5-clients.json): Inspector y Claude Code comparan datasets propios, `inconclusive`/`insufficient_executions`, `NOT_A_DATASET`; `benchmark_compare.rs`, `performance_environment.rs` |
+| M5-03 | Capability → muestras/stacks/SVG → Resource | **Done local** | [runtime](M5-03-runtime.json): positivo, cero muestras, denegación, descendiente, cancelación y artifact precreado; [clientes](M5-clients.json): 195 muestras, 0 perdidas, dos artifacts leídos |
+| M5-04 | Build → tamaño exacto y atribución estimada | **Done local** | [runtime](M5-04-runtime.json), [clientes](M5-clients.json) (`analysis_validated`, cargo-bloat 0.12.1), [revisión](m5-delegation/closure-local-semantics/review.md) |
+| M5-05 | Clientes, G1–G9 y cierre conjunto | **Done local** | [clientes](M5-clients.json), [core](M5-core-gate.json), [full](M5-full-gate.json), [G1–G9](m5-delegation/closure-local-semantics/g1-g9-disposition.md) |
 
 ## Gate nativo independiente
 
 [M5-native-gate.json](M5-native-gate.json) registra seis selecciones aprobadas,
-cada una exacta, ignorada y serial, sobre el candidato `a2464c4`. Los commits
-posteriores hasta `aa935e6` solo modifican documentación y recibos; su diff sobre
-código, scripts, fixtures, manifests y AGENTS es vacío.
+cada una exacta, ignorada y serial, sobre `37805f6` (lock con `lancedb 0.31.0`,
+código Rust idéntico a `a2464c4`), en 6 m 14 s. La misma suite había pasado 6/6
+sobre el lock anterior; ese recibo se conserva en
+[m5-closure-history/lock-0.38.0](m5-closure-history/lock-0.38.0/).
 
 La captura real tiene 161361408 bytes de artifact y 156267469 bytes de archivos.
 El positivo completó tres ejecuciones y produjo 90 muestras para cada uno de los
@@ -52,13 +54,15 @@ no ejecuta contenedores.
 
 El primer intento confinado al sandbox devolvió `Unavailable` al abrir el
 runtime. El reintento con acceso Docker autorizado pasó completo, sin cambios de
-código ni imagen. Ambos intentos se conservan en `m5-gate-attempts/`.
-El gate full posterior debe volver a acreditar su etapa M5 dentro del conjunto.
+código ni imagen. Ambos intentos se conservan en `m5-gate-attempts/`, junto a
+la repetición sobre el lock 0.31.0. El gate `full` acreditó después la misma
+etapa dentro del conjunto.
 
 ## Matriz de clientes final
 
-[M5-clients.json](M5-clients.json) (attempt-6, HEAD `dc7ce3e`, servidor
-`9aaa85f0…`): Inspector 2.5.0 convierte quince filas —ocho docker-free y siete
+[M5-clients.json](M5-clients.json) (attempt-7, HEAD `a19d741`, servidor
+`2c396063…` sobre el lock 0.31.0; attempt-6 midió lo mismo sobre el lock
+anterior): Inspector 2.5.0 convierte quince filas —ocho docker-free y siete
 runtime— y lee catorce Resources en runtime; Claude Code 2.1.267
 (`claude-sonnet-5`) completa el turno docker-free con los cuatro rechazos
 declarados y el turno runtime con siete llamadas exactas: open, discovery, dos
@@ -72,33 +76,30 @@ revisión independiente (Gemini 3.8 y Claude Sonnet 5) están dispuestos en
 
 ## Gates conjuntos
 
-[M5-core-gate.json](M5-core-gate.json): `core` sobre `c334498`, 23/23 pasos,
-1717 tests Rust y 108 Python, 1148 fuentes inventariadas sin cambios, 25,6 min.
+[M5-core-gate.json](M5-core-gate.json): `core` sobre `ab4eed9`, 23/23 pasos,
+1717 tests Rust y 108 Python, 1148 fuentes inventariadas sin cambios.
 
-[full-gate.json](m5-gate-attempts/closure-full-attempt-2/full-gate.json):
-`full` sobre `c334498`, 31/34 pasos aprobados en 2 h 5 min —incluidos
-`docker-security`, `rust-security`, `m2-runtime`, `m3-runtime`, `m4-runtime` y
-`audit-data`— y fallo en `semantic`; `catalog*`, `crate-*`, `doctor` y
-`m5-runtime` no se ejecutaron. La etapa M5 dentro del gate conjunto no tiene
-recibo; el gate nativo independiente sigue siendo la única suite nativa
-registrada sobre este código.
+[M5-full-gate.json](M5-full-gate.json): `full` sobre `ab4eed9`, **38/38 pasos**
+en 2 h 16 min, 1752 tests Rust y 108 Python, fuentes sin cambios; `semantic` pasó
+con Lance 8 en 219 s y la etapa `m5-runtime` produjo su recibo dentro del
+conjunto en 368 s. Ambas mediciones nativas —independiente y conjunta— se
+conservan.
 
-## Bloqueo: `lancedb 0.38.0`
+## Dependencia: `lancedb` vuelve a `0.31.0` (opción 2a)
 
-`lancedb 0.38.0` no compila con `default-features = false`: `Error::Http` está
-bajo `#[cfg(feature = "remote")]` y `src/job.rs::decode` lo usa sin `cfg`
-(`error[E0599]`, líneas 56 y 66). Solo `--all-features` activa la feature `local`
-del adapter semántico y con ella `lancedb`, por eso `core` pasa y `semantic` no.
-Activar `remote` exige cambiar `Cargo.lock` y descargar dependencias; el patch
-vendor es la 0.31.0 con ediciones de manifest y `verify-vendor.py` está anclado
-a esa versión; revertir la subida del owner está prohibido. Detalle y opciones
-en [m5-gate-attempts](m5-gate-attempts/README.md#intento-2--2026-09-10-full-failed-en-el-paso-32-de-34).
-Decisión del owner (2026-09-10): **opción 2a**, `lancedb` vuelve a `0.31.0` /
-Lance 8 conservando las otras tres subidas, y la actualización de paquetería
-pasa a una [tarea post-M8](../roadmap/m8-stabilization.md#tarea-post-m8--actualización-de-paquetería-decisión-del-owner-2026-09-10).
-El lock cambia, así que la suite nativa, la matriz de clientes, `core` y `full`
-se repiten sobre los nuevos bytes; los recibos anteriores de esta sesión pasan a
-ser historia de esa versión del lock.
+La primera pasada de cierre, sobre el lock con `lancedb 0.38.0` de `a3cb48c`,
+pasó suite nativa, clientes y `core` pero `full` falló en `semantic`
+([intento 2](m5-gate-attempts/README.md#intento-2--2026-09-10-full-failed-en-el-paso-32-de-34)):
+`lancedb 0.38.0` no compila con `default-features = false` y, parcheado, Lance 11
+exige un spill store en disco incompatible con `memory://`, los dos motivos por
+los que [ADR-027](../adr/ADR-027-semantic-offline-foundation.md) ya la había
+descartado. El owner decidió la **opción 2a** (`37805f6`): `lancedb =0.31.0` /
+Lance 8 conservando `fastembed 6.0.3`, `jsonschema 0.55.1` y `tokio-rustls
+0.26.5`, con el lock regenerado offline; `cargo audit` es idéntico en ambos
+locks. Los recibos de la primera pasada se conservan en
+[m5-closure-history/lock-0.38.0](m5-closure-history/lock-0.38.0/). La
+actualización general de paquetería es una
+[tarea post-M8](../roadmap/m8-stabilization.md#tarea-post-m8--actualización-de-paquetería-decisión-del-owner-2026-09-10).
 
 ## Correcciones de cierre
 

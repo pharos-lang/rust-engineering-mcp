@@ -2,7 +2,7 @@
 
 ## 0.3.0-dev — Unreleased
 
-### M5 — cuatro tools de rendimiento implementadas; recalificación en curso
+### M5 — cuatro tools de rendimiento implementadas y calificadas localmente
 
 - **Captura de vendor offline, un contrato separado de `SourceBundle`**
   ([ADR-078](docs/adr/ADR-078-offline-vendor-capture.md)). El cierre de
@@ -177,16 +177,14 @@
   general de paquetería queda como
   [tarea post-M8](docs/roadmap/m8-stabilization.md#tarea-post-m8--actualización-de-paquetería-decisión-del-owner-2026-09-10).
   Todos los recibos M5 se recapturan sobre el nuevo lock.
-- Estado: M5 **no está Done**. M5-01..04 están calificados nativamente
-  ([gate nativo](docs/validation/M5-native-gate.json), 6/6) y por clientes, y
-  `core` pasa sobre las fuentes finales
-  ([recibo](docs/validation/M5-core-gate.json)); `full` falla en `semantic`
-  porque `lancedb 0.38.0` no compila con `default-features = false`
-  (`Error::Http` solo existe con `remote`), lo que también deja sin compilar la
-  feature `local` del producto en este checkout. La decisión sobre LanceDB es
-  del owner ([intentos](docs/validation/m5-gate-attempts/README.md)).
-  `BenchmarkExit` y `BloatExit` conservan `CALIBRATED = false`. No hay release,
-  tag ni cambio de versión.
+- Estado: M5 **Done local**. Suite nativa 6/6
+  ([gate nativo](docs/validation/M5-native-gate.json)), matriz de clientes
+  ([recibo](docs/validation/M5-clients.json)), `core` 23/23
+  ([recibo](docs/validation/M5-core-gate.json)) y `full` 38/38
+  ([recibo](docs/validation/M5-full-gate.json)) sobre el lock con `lancedb
+  0.31.0`. `BenchmarkExit` y `BloatExit` conservan `CALIBRATED = false`; la
+  guarda direccional sigue en `false`. Sin integración remota, PR, tag, release
+  ni cambio de versión.
 
 ### M4 — 27 tools implementadas y calificadas localmente
 

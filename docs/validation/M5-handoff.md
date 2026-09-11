@@ -3,10 +3,9 @@
 Fecha: 2026-09-10. Rama `ai/m5-performance`; base `main`
 `c6099f27415b0be3838e84d21d25eed903c8c312`.
 
-**Cierre local bloqueado en el gate `full`.** La [matriz M5](M5-matrix.md) es
-el estado por corte: cortes calificados nativamente y por clientes, `core`
-aprobado, `full` detenido en `semantic` porque `lancedb 0.38.0` no compila con
-`default-features = false` (decisión pendiente del owner). El owner autorizó completar M5 con commits locales; no autorizó push,
+**Done local.** La [matriz M5](M5-matrix.md) es el estado por corte: suite
+nativa 6/6, matriz de clientes, `core` 23/23 y `full` 38/38 sobre el lock con
+`lancedb 0.31.0` (`ab4eed9`). El owner autorizó completar M5 con commits locales; no autorizó push,
 PR, merge, tag, release ni M6. Las subidas de dependencias ya incorporadas en
 `a3cb48c` se conservan sin separarlas ni modificarlas.
 
@@ -51,19 +50,19 @@ reemplazarlos. Se declaran truncación y reemplazo por separado.
    Resource; el turno docker-free debe obtener los cuatro rechazos declarados
    con los argumentos del plan.
 4. `scripts/gate.py core`: **PASS** ([M5-core-gate.json](M5-core-gate.json)).
-   `scripts/gate.py full`: **failed** en `semantic`, 31/34 pasos
-   ([intento 2](m5-gate-attempts/README.md)); `m5-runtime` conjunto sin recibo.
-5. Disposición final G1–G9: [escrita](m5-delegation/closure-local-semantics/g1-g9-disposition.md),
-   NOT DONE por G5; tablero sincronizado.
+   `scripts/gate.py full`: **PASS** 38/38 ([M5-full-gate.json](M5-full-gate.json)),
+   con `m5-runtime` dentro del conjunto. El primer `full`, sobre el lock con
+   `lancedb 0.38.0`, falló en `semantic` y motivó la opción 2a
+   ([intento 2](m5-gate-attempts/README.md)).
+5. Disposición final G1–G9: [Done local](m5-delegation/closure-local-semantics/g1-g9-disposition.md);
+   tablero sincronizado.
 
-## Bloqueo que decide el owner
+## Dependencias
 
-`lancedb 0.38.0` con `default-features = false` no compila (`Error::Http` solo
-existe con `remote`; `job.rs` lo usa sin `cfg`). Opciones, todas fuera de esta
-autorización: activar `remote` (lock nuevo, descargas, más superficie), otra
-versión de LanceDB, o vendorizar 0.38.0 con parche de fuente cambiando la
-política manifest-only. La feature `local` del producto tampoco compila en este
-HEAD; el binario por defecto no la incluye.
+`lancedb` vuelve a `=0.31.0` / Lance 8 según ADR-027 (decisión del owner,
+opción 2a); se conservan `fastembed 6.0.3`, `jsonschema 0.55.1` y `tokio-rustls
+0.26.5`. La actualización general de paquetería queda como
+[tarea post-M8](../roadmap/m8-stabilization.md#tarea-post-m8--actualización-de-paquetería-decisión-del-owner-2026-09-10).
 
 El worktree de medición es `/private/tmp/rust-mcp-m5-closure`. La imagen
 admitida sigue siendo

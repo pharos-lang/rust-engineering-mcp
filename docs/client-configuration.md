@@ -310,9 +310,9 @@ limitada a Inspector 2.5.0 y Codex 0.153.0 en el host local documentado.
 
 ### Configurar las tools M5
 
-Las cuatro definiciones M5 están implementadas, calificadas nativamente y por
-clientes, y **sin Done**: la [matriz M5](validation/M5-matrix.md) mantiene M5-05
-`In progress` con el gate `full` bloqueado por `lancedb 0.38.0`.
+Las cuatro definiciones M5 están implementadas y **calificadas localmente**
+(suite nativa, clientes, `core` y `full`); la [matriz M5](validation/M5-matrix.md)
+registra recibos y límites.
 `tools/list` devuelve 31 definiciones —las 27 anteriores sin cambio y las cuatro
 nuevas—. Los recibos previos no acreditan los contratos M5 finales; la matriz
 indica la evidencia pendiente. Esta sección documenta la configuración del host

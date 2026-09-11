@@ -557,9 +557,9 @@ fail closed before project execution.
 ## M5 — medición, capability de profiling y containment
 
 Estado: las cuatro definiciones M5 están implementadas en dominio, aplicación y
-execution adapter, calificadas nativamente y por clientes, y **sin Done**: la
-[matriz M5](validation/M5-matrix.md) mantiene M5-05 `In progress` con el gate
-`full` bloqueado por `lancedb 0.38.0`. `tools/list` devuelve 31 definiciones, con las 27 anteriores
+execution adapter y **calificadas localmente** (suite nativa, clientes,
+`core` y `full`); la [matriz M5](validation/M5-matrix.md) registra recibos y
+límites. `tools/list` devuelve 31 definiciones, con las 27 anteriores
 sin cambio. Lo que sigue
 describe contratos y controles implementados; solo se presenta como calificado
 aquello que enlaza un recibo.

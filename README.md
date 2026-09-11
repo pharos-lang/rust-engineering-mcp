@@ -18,8 +18,8 @@ un catálogo local de crates.
 El servidor usa transporte MCP por `stdio`. Las trece tools de la release
 `0.1.0` observan y validan sin modificar el source. El checkout `0.3.0-dev`
 registra 31 tools: las 18 de M1/M2, las cuatro tools de calidad M3, cinco tools
-M4 y cuatro tools de rendimiento M5. M4 está cerrado localmente; M5 está
-implementado y en **recalificación en curso**. El checkout no forma una release.
+M4 y cuatro tools de rendimiento M5. M4 y M5 están cerrados localmente, sin
+integración remota ni release. El checkout no forma una release.
 
 > [!IMPORTANT]
 > La versión estable actual es `0.1.0`. GitHub Releases publica un único binario core
@@ -48,7 +48,7 @@ implementado y en **recalificación en curso**. El checkout no forma una release
 | Supply chain (M4, desarrollo) | `rust.supply_chain.inspect` | Tool 25; facts de resolución, audit, deny y catálogo con provenance explícita. |
 | Calidad (M4, desarrollo) | `rust.quality.gate.v2` | Tool 26; gate `strict` o `release` sobre una captura compartida. |
 | Seguridad (M4, desarrollo) | `rust.miri` | Tool 27; evidencia tipada de Miri sobre tests seleccionados. |
-| Rendimiento (M5, desarrollo) | `rust.benchmark.run` | Tool 28; mide los benchmarks Criterion que el proyecto ya tiene y publica las muestras crudas como dataset privado, junto al árbol de salida del harness y al `stdout`/`stderr` de cada repetición como artifacts propios. Calificada nativamente y por clientes; M5 sin Done. |
+| Rendimiento (M5, desarrollo) | `rust.benchmark.run` | Tool 28; mide los benchmarks Criterion que el proyecto ya tiene y publica las muestras crudas como dataset privado, junto al árbol de salida del harness y al `stdout`/`stderr` de cada repetición como artifacts propios. Calificada localmente. |
 | Rendimiento (M5, desarrollo) | `rust.benchmark.compare` | Tool 29; compara dos datasets propios con un método estadístico congelado. No ejecuta nada. |
 | Rendimiento (M5, desarrollo) | `rust.profile.flamegraph` | Tool 30; muestreo en CPU de un binario del proyecto; exige la capability de profiling del host. |
 | Rendimiento (M5, desarrollo) | `rust.binary.bloat` | Tool 31; tamaño exacto del binario más la atribución estimada del analizador fijado. |
@@ -87,13 +87,12 @@ aceptan `execution_mode`, `task` devuelve `TASKS_REQUIRED` como resultado
 declarado; `rust.benchmark.compare` no tiene modo de ejecución.
 
 > [!WARNING]
-> M5 **no está Done**. Sus cuatro tools están calificadas nativamente
-> ([gate nativo](docs/validation/M5-native-gate.json)) y por clientes
-> ([recibo](docs/validation/M5-clients.json)); el cierre conjunto está bloqueado
-> en el gate `full` porque `lancedb 0.38.0` no compila con
-> `default-features = false`, lo que también deja sin compilar la feature `local`
-> (búsqueda semántica) en este checkout. Estado y opciones en la
-> [matriz M5](docs/validation/M5-matrix.md).
+> M5 está **calificado localmente** (sin integración remota, PR, tag ni release):
+> suite nativa 6/6 ([gate nativo](docs/validation/M5-native-gate.json)), matriz
+> de clientes ([recibo](docs/validation/M5-clients.json)) y gates `core`/`full`
+> sobre las fuentes finales. `rust.benchmark.compare` no emite veredictos
+> direccionales: publica efecto, intervalo y razones declaradas. Estado y límites
+> en la [matriz M5](docs/validation/M5-matrix.md).
 > Sus contratos completos están en [`docs/tools.md`](docs/tools.md#contratos-m5--medición-de-rendimiento).
 
 Los Resources normalizados no sustituyen una revisión de privacidad. Los HTML de
@@ -483,7 +482,7 @@ El checkout de desarrollo descubre 31 tools: conserva las trece de M1, añade
 `rust.manifest.patch`, `rust.fmt.apply`, `rust.fix.apply`,
 `rust.dependency.add` y `rust.dependency.remove`, e integra el contrato M3-01 de
 `rust.test.nextest`, las otras tres tools M3, las cinco tools M4 calificadas
-localmente y las cuatro tools M5 en recalificación. Cada tool de escritura exige su grant de host:
+localmente y las cuatro tools M5 calificadas localmente. Cada tool de escritura exige su grant de host:
 `--allow-manifest-write`, `--allow-fmt-write`, `--allow-fix-write`,
 `--allow-dependency-add` o `--allow-dependency-remove`, seguido de la raíz del
 workspace. Un grant no autoriza planes ni receipts de otra operación.

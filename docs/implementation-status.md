@@ -148,7 +148,7 @@ y [validación/reviews](roadmap/planning-validation.md).
 | M2 / 0.2.x | Done local; sin release nueva | [Safe Mutation](roadmap/m2-safe-mutation.md) · [prompt M2](prompts/implement-m2.md) |
 | M3 / 0.3.x | Done; integrado en `main` como `57c4037` (PR #14); sin release nueva | [Quality](roadmap/m3-quality.md) · [matriz M3](validation/M3-matrix.md) · [integración](validation/M3-integration.json) |
 | M4 / 0.4.x | Done local; integración mediante PR #15; sin release nueva | [Security](roadmap/m4-security.md) · [handoff M4](validation/M4-handoff.md) · [confirmación final](reviews/m4-final-evidence/review.md) |
-| M5 / 0.5.x | In progress; M5-01..04 calificados nativamente y por clientes, `core` aprobado; `full` bloqueado por `lancedb 0.38.0` (decisión del owner) | [Performance](roadmap/m5-performance.md) · [matriz M5](validation/M5-matrix.md) · [handoff M5](validation/M5-handoff.md) |
+| M5 / 0.5.x | Done local; sin integración remota, PR, tag ni release | [Performance](roadmap/m5-performance.md) · [matriz M5](validation/M5-matrix.md) · [handoff M5](validation/M5-handoff.md) |
 | M6 / 0.6.x | Planned | [Analyzer](roadmap/m6-analyzer.md) · [prompt M6](prompts/implement-m6.md) |
 | M7 / 0.7.x | Conditional; ejecución Deferred sin Go | [Remote](roadmap/m7-remote.md) · [prompt M7](prompts/implement-m7.md) |
 | M8 / 0.8–0.9 / readiness 1.0 | Planned | [Stabilization](roadmap/m8-stabilization.md) · [prompt M8](prompts/implement-m8.md) |
@@ -296,20 +296,20 @@ release ni M5.
 
 ## M5 — Performance en `ai/m5-performance`
 
-**In progress — 2026-09-10. Cierre local bloqueado en el gate `full`.** El owner
-autorizó `docs/prompts/complete-m5.md` y `finish-m5-fable.md`; M6 y cualquier
-publicación permanecen fuera de alcance. `full` falla en `semantic` porque
-`lancedb 0.38.0` no compila con `default-features = false`; la decisión sobre
-LanceDB es del owner ([intentos](validation/m5-gate-attempts/README.md)). D23/D24 y ADR-073..081 fijan método, capability, imagen, contratos,
+**Done local — 2026-09-10.** El owner autorizó `docs/prompts/complete-m5.md` y
+`finish-m5-fable.md`; M6 y cualquier publicación permanecen fuera de alcance.
+Suite nativa 6/6, matriz de clientes, `core` 23/23 y `full` 38/38 sobre el lock
+con `lancedb 0.31.0` (opción 2a del owner tras el fallo de `semantic` con
+0.38.0; [intentos](validation/m5-gate-attempts/README.md)). D23/D24 y ADR-073..081 fijan método, capability, imagen, contratos,
 captura offline, semántica bloat, logs y límites de interpretación.
 
 | Corte | Estado | Evidencia vigente o pendiente |
 | --- | --- | --- |
-| M5-01 `rust.benchmark.run` | Calificado nativamente (captura real, tres repeticiones, 90 muestras por benchmark) y por clientes; cierre conjunto bloqueado | [gate nativo](validation/M5-native-gate.json), [captura](validation/M5-01-capture-runtime.json), [clientes](validation/M5-clients.json) |
-| M5-02 `rust.benchmark.compare` | Calificado por clientes con datasets propios (`inconclusive`/`insufficient_executions`, `NOT_A_DATASET`); guarda direccional congelada en `false` | [clientes](validation/M5-clients.json); ADR-073/081 |
-| M5-03 `rust.profile.flamegraph` | Calificado nativamente y por clientes (195 muestras, 0 perdidas) | [runtime](validation/M5-03-runtime.json), [clientes](validation/M5-clients.json) |
-| M5-04 `rust.binary.bloat` | Calificado nativamente y por clientes bajo ADR-079 | [runtime](validation/M5-04-runtime.json), [clientes](validation/M5-clients.json) |
-| M5-05 cierre | In progress: clientes PASS, `core` PASS, `full` failed en `semantic` | [clientes](validation/M5-clients.json), [core](validation/M5-core-gate.json), [full](validation/m5-gate-attempts/closure-full-attempt-2/full-gate.json), [G1–G9](validation/m5-delegation/closure-local-semantics/g1-g9-disposition.md) |
+| M5-01 `rust.benchmark.run` | Done local: captura real, tres repeticiones, 90 muestras por benchmark; clientes | [gate nativo](validation/M5-native-gate.json), [captura](validation/M5-01-capture-runtime.json), [clientes](validation/M5-clients.json) |
+| M5-02 `rust.benchmark.compare` | Done local: clientes con datasets propios (`inconclusive`/`insufficient_executions`, `NOT_A_DATASET`); guarda direccional congelada en `false` | [clientes](validation/M5-clients.json); ADR-073/081 |
+| M5-03 `rust.profile.flamegraph` | Done local: nativo y clientes (193 muestras, 0 perdidas) | [runtime](validation/M5-03-runtime.json), [clientes](validation/M5-clients.json) |
+| M5-04 `rust.binary.bloat` | Done local bajo ADR-079 | [runtime](validation/M5-04-runtime.json), [clientes](validation/M5-clients.json) |
+| M5-05 cierre | Done local: clientes, `core`, `full` y G1–G9 | [clientes](validation/M5-clients.json), [core](validation/M5-core-gate.json), [full](validation/M5-full-gate.json), [G1–G9](validation/m5-delegation/closure-local-semantics/g1-g9-disposition.md) |
 
 La captura independiente conserva los límites de `SourceBundle`. El volumen
 vendor de captura tiene 512 MiB/32768 inodos; creación, fingerprint y cleanup
@@ -323,7 +323,7 @@ Claude no produjo revisión autenticada; el fallback Sol está declarado.
 La auditoría G1–G9 recuperó además el P2 histórico de paridad `verify_applied`,
 corregido en `89ec114` y re-revisado. El cliente agentic de la matriz es Claude
 Code 2.1.267 (`claude-sonnet-5`); Codex quedó fuera por decisión del owner del
-2026-09-10. La disposición final G1–G9 es NOT DONE por G5.
+2026-09-10. La disposición final G1–G9 es Done local.
 
 Los recibos anteriores conservan los bytes y contratos que midieron; no acreditan
 el código nuevo. La integración remota y su smoke siguen pendientes y requieren
