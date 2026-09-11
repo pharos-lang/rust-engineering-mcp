@@ -1,0 +1,29 @@
+{
+  "schema": "rust-engineering-mcp-release-publication-receipt-v1",
+  "tag": "v0.3.0",
+  "date": "2026-09-11",
+  "source_commit": "6ea330debc27a2cf1564fbbc258d4b358f5b0f1a",
+  "pull_request": 17,
+  "workflow_run": 34577174517,
+  "workflow": ".github/workflows/release-candidate.yml",
+  "attestations": {
+    "verified": [
+      "rust-engineering-mcp-v0.3.0-aarch64-apple-darwin.tar.gz",
+      "SHA256SUMS",
+      "release-smoke-receipt.json"
+    ],
+    "signer_workflow": "pharos-lang/rust-engineering-mcp/.github/workflows/release-candidate.yml",
+    "ref": "refs/tags/v0.3.0"
+  },
+  "assets": {
+    "archive_sha256": "c6cc45e3ca17444f45e23f9a82207bb5b02d77dbfb0479b14a538c317756db88",
+    "sha256sums_sha256": "2fb14ed515da23341201fb864570d15831a614c4dc2ccdc8503d07d2d131f340",
+    "workflow_smoke_receipt_sha256": "c872c8329942849fa57bc5511ca4b2db00fd5f956f690eca865faca0199e678f"
+  },
+  "independent_verification": {
+    "checksum": "shasum -a 256 -c SHA256SUMS: OK",
+    "local_smoke": "scripts/release-smoke.py on the downloaded archive: passed, 31 tools, 221 packages",
+    "local_smoke_receipt": "docs/release/0.3.0/local-smoke-receipt.json"
+  },
+  "published": "draft promoted to a stable release after the verification above; marked latest"
+}

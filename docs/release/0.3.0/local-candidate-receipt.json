@@ -17,7 +17,7 @@
     "deterministic_rebuild": "identical SHA-256 across two local builds"
   },
   "smoke": {
-    "receipt": "docs/release/0.3.0-local-smoke-receipt.json",
+    "receipt": "docs/release/0.3.0/local-candidate-smoke-receipt.json",
     "sha256": "541534b47790074386f48eabdcc21a13e5908265242711d0a238abf1a227c357",
     "status": "passed",
     "counts": {

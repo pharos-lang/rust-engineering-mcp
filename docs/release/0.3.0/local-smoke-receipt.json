@@ -1,0 +1,146 @@
+{
+  "cleanup": {
+    "installed_members": 11,
+    "process_group_clean": true,
+    "temporary_installation_removed": true
+  },
+  "cli": {
+    "calls": [
+      {
+        "arguments": [
+          "--version"
+        ],
+        "duration_ms": 404,
+        "exit_code": 0,
+        "process_group_clean": true,
+        "stderr_bytes": 0,
+        "stdout_sha256": "e16019cbffd07452ee055275517723d2afc1e874f0695c627e149067063f82f7"
+      },
+      {
+        "arguments": [
+          "version",
+          "--json"
+        ],
+        "duration_ms": 4,
+        "exit_code": 0,
+        "process_group_clean": true,
+        "stderr_bytes": 0,
+        "stdout_sha256": "19fe148bb8c71ba65d7302afcc0c3778b453f65a66ea4c9816b98b80151fb585"
+      },
+      {
+        "arguments": [
+          "doctor",
+          "--json"
+        ],
+        "duration_ms": 3,
+        "exit_code": 0,
+        "process_group_clean": true,
+        "stderr_bytes": 0,
+        "stdout_sha256": "8eb0a26ccdab8167ec9cf522ffa22602c3e40df52a1e997b415a288e12246066"
+      }
+    ],
+    "doctor_report_sha256": "33a99bc0c3dd9a3b6d53e86193624ab3df55ce2d278402bcfe1ca924e3d37051"
+  },
+  "counts": {
+    "archive_members": 11,
+    "cli_calls": 3,
+    "mcp_calls": 6,
+    "packages": 221,
+    "tools": 31
+  },
+  "duration_ms": 581,
+  "finished_at_utc": "2026-09-11T08:08:31.241Z",
+  "mcp": {
+    "calls": [
+      {
+        "duration_ms": 18,
+        "jsonrpc_error_code": null,
+        "method": "server/discover",
+        "request_sha256": "381b7dc9512987aa8b21987b55c72b760defea2c555290e2c81660553c3afdaa",
+        "response_sha256": "41b8b826b3bbe3d208e2cbfb63fc7abf1e7f8d7089b10601a2b45d34e40d01f9",
+        "tool": null,
+        "validated": "modern_discovery"
+      },
+      {
+        "duration_ms": 3,
+        "jsonrpc_error_code": null,
+        "method": "tools/list",
+        "request_sha256": "e6b339204d4059c3186be2069512d1d734462d154a5b6a5b009fbc61a0bee75e",
+        "response_sha256": "fcae132794f3092fece966206a00147bde19dab28082564bbc4a64c7ded55541",
+        "tool": null,
+        "tool_count": 31,
+        "validated": "exact_tools_and_schemas"
+      },
+      {
+        "duration_ms": 0,
+        "error_code": null,
+        "jsonrpc_error_code": null,
+        "method": "tools/call",
+        "request_sha256": "5c600bd294a356a412c18bbdee0e57a34cd11365b0517c7e7c9ebe55bd5a89f1",
+        "response_sha256": "f2681c265528513abed7afd61b87eb29e01ea88226f829e86f9df2fea5889782",
+        "status": "passed",
+        "tool": "rust.catalog.status",
+        "validated": "structured_and_text_coherent"
+      },
+      {
+        "duration_ms": 0,
+        "error_code": "CATALOG_UNAVAILABLE",
+        "jsonrpc_error_code": null,
+        "method": "tools/call",
+        "request_sha256": "aa8131e0716baeb63ff2905ade02425a3a50e4403b5f0dd409434bbdf77f7a35",
+        "response_sha256": "e0db56157d1da92d46c7a722bfe74ccff8906c92c9dbce9d26a4eecd23ecc381",
+        "status": "unavailable",
+        "tool": "rust.crate.search",
+        "validated": "structured_and_text_coherent"
+      },
+      {
+        "duration_ms": 0,
+        "error_code": "SANDBOX_DENIED",
+        "jsonrpc_error_code": null,
+        "method": "tools/call",
+        "request_sha256": "6ba840895a9f45516734cbba740a7b370832d4def05cc8a20d32a62cac68eba0",
+        "response_sha256": "88fcdac4a832ebebb5016b7740b82af1eecedb09d4b116233d47d96bbeae7cbe",
+        "status": "blocked",
+        "tool": "rust.project.open",
+        "validated": "structured_and_text_coherent"
+      },
+      {
+        "duration_ms": 0,
+        "error_code": "SANDBOX_DENIED",
+        "jsonrpc_error_code": null,
+        "method": "tools/call",
+        "request_sha256": "dc170bf4cd99978989a38dc01109e0b23a796f8c5e7a04183bfe331aac8c362d",
+        "response_sha256": "2f56833265dda7a79639cacb5db8190737b3f4495dc2e1117f482abd21d6a613",
+        "status": "blocked",
+        "tool": "rust.diagnostics.explain",
+        "validated": "structured_and_text_coherent"
+      }
+    ],
+    "process": {
+      "eof_observed": true,
+      "exit_code": 0,
+      "process_group_clean": true,
+      "stderr_bytes": 0
+    },
+    "protocol_version": "2026-07-28",
+    "tool_count": 31,
+    "tool_schema_set_sha256": "d3ff6f5949430402975a4cf8fd464abba81efee84b432e30ca39017067b766d3"
+  },
+  "release": {
+    "archive_bytes": 9792174,
+    "archive_name": "rust-engineering-mcp-v0.3.0-aarch64-apple-darwin.tar.gz",
+    "archive_sha256": "c6cc45e3ca17444f45e23f9a82207bb5b02d77dbfb0479b14a538c317756db88",
+    "binary_name": "rust-engineering-mcp",
+    "binary_sha256": "969e41ffaac9f1fc309b7e2d6004ddb85d192ae6decfddc97774aa3e0523c1e9",
+    "members": 11,
+    "packages": 221,
+    "relationships": 563,
+    "sha256sums_sha256": "2fb14ed515da23341201fb864570d15831a614c4dc2ccdc8503d07d2d131f340",
+    "tag": "v0.3.0",
+    "target": "aarch64-apple-darwin",
+    "version": "0.3.0"
+  },
+  "schema": "rust-engineering-mcp-release-smoke-receipt-v1",
+  "started_at_utc": "2026-09-11T08:08:30.659Z",
+  "status": "passed"
+}

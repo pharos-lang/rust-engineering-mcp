@@ -4,7 +4,7 @@
 
 | Componente | Foundation implementada |
 | --- | --- |
-| Release soportada | `0.1.0` |
+| Release soportada | `0.3.0` (anterior: `0.1.0`) |
 | Checkout de desarrollo | `0.3.0`; 31 tools: 18 M1/M2, cuatro M3, cinco M4 y cuatro M5 calificadas localmente; Tasks anunciado con negociación mutua; sin commit de integración, PR, tag ni publicación |
 | Toolchain fijado / MSRV inicial | Rust y Cargo `1.98.1`, edition 2024 |
 | Target de validación local | `aarch64-apple-darwin` |

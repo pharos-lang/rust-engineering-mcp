@@ -2,6 +2,13 @@
 
 ## 0.3.0 — 2026-09-11
 
+- Publicada la release estable `v0.3.0` desde el commit de `main`
+  `6ea330debc27a2cf1564fbbc258d4b358f5b0f1a`. El workflow tag-bound `34577174517` reconstruyó, instaló y probó el
+  archive core macOS ARM64 (`c6cc45e3ca17444f…`, 221 paquetes, 31 tools),
+  verificó sus tres attestations OIDC y creó el draft, promocionado después de
+  una descarga, verificación de attestations y smoke independientes desde este
+  host.
+
 Primera release desde `0.1.0`. Incluye M2, M3, M4 y M5 calificados localmente;
 la sección `0.2.0-dev` de abajo describe los cambios de M2 que nunca se
 publicaron por separado y forman parte de esta versión.
