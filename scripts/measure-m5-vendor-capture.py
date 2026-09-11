@@ -923,8 +923,10 @@ def phase_ingest(params: dict) -> dict:
             digest.update(len(name).to_bytes(8, "little"))
             digest.update(name)
             digest.update(size.to_bytes(8, "little"))
+            # Owner-only: this tree is measured and hashed, never served to
+            # another uid, so nothing needs to read it besides this process.
             with open(
-                os.open(target, os.O_WRONLY | os.O_CREAT | os.O_EXCL | os.O_NOFOLLOW, 0o644),
+                os.open(target, os.O_WRONLY | os.O_CREAT | os.O_EXCL | os.O_NOFOLLOW, 0o600),
                 "wb",
             ) as output:
                 for block in reader():

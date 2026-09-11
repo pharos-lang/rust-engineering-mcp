@@ -492,13 +492,16 @@ mod tests {
     /// A source that never holds more than one buffer, standing in for
     /// ADR-078's capture. The point of the assertion is the byte count: it is
     /// larger than `MAX_INPUT_BYTES`, so this input could not have travelled
-    /// through `run_with_input` at all.
+    /// through `run_with_input` at all. Only the macOS pipe tests drive it, so
+    /// it is gated with them: on the portable targets it would be dead code.
+    #[cfg(target_os = "macos")]
     struct ChunkedSource {
         remaining: u64,
         buffer: Vec<u8>,
         filled: usize,
         position: usize,
     }
+    #[cfg(target_os = "macos")]
     impl InputSource for ChunkedSource {
         fn fill(&mut self) -> io::Result<&[u8]> {
             if self.position == self.filled && self.remaining > 0 {
