@@ -1,7 +1,7 @@
 {
   "schema": "rust-mcp-evidence-history-inventory-v1",
   "milestone": "M2",
-  "recorded_at": "2026-09-11T17:41:43.936200+00:00",
+  "recorded_at": "2026-09-11T17:42:09.012883+00:00",
   "source_commit": "08857cc01dc058add53a72d138c68ef6de7af6dd",
   "purpose": "Superseded or failed evidence kept next to the current receipts of this milestone. Bytes are moved with git mv, never edited: each entry records the pre-hygiene path, SHA-256 and size. Retired entries were removed from the tree after their hash was recorded; their bytes remain reachable in Git history at source_commit. Entries marked living are prose kept next to the receipts; they are verified by presence only.",
   "retained": [
@@ -1137,6 +1137,438 @@
       "sha256": "f37644f8f4e9597976b5a516bee78c12fde51c02afdf56aa4a07b3335e46c22e",
       "bytes": 1276,
       "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M2/059/M2-059-app-clippy.log",
+      "sha256": "732a89ccbe49244c1152335225c9dec972365411c3f41218bde47ab1df3938ae",
+      "bytes": 280,
+      "kind": "E-raw gate and runtime outputs (logs, stdout/stderr, junit, gate transcripts) behind receipts that already record their hashes and outcomes"
+    },
+    {
+      "original_path": "docs/validation/M2/059/M2-059-application.log",
+      "sha256": "d1193e70b5f2f3939a82ec18729a9753417fbde607b6d4a2ca1311909d47c916",
+      "bytes": 1815,
+      "kind": "E-raw gate and runtime outputs (logs, stdout/stderr, junit, gate transcripts) behind receipts that already record their hashes and outcomes"
+    },
+    {
+      "original_path": "docs/validation/M2/059/M2-059-mcp-clippy.log",
+      "sha256": "4bc7328032d7f4ad40f324cd4e88c83888cb42e0ddeb62299e58692cc7c2219f",
+      "bytes": 834,
+      "kind": "E-raw gate and runtime outputs (logs, stdout/stderr, junit, gate transcripts) behind receipts that already record their hashes and outcomes"
+    },
+    {
+      "original_path": "docs/validation/M2/059/M2-059-native-replay.log",
+      "sha256": "acbf276720d0696dc90ff49bab4454493e90dd5922945e569e48cca94b2dc825",
+      "bytes": 791,
+      "kind": "E-raw gate and runtime outputs (logs, stdout/stderr, junit, gate transcripts) behind receipts that already record their hashes and outcomes"
+    },
+    {
+      "original_path": "docs/validation/M2/059/M2-059-release-build.log",
+      "sha256": "7b913085fbf9102aadd2e920d8146887abe65f91088033be4cdf2a97fcbfdeaf",
+      "bytes": 825,
+      "kind": "E-raw gate and runtime outputs (logs, stdout/stderr, junit, gate transcripts) behind receipts that already record their hashes and outcomes"
+    },
+    {
+      "original_path": "docs/validation/M2/059/M2-059-runtime.log",
+      "sha256": "8c33cdddfb50f3194e514a239e2def93267a7cc63278983f1da821121aa2ce84",
+      "bytes": 1151,
+      "kind": "E-raw gate and runtime outputs (logs, stdout/stderr, junit, gate transcripts) behind receipts that already record their hashes and outcomes"
+    },
+    {
+      "original_path": "docs/validation/M2/d05-hardening-followup.log",
+      "sha256": "7342d1499c1e9a683038818d832ba4dcbc278ddc93b778ae88474f433bb083be",
+      "bytes": 394,
+      "kind": "E-raw gate and runtime outputs (logs, stdout/stderr, junit, gate transcripts) behind receipts that already record their hashes and outcomes"
+    },
+    {
+      "original_path": "docs/validation/M2/d05-hardening-gate.log",
+      "sha256": "dde85a7590685c1650c94428894a9ea51024e38579d2c62aaba025a10837f831",
+      "bytes": 394,
+      "kind": "E-raw gate and runtime outputs (logs, stdout/stderr, junit, gate transcripts) behind receipts that already record their hashes and outcomes"
+    },
+    {
+      "original_path": "docs/validation/M2/d05-vendor-fingerprint.log",
+      "sha256": "6499c63707d6a96346b9e562f4e9625dd9fea9d390870d093bb7eea0dd4d7304",
+      "bytes": 445,
+      "kind": "E-raw gate and runtime outputs (logs, stdout/stderr, junit, gate transcripts) behind receipts that already record their hashes and outcomes"
+    },
+    {
+      "original_path": "docs/validation/M2/final-gate/audit-data/audit-data.log",
+      "sha256": "c4b4bf80662e6afaedf0a1472652bb3be519dad3abcf4c7c802d3b23104c8315",
+      "bytes": 586,
+      "kind": "E-raw gate and runtime outputs (logs, stdout/stderr, junit, gate transcripts) behind receipts that already record their hashes and outcomes"
+    },
+    {
+      "original_path": "docs/validation/M2/final-gate/doctor-security/active.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0,
+      "kind": "E-raw gate and runtime outputs (logs, stdout/stderr, junit, gate transcripts) behind receipts that already record their hashes and outcomes"
+    },
+    {
+      "original_path": "docs/validation/M2/final-gate/doctor-security/active.stdout.log",
+      "sha256": "b38bc894b73ea2bb0fd6acc371e60d4bb9d3b2c19a0580ad0bff4ad29839acfe",
+      "bytes": 3792,
+      "kind": "E-raw gate and runtime outputs (logs, stdout/stderr, junit, gate transcripts) behind receipts that already record their hashes and outcomes"
+    },
+    {
+      "original_path": "docs/validation/M2/final-gate/doctor-security/build.stderr.log",
+      "sha256": "14e637f241a1d56f96dca974ab901d85be657f956477dd6bac0c2ae02972f7e1",
+      "bytes": 172,
+      "kind": "E-raw gate and runtime outputs (logs, stdout/stderr, junit, gate transcripts) behind receipts that already record their hashes and outcomes"
+    },
+    {
+      "original_path": "docs/validation/M2/final-gate/doctor-security/build.stdout.log",
+      "sha256": "1beda595bef827a8b57ddfa763734a2274a2e7039c201c9276b0752dcb698ccf",
+      "bytes": 200408,
+      "kind": "E-raw gate and runtime outputs (logs, stdout/stderr, junit, gate transcripts) behind receipts that already record their hashes and outcomes"
+    },
+    {
+      "original_path": "docs/validation/M2/final-gate/doctor-security/cancelled-sighup.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0,
+      "kind": "E-raw gate and runtime outputs (logs, stdout/stderr, junit, gate transcripts) behind receipts that already record their hashes and outcomes"
+    },
+    {
+      "original_path": "docs/validation/M2/final-gate/doctor-security/cancelled-sighup.stdout.log",
+      "sha256": "b29de621ebc1a9e6eb4b8464ffd254b5f0dece3ef40f4b93408795dce92190e5",
+      "bytes": 2869,
+      "kind": "E-raw gate and runtime outputs (logs, stdout/stderr, junit, gate transcripts) behind receipts that already record their hashes and outcomes"
+    },
+    {
+      "original_path": "docs/validation/M2/final-gate/doctor-security/cancelled-sigint.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0,
+      "kind": "E-raw gate and runtime outputs (logs, stdout/stderr, junit, gate transcripts) behind receipts that already record their hashes and outcomes"
+    },
+    {
+      "original_path": "docs/validation/M2/final-gate/doctor-security/cancelled-sigint.stdout.log",
+      "sha256": "116a28c4a67592d63b9acdee2284126baa69d3732ac34a3e4aedf9da3d93c0d4",
+      "bytes": 2869,
+      "kind": "E-raw gate and runtime outputs (logs, stdout/stderr, junit, gate transcripts) behind receipts that already record their hashes and outcomes"
+    },
+    {
+      "original_path": "docs/validation/M2/final-gate/doctor-security/cancelled-sigterm.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0,
+      "kind": "E-raw gate and runtime outputs (logs, stdout/stderr, junit, gate transcripts) behind receipts that already record their hashes and outcomes"
+    },
+    {
+      "original_path": "docs/validation/M2/final-gate/doctor-security/cancelled-sigterm.stdout.log",
+      "sha256": "95e073bf55811c8a367e80644a4bd76dc1412673d2149fbc6d1ba72caf0ee251",
+      "bytes": 2869,
+      "kind": "E-raw gate and runtime outputs (logs, stdout/stderr, junit, gate transcripts) behind receipts that already record their hashes and outcomes"
+    },
+    {
+      "original_path": "docs/validation/M2/final-gate/doctor-security/ordinary.stderr.log",
+      "sha256": "7ea9176415e1f1b8a8d27e489ece1db2b6dbc5224626066bb2b0d141f2c28594",
+      "bytes": 246,
+      "kind": "E-raw gate and runtime outputs (logs, stdout/stderr, junit, gate transcripts) behind receipts that already record their hashes and outcomes"
+    },
+    {
+      "original_path": "docs/validation/M2/final-gate/doctor-security/ordinary.stdout.log",
+      "sha256": "61d1650537b75cf2103583bea81d57f5ebedafd7100f95e1a5bc5739431103dc",
+      "bytes": 357,
+      "kind": "E-raw gate and runtime outputs (logs, stdout/stderr, junit, gate transcripts) behind receipts that already record their hashes and outcomes"
+    },
+    {
+      "original_path": "docs/validation/M2/final-gate/doctor-security/stdout-deadline.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0,
+      "kind": "E-raw gate and runtime outputs (logs, stdout/stderr, junit, gate transcripts) behind receipts that already record their hashes and outcomes"
+    },
+    {
+      "original_path": "docs/validation/M2/final-gate/doctor-security/stdout-sigint.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0,
+      "kind": "E-raw gate and runtime outputs (logs, stdout/stderr, junit, gate transcripts) behind receipts that already record their hashes and outcomes"
+    },
+    {
+      "original_path": "docs/validation/M2/final-gate/full.log",
+      "sha256": "3a8d991a3d0374b8ab21fe0aa98f9f99f6744f2f75fbb35e795b244ef0fcddd4",
+      "bytes": 171222,
+      "kind": "E-raw gate and runtime outputs (logs, stdout/stderr, junit, gate transcripts) behind receipts that already record their hashes and outcomes"
+    },
+    {
+      "original_path": "docs/validation/M2/final-gate/m2-runtime/0.log",
+      "sha256": "90eafdf192a9f90a2c24230426396cff4169dd47aff90018020110d5e4d6e2a8",
+      "bytes": 383,
+      "kind": "E-raw gate and runtime outputs (logs, stdout/stderr, junit, gate transcripts) behind receipts that already record their hashes and outcomes"
+    },
+    {
+      "original_path": "docs/validation/M2/final-gate/m2-runtime/1.log",
+      "sha256": "d5fc5af4b2863c4ad8a67c65fa897e6cfbeede213342c3cf72c10b84e34faddf",
+      "bytes": 394,
+      "kind": "E-raw gate and runtime outputs (logs, stdout/stderr, junit, gate transcripts) behind receipts that already record their hashes and outcomes"
+    },
+    {
+      "original_path": "docs/validation/M2/final-gate/m2-runtime/2.log",
+      "sha256": "28417f80a8dd423e82be7a92fe79ffad2b7efd4894a7fe9dfdf790e7eeee674d",
+      "bytes": 384,
+      "kind": "E-raw gate and runtime outputs (logs, stdout/stderr, junit, gate transcripts) behind receipts that already record their hashes and outcomes"
+    },
+    {
+      "original_path": "docs/validation/M2/final-gate/m2-runtime/3.log",
+      "sha256": "8ff8c0fa5e2cb0b7a99f941ef7c5e494abc8fb178303385e6cbd35ed80e69d18",
+      "bytes": 374,
+      "kind": "E-raw gate and runtime outputs (logs, stdout/stderr, junit, gate transcripts) behind receipts that already record their hashes and outcomes"
+    },
+    {
+      "original_path": "docs/validation/M2/final-gate/m2-runtime/4.log",
+      "sha256": "dc23022bf7ea1cb9a29731f564a804411874aaa92270619c7eee99be9dfe1045",
+      "bytes": 498,
+      "kind": "E-raw gate and runtime outputs (logs, stdout/stderr, junit, gate transcripts) behind receipts that already record their hashes and outcomes"
+    },
+    {
+      "original_path": "docs/validation/M2/final-gate/m2-runtime/5.log",
+      "sha256": "f4be2145761a17ba22cf12939aa69e7ed6c7543c54ee9099d1405e4fb123080a",
+      "bytes": 888,
+      "kind": "E-raw gate and runtime outputs (logs, stdout/stderr, junit, gate transcripts) behind receipts that already record their hashes and outcomes"
+    },
+    {
+      "original_path": "docs/validation/M2/final-gate/m2-runtime/6.log",
+      "sha256": "0b40d95fead2f0873b2c3b4eaa05dadd610f6e1567635028a5ebeae1213ce009",
+      "bytes": 503,
+      "kind": "E-raw gate and runtime outputs (logs, stdout/stderr, junit, gate transcripts) behind receipts that already record their hashes and outcomes"
+    },
+    {
+      "original_path": "docs/validation/M2/final-gate/m2-runtime/7.log",
+      "sha256": "fd0cd761546a0b8e37701aa2f4dc0220743de5d04abfb1cfe238db7668c24e2f",
+      "bytes": 635,
+      "kind": "E-raw gate and runtime outputs (logs, stdout/stderr, junit, gate transcripts) behind receipts that already record their hashes and outcomes"
+    },
+    {
+      "original_path": "docs/validation/M2/final-gate/m2-runtime/8.log",
+      "sha256": "4e919fd2574662f6ecbb1bdbae24bdba99941b3372250fcad80e1ec302dfdd9e",
+      "bytes": 716,
+      "kind": "E-raw gate and runtime outputs (logs, stdout/stderr, junit, gate transcripts) behind receipts that already record their hashes and outcomes"
+    },
+    {
+      "original_path": "docs/validation/M2/final-gate/m2-runtime/9.log",
+      "sha256": "87dc3dd96d31c08a311041fdb818911661935521292e2ca182164bcf79416cba",
+      "bytes": 389,
+      "kind": "E-raw gate and runtime outputs (logs, stdout/stderr, junit, gate transcripts) behind receipts that already record their hashes and outcomes"
+    },
+    {
+      "original_path": "docs/validation/M2/final-gate/release-core-build.log",
+      "sha256": "92e06e4842c2fa9a2139c34892b15d58451290c4ed4fe3a60c23f8f551bc9ec1",
+      "bytes": 62,
+      "kind": "E-raw gate and runtime outputs (logs, stdout/stderr, junit, gate transcripts) behind receipts that already record their hashes and outcomes"
+    },
+    {
+      "original_path": "docs/validation/M2/final-gate/rust-security/0.log",
+      "sha256": "b358ba74c6bfe24e340176dfd98ab1787f52edcaec06aeb66bcb346cf6eb72cc",
+      "bytes": 2431,
+      "kind": "E-raw gate and runtime outputs (logs, stdout/stderr, junit, gate transcripts) behind receipts that already record their hashes and outcomes"
+    },
+    {
+      "original_path": "docs/validation/M2/final-gate/rust-security/1.log",
+      "sha256": "5d8eedd8d2042f614e2199d859a914f47af0f8b3060f965c4fd49aa772d2291c",
+      "bytes": 28960,
+      "kind": "E-raw gate and runtime outputs (logs, stdout/stderr, junit, gate transcripts) behind receipts that already record their hashes and outcomes"
+    },
+    {
+      "original_path": "docs/validation/M2/final-gate/rust-security/10.log",
+      "sha256": "5632a9318a29b379f95ff3ad4b02d27f57194ff5985ca7306202b8f06eb1ef42",
+      "bytes": 1355,
+      "kind": "E-raw gate and runtime outputs (logs, stdout/stderr, junit, gate transcripts) behind receipts that already record their hashes and outcomes"
+    },
+    {
+      "original_path": "docs/validation/M2/final-gate/rust-security/11.log",
+      "sha256": "53752273ec59e229aff0defb7ac4e987580260632e7f5112cc06cc4189490009",
+      "bytes": 660,
+      "kind": "E-raw gate and runtime outputs (logs, stdout/stderr, junit, gate transcripts) behind receipts that already record their hashes and outcomes"
+    },
+    {
+      "original_path": "docs/validation/M2/final-gate/rust-security/12.log",
+      "sha256": "3dc57927daba6ac1403d098ebe7bd04dbefd58c7fc694a865f62a2d8e1e03225",
+      "bytes": 5181,
+      "kind": "E-raw gate and runtime outputs (logs, stdout/stderr, junit, gate transcripts) behind receipts that already record their hashes and outcomes"
+    },
+    {
+      "original_path": "docs/validation/M2/final-gate/rust-security/13.log",
+      "sha256": "24a5e84797a77671d28854f48f0bf658eba128104bb9c352c9466845c5e98c2a",
+      "bytes": 886,
+      "kind": "E-raw gate and runtime outputs (logs, stdout/stderr, junit, gate transcripts) behind receipts that already record their hashes and outcomes"
+    },
+    {
+      "original_path": "docs/validation/M2/final-gate/rust-security/14.log",
+      "sha256": "6368a584a599155cf655b318d3ae2725b001e90478ffffb358db60d2e56ccd13",
+      "bytes": 2365,
+      "kind": "E-raw gate and runtime outputs (logs, stdout/stderr, junit, gate transcripts) behind receipts that already record their hashes and outcomes"
+    },
+    {
+      "original_path": "docs/validation/M2/final-gate/rust-security/15.log",
+      "sha256": "c768c9c242791c8fb710e7ec27816f561dbd877c2409d05772e97b4004237f06",
+      "bytes": 1300,
+      "kind": "E-raw gate and runtime outputs (logs, stdout/stderr, junit, gate transcripts) behind receipts that already record their hashes and outcomes"
+    },
+    {
+      "original_path": "docs/validation/M2/final-gate/rust-security/16.log",
+      "sha256": "faa245cb285a517e4852e2d74eef5c618cd0f7357f49060840bd6d69ccd9401f",
+      "bytes": 969,
+      "kind": "E-raw gate and runtime outputs (logs, stdout/stderr, junit, gate transcripts) behind receipts that already record their hashes and outcomes"
+    },
+    {
+      "original_path": "docs/validation/M2/final-gate/rust-security/17.log",
+      "sha256": "06a08d2f100918321bda71d6f0af0a4ac5736f54268fb028f0a4add6b88de6ca",
+      "bytes": 803,
+      "kind": "E-raw gate and runtime outputs (logs, stdout/stderr, junit, gate transcripts) behind receipts that already record their hashes and outcomes"
+    },
+    {
+      "original_path": "docs/validation/M2/final-gate/rust-security/18.log",
+      "sha256": "dc0ec8e738ba184f9ffe6deeac0d8d9e41e1cedadcf96185e9bd839b4739fbd9",
+      "bytes": 888,
+      "kind": "E-raw gate and runtime outputs (logs, stdout/stderr, junit, gate transcripts) behind receipts that already record their hashes and outcomes"
+    },
+    {
+      "original_path": "docs/validation/M2/final-gate/rust-security/19.log",
+      "sha256": "ae4d214f3949a2767502407319572f54c26059d7e0d88ec5e14073095634df07",
+      "bytes": 678,
+      "kind": "E-raw gate and runtime outputs (logs, stdout/stderr, junit, gate transcripts) behind receipts that already record their hashes and outcomes"
+    },
+    {
+      "original_path": "docs/validation/M2/final-gate/rust-security/2.log",
+      "sha256": "96d9b9cf277cefc77121e5e5464c0f46ee6f86aa0fdf59e07573baca1a6f6c97",
+      "bytes": 6248,
+      "kind": "E-raw gate and runtime outputs (logs, stdout/stderr, junit, gate transcripts) behind receipts that already record their hashes and outcomes"
+    },
+    {
+      "original_path": "docs/validation/M2/final-gate/rust-security/3.log",
+      "sha256": "14117cdbcaf2d73a6a3a01718a260754d6a730ffba1da50e78919b0a45604837",
+      "bytes": 375,
+      "kind": "E-raw gate and runtime outputs (logs, stdout/stderr, junit, gate transcripts) behind receipts that already record their hashes and outcomes"
+    },
+    {
+      "original_path": "docs/validation/M2/final-gate/rust-security/4.log",
+      "sha256": "346a0dbaedda08f4652cf234a1b5e21d3fe19307a249ebfa494338970647367d",
+      "bytes": 1331,
+      "kind": "E-raw gate and runtime outputs (logs, stdout/stderr, junit, gate transcripts) behind receipts that already record their hashes and outcomes"
+    },
+    {
+      "original_path": "docs/validation/M2/final-gate/rust-security/5.log",
+      "sha256": "40d24855a49ee94b6992078890781ad8d2bff8c243f7c071acc61dccde1afaae",
+      "bytes": 661,
+      "kind": "E-raw gate and runtime outputs (logs, stdout/stderr, junit, gate transcripts) behind receipts that already record their hashes and outcomes"
+    },
+    {
+      "original_path": "docs/validation/M2/final-gate/rust-security/6.log",
+      "sha256": "d0dc210a072de68d5855fe8aac9d07da46f1409fd4a2a2c9d09c41707674c04a",
+      "bytes": 1314,
+      "kind": "E-raw gate and runtime outputs (logs, stdout/stderr, junit, gate transcripts) behind receipts that already record their hashes and outcomes"
+    },
+    {
+      "original_path": "docs/validation/M2/final-gate/rust-security/7.log",
+      "sha256": "13396f571e577b37ff591bf3b8a9c8e4d9d14939129501c63a048b05e3813e74",
+      "bytes": 1405,
+      "kind": "E-raw gate and runtime outputs (logs, stdout/stderr, junit, gate transcripts) behind receipts that already record their hashes and outcomes"
+    },
+    {
+      "original_path": "docs/validation/M2/final-gate/rust-security/8.log",
+      "sha256": "1f36e2040eaf0890300a941695039d38400b47beae62e6aac670d80cf9eac01d",
+      "bytes": 1255,
+      "kind": "E-raw gate and runtime outputs (logs, stdout/stderr, junit, gate transcripts) behind receipts that already record their hashes and outcomes"
+    },
+    {
+      "original_path": "docs/validation/M2/final-gate/rust-security/9.log",
+      "sha256": "4e33b04be2b03c428ba3de8c897f59094a2c70d36ae8ca1f731966ab20d06197",
+      "bytes": 25806,
+      "kind": "E-raw gate and runtime outputs (logs, stdout/stderr, junit, gate transcripts) behind receipts that already record their hashes and outcomes"
+    },
+    {
+      "original_path": "docs/validation/M2/final-runtime/0.log",
+      "sha256": "90eafdf192a9f90a2c24230426396cff4169dd47aff90018020110d5e4d6e2a8",
+      "bytes": 383,
+      "kind": "E-raw gate and runtime outputs (logs, stdout/stderr, junit, gate transcripts) behind receipts that already record their hashes and outcomes"
+    },
+    {
+      "original_path": "docs/validation/M2/final-runtime/1.log",
+      "sha256": "d5fc5af4b2863c4ad8a67c65fa897e6cfbeede213342c3cf72c10b84e34faddf",
+      "bytes": 394,
+      "kind": "E-raw gate and runtime outputs (logs, stdout/stderr, junit, gate transcripts) behind receipts that already record their hashes and outcomes"
+    },
+    {
+      "original_path": "docs/validation/M2/final-runtime/2.log",
+      "sha256": "28417f80a8dd423e82be7a92fe79ffad2b7efd4894a7fe9dfdf790e7eeee674d",
+      "bytes": 384,
+      "kind": "E-raw gate and runtime outputs (logs, stdout/stderr, junit, gate transcripts) behind receipts that already record their hashes and outcomes"
+    },
+    {
+      "original_path": "docs/validation/M2/final-runtime/3.log",
+      "sha256": "8ff8c0fa5e2cb0b7a99f941ef7c5e494abc8fb178303385e6cbd35ed80e69d18",
+      "bytes": 374,
+      "kind": "E-raw gate and runtime outputs (logs, stdout/stderr, junit, gate transcripts) behind receipts that already record their hashes and outcomes"
+    },
+    {
+      "original_path": "docs/validation/M2/final-runtime/4.log",
+      "sha256": "dc23022bf7ea1cb9a29731f564a804411874aaa92270619c7eee99be9dfe1045",
+      "bytes": 498,
+      "kind": "E-raw gate and runtime outputs (logs, stdout/stderr, junit, gate transcripts) behind receipts that already record their hashes and outcomes"
+    },
+    {
+      "original_path": "docs/validation/M2/final-runtime/5.log",
+      "sha256": "f4be2145761a17ba22cf12939aa69e7ed6c7543c54ee9099d1405e4fb123080a",
+      "bytes": 888,
+      "kind": "E-raw gate and runtime outputs (logs, stdout/stderr, junit, gate transcripts) behind receipts that already record their hashes and outcomes"
+    },
+    {
+      "original_path": "docs/validation/M2/final-runtime/6.log",
+      "sha256": "0b40d95fead2f0873b2c3b4eaa05dadd610f6e1567635028a5ebeae1213ce009",
+      "bytes": 503,
+      "kind": "E-raw gate and runtime outputs (logs, stdout/stderr, junit, gate transcripts) behind receipts that already record their hashes and outcomes"
+    },
+    {
+      "original_path": "docs/validation/M2/final-runtime/7.log",
+      "sha256": "fd0cd761546a0b8e37701aa2f4dc0220743de5d04abfb1cfe238db7668c24e2f",
+      "bytes": 635,
+      "kind": "E-raw gate and runtime outputs (logs, stdout/stderr, junit, gate transcripts) behind receipts that already record their hashes and outcomes"
+    },
+    {
+      "original_path": "docs/validation/M2/final-runtime/8.log",
+      "sha256": "4e919fd2574662f6ecbb1bdbae24bdba99941b3372250fcad80e1ec302dfdd9e",
+      "bytes": 716,
+      "kind": "E-raw gate and runtime outputs (logs, stdout/stderr, junit, gate transcripts) behind receipts that already record their hashes and outcomes"
+    },
+    {
+      "original_path": "docs/validation/M2/final-runtime/9.log",
+      "sha256": "87dc3dd96d31c08a311041fdb818911661935521292e2ca182164bcf79416cba",
+      "bytes": 389,
+      "kind": "E-raw gate and runtime outputs (logs, stdout/stderr, junit, gate transcripts) behind receipts that already record their hashes and outcomes"
+    },
+    {
+      "original_path": "docs/validation/M2/postmerge/core-version.log",
+      "sha256": "d831ef5e03191f69c4c3899ad7bdb872f53b92dd87d1c53cb9e850b653358c99",
+      "bytes": 31,
+      "kind": "E-raw gate and runtime outputs (logs, stdout/stderr, junit, gate transcripts) behind receipts that already record their hashes and outcomes"
+    },
+    {
+      "original_path": "docs/validation/M2/postmerge/input-verification.log",
+      "sha256": "5c6b9a9f0b9c3aadd7468d58979ed16df0e53cfdec757218839728fec4774f59",
+      "bytes": 832,
+      "kind": "E-raw gate and runtime outputs (logs, stdout/stderr, junit, gate transcripts) behind receipts that already record their hashes and outcomes"
+    },
+    {
+      "original_path": "docs/validation/M2/postmerge/owned-containers.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0,
+      "kind": "E-raw gate and runtime outputs (logs, stdout/stderr, junit, gate transcripts) behind receipts that already record their hashes and outcomes"
+    },
+    {
+      "original_path": "docs/validation/M2/postmerge/owned-volumes.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0,
+      "kind": "E-raw gate and runtime outputs (logs, stdout/stderr, junit, gate transcripts) behind receipts that already record their hashes and outcomes"
+    },
+    {
+      "original_path": "docs/validation/M2/postmerge/protocol.log",
+      "sha256": "7c70e0376ebc504fa545c29d7e93d90e96f2e33b27d2e361d5ba02d4f4ac3326",
+      "bytes": 3904,
+      "kind": "E-raw gate and runtime outputs (logs, stdout/stderr, junit, gate transcripts) behind receipts that already record their hashes and outcomes"
+    },
+    {
+      "original_path": "docs/validation/M2/postmerge/terminal-replay.log",
+      "sha256": "0a100f6d672c3258a1f4beee7f68cde378ffd3377e4cf2129d9b50507e2fe03e",
+      "bytes": 489,
+      "kind": "E-raw gate and runtime outputs (logs, stdout/stderr, junit, gate transcripts) behind receipts that already record their hashes and outcomes"
     }
   ],
   "retired_groups": [
@@ -1159,6 +1591,16 @@
       "aggregate_rule": "sha256 over the sorted lines \"<sha256>  <original_path>\\n\"",
       "last_commit_with_bytes": "e31af914d12bef34e11fbe67b87f942d75de294c",
       "retired_at": "2026-09-11T17:41:43.936200+00:00"
+    },
+    {
+      "kind": "E-raw gate and runtime outputs (logs, stdout/stderr, junit, gate transcripts) behind receipts that already record their hashes and outcomes",
+      "reason": "raw gate and runtime outputs (logs, stdout/stderr, junit, gate transcripts) behind receipts that already record their hashes and outcomes",
+      "files": 72,
+      "bytes": 492836,
+      "aggregate_sha256": "f39f329099e7a5d93ce68bf7fc51da1790af8499a3b9e78d11e539315c954d5a",
+      "aggregate_rule": "sha256 over the sorted lines \"<sha256>  <original_path>\\n\"",
+      "last_commit_with_bytes": "87a1d18decc4b6d4c2fe6144b9de71518b90ac94",
+      "retired_at": "2026-09-11T17:42:09.012883+00:00"
     }
   ]
 }

@@ -1,7 +1,7 @@
 {
   "schema": "rust-mcp-evidence-history-inventory-v1",
   "milestone": "M4",
-  "recorded_at": "2026-09-11T17:41:43.936200+00:00",
+  "recorded_at": "2026-09-11T17:42:09.012883+00:00",
   "source_commit": "d3b5ad7f9d046ede51752e10ebac32261fd47e10",
   "purpose": "Superseded or failed evidence kept next to the current receipts of this milestone. Bytes are moved with git mv, never edited: each entry records the pre-hygiene path, SHA-256 and size. Retired entries were removed from the tree after their hash was recorded; their bytes remain reachable in Git history at source_commit. Entries marked living are prose kept next to the receipts; they are verified by presence only.",
   "retained": [
@@ -1761,6 +1761,348 @@
       "sha256": "7c7008a7abac1da1230cce2e0236b5a8733a1d8611afe65ebd46fdec56bb0a67",
       "bytes": 239,
       "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M4/core-gate.txt",
+      "sha256": "cc66c6aa5733e5dd90984f1c7d4cfcff1651b6ca4431eb5bb7916897a117439a",
+      "bytes": 179095,
+      "kind": "E-raw gate and runtime outputs (logs, stdout/stderr, junit, gate transcripts) behind receipts that already record their hashes and outcomes"
+    },
+    {
+      "original_path": "docs/validation/M4/deny-graph/final/native-workspace-exact.stdout",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0,
+      "kind": "E-raw gate and runtime outputs (logs, stdout/stderr, junit, gate transcripts) behind receipts that already record their hashes and outcomes"
+    },
+    {
+      "original_path": "docs/validation/M4/deny-graph/final/native-workspace-wildcard.stdout",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0,
+      "kind": "E-raw gate and runtime outputs (logs, stdout/stderr, junit, gate transcripts) behind receipts that already record their hashes and outcomes"
+    },
+    {
+      "original_path": "docs/validation/M4/deny-native/final/banned-package.stdout",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0,
+      "kind": "E-raw gate and runtime outputs (logs, stdout/stderr, junit, gate transcripts) behind receipts that already record their hashes and outcomes"
+    },
+    {
+      "original_path": "docs/validation/M4/deny-native/final/clean.stdout",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0,
+      "kind": "E-raw gate and runtime outputs (logs, stdout/stderr, junit, gate transcripts) behind receipts that already record their hashes and outcomes"
+    },
+    {
+      "original_path": "docs/validation/M4/deny-native/final/manifest-without-text.stdout",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0,
+      "kind": "E-raw gate and runtime outputs (logs, stdout/stderr, junit, gate transcripts) behind receipts that already record their hashes and outcomes"
+    },
+    {
+      "original_path": "docs/validation/M4/deny-native/final/text-not-allowed.stdout",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0,
+      "kind": "E-raw gate and runtime outputs (logs, stdout/stderr, junit, gate transcripts) behind receipts that already record their hashes and outcomes"
+    },
+    {
+      "original_path": "docs/validation/M4/full-gate-resume.txt",
+      "sha256": "2b4fa184606a7b06f59f1f3729e437b55345543764a49bf06c003eb160d90448",
+      "bytes": 9283,
+      "kind": "E-raw gate and runtime outputs (logs, stdout/stderr, junit, gate transcripts) behind receipts that already record their hashes and outcomes"
+    },
+    {
+      "original_path": "docs/validation/M4/full-gate.txt",
+      "sha256": "1378c96c74e708ff6026473ed2e7c4afe7fc5b80d94b6080d31ed4e6069cb60b",
+      "bytes": 227572,
+      "kind": "E-raw gate and runtime outputs (logs, stdout/stderr, junit, gate transcripts) behind receipts that already record their hashes and outcomes"
+    },
+    {
+      "original_path": "docs/validation/M4/miri-native/final/alias.junit.xml",
+      "sha256": "b3b932fda0a735279cb746a495d8f0f04d1f9022836e9dad840003d2e687b76a",
+      "bytes": 5211,
+      "kind": "E-raw gate and runtime outputs (logs, stdout/stderr, junit, gate transcripts) behind receipts that already record their hashes and outcomes"
+    },
+    {
+      "original_path": "docs/validation/M4/miri-native/final/alias.stderr",
+      "sha256": "388a31c46f9b75e0a3b3bd18672b79fad0dadd6e72166f595fa55ae6ee85edc0",
+      "bytes": 4389,
+      "kind": "E-raw gate and runtime outputs (logs, stdout/stderr, junit, gate transcripts) behind receipts that already record their hashes and outcomes"
+    },
+    {
+      "original_path": "docs/validation/M4/miri-native/final/alias.stdout",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0,
+      "kind": "E-raw gate and runtime outputs (logs, stdout/stderr, junit, gate transcripts) behind receipts that already record their hashes and outcomes"
+    },
+    {
+      "original_path": "docs/validation/M4/miri-native/final/benign-forged.junit.xml",
+      "sha256": "46cd9e446276142a21cf84f5f4c5ba904b4fec79b198adb155bbb58dd5219fb7",
+      "bytes": 784,
+      "kind": "E-raw gate and runtime outputs (logs, stdout/stderr, junit, gate transcripts) behind receipts that already record their hashes and outcomes"
+    },
+    {
+      "original_path": "docs/validation/M4/miri-native/final/benign-forged.stderr",
+      "sha256": "ba33cafa489029648c2fa0d52c8c21ca436c73d7cd34629371fd30e472472897",
+      "bytes": 1054,
+      "kind": "E-raw gate and runtime outputs (logs, stdout/stderr, junit, gate transcripts) behind receipts that already record their hashes and outcomes"
+    },
+    {
+      "original_path": "docs/validation/M4/miri-native/final/benign-forged.stdout",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0,
+      "kind": "E-raw gate and runtime outputs (logs, stdout/stderr, junit, gate transcripts) behind receipts that already record their hashes and outcomes"
+    },
+    {
+      "original_path": "docs/validation/M4/miri-native/final/binary-only.junit.xml",
+      "sha256": "96fc0d11eebed7e768828234520c994106fac570ac6a102adb68b701a8e4fa76",
+      "bytes": 479,
+      "kind": "E-raw gate and runtime outputs (logs, stdout/stderr, junit, gate transcripts) behind receipts that already record their hashes and outcomes"
+    },
+    {
+      "original_path": "docs/validation/M4/miri-native/final/binary-only.stderr",
+      "sha256": "81cc254f90c6c5232ab6382a09b18dced98f232ee14a67431d9543d14e026cd6",
+      "bytes": 1433,
+      "kind": "E-raw gate and runtime outputs (logs, stdout/stderr, junit, gate transcripts) behind receipts that already record their hashes and outcomes"
+    },
+    {
+      "original_path": "docs/validation/M4/miri-native/final/binary-only.stdout",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0,
+      "kind": "E-raw gate and runtime outputs (logs, stdout/stderr, junit, gate transcripts) behind receipts that already record their hashes and outcomes"
+    },
+    {
+      "original_path": "docs/validation/M4/miri-native/final/clean.junit.xml",
+      "sha256": "540eb27a94341ff074fd83feba187cb6aadaa47597a8c69abd7378e291319ed0",
+      "bytes": 468,
+      "kind": "E-raw gate and runtime outputs (logs, stdout/stderr, junit, gate transcripts) behind receipts that already record their hashes and outcomes"
+    },
+    {
+      "original_path": "docs/validation/M4/miri-native/final/clean.stderr",
+      "sha256": "0dcecf4e0721060c536b056b9ff35f7838c93faad3adbe149b5b743592de04f3",
+      "bytes": 831,
+      "kind": "E-raw gate and runtime outputs (logs, stdout/stderr, junit, gate transcripts) behind receipts that already record their hashes and outcomes"
+    },
+    {
+      "original_path": "docs/validation/M4/miri-native/final/clean.stdout",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0,
+      "kind": "E-raw gate and runtime outputs (logs, stdout/stderr, junit, gate transcripts) behind receipts that already record their hashes and outcomes"
+    },
+    {
+      "original_path": "docs/validation/M4/miri-native/final/compile-fail.stderr",
+      "sha256": "b98945496b68ed257fb1eb71e5b8e13e5f4afff2aaf75aa1fe318ab31d6a53d0",
+      "bytes": 3186,
+      "kind": "E-raw gate and runtime outputs (logs, stdout/stderr, junit, gate transcripts) behind receipts that already record their hashes and outcomes"
+    },
+    {
+      "original_path": "docs/validation/M4/miri-native/final/compile-fail.stdout",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0,
+      "kind": "E-raw gate and runtime outputs (logs, stdout/stderr, junit, gate transcripts) behind receipts that already record their hashes and outcomes"
+    },
+    {
+      "original_path": "docs/validation/M4/miri-native/final/empty.junit.xml",
+      "sha256": "a03735014c1b68c904473d0d3d136e1e7d94402ca3601a424ce9e6c36289350d",
+      "bytes": 230,
+      "kind": "E-raw gate and runtime outputs (logs, stdout/stderr, junit, gate transcripts) behind receipts that already record their hashes and outcomes"
+    },
+    {
+      "original_path": "docs/validation/M4/miri-native/final/empty.stderr",
+      "sha256": "ea5d9aa835020b1f266f3836dc44112d42ea6956b54ea867a73c291fa0edca64",
+      "bytes": 819,
+      "kind": "E-raw gate and runtime outputs (logs, stdout/stderr, junit, gate transcripts) behind receipts that already record their hashes and outcomes"
+    },
+    {
+      "original_path": "docs/validation/M4/miri-native/final/empty.stdout",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0,
+      "kind": "E-raw gate and runtime outputs (logs, stdout/stderr, junit, gate transcripts) behind receipts that already record their hashes and outcomes"
+    },
+    {
+      "original_path": "docs/validation/M4/miri-native/final/ffi.junit.xml",
+      "sha256": "d592d391288ebadcb8adcaac3b1bf104658b112f8b4c96b63592fdb8ede4e3bd",
+      "bytes": 2780,
+      "kind": "E-raw gate and runtime outputs (logs, stdout/stderr, junit, gate transcripts) behind receipts that already record their hashes and outcomes"
+    },
+    {
+      "original_path": "docs/validation/M4/miri-native/final/ffi.stderr",
+      "sha256": "7afce284766ea49152951220ae250a4282049020456b9b48f9df024d7e1b1787",
+      "bytes": 2572,
+      "kind": "E-raw gate and runtime outputs (logs, stdout/stderr, junit, gate transcripts) behind receipts that already record their hashes and outcomes"
+    },
+    {
+      "original_path": "docs/validation/M4/miri-native/final/ffi.stdout",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0,
+      "kind": "E-raw gate and runtime outputs (logs, stdout/stderr, junit, gate transcripts) behind receipts that already record their hashes and outcomes"
+    },
+    {
+      "original_path": "docs/validation/M4/miri-native/final/ignored.junit.xml",
+      "sha256": "2f1c9e1733a55b561b75b73b4d1744ab9d8d502a7bdcee67c72e385f2f3c9baf",
+      "bytes": 539,
+      "kind": "E-raw gate and runtime outputs (logs, stdout/stderr, junit, gate transcripts) behind receipts that already record their hashes and outcomes"
+    },
+    {
+      "original_path": "docs/validation/M4/miri-native/final/ignored.stderr",
+      "sha256": "7272e99eba610399706bf214efab8a3f160bf2edc58d7b08844dbbdf83d95c37",
+      "bytes": 838,
+      "kind": "E-raw gate and runtime outputs (logs, stdout/stderr, junit, gate transcripts) behind receipts that already record their hashes and outcomes"
+    },
+    {
+      "original_path": "docs/validation/M4/miri-native/final/ignored.stdout",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0,
+      "kind": "E-raw gate and runtime outputs (logs, stdout/stderr, junit, gate transcripts) behind receipts that already record their hashes and outcomes"
+    },
+    {
+      "original_path": "docs/validation/M4/miri-native/final/optimized-panic.junit.xml",
+      "sha256": "92992e6bc8fdee8d6d0df42b52b6ac434222c927bd7902c445c1c3ad05107d61",
+      "bytes": 1362,
+      "kind": "E-raw gate and runtime outputs (logs, stdout/stderr, junit, gate transcripts) behind receipts that already record their hashes and outcomes"
+    },
+    {
+      "original_path": "docs/validation/M4/miri-native/final/optimized-panic.stderr",
+      "sha256": "3811a9cd93d42daf20a77b376f1fd4c95708a5d442403f35d1f0f3fc0f91525e",
+      "bytes": 1575,
+      "kind": "E-raw gate and runtime outputs (logs, stdout/stderr, junit, gate transcripts) behind receipts that already record their hashes and outcomes"
+    },
+    {
+      "original_path": "docs/validation/M4/miri-native/final/optimized-panic.stdout",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0,
+      "kind": "E-raw gate and runtime outputs (logs, stdout/stderr, junit, gate transcripts) behind receipts that already record their hashes and outcomes"
+    },
+    {
+      "original_path": "docs/validation/M4/miri-native/final/race.junit.xml",
+      "sha256": "56d7ae7af7496ef7825033d8d94de7fb772bb373c582043ffe08c983550cbe7d",
+      "bytes": 5681,
+      "kind": "E-raw gate and runtime outputs (logs, stdout/stderr, junit, gate transcripts) behind receipts that already record their hashes and outcomes"
+    },
+    {
+      "original_path": "docs/validation/M4/miri-native/final/race.stderr",
+      "sha256": "6dceada86b587d51f892eaab68191cfe498626a53784bf3ae1d1d4ae615bedce",
+      "bytes": 4691,
+      "kind": "E-raw gate and runtime outputs (logs, stdout/stderr, junit, gate transcripts) behind receipts that already record their hashes and outcomes"
+    },
+    {
+      "original_path": "docs/validation/M4/miri-native/final/race.stdout",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0,
+      "kind": "E-raw gate and runtime outputs (logs, stdout/stderr, junit, gate transcripts) behind receipts that already record their hashes and outcomes"
+    },
+    {
+      "original_path": "docs/validation/M4/miri-native/final/runner-timeout.junit.xml",
+      "sha256": "7269992e91729c41585f64a36b56e625335dd54e6b4ac8ba63321bf80d1c8cf7",
+      "bytes": 600,
+      "kind": "E-raw gate and runtime outputs (logs, stdout/stderr, junit, gate transcripts) behind receipts that already record their hashes and outcomes"
+    },
+    {
+      "original_path": "docs/validation/M4/miri-native/final/runner-timeout.stderr",
+      "sha256": "cd070a05cb9179edb189caea31192d863398bd42bb1c8f1ba822127f98cd3166",
+      "bytes": 1020,
+      "kind": "E-raw gate and runtime outputs (logs, stdout/stderr, junit, gate transcripts) behind receipts that already record their hashes and outcomes"
+    },
+    {
+      "original_path": "docs/validation/M4/miri-native/final/runner-timeout.stdout",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0,
+      "kind": "E-raw gate and runtime outputs (logs, stdout/stderr, junit, gate transcripts) behind receipts that already record their hashes and outcomes"
+    },
+    {
+      "original_path": "docs/validation/M4/miri-native/final/uaf.junit.xml",
+      "sha256": "6e5bb83afcef9c167dfa0a2c83c4a89aca41aeaf6b6d5db9454d7d768082030d",
+      "bytes": 4803,
+      "kind": "E-raw gate and runtime outputs (logs, stdout/stderr, junit, gate transcripts) behind receipts that already record their hashes and outcomes"
+    },
+    {
+      "original_path": "docs/validation/M4/miri-native/final/uaf.stderr",
+      "sha256": "6f4e6e6aaa1cb87b1cf88e9395465fa7da8ba88ca4985c371440d82e19da868a",
+      "bytes": 4009,
+      "kind": "E-raw gate and runtime outputs (logs, stdout/stderr, junit, gate transcripts) behind receipts that already record their hashes and outcomes"
+    },
+    {
+      "original_path": "docs/validation/M4/miri-native/final/uaf.stdout",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0,
+      "kind": "E-raw gate and runtime outputs (logs, stdout/stderr, junit, gate transcripts) behind receipts that already record their hashes and outcomes"
+    },
+    {
+      "original_path": "docs/validation/M4/miri-native/final/uninit.junit.xml",
+      "sha256": "9dc44ea4ea7dfa2381521d4a7032c79299b4c152103ead022e5a91d61fe3351d",
+      "bytes": 3248,
+      "kind": "E-raw gate and runtime outputs (logs, stdout/stderr, junit, gate transcripts) behind receipts that already record their hashes and outcomes"
+    },
+    {
+      "original_path": "docs/validation/M4/miri-native/final/uninit.stderr",
+      "sha256": "b0c3594849ca6eb83e85b08ddc76860efc2fb09c3cc244ac36d938736445000c",
+      "bytes": 2978,
+      "kind": "E-raw gate and runtime outputs (logs, stdout/stderr, junit, gate transcripts) behind receipts that already record their hashes and outcomes"
+    },
+    {
+      "original_path": "docs/validation/M4/miri-native/final/uninit.stdout",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0,
+      "kind": "E-raw gate and runtime outputs (logs, stdout/stderr, junit, gate transcripts) behind receipts that already record their hashes and outcomes"
+    },
+    {
+      "original_path": "docs/validation/M4/scanner-native/native.txt",
+      "sha256": "1bc2d6e5e6f67ba890ceefce417554e00c431909ed18347711340551eb3e6ca8",
+      "bytes": 586,
+      "kind": "E-raw gate and runtime outputs (logs, stdout/stderr, junit, gate transcripts) behind receipts that already record their hashes and outcomes"
+    },
+    {
+      "original_path": "docs/validation/M4/tools-mcp/attempt-1.txt",
+      "sha256": "8f90d1f6ebf0247dd0eea3f3f8eead439e2f3cb9fef4930ca741e36d09af5dde",
+      "bytes": 2051,
+      "kind": "E-raw gate and runtime outputs (logs, stdout/stderr, junit, gate transcripts) behind receipts that already record their hashes and outcomes"
+    },
+    {
+      "original_path": "docs/validation/M4/tools-mcp/attempt-2.txt",
+      "sha256": "712a2c6516eca3316ea23aee3f6df237e968f583c6bf6abba000f9d55ad203a0",
+      "bytes": 14938,
+      "kind": "E-raw gate and runtime outputs (logs, stdout/stderr, junit, gate transcripts) behind receipts that already record their hashes and outcomes"
+    },
+    {
+      "original_path": "docs/validation/M4/tools-mcp/attempt-3.txt",
+      "sha256": "7d5d9263275ba212437069fabff1bcd3536696602d0e26479f91ccdc2ae713e8",
+      "bytes": 14838,
+      "kind": "E-raw gate and runtime outputs (logs, stdout/stderr, junit, gate transcripts) behind receipts that already record their hashes and outcomes"
+    },
+    {
+      "original_path": "docs/validation/M4/tools-mcp/attempt-4.txt",
+      "sha256": "20d08654ee24c381a3697ef01cc3479f97e9b504182f0ce017f4f13b456fa677",
+      "bytes": 15069,
+      "kind": "E-raw gate and runtime outputs (logs, stdout/stderr, junit, gate transcripts) behind receipts that already record their hashes and outcomes"
+    },
+    {
+      "original_path": "docs/validation/M4/tools-mcp/attempt-5.txt",
+      "sha256": "6785c20a585e72535bdafdc73d09abba6bc25105232f71303580a278539e7cf7",
+      "bytes": 1547,
+      "kind": "E-raw gate and runtime outputs (logs, stdout/stderr, junit, gate transcripts) behind receipts that already record their hashes and outcomes"
+    },
+    {
+      "original_path": "docs/validation/M4/tools-mcp/attempt-6.txt",
+      "sha256": "fb62c5610fa542238fb0c37f5622296608fd69380229e1b329eccd752216154b",
+      "bytes": 946,
+      "kind": "E-raw gate and runtime outputs (logs, stdout/stderr, junit, gate transcripts) behind receipts that already record their hashes and outcomes"
+    },
+    {
+      "original_path": "docs/validation/M4/tools-mcp/attempt-7.txt",
+      "sha256": "ba278bffd9b24689df92a4ee2c9342c3fac21c16b179b9f8cdf89c78f9409fc8",
+      "bytes": 1487,
+      "kind": "E-raw gate and runtime outputs (logs, stdout/stderr, junit, gate transcripts) behind receipts that already record their hashes and outcomes"
+    },
+    {
+      "original_path": "docs/validation/M4/tools-mcp/attempt-8.txt",
+      "sha256": "d4688548e8f462abb0c1484e8f8c0399545c49dbe221be6d032064e9e2f86d48",
+      "bytes": 13773,
+      "kind": "E-raw gate and runtime outputs (logs, stdout/stderr, junit, gate transcripts) behind receipts that already record their hashes and outcomes"
+    },
+    {
+      "original_path": "docs/validation/M4/tools-mcp/native.txt",
+      "sha256": "3b8d96b2412b9a6acd11fa326a2d8a64b47ef611d17f4377ba2846a71fb772c6",
+      "bytes": 724,
+      "kind": "E-raw gate and runtime outputs (logs, stdout/stderr, junit, gate transcripts) behind receipts that already record their hashes and outcomes"
     }
   ],
   "retired_groups": [
@@ -1783,6 +2125,16 @@
       "aggregate_rule": "sha256 over the sorted lines \"<sha256>  <original_path>\\n\"",
       "last_commit_with_bytes": "e31af914d12bef34e11fbe67b87f942d75de294c",
       "retired_at": "2026-09-11T17:41:43.936200+00:00"
+    },
+    {
+      "kind": "E-raw gate and runtime outputs (logs, stdout/stderr, junit, gate transcripts) behind receipts that already record their hashes and outcomes",
+      "reason": "raw gate and runtime outputs (logs, stdout/stderr, junit, gate transcripts) behind receipts that already record their hashes and outcomes",
+      "files": 57,
+      "bytes": 537489,
+      "aggregate_sha256": "7c64cd9c10b192fc415cd28b556caca6c6c687bf24acd4214e9f2949507e21e9",
+      "aggregate_rule": "sha256 over the sorted lines \"<sha256>  <original_path>\\n\"",
+      "last_commit_with_bytes": "87a1d18decc4b6d4c2fe6144b9de71518b90ac94",
+      "retired_at": "2026-09-11T17:42:09.012883+00:00"
     }
   ]
 }
