@@ -63,6 +63,7 @@ corte lo exige); Gemini 3.8 Flash High para investigación/trazabilidad.
 | ID | Agente | Alcance | Estado |
 | --- | --- | --- | --- |
 | [R01-ra-research](R01-ra-research/prompt-header.md) | Gemini 3.8 Flash High | Hechos verificables de rust-analyzer 1.98.1 / LSP 3.17 para D25/D26 (encoding, readiness, config hostil, procesos externos, sysroot, símbolos/referencias/diagnósticos/acciones, lifecycle) | **Bloqueado**: `agy` headless deniega `read_url`; el clasificador del host bloqueó las variantes que lo habilitan. Decisión del owner pendiente |
+| [I01-integration](I01-integration/disposition.md) | Claude Sonnet 5 | Commit del registro de coordinación y del dossier (sin edición de archivos) | **Hecho**: `2970c96` |
 
 ## 4. Decisiones del owner pendientes (paran el corte M6-01)
 
