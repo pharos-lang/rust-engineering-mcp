@@ -59,7 +59,10 @@ CURRENT = ROOT / "docs/validation/M5-clients.json"
 PREFLIGHT = ROOT / "docs/validation/M5-clients-preflight.json"
 SERVER = ROOT / "target/release/rust-engineering-mcp"
 NODE = pathlib.Path("/Users/cburgosro/.nvm/versions/node/v24.15.0/bin/node")
-CLAUDE = pathlib.Path("/Users/cburgosro/.local/bin/claude")
+# The versioned executable, not the `~/.local/bin/claude` symlink: Claude Code
+# auto-updates the symlink (2.1.267 -> 2.1.268 on 2026-09-10) and the gate pins
+# one version whose bytes the receipt records by SHA-256.
+CLAUDE = pathlib.Path("/Users/cburgosro/.local/share/claude/versions/2.1.267")
 INSPECTOR = ROOT / "target/m1-17-inspector/node_modules/@modelcontextprotocol/inspector/clients/cli/build/index.js"
 INSPECTOR_PACKAGE = ROOT / "target/m1-17-inspector/node_modules/@modelcontextprotocol/inspector/package.json"
 DOCKER = pathlib.Path("/Applications/Docker.app/Contents/Resources/bin/docker")
