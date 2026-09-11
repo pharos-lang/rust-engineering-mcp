@@ -7,7 +7,7 @@ verified that the quality profile differs from the base profile by exactly one
 rule: an AF_UNIX anonymous stream `socketpair`, with creation flags masked out;
 `socket`, `bind`, `connect`, `listen` and `accept` remain absent. It also verified
 that the applied container is checked against the phase-declared profile, so a
-wider profile fails closed ([V-SEC](../validation/M3/delegation/V-SEC/last-message.md)).
+wider profile fails closed ([V-SEC](../validation/M3/history/inventory.json)).
 The approved guest image passed the M3 runtime gate at 62/62 and the Rust
 security gate at 20/20 ([runtime receipt](../validation/M3/runtime.json),
 [Rust security receipt](../validation/M3/rust-security.json)).

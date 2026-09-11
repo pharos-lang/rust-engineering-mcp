@@ -8,8 +8,8 @@ profdata in the configured target directory. The independent security and final
 reviews judged the amended shape contained: the target is a per-job tmpfs absent
 from every exporter and every non-coverage phase, read-only for the keeper, and
 destroyed at cleanup. The mount matrix is pinned by literal per-phase
-expectations and negative mutations ([V-SEC](../validation/M3/delegation/V-SEC/last-message.md),
-[final review](../validation/M3/delegation/VF-opus-final/last-message.md)). The
+expectations and negative mutations ([V-SEC](../validation/M3/history/inventory.json),
+[final review](../validation/M3/history/inventory.json)). The
 approved guest image passed the M3 runtime gate at 62/62 and the Rust security
 gate at 20/20 ([runtime receipt](../validation/M3/runtime.json),
 [Rust security receipt](../validation/M3/rust-security.json)).

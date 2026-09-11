@@ -165,7 +165,7 @@ configuration digest
 Provisioning verification passed 47/47 observations. The source-bound receipts
 are [M3-provisioning.json](../validation/M3/provisioning.json),
 [M3-image-config.json](../validation/M3/image-config.json),
-[P02 delivery](../validation/M3/delegation/P02-provision-run/last-message.md),
+[P02 delivery](../validation/M3/history/inventory.json),
 and the [M3-01 security receipt](../validation/M3/01-rust-security.json).
 
 ## Sources
