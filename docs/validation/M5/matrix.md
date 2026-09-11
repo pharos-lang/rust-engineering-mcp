@@ -191,3 +191,15 @@ contratos anteriores, no el candidato nuevo. El oráculo de que Criterion no cab
 en SourceBundle permanece válido para esa vía; no implica que la captura
 independiente de ADR-078 esté bloqueada. Las calibraciones históricas y revisiones
 originales permanecen en sus rutas; no se cambian números medidos para cerrar M5.
+
+## Gate tras la reordenación del repositorio (2026-09-11)
+
+La rama `ai/repo-hygiene` movió la evidencia a un paquete por milestone sin
+tocar código, gates, fixtures, vendor, `Cargo.*`, ADRs ni contratos. El
+[`core` aprobado](core-gate-repo-hygiene.json) sobre un worktree limpio de
+esa rama (23/23, 1 717 tests Rust y 108 Python, 1 149 fuentes sin cambios)
+acredita que los scripts con rutas actualizadas pasan y que los bytes del
+producto son los de `v0.3.0`. Los dos intentos previos —un binario release
+ausente del worktree y un flake del monitor de descendientes reproducido a
+solas en verde— se conservan en
+[gate-attempts](history/gate-attempts/README.md#reordenación-del-repositorio--2026-09-11-core-sobre-a3ce362-dos-intentos-fallidos-y-uno-aprobado).

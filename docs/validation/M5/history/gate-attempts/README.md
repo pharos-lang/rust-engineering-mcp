@@ -212,3 +212,31 @@ conserva junto al [gate nativo independiente](../../native-gate.json) sin
 sustituirlo. Los recibos `core` y `full` de la primera pasada (lock 0.38.0)
 permanecen en [`closure-core-lock-0.38.0`](closure-core-lock-0.38.0/) y
 [`closure-full-attempt-2`](closure-full-attempt-2/).
+
+## Reordenación del repositorio — 2026-09-11, `core` sobre `a3ce362`, dos intentos fallidos y uno aprobado
+
+Recibos: [intento 1](repo-hygiene-core-attempt-1.json) · [intento 2](repo-hygiene-core-attempt-2.json) ·
+[**aprobado**](../../core-gate-repo-hygiene.json). Corridos a solas sobre un
+worktree limpio de la rama `ai/repo-hygiene` (fuentes de `a3ce362`: crates
+idénticos a `v0.3.0`, `scripts/docs-hygiene.py` nuevo) con la caché de
+`target/` del árbol principal compartida vía `CARGO_TARGET_DIR`.
+
+- **Intento 1** falló en el paso 11, `m4-client-harness-tests`: el worktree no
+  tenía `target/release/rust-engineering-mcp` porque la caché compartida deja
+  el binario fuera de él y el gate no lo construye. Omisión del entorno del
+  arnés, no señal del producto. Se construyó el binario release desde las
+  fuentes del worktree (`0.3.0`, SHA-256 `0a6081cf…`) y se dejó en su sitio.
+- **Intento 2** falló en el paso 10, `codex-qualifier-tests`:
+  `test_fake_end_to_end_source_immutable_and_cleanup` registró
+  `monitor:live descendant executable unresolved:…:ProcessLookupError`, una
+  carrera del monitor de descendientes con un hijo que ya había salido. Es la
+  misma clase de flake que este registro documenta más arriba para la misma
+  suite. Criterio fijado antes de reproducir: a solas y con `load` bajo, si
+  pasa es flake y no se toca el test. Reproducida dos veces a solas en el
+  mismo worktree: 39/39 OK, `load` 2,6. Sin cambios en el test ni en su
+  temporización; el gate se repite entero.
+- **Intento 3, aprobado**: 23/23 pasos en 27 min, 1 717 tests Rust y 108
+  Python, inventario de 1 149 fuentes idéntico al inicio y al final. Acredita
+  que la reordenación no cambió ningún byte de `crates/`, `fixtures/`,
+  `vendor/`, `.cargo/` ni `.github/` y que los scripts con rutas actualizadas
+  pasan sus pruebas.

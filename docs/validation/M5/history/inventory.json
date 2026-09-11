@@ -1,9 +1,9 @@
 {
   "schema": "rust-mcp-evidence-history-inventory-v1",
   "milestone": "M5",
-  "recorded_at": "2026-09-11T13:14:33.197718+00:00",
+  "recorded_at": "2026-09-11T15:51:11.966061+00:00",
   "source_commit": "9546c85697b2e8e3a8756a188b502b4f02aa59b0",
-  "purpose": "Superseded or failed evidence kept next to the current receipts of this milestone. Bytes are moved with git mv, never edited: each entry records the pre-hygiene path, SHA-256 and size. Retired entries were removed from the tree after their hash was recorded; their bytes remain reachable in Git history at source_commit.",
+  "purpose": "Superseded or failed evidence kept next to the current receipts of this milestone. Bytes are moved with git mv, never edited: each entry records the pre-hygiene path, SHA-256 and size. Retired entries were removed from the tree after their hash was recorded; their bytes remain reachable in Git history at source_commit. Entries marked living are prose kept next to the receipts; they are verified by presence only.",
   "retained": [
     {
       "path": "00-admission-runtime-superseded-0e21c561.json",
@@ -162,9 +162,10 @@
     {
       "path": "gate-attempts/README.md",
       "original_path": "docs/validation/m5-gate-attempts/README.md",
-      "sha256": "c88db29ddcf2cd607d0e9c7a3824f8eb5a032dbec970046cfa4a0d92059140b8",
-      "bytes": 12258,
-      "reason": "Failed or intermediate M5 closure gate attempt preserved whole; see gate-attempts/README.md."
+      "sha256": "8979c3e75d0c5707d2da5b2bfa22eaebd63d79158de092f78a6ad4087cc0fa64",
+      "bytes": 14117,
+      "reason": "Failed or intermediate M5 closure gate attempt preserved whole; see gate-attempts/README.md.",
+      "living": true
     },
     {
       "path": "gate-attempts/closure-core-lock-0.31.0/core-gate.txt",
@@ -494,6 +495,20 @@
       "sha256": "be029ccb69e0bee66d41199d5fd505f5b1951876f4a83a6f9604edde567fa01d",
       "bytes": 28853,
       "reason": "runtime receipt superseded at commit 0e21c561 by the M5 closure requalification; current receipt: docs/validation/M5/runtime.json."
+    },
+    {
+      "path": "gate-attempts/repo-hygiene-core-attempt-1.json",
+      "original_path": "docs/validation/M5/history/gate-attempts/repo-hygiene-core-attempt-1.json",
+      "sha256": "87e5ce738128c28f360fa0c190a272755e0ce85e8357149866a4fbd663f7bb59",
+      "bytes": 285759,
+      "reason": "core gate over the hygiene worktree failed at m4-client-harness-tests: the worktree had no target/release/rust-engineering-mcp because the shared CARGO_TARGET_DIR kept the binary outside it (harness environment omission, not a product signal); the binary was then built from the worktree sources and staged; current receipt: docs/validation/M5/core-gate-repo-hygiene.json."
+    },
+    {
+      "path": "gate-attempts/repo-hygiene-core-attempt-2.json",
+      "original_path": "docs/validation/M5/history/gate-attempts/repo-hygiene-core-attempt-2.json",
+      "sha256": "27502baae03a63c3cd306193fcf5cfa83e4e986168db618b9f54343a45230906",
+      "bytes": 285077,
+      "reason": "core gate failed at codex-qualifier-tests: test_fake_end_to_end_source_immutable_and_cleanup hit a descendant-monitor ProcessLookupError race; reproduced alone twice in the same worktree with 39/39 OK at load 2.6, classified as timing flake per the M5 attempt policy; test untouched, gate rerun whole; current receipt: docs/validation/M5/core-gate-repo-hygiene.json."
     }
   ],
   "retired": [

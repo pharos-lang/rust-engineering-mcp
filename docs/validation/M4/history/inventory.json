@@ -1,9 +1,9 @@
 {
   "schema": "rust-mcp-evidence-history-inventory-v1",
   "milestone": "M4",
-  "recorded_at": "2026-09-11T13:14:33.196787+00:00",
+  "recorded_at": "2026-09-11T15:51:11.964833+00:00",
   "source_commit": "d3b5ad7f9d046ede51752e10ebac32261fd47e10",
-  "purpose": "Superseded or failed evidence kept next to the current receipts of this milestone. Bytes are moved with git mv, never edited: each entry records the pre-hygiene path, SHA-256 and size. Retired entries were removed from the tree after their hash was recorded; their bytes remain reachable in Git history at source_commit.",
+  "purpose": "Superseded or failed evidence kept next to the current receipts of this milestone. Bytes are moved with git mv, never edited: each entry records the pre-hygiene path, SHA-256 and size. Retired entries were removed from the tree after their hash was recorded; their bytes remain reachable in Git history at source_commit. Entries marked living are prose kept next to the receipts; they are verified by presence only.",
   "retained": [
     {
       "path": "client-execution-before-corpus-refresh.json",
@@ -31,7 +31,8 @@
       "original_path": "docs/validation/M4-hardening-attempts/README.md",
       "sha256": "cd83ae6b22217a3874c0a506af7293f558f71d4bee56a2639b5fce8247250310",
       "bytes": 2804,
-      "reason": "Failed M4 hardening qualification attempt preserved as evidence; not a pass. See hardening-attempts/README.md."
+      "reason": "Failed M4 hardening qualification attempt preserved as evidence; not a pass. See hardening-attempts/README.md.",
+      "living": true
     },
     {
       "path": "hardening-attempts/core-attempt-1/disposition.json",
@@ -66,7 +67,8 @@
       "original_path": "docs/validation/M4-hardening-attempts/full-attempt-1/disposition.md",
       "sha256": "0a473c3f35c28f49523878da47eedc10b6829f1f6174ae476f9e95d7305a5b8f",
       "bytes": 1138,
-      "reason": "Failed M4 hardening qualification attempt preserved as evidence; not a pass. See hardening-attempts/README.md."
+      "reason": "Failed M4 hardening qualification attempt preserved as evidence; not a pass. See hardening-attempts/README.md.",
+      "living": true
     },
     {
       "path": "hardening-attempts/full-attempt-1/gate.txt",
@@ -185,7 +187,8 @@
       "original_path": "docs/validation/M4-hardening-attempts/stdout-diagnostic/disposition.md",
       "sha256": "1b542152e2bd1afcc9777b75b16f28620ea406283c8b5d2679b72310b8d191fa",
       "bytes": 1228,
-      "reason": "Failed M4 hardening qualification attempt preserved as evidence; not a pass. See hardening-attempts/README.md."
+      "reason": "Failed M4 hardening qualification attempt preserved as evidence; not a pass. See hardening-attempts/README.md.",
+      "living": true
     },
     {
       "path": "hardening-attempts/stdout-diagnostic/isolated-30.json",

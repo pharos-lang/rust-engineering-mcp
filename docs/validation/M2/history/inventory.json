@@ -1,9 +1,9 @@
 {
   "schema": "rust-mcp-evidence-history-inventory-v1",
   "milestone": "M2",
-  "recorded_at": "2026-09-11T13:12:09.868509+00:00",
+  "recorded_at": "2026-09-11T15:51:11.959463+00:00",
   "source_commit": "08857cc01dc058add53a72d138c68ef6de7af6dd",
-  "purpose": "Superseded or failed evidence kept next to the current receipts of this milestone. Bytes are moved with git mv, never edited: each entry records the pre-hygiene path, SHA-256 and size. Retired entries were removed from the tree after their hash was recorded; their bytes remain reachable in Git history at source_commit.",
+  "purpose": "Superseded or failed evidence kept next to the current receipts of this milestone. Bytes are moved with git mv, never edited: each entry records the pre-hygiene path, SHA-256 and size. Retired entries were removed from the tree after their hash was recorded; their bytes remain reachable in Git history at source_commit. Entries marked living are prose kept next to the receipts; they are verified by presence only.",
   "retained": [
     {
       "path": "full-attempt1.json",
@@ -52,7 +52,8 @@
       "original_path": "docs/validation/m2-pre-059/README.md",
       "sha256": "750e460702c0022035bb81444324714499ee888a0d358d67e50d16a8875b2bc5",
       "bytes": 530,
-      "reason": "Snapshot of the M2 full/runtime evidence captured before ADR-059; superseded by the re-run gate on the corrected source (docs/validation/M2/full-gate.json)."
+      "reason": "Snapshot of the M2 full/runtime evidence captured before ADR-059; superseded by the re-run gate on the corrected source (docs/validation/M2/full-gate.json).",
+      "living": true
     },
     {
       "path": "pre-059/m2-final-gate/doctor-security/active.stderr.log",
