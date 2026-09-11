@@ -188,7 +188,18 @@ en 1 m 41 s y la selección pasó en 16,3 s
 (`M3_TASK_REVOCATION_RECEIPT {"active_child":true,"joined_cleanup":true,"masked_ms":370,"publication_visible":false}`).
 No se tocó el test ni su timeout. `full` se repite entero.
 
-## Resultado — 2026-09-10, `full` sobre el lock 0.31.0, **passed**
+## Resultado final — 2026-09-11, `full` sobre los bytes del PR #17, **passed**
+
+[M5-full-gate.json](../M5-full-gate.json) · [log](closure-full-lock-0.31.0/full-gate-final.txt).
+Corrido a solas sobre el worktree limpio en `45d339f` (fuentes de `34bd428`:
+workspace `0.3.0`, verificador de smoke de release para 31 tools y saneado de
+argumentos del utillaje M5): 38/38 pasos en 1 h 48 min, 1752 tests Rust y 108
+Python, fuentes sin cambios; `semantic` en 35 s y `m5-runtime` conjunto en
+364 s. El [`core`](../M5-core-gate.json) previo sobre los mismos bytes pasó
+23/23. La pasada anterior sobre `ab4eed9` (abajo) acreditó el mismo código en
+`0.3.0-dev`.
+
+## Resultado — 2026-09-10, `full` sobre el lock 0.31.0 en `0.3.0-dev`, **passed**
 
 [M5-full-gate.json](../M5-full-gate.json) · [log](closure-full-lock-0.31.0/full-gate.txt) ·
 [etapa `m5-runtime` conjunta](closure-full-lock-0.31.0/m5-runtime-joint/). Corrido a

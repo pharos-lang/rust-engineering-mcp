@@ -4,8 +4,9 @@ Estado: **Done local**, 2026-09-10. Cierre local autorizado por
 [complete-m5](../prompts/complete-m5.md) y continuado por
 [finish-m5-fable](../prompts/finish-m5-fable.md). Rama `ai/m5-performance`;
 `main` permanece en `c6099f27415b0be3838e84d21d25eed903c8c312`. M5-01..05 y
-G1–G9 están demostrados sobre el lock con `lancedb 0.31.0` (opción 2a): suite
-nativa 6/6, matriz de clientes, `core` 23/23 y `full` 38/38. La integración
+G1–G9 están demostrados sobre el lock con `lancedb 0.31.0` (opción 2a) y el
+workspace `0.3.0`: suite nativa 6/6, matriz de clientes, `core` 23/23 y `full`
+38/38. La integración
 remota, su smoke y cualquier release siguen pendientes de autorización; M6 no
 está iniciado.
 
@@ -40,7 +41,9 @@ quedan fuera de esta autorización. M6 no está iniciado.
 
 [M5-native-gate.json](M5-native-gate.json) registra seis selecciones aprobadas,
 cada una exacta, ignorada y serial, sobre `37805f6` (lock con `lancedb 0.31.0`,
-código Rust idéntico a `a2464c4`), en 6 m 14 s. La misma suite había pasado 6/6
+código Rust idéntico a `a2464c4` y al de `0.3.0`, que solo cambia la versión
+del workspace), en 6 m 14 s; la etapa `m5-runtime` del `full` final la repite
+sobre `45d339f`. La misma suite había pasado 6/6
 sobre el lock anterior; ese recibo se conserva en
 [m5-closure-history/lock-0.38.0](m5-closure-history/lock-0.38.0/).
 
@@ -60,9 +63,9 @@ etapa dentro del conjunto.
 
 ## Matriz de clientes final
 
-[M5-clients.json](M5-clients.json) (attempt-7, HEAD `a19d741`, servidor
-`2c396063…` sobre el lock 0.31.0; attempt-6 midió lo mismo sobre el lock
-anterior): Inspector 2.5.0 convierte quince filas —ocho docker-free y siete
+[M5-clients.json](M5-clients.json) (attempt-9, HEAD `34bd428`, servidor
+`53be298c…` del workspace `0.3.0`; attempt-7 midió lo mismo en `0.3.0-dev` y
+attempt-6 sobre el lock anterior): Inspector 2.5.0 convierte quince filas —ocho docker-free y siete
 runtime— y lee catorce Resources en runtime; Claude Code 2.1.267
 (`claude-sonnet-5`) completa el turno docker-free con los cuatro rechazos
 declarados y el turno runtime con siete llamadas exactas: open, discovery, dos
@@ -76,10 +79,12 @@ revisión independiente (Gemini 3.8 y Claude Sonnet 5) están dispuestos en
 
 ## Gates conjuntos
 
-[M5-core-gate.json](M5-core-gate.json): `core` sobre `ab4eed9`, 23/23 pasos,
-1717 tests Rust y 108 Python, 1148 fuentes inventariadas sin cambios.
+[M5-core-gate.json](M5-core-gate.json): `core` sobre `45d339f` (fuentes de
+`34bd428`, workspace `0.3.0`), 23/23 pasos, 1717 tests Rust y 108 Python, 1148
+fuentes inventariadas sin cambios. La pasada anterior sobre `ab4eed9`
+(`0.3.0-dev`) dio el mismo resultado.
 
-[M5-full-gate.json](M5-full-gate.json): `full` sobre `ab4eed9`, **38/38 pasos**
+[M5-full-gate.json](M5-full-gate.json): `full` sobre `45d339f`, **38/38 pasos**
 en 2 h 16 min, 1752 tests Rust y 108 Python, fuentes sin cambios; `semantic` pasó
 con Lance 8 en 219 s y la etapa `m5-runtime` produjo su recibo dentro del
 conjunto en 368 s. Ambas mediciones nativas —independiente y conjunta— se

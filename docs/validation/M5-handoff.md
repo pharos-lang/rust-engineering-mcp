@@ -5,7 +5,7 @@ Fecha: 2026-09-10. Rama `ai/m5-performance`; base `main`
 
 **Done local.** La [matriz M5](M5-matrix.md) es el estado por corte: suite
 nativa 6/6, matriz de clientes, `core` 23/23 y `full` 38/38 sobre el lock con
-`lancedb 0.31.0` (`ab4eed9`). El owner autorizó completar M5 con commits locales; no autorizó push,
+`lancedb 0.31.0` y el workspace `0.3.0` (`45d339f`, fuentes de `34bd428`). El owner autorizó completar M5 con commits locales; no autorizó push,
 PR, merge, tag, release ni M6. Las subidas de dependencias ya incorporadas en
 `a3cb48c` se conservan sin separarlas ni modificarlas.
 
