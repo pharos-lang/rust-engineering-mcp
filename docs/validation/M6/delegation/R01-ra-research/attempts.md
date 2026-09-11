@@ -15,3 +15,16 @@ autorizar expresamente la invocación `--sandbox --dangerously-skip-permissions`
 desde un cwd sin acceso al repositorio). Sin acceso web, Gemini solo podría
 responder desde memoria, que el paquete prohíbe expresamente («never fill the
 gap from memory»); no se lanza una investigación que no pueda citar fuentes.
+
+## Resolución (2026-09-11, misma sesión)
+
+La regla `read_url(*)` ya estaba en los permisos de proyecto de `agy`
+(`~/.gemini/config/projects/default-cli-project.json`, junto a `command(*)`);
+los intentos 0–2 la ignoraban porque el cwd era el scratchpad, fuera del
+proyecto. Sondas desde `/Users/cburgosro/Projects/rust-mcp`: sin `--sandbox`
+y con `--sandbox`, ambas `SUCCESS` con `denied_actions: None` y respuesta real
+(`rust-analyzer.procMacro.enable`).
+
+| # | Fecha (UTC) | Comando | Resultado |
+| --- | --- | --- | --- |
+| 3 | 2026-09-11 22:12–22:22 UTC | `agy --model gemini-3.8-flash-high --effort high --sandbox --print-timeout 45m --output-format json -p="$(cat prompt-header.md)"` desde el repo (`agy` 1.2.0) | `SUCCESS`, `denied_actions: None`, 586,9 s, 1 192 004 tokens (24 fuentes primarias citadas). Informe en [report.md](report.md); disposición en [disposition.md](disposition.md); hash del transcript en `transcripts.sha256` |

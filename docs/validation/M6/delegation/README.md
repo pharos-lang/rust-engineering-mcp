@@ -62,19 +62,25 @@ corte lo exige); Gemini 3.8 Flash High para investigación/trazabilidad.
 
 | ID | Agente | Alcance | Estado |
 | --- | --- | --- | --- |
-| [R01-ra-research](R01-ra-research/prompt-header.md) | Gemini 3.8 Flash High | Hechos verificables de rust-analyzer 1.98.1 / LSP 3.17 para D25/D26 (encoding, readiness, config hostil, procesos externos, sysroot, símbolos/referencias/diagnósticos/acciones, lifecycle) | **Bloqueado**: `agy` headless deniega `read_url`; el clasificador del host bloqueó las variantes que lo habilitan. Decisión del owner pendiente |
+| [R01-ra-research](R01-ra-research/prompt-header.md) | Gemini 3.8 Flash High | Hechos verificables de rust-analyzer 1.98.1 / LSP 3.17 para D25/D26 (encoding, readiness, config hostil, procesos externos, sysroot, símbolos/referencias/diagnósticos/acciones, lifecycle) | **Hecho** (22:12–22:22 UTC, 24 fuentes citadas). [Disposición](R01-ra-research/disposition.md): **P1** — hashes de tarballs fabricados en Q1 (contrastados con el manifest publicado); el resto se acepta solo como mapa de verificación para la calibración nativa |
 | [I01-integration](I01-integration/disposition.md) | Claude Sonnet 5 | Commit del registro de coordinación y del dossier (sin edición de archivos) | **Hecho**: `2970c96` |
+| [V01-review-provisioning](V01-review-provisioning/disposition.md) | Claude Sonnet 5 (High, read-only) | Revisión independiente del diff W01 (seguridad de adquisición/extracción, recibo, taint, tests) | **Block** → 2 P2 + 6 P3, todos aceptados |
+| [W01b-provisioning-fixes](W01b-provisioning-fixes/prompt-header.md) | Claude Sonnet 5 (Medium) | Correcciones V01 + hallazgos del orquestador (25/40 etapas, Sonar) y reconstrucción de la imagen | **Hecho** ([informe](W01b-provisioning-fixes/report.md)); imagen `f39a5b33…`, recibo regenerado |
+| [W01-provisioning](W01-provisioning/prompt-header.md) | Claude Sonnet 5 (High) | Imagen guest M6: `fixtures/rust-runtime/m6/`, `scripts/build-m6-runtime.py`, tests, wiring gate/Sonar/ci.md, ADR-082, recibo `provisioning.json` | **Hecho** ([informe](W01-provisioning/report.md)); primer build falló por `librustc_driver` no encontrado (RUNPATH `$ORIGIN/../lib`), resuelto con symlinks a `/opt/rust/lib` |
+| [W02-adrs](W02-adrs/prompt-header.md) | Claude Sonnet 5 (Medium) | ADR-083 (D25) y ADR-084 (D26) sobre el [brief](D25-D26-decision-brief.md); backlog D25/D26 → Decided | **Hecho** y aceptado tras lectura completa ([informe](W02-adrs/report.md)); tensión §2.2/§4.3 del brief corregida por el orquestador |
+| [W03-domain-codec](W03-domain-codec/prompt-header.md) | Claude Sonnet 5 (High) | `domain::analyzer` (posiciones/LineIndex/edits/DTOs), `execution-adapter::lsp_codec` acotado + fake-peer hostil | En curso |
 
 ## 4. Decisiones del owner pendientes (paran el corte M6-01)
 
 1. **Aprovisionamiento** de `rust-analyzer` 1.98.1 + `rust-src` 1.98.1 en una
    imagen guest M6 derivada de la M5 —
-   [dossier](../../../roadmap/m6-provisioning-request.md). Sin él no hay
-   binario exacto en el guest y ningún corte M6 puede empezar con flujo real.
-2. **Acceso web para la investigación Gemini** (R01): regla
-   `permissions.allow` para `read_url` en la configuración de `agy`, o
-   autorización explícita para `--sandbox --dangerously-skip-permissions`
-   desde un cwd sin acceso al repositorio.
+   [dossier](../../../roadmap/m6-provisioning-request.md). **Resuelta**: el
+   owner aprobó la opción A+B+C el 2026-09-11; ejecuta W01.
+2. **Acceso web para la investigación Gemini** (R01). **Resuelta**: la regla
+   `read_url(*)` ya existía en `~/.gemini/config/projects/default-cli-project.json`
+   (permisos de proyecto de `agy`); solo aplica cuando `agy` se lanza desde el
+   directorio del proyecto. Las sondas denegadas se lanzaron desde el
+   scratchpad. Sonda desde el repo con `--sandbox`: `read_url` permitido.
 
 ## 5. Coste de las verificaciones ejecutadas en esta sesión
 
