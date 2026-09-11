@@ -351,14 +351,19 @@ def apply_moves(plan_path: pathlib.Path, dry_run: bool, report_path: pathlib.Pat
         updated = rewrite_path_strings(path_new, updated, file_moves, dir_moves, rewrites)
         if updated != text:
             source.write_text(updated, encoding="utf-8", errors="surrogateescape")
-    mismatched = [src for src, dst in file_moves.items() if sha256_of(ROOT / dst) != hashes_before[src]]
+    # Living documents are rewritten on purpose; every other moved byte must be identical.
+    rewritten_docs = sorted(dst for dst in file_moves.values() if is_living(dst))
+    mismatched = [src for src, dst in file_moves.items()
+                  if not is_living(dst) and sha256_of(ROOT / dst) != hashes_before[src]]
     summary = {"plan": str(plan_path), "moved": len(file_moves),
                "moved_bytes": sum((ROOT / dst).stat().st_size for dst in file_moves.values()),
-               "hash_mismatches": mismatched, "rewrites": rewrites,
+               "hashes_verified": len(file_moves) - len(rewritten_docs), "hash_mismatches": mismatched,
+               "moved_living_documents": rewritten_docs, "rewrites": rewrites,
                "file_moves": file_moves, "dir_moves": dir_moves}
     if report_path:
         report_path.write_text(json.dumps(summary, indent=2) + "\n")
-    print(f"apply-moves: {len(file_moves)} files moved, {len(rewrites)} references rewritten in "
+    print(f"apply-moves: {len(file_moves)} files moved ({len(file_moves) - len(rewritten_docs)} byte-identical, "
+          f"{len(rewritten_docs)} living documents relinked), {len(rewrites)} references rewritten in "
           f"{len({r['file'] for r in rewrites})} files, {len(mismatched)} hash mismatches")
     return 1 if mismatched else 0
 
