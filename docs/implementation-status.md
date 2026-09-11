@@ -1,6 +1,6 @@
 # Estado de implementación — Rust Engineering MCP
 
-Actualizado: 2026-09-08
+Actualizado: 2026-09-11
 
 Fuente principal: [`spec/rust-engineering-mcp-propuesta-v0.3.md`](spec/rust-engineering-mcp-propuesta-v0.3.md)
 
@@ -32,6 +32,23 @@ Fuente principal: [`spec/rust-engineering-mcp-propuesta-v0.3.md`](spec/rust-engi
 M0 y M1/0.1.0 están cerradas con evidencia ejecutable y publicación verificable. Un foundation completo no
 habilita Cargo arbitrario, distribución estable ni soporte de plataformas
 no verificadas. Las limitaciones de M1 se conservan como criterios verificables.
+
+## Convención de rutas de evidencia (2026-09-11)
+
+La evidencia vive en **un paquete por milestone**: `docs/validation/M<n>/`
+con `matrix.md`, `handoff.md`, los recibos vigentes (`core-gate.json`,
+`full-gate.json`, `runtime.json`, `clients.json`, nativos por corte) y un
+`history/` con `inventory.json` (ruta original, SHA-256, bytes y motivo) para
+cada intento fallido o recibo superado que se conserva. Las revisiones se
+agrupan en `docs/reviews/M<n>/`, los prompts ejecutados en
+`docs/prompts/history/`, la evidencia de release por versión en
+`docs/release/<versión>/`. Los recibos son inmutables: los que citan rutas
+anteriores se resuelven con [`validation/path-map.json`](validation/path-map.json).
+El layout y la política de historia están en
+[`validation/README.md`](validation/README.md); `scripts/docs-hygiene.py`
+comprueba enlaces e inventarios. El estado privado de los intentos de clientes
+(`state-*/`) y las capturas crudas de `research/m1-16/measurement/results/raw/`
+se retiraron del árbol con hash registrado.
 
 ## Resolución de alcance
 
@@ -346,6 +363,12 @@ una autorización separada. Sin tag, release, PR ni push; M6 no está iniciado.
   licencias/notices de terceros ni autoriza distribuir modelos o binarios.
 - `scripts/gate.py` incorpora reportes v2 con timestamps/conteos directos; el gate
   M1-17 histórico conserva honestamente inicio desconocido y conteos derivados.
+- Veinte comentarios de documentación en `crates/` y el snapshot
+  `binary-bloat-tool.json` citan rutas de evidencia anteriores a la convención
+  del 2026-09-11 (`docs/validation/M5-04-bloat-calibration.json`, …). Se
+  resuelven con `validation/path-map.json` y se actualizarán en un cambio que
+  toque código; dos recibos siguen anclados por `include_str!`
+  ([detalle](validation/README.md#archivos-anclados-fuera-del-layout)).
 
 ## Decisions Pending
 

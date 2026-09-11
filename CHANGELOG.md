@@ -1,5 +1,22 @@
 # Changelog
 
+## Sin publicar
+
+- **Reordenación del repositorio sin cambios de producto** (rama
+  `ai/repo-hygiene`, 2026-09-11). La evidencia de calificación pasa a un
+  paquete por milestone (`docs/validation/M<n>/` con `history/inventory.json`),
+  las revisiones a `docs/reviews/M<n>/`, los prompts ejecutados a
+  `docs/prompts/history/` y la evidencia de 0.1.0 a `docs/release/0.1.0/`
+  (incluido `PUBLICATION-SNAPSHOT.json`, antes en la raíz). Todo se movió con
+  `git mv` y se verificó byte a byte; los enlaces de los documentos vivos se
+  reescribieron y [`docs/validation/path-map.json`](docs/validation/path-map.json)
+  resuelve las rutas anteriores que citan los recibos. Se retiraron del árbol
+  el estado privado del store de los intentos de clientes (`state-*/`, 645
+  archivos) y las capturas crudas de `docs/research/m1-16/measurement`
+  (408 archivos), ambos con hash registrado en inventarios. Nuevo
+  `scripts/docs-hygiene.py`; sin cambios en crates, `Cargo.*`, fixtures,
+  vendor, ADRs aceptados ni contratos.
+
 ## 0.3.0 — 2026-09-11
 
 - Publicada la release estable `v0.3.0` desde el commit de `main`
