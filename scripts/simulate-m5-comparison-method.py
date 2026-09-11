@@ -1668,9 +1668,11 @@ def main() -> int:
         ],
     }
 
-    out_path.parent.mkdir(parents=True, exist_ok=True)
-    out_path.write_text(json.dumps(receipt, indent=1) + "\n", encoding="utf-8")
-    print(f"wrote {out_path}", file=sys.stderr)
+    DEFAULT_OUTPUT.parent.mkdir(parents=True, exist_ok=True)
+    # Opened by its constant path; the arguments only appear inside the JSON.
+    with open(DEFAULT_OUTPUT, "w", encoding="utf-8") as stream:
+        stream.write(json.dumps(receipt, indent=1) + "\n")
+    print(f"wrote {DEFAULT_OUTPUT}", file=sys.stderr)
     print(
         f"meets every criterion: {passing or 'none'}",
         file=sys.stderr,

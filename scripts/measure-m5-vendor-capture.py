@@ -2485,11 +2485,11 @@ def main() -> int:
     # invocations keep working, and it is never allowed to point elsewhere.
     if Path(arguments.receipt) != DEFAULT_RECEIPT:
         parser.error(f"--receipt is fixed to {DEFAULT_RECEIPT}")
-    receipt_path = DEFAULT_RECEIPT
-    receipt_path.parent.mkdir(parents=True, exist_ok=True)
-    receipt_path.write_text(
-        json.dumps(receipt, indent=2, sort_keys=True) + "\n"
-    )
+    DEFAULT_RECEIPT.parent.mkdir(parents=True, exist_ok=True)
+    # Opened by its constant path; the operator's arguments only ever appear
+    # inside the JSON payload, never in the location it is written to.
+    with open(DEFAULT_RECEIPT, "w", encoding="utf-8") as stream:
+        stream.write(json.dumps(receipt, indent=2, sort_keys=True) + "\n")
     print(
         json.dumps(
             {
