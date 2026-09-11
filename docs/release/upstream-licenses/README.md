@@ -1,12 +1,13 @@
 # Upstream license-text supplement — candidate evidence
 
-This supplement leaves the offline inventory and candidate notices unchanged. It supplies original upstream documentation for 30 of the 31 third-party packages whose cached packages lacked license/notice files. It does not approve a product license, choose a dual-license alternative, or authorize redistribution.
+This supplement leaves the offline inventory and candidate notices unchanged. It supplies original upstream documentation for 30 of the 31 third-party packages whose cached packages lacked license/notice files, plus the jsonschema 0.55.1 crates added by the 0.3.0 lock (amendment recorded in receipt.json). It does not approve a product license, choose a dual-license alternative, or authorize redistribution.
 
 Repository identity comes from cached manifests plus exact `.cargo_vcs_info.json` commits. Root/monorepo license applicability to a particular crate is an inference requiring review; it does not prove all bundled components or final-link obligations. Full request URLs, HTTP outcomes, package paths, text byte counts and hashes are recorded in [receipt.json](receipt.json).
 
 | Exact-revision source | Packages | Texts / pending |
 | --- | --- | --- |
 | [Nugine/simd@d74c030d9dc4](https://github.com/Nugine/simd/tree/d74c030d9dc4f3cae02146d1f497ff62726ef09a) | uuid-simd 0.8.0, vsimd 0.8.0 | [LICENSE](https://raw.githubusercontent.com/Nugine/simd/d74c030d9dc4f3cae02146d1f497ff62726ef09a/LICENSE) |
+| [Stranger6667/jsonschema@dcbe2c21f3d9](https://github.com/Stranger6667/jsonschema/tree/dcbe2c21f3d99061352683dba4080fecf531b314) | jsonschema-regex 0.55.1, jsonschema-value 0.55.1 | [LICENSE](https://raw.githubusercontent.com/Stranger6667/jsonschema/dcbe2c21f3d99061352683dba4080fecf531b314/LICENSE) |
 | [Stranger6667/jsonschema@6af37d89619f](https://github.com/Stranger6667/jsonschema/tree/6af37d89619fdcb06d8ab82d02dbe6b3d1a4d1a7) | jsonschema-regex 0.53.0, jsonschema-value 0.53.0 | [LICENSE](https://raw.githubusercontent.com/Stranger6667/jsonschema/6af37d89619fdcb06d8ab82d02dbe6b3d1a4d1a7/LICENSE) |
 | [google/flatbuffers@7e163021e59c](https://github.com/google/flatbuffers/tree/7e163021e59cca4f8e1e35a7c828b5c6b7915953) | flatbuffers 25.12.19 | [LICENSE](https://raw.githubusercontent.com/google/flatbuffers/7e163021e59cca4f8e1e35a7c828b5c6b7915953/LICENSE) |
 | [knurling-rs/defmt@4a8cdb44891e](https://github.com/knurling-rs/defmt/tree/4a8cdb44891ed57b8ff5a023b6bec7137c48708f) | defmt-parser 1.0.0 | [LICENSE-APACHE](https://raw.githubusercontent.com/knurling-rs/defmt/4a8cdb44891ed57b8ff5a023b6bec7137c48708f/LICENSE-APACHE); [LICENSE-MIT](https://raw.githubusercontent.com/knurling-rs/defmt/4a8cdb44891ed57b8ff5a023b6bec7137c48708f/LICENSE-MIT) |

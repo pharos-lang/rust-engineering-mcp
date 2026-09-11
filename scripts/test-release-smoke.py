@@ -338,12 +338,7 @@ class ReleaseSmokeTests(unittest.TestCase):
                 "description": "description",
                 "inputSchema": dict(schema),
                 "outputSchema": {**schema, "additionalProperties": False},
-                "annotations": {
-                    "readOnlyHint": True,
-                    "destructiveHint": False,
-                    "idempotentHint": True,
-                    "openWorldHint": False,
-                },
+                "annotations": dict(smoke.TOOL_ANNOTATIONS[name]),
             }
             for name in smoke.TOOLS
         ]
@@ -360,9 +355,13 @@ class ReleaseSmokeTests(unittest.TestCase):
             for row in definitions
         }
         with mock.patch.dict(smoke.TOOL_SCHEMA_SHA256, synthetic_hashes, clear=True):
-            self.assertEqual(len(smoke.validate_tools(listing)), 13)
+            self.assertEqual(len(smoke.validate_tools(listing)), 31)
             listing["result"]["tools"] = definitions[:-1]
-            with self.assertRaisesRegex(ValueError, "thirteen"):
+            with self.assertRaisesRegex(ValueError, "thirty-one"):
+                smoke.validate_tools(listing)
+            listing["result"]["tools"] = copy.deepcopy(definitions)
+            listing["result"]["tools"][0]["annotations"]["readOnlyHint"] = False
+            with self.assertRaisesRegex(ValueError, "annotation values"):
                 smoke.validate_tools(listing)
 
     def test_receipt_no_overwrite_preserves_existing_file(self) -> None:

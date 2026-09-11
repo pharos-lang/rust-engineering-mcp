@@ -1,0 +1,48 @@
+{
+  "schema": "rust-engineering-mcp-local-candidate-receipt-v1",
+  "status": "passed",
+  "tag_candidate": "v0.3.0",
+  "target": "aarch64-apple-darwin",
+  "date": "2026-09-10",
+  "scope": "Local dry run of the release-candidate pipeline on the qualified Darwin arm64 host: release-artifact.py + release-smoke.py against the worktree release binary. The GitHub workflow rebuilds, attests and drafts from the tag; this receipt does not replace it.",
+  "binary": {
+    "path": "target/release/rust-engineering-mcp (worktree at ecf4ba8, workspace 0.3.0)",
+    "sha256": "53be298cab4395a5049e97dce907fcbacba7d57ec63272f29077876443fa9256",
+    "version_output": "rust-engineering-mcp 0.3.0"
+  },
+  "archive": {
+    "name": "rust-engineering-mcp-v0.3.0-aarch64-apple-darwin.tar.gz",
+    "sha256": "0931218ff89086fd2a22032dc721f0e930e4cc514b167c0774317fb0db480ee0",
+    "packages": 221,
+    "deterministic_rebuild": "identical SHA-256 across two local builds"
+  },
+  "smoke": {
+    "receipt": "docs/release/0.3.0-local-smoke-receipt.json",
+    "sha256": "541534b47790074386f48eabdcc21a13e5908265242711d0a238abf1a227c357",
+    "status": "passed",
+    "counts": {
+      "archive_members": 11,
+      "cli_calls": 3,
+      "mcp_calls": 6,
+      "packages": 221,
+      "tools": 31
+    },
+    "cleanup": {
+      "installed_members": 11,
+      "process_group_clean": true,
+      "temporary_installation_removed": true
+    }
+  },
+  "contract": {
+    "tools": 31,
+    "pinned_in": "scripts/release-smoke.py (TOOLS, TOOL_SCHEMA_SHA256, TOOL_ANNOTATIONS from crates/mcp-server/tests/snapshots)",
+    "discovery_capabilities": [
+      "tools",
+      "resources",
+      "extensions.io.modelcontextprotocol/tasks"
+    ]
+  },
+  "licenses": {
+    "added": "docs/release/upstream-licenses/Stranger6667--jsonschema--dcbe2c21f3d9/LICENSE for jsonschema-regex/jsonschema-value 0.55.1"
+  }
+}
