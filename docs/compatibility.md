@@ -179,7 +179,7 @@ recicla un slot por el solo hecho de recibir cancelación. Shutdown espera hasta
 exceder ese plazo es fallo, no evidencia de cleanup. run_joined espera el cierre
 real del gateway aunque rmcp suprima o abandone la respuesta. EOF y errores de
 transporte cancelan el worker; la sesión solo termina limpia sin panic/cuarentena. Ver
-[ADR-023](adr/ADR-023-mcp-stdio-bootstrap.md) y [evidencia](validation/M0-03.md).
+[ADR-023](adr/ADR-023-mcp-stdio-bootstrap.md) y [evidencia](validation/M0/03.md).
 
 ## Acceso a proyectos
 
@@ -213,7 +213,7 @@ configuración actual. `strict_available`/`restricted_available` solo cubren
 `trusted_probe_image_only`; `project_code_available=false`. El camino Rust aprobado
 de ADR-031 tiene transferencia y calibración separadas (ver más abajo). La frontera, controles
 positivos y límites están en [security model](security-model.md#gateway-m0-05),
-[ADR-025](adr/ADR-025-container-execution-gateway.md) y [evidencia M0-06](validation/M0-06.md).
+[ADR-025](adr/ADR-025-container-execution-gateway.md) y [evidencia M0-06](validation/M0/06.md).
 
 ## Contratos M0-07
 

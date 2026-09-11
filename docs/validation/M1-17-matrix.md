@@ -41,7 +41,7 @@ Actions builds is not claimed; each evidence set qualifies its own bytes.
 | Real security tests for every advertised sandbox capability; tools blocked where guarantees are absent | M0-06/M1-01..09 adversarial gates, historical Docker/Rust stages and missing-runtime `SANDBOX_DENIED` | Satisfied for advertised macOS host plus approved Docker guest; other hosts fail closed |
 | Structured output | Typed contract tests and actual Inspector/client responses above | Satisfied |
 | Timeouts | [M1-06 active cancellation/EOF](M1-06.md), [M1-09 quality cancellation](M1-09.md), full19 Rust security | Satisfied for candidate source; Inspector evidence alone proves only client notification |
-| Filesystem restrictions | [M0-04 roots/no-follow/races](M0-04.md), M1-01/M1-07, M1-10 authenticated import boundaries | Satisfied for the only positive host; Windows remains fail-closed |
+| Filesystem restrictions | [M0-04 roots/no-follow/races](M0/04.md), M1-01/M1-07, M1-10 authenticated import boundaries | Satisfied for the only positive host; Windows remains fail-closed |
 | MCP operates with network disabled | M1-09, full19 Docker/Rust/audit/semantic gates with positive controls and enforced deny | Satisfied in qualified macOS/Docker configuration; no native Linux/Windows claim |
 | Offline snapshot import | [M1-10](M1-10.md) authenticated import, limits, extraction, activation, antirollback and recovery | Satisfied on macOS candidate source |
 | SQLite lexical and LanceDB semantic search | [M1-12 native E5/Lance/FTS](M1-12.md), Inspector hybrid call, fresh full19 semantic/search stages | Satisfied on macOS ARM64 |

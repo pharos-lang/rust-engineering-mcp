@@ -13,7 +13,7 @@ M1-01 rust.project.inspect. M0 está cerrada; no la rediseñes ni avances a M2.
 
 Antes de modificar código, lee AGENTS.md, la especificación completa
  docs/spec/rust-engineering-mcp-propuesta-v0.3.md, docs/implementation-status.md,
- docs/validation/M0-12.md, docs/m1-prerequisites.md, docs/ci.md y los ADRs relevantes.
+ docs/validation/M0/12.md, docs/m1-prerequisites.md, docs/ci.md y los ADRs relevantes.
 Comprueba git status, manifests, árbol, tests y versiones reales. Preserva cambios
 ajenos. Los reportes antiguos son históricos; verifica el estado actual del checkout.
 

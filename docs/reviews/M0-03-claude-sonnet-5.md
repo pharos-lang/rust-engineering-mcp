@@ -14,7 +14,7 @@ Paquete: objetivo/DoD, límites y gate M0-03, ADR-002/003/004/009/012/015,
 diff completo `de3fd42..0d6dfc0`, tests, documentación, ADR-023 y Cargo.lock.
 La fuente de rmcp no se adjuntó; el reviewer señaló esa limitación. No ejecutó
 tools, tests ni modificaciones. La verificación independiente de API y las
-resoluciones del principal están en [evidencia](../validation/M0-03.md).
+resoluciones del principal están en [evidencia](../validation/M0/03.md).
 
 SHA-256 del paquete: `cef22a05283c6164a62f1190b563c53c011b2c842fe3a0a9ea140cd44a64c7e8`.
 La metadata confirma `claude-sonnet-5` (29217 thinking tokens reportados) y una
@@ -39,7 +39,7 @@ None found. The adapter is narrowly scoped, doesn't touch domain/application, an
 `crates/mcp-server/src/stdio.rs` — `ServerHandler::on_custom_request`, `ServerInfo::new(...).with_server_info(...)`, `supported_protocol_versions`, `serve_server_with_ct`, `ServerInitializeError::ConnectionClosed`.
 The DoD states "API choices verified against downloaded pinned SDK official source," but that verification was performed by the implementer, not by this review — I have no access to rmcp 3.2.0 source in this pass. I cannot independently confirm these are the correct trait method names/signatures for `rmcp = 3.2.0`, nor that `ErrorCode::METHOD_NOT_FOUND` / the `Result<CustomResult, ErrorData>` shape match the pinned version exactly. Given that `cargo check`/`clippy` reportedly passed, the code compiles against the pinned lockfile, which is decent (if indirect) evidence the API surface exists — but that alone doesn't confirm *semantic* correctness (e.g., that `on_custom_request` is actually invoked for unrecognized top-level methods rather than some other hook).
 **Impact:** Undetected drift between assumed and actual SDK contract would only surface if compilation broke, which is a weak guarantee for semantic behavior.
-**Fix:** Have a second reviewer diff the adapter's usage against `docs.rs/rmcp/3.2.0` (or vendor the source) as a distinct verification step before closing the gate; record the specific doc.rs anchors checked in `docs/validation/M0-03.md` (currently it only asserts crates.io metadata/licensing, not API-shape verification).
+**Fix:** Have a second reviewer diff the adapter's usage against `docs.rs/rmcp/3.2.0` (or vendor the source) as a distinct verification step before closing the gate; record the specific doc.rs anchors checked in `docs/validation/M0/03.md` (currently it only asserts crates.io metadata/licensing, not API-shape verification).
 
 ## Low
 
@@ -62,7 +62,7 @@ This is **explicitly disclosed** in `docs/security-model.md` ("Una violación pu
 **Fix (optional, forward-looking):** either keep a comment tying this specifically to the current-thread constraint (none exists today), or switch to `set_global_default` since there's exactly one logical subscriber for the whole process lifetime anyway.
 
 **4. Supply-chain governance covers only direct dependencies**
-`docs/validation/M0-03.md` states licenses were checked for the 5 direct dependencies (rmcp, tokio, tokio-util, tracing, tracing-subscriber) but not the ~74 transitive crates pulled in (chrono, uuid, wasm-bindgen family, windows-* family, schemars, futures, etc., per `Cargo.lock`). `cargo-deny` is noted as installed but unconfigured/unrun.
+`docs/validation/M0/03.md` states licenses were checked for the 5 direct dependencies (rmcp, tokio, tokio-util, tracing, tracing-subscriber) but not the ~74 transitive crates pulled in (chrono, uuid, wasm-bindgen family, windows-* family, schemars, futures, etc., per `Cargo.lock`). `cargo-deny` is noted as installed but unconfigured/unrun.
 **Impact:** No automated enforcement of license compatibility or dependency bans beyond `cargo audit`'s vulnerability scan; a restrictive-licensed transitive dependency could enter silently on a future `cargo update`.
 **Fix (optional, can be later-scope):** add a `deny.toml` and run `cargo deny check licenses bans` in the gate before release, not required to block M0-03 specifically.
 

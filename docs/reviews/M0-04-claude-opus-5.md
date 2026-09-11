@@ -13,7 +13,7 @@ La corrección de observaciones repetidas y la documentación de special-file op
 se incorporaron después del snapshot. Las pruebas y el SDK no estaban en el
 paquete; las hipótesis del reviewer deben contrastarse con evidencia real.
 
-La resolución por finding está en [validación M0-04](../validation/M0-04.md).
+La resolución por finding está en [validación M0-04](../validation/M0/04.md).
 A continuación se conserva el dictamen original completo, incluidos findings
 condicionales y recomendaciones que el principal no adopta.
 

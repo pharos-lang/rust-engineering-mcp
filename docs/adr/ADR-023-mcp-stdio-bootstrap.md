@@ -58,7 +58,7 @@ terminación de procesos requieren los cortes de ejecución posteriores.
 
 ## Status
 
-Accepted. Gate y revisión de implementación: `docs/validation/M0-03.md`.
+Accepted. Gate y revisión de implementación: `docs/validation/M0/03.md`.
 
 Sources: <https://docs.rs/rmcp/3.2.0/rmcp/>,
 <https://modelcontextprotocol.io/specification/2026-07-28/basic/transports/stdio>,

@@ -188,7 +188,7 @@ def main():
     receipt = json.loads(receipt_raw)
     native = {
         "onnxruntime": {
-            "version_claim_source": "docs/validation/M0-09.md",
+            "version_claim_source": "docs/validation/M0/09.md",
             "version_claim": "1.24.2", "target": "aarch64-apple-darwin",
             "artifact": str(ort_library), "bytes": ort_library.stat().st_size, "sha256": ort_hash,
             "matches_recorded_development_sha256": ort_hash == "4d53c916ea95f09203324f9aad7b76f75c16d8a4bc98f8a949ea0ac73c07604d",
