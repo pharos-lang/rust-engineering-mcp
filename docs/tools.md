@@ -1047,10 +1047,10 @@ it therefore cannot create, poll or cancel M3 tasks. See
 El checkout añade cinco definiciones a `tools/list`, después de las 22
 tools M1–M3 y en este orden: `rust.deny`, `rust.unsafe.scan`,
 `rust.supply_chain.inspect`, `rust.quality.gate.v2` y `rust.miri`. El
-[core de 19 etapas](validation/M4-core-gate.json), el
-[full de 33 etapas](validation/M4-full-gate.json), el
-[runtime de 19 selecciones](validation/M4-runtime.json) y los
-[clientes](validation/M4-clients.json) pasaron localmente. Los 23 snapshots
+[core de 19 etapas](validation/M4/core-gate.json), el
+[full de 33 etapas](validation/M4/full-gate.json), el
+[runtime de 19 selecciones](validation/M4/runtime.json) y los
+[clientes](validation/M4/clients.json) pasaron localmente. Los 23 snapshots
 anteriores se preservaron y se agregaron cinco nuevos. La confirmación final de
 evidencia del hito sigue pendiente; no cambia la release `0.1.0`.
 
@@ -1058,10 +1058,10 @@ El core pasó sus 19 etapas con 1220 tests Rust, un doctest y 11 tests del helpe
 El full pasó 33 etapas con el mismo inventario fuente: conservó 27 etapas ya
 aprobadas y ejecutó seis frescas después de que un directorio E5 temporal vacío
 se corrigiera seleccionando los assets locales existentes y reverificados. No
-hubo descarga ni cambio de código; el [intento fallido](validation/M4-hardening-attempts/full-attempt-2/receipt.json)
+hubo descarga ni cambio de código; el [intento fallido](validation/M4/history/hardening-attempts/full-attempt-2/receipt.json)
 permanece preservado. El runtime final pasó 19/19 sobre `25ed…`, incluidos los
-[siete casos scanner](validation/M4-scanner-native.json) y las
-[trece clasificaciones más siete admisiones Miri](validation/M4-miri-native.json).
+[siete casos scanner](validation/M4/scanner-native.json) y las
+[trece clasificaciones más siete admisiones Miri](validation/M4/miri-native.json).
 
 Los cinco inputs rechazan campos desconocidos. `project_ref` es siempre una
 referencia viva producida por `rust.project.open`; `execution_mode` conserva el

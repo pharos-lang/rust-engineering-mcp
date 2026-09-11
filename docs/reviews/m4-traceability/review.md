@@ -2,7 +2,7 @@
 
 **Identificador de revisión:** M4-TRACE-REV-01  
 **Fecha:** 2026-09-07  
-**Estado evaluado:** In progress (`docs/validation/M4-matrix.md`); Planificación: `Planned` (`docs/roadmap/m4-security.md`, `docs/roadmap/m2-m8.md`)  
+**Estado evaluado:** In progress (`docs/validation/M4/matrix.md`); Planificación: `Planned` (`docs/roadmap/m4-security.md`, `docs/roadmap/m2-m8.md`)  
 **Veredicto:** **NO CERRADO / NO DONE** (Trabajo en curso, prerequisitos de calificación pendientes por diseño).
 
 ---
@@ -97,5 +97,5 @@ Para que el hito M4 pueda transicionar de `In progress` / `Planned` a `Done`, de
 
 6. **Confirmación Externa y Autorización del Technical Owner (G8 / G9):**
    - Recepción formal de la re-revisión de confirmación Opus High sin hallazgos P0/P1 y con los P2 cerrados.
-   - Publicación de `docs/validation/M4-matrix.md` con todos los cortes en estado verificado y autorización explícita del Technical Owner antes de modificar el estado en `docs/roadmap/m4-security.md`. La planificación de hitos posteriores conserva su estado `Planned`.
+   - Publicación de `docs/validation/M4/matrix.md` con todos los cortes en estado verificado y autorización explícita del Technical Owner antes de modificar el estado en `docs/roadmap/m4-security.md`. La planificación de hitos posteriores conserva su estado `Planned`.
 

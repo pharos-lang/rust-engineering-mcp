@@ -16,7 +16,7 @@
 | Artifact 0.1.0 publicado | Un único archive core `aarch64-apple-darwin`; checksum, SBOM/notices y provenance verificados |
 | Linux / Windows / macOS x86_64 nativos | CI pública compila y prueba el código fuente; la calificación nativa del sandbox y filesystem sigue pendiente para ampliar soporte en una release futura |
 | Licencia / redistribución | Código original `MIT OR Apache-2.0`; assets `local` no se redistribuyen en 0.1.0 |
-| Clientes de terceros | M4: Inspector 2.5.0 con Tasks y Codex 0.153.0 stock por sincronía; [recibo](validation/M4-clients.json). M5: Inspector 2.5.0 (quince filas, catorce Resources) y Claude Code 2.1.267 `claude-sonnet-5` como cliente agentic; [recibo](validation/M5-clients.json). M1/M2 conservan sus matrices anteriores. |
+| Clientes de terceros | M4: Inspector 2.5.0 con Tasks y Codex 0.153.0 stock por sincronía; [recibo](validation/M4/clients.json). M5: Inspector 2.5.0 (quince filas, catorce Resources) y Claude Code 2.1.267 `claude-sonnet-5` como cliente agentic; [recibo](validation/M5-clients.json). M1/M2 conservan sus matrices anteriores. |
 | Sandbox | Probes M0 separados; ejecución M1–M4 habilitada solo en runtimes aprobados Docker/Linux ARM64 calibrados por sus ADR |
 | SQLite / FTS5 | rusqlite 0.40.2, SQLite bundled 3.53.2; memoria, pruebas ARM64 macOS |
 | LanceDB / embeddings | M0-09: E5/ORT y LanceDB0.31 memory://; feature local, gate macOS ARM64 |
@@ -88,8 +88,8 @@ calificación más allá de macOS ARM64/APFS con guest Docker Linux ARM64.
 
 `rust.deny`, `rust.unsafe.scan`, `rust.supply_chain.inspect`,
 `rust.quality.gate.v2` y `rust.miri` aparecen en `tools/list`. El
-[core](validation/M4-core-gate.json), el [full](validation/M4-full-gate.json), el
-[runtime](validation/M4-runtime.json) y los [clientes](validation/M4-clients.json)
+[core](validation/M4/core-gate.json), el [full](validation/M4/full-gate.json), el
+[runtime](validation/M4/runtime.json) y los [clientes](validation/M4/clients.json)
 pasaron localmente. No forman parte de una release y el hito no se declara Done
 antes de la confirmación final de evidencia.
 

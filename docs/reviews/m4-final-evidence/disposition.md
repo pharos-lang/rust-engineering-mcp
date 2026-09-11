@@ -8,17 +8,17 @@ closure with no P0/P1/P2. Its original response and 59-file frozen package are
 preserved. The retained stale-native P2 is closed by fresh scanner/Miri receipts;
 the fingerprint-input P2 remains closed and is now bound to those receipts.
 
-[Final verification](../../validation/M4-final-verification.json) independently
+[Final verification](../../validation/M4/final-verification.json) independently
 computes all 987 input comparisons, native/configuration hashes, 19 raw native log
 hashes, the 23 Git baseline snapshot comparisons, release binary hash, exact E5
-asset matches and empty owned Docker objects. Its [driver](../../validation/M4-final-verification-driver.py)
+asset matches and empty owned Docker objects. Its [driver](../../validation/M4/final-verification-driver.py)
 is retained. Static review and actual execution remain distinct evidence.
 
 | Observation | Final disposition |
 | --- | --- |
 | P3-1 resume driver restates selected preflights | Accepted one-off recovery limit. Same toolchain/source and exact assets verified; only six non-audit remaining steps reused the original runner. A reusable resume feature should share the gate preflight and reject optimized Python; no general resume API is added in M4. Owner: Technical Owner, future separately scoped change. |
 | P3-2 two-segment full timeline | Resolved by explicit `full_segments` in final verification: steps 1–27 retained and 28–33 executed, with timestamps and original receipt identity. Original full receipt remains unchanged. |
-| P3-3 gate logs omitted from frozen package | Both reads made by the reviewer outside the package are disclosed and preserved with hashes in [additional inputs](additional-inputs.json). [Log archive](../../validation/M4-log-archive.json) retains 38 byte-identical, Git-visible copies; future review packages must include their raw gate logs. |
+| P3-3 gate logs omitted from frozen package | Both reads made by the reviewer outside the package are disclosed and preserved with hashes in [additional inputs](additional-inputs.json). [Log archive](../../validation/M4/log-archive.json) retains 38 byte-identical, Git-visible copies; future review packages must include their raw gate logs. |
 | P3-4 snapshot baseline missing from package | Final verification compares each prior snapshot to actual `git show HEAD:path`; all 23 are equal. Exact baseline bytes and hashes are retained under `additional-inputs/git-baseline/`. These supplemental checks are by the Technical Owner, not represented as newly reviewed by Opus. |
 | P3-5 E5 expected pins not in recovery receipt | Final verification includes all five expected and observed sizes/hashes, explicit matches and the product pin-source digest; all match. Original recovery receipt unchanged. |
 | P3-6 native receipt lacks post-run unchanged flag | Actual runtime harness checks all source/config hashes after execution and fails on drift; the full step exited 0. Final verification also recomputes every hash against the current files and records explicit equality; script attached as supplemental evidence. |

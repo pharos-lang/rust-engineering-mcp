@@ -202,9 +202,9 @@ publicaron por separado y forman parte de esta versión.
 - Implementados `rust.deny`, `rust.unsafe.scan`, `rust.supply_chain.inspect`,
   `rust.quality.gate.v2` y `rust.miri`, en ese orden después de las 22
   definiciones existentes. Los 23 snapshots anteriores permanecen preservados y
-  se añadieron cinco nuevos. El [core](docs/validation/M4-core-gate.json), el
-  [full](docs/validation/M4-full-gate.json), el [runtime](docs/validation/M4-runtime.json)
-  y los [clientes](docs/validation/M4-clients.json) pasaron localmente. La
+  se añadieron cinco nuevos. El [core](docs/validation/M4/core-gate.json), el
+  [full](docs/validation/M4/full-gate.json), el [runtime](docs/validation/M4/runtime.json)
+  y los [clientes](docs/validation/M4/clients.json) pasaron localmente. La
   [confirmación final](docs/reviews/m4-final-evidence/review.md) acepta el cierre
   local de M4. La implementación `07814664379628f00857feca13148b507de687b9`
   está en el [PR #15](https://github.com/pharos-lang/rust-engineering-mcp/pull/15);
@@ -213,7 +213,7 @@ publicaron por separado y forman parte de esta versión.
   full pasó 33 con inventario fuente idéntico. Tras encontrar un directorio E5
   temporal vacío, la reanudación conservó 27 etapas aprobadas y ejecutó seis
   frescas usando assets existentes reverificados, sin descarga ni cambios de
-  código. El [fallo original](docs/validation/M4-hardening-attempts/full-attempt-2/receipt.json)
+  código. El [fallo original](docs/validation/M4/history/hardening-attempts/full-attempt-2/receipt.json)
   permanece preservado. El runtime final pasó 19/19 sobre `25ed…`, con scanner
   7/7 y Miri 13 clasificaciones más 7 admisiones.
 - La [revisión final de código Opus](docs/reviews/m4-final-closure/review.md) no

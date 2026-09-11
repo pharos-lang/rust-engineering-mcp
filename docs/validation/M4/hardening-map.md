@@ -1,10 +1,10 @@
 # M4-06 hardening coverage map
 
 Status: all 19 native selections passed on final sources, 2026-09-08.
-See [runtime receipt](M4-runtime.json), [core](M4-core-gate.json) and
-[full 33/33 resumed on unchanged sources](M4-full-gate.json). Independent final
-[evidence confirmation](../reviews/m4-final-evidence/review.md) accepts local
-closure; the [handoff](M4-handoff.md) records the Technical Owner decision.
+See [runtime receipt](runtime.json), [core](core-gate.json) and
+[full 33/33 resumed on unchanged sources](full-gate.json). Independent final
+[evidence confirmation](../../reviews/m4-final-evidence/review.md) accepts local
+closure; the [handoff](handoff.md) records the Technical Owner decision.
 
 ## Scope and source of requirements
 
@@ -29,7 +29,7 @@ for exactly one passing test. All 19 exact selections resolve in their selected
 package and target; no misspelled or stale filter was found.
 
 The harness reads its advertised image from
-`docs/validation/M4-runtime-image.json` and exports it as
+`docs/validation/M4/runtime-image.json` and exports it as
 `RUST_MCP_TEST_IMAGE`:
 
 - derived M4 runtime: `sha256:25ed3626e710081a571a86a29521eaf2e890e796afd422ba5e409e0ce1891635`;
@@ -92,19 +92,19 @@ confused with the selected scanner calibration on `25ed…`.
 
 ## Final source-bound receipts
 
-- [Runtime M4](M4-runtime.json): 19/19 on `25ed…`, including actual cloud-metadata denial, descendant/resource limits, cleanup, canaries and withdrawal.
-- [Scanner](M4-scanner-native.json): seven cases; [Miri](M4-miri-native.json): 13 classifications plus seven admission/lifecycle cases, with current source/configuration hashes and raw evidence.
-- [Privacy](M4-privacy-runtime.json): actual HTML/diff source-canary positive controls and absent host canary; authorized source is not universally secret-redacted.
-- [Inventory](M4-runtime-inventory.json): six binary hashes and complete Miri sysroot, no guest execution/network.
-- [Tampered image](M4-tampered-plugin.json): derived unapproved identity rejected before guest execution; owned object cleanup verified. Earlier failed attempts and the correction to `image ls --all` are preserved in [attempts](M4-hardening-attempts/README.md).
-- [Five-tool canary](M4-output-canaries.json): ordinary Miri panic yields test failure, UB 0, no forged findings or canary in wire/Resources.
-- [Lifecycle](M4-miri-task-lifecycle.json): cancel/EOF/revocation join cleanup before authority release.
-- [Deny MCP](M4-deny-mcp.json): policy withdrawal, M3 restart, unavailable admission and preserved private v1 artifact under its owner's new reference.
-- [Core](M4-core-gate.json) and [full](M4-full-gate.json) cover catalog/model poisoning, authorization and application composition. [M3 runtime](M4-m3-runtime.json) retains 62 stronger quality cases on its own M3 image; [M2 runtime](M4-m2-runtime.json) and [Rust security](M4-rust-security.json) retain their recorded image identities.
+- [Runtime M4](runtime.json): 19/19 on `25ed…`, including actual cloud-metadata denial, descendant/resource limits, cleanup, canaries and withdrawal.
+- [Scanner](scanner-native.json): seven cases; [Miri](miri-native.json): 13 classifications plus seven admission/lifecycle cases, with current source/configuration hashes and raw evidence.
+- [Privacy](privacy-runtime.json): actual HTML/diff source-canary positive controls and absent host canary; authorized source is not universally secret-redacted.
+- [Inventory](runtime-inventory.json): six binary hashes and complete Miri sysroot, no guest execution/network.
+- [Tampered image](tampered-plugin.json): derived unapproved identity rejected before guest execution; owned object cleanup verified. Earlier failed attempts and the correction to `image ls --all` are preserved in [attempts](history/hardening-attempts/README.md).
+- [Five-tool canary](output-canaries.json): ordinary Miri panic yields test failure, UB 0, no forged findings or canary in wire/Resources.
+- [Lifecycle](miri-task-lifecycle.json): cancel/EOF/revocation join cleanup before authority release.
+- [Deny MCP](deny-mcp.json): policy withdrawal, M3 restart, unavailable admission and preserved private v1 artifact under its owner's new reference.
+- [Core](core-gate.json) and [full](full-gate.json) cover catalog/model poisoning, authorization and application composition. [M3 runtime](m3-runtime.json) retains 62 stronger quality cases on its own M3 image; [M2 runtime](m2-runtime.json) and [Rust security](rust-security.json) retain their recorded image identities.
 
 Full's first 27 passing steps are retained byte-for-byte; six remaining steps ran
 through the original gate runner after exact existing E5 assets were recovered.
-The [recovery](M4-e5-local-recovery.json) and [driver](M4-full-gate-resume-driver.py)
+The [recovery](e5-local-recovery.json) and [driver](full-gate-resume-driver.py)
 disclose the earlier failure; no tests were skipped or source inputs changed.
 
 ## Interpretation boundary

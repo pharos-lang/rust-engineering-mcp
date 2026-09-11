@@ -23,7 +23,7 @@ Se escribe aquí **antes** de reproducir, para que la clasificación no se elija
 después de ver el resultado:
 
 - El recibo calificado de M4 registra esa misma selección en **42,5 s y
-  `passed`** ([M4-runtime.json](../M4-runtime.json)). El fallo llegó a los 28,1 s,
+  `passed`** ([M4-runtime.json](../M4/runtime.json)). El fallo llegó a los 28,1 s,
   es decir **antes** de lo que tarda normalmente: abortó contra un deadline
   interno del propio test, no contra el bound de 900 s del gate.
 - El `load` de la máquina era **15,97 en 16 núcleos**, con dos agentes

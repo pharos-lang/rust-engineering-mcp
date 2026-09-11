@@ -15,7 +15,7 @@ ROOT = pathlib.Path(__file__).resolve().parents[1]
 OUTPUT = pathlib.Path(
     os.environ.get("RUST_MCP_M4_RUNTIME_OUTPUT", ROOT / "target/m4-runtime")
 )
-IMAGE_CONFIG = ROOT / "docs/validation/M4-runtime-image.json"
+IMAGE_CONFIG = ROOT / "docs/validation/M4/runtime-image.json"
 # A stalled selection must become a recorded failure, never an unattended gate
 # hang. The longest legitimate step observed so far is 124 s; this bound is
 # deliberately far above it and is not a substitute for the in-gateway budgets.

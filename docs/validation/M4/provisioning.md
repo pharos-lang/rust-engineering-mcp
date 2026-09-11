@@ -3,7 +3,7 @@
 Status: **provisioned; original setup probe superseded by the passing prepared-sysroot oracle; not approved for gateway admission**.
 
 The Technical Owner updated ADR-066 after verifying the pinned source. The
-[prepared Miri oracle](M4-prepared-miri.json) passes a first-party `cfg(miri)` test
+[prepared Miri oracle](prepared-miri.json) passes a first-party `cfg(miri)` test
 with source/rootfs read-only, network none and unchanged sysroot tree hashes. The
 original setup failure below remains historical evidence; it does not require
 more installation or a different nightly. D21 gateway qualification is pending.
@@ -52,6 +52,6 @@ prepared sysroot without implicit setup, while an explicit setup command retains
 its provisioning behavior. The source is the Rust commit fixed by ADR-066.
 
 Raw receipts remain under `target/m4-runtime-provisioning/`. The structured summary
-is [M4-provisioning.json](M4-provisioning.json) and the image configuration is
-[M4-image-config.json](M4-image-config.json). This result does not run hostile Miri
+is [M4-provisioning.json](provisioning.json) and the image configuration is
+[M4-image-config.json](image-config.json). This result does not run hostile Miri
 or project fixtures and does not qualify D21.

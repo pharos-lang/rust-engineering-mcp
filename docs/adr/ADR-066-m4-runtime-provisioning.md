@@ -10,8 +10,8 @@ red. Este documento prepara D21; no aprueba una imagen, un perfil de sandbox ni
 una capability positiva. Los hashes de binarios construidos y la calificación
 nativa eran resultados pendientes al aprobar esta adquisición, no valores que
 pudieran anticiparse. La admisión posterior está aceptada en
-[ADR-068](ADR-068-m4-runtime-admission.md), con [inventario verificado](../validation/M4-runtime-inventory.json)
-y [runtime final](../validation/M4-runtime.json). Las secciones de propuesta
+[ADR-068](ADR-068-m4-runtime-admission.md), con [inventario verificado](../validation/M4/runtime-inventory.json)
+y [runtime final](../validation/M4/runtime.json). Las secciones de propuesta
 y `approved_for_gateway=false` siguientes conservan el límite de esta autorización
 de aprovisionamiento; no describen el estado posterior de admisión.
 
@@ -91,9 +91,9 @@ El `library/Cargo.lock` tiene SHA-256
 La adquisición debe volver a contrastar estos valores; cualquier discrepancia
 detiene el proceso, sin elegir automáticamente otro nightly.
 
-El [manifest completo](../validation/m4-provisioning-proposal/manifest.json)
+El [manifest completo](../validation/M4/provisioning-proposal/manifest.json)
 registra URLs, locks, tamaños, hashes y licencias declaradas de ambos cierres.
-Su [comprobación local](../validation/m4-provisioning-proposal/inventory-check.json)
+Su [comprobación local](../validation/M4/provisioning-proposal/inventory-check.json)
 valida consistencia y deduplicación; no afirma haber verificado archives todavía
 no descargados. Los hashes y SBOM del resultado futuro permanecen `null` y
 `approved_for_gateway` permanece `false`.

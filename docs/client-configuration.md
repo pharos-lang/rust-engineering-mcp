@@ -24,8 +24,8 @@ La evidencia preservada del proyecto cubre:
 
 | Cliente | Estado verificado |
 | --- | --- |
-| MCP Inspector 2.5.0 | M4: 27 tools, cinco positivos, cinco negativos, cinco Resource reads y cancelación Tasks; M1/M2 conservan sus recibos. [Recibo M4](validation/M4-clients.json). |
-| Codex 0.153.0 stock | M4: las cinco tools pasaron por el camino síncrono de hasta 60 s y un turno model-directed usó las cinco con resultado `passed`. El cliente no declaró Tasks ni acredita cancelación Tasks. [Recibo M4](validation/M4-clients.json). |
+| MCP Inspector 2.5.0 | M4: 27 tools, cinco positivos, cinco negativos, cinco Resource reads y cancelación Tasks; M1/M2 conservan sus recibos. [Recibo M4](validation/M4/clients.json). |
+| Codex 0.153.0 stock | M4: las cinco tools pasaron por el camino síncrono de hasta 60 s y un turno model-directed usó las cinco con resultado `passed`. El cliente no declaró Tasks ni acredita cancelación Tasks. [Recibo M4](validation/M4/clients.json). |
 | Claude Code 2.1.260, Sonnet 5 medium (M2) | Cliente stock restringido a MCP: 17 llamadas/resultados passed, cinco preview/commit, seis opens y receipt final committed. [Intento 5](validation/M2/clients.json), con renovación de referencias explícita en prompt v2; intentos 1–4 fallidos preservados. |
 | Claude Code 2.1.267, `claude-sonnet-5` medium (M5) | Cliente agentic restringido al servidor configurado más `ListMcpResourcesTool`/`ReadMcpResourceTool`: docker-free con los cuatro rechazos declarados ligados a sus roots; runtime con siete llamadas exactas —open, discovery, dos `rust.benchmark.run` propios, comparación positiva `inconclusive`/`insufficient_executions`, `NOT_A_DATASET` con su `criterion_archive` y lectura de esa Resource cuyos bytes hashean al artifact publicado—. Inspector 2.5.0 convierte las quince filas deterministas. [Recibo M5](validation/M5-clients.json); [intentos](validation/m5-clients/attempts.md) 2–5 fallidos preservados. |
 | Gemini CLI, Cursor y VS Code | Configuración derivada del soporte `stdio` oficial de cada cliente; pendiente de calificación con este servidor. |
@@ -242,8 +242,8 @@ datos, runtime y archivos de confianza son locales y los aporta el operador.
 
 Las cinco definiciones M4 llevaron el inventario del checkout a 27 tools; hoy son
 31 con las cuatro de M5. Las tools M4 están
-calificadas localmente con el [runtime](validation/M4-runtime.json) y los
-[clientes](validation/M4-clients.json); configurar los argumentos en otra máquina
+calificadas localmente con el [runtime](validation/M4/runtime.json) y los
+[clientes](validation/M4/clients.json); configurar los argumentos en otra máquina
 no reproduce esa calificación ni cambia la release `0.1.0`.
 
 Usa la imagen M4 admitida como parte del grupo Docker completo:

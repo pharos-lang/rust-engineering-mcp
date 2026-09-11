@@ -54,7 +54,7 @@ prueba como producto sin excluirlo del análisis.
    servidor con runtime/store nativos. Su evidencia está en
    [`M3-runtime.json`](validation/M3/runtime.json),
    [`M3-full-gate.json`](validation/M3/full-gate.json) y
-   [`M4-clients.json`](validation/M4-clients.json).
+   [`M4-clients.json`](validation/M4/clients.json).
 
 Ningún archivo Rust de producto está excluido del porcentaje de cobertura.
 Los caminos que solo ejecutan los gates nativos pueden reducir la cifra portable;
@@ -303,12 +303,12 @@ python3 -B scripts/gate.py full --report target/M4-full-gate.json
 
 Full exige un host macOS ARM64, propietario único del daemon Docker,
 `RUST_MCP_TEST_SOCKET`, `RUST_MCP_E5_DIR` y `ORT_LIB_LOCATION` explícitos. No
-instala ni actualiza inputs. El full M4 [aprobado](validation/M4-full-gate.json)
+instala ni actualiza inputs. El full M4 [aprobado](validation/M4/full-gate.json)
 es una ejecución monolítica 33/33 posterior a la remediación del PR, sobre 990
 inputs y sin cambios de fuentes durante el gate. Los intentos anteriores y la
 recuperación local de E5 permanecen documentados en
-[recuperación](validation/M4-e5-local-recovery.json) y el
-[driver registrado](validation/M4-full-gate-resume-driver.py). El full y los
+[recuperación](validation/M4/e5-local-recovery.json) y el
+[driver registrado](validation/M4/full-gate-resume-driver.py). El full y los
 clientes vigentes comparten los mismos 990 inputs; el core histórico conserva 987.
 
 Las etapas adicionales incluyen imagen alterada, inventario pasivo y
@@ -317,16 +317,16 @@ con `--exact --ignored --nocapture --test-threads=1`, exige exactamente un test
 pasado por selección y registra fuentes/config/imágenes/logs/cleanup. Las 19
 usan la imagen final M4 `25ed…`; una selección ejecuta rollback explícito a M3.
 Las regresiones M3 conservan sus propios 62 casos e imagen. El
-[mapa de hardening](validation/M4-hardening-map.md) enumera cada caso y límite;
-[scanner](validation/M4-scanner-native.json) pasó siete oráculos y
-[Miri](validation/M4-miri-native.json) 13 clasificaciones y siete admisiones.
+[mapa de hardening](validation/M4/hardening-map.md) enumera cada caso y límite;
+[scanner](validation/M4/scanner-native.json) pasó siete oráculos y
+[Miri](validation/M4/miri-native.json) 13 clasificaciones y siete admisiones.
 
 G4 se ejecuta aparte mediante `python3 -B scripts/test-m4-clients.py --run`, con
 socket explícito y `RUST_MCP_M4_CODEX_SYNC_QUALIFIED=1` sustentado en el
-[presupuesto registrado](validation/M4-client-execution.json). Requiere los
+[presupuesto registrado](validation/M4/client-execution.json). Requiere los
 clientes previamente instalados: Inspector 2.5.0 y Codex 0.153.0; el intento 6
-[pasó](validation/M4-clients.json). No almacena credenciales del cliente en el
-repositorio. El [handoff](validation/M4-handoff.md) distingue los resultados
+[pasó](validation/M4/clients.json). No almacena credenciales del cliente en el
+repositorio. El [handoff](validation/M4/handoff.md) distingue los resultados
 locales de CI/Sonar remotos, que no se ejecutaron para este checkout.
 
 ## M5 — etapas de gate, imagen y fixture de benchmarks

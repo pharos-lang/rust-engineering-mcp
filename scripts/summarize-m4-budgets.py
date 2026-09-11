@@ -26,7 +26,7 @@ def main():
             assert values[0]>0 and values[-1]<=60_000
             assert all(0<row["reply_bytes"]<=512*1024 for row in selected)
             groups.append({"tool":tool,"temperature":temperature,"samples":30,"min_ms":values[0],"median_ms":statistics.median(values),"p95_ms":values[math.ceil(.95*30)-1],"p99_ms":values[-1],"max_ms":values[-1]})
-    dest=ROOT/"docs/validation/M4-budgets";dest.mkdir(exist_ok=True)
+    dest=ROOT/"docs/validation/M4/budgets";dest.mkdir(exist_ok=True)
     for path in [measured,inputs]: (dest/path.name).write_bytes(path.read_bytes())
     summary={"schema":"rust-mcp-m4-budgets-v1","status":"passed","synchronous_ceiling_ms":60000,
              "image_id":receipt["image_id"],"binary_sha256":receipt["binary_sha256"],
@@ -34,7 +34,7 @@ def main():
              "calibration_excluded":receipt["calibration_excluded_from_operation_timer"],
              "cold_definition":receipt["cold_definition"],"groups":groups,
              "outputs":[{"path":str((dest/p.name).relative_to(ROOT)),"sha256":hashlib.sha256(p.read_bytes()).hexdigest()} for p in [measured,inputs]]}
-    (ROOT/"docs/validation/M4-budgets.json").write_text(json.dumps(summary,indent=2)+"\n")
+    (ROOT/"docs/validation/M4/budgets.json").write_text(json.dumps(summary,indent=2)+"\n")
     print("PASS 300 M4 observations; max ms",max(r["elapsed_ms"] for r in rows))
 if __name__=="__main__":
     if not __debug__: raise RuntimeError("Optimized Python mode is rejected")

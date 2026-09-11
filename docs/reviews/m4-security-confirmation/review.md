@@ -47,7 +47,7 @@ El hallazgo con más peso operativo es el **P2-1**: el recibo del scanner no est
 
 ## P2-1 — El recibo del scanner no está ligado a los bytes de gateway que se revisan
 
-`docs/validation/M4-scanner-native.json:33-35` registra `crates/execution-adapter/src/security_gateway.rs` = `592d1b100f0d1f158136c741c1681754db051ea113615ca42bd4409ba9066078`. El fichero bajo revisión es `8e3bf671a02a4ce0afadd33f27480da5709f2b807280a21603b2a2873630145d` (`inputs.json:43-45`), que es exactamente el que sí registra el recibo Miri (`M4-miri-native.json:57-59`). El resto de inputs del scanner (`unsafe_scan.rs`, `unsafe_native.rs`, helper `lib.rs`/`main.rs`, `security_metadata.rs`, `rust_applied.rs`) sí coinciden.
+`docs/validation/M4/scanner-native.json:33-35` registra `crates/execution-adapter/src/security_gateway.rs` = `592d1b100f0d1f158136c741c1681754db051ea113615ca42bd4409ba9066078`. El fichero bajo revisión es `8e3bf671a02a4ce0afadd33f27480da5709f2b807280a21603b2a2873630145d` (`inputs.json:43-45`), que es exactamente el que sí registra el recibo Miri (`M4-miri-native.json:57-59`). El resto de inputs del scanner (`unsafe_scan.rs`, `unsafe_native.rs`, helper `lib.rs`/`main.rs`, `security_metadata.rs`, `rust_applied.rs`) sí coinciden.
 
 Consecuencias comprobables, no inferidas:
 

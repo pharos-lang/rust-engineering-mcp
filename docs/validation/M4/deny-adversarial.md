@@ -17,7 +17,7 @@ failed`, `0 ignored`, `0 measured`, `213 filtered out`, in `19.32s`. Its emitted
 oracle hash was
 `sha256:c59d3da14433a07d3beac1a5c722ff00f6832530d6fb7010b1fc8e89006346e4`.
 The structured evidence, including the literal test output and retained
-cargo-deny stdout/stderr, is [M4-deny-adversarial.json](M4-deny-adversarial.json),
+cargo-deny stdout/stderr, is [M4-deny-adversarial.json](deny-adversarial.json),
 SHA-256 `4efa6c1d32feaa2aaf7e2309943b638a05b695cb068820d045b3a67770941c9a`.
 
 ## Discriminating results

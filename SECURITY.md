@@ -331,7 +331,7 @@ habilitado para un peer que también declare `io.modelcontextprotocol/tasks`.
 
 The M4 source implements separate dependency policy, unsafe syntax, Miri and
 supply-chain observations plus `rust.quality.gate.v2`. Its qualification and public
-admission are recorded in [M4-matrix](docs/validation/M4-matrix.md). The optional
+admission are recorded in [M4-matrix](docs/validation/M4/matrix.md). The optional
 image is pinned by digest; the runtime never installs plugins, nightly/sysroot,
 models or snapshots. `security-runtime inventory --json` reports compiled
 requirements and explicitly does not observe installation readiness.

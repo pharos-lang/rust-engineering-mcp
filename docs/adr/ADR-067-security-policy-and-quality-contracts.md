@@ -21,7 +21,7 @@ El cargo-deny 0.19.7 fijado intenta preparar crates incluso con `--metadata-path
 Su inferencia de licencias prefiere el campo de metadata a los archivos de texto.
 Usarlo sin una integración explícita incumpliría la evidencia offline requerida
 por M4. El código oficial fijado y sus hashes se conservan en
-[sources.json](../validation/m4-deny-research/sources.json).
+[sources.json](../validation/M4/deny-research/sources.json).
 
 ## Decision
 
@@ -211,7 +211,7 @@ se decide y prueba aparte antes de modificarlo.
   y [config](https://embarkstudios.github.io/cargo-deny/checks/cfg.html), contrastados
   con el código del commit `759a4946dcfe93a56fb42d464e193c4c448af4e3` (0.19.7).
 - `src/cargo-deny/check.rs`, `common.rs`, `stats.rs`, `src/licenses/gather.rs`
-  y `src/diag/grapher.rs` en el [inventario upstream](../validation/m4-deny-research/sources.json).
+  y `src/diag/grapher.rs` en el [inventario upstream](../validation/M4/deny-research/sources.json).
 
 ### Publicación y compatibilidad del artefacto (integración M4-01)
 
@@ -237,8 +237,8 @@ La captura offline del vendor usa el par de flags M2 existente; si falta no se
 anuncia una evaluación completa, también para proyectos sin dependencias. El adapter D05 vigente exige al menos
 un paquete en un dataset válido; no se anuncia soporte de dataset vacío. Esta
 restricción operativa es explícita y no implica que paquetes vendor no usados
-entren en el grafo evaluado. La tool anunciada pasó [G4](../validation/M4-clients.json),
-[core](../validation/M4-core-gate.json) y [full](../validation/M4-full-gate.json),
+entren en el grafo evaluado. La tool anunciada pasó [G4](../validation/M4/clients.json),
+[core](../validation/M4/core-gate.json) y [full](../validation/M4/full-gate.json),
 con los recibos vinculados al mismo inventario final. La confirmación de cierre
 se registra en el handoff.
 
@@ -276,7 +276,7 @@ disponible; cleanup incierto o autoridad perdida abortan la publicación.
 ### Presupuestos medidos y selección síncrona
 
 El protocolo completó 300 observaciones: 30 cold y 30 warm por operación,
-sobre el binario congelado identificado en [M4-budgets.json](../validation/M4-budgets.json).
+sobre el binario congelado identificado en [M4-budgets.json](../validation/M4/budgets.json).
 Cold significa primera llamada por tool en una sesión nueva ya calibrada; warm
 repite en esa sesión. Cada build guest sigue siendo efímero. No significa caché
 de disco/daemon vaciada. Calibración está fuera del cronómetro de operación.

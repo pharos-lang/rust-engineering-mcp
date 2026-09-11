@@ -486,7 +486,7 @@ calificación runtime por la denegación de `socketpair(AF_UNIX, SOCK_STREAM)`.
 
 The internal M4 implementation uses the same owner-bound capture, single worker
 permit and joined Execution Gateway. Public admission is tracked in
-[the M4 matrix](validation/M4-matrix.md). The optional runtime is selected by its
+[the M4 matrix](validation/M4/matrix.md). The optional runtime is selected by its
 immutable image ID ([ADR-068](adr/ADR-068-m4-runtime-admission.md)); a local plugin
 installation or a mutable Docker tag cannot grant execution authority.
 

@@ -2,7 +2,7 @@
 
 ## Status
 
-Accepted para M4-04. Implementación calificada mediante tests reales de catálogo/aplicación en [core](../validation/M4-core-gate.json), [MCP nativo](../validation/M4-tools-mcp.json), [clientes](../validation/M4-clients.json) y [full](../validation/M4-full-gate.json).
+Accepted para M4-04. Implementación calificada mediante tests reales de catálogo/aplicación en [core](../validation/M4/core-gate.json), [MCP nativo](../validation/M4/tools-mcp.json), [clientes](../validation/M4/clients.json) y [full](../validation/M4/full-gate.json).
 
 ## Context
 
