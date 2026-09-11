@@ -1,164 +1,10 @@
 {
   "schema": "rust-mcp-evidence-history-inventory-v1",
   "milestone": "M5",
-  "recorded_at": "2026-09-11T15:51:11.966061+00:00",
+  "recorded_at": "2026-09-11T17:41:08.077561+00:00",
   "source_commit": "9546c85697b2e8e3a8756a188b502b4f02aa59b0",
   "purpose": "Superseded or failed evidence kept next to the current receipts of this milestone. Bytes are moved with git mv, never edited: each entry records the pre-hygiene path, SHA-256 and size. Retired entries were removed from the tree after their hash was recorded; their bytes remain reachable in Git history at source_commit. Entries marked living are prose kept next to the receipts; they are verified by presence only.",
   "retained": [
-    {
-      "path": "00-admission-runtime-superseded-0e21c561.json",
-      "original_path": "docs/validation/M5-00-admission-runtime-superseded-0e21c561.json",
-      "sha256": "67cc87e82b93db0e496503d9d08694fde843c8ded25c137d4e7387493ac9c1d4",
-      "bytes": 879,
-      "reason": "00-admission-runtime receipt superseded at commit 0e21c561 by the M5 closure requalification; current receipt: docs/validation/M5/00-admission-runtime.json."
-    },
-    {
-      "path": "01-runtime-superseded-0e21c561.json",
-      "original_path": "docs/validation/M5-01-runtime-superseded-0e21c561.json",
-      "sha256": "4499d216fca1e475ade31e27a885057188c07efebd34b004ba5aef5fc855568a",
-      "bytes": 5057,
-      "reason": "01-runtime receipt superseded at commit 0e21c561 by the M5 closure requalification; current receipt: docs/validation/M5/01-runtime.json."
-    },
-    {
-      "path": "03-runtime-superseded-0e21c561.json",
-      "original_path": "docs/validation/M5-03-runtime-superseded-0e21c561.json",
-      "sha256": "c934e126d611054b0584b5e9b822676fc839bf8919ace08826958bf9cae8c5a1",
-      "bytes": 4337,
-      "reason": "03-runtime receipt superseded at commit 0e21c561 by the M5 closure requalification; current receipt: docs/validation/M5/03-runtime.json."
-    },
-    {
-      "path": "04-runtime-superseded-0e21c561.json",
-      "original_path": "docs/validation/M5-04-runtime-superseded-0e21c561.json",
-      "sha256": "3dc84e42b587b7996875beae23c3eacaff990c6f2ad03fca926b876ffd7013d7",
-      "bytes": 3885,
-      "reason": "04-runtime receipt superseded at commit 0e21c561 by the M5 closure requalification; current receipt: docs/validation/M5/04-runtime.json."
-    },
-    {
-      "path": "closure-history/M5-00-admission-runtime.json",
-      "original_path": "docs/validation/m5-closure-history/M5-00-admission-runtime.json",
-      "sha256": "c8c1113875ec4e1c91e56dafc96adb1d0ec85f4ca96a2bdb902200e36f639501",
-      "bytes": 879,
-      "reason": "Receipts captured before the M5 closure requalification; see closure-history/inventory.json for the originating commits."
-    },
-    {
-      "path": "closure-history/M5-01-blocked-runtime.json",
-      "original_path": "docs/validation/m5-closure-history/M5-01-blocked-runtime.json",
-      "sha256": "50505b6f4efeab646ffc31080d315ae08975f04ff4172dcc5463db4a7aa81282",
-      "bytes": 3142,
-      "reason": "Receipts captured before the M5 closure requalification; see closure-history/inventory.json for the originating commits."
-    },
-    {
-      "path": "closure-history/M5-01-runtime.json",
-      "original_path": "docs/validation/m5-closure-history/M5-01-runtime.json",
-      "sha256": "ccf475001580d90dbbe767f4251a4c00e1f020d2911b83a490283c2a90aaebc4",
-      "bytes": 2427,
-      "reason": "Receipts captured before the M5 closure requalification; see closure-history/inventory.json for the originating commits."
-    },
-    {
-      "path": "closure-history/M5-03-runtime.json",
-      "original_path": "docs/validation/m5-closure-history/M5-03-runtime.json",
-      "sha256": "5c6ac512081e144349d32b64f41e50bf617245d3d6f89c471629ecd07baeed90",
-      "bytes": 9335,
-      "reason": "Receipts captured before the M5 closure requalification; see closure-history/inventory.json for the originating commits."
-    },
-    {
-      "path": "closure-history/M5-04-runtime.json",
-      "original_path": "docs/validation/m5-closure-history/M5-04-runtime.json",
-      "sha256": "e9f13751393e7b97dce8257804f84d25f579d58fcc7dc1440b8e0fbd7e014333",
-      "bytes": 3885,
-      "reason": "Receipts captured before the M5 closure requalification; see closure-history/inventory.json for the originating commits."
-    },
-    {
-      "path": "closure-history/M5-clients.json",
-      "original_path": "docs/validation/m5-closure-history/M5-clients.json",
-      "sha256": "22e2cb9fba6fa283ed717bf3bab34f3260fae975022f3d361a44c2322067e4b4",
-      "bytes": 297104,
-      "reason": "Receipts captured before the M5 closure requalification; see closure-history/inventory.json for the originating commits."
-    },
-    {
-      "path": "closure-history/M5-runtime.json",
-      "original_path": "docs/validation/m5-closure-history/M5-runtime.json",
-      "sha256": "41a4b407c6609415063d5641ead34f4094f7d167697af3ec78beb50dae80b478",
-      "bytes": 40190,
-      "reason": "Receipts captured before the M5 closure requalification; see closure-history/inventory.json for the originating commits."
-    },
-    {
-      "path": "closure-history/inventory.json",
-      "original_path": "docs/validation/m5-closure-history/inventory.json",
-      "sha256": "f5a8f8d937a17c9d1375f7ec99ffd628a1780e6e50378789a27a141be9211bf8",
-      "bytes": 3431,
-      "reason": "Receipts captured before the M5 closure requalification; see closure-history/inventory.json for the originating commits."
-    },
-    {
-      "path": "closure-history/lock-0.38.0/M5-00-admission-runtime.json",
-      "original_path": "docs/validation/m5-closure-history/lock-0.38.0/M5-00-admission-runtime.json",
-      "sha256": "bd1818220558b8c225c60dd72445691edaff6af0896b478c08b904f6eef3e80b",
-      "bytes": 879,
-      "reason": "Receipts captured before the M5 closure requalification; see closure-history/inventory.json for the originating commits."
-    },
-    {
-      "path": "closure-history/lock-0.38.0/M5-01-blocked-runtime.json",
-      "original_path": "docs/validation/m5-closure-history/lock-0.38.0/M5-01-blocked-runtime.json",
-      "sha256": "441846a7da080e8e367ee2843dc3a5c64cd2b69f71ce48da32affbef0af0a7af",
-      "bytes": 3142,
-      "reason": "Receipts captured before the M5 closure requalification; see closure-history/inventory.json for the originating commits."
-    },
-    {
-      "path": "closure-history/lock-0.38.0/M5-01-capture-runtime.json",
-      "original_path": "docs/validation/m5-closure-history/lock-0.38.0/M5-01-capture-runtime.json",
-      "sha256": "fb176950399619267c8737e389b183668df1b68a7245ee57d131c14736bb6c6e",
-      "bytes": 6891,
-      "reason": "Receipts captured before the M5 closure requalification; see closure-history/inventory.json for the originating commits."
-    },
-    {
-      "path": "closure-history/lock-0.38.0/M5-01-runtime.json",
-      "original_path": "docs/validation/m5-closure-history/lock-0.38.0/M5-01-runtime.json",
-      "sha256": "8fe0528f58025e8265dc35aaac14740e2b6356659fd5f97d9a04c1d46a8482c9",
-      "bytes": 2657,
-      "reason": "Receipts captured before the M5 closure requalification; see closure-history/inventory.json for the originating commits."
-    },
-    {
-      "path": "closure-history/lock-0.38.0/M5-03-runtime.json",
-      "original_path": "docs/validation/m5-closure-history/lock-0.38.0/M5-03-runtime.json",
-      "sha256": "161f624637447ea924f438c39b1192efdb7d0a66f2eac8dfb52bb0cec8d5d3ac",
-      "bytes": 9335,
-      "reason": "Receipts captured before the M5 closure requalification; see closure-history/inventory.json for the originating commits."
-    },
-    {
-      "path": "closure-history/lock-0.38.0/M5-04-runtime.json",
-      "original_path": "docs/validation/m5-closure-history/lock-0.38.0/M5-04-runtime.json",
-      "sha256": "7f4b13e1e060d4e946e92f4406ef7281ab79f29096b31819df06e32d87c9aff6",
-      "bytes": 4036,
-      "reason": "Receipts captured before the M5 closure requalification; see closure-history/inventory.json for the originating commits."
-    },
-    {
-      "path": "closure-history/lock-0.38.0/M5-clients.json",
-      "original_path": "docs/validation/m5-closure-history/lock-0.38.0/M5-clients.json",
-      "sha256": "0c4ad9da2be76ee95e9654c14363697431d7db27479acc68c2bf15a88e695933",
-      "bytes": 312634,
-      "reason": "Receipts captured before the M5 closure requalification; see closure-history/inventory.json for the originating commits."
-    },
-    {
-      "path": "closure-history/lock-0.38.0/M5-core-gate.json",
-      "original_path": "docs/validation/m5-closure-history/lock-0.38.0/M5-core-gate.json",
-      "sha256": "0ff260e2fc05cb454c035dabc3d767a91ebc690725fa291d7adb752ca2e553a2",
-      "bytes": 294780,
-      "reason": "Receipts captured before the M5 closure requalification; see closure-history/inventory.json for the originating commits."
-    },
-    {
-      "path": "closure-history/lock-0.38.0/M5-native-gate.json",
-      "original_path": "docs/validation/m5-closure-history/lock-0.38.0/M5-native-gate.json",
-      "sha256": "1b936341a16d2d97adb59db4c5da6618a3073d7d9290203f7d6fa0bfdefb9a4e",
-      "bytes": 83582,
-      "reason": "Receipts captured before the M5 closure requalification; see closure-history/inventory.json for the originating commits."
-    },
-    {
-      "path": "closure-history/lock-0.38.0/M5-runtime.json",
-      "original_path": "docs/validation/m5-closure-history/lock-0.38.0/M5-runtime.json",
-      "sha256": "2a1848376b851c347d5e17182a4f3863d28aac8d2844da2ce2f6ef90d8a348dc",
-      "bytes": 54978,
-      "reason": "Receipts captured before the M5 closure requalification; see closure-history/inventory.json for the originating commits."
-    },
     {
       "path": "gate-attempts/README.md",
       "original_path": "docs/validation/m5-gate-attempts/README.md",
@@ -166,349 +12,6 @@
       "bytes": 14117,
       "reason": "Failed or intermediate M5 closure gate attempt preserved whole; see gate-attempts/README.md.",
       "living": true
-    },
-    {
-      "path": "gate-attempts/closure-core-lock-0.31.0/core-gate.txt",
-      "original_path": "docs/validation/m5-gate-attempts/closure-core-lock-0.31.0/core-gate.txt",
-      "sha256": "08a44d2255a718123f2abce74d70501bcd6a38442192c4cc53629ecfdb92e754",
-      "bytes": 226810,
-      "reason": "Failed or intermediate M5 closure gate attempt preserved whole; see gate-attempts/README.md."
-    },
-    {
-      "path": "gate-attempts/closure-core-lock-0.38.0/core-gate.txt",
-      "original_path": "docs/validation/m5-gate-attempts/closure-core-lock-0.38.0/core-gate.txt",
-      "sha256": "5cba8cc6db6c3d9feebeaf61c68fc98321280064173943b6f26f75a82391b6c8",
-      "bytes": 213701,
-      "reason": "Failed or intermediate M5 closure gate attempt preserved whole; see gate-attempts/README.md."
-    },
-    {
-      "path": "gate-attempts/closure-focused/89ec114-capture.txt",
-      "original_path": "docs/validation/m5-gate-attempts/closure-focused/89ec114-capture.txt",
-      "sha256": "d78827ae41403dc9c18afd7b9e7750910dad962c569cf1ca6b8909cadc08cc72",
-      "bytes": 2125,
-      "reason": "Failed or intermediate M5 closure gate attempt preserved whole; see gate-attempts/README.md."
-    },
-    {
-      "path": "gate-attempts/closure-focused/89ec114-performance.txt",
-      "original_path": "docs/validation/m5-gate-attempts/closure-focused/89ec114-performance.txt",
-      "sha256": "04431bb8ec896259cebe716bd00369cae7d9f643f2d405bdd7f0aa5c0e4f715c",
-      "bytes": 1431,
-      "reason": "Failed or intermediate M5 closure gate attempt preserved whole; see gate-attempts/README.md."
-    },
-    {
-      "path": "gate-attempts/closure-focused/attempts.json",
-      "original_path": "docs/validation/m5-gate-attempts/closure-focused/attempts.json",
-      "sha256": "47ded72f92f8972a50cc86cf9e350fabf7000bd5ffce43a4d0fbe016a7797b5e",
-      "bytes": 1861,
-      "reason": "Failed or intermediate M5 closure gate attempt preserved whole; see gate-attempts/README.md."
-    },
-    {
-      "path": "gate-attempts/closure-focused/m5-closure-performance.txt",
-      "original_path": "docs/validation/m5-gate-attempts/closure-focused/m5-closure-performance.txt",
-      "sha256": "07b08bef0de36047411cb9a656e43929dce07497139984b13c577ecbe55cd696",
-      "bytes": 1060,
-      "reason": "Failed or intermediate M5 closure gate attempt preserved whole; see gate-attempts/README.md."
-    },
-    {
-      "path": "gate-attempts/closure-focused/m5-closure-vendor-capture.txt",
-      "original_path": "docs/validation/m5-gate-attempts/closure-focused/m5-closure-vendor-capture.txt",
-      "sha256": "cb90fa03c50532dfc808328d0c666383a2c3c49fb0aa560ca84e9777fba3bdcd",
-      "bytes": 4470,
-      "reason": "Failed or intermediate M5 closure gate attempt preserved whole; see gate-attempts/README.md."
-    },
-    {
-      "path": "gate-attempts/closure-focused/m5-focused-execution.txt",
-      "original_path": "docs/validation/m5-gate-attempts/closure-focused/m5-focused-execution.txt",
-      "sha256": "bbb251a401f0ed2b4199476adf113968ad94e5980391f35646e1665f33594613",
-      "bytes": 9052,
-      "reason": "Failed or intermediate M5 closure gate attempt preserved whole; see gate-attempts/README.md."
-    },
-    {
-      "path": "gate-attempts/closure-full-attempt-2/full-gate.json",
-      "original_path": "docs/validation/m5-gate-attempts/closure-full-attempt-2/full-gate.json",
-      "sha256": "b05421831991d2ed0b1fa7c81ea212deab237c6cd08123592f21263529579ebb",
-      "bytes": 300018,
-      "reason": "Failed or intermediate M5 closure gate attempt preserved whole; see gate-attempts/README.md."
-    },
-    {
-      "path": "gate-attempts/closure-full-attempt-2/full-gate.txt",
-      "original_path": "docs/validation/m5-gate-attempts/closure-full-attempt-2/full-gate.txt",
-      "sha256": "e0cbd52986eded06ac2a4e63d31c05c154f8a1045a1c301dbd58cbf44a487dd2",
-      "bytes": 275076,
-      "reason": "Failed or intermediate M5 closure gate attempt preserved whole; see gate-attempts/README.md."
-    },
-    {
-      "path": "gate-attempts/closure-full-attempt-2/lancedb-0.38-probes/option-1-remote-lock-delta.diff",
-      "original_path": "docs/validation/m5-gate-attempts/closure-full-attempt-2/lancedb-0.38-probes/option-1-remote-lock-delta.diff",
-      "sha256": "cbf9a155569bccf40882dcd85c37b3b662c6fac47f7acf54f6bfba22d10baed6",
-      "bytes": 1559,
-      "reason": "Failed or intermediate M5 closure gate attempt preserved whole; see gate-attempts/README.md."
-    },
-    {
-      "path": "gate-attempts/closure-full-attempt-2/lancedb-0.38-probes/option-3-cfg-patch-check.txt",
-      "original_path": "docs/validation/m5-gate-attempts/closure-full-attempt-2/lancedb-0.38-probes/option-3-cfg-patch-check.txt",
-      "sha256": "212ca187f158b4e0eec42465a8b08a4d4d6feb750b49b2a0c83ad154ca0c12ca",
-      "bytes": 18739,
-      "reason": "Failed or intermediate M5 closure gate attempt preserved whole; see gate-attempts/README.md."
-    },
-    {
-      "path": "gate-attempts/closure-full-attempt-2/lancedb-0.38-probes/option-3-job-rs.patch",
-      "original_path": "docs/validation/m5-gate-attempts/closure-full-attempt-2/lancedb-0.38-probes/option-3-job-rs.patch",
-      "sha256": "ffd19ec203293e82e5575ea883a64cad47307435dfc524552adf5eeafe3afee7",
-      "bytes": 1314,
-      "reason": "Failed or intermediate M5 closure gate attempt preserved whole; see gate-attempts/README.md."
-    },
-    {
-      "path": "gate-attempts/closure-full-attempt-2/lancedb-0.38-probes/option-3-semantic-tests-under-gate-conditions.txt",
-      "original_path": "docs/validation/m5-gate-attempts/closure-full-attempt-2/lancedb-0.38-probes/option-3-semantic-tests-under-gate-conditions.txt",
-      "sha256": "bfb380fc41b8499871512701f3b21b79ec1983f9025ab37f108f40f81cf6e215",
-      "bytes": 5546,
-      "reason": "Failed or intermediate M5 closure gate attempt preserved whole; see gate-attempts/README.md."
-    },
-    {
-      "path": "gate-attempts/closure-full-attempt-2/semantic-step.txt",
-      "original_path": "docs/validation/m5-gate-attempts/closure-full-attempt-2/semantic-step.txt",
-      "sha256": "1c45dc108991719bc1a9266c2c41a6f884d9b466dd03782ca7837bebbf2ac84c",
-      "bytes": 20306,
-      "reason": "Failed or intermediate M5 closure gate attempt preserved whole; see gate-attempts/README.md."
-    },
-    {
-      "path": "gate-attempts/closure-full-attempt-3/full-gate.json",
-      "original_path": "docs/validation/m5-gate-attempts/closure-full-attempt-3/full-gate.json",
-      "sha256": "3cc6ada08c1dafadbde95e3b5956dd32754d269d08fd576988a5ccd87e5d5534",
-      "bytes": 297177,
-      "reason": "Failed or intermediate M5 closure gate attempt preserved whole; see gate-attempts/README.md."
-    },
-    {
-      "path": "gate-attempts/closure-full-attempt-3/full-gate.txt",
-      "original_path": "docs/validation/m5-gate-attempts/closure-full-attempt-3/full-gate.txt",
-      "sha256": "7fc3b73c5f2e1d034acfceb6e464c935a6b5600a17e81f421e5f9f506bc1aff0",
-      "bytes": 261942,
-      "reason": "Failed or intermediate M5 closure gate attempt preserved whole; see gate-attempts/README.md."
-    },
-    {
-      "path": "gate-attempts/closure-full-attempt-3/hung-test-sample.txt",
-      "original_path": "docs/validation/m5-gate-attempts/closure-full-attempt-3/hung-test-sample.txt",
-      "sha256": "e4a5f346048e4c95ce29417f19f8d3d2b104da7f8f7ae538ee7170623b9155eb",
-      "bytes": 1024,
-      "reason": "Failed or intermediate M5 closure gate attempt preserved whole; see gate-attempts/README.md."
-    },
-    {
-      "path": "gate-attempts/closure-full-attempt-3/m3-runtime-receipt.json",
-      "original_path": "docs/validation/m5-gate-attempts/closure-full-attempt-3/m3-runtime-receipt.json",
-      "sha256": "b5a39f0208d8763807b5ba852936d941358844fe87101c5ecd58303dcbf49478",
-      "bytes": 100916,
-      "reason": "Failed or intermediate M5 closure gate attempt preserved whole; see gate-attempts/README.md."
-    },
-    {
-      "path": "gate-attempts/closure-full-attempt-3/m3-runtime-step.txt",
-      "original_path": "docs/validation/m5-gate-attempts/closure-full-attempt-3/m3-runtime-step.txt",
-      "sha256": "e32c746a39aef76338682d5894b7b960300f3f431ceed9327725faf0433ac14d",
-      "bytes": 2803,
-      "reason": "Failed or intermediate M5 closure gate attempt preserved whole; see gate-attempts/README.md."
-    },
-    {
-      "path": "gate-attempts/closure-full-lock-0.31.0/full-gate-final.txt",
-      "original_path": "docs/validation/m5-gate-attempts/closure-full-lock-0.31.0/full-gate-final.txt",
-      "sha256": "18173f81a6802906f630c32c6c76d68bfb5d28c1a9f5c428f2c000159257730a",
-      "bytes": 278225,
-      "reason": "Failed or intermediate M5 closure gate attempt preserved whole; see gate-attempts/README.md."
-    },
-    {
-      "path": "gate-attempts/closure-full-lock-0.31.0/full-gate.txt",
-      "original_path": "docs/validation/m5-gate-attempts/closure-full-lock-0.31.0/full-gate.txt",
-      "sha256": "3d234a45270208ed15605ce40ba4c8c1d1b6c73e6adadfa535893bfc1cd6ffc9",
-      "bytes": 297508,
-      "reason": "Failed or intermediate M5 closure gate attempt preserved whole; see gate-attempts/README.md."
-    },
-    {
-      "path": "gate-attempts/closure-full-lock-0.31.0/m5-runtime-joint-final/gate-receipt.json",
-      "original_path": "docs/validation/m5-gate-attempts/closure-full-lock-0.31.0/m5-runtime-joint-final/gate-receipt.json",
-      "sha256": "628b884d9b9a04532b80bdb64aa88cbcac3626c9fc94bd9e69375b63ba054625",
-      "bytes": 83581,
-      "reason": "Failed or intermediate M5 closure gate attempt preserved whole; see gate-attempts/README.md."
-    },
-    {
-      "path": "gate-attempts/closure-full-lock-0.31.0/m5-runtime-joint-final/native-receipt.json",
-      "original_path": "docs/validation/m5-gate-attempts/closure-full-lock-0.31.0/m5-runtime-joint-final/native-receipt.json",
-      "sha256": "7f500a7b1cfcff25a83795ec8af916588456fb81b843195bae303dfec7f2951b",
-      "bytes": 54978,
-      "reason": "Failed or intermediate M5 closure gate attempt preserved whole; see gate-attempts/README.md."
-    },
-    {
-      "path": "gate-attempts/closure-full-lock-0.31.0/m5-runtime-joint/cut-m5-00-admission.json",
-      "original_path": "docs/validation/m5-gate-attempts/closure-full-lock-0.31.0/m5-runtime-joint/cut-m5-00-admission.json",
-      "sha256": "1865a5a971cc8ac0f8ec50613d78fbfe7e597cfcc1cfc7c963767d36d2623f9c",
-      "bytes": 879,
-      "reason": "Failed or intermediate M5 closure gate attempt preserved whole; see gate-attempts/README.md."
-    },
-    {
-      "path": "gate-attempts/closure-full-lock-0.31.0/m5-runtime-joint/cut-m5-01-benchmark-blocked.json",
-      "original_path": "docs/validation/m5-gate-attempts/closure-full-lock-0.31.0/m5-runtime-joint/cut-m5-01-benchmark-blocked.json",
-      "sha256": "e68d618407e16ecf6a10e2d208f27ec62ac4e5796289fbf7e0f57185d95941a4",
-      "bytes": 3142,
-      "reason": "Failed or intermediate M5 closure gate attempt preserved whole; see gate-attempts/README.md."
-    },
-    {
-      "path": "gate-attempts/closure-full-lock-0.31.0/m5-runtime-joint/cut-m5-01-benchmark-capture.json",
-      "original_path": "docs/validation/m5-gate-attempts/closure-full-lock-0.31.0/m5-runtime-joint/cut-m5-01-benchmark-capture.json",
-      "sha256": "23b3829e41418d498d06e9419cb700bf36757b4fb857f9ffc3fa5685afd25022",
-      "bytes": 6891,
-      "reason": "Failed or intermediate M5 closure gate attempt preserved whole; see gate-attempts/README.md."
-    },
-    {
-      "path": "gate-attempts/closure-full-lock-0.31.0/m5-runtime-joint/cut-m5-01-benchmark.json",
-      "original_path": "docs/validation/m5-gate-attempts/closure-full-lock-0.31.0/m5-runtime-joint/cut-m5-01-benchmark.json",
-      "sha256": "1fe187052e6bd64e0353d2d45a3f9bea9c44e9c1d7d9482b7e46760475f1f763",
-      "bytes": 2657,
-      "reason": "Failed or intermediate M5 closure gate attempt preserved whole; see gate-attempts/README.md."
-    },
-    {
-      "path": "gate-attempts/closure-full-lock-0.31.0/m5-runtime-joint/cut-m5-03-profile.json",
-      "original_path": "docs/validation/m5-gate-attempts/closure-full-lock-0.31.0/m5-runtime-joint/cut-m5-03-profile.json",
-      "sha256": "4b53ee9764950727d89cbe09b7aea6b9b020151789df32d3c586014c5c0de0b7",
-      "bytes": 9335,
-      "reason": "Failed or intermediate M5 closure gate attempt preserved whole; see gate-attempts/README.md."
-    },
-    {
-      "path": "gate-attempts/closure-full-lock-0.31.0/m5-runtime-joint/cut-m5-04-bloat.json",
-      "original_path": "docs/validation/m5-gate-attempts/closure-full-lock-0.31.0/m5-runtime-joint/cut-m5-04-bloat.json",
-      "sha256": "4b90ca0fb6d32337f92d14e2792b0957dd87effb9498aad98346ab17ee46c444",
-      "bytes": 4036,
-      "reason": "Failed or intermediate M5 closure gate attempt preserved whole; see gate-attempts/README.md."
-    },
-    {
-      "path": "gate-attempts/closure-full-lock-0.31.0/m5-runtime-joint/gate-receipt.json",
-      "original_path": "docs/validation/m5-gate-attempts/closure-full-lock-0.31.0/m5-runtime-joint/gate-receipt.json",
-      "sha256": "c0e1d4a9526fbdb8a366e2396bf0579c299c18b189027510b5d22ae8086f44b8",
-      "bytes": 83582,
-      "reason": "Failed or intermediate M5 closure gate attempt preserved whole; see gate-attempts/README.md."
-    },
-    {
-      "path": "gate-attempts/closure-full-lock-0.31.0/m5-runtime-joint/native-receipt.json",
-      "original_path": "docs/validation/m5-gate-attempts/closure-full-lock-0.31.0/m5-runtime-joint/native-receipt.json",
-      "sha256": "16ac61b9dbb98331585924a1b8b9205ed842e24f1651b66c07252efcef5eb42c",
-      "bytes": 54978,
-      "reason": "Failed or intermediate M5 closure gate attempt preserved whole; see gate-attempts/README.md."
-    },
-    {
-      "path": "gate-attempts/closure-native-lock-0.31.0/receipt.json",
-      "original_path": "docs/validation/m5-gate-attempts/closure-native-lock-0.31.0/receipt.json",
-      "sha256": "a811ec70d51d6ac289c81808448b738031c32f484a82f83b271f9f52505cea7a",
-      "bytes": 83584,
-      "reason": "Failed or intermediate M5 closure gate attempt preserved whole; see gate-attempts/README.md."
-    },
-    {
-      "path": "gate-attempts/closure-native-sandbox-attempt/0.log",
-      "original_path": "docs/validation/m5-gate-attempts/closure-native-sandbox-attempt/0.log",
-      "sha256": "12480bfe85e8342b404c075f5d43606b5ca272f69ecf79babd6b08b07ca6f1b1",
-      "bytes": 1411,
-      "reason": "Failed or intermediate M5 closure gate attempt preserved whole; see gate-attempts/README.md."
-    },
-    {
-      "path": "gate-attempts/closure-native-sandbox-attempt/receipt.json",
-      "original_path": "docs/validation/m5-gate-attempts/closure-native-sandbox-attempt/receipt.json",
-      "sha256": "770af879d45353088333cf5cb67fe4232f037e6c0bfa0e5fe6b664936a18439f",
-      "bytes": 78928,
-      "reason": "Failed or intermediate M5 closure gate attempt preserved whole; see gate-attempts/README.md."
-    },
-    {
-      "path": "gate-attempts/closure-native-standalone/0.log",
-      "original_path": "docs/validation/m5-gate-attempts/closure-native-standalone/0.log",
-      "sha256": "56a6eefb952a7cb71e9751c9996850e03fba0554a75f7d16678162a270df2a1d",
-      "bytes": 998,
-      "reason": "Failed or intermediate M5 closure gate attempt preserved whole; see gate-attempts/README.md."
-    },
-    {
-      "path": "gate-attempts/closure-native-standalone/1.log",
-      "original_path": "docs/validation/m5-gate-attempts/closure-native-standalone/1.log",
-      "sha256": "f39f26e4521427c4c8531149ddc124d68a281c2f8d2b364cf88000ee545685b4",
-      "bytes": 1010,
-      "reason": "Failed or intermediate M5 closure gate attempt preserved whole; see gate-attempts/README.md."
-    },
-    {
-      "path": "gate-attempts/closure-native-standalone/2.log",
-      "original_path": "docs/validation/m5-gate-attempts/closure-native-standalone/2.log",
-      "sha256": "698a511849c0c0a84aaec32251a6528a80d1176f0b061db3f4727c3724a6e608",
-      "bytes": 1009,
-      "reason": "Failed or intermediate M5 closure gate attempt preserved whole; see gate-attempts/README.md."
-    },
-    {
-      "path": "gate-attempts/closure-native-standalone/3.log",
-      "original_path": "docs/validation/m5-gate-attempts/closure-native-standalone/3.log",
-      "sha256": "419aaa5aa657c6406ecdadae3c14e3735939d5fd2dd9005da67e4f120cca6d7b",
-      "bytes": 1009,
-      "reason": "Failed or intermediate M5 closure gate attempt preserved whole; see gate-attempts/README.md."
-    },
-    {
-      "path": "gate-attempts/closure-native-standalone/4.log",
-      "original_path": "docs/validation/m5-gate-attempts/closure-native-standalone/4.log",
-      "sha256": "fb64ca67428d326965ddaa7b7871680ded41f1108ef91193dce674cd5c97d41d",
-      "bytes": 992,
-      "reason": "Failed or intermediate M5 closure gate attempt preserved whole; see gate-attempts/README.md."
-    },
-    {
-      "path": "gate-attempts/closure-native-standalone/5.log",
-      "original_path": "docs/validation/m5-gate-attempts/closure-native-standalone/5.log",
-      "sha256": "9205a801a10a4a08ed15b25d13ce6268e1a195b427dfc906832c26341f03185e",
-      "bytes": 985,
-      "reason": "Failed or intermediate M5 closure gate attempt preserved whole; see gate-attempts/README.md."
-    },
-    {
-      "path": "gate-attempts/closure-native-standalone/receipt.json",
-      "original_path": "docs/validation/m5-gate-attempts/closure-native-standalone/receipt.json",
-      "sha256": "1b936341a16d2d97adb59db4c5da6618a3073d7d9290203f7d6fa0bfdefb9a4e",
-      "bytes": 83582,
-      "reason": "Failed or intermediate M5 closure gate attempt preserved whole; see gate-attempts/README.md."
-    },
-    {
-      "path": "gate-attempts/full-gate-attempt-1.json",
-      "original_path": "docs/validation/m5-gate-attempts/full-gate-attempt-1.json",
-      "sha256": "51e7ef9d6b2d31ba27a9f7e007bba89069fce8452259dcb9fff1623a3d7e9069",
-      "bytes": 295600,
-      "reason": "Failed or intermediate M5 closure gate attempt preserved whole; see gate-attempts/README.md."
-    },
-    {
-      "path": "gate-attempts/m4-runtime-attempt-1.json",
-      "original_path": "docs/validation/m5-gate-attempts/m4-runtime-attempt-1.json",
-      "sha256": "0215ee3126f60818a7233161ffea13460fb384facf18cce58655f2c8e5c4b5f4",
-      "bytes": 88828,
-      "reason": "Failed or intermediate M5 closure gate attempt preserved whole; see gate-attempts/README.md."
-    },
-    {
-      "path": "gate-attempts/vendor-volume-sizing.patch",
-      "original_path": "docs/validation/m5-gate-attempts/vendor-volume-sizing.patch",
-      "sha256": "27623e5e2c2b34c6e6eda8a1a6071537e3fefb77c2ee2caf39449f19584f9f37",
-      "bytes": 4311,
-      "reason": "Failed or intermediate M5 closure gate attempt preserved whole; see gate-attempts/README.md."
-    },
-    {
-      "path": "provisioning-superseded-0e21c561.json",
-      "original_path": "docs/validation/M5-provisioning-superseded-0e21c561.json",
-      "sha256": "b47b693884b97e88dd13747c250af714d75494f9591c434a1469508e40e52db1",
-      "bytes": 7123,
-      "reason": "provisioning receipt superseded at commit 0e21c561 by the M5 closure requalification; current receipt: docs/validation/M5/provisioning.json."
-    },
-    {
-      "path": "runtime-superseded-0e21c561.json",
-      "original_path": "docs/validation/M5-runtime-superseded-0e21c561.json",
-      "sha256": "be029ccb69e0bee66d41199d5fd505f5b1951876f4a83a6f9604edde567fa01d",
-      "bytes": 28853,
-      "reason": "runtime receipt superseded at commit 0e21c561 by the M5 closure requalification; current receipt: docs/validation/M5/runtime.json."
-    },
-    {
-      "path": "gate-attempts/repo-hygiene-core-attempt-1.json",
-      "original_path": "docs/validation/M5/history/gate-attempts/repo-hygiene-core-attempt-1.json",
-      "sha256": "87e5ce738128c28f360fa0c190a272755e0ce85e8357149866a4fbd663f7bb59",
-      "bytes": 285759,
-      "reason": "core gate over the hygiene worktree failed at m4-client-harness-tests: the worktree had no target/release/rust-engineering-mcp because the shared CARGO_TARGET_DIR kept the binary outside it (harness environment omission, not a product signal); the binary was then built from the worktree sources and staged; current receipt: docs/validation/M5/core-gate-repo-hygiene.json."
-    },
-    {
-      "path": "gate-attempts/repo-hygiene-core-attempt-2.json",
-      "original_path": "docs/validation/M5/history/gate-attempts/repo-hygiene-core-attempt-2.json",
-      "sha256": "27502baae03a63c3cd306193fcf5cfa83e4e986168db618b9f54343a45230906",
-      "bytes": 285077,
-      "reason": "core gate failed at codex-qualifier-tests: test_fake_end_to_end_source_immutable_and_cleanup hit a descendant-monitor ProcessLookupError race; reproduced alone twice in the same worktree with 39/39 OK at load 2.6, classified as timing flake per the M5 attempt policy; test untouched, gate rerun whole; current receipt: docs/validation/M5/core-gate-repo-hygiene.json."
     }
   ],
   "retired": [
@@ -1994,6 +1497,447 @@
           "bytes": 0
         }
       ]
+    },
+    {
+      "original_path": "docs/validation/M5/history/00-admission-runtime-superseded-0e21c561.json",
+      "sha256": "67cc87e82b93db0e496503d9d08694fde843c8ded25c137d4e7387493ac9c1d4",
+      "bytes": 879,
+      "kind": "A-superseded receipts and failed-attempt logs"
+    },
+    {
+      "original_path": "docs/validation/M5/history/01-runtime-superseded-0e21c561.json",
+      "sha256": "4499d216fca1e475ade31e27a885057188c07efebd34b004ba5aef5fc855568a",
+      "bytes": 5057,
+      "kind": "A-superseded receipts and failed-attempt logs"
+    },
+    {
+      "original_path": "docs/validation/M5/history/03-runtime-superseded-0e21c561.json",
+      "sha256": "c934e126d611054b0584b5e9b822676fc839bf8919ace08826958bf9cae8c5a1",
+      "bytes": 4337,
+      "kind": "A-superseded receipts and failed-attempt logs"
+    },
+    {
+      "original_path": "docs/validation/M5/history/04-runtime-superseded-0e21c561.json",
+      "sha256": "3dc84e42b587b7996875beae23c3eacaff990c6f2ad03fca926b876ffd7013d7",
+      "bytes": 3885,
+      "kind": "A-superseded receipts and failed-attempt logs"
+    },
+    {
+      "original_path": "docs/validation/M5/history/closure-history/M5-00-admission-runtime.json",
+      "sha256": "c8c1113875ec4e1c91e56dafc96adb1d0ec85f4ca96a2bdb902200e36f639501",
+      "bytes": 879,
+      "kind": "A-superseded receipts and failed-attempt logs"
+    },
+    {
+      "original_path": "docs/validation/M5/history/closure-history/M5-01-blocked-runtime.json",
+      "sha256": "50505b6f4efeab646ffc31080d315ae08975f04ff4172dcc5463db4a7aa81282",
+      "bytes": 3142,
+      "kind": "A-superseded receipts and failed-attempt logs"
+    },
+    {
+      "original_path": "docs/validation/M5/history/closure-history/M5-01-runtime.json",
+      "sha256": "ccf475001580d90dbbe767f4251a4c00e1f020d2911b83a490283c2a90aaebc4",
+      "bytes": 2427,
+      "kind": "A-superseded receipts and failed-attempt logs"
+    },
+    {
+      "original_path": "docs/validation/M5/history/closure-history/M5-03-runtime.json",
+      "sha256": "5c6ac512081e144349d32b64f41e50bf617245d3d6f89c471629ecd07baeed90",
+      "bytes": 9335,
+      "kind": "A-superseded receipts and failed-attempt logs"
+    },
+    {
+      "original_path": "docs/validation/M5/history/closure-history/M5-04-runtime.json",
+      "sha256": "e9f13751393e7b97dce8257804f84d25f579d58fcc7dc1440b8e0fbd7e014333",
+      "bytes": 3885,
+      "kind": "A-superseded receipts and failed-attempt logs"
+    },
+    {
+      "original_path": "docs/validation/M5/history/closure-history/M5-clients.json",
+      "sha256": "22e2cb9fba6fa283ed717bf3bab34f3260fae975022f3d361a44c2322067e4b4",
+      "bytes": 297104,
+      "kind": "A-superseded receipts and failed-attempt logs"
+    },
+    {
+      "original_path": "docs/validation/M5/history/closure-history/M5-runtime.json",
+      "sha256": "41a4b407c6609415063d5641ead34f4094f7d167697af3ec78beb50dae80b478",
+      "bytes": 40190,
+      "kind": "A-superseded receipts and failed-attempt logs"
+    },
+    {
+      "original_path": "docs/validation/M5/history/closure-history/lock-0.38.0/M5-00-admission-runtime.json",
+      "sha256": "bd1818220558b8c225c60dd72445691edaff6af0896b478c08b904f6eef3e80b",
+      "bytes": 879,
+      "kind": "A-superseded receipts and failed-attempt logs"
+    },
+    {
+      "original_path": "docs/validation/M5/history/closure-history/lock-0.38.0/M5-01-blocked-runtime.json",
+      "sha256": "441846a7da080e8e367ee2843dc3a5c64cd2b69f71ce48da32affbef0af0a7af",
+      "bytes": 3142,
+      "kind": "A-superseded receipts and failed-attempt logs"
+    },
+    {
+      "original_path": "docs/validation/M5/history/closure-history/lock-0.38.0/M5-01-capture-runtime.json",
+      "sha256": "fb176950399619267c8737e389b183668df1b68a7245ee57d131c14736bb6c6e",
+      "bytes": 6891,
+      "kind": "A-superseded receipts and failed-attempt logs"
+    },
+    {
+      "original_path": "docs/validation/M5/history/closure-history/lock-0.38.0/M5-01-runtime.json",
+      "sha256": "8fe0528f58025e8265dc35aaac14740e2b6356659fd5f97d9a04c1d46a8482c9",
+      "bytes": 2657,
+      "kind": "A-superseded receipts and failed-attempt logs"
+    },
+    {
+      "original_path": "docs/validation/M5/history/closure-history/lock-0.38.0/M5-03-runtime.json",
+      "sha256": "161f624637447ea924f438c39b1192efdb7d0a66f2eac8dfb52bb0cec8d5d3ac",
+      "bytes": 9335,
+      "kind": "A-superseded receipts and failed-attempt logs"
+    },
+    {
+      "original_path": "docs/validation/M5/history/closure-history/lock-0.38.0/M5-04-runtime.json",
+      "sha256": "7f4b13e1e060d4e946e92f4406ef7281ab79f29096b31819df06e32d87c9aff6",
+      "bytes": 4036,
+      "kind": "A-superseded receipts and failed-attempt logs"
+    },
+    {
+      "original_path": "docs/validation/M5/history/closure-history/lock-0.38.0/M5-clients.json",
+      "sha256": "0c4ad9da2be76ee95e9654c14363697431d7db27479acc68c2bf15a88e695933",
+      "bytes": 312634,
+      "kind": "A-superseded receipts and failed-attempt logs"
+    },
+    {
+      "original_path": "docs/validation/M5/history/closure-history/lock-0.38.0/M5-core-gate.json",
+      "sha256": "0ff260e2fc05cb454c035dabc3d767a91ebc690725fa291d7adb752ca2e553a2",
+      "bytes": 294780,
+      "kind": "A-superseded receipts and failed-attempt logs"
+    },
+    {
+      "original_path": "docs/validation/M5/history/closure-history/lock-0.38.0/M5-native-gate.json",
+      "sha256": "1b936341a16d2d97adb59db4c5da6618a3073d7d9290203f7d6fa0bfdefb9a4e",
+      "bytes": 83582,
+      "kind": "A-superseded receipts and failed-attempt logs"
+    },
+    {
+      "original_path": "docs/validation/M5/history/closure-history/lock-0.38.0/M5-runtime.json",
+      "sha256": "2a1848376b851c347d5e17182a4f3863d28aac8d2844da2ce2f6ef90d8a348dc",
+      "bytes": 54978,
+      "kind": "A-superseded receipts and failed-attempt logs"
+    },
+    {
+      "original_path": "docs/validation/M5/history/gate-attempts/closure-core-lock-0.31.0/core-gate.txt",
+      "sha256": "08a44d2255a718123f2abce74d70501bcd6a38442192c4cc53629ecfdb92e754",
+      "bytes": 226810,
+      "kind": "A-superseded receipts and failed-attempt logs"
+    },
+    {
+      "original_path": "docs/validation/M5/history/gate-attempts/closure-core-lock-0.38.0/core-gate.txt",
+      "sha256": "5cba8cc6db6c3d9feebeaf61c68fc98321280064173943b6f26f75a82391b6c8",
+      "bytes": 213701,
+      "kind": "A-superseded receipts and failed-attempt logs"
+    },
+    {
+      "original_path": "docs/validation/M5/history/gate-attempts/closure-focused/89ec114-capture.txt",
+      "sha256": "d78827ae41403dc9c18afd7b9e7750910dad962c569cf1ca6b8909cadc08cc72",
+      "bytes": 2125,
+      "kind": "A-superseded receipts and failed-attempt logs"
+    },
+    {
+      "original_path": "docs/validation/M5/history/gate-attempts/closure-focused/89ec114-performance.txt",
+      "sha256": "04431bb8ec896259cebe716bd00369cae7d9f643f2d405bdd7f0aa5c0e4f715c",
+      "bytes": 1431,
+      "kind": "A-superseded receipts and failed-attempt logs"
+    },
+    {
+      "original_path": "docs/validation/M5/history/gate-attempts/closure-focused/attempts.json",
+      "sha256": "47ded72f92f8972a50cc86cf9e350fabf7000bd5ffce43a4d0fbe016a7797b5e",
+      "bytes": 1861,
+      "kind": "A-superseded receipts and failed-attempt logs"
+    },
+    {
+      "original_path": "docs/validation/M5/history/gate-attempts/closure-focused/m5-closure-performance.txt",
+      "sha256": "07b08bef0de36047411cb9a656e43929dce07497139984b13c577ecbe55cd696",
+      "bytes": 1060,
+      "kind": "A-superseded receipts and failed-attempt logs"
+    },
+    {
+      "original_path": "docs/validation/M5/history/gate-attempts/closure-focused/m5-closure-vendor-capture.txt",
+      "sha256": "cb90fa03c50532dfc808328d0c666383a2c3c49fb0aa560ca84e9777fba3bdcd",
+      "bytes": 4470,
+      "kind": "A-superseded receipts and failed-attempt logs"
+    },
+    {
+      "original_path": "docs/validation/M5/history/gate-attempts/closure-focused/m5-focused-execution.txt",
+      "sha256": "bbb251a401f0ed2b4199476adf113968ad94e5980391f35646e1665f33594613",
+      "bytes": 9052,
+      "kind": "A-superseded receipts and failed-attempt logs"
+    },
+    {
+      "original_path": "docs/validation/M5/history/gate-attempts/closure-full-attempt-2/full-gate.json",
+      "sha256": "b05421831991d2ed0b1fa7c81ea212deab237c6cd08123592f21263529579ebb",
+      "bytes": 300018,
+      "kind": "A-superseded receipts and failed-attempt logs"
+    },
+    {
+      "original_path": "docs/validation/M5/history/gate-attempts/closure-full-attempt-2/full-gate.txt",
+      "sha256": "e0cbd52986eded06ac2a4e63d31c05c154f8a1045a1c301dbd58cbf44a487dd2",
+      "bytes": 275076,
+      "kind": "A-superseded receipts and failed-attempt logs"
+    },
+    {
+      "original_path": "docs/validation/M5/history/gate-attempts/closure-full-attempt-2/lancedb-0.38-probes/option-1-remote-lock-delta.diff",
+      "sha256": "cbf9a155569bccf40882dcd85c37b3b662c6fac47f7acf54f6bfba22d10baed6",
+      "bytes": 1559,
+      "kind": "A-superseded receipts and failed-attempt logs"
+    },
+    {
+      "original_path": "docs/validation/M5/history/gate-attempts/closure-full-attempt-2/lancedb-0.38-probes/option-3-cfg-patch-check.txt",
+      "sha256": "212ca187f158b4e0eec42465a8b08a4d4d6feb750b49b2a0c83ad154ca0c12ca",
+      "bytes": 18739,
+      "kind": "A-superseded receipts and failed-attempt logs"
+    },
+    {
+      "original_path": "docs/validation/M5/history/gate-attempts/closure-full-attempt-2/lancedb-0.38-probes/option-3-job-rs.patch",
+      "sha256": "ffd19ec203293e82e5575ea883a64cad47307435dfc524552adf5eeafe3afee7",
+      "bytes": 1314,
+      "kind": "A-superseded receipts and failed-attempt logs"
+    },
+    {
+      "original_path": "docs/validation/M5/history/gate-attempts/closure-full-attempt-2/lancedb-0.38-probes/option-3-semantic-tests-under-gate-conditions.txt",
+      "sha256": "bfb380fc41b8499871512701f3b21b79ec1983f9025ab37f108f40f81cf6e215",
+      "bytes": 5546,
+      "kind": "A-superseded receipts and failed-attempt logs"
+    },
+    {
+      "original_path": "docs/validation/M5/history/gate-attempts/closure-full-attempt-2/semantic-step.txt",
+      "sha256": "1c45dc108991719bc1a9266c2c41a6f884d9b466dd03782ca7837bebbf2ac84c",
+      "bytes": 20306,
+      "kind": "A-superseded receipts and failed-attempt logs"
+    },
+    {
+      "original_path": "docs/validation/M5/history/gate-attempts/closure-full-attempt-3/full-gate.json",
+      "sha256": "3cc6ada08c1dafadbde95e3b5956dd32754d269d08fd576988a5ccd87e5d5534",
+      "bytes": 297177,
+      "kind": "A-superseded receipts and failed-attempt logs"
+    },
+    {
+      "original_path": "docs/validation/M5/history/gate-attempts/closure-full-attempt-3/full-gate.txt",
+      "sha256": "7fc3b73c5f2e1d034acfceb6e464c935a6b5600a17e81f421e5f9f506bc1aff0",
+      "bytes": 261942,
+      "kind": "A-superseded receipts and failed-attempt logs"
+    },
+    {
+      "original_path": "docs/validation/M5/history/gate-attempts/closure-full-attempt-3/hung-test-sample.txt",
+      "sha256": "e4a5f346048e4c95ce29417f19f8d3d2b104da7f8f7ae538ee7170623b9155eb",
+      "bytes": 1024,
+      "kind": "A-superseded receipts and failed-attempt logs"
+    },
+    {
+      "original_path": "docs/validation/M5/history/gate-attempts/closure-full-attempt-3/m3-runtime-receipt.json",
+      "sha256": "b5a39f0208d8763807b5ba852936d941358844fe87101c5ecd58303dcbf49478",
+      "bytes": 100916,
+      "kind": "A-superseded receipts and failed-attempt logs"
+    },
+    {
+      "original_path": "docs/validation/M5/history/gate-attempts/closure-full-attempt-3/m3-runtime-step.txt",
+      "sha256": "e32c746a39aef76338682d5894b7b960300f3f431ceed9327725faf0433ac14d",
+      "bytes": 2803,
+      "kind": "A-superseded receipts and failed-attempt logs"
+    },
+    {
+      "original_path": "docs/validation/M5/history/gate-attempts/closure-full-lock-0.31.0/full-gate-final.txt",
+      "sha256": "18173f81a6802906f630c32c6c76d68bfb5d28c1a9f5c428f2c000159257730a",
+      "bytes": 278225,
+      "kind": "A-superseded receipts and failed-attempt logs"
+    },
+    {
+      "original_path": "docs/validation/M5/history/gate-attempts/closure-full-lock-0.31.0/full-gate.txt",
+      "sha256": "3d234a45270208ed15605ce40ba4c8c1d1b6c73e6adadfa535893bfc1cd6ffc9",
+      "bytes": 297508,
+      "kind": "A-superseded receipts and failed-attempt logs"
+    },
+    {
+      "original_path": "docs/validation/M5/history/gate-attempts/closure-full-lock-0.31.0/m5-runtime-joint-final/gate-receipt.json",
+      "sha256": "628b884d9b9a04532b80bdb64aa88cbcac3626c9fc94bd9e69375b63ba054625",
+      "bytes": 83581,
+      "kind": "A-superseded receipts and failed-attempt logs"
+    },
+    {
+      "original_path": "docs/validation/M5/history/gate-attempts/closure-full-lock-0.31.0/m5-runtime-joint-final/native-receipt.json",
+      "sha256": "7f500a7b1cfcff25a83795ec8af916588456fb81b843195bae303dfec7f2951b",
+      "bytes": 54978,
+      "kind": "A-superseded receipts and failed-attempt logs"
+    },
+    {
+      "original_path": "docs/validation/M5/history/gate-attempts/closure-full-lock-0.31.0/m5-runtime-joint/cut-m5-00-admission.json",
+      "sha256": "1865a5a971cc8ac0f8ec50613d78fbfe7e597cfcc1cfc7c963767d36d2623f9c",
+      "bytes": 879,
+      "kind": "A-superseded receipts and failed-attempt logs"
+    },
+    {
+      "original_path": "docs/validation/M5/history/gate-attempts/closure-full-lock-0.31.0/m5-runtime-joint/cut-m5-01-benchmark-blocked.json",
+      "sha256": "e68d618407e16ecf6a10e2d208f27ec62ac4e5796289fbf7e0f57185d95941a4",
+      "bytes": 3142,
+      "kind": "A-superseded receipts and failed-attempt logs"
+    },
+    {
+      "original_path": "docs/validation/M5/history/gate-attempts/closure-full-lock-0.31.0/m5-runtime-joint/cut-m5-01-benchmark-capture.json",
+      "sha256": "23b3829e41418d498d06e9419cb700bf36757b4fb857f9ffc3fa5685afd25022",
+      "bytes": 6891,
+      "kind": "A-superseded receipts and failed-attempt logs"
+    },
+    {
+      "original_path": "docs/validation/M5/history/gate-attempts/closure-full-lock-0.31.0/m5-runtime-joint/cut-m5-01-benchmark.json",
+      "sha256": "1fe187052e6bd64e0353d2d45a3f9bea9c44e9c1d7d9482b7e46760475f1f763",
+      "bytes": 2657,
+      "kind": "A-superseded receipts and failed-attempt logs"
+    },
+    {
+      "original_path": "docs/validation/M5/history/gate-attempts/closure-full-lock-0.31.0/m5-runtime-joint/cut-m5-03-profile.json",
+      "sha256": "4b53ee9764950727d89cbe09b7aea6b9b020151789df32d3c586014c5c0de0b7",
+      "bytes": 9335,
+      "kind": "A-superseded receipts and failed-attempt logs"
+    },
+    {
+      "original_path": "docs/validation/M5/history/gate-attempts/closure-full-lock-0.31.0/m5-runtime-joint/cut-m5-04-bloat.json",
+      "sha256": "4b90ca0fb6d32337f92d14e2792b0957dd87effb9498aad98346ab17ee46c444",
+      "bytes": 4036,
+      "kind": "A-superseded receipts and failed-attempt logs"
+    },
+    {
+      "original_path": "docs/validation/M5/history/gate-attempts/closure-full-lock-0.31.0/m5-runtime-joint/gate-receipt.json",
+      "sha256": "c0e1d4a9526fbdb8a366e2396bf0579c299c18b189027510b5d22ae8086f44b8",
+      "bytes": 83582,
+      "kind": "A-superseded receipts and failed-attempt logs"
+    },
+    {
+      "original_path": "docs/validation/M5/history/gate-attempts/closure-full-lock-0.31.0/m5-runtime-joint/native-receipt.json",
+      "sha256": "16ac61b9dbb98331585924a1b8b9205ed842e24f1651b66c07252efcef5eb42c",
+      "bytes": 54978,
+      "kind": "A-superseded receipts and failed-attempt logs"
+    },
+    {
+      "original_path": "docs/validation/M5/history/gate-attempts/closure-native-lock-0.31.0/receipt.json",
+      "sha256": "a811ec70d51d6ac289c81808448b738031c32f484a82f83b271f9f52505cea7a",
+      "bytes": 83584,
+      "kind": "A-superseded receipts and failed-attempt logs"
+    },
+    {
+      "original_path": "docs/validation/M5/history/gate-attempts/closure-native-sandbox-attempt/0.log",
+      "sha256": "12480bfe85e8342b404c075f5d43606b5ca272f69ecf79babd6b08b07ca6f1b1",
+      "bytes": 1411,
+      "kind": "A-superseded receipts and failed-attempt logs"
+    },
+    {
+      "original_path": "docs/validation/M5/history/gate-attempts/closure-native-sandbox-attempt/receipt.json",
+      "sha256": "770af879d45353088333cf5cb67fe4232f037e6c0bfa0e5fe6b664936a18439f",
+      "bytes": 78928,
+      "kind": "A-superseded receipts and failed-attempt logs"
+    },
+    {
+      "original_path": "docs/validation/M5/history/gate-attempts/closure-native-standalone/0.log",
+      "sha256": "56a6eefb952a7cb71e9751c9996850e03fba0554a75f7d16678162a270df2a1d",
+      "bytes": 998,
+      "kind": "A-superseded receipts and failed-attempt logs"
+    },
+    {
+      "original_path": "docs/validation/M5/history/gate-attempts/closure-native-standalone/1.log",
+      "sha256": "f39f26e4521427c4c8531149ddc124d68a281c2f8d2b364cf88000ee545685b4",
+      "bytes": 1010,
+      "kind": "A-superseded receipts and failed-attempt logs"
+    },
+    {
+      "original_path": "docs/validation/M5/history/gate-attempts/closure-native-standalone/2.log",
+      "sha256": "698a511849c0c0a84aaec32251a6528a80d1176f0b061db3f4727c3724a6e608",
+      "bytes": 1009,
+      "kind": "A-superseded receipts and failed-attempt logs"
+    },
+    {
+      "original_path": "docs/validation/M5/history/gate-attempts/closure-native-standalone/3.log",
+      "sha256": "419aaa5aa657c6406ecdadae3c14e3735939d5fd2dd9005da67e4f120cca6d7b",
+      "bytes": 1009,
+      "kind": "A-superseded receipts and failed-attempt logs"
+    },
+    {
+      "original_path": "docs/validation/M5/history/gate-attempts/closure-native-standalone/4.log",
+      "sha256": "fb64ca67428d326965ddaa7b7871680ded41f1108ef91193dce674cd5c97d41d",
+      "bytes": 992,
+      "kind": "A-superseded receipts and failed-attempt logs"
+    },
+    {
+      "original_path": "docs/validation/M5/history/gate-attempts/closure-native-standalone/5.log",
+      "sha256": "9205a801a10a4a08ed15b25d13ce6268e1a195b427dfc906832c26341f03185e",
+      "bytes": 985,
+      "kind": "A-superseded receipts and failed-attempt logs"
+    },
+    {
+      "original_path": "docs/validation/M5/history/gate-attempts/closure-native-standalone/receipt.json",
+      "sha256": "1b936341a16d2d97adb59db4c5da6618a3073d7d9290203f7d6fa0bfdefb9a4e",
+      "bytes": 83582,
+      "kind": "A-superseded receipts and failed-attempt logs"
+    },
+    {
+      "original_path": "docs/validation/M5/history/gate-attempts/full-gate-attempt-1.json",
+      "sha256": "51e7ef9d6b2d31ba27a9f7e007bba89069fce8452259dcb9fff1623a3d7e9069",
+      "bytes": 295600,
+      "kind": "A-superseded receipts and failed-attempt logs"
+    },
+    {
+      "original_path": "docs/validation/M5/history/gate-attempts/m4-runtime-attempt-1.json",
+      "sha256": "0215ee3126f60818a7233161ffea13460fb384facf18cce58655f2c8e5c4b5f4",
+      "bytes": 88828,
+      "kind": "A-superseded receipts and failed-attempt logs"
+    },
+    {
+      "original_path": "docs/validation/M5/history/gate-attempts/repo-hygiene-core-attempt-1.json",
+      "sha256": "87e5ce738128c28f360fa0c190a272755e0ce85e8357149866a4fbd663f7bb59",
+      "bytes": 285759,
+      "kind": "A-superseded receipts and failed-attempt logs",
+      "superseded_reason": "core gate over the hygiene worktree failed at m4-client-harness-tests: the worktree had no target/release/rust-engineering-mcp because the shared CARGO_TARGET_DIR kept the binary outside it (harness environment omission, not a product signal); the binary was then built from the worktree sources and staged; current receipt: docs/validation/M5/core-gate-repo-hygiene.json."
+    },
+    {
+      "original_path": "docs/validation/M5/history/gate-attempts/repo-hygiene-core-attempt-2.json",
+      "sha256": "27502baae03a63c3cd306193fcf5cfa83e4e986168db618b9f54343a45230906",
+      "bytes": 285077,
+      "kind": "A-superseded receipts and failed-attempt logs",
+      "superseded_reason": "core gate failed at codex-qualifier-tests: test_fake_end_to_end_source_immutable_and_cleanup hit a descendant-monitor ProcessLookupError race; reproduced alone twice in the same worktree with 39/39 OK at load 2.6, classified as timing flake per the M5 attempt policy; test untouched, gate rerun whole; current receipt: docs/validation/M5/core-gate-repo-hygiene.json."
+    },
+    {
+      "original_path": "docs/validation/M5/history/gate-attempts/vendor-volume-sizing.patch",
+      "sha256": "27623e5e2c2b34c6e6eda8a1a6071537e3fefb77c2ee2caf39449f19584f9f37",
+      "bytes": 4311,
+      "kind": "A-superseded receipts and failed-attempt logs"
+    },
+    {
+      "original_path": "docs/validation/M5/history/provisioning-superseded-0e21c561.json",
+      "sha256": "b47b693884b97e88dd13747c250af714d75494f9591c434a1469508e40e52db1",
+      "bytes": 7123,
+      "kind": "A-superseded receipts and failed-attempt logs"
+    },
+    {
+      "original_path": "docs/validation/M5/history/runtime-superseded-0e21c561.json",
+      "sha256": "be029ccb69e0bee66d41199d5fd505f5b1951876f4a83a6f9604edde567fa01d",
+      "bytes": 28853,
+      "kind": "A-superseded receipts and failed-attempt logs"
+    },
+    {
+      "original_path": "docs/validation/M5/history/closure-history/inventory.json",
+      "sha256": "f5a8f8d937a17c9d1375f7ec99ffd628a1780e6e50378789a27a141be9211bf8",
+      "bytes": 3431,
+      "kind": "A-superseded",
+      "superseded_reason": "pre-hygiene inventory of receipts that are now listed here; redundant"
+    }
+  ],
+  "retired_groups": [
+    {
+      "kind": "A-superseded receipts and failed-attempt logs",
+      "reason": "superseded receipts and failed-attempt logs: the accepted receipt of each milestone accredits the shipped bytes; the diagnosis narratives (README/disposition .md) stay",
+      "files": 70,
+      "bytes": 5019815,
+      "aggregate_sha256": "61eb730cfc99bf47b3adc681096a98c04dc7c5b0de9b830629d155e9d2cedfbb",
+      "aggregate_rule": "sha256 over the sorted lines \"<sha256>  <original_path>\\n\"",
+      "last_commit_with_bytes": "d796ff57bd87cf7fb7269f9dceef9090bc66e749",
+      "retired_at": "2026-09-11T17:40:14.242436+00:00"
     }
   ]
 }

@@ -379,7 +379,7 @@ def verify_inventories() -> int:
     failures = 0
     inventories = sorted(
         p for p in ROOT.glob("docs/validation/M*/history/inventory.json")
-    ) + sorted(ROOT.glob("docs/research/**/inventory.json"))
+    ) + sorted(ROOT.glob("docs/research/**/inventory.json")) + sorted(ROOT.glob("docs/reviews/inventory.json"))
     for inventory in inventories:
         data = json.loads(inventory.read_text())
         base = inventory.parent

@@ -1,256 +1,10 @@
 {
   "schema": "rust-mcp-evidence-history-inventory-v1",
   "milestone": "M3",
-  "recorded_at": "2026-09-11T13:14:33.195574+00:00",
+  "recorded_at": "2026-09-11T17:41:08.077561+00:00",
   "source_commit": "f678f12295383bbc7129f3683c9d2a131271f26a",
   "purpose": "Superseded or failed evidence kept next to the current receipts of this milestone. Bytes are moved with git mv, never edited: each entry records the pre-hygiene path, SHA-256 and size. Retired entries were removed from the tree after their hash was recorded; their bytes remain reachable in Git history at source_commit.",
-  "retained": [
-    {
-      "path": "01-runtime-attempt1.json",
-      "original_path": "docs/validation/M3-01-runtime-attempt1.json",
-      "sha256": "0bb39c5922663738441dd293986672abb77b6a632880d3427c25fa94100cd1eb",
-      "bytes": 46096,
-      "reason": "attempt 1 of the 01-runtime receipt, superseded by the accepted run; current receipt: docs/validation/M3/01-runtime.json."
-    },
-    {
-      "path": "03-runtime-attempt1.json",
-      "original_path": "docs/validation/M3-03-runtime-attempt1.json",
-      "sha256": "2a0496bfb7c77086e536b4260adaa7aeb98c6ebacc44426f4450c05869f4f97e",
-      "bytes": 834,
-      "reason": "attempt 1 of the 03-runtime receipt, superseded by the accepted run; current receipt: docs/validation/M3/03-runtime.json."
-    },
-    {
-      "path": "core-gate-attempt1.json",
-      "original_path": "docs/validation/M3-core-gate-attempt1.json",
-      "sha256": "51e41a27eb23aa44291b80e303eea91caf31ac43eec0a14afb4b816dbdcbd596",
-      "bytes": 204297,
-      "reason": "attempt 1 of the core-gate receipt, superseded by the accepted run; current receipt: docs/validation/M3/core-gate.json."
-    },
-    {
-      "path": "core-gate-attempt2.json",
-      "original_path": "docs/validation/M3-core-gate-attempt2.json",
-      "sha256": "3860c7577317f74e0477f21a97217855ae1d4fe9a48e9ca8206719a5c5c7d16f",
-      "bytes": 206678,
-      "reason": "attempt 2 of the core-gate receipt, superseded by the accepted run; current receipt: docs/validation/M3/core-gate.json."
-    },
-    {
-      "path": "core-gate-attempt3.json",
-      "original_path": "docs/validation/M3-core-gate-attempt3.json",
-      "sha256": "b1aa56f7a22a26b9612751061af55d097e36ab37d0240b4cf22f7ebba2e68cb9",
-      "bytes": 206008,
-      "reason": "attempt 3 of the core-gate receipt, superseded by the accepted run; current receipt: docs/validation/M3/core-gate.json."
-    },
-    {
-      "path": "core-gate-attempt4.json",
-      "original_path": "docs/validation/M3-core-gate-attempt4.json",
-      "sha256": "0da4fffc2312192cdf60055ae5218e9f1e777e0f5d5120d60860fd3240745545",
-      "bytes": 209310,
-      "reason": "attempt 4 of the core-gate receipt, superseded by the accepted run; current receipt: docs/validation/M3/core-gate.json."
-    },
-    {
-      "path": "core-gate-attempt5.json",
-      "original_path": "docs/validation/M3-core-gate-attempt5.json",
-      "sha256": "6a61359180b0ae6d3942175267c65c1657fb42fb77c237f5070d847726b46805",
-      "bytes": 197835,
-      "reason": "attempt 5 of the core-gate receipt, superseded by the accepted run; current receipt: docs/validation/M3/core-gate.json."
-    },
-    {
-      "path": "core-gate-preS03.json",
-      "original_path": "docs/validation/M3-core-gate-preS03.json",
-      "sha256": "b31213fa57663d2cb25dba283b22bab7b22eb953246a9961868630df48b0bd3a",
-      "bytes": 207148,
-      "reason": "core-gate receipt captured before cut S03; superseded; current receipt: docs/validation/M3/core-gate.json."
-    },
-    {
-      "path": "core-gate-v0.2.0-dev.json",
-      "original_path": "docs/validation/M3-core-gate-v0.2.0-dev.json",
-      "sha256": "7b59e852ea0b522b974fe3377503e813114b7dc573da506396cb70d54affd836",
-      "bytes": 209305,
-      "reason": "core-gate receipt captured on 0.2.0-dev; superseded by the release receipt; current receipt: docs/validation/M3/core-gate.json."
-    },
-    {
-      "path": "full-gate-attempt1.json",
-      "original_path": "docs/validation/M3-full-gate-attempt1.json",
-      "sha256": "5472090755566963fbc539bfebb39cd11cf55666606f83ed34da900b8b33c34a",
-      "bytes": 208527,
-      "reason": "attempt 1 of the full-gate receipt, superseded by the accepted run; current receipt: docs/validation/M3/full-gate.json."
-    },
-    {
-      "path": "full-gate-attempt2.json",
-      "original_path": "docs/validation/M3-full-gate-attempt2.json",
-      "sha256": "e7519c161d9c836428d767fcaa6a8a9839e66a4cfcc2f6487c3e7430c5ae7b6d",
-      "bytes": 209632,
-      "reason": "attempt 2 of the full-gate receipt, superseded by the accepted run; current receipt: docs/validation/M3/full-gate.json."
-    },
-    {
-      "path": "full-gate-attempt3.json",
-      "original_path": "docs/validation/M3-full-gate-attempt3.json",
-      "sha256": "e7519c161d9c836428d767fcaa6a8a9839e66a4cfcc2f6487c3e7430c5ae7b6d",
-      "bytes": 209632,
-      "reason": "attempt 3 of the full-gate receipt, superseded by the accepted run; current receipt: docs/validation/M3/full-gate.json."
-    },
-    {
-      "path": "full-gate-attempt4.json",
-      "original_path": "docs/validation/M3-full-gate-attempt4.json",
-      "sha256": "eb4b273bf4ed833b58e5e5f9b60e3b3769f7b77d3ba433ea0e33f78bd83e14cb",
-      "bytes": 197831,
-      "reason": "attempt 4 of the full-gate receipt, superseded by the accepted run; current receipt: docs/validation/M3/full-gate.json."
-    },
-    {
-      "path": "full-gate-preS03.json",
-      "original_path": "docs/validation/M3-full-gate-preS03.json",
-      "sha256": "124881e111aeaf87c63ef4053810877a6cd31073768e204afce60967c814f3d8",
-      "bytes": 215907,
-      "reason": "full-gate receipt captured before cut S03; superseded; current receipt: docs/validation/M3/full-gate.json."
-    },
-    {
-      "path": "full-gate-v0.2.0-dev.json",
-      "original_path": "docs/validation/M3-full-gate-v0.2.0-dev.json",
-      "sha256": "035bfad65ffed692531d2a2fa049e370abfea2d6278cf27087f44e814d1f0e86",
-      "bytes": 218071,
-      "reason": "full-gate receipt captured on 0.2.0-dev; superseded by the release receipt; current receipt: docs/validation/M3/full-gate.json."
-    },
-    {
-      "path": "runtime-attempt1.json",
-      "original_path": "docs/validation/M3-runtime-attempt1.json",
-      "sha256": "c20c11a98a986de2bb6e8825dfc0db27d2b35587355f9d66bafa057fc60edf1e",
-      "bytes": 82590,
-      "reason": "attempt 1 of the runtime receipt, superseded by the accepted run; current receipt: docs/validation/M3/runtime.json."
-    },
-    {
-      "path": "runtime-attempt2.json",
-      "original_path": "docs/validation/M3-runtime-attempt2.json",
-      "sha256": "980476384bd6b3c4a2c85cffedc9bb7ab08970a21fecffd7cdff66fddea1913e",
-      "bytes": 83905,
-      "reason": "attempt 2 of the runtime receipt, superseded by the accepted run; current receipt: docs/validation/M3/runtime.json."
-    },
-    {
-      "path": "runtime-attempt3.json",
-      "original_path": "docs/validation/M3-runtime-attempt3.json",
-      "sha256": "add344961112e59b8434d673e5e266936c7085f0cd2c7a6bfa500501116ea33c",
-      "bytes": 92462,
-      "reason": "attempt 3 of the runtime receipt, superseded by the accepted run; current receipt: docs/validation/M3/runtime.json."
-    },
-    {
-      "path": "runtime-attempt4.json",
-      "original_path": "docs/validation/M3-runtime-attempt4.json",
-      "sha256": "7ffd15ffafb051e2c5c70da295c9cc5baa9a3c090e2b4d3e39946ff0a8c2973d",
-      "bytes": 102729,
-      "reason": "attempt 4 of the runtime receipt, superseded by the accepted run; current receipt: docs/validation/M3/runtime.json."
-    },
-    {
-      "path": "runtime-attempt5.json",
-      "original_path": "docs/validation/M3-runtime-attempt5.json",
-      "sha256": "90e3f7199159e7d0992a90cfb65f2d9a3fff84564f71665ba355541cb2fb3758",
-      "bytes": 69760,
-      "reason": "attempt 5 of the runtime receipt, superseded by the accepted run; current receipt: docs/validation/M3/runtime.json."
-    },
-    {
-      "path": "runtime-attempt6.json",
-      "original_path": "docs/validation/M3-runtime-attempt6.json",
-      "sha256": "89b44cc8d847465cd8b1c3baaad249cbfca7081bbb3443fc841fa89355d6571c",
-      "bytes": 69760,
-      "reason": "attempt 6 of the runtime receipt, superseded by the accepted run; current receipt: docs/validation/M3/runtime.json."
-    },
-    {
-      "path": "runtime-attempt7.json",
-      "original_path": "docs/validation/M3-runtime-attempt7.json",
-      "sha256": "97a863a2c4dd09e148d16aa19aee006964bc7f2ce28e3a492820b369d36a1e34",
-      "bytes": 105254,
-      "reason": "attempt 7 of the runtime receipt, superseded by the accepted run; current receipt: docs/validation/M3/runtime.json."
-    },
-    {
-      "path": "runtime-pre-contract-pin.json",
-      "original_path": "docs/validation/M3-runtime-pre-contract-pin.json",
-      "sha256": "016f9fcb12bd0f2c2e195e520ff4d41e3fbf0d0d89fc190ac9f167fad457f4bd",
-      "bytes": 113799,
-      "reason": "runtime receipt captured before the contract pin; superseded; current receipt: docs/validation/M3/runtime.json."
-    },
-    {
-      "path": "runtime-pre-vsec.json",
-      "original_path": "docs/validation/M3-runtime-pre-vsec.json",
-      "sha256": "8c271a7cd406cdc78f04b13ddcf36aee924681c79b00ab835043f34bc6a5a3e3",
-      "bytes": 110233,
-      "reason": "runtime receipt captured before the security fixes (W3); superseded; current receipt: docs/validation/M3/runtime.json."
-    },
-    {
-      "path": "runtime-pre-w4.json",
-      "original_path": "docs/validation/M3-runtime-pre-w4.json",
-      "sha256": "910c4f82d6421b06b58102ee03c73257e97e4078dab1981e1f01bc6e52678053",
-      "bytes": 110232,
-      "reason": "runtime receipt captured before W4 (M3-02 qualification); superseded; current receipt: docs/validation/M3/runtime.json."
-    },
-    {
-      "path": "runtime-preS03.json",
-      "original_path": "docs/validation/M3-runtime-preS03.json",
-      "sha256": "02b085bf2d00d52cd2a821f059ec6aa4a5ea3b4fc16ffb06b4671b02f131c63b",
-      "bytes": 116504,
-      "reason": "runtime receipt captured before cut S03; superseded; current receipt: docs/validation/M3/runtime.json."
-    },
-    {
-      "path": "runtime-v0.2.0-dev.json",
-      "original_path": "docs/validation/M3-runtime-v0.2.0-dev.json",
-      "sha256": "5cfab6c56eaa9d6ab0f306b4920eb61eea21cd4cbc371bf7199c7094a674bf25",
-      "bytes": 117287,
-      "reason": "runtime receipt captured on 0.2.0-dev; superseded by the release receipt; current receipt: docs/validation/M3/runtime.json."
-    },
-    {
-      "path": "rust-security-attempt-Q02-2.json",
-      "original_path": "docs/validation/M3-rust-security-attempt-Q02-2.json",
-      "sha256": "fb137ee325e2166b9aa36be1f7c0e000bc505b1ec0132984bbd661b3e9ad1803",
-      "bytes": 2008,
-      "reason": "attempt Q02-2 of the rust-security receipt, superseded by the accepted run; current receipt: docs/validation/M3/rust-security.json."
-    },
-    {
-      "path": "rust-security-attempt-Q02.json",
-      "original_path": "docs/validation/M3-rust-security-attempt-Q02.json",
-      "sha256": "04e8770294c6c1ec823159270f7fe07ba33b51230dc78ec1434fda5a6c02a779",
-      "bytes": 2008,
-      "reason": "attempt Q02 of the rust-security receipt, superseded by the accepted run; current receipt: docs/validation/M3/rust-security.json."
-    },
-    {
-      "path": "rust-security-pre-adr065-amendment.json",
-      "original_path": "docs/validation/M3-rust-security-pre-adr065-amendment.json",
-      "sha256": "cb5b7ad6c3fa729ac971b269e3c696c4adc45f7f50bfde52c2e19c9bcd836808",
-      "bytes": 16770,
-      "reason": "rust-security receipt captured before ADR-065 amendment; superseded; current receipt: docs/validation/M3/rust-security.json."
-    },
-    {
-      "path": "rust-security-pre-adr065.json",
-      "original_path": "docs/validation/M3-rust-security-pre-adr065.json",
-      "sha256": "0e50923acc9b631186d44f5dc87834fabd76caa3fffbf08be4d51a8794bbf588",
-      "bytes": 16769,
-      "reason": "rust-security receipt captured before ADR-065; superseded; current receipt: docs/validation/M3/rust-security.json."
-    },
-    {
-      "path": "rust-security-pre-vsec.json",
-      "original_path": "docs/validation/M3-rust-security-pre-vsec.json",
-      "sha256": "4c55c70a7258f5b9218b77b47e96c5e3fa44d2f89d0221cacf5e84f524f019f3",
-      "bytes": 16771,
-      "reason": "rust-security receipt captured before the security fixes (W3); superseded; current receipt: docs/validation/M3/rust-security.json."
-    },
-    {
-      "path": "rust-security-pre-w4.json",
-      "original_path": "docs/validation/M3-rust-security-pre-w4.json",
-      "sha256": "0af30efb3bab075fcab31b54f5b05514d32ec862afb42322b5ae8ff0b973f52d",
-      "bytes": 17305,
-      "reason": "rust-security receipt captured before W4 (M3-02 qualification); superseded; current receipt: docs/validation/M3/rust-security.json."
-    },
-    {
-      "path": "rust-security-preS03.json",
-      "original_path": "docs/validation/M3-rust-security-preS03.json",
-      "sha256": "12be817476d2731c1de426dec54bcdd49871bf4097666db42881610ab40572ed",
-      "bytes": 17306,
-      "reason": "rust-security receipt captured before cut S03; superseded; current receipt: docs/validation/M3/rust-security.json."
-    },
-    {
-      "path": "rust-security-v0.2.0-dev.json",
-      "original_path": "docs/validation/M3-rust-security-v0.2.0-dev.json",
-      "sha256": "4ad812a05b8683d049001d96b6f59871f1aa880fc865b93979dec58d5ff8df0b",
-      "bytes": 17304,
-      "reason": "rust-security receipt captured on 0.2.0-dev; superseded by the release receipt; current receipt: docs/validation/M3/rust-security.json."
-    }
-  ],
+  "retained": [],
   "retired": [
     {
       "original_path": "docs/validation/M3/clients/attempt-1/state-inspector",
@@ -1375,6 +1129,228 @@
           "bytes": 0
         }
       ]
+    },
+    {
+      "original_path": "docs/validation/M3/history/01-runtime-attempt1.json",
+      "sha256": "0bb39c5922663738441dd293986672abb77b6a632880d3427c25fa94100cd1eb",
+      "bytes": 46096,
+      "kind": "A-superseded receipts and failed-attempt logs"
+    },
+    {
+      "original_path": "docs/validation/M3/history/03-runtime-attempt1.json",
+      "sha256": "2a0496bfb7c77086e536b4260adaa7aeb98c6ebacc44426f4450c05869f4f97e",
+      "bytes": 834,
+      "kind": "A-superseded receipts and failed-attempt logs"
+    },
+    {
+      "original_path": "docs/validation/M3/history/core-gate-attempt1.json",
+      "sha256": "51e41a27eb23aa44291b80e303eea91caf31ac43eec0a14afb4b816dbdcbd596",
+      "bytes": 204297,
+      "kind": "A-superseded receipts and failed-attempt logs"
+    },
+    {
+      "original_path": "docs/validation/M3/history/core-gate-attempt2.json",
+      "sha256": "3860c7577317f74e0477f21a97217855ae1d4fe9a48e9ca8206719a5c5c7d16f",
+      "bytes": 206678,
+      "kind": "A-superseded receipts and failed-attempt logs"
+    },
+    {
+      "original_path": "docs/validation/M3/history/core-gate-attempt3.json",
+      "sha256": "b1aa56f7a22a26b9612751061af55d097e36ab37d0240b4cf22f7ebba2e68cb9",
+      "bytes": 206008,
+      "kind": "A-superseded receipts and failed-attempt logs"
+    },
+    {
+      "original_path": "docs/validation/M3/history/core-gate-attempt4.json",
+      "sha256": "0da4fffc2312192cdf60055ae5218e9f1e777e0f5d5120d60860fd3240745545",
+      "bytes": 209310,
+      "kind": "A-superseded receipts and failed-attempt logs"
+    },
+    {
+      "original_path": "docs/validation/M3/history/core-gate-attempt5.json",
+      "sha256": "6a61359180b0ae6d3942175267c65c1657fb42fb77c237f5070d847726b46805",
+      "bytes": 197835,
+      "kind": "A-superseded receipts and failed-attempt logs"
+    },
+    {
+      "original_path": "docs/validation/M3/history/core-gate-preS03.json",
+      "sha256": "b31213fa57663d2cb25dba283b22bab7b22eb953246a9961868630df48b0bd3a",
+      "bytes": 207148,
+      "kind": "A-superseded receipts and failed-attempt logs"
+    },
+    {
+      "original_path": "docs/validation/M3/history/core-gate-v0.2.0-dev.json",
+      "sha256": "7b59e852ea0b522b974fe3377503e813114b7dc573da506396cb70d54affd836",
+      "bytes": 209305,
+      "kind": "A-superseded receipts and failed-attempt logs"
+    },
+    {
+      "original_path": "docs/validation/M3/history/full-gate-attempt1.json",
+      "sha256": "5472090755566963fbc539bfebb39cd11cf55666606f83ed34da900b8b33c34a",
+      "bytes": 208527,
+      "kind": "A-superseded receipts and failed-attempt logs"
+    },
+    {
+      "original_path": "docs/validation/M3/history/full-gate-attempt2.json",
+      "sha256": "e7519c161d9c836428d767fcaa6a8a9839e66a4cfcc2f6487c3e7430c5ae7b6d",
+      "bytes": 209632,
+      "kind": "A-superseded receipts and failed-attempt logs"
+    },
+    {
+      "original_path": "docs/validation/M3/history/full-gate-attempt3.json",
+      "sha256": "e7519c161d9c836428d767fcaa6a8a9839e66a4cfcc2f6487c3e7430c5ae7b6d",
+      "bytes": 209632,
+      "kind": "A-superseded receipts and failed-attempt logs"
+    },
+    {
+      "original_path": "docs/validation/M3/history/full-gate-attempt4.json",
+      "sha256": "eb4b273bf4ed833b58e5e5f9b60e3b3769f7b77d3ba433ea0e33f78bd83e14cb",
+      "bytes": 197831,
+      "kind": "A-superseded receipts and failed-attempt logs"
+    },
+    {
+      "original_path": "docs/validation/M3/history/full-gate-preS03.json",
+      "sha256": "124881e111aeaf87c63ef4053810877a6cd31073768e204afce60967c814f3d8",
+      "bytes": 215907,
+      "kind": "A-superseded receipts and failed-attempt logs"
+    },
+    {
+      "original_path": "docs/validation/M3/history/full-gate-v0.2.0-dev.json",
+      "sha256": "035bfad65ffed692531d2a2fa049e370abfea2d6278cf27087f44e814d1f0e86",
+      "bytes": 218071,
+      "kind": "A-superseded receipts and failed-attempt logs"
+    },
+    {
+      "original_path": "docs/validation/M3/history/runtime-attempt1.json",
+      "sha256": "c20c11a98a986de2bb6e8825dfc0db27d2b35587355f9d66bafa057fc60edf1e",
+      "bytes": 82590,
+      "kind": "A-superseded receipts and failed-attempt logs"
+    },
+    {
+      "original_path": "docs/validation/M3/history/runtime-attempt2.json",
+      "sha256": "980476384bd6b3c4a2c85cffedc9bb7ab08970a21fecffd7cdff66fddea1913e",
+      "bytes": 83905,
+      "kind": "A-superseded receipts and failed-attempt logs"
+    },
+    {
+      "original_path": "docs/validation/M3/history/runtime-attempt3.json",
+      "sha256": "add344961112e59b8434d673e5e266936c7085f0cd2c7a6bfa500501116ea33c",
+      "bytes": 92462,
+      "kind": "A-superseded receipts and failed-attempt logs"
+    },
+    {
+      "original_path": "docs/validation/M3/history/runtime-attempt4.json",
+      "sha256": "7ffd15ffafb051e2c5c70da295c9cc5baa9a3c090e2b4d3e39946ff0a8c2973d",
+      "bytes": 102729,
+      "kind": "A-superseded receipts and failed-attempt logs"
+    },
+    {
+      "original_path": "docs/validation/M3/history/runtime-attempt5.json",
+      "sha256": "90e3f7199159e7d0992a90cfb65f2d9a3fff84564f71665ba355541cb2fb3758",
+      "bytes": 69760,
+      "kind": "A-superseded receipts and failed-attempt logs"
+    },
+    {
+      "original_path": "docs/validation/M3/history/runtime-attempt6.json",
+      "sha256": "89b44cc8d847465cd8b1c3baaad249cbfca7081bbb3443fc841fa89355d6571c",
+      "bytes": 69760,
+      "kind": "A-superseded receipts and failed-attempt logs"
+    },
+    {
+      "original_path": "docs/validation/M3/history/runtime-attempt7.json",
+      "sha256": "97a863a2c4dd09e148d16aa19aee006964bc7f2ce28e3a492820b369d36a1e34",
+      "bytes": 105254,
+      "kind": "A-superseded receipts and failed-attempt logs"
+    },
+    {
+      "original_path": "docs/validation/M3/history/runtime-pre-contract-pin.json",
+      "sha256": "016f9fcb12bd0f2c2e195e520ff4d41e3fbf0d0d89fc190ac9f167fad457f4bd",
+      "bytes": 113799,
+      "kind": "A-superseded receipts and failed-attempt logs"
+    },
+    {
+      "original_path": "docs/validation/M3/history/runtime-pre-vsec.json",
+      "sha256": "8c271a7cd406cdc78f04b13ddcf36aee924681c79b00ab835043f34bc6a5a3e3",
+      "bytes": 110233,
+      "kind": "A-superseded receipts and failed-attempt logs"
+    },
+    {
+      "original_path": "docs/validation/M3/history/runtime-pre-w4.json",
+      "sha256": "910c4f82d6421b06b58102ee03c73257e97e4078dab1981e1f01bc6e52678053",
+      "bytes": 110232,
+      "kind": "A-superseded receipts and failed-attempt logs"
+    },
+    {
+      "original_path": "docs/validation/M3/history/runtime-preS03.json",
+      "sha256": "02b085bf2d00d52cd2a821f059ec6aa4a5ea3b4fc16ffb06b4671b02f131c63b",
+      "bytes": 116504,
+      "kind": "A-superseded receipts and failed-attempt logs"
+    },
+    {
+      "original_path": "docs/validation/M3/history/runtime-v0.2.0-dev.json",
+      "sha256": "5cfab6c56eaa9d6ab0f306b4920eb61eea21cd4cbc371bf7199c7094a674bf25",
+      "bytes": 117287,
+      "kind": "A-superseded receipts and failed-attempt logs"
+    },
+    {
+      "original_path": "docs/validation/M3/history/rust-security-attempt-Q02-2.json",
+      "sha256": "fb137ee325e2166b9aa36be1f7c0e000bc505b1ec0132984bbd661b3e9ad1803",
+      "bytes": 2008,
+      "kind": "A-superseded receipts and failed-attempt logs"
+    },
+    {
+      "original_path": "docs/validation/M3/history/rust-security-attempt-Q02.json",
+      "sha256": "04e8770294c6c1ec823159270f7fe07ba33b51230dc78ec1434fda5a6c02a779",
+      "bytes": 2008,
+      "kind": "A-superseded receipts and failed-attempt logs"
+    },
+    {
+      "original_path": "docs/validation/M3/history/rust-security-pre-adr065-amendment.json",
+      "sha256": "cb5b7ad6c3fa729ac971b269e3c696c4adc45f7f50bfde52c2e19c9bcd836808",
+      "bytes": 16770,
+      "kind": "A-superseded receipts and failed-attempt logs"
+    },
+    {
+      "original_path": "docs/validation/M3/history/rust-security-pre-adr065.json",
+      "sha256": "0e50923acc9b631186d44f5dc87834fabd76caa3fffbf08be4d51a8794bbf588",
+      "bytes": 16769,
+      "kind": "A-superseded receipts and failed-attempt logs"
+    },
+    {
+      "original_path": "docs/validation/M3/history/rust-security-pre-vsec.json",
+      "sha256": "4c55c70a7258f5b9218b77b47e96c5e3fa44d2f89d0221cacf5e84f524f019f3",
+      "bytes": 16771,
+      "kind": "A-superseded receipts and failed-attempt logs"
+    },
+    {
+      "original_path": "docs/validation/M3/history/rust-security-pre-w4.json",
+      "sha256": "0af30efb3bab075fcab31b54f5b05514d32ec862afb42322b5ae8ff0b973f52d",
+      "bytes": 17305,
+      "kind": "A-superseded receipts and failed-attempt logs"
+    },
+    {
+      "original_path": "docs/validation/M3/history/rust-security-preS03.json",
+      "sha256": "12be817476d2731c1de426dec54bcdd49871bf4097666db42881610ab40572ed",
+      "bytes": 17306,
+      "kind": "A-superseded receipts and failed-attempt logs"
+    },
+    {
+      "original_path": "docs/validation/M3/history/rust-security-v0.2.0-dev.json",
+      "sha256": "4ad812a05b8683d049001d96b6f59871f1aa880fc865b93979dec58d5ff8df0b",
+      "bytes": 17304,
+      "kind": "A-superseded receipts and failed-attempt logs"
+    }
+  ],
+  "retired_groups": [
+    {
+      "kind": "A-superseded receipts and failed-attempt logs",
+      "reason": "superseded receipts and failed-attempt logs: the accepted receipt of each milestone accredits the shipped bytes; the diagnosis narratives (README/disposition .md) stay",
+      "files": 35,
+      "bytes": 4027867,
+      "aggregate_sha256": "84ff965f7631941bb9e3cdf3bc868ef3e3361f9c03d18920910f2756ff6380ae",
+      "aggregate_rule": "sha256 over the sorted lines \"<sha256>  <original_path>\\n\"",
+      "last_commit_with_bytes": "d796ff57bd87cf7fb7269f9dceef9090bc66e749",
+      "retired_at": "2026-09-11T17:40:14.242436+00:00"
     }
   ]
 }

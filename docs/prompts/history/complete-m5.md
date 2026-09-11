@@ -68,7 +68,7 @@ ya existe para esta misma razón en el volumen de target. Hay que llevar las
 opciones también al `fingerprint_volume`.
 
 Referencia, **no aplicable con `git apply`** porque sus rutas son de un
-scratchpad: [`vendor-volume-sizing.patch`](../../validation/M5/history/gate-attempts/vendor-volume-sizing.patch).
+scratchpad: [`vendor-volume-sizing.patch`](../../validation/M5/history/inventory.json).
 Deriva el cambio tú y compruébalo.
 
 **Esto mueve todas las huellas de ejecución M5**, así que exige recalificar los

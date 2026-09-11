@@ -1058,7 +1058,7 @@ El core pasó sus 19 etapas con 1220 tests Rust, un doctest y 11 tests del helpe
 El full pasó 33 etapas con el mismo inventario fuente: conservó 27 etapas ya
 aprobadas y ejecutó seis frescas después de que un directorio E5 temporal vacío
 se corrigiera seleccionando los assets locales existentes y reverificados. No
-hubo descarga ni cambio de código; el [intento fallido](validation/M4/history/hardening-attempts/full-attempt-2/receipt.json)
+hubo descarga ni cambio de código; el [intento fallido](validation/M4/history/inventory.json)
 permanece preservado. El runtime final pasó 19/19 sobre `25ed…`, incluidos los
 [siete casos scanner](validation/M4/scanner-native.json) y las
 [trece clasificaciones más siete admisiones Miri](validation/M4/miri-native.json).

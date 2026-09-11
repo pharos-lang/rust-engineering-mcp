@@ -92,7 +92,7 @@ harness del proyecto, que puede falsearlas.
 
 ## Historia e integración
 
-Los [recibos anteriores](history/closure-history/inventory.json) se preservan sin
+Los [recibos anteriores](history/inventory.json) se preservan sin
 editar. Los gates nuevos deberán apuntar a los bytes exactos que midieron;
 ningún recibo histórico acredita código posterior. El control de que Criterion
 no cabe en el snapshot pequeño sigue siendo correcto para ese contrato y no

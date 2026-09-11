@@ -45,7 +45,7 @@ código Rust idéntico a `a2464c4` y al de `0.3.0`, que solo cambia la versión
 del workspace), en 6 m 14 s; la etapa `m5-runtime` del `full` final la repite
 sobre `45d339f`. La misma suite había pasado 6/6
 sobre el lock anterior; ese recibo se conserva en
-[m5-closure-history/lock-0.38.0](history/closure-history/lock-0.38.0/).
+[m5-closure-history/lock-0.38.0](history/inventory.json).
 
 La captura real tiene 161361408 bytes de artifact y 156267469 bytes de archivos.
 El positivo completó tres ejecuciones y produjo 90 muestras para cada uno de los
@@ -102,7 +102,7 @@ descartado. El owner decidió la **opción 2a** (`37805f6`): `lancedb =0.31.0` /
 Lance 8 conservando `fastembed 6.0.3`, `jsonschema 0.55.1` y `tokio-rustls
 0.26.5`, con el lock regenerado offline; `cargo audit` es idéntico en ambos
 locks. Los recibos de la primera pasada se conservan en
-[m5-closure-history/lock-0.38.0](history/closure-history/lock-0.38.0/). La
+[m5-closure-history/lock-0.38.0](history/inventory.json). La
 actualización general de paquetería es una
 [tarea post-M8](../../roadmap/m8-stabilization.md#tarea-post-m8--actualización-de-paquetería-decisión-del-owner-2026-09-10).
 
@@ -186,7 +186,7 @@ exactamente estos bytes sin una causa que lo justifique.
 ## Historia preservada
 
 Los recibos anteriores se conservan byte por byte en
-[m5-closure-history](history/closure-history/inventory.json). Acreditan sus fuentes y
+[m5-closure-history](history/inventory.json). Acreditan sus fuentes y
 contratos anteriores, no el candidato nuevo. El oráculo de que Criterion no cabe
 en SourceBundle permanece válido para esa vía; no implica que la captura
 independiente de ADR-078 esté bloqueada. Las calibraciones históricas y revisiones

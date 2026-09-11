@@ -1,31 +1,10 @@
 {
   "schema": "rust-mcp-evidence-history-inventory-v1",
   "milestone": "M4",
-  "recorded_at": "2026-09-11T15:51:11.964833+00:00",
+  "recorded_at": "2026-09-11T17:41:08.077561+00:00",
   "source_commit": "d3b5ad7f9d046ede51752e10ebac32261fd47e10",
   "purpose": "Superseded or failed evidence kept next to the current receipts of this milestone. Bytes are moved with git mv, never edited: each entry records the pre-hygiene path, SHA-256 and size. Retired entries were removed from the tree after their hash was recorded; their bytes remain reachable in Git history at source_commit. Entries marked living are prose kept next to the receipts; they are verified by presence only.",
   "retained": [
-    {
-      "path": "client-execution-before-corpus-refresh.json",
-      "original_path": "docs/validation/M4-client-execution-before-corpus-refresh.json",
-      "sha256": "53885134705ba51013930ccadc51468d38baa520cf278878bc453667ef3b00db",
-      "bytes": 5136,
-      "reason": "client-execution receipt captured before the corpus refresh; superseded; current receipt: docs/validation/M4/client-execution.json."
-    },
-    {
-      "path": "clients-before-corpus-refresh.json",
-      "original_path": "docs/validation/M4-clients-before-corpus-refresh.json",
-      "sha256": "9005a96c9a0e872c97f0dcc5f7142b636db1f6dd9545ada94c1a2e10bd8ef184",
-      "bytes": 240292,
-      "reason": "clients receipt captured before the corpus refresh; superseded; current receipt: docs/validation/M4/clients.json."
-    },
-    {
-      "path": "clients-before-stdout-diagnostic.json",
-      "original_path": "docs/validation/M4-clients-before-stdout-diagnostic.json",
-      "sha256": "f0ab7fa6cd49458c2eea6515efa4acd8734cecb36c82dcb894ca179c1c727747",
-      "bytes": 240292,
-      "reason": "clients receipt captured before the stdout diagnostic; superseded; current receipt: docs/validation/M4/clients.json."
-    },
     {
       "path": "hardening-attempts/README.md",
       "original_path": "docs/validation/M4-hardening-attempts/README.md",
@@ -33,34 +12,6 @@
       "bytes": 2804,
       "reason": "Failed M4 hardening qualification attempt preserved as evidence; not a pass. See hardening-attempts/README.md.",
       "living": true
-    },
-    {
-      "path": "hardening-attempts/core-attempt-1/disposition.json",
-      "original_path": "docs/validation/M4-hardening-attempts/core-attempt-1/disposition.json",
-      "sha256": "35194ab37f806b761129ca28a63e0db131bc06ce2b643836c2e73d1ee5ab3e1f",
-      "bytes": 507,
-      "reason": "Failed M4 hardening qualification attempt preserved as evidence; not a pass. See hardening-attempts/README.md."
-    },
-    {
-      "path": "hardening-attempts/core-attempt-1/receipt.json",
-      "original_path": "docs/validation/M4-hardening-attempts/core-attempt-1/receipt.json",
-      "sha256": "23df26f14e6b977f920d6facc814c81ba95dafa4ceec888ed27a06866bb903ef",
-      "bytes": 253832,
-      "reason": "Failed M4 hardening qualification attempt preserved as evidence; not a pass. See hardening-attempts/README.md."
-    },
-    {
-      "path": "hardening-attempts/core-attempt-2/gate.txt",
-      "original_path": "docs/validation/M4-hardening-attempts/core-attempt-2/gate.txt",
-      "sha256": "3880097a52ce736e37444b1cd5a5594019cea9d988aad2df9fd473121d3aa5c9",
-      "bytes": 119785,
-      "reason": "Failed M4 hardening qualification attempt preserved as evidence; not a pass. See hardening-attempts/README.md."
-    },
-    {
-      "path": "hardening-attempts/core-attempt-2/receipt.json",
-      "original_path": "docs/validation/M4-hardening-attempts/core-attempt-2/receipt.json",
-      "sha256": "cb32157781f6f6a22ec56405f83ccdb062a42f3395bda0ee5f14fd5aa7abc8de",
-      "bytes": 239511,
-      "reason": "Failed M4 hardening qualification attempt preserved as evidence; not a pass. See hardening-attempts/README.md."
     },
     {
       "path": "hardening-attempts/full-attempt-1/disposition.md",
@@ -71,418 +22,12 @@
       "living": true
     },
     {
-      "path": "hardening-attempts/full-attempt-1/gate.txt",
-      "original_path": "docs/validation/M4-hardening-attempts/full-attempt-1/gate.txt",
-      "sha256": "4c84d505363226aacc1faa65a5b677339423c731014d379256958efb4b80887d",
-      "bytes": 147189,
-      "reason": "Failed M4 hardening qualification attempt preserved as evidence; not a pass. See hardening-attempts/README.md."
-    },
-    {
-      "path": "hardening-attempts/full-attempt-1/isolated-large-binary-10.json",
-      "original_path": "docs/validation/M4-hardening-attempts/full-attempt-1/isolated-large-binary-10.json",
-      "sha256": "ade91c3fb6c979ae2cc51bec1f7e17a5bffd8a122042c9713d8bfc838ac93c46",
-      "bytes": 16463,
-      "reason": "Failed M4 hardening qualification attempt preserved as evidence; not a pass. See hardening-attempts/README.md."
-    },
-    {
-      "path": "hardening-attempts/full-attempt-1/receipt.json",
-      "original_path": "docs/validation/M4-hardening-attempts/full-attempt-1/receipt.json",
-      "sha256": "2938d58d309e05c461972e818252767a450f5e9b2317afe3efb104848a917650",
-      "bytes": 248591,
-      "reason": "Failed M4 hardening qualification attempt preserved as evidence; not a pass. See hardening-attempts/README.md."
-    },
-    {
-      "path": "hardening-attempts/full-attempt-2/gate.txt",
-      "original_path": "docs/validation/M4-hardening-attempts/full-attempt-2/gate.txt",
-      "sha256": "1378c96c74e708ff6026473ed2e7c4afe7fc5b80d94b6080d31ed4e6069cb60b",
-      "bytes": 227572,
-      "reason": "Failed M4 hardening qualification attempt preserved as evidence; not a pass. See hardening-attempts/README.md."
-    },
-    {
-      "path": "hardening-attempts/full-attempt-2/receipt.json",
-      "original_path": "docs/validation/M4-hardening-attempts/full-attempt-2/receipt.json",
-      "sha256": "e169e6064aa023e171e081730d6edd6586b391e1f3b83059e34a5bf9222878b8",
-      "bytes": 261174,
-      "reason": "Failed M4 hardening qualification attempt preserved as evidence; not a pass. See hardening-attempts/README.md."
-    },
-    {
-      "path": "hardening-attempts/inputs.json",
-      "original_path": "docs/validation/M4-hardening-attempts/inputs.json",
-      "sha256": "222e847684d45b182a299cda0b1243445233073964fdcd03c47d87601328bfa3",
-      "bytes": 755,
-      "reason": "Failed M4 hardening qualification attempt preserved as evidence; not a pass. See hardening-attempts/README.md."
-    },
-    {
-      "path": "hardening-attempts/m4-new-native-cuts-attempt-1/receipt.json",
-      "original_path": "docs/validation/M4-hardening-attempts/m4-new-native-cuts-attempt-1/receipt.json",
-      "sha256": "5216804d2f8dc6475e260a2326c9eaa2bf3c783ecb53f10e67814904a2c6a708",
-      "bytes": 54175,
-      "reason": "Failed M4 hardening qualification attempt preserved as evidence; not a pass. See hardening-attempts/README.md."
-    },
-    {
-      "path": "hardening-attempts/m4-tampered-plugin-attempt-1/receipt.json",
-      "original_path": "docs/validation/M4-hardening-attempts/m4-tampered-plugin-attempt-1/receipt.json",
-      "sha256": "7fe8f579a58c57aacf8bcd6971706c02fbee1014ff436f7d1b01c28f081193d5",
-      "bytes": 20392,
-      "reason": "Failed M4 hardening qualification attempt preserved as evidence; not a pass. See hardening-attempts/README.md."
-    },
-    {
-      "path": "hardening-attempts/m4-tampered-plugin-attempt-2/cleanup-repair.json",
-      "original_path": "docs/validation/M4-hardening-attempts/m4-tampered-plugin-attempt-2/cleanup-repair.json",
-      "sha256": "7dd6d182835e198d9e877cd531883bf18d782ff244919204efcc7052255efa04",
-      "bytes": 368,
-      "reason": "Failed M4 hardening qualification attempt preserved as evidence; not a pass. See hardening-attempts/README.md."
-    },
-    {
-      "path": "hardening-attempts/m4-tampered-plugin-attempt-2/commit-diagnostic.json",
-      "original_path": "docs/validation/M4-hardening-attempts/m4-tampered-plugin-attempt-2/commit-diagnostic.json",
-      "sha256": "6fbe69a17f28f0ec3a953a850446fab16c242cc728b657629fea4b812d3587d7",
-      "bytes": 259,
-      "reason": "Failed M4 hardening qualification attempt preserved as evidence; not a pass. See hardening-attempts/README.md."
-    },
-    {
-      "path": "hardening-attempts/m4-tampered-plugin-attempt-2/receipt.json",
-      "original_path": "docs/validation/M4-hardening-attempts/m4-tampered-plugin-attempt-2/receipt.json",
-      "sha256": "ee8eea7932ccd3f06816f17296421505b9b595b985cf0769fc7fd820f1518fec",
-      "bytes": 27040,
-      "reason": "Failed M4 hardening qualification attempt preserved as evidence; not a pass. See hardening-attempts/README.md."
-    },
-    {
-      "path": "hardening-attempts/native-before-final/M4-deny-adversarial.json",
-      "original_path": "docs/validation/M4-hardening-attempts/native-before-final/M4-deny-adversarial.json",
-      "sha256": "4efa6c1d32feaa2aaf7e2309943b638a05b695cb068820d045b3a67770941c9a",
-      "bytes": 9435,
-      "reason": "Failed M4 hardening qualification attempt preserved as evidence; not a pass. See hardening-attempts/README.md."
-    },
-    {
-      "path": "hardening-attempts/native-before-final/M4-deny-mcp.json",
-      "original_path": "docs/validation/M4-hardening-attempts/native-before-final/M4-deny-mcp.json",
-      "sha256": "1f9782852bd69d1e1a50667bbdd04e71f2cf6d2419b2978232691f570bf12f8f",
-      "bytes": 16836,
-      "reason": "Failed M4 hardening qualification attempt preserved as evidence; not a pass. See hardening-attempts/README.md."
-    },
-    {
-      "path": "hardening-attempts/native-before-final/M4-miri-native.json",
-      "original_path": "docs/validation/M4-hardening-attempts/native-before-final/M4-miri-native.json",
-      "sha256": "49bc40d2e963da418172e694fcd12ef73b66c2d5ab6d725f4ac719c8f61566be",
-      "bytes": 10144,
-      "reason": "Failed M4 hardening qualification attempt preserved as evidence; not a pass. See hardening-attempts/README.md."
-    },
-    {
-      "path": "hardening-attempts/native-before-final/M4-scanner-native.json",
-      "original_path": "docs/validation/M4-hardening-attempts/native-before-final/M4-scanner-native.json",
-      "sha256": "c44fa663de61a34a39028deffbc7918aeb23ea7c8181b881bbaaae32a3828b1d",
-      "bytes": 2325,
-      "reason": "Failed M4 hardening qualification attempt preserved as evidence; not a pass. See hardening-attempts/README.md."
-    },
-    {
-      "path": "hardening-attempts/native-before-final/M4-tools-mcp.json",
-      "original_path": "docs/validation/M4-hardening-attempts/native-before-final/M4-tools-mcp.json",
-      "sha256": "e456649fa7ea0aadea8b1831ee0fb66643630b5e457737e521f20b0d7807531f",
-      "bytes": 3357,
-      "reason": "Failed M4 hardening qualification attempt preserved as evidence; not a pass. See hardening-attempts/README.md."
-    },
-    {
       "path": "hardening-attempts/stdout-diagnostic/disposition.md",
       "original_path": "docs/validation/M4-hardening-attempts/stdout-diagnostic/disposition.md",
       "sha256": "1b542152e2bd1afcc9777b75b16f28620ea406283c8b5d2679b72310b8d191fa",
       "bytes": 1228,
       "reason": "Failed M4 hardening qualification attempt preserved as evidence; not a pass. See hardening-attempts/README.md.",
       "living": true
-    },
-    {
-      "path": "hardening-attempts/stdout-diagnostic/isolated-30.json",
-      "original_path": "docs/validation/M4-hardening-attempts/stdout-diagnostic/isolated-30.json",
-      "sha256": "aa9508430e9d7228493cbf44ac8206b9a7d7d271b0a7bdddf8cefd0d6c13519c",
-      "bytes": 2745,
-      "reason": "Failed M4 hardening qualification attempt preserved as evidence; not a pass. See hardening-attempts/README.md."
-    },
-    {
-      "path": "hardening-attempts/stdout-diagnostic/protocol-5.json",
-      "original_path": "docs/validation/M4-hardening-attempts/stdout-diagnostic/protocol-5.json",
-      "sha256": "050461f85e3c9fa81cd3c96349f985656fad8be3a0538534acf8380a9b0f718e",
-      "bytes": 731,
-      "reason": "Failed M4 hardening qualification attempt preserved as evidence; not a pass. See hardening-attempts/README.md."
-    },
-    {
-      "path": "hardening-attempts/stdout-diagnostic/socket-2000.json",
-      "original_path": "docs/validation/M4-hardening-attempts/stdout-diagnostic/socket-2000.json",
-      "sha256": "976b87d2031e17e9811388c3967130ab57a5639cb24a211e643b73ed87b07452",
-      "bytes": 135,
-      "reason": "Failed M4 hardening qualification attempt preserved as evidence; not a pass. See hardening-attempts/README.md."
-    },
-    {
-      "path": "miri-native-before-final/adversarial-receipt.json",
-      "original_path": "docs/validation/M4-miri-native/adversarial-receipt.json",
-      "sha256": "6a10d5675dec5208ea601287a81ea64a81a3aa405db977ffc415b12a86833c48",
-      "bytes": 2040,
-      "reason": "Raw Miri native outputs from the pass before the final one; the current receipt docs/validation/M4/miri-native.json cites miri-native/final/."
-    },
-    {
-      "path": "miri-native-before-final/alias.junit.xml",
-      "original_path": "docs/validation/M4-miri-native/alias.junit.xml",
-      "sha256": "9d0ccb5b3715e5bad2d6c01768f7d2d873422acbeedf5c937e8850cde44aa6d0",
-      "bytes": 5211,
-      "reason": "Raw Miri native outputs from the pass before the final one; the current receipt docs/validation/M4/miri-native.json cites miri-native/final/."
-    },
-    {
-      "path": "miri-native-before-final/alias.stderr",
-      "original_path": "docs/validation/M4-miri-native/alias.stderr",
-      "sha256": "b6d86869f01e2fa15d963faf328f201d5fe0dc621b521100540dd858c102a6d6",
-      "bytes": 4389,
-      "reason": "Raw Miri native outputs from the pass before the final one; the current receipt docs/validation/M4/miri-native.json cites miri-native/final/."
-    },
-    {
-      "path": "miri-native-before-final/alias.stdout",
-      "original_path": "docs/validation/M4-miri-native/alias.stdout",
-      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-      "bytes": 0,
-      "reason": "Raw Miri native outputs from the pass before the final one; the current receipt docs/validation/M4/miri-native.json cites miri-native/final/."
-    },
-    {
-      "path": "miri-native-before-final/benign-forged.junit.xml",
-      "original_path": "docs/validation/M4-miri-native/benign-forged.junit.xml",
-      "sha256": "926d0a8f09b3c8ef5237129c7557471f326e14d57d811f20f136fb421a848bf2",
-      "bytes": 784,
-      "reason": "Raw Miri native outputs from the pass before the final one; the current receipt docs/validation/M4/miri-native.json cites miri-native/final/."
-    },
-    {
-      "path": "miri-native-before-final/benign-forged.stderr",
-      "original_path": "docs/validation/M4-miri-native/benign-forged.stderr",
-      "sha256": "cdc6a9f33679b83961113e8d3f0294881dec5d9e5c921d6a37fe68616261b9cc",
-      "bytes": 1054,
-      "reason": "Raw Miri native outputs from the pass before the final one; the current receipt docs/validation/M4/miri-native.json cites miri-native/final/."
-    },
-    {
-      "path": "miri-native-before-final/benign-forged.stdout",
-      "original_path": "docs/validation/M4-miri-native/benign-forged.stdout",
-      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-      "bytes": 0,
-      "reason": "Raw Miri native outputs from the pass before the final one; the current receipt docs/validation/M4/miri-native.json cites miri-native/final/."
-    },
-    {
-      "path": "miri-native-before-final/binary-only.junit.xml",
-      "original_path": "docs/validation/M4-miri-native/binary-only.junit.xml",
-      "sha256": "e7baaf216537fa9270aeec4e463ec07a3a7d224a09bc493048b29d8c3b132e86",
-      "bytes": 479,
-      "reason": "Raw Miri native outputs from the pass before the final one; the current receipt docs/validation/M4/miri-native.json cites miri-native/final/."
-    },
-    {
-      "path": "miri-native-before-final/binary-only.stderr",
-      "original_path": "docs/validation/M4-miri-native/binary-only.stderr",
-      "sha256": "0dcd3ebb4298ee3ed9ddfd86c056b130ccc5338a1e1f4e6a1299370f108151e5",
-      "bytes": 1433,
-      "reason": "Raw Miri native outputs from the pass before the final one; the current receipt docs/validation/M4/miri-native.json cites miri-native/final/."
-    },
-    {
-      "path": "miri-native-before-final/binary-only.stdout",
-      "original_path": "docs/validation/M4-miri-native/binary-only.stdout",
-      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-      "bytes": 0,
-      "reason": "Raw Miri native outputs from the pass before the final one; the current receipt docs/validation/M4/miri-native.json cites miri-native/final/."
-    },
-    {
-      "path": "miri-native-before-final/clean.junit.xml",
-      "original_path": "docs/validation/M4-miri-native/clean.junit.xml",
-      "sha256": "cfb5a117c25b47b8bd1d7c57a78302229d87c0f866f8d4716f49a380cc0ee27e",
-      "bytes": 468,
-      "reason": "Raw Miri native outputs from the pass before the final one; the current receipt docs/validation/M4/miri-native.json cites miri-native/final/."
-    },
-    {
-      "path": "miri-native-before-final/clean.stderr",
-      "original_path": "docs/validation/M4-miri-native/clean.stderr",
-      "sha256": "275ed7ff700cfd12f544ef15d3acf293cd4bc8572fdf38da44e7e48a00b4c53f",
-      "bytes": 831,
-      "reason": "Raw Miri native outputs from the pass before the final one; the current receipt docs/validation/M4/miri-native.json cites miri-native/final/."
-    },
-    {
-      "path": "miri-native-before-final/clean.stdout",
-      "original_path": "docs/validation/M4-miri-native/clean.stdout",
-      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-      "bytes": 0,
-      "reason": "Raw Miri native outputs from the pass before the final one; the current receipt docs/validation/M4/miri-native.json cites miri-native/final/."
-    },
-    {
-      "path": "miri-native-before-final/compile-fail.stderr",
-      "original_path": "docs/validation/M4-miri-native/compile-fail.stderr",
-      "sha256": "de536a2c509cb469654947e18cc07547e7a86aa52c300f969c60c2f5d4f31e48",
-      "bytes": 3186,
-      "reason": "Raw Miri native outputs from the pass before the final one; the current receipt docs/validation/M4/miri-native.json cites miri-native/final/."
-    },
-    {
-      "path": "miri-native-before-final/compile-fail.stdout",
-      "original_path": "docs/validation/M4-miri-native/compile-fail.stdout",
-      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-      "bytes": 0,
-      "reason": "Raw Miri native outputs from the pass before the final one; the current receipt docs/validation/M4/miri-native.json cites miri-native/final/."
-    },
-    {
-      "path": "miri-native-before-final/empty.junit.xml",
-      "original_path": "docs/validation/M4-miri-native/empty.junit.xml",
-      "sha256": "6cd563c064a5f9b6d41f127afa00602f521a77c1eb58475bfe86b3729a678d7d",
-      "bytes": 230,
-      "reason": "Raw Miri native outputs from the pass before the final one; the current receipt docs/validation/M4/miri-native.json cites miri-native/final/."
-    },
-    {
-      "path": "miri-native-before-final/empty.stderr",
-      "original_path": "docs/validation/M4-miri-native/empty.stderr",
-      "sha256": "ec72a110bf131d59c09a5f7a33dabc66a43485137b84a7acee3dd7ede4ed8246",
-      "bytes": 819,
-      "reason": "Raw Miri native outputs from the pass before the final one; the current receipt docs/validation/M4/miri-native.json cites miri-native/final/."
-    },
-    {
-      "path": "miri-native-before-final/empty.stdout",
-      "original_path": "docs/validation/M4-miri-native/empty.stdout",
-      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-      "bytes": 0,
-      "reason": "Raw Miri native outputs from the pass before the final one; the current receipt docs/validation/M4/miri-native.json cites miri-native/final/."
-    },
-    {
-      "path": "miri-native-before-final/ffi.junit.xml",
-      "original_path": "docs/validation/M4-miri-native/ffi.junit.xml",
-      "sha256": "15207d832304891d1065790b66a7e52f0af15b2a8c36c1be124a258a6c0d7f09",
-      "bytes": 2780,
-      "reason": "Raw Miri native outputs from the pass before the final one; the current receipt docs/validation/M4/miri-native.json cites miri-native/final/."
-    },
-    {
-      "path": "miri-native-before-final/ffi.stderr",
-      "original_path": "docs/validation/M4-miri-native/ffi.stderr",
-      "sha256": "abce3addf94fc39a14ac019254213c66d3f0d38d97bca125085c5dc9dacce97a",
-      "bytes": 2572,
-      "reason": "Raw Miri native outputs from the pass before the final one; the current receipt docs/validation/M4/miri-native.json cites miri-native/final/."
-    },
-    {
-      "path": "miri-native-before-final/ffi.stdout",
-      "original_path": "docs/validation/M4-miri-native/ffi.stdout",
-      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-      "bytes": 0,
-      "reason": "Raw Miri native outputs from the pass before the final one; the current receipt docs/validation/M4/miri-native.json cites miri-native/final/."
-    },
-    {
-      "path": "miri-native-before-final/ignored.junit.xml",
-      "original_path": "docs/validation/M4-miri-native/ignored.junit.xml",
-      "sha256": "febace4ca8cf23b539c60da744beb9a502fe5965cce26d71fd48aa1cfd4c841b",
-      "bytes": 539,
-      "reason": "Raw Miri native outputs from the pass before the final one; the current receipt docs/validation/M4/miri-native.json cites miri-native/final/."
-    },
-    {
-      "path": "miri-native-before-final/ignored.stderr",
-      "original_path": "docs/validation/M4-miri-native/ignored.stderr",
-      "sha256": "ff85704a7e8e05463058be2c80567de2666d5fd904a4cba700e753103c198fcc",
-      "bytes": 838,
-      "reason": "Raw Miri native outputs from the pass before the final one; the current receipt docs/validation/M4/miri-native.json cites miri-native/final/."
-    },
-    {
-      "path": "miri-native-before-final/ignored.stdout",
-      "original_path": "docs/validation/M4-miri-native/ignored.stdout",
-      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-      "bytes": 0,
-      "reason": "Raw Miri native outputs from the pass before the final one; the current receipt docs/validation/M4/miri-native.json cites miri-native/final/."
-    },
-    {
-      "path": "miri-native-before-final/native.txt",
-      "original_path": "docs/validation/M4-miri-native/native.txt",
-      "sha256": "d5e688b6f1e70ef1e03e36f331719dad1311043df40f2421d4540168c72f2448",
-      "bytes": 1071,
-      "reason": "Raw Miri native outputs from the pass before the final one; the current receipt docs/validation/M4/miri-native.json cites miri-native/final/."
-    },
-    {
-      "path": "miri-native-before-final/previous-receipt-10-5.json",
-      "original_path": "docs/validation/M4-miri-native/previous-receipt-10-5.json",
-      "sha256": "1d38da730a516ac6c488f5522bdebef824388b9a1ba6a8299ac4926ee2755d3f",
-      "bytes": 8841,
-      "reason": "Raw Miri native outputs from the pass before the final one; the current receipt docs/validation/M4/miri-native.json cites miri-native/final/."
-    },
-    {
-      "path": "miri-native-before-final/race.junit.xml",
-      "original_path": "docs/validation/M4-miri-native/race.junit.xml",
-      "sha256": "c25eff73b4017484ab96f8af50732cd8e856dea7284eef008aedb5ffedeeb275",
-      "bytes": 5681,
-      "reason": "Raw Miri native outputs from the pass before the final one; the current receipt docs/validation/M4/miri-native.json cites miri-native/final/."
-    },
-    {
-      "path": "miri-native-before-final/race.stderr",
-      "original_path": "docs/validation/M4-miri-native/race.stderr",
-      "sha256": "45de5a6a4586a77da7b7a7d8d60e00b117a74988acfd1af9bcee5e273b7d121b",
-      "bytes": 4691,
-      "reason": "Raw Miri native outputs from the pass before the final one; the current receipt docs/validation/M4/miri-native.json cites miri-native/final/."
-    },
-    {
-      "path": "miri-native-before-final/race.stdout",
-      "original_path": "docs/validation/M4-miri-native/race.stdout",
-      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-      "bytes": 0,
-      "reason": "Raw Miri native outputs from the pass before the final one; the current receipt docs/validation/M4/miri-native.json cites miri-native/final/."
-    },
-    {
-      "path": "miri-native-before-final/receipt.json",
-      "original_path": "docs/validation/M4-miri-native/receipt.json",
-      "sha256": "6d4888a8dc3386c8e6a485a31481a4f5ebafb7f88d1289040c1d0a94125fc797",
-      "bytes": 15115,
-      "reason": "Raw Miri native outputs from the pass before the final one; the current receipt docs/validation/M4/miri-native.json cites miri-native/final/."
-    },
-    {
-      "path": "miri-native-before-final/runner-timeout.junit.xml",
-      "original_path": "docs/validation/M4-miri-native/runner-timeout.junit.xml",
-      "sha256": "05a47d5e13c38f306a869f7acd7fe616cfb56279301ccc08d74717ead27bb911",
-      "bytes": 600,
-      "reason": "Raw Miri native outputs from the pass before the final one; the current receipt docs/validation/M4/miri-native.json cites miri-native/final/."
-    },
-    {
-      "path": "miri-native-before-final/runner-timeout.stderr",
-      "original_path": "docs/validation/M4-miri-native/runner-timeout.stderr",
-      "sha256": "af37a45c29598c0f88dd24a7f1cfe40f82b43bc3cc2a6ae7df7089d101ea910e",
-      "bytes": 1020,
-      "reason": "Raw Miri native outputs from the pass before the final one; the current receipt docs/validation/M4/miri-native.json cites miri-native/final/."
-    },
-    {
-      "path": "miri-native-before-final/runner-timeout.stdout",
-      "original_path": "docs/validation/M4-miri-native/runner-timeout.stdout",
-      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-      "bytes": 0,
-      "reason": "Raw Miri native outputs from the pass before the final one; the current receipt docs/validation/M4/miri-native.json cites miri-native/final/."
-    },
-    {
-      "path": "miri-native-before-final/uaf.junit.xml",
-      "original_path": "docs/validation/M4-miri-native/uaf.junit.xml",
-      "sha256": "03d0c19d16366e19a0f53171c4aa801787d2722ec7ccee9ed1ff2f46b214392e",
-      "bytes": 4803,
-      "reason": "Raw Miri native outputs from the pass before the final one; the current receipt docs/validation/M4/miri-native.json cites miri-native/final/."
-    },
-    {
-      "path": "miri-native-before-final/uaf.stderr",
-      "original_path": "docs/validation/M4-miri-native/uaf.stderr",
-      "sha256": "bcd7a3b259ff30bc926dcc479287a5e14a6345d422e7a553ac4e497f52a9d416",
-      "bytes": 4009,
-      "reason": "Raw Miri native outputs from the pass before the final one; the current receipt docs/validation/M4/miri-native.json cites miri-native/final/."
-    },
-    {
-      "path": "miri-native-before-final/uaf.stdout",
-      "original_path": "docs/validation/M4-miri-native/uaf.stdout",
-      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-      "bytes": 0,
-      "reason": "Raw Miri native outputs from the pass before the final one; the current receipt docs/validation/M4/miri-native.json cites miri-native/final/."
-    },
-    {
-      "path": "miri-native-before-final/uninit.junit.xml",
-      "original_path": "docs/validation/M4-miri-native/uninit.junit.xml",
-      "sha256": "a1dd84d61ebf4967090d09f99a71c0d60f4869a3d7bd0b5ff522d431187a6305",
-      "bytes": 3248,
-      "reason": "Raw Miri native outputs from the pass before the final one; the current receipt docs/validation/M4/miri-native.json cites miri-native/final/."
-    },
-    {
-      "path": "miri-native-before-final/uninit.stderr",
-      "original_path": "docs/validation/M4-miri-native/uninit.stderr",
-      "sha256": "29f6a073ccfca80668f54f9eb21229f61f0a17d20f8b79694487f3e6a546428d",
-      "bytes": 2978,
-      "reason": "Raw Miri native outputs from the pass before the final one; the current receipt docs/validation/M4/miri-native.json cites miri-native/final/."
-    },
-    {
-      "path": "miri-native-before-final/uninit.stdout",
-      "original_path": "docs/validation/M4-miri-native/uninit.stdout",
-      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-      "bytes": 0,
-      "reason": "Raw Miri native outputs from the pass before the final one; the current receipt docs/validation/M4/miri-native.json cites miri-native/final/."
     }
   ],
   "retired": [
@@ -1688,6 +1233,408 @@
           "bytes": 0
         }
       ]
+    },
+    {
+      "original_path": "docs/validation/M4/history/client-execution-before-corpus-refresh.json",
+      "sha256": "53885134705ba51013930ccadc51468d38baa520cf278878bc453667ef3b00db",
+      "bytes": 5136,
+      "kind": "A-superseded receipts and failed-attempt logs"
+    },
+    {
+      "original_path": "docs/validation/M4/history/clients-before-corpus-refresh.json",
+      "sha256": "9005a96c9a0e872c97f0dcc5f7142b636db1f6dd9545ada94c1a2e10bd8ef184",
+      "bytes": 240292,
+      "kind": "A-superseded receipts and failed-attempt logs"
+    },
+    {
+      "original_path": "docs/validation/M4/history/clients-before-stdout-diagnostic.json",
+      "sha256": "f0ab7fa6cd49458c2eea6515efa4acd8734cecb36c82dcb894ca179c1c727747",
+      "bytes": 240292,
+      "kind": "A-superseded receipts and failed-attempt logs"
+    },
+    {
+      "original_path": "docs/validation/M4/history/hardening-attempts/core-attempt-1/disposition.json",
+      "sha256": "35194ab37f806b761129ca28a63e0db131bc06ce2b643836c2e73d1ee5ab3e1f",
+      "bytes": 507,
+      "kind": "A-superseded receipts and failed-attempt logs"
+    },
+    {
+      "original_path": "docs/validation/M4/history/hardening-attempts/core-attempt-1/receipt.json",
+      "sha256": "23df26f14e6b977f920d6facc814c81ba95dafa4ceec888ed27a06866bb903ef",
+      "bytes": 253832,
+      "kind": "A-superseded receipts and failed-attempt logs"
+    },
+    {
+      "original_path": "docs/validation/M4/history/hardening-attempts/core-attempt-2/gate.txt",
+      "sha256": "3880097a52ce736e37444b1cd5a5594019cea9d988aad2df9fd473121d3aa5c9",
+      "bytes": 119785,
+      "kind": "A-superseded receipts and failed-attempt logs"
+    },
+    {
+      "original_path": "docs/validation/M4/history/hardening-attempts/core-attempt-2/receipt.json",
+      "sha256": "cb32157781f6f6a22ec56405f83ccdb062a42f3395bda0ee5f14fd5aa7abc8de",
+      "bytes": 239511,
+      "kind": "A-superseded receipts and failed-attempt logs"
+    },
+    {
+      "original_path": "docs/validation/M4/history/hardening-attempts/full-attempt-1/gate.txt",
+      "sha256": "4c84d505363226aacc1faa65a5b677339423c731014d379256958efb4b80887d",
+      "bytes": 147189,
+      "kind": "A-superseded receipts and failed-attempt logs"
+    },
+    {
+      "original_path": "docs/validation/M4/history/hardening-attempts/full-attempt-1/isolated-large-binary-10.json",
+      "sha256": "ade91c3fb6c979ae2cc51bec1f7e17a5bffd8a122042c9713d8bfc838ac93c46",
+      "bytes": 16463,
+      "kind": "A-superseded receipts and failed-attempt logs"
+    },
+    {
+      "original_path": "docs/validation/M4/history/hardening-attempts/full-attempt-1/receipt.json",
+      "sha256": "2938d58d309e05c461972e818252767a450f5e9b2317afe3efb104848a917650",
+      "bytes": 248591,
+      "kind": "A-superseded receipts and failed-attempt logs"
+    },
+    {
+      "original_path": "docs/validation/M4/history/hardening-attempts/full-attempt-2/gate.txt",
+      "sha256": "1378c96c74e708ff6026473ed2e7c4afe7fc5b80d94b6080d31ed4e6069cb60b",
+      "bytes": 227572,
+      "kind": "A-superseded receipts and failed-attempt logs"
+    },
+    {
+      "original_path": "docs/validation/M4/history/hardening-attempts/full-attempt-2/receipt.json",
+      "sha256": "e169e6064aa023e171e081730d6edd6586b391e1f3b83059e34a5bf9222878b8",
+      "bytes": 261174,
+      "kind": "A-superseded receipts and failed-attempt logs"
+    },
+    {
+      "original_path": "docs/validation/M4/history/hardening-attempts/inputs.json",
+      "sha256": "222e847684d45b182a299cda0b1243445233073964fdcd03c47d87601328bfa3",
+      "bytes": 755,
+      "kind": "A-superseded receipts and failed-attempt logs"
+    },
+    {
+      "original_path": "docs/validation/M4/history/hardening-attempts/m4-new-native-cuts-attempt-1/receipt.json",
+      "sha256": "5216804d2f8dc6475e260a2326c9eaa2bf3c783ecb53f10e67814904a2c6a708",
+      "bytes": 54175,
+      "kind": "A-superseded receipts and failed-attempt logs"
+    },
+    {
+      "original_path": "docs/validation/M4/history/hardening-attempts/m4-tampered-plugin-attempt-1/receipt.json",
+      "sha256": "7fe8f579a58c57aacf8bcd6971706c02fbee1014ff436f7d1b01c28f081193d5",
+      "bytes": 20392,
+      "kind": "A-superseded receipts and failed-attempt logs"
+    },
+    {
+      "original_path": "docs/validation/M4/history/hardening-attempts/m4-tampered-plugin-attempt-2/cleanup-repair.json",
+      "sha256": "7dd6d182835e198d9e877cd531883bf18d782ff244919204efcc7052255efa04",
+      "bytes": 368,
+      "kind": "A-superseded receipts and failed-attempt logs"
+    },
+    {
+      "original_path": "docs/validation/M4/history/hardening-attempts/m4-tampered-plugin-attempt-2/commit-diagnostic.json",
+      "sha256": "6fbe69a17f28f0ec3a953a850446fab16c242cc728b657629fea4b812d3587d7",
+      "bytes": 259,
+      "kind": "A-superseded receipts and failed-attempt logs"
+    },
+    {
+      "original_path": "docs/validation/M4/history/hardening-attempts/m4-tampered-plugin-attempt-2/receipt.json",
+      "sha256": "ee8eea7932ccd3f06816f17296421505b9b595b985cf0769fc7fd820f1518fec",
+      "bytes": 27040,
+      "kind": "A-superseded receipts and failed-attempt logs"
+    },
+    {
+      "original_path": "docs/validation/M4/history/hardening-attempts/native-before-final/M4-deny-adversarial.json",
+      "sha256": "4efa6c1d32feaa2aaf7e2309943b638a05b695cb068820d045b3a67770941c9a",
+      "bytes": 9435,
+      "kind": "A-superseded receipts and failed-attempt logs"
+    },
+    {
+      "original_path": "docs/validation/M4/history/hardening-attempts/native-before-final/M4-deny-mcp.json",
+      "sha256": "1f9782852bd69d1e1a50667bbdd04e71f2cf6d2419b2978232691f570bf12f8f",
+      "bytes": 16836,
+      "kind": "A-superseded receipts and failed-attempt logs"
+    },
+    {
+      "original_path": "docs/validation/M4/history/hardening-attempts/native-before-final/M4-miri-native.json",
+      "sha256": "49bc40d2e963da418172e694fcd12ef73b66c2d5ab6d725f4ac719c8f61566be",
+      "bytes": 10144,
+      "kind": "A-superseded receipts and failed-attempt logs"
+    },
+    {
+      "original_path": "docs/validation/M4/history/hardening-attempts/native-before-final/M4-scanner-native.json",
+      "sha256": "c44fa663de61a34a39028deffbc7918aeb23ea7c8181b881bbaaae32a3828b1d",
+      "bytes": 2325,
+      "kind": "A-superseded receipts and failed-attempt logs"
+    },
+    {
+      "original_path": "docs/validation/M4/history/hardening-attempts/native-before-final/M4-tools-mcp.json",
+      "sha256": "e456649fa7ea0aadea8b1831ee0fb66643630b5e457737e521f20b0d7807531f",
+      "bytes": 3357,
+      "kind": "A-superseded receipts and failed-attempt logs"
+    },
+    {
+      "original_path": "docs/validation/M4/history/hardening-attempts/stdout-diagnostic/isolated-30.json",
+      "sha256": "aa9508430e9d7228493cbf44ac8206b9a7d7d271b0a7bdddf8cefd0d6c13519c",
+      "bytes": 2745,
+      "kind": "A-superseded receipts and failed-attempt logs"
+    },
+    {
+      "original_path": "docs/validation/M4/history/hardening-attempts/stdout-diagnostic/protocol-5.json",
+      "sha256": "050461f85e3c9fa81cd3c96349f985656fad8be3a0538534acf8380a9b0f718e",
+      "bytes": 731,
+      "kind": "A-superseded receipts and failed-attempt logs"
+    },
+    {
+      "original_path": "docs/validation/M4/history/hardening-attempts/stdout-diagnostic/socket-2000.json",
+      "sha256": "976b87d2031e17e9811388c3967130ab57a5639cb24a211e643b73ed87b07452",
+      "bytes": 135,
+      "kind": "A-superseded receipts and failed-attempt logs"
+    },
+    {
+      "original_path": "docs/validation/M4/history/miri-native-before-final/adversarial-receipt.json",
+      "sha256": "6a10d5675dec5208ea601287a81ea64a81a3aa405db977ffc415b12a86833c48",
+      "bytes": 2040,
+      "kind": "A-superseded receipts and failed-attempt logs"
+    },
+    {
+      "original_path": "docs/validation/M4/history/miri-native-before-final/alias.junit.xml",
+      "sha256": "9d0ccb5b3715e5bad2d6c01768f7d2d873422acbeedf5c937e8850cde44aa6d0",
+      "bytes": 5211,
+      "kind": "A-superseded receipts and failed-attempt logs"
+    },
+    {
+      "original_path": "docs/validation/M4/history/miri-native-before-final/alias.stderr",
+      "sha256": "b6d86869f01e2fa15d963faf328f201d5fe0dc621b521100540dd858c102a6d6",
+      "bytes": 4389,
+      "kind": "A-superseded receipts and failed-attempt logs"
+    },
+    {
+      "original_path": "docs/validation/M4/history/miri-native-before-final/alias.stdout",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0,
+      "kind": "A-superseded receipts and failed-attempt logs"
+    },
+    {
+      "original_path": "docs/validation/M4/history/miri-native-before-final/benign-forged.junit.xml",
+      "sha256": "926d0a8f09b3c8ef5237129c7557471f326e14d57d811f20f136fb421a848bf2",
+      "bytes": 784,
+      "kind": "A-superseded receipts and failed-attempt logs"
+    },
+    {
+      "original_path": "docs/validation/M4/history/miri-native-before-final/benign-forged.stderr",
+      "sha256": "cdc6a9f33679b83961113e8d3f0294881dec5d9e5c921d6a37fe68616261b9cc",
+      "bytes": 1054,
+      "kind": "A-superseded receipts and failed-attempt logs"
+    },
+    {
+      "original_path": "docs/validation/M4/history/miri-native-before-final/benign-forged.stdout",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0,
+      "kind": "A-superseded receipts and failed-attempt logs"
+    },
+    {
+      "original_path": "docs/validation/M4/history/miri-native-before-final/binary-only.junit.xml",
+      "sha256": "e7baaf216537fa9270aeec4e463ec07a3a7d224a09bc493048b29d8c3b132e86",
+      "bytes": 479,
+      "kind": "A-superseded receipts and failed-attempt logs"
+    },
+    {
+      "original_path": "docs/validation/M4/history/miri-native-before-final/binary-only.stderr",
+      "sha256": "0dcd3ebb4298ee3ed9ddfd86c056b130ccc5338a1e1f4e6a1299370f108151e5",
+      "bytes": 1433,
+      "kind": "A-superseded receipts and failed-attempt logs"
+    },
+    {
+      "original_path": "docs/validation/M4/history/miri-native-before-final/binary-only.stdout",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0,
+      "kind": "A-superseded receipts and failed-attempt logs"
+    },
+    {
+      "original_path": "docs/validation/M4/history/miri-native-before-final/clean.junit.xml",
+      "sha256": "cfb5a117c25b47b8bd1d7c57a78302229d87c0f866f8d4716f49a380cc0ee27e",
+      "bytes": 468,
+      "kind": "A-superseded receipts and failed-attempt logs"
+    },
+    {
+      "original_path": "docs/validation/M4/history/miri-native-before-final/clean.stderr",
+      "sha256": "275ed7ff700cfd12f544ef15d3acf293cd4bc8572fdf38da44e7e48a00b4c53f",
+      "bytes": 831,
+      "kind": "A-superseded receipts and failed-attempt logs"
+    },
+    {
+      "original_path": "docs/validation/M4/history/miri-native-before-final/clean.stdout",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0,
+      "kind": "A-superseded receipts and failed-attempt logs"
+    },
+    {
+      "original_path": "docs/validation/M4/history/miri-native-before-final/compile-fail.stderr",
+      "sha256": "de536a2c509cb469654947e18cc07547e7a86aa52c300f969c60c2f5d4f31e48",
+      "bytes": 3186,
+      "kind": "A-superseded receipts and failed-attempt logs"
+    },
+    {
+      "original_path": "docs/validation/M4/history/miri-native-before-final/compile-fail.stdout",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0,
+      "kind": "A-superseded receipts and failed-attempt logs"
+    },
+    {
+      "original_path": "docs/validation/M4/history/miri-native-before-final/empty.junit.xml",
+      "sha256": "6cd563c064a5f9b6d41f127afa00602f521a77c1eb58475bfe86b3729a678d7d",
+      "bytes": 230,
+      "kind": "A-superseded receipts and failed-attempt logs"
+    },
+    {
+      "original_path": "docs/validation/M4/history/miri-native-before-final/empty.stderr",
+      "sha256": "ec72a110bf131d59c09a5f7a33dabc66a43485137b84a7acee3dd7ede4ed8246",
+      "bytes": 819,
+      "kind": "A-superseded receipts and failed-attempt logs"
+    },
+    {
+      "original_path": "docs/validation/M4/history/miri-native-before-final/empty.stdout",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0,
+      "kind": "A-superseded receipts and failed-attempt logs"
+    },
+    {
+      "original_path": "docs/validation/M4/history/miri-native-before-final/ffi.junit.xml",
+      "sha256": "15207d832304891d1065790b66a7e52f0af15b2a8c36c1be124a258a6c0d7f09",
+      "bytes": 2780,
+      "kind": "A-superseded receipts and failed-attempt logs"
+    },
+    {
+      "original_path": "docs/validation/M4/history/miri-native-before-final/ffi.stderr",
+      "sha256": "abce3addf94fc39a14ac019254213c66d3f0d38d97bca125085c5dc9dacce97a",
+      "bytes": 2572,
+      "kind": "A-superseded receipts and failed-attempt logs"
+    },
+    {
+      "original_path": "docs/validation/M4/history/miri-native-before-final/ffi.stdout",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0,
+      "kind": "A-superseded receipts and failed-attempt logs"
+    },
+    {
+      "original_path": "docs/validation/M4/history/miri-native-before-final/ignored.junit.xml",
+      "sha256": "febace4ca8cf23b539c60da744beb9a502fe5965cce26d71fd48aa1cfd4c841b",
+      "bytes": 539,
+      "kind": "A-superseded receipts and failed-attempt logs"
+    },
+    {
+      "original_path": "docs/validation/M4/history/miri-native-before-final/ignored.stderr",
+      "sha256": "ff85704a7e8e05463058be2c80567de2666d5fd904a4cba700e753103c198fcc",
+      "bytes": 838,
+      "kind": "A-superseded receipts and failed-attempt logs"
+    },
+    {
+      "original_path": "docs/validation/M4/history/miri-native-before-final/ignored.stdout",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0,
+      "kind": "A-superseded receipts and failed-attempt logs"
+    },
+    {
+      "original_path": "docs/validation/M4/history/miri-native-before-final/native.txt",
+      "sha256": "d5e688b6f1e70ef1e03e36f331719dad1311043df40f2421d4540168c72f2448",
+      "bytes": 1071,
+      "kind": "A-superseded receipts and failed-attempt logs"
+    },
+    {
+      "original_path": "docs/validation/M4/history/miri-native-before-final/previous-receipt-10-5.json",
+      "sha256": "1d38da730a516ac6c488f5522bdebef824388b9a1ba6a8299ac4926ee2755d3f",
+      "bytes": 8841,
+      "kind": "A-superseded receipts and failed-attempt logs"
+    },
+    {
+      "original_path": "docs/validation/M4/history/miri-native-before-final/race.junit.xml",
+      "sha256": "c25eff73b4017484ab96f8af50732cd8e856dea7284eef008aedb5ffedeeb275",
+      "bytes": 5681,
+      "kind": "A-superseded receipts and failed-attempt logs"
+    },
+    {
+      "original_path": "docs/validation/M4/history/miri-native-before-final/race.stderr",
+      "sha256": "45de5a6a4586a77da7b7a7d8d60e00b117a74988acfd1af9bcee5e273b7d121b",
+      "bytes": 4691,
+      "kind": "A-superseded receipts and failed-attempt logs"
+    },
+    {
+      "original_path": "docs/validation/M4/history/miri-native-before-final/race.stdout",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0,
+      "kind": "A-superseded receipts and failed-attempt logs"
+    },
+    {
+      "original_path": "docs/validation/M4/history/miri-native-before-final/receipt.json",
+      "sha256": "6d4888a8dc3386c8e6a485a31481a4f5ebafb7f88d1289040c1d0a94125fc797",
+      "bytes": 15115,
+      "kind": "A-superseded receipts and failed-attempt logs"
+    },
+    {
+      "original_path": "docs/validation/M4/history/miri-native-before-final/runner-timeout.junit.xml",
+      "sha256": "05a47d5e13c38f306a869f7acd7fe616cfb56279301ccc08d74717ead27bb911",
+      "bytes": 600,
+      "kind": "A-superseded receipts and failed-attempt logs"
+    },
+    {
+      "original_path": "docs/validation/M4/history/miri-native-before-final/runner-timeout.stderr",
+      "sha256": "af37a45c29598c0f88dd24a7f1cfe40f82b43bc3cc2a6ae7df7089d101ea910e",
+      "bytes": 1020,
+      "kind": "A-superseded receipts and failed-attempt logs"
+    },
+    {
+      "original_path": "docs/validation/M4/history/miri-native-before-final/runner-timeout.stdout",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0,
+      "kind": "A-superseded receipts and failed-attempt logs"
+    },
+    {
+      "original_path": "docs/validation/M4/history/miri-native-before-final/uaf.junit.xml",
+      "sha256": "03d0c19d16366e19a0f53171c4aa801787d2722ec7ccee9ed1ff2f46b214392e",
+      "bytes": 4803,
+      "kind": "A-superseded receipts and failed-attempt logs"
+    },
+    {
+      "original_path": "docs/validation/M4/history/miri-native-before-final/uaf.stderr",
+      "sha256": "bcd7a3b259ff30bc926dcc479287a5e14a6345d422e7a553ac4e497f52a9d416",
+      "bytes": 4009,
+      "kind": "A-superseded receipts and failed-attempt logs"
+    },
+    {
+      "original_path": "docs/validation/M4/history/miri-native-before-final/uaf.stdout",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0,
+      "kind": "A-superseded receipts and failed-attempt logs"
+    },
+    {
+      "original_path": "docs/validation/M4/history/miri-native-before-final/uninit.junit.xml",
+      "sha256": "a1dd84d61ebf4967090d09f99a71c0d60f4869a3d7bd0b5ff522d431187a6305",
+      "bytes": 3248,
+      "kind": "A-superseded receipts and failed-attempt logs"
+    },
+    {
+      "original_path": "docs/validation/M4/history/miri-native-before-final/uninit.stderr",
+      "sha256": "29f6a073ccfca80668f54f9eb21229f61f0a17d20f8b79694487f3e6a546428d",
+      "bytes": 2978,
+      "kind": "A-superseded receipts and failed-attempt logs"
+    },
+    {
+      "original_path": "docs/validation/M4/history/miri-native-before-final/uninit.stdout",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0,
+      "kind": "A-superseded receipts and failed-attempt logs"
+    }
+  ],
+  "retired_groups": [
+    {
+      "kind": "A-superseded receipts and failed-attempt logs",
+      "reason": "superseded receipts and failed-attempt logs: the accepted receipt of each milestone accredits the shipped bytes; the diagnosis narratives (README/disposition .md) stay",
+      "files": 65,
+      "bytes": 2228751,
+      "aggregate_sha256": "f3334f3bd8d01ab3d0fea9a6b12f55a6169f8513bfec36368265a52e1871e1aa",
+      "aggregate_rule": "sha256 over the sorted lines \"<sha256>  <original_path>\\n\"",
+      "last_commit_with_bytes": "d796ff57bd87cf7fb7269f9dceef9090bc66e749",
+      "retired_at": "2026-09-11T17:40:14.242436+00:00"
     }
   ]
 }

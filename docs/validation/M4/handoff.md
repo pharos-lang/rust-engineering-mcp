@@ -86,8 +86,8 @@ fijados y el sysroot completo sin ejecutar código guest ni usar red.
 | [Imagen alterada](tampered-plugin.json) | PASS: una identidad derivada no admitida se rechaza antes de ejecutar guest, los inputs quedan iguales y cleanup queda verificado. |
 | [Privacidad runtime](privacy-runtime.json) | PASS de control positivo y negativo. El canario host queda ausente; HTML de cobertura y diffs de mutation autorizados por el proyecto pueden conservar bytes de source, incluidos secretos presentes en esa fuente. Esos artifacts son privados y no se promete redacción universal del source autorizado. |
 
-Los intentos cliente [2](history/clients-before-corpus-refresh.json),
-[3](history/clients-before-stdout-diagnostic.json), 4 bajo `m4-clients/attempt-4`
+Los intentos cliente [2](history/inventory.json),
+[3](history/inventory.json), 4 bajo `m4-clients/attempt-4`
 y 5 bajo `m4-clients/attempt-5` también pasaron y quedan preservados. El
 intento 6 es el recibo vigente porque repite G4 sobre el refactor final de
 handlers y la instrumentación de cobertura del PR.
@@ -142,7 +142,7 @@ La calificación de imagen alterada tuvo dos intentos fallidos preservados. En e
 segundo, la detección sin `--all` dejó una imagen owned sin resolver e invalidó
 la afirmación original de cleanup. El
 [registro de intentos](history/hardening-attempts/README.md) conserva el fallo y la
-[reparación](history/hardening-attempts/m4-tampered-plugin-attempt-2/cleanup-repair.json)
+[reparación](history/inventory.json)
 identifica y elimina solo la imagen owned; el recibo exitoso actual es separado.
 
 Core intento 2 observó una única falla transitoria en
@@ -155,14 +155,14 @@ deadline de 10 s y ahora solo informa variante y tiempo: no se aceptaron errores
 o frames adicionales, no se amplió el timeout y no cambió producto.
 
 Full intento 1 falló en el qualifier legado por cleanup no diagnosticado. Las
-[10 reproducciones](history/hardening-attempts/full-attempt-1/isolated-large-binary-10.json)
+[10 reproducciones](history/inventory.json)
 pasaron en ambas fases sin relajar el oracle; la [disposición](history/hardening-attempts/full-attempt-1/disposition.md)
 retiene la causa desconocida y el seguimiento de preservar `phases.repair.cleanup`
 si reaparece. Full intento 2 pasó las 27 etapas iniciales y encontró vacío el
 directorio temporal E5. Se verificaron tamaño/hash de cinco assets existentes
 (487352503 bytes), sin adquirirlos otra vez, y se completaron las seis etapas
 restantes mediante el runner original y el mismo source inventory. El recibo
-fallido original permanece en [full-attempt-2](history/hardening-attempts/full-attempt-2/receipt.json).
+fallido original permanece en [full-attempt-2](history/inventory.json).
 Los logs del primer segmento y de la reanudación son separados. El recibo full
 vigente es una ejecución monolítica posterior e independiente que pasó 33/33.
 

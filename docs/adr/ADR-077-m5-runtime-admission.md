@@ -58,7 +58,7 @@ digest M5. Admitir los dos dejaría admitido un runtime cuyo helper tiene el
 defecto corregido, y ninguna calificación puede acreditar a los dos a la vez.
 El digest anterior nunca llegó a `main`, nunca se publicó y no acreditó ninguna
 release; lo que sí produjo son recibos, que **se conservan sin tocar** con el
-digest que realmente midieron. El [recibo de aprovisionamiento anterior](../validation/M5/history/provisioning-superseded-0e21c561.json)
+digest que realmente midieron. El [recibo de aprovisionamiento anterior](../validation/M5/history/inventory.json)
 se archiva completo junto al nuevo.
 
 Toda la evidencia nativa capturada sobre el digest anterior queda invalidada por

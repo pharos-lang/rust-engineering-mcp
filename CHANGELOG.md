@@ -232,7 +232,7 @@ publicaron por separado y forman parte de esta versión.
   full pasó 33 con inventario fuente idéntico. Tras encontrar un directorio E5
   temporal vacío, la reanudación conservó 27 etapas aprobadas y ejecutó seis
   frescas usando assets existentes reverificados, sin descarga ni cambios de
-  código. El [fallo original](docs/validation/M4/history/hardening-attempts/full-attempt-2/receipt.json)
+  código. El [fallo original](docs/validation/M4/history/inventory.json)
   permanece preservado. El runtime final pasó 19/19 sobre `25ed…`, con scanner
   7/7 y Miri 13 clasificaciones más 7 admisiones.
 - La [revisión final de código Opus](docs/reviews/M4/m4-final-closure/review.md) no

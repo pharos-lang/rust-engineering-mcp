@@ -4,7 +4,7 @@ Un gate que falla es evidencia, no basura. Estos recibos se conservan enteros.
 
 ## Intento 1 — 2026-09-09, `full`, **failed** en el paso 30 de 34
 
-Recibos: [gate](full-gate-attempt-1.json) · [m4-runtime](m4-runtime-attempt-1.json).
+Recibos: [gate](../inventory.json) · [m4-runtime](../inventory.json).
 
 Corrido sobre un worktree limpio en `b19c3cd`, porque el árbol principal tenía
 trabajo de dependencias del owner sin commitear (subidas de `lancedb`,
@@ -78,9 +78,9 @@ diagnósticos por separado.
 
 ## Intento 2 — 2026-09-10, `full`, **failed** en el paso 32 de 34
 
-Recibos: [gate](closure-full-attempt-2/full-gate.json) ·
-[log](closure-full-attempt-2/full-gate.txt) ·
-[paso `semantic`](closure-full-attempt-2/semantic-step.txt). Corrido a solas
+Recibos: [gate](../inventory.json) ·
+[log](../inventory.json) ·
+[paso `semantic`](../inventory.json). Corrido a solas
 sobre el worktree limpio en `c334498`, inmediatamente después del
 [`core` aprobado](../../core-gate.json) sobre los mismos bytes.
 
@@ -125,37 +125,37 @@ defecto no la incluye.
 
 ### Sondas sobre las opciones para `lancedb 0.38.0` (2026-09-10, worktrees temporales, nada commiteado en Cargo)
 
-Recibos en [`closure-full-attempt-2/lancedb-0.38-probes/`](closure-full-attempt-2/lancedb-0.38-probes/).
+Recibos en [`closure-full-attempt-2/lancedb-0.38-probes/`](../inventory.json).
 
 - **`cargo audit`** sobre el lock anterior a `a3cb48c` (0.31.0) y el actual
   (0.38.0): idéntico —solo `paste` 1.0.15 no mantenido, permitido—. La subida no
   corrigió ningún advisory.
 - **Opción 1, `remote`**: resuelve offline desde el índice en caché y añade 11
-  crates ([delta del lock](closure-full-attempt-2/lancedb-0.38-probes/option-1-remote-lock-delta.diff)),
+  crates ([delta del lock](../inventory.json)),
   entre ellos `axum` 0.7.9, `axum-core`, `matchit`, `tower-http` 0.5.2 (vía
   `lance-namespace-impls/rest-adapter`), `urlencoding`, `system-configuration`,
   `windows-registry`; 8 de los 11 `.crate` no están en caché. `deny.toml` prohíbe
   la feature (`[[bans.features]] crate = "lancedb" deny = ["remote", …]`).
 - **Opción 3, parche `cfg` de dos brazos en `job.rs::decode`**
-  ([patch](closure-full-attempt-2/lancedb-0.38-probes/option-3-job-rs.patch)):
+  ([patch](../inventory.json)):
   el adapter semántico **compila** contra la API 0.38.0
-  ([check](closure-full-attempt-2/lancedb-0.38-probes/option-3-cfg-patch-check.txt)),
+  ([check](../inventory.json)),
   pero **todas las pruebas que abren una tabla LanceDB fallan** bajo las
   condiciones del gate semántico: `lance-io 11.0.0/src/spill.rs:233` «failed to
   create temp directory for LocalSpillStore» con `TMPDIR` inexistente, incluida
   la integración real `real_offline_e5_lance_sqlite_roundtrip`
-  ([salida](closure-full-attempt-2/lancedb-0.38-probes/option-3-semantic-tests-under-gate-conditions.txt)).
+  ([salida](../inventory.json)).
   Es exactamente el segundo motivo por el que [ADR-027](../../../../adr/ADR-027-semantic-offline-foundation.md)
   descartó 0.38.0/Lance 11: crea un spill store en disco aunque la base sea
   `memory://`. Las opciones 1 y 3 comparten Lance 11 y por tanto este fallo.
 
 ## Intento 3 — 2026-09-10, `full` sobre el lock 0.31.0, **failed** en el paso 27 de 34
 
-Recibos: [gate](closure-full-attempt-3/full-gate.json) ·
-[log](closure-full-attempt-3/full-gate.txt) ·
-[paso `m3-runtime`](closure-full-attempt-3/m3-runtime-step.txt) ·
-[recibo M3](closure-full-attempt-3/m3-runtime-receipt.json) ·
-[muestra de pila](closure-full-attempt-3/hung-test-sample.txt). Corrido a solas
+Recibos: [gate](../inventory.json) ·
+[log](../inventory.json) ·
+[paso `m3-runtime`](../inventory.json) ·
+[recibo M3](../inventory.json) ·
+[muestra de pila](../inventory.json). Corrido a solas
 sobre el worktree limpio en `ab4eed9`, tras el `core` aprobado sobre los mismos
 bytes. Veintiséis pasos pasaron —`semantic` incluido, ya con Lance 8— y la
 selección 19 de M3, `tasks_runtime::tasks_revocation_during_active_child_masks_cancels_and_prevents_publication`,
@@ -190,7 +190,7 @@ No se tocó el test ni su timeout. `full` se repite entero.
 
 ## Resultado final — 2026-09-11, `full` sobre los bytes del PR #17, **passed**
 
-[M5-full-gate.json](../../full-gate.json) · [log](closure-full-lock-0.31.0/full-gate-final.txt).
+[M5-full-gate.json](../../full-gate.json) · [log](../inventory.json).
 Corrido a solas sobre el worktree limpio en `45d339f` (fuentes de `34bd428`:
 workspace `0.3.0`, verificador de smoke de release para 31 tools y saneado de
 argumentos del utillaje M5): 38/38 pasos en 1 h 48 min, 1752 tests Rust y 108
@@ -201,8 +201,8 @@ Python, fuentes sin cambios; `semantic` en 35 s y `m5-runtime` conjunto en
 
 ## Resultado — 2026-09-10, `full` sobre el lock 0.31.0 en `0.3.0-dev`, **passed**
 
-[M5-full-gate.json](../../full-gate.json) · [log](closure-full-lock-0.31.0/full-gate.txt) ·
-[etapa `m5-runtime` conjunta](closure-full-lock-0.31.0/m5-runtime-joint/). Corrido a
+[M5-full-gate.json](../../full-gate.json) · [log](../inventory.json) ·
+[etapa `m5-runtime` conjunta](../inventory.json). Corrido a
 solas sobre el worktree limpio en `ab4eed9` tras reenlazar el artefacto del
 intento 3: 38/38 pasos en 2 h 16 min, 1752 tests Rust y 108 Python, inventario
 de 1148 fuentes idéntico al inicio y al final. `semantic` pasó con Lance 8 en
@@ -210,12 +210,12 @@ de 1148 fuentes idéntico al inicio y al final. `semantic` pasó con Lance 8 en
 produjo su recibo dentro del conjunto (6/6, 368 s, residuo vacío), que se
 conserva junto al [gate nativo independiente](../../native-gate.json) sin
 sustituirlo. Los recibos `core` y `full` de la primera pasada (lock 0.38.0)
-permanecen en [`closure-core-lock-0.38.0`](closure-core-lock-0.38.0/) y
-[`closure-full-attempt-2`](closure-full-attempt-2/).
+permanecen en [`closure-core-lock-0.38.0`](../inventory.json) y
+[`closure-full-attempt-2`](../inventory.json).
 
 ## Reordenación del repositorio — 2026-09-11, `core` sobre `a3ce362`, dos intentos fallidos y uno aprobado
 
-Recibos: [intento 1](repo-hygiene-core-attempt-1.json) · [intento 2](repo-hygiene-core-attempt-2.json) ·
+Recibos: [intento 1](../inventory.json) · [intento 2](../inventory.json) ·
 [**aprobado**](../../core-gate-repo-hygiene.json). Corridos a solas sobre un
 worktree limpio de la rama `ai/repo-hygiene` (fuentes de `a3ce362`: crates
 idénticos a `v0.3.0`, `scripts/docs-hygiene.py` nuevo) con la caché de

@@ -2,7 +2,7 @@
 
 Cada intento se conserva entero, pase o falle. El script publica
 `docs/validation/M5/clients.json` solo cuando la matriz completa pasa; el recibo
-anterior está archivado en [m5-closure-history](../history/closure-history/inventory.json).
+anterior está archivado en [m5-closure-history](../history/inventory.json).
 
 ## attempt-1 — 2026-09-09, `passed`, superado
 
