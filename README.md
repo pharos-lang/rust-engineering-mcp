@@ -22,7 +22,7 @@ M4 y cuatro tools de rendimiento M5. M4 y M5 están cerrados localmente, sin
 integración remota ni release. El checkout no forma una release.
 
 > [!IMPORTANT]
-> La versión estable actual es `0.1.0`. GitHub Releases publica un único binario core
+> La versión estable actual es `0.3.0`. GitHub Releases publica un único binario core
 > soportado para Apple Silicon (`aarch64-apple-darwin`); la ejecución completa se ha
 > calificado localmente en macOS 26 y APFS. La CI compila y prueba el código en Linux,
 > macOS y Windows, pero eso no amplía las garantías del sandbox o del filesystem ni
@@ -131,13 +131,13 @@ servidor en otro sistema operativo o filesystem.
 ## Instalar la release macOS ARM64
 
 Descarga el archive y `SHA256SUMS` desde la
-[release v0.1.0](https://github.com/pharos-lang/rust-engineering-mcp/releases/tag/v0.1.0),
+[release v0.3.0](https://github.com/pharos-lang/rust-engineering-mcp/releases/tag/v0.3.0),
 verifica los bytes y extráelos en un directorio nuevo:
 
 ```bash
 shasum -a 256 -c SHA256SUMS
-tar -xzf rust-engineering-mcp-v0.1.0-aarch64-apple-darwin.tar.gz
-cd rust-engineering-mcp-v0.1.0-aarch64-apple-darwin
+tar -xzf rust-engineering-mcp-v0.3.0-aarch64-apple-darwin.tar.gz
+cd rust-engineering-mcp-v0.3.0-aarch64-apple-darwin
 ./rust-engineering-mcp version --json
 ./rust-engineering-mcp doctor --json
 ```
