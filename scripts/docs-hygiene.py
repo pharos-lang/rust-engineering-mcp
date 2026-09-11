@@ -83,8 +83,11 @@ def git(*args: str) -> str:
     return subprocess.run(["git", *args], cwd=ROOT, check=True, capture_output=True, text=True).stdout
 
 
-def tracked_files() -> list[str]:
-    return [p for p in git("ls-files", "-z").split("\0") if p]
+def tracked_files(include_untracked: bool = False) -> list[str]:
+    args = ["ls-files", "-z"]
+    if include_untracked:
+        args += ["--cached", "--others", "--exclude-standard"]
+    return [p for p in git(*args).split("\0") if p]
 
 
 def is_markdown(path: str) -> bool:
@@ -173,7 +176,7 @@ def ignored_paths(paths: Iterable[str]) -> set[str]:
 
 
 def check_links(report_path: pathlib.Path | None) -> int:
-    files = tracked_files()
+    files = tracked_files(include_untracked=True)
     tree = Tree(files)
     broken_living: list[dict] = []
     broken_frozen: list[dict] = []
