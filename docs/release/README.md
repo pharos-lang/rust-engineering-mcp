@@ -10,6 +10,6 @@ two remaining directories are shared by every release.
 | [`upstream-licenses/`](upstream-licenses/README.md) | License texts fetched from upstream repositories for packages whose crate omits them, with `receipt.json` binding each text to its commit. `scripts/release-artifact.py` reads this receipt when it assembles `THIRD_PARTY_NOTICES.txt`; every text is a redistribution obligation and is never removed. |
 | [`reproduction/`](reproduction/README.md) | Scripts that rebuild, package and verify the 0.1.0 local candidates. |
 
-Receipts are immutable: a receipt that cites a pre-hygiene path (for example
-`docs/release/inventory.json`) describes the same bytes now found under the
-version directory. Notices and license texts must never be deleted or edited.
+Receipts are immutable: a receipt that cites a pre-hygiene path describes the
+same bytes now found under the version directory
+(see [`docs/validation/path-map.json`](../validation/path-map.json)). Notices and license texts must never be deleted or edited.

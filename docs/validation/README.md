@@ -59,11 +59,11 @@ con `include_str!` y esta reordenación no toca crates:
 | `docs/validation/M2-D04-native-qualification.json` | `crates/execution-adapter/src/mutation_archive.rs` |
 | `docs/validation/artifacts/M1-01-runtime-volume-feasibility.json` | `crates/execution-adapter/src/rust_applied.rs` |
 
-Veinte comentarios de documentación en `crates/` (y el snapshot
-`crates/mcp-server/tests/snapshots/binary-bloat-tool.json`, que copia una
-descripción de schema) citan rutas anteriores como
-`docs/validation/M5-04-bloat-calibration.json`; se resuelven con
-`path-map.json` y se actualizarán en un cambio que sí toque código.
+Los comentarios de documentación de `crates/` y el snapshot de contrato
+`crates/mcp-server/tests/snapshots/binary-bloat-tool.json` citan la evidencia
+por su ruta actual; los recibos, transcripts, entradas de revisión y drivers
+archivados siguen citando la ruta con la que se generaron y se resuelven con
+`path-map.json`.
 
 ## Registros congelados
 

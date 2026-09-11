@@ -25,7 +25,7 @@ El digest admitido lo declara `M5_IMAGE` en
 `crates/execution-adapter/src/performance_port.rs`; la admisión está en
 [ADR-077](../../docs/adr/ADR-077-m5-runtime-admission.md) y el recibo de estas
 seis capturas en
-[`docs/validation/M5-01-benchmark-calibration.json`](../../docs/validation/M5-01-benchmark-calibration.json).
+[`docs/validation/M5/01-benchmark-calibration.json`](../../docs/validation/M5/01-benchmark-calibration.json).
 
 ## Las seis capturas de la imagen admitida
 

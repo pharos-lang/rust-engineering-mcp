@@ -24,7 +24,7 @@ pub enum BloatError {
 /// and all that is claimed as observed, is that `--profile release-lto` exits 1
 /// with `error in environment variable CARGO_PROFILE_RELEASE: could not load
 /// config key profile.release / invalid type: Option value, expected a boolean
-/// or string`, recorded in `docs/validation/M5-04-bloat-calibration.json`. The
+/// or string`, recorded in `docs/validation/M5/04-bloat-calibration.json`. The
 /// mechanism — `cargo-bloat` 0.12.1 derives an environment key from the profile
 /// name, and a hyphenated name yields one Cargo re-splits over `profile.release`
 /// — is inferred from the analyzer's source, not measured.

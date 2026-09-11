@@ -63,8 +63,10 @@ FROZEN_PATTERNS = (
     # Describes the pre-hygiene tree on purpose; its paths are a measurement, not links.
     re.compile(r"^docs/prompts/(history/)?cleanup-repository\.md$"),
 )
-# Files that carry root-relative path strings outside Markdown links.
-PATH_STRING_EXTRA = ("scripts/", "docs/release/reproduction/", ".github/")
+# Files that carry root-relative path strings outside Markdown links: scripts,
+# CI, and code/fixture comments, doc strings and contract snapshots. Owner rule:
+# no stale documentation path anywhere, comments included.
+PATH_STRING_EXTRA = ("scripts/", "docs/release/reproduction/", ".github/", "crates/", "fixtures/")
 PATH_STRING_ROOT_FILES = {".gitattributes", ".gitignore"}
 PATH_STRING_PREFIXES = (
     "docs/validation/",
@@ -113,7 +115,8 @@ def carries_path_strings(path: str) -> bool:
         return True
     if path in PATH_STRING_ROOT_FILES:
         return True
-    return path.startswith(PATH_STRING_EXTRA) and path.endswith((".py", ".yml", ".yaml", ".sh", ".mjs"))
+    return path.startswith(PATH_STRING_EXTRA) and path.endswith(
+        (".py", ".yml", ".yaml", ".sh", ".mjs", ".rs", ".md", ".json", ".toml"))
 
 
 def sha256_of(path: pathlib.Path) -> str:

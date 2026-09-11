@@ -52,7 +52,7 @@ test "$("$DOCKER" --host "$SOCKET" image inspect --format '{{.Id}}' "$BASE")" = 
 Do not run another Docker writer concurrently. The tar stream binds the exact
 input bytes independently of BuildKit directory-cache metadata. The successful
 v3 build and the two failed approaches remain in
-`docs/validation/M4-scanner-provisioning/`; the qualified image is selected by its
+`docs/validation/M4/scanner-provisioning/`; the qualified image is selected by its
 resulting ID, never by the build tag. A rebuild creates a new admission candidate
 and requires its own installed-source, binary, configuration and native evidence.
 

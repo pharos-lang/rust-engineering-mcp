@@ -1,6 +1,6 @@
 //! ADR-062 `rust.coverage` contract closure, metric projection and operational
 //! mapping. The instrumented run itself is qualified by
-//! `docs/validation/M3-runtime.json`; everything asserted here is portable.
+//! `docs/validation/M3/runtime.json`; everything asserted here is portable.
 use super::*;
 use rust_engineering_application::coverage::{
     CoverageArtifactStreams, CoverageIdentity, CoverageObservation,

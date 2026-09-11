@@ -366,12 +366,6 @@ una autorización separada. Sin tag, release, PR ni push; M6 no está iniciado.
   licencias/notices de terceros ni autoriza distribuir modelos o binarios.
 - `scripts/gate.py` incorpora reportes v2 con timestamps/conteos directos; el gate
   M1-17 histórico conserva honestamente inicio desconocido y conteos derivados.
-- Veinte comentarios de documentación en `crates/` y el snapshot
-  `binary-bloat-tool.json` citan rutas de evidencia anteriores a la convención
-  del 2026-09-11 (`docs/validation/M5-04-bloat-calibration.json`, …). Se
-  resuelven con `validation/path-map.json` y se actualizarán en un cambio que
-  toque código; dos recibos siguen anclados por `include_str!`
-  ([detalle](validation/README.md#archivos-anclados-fuera-del-layout)).
 
 ## Decisions Pending
 

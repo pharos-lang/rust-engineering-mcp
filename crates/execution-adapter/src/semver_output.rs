@@ -3,7 +3,7 @@
 //!
 //! No machine-readable findings flag exists for the pinned 0.50.0 binary
 //! (confirmed against the pinned `--help` output at
-//! `docs/validation/m3-provisioning/help/cargo-semver-checks-check-release-help.stdout`),
+//! `docs/validation/M3/provisioning/help/cargo-semver-checks-check-release-help.stdout`),
 //! so this parser scrapes the tool's own human-oriented `handlebars` report
 //! text. The shapes below were calibrated against 0.50.0 in the approved M3
 //! guest image. It never fabricates a finding it cannot support and never

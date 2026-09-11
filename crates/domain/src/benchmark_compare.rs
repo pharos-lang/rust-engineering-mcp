@@ -169,7 +169,7 @@ pub const MIN_EXECUTIONS_FOR_DIRECTION: usize = 3;
 ///
 /// 1. an estimator meets **every** criterion of ADR-081 §1 — coverage, false
 ///    positives, power, incorrect `no_material_change` and budget — at **every**
-///    drift point of §2, recorded in `docs/validation/M5-02-method-simulation.json`;
+///    drift point of §2, recorded in `docs/validation/M5/02-method-simulation.json`;
 /// 2. the real controls of ADR-081 §3 reproduce on captures from the admitted
 ///    image: positives with a known effect, and negatives for noise,
 ///    incompatibility and insufficient data;
@@ -2416,7 +2416,7 @@ mod tests {
         assert!(
             !METHOD_QUALIFIED_FOR_DIRECTION,
             "the requalification has not passed; see ADR-081 §1 and the receipt at \
-             docs/validation/M5-02-method-simulation.json"
+             docs/validation/M5/02-method-simulation.json"
         );
         let baseline = jitter(1, 60, 1_000.0, 0.02);
         let candidate = jitter(2, 60, 1_200.0, 0.02);

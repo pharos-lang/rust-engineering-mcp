@@ -2,7 +2,7 @@
 //! best-effort findings. Exit-code classification and the per-finding
 //! extraction mechanism are documented HYPOTHESES pending Docker calibration
 //! against the pinned 0.50.0 binary (ADR-062 §9/§11; see
-//! docs/validation/M3-04-semver-calibration.md for the recorded evidence).
+//! docs/validation/M3/04-semver-calibration.md for the recorded evidence).
 use crate::{CheckOptions, CheckSelection, InvalidCheckOptions};
 use serde::{Deserialize, Serialize};
 

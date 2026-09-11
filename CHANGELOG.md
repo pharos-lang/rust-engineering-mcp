@@ -14,8 +14,10 @@
   el estado privado del store de los intentos de clientes (`state-*/`, 645
   archivos) y las capturas crudas de `docs/research/m1-16/measurement`
   (408 archivos), ambos con hash registrado en inventarios. Nuevo
-  `scripts/docs-hygiene.py`; sin cambios en crates, `Cargo.*`, fixtures,
-  vendor, ADRs aceptados ni contratos.
+  `scripts/docs-hygiene.py`. Los comentarios de `crates/` y `fixtures/` y el
+  snapshot de contrato del tool de bloat citan las rutas nuevas; sin cambios
+  funcionales en crates, `Cargo.*`, fixtures, vendor, ADRs aceptados ni
+  contratos.
 
 ## 0.3.0 — 2026-09-11
 

@@ -1985,7 +1985,7 @@ fn profile_bundle() -> Result<SourceBundle, Failure> {
 /// product that refuses `perf_event_open`, and nothing a caller, an option or a
 /// project can express reaches it — that is the whole point of the containment.
 /// The alternative was to leave the mandatory negative oracle as a hand-run
-/// docker session recorded in `docs/validation/M5-03-profiling-native.json`,
+/// docker session recorded in `docs/validation/M5/03-profiling-native.json`,
 /// which is not a receipt of the product path. With the switch armed the
 /// selection below still goes through `performance_port::profile` and every
 /// phase, argv and `verify_applied` comparison it always performs; the only
@@ -2301,7 +2301,7 @@ fn m5_profile_flamegraph_is_qualified_natively() -> Result<(), Failure> {
     );
 
     // The helper's own exit code and manifest, which the DTO does not carry and
-    // which `docs/validation/M5-03-profiling-native.json` declares for this
+    // which `docs/validation/M5/03-profiling-native.json` declares for this
     // case.
     let execution = {
         let _seccomp = DeniedPerfEventOpen::arm();

@@ -14,7 +14,7 @@
 //! A second claim is checked for the same reason. `cargo-bloat` 0.12.1 forces
 //! `CARGO_PROFILE_<PROFILE>_STRIP=false` on every build it performs, because it
 //! needs the symbol table (`src/main.rs:694-696`; calibrated in the guest and
-//! recorded in `docs/validation/M5-04-bloat-calibration.json`). Every binary
+//! recorded in `docs/validation/M5/04-bloat-calibration.json`). Every binary
 //! this tool measures is therefore an *analysis build*, and its size is exact
 //! for that file and not for the file a project asking for stripping would
 //! ship. `MeasuredBinary::analysis_build_symbols_forced` records that, and it

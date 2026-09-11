@@ -4,7 +4,7 @@
 //! (`APPROVED_RUST_IMAGE`, cargo-mutants 27.1.0) with
 //! `RUST_MCP_TEST_SOCKET` set and records the calibrated exit codes,
 //! `mutants.out` field names and generated mutant counts in
-//! `docs/validation/M3-05-mutation-calibration.md`.
+//! `docs/validation/M3/05-mutation-calibration.md`.
 //!
 //! Assertions are written so that a wrong hypothesis fails loudly with the
 //! observed value rather than silently passing: structural containment claims
