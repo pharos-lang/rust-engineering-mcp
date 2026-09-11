@@ -172,7 +172,7 @@ network=none. Volúmenes local no demuestran cuota contra un extractor compromet
 el ingester confiable no se presenta como sandbox estricto de código de proyecto.
 Timeout/cancel/overflow terminan contenedores y verifican ausencia antes de borrar
 el volumen; cleanup incierto pone el gateway en cuarentena. La evidencia y límites
-están en [M1-01](validation/M1-01-rust-gateway.md).
+están en [M1-01](validation/M1/01-rust-gateway.md).
 
 Inspección MCP ADR-032: fuente capturada por handles originales, runtime explícito
 calibrado de forma lazy y metadata tipada/budgeted. Rechazo durante bootstrap;
@@ -254,11 +254,11 @@ importados antes de activar; derived inválido no cambia facts SQLite. Modelo/OR
 requieren assets explícitos. Sync HTTPS limitado es la única nueva operación de
 red y permanece fuera de tools/runtime. [Presupuestos y CLI](catalog-bundle-format.md)
 detalla80MiB bundle,16MiB index y plazos cooperativos, sin límite RSS/CPU nativo
-duro. [Evidencia M1-10](validation/M1-10.md).
+duro. [Evidencia M1-10](validation/M1/10.md).
 
 ## Contexto runtime M1-11
 
-[Evidencia M1-11](validation/M1-11.md). El reader read-only no adquiere lease,
+[Evidencia M1-11](validation/M1/11.md). El reader read-only no adquiere lease,
 crea locks, reserva floor ni borra staging. Lectura floor/active/floor con retry
 acotado evita presentar una mezcla durante administración concurrente. Un active
 verificado anterior al floor se declara con reserva pendiente; floor inválido o
@@ -284,7 +284,7 @@ La tool no abre nuevos paths ni sincroniza assets; comparte estado retenido y
 admisión de status. Encoding y validación siguen dentro del worker joined120s;
 cap512KiB completo y omisiones explícitas impiden recortar silenciosamente facts.
 Estos presupuestos no son límites duros de RAM/CPU nativas ni nueva política OS.
-[ADR-043](adr/ADR-043-catalog-search-modes.md) y [evidencia M1-12](validation/M1-12.md).
+[ADR-043](adr/ADR-043-catalog-search-modes.md) y [evidencia M1-12](validation/M1/12.md).
 
 ## Inspección de facts M1-13
 
@@ -295,7 +295,7 @@ La continuación puede cambiar parámetros porque cada página es una consulta n
 no permite cambiar la generación sin detectar mismatch. Recorte de salida conserva
 entradas completas y progreso, bajo512KiB del resultado duplicado y120s cooperativos
 del mismo worker. Estos límites no añaden containment OS ni deadlines nativos duros.
-[ADR-044](adr/ADR-044-paged-crate-inspection.md), [gate aprobado](validation/M1-13.md).
+[ADR-044](adr/ADR-044-paged-crate-inspection.md), [gate aprobado](validation/M1/13.md).
 
 ## M1-14 — Diagnóstico sin autoridad adicional
 

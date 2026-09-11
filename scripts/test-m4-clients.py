@@ -76,7 +76,7 @@ def source_hashes() -> dict[str, str]:
     m3 = load_m3()
     paths = (M3_PATH, ROOT / "scripts/m3-inspector-session.mjs",
              ROOT / "scripts/codex-model-qualifier.py", pathlib.Path(__file__).resolve(),
-             SESSION, UNIT, ROOT / "docs/validation/m1-17-codex-client/controller.py")
+             SESSION, UNIT, ROOT / "docs/validation/M1/17-codex-client/controller.py")
     return {str(path.relative_to(ROOT)): m3.file_digest(path) for path in paths if path.is_file()}
 
 
@@ -326,7 +326,7 @@ def inspector_gate(attempt: pathlib.Path, socket: str, fixture: dict) -> dict:
 def codex_gate(attempt: pathlib.Path, socket: str, fixture: dict, codex: pathlib.Path) -> dict:
     """Stock app-server conversion gate; deliberately no Tasks calls or auth copy."""
     m3 = load_m3(); observation=attempt/"protocol.jsonl"; state=attempt/"state-codex"; state.mkdir(mode=0o700)
-    controller_path=ROOT/"docs/validation/m1-17-codex-client/controller.py"
+    controller_path=ROOT/"docs/validation/M1/17-codex-client/controller.py"
     spec=importlib.util.spec_from_file_location("m4_codex_controller",controller_path)
     if spec is None or spec.loader is None: raise RuntimeError("Codex controller unavailable")
     controller=importlib.util.module_from_spec(spec); spec.loader.exec_module(controller)

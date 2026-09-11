@@ -1,6 +1,6 @@
 # M1-16 local reproducible pilot
 
-Protocol: [v2](../../validation/M1-16-protocol.md), architecture [ADR046](../../adr/ADR-046-bounded-utility-experiment.md).
+Protocol: [v2](../../validation/M1/16-protocol.md), architecture [ADR046](../../adr/ADR-046-bounded-utility-experiment.md).
 This directory retains sources, private research corpus, qualifiers and measured
 receipts. Generated fixtures use the public seed42 and are not approved publisher
 distributions. Original registry/source URLs and hashes remain with the corpus;

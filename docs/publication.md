@@ -32,13 +32,13 @@ IUMotion Labs will not publish an official catalog in 0.1.0, so this release cre
 no production catalog key or custody obligation; fixture trust remains test-only.
 
 The public source snapshot and portable CI qualification are recorded in
-[`docs/validation/public-source-publication.json`](validation/public-source-publication.json).
+[`docs/validation/M1/public-source-publication.json`](validation/M1/public-source-publication.json).
 The cited GitHub run passed on Linux x86_64, macOS ARM64 and Windows x86_64 together
 with the supply-chain job. This is source-portability evidence only; native sandbox,
 filesystem, model, catalog and per-target notice gates remain separate.
 
 The historical receipt intentionally remains bound to run `33928437393`. A separate
-[live observation](validation/public-ci-live-33928952807.json) records the later
+[live observation](validation/M1/public-ci-live-33928952807.json) records the later
 green run `33928952807` on public commit `d2192037e55362e2834969db627844c2f734a50f`
 and current branch protection; it does not overwrite the earlier observation or
 serve as native capability evidence.
@@ -46,7 +46,7 @@ serve as native capability evidence.
 The final protected public source is `452acdbf3a634d2cc0b9d153db09718237625b9d`.
 Tag `v0.1.0` and its published [GitHub Release](https://github.com/pharos-lang/rust-engineering-mcp/releases/tag/v0.1.0)
 contain the single macOS ARM64 core archive, checksums and smoke receipt. The
-[public release receipt](validation/m1-17-public-release.json) records final CI run
+[public release receipt](validation/M1/17-public-release.json) records final CI run
 `33948778666`, SonarCloud run `33948778651`, tag-bound workflow `33948798048`,
 asset hashes, independent download/smoke and attestations verified against the
 exact signer workflow and source commit.

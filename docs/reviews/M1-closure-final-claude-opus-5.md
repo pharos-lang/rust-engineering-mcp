@@ -63,7 +63,7 @@ The definitive tag-bound workflow run `33948798048` built, installed, smoked and
 attested the three published subjects. A fresh download verified `SHA256SUMS`, the
 exact signer workflow/ref/source commit and 13-tool smoke; a second download after
 promotion was byte-identical. The stable release and hashes are recorded in
-[`m1-17-public-release.json`](../validation/m1-17-public-release.json).
+[`m1-17-public-release.json`](../validation/M1/17-public-release.json).
 
 The earlier run `33948251834` qualified its artifact but failed to create a draft
 because the no-checkout job did not give `gh release create` an explicit repository.

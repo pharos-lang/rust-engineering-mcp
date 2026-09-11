@@ -378,7 +378,7 @@ def codex_gate(attempt: pathlib.Path, socket: str, codex: pathlib.Path) -> dict[
     state = attempt / "state-codex"
     state.mkdir(mode=0o700)
     proxy_args = json.dumps(server_argv(state, socket), separators=(",", ":"))
-    controller_path = ROOT / "docs/validation/m1-17-codex-client/controller.py"
+    controller_path = ROOT / "docs/validation/M1/17-codex-client/controller.py"
     specification = importlib.util.spec_from_file_location("m3_codex_controller", controller_path)
     if specification is None or specification.loader is None:
         raise RuntimeError("Codex app-server controller cannot be loaded")

@@ -21,11 +21,11 @@ Fuente principal: [`spec/rust-engineering-mcp-propuesta-v0.3.md`](spec/rust-engi
 | Especificación/instrucciones | v0.3.1 y AGENTS.md revisados; decisiones ADR-001..059. | spec, ADRs y dispositions de reviewers. |
 | Código Rust | Ocho crates: domain, application, MCP, project, execution, catalog, semantic y artifact. | Workspace real; domain soloSerde, application soloDomain. |
 | MCP | Trece tools M1 estables; checkout 0.3.0 conserva las cinco M2 e integra nextest, coverage, SemVer y mutation (22 tools). Tasks está anunciado y exige declaración mutua. | protocol/contract tests; [matriz M3](validation/M3-matrix.md), [M3-02](validation/M3-02.md), [M3-04](validation/M3-04-semver-calibration.md) y [M3-05](validation/M3-05-mutation-calibration.md). |
-| Seguridad | I/O propio macOS/APFS no-follow; gateway Docker Linux ARM64 de probes y camino Rust ADR-031 revisado. | M0-04/05/06; [calibración Rust](validation/M1-01-rust-gateway.md), integración MCP ADR-032 validada. |
+| Seguridad | I/O propio macOS/APFS no-follow; gateway Docker Linux ARM64 de probes y camino Rust ADR-031 revisado. | M0-04/05/06; [calibración Rust](validation/M1/01-rust-gateway.md), integración MCP ADR-032 validada. |
 | Datos locales | SQLite/FTS5 autoritativo, E5 verificado/LanceDB derivado, ArtifactStore M1 efímero y store privado M3 persistente disponible en macOS ARM64/APFS. | M0-08/09/10a; [ADR-061](adr/ADR-061-private-quality-artifact-store.md), CLI y tests de calidad. |
 | Imagen guest M3 | Imagen Linux ARM64 provisionada con plugins exactos; nextest calificado con el perfil mínimo quality de ADR-064. | [Digest/configuración](validation/M3-image-config.json), [provisioning](validation/M3-provisioning.json), [M3-01](validation/M3-01.md). |
 | Pruebas/fixtures | Suite workspace no-Docker: 1,105 pasaron + 1 doctest y 0 fallaron; además, runtime Docker M3 62/62 y seguridad Rust 20/20. Medido sobre el tip final de la rama y re-medido sobre `main` tras el merge, que no cambió ningún byte. | [M3 runtime](validation/M3-runtime.json), [M3 security](validation/M3-rust-security.json), [integración](validation/M3-integration.json). |
-| CI/release | CI pública final verde en Linux x86_64, macOS ARM64, Windows x86_64 y supply chain; SonarCloud verde; release estable `v0.1.0` publicada para macOS ARM64 con hashes, smoke y attestations. | ADR-048, [recibo público final](validation/m1-17-public-release.json), [release v0.1.0](https://github.com/pharos-lang/rust-engineering-mcp/releases/tag/v0.1.0) y [full gate](validation/m1-17-final-gate-v2.json). |
+| CI/release | CI pública final verde en Linux x86_64, macOS ARM64, Windows x86_64 y supply chain; SonarCloud verde; release estable `v0.1.0` publicada para macOS ARM64 con hashes, smoke y attestations. | ADR-048, [recibo público final](validation/M1/17-public-release.json), [release v0.1.0](https://github.com/pharos-lang/rust-engineering-mcp/releases/tag/v0.1.0) y [full gate](validation/M1/17-final-gate-v2.json). |
 | Toolchain | Rust/Cargo1.98.1, edition2024, rustfmt/Clippy; host aarch64-apple-darwin. | rust-toolchain.toml y reporte de gate. |
 | Configuración local | YouTrack deshabilitado para este repositorio. | .codex/config.toml; no afecta el producto. |
 
@@ -73,23 +73,23 @@ fixtures, Docker ni toolchain; no existe catálogo oficial ni clave Ed25519 de p
 
 | ID | Corte vertical | Depende de | Estado | Criterio verificable |
 | --- | --- | --- | --- | --- |
-| M1-01 | `rust.project.inspect` | M0-02,04,05,06 | Done | ADR-032; contrato/MCP real, metadata declarada, provenance/freshness, ProjectRef final y cleanup joined. Core277/10 etapas; cuatro tests Rust/MCP reales; Sonnet5 y Opus5 con dispositions. [Evidencia](validation/M1-01.md). |
-| M1-02 | `rust.toolchain.inspect` | M0-05,06,07; M1-01 | Done | ADR-033; inventario instalado, tres comandos/fingerprints, gateway compartido y referencia revalidada. Core293/10 etapas, Rust/MCP real4/4; Sonnet5 sin findings confirmados. [Evidencia](validation/M1-02.md). |
-| M1-03 | `rust.check` | M0-05,06,07,10; M1-01/02 | Done | [Evidencia](validation/M1-03.md): core332/10stages;6tests Docker exactos, E0502/E0106, locks frozen, Resources live, cleanup activo; Opus5 High+Medium y disposición principal. |
-| M1-04 | `rust.fmt.check` | M0-05,06,07,10 | Done | ADR-035; core355/10stages,7tests Docker exactos, estilo/workspace/newlines/diff grande y siete logs verificados; Sonnet5 y disposition principal. [Evidencia](validation/M1-04.md). |
-| M1-05 | `rust.clippy` | M0-05,06,07,10 | Done | ADR-036; core372/10stages,9tests Docker exactos,6casos MCP/perfiles/logs y2fixtures hostiles Clippy; Sonnet5 y disposición principal. [Evidencia](validation/M1-05.md). |
-| M1-06 | `rust.test` | M0-05,06,07,10 | Done | ADR-037; core393/10etapas;13tests Docker,9casos MCP/logs, R2 descendientes timeout/cancel/overflow y MCP activo cancel/EOF; falsificación proc-macro confirmada/corregida y Opus5. [Evidencia](validation/M1-06.md). |
-| M1-07 | `rust.dependencies.audit` | M0-05,06,08,10 | Done | ADR-038; core455/10etapas;16tests Docker y15casos audit finales; RustSec/SQLite real bajo network deny macOS; Opus5 y disposición. [Evidencia](validation/M1-07.md). |
-| M1-08 | `rust.diagnostics.explain` | M0-05,06,07 | Done | ADR-039; core474/10etapas; MCP10casos sin proyecto, rustc real E0502/E9999, calibración6escenarios; Sonnet5 y disposición. [Evidencia](validation/M1-08.md). |
-| M1-09 | `rust.quality.gate` | M1-03..08 | Done | ADR-040; captura única, etapas completas, runtime/freshness, logs agrupados/rollback y límites. Core498; full14/14,20 tests Rust reales y E5/LanceDB bajo network deny; Opus5 con disposición y seguimiento. [Evidencia](validation/M1-09.md). |
-| M1-10 | Catalog CLI | M0-08,09,10 | Done | ADR-041; firmas/hashes/USTAR, floor durable/recovery/key rotation, HTTPS y native E5/Lance import/rebuild. Full15/15 pre-observabilidad; core540/Clippy all-features/CLI5+1 posteriores, fuentes separadas; Opus5/Sonnet5 y disposición. [Evidencia](validation/M1-10.md). |
-| M1-11 | `rust.catalog.status` | M0-08,09 | Done | ADR-042; readonly, identidad/freshness por componente, floor/cache, RustSec independiente; core572, wire33, Clippy all-features y native E5/index2+1 network deny. Sonnet5/revisión principal; [evidencia](validation/M1-11.md). |
-| M1-12 | `rust.crate.search` | M0-08,09 | Done | ADR-043; core603/10stages, wire35, Clippy all-features y native E5/index2+1 bajo network deny; filtros SQLite, ranks y fallback explícitos, budget MCP512KiB. Sonnet5/revisión principal; [evidencia](validation/M1-12.md). |
-| M1-13 | `rust.crate.inspect` | M0-08 | Done | ADR-044; core629, wire37, Clippy all-features y2 CLI/MCP bajo network deny; pages por versión/fingerprint, unknown explícitos y budget512KiB. Sonnet5/revisión principal; [evidencia](validation/M1-13.md). |
-| M1-14 | CLI y doctor | M0/M1 anteriores | Done | ADR-045; core645/10stages,37 protocolo,4 casos activos con SIGINT/TERM/HUP y cleanup,2 stdout bloqueados. JSON/humano y parser host compartido; Opus5 y disposición. [Evidencia](validation/M1-14.md). |
-| M1-15 | Documentación/release | Todos | Done | El [archive core local](release/0.1.0-local-artifact-receipt.json) pasó inventory/SBOM/notices/manifest/hash; el workflow tag-bound reconstruyó los bytes públicos, verificó instalación/smoke y attestations, y publicó la [release v0.1.0](https://github.com/pharos-lang/rust-engineering-mcp/releases/tag/v0.1.0). [Recibo final](validation/m1-17-public-release.json). |
-| M1-16 | Experimentos acotados | M1-01..15 | Done | [Piloto v2](validation/M1-16.md): techo12/12 en ambos brazos, sin equivalencia/causalidad y con mayor costo B. [Benchmark retrieval](research/m1-16/benchmark/REPORT.md): una ejecución descriptiva8queries/15crates, sin claim general de calidad, multilingüe o utilidad de agente. |
-| M1-17 | Gate 0.1.0 | Todos | Done | [Full v2 23/23](validation/m1-17-final-gate-v2.json), archive/smoke, Inspector 2.5.0, [stock Codex model-directed](validation/M1-17-codex-model.md), revisión Opus 5 sin P0/P1, PRs protegidos, CI final, tag, attestations y [release pública](validation/m1-17-public-release.json) pasaron. |
+| M1-01 | `rust.project.inspect` | M0-02,04,05,06 | Done | ADR-032; contrato/MCP real, metadata declarada, provenance/freshness, ProjectRef final y cleanup joined. Core277/10 etapas; cuatro tests Rust/MCP reales; Sonnet5 y Opus5 con dispositions. [Evidencia](validation/M1/01.md). |
+| M1-02 | `rust.toolchain.inspect` | M0-05,06,07; M1-01 | Done | ADR-033; inventario instalado, tres comandos/fingerprints, gateway compartido y referencia revalidada. Core293/10 etapas, Rust/MCP real4/4; Sonnet5 sin findings confirmados. [Evidencia](validation/M1/02.md). |
+| M1-03 | `rust.check` | M0-05,06,07,10; M1-01/02 | Done | [Evidencia](validation/M1/03.md): core332/10stages;6tests Docker exactos, E0502/E0106, locks frozen, Resources live, cleanup activo; Opus5 High+Medium y disposición principal. |
+| M1-04 | `rust.fmt.check` | M0-05,06,07,10 | Done | ADR-035; core355/10stages,7tests Docker exactos, estilo/workspace/newlines/diff grande y siete logs verificados; Sonnet5 y disposition principal. [Evidencia](validation/M1/04.md). |
+| M1-05 | `rust.clippy` | M0-05,06,07,10 | Done | ADR-036; core372/10stages,9tests Docker exactos,6casos MCP/perfiles/logs y2fixtures hostiles Clippy; Sonnet5 y disposición principal. [Evidencia](validation/M1/05.md). |
+| M1-06 | `rust.test` | M0-05,06,07,10 | Done | ADR-037; core393/10etapas;13tests Docker,9casos MCP/logs, R2 descendientes timeout/cancel/overflow y MCP activo cancel/EOF; falsificación proc-macro confirmada/corregida y Opus5. [Evidencia](validation/M1/06.md). |
+| M1-07 | `rust.dependencies.audit` | M0-05,06,08,10 | Done | ADR-038; core455/10etapas;16tests Docker y15casos audit finales; RustSec/SQLite real bajo network deny macOS; Opus5 y disposición. [Evidencia](validation/M1/07.md). |
+| M1-08 | `rust.diagnostics.explain` | M0-05,06,07 | Done | ADR-039; core474/10etapas; MCP10casos sin proyecto, rustc real E0502/E9999, calibración6escenarios; Sonnet5 y disposición. [Evidencia](validation/M1/08.md). |
+| M1-09 | `rust.quality.gate` | M1-03..08 | Done | ADR-040; captura única, etapas completas, runtime/freshness, logs agrupados/rollback y límites. Core498; full14/14,20 tests Rust reales y E5/LanceDB bajo network deny; Opus5 con disposición y seguimiento. [Evidencia](validation/M1/09.md). |
+| M1-10 | Catalog CLI | M0-08,09,10 | Done | ADR-041; firmas/hashes/USTAR, floor durable/recovery/key rotation, HTTPS y native E5/Lance import/rebuild. Full15/15 pre-observabilidad; core540/Clippy all-features/CLI5+1 posteriores, fuentes separadas; Opus5/Sonnet5 y disposición. [Evidencia](validation/M1/10.md). |
+| M1-11 | `rust.catalog.status` | M0-08,09 | Done | ADR-042; readonly, identidad/freshness por componente, floor/cache, RustSec independiente; core572, wire33, Clippy all-features y native E5/index2+1 network deny. Sonnet5/revisión principal; [evidencia](validation/M1/11.md). |
+| M1-12 | `rust.crate.search` | M0-08,09 | Done | ADR-043; core603/10stages, wire35, Clippy all-features y native E5/index2+1 bajo network deny; filtros SQLite, ranks y fallback explícitos, budget MCP512KiB. Sonnet5/revisión principal; [evidencia](validation/M1/12.md). |
+| M1-13 | `rust.crate.inspect` | M0-08 | Done | ADR-044; core629, wire37, Clippy all-features y2 CLI/MCP bajo network deny; pages por versión/fingerprint, unknown explícitos y budget512KiB. Sonnet5/revisión principal; [evidencia](validation/M1/13.md). |
+| M1-14 | CLI y doctor | M0/M1 anteriores | Done | ADR-045; core645/10stages,37 protocolo,4 casos activos con SIGINT/TERM/HUP y cleanup,2 stdout bloqueados. JSON/humano y parser host compartido; Opus5 y disposición. [Evidencia](validation/M1/14.md). |
+| M1-15 | Documentación/release | Todos | Done | El [archive core local](release/0.1.0-local-artifact-receipt.json) pasó inventory/SBOM/notices/manifest/hash; el workflow tag-bound reconstruyó los bytes públicos, verificó instalación/smoke y attestations, y publicó la [release v0.1.0](https://github.com/pharos-lang/rust-engineering-mcp/releases/tag/v0.1.0). [Recibo final](validation/M1/17-public-release.json). |
+| M1-16 | Experimentos acotados | M1-01..15 | Done | [Piloto v2](validation/M1/16.md): techo12/12 en ambos brazos, sin equivalencia/causalidad y con mayor costo B. [Benchmark retrieval](research/m1-16/benchmark/REPORT.md): una ejecución descriptiva8queries/15crates, sin claim general de calidad, multilingüe o utilidad de agente. |
+| M1-17 | Gate 0.1.0 | Todos | Done | [Full v2 23/23](validation/M1/17-final-gate-v2.json), archive/smoke, Inspector 2.5.0, [stock Codex model-directed](validation/M1/17-codex-model.md), revisión Opus 5 sin P0/P1, PRs protegidos, CI final, tag, attestations y [release pública](validation/M1/17-public-release.json) pasaron. |
 
 ## M2 — Safe Mutation / 0.2.x
 
@@ -164,7 +164,7 @@ No hay implementación M2 ni M3 en progreso: ambos milestones están integrados 
 `main` y aparecen en [Done](#done).
 
 No hay vertical M0/M1 en progreso. La fuente, CI portable, SonarCloud, artifact y
-release están enlazados desde el [recibo final](validation/m1-17-public-release.json).
+release están enlazados desde el [recibo final](validation/M1/17-public-release.json).
 
 ## Blocked
 
@@ -181,7 +181,7 @@ el gate conjunto M2.
 
 No hay bloqueo M0/M1 ni decisión de alcance pendiente para 0.1.0. ADR-048 mantiene
 fuera de esta release los artifacts/plataformas/assets no calificados y el catálogo
-oficial. La [matriz M1-17](validation/M1-17-matrix.md) conserva esas limitaciones.
+oficial. La [matriz M1-17](validation/M1/17-matrix.md) conserva esas limitaciones.
 
 ## Done
 
@@ -384,7 +384,7 @@ M1-07 integrada be74318/c6236af; M1-08 comienza en ai/m1-08-explain desde main l
 M1-08 integrada571469d/897268c, smoke real1/1 (16.33s). M1-09 inicia desde main limpio en ai/m1-09-quality-gate; ADR-040 previo a código.
 
 M1-09 integrada983e5ad/cc04f0c; rama conservada. Smoke real standard1/1,3casos,
-39.58s y12hashes de logs verificados en main limpio. [Recibo](validation/M1-09-postmerge.json).
+39.58s y12hashes de logs verificados en main limpio. [Recibo](validation/M1/09-postmerge.json).
 El árbol de código coincide con el full14/14; registro final solo documental.
 
 M1-13 integrada08e41f3/392a8f2; smoke2 inspect/37 protocolo y296 hashes verificados.

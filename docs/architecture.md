@@ -50,9 +50,9 @@ documenta límites y compatibilidad.
 Los tests `protocol.rs` lanzan el binario y usan fixtures JSON independientes del
 SDK, con plazos y lectores acotados. No se crea un port de dominio para stdio:
 es una frontera externa al dominio. La release `0.1.0` incorpora trece tools:
-status tiene [evidencia M1-11](validation/M1-11.md), search tiene
-[gate M1-12 aprobado](validation/M1-12.md) e inspect está conectado con
-[gate M1-13 aprobado](validation/M1-13.md). El checkout añade cinco handlers M2
+status tiene [evidencia M1-11](validation/M1/11.md), search tiene
+[gate M1-12 aprobado](validation/M1/12.md) e inspect está conectado con
+[gate M1-13 aprobado](validation/M1/13.md). El checkout añade cinco handlers M2
 calificados localmente, descritos al final.
 
 SQLite es autoritativo mediante el port CatalogRepository y snapshots en memoria
@@ -208,7 +208,7 @@ M1-11 conecta solo su estado al runtime. [Formato y límites](catalog-bundle-for
 `CatalogStatusPort` devuelve observaciones tipadas; aplicación valida parentesco
 catálogo/modelo/índice y evalúa freshness con Clock. `stdio::catalog` conserva schemas
 y envelope fuera del dominio, con input vacío y presupuesto128KiB del resultado MCP
-completo. [Gate/revisión M1-11](validation/M1-11.md).
+completo. [Gate/revisión M1-11](validation/M1/11.md).
 
 El provider carga lazy tras bootstrap en el worker bloqueante joined compartido.
 Retiene una generación inmutable y sus handles SQLite/modelo/Lance, incluida una
@@ -227,7 +227,7 @@ fusiona hybrid con RRF60; dominio sigue limitado a tipos/comparaciones puros.
 Status y search comparten la misma instancia `CatalogProvider`, generación lazy y
 admisión joined; no se introduce cache de catálogo ni permiso de ejecución paralelo.
 El worker mantiene inferencia, consultas, validación JSON y encoding hasta terminar.
-[ADR-043](adr/ADR-043-catalog-search-modes.md); [gate aprobado](validation/M1-12.md).
+[ADR-043](adr/ADR-043-catalog-search-modes.md); [gate aprobado](validation/M1/12.md).
 
 ## Inspección autoritativa M1-13
 
@@ -237,7 +237,7 @@ inmutable con status/search; no depende del índice/modelo para obtener facts.
 Domain representa lookup, página, counts y metadatos no registrados como tipos;
 el adapter MCP proyecta schema y codifica dentro del worker joined existente.
 La continuación repite parámetros explícitos y fingerprint, sin estado de cursor.
-[ADR-044](adr/ADR-044-paged-crate-inspection.md), [gate aprobado](validation/M1-13.md).
+[ADR-044](adr/ADR-044-paged-crate-inspection.md), [gate aprobado](validation/M1/13.md).
 
 ## M1-14 — Composición de doctor
 

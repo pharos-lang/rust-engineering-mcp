@@ -35,7 +35,7 @@
 | Versión inline desconocida | Metadata completa | Error `-32022`; permite request válido posterior |
 
 La matriz original acredita bootstrap y project.open. La evidencia M1-11 cubre
-las once definiciones anteriores; [M1-12](validation/M1-12.md) valida el contrato
+las once definiciones anteriores; [M1-12](validation/M1/12.md) valida el contrato
 de doce tools. La release `0.1.0` anuncia trece con M1-13 implementado y gate
 aprobado. El checkout de desarrollo anuncia 27 al sumar las
 cinco tools M2, las cuatro tools M3 y las cinco definiciones M4. Las 18 primeras
@@ -255,7 +255,7 @@ desde macOS26.6.2 ARM64. Se prueba el camino de fuente en volumen administrado,
 build.rs y proc macro reales, denegación de sockets, límites efectivos y cleanup
 de descendientes con setsid/doble fork. El perfil permite IPC privado SEQPACKET,
 con socket/bind/connect/listen denegados. Esta evidencia no acredita Linux/Windows
-nativo, x86_64 ni otra imagen/configuración. [Recibo](validation/M1-01-rust-gateway.md).
+nativo, x86_64 ni otra imagen/configuración. [Recibo](validation/M1/01-rust-gateway.md).
 
 M1-02 publica toolchain del guest aprobado, incluyendo installed_targets. La
 selección del proyecto solo admite1.98.1; no instala rustup ni componentes. Los
@@ -317,7 +317,7 @@ ligada al catálogo/modelo; build core no acredita ese camino. Report semantic
 availability solo es true tras validación nativa. Bundle hash identifica el
 contenedor exacto, no una serialización canónica del archivo comprimido.
 [Formato/flags](catalog-bundle-format.md), incluido floor independiente y requisitos
-0600/0700. [M1-10](validation/M1-10.md) distingue full15/15 y la fuente anterior
+0600/0700. [M1-10](validation/M1/10.md) distingue full15/15 y la fuente anterior
 al ajuste final del CLI de los gates core540/Clippy all-features/CLI nativo5+1
 posteriores. En ese corte seguían pendientes clientes reales, distribución y
 release; M1-17 los calificó después sin cambiar este contrato de catálogo.
@@ -346,7 +346,7 @@ El límite de resultado de search es512KiB completo, distinto de128KiB de status
 ambos conservan deadline120s cooperativo joined. RRF/ventanas/filtros son contratos,
 no resultados experimentales de calidad ES/EN ni de performance. Los gates de
 release siguen pendientes. [Contrato](tools.md#rustcratesearch),
-[evidencia M1-12](validation/M1-12.md).
+[evidencia M1-12](validation/M1/12.md).
 
 ## M1-13 — Inspección
 
@@ -354,9 +354,9 @@ La decimotercera definición conserva los doce contratos previos y la negociaci�
 SDK existente. Core consulta SQLite sin modelo/índice; el gate local-feature no
 implica que inspect ejecute embeddings. Comparte la generación de status/search;
 importar otro snapshot requiere reiniciar para observarlo y continuar con su identidad.
-[Gate M1-13 aprobado](validation/M1-13.md): core629/10 etapas, protocolo37,
+[Gate M1-13 aprobado](validation/M1/13.md): core629/10 etapas, protocolo37,
 Clippy all-features/all-targets y dos tests local-feature bajo OS network deny. No amplía calificación de clientes, plataformas, distribución ni release.
-[Contrato](tools.md#rustcrateinspect), [evidencia M1-13](validation/M1-13.md).
+[Contrato](tools.md#rustcrateinspect), [evidencia M1-13](validation/M1/13.md).
 
 ## M1-14 — Contratos CLI de diagnóstico
 
@@ -378,7 +378,7 @@ Candidatos release macOS arm64 ejecutados desde instalación privada: core/local
 
 La release final sustituye esos candidatos como canal soportado: `v0.1.0` publica
 solo core macOS ARM64 y usa provenance OIDC, checksum y smoke sobre los bytes
-descargados. Véase el [recibo público](validation/m1-17-public-release.json).
+descargados. Véase el [recibo público](validation/M1/17-public-release.json).
 
 ## Escritura local M2 en desarrollo
 

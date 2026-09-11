@@ -1,6 +1,6 @@
 # Tools
 
-`rust.project.open`, `rust.project.inspect`, `rust.toolchain.inspect`, `rust.check`, `rust.fmt.check`, `rust.clippy`, `rust.test`, `rust.dependencies.audit`, `rust.diagnostics.explain`, `rust.quality.gate`, `rust.catalog.status`, `rust.crate.search` y `rust.crate.inspect` están implementadas en este checkout; los gates de [M1-11](validation/M1-11.md) y [M1-12](validation/M1-12.md) están registrados; M1-13 tiene [gate aprobado](validation/M1-13.md). rmcp 3.2.0 gestiona discovery, negociación y dispatch. La release `0.1.0`
+`rust.project.open`, `rust.project.inspect`, `rust.toolchain.inspect`, `rust.check`, `rust.fmt.check`, `rust.clippy`, `rust.test`, `rust.dependencies.audit`, `rust.diagnostics.explain`, `rust.quality.gate`, `rust.catalog.status`, `rust.crate.search` y `rust.crate.inspect` están implementadas en este checkout; los gates de [M1-11](validation/M1/11.md) y [M1-12](validation/M1/12.md) están registrados; M1-13 tiene [gate aprobado](validation/M1/13.md). rmcp 3.2.0 gestiona discovery, negociación y dispatch. La release `0.1.0`
 devuelve trece definiciones sin cursor. El checkout `0.3.0` devuelve 31:
 añade cinco tools M2, cuatro M3, cinco M4 y cuatro M5. Las cinco M4 están
 implementadas y calificadas localmente; el hito espera la confirmación final de
@@ -120,9 +120,9 @@ El alcance autorizado contiene exactamente estas trece tools:
 | `rust.dependencies.audit` | M1-07 | Implementado; evidencia M1-07 |
 | `rust.diagnostics.explain` | M1-08 | Implementado; evidencia M1-08 |
 | `rust.quality.gate` | M1-09 | Implementado y validado; evidencia M1-09 |
-| `rust.catalog.status` | M1-11 | Implementado; [evidencia M1-11](validation/M1-11.md) |
-| `rust.crate.search` | M1-12 | Implementado; [gate/revisión registrados](validation/M1-12.md) |
-| `rust.crate.inspect` | M1-13 | Implementado; [gate aprobado](validation/M1-13.md) |
+| `rust.catalog.status` | M1-11 | Implementado; [evidencia M1-11](validation/M1/11.md) |
+| `rust.crate.search` | M1-12 | Implementado; [gate/revisión registrados](validation/M1/12.md) |
+| `rust.crate.inspect` | M1-13 | Implementado; [gate aprobado](validation/M1/13.md) |
 
 `rust.dependencies.inspect` no es tool pública M1. Los contratos tipados, schemas y
 resultados estructurados se implementarán según ADR-006 y ADR-015. La publicación
@@ -274,7 +274,7 @@ as an edit. Passed requires exit0 and empty complete output; formatting differen
 are failed/isError=false. Unknown warnings, invalid syntax and incomplete output
 return failed/validation_complete=false; timeout is blocked with partial evidence.
 Log quotas preserve the report with log=null/retention_capacity as in check.
-See ADR-035 and [evidence](validation/M1-04.md).
+See ADR-035 and [evidence](validation/M1/04.md).
 
 ## rust.clippy (M1-05)
 
@@ -340,7 +340,7 @@ El archivo JSON v1 de ADR-038 se lee con handles APFS no-follow, máximo8MiB,
 regular/single-link/stamps; el hash esperado se verifica antes de parsear.
 No hay lookup de HOME, red, refresh ni instalación desde el runtime. El checksum
 verifica integridad esperada por el host, no autenticidad editorial. CLI import,
-firmas y antirollback durable tienen [evidencia separada M1-10](validation/M1-10.md); distribución
+firmas y antirollback durable tienen [evidencia separada M1-10](validation/M1/10.md); distribución
 oficial y gate final siguen pendientes.
 
 Metadata y lock consumen el mismo SourceBundle. Solo lock v4 acotado, identidades
@@ -411,7 +411,7 @@ tools de lectura `rust.catalog.status`, `rust.crate.search` y `rust.crate.inspec
 
 ## rust.catalog.status
 
-M1-11 implementado y validado; [evidencia](validation/M1-11.md). Input cerrado `{}`; no requiere
+M1-11 implementado y validado; [evidencia](validation/M1/11.md). Input cerrado `{}`; no requiere
 ProjectRef y rechaza paths, refresh o download del peer. El host configura estos
 flags de `serve --stdio` (paths absolutos y protegidos):
 
@@ -449,7 +449,7 @@ del host. La clave de fixture nunca identifica a IUMotion Labs ni a una release.
 
 ## rust.crate.search
 
-M1-12 implementado; [gate/revisión registrados](validation/M1-12.md). Input cerrado:
+M1-12 implementado; [gate/revisión registrados](validation/M1/12.md). Input cerrado:
 
 ```json
 {
@@ -506,7 +506,7 @@ real y un éxito tardío se descarta. [ADR-043](adr/ADR-043-catalog-search-modes
 
 ## rust.crate.inspect
 
-M1-13 implementado; [gate aprobado](validation/M1-13.md). Input cerrado:
+M1-13 implementado; [gate aprobado](validation/M1/13.md). Input cerrado:
 
 ```json
 {

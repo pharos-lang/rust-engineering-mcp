@@ -17,7 +17,7 @@ The initial result was **not accepted** with one transient P0 and one P1. Sessio
   before this package can receive a final acceptance.
 - P1, run `33928952807` was cited without the separate receipt that
   `docs/publication.md` itself required: resolved by the live, repo-visible
-  [run and branch-protection observation](../validation/public-ci-live-33928952807.json)
+  [run and branch-protection observation](../validation/M1/public-ci-live-33928952807.json)
   and links from the board, publication note and M1-17 matrix. The historical
   publication receipt remains unchanged.
 - P2, tag validation used the expensive macOS runner: resolved by restoring a cheap

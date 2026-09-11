@@ -503,7 +503,7 @@ focused follow-up. Local-only integration; remaining M1/release work stays pendi
   and independently reserved durable sequence floor with exact-container recovery.
 - Full15/15 on immutable pre-observability source; final core540, all-features
   Clippy and native CLI5+1 after reviewed floor/status/key-rotation refinements.
-  [Separate source/gate receipts and review disposition](docs/validation/M1-10.md).
+  [Separate source/gate receipts and review disposition](docs/validation/M1/10.md).
 
 See [format and limits](docs/catalog-bundle-format.md). Publisher, license and
 release remain unapproved; the fixture signing seed is public test data only.
@@ -516,7 +516,7 @@ release remain unapproved; the fixture signing seed is public test data only.
   retained SQLite/E5/Lance handles, and independent per-call RustSec observation.
 - Shared joined admission; 120s cooperative deadline and 128KiB complete result.
   Runtime acquisition remains disabled; no whole-server OS network claim.
-- Gate/review recorded in [M1-11](docs/validation/M1-11.md); no M1 closure.
+- Gate/review recorded in [M1-11](docs/validation/M1/11.md); no M1 closure.
   [ADR-042](docs/adr/ADR-042-catalog-runtime-status.md).
 
 ## M1-12 — Bounded crate search
@@ -532,7 +532,7 @@ release remain unapproved; the fixture signing seed is public test data only.
   encoding and suffix trimming under the 512KiB complete-result budget.
 - No acquisition authority, platform expansion, ranking-quality claim or M1 closure.
   [ADR-043](docs/adr/ADR-043-catalog-search-modes.md);
-  [M1-12 validation](docs/validation/M1-12.md).
+  [M1-12 validation](docs/validation/M1/12.md).
 
 ## M1-13 — Paged crate inspection
 
@@ -546,7 +546,7 @@ release remain unapproved; the fixture signing seed is public test data only.
   Clippy, and two local-feature tests under OS network deny, without embedding
   inference. Sonnet5 Medium review: no confirmed actionable finding.
   [ADR-044](docs/adr/ADR-044-paged-crate-inspection.md);
-  [validation](docs/validation/M1-13.md). No M1 or release closure.
+  [validation](docs/validation/M1/13.md). No M1 or release closure.
 
 ## M1-14 — CLI y doctor
 

@@ -216,8 +216,8 @@ preserves the actual pre-commit HEAD and dirty status; the latter establishes
 identity with merged main01a90ab6 for all238 compiled inputs. Historical build
 metadata is not rewritten to pretend the build ran after that merge.
 
-[Independent Sonnet5 review](../validation/M1-15-review-sonnet.md) found no
-High/Critical issue; [principal disposition](../validation/M1-15-review-disposition.md)
+[Independent Sonnet5 review](../validation/M1/15-review-sonnet.md) found no
+High/Critical issue; [principal disposition](../validation/M1/15-review-disposition.md)
 records the two Low observations and trust-boundary qualifications.
 
 Integrated commit20e7e70 / merge93023be. Post-merge smoke rehashed all238 source

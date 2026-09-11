@@ -11,7 +11,7 @@ Specification§94 requires real repair and offline selection comparisons. A prom
 asking a general coding agent to avoid shell access cannot establish equal
 authority or protect the host from submitted Rust. M1 production permits only its
 existing approved gateway. V1 proposed96 runs with several unauthored/unqualified
-fixtures; [protocol v2](../validation/M1-16-protocol.md) records the prospective
+fixtures; [protocol v2](../validation/M1/16-protocol.md) records the prospective
 24-run pilot, changed corpus and limits before utility measurement.
 
 ## Decision

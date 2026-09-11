@@ -14,7 +14,7 @@ schemas públicos, workflows de release ni decisiones ADR aceptadas.
 BASELINE CERRADA QUE DEBES VERIFICAR LIVE, NO ASUMIR
 
 - M0 y M1/0.1.0 están Done según docs/implementation-status.md y
-  docs/validation/M0-M1-closure-matrix.md.
+  docs/validation/M1/m0-m1-closure-matrix.md.
 - El contrato público 0.1.0 contiene exactamente trece tools; no existe
   rust.dependencies.inspect en el contrato.
 - El último commit privado de implementación/export previo al handoff es
@@ -35,7 +35,7 @@ BASELINE CERRADA QUE DEBES VERIFICAR LIVE, NO ASUMIR
   el binario, 8f6f8c754ae3bde6cc2089ffb5c6360e5c9ebb61af7f022477ee10a30ed336ef.
 - Las tres attestations verifican el signer workflow, ref v0.1.0, source commit y
   run anteriores. El recibo autoritativo es
-  docs/validation/m1-17-public-release.json.
+  docs/validation/M1/17-public-release.json.
 - El cierre local pasó 23/23 etapas; Inspector 2.5.0 y Codex 0.153.0 con un flujo
   model-directed verificaron el servidor real; la revisión final Opus 5 aceptó el
   candidato sin P0/P1.
@@ -54,9 +54,9 @@ INICIO OBLIGATORIO
 2. Lee README.md, CHANGELOG.md, SECURITY.md, docs/architecture.md, docs/tools.md,
    docs/security-model.md, docs/compatibility.md, docs/ci.md,
    docs/publication.md y docs/implementation-status.md.
-3. Lee docs/validation/M0-M1-closure-matrix.md,
-   docs/validation/M1-17-matrix.md,
-   docs/validation/m1-17-public-release.json,
+3. Lee docs/validation/M1/m0-m1-closure-matrix.md,
+   docs/validation/M1/17-matrix.md,
+   docs/validation/M1/17-public-release.json,
    docs/reviews/M1-closure-final-claude-opus-5.md y todos los ADR, con atención
    especial a ADR-003/004/005/007/008/009/010/023/029/031/038/041/047/048.
 4. Inspecciona git status, HEAD, árbol, manifests, Cargo.lock, tests y workflows.

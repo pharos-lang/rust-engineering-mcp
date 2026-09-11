@@ -39,7 +39,7 @@ The qualification harness contains two P2 oracle strictness issues: (1) it allow
 
 ### 3. Evidence Integrity
 - **Plan Row Binding & Receipt Fields**: Verified that `CALL_CLIENTS = frozenset({"inspector"})` (line 410) correctly mirrors that only the deterministic Inspector converts all plan rows, while Claude Code receipts (`receipt["claude_code"][mode]`, lines 1675–1693) record `model_flow`, `session`, `duration_seconds`, `tool_calls`, `artifact_resources_read`, `model_events_sha256`, and `stderr_sha256` without fabricating row conversion entries.
-- **Inventory & Source Hashes**: Verified that `source_hashes()` (lines 428–430) and `PreflightTests` (lines 830–836) correctly removed `docs/validation/m1-17-codex-client/controller.py` from tracked gate inputs and accurately track unit tests and session drivers.
+- **Inventory & Source Hashes**: Verified that `source_hashes()` (lines 428–430) and `PreflightTests` (lines 830–836) correctly removed `docs/validation/M1/17-codex-client/controller.py` from tracked gate inputs and accurately track unit tests and session drivers.
 - **Finding status for Goal 3**: No findings. Evidence fields, SHA-256 digests, and client version records accurately reflect the verified actions.
 
 ### 4. Process Control & Python Implementation

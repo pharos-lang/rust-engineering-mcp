@@ -115,7 +115,7 @@ network=none. Volúmenes local no demuestran cuota contra un extractor compromet
 el ingester confiable no se presenta como sandbox estricto de código de proyecto.
 Timeout/cancel/overflow terminan contenedores y verifican ausencia antes de borrar
 el volumen; cleanup incierto pone el gateway en cuarentena. La evidencia y límites
-están en [M1-01](docs/validation/M1-01-rust-gateway.md).
+están en [M1-01](docs/validation/M1/01-rust-gateway.md).
 
 Inspección MCP ADR-032: fuente capturada por handles originales, runtime explícito
 calibrado de forma lazy y metadata tipada/budgeted. Rechazo durante bootstrap;
@@ -192,7 +192,7 @@ y puede limpiar staging. El owner conserva la responsabilidad por el store enter
 HTTPS sync es opt-in del host, con hostname exacto, sin proxies/redirects/retries;
 no equivale a network deny. Límites de bytes y deadlines cooperativos de lectura,
 descompresión/rebuild no garantizan RSS/CPU nativo ni interrupción de kernel I/O.
-Ver [contrato y recuperación](docs/catalog-bundle-format.md) y [evidencia M1-10](docs/validation/M1-10.md).
+Ver [contrato y recuperación](docs/catalog-bundle-format.md) y [evidencia M1-10](docs/validation/M1/10.md).
 
 ## Estado de catálogo M1-11
 
@@ -219,7 +219,7 @@ Advisory IDs son los listados por el snapshot, no una auditoría completa.
 Validación JSON y encoding/recorte permanecen dentro del mismo worker joined.
 Su120s cooperativo y cap512KiB completo no prometen interrupción dura de código
 nativo ni aislamiento OS adicional. [Contrato](docs/tools.md#rustcratesearch) y
-[evidencia M1-12](docs/validation/M1-12.md).
+[evidencia M1-12](docs/validation/M1/12.md).
 
 ## Inspección paginada M1-13
 
@@ -230,7 +230,7 @@ retenido, sin requerir semántica ni adquirir assets. Repository es texto declar
 source/documentation unknown e IDs de advisories no acreditan seguridad.
 El worker conserva admisión durante I/O, validación y encoding;120s cooperativos
 y512KiB del resultado MCP completo mantienen las limitaciones existentes.
-[Contrato](docs/tools.md#rustcrateinspect), [gate aprobado](docs/validation/M1-13.md).
+[Contrato](docs/tools.md#rustcrateinspect), [gate aprobado](docs/validation/M1/13.md).
 
 Doctor pasivo no ejecuta probes ni adquiere administración del catálogo. El modo
 --active calibra el runtime aprobado y espera cleanup ante SIGINT/TERM/HUP;

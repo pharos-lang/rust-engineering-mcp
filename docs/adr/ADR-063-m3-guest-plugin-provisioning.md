@@ -179,9 +179,9 @@ and the [M3-01 security receipt](../validation/M3-01-rust-security.json).
 - `docs/adr/ADR-031-rust-source-transfer.md`
 - `docs/adr/ADR-033-toolchain-inspection.md`
 - `docs/validation/M2-image-config.json`
-- `docs/validation/artifacts/M1-01-runtime-base-inspect.json`
-- `docs/validation/artifacts/M1-01-runtime-image-inspect.json`
-- `docs/validation/artifacts/M1-01-runtime-verification.json`
+- `docs/validation/M1/artifacts/M1-01-runtime-base-inspect.json`
+- `docs/validation/M1/artifacts/M1-01-runtime-image-inspect.json`
+- `docs/validation/M1/artifacts/M1-01-runtime-verification.json`
 - `docs/validation/m3-delegation/R01-plugins/report.md`
 - Local fetched source snapshot: `releases-summary.json`, the four upstream
   `*-Cargo.toml.txt` files, `rust-llvm-tools-sha.txt` and `index.txt`, fetched

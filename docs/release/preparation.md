@@ -2,7 +2,7 @@
 
 Final outcome: M1-15 closed on 2026-09-05 with the stable
 [GitHub Release v0.1.0](https://github.com/pharos-lang/rust-engineering-mcp/releases/tag/v0.1.0).
-The [public receipt](../validation/m1-17-public-release.json) supersedes this file
+The [public receipt](../validation/M1/17-public-release.json) supersedes this file
 for final tag, CI, asset, smoke and provenance facts. This procedure remains the
 historical preparation record and does not authorize any excluded artifact.
 
@@ -96,7 +96,7 @@ only `aarch64-apple-darwin` target observed; Claude Code2.1.260 and Codex CLI0.1
 installed. Historical Inspector/direct Codex evidence exists, but a candidate-bound
 model-driven run and final Inspector repetition remain pending. Linux/Windows CI is
 portable/fail-closed, not positive host qualification. Inspector2.5.0 was installed in an isolated local directory with
-explicit owner approval; its CLI qualification is recorded separately. See [release matrix](../validation/M1-17-matrix.md).
+explicit owner approval; its CLI qualification is recorded separately. See [release matrix](../validation/M1/17-matrix.md).
 
 ## Executed local preparation
 

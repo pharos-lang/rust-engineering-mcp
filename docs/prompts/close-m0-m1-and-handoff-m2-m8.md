@@ -44,8 +44,8 @@ INICIO OBLIGATORIO
 1. Lee completamente AGENTS.md y la especificación
    docs/spec/rust-engineering-mcp-propuesta-v0.3.md.
 2. Lee docs/implementation-status.md, docs/ci.md, docs/publication.md,
-   docs/validation/M1-17.md, docs/validation/M1-17-matrix.md,
-   docs/validation/M1-17-review-disposition.md, docs/release/preparation.md,
+   docs/validation/M1/17.md, docs/validation/M1/17-matrix.md,
+   docs/validation/M1/17-review-disposition.md, docs/release/preparation.md,
    docs/release/offline-candidates.md y todos los ADR relevantes, especialmente
    ADR-009, 019, 029, 031, 038, 041 y 047.
 3. Inspecciona git status, ramas, árbol, manifests, Cargo.lock, tests, CI pública,

@@ -96,7 +96,7 @@ un prerelease en borrador. No publica en crates.io ni contiene modelo, ORT, Lanc
 catálogo, trust, fixtures, Docker o toolchain. El draft no es una release soportada.
 Para 0.1.0, el run `33948798048` pasó y el draft se promovió solo después de
 verificar la descarga, hashes, attestations y smoke independientes; véase el
-[recibo público](validation/m1-17-public-release.json).
+[recibo público](validation/M1/17-public-release.json).
 
 ```text
 python3 scripts/gate.py core
@@ -235,7 +235,7 @@ status/restart/rollback y rebuild/restore Lance real bajo network deny macOS con
 controles positivos. El caso nativo ignorado en core se ejecuta explícitamente en
 esta etapa. No usar el emitter de fixtures como parte del gate.
 
-[M1-10](validation/M1-10.md) conserva full15/15 con hashes inmutables, previo al
+[M1-10](validation/M1/10.md) conserva full15/15 con hashes inmutables, previo al
 ajuste final de observabilidad del CLI, y core540/all-features Clippy/CLI nativo5+1
 posteriores. No atribuir un full anterior a bytes posteriores: ambos conjuntos de
 fuentes y la revisión/disposición están registrados.
@@ -249,17 +249,17 @@ local y ejecuta dos tests ordinarios y uno nativo bajo network deny macOS, con
 controles IPv4/IPv6. Verifica el contrato MCP, E5/Lance reales, generación retenida,
 índice corrupto tras reinicio y disponibilidad independiente de SQLite. Core
 continúa con10 etapas. No instala assets ni acredita clientes o hosts adicionales.
-[Evidencia](validation/M1-11.md).
+[Evidencia](validation/M1/11.md).
 
 M1-12 añade `scripts/test-crate-search.py` como etapa17 de full:2 tests ordinarios y1 nativo ignorado ejecutado explícitamente, con E5/Lance bajo network deny.
-La [evidencia M1-12](validation/M1-12.md) registra el gate focalizado; el full conjunto final sigue requerido antes de cierre/release.
+La [evidencia M1-12](validation/M1/12.md) registra el gate focalizado; el full conjunto final sigue requerido antes de cierre/release.
 
 ## M1-13 — Inspección paginada MCP
 
 Full incorpora `scripts/test-crate-inspect.py` como etapa18: dos tests ordinarios,
 compilados con feature local y ejecutados bajo network deny macOS. Comprueban
 páginas SQLite, hechos desconocidos y continuación ligada a generación; inspect
-no necesita ni ejecuta embeddings para estas consultas. El [gate M1-13](validation/M1-13.md)
+no necesita ni ejecuta embeddings para estas consultas. El [gate M1-13](validation/M1/13.md)
 pasó: core629/10 etapas, protocolo37, Clippy all-features/all-targets y los dos tests
 local-feature bajo OS network deny. Ese resultado fue focalizado; el full conjunto vigente sigue requerido antes de
 cierre/release. No instala assets ni acredita otros hosts.
