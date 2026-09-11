@@ -1,9 +1,0 @@
-{
-  "original_cleanup_claim_valid": false,
-  "cause": "image ls omitted --all and excluded intermediate image",
-  "owned_image_id": "sha256:0e7da4aa4bd8d3232afc200207a678612376250acddad891d281c3a3675d4be2",
-  "verified_ownership_nonce": "12d8ddaf260b322e76bed52298fc1eca",
-  "removed_exit_code": 0,
-  "all_images_label_query_empty": true,
-  "cleanup_repaired": true
-}

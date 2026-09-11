@@ -2,7 +2,7 @@
 
 ## Status
 
-Accepted para M4-02. Implementación calificada mediante [siete casos nativos](../validation/M4-scanner-native.json), [runtime 19/19](../validation/M4-runtime.json) y [clientes](../validation/M4-clients.json).
+Accepted para M4-02. Implementación calificada mediante [siete casos nativos](../validation/M4/scanner-native.json), [runtime 19/19](../validation/M4/runtime.json) y [clientes](../validation/M4/clients.json).
 
 Enmienda por revisión Opus: protocolo helper v2 antes de anuncio público.
 La captura v1 revisada se conserva como evidencia histórica.

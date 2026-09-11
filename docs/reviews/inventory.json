@@ -1,0 +1,1191 @@
+{
+  "schema": "rust-mcp-evidence-history-inventory-v1",
+  "recorded_at": "2026-09-11T17:41:44.929960+00:00",
+  "source_commit": "ae5cbb6f417876ae01a00f2b578d15586b2be31a",
+  "purpose": "Obsolete evidence retired from the tree; every entry records path, SHA-256, size and the last commit carrying the bytes.",
+  "retained": [],
+  "retired": [
+    {
+      "original_path": "docs/reviews/M4/m4-composition-confirmation/inputs/crates/application/src/quality_v2.rs",
+      "sha256": "3c34fbee8e8887413f766f60d8d86e6544ad4064fe376bd02f9ded22b31fe49a",
+      "bytes": 23147,
+      "kind": "C-review input snapshots"
+    },
+    {
+      "original_path": "docs/reviews/M4/m4-composition-confirmation/inputs/crates/application/src/security.rs",
+      "sha256": "834f4b60536aca46487069fe2ef7f6155093149e1b981a6bb7854410b56112a0",
+      "bytes": 13210,
+      "kind": "C-review input snapshots"
+    },
+    {
+      "original_path": "docs/reviews/M4/m4-composition-confirmation/inputs/crates/application/src/supply_chain.rs",
+      "sha256": "3e6eadd9170ae38deefcb2cf4d9ddb75ccb0bade7a35b7d35ef234a4d6633ef4",
+      "bytes": 10517,
+      "kind": "C-review input snapshots"
+    },
+    {
+      "original_path": "docs/reviews/M4/m4-composition-confirmation/inputs/crates/application/tests/quality_v2.rs",
+      "sha256": "86ec6118fdcce11f8ae6eec479215a4b99dc423723c418a316aa44c98a07c424",
+      "bytes": 34114,
+      "kind": "C-review input snapshots"
+    },
+    {
+      "original_path": "docs/reviews/M4/m4-composition-confirmation/inputs/crates/application/tests/security.rs",
+      "sha256": "245d5c812ce7bc9f5c5548327ad20be6f9f66e1722192b123c8a6cef72353f36",
+      "bytes": 58593,
+      "kind": "C-review input snapshots"
+    },
+    {
+      "original_path": "docs/reviews/M4/m4-composition-confirmation/inputs/crates/domain/src/quality_v2.rs",
+      "sha256": "d319bf8eff39e773b9fde5b699843e611d2dd6eefc9713049011276990c005fe",
+      "bytes": 6952,
+      "kind": "C-review input snapshots"
+    },
+    {
+      "original_path": "docs/reviews/M4/m4-composition-confirmation/inputs/crates/domain/src/security.rs",
+      "sha256": "98b21ebded10c80414481f2c1b7ff013e7409ec874b40f79fed2e01eabfe50c8",
+      "bytes": 21921,
+      "kind": "C-review input snapshots"
+    },
+    {
+      "original_path": "docs/reviews/M4/m4-composition-confirmation/inputs/crates/domain/src/supply_chain.rs",
+      "sha256": "f35aa9776252729054ade0ac7dedc5e1663508c5d811d0fa655dc97eaa19d181",
+      "bytes": 8158,
+      "kind": "C-review input snapshots"
+    },
+    {
+      "original_path": "docs/reviews/M4/m4-composition-confirmation/inputs/crates/execution-adapter/src/deny_json.rs",
+      "sha256": "2c7a5ea1ee8ca7de592a10217266e8dece72924960a75e10f21d20434abda75a",
+      "bytes": 49486,
+      "kind": "C-review input snapshots"
+    },
+    {
+      "original_path": "docs/reviews/M4/m4-composition-confirmation/inputs/crates/mcp-server/src/stdio/quality_v2.rs",
+      "sha256": "4fade835b122a9c967197ae9c4de2b976446ee6540c490370a952adc039fef7f",
+      "bytes": 20226,
+      "kind": "C-review input snapshots"
+    },
+    {
+      "original_path": "docs/reviews/M4/m4-composition-confirmation/inputs/crates/mcp-server/src/stdio/quality_v2/schemas.rs",
+      "sha256": "1c4fe9ed1e325e09c7ec6cbbc27663c7abafb60507b4edfe231692ea71c8a9ee",
+      "bytes": 4349,
+      "kind": "C-review input snapshots"
+    },
+    {
+      "original_path": "docs/reviews/M4/m4-composition-confirmation/inputs/crates/mcp-server/src/stdio/quality_v2/trim_tests.rs",
+      "sha256": "0b3e52027c84711b760f62bdf942e04c653bc3dc61bf082296c957de5bdddd57",
+      "bytes": 10947,
+      "kind": "C-review input snapshots"
+    },
+    {
+      "original_path": "docs/reviews/M4/m4-composition-confirmation/inputs/crates/mcp-server/src/stdio/supply_chain.rs",
+      "sha256": "f4bbaa6dddc6b16bfb4a70874885d8c535a312c835c287c04f085ea1fddb6b71",
+      "bytes": 18597,
+      "kind": "C-review input snapshots"
+    },
+    {
+      "original_path": "docs/reviews/M4/m4-composition-confirmation/inputs/crates/mcp-server/src/stdio/supply_chain/schemas.rs",
+      "sha256": "f8534c1813b97d0fb7a78114e008adbd92e428b5275241d4905c033fbcaa79b1",
+      "bytes": 4742,
+      "kind": "C-review input snapshots"
+    },
+    {
+      "original_path": "docs/reviews/M4/m4-composition-confirmation/inputs/crates/mcp-server/src/stdio/supply_chain/trim_tests.rs",
+      "sha256": "24b8d70b83312a62d817eb782afae37585bbf8e0901ecca7beb15e0674284437",
+      "bytes": 8825,
+      "kind": "C-review input snapshots"
+    },
+    {
+      "original_path": "docs/reviews/M4/m4-composition-confirmation/inputs/docs/reviews/m4-composition-contracts/review.md",
+      "sha256": "32290d4b9e4c7d96640c68a04671a2be2d9a86c86bed76758522f5918b6c870f",
+      "bytes": 15239,
+      "kind": "C-review input snapshots"
+    },
+    {
+      "original_path": "docs/reviews/M4/m4-composition-contracts/inputs/crates/application/src/quality_v2.rs",
+      "sha256": "3c34fbee8e8887413f766f60d8d86e6544ad4064fe376bd02f9ded22b31fe49a",
+      "bytes": 23147,
+      "kind": "C-review input snapshots"
+    },
+    {
+      "original_path": "docs/reviews/M4/m4-composition-contracts/inputs/crates/application/src/security.rs",
+      "sha256": "3eb63a906cd6325dea5b98ed8b12d099f67d0a416b29f0c4baf052bc51ce849f",
+      "bytes": 13210,
+      "kind": "C-review input snapshots"
+    },
+    {
+      "original_path": "docs/reviews/M4/m4-composition-contracts/inputs/crates/application/src/supply_chain.rs",
+      "sha256": "8ac7cc62a752f35f5e9a2519863b44babc8eebbcfe6d7663ae6e6c9df9e24a4c",
+      "bytes": 10402,
+      "kind": "C-review input snapshots"
+    },
+    {
+      "original_path": "docs/reviews/M4/m4-composition-contracts/inputs/crates/application/tests/quality_v2.rs",
+      "sha256": "bd5d1d9b5adbbff2526a6e04558f4c3a39c0f4198d31ad7df76005c249385ad9",
+      "bytes": 26991,
+      "kind": "C-review input snapshots"
+    },
+    {
+      "original_path": "docs/reviews/M4/m4-composition-contracts/inputs/crates/application/tests/security.rs",
+      "sha256": "5c5c10449e201d1dfa230479f07bc6f80abf40ff2cc8162031c9a171dd04ae3e",
+      "bytes": 54140,
+      "kind": "C-review input snapshots"
+    },
+    {
+      "original_path": "docs/reviews/M4/m4-composition-contracts/inputs/crates/domain/src/quality_v2.rs",
+      "sha256": "d319bf8eff39e773b9fde5b699843e611d2dd6eefc9713049011276990c005fe",
+      "bytes": 6952,
+      "kind": "C-review input snapshots"
+    },
+    {
+      "original_path": "docs/reviews/M4/m4-composition-contracts/inputs/crates/domain/src/supply_chain.rs",
+      "sha256": "f12775b2a98e2312c9e4b524a4115c457d76b5d622312264e533d0d157fe0e85",
+      "bytes": 6998,
+      "kind": "C-review input snapshots"
+    },
+    {
+      "original_path": "docs/reviews/M4/m4-composition-contracts/inputs/crates/mcp-server/src/stdio/catalog/supply_tests.rs",
+      "sha256": "53b052748017d4956bc6d8fcc1bce757bd9c423585f36eb4887a1c449c2ac7c6",
+      "bytes": 13033,
+      "kind": "C-review input snapshots"
+    },
+    {
+      "original_path": "docs/reviews/M4/m4-composition-contracts/inputs/crates/mcp-server/src/stdio/quality_v2.rs",
+      "sha256": "26d5ba156a59d4016c1612cdbc29aabaedc475082774ddc599a2359011558bd4",
+      "bytes": 20160,
+      "kind": "C-review input snapshots"
+    },
+    {
+      "original_path": "docs/reviews/M4/m4-composition-contracts/inputs/crates/mcp-server/src/stdio/quality_v2/schemas.rs",
+      "sha256": "1c4fe9ed1e325e09c7ec6cbbc27663c7abafb60507b4edfe231692ea71c8a9ee",
+      "bytes": 4349,
+      "kind": "C-review input snapshots"
+    },
+    {
+      "original_path": "docs/reviews/M4/m4-composition-contracts/inputs/crates/mcp-server/src/stdio/security_contract_tests.rs",
+      "sha256": "77638f0af02adf036f5dc1035b5e5ae8d6b5a880ac530d5bdc7adc14af6bf670",
+      "bytes": 29689,
+      "kind": "C-review input snapshots"
+    },
+    {
+      "original_path": "docs/reviews/M4/m4-composition-contracts/inputs/crates/mcp-server/src/stdio/supply_chain.rs",
+      "sha256": "4db96073664fa7ad3366a6b778bb4c5040f974e36b02de4f53cf8e66dd43df6f",
+      "bytes": 18529,
+      "kind": "C-review input snapshots"
+    },
+    {
+      "original_path": "docs/reviews/M4/m4-composition-contracts/inputs/crates/mcp-server/src/stdio/supply_chain/schemas.rs",
+      "sha256": "1b74b28b46322be946fcb9de52a016f853dae1755518e8346e187057bcfd1ba6",
+      "bytes": 4723,
+      "kind": "C-review input snapshots"
+    },
+    {
+      "original_path": "docs/reviews/M4/m4-composition-contracts/inputs/docs/adr/ADR-067-security-policy-and-quality-contracts.md",
+      "sha256": "699872c8153cf79750ab91fe5f05edbbe5d5342f8373a6868e3f24deb1a002bf",
+      "bytes": 16827,
+      "kind": "C-review input snapshots"
+    },
+    {
+      "original_path": "docs/reviews/M4/m4-composition-contracts/inputs/docs/adr/ADR-071-supply-chain-facts-without-catalog-migration.md",
+      "sha256": "83d95de567ffd97719cef5f9182e1fff3c57dc5bf2df0bca2d0de1fbc5ba4f91",
+      "bytes": 3377,
+      "kind": "C-review input snapshots"
+    },
+    {
+      "original_path": "docs/reviews/M4/m4-final-evidence/additional-inputs/crates/semantic-adapter/src/model.rs",
+      "sha256": "08082cf321273ed502deafae11a5c5c6d7174db41c4cd8301439820d90cc8524",
+      "bytes": 2638,
+      "kind": "C-review input snapshots"
+    },
+    {
+      "original_path": "docs/reviews/M4/m4-final-evidence/additional-inputs/docs/validation/M4-full-gate-resume.txt",
+      "sha256": "2b4fa184606a7b06f59f1f3729e437b55345543764a49bf06c003eb160d90448",
+      "bytes": 9283,
+      "kind": "C-review input snapshots"
+    },
+    {
+      "original_path": "docs/reviews/M4/m4-final-evidence/additional-inputs/docs/validation/M4-full-gate.txt",
+      "sha256": "1378c96c74e708ff6026473ed2e7c4afe7fc5b80d94b6080d31ed4e6069cb60b",
+      "bytes": 227572,
+      "kind": "C-review input snapshots"
+    },
+    {
+      "original_path": "docs/reviews/M4/m4-final-evidence/additional-inputs/docs/validation/M4-hardening-attempts/full-attempt-2/gate.txt",
+      "sha256": "1378c96c74e708ff6026473ed2e7c4afe7fc5b80d94b6080d31ed4e6069cb60b",
+      "bytes": 227572,
+      "kind": "C-review input snapshots"
+    },
+    {
+      "original_path": "docs/reviews/M4/m4-final-evidence/additional-inputs/git-baseline/crates/mcp-server/tests/snapshots/audit-tool.json",
+      "sha256": "b6bb173a199bd85919c1a8f97218c4f02162f106338abffef97e3a68b72269f2",
+      "bytes": 20573,
+      "kind": "C-review input snapshots"
+    },
+    {
+      "original_path": "docs/reviews/M4/m4-final-evidence/additional-inputs/git-baseline/crates/mcp-server/tests/snapshots/catalog-status-tool.json",
+      "sha256": "9ac8e2964beb0ae3af9829776761d25612ad4a57252dc19f98fa684f3c46c1bc",
+      "bytes": 19626,
+      "kind": "C-review input snapshots"
+    },
+    {
+      "original_path": "docs/reviews/M4/m4-final-evidence/additional-inputs/git-baseline/crates/mcp-server/tests/snapshots/check-tool.json",
+      "sha256": "a9281b713e3f8b91682b0d248cacb7fc1e978b6d8df9baf0ad0f315a5a43f014",
+      "bytes": 20990,
+      "kind": "C-review input snapshots"
+    },
+    {
+      "original_path": "docs/reviews/M4/m4-final-evidence/additional-inputs/git-baseline/crates/mcp-server/tests/snapshots/clippy-tool.json",
+      "sha256": "a4afb5c9d2c854ed23fb256c9ecdfd40e0ca5129a9aa302553a957e5346511a0",
+      "bytes": 21019,
+      "kind": "C-review input snapshots"
+    },
+    {
+      "original_path": "docs/reviews/M4/m4-final-evidence/additional-inputs/git-baseline/crates/mcp-server/tests/snapshots/coverage-tool.json",
+      "sha256": "2a84cb5603d8ccbe6fa11dbd3fc6295183d0080bfe05a4d8c794944a021162d4",
+      "bytes": 9698,
+      "kind": "C-review input snapshots"
+    },
+    {
+      "original_path": "docs/reviews/M4/m4-final-evidence/additional-inputs/git-baseline/crates/mcp-server/tests/snapshots/crate-inspect-tool.json",
+      "sha256": "27af4b9f7c2df00fc2d528341ee781d350d09081bf2a7c9f3c5bc5538442d39d",
+      "bytes": 20912,
+      "kind": "C-review input snapshots"
+    },
+    {
+      "original_path": "docs/reviews/M4/m4-final-evidence/additional-inputs/git-baseline/crates/mcp-server/tests/snapshots/crate-search-tool.json",
+      "sha256": "3d2a6d091a4a0ba0cfcdd1a4f8600e4cf4f883fc18ad4fee2412d4a1053f6039",
+      "bytes": 22052,
+      "kind": "C-review input snapshots"
+    },
+    {
+      "original_path": "docs/reviews/M4/m4-final-evidence/additional-inputs/git-baseline/crates/mcp-server/tests/snapshots/dependency-add-tool.json",
+      "sha256": "426515577746d42235ee31edfe455a5057cb0c7ffd1912f534de26e323304be6",
+      "bytes": 17073,
+      "kind": "C-review input snapshots"
+    },
+    {
+      "original_path": "docs/reviews/M4/m4-final-evidence/additional-inputs/git-baseline/crates/mcp-server/tests/snapshots/dependency-remove-tool.json",
+      "sha256": "e73dfb65c55c5de6852b77e947bb8ee79ce824f18ef3035b33f84836ab198cdd",
+      "bytes": 15999,
+      "kind": "C-review input snapshots"
+    },
+    {
+      "original_path": "docs/reviews/M4/m4-final-evidence/additional-inputs/git-baseline/crates/mcp-server/tests/snapshots/doctor-report.json",
+      "sha256": "31378102881bf084c399ad60efbe900fa540b991bfa6fc5e84d07a6575831482",
+      "bytes": 3840,
+      "kind": "C-review input snapshots"
+    },
+    {
+      "original_path": "docs/reviews/M4/m4-final-evidence/additional-inputs/git-baseline/crates/mcp-server/tests/snapshots/explain-tool.json",
+      "sha256": "f4e0ab8b25a32e07ba6a86c100b7ee2a5adcab7a35f691f16e82c9d3f4933b9f",
+      "bytes": 11880,
+      "kind": "C-review input snapshots"
+    },
+    {
+      "original_path": "docs/reviews/M4/m4-final-evidence/additional-inputs/git-baseline/crates/mcp-server/tests/snapshots/fix-apply-tool.json",
+      "sha256": "89c93950abe47923644f1cb2457491fbf4823533b99a489a7723fc1786fd57d5",
+      "bytes": 15229,
+      "kind": "C-review input snapshots"
+    },
+    {
+      "original_path": "docs/reviews/M4/m4-final-evidence/additional-inputs/git-baseline/crates/mcp-server/tests/snapshots/fmt-apply-tool.json",
+      "sha256": "78983f1e4c08d607a4504994237a3a053de0f5c779671c0da6357db0bf833dab",
+      "bytes": 15116,
+      "kind": "C-review input snapshots"
+    },
+    {
+      "original_path": "docs/reviews/M4/m4-final-evidence/additional-inputs/git-baseline/crates/mcp-server/tests/snapshots/format-tool.json",
+      "sha256": "762e342a4b9e7e7e4a013583fb0f71ecefe1bf4c3ef47088b7c119a75dee56a4",
+      "bytes": 19404,
+      "kind": "C-review input snapshots"
+    },
+    {
+      "original_path": "docs/reviews/M4/m4-final-evidence/additional-inputs/git-baseline/crates/mcp-server/tests/snapshots/manifest-patch-tool.json",
+      "sha256": "1a4f9891093f03db987ad9b53f3b862a0dc54183abf074d89096f6f294b814aa",
+      "bytes": 28198,
+      "kind": "C-review input snapshots"
+    },
+    {
+      "original_path": "docs/reviews/M4/m4-final-evidence/additional-inputs/git-baseline/crates/mcp-server/tests/snapshots/mutation-test-tool.json",
+      "sha256": "d689048bf1ee860a95e9fde5d86852781abc046e3b746c5983d5445f9135507d",
+      "bytes": 15126,
+      "kind": "C-review input snapshots"
+    },
+    {
+      "original_path": "docs/reviews/M4/m4-final-evidence/additional-inputs/git-baseline/crates/mcp-server/tests/snapshots/nextest-tool.json",
+      "sha256": "c05d55f0695b3996a4809a8228f94e9a77c00c4d65f054df91772625222d09f3",
+      "bytes": 13704,
+      "kind": "C-review input snapshots"
+    },
+    {
+      "original_path": "docs/reviews/M4/m4-final-evidence/additional-inputs/git-baseline/crates/mcp-server/tests/snapshots/project-inspect-tool.json",
+      "sha256": "bf0838ace4f0f7f0709c76801de6f1b66307d90251eab6441a2d07208b913e07",
+      "bytes": 22557,
+      "kind": "C-review input snapshots"
+    },
+    {
+      "original_path": "docs/reviews/M4/m4-final-evidence/additional-inputs/git-baseline/crates/mcp-server/tests/snapshots/project-open-tool.json",
+      "sha256": "bfab409498dc67517a96d4d034f403d24ad3ae31046df3afc09c1f3781148d9b",
+      "bytes": 5754,
+      "kind": "C-review input snapshots"
+    },
+    {
+      "original_path": "docs/reviews/M4/m4-final-evidence/additional-inputs/git-baseline/crates/mcp-server/tests/snapshots/quality-tool.json",
+      "sha256": "95f2b8adf277a0d2d95b827a320c1f848bb1069482ad30d2e1592d418bdfffb3",
+      "bytes": 35272,
+      "kind": "C-review input snapshots"
+    },
+    {
+      "original_path": "docs/reviews/M4/m4-final-evidence/additional-inputs/git-baseline/crates/mcp-server/tests/snapshots/semver-tool.json",
+      "sha256": "1c8df18de40655dd43265c75958ceed739cbd831f134cbe9a09822f41d31fdb5",
+      "bytes": 14101,
+      "kind": "C-review input snapshots"
+    },
+    {
+      "original_path": "docs/reviews/M4/m4-final-evidence/additional-inputs/git-baseline/crates/mcp-server/tests/snapshots/test-tool.json",
+      "sha256": "a4f0904c89b34bd4eb3524f9de71c8d4c2036028b5905bcfdc17eea75085abf7",
+      "bytes": 21926,
+      "kind": "C-review input snapshots"
+    },
+    {
+      "original_path": "docs/reviews/M4/m4-final-evidence/additional-inputs/git-baseline/crates/mcp-server/tests/snapshots/toolchain-inspect-tool.json",
+      "sha256": "bd57a8784387ac6939b3a12d2343660a1bf2c2fc1246c83790e6f7e0276ef518",
+      "bytes": 13479,
+      "kind": "C-review input snapshots"
+    },
+    {
+      "original_path": "docs/reviews/M4/m4-final-evidence/additional-inputs/scripts/test-m4-runtime.py",
+      "sha256": "b0d2fd9e127ef564e0aa998aae7b7f5c0b068473c0d1a3d4caa4143a48feb00c",
+      "bytes": 11163,
+      "kind": "C-review input snapshots"
+    },
+    {
+      "original_path": "docs/reviews/M4/m4-final-evidence/inputs/CHANGELOG.md",
+      "sha256": "5bcb7655f6ccaecc97df90b08ce858e6beb4983766fe7d2053ae3de1837c6944",
+      "bytes": 22822,
+      "kind": "C-review input snapshots"
+    },
+    {
+      "original_path": "docs/reviews/M4/m4-final-evidence/inputs/README.md",
+      "sha256": "43271cdf511ce7e2e532c61c5f4bf7481a7be867ffb2c51f57b90c1faf96dc32",
+      "bytes": 26951,
+      "kind": "C-review input snapshots"
+    },
+    {
+      "original_path": "docs/reviews/M4/m4-final-evidence/inputs/SECURITY.md",
+      "sha256": "e3b16b75bf5da94cb696c3674d1dfd9462eea061f781ea7ca8dcd8a37e4a7bc8",
+      "bytes": 23166,
+      "kind": "C-review input snapshots"
+    },
+    {
+      "original_path": "docs/reviews/M4/m4-final-evidence/inputs/crates/mcp-server/tests/protocol.rs",
+      "sha256": "c5f81a1ce6a85004e1a543052f936d861f1858f24359cfbb52cfbe61aaa3dd13",
+      "bytes": 89675,
+      "kind": "C-review input snapshots"
+    },
+    {
+      "original_path": "docs/reviews/M4/m4-final-evidence/inputs/docs/adr/ADR-066-m4-runtime-provisioning.md",
+      "sha256": "185cadf9fb9b25a3b8e3924908e08618ea561cd01a9e18ef115ebd3924947984",
+      "bytes": 9564,
+      "kind": "C-review input snapshots"
+    },
+    {
+      "original_path": "docs/reviews/M4/m4-final-evidence/inputs/docs/adr/ADR-067-security-policy-and-quality-contracts.md",
+      "sha256": "65504405b94c1e6c7f1619b9887c9180a128d09242c7d37214560c49d0fd3507",
+      "bytes": 18936,
+      "kind": "C-review input snapshots"
+    },
+    {
+      "original_path": "docs/reviews/M4/m4-final-evidence/inputs/docs/adr/ADR-068-m4-runtime-admission.md",
+      "sha256": "02577b37d2a2e7b16c33884a3b3904ae79c067cb6af2d55adfa77e07db6ebdd1",
+      "bytes": 4734,
+      "kind": "C-review input snapshots"
+    },
+    {
+      "original_path": "docs/reviews/M4/m4-final-evidence/inputs/docs/adr/ADR-069-isolated-unsafe-syntax-scanner.md",
+      "sha256": "c11d8944e4017f401f66e87f10bec6f5dadc59e368a47a7f01512fb673739f67",
+      "bytes": 9327,
+      "kind": "C-review input snapshots"
+    },
+    {
+      "original_path": "docs/reviews/M4/m4-final-evidence/inputs/docs/adr/ADR-070-task-cleanup-attestation.md",
+      "sha256": "8cbbd9cb3c14000206e94c640c5fe27f927761c7742c49e0431ece2eb9edd50a",
+      "bytes": 2417,
+      "kind": "C-review input snapshots"
+    },
+    {
+      "original_path": "docs/reviews/M4/m4-final-evidence/inputs/docs/adr/ADR-071-supply-chain-facts-without-catalog-migration.md",
+      "sha256": "9df9c0775b33151b5121be2b25b1b5099c3d0976f202b6c2a0c442ac927c8126",
+      "bytes": 3583,
+      "kind": "C-review input snapshots"
+    },
+    {
+      "original_path": "docs/reviews/M4/m4-final-evidence/inputs/docs/adr/ADR-072-miri-classification-integrity.md",
+      "sha256": "ccba147b82c7d7330206f1da508718b0993bae196368f450d769fde11adf5111",
+      "bytes": 9295,
+      "kind": "C-review input snapshots"
+    },
+    {
+      "original_path": "docs/reviews/M4/m4-final-evidence/inputs/docs/architecture.md",
+      "sha256": "abb2dac33b20617fbb126ef98869f57db2ba774b83a8ab7ab04af4958e07b958",
+      "bytes": 23047,
+      "kind": "C-review input snapshots"
+    },
+    {
+      "original_path": "docs/reviews/M4/m4-final-evidence/inputs/docs/ci.md",
+      "sha256": "b0a3f602c7c6507ee089edce4a4d443deba831ffb9bfd1efd4b20c64c110b0cc",
+      "bytes": 18257,
+      "kind": "C-review input snapshots"
+    },
+    {
+      "original_path": "docs/reviews/M4/m4-final-evidence/inputs/docs/client-configuration.md",
+      "sha256": "ed92f71fc85984c2c2fe22a33ba1e42f9e5d3a7a084ad8956cdb6b9b7d83e583",
+      "bytes": 20861,
+      "kind": "C-review input snapshots"
+    },
+    {
+      "original_path": "docs/reviews/M4/m4-final-evidence/inputs/docs/compatibility.md",
+      "sha256": "e75ea50703bdca9a4e6a8d79203b1bcee498e2bb1813684bc59928a30aab94b5",
+      "bytes": 26768,
+      "kind": "C-review input snapshots"
+    },
+    {
+      "original_path": "docs/reviews/M4/m4-final-evidence/inputs/docs/implementation-status.md",
+      "sha256": "e4dd454057b4f1ae04a5ccfa15d5f1319278ce12ae384c5f6248467df44ecc3f",
+      "bytes": 35182,
+      "kind": "C-review input snapshots"
+    },
+    {
+      "original_path": "docs/reviews/M4/m4-final-evidence/inputs/docs/reviews/m4-final-closure/disposition.md",
+      "sha256": "eff369aae8aeef21629fe12f95a7f96965f38c97e53cc076433c13d8a1f052d7",
+      "bytes": 2984,
+      "kind": "C-review input snapshots"
+    },
+    {
+      "original_path": "docs/reviews/M4/m4-final-evidence/inputs/docs/reviews/m4-final-closure/review.md",
+      "sha256": "c8aa6a456d9aaa855d85618eb192c5200dd1ef6197138081abf1ff44654da4a6",
+      "bytes": 19337,
+      "kind": "C-review input snapshots"
+    },
+    {
+      "original_path": "docs/reviews/M4/m4-final-evidence/inputs/docs/security-model.md",
+      "sha256": "b409a82fea892be54647aacfd73b0e433fa83aec7e34ba0d734d72f037db9f47",
+      "bytes": 35745,
+      "kind": "C-review input snapshots"
+    },
+    {
+      "original_path": "docs/reviews/M4/m4-final-evidence/inputs/docs/tools.md",
+      "sha256": "d39e93043a4b15376cdb56ad76e16068b07737458e78d9760668836e7f06ad3a",
+      "bytes": 69231,
+      "kind": "C-review input snapshots"
+    },
+    {
+      "original_path": "docs/reviews/M4/m4-final-evidence/inputs/docs/validation/M4-benchmark-source-continuity.json",
+      "sha256": "8b7f68b5df69d59b86ffd2caf420727579e05b4d72eebd14da746fcdbca19259",
+      "bytes": 9393,
+      "kind": "C-review input snapshots"
+    },
+    {
+      "original_path": "docs/reviews/M4/m4-final-evidence/inputs/docs/validation/M4-budgets.json",
+      "sha256": "84fe208b0fc946cfca5c2df424c3520e7e4da1cd8652653221e6c9eccc053f75",
+      "bytes": 3113,
+      "kind": "C-review input snapshots"
+    },
+    {
+      "original_path": "docs/reviews/M4/m4-final-evidence/inputs/docs/validation/M4-budgets/m4-budgets-inputs.json",
+      "sha256": "01a44f4fd79b2d3ec17f7554da53a52973988f71eb6eea348be9b72fe4a7b9cc",
+      "bytes": 53011,
+      "kind": "C-review input snapshots"
+    },
+    {
+      "original_path": "docs/reviews/M4/m4-final-evidence/inputs/docs/validation/M4-client-execution.json",
+      "sha256": "5c13e797440f80bc043703bdc85b85892038203c404dbc3384be0a8637888a6e",
+      "bytes": 5555,
+      "kind": "C-review input snapshots"
+    },
+    {
+      "original_path": "docs/reviews/M4/m4-final-evidence/inputs/docs/validation/M4-clients.json",
+      "sha256": "6729d05700a57b2f600626263c63a50a15bd05e42c667e57fdaee610cab65d0c",
+      "bytes": 240292,
+      "kind": "C-review input snapshots"
+    },
+    {
+      "original_path": "docs/reviews/M4/m4-final-evidence/inputs/docs/validation/M4-core-gate.json",
+      "sha256": "3ada1a80a45b90744979a0c0ded5926515b7c81a25c92189cd68a317dcd36e12",
+      "bytes": 255012,
+      "kind": "C-review input snapshots"
+    },
+    {
+      "original_path": "docs/reviews/M4/m4-final-evidence/inputs/docs/validation/M4-deny-mcp.json",
+      "sha256": "13e7f54ef8a01e7787e8fd4605516babcd2f1bdf47651d1545489c63a69c77bf",
+      "bytes": 17046,
+      "kind": "C-review input snapshots"
+    },
+    {
+      "original_path": "docs/reviews/M4/m4-final-evidence/inputs/docs/validation/M4-e5-local-recovery.json",
+      "sha256": "4870387f8e22ea4f7c4a56f5189f9eb16ce8a509e766414c8083d7cfcbf35f8d",
+      "bytes": 1369,
+      "kind": "C-review input snapshots"
+    },
+    {
+      "original_path": "docs/reviews/M4/m4-final-evidence/inputs/docs/validation/M4-evidence-index.json",
+      "sha256": "7025b04c68557dccc762a7b3c094a2eee0a1908b7beee4edb80182b8d6c4b7a9",
+      "bytes": 4648,
+      "kind": "C-review input snapshots"
+    },
+    {
+      "original_path": "docs/reviews/M4/m4-final-evidence/inputs/docs/validation/M4-full-gate-resume-driver.py",
+      "sha256": "cb07753e963da5b6d1d57340d7521b2ce39e9c6a94af6492ee7f8f5a86d41715",
+      "bytes": 3795,
+      "kind": "C-review input snapshots"
+    },
+    {
+      "original_path": "docs/reviews/M4/m4-final-evidence/inputs/docs/validation/M4-full-gate.json",
+      "sha256": "d95c8c57e238c85575bb9e7fcf7a3be1ee3604412b4f32fbc27bec63ec528a23",
+      "bytes": 266505,
+      "kind": "C-review input snapshots"
+    },
+    {
+      "original_path": "docs/reviews/M4/m4-final-evidence/inputs/docs/validation/M4-handoff.md",
+      "sha256": "42fc12d03ca876b656ca73aafd64e51d7689d568f7eb805719c35e938c4cb93c",
+      "bytes": 11064,
+      "kind": "C-review input snapshots"
+    },
+    {
+      "original_path": "docs/reviews/M4/m4-final-evidence/inputs/docs/validation/M4-hardening-attempts/full-attempt-1/disposition.md",
+      "sha256": "0a473c3f35c28f49523878da47eedc10b6829f1f6174ae476f9e95d7305a5b8f",
+      "bytes": 1138,
+      "kind": "C-review input snapshots"
+    },
+    {
+      "original_path": "docs/reviews/M4/m4-final-evidence/inputs/docs/validation/M4-hardening-attempts/full-attempt-1/isolated-large-binary-10.json",
+      "sha256": "ade91c3fb6c979ae2cc51bec1f7e17a5bffd8a122042c9713d8bfc838ac93c46",
+      "bytes": 16463,
+      "kind": "C-review input snapshots"
+    },
+    {
+      "original_path": "docs/reviews/M4/m4-final-evidence/inputs/docs/validation/M4-hardening-attempts/full-attempt-2/receipt.json",
+      "sha256": "e169e6064aa023e171e081730d6edd6586b391e1f3b83059e34a5bf9222878b8",
+      "bytes": 261174,
+      "kind": "C-review input snapshots"
+    },
+    {
+      "original_path": "docs/reviews/M4/m4-final-evidence/inputs/docs/validation/M4-hardening-attempts/stdout-diagnostic/disposition.md",
+      "sha256": "1b542152e2bd1afcc9777b75b16f28620ea406283c8b5d2679b72310b8d191fa",
+      "bytes": 1228,
+      "kind": "C-review input snapshots"
+    },
+    {
+      "original_path": "docs/reviews/M4/m4-final-evidence/inputs/docs/validation/M4-hardening-attempts/stdout-diagnostic/isolated-30.json",
+      "sha256": "aa9508430e9d7228493cbf44ac8206b9a7d7d271b0a7bdddf8cefd0d6c13519c",
+      "bytes": 2745,
+      "kind": "C-review input snapshots"
+    },
+    {
+      "original_path": "docs/reviews/M4/m4-final-evidence/inputs/docs/validation/M4-hardening-attempts/stdout-diagnostic/protocol-5.json",
+      "sha256": "050461f85e3c9fa81cd3c96349f985656fad8be3a0538534acf8380a9b0f718e",
+      "bytes": 731,
+      "kind": "C-review input snapshots"
+    },
+    {
+      "original_path": "docs/reviews/M4/m4-final-evidence/inputs/docs/validation/M4-hardening-map.md",
+      "sha256": "befdd8ccfe40fe9c8ed60edbddb4f96c2dfcd1f17cc937f36ae8f7df767b5597",
+      "bytes": 17409,
+      "kind": "C-review input snapshots"
+    },
+    {
+      "original_path": "docs/reviews/M4/m4-final-evidence/inputs/docs/validation/M4-m2-runtime.json",
+      "sha256": "dedbc91176abf6db15fc13458b0431e9cf71e167b7d2e3181029c72a61b5fcae",
+      "bytes": 61927,
+      "kind": "C-review input snapshots"
+    },
+    {
+      "original_path": "docs/reviews/M4/m4-final-evidence/inputs/docs/validation/M4-m3-runtime.json",
+      "sha256": "901fa8f6227da3e8dfb1f5d8ae9fa6158dc0ff49d9a03c2977afd4285c1cdcb5",
+      "bytes": 125481,
+      "kind": "C-review input snapshots"
+    },
+    {
+      "original_path": "docs/reviews/M4/m4-final-evidence/inputs/docs/validation/M4-matrix.md",
+      "sha256": "0c81875b133e155c0d5e3309254e6cceb6cdedb7400e9d54056eff8621a051ee",
+      "bytes": 7187,
+      "kind": "C-review input snapshots"
+    },
+    {
+      "original_path": "docs/reviews/M4/m4-final-evidence/inputs/docs/validation/M4-miri-native.json",
+      "sha256": "415265cc71cf161fa8d7e6f97e4a197cecd26272b282addd5e0e8ce830c05ef8",
+      "bytes": 71610,
+      "kind": "C-review input snapshots"
+    },
+    {
+      "original_path": "docs/reviews/M4/m4-final-evidence/inputs/docs/validation/M4-miri-native/final/adversarial-receipt.json",
+      "sha256": "9d1be961d4485b4fab23d2b71abfb9eb1835df4272c560c9b5736dd4902ea159",
+      "bytes": 2040,
+      "kind": "C-review input snapshots"
+    },
+    {
+      "original_path": "docs/reviews/M4/m4-final-evidence/inputs/docs/validation/M4-miri-native/final/receipt.json",
+      "sha256": "f454be85813cdf13645befe4972bfafb71958dafc01eefcd1f52b5010021f4bc",
+      "bytes": 16392,
+      "kind": "C-review input snapshots"
+    },
+    {
+      "original_path": "docs/reviews/M4/m4-final-evidence/inputs/docs/validation/M4-miri-task-lifecycle.json",
+      "sha256": "6bc5fce00259c67734df0eedbaae97ebd46f6dc586f1ab99618714a6f1253f71",
+      "bytes": 457,
+      "kind": "C-review input snapshots"
+    },
+    {
+      "original_path": "docs/reviews/M4/m4-final-evidence/inputs/docs/validation/M4-output-canaries.json",
+      "sha256": "897925584bb6bcf6eb27049b78fb7811bf25aaf04adfc43f6b093fd45bd03d46",
+      "bytes": 1374,
+      "kind": "C-review input snapshots"
+    },
+    {
+      "original_path": "docs/reviews/M4/m4-final-evidence/inputs/docs/validation/M4-privacy-runtime.json",
+      "sha256": "6afd69e8e3a76ee6624d9c8bdd090c3302c454f84ae650d4d38ccf2109848bf9",
+      "bytes": 485,
+      "kind": "C-review input snapshots"
+    },
+    {
+      "original_path": "docs/reviews/M4/m4-final-evidence/inputs/docs/validation/M4-runtime-inventory.json",
+      "sha256": "a7706940ecd85add050426beabd96cf914da31a225af0448cb7f70159780211e",
+      "bytes": 15096,
+      "kind": "C-review input snapshots"
+    },
+    {
+      "original_path": "docs/reviews/M4/m4-final-evidence/inputs/docs/validation/M4-runtime.json",
+      "sha256": "b9eb1d1d3489c509f81256370c239453e314cbe7b35856dbcd28d0ccade5490f",
+      "bytes": 87659,
+      "kind": "C-review input snapshots"
+    },
+    {
+      "original_path": "docs/reviews/M4/m4-final-evidence/inputs/docs/validation/M4-rust-security.json",
+      "sha256": "46eb2eb900abab28e06f118fe878c6aeed4bf158b5b5dffcdd10affeccb16bc5",
+      "bytes": 17307,
+      "kind": "C-review input snapshots"
+    },
+    {
+      "original_path": "docs/reviews/M4/m4-final-evidence/inputs/docs/validation/M4-scanner-native.json",
+      "sha256": "604f632b92d1b7a67d4c1f0e8abbaf57d3598103ad09c72bccce9b07208f6b67",
+      "bytes": 70926,
+      "kind": "C-review input snapshots"
+    },
+    {
+      "original_path": "docs/reviews/M4/m4-final-evidence/inputs/docs/validation/M4-scanner-native/final-report.json",
+      "sha256": "42c56f7d3852a52090258d286c34ced70e85dee9f1eb53b1b5f0f3d49d70119a",
+      "bytes": 25456,
+      "kind": "C-review input snapshots"
+    },
+    {
+      "original_path": "docs/reviews/M4/m4-final-evidence/inputs/docs/validation/M4-tampered-plugin.json",
+      "sha256": "751f30aec6fd3a333f134e90033f085331a570edafced84ea90e68e56639b1f0",
+      "bytes": 46179,
+      "kind": "C-review input snapshots"
+    },
+    {
+      "original_path": "docs/reviews/M4/m4-final-evidence/inputs/docs/validation/M4-tools-mcp.json",
+      "sha256": "8339819ee2678b80792f320886b662a8a850069d3cbc392bbaff61efb8455770",
+      "bytes": 102564,
+      "kind": "C-review input snapshots"
+    },
+    {
+      "original_path": "docs/reviews/M4/m4-final-evidence/inputs/fixtures/corpus-sha256.json",
+      "sha256": "1ee1a0b6dea5f15d7404dfdb4a6e337fdc7c00bfe570ef214c8e2e1d894d3486",
+      "bytes": 5159,
+      "kind": "C-review input snapshots"
+    },
+    {
+      "original_path": "docs/reviews/M4/m4-final-evidence/inputs/fixtures/security/rust-containment/checks.rs",
+      "sha256": "a6e9cc117eddf900b4abd66c24159d9d1f784028f7df07a05c6c1b8c4acb4340",
+      "bytes": 13126,
+      "kind": "C-review input snapshots"
+    },
+    {
+      "original_path": "docs/reviews/M4/m4-final-evidence/inputs/scripts/gate.py",
+      "sha256": "6a48718237da8691a52babde137c4a5c9f78feb313e40d892043583ade10b534",
+      "bytes": 11516,
+      "kind": "C-review input snapshots"
+    },
+    {
+      "original_path": "docs/reviews/M4/m4-final-evidence/inputs/scripts/test-m4-clients.py",
+      "sha256": "66dd6931ecd2e61c985b476d3cd468be0b865adf23353093c58ad7e11013357f",
+      "bytes": 27044,
+      "kind": "C-review input snapshots"
+    },
+    {
+      "original_path": "docs/reviews/M4/m4-miri-security/inputs/crates/application/src/miri.rs",
+      "sha256": "cefe7a1081ebe4771b0e282bb76179b1ed771cbf34a78353c7243cc8cd92a6ad",
+      "bytes": 2845,
+      "kind": "C-review input snapshots"
+    },
+    {
+      "original_path": "docs/reviews/M4/m4-miri-security/inputs/crates/domain/src/miri.rs",
+      "sha256": "e844231aabd199588fa19e8e26806ab7adc6e8b545e1a5e0e0b68dd6c59abe00",
+      "bytes": 3430,
+      "kind": "C-review input snapshots"
+    },
+    {
+      "original_path": "docs/reviews/M4/m4-miri-security/inputs/crates/execution-adapter/src/miri_admission.rs",
+      "sha256": "28c212e2c0ab147086c8f6a85345bfacb04f06d47ebe41ebedd1093e9320b6dd",
+      "bytes": 5842,
+      "kind": "C-review input snapshots"
+    },
+    {
+      "original_path": "docs/reviews/M4/m4-miri-security/inputs/crates/execution-adapter/src/miri_log.rs",
+      "sha256": "f3f9f4b097f157006d11746d314bd01804c601066e85def214abdd5fc28b7140",
+      "bytes": 1017,
+      "kind": "C-review input snapshots"
+    },
+    {
+      "original_path": "docs/reviews/M4/m4-miri-security/inputs/crates/execution-adapter/src/miri_native.rs",
+      "sha256": "642f5d10e9b524f41a8520983bcaaf6e33ec025ff3011997945b8de8ae66e12f",
+      "bytes": 10847,
+      "kind": "C-review input snapshots"
+    },
+    {
+      "original_path": "docs/reviews/M4/m4-miri-security/inputs/crates/execution-adapter/src/miri_output.rs",
+      "sha256": "ef21fbb022ce1543a60d808ef5c8e42ce08ad81775d99743951e3747ae528bd2",
+      "bytes": 51521,
+      "kind": "C-review input snapshots"
+    },
+    {
+      "original_path": "docs/reviews/M4/m4-miri-security/inputs/crates/execution-adapter/src/miri_port.rs",
+      "sha256": "59aa3e85de2e183e7a82af871016dea4c829bf1bcee64c0fece29748afcc8c8a",
+      "bytes": 2841,
+      "kind": "C-review input snapshots"
+    },
+    {
+      "original_path": "docs/reviews/M4/m4-miri-security/inputs/crates/execution-adapter/src/rust_applied.rs",
+      "sha256": "fdf5f627e476bf6cd960372e0760765db3057a2e56301cdcdbe07fae8fecb34c",
+      "bytes": 70484,
+      "kind": "C-review input snapshots"
+    },
+    {
+      "original_path": "docs/reviews/M4/m4-miri-security/inputs/crates/execution-adapter/src/security_gateway.rs",
+      "sha256": "592d1b100f0d1f158136c741c1681754db051ea113615ca42bd4409ba9066078",
+      "bytes": 51296,
+      "kind": "C-review input snapshots"
+    },
+    {
+      "original_path": "docs/reviews/M4/m4-miri-security/inputs/crates/execution-adapter/src/security_metadata.rs",
+      "sha256": "5e4a039d0eec6195359eca7a5f6d55e32a408dd0d81a26f64662cc6deee84a00",
+      "bytes": 17171,
+      "kind": "C-review input snapshots"
+    },
+    {
+      "original_path": "docs/reviews/M4/m4-miri-security/inputs/crates/mcp-server/src/stdio/miri.rs",
+      "sha256": "0dbbf5e62e99785c3293a3cc5a674faa554144f3298e4674a623f7b54c98d9da",
+      "bytes": 17565,
+      "kind": "C-review input snapshots"
+    },
+    {
+      "original_path": "docs/reviews/M4/m4-miri-security/inputs/crates/mcp-server/src/stdio/miri/schemas.rs",
+      "sha256": "2047b5c42d71433b331bcb287a9e195d1a39b5b5457fa714acd2d7249fc0c6ae",
+      "bytes": 1800,
+      "kind": "C-review input snapshots"
+    },
+    {
+      "original_path": "docs/reviews/M4/m4-miri-security/inputs/crates/mcp-server/src/stdio/quality_artifacts/security.rs",
+      "sha256": "ef3a53a6407e2ab7d6cace5d40d91db17043dd69765ed27438a21c7d43c72cbd",
+      "bytes": 9684,
+      "kind": "C-review input snapshots"
+    },
+    {
+      "original_path": "docs/reviews/M4/m4-miri-security/inputs/docs/adr/ADR-072-miri-classification-integrity.md",
+      "sha256": "fabeb41bce41995c635acb9ff003cf074b473e924159e46977155895e938d0cd",
+      "bytes": 5476,
+      "kind": "C-review input snapshots"
+    },
+    {
+      "original_path": "docs/reviews/M4/m4-miri-security/inputs/fixtures/m4-runtime-oracles/miri-classification/nextest.toml",
+      "sha256": "621739d9514b0bf15a1dec7372e71d01a132aada67c63d486194166231dd75dc",
+      "bytes": 629,
+      "kind": "C-review input snapshots"
+    },
+    {
+      "original_path": "docs/reviews/M4/m4-scanner-helper-v2/inputs/crates/domain/src/unsafe_scan.rs",
+      "sha256": "04b0b9da7939fbf67f53cb6f247d2b78b9485a62a5ea70c6c834e8829da45c48",
+      "bytes": 5908,
+      "kind": "C-review input snapshots"
+    },
+    {
+      "original_path": "docs/reviews/M4/m4-scanner-helper-v2/inputs/crates/execution-adapter/src/unsafe_scan.rs",
+      "sha256": "e1703314b53eaef3ba187933003390fa3fefdec11583df42bcd01b51eaab407a",
+      "bytes": 34002,
+      "kind": "C-review input snapshots"
+    },
+    {
+      "original_path": "docs/reviews/M4/m4-scanner-helper-v2/inputs/docs/adr/ADR-069-isolated-unsafe-syntax-scanner.md",
+      "sha256": "e831d7b97709aebf5b3397d4541a9410b762ded591dc9e3d6b3af778dbbb9e68",
+      "bytes": 7504,
+      "kind": "C-review input snapshots"
+    },
+    {
+      "original_path": "docs/reviews/M4/m4-scanner-helper-v2/inputs/docs/reviews/m4-scanner-helper/review.md",
+      "sha256": "257e93948700d4d6ac4e53e6aa9984e0196af436a7c3f5f27872bfbd3216e80d",
+      "bytes": 14944,
+      "kind": "C-review input snapshots"
+    },
+    {
+      "original_path": "docs/reviews/M4/m4-scanner-helper-v2/inputs/fixtures/unsafe-scanner-helper/Cargo.lock",
+      "sha256": "e446a33a37eb46ca6d4dd41abf8c4f3ffb0654d744b002c0c99e48e63effb1ad",
+      "bytes": 2711,
+      "kind": "C-review input snapshots"
+    },
+    {
+      "original_path": "docs/reviews/M4/m4-scanner-helper-v2/inputs/fixtures/unsafe-scanner-helper/Cargo.toml",
+      "sha256": "98e0402fad47fc0416f179f89e9533d556785e794d008c2a8c5d31a52b7fb21e",
+      "bytes": 683,
+      "kind": "C-review input snapshots"
+    },
+    {
+      "original_path": "docs/reviews/M4/m4-scanner-helper-v2/inputs/fixtures/unsafe-scanner-helper/README.md",
+      "sha256": "35e447a8bec5afb4cb4c2fa8191b966aabca12d9b7cf1b1f5fd79f1f54ca6f8a",
+      "bytes": 6170,
+      "kind": "C-review input snapshots"
+    },
+    {
+      "original_path": "docs/reviews/M4/m4-scanner-helper-v2/inputs/fixtures/unsafe-scanner-helper/src/lib.rs",
+      "sha256": "0d46cbb68f35d0105eda1103b1b73504f5711fdde96a26da313cfe11fe09598b",
+      "bytes": 49343,
+      "kind": "C-review input snapshots"
+    },
+    {
+      "original_path": "docs/reviews/M4/m4-scanner-helper-v2/inputs/fixtures/unsafe-scanner-helper/src/main.rs",
+      "sha256": "50b2a308888332892871e8813ea1686f5fa2278dd5ab2e5d4703900c89f93675",
+      "bytes": 2228,
+      "kind": "C-review input snapshots"
+    },
+    {
+      "original_path": "docs/reviews/M4/m4-scanner-helper-v3/inputs/crates/domain/src/source.rs",
+      "sha256": "2fbc370dc6be5434bd64e137f5d97284f4faa11cca64164566957f1133e7e7d9",
+      "bytes": 7938,
+      "kind": "C-review input snapshots"
+    },
+    {
+      "original_path": "docs/reviews/M4/m4-scanner-helper-v3/inputs/crates/domain/src/unsafe_scan.rs",
+      "sha256": "9b25a9ea34cf593a111cd69f0579f2dc99e3e0b6d3fbde5ebc9a2a5bdd1cfaad",
+      "bytes": 5912,
+      "kind": "C-review input snapshots"
+    },
+    {
+      "original_path": "docs/reviews/M4/m4-scanner-helper-v3/inputs/crates/execution-adapter/src/security_gateway.rs",
+      "sha256": "aad421cd855ffb7104ef64a1e6588f242b7b51f7e2fc7856c56ab013b547f244",
+      "bytes": 50673,
+      "kind": "C-review input snapshots"
+    },
+    {
+      "original_path": "docs/reviews/M4/m4-scanner-helper-v3/inputs/crates/execution-adapter/src/unsafe_scan.rs",
+      "sha256": "e1703314b53eaef3ba187933003390fa3fefdec11583df42bcd01b51eaab407a",
+      "bytes": 34002,
+      "kind": "C-review input snapshots"
+    },
+    {
+      "original_path": "docs/reviews/M4/m4-scanner-helper-v3/inputs/crates/project-adapter/src/filesystem/macos/source.rs",
+      "sha256": "aebc1b3b3e664b9e3f8c4274c1493f8433c1ab86c5453f2b3c178467c76715b1",
+      "bytes": 24797,
+      "kind": "C-review input snapshots"
+    },
+    {
+      "original_path": "docs/reviews/M4/m4-scanner-helper-v3/inputs/docs/adr/ADR-069-isolated-unsafe-syntax-scanner.md",
+      "sha256": "e831d7b97709aebf5b3397d4541a9410b762ded591dc9e3d6b3af778dbbb9e68",
+      "bytes": 7504,
+      "kind": "C-review input snapshots"
+    },
+    {
+      "original_path": "docs/reviews/M4/m4-scanner-helper-v3/inputs/docs/reviews/m4-scanner-helper-v2/review.md",
+      "sha256": "fdc87fd0e1a6f7d38f7d42dc2d99c579424a772fbc4896fc88c8f34f7b1a34cf",
+      "bytes": 20008,
+      "kind": "C-review input snapshots"
+    },
+    {
+      "original_path": "docs/reviews/M4/m4-scanner-helper-v3/inputs/docs/reviews/m4-scanner-helper/review.md",
+      "sha256": "257e93948700d4d6ac4e53e6aa9984e0196af436a7c3f5f27872bfbd3216e80d",
+      "bytes": 14944,
+      "kind": "C-review input snapshots"
+    },
+    {
+      "original_path": "docs/reviews/M4/m4-scanner-helper-v3/inputs/fixtures/unsafe-scanner-helper/Cargo.lock",
+      "sha256": "e446a33a37eb46ca6d4dd41abf8c4f3ffb0654d744b002c0c99e48e63effb1ad",
+      "bytes": 2711,
+      "kind": "C-review input snapshots"
+    },
+    {
+      "original_path": "docs/reviews/M4/m4-scanner-helper-v3/inputs/fixtures/unsafe-scanner-helper/Cargo.toml",
+      "sha256": "98e0402fad47fc0416f179f89e9533d556785e794d008c2a8c5d31a52b7fb21e",
+      "bytes": 683,
+      "kind": "C-review input snapshots"
+    },
+    {
+      "original_path": "docs/reviews/M4/m4-scanner-helper-v3/inputs/fixtures/unsafe-scanner-helper/README.md",
+      "sha256": "b293c1b8bcf5e17dda0fbc122d00291942117c46f2994f4b534f977d526cfc4e",
+      "bytes": 6337,
+      "kind": "C-review input snapshots"
+    },
+    {
+      "original_path": "docs/reviews/M4/m4-scanner-helper-v3/inputs/fixtures/unsafe-scanner-helper/hostile/generate.py",
+      "sha256": "509d248c4673f7ab75fc0b0e94917bb6d382f98c5b17538bec583fe1e2417473",
+      "bytes": 1949,
+      "kind": "C-review input snapshots"
+    },
+    {
+      "original_path": "docs/reviews/M4/m4-scanner-helper-v3/inputs/fixtures/unsafe-scanner-helper/src/lib.rs",
+      "sha256": "8e5396bfa59d49e764bc77ded67416880ac9308d965a36e179e8b768fc4f85e2",
+      "bytes": 50772,
+      "kind": "C-review input snapshots"
+    },
+    {
+      "original_path": "docs/reviews/M4/m4-scanner-helper-v3/inputs/fixtures/unsafe-scanner-helper/src/main.rs",
+      "sha256": "50b2a308888332892871e8813ea1686f5fa2278dd5ab2e5d4703900c89f93675",
+      "bytes": 2228,
+      "kind": "C-review input snapshots"
+    },
+    {
+      "original_path": "docs/reviews/M4/m4-scanner-helper/inputs/docs/adr/ADR-069-isolated-unsafe-syntax-scanner.md",
+      "sha256": "ea8a4d66415295c6b78a40dd3cd0f470663460173c26e8b0c6d511aff9030c35",
+      "bytes": 5208,
+      "kind": "C-review input snapshots"
+    },
+    {
+      "original_path": "docs/reviews/M4/m4-scanner-helper/inputs/fixtures/unsafe-scanner-helper/Cargo.lock",
+      "sha256": "e446a33a37eb46ca6d4dd41abf8c4f3ffb0654d744b002c0c99e48e63effb1ad",
+      "bytes": 2711,
+      "kind": "C-review input snapshots"
+    },
+    {
+      "original_path": "docs/reviews/M4/m4-scanner-helper/inputs/fixtures/unsafe-scanner-helper/Cargo.toml",
+      "sha256": "6ef99df592733f53b4876667ebe67d7b8152624e0bd874e907080c5dbac959b3",
+      "bytes": 641,
+      "kind": "C-review input snapshots"
+    },
+    {
+      "original_path": "docs/reviews/M4/m4-scanner-helper/inputs/fixtures/unsafe-scanner-helper/README.md",
+      "sha256": "4986c41c3bc3db9f231a41a2bba55848cf33ba81740b607a916254649a56fee5",
+      "bytes": 4868,
+      "kind": "C-review input snapshots"
+    },
+    {
+      "original_path": "docs/reviews/M4/m4-scanner-helper/inputs/fixtures/unsafe-scanner-helper/hostile/generate.py",
+      "sha256": "cc8f21326feae20b675aca490b5bd00a1b3709511900d69367407315a04eb8dc",
+      "bytes": 1637,
+      "kind": "C-review input snapshots"
+    },
+    {
+      "original_path": "docs/reviews/M4/m4-scanner-helper/inputs/fixtures/unsafe-scanner-helper/src/lib.rs",
+      "sha256": "c99e5d763c02382c0d19f9299d57fbad77b24f24b335202d3560016bcfce3bb7",
+      "bytes": 33353,
+      "kind": "C-review input snapshots"
+    },
+    {
+      "original_path": "docs/reviews/M4/m4-scanner-helper/inputs/fixtures/unsafe-scanner-helper/src/main.rs",
+      "sha256": "594fcb05deaf2de4f2c69a270ac5271f07b7361637abb6d913f7ca0a02b85578",
+      "bytes": 2228,
+      "kind": "C-review input snapshots"
+    },
+    {
+      "original_path": "docs/reviews/M4/m4-security-confirmation/inputs/crates/application/src/miri.rs",
+      "sha256": "5556eb596036636bbedc58f3cbab83a5117a37c5cfd4562b15f3a98ecf7834d9",
+      "bytes": 2936,
+      "kind": "C-review input snapshots"
+    },
+    {
+      "original_path": "docs/reviews/M4/m4-security-confirmation/inputs/crates/application/src/security.rs",
+      "sha256": "834f4b60536aca46487069fe2ef7f6155093149e1b981a6bb7854410b56112a0",
+      "bytes": 13210,
+      "kind": "C-review input snapshots"
+    },
+    {
+      "original_path": "docs/reviews/M4/m4-security-confirmation/inputs/crates/domain/src/miri.rs",
+      "sha256": "e844231aabd199588fa19e8e26806ab7adc6e8b545e1a5e0e0b68dd6c59abe00",
+      "bytes": 3430,
+      "kind": "C-review input snapshots"
+    },
+    {
+      "original_path": "docs/reviews/M4/m4-security-confirmation/inputs/crates/domain/src/security.rs",
+      "sha256": "98b21ebded10c80414481f2c1b7ff013e7409ec874b40f79fed2e01eabfe50c8",
+      "bytes": 21921,
+      "kind": "C-review input snapshots"
+    },
+    {
+      "original_path": "docs/reviews/M4/m4-security-confirmation/inputs/crates/execution-adapter/src/deny_json.rs",
+      "sha256": "2c7a5ea1ee8ca7de592a10217266e8dece72924960a75e10f21d20434abda75a",
+      "bytes": 49486,
+      "kind": "C-review input snapshots"
+    },
+    {
+      "original_path": "docs/reviews/M4/m4-security-confirmation/inputs/crates/execution-adapter/src/miri_admission.rs",
+      "sha256": "9b65bec45e60abc81eec6547e7dcbb03a7a29e461a5a776f99dd8f6b0cbd88b4",
+      "bytes": 7700,
+      "kind": "C-review input snapshots"
+    },
+    {
+      "original_path": "docs/reviews/M4/m4-security-confirmation/inputs/crates/execution-adapter/src/miri_log.rs",
+      "sha256": "f3f9f4b097f157006d11746d314bd01804c601066e85def214abdd5fc28b7140",
+      "bytes": 1017,
+      "kind": "C-review input snapshots"
+    },
+    {
+      "original_path": "docs/reviews/M4/m4-security-confirmation/inputs/crates/execution-adapter/src/miri_native.rs",
+      "sha256": "1fa720a4981c88ce399ec4402d46d1541babe7eee282c7ffbdcb0604f3576f20",
+      "bytes": 13497,
+      "kind": "C-review input snapshots"
+    },
+    {
+      "original_path": "docs/reviews/M4/m4-security-confirmation/inputs/crates/execution-adapter/src/miri_output.rs",
+      "sha256": "2fea28fa3468066377a5243cc882d86c9a614c5d9e5ea0de936a097a49c24f7f",
+      "bytes": 57077,
+      "kind": "C-review input snapshots"
+    },
+    {
+      "original_path": "docs/reviews/M4/m4-security-confirmation/inputs/crates/execution-adapter/src/miri_port.rs",
+      "sha256": "9f4fe233b9db005bcfb65c7dea9f48a14f2e71982e86d6d84e710016c820b8d8",
+      "bytes": 2991,
+      "kind": "C-review input snapshots"
+    },
+    {
+      "original_path": "docs/reviews/M4/m4-security-confirmation/inputs/crates/execution-adapter/src/security_gateway.rs",
+      "sha256": "8e3bf671a02a4ce0afadd33f27480da5709f2b807280a21603b2a2873630145d",
+      "bytes": 51795,
+      "kind": "C-review input snapshots"
+    },
+    {
+      "original_path": "docs/reviews/M4/m4-security-confirmation/inputs/crates/execution-adapter/src/security_policy.rs",
+      "sha256": "a64f21b828783b7a958b019330f1d632a9e38c15269f7b4db126dd5eab39e41f",
+      "bytes": 7837,
+      "kind": "C-review input snapshots"
+    },
+    {
+      "original_path": "docs/reviews/M4/m4-security-confirmation/inputs/crates/execution-adapter/src/unsafe_native.rs",
+      "sha256": "e0c2f9f762e864adc6b702f21debcebaac25c819733db6ee920dce483e7a3a27",
+      "bytes": 14534,
+      "kind": "C-review input snapshots"
+    },
+    {
+      "original_path": "docs/reviews/M4/m4-security-confirmation/inputs/crates/execution-adapter/src/unsafe_port.rs",
+      "sha256": "2e2953fc9c891897084cea0662935bc169b68012483a542533cd17d313078d8d",
+      "bytes": 2567,
+      "kind": "C-review input snapshots"
+    },
+    {
+      "original_path": "docs/reviews/M4/m4-security-confirmation/inputs/crates/execution-adapter/src/unsafe_scan.rs",
+      "sha256": "e1703314b53eaef3ba187933003390fa3fefdec11583df42bcd01b51eaab407a",
+      "bytes": 34002,
+      "kind": "C-review input snapshots"
+    },
+    {
+      "original_path": "docs/reviews/M4/m4-security-confirmation/inputs/crates/mcp-server/src/stdio/miri.rs",
+      "sha256": "0dbbf5e62e99785c3293a3cc5a674faa554144f3298e4674a623f7b54c98d9da",
+      "bytes": 17565,
+      "kind": "C-review input snapshots"
+    },
+    {
+      "original_path": "docs/reviews/M4/m4-security-confirmation/inputs/crates/mcp-server/src/stdio/quality_artifacts/security.rs",
+      "sha256": "ef3a53a6407e2ab7d6cace5d40d91db17043dd69765ed27438a21c7d43c72cbd",
+      "bytes": 9684,
+      "kind": "C-review input snapshots"
+    },
+    {
+      "original_path": "docs/reviews/M4/m4-security-confirmation/inputs/crates/mcp-server/src/stdio/security_contract_tests.rs",
+      "sha256": "77638f0af02adf036f5dc1035b5e5ae8d6b5a880ac530d5bdc7adc14af6bf670",
+      "bytes": 29689,
+      "kind": "C-review input snapshots"
+    },
+    {
+      "original_path": "docs/reviews/M4/m4-security-confirmation/inputs/crates/project-adapter/src/filesystem/macos/source.rs",
+      "sha256": "aebc1b3b3e664b9e3f8c4274c1493f8433c1ab86c5453f2b3c178467c76715b1",
+      "bytes": 24797,
+      "kind": "C-review input snapshots"
+    },
+    {
+      "original_path": "docs/reviews/M4/m4-security-confirmation/inputs/docs/adr/ADR-067-security-policy-and-quality-contracts.md",
+      "sha256": "90766ae247f6bccc04f569e1a071c00f5ab0ffd9a84deea7cdf1af0c26250d92",
+      "bytes": 16828,
+      "kind": "C-review input snapshots"
+    },
+    {
+      "original_path": "docs/reviews/M4/m4-security-confirmation/inputs/docs/adr/ADR-068-m4-runtime-admission.md",
+      "sha256": "726352d190fcbad82de5f1791e71c12ccc59e2ae8b9bb47c6e3f2dc01ed7387f",
+      "bytes": 3929,
+      "kind": "C-review input snapshots"
+    },
+    {
+      "original_path": "docs/reviews/M4/m4-security-confirmation/inputs/docs/adr/ADR-069-isolated-unsafe-syntax-scanner.md",
+      "sha256": "66f527b970532587711cc93c696343193fcac4ac6b2afa216100098ffbfda1f4",
+      "bytes": 8940,
+      "kind": "C-review input snapshots"
+    },
+    {
+      "original_path": "docs/reviews/M4/m4-security-confirmation/inputs/docs/adr/ADR-072-miri-classification-integrity.md",
+      "sha256": "cd8015203a31651a61bfa658f45bb6973fd38e69ea541b6a4a84523c3ed0586f",
+      "bytes": 7780,
+      "kind": "C-review input snapshots"
+    },
+    {
+      "original_path": "docs/reviews/M4/m4-security-confirmation/inputs/docs/reviews/m4-miri-security/review.md",
+      "sha256": "181f49e6d72ccfd76b04e1236ec790306b37adb72272616e7152c088cf646bca",
+      "bytes": 22863,
+      "kind": "C-review input snapshots"
+    },
+    {
+      "original_path": "docs/reviews/M4/m4-security-confirmation/inputs/docs/reviews/m4-scanner-helper-v3/review.md",
+      "sha256": "cc47beb45467f99f612bd3f9fc6f3b5872d47b36b84164262604aade5b60fa58",
+      "bytes": 15276,
+      "kind": "C-review input snapshots"
+    },
+    {
+      "original_path": "docs/reviews/M4/m4-security-confirmation/inputs/docs/validation/M4-miri-native.json",
+      "sha256": "49bc40d2e963da418172e694fcd12ef73b66c2d5ab6d725f4ac719c8f61566be",
+      "bytes": 10144,
+      "kind": "C-review input snapshots"
+    },
+    {
+      "original_path": "docs/reviews/M4/m4-security-confirmation/inputs/docs/validation/M4-miri-native/adversarial-receipt.json",
+      "sha256": "6a10d5675dec5208ea601287a81ea64a81a3aa405db977ffc415b12a86833c48",
+      "bytes": 2040,
+      "kind": "C-review input snapshots"
+    },
+    {
+      "original_path": "docs/reviews/M4/m4-security-confirmation/inputs/docs/validation/M4-miri-native/receipt.json",
+      "sha256": "6d4888a8dc3386c8e6a485a31481a4f5ebafb7f88d1289040c1d0a94125fc797",
+      "bytes": 15115,
+      "kind": "C-review input snapshots"
+    },
+    {
+      "original_path": "docs/reviews/M4/m4-security-confirmation/inputs/docs/validation/M4-scanner-native.json",
+      "sha256": "c44fa663de61a34a39028deffbc7918aeb23ea7c8181b881bbaaae32a3828b1d",
+      "bytes": 2325,
+      "kind": "C-review input snapshots"
+    },
+    {
+      "original_path": "docs/reviews/M4/m4-security-confirmation/inputs/docs/validation/M4-scanner-native/oracles.json",
+      "sha256": "c30685ef7c959cf0bb34469ffc8b4b68f9a1f722188c93bfbe431e9fa886386e",
+      "bytes": 25456,
+      "kind": "C-review input snapshots"
+    },
+    {
+      "original_path": "docs/reviews/M4/m4-security-confirmation/inputs/fixtures/unsafe-scanner-helper/src/lib.rs",
+      "sha256": "8e5396bfa59d49e764bc77ded67416880ac9308d965a36e179e8b768fc4f85e2",
+      "bytes": 50772,
+      "kind": "C-review input snapshots"
+    },
+    {
+      "original_path": "docs/reviews/M4/m4-security-confirmation/inputs/fixtures/unsafe-scanner-helper/src/main.rs",
+      "sha256": "50b2a308888332892871e8813ea1686f5fa2278dd5ab2e5d4703900c89f93675",
+      "bytes": 2228,
+      "kind": "C-review input snapshots"
+    }
+  ],
+  "retired_groups": [
+    {
+      "kind": "C-review input snapshots",
+      "reason": "review input snapshots: copies of files that already exist in Git at the reviewed commit; inputs.json keeps their hashes",
+      "files": 195,
+      "bytes": 5002340,
+      "aggregate_sha256": "60b6272d8b82d6bc170ccba405a9365c3ad3a982e1f679c9f4bdfff7de80e065",
+      "aggregate_rule": "sha256 over the sorted lines \"<sha256>  <original_path>\\n\"",
+      "last_commit_with_bytes": "ae5cbb6f417876ae01a00f2b578d15586b2be31a",
+      "retired_at": "2026-09-11T17:41:44.929960+00:00"
+    }
+  ]
+}

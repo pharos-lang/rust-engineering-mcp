@@ -121,13 +121,13 @@ verificar sus bytes no lo convierte en confiable fuera del sandbox.
 
 ## Evidence and primary sources
 
-- [Probe directory source](../validation/M2-D05-vendor-qualification.md) y
-  [comparación resumida](../validation/M2-D05-vendor-summary.json).
-- [Probe local registry](../validation/M2-D05-offline-registry-qualification.md).
+- [Probe directory source](../validation/M2/D05-vendor-qualification.md) y
+  [comparación resumida](../validation/M2/D05-vendor-summary.json).
+- [Probe local registry](../validation/M2/D05-offline-registry-qualification.md).
 - [Cargo vendor oficial](https://doc.rust-lang.org/cargo/commands/cargo-vendor.html).
 - [Cargo source replacement](https://doc.rust-lang.org/cargo/reference/source-replacement.html).
 
 ## Status
 
 Accepted. M2-04/05, captura nativa, gateway, límites y publicación conjunta
-calificados en [M2](../validation/M2-07.md).
+calificados en [M2](../validation/M2/07.md).

@@ -176,7 +176,7 @@ Primera calificación nativa: macOS 26 ARM64/APFS; otros hosts rechazan antes de
 El límite de 256 KiB del editor se aplica a manifests antes del límite general 1 MiB.
 
 Accepted por el Technical Owner para M2. M2-01/02 calificados en `331d163`;
-la ampliación M2 y su gate final se registran en docs/validation/M2-matrix.md.
+la ampliación M2 y su gate final se registran en docs/validation/M2/matrix.md.
 
 ADR-059 precisa la retención: los planes terminales se retiran de resolve y la
 próxima admisión libera sus buffers. El TTL gobierna efectos nuevos; replay de un

@@ -47,7 +47,7 @@ y fixtures independientes sin anunciar mutaciones implementadas.
 Superseded by ADR-050 para la decisión de frontera. La evidencia negativa nativa
 se conserva como histórica y válida.
 
-Evidencia nativa obtenida: [probe](../validation/m2-d02-native-probe.json), No-go
+Evidencia nativa obtenida: [probe](../validation/M2/d02-native-probe.json), No-go
 del candidato, sin calificar el writer. La decisión del owner sigue pendiente.
 Fuente Apple de leases inspeccionada el 2026-09-05:
 [vfs_subr.c, autorización y EPERM](https://github.com/apple-oss-distributions/xnu/blob/xnu-12377.121.6/bsd/vfs/vfs_subr.c#L12989-L13002)

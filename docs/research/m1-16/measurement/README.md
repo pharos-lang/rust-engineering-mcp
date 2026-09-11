@@ -8,3 +8,10 @@ The chronological protocol text was frozen in that commit. All 24 runs and their
 oracles completed without a replay; see the [measured report](REPORT.md) and
 immutable-by-hash copies under `results/`. Do not reuse run directories or silently
 revise this freeze; replays need separate labels and prospective approval.
+
+Repository hygiene (2026-09-11): the raw per-run capture under `results/raw/`
+was retired from the tree. [`inventory.json`](inventory.json) records every
+retired file with its SHA-256 at retirement, the hash recorded by
+`results/SHA256SUMS.json` at measurement time, and the commit that still
+carries the bytes; the report, freeze, configuration, analysis and review
+packet stay in place.

@@ -1,0 +1,1606 @@
+{
+  "schema": "rust-mcp-evidence-history-inventory-v1",
+  "milestone": "M2",
+  "recorded_at": "2026-09-11T17:42:09.012883+00:00",
+  "source_commit": "08857cc01dc058add53a72d138c68ef6de7af6dd",
+  "purpose": "Superseded or failed evidence kept next to the current receipts of this milestone. Bytes are moved with git mv, never edited: each entry records the pre-hygiene path, SHA-256 and size. Retired entries were removed from the tree after their hash was recorded; their bytes remain reachable in Git history at source_commit. Entries marked living are prose kept next to the receipts; they are verified by presence only.",
+  "retained": [
+    {
+      "path": "pre-059/README.md",
+      "original_path": "docs/validation/m2-pre-059/README.md",
+      "sha256": "750e460702c0022035bb81444324714499ee888a0d358d67e50d16a8875b2bc5",
+      "bytes": 530,
+      "reason": "Snapshot of the M2 full/runtime evidence captured before ADR-059; superseded by the re-run gate on the corrected source (docs/validation/M2/full-gate.json).",
+      "living": true
+    }
+  ],
+  "retired": [
+    {
+      "original_path": "docs/validation/M2/history/full-attempt1.json",
+      "sha256": "82b93af1a33edd0c68d5f5fb3470b563af32d1a73eee0ce40926bb77022e0c2b",
+      "bytes": 139488,
+      "kind": "A-superseded receipts and failed-attempt logs"
+    },
+    {
+      "original_path": "docs/validation/M2/history/full-attempt2.json",
+      "sha256": "c4b9e21a8632ccd6ac6007a87e28634351fba708f468b59bcae2fed278a10064",
+      "bytes": 142945,
+      "kind": "A-superseded receipts and failed-attempt logs"
+    },
+    {
+      "original_path": "docs/validation/M2/history/pre-059/M2-client-binary.json",
+      "sha256": "9fedf136eabb4e14840d134c09b32db937dc166f75fad0c8921cec2a4f0d2e36",
+      "bytes": 706,
+      "kind": "A-superseded receipts and failed-attempt logs"
+    },
+    {
+      "original_path": "docs/validation/M2/history/pre-059/M2-final-runtime.json",
+      "sha256": "5a617b604fc3dd7a5a8f269acc23cc1d426484affcffb866b2f63588ddbf24a6",
+      "bytes": 43613,
+      "kind": "A-superseded receipts and failed-attempt logs"
+    },
+    {
+      "original_path": "docs/validation/M2/history/pre-059/M2-full-gate.json",
+      "sha256": "2c58c6fe1c28f34bc603edda9b22336aa19c0d68b6d645913f96b6837127d9e1",
+      "bytes": 160417,
+      "kind": "A-superseded receipts and failed-attempt logs"
+    },
+    {
+      "original_path": "docs/validation/M2/history/pre-059/m2-final-gate/doctor-security/active.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0,
+      "kind": "A-superseded receipts and failed-attempt logs"
+    },
+    {
+      "original_path": "docs/validation/M2/history/pre-059/m2-final-gate/doctor-security/active.stdout.log",
+      "sha256": "42c25e97ab41a7ed74a95e3439f004748b20c40ed711300707036992b4bbf747",
+      "bytes": 3792,
+      "kind": "A-superseded receipts and failed-attempt logs"
+    },
+    {
+      "original_path": "docs/validation/M2/history/pre-059/m2-final-gate/doctor-security/build.stderr.log",
+      "sha256": "e2c936c422a75a8232b186225de44dce8286739afbbbc4b0062b8067eb573154",
+      "bytes": 172,
+      "kind": "A-superseded receipts and failed-attempt logs"
+    },
+    {
+      "original_path": "docs/validation/M2/history/pre-059/m2-final-gate/doctor-security/build.stdout.log",
+      "sha256": "956033039c4005a1d0b6db503b185833bd196e92876a230881b1699ca16d63ea",
+      "bytes": 200408,
+      "kind": "A-superseded receipts and failed-attempt logs"
+    },
+    {
+      "original_path": "docs/validation/M2/history/pre-059/m2-final-gate/doctor-security/cancelled-sighup.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0,
+      "kind": "A-superseded receipts and failed-attempt logs"
+    },
+    {
+      "original_path": "docs/validation/M2/history/pre-059/m2-final-gate/doctor-security/cancelled-sighup.stdout.log",
+      "sha256": "b00eef1dcd6ac7f2435e9df346a0fc5121895c8d847eb172fd051cacda826a7f",
+      "bytes": 2869,
+      "kind": "A-superseded receipts and failed-attempt logs"
+    },
+    {
+      "original_path": "docs/validation/M2/history/pre-059/m2-final-gate/doctor-security/cancelled-sigint.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0,
+      "kind": "A-superseded receipts and failed-attempt logs"
+    },
+    {
+      "original_path": "docs/validation/M2/history/pre-059/m2-final-gate/doctor-security/cancelled-sigint.stdout.log",
+      "sha256": "55b4df7dfe164ee42cd4d3d0d82eabc7d6ba92e9eaa27dc5315cb973bb6b5f3a",
+      "bytes": 2868,
+      "kind": "A-superseded receipts and failed-attempt logs"
+    },
+    {
+      "original_path": "docs/validation/M2/history/pre-059/m2-final-gate/doctor-security/cancelled-sigterm.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0,
+      "kind": "A-superseded receipts and failed-attempt logs"
+    },
+    {
+      "original_path": "docs/validation/M2/history/pre-059/m2-final-gate/doctor-security/cancelled-sigterm.stdout.log",
+      "sha256": "e9ebab8e1cf60e77a710ad87507a1faa9d8e6d52455bed253c10dc8729b32953",
+      "bytes": 2869,
+      "kind": "A-superseded receipts and failed-attempt logs"
+    },
+    {
+      "original_path": "docs/validation/M2/history/pre-059/m2-final-gate/doctor-security/ordinary.stderr.log",
+      "sha256": "22222e3c75960009002900559332ee03c323465188599e87caa79ced8bb1f62c",
+      "bytes": 246,
+      "kind": "A-superseded receipts and failed-attempt logs"
+    },
+    {
+      "original_path": "docs/validation/M2/history/pre-059/m2-final-gate/doctor-security/ordinary.stdout.log",
+      "sha256": "113f3aab0d4a21e81a82dca2346ef4270f31cb71163be273cf32134fe35680bb",
+      "bytes": 357,
+      "kind": "A-superseded receipts and failed-attempt logs"
+    },
+    {
+      "original_path": "docs/validation/M2/history/pre-059/m2-final-gate/doctor-security/stdout-deadline.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0,
+      "kind": "A-superseded receipts and failed-attempt logs"
+    },
+    {
+      "original_path": "docs/validation/M2/history/pre-059/m2-final-gate/doctor-security/stdout-sigint.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0,
+      "kind": "A-superseded receipts and failed-attempt logs"
+    },
+    {
+      "original_path": "docs/validation/M2/history/pre-059/m2-final-gate/full.log",
+      "sha256": "08d3693520d7dea63e031aa881595ca2df2f9fafd531453b2808e033dc6b7f0a",
+      "bytes": 173572,
+      "kind": "A-superseded receipts and failed-attempt logs"
+    },
+    {
+      "original_path": "docs/validation/M2/history/pre-059/m2-final-gate/m2-runtime/0.log",
+      "sha256": "9bb627e3a23e10be30d618ae48dab28634abe81e0855626c4918f2db432e5d5d",
+      "bytes": 383,
+      "kind": "A-superseded receipts and failed-attempt logs"
+    },
+    {
+      "original_path": "docs/validation/M2/history/pre-059/m2-final-gate/m2-runtime/1.log",
+      "sha256": "647f9dc3e8568629e4a3db70d61defc4d4fa1d8d1a2c678d7e102e060226fcb0",
+      "bytes": 394,
+      "kind": "A-superseded receipts and failed-attempt logs"
+    },
+    {
+      "original_path": "docs/validation/M2/history/pre-059/m2-final-gate/m2-runtime/2.log",
+      "sha256": "0d47c8123c929bfe461cc1a411e8fc5b670e729c5235fe20c9534e0159737f02",
+      "bytes": 384,
+      "kind": "A-superseded receipts and failed-attempt logs"
+    },
+    {
+      "original_path": "docs/validation/M2/history/pre-059/m2-final-gate/m2-runtime/3.log",
+      "sha256": "f6f146c5f8f5201c10db7526654378c93ecc7aea31e799ac28f44e247b8fbd72",
+      "bytes": 374,
+      "kind": "A-superseded receipts and failed-attempt logs"
+    },
+    {
+      "original_path": "docs/validation/M2/history/pre-059/m2-final-gate/m2-runtime/4.log",
+      "sha256": "2e75b00a90b97aa4cdb3cc7bd0fc1a6cab385e1e63a1300ea7c90400ae87ee60",
+      "bytes": 498,
+      "kind": "A-superseded receipts and failed-attempt logs"
+    },
+    {
+      "original_path": "docs/validation/M2/history/pre-059/m2-final-gate/m2-runtime/5.log",
+      "sha256": "878c500521fc777c4e218ee2e5ca455d23d77e62b2c739e5c78b315a1947fa3b",
+      "bytes": 888,
+      "kind": "A-superseded receipts and failed-attempt logs"
+    },
+    {
+      "original_path": "docs/validation/M2/history/pre-059/m2-final-gate/m2-runtime/6.log",
+      "sha256": "150f70cdfb8f7b4e4c7978b8e65bc0833c63a9681043a14e42da91973da3f731",
+      "bytes": 503,
+      "kind": "A-superseded receipts and failed-attempt logs"
+    },
+    {
+      "original_path": "docs/validation/M2/history/pre-059/m2-final-gate/m2-runtime/7.log",
+      "sha256": "dd8dd1a349306494bcbcb0a6234bb1b86dca64088660022b7ce04886a3a2f31d",
+      "bytes": 635,
+      "kind": "A-superseded receipts and failed-attempt logs"
+    },
+    {
+      "original_path": "docs/validation/M2/history/pre-059/m2-final-gate/m2-runtime/8.log",
+      "sha256": "32def53d0fce0254a6d2efa680b8bd284dadfda2ca7969a743d7a5bff79901e5",
+      "bytes": 716,
+      "kind": "A-superseded receipts and failed-attempt logs"
+    },
+    {
+      "original_path": "docs/validation/M2/history/pre-059/m2-final-gate/rust-security/0.log",
+      "sha256": "88c0030be687b06d550a9449484869aa9f7405961aeb34f392ee201453e6855a",
+      "bytes": 2431,
+      "kind": "A-superseded receipts and failed-attempt logs"
+    },
+    {
+      "original_path": "docs/validation/M2/history/pre-059/m2-final-gate/rust-security/1.log",
+      "sha256": "0beb1ed732956e472e4a9bfb88652481fd29d8927af1f305cb787db2e624dc7c",
+      "bytes": 28960,
+      "kind": "A-superseded receipts and failed-attempt logs"
+    },
+    {
+      "original_path": "docs/validation/M2/history/pre-059/m2-final-gate/rust-security/10.log",
+      "sha256": "f970fdd7333b62a7c7ad980b2a237c3973d0685d1283210dc02b331869d09f9a",
+      "bytes": 1355,
+      "kind": "A-superseded receipts and failed-attempt logs"
+    },
+    {
+      "original_path": "docs/validation/M2/history/pre-059/m2-final-gate/rust-security/11.log",
+      "sha256": "ddeee85813e5817222e43e009eb5e3083a164ce3f2825fb50e353f948fcd3565",
+      "bytes": 660,
+      "kind": "A-superseded receipts and failed-attempt logs"
+    },
+    {
+      "original_path": "docs/validation/M2/history/pre-059/m2-final-gate/rust-security/12.log",
+      "sha256": "11de24779eca539491a04c6ee3a1b4a34b36b5abc5895bf3af7f1b3817d75b99",
+      "bytes": 5181,
+      "kind": "A-superseded receipts and failed-attempt logs"
+    },
+    {
+      "original_path": "docs/validation/M2/history/pre-059/m2-final-gate/rust-security/13.log",
+      "sha256": "bbb722030ce3a00b2c1033da6ea35aec04a5ec82115763c1e2c3c1f333d9353d",
+      "bytes": 886,
+      "kind": "A-superseded receipts and failed-attempt logs"
+    },
+    {
+      "original_path": "docs/validation/M2/history/pre-059/m2-final-gate/rust-security/14.log",
+      "sha256": "82bee8c23589acd17f6e855bc47edcc085f5504a74ca62616c5f217b0ffae8f9",
+      "bytes": 2365,
+      "kind": "A-superseded receipts and failed-attempt logs"
+    },
+    {
+      "original_path": "docs/validation/M2/history/pre-059/m2-final-gate/rust-security/15.log",
+      "sha256": "431e869ea3b4be6f2e0b2be3cb212c61080c4ec0d9560cb0717dab60fd3b65ca",
+      "bytes": 1300,
+      "kind": "A-superseded receipts and failed-attempt logs"
+    },
+    {
+      "original_path": "docs/validation/M2/history/pre-059/m2-final-gate/rust-security/16.log",
+      "sha256": "3d9e4314c8bdf585b0afbb1340c4803b40d62e38fcb5634ddf8d808ab8c476e5",
+      "bytes": 969,
+      "kind": "A-superseded receipts and failed-attempt logs"
+    },
+    {
+      "original_path": "docs/validation/M2/history/pre-059/m2-final-gate/rust-security/17.log",
+      "sha256": "b044de2f3691a94953ec1bf7bc4581f72d4f983d2610fff60dbfc33a6e272a63",
+      "bytes": 803,
+      "kind": "A-superseded receipts and failed-attempt logs"
+    },
+    {
+      "original_path": "docs/validation/M2/history/pre-059/m2-final-gate/rust-security/18.log",
+      "sha256": "49afc11ffa4acab3698eb9c1f0441ea08872d0cf54572d7a7ce8d1d2c44e3540",
+      "bytes": 888,
+      "kind": "A-superseded receipts and failed-attempt logs"
+    },
+    {
+      "original_path": "docs/validation/M2/history/pre-059/m2-final-gate/rust-security/19.log",
+      "sha256": "55ce5169ca384d1d857735ed1705fa74570e3328634d5701f5dff01fdca50e39",
+      "bytes": 678,
+      "kind": "A-superseded receipts and failed-attempt logs"
+    },
+    {
+      "original_path": "docs/validation/M2/history/pre-059/m2-final-gate/rust-security/2.log",
+      "sha256": "007924e3ad22b95bbaea3e815559824c753ddb949db670aaf5e3d2f77b4f9c14",
+      "bytes": 6248,
+      "kind": "A-superseded receipts and failed-attempt logs"
+    },
+    {
+      "original_path": "docs/validation/M2/history/pre-059/m2-final-gate/rust-security/3.log",
+      "sha256": "f3b9157f8461e95f283d9d771fa307feaf102e6577fab9a2e947a8272acda905",
+      "bytes": 375,
+      "kind": "A-superseded receipts and failed-attempt logs"
+    },
+    {
+      "original_path": "docs/validation/M2/history/pre-059/m2-final-gate/rust-security/4.log",
+      "sha256": "daddd046e41a6697edb5f0a49010bd5cae8e7f71c5524bfd127bcc70cbd09f65",
+      "bytes": 1331,
+      "kind": "A-superseded receipts and failed-attempt logs"
+    },
+    {
+      "original_path": "docs/validation/M2/history/pre-059/m2-final-gate/rust-security/5.log",
+      "sha256": "0b453de44b7adfb10237931a71280054b55cbe95f52ed15a68b2176cb869e02c",
+      "bytes": 661,
+      "kind": "A-superseded receipts and failed-attempt logs"
+    },
+    {
+      "original_path": "docs/validation/M2/history/pre-059/m2-final-gate/rust-security/6.log",
+      "sha256": "54beff85473e23b345aae73a2f4af8a096a943b789ac146c9473ecdaa59d91bb",
+      "bytes": 1314,
+      "kind": "A-superseded receipts and failed-attempt logs"
+    },
+    {
+      "original_path": "docs/validation/M2/history/pre-059/m2-final-gate/rust-security/7.log",
+      "sha256": "bc38055ce9dd0e65fe8138c89e12536d0d3941a5e4a5b2229799ab9283556424",
+      "bytes": 1405,
+      "kind": "A-superseded receipts and failed-attempt logs"
+    },
+    {
+      "original_path": "docs/validation/M2/history/pre-059/m2-final-gate/rust-security/8.log",
+      "sha256": "3d5cc1a859c4e438d60c8383cb7fde362d2fa4c48e11edff4a3c96affa5db2c6",
+      "bytes": 1255,
+      "kind": "A-superseded receipts and failed-attempt logs"
+    },
+    {
+      "original_path": "docs/validation/M2/history/pre-059/m2-final-gate/rust-security/9.log",
+      "sha256": "24f82ccf84bd8515158e08483fd9ec5b99359fe62bd6b8956e05f4ca25951afd",
+      "bytes": 25806,
+      "kind": "A-superseded receipts and failed-attempt logs"
+    },
+    {
+      "original_path": "docs/validation/M2/history/pre-059/m2-final-runtime/0.log",
+      "sha256": "9bb627e3a23e10be30d618ae48dab28634abe81e0855626c4918f2db432e5d5d",
+      "bytes": 383,
+      "kind": "A-superseded receipts and failed-attempt logs"
+    },
+    {
+      "original_path": "docs/validation/M2/history/pre-059/m2-final-runtime/1.log",
+      "sha256": "647f9dc3e8568629e4a3db70d61defc4d4fa1d8d1a2c678d7e102e060226fcb0",
+      "bytes": 394,
+      "kind": "A-superseded receipts and failed-attempt logs"
+    },
+    {
+      "original_path": "docs/validation/M2/history/pre-059/m2-final-runtime/2.log",
+      "sha256": "0d47c8123c929bfe461cc1a411e8fc5b670e729c5235fe20c9534e0159737f02",
+      "bytes": 384,
+      "kind": "A-superseded receipts and failed-attempt logs"
+    },
+    {
+      "original_path": "docs/validation/M2/history/pre-059/m2-final-runtime/3.log",
+      "sha256": "f6f146c5f8f5201c10db7526654378c93ecc7aea31e799ac28f44e247b8fbd72",
+      "bytes": 374,
+      "kind": "A-superseded receipts and failed-attempt logs"
+    },
+    {
+      "original_path": "docs/validation/M2/history/pre-059/m2-final-runtime/4.log",
+      "sha256": "2e75b00a90b97aa4cdb3cc7bd0fc1a6cab385e1e63a1300ea7c90400ae87ee60",
+      "bytes": 498,
+      "kind": "A-superseded receipts and failed-attempt logs"
+    },
+    {
+      "original_path": "docs/validation/M2/history/pre-059/m2-final-runtime/5.log",
+      "sha256": "878c500521fc777c4e218ee2e5ca455d23d77e62b2c739e5c78b315a1947fa3b",
+      "bytes": 888,
+      "kind": "A-superseded receipts and failed-attempt logs"
+    },
+    {
+      "original_path": "docs/validation/M2/history/pre-059/m2-final-runtime/6.log",
+      "sha256": "150f70cdfb8f7b4e4c7978b8e65bc0833c63a9681043a14e42da91973da3f731",
+      "bytes": 503,
+      "kind": "A-superseded receipts and failed-attempt logs"
+    },
+    {
+      "original_path": "docs/validation/M2/history/pre-059/m2-final-runtime/7.log",
+      "sha256": "dd8dd1a349306494bcbcb0a6234bb1b86dca64088660022b7ce04886a3a2f31d",
+      "bytes": 635,
+      "kind": "A-superseded receipts and failed-attempt logs"
+    },
+    {
+      "original_path": "docs/validation/M2/history/pre-059/m2-final-runtime/8.log",
+      "sha256": "32def53d0fce0254a6d2efa680b8bd284dadfda2ca7969a743d7a5bff79901e5",
+      "bytes": 716,
+      "kind": "A-superseded receipts and failed-attempt logs"
+    },
+    {
+      "original_path": "docs/validation/M2/history/pre-059/preservation.json",
+      "sha256": "eb355cbf748e3c11dd03a3b98bb8ffb0e72ff163f2dd4a75aac6acb3b3a72c44",
+      "bytes": 1063,
+      "kind": "A-superseded receipts and failed-attempt logs"
+    },
+    {
+      "original_path": "docs/validation/M2/history/pre-059/M2-final-log-inventory.json",
+      "sha256": "f471985aec75f9bce73e89bad342804e597f68ec40e256db5738dc4c41e6824a",
+      "bytes": 8704,
+      "kind": "A-superseded",
+      "superseded_reason": "pre-hygiene inventory of receipts that are now listed here; redundant"
+    },
+    {
+      "original_path": "docs/validation/M2/clients/attempt-1/M2-clients.json",
+      "sha256": "2652574f9bb4bf33e8134a86eab94ba4001aadb94f6262ddb28d9307d8bccff1",
+      "bytes": 2644,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M2/clients/attempt-1/inspector-deny-1.json",
+      "sha256": "692d3093d8738ab424a403924e8a6d9fc392ee0b14bcca6c2a40a8783295c2ce",
+      "bytes": 1648,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M2/clients/attempt-1/inspector-deny-1.stderr",
+      "sha256": "e36cfad623754014b89cb1987f7ec106f6e2c4653de7414d5ead14142f005f81",
+      "bytes": 1931,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M2/clients/attempt-1/inspector-deny-1.stdout",
+      "sha256": "42311e2beec657951f63fc9204496e87b29c6d6858d9e44eb991bb5fbf05014d",
+      "bytes": 1359,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M2/clients/attempt-1/inspector-discovery.json",
+      "sha256": "31e030052cb8670e6ec8a0136e529b1f02b47f8e81122a26156c8ebcaa6592fd",
+      "bytes": 1251,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M2/clients/attempt-1/inspector-discovery.stderr",
+      "sha256": "0e1c383e57c44caf46802d07da00a46f6bb66eb6156590d3e9d5ae80f25eef54",
+      "bytes": 76524,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M2/clients/attempt-1/inspector-discovery.stdout",
+      "sha256": "9bf8268624ead5dc514729f235764ee2f76dc127d03422c0b712d257ed56e516",
+      "bytes": 261739,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M2/clients/attempt-1/inspector-open.json",
+      "sha256": "047e066a87ed6ffbd174cd91cb5e4a9656cb446a764845b50fa63b660b04c271",
+      "bytes": 1404,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M2/clients/attempt-1/inspector-open.stderr",
+      "sha256": "847b6d06095ddbd390cec3b9d26a7015d61e300cd29458b338a653faa69bcc8a",
+      "bytes": 358,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M2/clients/attempt-1/inspector-open.stdout",
+      "sha256": "a18f051dd5dd10daeb611cb612bae051d93582503b2681bc2d5001c39c0c792b",
+      "bytes": 1276,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M2/clients/attempt-2/M2-clients.json",
+      "sha256": "33f04f43f3582ae531e80b880672c729ea2472bc2c25cb4587fb86d1728cbbbc",
+      "bytes": 5774,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M2/clients/attempt-2/claude-model-session.json",
+      "sha256": "dc2e024291f3afc9be3f1a234dd0a034d73d4c83f2ee3f2674a1cbd0012c155f",
+      "bytes": 3091,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M2/clients/attempt-2/claude-model-session.stderr",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M2/clients/attempt-2/claude-model-session.stdout",
+      "sha256": "504e51aa5c73d4ab0d81f9a68dc27edbd0ea511c1b59ed79154e3c71a315ce9e",
+      "bytes": 121397,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M2/clients/attempt-2/inspector-deny-1.json",
+      "sha256": "e71e73074b16c23a77313d3780a5757ffcaa3c8e44ea4bb7c8654355a7b1c2bb",
+      "bytes": 1648,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M2/clients/attempt-2/inspector-deny-1.stderr",
+      "sha256": "e36cfad623754014b89cb1987f7ec106f6e2c4653de7414d5ead14142f005f81",
+      "bytes": 1931,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M2/clients/attempt-2/inspector-deny-1.stdout",
+      "sha256": "42311e2beec657951f63fc9204496e87b29c6d6858d9e44eb991bb5fbf05014d",
+      "bytes": 1359,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M2/clients/attempt-2/inspector-deny-2.json",
+      "sha256": "832453357415daf208e5e03226d77b4a85b6146180f776649b0adbd2f4189756",
+      "bytes": 1503,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M2/clients/attempt-2/inspector-deny-2.stderr",
+      "sha256": "1348e4d64127d36c3716e14813db377991acd6d18dc0e27c4d141e270e2edeca",
+      "bytes": 1921,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M2/clients/attempt-2/inspector-deny-2.stdout",
+      "sha256": "42311e2beec657951f63fc9204496e87b29c6d6858d9e44eb991bb5fbf05014d",
+      "bytes": 1359,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M2/clients/attempt-2/inspector-deny-3.json",
+      "sha256": "73aa902d18ea17f3f9c725a1cf90168ffb6a4b1dae595532ea3f42f3a74b204c",
+      "bytes": 1504,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M2/clients/attempt-2/inspector-deny-3.stderr",
+      "sha256": "329d0ad8fa6c72b18ff34b41dc10e6d4c51cd02ff1a3d4ac66961b7acba8ddc8",
+      "bytes": 1921,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M2/clients/attempt-2/inspector-deny-3.stdout",
+      "sha256": "42311e2beec657951f63fc9204496e87b29c6d6858d9e44eb991bb5fbf05014d",
+      "bytes": 1359,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M2/clients/attempt-2/inspector-deny-4.json",
+      "sha256": "ebceb77a2c81aa7ce791a8fefefb8cf22a67d2f003003cc8356eb6f6015b6941",
+      "bytes": 1556,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M2/clients/attempt-2/inspector-deny-4.stderr",
+      "sha256": "e0668ba61610d8694612ef3b60da029bc2951787311fdbec25f4dd5f0c1f47ef",
+      "bytes": 1931,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M2/clients/attempt-2/inspector-deny-4.stdout",
+      "sha256": "42311e2beec657951f63fc9204496e87b29c6d6858d9e44eb991bb5fbf05014d",
+      "bytes": 1359,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M2/clients/attempt-2/inspector-deny-5.json",
+      "sha256": "1db20def9e4098cce310a14866c6b0f1c83ff61ce69f8ee144152044e797e3f3",
+      "bytes": 1531,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M2/clients/attempt-2/inspector-deny-5.stderr",
+      "sha256": "006fc8a4c12357ad9c296628756e0cd29e8084456d5b853991cfca54166e96b0",
+      "bytes": 1937,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M2/clients/attempt-2/inspector-deny-5.stdout",
+      "sha256": "42311e2beec657951f63fc9204496e87b29c6d6858d9e44eb991bb5fbf05014d",
+      "bytes": 1359,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M2/clients/attempt-2/inspector-discovery.json",
+      "sha256": "e1458a81ddb2fd4cb4b2e41afdb1f5b95092332c674e0ffb03b2780605f91036",
+      "bytes": 1251,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M2/clients/attempt-2/inspector-discovery.stderr",
+      "sha256": "0e1c383e57c44caf46802d07da00a46f6bb66eb6156590d3e9d5ae80f25eef54",
+      "bytes": 76524,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M2/clients/attempt-2/inspector-discovery.stdout",
+      "sha256": "9bf8268624ead5dc514729f235764ee2f76dc127d03422c0b712d257ed56e516",
+      "bytes": 261739,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M2/clients/attempt-2/inspector-open.json",
+      "sha256": "adc98602348f77e46f067040f77b29a1bc8718047c5f468c7da9b16a2ffdb762",
+      "bytes": 1404,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M2/clients/attempt-2/inspector-open.stderr",
+      "sha256": "847b6d06095ddbd390cec3b9d26a7015d61e300cd29458b338a653faa69bcc8a",
+      "bytes": 358,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M2/clients/attempt-2/inspector-open.stdout",
+      "sha256": "bbcd836fe87e9fbdecfd0e539c817eea088c53cacdc8fb1dbae84b71a8076e38",
+      "bytes": 1276,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M2/clients/attempt-3/M2-clients.json",
+      "sha256": "41b9b88ab790145e8db97406537daa6c862033dde58e4a86c86f2a00dc239342",
+      "bytes": 5770,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M2/clients/attempt-3/claude-model-session.json",
+      "sha256": "f173b2e29a997fbd4890157fd64525cb8a7b63101211bed23e377a6793cf5d16",
+      "bytes": 3091,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M2/clients/attempt-3/claude-model-session.stderr",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M2/clients/attempt-3/claude-model-session.stdout",
+      "sha256": "c83eb50be8836d973f3785ed2fc6854c1284e12d67daa1fcb8a283b1175ebb5e",
+      "bytes": 149571,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M2/clients/attempt-3/inspector-deny-1.json",
+      "sha256": "26419297d9ceb0e74b574a719e56fb7cad75854aeb929e2c4cea6f36eaeb8444",
+      "bytes": 1648,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M2/clients/attempt-3/inspector-deny-1.stderr",
+      "sha256": "e36cfad623754014b89cb1987f7ec106f6e2c4653de7414d5ead14142f005f81",
+      "bytes": 1931,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M2/clients/attempt-3/inspector-deny-1.stdout",
+      "sha256": "42311e2beec657951f63fc9204496e87b29c6d6858d9e44eb991bb5fbf05014d",
+      "bytes": 1359,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M2/clients/attempt-3/inspector-deny-2.json",
+      "sha256": "1b931bc6643bdda4548bd7650df6c1febc47534ab9dc089e8042e8659d6351a8",
+      "bytes": 1504,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M2/clients/attempt-3/inspector-deny-2.stderr",
+      "sha256": "1348e4d64127d36c3716e14813db377991acd6d18dc0e27c4d141e270e2edeca",
+      "bytes": 1921,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M2/clients/attempt-3/inspector-deny-2.stdout",
+      "sha256": "42311e2beec657951f63fc9204496e87b29c6d6858d9e44eb991bb5fbf05014d",
+      "bytes": 1359,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M2/clients/attempt-3/inspector-deny-3.json",
+      "sha256": "3331b445f8e074e5a22e2fad10e66117447f6c4478f389eb72c505a335d0b2f0",
+      "bytes": 1504,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M2/clients/attempt-3/inspector-deny-3.stderr",
+      "sha256": "329d0ad8fa6c72b18ff34b41dc10e6d4c51cd02ff1a3d4ac66961b7acba8ddc8",
+      "bytes": 1921,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M2/clients/attempt-3/inspector-deny-3.stdout",
+      "sha256": "42311e2beec657951f63fc9204496e87b29c6d6858d9e44eb991bb5fbf05014d",
+      "bytes": 1359,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M2/clients/attempt-3/inspector-deny-4.json",
+      "sha256": "f18e7a3b4576a480e37f3e072d47ab31ac53477b05fce21ca89de2fa30e5d6d9",
+      "bytes": 1556,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M2/clients/attempt-3/inspector-deny-4.stderr",
+      "sha256": "e0668ba61610d8694612ef3b60da029bc2951787311fdbec25f4dd5f0c1f47ef",
+      "bytes": 1931,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M2/clients/attempt-3/inspector-deny-4.stdout",
+      "sha256": "42311e2beec657951f63fc9204496e87b29c6d6858d9e44eb991bb5fbf05014d",
+      "bytes": 1359,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M2/clients/attempt-3/inspector-deny-5.json",
+      "sha256": "ee813c520e55b37d2d52f59836d40200b5d977b64fc70ed06a9f303e5a8ca4aa",
+      "bytes": 1531,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M2/clients/attempt-3/inspector-deny-5.stderr",
+      "sha256": "006fc8a4c12357ad9c296628756e0cd29e8084456d5b853991cfca54166e96b0",
+      "bytes": 1937,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M2/clients/attempt-3/inspector-deny-5.stdout",
+      "sha256": "42311e2beec657951f63fc9204496e87b29c6d6858d9e44eb991bb5fbf05014d",
+      "bytes": 1359,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M2/clients/attempt-3/inspector-discovery.json",
+      "sha256": "495870143d378c00e98fe0c435f8c2738c16c0ab85e5754fc20b7ebe80782a9d",
+      "bytes": 1251,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M2/clients/attempt-3/inspector-discovery.stderr",
+      "sha256": "0e1c383e57c44caf46802d07da00a46f6bb66eb6156590d3e9d5ae80f25eef54",
+      "bytes": 76524,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M2/clients/attempt-3/inspector-discovery.stdout",
+      "sha256": "9bf8268624ead5dc514729f235764ee2f76dc127d03422c0b712d257ed56e516",
+      "bytes": 261739,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M2/clients/attempt-3/inspector-open.json",
+      "sha256": "7ea237aa34996ce192131daa2729c7b13d860d756fc6aff84cee90487a1ee8c6",
+      "bytes": 1404,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M2/clients/attempt-3/inspector-open.stderr",
+      "sha256": "847b6d06095ddbd390cec3b9d26a7015d61e300cd29458b338a653faa69bcc8a",
+      "bytes": 358,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M2/clients/attempt-3/inspector-open.stdout",
+      "sha256": "4c4f58783f2d63c252f2460b465b49f4ea268eaa0e4331efebc27fd071593f8e",
+      "bytes": 1276,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M2/clients/attempt-4/M2-clients.json",
+      "sha256": "d5af5ab2214041cc87878a37cfeadf1e6481e3547e3ef354f95ceda1155a52ea",
+      "bytes": 5770,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M2/clients/attempt-4/claude-model-session.json",
+      "sha256": "c77b27322cf3ef3c191bcc88870a379ee56bb6ef47795690d2b8a47a4b18183c",
+      "bytes": 3090,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M2/clients/attempt-4/claude-model-session.stderr",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M2/clients/attempt-4/claude-model-session.stdout",
+      "sha256": "ad290346a056ecd55e8fb66144b23b99f64a5f6e7bc328c20e2204b4ed4758d2",
+      "bytes": 149114,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M2/clients/attempt-4/inspector-deny-1.json",
+      "sha256": "71a2f16bdbd353de5d686fb99d9f9418fa176e37ee4366a54ed520da9197fe92",
+      "bytes": 1648,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M2/clients/attempt-4/inspector-deny-1.stderr",
+      "sha256": "e36cfad623754014b89cb1987f7ec106f6e2c4653de7414d5ead14142f005f81",
+      "bytes": 1931,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M2/clients/attempt-4/inspector-deny-1.stdout",
+      "sha256": "42311e2beec657951f63fc9204496e87b29c6d6858d9e44eb991bb5fbf05014d",
+      "bytes": 1359,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M2/clients/attempt-4/inspector-deny-2.json",
+      "sha256": "1b5e9fdf68d8db85690a9c49689d7c7e2a1e1681fcba24ae94fb3501d60c2b2a",
+      "bytes": 1504,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M2/clients/attempt-4/inspector-deny-2.stderr",
+      "sha256": "1348e4d64127d36c3716e14813db377991acd6d18dc0e27c4d141e270e2edeca",
+      "bytes": 1921,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M2/clients/attempt-4/inspector-deny-2.stdout",
+      "sha256": "42311e2beec657951f63fc9204496e87b29c6d6858d9e44eb991bb5fbf05014d",
+      "bytes": 1359,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M2/clients/attempt-4/inspector-deny-3.json",
+      "sha256": "690a39e2772c7faf69bc07001db4be48ec0845c72cbfd51fef3f68300aa51afd",
+      "bytes": 1504,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M2/clients/attempt-4/inspector-deny-3.stderr",
+      "sha256": "329d0ad8fa6c72b18ff34b41dc10e6d4c51cd02ff1a3d4ac66961b7acba8ddc8",
+      "bytes": 1921,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M2/clients/attempt-4/inspector-deny-3.stdout",
+      "sha256": "42311e2beec657951f63fc9204496e87b29c6d6858d9e44eb991bb5fbf05014d",
+      "bytes": 1359,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M2/clients/attempt-4/inspector-deny-4.json",
+      "sha256": "091fbde327e34cb38f2a6fa5c8d76ad92aa4034a3b1927e4afee05afa406e6ca",
+      "bytes": 1555,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M2/clients/attempt-4/inspector-deny-4.stderr",
+      "sha256": "e0668ba61610d8694612ef3b60da029bc2951787311fdbec25f4dd5f0c1f47ef",
+      "bytes": 1931,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M2/clients/attempt-4/inspector-deny-4.stdout",
+      "sha256": "42311e2beec657951f63fc9204496e87b29c6d6858d9e44eb991bb5fbf05014d",
+      "bytes": 1359,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M2/clients/attempt-4/inspector-deny-5.json",
+      "sha256": "2c28dc7905e8853f9ee1cee9f4731f5f6131f1672a65c12bdc1515f3b3b28428",
+      "bytes": 1531,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M2/clients/attempt-4/inspector-deny-5.stderr",
+      "sha256": "006fc8a4c12357ad9c296628756e0cd29e8084456d5b853991cfca54166e96b0",
+      "bytes": 1937,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M2/clients/attempt-4/inspector-deny-5.stdout",
+      "sha256": "42311e2beec657951f63fc9204496e87b29c6d6858d9e44eb991bb5fbf05014d",
+      "bytes": 1359,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M2/clients/attempt-4/inspector-discovery.json",
+      "sha256": "cc3ab1dea34ecac29a3b1ea41eeabbca37aa3af8d9db308f07eb235016729e6f",
+      "bytes": 1251,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M2/clients/attempt-4/inspector-discovery.stderr",
+      "sha256": "0e1c383e57c44caf46802d07da00a46f6bb66eb6156590d3e9d5ae80f25eef54",
+      "bytes": 76524,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M2/clients/attempt-4/inspector-discovery.stdout",
+      "sha256": "9bf8268624ead5dc514729f235764ee2f76dc127d03422c0b712d257ed56e516",
+      "bytes": 261739,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M2/clients/attempt-4/inspector-open.json",
+      "sha256": "34d8b92db1153082e4789abea46b514ef82c7eeb402311f174ff0bcce888a71b",
+      "bytes": 1403,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M2/clients/attempt-4/inspector-open.stderr",
+      "sha256": "847b6d06095ddbd390cec3b9d26a7015d61e300cd29458b338a653faa69bcc8a",
+      "bytes": 358,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M2/clients/attempt-4/inspector-open.stdout",
+      "sha256": "cf4f51325357d7c55e5be660d96ce52b587d21f2ac10ba482b376c7d62afeecd",
+      "bytes": 1276,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M2/clients/attempt-5/M2-clients.json",
+      "sha256": "61958b34778bd8a62c52bff14135a1c0976a71d5ef7dfdd2ec139e4254509150",
+      "bytes": 17048,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M2/clients/attempt-5/claude-model-session.json",
+      "sha256": "81751cae8f474b9678820b83a9bed1607b102c7b39bd18aa31bc0ee382827fa6",
+      "bytes": 3494,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M2/clients/attempt-5/claude-model-session.stderr",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M2/clients/attempt-5/claude-model-session.stdout",
+      "sha256": "05ad418e5467650148b91f567871099e85bca80f4d0afe90b13e01e02daa3673",
+      "bytes": 146687,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M2/clients/attempt-5/inspector-deny-1.json",
+      "sha256": "db17ec11372a986fb7d7835eaf2f62b4519ce90ffe8ff3de285ad04de104bd8c",
+      "bytes": 1648,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M2/clients/attempt-5/inspector-deny-1.stderr",
+      "sha256": "e36cfad623754014b89cb1987f7ec106f6e2c4653de7414d5ead14142f005f81",
+      "bytes": 1931,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M2/clients/attempt-5/inspector-deny-1.stdout",
+      "sha256": "42311e2beec657951f63fc9204496e87b29c6d6858d9e44eb991bb5fbf05014d",
+      "bytes": 1359,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M2/clients/attempt-5/inspector-deny-2.json",
+      "sha256": "0f6851760bbb269f205db035012641b7600240158d74a50b7cb75867658f51ca",
+      "bytes": 1504,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M2/clients/attempt-5/inspector-deny-2.stderr",
+      "sha256": "1348e4d64127d36c3716e14813db377991acd6d18dc0e27c4d141e270e2edeca",
+      "bytes": 1921,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M2/clients/attempt-5/inspector-deny-2.stdout",
+      "sha256": "42311e2beec657951f63fc9204496e87b29c6d6858d9e44eb991bb5fbf05014d",
+      "bytes": 1359,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M2/clients/attempt-5/inspector-deny-3.json",
+      "sha256": "7f23aeaa9592fd9a0f0c02ef96e6cd704a68a69b8da2a6557dfb128bc0f92839",
+      "bytes": 1504,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M2/clients/attempt-5/inspector-deny-3.stderr",
+      "sha256": "329d0ad8fa6c72b18ff34b41dc10e6d4c51cd02ff1a3d4ac66961b7acba8ddc8",
+      "bytes": 1921,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M2/clients/attempt-5/inspector-deny-3.stdout",
+      "sha256": "42311e2beec657951f63fc9204496e87b29c6d6858d9e44eb991bb5fbf05014d",
+      "bytes": 1359,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M2/clients/attempt-5/inspector-deny-4.json",
+      "sha256": "e32854f198480cd3e24052f96913ef596eccb86a5b773a22beb07200a93a2a6a",
+      "bytes": 1556,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M2/clients/attempt-5/inspector-deny-4.stderr",
+      "sha256": "e0668ba61610d8694612ef3b60da029bc2951787311fdbec25f4dd5f0c1f47ef",
+      "bytes": 1931,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M2/clients/attempt-5/inspector-deny-4.stdout",
+      "sha256": "42311e2beec657951f63fc9204496e87b29c6d6858d9e44eb991bb5fbf05014d",
+      "bytes": 1359,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M2/clients/attempt-5/inspector-deny-5.json",
+      "sha256": "12a1d62db4734d5c36248fb47b2d0f7acedae81536f8156c4db5aff8060ac7c1",
+      "bytes": 1531,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M2/clients/attempt-5/inspector-deny-5.stderr",
+      "sha256": "006fc8a4c12357ad9c296628756e0cd29e8084456d5b853991cfca54166e96b0",
+      "bytes": 1937,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M2/clients/attempt-5/inspector-deny-5.stdout",
+      "sha256": "42311e2beec657951f63fc9204496e87b29c6d6858d9e44eb991bb5fbf05014d",
+      "bytes": 1359,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M2/clients/attempt-5/inspector-discovery.json",
+      "sha256": "15cad7f744b416232ad760f6cb145fcbeb931e05085a0667506fa6b6b01022db",
+      "bytes": 1251,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M2/clients/attempt-5/inspector-discovery.stderr",
+      "sha256": "0e1c383e57c44caf46802d07da00a46f6bb66eb6156590d3e9d5ae80f25eef54",
+      "bytes": 76524,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M2/clients/attempt-5/inspector-discovery.stdout",
+      "sha256": "d5f6a61d8ebcd8077c77f64e2a1765769920313733749ea6f97111442c93fc68",
+      "bytes": 263029,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M2/clients/attempt-5/inspector-exit-policy.json",
+      "sha256": "576c40f55fe2bb370f500f1df40ac77aaf785c201e91817f88c24dbe9ba7204d",
+      "bytes": 1204,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M2/clients/attempt-5/inspector-open.json",
+      "sha256": "0136f91bc1abf7f005190201419513de89163c96d9c484740a0ac2325177da46",
+      "bytes": 1404,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M2/clients/attempt-5/inspector-open.stderr",
+      "sha256": "847b6d06095ddbd390cec3b9d26a7015d61e300cd29458b338a653faa69bcc8a",
+      "bytes": 358,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M2/clients/attempt-5/inspector-open.stdout",
+      "sha256": "f37644f8f4e9597976b5a516bee78c12fde51c02afdf56aa4a07b3335e46c22e",
+      "bytes": 1276,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M2/clients/claude-model-session.stderr",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M2/clients/claude-model-session.stdout",
+      "sha256": "05ad418e5467650148b91f567871099e85bca80f4d0afe90b13e01e02daa3673",
+      "bytes": 146687,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M2/clients/inspector-deny-1.stderr",
+      "sha256": "e36cfad623754014b89cb1987f7ec106f6e2c4653de7414d5ead14142f005f81",
+      "bytes": 1931,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M2/clients/inspector-deny-1.stdout",
+      "sha256": "42311e2beec657951f63fc9204496e87b29c6d6858d9e44eb991bb5fbf05014d",
+      "bytes": 1359,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M2/clients/inspector-deny-2.stderr",
+      "sha256": "1348e4d64127d36c3716e14813db377991acd6d18dc0e27c4d141e270e2edeca",
+      "bytes": 1921,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M2/clients/inspector-deny-2.stdout",
+      "sha256": "42311e2beec657951f63fc9204496e87b29c6d6858d9e44eb991bb5fbf05014d",
+      "bytes": 1359,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M2/clients/inspector-deny-3.stderr",
+      "sha256": "329d0ad8fa6c72b18ff34b41dc10e6d4c51cd02ff1a3d4ac66961b7acba8ddc8",
+      "bytes": 1921,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M2/clients/inspector-deny-3.stdout",
+      "sha256": "42311e2beec657951f63fc9204496e87b29c6d6858d9e44eb991bb5fbf05014d",
+      "bytes": 1359,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M2/clients/inspector-deny-4.stderr",
+      "sha256": "e0668ba61610d8694612ef3b60da029bc2951787311fdbec25f4dd5f0c1f47ef",
+      "bytes": 1931,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M2/clients/inspector-deny-4.stdout",
+      "sha256": "42311e2beec657951f63fc9204496e87b29c6d6858d9e44eb991bb5fbf05014d",
+      "bytes": 1359,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M2/clients/inspector-deny-5.stderr",
+      "sha256": "006fc8a4c12357ad9c296628756e0cd29e8084456d5b853991cfca54166e96b0",
+      "bytes": 1937,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M2/clients/inspector-deny-5.stdout",
+      "sha256": "42311e2beec657951f63fc9204496e87b29c6d6858d9e44eb991bb5fbf05014d",
+      "bytes": 1359,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M2/clients/inspector-discovery.stderr",
+      "sha256": "0e1c383e57c44caf46802d07da00a46f6bb66eb6156590d3e9d5ae80f25eef54",
+      "bytes": 76524,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M2/clients/inspector-discovery.stdout",
+      "sha256": "d5f6a61d8ebcd8077c77f64e2a1765769920313733749ea6f97111442c93fc68",
+      "bytes": 263029,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M2/clients/inspector-open.stderr",
+      "sha256": "847b6d06095ddbd390cec3b9d26a7015d61e300cd29458b338a653faa69bcc8a",
+      "bytes": 358,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M2/clients/inspector-open.stdout",
+      "sha256": "f37644f8f4e9597976b5a516bee78c12fde51c02afdf56aa4a07b3335e46c22e",
+      "bytes": 1276,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M2/059/M2-059-app-clippy.log",
+      "sha256": "732a89ccbe49244c1152335225c9dec972365411c3f41218bde47ab1df3938ae",
+      "bytes": 280,
+      "kind": "E-raw gate and runtime outputs (logs, stdout/stderr, junit, gate transcripts) behind receipts that already record their hashes and outcomes"
+    },
+    {
+      "original_path": "docs/validation/M2/059/M2-059-application.log",
+      "sha256": "d1193e70b5f2f3939a82ec18729a9753417fbde607b6d4a2ca1311909d47c916",
+      "bytes": 1815,
+      "kind": "E-raw gate and runtime outputs (logs, stdout/stderr, junit, gate transcripts) behind receipts that already record their hashes and outcomes"
+    },
+    {
+      "original_path": "docs/validation/M2/059/M2-059-mcp-clippy.log",
+      "sha256": "4bc7328032d7f4ad40f324cd4e88c83888cb42e0ddeb62299e58692cc7c2219f",
+      "bytes": 834,
+      "kind": "E-raw gate and runtime outputs (logs, stdout/stderr, junit, gate transcripts) behind receipts that already record their hashes and outcomes"
+    },
+    {
+      "original_path": "docs/validation/M2/059/M2-059-native-replay.log",
+      "sha256": "acbf276720d0696dc90ff49bab4454493e90dd5922945e569e48cca94b2dc825",
+      "bytes": 791,
+      "kind": "E-raw gate and runtime outputs (logs, stdout/stderr, junit, gate transcripts) behind receipts that already record their hashes and outcomes"
+    },
+    {
+      "original_path": "docs/validation/M2/059/M2-059-release-build.log",
+      "sha256": "7b913085fbf9102aadd2e920d8146887abe65f91088033be4cdf2a97fcbfdeaf",
+      "bytes": 825,
+      "kind": "E-raw gate and runtime outputs (logs, stdout/stderr, junit, gate transcripts) behind receipts that already record their hashes and outcomes"
+    },
+    {
+      "original_path": "docs/validation/M2/059/M2-059-runtime.log",
+      "sha256": "8c33cdddfb50f3194e514a239e2def93267a7cc63278983f1da821121aa2ce84",
+      "bytes": 1151,
+      "kind": "E-raw gate and runtime outputs (logs, stdout/stderr, junit, gate transcripts) behind receipts that already record their hashes and outcomes"
+    },
+    {
+      "original_path": "docs/validation/M2/d05-hardening-followup.log",
+      "sha256": "7342d1499c1e9a683038818d832ba4dcbc278ddc93b778ae88474f433bb083be",
+      "bytes": 394,
+      "kind": "E-raw gate and runtime outputs (logs, stdout/stderr, junit, gate transcripts) behind receipts that already record their hashes and outcomes"
+    },
+    {
+      "original_path": "docs/validation/M2/d05-hardening-gate.log",
+      "sha256": "dde85a7590685c1650c94428894a9ea51024e38579d2c62aaba025a10837f831",
+      "bytes": 394,
+      "kind": "E-raw gate and runtime outputs (logs, stdout/stderr, junit, gate transcripts) behind receipts that already record their hashes and outcomes"
+    },
+    {
+      "original_path": "docs/validation/M2/d05-vendor-fingerprint.log",
+      "sha256": "6499c63707d6a96346b9e562f4e9625dd9fea9d390870d093bb7eea0dd4d7304",
+      "bytes": 445,
+      "kind": "E-raw gate and runtime outputs (logs, stdout/stderr, junit, gate transcripts) behind receipts that already record their hashes and outcomes"
+    },
+    {
+      "original_path": "docs/validation/M2/final-gate/audit-data/audit-data.log",
+      "sha256": "c4b4bf80662e6afaedf0a1472652bb3be519dad3abcf4c7c802d3b23104c8315",
+      "bytes": 586,
+      "kind": "E-raw gate and runtime outputs (logs, stdout/stderr, junit, gate transcripts) behind receipts that already record their hashes and outcomes"
+    },
+    {
+      "original_path": "docs/validation/M2/final-gate/doctor-security/active.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0,
+      "kind": "E-raw gate and runtime outputs (logs, stdout/stderr, junit, gate transcripts) behind receipts that already record their hashes and outcomes"
+    },
+    {
+      "original_path": "docs/validation/M2/final-gate/doctor-security/active.stdout.log",
+      "sha256": "b38bc894b73ea2bb0fd6acc371e60d4bb9d3b2c19a0580ad0bff4ad29839acfe",
+      "bytes": 3792,
+      "kind": "E-raw gate and runtime outputs (logs, stdout/stderr, junit, gate transcripts) behind receipts that already record their hashes and outcomes"
+    },
+    {
+      "original_path": "docs/validation/M2/final-gate/doctor-security/build.stderr.log",
+      "sha256": "14e637f241a1d56f96dca974ab901d85be657f956477dd6bac0c2ae02972f7e1",
+      "bytes": 172,
+      "kind": "E-raw gate and runtime outputs (logs, stdout/stderr, junit, gate transcripts) behind receipts that already record their hashes and outcomes"
+    },
+    {
+      "original_path": "docs/validation/M2/final-gate/doctor-security/build.stdout.log",
+      "sha256": "1beda595bef827a8b57ddfa763734a2274a2e7039c201c9276b0752dcb698ccf",
+      "bytes": 200408,
+      "kind": "E-raw gate and runtime outputs (logs, stdout/stderr, junit, gate transcripts) behind receipts that already record their hashes and outcomes"
+    },
+    {
+      "original_path": "docs/validation/M2/final-gate/doctor-security/cancelled-sighup.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0,
+      "kind": "E-raw gate and runtime outputs (logs, stdout/stderr, junit, gate transcripts) behind receipts that already record their hashes and outcomes"
+    },
+    {
+      "original_path": "docs/validation/M2/final-gate/doctor-security/cancelled-sighup.stdout.log",
+      "sha256": "b29de621ebc1a9e6eb4b8464ffd254b5f0dece3ef40f4b93408795dce92190e5",
+      "bytes": 2869,
+      "kind": "E-raw gate and runtime outputs (logs, stdout/stderr, junit, gate transcripts) behind receipts that already record their hashes and outcomes"
+    },
+    {
+      "original_path": "docs/validation/M2/final-gate/doctor-security/cancelled-sigint.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0,
+      "kind": "E-raw gate and runtime outputs (logs, stdout/stderr, junit, gate transcripts) behind receipts that already record their hashes and outcomes"
+    },
+    {
+      "original_path": "docs/validation/M2/final-gate/doctor-security/cancelled-sigint.stdout.log",
+      "sha256": "116a28c4a67592d63b9acdee2284126baa69d3732ac34a3e4aedf9da3d93c0d4",
+      "bytes": 2869,
+      "kind": "E-raw gate and runtime outputs (logs, stdout/stderr, junit, gate transcripts) behind receipts that already record their hashes and outcomes"
+    },
+    {
+      "original_path": "docs/validation/M2/final-gate/doctor-security/cancelled-sigterm.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0,
+      "kind": "E-raw gate and runtime outputs (logs, stdout/stderr, junit, gate transcripts) behind receipts that already record their hashes and outcomes"
+    },
+    {
+      "original_path": "docs/validation/M2/final-gate/doctor-security/cancelled-sigterm.stdout.log",
+      "sha256": "95e073bf55811c8a367e80644a4bd76dc1412673d2149fbc6d1ba72caf0ee251",
+      "bytes": 2869,
+      "kind": "E-raw gate and runtime outputs (logs, stdout/stderr, junit, gate transcripts) behind receipts that already record their hashes and outcomes"
+    },
+    {
+      "original_path": "docs/validation/M2/final-gate/doctor-security/ordinary.stderr.log",
+      "sha256": "7ea9176415e1f1b8a8d27e489ece1db2b6dbc5224626066bb2b0d141f2c28594",
+      "bytes": 246,
+      "kind": "E-raw gate and runtime outputs (logs, stdout/stderr, junit, gate transcripts) behind receipts that already record their hashes and outcomes"
+    },
+    {
+      "original_path": "docs/validation/M2/final-gate/doctor-security/ordinary.stdout.log",
+      "sha256": "61d1650537b75cf2103583bea81d57f5ebedafd7100f95e1a5bc5739431103dc",
+      "bytes": 357,
+      "kind": "E-raw gate and runtime outputs (logs, stdout/stderr, junit, gate transcripts) behind receipts that already record their hashes and outcomes"
+    },
+    {
+      "original_path": "docs/validation/M2/final-gate/doctor-security/stdout-deadline.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0,
+      "kind": "E-raw gate and runtime outputs (logs, stdout/stderr, junit, gate transcripts) behind receipts that already record their hashes and outcomes"
+    },
+    {
+      "original_path": "docs/validation/M2/final-gate/doctor-security/stdout-sigint.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0,
+      "kind": "E-raw gate and runtime outputs (logs, stdout/stderr, junit, gate transcripts) behind receipts that already record their hashes and outcomes"
+    },
+    {
+      "original_path": "docs/validation/M2/final-gate/full.log",
+      "sha256": "3a8d991a3d0374b8ab21fe0aa98f9f99f6744f2f75fbb35e795b244ef0fcddd4",
+      "bytes": 171222,
+      "kind": "E-raw gate and runtime outputs (logs, stdout/stderr, junit, gate transcripts) behind receipts that already record their hashes and outcomes"
+    },
+    {
+      "original_path": "docs/validation/M2/final-gate/m2-runtime/0.log",
+      "sha256": "90eafdf192a9f90a2c24230426396cff4169dd47aff90018020110d5e4d6e2a8",
+      "bytes": 383,
+      "kind": "E-raw gate and runtime outputs (logs, stdout/stderr, junit, gate transcripts) behind receipts that already record their hashes and outcomes"
+    },
+    {
+      "original_path": "docs/validation/M2/final-gate/m2-runtime/1.log",
+      "sha256": "d5fc5af4b2863c4ad8a67c65fa897e6cfbeede213342c3cf72c10b84e34faddf",
+      "bytes": 394,
+      "kind": "E-raw gate and runtime outputs (logs, stdout/stderr, junit, gate transcripts) behind receipts that already record their hashes and outcomes"
+    },
+    {
+      "original_path": "docs/validation/M2/final-gate/m2-runtime/2.log",
+      "sha256": "28417f80a8dd423e82be7a92fe79ffad2b7efd4894a7fe9dfdf790e7eeee674d",
+      "bytes": 384,
+      "kind": "E-raw gate and runtime outputs (logs, stdout/stderr, junit, gate transcripts) behind receipts that already record their hashes and outcomes"
+    },
+    {
+      "original_path": "docs/validation/M2/final-gate/m2-runtime/3.log",
+      "sha256": "8ff8c0fa5e2cb0b7a99f941ef7c5e494abc8fb178303385e6cbd35ed80e69d18",
+      "bytes": 374,
+      "kind": "E-raw gate and runtime outputs (logs, stdout/stderr, junit, gate transcripts) behind receipts that already record their hashes and outcomes"
+    },
+    {
+      "original_path": "docs/validation/M2/final-gate/m2-runtime/4.log",
+      "sha256": "dc23022bf7ea1cb9a29731f564a804411874aaa92270619c7eee99be9dfe1045",
+      "bytes": 498,
+      "kind": "E-raw gate and runtime outputs (logs, stdout/stderr, junit, gate transcripts) behind receipts that already record their hashes and outcomes"
+    },
+    {
+      "original_path": "docs/validation/M2/final-gate/m2-runtime/5.log",
+      "sha256": "f4be2145761a17ba22cf12939aa69e7ed6c7543c54ee9099d1405e4fb123080a",
+      "bytes": 888,
+      "kind": "E-raw gate and runtime outputs (logs, stdout/stderr, junit, gate transcripts) behind receipts that already record their hashes and outcomes"
+    },
+    {
+      "original_path": "docs/validation/M2/final-gate/m2-runtime/6.log",
+      "sha256": "0b40d95fead2f0873b2c3b4eaa05dadd610f6e1567635028a5ebeae1213ce009",
+      "bytes": 503,
+      "kind": "E-raw gate and runtime outputs (logs, stdout/stderr, junit, gate transcripts) behind receipts that already record their hashes and outcomes"
+    },
+    {
+      "original_path": "docs/validation/M2/final-gate/m2-runtime/7.log",
+      "sha256": "fd0cd761546a0b8e37701aa2f4dc0220743de5d04abfb1cfe238db7668c24e2f",
+      "bytes": 635,
+      "kind": "E-raw gate and runtime outputs (logs, stdout/stderr, junit, gate transcripts) behind receipts that already record their hashes and outcomes"
+    },
+    {
+      "original_path": "docs/validation/M2/final-gate/m2-runtime/8.log",
+      "sha256": "4e919fd2574662f6ecbb1bdbae24bdba99941b3372250fcad80e1ec302dfdd9e",
+      "bytes": 716,
+      "kind": "E-raw gate and runtime outputs (logs, stdout/stderr, junit, gate transcripts) behind receipts that already record their hashes and outcomes"
+    },
+    {
+      "original_path": "docs/validation/M2/final-gate/m2-runtime/9.log",
+      "sha256": "87dc3dd96d31c08a311041fdb818911661935521292e2ca182164bcf79416cba",
+      "bytes": 389,
+      "kind": "E-raw gate and runtime outputs (logs, stdout/stderr, junit, gate transcripts) behind receipts that already record their hashes and outcomes"
+    },
+    {
+      "original_path": "docs/validation/M2/final-gate/release-core-build.log",
+      "sha256": "92e06e4842c2fa9a2139c34892b15d58451290c4ed4fe3a60c23f8f551bc9ec1",
+      "bytes": 62,
+      "kind": "E-raw gate and runtime outputs (logs, stdout/stderr, junit, gate transcripts) behind receipts that already record their hashes and outcomes"
+    },
+    {
+      "original_path": "docs/validation/M2/final-gate/rust-security/0.log",
+      "sha256": "b358ba74c6bfe24e340176dfd98ab1787f52edcaec06aeb66bcb346cf6eb72cc",
+      "bytes": 2431,
+      "kind": "E-raw gate and runtime outputs (logs, stdout/stderr, junit, gate transcripts) behind receipts that already record their hashes and outcomes"
+    },
+    {
+      "original_path": "docs/validation/M2/final-gate/rust-security/1.log",
+      "sha256": "5d8eedd8d2042f614e2199d859a914f47af0f8b3060f965c4fd49aa772d2291c",
+      "bytes": 28960,
+      "kind": "E-raw gate and runtime outputs (logs, stdout/stderr, junit, gate transcripts) behind receipts that already record their hashes and outcomes"
+    },
+    {
+      "original_path": "docs/validation/M2/final-gate/rust-security/10.log",
+      "sha256": "5632a9318a29b379f95ff3ad4b02d27f57194ff5985ca7306202b8f06eb1ef42",
+      "bytes": 1355,
+      "kind": "E-raw gate and runtime outputs (logs, stdout/stderr, junit, gate transcripts) behind receipts that already record their hashes and outcomes"
+    },
+    {
+      "original_path": "docs/validation/M2/final-gate/rust-security/11.log",
+      "sha256": "53752273ec59e229aff0defb7ac4e987580260632e7f5112cc06cc4189490009",
+      "bytes": 660,
+      "kind": "E-raw gate and runtime outputs (logs, stdout/stderr, junit, gate transcripts) behind receipts that already record their hashes and outcomes"
+    },
+    {
+      "original_path": "docs/validation/M2/final-gate/rust-security/12.log",
+      "sha256": "3dc57927daba6ac1403d098ebe7bd04dbefd58c7fc694a865f62a2d8e1e03225",
+      "bytes": 5181,
+      "kind": "E-raw gate and runtime outputs (logs, stdout/stderr, junit, gate transcripts) behind receipts that already record their hashes and outcomes"
+    },
+    {
+      "original_path": "docs/validation/M2/final-gate/rust-security/13.log",
+      "sha256": "24a5e84797a77671d28854f48f0bf658eba128104bb9c352c9466845c5e98c2a",
+      "bytes": 886,
+      "kind": "E-raw gate and runtime outputs (logs, stdout/stderr, junit, gate transcripts) behind receipts that already record their hashes and outcomes"
+    },
+    {
+      "original_path": "docs/validation/M2/final-gate/rust-security/14.log",
+      "sha256": "6368a584a599155cf655b318d3ae2725b001e90478ffffb358db60d2e56ccd13",
+      "bytes": 2365,
+      "kind": "E-raw gate and runtime outputs (logs, stdout/stderr, junit, gate transcripts) behind receipts that already record their hashes and outcomes"
+    },
+    {
+      "original_path": "docs/validation/M2/final-gate/rust-security/15.log",
+      "sha256": "c768c9c242791c8fb710e7ec27816f561dbd877c2409d05772e97b4004237f06",
+      "bytes": 1300,
+      "kind": "E-raw gate and runtime outputs (logs, stdout/stderr, junit, gate transcripts) behind receipts that already record their hashes and outcomes"
+    },
+    {
+      "original_path": "docs/validation/M2/final-gate/rust-security/16.log",
+      "sha256": "faa245cb285a517e4852e2d74eef5c618cd0f7357f49060840bd6d69ccd9401f",
+      "bytes": 969,
+      "kind": "E-raw gate and runtime outputs (logs, stdout/stderr, junit, gate transcripts) behind receipts that already record their hashes and outcomes"
+    },
+    {
+      "original_path": "docs/validation/M2/final-gate/rust-security/17.log",
+      "sha256": "06a08d2f100918321bda71d6f0af0a4ac5736f54268fb028f0a4add6b88de6ca",
+      "bytes": 803,
+      "kind": "E-raw gate and runtime outputs (logs, stdout/stderr, junit, gate transcripts) behind receipts that already record their hashes and outcomes"
+    },
+    {
+      "original_path": "docs/validation/M2/final-gate/rust-security/18.log",
+      "sha256": "dc0ec8e738ba184f9ffe6deeac0d8d9e41e1cedadcf96185e9bd839b4739fbd9",
+      "bytes": 888,
+      "kind": "E-raw gate and runtime outputs (logs, stdout/stderr, junit, gate transcripts) behind receipts that already record their hashes and outcomes"
+    },
+    {
+      "original_path": "docs/validation/M2/final-gate/rust-security/19.log",
+      "sha256": "ae4d214f3949a2767502407319572f54c26059d7e0d88ec5e14073095634df07",
+      "bytes": 678,
+      "kind": "E-raw gate and runtime outputs (logs, stdout/stderr, junit, gate transcripts) behind receipts that already record their hashes and outcomes"
+    },
+    {
+      "original_path": "docs/validation/M2/final-gate/rust-security/2.log",
+      "sha256": "96d9b9cf277cefc77121e5e5464c0f46ee6f86aa0fdf59e07573baca1a6f6c97",
+      "bytes": 6248,
+      "kind": "E-raw gate and runtime outputs (logs, stdout/stderr, junit, gate transcripts) behind receipts that already record their hashes and outcomes"
+    },
+    {
+      "original_path": "docs/validation/M2/final-gate/rust-security/3.log",
+      "sha256": "14117cdbcaf2d73a6a3a01718a260754d6a730ffba1da50e78919b0a45604837",
+      "bytes": 375,
+      "kind": "E-raw gate and runtime outputs (logs, stdout/stderr, junit, gate transcripts) behind receipts that already record their hashes and outcomes"
+    },
+    {
+      "original_path": "docs/validation/M2/final-gate/rust-security/4.log",
+      "sha256": "346a0dbaedda08f4652cf234a1b5e21d3fe19307a249ebfa494338970647367d",
+      "bytes": 1331,
+      "kind": "E-raw gate and runtime outputs (logs, stdout/stderr, junit, gate transcripts) behind receipts that already record their hashes and outcomes"
+    },
+    {
+      "original_path": "docs/validation/M2/final-gate/rust-security/5.log",
+      "sha256": "40d24855a49ee94b6992078890781ad8d2bff8c243f7c071acc61dccde1afaae",
+      "bytes": 661,
+      "kind": "E-raw gate and runtime outputs (logs, stdout/stderr, junit, gate transcripts) behind receipts that already record their hashes and outcomes"
+    },
+    {
+      "original_path": "docs/validation/M2/final-gate/rust-security/6.log",
+      "sha256": "d0dc210a072de68d5855fe8aac9d07da46f1409fd4a2a2c9d09c41707674c04a",
+      "bytes": 1314,
+      "kind": "E-raw gate and runtime outputs (logs, stdout/stderr, junit, gate transcripts) behind receipts that already record their hashes and outcomes"
+    },
+    {
+      "original_path": "docs/validation/M2/final-gate/rust-security/7.log",
+      "sha256": "13396f571e577b37ff591bf3b8a9c8e4d9d14939129501c63a048b05e3813e74",
+      "bytes": 1405,
+      "kind": "E-raw gate and runtime outputs (logs, stdout/stderr, junit, gate transcripts) behind receipts that already record their hashes and outcomes"
+    },
+    {
+      "original_path": "docs/validation/M2/final-gate/rust-security/8.log",
+      "sha256": "1f36e2040eaf0890300a941695039d38400b47beae62e6aac670d80cf9eac01d",
+      "bytes": 1255,
+      "kind": "E-raw gate and runtime outputs (logs, stdout/stderr, junit, gate transcripts) behind receipts that already record their hashes and outcomes"
+    },
+    {
+      "original_path": "docs/validation/M2/final-gate/rust-security/9.log",
+      "sha256": "4e33b04be2b03c428ba3de8c897f59094a2c70d36ae8ca1f731966ab20d06197",
+      "bytes": 25806,
+      "kind": "E-raw gate and runtime outputs (logs, stdout/stderr, junit, gate transcripts) behind receipts that already record their hashes and outcomes"
+    },
+    {
+      "original_path": "docs/validation/M2/final-runtime/0.log",
+      "sha256": "90eafdf192a9f90a2c24230426396cff4169dd47aff90018020110d5e4d6e2a8",
+      "bytes": 383,
+      "kind": "E-raw gate and runtime outputs (logs, stdout/stderr, junit, gate transcripts) behind receipts that already record their hashes and outcomes"
+    },
+    {
+      "original_path": "docs/validation/M2/final-runtime/1.log",
+      "sha256": "d5fc5af4b2863c4ad8a67c65fa897e6cfbeede213342c3cf72c10b84e34faddf",
+      "bytes": 394,
+      "kind": "E-raw gate and runtime outputs (logs, stdout/stderr, junit, gate transcripts) behind receipts that already record their hashes and outcomes"
+    },
+    {
+      "original_path": "docs/validation/M2/final-runtime/2.log",
+      "sha256": "28417f80a8dd423e82be7a92fe79ffad2b7efd4894a7fe9dfdf790e7eeee674d",
+      "bytes": 384,
+      "kind": "E-raw gate and runtime outputs (logs, stdout/stderr, junit, gate transcripts) behind receipts that already record their hashes and outcomes"
+    },
+    {
+      "original_path": "docs/validation/M2/final-runtime/3.log",
+      "sha256": "8ff8c0fa5e2cb0b7a99f941ef7c5e494abc8fb178303385e6cbd35ed80e69d18",
+      "bytes": 374,
+      "kind": "E-raw gate and runtime outputs (logs, stdout/stderr, junit, gate transcripts) behind receipts that already record their hashes and outcomes"
+    },
+    {
+      "original_path": "docs/validation/M2/final-runtime/4.log",
+      "sha256": "dc23022bf7ea1cb9a29731f564a804411874aaa92270619c7eee99be9dfe1045",
+      "bytes": 498,
+      "kind": "E-raw gate and runtime outputs (logs, stdout/stderr, junit, gate transcripts) behind receipts that already record their hashes and outcomes"
+    },
+    {
+      "original_path": "docs/validation/M2/final-runtime/5.log",
+      "sha256": "f4be2145761a17ba22cf12939aa69e7ed6c7543c54ee9099d1405e4fb123080a",
+      "bytes": 888,
+      "kind": "E-raw gate and runtime outputs (logs, stdout/stderr, junit, gate transcripts) behind receipts that already record their hashes and outcomes"
+    },
+    {
+      "original_path": "docs/validation/M2/final-runtime/6.log",
+      "sha256": "0b40d95fead2f0873b2c3b4eaa05dadd610f6e1567635028a5ebeae1213ce009",
+      "bytes": 503,
+      "kind": "E-raw gate and runtime outputs (logs, stdout/stderr, junit, gate transcripts) behind receipts that already record their hashes and outcomes"
+    },
+    {
+      "original_path": "docs/validation/M2/final-runtime/7.log",
+      "sha256": "fd0cd761546a0b8e37701aa2f4dc0220743de5d04abfb1cfe238db7668c24e2f",
+      "bytes": 635,
+      "kind": "E-raw gate and runtime outputs (logs, stdout/stderr, junit, gate transcripts) behind receipts that already record their hashes and outcomes"
+    },
+    {
+      "original_path": "docs/validation/M2/final-runtime/8.log",
+      "sha256": "4e919fd2574662f6ecbb1bdbae24bdba99941b3372250fcad80e1ec302dfdd9e",
+      "bytes": 716,
+      "kind": "E-raw gate and runtime outputs (logs, stdout/stderr, junit, gate transcripts) behind receipts that already record their hashes and outcomes"
+    },
+    {
+      "original_path": "docs/validation/M2/final-runtime/9.log",
+      "sha256": "87dc3dd96d31c08a311041fdb818911661935521292e2ca182164bcf79416cba",
+      "bytes": 389,
+      "kind": "E-raw gate and runtime outputs (logs, stdout/stderr, junit, gate transcripts) behind receipts that already record their hashes and outcomes"
+    },
+    {
+      "original_path": "docs/validation/M2/postmerge/core-version.log",
+      "sha256": "d831ef5e03191f69c4c3899ad7bdb872f53b92dd87d1c53cb9e850b653358c99",
+      "bytes": 31,
+      "kind": "E-raw gate and runtime outputs (logs, stdout/stderr, junit, gate transcripts) behind receipts that already record their hashes and outcomes"
+    },
+    {
+      "original_path": "docs/validation/M2/postmerge/input-verification.log",
+      "sha256": "5c6b9a9f0b9c3aadd7468d58979ed16df0e53cfdec757218839728fec4774f59",
+      "bytes": 832,
+      "kind": "E-raw gate and runtime outputs (logs, stdout/stderr, junit, gate transcripts) behind receipts that already record their hashes and outcomes"
+    },
+    {
+      "original_path": "docs/validation/M2/postmerge/owned-containers.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0,
+      "kind": "E-raw gate and runtime outputs (logs, stdout/stderr, junit, gate transcripts) behind receipts that already record their hashes and outcomes"
+    },
+    {
+      "original_path": "docs/validation/M2/postmerge/owned-volumes.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0,
+      "kind": "E-raw gate and runtime outputs (logs, stdout/stderr, junit, gate transcripts) behind receipts that already record their hashes and outcomes"
+    },
+    {
+      "original_path": "docs/validation/M2/postmerge/protocol.log",
+      "sha256": "7c70e0376ebc504fa545c29d7e93d90e96f2e33b27d2e361d5ba02d4f4ac3326",
+      "bytes": 3904,
+      "kind": "E-raw gate and runtime outputs (logs, stdout/stderr, junit, gate transcripts) behind receipts that already record their hashes and outcomes"
+    },
+    {
+      "original_path": "docs/validation/M2/postmerge/terminal-replay.log",
+      "sha256": "0a100f6d672c3258a1f4beee7f68cde378ffd3377e4cf2129d9b50507e2fe03e",
+      "bytes": 489,
+      "kind": "E-raw gate and runtime outputs (logs, stdout/stderr, junit, gate transcripts) behind receipts that already record their hashes and outcomes"
+    }
+  ],
+  "retired_groups": [
+    {
+      "kind": "A-superseded receipts and failed-attempt logs",
+      "reason": "superseded receipts and failed-attempt logs: the accepted receipt of each milestone accredits the shipped bytes; the diagnosis narratives (README/disposition .md) stay",
+      "files": 59,
+      "bytes": 969806,
+      "aggregate_sha256": "1f32934550a6b8825dadfaaa95c78d072891b035a9274b2c3d79a6773caf525a",
+      "aggregate_rule": "sha256 over the sorted lines \"<sha256>  <original_path>\\n\"",
+      "last_commit_with_bytes": "d796ff57bd87cf7fb7269f9dceef9090bc66e749",
+      "retired_at": "2026-09-11T17:40:14.242436+00:00"
+    },
+    {
+      "kind": "B-client-qualification transcripts",
+      "reason": "client-qualification transcripts: each attempt keeps receipt.json and protocol.jsonl, which carry the hashes and outcomes; raw inspector/model stdout, stderr and event streams are forensic detail",
+      "files": 127,
+      "bytes": 2937756,
+      "aggregate_sha256": "9bdbf05b9caa9cc9ae55bc87920b5b25d66cc800e88577ea5c1ff674dc3098da",
+      "aggregate_rule": "sha256 over the sorted lines \"<sha256>  <original_path>\\n\"",
+      "last_commit_with_bytes": "e31af914d12bef34e11fbe67b87f942d75de294c",
+      "retired_at": "2026-09-11T17:41:43.936200+00:00"
+    },
+    {
+      "kind": "E-raw gate and runtime outputs (logs, stdout/stderr, junit, gate transcripts) behind receipts that already record their hashes and outcomes",
+      "reason": "raw gate and runtime outputs (logs, stdout/stderr, junit, gate transcripts) behind receipts that already record their hashes and outcomes",
+      "files": 72,
+      "bytes": 492836,
+      "aggregate_sha256": "f39f329099e7a5d93ce68bf7fc51da1790af8499a3b9e78d11e539315c954d5a",
+      "aggregate_rule": "sha256 over the sorted lines \"<sha256>  <original_path>\\n\"",
+      "last_commit_with_bytes": "87a1d18decc4b6d4c2fe6144b9de71518b90ac94",
+      "retired_at": "2026-09-11T17:42:09.012883+00:00"
+    }
+  ]
+}

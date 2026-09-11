@@ -1,0 +1,2140 @@
+{
+  "schema": "rust-mcp-evidence-history-inventory-v1",
+  "milestone": "M4",
+  "recorded_at": "2026-09-11T17:42:09.012883+00:00",
+  "source_commit": "d3b5ad7f9d046ede51752e10ebac32261fd47e10",
+  "purpose": "Superseded or failed evidence kept next to the current receipts of this milestone. Bytes are moved with git mv, never edited: each entry records the pre-hygiene path, SHA-256 and size. Retired entries were removed from the tree after their hash was recorded; their bytes remain reachable in Git history at source_commit. Entries marked living are prose kept next to the receipts; they are verified by presence only.",
+  "retained": [
+    {
+      "path": "hardening-attempts/README.md",
+      "original_path": "docs/validation/M4-hardening-attempts/README.md",
+      "sha256": "cd83ae6b22217a3874c0a506af7293f558f71d4bee56a2639b5fce8247250310",
+      "bytes": 2804,
+      "reason": "Failed M4 hardening qualification attempt preserved as evidence; not a pass. See hardening-attempts/README.md.",
+      "living": true
+    },
+    {
+      "path": "hardening-attempts/full-attempt-1/disposition.md",
+      "original_path": "docs/validation/M4-hardening-attempts/full-attempt-1/disposition.md",
+      "sha256": "0a473c3f35c28f49523878da47eedc10b6829f1f6174ae476f9e95d7305a5b8f",
+      "bytes": 1138,
+      "reason": "Failed M4 hardening qualification attempt preserved as evidence; not a pass. See hardening-attempts/README.md.",
+      "living": true
+    },
+    {
+      "path": "hardening-attempts/stdout-diagnostic/disposition.md",
+      "original_path": "docs/validation/M4-hardening-attempts/stdout-diagnostic/disposition.md",
+      "sha256": "1b542152e2bd1afcc9777b75b16f28620ea406283c8b5d2679b72310b8d191fa",
+      "bytes": 1228,
+      "reason": "Failed M4 hardening qualification attempt preserved as evidence; not a pass. See hardening-attempts/README.md.",
+      "living": true
+    }
+  ],
+  "retired": [
+    {
+      "original_path": "docs/validation/M4/clients/attempt-1/state-inspector",
+      "pre_hygiene_path": "docs/validation/m4-clients/attempt-1/state-inspector",
+      "kind": "private-store-state",
+      "files": 12,
+      "bytes": 19555,
+      "aggregate_sha256": "36ed3d1cf613c0457253ba6cdb353ff10c00651718b4b61975029e22eb45817b",
+      "aggregate_rule": "sha256 over the sorted lines \"<sha256>  <path>\\n\" of entries",
+      "last_commit_with_bytes": "ad007b571735e89ac5cd47381f6963b11c477e99",
+      "reason": "Private store state of one client-qualification session (artifact blobs, store.lock, clock watermark, copied seccomp profiles). It is per-attempt scratch state, not evidence: the attempt receipt, protocol.jsonl and transcripts stay. The harness creates a fresh state-* for every new attempt and never reads an old one.",
+      "entries": [
+        {
+          "path": "rust-mcp-quality-artifacts-v1/blob/qart_0c08cfa60c74497aa2fcdebf107d8029.blob",
+          "sha256": "26213c8852ed49fa03421e0a72ca68976fc81096f5fbb0f93ee854e8a1ebb450",
+          "bytes": 1287
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/blob/qart_2b8937731c25429eb0a1619a1cb8a23f.blob",
+          "sha256": "dc6abf72549aec66f200ae9312c15dee64108f689baa913d4da6372eb65b5dc8",
+          "bytes": 1530
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/blob/qart_6d88cefb42c4956eb9a12021711ab205.blob",
+          "sha256": "224d8292d0392bea7f1ad6c99453a8f0994674fb360f6a755e31452c8baec8f2",
+          "bytes": 3390
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/blob/qart_caac9ceee3018c286c5ef8f5b91c77ed.blob",
+          "sha256": "a7e054ea584131cb353bc4fab732db1c8b318835e7e3a03827a059b14cb631c7",
+          "bytes": 1477
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/blob/qart_d02dd1e29e1a81339754ee4f1831ec74.blob",
+          "sha256": "adf5bcad5423a65e25346a17ded6c2d5044491ffcbc7382d8af4e4696e65774b",
+          "bytes": 4654
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/clock-watermark.json",
+          "sha256": "4d643a00bff082416d0ac058e7b91e0491c0f0ded5b09964af000571de63ef68",
+          "bytes": 61
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/descriptor/qart_0c08cfa60c74497aa2fcdebf107d8029.json",
+          "sha256": "9f71015659770c8bb30e43835688c172871fef23fc8fc31f4a0ffbc145e84d3a",
+          "bytes": 1430
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/descriptor/qart_2b8937731c25429eb0a1619a1cb8a23f.json",
+          "sha256": "fe1be8a01831532f2a2ee4ed92ec990eae7486cc831284a380048c11bfd957cb",
+          "bytes": 1434
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/descriptor/qart_6d88cefb42c4956eb9a12021711ab205.json",
+          "sha256": "c5daf8a4bbccd446c1e63d431d1eede77df99e392878abd273322738317371b0",
+          "bytes": 1430
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/descriptor/qart_caac9ceee3018c286c5ef8f5b91c77ed.json",
+          "sha256": "d01ac8aca1dfa7583e1c6d4d13fc35a5f3fb73af5b9e8fde140dab22ef7b7eea",
+          "bytes": 1427
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/descriptor/qart_d02dd1e29e1a81339754ee4f1831ec74.json",
+          "sha256": "37d6c671f30aefc2f0021106504e2993287fda8b3dc02c65895b874e2948b227",
+          "bytes": 1435
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/store.lock",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "bytes": 0
+        }
+      ]
+    },
+    {
+      "original_path": "docs/validation/M4/clients/attempt-2/state-codex",
+      "pre_hygiene_path": "docs/validation/m4-clients/attempt-2/state-codex",
+      "kind": "private-store-state",
+      "files": 28,
+      "bytes": 56032,
+      "aggregate_sha256": "90c11ea3126260d3caad4de8c8dffc45537ab1efc23450f9e22488762394c12c",
+      "aggregate_rule": "sha256 over the sorted lines \"<sha256>  <path>\\n\" of entries",
+      "last_commit_with_bytes": "ad007b571735e89ac5cd47381f6963b11c477e99",
+      "reason": "Private store state of one client-qualification session (artifact blobs, store.lock, clock watermark, copied seccomp profiles). It is per-attempt scratch state, not evidence: the attempt receipt, protocol.jsonl and transcripts stay. The harness creates a fresh state-* for every new attempt and never reads an old one.",
+      "entries": [
+        {
+          "path": "rust-mcp-control-47d32585369a8b60c2b90d317b6e018d/config.json",
+          "sha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+          "bytes": 2
+        },
+        {
+          "path": "rust-mcp-control-47d32585369a8b60c2b90d317b6e018d/seccomp-rust-fix.json",
+          "sha256": "0dc7bbbbf8f7e2a47c784488c49bbc7ffd6acac83b6f15e4fe2f0b9c1f642f15",
+          "bytes": 4018
+        },
+        {
+          "path": "rust-mcp-control-47d32585369a8b60c2b90d317b6e018d/seccomp-rust-quality.json",
+          "sha256": "c288305c9fdba791926a9154fe47a1f53a30d61501cd9d059a78467866ccf938",
+          "bytes": 3814
+        },
+        {
+          "path": "rust-mcp-control-47d32585369a8b60c2b90d317b6e018d/seccomp-rust.json",
+          "sha256": "f9d31acb22989dc6ac37c02d4c73acfbbb3b74b5e08beff9983f3a811fd4e56d",
+          "bytes": 3379
+        },
+        {
+          "path": "rust-mcp-control-47d32585369a8b60c2b90d317b6e018d/seccomp-socket.json",
+          "sha256": "1f5dd6201d129405e1c48c64d796a46704f60bdd7eb2c4d82ffc1b6cf6b4ce31",
+          "bytes": 2869
+        },
+        {
+          "path": "rust-mcp-control-47d32585369a8b60c2b90d317b6e018d/seccomp.json",
+          "sha256": "aad227ba23e1bd6cde69b344b54fef09b0881b18654aacf5303929c8c14aa514",
+          "bytes": 2851
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/blob/qart_05ade7703f95c3d1ef601ced2600b53a.blob",
+          "sha256": "8d20f90ca39f40b55b3944357aa37c171a7ffb70d108fa71ceb68947b46c50ea",
+          "bytes": 1477
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/blob/qart_3daedb312739b094617cc28af55b6731.blob",
+          "sha256": "990abdfa26023e9c838fcd2ae0d5e7ba44c671f2ba77ab1937e03e1cca345936",
+          "bytes": 3392
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/blob/qart_583f0616ddc6675db56b19004900f93c.blob",
+          "sha256": "5e1e963729646a41c3c5321608499d0f5eac93e3f616dbce58807bd2e0654e69",
+          "bytes": 1530
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/blob/qart_5afb29d4de310abb3a0818ac8153dab8.blob",
+          "sha256": "15714b7e76bc530aa2a6bc4754526e0ed0cd8d6406dcb78748460b3dcafd19db",
+          "bytes": 4655
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/blob/qart_762fa8722fcb9273fd4b0a4d73234644.blob",
+          "sha256": "3432d88dceba42bc385f6e1b3d13b3bb3eec076789c6181b0aac7590bb1cc2ab",
+          "bytes": 1530
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/blob/qart_b4d251c8088c0e1b43d80c07cd1158bc.blob",
+          "sha256": "a8e906459d71e937c1a0bc603b3dd29e6772ac19261de835e036801615b15b11",
+          "bytes": 1287
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/blob/qart_b7f041418a27df1c73f8ad22d0e115a7.blob",
+          "sha256": "f118dcda988c6301a472d5423c455e3851e2348e44bb54e525d924bf5166acc9",
+          "bytes": 1287
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/blob/qart_c98c1940a276ed49c3899c43585131b4.blob",
+          "sha256": "48cef2674fc07faf6c880b066423290ce2fb3b18524867ad3d00a0001d2e2998",
+          "bytes": 4654
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/blob/qart_cf96738ea672caf942b53d49a9a36498.blob",
+          "sha256": "ec4caa30a6b77359014b11eeb578e0711e091c7ab63b4260d23ee2e42e9830d3",
+          "bytes": 1477
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/blob/qart_e4ba673d1b42978317407c7e691f5c44.blob",
+          "sha256": "ffc9e6283f9dcf57c6661fc75d16b586a55c9db45d7b6da5081c724180a0ca28",
+          "bytes": 3390
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/clock-watermark.json",
+          "sha256": "80c84072b863f77e680568100dd83c9f1b3651f1787843df731cb277eaf63ef0",
+          "bytes": 61
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/descriptor/qart_05ade7703f95c3d1ef601ced2600b53a.json",
+          "sha256": "f25cd47d121a2e5ab6565bcf3ab1d1c8107019e5b79aa1d2dab67bc59882355e",
+          "bytes": 1434
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/descriptor/qart_3daedb312739b094617cc28af55b6731.json",
+          "sha256": "5d1b27030e6cf27c673765957a37e2c0fa892798a44bd7ee8b1660fad00b4261",
+          "bytes": 1436
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/descriptor/qart_583f0616ddc6675db56b19004900f93c.json",
+          "sha256": "b886e6575abe0379ba15934241c4b2f78344bd89fdd6908fd7a048fb26df9bac",
+          "bytes": 1436
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/descriptor/qart_5afb29d4de310abb3a0818ac8153dab8.json",
+          "sha256": "88c7b68ea6eb97f38acaa7ce04ac5f2b5dd4165f356deec061560a998354fa53",
+          "bytes": 1439
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/descriptor/qart_762fa8722fcb9273fd4b0a4d73234644.json",
+          "sha256": "2a6190db8a69fd2bf7b669e6e0c7dbf360b997d0355bcc74a87580053dd7fab1",
+          "bytes": 1443
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/descriptor/qart_b4d251c8088c0e1b43d80c07cd1158bc.json",
+          "sha256": "ac50bce9c60399a1006ca70198d4eb7e4029a427d8c8d5347fac8dd282494d41",
+          "bytes": 1429
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/descriptor/qart_b7f041418a27df1c73f8ad22d0e115a7.json",
+          "sha256": "d66d30fc226f50e1c97b87f319d2847474be699723c7688d559e4d527b500df9",
+          "bytes": 1434
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/descriptor/qart_c98c1940a276ed49c3899c43585131b4.json",
+          "sha256": "1e7e52632438475c55d7fc468396da1cc06788576f1c0c9e0deea7a4400eab19",
+          "bytes": 1434
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/descriptor/qart_cf96738ea672caf942b53d49a9a36498.json",
+          "sha256": "060caa9c1f4091e6b2221b9d66674f0774b2dbe8ebe7acf99313485be432514c",
+          "bytes": 1437
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/descriptor/qart_e4ba673d1b42978317407c7e691f5c44.json",
+          "sha256": "7a2481502dadd3873d085988bca782257b6259c07ad44f0d265dcefb7d82ee1b",
+          "bytes": 1437
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/store.lock",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "bytes": 0
+        }
+      ]
+    },
+    {
+      "original_path": "docs/validation/M4/clients/attempt-2/state-inspector",
+      "pre_hygiene_path": "docs/validation/m4-clients/attempt-2/state-inspector",
+      "kind": "private-store-state",
+      "files": 12,
+      "bytes": 19562,
+      "aggregate_sha256": "f15484919d05b1378d4c11770eaf48729c85247c3adbcfb331ce570d1de857cb",
+      "aggregate_rule": "sha256 over the sorted lines \"<sha256>  <path>\\n\" of entries",
+      "last_commit_with_bytes": "ad007b571735e89ac5cd47381f6963b11c477e99",
+      "reason": "Private store state of one client-qualification session (artifact blobs, store.lock, clock watermark, copied seccomp profiles). It is per-attempt scratch state, not evidence: the attempt receipt, protocol.jsonl and transcripts stay. The harness creates a fresh state-* for every new attempt and never reads an old one.",
+      "entries": [
+        {
+          "path": "rust-mcp-quality-artifacts-v1/blob/qart_1e600e7dcdcdd01c305c3d570cb2d597.blob",
+          "sha256": "0bc9bdbe74df5d740995c2f0f5c8b378453dce728c15016659033848ebf0e43e",
+          "bytes": 1477
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/blob/qart_37be9ab70e57ca6c5356ffa1a8d40e53.blob",
+          "sha256": "4b55a5b5b851e3361ff056837f3a467ded7b7c363fc9ba5892e3ba4dd51aa709",
+          "bytes": 3390
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/blob/qart_8a01a5cf1b116f1945179caf756693f7.blob",
+          "sha256": "a88d93a5dd4eebed9f05906485642a8518dbad5dfbe2fcae9708fa4854cd71d2",
+          "bytes": 1530
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/blob/qart_ba1bd8f2b9aa7e791279faf77211d260.blob",
+          "sha256": "9899076880b02e8ebb51d3fbae782170039efc5e7978d8bb978064c14d781f3b",
+          "bytes": 4654
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/blob/qart_da11bb91f5a8c09210d25be4bb5feeb3.blob",
+          "sha256": "98b8e1b8accc6818ffb22caf28d19390916af5cb2c4aa61b6f4177006148ce2c",
+          "bytes": 1287
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/clock-watermark.json",
+          "sha256": "9d15c0ea2cd4ea448b825d68d9f3dcfaf43bf946f5fd4ee19a60cc02de3482a2",
+          "bytes": 61
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/descriptor/qart_1e600e7dcdcdd01c305c3d570cb2d597.json",
+          "sha256": "53d78e63f029a602cb9dfd9ad02bdf5429821b9fbf0b3c2d82c7af493f27d7dc",
+          "bytes": 1430
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/descriptor/qart_37be9ab70e57ca6c5356ffa1a8d40e53.json",
+          "sha256": "e8499e0d38ae05d46586d454cb75d7105c99d12f48ada3c9e86d2e6d17de8d54",
+          "bytes": 1430
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/descriptor/qart_8a01a5cf1b116f1945179caf756693f7.json",
+          "sha256": "fb72913cffd57e24e5f23305ad13aac89b4e3a50257ebf2a133ac9ffe4963798",
+          "bytes": 1438
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/descriptor/qart_ba1bd8f2b9aa7e791279faf77211d260.json",
+          "sha256": "f95f064a82c9c980bb81d2d86c2f395524690936de004732db093c7f09ac1cde",
+          "bytes": 1438
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/descriptor/qart_da11bb91f5a8c09210d25be4bb5feeb3.json",
+          "sha256": "cdbce7b9bf3f58066502642c54ba61687c2eb01c3ef214b300ff5f51aca819ee",
+          "bytes": 1427
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/store.lock",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "bytes": 0
+        }
+      ]
+    },
+    {
+      "original_path": "docs/validation/M4/clients/attempt-3/state-codex",
+      "pre_hygiene_path": "docs/validation/m4-clients/attempt-3/state-codex",
+      "kind": "private-store-state",
+      "files": 28,
+      "bytes": 56006,
+      "aggregate_sha256": "613c5484b2fdb4130ca0bc7511f1474e236f6900fa89ea4d9a02e3dc22e3057e",
+      "aggregate_rule": "sha256 over the sorted lines \"<sha256>  <path>\\n\" of entries",
+      "last_commit_with_bytes": "ad007b571735e89ac5cd47381f6963b11c477e99",
+      "reason": "Private store state of one client-qualification session (artifact blobs, store.lock, clock watermark, copied seccomp profiles). It is per-attempt scratch state, not evidence: the attempt receipt, protocol.jsonl and transcripts stay. The harness creates a fresh state-* for every new attempt and never reads an old one.",
+      "entries": [
+        {
+          "path": "rust-mcp-control-1b87d94f58ac130ffcff152aa5d9a222/config.json",
+          "sha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+          "bytes": 2
+        },
+        {
+          "path": "rust-mcp-control-1b87d94f58ac130ffcff152aa5d9a222/seccomp-rust-fix.json",
+          "sha256": "0dc7bbbbf8f7e2a47c784488c49bbc7ffd6acac83b6f15e4fe2f0b9c1f642f15",
+          "bytes": 4018
+        },
+        {
+          "path": "rust-mcp-control-1b87d94f58ac130ffcff152aa5d9a222/seccomp-rust-quality.json",
+          "sha256": "c288305c9fdba791926a9154fe47a1f53a30d61501cd9d059a78467866ccf938",
+          "bytes": 3814
+        },
+        {
+          "path": "rust-mcp-control-1b87d94f58ac130ffcff152aa5d9a222/seccomp-rust.json",
+          "sha256": "f9d31acb22989dc6ac37c02d4c73acfbbb3b74b5e08beff9983f3a811fd4e56d",
+          "bytes": 3379
+        },
+        {
+          "path": "rust-mcp-control-1b87d94f58ac130ffcff152aa5d9a222/seccomp-socket.json",
+          "sha256": "1f5dd6201d129405e1c48c64d796a46704f60bdd7eb2c4d82ffc1b6cf6b4ce31",
+          "bytes": 2869
+        },
+        {
+          "path": "rust-mcp-control-1b87d94f58ac130ffcff152aa5d9a222/seccomp.json",
+          "sha256": "aad227ba23e1bd6cde69b344b54fef09b0881b18654aacf5303929c8c14aa514",
+          "bytes": 2851
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/blob/qart_103ae7bc0857c5fb1448845b027c1c26.blob",
+          "sha256": "1897e81c238cac95793d94367f43f02fdd0c012ae3b0ea0713d399f665cb291b",
+          "bytes": 1287
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/blob/qart_3ca90d27d0b90ec7156ea81678027f78.blob",
+          "sha256": "8b5cd8d53404944dd2ab2f157cb0c58dcec60e96040dfc184765d00e51cbfa07",
+          "bytes": 1287
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/blob/qart_4034e2ab2f4c1453e5c1f9a2d96e1105.blob",
+          "sha256": "5809d8c5f1e3ff2bf2d976b8f7be62beb70d4242c618f65fac7977fecfc983c0",
+          "bytes": 3392
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/blob/qart_54042a421738476339c56f0b02047df5.blob",
+          "sha256": "c88b3502bb018f45ed02be2c190476c300088bdb93177e0ebc2eeae7f6d0bcae",
+          "bytes": 1477
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/blob/qart_63d265bc07401d9a0a5a5be2c845d4e5.blob",
+          "sha256": "e1bc79b3f54616b4c43ac13c0f97af0c4926ede2d060c638cba78048ed63b903",
+          "bytes": 1477
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/blob/qart_74cbd8e6a2e1ef6a9dd66fe705106922.blob",
+          "sha256": "b6f2f8127c5994aa0a738e4949b5908751e81851c6e7665cc00f8260711d18c0",
+          "bytes": 3390
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/blob/qart_8d5a3f9d2b81401835ff7f21ce6cd261.blob",
+          "sha256": "0ef602ef83eb8d2abd031f5c07768f9b7024ee76a12f088480bee5287af4dcb3",
+          "bytes": 1530
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/blob/qart_dd8b19c1c17062a29a3486ff8f467d17.blob",
+          "sha256": "419bb58efdee3b73316a3bcaa6d29597656fcf837a87b49473f87836c45d650e",
+          "bytes": 4655
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/blob/qart_ddfdc18db22d6ca1b34dbf5840a6091e.blob",
+          "sha256": "625da06775a8c20514c3a81f269406d310fa792b800cf8bdaf6f10f2d1ff5cd7",
+          "bytes": 4654
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/blob/qart_e509bb2abdf2193b6343fe896b216ea6.blob",
+          "sha256": "df8f195e2b68dffd675499ec22b8b066155808a9f1d5b4fb219d9758b7334a66",
+          "bytes": 1530
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/clock-watermark.json",
+          "sha256": "9fcf05d1bd55ee66f7fa96138d66ceb0134e4da80987df640df5cd9bca1cf124",
+          "bytes": 61
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/descriptor/qart_103ae7bc0857c5fb1448845b027c1c26.json",
+          "sha256": "7fecfefde13acc09692d399d3286e51f68f0d7e1f7af9b008d8efd57a2393f7c",
+          "bytes": 1425
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/descriptor/qart_3ca90d27d0b90ec7156ea81678027f78.json",
+          "sha256": "dc2bd5f7bc99e80072ac8219e069a1d883cecc4e1b86f0c9d78569981ef57045",
+          "bytes": 1427
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/descriptor/qart_4034e2ab2f4c1453e5c1f9a2d96e1105.json",
+          "sha256": "d3c4559d18fafd811a9c03cf531ab37b56ccb450baf3a983162a6272042316f6",
+          "bytes": 1437
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/descriptor/qart_54042a421738476339c56f0b02047df5.json",
+          "sha256": "a91b47a60d8a1e2f61f70f7f995afcd2c68372f604715436c2d26f2dccc87169",
+          "bytes": 1430
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/descriptor/qart_63d265bc07401d9a0a5a5be2c845d4e5.json",
+          "sha256": "64c3dea95e9c48fbc4e389e4f467e72f84a0f45adc7bd4df77f4bfbca3946864",
+          "bytes": 1431
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/descriptor/qart_74cbd8e6a2e1ef6a9dd66fe705106922.json",
+          "sha256": "f71805e9b1f5a0ee4ae43f653f716cfca2f3fe4cc99b1117ccf3d98a2f02e45e",
+          "bytes": 1434
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/descriptor/qart_8d5a3f9d2b81401835ff7f21ce6cd261.json",
+          "sha256": "a2c906af987fc98d1caa99c9a7dfe79aa32ada9004c8db5de6dc9fc36be5a3b2",
+          "bytes": 1434
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/descriptor/qart_dd8b19c1c17062a29a3486ff8f467d17.json",
+          "sha256": "4883a13bcd87d558a3461d6336104c08a3caaaffa7e47712b9038dde13dddf55",
+          "bytes": 1444
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/descriptor/qart_ddfdc18db22d6ca1b34dbf5840a6091e.json",
+          "sha256": "60f2800aab19d3f89d8ba2b517f0a2f25a2373dd87fbe5c74719520427de3e2e",
+          "bytes": 1437
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/descriptor/qart_e509bb2abdf2193b6343fe896b216ea6.json",
+          "sha256": "d1f7d536182c507a9e4329a00fc4bd6cfce100f03acb0f60283bc26da7eaa081",
+          "bytes": 1434
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/store.lock",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "bytes": 0
+        }
+      ]
+    },
+    {
+      "original_path": "docs/validation/M4/clients/attempt-3/state-inspector",
+      "pre_hygiene_path": "docs/validation/m4-clients/attempt-3/state-inspector",
+      "kind": "private-store-state",
+      "files": 12,
+      "bytes": 19535,
+      "aggregate_sha256": "14b9149fec7bf7b75d7cb8094600ddc09b12419682de944c762b65677cc5afee",
+      "aggregate_rule": "sha256 over the sorted lines \"<sha256>  <path>\\n\" of entries",
+      "last_commit_with_bytes": "ad007b571735e89ac5cd47381f6963b11c477e99",
+      "reason": "Private store state of one client-qualification session (artifact blobs, store.lock, clock watermark, copied seccomp profiles). It is per-attempt scratch state, not evidence: the attempt receipt, protocol.jsonl and transcripts stay. The harness creates a fresh state-* for every new attempt and never reads an old one.",
+      "entries": [
+        {
+          "path": "rust-mcp-quality-artifacts-v1/blob/qart_a6f13b0c62a0aef631eec446e00a679b.blob",
+          "sha256": "8c4f56ee26423f66971ffd377f0ba99632401c8073c5dd1e5745a4313117a68a",
+          "bytes": 4654
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/blob/qart_b2a73af116cbc73c3634788806a70015.blob",
+          "sha256": "ec18b3f9094922e8a81fbbbb4ea9aac92b46ba8eb0c9416ffcb78a9c15bfc0cb",
+          "bytes": 1477
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/blob/qart_cf635b0a33d15643ec371e72b0990b53.blob",
+          "sha256": "a740d0e753e45e239813951215f262cdf1c0a75398443c362dbe39f902cb4bb3",
+          "bytes": 1530
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/blob/qart_de1aeb30bd8b3f82a0ceae67850d51dc.blob",
+          "sha256": "221c95048e82b0f45d916a7db700dfd1eeec0e526f95fe01f8566509da13e193",
+          "bytes": 1287
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/blob/qart_fc1c14f93f9c8722be384acd7f642cd8.blob",
+          "sha256": "b17faf7e4243864e9f93e514536fd4f6b61f74e402a5673b40ba2c866fda2c27",
+          "bytes": 3390
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/clock-watermark.json",
+          "sha256": "54816a51492c1957458f86332d6ae12bcc9cdf8b65dc73c6fde379d77c58d26b",
+          "bytes": 61
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/descriptor/qart_a6f13b0c62a0aef631eec446e00a679b.json",
+          "sha256": "7881f83baba5ff6bd1aa7eb7a7e1cd3b25f03beea761986f838d0ab084605bc8",
+          "bytes": 1427
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/descriptor/qart_b2a73af116cbc73c3634788806a70015.json",
+          "sha256": "383c6ad755c7f5c77a8c75bc84a4b8aed375e55ee89fc99d7943853dddb2fc36",
+          "bytes": 1432
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/descriptor/qart_cf635b0a33d15643ec371e72b0990b53.json",
+          "sha256": "a2a8ee04010a0ef3e16bc53ab4c687fda2013c9cb3a12236f1498b3824aefedc",
+          "bytes": 1424
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/descriptor/qart_de1aeb30bd8b3f82a0ceae67850d51dc.json",
+          "sha256": "01dd289202273a02479191ba64cbde13a29624e845c5b5b484534946c5d86d74",
+          "bytes": 1426
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/descriptor/qart_fc1c14f93f9c8722be384acd7f642cd8.json",
+          "sha256": "10f755c3445f3577f068d3f2113eea7426022c8354f8727b6c8d6c5e36b3595b",
+          "bytes": 1427
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/store.lock",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "bytes": 0
+        }
+      ]
+    },
+    {
+      "original_path": "docs/validation/M4/clients/attempt-4/state-codex",
+      "pre_hygiene_path": "docs/validation/m4-clients/attempt-4/state-codex",
+      "kind": "private-store-state",
+      "files": 28,
+      "bytes": 55938,
+      "aggregate_sha256": "f9d114726d3db847326c38d5d750c4828d89179357ccbbd037eb3e18916b5d30",
+      "aggregate_rule": "sha256 over the sorted lines \"<sha256>  <path>\\n\" of entries",
+      "last_commit_with_bytes": "ad007b571735e89ac5cd47381f6963b11c477e99",
+      "reason": "Private store state of one client-qualification session (artifact blobs, store.lock, clock watermark, copied seccomp profiles). It is per-attempt scratch state, not evidence: the attempt receipt, protocol.jsonl and transcripts stay. The harness creates a fresh state-* for every new attempt and never reads an old one.",
+      "entries": [
+        {
+          "path": "rust-mcp-control-7c52cba02c9287358c93879854be1ff4/config.json",
+          "sha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+          "bytes": 2
+        },
+        {
+          "path": "rust-mcp-control-7c52cba02c9287358c93879854be1ff4/seccomp-rust-fix.json",
+          "sha256": "0dc7bbbbf8f7e2a47c784488c49bbc7ffd6acac83b6f15e4fe2f0b9c1f642f15",
+          "bytes": 4018
+        },
+        {
+          "path": "rust-mcp-control-7c52cba02c9287358c93879854be1ff4/seccomp-rust-quality.json",
+          "sha256": "c288305c9fdba791926a9154fe47a1f53a30d61501cd9d059a78467866ccf938",
+          "bytes": 3814
+        },
+        {
+          "path": "rust-mcp-control-7c52cba02c9287358c93879854be1ff4/seccomp-rust.json",
+          "sha256": "f9d31acb22989dc6ac37c02d4c73acfbbb3b74b5e08beff9983f3a811fd4e56d",
+          "bytes": 3379
+        },
+        {
+          "path": "rust-mcp-control-7c52cba02c9287358c93879854be1ff4/seccomp-socket.json",
+          "sha256": "1f5dd6201d129405e1c48c64d796a46704f60bdd7eb2c4d82ffc1b6cf6b4ce31",
+          "bytes": 2869
+        },
+        {
+          "path": "rust-mcp-control-7c52cba02c9287358c93879854be1ff4/seccomp.json",
+          "sha256": "aad227ba23e1bd6cde69b344b54fef09b0881b18654aacf5303929c8c14aa514",
+          "bytes": 2851
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/blob/qart_01ec24639caf3030f46dbee429112de9.blob",
+          "sha256": "19ea25bf2b3d12c64b022af4fa87a366177ba3f2184b11054febf67a998d23ae",
+          "bytes": 4655
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/blob/qart_0b7279cf648311a29974a9788f8d08ed.blob",
+          "sha256": "b5b796aea69f9179d62aa0ad5a89202f519e17dea1c4cb4c0f2ecb723e1fdc77",
+          "bytes": 1287
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/blob/qart_1623e8755eae39bb57de82b5cf5eae0a.blob",
+          "sha256": "91b6a35d98b62dde924279a224a29afacb9dd6a4b39f97d935c195cec87ca143",
+          "bytes": 1530
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/blob/qart_31ca0a5fe4e8b1467307753eceb6b9c8.blob",
+          "sha256": "48de13e2d8006aeb5284904cc0d1d96495b9598330e07cf1e1ec7b8b04748f0e",
+          "bytes": 1530
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/blob/qart_3958a83ebd5c0f0e8021f61d98475aaa.blob",
+          "sha256": "c59b4bba77d3505e735c1e1255f21a910cda0f5d79e65a6d7ef98d8944d8c6ee",
+          "bytes": 1287
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/blob/qart_79f313e4467ffc4773a240b894b5cfe7.blob",
+          "sha256": "df0ec365bbd0ed0b28612deb4326f517ac22be8c1f74fa50ebf1e68f7d8fb0e8",
+          "bytes": 1477
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/blob/qart_9910b1213220ff3e5ee4fbe2e81b5335.blob",
+          "sha256": "1ae6ba321a036a4e36f8cde001c4bc60c966cebd3432ca104773e4cdc2dc067e",
+          "bytes": 4654
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/blob/qart_995f902ada39f2fb50cbf694fbeedec0.blob",
+          "sha256": "52c005ab6132729fd68bc1c8c1769412ab8aea8f6d1bbaad20b1234dd51be62a",
+          "bytes": 3390
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/blob/qart_adb81a8fac113242d4833f8054f74ce5.blob",
+          "sha256": "8c76a7d84a69ec3475c896df2e9282ded37fed90d4167449d3e717a0deaf472d",
+          "bytes": 1477
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/blob/qart_e0bc475e58e012a4dd7424f170556caa.blob",
+          "sha256": "2616104a1130256b60fdc9485eef1334be7acb3a3499e998941e444d17d7a428",
+          "bytes": 3392
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/clock-watermark.json",
+          "sha256": "3c99495329467a51a6a189da13a09d3358065dcb7772c1ba563b078309b5a183",
+          "bytes": 61
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/descriptor/qart_01ec24639caf3030f46dbee429112de9.json",
+          "sha256": "501b79ab377bad83a82c7689c24464c9c57be72141f79bd10d53b748ba5004bc",
+          "bytes": 1426
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/descriptor/qart_0b7279cf648311a29974a9788f8d08ed.json",
+          "sha256": "c7fe463218010c20611585e2ce8c3817158c5188c2d5a7defc79a51155c1e20b",
+          "bytes": 1425
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/descriptor/qart_1623e8755eae39bb57de82b5cf5eae0a.json",
+          "sha256": "39b579fd612f8b283f0f89e3732581c88fe3936584f498bebaa9c0befb95176b",
+          "bytes": 1431
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/descriptor/qart_31ca0a5fe4e8b1467307753eceb6b9c8.json",
+          "sha256": "e35fc47a5468a1c233e499012336a427b206a1b75b7e2fc5cd546f01de1abf74",
+          "bytes": 1430
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/descriptor/qart_3958a83ebd5c0f0e8021f61d98475aaa.json",
+          "sha256": "7c1192a1987dcd424d6e18499965359c016bb3ca7f164599610836dbfa79324f",
+          "bytes": 1422
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/descriptor/qart_79f313e4467ffc4773a240b894b5cfe7.json",
+          "sha256": "15dec209a5b52c88043296ed3257e56cda1390945371fe16d0a16c49624efcc0",
+          "bytes": 1426
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/descriptor/qart_9910b1213220ff3e5ee4fbe2e81b5335.json",
+          "sha256": "bfc81af1e686b5bec7a9866407721a7b24847d68732bdfd3e4e71dbaf66c2f25",
+          "bytes": 1427
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/descriptor/qart_995f902ada39f2fb50cbf694fbeedec0.json",
+          "sha256": "d01fb5eaef06f527ce2a84a4a354de5c3ef6a4abf3ccb144fb93d26774d7f430",
+          "bytes": 1427
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/descriptor/qart_adb81a8fac113242d4833f8054f74ce5.json",
+          "sha256": "e1a819c02a6823cbedbd38a2f1a27b38c0f3a38f1a4675dfac35c48cf017d000",
+          "bytes": 1431
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/descriptor/qart_e0bc475e58e012a4dd7424f170556caa.json",
+          "sha256": "b7c9aaecb3201f7242082c25559396c9109fc1a07e3e20820680034a9a71af3c",
+          "bytes": 1420
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/store.lock",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "bytes": 0
+        }
+      ]
+    },
+    {
+      "original_path": "docs/validation/M4/clients/attempt-4/state-inspector",
+      "pre_hygiene_path": "docs/validation/m4-clients/attempt-4/state-inspector",
+      "kind": "private-store-state",
+      "files": 12,
+      "bytes": 19550,
+      "aggregate_sha256": "87483e647fab352bd98f67bd4546e2c736338477c6df02afc0211168f0e0e380",
+      "aggregate_rule": "sha256 over the sorted lines \"<sha256>  <path>\\n\" of entries",
+      "last_commit_with_bytes": "ad007b571735e89ac5cd47381f6963b11c477e99",
+      "reason": "Private store state of one client-qualification session (artifact blobs, store.lock, clock watermark, copied seccomp profiles). It is per-attempt scratch state, not evidence: the attempt receipt, protocol.jsonl and transcripts stay. The harness creates a fresh state-* for every new attempt and never reads an old one.",
+      "entries": [
+        {
+          "path": "rust-mcp-quality-artifacts-v1/blob/qart_2feb77e9ea154035fd7331f6e27c0555.blob",
+          "sha256": "a2fd5f10237ebd7d3846a8c162ee22a99e4c7a513ec7c6cdd1dc9e089d21d0c4",
+          "bytes": 1477
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/blob/qart_6e223ec8e797ff37e8e7bed47209e671.blob",
+          "sha256": "500620a15d2af45bb27195ca5fb7142f780baad46700bacee8eb7d9f1f62176a",
+          "bytes": 1287
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/blob/qart_775fe5b1cc32d98a43f1c458e9ec61f4.blob",
+          "sha256": "2151f242713f75f184e8645410621a9484772b06964765a86583f2f894508ab5",
+          "bytes": 3390
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/blob/qart_d44957297f9d3c9925302fcc964106ec.blob",
+          "sha256": "ab4328c37dc204b3bade3575376a8631348aad413c40d095cd21be45592929dc",
+          "bytes": 4654
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/blob/qart_dcfd7a8d12c6de712e4356cfd8c08513.blob",
+          "sha256": "5018004a5319395f368cadd94c00a0c41633d1585247226e9fa20bb82cd560a5",
+          "bytes": 1530
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/clock-watermark.json",
+          "sha256": "70630c0225cbf8a488a81b69e9a0b24612e805963bb76ae68d3777f218a4a2e9",
+          "bytes": 61
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/descriptor/qart_2feb77e9ea154035fd7331f6e27c0555.json",
+          "sha256": "b73f0bea8681bf0aa361a067b722f213513697113f5413165a7c1133c41d75b0",
+          "bytes": 1432
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/descriptor/qart_6e223ec8e797ff37e8e7bed47209e671.json",
+          "sha256": "124711b5c7b329fc0409e2fe9cd195206f4504e0bb9070c78d34b6f210c06aff",
+          "bytes": 1425
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/descriptor/qart_775fe5b1cc32d98a43f1c458e9ec61f4.json",
+          "sha256": "297b2d50d7abad325fd5e051705a00b14d2eb338ca05f9f2b78170e7f879e151",
+          "bytes": 1434
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/descriptor/qart_d44957297f9d3c9925302fcc964106ec.json",
+          "sha256": "6d6be6f6a7423ad1225997bf02091f711e56dc0bdc484dd6c349771199e8d6a2",
+          "bytes": 1435
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/descriptor/qart_dcfd7a8d12c6de712e4356cfd8c08513.json",
+          "sha256": "3e09eda81b84991f583bbeba5db70516409eacfc8160276d9a58a87dc080b0cc",
+          "bytes": 1425
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/store.lock",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "bytes": 0
+        }
+      ]
+    },
+    {
+      "original_path": "docs/validation/M4/clients/attempt-5/state-codex",
+      "pre_hygiene_path": "docs/validation/m4-clients/attempt-5/state-codex",
+      "kind": "private-store-state",
+      "files": 28,
+      "bytes": 55996,
+      "aggregate_sha256": "db8fbbfad758a15d4dc2d65231431377480db46a3e230d5470af365d114f076a",
+      "aggregate_rule": "sha256 over the sorted lines \"<sha256>  <path>\\n\" of entries",
+      "last_commit_with_bytes": "ad007b571735e89ac5cd47381f6963b11c477e99",
+      "reason": "Private store state of one client-qualification session (artifact blobs, store.lock, clock watermark, copied seccomp profiles). It is per-attempt scratch state, not evidence: the attempt receipt, protocol.jsonl and transcripts stay. The harness creates a fresh state-* for every new attempt and never reads an old one.",
+      "entries": [
+        {
+          "path": "rust-mcp-control-013f5cfabd260678c0bdc49122e39d1b/config.json",
+          "sha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+          "bytes": 2
+        },
+        {
+          "path": "rust-mcp-control-013f5cfabd260678c0bdc49122e39d1b/seccomp-rust-fix.json",
+          "sha256": "0dc7bbbbf8f7e2a47c784488c49bbc7ffd6acac83b6f15e4fe2f0b9c1f642f15",
+          "bytes": 4018
+        },
+        {
+          "path": "rust-mcp-control-013f5cfabd260678c0bdc49122e39d1b/seccomp-rust-quality.json",
+          "sha256": "c288305c9fdba791926a9154fe47a1f53a30d61501cd9d059a78467866ccf938",
+          "bytes": 3814
+        },
+        {
+          "path": "rust-mcp-control-013f5cfabd260678c0bdc49122e39d1b/seccomp-rust.json",
+          "sha256": "f9d31acb22989dc6ac37c02d4c73acfbbb3b74b5e08beff9983f3a811fd4e56d",
+          "bytes": 3379
+        },
+        {
+          "path": "rust-mcp-control-013f5cfabd260678c0bdc49122e39d1b/seccomp-socket.json",
+          "sha256": "1f5dd6201d129405e1c48c64d796a46704f60bdd7eb2c4d82ffc1b6cf6b4ce31",
+          "bytes": 2869
+        },
+        {
+          "path": "rust-mcp-control-013f5cfabd260678c0bdc49122e39d1b/seccomp.json",
+          "sha256": "aad227ba23e1bd6cde69b344b54fef09b0881b18654aacf5303929c8c14aa514",
+          "bytes": 2851
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/blob/qart_055bde0e6551e4b1fa4520b84283a3ce.blob",
+          "sha256": "a48edc213836e66a8086ee3dc25cb2cb16e02acb622b2053d0ccd6f81437c2c0",
+          "bytes": 4655
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/blob/qart_0fbd1951c35637dc946ce21f1c31b8ec.blob",
+          "sha256": "f8595ac83a2b58e17634d28d4ee8d7bb9a23c8bed29e297f5a358120388f2e1c",
+          "bytes": 1287
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/blob/qart_1abbadca4d35863084098f220a30949d.blob",
+          "sha256": "e12e18588d092067fba28713b230667f62aa6fd37ece80fd8c9bf6c2bdd55c2c",
+          "bytes": 3392
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/blob/qart_21acfbaa805216096af65898632bd1b2.blob",
+          "sha256": "9c2a5972132846e63fe33620eae1b2753c3d3f6ea84054699e9de0bd10e03506",
+          "bytes": 1477
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/blob/qart_2d5f32c9d46603784cd53dda1228fe1e.blob",
+          "sha256": "51de504fed859a2a2823aa9fddac89640ae5deb6842786a15734747b1f80669c",
+          "bytes": 1530
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/blob/qart_5584a8c03f894cc0929408c7cfc7af9b.blob",
+          "sha256": "ec28470020aca2d96e2a756166da77075c91840bc6f4355ba2d7fc311dc7d812",
+          "bytes": 4654
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/blob/qart_5b06ea082166fc83a9c210672f1ea47f.blob",
+          "sha256": "62369b8fe1eabe4ea9a0de83222b3c987bcfe0747fbc4cb75e50dcea2fadcf63",
+          "bytes": 1287
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/blob/qart_aef1b0136efd1c1eafcea3ce2133be64.blob",
+          "sha256": "a272692190875a1f0f47071c0ec6a372ef6fa6416c024e3ef1a8702728de6c25",
+          "bytes": 3390
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/blob/qart_b7fa5112c9da77f3ee15c2b7ba91772e.blob",
+          "sha256": "083a0ed24f32107575e1c4329940b9496a4de69af726d0bc31373bd842e27155",
+          "bytes": 1477
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/blob/qart_c9f149a6ce8e76456871bd7a2393fe80.blob",
+          "sha256": "4c71d6d43d9366b4f129798e7ab8f0f42a3b3e4653af127dc5d343eeff0fa37a",
+          "bytes": 1530
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/clock-watermark.json",
+          "sha256": "0650f79a7375f342738788dc326e506b4eb460d194ffe1a279ce32d07bf9e369",
+          "bytes": 61
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/descriptor/qart_055bde0e6551e4b1fa4520b84283a3ce.json",
+          "sha256": "eba183a3b22d7332f39aa43f721685d8db1149363d1834a0ccb5b67424062709",
+          "bytes": 1434
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/descriptor/qart_0fbd1951c35637dc946ce21f1c31b8ec.json",
+          "sha256": "727d351c6a68029335d1637cdd23caa94e3bef7f99823ee7e82aedc3cb995de5",
+          "bytes": 1432
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/descriptor/qart_1abbadca4d35863084098f220a30949d.json",
+          "sha256": "3ff4a3b5043d00adc3cec7e331f83793f04b11a1c6a97c084ae9346286f7c6f4",
+          "bytes": 1432
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/descriptor/qart_21acfbaa805216096af65898632bd1b2.json",
+          "sha256": "aad7ebfaee1e6ab4ee68609254a29c2927d7af522b89bbfb38b02d55bbe78238",
+          "bytes": 1430
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/descriptor/qart_2d5f32c9d46603784cd53dda1228fe1e.json",
+          "sha256": "d0153eaf3aedbc937ea7da3cfde518ed8eece942dd1a859f01df1d54caa9a68f",
+          "bytes": 1436
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/descriptor/qart_5584a8c03f894cc0929408c7cfc7af9b.json",
+          "sha256": "aad3d2987dd355eb852ce7b0db24cd87f9216d403654a521b22ec425c58f1bf8",
+          "bytes": 1431
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/descriptor/qart_5b06ea082166fc83a9c210672f1ea47f.json",
+          "sha256": "c4af973d8e5c9a7858f70dbdc3aac661782ec0d8cde16adb4152b40e7410fc1d",
+          "bytes": 1433
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/descriptor/qart_aef1b0136efd1c1eafcea3ce2133be64.json",
+          "sha256": "a6bc5cdd88ecd4243e08bc2a7b3770dab2fc1b2393d19c98e5ecf306e3616e8e",
+          "bytes": 1426
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/descriptor/qart_b7fa5112c9da77f3ee15c2b7ba91772e.json",
+          "sha256": "32630bc73ec651b9e558032d3a6499e55690c81b8b14df4ee813ca662abf954d",
+          "bytes": 1431
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/descriptor/qart_c9f149a6ce8e76456871bd7a2393fe80.json",
+          "sha256": "cf96c41b76201100cc1980d0cc7a8bf9e1c58b78ec403c902b978958494e4ce5",
+          "bytes": 1438
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/store.lock",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "bytes": 0
+        }
+      ]
+    },
+    {
+      "original_path": "docs/validation/M4/clients/attempt-5/state-inspector",
+      "pre_hygiene_path": "docs/validation/m4-clients/attempt-5/state-inspector",
+      "kind": "private-store-state",
+      "files": 12,
+      "bytes": 19537,
+      "aggregate_sha256": "ecd6968f2fe0abdd62a15bca98a5c6d481e4cd698615d5366c73a5ca8f716fba",
+      "aggregate_rule": "sha256 over the sorted lines \"<sha256>  <path>\\n\" of entries",
+      "last_commit_with_bytes": "ad007b571735e89ac5cd47381f6963b11c477e99",
+      "reason": "Private store state of one client-qualification session (artifact blobs, store.lock, clock watermark, copied seccomp profiles). It is per-attempt scratch state, not evidence: the attempt receipt, protocol.jsonl and transcripts stay. The harness creates a fresh state-* for every new attempt and never reads an old one.",
+      "entries": [
+        {
+          "path": "rust-mcp-quality-artifacts-v1/blob/qart_0f8dd792b1df1cf43038c18450bad419.blob",
+          "sha256": "407c87e7acc0d24de497160960e17ae82822062278567822899b4e48ff3e353e",
+          "bytes": 1287
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/blob/qart_3c28ecf052273db66202b945628e6908.blob",
+          "sha256": "9a05b68d37cea587a46021708187571e5cba97d59a40ad2a61d49fa9a2b6af2c",
+          "bytes": 4654
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/blob/qart_8b850c3ca9eb7879b760825b002cede7.blob",
+          "sha256": "3f0de785ec54b0bfd046e08006e760e19d049b27dc4d39dd8c7c19e6016d1204",
+          "bytes": 1530
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/blob/qart_8d86630f3e4126cd477ab1900c871f0b.blob",
+          "sha256": "6cdca1ccf6b107da22f810fcbf3bc750d124625e31e706ab3c60452181ca381d",
+          "bytes": 1477
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/blob/qart_e413c0b4a5b0182260deffd77532e443.blob",
+          "sha256": "c0c6f921c0feaf92bf7f9d44f40fa80a551e15ee54943442ada89f34cd07bffc",
+          "bytes": 3390
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/clock-watermark.json",
+          "sha256": "085bb0565ada2096baf806723e10704e4897a7bda1572118d2d6808dfeda7f71",
+          "bytes": 61
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/descriptor/qart_0f8dd792b1df1cf43038c18450bad419.json",
+          "sha256": "af66c304e29c64654fa20d7a02ab8e78c02c63177dcf3ed06188e726cfc4cac0",
+          "bytes": 1425
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/descriptor/qart_3c28ecf052273db66202b945628e6908.json",
+          "sha256": "185d20d7148c09d69cdae44df126e409cb3982a4ba46d4eed002b0e4bfefcb5f",
+          "bytes": 1431
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/descriptor/qart_8b850c3ca9eb7879b760825b002cede7.json",
+          "sha256": "92b5fb4f964d628015c7424c8503834ff50f8805966e6e95c1cdd1b82bfc94c5",
+          "bytes": 1430
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/descriptor/qart_8d86630f3e4126cd477ab1900c871f0b.json",
+          "sha256": "8333ad14d363900f5184a2670ef86670d8a97d865987483d19088bafef49f808",
+          "bytes": 1426
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/descriptor/qart_e413c0b4a5b0182260deffd77532e443.json",
+          "sha256": "0e7eb811004e5ad4922b76da5c29340d824f46a170c07dc23ec58f57f7d5a922",
+          "bytes": 1426
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/store.lock",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "bytes": 0
+        }
+      ]
+    },
+    {
+      "original_path": "docs/validation/M4/clients/attempt-6/state-codex",
+      "pre_hygiene_path": "docs/validation/m4-clients/attempt-6/state-codex",
+      "kind": "private-store-state",
+      "files": 28,
+      "bytes": 55995,
+      "aggregate_sha256": "13e5a3ea1f4061205e2c3f815a70526c3c6320e210828efdcc45c6f3c2656291",
+      "aggregate_rule": "sha256 over the sorted lines \"<sha256>  <path>\\n\" of entries",
+      "last_commit_with_bytes": "ad007b571735e89ac5cd47381f6963b11c477e99",
+      "reason": "Private store state of one client-qualification session (artifact blobs, store.lock, clock watermark, copied seccomp profiles). It is per-attempt scratch state, not evidence: the attempt receipt, protocol.jsonl and transcripts stay. The harness creates a fresh state-* for every new attempt and never reads an old one.",
+      "entries": [
+        {
+          "path": "rust-mcp-control-95449974236ed93414953266d6944d0e/config.json",
+          "sha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+          "bytes": 2
+        },
+        {
+          "path": "rust-mcp-control-95449974236ed93414953266d6944d0e/seccomp-rust-fix.json",
+          "sha256": "0dc7bbbbf8f7e2a47c784488c49bbc7ffd6acac83b6f15e4fe2f0b9c1f642f15",
+          "bytes": 4018
+        },
+        {
+          "path": "rust-mcp-control-95449974236ed93414953266d6944d0e/seccomp-rust-quality.json",
+          "sha256": "c288305c9fdba791926a9154fe47a1f53a30d61501cd9d059a78467866ccf938",
+          "bytes": 3814
+        },
+        {
+          "path": "rust-mcp-control-95449974236ed93414953266d6944d0e/seccomp-rust.json",
+          "sha256": "f9d31acb22989dc6ac37c02d4c73acfbbb3b74b5e08beff9983f3a811fd4e56d",
+          "bytes": 3379
+        },
+        {
+          "path": "rust-mcp-control-95449974236ed93414953266d6944d0e/seccomp-socket.json",
+          "sha256": "1f5dd6201d129405e1c48c64d796a46704f60bdd7eb2c4d82ffc1b6cf6b4ce31",
+          "bytes": 2869
+        },
+        {
+          "path": "rust-mcp-control-95449974236ed93414953266d6944d0e/seccomp.json",
+          "sha256": "aad227ba23e1bd6cde69b344b54fef09b0881b18654aacf5303929c8c14aa514",
+          "bytes": 2851
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/blob/qart_123076044272c73db48019fff170e13e.blob",
+          "sha256": "165ff5305cf0a7db6be9c0af89f7a621f6784d2a5231a2b63b7c5c772b6ec4cc",
+          "bytes": 1530
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/blob/qart_1e1d9a89266413b8f20f7a99eaba2608.blob",
+          "sha256": "7b5993929b0db4e8dba4cded8d635ae1f155b7f6477c136a5fc9f7da0355c3e1",
+          "bytes": 1287
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/blob/qart_4035f8b9b610abc9d3ba06e7d56d6cfd.blob",
+          "sha256": "179bca0f776c63a55a0a5d716e4f1be5d526b9491fb6612db2b1311c5a1bfacd",
+          "bytes": 1287
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/blob/qart_4b8d01aff428ac9c2fd1cde345d94d59.blob",
+          "sha256": "dd41d7e672f3927e0bd76c31dd1da38d7ab8c762d1a25ccf30e6f26b2befc087",
+          "bytes": 3392
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/blob/qart_673e8e7e880454f7da5408a83d7c447d.blob",
+          "sha256": "1a8a312a80f0f11cad6cc3abac5d57bce3fd2f84ac7cbbf7d35319460a6a1863",
+          "bytes": 4654
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/blob/qart_78b4b0110b14a2878062d729f6096310.blob",
+          "sha256": "cb3e2fb135d9fa12d0852b8ad7595cdd38fdaf64a6f32359d29f0a08c43c62dc",
+          "bytes": 4655
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/blob/qart_cfd569a78fbd7add05d0d075a757c6fc.blob",
+          "sha256": "2463ca9f88eba126dcccb53fc4b2941bee74ec8913e6581cf66395a500937c87",
+          "bytes": 3390
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/blob/qart_da80cc004bfd0ebd3c3371ca9732abee.blob",
+          "sha256": "9afad6b766e753069c8051d0f1b7a23bb721f57c16dcc599a538da4143170112",
+          "bytes": 1477
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/blob/qart_e1cf6015034dc6485f082a5b8c184f01.blob",
+          "sha256": "6a45e7949496804e328740104252e492749fa8fc1462c01d4d5ab6a7ec3cbdc0",
+          "bytes": 1530
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/blob/qart_eac7c135b34b8ce60d0052ce85300a59.blob",
+          "sha256": "7c31697015a56945e2b58afb425ee8ebd83acfa07dcf3dae964c2dbd93ff7330",
+          "bytes": 1477
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/clock-watermark.json",
+          "sha256": "d68cc3fcd4a6d4aa8153e3cae881a08f211435ccaadb4ac7e67efe2a65efd8eb",
+          "bytes": 61
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/descriptor/qart_123076044272c73db48019fff170e13e.json",
+          "sha256": "62d70b942489eeadbbd926bacd075995a77879ffd8413e640dac87a0114c1a65",
+          "bytes": 1432
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/descriptor/qart_1e1d9a89266413b8f20f7a99eaba2608.json",
+          "sha256": "71e28402b444b1d8b4c4048c8be8c0133a15ae114878ca3528ed94c99fc9b6e3",
+          "bytes": 1431
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/descriptor/qart_4035f8b9b610abc9d3ba06e7d56d6cfd.json",
+          "sha256": "ed321d1d3fd7b194f84849c24ee4a94754beed585082c0a2ea7931183436dbe8",
+          "bytes": 1423
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/descriptor/qart_4b8d01aff428ac9c2fd1cde345d94d59.json",
+          "sha256": "d00fd78485caf245da4e23e925c4d11cc200df7769aa8ec9efb9d32037e40856",
+          "bytes": 1434
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/descriptor/qart_673e8e7e880454f7da5408a83d7c447d.json",
+          "sha256": "495fd1db21a74503c0f845162539d2f59c449c7e32dd28c382da9c7943ec0362",
+          "bytes": 1433
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/descriptor/qart_78b4b0110b14a2878062d729f6096310.json",
+          "sha256": "2b78e0b701aa5d87e9a8bc46a4799c7f04e275d8955cda5606374ddb6c1671dd",
+          "bytes": 1431
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/descriptor/qart_cfd569a78fbd7add05d0d075a757c6fc.json",
+          "sha256": "43de041e101f7d7f0e1c610ee65efb9eb324f78a807d3e264e663d2ba64b67cd",
+          "bytes": 1431
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/descriptor/qart_da80cc004bfd0ebd3c3371ca9732abee.json",
+          "sha256": "6144d0f1285c0bd290b9198a4bdd55dbfe23baefeeef63590f76e0f637d99daf",
+          "bytes": 1434
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/descriptor/qart_e1cf6015034dc6485f082a5b8c184f01.json",
+          "sha256": "41256a23724c827104d396ce1bf5d40831bc6ffa79f3237c08e3f88be3061de2",
+          "bytes": 1434
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/descriptor/qart_eac7c135b34b8ce60d0052ce85300a59.json",
+          "sha256": "b4c0bc4949979c7b650545bdd8a5e5e94738f6da02d4417ac0da876c56289eb8",
+          "bytes": 1439
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/store.lock",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "bytes": 0
+        }
+      ]
+    },
+    {
+      "original_path": "docs/validation/M4/clients/attempt-6/state-inspector",
+      "pre_hygiene_path": "docs/validation/m4-clients/attempt-6/state-inspector",
+      "kind": "private-store-state",
+      "files": 12,
+      "bytes": 19534,
+      "aggregate_sha256": "0821e1c72a191af6bbf7cf19dc02e8455544064bba828baf13da114c8cf6f6a5",
+      "aggregate_rule": "sha256 over the sorted lines \"<sha256>  <path>\\n\" of entries",
+      "last_commit_with_bytes": "ad007b571735e89ac5cd47381f6963b11c477e99",
+      "reason": "Private store state of one client-qualification session (artifact blobs, store.lock, clock watermark, copied seccomp profiles). It is per-attempt scratch state, not evidence: the attempt receipt, protocol.jsonl and transcripts stay. The harness creates a fresh state-* for every new attempt and never reads an old one.",
+      "entries": [
+        {
+          "path": "rust-mcp-quality-artifacts-v1/blob/qart_13e764672456484a5eb10168480c693b.blob",
+          "sha256": "fb16328689b9f0dbefea71faa1a146b40193a1442265082cc4fff17c6d395874",
+          "bytes": 1477
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/blob/qart_2b56a63780a4a6cc52cb7b9006e6d6d7.blob",
+          "sha256": "69c8dd3bcb3c184177199f5952170aeb799786fc642a1c91f6ddf91f2488b86c",
+          "bytes": 3390
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/blob/qart_4d29132c1347bb127963bb355d95c371.blob",
+          "sha256": "5bd80228db791d7a19eaa5eb426792c7848ed704857149a10cc6e2d503f7bffc",
+          "bytes": 4654
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/blob/qart_5a9642ec610509ac3205300ca74c9d42.blob",
+          "sha256": "0e7efe48dd9dd209e40f12bec92d77bb321468e36ad0e2526b90cf125384d85f",
+          "bytes": 1530
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/blob/qart_e9da1c633241bec62dd613612fd89910.blob",
+          "sha256": "d6f1b60a3b3846d2ef4b49ff7047e1eab7acb57e6f147a796421cbe5c635fad3",
+          "bytes": 1287
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/clock-watermark.json",
+          "sha256": "abf278b63f75d15c73718a60d546a6d912b78d16499199915a3af44e3396f5ea",
+          "bytes": 61
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/descriptor/qart_13e764672456484a5eb10168480c693b.json",
+          "sha256": "7b8c03df6722ce2a4f35221b47d2694755c285e916b73a9c5ecc4d0815863ff0",
+          "bytes": 1424
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/descriptor/qart_2b56a63780a4a6cc52cb7b9006e6d6d7.json",
+          "sha256": "a5f7b82a1fb87a7fa380b30402bea13b8a0e810d0f61ff8cc5bce8cc7efcd594",
+          "bytes": 1425
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/descriptor/qart_4d29132c1347bb127963bb355d95c371.json",
+          "sha256": "ad759c321ab93367001d580e888ab625fbfd733253c6b79c874287cd61c10877",
+          "bytes": 1429
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/descriptor/qart_5a9642ec610509ac3205300ca74c9d42.json",
+          "sha256": "c48e4042583b7f533f0252877cecb26425689123fa75ba82ef6ccd70144f10e7",
+          "bytes": 1427
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/descriptor/qart_e9da1c633241bec62dd613612fd89910.json",
+          "sha256": "58ff1a1024f8da64a8720c5ffa6210e23c50f7b6b7832954048a266e79b434a6",
+          "bytes": 1430
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/store.lock",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "bytes": 0
+        }
+      ]
+    },
+    {
+      "original_path": "docs/validation/M4/history/client-execution-before-corpus-refresh.json",
+      "sha256": "53885134705ba51013930ccadc51468d38baa520cf278878bc453667ef3b00db",
+      "bytes": 5136,
+      "kind": "A-superseded receipts and failed-attempt logs"
+    },
+    {
+      "original_path": "docs/validation/M4/history/clients-before-corpus-refresh.json",
+      "sha256": "9005a96c9a0e872c97f0dcc5f7142b636db1f6dd9545ada94c1a2e10bd8ef184",
+      "bytes": 240292,
+      "kind": "A-superseded receipts and failed-attempt logs"
+    },
+    {
+      "original_path": "docs/validation/M4/history/clients-before-stdout-diagnostic.json",
+      "sha256": "f0ab7fa6cd49458c2eea6515efa4acd8734cecb36c82dcb894ca179c1c727747",
+      "bytes": 240292,
+      "kind": "A-superseded receipts and failed-attempt logs"
+    },
+    {
+      "original_path": "docs/validation/M4/history/hardening-attempts/core-attempt-1/disposition.json",
+      "sha256": "35194ab37f806b761129ca28a63e0db131bc06ce2b643836c2e73d1ee5ab3e1f",
+      "bytes": 507,
+      "kind": "A-superseded receipts and failed-attempt logs"
+    },
+    {
+      "original_path": "docs/validation/M4/history/hardening-attempts/core-attempt-1/receipt.json",
+      "sha256": "23df26f14e6b977f920d6facc814c81ba95dafa4ceec888ed27a06866bb903ef",
+      "bytes": 253832,
+      "kind": "A-superseded receipts and failed-attempt logs"
+    },
+    {
+      "original_path": "docs/validation/M4/history/hardening-attempts/core-attempt-2/gate.txt",
+      "sha256": "3880097a52ce736e37444b1cd5a5594019cea9d988aad2df9fd473121d3aa5c9",
+      "bytes": 119785,
+      "kind": "A-superseded receipts and failed-attempt logs"
+    },
+    {
+      "original_path": "docs/validation/M4/history/hardening-attempts/core-attempt-2/receipt.json",
+      "sha256": "cb32157781f6f6a22ec56405f83ccdb062a42f3395bda0ee5f14fd5aa7abc8de",
+      "bytes": 239511,
+      "kind": "A-superseded receipts and failed-attempt logs"
+    },
+    {
+      "original_path": "docs/validation/M4/history/hardening-attempts/full-attempt-1/gate.txt",
+      "sha256": "4c84d505363226aacc1faa65a5b677339423c731014d379256958efb4b80887d",
+      "bytes": 147189,
+      "kind": "A-superseded receipts and failed-attempt logs"
+    },
+    {
+      "original_path": "docs/validation/M4/history/hardening-attempts/full-attempt-1/isolated-large-binary-10.json",
+      "sha256": "ade91c3fb6c979ae2cc51bec1f7e17a5bffd8a122042c9713d8bfc838ac93c46",
+      "bytes": 16463,
+      "kind": "A-superseded receipts and failed-attempt logs"
+    },
+    {
+      "original_path": "docs/validation/M4/history/hardening-attempts/full-attempt-1/receipt.json",
+      "sha256": "2938d58d309e05c461972e818252767a450f5e9b2317afe3efb104848a917650",
+      "bytes": 248591,
+      "kind": "A-superseded receipts and failed-attempt logs"
+    },
+    {
+      "original_path": "docs/validation/M4/history/hardening-attempts/full-attempt-2/gate.txt",
+      "sha256": "1378c96c74e708ff6026473ed2e7c4afe7fc5b80d94b6080d31ed4e6069cb60b",
+      "bytes": 227572,
+      "kind": "A-superseded receipts and failed-attempt logs"
+    },
+    {
+      "original_path": "docs/validation/M4/history/hardening-attempts/full-attempt-2/receipt.json",
+      "sha256": "e169e6064aa023e171e081730d6edd6586b391e1f3b83059e34a5bf9222878b8",
+      "bytes": 261174,
+      "kind": "A-superseded receipts and failed-attempt logs"
+    },
+    {
+      "original_path": "docs/validation/M4/history/hardening-attempts/inputs.json",
+      "sha256": "222e847684d45b182a299cda0b1243445233073964fdcd03c47d87601328bfa3",
+      "bytes": 755,
+      "kind": "A-superseded receipts and failed-attempt logs"
+    },
+    {
+      "original_path": "docs/validation/M4/history/hardening-attempts/m4-new-native-cuts-attempt-1/receipt.json",
+      "sha256": "5216804d2f8dc6475e260a2326c9eaa2bf3c783ecb53f10e67814904a2c6a708",
+      "bytes": 54175,
+      "kind": "A-superseded receipts and failed-attempt logs"
+    },
+    {
+      "original_path": "docs/validation/M4/history/hardening-attempts/m4-tampered-plugin-attempt-1/receipt.json",
+      "sha256": "7fe8f579a58c57aacf8bcd6971706c02fbee1014ff436f7d1b01c28f081193d5",
+      "bytes": 20392,
+      "kind": "A-superseded receipts and failed-attempt logs"
+    },
+    {
+      "original_path": "docs/validation/M4/history/hardening-attempts/m4-tampered-plugin-attempt-2/cleanup-repair.json",
+      "sha256": "7dd6d182835e198d9e877cd531883bf18d782ff244919204efcc7052255efa04",
+      "bytes": 368,
+      "kind": "A-superseded receipts and failed-attempt logs"
+    },
+    {
+      "original_path": "docs/validation/M4/history/hardening-attempts/m4-tampered-plugin-attempt-2/commit-diagnostic.json",
+      "sha256": "6fbe69a17f28f0ec3a953a850446fab16c242cc728b657629fea4b812d3587d7",
+      "bytes": 259,
+      "kind": "A-superseded receipts and failed-attempt logs"
+    },
+    {
+      "original_path": "docs/validation/M4/history/hardening-attempts/m4-tampered-plugin-attempt-2/receipt.json",
+      "sha256": "ee8eea7932ccd3f06816f17296421505b9b595b985cf0769fc7fd820f1518fec",
+      "bytes": 27040,
+      "kind": "A-superseded receipts and failed-attempt logs"
+    },
+    {
+      "original_path": "docs/validation/M4/history/hardening-attempts/native-before-final/M4-deny-adversarial.json",
+      "sha256": "4efa6c1d32feaa2aaf7e2309943b638a05b695cb068820d045b3a67770941c9a",
+      "bytes": 9435,
+      "kind": "A-superseded receipts and failed-attempt logs"
+    },
+    {
+      "original_path": "docs/validation/M4/history/hardening-attempts/native-before-final/M4-deny-mcp.json",
+      "sha256": "1f9782852bd69d1e1a50667bbdd04e71f2cf6d2419b2978232691f570bf12f8f",
+      "bytes": 16836,
+      "kind": "A-superseded receipts and failed-attempt logs"
+    },
+    {
+      "original_path": "docs/validation/M4/history/hardening-attempts/native-before-final/M4-miri-native.json",
+      "sha256": "49bc40d2e963da418172e694fcd12ef73b66c2d5ab6d725f4ac719c8f61566be",
+      "bytes": 10144,
+      "kind": "A-superseded receipts and failed-attempt logs"
+    },
+    {
+      "original_path": "docs/validation/M4/history/hardening-attempts/native-before-final/M4-scanner-native.json",
+      "sha256": "c44fa663de61a34a39028deffbc7918aeb23ea7c8181b881bbaaae32a3828b1d",
+      "bytes": 2325,
+      "kind": "A-superseded receipts and failed-attempt logs"
+    },
+    {
+      "original_path": "docs/validation/M4/history/hardening-attempts/native-before-final/M4-tools-mcp.json",
+      "sha256": "e456649fa7ea0aadea8b1831ee0fb66643630b5e457737e521f20b0d7807531f",
+      "bytes": 3357,
+      "kind": "A-superseded receipts and failed-attempt logs"
+    },
+    {
+      "original_path": "docs/validation/M4/history/hardening-attempts/stdout-diagnostic/isolated-30.json",
+      "sha256": "aa9508430e9d7228493cbf44ac8206b9a7d7d271b0a7bdddf8cefd0d6c13519c",
+      "bytes": 2745,
+      "kind": "A-superseded receipts and failed-attempt logs"
+    },
+    {
+      "original_path": "docs/validation/M4/history/hardening-attempts/stdout-diagnostic/protocol-5.json",
+      "sha256": "050461f85e3c9fa81cd3c96349f985656fad8be3a0538534acf8380a9b0f718e",
+      "bytes": 731,
+      "kind": "A-superseded receipts and failed-attempt logs"
+    },
+    {
+      "original_path": "docs/validation/M4/history/hardening-attempts/stdout-diagnostic/socket-2000.json",
+      "sha256": "976b87d2031e17e9811388c3967130ab57a5639cb24a211e643b73ed87b07452",
+      "bytes": 135,
+      "kind": "A-superseded receipts and failed-attempt logs"
+    },
+    {
+      "original_path": "docs/validation/M4/history/miri-native-before-final/adversarial-receipt.json",
+      "sha256": "6a10d5675dec5208ea601287a81ea64a81a3aa405db977ffc415b12a86833c48",
+      "bytes": 2040,
+      "kind": "A-superseded receipts and failed-attempt logs"
+    },
+    {
+      "original_path": "docs/validation/M4/history/miri-native-before-final/alias.junit.xml",
+      "sha256": "9d0ccb5b3715e5bad2d6c01768f7d2d873422acbeedf5c937e8850cde44aa6d0",
+      "bytes": 5211,
+      "kind": "A-superseded receipts and failed-attempt logs"
+    },
+    {
+      "original_path": "docs/validation/M4/history/miri-native-before-final/alias.stderr",
+      "sha256": "b6d86869f01e2fa15d963faf328f201d5fe0dc621b521100540dd858c102a6d6",
+      "bytes": 4389,
+      "kind": "A-superseded receipts and failed-attempt logs"
+    },
+    {
+      "original_path": "docs/validation/M4/history/miri-native-before-final/alias.stdout",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0,
+      "kind": "A-superseded receipts and failed-attempt logs"
+    },
+    {
+      "original_path": "docs/validation/M4/history/miri-native-before-final/benign-forged.junit.xml",
+      "sha256": "926d0a8f09b3c8ef5237129c7557471f326e14d57d811f20f136fb421a848bf2",
+      "bytes": 784,
+      "kind": "A-superseded receipts and failed-attempt logs"
+    },
+    {
+      "original_path": "docs/validation/M4/history/miri-native-before-final/benign-forged.stderr",
+      "sha256": "cdc6a9f33679b83961113e8d3f0294881dec5d9e5c921d6a37fe68616261b9cc",
+      "bytes": 1054,
+      "kind": "A-superseded receipts and failed-attempt logs"
+    },
+    {
+      "original_path": "docs/validation/M4/history/miri-native-before-final/benign-forged.stdout",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0,
+      "kind": "A-superseded receipts and failed-attempt logs"
+    },
+    {
+      "original_path": "docs/validation/M4/history/miri-native-before-final/binary-only.junit.xml",
+      "sha256": "e7baaf216537fa9270aeec4e463ec07a3a7d224a09bc493048b29d8c3b132e86",
+      "bytes": 479,
+      "kind": "A-superseded receipts and failed-attempt logs"
+    },
+    {
+      "original_path": "docs/validation/M4/history/miri-native-before-final/binary-only.stderr",
+      "sha256": "0dcd3ebb4298ee3ed9ddfd86c056b130ccc5338a1e1f4e6a1299370f108151e5",
+      "bytes": 1433,
+      "kind": "A-superseded receipts and failed-attempt logs"
+    },
+    {
+      "original_path": "docs/validation/M4/history/miri-native-before-final/binary-only.stdout",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0,
+      "kind": "A-superseded receipts and failed-attempt logs"
+    },
+    {
+      "original_path": "docs/validation/M4/history/miri-native-before-final/clean.junit.xml",
+      "sha256": "cfb5a117c25b47b8bd1d7c57a78302229d87c0f866f8d4716f49a380cc0ee27e",
+      "bytes": 468,
+      "kind": "A-superseded receipts and failed-attempt logs"
+    },
+    {
+      "original_path": "docs/validation/M4/history/miri-native-before-final/clean.stderr",
+      "sha256": "275ed7ff700cfd12f544ef15d3acf293cd4bc8572fdf38da44e7e48a00b4c53f",
+      "bytes": 831,
+      "kind": "A-superseded receipts and failed-attempt logs"
+    },
+    {
+      "original_path": "docs/validation/M4/history/miri-native-before-final/clean.stdout",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0,
+      "kind": "A-superseded receipts and failed-attempt logs"
+    },
+    {
+      "original_path": "docs/validation/M4/history/miri-native-before-final/compile-fail.stderr",
+      "sha256": "de536a2c509cb469654947e18cc07547e7a86aa52c300f969c60c2f5d4f31e48",
+      "bytes": 3186,
+      "kind": "A-superseded receipts and failed-attempt logs"
+    },
+    {
+      "original_path": "docs/validation/M4/history/miri-native-before-final/compile-fail.stdout",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0,
+      "kind": "A-superseded receipts and failed-attempt logs"
+    },
+    {
+      "original_path": "docs/validation/M4/history/miri-native-before-final/empty.junit.xml",
+      "sha256": "6cd563c064a5f9b6d41f127afa00602f521a77c1eb58475bfe86b3729a678d7d",
+      "bytes": 230,
+      "kind": "A-superseded receipts and failed-attempt logs"
+    },
+    {
+      "original_path": "docs/validation/M4/history/miri-native-before-final/empty.stderr",
+      "sha256": "ec72a110bf131d59c09a5f7a33dabc66a43485137b84a7acee3dd7ede4ed8246",
+      "bytes": 819,
+      "kind": "A-superseded receipts and failed-attempt logs"
+    },
+    {
+      "original_path": "docs/validation/M4/history/miri-native-before-final/empty.stdout",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0,
+      "kind": "A-superseded receipts and failed-attempt logs"
+    },
+    {
+      "original_path": "docs/validation/M4/history/miri-native-before-final/ffi.junit.xml",
+      "sha256": "15207d832304891d1065790b66a7e52f0af15b2a8c36c1be124a258a6c0d7f09",
+      "bytes": 2780,
+      "kind": "A-superseded receipts and failed-attempt logs"
+    },
+    {
+      "original_path": "docs/validation/M4/history/miri-native-before-final/ffi.stderr",
+      "sha256": "abce3addf94fc39a14ac019254213c66d3f0d38d97bca125085c5dc9dacce97a",
+      "bytes": 2572,
+      "kind": "A-superseded receipts and failed-attempt logs"
+    },
+    {
+      "original_path": "docs/validation/M4/history/miri-native-before-final/ffi.stdout",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0,
+      "kind": "A-superseded receipts and failed-attempt logs"
+    },
+    {
+      "original_path": "docs/validation/M4/history/miri-native-before-final/ignored.junit.xml",
+      "sha256": "febace4ca8cf23b539c60da744beb9a502fe5965cce26d71fd48aa1cfd4c841b",
+      "bytes": 539,
+      "kind": "A-superseded receipts and failed-attempt logs"
+    },
+    {
+      "original_path": "docs/validation/M4/history/miri-native-before-final/ignored.stderr",
+      "sha256": "ff85704a7e8e05463058be2c80567de2666d5fd904a4cba700e753103c198fcc",
+      "bytes": 838,
+      "kind": "A-superseded receipts and failed-attempt logs"
+    },
+    {
+      "original_path": "docs/validation/M4/history/miri-native-before-final/ignored.stdout",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0,
+      "kind": "A-superseded receipts and failed-attempt logs"
+    },
+    {
+      "original_path": "docs/validation/M4/history/miri-native-before-final/native.txt",
+      "sha256": "d5e688b6f1e70ef1e03e36f331719dad1311043df40f2421d4540168c72f2448",
+      "bytes": 1071,
+      "kind": "A-superseded receipts and failed-attempt logs"
+    },
+    {
+      "original_path": "docs/validation/M4/history/miri-native-before-final/previous-receipt-10-5.json",
+      "sha256": "1d38da730a516ac6c488f5522bdebef824388b9a1ba6a8299ac4926ee2755d3f",
+      "bytes": 8841,
+      "kind": "A-superseded receipts and failed-attempt logs"
+    },
+    {
+      "original_path": "docs/validation/M4/history/miri-native-before-final/race.junit.xml",
+      "sha256": "c25eff73b4017484ab96f8af50732cd8e856dea7284eef008aedb5ffedeeb275",
+      "bytes": 5681,
+      "kind": "A-superseded receipts and failed-attempt logs"
+    },
+    {
+      "original_path": "docs/validation/M4/history/miri-native-before-final/race.stderr",
+      "sha256": "45de5a6a4586a77da7b7a7d8d60e00b117a74988acfd1af9bcee5e273b7d121b",
+      "bytes": 4691,
+      "kind": "A-superseded receipts and failed-attempt logs"
+    },
+    {
+      "original_path": "docs/validation/M4/history/miri-native-before-final/race.stdout",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0,
+      "kind": "A-superseded receipts and failed-attempt logs"
+    },
+    {
+      "original_path": "docs/validation/M4/history/miri-native-before-final/receipt.json",
+      "sha256": "6d4888a8dc3386c8e6a485a31481a4f5ebafb7f88d1289040c1d0a94125fc797",
+      "bytes": 15115,
+      "kind": "A-superseded receipts and failed-attempt logs"
+    },
+    {
+      "original_path": "docs/validation/M4/history/miri-native-before-final/runner-timeout.junit.xml",
+      "sha256": "05a47d5e13c38f306a869f7acd7fe616cfb56279301ccc08d74717ead27bb911",
+      "bytes": 600,
+      "kind": "A-superseded receipts and failed-attempt logs"
+    },
+    {
+      "original_path": "docs/validation/M4/history/miri-native-before-final/runner-timeout.stderr",
+      "sha256": "af37a45c29598c0f88dd24a7f1cfe40f82b43bc3cc2a6ae7df7089d101ea910e",
+      "bytes": 1020,
+      "kind": "A-superseded receipts and failed-attempt logs"
+    },
+    {
+      "original_path": "docs/validation/M4/history/miri-native-before-final/runner-timeout.stdout",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0,
+      "kind": "A-superseded receipts and failed-attempt logs"
+    },
+    {
+      "original_path": "docs/validation/M4/history/miri-native-before-final/uaf.junit.xml",
+      "sha256": "03d0c19d16366e19a0f53171c4aa801787d2722ec7ccee9ed1ff2f46b214392e",
+      "bytes": 4803,
+      "kind": "A-superseded receipts and failed-attempt logs"
+    },
+    {
+      "original_path": "docs/validation/M4/history/miri-native-before-final/uaf.stderr",
+      "sha256": "bcd7a3b259ff30bc926dcc479287a5e14a6345d422e7a553ac4e497f52a9d416",
+      "bytes": 4009,
+      "kind": "A-superseded receipts and failed-attempt logs"
+    },
+    {
+      "original_path": "docs/validation/M4/history/miri-native-before-final/uaf.stdout",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0,
+      "kind": "A-superseded receipts and failed-attempt logs"
+    },
+    {
+      "original_path": "docs/validation/M4/history/miri-native-before-final/uninit.junit.xml",
+      "sha256": "a1dd84d61ebf4967090d09f99a71c0d60f4869a3d7bd0b5ff522d431187a6305",
+      "bytes": 3248,
+      "kind": "A-superseded receipts and failed-attempt logs"
+    },
+    {
+      "original_path": "docs/validation/M4/history/miri-native-before-final/uninit.stderr",
+      "sha256": "29f6a073ccfca80668f54f9eb21229f61f0a17d20f8b79694487f3e6a546428d",
+      "bytes": 2978,
+      "kind": "A-superseded receipts and failed-attempt logs"
+    },
+    {
+      "original_path": "docs/validation/M4/history/miri-native-before-final/uninit.stdout",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0,
+      "kind": "A-superseded receipts and failed-attempt logs"
+    },
+    {
+      "original_path": "docs/validation/M4/clients/attempt-1/inspector-session.json",
+      "sha256": "a08346f6dbd0dae68811ba380123305f5ddf6d593a9b2dffe1279b5c3485181b",
+      "bytes": 379,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M4/clients/attempt-1/inspector-session.stderr",
+      "sha256": "ed54aa3aadedd44578e2995ae98d02a11cf88e1b4fa39c91e754f859b64b9f77",
+      "bytes": 32417,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M4/clients/attempt-1/inspector-session.stdout",
+      "sha256": "7c7008a7abac1da1230cce2e0236b5a8733a1d8611afe65ebd46fdec56bb0a67",
+      "bytes": 239,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M4/clients/attempt-2/codex-m4-model-events.jsonl",
+      "sha256": "391a0da2877aa41aada7e548af9ce108a65d4e3beee107a44b7cf9b26fbc186d",
+      "bytes": 301228,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M4/clients/attempt-2/inspector-session.json",
+      "sha256": "8f342365528d587a1bcde82ce73d6e7cbcd5797b1a9838194d777e1427b0fff3",
+      "bytes": 379,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M4/clients/attempt-2/inspector-session.stderr",
+      "sha256": "1adaf6dc95b5a2674e91f9a4dcbb053d91f510864399e476807fe7b7241a7b78",
+      "bytes": 32417,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M4/clients/attempt-2/inspector-session.stdout",
+      "sha256": "7c7008a7abac1da1230cce2e0236b5a8733a1d8611afe65ebd46fdec56bb0a67",
+      "bytes": 239,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M4/clients/attempt-3/codex-m4-model-events.jsonl",
+      "sha256": "1fe1d24008fbdfebc6dbcd164c360f1d0eb5968513ded1f39c6c7231b58479c4",
+      "bytes": 314305,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M4/clients/attempt-3/inspector-session.json",
+      "sha256": "10286ff3e1e325d0895b0574f420e0adfa922a0aab19993b31c9d88d6c6a3e88",
+      "bytes": 379,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M4/clients/attempt-3/inspector-session.stderr",
+      "sha256": "d24da0b08a132ca3689ca674e952841f12681c5a70b12dcfde9ccfa96a70ba9d",
+      "bytes": 32417,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M4/clients/attempt-3/inspector-session.stdout",
+      "sha256": "7c7008a7abac1da1230cce2e0236b5a8733a1d8611afe65ebd46fdec56bb0a67",
+      "bytes": 239,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M4/clients/attempt-4/codex-m4-model-events.jsonl",
+      "sha256": "c44a4781dda4ecdfac9055a69c4b7dfe0389f5ee5270ff14a5f89029cf162b65",
+      "bytes": 305914,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M4/clients/attempt-4/inspector-session.json",
+      "sha256": "ae572764016ce37c60eada440a1324dfaea284e4448216771540500b4ef2c604",
+      "bytes": 379,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M4/clients/attempt-4/inspector-session.stderr",
+      "sha256": "62e752cf5975a39b0a249267d33e051f4b6f2af084350eba78be8d4a7d5afcbe",
+      "bytes": 32417,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M4/clients/attempt-4/inspector-session.stdout",
+      "sha256": "7c7008a7abac1da1230cce2e0236b5a8733a1d8611afe65ebd46fdec56bb0a67",
+      "bytes": 239,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M4/clients/attempt-5/codex-m4-model-events.jsonl",
+      "sha256": "1ebd38c1cd8924d02147ab230f30d29a591eaaafb36a69325fd284a9a51bd03c",
+      "bytes": 273936,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M4/clients/attempt-5/inspector-session.json",
+      "sha256": "30208137b1397b7eb5c982b8dddcccadd344d9046a8e3c853cd5d7e8fa5f08a3",
+      "bytes": 379,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M4/clients/attempt-5/inspector-session.stderr",
+      "sha256": "f3c8381954c49373b2dafba6425da3b377506d80c36fa8277dbab474aadfb9e7",
+      "bytes": 32417,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M4/clients/attempt-5/inspector-session.stdout",
+      "sha256": "7c7008a7abac1da1230cce2e0236b5a8733a1d8611afe65ebd46fdec56bb0a67",
+      "bytes": 239,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M4/clients/attempt-6/codex-m4-model-events.jsonl",
+      "sha256": "5208e159ef46088b7ffa540480bf47a90b09d18472f8e23b1a2d347ed9a0095c",
+      "bytes": 288552,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M4/clients/attempt-6/inspector-session.json",
+      "sha256": "071ceb6884c5856e3a47ee49b2db955f5b95366b02c6310268c8ca700651b483",
+      "bytes": 379,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M4/clients/attempt-6/inspector-session.stderr",
+      "sha256": "6dea07124c0fba1add7d7bbe3c5fdfa3f6bbfca0d298d29af378f09dd478ecf7",
+      "bytes": 32417,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M4/clients/attempt-6/inspector-session.stdout",
+      "sha256": "7c7008a7abac1da1230cce2e0236b5a8733a1d8611afe65ebd46fdec56bb0a67",
+      "bytes": 239,
+      "kind": "B-client-qualification transcripts"
+    },
+    {
+      "original_path": "docs/validation/M4/core-gate.txt",
+      "sha256": "cc66c6aa5733e5dd90984f1c7d4cfcff1651b6ca4431eb5bb7916897a117439a",
+      "bytes": 179095,
+      "kind": "E-raw gate and runtime outputs (logs, stdout/stderr, junit, gate transcripts) behind receipts that already record their hashes and outcomes"
+    },
+    {
+      "original_path": "docs/validation/M4/deny-graph/final/native-workspace-exact.stdout",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0,
+      "kind": "E-raw gate and runtime outputs (logs, stdout/stderr, junit, gate transcripts) behind receipts that already record their hashes and outcomes"
+    },
+    {
+      "original_path": "docs/validation/M4/deny-graph/final/native-workspace-wildcard.stdout",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0,
+      "kind": "E-raw gate and runtime outputs (logs, stdout/stderr, junit, gate transcripts) behind receipts that already record their hashes and outcomes"
+    },
+    {
+      "original_path": "docs/validation/M4/deny-native/final/banned-package.stdout",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0,
+      "kind": "E-raw gate and runtime outputs (logs, stdout/stderr, junit, gate transcripts) behind receipts that already record their hashes and outcomes"
+    },
+    {
+      "original_path": "docs/validation/M4/deny-native/final/clean.stdout",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0,
+      "kind": "E-raw gate and runtime outputs (logs, stdout/stderr, junit, gate transcripts) behind receipts that already record their hashes and outcomes"
+    },
+    {
+      "original_path": "docs/validation/M4/deny-native/final/manifest-without-text.stdout",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0,
+      "kind": "E-raw gate and runtime outputs (logs, stdout/stderr, junit, gate transcripts) behind receipts that already record their hashes and outcomes"
+    },
+    {
+      "original_path": "docs/validation/M4/deny-native/final/text-not-allowed.stdout",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0,
+      "kind": "E-raw gate and runtime outputs (logs, stdout/stderr, junit, gate transcripts) behind receipts that already record their hashes and outcomes"
+    },
+    {
+      "original_path": "docs/validation/M4/full-gate-resume.txt",
+      "sha256": "2b4fa184606a7b06f59f1f3729e437b55345543764a49bf06c003eb160d90448",
+      "bytes": 9283,
+      "kind": "E-raw gate and runtime outputs (logs, stdout/stderr, junit, gate transcripts) behind receipts that already record their hashes and outcomes"
+    },
+    {
+      "original_path": "docs/validation/M4/full-gate.txt",
+      "sha256": "1378c96c74e708ff6026473ed2e7c4afe7fc5b80d94b6080d31ed4e6069cb60b",
+      "bytes": 227572,
+      "kind": "E-raw gate and runtime outputs (logs, stdout/stderr, junit, gate transcripts) behind receipts that already record their hashes and outcomes"
+    },
+    {
+      "original_path": "docs/validation/M4/miri-native/final/alias.junit.xml",
+      "sha256": "b3b932fda0a735279cb746a495d8f0f04d1f9022836e9dad840003d2e687b76a",
+      "bytes": 5211,
+      "kind": "E-raw gate and runtime outputs (logs, stdout/stderr, junit, gate transcripts) behind receipts that already record their hashes and outcomes"
+    },
+    {
+      "original_path": "docs/validation/M4/miri-native/final/alias.stderr",
+      "sha256": "388a31c46f9b75e0a3b3bd18672b79fad0dadd6e72166f595fa55ae6ee85edc0",
+      "bytes": 4389,
+      "kind": "E-raw gate and runtime outputs (logs, stdout/stderr, junit, gate transcripts) behind receipts that already record their hashes and outcomes"
+    },
+    {
+      "original_path": "docs/validation/M4/miri-native/final/alias.stdout",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0,
+      "kind": "E-raw gate and runtime outputs (logs, stdout/stderr, junit, gate transcripts) behind receipts that already record their hashes and outcomes"
+    },
+    {
+      "original_path": "docs/validation/M4/miri-native/final/benign-forged.junit.xml",
+      "sha256": "46cd9e446276142a21cf84f5f4c5ba904b4fec79b198adb155bbb58dd5219fb7",
+      "bytes": 784,
+      "kind": "E-raw gate and runtime outputs (logs, stdout/stderr, junit, gate transcripts) behind receipts that already record their hashes and outcomes"
+    },
+    {
+      "original_path": "docs/validation/M4/miri-native/final/benign-forged.stderr",
+      "sha256": "ba33cafa489029648c2fa0d52c8c21ca436c73d7cd34629371fd30e472472897",
+      "bytes": 1054,
+      "kind": "E-raw gate and runtime outputs (logs, stdout/stderr, junit, gate transcripts) behind receipts that already record their hashes and outcomes"
+    },
+    {
+      "original_path": "docs/validation/M4/miri-native/final/benign-forged.stdout",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0,
+      "kind": "E-raw gate and runtime outputs (logs, stdout/stderr, junit, gate transcripts) behind receipts that already record their hashes and outcomes"
+    },
+    {
+      "original_path": "docs/validation/M4/miri-native/final/binary-only.junit.xml",
+      "sha256": "96fc0d11eebed7e768828234520c994106fac570ac6a102adb68b701a8e4fa76",
+      "bytes": 479,
+      "kind": "E-raw gate and runtime outputs (logs, stdout/stderr, junit, gate transcripts) behind receipts that already record their hashes and outcomes"
+    },
+    {
+      "original_path": "docs/validation/M4/miri-native/final/binary-only.stderr",
+      "sha256": "81cc254f90c6c5232ab6382a09b18dced98f232ee14a67431d9543d14e026cd6",
+      "bytes": 1433,
+      "kind": "E-raw gate and runtime outputs (logs, stdout/stderr, junit, gate transcripts) behind receipts that already record their hashes and outcomes"
+    },
+    {
+      "original_path": "docs/validation/M4/miri-native/final/binary-only.stdout",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0,
+      "kind": "E-raw gate and runtime outputs (logs, stdout/stderr, junit, gate transcripts) behind receipts that already record their hashes and outcomes"
+    },
+    {
+      "original_path": "docs/validation/M4/miri-native/final/clean.junit.xml",
+      "sha256": "540eb27a94341ff074fd83feba187cb6aadaa47597a8c69abd7378e291319ed0",
+      "bytes": 468,
+      "kind": "E-raw gate and runtime outputs (logs, stdout/stderr, junit, gate transcripts) behind receipts that already record their hashes and outcomes"
+    },
+    {
+      "original_path": "docs/validation/M4/miri-native/final/clean.stderr",
+      "sha256": "0dcecf4e0721060c536b056b9ff35f7838c93faad3adbe149b5b743592de04f3",
+      "bytes": 831,
+      "kind": "E-raw gate and runtime outputs (logs, stdout/stderr, junit, gate transcripts) behind receipts that already record their hashes and outcomes"
+    },
+    {
+      "original_path": "docs/validation/M4/miri-native/final/clean.stdout",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0,
+      "kind": "E-raw gate and runtime outputs (logs, stdout/stderr, junit, gate transcripts) behind receipts that already record their hashes and outcomes"
+    },
+    {
+      "original_path": "docs/validation/M4/miri-native/final/compile-fail.stderr",
+      "sha256": "b98945496b68ed257fb1eb71e5b8e13e5f4afff2aaf75aa1fe318ab31d6a53d0",
+      "bytes": 3186,
+      "kind": "E-raw gate and runtime outputs (logs, stdout/stderr, junit, gate transcripts) behind receipts that already record their hashes and outcomes"
+    },
+    {
+      "original_path": "docs/validation/M4/miri-native/final/compile-fail.stdout",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0,
+      "kind": "E-raw gate and runtime outputs (logs, stdout/stderr, junit, gate transcripts) behind receipts that already record their hashes and outcomes"
+    },
+    {
+      "original_path": "docs/validation/M4/miri-native/final/empty.junit.xml",
+      "sha256": "a03735014c1b68c904473d0d3d136e1e7d94402ca3601a424ce9e6c36289350d",
+      "bytes": 230,
+      "kind": "E-raw gate and runtime outputs (logs, stdout/stderr, junit, gate transcripts) behind receipts that already record their hashes and outcomes"
+    },
+    {
+      "original_path": "docs/validation/M4/miri-native/final/empty.stderr",
+      "sha256": "ea5d9aa835020b1f266f3836dc44112d42ea6956b54ea867a73c291fa0edca64",
+      "bytes": 819,
+      "kind": "E-raw gate and runtime outputs (logs, stdout/stderr, junit, gate transcripts) behind receipts that already record their hashes and outcomes"
+    },
+    {
+      "original_path": "docs/validation/M4/miri-native/final/empty.stdout",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0,
+      "kind": "E-raw gate and runtime outputs (logs, stdout/stderr, junit, gate transcripts) behind receipts that already record their hashes and outcomes"
+    },
+    {
+      "original_path": "docs/validation/M4/miri-native/final/ffi.junit.xml",
+      "sha256": "d592d391288ebadcb8adcaac3b1bf104658b112f8b4c96b63592fdb8ede4e3bd",
+      "bytes": 2780,
+      "kind": "E-raw gate and runtime outputs (logs, stdout/stderr, junit, gate transcripts) behind receipts that already record their hashes and outcomes"
+    },
+    {
+      "original_path": "docs/validation/M4/miri-native/final/ffi.stderr",
+      "sha256": "7afce284766ea49152951220ae250a4282049020456b9b48f9df024d7e1b1787",
+      "bytes": 2572,
+      "kind": "E-raw gate and runtime outputs (logs, stdout/stderr, junit, gate transcripts) behind receipts that already record their hashes and outcomes"
+    },
+    {
+      "original_path": "docs/validation/M4/miri-native/final/ffi.stdout",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0,
+      "kind": "E-raw gate and runtime outputs (logs, stdout/stderr, junit, gate transcripts) behind receipts that already record their hashes and outcomes"
+    },
+    {
+      "original_path": "docs/validation/M4/miri-native/final/ignored.junit.xml",
+      "sha256": "2f1c9e1733a55b561b75b73b4d1744ab9d8d502a7bdcee67c72e385f2f3c9baf",
+      "bytes": 539,
+      "kind": "E-raw gate and runtime outputs (logs, stdout/stderr, junit, gate transcripts) behind receipts that already record their hashes and outcomes"
+    },
+    {
+      "original_path": "docs/validation/M4/miri-native/final/ignored.stderr",
+      "sha256": "7272e99eba610399706bf214efab8a3f160bf2edc58d7b08844dbbdf83d95c37",
+      "bytes": 838,
+      "kind": "E-raw gate and runtime outputs (logs, stdout/stderr, junit, gate transcripts) behind receipts that already record their hashes and outcomes"
+    },
+    {
+      "original_path": "docs/validation/M4/miri-native/final/ignored.stdout",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0,
+      "kind": "E-raw gate and runtime outputs (logs, stdout/stderr, junit, gate transcripts) behind receipts that already record their hashes and outcomes"
+    },
+    {
+      "original_path": "docs/validation/M4/miri-native/final/optimized-panic.junit.xml",
+      "sha256": "92992e6bc8fdee8d6d0df42b52b6ac434222c927bd7902c445c1c3ad05107d61",
+      "bytes": 1362,
+      "kind": "E-raw gate and runtime outputs (logs, stdout/stderr, junit, gate transcripts) behind receipts that already record their hashes and outcomes"
+    },
+    {
+      "original_path": "docs/validation/M4/miri-native/final/optimized-panic.stderr",
+      "sha256": "3811a9cd93d42daf20a77b376f1fd4c95708a5d442403f35d1f0f3fc0f91525e",
+      "bytes": 1575,
+      "kind": "E-raw gate and runtime outputs (logs, stdout/stderr, junit, gate transcripts) behind receipts that already record their hashes and outcomes"
+    },
+    {
+      "original_path": "docs/validation/M4/miri-native/final/optimized-panic.stdout",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0,
+      "kind": "E-raw gate and runtime outputs (logs, stdout/stderr, junit, gate transcripts) behind receipts that already record their hashes and outcomes"
+    },
+    {
+      "original_path": "docs/validation/M4/miri-native/final/race.junit.xml",
+      "sha256": "56d7ae7af7496ef7825033d8d94de7fb772bb373c582043ffe08c983550cbe7d",
+      "bytes": 5681,
+      "kind": "E-raw gate and runtime outputs (logs, stdout/stderr, junit, gate transcripts) behind receipts that already record their hashes and outcomes"
+    },
+    {
+      "original_path": "docs/validation/M4/miri-native/final/race.stderr",
+      "sha256": "6dceada86b587d51f892eaab68191cfe498626a53784bf3ae1d1d4ae615bedce",
+      "bytes": 4691,
+      "kind": "E-raw gate and runtime outputs (logs, stdout/stderr, junit, gate transcripts) behind receipts that already record their hashes and outcomes"
+    },
+    {
+      "original_path": "docs/validation/M4/miri-native/final/race.stdout",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0,
+      "kind": "E-raw gate and runtime outputs (logs, stdout/stderr, junit, gate transcripts) behind receipts that already record their hashes and outcomes"
+    },
+    {
+      "original_path": "docs/validation/M4/miri-native/final/runner-timeout.junit.xml",
+      "sha256": "7269992e91729c41585f64a36b56e625335dd54e6b4ac8ba63321bf80d1c8cf7",
+      "bytes": 600,
+      "kind": "E-raw gate and runtime outputs (logs, stdout/stderr, junit, gate transcripts) behind receipts that already record their hashes and outcomes"
+    },
+    {
+      "original_path": "docs/validation/M4/miri-native/final/runner-timeout.stderr",
+      "sha256": "cd070a05cb9179edb189caea31192d863398bd42bb1c8f1ba822127f98cd3166",
+      "bytes": 1020,
+      "kind": "E-raw gate and runtime outputs (logs, stdout/stderr, junit, gate transcripts) behind receipts that already record their hashes and outcomes"
+    },
+    {
+      "original_path": "docs/validation/M4/miri-native/final/runner-timeout.stdout",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0,
+      "kind": "E-raw gate and runtime outputs (logs, stdout/stderr, junit, gate transcripts) behind receipts that already record their hashes and outcomes"
+    },
+    {
+      "original_path": "docs/validation/M4/miri-native/final/uaf.junit.xml",
+      "sha256": "6e5bb83afcef9c167dfa0a2c83c4a89aca41aeaf6b6d5db9454d7d768082030d",
+      "bytes": 4803,
+      "kind": "E-raw gate and runtime outputs (logs, stdout/stderr, junit, gate transcripts) behind receipts that already record their hashes and outcomes"
+    },
+    {
+      "original_path": "docs/validation/M4/miri-native/final/uaf.stderr",
+      "sha256": "6f4e6e6aaa1cb87b1cf88e9395465fa7da8ba88ca4985c371440d82e19da868a",
+      "bytes": 4009,
+      "kind": "E-raw gate and runtime outputs (logs, stdout/stderr, junit, gate transcripts) behind receipts that already record their hashes and outcomes"
+    },
+    {
+      "original_path": "docs/validation/M4/miri-native/final/uaf.stdout",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0,
+      "kind": "E-raw gate and runtime outputs (logs, stdout/stderr, junit, gate transcripts) behind receipts that already record their hashes and outcomes"
+    },
+    {
+      "original_path": "docs/validation/M4/miri-native/final/uninit.junit.xml",
+      "sha256": "9dc44ea4ea7dfa2381521d4a7032c79299b4c152103ead022e5a91d61fe3351d",
+      "bytes": 3248,
+      "kind": "E-raw gate and runtime outputs (logs, stdout/stderr, junit, gate transcripts) behind receipts that already record their hashes and outcomes"
+    },
+    {
+      "original_path": "docs/validation/M4/miri-native/final/uninit.stderr",
+      "sha256": "b0c3594849ca6eb83e85b08ddc76860efc2fb09c3cc244ac36d938736445000c",
+      "bytes": 2978,
+      "kind": "E-raw gate and runtime outputs (logs, stdout/stderr, junit, gate transcripts) behind receipts that already record their hashes and outcomes"
+    },
+    {
+      "original_path": "docs/validation/M4/miri-native/final/uninit.stdout",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0,
+      "kind": "E-raw gate and runtime outputs (logs, stdout/stderr, junit, gate transcripts) behind receipts that already record their hashes and outcomes"
+    },
+    {
+      "original_path": "docs/validation/M4/scanner-native/native.txt",
+      "sha256": "1bc2d6e5e6f67ba890ceefce417554e00c431909ed18347711340551eb3e6ca8",
+      "bytes": 586,
+      "kind": "E-raw gate and runtime outputs (logs, stdout/stderr, junit, gate transcripts) behind receipts that already record their hashes and outcomes"
+    },
+    {
+      "original_path": "docs/validation/M4/tools-mcp/attempt-1.txt",
+      "sha256": "8f90d1f6ebf0247dd0eea3f3f8eead439e2f3cb9fef4930ca741e36d09af5dde",
+      "bytes": 2051,
+      "kind": "E-raw gate and runtime outputs (logs, stdout/stderr, junit, gate transcripts) behind receipts that already record their hashes and outcomes"
+    },
+    {
+      "original_path": "docs/validation/M4/tools-mcp/attempt-2.txt",
+      "sha256": "712a2c6516eca3316ea23aee3f6df237e968f583c6bf6abba000f9d55ad203a0",
+      "bytes": 14938,
+      "kind": "E-raw gate and runtime outputs (logs, stdout/stderr, junit, gate transcripts) behind receipts that already record their hashes and outcomes"
+    },
+    {
+      "original_path": "docs/validation/M4/tools-mcp/attempt-3.txt",
+      "sha256": "7d5d9263275ba212437069fabff1bcd3536696602d0e26479f91ccdc2ae713e8",
+      "bytes": 14838,
+      "kind": "E-raw gate and runtime outputs (logs, stdout/stderr, junit, gate transcripts) behind receipts that already record their hashes and outcomes"
+    },
+    {
+      "original_path": "docs/validation/M4/tools-mcp/attempt-4.txt",
+      "sha256": "20d08654ee24c381a3697ef01cc3479f97e9b504182f0ce017f4f13b456fa677",
+      "bytes": 15069,
+      "kind": "E-raw gate and runtime outputs (logs, stdout/stderr, junit, gate transcripts) behind receipts that already record their hashes and outcomes"
+    },
+    {
+      "original_path": "docs/validation/M4/tools-mcp/attempt-5.txt",
+      "sha256": "6785c20a585e72535bdafdc73d09abba6bc25105232f71303580a278539e7cf7",
+      "bytes": 1547,
+      "kind": "E-raw gate and runtime outputs (logs, stdout/stderr, junit, gate transcripts) behind receipts that already record their hashes and outcomes"
+    },
+    {
+      "original_path": "docs/validation/M4/tools-mcp/attempt-6.txt",
+      "sha256": "fb62c5610fa542238fb0c37f5622296608fd69380229e1b329eccd752216154b",
+      "bytes": 946,
+      "kind": "E-raw gate and runtime outputs (logs, stdout/stderr, junit, gate transcripts) behind receipts that already record their hashes and outcomes"
+    },
+    {
+      "original_path": "docs/validation/M4/tools-mcp/attempt-7.txt",
+      "sha256": "ba278bffd9b24689df92a4ee2c9342c3fac21c16b179b9f8cdf89c78f9409fc8",
+      "bytes": 1487,
+      "kind": "E-raw gate and runtime outputs (logs, stdout/stderr, junit, gate transcripts) behind receipts that already record their hashes and outcomes"
+    },
+    {
+      "original_path": "docs/validation/M4/tools-mcp/attempt-8.txt",
+      "sha256": "d4688548e8f462abb0c1484e8f8c0399545c49dbe221be6d032064e9e2f86d48",
+      "bytes": 13773,
+      "kind": "E-raw gate and runtime outputs (logs, stdout/stderr, junit, gate transcripts) behind receipts that already record their hashes and outcomes"
+    },
+    {
+      "original_path": "docs/validation/M4/tools-mcp/native.txt",
+      "sha256": "3b8d96b2412b9a6acd11fa326a2d8a64b47ef611d17f4377ba2846a71fb772c6",
+      "bytes": 724,
+      "kind": "E-raw gate and runtime outputs (logs, stdout/stderr, junit, gate transcripts) behind receipts that already record their hashes and outcomes"
+    }
+  ],
+  "retired_groups": [
+    {
+      "kind": "A-superseded receipts and failed-attempt logs",
+      "reason": "superseded receipts and failed-attempt logs: the accepted receipt of each milestone accredits the shipped bytes; the diagnosis narratives (README/disposition .md) stay",
+      "files": 65,
+      "bytes": 2228751,
+      "aggregate_sha256": "f3334f3bd8d01ab3d0fea9a6b12f55a6169f8513bfec36368265a52e1871e1aa",
+      "aggregate_rule": "sha256 over the sorted lines \"<sha256>  <original_path>\\n\"",
+      "last_commit_with_bytes": "d796ff57bd87cf7fb7269f9dceef9090bc66e749",
+      "retired_at": "2026-09-11T17:40:14.242436+00:00"
+    },
+    {
+      "kind": "B-client-qualification transcripts",
+      "reason": "client-qualification transcripts: each attempt keeps receipt.json and protocol.jsonl, which carry the hashes and outcomes; raw inspector/model stdout, stderr and event streams are forensic detail",
+      "files": 23,
+      "bytes": 1682145,
+      "aggregate_sha256": "f6525f4d896a1f127c410596025868b692a04f02bd64b2bb1c13e726a2088bde",
+      "aggregate_rule": "sha256 over the sorted lines \"<sha256>  <original_path>\\n\"",
+      "last_commit_with_bytes": "e31af914d12bef34e11fbe67b87f942d75de294c",
+      "retired_at": "2026-09-11T17:41:43.936200+00:00"
+    },
+    {
+      "kind": "E-raw gate and runtime outputs (logs, stdout/stderr, junit, gate transcripts) behind receipts that already record their hashes and outcomes",
+      "reason": "raw gate and runtime outputs (logs, stdout/stderr, junit, gate transcripts) behind receipts that already record their hashes and outcomes",
+      "files": 57,
+      "bytes": 537489,
+      "aggregate_sha256": "7c64cd9c10b192fc415cd28b556caca6c6c687bf24acd4214e9f2949507e21e9",
+      "aggregate_rule": "sha256 over the sorted lines \"<sha256>  <original_path>\\n\"",
+      "last_commit_with_bytes": "87a1d18decc4b6d4c2fe6144b9de71518b90ac94",
+      "retired_at": "2026-09-11T17:42:09.012883+00:00"
+    }
+  ]
+}

@@ -243,7 +243,7 @@ Estado global: **Proposed**. Ninguna entrada es un ADR Accepted. Los IDs D01–D
 
 ## D24 — Profiling y privilegios
 
-- **Status:** **Decided 2026-09-08** — [ADR-074](../adr/ADR-074-profiling-capability-and-containment.md); viabilidad demostrada en [la prueba de capability](../validation/M5-profiling-capability-probe.json).
+- **Status:** **Decided 2026-09-08** — [ADR-074](../adr/ADR-074-profiling-capability-and-containment.md); viabilidad demostrada en [la prueba de capability](../validation/M5/profiling-capability-probe.json).
 - **Context:** Profiling y privilegios amplía o concreta una frontera heredada de M1; véanse [baseline](baseline-2026-09-05.md) y [trazabilidad](traceability-m2-m8.md).
 - **Decision propuesta:** Capability explícita con mínimo privilegio y target realmente probado.
 - **Alternatives considered:** Profiler en sandbox; servicio host estrecho; denegar plataforma sin enforcement.

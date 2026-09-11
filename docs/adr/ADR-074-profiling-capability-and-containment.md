@@ -192,7 +192,7 @@ Las tres afirmaciones están **observadas**, no solo razonadas. Hasta el
 cuando el vaciado corría, `kill(-1)` alcanzaba un namespace vacío y
 `descendants_reaped` era `0` en todos los recibos del árbol. Dos selecciones
 nativas del corte M5-03, sobre la imagen admitida, lo cierran
-(`docs/validation/M5-03-runtime.json`):
+(`docs/validation/M5/03-runtime.json`):
 
 - `profile-descendant-drained` perfila un binario que deja un nieto vivo por
   doble fork —reparentado sobre el propio helper, que es PID 1— y observa

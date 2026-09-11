@@ -7,7 +7,7 @@ import urllib.parse, urllib.request
 import re
 
 ROOT = Path(__file__).resolve().parents[3]
-MANIFEST = ROOT / "docs/validation/m4-provisioning-proposal/manifest.json"
+MANIFEST = ROOT / "docs/validation/M4/provisioning-proposal/manifest.json"
 HERE = Path(__file__).resolve().parent
 
 def sha256(path):

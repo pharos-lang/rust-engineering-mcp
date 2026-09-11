@@ -172,7 +172,7 @@ network=none. Volúmenes local no demuestran cuota contra un extractor compromet
 el ingester confiable no se presenta como sandbox estricto de código de proyecto.
 Timeout/cancel/overflow terminan contenedores y verifican ausencia antes de borrar
 el volumen; cleanup incierto pone el gateway en cuarentena. La evidencia y límites
-están en [M1-01](validation/M1-01-rust-gateway.md).
+están en [M1-01](validation/M1/01-rust-gateway.md).
 
 Inspección MCP ADR-032: fuente capturada por handles originales, runtime explícito
 calibrado de forma lazy y metadata tipada/budgeted. Rechazo durante bootstrap;
@@ -254,11 +254,11 @@ importados antes de activar; derived inválido no cambia facts SQLite. Modelo/OR
 requieren assets explícitos. Sync HTTPS limitado es la única nueva operación de
 red y permanece fuera de tools/runtime. [Presupuestos y CLI](catalog-bundle-format.md)
 detalla80MiB bundle,16MiB index y plazos cooperativos, sin límite RSS/CPU nativo
-duro. [Evidencia M1-10](validation/M1-10.md).
+duro. [Evidencia M1-10](validation/M1/10.md).
 
 ## Contexto runtime M1-11
 
-[Evidencia M1-11](validation/M1-11.md). El reader read-only no adquiere lease,
+[Evidencia M1-11](validation/M1/11.md). El reader read-only no adquiere lease,
 crea locks, reserva floor ni borra staging. Lectura floor/active/floor con retry
 acotado evita presentar una mezcla durante administración concurrente. Un active
 verificado anterior al floor se declara con reserva pendiente; floor inválido o
@@ -284,7 +284,7 @@ La tool no abre nuevos paths ni sincroniza assets; comparte estado retenido y
 admisión de status. Encoding y validación siguen dentro del worker joined120s;
 cap512KiB completo y omisiones explícitas impiden recortar silenciosamente facts.
 Estos presupuestos no son límites duros de RAM/CPU nativas ni nueva política OS.
-[ADR-043](adr/ADR-043-catalog-search-modes.md) y [evidencia M1-12](validation/M1-12.md).
+[ADR-043](adr/ADR-043-catalog-search-modes.md) y [evidencia M1-12](validation/M1/12.md).
 
 ## Inspección de facts M1-13
 
@@ -295,7 +295,7 @@ La continuación puede cambiar parámetros porque cada página es una consulta n
 no permite cambiar la generación sin detectar mismatch. Recorte de salida conserva
 entradas completas y progreso, bajo512KiB del resultado duplicado y120s cooperativos
 del mismo worker. Estos límites no añaden containment OS ni deadlines nativos duros.
-[ADR-044](adr/ADR-044-paged-crate-inspection.md), [gate aprobado](validation/M1-13.md).
+[ADR-044](adr/ADR-044-paged-crate-inspection.md), [gate aprobado](validation/M1/13.md).
 
 ## M1-14 — Diagnóstico sin autoridad adicional
 
@@ -346,7 +346,7 @@ roots, verifica el SHA-256 esperado y lo monta read-only desde bytes propios. No
 hereda CARGO_HOME, proxies, credenciales o configuración host y no descarga. Datos
 ausentes o corruptos impiden el candidato. `preserve_presence` evita crear
 Cargo.lock en el host cuando el proyecto no lo tenía y actualiza el existente en
-el mismo plan cuando sí lo tenía. La [calificación M2](validation/M2-07.md) del
+el mismo plan cuando sí lo tenía. La [calificación M2](validation/M2/07.md) del
 checkout `0.3.0` está completada.
 
 No existe un canal de upgrade/downgrade gestionado para M2. Un operador debe
@@ -470,7 +470,7 @@ retained excedidos se degradan a evidencia no disponible; jamás a pass parcial.
 La capability se anuncia desde la evidencia G4: el uso efectivo sigue requiriendo
 declaración mutua. Inspector 2.5.0 completó el lifecycle Tasks; Codex app-server
 0.153.0 no declaró la extensión y permaneció en el fallback síncrono. Véase
-[M3-02](validation/M3-02.md).
+[M3-02](validation/M3/02.md).
 
 ## M3 — ejecución nextest e identidad
 
@@ -486,7 +486,7 @@ calificación runtime por la denegación de `socketpair(AF_UNIX, SOCK_STREAM)`.
 
 The internal M4 implementation uses the same owner-bound capture, single worker
 permit and joined Execution Gateway. Public admission is tracked in
-[the M4 matrix](validation/M4-matrix.md). The optional runtime is selected by its
+[the M4 matrix](validation/M4/matrix.md). The optional runtime is selected by its
 immutable image ID ([ADR-068](adr/ADR-068-m4-runtime-admission.md)); a local plugin
 installation or a mutable Docker tag cannot grant execution authority.
 
@@ -558,7 +558,7 @@ fail closed before project execution.
 
 Estado: las cuatro definiciones M5 están implementadas en dominio, aplicación y
 execution adapter y **calificadas localmente** (suite nativa, clientes,
-`core` y `full`); la [matriz M5](validation/M5-matrix.md) registra recibos y
+`core` y `full`); la [matriz M5](validation/M5/matrix.md) registra recibos y
 límites. `tools/list` devuelve 31 definiciones, con las 27 anteriores
 sin cambio. Lo que sigue
 describe contratos y controles implementados; solo se presenta como calificado
@@ -712,7 +712,7 @@ aplicado se verifica contra el declarado por fase. La corrección de cierre
 delega la autoridad y los límites en la misma matriz `rust_applied` de M1–M4 y
 compara los montajes solicitados y efectivos, además de argv, entorno, usuario
 y seccomp propios de cada fase. La recalificación de esta corrección está en la
-[matriz M5](validation/M5-matrix.md); la decisión y el P2 histórico permanecen en
+[matriz M5](validation/M5/matrix.md); la decisión y el P2 histórico permanecen en
 [ADR-074 §3/3.1](adr/ADR-074-profiling-capability-and-containment.md).
 
 ### Los artifacts del perfilador no se creen por venir del contenedor
@@ -740,11 +740,11 @@ El corte M5-03 perfila un binario que deja un nieto vivo por doble fork:
 `namespace_drained: true` y la ejecución aceptada, y
 `profile-precreated-artifact-refused` deja que ese nieto cree
 `/profile/stacks.txt` primero y registra helper exit 4, nada exportado e
-`InvalidMetadata` ([recibo](validation/M5-03-runtime.json)). Antes de esas dos
+`InvalidMetadata` ([recibo](validation/M5/03-runtime.json)). Antes de esas dos
 selecciones `descendants_reaped` era `0` en todos los recibos del árbol, así que
 el vaciado nunca se había visto cosechar nada.
 
-La [prueba de capability](validation/M5-profiling-capability-probe.json) del
+La [prueba de capability](validation/M5/profiling-capability-probe.json) del
 2026-09-08 registra las dos filas sobre la imagen M4 aprobada
 `sha256:25ed3626e710…`, con las banderas del gateway y sin `sudo`, `--privileged`,
 `--cap-add` ni escritura de `perf_event_paranoid`:
@@ -756,7 +756,7 @@ La [prueba de capability](validation/M5-profiling-capability-probe.json) del
 
 El recibo es el positivo de viabilidad de D24 sobre la imagen M4; la
 calificación nativa de `rust.profile.flamegraph` está en
-[M5-03-runtime.json](validation/M5-03-runtime.json).
+[M5-03-runtime.json](validation/M5/03-runtime.json).
 
 ### Alcance de la medición
 
@@ -815,7 +815,7 @@ control que el producto implemente, y el dataset registra el orden real
 
 `cargo-bloat` 0.12.1 empuja incondicionalmente `CARGO_PROFILE_<PERFIL>_STRIP=false`
 porque necesita la tabla de símbolos, y la
-[calibración en el guest](validation/M5-04-bloat-calibration.json) comprueba que
+[calibración en el guest](validation/M5/04-bloat-calibration.json) comprueba que
 `CARGO_PROFILE_RELEASE_STRIP=symbols` **no tiene efecto alguno** sobre el archivo
 producido (4 574 312 bytes con y sin esa variable). Por tanto el binario medido
 **no** es byte a byte el que enviaría un proyecto que pide stripping, y un

@@ -1,5 +1,27 @@
 # Changelog
 
+## Sin publicar
+
+- **Reordenación del repositorio sin cambios de producto** (rama
+  `ai/repo-hygiene`, 2026-09-11). La evidencia de calificación pasa a un
+  paquete por milestone (`docs/validation/M<n>/` con `history/inventory.json`),
+  las revisiones a `docs/reviews/M<n>/`, los prompts ejecutados a
+  `docs/prompts/history/` y la evidencia de 0.1.0 a `docs/release/0.1.0/`
+  (incluido `PUBLICATION-SNAPSHOT.json`, antes en la raíz). Todo se movió con
+  `git mv` y se verificó byte a byte; los enlaces de los documentos vivos se
+  reescribieron y [`docs/validation/path-map.json`](docs/validation/path-map.json)
+  resuelve las rutas anteriores que citan los recibos. Se retiraron del árbol
+  el estado privado del store de los intentos de clientes (`state-*/`, 645
+  archivos) y las capturas crudas de `docs/research/m1-16/measurement`
+  (408 archivos) y, con el mismo patrón de inventario, los recibos superados e
+  intentos fallidos, los transcripts crudos de clientes y de delegación, las
+  salidas crudas detrás de recibos y las copias de entradas de revisión
+  (1 437 archivos, 30 MB): el árbol conserva lo válido para la versión. Nuevo
+  `scripts/docs-hygiene.py`. Los comentarios de `crates/` y `fixtures/` y el
+  snapshot de contrato del tool de bloat citan las rutas nuevas; sin cambios
+  funcionales en crates, `Cargo.*`, fixtures, vendor, ADRs aceptados ni
+  contratos.
+
 ## 0.3.0 — 2026-09-11
 
 - Publicada la release estable `v0.3.0` desde el commit de `main`
@@ -167,7 +189,7 @@ publicaron por separado y forman parte de esta versión.
   16 MiB en total y 1 MiB por archivo. **Los límites no se subieron**: pertenecen
   al contrato de datos offline calificado en M2/M4 y ampliarlos habría debilitado
   una frontera de seguridad sin decisión ni recalificación. Detalle y opciones
-  para el owner en [M5-01-blocker.json](docs/validation/M5-01-blocker.json).
+  para el owner en [M5-01-blocker.json](docs/validation/M5/01-blocker.json).
   ADR-078 no amplía esos límites: introduce una captura separada cuya ruta
   completa está en recalificación.
 - La matriz de clientes M5 usa Inspector 2.5.0 como cliente determinista y
@@ -178,7 +200,7 @@ publicaron por separado y forman parte de esta versión.
   con su propio `criterion_archive` y lee esa Resource, cuyo contenido debe
   hashear al artifact publicado. El harness fue revisado por Gemini 3.8 y
   Claude Sonnet 5; el driver Inspector aplica ahora su timeout por llamada.
-  [Recibo](docs/validation/M5-clients.json).
+  [Recibo](docs/validation/M5/clients.json).
 - **`lancedb` vuelve a `=0.31.0` / Lance 8** (opción 2a, decisión del owner del
   2026-09-10) conforme a [ADR-027](docs/adr/ADR-027-semantic-offline-foundation.md):
   la 0.38.0 no compilaba con `default-features = false` y Lance 11 exigía un
@@ -189,10 +211,10 @@ publicaron por separado y forman parte de esta versión.
   [tarea post-M8](docs/roadmap/m8-stabilization.md#tarea-post-m8--actualización-de-paquetería-decisión-del-owner-2026-09-10).
   Todos los recibos M5 se recapturan sobre el nuevo lock.
 - Estado: M5 **Done local**. Suite nativa 6/6
-  ([gate nativo](docs/validation/M5-native-gate.json)), matriz de clientes
-  ([recibo](docs/validation/M5-clients.json)), `core` 23/23
-  ([recibo](docs/validation/M5-core-gate.json)) y `full` 38/38
-  ([recibo](docs/validation/M5-full-gate.json)) sobre el lock con `lancedb
+  ([gate nativo](docs/validation/M5/native-gate.json)), matriz de clientes
+  ([recibo](docs/validation/M5/clients.json)), `core` 23/23
+  ([recibo](docs/validation/M5/core-gate.json)) y `full` 38/38
+  ([recibo](docs/validation/M5/full-gate.json)) sobre el lock con `lancedb
   0.31.0`. `BenchmarkExit` y `BloatExit` conservan `CALIBRATED = false`; la
   guarda direccional sigue en `false`. Sin integración remota, PR, tag, release
   ni cambio de versión.
@@ -202,10 +224,10 @@ publicaron por separado y forman parte de esta versión.
 - Implementados `rust.deny`, `rust.unsafe.scan`, `rust.supply_chain.inspect`,
   `rust.quality.gate.v2` y `rust.miri`, en ese orden después de las 22
   definiciones existentes. Los 23 snapshots anteriores permanecen preservados y
-  se añadieron cinco nuevos. El [core](docs/validation/M4-core-gate.json), el
-  [full](docs/validation/M4-full-gate.json), el [runtime](docs/validation/M4-runtime.json)
-  y los [clientes](docs/validation/M4-clients.json) pasaron localmente. La
-  [confirmación final](docs/reviews/m4-final-evidence/review.md) acepta el cierre
+  se añadieron cinco nuevos. El [core](docs/validation/M4/core-gate.json), el
+  [full](docs/validation/M4/full-gate.json), el [runtime](docs/validation/M4/runtime.json)
+  y los [clientes](docs/validation/M4/clients.json) pasaron localmente. La
+  [confirmación final](docs/reviews/M4/m4-final-evidence/review.md) acepta el cierre
   local de M4. La implementación `07814664379628f00857feca13148b507de687b9`
   está en el [PR #15](https://github.com/pharos-lang/rust-engineering-mcp/pull/15);
   no hay nueva release ni tag.
@@ -213,10 +235,10 @@ publicaron por separado y forman parte de esta versión.
   full pasó 33 con inventario fuente idéntico. Tras encontrar un directorio E5
   temporal vacío, la reanudación conservó 27 etapas aprobadas y ejecutó seis
   frescas usando assets existentes reverificados, sin descarga ni cambios de
-  código. El [fallo original](docs/validation/M4-hardening-attempts/full-attempt-2/receipt.json)
+  código. El [fallo original](docs/validation/M4/history/inventory.json)
   permanece preservado. El runtime final pasó 19/19 sobre `25ed…`, con scanner
   7/7 y Miri 13 clasificaciones más 7 admisiones.
-- La [revisión final de código Opus](docs/reviews/m4-final-closure/review.md) no
+- La [revisión final de código Opus](docs/reviews/M4/m4-final-closure/review.md) no
   encontró P0, P1 ni un P2 nuevo. El P2 anterior de freshness nativa ya tiene
   los casos renovados y quedó cerrado en la confirmación final. M4 está Done local.
 - Admitido por identidad el runtime Linux ARM64
@@ -295,7 +317,7 @@ publicaron por separado y forman parte de esta versión.
   dedicado con `network=none` y TCP loopback interno para la coordinación de Cargo;
   el candidato se comprueba después de aplicar fixes.
 
-La calificación conjunta M2 está completada: [full y clientes](docs/validation/M2-07.md).
+La calificación conjunta M2 está completada: [full y clientes](docs/validation/M2/07.md).
 No se ha publicado otra release.
 
 ## 0.1.0 — 2026-09-05
@@ -503,7 +525,7 @@ focused follow-up. Local-only integration; remaining M1/release work stays pendi
   and independently reserved durable sequence floor with exact-container recovery.
 - Full15/15 on immutable pre-observability source; final core540, all-features
   Clippy and native CLI5+1 after reviewed floor/status/key-rotation refinements.
-  [Separate source/gate receipts and review disposition](docs/validation/M1-10.md).
+  [Separate source/gate receipts and review disposition](docs/validation/M1/10.md).
 
 See [format and limits](docs/catalog-bundle-format.md). Publisher, license and
 release remain unapproved; the fixture signing seed is public test data only.
@@ -516,7 +538,7 @@ release remain unapproved; the fixture signing seed is public test data only.
   retained SQLite/E5/Lance handles, and independent per-call RustSec observation.
 - Shared joined admission; 120s cooperative deadline and 128KiB complete result.
   Runtime acquisition remains disabled; no whole-server OS network claim.
-- Gate/review recorded in [M1-11](docs/validation/M1-11.md); no M1 closure.
+- Gate/review recorded in [M1-11](docs/validation/M1/11.md); no M1 closure.
   [ADR-042](docs/adr/ADR-042-catalog-runtime-status.md).
 
 ## M1-12 — Bounded crate search
@@ -532,7 +554,7 @@ release remain unapproved; the fixture signing seed is public test data only.
   encoding and suffix trimming under the 512KiB complete-result budget.
 - No acquisition authority, platform expansion, ranking-quality claim or M1 closure.
   [ADR-043](docs/adr/ADR-043-catalog-search-modes.md);
-  [M1-12 validation](docs/validation/M1-12.md).
+  [M1-12 validation](docs/validation/M1/12.md).
 
 ## M1-13 — Paged crate inspection
 
@@ -546,7 +568,7 @@ release remain unapproved; the fixture signing seed is public test data only.
   Clippy, and two local-feature tests under OS network deny, without embedding
   inference. Sonnet5 Medium review: no confirmed actionable finding.
   [ADR-044](docs/adr/ADR-044-paged-crate-inspection.md);
-  [validation](docs/validation/M1-13.md). No M1 or release closure.
+  [validation](docs/validation/M1/13.md). No M1 or release closure.
 
 ## M1-14 — CLI y doctor
 

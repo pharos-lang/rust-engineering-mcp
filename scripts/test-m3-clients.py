@@ -25,8 +25,8 @@ import time
 import uuid
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
-ATTEMPTS = ROOT / "docs/validation/m3-clients"
-CURRENT = ROOT / "docs/validation/M3-02-clients.json"
+ATTEMPTS = ROOT / "docs/validation/M3/clients"
+CURRENT = ROOT / "docs/validation/M3/02-clients.json"
 SERVER = ROOT / "target/release/rust-engineering-mcp"
 NODE = pathlib.Path("/Users/cburgosro/.nvm/versions/node/v24.15.0/bin/node")
 INSPECTOR = ROOT / "target/m1-17-inspector/node_modules/@modelcontextprotocol/inspector/clients/cli/build/index.js"
@@ -378,7 +378,7 @@ def codex_gate(attempt: pathlib.Path, socket: str, codex: pathlib.Path) -> dict[
     state = attempt / "state-codex"
     state.mkdir(mode=0o700)
     proxy_args = json.dumps(server_argv(state, socket), separators=(",", ":"))
-    controller_path = ROOT / "docs/validation/m1-17-codex-client/controller.py"
+    controller_path = ROOT / "docs/validation/M1/17-codex-client/controller.py"
     specification = importlib.util.spec_from_file_location("m3_codex_controller", controller_path)
     if specification is None or specification.loader is None:
         raise RuntimeError("Codex app-server controller cannot be loaded")

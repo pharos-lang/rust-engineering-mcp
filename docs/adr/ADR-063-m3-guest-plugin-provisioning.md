@@ -5,7 +5,7 @@
 Accepted 2026-09-06 by the M3 orchestrator after independent reviews V06/V17/V18
 (owner provisioning authorization 2026-09-05). Provisioning is verified and the
 M3-01 nextest gateway qualification now passes; see
-`docs/validation/M3-matrix.md`.
+`docs/validation/M3/matrix.md`.
 
 ## Context
 
@@ -141,8 +141,8 @@ in place.
 P02 produced and verified the immutable image
 `sha256:384a1742ecc53cdd3a9c0bf36c6f8b66db73ddd118aeeae6e55654ea998ae36a`.
 The provisioning verifier passed 47/47 observations; the source-bound evidence is
-`docs/validation/M3-provisioning.json` and its selected identity is recorded in
-`docs/validation/M3-image-config.json`. The installed LLVM executables are exactly
+`docs/validation/M3/provisioning.json` and its selected identity is recorded in
+`docs/validation/M3/image-config.json`. The installed LLVM executables are exactly
 under `/opt/rust/lib/rustlib/aarch64-unknown-linux-gnu/bin/`; there is no
 `llvm-tools-preview/` path segment in the archive members; installation places
 the executables under `/opt/rust/lib/rustlib/aarch64-unknown-linux-gnu/bin/`.
@@ -152,9 +152,9 @@ authorized nextest-only seccomp delta for Tokio's anonymous AF_UNIX stream pair;
 the base M1 and M2 profiles remain byte-identical. The final exact gate passed
 positive nextest and the negative network/pathname-socket controls, and the shared
 gateway change was recalibrated with the existing twenty-case Rust security gate.
-The current receipts are `docs/validation/M3-01-rust-security.json` and
-`docs/validation/M3-01-runtime.json`; the initial denied-syscall receipt remains
-`docs/validation/M3-01-runtime-attempt1.json`.
+The current receipts are `docs/validation/M3/01-rust-security.json` and
+`docs/validation/M3/01-runtime.json`; the initial denied-syscall receipt remains
+`docs/validation/M3/history/01-runtime-attempt1.json`.
 
 ## Built image
 
@@ -163,10 +163,10 @@ P02 built the immutable Linux ARM64 image
 configuration digest
 `sha256:7d4e58b9e29b2045c13d71542f7892ee071a6886a1b939c4cbfc3ff7ce40dc45`.
 Provisioning verification passed 47/47 observations. The source-bound receipts
-are [M3-provisioning.json](../validation/M3-provisioning.json),
-[M3-image-config.json](../validation/M3-image-config.json),
-[P02 delivery](../validation/m3-delegation/P02-provision-run/last-message.md),
-and the [M3-01 security receipt](../validation/M3-01-rust-security.json).
+are [M3-provisioning.json](../validation/M3/provisioning.json),
+[M3-image-config.json](../validation/M3/image-config.json),
+[P02 delivery](../validation/M3/history/inventory.json),
+and the [M3-01 security receipt](../validation/M3/01-rust-security.json).
 
 ## Sources
 
@@ -178,11 +178,11 @@ and the [M3-01 security receipt](../validation/M3-01-rust-security.json).
 - `docs/roadmap/m2-m8.md` (G7)
 - `docs/adr/ADR-031-rust-source-transfer.md`
 - `docs/adr/ADR-033-toolchain-inspection.md`
-- `docs/validation/M2-image-config.json`
-- `docs/validation/artifacts/M1-01-runtime-base-inspect.json`
-- `docs/validation/artifacts/M1-01-runtime-image-inspect.json`
-- `docs/validation/artifacts/M1-01-runtime-verification.json`
-- `docs/validation/m3-delegation/R01-plugins/report.md`
+- `docs/validation/M2/image-config.json`
+- `docs/validation/M1/artifacts/M1-01-runtime-base-inspect.json`
+- `docs/validation/M1/artifacts/M1-01-runtime-image-inspect.json`
+- `docs/validation/M1/artifacts/M1-01-runtime-verification.json`
+- `docs/validation/M3/delegation/R01-plugins/report.md`
 - Local fetched source snapshot: `releases-summary.json`, the four upstream
   `*-Cargo.toml.txt` files, `rust-llvm-tools-sha.txt` and `index.txt`, fetched
   2026-09-05 UTC.

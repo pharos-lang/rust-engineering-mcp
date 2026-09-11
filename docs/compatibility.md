@@ -16,7 +16,7 @@
 | Artifact 0.1.0 publicado | Un único archive core `aarch64-apple-darwin`; checksum, SBOM/notices y provenance verificados |
 | Linux / Windows / macOS x86_64 nativos | CI pública compila y prueba el código fuente; la calificación nativa del sandbox y filesystem sigue pendiente para ampliar soporte en una release futura |
 | Licencia / redistribución | Código original `MIT OR Apache-2.0`; assets `local` no se redistribuyen en 0.1.0 |
-| Clientes de terceros | M4: Inspector 2.5.0 con Tasks y Codex 0.153.0 stock por sincronía; [recibo](validation/M4-clients.json). M5: Inspector 2.5.0 (quince filas, catorce Resources) y Claude Code 2.1.267 `claude-sonnet-5` como cliente agentic; [recibo](validation/M5-clients.json). M1/M2 conservan sus matrices anteriores. |
+| Clientes de terceros | M4: Inspector 2.5.0 con Tasks y Codex 0.153.0 stock por sincronía; [recibo](validation/M4/clients.json). M5: Inspector 2.5.0 (quince filas, catorce Resources) y Claude Code 2.1.267 `claude-sonnet-5` como cliente agentic; [recibo](validation/M5/clients.json). M1/M2 conservan sus matrices anteriores. |
 | Sandbox | Probes M0 separados; ejecución M1–M4 habilitada solo en runtimes aprobados Docker/Linux ARM64 calibrados por sus ADR |
 | SQLite / FTS5 | rusqlite 0.40.2, SQLite bundled 3.53.2; memoria, pruebas ARM64 macOS |
 | LanceDB / embeddings | M0-09: E5/ORT y LanceDB0.31 memory://; feature local, gate macOS ARM64 |
@@ -35,7 +35,7 @@
 | Versión inline desconocida | Metadata completa | Error `-32022`; permite request válido posterior |
 
 La matriz original acredita bootstrap y project.open. La evidencia M1-11 cubre
-las once definiciones anteriores; [M1-12](validation/M1-12.md) valida el contrato
+las once definiciones anteriores; [M1-12](validation/M1/12.md) valida el contrato
 de doce tools. La release `0.1.0` anuncia trece con M1-13 implementado y gate
 aprobado. El checkout de desarrollo anuncia 27 al sumar las
 cinco tools M2, las cuatro tools M3 y las cinco definiciones M4. Las 18 primeras
@@ -88,8 +88,8 @@ calificación más allá de macOS ARM64/APFS con guest Docker Linux ARM64.
 
 `rust.deny`, `rust.unsafe.scan`, `rust.supply_chain.inspect`,
 `rust.quality.gate.v2` y `rust.miri` aparecen en `tools/list`. El
-[core](validation/M4-core-gate.json), el [full](validation/M4-full-gate.json), el
-[runtime](validation/M4-runtime.json) y los [clientes](validation/M4-clients.json)
+[core](validation/M4/core-gate.json), el [full](validation/M4/full-gate.json), el
+[runtime](validation/M4/runtime.json) y los [clientes](validation/M4/clients.json)
 pasaron localmente. No forman parte de una release y el hito no se declara Done
 antes de la confirmación final de evidencia.
 
@@ -146,7 +146,7 @@ extensión y completó create/poll/cancel; Codex CLI/app-server 0.153.0 no la de
 y pasó discovery, llamadas y Resources por el camino síncrono soportado. Para todo
 cliente que no declare Tasks, la compatibilidad admitida sigue siendo el modo
 síncrono calificado y `TASKS_REQUIRED` para jobs largos; el nombre del cliente
-nunca habilita autoridad ni una excepción de protocolo. [Matriz](validation/M3-02.md).
+nunca habilita autoridad ni una excepción de protocolo. [Matriz](validation/M3/02.md).
 
 El cliente moderno envía `params._meta` con
 `io.modelcontextprotocol/protocolVersion: "2026-07-28"` y
@@ -179,7 +179,7 @@ recicla un slot por el solo hecho de recibir cancelación. Shutdown espera hasta
 exceder ese plazo es fallo, no evidencia de cleanup. run_joined espera el cierre
 real del gateway aunque rmcp suprima o abandone la respuesta. EOF y errores de
 transporte cancelan el worker; la sesión solo termina limpia sin panic/cuarentena. Ver
-[ADR-023](adr/ADR-023-mcp-stdio-bootstrap.md) y [evidencia](validation/M0-03.md).
+[ADR-023](adr/ADR-023-mcp-stdio-bootstrap.md) y [evidencia](validation/M0/03.md).
 
 ## Acceso a proyectos
 
@@ -213,7 +213,7 @@ configuración actual. `strict_available`/`restricted_available` solo cubren
 `trusted_probe_image_only`; `project_code_available=false`. El camino Rust aprobado
 de ADR-031 tiene transferencia y calibración separadas (ver más abajo). La frontera, controles
 positivos y límites están en [security model](security-model.md#gateway-m0-05),
-[ADR-025](adr/ADR-025-container-execution-gateway.md) y [evidencia M0-06](validation/M0-06.md).
+[ADR-025](adr/ADR-025-container-execution-gateway.md) y [evidencia M0-06](validation/M0/06.md).
 
 ## Contratos M0-07
 
@@ -255,7 +255,7 @@ desde macOS26.6.2 ARM64. Se prueba el camino de fuente en volumen administrado,
 build.rs y proc macro reales, denegación de sockets, límites efectivos y cleanup
 de descendientes con setsid/doble fork. El perfil permite IPC privado SEQPACKET,
 con socket/bind/connect/listen denegados. Esta evidencia no acredita Linux/Windows
-nativo, x86_64 ni otra imagen/configuración. [Recibo](validation/M1-01-rust-gateway.md).
+nativo, x86_64 ni otra imagen/configuración. [Recibo](validation/M1/01-rust-gateway.md).
 
 M1-02 publica toolchain del guest aprobado, incluyendo installed_targets. La
 selección del proyecto solo admite1.98.1; no instala rustup ni componentes. Los
@@ -317,7 +317,7 @@ ligada al catálogo/modelo; build core no acredita ese camino. Report semantic
 availability solo es true tras validación nativa. Bundle hash identifica el
 contenedor exacto, no una serialización canónica del archivo comprimido.
 [Formato/flags](catalog-bundle-format.md), incluido floor independiente y requisitos
-0600/0700. [M1-10](validation/M1-10.md) distingue full15/15 y la fuente anterior
+0600/0700. [M1-10](validation/M1/10.md) distingue full15/15 y la fuente anterior
 al ajuste final del CLI de los gates core540/Clippy all-features/CLI nativo5+1
 posteriores. En ese corte seguían pendientes clientes reales, distribución y
 release; M1-17 los calificó después sin cambiar este contrato de catálogo.
@@ -346,7 +346,7 @@ El límite de resultado de search es512KiB completo, distinto de128KiB de status
 ambos conservan deadline120s cooperativo joined. RRF/ventanas/filtros son contratos,
 no resultados experimentales de calidad ES/EN ni de performance. Los gates de
 release siguen pendientes. [Contrato](tools.md#rustcratesearch),
-[evidencia M1-12](validation/M1-12.md).
+[evidencia M1-12](validation/M1/12.md).
 
 ## M1-13 — Inspección
 
@@ -354,9 +354,9 @@ La decimotercera definición conserva los doce contratos previos y la negociaci�
 SDK existente. Core consulta SQLite sin modelo/índice; el gate local-feature no
 implica que inspect ejecute embeddings. Comparte la generación de status/search;
 importar otro snapshot requiere reiniciar para observarlo y continuar con su identidad.
-[Gate M1-13 aprobado](validation/M1-13.md): core629/10 etapas, protocolo37,
+[Gate M1-13 aprobado](validation/M1/13.md): core629/10 etapas, protocolo37,
 Clippy all-features/all-targets y dos tests local-feature bajo OS network deny. No amplía calificación de clientes, plataformas, distribución ni release.
-[Contrato](tools.md#rustcrateinspect), [evidencia M1-13](validation/M1-13.md).
+[Contrato](tools.md#rustcrateinspect), [evidencia M1-13](validation/M1/13.md).
 
 ## M1-14 — Contratos CLI de diagnóstico
 
@@ -374,11 +374,11 @@ hechos diferentes. [ADR-045](adr/ADR-045-cli-doctor.md).
 
 ## M1-15 — Candidatos locales
 
-Candidatos release macOS arm64 ejecutados desde instalación privada: core/local version y doctor activo. Firma ad hoc verificada localmente; no notarización ni evidencia de otros hosts. Véase [candidatos](release/offline-candidates.md).
+Candidatos release macOS arm64 ejecutados desde instalación privada: core/local version y doctor activo. Firma ad hoc verificada localmente; no notarización ni evidencia de otros hosts. Véase [candidatos](release/0.1.0/offline-candidates.md).
 
 La release final sustituye esos candidatos como canal soportado: `v0.1.0` publica
 solo core macOS ARM64 y usa provenance OIDC, checksum y smoke sobre los bytes
-descargados. Véase el [recibo público](validation/m1-17-public-release.json).
+descargados. Véase el [recibo público](validation/M1/17-public-release.json).
 
 ## Escritura local M2 en desarrollo
 
@@ -399,7 +399,7 @@ Windows ni convierte el soporte de compilación CI en soporte de escritura.
 El modo `local_coordinated` presupone que el host mantiene estables roots/state y
 evita escritores simultáneos durante commit. No ofrece CAS, exclusión OS de otros
 programas ni atomicidad visible multiarchivo. `preserve_presence` mantiene la
-presencia o ausencia inicial de Cargo.lock. La [calificación conjunta](validation/M2-07.md)
+presencia o ausencia inicial de Cargo.lock. La [calificación conjunta](validation/M2/07.md)
 M2 está completada sobre los bytes que entonces se identificaban como `0.2.0-dev`;
 el checkout actual es `0.3.0`; la release soportada anterior es `0.1.0`
 con 13 tools.
@@ -411,7 +411,7 @@ incluso tras TTL/reinicio. No permite iniciar efectos nuevos sin preview vigente
 ## Rendimiento M5, calificado localmente
 
 Las cuatro definiciones M5 están implementadas y **calificadas localmente**
-(suite nativa, clientes, `core` y `full`); la [matriz M5](validation/M5-matrix.md)
+(suite nativa, clientes, `core` y `full`); la [matriz M5](validation/M5/matrix.md)
 registra recibos y límites. `tools/list` devuelve 31 definiciones: las 27 anteriores
 intactas byte a byte en sus snapshots y las cuatro nuevas. Los recibos históricos
 no califican los contratos M5 finales; la matriz identifica la evidencia pendiente.
@@ -484,11 +484,11 @@ recalificación estadística.
 
 | Elemento | Identidad / versión | Estado |
 | --- | --- | --- |
-| Guest Linux ARM64 M5 | `sha256:e0a5ca1661b3e49d0a3d68ee3cc0963453078d08eb7fc43c30538c16b7998aac` (`rust-engineering-runtime:1.98.1-arm64-m5`) | Construida y con [recibo](validation/M5-provisioning.json); admitida por digest en el gateway ([ADR-077](adr/ADR-077-m5-runtime-admission.md)); seis selecciones nativas aprobadas ([gate nativo](validation/M5-native-gate.json)) |
+| Guest Linux ARM64 M5 | `sha256:e0a5ca1661b3e49d0a3d68ee3cc0963453078d08eb7fc43c30538c16b7998aac` (`rust-engineering-runtime:1.98.1-arm64-m5`) | Construida y con [recibo](validation/M5/provisioning.json); admitida por digest en el gateway ([ADR-077](adr/ADR-077-m5-runtime-admission.md)); seis selecciones nativas aprobadas ([gate nativo](validation/M5/native-gate.json)) |
 | Base | `sha256:25ed3626e710081a571a86a29521eaf2e890e796afd422ba5e409e0ce1891635` | Imagen M4 aprobada, intacta y verificada por digest antes de construir |
 | `cargo-bloat` | 0.12.1, MIT, en `/opt/perf/bin` | Provisionado, fuera del `PATH` del contenedor de trabajo |
 | `rust-mcp-profile-helper` | Construido desde `fixtures/profile-helper` | Provisionado, fuera del `PATH` del contenedor de trabajo |
-| Perfil seccomp de profiling | `seccomp-rust-profile.json` = perfil quality + `perf_event_open` | [Prueba de capability](validation/M5-profiling-capability-probe.json) pasada sobre la imagen M4 |
+| Perfil seccomp de profiling | `seccomp-rust-profile.json` = perfil quality + `perf_event_open` | [Prueba de capability](validation/M5/profiling-capability-probe.json) pasada sobre la imagen M4 |
 
 La imagen no cambia toolchain, plugins M3, binarios M4, usuario, `WORKDIR` ni
 `PATH`, y el gateway invoca ambos binarios por ruta absoluta. La imagen M4
@@ -505,7 +505,7 @@ resultado declara son propiedades de esa identidad.
 
 El positivo de análisis de tamaño está calibrado sobre **ELF64/AArch64** en el
 guest Linux ARM64: la
-[calibración](validation/M5-04-bloat-calibration.json) registra `ELF64`,
+[calibración](validation/M5/04-bloat-calibration.json) registra `ELF64`,
 `AArch64` y `DYN (Position-Independent Executable file)`. Ese positivo **no
 califica Mach-O ni PE**, y **WASM no está soportado por el analizador**. Solo se
 calibraron los exits 0 (`passed`) y 1 (`analysis_failed`); los demás siguen sin

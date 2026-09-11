@@ -55,7 +55,7 @@ pub struct RuntimeIdentity {
 /// request so a response is self-describing. Neither is requested from the
 /// analyzer with `--profile`: `release_lto` is `--release` plus the
 /// product-owned `CARGO_PROFILE_RELEASE_LTO=fat` environment variable, never a
-/// caller-supplied profile name (`docs/validation/M5-04-bloat-calibration.json`).
+/// caller-supplied profile name (`docs/validation/M5/04-bloat-calibration.json`).
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "snake_case")]
 pub enum BloatProfile {

@@ -55,8 +55,8 @@ class SummarizeM4BudgetsTests(unittest.TestCase):
             with mock.patch.object(M4, "ROOT", root):
                 M4.main()
 
-            destination = root / "docs" / "validation"
-            summary = json.loads((destination / "M4-budgets.json").read_text())
+            destination = root / "docs" / "validation" / "M4"
+            summary = json.loads((destination / "budgets.json").read_text())
             self.assertEqual(summary["status"], "passed")
             self.assertEqual(len(summary["groups"]), 10)
             self.assertEqual(summary["groups"][0]["samples"], 30)
@@ -66,7 +66,7 @@ class SummarizeM4BudgetsTests(unittest.TestCase):
                 hashlib.sha256(measured_path.read_bytes()).hexdigest(),
             )
             self.assertEqual(
-                (destination / "M4-budgets" / measured_path.name).read_bytes(),
+                (destination / "budgets" / measured_path.name).read_bytes(),
                 measured_path.read_bytes(),
             )
 

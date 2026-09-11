@@ -73,7 +73,7 @@ macOS ARM64 con el runtime Docker Linux ARM64 fijado. Sus timeouts por defecto s
 Tasks. Una selección de hasta 60 segundos puede usar el camino síncrono; en
 `rust.quality.gate.v2` se limita a `strict` sin mutation. `release` y mutation
 requieren Tasks. Consulta su [alcance y límites](docs/tools.md#contratos-m4-calificados-localmente)
-y el [handoff de evidencia](docs/validation/M4-handoff.md).
+y el [handoff de evidencia](docs/validation/M4/handoff.md).
 
 Las cuatro tools M5 miden rendimiento y tamaño sin modificar el checkout.
 `rust.benchmark.run`, `rust.profile.flamegraph` y `rust.binary.bloat` exigen la
@@ -88,11 +88,11 @@ declarado; `rust.benchmark.compare` no tiene modo de ejecución.
 
 > [!WARNING]
 > M5 está **calificado localmente** (sin integración remota, PR, tag ni release):
-> suite nativa 6/6 ([gate nativo](docs/validation/M5-native-gate.json)), matriz
-> de clientes ([recibo](docs/validation/M5-clients.json)) y gates `core`/`full`
+> suite nativa 6/6 ([gate nativo](docs/validation/M5/native-gate.json)), matriz
+> de clientes ([recibo](docs/validation/M5/clients.json)) y gates `core`/`full`
 > sobre las fuentes finales. `rust.benchmark.compare` no emite veredictos
 > direccionales: publica efecto, intervalo y razones declaradas. Estado y límites
-> en la [matriz M5](docs/validation/M5-matrix.md).
+> en la [matriz M5](docs/validation/M5/matrix.md).
 > Sus contratos completos están en [`docs/tools.md`](docs/tools.md#contratos-m5--medición-de-rendimiento).
 
 Los Resources normalizados no sustituyen una revisión de privacidad. Los HTML de
@@ -103,7 +103,7 @@ privados y no se promete redacción universal del source autorizado.
 Las mutaciones máximas pueden consumir memoria considerable: el ciclo nativo de
 128 archivos/16 MiB midió aproximadamente 932 MiB de RSS después de optimizar el
 journal; no es un límite del proceso MCP completo. Consulta los [límites y la
-medición](docs/validation/M2-matrix.md). M2 emite eventos operativos acotados por
+medición](docs/validation/M2/matrix.md). M2 emite eventos operativos acotados por
 stderr, sin source, rutas ni credenciales y sin colector adicional; su retención
 la controla el host. stdout queda reservado al protocolo.
 El store privado admite hasta 128 journals/256 MiB; la admisión reserva 48 MiB
@@ -196,12 +196,12 @@ cliente.
 
 | Cliente | Configuración | Evidencia actual |
 | --- | --- | --- |
-| Codex | [CLI o `config.toml`](docs/client-configuration.md#codex) | Codex 0.153.0 stock calificó el camino síncrono M4 para las cinco tools y un turno model-directed con las cinco en `passed`; el cliente no declaró Tasks. [Recibo M4](docs/validation/M4-clients.json). |
-| Claude Code | [CLI o `.mcp.json`](docs/client-configuration.md#claude-code) | M2: Claude Code 2.1.260, Sonnet 5 medium, cinco preview/commit y receipt final; [PASS intento 5](docs/validation/M2-clients.json), con renovación de referencias explícita en el prompt. M5: Claude Code 2.1.267 (`claude-sonnet-5`) como cliente agentic restringido a MCP: cuatro rechazos declarados en docker-free y, en runtime, dos mediciones propias, comparación `inconclusive`, rechazo `NOT_A_DATASET` y lectura nativa de una Resource ligada por hash; [recibo M5](docs/validation/M5-clients.json). |
+| Codex | [CLI o `config.toml`](docs/client-configuration.md#codex) | Codex 0.153.0 stock calificó el camino síncrono M4 para las cinco tools y un turno model-directed con las cinco en `passed`; el cliente no declaró Tasks. [Recibo M4](docs/validation/M4/clients.json). |
+| Claude Code | [CLI o `.mcp.json`](docs/client-configuration.md#claude-code) | M2: Claude Code 2.1.260, Sonnet 5 medium, cinco preview/commit y receipt final; [PASS intento 5](docs/validation/M2/clients.json), con renovación de referencias explícita en el prompt. M5: Claude Code 2.1.267 (`claude-sonnet-5`) como cliente agentic restringido a MCP: cuatro rechazos declarados en docker-free y, en runtime, dos mediciones propias, comparación `inconclusive`, rechazo `NOT_A_DATASET` y lectura nativa de una Resource ligada por hash; [recibo M5](docs/validation/M5/clients.json). |
 | Gemini CLI | [`settings.json`](docs/client-configuration.md#gemini-cli) | Configuración documentada; calificación de este MCP pendiente. |
 | Cursor | [`.cursor/mcp.json`](docs/client-configuration.md#cursor) | Configuración documentada; calificación de este MCP pendiente. |
 | VS Code / GitHub Copilot | [`.vscode/mcp.json`](docs/client-configuration.md#vs-code-y-github-copilot) | Configuración documentada; calificación de este MCP pendiente. |
-| MCP Inspector | [Web, CLI o TUI](docs/client-configuration.md#mcp-inspector) | Inspector 2.5.0 calificó 27 tools y, para M4, positivos, negativos, cancelación Tasks y cinco Resources. [Recibo M4](docs/validation/M4-clients.json). |
+| MCP Inspector | [Web, CLI o TUI](docs/client-configuration.md#mcp-inspector) | Inspector 2.5.0 calificó 27 tools y, para M4, positivos, negativos, cancelación Tasks y cinco Resources. [Recibo M4](docs/validation/M4/clients.json). |
 
 La [guía de configuración por cliente](docs/client-configuration.md) contiene los
 archivos completos, comandos de verificación y enlaces a la documentación oficial.
@@ -500,7 +500,7 @@ sin ejecutar Cargo del host ni descargar datos durante una llamada MCP. El perfi
 dedicado de fix conserva `network=none` y permite TCP loopback solo dentro de su
 namespace para la coordinación interna de Cargo; build scripts y proc macros pueden
 influir en los cambios `.rs`, por lo que se debe revisar el diff exacto. La
-calificación local M2 está completada con [evidencia reproducible](docs/validation/M2-07.md). El paquete del checkout informa
+calificación local M2 está completada con [evidencia reproducible](docs/validation/M2/07.md). El paquete del checkout informa
 `0.3.0`.
 
 `rust.test.nextest` usa el perfil quality dedicado, no ejecuta doctests y publica
@@ -510,7 +510,7 @@ declara `io.modelcontextprotocol/tasks`. Sin esa declaración, `auto` y
 `synchronous` sólo se admiten para una selección calificada con
 `timeout_seconds <= 60`; un `auto` más largo devuelve `TASKS_REQUIRED` antes de
 admisión y `task` se rechaza. Véanse los
-[documentos de validación M3](docs/validation/M3-matrix.md).
+[documentos de validación M3](docs/validation/M3/matrix.md).
 
 La CLI de desarrollo `cargo-vendor inspect --directory /ruta/vendor --json`
 verifica un directory source preparado mediante
@@ -534,7 +534,7 @@ El checkout `0.3.0` descubre 31 tools.
 `rust.semver.check` y `rust.mutation.test` están implementadas y calificadas en el
 gate Docker M3: 62/62 selecciones (nextest 19, Tasks 7, coverage 8,
 SemVer 18 y mutation 10), más 20/20 controles de seguridad. Los detalles
-y hashes están en la [matriz y recibos M3](docs/validation/M3-matrix.md).
+y hashes están en la [matriz y recibos M3](docs/validation/M3/matrix.md).
 Las 18 snapshots preexistentes son byte-identical a `main`; el snapshot de
 mutation cambió deliberadamente durante las correcciones de seguridad.
 

@@ -130,7 +130,7 @@ como si describiera ese archivo. WASM se rechaza porque el backend no lo soporta
 Mach-O y PE no quedan calificados por el positivo ELF.
 
 **El archivo medido es un build de análisis.** La calibración en el guest
-([recibo](../validation/M5-04-bloat-calibration.json)) muestra que `cargo-bloat`
+([recibo](../validation/M5/04-bloat-calibration.json)) muestra que `cargo-bloat`
 0.12.1 empuja incondicionalmente `CARGO_PROFILE_<PERFIL>_STRIP=false` porque
 necesita la tabla de símbolos (`src/main.rs:694-696`); se comprobó que
 `CARGO_PROFILE_RELEASE_STRIP=symbols` no tiene efecto alguno sobre el archivo
@@ -142,7 +142,7 @@ es que sea el artefacto distribuible del proyecto.
 
 `release_lto` **no** se pide con `--profile`. Lo observado, y lo único que se
 afirma como observado, es el
-[recibo](../validation/M5-04-bloat-calibration.json): pasar `--profile
+[recibo](../validation/M5/04-bloat-calibration.json): pasar `--profile
 release-lto` sale con exit 1 y con `error in environment variable
 CARGO_PROFILE_RELEASE: could not load config key profile.release / invalid type:
 Option value, expected a boolean or string`. El mecanismo —que `cargo-bloat`

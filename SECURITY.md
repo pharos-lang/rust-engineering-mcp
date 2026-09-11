@@ -115,7 +115,7 @@ network=none. Volúmenes local no demuestran cuota contra un extractor compromet
 el ingester confiable no se presenta como sandbox estricto de código de proyecto.
 Timeout/cancel/overflow terminan contenedores y verifican ausencia antes de borrar
 el volumen; cleanup incierto pone el gateway en cuarentena. La evidencia y límites
-están en [M1-01](docs/validation/M1-01-rust-gateway.md).
+están en [M1-01](docs/validation/M1/01-rust-gateway.md).
 
 Inspección MCP ADR-032: fuente capturada por handles originales, runtime explícito
 calibrado de forma lazy y metadata tipada/budgeted. Rechazo durante bootstrap;
@@ -192,7 +192,7 @@ y puede limpiar staging. El owner conserva la responsabilidad por el store enter
 HTTPS sync es opt-in del host, con hostname exacto, sin proxies/redirects/retries;
 no equivale a network deny. Límites de bytes y deadlines cooperativos de lectura,
 descompresión/rebuild no garantizan RSS/CPU nativo ni interrupción de kernel I/O.
-Ver [contrato y recuperación](docs/catalog-bundle-format.md) y [evidencia M1-10](docs/validation/M1-10.md).
+Ver [contrato y recuperación](docs/catalog-bundle-format.md) y [evidencia M1-10](docs/validation/M1/10.md).
 
 ## Estado de catálogo M1-11
 
@@ -219,7 +219,7 @@ Advisory IDs son los listados por el snapshot, no una auditoría completa.
 Validación JSON y encoding/recorte permanecen dentro del mismo worker joined.
 Su120s cooperativo y cap512KiB completo no prometen interrupción dura de código
 nativo ni aislamiento OS adicional. [Contrato](docs/tools.md#rustcratesearch) y
-[evidencia M1-12](docs/validation/M1-12.md).
+[evidencia M1-12](docs/validation/M1/12.md).
 
 ## Inspección paginada M1-13
 
@@ -230,7 +230,7 @@ retenido, sin requerir semántica ni adquirir assets. Repository es texto declar
 source/documentation unknown e IDs de advisories no acreditan seguridad.
 El worker conserva admisión durante I/O, validación y encoding;120s cooperativos
 y512KiB del resultado MCP completo mantienen las limitaciones existentes.
-[Contrato](docs/tools.md#rustcrateinspect), [gate aprobado](docs/validation/M1-13.md).
+[Contrato](docs/tools.md#rustcrateinspect), [gate aprobado](docs/validation/M1/13.md).
 
 Doctor pasivo no ejecuta probes ni adquiere administración del catálogo. El modo
 --active calibra el runtime aprobado y espera cleanup ante SIGINT/TERM/HUP;
@@ -279,7 +279,7 @@ HOME/CARGO_HOME efímeros y ejecución offline con red aislada. La policy
 ausentes, corruptos o cambiados bloquean la operación completa; no hay fallback a
 descarga ni a edición solo del manifest.
 
-La [calificación local M2](docs/validation/M2-07.md) está completada. El checkout se identifica como `0.3.0`,
+La [calificación local M2](docs/validation/M2/07.md) está completada. El checkout se identifica como `0.3.0`,
 pero estas cinco tools no forman parte de la release estable `0.1.0`.
 
 Los journals M2 parciales/corruptos pueden bloquear nuevas mutaciones del store
@@ -331,7 +331,7 @@ habilitado para un peer que también declare `io.modelcontextprotocol/tasks`.
 
 The M4 source implements separate dependency policy, unsafe syntax, Miri and
 supply-chain observations plus `rust.quality.gate.v2`. Its qualification and public
-admission are recorded in [M4-matrix](docs/validation/M4-matrix.md). The optional
+admission are recorded in [M4-matrix](docs/validation/M4/matrix.md). The optional
 image is pinned by digest; the runtime never installs plugins, nightly/sysroot,
 models or snapshots. `security-runtime inventory --json` reports compiled
 requirements and explicitly does not observe installation readiness.
@@ -363,7 +363,7 @@ retention of source explicitly granted by the host.
 
 Las cuatro definiciones M5 —`rust.benchmark.run`, `rust.benchmark.compare`,
 `rust.profile.flamegraph` y `rust.binary.bloat`— están implementadas y
-**calificadas localmente**: la [matriz M5](docs/validation/M5-matrix.md)
+**calificadas localmente**: la [matriz M5](docs/validation/M5/matrix.md)
 registra suite nativa, clientes y gates `core`/`full` sobre las fuentes finales;
 `tools/list` devuelve 31 definiciones y ninguna forma parte de la release
 `0.1.0` ni de una integración remota.
@@ -408,7 +408,7 @@ lectura no cambian. La medición se limita a espacio de usuario
 proceso hijo que el propio helper lanza y sus hilos: nunca un pid ajeno, nunca
 todo el sistema. El perfilador es un binario construido desde la fuente de este
 repositorio; no se aprovisiona `perf`, `cargo-flamegraph`, `samply` ni `inferno`.
-[Prueba de capability](docs/validation/M5-profiling-capability-probe.json) y
+[Prueba de capability](docs/validation/M5/profiling-capability-probe.json) y
 [ADR-074](docs/adr/ADR-074-profiling-capability-and-containment.md).
 
 Los stacks colapsados contienen nombres de símbolo y nada más: el alfabeto

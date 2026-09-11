@@ -16,7 +16,7 @@ DOCKER = Path("/usr/local/bin/docker")
 SOCKET = Path("/Users/cburgosro/.docker/run/docker.sock")
 IMAGE = "sha256:384a1742ecc53cdd3a9c0bf36c6f8b66db73ddd118aeeae6e55654ea998ae36a"
 PRODUCTION_PROFILE = ROOT / "crates/execution-adapter/src/seccomp-rust-fix.json"
-REPORTS = ROOT / "docs/validation"
+REPORTS = ROOT / "docs/validation/M2"
 REPORT_NAME = "M2-fix-socket-mask.json"
 REPORT = REPORTS / REPORT_NAME
 LABEL_KEY = "org.rust-mcp.m2-fix-socket-mask"
@@ -377,7 +377,7 @@ def main():
                 "objective": "Resolve the reviewed Docker seccomp SCMP_CMP_MASKED_EQ operand order with an applied-profile guest probe.",
                 "status": "passed" if failure is None and not cleanup["failures"] and not cleanup["containers"] and not cleanup["volumes"] else "failed",
                 "finding": {
-                    "review": "docs/reviews/M2-final-security-opus.json P0-1",
+                    "review": "docs/reviews/M2/M2-final-security-opus.json P0-1",
                     "review_model": "claude-opus-5",
                     "reviewed_operands": {"value": 1, "valueTwo": 15},
                     "corrected_operands": {"value": 15, "valueTwo": 1},

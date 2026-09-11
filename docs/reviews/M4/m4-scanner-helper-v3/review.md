@@ -1,0 +1,102 @@
+He leído los 14 archivos de `docs/reviews/M4/m4-scanner-helper-v3/inputs/` completos, sin ejecutar, editar ni delegar nada.
+
+---
+
+# Veredicto acotado
+
+**Alcance:** solo el delta v3 sobre los findings de v2. Los archivos nuevos del paquete (`domain/source.rs`, `macos/source.rs`, `security_gateway.rs`, `hostile/generate.py`) los uso **únicamente para acreditar premisas**, no como revisión general del gateway ni de Miri.
+
+**Resultado:** el **P1 de v2 está corregido** en su causa (gracia de drenaje independiente y bloqueante, y etiqueta ya no miente con `budget_exhausted`). El **P2 condicional de v2 queda resuelto en su rama (a)**: la captura falla cerrada, no omite en silencio archivos `.rs` autorizados; por tanto no existe la vía a `syntax_complete:true` con omisiones invisibles aguas arriba. **P3-8 de v2 resuelto** (`Timeout` temprano, no `InvalidMetadata`). **P3-10/P3-11 de v2 ya son verificables** y al verificarlos aparece un defecto nuevo en el generador. Encuentro **0 P0, 0 P1 nuevos, 1 P2 nuevo, 6 P3 nuevos**. **No cierro M4-02.**
+
+---
+
+## 1. P1 de v2 — drenaje con ventana cero
+
+**Disposición: corregido.**
+
+`lib.rs:29` introduce `DRAIN_GRACE = 20 ms`; `lib.rs:475-487` sustituye el `try_recv` de ventana cero por `receiver.recv_timeout(remaining.max(DRAIN_GRACE))`. En la rama de timeout (`lib.rs:445-448`) `remaining` sigue siendo cero por construcción (`lib.rs:457`), pero ahora el piso de 20 ms es **independiente del deadline del hijo**, exactamente la corrección propuesta.
+
+Por qué la continuación se sostiene, punto por punto:
+
+- Tras `terminate_and_reap` (`lib.rs:489-492`: `kill` + `wait`) el hijo está segado y reapeado, y no hay descendientes que puedan heredar el pipe: el worker (`--file-index`) nunca lanza procesos; el único `Command::new` vive en `supervise_file` (`lib.rs:407`), inalcanzable desde `run_file_worker`. EOF es inminente.
+- La espera es **bloqueante**, no un sondeo. Con `--cpus=1` (`security_gateway.rs:366`) esto es determinante: el hilo supervisor cede la CPU y el lector se planifica de inmediato. El fallo de v2 era precisamente que el `try_recv` no cedía.
+- `drain_confirmed = !matches!(drained, Err(false))` (`lib.rs:459`): `Ok(_)` y `Disconnected` confirman. Un lector que muera dejando caer el sender (pipe cerrado) también confirma, que es lo correcto.
+- Con drenaje confirmado, `aggregate_manifest` **no corta**: el archivo sale `timed_out` (`lib.rs:465`) y el bucle sigue con el presupuesto global intacto (`lib.rs:344-370`). Se elimina la propiedad rechazada en ADR-069:113 ("un archivo hostil elimina resultados ajenos").
+- Presupuesto: el sobrecoste de la gracia se carga al reloj externo (`lib.rs:305-306`, comentario `lib.rs:479-481`) y el rebase total sobre `budget_ms` está acotado por ~20 ms + slop, porque `allowance = CHILD_TIMEOUT.min(remaining)` (`lib.rs:350`) ya impide que un hijo pase del deadline global.
+- Etiqueta: si aun así no hay EOF, el resto pasa a `unavailable` (`lib.rs:366-369`, `389-391`), no a `budget_exhausted`. `budget_exhausted` queda reservado a la causa real (`lib.rs:345-349`). El host cuenta ambos por separado (`adapter:342,345`) y ambos impiden `syntax_complete` (`adapter:367-370`, `domain:129-133`). README:77-82 describe el comportamiento nuevo con exactitud.
+- Test `lib.rs:1413-1434`: acredita las tres salidas de `receive_drain` — EOF planificado a 5 ms con `remaining = 0` (Ok), timeout con piso ≥ `DRAIN_GRACE` y < 100 ms (`Err(false)`), y desconexión (`Err(true)`).
+
+**Lo que el delta NO prueba (residual, no defecto nuevo):** el eslabón `rama de timeout ⇒ drain_confirmed=true` vive en `supervise_file` (`lib.rs:404-473`), que **sigue sin ninguna prueba** (P3-3 de v2, sin cambios). Tampoco hay un caso de `aggregate_manifest` con `Supervised { status: TimedOut, drain_confirmed: true }` y presupuesto amplio que fije por test la propiedad "un timeout no cancela el resto". Es un test puro de tres líneas sobre la closure inyectada; hoy la continuación está verificada por lectura, no por CI.
+
+## 2. P2 condicional de v2 — omisión silenciosa en la captura
+
+**Disposición: resuelto — se cumple la rama (a) (la captura falla cerrada).** El segundo filo (omisión silenciosa ⇒ `syntax_complete` falsamente completo) queda **descartado** para esta ruta.
+
+Evidencia, toda por fallo duro, ninguna por descarte silencioso:
+
+| Límite | Ubicación | Comportamiento |
+|---|---|---|
+| > 1 MiB por archivo (pre-lectura, por `fstat`) | `macos/source.rs:176-178` | `Err(limit())` → aborta la captura completa |
+| Presupuesto compartido 16 MiB agotado | `macos/source.rs:182-190` | `Err(limit())`, con `take(budget+1)` para detectar el exceso |
+| > 4096 entradas físicas | `macos/source.rs:95-99` | `Err(limit())` |
+| Nombre fuera del subconjunto portable | `macos/source.rs:103,169` → `domain/source.rs:17-32` | `Err(Invalid/Limits)` |
+| No regular (FIFO/device/socket/link) | `macos/source.rs:151-154` | `Err(denied())` sin abrir — confirma la premisa de ADR-069:105 |
+| Constructores del dominio | `domain/source.rs:40-46,70-71,83-85,109-111` | `SourceFile::new` y `SourceBundle::with_directories` devuelven `Err(Limits)`; no hay vía de construcción que salte un archivo |
+
+Corolarios materiales:
+
+1. `adapter:107-109` (`bytes.len() > MAX_SOURCE_BYTES → SecurityError::OutputLimit`) es **código muerto** para todo archivo procedente de `SourceBundle`: `SourceFile::new` ya lo rechazó. La fila `too_large` del protocolo v2 del helper es **inalcanzable desde este productor**; solo la produciría una divergencia manifiesto↔volumen, que el host invalidaría por otra vía.
+2. Un `.rs` benigno > 1 MiB (bindings generados) **no degrada, hace fallar la captura del proyecto entera** con `OutputLimitExceeded`, mucho antes del scanner. Es coherente y auditable, pero conviene que quede escrito como política de producto: el usuario ve un fallo de captura, no un scan parcial.
+3. No verificado en este paquete: el backend Linux (solo se adjunta `macos/source.rs`) y el productor de `CargoVendorSnapshot`. La conclusión vale para la ruta acreditada.
+
+## 3. Presupuesto del gateway (P3-8 de v2)
+
+**Disposición: resuelto.** `security_gateway.rs:1142-1153`: `budget_ms = (deadline − now).as_millis() − 4000`, con `checked_sub(4_000).filter(|v| *v > 0).ok_or(SecurityError::Timeout)?` y `.min(118_000)`. Con ≤ 4 s restantes devuelve **`Timeout` antes de crear nada**, no `InvalidMetadata`, y el valor entregado cae siempre en `1..=118000`, así que la validación de `manifest_bytes` (`adapter:192-194`) no es alcanzable por esta vía. Mounts del scanner: `source`/`vendor`/`policy` los tres montados y ninguno escribible (`security_gateway.rs:184-198`, `192-197`), y `mount_arguments` añade `,readonly` (`322-327`), con test explícito (`1495-1507`). La premisa RO de README:37-42 y ADR-069:101-105 queda acreditada para la fase `UnsafeScan`.
+
+---
+
+## P2 nuevo
+
+### P2-1 — La reserva de 4 s no está desglosada y debe cubrir ~25 llamadas de control-plane más el arranque en frío *antes* del helper, y ~12 más y el cleanup *después*; si no alcanza, el escaneo completo se descarta con `Timeout` y se pierde toda la cobertura parcial
+
+`security_gateway.rs:1142-1153` (cálculo), `1161`, `1174`, `1187`, `1202`, `1211` (secuencia previa), `624-651` (`revalidate`), `1224-1239` y `1291-1311` (secuencia posterior + `budget_error` final).
+
+**Trigger:** cualquier escaneo que consuma su `budget_ms` completo — justamente el caso que la enmienda de presupuesto (ADR-069:78-81) existe para degradar con gracia.
+
+**Cadena, contada sobre el código:** `budget_ms` se congela en `1142`. A partir de ahí, y **antes de que el helper ejecute su primera instrucción**, corren: `revalidate` (3 guardianes + 4 ausencias = 7 invocaciones), `ingest` del manifiesto (`create_phase` = ausencia + create + inspect, `start_attached`, `finish_phase` = inspect + rm + ausencia ≈ 7), `revalidate` (3 + 5 = 8), `create_phase` de la fase final (≈ 3) y el arranque del contenedor. Después de que el helper emite: `finish_phase` (≈ 3), `revalidate` (3 + 6 = 9), el cleanup de contenedores y tres volúmenes, y un `budget_error(deadline, cancel)?` final en `1311` que **descarta el resultado ya capturado** si el deadline pasó. Son del orden de 37 round-trips al runtime más un arranque en frío dentro de una reserva fija de 4 s.
+
+**Impacto:** no es un problema de integridad —falla cerrado con `SecurityError::Timeout`, nunca publica un resultado incompleto como completo— sino de que **el mecanismo de degradación no llega a entregarse**: las filas `budget_exhausted` que el helper preservó se tiran enteras. El reloj del helper además arranca dentro del contenedor (`lib.rs:305`) varios segundos después de fijarse el presupuesto, así que `budget_ms` está sistemáticamente sobreestimado respecto al deadline real del gateway.
+
+**Por qué P2 y no P1:** depende de la latencia real del runtime, que es exactamente lo que la calificación pendiente (30 cold / 30 warm) mediría. Con `docker inspect` a ~100 ms ya se agota la reserva; a ~50 ms hay margen. No lo puedo medir aquí.
+
+**Corrección sugerida:** desglosar la reserva por partidas (revalidaciones × nº de nombres, ingest, create+start en frío, finish, cleanup) y derivarla, no fijarla; o recalcular `budget_ms` inmediatamente antes de `start_attached` (`1211`) en lugar de antes del ingest.
+
+---
+
+## P3 nuevos
+
+| # | Ubicación | Detalle |
+|---|---|---|
+| **P3-1** | `hostile/generate.py:17-21,31,36-42` | Con la profundidad **por defecto** (`--depth 50000`) el caso `right-associative.rs` mide ≈ 1 077 809 B (288 890 B de nombres `v0..v49999`, + 49 999 comas; + 299 999 B de `false`; + 438 887 B del encadenado `" = "`), por encima de 1 MiB. El chequeo de `36-42` es todo-o-nada y corre **antes** de `mkdir`/escritura, así que la invocación documentada en README:147-150 **aborta sin generar ni un archivo**, incluidos los seis casos que sí caben. Falla ruidosa y cerrada (no hay corpus silenciosamente truncado), pero el generador no es utilizable con sus valores por defecto. Corrección: bajar el default, o excluir el caso que excede y reportarlo, en vez de rechazar el lote |
+| **P3-2** | `lib.rs:1419-1422` | El primer tramo del test de gracia depende de un `sleep(5 ms)` contra un presupuesto de 20 ms (margen 4×) y afirma igualdad con `Ok(...)`. En CI cargada es un flake plausible. El segundo tramo (cota inferior/superior) es robusto. Sugerencia: sender que envía antes de arrancar la espera, o margen mayor |
+| **P3-3** | `lib.rs:404-473` vs `lib.rs:1374-1410` | Sin cambios respecto a v2: `supervise_file` sigue sin prueba y no hay caso de `aggregate_manifest` con `TimedOut` + `drain_confirmed:true` que fije por test la continuación. Es la propiedad central de este delta y hoy solo está garantizada por lectura |
+| **P3-4** | ADR-069:82-85 vs README:77-82 | El ADR sigue diciendo solo "el drenaje también es acotado" y "sin admitir más hijos después de un drenaje no confirmado"; **no menciona la gracia de 20 ms ni que las filas no iniciadas pasan a `unavailable`** (solo documenta `budget_exhausted`). El README sí. Deriva documental entre la decisión y la implementación |
+| **P3-5** | `lib.rs:366-369`, `adapter:342` | Se adoptó a medias la recomendación de v2: la etiqueta ya no miente con `budget_exhausted`, pero `unavailable` se **conflaciona** con "no se pudo abrir el archivo". `UnsafeCoverage` sigue sin poder distinguir *drenaje no confirmado* de *fichero ilegible*. Un estado propio (`drain_unconfirmed`) cerraría el punto |
+| **P3-6** | `adapter:148-163` vs `adapter:130-147` | Asimetría de selección: un `.rs` del workspace sin raíz coincidente **se conserva** como `WorkspaceUnowned`; un `.rs` de vendor sin raíz coincidente **se descarta** y no entra ni en `files_total` (`adapter:165`, calculado después de ambos bucles) ni en `files_omitted`. Es lo declarado en ADR-069:68, pero significa que cualquier error futuro en la derivación de raíces de paquete hace desaparecer dependencias enteras del escaneo **sin ningún contador**, con `syntax_complete` aún en `true`. Un `vendor_files_unmatched` en la cobertura lo volvería visible |
+
+**Nits (no defectos):** `receive_drain` devuelve `Result<Result<Vec<u8>, ReadBoundedError>, bool>` donde `Err(true)` significa "confirmado" (`lib.rs:475-487`, `459`) — correcto pero fácil de invertir al mantenerlo; un enum de dos variantes lo haría evidente. En el último archivo antes de agotar presupuesto, `CHILD_TIMEOUT.min(remaining)` puede dar una asignación submilisegundo y producir un `timed_out` que en realidad es agotamiento (`lib.rs:350`); es como máximo una fila.
+
+## Residuales de v2 sin cambio en este delta
+
+`P3-1` de v2 (formato de `domain/unsafe_scan.rs`) **está corregido** (`domain:81-83,89` con espacio tras `:`). Siguen abiertos y sin tocar: carrera `try_wait` final tras el kill (`lib.rs:440-456`; hoy solo mal-etiqueta un archivo como `timed_out`, ya no cancela el resto), triple serialización de ~400 KiB (`lib.rs:307,316` + `main.rs:53`), `argc == 0 ⇒ supervisor` (`main.rs:17-18`), relectura del manifiesto por hijo (`lib.rs:226`), ausencia de `indexing_slicing`/`arithmetic_side_effects` (`Cargo.toml:28-31`), y el `Cargo.lock` de 9 crates frente a ADR-069:20-23, que solo declara pre-adquiridos `syn` y `proc-macro2` (`quote` y `serde_derive` son además proc-macros que el build offline debe poder compilar).
+
+## Limitaciones
+
+1. **Cero ejecución:** ni build, ni tests, ni corpus hostil, ni en guest ni en host. El cálculo de 1 077 809 B de P3-1 y el recuento de invocaciones de P2-1 son aritmética a mano sobre el código.
+2. No verifiqué los `sha256` de `inputs.json` (requeriría ejecutar); confirmé que los 14 paths existen y los leí íntegros.
+3. Fuera del paquete y por tanto no acreditados: `deny_json::strict_value` (`adapter:230`), `seccomp-rust.json` (`security_gateway.rs:237`) —que debe permitir `clone/execve` para el modelo un-proceso-por-archivo—, `limits.output_bytes()` (debe ser ≥ 512 KiB o el stdout del supervisor se truncará a `OutputLimit`), el backend Linux de captura, el productor de `CargoVendorSnapshot`, y el llamador de `ScanPlan::parse`.
+4. Sin fuentes de syn 3.0.4 / proc-macro2 1.0.107: siguen sin confirmar `NamedArg`, `FnPtrVariadic`, `Safety` en `ForeignItemStatic`, el conjunto de variantes `Verbatim` y el comportamiento de `is_ident("unsafe")` frente a `r#unsafe`.
+5. Los 10 positivos de Miri + containment de la imagen anterior **no transfieren**: el helper es un asset nuevo (ADR-069:119-121) y su build offline reproducible, SBOM/licencias, imagen derivada, digest, corpus hostil ejecutado en guest calibrado y 30 cold/30 warm siguen pendientes.
+6. Ninguna afirmación de seguridad general: cero findings de este scanner no es evidencia de ausencia de `unsafe`.
+
+**M4-02 no queda cerrado con esta revisión.** El delta v3 resuelve lo que se le pidió resolver: P1 de v2 corregido con la mecánica correcta, P2 condicional de v2 disuelto por evidencia, P3-8 resuelto y el generador ahora auditable. Lo que queda es una calificación nativa que además debería medir explícitamente P2-1 (reserva de 4 s) y cerrar P3-1 (default del generador) antes de ejecutar el corpus.

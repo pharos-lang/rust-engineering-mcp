@@ -6,7 +6,7 @@
 > sin exclusión OS de editores externos. Las exigencias de exclusión fuerte y espera
 > de decisión del owner que aparecen abajo son históricas y quedan sustituidas por
 > ese ADR; no hay CAS, atomicidad multiarchivo ni rollback sobre bytes desconocidos.
-> La [calificación positiva de M2](../validation/M2-07.md) está completada; la release 0.1.0 no cambia.
+> La [calificación positiva de M2](../validation/M2/07.md) está completada; la release 0.1.0 no cambia.
 
 
 Estado: **Done: cinco tools implementadas y calificadas localmente; sin release nueva**. Spec §25/§97 M2, §21/35–47/52/69–70/74–77/103–107;
@@ -16,7 +16,7 @@ Estado: **Done: cinco tools implementadas y calificadas localmente; sin release 
 
 ## Decisiones implementadas que sustituyen propuestas iniciales
 
-El contrato vigente está en ADR-050 a ADR-059 y [matriz M2](../validation/M2-matrix.md).
+El contrato vigente está en ADR-050 a ADR-059 y [matriz M2](../validation/M2/matrix.md).
 Las secciones posteriores conservan la planificación histórica. D01 corresponde a
 ADR-052/054 (journal privado, cuatro planes/64 MiB/600 s, retención durable sin TTL
 automático y prune explícito). D03 es ADR-051/057 (toml_edit y cuatro familias).
@@ -203,8 +203,8 @@ forman parte de M2-01, con inventario específico antes de otra distribución.
 
 ## Tests, DoR y DoD
 
-La [trazabilidad de cierre](../validation/M2-traceability.md) enlaza cada casilla
-y G1–G9 con implementación, pruebas y límites del [full final](../validation/M2-full-gate.json).
+La [trazabilidad de cierre](../validation/M2/traceability.md) enlaza cada casilla
+y G1–G9 con implementación, pruebas y límites del [full final](../validation/M2/full-gate.json).
 
 Fixtures: dos ProjectRefs mismo workspace, dos servidores, external writer en cada
 ventana, parent/root swap/ABA, symlinks/hardlinks/FIFO, permisos revocados, journal corrupto,

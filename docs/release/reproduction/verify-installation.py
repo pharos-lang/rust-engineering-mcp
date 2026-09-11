@@ -136,7 +136,7 @@ def main():
     assets.mkdir(mode=0o700, exist_ok=True)
     copy(ROOT / 'LICENSE', assets / 'LICENSE.product-pending.txt')
     for name in ('inventory.json', 'THIRD_PARTY_NOTICES.candidate.txt'):
-        copy(ROOT / 'docs/release' / name, assets / 'notices' / name)
+        copy(ROOT / 'docs/release/0.1.0' / name, assets / 'notices' / name)
     for source in sorted((ROOT / 'docs/release/upstream-licenses').rglob('*')):
         if source.is_file():
             copy(source, assets / 'notices/upstream-licenses' /

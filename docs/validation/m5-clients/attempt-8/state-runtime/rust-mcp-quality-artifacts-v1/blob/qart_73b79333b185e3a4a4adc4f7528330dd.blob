@@ -1,6 +1,0 @@
-m5/reference            time:   [3.1713 µs 3.1825 µs 3.1969 µs]
-Found 2 outliers among 30 measurements (6.67%)
-  2 (6.67%) high mild
-m5/slower_125           time:   [3.9909 µs 4.0204 µs 4.0523 µs]
-m5/control              time:   [3.1792 µs 3.2202 µs 3.2534 µs]
-

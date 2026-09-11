@@ -1,6 +1,6 @@
 # Tools
 
-`rust.project.open`, `rust.project.inspect`, `rust.toolchain.inspect`, `rust.check`, `rust.fmt.check`, `rust.clippy`, `rust.test`, `rust.dependencies.audit`, `rust.diagnostics.explain`, `rust.quality.gate`, `rust.catalog.status`, `rust.crate.search` y `rust.crate.inspect` están implementadas en este checkout; los gates de [M1-11](validation/M1-11.md) y [M1-12](validation/M1-12.md) están registrados; M1-13 tiene [gate aprobado](validation/M1-13.md). rmcp 3.2.0 gestiona discovery, negociación y dispatch. La release `0.1.0`
+`rust.project.open`, `rust.project.inspect`, `rust.toolchain.inspect`, `rust.check`, `rust.fmt.check`, `rust.clippy`, `rust.test`, `rust.dependencies.audit`, `rust.diagnostics.explain`, `rust.quality.gate`, `rust.catalog.status`, `rust.crate.search` y `rust.crate.inspect` están implementadas en este checkout; los gates de [M1-11](validation/M1/11.md) y [M1-12](validation/M1/12.md) están registrados; M1-13 tiene [gate aprobado](validation/M1/13.md). rmcp 3.2.0 gestiona discovery, negociación y dispatch. La release `0.1.0`
 devuelve trece definiciones sin cursor. El checkout `0.3.0` devuelve 31:
 añade cinco tools M2, cuatro M3, cinco M4 y cuatro M5. Las cinco M4 están
 implementadas y calificadas localmente; el hito espera la confirmación final de
@@ -120,9 +120,9 @@ El alcance autorizado contiene exactamente estas trece tools:
 | `rust.dependencies.audit` | M1-07 | Implementado; evidencia M1-07 |
 | `rust.diagnostics.explain` | M1-08 | Implementado; evidencia M1-08 |
 | `rust.quality.gate` | M1-09 | Implementado y validado; evidencia M1-09 |
-| `rust.catalog.status` | M1-11 | Implementado; [evidencia M1-11](validation/M1-11.md) |
-| `rust.crate.search` | M1-12 | Implementado; [gate/revisión registrados](validation/M1-12.md) |
-| `rust.crate.inspect` | M1-13 | Implementado; [gate aprobado](validation/M1-13.md) |
+| `rust.catalog.status` | M1-11 | Implementado; [evidencia M1-11](validation/M1/11.md) |
+| `rust.crate.search` | M1-12 | Implementado; [gate/revisión registrados](validation/M1/12.md) |
+| `rust.crate.inspect` | M1-13 | Implementado; [gate aprobado](validation/M1/13.md) |
 
 `rust.dependencies.inspect` no es tool pública M1. Los contratos tipados, schemas y
 resultados estructurados se implementarán según ADR-006 y ADR-015. La publicación
@@ -274,7 +274,7 @@ as an edit. Passed requires exit0 and empty complete output; formatting differen
 are failed/isError=false. Unknown warnings, invalid syntax and incomplete output
 return failed/validation_complete=false; timeout is blocked with partial evidence.
 Log quotas preserve the report with log=null/retention_capacity as in check.
-See ADR-035 and [evidence](validation/M1-04.md).
+See ADR-035 and [evidence](validation/M1/04.md).
 
 ## rust.clippy (M1-05)
 
@@ -340,7 +340,7 @@ El archivo JSON v1 de ADR-038 se lee con handles APFS no-follow, máximo8MiB,
 regular/single-link/stamps; el hash esperado se verifica antes de parsear.
 No hay lookup de HOME, red, refresh ni instalación desde el runtime. El checksum
 verifica integridad esperada por el host, no autenticidad editorial. CLI import,
-firmas y antirollback durable tienen [evidencia separada M1-10](validation/M1-10.md); distribución
+firmas y antirollback durable tienen [evidencia separada M1-10](validation/M1/10.md); distribución
 oficial y gate final siguen pendientes.
 
 Metadata y lock consumen el mismo SourceBundle. Solo lock v4 acotado, identidades
@@ -411,7 +411,7 @@ tools de lectura `rust.catalog.status`, `rust.crate.search` y `rust.crate.inspec
 
 ## rust.catalog.status
 
-M1-11 implementado y validado; [evidencia](validation/M1-11.md). Input cerrado `{}`; no requiere
+M1-11 implementado y validado; [evidencia](validation/M1/11.md). Input cerrado `{}`; no requiere
 ProjectRef y rechaza paths, refresh o download del peer. El host configura estos
 flags de `serve --stdio` (paths absolutos y protegidos):
 
@@ -449,7 +449,7 @@ del host. La clave de fixture nunca identifica a IUMotion Labs ni a una release.
 
 ## rust.crate.search
 
-M1-12 implementado; [gate/revisión registrados](validation/M1-12.md). Input cerrado:
+M1-12 implementado; [gate/revisión registrados](validation/M1/12.md). Input cerrado:
 
 ```json
 {
@@ -506,7 +506,7 @@ real y un éxito tardío se descarta. [ADR-043](adr/ADR-043-catalog-search-modes
 
 ## rust.crate.inspect
 
-M1-13 implementado; [gate aprobado](validation/M1-13.md). Input cerrado:
+M1-13 implementado; [gate aprobado](validation/M1/13.md). Input cerrado:
 
 ```json
 {
@@ -615,7 +615,7 @@ continúa siendo M1 y se califica separadamente desde fuente según ADR-048.
 ## Escritura local M2 en desarrollo
 
 La release `0.1.0` conserva exactamente las trece tools M1 anteriores. El checkout
-`0.3.0` añade cinco definiciones [calificadas localmente](validation/M2-07.md): `rust.manifest.patch`,
+`0.3.0` añade cinco definiciones [calificadas localmente](validation/M2/07.md): `rust.manifest.patch`,
 `rust.fmt.apply`, `rust.fix.apply`, `rust.dependency.add` y
 `rust.dependency.remove`. Todas usan input cerrado, un worker joined con deadline
 de 240 s, respuesta MCP completa de 512 KiB y el ciclo `preview` → `commit` →
@@ -909,7 +909,7 @@ mutation 10). El fixture calibrado
 fija líneas 4/4, regiones 8/9 y funciones 2/2; los aliases de un archivo compartido
 se deduplican tras normalización confinada a `/source`. Un crate sin código
 instrumentable produce `no coverage data found` y queda incompleto sin porcentaje
-fabricado. Véase [`docs/validation/M3-03.md`](validation/M3-03.md).
+fabricado. Véase [`docs/validation/M3/03.md`](validation/M3/03.md).
 
 ## `rust.semver.check`
 
@@ -950,7 +950,7 @@ solo cuando `timeout_seconds <= 60`; un `auto` mayor devuelve `TASKS_REQUIRED`
 antes de admisión y `task` devuelve `-32602`. Con declaración mutua, `auto|task`
 usa 300 s por defecto y 3.600 s máximo. No se instala ni descarga nada. La
 calibración Docker está registrada en
-[M3-04-semver-calibration](validation/M3-04-semver-calibration.md).
+[M3-04-semver-calibration](validation/M3/04-semver-calibration.md).
 
 ## `rust.mutation.test`
 
@@ -1005,7 +1005,7 @@ Tasks está anunciado y ninguna selección de mutación entra en el presupuesto
 síncrono de 60 s. Sin declaración del peer, `auto` devuelve `TASKS_REQUIRED` y
 `task` se rechaza; con declaración mutua, `auto|task` crea el job. No se instala ni
 descarga nada. La calibración Docker de exits, `outcomes.json` y conteos está en
-[M3-05-mutation-calibration](validation/M3-05-mutation-calibration.md).
+[M3-05-mutation-calibration](validation/M3/05-mutation-calibration.md).
 
 ## MCP Tasks for M3 quality jobs (M3-02)
 
@@ -1040,17 +1040,17 @@ declared/undeclared matrix, 30+30 budget series and stock-client gate passed.
 Inspector 2.5.0 declared the extension and completed the task lifecycle. Codex
 app-server 0.153.0 did not declare it and completed the supported synchronous path;
 it therefore cannot create, poll or cancel M3 tasks. See
-[M3-02 validation](validation/M3-02.md).
+[M3-02 validation](validation/M3/02.md).
 
 ## Contratos M4 calificados localmente
 
 El checkout añade cinco definiciones a `tools/list`, después de las 22
 tools M1–M3 y en este orden: `rust.deny`, `rust.unsafe.scan`,
 `rust.supply_chain.inspect`, `rust.quality.gate.v2` y `rust.miri`. El
-[core de 19 etapas](validation/M4-core-gate.json), el
-[full de 33 etapas](validation/M4-full-gate.json), el
-[runtime de 19 selecciones](validation/M4-runtime.json) y los
-[clientes](validation/M4-clients.json) pasaron localmente. Los 23 snapshots
+[core de 19 etapas](validation/M4/core-gate.json), el
+[full de 33 etapas](validation/M4/full-gate.json), el
+[runtime de 19 selecciones](validation/M4/runtime.json) y los
+[clientes](validation/M4/clients.json) pasaron localmente. Los 23 snapshots
 anteriores se preservaron y se agregaron cinco nuevos. La confirmación final de
 evidencia del hito sigue pendiente; no cambia la release `0.1.0`.
 
@@ -1058,10 +1058,10 @@ El core pasó sus 19 etapas con 1220 tests Rust, un doctest y 11 tests del helpe
 El full pasó 33 etapas con el mismo inventario fuente: conservó 27 etapas ya
 aprobadas y ejecutó seis frescas después de que un directorio E5 temporal vacío
 se corrigiera seleccionando los assets locales existentes y reverificados. No
-hubo descarga ni cambio de código; el [intento fallido](validation/M4-hardening-attempts/full-attempt-2/receipt.json)
+hubo descarga ni cambio de código; el [intento fallido](validation/M4/history/inventory.json)
 permanece preservado. El runtime final pasó 19/19 sobre `25ed…`, incluidos los
-[siete casos scanner](validation/M4-scanner-native.json) y las
-[trece clasificaciones más siete admisiones Miri](validation/M4-miri-native.json).
+[siete casos scanner](validation/M4/scanner-native.json) y las
+[trece clasificaciones más siete admisiones Miri](validation/M4/miri-native.json).
 
 Los cinco inputs rechazan campos desconocidos. `project_ref` es siempre una
 referencia viva producida por `rust.project.open`; `execution_mode` conserva el
@@ -1180,10 +1180,10 @@ proyecto dentro del sandbox, igual que `rust.test` o `rust.miri`—; solo
 Véase [ADR-076](adr/ADR-076-m5-performance-contracts.md).
 
 **Estado.** M5 está calificado localmente: suite nativa
-([gate nativo](validation/M5-native-gate.json)), clientes
-([recibo](validation/M5-clients.json)) y gates `core`/`full`
-([full](validation/M5-full-gate.json)) sobre los contratos finales de captura,
-logs, bloat y método. La [matriz M5](validation/M5-matrix.md) enumera recibos y
+([gate nativo](validation/M5/native-gate.json)), clientes
+([recibo](validation/M5/clients.json)) y gates `core`/`full`
+([full](validation/M5/full-gate.json)) sobre los contratos finales de captura,
+logs, bloat y método. La [matriz M5](validation/M5/matrix.md) enumera recibos y
 límites. Nada de esto acredita una release, un tag, una integración remota ni
 un cambio de versión.
 
@@ -1340,10 +1340,10 @@ Límites declarados: el positivo **está bloqueado**. El cierre de criterion 0.8
 son 6 014 archivos y 156 267 469 bytes, con cuatro archivos por encima del límite
 de 1 MiB por archivo, y un `SourceBundle` admite 4 096 entradas, 16 MiB en total
 y 1 MiB por archivo; los límites **no se subieron** porque pertenecen al contrato
-de datos offline calificado en M2/M4 ([M5-01-blocker.json](validation/M5-01-blocker.json)).
+de datos offline calificado en M2/M4 ([M5-01-blocker.json](validation/M5/01-blocker.json)).
 Lo calificado en el guest son `unrecognised-harness`,
 `project-cargo-configuration-refused` y `cancellation-mid-run`
-([recibo](validation/M5-01-runtime.json)). `BenchmarkExit` conserva
+([recibo](validation/M5/01-runtime.json)). `BenchmarkExit` conserva
 `CALIBRATED = false`: solo se observaron los exits 0 y 1. La herramienta tampoco
 alterna el orden de baseline y candidate: ejecuta en el orden de declaración del
 harness y lo registra; alternar es un protocolo del operador, no un control del
@@ -1493,7 +1493,7 @@ origen no autenticado. `compare` depende de un `run` previo del mismo proyecto:
 sin él no hay nada que comparar, y eso es deliberado. El método está probado
 sobre tres capturas reales del guest, con control de auto-comparación, regresión
 de dirección conocida y rechazo de `same_artifact`
-([calibración](validation/M5-01-benchmark-calibration.json)).
+([calibración](validation/M5/01-benchmark-calibration.json)).
 
 ### `rust.profile.flamegraph`
 
@@ -1556,9 +1556,9 @@ Límites: presupuesto 300 s con 60 s de ventana de muestreo máxima. El unwindin
 depende de frame pointers; un binario sin ellos produce stacks poco profundos y
 eso se declara. El positivo se limita al guest Linux ARM64 con la imagen M5:
 Mach-O y PE no quedan calificados. M5-03 está calificado nativamente
-([runtime](validation/M5-03-runtime.json)) y por clientes
-([recibo](validation/M5-clients.json)); el cierre conjunto sigue el estado de la
-[matriz M5](validation/M5-matrix.md).
+([runtime](validation/M5/03-runtime.json)) y por clientes
+([recibo](validation/M5/clients.json)); el cierre conjunto sigue el estado de la
+[matriz M5](validation/M5/matrix.md).
 
 ### `rust.binary.bloat`
 
@@ -1592,7 +1592,7 @@ contrato promete.
 incondicionalmente `CARGO_PROFILE_<PERFIL>_STRIP=false` porque necesita la tabla
 de símbolos, y se comprobó que `CARGO_PROFILE_RELEASE_STRIP=symbols` no tiene
 efecto alguno sobre el archivo producido
-([calibración](validation/M5-04-bloat-calibration.json)). El DTO lo declara en
+([calibración](validation/M5/04-bloat-calibration.json)). El DTO lo declara en
 `analysis_build_symbols_forced`, siempre `true`. El tamaño sigue siendo exacto
 *para ese archivo*, pero **no** es byte a byte el que enviaría un proyecto que
 pide stripping, y un reporte de binario stripped es inalcanzable con este
@@ -1635,6 +1635,6 @@ se observaron los exits 0 y 1.
 El corte está **In progress otra vez**, no calificado.
 [ADR-079](adr/ADR-079-bloat-result-semantics.md) sustituye la semántica de
 resultado que la calificación anterior midió, así que su
-[recibo](validation/M5-04-runtime.json) —`release-positive`, `release-lto` y
+[recibo](validation/M5/04-runtime.json) —`release-positive`, `release-lto` y
 `missing-binary-target`— acredita el contrato viejo y no este. Se recalifica
 sobre bytes finales, con revisión independiente de por medio.

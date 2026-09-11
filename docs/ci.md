@@ -40,7 +40,7 @@ prueba como producto sin excluirlo del análisis.
 1. Programas de calificación maintainer-only: `scripts/codex-model-qualifier.py`,
    `scripts/release-artifact.py`, `scripts/release-smoke.py` y
    `scripts/verify-vendor.py`. Requieren host release Darwin real, Docker/Codex o
-   ambos. Recibos: [`M3-full-gate.json`](validation/M3-full-gate.json) y los
+   ambos. Recibos: [`M3-full-gate.json`](validation/M3/full-gate.json) y los
    receipts de release en `docs/validation/`.
 2. Sondas M2 sobre Docker: `scripts/probe-m2-cargo-fix.py`,
    `probe-m2-fix-socket-mask.py`, `probe-m2-guest-staging.py`,
@@ -48,13 +48,13 @@ prueba como producto sin excluirlo del análisis.
    `probe-m2-write-primitives.py`. Su única ruta ejecutable crea volúmenes y
    contenedores contra la imagen aprobada en un daemon local; el runner Ubuntu no
    tiene ni el socket ni la imagen. Recibos: los JSON `M2-*` que cada sonda emite
-   y [`M3-rust-security.json`](validation/M3-rust-security.json).
+   y [`M3-rust-security.json`](validation/M3/rust-security.json).
 3. Clientes reales: `scripts/m3-inspector-session.mjs` y
    `scripts/m4-inspector-session.mjs`, que conducen sesiones MCP contra un
    servidor con runtime/store nativos. Su evidencia está en
-   [`M3-runtime.json`](validation/M3-runtime.json),
-   [`M3-full-gate.json`](validation/M3-full-gate.json) y
-   [`M4-clients.json`](validation/M4-clients.json).
+   [`M3-runtime.json`](validation/M3/runtime.json),
+   [`M3-full-gate.json`](validation/M3/full-gate.json) y
+   [`M4-clients.json`](validation/M4/clients.json).
 
 Ningún archivo Rust de producto está excluido del porcentaje de cobertura.
 Los caminos que solo ejecutan los gates nativos pueden reducir la cifra portable;
@@ -96,7 +96,7 @@ un prerelease en borrador. No publica en crates.io ni contiene modelo, ORT, Lanc
 catálogo, trust, fixtures, Docker o toolchain. El draft no es una release soportada.
 Para 0.1.0, el run `33948798048` pasó y el draft se promovió solo después de
 verificar la descarga, hashes, attestations y smoke independientes; véase el
-[recibo público](validation/m1-17-public-release.json).
+[recibo público](validation/M1/17-public-release.json).
 
 ```text
 python3 scripts/gate.py core
@@ -235,7 +235,7 @@ status/restart/rollback y rebuild/restore Lance real bajo network deny macOS con
 controles positivos. El caso nativo ignorado en core se ejecuta explícitamente en
 esta etapa. No usar el emitter de fixtures como parte del gate.
 
-[M1-10](validation/M1-10.md) conserva full15/15 con hashes inmutables, previo al
+[M1-10](validation/M1/10.md) conserva full15/15 con hashes inmutables, previo al
 ajuste final de observabilidad del CLI, y core540/all-features Clippy/CLI nativo5+1
 posteriores. No atribuir un full anterior a bytes posteriores: ambos conjuntos de
 fuentes y la revisión/disposición están registrados.
@@ -249,17 +249,17 @@ local y ejecuta dos tests ordinarios y uno nativo bajo network deny macOS, con
 controles IPv4/IPv6. Verifica el contrato MCP, E5/Lance reales, generación retenida,
 índice corrupto tras reinicio y disponibilidad independiente de SQLite. Core
 continúa con10 etapas. No instala assets ni acredita clientes o hosts adicionales.
-[Evidencia](validation/M1-11.md).
+[Evidencia](validation/M1/11.md).
 
 M1-12 añade `scripts/test-crate-search.py` como etapa17 de full:2 tests ordinarios y1 nativo ignorado ejecutado explícitamente, con E5/Lance bajo network deny.
-La [evidencia M1-12](validation/M1-12.md) registra el gate focalizado; el full conjunto final sigue requerido antes de cierre/release.
+La [evidencia M1-12](validation/M1/12.md) registra el gate focalizado; el full conjunto final sigue requerido antes de cierre/release.
 
 ## M1-13 — Inspección paginada MCP
 
 Full incorpora `scripts/test-crate-inspect.py` como etapa18: dos tests ordinarios,
 compilados con feature local y ejecutados bajo network deny macOS. Comprueban
 páginas SQLite, hechos desconocidos y continuación ligada a generación; inspect
-no necesita ni ejecuta embeddings para estas consultas. El [gate M1-13](validation/M1-13.md)
+no necesita ni ejecuta embeddings para estas consultas. El [gate M1-13](validation/M1/13.md)
 pasó: core629/10 etapas, protocolo37, Clippy all-features/all-targets y los dos tests
 local-feature bajo OS network deny. Ese resultado fue focalizado; el full conjunto vigente sigue requerido antes de
 cierre/release. No instala assets ni acredita otros hosts.
@@ -303,12 +303,12 @@ python3 -B scripts/gate.py full --report target/M4-full-gate.json
 
 Full exige un host macOS ARM64, propietario único del daemon Docker,
 `RUST_MCP_TEST_SOCKET`, `RUST_MCP_E5_DIR` y `ORT_LIB_LOCATION` explícitos. No
-instala ni actualiza inputs. El full M4 [aprobado](validation/M4-full-gate.json)
+instala ni actualiza inputs. El full M4 [aprobado](validation/M4/full-gate.json)
 es una ejecución monolítica 33/33 posterior a la remediación del PR, sobre 990
 inputs y sin cambios de fuentes durante el gate. Los intentos anteriores y la
 recuperación local de E5 permanecen documentados en
-[recuperación](validation/M4-e5-local-recovery.json) y el
-[driver registrado](validation/M4-full-gate-resume-driver.py). El full y los
+[recuperación](validation/M4/e5-local-recovery.json) y el
+[driver registrado](validation/M4/full-gate-resume-driver.py). El full y los
 clientes vigentes comparten los mismos 990 inputs; el core histórico conserva 987.
 
 Las etapas adicionales incluyen imagen alterada, inventario pasivo y
@@ -317,16 +317,16 @@ con `--exact --ignored --nocapture --test-threads=1`, exige exactamente un test
 pasado por selección y registra fuentes/config/imágenes/logs/cleanup. Las 19
 usan la imagen final M4 `25ed…`; una selección ejecuta rollback explícito a M3.
 Las regresiones M3 conservan sus propios 62 casos e imagen. El
-[mapa de hardening](validation/M4-hardening-map.md) enumera cada caso y límite;
-[scanner](validation/M4-scanner-native.json) pasó siete oráculos y
-[Miri](validation/M4-miri-native.json) 13 clasificaciones y siete admisiones.
+[mapa de hardening](validation/M4/hardening-map.md) enumera cada caso y límite;
+[scanner](validation/M4/scanner-native.json) pasó siete oráculos y
+[Miri](validation/M4/miri-native.json) 13 clasificaciones y siete admisiones.
 
 G4 se ejecuta aparte mediante `python3 -B scripts/test-m4-clients.py --run`, con
 socket explícito y `RUST_MCP_M4_CODEX_SYNC_QUALIFIED=1` sustentado en el
-[presupuesto registrado](validation/M4-client-execution.json). Requiere los
+[presupuesto registrado](validation/M4/client-execution.json). Requiere los
 clientes previamente instalados: Inspector 2.5.0 y Codex 0.153.0; el intento 6
-[pasó](validation/M4-clients.json). No almacena credenciales del cliente en el
-repositorio. El [handoff](validation/M4-handoff.md) distingue los resultados
+[pasó](validation/M4/clients.json). No almacena credenciales del cliente en el
+repositorio. El [handoff](validation/M4/handoff.md) distingue los resultados
 locales de CI/Sonar remotos, que no se ejecutaron para este checkout.
 
 ## M5 — etapas de gate, imagen y fixture de benchmarks
@@ -365,7 +365,7 @@ la imagen admitida. El script descubre las seis selecciones ignoradas de
 --test-threads=1`. Comprueba admisión antes de medir y registra sources, fixtures,
 logs, resultado y digest del recibo nativo por selección. No aprovisiona ni
 reconstruye imágenes. El estado de calificación está en la
-[matriz M5](validation/M5-matrix.md); la existencia de la etapa no constituye
+[matriz M5](validation/M5/matrix.md); la existencia de la etapa no constituye
 por sí sola un gate aprobado.
 
 ### Imagen guest M5
@@ -391,12 +391,12 @@ colgado tras el aviso de deprecación— y BuildKit resuelve un `FROM sha256:…
 referencia **remota**, que bajo `--network=none` falla con `DeadlineExceeded`. Por
 eso el `FROM` nombra la base por tag y no por digest, y por eso el script **no**
 fija `DOCKER_BUILDKIT`: no queda un builder alternativo que seleccionar, y el
-propio [recibo](validation/M5-provisioning.json) registra la línea
+propio [recibo](validation/M5/provisioning.json) registra la línea
 `building with "desktop-linux" instance using docker driver` de BuildKit. La
 garantía de digest no se pierde: se comprueba inmediatamente antes de construir y
 el id observado queda en el recibo.
 
-El recibo se escribe en `docs/validation/M5-provisioning.json`. La ejecución del
+El recibo se escribe en `docs/validation/M5/provisioning.json`. La ejecución del
 2026-09-08 pasó con `network_used: false`, 46 archivos y 10 769 232 bytes de
 contexto, y produjo la imagen `rust-engineering-runtime:1.98.1-arm64-m5` con id
 `sha256:e0a5ca1661b3e49d0a3d68ee3cc0963453078d08eb7fc43c30538c16b7998aac`,

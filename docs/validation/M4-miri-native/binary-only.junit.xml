@@ -1,6 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<testsuites name="nextest-run" tests="1" skipped="0" failures="0" errors="0" uuid="085b5e5b-58d6-41fb-929f-d82eb82f4582" timestamp="2026-09-08T03:15:00.965+00:00" time="0.363">
-    <testsuite name="binary_only::benign" tests="1" skipped="0" errors="0" failures="0">
-        <testcase name="integration_test_is_selected" classname="binary_only::benign" timestamp="2026-09-08T03:15:00.965+00:00" time="0.362"/>
-    </testsuite>
-</testsuites>

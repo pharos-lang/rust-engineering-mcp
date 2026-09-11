@@ -147,14 +147,14 @@ M3 provisioning replaced the approved guest identity with
 The gateway image constant, environment, installed-component parser and execution
 fingerprints moved together. The existing twenty-case Rust security and
 source-transfer calibration passes against this exact identity; its source-bound
-receipt is `docs/validation/M3-01-rust-security.json`. Historical M1/M2 receipts
+receipt is `docs/validation/M3/01-rust-security.json`. Historical M1/M2 receipts
 and image identities remain evidence of their original runs and are not rewritten.
 
 This amendment approves the new identity for the already-qualified M1/M2 Rust
 paths. The orchestrator separately authorized ADR-064's narrow quality profile for
 nextest only. The final M3-01 gate passed 19/19 selections with positive nextest,
 AF_INET/AF_INET6/pathname-Unix negative controls and joined cleanup; its receipt is
-`docs/validation/M3-01-runtime.json`. The original denied-syscall observation is
-preserved unchanged in `docs/validation/M3-01-runtime-attempt1.json`. The shared
+`docs/validation/M3/01-runtime.json`. The original denied-syscall observation is
+preserved unchanged in `docs/validation/M3/history/01-runtime-attempt1.json`. The shared
 gateway change also triggered and passed the full twenty-case Rust security gate
-at `docs/validation/M3-01-rust-security.json`.
+at `docs/validation/M3/01-rust-security.json`.

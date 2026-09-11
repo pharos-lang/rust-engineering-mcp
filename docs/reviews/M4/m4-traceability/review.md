@@ -1,0 +1,101 @@
+# Revisión Independiente de Trazabilidad M4 (Read-Only)
+
+**Identificador de revisión:** M4-TRACE-REV-01  
+**Fecha:** 2026-09-07  
+**Estado evaluado:** In progress (`docs/validation/M4/matrix.md`); Planificación: `Planned` (`docs/roadmap/m4-security.md`, `docs/roadmap/m2-m8.md`)  
+**Veredicto:** **NO CERRADO / NO DONE** (Trabajo en curso, prerequisitos de calificación pendientes por diseño).
+
+---
+
+## 1. Tabla de Cobertura M4-01..06 y G1..G9
+
+Esta matriz evalúa la correspondencia entre los requisitos normativos del plan M4, los ADRs aprobados (D19–D22) y los oráculos e implementaciones reportadas en el paquete documental. No se computan como hallazgos nuevos las tareas formalmente identificadas como pendientes (benchmarks 30/30 cold-warm, pruebas live con Inspector/Codex, gate `full` final y re-revisión de confirmación Opus).
+
+| ID | Área / Requisito Normativo | Base de Decisión (ADR / Doc) | Estado de Oráculos y Evidencia | Evaluación de Trazabilidad y Brechas |
+| :--- | :--- | :--- | :--- | :--- |
+| **M4-01** | `rust.deny`: Captura única, auditoría compartida, licenses/bans/sources, supresiones exactas. | [ADR-067](file:///docs/adr/ADR-067-security-policy-and-quality-contracts.md) (D19) | Pruebas nativas de licenses, bans, fuentes y supresiones pasadas. Integración con Tasks/Resources validada. | **Cubierto en diseño y oráculos unitarios.** *Brecha*: Pruebas nativas ejecutan sobre imagen base `95dd…` en vez de la imagen derivada `25ed…`. Proyectos sin dependencias quedan condicionados por D05. |
+| **M4-02** | `rust.unsafe.scan`: AST aislado por archivo, discriminación de spans, comentarios, macros y orígenes. | [ADR-069](file:///docs/adr/ADR-069-isolated-unsafe-syntax-scanner.md) (D20) | 7 oráculos nativos en `M4-scanner-native.json`. Contención, reserva de 25 s, formato compacto JSON y truncación probados. | **Cubierto en diseño.** *Condición pendiente*: Recibo histórico predated respecto a cambios en gateway (`disposition.md` P2-1); requiere re-ejecución fuente-vinculada. |
+| **M4-03** | `rust.miri`: Clasificación de UB, unsupported, test failure, compile failure, timeout y sandbox. | [ADR-072](file:///docs/adr/ADR-072-miri-classification-integrity.md) (D21) | 12 oráculos de clasificación y 7 de ciclo de vida pasados (`M4-miri-native.json`). Prohibición de flags libres y aislamiento `nextest` probados. | **Cubierto.** Modo de integridad acotado excluye build scripts/proc macros devolviendo `classification_integrity_unsupported`. Taxonomía tar produce `InvalidMetadata` en sobredimensión (`disposition.md` P3-2). |
+| **M4-04** | `rust.supply_chain.inspect`: Grafo capturado, hechos de lock/metadata, SQLite yanked, sin URLs en claro. | [ADR-071](file:///docs/adr/ADR-071-supply-chain-facts-without-catalog-migration.md) (D22) | 6 tests SQLite firmado, 22 tests security/Supply, pruebas de límite 4097 y truncación exacta. | **Cubierto.** No fabrica scores; distingue hechos observados en lock de verificación vendor autenticada y separa unknown de clean. |
+| **M4-05** | `rust.quality.gate.v2`: Perfiles `strict` y `release`, baseline explícito, auditoría única, opt-in mutation. | [ADR-067](file:///docs/adr/ADR-067-security-policy-and-quality-contracts.md) (D19) | 6 tests de aplicación; tests nativos de strict/release pasados; mutation clean/fail/inconcluso probados. | **Cubierto.** Mantiene inalterado el contrato `rust.quality.gate` M1. Aplica regla fail-closed: ningún estado parcial o unavailable se traduce en aprobado. |
+| **M4-06** | Threat model, hardening, abuso adversarial, secret canaries y ciclo de vida de procesos. | [m4-security.md](file:///docs/roadmap/m4-security.md), [M4-hardening-map.md](file:///docs/validation/M4-hardening-map.md) | 19 tests seleccionados en harness de runtime; scripts de inventario y plugin alterado preparados. | **Parcialmente cubierto / Brechas identificadas.** Falta oráculo específico de revocación de plugin con preservación de auditoría previa; canarios en HTML/diffs descansan en controles aún no ejecutados. |
+| **G1** | Arquitectura y contratos: DTOs cerrados, schemas derivados, 13 tools M1 congeladas, TextContent. | [m2-m8.md](file:///docs/roadmap/m2-m8.md) §G1, [ADR-067](file:///docs/adr/ADR-067-security-policy-and-quality-contracts.md) | 23 snapshots M1–M3 preservados; nuevos esquemas tipados cerrados; composiciones directas sin llamadas MCP internas. | **Cubierto en diseño.** Falta congelación formal de los 5 nuevos snapshots y anuncio de protocolo. |
+| **G2** | Autoridad y threat model: host autoriza roots/policy/vendor; env reconstruido; red deny real. | [m2-m8.md](file:///docs/roadmap/m2-m8.md) §G2, [M4-hardening-map.md](file:///docs/validation/M4-hardening-map.md) | Captura única, seccomp, socket/metadata deny (`169.254.169.254:80`), UID 65534 y no-follow probados. | **Cubierto con observaciones.** Requiere validar que la restricción de plugins alterados preserve la auditoría previa sin desestimarla. |
+| **G3** | Lifecycle, concurrencia, cuotas y auditoría: deadlines (120 s / 300 s), permit único, 512 KiB / 128 items. | [m2-m8.md](file:///docs/roadmap/m2-m8.md) §G3, ADR-067/069/071/072 | Cancelación, timeout, drain de 20 ms y cleanup del árbol verificados en Miri/scanner. | **Cubierto en diseño y pruebas unitarias.** Medición formal de 30 cold / 30 warm en curso sobre binario congelado. |
+| **G4** | Fixtures y pruebas: unit, contract, protocol, integration, sandbox adversarial y clientes MCP. | [m2-m8.md](file:///docs/roadmap/m2-m8.md) §G4, [M4-matrix.md](file:///docs/validation/M4-matrix.md) | Harness preparado para Inspector 2.5.0 y Codex 0.153.0 (8 tests de harness pasados). | **Cubierto en preparación.** Ejecución live de clientes y registro de trazas sync pendiente por diseño. |
+| **G5** | Gates y evidencia: fmt, check, clippy, test `--locked --offline`, scripts de gate y portabilidad. | [m2-m8.md](file:///docs/roadmap/m2-m8.md) §G5, [M4-matrix.md](file:///docs/validation/M4-matrix.md) | Clippy workspace y script de arquitectura pasados. Gate base M3 verificado (810 inputs). | **Pendiente por diseño.** Falta gate `full` final con los nuevos inputs (+247 provisionados) y configuración Sonar. |
+| **G6** | Compatibilidad, migración y rollback: sin migración de esquemas SQLite, retroceso a imagen M3. | [m2-m8.md](file:///docs/roadmap/m2-m8.md) §G6, ADR-067/071 | Formatos de store M3 preservados; no se tocan esquemas de catálogo SQLite ni stores v1. | **Cubierto.** Rollback desacopla configuración M4 y retira tools del discovery sin requerir downgrade de floor. |
+| **G7** | Operación y distribución: aprovisionamiento exacto (247 inputs), SBOM/licencias, binarios inmutables. | [m2-m8.md](file:///docs/roadmap/m2-m8.md) §G7, [M4-matrix.md](file:///docs/validation/M4-matrix.md) | Manifiesto de 247 inputs fijado; imagen base `95dd…` y derivada `25ed…` identificadas; sysroot inmutable. | **Cubierto en aprovisionamiento.** Verificación pasiva de integridad sin ejecutar contenedor (`test-m4-inventory.py`) lista para gate final. |
+| **G8** | Revisión independiente y bug bar: Sonnet 5, Opus 5 High, Gemini 3.8 Flash High; P0–P3. | [m2-m8.md](file:///docs/roadmap/m2-m8.md) §G8, [disposition.md](file:///docs/reviews/m4-security-confirmation/disposition.md) | Sonnet y Opus ejecutados; P2-1 y P2-2 atendidos en código; confirmación Opus final en curso. | **Cubierto en procedimiento.** Disposición de cierre formal pendiente tras re-ejecución de oráculos y gate conjunto. |
+| **G9** | DoR / DoD: M3 cerrado verificado, D19–D22 completados, evidencia source-bound. | [m2-m8.md](file:///docs/roadmap/m2-m8.md) §G9, [m4-security.md](file:///docs/roadmap/m4-security.md) | DoR satisfecho; implementación interna completa; anuncio público cerrado hasta completar calificación. | **En progreso.** Mantiene estado `Planned` en roadmap maestro y `In progress` en matriz de calificación local. |
+
+---
+
+## 2. Hallazgos Nuevos P0–P3
+
+*(Excluyendo explícitamente: benchmarks 250/300 cold-warm, pruebas con clientes reales Codex/Inspector, ejecución del gate full final y re-revisión de confirmación Opus, reconocidos como pendientes de ejecución por diseño).*
+
+### P2 — Desacoplamiento de imagen calificada en pruebas nativas de `cargo-deny`
+* **Archivo:** [M4-hardening-map.md](file:///docs/validation/M4-hardening-map.md) (Sección *Explicit M4 runtime harness* y tabla de selecciones).
+* **Justificación:** El mapa de hardening indica que las cuatro pruebas nativas de deny y grafos (`m4_deny_native_text_licenses_and_bans_are_real_and_cleanup_is_joined`, `captures_workspace_dependency_graphs_through_the_gateway`, `m4_deny_adversarial_oracles_preserve_cleanup_and_inputs`, `deny_native_mcp_tasks_policy_licenses_and_owner_bound_redacted_resource`) tienen hardcodeado el digest de la imagen base de seguridad `sha256:95dddeb5305f10b09b441e3cc4018ebb1a8a296d365c65106327d59f933c64e7`, ignorando la variable `RUST_MCP_TEST_IMAGE`. Sin embargo, la imagen derivada de producción para M4 es `sha256:25ed3626e710081a571a86a29521eaf2e890e796afd422ba5e409e0ce1891635` (que incorpora el helper v3 de escaneo sintáctico).  
+  El contrato normativo en [m4-security.md](file:///docs/roadmap/m4-security.md) estipula: *"Runtimes nuevos exigen calibración nueva: evidencia vieja del image M1 no autoriza Miri"* y G7 prohíbe asumir paridad de entorno sin prueba positiva. Calificar `cargo-deny` exclusivamente sobre `95dd…` introduce una inferencia inválida de que las garantías de ejecución se mantienen idénticas en la imagen final `25ed…`. Deny debe ser acreditado directamente sobre la imagen que se distribuirá en el runtime.
+
+### P2 — Requisito sin dueño: Ausencia de oráculo para revocación de plugin con preservación de auditoría
+* **Archivo:** [M4-hardening-map.md](file:///docs/validation/M4-hardening-map.md) (Sección *Threat-to-test map*, fila *Owner/source revocation and publication*) en contraste con [m4-security.md](file:///docs/roadmap/m4-security.md) (Sección *Threat model, operación y distribución*).
+* **Justificación:** [m4-security.md](file:///docs/roadmap/m4-security.md) exige normativamente como control de hardening: *"Revocación de tool/source bloquea nueva admisión y conserva auditoría"*. No obstante, el mapa estático de hardening documenta textualmente: *"A distinct altered/disabled plugin admission case that preserves an already published audit was not found."*  
+  Si bien existen pruebas unitarias a nivel de aplicación que validan la revocación del owner/source (`application/tests/security.rs`), no existe ningún caso de prueba ni oráculo nativo que valide que la revocación o alteración de un binario de plugin bloquee admisiones subsecuentes mientras preserva la consulta de artefactos de auditoría previamente generados. El requisito normativo carece de dueño en la suite de pruebas.
+
+### P2 — Inferencia no calificada de protección de canarios en diffs de mutación y bundles HTML de cobertura
+* **Archivo:** [M4-hardening-map.md](file:///docs/validation/M4-hardening-map.md) (Sección *Threat-to-test map*, fila *Opaque coverage HTML and source immutability* y *Prepared controls pending final execution*).
+* **Justificación:** El threat model de M4 ([m4-security.md](file:///docs/roadmap/m4-security.md)) exige: *"secret canaries en logs/diagnósticos/HTML/diffs antes de publicar"*. Sin embargo, el mapa estático constata que las pruebas actualmente computadas en el harness (`hostile_html_is_retained_only_as_opaque_archive_bundle` y `host_source_and_canary_are_unchanged_after_every_mutation_run`) presentan limitaciones formales:  
+  *"The HTML test asserts only that JSON/LCOV/HTML bytes exist after a successful run. It does not itself assert secret redaction, content type safety, or absence of host extraction. The mutation test proves host bytes/canary unchanged, not that a secret is absent from a diff artifact."*  
+  Aunque el caso `host_canary_cannot_enter_html_diffs_logs_or_diagnostics` fue redactado en la sección de controles preparados, inferir que la cobertura actual ya protege contra la fuga de canarios en artefactos complejos de mutación y cobertura es una inferencia inválida hasta que dicho oráculo sea formalmente ejecutado y registrado en los recibos finales.
+
+### P3 — Restricción operativa para proyectos sin dependencias bajo el adaptador D05
+* **Archivo:** [ADR-067](file:///docs/adr/ADR-067-security-policy-and-quality-contracts.md) (Sección *Publicación y compatibilidad del artefacto*).
+* **Justificación:** ADR-067 establece que *"El adapter D05 vigente exige al menos un paquete en un dataset válido; no se anuncia soporte de dataset vacío... si falta no se anuncia una evaluación completa, también para proyectos sin dependencias."*  
+  Bajo este diseño, un workspace que no posea dependencias de terceros no puede obtener una evaluación de deny completa a menos que se le provea un dataset vendor sintético con al menos un paquete dummy. Dado que bajo ADR-067 y G1 un subcheck `unavailable` o `partial` impide que el gate `rust.quality.gate.v2` (`strict`/`release`) resulte `passed`, un proyecto puro sin dependencias externas queda operativamente incapacitado para superar dicho gate. Debe registrarse formalmente como limitación de contrato o habilitarse el soporte de dataset vacío.
+
+### P3 — Divergencia taxonómica en el manejo de archivos tar sobredimensionados de Miri (`InvalidMetadata` vs `OutputLimit`)
+* **Archivo:** [disposition.md](file:///docs/reviews/m4-security-confirmation/disposition.md) (P3-2) frente a [ADR-072](file:///docs/adr/ADR-072-miri-classification-integrity.md) (Sección *Cierre de revisión de integridad y presupuesto*).
+* **Justificación:** ADR-072 prescribe que los desbordamientos y topes de salida de diagnósticos e identidades deben tiparse como `OutputLimit`. No obstante, la disposición P3-2 de la revisión técnica admite que envelopes tar sobredimensionados disparan `InvalidMetadata` debido al decodificador de tar compartido. Aunque la invariante fail-closed se preserva (el veredicto nunca es `Clean`), existe una discordancia entre la taxonomía tipada requerida por la especificación del ADR y la respuesta del decodificador actual.
+
+---
+
+## 3. Condiciones Concretas para Cierre de M4
+
+Para que el hito M4 pueda transicionar de `In progress` / `Planned` a `Done`, deben satisfacerse de forma estricta las siguientes condiciones verificables:
+
+1. **Resolución y Acreditación de Hallazgos P2:**
+   - **Re-ejecución del suite de scanner nativo:** Generar un recibo actualizado de `M4-scanner-native.json` ejecutado contra los bytes exactos de `security_gateway.rs` que incluyen los fingerprints de `unsafe_scan.rs` y `unsafe_port.rs` (subsanando formalmente P2-1 y P2-2 de `disposition.md`).
+   - **Calificación unificada de imagen:** Parametrizar o ejecutar las pruebas nativas de deny (`security_native::m4_deny_native_...`) sobre la imagen derivada final `sha256:25ed…`, eliminando la dependencia rígida de la imagen base `sha256:95dd…`.
+   - **Ejecución de controles preparados de canarios y plugins:** Ejecutar y acreditar con recibos independientes `test-m4-tampered-plugin.py` (rechazo de binario alterado) y `host_canary_cannot_enter_html_diffs_logs_or_diagnostics` (ausencia efectiva de canarios en diffs de mutación y bundles HTML).
+   - **Incorporación del oráculo de revocación:** Agregar o acreditar un test donde la revocación de un plugin bloquee nuevas admisiones pero permita la recuperación de recursos/auditorías preexistentes.
+
+2. **Ejecución y Recibo del Harness de Runtime M4:**
+   - Ejecutar `scripts/test-m4-runtime.py` sobre la imagen `25ed…` registrando la aprobación 19/19 sin omisiones, con verificación positiva de aislamiento de sockets (`169.254.169.254:80` retornando `EPERM`) y limpieza de procesos huérfanos.
+   - Ejecutar `scripts/test-m4-inventory.py` acreditando los hashes de los seis binarios y el árbol del sysroot Miri sin iniciar código del contenedor.
+
+3. **Ejecución Live de Clientes MCP (G4):**
+   - Ejecutar las pruebas de extremo a extremo con clientes reales contra las versiones fijadas (Inspector 2.5.0 y Codex 0.153.0) para las cinco herramientas (`rust.deny`, `rust.unsafe.scan`, `rust.miri`, `rust.supply_chain.inspect` y `rust.quality.gate.v2`), acreditando ciclo completo: discovery, llamada exitosa, manejo de error/rechazo y cancelación/Resource.
+
+4. **Medición Formal de Presupuestos y Rendimiento (G3):**
+   - Completar el protocolo empírico de 30 muestras frías (`cold`) y 30 calientes (`warm`) por herramienta sobre el binario final congelado, publicando latencias brutas y percentiles para verificar que operan dentro de los límites de 120 s (deny/scanner/supply) y 300 s (Miri).
+
+5. **Acreditación del Full Gate Fuente-Vinculado (G5):**
+   - Ejecutar sobre los bytes finales la cadena completa:
+     ```text
+     cargo fmt --check
+     cargo check --workspace --all-targets --locked --offline
+     cargo clippy --workspace --all-targets --locked --offline -- -D warnings
+     cargo test --workspace --all-targets --locked --offline
+     python3 -B scripts/check-architecture.py
+     python3 -B scripts/gate.py core
+     python3 -B scripts/gate.py full
+     ```
+   - El recibo final de `scripts/gate.py full` debe reflejar la totalidad de los inputs del workspace (superando los 810 inputs base de M3 e incorporando la configuración Sonar corregida y los fixtures de seguridad).
+
+6. **Confirmación Externa y Autorización del Technical Owner (G8 / G9):**
+   - Recepción formal de la re-revisión de confirmación Opus High sin hallazgos P0/P1 y con los P2 cerrados.
+   - Publicación de `docs/validation/M4/matrix.md` con todos los cortes en estado verificado y autorización explícita del Technical Owner antes de modificar el estado en `docs/roadmap/m4-security.md`. La planificación de hitos posteriores conserva su estado `Planned`.
+

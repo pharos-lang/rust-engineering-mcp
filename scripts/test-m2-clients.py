@@ -20,8 +20,8 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 WORK = ROOT / "target/m2-clients"
-ARTIFACTS = ROOT / "docs/validation/m2-clients"
-RECEIPT = ROOT / "docs/validation/M2-clients.json"
+ARTIFACTS = ROOT / "docs/validation/M2/clients"
+RECEIPT = ROOT / "docs/validation/M2/clients.json"
 NODE = Path("/Users/cburgosro/.nvm/versions/node/v24.15.0/bin/node")
 INSPECTOR = ROOT / "target/m1-17-inspector/node_modules/@modelcontextprotocol/inspector/clients/cli/build/index.js"
 INSPECTOR_PACKAGE = ROOT / "target/m1-17-inspector/node_modules/@modelcontextprotocol/inspector/package.json"

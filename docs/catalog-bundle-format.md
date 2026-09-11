@@ -1,7 +1,7 @@
 # Catalog bundles and explicit CLI — M1-10
 
 Implementation follows [ADR-041](adr/ADR-041-authenticated-catalog-bundles.md).
-This is development documentation; see [M1-10 evidence](validation/M1-10.md) for
+This is development documentation; see [M1-10 evidence](validation/M1/10.md) for
 current gates, review disposition and local integration.
 No production catalog publisher, model redistribution or catalog release is approved.
 ADR-047's source publisher and GitHub channel do not select an Ed25519 catalog key.

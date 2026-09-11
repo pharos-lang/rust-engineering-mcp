@@ -8,11 +8,11 @@ profdata in the configured target directory. The independent security and final
 reviews judged the amended shape contained: the target is a per-job tmpfs absent
 from every exporter and every non-coverage phase, read-only for the keeper, and
 destroyed at cleanup. The mount matrix is pinned by literal per-phase
-expectations and negative mutations ([V-SEC](../validation/m3-delegation/V-SEC/last-message.md),
-[final review](../validation/m3-delegation/VF-opus-final/last-message.md)). The
+expectations and negative mutations ([V-SEC](../validation/M3/history/inventory.json),
+[final review](../validation/M3/history/inventory.json)). The
 approved guest image passed the M3 runtime gate at 62/62 and the Rust security
-gate at 20/20 ([runtime receipt](../validation/M3-runtime.json),
-[Rust security receipt](../validation/M3-rust-security.json)).
+gate at 20/20 ([runtime receipt](../validation/M3/runtime.json),
+[Rust security receipt](../validation/M3/rust-security.json)).
 
 ## Context
 
@@ -128,16 +128,16 @@ reuse this volume without a new decision and verifier mapping.
 
 ## Sources
 
-- `docs/validation/M3-runtime-attempt4.json`
-- `docs/validation/M3-runtime-attempt5.json` (Q02 environment-blocked attempt)
-- `docs/validation/M3-runtime-attempt6.json` (current Q02 implementation, same block)
-- `docs/validation/M3-runtime-attempt7.json` (W1: run succeeds; three report merges fail read-only)
+- `docs/validation/M3/history/runtime-attempt4.json`
+- `docs/validation/M3/history/runtime-attempt5.json` (Q02 environment-blocked attempt)
+- `docs/validation/M3/history/runtime-attempt6.json` (current Q02 implementation, same block)
+- `docs/validation/M3/history/runtime-attempt7.json` (W1: run succeeds; three report merges fail read-only)
 - `target/m3-runtime-q01-attempt4/47.log`
 - `target/m3-runtime-w1/47.log`
-- `docs/validation/M3-runtime.json` (historical W3, 55/55 after V-SEC; superseded
+- `docs/validation/M3/runtime.json` (historical W3, 55/55 after V-SEC; superseded
   by the current W6 receipt at 62/62)
-- `docs/validation/M3-rust-security.json` (W3, 20/20 after V-SEC)
-- `docs/validation/M3-03.md` (observed counts, formats and containment controls)
+- `docs/validation/M3/rust-security.json` (W3, 20/20 after V-SEC)
+- `docs/validation/M3/03.md` (observed counts, formats and containment controls)
 - `docs/adr/ADR-037-test-execution.md`
 - `docs/adr/ADR-056-cargo-fix-isolated-loopback.md`
 - `docs/adr/ADR-062-coverage-accounting-and-semver-baselines.md`

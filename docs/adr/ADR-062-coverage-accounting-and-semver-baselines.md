@@ -6,7 +6,7 @@ Accepted 2026-09-06 by the M3 orchestrator after independent reviews V06/V17/V18
 (ADR-063: owner provisioning authorization 2026-09-05). M3-04 was calibrated and
 qualified 18/18 in Q01. ADR-065 authorizes M3-03's dedicated executable target;
 its W2 amendment and real Docker qualification passed coverage 8/8 within the
-historical M3 runtime gate 55/55 — see docs/validation/M3-03.md. That count is
+historical M3 runtime gate 55/55 — see docs/validation/M3/03.md. That count is
 superseded by the later W6 receipt, whose live M3 runtime count is 62/62.
 
 ## Context
@@ -481,8 +481,8 @@ this protocol with cargo-semver-checks 0.50.0 in the approved image. Observed
 results were: identical/warn-only/compatible cases `0`, deny breakage `100`, and
 no-lib/broken-baseline/registry-required `101`; cancellation publishes no exit and
 remains typed `Cancelled`. The 18/18 selections and raw shapes are recorded in
-`docs/validation/M3-04-semver-calibration.md` and the immutable consolidated
-receipt `docs/validation/M3-runtime.json`. The protocol retained below is the
+`docs/validation/M3/04-semver-calibration.md` and the immutable consolidated
+receipt `docs/validation/M3/runtime.json`. The protocol retained below is the
 recalibration procedure for a future binary/image change:
 
 1. Provision the pinned `cargo-semver-checks` v0.50.0
@@ -741,7 +741,7 @@ bounded Stage 0 fallback; W2 qualifies all three formats from one capture.
   mutation_archive}.rs` (the `RustGateway`/`Phase`/`Volume`/`arguments()` shape
   for §8's F2 dual-mount extension, and the `MutationPhase::Export`/USTAR
   encode-decode pattern §4's F3 archive packaging reuses).
-- Independent review `docs/validation/m3-delegation/V18-adr062-review/
+- Independent review `docs/validation/M3/delegation/V18-adr062-review/
   last-message.md` (sha256
   4868d2d25bfe57748f31ad49de9084370c5d8929036880a89a21d1578c603ae4), findings
   F1–F7, addressed throughout this revision.

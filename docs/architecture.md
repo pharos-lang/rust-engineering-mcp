@@ -50,9 +50,9 @@ documenta límites y compatibilidad.
 Los tests `protocol.rs` lanzan el binario y usan fixtures JSON independientes del
 SDK, con plazos y lectores acotados. No se crea un port de dominio para stdio:
 es una frontera externa al dominio. La release `0.1.0` incorpora trece tools:
-status tiene [evidencia M1-11](validation/M1-11.md), search tiene
-[gate M1-12 aprobado](validation/M1-12.md) e inspect está conectado con
-[gate M1-13 aprobado](validation/M1-13.md). El checkout añade cinco handlers M2
+status tiene [evidencia M1-11](validation/M1/11.md), search tiene
+[gate M1-12 aprobado](validation/M1/12.md) e inspect está conectado con
+[gate M1-13 aprobado](validation/M1/13.md). El checkout añade cinco handlers M2
 calificados localmente, descritos al final.
 
 SQLite es autoritativo mediante el port CatalogRepository y snapshots en memoria
@@ -208,7 +208,7 @@ M1-11 conecta solo su estado al runtime. [Formato y límites](catalog-bundle-for
 `CatalogStatusPort` devuelve observaciones tipadas; aplicación valida parentesco
 catálogo/modelo/índice y evalúa freshness con Clock. `stdio::catalog` conserva schemas
 y envelope fuera del dominio, con input vacío y presupuesto128KiB del resultado MCP
-completo. [Gate/revisión M1-11](validation/M1-11.md).
+completo. [Gate/revisión M1-11](validation/M1/11.md).
 
 El provider carga lazy tras bootstrap en el worker bloqueante joined compartido.
 Retiene una generación inmutable y sus handles SQLite/modelo/Lance, incluida una
@@ -227,7 +227,7 @@ fusiona hybrid con RRF60; dominio sigue limitado a tipos/comparaciones puros.
 Status y search comparten la misma instancia `CatalogProvider`, generación lazy y
 admisión joined; no se introduce cache de catálogo ni permiso de ejecución paralelo.
 El worker mantiene inferencia, consultas, validación JSON y encoding hasta terminar.
-[ADR-043](adr/ADR-043-catalog-search-modes.md); [gate aprobado](validation/M1-12.md).
+[ADR-043](adr/ADR-043-catalog-search-modes.md); [gate aprobado](validation/M1/12.md).
 
 ## Inspección autoritativa M1-13
 
@@ -237,7 +237,7 @@ inmutable con status/search; no depende del índice/modelo para obtener facts.
 Domain representa lookup, página, counts y metadatos no registrados como tipos;
 el adapter MCP proyecta schema y codifica dentro del worker joined existente.
 La continuación repite parámetros explícitos y fingerprint, sin estado de cursor.
-[ADR-044](adr/ADR-044-paged-crate-inspection.md), [gate aprobado](validation/M1-13.md).
+[ADR-044](adr/ADR-044-paged-crate-inspection.md), [gate aprobado](validation/M1/13.md).
 
 ## M1-14 — Composición de doctor
 
@@ -288,7 +288,7 @@ journal. `local_coordinated` detecta cambios observados, pero no ofrece exclusi�
 OS ante escritores externos, CAS ni una transacción visible multiarchivo. La policy
 `preserve_presence` incluye el lock raíz actualizado si existía y elimina del
 candidato un lock creado solo para validar. Esta arquitectura está integrada en el
-checkout `0.3.0`, que registra 31 tools calificadas localmente, con [calificación M2](validation/M2-07.md) para las
+checkout `0.3.0`, que registra 31 tools calificadas localmente, con [calificación M2](validation/M2/07.md) para las
 18 anteriores y las cuatro tools M3 calificadas en sus cortes síncronos; la release `0.1.0`
 conserva 13.
 
@@ -335,8 +335,8 @@ handlers M3 están en `stdio/{nextest,coverage,semver,mutation_test}.rs` y el
 lifecycle negociado en `stdio/tasks.rs`. `stdio/resources.rs` publica el índice y
 los miembros como Resources bajo `rust-quality-artifact://`; Tasks está
 implementado, calificado y anunciado con negociación mutua. Los cuatro cortes M3
-calificados tienen sus recibos en `docs/validation/M3-runtime.json` y
-`docs/validation/M3-rust-security.json`.
+calificados tienen sus recibos en `docs/validation/M3/runtime.json` y
+`docs/validation/M3/rust-security.json`.
 
 M2 usa [eventos locales de terminación](adr/ADR-058-local-mutation-observability.md)
 por tracing/stderr. La retención de planes se consulta sin modificarla; la CLI
@@ -438,5 +438,5 @@ harness se publican por `run_index` y stream, UTF-8 válido con sustitución
 declarada separadamente del recorte; su cuota se comprueba al publicar después de
 la ejecución. Las decisiones están en [ADR-073](adr/ADR-073-benchmark-method-and-dataset.md)
 a [ADR-080](adr/ADR-080-harness-logs-as-artifacts.md), y el estado por corte en
-la [matriz M5](validation/M5-matrix.md): M5 calificado localmente (suite
+la [matriz M5](validation/M5/matrix.md): M5 calificado localmente (suite
 nativa, clientes, `core` y `full`); sin integración remota ni release.

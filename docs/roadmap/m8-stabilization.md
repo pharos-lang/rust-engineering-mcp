@@ -152,7 +152,7 @@ recalificar (el inventario de fuentes de los gates y los recibos nativos ligan
 el lock). Origen: durante el cierre de M5 la subida `lancedb 0.31.0 → 0.38.0` no
 compilaba con `default-features = false` y Lance 11 creaba un spill store en
 disco aunque la base fuera `memory://`; se revirtió a 0.31.0 conservando las
-otras tres subidas ([sondas](../validation/m5-gate-attempts/README.md)).
+otras tres subidas ([sondas](../validation/M5/history/gate-attempts/README.md)).
 
 Implicaciones conocidas por paquete (medidas o documentadas; lo demás requiere
 red y se evalúa en la propia tarea):

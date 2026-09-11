@@ -1,0 +1,339 @@
+{
+  "schema": "rust-mcp-evidence-history-inventory-v1",
+  "recorded_at": "2026-09-11T17:42:09.721017+00:00",
+  "source_commit": "fd79096ea345d6a93e735cb3fcff99ac31754a91",
+  "purpose": "Obsolete evidence retired from the tree; every entry records path, SHA-256, size and the last commit carrying the bytes.",
+  "retained": [],
+  "retired": [
+    {
+      "original_path": "docs/research/m1-16/corpus/selection/sources/async-channel-2.5.0/Cargo.toml",
+      "sha256": "0d56b953fd80e91c2f60d92df14866dede9822a91fa2abccc618b76abbf1ea97",
+      "bytes": 2163,
+      "kind": "F-captured third-party crate sources of the m1-16 research corpus"
+    },
+    {
+      "original_path": "docs/research/m1-16/corpus/selection/sources/async-channel-2.5.0/Cargo.toml.orig",
+      "sha256": "4b88d2c58ff7187b3d96b14b1d60fc7c01145aa946f2ce04c0e23d140e4a2463",
+      "bytes": 1338,
+      "kind": "F-captured third-party crate sources of the m1-16 research corpus"
+    },
+    {
+      "original_path": "docs/research/m1-16/corpus/selection/sources/async-channel-2.5.0/README.md",
+      "sha256": "a9ae50c2a6df06ff476c369d23553a7bbcb4c47f25a3353d168e05289acbb4ed",
+      "bytes": 1762,
+      "kind": "F-captured third-party crate sources of the m1-16 research corpus"
+    },
+    {
+      "original_path": "docs/research/m1-16/corpus/selection/sources/async-channel-2.5.0/src/lib.rs",
+      "sha256": "96d786959c66fc32a0181a8015ff9fd06b7a9955d878bfd7760b81304ee35223",
+      "bytes": 39842,
+      "kind": "F-captured third-party crate sources of the m1-16 research corpus"
+    },
+    {
+      "original_path": "docs/research/m1-16/corpus/selection/sources/bytes-1.12.1/Cargo.toml",
+      "sha256": "dc260d0d04b58aea819f8d6762c2feb51e66f8edd77e4e64cc1eac6f447a8143",
+      "bytes": 2520,
+      "kind": "F-captured third-party crate sources of the m1-16 research corpus"
+    },
+    {
+      "original_path": "docs/research/m1-16/corpus/selection/sources/bytes-1.12.1/Cargo.toml.orig",
+      "sha256": "4fc0d14d77a47a1fac1fbb445890db63e67360535c940dd47ffd69badc30cdc6",
+      "bytes": 1407,
+      "kind": "F-captured third-party crate sources of the m1-16 research corpus"
+    },
+    {
+      "original_path": "docs/research/m1-16/corpus/selection/sources/bytes-1.12.1/README.md",
+      "sha256": "275ac7bc295e3cc659d28f05261645ac5bd6286476afe2ee3c1ed719f7b6df02",
+      "bytes": 1878,
+      "kind": "F-captured third-party crate sources of the m1-16 research corpus"
+    },
+    {
+      "original_path": "docs/research/m1-16/corpus/selection/sources/crossbeam-channel-0.5.16/Cargo.toml",
+      "sha256": "29527fb88615c06cf0e5ebfa12e0cac447b653dc8110de5ca3fe515cab63b7fb",
+      "bytes": 2670,
+      "kind": "F-captured third-party crate sources of the m1-16 research corpus"
+    },
+    {
+      "original_path": "docs/research/m1-16/corpus/selection/sources/crossbeam-channel-0.5.16/Cargo.toml.orig",
+      "sha256": "88fff79b3ce0f59afdbc463d3dae2d980602507d3c384738d0c5425aa3b43e14",
+      "bytes": 1041,
+      "kind": "F-captured third-party crate sources of the m1-16 research corpus"
+    },
+    {
+      "original_path": "docs/research/m1-16/corpus/selection/sources/crossbeam-channel-0.5.16/README.md",
+      "sha256": "5dfb91ebb498dec49948a440a53977109ec532388170e567c3c2a0339589aa4c",
+      "bytes": 3797,
+      "kind": "F-captured third-party crate sources of the m1-16 research corpus"
+    },
+    {
+      "original_path": "docs/research/m1-16/corpus/selection/sources/crossbeam-channel-0.5.16/src/lib.rs",
+      "sha256": "5b1c406fd1ce6140feae9000be361858da2aabe7fc9fffd0eafcb88020d2b268",
+      "bytes": 10846,
+      "kind": "F-captured third-party crate sources of the m1-16 research corpus"
+    },
+    {
+      "original_path": "docs/research/m1-16/corpus/selection/sources/flume-0.12.0/Cargo.toml",
+      "sha256": "55d58b649575430af87331d5ad11f7fa3077c7e8afa44b9ea9bacefc4f575603",
+      "bytes": 3647,
+      "kind": "F-captured third-party crate sources of the m1-16 research corpus"
+    },
+    {
+      "original_path": "docs/research/m1-16/corpus/selection/sources/flume-0.12.0/Cargo.toml.orig",
+      "sha256": "070c80369b176e92452535250b77efda7bacac722d1d83bd0abd38933efdc12e",
+      "bytes": 1584,
+      "kind": "F-captured third-party crate sources of the m1-16 research corpus"
+    },
+    {
+      "original_path": "docs/research/m1-16/corpus/selection/sources/flume-0.12.0/README.md",
+      "sha256": "84bd3ddff0ded8622857a9452cf920b547936d7d79d38fe4fdb4d989da92f97e",
+      "bytes": 3636,
+      "kind": "F-captured third-party crate sources of the m1-16 research corpus"
+    },
+    {
+      "original_path": "docs/research/m1-16/corpus/selection/sources/flume-0.12.0/src/lib.rs",
+      "sha256": "6454f49f8e98f4dce13461b25fa877b871cdc64f26287a01615ad98e8372830e",
+      "bytes": 40898,
+      "kind": "F-captured third-party crate sources of the m1-16 research corpus"
+    },
+    {
+      "original_path": "docs/research/m1-16/corpus/selection/sources/prettyplease-0.2.37/Cargo.toml",
+      "sha256": "fadc7182205c8cebaea0545496490a549f3d102d17d7b13ae26b2f6c24828a0b",
+      "bytes": 2116,
+      "kind": "F-captured third-party crate sources of the m1-16 research corpus"
+    },
+    {
+      "original_path": "docs/research/m1-16/corpus/selection/sources/prettyplease-0.2.37/Cargo.toml.orig",
+      "sha256": "1163b5012ba2567947bc3f662645c7769428f57f8ed033352579d46acfbe7b3f",
+      "bytes": 1369,
+      "kind": "F-captured third-party crate sources of the m1-16 research corpus"
+    },
+    {
+      "original_path": "docs/research/m1-16/corpus/selection/sources/prettyplease-0.2.37/README.md",
+      "sha256": "a7e6d152cdc6ea603077e50b8d55af374d9d21fd9f62d08a008588b17d785e6e",
+      "bytes": 14761,
+      "kind": "F-captured third-party crate sources of the m1-16 research corpus"
+    },
+    {
+      "original_path": "docs/research/m1-16/corpus/selection/sources/regex-1.13.0/Cargo.toml",
+      "sha256": "8e65901633c31baa66d5629ceef1ac7f2f8613ee0b4ef927d5204417e3a2fcd0",
+      "bytes": 4350,
+      "kind": "F-captured third-party crate sources of the m1-16 research corpus"
+    },
+    {
+      "original_path": "docs/research/m1-16/corpus/selection/sources/regex-1.13.0/Cargo.toml.orig",
+      "sha256": "80dd53522a88309e3eb90a6b51f7c94c9f0711f305a67ddcd8e6739544f9cf56",
+      "bytes": 9061,
+      "kind": "F-captured third-party crate sources of the m1-16 research corpus"
+    },
+    {
+      "original_path": "docs/research/m1-16/corpus/selection/sources/regex-1.13.0/README.md",
+      "sha256": "ce1a8faf72cf8f0e28a28658c59033b02726e3caecd9a3d358b4c6f6cd3e6c24",
+      "bytes": 12287,
+      "kind": "F-captured third-party crate sources of the m1-16 research corpus"
+    },
+    {
+      "original_path": "docs/research/m1-16/corpus/selection/sources/serde-1.0.228/Cargo.toml",
+      "sha256": "d7fc24e39691a0831eaa0eac677b46ecbae407a40fa816b904759822d10f42e8",
+      "bytes": 1969,
+      "kind": "F-captured third-party crate sources of the m1-16 research corpus"
+    },
+    {
+      "original_path": "docs/research/m1-16/corpus/selection/sources/serde-1.0.228/Cargo.toml.orig",
+      "sha256": "0b7df7944cba2a0646daa431efdc9f8b200bc6beb586cd71e302a102d17c4c60",
+      "bytes": 2252,
+      "kind": "F-captured third-party crate sources of the m1-16 research corpus"
+    },
+    {
+      "original_path": "docs/research/m1-16/corpus/selection/sources/serde-1.0.228/README.md",
+      "sha256": "d40eb47c3c6e3780359df6fe40d40a35725c843df0e3b845e10ecf2a15048664",
+      "bytes": 4366,
+      "kind": "F-captured third-party crate sources of the m1-16 research corpus"
+    },
+    {
+      "original_path": "docs/research/m1-16/corpus/selection/sources/serde_json-1.0.150/Cargo.toml",
+      "sha256": "96f36f0d4419ce7ab53008df556017ef7b8891c1e913ac648e9b2b7f0537a472",
+      "bytes": 3118,
+      "kind": "F-captured third-party crate sources of the m1-16 research corpus"
+    },
+    {
+      "original_path": "docs/research/m1-16/corpus/selection/sources/serde_json-1.0.150/Cargo.toml.orig",
+      "sha256": "81569187bb96cbf7d4f017eec614d475ffb351bf7a52d2953c283587b81b00e3",
+      "bytes": 3642,
+      "kind": "F-captured third-party crate sources of the m1-16 research corpus"
+    },
+    {
+      "original_path": "docs/research/m1-16/corpus/selection/sources/serde_json-1.0.150/README.md",
+      "sha256": "10cb8c14d9d29f29a031329747b352fc149a689b449ee5a8abb43712695aed72",
+      "bytes": 14043,
+      "kind": "F-captured third-party crate sources of the m1-16 research corpus"
+    },
+    {
+      "original_path": "docs/research/m1-16/corpus/selection/sources/serde_json-1.0.150/src/map.rs",
+      "sha256": "b5a2fd1ee865e6cfd83ef2da0a2e1057f892465ac7ede8a78a11354a60526f33",
+      "bytes": 35057,
+      "kind": "F-captured third-party crate sources of the m1-16 research corpus"
+    },
+    {
+      "original_path": "docs/research/m1-16/corpus/selection/sources/syn-2.0.118/Cargo.toml",
+      "sha256": "1c16fbf1de1ba3bc6d8080b1dddc7c009ea067c78559557613c500b68923236c",
+      "bytes": 5007,
+      "kind": "F-captured third-party crate sources of the m1-16 research corpus"
+    },
+    {
+      "original_path": "docs/research/m1-16/corpus/selection/sources/syn-2.0.118/Cargo.toml.orig",
+      "sha256": "cffcc7f5963ce46d46bd908785470e1f893ccee5494bf4c9fddb3ea3c73e13e4",
+      "bytes": 2413,
+      "kind": "F-captured third-party crate sources of the m1-16 research corpus"
+    },
+    {
+      "original_path": "docs/research/m1-16/corpus/selection/sources/syn-2.0.118/README.md",
+      "sha256": "4a050aa3ee831ad3d27ab15d9b612bb32712f86517fa2e6be0b1cac37137ebe5",
+      "bytes": 10342,
+      "kind": "F-captured third-party crate sources of the m1-16 research corpus"
+    },
+    {
+      "original_path": "docs/research/m1-16/corpus/selection/sources/tokio-1.53.1/Cargo.toml",
+      "sha256": "e0194904acf8d55946b949cacca2b266051bb2a99844c606829fb0159c39cfb1",
+      "bytes": 17637,
+      "kind": "F-captured third-party crate sources of the m1-16 research corpus"
+    },
+    {
+      "original_path": "docs/research/m1-16/corpus/selection/sources/tokio-1.53.1/Cargo.toml.orig",
+      "sha256": "64efc8888a41b0a102b3abe463cf9f2bb4687895ae494b47487284bd23fd7455",
+      "bytes": 5723,
+      "kind": "F-captured third-party crate sources of the m1-16 research corpus"
+    },
+    {
+      "original_path": "docs/research/m1-16/corpus/selection/sources/tokio-1.53.1/README.md",
+      "sha256": "d66d59d170ce56b4f80e16e7564fe91ca611daffffe82a8625a9a67bb85c8800",
+      "bytes": 9391,
+      "kind": "F-captured third-party crate sources of the m1-16 research corpus"
+    },
+    {
+      "original_path": "docs/research/m1-16/corpus/selection/sources/tokio-1.53.1/src/sync/mpsc/mod.rs",
+      "sha256": "455441acb6e0fadf2ba5599d8459bd5eabe823aae8a84782cc0056fb1053f5dc",
+      "bytes": 6889,
+      "kind": "F-captured third-party crate sources of the m1-16 research corpus"
+    },
+    {
+      "original_path": "docs/research/m1-16/corpus/selection/sources/toml-0.9.12+spec-1.1.0/Cargo.toml",
+      "sha256": "c7cd18a26f0a1e8129cf6f97e80c40d775ab0f940eac463194e5f7a914326fcb",
+      "bytes": 6538,
+      "kind": "F-captured third-party crate sources of the m1-16 research corpus"
+    },
+    {
+      "original_path": "docs/research/m1-16/corpus/selection/sources/toml-0.9.12+spec-1.1.0/Cargo.toml.orig",
+      "sha256": "c06debf28541bc9ac219a5fc57fc27006c8647114b34b940e279ae1b907a4923",
+      "bytes": 3944,
+      "kind": "F-captured third-party crate sources of the m1-16 research corpus"
+    },
+    {
+      "original_path": "docs/research/m1-16/corpus/selection/sources/toml-0.9.12+spec-1.1.0/README.md",
+      "sha256": "10ec704dd3941c962949c6d0cc98ebcfccc8e76e8e03ccab5b49e3e4a2f42896",
+      "bytes": 998,
+      "kind": "F-captured third-party crate sources of the m1-16 research corpus"
+    },
+    {
+      "original_path": "docs/research/m1-16/corpus/selection/sources/toml-1.1.5+spec-1.1.0/Cargo.toml",
+      "sha256": "77938c9a9688aec83cfa126f667a707ad43118502e4bff53f0125a63cf7cda94",
+      "bytes": 6571,
+      "kind": "F-captured third-party crate sources of the m1-16 research corpus"
+    },
+    {
+      "original_path": "docs/research/m1-16/corpus/selection/sources/toml-1.1.5+spec-1.1.0/Cargo.toml.orig",
+      "sha256": "90955c0a92c0789695ffd1455610628fd25e79717ece1ac36a04c882ebbbdfbd",
+      "bytes": 3942,
+      "kind": "F-captured third-party crate sources of the m1-16 research corpus"
+    },
+    {
+      "original_path": "docs/research/m1-16/corpus/selection/sources/toml-1.1.5+spec-1.1.0/README.md",
+      "sha256": "10ec704dd3941c962949c6d0cc98ebcfccc8e76e8e03ccab5b49e3e4a2f42896",
+      "bytes": 998,
+      "kind": "F-captured third-party crate sources of the m1-16 research corpus"
+    },
+    {
+      "original_path": "docs/research/m1-16/corpus/selection/sources/toml_edit-0.25.12+spec-1.1.0/Cargo.toml",
+      "sha256": "c71ba418832494a7d87418689ba40a797f40a0eb242cb5c5263c904ec6360d85",
+      "bytes": 5568,
+      "kind": "F-captured third-party crate sources of the m1-16 research corpus"
+    },
+    {
+      "original_path": "docs/research/m1-16/corpus/selection/sources/toml_edit-0.25.12+spec-1.1.0/Cargo.toml.orig",
+      "sha256": "9fed53cf412ad0a2b72d2eaeda600c9d91cacc6800e3edad187a89f751589723",
+      "bytes": 3283,
+      "kind": "F-captured third-party crate sources of the m1-16 research corpus"
+    },
+    {
+      "original_path": "docs/research/m1-16/corpus/selection/sources/toml_edit-0.25.12+spec-1.1.0/README.md",
+      "sha256": "09b2dc2ff0ad374bdea85ad463c7f459d7b312c471f3732e910ddea8c04f92b2",
+      "bytes": 1735,
+      "kind": "F-captured third-party crate sources of the m1-16 research corpus"
+    },
+    {
+      "original_path": "docs/research/m1-16/corpus/selection/sources/unicode-ident-1.0.24/Cargo.toml",
+      "sha256": "0bb9c0e006a21355cb85c7df72e78dd8ba6fffbb7dc3f1e7a4c19af53cd354da",
+      "bytes": 2072,
+      "kind": "F-captured third-party crate sources of the m1-16 research corpus"
+    },
+    {
+      "original_path": "docs/research/m1-16/corpus/selection/sources/unicode-ident-1.0.24/Cargo.toml.orig",
+      "sha256": "8d0abaf7ce10cb78f26edcd613dfe5a47faa4381e6e251c7d1c123608d2e037a",
+      "bytes": 1331,
+      "kind": "F-captured third-party crate sources of the m1-16 research corpus"
+    },
+    {
+      "original_path": "docs/research/m1-16/corpus/selection/sources/unicode-ident-1.0.24/README.md",
+      "sha256": "2fd3a0c6c9abd2c042fb319221f9ef2c95728a6e3725b0f067e4d315c5dbfe5a",
+      "bytes": 12338,
+      "kind": "F-captured third-party crate sources of the m1-16 research corpus"
+    },
+    {
+      "original_path": "docs/research/m1-16/corpus/selection/sources/unicode-normalization-0.1.25/Cargo.toml",
+      "sha256": "5b133b15dd596c7deaae9c09f6049e643c4371f23aff58cb7a72f2b13134b5c5",
+      "bytes": 1620,
+      "kind": "F-captured third-party crate sources of the m1-16 research corpus"
+    },
+    {
+      "original_path": "docs/research/m1-16/corpus/selection/sources/unicode-normalization-0.1.25/Cargo.toml.orig",
+      "sha256": "39d19d80979b3c71708c1ee1191860aa77c52f3159629346bee75177ff74d838",
+      "bytes": 921,
+      "kind": "F-captured third-party crate sources of the m1-16 research corpus"
+    },
+    {
+      "original_path": "docs/research/m1-16/corpus/selection/sources/unicode-normalization-0.1.25/README.md",
+      "sha256": "91ee30b7c76b5a7dc2cd19252f5dda5a12d2855ea8a218c1ce05e4cc32f62138",
+      "bytes": 1546,
+      "kind": "F-captured third-party crate sources of the m1-16 research corpus"
+    },
+    {
+      "original_path": "docs/research/m1-16/corpus/selection/sources/unicode-segmentation-1.13.3/Cargo.toml",
+      "sha256": "86f0e8158aae32d3791f182cf50131f678462da65a713b18cab6c0b5638f1a50",
+      "bytes": 1926,
+      "kind": "F-captured third-party crate sources of the m1-16 research corpus"
+    },
+    {
+      "original_path": "docs/research/m1-16/corpus/selection/sources/unicode-segmentation-1.13.3/Cargo.toml.orig",
+      "sha256": "af7b6699725f8ae6a3f4bed18b3dafd35e5f90c1851f09362b62f6354cb1d690",
+      "bytes": 1098,
+      "kind": "F-captured third-party crate sources of the m1-16 research corpus"
+    },
+    {
+      "original_path": "docs/research/m1-16/corpus/selection/sources/unicode-segmentation-1.13.3/README.md",
+      "sha256": "07caaad76a308821eee35087521f9c6d980657aec374db8e3e231fa548825d81",
+      "bytes": 5609,
+      "kind": "F-captured third-party crate sources of the m1-16 research corpus"
+    }
+  ],
+  "retired_groups": [
+    {
+      "kind": "F-captured third-party crate sources of the m1-16 research corpus",
+      "reason": "captured third-party crate sources of the m1-16 research corpus: provenance hashes are frozen in freeze.json; the sources are upstream bytes",
+      "files": 53,
+      "bytes": 346860,
+      "aggregate_sha256": "b32381cac18854253d127bd60449a0e393a92c1f6786db651f3518a17c27d40e",
+      "aggregate_rule": "sha256 over the sorted lines \"<sha256>  <original_path>\\n\"",
+      "last_commit_with_bytes": "fd79096ea345d6a93e735cb3fcff99ac31754a91",
+      "retired_at": "2026-09-11T17:42:09.721017+00:00"
+    }
+  ]
+}

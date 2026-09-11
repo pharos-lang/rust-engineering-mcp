@@ -20,7 +20,7 @@ from typing import Any
 
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
-IMAGE_CONFIG = ROOT / "docs/validation/M4-runtime-image.json"
+IMAGE_CONFIG = ROOT / "docs/validation/M4/runtime-image.json"
 OUTPUT = ROOT / "target/m4-runtime-inventory.json"
 IMAGE = "sha256:25ed3626e710081a571a86a29521eaf2e890e796afd422ba5e409e0ce1891635"
 DOCKER = pathlib.Path("/Applications/Docker.app/Contents/Resources/bin/docker")

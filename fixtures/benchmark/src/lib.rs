@@ -67,7 +67,7 @@ pub fn work_slower(n: u64) -> u64 {
 /// **This is not a 1.00x self-compare control, despite the name it was given.**
 /// It was designed as one, and the guest measurement refuted it: `control`
 /// came out 2.9% faster than `reference`
-/// (`docs/validation/M5-01-benchmark-calibration.json`). Walking the same
+/// (`docs/validation/M5/01-benchmark-calibration.json`). Walking the same
 /// indices downwards does not cost the same as walking them upwards on this
 /// hardware, even though the operation count is identical, so the difference is
 /// a systematic instruction-path effect and not measurement noise.

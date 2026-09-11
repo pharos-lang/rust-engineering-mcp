@@ -133,7 +133,7 @@ innecesario `perf` de terceros.
 ## 6. Compromisos
 
 - Ninguna descarga durante un gate. El aprovisionamiento es un paso previo con su
-  propio recibo (`docs/validation/M5-provisioning.json`).
+  propio recibo (`docs/validation/M5/provisioning.json`).
 - Inventario exacto con versión, `sha256`, licencia, notices y SBOM antes de construir.
 - Ausencias declaradas, nunca sustituidas en silencio.
 - La imagen M4 sigue siendo el rollback verificable.

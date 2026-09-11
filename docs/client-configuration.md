@@ -24,10 +24,10 @@ La evidencia preservada del proyecto cubre:
 
 | Cliente | Estado verificado |
 | --- | --- |
-| MCP Inspector 2.5.0 | M4: 27 tools, cinco positivos, cinco negativos, cinco Resource reads y cancelación Tasks; M1/M2 conservan sus recibos. [Recibo M4](validation/M4-clients.json). |
-| Codex 0.153.0 stock | M4: las cinco tools pasaron por el camino síncrono de hasta 60 s y un turno model-directed usó las cinco con resultado `passed`. El cliente no declaró Tasks ni acredita cancelación Tasks. [Recibo M4](validation/M4-clients.json). |
-| Claude Code 2.1.260, Sonnet 5 medium (M2) | Cliente stock restringido a MCP: 17 llamadas/resultados passed, cinco preview/commit, seis opens y receipt final committed. [Intento 5](validation/M2-clients.json), con renovación de referencias explícita en prompt v2; intentos 1–4 fallidos preservados. |
-| Claude Code 2.1.267, `claude-sonnet-5` medium (M5) | Cliente agentic restringido al servidor configurado más `ListMcpResourcesTool`/`ReadMcpResourceTool`: docker-free con los cuatro rechazos declarados ligados a sus roots; runtime con siete llamadas exactas —open, discovery, dos `rust.benchmark.run` propios, comparación positiva `inconclusive`/`insufficient_executions`, `NOT_A_DATASET` con su `criterion_archive` y lectura de esa Resource cuyos bytes hashean al artifact publicado—. Inspector 2.5.0 convierte las quince filas deterministas. [Recibo M5](validation/M5-clients.json); [intentos](validation/m5-clients/attempts.md) 2–5 fallidos preservados. |
+| MCP Inspector 2.5.0 | M4: 27 tools, cinco positivos, cinco negativos, cinco Resource reads y cancelación Tasks; M1/M2 conservan sus recibos. [Recibo M4](validation/M4/clients.json). |
+| Codex 0.153.0 stock | M4: las cinco tools pasaron por el camino síncrono de hasta 60 s y un turno model-directed usó las cinco con resultado `passed`. El cliente no declaró Tasks ni acredita cancelación Tasks. [Recibo M4](validation/M4/clients.json). |
+| Claude Code 2.1.260, Sonnet 5 medium (M2) | Cliente stock restringido a MCP: 17 llamadas/resultados passed, cinco preview/commit, seis opens y receipt final committed. [Intento 5](validation/M2/clients.json), con renovación de referencias explícita en prompt v2; intentos 1–4 fallidos preservados. |
+| Claude Code 2.1.267, `claude-sonnet-5` medium (M5) | Cliente agentic restringido al servidor configurado más `ListMcpResourcesTool`/`ReadMcpResourceTool`: docker-free con los cuatro rechazos declarados ligados a sus roots; runtime con siete llamadas exactas —open, discovery, dos `rust.benchmark.run` propios, comparación positiva `inconclusive`/`insufficient_executions`, `NOT_A_DATASET` con su `criterion_archive` y lectura de esa Resource cuyos bytes hashean al artifact publicado—. Inspector 2.5.0 convierte las quince filas deterministas. [Recibo M5](validation/M5/clients.json); [intentos](validation/M5/clients/attempts.md) 2–5 fallidos preservados. |
 | Gemini CLI, Cursor y VS Code | Configuración derivada del soporte `stdio` oficial de cada cliente; pendiente de calificación con este servidor. |
 
 La [matriz de compatibilidad](compatibility.md) conserva el alcance de plataforma,
@@ -242,8 +242,8 @@ datos, runtime y archivos de confianza son locales y los aporta el operador.
 
 Las cinco definiciones M4 llevaron el inventario del checkout a 27 tools; hoy son
 31 con las cuatro de M5. Las tools M4 están
-calificadas localmente con el [runtime](validation/M4-runtime.json) y los
-[clientes](validation/M4-clients.json); configurar los argumentos en otra máquina
+calificadas localmente con el [runtime](validation/M4/runtime.json) y los
+[clientes](validation/M4/clients.json); configurar los argumentos en otra máquina
 no reproduce esa calificación ni cambia la release `0.1.0`.
 
 Usa la imagen M4 admitida como parte del grupo Docker completo:
@@ -311,7 +311,7 @@ limitada a Inspector 2.5.0 y Codex 0.153.0 en el host local documentado.
 ### Configurar las tools M5
 
 Las cuatro definiciones M5 están implementadas y **calificadas localmente**
-(suite nativa, clientes, `core` y `full`); la [matriz M5](validation/M5-matrix.md)
+(suite nativa, clientes, `core` y `full`); la [matriz M5](validation/M5/matrix.md)
 registra recibos y límites.
 `tools/list` devuelve 31 definiciones —las 27 anteriores sin cambio y las cuatro
 nuevas—. Los recibos previos no acreditan los contratos M5 finales; la matriz
@@ -387,7 +387,7 @@ dataset ni medidas), nunca una medida degradada.
 
 La imagen guest M5 `rust-engineering-runtime:1.98.1-arm64-m5`
 (`sha256:e0a5ca1661b3e49d0a3d68ee3cc0963453078d08eb7fc43c30538c16b7998aac`)
-está construida y con [recibo](validation/M5-provisioning.json), y
+está construida y con [recibo](validation/M5/provisioning.json), y
 [ADR-077](adr/ADR-077-m5-runtime-admission.md) añade exactamente ese digest a la
 lista de admisión del gateway. El puerto de performance exige esa imagen **y solo
 esa**: cualquier otro digest devuelve `unavailable` antes de crear contenedor
@@ -418,7 +418,7 @@ errores de proyecto, runtime, RustSec y catálogo.
 [ADR-050](adr/ADR-050-local-coordinated-mutation.md) fija el modo
 `local_coordinated`. La release `0.1.0` conserva 13 tools; el binario compilado
 desde el checkout `0.3.0` descubre cinco tools M2 adicionales
-[calificadas localmente](validation/M2-07.md).
+[calificadas localmente](validation/M2/07.md).
 
 ### Permisos y runtime
 
@@ -527,7 +527,7 @@ usa TTL predeterminado de 1 h y cuotas de 32 MiB por artifact, 64 MiB por job,
 macOS ARM64/APFS; Linux y Windows fallan cerrados. La CLI
 `quality-artifacts recover|prune` está integrada en `main.rs` y disponible para el
 operador local; ambos subcomandos exigen `--state-root` absoluto y aceptan `--json`.
-[Recibo de upgrade/rollback](validation/M3-06-rollback.md).
+[Recibo de upgrade/rollback](validation/M3/06-rollback.md).
 
 Las cuatro tools de calidad M3 aceptan `execution_mode=auto|task|synchronous`.
 `TASKS_ADVERTISEMENT_READY` está activado tras la puerta G4. Un peer que declare
@@ -541,7 +541,7 @@ ejecutarse síncronamente; `auto` largo devuelve `TASKS_REQUIRED` antes de inici
 trabajo y `task` devuelve `-32602`. Inspector 2.5.0 declaró Tasks en la evidencia;
 Codex CLI/app-server 0.153.0 no la declaró y fue calificado por su fallback
 síncrono. No agregues manualmente la extensión como workaround para un cliente:
-la declaración tiene que venir del peer. [Estado y matriz](validation/M3-02.md).
+la declaración tiene que venir del peer. [Estado y matriz](validation/M3/02.md).
 
 Stage 1 define Resources con URI `rust-quality-artifact://`. El índice de un job
 se lee con su cursor y los artifacts se leen por chunks (`offset` y `length`) desde
@@ -559,7 +559,7 @@ watermark. No edites archivos, borres objetos desconocidos ni reutilices M2
 journals. Los objetos dudosos se ponen en quarantine y un store lleno rechaza
 trabajo nuevo. Un registro con `format_version` desconocido (escrito por un binario
 más nuevo) se rechaza cerrado y se conserva; este binario nunca lo reinterpreta ni
-lo borra. [Recibo](validation/M3-06-rollback.md).
+lo borra. [Recibo](validation/M3/06-rollback.md).
 
 El límite de cuatro planes aplica a propuestas pendientes: los planes terminales
 dejan capacidad para nuevas propuestas en la siguiente admisión. Un commit con

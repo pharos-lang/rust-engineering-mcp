@@ -5,10 +5,10 @@
 Accepted. El gateway sobre la imagen final pasó 13 casos de clasificación y
 7 de admisión/ciclo de vida (202.007 s), incluidos el panic con warning de
 optimizaciones, binary-only, timeout del runner, configuración hostil y
-cancelación observada. El [recibo nativo renovado](../validation/M4-miri-native.json)
-se vincula al [runtime final 19/19](../validation/M4-runtime.json), al
-[full 33/33](../validation/M4-full-gate.json) y a los
-[clientes calificados](../validation/M4-clients.json). El full conserva la
+cancelación observada. El [recibo nativo renovado](../validation/M4/miri-native.json)
+se vincula al [runtime final 19/19](../validation/M4/runtime.json), al
+[full 33/33](../validation/M4/full-gate.json) y a los
+[clientes calificados](../validation/M4/clients.json). El full conserva la
 reanudación documentada después de corregir la ruta local de E5; no hubo cambios
 de source ni descarga. La confirmación independiente final sigue el handoff.
 

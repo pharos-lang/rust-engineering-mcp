@@ -106,4 +106,4 @@ Sin la nueva captura lógica y pruebas de crash por prefijo no se habilita fmt.a
 
 ## Status
 
-Accepted. M2-02, compatibilidad de journal y gate calificados en [M2](../validation/M2-07.md).
+Accepted. M2-02, compatibilidad de journal y gate calificados en [M2](../validation/M2/07.md).

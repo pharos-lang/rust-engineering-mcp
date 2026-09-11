@@ -378,7 +378,7 @@ impl Estimator {
     }
 
     /// Short name used to build a candidate id. Separate from [`Self::wire`] so
-    /// the ids already published in `docs/validation/M5-02-method-simulation.json`
+    /// the ids already published in `docs/validation/M5/02-method-simulation.json`
     /// keep their exact spelling while the estimator keeps its descriptive one.
     fn family(self) -> &'static str {
         match self {

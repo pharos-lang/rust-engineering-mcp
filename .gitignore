@@ -21,10 +21,16 @@ docs/validation/**/*.sqlite
 docs/validation/**/*.sqlite-shm
 docs/validation/**/*.sqlite-wal
 
+# Private store state written by the client-qualification harnesses under each
+# attempt (artifact blobs, store.lock, clock watermark, copied seccomp
+# profiles). Scratch state, never evidence: docs/validation/M<n>/history/
+# inventory.json records the aggregate hash of every retired directory.
+docs/validation/**/state-*/
+
 # Raw M3 delegation agent transcripts (~41 MB of JSONL). They stay on disk;
-# docs/validation/M3-delegation-log-inventory.json records their size and
+# docs/validation/M3/delegation-log-inventory.json records their size and
 # digest and names the files from each package that are committed.
-docs/validation/m3-delegation/**/stdout.txt
+docs/validation/M3/delegation/**/stdout.txt
 
 # Python bytecode from the provisioning and fixture scripts.
 /.claude/settings.local.json
@@ -32,3 +38,32 @@ docs/validation/m3-delegation/**/stdout.txt
 .coverage
 .coverage.*
 **/__pycache__/**
+
+# OS and editor droppings, patch leftovers, probe build directories and
+# packaging output. `.DS_Store` above has no slash, so it already matches at
+# every depth.
+*.dSYM/
+*.orig
+*.rej
+*.swp
+.pytest_cache/
+node_modules/
+target-*/
+dist/
+*.tar.gz
+# Captured crates ship Cargo.toml.orig and fixtures may ship archives: those
+# stay stageable so a re-vendor or a new fixture cannot silently drop them.
+!vendor/**/Cargo.toml.orig
+!fixtures/**/Cargo.toml.orig
+!docs/research/**/Cargo.toml.orig
+!fixtures/**/*.tar.gz
+
+# Raw client-qualification outputs and review input copies are not evidence:
+# each attempt keeps receipt.json and protocol.jsonl, each review package
+# keeps inputs.json with the hashes. docs/validation/README.md explains.
+docs/validation/**/clients/**/*.stdout
+docs/validation/**/clients/**/*.stderr
+docs/validation/**/clients/**/*-events.jsonl
+docs/validation/**/clients/**/harness-stderr.txt
+docs/reviews/**/inputs/
+docs/reviews/**/additional-inputs/

@@ -1,8 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<testsuites name="nextest-run" tests="1" skipped="1" failures="0" errors="0" uuid="66f65f9f-6522-4928-8717-2993f5ad4ae6" timestamp="2026-09-08T06:20:29.851+00:00" time="0.000">
-    <testsuite name="m4-miri-ignored" tests="1" skipped="1" errors="0" failures="0">
-        <testcase name="ignored_test_must_not_credit_clean" classname="m4-miri-ignored" time="0.000">
-            <skipped message="Skipped: test does not match the run-ignored option"/>
-        </testcase>
-    </testsuite>
-</testsuites>

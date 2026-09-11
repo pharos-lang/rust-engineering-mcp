@@ -1,6 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<testsuites name="nextest-run" tests="1" skipped="0" failures="0" errors="0" uuid="98133953-388e-4aac-90db-6637f0defb79" timestamp="2026-09-08T03:16:15.513+00:00" time="0.410">
-    <testsuite name="m4-miri-clean" tests="1" skipped="0" errors="0" failures="0">
-        <testcase name="cfg_miri_and_benign_code_pass" classname="m4-miri-clean" timestamp="2026-09-08T03:16:15.513+00:00" time="0.410"/>
-    </testsuite>
-</testsuites>

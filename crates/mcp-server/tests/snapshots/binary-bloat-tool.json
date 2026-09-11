@@ -4,7 +4,7 @@
   "inputSchema": {
     "$defs": {
       "BloatProfile": {
-        "description": "The two closed build profiles this tool accepts, echoed back from the\nrequest so a response is self-describing. Neither is requested from the\nanalyzer with `--profile`: `release_lto` is `--release` plus the\nproduct-owned `CARGO_PROFILE_RELEASE_LTO=fat` environment variable, never a\ncaller-supplied profile name (`docs/validation/M5-04-bloat-calibration.json`).",
+        "description": "The two closed build profiles this tool accepts, echoed back from the\nrequest so a response is self-describing. Neither is requested from the\nanalyzer with `--profile`: `release_lto` is `--release` plus the\nproduct-owned `CARGO_PROFILE_RELEASE_LTO=fat` environment variable, never a\ncaller-supplied profile name (`docs/validation/M5/04-bloat-calibration.json`).",
         "enum": [
           "release",
           "release_lto"
@@ -271,7 +271,7 @@
         "type": "object"
       },
       "BloatProfile": {
-        "description": "The two closed build profiles this tool accepts, echoed back from the\nrequest so a response is self-describing. Neither is requested from the\nanalyzer with `--profile`: `release_lto` is `--release` plus the\nproduct-owned `CARGO_PROFILE_RELEASE_LTO=fat` environment variable, never a\ncaller-supplied profile name (`docs/validation/M5-04-bloat-calibration.json`).",
+        "description": "The two closed build profiles this tool accepts, echoed back from the\nrequest so a response is self-describing. Neither is requested from the\nanalyzer with `--profile`: `release_lto` is `--release` plus the\nproduct-owned `CARGO_PROFILE_RELEASE_LTO=fat` environment variable, never a\ncaller-supplied profile name (`docs/validation/M5/04-bloat-calibration.json`).",
         "enum": [
           "release",
           "release_lto"

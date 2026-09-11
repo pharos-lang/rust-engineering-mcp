@@ -38,7 +38,7 @@ class HarnessTests(unittest.TestCase):
             "scripts/test-m3-clients.py", "scripts/m3-inspector-session.mjs",
             "scripts/codex-model-qualifier.py", "scripts/test-m4-clients.py",
             "scripts/m4-inspector-session.mjs", "scripts/test-m4-clients-unit.py",
-            "docs/validation/m1-17-codex-client/controller.py",
+            "docs/validation/M1/17-codex-client/controller.py",
         })
         self.assertTrue(all(len(value) == 64 for value in result["source_sha256"].values()))
 

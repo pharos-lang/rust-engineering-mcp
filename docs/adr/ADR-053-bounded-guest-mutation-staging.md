@@ -71,7 +71,7 @@ pruebas adversariales de parser, scope, proyecto hostil y cleanup de producción
 
 ## Evidence
 
-[Probe y recibo D04](../validation/M2-D04-native-qualification.md): Docker29.7.2
+[Probe y recibo D04](../validation/M2/D04-native-qualification.md): Docker29.7.2
 LinuxARM64,79observaciones, bytes/inodos ENOSPC y pérdida al último unmount.
 Fuentes oficiales: [local-driver options](https://docs.docker.com/reference/cli/docker/volume/create/#driver-specific-options--o---opt),
 [tmpfs limits](https://docs.docker.com/engine/storage/tmpfs/) y
@@ -79,4 +79,4 @@ Fuentes oficiales: [local-driver options](https://docs.docker.com/reference/cli/
 
 ## Status
 
-Accepted. D04 y M2-02/03 implementados y calificados: [cierre M2](../validation/M2-07.md).
+Accepted. D04 y M2-02/03 implementados y calificados: [cierre M2](../validation/M2/07.md).

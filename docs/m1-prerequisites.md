@@ -56,11 +56,11 @@ actual: implementation-status.md, ci.md y validation/M0-12.md.
 
 Workers/admisión ADR-030 integrados localmente: core201 tests y smoke23/23.
 Runtime Rust/Cargo1.98.1 Linux ARM64 instalado por autorización explícita, fijado
-por image ID y reverificado ([evidencia](validation/M1-01-runtime.md)). La captura
+por image ID y reverificado ([evidencia](validation/M1/01-runtime.md)). La captura
 ADR-031 está integrada (`e2d6ae0`, smoke18/18). El gateway Rust pasa seis escenarios
-reales y el gate core245 ([evidencia](validation/M1-01-rust-gateway.md)); revisión
+reales y el gate core245 ([evidencia](validation/M1/01-rust-gateway.md)); revisión
 Opus5 resuelta. Readiness de bootstrap, espera de cleanup en MCP y metadata
-están implementados en ADR-032, con validación M1-01 en [evidencia](validation/M1-01.md).
+están implementados en ADR-032, con validación M1-01 en [evidencia](validation/M1/01.md).
 
 M1-03 conecta el punto5 para logs de check: ArtifactStore efímero, Resources con
 autorización live/owner/retención y presupuestos; diffs y persistencia siguen

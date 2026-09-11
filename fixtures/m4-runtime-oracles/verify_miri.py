@@ -68,7 +68,7 @@ def main():
         "passed": passed, "gateway_approved": False, "rootfs_readonly": True, "source_readonly": True, "network": "none",
         "exit_code": result.returncode, "stdout": result.stdout.decode(), "stderr": result.stderr.decode(), "cleanup_confirmed": True,
         "script_sha256": digest(pathlib.Path(__file__).read_bytes()), "claim": "first-party fixture only; no hostile-project or gateway qualification"}
-    (ROOT / "docs/validation/M4-prepared-miri.json").write_text(json.dumps(receipt, indent=2) + "\n")
+    (ROOT / "docs/validation/M4/prepared-miri.json").write_text(json.dumps(receipt, indent=2) + "\n")
     print(json.dumps(receipt, indent=2))
     if not passed:
         raise SystemExit(1)

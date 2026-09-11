@@ -405,7 +405,7 @@ impl Phase {
                 "--no-times",
             ],
             // Closed argv per the pinned cargo-mutants 27.1.0 help
-            // (`docs/validation/m3-provisioning/help/cargo-mutants-help.stdout`).
+            // (`docs/validation/M3/provisioning/help/cargo-mutants-help.stdout`).
             // The mandatory baseline is `--baseline run`: that binary's
             // `--baseline` accepts only `run`/`skip`, so the M3-05 "baseline
             // auto" intent is expressed as the explicit, non-skippable run.
@@ -581,7 +581,7 @@ fn append_coverage_selection(
 /// `--features`/`--all-features`/etc. set, applied to both the baseline and
 /// current crate, never `--baseline-features`/`--current-features`. The
 /// pinned `check-release --help` (see
-/// `docs/validation/m3-provisioning/help/cargo-semver-checks-check-release-help.stdout`)
+/// `docs/validation/M3/provisioning/help/cargo-semver-checks-check-release-help.stdout`)
 /// exposes no `--no-default-features` flag; `--only-explicit-features` is the
 /// closest documented equivalent ("Use no features except ones explicitly
 /// added by other flags") and is used here as a provisional mapping pending

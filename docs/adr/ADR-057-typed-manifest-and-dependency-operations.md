@@ -99,4 +99,4 @@ targets, herencia, workspace virtual, no-op y errores Cargo antes de Done.
 
 ## Status
 
-Accepted. M2-04/05/06 calificados en [M2](../validation/M2-07.md). M3 y edición arbitraria siguen fuera de scope.
+Accepted. M2-04/05/06 calificados en [M2](../validation/M2/07.md). M3 y edición arbitraria siguen fuera de scope.
