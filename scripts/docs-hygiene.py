@@ -55,8 +55,8 @@ LIVING_PREFIXES = (
     "docs/reviews/",
 )
 FROZEN_PATTERNS = (
-    re.compile(r"^docs/reviews/[^/]+/inputs/"),
-    re.compile(r"^docs/reviews/[^/]+/prompt\.md$"),
+    re.compile(r"^docs/reviews/(M\d/)?[^/]+/inputs/"),
+    re.compile(r"^docs/reviews/(M\d/)?[^/]+/prompt\.md$"),
     re.compile(r"^docs/validation/(M3/delegation|m3-delegation)/"),
     re.compile(r"^docs/research/m1-16/corpus/selection/sources/"),
     re.compile(r"^docs/research/m1-16/measurement/results/"),
