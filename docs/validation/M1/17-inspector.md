@@ -16,7 +16,7 @@ This does not assert network isolation of Inspector or the browser itself.
 The tested local release executable SHA256 is
 `7a99038be57429e1db32c91d01772e7efd104691828253f45ed3bbb0e9330417`.
 Its original build binding is recorded in the M1-15 accepted-source receipt; the
-M1-17 [source-equivalence receipt](../../release/candidate/m1-17-source-equivalence.json)
+M1-17 [source-equivalence receipt](../../release/0.1.0/candidate/m1-17-source-equivalence.json)
 rechecked all 238 selected inputs against candidate commit `d024c7c` with zero
 mismatches. This is source-input equivalence, not a reproducible rebuild.
 The [UI hashes](17-inspector/ui/hashes.json) additionally bind the launcher,

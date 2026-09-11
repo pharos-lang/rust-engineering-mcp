@@ -207,7 +207,7 @@ This profile is not a claim of denying every host network operation.
 
 Checked-in [receipts](candidate/) preserve bounded machine evidence; large binaries,
 archives and command logs remain in the ignored local target directory.
-[Reproduction](reproduction/README.md) preserves the exact scripts and explains
+[Reproduction](../reproduction/README.md) preserves the exact scripts and explains
 their controlled input/ownership scope. No generic installer for hostile archives
 is introduced; the product catalog importer remains the authenticated boundary.
 
@@ -216,8 +216,8 @@ preserves the actual pre-commit HEAD and dirty status; the latter establishes
 identity with merged main01a90ab6 for all238 compiled inputs. Historical build
 metadata is not rewritten to pretend the build ran after that merge.
 
-[Independent Sonnet5 review](../validation/M1/15-review-sonnet.md) found no
-High/Critical issue; [principal disposition](../validation/M1/15-review-disposition.md)
+[Independent Sonnet5 review](../../validation/M1/15-review-sonnet.md) found no
+High/Critical issue; [principal disposition](../../validation/M1/15-review-disposition.md)
 records the two Low observations and trust-boundary qualifications.
 
 Integrated commit20e7e70 / merge93023be. Post-merge smoke rehashed all238 source

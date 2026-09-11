@@ -8,7 +8,7 @@ the stable release are recorded in the [public release receipt](17-public-releas
 
 The final local client-qualified binary SHA-256 is
 `ebcb292c71d863aabb900874651230d0a16d5c93f68da84afb84bd89f4977edf` and the
-[local artifact receipt](../../release/0.1.0-local-artifact-receipt.json) binds it to
+[local artifact receipt](../../release/0.1.0/local-artifact-receipt.json) binds it to
 source commit `a6ea6b782e57271c01885bd147e5b66835ed9f8d`. The independently built public
 binary SHA-256 is `8f6f8c754ae3bde6cc2089ffb5c6360e5c9ebb61af7f022477ee10a30ed336ef`
 and its [public receipt](17-public-release.json) binds it to tagged commit
@@ -24,7 +24,7 @@ Actions builds is not claimed; each evidence set qualifies its own bytes.
 | M1-12 crate search | [Core/native search and postmerge](12.md) | Integrated; lexical/semantic/hybrid, fallback and ES/EN cases; no general relevance claim |
 | M1-13 crate inspection | [Core/native inspection and postmerge](13.md) | Integrated; authoritative SQLite facts, bounded paging and thirteen tools |
 | M1-14 CLI/doctor | [Core/active/cancellation and postmerge](14.md) | Integrated; historical 645 includes 644 tests plus one doctest; fresh gate reports those stages separately |
-| M1-15 release | [Offline candidates](../../release/offline-candidates.md), [local core receipt](../../release/0.1.0-local-artifact-receipt.json), [public receipt](17-public-release.json) | Historical candidates retained; final tagged core artifact published and independently verified |
+| M1-15 release | [Offline candidates](../../release/0.1.0/offline-candidates.md), [local core receipt](../../release/0.1.0/local-artifact-receipt.json), [public receipt](17-public-release.json) | Historical candidates retained; final tagged core artifact published and independently verified |
 | M1-16 experiments | [Completed pilot](16.md), [utility report](../../research/m1-16/measurement/REPORT.md), [retrieval benchmark](../../research/m1-16/benchmark/REPORT.md) | Utility pilot saturated with no equivalence/value claim; retrieval run is bounded/descriptive only |
 | M1-17 Inspector | [Actual Inspector qualification](17-inspector.md) | 13/13 positive calls through persistent UI; cancellation notification observed; UI Resource read unqualified |
 | M1-17 stock client | [Historical supplement](17-codex-client.md), [final model-directed run](17-codex-model.md) | Codex 0.153.0 model called the final binary, repaired E0502 to green and observed missing-runtime fail-closed |
@@ -86,7 +86,7 @@ failed evidence and are never substituted for product or agent evidence.
 | Resolved delivery decision | GitHub artifact provenance | Keyless GitHub OIDC attestations; no long-lived repository signing secret |
 | Resolved by ADR-048 | No official catalog in 0.1.0 | No catalog/trust/fixture/private or public production key is shipped; future publication needs a new decision |
 | Excluded artifact limitation | Kanaria/E5/ORT/LanceDB redistribution | These remain visible for source builders but are prohibited from the core archive closure |
-| Local and public artifact evidence | Core target notice inventory and SPDX SBOM | [Local archive receipt](../../release/0.1.0-local-artifact-receipt.json) and [tagged public receipt](17-public-release.json) passed the same contract |
+| Local and public artifact evidence | Core target notice inventory and SPDX SBOM | [Local archive receipt](../../release/0.1.0/local-artifact-receipt.json) and [tagged public receipt](17-public-release.json) passed the same contract |
 | Final delivery | Artifact attestation/publication | GitHub OIDC attestations, independent download/smoke and stable Release passed |
 | Resolved product metadata | Eight workspace crates previously had no product grant | All inherit `MIT OR Apache-2.0`; release-specific third-party notice work remains open |
 
@@ -97,12 +97,12 @@ The closure does not rely on a declaration, `cargo deny` alone or a historical c
 
 | Gate | Evidence | Status |
 | --- | --- | --- |
-| Candidate binary/source link | [238-input equivalence receipt](../../release/candidate/m1-17-source-equivalence.json) | Passed without rebuild; reproducible-build equality not claimed |
+| Candidate binary/source link | [238-input equivalence receipt](../../release/0.1.0/candidate/m1-17-source-equivalence.json) | Passed without rebuild; reproducible-build equality not claimed |
 | Full local gate | [Final full v2 receipt](17-final-gate-v2.json) | Passed all 23 stages on macOS ARM64 |
 | Third-party clients | [Inspector history](17-inspector.md), [final Inspector receipt](17-inspector-final.json), [final stock Codex](17-codex-model.md) | Final core binary repeated with Inspector 2.5.0 and a model-directed Codex 0.153.0 flow |
 | Tool contract stability | [Two-session canonical inventory](17-codex-client/tool-inventory-canonicalization.json) | Deep-equal; insertion-order historical digests superseded |
 | Native semantics/performance | M1-12 actual paths; bounded retrieval benchmark and utility pilot | macOS ARM64 source evidence only; no general utility/quality claim |
-| Licensing/notices | [Preparation](../../release/preparation.md), [local archive receipt](../../release/0.1.0-local-artifact-receipt.json) | Core archive passed; local/model/native assets excluded |
+| Licensing/notices | [Preparation](../../release/0.1.0/preparation.md), [local archive receipt](../../release/0.1.0/local-artifact-receipt.json) | Core archive passed; local/model/native assets excluded |
 | Signed distribution | [Public release receipt](17-public-release.json) | Three subjects verified against tag, source commit and signer workflow; no official catalog distribution |
 | Independent final review | [Final Opus 5 read-only review](../../reviews/M1/M1-closure-final-claude-opus-5.md) | Accepted/ready; model-authored, not human; zero P0/P1 and P2 publication conditions resolved |
 | Closure | This matrix, board and [release](https://github.com/pharos-lang/rust-engineering-mcp/releases/tag/v0.1.0) | **Done** |

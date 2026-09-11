@@ -95,7 +95,7 @@ Therefore these runs prove stock Codex's direct MCP client methods and Resource 
 but they do not prove model-driven use in this closed profile.
 
 The candidate binary's 238 selected inputs also match `d024c7c` in the
-[source-equivalence receipt](../../release/candidate/m1-17-source-equivalence.json).
+[source-equivalence receipt](../../release/0.1.0/candidate/m1-17-source-equivalence.json).
 The [preservation receipt](17-codex-client/preservation-receipt.json) binds the
 original ignored event streams and every retained artifact. Repository copies of
 the event streams remove raw system/developer messages and account rate-limit

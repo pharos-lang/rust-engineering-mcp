@@ -45,8 +45,8 @@ INICIO OBLIGATORIO
    docs/spec/rust-engineering-mcp-propuesta-v0.3.md.
 2. Lee docs/implementation-status.md, docs/ci.md, docs/publication.md,
    docs/validation/M1/17.md, docs/validation/M1/17-matrix.md,
-   docs/validation/M1/17-review-disposition.md, docs/release/preparation.md,
-   docs/release/offline-candidates.md y todos los ADR relevantes, especialmente
+   docs/validation/M1/17-review-disposition.md, docs/release/0.1.0/preparation.md,
+   docs/release/0.1.0/offline-candidates.md y todos los ADR relevantes, especialmente
    ADR-009, 019, 029, 031, 038, 041 y 047.
 3. Inspecciona git status, ramas, árbol, manifests, Cargo.lock, tests, CI pública,
    branch protection, releases, tags, alertas y artifacts reales.

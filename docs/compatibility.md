@@ -374,7 +374,7 @@ hechos diferentes. [ADR-045](adr/ADR-045-cli-doctor.md).
 
 ## M1-15 — Candidatos locales
 
-Candidatos release macOS arm64 ejecutados desde instalación privada: core/local version y doctor activo. Firma ad hoc verificada localmente; no notarización ni evidencia de otros hosts. Véase [candidatos](release/offline-candidates.md).
+Candidatos release macOS arm64 ejecutados desde instalación privada: core/local version y doctor activo. Firma ad hoc verificada localmente; no notarización ni evidencia de otros hosts. Véase [candidatos](release/0.1.0/offline-candidates.md).
 
 La release final sustituye esos candidatos como canal soportado: `v0.1.0` publica
 solo core macOS ARM64 y usa provenance OIDC, checksum y smoke sobre los bytes

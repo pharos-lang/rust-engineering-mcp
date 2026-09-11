@@ -2,7 +2,7 @@
 
 Final outcome: M1-15 closed on 2026-09-05 with the stable
 [GitHub Release v0.1.0](https://github.com/pharos-lang/rust-engineering-mcp/releases/tag/v0.1.0).
-The [public receipt](../validation/M1/17-public-release.json) supersedes this file
+The [public receipt](../../validation/M1/17-public-release.json) supersedes this file
 for final tag, CI, asset, smoke and provenance facts. This procedure remains the
 historical preparation record and does not authorize any excluded artifact.
 
@@ -11,7 +11,7 @@ Prepared 2026-09-04 against development baseline
 The owner subsequently approved public source publication in ADR-047 and the 0.1.0
 artifact/host/catalog boundary in ADR-048. This document alone does not close M1-15
 or authorize model, local-feature or catalog distribution.
-The completed executable gates are linked from [implementation status](../implementation-status.md).
+The completed executable gates are linked from [implementation status](../../implementation-status.md).
 
 ## Concrete owner decisions
 
@@ -50,10 +50,10 @@ the release procedure must compute the actual target-filtered dependency closure
    native libraries and their third-party components are not fully described by
    Rust package SPDX fields. Repeat against the final link/build manifest.
 4. For source qualification, preserve vendored LanceDB provenance and the exact manifest-only patch under
-   [ADR-027](../adr/ADR-027-semantic-offline-foundation.md). Its local Cargo.toml
+   [ADR-027](../../adr/ADR-027-semantic-offline-foundation.md). Its local Cargo.toml
    declares Apache-2.0; this declaration alone is not a complete notice bundle.
 5. For source qualification, join the five model files to
-   [model-receipt.json](../../fixtures/semantic/model-receipt.json): E5 revision
+   [model-receipt.json](../../../fixtures/semantic/model-receipt.json): E5 revision
    `614241f622f53c4eeff9890bdc4f31cfecc418b3`, tokenizer/config/model hashes,
    and publisher-declared MIT metadata. The receipt records no separate license
    file in the inspected listing. Resolve license-text/notice packaging explicitly;
@@ -96,14 +96,14 @@ only `aarch64-apple-darwin` target observed; Claude Code2.1.260 and Codex CLI0.1
 installed. Historical Inspector/direct Codex evidence exists, but a candidate-bound
 model-driven run and final Inspector repetition remain pending. Linux/Windows CI is
 portable/fail-closed, not positive host qualification. Inspector2.5.0 was installed in an isolated local directory with
-explicit owner approval; its CLI qualification is recorded separately. See [release matrix](../validation/M1/17-matrix.md).
+explicit owner approval; its CLI qualification is recorded separately. See [release matrix](../../validation/M1/17-matrix.md).
 
 ## Executed local preparation
 
 [Inventory](inventory.json) and [candidate exact notices](THIRD_PARTY_NOTICES.candidate.txt)
 were regenerated offline from587 resolved packages (579 third parties),991 distinct
 local product/third-party texts. Thirty third-party packages had no local text.
-[Upstream supplement](upstream-licenses/README.md) retains
+[Upstream supplement](../upstream-licenses/README.md) retains
 original texts at exact VCS revisions for30 of31 third-party gaps, plus versioned
 ORT LICENSE/ThirdPartyNotices and the E5 model card. Root/monorepo applicability is
 an explicitly recorded inference requiring review. Kanaria0.2.0 source404 and E5
@@ -132,7 +132,7 @@ runs remain pending for final closure. ADR-048 excludes local/model/native asset
 from the release archive, so their unresolved redistribution evidence remains a
 source-builder limitation rather than a 0.1.0 artifact blocker.
 
-The separate [native retrieval benchmark](../research/m1-16/benchmark/REPORT.md)
+The separate [native retrieval benchmark](../../research/m1-16/benchmark/REPORT.md)
 records one bounded 8-query/15-crate descriptive run, including latency and sampled
 RSS. It does not establish general quality, multilingual coverage or agent utility;
 the saturated paired utility pilot remains a distinct experiment with no equivalence

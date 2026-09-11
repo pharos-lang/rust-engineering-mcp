@@ -14,7 +14,8 @@ import subprocess
 import tomllib
 
 ROOT = Path(__file__).resolve().parents[1]
-OUTPUT = ROOT / "docs/release"
+# The recorded 0.1.0 candidate inventory; later candidates pass --output.
+OUTPUT = ROOT / "docs/release/0.1.0"
 TEXT_NAME = re.compile(r"^(?:licen[sc]e|copying|notice|third[-_]?party[-_]?notices)(?:$|[._-])", re.I)
 
 
@@ -78,12 +79,15 @@ def main():
     parser.add_argument("--ort-dir", type=Path, required=True,
                         help="Existing approved native artifact directory; never provisioned")
     parser.add_argument("--check", action="store_true")
+    parser.add_argument("--output", type=Path, default=OUTPUT,
+                        help="Directory for inventory.json and THIRD_PARTY_NOTICES.candidate.txt")
     args = parser.parse_args()
+    output = args.output if args.output.is_absolute() else ROOT / args.output
     source_commit = command("git", "rev-parse", "HEAD")
     if args.check:
         # Recheck the recorded inventory inputs, not the commit containing this artifact.
         # Lock, package manifests, features, texts and this script are still recomputed.
-        source_commit = json.loads((OUTPUT / "inventory.json").read_text())["git_commit"]
+        source_commit = json.loads((output / "inventory.json").read_text())["git_commit"]
         if not re.fullmatch(r"[0-9a-f]{40}", source_commit):
             raise SystemExit("Invalid recorded source revision")
     lock_bytes = (ROOT / "Cargo.lock").read_bytes()
@@ -246,8 +250,8 @@ def main():
                     "text_files": len({t["path"] for p in packages for t in p["texts"]}) + len(ort_texts)},
         "candidate_notices_sha256": sha(notices),
     }
-    outputs = {OUTPUT / "inventory.json": (json.dumps(inventory, indent=2, sort_keys=True) + "\n").encode(),
-               OUTPUT / "THIRD_PARTY_NOTICES.candidate.txt": bytes(notices)}
+    outputs = {output / "inventory.json": (json.dumps(inventory, indent=2, sort_keys=True) + "\n").encode(),
+               output / "THIRD_PARTY_NOTICES.candidate.txt": bytes(notices)}
     for path, data in outputs.items():
         if args.check:
             if not path.is_file() or path.read_bytes() != data:

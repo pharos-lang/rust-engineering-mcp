@@ -7,7 +7,10 @@ publication remains disabled.
 
 The first public commit is a sanitized snapshot rather than a push of the private
 development graph. `PUBLICATION-SNAPSHOT.json` in that public commit binds it to the
-local source commit and lists every UTF-8 file whose local home/user path was replaced.
+local source commit and lists every UTF-8 file whose local home/user path was replaced;
+the retained copy now lives at
+[`docs/release/0.1.0/PUBLICATION-SNAPSHOT.json`](release/0.1.0/PUBLICATION-SNAPSHOT.json)
+next to the rest of the 0.1.0 release evidence.
 No production source is omitted. Historical receipts that hash an unredacted evidence
 file continue to describe the retained local original; the public snapshot manifest
 records the public file's replacement hash. The local repository keeps its full
