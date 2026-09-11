@@ -72,7 +72,6 @@ PATH_STRING_PREFIXES = (
     "docs/prompts/",
     "docs/release/",
     "docs/research/",
-    "PUBLICATION-SNAPSHOT.json",
 )
 
 INLINE_LINK = re.compile(r"(!?\[[^\]]*\]\()(<[^>]*>|[^)\s]+)((?:\s+\"[^\"]*\")?\))")
