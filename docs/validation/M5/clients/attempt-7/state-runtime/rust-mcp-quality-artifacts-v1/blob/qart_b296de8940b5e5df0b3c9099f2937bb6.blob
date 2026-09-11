@@ -1,4 +1,0 @@
-   Compiling bloat-inner v0.1.0 (/source/bloat-inner)
-   Compiling rust-mcp-bloat-fixture v0.1.0 (/source)
-    Finished `bench` profile [optimized] target(s) in 0.30s
-     Running unittests src/main.rs (/work/target/release/deps/rust_mcp_bloat_fixture-beffda2ca4bad28d)

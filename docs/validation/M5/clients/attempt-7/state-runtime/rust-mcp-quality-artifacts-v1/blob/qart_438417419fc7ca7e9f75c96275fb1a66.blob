@@ -1,4 +1,0 @@
-m5/reference            time:   [3.1263 µs 3.1425 µs 3.1619 µs]
-m5/slower_125           time:   [3.9044 µs 3.9227 µs 3.9447 µs]
-m5/control              time:   [3.1306 µs 3.1477 µs 3.1706 µs]
-

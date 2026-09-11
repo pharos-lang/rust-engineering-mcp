@@ -1,7 +1,7 @@
 {
   "schema": "rust-mcp-evidence-history-inventory-v1",
   "milestone": "M3",
-  "recorded_at": "2026-09-11T13:12:50.468518+00:00",
+  "recorded_at": "2026-09-11T13:14:33.195574+00:00",
   "source_commit": "f678f12295383bbc7129f3683c9d2a131271f26a",
   "purpose": "Superseded or failed evidence kept next to the current receipts of this milestone. Bytes are moved with git mv, never edited: each entry records the pre-hygiene path, SHA-256 and size. Retired entries were removed from the tree after their hash was recorded; their bytes remain reachable in Git history at source_commit.",
   "retained": [
@@ -251,5 +251,1130 @@
       "reason": "rust-security receipt captured on 0.2.0-dev; superseded by the release receipt; current receipt: docs/validation/M3/rust-security.json."
     }
   ],
-  "retired": []
+  "retired": [
+    {
+      "original_path": "docs/validation/M3/clients/attempt-1/state-inspector",
+      "pre_hygiene_path": "docs/validation/m3-clients/attempt-1/state-inspector",
+      "kind": "private-store-state",
+      "files": 2,
+      "bytes": 61,
+      "aggregate_sha256": "73577678ba232e925d34164be8500f6d0a2a008fbbb13835b8242387467d0ec1",
+      "aggregate_rule": "sha256 over the sorted lines \"<sha256>  <path>\\n\" of entries",
+      "last_commit_with_bytes": "ad007b571735e89ac5cd47381f6963b11c477e99",
+      "reason": "Private store state of one client-qualification session (artifact blobs, store.lock, clock watermark, copied seccomp profiles). It is per-attempt scratch state, not evidence: the attempt receipt, protocol.jsonl and transcripts stay. The harness creates a fresh state-* for every new attempt and never reads an old one.",
+      "entries": [
+        {
+          "path": "rust-mcp-quality-artifacts-v1/clock-watermark.json",
+          "sha256": "888dd0584b1713cbac035b4c61973378ce6ba53764c6fda9c151f1184f3ad0ee",
+          "bytes": 61
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/store.lock",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "bytes": 0
+        }
+      ]
+    },
+    {
+      "original_path": "docs/validation/M3/clients/attempt-10/state-codex",
+      "pre_hygiene_path": "docs/validation/m3-clients/attempt-10/state-codex",
+      "kind": "private-store-state",
+      "files": 16,
+      "bytes": 26912,
+      "aggregate_sha256": "449d276fe43068f2f55ae3368da32f1f93d01eed4bb86bd94a38cf31dde5c376",
+      "aggregate_rule": "sha256 over the sorted lines \"<sha256>  <path>\\n\" of entries",
+      "last_commit_with_bytes": "ad007b571735e89ac5cd47381f6963b11c477e99",
+      "reason": "Private store state of one client-qualification session (artifact blobs, store.lock, clock watermark, copied seccomp profiles). It is per-attempt scratch state, not evidence: the attempt receipt, protocol.jsonl and transcripts stay. The harness creates a fresh state-* for every new attempt and never reads an old one.",
+      "entries": [
+        {
+          "path": "rust-mcp-control-e00fbdb83685c29c6c97ea7ec82e8257/config.json",
+          "sha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+          "bytes": 2
+        },
+        {
+          "path": "rust-mcp-control-e00fbdb83685c29c6c97ea7ec82e8257/seccomp-rust-fix.json",
+          "sha256": "0dc7bbbbf8f7e2a47c784488c49bbc7ffd6acac83b6f15e4fe2f0b9c1f642f15",
+          "bytes": 4018
+        },
+        {
+          "path": "rust-mcp-control-e00fbdb83685c29c6c97ea7ec82e8257/seccomp-rust-quality.json",
+          "sha256": "c288305c9fdba791926a9154fe47a1f53a30d61501cd9d059a78467866ccf938",
+          "bytes": 3814
+        },
+        {
+          "path": "rust-mcp-control-e00fbdb83685c29c6c97ea7ec82e8257/seccomp-rust.json",
+          "sha256": "f9d31acb22989dc6ac37c02d4c73acfbbb3b74b5e08beff9983f3a811fd4e56d",
+          "bytes": 3379
+        },
+        {
+          "path": "rust-mcp-control-e00fbdb83685c29c6c97ea7ec82e8257/seccomp-socket.json",
+          "sha256": "1f5dd6201d129405e1c48c64d796a46704f60bdd7eb2c4d82ffc1b6cf6b4ce31",
+          "bytes": 2869
+        },
+        {
+          "path": "rust-mcp-control-e00fbdb83685c29c6c97ea7ec82e8257/seccomp.json",
+          "sha256": "aad227ba23e1bd6cde69b344b54fef09b0881b18654aacf5303929c8c14aa514",
+          "bytes": 2851
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/blob/qart_14acc6a9ca9843ea349772e5e09c9cca.blob",
+          "sha256": "c5bab543aa547e2f57a0a1b1313185a366cd8cd16b9fc90f0c90e2d25986a8d3",
+          "bytes": 711
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/blob/qart_4c6131cbda1c79f3027450aeb3645309.blob",
+          "sha256": "51b9b97f1a2a42b572a2abdf4eac4414dafed2e5fa012b625d09287aaab28122",
+          "bytes": 1707
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/blob/qart_591101aef7cb9a769bb1a7eb86c98971.blob",
+          "sha256": "ebe197a0642d48b563b6055d4565d796c3ba9fdff9d1a655a03a4e0fc90ba9c6",
+          "bytes": 1212
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/blob/qart_87cf4d0b2cc466837e613ffcaa3f0568.blob",
+          "sha256": "c4a198940db8a6b2830d0321df0bdbe3c0cfa6a5f5b57e6d1042c562cdc476b4",
+          "bytes": 562
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/clock-watermark.json",
+          "sha256": "0870b9a9a4e7dcffb944f684565f88529990a738e0962b142f79814b6e99c328",
+          "bytes": 61
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/descriptor/qart_14acc6a9ca9843ea349772e5e09c9cca.json",
+          "sha256": "d1cf250b5839acba8b810a9655764c5e5e074eaa66a2a9388d625c2b4e11cf14",
+          "bytes": 1430
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/descriptor/qart_4c6131cbda1c79f3027450aeb3645309.json",
+          "sha256": "82cb42ea0c37d85cc0c127f3dff315b112a2e0ea9a2b49a197eba9e478c77863",
+          "bytes": 1438
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/descriptor/qart_591101aef7cb9a769bb1a7eb86c98971.json",
+          "sha256": "e2cbfb2c29247e8add04bf249b91b9d0ff74873de49dfb15cc008607961ae206",
+          "bytes": 1435
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/descriptor/qart_87cf4d0b2cc466837e613ffcaa3f0568.json",
+          "sha256": "21f1c5fac8b8178d588398a3031a9b0b0465d8c21476f5f00ad45fef0a3dddf7",
+          "bytes": 1423
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/store.lock",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "bytes": 0
+        }
+      ]
+    },
+    {
+      "original_path": "docs/validation/M3/clients/attempt-10/state-inspector",
+      "pre_hygiene_path": "docs/validation/m3-clients/attempt-10/state-inspector",
+      "kind": "private-store-state",
+      "files": 10,
+      "bytes": 9974,
+      "aggregate_sha256": "e59497cc321b96a5e8919b0b2ec3d4e60058985a4c358b5cf13909184f06f717",
+      "aggregate_rule": "sha256 over the sorted lines \"<sha256>  <path>\\n\" of entries",
+      "last_commit_with_bytes": "ad007b571735e89ac5cd47381f6963b11c477e99",
+      "reason": "Private store state of one client-qualification session (artifact blobs, store.lock, clock watermark, copied seccomp profiles). It is per-attempt scratch state, not evidence: the attempt receipt, protocol.jsonl and transcripts stay. The harness creates a fresh state-* for every new attempt and never reads an old one.",
+      "entries": [
+        {
+          "path": "rust-mcp-quality-artifacts-v1/blob/qart_1dec6fbe4ee87307e85a92ef8fa7a9f3.blob",
+          "sha256": "a9be322ac624aa64847674f041b6dbd72ef15427223968b38c1633958cbfbcc0",
+          "bytes": 1212
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/blob/qart_332196936f3046af99534f2fb45fdb25.blob",
+          "sha256": "3a064f47ad366a178b5c5e662ddc2c876d4b4978b3dd7e4eace6d830edf5af41",
+          "bytes": 711
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/blob/qart_445a87d5279b9ae689bfb21266e1666d.blob",
+          "sha256": "678dcaec4fb1835d6d7579d00012fdfc534db69b5bb28d32583eb337aeae2f32",
+          "bytes": 562
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/blob/qart_b1126661785024044862c6039db89454.blob",
+          "sha256": "de084f18dec933261007ee8cd4be32315823653d3e8e960c5d77f4f2c0c016d7",
+          "bytes": 1707
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/clock-watermark.json",
+          "sha256": "e092e9c63d949d2b75025dac1ac657930ef108935b75e798f16355d5cf90eafd",
+          "bytes": 61
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/descriptor/qart_1dec6fbe4ee87307e85a92ef8fa7a9f3.json",
+          "sha256": "3482a6c6a9a2dc57dd7b7fa51dc49debb6f42cf7b00c6c310947a91d20cc0848",
+          "bytes": 1429
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/descriptor/qart_332196936f3046af99534f2fb45fdb25.json",
+          "sha256": "59270dc1d5ccb1cf91eb8ce9e9fd372c947ace45760437ab7e494c321693b5a4",
+          "bytes": 1434
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/descriptor/qart_445a87d5279b9ae689bfb21266e1666d.json",
+          "sha256": "28fb890d3debc8f040d1a33754f987751b46cbefc3931c22a89a5cbc104f3f18",
+          "bytes": 1429
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/descriptor/qart_b1126661785024044862c6039db89454.json",
+          "sha256": "7ff5cfba7483931353d20e442f963abf0882cb76a2151add7010211f5ae15e4f",
+          "bytes": 1429
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/store.lock",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "bytes": 0
+        }
+      ]
+    },
+    {
+      "original_path": "docs/validation/M3/clients/attempt-11/state-codex",
+      "pre_hygiene_path": "docs/validation/m3-clients/attempt-11/state-codex",
+      "kind": "private-store-state",
+      "files": 20,
+      "bytes": 31017,
+      "aggregate_sha256": "28fbb2ce7115d4630218e0f77ca84fe8b28a8c8f2c29eea220dbcbc7dceb4a3c",
+      "aggregate_rule": "sha256 over the sorted lines \"<sha256>  <path>\\n\" of entries",
+      "last_commit_with_bytes": "ad007b571735e89ac5cd47381f6963b11c477e99",
+      "reason": "Private store state of one client-qualification session (artifact blobs, store.lock, clock watermark, copied seccomp profiles). It is per-attempt scratch state, not evidence: the attempt receipt, protocol.jsonl and transcripts stay. The harness creates a fresh state-* for every new attempt and never reads an old one.",
+      "entries": [
+        {
+          "path": "rust-mcp-control-74ac47b62e7cd04593cb368a1e12c5b0/config.json",
+          "sha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+          "bytes": 2
+        },
+        {
+          "path": "rust-mcp-control-74ac47b62e7cd04593cb368a1e12c5b0/seccomp-rust-fix.json",
+          "sha256": "0dc7bbbbf8f7e2a47c784488c49bbc7ffd6acac83b6f15e4fe2f0b9c1f642f15",
+          "bytes": 4018
+        },
+        {
+          "path": "rust-mcp-control-74ac47b62e7cd04593cb368a1e12c5b0/seccomp-rust-quality.json",
+          "sha256": "c288305c9fdba791926a9154fe47a1f53a30d61501cd9d059a78467866ccf938",
+          "bytes": 3814
+        },
+        {
+          "path": "rust-mcp-control-74ac47b62e7cd04593cb368a1e12c5b0/seccomp-rust.json",
+          "sha256": "f9d31acb22989dc6ac37c02d4c73acfbbb3b74b5e08beff9983f3a811fd4e56d",
+          "bytes": 3379
+        },
+        {
+          "path": "rust-mcp-control-74ac47b62e7cd04593cb368a1e12c5b0/seccomp-socket.json",
+          "sha256": "1f5dd6201d129405e1c48c64d796a46704f60bdd7eb2c4d82ffc1b6cf6b4ce31",
+          "bytes": 2869
+        },
+        {
+          "path": "rust-mcp-control-74ac47b62e7cd04593cb368a1e12c5b0/seccomp.json",
+          "sha256": "aad227ba23e1bd6cde69b344b54fef09b0881b18654aacf5303929c8c14aa514",
+          "bytes": 2851
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/blob/qart_0861a110aaef8f4469634bf65e9c6773.blob",
+          "sha256": "6ec81087c428b813de0d283e527ca5a828341faefab7d9051f3c730936a69a65",
+          "bytes": 1212
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/blob/qart_0e094d9a9bc5db336d16ad3b20713973.blob",
+          "sha256": "fc72eb288b6e557cfa466f21ff41f1760e3eb0becbea901b3a00a6e30308a25c",
+          "bytes": 1707
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/blob/qart_51f45038d130959db246b59e5f100749.blob",
+          "sha256": "011f4bea49c8fb8ab81b07fc2f0cc4d21bbf0d1d3639c8b0c06c912ef23ff7c4",
+          "bytes": 711
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/blob/qart_6b6c33409cc0dc3ae5801d84832b0890.blob",
+          "sha256": "6829674d25d22917e67e0b595fa33195e8d157fbe41829daedc604fb7528e13d",
+          "bytes": 562
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/blob/qart_c8a216e064a1d5f0bf866d4b8458483b.blob",
+          "sha256": "5eb86fd9df00026cf48d9af53dc010a4f2d890b5e1e813ad0e0037f6af961631",
+          "bytes": 711
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/blob/qart_e6de094bc7786ef033e3c141ab60af87.blob",
+          "sha256": "7605b39b16d8a0e81db80a3651eaa84d442431d1e41d28921d8529daeb00b96b",
+          "bytes": 562
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/clock-watermark.json",
+          "sha256": "8152117138aebdd08b19c0a93a506bada7c245c94981fe90d7ea8b1cb0cf8b48",
+          "bytes": 61
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/descriptor/qart_0861a110aaef8f4469634bf65e9c6773.json",
+          "sha256": "a4c9809af1a012efcd5ac21b5783b067dfd9a64f9a2e32363f7cb5ab18998c63",
+          "bytes": 1434
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/descriptor/qart_0e094d9a9bc5db336d16ad3b20713973.json",
+          "sha256": "22859d8a5bcab3f68856012df2cdbff6ae8aac52ed034969a4834b258633bdb9",
+          "bytes": 1442
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/descriptor/qart_51f45038d130959db246b59e5f100749.json",
+          "sha256": "27367bb2731d1f22a6b5bfdaca55281028f7962781e8331177bbba46cfca998a",
+          "bytes": 1423
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/descriptor/qart_6b6c33409cc0dc3ae5801d84832b0890.json",
+          "sha256": "4a1a7f09deae50f5bb1a6a4b62192f1e47ada1f9f3633d09bdd7b0b4ca49829f",
+          "bytes": 1417
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/descriptor/qart_c8a216e064a1d5f0bf866d4b8458483b.json",
+          "sha256": "310dc460b679004bfd7e9f814572bd0be7f1ac193c5a2823601289bf848e2bcb",
+          "bytes": 1426
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/descriptor/qart_e6de094bc7786ef033e3c141ab60af87.json",
+          "sha256": "380a9a6bdeae8575e3b88eee4f847832efc15307f7c0770412bad532fab4a14e",
+          "bytes": 1416
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/store.lock",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "bytes": 0
+        }
+      ]
+    },
+    {
+      "original_path": "docs/validation/M3/clients/attempt-11/state-inspector",
+      "pre_hygiene_path": "docs/validation/m3-clients/attempt-11/state-inspector",
+      "kind": "private-store-state",
+      "files": 10,
+      "bytes": 9988,
+      "aggregate_sha256": "d8da8c77319a6ad17618faaa45e39d1bb41ca849e7768c81c1d323b776bd9db3",
+      "aggregate_rule": "sha256 over the sorted lines \"<sha256>  <path>\\n\" of entries",
+      "last_commit_with_bytes": "ad007b571735e89ac5cd47381f6963b11c477e99",
+      "reason": "Private store state of one client-qualification session (artifact blobs, store.lock, clock watermark, copied seccomp profiles). It is per-attempt scratch state, not evidence: the attempt receipt, protocol.jsonl and transcripts stay. The harness creates a fresh state-* for every new attempt and never reads an old one.",
+      "entries": [
+        {
+          "path": "rust-mcp-quality-artifacts-v1/blob/qart_0be3b9baccc408e24c2e61234ff4886a.blob",
+          "sha256": "d2006e82fa79f9047af3b3cb7b96757582bb5076c33458c3399bb349b775f43c",
+          "bytes": 1212
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/blob/qart_2b47c38bcd3c9a3c96d9ee39b2e190a6.blob",
+          "sha256": "eef10546d25e8227453f9184a1f8bf7bbfd10385a31d977513e78088bd384d59",
+          "bytes": 1707
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/blob/qart_2f3d95fe59756037b9f5645ba0c826f5.blob",
+          "sha256": "d9d98a4f3404dba865314f58d57d51445e15f1a434b46d4c5a40a62355847f15",
+          "bytes": 562
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/blob/qart_6117072ccda539c9d9157a66fb7f4572.blob",
+          "sha256": "7366d2dfe7f5b7a8a66d3760bf21fc2d4a87602ff4e461108087381b9d39139b",
+          "bytes": 711
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/clock-watermark.json",
+          "sha256": "2e6e839d4ccaabe4717db9143a8712ef2216d98115b9effb63a774ae01a9eb29",
+          "bytes": 61
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/descriptor/qart_0be3b9baccc408e24c2e61234ff4886a.json",
+          "sha256": "34ea0ca34dbe2a206858fd29b4d3d11b3ac1bd0f57b0a92f9142d1516e000352",
+          "bytes": 1443
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/descriptor/qart_2b47c38bcd3c9a3c96d9ee39b2e190a6.json",
+          "sha256": "d5523a02f7e8f5735a2bb99e6be1f404be921b62ce78f0f2a9a2752ccf2db55f",
+          "bytes": 1446
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/descriptor/qart_2f3d95fe59756037b9f5645ba0c826f5.json",
+          "sha256": "63b3499fc7a81e826bdcc6b61dd35b987a63766645923ff70adb0774bc280ea4",
+          "bytes": 1417
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/descriptor/qart_6117072ccda539c9d9157a66fb7f4572.json",
+          "sha256": "a5ec25116cd955194914a60349613baffd8164222b4cc08e608cb891ae2a08a1",
+          "bytes": 1429
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/store.lock",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "bytes": 0
+        }
+      ]
+    },
+    {
+      "original_path": "docs/validation/M3/clients/attempt-12/state-codex",
+      "pre_hygiene_path": "docs/validation/m3-clients/attempt-12/state-codex",
+      "kind": "private-store-state",
+      "files": 20,
+      "bytes": 31050,
+      "aggregate_sha256": "c3f4f4c57b357dccfb7c4e5115f4733bb1bab721c4a987d56d5cfcbde7acb588",
+      "aggregate_rule": "sha256 over the sorted lines \"<sha256>  <path>\\n\" of entries",
+      "last_commit_with_bytes": "ad007b571735e89ac5cd47381f6963b11c477e99",
+      "reason": "Private store state of one client-qualification session (artifact blobs, store.lock, clock watermark, copied seccomp profiles). It is per-attempt scratch state, not evidence: the attempt receipt, protocol.jsonl and transcripts stay. The harness creates a fresh state-* for every new attempt and never reads an old one.",
+      "entries": [
+        {
+          "path": "rust-mcp-control-4a4d2d4e18cb0f7938a2b1719023059b/config.json",
+          "sha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+          "bytes": 2
+        },
+        {
+          "path": "rust-mcp-control-4a4d2d4e18cb0f7938a2b1719023059b/seccomp-rust-fix.json",
+          "sha256": "0dc7bbbbf8f7e2a47c784488c49bbc7ffd6acac83b6f15e4fe2f0b9c1f642f15",
+          "bytes": 4018
+        },
+        {
+          "path": "rust-mcp-control-4a4d2d4e18cb0f7938a2b1719023059b/seccomp-rust-quality.json",
+          "sha256": "c288305c9fdba791926a9154fe47a1f53a30d61501cd9d059a78467866ccf938",
+          "bytes": 3814
+        },
+        {
+          "path": "rust-mcp-control-4a4d2d4e18cb0f7938a2b1719023059b/seccomp-rust.json",
+          "sha256": "f9d31acb22989dc6ac37c02d4c73acfbbb3b74b5e08beff9983f3a811fd4e56d",
+          "bytes": 3379
+        },
+        {
+          "path": "rust-mcp-control-4a4d2d4e18cb0f7938a2b1719023059b/seccomp-socket.json",
+          "sha256": "1f5dd6201d129405e1c48c64d796a46704f60bdd7eb2c4d82ffc1b6cf6b4ce31",
+          "bytes": 2869
+        },
+        {
+          "path": "rust-mcp-control-4a4d2d4e18cb0f7938a2b1719023059b/seccomp.json",
+          "sha256": "aad227ba23e1bd6cde69b344b54fef09b0881b18654aacf5303929c8c14aa514",
+          "bytes": 2851
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/blob/qart_291489a7ff49d9ee89dc70f8deb55f80.blob",
+          "sha256": "3a3b53fb097f4dd7aa339db5a7a4134293b86c42c28bb57661a5398991e57d02",
+          "bytes": 562
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/blob/qart_57a712a4ded343d8e67218bdf62b9303.blob",
+          "sha256": "d51cfd96d611ff182229ccad6803f28cbf68ebf5ed220362feb61974c25e40e5",
+          "bytes": 711
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/blob/qart_6d9d08fdf45f2715d6c75b177e2d226e.blob",
+          "sha256": "1719dff9bf478bff371a2413e99ece521dc626acffe5d1c0b5ea1b287291e61d",
+          "bytes": 1212
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/blob/qart_b1e9a538c8305a28cbc5a25e508128e6.blob",
+          "sha256": "32c449498453024f533b5bfcc1a359d804624a0f82d3bf9bebea3caf8fe48a8a",
+          "bytes": 711
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/blob/qart_c64892bb89fa2fc1bf2c27c12cac30ea.blob",
+          "sha256": "b6306620e38a1e5cc5f3847daa59008ce7152e2d250d59753f6d72bbfa6f0507",
+          "bytes": 562
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/blob/qart_e730fd9d5ff8205c648e59c2b3f0efb9.blob",
+          "sha256": "fea434b608271ed5c5651e34759bf27241c0ab07a07c6bddaa810047f93a7fe6",
+          "bytes": 1707
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/clock-watermark.json",
+          "sha256": "21437c6765b0229700179ce723fe0b422a7948bf7fc7b343bb002992063be5f3",
+          "bytes": 61
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/descriptor/qart_291489a7ff49d9ee89dc70f8deb55f80.json",
+          "sha256": "584774efbd1d3065a749e8ec3300e2fb7ea593355b33a183c6279c7a0b265725",
+          "bytes": 1427
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/descriptor/qart_57a712a4ded343d8e67218bdf62b9303.json",
+          "sha256": "5535c910bc325d9973860cf4aa776f8d5fe80e10afb668367c05c639b341044b",
+          "bytes": 1434
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/descriptor/qart_6d9d08fdf45f2715d6c75b177e2d226e.json",
+          "sha256": "9b915f619438a5612835f61b15b8864e6533de65146bb5db4b23c7e1b68002d3",
+          "bytes": 1435
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/descriptor/qart_b1e9a538c8305a28cbc5a25e508128e6.json",
+          "sha256": "41d7212fdb8d52daeb4ba1c68d4f01b48098dcad432a855c5e820f8c0838d306",
+          "bytes": 1431
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/descriptor/qart_c64892bb89fa2fc1bf2c27c12cac30ea.json",
+          "sha256": "7531b6df7eb47a5998783a901c15bf3f96a9f23f8379e980638fee902735b7b7",
+          "bytes": 1423
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/descriptor/qart_e730fd9d5ff8205c648e59c2b3f0efb9.json",
+          "sha256": "20b046bd17ba7b4d8a9a36a2c1b030b30c678f5acc2f71eebce0e94f70900f68",
+          "bytes": 1441
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/store.lock",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "bytes": 0
+        }
+      ]
+    },
+    {
+      "original_path": "docs/validation/M3/clients/attempt-12/state-inspector",
+      "pre_hygiene_path": "docs/validation/m3-clients/attempt-12/state-inspector",
+      "kind": "private-store-state",
+      "files": 10,
+      "bytes": 9990,
+      "aggregate_sha256": "c9101742de17dcb8f5323c71e155f4af263634e15c123c13a989b296b618090a",
+      "aggregate_rule": "sha256 over the sorted lines \"<sha256>  <path>\\n\" of entries",
+      "last_commit_with_bytes": "ad007b571735e89ac5cd47381f6963b11c477e99",
+      "reason": "Private store state of one client-qualification session (artifact blobs, store.lock, clock watermark, copied seccomp profiles). It is per-attempt scratch state, not evidence: the attempt receipt, protocol.jsonl and transcripts stay. The harness creates a fresh state-* for every new attempt and never reads an old one.",
+      "entries": [
+        {
+          "path": "rust-mcp-quality-artifacts-v1/blob/qart_1b68908693df3dc4e5964775ab8e6720.blob",
+          "sha256": "6d55ff28f943ad08926568956d9d65b54ddc98ece20e7ebe403c65d621edca37",
+          "bytes": 1707
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/blob/qart_2a93f57c5d47c523bfdc2eb32b12e645.blob",
+          "sha256": "0874d2080f9e8c062390fa1c107cab5929da1ee04fbc7b44108c3f4348643992",
+          "bytes": 1212
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/blob/qart_d63d16e6efe21b0fe5072d68ecc2f4b1.blob",
+          "sha256": "a25cde8f756155002797e43c03d386713feb2531578b5dbb70db408a0cfe94bf",
+          "bytes": 562
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/blob/qart_db7b47226453652e56b8f5654cd0b73d.blob",
+          "sha256": "b34f1e15c2f25ab2cc63ffe6109df3102b32f0b2932d77caa13e9af80e18bf2c",
+          "bytes": 711
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/clock-watermark.json",
+          "sha256": "9ce1afddb58924faaa99d0bffe7ac325ad10fbe5bb42b776f7b99e79e4b016e9",
+          "bytes": 61
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/descriptor/qart_1b68908693df3dc4e5964775ab8e6720.json",
+          "sha256": "2d784c4134588ad64b74724f3c970efc777387bb1586d53d266c744238261351",
+          "bytes": 1444
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/descriptor/qart_2a93f57c5d47c523bfdc2eb32b12e645.json",
+          "sha256": "ec4a0b11a7baf12ccd3adb70dfcf07a76a327ecc0477c76a5c853299a9b0f719",
+          "bytes": 1428
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/descriptor/qart_d63d16e6efe21b0fe5072d68ecc2f4b1.json",
+          "sha256": "81ed15d41f89a4f57d2dd480985382a1b4ec576e77b8901900981d1dde1fdab8",
+          "bytes": 1428
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/descriptor/qart_db7b47226453652e56b8f5654cd0b73d.json",
+          "sha256": "8b2b90b6e8d2d524c50c68bb6a4f3b8cdc3028d433b7c4c42c914ce8d0954a2c",
+          "bytes": 1437
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/store.lock",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "bytes": 0
+        }
+      ]
+    },
+    {
+      "original_path": "docs/validation/M3/clients/attempt-2/state-inspector",
+      "pre_hygiene_path": "docs/validation/m3-clients/attempt-2/state-inspector",
+      "kind": "private-store-state",
+      "files": 2,
+      "bytes": 61,
+      "aggregate_sha256": "0253d4f79a810ac51c857d1c593d231589dd06e578761491d9e6e0fe653fb567",
+      "aggregate_rule": "sha256 over the sorted lines \"<sha256>  <path>\\n\" of entries",
+      "last_commit_with_bytes": "ad007b571735e89ac5cd47381f6963b11c477e99",
+      "reason": "Private store state of one client-qualification session (artifact blobs, store.lock, clock watermark, copied seccomp profiles). It is per-attempt scratch state, not evidence: the attempt receipt, protocol.jsonl and transcripts stay. The harness creates a fresh state-* for every new attempt and never reads an old one.",
+      "entries": [
+        {
+          "path": "rust-mcp-quality-artifacts-v1/clock-watermark.json",
+          "sha256": "de88e83b42016d4cfcdc76fa5360934d9ea25625963a8d9df467ab8f341eea36",
+          "bytes": 61
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/store.lock",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "bytes": 0
+        }
+      ]
+    },
+    {
+      "original_path": "docs/validation/M3/clients/attempt-3/state-inspector",
+      "pre_hygiene_path": "docs/validation/m3-clients/attempt-3/state-inspector",
+      "kind": "private-store-state",
+      "files": 2,
+      "bytes": 61,
+      "aggregate_sha256": "ae6a39f9f09bba5ea43abdf5ce432789689a92c6b33219859e091282faf52895",
+      "aggregate_rule": "sha256 over the sorted lines \"<sha256>  <path>\\n\" of entries",
+      "last_commit_with_bytes": "ad007b571735e89ac5cd47381f6963b11c477e99",
+      "reason": "Private store state of one client-qualification session (artifact blobs, store.lock, clock watermark, copied seccomp profiles). It is per-attempt scratch state, not evidence: the attempt receipt, protocol.jsonl and transcripts stay. The harness creates a fresh state-* for every new attempt and never reads an old one.",
+      "entries": [
+        {
+          "path": "rust-mcp-quality-artifacts-v1/clock-watermark.json",
+          "sha256": "7491db3799449d0450174fcaef3f723e4e8549fe8a52ae1498e0e8bcf601e7d8",
+          "bytes": 61
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/store.lock",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "bytes": 0
+        }
+      ]
+    },
+    {
+      "original_path": "docs/validation/M3/clients/attempt-4/state-inspector",
+      "pre_hygiene_path": "docs/validation/m3-clients/attempt-4/state-inspector",
+      "kind": "private-store-state",
+      "files": 2,
+      "bytes": 61,
+      "aggregate_sha256": "9f58ee111ca8320bdf3ef9adc221cb003f4daed5fccf575b0730fb68dda4c5f7",
+      "aggregate_rule": "sha256 over the sorted lines \"<sha256>  <path>\\n\" of entries",
+      "last_commit_with_bytes": "ad007b571735e89ac5cd47381f6963b11c477e99",
+      "reason": "Private store state of one client-qualification session (artifact blobs, store.lock, clock watermark, copied seccomp profiles). It is per-attempt scratch state, not evidence: the attempt receipt, protocol.jsonl and transcripts stay. The harness creates a fresh state-* for every new attempt and never reads an old one.",
+      "entries": [
+        {
+          "path": "rust-mcp-quality-artifacts-v1/clock-watermark.json",
+          "sha256": "06079198b960ae8613fd515c35f983e2a376bb79f16a99460b7e1a893e4ee63e",
+          "bytes": 61
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/store.lock",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "bytes": 0
+        }
+      ]
+    },
+    {
+      "original_path": "docs/validation/M3/clients/attempt-5/state-inspector",
+      "pre_hygiene_path": "docs/validation/m3-clients/attempt-5/state-inspector",
+      "kind": "private-store-state",
+      "files": 10,
+      "bytes": 9985,
+      "aggregate_sha256": "686b6d9d48a6bba451b6e472748008b15300e580d1eeac70ed631f52a39b0f28",
+      "aggregate_rule": "sha256 over the sorted lines \"<sha256>  <path>\\n\" of entries",
+      "last_commit_with_bytes": "ad007b571735e89ac5cd47381f6963b11c477e99",
+      "reason": "Private store state of one client-qualification session (artifact blobs, store.lock, clock watermark, copied seccomp profiles). It is per-attempt scratch state, not evidence: the attempt receipt, protocol.jsonl and transcripts stay. The harness creates a fresh state-* for every new attempt and never reads an old one.",
+      "entries": [
+        {
+          "path": "rust-mcp-quality-artifacts-v1/blob/qart_5c172c71190e119177db9cf68e9403b2.blob",
+          "sha256": "ccea7d2f505d39ef47310a54a1706e516eadbe30c9a9a56bbfd9c8255cd4cb4c",
+          "bytes": 562
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/blob/qart_9454a8d1fa9a6c953818b64b603403c9.blob",
+          "sha256": "34e53c36d19e74de0a4bf5a9df3f989363cdbc6f14c581e772b1a9e8bb6b8a1c",
+          "bytes": 1212
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/blob/qart_a3803be416cb3d8c608953ad79efb06f.blob",
+          "sha256": "c61c74acbcea1062d8f55c8e87dc8c2b2f360268f35d7134cea828c5af69006e",
+          "bytes": 1707
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/blob/qart_f47d471c05632bedc8c111cfc2a27e5c.blob",
+          "sha256": "0c81d40019226377fe3f20d64ae70aa0496b36b926a1c4fb2050f2783525cc3e",
+          "bytes": 711
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/clock-watermark.json",
+          "sha256": "59e1d20b60e2e64ed36ce7583855ffcebf49920fb9cbe3d071828a6aa95c1034",
+          "bytes": 61
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/descriptor/qart_5c172c71190e119177db9cf68e9403b2.json",
+          "sha256": "7d34567e613d810342884b9f8c817a0b2bff4ba6e2f39470a8361f249a3fb0ab",
+          "bytes": 1423
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/descriptor/qart_9454a8d1fa9a6c953818b64b603403c9.json",
+          "sha256": "084b36e9dde26e67e202f802c13a692ecb85de9e24c5617304bc9713f1bfaf0b",
+          "bytes": 1441
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/descriptor/qart_a3803be416cb3d8c608953ad79efb06f.json",
+          "sha256": "7496f172e736f5dee471f26b3dfd96d26c7dcdbf6b86bd933150cec8da858ebc",
+          "bytes": 1443
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/descriptor/qart_f47d471c05632bedc8c111cfc2a27e5c.json",
+          "sha256": "391db6cf752ee45b6187b5440fb5b3978a9b6a017eef6c9e1c22072764d8a285",
+          "bytes": 1425
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/store.lock",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "bytes": 0
+        }
+      ]
+    },
+    {
+      "original_path": "docs/validation/M3/clients/attempt-6/state-inspector",
+      "pre_hygiene_path": "docs/validation/m3-clients/attempt-6/state-inspector",
+      "kind": "private-store-state",
+      "files": 10,
+      "bytes": 9968,
+      "aggregate_sha256": "92287ba53692460c8aabe915e11bd4543c7aaee1eebc54148ebf96c89d49c6e9",
+      "aggregate_rule": "sha256 over the sorted lines \"<sha256>  <path>\\n\" of entries",
+      "last_commit_with_bytes": "ad007b571735e89ac5cd47381f6963b11c477e99",
+      "reason": "Private store state of one client-qualification session (artifact blobs, store.lock, clock watermark, copied seccomp profiles). It is per-attempt scratch state, not evidence: the attempt receipt, protocol.jsonl and transcripts stay. The harness creates a fresh state-* for every new attempt and never reads an old one.",
+      "entries": [
+        {
+          "path": "rust-mcp-quality-artifacts-v1/blob/qart_aac1df386bdf9beab8013bd4a5910dc6.blob",
+          "sha256": "d33214ddbc27c9f9dc00f7b2c39a546c36cc5e964a877ac2fd7972f786287f16",
+          "bytes": 562
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/blob/qart_b55291bf53b3fbe8f7f16ed8afc62afc.blob",
+          "sha256": "d08730672500c96205bef52fca2b27974245fdf76d731818c5e9a5757fe46b64",
+          "bytes": 711
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/blob/qart_cd6b888722238204d58c01d5e5d397ff.blob",
+          "sha256": "30264c50cfc586883648bd01e272a85edba9221de0255f3c15151953a397fa01",
+          "bytes": 1212
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/blob/qart_f49ca7d945f425b856a1dc869eb97655.blob",
+          "sha256": "d7a92888b912ebbfb7a08244a1d8929ef3d26ee94ca3dad0f29eda8eefd0f9d9",
+          "bytes": 1707
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/clock-watermark.json",
+          "sha256": "cb9fdd1ee9aa63ed65edc184f68ed8f3e40179bf0f952aa90c3f45aac9b121a9",
+          "bytes": 61
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/descriptor/qart_aac1df386bdf9beab8013bd4a5910dc6.json",
+          "sha256": "0178ffc00d35c333802e4db3f19276845ebdc35c5112d26f4bf2e7adb56df2cf",
+          "bytes": 1424
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/descriptor/qart_b55291bf53b3fbe8f7f16ed8afc62afc.json",
+          "sha256": "46f0f7479250164c16bea8278081165f38ff7c295da8e6db393f6544c5d8d1cb",
+          "bytes": 1428
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/descriptor/qart_cd6b888722238204d58c01d5e5d397ff.json",
+          "sha256": "3c06e1631bce5743b1b0fe0cb3d5893c71f1d44aa6a56ccfc00abf7549c8ca2c",
+          "bytes": 1420
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/descriptor/qart_f49ca7d945f425b856a1dc869eb97655.json",
+          "sha256": "96e9685a062fa62876d0160c958a46052fd4e25cef259ceac76a07d964e59c28",
+          "bytes": 1443
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/store.lock",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "bytes": 0
+        }
+      ]
+    },
+    {
+      "original_path": "docs/validation/M3/clients/attempt-7/state-codex",
+      "pre_hygiene_path": "docs/validation/m3-clients/attempt-7/state-codex",
+      "kind": "private-store-state",
+      "files": 2,
+      "bytes": 61,
+      "aggregate_sha256": "74397fabf84358b96c476e628f574e38e073b52ef4116211b2aa1183cdea9dde",
+      "aggregate_rule": "sha256 over the sorted lines \"<sha256>  <path>\\n\" of entries",
+      "last_commit_with_bytes": "ad007b571735e89ac5cd47381f6963b11c477e99",
+      "reason": "Private store state of one client-qualification session (artifact blobs, store.lock, clock watermark, copied seccomp profiles). It is per-attempt scratch state, not evidence: the attempt receipt, protocol.jsonl and transcripts stay. The harness creates a fresh state-* for every new attempt and never reads an old one.",
+      "entries": [
+        {
+          "path": "rust-mcp-quality-artifacts-v1/clock-watermark.json",
+          "sha256": "69112f42f82ca79aa3507bf86cf975ccbba518bd1935b63ce6937a551e24a4b5",
+          "bytes": 61
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/store.lock",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "bytes": 0
+        }
+      ]
+    },
+    {
+      "original_path": "docs/validation/M3/clients/attempt-7/state-inspector",
+      "pre_hygiene_path": "docs/validation/m3-clients/attempt-7/state-inspector",
+      "kind": "private-store-state",
+      "files": 10,
+      "bytes": 10011,
+      "aggregate_sha256": "f4abbfe92011ff7061aaaa5de8e457a9c8db07e091a2cf1893280f272f8b6572",
+      "aggregate_rule": "sha256 over the sorted lines \"<sha256>  <path>\\n\" of entries",
+      "last_commit_with_bytes": "ad007b571735e89ac5cd47381f6963b11c477e99",
+      "reason": "Private store state of one client-qualification session (artifact blobs, store.lock, clock watermark, copied seccomp profiles). It is per-attempt scratch state, not evidence: the attempt receipt, protocol.jsonl and transcripts stay. The harness creates a fresh state-* for every new attempt and never reads an old one.",
+      "entries": [
+        {
+          "path": "rust-mcp-quality-artifacts-v1/blob/qart_24aa1a6f5c2d83a04d56a71d57e86c9c.blob",
+          "sha256": "707287c94e564619ba04e1b5f826eba5cd047e703cbcf28ed2a5ce04c3cd60f1",
+          "bytes": 711
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/blob/qart_2f1d4693e4358b4c8ea249f339739f65.blob",
+          "sha256": "22212be776e14d89d45ffb929924ab356759df8e4021eb4bc0215c19b21ad286",
+          "bytes": 562
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/blob/qart_99b9f9b27c801accdad4e2d9f628d79b.blob",
+          "sha256": "4534f86f22bbf1b7f68f376997695f944d56e182be936c002c24af7816e198a9",
+          "bytes": 1707
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/blob/qart_cacade6a66522e8435e3a29014c961bc.blob",
+          "sha256": "8fab45e070c5636eef98e888d0c9d5a0eeb184b293ebd4e88dd7598ece7dee58",
+          "bytes": 1212
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/clock-watermark.json",
+          "sha256": "7edd0fe563bb8a8938690dbb621651ae50c56247249a65d6ec604ec2579d181f",
+          "bytes": 61
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/descriptor/qart_24aa1a6f5c2d83a04d56a71d57e86c9c.json",
+          "sha256": "7a3b7cfb6f813a372b042f22acf9156dba522298c9259b8a0e4c409d03780c85",
+          "bytes": 1440
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/descriptor/qart_2f1d4693e4358b4c8ea249f339739f65.json",
+          "sha256": "80f1ae1a31ace95f7cb0a0b28a2f521a7f80ec94072623ce5cbe73a17b002d94",
+          "bytes": 1431
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/descriptor/qart_99b9f9b27c801accdad4e2d9f628d79b.json",
+          "sha256": "62673d06b3c0791bf39ed10fec6b88dc0cbbfe4829fb72d2194fae98d5ad9a38",
+          "bytes": 1443
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/descriptor/qart_cacade6a66522e8435e3a29014c961bc.json",
+          "sha256": "ed75ddc470f82d88923ab0be96847aa4477fc1a1a1eeb29598958b27311231df",
+          "bytes": 1444
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/store.lock",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "bytes": 0
+        }
+      ]
+    },
+    {
+      "original_path": "docs/validation/M3/clients/attempt-8/state-codex",
+      "pre_hygiene_path": "docs/validation/m3-clients/attempt-8/state-codex",
+      "kind": "private-store-state",
+      "files": 16,
+      "bytes": 26927,
+      "aggregate_sha256": "5717450f58b18f996e900393639222f7039e48fac65d8294bc2afc6355ba6519",
+      "aggregate_rule": "sha256 over the sorted lines \"<sha256>  <path>\\n\" of entries",
+      "last_commit_with_bytes": "ad007b571735e89ac5cd47381f6963b11c477e99",
+      "reason": "Private store state of one client-qualification session (artifact blobs, store.lock, clock watermark, copied seccomp profiles). It is per-attempt scratch state, not evidence: the attempt receipt, protocol.jsonl and transcripts stay. The harness creates a fresh state-* for every new attempt and never reads an old one.",
+      "entries": [
+        {
+          "path": "rust-mcp-control-16c0c92ebfbfaef3a0f1120f1db37df5/config.json",
+          "sha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+          "bytes": 2
+        },
+        {
+          "path": "rust-mcp-control-16c0c92ebfbfaef3a0f1120f1db37df5/seccomp-rust-fix.json",
+          "sha256": "0dc7bbbbf8f7e2a47c784488c49bbc7ffd6acac83b6f15e4fe2f0b9c1f642f15",
+          "bytes": 4018
+        },
+        {
+          "path": "rust-mcp-control-16c0c92ebfbfaef3a0f1120f1db37df5/seccomp-rust-quality.json",
+          "sha256": "c288305c9fdba791926a9154fe47a1f53a30d61501cd9d059a78467866ccf938",
+          "bytes": 3814
+        },
+        {
+          "path": "rust-mcp-control-16c0c92ebfbfaef3a0f1120f1db37df5/seccomp-rust.json",
+          "sha256": "f9d31acb22989dc6ac37c02d4c73acfbbb3b74b5e08beff9983f3a811fd4e56d",
+          "bytes": 3379
+        },
+        {
+          "path": "rust-mcp-control-16c0c92ebfbfaef3a0f1120f1db37df5/seccomp-socket.json",
+          "sha256": "1f5dd6201d129405e1c48c64d796a46704f60bdd7eb2c4d82ffc1b6cf6b4ce31",
+          "bytes": 2869
+        },
+        {
+          "path": "rust-mcp-control-16c0c92ebfbfaef3a0f1120f1db37df5/seccomp.json",
+          "sha256": "aad227ba23e1bd6cde69b344b54fef09b0881b18654aacf5303929c8c14aa514",
+          "bytes": 2851
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/blob/qart_37f92c9aa78c52afba5696d231de20f5.blob",
+          "sha256": "c4c75804ab4cab574384428fab92fa945ca8684103753b2c0d5ceca98ede2d92",
+          "bytes": 711
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/blob/qart_40dd856e5b0a054fe03eeea35872aa45.blob",
+          "sha256": "86619bc2926cb2ab7873cf484474de9025a723bb95c656803faed223bed34bcd",
+          "bytes": 562
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/blob/qart_6cd41412406a67faeb5d65b4df0ef014.blob",
+          "sha256": "9c6becfefa040a562174265b8219f7da3dc5549eb3e6c8cdc03877ecbdf103b3",
+          "bytes": 1707
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/blob/qart_eb1f0a19edb4b7e9d76dc32096336914.blob",
+          "sha256": "6afae98821b5113948791afeac804057a398aaf98f7d9b7115f5ca25cec601fc",
+          "bytes": 1212
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/clock-watermark.json",
+          "sha256": "344a0bed2bf5c2bdcd22d0081129f54d41c5b6acf1e576b312ef2654625cf0e3",
+          "bytes": 61
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/descriptor/qart_37f92c9aa78c52afba5696d231de20f5.json",
+          "sha256": "861082ac596c13dc85293ccd2eff175fea6c4b328c2fe08516a3be1e25b229e3",
+          "bytes": 1428
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/descriptor/qart_40dd856e5b0a054fe03eeea35872aa45.json",
+          "sha256": "366928c29a38202893b4f4eb66ac96a79d04386581cd1bb3bc893dacfa613ad1",
+          "bytes": 1428
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/descriptor/qart_6cd41412406a67faeb5d65b4df0ef014.json",
+          "sha256": "ad2fce07a27a2a341e266b95d69e18cd6a3ef4071b7061ceb2f9284fc487df5c",
+          "bytes": 1445
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/descriptor/qart_eb1f0a19edb4b7e9d76dc32096336914.json",
+          "sha256": "75fb7caf7dffe30d294324a32c31e47472ce28f2a7d2a6acd8c0434dceede38d",
+          "bytes": 1440
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/store.lock",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "bytes": 0
+        }
+      ]
+    },
+    {
+      "original_path": "docs/validation/M3/clients/attempt-8/state-inspector",
+      "pre_hygiene_path": "docs/validation/m3-clients/attempt-8/state-inspector",
+      "kind": "private-store-state",
+      "files": 10,
+      "bytes": 9979,
+      "aggregate_sha256": "d944f9de2e0ea43b79e495a359c7b0379b30a1d0388453862b23c4044dc4808f",
+      "aggregate_rule": "sha256 over the sorted lines \"<sha256>  <path>\\n\" of entries",
+      "last_commit_with_bytes": "ad007b571735e89ac5cd47381f6963b11c477e99",
+      "reason": "Private store state of one client-qualification session (artifact blobs, store.lock, clock watermark, copied seccomp profiles). It is per-attempt scratch state, not evidence: the attempt receipt, protocol.jsonl and transcripts stay. The harness creates a fresh state-* for every new attempt and never reads an old one.",
+      "entries": [
+        {
+          "path": "rust-mcp-quality-artifacts-v1/blob/qart_6190518ab403d974ef4ad8a6a21079dd.blob",
+          "sha256": "7ac143b20e4ead2648189fcfe878d50e7a911174b8e78120d6d66208c591e01d",
+          "bytes": 1707
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/blob/qart_ac21a0199fe66e2a2702f5ceaa5e3d50.blob",
+          "sha256": "4aaeb1799c1581d5faab39d924c64b0d1534d57e7bba037b207487952515c368",
+          "bytes": 562
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/blob/qart_b9cac3791c99d1324a39ca37e73e46d2.blob",
+          "sha256": "78eb50490517cd971902e187bb8c0ede14c0dd3d84ea7134288f508db955e9d7",
+          "bytes": 711
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/blob/qart_f8908f7bc5c636f8fc39598efab9e5df.blob",
+          "sha256": "c3813334992a6b343ed5487a10904faa1c61db2c681665fb1236d9c2ba828e58",
+          "bytes": 1212
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/clock-watermark.json",
+          "sha256": "cfe4123bac7451d0d0e1c728af4dba405f7df280a85eb1278bc79156ef9375cc",
+          "bytes": 61
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/descriptor/qart_6190518ab403d974ef4ad8a6a21079dd.json",
+          "sha256": "e11550d5bd586a98c81a4169b2a65a095f06f4d1a09221d13bd94c52db14c4a8",
+          "bytes": 1442
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/descriptor/qart_ac21a0199fe66e2a2702f5ceaa5e3d50.json",
+          "sha256": "b694743b7da81c166e7a9a005c88c2af3977d399ad461560fe1b8b1bfc53ce53",
+          "bytes": 1423
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/descriptor/qart_b9cac3791c99d1324a39ca37e73e46d2.json",
+          "sha256": "ae62e160d01f84c8a7306dcd739fd2deb28aebd023197b1bb295f29ce4ad5882",
+          "bytes": 1428
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/descriptor/qart_f8908f7bc5c636f8fc39598efab9e5df.json",
+          "sha256": "582d9e8918c5c4c17c1dd4bf4075b570479f27e5a5c48110f63d8e639be1c45f",
+          "bytes": 1433
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/store.lock",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "bytes": 0
+        }
+      ]
+    },
+    {
+      "original_path": "docs/validation/M3/clients/attempt-9/state-codex",
+      "pre_hygiene_path": "docs/validation/m3-clients/attempt-9/state-codex",
+      "kind": "private-store-state",
+      "files": 16,
+      "bytes": 26930,
+      "aggregate_sha256": "7da9fc236f0e8eee30b3519943d9d7f7294453a2fd16aad17b209c645771d1cc",
+      "aggregate_rule": "sha256 over the sorted lines \"<sha256>  <path>\\n\" of entries",
+      "last_commit_with_bytes": "ad007b571735e89ac5cd47381f6963b11c477e99",
+      "reason": "Private store state of one client-qualification session (artifact blobs, store.lock, clock watermark, copied seccomp profiles). It is per-attempt scratch state, not evidence: the attempt receipt, protocol.jsonl and transcripts stay. The harness creates a fresh state-* for every new attempt and never reads an old one.",
+      "entries": [
+        {
+          "path": "rust-mcp-control-70ba7f3168a493b43f984beb652e283e/config.json",
+          "sha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+          "bytes": 2
+        },
+        {
+          "path": "rust-mcp-control-70ba7f3168a493b43f984beb652e283e/seccomp-rust-fix.json",
+          "sha256": "0dc7bbbbf8f7e2a47c784488c49bbc7ffd6acac83b6f15e4fe2f0b9c1f642f15",
+          "bytes": 4018
+        },
+        {
+          "path": "rust-mcp-control-70ba7f3168a493b43f984beb652e283e/seccomp-rust-quality.json",
+          "sha256": "c288305c9fdba791926a9154fe47a1f53a30d61501cd9d059a78467866ccf938",
+          "bytes": 3814
+        },
+        {
+          "path": "rust-mcp-control-70ba7f3168a493b43f984beb652e283e/seccomp-rust.json",
+          "sha256": "f9d31acb22989dc6ac37c02d4c73acfbbb3b74b5e08beff9983f3a811fd4e56d",
+          "bytes": 3379
+        },
+        {
+          "path": "rust-mcp-control-70ba7f3168a493b43f984beb652e283e/seccomp-socket.json",
+          "sha256": "1f5dd6201d129405e1c48c64d796a46704f60bdd7eb2c4d82ffc1b6cf6b4ce31",
+          "bytes": 2869
+        },
+        {
+          "path": "rust-mcp-control-70ba7f3168a493b43f984beb652e283e/seccomp.json",
+          "sha256": "aad227ba23e1bd6cde69b344b54fef09b0881b18654aacf5303929c8c14aa514",
+          "bytes": 2851
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/blob/qart_5045157b74ffbe3e9301723d25ea9604.blob",
+          "sha256": "a67c474331ba275463b7d88a7f6f56890e9444e8fecca7cc41a090ea720efe54",
+          "bytes": 711
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/blob/qart_5223ca99046b782916234a3f580a1f89.blob",
+          "sha256": "921e2b026c21e9e57e85338231ca34c176e4482ff5e21a1088c05a6aacda1e1e",
+          "bytes": 1707
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/blob/qart_866fd99ef61a53e9d099bcf5e7def46f.blob",
+          "sha256": "bca61015eeeb6f3576ed32493edc73e4e0afb1a53d6dac8ed738450391a1a306",
+          "bytes": 562
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/blob/qart_985f5082254a948c5178364a1847a830.blob",
+          "sha256": "7ebe46f390148416566ffcb9ed745e74caedd69d8c86b2e5f4c8302e3114e251",
+          "bytes": 1212
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/clock-watermark.json",
+          "sha256": "a53e7251c4eba5f71fd5af1e2e57191f03949ae39f9964c284a7e97e7a4352e1",
+          "bytes": 61
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/descriptor/qart_5045157b74ffbe3e9301723d25ea9604.json",
+          "sha256": "66d997e9dea7e8feccb2d516be1aed5d2c21946674e845710efc95cf9dd02b04",
+          "bytes": 1434
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/descriptor/qart_5223ca99046b782916234a3f580a1f89.json",
+          "sha256": "32b5a72384ae97746324129543a96ec7cdc11781093b2ebf4ca6647452a85c8b",
+          "bytes": 1443
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/descriptor/qart_866fd99ef61a53e9d099bcf5e7def46f.json",
+          "sha256": "0a3df1ca118208714f5e861bb026f40fb91619d80a000f6dece412c761d3458c",
+          "bytes": 1426
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/descriptor/qart_985f5082254a948c5178364a1847a830.json",
+          "sha256": "a1daed36222e44c912842390e5a4a748aac227922cf6568173e673fa34c1ff46",
+          "bytes": 1441
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/store.lock",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "bytes": 0
+        }
+      ]
+    },
+    {
+      "original_path": "docs/validation/M3/clients/attempt-9/state-inspector",
+      "pre_hygiene_path": "docs/validation/m3-clients/attempt-9/state-inspector",
+      "kind": "private-store-state",
+      "files": 10,
+      "bytes": 9992,
+      "aggregate_sha256": "943f03137ce9bd7ca09585a66b896d01f79f86725818665732b794c298d69e15",
+      "aggregate_rule": "sha256 over the sorted lines \"<sha256>  <path>\\n\" of entries",
+      "last_commit_with_bytes": "ad007b571735e89ac5cd47381f6963b11c477e99",
+      "reason": "Private store state of one client-qualification session (artifact blobs, store.lock, clock watermark, copied seccomp profiles). It is per-attempt scratch state, not evidence: the attempt receipt, protocol.jsonl and transcripts stay. The harness creates a fresh state-* for every new attempt and never reads an old one.",
+      "entries": [
+        {
+          "path": "rust-mcp-quality-artifacts-v1/blob/qart_3c0988ccc8951b9cb24d6a558585d989.blob",
+          "sha256": "3b8b2407d5e40a6db9cd6b2ba727c9a300f9e82dcc44a472d425b24dba81abc5",
+          "bytes": 1707
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/blob/qart_8b094914c281da234e3357251f1089bd.blob",
+          "sha256": "fb07d44471083c5b183125eb916239fa2cfe835ebddf75b96b0ba6b4e5eeb400",
+          "bytes": 562
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/blob/qart_bd0f73ad04b0a80c55b74ae3db88e377.blob",
+          "sha256": "04b4f5f07db9834659ec68b75f502fea229df2647a3d82339b011162683686f3",
+          "bytes": 711
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/blob/qart_cf1ec9710fe7a99224df439413b0d52b.blob",
+          "sha256": "f18a4a67f68d0fffcd6ffab5fea830c4d7887bc8e6c865bc51d23e6a3ff594d1",
+          "bytes": 1212
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/clock-watermark.json",
+          "sha256": "2c072f4a1054876b604d5cd7b3ec32606a034832575d4b777e7aa30da15a8445",
+          "bytes": 61
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/descriptor/qart_3c0988ccc8951b9cb24d6a558585d989.json",
+          "sha256": "788676a83a2e5d30fa1655a19c7f712c8b0a76afb74b6b4b6032240189e96b67",
+          "bytes": 1440
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/descriptor/qart_8b094914c281da234e3357251f1089bd.json",
+          "sha256": "59387c2596eb4b102532dc9175778f68c2b5d0daa9266274ae2c8498f1374fa4",
+          "bytes": 1425
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/descriptor/qart_bd0f73ad04b0a80c55b74ae3db88e377.json",
+          "sha256": "8f717237c58de13fa99e978de25a5bc4c02566ad720d5a2d33501b155b43d84f",
+          "bytes": 1434
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/descriptor/qart_cf1ec9710fe7a99224df439413b0d52b.json",
+          "sha256": "451a18c588d9720f8383b79ca917df56a9a20c9e4603c9e5734281649aef4350",
+          "bytes": 1440
+        },
+        {
+          "path": "rust-mcp-quality-artifacts-v1/store.lock",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "bytes": 0
+        }
+      ]
+    }
+  ]
 }

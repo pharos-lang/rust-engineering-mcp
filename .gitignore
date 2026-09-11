@@ -21,6 +21,12 @@ docs/validation/**/*.sqlite
 docs/validation/**/*.sqlite-shm
 docs/validation/**/*.sqlite-wal
 
+# Private store state written by the client-qualification harnesses under each
+# attempt (artifact blobs, store.lock, clock watermark, copied seccomp
+# profiles). Scratch state, never evidence: docs/validation/M<n>/history/
+# inventory.json records the aggregate hash of every retired directory.
+docs/validation/**/state-*/
+
 # Raw M3 delegation agent transcripts (~41 MB of JSONL). They stay on disk;
 # docs/validation/M3/delegation-log-inventory.json records their size and
 # digest and names the files from each package that are committed.
