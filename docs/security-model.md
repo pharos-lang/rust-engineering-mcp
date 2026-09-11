@@ -558,7 +558,7 @@ fail closed before project execution.
 
 Estado: las cuatro definiciones M5 están implementadas en dominio, aplicación y
 execution adapter y **calificadas localmente** (suite nativa, clientes,
-`core` y `full`); la [matriz M5](validation/M5-matrix.md) registra recibos y
+`core` y `full`); la [matriz M5](validation/M5/matrix.md) registra recibos y
 límites. `tools/list` devuelve 31 definiciones, con las 27 anteriores
 sin cambio. Lo que sigue
 describe contratos y controles implementados; solo se presenta como calificado
@@ -712,7 +712,7 @@ aplicado se verifica contra el declarado por fase. La corrección de cierre
 delega la autoridad y los límites en la misma matriz `rust_applied` de M1–M4 y
 compara los montajes solicitados y efectivos, además de argv, entorno, usuario
 y seccomp propios de cada fase. La recalificación de esta corrección está en la
-[matriz M5](validation/M5-matrix.md); la decisión y el P2 histórico permanecen en
+[matriz M5](validation/M5/matrix.md); la decisión y el P2 histórico permanecen en
 [ADR-074 §3/3.1](adr/ADR-074-profiling-capability-and-containment.md).
 
 ### Los artifacts del perfilador no se creen por venir del contenedor
@@ -740,11 +740,11 @@ El corte M5-03 perfila un binario que deja un nieto vivo por doble fork:
 `namespace_drained: true` y la ejecución aceptada, y
 `profile-precreated-artifact-refused` deja que ese nieto cree
 `/profile/stacks.txt` primero y registra helper exit 4, nada exportado e
-`InvalidMetadata` ([recibo](validation/M5-03-runtime.json)). Antes de esas dos
+`InvalidMetadata` ([recibo](validation/M5/03-runtime.json)). Antes de esas dos
 selecciones `descendants_reaped` era `0` en todos los recibos del árbol, así que
 el vaciado nunca se había visto cosechar nada.
 
-La [prueba de capability](validation/M5-profiling-capability-probe.json) del
+La [prueba de capability](validation/M5/profiling-capability-probe.json) del
 2026-09-08 registra las dos filas sobre la imagen M4 aprobada
 `sha256:25ed3626e710…`, con las banderas del gateway y sin `sudo`, `--privileged`,
 `--cap-add` ni escritura de `perf_event_paranoid`:
@@ -756,7 +756,7 @@ La [prueba de capability](validation/M5-profiling-capability-probe.json) del
 
 El recibo es el positivo de viabilidad de D24 sobre la imagen M4; la
 calificación nativa de `rust.profile.flamegraph` está en
-[M5-03-runtime.json](validation/M5-03-runtime.json).
+[M5-03-runtime.json](validation/M5/03-runtime.json).
 
 ### Alcance de la medición
 
@@ -815,7 +815,7 @@ control que el producto implemente, y el dataset registra el orden real
 
 `cargo-bloat` 0.12.1 empuja incondicionalmente `CARGO_PROFILE_<PERFIL>_STRIP=false`
 porque necesita la tabla de símbolos, y la
-[calibración en el guest](validation/M5-04-bloat-calibration.json) comprueba que
+[calibración en el guest](validation/M5/04-bloat-calibration.json) comprueba que
 `CARGO_PROFILE_RELEASE_STRIP=symbols` **no tiene efecto alguno** sobre el archivo
 producido (4 574 312 bytes con y sin esa variable). Por tanto el binario medido
 **no** es byte a byte el que enviaría un proyecto que pide stripping, y un

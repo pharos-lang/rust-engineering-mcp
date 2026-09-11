@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Capture the M5-04 bloat calibration on the admitted runtime image.
 
-`docs/validation/M5-04-bloat-calibration.json` used to record a capture taken on
+`docs/validation/M5/04-bloat-calibration.json` used to record a capture taken on
 `sha256:e9ecc40d...`, an image `docs/adr/ADR-077-m5-runtime-admission.md` does
 not admit. A measurement taken on an image the product forbids is a claim the
 product cannot support, so the procedure is a script now, it refuses to measure
@@ -157,7 +157,7 @@ DOMAIN_SOURCE = ROOT / "crates/domain/src/bloat.rs"
 
 SECCOMP = ROOT / "crates/execution-adapter/src/seccomp-rust-quality.json"
 FIXTURE = ROOT / "fixtures/bloat"
-RECEIPT = ROOT / "docs/validation/M5-04-bloat-calibration.json"
+RECEIPT = ROOT / "docs/validation/M5/04-bloat-calibration.json"
 STAGE = ROOT / "target/m5-bloat-capture"
 
 # The fixture's binary target, from `fixtures/bloat/Cargo.toml`. It is also a

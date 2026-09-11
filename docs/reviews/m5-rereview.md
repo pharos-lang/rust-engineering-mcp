@@ -78,7 +78,7 @@ segunda lectura:
 ## Lo que queda abierto, dicho como abierto
 
 Ninguno falsea una medición ni publica bytes no autenticados; por eso ninguno
-bloquea. Están listados en [la matriz](../validation/M5-matrix.md):
+bloquea. Están listados en [la matriz](../validation/M5/matrix.md):
 
 1. `verify_applied` como subconjunto de `rust_applied`.
 2. Los logs del harness: o se publican, o las tres afirmaciones que dicen dónde

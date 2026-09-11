@@ -88,11 +88,11 @@ declarado; `rust.benchmark.compare` no tiene modo de ejecución.
 
 > [!WARNING]
 > M5 está **calificado localmente** (sin integración remota, PR, tag ni release):
-> suite nativa 6/6 ([gate nativo](docs/validation/M5-native-gate.json)), matriz
-> de clientes ([recibo](docs/validation/M5-clients.json)) y gates `core`/`full`
+> suite nativa 6/6 ([gate nativo](docs/validation/M5/native-gate.json)), matriz
+> de clientes ([recibo](docs/validation/M5/clients.json)) y gates `core`/`full`
 > sobre las fuentes finales. `rust.benchmark.compare` no emite veredictos
 > direccionales: publica efecto, intervalo y razones declaradas. Estado y límites
-> en la [matriz M5](docs/validation/M5-matrix.md).
+> en la [matriz M5](docs/validation/M5/matrix.md).
 > Sus contratos completos están en [`docs/tools.md`](docs/tools.md#contratos-m5--medición-de-rendimiento).
 
 Los Resources normalizados no sustituyen una revisión de privacidad. Los HTML de
@@ -197,7 +197,7 @@ cliente.
 | Cliente | Configuración | Evidencia actual |
 | --- | --- | --- |
 | Codex | [CLI o `config.toml`](docs/client-configuration.md#codex) | Codex 0.153.0 stock calificó el camino síncrono M4 para las cinco tools y un turno model-directed con las cinco en `passed`; el cliente no declaró Tasks. [Recibo M4](docs/validation/M4/clients.json). |
-| Claude Code | [CLI o `.mcp.json`](docs/client-configuration.md#claude-code) | M2: Claude Code 2.1.260, Sonnet 5 medium, cinco preview/commit y receipt final; [PASS intento 5](docs/validation/M2/clients.json), con renovación de referencias explícita en el prompt. M5: Claude Code 2.1.267 (`claude-sonnet-5`) como cliente agentic restringido a MCP: cuatro rechazos declarados en docker-free y, en runtime, dos mediciones propias, comparación `inconclusive`, rechazo `NOT_A_DATASET` y lectura nativa de una Resource ligada por hash; [recibo M5](docs/validation/M5-clients.json). |
+| Claude Code | [CLI o `.mcp.json`](docs/client-configuration.md#claude-code) | M2: Claude Code 2.1.260, Sonnet 5 medium, cinco preview/commit y receipt final; [PASS intento 5](docs/validation/M2/clients.json), con renovación de referencias explícita en el prompt. M5: Claude Code 2.1.267 (`claude-sonnet-5`) como cliente agentic restringido a MCP: cuatro rechazos declarados en docker-free y, en runtime, dos mediciones propias, comparación `inconclusive`, rechazo `NOT_A_DATASET` y lectura nativa de una Resource ligada por hash; [recibo M5](docs/validation/M5/clients.json). |
 | Gemini CLI | [`settings.json`](docs/client-configuration.md#gemini-cli) | Configuración documentada; calificación de este MCP pendiente. |
 | Cursor | [`.cursor/mcp.json`](docs/client-configuration.md#cursor) | Configuración documentada; calificación de este MCP pendiente. |
 | VS Code / GitHub Copilot | [`.vscode/mcp.json`](docs/client-configuration.md#vs-code-y-github-copilot) | Configuración documentada; calificación de este MCP pendiente. |

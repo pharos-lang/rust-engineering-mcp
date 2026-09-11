@@ -23,7 +23,7 @@ Se escribe aquí **antes** de reproducir, para que la clasificación no se elija
 después de ver el resultado:
 
 - El recibo calificado de M4 registra esa misma selección en **42,5 s y
-  `passed`** ([M4-runtime.json](../M4/runtime.json)). El fallo llegó a los 28,1 s,
+  `passed`** ([M4-runtime.json](../../../M4/runtime.json)). El fallo llegó a los 28,1 s,
   es decir **antes** de lo que tarda normalmente: abortó contra un deadline
   interno del propio test, no contra el bound de 900 s del gate.
 - El `load` de la máquina era **15,97 en 16 núcleos**, con dos agentes
@@ -82,7 +82,7 @@ Recibos: [gate](closure-full-attempt-2/full-gate.json) ·
 [log](closure-full-attempt-2/full-gate.txt) ·
 [paso `semantic`](closure-full-attempt-2/semantic-step.txt). Corrido a solas
 sobre el worktree limpio en `c334498`, inmediatamente después del
-[`core` aprobado](../M5-core-gate.json) sobre los mismos bytes.
+[`core` aprobado](../../core-gate.json) sobre los mismos bytes.
 
 Treinta y un pasos pasaron en 2 h 5 min, entre ellos `docker-security`,
 `rust-security`, `m2-runtime`, `m3-runtime`, `m4-tampered-plugin`,
@@ -145,7 +145,7 @@ Recibos en [`closure-full-attempt-2/lancedb-0.38-probes/`](closure-full-attempt-
   create temp directory for LocalSpillStore» con `TMPDIR` inexistente, incluida
   la integración real `real_offline_e5_lance_sqlite_roundtrip`
   ([salida](closure-full-attempt-2/lancedb-0.38-probes/option-3-semantic-tests-under-gate-conditions.txt)).
-  Es exactamente el segundo motivo por el que [ADR-027](../../adr/ADR-027-semantic-offline-foundation.md)
+  Es exactamente el segundo motivo por el que [ADR-027](../../../../adr/ADR-027-semantic-offline-foundation.md)
   descartó 0.38.0/Lance 11: crea un spill store en disco aunque la base sea
   `memory://`. Las opciones 1 y 3 comparten Lance 11 y por tanto este fallo.
 
@@ -190,25 +190,25 @@ No se tocó el test ni su timeout. `full` se repite entero.
 
 ## Resultado final — 2026-09-11, `full` sobre los bytes del PR #17, **passed**
 
-[M5-full-gate.json](../M5-full-gate.json) · [log](closure-full-lock-0.31.0/full-gate-final.txt).
+[M5-full-gate.json](../../full-gate.json) · [log](closure-full-lock-0.31.0/full-gate-final.txt).
 Corrido a solas sobre el worktree limpio en `45d339f` (fuentes de `34bd428`:
 workspace `0.3.0`, verificador de smoke de release para 31 tools y saneado de
 argumentos del utillaje M5): 38/38 pasos en 1 h 48 min, 1752 tests Rust y 108
 Python, fuentes sin cambios; `semantic` en 35 s y `m5-runtime` conjunto en
-364 s. El [`core`](../M5-core-gate.json) previo sobre los mismos bytes pasó
+364 s. El [`core`](../../core-gate.json) previo sobre los mismos bytes pasó
 23/23. La pasada anterior sobre `ab4eed9` (abajo) acreditó el mismo código en
 `0.3.0-dev`.
 
 ## Resultado — 2026-09-10, `full` sobre el lock 0.31.0 en `0.3.0-dev`, **passed**
 
-[M5-full-gate.json](../M5-full-gate.json) · [log](closure-full-lock-0.31.0/full-gate.txt) ·
+[M5-full-gate.json](../../full-gate.json) · [log](closure-full-lock-0.31.0/full-gate.txt) ·
 [etapa `m5-runtime` conjunta](closure-full-lock-0.31.0/m5-runtime-joint/). Corrido a
 solas sobre el worktree limpio en `ab4eed9` tras reenlazar el artefacto del
 intento 3: 38/38 pasos en 2 h 16 min, 1752 tests Rust y 108 Python, inventario
 de 1148 fuentes idéntico al inicio y al final. `semantic` pasó con Lance 8 en
 219 s; `m3-runtime` completó sus selecciones en 33 min; la etapa `m5-runtime`
 produjo su recibo dentro del conjunto (6/6, 368 s, residuo vacío), que se
-conserva junto al [gate nativo independiente](../M5-native-gate.json) sin
+conserva junto al [gate nativo independiente](../../native-gate.json) sin
 sustituirlo. Los recibos `core` y `full` de la primera pasada (lock 0.38.0)
 permanecen en [`closure-core-lock-0.38.0`](closure-core-lock-0.38.0/) y
 [`closure-full-attempt-2`](closure-full-attempt-2/).

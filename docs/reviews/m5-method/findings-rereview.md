@@ -70,7 +70,7 @@ The schema description reads: *"Harness logs are evidence, not a measurement: th
 
 ### P2-3 — In this runtime the tool can emit exactly one verdict; the published limitation says only that it emits "no direction"
 
-`crates/domain/src/benchmark_compare.rs:1153-1156`, `crates/execution-adapter/src/performance_port.rs:169-171`; published at `docs/tools.md:1359-1370`, `CHANGELOG.md:37-43`, `docs/validation/M5-matrix.md:120-131`, `docs/validation/M5-handoff.md:100-108`.
+`crates/domain/src/benchmark_compare.rs:1153-1156`, `crates/execution-adapter/src/performance_port.rs:169-171`; published at `docs/tools.md:1359-1370`, `CHANGELOG.md:37-43`, `docs/validation/M5/matrix.md:120-131`, `docs/validation/M5/handoff.md:100-108`.
 
 The unknown-hardware rule is **correct**, and I checked it adversarially: `agreement()` at `:886-893` separates the three cases exactly as ADR-073 §5's amendment describes, `descriptor()` at `:903-915` routes them, and `one_side_blind_and_both_sides_blind_are_different_answers` (`:2221-2281`) pins all three *with a positive control* — the same two datasets with the governor observed on both sides do receive an `Improvement`. The consequence the owner records is also correct: `hardware_profile` hardcodes `cpu_governor: None`, so `NeitherObserved` holds on every dataset this runtime can produce, and `unobservable_hardware` sets in.
 
@@ -86,11 +86,11 @@ The unknown-hardware rule is **correct**, and I checked it adversarially: `agree
 
 ### P2-4 — `M5-01-blocker.json` still attributes the one-execution-per-side captures to the qualified image, and the disposition says this was corrected
 
-`docs/validation/M5-01-blocker.json:54`, against `fixtures/benchmark-datasets/README.md:21-23` and `docs/validation/M5-01-benchmark-calibration.json` `limitations[2]`.
+`docs/validation/M5/01-blocker.json:54`, against `fixtures/benchmark-datasets/README.md:21-23` and `docs/validation/M5/01-benchmark-calibration.json` `limitations[2]`.
 
 The rewritten sentence reads: *"crates/execution-adapter/src/criterion_dataset.rs parses criterion exports **captured from the qualified image** and compares them, including a self-compare control and the rejection of same_artifact. What **those captures** can NOT demonstrate is a direction: **they are one execution per side** …"*
 
-**Concrete failing case.** The captures that are one execution per side are `criterion-run-1.tar`, `criterion-run-2.tar` and `criterion-candidate.tar`. Both the fixture README table and the calibration receipt's own `limitations[2]` record them as taken on `sha256:e9ecc40d023d9d13ac3539cccb6a944cd1022da2a8b3f86ca61356086b38a209`, "which ADR-077 does not admit". The six captures that *are* from the admitted image are three executions per side, so the sentence is false on either reading. This is the same misattribution the previous review named as P1-3's second half; `git diff 4fc2f0c~1 HEAD -- docs/validation/M5-01-blocker.json` shows the sentence was rewritten around it, not corrected.
+**Concrete failing case.** The captures that are one execution per side are `criterion-run-1.tar`, `criterion-run-2.tar` and `criterion-candidate.tar`. Both the fixture README table and the calibration receipt's own `limitations[2]` record them as taken on `sha256:e9ecc40d023d9d13ac3539cccb6a944cd1022da2a8b3f86ca61356086b38a209`, "which ADR-077 does not admit". The six captures that *are* from the admitted image are three executions per side, so the sentence is false on either reading. This is the same misattribution the previous review named as P1-3's second half; `git diff 4fc2f0c~1 HEAD -- docs/validation/M5/01-blocker.json` shows the sentence was rewritten around it, not corrected.
 
 I do not treat this as blocking: the substantive evidence *was* recaptured on the admitted image, the definitive provenance statements (the README table, the receipt's limitations) are correct and prominent, and I verified all six digests against the committed bytes. What is stale is one prose sentence in a sibling receipt — but it is the sentence a reader reaches when following the blocker, and the disposition claims it is fixed.
 
@@ -120,9 +120,9 @@ The disposition states that the P3s "se corrigen con el resto", that the fixture
 | unsorted `inconclusive_reasons` | `decide()` (`:1098-1177`) still pushes without sorting; `[TruncatedMeasurement, InsufficientSamples]` is emitted out of enum order |
 | the decoder doc comment | `application/src/benchmark_compare.rs:105` still says "the execution adapter … supplies the implementation"; the only production impl is `JsonDatasetDecoder` at `mcp-server/src/stdio/benchmark_compare.rs:204` |
 | README table and prose on `control` | `fixtures/benchmark/README.md:17` still says "1.00x, noise / self-compare control" and `:27` "it exists so an adapter has a self-compare case that should report 'no meaningful change'"; `git diff c6099f2 HEAD` shows neither line ever changed. (`fixtures/benchmark/src/lib.rs` — the primary artifact — **was** correctly fixed) |
-| host ratios retired from the matrix | `docs/validation/M5-matrix.md:160-161` still prints 1,256 / 1,331 / 1,302 and 1,013 / 1,002 / 0,976. They are now annotated as a design ratio, which satisfies the previous review's "drop **or** annotate", but they were not retired |
+| host ratios retired from the matrix | `docs/validation/M5/matrix.md:160-161` still prints 1,256 / 1,331 / 1,302 and 1,013 / 1,002 / 0,976. They are now annotated as a design ratio, which satisfies the previous review's "drop **or** annotate", but they were not retired |
 
-Plus three stale-version slips the versioning bump missed: `docs/adr/ADR-073…:65` ("única unidad del dataset **v1**"), `docs/validation/M5-handoff.md:22` ("dataset **v1** con muestras crudas"), `crates/domain/src/quality_artifact.rs:306` ("Its bytes are `rust-engineering-mcp.benchmark-dataset.**v1**`"), and `docs/adr/ADR-076…:37`, which inventories the payload-format variant as `BenchmarkDatasetV1` — a variant that no longer exists.
+Plus three stale-version slips the versioning bump missed: `docs/adr/ADR-073…:65` ("única unidad del dataset **v1**"), `docs/validation/M5/handoff.md:22` ("dataset **v1** con muestras crudas"), `crates/domain/src/quality_artifact.rs:306` ("Its bytes are `rust-engineering-mcp.benchmark-dataset.**v1**`"), and `docs/adr/ADR-076…:37`, which inventories the payload-format variant as `BenchmarkDatasetV1` — a variant that no longer exists.
 
 This does not falsify a measurement. It matters because G8 depends on the disposition being an accurate record of what a reviewer's findings cost, and a reviewer who trusts it will believe closed what is open.
 

@@ -51,7 +51,7 @@ compare_source=(root/'crates/domain/src/benchmark_compare.rs').read_text(encodin
 qualified=re.search(r'^pub const METHOD_QUALIFIED_FOR_DIRECTION: bool = (true|false);$',compare_source,re.M)
 assert qualified, 'METHOD_QUALIFIED_FOR_DIRECTION is missing; ADR-081 requires the statistical gate to exist in code'
 if qualified.group(1)=='true':
-    receipt=root/'docs/validation/M5-02-method-simulation.json'
+    receipt=root/'docs/validation/M5/02-method-simulation.json'
     assert receipt.is_file(), 'the method is marked qualified but there is no requalification receipt'
     measured=json.loads(receipt.read_text(encoding='utf-8'))
     assert measured.get('candidates_meeting_every_criterion'), (

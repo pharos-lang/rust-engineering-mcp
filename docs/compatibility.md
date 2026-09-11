@@ -16,7 +16,7 @@
 | Artifact 0.1.0 publicado | Un único archive core `aarch64-apple-darwin`; checksum, SBOM/notices y provenance verificados |
 | Linux / Windows / macOS x86_64 nativos | CI pública compila y prueba el código fuente; la calificación nativa del sandbox y filesystem sigue pendiente para ampliar soporte en una release futura |
 | Licencia / redistribución | Código original `MIT OR Apache-2.0`; assets `local` no se redistribuyen en 0.1.0 |
-| Clientes de terceros | M4: Inspector 2.5.0 con Tasks y Codex 0.153.0 stock por sincronía; [recibo](validation/M4/clients.json). M5: Inspector 2.5.0 (quince filas, catorce Resources) y Claude Code 2.1.267 `claude-sonnet-5` como cliente agentic; [recibo](validation/M5-clients.json). M1/M2 conservan sus matrices anteriores. |
+| Clientes de terceros | M4: Inspector 2.5.0 con Tasks y Codex 0.153.0 stock por sincronía; [recibo](validation/M4/clients.json). M5: Inspector 2.5.0 (quince filas, catorce Resources) y Claude Code 2.1.267 `claude-sonnet-5` como cliente agentic; [recibo](validation/M5/clients.json). M1/M2 conservan sus matrices anteriores. |
 | Sandbox | Probes M0 separados; ejecución M1–M4 habilitada solo en runtimes aprobados Docker/Linux ARM64 calibrados por sus ADR |
 | SQLite / FTS5 | rusqlite 0.40.2, SQLite bundled 3.53.2; memoria, pruebas ARM64 macOS |
 | LanceDB / embeddings | M0-09: E5/ORT y LanceDB0.31 memory://; feature local, gate macOS ARM64 |
@@ -411,7 +411,7 @@ incluso tras TTL/reinicio. No permite iniciar efectos nuevos sin preview vigente
 ## Rendimiento M5, calificado localmente
 
 Las cuatro definiciones M5 están implementadas y **calificadas localmente**
-(suite nativa, clientes, `core` y `full`); la [matriz M5](validation/M5-matrix.md)
+(suite nativa, clientes, `core` y `full`); la [matriz M5](validation/M5/matrix.md)
 registra recibos y límites. `tools/list` devuelve 31 definiciones: las 27 anteriores
 intactas byte a byte en sus snapshots y las cuatro nuevas. Los recibos históricos
 no califican los contratos M5 finales; la matriz identifica la evidencia pendiente.
@@ -484,11 +484,11 @@ recalificación estadística.
 
 | Elemento | Identidad / versión | Estado |
 | --- | --- | --- |
-| Guest Linux ARM64 M5 | `sha256:e0a5ca1661b3e49d0a3d68ee3cc0963453078d08eb7fc43c30538c16b7998aac` (`rust-engineering-runtime:1.98.1-arm64-m5`) | Construida y con [recibo](validation/M5-provisioning.json); admitida por digest en el gateway ([ADR-077](adr/ADR-077-m5-runtime-admission.md)); seis selecciones nativas aprobadas ([gate nativo](validation/M5-native-gate.json)) |
+| Guest Linux ARM64 M5 | `sha256:e0a5ca1661b3e49d0a3d68ee3cc0963453078d08eb7fc43c30538c16b7998aac` (`rust-engineering-runtime:1.98.1-arm64-m5`) | Construida y con [recibo](validation/M5/provisioning.json); admitida por digest en el gateway ([ADR-077](adr/ADR-077-m5-runtime-admission.md)); seis selecciones nativas aprobadas ([gate nativo](validation/M5/native-gate.json)) |
 | Base | `sha256:25ed3626e710081a571a86a29521eaf2e890e796afd422ba5e409e0ce1891635` | Imagen M4 aprobada, intacta y verificada por digest antes de construir |
 | `cargo-bloat` | 0.12.1, MIT, en `/opt/perf/bin` | Provisionado, fuera del `PATH` del contenedor de trabajo |
 | `rust-mcp-profile-helper` | Construido desde `fixtures/profile-helper` | Provisionado, fuera del `PATH` del contenedor de trabajo |
-| Perfil seccomp de profiling | `seccomp-rust-profile.json` = perfil quality + `perf_event_open` | [Prueba de capability](validation/M5-profiling-capability-probe.json) pasada sobre la imagen M4 |
+| Perfil seccomp de profiling | `seccomp-rust-profile.json` = perfil quality + `perf_event_open` | [Prueba de capability](validation/M5/profiling-capability-probe.json) pasada sobre la imagen M4 |
 
 La imagen no cambia toolchain, plugins M3, binarios M4, usuario, `WORKDIR` ni
 `PATH`, y el gateway invoca ambos binarios por ruta absoluta. La imagen M4
@@ -505,7 +505,7 @@ resultado declara son propiedades de esa identidad.
 
 El positivo de análisis de tamaño está calibrado sobre **ELF64/AArch64** en el
 guest Linux ARM64: la
-[calibración](validation/M5-04-bloat-calibration.json) registra `ELF64`,
+[calibración](validation/M5/04-bloat-calibration.json) registra `ELF64`,
 `AArch64` y `DYN (Position-Independent Executable file)`. Ese positivo **no
 califica Mach-O ni PE**, y **WASM no está soportado por el analizador**. Solo se
 calibraron los exits 0 (`passed`) y 1 (`analysis_failed`); los demás siguen sin

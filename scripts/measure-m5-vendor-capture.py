@@ -1522,7 +1522,7 @@ def main() -> int:
         "how_a_reader_can_tell_it_was_clean": (
             "agreement_with_M5-01-blocker compares the measured file count, "
             "directory count and total bytes against the numbers "
-            "docs/validation/M5-01-blocker.json recorded independently; any stray "
+            "docs/validation/M5/01-blocker.json recorded independently; any stray "
             "entry moves at least one of them"
         ),
         "rejected_entries_seen_during_the_walk": shape["rejected_entries"],
@@ -1531,7 +1531,7 @@ def main() -> int:
     if BLOCKER.exists():
         observed = json.loads(BLOCKER.read_text()).get("observed", {})
         receipt["agreement_with_M5-01-blocker"] = {
-            "source": "docs/validation/M5-01-blocker.json",
+            "source": "docs/validation/M5/01-blocker.json",
             "files": {"recorded": observed.get("files"), "observed": shape["files"]},
             "directories": {
                 "recorded": observed.get("directories"),

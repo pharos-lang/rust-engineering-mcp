@@ -1,8 +1,8 @@
 # M5 — matriz de implementación y calificación
 
 Estado: **Done local**, 2026-09-10. Cierre local autorizado por
-[complete-m5](../prompts/complete-m5.md) y continuado por
-[finish-m5-fable](../prompts/finish-m5-fable.md). Rama `ai/m5-performance`;
+[complete-m5](../../prompts/complete-m5.md) y continuado por
+[finish-m5-fable](../../prompts/finish-m5-fable.md). Rama `ai/m5-performance`;
 `main` permanece en `c6099f27415b0be3838e84d21d25eed903c8c312`. M5-01..05 y
 G1–G9 están demostrados sobre el lock con `lancedb 0.31.0` (opción 2a) y el
 workspace `0.3.0`: suite nativa 6/6, matriz de clientes, `core` 23/23 y `full`
@@ -18,34 +18,34 @@ quedan fuera de esta autorización. M6 no está iniciado.
 
 | Decisión | Contrato |
 | --- | --- |
-| [ADR-073](../adr/ADR-073-benchmark-method-and-dataset.md) | Criterion 0.8.2, dataset v2, parámetros cerrados, observación del guest y método explícito |
-| [ADR-074](../adr/ADR-074-profiling-capability-and-containment.md) | Profiling con capability del host, sin privilegios adicionales |
-| [ADR-075](../adr/ADR-075-m5-runtime-provisioning.md) / [077](../adr/ADR-077-m5-runtime-admission.md) | Aprovisionamiento explícito e imagen admitida por digest |
-| [ADR-076](../adr/ADR-076-m5-performance-contracts.md) | Cuatro tools; los 27 contratos anteriores se conservan |
-| [ADR-078](../adr/ADR-078-offline-vendor-capture.md) | Captura vendor separada; límites de SourceBundle intactos |
-| [ADR-079](../adr/ADR-079-bloat-result-semantics.md) | Bloat `passed` significa análisis ejecutado y validado; ranking acotado declarado |
-| [ADR-080](../adr/ADR-080-harness-logs-as-artifacts.md) | Logs privados por repetición con truncación y reemplazo declarados |
-| [ADR-081](../adr/ADR-081-benchmark-statistical-requalification.md) | Criterios congelados; `METHOD_QUALIFIED_FOR_DIRECTION=false` |
+| [ADR-073](../../adr/ADR-073-benchmark-method-and-dataset.md) | Criterion 0.8.2, dataset v2, parámetros cerrados, observación del guest y método explícito |
+| [ADR-074](../../adr/ADR-074-profiling-capability-and-containment.md) | Profiling con capability del host, sin privilegios adicionales |
+| [ADR-075](../../adr/ADR-075-m5-runtime-provisioning.md) / [077](../../adr/ADR-077-m5-runtime-admission.md) | Aprovisionamiento explícito e imagen admitida por digest |
+| [ADR-076](../../adr/ADR-076-m5-performance-contracts.md) | Cuatro tools; los 27 contratos anteriores se conservan |
+| [ADR-078](../../adr/ADR-078-offline-vendor-capture.md) | Captura vendor separada; límites de SourceBundle intactos |
+| [ADR-079](../../adr/ADR-079-bloat-result-semantics.md) | Bloat `passed` significa análisis ejecutado y validado; ranking acotado declarado |
+| [ADR-080](../../adr/ADR-080-harness-logs-as-artifacts.md) | Logs privados por repetición con truncación y reemplazo declarados |
+| [ADR-081](../../adr/ADR-081-benchmark-statistical-requalification.md) | Criterios congelados; `METHOD_QUALIFIED_FOR_DIRECTION=false` |
 
 ## Cortes y evidencia
 
 | ID | Corte | Estado actual | Evidencia |
 | --- | --- | --- | --- |
-| M5-01 | Benchmark existente → dataset, archivo Criterion y logs | **Done local** | [captura](M5-01-capture-runtime.json), [negativos](M5-01-runtime.json), [gate nativo](M5-native-gate.json), [clientes](M5-clients.json) |
-| M5-02 | Dos datasets del store → compatibilidad → comparación | **Done local**; guardas conservadas, sin dirección habilitada | [clientes](M5-clients.json): Inspector y Claude Code comparan datasets propios, `inconclusive`/`insufficient_executions`, `NOT_A_DATASET`; `benchmark_compare.rs`, `performance_environment.rs` |
-| M5-03 | Capability → muestras/stacks/SVG → Resource | **Done local** | [runtime](M5-03-runtime.json): positivo, cero muestras, denegación, descendiente, cancelación y artifact precreado; [clientes](M5-clients.json): 195 muestras, 0 perdidas, dos artifacts leídos |
-| M5-04 | Build → tamaño exacto y atribución estimada | **Done local** | [runtime](M5-04-runtime.json), [clientes](M5-clients.json) (`analysis_validated`, cargo-bloat 0.12.1), [revisión](m5-delegation/closure-local-semantics/review.md) |
-| M5-05 | Clientes, G1–G9 y cierre conjunto | **Done local** | [clientes](M5-clients.json), [core](M5-core-gate.json), [full](M5-full-gate.json), [G1–G9](m5-delegation/closure-local-semantics/g1-g9-disposition.md) |
+| M5-01 | Benchmark existente → dataset, archivo Criterion y logs | **Done local** | [captura](01-capture-runtime.json), [negativos](01-runtime.json), [gate nativo](native-gate.json), [clientes](clients.json) |
+| M5-02 | Dos datasets del store → compatibilidad → comparación | **Done local**; guardas conservadas, sin dirección habilitada | [clientes](clients.json): Inspector y Claude Code comparan datasets propios, `inconclusive`/`insufficient_executions`, `NOT_A_DATASET`; `benchmark_compare.rs`, `performance_environment.rs` |
+| M5-03 | Capability → muestras/stacks/SVG → Resource | **Done local** | [runtime](03-runtime.json): positivo, cero muestras, denegación, descendiente, cancelación y artifact precreado; [clientes](clients.json): 195 muestras, 0 perdidas, dos artifacts leídos |
+| M5-04 | Build → tamaño exacto y atribución estimada | **Done local** | [runtime](04-runtime.json), [clientes](clients.json) (`analysis_validated`, cargo-bloat 0.12.1), [revisión](delegation/closure-local-semantics/review.md) |
+| M5-05 | Clientes, G1–G9 y cierre conjunto | **Done local** | [clientes](clients.json), [core](core-gate.json), [full](full-gate.json), [G1–G9](delegation/closure-local-semantics/g1-g9-disposition.md) |
 
 ## Gate nativo independiente
 
-[M5-native-gate.json](M5-native-gate.json) registra seis selecciones aprobadas,
+[M5-native-gate.json](native-gate.json) registra seis selecciones aprobadas,
 cada una exacta, ignorada y serial, sobre `37805f6` (lock con `lancedb 0.31.0`,
 código Rust idéntico a `a2464c4` y al de `0.3.0`, que solo cambia la versión
 del workspace), en 6 m 14 s; la etapa `m5-runtime` del `full` final la repite
 sobre `45d339f`. La misma suite había pasado 6/6
 sobre el lock anterior; ese recibo se conserva en
-[m5-closure-history/lock-0.38.0](m5-closure-history/lock-0.38.0/).
+[m5-closure-history/lock-0.38.0](history/closure-history/lock-0.38.0/).
 
 La captura real tiene 161361408 bytes de artifact y 156267469 bytes de archivos.
 El positivo completó tres ejecuciones y produjo 90 muestras para cada uno de los
@@ -63,7 +63,7 @@ etapa dentro del conjunto.
 
 ## Matriz de clientes final
 
-[M5-clients.json](M5-clients.json) (attempt-9, HEAD `34bd428`, servidor
+[M5-clients.json](clients.json) (attempt-9, HEAD `34bd428`, servidor
 `53be298c…` del workspace `0.3.0`; attempt-7 midió lo mismo en `0.3.0-dev` y
 attempt-6 sobre el lock anterior): Inspector 2.5.0 convierte quince filas —ocho docker-free y siete
 runtime— y lee catorce Resources en runtime; Claude Code 2.1.267
@@ -73,18 +73,18 @@ mediciones propias, comparación positiva `inconclusive`/`insufficient_execution
 `NOT_A_DATASET` contra su `criterion_archive` y lectura nativa de esa Resource,
 cuyos 40960 bytes hashean al `sha256` publicado. Codex quedó fuera por decisión
 del owner tras agotar su cuota (attempt-2). Los intentos 2–5 fallidos se
-conservan con causa en [attempts.md](m5-clients/attempts.md); el harness y su
+conservan con causa en [attempts.md](clients/attempts.md); el harness y su
 revisión independiente (Gemini 3.8 y Claude Sonnet 5) están dispuestos en
-[closure-claude-client-harness](m5-delegation/closure-claude-client-harness/disposition.md).
+[closure-claude-client-harness](delegation/closure-claude-client-harness/disposition.md).
 
 ## Gates conjuntos
 
-[M5-core-gate.json](M5-core-gate.json): `core` sobre `45d339f` (fuentes de
+[M5-core-gate.json](core-gate.json): `core` sobre `45d339f` (fuentes de
 `34bd428`, workspace `0.3.0`), 23/23 pasos, 1717 tests Rust y 108 Python, 1148
 fuentes inventariadas sin cambios. La pasada anterior sobre `ab4eed9`
 (`0.3.0-dev`) dio el mismo resultado.
 
-[M5-full-gate.json](M5-full-gate.json): `full` sobre `45d339f`, **38/38 pasos**
+[M5-full-gate.json](full-gate.json): `full` sobre `45d339f`, **38/38 pasos**
 en 2 h 16 min, 1752 tests Rust y 108 Python, fuentes sin cambios; `semantic` pasó
 con Lance 8 en 219 s y la etapa `m5-runtime` produjo su recibo dentro del
 conjunto en 368 s. Ambas mediciones nativas —independiente y conjunta— se
@@ -94,17 +94,17 @@ conservan.
 
 La primera pasada de cierre, sobre el lock con `lancedb 0.38.0` de `a3cb48c`,
 pasó suite nativa, clientes y `core` pero `full` falló en `semantic`
-([intento 2](m5-gate-attempts/README.md#intento-2--2026-09-10-full-failed-en-el-paso-32-de-34)):
+([intento 2](history/gate-attempts/README.md#intento-2--2026-09-10-full-failed-en-el-paso-32-de-34)):
 `lancedb 0.38.0` no compila con `default-features = false` y, parcheado, Lance 11
 exige un spill store en disco incompatible con `memory://`, los dos motivos por
-los que [ADR-027](../adr/ADR-027-semantic-offline-foundation.md) ya la había
+los que [ADR-027](../../adr/ADR-027-semantic-offline-foundation.md) ya la había
 descartado. El owner decidió la **opción 2a** (`37805f6`): `lancedb =0.31.0` /
 Lance 8 conservando `fastembed 6.0.3`, `jsonschema 0.55.1` y `tokio-rustls
 0.26.5`, con el lock regenerado offline; `cargo audit` es idéntico en ambos
 locks. Los recibos de la primera pasada se conservan en
-[m5-closure-history/lock-0.38.0](m5-closure-history/lock-0.38.0/). La
+[m5-closure-history/lock-0.38.0](history/closure-history/lock-0.38.0/). La
 actualización general de paquetería es una
-[tarea post-M8](../roadmap/m8-stabilization.md#tarea-post-m8--actualización-de-paquetería-decisión-del-owner-2026-09-10).
+[tarea post-M8](../../roadmap/m8-stabilization.md#tarea-post-m8--actualización-de-paquetería-decisión-del-owner-2026-09-10).
 
 ## Correcciones de cierre
 
@@ -135,11 +135,11 @@ actualización general de paquetería es una
 La auditoría G1–G9 recuperó el P2 histórico de `verify_applied`: M5 verifica un
 subconjunto de `rust_applied` en el snapshot auditado. Se corrigió en `89ec114`
 según ADR-074 §3.1 y pasó la
-[re-review estática](m5-delegation/closure-applied-security/review.md).
+[re-review estática](delegation/closure-applied-security/review.md).
 La calificación nativa y conjunta sigue siendo obligatoria antes de Done.
 
-[Vendor](m5-delegation/closure-local-vendor/review.md) y
-[semántica/logs](m5-delegation/closure-local-semantics/review.md): re-review sin
+[Vendor](delegation/closure-local-vendor/review.md) y
+[semántica/logs](delegation/closure-local-semantics/review.md): re-review sin
 P0–P2 abiertos. Dos P3 permanecen trazados: verificar al reutilizar un nombre
 existente dentro de la API de captura (su llamador actual ya verifica), y una
 fila cliente que combine reemplazo y truncación de logs (la transformación tiene
@@ -147,7 +147,7 @@ prueba Rust discriminante). No debilitan una guarda de producto.
 
 Claude Sonnet 5 no produjo revisión autenticada; Opus 5 no fue invocado. Se usó
 el fallback Sol autorizado, sin atribuirle revisión de otra familia ni afirmar
-agotamiento de cuota. [Intentos](m5-delegation/closure-sonnet5-semantics/attempts.md).
+agotamiento de cuota. [Intentos](delegation/closure-sonnet5-semantics/attempts.md).
 
 ## Deuda editorial de `a2464c4`: disposición sobre el código final
 
@@ -186,7 +186,7 @@ exactamente estos bytes sin una causa que lo justifique.
 ## Historia preservada
 
 Los recibos anteriores se conservan byte por byte en
-[m5-closure-history](m5-closure-history/inventory.json). Acreditan sus fuentes y
+[m5-closure-history](history/closure-history/inventory.json). Acreditan sus fuentes y
 contratos anteriores, no el candidato nuevo. El oráculo de que Criterion no cabe
 en SourceBundle permanece válido para esa vía; no implica que la captura
 independiente de ADR-078 esté bloqueada. Las calibraciones históricas y revisiones

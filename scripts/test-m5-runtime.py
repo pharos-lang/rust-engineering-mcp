@@ -32,7 +32,7 @@ NATIVE_OUTPUT = ROOT / "target/m5-runtime"
 # the three is a loud refusal, never a preference for one of them.
 PORT_SOURCE = ROOT / "crates/execution-adapter/src/performance_port.rs"
 ADMISSION_DECISION = ROOT / "docs/adr/ADR-077-m5-runtime-admission.md"
-PROVISIONING_RECEIPT = ROOT / "docs/validation/M5-provisioning.json"
+PROVISIONING_RECEIPT = ROOT / "docs/validation/M5/provisioning.json"
 NATIVE_SOURCE = ROOT / "crates/execution-adapter/src/performance_native.rs"
 PACKAGE = "rust-engineering-execution"
 # `performance_native` is a `#[cfg(test)] mod` of the execution adapter's lib,
@@ -40,7 +40,7 @@ PACKAGE = "rust-engineering-execution"
 MODULE = NATIVE_SOURCE.stem
 # The refusal cut must run before the positives: it is the cheapest selection in
 # the file (it opens the M4 image, expects `Unavailable` before any container is
-# created, and completed in 37 ms in docs/validation/M5-runtime.json), and it is
+# created, and completed in 37 ms in docs/validation/M5/runtime.json), and it is
 # the one that proves the admission list itself. A stale digest, a mis-set
 # RUST_MCP_TEST_IMAGE or a host without the M4 image therefore fails in seconds
 # instead of after the long positive measurements.

@@ -365,7 +365,7 @@ la imagen admitida. El script descubre las seis selecciones ignoradas de
 --test-threads=1`. Comprueba admisión antes de medir y registra sources, fixtures,
 logs, resultado y digest del recibo nativo por selección. No aprovisiona ni
 reconstruye imágenes. El estado de calificación está en la
-[matriz M5](validation/M5-matrix.md); la existencia de la etapa no constituye
+[matriz M5](validation/M5/matrix.md); la existencia de la etapa no constituye
 por sí sola un gate aprobado.
 
 ### Imagen guest M5
@@ -391,12 +391,12 @@ colgado tras el aviso de deprecación— y BuildKit resuelve un `FROM sha256:…
 referencia **remota**, que bajo `--network=none` falla con `DeadlineExceeded`. Por
 eso el `FROM` nombra la base por tag y no por digest, y por eso el script **no**
 fija `DOCKER_BUILDKIT`: no queda un builder alternativo que seleccionar, y el
-propio [recibo](validation/M5-provisioning.json) registra la línea
+propio [recibo](validation/M5/provisioning.json) registra la línea
 `building with "desktop-linux" instance using docker driver` de BuildKit. La
 garantía de digest no se pierde: se comprueba inmediatamente antes de construir y
 el id observado queda en el recibo.
 
-El recibo se escribe en `docs/validation/M5-provisioning.json`. La ejecución del
+El recibo se escribe en `docs/validation/M5/provisioning.json`. La ejecución del
 2026-09-08 pasó con `network_used: false`, 46 archivos y 10 769 232 bytes de
 contexto, y produjo la imagen `rust-engineering-runtime:1.98.1-arm64-m5` con id
 `sha256:e0a5ca1661b3e49d0a3d68ee3cc0963453078d08eb7fc43c30538c16b7998aac`,

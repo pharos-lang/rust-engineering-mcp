@@ -2,7 +2,7 @@
 """Capture the M5 criterion datasets on the admitted runtime image.
 
 Until now these captures were produced by hand, and the hand procedure drifted:
-`docs/validation/M5-01-benchmark-calibration.json` recorded a capture taken on
+`docs/validation/M5/01-benchmark-calibration.json` recorded a capture taken on
 `sha256:e9ecc40d...`, an image ADR-077 does not admit. A measurement taken on
 an unadmitted image is a claim the product cannot support, so the procedure is
 a script now, and the script refuses to measure on anything but the digest
@@ -96,7 +96,7 @@ FIXTURE = ROOT / "fixtures/benchmark"
 VENDOR = ROOT / "fixtures/criterion-vendor/vendor"
 MATERIALIZER = ROOT / "fixtures/criterion-vendor/materialize.py"
 DATASETS = ROOT / "fixtures/benchmark-datasets"
-RECEIPT = ROOT / "docs/validation/M5-01-benchmark-calibration.json"
+RECEIPT = ROOT / "docs/validation/M5/01-benchmark-calibration.json"
 STAGE = ROOT / "target/m5-benchmark-capture"
 
 # ADR-073 §2. Named here so a reader can compare them against

@@ -47,7 +47,7 @@ no debe leerse como paridad con ADR-064 hasta entonces.
 **Actualización de cierre local, 2026-09-10:** corregido en `89ec114` según
 ADR-074 §3.1. M5 delega a `rust_applied` y verifica ambas vistas de mounts;
 los callers M1–M4 no cambian. La
-[re-review independiente](../../validation/m5-delegation/closure-applied-security/review.md)
+[re-review independiente](../../validation/M5/delegation/closure-applied-security/review.md)
 no encuentra P0–P2 en el delta. La disposición técnica requiere todavía los
 gates nativos y conjuntos registrados en la matriz M5; no se presenta la
 revisión estática como calificación de ejecución.

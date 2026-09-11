@@ -1180,10 +1180,10 @@ proyecto dentro del sandbox, igual que `rust.test` o `rust.miri`—; solo
 Véase [ADR-076](adr/ADR-076-m5-performance-contracts.md).
 
 **Estado.** M5 está calificado localmente: suite nativa
-([gate nativo](validation/M5-native-gate.json)), clientes
-([recibo](validation/M5-clients.json)) y gates `core`/`full`
-([full](validation/M5-full-gate.json)) sobre los contratos finales de captura,
-logs, bloat y método. La [matriz M5](validation/M5-matrix.md) enumera recibos y
+([gate nativo](validation/M5/native-gate.json)), clientes
+([recibo](validation/M5/clients.json)) y gates `core`/`full`
+([full](validation/M5/full-gate.json)) sobre los contratos finales de captura,
+logs, bloat y método. La [matriz M5](validation/M5/matrix.md) enumera recibos y
 límites. Nada de esto acredita una release, un tag, una integración remota ni
 un cambio de versión.
 
@@ -1340,10 +1340,10 @@ Límites declarados: el positivo **está bloqueado**. El cierre de criterion 0.8
 son 6 014 archivos y 156 267 469 bytes, con cuatro archivos por encima del límite
 de 1 MiB por archivo, y un `SourceBundle` admite 4 096 entradas, 16 MiB en total
 y 1 MiB por archivo; los límites **no se subieron** porque pertenecen al contrato
-de datos offline calificado en M2/M4 ([M5-01-blocker.json](validation/M5-01-blocker.json)).
+de datos offline calificado en M2/M4 ([M5-01-blocker.json](validation/M5/01-blocker.json)).
 Lo calificado en el guest son `unrecognised-harness`,
 `project-cargo-configuration-refused` y `cancellation-mid-run`
-([recibo](validation/M5-01-runtime.json)). `BenchmarkExit` conserva
+([recibo](validation/M5/01-runtime.json)). `BenchmarkExit` conserva
 `CALIBRATED = false`: solo se observaron los exits 0 y 1. La herramienta tampoco
 alterna el orden de baseline y candidate: ejecuta en el orden de declaración del
 harness y lo registra; alternar es un protocolo del operador, no un control del
@@ -1493,7 +1493,7 @@ origen no autenticado. `compare` depende de un `run` previo del mismo proyecto:
 sin él no hay nada que comparar, y eso es deliberado. El método está probado
 sobre tres capturas reales del guest, con control de auto-comparación, regresión
 de dirección conocida y rechazo de `same_artifact`
-([calibración](validation/M5-01-benchmark-calibration.json)).
+([calibración](validation/M5/01-benchmark-calibration.json)).
 
 ### `rust.profile.flamegraph`
 
@@ -1556,9 +1556,9 @@ Límites: presupuesto 300 s con 60 s de ventana de muestreo máxima. El unwindin
 depende de frame pointers; un binario sin ellos produce stacks poco profundos y
 eso se declara. El positivo se limita al guest Linux ARM64 con la imagen M5:
 Mach-O y PE no quedan calificados. M5-03 está calificado nativamente
-([runtime](validation/M5-03-runtime.json)) y por clientes
-([recibo](validation/M5-clients.json)); el cierre conjunto sigue el estado de la
-[matriz M5](validation/M5-matrix.md).
+([runtime](validation/M5/03-runtime.json)) y por clientes
+([recibo](validation/M5/clients.json)); el cierre conjunto sigue el estado de la
+[matriz M5](validation/M5/matrix.md).
 
 ### `rust.binary.bloat`
 
@@ -1592,7 +1592,7 @@ contrato promete.
 incondicionalmente `CARGO_PROFILE_<PERFIL>_STRIP=false` porque necesita la tabla
 de símbolos, y se comprobó que `CARGO_PROFILE_RELEASE_STRIP=symbols` no tiene
 efecto alguno sobre el archivo producido
-([calibración](validation/M5-04-bloat-calibration.json)). El DTO lo declara en
+([calibración](validation/M5/04-bloat-calibration.json)). El DTO lo declara en
 `analysis_build_symbols_forced`, siempre `true`. El tamaño sigue siendo exacto
 *para ese archivo*, pero **no** es byte a byte el que enviaría un proyecto que
 pide stripping, y un reporte de binario stripped es inalcanzable con este
@@ -1635,6 +1635,6 @@ se observaron los exits 0 y 1.
 El corte está **In progress otra vez**, no calificado.
 [ADR-079](adr/ADR-079-bloat-result-semantics.md) sustituye la semántica de
 resultado que la calificación anterior midió, así que su
-[recibo](validation/M5-04-runtime.json) —`release-positive`, `release-lto` y
+[recibo](validation/M5/04-runtime.json) —`release-positive`, `release-lto` y
 `missing-binary-target`— acredita el contrato viejo y no este. Se recalifica
 sobre bytes finales, con revisión independiente de por medio.

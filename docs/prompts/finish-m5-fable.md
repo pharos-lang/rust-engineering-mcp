@@ -41,7 +41,7 @@ Conserva las decisiones del owner:
   commitear. Son trabajo válido de esta sesión: no descartarlos.
 - Este prompt también queda sin commitear. Revisa `git status` antes de integrar.
 
-Los cambios pendientes principales son `docs/validation/M5-runtime.json`, los
+Los cambios pendientes principales son `docs/validation/M5/runtime.json`, los
 cinco JSON históricos por corte actualizados, `M5-matrix.md`, los nuevos
 `M5-01-capture-runtime.json` y `M5-native-gate.json`, y las carpetas
 `m5-gate-attempts/closure-native-{sandbox-attempt,standalone}/`.
@@ -70,9 +70,9 @@ Commits de referencia: `d797ae1`, `e40962d`, `b7d2c9f`, `832525c`, `333d535`,
 
 Revisiones con hashes y limitaciones:
 
-- `docs/validation/m5-delegation/closure-local-vendor/`
-- `docs/validation/m5-delegation/closure-local-semantics/`
-- `docs/validation/m5-delegation/closure-applied-security/`
+- `docs/validation/M5/delegation/closure-local-vendor/`
+- `docs/validation/M5/delegation/closure-local-semantics/`
+- `docs/validation/M5/delegation/closure-applied-security/`
 - `docs/reviews/m5-security/disposition.md`, actualización de cierre.
 
 El audit `closure-local-semantics/g1-g9-audit.md` describe un snapshot anterior
@@ -86,7 +86,7 @@ no vuelvas a tratar ese P2 como sin corregir ignorando los commits posteriores.
 - Verificador compartido: 11 tests aprobados.
 - Oráculo Python de clientes: 64 tests aprobados.
 - Gate nativo independiente: **6/6 selecciones aprobadas**, exactas, ignoradas
-  y seriales. Recibo: `docs/validation/M5-native-gate.json`.
+  y seriales. Recibo: `docs/validation/M5/native-gate.json`.
 - Criterion mediante captura: tres benchmarks, tres ejecuciones y 90 muestras
   por benchmark; warmup solicitado de 3000 ms y medición de 5000 ms por ejecución.
   Pasaron digest incorrecto, escritura rechazada y cancelación de ingesta.
@@ -101,7 +101,7 @@ El gate nativo midió `a2464c4`; el diff de código, scripts, fixtures, manifest
 AGENTS hasta HEAD es vacío. Los originales están en el worktree, bajo
 `target/m5-runtime/` y `target/m5-runtime-gate/`, y se copiaron sin editar al
 árbol principal. Los recibos anteriores se preservaron byte por byte en
-`docs/validation/m5-closure-history/`.
+`docs/validation/M5/history/closure-history/`.
 
 El primer intento nativo dentro del sandbox devolvió `Unavailable`. El reintento
 con acceso Docker autorizado pasó completo sin cambiar código ni imagen.
@@ -126,7 +126,7 @@ siguen iguales; si modificas código, sí debes reconstruirlo.
 Se interrumpió una revisión read-only de la lista de «Deuda de publicación» de:
 
 ```text
-git show a2464c4:docs/validation/M5-matrix.md
+git show a2464c4:docs/validation/M5/matrix.md
 ```
 
 Contrasta esa lista con el código actual. En particular, el receipt agregado
@@ -145,7 +145,7 @@ En el worktree limpio, con el binario actual:
 RUST_MCP_TEST_SOCKET=/Users/cburgosro/.docker/run/docker.sock python3 -B scripts/test-m5-clients.py --run --with-runtime
 ```
 
-`docs/validation/M5-clients.json` **no existe** allí intencionalmente: el recibo
+`docs/validation/M5/clients.json` **no existe** allí intencionalmente: el recibo
 anterior fue archivado y su retirada se commiteó para que el script pueda
 publicar uno nuevo. No restaures el viejo en esa ruta antes de correr la matriz.
 Preserva los intentos nuevos, incluidos los fallidos, y copia los resultados al
@@ -212,7 +212,7 @@ staging y añade explícitamente los logs necesarios tras comprobar su contenido
 
 Actualiza con hechos actuales:
 
-- `docs/validation/M5-matrix.md`, `M5-handoff.md` y el mapa/disposición G1–G9.
+- `docs/validation/M5/matrix.md`, `M5-handoff.md` y el mapa/disposición G1–G9.
 - `docs/implementation-status.md` y `docs/roadmap/m5-performance.md`.
 - README, CHANGELOG, SECURITY, arquitectura, tools, security-model,
   compatibility, client-configuration y CI cuando sus estados/claims cambien.

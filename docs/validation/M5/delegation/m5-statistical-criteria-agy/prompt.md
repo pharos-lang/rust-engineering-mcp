@@ -28,7 +28,7 @@ resultado daban.
   fechadas — el método congelado.
 - `crates/domain/src/benchmark_compare.rs` — la implementación real: en
   particular las constantes, `cluster_draw`, `bootstrap_ratio` y `decide`.
-- `docs/validation/M5-02-method-simulation.json` — el recibo de la simulación
+- `docs/validation/M5/02-method-simulation.json` — el recibo de la simulación
   (es grande; léelo por partes si hace falta).
 
 ## Qué tienes que juzgar

@@ -54,8 +54,8 @@ ROOT = pathlib.Path(__file__).resolve().parents[1]
 M3_PATH = ROOT / "scripts/test-m3-clients.py"
 SESSION = ROOT / "scripts/m5-inspector-session.mjs"
 UNIT = ROOT / "scripts/test-m5-clients-unit.py"
-ATTEMPTS = ROOT / "docs/validation/m5-clients"
-CURRENT = ROOT / "docs/validation/M5-clients.json"
+ATTEMPTS = ROOT / "docs/validation/M5/clients"
+CURRENT = ROOT / "docs/validation/M5/clients.json"
 PREFLIGHT = ROOT / "docs/validation/M5-clients-preflight.json"
 SERVER = ROOT / "target/release/rust-engineering-mcp"
 NODE = pathlib.Path("/Users/cburgosro/.nvm/versions/node/v24.15.0/bin/node")
@@ -224,7 +224,7 @@ CALL_PLAN = (
 #
 # `rust.binary.bloat` reaches `passed` under ADR-079, and used to be unable to.
 # The parser caps functions at `BLOAT_MAX_ROWS = 256` and the native receipt for
-# this exact image and fixture (docs/validation/M5-04-runtime.json) recorded 378
+# this exact image and fixture (docs/validation/M5/04-runtime.json) recorded 378
 # omitted rows for `release` and 234 for `release-lto`; that cap used to become
 # `Truncated`, then `observation.complete = false`, then
 # `blocked`/`EVIDENCE_INCOMPLETE`, so the success path was unreachable for any

@@ -22,7 +22,7 @@ Podar no sirve, y está medido: los cuatro archivos que exceden el límite por
 archivo pertenecen a paquetes solo-Windows, y Cargo exige que todo paquete del
 lockfile esté presente en un directory source. Quitarlos produce
 `failed to read root of directory source`. La evidencia completa está en
-[M5-01-blocker.json](../validation/M5-01-blocker.json).
+[M5-01-blocker.json](../validation/M5/01-blocker.json).
 
 Los límites de `SourceBundle` **no se suben**. Pertenecen al contrato de datos
 offline calificado en M2/M4 y los comparten todos los flujos que llevan datos del
@@ -141,7 +141,7 @@ todo en RAM.
 
 §4 no autorizaba ningún número hasta tener memoria, disco, tiempo y concurrencia
 medidos. Están en
-[el recibo](../validation/M5-01-vendor-capture-measurements.json). Estos son los
+[el recibo](../validation/M5/01-vendor-capture-measurements.json). Estos son los
 números y de dónde sale cada uno.
 
 **Lo primero que dicen las mediciones es que la máquina no es la restricción.**

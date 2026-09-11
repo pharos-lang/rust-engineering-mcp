@@ -438,5 +438,5 @@ harness se publican por `run_index` y stream, UTF-8 válido con sustitución
 declarada separadamente del recorte; su cuota se comprueba al publicar después de
 la ejecución. Las decisiones están en [ADR-073](adr/ADR-073-benchmark-method-and-dataset.md)
 a [ADR-080](adr/ADR-080-harness-logs-as-artifacts.md), y el estado por corte en
-la [matriz M5](validation/M5-matrix.md): M5 calificado localmente (suite
+la [matriz M5](validation/M5/matrix.md): M5 calificado localmente (suite
 nativa, clientes, `core` y `full`); sin integración remota ni release.

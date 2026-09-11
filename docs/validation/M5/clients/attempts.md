@@ -1,8 +1,8 @@
 # Intentos de la matriz de clientes M5
 
 Cada intento se conserva entero, pase o falle. El script publica
-`docs/validation/M5-clients.json` solo cuando la matriz completa pasa; el recibo
-anterior está archivado en [m5-closure-history](../m5-closure-history/inventory.json).
+`docs/validation/M5/clients.json` solo cuando la matriz completa pasa; el recibo
+anterior está archivado en [m5-closure-history](../history/closure-history/inventory.json).
 
 ## attempt-1 — 2026-09-09, `passed`, superado
 
@@ -99,7 +99,7 @@ con test que rechaza el string. Sin residuo Docker.
 ## attempt-6 — 2026-09-10, `passed`
 
 HEAD `dc7ce3e`, servidor `9aaa85f0…`. Recibo publicado en
-[M5-clients.json](../M5-clients.json). Inspector 2.5.0: quince filas —ocho
+[M5-clients.json](../clients.json). Inspector 2.5.0: quince filas —ocho
 docker-free y siete runtime— con catorce Resources leídas en runtime (dos
 mediciones Criterion de una ejecución, comparación `inconclusive` con
 `insufficient_executions`, profiling con 195 muestras y 0 perdidas, bloat

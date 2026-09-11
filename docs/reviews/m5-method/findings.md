@@ -87,7 +87,7 @@ Consequences, all verified:
 - G1 requires "Cada contrato nuevo pasa ADR → decisión → **snapshot** → wire tests → docs". G4 requires a stock model-driven client doing "discovery→llamada positiva". Neither is satisfiable: an undiscoverable tool cannot be discovered.
 - Per-tool coverage is a spot check, not a contract: e.g. `stdio/bloat/tests.rs:190-208` asserts only the name, `additionalProperties == false` and a timeout default. Nothing pins the field set or the enum spellings.
 
-To the milestone's credit, `docs/validation/M5-handoff.md:83-85` states the tools are not registered in `stdio.rs`. That makes it a declared gap, not a hidden one — but it is still a gap that blocks the DoD line "Cuatro tools entregan artifacts/medidas reales" and blocks G1's snapshot requirement.
+To the milestone's credit, `docs/validation/M5/handoff.md:83-85` states the tools are not registered in `stdio.rs`. That makes it a declared gap, not a hidden one — but it is still a gap that blocks the DoD line "Cuatro tools entregan artifacts/medidas reales" and blocks G1's snapshot requirement.
 
 **Fix.** Push the four definitions in `list_tools`, add the four snapshots, update the five count assertions to 31 and the ordered name list in `protocol.rs:717+`, and extend the invariance test to cover the new snapshots.
 
@@ -95,7 +95,7 @@ To the milestone's credit, `docs/validation/M5-handoff.md:83-85` states the tool
 
 ### P1-3 — Both calibration receipts and the entire M5-02 fixture oracle were captured on an image ADR-077 forbids
 
-`docs/validation/M5-01-benchmark-calibration.json:3-4`, `docs/validation/M5-04-bloat-calibration.json:3-4`, `docs/validation/M5-provisioning.json:18-19,63`, `docs/adr/ADR-077-m5-runtime-admission.md:26-37`, `crates/execution-adapter/src/performance_port.rs:53-57`.
+`docs/validation/M5/01-benchmark-calibration.json:3-4`, `docs/validation/M5/04-bloat-calibration.json:3-4`, `docs/validation/M5/provisioning.json:18-19,63`, `docs/adr/ADR-077-m5-runtime-admission.md:26-37`, `crates/execution-adapter/src/performance_port.rs:53-57`.
 
 ```
 M5-04-bloat-calibration.json   captured_at_utc 2026-09-08T22:11:33Z  image sha256:e9ecc40d…
@@ -105,7 +105,7 @@ M5-provisioning.json           started_at 22:35:07  finished_at 22:35:54  image 
 
 `sha256:e9ecc40d…` occurs in exactly three places in the repo: the two receipts and a hardcoded test string at `criterion_dataset.rs:1369`. It is in no ADR, no provisioning receipt and no admission list. ADR-077 says of the one admitted digest: *"el puerto de performance exige esa imagen y solo esa … ejecutar una medición sobre otra imagen produciría una declaración que el producto no puede sostener"*, and `performance_port.rs:56` pins `M5_IMAGE = sha256:0e21c561…`.
 
-So by the project's own rule, both calibrations — and therefore the three committed `criterion-*.tar` fixtures that are the whole M5-02 oracle and the source of every number in ADR-073's frozen-parameters table — are measurements the product declares it cannot sustain. `docs/validation/M5-01-blocker.json:53` compounds it by asserting the captures came "from this image" in a document that pins `0e21c561…` at `:8`.
+So by the project's own rule, both calibrations — and therefore the three committed `criterion-*.tar` fixtures that are the whole M5-02 oracle and the source of every number in ADR-073's frozen-parameters table — are measurements the product declares it cannot sustain. `docs/validation/M5/01-blocker.json:53` compounds it by asserting the captures came "from this image" in a document that pins `0e21c561…` at `:8`.
 
 Mitigation worth recording: `M5-04-bloat-calibration.json:9` `binary_sha256 e3eaea0d…` is byte-identical to the `cargo-bloat` hash in `M5-provisioning.json`, so the analyzer binary was the same across the two images. The *image* claim remains wrong.
 
@@ -162,15 +162,15 @@ And when compatibility *does* fail, `incompatibility_reasons` publishes bare tag
 
 ### P2-4 — The fixture `control` is still asserted as a 1.00x control in five places, including the Rust source and the matrix
 
-Honest, with the receipt cited: `fixtures/benchmark/README.md:123-135` ("El benchmark `control` no es un control 1,00x … la medición real en el guest lo desmiente"), `docs/validation/M5-01-benchmark-calibration.json:189`, and implicitly `fixtures/benchmark-datasets/README.md:11`.
+Honest, with the receipt cited: `fixtures/benchmark/README.md:123-135` ("El benchmark `control` no es un control 1,00x … la medición real en el guest lo desmiente"), `docs/validation/M5/01-benchmark-calibration.json:189`, and implicitly `fixtures/benchmark-datasets/README.md:11`.
 
 Still wrong:
 - `fixtures/benchmark/src/lib.rs:12` — `//! | work_noisy | n | 1.00x (self-compare control)|`
 - `fixtures/benchmark/src/lib.rs:64-70` — "the only difference an adapter can observe against `reference` is measurement noise. **The expected design ratio is 1.00x.**" This is the precise proposition the guest measurement refuted (−2.9% is a systematic instruction-path effect, not noise), in the source file itself, with no pointer to the receipt.
 - `fixtures/benchmark/README.md:17` — table row "1.00x, noise / self-compare control" (rescued only 106 lines later).
 - `fixtures/benchmark/README.md:27` — "it exists so an adapter has a self-compare case that should report 'no meaningful change'."
-- `docs/validation/M5-matrix.md:99-102` — the matrix's **only** mention of `control/reference` prints three host ratios (1,013, 1,002, 0,976), actively reinforcing ≈1.00×, and the matrix never states the retraction anywhere.
-- `docs/validation/M5-handoff.md` — no mention at all. The document a successor reads first never says a fixture named `control` is not a control.
+- `docs/validation/M5/matrix.md:99-102` — the matrix's **only** mention of `control/reference` prints three host ratios (1,013, 1,002, 0,976), actively reinforcing ≈1.00×, and the matrix never states the retraction anywhere.
+- `docs/validation/M5/handoff.md` — no mention at all. The document a successor reads first never says a fixture named `control` is not a control.
 
 **On the real self-compare control (question 10):** it exists and is correctly identified — `criterion-run-1.tar` vs `criterion-run-2.tar`, same source, two executions, exercised at `criterion_dataset.rs:1491-1513`. Recomputed, family = 3: `m5/reference` → `inconclusive` (effect −3.95%, CI (−5.67%, +0.19%), MDR 5.19%), `m5/control` → `inconclusive`, `m5/slower_125` → `no_material_change`. No false direction — a genuine pass. But note how thin: the CI's lower bound is already **−5.67%**, past the −5% threshold, and the verdict was withheld only because the interval also reached +0.19% and the MDR gate fired at 5.19% vs 5.00%. Two caveats: the test's assertion accepts either `NoMaterialChange` or `Inconclusive`, so it pins nothing; and no receipt records the verdict it actually produced.
 

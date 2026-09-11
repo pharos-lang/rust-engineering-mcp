@@ -167,7 +167,7 @@ publicaron por separado y forman parte de esta versión.
   16 MiB en total y 1 MiB por archivo. **Los límites no se subieron**: pertenecen
   al contrato de datos offline calificado en M2/M4 y ampliarlos habría debilitado
   una frontera de seguridad sin decisión ni recalificación. Detalle y opciones
-  para el owner en [M5-01-blocker.json](docs/validation/M5-01-blocker.json).
+  para el owner en [M5-01-blocker.json](docs/validation/M5/01-blocker.json).
   ADR-078 no amplía esos límites: introduce una captura separada cuya ruta
   completa está en recalificación.
 - La matriz de clientes M5 usa Inspector 2.5.0 como cliente determinista y
@@ -178,7 +178,7 @@ publicaron por separado y forman parte de esta versión.
   con su propio `criterion_archive` y lee esa Resource, cuyo contenido debe
   hashear al artifact publicado. El harness fue revisado por Gemini 3.8 y
   Claude Sonnet 5; el driver Inspector aplica ahora su timeout por llamada.
-  [Recibo](docs/validation/M5-clients.json).
+  [Recibo](docs/validation/M5/clients.json).
 - **`lancedb` vuelve a `=0.31.0` / Lance 8** (opción 2a, decisión del owner del
   2026-09-10) conforme a [ADR-027](docs/adr/ADR-027-semantic-offline-foundation.md):
   la 0.38.0 no compilaba con `default-features = false` y Lance 11 exigía un
@@ -189,10 +189,10 @@ publicaron por separado y forman parte de esta versión.
   [tarea post-M8](docs/roadmap/m8-stabilization.md#tarea-post-m8--actualización-de-paquetería-decisión-del-owner-2026-09-10).
   Todos los recibos M5 se recapturan sobre el nuevo lock.
 - Estado: M5 **Done local**. Suite nativa 6/6
-  ([gate nativo](docs/validation/M5-native-gate.json)), matriz de clientes
-  ([recibo](docs/validation/M5-clients.json)), `core` 23/23
-  ([recibo](docs/validation/M5-core-gate.json)) y `full` 38/38
-  ([recibo](docs/validation/M5-full-gate.json)) sobre el lock con `lancedb
+  ([gate nativo](docs/validation/M5/native-gate.json)), matriz de clientes
+  ([recibo](docs/validation/M5/clients.json)), `core` 23/23
+  ([recibo](docs/validation/M5/core-gate.json)) y `full` 38/38
+  ([recibo](docs/validation/M5/full-gate.json)) sobre el lock con `lancedb
   0.31.0`. `BenchmarkExit` y `BloatExit` conservan `CALIBRATED = false`; la
   guarda direccional sigue en `false`. Sin integración remota, PR, tag, release
   ni cambio de versión.

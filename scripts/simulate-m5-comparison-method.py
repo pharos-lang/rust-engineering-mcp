@@ -51,7 +51,7 @@ if not __debug__:
     raise RuntimeError("Optimized Python mode is rejected")
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
-DEFAULT_OUTPUT = ROOT / "docs/validation/M5-02-method-simulation.json"
+DEFAULT_OUTPUT = ROOT / "docs/validation/M5/02-method-simulation.json"
 DEFAULT_TARGET = ROOT / "target/m5-method-simulation"
 TEST_PATH = "benchmark_compare::simulation::m5_02_requalification"
 VALIDATION_TESTS = (

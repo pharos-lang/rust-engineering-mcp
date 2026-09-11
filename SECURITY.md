@@ -363,7 +363,7 @@ retention of source explicitly granted by the host.
 
 Las cuatro definiciones M5 —`rust.benchmark.run`, `rust.benchmark.compare`,
 `rust.profile.flamegraph` y `rust.binary.bloat`— están implementadas y
-**calificadas localmente**: la [matriz M5](docs/validation/M5-matrix.md)
+**calificadas localmente**: la [matriz M5](docs/validation/M5/matrix.md)
 registra suite nativa, clientes y gates `core`/`full` sobre las fuentes finales;
 `tools/list` devuelve 31 definiciones y ninguna forma parte de la release
 `0.1.0` ni de una integración remota.
@@ -408,7 +408,7 @@ lectura no cambian. La medición se limita a espacio de usuario
 proceso hijo que el propio helper lanza y sus hilos: nunca un pid ajeno, nunca
 todo el sistema. El perfilador es un binario construido desde la fuente de este
 repositorio; no se aprovisiona `perf`, `cargo-flamegraph`, `samply` ni `inferno`.
-[Prueba de capability](docs/validation/M5-profiling-capability-probe.json) y
+[Prueba de capability](docs/validation/M5/profiling-capability-probe.json) y
 [ADR-074](docs/adr/ADR-074-profiling-capability-and-containment.md).
 
 Los stacks colapsados contienen nombres de símbolo y nada más: el alfabeto
