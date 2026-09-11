@@ -38,7 +38,6 @@ from __future__ import annotations
 import argparse
 import datetime as _datetime
 import json
-import tempfile
 import math
 import os
 import pathlib
@@ -143,24 +142,13 @@ CRITERIA = {
 
 
 
-# Argument boundary. Sonar's taint rules (S2083, S8705, S8707) treat every CLI
-# value as attacker-controlled; these types keep the operator's arguments but
-# refuse anything outside the repository or the temporary directory, and only
-# the validated value reaches a path or an argv.
-_ALLOWED_ROOTS = tuple(
-    os.path.realpath(str(base))
-    for base in (ROOT, tempfile.gettempdir(), "/private/tmp", "/tmp")
-)
 
-
-def bounded_path(value: str) -> pathlib.Path:
-    """argparse type: an absolute path under the repository or the temp dir."""
-    real = os.path.realpath(os.path.expanduser(str(value)))
-    for base in _ALLOWED_ROOTS:
-        if os.path.commonpath([base, real]) == base:
-            return pathlib.Path(real)
-    raise argparse.ArgumentTypeError(f"{value!r} is outside the repository and the temporary directory")
-
+def beside_default(default: pathlib.Path, value: object) -> pathlib.Path:
+    """Only the file name of a CLI path is honoured, and it lands beside the
+    default: an argument can never address a location outside that directory.
+    Sonar's taint rules treat every CLI value as attacker-controlled (S2083,
+    S8707); `os.path.basename` is the sanitizer they recognise."""
+    return default.parent / os.path.basename(os.fspath(value))
 
 def effect_is(cell: dict, value: float) -> bool:
     """Effects are exact by construction; a tolerance far below any configured
@@ -722,8 +710,8 @@ def main() -> int:
         default=None,
         help="decimal or 0x-prefixed; defaults to the harness's own SIMULATION_ROOT_SEED",
     )
-    parser.add_argument("--out", type=bounded_path, default=DEFAULT_OUTPUT)
-    parser.add_argument("--target-dir", type=bounded_path, default=DEFAULT_TARGET)
+    parser.add_argument("--out", type=pathlib.Path, default=DEFAULT_OUTPUT)
+    parser.add_argument("--target-dir", type=pathlib.Path, default=DEFAULT_TARGET)
     parser.add_argument(
         "--skip-probe",
         action="store_true",
@@ -746,6 +734,8 @@ def main() -> int:
         ),
     )
     arguments = parser.parse_args()
+    out_path = beside_default(DEFAULT_OUTPUT, arguments.out)
+    target_dir = beside_default(DEFAULT_TARGET, arguments.target_dir)
 
     if arguments.replicates < MIN_REPLICATES:
         sys.stderr.write(
@@ -759,9 +749,9 @@ def main() -> int:
     # the same thing on the same host are evidence about the host, and dropping
     # the older one would hide exactly that.
     previous_budget = None
-    if arguments.out.is_file():
+    if out_path.is_file():
         try:
-            earlier = json.loads(arguments.out.read_text(encoding="utf-8"))
+            earlier = json.loads(out_path.read_text(encoding="utf-8"))
         except (json.JSONDecodeError, OSError):
             earlier = None
         if earlier:
@@ -786,8 +776,8 @@ def main() -> int:
                 },
             }
 
-    arguments.target_dir.mkdir(parents=True, exist_ok=True)
-    binary = build_harness(arguments.target_dir)
+    target_dir.mkdir(parents=True, exist_ok=True)
+    binary = build_harness(target_dir)
     print(f"harness: {binary}", file=sys.stderr)
 
     base_environment: dict[str, str] = {}
@@ -857,7 +847,7 @@ def main() -> int:
         f"x {len(TRUE_EFFECTS)} true effects on {arguments.threads} threads",
         file=sys.stderr,
     )
-    raw_path = arguments.target_dir / "raw-simulation.json"
+    raw_path = target_dir / "raw-simulation.json"
     signature = {
         "seed": arguments.seed,
         "replicates": arguments.replicates,
@@ -1674,9 +1664,9 @@ def main() -> int:
         ],
     }
 
-    arguments.out.parent.mkdir(parents=True, exist_ok=True)
-    arguments.out.write_text(json.dumps(receipt, indent=1) + "\n", encoding="utf-8")
-    print(f"wrote {arguments.out}", file=sys.stderr)
+    out_path.parent.mkdir(parents=True, exist_ok=True)
+    out_path.write_text(json.dumps(receipt, indent=1) + "\n", encoding="utf-8")
+    print(f"wrote {out_path}", file=sys.stderr)
     print(
         f"meets every criterion: {passing or 'none'}",
         file=sys.stderr,

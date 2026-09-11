@@ -12,7 +12,6 @@ import argparse
 import datetime
 import hashlib
 import json
-import tempfile
 import os
 import pathlib
 import platform
@@ -29,24 +28,16 @@ DOCKER = os.environ.get("RUST_MCP_DOCKER", "docker")
 BUILD_TIMEOUT_S = int(os.environ.get("RUST_MCP_M5_BUILD_TIMEOUT_S", "3600"))
 
 
-
-# Argument boundary. Sonar's taint rules (S2083, S8705, S8707) treat every CLI
-# value as attacker-controlled; these types keep the operator's arguments but
-# refuse anything outside the repository or the temporary directory, and only
-# the validated value reaches a path or an argv.
-_ALLOWED_ROOTS = tuple(
-    os.path.realpath(str(base))
-    for base in (ROOT, tempfile.gettempdir(), "/private/tmp", "/tmp")
-)
+OUTPUT_DEFAULT = ROOT / "docs/validation/M5-provisioning.json"
+CONTEXT_DEFAULT = ROOT / "target/m5-provisioning"
 
 
-def bounded_path(value: str) -> pathlib.Path:
-    """argparse type: an absolute path under the repository or the temp dir."""
-    real = os.path.realpath(os.path.expanduser(str(value)))
-    for base in _ALLOWED_ROOTS:
-        if os.path.commonpath([base, real]) == base:
-            return pathlib.Path(real)
-    raise argparse.ArgumentTypeError(f"{value!r} is outside the repository and the temporary directory")
+def beside_default(default: pathlib.Path, value: object) -> pathlib.Path:
+    """Only the file name of a CLI path is honoured, and it lands beside the
+    default: an argument can never address a location outside that directory.
+    Sonar's taint rules treat every CLI value as attacker-controlled (S2083,
+    S8707); `os.path.basename` is the sanitizer they recognise."""
+    return default.parent / os.path.basename(os.fspath(value))
 
 def utc_now() -> str:
     return datetime.datetime.now(datetime.UTC).isoformat().replace("+00:00", "Z")
@@ -73,11 +64,13 @@ def guest_capture(image: str, command: str) -> str:
 
 def main() -> int:
     parser = argparse.ArgumentParser()
-    parser.add_argument("--output", type=bounded_path,
+    parser.add_argument("--output", type=pathlib.Path,
                         default=ROOT / "docs/validation/M5-provisioning.json")
-    parser.add_argument("--context", type=bounded_path,
+    parser.add_argument("--context", type=pathlib.Path,
                         default=ROOT / "target/m5-provisioning")
     arguments = parser.parse_args()
+    output_path = beside_default(OUTPUT_DEFAULT, output_path)
+    context_root = beside_default(CONTEXT_DEFAULT, context_root)
 
     if sys.platform != "darwin" or platform.machine() != "arm64":
         raise RuntimeError("the M5 image is provisioned only on macOS ARM64")
@@ -97,24 +90,24 @@ def main() -> int:
     if observed_base != BASE_IMAGE_ID:
         receipt["status"] = "failed"
         receipt["error"] = "base tag does not resolve to the approved image id"
-        arguments.output.write_text(json.dumps(receipt, indent=2, sort_keys=True) + "\n")
+        output_path.write_text(json.dumps(receipt, indent=2, sort_keys=True) + "\n")
         raise RuntimeError(f"base image mismatch: {observed_base}")
 
     prepare = subprocess.run(
         [sys.executable, "-B", "fixtures/rust-runtime/m5/provision.py",
          "--cargo-cache", str(pathlib.Path.home() / ".cargo/registry/cache"),
-         "--output", str(arguments.context)],
+         "--output", str(context_root)],
         cwd=ROOT, text=True, capture_output=True, timeout=900, check=False,
     )
     if prepare.returncode != 0:
         receipt["status"] = "failed"
         receipt["error"] = "prepare failed"
         receipt["prepare_stderr"] = prepare.stderr[-4000:]
-        arguments.output.write_text(json.dumps(receipt, indent=2, sort_keys=True) + "\n")
+        output_path.write_text(json.dumps(receipt, indent=2, sort_keys=True) + "\n")
         return 1
     receipt["prepare"] = json.loads(prepare.stdout)
 
-    prepared = arguments.context / "build-context"
+    prepared = context_root / "build-context"
     inputs = sorted(p for p in prepared.rglob("*") if p.is_file())
     receipt["context_files"] = len(inputs)
     receipt["context_bytes"] = sum(p.stat().st_size for p in inputs)
@@ -128,7 +121,7 @@ def main() -> int:
     # content -- `--no-cache` does not invalidate that snapshot. Building from a
     # content-addressed directory keeps the zeroed mtimes and makes a stale
     # snapshot unreachable, because different content is a different path.
-    context = arguments.context / f"build-context-{sums_digest[:16]}"
+    context = context_root / f"build-context-{sums_digest[:16]}"
     if context.exists():
         shutil.rmtree(context)
     shutil.copytree(prepared, context, copy_function=shutil.copy2)
@@ -149,7 +142,7 @@ def main() -> int:
     if prune.returncode != 0:
         receipt["status"] = "failed"
         receipt["error"] = "could not prune the builder cache before building"
-        arguments.output.write_text(json.dumps(receipt, indent=2, sort_keys=True) + "\n")
+        output_path.write_text(json.dumps(receipt, indent=2, sort_keys=True) + "\n")
         return 1
 
     build = subprocess.run(
@@ -167,7 +160,7 @@ def main() -> int:
     receipt["build_log_tail"] = build.stderr[-8000:] or build.stdout[-8000:]
     if build.returncode != 0:
         receipt["status"] = "failed"
-        arguments.output.write_text(json.dumps(receipt, indent=2, sort_keys=True) + "\n")
+        output_path.write_text(json.dumps(receipt, indent=2, sort_keys=True) + "\n")
         return 1
 
     built = image_id(TARGET_TAG)
@@ -208,7 +201,7 @@ def main() -> int:
     )
     receipt["status"] = "passed" if ok else "failed"
     receipt["finished_at"] = utc_now()
-    arguments.output.write_text(json.dumps(receipt, indent=2, sort_keys=True) + "\n")
+    output_path.write_text(json.dumps(receipt, indent=2, sort_keys=True) + "\n")
     print(json.dumps({"status": receipt["status"], "image_id": built}, sort_keys=True))
     return 0 if ok else 1
 

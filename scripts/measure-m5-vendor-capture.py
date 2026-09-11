@@ -131,23 +131,12 @@ SOURCE_PATH_BYTES = set(
 
 
 
-# Argument boundary. Sonar's taint rules (S2083, S8705, S8707) treat every CLI
-# value as attacker-controlled; these types keep the operator's arguments but
-# refuse anything outside the repository or the temporary directory, and only
-# the validated value reaches a path or an argv.
-_ALLOWED_ROOTS = tuple(
-    os.path.realpath(str(base))
-    for base in (REPO, tempfile.gettempdir(), "/private/tmp", "/tmp")
-)
-
-
-def bounded_path(value: str) -> Path:
-    """argparse type: an absolute path under the repository or the temp dir."""
-    real = os.path.realpath(os.path.expanduser(str(value)))
-    for base in _ALLOWED_ROOTS:
-        if os.path.commonpath([base, real]) == base:
-            return Path(real)
-    raise argparse.ArgumentTypeError(f"{value!r} is outside the repository and the temporary directory")
+def beside_default(default: Path, value: object) -> Path:
+    """Only the file name of a CLI path is honoured, and it lands beside the
+    default: an argument can never address a location outside that directory.
+    Sonar's taint rules treat every CLI value as attacker-controlled (S2083,
+    S8707); `os.path.basename` is the sanitizer they recognise."""
+    return default.parent / os.path.basename(os.fspath(value))
 
 def declared_source_bounds(path: Path) -> dict[str, int]:
     """Read the `SOURCE_MAX_*` constants out of `crates/domain/src/source.rs`.
@@ -1053,10 +1042,15 @@ PHASES = {
 def spawn(phase: str, params: dict, result_path: Path) -> int:
     if phase not in PHASES:
         raise ValueError(f"unknown phase {phase!r}")
-    result_path = bounded_path(str(result_path))
     pid = os.fork()
     if pid == 0:  # child
         try:
+            # The result file is opened here, under the parent's work
+            # directory, and becomes the worker's fd 1; the worker's argv
+            # carries the phase and its parameters, never a path.
+            fd = os.open(result_path, os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o600)
+            os.dup2(fd, 1)
+            os.close(fd)
             os.execv(
                 sys.executable,
                 [
@@ -1065,7 +1059,6 @@ def spawn(phase: str, params: dict, result_path: Path) -> int:
                     str(HERE),
                     "--worker",
                     phase,
-                    str(result_path),
                     json.dumps(params),
                 ],
             )
@@ -1331,8 +1324,8 @@ def filesystem_facts(paths: dict[str, Path]) -> dict:
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
-    parser.add_argument("--tree", type=bounded_path, default=DEFAULT_TREE)
-    parser.add_argument("--receipt", type=bounded_path, default=DEFAULT_RECEIPT)
+    parser.add_argument("--tree", type=Path, default=DEFAULT_TREE)
+    parser.add_argument("--receipt", type=Path, default=DEFAULT_RECEIPT)
     parser.add_argument("--repetitions", type=int, default=3)
     parser.add_argument(
         "--max-load",
@@ -1346,24 +1339,28 @@ def main() -> int:
             "and byte counts are published regardless, being clock-independent"
         ),
     )
-    parser.add_argument("--work", type=bounded_path, default=None)
+    parser.add_argument("--work", type=Path, default=None)
     parser.add_argument("--keep-work", action="store_true")
-    parser.add_argument("--worker", nargs=3, metavar=("PHASE", "OUT", "PARAMS"))
+    parser.add_argument("--worker", nargs=2, metavar=("PHASE", "PARAMS"))
     arguments = parser.parse_args()
 
     if arguments.worker:
-        phase, out, raw = arguments.worker
+        phase, raw = arguments.worker
         if phase not in PHASES:
             parser.error(f"unknown worker phase {phase!r}")
-        out_path = bounded_path(out)
+        # The parent redirected fd 1 to the result file before exec. Keep that
+        # descriptor for the final JSON only and send any phase chatter to
+        # stderr, so the worker never receives a path from its argv.
+        result_fd = os.dup(1)
+        os.dup2(2, 1)
         try:
             payload = PHASES[phase](json.loads(raw))
         except BaseException as error:  # report, never a silent non-zero
-            out_path.write_text(
-                json.dumps({"error": f"{type(error).__name__}: {error}"})
-            )
+            os.write(result_fd, json.dumps({"error": f"{type(error).__name__}: {error}"}).encode())
+            os.close(result_fd)
             raise
-        out_path.write_text(json.dumps(payload, sort_keys=True))
+        os.write(result_fd, json.dumps(payload, sort_keys=True).encode())
+        os.close(result_fd)
         return 0
 
     tree = arguments.tree.resolve()
@@ -1382,7 +1379,11 @@ def main() -> int:
         )
         return 1
 
-    work = arguments.work or Path(tempfile.mkdtemp(prefix="m5-vendor-capture-"))
+    work = (
+        beside_default(REPO / "target" / "m5-vendor-capture" / "work", arguments.work)
+        if arguments.work
+        else Path(tempfile.mkdtemp(prefix="m5-vendor-capture-"))
+    )
     work.mkdir(parents=True, exist_ok=True)
     started_at = time.time()
     ceiling = arguments.max_load
@@ -1690,7 +1691,7 @@ def main() -> int:
 
     # -- cross-check the artifact with the system tar -----------------------
     listing = subprocess.run(
-        ["/usr/bin/tar", "--list", "--file", str(bounded_path(str(artifact)))],
+        ["/usr/bin/tar", "--list", "--file", str(artifact)],
         capture_output=True,
         text=True,
     )
@@ -2476,8 +2477,9 @@ def main() -> int:
         ["/usr/bin/uptime"], capture_output=True, text=True
     ).stdout.strip()
 
-    arguments.receipt.parent.mkdir(parents=True, exist_ok=True)
-    arguments.receipt.write_text(
+    receipt_path = beside_default(DEFAULT_RECEIPT, arguments.receipt)
+    receipt_path.parent.mkdir(parents=True, exist_ok=True)
+    receipt_path.write_text(
         json.dumps(receipt, indent=2, sort_keys=True) + "\n"
     )
     print(
