@@ -1,6 +1,6 @@
 {
   "schema": "rust-mcp-evidence-path-map-v1",
-  "recorded_at": "2026-09-11T13:22:58.474287+00:00",
+  "recorded_at": "2026-09-11T17:42:54.410658+00:00",
   "pre_hygiene_commit": "1303af89bf54327d09a3b8b9289f81707e2d3088",
   "purpose": "Pre-hygiene path -> current path for every evidence file moved on 2026-09-11 (branch ai/repo-hygiene). Receipts, hash manifests, inventories and transcripts are immutable and keep citing pre-hygiene paths; resolve them here: try file_moves first, then the longest matching directory prefix in dir_moves. Retired bytes (private client store state, raw m1-16 measurement captures) are listed in the history inventories named under retired_inventories and remain reachable in Git history.",
   "pinned": {
@@ -8,10 +8,13 @@
     "docs/validation/artifacts/M1-01-runtime-volume-feasibility.json": "embedded by include_str! in crates/execution-adapter/src/rust_applied.rs"
   },
   "retired_inventories": [
+    "docs/research/m1-16/corpus/inventory.json",
+    "docs/research/m1-16/measurement/inventory.json",
+    "docs/reviews/inventory.json",
+    "docs/validation/M2/history/inventory.json",
     "docs/validation/M3/history/inventory.json",
     "docs/validation/M4/history/inventory.json",
-    "docs/validation/M5/history/inventory.json",
-    "docs/research/m1-16/measurement/inventory.json"
+    "docs/validation/M5/history/inventory.json"
   ],
   "dir_moves": {
     "docs/release/candidate": "docs/release/0.1.0/candidate",

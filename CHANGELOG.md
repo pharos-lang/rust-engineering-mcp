@@ -13,7 +13,10 @@
   resuelve las rutas anteriores que citan los recibos. Se retiraron del árbol
   el estado privado del store de los intentos de clientes (`state-*/`, 645
   archivos) y las capturas crudas de `docs/research/m1-16/measurement`
-  (408 archivos), ambos con hash registrado en inventarios. Nuevo
+  (408 archivos) y, con el mismo patrón de inventario, los recibos superados e
+  intentos fallidos, los transcripts crudos de clientes y de delegación, las
+  salidas crudas detrás de recibos y las copias de entradas de revisión
+  (1 437 archivos, 30 MB): el árbol conserva lo válido para la versión. Nuevo
   `scripts/docs-hygiene.py`. Los comentarios de `crates/` y `fixtures/` y el
   snapshot de contrato del tool de bloat citan las rutas nuevas; sin cambios
   funcionales en crates, `Cargo.*`, fixtures, vendor, ADRs aceptados ni

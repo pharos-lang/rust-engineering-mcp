@@ -57,3 +57,13 @@ dist/
 !fixtures/**/Cargo.toml.orig
 !docs/research/**/Cargo.toml.orig
 !fixtures/**/*.tar.gz
+
+# Raw client-qualification outputs and review input copies are not evidence:
+# each attempt keeps receipt.json and protocol.jsonl, each review package
+# keeps inputs.json with the hashes. docs/validation/README.md explains.
+docs/validation/**/clients/**/*.stdout
+docs/validation/**/clients/**/*.stderr
+docs/validation/**/clients/**/*-events.jsonl
+docs/validation/**/clients/**/harness-stderr.txt
+docs/reviews/**/inputs/
+docs/reviews/**/additional-inputs/

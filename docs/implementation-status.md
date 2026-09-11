@@ -48,7 +48,11 @@ El layout y la política de historia están en
 [`validation/README.md`](validation/README.md); `scripts/docs-hygiene.py`
 comprueba enlaces e inventarios. El estado privado de los intentos de clientes
 (`state-*/`) y las capturas crudas de `research/m1-16/measurement/results/raw/`
-se retiraron del árbol con hash registrado. El [`core` tras la
+se retiraron del árbol con hash registrado, igual que los recibos superados,
+los intentos fallidos, los transcripts de clientes y de delegación, las salidas
+crudas detrás de recibos y las copias de entradas de revisión: en 1.0.0 el
+árbol conserva lo válido para la versión y los inventarios localizan el resto
+en el historial. El [`core` tras la
 reordenación](validation/M5/core-gate-repo-hygiene.json) pasó 23/23 sobre un
 worktree limpio con las fuentes sin cambios; los dos intentos previos quedan en
 [gate-attempts](validation/M5/history/gate-attempts/README.md).

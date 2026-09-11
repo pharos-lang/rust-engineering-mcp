@@ -25,29 +25,37 @@ raíz (`M5-core-gate.json` → `M5/core-gate.json`); los archivos dentro de un
 paquete conservan su nombre. `M0` y `M1` no tienen `history/`: ningún recibo
 suyo fue superado.
 
-## Política de historia
+## Política de historia y de lo que no se versiona
 
-- **Un gate que falla es evidencia, no basura.** Los intentos fallidos y los
-  recibos superados se conservan enteros en `M<n>/history/`; nada se edita,
-  solo se mueve con `git mv`.
-- `history/inventory.json` registra para cada entrada conservada (`retained`)
-  la ruta original, el SHA-256, los bytes y el motivo de superación, y para
-  cada retirada (`retired`) la lista de archivos, un hash agregado y el último
-  commit que contiene los bytes. `python3 -B scripts/docs-hygiene.py
-  verify-inventories` comprueba todos los inventarios.
-- **El estado privado del store de cada intento de clientes no es evidencia.**
-  `M<n>/clients/attempt-N/` conserva `receipt.json`, `protocol.jsonl`, los
-  transcripts del turno dirigido por modelo y la traza del harness; los
-  directorios `state-*/` (blobs, `store.lock`, watermark, perfiles seccomp
-  copiados) fueron retirados el 2026-09-11 con hash agregado en el inventario
-  y quedan excluidos por `.gitignore`. Los harnesses crean un `state-*` nuevo
-  por intento y nunca leen uno anterior.
-- Los inventarios y recibos anteriores a la reordenación citan rutas
-  anteriores. Son inmutables: se resuelven con [`path-map.json`](path-map.json)
-  (primero `file_moves`, después el prefijo más largo de `dir_moves`).
-- Los logs `*.log` de gates versionados antes de la regla `*.log` de
-  `.gitignore` siguen versionados y se mueven con su paquete; no se añaden
-  logs nuevos sin un inventario que los cite.
+Visión: en la versión 1.0.0 el árbol contiene lo que es útil, válido y está
+alineado con la versión; lo que ya no afecta al desarrollo ni a la ejecución
+queda en el historial de Git, localizable por hash.
+
+- **El recibo aceptado acredita el milestone.** Los recibos superados, los
+  intentos fallidos y sus logs no se versionan: `M<n>/history/inventory.json`
+  registra para cada uno la ruta, el SHA-256, los bytes, el motivo y el último
+  commit que contiene los bytes (`retired`), con un hash agregado por grupo
+  (`retired_groups`). Las narrativas de diagnóstico (`README.md`,
+  `disposition.md`) se conservan porque son lecciones, no bytes medidos.
+- **Un intento de clientes es su `receipt.json` y su `protocol.jsonl`.** Las
+  salidas crudas del Inspector y del turno dirigido por modelo (`*.stdout`,
+  `*.stderr`, `*-events.jsonl`, `harness-stderr.txt`) y el estado privado del
+  store (`state-*/`) no se versionan; `.gitignore` los excluye y los harnesses
+  no los leen.
+- **Salidas crudas detrás de un recibo** (`*.log`, junit, transcripciones de
+  gate) no se versionan: el recibo ya registra su hash y su resultado. Se
+  conservan las capturas de ayuda de CLI de `M3/provisioning/help/` porque el
+  adapter documenta con ellas el contrato que parsea.
+- **Paquetes de revisión**: quedan la disposición, los findings y la salida del
+  revisor; las copias de entradas (`inputs/`) no se versionan porque Git ya
+  tiene esos bytes en el commit revisado y `inputs.json` guarda sus hashes.
+  `docs/reviews/inventory.json` registra lo retirado.
+- **Transcripts de delegación** de milestones cerrados no se versionan; quedan
+  los manifiestos `.sha256` y el inventario.
+- Los recibos son inmutables y citan la ruta con la que se generaron; se
+  resuelven con [`path-map.json`](path-map.json) y con los inventarios.
+  `python3 -B scripts/docs-hygiene.py verify-inventories` comprueba que lo
+  conservado coincide por hash y que lo retirado no volvió al árbol.
 
 ## Archivos anclados fuera del layout
 
