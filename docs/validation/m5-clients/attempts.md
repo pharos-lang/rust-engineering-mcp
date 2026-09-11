@@ -137,3 +137,12 @@ del symlink a 2.1.268; SHA-256 `a681f300…` idéntico) con los dos turnos
 dirigidos por modelo, docker-free 15,6 s y runtime 182,8 s. Un arranque previo
 sobre `d372e8b` se detuvo en el preflight por `claude_version` (el symlink ya
 apuntaba a 2.1.268); no midió nada.
+
+## attempt-9 — 2026-09-11, `passed` (bytes finales del PR #17, `34bd428`)
+
+Repetida porque el driver Inspector (`m5-inspector-session.mjs`) y los scripts
+de utillaje M5 cambiaron para el quality gate de SonarCloud; el binario
+`53be298c…` es el mismo que en attempt-8 (esos scripts no forman parte de él).
+Mismo resultado: Inspector quince filas y catorce Resources; Claude Code
+2.1.267 con los dos turnos dirigidos por modelo (docker-free 24,9 s; runtime
+183,0 s). Sin residuo Docker.
