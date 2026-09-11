@@ -377,7 +377,7 @@ def main():
                 "objective": "Resolve the reviewed Docker seccomp SCMP_CMP_MASKED_EQ operand order with an applied-profile guest probe.",
                 "status": "passed" if failure is None and not cleanup["failures"] and not cleanup["containers"] and not cleanup["volumes"] else "failed",
                 "finding": {
-                    "review": "docs/reviews/M2-final-security-opus.json P0-1",
+                    "review": "docs/reviews/M2/M2-final-security-opus.json P0-1",
                     "review_model": "claude-opus-5",
                     "reviewed_operands": {"value": 1, "valueTwo": 15},
                     "corrected_operands": {"value": 15, "valueTwo": 1},

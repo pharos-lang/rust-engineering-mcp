@@ -52,7 +52,7 @@ General socket/bind/connect/listen stay denied. The M0 probe profile is unchange
 Production profile fingerprinting, applied-volume verification, hostile Cargo
 calibration, cancellation/overflow cleanup and MCP integration remain pending.
 
-[Sonnet5 Medium review](../../reviews/M1-01-runtime-claude-sonnet-5.md) completed;
+[Sonnet5 Medium review](../../reviews/M1/M1-01-runtime-claude-sonnet-5.md) completed;
 principal disposition used actual Docker inspection and replay evidence.
 No full milestone gate or M1 completion is claimed. E5 and ORT assets from M0-12
 remain present; the full gate still requires explicit paths and real semantic

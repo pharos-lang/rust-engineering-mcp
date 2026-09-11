@@ -50,7 +50,7 @@ and audit/deny passed; paste1.0.15 maintenance warning remains visible.
 - [Compact results](artifacts/M1-01-workers-results.txt).
 - [Code and schema receipt](artifacts/M1-01-workers-source-receipt.json).
 
-Independent [Opus5 High review](../../reviews/M1-01-workers-claude-opus-5.md)
+Independent [Opus5 High review](../../reviews/M1/M1-01-workers-claude-opus-5.md)
 completed; principal disposition resolved the applicable findings. The final gate
 also covers batch rejection in all modes, first-call recovery, partial output
 timeouts and ID reuse after bootstrap (including error responses).

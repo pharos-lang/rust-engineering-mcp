@@ -28,7 +28,7 @@ Actions builds is not claimed; each evidence set qualifies its own bytes.
 | M1-16 experiments | [Completed pilot](16.md), [utility report](../../research/m1-16/measurement/REPORT.md), [retrieval benchmark](../../research/m1-16/benchmark/REPORT.md) | Utility pilot saturated with no equivalence/value claim; retrieval run is bounded/descriptive only |
 | M1-17 Inspector | [Actual Inspector qualification](17-inspector.md) | 13/13 positive calls through persistent UI; cancellation notification observed; UI Resource read unqualified |
 | M1-17 stock client | [Historical supplement](17-codex-client.md), [final model-directed run](17-codex-model.md) | Codex 0.153.0 model called the final binary, repaired E0502 to green and observed missing-runtime fail-closed |
-| M1-17 final gate/review | [Historical full19](17-final-gate.md), [final full v2](17-final-gate-v2.json), [final independent review](../../reviews/M1-closure-final-claude-opus-5.md), [public receipt](17-public-release.json) | Final 23-stage gate and Opus 5 review passed; zero P0/P1 and release conditions satisfied |
+| M1-17 final gate/review | [Historical full19](17-final-gate.md), [final full v2](17-final-gate-v2.json), [final independent review](../../reviews/M1/M1-closure-final-claude-opus-5.md), [public receipt](17-public-release.json) | Final 23-stage gate and Opus 5 review passed; zero P0/P1 and release conditions satisfied |
 
 ## Exact specification DoD (§M1, lines 4380–4397)
 
@@ -104,7 +104,7 @@ The closure does not rely on a declaration, `cargo deny` alone or a historical c
 | Native semantics/performance | M1-12 actual paths; bounded retrieval benchmark and utility pilot | macOS ARM64 source evidence only; no general utility/quality claim |
 | Licensing/notices | [Preparation](../../release/preparation.md), [local archive receipt](../../release/0.1.0-local-artifact-receipt.json) | Core archive passed; local/model/native assets excluded |
 | Signed distribution | [Public release receipt](17-public-release.json) | Three subjects verified against tag, source commit and signer workflow; no official catalog distribution |
-| Independent final review | [Final Opus 5 read-only review](../../reviews/M1-closure-final-claude-opus-5.md) | Accepted/ready; model-authored, not human; zero P0/P1 and P2 publication conditions resolved |
+| Independent final review | [Final Opus 5 read-only review](../../reviews/M1/M1-closure-final-claude-opus-5.md) | Accepted/ready; model-authored, not human; zero P0/P1 and P2 publication conditions resolved |
 | Closure | This matrix, board and [release](https://github.com/pharos-lang/rust-engineering-mcp/releases/tag/v0.1.0) | **Done** |
 
 ## Native matrix and capability boundaries

@@ -3,7 +3,7 @@
 Status: all 19 native selections passed on final sources, 2026-09-08.
 See [runtime receipt](runtime.json), [core](core-gate.json) and
 [full 33/33 resumed on unchanged sources](full-gate.json). Independent final
-[evidence confirmation](../../reviews/m4-final-evidence/review.md) accepts local
+[evidence confirmation](../../reviews/M4/m4-final-evidence/review.md) accepts local
 closure; the [handoff](handoff.md) records the Technical Owner decision.
 
 ## Scope and source of requirements

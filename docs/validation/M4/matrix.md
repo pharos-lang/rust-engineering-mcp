@@ -20,15 +20,15 @@ No se volvieron a ejecutar gates del mismo código.
 La revisión final M3 anterior precede al delta de portabilidad/Sonar y al bump
 de versión integrado. Se preparó una revisión Opus 5 High read-only de
 `e2ec7da..c66a370`, con 50 archivos (incluido `sonar-project.properties`):
-[inputs](../../reviews/m4-prerequisite/inputs.json),
-[diff](../../reviews/m4-prerequisite/delta.patch) y
-[prompt](../../reviews/m4-prerequisite/prompt.md).
-La [revisión](../../reviews/m4-prerequisite/review.md) no detectó regresiones de
+[inputs](../../reviews/M4/m4-prerequisite/inputs.json),
+[diff](../../reviews/M4/m4-prerequisite/delta.patch) y
+[prompt](../../reviews/M4/m4-prerequisite/prompt.md).
+La [revisión](../../reviews/M4/m4-prerequisite/review.md) no detectó regresiones de
 producto, pero emitió P2-1 por exclusiones Sonar sobre archivos con pruebas
 portables. Se retiraron todas las exclusiones Rust, se corrigió la documentación
 y se incluyó `sonar-project.properties` en el inventario del gate. Los dos
 oráculos nuevos fallan contra HEAD anterior y la suite corregida pasa 11/11:
-[recibo](../../reviews/m4-prerequisite/sonar-verification.json). La [confirmación Opus](../../reviews/m4-prerequisite/confirmation/review.md)
+[recibo](../../reviews/M4/m4-prerequisite/sonar-verification.json). La [confirmación Opus](../../reviews/M4/m4-prerequisite/confirmation/review.md)
 aceptó el prerrequisito sin P0/P1/P2. P3-2 (hashes documentales stale) también corregido. P3-1/3/4 se conservan
 como deuda explícita para evaluar en M4-06, sin afirmar que se hayan corregido.
 
@@ -60,8 +60,8 @@ como si describiera la implementación futura.
 | G5 gates | Passed local | [Core 19/19](core-gate.json), [full 33/33 reanudado](full-gate.json), mismos 987 inputs. Full retiene 27 pasos aprobados y ejecuta los seis restantes tras recuperar E5 local exacto; [driver](full-gate-resume-driver.py), [recuperación](e5-local-recovery.json). Sin código cambiado, descarga ni skip. Sin CI/Sonar remotos ni calificación de host Linux/x86_64; falta linker cross local. |
 | G6 rollback | Passed | [Deny MCP](deny-mcp.json): retira admisión al volver a M3, nueva llamada unavailable y mismo artifact privado v1 releído por su owner. |
 | G7 inventario | Passed | [Inventario pasivo](runtime-inventory.json), seis binarios/sysroot exactos; [imagen alterada](tampered-plugin.json) rechazada y cleanup verificado. 247 inputs aprovisionados con autorización. |
-| G8 review | Passed | [Sonnet](../../reviews/m4-composition-confirmation/review.md), [Gemini](../../reviews/m4-traceability/review.md), [Opus final de código](../../reviews/m4-final-closure/review.md): sin P0/P1/P2 nuevos. [Confirmación final Opus](../../reviews/m4-final-evidence/review.md) acepta cierre local, sin P0/P1/P2 abiertos. |
-| G9 DoR/DoD | Passed | D19–D22 decididos; [disposición final del Technical Owner](../../reviews/m4-final-evidence/disposition.md), [verificación exacta](final-verification.json) y [handoff](handoff.md). |
+| G8 review | Passed | [Sonnet](../../reviews/M4/m4-composition-confirmation/review.md), [Gemini](../../reviews/M4/m4-traceability/review.md), [Opus final de código](../../reviews/M4/m4-final-closure/review.md): sin P0/P1/P2 nuevos. [Confirmación final Opus](../../reviews/M4/m4-final-evidence/review.md) acepta cierre local, sin P0/P1/P2 abiertos. |
+| G9 DoR/DoD | Passed | D19–D22 decididos; [disposición final del Technical Owner](../../reviews/M4/m4-final-evidence/disposition.md), [verificación exacta](final-verification.json) y [handoff](handoff.md). |
 
 ## Aprovisionamiento autorizado
 

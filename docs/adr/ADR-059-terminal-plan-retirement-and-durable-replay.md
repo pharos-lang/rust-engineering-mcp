@@ -64,4 +64,4 @@ MCP de secuencia, respuesta perdida, reopen/restart/TTL, además de revisión in
 
 Accepted por el Technical Owner para corregir el P1 observado en cliente M2.
 Implementación y tests calificados en el [full posterior](../validation/M2/full-gate.json);
-[recheck Opus Accepted](../reviews/M2-059-review.md), cliente PASS y [cierre M2](../validation/M2/07.md).
+[recheck Opus Accepted](../reviews/M2/M2-059-review.md), cliente PASS y [cierre M2](../validation/M2/07.md).

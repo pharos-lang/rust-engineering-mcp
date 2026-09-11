@@ -37,7 +37,7 @@ no sustituye un resultado del gate. La integración local no publica `0.2.0-dev`
   release no se califican en esta integración local sin publicación.
 - **G8:** Sonnet contratos/observabilidad, Opus seguridad/writer/ADR-059 y delta
   final acotado. Paquetes con hashes separan revisiones históricas de bytes nuevos;
-  la [auditoría AGY de cierre](../../reviews/M2-closure-agy-review.md) registra
+  la [auditoría AGY de cierre](../../reviews/M2/M2-closure-agy-review.md) registra
   ejecución y disposición propias: Accepted sin P0/P1 nuevos.
 - **G9:** M0/M1 cerrado, D02 resuelto y writer positivo preceden la ampliación;
   M2 Done exige evidencia conjunta e integración/smoke. M3+ requiere nueva

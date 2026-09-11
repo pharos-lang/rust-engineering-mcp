@@ -157,10 +157,10 @@ históricos. Lee sus residuales; no atribuyas bytes posteriores al reviewer prev
 
 La revisión ADR-059 inicial fue Revise por un P2 de texto NotFound, ya corregido.
 El recheck terminó **Accepted**, sin P0/P1 pendientes en el delta:
-`docs/reviews/M2-059-recheck-opus.json`, SHA
+`docs/reviews/M2/M2-059-recheck-opus.json`, SHA
 `e98457b081cc9ea1a19b82a7855f65303f792275a687b2285eb3ec701a29518c`.
 Inputs: `M2-059-recheck-inputs.json`; primera revisión `M2-059-opus.json` e inputs.
-Consolida `docs/reviews/M2-059-review.md` con findings/disposición y límites.
+Consolida `docs/reviews/M2/M2-059-review.md` con findings/disposición y límites.
 Fue Opus 5 high, read-only; metadata CLI registra auxiliar Haiku 4.5, que no debe
 presentarse como otro reviewer ni sustitución de Opus. No es certificación del full.
 La frase del recheck sobre clientes aún fallidos refleja su paquete anterior al

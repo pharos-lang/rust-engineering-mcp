@@ -73,7 +73,7 @@ Revisiones con hashes y limitaciones:
 - `docs/validation/M5/delegation/closure-local-vendor/`
 - `docs/validation/M5/delegation/closure-local-semantics/`
 - `docs/validation/M5/delegation/closure-applied-security/`
-- `docs/reviews/m5-security/disposition.md`, actualización de cierre.
+- `docs/reviews/M5/m5-security/disposition.md`, actualización de cierre.
 
 El audit `closure-local-semantics/g1-g9-audit.md` describe un snapshot anterior
 al fix de seguridad. Consérvalo como historia y escribe una disposición final;

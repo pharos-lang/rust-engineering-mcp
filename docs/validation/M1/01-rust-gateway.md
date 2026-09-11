@@ -48,7 +48,7 @@ The fixture's /tmp noexec check is mount metadata, not an executable attempt.
   added their exact hashes, preserving old entries and host-execution allowlist.
   The first Rust script wrapper missed libtest's same-line prefix when extracting
   a successful receipt; corrected extraction and reran both tests successfully.
-- [Opus5 High security review](../../reviews/M1-01-rust-gateway-claude-opus-5.md)
+- [Opus5 High security review](../../reviews/M1/M1-01-rust-gateway-claude-opus-5.md)
   completed. Fixed error masking during interruption, retained observed OOM,
   expanded applied checks and added syscall/FD evidence plus implementation/admission
   fingerprints. Final core and actual Rust gates passed after fixes. Git integration

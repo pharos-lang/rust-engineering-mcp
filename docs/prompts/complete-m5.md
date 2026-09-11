@@ -42,8 +42,8 @@ repórtalo** en vez de elegir una interpretación.
 
 Estado por corte: [matriz](../validation/M5/matrix.md) ·
 [handoff](../validation/M5/handoff.md). Revisiones:
-`docs/reviews/m5-security/`, `docs/reviews/m5-method/`,
-`docs/reviews/m5-rereview.md`, `docs/validation/M5/delegation/`.
+`docs/reviews/M5/m5-security/`, `docs/reviews/M5/m5-method/`,
+`docs/reviews/M5/m5-rereview.md`, `docs/validation/M5/delegation/`.
 
 ## Lo que falta, en orden de dependencia
 

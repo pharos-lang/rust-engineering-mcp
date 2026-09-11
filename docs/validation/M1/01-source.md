@@ -24,7 +24,7 @@ Core final gate passed10/10 with 204 tests including doctest on this source-only
 branch: Rust/Cargo1.98.1, CARGO_INCREMENTAL=0, locked/offline.
 [Report](artifacts/M1-01-source-core.json). First core correctly rejected a test
 mkfifo process in src; it was moved to integration without weakening architecture.
-Principal diff review and [Opus5 High disposition](../../reviews/M1-01-source-claude-opus-5.md)
+Principal diff review and [Opus5 High disposition](../../reviews/M1/M1-01-source-claude-opus-5.md)
 completed. Five additional tests pin TOML parser size/depth, casing, inner-file
 disappearance and pre-I/O path validation. Integration smoke is recorded separately. USTAR materialization and Rust gateway calibration remain separate.
 M1-01 is not Done; only project.open is publicly operative.

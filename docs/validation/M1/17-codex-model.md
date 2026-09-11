@@ -36,4 +36,4 @@ Two independent Opus 5 High reviews accepted the corrected qualifier with zero
 P0/P1. Residual sampling races can cause a conservative false failure but do not
 create a passing receipt; kernel-level process event attribution is not claimed.
 The review trail is preserved in
-[M1 closure stock Codex qualifier](../../reviews/M1-closure-codex-qualifier-claude-opus-5.md).
+[M1 closure stock Codex qualifier](../../reviews/M1/M1-closure-codex-qualifier-claude-opus-5.md).

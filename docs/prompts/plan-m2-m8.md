@@ -57,7 +57,7 @@ INICIO OBLIGATORIO
 3. Lee docs/validation/M1/m0-m1-closure-matrix.md,
    docs/validation/M1/17-matrix.md,
    docs/validation/M1/17-public-release.json,
-   docs/reviews/M1-closure-final-claude-opus-5.md y todos los ADR, con atención
+   docs/reviews/M1/M1-closure-final-claude-opus-5.md y todos los ADR, con atención
    especial a ADR-003/004/005/007/008/009/010/023/029/031/038/041/047/048.
 4. Inspecciona git status, HEAD, árbol, manifests, Cargo.lock, tests y workflows.
    Consulta el tag/release/CI/branch protection públicos live. No uses un resultado

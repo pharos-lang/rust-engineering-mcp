@@ -123,8 +123,8 @@ y en [M3-07](../M3/07.md); M4 no atribuye una causa ni una corrección a esos re
 
 ## Revisión independiente y disposiciones
 
-La [revisión final Opus](../../reviews/m4-final-closure/review.md) no encontró P0,
-P1 ni un P2 nuevo. Su [disposición del Technical Owner](../../reviews/m4-final-closure/disposition.md)
+La [revisión final Opus](../../reviews/M4/m4-final-closure/review.md) no encontró P0,
+P1 ni un P2 nuevo. Su [disposición del Technical Owner](../../reviews/M4/m4-final-closure/disposition.md)
 registra la renovación nativa del P2 de freshness y estas
 decisiones P3:
 
@@ -168,8 +168,8 @@ vigente es una ejecución monolítica posterior e independiente que pasó 33/33.
 
 ## Cierre y parada
 
-La [confirmación final Opus 5 High](../../reviews/m4-final-evidence/review.md)
-**acepta el cierre local**, sin P0/P1/P2 abiertos. La [disposición del Technical Owner](../../reviews/m4-final-evidence/disposition.md)
+La [confirmación final Opus 5 High](../../reviews/M4/m4-final-evidence/review.md)
+**acepta el cierre local**, sin P0/P1/P2 abiertos. La [disposición del Technical Owner](../../reviews/M4/m4-final-evidence/disposition.md)
 cierra los seis cortes y G1–G9 con los recibos anteriores. La
 [verificación final](final-verification.json) calcula las comparaciones y
 hashes reales; conserva los segmentos del full, los 23 baselines Git y los cinco

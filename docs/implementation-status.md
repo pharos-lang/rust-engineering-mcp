@@ -102,8 +102,8 @@ por corte permanece más abajo en este mismo tablero.
 
 | ID | Corte | Estado | Evidencia / límite actual |
 | --- | --- | --- | --- |
-| M2-01 | Lints con preview/commit/receipt y Scratch | Done (histórico) | [Core 14/14](validation/M2/02-core-gate.json), [runtime](validation/M2/02-runtime-gate.json), [revisión](reviews/M2-01-review.md). |
-| M2-02 | `rust.fmt.apply` y writer nativo | Done (histórico) | [fmt runtime 2/2](validation/M2/02-runtime-gate.json), [contrato Sonnet](reviews/M2-02-contract-review.md), [writer Opus](reviews/M2-02-native-review.md). |
+| M2-01 | Lints con preview/commit/receipt y Scratch | Done (histórico) | [Core 14/14](validation/M2/02-core-gate.json), [runtime](validation/M2/02-runtime-gate.json), [revisión](reviews/M2/M2-01-review.md). |
+| M2-02 | `rust.fmt.apply` y writer nativo | Done (histórico) | [fmt runtime 2/2](validation/M2/02-runtime-gate.json), [contrato Sonnet](reviews/M2/M2-02-contract-review.md), [writer Opus](reviews/M2/M2-02-native-review.md). |
 | M2-03 | `rust.fix.apply` con perfil dedicado | Done | [ADR-056](adr/ADR-056-cargo-fix-isolated-loopback.md) y [máscara socket real](validation/M2/fix-socket-mask.json); no amplía el seccomp M1. |
 | M2-04/05 | `rust.dependency.add` / `.remove` | Done | [ADR-055](adr/ADR-055-offline-cargo-data-and-lock-policy.md), [ADR-057](adr/ADR-057-typed-manifest-and-dependency-operations.md), [runtime 4/4](validation/M2/04-runtime-gate.json); vendor optativo y `preserve_presence`. |
 | M2-06 | `rust.manifest.patch` tipado | Done | Cuatro familias tipadas sobre el editor LF/CRLF; runtime anterior. [Matriz](validation/M2/matrix.md). |
@@ -114,7 +114,7 @@ por corte permanece más abajo en este mismo tablero.
 | D02 — edición local coordinada | Done (decided) | [ADR-050](adr/ADR-050-local-coordinated-mutation.md); el No-go histórico sigue válido para exclusión OS fuerte, que el producto no anuncia. |
 | D05 — datos Cargo offline y política de lock | Done (decided) | [ADR-055](adr/ADR-055-offline-cargo-data-and-lock-policy.md); los probes son evidencia de decisión, no implementación. |
 | M2-03 — perfil dedicado de Cargo fix | Done (decided) | [ADR-056](adr/ADR-056-cargo-fix-isolated-loopback.md), aceptado tras D06 (121 observaciones). |
-| ADR-059 — cuota RAM del cliente stock | Done (decided) | [Recheck Accepted](reviews/M2-059-review.md), [full posterior](validation/M2/full-gate.json) y [cliente PASS](validation/M2/clients.json). |
+| ADR-059 — cuota RAM del cliente stock | Done (decided) | [Recheck Accepted](reviews/M2/M2-059-review.md), [full posterior](validation/M2/full-gate.json) y [cliente PASS](validation/M2/clients.json). |
 
 ## M3 — Quality
 
@@ -147,7 +147,7 @@ y [validación/reviews](roadmap/planning-validation.md).
 | --- | --- | --- |
 | M2 / 0.2.x | Done local; sin release nueva | [Safe Mutation](roadmap/m2-safe-mutation.md) · [prompt M2](prompts/implement-m2.md) |
 | M3 / 0.3.x | Done; integrado en `main` como `57c4037` (PR #14); sin release nueva | [Quality](roadmap/m3-quality.md) · [matriz M3](validation/M3/matrix.md) · [integración](validation/M3/integration.json) |
-| M4 / 0.4.x | Done local; integración mediante PR #15; sin release nueva | [Security](roadmap/m4-security.md) · [handoff M4](validation/M4/handoff.md) · [confirmación final](reviews/m4-final-evidence/review.md) |
+| M4 / 0.4.x | Done local; integración mediante PR #15; sin release nueva | [Security](roadmap/m4-security.md) · [handoff M4](validation/M4/handoff.md) · [confirmación final](reviews/M4/m4-final-evidence/review.md) |
 | M5 / 0.5.x | Done local; sin integración remota, PR, tag ni release | [Performance](roadmap/m5-performance.md) · [matriz M5](validation/M5/matrix.md) · [handoff M5](validation/M5/handoff.md) |
 | M6 / 0.6.x | Planned | [Analyzer](roadmap/m6-analyzer.md) · [prompt M6](prompts/implement-m6.md) |
 | M7 / 0.7.x | Conditional; ejecución Deferred sin Go | [Remote](roadmap/m7-remote.md) · [prompt M7](prompts/implement-m7.md) |
@@ -282,10 +282,10 @@ ADR-068 admite la imagen final exacta. El runtime no adquiere dependencias.
 | [Hardening](validation/M4/hardening-map.md) | Privacidad, canarios, inventario pasivo, imagen alterada, cleanup/revocación y regresiones M2/M3 pasados. |
 | [Presupuestos](validation/M4/budgets.json) | 300/300, máximo 17044 ms; binario histórico explícito con inventario, separado de las rutas finales calificadas por clientes. |
 
-La [revisión final de código](reviews/m4-final-closure/review.md) no halló P0/P1
+La [revisión final de código](reviews/M4/m4-final-closure/review.md) no halló P0/P1
 ni P2 nuevos. La renovación nativa resuelve la evidencia stale retenida; la
-[confirmación Opus](reviews/m4-final-evidence/review.md) acepta el cierre sin
-P0/P1/P2 abiertos y el [Technical Owner](reviews/m4-final-evidence/disposition.md)
+[confirmación Opus](reviews/M4/m4-final-evidence/review.md) acepta el cierre sin
+P0/P1/P2 abiertos y el [Technical Owner](reviews/M4/m4-final-evidence/disposition.md)
 cierra los seis cortes y G1–G9. Se preservan fallos e intentos
 sin atribuir causas no observadas. CI/Sonar remotos y host Linux/x86_64 no se
 acreditan. Versión `0.3.0-dev`, implementación `07814664379628f00857feca13148b507de687b9`
@@ -401,8 +401,8 @@ autorización separada, captura protegida y publicación recuperable.
 [Gate core](validation/M2/02-core-gate.json): 14/14, 748 pruebas Rust y un doctest.
 [Runtime actual](validation/M2/02-runtime-gate.json): manifest 1/1 y fmt 2/2,
 con comandos, hashes y source inventory del snapshot. Trece contratos M1 intactos.
-[Contrato Sonnet](reviews/M2-02-contract-review.md) y
-[writer Opus](reviews/M2-02-native-review.md) aceptados sin P0/P1 pendientes.
+[Contrato Sonnet](reviews/M2/M2-02-contract-review.md) y
+[writer Opus](reviews/M2/M2-02-native-review.md) aceptados sin P0/P1 pendientes.
 [Medición APFS](validation/M2/02-native-performance.json): 128 archivos/16 MiB,
 commit 5.687 s, replay 173 ms y recuperación terminal 103 ms, una observación.
 
@@ -422,6 +422,6 @@ implementado con pruebas reales de preview/commit/restart y fallos. No amplía
 seccomp M1. El cierre depende del gate conjunto y revisión de esta ampliación.
 
 M2 cliente stock detectó cuota RAM consumida por terminales. ADR-059 lo corrigió;
-[recheck Accepted](reviews/M2-059-review.md), [full posterior](validation/M2/full-gate.json)
+[recheck Accepted](reviews/M2/M2-059-review.md), [full posterior](validation/M2/full-gate.json)
 y [cliente PASS intento 5](validation/M2/clients.json) acreditan el cierre.
 El full anterior y los intentos fallidos permanecen históricos y preservados.

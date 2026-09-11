@@ -11,12 +11,12 @@ No hubo push, PR, tag ni release nueva. Los recibos históricos identifican sus 
 | Planificación M2–M8 | Integrada localmente | [Validación/reviews](../../roadmap/planning-validation.md); M3+ no implementado |
 | Scope M2 | Cinco tools adicionales implementadas | [AGENTS](../../../AGENTS.md), [contratos](../../tools.md); 18 totales en desarrollo, 13 en release estable 0.1.0 |
 | D02 | Exclusión fuerte No-go; contrato local_coordinated Accepted | [ADR-050](../../adr/ADR-050-local-coordinated-mutation.md); host/editor confiables, sin broker ni exclusión OS |
-| M2-01 | Done histórico | Lints preview/commit/receipt y Scratch; [revisión](../../reviews/M2-01-review.md), [core 14/14](02-core-gate.json), [runtime](02-runtime-gate.json) |
-| M2-02 | Done histórico | [fmt runtime 2/2](02-runtime-gate.json), [Sonnet](../../reviews/M2-02-contract-review.md), [Opus](../../reviews/M2-02-native-review.md), [nativo](02-native-qualification.json) |
+| M2-01 | Done histórico | Lints preview/commit/receipt y Scratch; [revisión](../../reviews/M2/M2-01-review.md), [core 14/14](02-core-gate.json), [runtime](02-runtime-gate.json) |
+| M2-02 | Done histórico | [fmt runtime 2/2](02-runtime-gate.json), [Sonnet](../../reviews/M2/M2-02-contract-review.md), [Opus](../../reviews/M2/M2-02-native-review.md), [nativo](02-native-qualification.json) |
 | M2-03 | Done | [ADR-056](../../adr/ADR-056-cargo-fix-isolated-loopback.md), [Fix runtime](../../../crates/mcp-server/tests/inspection_runtime/fix_mutation.rs), [proc macros hostiles](../../../crates/mcp-server/tests/inspection_runtime/fix_hostile.rs), [máscara socket real](fix-socket-mask.json) |
 | M2-04/05 | Done | [ADR-055](../../adr/ADR-055-offline-cargo-data-and-lock-policy.md), [ADR-057](../../adr/ADR-057-typed-manifest-and-dependency-operations.md), [runtime 4/4](04-runtime-gate.json); vendor opcional y preserve_presence |
 | M2-06 | Done | Cuatro familias tipadas; runtime anterior y [editor LF/CRLF/herencia](../../../crates/project-adapter/tests/manifest_edit.rs) |
-| M2-07 | Done | [contrato Sonnet Accepted](../../reviews/M2-final-contract-review.md); [seguridad Opus Accepted](../../reviews/M2-final-security-review.md) y [writer Opus Accepted](../../reviews/M2-final-native-review.md); [full final](full-gate.json), [runtime 17/17](final-runtime.json), [cliente PASS](clients.json), [ADR-059 Accepted](../../reviews/M2-059-review.md), [AGY trazabilidad](../../reviews/M2-closure-agy-review.md) |
+| M2-07 | Done | [contrato Sonnet Accepted](../../reviews/M2/M2-final-contract-review.md); [seguridad Opus Accepted](../../reviews/M2/M2-final-security-review.md) y [writer Opus Accepted](../../reviews/M2/M2-final-native-review.md); [full final](full-gate.json), [runtime 17/17](final-runtime.json), [cliente PASS](clients.json), [ADR-059 Accepted](../../reviews/M2/M2-059-review.md), [AGY trazabilidad](../../reviews/M2/M2-closure-agy-review.md) |
 | Memoria nativa | Medida, optimizada y limitada en alcance | [medición](07-native-memory.json): 976,666,624 B RSS ciclo máximo, 798,769,152 B commit aislado; observaciones, no cap ni RSS MCP completo |
 | Observabilidad local | Done | [ADR-058](../../adr/ADR-058-local-mutation-observability.md); sin collector ni telemetría |
 
@@ -84,7 +84,7 @@ de imposibilidad universal ni un defecto nuevo de M1.
 
 [Verificación externa al script](d02-verification.json): SHA, reconciliación de
 timings/inodes/hashes, trece snapshots y producto/manifests/workflows sin cambios.
-La [revisión Opus 5 High](../../reviews/M2-D02-review.md) aceptó el recibo corregido
+La [revisión Opus 5 High](../../reviews/M2/M2-D02-review.md) aceptó el recibo corregido
 sin P0/P1; conserva las limitaciones y mejoras de evidencia pendientes.
 
 ## Bloqueo histórico anterior a ADR-050

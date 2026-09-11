@@ -205,7 +205,7 @@ publicaron por separado y forman parte de esta versión.
   se añadieron cinco nuevos. El [core](docs/validation/M4/core-gate.json), el
   [full](docs/validation/M4/full-gate.json), el [runtime](docs/validation/M4/runtime.json)
   y los [clientes](docs/validation/M4/clients.json) pasaron localmente. La
-  [confirmación final](docs/reviews/m4-final-evidence/review.md) acepta el cierre
+  [confirmación final](docs/reviews/M4/m4-final-evidence/review.md) acepta el cierre
   local de M4. La implementación `07814664379628f00857feca13148b507de687b9`
   está en el [PR #15](https://github.com/pharos-lang/rust-engineering-mcp/pull/15);
   no hay nueva release ni tag.
@@ -216,7 +216,7 @@ publicaron por separado y forman parte de esta versión.
   código. El [fallo original](docs/validation/M4/history/hardening-attempts/full-attempt-2/receipt.json)
   permanece preservado. El runtime final pasó 19/19 sobre `25ed…`, con scanner
   7/7 y Miri 13 clasificaciones más 7 admisiones.
-- La [revisión final de código Opus](docs/reviews/m4-final-closure/review.md) no
+- La [revisión final de código Opus](docs/reviews/M4/m4-final-closure/review.md) no
   encontró P0, P1 ni un P2 nuevo. El P2 anterior de freshness nativa ya tiene
   los casos renovados y quedó cerrado en la confirmación final. M4 está Done local.
 - Admitido por identidad el runtime Linux ARM64
