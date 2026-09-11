@@ -734,7 +734,11 @@ def main() -> int:
         ),
     )
     arguments = parser.parse_args()
-    out_path = beside_default(DEFAULT_OUTPUT, arguments.out)
+    # The receipt has one canonical location; the option exists so documented
+    # invocations keep working, and it is never allowed to point elsewhere.
+    if pathlib.Path(arguments.out) != DEFAULT_OUTPUT:
+        parser.error(f"--out is fixed to {DEFAULT_OUTPUT}")
+    out_path = DEFAULT_OUTPUT
     target_dir = beside_default(DEFAULT_TARGET, arguments.target_dir)
 
     if arguments.replicates < MIN_REPLICATES:

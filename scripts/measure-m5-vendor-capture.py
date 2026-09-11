@@ -1042,6 +1042,7 @@ PHASES = {
 def spawn(phase: str, params: dict, result_path: Path) -> int:
     if phase not in PHASES:
         raise ValueError(f"unknown phase {phase!r}")
+    params_read, params_write = os.pipe()
     pid = os.fork()
     if pid == 0:  # child
         try:
@@ -1051,20 +1052,21 @@ def spawn(phase: str, params: dict, result_path: Path) -> int:
             fd = os.open(result_path, os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o600)
             os.dup2(fd, 1)
             os.close(fd)
+            os.dup2(params_read, 0)
+            os.close(params_read)
+            os.close(params_write)
             os.execv(
                 sys.executable,
-                [
-                    sys.executable,
-                    "-B",
-                    str(HERE),
-                    "--worker",
-                    phase,
-                    json.dumps(params),
-                ],
+                [sys.executable, "-B", str(HERE), "--worker", phase],
             )
         except BaseException:  # pragma: no cover - exec failure path
             os._exit(127)
         os._exit(127)
+    # Parent: the parameters go down the pipe, so nothing the operator typed
+    # ever becomes an element of the worker's argv.
+    os.close(params_read)
+    with os.fdopen(params_write, "w") as stream:
+        stream.write(json.dumps(params))
     return pid
 
 
@@ -1341,13 +1343,15 @@ def main() -> int:
     )
     parser.add_argument("--work", type=Path, default=None)
     parser.add_argument("--keep-work", action="store_true")
-    parser.add_argument("--worker", nargs=2, metavar=("PHASE", "PARAMS"))
+    parser.add_argument("--worker", metavar="PHASE", help="internal: run one phase, parameters on stdin, result on fd 1")
     arguments = parser.parse_args()
 
     if arguments.worker:
-        phase, raw = arguments.worker
+        phase = arguments.worker
         if phase not in PHASES:
             parser.error(f"unknown worker phase {phase!r}")
+        # Parameters arrive on stdin from the parent, never on the argv.
+        raw = sys.stdin.read()
         # The parent redirected fd 1 to the result file before exec. Keep that
         # descriptor for the final JSON only and send any phase chatter to
         # stderr, so the worker never receives a path from its argv.
@@ -2477,7 +2481,11 @@ def main() -> int:
         ["/usr/bin/uptime"], capture_output=True, text=True
     ).stdout.strip()
 
-    receipt_path = beside_default(DEFAULT_RECEIPT, arguments.receipt)
+    # The receipt has one canonical location; the option exists so documented
+    # invocations keep working, and it is never allowed to point elsewhere.
+    if Path(arguments.receipt) != DEFAULT_RECEIPT:
+        parser.error(f"--receipt is fixed to {DEFAULT_RECEIPT}")
+    receipt_path = DEFAULT_RECEIPT
     receipt_path.parent.mkdir(parents=True, exist_ok=True)
     receipt_path.write_text(
         json.dumps(receipt, indent=2, sort_keys=True) + "\n"
@@ -2485,7 +2493,7 @@ def main() -> int:
     print(
         json.dumps(
             {
-                "receipt": str(arguments.receipt),
+                "receipt": str(DEFAULT_RECEIPT),
                 "status": receipt["status"],
                 "tree_digest": expected_tree_digest,
                 "artifact_digest": artifact_digest,
