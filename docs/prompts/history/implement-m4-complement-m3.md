@@ -1,7 +1,7 @@
 # Complemento M4 — lo que M3 dejó construido, decidido y aprendido
 
 Este documento acompaña al [encargo base M4](implement-m4.md) y al
-[plan M4](../roadmap/m4-security.md); no los sustituye. Su único propósito es que
+[plan M4](../../roadmap/m4-security.md); no los sustituye. Su único propósito es que
 quien ejecute M4 no repita el trabajo, las decisiones ni los errores de M3.
 Todo lo afirmado aquí tiene recibo enlazado; contrástalo con el árbol real antes
 de construir sobre ello, porque un documento no acredita bytes.
@@ -21,18 +21,18 @@ mutation es uno de los cuatro snapshots nuevos de M3, no una modificación de un
 snapshot previo.
 
 Evidencia sobre los bytes de `main`, toda reproducible:
-[core 14/14](../validation/M3/core-gate.json),
-[full 25/25](../validation/M3/full-gate.json),
-[runtime Docker 62/62](../validation/M3/runtime.json),
-[seguridad Rust 20/20](../validation/M3/rust-security.json),
-[rollback 10/10](../validation/M3/06-rollback.md) y el
-[handoff](../validation/M3/07.md). El inventario del gate son 810 inputs y su
+[core 14/14](../../validation/M3/core-gate.json),
+[full 25/25](../../validation/M3/full-gate.json),
+[runtime Docker 62/62](../../validation/M3/runtime.json),
+[seguridad Rust 20/20](../../validation/M3/rust-security.json),
+[rollback 10/10](../../validation/M3/06-rollback.md) y el
+[handoff](../../validation/M3/07.md). El inventario del gate son 810 inputs y su
 hash se registra en cada recibo: si tocas un byte calificado, ese hash cambia y
 la evidencia anterior deja de describir lo que vas a integrar.
 
 ## 2. Lo que M4 hereda y debe reutilizar, no reinventar
 
-**Ejecución de jobs con tareas MCP negociadas ([ADR-060](../adr/ADR-060-bounded-job-execution-and-mcp-tasks.md)).**
+**Ejecución de jobs con tareas MCP negociadas ([ADR-060](../../adr/ADR-060-bounded-job-execution-and-mcp-tasks.md)).**
 `domain::job` define identidad, estado, fase y presupuestos; `application::job`
 tiene el `JobExecutor`, el registro ligado al owner y el watchdog. `JobKind` es
 un enum cerrado con cuatro variantes: **añadir `rust.miri` o `rust.deny` como job
@@ -47,7 +47,7 @@ desconocidos, ajenos, expirados y revocados devuelven el mismo `-32602`
 enmascarado. El anuncio de Tasks está **encendido** y exige declaración mutua del
 peer; un peer que no la declara sigue el camino síncrono acotado.
 
-**Store durable y privado de artifacts ([ADR-061](../adr/ADR-061-private-quality-artifact-store.md)).**
+**Store durable y privado de artifacts ([ADR-061](../../adr/ADR-061-private-quality-artifact-store.md)).**
 Vive bajo el state-root del host, es macOS ARM64/APFS positivo y falla cerrado en
 el resto. Publica por miembro con degradación explícita, reclama lo expirado,
 tiene marca de reloj, cuarentena y los comandos `quality-artifacts recover|prune`.
@@ -69,7 +69,7 @@ acota el trabajo antes de ejecutar código del proyecto. SemVer añadió un segu
 volumen de solo lectura (`/baseline`). Si M4 necesita un runtime nuevo, extiende
 esta gramática cerrada; no introduzcas un gateway paralelo ni argv libre.
 
-**Perfil seccomp de calidad ([ADR-064](../adr/ADR-064-quality-job-seccomp-profile.md)).**
+**Perfil seccomp de calidad ([ADR-064](../../adr/ADR-064-quality-job-seccomp-profile.md)).**
 `seccomp-rust-quality.json` difiere del base en **exactamente una regla**: un
 `socketpair` AF_UNIX de flujo anónimo. Lo comparten las cinco fases de calidad y
 el verificador compara el perfil aplicado con el declarado por la fase, así que
@@ -77,17 +77,17 @@ una fase que reciba un perfil más ancho falla cerrado. Miri correrá bajo un
 runtime nightly distinto: **la calibración vieja no lo autoriza**, y cualquier
 syscall adicional necesita su propio ADR con controles negativos, igual que este.
 
-**Volumen ejecutable de cobertura ([ADR-065](../adr/ADR-065-coverage-target-volume.md)).**
+**Volumen ejecutable de cobertura ([ADR-065](../../adr/ADR-065-coverage-target-volume.md)).**
 Es el único montaje del producto que permite ejecutar lo recién construido, está
 acotado por job, ausente de exportadores y de toda fase no-cobertura, y su matriz
 de acceso está fijada por expectativas literales por fase. Si Miri necesita algo
 parecido, ese es el precedente y el listón: decisión propia, matriz literal y
 controles negativos que prueben que nadie más lo obtiene.
 
-**Aprovisionamiento del guest ([ADR-063](../adr/ADR-063-m3-guest-plugin-provisioning.md)).**
+**Aprovisionamiento del guest ([ADR-063](../../adr/ADR-063-m3-guest-plugin-provisioning.md)).**
 Imagen `sha256:384a1742…` con Rust 1.98.1 más cinco plugins fijados por hash,
 verificada 47/47 y con
-[recibo](../validation/M3/provisioning.json). `fixtures/rust-runtime/` sabe
+[recibo](../../validation/M3/provisioning.json). `fixtures/rust-runtime/` sabe
 descargar por hash, verificar y construir. Los binarios de `cargo-deny` y el
 toolchain nightly de Miri entran por ahí, con versión, digest, licencia y notices,
 nunca en tiempo de ejecución. Que una herramienta esté en el host o en CI **no**
@@ -100,10 +100,10 @@ la acredita en el guest: esa confusión ya costó un corte en M3.
   `fast`/`standard` deben quedar exactamente como están.
 - **Presupuestos ya medidos**, no propuestos: ADR-060 tiene la tabla con 30
   muestras en frío y 30 en caliente por operación, en
-  [M3-02-budgets.json](../validation/M3/02-budgets.json). Hereda esa forma de
+  [M3-02-budgets.json](../../validation/M3/02-budgets.json). Hereda esa forma de
   medir: muestras crudas, p50/p95/p99, y sustituir el número propuesto por el
   medido en el propio ADR.
-- **Cobertura y SemVer** ([ADR-062](../adr/ADR-062-coverage-accounting-and-semver-baselines.md))
+- **Cobertura y SemVer** ([ADR-062](../../adr/ADR-062-coverage-accounting-and-semver-baselines.md))
   fijaron la regla de denominador cero, el dedupe de archivos compartidos y la
   taxonomía de resultados incompletos. M4 hereda el criterio: parcial, ausente o
   desconocido nunca es aprobado.

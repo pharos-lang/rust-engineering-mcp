@@ -1,7 +1,7 @@
 # M5 — Performance / 0.5.x
 
 Estado: **Done local** (2026-09-10). Cierre local autorizado mediante
-`docs/prompts/complete-m5.md`: captura, observación del entorno, recalificación
+`docs/prompts/history/complete-m5.md`: captura, observación del entorno, recalificación
 nativa 6/6, clientes, `core` 23/23 y `full` 38/38 sobre el lock con `lancedb
 0.31.0`. Sin integración remota, PR, tag ni release. Los recibos previos
 son históricos cuando cambian los contratos o fingerprints que midieron.

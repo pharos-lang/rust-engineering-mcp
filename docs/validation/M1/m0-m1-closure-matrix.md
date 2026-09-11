@@ -88,4 +88,4 @@ three verified attestations and the stable GitHub Release satisfy the remaining
 delivery state. The [final public receipt](17-public-release.json) is authoritative.
 
 M2 remains unimplemented and outside this matrix. Planning starts from
-[`docs/prompts/plan-m2-m8.md`](../../prompts/plan-m2-m8.md).
+[`docs/prompts/history/plan-m2-m8.md`](../../prompts/history/plan-m2-m8.md).

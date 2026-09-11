@@ -1,8 +1,8 @@
 # M5 — matriz de implementación y calificación
 
 Estado: **Done local**, 2026-09-10. Cierre local autorizado por
-[complete-m5](../../prompts/complete-m5.md) y continuado por
-[finish-m5-fable](../../prompts/finish-m5-fable.md). Rama `ai/m5-performance`;
+[complete-m5](../../prompts/history/complete-m5.md) y continuado por
+[finish-m5-fable](../../prompts/history/finish-m5-fable.md). Rama `ai/m5-performance`;
 `main` permanece en `c6099f27415b0be3838e84d21d25eed903c8c312`. M5-01..05 y
 G1–G9 están demostrados sobre el lock con `lancedb 0.31.0` (opción 2a) y el
 workspace `0.3.0`: suite nativa 6/6, matriz de clientes, `core` 23/23 y `full`

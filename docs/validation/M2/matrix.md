@@ -96,7 +96,7 @@ la garantía y exige ADR/spec/criterios/docs públicos; no equivale a enforcemen
 No cambiar cuentas, ownership, ACLs, entitlements ni servicios para forzar un positivo.
 
 Siguiente acción histórica (sustituida por ADR-050): resolver D02 con el owner, actualizar ADR-049 y decisiones D01/D03,
-calificar positivamente la frontera y continuar M2-01. El [prompt M2](../../prompts/implement-m2.md)
+calificar positivamente la frontera y continuar M2-01. El [prompt M2](../../prompts/history/implement-m2.md)
 sigue siendo la entrada completa. No continuar a M3. No afirmar cinco tools,
 journal/receipts ni M2 implementados a partir de este experimento.
 

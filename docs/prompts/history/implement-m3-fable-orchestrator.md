@@ -147,17 +147,17 @@ documentan las invocaciones, no acreditan acceso a los modelos de la cuenta.
 
 ## 4. Leer y verificar la base antes de código
 
-Lee completamente [AGENTS](../../AGENTS.md) y la
-[especificación principal](../spec/rust-engineering-mcp-propuesta-v0.3.md).
+Lee completamente [AGENTS](../../../AGENTS.md) y la
+[especificación principal](../../spec/rust-engineering-mcp-propuesta-v0.3.md).
 Lee también los siguientes documentos; sus criterios completos forman parte del
 encargo, no quedan reemplazados por este resumen:
 
-- [Plan M3](../roadmap/m3-quality.md), [maestro G1–G9](../roadmap/m2-m8.md),
-  [trazabilidad](../roadmap/traceability-m2-m8.md),
-  [backlog de decisiones](../roadmap/adr-backlog-m2-m8.md) y [prompt base](implement-m3.md).
-- [Estado real](../implementation-status.md), [cierre M2](../validation/M2/07.md),
-  [integración M2](../validation/M2/local-integration.json),
-  [smoke posterior](../validation/M2/postmerge-smoke.json) y sus reviews/residuales.
+- [Plan M3](../../roadmap/m3-quality.md), [maestro G1–G9](../../roadmap/m2-m8.md),
+  [trazabilidad](../../roadmap/traceability-m2-m8.md),
+  [backlog de decisiones](../../roadmap/adr-backlog-m2-m8.md) y [prompt base](implement-m3.md).
+- [Estado real](../../implementation-status.md), [cierre M2](../../validation/M2/07.md),
+  [integración M2](../../validation/M2/local-integration.json),
+  [smoke posterior](../../validation/M2/postmerge-smoke.json) y sus reviews/residuales.
 - README, CHANGELOG, SECURITY, `docs/architecture.md`, `docs/tools.md`,
   `docs/security-model.md`, `docs/compatibility.md`, `docs/client-configuration.md`,
   `docs/ci.md`, `docs/publication.md` y ADRs pertinentes; especialmente

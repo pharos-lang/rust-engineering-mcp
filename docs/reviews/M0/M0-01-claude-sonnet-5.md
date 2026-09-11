@@ -43,7 +43,7 @@ None.
 ### Low
 - `crates/mcp-server/src/main.rs:44` mixes `write_all` (Help) and `writeln!` (Version) for stdout writes with no functional difference — cosmetic inconsistency, not a defect.
 - `Cargo.toml:3` sets `resolver = "3"` explicitly. For edition 2024 this is Cargo's default resolver, so the line is redundant. Not wrong, but I can't independently confirm behavior against actual Cargo 1.97.1 without running the toolchain — flagging as an evidence gap rather than an error.
-- Commit `4533abe` bundles the CLI bootstrap with unrelated governance edits (`AGENTS.md` model/subagent policy, `docs/prompts/continue-m0-m1.md`). Doesn't affect correctness but reduces audit granularity for a milestone commit.
+- Commit `4533abe` bundles the CLI bootstrap with unrelated governance edits (`AGENTS.md` model/subagent policy, `docs/prompts/history/continue-m0-m1.md`). Doesn't affect correctness but reduces audit granularity for a milestone commit.
 
 ### Observations
 - `main.rs` logic is correct and minimal: single-argument command matching, closed set of recognized flags, fixed non-reflective diagnostic on stderr, exit codes 0/2/1 exactly as documented in `README.md`. Matches ADR-021's stated bootstrap contract line for line.

@@ -7,7 +7,7 @@ cerrarlo con evidencia, o informa un bloqueo real sin declarar Done.
 
 ## Autorización y límites
 
-El owner autorizó completar `docs/prompts/complete-m5.md` con commits locales en
+El owner autorizó completar `docs/prompts/history/complete-m5.md` con commits locales en
 `ai/m5-performance`. Al finalizar hacer push, PR, merge, tag, release pero no avanzar a M6.
 El host configura tu modelo: no afirmes cambiarlo por tu cuenta.
 

@@ -12,7 +12,7 @@ ninguna feature de M2 o posterior en esta sesión.
 
 Como último entregable obligatorio, después de cerrar M0/M1, crea y entrégame otro
 prompt autosuficiente para una sesión nueva que genere la planificación completa de
-M2 a M8. Guarda ese prompt en docs/prompts/plan-m2-m8.md y también inclúyelo completo,
+M2 a M8. Guarda ese prompt en docs/prompts/history/plan-m2-m8.md y también inclúyelo completo,
 en un bloque copiable, en tu respuesta final. Esta segunda sesión será solo de
 planificación: no debe implementar M2–M8.
 
@@ -239,7 +239,7 @@ por decisiones reversibles o por trabajo difícil. Continúa hasta cierre real.
 HANDOFF OBLIGATORIO PARA PLANEAR M2–M8
 
 Después de que M0/M1 estén realmente cerrados, crea
-docs/prompts/plan-m2-m8.md. Ese segundo prompt debe partir de los commits, tag,
+docs/prompts/history/plan-m2-m8.md. Ese segundo prompt debe partir de los commits, tag,
 release, ADRs y gates finales reales, no de los hashes históricos de este prompt.
 Debe instruir una sesión nueva para:
 

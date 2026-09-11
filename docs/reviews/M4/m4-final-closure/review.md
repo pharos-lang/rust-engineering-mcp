@@ -114,7 +114,7 @@ Source: `security_gateway.rs`, `miri_output.rs`, `miri_native.rs`, `miri_admissi
 Harnesses: `scripts/{gate.py, test-m4-runtime.py, test-m4-tampered-plugin.py, test-m4-inventory.py, test-m4-safety-harnesses.py, test-m4-clients.py, m4-inspector-session.mjs}`, `test-m3-clients.py:532-551`.
 Fixtures: `fixtures/m4-runtime-oracles/miri-classification/{nextest.toml, optimized-panic/*}`.
 Evidence: `target/m4-new-native-cuts/receipt.json`, `target/m4-privacy-runtime.json`, `docs/validation/{M4-clients,M4-tampered-plugin,M4-runtime-inventory,M4-budgets,M4-runtime-image,M4-scanner-native,M4-miri-native,M4-matrix.md}`, `docs/validation/M4/history/hardening-attempts/**`, `docs/validation/M4/clients/attempt-1/receipt.json`.
-Docs/ADR: `ADR-072`, `docs/tools.md:1047-1145`, `SECURITY.md`, `docs/implementation-status.md:263-307`, `docs/ci.md`, `docs/roadmap/m4-security.md`, `docs/prompts/implement-m4.md`, and the three prior review dispositions.
+Docs/ADR: `ADR-072`, `docs/tools.md:1047-1145`, `SECURITY.md`, `docs/implementation-status.md:263-307`, `docs/ci.md`, `docs/roadmap/m4-security.md`, `docs/prompts/history/implement-m4.md`, and the three prior review dispositions.
 
 ## Remaining limitations of this review
 

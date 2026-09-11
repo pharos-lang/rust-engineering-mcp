@@ -67,7 +67,7 @@ fixtures, Docker ni toolchain; no existe catálogo oficial ni clave Ed25519 de p
 | M0-10 | Fixtures | Done | Nueve fixtures + adversario fuente; 11 casos Cargo1.98.1 y oracle estático RSA, receipt pre-Cargo, Sonnet5 resuelto: [evidencia](validation/M0/10.md). |
 | M0-10a | ArtifactStore mínimo | Done | Memoria efímera ADR-028, streaming/redacción, cuotas/TTL, owner-bound; 17 tests nuevos, oracle229950, 173 core + doctest y Opus5 resuelto: [evidencia](validation/M0/10a.md). Resource MCP en M1. |
 | M0-11 | CI inicial | Done | CI local core/full ADR-029,10 etapas core verdes, deny/audit sin vulnerabilidades, matriz honesta y prerequisitos fail-closed; Sonnet5 resuelto: [evidencia](validation/M0/11.md). Full en M0-12. |
-| M0-12 | Gate M0 | Done | Full gate12 etapas,185 tests Rust distintos, corpus11+1; Opus5 High resuelto, recibos y [evidencia](validation/M0/12.md); [prompt M1](prompts/continue-m1.md). |
+| M0-12 | Gate M0 | Done | Full gate12 etapas,185 tests Rust distintos, corpus11+1; Opus5 High resuelto, recibos y [evidencia](validation/M0/12.md); [prompt M1](prompts/history/continue-m1.md). |
 
 ## M1 — MVP / 0.1.0
 
@@ -145,7 +145,7 @@ y [validación/reviews](roadmap/planning-validation.md).
 
 | Milestone | Estado de planificación | Plan / prompt de ejecución separado |
 | --- | --- | --- |
-| M2 / 0.2.x | Done local; sin release nueva | [Safe Mutation](roadmap/m2-safe-mutation.md) · [prompt M2](prompts/implement-m2.md) |
+| M2 / 0.2.x | Done local; sin release nueva | [Safe Mutation](roadmap/m2-safe-mutation.md) · [prompt M2](prompts/history/implement-m2.md) |
 | M3 / 0.3.x | Done; integrado en `main` como `57c4037` (PR #14); sin release nueva | [Quality](roadmap/m3-quality.md) · [matriz M3](validation/M3/matrix.md) · [integración](validation/M3/integration.json) |
 | M4 / 0.4.x | Done local; integración mediante PR #15; sin release nueva | [Security](roadmap/m4-security.md) · [handoff M4](validation/M4/handoff.md) · [confirmación final](reviews/M4/m4-final-evidence/review.md) |
 | M5 / 0.5.x | Done local; sin integración remota, PR, tag ni release | [Performance](roadmap/m5-performance.md) · [matriz M5](validation/M5/matrix.md) · [handoff M5](validation/M5/handoff.md) |
@@ -296,7 +296,7 @@ release ni M5.
 
 ## M5 — Performance en `ai/m5-performance`
 
-**Done local — 2026-09-10.** El owner autorizó `docs/prompts/complete-m5.md` y
+**Done local — 2026-09-10.** El owner autorizó `docs/prompts/history/complete-m5.md` y
 `finish-m5-fable.md`; M6 y cualquier publicación permanecen fuera de alcance.
 Suite nativa 6/6, matriz de clientes, `core` 23/23 y `full` 38/38 sobre el lock
 con `lancedb 0.31.0` (opción 2a del owner tras el fallo de `semantic` con

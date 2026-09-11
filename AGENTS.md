@@ -48,7 +48,7 @@ M0 y M1/0.1.0 están cerrados. El owner autorizó el 2026-09-05 integrar primero
 planificación M2–M8 y después implementar únicamente M2. La planificación quedó
 integrada localmente en `2f54b360e1e81f21e7efeff7c451cdd6f663a04f`.
 Ese alcance histórico fue ampliado por autorizaciones posteriores: M2, M3 y M4
-están integrados. El owner autorizó ejecutar `docs/prompts/complete-m5.md` para
+están integrados. El owner autorizó ejecutar `docs/prompts/history/complete-m5.md` para
 completar y calificar M5 en `ai/m5-performance`, con commits locales. No avanzar
 a M6, hacer push/PR/merge ni publicar otra release/tag en este encargo.
 M2 sigue su [plan](docs/roadmap/m2-safe-mutation.md), incluida la puerta D02 antes

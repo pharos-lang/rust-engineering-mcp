@@ -118,7 +118,7 @@ actuales y el nuevo SHA del binario. El [archivo de logs](log-archive.json) liga
 `.log` originales byte a byte para que la regla global de Git no descarte esa
 evidencia en una futura integración autorizada.
 
-La deuda M3 permanece en el [complemento](../../prompts/implement-m4-complement-m3.md#6-deuda-que-m4-hereda-declarada)
+La deuda M3 permanece en el [complemento](../../prompts/history/implement-m4-complement-m3.md#6-deuda-que-m4-hereda-declarada)
 y en [M3-07](../M3/07.md); M4 no atribuye una causa ni una corrección a esos residuos.
 
 ## Revisión independiente y disposiciones
@@ -181,5 +181,5 @@ M4 está **Done local** en `ai/m4-security`. La implementación base está en
 de sus gates y se propone mediante el
 [PR #15](https://github.com/pharos-lang/rust-engineering-mcp/pull/15). No hay tag,
 release ni autorización para M5. El siguiente documento de trabajo es
-[implement-m5.md](../../prompts/implement-m5.md), solo como referencia de handoff.
+[implement-m5.md](../../prompts/history/implement-m5.md), solo como referencia de handoff.
 La revisión de CI/Sonar remotos se ejecuta en el PR y conserva su resultado en GitHub; no sustituye los recibos locales.

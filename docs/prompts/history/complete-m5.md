@@ -34,14 +34,14 @@ repórtalo** en vez de elegir una interpretación.
 
 | ADR | Qué fija |
 | --- | --- |
-| [ADR-078](../adr/ADR-078-offline-vendor-capture.md) | Captura de vendor offline separada de `SourceBundle`, con sus límites, su alfabeto y **tres correcciones fechadas** |
-| [ADR-079](../adr/ADR-079-bloat-result-semantics.md) | `passed` de bloat = «análisis ejecutado y validado», nada más |
-| [ADR-080](../adr/ADR-080-harness-logs-as-artifacts.md) | Logs del harness como artifacts por repetición |
-| [ADR-081](../adr/ADR-081-benchmark-statistical-requalification.md) | Criterios estadísticos congelados **antes** de medir, con dos correcciones |
-| [ADR-073](../adr/ADR-073-benchmark-method-and-dataset.md) · [074](../adr/ADR-074-profiling-capability-and-containment.md) · [076](../adr/ADR-076-m5-performance-contracts.md) · [077](../adr/ADR-077-m5-runtime-admission.md) | Método, profiling, contratos y admisión de imagen |
+| [ADR-078](../../adr/ADR-078-offline-vendor-capture.md) | Captura de vendor offline separada de `SourceBundle`, con sus límites, su alfabeto y **tres correcciones fechadas** |
+| [ADR-079](../../adr/ADR-079-bloat-result-semantics.md) | `passed` de bloat = «análisis ejecutado y validado», nada más |
+| [ADR-080](../../adr/ADR-080-harness-logs-as-artifacts.md) | Logs del harness como artifacts por repetición |
+| [ADR-081](../../adr/ADR-081-benchmark-statistical-requalification.md) | Criterios estadísticos congelados **antes** de medir, con dos correcciones |
+| [ADR-073](../../adr/ADR-073-benchmark-method-and-dataset.md) · [074](../../adr/ADR-074-profiling-capability-and-containment.md) · [076](../../adr/ADR-076-m5-performance-contracts.md) · [077](../../adr/ADR-077-m5-runtime-admission.md) | Método, profiling, contratos y admisión de imagen |
 
-Estado por corte: [matriz](../validation/M5/matrix.md) ·
-[handoff](../validation/M5/handoff.md). Revisiones:
+Estado por corte: [matriz](../../validation/M5/matrix.md) ·
+[handoff](../../validation/M5/handoff.md). Revisiones:
 `docs/reviews/M5/m5-security/`, `docs/reviews/M5/m5-method/`,
 `docs/reviews/M5/m5-rereview.md`, `docs/validation/M5/delegation/`.
 
@@ -68,7 +68,7 @@ ya existe para esta misma razón en el volumen de target. Hay que llevar las
 opciones también al `fingerprint_volume`.
 
 Referencia, **no aplicable con `git apply`** porque sus rutas son de un
-scratchpad: [`vendor-volume-sizing.patch`](../validation/M5/history/gate-attempts/vendor-volume-sizing.patch).
+scratchpad: [`vendor-volume-sizing.patch`](../../validation/M5/history/gate-attempts/vendor-volume-sizing.patch).
 Deriva el cambio tú y compruébalo.
 
 **Esto mueve todas las huellas de ejecución M5**, así que exige recalificar los
@@ -116,7 +116,7 @@ ha visto, y de la recalificación de bloat. Usa `codex` o `agy`: hoy las
 revisiones de otra familia de modelo encontraron cuatro defectos que cuatro
 revisiones internas no vieron, incluidos los dos peores del día. El patrón y las
 restricciones del entorno están en
-[`m5-delegation/README.md`](../validation/M5/delegation/README.md).
+[`m5-delegation/README.md`](../../validation/M5/delegation/README.md).
 
 ### 6. Gate `core` y `full` sobre bytes finales
 
