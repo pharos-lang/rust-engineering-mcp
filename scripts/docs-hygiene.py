@@ -387,6 +387,10 @@ def verify_inventories() -> int:
                 print(f"MISSING {inventory.relative_to(ROOT)}: {row['path']}")
                 failures += 1
                 continue
+            if row.get("living"):
+                # Prose kept next to receipts; its links may be rewritten, so only presence is required.
+                retained += 1
+                continue
             if sha256_of(target) != row["sha256"] or target.stat().st_size != row["bytes"]:
                 print(f"MISMATCH {inventory.relative_to(ROOT)}: {row['path']}")
                 failures += 1
