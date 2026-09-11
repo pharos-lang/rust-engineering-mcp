@@ -527,7 +527,7 @@ usa TTL predeterminado de 1 h y cuotas de 32 MiB por artifact, 64 MiB por job,
 macOS ARM64/APFS; Linux y Windows fallan cerrados. La CLI
 `quality-artifacts recover|prune` está integrada en `main.rs` y disponible para el
 operador local; ambos subcomandos exigen `--state-root` absoluto y aceptan `--json`.
-[Recibo de upgrade/rollback](validation/M3-06-rollback.md).
+[Recibo de upgrade/rollback](validation/M3/06-rollback.md).
 
 Las cuatro tools de calidad M3 aceptan `execution_mode=auto|task|synchronous`.
 `TASKS_ADVERTISEMENT_READY` está activado tras la puerta G4. Un peer que declare
@@ -541,7 +541,7 @@ ejecutarse síncronamente; `auto` largo devuelve `TASKS_REQUIRED` antes de inici
 trabajo y `task` devuelve `-32602`. Inspector 2.5.0 declaró Tasks en la evidencia;
 Codex CLI/app-server 0.153.0 no la declaró y fue calificado por su fallback
 síncrono. No agregues manualmente la extensión como workaround para un cliente:
-la declaración tiene que venir del peer. [Estado y matriz](validation/M3-02.md).
+la declaración tiene que venir del peer. [Estado y matriz](validation/M3/02.md).
 
 Stage 1 define Resources con URI `rust-quality-artifact://`. El índice de un job
 se lee con su cursor y los artifacts se leen por chunks (`offset` y `length`) desde
@@ -559,7 +559,7 @@ watermark. No edites archivos, borres objetos desconocidos ni reutilices M2
 journals. Los objetos dudosos se ponen en quarantine y un store lleno rechaza
 trabajo nuevo. Un registro con `format_version` desconocido (escrito por un binario
 más nuevo) se rechaza cerrado y se conserva; este binario nunca lo reinterpreta ni
-lo borra. [Recibo](validation/M3-06-rollback.md).
+lo borra. [Recibo](validation/M3/06-rollback.md).
 
 El límite de cuatro planes aplica a propuestas pendientes: los planes terminales
 dejan capacidad para nuevas propuestas en la siguiente admisión. Un commit con

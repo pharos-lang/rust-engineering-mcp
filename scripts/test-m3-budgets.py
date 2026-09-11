@@ -21,9 +21,9 @@ import sys
 import time
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
-OUTPUT = ROOT / "docs/validation/M3-02-budgets.json"
+OUTPUT = ROOT / "docs/validation/M3/02-budgets.json"
 LOG_ROOT = ROOT / "target/m3-02-budgets"
-IMAGE_CONFIG = ROOT / "docs/validation/M3-image-config.json"
+IMAGE_CONFIG = ROOT / "docs/validation/M3/image-config.json"
 OPERATIONS = [
     {
         "name": "rust.test.nextest",

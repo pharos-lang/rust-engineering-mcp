@@ -40,7 +40,7 @@ prueba como producto sin excluirlo del análisis.
 1. Programas de calificación maintainer-only: `scripts/codex-model-qualifier.py`,
    `scripts/release-artifact.py`, `scripts/release-smoke.py` y
    `scripts/verify-vendor.py`. Requieren host release Darwin real, Docker/Codex o
-   ambos. Recibos: [`M3-full-gate.json`](validation/M3-full-gate.json) y los
+   ambos. Recibos: [`M3-full-gate.json`](validation/M3/full-gate.json) y los
    receipts de release en `docs/validation/`.
 2. Sondas M2 sobre Docker: `scripts/probe-m2-cargo-fix.py`,
    `probe-m2-fix-socket-mask.py`, `probe-m2-guest-staging.py`,
@@ -48,12 +48,12 @@ prueba como producto sin excluirlo del análisis.
    `probe-m2-write-primitives.py`. Su única ruta ejecutable crea volúmenes y
    contenedores contra la imagen aprobada en un daemon local; el runner Ubuntu no
    tiene ni el socket ni la imagen. Recibos: los JSON `M2-*` que cada sonda emite
-   y [`M3-rust-security.json`](validation/M3-rust-security.json).
+   y [`M3-rust-security.json`](validation/M3/rust-security.json).
 3. Clientes reales: `scripts/m3-inspector-session.mjs` y
    `scripts/m4-inspector-session.mjs`, que conducen sesiones MCP contra un
    servidor con runtime/store nativos. Su evidencia está en
-   [`M3-runtime.json`](validation/M3-runtime.json),
-   [`M3-full-gate.json`](validation/M3-full-gate.json) y
+   [`M3-runtime.json`](validation/M3/runtime.json),
+   [`M3-full-gate.json`](validation/M3/full-gate.json) y
    [`M4-clients.json`](validation/M4-clients.json).
 
 Ningún archivo Rust de producto está excluido del porcentaje de cobertura.

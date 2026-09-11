@@ -7,10 +7,10 @@ verified that the quality profile differs from the base profile by exactly one
 rule: an AF_UNIX anonymous stream `socketpair`, with creation flags masked out;
 `socket`, `bind`, `connect`, `listen` and `accept` remain absent. It also verified
 that the applied container is checked against the phase-declared profile, so a
-wider profile fails closed ([V-SEC](../validation/m3-delegation/V-SEC/last-message.md)).
+wider profile fails closed ([V-SEC](../validation/M3/delegation/V-SEC/last-message.md)).
 The approved guest image passed the M3 runtime gate at 62/62 and the Rust
-security gate at 20/20 ([runtime receipt](../validation/M3-runtime.json),
-[Rust security receipt](../validation/M3-rust-security.json)).
+security gate at 20/20 ([runtime receipt](../validation/M3/runtime.json),
+[Rust security receipt](../validation/M3/rust-security.json)).
 
 ## Context
 
@@ -75,8 +75,8 @@ qualification includes positive nextest execution and negative AF_INET, AF_INET6
 connect and Unix bind controls. Because the shared Rust gateway verifier and
 configuration fingerprint changed, both the complete M3 runtime gate and the
 existing twenty-case Rust security gate were rerun and passed. Their receipts are
-`docs/validation/M3-01-runtime.json` and
-`docs/validation/M3-01-rust-security.json`.
+`docs/validation/M3/01-runtime.json` and
+`docs/validation/M3/01-rust-security.json`.
 
 Any further denied syscall is a new security decision. It must stop this
 qualification and return to the orchestrator with the exact syscall and source
@@ -90,4 +90,4 @@ evidence.
 - `crates/execution-adapter/src/seccomp-rust.json`
 - `crates/execution-adapter/src/seccomp-rust-quality.json`
 - `docs/adr/ADR-056-cargo-fix-isolated-loopback.md`
-- `docs/validation/M3-01-runtime-attempt1.json`
+- `docs/validation/M3/history/01-runtime-attempt1.json`

@@ -9,7 +9,7 @@ Read-only. No files edited, no commands run, no delegation. No M4 implementation
 
 The 47-file delta is, in the code paths that matter, **behaviour-preserving**. I checked the gateway mount/phase verification predicates field by field against what they replaced, the single-flight and runtime re-check consolidation call site by call site, the container start/OOM-inspection consolidation argument by argument, the mutation filesystem lock change, and the stdio worker/clock/operational consolidation. I found no P0 and no P1. The public contract is unchanged: **not one of the 23 tool/doctor snapshots in `crates/mcp-server/tests/snapshots/` appears in the delta**, and `crates/mcp-server/tests/protocol.rs:402-429` asserts full JSON equality of all 22 tool definitions against those files through a real server session.
 
-The single blocking item is **P2-1**: the SonarCloud coverage-exclusion list grew from 4 to 28 entries and now exempts ten files that *do* run portable unit tests on the Linux scanner, the `docs/ci.md` justification for them is factually false, and the file that configures a required check is not in the gate's hash-checked inputs. It is cheap to fix: `sonar-project.properties` and `docs/ci.md` are **not** among the 810 `source_inputs` of `docs/validation/M3-full-gate.json`, so correcting them invalidates no receipt and requires no gate re-run.
+The single blocking item is **P2-1**: the SonarCloud coverage-exclusion list grew from 4 to 28 entries and now exempts ten files that *do* run portable unit tests on the Linux scanner, the `docs/ci.md` justification for them is factually false, and the file that configures a required check is not in the gate's hash-checked inputs. It is cheap to fix: `sonar-project.properties` and `docs/ci.md` are **not** among the 810 `source_inputs` of `docs/validation/M3/full-gate.json`, so correcting them invalidates no receipt and requires no gate re-run.
 
 ## 2. Method and the manifest limitation
 
@@ -63,9 +63,9 @@ This is not hypothetical for this delta: `mutation_gateway.rs:1092 mutation_volu
 
 ### P3-2 — the live runtime receipt hash is stale in four places (same class as the previously-closed N-03)
 
-**Where.** `docs/validation/M3-04.md:30` and `:42`; `docs/validation/M3-05.md:27` and `:44` — all four call `M3-runtime.json` the «corrida vigente» and give `5cfab6c56eaa9d6ab0f306b4920eb61eea21cd4cbc371bf7199c7094a674bf25`. `docs/validation/M3-07.md:604` records the live file as `0c2984052db8a8849be32f024002f86b381c3ee69679fb098fe50901f7cb3e0a` after W9 re-qualified on `0.3.0-dev` bytes and preserved the earlier receipt as `M3-runtime-v0.2.0-dev.json` (which exists). `M3-07.md:207-209` likewise links the live filenames `M3-runtime.json` / `M3-rust-security.json` with the superseded W7 hashes `5cfab6c5…` / `4ad812a0…` without marking them historical, unlike the explicit `-preS03` and `-v0.2.0-dev` preservation lists elsewhere in the same file.
+**Where.** `docs/validation/M3/04.md:30` and `:42`; `docs/validation/M3/05.md:27` and `:44` — all four call `M3-runtime.json` the «corrida vigente» and give `5cfab6c56eaa9d6ab0f306b4920eb61eea21cd4cbc371bf7199c7094a674bf25`. `docs/validation/M3/07.md:604` records the live file as `0c2984052db8a8849be32f024002f86b381c3ee69679fb098fe50901f7cb3e0a` after W9 re-qualified on `0.3.0-dev` bytes and preserved the earlier receipt as `M3-runtime-v0.2.0-dev.json` (which exists). `M3-07.md:207-209` likewise links the live filenames `M3-runtime.json` / `M3-rust-security.json` with the superseded W7 hashes `5cfab6c5…` / `4ad812a0…` without marking them historical, unlike the explicit `-preS03` and `-v0.2.0-dev` preservation lists elsewhere in the same file.
 
-This is a documentation discrepancy, not a defect: the live receipts themselves are internally consistent (§2). It is the exact finding VR-opus raised as N-03 and VC-confirm closed; the two later re-qualifications reintroduced it. **Oracle:** `shasum -a 256 docs/validation/M3-runtime.json` must equal what `M3-04.md:30` claims. **Fix:** update the four citations to `0c298405…`, and mark `M3-07.md:207-209` as the W7 run superseded by §W9.
+This is a documentation discrepancy, not a defect: the live receipts themselves are internally consistent (§2). It is the exact finding VR-opus raised as N-03 and VC-confirm closed; the two later re-qualifications reintroduced it. **Oracle:** `shasum -a 256 docs/validation/M3/runtime.json` must equal what `M3-04.md:30` claims. **Fix:** update the four citations to `0c298405…`, and mark `M3-07.md:207-209` as the W7 run superseded by §W9.
 
 ### P3-3 — the fork/flock barrier cites an ADR that does not contain the claim, and covers only one of the two stores
 
@@ -118,7 +118,7 @@ I found no evidence that any of these changed, and I am not re-raising them:
 
 **Configuration:** `Cargo.toml`; `sonar-project.properties`.
 
-**Documents:** `AGENTS.md`; `docs/validation/M3-07.md`; `docs/validation/m3-delegation/{W7-requalify-final, VR-opus-rereview, VC-confirm}/last-message.md`; `docs/ci.md`; `docs/adr/ADR-061-private-quality-artifact-store.md`; `docs/validation/{M3-full-gate.json, M3-runtime.json, M3-rust-security.json, M3-04.md, M3-05.md}`; `docs/implementation-status.md`; `docs/compatibility.md`.
+**Documents:** `AGENTS.md`; `docs/validation/M3/07.md`; `docs/validation/M3/delegation/{W7-requalify-final, VR-opus-rereview, VC-confirm}/last-message.md`; `docs/ci.md`; `docs/adr/ADR-061-private-quality-artifact-store.md`; `docs/validation/{M3-full-gate.json, M3-runtime.json, M3-rust-security.json, M3-04.md, M3-05.md}`; `docs/implementation-status.md`; `docs/compatibility.md`.
 
 ## 8. Limitations
 

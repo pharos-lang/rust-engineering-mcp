@@ -7,7 +7,7 @@ son session-local y no sobreviven a un restart, así que no tienen migración.
 
 Este documento no reclama nada que no venga de un comando ejecutado en W6. Los
 conteos, códigos de salida y hashes están en
-[M3-06-rollback.json](M3-06-rollback.json), cuyo SHA-256 es
+[M3-06-rollback.json](06-rollback.json), cuyo SHA-256 es
 `70442cbeb3a600c1b0139c51530f72f9b8cb1108519d98158a5c1371668fb3ba`.
 
 **Resultado: 10/10 selecciones, exit 0, exactamente un caso ejecutado por

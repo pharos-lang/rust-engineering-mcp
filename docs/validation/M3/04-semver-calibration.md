@@ -6,7 +6,7 @@ La calibración se ejecutó contra `cargo-semver-checks 0.50.0` en la imagen
 aprobada `sha256:384a1742ecc53cdd3a9c0bf36c6f8b66db73ddd118aeeae6e55654ea998ae36a`,
 siempre con `/source` y `/baseline` read-only, red deshabilitada y el perfil
 `seccomp-rust-quality.json`. El recibo consolidado es
-[`M3-runtime.json`](M3-runtime.json); los cuatro intentos se conservaron como
+[`M3-runtime.json`](runtime.json); los cuatro intentos se conservaron como
 `M3-runtime-attempt1.json` a `M3-runtime-attempt4.json`.
 
 ## Resultado observado

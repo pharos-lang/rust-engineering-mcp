@@ -4,7 +4,7 @@
 
 Accepted 2026-09-06 by the M3 orchestrator after independent reviews V06/V17/V18
 (ADR-063: owner provisioning authorization 2026-09-05). Stage 1 implementation
-and native/runtime qualification are complete; see docs/validation/M3-matrix.md.
+and native/runtime qualification are complete; see docs/validation/M3/matrix.md.
 
 ## Context
 

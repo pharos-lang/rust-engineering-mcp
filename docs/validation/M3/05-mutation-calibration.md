@@ -4,7 +4,7 @@ Fecha: 2026-09-06. Estado: **calificado 10/10 en Docker**.
 
 La calificación usó `cargo-mutants 27.1.0` en la imagen aprobada
 `sha256:384a1742ecc53cdd3a9c0bf36c6f8b66db73ddd118aeeae6e55654ea998ae36a`.
-El recibo consolidado es [`M3-runtime.json`](M3-runtime.json). Las diez
+El recibo consolidado es [`M3-runtime.json`](runtime.json). Las diez
 selecciones exactas pasaron en 218.572 s en el intento final.
 
 ## Exit codes observados

@@ -119,7 +119,7 @@ actuales y el nuevo SHA del binario. El [archivo de logs](M4-log-archive.json) l
 evidencia en una futura integración autorizada.
 
 La deuda M3 permanece en el [complemento](../prompts/implement-m4-complement-m3.md#6-deuda-que-m4-hereda-declarada)
-y en [M3-07](M3-07.md); M4 no atribuye una causa ni una corrección a esos residuos.
+y en [M3-07](M3/07.md); M4 no atribuye una causa ni una corrección a esos residuos.
 
 ## Revisión independiente y disposiciones
 

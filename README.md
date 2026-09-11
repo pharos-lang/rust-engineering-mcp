@@ -510,7 +510,7 @@ declara `io.modelcontextprotocol/tasks`. Sin esa declaración, `auto` y
 `synchronous` sólo se admiten para una selección calificada con
 `timeout_seconds <= 60`; un `auto` más largo devuelve `TASKS_REQUIRED` antes de
 admisión y `task` se rechaza. Véanse los
-[documentos de validación M3](docs/validation/M3-matrix.md).
+[documentos de validación M3](docs/validation/M3/matrix.md).
 
 La CLI de desarrollo `cargo-vendor inspect --directory /ruta/vendor --json`
 verifica un directory source preparado mediante
@@ -534,7 +534,7 @@ El checkout `0.3.0` descubre 31 tools.
 `rust.semver.check` y `rust.mutation.test` están implementadas y calificadas en el
 gate Docker M3: 62/62 selecciones (nextest 19, Tasks 7, coverage 8,
 SemVer 18 y mutation 10), más 20/20 controles de seguridad. Los detalles
-y hashes están en la [matriz y recibos M3](docs/validation/M3-matrix.md).
+y hashes están en la [matriz y recibos M3](docs/validation/M3/matrix.md).
 Las 18 snapshots preexistentes son byte-identical a `main`; el snapshot de
 mutation cambió deliberadamente durante las correcciones de seguridad.
 

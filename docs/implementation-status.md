@@ -20,11 +20,11 @@ Fuente principal: [`spec/rust-engineering-mcp-propuesta-v0.3.md`](spec/rust-engi
 | Historial | M0-01..12 integrados mediante ramas ai/ y merges no-ff locales. | Cada validation/M0-*.md registra integración; no remoto. |
 | Especificación/instrucciones | v0.3.1 y AGENTS.md revisados; decisiones ADR-001..059. | spec, ADRs y dispositions de reviewers. |
 | Código Rust | Ocho crates: domain, application, MCP, project, execution, catalog, semantic y artifact. | Workspace real; domain soloSerde, application soloDomain. |
-| MCP | Trece tools M1 estables; checkout 0.3.0 conserva las cinco M2 e integra nextest, coverage, SemVer y mutation (22 tools). Tasks está anunciado y exige declaración mutua. | protocol/contract tests; [matriz M3](validation/M3-matrix.md), [M3-02](validation/M3-02.md), [M3-04](validation/M3-04-semver-calibration.md) y [M3-05](validation/M3-05-mutation-calibration.md). |
+| MCP | Trece tools M1 estables; checkout 0.3.0 conserva las cinco M2 e integra nextest, coverage, SemVer y mutation (22 tools). Tasks está anunciado y exige declaración mutua. | protocol/contract tests; [matriz M3](validation/M3/matrix.md), [M3-02](validation/M3/02.md), [M3-04](validation/M3/04-semver-calibration.md) y [M3-05](validation/M3/05-mutation-calibration.md). |
 | Seguridad | I/O propio macOS/APFS no-follow; gateway Docker Linux ARM64 de probes y camino Rust ADR-031 revisado. | M0-04/05/06; [calibración Rust](validation/M1/01-rust-gateway.md), integración MCP ADR-032 validada. |
 | Datos locales | SQLite/FTS5 autoritativo, E5 verificado/LanceDB derivado, ArtifactStore M1 efímero y store privado M3 persistente disponible en macOS ARM64/APFS. | M0-08/09/10a; [ADR-061](adr/ADR-061-private-quality-artifact-store.md), CLI y tests de calidad. |
-| Imagen guest M3 | Imagen Linux ARM64 provisionada con plugins exactos; nextest calificado con el perfil mínimo quality de ADR-064. | [Digest/configuración](validation/M3-image-config.json), [provisioning](validation/M3-provisioning.json), [M3-01](validation/M3-01.md). |
-| Pruebas/fixtures | Suite workspace no-Docker: 1,105 pasaron + 1 doctest y 0 fallaron; además, runtime Docker M3 62/62 y seguridad Rust 20/20. Medido sobre el tip final de la rama y re-medido sobre `main` tras el merge, que no cambió ningún byte. | [M3 runtime](validation/M3-runtime.json), [M3 security](validation/M3-rust-security.json), [integración](validation/M3-integration.json). |
+| Imagen guest M3 | Imagen Linux ARM64 provisionada con plugins exactos; nextest calificado con el perfil mínimo quality de ADR-064. | [Digest/configuración](validation/M3/image-config.json), [provisioning](validation/M3/provisioning.json), [M3-01](validation/M3/01.md). |
+| Pruebas/fixtures | Suite workspace no-Docker: 1,105 pasaron + 1 doctest y 0 fallaron; además, runtime Docker M3 62/62 y seguridad Rust 20/20. Medido sobre el tip final de la rama y re-medido sobre `main` tras el merge, que no cambió ningún byte. | [M3 runtime](validation/M3/runtime.json), [M3 security](validation/M3/rust-security.json), [integración](validation/M3/integration.json). |
 | CI/release | CI pública final verde en Linux x86_64, macOS ARM64, Windows x86_64 y supply chain; SonarCloud verde; release estable `v0.1.0` publicada para macOS ARM64 con hashes, smoke y attestations. | ADR-048, [recibo público final](validation/M1/17-public-release.json), [release v0.1.0](https://github.com/pharos-lang/rust-engineering-mcp/releases/tag/v0.1.0) y [full gate](validation/M1/17-final-gate-v2.json). |
 | Toolchain | Rust/Cargo1.98.1, edition2024, rustfmt/Clippy; host aarch64-apple-darwin. | rust-toolchain.toml y reporte de gate. |
 | Configuración local | YouTrack deshabilitado para este repositorio. | .codex/config.toml; no afecta el producto. |
@@ -120,21 +120,21 @@ por corte permanece más abajo en este mismo tablero.
 
 | ID | Corte | Estado | Evidencia / límite actual |
 | --- | --- | --- | --- |
-| M3-01 | `rust.test.nextest` síncrono, gateway, JUnit y artifacts privados | Done (qualified) | [M3-01](validation/M3-01.md): runtime 19/19 dentro de M3-runtime 62/62 y security 20/20; Tasks integrado por M3-02. |
-| M3-02 | MCP Tasks y lifecycle job | Done (qualified) | Docker lifecycle 4/4 (D06-T04/T05/T08/T10), budgets con 30 muestras frías y 30 calientes por operación, five-version matrix, Inspector Tasks y Codex fallback; anuncio ON con declaración mutua. [M3-02](validation/M3-02.md). |
-| M3-03 | Coverage | Done (qualified) | ADR-065 enmendado; Docker coverage 8/8 dentro de M3 runtime 62/62, rust-security 20/20, counts/formatos/dedupe/zero-denominator fijados: [M3-03](validation/M3-03.md). |
-| M3-04 | SemVer baseline | Done (qualified) | Docker 18/18; exits y parser real fijados, roots inmutables, artifacts Stage 1/fallback. [M3-04](validation/M3-04.md). |
-| M3-05 | Mutation testing | Done (qualified) | Docker 10/10; exits, outcomes/listas/bundle/identidad fijados; containment, cap y cleanup verificados. [M3-05](validation/M3-05.md). |
-| M3-06 | Integración y handoff | Done (qualified) para el alcance local | Core 14/14 y full **25/25** (`audit-data` incluido) sobre 810 inputs; G6 con recibo propio 10/10; aceptación de ADR-064/065 y re-reviews registrados. [M3-07](validation/M3-07.md) · [Rollback](validation/M3-06-rollback.md). |
+| M3-01 | `rust.test.nextest` síncrono, gateway, JUnit y artifacts privados | Done (qualified) | [M3-01](validation/M3/01.md): runtime 19/19 dentro de M3-runtime 62/62 y security 20/20; Tasks integrado por M3-02. |
+| M3-02 | MCP Tasks y lifecycle job | Done (qualified) | Docker lifecycle 4/4 (D06-T04/T05/T08/T10), budgets con 30 muestras frías y 30 calientes por operación, five-version matrix, Inspector Tasks y Codex fallback; anuncio ON con declaración mutua. [M3-02](validation/M3/02.md). |
+| M3-03 | Coverage | Done (qualified) | ADR-065 enmendado; Docker coverage 8/8 dentro de M3 runtime 62/62, rust-security 20/20, counts/formatos/dedupe/zero-denominator fijados: [M3-03](validation/M3/03.md). |
+| M3-04 | SemVer baseline | Done (qualified) | Docker 18/18; exits y parser real fijados, roots inmutables, artifacts Stage 1/fallback. [M3-04](validation/M3/04.md). |
+| M3-05 | Mutation testing | Done (qualified) | Docker 10/10; exits, outcomes/listas/bundle/identidad fijados; containment, cap y cleanup verificados. [M3-05](validation/M3/05.md). |
+| M3-06 | Integración y handoff | Done (qualified) para el alcance local | Core 14/14 y full **25/25** (`audit-data` incluido) sobre 810 inputs; G6 con recibo propio 10/10; aceptación de ADR-064/065 y re-reviews registrados. [M3-07](validation/M3/07.md) · [Rollback](validation/M3/06-rollback.md). |
 
 | Decisión / entregable | Estado | Evidencia |
 | --- | --- | --- |
 | D06 — MCP Tasks | Done (decided) | [ADR-060](adr/ADR-060-bounded-job-execution-and-mcp-tasks.md) |
 | D17 — private quality artifact store | Done (decided) | [ADR-061](adr/ADR-061-private-quality-artifact-store.md) |
 | D18 — coverage and semver baselines | Done (decided) | [ADR-062](adr/ADR-062-coverage-accounting-and-semver-baselines.md) |
-| M3 guest provisioning | Done (decided) | [ADR-063](adr/ADR-063-m3-guest-plugin-provisioning.md), [receipt](validation/M3-provisioning.json) |
-| ADR-064 — perfil seccomp de los jobs de calidad | Accepted 2026-09-06 por el orquestador M3 | [ADR-064](adr/ADR-064-quality-job-seccomp-profile.md): una sola regla sobre el perfil base (`socketpair` AF_UNIX anónimo con flags enmascarados), perfil aplicado verificado contra el declarado por fase; [runtime 62/62](validation/M3-runtime.json), [rust-security 20/20](validation/M3-rust-security.json) y [V-SEC](validation/m3-delegation/V-SEC/last-message.md). |
-| ADR-065 — volumen de target para coverage (enmendado) | Accepted 2026-09-06 por el orquestador M3 | [ADR-065](adr/ADR-065-coverage-target-volume.md): tmpfs por job, read-write solo en `CoverageRun`/`CoverageReport`, keeper read-only, ausente de todo exporter y destruido en cleanup; [runtime 62/62](validation/M3-runtime.json), [rust-security 20/20](validation/M3-rust-security.json), [V-SEC](validation/m3-delegation/V-SEC/last-message.md) y [revisión final](validation/m3-delegation/VF-opus-final/last-message.md). |
+| M3 guest provisioning | Done (decided) | [ADR-063](adr/ADR-063-m3-guest-plugin-provisioning.md), [receipt](validation/M3/provisioning.json) |
+| ADR-064 — perfil seccomp de los jobs de calidad | Accepted 2026-09-06 por el orquestador M3 | [ADR-064](adr/ADR-064-quality-job-seccomp-profile.md): una sola regla sobre el perfil base (`socketpair` AF_UNIX anónimo con flags enmascarados), perfil aplicado verificado contra el declarado por fase; [runtime 62/62](validation/M3/runtime.json), [rust-security 20/20](validation/M3/rust-security.json) y [V-SEC](validation/M3/delegation/V-SEC/last-message.md). |
+| ADR-065 — volumen de target para coverage (enmendado) | Accepted 2026-09-06 por el orquestador M3 | [ADR-065](adr/ADR-065-coverage-target-volume.md): tmpfs por job, read-write solo en `CoverageRun`/`CoverageReport`, keeper read-only, ausente de todo exporter y destruido en cleanup; [runtime 62/62](validation/M3/runtime.json), [rust-security 20/20](validation/M3/rust-security.json), [V-SEC](validation/M3/delegation/V-SEC/last-message.md) y [revisión final](validation/M3/delegation/VF-opus-final/last-message.md). |
 
 ## Backlog inmediato
 
@@ -146,7 +146,7 @@ y [validación/reviews](roadmap/planning-validation.md).
 | Milestone | Estado de planificación | Plan / prompt de ejecución separado |
 | --- | --- | --- |
 | M2 / 0.2.x | Done local; sin release nueva | [Safe Mutation](roadmap/m2-safe-mutation.md) · [prompt M2](prompts/implement-m2.md) |
-| M3 / 0.3.x | Done; integrado en `main` como `57c4037` (PR #14); sin release nueva | [Quality](roadmap/m3-quality.md) · [matriz M3](validation/M3-matrix.md) · [integración](validation/M3-integration.json) |
+| M3 / 0.3.x | Done; integrado en `main` como `57c4037` (PR #14); sin release nueva | [Quality](roadmap/m3-quality.md) · [matriz M3](validation/M3/matrix.md) · [integración](validation/M3/integration.json) |
 | M4 / 0.4.x | Done local; integración mediante PR #15; sin release nueva | [Security](roadmap/m4-security.md) · [handoff M4](validation/M4-handoff.md) · [confirmación final](reviews/m4-final-evidence/review.md) |
 | M5 / 0.5.x | Done local; sin integración remota, PR, tag ni release | [Performance](roadmap/m5-performance.md) · [matriz M5](validation/M5-matrix.md) · [handoff M5](validation/M5-handoff.md) |
 | M6 / 0.6.x | Planned | [Analyzer](roadmap/m6-analyzer.md) · [prompt M6](prompts/implement-m6.md) |
@@ -171,7 +171,7 @@ release están enlazados desde el [recibo final](validation/M1/17-public-release
 No hay bloqueo M3. El cierre dejó de estar bloqueado por gates, código y
 decisiones con W7, y el bloqueo restante —la revisión del owner— se resolvió con
 el merge del PR #14. Ver [Done](#done) y
-[Integración](validation/M3-07.md#integración).
+[Integración](validation/M3/07.md#integración).
 
 El bloqueo de decisión D02 se resolvió por delegación explícita del owner mediante
 [ADR-050](adr/ADR-050-local-coordinated-mutation.md): edición local coordinada sin
@@ -210,39 +210,39 @@ saltó ningún check.** El merge no cambió ningún byte calificado
 (`git diff --stat 93991c4 main` vacío) y el smoke post-merge sobre `main` pasó
 fmt/check/clippy/test/arquitectura en exit 0 con 1,105 tests + 1 doctest, más 5
 de las 62 selecciones del runtime Docker re-ejecutadas como confirmación real.
-[Integración](validation/M3-07.md#integración) ·
-[Recibo](validation/M3-integration.json) ·
-[Runtime post-merge](validation/M3-postmerge-runtime.json).
+[Integración](validation/M3/07.md#integración) ·
+[Recibo](validation/M3/integration.json) ·
+[Runtime post-merge](validation/M3/postmerge-runtime.json).
 
 - **M3-01** integra contrato, gateway, JUnit, Stage 1 durable con fallback
   Stage 0, D06 core corregido y perfil quality. Runtime 19/19 y security 20/20
   bajo P02; su camino Tasks quedó calificado en M3-02.
-  [Evidencia](validation/M3-01.md).
+  [Evidencia](validation/M3/01.md).
 - **M3-02** califica el camino Tasks productivo para las cuatro tools de calidad:
   un peer mutuamente negociado recibe `CreateTaskResult`, poll/cancel/update usan
   el JobExecutor owner-bound y el trabajo conserva el permit ADR-030 hasta
   cleanup. W4 pasó la matriz de cinco versiones, Docker T04/T05/T08/T10, budgets
   30/30 e Inspector 2.5.0; Codex app-server 0.153.0 no declaró Tasks y usó el
   camino síncrono. El anuncio está habilitado y sigue gated por la declaración
-  del peer. [Matriz](validation/M3-02.md).
+  del peer. [Matriz](validation/M3/02.md).
 - **M3-03** está calificado bajo la enmienda acotada de ADR-065: target tmpfs
   dedicado por job, read-write solo en `CoverageRun`/`CoverageReport`, keeper
   read-only, export ausente, verifier/fingerprint y cleanup fail-closed. W2 pasó
   coverage 8/8 dentro del runtime de 62/62 (55 tools + 7 Tasks) y rust-security
-  20/20. [Evidencia](validation/M3-03.md).
+  20/20. [Evidencia](validation/M3/03.md).
 - **M3-04** `rust.semver.check` es la tool 21, conserva selección idéntica en
   ambos roots, evidencia separada y falla cerrada ante parser incierto; publica
   el raw output por Stage 1 durable con fallback Stage 0. Q01 pasó 18/18 y fijó
   exits 0/100/101, goldens reales y el target dir compartido bajo `/work`.
-  [Recibo](validation/M3-04.md).
+  [Recibo](validation/M3/04.md).
 - **M3-05** `rust.mutation.test` es la tool 22, exige baseline, aplica mutantes
   solo en una copia privada, no exporta fuente mutada y deriva el veredicto de
   `mutants.out`. Q01 pasó 10/10 y fijó exits 0/1/2/3/4, schema/listas/bundle e
   identidad guest. Sin declaración Tasks del peer responde `TASKS_REQUIRED`.
-  [Recibo](validation/M3-05.md).
+  [Recibo](validation/M3/05.md).
 - **M3-06** cierre y handoff: core 14/14, full 25/25 sobre 810 inputs con
   `source_inputs_unchanged`, rollback G6 10/10.
-  [Matriz](validation/M3-matrix.md) · [Handoff](validation/M3-07.md).
+  [Matriz](validation/M3/matrix.md) · [Handoff](validation/M3/07.md).
 
 **Dos elementos sobreviven al milestone y siguen abiertos:**
 
@@ -257,7 +257,7 @@ de las 62 selecciones del runtime Docker re-ejecutadas como confirmación real.
    obligatorio—. Se recomienda descartarlas en la pestaña Security y renombrar la
    etiqueta de propiedad Docker `nonce` **en su propio corte**, porque el rename
    toca cinco gateways ya calificados y necesita su propio gate.
-   [Evaluación](validation/M3-07.md#evaluación-codeql-33-alertas-check-no-obligatorio).
+   [Evaluación](validation/M3/07.md#evaluación-codeql-33-alertas-check-no-obligatorio).
 
 No hay tag, release ni publicación en crates.io para M3. El encargo del owner del
 2026-09-07 autoriza implementar M4 mediante sus dos prompts; M5 y otra publicación

@@ -470,7 +470,7 @@ retained excedidos se degradan a evidencia no disponible; jamás a pass parcial.
 La capability se anuncia desde la evidencia G4: el uso efectivo sigue requiriendo
 declaración mutua. Inspector 2.5.0 completó el lifecycle Tasks; Codex app-server
 0.153.0 no declaró la extensión y permaneció en el fallback síncrono. Véase
-[M3-02](validation/M3-02.md).
+[M3-02](validation/M3/02.md).
 
 ## M3 — ejecución nextest e identidad
 

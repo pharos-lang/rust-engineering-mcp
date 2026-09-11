@@ -909,7 +909,7 @@ mutation 10). El fixture calibrado
 fija líneas 4/4, regiones 8/9 y funciones 2/2; los aliases de un archivo compartido
 se deduplican tras normalización confinada a `/source`. Un crate sin código
 instrumentable produce `no coverage data found` y queda incompleto sin porcentaje
-fabricado. Véase [`docs/validation/M3-03.md`](validation/M3-03.md).
+fabricado. Véase [`docs/validation/M3/03.md`](validation/M3/03.md).
 
 ## `rust.semver.check`
 
@@ -950,7 +950,7 @@ solo cuando `timeout_seconds <= 60`; un `auto` mayor devuelve `TASKS_REQUIRED`
 antes de admisión y `task` devuelve `-32602`. Con declaración mutua, `auto|task`
 usa 300 s por defecto y 3.600 s máximo. No se instala ni descarga nada. La
 calibración Docker está registrada en
-[M3-04-semver-calibration](validation/M3-04-semver-calibration.md).
+[M3-04-semver-calibration](validation/M3/04-semver-calibration.md).
 
 ## `rust.mutation.test`
 
@@ -1005,7 +1005,7 @@ Tasks está anunciado y ninguna selección de mutación entra en el presupuesto
 síncrono de 60 s. Sin declaración del peer, `auto` devuelve `TASKS_REQUIRED` y
 `task` se rechaza; con declaración mutua, `auto|task` crea el job. No se instala ni
 descarga nada. La calibración Docker de exits, `outcomes.json` y conteos está en
-[M3-05-mutation-calibration](validation/M3-05-mutation-calibration.md).
+[M3-05-mutation-calibration](validation/M3/05-mutation-calibration.md).
 
 ## MCP Tasks for M3 quality jobs (M3-02)
 
@@ -1040,7 +1040,7 @@ declared/undeclared matrix, 30+30 budget series and stock-client gate passed.
 Inspector 2.5.0 declared the extension and completed the task lifecycle. Codex
 app-server 0.153.0 did not declare it and completed the supported synchronous path;
 it therefore cannot create, poll or cancel M3 tasks. See
-[M3-02 validation](validation/M3-02.md).
+[M3-02 validation](validation/M3/02.md).
 
 ## Contratos M4 calificados localmente
 

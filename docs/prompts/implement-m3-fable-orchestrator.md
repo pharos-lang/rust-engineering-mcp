@@ -300,7 +300,7 @@ timeout de espera no es un dictamen completado. Antes de reintentar, comprueba s
 la ejecución anterior terminó y evita duplicar trabajo/efectos.
 
 Mantén el tablero en `docs/implementation-status.md` y la evidencia en
-`docs/validation/M3-matrix.md`; no crees un plan alternativo ni uses YouTrack.
+`docs/validation/M3/matrix.md`; no crees un plan alternativo ni uses YouTrack.
 Un registro de delegación enlazado puede identificar propietarios/paquetes sin
 sustituir el roadmap. Fable comunica hallazgos, progreso y bloqueos, no monólogos
 de coordinación ni resultados inventados. No mantengas workers ociosos.

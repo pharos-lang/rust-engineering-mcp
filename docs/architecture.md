@@ -335,8 +335,8 @@ handlers M3 están en `stdio/{nextest,coverage,semver,mutation_test}.rs` y el
 lifecycle negociado en `stdio/tasks.rs`. `stdio/resources.rs` publica el índice y
 los miembros como Resources bajo `rust-quality-artifact://`; Tasks está
 implementado, calificado y anunciado con negociación mutua. Los cuatro cortes M3
-calificados tienen sus recibos en `docs/validation/M3-runtime.json` y
-`docs/validation/M3-rust-security.json`.
+calificados tienen sus recibos en `docs/validation/M3/runtime.json` y
+`docs/validation/M3/rust-security.json`.
 
 M2 usa [eventos locales de terminación](adr/ADR-058-local-mutation-observability.md)
 por tracing/stderr. La retención de planes se consulta sin modificarla; la CLI

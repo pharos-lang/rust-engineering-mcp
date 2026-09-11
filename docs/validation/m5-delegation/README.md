@@ -1,7 +1,7 @@
 # Delegaciones externas M5
 
 Registro visible en el repo de las revisiones independientes ejecutadas con CLIs
-externas, siguiendo el patrón que M3 dejó en `docs/validation/m3-delegation/`.
+externas, siguiendo el patrón que M3 dejó en `docs/validation/M3/delegation/`.
 
 Cada directorio conserva el `prompt.md` enviado íntegro, el `stdout.log` y el
 `stderr.log` del proceso, y —cuando la revisión termina— el veredicto y su

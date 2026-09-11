@@ -4,7 +4,7 @@
 
 Accepted 2026-09-06 by the M3 orchestrator after independent reviews V06/V17/V18
 (ADR-063: owner provisioning authorization 2026-09-05). Implemented and qualified
-for M3-02; see `docs/validation/M3-02.md`.
+for M3-02; see `docs/validation/M3/02.md`.
 
 ## Context
 
@@ -330,7 +330,7 @@ artifact quotas (64 MiB/job, 128 MiB/owner, 256 MiB/global, and 128
 members/job); no alignment is inferred from the task entry counts.
 
 The candidate-bound evidence is
-`docs/validation/M3-02-budgets.json`, on the approved image
+`docs/validation/M3/02-budgets.json`, on the approved image
 `sha256:384a1742ecc53cdd3a9c0bf36c6f8b66db73ddd118aeeae6e55654ea998ae36a`.
 It contains every raw sample and phase measurement, not synthetic estimates:
 
@@ -507,7 +507,7 @@ M1/M2 tool contracts, or make a peer declaration optional.
 - `docs/adr/ADR-050-local-coordinated-mutation.md`.
 - `docs/adr/ADR-061-private-quality-artifact-store.md`.
 - `docs/security-model.md` and `docs/architecture.md`.
-- `docs/validation/m3-delegation/V06-adr060-review/last-message.md` and the
+- `docs/validation/M3/delegation/V06-adr060-review/last-message.md` and the
   orchestrator's A06b dispositions.
 - Existing transport/worker/gateway sources:
   `crates/mcp-server/src/stdio/admission.rs`,
@@ -521,7 +521,7 @@ M1/M2 tool contracts, or make a peer declaration optional.
   `src/task_manager.rs:280-298,309-398,401-471,485-537`,
   `src/service.rs:1248-1255,1483-1487`, `src/service/server.rs:238-247`, and
   `src/model.rs:159-175,4332-4384,4596-4609`.
-- `docs/validation/m3-delegation/R00-rmcp-tasks/report.md`, independently
+- `docs/validation/M3/delegation/R00-rmcp-tasks/report.md`, independently
   corroborated against the pinned source above.
 - `crates/mcp-server/tests/rmcp_tasks_spike.rs`, the offline five-version wire
   observation accompanying this decision.

@@ -60,7 +60,7 @@ def main():
         actual = subprocess.check_output([str(binary), '--version'], env=env, text=True)
         if not actual.startswith(prefix):
             raise RuntimeError('Rust/Cargo1.98.1 required; no runtime substitution')
-    image_config = ROOT / 'docs/validation/M3-image-config.json'
+    image_config = ROOT / 'docs/validation/M3/image-config.json'
     image_id = json.loads(image_config.read_text())['image']
     env['RUST_MCP_TEST_IMAGE'] = image_id
     output = pathlib.Path(os.environ.get(

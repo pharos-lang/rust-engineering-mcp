@@ -21,12 +21,12 @@ mutation es uno de los cuatro snapshots nuevos de M3, no una modificación de un
 snapshot previo.
 
 Evidencia sobre los bytes de `main`, toda reproducible:
-[core 14/14](../validation/M3-core-gate.json),
-[full 25/25](../validation/M3-full-gate.json),
-[runtime Docker 62/62](../validation/M3-runtime.json),
-[seguridad Rust 20/20](../validation/M3-rust-security.json),
-[rollback 10/10](../validation/M3-06-rollback.md) y el
-[handoff](../validation/M3-07.md). El inventario del gate son 810 inputs y su
+[core 14/14](../validation/M3/core-gate.json),
+[full 25/25](../validation/M3/full-gate.json),
+[runtime Docker 62/62](../validation/M3/runtime.json),
+[seguridad Rust 20/20](../validation/M3/rust-security.json),
+[rollback 10/10](../validation/M3/06-rollback.md) y el
+[handoff](../validation/M3/07.md). El inventario del gate son 810 inputs y su
 hash se registra en cada recibo: si tocas un byte calificado, ese hash cambia y
 la evidencia anterior deja de describir lo que vas a integrar.
 
@@ -87,7 +87,7 @@ controles negativos que prueben que nadie más lo obtiene.
 **Aprovisionamiento del guest ([ADR-063](../adr/ADR-063-m3-guest-plugin-provisioning.md)).**
 Imagen `sha256:384a1742…` con Rust 1.98.1 más cinco plugins fijados por hash,
 verificada 47/47 y con
-[recibo](../validation/M3-provisioning.json). `fixtures/rust-runtime/` sabe
+[recibo](../validation/M3/provisioning.json). `fixtures/rust-runtime/` sabe
 descargar por hash, verificar y construir. Los binarios de `cargo-deny` y el
 toolchain nightly de Miri entran por ahí, con versión, digest, licencia y notices,
 nunca en tiempo de ejecución. Que una herramienta esté en el host o en CI **no**
@@ -100,7 +100,7 @@ la acredita en el guest: esa confusión ya costó un corte en M3.
   `fast`/`standard` deben quedar exactamente como están.
 - **Presupuestos ya medidos**, no propuestos: ADR-060 tiene la tabla con 30
   muestras en frío y 30 en caliente por operación, en
-  [M3-02-budgets.json](../validation/M3-02-budgets.json). Hereda esa forma de
+  [M3-02-budgets.json](../validation/M3/02-budgets.json). Hereda esa forma de
   medir: muestras crudas, p50/p95/p99, y sustituir el número propuesto por el
   medido en el propio ADR.
 - **Cobertura y SemVer** ([ADR-062](../adr/ADR-062-coverage-accounting-and-semver-baselines.md))
@@ -198,7 +198,7 @@ Orquestador único que no implementa, con delegados por CLI real: integrador,
 adaptadores, fixtures, documentación, validador con Docker y revisores
 independientes. Cada paquete llevaba base Git, fuentes normativas, DoD, oráculos,
 archivos permitidos y formato de entrega; cada ejecución dejó prompt, comandos,
-salidas, código de salida y hashes en `docs/validation/m3-delegation/`, con los
+salidas, código de salida y hashes en `docs/validation/M3/delegation/`, con los
 intentos fallidos conservados. Las revisiones independientes encontraron cosas que
 la implementación no vio: un bloqueo de disponibilidad que congelaba la sesión
 entera mientras corría un job, una publicación que dejaba bytes inalcanzables

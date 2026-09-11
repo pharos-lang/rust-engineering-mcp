@@ -146,7 +146,7 @@ extensión y completó create/poll/cancel; Codex CLI/app-server 0.153.0 no la de
 y pasó discovery, llamadas y Resources por el camino síncrono soportado. Para todo
 cliente que no declare Tasks, la compatibilidad admitida sigue siendo el modo
 síncrono calificado y `TASKS_REQUIRED` para jobs largos; el nombre del cliente
-nunca habilita autoridad ni una excepción de protocolo. [Matriz](validation/M3-02.md).
+nunca habilita autoridad ni una excepción de protocolo. [Matriz](validation/M3/02.md).
 
 El cliente moderno envía `params._meta` con
 `io.modelcontextprotocol/protocolVersion: "2026-07-28"` y

@@ -25,8 +25,8 @@ import time
 import uuid
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
-ATTEMPTS = ROOT / "docs/validation/m3-clients"
-CURRENT = ROOT / "docs/validation/M3-02-clients.json"
+ATTEMPTS = ROOT / "docs/validation/M3/clients"
+CURRENT = ROOT / "docs/validation/M3/02-clients.json"
 SERVER = ROOT / "target/release/rust-engineering-mcp"
 NODE = pathlib.Path("/Users/cburgosro/.nvm/versions/node/v24.15.0/bin/node")
 INSPECTOR = ROOT / "target/m1-17-inspector/node_modules/@modelcontextprotocol/inspector/clients/cli/build/index.js"
