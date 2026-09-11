@@ -12,6 +12,7 @@ import argparse
 import datetime
 import hashlib
 import json
+import tempfile
 import os
 import pathlib
 import platform
@@ -27,6 +28,25 @@ BINARIES = ("/opt/perf/bin/cargo-bloat", "/opt/perf/bin/rust-mcp-profile-helper"
 DOCKER = os.environ.get("RUST_MCP_DOCKER", "docker")
 BUILD_TIMEOUT_S = int(os.environ.get("RUST_MCP_M5_BUILD_TIMEOUT_S", "3600"))
 
+
+
+# Argument boundary. Sonar's taint rules (S2083, S8705, S8707) treat every CLI
+# value as attacker-controlled; these types keep the operator's arguments but
+# refuse anything outside the repository or the temporary directory, and only
+# the validated value reaches a path or an argv.
+_ALLOWED_ROOTS = tuple(
+    os.path.realpath(str(base))
+    for base in (ROOT, tempfile.gettempdir(), "/private/tmp", "/tmp")
+)
+
+
+def bounded_path(value: str) -> pathlib.Path:
+    """argparse type: an absolute path under the repository or the temp dir."""
+    real = os.path.realpath(os.path.expanduser(str(value)))
+    for base in _ALLOWED_ROOTS:
+        if os.path.commonpath([base, real]) == base:
+            return pathlib.Path(real)
+    raise argparse.ArgumentTypeError(f"{value!r} is outside the repository and the temporary directory")
 
 def utc_now() -> str:
     return datetime.datetime.now(datetime.UTC).isoformat().replace("+00:00", "Z")
@@ -53,9 +73,9 @@ def guest_capture(image: str, command: str) -> str:
 
 def main() -> int:
     parser = argparse.ArgumentParser()
-    parser.add_argument("--output", type=pathlib.Path,
+    parser.add_argument("--output", type=bounded_path,
                         default=ROOT / "docs/validation/M5-provisioning.json")
-    parser.add_argument("--context", type=pathlib.Path,
+    parser.add_argument("--context", type=bounded_path,
                         default=ROOT / "target/m5-provisioning")
     arguments = parser.parse_args()
 

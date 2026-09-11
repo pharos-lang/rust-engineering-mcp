@@ -38,6 +38,7 @@ from __future__ import annotations
 import argparse
 import datetime as _datetime
 import json
+import tempfile
 import math
 import os
 import pathlib
@@ -140,6 +141,35 @@ CRITERIA = {
     },
 }
 
+
+
+# Argument boundary. Sonar's taint rules (S2083, S8705, S8707) treat every CLI
+# value as attacker-controlled; these types keep the operator's arguments but
+# refuse anything outside the repository or the temporary directory, and only
+# the validated value reaches a path or an argv.
+_ALLOWED_ROOTS = tuple(
+    os.path.realpath(str(base))
+    for base in (ROOT, tempfile.gettempdir(), "/private/tmp", "/tmp")
+)
+
+
+def bounded_path(value: str) -> pathlib.Path:
+    """argparse type: an absolute path under the repository or the temp dir."""
+    real = os.path.realpath(os.path.expanduser(str(value)))
+    for base in _ALLOWED_ROOTS:
+        if os.path.commonpath([base, real]) == base:
+            return pathlib.Path(real)
+    raise argparse.ArgumentTypeError(f"{value!r} is outside the repository and the temporary directory")
+
+
+def effect_is(cell: dict, value: float) -> bool:
+    """Effects are exact by construction; a tolerance far below any configured
+    step keeps the comparison honest without writing a float equality."""
+    return math.isclose(cell["true_effect"], value, abs_tol=1e-12)
+
+
+def effect_magnitude_is(cell: dict, value: float) -> bool:
+    return math.isclose(abs(cell["true_effect"]), value, abs_tol=1e-12)
 
 def utc_now() -> str:
     return (
@@ -528,13 +558,13 @@ def evaluate(points: list[dict], replicates: int) -> dict[str, dict]:
             }
             for cell in cells
         ]
-        null_cells = [cell for cell in cells if cell["true_effect"] == 0.0]
+        null_cells = [cell for cell in cells if effect_is(cell, 0.0)]
         # ADR-081 §1 as corrected: power is measured against an alternative
         # SEPARATED from the decision boundary, at twice the material threshold.
-        power_cells = [cell for cell in cells if abs(cell["true_effect"]) == 0.10]
+        power_cells = [cell for cell in cells if effect_magnitude_is(cell, 0.10)]
         # The row the correction replaced, kept as evidence and never scored.
-        superseded_cells = [cell for cell in cells if cell["true_effect"] == 0.05]
-        material_cells = [cell for cell in cells if abs(cell["true_effect"]) == 0.10]
+        superseded_cells = [cell for cell in cells if effect_is(cell, 0.05)]
+        material_cells = [cell for cell in cells if effect_magnitude_is(cell, 0.10)]
 
         def gate_share(cell: dict) -> dict:
             """Who decided this cell: the precision gate, or the interval.
@@ -692,8 +722,8 @@ def main() -> int:
         default=None,
         help="decimal or 0x-prefixed; defaults to the harness's own SIMULATION_ROOT_SEED",
     )
-    parser.add_argument("--out", type=pathlib.Path, default=DEFAULT_OUTPUT)
-    parser.add_argument("--target-dir", type=pathlib.Path, default=DEFAULT_TARGET)
+    parser.add_argument("--out", type=bounded_path, default=DEFAULT_OUTPUT)
+    parser.add_argument("--target-dir", type=bounded_path, default=DEFAULT_TARGET)
     parser.add_argument(
         "--skip-probe",
         action="store_true",
@@ -1229,7 +1259,7 @@ def main() -> int:
                 null_only = [
                     cell
                     for cell in block.get("cells", [])
-                    if cell["true_effect"] == 0.0
+                    if effect_is(cell, 0.0)
                 ]
                 worst_null = (
                     min(null_only, key=lambda cell: cell["value"])

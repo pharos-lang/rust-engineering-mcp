@@ -131,6 +131,8 @@ import datetime
 import hashlib
 import io
 import json
+import tempfile
+import os
 import pathlib
 import re
 import shutil
@@ -241,6 +243,34 @@ UNATTRIBUTED_CRATE = "[Unknown]"
 
 SUPERSEDED_IMAGE = "sha256:e9ecc40d023d9d13ac3539cccb6a944cd1022da2a8b3f86ca61356086b38a209"
 
+
+
+# Argument boundary. Sonar's taint rules (S2083, S8705, S8707) treat every CLI
+# value as attacker-controlled; these types keep the operator's arguments but
+# refuse anything outside the repository or the temporary directory, and only
+# the validated value reaches a path or an argv.
+_ALLOWED_ROOTS = tuple(
+    os.path.realpath(str(base))
+    for base in (ROOT, tempfile.gettempdir(), "/private/tmp", "/tmp")
+)
+
+
+def bounded_path(value: str) -> pathlib.Path:
+    """argparse type: an absolute path under the repository or the temp dir."""
+    real = os.path.realpath(os.path.expanduser(str(value)))
+    for base in _ALLOWED_ROOTS:
+        if os.path.commonpath([base, real]) == base:
+            return pathlib.Path(real)
+    raise argparse.ArgumentTypeError(f"{value!r} is outside the repository and the temporary directory")
+
+
+def image_reference(value: str) -> str:
+    """argparse type: a local Docker image reference, validated before it can
+    become a docker argv element."""
+    match = re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9._:/@-]{0,255}", value)
+    if match is None:
+        raise argparse.ArgumentTypeError(f"{value!r} is not a local image reference")
+    return match.group(0)
 
 def utc_now() -> str:
     return datetime.datetime.now(datetime.UTC).isoformat(timespec="seconds").replace("+00:00", "Z")
@@ -1201,8 +1231,8 @@ def receipt(
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
-    parser.add_argument("--image", default=IMAGE_TAG, help="local reference to resolve to M5_IMAGE")
-    parser.add_argument("--output", type=pathlib.Path, default=RECEIPT)
+    parser.add_argument("--image", type=image_reference, default=IMAGE_TAG, help="local reference to resolve to M5_IMAGE")
+    parser.add_argument("--output", type=bounded_path, default=RECEIPT)
     arguments = parser.parse_args()
 
     image = admitted_image()

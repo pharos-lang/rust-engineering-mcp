@@ -130,6 +130,25 @@ SOURCE_PATH_BYTES = set(
 # --------------------------------------------------------------------------
 
 
+
+# Argument boundary. Sonar's taint rules (S2083, S8705, S8707) treat every CLI
+# value as attacker-controlled; these types keep the operator's arguments but
+# refuse anything outside the repository or the temporary directory, and only
+# the validated value reaches a path or an argv.
+_ALLOWED_ROOTS = tuple(
+    os.path.realpath(str(base))
+    for base in (REPO, tempfile.gettempdir(), "/private/tmp", "/tmp")
+)
+
+
+def bounded_path(value: str) -> Path:
+    """argparse type: an absolute path under the repository or the temp dir."""
+    real = os.path.realpath(os.path.expanduser(str(value)))
+    for base in _ALLOWED_ROOTS:
+        if os.path.commonpath([base, real]) == base:
+            return Path(real)
+    raise argparse.ArgumentTypeError(f"{value!r} is outside the repository and the temporary directory")
+
 def declared_source_bounds(path: Path) -> dict[str, int]:
     """Read the `SOURCE_MAX_*` constants out of `crates/domain/src/source.rs`.
 
@@ -1032,6 +1051,9 @@ PHASES = {
 
 
 def spawn(phase: str, params: dict, result_path: Path) -> int:
+    if phase not in PHASES:
+        raise ValueError(f"unknown phase {phase!r}")
+    result_path = bounded_path(str(result_path))
     pid = os.fork()
     if pid == 0:  # child
         try:
@@ -1309,8 +1331,8 @@ def filesystem_facts(paths: dict[str, Path]) -> dict:
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
-    parser.add_argument("--tree", type=Path, default=DEFAULT_TREE)
-    parser.add_argument("--receipt", type=Path, default=DEFAULT_RECEIPT)
+    parser.add_argument("--tree", type=bounded_path, default=DEFAULT_TREE)
+    parser.add_argument("--receipt", type=bounded_path, default=DEFAULT_RECEIPT)
     parser.add_argument("--repetitions", type=int, default=3)
     parser.add_argument(
         "--max-load",
@@ -1324,21 +1346,24 @@ def main() -> int:
             "and byte counts are published regardless, being clock-independent"
         ),
     )
-    parser.add_argument("--work", type=Path, default=None)
+    parser.add_argument("--work", type=bounded_path, default=None)
     parser.add_argument("--keep-work", action="store_true")
     parser.add_argument("--worker", nargs=3, metavar=("PHASE", "OUT", "PARAMS"))
     arguments = parser.parse_args()
 
     if arguments.worker:
         phase, out, raw = arguments.worker
+        if phase not in PHASES:
+            parser.error(f"unknown worker phase {phase!r}")
+        out_path = bounded_path(out)
         try:
             payload = PHASES[phase](json.loads(raw))
         except BaseException as error:  # report, never a silent non-zero
-            Path(out).write_text(
+            out_path.write_text(
                 json.dumps({"error": f"{type(error).__name__}: {error}"})
             )
             raise
-        Path(out).write_text(json.dumps(payload, sort_keys=True))
+        out_path.write_text(json.dumps(payload, sort_keys=True))
         return 0
 
     tree = arguments.tree.resolve()
@@ -1665,7 +1690,7 @@ def main() -> int:
 
     # -- cross-check the artifact with the system tar -----------------------
     listing = subprocess.run(
-        ["/usr/bin/tar", "--list", "--file", str(artifact)],
+        ["/usr/bin/tar", "--list", "--file", str(bounded_path(str(artifact)))],
         capture_output=True,
         text=True,
     )

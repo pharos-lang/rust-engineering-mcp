@@ -38,7 +38,7 @@ const ARTIFACT_SCHEME = "rust-quality-artifact://";
 function stable(value) {
   if (Array.isArray(value)) return value.map(stable);
   if (value !== null && typeof value === "object") {
-    return Object.fromEntries(Object.keys(value).sort().map((name) => [name, stable(value[name])]));
+    return Object.fromEntries(Object.keys(value).sort((left, right) => (left < right ? -1 : left > right ? 1 : 0)).map((name) => [name, stable(value[name])]));
   }
   return value;
 }
@@ -113,7 +113,7 @@ function checkComparison(label, row, structured) {
   return {
     ...Object.fromEntries((row.report_fields ?? [])
       .filter((key) => report[key] !== undefined).map((key) => [key, report[key]])),
-    verdicts: [...new Set(report.comparisons.map((comparison) => comparison.verdict))].sort(),
+    verdicts: [...new Set(report.comparisons.map((comparison) => comparison.verdict))].sort((left, right) => (left < right ? -1 : left > right ? 1 : 0)),
     inconclusive_reasons: row.expect_inconclusive_reasons,
     artifacts_published: 0, artifacts_read: 0,
   };
