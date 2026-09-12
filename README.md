@@ -16,10 +16,13 @@ de calidad dentro de un runtime controlado, consultar diagnósticos y trabajar c
 un catálogo local de crates.
 
 El servidor usa transporte MCP por `stdio`. Las trece tools de la release
-`0.1.0` observan y validan sin modificar el source. El checkout `0.3.0`
-registra 31 tools: las 18 de M1/M2, las cuatro tools de calidad M3, cinco tools
-M4 y cuatro tools de rendimiento M5. M4 y M5 están cerrados localmente, sin
-integración remota ni release. El checkout no forma una release.
+`0.1.0` observan y validan sin modificar el source. M4 y M5 están cerrados e
+integrados en `main`, M5 publicado como release `0.3.0`: esa release registra
+31 tools (las 18 de M1/M2, las cuatro tools de calidad M3, cinco tools M4 y
+cuatro tools de rendimiento M5). El checkout de desarrollo, aún en versión
+`0.3.0`, añade la primera tool de análisis M6, `rust.analyzer.symbols`, y
+registra 32; solo M6 está en desarrollo local, sin integración remota ni
+release.
 
 > [!IMPORTANT]
 > La versión estable actual es `0.3.0`. GitHub Releases publica un único binario core
@@ -52,6 +55,7 @@ integración remota ni release. El checkout no forma una release.
 | Rendimiento (M5, desarrollo) | `rust.benchmark.compare` | Tool 29; compara dos datasets propios con un método estadístico congelado. No ejecuta nada. |
 | Rendimiento (M5, desarrollo) | `rust.profile.flamegraph` | Tool 30; muestreo en CPU de un binario del proyecto; exige la capability de profiling del host. |
 | Rendimiento (M5, desarrollo) | `rust.binary.bloat` | Tool 31; tamaño exacto del binario más la atribución estimada del analizador fijado. |
+| Analyzer (M6, desarrollo) | `rust.analyzer.symbols` | Tool 32; símbolos de documento o workspace con el rust-analyzer exacto de la imagen guest M6. Solo lectura. |
 | Seguridad | `rust.dependencies.audit` | Contrasta `Cargo.lock` con un snapshot RustSec suministrado por el host. |
 | Diagnóstico | `rust.diagnostics.explain` | Obtiene la explicación de un código `rustc`, por ejemplo `E0502`. |
 | Calidad | `rust.quality.gate` | Ejecuta un gate `fast` o `standard` y devuelve el estado de cada etapa. |
@@ -94,6 +98,16 @@ declarado; `rust.benchmark.compare` no tiene modo de ejecución.
 > direccionales: publica efecto, intervalo y razones declaradas. Estado y límites
 > en la [matriz M5](docs/validation/M5/matrix.md).
 > Sus contratos completos están en [`docs/tools.md`](docs/tools.md#contratos-m5--medición-de-rendimiento).
+
+`rust.analyzer.symbols` es la primera tool M6: lee símbolos de documento o de
+workspace con el rust-analyzer exacto (1.98.1) admitido dentro de la imagen
+guest M6. Exige el runtime del host `--rust` apuntando a esa imagen; sin él la
+tool es `unavailable`. No ejecuta build scripts, proc macros ni
+`checkOnSave`, y un proyecto capturado con `rust-analyzer.toml` o
+`.rust-analyzer.toml` se rechaza antes de arrancar el analizador. Hover,
+go-to-definition y rename no están disponibles todavía. Sus contratos
+completos están en
+[`docs/tools.md`](docs/tools.md#contratos-m6--analyzer).
 
 Los Resources normalizados no sustituyen una revisión de privacidad. Los HTML de
 cobertura y diffs de mutation autorizados pueden contener source del proyecto,
@@ -478,11 +492,12 @@ recuperar la operación durable. Los locks coordinan procesos que comparten
 `--state-root`, pero no bloquean IDE, Git u otros escritores del mismo usuario. No
 hay CAS ni atomicidad visible para una publicación de varios archivos.
 
-El checkout de desarrollo descubre 31 tools: conserva las trece de M1, añade
+El checkout de desarrollo descubre 32 tools: conserva las trece de M1, añade
 `rust.manifest.patch`, `rust.fmt.apply`, `rust.fix.apply`,
 `rust.dependency.add` y `rust.dependency.remove`, e integra el contrato M3-01 de
 `rust.test.nextest`, las otras tres tools M3, las cinco tools M4 calificadas
-localmente y las cuatro tools M5 calificadas localmente. Cada tool de escritura exige su grant de host:
+localmente, las cuatro tools M5 calificadas localmente y `rust.analyzer.symbols`
+de M6. Cada tool de escritura exige su grant de host:
 `--allow-manifest-write`, `--allow-fmt-write`, `--allow-fix-write`,
 `--allow-dependency-add` o `--allow-dependency-remove`, seguido de la raíz del
 workspace. Un grant no autoriza planes ni receipts de otra operación.
@@ -529,7 +544,8 @@ parte de la instalación de M1.
 
 ## M3 — calidad avanzada
 
-El checkout `0.3.0` descubre 31 tools.
+La release `0.3.0` descubre 31 tools; el checkout de desarrollo (aún versión
+`0.3.0`), 32 — añade `rust.analyzer.symbols` de M6.
 `rust.test.nextest`, `rust.coverage`,
 `rust.semver.check` y `rust.mutation.test` están implementadas y calificadas en el
 gate Docker M3: 62/62 selecciones (nextest 19, Tasks 7, coverage 8,

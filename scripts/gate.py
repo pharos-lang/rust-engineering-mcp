@@ -179,6 +179,7 @@ def main():
         run('m5-vendor-tests',[sys.executable,'-B','-m','unittest','discover','-s','fixtures/criterion-vendor','-p','test_*.py'],require_test_groups=True)
         run('m6-provisioning-tests',[sys.executable,'-B','-m','unittest','fixtures/rust-runtime/m6/test_provision.py'],require_test_groups=True)
         run('m6-provisioning-unit-tests',[sys.executable,'-B','scripts/test-m6-provisioning.py'],require_test_groups=True)
+        run('m6-runtime-unit-tests',[sys.executable,'-B','scripts/test-m6-runtime-unit.py'],require_test_groups=True)
         run('vendor',[sys.executable,'scripts/verify-vendor.py'])
         run('cargo-fixtures',[sys.executable,'scripts/test-fixtures.py',str(ROOT),'--cargo',cargo])
         run('audit',['cargo','audit','--no-fetch'])

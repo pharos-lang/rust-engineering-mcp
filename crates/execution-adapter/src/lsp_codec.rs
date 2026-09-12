@@ -1156,13 +1156,33 @@ pub fn lsp_range_to_text_range(
     domain::TextRange::new(start, end)
 }
 
+/// The peer-text bounds of V05 P2: a `name` or `container` this long (in
+/// Unicode scalars), or containing any control character, is refused rather
+/// than let unbounded or control-laden peer text reach a validated domain
+/// value. Checked against the raw wire string, before any domain constructor
+/// sees it.
+const MAX_PEER_NAME_CHARS: usize = 256;
+/// `detail` above this many Unicode scalars is truncated, not refused: it is
+/// descriptive text a caller reads, never an identifier matched on.
+const MAX_PEER_DETAIL_CHARS: usize = 1024;
+
+/// `true` when `value` is short enough and free of control characters to
+/// cross the codec boundary as a `name` or `container` (V05 P2).
+fn peer_text_in_bounds(value: &str) -> bool {
+    value.chars().count() <= MAX_PEER_NAME_CHARS && !value.chars().any(char::is_control)
+}
+
 /// Flattens a hierarchical `documentSymbol` result depth-first, assigning
 /// each entry its nesting `depth`.
 ///
 /// Postconditions: at most [`domain::MAX_VISIBLE_RESULTS`] entries are
 /// returned and no entry has a `depth` above [`domain::MAX_SYMBOL_DEPTH`].
-/// The second element counts every entry the peer sent that is not in the
-/// first: those past the visible cap and those below the depth cap. Native
+/// Every entry's `detail` is at most [`MAX_PEER_DETAIL_CHARS`] Unicode
+/// scalars, truncated from what the peer sent when longer
+/// ([`domain::DocumentSymbol::detail_truncated`] records it). The second
+/// element counts every entry the peer sent that is not in the first: those
+/// past the visible cap, those below the depth cap, and those whose `name`
+/// is above [`MAX_PEER_NAME_CHARS`] or contains a control character. Native
 /// recursion is bounded by [`domain::MAX_SYMBOL_DEPTH`] regardless of the
 /// nesting the peer sends, so an adversarial tree is a counted omission, not
 /// a stack overflow.
@@ -1208,21 +1228,26 @@ fn walk_document_symbol(
     let range = lsp_range_to_text_range(&symbol.range, index, encoding)?;
     let selection_range = lsp_range_to_text_range(&symbol.selection_range, index, encoding)?;
     let kind = domain::SymbolKind::try_from(symbol.kind)?;
-    let name =
-        domain::NonEmptyText::try_from(symbol.name).map_err(|_| domain::AnalyzerError::Invalid)?;
+    let name = peer_text_in_bounds(&symbol.name)
+        .then(|| domain::NonEmptyText::try_from(symbol.name))
+        .transpose()
+        .map_err(|_| domain::AnalyzerError::Invalid)?;
     let children = symbol.children.unwrap_or_default();
-    if out.len() < domain::MAX_VISIBLE_RESULTS {
-        out.push(domain::DocumentSymbol::new(
-            name,
-            kind,
-            symbol.detail,
-            symbol.deprecated.unwrap_or(false),
-            range,
-            selection_range,
-            depth,
-        )?);
-    } else {
-        *truncated += 1;
+    match name {
+        Some(name) if out.len() < domain::MAX_VISIBLE_RESULTS => {
+            let entry = domain::DocumentSymbol::new(
+                name,
+                kind,
+                symbol.detail,
+                symbol.deprecated.unwrap_or(false),
+                range,
+                selection_range,
+                depth,
+            )?
+            .truncate_detail(MAX_PEER_DETAIL_CHARS);
+            out.push(entry);
+        }
+        _ => *truncated += 1,
     }
     // Checked before descending and on every path, including the one past the
     // visible cap: the next level must still be a representable depth.
@@ -1347,8 +1372,9 @@ pub fn references_to_domain(
 /// only on the symbols themselves and never on the order the server happened
 /// to emit them. The second element counts every symbol not in the first:
 /// those outside `/source` or in a file absent from `indices`, those whose
-/// position does not resolve against the captured bytes, and those dropped by
-/// the cap.
+/// position does not resolve against the captured bytes, those whose `name`
+/// or `container` is above [`MAX_PEER_NAME_CHARS`] or contains a control
+/// character (V05 P2), and those dropped by the cap.
 pub fn workspace_symbols_to_domain(
     symbols: Vec<SymbolInformation>,
     indices: &BTreeMap<domain::AnalyzerFile, domain::LineIndex>,
@@ -1369,6 +1395,15 @@ pub fn workspace_symbols_to_domain(
             omitted += 1;
             continue;
         };
+        if !peer_text_in_bounds(&symbol.name)
+            || symbol
+                .container_name
+                .as_deref()
+                .is_some_and(|container| !peer_text_in_bounds(container))
+        {
+            omitted += 1;
+            continue;
+        }
         let name = domain::NonEmptyText::try_from(symbol.name)
             .map_err(|_| domain::AnalyzerError::Invalid)?;
         out.push(domain::WorkspaceSymbol {
@@ -2205,6 +2240,36 @@ mod tests {
     }
 
     #[test]
+    fn document_symbols_omit_oversized_or_control_char_names_and_truncate_detail()
+    -> Result<(), Box<dyn std::error::Error>> {
+        let index = domain::LineIndex::new(SYMBOL_SOURCE)?;
+        let mut oversized_name = symbol_node(None);
+        oversized_name.name = "n".repeat(257);
+        let mut control_char_name = symbol_node(None);
+        control_char_name.name = "bad\u{0007}name".into();
+        let mut long_detail = symbol_node(None);
+        long_detail.detail = Some("d".repeat(1_025));
+        let short_detail = symbol_node(None);
+        let (flat, omitted) = document_symbols_to_domain(
+            vec![oversized_name, control_char_name, long_detail, short_detail],
+            &index,
+            domain::PositionEncoding::Utf8,
+        )?;
+        assert_eq!(
+            omitted, 2,
+            "both oversized and control-char names are omitted"
+        );
+        assert_eq!(flat.len(), 2);
+        assert_eq!(
+            flat[0].detail().map(str::chars).map(Iterator::count),
+            Some(1_024)
+        );
+        assert!(flat[0].detail_truncated());
+        assert!(!flat[1].detail_truncated());
+        Ok(())
+    }
+
+    #[test]
     fn diagnostics_convert_and_omit_cross_file_related_information()
     -> Result<(), Box<dyn std::error::Error>> {
         let file = analyzer_file("a.rs")?;
@@ -2359,6 +2424,29 @@ mod tests {
             "s0000",
             "the cap keeps the first entries of the sorted order, not of the wire order"
         );
+        Ok(())
+    }
+
+    #[test]
+    fn workspace_symbols_omit_oversized_or_control_char_name_and_container()
+    -> Result<(), Box<dyn std::error::Error>> {
+        let mut indices = BTreeMap::new();
+        indices.insert(analyzer_file("a.rs")?, domain::LineIndex::new(b"ab\n")?);
+        let mut oversized_name =
+            workspace_symbol("s", "file:///source/a.rs", lsp_range(0, 0, 0, 1));
+        oversized_name.name = "n".repeat(257);
+        let mut control_char_container =
+            workspace_symbol("ok", "file:///source/a.rs", lsp_range(0, 0, 0, 1));
+        control_char_container.container_name = Some("bad\u{0007}container".into());
+        let short = workspace_symbol("short", "file:///source/a.rs", lsp_range(0, 0, 0, 1));
+        let (converted, omitted) = workspace_symbols_to_domain(
+            vec![oversized_name, control_char_container, short],
+            &indices,
+            domain::PositionEncoding::Utf8,
+        )?;
+        assert_eq!(omitted, 2);
+        assert_eq!(converted.len(), 1);
+        assert_eq!(converted[0].name.as_str(), "short");
         Ok(())
     }
 

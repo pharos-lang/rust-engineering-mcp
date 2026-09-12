@@ -401,6 +401,30 @@ digest M5 antes de configurarlo: un digest no admitido no degrada nada, hace
 fallar el arranque. Admitir la imagen tampoco califica las tools; la calificación
 nativa M5 sigue abierta.
 
+### Configurar la tool M6
+
+`rust.analyzer.symbols` es la primera tool M6 y está **en desarrollo**, no
+calificada. Requiere el mismo grupo Docker completo, apuntando a la imagen
+guest M6 admitida:
+
+```text
+--rust-image sha256:f39a5b33ee7d54243664162eb635f8ec223d512042beb7cd18ecf071046b310c
+```
+
+Esa imagen se deriva por digest de la imagen M5 y añade únicamente
+`rust-analyzer` 1.98.1 y `rust-src` 1.98.1
+([ADR-082](adr/ADR-082-m6-runtime-provisioning.md)); su admisión en el gateway
+es [ADR-085](adr/ADR-085-m6-runtime-admission.md). Un host configurado con la
+imagen M5 sigue sirviendo las 31 tools anteriores y recibe `unavailable` en
+`rust.analyzer.symbols`, que es el resultado correcto y declarado. A la
+inversa, un host configurado con la imagen M6 puede invocar las tools M1–M5
+sobre ella, pero eso **no está calificado**: cada una de esas tools conserva su
+calificación contra su propio digest, no contra M6.
+
+No hay ninguna otra bandera nueva que configurar: `rust.analyzer.symbols` no
+usa vendor, policy de seguridad ni catálogo. `timeout_seconds` (1..=180) es un
+argumento de la propia llamada, no una opción de host.
+
 ## Diagnóstico
 
 1. Ejecuta `rust-engineering-mcp version --json` con la misma ruta configurada.

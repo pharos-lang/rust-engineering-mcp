@@ -1138,6 +1138,49 @@ impl rust_engineering_application::supply_chain::SupplyFactsPort for RustProject
     }
 }
 
+/// M6-01: the one door from `rust.analyzer.symbols` into the guest analyzer
+/// session. Reuses [`RustProjectInspector::with_gateway`] exactly like every
+/// other port on this type; no separate lend method is needed because this
+/// `impl` already lives beside it in the same file.
+impl rust_engineering_application::analyzer::AnalyzerPort for RustProjectInspector {
+    fn analyze(
+        &self,
+        source: &SourceBundle,
+        query: &rust_engineering_domain::AnalyzerQuery,
+        limits: ExecutionLimits,
+        control: &dyn InspectionControl,
+    ) -> Result<rust_engineering_application::analyzer::AnalyzerObservation, InspectionError> {
+        // The same bundle digest `check`/`cargo_run` already compute for a
+        // `SourceBundle`: no second hashing scheme for M6. Computed before the
+        // single-flight gateway lock is taken (V05 P3): hashing bytes already
+        // captured needs no exclusivity, and holding the lock only for
+        // `execute_analyzer` shortens every other call's wait.
+        let archive = super::source_archive::encode(source).map_err(InspectionError::Execution)?;
+        let source_fingerprint = super::digest(&archive)
+            .parse()
+            .map_err(|_| InspectionError::Internal)?;
+        let result = self.with_gateway(control, |gateway| {
+            let execution = gateway
+                .execute_analyzer(source, query, limits, control)
+                .map_err(InspectionError::Execution)?;
+            Ok(
+                rust_engineering_application::analyzer::AnalyzerObservation {
+                    source_fingerprint,
+                    execution,
+                },
+            )
+        });
+        if matches!(
+            result,
+            Err(InspectionError::Execution(ExecutionError::CleanupUncertain)
+                | InspectionError::Internal)
+        ) {
+            self.quarantined.store(true, Ordering::Release);
+        }
+        result
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

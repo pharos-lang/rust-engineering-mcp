@@ -173,7 +173,7 @@ y [validación/reviews](roadmap/planning-validation.md).
 | M3 / 0.3.x | Done; integrado en `main` como `57c4037` (PR #14); sin release nueva | [Quality](roadmap/m3-quality.md) · [matriz M3](validation/M3/matrix.md) · [integración](validation/M3/integration.json) |
 | M4 / 0.4.x | Done local; integración mediante PR #15; sin release nueva | [Security](roadmap/m4-security.md) · [handoff M4](validation/M4/handoff.md) · [confirmación final](reviews/M4/m4-final-evidence/review.md) |
 | M5 / 0.5.x | Done local; sin integración remota, PR, tag ni release | [Performance](roadmap/m5-performance.md) · [matriz M5](validation/M5/matrix.md) · [handoff M5](validation/M5/handoff.md) |
-| M6 / 0.6.x | Planned | [Analyzer](roadmap/m6-analyzer.md) · [prompt M6](prompts/implement-m6.md) |
+| M6 / 0.6.x | In progress; M6-01 (`rust.analyzer.symbols`) en desarrollo local, sin integración remota, PR, tag ni release | [Analyzer](roadmap/m6-analyzer.md) · [matriz M6](validation/M6/matrix.md) · [calibración nativa M6-01](validation/M6/01.md) |
 | M7 / 0.7.x | Conditional; ejecución Deferred sin Go | [Remote](roadmap/m7-remote.md) · [prompt M7](prompts/implement-m7.md) |
 | M8 / 0.8–0.9 / readiness 1.0 | Planned | [Stabilization](roadmap/m8-stabilization.md) · [prompt M8](prompts/implement-m8.md) |
 
@@ -186,6 +186,16 @@ merge, pero no una release nueva.
 
 No hay implementación M2 ni M3 en progreso: ambos milestones están integrados en
 `main` y aparecen en [Done](#done).
+
+M6-01 está en progreso en la rama `ai/m6-analyzer`, sin integración remota, PR,
+tag ni release. La calificación nativa del gateway/dominio (`Phase::Analyzer`,
+sesión dúplex, admisión de la imagen M6) tiene [recibo
+propio](validation/M6/01.md) con los nueve cortes en verde. La primera tool
+pública, `rust.analyzer.symbols`, añade el puerto de aplicación
+`rust_engineering_application::analyzer`, el contrato MCP en las cinco
+versiones soportadas y su snapshot de contrato; el inventario público pasa de
+31 a 32 tools. Referencias, diagnostics, actions y action.apply (M6-02..M6-05)
+siguen sin implementar.
 
 No hay vertical M0/M1 en progreso. La fuente, CI portable, SonarCloud, artifact y
 release están enlazados desde el [recibo final](validation/M1/17-public-release.json).

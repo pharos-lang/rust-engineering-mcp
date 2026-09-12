@@ -1638,3 +1638,116 @@ resultado que la calificación anterior midió, así que su
 [recibo](validation/M5/04-runtime.json) —`release-positive`, `release-lto` y
 `missing-binary-target`— acredita el contrato viejo y no este. Se recalifica
 sobre bytes finales, con revisión independiente de por medio.
+
+## Contratos M6 — analyzer
+
+El checkout añade una definición a `tools/list`, después de las 31 tools
+M1–M5 y en último lugar: `rust.analyzer.symbols` (`stdio.rs`, `list_tools`).
+Los 31 snapshots anteriores se conservan byte a byte bajo el mismo test de
+invariancia y se añade uno nuevo. El inventario público pasa a 32 tools.
+Véase [ADR-083](adr/ADR-083-analyzer-contract-and-actions.md) y
+[ADR-084](adr/ADR-084-rust-analyzer-runtime-and-lsp-lifecycle.md).
+
+### `rust.analyzer.symbols`
+
+Lee símbolos de un proyecto ya capturado con el rust-analyzer exacto que
+aprueba el gateway: 1.98.1 `aarch64-unknown-linux-gnu`, dentro de la imagen
+guest M6 admitida por digest. `readOnlyHint=true`, `idempotentHint=true`,
+`destructiveHint=false`, `openWorldHint=false`. Exige el runtime del host
+`--rust` apuntando a esa imagen; sin él la tool es `unavailable`. **No**
+ejecuta build scripts, proc macros ni `checkOnSave`: la configuración fija de
+ADR-084 §3 los desactiva, y cualquier `rust-analyzer.toml`/`.rust-analyzer.toml`
+en la captura se rechaza antes de arrancar el analizador
+(`UNSUPPORTED_PROJECT_CONFIG`). Hover, go-to-definition y rename **no** se
+ofrecen por esta ni por ninguna otra tool (Deferred, plan M6 §32).
+
+Durante bootstrap responde `blocked/SANDBOX_DENIED` ("requires completed
+discovery; retry with a new request ID"), igual que `rust.check` y
+`rust.project.inspect`: completar discovery y reintentar con un nuevo ID.
+Distinto del `unavailable/SANDBOX_DENIED` que publica una vez completado el
+descubrimiento cuando el runtime no está configurado, no es la imagen M6
+admitida, o la política del host lo deniega — ese caso no se resuelve
+reintentando.
+
+**Entrada** (`deny_unknown_fields` a nivel de esquema JSON): `project_ref`
+(`^prj_[0-9a-f]{32}$`); `expected_project_fingerprint` opcional
+(`sha256:`+64 hex) — si se envía y no coincide con la identidad viva del
+proyecto, la respuesta es `blocked/CONFLICT` y nunca datos obsoletos;
+`scope`, unión discriminada por el propio campo `scope`: `{"scope":
+"document", "file": "<ruta relativa .rs>"}` o `{"scope": "workspace",
+"query": "<1..=128 caracteres, sin caracteres de control>"}`;
+`timeout_seconds` (1..=180, por defecto 60), el presupuesto total de la
+llamada (ADR-084 §8). Un `file` fuera de la captura se rechaza como
+`blocked/FILE_NOT_IN_SNAPSHOT` antes de abrir ninguna sesión del analizador.
+
+**Salida.** `status ∈ passed | blocked | unavailable | cancelled`; `failed`
+no ocurre nunca para esta tool de solo lectura (house pattern de
+`rust.project.inspect`, no el de `rust.check`). `passed` significa que
+rust-analyzer respondió, incluso si la respuesta es `incomplete` —la
+completitud es dato, no estado—. `data` publica: `project_ref`,
+`project_identity_fingerprint`, `snapshot {source_fingerprint, files,
+semantics: latest_known, atomic: false}`, `analyzer {version, binary_sha256,
+image_id, config_digest, position_encoding}`, `toolchain {rust_version:
+"1.98.1", sysroot: "present"}`, `readiness {state: quiescent|not_ready,
+health: ok|warning (solo si quiescent), elapsed_ms}`, `completeness {state,
+omissions[{kind,count}], reasons[]}`, `limits {max_visible: 512,
+initialize_timeout_seconds, query_timeout_seconds, total_timeout_seconds,
+frame_bytes, messages}` —`total_timeout_seconds` es el `timeout_seconds` de
+la llamada; `initialize_timeout_seconds`/`query_timeout_seconds` son los
+techos de ADR-084 §8 (60/30 s) recortados a ese mismo total cuando es menor,
+el mismo mínimo que aplica de hecho el gateway—, `session {messages_in,
+messages_out, bytes_in,
+bytes_out, duration_ms, stderr_bytes, server_requests}`, `termination`,
+`exit_code`, `oom_killed`, `symbols` (ausente en toda respuesta que no
+respondió) y `omitted`. Para `scope: document`, `symbols` es el árbol
+`DocumentSymbol` aplanado (`depth`, `name`, `kind`, `detail?`,
+`detail_truncated`, `deprecated`, `range`, `selection_range`), ordenado por
+`range.start`; para `scope: workspace`, `{name, kind, container?, file,
+range}` bajo `/source` solamente. Ambos casos, ≤ 512 entradas visibles; el
+exceso cuenta en `omitted` y en `completeness.reasons` (`limit_visible`).
+
+**Cotas de texto del peer** (V05 P2): `name` y `container` de hasta 256
+caracteres Unicode, sin caracteres de control; una entrada que los exceda se
+omite entera (`OmissionKind::OVERSIZED_ENTRY` en el vocabulario cerrado; el
+gateway M6-01 la cuenta hoy bajo `limit_visible` en espera de un cambio
+posterior que la separe). `detail` se recorta a 1024 caracteres Unicode, y
+`detail_truncated: true` marca la entrada recortada. `file` conserva su cota
+de 100 caracteres ASCII (ADR-031).
+
+**Nunca hay texto del peer en la respuesta**: ni `stderr` del analizador ni el
+`message` de una notificación `experimental/serverStatus` cruzan a la tool —
+solo se publican tamaño/hash de `stderr` (dentro del adaptador, no en esta
+tool) y el `health` cerrado (`ok|warning`) que ese `message` acompañaba.
+
+Códigos de error cerrados: `CONFLICT`, `FILE_NOT_IN_SNAPSHOT`,
+`ANALYZER_NOT_READY`, `ANALYZER_CRASHED`, `ANALYZER_CAPABILITY_MISMATCH`,
+`FRAME_LIMIT`, `MESSAGE_LIMIT`, `RESULT_LIMIT`, `TIMEOUT_INITIALIZE`,
+`TIMEOUT_QUERY`, `TIMEOUT_TOTAL`, `UNSUPPORTED_PROJECT_CONFIG`,
+`FILE_NOT_UTF8`, `SANDBOX_DENIED`, `UNSUPPORTED_PLATFORM`,
+`PROJECT_NOT_FOUND`, `INVALID_PROJECT`, `OUTPUT_LIMIT_EXCEEDED`. `blocked`
+cubre `CONFLICT`, `FILE_NOT_IN_SNAPSHOT`, `FILE_NOT_UTF8`,
+`UNSUPPORTED_PROJECT_CONFIG`, `PROJECT_NOT_FOUND`, `INVALID_PROJECT` y
+`OUTPUT_LIMIT_EXCEEDED`; `unavailable` cubre el resto —runtime no
+configurado o no la imagen M6 admitida, `ANALYZER_CAPABILITY_MISMATCH`,
+límites de protocolo, timeouts y `SANDBOX_DENIED`—; `cancelled` no publica
+`error_code` (mismo patrón que el resto del producto), tanto si la
+cancelación llegó antes de abrir sesión como si el analizador la observó a
+mitad de conversación.
+
+El resultado MCP queda acotado en 512 KiB: si la lista de símbolos no cabe,
+se recorta desde el final y el recorte se declara en
+`completeness.reasons` (`result_limit`), nunca como un JSON truncado; ese
+camino sigue siendo `passed`. Si tras recortar todos los símbolos la
+respuesta codificada aún excede el presupuesto, la respuesta es
+`unavailable/RESULT_LIMIT` en su lugar: el adaptador incumpliendo su propio
+contrato de salida, no algo que la llamada pudiera haber evitado.
+
+La cuarentena del gateway (`CleanupUncertain`) es un error interno JSON-RPC,
+igual que para el resto de tools guest, no un estado de esta tool.
+
+**Semántica de snapshot**: `latest_known`, nunca `latest`; la captura no es
+atómica (`atomic: false`). `rust-analyzer.toml` reactivaría build scripts,
+`overrideCommand` o `extraEnv` por encima de la configuración fija del
+cliente, así que se rechaza en la captura antes de que exista ningún
+contenedor — la configuración fija por sí sola no es containment frente a un
+archivo de proyecto hostil.

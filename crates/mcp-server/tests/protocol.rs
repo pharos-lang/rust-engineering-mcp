@@ -437,6 +437,7 @@ fn bootstrap(server: &mut Server, version: &str) -> Result<Value, Box<dyn Error>
         (28, include_str!("snapshots/benchmark-compare-tool.json")),
         (29, include_str!("snapshots/profile-flamegraph-tool.json")),
         (30, include_str!("snapshots/binary-bloat-tool.json")),
+        (31, include_str!("snapshots/analyzer-symbols-tool.json")),
     ] {
         assert_eq!(
             response["result"]["tools"][index],
@@ -642,6 +643,45 @@ mod project_fixtures {
     }
 
     #[test]
+    fn analyzer_symbols_without_configured_runtime_is_unavailable() -> TestResult {
+        let fixture = Fixture::new()?;
+        fixture.package()?;
+        let mut server = Server::start_with_args(&["--root", fixture.path()?])?;
+        bootstrap(&mut server, VERSION)?;
+        server.send(project_call(3, json!({"path":fixture.path()?}), VERSION))?;
+        let opened = server.response(json!(3))?;
+        assert_eq!(opened["result"]["isError"], false);
+        let reference = opened["result"]["structuredContent"]["data"]["project_ref"].clone();
+        server.send(modern(json!(4), "tools/list"))?;
+        let tool = server.response(json!(4))?["result"]["tools"][31].clone();
+        let arguments = json!({
+            "project_ref": reference,
+            "scope": "document",
+            "file": "src/lib.rs"
+        });
+        server.send(named_inspect_call(
+            5,
+            "rust.analyzer.symbols",
+            arguments,
+            VERSION,
+        ))?;
+        let response = server.response(json!(5))?;
+        assert_output(&response, &tool, true, VERSION)?;
+        assert_eq!(
+            response["result"]["structuredContent"]["status"],
+            "unavailable"
+        );
+        assert_eq!(
+            response["result"]["structuredContent"]["error_code"],
+            "SANDBOX_DENIED"
+        );
+        assert!(!fixture.0.join("target").exists());
+        assert!(!fixture.0.join("Cargo.lock").exists());
+        server.finish(0)?;
+        Ok(())
+    }
+
+    #[test]
     fn deeply_nested_toml_is_rejected_without_aborting_the_server() -> TestResult {
         let fixture = Fixture::new()?;
         fixture.package()?;
@@ -717,7 +757,7 @@ mod project_fixtures {
 fn assert_project_list(response: &Value, modern: bool) {
     assert!(response.get("error").is_none(), "{response}");
     let tools = response["result"]["tools"].as_array();
-    assert_eq!(tools.map(Vec::len), Some(31));
+    assert_eq!(tools.map(Vec::len), Some(32));
     let names: Vec<_> = response["result"]["tools"]
         .as_array()
         .into_iter()
@@ -757,7 +797,8 @@ fn assert_project_list(response: &Value, modern: bool) {
             "rust.benchmark.run",
             "rust.benchmark.compare",
             "rust.profile.flamegraph",
-            "rust.binary.bloat"
+            "rust.binary.bloat",
+            "rust.analyzer.symbols"
         ]
     );
     let tool = &response["result"]["tools"][0];
@@ -1258,6 +1299,104 @@ fn named_inspect_call(id: i64, name: &str, arguments: Value, version: &str) -> V
     let mut request = inspect_call(id, arguments, version);
     request["params"]["name"] = json!(name);
     request
+}
+
+fn analyzer_symbols_call(id: i64, arguments: Value, version: &str) -> Value {
+    named_inspect_call(id, "rust.analyzer.symbols", arguments, version)
+}
+
+#[test]
+fn analyzer_symbols_unknown_project_ref_is_blocked_project_not_found() -> TestResult {
+    let mut server = Server::start()?;
+    bootstrap(&mut server, VERSION)?;
+    server.send(modern(json!(3), "tools/list"))?;
+    let tool = server.response(json!(3))?["result"]["tools"][31].clone();
+    let arguments = json!({
+        "project_ref": "prj_00000000000000000000000000000001",
+        "scope": "document",
+        "file": "src/lib.rs"
+    });
+    server.send(analyzer_symbols_call(4, arguments, VERSION))?;
+    let response = server.response(json!(4))?;
+    assert_output(&response, &tool, true, VERSION)?;
+    assert_eq!(response["result"]["structuredContent"]["status"], "blocked");
+    assert_eq!(
+        response["result"]["structuredContent"]["error_code"],
+        "PROJECT_NOT_FOUND"
+    );
+    server.finish(0)?;
+    Ok(())
+}
+
+#[test]
+fn analyzer_symbols_input_validation_rejects_malformed_arguments() -> TestResult {
+    let mut server = Server::start()?;
+    bootstrap(&mut server, VERSION)?;
+    server.send(modern(json!(3), "tools/list"))?;
+    let tool = server.response(json!(3))?["result"]["tools"][31].clone();
+    let validator = jsonschema::validator_for(&tool["inputSchema"])?;
+    let base = json!({
+        "project_ref": "prj_00000000000000000000000000000001",
+        "scope": "document",
+        "file": "src/lib.rs"
+    });
+    let mut unknown_field = base.clone();
+    unknown_field["extra"] = json!(true);
+    let mut bad_project_ref = base.clone();
+    bad_project_ref["project_ref"] = json!("not-a-ref");
+    let mut missing_scope = base.clone();
+    missing_scope
+        .as_object_mut()
+        .ok_or("expected object")?
+        .remove("scope");
+    // Accepted by the loose wire pattern (`.` is a legal path character); the
+    // Rust-level `AnalyzerFile` constructor is the real `..`-segment guard.
+    let mut path_traversal = base.clone();
+    path_traversal["file"] = json!("../etc/passwd.rs");
+    let mut non_rust_file = base.clone();
+    non_rust_file["file"] = json!("src/lib.txt");
+    // Accepted by the wire schema too: it bounds `query` by length only, not
+    // by character class. `SymbolQuery::new`'s control-character rejection is
+    // the real guard.
+    let control_chars = json!({
+        "project_ref": "prj_00000000000000000000000000000001",
+        "scope": "workspace",
+        "query": "a\nb"
+    });
+    let mut timeout_zero = base.clone();
+    timeout_zero["timeout_seconds"] = json!(0);
+    let mut timeout_too_high = base.clone();
+    timeout_too_high["timeout_seconds"] = json!(181);
+    // `rejected_by_schema` is false only for `path_traversal`: the wire regex
+    // accepts it (`.` is a legal path character) and the Rust-level
+    // `AnalyzerFile` constructor is the real `..`-segment guard, so only the
+    // end-to-end RPC call is expected to fail for that one case.
+    let cases = [
+        ("unknown_field", unknown_field, true),
+        ("bad_project_ref", bad_project_ref, true),
+        ("missing_scope", missing_scope, true),
+        ("path_traversal", path_traversal, false),
+        ("non_rust_file", non_rust_file, true),
+        ("control_chars", control_chars, false),
+        ("timeout_zero", timeout_zero, true),
+        ("timeout_too_high", timeout_too_high, true),
+    ];
+    for (id, (label, arguments, rejected_by_schema)) in cases.into_iter().enumerate() {
+        assert_eq!(
+            !validator.is_valid(&arguments),
+            rejected_by_schema,
+            "{label}"
+        );
+        let id = i64::try_from(id).unwrap_or(0) + 10;
+        server.send(analyzer_symbols_call(id, arguments, VERSION))?;
+        assert_eq!(
+            server.response(json!(id))?["error"]["code"],
+            -32602,
+            "{label}"
+        );
+    }
+    server.finish(0)?;
+    Ok(())
 }
 
 #[test]

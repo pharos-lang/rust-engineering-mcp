@@ -347,6 +347,10 @@ pub struct DocumentSymbol {
     name: NonEmptyText,
     kind: SymbolKind,
     detail: Option<String>,
+    /// `true` once [`Self::truncate_detail`] actually dropped characters.
+    /// Never set by [`Self::new`]: a freshly built entry always carries its
+    /// `detail` verbatim.
+    detail_truncated: bool,
     deprecated: bool,
     range: TextRange,
     selection_range: TextRange,
@@ -373,6 +377,7 @@ impl DocumentSymbol {
             name,
             kind,
             detail,
+            detail_truncated: false,
             deprecated,
             range,
             selection_range,
@@ -390,6 +395,26 @@ impl DocumentSymbol {
 
     pub fn detail(&self) -> Option<&str> {
         self.detail.as_deref()
+    }
+
+    /// Whether [`Self::detail`] is a prefix of what the peer actually sent
+    /// (V05 P2): a hostile or verbose `detail` string is bounded at the codec
+    /// boundary rather than let it travel unbounded into a validated value.
+    pub fn detail_truncated(&self) -> bool {
+        self.detail_truncated
+    }
+
+    /// Truncates `detail` to at most `max_chars` Unicode scalars, marking the
+    /// entry [`Self::detail_truncated`] when characters were actually
+    /// dropped. A no-op when `detail` is `None` or already within the bound.
+    pub fn truncate_detail(mut self, max_chars: usize) -> Self {
+        if let Some(detail) = &self.detail
+            && detail.chars().count() > max_chars
+        {
+            self.detail = Some(detail.chars().take(max_chars).collect());
+            self.detail_truncated = true;
+        }
+        self
     }
 
     pub fn deprecated(&self) -> bool {
@@ -415,6 +440,8 @@ struct DocumentSymbolWire {
     name: NonEmptyText,
     kind: SymbolKind,
     detail: Option<String>,
+    #[serde(default)]
+    detail_truncated: bool,
     deprecated: bool,
     range: TextRange,
     selection_range: TextRange,
@@ -425,7 +452,7 @@ impl TryFrom<DocumentSymbolWire> for DocumentSymbol {
     type Error = AnalyzerError;
 
     fn try_from(value: DocumentSymbolWire) -> Result<Self, Self::Error> {
-        Self::new(
+        let mut symbol = Self::new(
             value.name,
             value.kind,
             value.detail,
@@ -433,7 +460,9 @@ impl TryFrom<DocumentSymbolWire> for DocumentSymbol {
             value.range,
             value.selection_range,
             value.depth,
-        )
+        )?;
+        symbol.detail_truncated = value.detail_truncated;
+        Ok(symbol)
     }
 }
 
@@ -722,6 +751,14 @@ pub enum OmissionKind {
     LimitVisible,
     NotUtf8File,
     UnresolvablePosition,
+    /// A `name`/`container` above the peer-text bound (256 Unicode scalars) or
+    /// containing a control character (V05 P2): the whole entry is dropped
+    /// rather than let unbounded or control-laden peer text reach a validated
+    /// domain value. Not yet reachable from the M6-01 gateway pipeline, which
+    /// still folds this cause into [`Self::LimitVisible`]'s count pending a
+    /// gateway change that reports it separately; modelled here so that
+    /// change needs no enum edit.
+    OversizedEntry,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
@@ -1135,6 +1172,42 @@ mod tests {
             )
             .is_ok()
         );
+        Ok(())
+    }
+
+    #[test]
+    fn truncate_detail_marks_only_entries_it_actually_shortens()
+    -> Result<(), Box<dyn std::error::Error>> {
+        let range = TextRange::new(pos(1, 1)?, pos(1, 10)?)?;
+        let symbol = DocumentSymbol::new(
+            text("f")?,
+            SymbolKind::Function,
+            Some("é".repeat(10)),
+            false,
+            range,
+            range,
+            0,
+        )?;
+        let within_bound = symbol.clone().truncate_detail(10);
+        assert!(!within_bound.detail_truncated());
+        assert_eq!(
+            within_bound.detail().map(str::chars).map(Iterator::count),
+            Some(10)
+        );
+        let trimmed = symbol.truncate_detail(4);
+        assert!(trimmed.detail_truncated());
+        assert_eq!(trimmed.detail(), Some("éééé"));
+        let no_detail = DocumentSymbol::new(
+            text("g")?,
+            SymbolKind::Function,
+            None,
+            false,
+            range,
+            range,
+            0,
+        )?
+        .truncate_detail(4);
+        assert!(!no_detail.detail_truncated());
         Ok(())
     }
 

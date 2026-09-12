@@ -1,6 +1,7 @@
 //! MCP adapter: rmcp owns messages, negotiation, dispatch and transport framing.
 
 mod admission;
+mod analyzer;
 mod auditing;
 pub use auditing::provider::HostAuditConfig;
 mod benchmark;
@@ -152,6 +153,7 @@ struct EngineeringServer {
     project: ProjectTool,
     inspect: inspection::InspectionTool,
     check: check::CheckTool,
+    analyzer_symbols: analyzer::AnalyzerTool,
     clippy: clippy::ClippyTool,
     testing: testing::TestTool,
     nextest: Arc<nextest::NextestTool>,
@@ -343,6 +345,11 @@ impl EngineeringServer {
             catalog::NAME => self.catalog.call(request, context).await.map(Into::into),
             project::NAME => self.project.call(request, context).await.map(Into::into),
             check::NAME => self.check.call(request, context).await.map(Into::into),
+            analyzer::NAME => self
+                .analyzer_symbols
+                .call(request, context)
+                .await
+                .map(Into::into),
             clippy::NAME => self.clippy.call(request, context).await.map(Into::into),
             testing::NAME => self.testing.call(request, context).await.map(Into::into),
             nextest::NAME => self.nextest.call(request, context).await.map(Into::into),
@@ -606,6 +613,7 @@ impl ServerHandler for EngineeringServer {
             catalog::NAME => Some(self.catalog.definition.clone()),
             project::NAME => Some(self.project.definition.clone()),
             check::NAME => Some(self.check.definition.clone()),
+            analyzer::NAME => Some(self.analyzer_symbols.definition.clone()),
             clippy::NAME => Some(self.clippy.definition.clone()),
             testing::NAME => Some(self.testing.definition.clone()),
             nextest::NAME => Some(self.nextest.definition.clone()),
@@ -702,6 +710,7 @@ impl ServerHandler for EngineeringServer {
                 if bloat::advertised() {
                     tools.push(self.bloat.definition.clone());
                 }
+                tools.push(self.analyzer_symbols.definition.clone());
                 tools
             },
             ..Default::default()
@@ -950,6 +959,18 @@ pub fn run(config: HostConfig) -> ExitCode {
         Ok(check) => check,
         Err(_) => {
             tracing::error!("MCP check contract initialization failed");
+            return ExitCode::FAILURE;
+        }
+    };
+    let analyzer_symbols = match analyzer::AnalyzerTool::new(
+        project.registry(),
+        workers.clone(),
+        Arc::clone(&inspector),
+        Arc::clone(&ready),
+    ) {
+        Ok(tool) => tool,
+        Err(_) => {
+            tracing::error!("MCP analyzer symbols contract initialization failed");
             return ExitCode::FAILURE;
         }
     };
@@ -1393,6 +1414,7 @@ pub fn run(config: HostConfig) -> ExitCode {
                 inspect,
                 toolchain,
                 check,
+                analyzer_symbols,
                 clippy,
                 testing,
                 nextest: Arc::new(nextest),

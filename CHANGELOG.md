@@ -2,6 +2,29 @@
 
 ## Sin publicar
 
+- **M6-01: primera tool de análisis, `rust.analyzer.symbols`** (rama
+  `ai/m6-analyzer`). El inventario público pasa de 31 a 32 tools. Lee símbolos
+  de documento (`textDocument/documentSymbol`) o de workspace
+  (`workspace/symbol`) con el rust-analyzer exacto (1.98.1
+  `aarch64-unknown-linux-gnu`) admitido por digest dentro de la imagen guest
+  M6, sobre un snapshot `latest_known`/no atómico ya capturado. Solo lectura
+  (`readOnlyHint`, `idempotentHint`); nunca ejecuta build scripts, proc macros
+  ni `checkOnSave`, y una captura con `rust-analyzer.toml` o
+  `.rust-analyzer.toml` se rechaza antes de crear ningún contenedor. Requiere
+  el runtime del host `--rust` apuntando a la imagen M6; sin él la tool es
+  `unavailable`. Resultado acotado a 512 símbolos visibles y 512 KiB de
+  respuesta MCP, con el recorte siempre declarado
+  (`completeness.reasons: result_limit`), nunca un JSON truncado. Hover,
+  go-to-definition y rename quedan Deferred (no se exponen). Nuevo puerto de
+  aplicación `rust_engineering_application::analyzer` y la implementación del
+  lado `RustProjectInspector` en `execution-adapter`. Contrato fijado con
+  snapshot y wire tests en las cinco versiones MCP soportadas. Véanse
+  [ADR-082](docs/adr/ADR-082-m6-runtime-provisioning.md),
+  [ADR-083](docs/adr/ADR-083-analyzer-contract-and-actions.md),
+  [ADR-084](docs/adr/ADR-084-rust-analyzer-runtime-and-lsp-lifecycle.md) y
+  [ADR-085](docs/adr/ADR-085-m6-runtime-admission.md). M6 sigue en desarrollo
+  local, sin integración remota, PR ni release.
+
 - **Reordenación del repositorio sin cambios de producto** (rama
   `ai/repo-hygiene`, 2026-09-11). La evidencia de calificación pasa a un
   paquete por milestone (`docs/validation/M<n>/` con `history/inventory.json`),

@@ -5,7 +5,7 @@
 | Componente | Foundation implementada |
 | --- | --- |
 | Release soportada | `0.3.0` (anterior: `0.1.0`) |
-| Checkout de desarrollo | `0.3.0`; 31 tools: 18 M1/M2, cuatro M3, cinco M4 y cuatro M5 calificadas localmente; Tasks anunciado con negociación mutua; sin commit de integración, PR, tag ni publicación |
+| Checkout de desarrollo | `0.3.0`; 32 tools: 18 M1/M2, cuatro M3, cinco M4, cuatro M5 calificadas localmente y `rust.analyzer.symbols` (M6, en desarrollo); Tasks anunciado con negociación mutua; sin commit de integración, PR, tag ni publicación |
 | Toolchain fijado / MSRV inicial | Rust y Cargo `1.98.1`, edition 2024 |
 | Target de validación local | `aarch64-apple-darwin` |
 | SDK | `rmcp =3.2.0`, features `server`, `transport-io`, sin defaults |
@@ -500,6 +500,33 @@ contra sus propios digests y un host configurado con la imagen M4 recibe
 `unavailable` en las cuatro tools nuevas. El puerto de performance exige el
 digest M5 y solo ese, porque las versiones del analizador y del helper que el
 resultado declara son propiedades de esa identidad.
+
+### Imagen guest M6
+
+| Elemento | Identidad / versión | Estado |
+| --- | --- | --- |
+| Guest Linux ARM64 M6 | `sha256:f39a5b33ee7d54243664162eb635f8ec223d512042beb7cd18ecf071046b310c` (`rust-engineering-runtime:1.98.1-arm64-m6`) | Construida y con [recibo](validation/M6/provisioning.json); admitida por digest en el gateway ([ADR-085](adr/ADR-085-m6-runtime-admission.md)); nueve cortes nativos aprobados ([recibo de calibración](validation/M6/01-calibration.json), [matriz M6-01](validation/M6/01.md)) |
+| Base | `sha256:e0a5ca1661b3e49d0a3d68ee3cc0963453078d08eb7fc43c30538c16b7998aac` | Imagen M5 aprobada, intacta y verificada por digest antes de construir |
+| `rust-analyzer` | 1.98.1 `aarch64-unknown-linux-gnu`, en `/opt/analyzer/bin` | Provisionado, fuera del `PATH` del contenedor de trabajo; versión y `binary_sha256` verificados contra el recibo de calibración nativa |
+| `rust-src` | 1.98.1, bajo `/opt/rust` | Provisionado; requerido por `cargo.sysroot="discover"` para resolver `core`/`std` |
+| Schema de `initializationOptions` | [Volcado archivado](validation/M6/01-config-schema.json) (`--print-config-schema` del binario admitido; 220 claves de objeto, 193 `rust-analyzer.*`) | Las 17 claves fijas de [ADR-084 §3](adr/ADR-084-rust-analyzer-runtime-and-lsp-lifecycle.md) verificadas presentes, sin ausencias |
+
+La imagen no cambia toolchain, plugins M3, binarios M4/M5, usuario, `WORKDIR`
+ni `PATH`; el gateway invoca `rust-analyzer` por ruta absoluta, sin subcomando.
+**M1–M5 conservan su calificación contra sus propios digests; ejecutarlas
+sobre la imagen M6 no está calificado por sus propias suites** — un host
+configurado con la imagen M6 puede invocar las tools M1–M5 sobre ella, pero
+ninguna de esas suites nativas se ha ejecutado sobre este digest
+([ADR-085](adr/ADR-085-m6-runtime-admission.md)). La fase analyzer del gateway
+exige la imagen M6 y solo esa: cualquier otro digest devuelve `unavailable`
+antes de crear contenedor alguno. Revocar M6 es volver a apuntar el gateway al
+digest M5; los planes de acción ligados a la identidad M6
+(`config_digest`/`binary_sha256`) se revocan por esa comparación, nunca se
+aplican contra una identidad de runtime distinta
+([ADR-084](adr/ADR-084-rust-analyzer-runtime-and-lsp-lifecycle.md) §10).
+Alcance nativo positivo: exclusivamente host macOS ARM64/APFS con guest Linux
+ARM64; Linux/Windows quedan fail-closed hasta una decisión de portabilidad
+explícita (D13).
 
 ### Frontera de target
 

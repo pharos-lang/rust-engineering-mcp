@@ -299,6 +299,46 @@ def native_receipt_digest():
     return None if native_receipt() is None else sha256(NATIVE_OUTPUT / "receipt.json")
 
 
+def run_step(command, selection, log, env, step_timeout, image):
+    """Runs one selection to completion or kill, and returns its step record."""
+    print(f"M6 RUNTIME {selection}", flush=True)
+    started = time.monotonic()
+    timed_out = False
+    docker_before_kill = docker_after_kill = None
+    with log.open("wb") as stream:
+        process = subprocess.Popen(command, cwd=ROOT, env=env, stdout=stream,
+                                   stderr=subprocess.STDOUT, start_new_session=True)
+        try:
+            returncode = process.wait(timeout=step_timeout)
+        except subprocess.TimeoutExpired:
+            timed_out = True
+            docker_before_kill = owned_docker_state(env["RUST_MCP_TEST_SOCKET"])
+            os.killpg(process.pid, signal.SIGKILL)
+            returncode = process.wait()
+            docker_after_kill = owned_docker_state(env["RUST_MCP_TEST_SOCKET"])
+    output = log.read_text(errors="replace")
+    # A filtered-out selection exits zero and proves nothing, so exactly one
+    # executed case is required rather than merely a zero exit.
+    passed = (not timed_out and returncode == 0
+              and "test result: ok. 1 passed; 0 failed; 0 ignored;" in output)
+    step = {
+        "selection": selection,
+        "image_id": image,
+        "command": command,
+        "status": "passed" if passed else "failed",
+        "exit_code": returncode,
+        "timed_out": timed_out,
+        "expected_executed": 1,
+        "seconds": round(time.monotonic() - started, 3),
+        "log_sha256": sha256(log),
+        "native_receipt_sha256": native_receipt_digest(),
+    }
+    if timed_out:
+        step["owned_docker_before_kill"] = docker_before_kill
+        step["owned_docker_after_kill"] = docker_after_kill
+    return step, timed_out, passed
+
+
 def main():
     if sys.platform != "darwin" or platform.machine() != "arm64":
         raise RuntimeError("M6 runtime is calibrated only on macOS ARM64/Docker Linux ARM64")
@@ -308,7 +348,8 @@ def main():
     image = admitted_image()
     identity = pinned_analyzer_identity()
     allowed = {"HOME", "PATH", "TMPDIR", "CARGO_HOME", "RUSTUP_HOME", "SDKROOT",
-               "DEVELOPER_DIR", "CARGO_TARGET_DIR", "RUST_MCP_TEST_SOCKET"}
+               "DEVELOPER_DIR", "CARGO_TARGET_DIR", "RUST_MCP_TEST_SOCKET",
+               "RUST_MCP_TEST_DOCKER"}
     env = {key: value for key, value in os.environ.items() if key in allowed}
     env.update(CARGO_INCREMENTAL="0", CARGO_TERM_COLOR="never", RUST_MCP_TEST_IMAGE=image)
     cargo = pathlib.Path(subprocess.check_output(
@@ -377,42 +418,9 @@ def main():
                        "--lib", selection, "--", "--exact", "--ignored", "--nocapture",
                        "--test-threads=1"]
             log = OUTPUT / f"{number}.log"
-            print(f"M6 RUNTIME {selection}", flush=True)
-            started = time.monotonic()
-            timed_out = False
             # Its own session, so a stalled cargo/docker client tree is killed
             # whole instead of leaving orphans behind the recorded failure.
-            with log.open("wb") as stream:
-                process = subprocess.Popen(command, cwd=ROOT, env=env, stdout=stream,
-                                           stderr=subprocess.STDOUT, start_new_session=True)
-                try:
-                    returncode = process.wait(timeout=step_timeout)
-                except subprocess.TimeoutExpired:
-                    timed_out = True
-                    docker_before_kill = owned_docker_state(env["RUST_MCP_TEST_SOCKET"])
-                    os.killpg(process.pid, signal.SIGKILL)
-                    returncode = process.wait()
-                    docker_after_kill = owned_docker_state(env["RUST_MCP_TEST_SOCKET"])
-            output = log.read_text(errors="replace")
-            # A filtered-out selection exits zero and proves nothing, so exactly
-            # one executed case is required rather than merely a zero exit.
-            passed = (not timed_out and returncode == 0
-                      and "test result: ok. 1 passed; 0 failed; 0 ignored;" in output)
-            step = {
-                "selection": selection,
-                "image_id": image,
-                "command": command,
-                "status": "passed" if passed else "failed",
-                "exit_code": returncode,
-                "timed_out": timed_out,
-                "expected_executed": 1,
-                "seconds": round(time.monotonic() - started, 3),
-                "log_sha256": sha256(log),
-                "native_receipt_sha256": native_receipt_digest(),
-            }
-            if timed_out:
-                step["owned_docker_before_kill"] = docker_before_kill
-                step["owned_docker_after_kill"] = docker_after_kill
+            step, timed_out, passed = run_step(command, selection, log, env, step_timeout, image)
             receipt["steps"].append(step)
             save()
             if timed_out:

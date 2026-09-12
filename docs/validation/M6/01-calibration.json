@@ -16,8 +16,8 @@
   "cuts": [
     {
       "cut": "m6-00-admission",
-      "duration_ms": 336,
-      "finished_utc": "2026-09-12T07:17:52Z",
+      "duration_ms": 362,
+      "finished_utc": "2026-09-12T14:14:28Z",
       "fixtures": {
         "valid-basic": {
           "archive_sha256": "sha256:a8c3d12a2aaef1b73fa28ed5ecc5dff6a1c0ba257e6516972cfcd424ffc8dfe0",
@@ -38,7 +38,7 @@
           "volumes": []
         }
       },
-      "run_started_at": "2026-09-12T07:17:52Z",
+      "run_started_at": "2026-09-12T14:14:28Z",
       "selections": [
         {
           "duration_ms": 0,
@@ -50,13 +50,13 @@
           "selection": "unadmitted-image-refused"
         }
       ],
-      "started_utc": "2026-09-12T07:17:51Z",
+      "started_utc": "2026-09-12T14:14:28Z",
       "status": "pass"
     },
     {
       "cut": "m6-01-identity",
-      "duration_ms": 1955,
-      "finished_utc": "2026-09-12T07:17:54Z",
+      "duration_ms": 1891,
+      "finished_utc": "2026-09-12T14:14:30Z",
       "fixtures": {},
       "image_id": "sha256:f39a5b33ee7d54243664162eb635f8ec223d512042beb7cd18ecf071046b310c",
       "notes": [],
@@ -70,10 +70,10 @@
           "volumes": []
         }
       },
-      "run_started_at": "2026-09-12T07:17:54Z",
+      "run_started_at": "2026-09-12T14:14:30Z",
       "selections": [
         {
-          "duration_ms": 532,
+          "duration_ms": 536,
           "observed": {
             "guest": "rust-analyzer 1.98.1 (48a229c 2026-09-01)",
             "pinned": "rust-analyzer 1.98.1 (48a229c 2026-09-01)"
@@ -81,7 +81,7 @@
           "selection": "guest-version-line"
         },
         {
-          "duration_ms": 529,
+          "duration_ms": 525,
           "observed": {
             "guest": "sha256:a0c3f11a153e5d5f12a6de6ceabd2def60c2793293e901a4a045946050456e2f",
             "pinned": "sha256:a0c3f11a153e5d5f12a6de6ceabd2def60c2793293e901a4a045946050456e2f",
@@ -90,7 +90,7 @@
           "selection": "guest-binary-digest"
         },
         {
-          "duration_ms": 543,
+          "duration_ms": 527,
           "observed": {
             "checked_keys": [
               "cachePriming.enable",
@@ -119,13 +119,13 @@
           "selection": "fixed-configuration-keys-exist"
         }
       ],
-      "started_utc": "2026-09-12T07:17:52Z",
+      "started_utc": "2026-09-12T14:14:28Z",
       "status": "pass"
     },
     {
       "cut": "m6-02-document-symbols",
-      "duration_ms": 1360,
-      "finished_utc": "2026-09-12T07:17:55Z",
+      "duration_ms": 1367,
+      "finished_utc": "2026-09-12T14:14:31Z",
       "fixtures": {
         "valid-basic": {
           "archive_sha256": "sha256:a8c3d12a2aaef1b73fa28ed5ecc5dff6a1c0ba257e6516972cfcd424ffc8dfe0",
@@ -146,14 +146,14 @@
           "volumes": []
         }
       },
-      "run_started_at": "2026-09-12T07:17:55Z",
+      "run_started_at": "2026-09-12T14:14:31Z",
       "selections": [
         {
-          "duration_ms": 1051,
+          "duration_ms": 1056,
           "observed": {
             "facts": {
               "call": {
-                "duration_ms": 1051
+                "duration_ms": 1056
               },
               "completeness": {
                 "omissions": [],
@@ -165,7 +165,7 @@
               "position_encoding": "utf-8",
               "readiness": {
                 "quiescent": {
-                  "elapsed_ms": 362,
+                  "elapsed_ms": 369,
                   "health": "ok"
                 }
               },
@@ -173,7 +173,7 @@
                 "bytes_in": 3804,
                 "bytes_out": 1934,
                 "declared_frame_bytes": null,
-                "duration_ms": 392,
+                "duration_ms": 398,
                 "exit_code": 0,
                 "fault": null,
                 "kill_error": null,
@@ -186,12 +186,12 @@
                 "status_notifications": 2,
                 "status_transcript": [
                   {
-                    "elapsed_ms": 53,
+                    "elapsed_ms": 56,
                     "health": "ok",
                     "quiescent": false
                   },
                   {
-                    "elapsed_ms": 362,
+                    "elapsed_ms": 369,
                     "health": "ok",
                     "quiescent": true
                   }
@@ -204,7 +204,7 @@
               "termination": "Exited"
             },
             "health": "Ok",
-            "quiescent_after_ms": 362,
+            "quiescent_after_ms": 369,
             "symbols": [
               {
                 "depth": 0,
@@ -229,13 +229,13 @@
           "selection": "document-symbols-valid-basic"
         }
       ],
-      "started_utc": "2026-09-12T07:17:54Z",
+      "started_utc": "2026-09-12T14:14:30Z",
       "status": "pass"
     },
     {
       "cut": "m6-03-guest-programs",
-      "duration_ms": 2136,
-      "finished_utc": "2026-09-12T07:17:57Z",
+      "duration_ms": 2221,
+      "finished_utc": "2026-09-12T14:14:34Z",
       "fixtures": {
         "build-script": {
           "archive_sha256": "sha256:a457a0a748c25eebcda40df4f85b44655c793d2d8bcb38dd88e0a905ba4af548",
@@ -246,7 +246,7 @@
       },
       "image_id": "sha256:f39a5b33ee7d54243664162eb635f8ec223d512042beb7cd18ecf071046b310c",
       "notes": [
-        "Process absence is evidence over 14 sampled instants of a session that reached quiescent, not over the whole interval: `docker container top` is sampled from the host at best every 25 ms while a guest child may live for tens of milliseconds. The deterministic in-band oracle (build-script output unresolvable in `textDocument/diagnostic`) is not part of this cut and is assigned to W07 (M6-03), which owns that query."
+        "Process absence is evidence over 15 sampled instants of a session that reached quiescent, not over the whole interval: `docker container top` is sampled from the host at best every 25 ms while a guest child may live for tens of milliseconds. The deterministic in-band oracle (build-script output unresolvable in `textDocument/diagnostic`) is not part of this cut and is assigned to W07 (M6-03), which owns that query."
       ],
       "residue": {
         "after": {
@@ -258,17 +258,20 @@
           "volumes": []
         }
       },
-      "run_started_at": "2026-09-12T07:17:57Z",
+      "run_started_at": "2026-09-12T14:14:34Z",
       "selections": [
         {
-          "duration_ms": 1819,
+          "duration_ms": 1909,
           "observed": {
             "argv": [
-              "/opt/analyzer/bin/rust-analyzer"
+              "/opt/analyzer/bin/rust-analyzer",
+              "/opt/rust/bin/cargo rustc -Z unstable-options --print cfg --target aarch64-unknown-linux-gnu -- -O",
+              "/opt/rust/bin/cargo rustc -Z unstable-options --print target-spec-json --target aarch64-unknown-linux-gnu -- -Z unstable-options",
+              "/opt/rust/bin/rustc -vV"
             ],
             "facts": {
               "call": {
-                "duration_ms": 1819
+                "duration_ms": 1909
               },
               "completeness": {
                 "omissions": [],
@@ -280,7 +283,7 @@
               "position_encoding": "utf-8",
               "readiness": {
                 "quiescent": {
-                  "elapsed_ms": 356,
+                  "elapsed_ms": 415,
                   "health": "ok"
                 }
               },
@@ -288,7 +291,7 @@
                 "bytes_in": 3560,
                 "bytes_out": 1954,
                 "declared_frame_bytes": null,
-                "duration_ms": 1016,
+                "duration_ms": 1103,
                 "exit_code": 0,
                 "fault": null,
                 "kill_error": null,
@@ -301,12 +304,12 @@
                 "status_notifications": 2,
                 "status_transcript": [
                   {
-                    "elapsed_ms": 56,
+                    "elapsed_ms": 58,
                     "health": "ok",
                     "quiescent": false
                   },
                   {
-                    "elapsed_ms": 356,
+                    "elapsed_ms": 415,
                     "health": "ok",
                     "quiescent": true
                   }
@@ -319,22 +322,24 @@
               "termination": "Exited"
             },
             "programs": [
-              "rust-analyzer"
+              "cargo",
+              "rust-analyzer",
+              "rustc"
             ],
             "sample_errors": 0,
             "sample_interval_ms": 25,
-            "samples": 14
+            "samples": 15
           },
           "selection": "initialize-guest-programs"
         }
       ],
-      "started_utc": "2026-09-12T07:17:55Z",
+      "started_utc": "2026-09-12T14:14:32Z",
       "status": "pass"
     },
     {
       "cut": "m6-04-hostile-ratoml",
-      "duration_ms": 548,
-      "finished_utc": "2026-09-12T07:17:58Z",
+      "duration_ms": 519,
+      "finished_utc": "2026-09-12T14:14:34Z",
       "fixtures": {
         "hostile-ratoml": {
           "archive_sha256": "sha256:403f1b7592bfb9b4ade7ce7b4da8807d0835ea6141bf749921639bb69965177c",
@@ -357,13 +362,13 @@
           "volumes": []
         }
       },
-      "run_started_at": "2026-09-12T07:17:58Z",
+      "run_started_at": "2026-09-12T14:14:34Z",
       "selections": [
         {
-          "duration_ms": 243,
+          "duration_ms": 231,
           "observed": {
             "call": {
-              "duration_ms": 205
+              "duration_ms": 197
             },
             "completeness": {
               "omissions": [],
@@ -404,13 +409,13 @@
           "selection": "hostile-ratoml-refused"
         }
       ],
-      "started_utc": "2026-09-12T07:17:58Z",
+      "started_utc": "2026-09-12T14:14:34Z",
       "status": "pass"
     },
     {
       "cut": "m6-05-never-ready",
-      "duration_ms": 1716,
-      "finished_utc": "2026-09-12T07:18:00Z",
+      "duration_ms": 1728,
+      "finished_utc": "2026-09-12T14:14:36Z",
       "fixtures": {
         "workspace": {
           "archive_sha256": "sha256:9f0af4ccee31709f9bd5feb9c79bc55fbd4b0a151a7f8f585f1532bd33963101",
@@ -433,13 +438,13 @@
           "volumes": []
         }
       },
-      "run_started_at": "2026-09-12T07:18:00Z",
+      "run_started_at": "2026-09-12T14:14:36Z",
       "selections": [
         {
-          "duration_ms": 1397,
+          "duration_ms": 1409,
           "observed": {
             "call": {
-              "duration_ms": 830
+              "duration_ms": 850
             },
             "completeness": {
               "omissions": [],
@@ -453,14 +458,14 @@
             "position_encoding": "utf-8",
             "readiness": {
               "not_ready": {
-                "elapsed_ms": 58
+                "elapsed_ms": 60
               }
             },
             "session": {
               "bytes_in": 3068,
               "bytes_out": 1390,
               "declared_frame_bytes": null,
-              "duration_ms": 152,
+              "duration_ms": 151,
               "exit_code": null,
               "fault": "timeout_initialize",
               "kill_error": null,
@@ -473,7 +478,7 @@
               "status_notifications": 1,
               "status_transcript": [
                 {
-                  "elapsed_ms": 58,
+                  "elapsed_ms": 60,
                   "health": "ok",
                   "quiescent": false
                 }
@@ -488,13 +493,13 @@
           "selection": "never-ready-one-second"
         }
       ],
-      "started_utc": "2026-09-12T07:17:58Z",
+      "started_utc": "2026-09-12T14:14:35Z",
       "status": "pass"
     },
     {
       "cut": "m6-06-cancellation",
-      "duration_ms": 2249,
-      "finished_utc": "2026-09-12T07:18:02Z",
+      "duration_ms": 2337,
+      "finished_utc": "2026-09-12T14:14:39Z",
       "fixtures": {
         "valid-basic": {
           "archive_sha256": "sha256:a8c3d12a2aaef1b73fa28ed5ecc5dff6a1c0ba257e6516972cfcd424ffc8dfe0",
@@ -515,10 +520,10 @@
           "volumes": []
         }
       },
-      "run_started_at": "2026-09-12T07:18:02Z",
+      "run_started_at": "2026-09-12T14:14:39Z",
       "selections": [
         {
-          "duration_ms": 1934,
+          "duration_ms": 2013,
           "observed": {
             "cancel": {
               "inventory_polls": 12,
@@ -526,7 +531,7 @@
             },
             "facts": {
               "call": {
-                "duration_ms": 866
+                "duration_ms": 886
               },
               "completeness": {
                 "omissions": [],
@@ -535,34 +540,28 @@
               },
               "failure": "Cancelled",
               "oom_killed": null,
-              "position_encoding": "utf-8",
+              "position_encoding": null,
               "readiness": {
                 "not_ready": {
                   "elapsed_ms": 0
                 }
               },
               "session": {
-                "bytes_in": 3068,
-                "bytes_out": 1390,
+                "bytes_in": 0,
+                "bytes_out": 1316,
                 "declared_frame_bytes": null,
-                "duration_ms": 80,
+                "duration_ms": 55,
                 "exit_code": null,
                 "fault": "cancelled",
                 "kill_error": null,
                 "late_responses": 0,
-                "messages_in": 2,
-                "messages_out": 2,
+                "messages_in": 0,
+                "messages_out": 1,
                 "notifications_dropped": 0,
                 "reap_error": null,
                 "server_requests_refused": 0,
-                "status_notifications": 1,
-                "status_transcript": [
-                  {
-                    "elapsed_ms": 56,
-                    "health": "ok",
-                    "quiescent": false
-                  }
-                ],
+                "status_notifications": 0,
+                "status_transcript": [],
                 "stderr_bytes": 0,
                 "stderr_sha256": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
                 "stderr_truncated": false,
@@ -574,10 +573,10 @@
           "selection": "cancelled-session"
         },
         {
-          "duration_ms": 1040,
+          "duration_ms": 1101,
           "observed": {
             "call": {
-              "duration_ms": 1039
+              "duration_ms": 1101
             },
             "completeness": {
               "omissions": [],
@@ -589,7 +588,7 @@
             "position_encoding": "utf-8",
             "readiness": {
               "quiescent": {
-                "elapsed_ms": 353,
+                "elapsed_ms": 390,
                 "health": "ok"
               }
             },
@@ -597,7 +596,7 @@
               "bytes_in": 3804,
               "bytes_out": 1934,
               "declared_frame_bytes": null,
-              "duration_ms": 385,
+              "duration_ms": 422,
               "exit_code": 0,
               "fault": null,
               "kill_error": null,
@@ -610,12 +609,12 @@
               "status_notifications": 2,
               "status_transcript": [
                 {
-                  "elapsed_ms": 50,
+                  "elapsed_ms": 73,
                   "health": "ok",
                   "quiescent": false
                 },
                 {
-                  "elapsed_ms": 353,
+                  "elapsed_ms": 390,
                   "health": "ok",
                   "quiescent": true
                 }
@@ -630,13 +629,13 @@
           "selection": "second-call-after-cancellation"
         }
       ],
-      "started_utc": "2026-09-12T07:18:00Z",
+      "started_utc": "2026-09-12T14:14:36Z",
       "status": "pass"
     },
     {
       "cut": "m6-07-crash",
-      "duration_ms": 1186,
-      "finished_utc": "2026-09-12T07:18:04Z",
+      "duration_ms": 1195,
+      "finished_utc": "2026-09-12T14:14:40Z",
       "fixtures": {
         "valid-basic": {
           "archive_sha256": "sha256:a8c3d12a2aaef1b73fa28ed5ecc5dff6a1c0ba257e6516972cfcd424ffc8dfe0",
@@ -659,14 +658,14 @@
           "volumes": []
         }
       },
-      "run_started_at": "2026-09-12T07:18:04Z",
+      "run_started_at": "2026-09-12T14:14:40Z",
       "selections": [
         {
-          "duration_ms": 886,
+          "duration_ms": 884,
           "observed": {
             "facts": {
               "call": {
-                "duration_ms": 886
+                "duration_ms": 884
               },
               "completeness": {
                 "omissions": [],
@@ -682,27 +681,21 @@
                 }
               },
               "session": {
-                "bytes_in": 3068,
-                "bytes_out": 1390,
+                "bytes_in": 2933,
+                "bytes_out": 1316,
                 "declared_frame_bytes": null,
-                "duration_ms": 127,
+                "duration_ms": 102,
                 "exit_code": 137,
-                "fault": null,
+                "fault": "crashed",
                 "kill_error": null,
                 "late_responses": 0,
-                "messages_in": 2,
-                "messages_out": 2,
+                "messages_in": 1,
+                "messages_out": 1,
                 "notifications_dropped": 0,
                 "reap_error": null,
                 "server_requests_refused": 0,
-                "status_notifications": 1,
-                "status_transcript": [
-                  {
-                    "elapsed_ms": 55,
-                    "health": "ok",
-                    "quiescent": false
-                  }
-                ],
+                "status_notifications": 0,
+                "status_transcript": [],
                 "stderr_bytes": 0,
                 "stderr_sha256": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
                 "stderr_truncated": false,
@@ -717,19 +710,19 @@
                 "status": "exited"
               },
               "killed": true,
-              "target": "rust-mcp-analyzer-7c4f66dc1b35bffe779f7f262495b27f"
+              "target": "rust-mcp-analyzer-4b52ea6316d7815b46ba734ad2b24fdc"
             }
           },
           "selection": "killed-analyzer"
         }
       ],
-      "started_utc": "2026-09-12T07:18:02Z",
+      "started_utc": "2026-09-12T14:14:39Z",
       "status": "pass"
     },
     {
       "cut": "m6-08-frame-limit",
-      "duration_ms": 1463,
-      "finished_utc": "2026-09-12T07:18:05Z",
+      "duration_ms": 1425,
+      "finished_utc": "2026-09-12T14:14:42Z",
       "fixtures": {
         "generated": {
           "archive_sha256": "sha256:06311546a84154ffec058220aa8198488b72886e98edac1510659d7451ef212a",
@@ -750,15 +743,15 @@
           "volumes": []
         }
       },
-      "run_started_at": "2026-09-12T07:18:05Z",
+      "run_started_at": "2026-09-12T14:14:42Z",
       "selections": [
         {
-          "duration_ms": 1139,
+          "duration_ms": 1119,
           "observed": {
             "declared_content_length": 3015595,
             "facts": {
               "call": {
-                "duration_ms": 1139
+                "duration_ms": 1119
               },
               "completeness": {
                 "omissions": [],
@@ -770,15 +763,15 @@
               "position_encoding": "utf-8",
               "readiness": {
                 "quiescent": {
-                  "elapsed_ms": 385,
+                  "elapsed_ms": 353,
                   "health": "ok"
                 }
               },
               "session": {
-                "bytes_in": 3229,
+                "bytes_in": 11394,
                 "bytes_out": 325717,
                 "declared_frame_bytes": 3015595,
-                "duration_ms": 454,
+                "duration_ms": 429,
                 "exit_code": null,
                 "fault": "frame_too_large",
                 "kill_error": null,
@@ -791,12 +784,12 @@
                 "status_notifications": 2,
                 "status_transcript": [
                   {
-                    "elapsed_ms": 72,
+                    "elapsed_ms": 56,
                     "health": "ok",
                     "quiescent": false
                   },
                   {
-                    "elapsed_ms": 385,
+                    "elapsed_ms": 353,
                     "health": "ok",
                     "quiescent": true
                   }
@@ -813,11 +806,11 @@
           "selection": "oversized-real-answer"
         }
       ],
-      "started_utc": "2026-09-12T07:18:04Z",
+      "started_utc": "2026-09-12T14:14:40Z",
       "status": "pass"
     }
   ],
-  "finished_utc": "2026-09-12T07:18:05Z",
+  "finished_utc": "2026-09-12T14:14:42Z",
   "image_id": "sha256:f39a5b33ee7d54243664162eb635f8ec223d512042beb7cd18ecf071046b310c",
   "image_tag_at_provisioning": "rust-engineering-runtime:1.98.1-arm64-m6",
   "schema": "rust-engineering-mcp.m6-calibration.v1",
@@ -832,7 +825,7 @@
       "selection": "unadmitted-image-refused"
     },
     {
-      "duration_ms": 532,
+      "duration_ms": 536,
       "observed": {
         "guest": "rust-analyzer 1.98.1 (48a229c 2026-09-01)",
         "pinned": "rust-analyzer 1.98.1 (48a229c 2026-09-01)"
@@ -840,7 +833,7 @@
       "selection": "guest-version-line"
     },
     {
-      "duration_ms": 529,
+      "duration_ms": 525,
       "observed": {
         "guest": "sha256:a0c3f11a153e5d5f12a6de6ceabd2def60c2793293e901a4a045946050456e2f",
         "pinned": "sha256:a0c3f11a153e5d5f12a6de6ceabd2def60c2793293e901a4a045946050456e2f",
@@ -849,7 +842,7 @@
       "selection": "guest-binary-digest"
     },
     {
-      "duration_ms": 543,
+      "duration_ms": 527,
       "observed": {
         "checked_keys": [
           "cachePriming.enable",
@@ -878,11 +871,11 @@
       "selection": "fixed-configuration-keys-exist"
     },
     {
-      "duration_ms": 1051,
+      "duration_ms": 1056,
       "observed": {
         "facts": {
           "call": {
-            "duration_ms": 1051
+            "duration_ms": 1056
           },
           "completeness": {
             "omissions": [],
@@ -894,7 +887,7 @@
           "position_encoding": "utf-8",
           "readiness": {
             "quiescent": {
-              "elapsed_ms": 362,
+              "elapsed_ms": 369,
               "health": "ok"
             }
           },
@@ -902,7 +895,7 @@
             "bytes_in": 3804,
             "bytes_out": 1934,
             "declared_frame_bytes": null,
-            "duration_ms": 392,
+            "duration_ms": 398,
             "exit_code": 0,
             "fault": null,
             "kill_error": null,
@@ -915,12 +908,12 @@
             "status_notifications": 2,
             "status_transcript": [
               {
-                "elapsed_ms": 53,
+                "elapsed_ms": 56,
                 "health": "ok",
                 "quiescent": false
               },
               {
-                "elapsed_ms": 362,
+                "elapsed_ms": 369,
                 "health": "ok",
                 "quiescent": true
               }
@@ -933,7 +926,7 @@
           "termination": "Exited"
         },
         "health": "Ok",
-        "quiescent_after_ms": 362,
+        "quiescent_after_ms": 369,
         "symbols": [
           {
             "depth": 0,
@@ -958,14 +951,17 @@
       "selection": "document-symbols-valid-basic"
     },
     {
-      "duration_ms": 1819,
+      "duration_ms": 1909,
       "observed": {
         "argv": [
-          "/opt/analyzer/bin/rust-analyzer"
+          "/opt/analyzer/bin/rust-analyzer",
+          "/opt/rust/bin/cargo rustc -Z unstable-options --print cfg --target aarch64-unknown-linux-gnu -- -O",
+          "/opt/rust/bin/cargo rustc -Z unstable-options --print target-spec-json --target aarch64-unknown-linux-gnu -- -Z unstable-options",
+          "/opt/rust/bin/rustc -vV"
         ],
         "facts": {
           "call": {
-            "duration_ms": 1819
+            "duration_ms": 1909
           },
           "completeness": {
             "omissions": [],
@@ -977,7 +973,7 @@
           "position_encoding": "utf-8",
           "readiness": {
             "quiescent": {
-              "elapsed_ms": 356,
+              "elapsed_ms": 415,
               "health": "ok"
             }
           },
@@ -985,7 +981,7 @@
             "bytes_in": 3560,
             "bytes_out": 1954,
             "declared_frame_bytes": null,
-            "duration_ms": 1016,
+            "duration_ms": 1103,
             "exit_code": 0,
             "fault": null,
             "kill_error": null,
@@ -998,12 +994,12 @@
             "status_notifications": 2,
             "status_transcript": [
               {
-                "elapsed_ms": 56,
+                "elapsed_ms": 58,
                 "health": "ok",
                 "quiescent": false
               },
               {
-                "elapsed_ms": 356,
+                "elapsed_ms": 415,
                 "health": "ok",
                 "quiescent": true
               }
@@ -1016,19 +1012,21 @@
           "termination": "Exited"
         },
         "programs": [
-          "rust-analyzer"
+          "cargo",
+          "rust-analyzer",
+          "rustc"
         ],
         "sample_errors": 0,
         "sample_interval_ms": 25,
-        "samples": 14
+        "samples": 15
       },
       "selection": "initialize-guest-programs"
     },
     {
-      "duration_ms": 243,
+      "duration_ms": 231,
       "observed": {
         "call": {
-          "duration_ms": 205
+          "duration_ms": 197
         },
         "completeness": {
           "omissions": [],
@@ -1069,10 +1067,10 @@
       "selection": "hostile-ratoml-refused"
     },
     {
-      "duration_ms": 1397,
+      "duration_ms": 1409,
       "observed": {
         "call": {
-          "duration_ms": 830
+          "duration_ms": 850
         },
         "completeness": {
           "omissions": [],
@@ -1086,14 +1084,14 @@
         "position_encoding": "utf-8",
         "readiness": {
           "not_ready": {
-            "elapsed_ms": 58
+            "elapsed_ms": 60
           }
         },
         "session": {
           "bytes_in": 3068,
           "bytes_out": 1390,
           "declared_frame_bytes": null,
-          "duration_ms": 152,
+          "duration_ms": 151,
           "exit_code": null,
           "fault": "timeout_initialize",
           "kill_error": null,
@@ -1106,7 +1104,7 @@
           "status_notifications": 1,
           "status_transcript": [
             {
-              "elapsed_ms": 58,
+              "elapsed_ms": 60,
               "health": "ok",
               "quiescent": false
             }
@@ -1121,7 +1119,7 @@
       "selection": "never-ready-one-second"
     },
     {
-      "duration_ms": 1934,
+      "duration_ms": 2013,
       "observed": {
         "cancel": {
           "inventory_polls": 12,
@@ -1129,7 +1127,7 @@
         },
         "facts": {
           "call": {
-            "duration_ms": 866
+            "duration_ms": 886
           },
           "completeness": {
             "omissions": [],
@@ -1138,34 +1136,28 @@
           },
           "failure": "Cancelled",
           "oom_killed": null,
-          "position_encoding": "utf-8",
+          "position_encoding": null,
           "readiness": {
             "not_ready": {
               "elapsed_ms": 0
             }
           },
           "session": {
-            "bytes_in": 3068,
-            "bytes_out": 1390,
+            "bytes_in": 0,
+            "bytes_out": 1316,
             "declared_frame_bytes": null,
-            "duration_ms": 80,
+            "duration_ms": 55,
             "exit_code": null,
             "fault": "cancelled",
             "kill_error": null,
             "late_responses": 0,
-            "messages_in": 2,
-            "messages_out": 2,
+            "messages_in": 0,
+            "messages_out": 1,
             "notifications_dropped": 0,
             "reap_error": null,
             "server_requests_refused": 0,
-            "status_notifications": 1,
-            "status_transcript": [
-              {
-                "elapsed_ms": 56,
-                "health": "ok",
-                "quiescent": false
-              }
-            ],
+            "status_notifications": 0,
+            "status_transcript": [],
             "stderr_bytes": 0,
             "stderr_sha256": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
             "stderr_truncated": false,
@@ -1177,10 +1169,10 @@
       "selection": "cancelled-session"
     },
     {
-      "duration_ms": 1040,
+      "duration_ms": 1101,
       "observed": {
         "call": {
-          "duration_ms": 1039
+          "duration_ms": 1101
         },
         "completeness": {
           "omissions": [],
@@ -1192,7 +1184,7 @@
         "position_encoding": "utf-8",
         "readiness": {
           "quiescent": {
-            "elapsed_ms": 353,
+            "elapsed_ms": 390,
             "health": "ok"
           }
         },
@@ -1200,7 +1192,7 @@
           "bytes_in": 3804,
           "bytes_out": 1934,
           "declared_frame_bytes": null,
-          "duration_ms": 385,
+          "duration_ms": 422,
           "exit_code": 0,
           "fault": null,
           "kill_error": null,
@@ -1213,12 +1205,12 @@
           "status_notifications": 2,
           "status_transcript": [
             {
-              "elapsed_ms": 50,
+              "elapsed_ms": 73,
               "health": "ok",
               "quiescent": false
             },
             {
-              "elapsed_ms": 353,
+              "elapsed_ms": 390,
               "health": "ok",
               "quiescent": true
             }
@@ -1233,11 +1225,11 @@
       "selection": "second-call-after-cancellation"
     },
     {
-      "duration_ms": 886,
+      "duration_ms": 884,
       "observed": {
         "facts": {
           "call": {
-            "duration_ms": 886
+            "duration_ms": 884
           },
           "completeness": {
             "omissions": [],
@@ -1253,27 +1245,21 @@
             }
           },
           "session": {
-            "bytes_in": 3068,
-            "bytes_out": 1390,
+            "bytes_in": 2933,
+            "bytes_out": 1316,
             "declared_frame_bytes": null,
-            "duration_ms": 127,
+            "duration_ms": 102,
             "exit_code": 137,
-            "fault": null,
+            "fault": "crashed",
             "kill_error": null,
             "late_responses": 0,
-            "messages_in": 2,
-            "messages_out": 2,
+            "messages_in": 1,
+            "messages_out": 1,
             "notifications_dropped": 0,
             "reap_error": null,
             "server_requests_refused": 0,
-            "status_notifications": 1,
-            "status_transcript": [
-              {
-                "elapsed_ms": 55,
-                "health": "ok",
-                "quiescent": false
-              }
-            ],
+            "status_notifications": 0,
+            "status_transcript": [],
             "stderr_bytes": 0,
             "stderr_sha256": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
             "stderr_truncated": false,
@@ -1288,18 +1274,18 @@
             "status": "exited"
           },
           "killed": true,
-          "target": "rust-mcp-analyzer-7c4f66dc1b35bffe779f7f262495b27f"
+          "target": "rust-mcp-analyzer-4b52ea6316d7815b46ba734ad2b24fdc"
         }
       },
       "selection": "killed-analyzer"
     },
     {
-      "duration_ms": 1139,
+      "duration_ms": 1119,
       "observed": {
         "declared_content_length": 3015595,
         "facts": {
           "call": {
-            "duration_ms": 1139
+            "duration_ms": 1119
           },
           "completeness": {
             "omissions": [],
@@ -1311,15 +1297,15 @@
           "position_encoding": "utf-8",
           "readiness": {
             "quiescent": {
-              "elapsed_ms": 385,
+              "elapsed_ms": 353,
               "health": "ok"
             }
           },
           "session": {
-            "bytes_in": 3229,
+            "bytes_in": 11394,
             "bytes_out": 325717,
             "declared_frame_bytes": 3015595,
-            "duration_ms": 454,
+            "duration_ms": 429,
             "exit_code": null,
             "fault": "frame_too_large",
             "kill_error": null,
@@ -1332,12 +1318,12 @@
             "status_notifications": 2,
             "status_transcript": [
               {
-                "elapsed_ms": 72,
+                "elapsed_ms": 56,
                 "health": "ok",
                 "quiescent": false
               },
               {
-                "elapsed_ms": 385,
+                "elapsed_ms": 353,
                 "health": "ok",
                 "quiescent": true
               }
@@ -1355,13 +1341,13 @@
     }
   ],
   "sources": {
-    "../domain/src/analyzer.rs": "sha256:d8cb66958a998278812bc147e54bc68b90e44c0c4e01226e1bc5a6e68411b458",
+    "../domain/src/analyzer.rs": "sha256:2c5ea383d51851c0f1bafb9fe15992eca60b49e4bc1803ce42018abb2e979a8f",
     "src/analyzer_gateway.rs": "sha256:1266626ae14115f9922fc75f7eeff055c3d4c4090b9d9fcffb6463095eeffda6",
     "src/analyzer_native.rs": "sha256:95bc94fb0107000a759cae51a1bb963eae62fd7689654b4e5171f619c8153818",
-    "src/lsp_codec.rs": "sha256:4c327379f1cbf921cd39d1613f178f1f6d1ea5332e222bb0ac1ab0aab99b21d0",
+    "src/lsp_codec.rs": "sha256:771c2856e9b516f09c3371a3865fe1545ebf87d117dd99546f0cb645a97fa85f",
     "src/lsp_session.rs": "sha256:f1c170f52108e3950166227b1c46532d30d89b48655fec0feef8da0c3be5a93a",
     "src/rust_applied.rs": "sha256:b67d4a2ebe44e1f164edc7dee87d5a00aa30960722bcbe98bff50bf62b478ca0",
     "src/rust_gateway.rs": "sha256:ee57c4d09885a7b88814dfa8c821cd52fab962e98933c9e5b73eaac2524f1363"
   },
-  "started_utc": "2026-09-12T07:17:51Z"
+  "started_utc": "2026-09-12T14:14:28Z"
 }

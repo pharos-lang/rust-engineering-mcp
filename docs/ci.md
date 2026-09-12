@@ -344,23 +344,23 @@ M4 y antes de `vendor`:
 | `m5-vendor-tests` | core (y full) | `python3 -B -m unittest discover -s fixtures/criterion-vendor -p 'test_*.py'` |
 
 Las dos últimas se declaran con `require_test_groups=True`: una etapa que no
-ejecuta ningún test es un fallo, no un pase. Con ellas —y con las dos etapas
-`m6-provisioning-tests`/`m6-provisioning-unit-tests` que añade M6 (ver
-[Imagen guest M6](#imagen-guest-m6))—, el conteo de `run(` en `scripts/gate.py`
-pasa a **25 etapas core** (`fmt`, `check`, `clippy`, `test`, `doctests`,
-`architecture`, `gate-reporting`, `release-artifact-tests`,
+ejecuta ningún test es un fallo, no un pase. Con ellas —y con las tres etapas
+`m6-provisioning-tests`/`m6-provisioning-unit-tests`/`m6-runtime-unit-tests`
+que añade M6 (ver [Imagen guest M6](#imagen-guest-m6))—, el conteo de `run(`
+en `scripts/gate.py` pasa a **26 etapas core** (`fmt`, `check`, `clippy`,
+`test`, `doctests`, `architecture`, `gate-reporting`, `release-artifact-tests`,
 `release-smoke-tests`, `codex-qualifier-tests`, `m4-client-harness-tests`,
 `m4-safety-harness-tests`, `m4-helper-fmt`, `m4-helper-tests`,
 `m4-provisioning-tests`, `m5-helper-fmt`, `m5-helper-guest-clippy`,
 `m5-helper-tests`, `m5-vendor-tests`,
-`m6-provisioning-tests`, `m6-provisioning-unit-tests`, `vendor`,
-`cargo-fixtures`, `audit`, `deny`) y **41 en full**, que añade las 14 etapas
-nativas ya documentadas (`docker-security`, `rust-security`, `m2-runtime`,
-`m3-runtime`, `m4-tampered-plugin`, `m4-inventory`, `m4-runtime`,
-`audit-data`, `semantic`, `catalog`, `catalog-status`, `crate-search`,
-`crate-inspect`, `doctor`) más `m5-runtime` y `m6-runtime`. Ese conteo describe
-la configuración vigente del script, no una ejecución acreditada: no existe
-todavía un recibo de gate M5 ni de gate M6.
+`m6-provisioning-tests`, `m6-provisioning-unit-tests`, `m6-runtime-unit-tests`,
+`vendor`, `cargo-fixtures`, `audit`, `deny`) y **42 en full**, que añade las 14
+etapas nativas ya documentadas (`docker-security`, `rust-security`,
+`m2-runtime`, `m3-runtime`, `m4-tampered-plugin`, `m4-inventory`,
+`m4-runtime`, `audit-data`, `semantic`, `catalog`, `catalog-status`,
+`crate-search`, `crate-inspect`, `doctor`) más `m5-runtime` y `m6-runtime`. Ese
+conteo describe la configuración vigente del script, no una ejecución
+acreditada: no existe todavía un recibo de gate M5 ni de gate M6.
 
 ### Etapa full para el runtime nativo M5
 

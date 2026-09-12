@@ -825,3 +825,34 @@ siendo exacto *para ese archivo* —medido por el producto con `stat` y su
 `sha256`, y cotejado contra el `file-size` que reporta el analizador; si no
 coinciden, la completeness es `size_mismatch` y no se publica ranking—, pero no se
 afirma que sea el artefacto distribuible del proyecto (ADR-076 §6).
+
+## M6 — analyzer
+
+`rust.analyzer.symbols` trata rust-analyzer como un peer LSP potencialmente
+hostil (el código del proyecto que analiza puede comprometerlo) y al proyecto
+capturado como fuente activa de configuración hostil, no solo de bytes a leer.
+[ADR-084](adr/ADR-084-rust-analyzer-runtime-and-lsp-lifecycle.md) fija el
+lifecycle; el [recibo de calibración nativa M6-01](validation/M6/01.md) es el
+oráculo local de cada control de esta tabla, no una afirmación de diseño sin
+medir.
+
+| Amenaza | Control | Oráculo |
+| --- | --- | --- |
+| Peer LSP hostil, malformado u oversized (rust-analyzer comprometido por el proyecto que analiza) | Codec propio con `Content-Length` acotado (≤ 1 MiB), cabeceras estrictas, ids propios; respuestas tardías o duplicadas se descartan; toda respuesta se valida contra un DTO cerrado antes de convertirse en dominio | Fake peer hostil en los tests del codec; corte nativo `m6-08-frame-limit`: una respuesta real de 3 015 595 bytes se rechaza **en la cabecera**, con solo 3 229 bytes admitidos, sesión matada, sin datos |
+| `rust-analyzer.toml`/`.rust-analyzer.toml` que reactivaría `cargo.buildScripts.enable`, `overrideCommand`, `check.overrideCommand`, `runnables.command`, `rustfmt.overrideCommand` o `cargo.extraEnv` por encima de la `initializationOptions` fija del cliente | Rechazo en captura de cualquier archivo con ese nombre, en cualquier profundidad y case-insensitive, **antes** de arrancar rust-analyzer (`UNSUPPORTED_PROJECT_CONFIG`); el gateway repite el mismo rechazo como defensa en profundidad si recibe un `SourceBundle` que lo trae igual | Fixture con ratoml hostil rechazada antes de crear contenedor; corte nativo `m6-04-hostile-ratoml`: `SessionStop::NotStarted`, nada etiquetado sobrevive |
+| Servidor que nunca alcanza quiescent, cuelga o cae | Deadlines por fase (`initialize`→quiescent ≤ 60 s, petición ≤ 30 s, llamada total ≤ 180 s); readiness solo por el oráculo real `experimental/serverStatus{quiescent:true}`, nunca por silencio; kill + `rm` + verificación de ausencia antes de liberar `busy` | Corte nativo `m6-05-never-ready` (presupuesto de 150 ms): `NotReady`, sin datos, cleanup verificado, la llamada siguiente arranca limpia; `m6-07-crash`: `docker kill --signal=KILL` externo produce `Crashed` con `oom_killed` leído antes del cleanup |
+| Cancelación a mitad de sesión | El mismo token de cancelación que el resto del producto; verificación de ausencia del contenedor antes de devolver `Cancelled`, nunca un timeout disfrazado | Corte nativo `m6-06-cancellation`: cancelado con el contenedor vivo produce `Cancelled` (nunca timeout), sin quarantine, y la llamada siguiente responde `complete` |
+| URIs externos a `/source` en una respuesta (sysroot, dependencias, cualquier ruta fuera de la captura) | Normalización estricta bajo `file:///source/`; todo lo externo se cuenta como omisión (`external_uri`, `sysroot_location`, `dependency_location`), nunca se publica como si fuera parte del proyecto | Fixtures con sysroot/dependencias; el vocabulario de omisiones es cerrado y siempre acompaña un `IncompleteReason` |
+| Presupuestos de protocolo (frames, mensajes, bytes) excedidos, en cualquier dirección | Frame LSP ≤ 1 MiB, ≤ 4096 mensajes por job, ≤ 16 MiB/1 MiB stdout/stderr; exceso mata la sesión y se clasifica (`FRAME_LIMIT`, `MESSAGE_LIMIT`) | Corte nativo `m6-08-frame-limit` (arriba); tests unitarios del codec para el límite de mensajes y de bytes totales |
+| Texto del peer en la respuesta (stderr, `message` de `experimental/serverStatus`, de un error JSON-RPC) | El adaptador solo publica tamaño y sha256 de `stderr`, nunca los bytes; `experimental/serverStatus.message` no se captura en el dominio; solo el `health` cerrado (`ok`/`warning`) llega a la tool, degradando a `incomplete` sin exponer el motivo textual | Test de que el resultado no contiene stderr (fake peer hostil, execution-adapter); test en `mcp-server` que siembra strings hostiles en `kill_error`/`reap_error` y comprueba su ausencia en el JSON publicado |
+| Servidor que pide `workspace/applyEdit`, `client/registerCapability` u otra petición servidor→cliente | Ninguna petición servidor→cliente concede nada: se responde `-32601` y se cuenta (`server_requests_refused`); nunca hay efecto | Fake peer que las emite; corte nativo: 0 peticiones servidor→cliente observadas en las nueve sesiones reales |
+| Identidad del runtime falsificada o desactualizada tras un rollback | `analyzer.version`/`binary_sha256`/`image_id`/`config_digest` son propiedades del digest admitido, no de una sonda por llamada; solo `APPROVED_M6_IMAGE` puede abrir sesión, cualquier otro digest es `unavailable` antes de crear contenedor | Corte nativo `m6-00-admission`: la imagen M5 recibe `Unavailable` antes de crear volumen o contenedor; `m6-01-identity`: versión y sha256 coinciden guest = constante = recibo |
+
+**Alcance nativo positivo**: exclusivamente host macOS ARM64/APFS con imagen
+guest M6 Linux ARM64; Linux/Windows quedan fail-closed hasta una decisión de
+portabilidad explícita (D13). El riesgo residual honesto: `docker container
+top` es evidencia por instantes muestreados, no por intervalo continuo —un
+proceso que viva unos pocos milisegundos entre dos muestras podría no
+observarse ([R1 del recibo M6-01](validation/M6/01.md#r1--la-ausencia-de-procesos-es-evidencia-por-instantes-no-por-intervalo)).
+El oráculo determinista y en banda para la misma propiedad queda asignado al
+corte de `diagnostics` (M6-03), que todavía no existe.
