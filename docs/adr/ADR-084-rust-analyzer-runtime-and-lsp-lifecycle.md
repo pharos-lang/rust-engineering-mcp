@@ -112,8 +112,6 @@ procMacro.enable=false
 checkOnSave=false
 cargo.noDeps=true
 cargo.sysroot="discover"
-cargo.sysrootQueryMetadata=false
-cargo.autoreload=false
 cargo.targetDir=null
 files.watcher="client"
 cachePriming.enable=false
@@ -139,6 +137,25 @@ calibración.
 `cargo.sysroot="discover"` exige `rust-src` presente (ADR-082 Ítem B); sin él,
 rust-analyzer no puede cargar `core`/`std` y los símbolos, referencias y
 diagnósticos sobre la biblioteca estándar quedan sin resolver.
+
+**Enmienda 2026-09-12 (calibración W04).** La lista pasa de diecinueve a
+**diecisiete** claves: se eliminan `cargo.sysrootQueryMetadata=false` y
+`cargo.autoreload=false`, y con ellas el `config_digest` cambia, que es lo que
+debe pasar cuando cambia la configuración enviada. La primera **no existe** en
+el schema que imprime el binario admitido (193 claves `rust-analyzer.*`, ninguna
+con ese nombre): rust-analyzer la ignoraba en silencio, de modo que su valor no
+tenía efecto alguno y solo contaminaba la identidad con la que se invalidan los
+planes de acción; el oráculo de esta misma sección es quien lo detectó
+([01.md F1](../validation/M6/01.md)). La segunda hacía que **todas** las
+sesiones alcanzaran `quiescent` con `health: warning` —el servidor avisa de que
+la recarga automática está desactivada y el workspace ha cambiado—, lo que
+degradaba cada respuesta M6 a `incomplete` y volvía `complete` inalcanzable
+([01.md F2](../validation/M6/01.md)); queda en vigor el default
+`cargo.autoreload=true`, que en este lifecycle no recarga nada porque la sesión
+es transitoria, no envía `didChange` y monta `/source` en solo lectura. Un
+`health: warning` sigue degradando el resultado a `incomplete` (razón
+`analyzer_warning`, sin publicar el `message`, que puede llevar texto del
+proyecto).
 
 ### 4. Capabilities mínimas del cliente
 

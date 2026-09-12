@@ -747,7 +747,15 @@ pub enum CompletenessState {
 pub enum IncompleteReason {
     AnalyzerNotReady,
     LimitVisible,
-    SysrootWarning,
+    /// The server reached the readiness oracle with `health: warning`, whatever
+    /// the warning was about. The accompanying `message` is never published —
+    /// it can carry project text (D25 §1.6) — so this names the observation and
+    /// not a cause the adapter cannot see.
+    AnalyzerWarning,
+    /// Some captured `.rs` file's bytes are not UTF-8, so no line index exists
+    /// for it and no position in it could be translated. Always paired with the
+    /// [`OmissionKind::NotUtf8File`] omission that counts those files.
+    NotUtf8File,
     Timeout,
 }
 
@@ -1333,6 +1341,23 @@ mod tests {
         );
     }
 
+    /// The wire spellings are the contract the tools publish and a caller
+    /// matches on, so a rename here is a visible change and not a refactor.
+    #[test]
+    fn the_incomplete_reason_vocabulary_has_one_spelling_each()
+    -> Result<(), Box<dyn std::error::Error>> {
+        for (reason, wire) in [
+            (IncompleteReason::AnalyzerNotReady, "analyzer_not_ready"),
+            (IncompleteReason::LimitVisible, "limit_visible"),
+            (IncompleteReason::AnalyzerWarning, "analyzer_warning"),
+            (IncompleteReason::NotUtf8File, "not_utf8_file"),
+            (IncompleteReason::Timeout, "timeout"),
+        ] {
+            assert_eq!(serde_json::to_string(&reason)?, format!("\"{wire}\""));
+        }
+        Ok(())
+    }
+
     #[test]
     fn completeness_wire_enforces_the_same_invariant() {
         let invalid = serde_json::json!({
@@ -1364,6 +1389,539 @@ mod tests {
         assert!(json.contains("\"utf-8\""));
         let round_tripped: AnalyzerIdentity = serde_json::from_str(&json)?;
         assert_eq!(round_tripped, identity);
+        Ok(())
+    }
+}
+
+// ---------------------------------------------------------------------
+// M6-01 session values. Appended by the duplex-session package; nothing
+// above this line is modified.
+// ---------------------------------------------------------------------
+
+/// Longest `workspace/symbol` query this product sends (D25 §1.2).
+pub const MAX_SYMBOL_QUERY_CHARS: usize = 128;
+
+/// A `workspace/symbol` query: 1..=[`MAX_SYMBOL_QUERY_CHARS`] Unicode scalars,
+/// none of them a control character.
+///
+/// Contract: the bound counts *characters*, not bytes, because it exists to
+/// bound what a caller may ask for and a caller counts characters. Control
+/// characters are refused outright: they mean nothing to rust-analyzer's fuzzy
+/// matcher and would travel verbatim inside a JSON string this product frames
+/// itself.
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(try_from = "String", into = "String")]
+pub struct SymbolQuery(String);
+
+impl SymbolQuery {
+    pub fn new(value: String) -> Result<Self, AnalyzerError> {
+        let characters = value.chars().count();
+        if characters == 0 || characters > MAX_SYMBOL_QUERY_CHARS {
+            return Err(AnalyzerError::LimitExceeded);
+        }
+        if value.chars().any(char::is_control) {
+            return Err(AnalyzerError::Invalid);
+        }
+        Ok(Self(value))
+    }
+
+    pub fn as_str(&self) -> &str {
+        &self.0
+    }
+}
+
+impl TryFrom<String> for SymbolQuery {
+    type Error = AnalyzerError;
+
+    fn try_from(value: String) -> Result<Self, Self::Error> {
+        Self::new(value)
+    }
+}
+
+impl From<SymbolQuery> for String {
+    fn from(value: SymbolQuery) -> Self {
+        value.0
+    }
+}
+
+/// Exactly one analyzer question per session (D26 §2.2 phase 6). Every variant
+/// carries already-validated values, so the gateway never re-parses a caller
+/// string and never has a reason to send a second request.
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(tag = "kind", rename_all = "snake_case")]
+pub enum AnalyzerQuery {
+    DocumentSymbols {
+        file: AnalyzerFile,
+    },
+    WorkspaceSymbols {
+        query: SymbolQuery,
+    },
+    References {
+        file: AnalyzerFile,
+        position: Position,
+        include_declaration: bool,
+    },
+    Diagnostics {
+        file: AnalyzerFile,
+    },
+    CodeActions {
+        file: AnalyzerFile,
+        range: TextRange,
+        /// Empty means "no `only` filter". Otherwise the closed kinds asked
+        /// for; duplicates carry no meaning and the adapter drops them before
+        /// the request is framed.
+        only: Vec<CodeActionKind>,
+    },
+}
+
+impl AnalyzerQuery {
+    /// The captured file this query opens. `WorkspaceSymbols` is the only
+    /// variant that names none.
+    pub fn file(&self) -> Option<&AnalyzerFile> {
+        match self {
+            Self::DocumentSymbols { file }
+            | Self::References { file, .. }
+            | Self::Diagnostics { file }
+            | Self::CodeActions { file, .. } => Some(file),
+            Self::WorkspaceSymbols { .. } => None,
+        }
+    }
+}
+
+/// One resolved, applicable code action: edits already translated to domain
+/// positions against the captured bytes.
+#[derive(Clone, Debug, PartialEq, Eq, Serialize)]
+pub struct AnalyzerAction {
+    pub title: NonEmptyText,
+    pub kind: Option<CodeActionKind>,
+    pub is_preferred: bool,
+    pub edits: Vec<TextEdit>,
+}
+
+/// One element of a `textDocument/codeAction` answer, kept per element so one
+/// refused action never hides the others.
+#[derive(Clone, Debug, PartialEq, Eq, Serialize)]
+#[serde(rename_all = "snake_case")]
+pub enum ActionCandidate {
+    Applicable(AnalyzerAction),
+    Rejected(ActionRejection),
+}
+
+/// The answer to exactly one [`AnalyzerQuery`], in domain values.
+#[derive(Clone, Debug, PartialEq, Eq, Serialize)]
+#[serde(rename_all = "snake_case")]
+pub enum AnalyzerResult {
+    DocumentSymbols(Vec<DocumentSymbol>),
+    WorkspaceSymbols(Vec<WorkspaceSymbol>),
+    References(Vec<Reference>),
+    Diagnostics(Vec<AnalyzerDiagnostic>),
+    CodeActions(Vec<ActionCandidate>),
+}
+
+impl AnalyzerResult {
+    /// Whether this answer belongs to `query`. A call that returned one
+    /// query's shape for another question would publish evidence about
+    /// something the caller never asked.
+    pub fn answers(&self, query: &AnalyzerQuery) -> bool {
+        matches!(
+            (self, query),
+            (
+                Self::DocumentSymbols(_),
+                AnalyzerQuery::DocumentSymbols { .. }
+            ) | (
+                Self::WorkspaceSymbols(_),
+                AnalyzerQuery::WorkspaceSymbols { .. }
+            ) | (Self::References(_), AnalyzerQuery::References { .. })
+                | (Self::Diagnostics(_), AnalyzerQuery::Diagnostics { .. })
+                | (Self::CodeActions(_), AnalyzerQuery::CodeActions { .. })
+        )
+    }
+}
+
+/// The `health` field of `experimental/serverStatus` (ADR-084 §5).
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum ServerHealth {
+    Ok,
+    Warning,
+    Error,
+}
+
+impl ServerHealth {
+    /// The wire spelling rust-analyzer uses. An unrecognised spelling has no
+    /// value here: it is never silently treated as healthy.
+    pub fn from_wire(value: &str) -> Option<Self> {
+        Some(match value {
+            "ok" => Self::Ok,
+            "warning" => Self::Warning,
+            "error" => Self::Error,
+            _ => return None,
+        })
+    }
+}
+
+/// Whether the server reached the readiness oracle, and how long that took.
+///
+/// Contract: `Quiescent` is only ever built from a real
+/// `experimental/serverStatus` notification with `quiescent: true` and a
+/// `health` other than `error` — readiness is never inferred from silence
+/// (ADR-084 §5). Both variants carry the time actually waited, so a receipt
+/// records the measurement instead of the budget.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize)]
+#[serde(rename_all = "snake_case")]
+pub enum AnalyzerReadiness {
+    Quiescent {
+        elapsed_ms: u64,
+        health: ServerHealth,
+    },
+    NotReady {
+        elapsed_ms: u64,
+    },
+}
+
+/// How a duplex LSP session ended.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize)]
+#[serde(rename_all = "snake_case")]
+pub enum SessionStop {
+    /// No session was started: the call failed a precondition first.
+    NotStarted,
+    /// `shutdown`/`exit` completed and the process left on its own.
+    Exited,
+    /// The process had to be killed: a limit, a codec fault, or no exit inside
+    /// the shutdown grace. The kill was signalled *and* the child was reaped.
+    Killed,
+    /// The child was signalled but reaping it never confirmed that it left, so
+    /// this adapter will not claim it did. The guarantee that nothing survives
+    /// the call is the container's verified absence, not this field.
+    KillUncertain,
+    /// A deadline expired before the awaited message arrived.
+    Timeout,
+    /// The cancellation token was observed.
+    Cancelled,
+    /// The peer closed its stdout with no shutdown handshake.
+    Eof,
+}
+
+/// One recorded `experimental/serverStatus` notification.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize)]
+pub struct ServerStatusObservation {
+    pub quiescent: bool,
+    /// `None` when the server used a `health` spelling outside the closed set,
+    /// which is recorded as unknown rather than assumed healthy.
+    pub health: Option<ServerHealth>,
+    pub elapsed_ms: u64,
+}
+
+/// How many readiness observations a summary publishes. The session keeps every
+/// one it saw; a result is bounded (D25 §2.4), so the published transcript is
+/// the first few plus a total count.
+pub const MAX_PUBLISHED_STATUS: usize = 32;
+
+/// What one session did, with none of the peer's text in it.
+///
+/// Contract: `stderr_bytes` and `stderr_sha256` are the *only* trace of the
+/// server's stderr that leaves the adapter (D25 §1.6) — the bytes themselves
+/// are never published, because they can carry project content.
+/// `stderr_bytes` counts every byte observed, including bytes dropped once the
+/// retained buffer was full, and `stderr_truncated` says whether that happened,
+/// so the digest is never mistaken for the digest of the whole stream.
+#[derive(Clone, Debug, PartialEq, Eq, Serialize)]
+pub struct SessionSummary {
+    pub stop: SessionStop,
+    pub exit_code: Option<i32>,
+    pub messages_in: u32,
+    pub messages_out: u32,
+    pub bytes_in: u64,
+    pub bytes_out: u64,
+    pub stderr_bytes: u64,
+    pub stderr_sha256: SourceFingerprint,
+    pub stderr_truncated: bool,
+    /// Server→client requests answered with `-32601` and nothing else.
+    pub server_requests_refused: u32,
+    /// Notifications read, counted and discarded — including
+    /// `publishDiagnostics`, which this lifecycle never consumes.
+    pub notifications_dropped: u32,
+    /// Responses to an id that had already answered or already timed out. The
+    /// codec discards them; this is the count it discarded.
+    pub late_responses: u32,
+    /// The readiness transcript, at most [`MAX_PUBLISHED_STATUS`] entries.
+    pub status_transcript: Vec<ServerStatusObservation>,
+    /// Every readiness notification observed, including those past the
+    /// published bound.
+    pub status_notifications: u32,
+    /// The terminal session fault, if any — even when the answer had already
+    /// arrived, so a session that answered and then broke says both things.
+    pub fault: Option<AnalyzerFailure>,
+    /// The `Content-Length` a peer declared for a frame above the bound, when
+    /// that is why the session ended. A number the peer chose, never its text.
+    pub declared_frame_bytes: Option<u64>,
+    /// The io error *kind* of a failed kill or reap, and nothing else: no
+    /// path, no message, no pid. `None` means the call reported success.
+    pub kill_error: Option<NonEmptyText>,
+    pub reap_error: Option<NonEmptyText>,
+    /// How long the session itself lasted, from the child being spawned to the
+    /// last thing this adapter observed about it. Not the call: the capture,
+    /// the volume, the ingest and the cleanup are outside it
+    /// ([`AnalyzerExecution::call_duration_ms`]).
+    pub duration_ms: u64,
+}
+
+/// Why a call produced no answer. Each variant maps to one closed envelope
+/// reason of D25 §1.3; none of them is a catch-all.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize)]
+#[serde(rename_all = "snake_case")]
+pub enum AnalyzerFailure {
+    /// The queried file is absent from the capture the call was given.
+    FileNotInSnapshot,
+    /// The queried file's captured bytes are not valid UTF-8.
+    FileNotUtf8,
+    /// The capture carries a `rust-analyzer.toml`, which would take precedence
+    /// over the fixed `initializationOptions` (ADR-084 §6). The hardened capture
+    /// refuses it first; this is the gateway refusing a bundle it was handed,
+    /// because a bundle is only as trustworthy as whoever built it.
+    UnsupportedProjectConfig,
+    /// A caller position or range does not resolve against the captured bytes.
+    PositionOutOfRange,
+    /// `initialize` answered with a `positionEncoding` other than `utf-8`.
+    CapabilityMismatch,
+    /// The readiness oracle did not arrive inside the initialize budget.
+    NotReady,
+    /// The server died, was OOM-killed, or answered `ContentModified`.
+    Crashed,
+    /// A frame, message or byte budget was exceeded; the session was killed.
+    ProtocolLimit,
+    /// The peer declared a `Content-Length` above the 1 MiB frame bound. Split
+    /// from [`Self::MalformedHeader`] so a calibration that asserts the bound is
+    /// asserting the bound and not merely "some header was refused".
+    FrameTooLarge,
+    /// The peer's base-protocol header was refused for any other reason: a
+    /// missing or repeated `Content-Length`, a non-canonical length, a separator
+    /// that is not `\r\n`, an unknown field, or a header over its own bounds.
+    MalformedHeader,
+    /// The peer broke JSON-RPC, or answered with a payload outside the closed
+    /// DTO for the request it was answering.
+    ProtocolViolation,
+    /// The server answered with a JSON-RPC error other than the two codes this
+    /// lifecycle names. Not a violation: a conforming server may refuse.
+    ServerError,
+    /// The initialize phase ran out of budget.
+    TimeoutInitialize,
+    /// The single query ran out of budget.
+    TimeoutQuery,
+    /// The whole call ran out of budget.
+    TimeoutTotal,
+    /// The cancellation token was observed mid-session.
+    Cancelled,
+}
+
+/// Exactly one of an answer or a named failure: never both, never neither.
+#[derive(Clone, Debug, PartialEq, Eq, Serialize)]
+#[serde(rename_all = "snake_case")]
+pub enum AnalyzerOutcome {
+    Answered(AnalyzerResult),
+    Failed(AnalyzerFailure),
+}
+
+/// The runtime a session ran against, as known from the admitted image alone.
+///
+/// This is the part of [`AnalyzerIdentity`] that exists before any negotiation.
+/// A session that never received an `initialize` response has no
+/// `positionEncoding` to publish, and inventing one would be a claim about a
+/// negotiation that did not happen.
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct AnalyzerRuntime {
+    pub version: NonEmptyText,
+    pub binary_sha256: SourceFingerprint,
+    pub image_id: NonEmptyText,
+    pub config_digest: SourceFingerprint,
+}
+
+impl AnalyzerRuntime {
+    /// The full published identity, once an encoding really was negotiated.
+    pub fn negotiated(&self, position_encoding: PositionEncoding) -> AnalyzerIdentity {
+        AnalyzerIdentity {
+            version: self.version.clone(),
+            binary_sha256: self.binary_sha256.clone(),
+            image_id: self.image_id.clone(),
+            config_digest: self.config_digest.clone(),
+            position_encoding,
+        }
+    }
+}
+
+/// One complete analyzer call — answer or failure — with its own evidence.
+#[derive(Clone, Debug, PartialEq, Eq, Serialize)]
+pub struct AnalyzerExecution {
+    pub identity: AnalyzerRuntime,
+    /// `None` exactly when `initialize` never answered.
+    pub position_encoding: Option<PositionEncoding>,
+    pub readiness: AnalyzerReadiness,
+    pub outcome: AnalyzerOutcome,
+    pub completeness: Completeness,
+    pub session: SessionSummary,
+    // Fully qualified rather than imported: the import list above this block
+    // belongs to the package that wrote it, and this addition stays additive.
+    pub termination: crate::ExecutionTermination,
+    pub oom_killed: Option<bool>,
+    /// The whole call: capture checks, volume, ingest, session and cleanup.
+    /// Always at least [`SessionSummary::duration_ms`], and the two are
+    /// published separately because a receipt that reports one as the other
+    /// describes work the session never did.
+    pub call_duration_ms: u64,
+}
+
+impl AnalyzerExecution {
+    /// The answer, when there is one. A failed call has no result to read.
+    pub fn result(&self) -> Option<&AnalyzerResult> {
+        match &self.outcome {
+            AnalyzerOutcome::Answered(result) => Some(result),
+            AnalyzerOutcome::Failed(_) => None,
+        }
+    }
+
+    pub fn failure(&self) -> Option<AnalyzerFailure> {
+        match &self.outcome {
+            AnalyzerOutcome::Answered(_) => None,
+            AnalyzerOutcome::Failed(failure) => Some(*failure),
+        }
+    }
+}
+
+#[cfg(test)]
+mod session_tests {
+    use super::*;
+    use crate::ContractError;
+
+    fn pos(line: u32, column: u32) -> Result<Position, ContractError> {
+        Position::new(line, column)
+    }
+
+    #[test]
+    fn symbol_query_bounds_characters_and_refuses_control_characters() {
+        assert!(SymbolQuery::new("add".into()).is_ok());
+        assert_eq!(
+            SymbolQuery::new(String::new()),
+            Err(AnalyzerError::LimitExceeded)
+        );
+        // The bound counts characters, so 128 astral scalars fit and 129 do not.
+        assert!(SymbolQuery::new("\u{1f600}".repeat(MAX_SYMBOL_QUERY_CHARS)).is_ok());
+        assert_eq!(
+            SymbolQuery::new("\u{1f600}".repeat(MAX_SYMBOL_QUERY_CHARS + 1)),
+            Err(AnalyzerError::LimitExceeded)
+        );
+        assert_eq!(
+            SymbolQuery::new("a\nb".into()),
+            Err(AnalyzerError::Invalid),
+            "a newline would travel verbatim inside a framed JSON string"
+        );
+        assert_eq!(
+            SymbolQuery::new("a\u{7f}b".into()),
+            Err(AnalyzerError::Invalid)
+        );
+    }
+
+    #[test]
+    fn a_result_only_answers_its_own_query() -> Result<(), Box<dyn std::error::Error>> {
+        let file = AnalyzerFile::new("src/lib.rs".into())?;
+        let symbols = AnalyzerQuery::DocumentSymbols { file: file.clone() };
+        let references = AnalyzerQuery::References {
+            file,
+            position: pos(1, 1)?,
+            include_declaration: true,
+        };
+        let answer = AnalyzerResult::DocumentSymbols(Vec::new());
+        assert!(answer.answers(&symbols));
+        assert!(!answer.answers(&references));
+        Ok(())
+    }
+
+    #[test]
+    fn every_query_but_workspace_symbols_names_a_captured_file()
+    -> Result<(), Box<dyn std::error::Error>> {
+        let file = AnalyzerFile::new("src/lib.rs".into())?;
+        assert_eq!(
+            AnalyzerQuery::Diagnostics { file: file.clone() }.file(),
+            Some(&file)
+        );
+        assert_eq!(
+            AnalyzerQuery::CodeActions {
+                file: file.clone(),
+                range: TextRange::new(pos(1, 1)?, pos(1, 2)?)?,
+                only: vec![CodeActionKind::QuickFix],
+            }
+            .file(),
+            Some(&file)
+        );
+        assert_eq!(
+            AnalyzerQuery::WorkspaceSymbols {
+                query: SymbolQuery::new("add".into())?,
+            }
+            .file(),
+            None
+        );
+        Ok(())
+    }
+
+    #[test]
+    fn server_health_has_no_default_for_an_unknown_spelling() {
+        assert_eq!(ServerHealth::from_wire("ok"), Some(ServerHealth::Ok));
+        assert_eq!(
+            ServerHealth::from_wire("warning"),
+            Some(ServerHealth::Warning)
+        );
+        assert_eq!(ServerHealth::from_wire("error"), Some(ServerHealth::Error));
+        assert_eq!(ServerHealth::from_wire("healthy"), None);
+    }
+
+    #[test]
+    fn an_outcome_is_an_answer_or_a_failure_and_never_both()
+    -> Result<(), Box<dyn std::error::Error>> {
+        let execution = AnalyzerExecution {
+            identity: AnalyzerRuntime {
+                version: NonEmptyText::try_from("rust-analyzer 1.98.1".to_owned())?,
+                binary_sha256: format!("sha256:{}", "a".repeat(64)).parse()?,
+                image_id: NonEmptyText::try_from("sha256:m6".to_owned())?,
+                config_digest: format!("sha256:{}", "b".repeat(64)).parse()?,
+            },
+            position_encoding: Some(PositionEncoding::Utf8),
+            readiness: AnalyzerReadiness::NotReady { elapsed_ms: 1_200 },
+            outcome: AnalyzerOutcome::Failed(AnalyzerFailure::NotReady),
+            completeness: Completeness::incomplete(vec![IncompleteReason::AnalyzerNotReady]),
+            session: SessionSummary {
+                stop: SessionStop::Killed,
+                exit_code: None,
+                messages_in: 3,
+                messages_out: 2,
+                bytes_in: 64,
+                bytes_out: 32,
+                stderr_bytes: 0,
+                stderr_sha256: format!("sha256:{}", "c".repeat(64)).parse()?,
+                stderr_truncated: false,
+                server_requests_refused: 0,
+                notifications_dropped: 1,
+                late_responses: 0,
+                status_transcript: vec![ServerStatusObservation {
+                    quiescent: false,
+                    health: Some(ServerHealth::Warning),
+                    elapsed_ms: 900,
+                }],
+                status_notifications: 1,
+                fault: Some(AnalyzerFailure::ProtocolLimit),
+                declared_frame_bytes: None,
+                kill_error: None,
+                reap_error: None,
+                duration_ms: 10,
+            },
+            termination: crate::ExecutionTermination::Exited,
+            oom_killed: Some(false),
+            call_duration_ms: 24,
+        };
+        assert!(execution.result().is_none());
+        assert_eq!(execution.failure(), Some(AnalyzerFailure::NotReady));
+        let identity = execution.identity.negotiated(PositionEncoding::Utf8);
+        assert_eq!(identity.position_encoding, PositionEncoding::Utf8);
+        assert_eq!(identity.version, execution.identity.version);
         Ok(())
     }
 }

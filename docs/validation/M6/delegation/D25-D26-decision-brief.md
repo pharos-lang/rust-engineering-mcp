@@ -283,7 +283,6 @@ y no se acepta como evidencia por sí mismo.
    prefijo):
    `cargo.buildScripts.enable=false`, `procMacro.enable=false`,
    `checkOnSave=false`, `cargo.noDeps=true`, `cargo.sysroot="discover"`,
-   `cargo.sysrootQueryMetadata=false`, `cargo.autoreload=false`,
    `cargo.targetDir=null`, `files.watcher="client"`,
    `cachePriming.enable=false`, `numThreads=1`, `lru.capacity=64`,
    `linkedProjects=["/source/Cargo.toml"]`,
@@ -295,6 +294,18 @@ y no se acepta como evidencia por sí mismo.
    desconocidas, la calibración W04 vuelca `--print-config-schema` del
    binario real de la imagen y falla si alguna clave de esta lista no existe
    en él; el schema volcado se archiva con hash en el recibo.
+
+   **Enmienda 2026-09-12 (calibración W04).** La lista queda en **diecisiete**
+   claves: se retiran `cargo.sysrootQueryMetadata=false`, que no existe en el
+   schema del binario admitido y por tanto nunca configuró nada aunque sí
+   entraba en el `config_digest` ([01.md F1](../01.md)), y
+   `cargo.autoreload=false`, que dejaba todas las sesiones en `health: warning`
+   —«auto-reloading is disabled and the workspace has changed»— y con ello toda
+   respuesta M6 en `incomplete` ([01.md F2](../01.md)). Rige el default
+   `autoreload=true`: la sesión es transitoria, no envía `didChange` y `/source`
+   está montado en solo lectura, así que no hay recarga que evitar. El oráculo
+   de esta misma sección es quien lo detectó; la decisión vinculante está en la
+   enmienda de [ADR-084 §3](../../../adr/ADR-084-rust-analyzer-runtime-and-lsp-lifecycle.md).
 6. **`rust-analyzer.toml`**: la captura rechaza cualquier archivo llamado
    `rust-analyzer.toml` o `.rust-analyzer.toml` (case-insensitive, cualquier
    profundidad) con `UNSUPPORTED_PROJECT_CONFIG`, porque el workspace puede

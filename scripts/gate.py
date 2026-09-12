@@ -199,6 +199,7 @@ def main():
             run('crate-inspect',[sys.executable,'scripts/test-crate-inspect.py'])
             run('doctor',[sys.executable,'scripts/test-doctor.py'])
             run('m5-runtime',[sys.executable,'-B','scripts/test-m5-runtime.py'])
+            run('m6-runtime',[sys.executable,'-B','scripts/test-m6-runtime.py'])
         report['source_inputs_unchanged'] = source_inventory(ROOT, env) == report['source_inputs']
         if not report['source_inputs_unchanged']:
             raise RuntimeError('code/config/fixture inputs changed during gate; qualification rejected')

@@ -19,6 +19,10 @@ use sha2::{Digest, Sha256};
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum CodecError {
     MalformedHeader,
+    /// The `Content-Length` was well formed and above the frame bound. Distinct
+    /// from [`Self::MalformedHeader`] because the bound is a decision of
+    /// ADR-084 §8 and a caller that asserts it must be able to observe it.
+    FrameLimit,
     MalformedMessage,
     BatchRejected,
     MessageLimit,
@@ -42,6 +46,7 @@ impl std::fmt::Display for CodecError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.write_str(match self {
             Self::MalformedHeader => "malformed LSP base-protocol header",
+            Self::FrameLimit => "declared frame length above the frame bound",
             Self::MalformedMessage => "malformed or non-conforming JSON-RPC message",
             Self::BatchRejected => "batched (array) JSON-RPC payload rejected",
             Self::MessageLimit => "message-per-job limit exceeded",
@@ -166,6 +171,10 @@ pub struct Decoder {
     /// `Some` once the current frame's header is parsed: the body is being
     /// awaited and the header must never be scanned or parsed again.
     pending: Option<PendingBody>,
+    /// The `Content-Length` of the frame that broke the bound, kept so the
+    /// caller can publish the number the peer declared rather than only the
+    /// fact that something was refused.
+    declared_frame_bytes: Option<u64>,
     poisoned: Option<CodecError>,
     #[cfg(test)]
     header_scans: usize,
@@ -180,6 +189,7 @@ impl Decoder {
             total_bytes: 0,
             scan_from: 0,
             pending: None,
+            declared_frame_bytes: None,
             poisoned: None,
             #[cfg(test)]
             header_scans: 0,
@@ -225,6 +235,12 @@ impl Decoder {
     #[cfg(test)]
     fn header_scans(&self) -> usize {
         self.header_scans
+    }
+
+    /// The `Content-Length` that exceeded the frame bound, if one did. Only
+    /// ever set together with [`CodecError::FrameLimit`].
+    pub fn declared_frame_bytes(&self) -> Option<u64> {
+        self.declared_frame_bytes
     }
 
     fn try_take_frame(&mut self) -> Result<Option<RawMessage>, CodecError> {
@@ -292,7 +308,18 @@ impl Decoder {
         if lines.is_empty() || lines.len() > MAX_HEADER_LINES {
             return Err(CodecError::MalformedHeader);
         }
-        let content_length = parse_content_length(&lines, self.limits.max_frame_bytes)?;
+        let declared = parse_content_length(&lines)?;
+        // The bound is checked here, where the number can be kept: a peer that
+        // announces a frame this side will not read is refused before a byte of
+        // that body is buffered, and the announcement itself is the evidence.
+        let Ok(content_length) = usize::try_from(declared).map_err(|_| ()) else {
+            self.declared_frame_bytes = Some(declared);
+            return Err(CodecError::FrameLimit);
+        };
+        if content_length > self.limits.max_frame_bytes {
+            self.declared_frame_bytes = Some(declared);
+            return Err(CodecError::FrameLimit);
+        }
         Ok(Some(PendingBody {
             body_start: header_end + 4,
             content_length,
@@ -355,7 +382,9 @@ fn parse_canonical_length(value: &str) -> Option<u64> {
     value.parse().ok()
 }
 
-fn parse_content_length(lines: &[&[u8]], max_frame_bytes: usize) -> Result<usize, CodecError> {
+/// The declared `Content-Length`, unbounded: the frame bound belongs to
+/// [`Decoder::parse_header`], which keeps the offending number as evidence.
+fn parse_content_length(lines: &[&[u8]]) -> Result<u64, CodecError> {
     let mut content_length = None;
     for line in lines {
         let text = std::str::from_utf8(line).map_err(|_| CodecError::MalformedHeader)?;
@@ -370,11 +399,8 @@ fn parse_content_length(lines: &[&[u8]], max_frame_bytes: usize) -> Result<usize
                 }
                 // Exactly one optional separating space, then digits only.
                 let digits = value.strip_prefix(' ').unwrap_or(value);
-                let parsed = parse_canonical_length(digits).ok_or(CodecError::MalformedHeader)?;
-                if parsed > max_frame_bytes as u64 {
-                    return Err(CodecError::MalformedHeader);
-                }
-                content_length = Some(parsed as usize);
+                content_length =
+                    Some(parse_canonical_length(digits).ok_or(CodecError::MalformedHeader)?);
             }
             "content-type" => {}
             _ => return Err(CodecError::MalformedHeader),
@@ -629,8 +655,22 @@ pub struct TextDocumentIdentifier {
 pub struct InitializeParams {
     pub process_id: Option<u32>,
     pub root_uri: String,
+    /// The one folder this session ever has. Added by the session package:
+    /// `rootUri` alone is deprecated in LSP 3.17 and a conforming server may
+    /// read only `workspaceFolders`, so naming the same single folder in both
+    /// places leaves nothing to a server's choice of which field to honour. It
+    /// widens nothing: `linkedProjects` already pins the one manifest
+    /// rust-analyzer may load (ADR-084 §3).
+    pub workspace_folders: Vec<WorkspaceFolder>,
     pub capabilities: serde_json::Value,
     pub initialization_options: serde_json::Value,
+}
+
+/// One LSP workspace folder.
+#[derive(Clone, Debug, Serialize)]
+pub struct WorkspaceFolder {
+    pub uri: String,
+    pub name: String,
 }
 
 impl InitializeParams {
@@ -638,6 +678,10 @@ impl InitializeParams {
         Self {
             process_id: None,
             root_uri: "file:///source".to_owned(),
+            workspace_folders: vec![WorkspaceFolder {
+                uri: "file:///source".to_owned(),
+                name: "source".to_owned(),
+            }],
             capabilities: client_capabilities(),
             initialization_options: initialization_options(),
         }
@@ -695,22 +739,31 @@ fn client_capabilities() -> serde_json::Value {
     })
 }
 
-/// The fixed D25/D26 §4.5 `initializationOptions`, nested exactly per key.
+/// The fixed D25/D26 §4.5 `initializationOptions`, nested exactly per key:
+/// seventeen keys after the 2026-09-12 amendment to ADR-084 §3.
 ///
 /// Contract: every key and value below is binding and unconditional. Because
 /// rust-analyzer ignores unknown configuration keys in silence, correctness of
-/// this map is not established here — the W04 native calibration dumps
+/// this map is not established here — the native calibration dumps
 /// `--print-config-schema` from the real binary of the M6 image and fails if
 /// any key below is absent from it. That dump, archived with its hash in the
 /// receipt, is the oracle; this comment is not.
+///
+/// Two keys the brief listed are deliberately absent, both on the evidence of
+/// that calibration (W04, [F1/F2](../../../docs/validation/M6/01.md)):
+/// `cargo.sysrootQueryMetadata` does not exist in the real binary's schema, so
+/// setting it configured nothing while still entering the `config_digest`; and
+/// `cargo.autoreload=false` made the server publish `health: warning` for the
+/// whole session ("auto-reloading is disabled and the workspace has changed"),
+/// which degraded every M6 answer to `incomplete`. The default `autoreload=true`
+/// is now in force: this lifecycle sends no `didChange`, mounts `/source`
+/// read-only and lives for one query, so there is no reload for it to avoid.
 pub fn initialization_options() -> serde_json::Value {
     serde_json::json!({
         "cargo": {
             "buildScripts": { "enable": false },
             "noDeps": true,
             "sysroot": "discover",
-            "sysrootQueryMetadata": false,
-            "autoreload": false,
             "targetDir": null,
         },
         "procMacro": { "enable": false },
@@ -925,6 +978,14 @@ impl DocumentDiagnosticReport {
 #[serde(rename_all = "camelCase")]
 pub struct CodeActionContext {
     pub diagnostics: Vec<serde_json::Value>,
+    /// The closed `only` filter, in its dotted LSP spelling. Added by the
+    /// session package: without it the `only` input of ADR-083 §1.2 could not
+    /// be expressed at all, and filtering after the fact would spend the
+    /// server's work on kinds the caller excluded. Absent — not an empty array
+    /// — when the caller asked for no filter, because an empty `only` means
+    /// "no kind is acceptable" to a conforming server.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub only: Option<Vec<String>>,
 }
 
 #[derive(Clone, Debug, Serialize)]
@@ -1536,13 +1597,28 @@ mod tests {
     // ---- hostile-peer: header framing ----
 
     #[test]
-    fn content_length_larger_than_max_frame_is_malformed() {
+    fn content_length_larger_than_max_frame_is_a_frame_limit_with_its_number() {
         let mut decoder = Decoder::new(DecoderLimits::default());
-        let bytes = header(domain::MAX_FRAME_BYTES + 1);
+        let declared = domain::MAX_FRAME_BYTES + 1;
+        let bytes = header(declared);
+        assert_eq!(decoder.feed(bytes.as_bytes()), Err(CodecError::FrameLimit));
         assert_eq!(
-            decoder.feed(bytes.as_bytes()),
-            Err(CodecError::MalformedHeader)
+            decoder.declared_frame_bytes(),
+            Some(declared as u64),
+            "the refused length is evidence, not just the refusal"
         );
+    }
+
+    /// A length no `usize` can hold is still the frame bound being broken, and
+    /// the declared number survives the refusal on a 32-bit host too.
+    #[test]
+    fn a_content_length_beyond_usize_is_a_frame_limit() {
+        let mut decoder = Decoder::new(DecoderLimits::default());
+        assert_eq!(
+            decoder.feed(format!("Content-Length: {}\r\n\r\n", u64::MAX).as_bytes()),
+            Err(CodecError::FrameLimit)
+        );
+        assert_eq!(decoder.declared_frame_bytes(), Some(u64::MAX));
     }
 
     #[test]
@@ -1849,6 +1925,7 @@ mod tests {
     fn is_fatal_is_false_only_for_duplicate_and_late() {
         for error in [
             CodecError::MalformedHeader,
+            CodecError::FrameLimit,
             CodecError::MalformedMessage,
             CodecError::BatchRejected,
             CodecError::MessageLimit,

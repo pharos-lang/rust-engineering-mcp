@@ -37,6 +37,7 @@ pub const APPROVED_M4_IMAGE: &str =
 pub use unsafe_log::safe_unsafe_log;
 pub use unsafe_port::SCANNER_IMAGE as APPROVED_SCANNER_IMAGE;
 pub mod lsp_codec;
+mod lsp_session;
 mod semver_gateway;
 mod semver_output;
 mod semver_port;
@@ -775,3 +776,9 @@ mod profile_svg;
 
 mod bloat_json;
 mod criterion_dataset;
+
+mod analyzer_gateway;
+#[cfg(test)]
+mod analyzer_native;
+/// Exact derived M6 runtime admitted by ADR-085; never a mutable build tag.
+pub use analyzer_gateway::{APPROVED_M6_IMAGE, analyzer_config_digest};

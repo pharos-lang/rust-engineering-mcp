@@ -1,0 +1,1367 @@
+{
+  "analyzer_binary_sha256": "sha256:a0c3f11a153e5d5f12a6de6ceabd2def60c2793293e901a4a045946050456e2f",
+  "analyzer_version": "rust-analyzer 1.98.1 (48a229c 2026-09-01)",
+  "config_digest": "sha256:a2592cfc4e65af0b5ff6a36ff737bbc32ef7d5073af65b2a7ee36907d49981b4",
+  "cut_status": {
+    "m6-00-admission": "pass",
+    "m6-01-identity": "pass",
+    "m6-02-document-symbols": "pass",
+    "m6-03-guest-programs": "pass",
+    "m6-04-hostile-ratoml": "pass",
+    "m6-05-never-ready": "pass",
+    "m6-06-cancellation": "pass",
+    "m6-07-crash": "pass",
+    "m6-08-frame-limit": "pass"
+  },
+  "cuts": [
+    {
+      "cut": "m6-00-admission",
+      "duration_ms": 336,
+      "finished_utc": "2026-09-12T07:17:52Z",
+      "fixtures": {
+        "valid-basic": {
+          "archive_sha256": "sha256:a8c3d12a2aaef1b73fa28ed5ecc5dff6a1c0ba257e6516972cfcd424ffc8dfe0",
+          "bytes": 386,
+          "directories": 1,
+          "files": 3
+        }
+      },
+      "image_id": "sha256:f39a5b33ee7d54243664162eb635f8ec223d512042beb7cd18ecf071046b310c",
+      "notes": [],
+      "residue": {
+        "after": {
+          "containers": [],
+          "volumes": []
+        },
+        "before": {
+          "containers": [],
+          "volumes": []
+        }
+      },
+      "run_started_at": "2026-09-12T07:17:52Z",
+      "selections": [
+        {
+          "duration_ms": 0,
+          "observed": {
+            "admitted_image_id": "sha256:f39a5b33ee7d54243664162eb635f8ec223d512042beb7cd18ecf071046b310c",
+            "error": "Unavailable",
+            "image_id": "sha256:e0a5ca1661b3e49d0a3d68ee3cc0963453078d08eb7fc43c30538c16b7998aac"
+          },
+          "selection": "unadmitted-image-refused"
+        }
+      ],
+      "started_utc": "2026-09-12T07:17:51Z",
+      "status": "pass"
+    },
+    {
+      "cut": "m6-01-identity",
+      "duration_ms": 1955,
+      "finished_utc": "2026-09-12T07:17:54Z",
+      "fixtures": {},
+      "image_id": "sha256:f39a5b33ee7d54243664162eb635f8ec223d512042beb7cd18ecf071046b310c",
+      "notes": [],
+      "residue": {
+        "after": {
+          "containers": [],
+          "volumes": []
+        },
+        "before": {
+          "containers": [],
+          "volumes": []
+        }
+      },
+      "run_started_at": "2026-09-12T07:17:54Z",
+      "selections": [
+        {
+          "duration_ms": 532,
+          "observed": {
+            "guest": "rust-analyzer 1.98.1 (48a229c 2026-09-01)",
+            "pinned": "rust-analyzer 1.98.1 (48a229c 2026-09-01)"
+          },
+          "selection": "guest-version-line"
+        },
+        {
+          "duration_ms": 529,
+          "observed": {
+            "guest": "sha256:a0c3f11a153e5d5f12a6de6ceabd2def60c2793293e901a4a045946050456e2f",
+            "pinned": "sha256:a0c3f11a153e5d5f12a6de6ceabd2def60c2793293e901a4a045946050456e2f",
+            "provisioning_receipt": "sha256:a0c3f11a153e5d5f12a6de6ceabd2def60c2793293e901a4a045946050456e2f"
+          },
+          "selection": "guest-binary-digest"
+        },
+        {
+          "duration_ms": 543,
+          "observed": {
+            "checked_keys": [
+              "cachePriming.enable",
+              "cargo.buildScripts.enable",
+              "cargo.noDeps",
+              "cargo.sysroot",
+              "cargo.targetDir",
+              "checkOnSave",
+              "diagnostics.experimental.enable",
+              "files.watcher",
+              "linkedProjects",
+              "lru.capacity",
+              "numThreads",
+              "procMacro.enable",
+              "references.excludeImports",
+              "references.excludeTests",
+              "workspace.symbol.search.kind",
+              "workspace.symbol.search.limit",
+              "workspace.symbol.search.scope"
+            ],
+            "config_schema_bytes": 84726,
+            "config_schema_sha256": "sha256:b9029f5eeb51f7f647766641f1bdf6bb08be85bf531bba1d6f37bad6708d2bb6",
+            "missing_keys": [],
+            "schema_keys": 220
+          },
+          "selection": "fixed-configuration-keys-exist"
+        }
+      ],
+      "started_utc": "2026-09-12T07:17:52Z",
+      "status": "pass"
+    },
+    {
+      "cut": "m6-02-document-symbols",
+      "duration_ms": 1360,
+      "finished_utc": "2026-09-12T07:17:55Z",
+      "fixtures": {
+        "valid-basic": {
+          "archive_sha256": "sha256:a8c3d12a2aaef1b73fa28ed5ecc5dff6a1c0ba257e6516972cfcd424ffc8dfe0",
+          "bytes": 386,
+          "directories": 1,
+          "files": 3
+        }
+      },
+      "image_id": "sha256:f39a5b33ee7d54243664162eb635f8ec223d512042beb7cd18ecf071046b310c",
+      "notes": [],
+      "residue": {
+        "after": {
+          "containers": [],
+          "volumes": []
+        },
+        "before": {
+          "containers": [],
+          "volumes": []
+        }
+      },
+      "run_started_at": "2026-09-12T07:17:55Z",
+      "selections": [
+        {
+          "duration_ms": 1051,
+          "observed": {
+            "facts": {
+              "call": {
+                "duration_ms": 1051
+              },
+              "completeness": {
+                "omissions": [],
+                "reasons": [],
+                "state": "complete"
+              },
+              "failure": null,
+              "oom_killed": false,
+              "position_encoding": "utf-8",
+              "readiness": {
+                "quiescent": {
+                  "elapsed_ms": 362,
+                  "health": "ok"
+                }
+              },
+              "session": {
+                "bytes_in": 3804,
+                "bytes_out": 1934,
+                "declared_frame_bytes": null,
+                "duration_ms": 392,
+                "exit_code": 0,
+                "fault": null,
+                "kill_error": null,
+                "late_responses": 0,
+                "messages_in": 5,
+                "messages_out": 6,
+                "notifications_dropped": 0,
+                "reap_error": null,
+                "server_requests_refused": 0,
+                "status_notifications": 2,
+                "status_transcript": [
+                  {
+                    "elapsed_ms": 53,
+                    "health": "ok",
+                    "quiescent": false
+                  },
+                  {
+                    "elapsed_ms": 362,
+                    "health": "ok",
+                    "quiescent": true
+                  }
+                ],
+                "stderr_bytes": 0,
+                "stderr_sha256": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+                "stderr_truncated": false,
+                "stop": "exited"
+              },
+              "termination": "Exited"
+            },
+            "health": "Ok",
+            "quiescent_after_ms": 362,
+            "symbols": [
+              {
+                "depth": 0,
+                "kind": "Function",
+                "name": "add",
+                "selection_start": {
+                  "column": 8,
+                  "line": 1
+                }
+              },
+              {
+                "depth": 0,
+                "kind": "Function",
+                "name": "addition",
+                "selection_start": {
+                  "column": 4,
+                  "line": 3
+                }
+              }
+            ]
+          },
+          "selection": "document-symbols-valid-basic"
+        }
+      ],
+      "started_utc": "2026-09-12T07:17:54Z",
+      "status": "pass"
+    },
+    {
+      "cut": "m6-03-guest-programs",
+      "duration_ms": 2136,
+      "finished_utc": "2026-09-12T07:17:57Z",
+      "fixtures": {
+        "build-script": {
+          "archive_sha256": "sha256:a457a0a748c25eebcda40df4f85b44655c793d2d8bcb38dd88e0a905ba4af548",
+          "bytes": 699,
+          "directories": 1,
+          "files": 4
+        }
+      },
+      "image_id": "sha256:f39a5b33ee7d54243664162eb635f8ec223d512042beb7cd18ecf071046b310c",
+      "notes": [
+        "Process absence is evidence over 14 sampled instants of a session that reached quiescent, not over the whole interval: `docker container top` is sampled from the host at best every 25 ms while a guest child may live for tens of milliseconds. The deterministic in-band oracle (build-script output unresolvable in `textDocument/diagnostic`) is not part of this cut and is assigned to W07 (M6-03), which owns that query."
+      ],
+      "residue": {
+        "after": {
+          "containers": [],
+          "volumes": []
+        },
+        "before": {
+          "containers": [],
+          "volumes": []
+        }
+      },
+      "run_started_at": "2026-09-12T07:17:57Z",
+      "selections": [
+        {
+          "duration_ms": 1819,
+          "observed": {
+            "argv": [
+              "/opt/analyzer/bin/rust-analyzer"
+            ],
+            "facts": {
+              "call": {
+                "duration_ms": 1819
+              },
+              "completeness": {
+                "omissions": [],
+                "reasons": [],
+                "state": "complete"
+              },
+              "failure": null,
+              "oom_killed": false,
+              "position_encoding": "utf-8",
+              "readiness": {
+                "quiescent": {
+                  "elapsed_ms": 356,
+                  "health": "ok"
+                }
+              },
+              "session": {
+                "bytes_in": 3560,
+                "bytes_out": 1954,
+                "declared_frame_bytes": null,
+                "duration_ms": 1016,
+                "exit_code": 0,
+                "fault": null,
+                "kill_error": null,
+                "late_responses": 0,
+                "messages_in": 5,
+                "messages_out": 6,
+                "notifications_dropped": 0,
+                "reap_error": null,
+                "server_requests_refused": 0,
+                "status_notifications": 2,
+                "status_transcript": [
+                  {
+                    "elapsed_ms": 56,
+                    "health": "ok",
+                    "quiescent": false
+                  },
+                  {
+                    "elapsed_ms": 356,
+                    "health": "ok",
+                    "quiescent": true
+                  }
+                ],
+                "stderr_bytes": 0,
+                "stderr_sha256": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+                "stderr_truncated": false,
+                "stop": "exited"
+              },
+              "termination": "Exited"
+            },
+            "programs": [
+              "rust-analyzer"
+            ],
+            "sample_errors": 0,
+            "sample_interval_ms": 25,
+            "samples": 14
+          },
+          "selection": "initialize-guest-programs"
+        }
+      ],
+      "started_utc": "2026-09-12T07:17:55Z",
+      "status": "pass"
+    },
+    {
+      "cut": "m6-04-hostile-ratoml",
+      "duration_ms": 548,
+      "finished_utc": "2026-09-12T07:17:58Z",
+      "fixtures": {
+        "hostile-ratoml": {
+          "archive_sha256": "sha256:403f1b7592bfb9b4ade7ce7b4da8807d0835ea6141bf749921639bb69965177c",
+          "bytes": 466,
+          "directories": 1,
+          "files": 4
+        }
+      },
+      "image_id": "sha256:f39a5b33ee7d54243664162eb635f8ec223d512042beb7cd18ecf071046b310c",
+      "notes": [
+        "The hardened capture refuses the same names before a bundle can exist; that half is covered by crates/project-adapter/tests/source.rs, which this crate cannot reach without a new dependency. This cut is the gateway's own refusal of a bundle it was handed."
+      ],
+      "residue": {
+        "after": {
+          "containers": [],
+          "volumes": []
+        },
+        "before": {
+          "containers": [],
+          "volumes": []
+        }
+      },
+      "run_started_at": "2026-09-12T07:17:58Z",
+      "selections": [
+        {
+          "duration_ms": 243,
+          "observed": {
+            "call": {
+              "duration_ms": 205
+            },
+            "completeness": {
+              "omissions": [],
+              "reasons": [],
+              "state": "incomplete"
+            },
+            "failure": "UnsupportedProjectConfig",
+            "oom_killed": null,
+            "position_encoding": null,
+            "readiness": {
+              "not_ready": {
+                "elapsed_ms": 0
+              }
+            },
+            "session": {
+              "bytes_in": 0,
+              "bytes_out": 0,
+              "declared_frame_bytes": null,
+              "duration_ms": 0,
+              "exit_code": null,
+              "fault": null,
+              "kill_error": null,
+              "late_responses": 0,
+              "messages_in": 0,
+              "messages_out": 0,
+              "notifications_dropped": 0,
+              "reap_error": null,
+              "server_requests_refused": 0,
+              "status_notifications": 0,
+              "status_transcript": [],
+              "stderr_bytes": 0,
+              "stderr_sha256": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+              "stderr_truncated": false,
+              "stop": "not_started"
+            },
+            "termination": "Exited"
+          },
+          "selection": "hostile-ratoml-refused"
+        }
+      ],
+      "started_utc": "2026-09-12T07:17:58Z",
+      "status": "pass"
+    },
+    {
+      "cut": "m6-05-never-ready",
+      "duration_ms": 1716,
+      "finished_utc": "2026-09-12T07:18:00Z",
+      "fixtures": {
+        "workspace": {
+          "archive_sha256": "sha256:9f0af4ccee31709f9bd5feb9c79bc55fbd4b0a151a7f8f585f1532bd33963101",
+          "bytes": 967,
+          "directories": 4,
+          "files": 6
+        }
+      },
+      "image_id": "sha256:f39a5b33ee7d54243664162eb635f8ec223d512042beb7cd18ecf071046b310c",
+      "notes": [
+        "Initialize budget 150 ms, below the 320-580 ms this repository's fixtures measurably need to reach quiescent against rust-analyzer 1.98.1 (48a229c 2026-09-01) under the fixed configuration; no available fixture stays non-quiescent for a full second."
+      ],
+      "residue": {
+        "after": {
+          "containers": [],
+          "volumes": []
+        },
+        "before": {
+          "containers": [],
+          "volumes": []
+        }
+      },
+      "run_started_at": "2026-09-12T07:18:00Z",
+      "selections": [
+        {
+          "duration_ms": 1397,
+          "observed": {
+            "call": {
+              "duration_ms": 830
+            },
+            "completeness": {
+              "omissions": [],
+              "reasons": [
+                "analyzer_not_ready"
+              ],
+              "state": "incomplete"
+            },
+            "failure": "NotReady",
+            "oom_killed": null,
+            "position_encoding": "utf-8",
+            "readiness": {
+              "not_ready": {
+                "elapsed_ms": 58
+              }
+            },
+            "session": {
+              "bytes_in": 3068,
+              "bytes_out": 1390,
+              "declared_frame_bytes": null,
+              "duration_ms": 152,
+              "exit_code": null,
+              "fault": "timeout_initialize",
+              "kill_error": null,
+              "late_responses": 0,
+              "messages_in": 2,
+              "messages_out": 2,
+              "notifications_dropped": 0,
+              "reap_error": null,
+              "server_requests_refused": 0,
+              "status_notifications": 1,
+              "status_transcript": [
+                {
+                  "elapsed_ms": 58,
+                  "health": "ok",
+                  "quiescent": false
+                }
+              ],
+              "stderr_bytes": 0,
+              "stderr_sha256": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+              "stderr_truncated": false,
+              "stop": "timeout"
+            },
+            "termination": "Exited"
+          },
+          "selection": "never-ready-one-second"
+        }
+      ],
+      "started_utc": "2026-09-12T07:17:58Z",
+      "status": "pass"
+    },
+    {
+      "cut": "m6-06-cancellation",
+      "duration_ms": 2249,
+      "finished_utc": "2026-09-12T07:18:02Z",
+      "fixtures": {
+        "valid-basic": {
+          "archive_sha256": "sha256:a8c3d12a2aaef1b73fa28ed5ecc5dff6a1c0ba257e6516972cfcd424ffc8dfe0",
+          "bytes": 386,
+          "directories": 1,
+          "files": 3
+        }
+      },
+      "image_id": "sha256:f39a5b33ee7d54243664162eb635f8ec223d512042beb7cd18ecf071046b310c",
+      "notes": [],
+      "residue": {
+        "after": {
+          "containers": [],
+          "volumes": []
+        },
+        "before": {
+          "containers": [],
+          "volumes": []
+        }
+      },
+      "run_started_at": "2026-09-12T07:18:02Z",
+      "selections": [
+        {
+          "duration_ms": 1934,
+          "observed": {
+            "cancel": {
+              "inventory_polls": 12,
+              "observed_running_analyzer": true
+            },
+            "facts": {
+              "call": {
+                "duration_ms": 866
+              },
+              "completeness": {
+                "omissions": [],
+                "reasons": [],
+                "state": "incomplete"
+              },
+              "failure": "Cancelled",
+              "oom_killed": null,
+              "position_encoding": "utf-8",
+              "readiness": {
+                "not_ready": {
+                  "elapsed_ms": 0
+                }
+              },
+              "session": {
+                "bytes_in": 3068,
+                "bytes_out": 1390,
+                "declared_frame_bytes": null,
+                "duration_ms": 80,
+                "exit_code": null,
+                "fault": "cancelled",
+                "kill_error": null,
+                "late_responses": 0,
+                "messages_in": 2,
+                "messages_out": 2,
+                "notifications_dropped": 0,
+                "reap_error": null,
+                "server_requests_refused": 0,
+                "status_notifications": 1,
+                "status_transcript": [
+                  {
+                    "elapsed_ms": 56,
+                    "health": "ok",
+                    "quiescent": false
+                  }
+                ],
+                "stderr_bytes": 0,
+                "stderr_sha256": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+                "stderr_truncated": false,
+                "stop": "cancelled"
+              },
+              "termination": "Cancelled"
+            }
+          },
+          "selection": "cancelled-session"
+        },
+        {
+          "duration_ms": 1040,
+          "observed": {
+            "call": {
+              "duration_ms": 1039
+            },
+            "completeness": {
+              "omissions": [],
+              "reasons": [],
+              "state": "complete"
+            },
+            "failure": null,
+            "oom_killed": false,
+            "position_encoding": "utf-8",
+            "readiness": {
+              "quiescent": {
+                "elapsed_ms": 353,
+                "health": "ok"
+              }
+            },
+            "session": {
+              "bytes_in": 3804,
+              "bytes_out": 1934,
+              "declared_frame_bytes": null,
+              "duration_ms": 385,
+              "exit_code": 0,
+              "fault": null,
+              "kill_error": null,
+              "late_responses": 0,
+              "messages_in": 5,
+              "messages_out": 6,
+              "notifications_dropped": 0,
+              "reap_error": null,
+              "server_requests_refused": 0,
+              "status_notifications": 2,
+              "status_transcript": [
+                {
+                  "elapsed_ms": 50,
+                  "health": "ok",
+                  "quiescent": false
+                },
+                {
+                  "elapsed_ms": 353,
+                  "health": "ok",
+                  "quiescent": true
+                }
+              ],
+              "stderr_bytes": 0,
+              "stderr_sha256": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+              "stderr_truncated": false,
+              "stop": "exited"
+            },
+            "termination": "Exited"
+          },
+          "selection": "second-call-after-cancellation"
+        }
+      ],
+      "started_utc": "2026-09-12T07:18:00Z",
+      "status": "pass"
+    },
+    {
+      "cut": "m6-07-crash",
+      "duration_ms": 1186,
+      "finished_utc": "2026-09-12T07:18:04Z",
+      "fixtures": {
+        "valid-basic": {
+          "archive_sha256": "sha256:a8c3d12a2aaef1b73fa28ed5ecc5dff6a1c0ba257e6516972cfcd424ffc8dfe0",
+          "bytes": 386,
+          "directories": 1,
+          "files": 3
+        }
+      },
+      "image_id": "sha256:f39a5b33ee7d54243664162eb635f8ec223d512042beb7cd18ecf071046b310c",
+      "notes": [
+        "The kill lands during indexing rather than after the readiness oracle: the measured post-quiescent window of a small fixture is a few hundred milliseconds, and a later kill would race the answer. The property under test — a dead server is reported, never masked as an empty result — is the same either way."
+      ],
+      "residue": {
+        "after": {
+          "containers": [],
+          "volumes": []
+        },
+        "before": {
+          "containers": [],
+          "volumes": []
+        }
+      },
+      "run_started_at": "2026-09-12T07:18:04Z",
+      "selections": [
+        {
+          "duration_ms": 886,
+          "observed": {
+            "facts": {
+              "call": {
+                "duration_ms": 886
+              },
+              "completeness": {
+                "omissions": [],
+                "reasons": [],
+                "state": "incomplete"
+              },
+              "failure": "Crashed",
+              "oom_killed": false,
+              "position_encoding": "utf-8",
+              "readiness": {
+                "not_ready": {
+                  "elapsed_ms": 0
+                }
+              },
+              "session": {
+                "bytes_in": 3068,
+                "bytes_out": 1390,
+                "declared_frame_bytes": null,
+                "duration_ms": 127,
+                "exit_code": 137,
+                "fault": null,
+                "kill_error": null,
+                "late_responses": 0,
+                "messages_in": 2,
+                "messages_out": 2,
+                "notifications_dropped": 0,
+                "reap_error": null,
+                "server_requests_refused": 0,
+                "status_notifications": 1,
+                "status_transcript": [
+                  {
+                    "elapsed_ms": 55,
+                    "health": "ok",
+                    "quiescent": false
+                  }
+                ],
+                "stderr_bytes": 0,
+                "stderr_sha256": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+                "stderr_truncated": false,
+                "stop": "eof"
+              },
+              "termination": "Exited"
+            },
+            "kill": {
+              "guest_state": {
+                "exit_code": 137,
+                "oom_killed": false,
+                "status": "exited"
+              },
+              "killed": true,
+              "target": "rust-mcp-analyzer-7c4f66dc1b35bffe779f7f262495b27f"
+            }
+          },
+          "selection": "killed-analyzer"
+        }
+      ],
+      "started_utc": "2026-09-12T07:18:02Z",
+      "status": "pass"
+    },
+    {
+      "cut": "m6-08-frame-limit",
+      "duration_ms": 1463,
+      "finished_utc": "2026-09-12T07:18:05Z",
+      "fixtures": {
+        "generated": {
+          "archive_sha256": "sha256:06311546a84154ffec058220aa8198488b72886e98edac1510659d7451ef212a",
+          "bytes": 312127,
+          "directories": 1,
+          "files": 2
+        }
+      },
+      "image_id": "sha256:f39a5b33ee7d54243664162eb635f8ec223d512042beb7cd18ecf071046b310c",
+      "notes": [],
+      "residue": {
+        "after": {
+          "containers": [],
+          "volumes": []
+        },
+        "before": {
+          "containers": [],
+          "volumes": []
+        }
+      },
+      "run_started_at": "2026-09-12T07:18:05Z",
+      "selections": [
+        {
+          "duration_ms": 1139,
+          "observed": {
+            "declared_content_length": 3015595,
+            "facts": {
+              "call": {
+                "duration_ms": 1139
+              },
+              "completeness": {
+                "omissions": [],
+                "reasons": [],
+                "state": "incomplete"
+              },
+              "failure": "FrameTooLarge",
+              "oom_killed": null,
+              "position_encoding": "utf-8",
+              "readiness": {
+                "quiescent": {
+                  "elapsed_ms": 385,
+                  "health": "ok"
+                }
+              },
+              "session": {
+                "bytes_in": 3229,
+                "bytes_out": 325717,
+                "declared_frame_bytes": 3015595,
+                "duration_ms": 454,
+                "exit_code": null,
+                "fault": "frame_too_large",
+                "kill_error": null,
+                "late_responses": 0,
+                "messages_in": 3,
+                "messages_out": 4,
+                "notifications_dropped": 0,
+                "reap_error": null,
+                "server_requests_refused": 0,
+                "status_notifications": 2,
+                "status_transcript": [
+                  {
+                    "elapsed_ms": 72,
+                    "health": "ok",
+                    "quiescent": false
+                  },
+                  {
+                    "elapsed_ms": 385,
+                    "health": "ok",
+                    "quiescent": true
+                  }
+                ],
+                "stderr_bytes": 0,
+                "stderr_sha256": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+                "stderr_truncated": false,
+                "stop": "killed"
+              },
+              "termination": "Exited"
+            },
+            "max_frame_bytes": 1048576
+          },
+          "selection": "oversized-real-answer"
+        }
+      ],
+      "started_utc": "2026-09-12T07:18:04Z",
+      "status": "pass"
+    }
+  ],
+  "finished_utc": "2026-09-12T07:18:05Z",
+  "image_id": "sha256:f39a5b33ee7d54243664162eb635f8ec223d512042beb7cd18ecf071046b310c",
+  "image_tag_at_provisioning": "rust-engineering-runtime:1.98.1-arm64-m6",
+  "schema": "rust-engineering-mcp.m6-calibration.v1",
+  "selections": [
+    {
+      "duration_ms": 0,
+      "observed": {
+        "admitted_image_id": "sha256:f39a5b33ee7d54243664162eb635f8ec223d512042beb7cd18ecf071046b310c",
+        "error": "Unavailable",
+        "image_id": "sha256:e0a5ca1661b3e49d0a3d68ee3cc0963453078d08eb7fc43c30538c16b7998aac"
+      },
+      "selection": "unadmitted-image-refused"
+    },
+    {
+      "duration_ms": 532,
+      "observed": {
+        "guest": "rust-analyzer 1.98.1 (48a229c 2026-09-01)",
+        "pinned": "rust-analyzer 1.98.1 (48a229c 2026-09-01)"
+      },
+      "selection": "guest-version-line"
+    },
+    {
+      "duration_ms": 529,
+      "observed": {
+        "guest": "sha256:a0c3f11a153e5d5f12a6de6ceabd2def60c2793293e901a4a045946050456e2f",
+        "pinned": "sha256:a0c3f11a153e5d5f12a6de6ceabd2def60c2793293e901a4a045946050456e2f",
+        "provisioning_receipt": "sha256:a0c3f11a153e5d5f12a6de6ceabd2def60c2793293e901a4a045946050456e2f"
+      },
+      "selection": "guest-binary-digest"
+    },
+    {
+      "duration_ms": 543,
+      "observed": {
+        "checked_keys": [
+          "cachePriming.enable",
+          "cargo.buildScripts.enable",
+          "cargo.noDeps",
+          "cargo.sysroot",
+          "cargo.targetDir",
+          "checkOnSave",
+          "diagnostics.experimental.enable",
+          "files.watcher",
+          "linkedProjects",
+          "lru.capacity",
+          "numThreads",
+          "procMacro.enable",
+          "references.excludeImports",
+          "references.excludeTests",
+          "workspace.symbol.search.kind",
+          "workspace.symbol.search.limit",
+          "workspace.symbol.search.scope"
+        ],
+        "config_schema_bytes": 84726,
+        "config_schema_sha256": "sha256:b9029f5eeb51f7f647766641f1bdf6bb08be85bf531bba1d6f37bad6708d2bb6",
+        "missing_keys": [],
+        "schema_keys": 220
+      },
+      "selection": "fixed-configuration-keys-exist"
+    },
+    {
+      "duration_ms": 1051,
+      "observed": {
+        "facts": {
+          "call": {
+            "duration_ms": 1051
+          },
+          "completeness": {
+            "omissions": [],
+            "reasons": [],
+            "state": "complete"
+          },
+          "failure": null,
+          "oom_killed": false,
+          "position_encoding": "utf-8",
+          "readiness": {
+            "quiescent": {
+              "elapsed_ms": 362,
+              "health": "ok"
+            }
+          },
+          "session": {
+            "bytes_in": 3804,
+            "bytes_out": 1934,
+            "declared_frame_bytes": null,
+            "duration_ms": 392,
+            "exit_code": 0,
+            "fault": null,
+            "kill_error": null,
+            "late_responses": 0,
+            "messages_in": 5,
+            "messages_out": 6,
+            "notifications_dropped": 0,
+            "reap_error": null,
+            "server_requests_refused": 0,
+            "status_notifications": 2,
+            "status_transcript": [
+              {
+                "elapsed_ms": 53,
+                "health": "ok",
+                "quiescent": false
+              },
+              {
+                "elapsed_ms": 362,
+                "health": "ok",
+                "quiescent": true
+              }
+            ],
+            "stderr_bytes": 0,
+            "stderr_sha256": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "stderr_truncated": false,
+            "stop": "exited"
+          },
+          "termination": "Exited"
+        },
+        "health": "Ok",
+        "quiescent_after_ms": 362,
+        "symbols": [
+          {
+            "depth": 0,
+            "kind": "Function",
+            "name": "add",
+            "selection_start": {
+              "column": 8,
+              "line": 1
+            }
+          },
+          {
+            "depth": 0,
+            "kind": "Function",
+            "name": "addition",
+            "selection_start": {
+              "column": 4,
+              "line": 3
+            }
+          }
+        ]
+      },
+      "selection": "document-symbols-valid-basic"
+    },
+    {
+      "duration_ms": 1819,
+      "observed": {
+        "argv": [
+          "/opt/analyzer/bin/rust-analyzer"
+        ],
+        "facts": {
+          "call": {
+            "duration_ms": 1819
+          },
+          "completeness": {
+            "omissions": [],
+            "reasons": [],
+            "state": "complete"
+          },
+          "failure": null,
+          "oom_killed": false,
+          "position_encoding": "utf-8",
+          "readiness": {
+            "quiescent": {
+              "elapsed_ms": 356,
+              "health": "ok"
+            }
+          },
+          "session": {
+            "bytes_in": 3560,
+            "bytes_out": 1954,
+            "declared_frame_bytes": null,
+            "duration_ms": 1016,
+            "exit_code": 0,
+            "fault": null,
+            "kill_error": null,
+            "late_responses": 0,
+            "messages_in": 5,
+            "messages_out": 6,
+            "notifications_dropped": 0,
+            "reap_error": null,
+            "server_requests_refused": 0,
+            "status_notifications": 2,
+            "status_transcript": [
+              {
+                "elapsed_ms": 56,
+                "health": "ok",
+                "quiescent": false
+              },
+              {
+                "elapsed_ms": 356,
+                "health": "ok",
+                "quiescent": true
+              }
+            ],
+            "stderr_bytes": 0,
+            "stderr_sha256": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "stderr_truncated": false,
+            "stop": "exited"
+          },
+          "termination": "Exited"
+        },
+        "programs": [
+          "rust-analyzer"
+        ],
+        "sample_errors": 0,
+        "sample_interval_ms": 25,
+        "samples": 14
+      },
+      "selection": "initialize-guest-programs"
+    },
+    {
+      "duration_ms": 243,
+      "observed": {
+        "call": {
+          "duration_ms": 205
+        },
+        "completeness": {
+          "omissions": [],
+          "reasons": [],
+          "state": "incomplete"
+        },
+        "failure": "UnsupportedProjectConfig",
+        "oom_killed": null,
+        "position_encoding": null,
+        "readiness": {
+          "not_ready": {
+            "elapsed_ms": 0
+          }
+        },
+        "session": {
+          "bytes_in": 0,
+          "bytes_out": 0,
+          "declared_frame_bytes": null,
+          "duration_ms": 0,
+          "exit_code": null,
+          "fault": null,
+          "kill_error": null,
+          "late_responses": 0,
+          "messages_in": 0,
+          "messages_out": 0,
+          "notifications_dropped": 0,
+          "reap_error": null,
+          "server_requests_refused": 0,
+          "status_notifications": 0,
+          "status_transcript": [],
+          "stderr_bytes": 0,
+          "stderr_sha256": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stderr_truncated": false,
+          "stop": "not_started"
+        },
+        "termination": "Exited"
+      },
+      "selection": "hostile-ratoml-refused"
+    },
+    {
+      "duration_ms": 1397,
+      "observed": {
+        "call": {
+          "duration_ms": 830
+        },
+        "completeness": {
+          "omissions": [],
+          "reasons": [
+            "analyzer_not_ready"
+          ],
+          "state": "incomplete"
+        },
+        "failure": "NotReady",
+        "oom_killed": null,
+        "position_encoding": "utf-8",
+        "readiness": {
+          "not_ready": {
+            "elapsed_ms": 58
+          }
+        },
+        "session": {
+          "bytes_in": 3068,
+          "bytes_out": 1390,
+          "declared_frame_bytes": null,
+          "duration_ms": 152,
+          "exit_code": null,
+          "fault": "timeout_initialize",
+          "kill_error": null,
+          "late_responses": 0,
+          "messages_in": 2,
+          "messages_out": 2,
+          "notifications_dropped": 0,
+          "reap_error": null,
+          "server_requests_refused": 0,
+          "status_notifications": 1,
+          "status_transcript": [
+            {
+              "elapsed_ms": 58,
+              "health": "ok",
+              "quiescent": false
+            }
+          ],
+          "stderr_bytes": 0,
+          "stderr_sha256": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stderr_truncated": false,
+          "stop": "timeout"
+        },
+        "termination": "Exited"
+      },
+      "selection": "never-ready-one-second"
+    },
+    {
+      "duration_ms": 1934,
+      "observed": {
+        "cancel": {
+          "inventory_polls": 12,
+          "observed_running_analyzer": true
+        },
+        "facts": {
+          "call": {
+            "duration_ms": 866
+          },
+          "completeness": {
+            "omissions": [],
+            "reasons": [],
+            "state": "incomplete"
+          },
+          "failure": "Cancelled",
+          "oom_killed": null,
+          "position_encoding": "utf-8",
+          "readiness": {
+            "not_ready": {
+              "elapsed_ms": 0
+            }
+          },
+          "session": {
+            "bytes_in": 3068,
+            "bytes_out": 1390,
+            "declared_frame_bytes": null,
+            "duration_ms": 80,
+            "exit_code": null,
+            "fault": "cancelled",
+            "kill_error": null,
+            "late_responses": 0,
+            "messages_in": 2,
+            "messages_out": 2,
+            "notifications_dropped": 0,
+            "reap_error": null,
+            "server_requests_refused": 0,
+            "status_notifications": 1,
+            "status_transcript": [
+              {
+                "elapsed_ms": 56,
+                "health": "ok",
+                "quiescent": false
+              }
+            ],
+            "stderr_bytes": 0,
+            "stderr_sha256": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "stderr_truncated": false,
+            "stop": "cancelled"
+          },
+          "termination": "Cancelled"
+        }
+      },
+      "selection": "cancelled-session"
+    },
+    {
+      "duration_ms": 1040,
+      "observed": {
+        "call": {
+          "duration_ms": 1039
+        },
+        "completeness": {
+          "omissions": [],
+          "reasons": [],
+          "state": "complete"
+        },
+        "failure": null,
+        "oom_killed": false,
+        "position_encoding": "utf-8",
+        "readiness": {
+          "quiescent": {
+            "elapsed_ms": 353,
+            "health": "ok"
+          }
+        },
+        "session": {
+          "bytes_in": 3804,
+          "bytes_out": 1934,
+          "declared_frame_bytes": null,
+          "duration_ms": 385,
+          "exit_code": 0,
+          "fault": null,
+          "kill_error": null,
+          "late_responses": 0,
+          "messages_in": 5,
+          "messages_out": 6,
+          "notifications_dropped": 0,
+          "reap_error": null,
+          "server_requests_refused": 0,
+          "status_notifications": 2,
+          "status_transcript": [
+            {
+              "elapsed_ms": 50,
+              "health": "ok",
+              "quiescent": false
+            },
+            {
+              "elapsed_ms": 353,
+              "health": "ok",
+              "quiescent": true
+            }
+          ],
+          "stderr_bytes": 0,
+          "stderr_sha256": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stderr_truncated": false,
+          "stop": "exited"
+        },
+        "termination": "Exited"
+      },
+      "selection": "second-call-after-cancellation"
+    },
+    {
+      "duration_ms": 886,
+      "observed": {
+        "facts": {
+          "call": {
+            "duration_ms": 886
+          },
+          "completeness": {
+            "omissions": [],
+            "reasons": [],
+            "state": "incomplete"
+          },
+          "failure": "Crashed",
+          "oom_killed": false,
+          "position_encoding": "utf-8",
+          "readiness": {
+            "not_ready": {
+              "elapsed_ms": 0
+            }
+          },
+          "session": {
+            "bytes_in": 3068,
+            "bytes_out": 1390,
+            "declared_frame_bytes": null,
+            "duration_ms": 127,
+            "exit_code": 137,
+            "fault": null,
+            "kill_error": null,
+            "late_responses": 0,
+            "messages_in": 2,
+            "messages_out": 2,
+            "notifications_dropped": 0,
+            "reap_error": null,
+            "server_requests_refused": 0,
+            "status_notifications": 1,
+            "status_transcript": [
+              {
+                "elapsed_ms": 55,
+                "health": "ok",
+                "quiescent": false
+              }
+            ],
+            "stderr_bytes": 0,
+            "stderr_sha256": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "stderr_truncated": false,
+            "stop": "eof"
+          },
+          "termination": "Exited"
+        },
+        "kill": {
+          "guest_state": {
+            "exit_code": 137,
+            "oom_killed": false,
+            "status": "exited"
+          },
+          "killed": true,
+          "target": "rust-mcp-analyzer-7c4f66dc1b35bffe779f7f262495b27f"
+        }
+      },
+      "selection": "killed-analyzer"
+    },
+    {
+      "duration_ms": 1139,
+      "observed": {
+        "declared_content_length": 3015595,
+        "facts": {
+          "call": {
+            "duration_ms": 1139
+          },
+          "completeness": {
+            "omissions": [],
+            "reasons": [],
+            "state": "incomplete"
+          },
+          "failure": "FrameTooLarge",
+          "oom_killed": null,
+          "position_encoding": "utf-8",
+          "readiness": {
+            "quiescent": {
+              "elapsed_ms": 385,
+              "health": "ok"
+            }
+          },
+          "session": {
+            "bytes_in": 3229,
+            "bytes_out": 325717,
+            "declared_frame_bytes": 3015595,
+            "duration_ms": 454,
+            "exit_code": null,
+            "fault": "frame_too_large",
+            "kill_error": null,
+            "late_responses": 0,
+            "messages_in": 3,
+            "messages_out": 4,
+            "notifications_dropped": 0,
+            "reap_error": null,
+            "server_requests_refused": 0,
+            "status_notifications": 2,
+            "status_transcript": [
+              {
+                "elapsed_ms": 72,
+                "health": "ok",
+                "quiescent": false
+              },
+              {
+                "elapsed_ms": 385,
+                "health": "ok",
+                "quiescent": true
+              }
+            ],
+            "stderr_bytes": 0,
+            "stderr_sha256": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "stderr_truncated": false,
+            "stop": "killed"
+          },
+          "termination": "Exited"
+        },
+        "max_frame_bytes": 1048576
+      },
+      "selection": "oversized-real-answer"
+    }
+  ],
+  "sources": {
+    "../domain/src/analyzer.rs": "sha256:d8cb66958a998278812bc147e54bc68b90e44c0c4e01226e1bc5a6e68411b458",
+    "src/analyzer_gateway.rs": "sha256:1266626ae14115f9922fc75f7eeff055c3d4c4090b9d9fcffb6463095eeffda6",
+    "src/analyzer_native.rs": "sha256:95bc94fb0107000a759cae51a1bb963eae62fd7689654b4e5171f619c8153818",
+    "src/lsp_codec.rs": "sha256:4c327379f1cbf921cd39d1613f178f1f6d1ea5332e222bb0ac1ab0aab99b21d0",
+    "src/lsp_session.rs": "sha256:f1c170f52108e3950166227b1c46532d30d89b48655fec0feef8da0c3be5a93a",
+    "src/rust_applied.rs": "sha256:b67d4a2ebe44e1f164edc7dee87d5a00aa30960722bcbe98bff50bf62b478ca0",
+    "src/rust_gateway.rs": "sha256:ee57c4d09885a7b88814dfa8c821cd52fab962e98933c9e5b73eaac2524f1363"
+  },
+  "started_utc": "2026-09-12T07:17:51Z"
+}

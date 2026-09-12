@@ -354,13 +354,13 @@ pasa a **25 etapas core** (`fmt`, `check`, `clippy`, `test`, `doctests`,
 `m4-provisioning-tests`, `m5-helper-fmt`, `m5-helper-guest-clippy`,
 `m5-helper-tests`, `m5-vendor-tests`,
 `m6-provisioning-tests`, `m6-provisioning-unit-tests`, `vendor`,
-`cargo-fixtures`, `audit`, `deny`) y **40 en full**, que añade las 14 etapas
+`cargo-fixtures`, `audit`, `deny`) y **41 en full**, que añade las 14 etapas
 nativas ya documentadas (`docker-security`, `rust-security`, `m2-runtime`,
 `m3-runtime`, `m4-tampered-plugin`, `m4-inventory`, `m4-runtime`,
 `audit-data`, `semantic`, `catalog`, `catalog-status`, `crate-search`,
-`crate-inspect`, `doctor`). Ese conteo describe la configuración vigente del
-script, no una ejecución acreditada: no existe todavía un recibo de gate M5 ni
-de gate M6.
+`crate-inspect`, `doctor`) más `m5-runtime` y `m6-runtime`. Ese conteo describe
+la configuración vigente del script, no una ejecución acreditada: no existe
+todavía un recibo de gate M5 ni de gate M6.
 
 ### Etapa full para el runtime nativo M5
 
@@ -467,3 +467,27 @@ anterior—. El `docker build` en sí corre con `--network=none`, igual que M4/M
 El recibo se escribe en `docs/validation/M6/provisioning.json`. Construir esa
 imagen no la admite en el gateway: la admisión es una decisión separada con su
 propia calificación nativa, igual que en M5.
+
+### Etapa full para el runtime nativo M6
+
+`full` incorpora `m6-runtime`, justo después de `m5-runtime`, que ejecuta
+`scripts/test-m6-runtime.py` sobre la imagen admitida por
+[ADR-085](adr/ADR-085-m6-runtime-admission.md). El script descubre las
+selecciones ignoradas de `analyzer_native.rs` y las ejecuta una por vez con
+`--exact --ignored --nocapture --test-threads=1`, sin features adicionales;
+comprueba antes de medir que el digest admitido coincide en el código, el ADR y
+el recibo de aprovisionamiento, y que la versión y el sha256 del binario fijados
+en el gateway coinciden con ese recibo; y registra sources, fixtures, logs,
+resultado, estado por corte y digest del recibo nativo
+(`target/m6-calibration/receipt.json`, esquema
+`rust-engineering-mcp.m6-calibration.v1`). No aprovisiona ni reconstruye
+imágenes. La existencia de la etapa no constituye por sí sola un gate aprobado.
+
+Para que ese recibo describa **esta** ejecución y no una anterior, la etapa
+borra `target/m6-calibration/cut-*.json` y `receipt.json` antes de empezar,
+exige que los cortes publicados sean exactamente los de las selecciones que
+ejecutó y que cada documento lleve un `run_started_at` igual o posterior al
+inicio de la etapa. Cada corte publica su documento con estado `fail` si
+termina sin alcanzar su veredicto, de modo que un corte que revienta deja
+evidencia en lugar de un hueco. Las funciones puras del script tienen sus
+propios tests portables en `scripts/test-m6-runtime-unit.py`.
