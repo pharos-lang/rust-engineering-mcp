@@ -6,13 +6,15 @@ use rust_engineering_domain::{
     ServerHealth, SessionStop, SessionSummary,
 };
 
-type TestResult = Result<(), Box<dyn std::error::Error>>;
+pub(super) type TestResult = Result<(), Box<dyn std::error::Error>>;
 
-fn fingerprint(value: u8) -> Result<domain::SourceFingerprint, Box<dyn std::error::Error>> {
+pub(super) fn fingerprint(
+    value: u8,
+) -> Result<domain::SourceFingerprint, Box<dyn std::error::Error>> {
     Ok(format!("sha256:{value:064x}").parse()?)
 }
 
-fn identity() -> Result<AnalyzerRuntime, Box<dyn std::error::Error>> {
+pub(super) fn identity() -> Result<AnalyzerRuntime, Box<dyn std::error::Error>> {
     Ok(AnalyzerRuntime {
         version: NonEmptyText::try_from("rust-analyzer 1.98.1 (48a229c 2026-09-01)".to_owned())?,
         binary_sha256: fingerprint(1)?,
@@ -21,7 +23,7 @@ fn identity() -> Result<AnalyzerRuntime, Box<dyn std::error::Error>> {
     })
 }
 
-fn session(
+pub(super) fn session(
     kill_error: Option<&str>,
     reap_error: Option<&str>,
 ) -> Result<SessionSummary, Box<dyn std::error::Error>> {
@@ -52,7 +54,7 @@ fn session(
     })
 }
 
-fn report(
+pub(super) fn report(
     execution: domain::AnalyzerExecution,
 ) -> Result<AnalyzerReport, Box<dyn std::error::Error>> {
     Ok(AnalyzerReport {
@@ -68,7 +70,7 @@ fn report(
     })
 }
 
-fn answered() -> Result<domain::AnalyzerExecution, Box<dyn std::error::Error>> {
+pub(super) fn answered() -> Result<domain::AnalyzerExecution, Box<dyn std::error::Error>> {
     Ok(domain::AnalyzerExecution {
         identity: identity()?,
         position_encoding: Some(PositionEncoding::Utf8),
@@ -85,7 +87,7 @@ fn answered() -> Result<domain::AnalyzerExecution, Box<dyn std::error::Error>> {
     })
 }
 
-fn failed(
+pub(super) fn failed(
     failure: AnalyzerFailure,
 ) -> Result<domain::AnalyzerExecution, Box<dyn std::error::Error>> {
     Ok(domain::AnalyzerExecution {
@@ -1103,6 +1105,25 @@ mod new_tools {
         let (bounded, truncated) = bounded_message(&long);
         assert_eq!(bounded.chars().count(), MAX_DIAGNOSTIC_MESSAGE_SCALARS);
         assert!(truncated);
+    }
+
+    /// W08b: beyond `char::is_control` (Cc), bidi overrides/isolates,
+    /// zero-width characters and the line/paragraph separators are also
+    /// neutralised before a diagnostic `message` or `code` reaches the wire.
+    #[test]
+    fn diagnostic_message_neutralises_every_peer_text_hazard_category() {
+        for hazard in [
+            '\u{202E}', // bidi override (RLO)
+            '\u{2066}', // bidi isolate (LRI)
+            '\u{200B}', // zero-width space
+            '\u{FEFF}', // zero-width no-break space / BOM
+            '\u{2028}', // line separator
+            '\u{2029}', // paragraph separator
+        ] {
+            let (sanitized, truncated) = bounded_message(&format!("before{hazard}after"));
+            assert!(!truncated);
+            assert_eq!(sanitized, "before\u{fffd}after", "{hazard:?}");
+        }
     }
 
     /// V06 P2: `code` gets the same control-character sanitization as

@@ -44,6 +44,9 @@ pub fn mutation_digest(candidate: &MutationCandidate) -> Result<SourceFingerprin
         rust_engineering_domain::MutationKind::FixApply => b"fix_apply".as_slice(),
         rust_engineering_domain::MutationKind::DependencyAdd => b"dependency_add".as_slice(),
         rust_engineering_domain::MutationKind::DependencyRemove => b"dependency_remove".as_slice(),
+        rust_engineering_domain::MutationKind::AnalyzerActionApply => {
+            b"analyzer_action_apply".as_slice()
+        }
     };
     field(&mut hash, kind);
     bundle(&mut hash, &candidate.before);

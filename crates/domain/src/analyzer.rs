@@ -23,6 +23,10 @@ pub enum AnalyzerError {
     UnknownSeverity,
     Invalid,
     LimitExceeded,
+    /// An edit names a file the bundle it is applied to does not carry.
+    FileNotInSnapshot,
+    /// An action carries no edit, so applying it would change nothing.
+    NoEdits,
 }
 
 impl fmt::Display for AnalyzerError {
@@ -37,6 +41,8 @@ impl fmt::Display for AnalyzerError {
             Self::UnknownSeverity => "LSP DiagnosticSeverity is outside 1..=4",
             Self::Invalid => "value fails a domain invariant",
             Self::LimitExceeded => "value exceeds a closed analyzer limit",
+            Self::FileNotInSnapshot => "an edit names a file absent from the snapshot",
+            Self::NoEdits => "the action carries no edit",
         })
     }
 }
@@ -1612,7 +1618,30 @@ pub struct AnalyzerAction {
 #[serde(rename_all = "snake_case")]
 pub enum ActionCandidate {
     Applicable(AnalyzerAction),
-    Rejected(ActionRejection),
+    Rejected(RejectedAction),
+}
+
+/// A refused element of a `textDocument/codeAction` answer (ADR-083 §4).
+///
+/// `title` and `kind` are the peer's own values when the element parsed far
+/// enough to carry them, so two rejections stay distinguishable; `None` when
+/// it did not (a malformed element, or an unknown kind string). Neither is
+/// ever used to resolve or apply anything.
+#[derive(Clone, Debug, PartialEq, Eq, Serialize)]
+pub struct RejectedAction {
+    pub reason: ActionRejection,
+    pub title: Option<NonEmptyText>,
+    pub kind: Option<CodeActionKind>,
+}
+
+impl From<ActionRejection> for RejectedAction {
+    fn from(reason: ActionRejection) -> Self {
+        Self {
+            reason,
+            title: None,
+            kind: None,
+        }
+    }
 }
 
 /// The answer to exactly one [`AnalyzerQuery`], in domain values.
@@ -2030,5 +2059,569 @@ mod session_tests {
         assert_eq!(identity.position_encoding, PositionEncoding::Utf8);
         assert_eq!(identity.version, execution.identity.version);
         Ok(())
+    }
+}
+
+// ---------------------------------------------------------------------
+// M6-04 action candidate values. Appended by the action-candidate package;
+// above this line only `AnalyzerError` gained the two variants it needs.
+// ---------------------------------------------------------------------
+
+use std::collections::{BTreeMap, btree_map::Entry};
+
+/// Opens every [`AnalyzerAction::digest_input`]. Changing the encoding below
+/// must change this, and with it every published `action_digest`.
+const ACTION_DIGEST_INPUT_DOMAIN: &[u8] = b"rust-engineering-mcp/analyzer-action/v1\0";
+
+fn push_field(out: &mut Vec<u8>, bytes: &[u8]) {
+    out.extend_from_slice(&(bytes.len() as u64).to_le_bytes());
+    out.extend_from_slice(bytes);
+}
+
+fn push_position(out: &mut Vec<u8>, position: Position) {
+    out.extend_from_slice(&position.line.get().to_le_bytes());
+    out.extend_from_slice(&position.column.get().to_le_bytes());
+}
+
+impl AnalyzerAction {
+    /// The canonical bytes an adapter hashes into this action's
+    /// `action_digest` (ADR-083 §2). The runtime and snapshot identity are
+    /// appended by the adapter, which owns the hash.
+    ///
+    /// Covers `title`, `kind` and the edits, and nothing else: `is_preferred`
+    /// is a presentation hint that does not change what applying the action
+    /// writes, so a server flipping it between two sessions does not make a
+    /// previewed action stale.
+    ///
+    /// Postconditions: independent of the order of `edits`, which are encoded
+    /// sorted on `(file, start, end, new_text)`. Every variable-length field
+    /// is length-prefixed, positions are fixed-width and `kind` is tagged, so
+    /// two distinct actions never encode to the same bytes.
+    pub fn digest_input(&self) -> Vec<u8> {
+        let mut edits: Vec<&TextEdit> = self.edits.iter().collect();
+        edits.sort_by(|a, b| {
+            (
+                a.file.as_str(),
+                a.range.start(),
+                a.range.end(),
+                a.new_text.as_str(),
+            )
+                .cmp(&(
+                    b.file.as_str(),
+                    b.range.start(),
+                    b.range.end(),
+                    b.new_text.as_str(),
+                ))
+        });
+        let mut out = Vec::new();
+        out.extend_from_slice(ACTION_DIGEST_INPUT_DOMAIN);
+        push_field(&mut out, self.title.as_str().as_bytes());
+        match self.kind {
+            None => out.push(0),
+            Some(kind) => {
+                out.push(1);
+                push_field(&mut out, kind.to_lsp().as_bytes());
+            }
+        }
+        out.extend_from_slice(&(edits.len() as u64).to_le_bytes());
+        for edit in edits {
+            push_field(&mut out, edit.file.as_str().as_bytes());
+            push_position(&mut out, edit.range.start());
+            push_position(&mut out, edit.range.end());
+            push_field(&mut out, edit.new_text.as_bytes());
+        }
+        out
+    }
+}
+
+/// What applying an action's edits would change, computed without applying
+/// them (ADR-083 §4 `edits_summary`).
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize)]
+pub struct EditsSummary {
+    /// Distinct files the edits touch.
+    pub files: u32,
+    pub edits: u32,
+    /// Inserted bytes minus replaced bytes, summed over every edit.
+    pub bytes_delta: i64,
+}
+
+type GroupedEdits<'a> = BTreeMap<&'a str, (&'a crate::SourceFile, Vec<(TextRange, &'a str)>)>;
+
+/// Groups `edits` per captured file, refusing any file `before` lacks.
+fn edits_by_file<'a>(
+    before: &'a crate::SourceBundle,
+    edits: &'a [TextEdit],
+) -> Result<GroupedEdits<'a>, AnalyzerError> {
+    let mut grouped: GroupedEdits<'a> = BTreeMap::new();
+    for edit in edits {
+        let path = edit.file.as_str();
+        let entry = match grouped.entry(path) {
+            Entry::Occupied(entry) => entry.into_mut(),
+            Entry::Vacant(entry) => {
+                // `SourceBundle` keeps its files sorted on the path.
+                let file = before
+                    .files()
+                    .binary_search_by(|file| file.path().cmp(path))
+                    .ok()
+                    .and_then(|index| before.files().get(index))
+                    .ok_or(AnalyzerError::FileNotInSnapshot)?;
+                entry.insert((file, Vec::new()))
+            }
+        };
+        entry.1.push((edit.range, edit.new_text.as_str()));
+    }
+    Ok(grouped)
+}
+
+/// Summarizes `edits` against the exact bytes of `before`.
+///
+/// Preconditions: `edits` were resolved against `before`. Errors are the
+/// same as [`apply_action_to_bundle`]'s for a missing file, non-UTF-8 bytes
+/// or an unresolvable position; overlaps are not checked, because nothing
+/// is applied.
+pub fn summarize_edits(
+    before: &crate::SourceBundle,
+    edits: &[TextEdit],
+) -> Result<EditsSummary, AnalyzerError> {
+    let grouped = edits_by_file(before, edits)?;
+    let mut bytes_delta = 0i64;
+    for (file, file_edits) in grouped.values() {
+        let index = LineIndex::new(file.bytes())?;
+        for (range, new_text) in file_edits {
+            let start = index.byte_offset_from_position(range.start())?;
+            let end = index.byte_offset_from_position(range.end())?;
+            let replaced = end.checked_sub(start).ok_or(AnalyzerError::InvalidRange)?;
+            let replaced = i64::try_from(replaced).map_err(|_| AnalyzerError::LimitExceeded)?;
+            let inserted =
+                i64::try_from(new_text.len()).map_err(|_| AnalyzerError::LimitExceeded)?;
+            bytes_delta = bytes_delta
+                .checked_add(inserted - replaced)
+                .ok_or(AnalyzerError::LimitExceeded)?;
+        }
+    }
+    Ok(EditsSummary {
+        files: u32::try_from(grouped.len()).map_err(|_| AnalyzerError::LimitExceeded)?,
+        edits: u32::try_from(edits.len()).map_err(|_| AnalyzerError::LimitExceeded)?,
+        bytes_delta,
+    })
+}
+
+/// Structurally validates an action's edits against `before` and summarizes
+/// them, without building the edited bundle (ADR-083 §5).
+///
+/// Preconditions: `edits` were resolved against the bytes of `before`.
+///
+/// Postconditions: `Ok` only if the per-file rules of
+/// [`apply_action_to_bundle`] hold — at least one and at most [`MAX_EDITS`]
+/// edits, every named file captured, no overlap and no shared start, and every
+/// edited file within [`crate::SOURCE_MAX_FILE_BYTES`]. Only the touched files
+/// are edited in memory, so a listing of up to [`MAX_ACTIONS`] actions never
+/// copies the whole capture per action. Bundle-level limits are enforced
+/// again when the candidate itself is built.
+///
+/// Errors: the same as [`apply_action_to_bundle`].
+pub fn validate_action_edits(
+    before: &crate::SourceBundle,
+    edits: &[TextEdit],
+) -> Result<EditsSummary, AnalyzerError> {
+    if edits.is_empty() {
+        return Err(AnalyzerError::NoEdits);
+    }
+    if edits.len() > MAX_EDITS {
+        return Err(AnalyzerError::LimitExceeded);
+    }
+    for (file, file_edits) in edits_by_file(before, edits)?.values() {
+        if apply_edits(file.bytes(), file_edits)?.len() > crate::SOURCE_MAX_FILE_BYTES {
+            return Err(AnalyzerError::LimitExceeded);
+        }
+    }
+    summarize_edits(before, edits)
+}
+
+/// Applies an action's edits to a captured bundle.
+///
+/// Preconditions: `edits` were resolved against the bytes of `before`.
+///
+/// Postconditions: on `Ok`, every file an edit names is replaced by its
+/// edited bytes (through [`apply_edits`], so overlaps are refused and input
+/// order is irrelevant); every other file and every directory is unchanged,
+/// and the result satisfies every `SourceBundle` limit (ADR-031). The result
+/// may still equal `before` byte for byte — an edit may rewrite text with
+/// itself — which the caller decides about.
+///
+/// Errors: [`AnalyzerError::NoEdits`] for an empty set,
+/// [`AnalyzerError::FileNotInSnapshot`] for an edit naming a file `before`
+/// lacks, [`AnalyzerError::LimitExceeded`] for more than [`MAX_EDITS`] edits
+/// or a result above a file or bundle limit, and whatever [`apply_edits`]
+/// refuses.
+pub fn apply_action_to_bundle(
+    before: &crate::SourceBundle,
+    edits: &[TextEdit],
+) -> Result<crate::SourceBundle, AnalyzerError> {
+    if edits.is_empty() {
+        return Err(AnalyzerError::NoEdits);
+    }
+    if edits.len() > MAX_EDITS {
+        return Err(AnalyzerError::LimitExceeded);
+    }
+    let grouped = edits_by_file(before, edits)?;
+    let mut edited = BTreeMap::new();
+    for (path, (file, file_edits)) in &grouped {
+        edited.insert(*path, apply_edits(file.bytes(), file_edits)?);
+    }
+    let files = before
+        .files()
+        .iter()
+        .map(|file| match edited.remove(file.path()) {
+            Some(bytes) => {
+                crate::SourceFile::new(file.path().to_owned(), bytes).map_err(bundle_error)
+            }
+            None => Ok(file.clone()),
+        })
+        .collect::<Result<Vec<_>, _>>()?;
+    crate::SourceBundle::with_directories(files, before.directories().to_vec())
+        .map_err(bundle_error)
+}
+
+fn bundle_error(error: crate::SourceError) -> AnalyzerError {
+    match error {
+        crate::SourceError::Limits => AnalyzerError::LimitExceeded,
+        // Unreachable for paths and directories copied from a valid bundle.
+        crate::SourceError::Invalid => AnalyzerError::Invalid,
+    }
+}
+
+#[cfg(test)]
+mod action_candidate_tests {
+    use super::*;
+    use crate::{SOURCE_MAX_FILE_BYTES, SourceBundle, SourceFile};
+
+    type TestResult = Result<(), Box<dyn std::error::Error>>;
+
+    fn range(sl: u32, sc: u32, el: u32, ec: u32) -> Result<TextRange, Box<dyn std::error::Error>> {
+        Ok(TextRange::new(
+            Position::new(sl, sc)?,
+            Position::new(el, ec)?,
+        )?)
+    }
+
+    fn edit(
+        file: &str,
+        range: TextRange,
+        new_text: &str,
+    ) -> Result<TextEdit, Box<dyn std::error::Error>> {
+        Ok(TextEdit {
+            file: AnalyzerFile::new(file.to_owned())?,
+            range,
+            new_text: new_text.to_owned(),
+        })
+    }
+
+    fn action(
+        title: &str,
+        kind: Option<CodeActionKind>,
+        edits: Vec<TextEdit>,
+    ) -> Result<AnalyzerAction, Box<dyn std::error::Error>> {
+        Ok(AnalyzerAction {
+            title: NonEmptyText::try_from(title.to_owned())?,
+            kind,
+            is_preferred: false,
+            edits,
+        })
+    }
+
+    fn bundle(files: &[(&str, &[u8])]) -> Result<SourceBundle, Box<dyn std::error::Error>> {
+        let files = files
+            .iter()
+            .map(|(path, bytes)| SourceFile::new((*path).to_owned(), bytes.to_vec()))
+            .collect::<Result<Vec<_>, _>>()
+            .map_err(|error| format!("{error:?}"))?;
+        Ok(
+            SourceBundle::with_directories(files, vec!["src".to_owned()])
+                .map_err(|error| format!("{error:?}"))?,
+        )
+    }
+
+    fn file_bytes<'a>(bundle: &'a SourceBundle, path: &str) -> Option<&'a [u8]> {
+        bundle
+            .files()
+            .iter()
+            .find(|file| file.path() == path)
+            .map(SourceFile::bytes)
+    }
+
+    #[test]
+    fn digest_input_does_not_depend_on_edit_order() -> TestResult {
+        let first = edit("src/lib.rs", range(1, 1, 1, 2)?, "X")?;
+        let second = edit("src/lib.rs", range(2, 1, 2, 1)?, "Y")?;
+        let other_file = edit("src/a.rs", range(1, 1, 1, 1)?, "Z")?;
+        let sorted = action(
+            "Rewrite",
+            Some(CodeActionKind::RefactorRewrite),
+            vec![other_file.clone(), first.clone(), second.clone()],
+        )?;
+        let shuffled = action(
+            "Rewrite",
+            Some(CodeActionKind::RefactorRewrite),
+            vec![second, other_file, first],
+        )?;
+        assert_eq!(sorted.digest_input(), shuffled.digest_input());
+        Ok(())
+    }
+
+    #[test]
+    fn digest_input_distinguishes_every_covered_field() -> TestResult {
+        let base_edit = || -> Result<TextEdit, Box<dyn std::error::Error>> {
+            edit("src/lib.rs", range(1, 1, 1, 2)?, "ab")
+        };
+        let base = action(
+            "Rewrite",
+            Some(CodeActionKind::RefactorRewrite),
+            vec![base_edit()?],
+        )?;
+        let variants = [
+            action(
+                "Rewrite!",
+                Some(CodeActionKind::RefactorRewrite),
+                vec![base_edit()?],
+            )?,
+            action("Rewrite", None, vec![base_edit()?])?,
+            action(
+                "Rewrite",
+                Some(CodeActionKind::QuickFix),
+                vec![base_edit()?],
+            )?,
+            action("Rewrite", Some(CodeActionKind::RefactorRewrite), Vec::new())?,
+            action(
+                "Rewrite",
+                Some(CodeActionKind::RefactorRewrite),
+                vec![edit("src/lib2.rs", range(1, 1, 1, 2)?, "ab")?],
+            )?,
+            action(
+                "Rewrite",
+                Some(CodeActionKind::RefactorRewrite),
+                vec![edit("src/lib.rs", range(1, 1, 1, 3)?, "ab")?],
+            )?,
+            action(
+                "Rewrite",
+                Some(CodeActionKind::RefactorRewrite),
+                vec![edit("src/lib.rs", range(1, 1, 1, 2)?, "ac")?],
+            )?,
+            // The same bytes split differently across two edits.
+            action(
+                "Rewrite",
+                Some(CodeActionKind::RefactorRewrite),
+                vec![
+                    edit("src/lib.rs", range(1, 1, 1, 2)?, "a")?,
+                    edit("src/lib.rs", range(1, 3, 1, 3)?, "b")?,
+                ],
+            )?,
+        ];
+        let mut seen = vec![base.digest_input()];
+        for variant in variants {
+            let bytes = variant.digest_input();
+            assert!(
+                !seen.contains(&bytes),
+                "{variant:?} repeats another encoding"
+            );
+            seen.push(bytes);
+        }
+        // Presentation only: the edits a caller would apply are unchanged.
+        let mut preferred = base.clone();
+        preferred.is_preferred = true;
+        assert_eq!(preferred.digest_input(), base.digest_input());
+        Ok(())
+    }
+
+    #[test]
+    fn apply_action_to_bundle_applies_several_edits_in_one_file() -> TestResult {
+        let before = bundle(&[
+            ("Cargo.toml", b"[package]\n"),
+            ("src/lib.rs", b"fn a() {}\nfn b() {}\n"),
+        ])?;
+        let edits = [
+            edit("src/lib.rs", range(2, 4, 2, 5)?, "bee")?,
+            edit("src/lib.rs", range(1, 4, 1, 5)?, "ay")?,
+        ];
+        let after = apply_action_to_bundle(&before, &edits)?;
+        assert_eq!(
+            file_bytes(&after, "src/lib.rs"),
+            Some(b"fn ay() {}\nfn bee() {}\n".as_slice())
+        );
+        assert_eq!(
+            file_bytes(&after, "Cargo.toml"),
+            Some(b"[package]\n".as_slice())
+        );
+        assert_eq!(after.directories(), before.directories());
+        assert_eq!(
+            summarize_edits(&before, &edits)?,
+            EditsSummary {
+                files: 1,
+                edits: 2,
+                bytes_delta: 3,
+            }
+        );
+        Ok(())
+    }
+
+    #[test]
+    fn apply_action_to_bundle_edits_two_files_and_leaves_the_rest() -> TestResult {
+        let before = bundle(&[
+            ("src/a.rs", b"pub fn a() {}\n"),
+            ("src/b.rs", b"pub fn b() {}\n"),
+            ("src/lib.rs", b"mod a;\nmod b;\n"),
+        ])?;
+        let edits = [
+            edit("src/b.rs", range(1, 1, 1, 5)?, "")?,
+            edit("src/a.rs", range(1, 12, 1, 12)?, "-> u8 ")?,
+        ];
+        let after = apply_action_to_bundle(&before, &edits)?;
+        assert_eq!(
+            file_bytes(&after, "src/a.rs"),
+            Some(b"pub fn a() -> u8 {}\n".as_slice())
+        );
+        assert_eq!(
+            file_bytes(&after, "src/b.rs"),
+            Some(b"fn b() {}\n".as_slice())
+        );
+        assert_eq!(
+            file_bytes(&after, "src/lib.rs"),
+            file_bytes(&before, "src/lib.rs")
+        );
+        assert_eq!(after.files().len(), before.files().len());
+        assert_eq!(
+            summarize_edits(&before, &edits)?,
+            EditsSummary {
+                files: 2,
+                edits: 2,
+                bytes_delta: 2,
+            }
+        );
+        Ok(())
+    }
+
+    #[test]
+    fn apply_action_to_bundle_refuses_an_empty_edit_set() -> TestResult {
+        let before = bundle(&[("src/lib.rs", b"fn a() {}\n")])?;
+        assert_eq!(
+            apply_action_to_bundle(&before, &[]),
+            Err(AnalyzerError::NoEdits)
+        );
+        Ok(())
+    }
+
+    #[test]
+    fn apply_action_to_bundle_refuses_a_file_outside_the_bundle() -> TestResult {
+        let before = bundle(&[("src/lib.rs", b"fn a() {}\n")])?;
+        let edits = [
+            edit("src/lib.rs", range(1, 1, 1, 1)?, "pub ")?,
+            edit("src/missing.rs", range(1, 1, 1, 1)?, "x")?,
+        ];
+        assert_eq!(
+            apply_action_to_bundle(&before, &edits),
+            Err(AnalyzerError::FileNotInSnapshot)
+        );
+        assert_eq!(
+            summarize_edits(&before, &edits),
+            Err(AnalyzerError::FileNotInSnapshot)
+        );
+        Ok(())
+    }
+
+    #[test]
+    fn apply_action_to_bundle_refuses_a_result_above_the_file_limit() -> TestResult {
+        let full = vec![b'a'; SOURCE_MAX_FILE_BYTES];
+        let before = bundle(&[("src/lib.rs", &full)])?;
+        let edits = [edit("src/lib.rs", range(1, 1, 1, 1)?, "b")?];
+        assert_eq!(
+            apply_action_to_bundle(&before, &edits),
+            Err(AnalyzerError::LimitExceeded)
+        );
+        Ok(())
+    }
+
+    #[test]
+    fn apply_action_to_bundle_refuses_overlapping_edits_and_too_many_edits() -> TestResult {
+        let before = bundle(&[("src/lib.rs", b"abcdef\n")])?;
+        let overlapping = [
+            edit("src/lib.rs", range(1, 1, 1, 4)?, "X")?,
+            edit("src/lib.rs", range(1, 3, 1, 5)?, "Y")?,
+        ];
+        assert_eq!(
+            apply_action_to_bundle(&before, &overlapping),
+            Err(AnalyzerError::OverlappingRanges)
+        );
+        let too_many = (0..=MAX_EDITS)
+            .map(|_| edit("src/lib.rs", range(1, 1, 1, 1)?, "x"))
+            .collect::<Result<Vec<_>, _>>()?;
+        assert_eq!(
+            apply_action_to_bundle(&before, &too_many),
+            Err(AnalyzerError::LimitExceeded)
+        );
+        Ok(())
+    }
+
+    #[test]
+    fn validate_action_edits_refuses_what_apply_refuses_and_summarizes_the_rest() -> TestResult {
+        let before = bundle(&[("src/lib.rs", b"abcdef\n"), ("Cargo.toml", b"[package]\n")])?;
+        assert_eq!(
+            validate_action_edits(&before, &[edit("src/lib.rs", range(1, 1, 1, 2)?, "XY")?])?,
+            EditsSummary {
+                files: 1,
+                edits: 1,
+                bytes_delta: 1,
+            }
+        );
+        let refused: [(Vec<TextEdit>, AnalyzerError); 5] = [
+            (Vec::new(), AnalyzerError::NoEdits),
+            (
+                vec![
+                    edit("src/lib.rs", range(1, 1, 1, 4)?, "X")?,
+                    edit("src/lib.rs", range(1, 3, 1, 5)?, "Y")?,
+                ],
+                AnalyzerError::OverlappingRanges,
+            ),
+            (
+                vec![
+                    edit("src/lib.rs", range(1, 2, 1, 2)?, "X")?,
+                    edit("src/lib.rs", range(1, 2, 1, 4)?, "Y")?,
+                ],
+                AnalyzerError::OverlappingRanges,
+            ),
+            (
+                vec![edit("src/missing.rs", range(1, 1, 1, 1)?, "x")?],
+                AnalyzerError::FileNotInSnapshot,
+            ),
+            (
+                (0..=MAX_EDITS)
+                    .map(|_| edit("src/lib.rs", range(1, 1, 1, 1)?, "x"))
+                    .collect::<Result<Vec<_>, _>>()?,
+                AnalyzerError::LimitExceeded,
+            ),
+        ];
+        for (edits, expected) in refused {
+            assert_eq!(validate_action_edits(&before, &edits), Err(expected));
+            assert_eq!(apply_action_to_bundle(&before, &edits), Err(expected));
+        }
+        let full = vec![b'a'; SOURCE_MAX_FILE_BYTES];
+        let full = bundle(&[("src/lib.rs", &full)])?;
+        let grow = [edit("src/lib.rs", range(1, 1, 1, 1)?, "b")?];
+        assert_eq!(
+            validate_action_edits(&full, &grow),
+            Err(AnalyzerError::LimitExceeded)
+        );
+        Ok(())
+    }
+
+    #[test]
+    fn a_bare_rejection_carries_no_title_or_kind() {
+        assert_eq!(
+            RejectedAction::from(ActionRejection::Command),
+            RejectedAction {
+                reason: ActionRejection::Command,
+                title: None,
+                kind: None,
+            }
+        );
     }
 }

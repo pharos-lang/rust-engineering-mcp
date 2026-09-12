@@ -632,6 +632,7 @@ Cada tool exige un permiso host distinto sobre la raíz exacta del workspace:
 | `rust.fix.apply` | `--allow-fix-write WORKSPACE_ROOT` |
 | `rust.dependency.add` | `--allow-dependency-add WORKSPACE_ROOT` |
 | `rust.dependency.remove` | `--allow-dependency-remove WORKSPACE_ROOT` |
+| `rust.analyzer.action.apply` (M6-05, mismo writer) | `--allow-analyzer-action-write WORKSPACE_ROOT` |
 
 Un grant, `project_ref`, plan o receipt no autoriza otra clase de operación. La
 raíz debe estar dentro de una `--root` de lectura, el runtime Docker completo debe
@@ -1641,11 +1642,13 @@ sobre bytes finales, con revisión independiente de por medio.
 
 ## Contratos M6 — analyzer
 
-El checkout añade tres definiciones a `tools/list`, después de las 31 tools
+El checkout añade cinco definiciones a `tools/list`, después de las 31 tools
 M1–M5 y en este orden: `rust.analyzer.symbols` (M6-01), `rust.analyzer.references`
-(M6-02) y `rust.analyzer.diagnostics` (M6-03) (`stdio.rs`, `list_tools`). Los
-31 snapshots anteriores se conservan byte a byte bajo el mismo test de
-invariancia y se añaden tres nuevos. El inventario público pasa a 34 tools.
+(M6-02), `rust.analyzer.diagnostics` (M6-03), `rust.analyzer.actions` (M6-04) y
+`rust.analyzer.action.apply` (M6-05) (`stdio.rs`, `list_tools`). Los 34
+snapshots anteriores se conservan byte a byte bajo el mismo test de invariancia
+y se añaden dos nuevos (`analyzer-actions-tool.json`,
+`analyzer-action-apply-tool.json`). El inventario público pasa a 36 tools.
 Véase [ADR-083](adr/ADR-083-analyzer-contract-and-actions.md) y
 [ADR-084](adr/ADR-084-rust-analyzer-runtime-and-lsp-lifecycle.md).
 
@@ -1871,3 +1874,136 @@ complementaria al muestreo de `container top` de ADR-084 §7 (`m6-03`).
 complete` y sin fallo, pero la lista vacía que devuelve no es, por sí misma,
 parte de esta prueba — solo confirma que la tool está viva y exhaustiva
 sobre esa captura.
+
+### `rust.analyzer.actions`
+
+Lista las code actions que el rust-analyzer admitido ofrece sobre un rango de
+un archivo capturado. **Solo lectura**: cada `WorkspaceEdit` se resuelve y se
+valida estructuralmente, pero nunca se aplica; aplicar es
+`rust.analyzer.action.apply`. Mismas anotaciones, runtime M6, bootstrap
+`blocked/SANDBOX_DENIED` y rechazo de `rust-analyzer.toml` que las otras tools
+de lectura M6; solo corre `textDocument/codeAction`, nunca `cargo check`.
+
+**Entrada** (cerrada): `project_ref`; `expected_project_fingerprint`
+**obligatorio** (un desajuste es `blocked/CONFLICT`); `file` (ruta relativa
+`.rs`); `range {start, end}` de `Position` 1-based en Unicode scalars, con
+`start ≤ end` (un rango invertido pasa el schema, que no puede ordenar dos
+posiciones, y se rechaza como argumentos inválidos `-32602`); `only`
+opcional, hasta 7 kinds del vocabulario cerrado `quickfix | refactor |
+refactor_extract | refactor_inline | refactor_rewrite | source |
+source_organize_imports` (vacío o ausente pide todos); `timeout_seconds`
+(1..=180, 60 por defecto). Un `file` fuera de la captura es
+`blocked/FILE_NOT_IN_SNAPSHOT` y un rango fuera de sus líneas o columnas
+`blocked/POSITION_OUT_OF_RANGE`, ambos antes de abrir sesión.
+
+**Salida.** El sobre común de las tools M6 más `actions` (ausente si la sesión
+no respondió; ≤ 32, en el orden de rust-analyzer) y `omitted` (acciones más
+allá de las 32 visibles y las recortadas por el presupuesto de 512 KiB, con
+`completeness.reasons: result_limit`). Cada acción es una de dos formas:
+
+- `{"applicability": "applicable", action_digest, title, title_truncated, kind,
+  is_preferred, edits_summary: {files, edits, bytes_delta}}`. `edits_summary`
+  se calcula sin aplicar nada; **`files` puede ser mayor que 1**: una acción
+  puede editar varios archivos capturados, no solo `file`.
+- `{"applicability": "rejected", reason, title, title_truncated, kind}` con
+  `reason ∈ command | snippet | resource_operation | external_uri |
+  version_mismatch | overlapping_ranges | edit_limit | bytes_limit | not_utf8 |
+  file_not_in_snapshot | unresolved_edit`. `title` y `kind` son los del propio
+  analizador cuando el elemento llegó a traerlos (V07 P3); `null` si no. Un
+  `Command` no se ejecuta nunca.
+
+El listado aplica las **mismas reglas estructurales** que el preview de
+`action.apply` (≤ 128 edits, techo de bytes, archivos capturados, sin
+solapes ni inicios compartidos, cada archivo editado dentro de su límite), así
+que no ofrece como aplicable lo que el preview rechazaría sobre esos bytes.
+`action_digest` es sha256 sobre el título, kind y edits canónicos (en orden
+independiente), la versión, `binary_sha256` y `config_digest` del analizador y
+el fingerprint de la captura analizada; no depende de `is_preferred` ni de
+`only`. `title` es texto del analizador: ≤ 256 caracteres Unicode con
+`title_truncated`, caracteres de control sustituidos por U+FFFD; nunca
+`stderr` ni el `message` de `serverStatus`. Códigos cerrados: los de
+`rust.analyzer.references`.
+
+### `rust.analyzer.action.apply`
+
+Aplica **una** acción listada a través del writer M2 único, con la misma forma
+`preview` → `commit` → `receipt` que `rust.fmt.apply`: `MutationPlans`
+compartido con las cinco tools M2 (TTL 600 s, ≤ 4 planes/64 MiB), mismo
+`NativeMutationStore`, journal ADR-052, generación, autorización,
+idempotencia, replay y recovery. Annotations `readOnlyHint=false`,
+`destructiveHint=true`, `idempotentHint=false`, `openWorldHint=false`, como las
+tools M2 que comparten el writer (nota de ADR-083 del 2026-09-12). Exige
+`--allow-analyzer-action-write WORKSPACE_ROOT` y el runtime `--rust` en la
+imagen M6: **sin el grant, toda llamada es `unavailable/SANDBOX_DENIED`** antes
+de crear estado; un grant para otra raíz o un `project_ref` no vigente es
+`blocked/PERMISSION_DENIED`.
+
+> [!WARNING]
+> El resultado aplicado **no está verificado por compilación** (decisión A del
+> owner, 2026-09-12): no corre `cargo check`. La validación es solo
+> estructural. Revisa **cada entrada de `files` y el diff completo** antes de
+> commit —una acción puede reescribir varios `.rs` capturados (hasta 128),
+> incluido `build.rs`— y ejecuta `rust.check` después.
+
+**`preview`** `{expected_project_fingerprint, action_digest, file, range,
+timeout_seconds?}`: revalida el proyecto y la identidad, autoriza el grant,
+captura **de nuevo**, abre una sesión sin filtro `only` sobre el mismo `file`
+y `range`, y exige que alguna acción aplicable tenga exactamente ese digest
+(si no, `blocked/ACTION_STALE`). La acción encontrada se revalida
+estructuralmente (`blocked/ACTION_REJECTED` con mensaje fijo por razón; también
+si sus edits no cambian ningún byte), se aplica sobre esa captura, y la
+captura se compara otra vez con el `before` antes de planificar (un cambio
+durante la sesión es `ACTION_STALE`). Devuelve `data {kind: "preview",
+plan_id, plan_digest, expires_in_seconds, files: [{path, before_sha256,
+after_sha256, before_bytes, after_bytes}], diff, validation}` sin escribir
+source. `validation` es la vista propia de esta tool:
+`{method: "workspace_edit_structural_only", semantics: "latest_known",
+platform, image_id, configuration_fingerprint, session_execution_fingerprint,
+rust_version, cargo_version, analyzed_source_fingerprint, analyzer: {version,
+binary_sha256, config_digest}, action_digest}`; la vista M2 congelada nunca
+toma esta provenance ni esta vista una M2.
+
+**`commit`** `{plan_id, plan_digest, idempotency_key}`: idéntico a
+`rust.fmt.apply`, con una comprobación de solo lectura previa: si la captura
+viva ya no es el `before` del plan, responde `blocked/ACTION_STALE` sin pedir
+ningún efecto al writer (que repite esa comparación al publicar). Un digest o
+clave que no casa es `blocked/CONFLICT`. **Commit invalida el `project_ref` de
+entrada**: vuelve a `rust.project.open` y usa el nuevo para todo, incluidos
+receipt y recovery. **`receipt`** `{operation_id, recover}`: idéntico a
+`rust.fmt.apply`; un receipt `aborted` es `blocked/ACTION_STALE` con `data`.
+
+> [!NOTE]
+> Un `project_ref` caducado, ajeno o invalidado por un commit previo produce
+> un código distinto según dónde se detecta, no según una causa distinta
+> (V08 item 7): `blocked/PROJECT_NOT_FOUND` en `preview` (fallo de inspección
+> antes de tocar el writer); `blocked/PERMISSION_DENIED` en `commit` y en
+> `receipt`/`recover` (el registro rechaza la referencia en el mismo cajón que
+> un grant ausente). Un cambio de la fuente bajo ese `project_ref` sigue la
+> otra tabla: `ACTION_STALE` si se detecta antes de llamar al writer o en un
+> receipt `aborted`, `CONFLICT` si lo detecta el writer al publicar. Esta es
+> la asignación completa y estable para esta causa.
+
+**Salida**: `{status, error_code, error_message, summary, duration_ms, data,
+diagnostics: [], truncation, evidence, concurrency_contract:
+"local_coordinated", guarantees_not_provided}`, con
+`guarantees_not_provided` = `compile_verification`,
+`os_exclusion_of_external_writers`, `multi_file_atomicity`,
+`malicious_host_protection`, `demonstrated_power_loss_survival`. Códigos
+cerrados (`SCREAMING_SNAKE_CASE`): `unavailable` para `SANDBOX_DENIED`,
+`UNSUPPORTED_PLATFORM`, `ANALYZER_NOT_READY`, `ANALYZER_CRASHED`,
+`ANALYZER_CAPABILITY_MISMATCH`, `FRAME_LIMIT`, `MESSAGE_LIMIT`,
+`TIMEOUT_INITIALIZE`, `TIMEOUT_QUERY`, `TIMEOUT_TOTAL`; `cancelled` para
+`CANCELLED`; `blocked` para `INVALID_OPERATION`, `PERMISSION_DENIED`,
+`CONFLICT`, `ACTION_STALE`, `ACTION_REJECTED`, `LOCK_BUSY`, `PLAN_EXPIRED`,
+`NOT_FOUND`, `LIMIT_EXCEEDED`, `RESULT_LIMIT`, `IO`, `RECOVERY_REQUIRED`,
+`PROJECT_NOT_FOUND`, `INVALID_PROJECT`, `OUTPUT_LIMIT_EXCEEDED`,
+`FILE_NOT_IN_SNAPSHOT`, `FILE_NOT_UTF8`, `POSITION_OUT_OF_RANGE`,
+`UNSUPPORTED_PROJECT_CONFIG`. `failed` no ocurre: ninguna ejecución juzga el
+candidato. `RESULT_LIMIT` es el de ADR-083 §3 (V08 item 8): a diferencia de
+`symbols`/`references`/`diagnostics`/`actions`, que recortan y solo caen aquí
+si ni una lista vacía entra, `action.apply` nunca recorta el diff — es la
+superficie de revisión — así que rechaza sin retener plan en cuanto la
+respuesta completa excedería el presupuesto; `LIMIT_EXCEEDED` sigue siendo el
+de los techos de `MutationPlans` (4 planes/64 MiB) y del journal. Cada llamada
+emite el mismo evento local `rust-mcp-mutation-event-v1` de M2 por stderr, con
+`tool: "rust.analyzer.action.apply"` y el código en snake_case.

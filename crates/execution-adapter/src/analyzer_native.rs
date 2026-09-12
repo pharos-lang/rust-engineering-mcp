@@ -1964,6 +1964,195 @@ fn m6_no_build_script_runs_the_include_stays_unexpanded() -> Result<(), Failure>
     Ok(())
 }
 
+/// The candidates of an answered `textDocument/codeAction` call, or an error
+/// naming what the call actually produced.
+fn code_actions(
+    execution: &domain::AnalyzerExecution,
+) -> Result<&[domain::ActionCandidate], Failure> {
+    match execution.result() {
+        Some(domain::AnalyzerResult::CodeActions(candidates)) => Ok(candidates),
+        other => Err(format!(
+            "expected code actions; got {:?} with failure {:?}",
+            other.map(std::mem::discriminant),
+            execution.failure()
+        )
+        .into()),
+    }
+}
+
+/// M6-04 calibration. Which assists rust-analyzer offers under the M6 minimal
+/// configuration is not known ahead of this run, so every candidate is
+/// recorded and the assertions are deliberately loose: at least one
+/// applicable action whose non-empty edits apply cleanly and change the
+/// capture, and a second, fresh session over the same bytes that resolves
+/// that same action by its digest — the property `rust.analyzer.action.apply`
+/// preview depends on. A `Command`/snippet/resource-operation rejection is
+/// recorded when the fixture elicits one and noted when it does not.
+#[test]
+#[ignore = "explicit M6 image, host Docker and two real rust-analyzer sessions"]
+fn m6_code_actions_offer_an_applicable_edit_that_resolves_again_by_digest() -> Result<(), Failure> {
+    use rust_engineering_application::analyzer::ActionResolution;
+
+    let image = m6_image()?;
+    let mut cut = Cut::open("m6-11-code-actions", &image);
+    let session = Session::open(&image)?;
+    let gateway = session.gateway()?;
+    cut.residue_before = clean(gateway, "code actions before")?;
+
+    let source = fixture_bundle("analyzer-actions")?;
+    cut.fixtures.insert(
+        "analyzer-actions".into(),
+        bundle_facts("analyzer-actions", &source)?,
+    );
+    let source_fingerprint: domain::SourceFingerprint =
+        digest(&source_archive::encode(&source).map_err(|error| format!("archive: {error:?}"))?)
+            .parse()?;
+    let file = domain::AnalyzerFile::new("src/lib.rs".to_owned())
+        .map_err(|error| format!("src/lib.rs: {error:?}"))?;
+    // An empty selection on `sum` in `    let sum = values.iter().sum::<u32>();`
+    // (line 2, column 9): the cursor an editor sends, where assists such as an
+    // explicit type annotation or inlining the binding are expected.
+    let cursor = domain::Position::new(2, 9)?;
+    let range =
+        domain::TextRange::new(cursor, cursor).map_err(|error| format!("range: {error:?}"))?;
+
+    let started = Instant::now();
+    let execution = gateway
+        .execute_analyzer(
+            &source,
+            &AnalyzerQuery::CodeActions {
+                file: file.clone(),
+                range,
+                only: Vec::new(),
+            },
+            limits()?,
+            &Proceed,
+        )
+        .map_err(|error| format!("analyzer session: {error:?}"))?;
+    let facts = session_facts(&execution);
+    let candidates = code_actions(&execution)?;
+    let digests = analyzer_gateway::action_digests(&execution, &source_fingerprint)
+        .map_err(|error| format!("action digests: {error:?}"))?;
+    let mut recorded = Vec::new();
+    let mut rejections: BTreeMap<String, usize> = BTreeMap::new();
+    let mut usable: Option<(domain::SourceFingerprint, domain::AnalyzerAction)> = None;
+    for (candidate, action_digest) in candidates.iter().zip(&digests) {
+        match candidate {
+            domain::ActionCandidate::Applicable(action) => {
+                let applied = domain::apply_action_to_bundle(&source, &action.edits);
+                let changes_source = matches!(&applied, Ok(after) if *after != source);
+                recorded.push(json!({
+                    "applicability": "applicable",
+                    "action_digest": action_digest,
+                    "title": action.title.as_str(),
+                    "kind": action.kind,
+                    "is_preferred": action.is_preferred,
+                    "edits": action.edits,
+                    "apply_error": applied.as_ref().err().map(|error| format!("{error:?}")),
+                    "changes_source": changes_source,
+                }));
+                if changes_source
+                    && usable.is_none()
+                    && let Some(action_digest) = action_digest
+                {
+                    usable = Some((action_digest.clone(), action.clone()));
+                }
+            }
+            domain::ActionCandidate::Rejected(rejected) => {
+                *rejections
+                    .entry(format!("{:?}", rejected.reason))
+                    .or_default() += 1;
+                recorded.push(json!({
+                    "applicability": "rejected",
+                    "reason": rejected.reason,
+                    "title": rejected.title.as_ref().map(|title| title.as_str()),
+                    "kind": rejected.kind,
+                }));
+            }
+        }
+    }
+    let unsafe_forms = ["Command", "Snippet", "ResourceOperation"]
+        .iter()
+        .filter(|reason| rejections.contains_key(**reason))
+        .count();
+    if unsafe_forms == 0 {
+        cut.notes.push(
+            "no Command, Snippet or ResourceOperation rejection was elicited at this fixture and \
+             range; recorded, not failed"
+                .to_owned(),
+        );
+    }
+    cut.record(
+        "code-actions-analyzer-actions",
+        started,
+        json!({
+            "range": {"start": cursor, "end": cursor},
+            "candidate_count": candidates.len(),
+            "applicable_count": digests.iter().filter(|digest| digest.is_some()).count(),
+            "candidates": recorded,
+            "rejections": rejections,
+            "facts": facts,
+        }),
+    );
+    let Some((action_digest, action)) = usable else {
+        cut.residue_after = clean(gateway, "code actions after")?;
+        cut.fail(
+            "no applicable action with non-empty edits that apply cleanly and change the capture; \
+             every candidate the real binary returned is recorded above",
+        )?;
+        return Err(
+            format!("no usable applicable code action on analyzer-actions: {facts}").into(),
+        );
+    };
+
+    let started = Instant::now();
+    let resolved = analyzer_gateway::resolve_action_candidate(
+        gateway,
+        &source,
+        &source_fingerprint,
+        analyzer_gateway::ActionLookup {
+            file: &file,
+            range,
+            action_digest: &action_digest,
+        },
+        limits()?,
+        &Proceed,
+    )
+    .map_err(|error| format!("apply-preview session: {error:?}"))?;
+    let resolved_facts = session_facts(&resolved.execution);
+    let same_action = matches!(
+        &resolved.resolution,
+        ActionResolution::Resolved(again) if again.digest_input() == action.digest_input()
+    );
+    cut.record(
+        "resolve-by-digest-analyzer-actions",
+        started,
+        json!({
+            "action_digest": action_digest,
+            "title": action.title.as_str(),
+            "resolution": match &resolved.resolution {
+                ActionResolution::NotAnswered => "not_answered",
+                ActionResolution::Stale => "stale",
+                ActionResolution::Rejected(_) => "rejected",
+                ActionResolution::Resolved(_) => "resolved",
+            },
+            "same_action": same_action,
+            "session_fingerprint": resolved.runtime.session_fingerprint,
+            "configuration_fingerprint": resolved.runtime.configuration_fingerprint,
+            "facts": resolved_facts,
+        }),
+    );
+    assert!(
+        same_action,
+        "a fresh session over identical bytes must resolve the same action by its digest: \
+         {:?} {resolved_facts}",
+        resolved.resolution
+    );
+    cut.residue_after = clean(gateway, "code actions after")?;
+    cut.pass()?;
+    Ok(())
+}
+
 #[cfg(test)]
 mod unit {
     use super::*;

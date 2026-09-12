@@ -86,6 +86,10 @@ struct Server {
 }
 impl Server {
     fn start(image: &str, root: &Path) -> Result<Self> {
+        Self::start_with(image, root, &[])
+    }
+    /// [`Self::start`] plus host flags such as a write grant.
+    fn start_with(image: &str, root: &Path, extra: &[&std::ffi::OsStr]) -> Result<Self> {
         let docker = std::env::var("RUST_MCP_TEST_DOCKER").unwrap_or_else(|_| {
             "/Applications/Docker.app/Contents/Resources/bin/docker".to_owned()
         });
@@ -111,6 +115,7 @@ impl Server {
             .arg(&state)
             .arg("--rust-image")
             .arg(image)
+            .args(extra)
             .stdin(Stdio::piped())
             .stdout(Stdio::piped())
             .stderr(Stdio::piped());
@@ -528,5 +533,350 @@ fn analyzer_diagnostics_and_symbols_on_build_script_prove_no_build_script_ran_on
          script ran: {symbols_response}"
     );
 
+    server.finish()
+}
+
+// ---------------------------------------------------------------------
+// M6-04/M6-05: `rust.analyzer.actions` and `rust.analyzer.action.apply`
+// ---------------------------------------------------------------------
+
+const APPLY: &str = "rust.analyzer.action.apply";
+
+/// An empty selection on `sum` in `    let sum = values.iter().sum::<u32>();`
+/// (line 2, column 9), where the m6-11 cut observed applicable assists.
+fn cursor() -> Value {
+    json!({"start": {"line": 2, "column": 9}, "end": {"line": 2, "column": 9}})
+}
+
+fn m6_image() -> Result<String> {
+    let image =
+        std::env::var("RUST_MCP_TEST_IMAGE").unwrap_or_else(|_| APPROVED_M6_IMAGE.to_owned());
+    if image != APPROVED_M6_IMAGE {
+        return Err(format!(
+            "RUST_MCP_TEST_IMAGE={image} is not the admitted M6 runtime {APPROVED_M6_IMAGE}"
+        )
+        .into());
+    }
+    Ok(image)
+}
+
+/// A private, canonical copy of `fixtures/analyzer-actions`: the apply tests
+/// write source, so they never run against the checked-in fixture.
+struct ActionsProject(PathBuf);
+impl ActionsProject {
+    fn copy(tag: &str) -> Result<Self> {
+        let fixture = fixture_root_named("analyzer-actions")?;
+        let root = std::env::temp_dir().canonicalize()?.join(format!(
+            "rust-mcp-analyzer-actions-{}-{tag}",
+            std::process::id()
+        ));
+        if root.exists() {
+            std::fs::remove_dir_all(&root)?;
+        }
+        std::fs::create_dir_all(root.join("src"))?;
+        for file in ["Cargo.toml", "Cargo.lock", "src/lib.rs"] {
+            std::fs::copy(fixture.join(file), root.join(file))?;
+        }
+        Ok(Self(root))
+    }
+    fn path(&self) -> &Path {
+        &self.0
+    }
+    fn lib(&self) -> PathBuf {
+        self.0.join("src/lib.rs")
+    }
+    fn start_with_grant(&self, image: &str) -> Result<Server> {
+        Server::start_with(
+            image,
+            self.path(),
+            &[
+                std::ffi::OsStr::new("--allow-analyzer-action-write"),
+                self.path().as_os_str(),
+            ],
+        )
+    }
+}
+impl Drop for ActionsProject {
+    fn drop(&mut self) {
+        let _ = std::fs::remove_dir_all(&self.0);
+    }
+}
+
+/// `tools/list`, then `rust.project.open`; the opened `data`.
+fn discover_and_open(server: &mut Server, root: &Path) -> Result<Value> {
+    server.send(request(1, "tools/list"))?;
+    server.response(json!(1), DISCOVERY_TIMEOUT)?;
+    server.send(call(2, "rust.project.open", json!({"path": root})))?;
+    let opened = server.response(json!(2), DISCOVERY_TIMEOUT)?;
+    assert_eq!(
+        opened["result"]["structuredContent"]["status"], "passed",
+        "{opened}"
+    );
+    Ok(opened["result"]["structuredContent"]["data"].clone())
+}
+
+fn actions_arguments(opened: &Value) -> Value {
+    json!({
+        "project_ref": opened["project_ref"],
+        "expected_project_fingerprint": opened["fingerprint"],
+        "file": "src/lib.rs",
+        "range": cursor()
+    })
+}
+
+/// The first applicable action `rust.analyzer.actions` lists at the cursor.
+fn first_applicable(server: &mut Server, id: i64, opened: &Value) -> Result<Value> {
+    server.send(call(id, "rust.analyzer.actions", actions_arguments(opened)))?;
+    let response = server.response(json!(id), CALL_TIMEOUT)?;
+    let data = &response["result"]["structuredContent"];
+    assert_eq!(data["status"], "passed", "{response}");
+    data["data"]["actions"]
+        .as_array()
+        .ok_or("missing actions array")?
+        .iter()
+        .find(|action| action["applicability"] == "applicable")
+        .cloned()
+        .ok_or_else(|| format!("no applicable action at the cursor: {response}").into())
+}
+
+fn preview_action(opened: &Value, action: &Value) -> Value {
+    json!({
+        "project_ref": opened["project_ref"],
+        "action": {
+            "mode": "preview",
+            "expected_project_fingerprint": opened["fingerprint"],
+            "action_digest": action["action_digest"],
+            "file": "src/lib.rs",
+            "range": cursor()
+        }
+    })
+}
+
+/// The complete post-edit text of `path` from the exact whole-file diff
+/// `rust.analyzer.action.apply` preview publishes.
+fn after_text(diff: &str, path: &str) -> Result<String> {
+    let header = format!("--- a/{path}\n+++ b/{path}\n");
+    let start = diff.find(&header).ok_or("file absent from the diff")? + header.len();
+    let mut lines = diff[start..].split_inclusive('\n');
+    if !lines.next().is_some_and(|hunk| hunk.starts_with("@@ ")) {
+        return Err("hunk header absent".into());
+    }
+    let mut after = String::new();
+    let mut last_was_added = false;
+    for line in lines {
+        if line.starts_with("--- a/") {
+            break;
+        }
+        if let Some(text) = line.strip_prefix('+') {
+            after.push_str(text);
+            last_was_added = true;
+        } else if line.starts_with("\\ No newline at end of file") {
+            if last_was_added {
+                after.pop();
+            }
+        } else {
+            last_was_added = false;
+        }
+    }
+    Ok(after)
+}
+
+/// M6-04 native evidence: the real binary lists at least one applicable action
+/// with a digest and an edits summary over `fixtures/analyzer-actions`.
+#[test]
+#[ignore]
+fn analyzer_actions_list_an_applicable_action_with_a_digest_on_the_real_m6_image() -> Result {
+    let image = m6_image()?;
+    let project = ActionsProject::copy("list")?;
+    let before = std::fs::read(project.lib())?;
+    let mut server = Server::start(&image, project.path())?;
+    let opened = discover_and_open(&mut server, project.path())?;
+    let action = first_applicable(&mut server, 3, &opened)?;
+    let digest = action["action_digest"]
+        .as_str()
+        .ok_or("missing action_digest")?;
+    assert!(
+        digest.len() == 71
+            && digest.starts_with("sha256:")
+            && digest[7..].bytes().all(|b| b.is_ascii_hexdigit()),
+        "{action}"
+    );
+    assert!(
+        action["title"]
+            .as_str()
+            .is_some_and(|title| !title.is_empty())
+    );
+    assert!(
+        action["edits_summary"]["files"].as_u64() >= Some(1),
+        "{action}"
+    );
+    assert!(
+        action["edits_summary"]["edits"].as_u64() >= Some(1),
+        "{action}"
+    );
+    assert_eq!(
+        std::fs::read(project.lib())?,
+        before,
+        "listing never writes"
+    );
+    server.finish()
+}
+
+/// M6-05 native evidence: preview returns the exact diff without writing,
+/// commit publishes those bytes through the M2 writer, the receipt reflects
+/// it, and the pre-commit project_ref no longer resolves.
+#[test]
+#[ignore]
+fn analyzer_action_apply_commits_through_the_writer_on_the_real_m6_image() -> Result {
+    let image = m6_image()?;
+    let project = ActionsProject::copy("apply")?;
+    let before = std::fs::read_to_string(project.lib())?;
+    let mut server = project.start_with_grant(&image)?;
+    let opened = discover_and_open(&mut server, project.path())?;
+    let action = first_applicable(&mut server, 3, &opened)?;
+
+    server.send(call(4, APPLY, preview_action(&opened, &action)))?;
+    let response = server.response(json!(4), CALL_TIMEOUT)?;
+    let preview = &response["result"]["structuredContent"];
+    assert_eq!(preview["status"], "passed", "{response}");
+    assert_eq!(preview["data"]["kind"], "preview");
+    assert_eq!(
+        preview["data"]["validation"]["method"],
+        "workspace_edit_structural_only"
+    );
+    assert_eq!(
+        preview["data"]["validation"]["action_digest"],
+        action["action_digest"]
+    );
+    assert!(
+        preview["guarantees_not_provided"]
+            .as_array()
+            .ok_or("missing guarantees")?
+            .contains(&json!("compile_verification"))
+    );
+    let files = preview["data"]["files"].as_array().ok_or("missing files")?;
+    assert!(
+        files.iter().any(|file| file["path"] == "src/lib.rs"),
+        "{response}"
+    );
+    let diff = preview["data"]["diff"].as_str().ok_or("missing diff")?;
+    let expected = after_text(diff, "src/lib.rs")?;
+    assert_ne!(expected, before, "{diff}");
+    assert_eq!(
+        std::fs::read_to_string(project.lib())?,
+        before,
+        "preview never writes source"
+    );
+
+    server.send(call(
+        5,
+        APPLY,
+        json!({
+            "project_ref": opened["project_ref"],
+            "action": {
+                "mode": "commit",
+                "plan_id": preview["data"]["plan_id"],
+                "plan_digest": preview["data"]["plan_digest"],
+                "idempotency_key": "m6-action-apply"
+            }
+        }),
+    ))?;
+    let response = server.response(json!(5), CALL_TIMEOUT)?;
+    let receipt = &response["result"]["structuredContent"];
+    assert_eq!(receipt["status"], "passed", "{response}");
+    assert_eq!(receipt["data"]["state"], "committed");
+    assert_eq!(receipt["data"]["operation_id"], preview["data"]["plan_id"]);
+    let changed = receipt["data"]["files"]
+        .as_array()
+        .ok_or("missing receipt files")?
+        .iter()
+        .find(|file| file["path"] == "src/lib.rs")
+        .ok_or("src/lib.rs absent from the receipt")?;
+    assert_eq!(
+        changed["effect_after_sha256"],
+        changed["intended_after_sha256"]
+    );
+    assert_eq!(std::fs::read_to_string(project.lib())?, expected);
+
+    server.send(call(6, "rust.analyzer.actions", actions_arguments(&opened)))?;
+    let response = server.response(json!(6), CALL_TIMEOUT)?;
+    assert_eq!(
+        response["result"]["structuredContent"]["error_code"], "PROJECT_NOT_FOUND",
+        "the pre-commit project_ref is invalidated: {response}"
+    );
+
+    server.send(call(
+        7,
+        "rust.project.open",
+        json!({"path": project.path()}),
+    ))?;
+    let reopened = server.response(json!(7), DISCOVERY_TIMEOUT)?;
+    let reopened = &reopened["result"]["structuredContent"]["data"];
+    server.send(call(
+        8,
+        APPLY,
+        json!({
+            "project_ref": reopened["project_ref"],
+            "action": {
+                "mode": "receipt",
+                "operation_id": preview["data"]["plan_id"],
+                "recover": false
+            }
+        }),
+    ))?;
+    let response = server.response(json!(8), CALL_TIMEOUT)?;
+    let observed = &response["result"]["structuredContent"];
+    assert_eq!(observed["status"], "passed", "{response}");
+    assert_eq!(observed["data"]["state"], "committed");
+    server.finish()
+}
+
+/// ADR-083 §2/§6 native evidence: a source change after preview makes the
+/// commit `ACTION_STALE` without any write, and the same digest no longer
+/// resolves over the changed capture.
+#[test]
+#[ignore]
+fn analyzer_action_apply_is_action_stale_after_a_source_change_on_the_real_m6_image() -> Result {
+    let image = m6_image()?;
+    let project = ActionsProject::copy("stale")?;
+    let mut server = project.start_with_grant(&image)?;
+    let opened = discover_and_open(&mut server, project.path())?;
+    let action = first_applicable(&mut server, 3, &opened)?;
+    server.send(call(4, APPLY, preview_action(&opened, &action)))?;
+    let response = server.response(json!(4), CALL_TIMEOUT)?;
+    let preview = &response["result"]["structuredContent"];
+    assert_eq!(preview["status"], "passed", "{response}");
+
+    let edited = format!(
+        "{}// edited after preview\n",
+        std::fs::read_to_string(project.lib())?
+    );
+    std::fs::write(project.lib(), &edited)?;
+    server.send(call(
+        5,
+        APPLY,
+        json!({
+            "project_ref": opened["project_ref"],
+            "action": {
+                "mode": "commit",
+                "plan_id": preview["data"]["plan_id"],
+                "plan_digest": preview["data"]["plan_digest"],
+                "idempotency_key": "m6-action-stale"
+            }
+        }),
+    ))?;
+    let response = server.response(json!(5), CALL_TIMEOUT)?;
+    let refused = &response["result"]["structuredContent"];
+    assert_eq!(refused["status"], "blocked", "{response}");
+    assert_eq!(refused["error_code"], "ACTION_STALE", "{response}");
+    assert_eq!(std::fs::read_to_string(project.lib())?, edited);
+
+    server.send(call(6, APPLY, preview_action(&opened, &action)))?;
+    let response = server.response(json!(6), CALL_TIMEOUT)?;
+    assert_eq!(
+        response["result"]["structuredContent"]["error_code"], "ACTION_STALE",
+        "the listed digest does not resolve over the changed capture: {response}"
+    );
+    assert_eq!(std::fs::read_to_string(project.lib())?, edited);
     server.finish()
 }

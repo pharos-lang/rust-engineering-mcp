@@ -11,6 +11,7 @@ pub(crate) fn parse(mut args: impl Iterator<Item = OsString>) -> Option<stdio::H
         fix_write_roots: Vec::new(),
         dependency_add_roots: Vec::new(),
         dependency_remove_roots: Vec::new(),
+        analyzer_action_write_roots: Vec::new(),
         cargo_vendor: None,
         vendor_capture: None,
         profiling: None,
@@ -42,6 +43,7 @@ pub(crate) fn parse(mut args: impl Iterator<Item = OsString>) -> Option<stdio::H
             || flag == OsStr::new("--allow-fix-write")
             || flag == OsStr::new("--allow-dependency-add")
             || flag == OsStr::new("--allow-dependency-remove")
+            || flag == OsStr::new("--allow-analyzer-action-write")
         {
             let roots = if flag == OsStr::new("--allow-manifest-write") {
                 &mut config.manifest_write_roots
@@ -51,8 +53,10 @@ pub(crate) fn parse(mut args: impl Iterator<Item = OsString>) -> Option<stdio::H
                 &mut config.fix_write_roots
             } else if flag == OsStr::new("--allow-dependency-add") {
                 &mut config.dependency_add_roots
-            } else {
+            } else if flag == OsStr::new("--allow-dependency-remove") {
                 &mut config.dependency_remove_roots
+            } else {
+                &mut config.analyzer_action_write_roots
             };
             let path = PathBuf::from(&value);
             if value.to_str().is_none()
@@ -260,7 +264,8 @@ pub(crate) fn parse(mut args: impl Iterator<Item = OsString>) -> Option<stdio::H
         || !config.fmt_write_roots.is_empty()
         || !config.fix_write_roots.is_empty()
         || !config.dependency_add_roots.is_empty()
-        || !config.dependency_remove_roots.is_empty();
+        || !config.dependency_remove_roots.is_empty()
+        || !config.analyzer_action_write_roots.is_empty();
     if has_writes
         && (config.rust.is_none()
             || config
@@ -270,6 +275,7 @@ pub(crate) fn parse(mut args: impl Iterator<Item = OsString>) -> Option<stdio::H
                 .chain(config.fix_write_roots.iter())
                 .chain(config.dependency_add_roots.iter())
                 .chain(config.dependency_remove_roots.iter())
+                .chain(config.analyzer_action_write_roots.iter())
                 .any(|root| !config.roots.iter().any(|read| root.starts_with(read))))
     {
         return None;
@@ -349,6 +355,7 @@ mod tests {
             "--allow-fix-write",
             "--allow-dependency-add",
             "--allow-dependency-remove",
+            "--allow-analyzer-action-write",
         ] {
             let parse_roots = |read: &str, write: &str, state: &str| {
                 parse(

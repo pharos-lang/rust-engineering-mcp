@@ -828,8 +828,9 @@ afirma que sea el artefacto distribuible del proyecto (ADR-076 §6).
 
 ## M6 — analyzer
 
-Las tres tools M6 (`rust.analyzer.symbols`, `rust.analyzer.references`,
-`rust.analyzer.diagnostics`) tratan rust-analyzer como un peer LSP
+Las cinco tools M6 (`rust.analyzer.symbols`, `rust.analyzer.references`,
+`rust.analyzer.diagnostics`, `rust.analyzer.actions` y
+`rust.analyzer.action.apply`) tratan rust-analyzer como un peer LSP
 potencialmente hostil (el código del proyecto que analiza puede
 comprometerlo) y al proyecto capturado como fuente activa de configuración
 hostil, no solo de bytes a leer. [ADR-084](adr/ADR-084-rust-analyzer-runtime-and-lsp-lifecycle.md)
@@ -851,6 +852,9 @@ gateway, calificación nativa pendiente del orquestador.
 | Identidad del runtime falsificada o desactualizada tras un rollback | `analyzer.version`/`binary_sha256`/`image_id`/`config_digest` son propiedades del digest admitido, no de una sonda por llamada; solo `APPROVED_M6_IMAGE` puede abrir sesión, cualquier otro digest es `unavailable` antes de crear contenedor | Corte nativo `m6-00-admission`: la imagen M5 recibe `Unavailable` antes de crear volumen o contenedor; `m6-01-identity`: versión y sha256 coinciden guest = constante = recibo |
 | rust-analyzer no marca cuál ubicación de `textDocument/references` es la declaración (riesgo de que un cliente la infiera y se equivoque) | La misma sesión envía la petición dos veces (`includeDeclaration: true`/`false`, ADR-084 §2 fase 6 enmendada) y `is_declaration` se deriva por diferencia de conjuntos entre ambas respuestas, nunca por inferencia sobre la posición consultada | Corte nativo `m6-09-references` sobre `fixtures/valid-basic`: exactamente una ubicación marcada declaración, y todo rango consultado corta el propio nombre del símbolo en los bytes capturados |
 | `message` de un diagnóstico nativo (texto libre del proyecto) con caracteres de control o de longitud no acotada | Bounded a 4096 caracteres Unicode con `message_truncated` en vez de rechazo silencioso; todo carácter de control salvo `\n`/`\t` se sustituye antes del wire; nunca el `message` de `experimental/serverStatus` ni `stderr` | Test unitario de `bounded_message` en `mcp-server` (sustitución y truncado); mismo test de ausencia de `stderr`/`kill_error`/`reap_error` que M6-01 |
+| Code action con `Command`, snippet, operación de recurso (create/rename/delete), URI externa, versión distinta o edits solapados | Rechazo cerrado por elemento en el codec, repetido por el gateway sobre la acción resuelta, por el listado de la aplicación y por `apply_edits` del dominio; nunca se ejecuta un `Command` ni se reintenta otra forma | Tests del codec (W06), `structural_rejection` del gateway, `validate_action_edits` del dominio, listado de la aplicación |
+| Título de una acción (texto del analizador) usado para confundir al revisor | Solo dato de presentación: ≤ 256 caracteres con `title_truncated`, controles sustituidos; nunca entra en decisión alguna; el digest cubre el título completo | Test de `bounded_title` en `mcp-server` |
+| Acción listada distinta de la aplicada (source, binario o configuración cambiados) | `action_digest` ata título, kind, edits, versión/binario/configuración del analizador y la captura; el preview re-resuelve sobre una captura nueva y exige el mismo digest; commit compara la captura viva con el plan antes del writer | Tests de digest del gateway; lifecycle de `mcp-server` (`ACTION_STALE` en preview y en commit); e2e nativo ignorado de `analyzer_runtime.rs` |
 
 **Alcance nativo positivo**: exclusivamente host macOS ARM64/APFS con imagen
 guest M6 Linux ARM64; Linux/Windows quedan fail-closed hasta una decisión de
@@ -872,3 +876,36 @@ prueba: bajo la configuración mínima (`diagnostics.experimental.enable=false`)
 no emite un diagnóstico de macro/import no resuelto para esta ausencia
 (calidad de diagnósticos = deuda trazada, ver `docs/validation/M6/matrix.md`,
 "Deuda de M6"). Calificación nativa pendiente del orquestador.
+
+### Escritura por code actions (M6-04/M6-05)
+
+`rust.analyzer.action.apply` es la única tool M6 que escribe, y lo hace
+exclusivamente por el writer M2 de ADR-050/ADR-052: sin segundo journal, lock
+ni staging, con la misma autorización por grant exacto de raíz
+(`--allow-analyzer-action-write`), generación, idempotencia, replay, recovery
+e invalidación del `project_ref` en commit. `local_coordinated`: no hay
+exclusión OS de editores externos ni atomicidad multiarchivo.
+
+- **Edits de influencia hostil.** El `WorkspaceEdit` lo produce rust-analyzer a
+  partir del código del proyecto; se trata como entrada hostil. Solo se
+  aceptan `TextEdit`s sobre `.rs` ya capturados, sin solapes ni inicios
+  compartidos, ≤ 128 edits, dentro del techo de bytes y de los límites de
+  archivo y bundle. Nada fuera de ese conjunto se aplica de ninguna forma.
+- **Validación solo estructural; no verificada por compilación** (decisión A
+  del owner, 2026-09-12). Ningún `cargo check` ni ejecución juzga el resultado;
+  la salida lo declara (`method: workspace_edit_structural_only`,
+  `guarantees_not_provided: compile_verification`) y la descripción pide
+  `rust.check` después. Una acción puede producir código que no compila.
+- **El diff es la superficie de revisión.** Una acción puede reescribir hasta
+  128 `.rs` capturados, no solo el archivo pedido, incluidos `build.rs` o
+  fuentes vendorizadas dentro de la captura, cuya ejecución posterior
+  (`rust.check`, tests) sí corre código del proyecto. El preview publica cada
+  archivo tocado (`files`) y el diff exacto completo; commit aplica solo ese
+  plan, ligado por `plan_digest` a `before`, `after`, kind y provenance.
+- **Staleness.** El `action_digest` no autoriza nada por sí solo: el preview
+  re-resuelve la acción sobre una captura nueva, y commit rechaza con
+  `ACTION_STALE` un source que ya no es el del plan antes de pedir efecto
+  alguno; el writer repite esa comparación al publicar.
+- **Vista de provenance por kind.** Un plan o receipt `AnalyzerActionApply`
+  solo toma la vista `workspace_edit_structural_only`, y ningún plan M2 la
+  toma; un journal de otro kind se rechaza antes de cualquier efecto (G6).

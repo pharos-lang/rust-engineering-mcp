@@ -1551,6 +1551,42 @@ pub fn code_actions_to_candidates(
         .collect()
 }
 
+/// The peer's own title and kind for one raw `textDocument/codeAction`
+/// element, when it carries them (ADR-083 §4). A label is display data for a
+/// rejected element only: it never resolves, digests or applies anything.
+#[derive(Clone, Debug, PartialEq)]
+pub struct ActionLabel {
+    pub title: String,
+    pub kind: Option<domain::CodeActionKind>,
+}
+
+/// One label per element of `actions`, in order: `Some` exactly when the
+/// element is an object with a string `title` (a `CodeAction` or a bare
+/// `Command`), whatever else about it [`code_actions_to_candidates`] refuses.
+/// An unknown `kind` string is `None`, as it is for a resolved action.
+pub fn action_labels(actions: &[serde_json::Value]) -> Vec<Option<ActionLabel>> {
+    #[derive(Deserialize)]
+    struct Label {
+        title: String,
+        #[serde(default)]
+        kind: Option<serde_json::Value>,
+    }
+    actions
+        .iter()
+        .map(|value| {
+            let label = Label::deserialize(value).ok()?;
+            Some(ActionLabel {
+                title: label.title,
+                kind: label
+                    .kind
+                    .as_ref()
+                    .and_then(serde_json::Value::as_str)
+                    .and_then(domain::CodeActionKind::from_lsp),
+            })
+        })
+        .collect()
+}
+
 /// Resolves one code action against the captured snapshot.
 ///
 /// Preconditions: `indices` contains a [`domain::LineIndex`] for every
@@ -2927,6 +2963,41 @@ mod tests {
             "a well-formed bare Command keeps its own precise reason"
         );
         Ok(())
+    }
+
+    #[test]
+    fn action_labels_keep_a_title_and_a_known_kind_whatever_the_element_is_refused_for() {
+        let labels = action_labels(&[
+            serde_json::json!({"title": "Run it", "command": "rust-analyzer.run"}),
+            serde_json::json!({"title": "Extract", "kind": "refactor.extract", "edit": 7}),
+            serde_json::json!({"title": "Odd", "kind": "refactor.custom"}),
+            serde_json::json!({"title": "Typed", "kind": 3}),
+            serde_json::json!({"kind": "quickfix"}),
+            serde_json::json!(42),
+        ]);
+        assert_eq!(
+            labels,
+            vec![
+                Some(ActionLabel {
+                    title: "Run it".into(),
+                    kind: None,
+                }),
+                Some(ActionLabel {
+                    title: "Extract".into(),
+                    kind: Some(domain::CodeActionKind::RefactorExtract),
+                }),
+                Some(ActionLabel {
+                    title: "Odd".into(),
+                    kind: None,
+                }),
+                Some(ActionLabel {
+                    title: "Typed".into(),
+                    kind: None,
+                }),
+                None,
+                None,
+            ]
+        );
     }
 
     #[test]

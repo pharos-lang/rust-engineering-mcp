@@ -1159,12 +1159,15 @@ fn convert(
                 serde_json::from_value(value).map_err(violation)?;
             let total = elements.len();
             let visible = total.min(domain::MAX_ACTIONS);
-            let resolved = lsp_codec::code_actions_to_candidates(
-                elements.into_iter().take(visible).collect(),
-                question.indices,
-                encoding,
-            );
-            let candidates = resolved.into_iter().map(candidate).collect();
+            let elements: Vec<serde_json::Value> = elements.into_iter().take(visible).collect();
+            let labels = lsp_codec::action_labels(&elements);
+            let resolved =
+                lsp_codec::code_actions_to_candidates(elements, question.indices, encoding);
+            let candidates = resolved
+                .into_iter()
+                .zip(labels)
+                .map(|(resolved, label)| candidate(resolved, label))
+                .collect();
             Ok((
                 domain::AnalyzerResult::CodeActions(candidates),
                 limit_visible_omissions(total - visible),
@@ -1186,8 +1189,12 @@ fn limit_visible_omissions(count: usize) -> Vec<domain::Omission> {
     }
 }
 
+/// One domain candidate from one resolved element and its label. A rejected
+/// element keeps the peer's title and kind when it carried them (ADR-083 §4);
+/// they are display data and never feed a digest.
 fn candidate(
     resolved: Result<lsp_codec::ResolvedAction, domain::ActionRejection>,
+    label: Option<lsp_codec::ActionLabel>,
 ) -> domain::ActionCandidate {
     match resolved {
         Ok(action) => match domain::NonEmptyText::try_from(action.title) {
@@ -1199,9 +1206,19 @@ fn candidate(
             }),
             // A blank title leaves nothing a caller could show or digest, so
             // this element never became a resolvable action.
-            Err(_) => domain::ActionCandidate::Rejected(domain::ActionRejection::UnresolvedEdit),
+            Err(_) => domain::ActionCandidate::Rejected(domain::RejectedAction {
+                reason: domain::ActionRejection::UnresolvedEdit,
+                title: None,
+                kind: action.kind,
+            }),
         },
-        Err(rejection) => domain::ActionCandidate::Rejected(rejection),
+        Err(reason) => domain::ActionCandidate::Rejected(domain::RejectedAction {
+            reason,
+            title: label
+                .as_ref()
+                .and_then(|label| domain::NonEmptyText::try_from(label.title.clone()).ok()),
+            kind: label.and_then(|label| label.kind),
+        }),
     }
 }
 
@@ -1327,6 +1344,208 @@ fn summary(
 /// becomes a published value: `None` says "nothing to report" honestly.
 fn bounded_text(value: Option<String>) -> Option<domain::NonEmptyText> {
     value.and_then(|text| domain::NonEmptyText::try_from(text).ok())
+}
+
+// ---------------------------------------------------------------------
+// M6-04: action identity and apply-preview resolution. Appended by the
+// action-candidate package; nothing above this line is modified.
+// ---------------------------------------------------------------------
+
+use rust_engineering_application::analyzer::{ActionResolution, AnalyzerActionRuntime};
+
+/// Opens every action digest's hashed input.
+const ACTION_DIGEST_DOMAIN: &[u8] = b"rust-engineering-mcp/analyzer-action-digest/v1\0";
+
+/// The platform of [`APPROVED_M6_IMAGE`] (provisioned as `…-arm64-m6`),
+/// spelled as every other gateway result spells it.
+const ANALYZER_PLATFORM: &str = "linux/aarch64";
+
+fn push_digest_field(input: &mut Vec<u8>, bytes: &[u8]) {
+    input.extend_from_slice(&(bytes.len() as u64).to_le_bytes());
+    input.extend_from_slice(bytes);
+}
+
+/// The `action_digest` of one resolved action (ADR-083 §2): sha256 over the
+/// action's canonical [`domain::AnalyzerAction::digest_input`], the analyzer
+/// `version`, `binary_sha256` and `config_digest`, and the snapshot the action
+/// was resolved against, each length-prefixed.
+///
+/// A new capture, analyzer version, binary or analyzer configuration digest
+/// therefore yields a different digest for the same edits, which is what
+/// makes a stale preview detectable. The digest does not bind `image_id` or
+/// the gateway `configuration_fingerprint`: those are bound by the
+/// candidate's validation provenance, and so by the M2 plan digest, instead.
+pub fn action_digest(
+    action: &domain::AnalyzerAction,
+    identity: &domain::AnalyzerRuntime,
+    source_fingerprint: &domain::SourceFingerprint,
+) -> Result<domain::SourceFingerprint, ExecutionError> {
+    let mut input = Vec::new();
+    push_digest_field(&mut input, ACTION_DIGEST_DOMAIN);
+    push_digest_field(&mut input, &action.digest_input());
+    push_digest_field(&mut input, identity.version.as_str().as_bytes());
+    push_digest_field(&mut input, identity.binary_sha256.as_str().as_bytes());
+    push_digest_field(&mut input, identity.config_digest.as_str().as_bytes());
+    push_digest_field(&mut input, source_fingerprint.as_str().as_bytes());
+    fingerprint(&digest(&input))
+}
+
+/// One digest per element of an answered `CodeActions` result, in order:
+/// `Some` exactly for an applicable action. Empty for any other outcome.
+///
+/// Preconditions: `source_fingerprint` is the bundle digest of the capture
+/// `execution` ran against.
+pub fn action_digests(
+    execution: &domain::AnalyzerExecution,
+    source_fingerprint: &domain::SourceFingerprint,
+) -> Result<Vec<Option<domain::SourceFingerprint>>, ExecutionError> {
+    match execution.result() {
+        Some(domain::AnalyzerResult::CodeActions(candidates)) => candidates
+            .iter()
+            .map(|candidate| match candidate {
+                domain::ActionCandidate::Applicable(action) => {
+                    action_digest(action, &execution.identity, source_fingerprint).map(Some)
+                }
+                domain::ActionCandidate::Rejected(_) => Ok(None),
+            })
+            .collect(),
+        _ => Ok(Vec::new()),
+    }
+}
+
+/// Which previewed action an apply-preview session must find again.
+#[derive(Clone, Copy, Debug)]
+pub struct ActionLookup<'a> {
+    pub file: &'a domain::AnalyzerFile,
+    pub range: domain::TextRange,
+    pub action_digest: &'a domain::SourceFingerprint,
+}
+
+/// The resolved action and every identity the candidate provenance binds.
+/// Nothing here has been applied.
+#[derive(Clone, Debug)]
+pub struct ActionApplyResolution {
+    pub execution: domain::AnalyzerExecution,
+    pub runtime: AnalyzerActionRuntime,
+    pub resolution: ActionResolution,
+}
+
+/// The apply-preview half of ADR-083 §6: one unfiltered `CodeActions` session
+/// over `source` (the existing lifecycle, unchanged), then the applicable
+/// action whose recomputed digest equals `lookup.action_digest`.
+///
+/// Unfiltered because the digest does not depend on the `only` filter the
+/// listing used. The session's own failure is not an `Err`: it is
+/// [`ActionResolution::NotAnswered`] beside the execution that names it.
+///
+/// Preconditions: `source_fingerprint` is the bundle digest of `source`,
+/// computed by the caller outside the gateway's single-flight lock.
+pub(crate) fn resolve_action_candidate(
+    gateway: &RustGateway,
+    source: &SourceBundle,
+    source_fingerprint: &domain::SourceFingerprint,
+    lookup: ActionLookup<'_>,
+    limits: ExecutionLimits,
+    cancel: &dyn ExecutionCancellation,
+) -> Result<ActionApplyResolution, ExecutionError> {
+    let query = AnalyzerQuery::CodeActions {
+        file: lookup.file.clone(),
+        range: lookup.range,
+        only: Vec::new(),
+    };
+    let execution = execute(gateway, source, &query, limits, cancel)?;
+    let configuration_fingerprint = gateway.configuration_fingerprint()?;
+    let session_fingerprint = session_fingerprint(
+        &configuration_fingerprint,
+        &query,
+        limits,
+        source_fingerprint,
+        &execution.identity,
+    )?;
+    let resolution = match_action(&execution, source_fingerprint, lookup.action_digest)?;
+    Ok(ActionApplyResolution {
+        runtime: AnalyzerActionRuntime {
+            platform: ANALYZER_PLATFORM.to_owned(),
+            image_id: gateway.image_id().to_owned(),
+            configuration_fingerprint,
+            session_fingerprint,
+            rust_version: super::rust_gateway::APPROVED_RUST_VERSION.to_owned(),
+            cargo_version: super::rust_gateway::APPROVED_CARGO_VERSION.to_owned(),
+        },
+        execution,
+        resolution,
+    })
+}
+
+/// The identity of one analyzer session request, mirroring the
+/// `execution_fingerprint` every other gateway run publishes: what was asked
+/// of which runtime over which bytes, never what came back.
+fn session_fingerprint(
+    configuration: &domain::ExecutionFingerprint,
+    query: &AnalyzerQuery,
+    limits: ExecutionLimits,
+    source_fingerprint: &domain::SourceFingerprint,
+    identity: &domain::AnalyzerRuntime,
+) -> Result<domain::ExecutionFingerprint, ExecutionError> {
+    let request = serde_json::to_vec(&(
+        configuration,
+        query,
+        limits,
+        source_fingerprint,
+        identity,
+        "rust-analyzer-session-v1",
+    ))
+    .map_err(|_| ExecutionError::Infrastructure)?;
+    digest(&request)
+        .parse()
+        .map_err(|_| ExecutionError::Infrastructure)
+}
+
+fn match_action(
+    execution: &domain::AnalyzerExecution,
+    source_fingerprint: &domain::SourceFingerprint,
+    requested: &domain::SourceFingerprint,
+) -> Result<ActionResolution, ExecutionError> {
+    let Some(domain::AnalyzerResult::CodeActions(candidates)) = execution.result() else {
+        return Ok(ActionResolution::NotAnswered);
+    };
+    for candidate in candidates {
+        let domain::ActionCandidate::Applicable(action) = candidate else {
+            continue;
+        };
+        if &action_digest(action, &execution.identity, source_fingerprint)? == requested {
+            return Ok(match structural_rejection(action) {
+                Some(reason) => ActionResolution::Rejected(reason),
+                None => ActionResolution::Resolved(action.clone()),
+            });
+        }
+    }
+    Ok(ActionResolution::Stale)
+}
+
+/// Belt and braces over the codec (ADR-083 §5): an action that reached this
+/// point was already resolved through `lsp_codec`, so this repeats its
+/// bounds and its overlap rule rather than trusting that path alone.
+fn structural_rejection(action: &domain::AnalyzerAction) -> Option<domain::ActionRejection> {
+    if action.edits.len() > domain::MAX_EDITS {
+        return Some(domain::ActionRejection::EditLimit);
+    }
+    let bytes = action.edits.iter().fold(0usize, |total, edit| {
+        total.saturating_add(edit.new_text.len())
+    });
+    if bytes > domain::MAX_RESULT_BYTES {
+        return Some(domain::ActionRejection::BytesLimit);
+    }
+    let mut spans: Vec<_> = action
+        .edits
+        .iter()
+        .map(|edit| (edit.file.as_str(), edit.range.start(), edit.range.end()))
+        .collect();
+    spans.sort_unstable();
+    spans
+        .windows(2)
+        .any(|pair| pair[0].0 == pair[1].0 && (pair[0].1 == pair[1].1 || pair[0].2 > pair[1].1))
+        .then_some(domain::ActionRejection::OverlappingRanges)
 }
 
 /// Runs one closed, argument-free analyzer phase against an empty source volume
@@ -2214,6 +2433,313 @@ mod tests {
             Some(domain::AnalyzerFailure::TimeoutQuery),
             "the second request must time out, never hang or silently drop"
         );
+        Ok(())
+    }
+
+    // ---- M6-04: action identity and resolution ----
+
+    fn test_fingerprint(
+        value: u8,
+    ) -> Result<domain::SourceFingerprint, Box<dyn std::error::Error>> {
+        Ok(format!("sha256:{value:064x}").parse()?)
+    }
+
+    fn text_edit(
+        file: &str,
+        (sl, sc, el, ec): (u32, u32, u32, u32),
+        new_text: &str,
+    ) -> Result<domain::TextEdit, Box<dyn std::error::Error>> {
+        Ok(domain::TextEdit {
+            file: domain::AnalyzerFile::new(file.to_owned())?,
+            range: domain::TextRange::new(
+                domain::Position::new(sl, sc)?,
+                domain::Position::new(el, ec)?,
+            )?,
+            new_text: new_text.to_owned(),
+        })
+    }
+
+    fn applicable(
+        title: &str,
+        edits: Vec<domain::TextEdit>,
+    ) -> Result<domain::AnalyzerAction, Box<dyn std::error::Error>> {
+        Ok(domain::AnalyzerAction {
+            title: domain::NonEmptyText::try_from(title.to_owned())?,
+            kind: Some(domain::CodeActionKind::RefactorRewrite),
+            is_preferred: false,
+            edits,
+        })
+    }
+
+    fn answered_actions(
+        candidates: Vec<domain::ActionCandidate>,
+    ) -> Result<domain::AnalyzerExecution, Box<dyn std::error::Error>> {
+        let conversation = Conversation {
+            session: None,
+            encoding: Some(domain::PositionEncoding::Utf8),
+            readiness: domain::AnalyzerReadiness::Quiescent {
+                elapsed_ms: 5,
+                health: domain::ServerHealth::Ok,
+            },
+            outcome: Some(domain::AnalyzerOutcome::Answered(
+                domain::AnalyzerResult::CodeActions(candidates),
+            )),
+            reasons: Vec::new(),
+            omissions: Vec::new(),
+            oom_killed: Some(false),
+            stage: Stage::Query,
+        };
+        Ok(assemble(identity()?, conversation, None, Instant::now())
+            .map_err(|error| format!("{error:?}"))?)
+    }
+
+    #[test]
+    fn the_action_digest_binds_the_action_the_runtime_and_the_snapshot()
+    -> Result<(), Box<dyn std::error::Error>> {
+        let first = text_edit("src/lib.rs", (1, 1, 1, 2), "X")?;
+        let second = text_edit("src/lib.rs", (2, 1, 2, 1), "Y")?;
+        let action = applicable("Rewrite", vec![first.clone(), second.clone()])?;
+        let reordered = applicable("Rewrite", vec![second, first])?;
+        let runtime = identity()?;
+        let source = test_fingerprint(9)?;
+        let base = action_digest(&action, &runtime, &source).map_err(|e| format!("{e:?}"))?;
+        assert_eq!(
+            action_digest(&reordered, &runtime, &source).map_err(|e| format!("{e:?}"))?,
+            base,
+            "edit order is not part of an action's identity"
+        );
+        assert_eq!(
+            action_digest(&action, &runtime, &source).map_err(|e| format!("{e:?}"))?,
+            base,
+            "the digest is a pure function of its inputs"
+        );
+
+        let mut seen = vec![base];
+        let other_version = domain::AnalyzerRuntime {
+            version: domain::NonEmptyText::try_from("rust-analyzer 1.98.2".to_owned())?,
+            ..runtime.clone()
+        };
+        let other_binary = domain::AnalyzerRuntime {
+            binary_sha256: test_fingerprint(3)?,
+            ..runtime.clone()
+        };
+        let other_config = domain::AnalyzerRuntime {
+            config_digest: test_fingerprint(4)?,
+            ..runtime.clone()
+        };
+        let other_action = applicable("Rewrite it", action.edits.clone())?;
+        for digest in [
+            action_digest(&action, &other_version, &source),
+            action_digest(&action, &other_binary, &source),
+            action_digest(&action, &other_config, &source),
+            action_digest(&action, &runtime, &test_fingerprint(10)?),
+            action_digest(&other_action, &runtime, &source),
+        ] {
+            let digest = digest.map_err(|e| format!("{e:?}"))?;
+            assert!(!seen.contains(&digest), "{digest} repeats another digest");
+            seen.push(digest);
+        }
+        Ok(())
+    }
+
+    #[test]
+    fn action_digests_align_with_the_candidates_and_skip_rejections()
+    -> Result<(), Box<dyn std::error::Error>> {
+        let action = applicable("Rewrite", vec![text_edit("src/lib.rs", (1, 1, 1, 2), "X")?])?;
+        let execution = answered_actions(vec![
+            domain::ActionCandidate::Rejected(domain::ActionRejection::Command.into()),
+            domain::ActionCandidate::Applicable(action.clone()),
+        ])?;
+        let source = test_fingerprint(9)?;
+        let digests = action_digests(&execution, &source).map_err(|e| format!("{e:?}"))?;
+        assert_eq!(
+            digests,
+            vec![
+                None,
+                Some(
+                    action_digest(&action, &execution.identity, &source)
+                        .map_err(|e| format!("{e:?}"))?
+                ),
+            ]
+        );
+        let refused = refusal(
+            identity()?,
+            domain::AnalyzerFailure::FileNotInSnapshot,
+            Instant::now(),
+        )
+        .map_err(|e| format!("{e:?}"))?;
+        assert!(
+            action_digests(&refused, &source)
+                .map_err(|e| format!("{e:?}"))?
+                .is_empty()
+        );
+        Ok(())
+    }
+
+    #[test]
+    fn a_rejected_candidate_keeps_its_label_and_a_blank_title_is_dropped()
+    -> Result<(), Box<dyn std::error::Error>> {
+        let label = lsp_codec::ActionLabel {
+            title: "Run it".into(),
+            kind: Some(domain::CodeActionKind::QuickFix),
+        };
+        assert_eq!(
+            candidate(Err(domain::ActionRejection::Command), Some(label)),
+            domain::ActionCandidate::Rejected(domain::RejectedAction {
+                reason: domain::ActionRejection::Command,
+                title: Some(domain::NonEmptyText::try_from("Run it".to_owned())?),
+                kind: Some(domain::CodeActionKind::QuickFix),
+            })
+        );
+        assert_eq!(
+            candidate(Err(domain::ActionRejection::Snippet), None),
+            domain::ActionCandidate::Rejected(domain::ActionRejection::Snippet.into())
+        );
+        let blank = lsp_codec::ActionLabel {
+            title: String::new(),
+            kind: None,
+        };
+        assert_eq!(
+            candidate(Err(domain::ActionRejection::Command), Some(blank)),
+            domain::ActionCandidate::Rejected(domain::ActionRejection::Command.into())
+        );
+        Ok(())
+    }
+
+    #[test]
+    fn match_action_resolves_only_the_digest_of_this_session_and_snapshot()
+    -> Result<(), Box<dyn std::error::Error>> {
+        let wanted = applicable("Wanted", vec![text_edit("src/lib.rs", (1, 1, 1, 2), "X")?])?;
+        let other = applicable("Other", vec![text_edit("src/lib.rs", (1, 3, 1, 4), "Y")?])?;
+        let execution = answered_actions(vec![
+            domain::ActionCandidate::Applicable(other),
+            domain::ActionCandidate::Rejected(domain::ActionRejection::Snippet.into()),
+            domain::ActionCandidate::Applicable(wanted.clone()),
+        ])?;
+        let source = test_fingerprint(9)?;
+        let digest =
+            action_digest(&wanted, &execution.identity, &source).map_err(|e| format!("{e:?}"))?;
+        assert_eq!(
+            match_action(&execution, &source, &digest).map_err(|e| format!("{e:?}"))?,
+            ActionResolution::Resolved(wanted)
+        );
+        assert_eq!(
+            match_action(&execution, &test_fingerprint(10)?, &digest)
+                .map_err(|e| format!("{e:?}"))?,
+            ActionResolution::Stale,
+            "the same edits over a different capture are a different action"
+        );
+        assert_eq!(
+            match_action(&execution, &source, &test_fingerprint(11)?)
+                .map_err(|e| format!("{e:?}"))?,
+            ActionResolution::Stale
+        );
+        let refused = refusal(
+            identity()?,
+            domain::AnalyzerFailure::NotReady,
+            Instant::now(),
+        )
+        .map_err(|e| format!("{e:?}"))?;
+        assert_eq!(
+            match_action(&refused, &source, &digest).map_err(|e| format!("{e:?}"))?,
+            ActionResolution::NotAnswered
+        );
+        Ok(())
+    }
+
+    #[test]
+    fn a_matched_action_that_breaks_the_structural_rules_is_rejected_not_resolved()
+    -> Result<(), Box<dyn std::error::Error>> {
+        let source = test_fingerprint(9)?;
+        let overlapping = applicable(
+            "Overlap",
+            vec![
+                text_edit("src/lib.rs", (1, 1, 1, 4), "X")?,
+                text_edit("src/lib.rs", (1, 3, 1, 5), "Y")?,
+            ],
+        )?;
+        let shared_start = applicable(
+            "Shared start",
+            vec![
+                text_edit("src/lib.rs", (1, 2, 1, 2), "X")?,
+                text_edit("src/lib.rs", (1, 2, 1, 4), "Y")?,
+            ],
+        )?;
+        let too_many = applicable(
+            "Too many",
+            (0..=domain::MAX_EDITS as u32)
+                .map(|line| text_edit("src/lib.rs", (line + 1, 1, line + 1, 1), "x"))
+                .collect::<Result<Vec<_>, _>>()?,
+        )?;
+        let too_large = applicable(
+            "Too large",
+            vec![text_edit(
+                "src/lib.rs",
+                (1, 1, 1, 1),
+                &"x".repeat(domain::MAX_RESULT_BYTES + 1),
+            )?],
+        )?;
+        // Touching edits and the same range in two different files are fine.
+        let touching = applicable(
+            "Touching",
+            vec![
+                text_edit("src/a.rs", (1, 1, 1, 3), "X")?,
+                text_edit("src/a.rs", (1, 3, 1, 5), "Y")?,
+                text_edit("src/b.rs", (1, 1, 1, 3), "Z")?,
+            ],
+        )?;
+        for (action, expected) in [
+            (
+                overlapping,
+                Some(domain::ActionRejection::OverlappingRanges),
+            ),
+            (
+                shared_start,
+                Some(domain::ActionRejection::OverlappingRanges),
+            ),
+            (too_many, Some(domain::ActionRejection::EditLimit)),
+            (too_large, Some(domain::ActionRejection::BytesLimit)),
+            (touching, None),
+        ] {
+            let execution =
+                answered_actions(vec![domain::ActionCandidate::Applicable(action.clone())])?;
+            let digest = action_digest(&action, &execution.identity, &source)
+                .map_err(|e| format!("{e:?}"))?;
+            let resolved =
+                match_action(&execution, &source, &digest).map_err(|e| format!("{e:?}"))?;
+            match expected {
+                Some(reason) => assert_eq!(resolved, ActionResolution::Rejected(reason)),
+                None => assert_eq!(resolved, ActionResolution::Resolved(action)),
+            }
+        }
+        Ok(())
+    }
+
+    #[test]
+    fn the_session_fingerprint_names_the_request_and_not_the_answer()
+    -> Result<(), Box<dyn std::error::Error>> {
+        let file = domain::AnalyzerFile::new("src/lib.rs".into())?;
+        let query = |column| -> Result<AnalyzerQuery, Box<dyn std::error::Error>> {
+            let cursor = domain::Position::new(1, column)?;
+            Ok(AnalyzerQuery::CodeActions {
+                file: file.clone(),
+                range: domain::TextRange::new(cursor, cursor)?,
+                only: Vec::new(),
+            })
+        };
+        let limits = ExecutionLimits::new_job(180_000, 512 * 1024).ok_or("representable limits")?;
+        let configuration: domain::ExecutionFingerprint =
+            format!("sha256:{}", "c".repeat(64)).parse()?;
+        let source = test_fingerprint(9)?;
+        let runtime = identity()?;
+        let fingerprint_of = |query: &AnalyzerQuery, source: &domain::SourceFingerprint| {
+            session_fingerprint(&configuration, query, limits, source, &runtime)
+                .map_err(|e| format!("{e:?}"))
+        };
+        let base = fingerprint_of(&query(1)?, &source)?;
+        assert_eq!(fingerprint_of(&query(1)?, &source)?, base);
+        assert_ne!(fingerprint_of(&query(2)?, &source)?, base);
+        assert_ne!(fingerprint_of(&query(1)?, &test_fingerprint(10)?)?, base);
         Ok(())
     }
 }

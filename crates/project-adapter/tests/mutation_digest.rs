@@ -78,6 +78,7 @@ fn every_part_of_the_plan_changes_the_digest() -> TestResult {
         MutationKind::FixApply,
         MutationKind::DependencyAdd,
         MutationKind::DependencyRemove,
+        MutationKind::AnalyzerActionApply,
     ] {
         let other = digest(&MutationCandidate {
             kind,

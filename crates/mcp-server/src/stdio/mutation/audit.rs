@@ -1,4 +1,15 @@
-//! Fixed local stderr event for completed M2 calls.
+//! Fixed local stderr event for completed M2 calls, and for
+//! `rust.analyzer.action.apply` (the single M2 writer's sixth caller).
+//!
+//! `schema` and `event` are the only fields with a closed set of values one
+//! schema version promises: `tool`, `phase` and `reason` are an open,
+//! append-only vocabulary shared by every tool this event covers. Each new
+//! writer tool contributes its own `tool` name and its own `reason` strings
+//! (see `ApplyCode::event` for the analyzer's), never removing or renaming an
+//! existing one; a consumer that already treats an unrecognised `reason` or
+//! `tool` as "unknown, not a parse failure" needs no change when one is
+//! added, so adding `rust.analyzer.action.apply`'s values here does not bump
+//! `SCHEMA`.
 use super::{Action, Data, Output, Reason, Status};
 use rust_engineering_application::MutationAllocationStats;
 use serde::Serialize;
@@ -6,7 +17,7 @@ use serde::Serialize;
 const SCHEMA: &str = "rust-mcp-mutation-event-v1";
 const EVENT: &str = "mutation_call_completed";
 
-#[derive(Clone, Copy, Serialize)]
+#[derive(Clone, Copy, Debug, Serialize)]
 #[serde(rename_all = "snake_case")]
 pub(super) enum Phase {
     Preview,
@@ -48,10 +59,10 @@ pub(super) fn emit(
     phase: Phase,
     admitted: bool,
     cleanup_uncertain: bool,
-    output: &Output,
+    record: Record<'_>,
     allocation: Option<MutationAllocationStats>,
 ) {
-    if let Ok(encoded) = encode(tool, phase, admitted, cleanup_uncertain, output, allocation) {
+    if let Ok(encoded) = encode(tool, phase, admitted, cleanup_uncertain, record, allocation) {
         tracing::info!(target: "rust_engineering_mcp", "{encoded}");
     }
 }
@@ -61,9 +72,38 @@ fn encode(
     phase: Phase,
     admitted: bool,
     cleanup_uncertain: bool,
-    output: &Output,
+    record: Record<'_>,
     allocation: Option<MutationAllocationStats>,
 ) -> Result<String, serde_json::Error> {
+    serde_json::to_string(&Event {
+        schema: SCHEMA,
+        event: EVENT,
+        tool,
+        phase,
+        admitted,
+        status: record.status,
+        reason: record.reason,
+        duration_ms: record.duration_ms,
+        cleanup_uncertain,
+        result_id: record.result_id,
+        files_changed: record.files_changed,
+        allocated_plans: allocation.map(|value| value.plans),
+        allocated_plan_bytes: allocation.map(|value| value.bytes),
+    })
+}
+
+/// The output fields one event publishes: closed codes, an identifier and a
+/// count, never a path, diff, summary or other untrusted value.
+pub(super) struct Record<'a> {
+    pub(super) status: &'static str,
+    pub(super) reason: Option<&'static str>,
+    pub(super) duration_ms: u64,
+    pub(super) result_id: Option<&'a str>,
+    pub(super) files_changed: usize,
+}
+
+/// The event record of an M2 tool output.
+pub(super) fn record(output: &Output) -> Record<'_> {
     let (result_id, files_changed) = match output.data.as_ref() {
         Some(Data::Preview { plan_id, files, .. }) => (Some(plan_id.as_str()), files.len()),
         Some(Data::Receipt {
@@ -73,24 +113,16 @@ fn encode(
         }) => (Some(operation_id.as_str()), files.len()),
         None => (None, 0),
     };
-    serde_json::to_string(&Event {
-        schema: SCHEMA,
-        event: EVENT,
-        tool,
-        phase,
-        admitted,
+    Record {
         status: status(output.status),
         reason: output.error_code.map(reason),
         duration_ms: output.duration_ms,
-        cleanup_uncertain,
         result_id,
         files_changed,
-        allocated_plans: allocation.map(|value| value.plans),
-        allocated_plan_bytes: allocation.map(|value| value.bytes),
-    })
+    }
 }
 
-fn status(value: Status) -> &'static str {
+pub(super) fn status(value: Status) -> &'static str {
     match value {
         Status::Passed => "passed",
         Status::Failed => "failed",
@@ -186,7 +218,7 @@ mod tests {
             Phase::Preview,
             true,
             false,
-            &output,
+            record(&output),
             Some(MutationAllocationStats { plans: 1, bytes: 3 }),
         )?;
         for excluded in [
@@ -228,7 +260,7 @@ mod tests {
             Phase::Commit,
             false,
             false,
-            &output,
+            record(&output),
             None,
         )?)?;
         assert_eq!(value["allocated_plans"], Value::Null);

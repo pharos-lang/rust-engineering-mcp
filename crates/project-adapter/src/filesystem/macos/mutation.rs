@@ -930,6 +930,9 @@ fn operation_kind(operation: &str) -> Result<MutationKind, MutationError> {
         "fix_apply" => Ok(MutationKind::FixApply),
         "dependency_add" => Ok(MutationKind::DependencyAdd),
         "dependency_remove" => Ok(MutationKind::DependencyRemove),
+        "analyzer_action_apply" => Ok(MutationKind::AnalyzerActionApply),
+        // ADR-052/ADR-083 G6: a kind this binary does not know is never given
+        // a default; the journal is refused before any effect.
         _ => Err(MutationError::RecoveryRequired),
     }
 }
@@ -941,6 +944,7 @@ fn operation_name(kind: MutationKind) -> &'static str {
         MutationKind::FixApply => "fix_apply",
         MutationKind::DependencyAdd => "dependency_add",
         MutationKind::DependencyRemove => "dependency_remove",
+        MutationKind::AnalyzerActionApply => "analyzer_action_apply",
     }
 }
 
@@ -1032,7 +1036,9 @@ fn candidate_files(candidate: &MutationCandidate) -> Result<Vec<CandidateFile<'_
             }
             Ok(changed)
         }
-        MutationKind::FormatApply | MutationKind::FixApply => {
+        // An analyzer action is held to the same closed scope as rustfmt and
+        // cargo fix: existing Rust sources only, at most 128 of them.
+        MutationKind::FormatApply | MutationKind::FixApply | MutationKind::AnalyzerActionApply => {
             if changed.len() > 128 || changed.iter().any(|file| !file.path.ends_with(".rs")) {
                 return Err(if changed.len() > 128 {
                     MutationError::LimitExceeded

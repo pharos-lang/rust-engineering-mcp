@@ -2,6 +2,26 @@
 
 ## Sin publicar
 
+- **M6-04/M6-05: `rust.analyzer.actions` y `rust.analyzer.action.apply`**
+  (rama `ai/m6-analyzer`). El inventario público pasa de 34 a 36 tools; los 34
+  snapshots existentes quedan byte a byte. `rust.analyzer.actions` (solo
+  lectura) lista las code actions de un rango con su `action_digest`,
+  aplicabilidad (`applicable` o `rejected` con razón cerrada, título y kind) y
+  `edits_summary`, aplicando las mismas reglas estructurales que el preview.
+  `rust.analyzer.action.apply` aplica una acción listada por el writer M2 único
+  (preview/commit/receipt, journal, idempotencia, invalidación del
+  `project_ref`), con el nuevo grant de host
+  `--allow-analyzer-action-write WORKSPACE_ROOT`; sin él es
+  `unavailable/SANDBOX_DENIED`. El preview re-resuelve la acción sobre una
+  captura nueva (`ACTION_STALE` si el digest ya no coincide o el source cambió
+  antes de commit). Validación solo estructural: **no verificada por
+  compilación** (decisión A del owner); `guarantees_not_provided` incluye
+  `compile_verification` y la descripción pide revisar cada archivo del diff y
+  ejecutar `rust.check` después. `MutationKind::AnalyzerActionApply` publica
+  su propia vista de validación (`workspace_edit_structural_only`); las cinco
+  tools M2 no cambian de contrato. Calificación nativa pendiente del
+  orquestador.
+
 - **M6-02/M6-03: `rust.analyzer.references` y `rust.analyzer.diagnostics`**
   (rama `ai/m6-analyzer`). El inventario público pasa de 32 a 34 tools.
   `rust.analyzer.references` busca referencias a un símbolo en una posición

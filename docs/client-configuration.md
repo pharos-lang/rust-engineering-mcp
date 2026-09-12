@@ -454,7 +454,15 @@ Añade únicamente los grants que quieras habilitar:
 --allow-fix-write /ruta/absoluta/al/workspace
 --allow-dependency-add /ruta/absoluta/al/workspace
 --allow-dependency-remove /ruta/absoluta/al/workspace
+--allow-analyzer-action-write /ruta/absoluta/al/workspace
 ```
+
+`--allow-analyzer-action-write` habilita `rust.analyzer.action.apply` (M6-05),
+que usa este mismo writer y las mismas reglas de raíz, `--root` y
+`--state-root`; además exige que `--rust-image` sea la imagen M6 admitida.
+Sin ese grant la tool responde `unavailable/SANDBOX_DENIED`. Una code action
+aplicada **no está verificada por compilación**: revisa cada archivo de
+`files` y el diff completo antes de commit y ejecuta `rust.check` después.
 
 Cada opción se puede repetir para otras roots, hasta 16 por clase. Un permiso no
 autoriza preview, commit, receipt o recovery de otra tool. La ruta debe ser la raíz

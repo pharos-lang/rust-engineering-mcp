@@ -207,3 +207,51 @@ cualquier efecto**, nunca interpretándose con un default silencioso. Esta
 comprobación es una prueba obligatoria de M6-05/M6-06, no una garantía nueva:
 es la misma disciplina de journal versionado que ADR-052 ya exige para
 cualquier variante de `MutationKind`.
+
+## Nota de implementación M6-04/M6-05 (2026-09-12)
+
+Decisiones de W07 (candidato) y W08 (tools) tomadas dentro de este ADR, con la
+decisión A del owner del 2026-09-12 (validación solo estructural, sin `cargo
+check`). No cambian el inventario de cinco tools ni la familia de permisos de
+§1.
+
+1. **Vista de validación propia.** `ValidationMethod` forma parte de los cinco
+   schemas M2 congelados; añadirle una variante los cambiaría. La provenance
+   `m6-analyzer-action-v1` se publica con su propia vista
+   (`method: workspace_edit_structural_only`), solo para planes y receipts
+   `AnalyzerActionApply`; la vista M2 la sigue rechazando y ninguna vista cruza
+   de kind.
+2. **`before` es la captura fresca completa**, no solo los archivos tocados,
+   igual que `rust.fmt.apply`: la comparación previa al plan y la regla de
+   misma forma del writer se mantienen sin cambios.
+3. **El campo 9 de la provenance es el fingerprint del snapshot analizado**
+   (`analyzed_source_fingerprint`): ninguna ejecución validó el resultado, así
+   que no hay fingerprint de candidato que publicar. La cola añade versión,
+   `binary_sha256` y `config_digest` del analizador y el `action_digest`. El
+   codificador es `AnalyzerActionProvenance` en la aplicación y un test entre
+   crates exige que cada campo sobreviva a la decodificación.
+4. **Annotations de `action.apply`.** §1 fijaba `destructive=false`; se publica
+   `destructiveHint=true`, igual que las cinco tools M2 que comparten el
+   writer, porque commit reescribe source del proyecto. Es la opción más
+   conservadora para el cliente.
+5. **Códigos.** Sin el grant, la tool es `unavailable/SANDBOX_DENIED` antes de
+   crear estado; un grant de otra raíz o un `project_ref` no vigente sigue
+   siendo `PERMISSION_DENIED`. `ACTION_STALE` cubre el digest que ya no se
+   resuelve en preview, la captura que cambia durante el preview, el source
+   que cambió entre preview y commit (comprobación de solo lectura antes del
+   writer, que la repite) y el receipt `aborted`. `ACTION_REJECTED` lleva un
+   mensaje fijo por razón.
+6. **Acciones rechazadas con título y kind.** El dominio publica
+   `RejectedAction { reason, title?, kind? }`; título y kind vienen del propio
+   elemento cuando lo trae y nunca deciden nada.
+7. **El listado aplica las reglas estructurales del preview**
+   (`validate_action_edits`), para no ofrecer como aplicable lo que el preview
+   rechazaría sobre los mismos bytes.
+8. **`only` y `kind`** usan el enum de dominio completo, que añade
+   `source_organize_imports` a los seis kinds de §2.
+9. **Identidad del runtime en commit (§6).** Los planes viven en la memoria de
+   un proceso cuya identidad de analizador es constante de compilación; un
+   rollback exige otro proceso, que no conserva planes. `plan_digest` ata la
+   provenance (versión, `binary_sha256`, `config_digest`), y un replay durable
+   solo reproduce el candidato ya aprobado. No se añade una segunda consulta
+   de identidad en commit.

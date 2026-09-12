@@ -20,8 +20,9 @@ El servidor usa transporte MCP por `stdio`. Las trece tools de la release
 integrados en `main`, M5 publicado como release `0.3.0`: esa release registra
 31 tools (las 18 de M1/M2, las cuatro tools de calidad M3, cinco tools M4 y
 cuatro tools de rendimiento M5). El checkout de desarrollo, aún en versión
-`0.3.0`, añade las tres tools de análisis M6 —`rust.analyzer.symbols`,
-`rust.analyzer.references` y `rust.analyzer.diagnostics`— y registra 34; solo
+`0.3.0`, añade las cinco tools de análisis M6 —`rust.analyzer.symbols`,
+`rust.analyzer.references`, `rust.analyzer.diagnostics`,
+`rust.analyzer.actions` y `rust.analyzer.action.apply`— y registra 36; solo
 M6 está en desarrollo local, sin integración remota ni release.
 
 > [!IMPORTANT]
@@ -58,6 +59,8 @@ M6 está en desarrollo local, sin integración remota ni release.
 | Analyzer (M6, desarrollo) | `rust.analyzer.symbols` | Tool 32; símbolos de documento o workspace con el rust-analyzer exacto de la imagen guest M6. Solo lectura. |
 | Analyzer (M6, desarrollo) | `rust.analyzer.references` | Tool 33; referencias a un símbolo en una posición, con `is_declaration` marcado por dos peticiones en la misma sesión. Solo lectura. |
 | Analyzer (M6, desarrollo) | `rust.analyzer.diagnostics` | Tool 34; diagnósticos nativos de rust-analyzer (pull), distintos de los de `rust.check`. Solo lectura. |
+| Analyzer (M6, desarrollo) | `rust.analyzer.actions` | Tool 35; code actions de un rango con su digest, aplicabilidad y resumen de edits. Solo lectura. |
+| Analyzer (M6, desarrollo) | `rust.analyzer.action.apply` | Tool 36; aplica una acción listada por el writer M2 (preview/commit/receipt); exige `--allow-analyzer-action-write`. No verificada por compilación. |
 | Seguridad | `rust.dependencies.audit` | Contrasta `Cargo.lock` con un snapshot RustSec suministrado por el host. |
 | Diagnóstico | `rust.diagnostics.explain` | Obtiene la explicación de un código `rustc`, por ejemplo `E0502`. |
 | Calidad | `rust.quality.gate` | Ejecuta un gate `fast` o `standard` y devuelve el estado de cada etapa. |
@@ -113,6 +116,17 @@ misma petición dos veces en la misma sesión (`includeDeclaration: true` y
 `false`), porque rust-analyzer no lo hace por sí solo. Hover, go-to-definition
 y rename no están disponibles todavía. Sus contratos completos están en
 [`docs/tools.md`](docs/tools.md#contratos-m6--analyzer).
+
+`rust.analyzer.actions` lista las code actions de un rango sin aplicar nada, y
+`rust.analyzer.action.apply` aplica una de ellas por el mismo writer M2 que
+`rust.fmt.apply` (preview → commit → receipt, journal, idempotencia). Exige el
+grant de host `--allow-analyzer-action-write WORKSPACE_ROOT`; sin él la tool es
+`unavailable/SANDBOX_DENIED`. El preview vuelve a consultar rust-analyzer sobre
+una captura nueva y exige que el `action_digest` listado siga coincidiendo
+(`ACTION_STALE` si no). La validación es solo estructural: **el resultado no
+está verificado por compilación**, una acción puede reescribir varios archivos
+`.rs` capturados y el diff exacto es la superficie de revisión; ejecuta
+`rust.check` después de commit.
 
 Los Resources normalizados no sustituyen una revisión de privacidad. Los HTML de
 cobertura y diffs de mutation autorizados pueden contener source del proyecto,
@@ -497,16 +511,17 @@ recuperar la operación durable. Los locks coordinan procesos que comparten
 `--state-root`, pero no bloquean IDE, Git u otros escritores del mismo usuario. No
 hay CAS ni atomicidad visible para una publicación de varios archivos.
 
-El checkout de desarrollo descubre 34 tools: conserva las trece de M1, añade
+El checkout de desarrollo descubre 36 tools: conserva las trece de M1, añade
 `rust.manifest.patch`, `rust.fmt.apply`, `rust.fix.apply`,
 `rust.dependency.add` y `rust.dependency.remove`, e integra el contrato M3-01 de
 `rust.test.nextest`, las otras tres tools M3, las cinco tools M4 calificadas
-localmente, las cuatro tools M5 calificadas localmente y las tres tools M6
+localmente, las cuatro tools M5 calificadas localmente y las cinco tools M6
 (`rust.analyzer.symbols`, `rust.analyzer.references`,
-`rust.analyzer.diagnostics`). Cada tool de escritura exige su grant de host:
+`rust.analyzer.diagnostics`, `rust.analyzer.actions` y
+`rust.analyzer.action.apply`). Cada tool de escritura exige su grant de host:
 `--allow-manifest-write`, `--allow-fmt-write`, `--allow-fix-write`,
-`--allow-dependency-add` o `--allow-dependency-remove`, seguido de la raíz del
-workspace. Un grant no autoriza planes ni receipts de otra operación.
+`--allow-dependency-add`, `--allow-dependency-remove` o
+`--allow-analyzer-action-write`, seguido de la raíz del workspace. Un grant no autoriza planes ni receipts de otra operación.
 
 `manifest.patch` admite operaciones cerradas set/remove para lints, features,
 profiles incorporados y workspace dependencies. `rust.dependency.add/remove` seleccionan un
@@ -551,8 +566,9 @@ parte de la instalación de M1.
 ## M3 — calidad avanzada
 
 La release `0.3.0` descubre 31 tools; el checkout de desarrollo (aún versión
-`0.3.0`), 34 — añade las tres tools M6 (`rust.analyzer.symbols`,
-`rust.analyzer.references`, `rust.analyzer.diagnostics`).
+`0.3.0`), 36 — añade las cinco tools M6 (`rust.analyzer.symbols`,
+`rust.analyzer.references`, `rust.analyzer.diagnostics`,
+`rust.analyzer.actions`, `rust.analyzer.action.apply`).
 `rust.test.nextest`, `rust.coverage`,
 `rust.semver.check` y `rust.mutation.test` están implementadas y calificadas en el
 gate Docker M3: 62/62 selecciones (nextest 19, Tasks 7, coverage 8,

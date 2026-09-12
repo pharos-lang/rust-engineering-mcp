@@ -1,4 +1,5 @@
 //! `rust.analyzer.symbols`: the first M6 analyzer tool (ADR-083, ADR-084).
+mod actions;
 #[allow(dead_code)]
 pub(super) mod schemas;
 use super::workers::{Joined, Workers, worker_error};
@@ -6,6 +7,7 @@ use super::{
     contract::{Contract, ToolOutput},
     project::Registry,
 };
+pub(super) use actions::{ACTIONS_NAME, ActionsTool};
 use rmcp::{
     model::{CallToolRequestParams, CallToolResult, ErrorData, Tool, ToolAnnotations},
     service::{RequestContext, RoleServer},
@@ -685,9 +687,9 @@ fn output(
 /// The same "interrupted signal wins" priority as
 /// `super::workers::joined_result`, generic over this tool's own request
 /// error instead of the shared [`InspectionError`].
-fn analyzer_joined_result(
-    joined: Joined<AnalyzerReport, AnalyzerRequestError>,
-) -> Result<AnalyzerReport, AnalyzerRequestError> {
+fn analyzer_joined_result<T>(
+    joined: Joined<T, AnalyzerRequestError>,
+) -> Result<T, AnalyzerRequestError> {
     match (joined.result, joined.interrupted) {
         (
             Err(AnalyzerRequestError::Inspection(
@@ -930,6 +932,23 @@ impl From<WirePosition> for domain::Position {
             line: value.line,
             column: value.column,
         }
+    }
+}
+
+/// A `{start, end}` pair of [`WirePosition`]s, shared by
+/// `rust.analyzer.actions` and `rust.analyzer.action.apply`. `start ≤ end` is
+/// a Rust-level invariant ([`domain::TextRange::new`]) the schema cannot
+/// express, so a reversed range is refused as invalid arguments after
+/// decoding.
+#[derive(Deserialize, JsonSchema)]
+#[serde(deny_unknown_fields)]
+pub(super) struct WireRange {
+    start: WirePosition,
+    end: WirePosition,
+}
+impl WireRange {
+    pub(super) fn into_domain(self) -> Option<domain::TextRange> {
+        domain::TextRange::new(self.start.into(), self.end.into()).ok()
     }
 }
 
@@ -1721,11 +1740,29 @@ struct DiagnosticsOutput {
     duration_ms: u64,
 }
 
-/// Every control character other than `\n`/`\t` is replaced, never carried
-/// onto the wire (D25 §1.6): unlike a symbol or reference name, a diagnostic
-/// `message` is free-form project text and this is its only sanitization.
-/// Bounded to [`MAX_DIAGNOSTIC_MESSAGE_SCALARS`] scalars, flagging
-/// `message_truncated` rather than silently cutting — defensive here since
+/// Whether `ch` is neutralised on peer-controlled wire text: every
+/// `char::is_control` (Cc) character, plus the bidi overrides and isolates
+/// (U+202A–U+202E, U+2066–U+2069), the zero-width characters (U+200B–U+200D,
+/// U+FEFF) and the line/paragraph separators (U+2028–U+2029). None of the
+/// latter is `Cc`, so `char::is_control` alone lets them reach the wire.
+pub(super) fn is_peer_text_hazard(ch: char) -> bool {
+    ch.is_control()
+        || matches!(
+            ch,
+            '\u{202A}'..='\u{202E}'
+                | '\u{2066}'..='\u{2069}'
+                | '\u{200B}'..='\u{200D}'
+                | '\u{FEFF}'
+                | '\u{2028}'..='\u{2029}'
+        )
+}
+
+/// Every control character other than `\n`/`\t`, plus every other peer-text
+/// hazard (see [`is_peer_text_hazard`]), is replaced, never carried onto the
+/// wire (D25 §1.6): unlike a symbol or reference name, a diagnostic `message`
+/// is free-form project text and this is its only sanitization. Bounded to
+/// [`MAX_DIAGNOSTIC_MESSAGE_SCALARS`] scalars, flagging `message_truncated`
+/// rather than silently cutting — defensive here since
 /// `domain::AnalyzerDiagnostic` already refuses a longer message at
 /// construction, but never assumed.
 const MAX_DIAGNOSTIC_MESSAGE_SCALARS: usize = 4_096;
@@ -1734,7 +1771,7 @@ fn bounded_message(text: &str) -> (String, bool) {
     let sanitized: String = text
         .chars()
         .map(|ch| {
-            if ch.is_control() && ch != '\n' && ch != '\t' {
+            if ch != '\n' && ch != '\t' && is_peer_text_hazard(ch) {
                 '\u{fffd}'
             } else {
                 ch

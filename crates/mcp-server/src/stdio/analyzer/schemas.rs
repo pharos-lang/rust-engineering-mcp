@@ -2,7 +2,7 @@
 //! `JsonSchema` (architecture boundary), so every value here is rebuilt from
 //! `rust_engineering_domain::analyzer` values rather than reusing them.
 use schemars::JsonSchema;
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 use std::num::NonZeroU32;
 
 #[derive(Serialize, JsonSchema)]
@@ -420,4 +420,121 @@ impl From<rust_engineering_domain::ExecutionTermination> for Termination {
             Domain::OutputLimit => Self::OutputLimit,
         }
     }
+}
+
+/// Mirrors `rust_engineering_domain::CodeActionKind` 1:1: both the closed
+/// `only` filter vocabulary of `rust.analyzer.actions` and every published
+/// action `kind`.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
+#[serde(rename_all = "snake_case")]
+pub enum CodeActionKind {
+    Quickfix,
+    Refactor,
+    RefactorExtract,
+    RefactorInline,
+    RefactorRewrite,
+    Source,
+    SourceOrganizeImports,
+}
+
+impl From<rust_engineering_domain::CodeActionKind> for CodeActionKind {
+    fn from(value: rust_engineering_domain::CodeActionKind) -> Self {
+        use rust_engineering_domain::CodeActionKind as Domain;
+        match value {
+            Domain::QuickFix => Self::Quickfix,
+            Domain::Refactor => Self::Refactor,
+            Domain::RefactorExtract => Self::RefactorExtract,
+            Domain::RefactorInline => Self::RefactorInline,
+            Domain::RefactorRewrite => Self::RefactorRewrite,
+            Domain::Source => Self::Source,
+            Domain::SourceOrganizeImports => Self::SourceOrganizeImports,
+        }
+    }
+}
+
+impl From<CodeActionKind> for rust_engineering_domain::CodeActionKind {
+    fn from(value: CodeActionKind) -> Self {
+        match value {
+            CodeActionKind::Quickfix => Self::QuickFix,
+            CodeActionKind::Refactor => Self::Refactor,
+            CodeActionKind::RefactorExtract => Self::RefactorExtract,
+            CodeActionKind::RefactorInline => Self::RefactorInline,
+            CodeActionKind::RefactorRewrite => Self::RefactorRewrite,
+            CodeActionKind::Source => Self::Source,
+            CodeActionKind::SourceOrganizeImports => Self::SourceOrganizeImports,
+        }
+    }
+}
+
+/// Mirrors `rust_engineering_domain::ActionRejection` 1:1 (ADR-083 §4, §5).
+#[derive(Serialize, JsonSchema)]
+#[serde(rename_all = "snake_case")]
+pub enum ActionRejection {
+    Command,
+    Snippet,
+    ResourceOperation,
+    ExternalUri,
+    VersionMismatch,
+    OverlappingRanges,
+    EditLimit,
+    BytesLimit,
+    NotUtf8,
+    FileNotInSnapshot,
+    UnresolvedEdit,
+}
+
+impl From<rust_engineering_domain::ActionRejection> for ActionRejection {
+    fn from(value: rust_engineering_domain::ActionRejection) -> Self {
+        use rust_engineering_domain::ActionRejection as Domain;
+        match value {
+            Domain::Command => Self::Command,
+            Domain::Snippet => Self::Snippet,
+            Domain::ResourceOperation => Self::ResourceOperation,
+            Domain::ExternalUri => Self::ExternalUri,
+            Domain::VersionMismatch => Self::VersionMismatch,
+            Domain::OverlappingRanges => Self::OverlappingRanges,
+            Domain::EditLimit => Self::EditLimit,
+            Domain::BytesLimit => Self::BytesLimit,
+            Domain::NotUtf8 => Self::NotUtf8,
+            Domain::FileNotInSnapshot => Self::FileNotInSnapshot,
+            Domain::UnresolvedEdit => Self::UnresolvedEdit,
+        }
+    }
+}
+
+/// What applying an action would change, computed without applying it.
+#[derive(Serialize, JsonSchema)]
+#[serde(deny_unknown_fields)]
+pub struct EditsSummary {
+    /// Distinct captured files the edits touch; may exceed one.
+    pub files: u32,
+    pub edits: u32,
+    /// Inserted bytes minus replaced bytes, over every edit.
+    pub bytes_delta: i64,
+}
+
+/// One element of a `textDocument/codeAction` answer (ADR-083 §4).
+#[derive(Serialize, JsonSchema)]
+#[serde(tag = "applicability", rename_all = "snake_case", deny_unknown_fields)]
+pub enum CodeAction {
+    /// Structurally applicable over this capture; pass `action_digest` with
+    /// the same `file` and `range` to `rust.analyzer.action.apply` preview.
+    Applicable {
+        #[schemars(regex(pattern = "^sha256:[0-9a-f]{64}$"))]
+        action_digest: String,
+        #[schemars(length(min = 1, max = 256))]
+        title: String,
+        title_truncated: bool,
+        kind: Option<CodeActionKind>,
+        is_preferred: bool,
+        edits_summary: EditsSummary,
+    },
+    /// Refused for a closed reason; never applicable in any form.
+    Rejected {
+        reason: ActionRejection,
+        #[schemars(length(min = 1, max = 256))]
+        title: Option<String>,
+        title_truncated: bool,
+        kind: Option<CodeActionKind>,
+    },
 }
