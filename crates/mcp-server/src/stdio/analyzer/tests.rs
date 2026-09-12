@@ -460,3 +460,688 @@ fn detail_truncated_is_mirrored_onto_the_wire_document_symbol() -> TestResult {
     assert_eq!(symbols[1]["detail_truncated"], false);
     Ok(())
 }
+
+// =======================================================================
+// `rust.analyzer.references` and `rust.analyzer.diagnostics` (W06)
+// =======================================================================
+//
+// Scoped to its own module so the `expect`/`unwrap` allow below covers only
+// these two tools' tests, not the M6-01 symbols tests above (V06 P3): fixed
+// fixtures here are malformed only by mistake, and should fail immediately,
+// but that leniency has no reason to reach the older tests.
+#[allow(clippy::expect_used, clippy::unwrap_used)]
+mod new_tools {
+    use super::*;
+
+    fn reference(
+        file: &str,
+        line: u32,
+        column: u32,
+        len: u32,
+        is_declaration: bool,
+    ) -> domain::Reference {
+        domain::Reference {
+            file: AnalyzerFile::new(file.to_owned()).unwrap(),
+            range: domain::TextRange::new(
+                domain::Position::new(line, column).unwrap(),
+                domain::Position::new(line, column + len).unwrap(),
+            )
+            .unwrap(),
+            is_declaration,
+        }
+    }
+
+    fn references_answered(
+        items: Vec<domain::Reference>,
+    ) -> Result<domain::AnalyzerExecution, Box<dyn std::error::Error>> {
+        Ok(domain::AnalyzerExecution {
+            outcome: AnalyzerOutcome::Answered(AnalyzerResult::References(items)),
+            ..answered()?
+        })
+    }
+
+    fn references_failed(failure: AnalyzerFailure) -> domain::AnalyzerExecution {
+        failed(failure).unwrap()
+    }
+
+    fn references_status_of(value: &ReferencesOutput) -> &'static str {
+        match value.outcome {
+            ReferencesOutcome::Passed { .. } => "passed",
+            ReferencesOutcome::Blocked { .. } => "blocked",
+            ReferencesOutcome::Unavailable { .. } => "unavailable",
+            ReferencesOutcome::Cancelled { .. } => "cancelled",
+        }
+    }
+
+    fn references_code_of(value: &ReferencesOutput) -> Option<&ReferencesCode> {
+        match &value.outcome {
+            ReferencesOutcome::Blocked { error_code, .. }
+            | ReferencesOutcome::Unavailable { error_code, .. } => Some(error_code),
+            ReferencesOutcome::Passed { .. } | ReferencesOutcome::Cancelled { .. } => None,
+        }
+    }
+
+    #[test]
+    fn include_declaration_true_publishes_every_reference() -> TestResult {
+        let items = vec![
+            reference("src/lib.rs", 1, 8, 3, true),
+            reference("src/lib.rs", 5, 1, 3, false),
+        ];
+        let value = references_output(Ok(report(references_answered(items)?)?), 5, 60, true)?;
+        let ReferencesOutcome::Passed { data, .. } = &value.outcome else {
+            return Err("expected passed".into());
+        };
+        let references = data.references.as_ref().ok_or("expected references")?;
+        assert_eq!(references.len(), 2);
+        assert_eq!(data.omitted_declarations, 0);
+        Ok(())
+    }
+
+    #[test]
+    fn include_declaration_false_removes_declarations_and_counts_them() -> TestResult {
+        let items = vec![
+            reference("src/lib.rs", 1, 8, 3, true),
+            reference("src/lib.rs", 5, 1, 3, false),
+            reference("src/lib.rs", 9, 1, 3, false),
+        ];
+        let value = references_output(Ok(report(references_answered(items)?)?), 5, 60, false)?;
+        let ReferencesOutcome::Passed { data, .. } = &value.outcome else {
+            return Err("expected passed".into());
+        };
+        let references = data.references.as_ref().ok_or("expected references")?;
+        assert_eq!(references.len(), 2, "the declaration is removed");
+        assert!(references.iter().all(|reference| !reference.is_declaration));
+        assert_eq!(data.omitted_declarations, 1);
+        Ok(())
+    }
+
+    /// D3: every `AnalyzerFailure` this tool can observe maps to exactly the
+    /// closed `(status, error_code)` pair the tool contract publishes.
+    /// `PositionOutOfRange` is reachable here (unlike `rust.analyzer.symbols`):
+    /// the query itself carries a caller position.
+    #[test]
+    fn every_analyzer_failure_maps_to_its_closed_references_code() -> TestResult {
+        let table: &[(AnalyzerFailure, &str, ReferencesCode)] = &[
+            (
+                AnalyzerFailure::FileNotInSnapshot,
+                "blocked",
+                ReferencesCode::FileNotInSnapshot,
+            ),
+            (
+                AnalyzerFailure::FileNotUtf8,
+                "blocked",
+                ReferencesCode::FileNotUtf8,
+            ),
+            (
+                AnalyzerFailure::UnsupportedProjectConfig,
+                "blocked",
+                ReferencesCode::UnsupportedProjectConfig,
+            ),
+            (
+                AnalyzerFailure::PositionOutOfRange,
+                "blocked",
+                ReferencesCode::PositionOutOfRange,
+            ),
+            (
+                AnalyzerFailure::CapabilityMismatch,
+                "unavailable",
+                ReferencesCode::AnalyzerCapabilityMismatch,
+            ),
+            (
+                AnalyzerFailure::NotReady,
+                "unavailable",
+                ReferencesCode::AnalyzerNotReady,
+            ),
+            (
+                AnalyzerFailure::Crashed,
+                "unavailable",
+                ReferencesCode::AnalyzerCrashed,
+            ),
+            (
+                AnalyzerFailure::ProtocolViolation,
+                "unavailable",
+                ReferencesCode::AnalyzerCrashed,
+            ),
+            (
+                AnalyzerFailure::ServerError,
+                "unavailable",
+                ReferencesCode::AnalyzerCrashed,
+            ),
+            (
+                AnalyzerFailure::ProtocolLimit,
+                "unavailable",
+                ReferencesCode::MessageLimit,
+            ),
+            (
+                AnalyzerFailure::FrameTooLarge,
+                "unavailable",
+                ReferencesCode::FrameLimit,
+            ),
+            (
+                AnalyzerFailure::MalformedHeader,
+                "unavailable",
+                ReferencesCode::FrameLimit,
+            ),
+            (
+                AnalyzerFailure::TimeoutInitialize,
+                "unavailable",
+                ReferencesCode::TimeoutInitialize,
+            ),
+            (
+                AnalyzerFailure::TimeoutQuery,
+                "unavailable",
+                ReferencesCode::TimeoutQuery,
+            ),
+            (
+                AnalyzerFailure::TimeoutTotal,
+                "unavailable",
+                ReferencesCode::TimeoutTotal,
+            ),
+        ];
+        for (failure, expected_status, expected_code) in table.iter().copied() {
+            let value = references_output(Ok(report(references_failed(failure))?), 1, 60, true)?;
+            assert_eq!(references_status_of(&value), expected_status, "{failure:?}");
+            assert_eq!(
+                references_code_of(&value),
+                Some(&expected_code),
+                "{failure:?} error_code"
+            );
+        }
+        Ok(())
+    }
+
+    #[test]
+    fn references_cancelled_mid_session_is_the_cancelled_status_with_no_code() -> TestResult {
+        let value = references_output(
+            Ok(report(references_failed(AnalyzerFailure::Cancelled))?),
+            1,
+            60,
+            true,
+        )?;
+        assert_eq!(references_status_of(&value), "cancelled");
+        assert_eq!(references_code_of(&value), None);
+        Ok(())
+    }
+
+    #[test]
+    fn references_conflict_file_not_in_snapshot_and_position_out_of_range_are_blocked_with_no_data()
+    -> TestResult {
+        for (error, expected_code) in [
+            (AnalyzerRequestError::Conflict, ReferencesCode::Conflict),
+            (
+                AnalyzerRequestError::FileNotInSnapshot,
+                ReferencesCode::FileNotInSnapshot,
+            ),
+            (
+                AnalyzerRequestError::PositionOutOfRange,
+                ReferencesCode::PositionOutOfRange,
+            ),
+        ] {
+            let value = references_output(Err(error), 1, 60, true)?;
+            assert_eq!(references_status_of(&value), "blocked");
+            assert_eq!(references_code_of(&value), Some(&expected_code));
+            let ReferencesOutcome::Blocked { data, .. } = &value.outcome else {
+                return Err("expected blocked".into());
+            };
+            assert!(data.is_none(), "no stale data ever published");
+        }
+        Ok(())
+    }
+
+    #[test]
+    fn references_no_stderr_or_kill_reap_text_ever_reaches_the_wire() -> TestResult {
+        let mut execution = references_answered(vec![reference("src/lib.rs", 1, 8, 3, true)])?;
+        execution.session = session(
+            Some("SECRET_KILL_ERROR_should_never_leak"),
+            Some("SECRET_REAP_ERROR_should_never_leak"),
+        )?;
+        let value = references_output(Ok(report(execution)?), 1, 60, true)?;
+        let encoded = serde_json::to_string(&value)?;
+        assert!(!encoded.contains("SECRET_KILL_ERROR_should_never_leak"));
+        assert!(!encoded.contains("SECRET_REAP_ERROR_should_never_leak"));
+        Ok(())
+    }
+
+    /// Unlike a `DocumentSymbol` (which carries a free-form `detail` up to 1,024
+    /// scalars), a `Reference` is just a file, a range and a bool: even the
+    /// domain's own `MAX_VISIBLE_RESULTS` cap of maximal-length entries fits
+    /// comfortably under the result budget without ever reaching the trim loop.
+    /// This is the same worst-case shape as `worst_case_512_maximal_symbols_...`,
+    /// adapted to the leaner type.
+    #[test]
+    fn references_worst_case_512_still_fit_the_result_budget_without_trimming() -> TestResult {
+        let max_file = format!("src/{}.rs", "f".repeat(93));
+        let mut items = Vec::with_capacity(domain::MAX_VISIBLE_RESULTS);
+        for index in 0..domain::MAX_VISIBLE_RESULTS as u32 {
+            items.push(reference(&max_file, index + 1, 1, 3, false));
+        }
+        let value = references_output(Ok(report(references_answered(items)?)?), 1, 60, true)?;
+        let contract = Contract::<ReferencesInput, ReferencesOutput>::new()?;
+        let encoded = encode_references_bounded(&contract, value)?;
+        let wire = serde_json::to_vec(&encoded)?;
+        assert!(wire.len() <= MAX_RESULT, "{} bytes", wire.len());
+        let structured = serde_json::to_value(&encoded)?;
+        let completeness = &structured["structuredContent"]["data"]["completeness"];
+        assert_eq!(completeness["state"], "complete");
+        Ok(())
+    }
+
+    #[test]
+    fn references_result_limit_fallback_is_unavailable_not_blocked() -> TestResult {
+        let contract = Contract::<ReferencesInput, ReferencesOutput>::new()?;
+        let value = references_output(
+            Ok(report(references_answered(vec![reference(
+                "src/lib.rs",
+                1,
+                8,
+                3,
+                true,
+            )])?)?),
+            1,
+            60,
+            true,
+        )?;
+        let encoded = encode_references_bounded_within(&contract, value, 16)?;
+        let structured = serde_json::to_value(&encoded)?;
+        assert_eq!(structured["structuredContent"]["status"], "unavailable");
+        assert_eq!(
+            structured["structuredContent"]["error_code"],
+            "RESULT_LIMIT"
+        );
+        assert!(structured["structuredContent"]["data"].is_null());
+        Ok(())
+    }
+
+    #[test]
+    fn references_bootstrap_refusal_is_blocked_sandbox_denied_with_no_data() -> TestResult {
+        let value = references_bootstrap_refusal(7);
+        assert_eq!(references_status_of(&value), "blocked");
+        assert_eq!(
+            references_code_of(&value),
+            Some(&ReferencesCode::SandboxDenied)
+        );
+        let ReferencesOutcome::Blocked { data, .. } = &value.outcome else {
+            return Err("expected blocked".into());
+        };
+        assert!(data.is_none());
+        assert_eq!(value.duration_ms, 7);
+        Ok(())
+    }
+
+    // =======================================================================
+    // `rust.analyzer.diagnostics`
+    // =======================================================================
+
+    fn analyzer_diagnostic(file: &str, line: u32, message: &str) -> domain::AnalyzerDiagnostic {
+        domain::AnalyzerDiagnostic::new(
+            AnalyzerFile::new(file.to_owned()).unwrap(),
+            domain::TextRange::new(
+                domain::Position::new(line, 1).unwrap(),
+                domain::Position::new(line, 2).unwrap(),
+            )
+            .unwrap(),
+            domain::DiagnosticSeverity::Error,
+            Some("E0433".to_owned()),
+            NonEmptyText::try_from(message.to_owned()).unwrap(),
+            Vec::new(),
+        )
+        .unwrap()
+    }
+
+    fn diagnostics_answered(
+        items: Vec<domain::AnalyzerDiagnostic>,
+    ) -> Result<domain::AnalyzerExecution, Box<dyn std::error::Error>> {
+        Ok(domain::AnalyzerExecution {
+            outcome: AnalyzerOutcome::Answered(AnalyzerResult::Diagnostics(items)),
+            ..answered()?
+        })
+    }
+
+    fn diagnostics_failed(failure: AnalyzerFailure) -> domain::AnalyzerExecution {
+        failed(failure).unwrap()
+    }
+
+    fn diagnostics_status_of(value: &DiagnosticsOutput) -> &'static str {
+        match value.outcome {
+            DiagnosticsOutcome::Passed { .. } => "passed",
+            DiagnosticsOutcome::Blocked { .. } => "blocked",
+            DiagnosticsOutcome::Unavailable { .. } => "unavailable",
+            DiagnosticsOutcome::Cancelled { .. } => "cancelled",
+        }
+    }
+
+    fn diagnostics_code_of(value: &DiagnosticsOutput) -> Option<&DiagnosticsCode> {
+        match &value.outcome {
+            DiagnosticsOutcome::Blocked { error_code, .. }
+            | DiagnosticsOutcome::Unavailable { error_code, .. } => Some(error_code),
+            DiagnosticsOutcome::Passed { .. } | DiagnosticsOutcome::Cancelled { .. } => None,
+        }
+    }
+
+    #[test]
+    fn an_answered_diagnostics_execution_is_passed_with_diagnostics() -> TestResult {
+        let items = vec![analyzer_diagnostic("src/lib.rs", 1, "unresolved macro")];
+        let value = diagnostics_output(Ok(report(diagnostics_answered(items)?)?), 5, 60)?;
+        assert_eq!(diagnostics_status_of(&value), "passed");
+        let DiagnosticsOutcome::Passed { data, .. } = &value.outcome else {
+            return Err("expected passed".into());
+        };
+        let diagnostics = data.diagnostics.as_ref().ok_or("expected diagnostics")?;
+        assert_eq!(diagnostics.len(), 1);
+        assert_eq!(diagnostics[0].source, "rust-analyzer");
+        assert_eq!(diagnostics[0].code.as_deref(), Some("E0433"));
+        assert_eq!(data.omitted, 0);
+        Ok(())
+    }
+
+    /// Unlike `rust.analyzer.references`, `PositionOutOfRange` stays unreachable:
+    /// no query this tool sends carries a caller position.
+    #[test]
+    fn every_analyzer_failure_maps_to_its_closed_diagnostics_code() -> TestResult {
+        let table: &[(AnalyzerFailure, &str, DiagnosticsCode)] = &[
+            (
+                AnalyzerFailure::FileNotInSnapshot,
+                "blocked",
+                DiagnosticsCode::FileNotInSnapshot,
+            ),
+            (
+                AnalyzerFailure::FileNotUtf8,
+                "blocked",
+                DiagnosticsCode::FileNotUtf8,
+            ),
+            (
+                AnalyzerFailure::UnsupportedProjectConfig,
+                "blocked",
+                DiagnosticsCode::UnsupportedProjectConfig,
+            ),
+            (
+                AnalyzerFailure::CapabilityMismatch,
+                "unavailable",
+                DiagnosticsCode::AnalyzerCapabilityMismatch,
+            ),
+            (
+                AnalyzerFailure::NotReady,
+                "unavailable",
+                DiagnosticsCode::AnalyzerNotReady,
+            ),
+            (
+                AnalyzerFailure::Crashed,
+                "unavailable",
+                DiagnosticsCode::AnalyzerCrashed,
+            ),
+            (
+                AnalyzerFailure::ProtocolViolation,
+                "unavailable",
+                DiagnosticsCode::AnalyzerCrashed,
+            ),
+            (
+                AnalyzerFailure::ServerError,
+                "unavailable",
+                DiagnosticsCode::AnalyzerCrashed,
+            ),
+            (
+                AnalyzerFailure::ProtocolLimit,
+                "unavailable",
+                DiagnosticsCode::MessageLimit,
+            ),
+            (
+                AnalyzerFailure::FrameTooLarge,
+                "unavailable",
+                DiagnosticsCode::FrameLimit,
+            ),
+            (
+                AnalyzerFailure::MalformedHeader,
+                "unavailable",
+                DiagnosticsCode::FrameLimit,
+            ),
+            (
+                AnalyzerFailure::TimeoutInitialize,
+                "unavailable",
+                DiagnosticsCode::TimeoutInitialize,
+            ),
+            (
+                AnalyzerFailure::TimeoutQuery,
+                "unavailable",
+                DiagnosticsCode::TimeoutQuery,
+            ),
+            (
+                AnalyzerFailure::TimeoutTotal,
+                "unavailable",
+                DiagnosticsCode::TimeoutTotal,
+            ),
+        ];
+        for (failure, expected_status, expected_code) in table.iter().copied() {
+            let value = diagnostics_output(Ok(report(diagnostics_failed(failure))?), 1, 60)?;
+            assert_eq!(
+                diagnostics_status_of(&value),
+                expected_status,
+                "{failure:?}"
+            );
+            assert_eq!(
+                diagnostics_code_of(&value),
+                Some(&expected_code),
+                "{failure:?} error_code"
+            );
+        }
+        Ok(())
+    }
+
+    #[test]
+    fn diagnostics_position_out_of_range_is_an_internal_guard_not_a_wire_code() -> TestResult {
+        let result = diagnostics_output(
+            Ok(report(diagnostics_failed(
+                AnalyzerFailure::PositionOutOfRange,
+            ))?),
+            1,
+            60,
+        );
+        assert!(result.is_err(), "unreachable for this tool's own queries");
+        let err = diagnostics_output(Err(AnalyzerRequestError::PositionOutOfRange), 1, 60);
+        assert!(err.is_err(), "this tool never queries a position");
+        Ok(())
+    }
+
+    #[test]
+    fn diagnostics_cancelled_mid_session_is_the_cancelled_status_with_no_code() -> TestResult {
+        let value = diagnostics_output(
+            Ok(report(diagnostics_failed(AnalyzerFailure::Cancelled))?),
+            1,
+            60,
+        )?;
+        assert_eq!(diagnostics_status_of(&value), "cancelled");
+        assert_eq!(diagnostics_code_of(&value), None);
+        Ok(())
+    }
+
+    #[test]
+    fn diagnostics_conflict_and_file_not_in_snapshot_are_blocked_with_no_data() -> TestResult {
+        for (error, expected_code) in [
+            (AnalyzerRequestError::Conflict, DiagnosticsCode::Conflict),
+            (
+                AnalyzerRequestError::FileNotInSnapshot,
+                DiagnosticsCode::FileNotInSnapshot,
+            ),
+        ] {
+            let value = diagnostics_output(Err(error), 1, 60)?;
+            assert_eq!(diagnostics_status_of(&value), "blocked");
+            assert_eq!(diagnostics_code_of(&value), Some(&expected_code));
+            let DiagnosticsOutcome::Blocked { data, .. } = &value.outcome else {
+                return Err("expected blocked".into());
+            };
+            assert!(data.is_none(), "no stale data ever published");
+        }
+        Ok(())
+    }
+
+    #[test]
+    fn diagnostics_no_stderr_or_kill_reap_text_ever_reaches_the_wire() -> TestResult {
+        let mut execution = diagnostics_answered(vec![analyzer_diagnostic(
+            "src/lib.rs",
+            1,
+            "unresolved macro",
+        )])?;
+        execution.session = session(
+            Some("SECRET_KILL_ERROR_should_never_leak"),
+            Some("SECRET_REAP_ERROR_should_never_leak"),
+        )?;
+        let value = diagnostics_output(Ok(report(execution)?), 1, 60)?;
+        let encoded = serde_json::to_string(&value)?;
+        assert!(!encoded.contains("SECRET_KILL_ERROR_should_never_leak"));
+        assert!(!encoded.contains("SECRET_REAP_ERROR_should_never_leak"));
+        Ok(())
+    }
+
+    #[test]
+    fn diagnostics_oversized_are_trimmed_under_the_result_budget() -> TestResult {
+        let mut items = Vec::with_capacity(400);
+        for index in 0..400u32 {
+            items.push(analyzer_diagnostic(
+                "src/lib.rs",
+                index + 1,
+                &"m".repeat(4_096),
+            ));
+        }
+        let value = diagnostics_output(Ok(report(diagnostics_answered(items)?)?), 1, 60)?;
+        let contract = Contract::<DiagnosticsInput, DiagnosticsOutput>::new()?;
+        let encoded = encode_diagnostics_bounded(&contract, value)?;
+        let wire = serde_json::to_vec(&encoded)?;
+        assert!(wire.len() <= MAX_RESULT, "{} bytes", wire.len());
+        let structured = serde_json::to_value(&encoded)?;
+        let completeness = &structured["structuredContent"]["data"]["completeness"];
+        assert_eq!(completeness["state"], "incomplete");
+        Ok(())
+    }
+
+    /// V06 P2: `related` is bounded upstream (`lsp_codec`) to
+    /// [`domain::MAX_RELATED_INFORMATION`], so the wire schema's own
+    /// `maxItems: 32` can never be violated by construction; a diagnostic
+    /// carrying exactly that many still converts and validates.
+    #[test]
+    fn a_diagnostic_with_32_related_entries_converts_and_validates_against_its_own_schema()
+    -> TestResult {
+        let file = AnalyzerFile::new("src/lib.rs".to_owned())?;
+        let range =
+            domain::TextRange::new(domain::Position::new(1, 1)?, domain::Position::new(1, 2)?)?;
+        let related = (0..32)
+            .map(|n| {
+                Ok::<_, Box<dyn std::error::Error>>(domain::RelatedInformation {
+                    file: file.clone(),
+                    range,
+                    message: NonEmptyText::try_from(format!("related {n}"))?,
+                })
+            })
+            .collect::<Result<Vec<_>, _>>()?;
+        let diagnostic = domain::AnalyzerDiagnostic::new(
+            file,
+            range,
+            domain::DiagnosticSeverity::Error,
+            Some("E0308".to_owned()),
+            NonEmptyText::try_from("mismatched types".to_owned())?,
+            related,
+        )?;
+        let value =
+            diagnostics_output(Ok(report(diagnostics_answered(vec![diagnostic])?)?), 5, 60)?;
+        let contract = Contract::<DiagnosticsInput, DiagnosticsOutput>::new()?;
+        let encoded = encode_diagnostics_bounded(&contract, value)?;
+        let structured = serde_json::to_value(&encoded)?;
+        let related_out = structured["structuredContent"]["data"]["diagnostics"][0]["related"]
+            .as_array()
+            .ok_or("expected related array")?;
+        assert_eq!(related_out.len(), 32);
+        Ok(())
+    }
+
+    #[test]
+    fn diagnostics_result_limit_fallback_is_unavailable_not_blocked() -> TestResult {
+        let contract = Contract::<DiagnosticsInput, DiagnosticsOutput>::new()?;
+        let value = diagnostics_output(
+            Ok(report(diagnostics_answered(vec![analyzer_diagnostic(
+                "src/lib.rs",
+                1,
+                "unresolved macro",
+            )])?)?),
+            1,
+            60,
+        )?;
+        let encoded = encode_diagnostics_bounded_within(&contract, value, 16)?;
+        let structured = serde_json::to_value(&encoded)?;
+        assert_eq!(structured["structuredContent"]["status"], "unavailable");
+        assert_eq!(
+            structured["structuredContent"]["error_code"],
+            "RESULT_LIMIT"
+        );
+        assert!(structured["structuredContent"]["data"].is_null());
+        Ok(())
+    }
+
+    #[test]
+    fn diagnostics_bootstrap_refusal_is_blocked_sandbox_denied_with_no_data() -> TestResult {
+        let value = diagnostics_bootstrap_refusal(7);
+        assert_eq!(diagnostics_status_of(&value), "blocked");
+        assert_eq!(
+            diagnostics_code_of(&value),
+            Some(&DiagnosticsCode::SandboxDenied)
+        );
+        let DiagnosticsOutcome::Blocked { data, .. } = &value.outcome else {
+            return Err("expected blocked".into());
+        };
+        assert!(data.is_none());
+        assert_eq!(value.duration_ms, 7);
+        Ok(())
+    }
+
+    /// D25 §1.6 / D3: every control character other than newline/tab is replaced
+    /// before a diagnostic `message` reaches the wire, and an over-4,096-scalar
+    /// message is truncated and flagged rather than silently cut or refused.
+    #[test]
+    fn diagnostic_message_control_chars_are_replaced_and_overlong_messages_are_flagged() {
+        let (sanitized, truncated) = bounded_message("line one\ttabbed\nline two\x07bell");
+        assert_eq!(sanitized, "line one\ttabbed\nline two\u{fffd}bell");
+        assert!(!truncated);
+
+        let long = "a".repeat(5_000);
+        let (bounded, truncated) = bounded_message(&long);
+        assert_eq!(bounded.chars().count(), MAX_DIAGNOSTIC_MESSAGE_SCALARS);
+        assert!(truncated);
+    }
+
+    /// V06 P2: `code` gets the same control-character sanitization as
+    /// `message` — previously only `message` was sanitized.
+    #[test]
+    fn diagnostic_code_control_chars_are_replaced() -> TestResult {
+        let diagnostic = domain::AnalyzerDiagnostic::new(
+            AnalyzerFile::new("src/lib.rs".to_owned())?,
+            domain::TextRange::new(domain::Position::new(1, 1)?, domain::Position::new(1, 2)?)?,
+            domain::DiagnosticSeverity::Error,
+            Some("E\u{1b}0\u{0}308".to_owned()),
+            NonEmptyText::try_from("mismatched types".to_owned())?,
+            Vec::new(),
+        )?;
+        let wire = wire_diagnostic(&diagnostic);
+        assert_eq!(wire.code.as_deref(), Some("E\u{fffd}0\u{fffd}308"));
+        Ok(())
+    }
+
+    /// V06 P3: `related[].message_truncated` mirrors the parent diagnostic's
+    /// own flag rather than being silently discarded.
+    #[test]
+    fn related_information_message_truncated_is_not_discarded() -> TestResult {
+        let file = AnalyzerFile::new("src/lib.rs".to_owned())?;
+        let range =
+            domain::TextRange::new(domain::Position::new(1, 1)?, domain::Position::new(1, 2)?)?;
+        let short = wire_related_information(&domain::RelatedInformation {
+            file: file.clone(),
+            range,
+            message: NonEmptyText::try_from("prior definition".to_owned())?,
+        });
+        assert!(!short.message_truncated);
+        let long = wire_related_information(&domain::RelatedInformation {
+            file,
+            range,
+            message: NonEmptyText::try_from("m".repeat(5_000))?,
+        });
+        assert!(long.message_truncated);
+        assert_eq!(long.message.chars().count(), MAX_DIAGNOSTIC_MESSAGE_SCALARS);
+        Ok(())
+    }
+} // mod new_tools

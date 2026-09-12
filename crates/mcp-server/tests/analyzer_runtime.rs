@@ -20,8 +20,13 @@ const CALL_TIMEOUT: Duration = Duration::from_secs(220);
 const PIPE_LIMIT: usize = 2 * 1024 * 1024;
 
 fn fixture_root() -> Result<PathBuf> {
+    fixture_root_named("valid-basic")
+}
+
+fn fixture_root_named(name: &str) -> Result<PathBuf> {
     Ok(Path::new(env!("CARGO_MANIFEST_DIR"))
-        .join("../../fixtures/valid-basic")
+        .join("../../fixtures")
+        .join(name)
         .canonicalize()?)
 }
 
@@ -328,6 +333,199 @@ fn analyzer_symbols_document_and_workspace_scope_answer_on_the_real_m6_image() -
             .as_str()
             .is_some_and(|name| name.contains("add"))),
         "{workspace}"
+    );
+
+    server.finish()
+}
+
+/// Native end-to-end evidence for `rust.analyzer.references` (M6-02): real
+/// server, real `--rust` runtime, `fixtures/analyzer-references`. Unlike
+/// `valid-basic` (whose only use of `add` is inside a `#[test] fn`, which
+/// rust-analyzer cfg-excludes under the M6 minimal config), this fixture's
+/// `twice` calls `add` outside any test cfg, so the answer distinguishes a
+/// declaration from a use. Not part of `cargo test`'s default run; the
+/// orchestrator's suite runs it explicitly.
+#[test]
+#[ignore]
+fn analyzer_references_flags_the_declaration_on_the_real_m6_image() -> Result {
+    let image =
+        std::env::var("RUST_MCP_TEST_IMAGE").unwrap_or_else(|_| APPROVED_M6_IMAGE.to_owned());
+    if image != APPROVED_M6_IMAGE {
+        return Err(format!(
+            "RUST_MCP_TEST_IMAGE={image} is not the admitted M6 runtime {APPROVED_M6_IMAGE}"
+        )
+        .into());
+    }
+    let root = fixture_root_named("analyzer-references")?;
+    let mut server = Server::start(&image, &root)?;
+    server.send(request(1, "tools/list"))?;
+    server.response(json!(1), DISCOVERY_TIMEOUT)?;
+    server.send(call(2, "rust.project.open", json!({"path": root})))?;
+    let opened = server.response(json!(2), DISCOVERY_TIMEOUT)?;
+    assert_eq!(
+        opened["result"]["structuredContent"]["status"], "passed",
+        "{opened}"
+    );
+    let project_ref = opened["result"]["structuredContent"]["data"]["project_ref"].clone();
+
+    // "pub fn add(a: u32, b: u32) -> u32 { a + b }" on line 1: `add` starts at
+    // column 8. Line 2's "pub fn twice(x: u32) -> u32 { add(x, x) }" calls
+    // `add` at column 31.
+    server.send(call(
+        3,
+        "rust.analyzer.references",
+        json!({
+            "project_ref": project_ref,
+            "file": "src/lib.rs",
+            "position": {"line": 1, "column": 8},
+            "include_declaration": true
+        }),
+    ))?;
+    let response = server.response(json!(3), CALL_TIMEOUT)?;
+    let data = &response["result"]["structuredContent"];
+    assert_eq!(data["status"], "passed", "{response}");
+    assert_eq!(data["data"]["completeness"]["state"], "complete");
+    let references = data["data"]["references"]
+        .as_array()
+        .ok_or("missing references array")?;
+    assert_eq!(
+        references.len(),
+        2,
+        "analyzer-references' `add` has exactly the declaration and the `twice` call site: {response}"
+    );
+    let declarations = references
+        .iter()
+        .filter(|reference| reference["is_declaration"] == json!(true))
+        .count();
+    assert_eq!(
+        declarations, 1,
+        "exactly one location is flagged as the declaration: {response}"
+    );
+    assert_eq!(data["data"]["omitted_declarations"], json!(0));
+
+    server.send(call(
+        4,
+        "rust.analyzer.references",
+        json!({
+            "project_ref": project_ref,
+            "file": "src/lib.rs",
+            "position": {"line": 1, "column": 8},
+            "include_declaration": false
+        }),
+    ))?;
+    let response = server.response(json!(4), CALL_TIMEOUT)?;
+    let data = &response["result"]["structuredContent"];
+    assert_eq!(data["status"], "passed", "{response}");
+    assert_eq!(data["data"]["completeness"]["state"], "complete");
+    let references = data["data"]["references"]
+        .as_array()
+        .ok_or("missing references array")?;
+    assert_eq!(
+        references.len(),
+        1,
+        "excluding the declaration leaves only the `twice` use: {response}"
+    );
+    assert!(
+        references
+            .iter()
+            .all(|reference| reference["is_declaration"] == json!(false)),
+        "no remaining reference may be flagged a declaration: {response}"
+    );
+    assert_eq!(data["data"]["omitted_declarations"], json!(1));
+
+    server.finish()
+}
+
+/// Native end-to-end evidence for `rust.analyzer.diagnostics` and
+/// `rust.analyzer.symbols` (M6-03): real server, real `--rust` runtime,
+/// `fixtures/build-script`. Owner decision (Option A, 2026-09-12): under the
+/// M6 minimal config (`diagnostics.experimental.enable=false`), diagnostics
+/// surfaces only syntax-level diagnostics, so it is proven answered/complete
+/// here but is not the containment proof. The in-band build-script oracle
+/// (`01.md` R1) is that `rust.analyzer.symbols` (document scope) never
+/// expands `include!(concat!(env!("OUT_DIR"), ...))`: the generated
+/// `GENERATED` constant is absent while the fixture's own `generated_fact`
+/// test is present. Not part of `cargo test`'s default run; the
+/// orchestrator's suite runs it explicitly.
+#[test]
+#[ignore]
+fn analyzer_diagnostics_and_symbols_on_build_script_prove_no_build_script_ran_on_the_real_m6_image()
+-> Result {
+    let image =
+        std::env::var("RUST_MCP_TEST_IMAGE").unwrap_or_else(|_| APPROVED_M6_IMAGE.to_owned());
+    if image != APPROVED_M6_IMAGE {
+        return Err(format!(
+            "RUST_MCP_TEST_IMAGE={image} is not the admitted M6 runtime {APPROVED_M6_IMAGE}"
+        )
+        .into());
+    }
+    let root = fixture_root_named("build-script")?;
+    let mut server = Server::start(&image, &root)?;
+    server.send(request(1, "tools/list"))?;
+    server.response(json!(1), DISCOVERY_TIMEOUT)?;
+    server.send(call(2, "rust.project.open", json!({"path": root})))?;
+    let opened = server.response(json!(2), DISCOVERY_TIMEOUT)?;
+    assert_eq!(
+        opened["result"]["structuredContent"]["status"], "passed",
+        "{opened}"
+    );
+    let project_ref = opened["result"]["structuredContent"]["data"]["project_ref"].clone();
+
+    server.send(call(
+        3,
+        "rust.analyzer.diagnostics",
+        json!({
+            "project_ref": project_ref,
+            "file": "src/lib.rs"
+        }),
+    ))?;
+    let response = server.response(json!(3), CALL_TIMEOUT)?;
+    let data = &response["result"]["structuredContent"];
+    assert_eq!(data["status"], "passed", "{response}");
+    assert_eq!(data["data"]["readiness"]["state"], "quiescent");
+    assert_eq!(data["data"]["readiness"]["health"], "ok");
+    assert_eq!(
+        data["data"]["completeness"]["state"], "complete",
+        "an answered, unwarned, unlimited call is exhaustive: {response}"
+    );
+    data["data"]["diagnostics"]
+        .as_array()
+        .ok_or("missing diagnostics array")?;
+
+    server.send(call(
+        4,
+        "rust.analyzer.symbols",
+        json!({
+            "project_ref": project_ref,
+            "scope": "document",
+            "file": "src/lib.rs"
+        }),
+    ))?;
+    let symbols_response = server.response(json!(4), CALL_TIMEOUT)?;
+    let symbols_data = &symbols_response["result"]["structuredContent"];
+    assert_eq!(symbols_data["status"], "passed", "{symbols_response}");
+    assert_eq!(symbols_data["data"]["readiness"]["state"], "quiescent");
+    assert_eq!(symbols_data["data"]["readiness"]["health"], "ok");
+    assert_eq!(
+        symbols_data["data"]["completeness"]["state"], "complete",
+        "an answered, unwarned, unlimited call is exhaustive: {symbols_response}"
+    );
+    let symbols = symbols_data["data"]["symbols"]
+        .as_array()
+        .ok_or("missing symbols array")?;
+    let names = symbols
+        .iter()
+        .filter_map(|symbol| symbol["name"].as_str())
+        .collect::<Vec<_>>();
+    assert!(
+        names.contains(&"generated_fact"),
+        "the test function must be visible whether or not the include! expands: \
+         {symbols_response}"
+    );
+    assert!(
+        !names.contains(&"GENERATED"),
+        "GENERATED is only defined by the generated file; its presence would mean a build \
+         script ran: {symbols_response}"
     );
 
     server.finish()

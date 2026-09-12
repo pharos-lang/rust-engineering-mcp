@@ -2,6 +2,27 @@
 
 ## Sin publicar
 
+- **M6-02/M6-03: `rust.analyzer.references` y `rust.analyzer.diagnostics`**
+  (rama `ai/m6-analyzer`). El inventario público pasa de 32 a 34 tools.
+  `rust.analyzer.references` busca referencias a un símbolo en una posición
+  (`textDocument/references`); la misma sesión envía la petición dos veces
+  — `includeDeclaration: true` y `false` — y marca `is_declaration` en toda
+  ubicación presente solo en la primera respuesta, porque rust-analyzer no lo
+  hace por sí solo (D25 R5, ADR-084 §2 fase 6 enmendada); cuando el llamador
+  pide `include_declaration: false`, las declaraciones se retiran de
+  `references` y se cuentan en `omitted_declarations`. Una `position` fuera de
+  las líneas o columnas capturadas es `blocked/POSITION_OUT_OF_RANGE` antes de
+  abrir sesión. `rust.analyzer.diagnostics` lee diagnósticos nativos de
+  rust-analyzer (`textDocument/diagnostic`, pull, reporte `full`), distintos de
+  los de `rust.check`; `message` es texto derivado del proyecto acotado a 4096
+  caracteres Unicode con `message_truncated` y sustitución de caracteres de
+  control, nunca el `message` de `serverStatus` ni `stderr`. Mismas
+  anotaciones y mismo runtime M6 admitido que `rust.analyzer.symbols`; los 32
+  snapshots existentes quedan sin cambios. Véase
+  [ADR-084](docs/adr/ADR-084-rust-analyzer-runtime-and-lsp-lifecycle.md) §2
+  (enmienda de la fase 6). M6 sigue en desarrollo local, sin integración
+  remota, PR ni release; calificación nativa pendiente del orquestador.
+
 - **M6-01: primera tool de análisis, `rust.analyzer.symbols`** (rama
   `ai/m6-analyzer`). El inventario público pasa de 31 a 32 tools. Lee símbolos
   de documento (`textDocument/documentSymbol`) o de workspace

@@ -154,6 +154,8 @@ struct EngineeringServer {
     inspect: inspection::InspectionTool,
     check: check::CheckTool,
     analyzer_symbols: analyzer::AnalyzerTool,
+    analyzer_references: analyzer::ReferencesTool,
+    analyzer_diagnostics: analyzer::DiagnosticsTool,
     clippy: clippy::ClippyTool,
     testing: testing::TestTool,
     nextest: Arc<nextest::NextestTool>,
@@ -347,6 +349,16 @@ impl EngineeringServer {
             check::NAME => self.check.call(request, context).await.map(Into::into),
             analyzer::NAME => self
                 .analyzer_symbols
+                .call(request, context)
+                .await
+                .map(Into::into),
+            analyzer::REFERENCES_NAME => self
+                .analyzer_references
+                .call(request, context)
+                .await
+                .map(Into::into),
+            analyzer::DIAGNOSTICS_NAME => self
+                .analyzer_diagnostics
                 .call(request, context)
                 .await
                 .map(Into::into),
@@ -614,6 +626,8 @@ impl ServerHandler for EngineeringServer {
             project::NAME => Some(self.project.definition.clone()),
             check::NAME => Some(self.check.definition.clone()),
             analyzer::NAME => Some(self.analyzer_symbols.definition.clone()),
+            analyzer::REFERENCES_NAME => Some(self.analyzer_references.definition.clone()),
+            analyzer::DIAGNOSTICS_NAME => Some(self.analyzer_diagnostics.definition.clone()),
             clippy::NAME => Some(self.clippy.definition.clone()),
             testing::NAME => Some(self.testing.definition.clone()),
             nextest::NAME => Some(self.nextest.definition.clone()),
@@ -711,6 +725,8 @@ impl ServerHandler for EngineeringServer {
                     tools.push(self.bloat.definition.clone());
                 }
                 tools.push(self.analyzer_symbols.definition.clone());
+                tools.push(self.analyzer_references.definition.clone());
+                tools.push(self.analyzer_diagnostics.definition.clone());
                 tools
             },
             ..Default::default()
@@ -971,6 +987,30 @@ pub fn run(config: HostConfig) -> ExitCode {
         Ok(tool) => tool,
         Err(_) => {
             tracing::error!("MCP analyzer symbols contract initialization failed");
+            return ExitCode::FAILURE;
+        }
+    };
+    let analyzer_references = match analyzer::ReferencesTool::new(
+        project.registry(),
+        workers.clone(),
+        Arc::clone(&inspector),
+        Arc::clone(&ready),
+    ) {
+        Ok(tool) => tool,
+        Err(_) => {
+            tracing::error!("MCP analyzer references contract initialization failed");
+            return ExitCode::FAILURE;
+        }
+    };
+    let analyzer_diagnostics = match analyzer::DiagnosticsTool::new(
+        project.registry(),
+        workers.clone(),
+        Arc::clone(&inspector),
+        Arc::clone(&ready),
+    ) {
+        Ok(tool) => tool,
+        Err(_) => {
+            tracing::error!("MCP analyzer diagnostics contract initialization failed");
             return ExitCode::FAILURE;
         }
     };
@@ -1415,6 +1455,8 @@ pub fn run(config: HostConfig) -> ExitCode {
                 toolchain,
                 check,
                 analyzer_symbols,
+                analyzer_references,
+                analyzer_diagnostics,
                 clippy,
                 testing,
                 nextest: Arc::new(nextest),

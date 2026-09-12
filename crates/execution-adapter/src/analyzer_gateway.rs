@@ -767,15 +767,143 @@ fn protocol(
             .map_err(|error| classify(error, Stage::Query))?;
     }
 
-    let (method, params) = request_for(question)?;
+    if let AnalyzerQuery::References { position, .. } = question.query {
+        answer_references(
+            session,
+            question,
+            *position,
+            budgets,
+            query_started,
+            progress,
+        )
+    } else {
+        let (method, params) = request_for(question)?;
+        let matched = session
+            .request(&method, Some(params), budgets.query)
+            .map_err(|error| classify(error, Stage::Query))?;
+        let value = matched.result.map_err(|error| server_error(error.code))?;
+        let (result, omissions) = convert(question, value)?;
+        record_omissions(progress, omissions, question.not_utf8);
+        progress.result = Some(result);
+        Ok(())
+    }
+}
+
+/// `textDocument/references` (ADR-084 §2 phase 6, amended): rust-analyzer
+/// never flags which location of a bare answer is the declaration, so this
+/// sends the request **twice** in the same session — `includeDeclaration:
+/// true` and `includeDeclaration: false` — and marks as `is_declaration`
+/// every location the first answer has and the second does not. Both
+/// requests share the single query-phase budget: each waits only for what
+/// the phase has left, never a fresh budget of its own.
+fn answer_references(
+    session: &mut LspSession<'_>,
+    question: &Question<'_>,
+    position: domain::Position,
+    budgets: AnalyzerBudgets,
+    query_started: Instant,
+    progress: &mut Progress,
+) -> Result<(), domain::AnalyzerFailure> {
+    let document = question
+        .document
+        .ok_or(domain::AnalyzerFailure::FileNotInSnapshot)?;
+    let with_declaration = request_references(
+        session,
+        document,
+        position,
+        true,
+        remaining(budgets.query, query_started, Stage::Query)?,
+    )?;
+    let without_declaration = request_references(
+        session,
+        document,
+        position,
+        false,
+        remaining(budgets.query, query_started, Stage::Query)?,
+    )?;
+    // The set difference below is O(n·m) over whatever the peer sent, before
+    // the visible cap `references_to_domain` applies further down: bounded
+    // here first (V06 P2) so that cost is bounded by construction, not by
+    // trusting the peer to have sent few enough locations.
+    let (with_declaration, excess_with) = cap_raw_locations(with_declaration);
+    let (without_declaration, excess_without) = cap_raw_locations(without_declaration);
+    let declarations: Vec<lsp_codec::Location> = with_declaration
+        .iter()
+        .filter(|location| !without_declaration.contains(location))
+        .cloned()
+        .collect();
+    let (references, omitted) = lsp_codec::references_to_domain(
+        with_declaration,
+        &declarations,
+        question.indices,
+        domain::PositionEncoding::Utf8,
+    )
+    .map_err(violation)?;
+    let raw_excess = excess_with.saturating_add(excess_without);
+    record_omissions(
+        progress,
+        limit_visible_omissions(omitted.saturating_add(raw_excess)),
+        question.not_utf8,
+    );
+    progress.result = Some(domain::AnalyzerResult::References(references));
+    Ok(())
+}
+
+/// The ceiling each raw `textDocument/references` answer is fitted to before
+/// the set difference (V06 P2): twice [`domain::MAX_VISIBLE_RESULTS`], the
+/// most either answer could ever need to contribute to a visible set that
+/// size.
+const MAX_RAW_REFERENCE_LOCATIONS: usize = domain::MAX_VISIBLE_RESULTS * 2;
+
+/// Fits one raw `textDocument/references` answer to
+/// [`MAX_RAW_REFERENCE_LOCATIONS`], reporting how many locations were cut.
+fn cap_raw_locations(mut locations: Vec<lsp_codec::Location>) -> (Vec<lsp_codec::Location>, usize) {
+    if locations.len() > MAX_RAW_REFERENCE_LOCATIONS {
+        let excess = locations.len() - MAX_RAW_REFERENCE_LOCATIONS;
+        locations.truncate(MAX_RAW_REFERENCE_LOCATIONS);
+        (locations, excess)
+    } else {
+        (locations, 0)
+    }
+}
+
+/// One `textDocument/references` round trip.
+fn request_references(
+    session: &mut LspSession<'_>,
+    document: &Document,
+    position: domain::Position,
+    include_declaration: bool,
+    timeout: Duration,
+) -> Result<Vec<lsp_codec::Location>, domain::AnalyzerFailure> {
+    let params = reference_params(document, position, include_declaration)?;
     let matched = session
-        .request(&method, Some(params), budgets.query)
+        .request("textDocument/references", Some(params), timeout)
         .map_err(|error| classify(error, Stage::Query))?;
     let value = matched.result.map_err(|error| server_error(error.code))?;
-    let (result, omitted) = convert(question, value)?;
-    record_omissions(progress, omitted, question.not_utf8);
-    progress.result = Some(result);
-    Ok(())
+    serde_json::from_value(value).map_err(violation)
+}
+
+/// The `textDocument/references` request params for one `includeDeclaration`
+/// value.
+fn reference_params(
+    document: &Document,
+    position: domain::Position,
+    include_declaration: bool,
+) -> Result<serde_json::Value, domain::AnalyzerFailure> {
+    let (line, character) = document
+        .index
+        .utf8_from_position(position)
+        .map_err(|_| domain::AnalyzerFailure::PositionOutOfRange)?;
+    serde_json::to_value(lsp_codec::ReferenceParams {
+        text_document: lsp_codec::TextDocumentIdentifier {
+            uri: file_uri(&document.file),
+        },
+        position: lsp_codec::LspPosition { line, character },
+        context: lsp_codec::ReferenceContext {
+            include_declaration,
+        },
+    })
+    .map_err(violation)
 }
 
 /// Records what the answer left out.
@@ -785,16 +913,21 @@ fn protocol(
 /// silently skipped part of the capture be published as exhaustive — and, for
 /// `LimitVisible`, would be refused outright by
 /// [`domain::Completeness::with_omissions`].
-fn record_omissions(progress: &mut Progress, omitted: u32, not_utf8: u32) {
-    if omitted > 0 {
-        progress.omissions.push(domain::Omission {
-            kind: domain::OmissionKind::LimitVisible,
-            count: omitted,
-        });
+///
+/// Every `omissions` entry pushes [`domain::IncompleteReason::LimitVisible`]
+/// as its reason, whatever its [`domain::OmissionKind`]: `IncompleteReason`
+/// is the small, shared-schema-facing vocabulary (V06 P1/P2 deliberately add
+/// no `UnresolvablePosition`/`OversizedEntry` reason, to keep
+/// `rust.analyzer.symbols`'s wire schema — which reuses the same enum —
+/// byte-identical); the accurate cause stays visible per entry in
+/// `completeness.omissions[].kind`, which already carries the full closed set.
+fn record_omissions(progress: &mut Progress, omissions: Vec<domain::Omission>, not_utf8: u32) {
+    if !omissions.is_empty() {
         progress
             .reasons
             .push(domain::IncompleteReason::LimitVisible);
     }
+    progress.omissions.extend(omissions);
     // A file with no line index is a hole in what the answer could have
     // covered: no position in it could have been translated, so nothing in it
     // could have been reported.
@@ -839,6 +972,12 @@ fn server_error(code: i64) -> domain::AnalyzerFailure {
 }
 
 /// The single request the query type implies (ADR-084 §2 phase 6).
+///
+/// Never called for [`AnalyzerQuery::References`] (V06 P3): `protocol`
+/// dispatches every `References` question to [`answer_references`] before
+/// this runs, because that query needs two round trips sharing one budget,
+/// not the one this function names. There is accordingly no `References` arm
+/// here to keep in sync with that dispatch.
 fn request_for(
     question: &Question<'_>,
 ) -> Result<(String, serde_json::Value), domain::AnalyzerFailure> {
@@ -865,27 +1004,11 @@ fn request_for(
             })
             .map_err(violation)?,
         )),
-        AnalyzerQuery::References {
-            position,
-            include_declaration,
-            ..
-        } => {
-            let document = opened()?;
-            let (line, character) = document
-                .index
-                .utf8_from_position(*position)
-                .map_err(|_| domain::AnalyzerFailure::PositionOutOfRange)?;
-            Ok((
-                "textDocument/references".to_owned(),
-                serde_json::to_value(lsp_codec::ReferenceParams {
-                    text_document: identifier(document),
-                    position: lsp_codec::LspPosition { line, character },
-                    context: lsp_codec::ReferenceContext {
-                        include_declaration: *include_declaration,
-                    },
-                })
-                .map_err(violation)?,
-            ))
+        AnalyzerQuery::References { file, position } => {
+            // Unreachable from `protocol`'s dispatch; kept as a typed refusal
+            // rather than an arm this match could silently drop.
+            let _ = (file, position);
+            Err(domain::AnalyzerFailure::ProtocolViolation)
         }
         AnalyzerQuery::Diagnostics { .. } => Ok((
             "textDocument/diagnostic".to_owned(),
@@ -950,7 +1073,7 @@ fn wire_range(
 fn convert(
     question: &Question<'_>,
     value: serde_json::Value,
-) -> Result<(domain::AnalyzerResult, u32), domain::AnalyzerFailure> {
+) -> Result<(domain::AnalyzerResult, Vec<domain::Omission>), domain::AnalyzerFailure> {
     // Only `utf-8` reaches this point: any other negotiated encoding already
     // failed the call with `CapabilityMismatch`.
     let encoding = domain::PositionEncoding::Utf8;
@@ -969,7 +1092,7 @@ fn convert(
                     .map_err(violation)?;
             Ok((
                 domain::AnalyzerResult::DocumentSymbols(symbols),
-                bounded_count(omitted),
+                limit_visible_omissions(omitted),
             ))
         }
         AnalyzerQuery::WorkspaceSymbols { .. } => {
@@ -980,23 +1103,23 @@ fn convert(
                     .map_err(violation)?;
             Ok((
                 domain::AnalyzerResult::WorkspaceSymbols(symbols),
-                bounded_count(omitted),
+                limit_visible_omissions(omitted),
             ))
         }
+        // Unreachable: `protocol` dispatches every `References` question to
+        // `answer_references` before `convert` ever runs, exactly as for
+        // `request_for`. Kept so this match stays exhaustive over
+        // `AnalyzerQuery` without a wildcard arm silently swallowing a future
+        // variant.
         AnalyzerQuery::References { .. } => {
             let locations: Vec<lsp_codec::Location> =
                 serde_json::from_value(value).map_err(violation)?;
-            // One request per session (ADR-084 §2 phase 6), and a bare
-            // `textDocument/references` answer carries no flag saying which
-            // location is the declaration, so none is marked as one: deducing it
-            // from the queried position would be an inference, not an
-            // observation.
             let (references, omitted) =
                 lsp_codec::references_to_domain(locations, &[], question.indices, encoding)
                     .map_err(violation)?;
             Ok((
                 domain::AnalyzerResult::References(references),
-                bounded_count(omitted),
+                limit_visible_omissions(omitted),
             ))
         }
         AnalyzerQuery::Diagnostics { .. } => {
@@ -1004,12 +1127,31 @@ fn convert(
             let report: lsp_codec::DocumentDiagnosticReport =
                 serde_json::from_value(value).map_err(violation)?;
             let items = report.into_full().map_err(violation)?;
-            let (diagnostics, omitted) =
+            let (diagnostics, omissions) =
                 lsp_codec::diagnostics_to_domain(&document.file, items, &document.index, encoding)
                     .map_err(violation)?;
+            let mut omission_list = Vec::new();
+            if omissions.limit_visible > 0 {
+                omission_list.push(domain::Omission {
+                    kind: domain::OmissionKind::LimitVisible,
+                    count: bounded_count(omissions.limit_visible),
+                });
+            }
+            if omissions.unresolvable_position > 0 {
+                omission_list.push(domain::Omission {
+                    kind: domain::OmissionKind::UnresolvablePosition,
+                    count: bounded_count(omissions.unresolvable_position),
+                });
+            }
+            if omissions.oversized_entry > 0 {
+                omission_list.push(domain::Omission {
+                    kind: domain::OmissionKind::OversizedEntry,
+                    count: bounded_count(omissions.oversized_entry),
+                });
+            }
             Ok((
                 domain::AnalyzerResult::Diagnostics(diagnostics),
-                bounded_count(omitted),
+                omission_list,
             ))
         }
         AnalyzerQuery::CodeActions { .. } => {
@@ -1025,9 +1167,22 @@ fn convert(
             let candidates = resolved.into_iter().map(candidate).collect();
             Ok((
                 domain::AnalyzerResult::CodeActions(candidates),
-                bounded_count(total - visible),
+                limit_visible_omissions(total - visible),
             ))
         }
+    }
+}
+
+/// A single [`domain::OmissionKind::LimitVisible`] omission, or none, the
+/// shape every non-diagnostics query answer needs.
+fn limit_visible_omissions(count: usize) -> Vec<domain::Omission> {
+    if count == 0 {
+        Vec::new()
+    } else {
+        vec![domain::Omission {
+            kind: domain::OmissionKind::LimitVisible,
+            count: bounded_count(count),
+        }]
     }
 }
 
@@ -1250,6 +1405,7 @@ pub(super) fn probe(
 #[cfg(test)]
 mod tests {
     use super::*;
+    use rust_engineering_application::NeverCancel;
 
     fn bundle(files: &[(&str, &[u8])]) -> Result<SourceBundle, Box<dyn std::error::Error>> {
         let files = files
@@ -1258,6 +1414,39 @@ mod tests {
             .collect::<Result<Vec<_>, _>>()
             .map_err(|error| format!("{error:?}"))?;
         Ok(SourceBundle::new(files).map_err(|error| format!("{error:?}"))?)
+    }
+
+    /// Fixed, trusted host utilities standing in for the guest peer (mirrors
+    /// `lsp_session`'s own test module): a cleared environment, a fixed
+    /// working directory, and every script a literal of this module.
+    fn shell(script: &str) -> std::process::Command {
+        let mut command = std::process::Command::new("/bin/sh");
+        command.env_clear().current_dir("/").args(["-c", script]);
+        command
+    }
+
+    /// A literal LSP frame for a `printf` script: the length is computed
+    /// here, so a hand-counted header can never drift from its body, and `%`
+    /// is escaped for `printf`'s own format string.
+    fn frame_literal(body: &str) -> String {
+        format!(
+            "Content-Length: {}\\r\\n\\r\\n{}",
+            body.len(),
+            body.replace('%', "%%")
+        )
+    }
+
+    fn location_json(uri: &str, start_line: u32, start_char: u32, end_char: u32) -> String {
+        format!(
+            "{{\"uri\":\"{uri}\",\"range\":{{\"start\":{{\"line\":{start_line},\"character\":{start_char}}},\"end\":{{\"line\":{start_line},\"character\":{end_char}}}}}}}"
+        )
+    }
+
+    fn references_response(id: i64, locations: &[String]) -> String {
+        format!(
+            "{{\"jsonrpc\":\"2.0\",\"id\":{id},\"result\":[{}]}}",
+            locations.join(",")
+        )
     }
 
     #[test]
@@ -1342,7 +1531,7 @@ mod tests {
         ])?;
         let (_, not_utf8) = snapshot(&source);
         let mut progress = Progress::default();
-        record_omissions(&mut progress, 0, not_utf8);
+        record_omissions(&mut progress, Vec::new(), not_utf8);
         let conversation = Conversation {
             session: None,
             encoding: Some(domain::PositionEncoding::Utf8),
@@ -1445,7 +1634,6 @@ mod tests {
         let query = AnalyzerQuery::References {
             file: file.clone(),
             position: domain::Position::new(99, 1)?,
-            include_declaration: true,
         };
         assert_eq!(
             wire_positions(&query, Some(&opened)).err(),
@@ -1454,9 +1642,32 @@ mod tests {
         let inside = AnalyzerQuery::References {
             file,
             position: domain::Position::new(1, 4)?,
-            include_declaration: true,
         };
         assert!(wire_positions(&inside, Some(&opened)).is_ok());
+        Ok(())
+    }
+
+    #[test]
+    fn request_for_refuses_references_which_protocol_never_routes_here()
+    -> Result<(), Box<dyn std::error::Error>> {
+        let source = bundle(&[("src/lib.rs", b"fn f() {}\n")])?;
+        let file = domain::AnalyzerFile::new("src/lib.rs".into())?;
+        let opened = document(&source, &file).map_err(|error| format!("{error:?}"))?;
+        let (indices, not_utf8) = snapshot(&source);
+        let query = AnalyzerQuery::References {
+            file,
+            position: domain::Position::new(1, 1)?,
+        };
+        let question = Question {
+            query: &query,
+            document: Some(&opened),
+            indices: &indices,
+            not_utf8,
+        };
+        assert_eq!(
+            request_for(&question).err(),
+            Some(domain::AnalyzerFailure::ProtocolViolation)
+        );
         Ok(())
     }
 
@@ -1468,6 +1679,10 @@ mod tests {
         let (indices, not_utf8) = snapshot(&source);
         let range =
             domain::TextRange::new(domain::Position::new(1, 1)?, domain::Position::new(1, 8)?)?;
+        // `References` is deliberately absent: `protocol` dispatches it to
+        // `answer_references` before `request_for` ever runs (V06 P3), and
+        // `answer_references_marks_the_declaration_and_shares_the_query_budget`
+        // below exercises that path for real, against a scripted peer.
         let cases = [
             (
                 AnalyzerQuery::DocumentSymbols { file: file.clone() },
@@ -1478,14 +1693,6 @@ mod tests {
                     query: domain::SymbolQuery::new("add".into())?,
                 },
                 "workspace/symbol",
-            ),
-            (
-                AnalyzerQuery::References {
-                    file: file.clone(),
-                    position: domain::Position::new(1, 8)?,
-                    include_declaration: true,
-                },
-                "textDocument/references",
             ),
             (
                 AnalyzerQuery::Diagnostics { file: file.clone() },
@@ -1569,25 +1776,102 @@ mod tests {
         let source = bundle(&[("src/lib.rs", "// \u{1f600}x\nfn f() {}\n".as_bytes())])?;
         let file = domain::AnalyzerFile::new("src/lib.rs".into())?;
         let opened = document(&source, &file).map_err(|error| format!("{error:?}"))?;
-        let (indices, not_utf8) = snapshot(&source);
-        let query = AnalyzerQuery::References {
-            file,
-            // Line 1, fifth scalar: `/`, `/`, ` `, emoji, then `x`.
-            position: domain::Position::new(1, 5)?,
-            include_declaration: false,
-        };
-        let question = Question {
-            query: &query,
-            document: Some(&opened),
-            indices: &indices,
-            not_utf8,
-        };
-        let (_, params) = request_for(&question).map_err(|error| format!("{error:?}"))?;
+        // Line 1, fifth scalar: `/`, `/`, ` `, emoji, then `x`.
+        let position = domain::Position::new(1, 5)?;
+        let params =
+            reference_params(&opened, position, false).map_err(|error| format!("{error:?}"))?;
         assert_eq!(params["position"]["line"], serde_json::json!(0));
         assert_eq!(
             params["position"]["character"],
             serde_json::json!(7),
             "three ASCII bytes plus the four bytes of the astral scalar"
+        );
+        Ok(())
+    }
+
+    #[test]
+    fn reference_params_encode_the_requested_declaration_flag_or_refuse_the_position()
+    -> Result<(), Box<dyn std::error::Error>> {
+        let source = bundle(&[("src/lib.rs", b"pub fn add() {}\n")])?;
+        let file = domain::AnalyzerFile::new("src/lib.rs".into())?;
+        let opened = document(&source, &file).map_err(|error| format!("{error:?}"))?;
+        let position = domain::Position::new(1, 8)?;
+        let with_declaration =
+            reference_params(&opened, position, true).map_err(|error| format!("{error:?}"))?;
+        assert_eq!(
+            with_declaration["context"]["includeDeclaration"],
+            serde_json::json!(true)
+        );
+        let without_declaration =
+            reference_params(&opened, position, false).map_err(|error| format!("{error:?}"))?;
+        assert_eq!(
+            without_declaration["context"]["includeDeclaration"],
+            serde_json::json!(false)
+        );
+        assert_eq!(
+            reference_params(&opened, domain::Position::new(99, 1)?, true).err(),
+            Some(domain::AnalyzerFailure::PositionOutOfRange),
+            "the same precondition holds for both requests of the pair"
+        );
+        Ok(())
+    }
+
+    /// The set difference the two-request flow relies on (ADR-084 §2 phase 6,
+    /// amended): a location present in the `includeDeclaration: true` answer
+    /// and absent from the `includeDeclaration: false` answer is the
+    /// declaration, and only that one.
+    #[test]
+    fn declarations_are_exactly_the_locations_the_second_request_drops()
+    -> Result<(), Box<dyn std::error::Error>> {
+        let source = bundle(&[("src/lib.rs", b"pub fn add() {}\nfn use_it() { add(); }\n")])?;
+        let (indices, _) = snapshot(&source);
+        let declaration = lsp_codec::Location {
+            uri: "file:///source/src/lib.rs".to_owned(),
+            range: lsp_codec::LspRange {
+                start: lsp_codec::LspPosition {
+                    line: 0,
+                    character: 7,
+                },
+                end: lsp_codec::LspPosition {
+                    line: 0,
+                    character: 10,
+                },
+            },
+        };
+        let usage = lsp_codec::Location {
+            uri: "file:///source/src/lib.rs".to_owned(),
+            range: lsp_codec::LspRange {
+                start: lsp_codec::LspPosition {
+                    line: 1,
+                    character: 15,
+                },
+                end: lsp_codec::LspPosition {
+                    line: 1,
+                    character: 18,
+                },
+            },
+        };
+        let with_declaration = vec![declaration.clone(), usage.clone()];
+        let without_declaration = [usage];
+        let declarations: Vec<lsp_codec::Location> = with_declaration
+            .iter()
+            .filter(|location| !without_declaration.contains(location))
+            .cloned()
+            .collect();
+        assert_eq!(declarations, vec![declaration]);
+        let (references, omitted) = lsp_codec::references_to_domain(
+            with_declaration,
+            &declarations,
+            &indices,
+            domain::PositionEncoding::Utf8,
+        )
+        .map_err(|error| format!("{error:?}"))?;
+        assert_eq!(omitted, 0);
+        assert_eq!(references.len(), 2);
+        assert_eq!(
+            references.iter().filter(|r| r.is_declaration).count(),
+            1,
+            "exactly one location is flagged as the declaration"
         );
         Ok(())
     }
@@ -1750,5 +2034,186 @@ mod tests {
             AnalyzerBudgets::standard(limits).query,
             Duration::from_secs(domain::QUERY_TIMEOUT_SECONDS)
         );
+    }
+
+    /// V06 P2: each raw `textDocument/references` answer is fitted to
+    /// [`MAX_RAW_REFERENCE_LOCATIONS`] *before* the O(n·m) set difference
+    /// runs, so that difference is always bounded by construction rather
+    /// than by trusting the peer to send few enough locations.
+    #[test]
+    fn raw_locations_beyond_the_ceiling_are_capped_and_the_excess_counted() {
+        let location = |n: u32| lsp_codec::Location {
+            uri: "file:///source/src/lib.rs".to_owned(),
+            range: lsp_codec::LspRange {
+                start: lsp_codec::LspPosition {
+                    line: n,
+                    character: 0,
+                },
+                end: lsp_codec::LspPosition {
+                    line: n,
+                    character: 1,
+                },
+            },
+        };
+        let within_bound: Vec<_> = (0..MAX_RAW_REFERENCE_LOCATIONS as u32)
+            .map(location)
+            .collect();
+        let (kept, excess) = cap_raw_locations(within_bound.clone());
+        assert_eq!(kept.len(), MAX_RAW_REFERENCE_LOCATIONS);
+        assert_eq!(excess, 0);
+
+        let over = 10;
+        let mut beyond_bound = within_bound;
+        beyond_bound.extend((0..over).map(|n| location(MAX_RAW_REFERENCE_LOCATIONS as u32 + n)));
+        let (kept, excess) = cap_raw_locations(beyond_bound);
+        assert_eq!(kept.len(), MAX_RAW_REFERENCE_LOCATIONS);
+        assert_eq!(excess, over as usize);
+    }
+
+    /// V06 P2: drives the real [`answer_references`] against a scripted
+    /// two-response peer, so this fails if the function were deleted or the
+    /// difference inverted — unlike
+    /// `declarations_are_exactly_the_locations_the_second_request_drops`
+    /// above, which only re-implements the filter.
+    #[test]
+    fn answer_references_marks_the_declaration_from_a_real_two_response_peer()
+    -> Result<(), Box<dyn std::error::Error>> {
+        let source = bundle(&[("src/lib.rs", b"fn a() {}\nfn b() {}\nfn c() {}\n")])?;
+        let file = domain::AnalyzerFile::new("src/lib.rs".into())?;
+        let opened = document(&source, &file).map_err(|error| format!("{error:?}"))?;
+        let (indices, not_utf8) = snapshot(&source);
+        let query = AnalyzerQuery::References {
+            file: file.clone(),
+            position: domain::Position::new(1, 4)?,
+        };
+        let question = Question {
+            query: &query,
+            document: Some(&opened),
+            indices: &indices,
+            not_utf8,
+        };
+        let uri = "file:///source/src/lib.rs";
+        let a_decl = location_json(uri, 0, 3, 4);
+        let b_use = location_json(uri, 1, 3, 4);
+        let c_use = location_json(uri, 2, 3, 4);
+        // Response 1 (`includeDeclaration: true`) = {A, B, C}; response 2
+        // (`false`) = {B, C}: only A is absent from the second answer.
+        let response_one = references_response(1, &[a_decl.clone(), b_use.clone(), c_use.clone()]);
+        let response_two = references_response(2, &[b_use.clone(), c_use.clone()]);
+        let script = format!(
+            "printf '{}{}'; cat > /dev/null",
+            frame_literal(&response_one),
+            frame_literal(&response_two)
+        );
+        let cancel = NeverCancel;
+        let mut session = LspSession::open(
+            shell(&script),
+            SessionBudget::standard(Instant::now() + Duration::from_secs(10)),
+            &cancel,
+        )
+        .map_err(|error| format!("{error:?}"))?;
+        let budgets = AnalyzerBudgets {
+            limits: ExecutionLimits::new_job(180_000, 512 * 1024).ok_or("representable limits")?,
+            initialize: Duration::from_secs(30),
+            query: Duration::from_secs(5),
+        };
+        let mut progress = Progress::default();
+        answer_references(
+            &mut session,
+            &question,
+            domain::Position::new(1, 4)?,
+            budgets,
+            Instant::now(),
+            &mut progress,
+        )
+        .map_err(|error| format!("{error:?}"))?;
+        let Some(domain::AnalyzerResult::References(references)) = progress.result else {
+            return Err("expected a References result".into());
+        };
+        assert_eq!(
+            references.len(),
+            3,
+            "A, B and C all survive: {references:?}"
+        );
+        let a_range =
+            domain::TextRange::new(domain::Position::new(1, 4)?, domain::Position::new(1, 5)?)?;
+        let b_range =
+            domain::TextRange::new(domain::Position::new(2, 4)?, domain::Position::new(2, 5)?)?;
+        let c_range =
+            domain::TextRange::new(domain::Position::new(3, 4)?, domain::Position::new(3, 5)?)?;
+        assert!(
+            references
+                .iter()
+                .any(|r| r.file == file && r.range == a_range && r.is_declaration),
+            "A is present only in the first answer, so it is the declaration: {references:?}"
+        );
+        assert!(
+            references
+                .iter()
+                .any(|r| r.file == file && r.range == b_range && !r.is_declaration),
+            "B is in both answers, so it is not the declaration: {references:?}"
+        );
+        assert!(
+            references
+                .iter()
+                .any(|r| r.file == file && r.range == c_range && !r.is_declaration),
+            "C is in both answers, so it is not the declaration: {references:?}"
+        );
+        Ok(())
+    }
+
+    /// V06 P2: a peer that answers the first (`includeDeclaration: true`)
+    /// request and then falls silent must classify as `TimeoutQuery` on the
+    /// second, shared-budget request — never a silent drop of the second
+    /// answer.
+    #[test]
+    fn answer_references_times_out_on_a_silent_second_request()
+    -> Result<(), Box<dyn std::error::Error>> {
+        let source = bundle(&[("src/lib.rs", b"fn a() {}\n")])?;
+        let file = domain::AnalyzerFile::new("src/lib.rs".into())?;
+        let opened = document(&source, &file).map_err(|error| format!("{error:?}"))?;
+        let (indices, not_utf8) = snapshot(&source);
+        let query = AnalyzerQuery::References {
+            file,
+            position: domain::Position::new(1, 4)?,
+        };
+        let question = Question {
+            query: &query,
+            document: Some(&opened),
+            indices: &indices,
+            not_utf8,
+        };
+        let a_decl = location_json("file:///source/src/lib.rs", 0, 3, 4);
+        let response_one = references_response(1, &[a_decl]);
+        // Answers the first request, then never touches the second: no
+        // response is ever written for it.
+        let script = format!("printf '{}'; sleep 30", frame_literal(&response_one));
+        let cancel = NeverCancel;
+        let mut session = LspSession::open(
+            shell(&script),
+            SessionBudget::standard(Instant::now() + Duration::from_secs(30)),
+            &cancel,
+        )
+        .map_err(|error| format!("{error:?}"))?;
+        let budgets = AnalyzerBudgets {
+            limits: ExecutionLimits::new_job(180_000, 512 * 1024).ok_or("representable limits")?,
+            initialize: Duration::from_secs(30),
+            query: Duration::from_millis(400),
+        };
+        let mut progress = Progress::default();
+        let result = answer_references(
+            &mut session,
+            &question,
+            domain::Position::new(1, 4)?,
+            budgets,
+            Instant::now(),
+            &mut progress,
+        );
+        assert_eq!(
+            result.err(),
+            Some(domain::AnalyzerFailure::TimeoutQuery),
+            "the second request must time out, never hang or silently drop"
+        );
+        Ok(())
     }
 }

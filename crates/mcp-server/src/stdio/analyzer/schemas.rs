@@ -331,6 +331,76 @@ pub struct Session {
     pub server_requests: u32,
 }
 
+/// A `textDocument/references` result entry (ADR-084 §2 phase 6, amended).
+#[derive(Serialize, JsonSchema)]
+#[serde(deny_unknown_fields)]
+pub struct Reference {
+    #[schemars(length(min = 1, max = 100))]
+    pub file: String,
+    pub range: Range,
+    /// `true` for a location the `includeDeclaration: true` answer carries
+    /// and the `includeDeclaration: false` answer does not (D25 R5); rust-
+    /// analyzer's own answer never flags this.
+    pub is_declaration: bool,
+}
+
+/// Mirrors `rust_engineering_domain::DiagnosticSeverity` 1:1.
+#[derive(Serialize, JsonSchema)]
+#[serde(rename_all = "snake_case")]
+pub enum DiagnosticSeverity {
+    Error,
+    Warning,
+    Information,
+    Hint,
+}
+
+impl From<rust_engineering_domain::DiagnosticSeverity> for DiagnosticSeverity {
+    fn from(value: rust_engineering_domain::DiagnosticSeverity) -> Self {
+        use rust_engineering_domain::DiagnosticSeverity as Domain;
+        match value {
+            Domain::Error => Self::Error,
+            Domain::Warning => Self::Warning,
+            Domain::Information => Self::Information,
+            Domain::Hint => Self::Hint,
+        }
+    }
+}
+
+/// A related span attached to a diagnostic (e.g. "previous definition here").
+/// `message` shares [`AnalyzerDiagnostic::message`]'s peer-text bound.
+#[derive(Serialize, JsonSchema)]
+#[serde(deny_unknown_fields)]
+pub struct RelatedInformation {
+    #[schemars(length(min = 1, max = 100))]
+    pub file: String,
+    pub range: Range,
+    #[schemars(length(min = 1, max = 4096))]
+    pub message: String,
+    pub message_truncated: bool,
+}
+
+/// A native rust-analyzer diagnostic (ADR-083 §2, M6-03). `message` is
+/// project-derived text: bounded to 4,096 Unicode scalars and flagged
+/// `message_truncated` rather than silently cut, never the serverStatus
+/// `message` or stderr.
+#[derive(Serialize, JsonSchema)]
+#[serde(deny_unknown_fields)]
+pub struct AnalyzerDiagnostic {
+    #[schemars(length(min = 1, max = 100))]
+    pub file: String,
+    pub range: Range,
+    pub severity: DiagnosticSeverity,
+    #[schemars(length(min = 1, max = 128))]
+    pub code: Option<String>,
+    #[schemars(length(min = 1))]
+    pub source: &'static str,
+    #[schemars(length(min = 1, max = 4096))]
+    pub message: String,
+    pub message_truncated: bool,
+    #[schemars(length(max = 32))]
+    pub related: Vec<RelatedInformation>,
+}
+
 #[derive(Serialize, JsonSchema)]
 #[serde(rename_all = "snake_case")]
 pub enum Termination {

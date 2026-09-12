@@ -1264,62 +1264,118 @@ fn walk_document_symbol(
     Ok(())
 }
 
+/// What one `textDocument/diagnostic` answer left out, split by cause so the
+/// gateway can label each with the matching [`domain::OmissionKind`]. `code`
+/// truncation and [`domain::AnalyzerDiagnostic::message_truncated`] are never
+/// counted here: a diagnostic fitted to the domain bounds is still published
+/// in full, exactly as [`domain::DocumentSymbol::detail_truncated`] (V05)
+/// leaves a call `Complete` over a long `detail`.
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+pub struct DiagnosticsOmissions {
+    /// Diagnostics beyond [`domain::MAX_VISIBLE_RESULTS`].
+    pub limit_visible: usize,
+    /// A diagnostic whose primary position does not resolve against the
+    /// captured bytes (V06 P1): skipped and counted, never the whole call's
+    /// failure.
+    pub unresolvable_position: usize,
+    /// An empty `message` (the whole diagnostic is dropped, V06 P1), or a
+    /// `related` entry beyond [`domain::MAX_RELATED_INFORMATION`] on an
+    /// otherwise-published diagnostic (V06 P2).
+    pub oversized_entry: usize,
+}
+
+/// Fits `text` to `max_chars` Unicode scalars, reporting whether anything was
+/// actually cut.
+fn fit_peer_text(text: String, max_chars: usize) -> (String, bool) {
+    if text.chars().count() > max_chars {
+        (text.chars().take(max_chars).collect(), true)
+    } else {
+        (text, false)
+    }
+}
+
 /// Converts one file's diagnostics. Related information pointing outside
-/// `file` is omitted: M6-01 opens a single document per query (D26 §2.2), so
-/// only `file`'s own [`domain::LineIndex`] is available here to translate
-/// byte offsets against.
+/// `file` is omitted, uncounted: M6-01 opens a single document per query (D26
+/// §2.2), so only `file`'s own [`domain::LineIndex`] is available here to
+/// translate byte offsets against, exactly as before V06.
+///
+/// Postcondition (V06 P1): every diagnostic the peer sends is either
+/// published — with `message`/`code`/`related` already fitted to the domain
+/// bounds — or counted in the returned [`DiagnosticsOmissions`]. Construction
+/// never fails on peer content; the only remaining `Err` paths are genuine
+/// protocol violations (an out-of-range `severity`).
 pub fn diagnostics_to_domain(
     file: &domain::AnalyzerFile,
     diagnostics: Vec<LspDiagnostic>,
     index: &domain::LineIndex,
     encoding: domain::PositionEncoding,
-) -> Result<(Vec<domain::AnalyzerDiagnostic>, usize), domain::AnalyzerError> {
+) -> Result<(Vec<domain::AnalyzerDiagnostic>, DiagnosticsOmissions), domain::AnalyzerError> {
     let mut out = Vec::new();
-    let mut truncated = 0usize;
+    let mut omissions = DiagnosticsOmissions::default();
     for diagnostic in diagnostics {
         if out.len() >= domain::MAX_VISIBLE_RESULTS {
-            truncated += 1;
+            omissions.limit_visible += 1;
             continue;
         }
-        let range = lsp_range_to_text_range(&diagnostic.range, index, encoding)?;
+        let Ok(range) = lsp_range_to_text_range(&diagnostic.range, index, encoding) else {
+            omissions.unresolvable_position += 1;
+            continue;
+        };
         let severity = domain::DiagnosticSeverity::try_from(diagnostic.severity.unwrap_or(1))?;
-        let message = domain::NonEmptyText::try_from(diagnostic.message)
-            .map_err(|_| domain::AnalyzerError::Invalid)?;
-        let code = diagnostic.code.and_then(|value| match value {
-            serde_json::Value::String(text) => Some(text),
-            serde_json::Value::Number(number) => Some(number.to_string()),
-            _ => None,
-        });
-        let related = diagnostic
-            .related_information
-            .unwrap_or_default()
-            .into_iter()
-            .filter_map(|info| {
-                let related_file = lsp_uri_to_file(&info.location.uri).ok()?;
-                if related_file != *file {
-                    return None;
-                }
-                let related_range =
-                    lsp_range_to_text_range(&info.location.range, index, encoding).ok()?;
-                let related_message = domain::NonEmptyText::try_from(info.message).ok()?;
-                Some(domain::RelatedInformation {
-                    file: related_file,
-                    range: related_range,
-                    message: related_message,
-                })
+        if diagnostic.message.trim().is_empty() {
+            omissions.oversized_entry += 1;
+            continue;
+        }
+        let (message_text, message_was_truncated) =
+            fit_peer_text(diagnostic.message, domain::MAX_DIAGNOSTIC_MESSAGE_CHARS);
+        let Ok(message) = domain::NonEmptyText::try_from(message_text) else {
+            // Every scalar of the fitted prefix was whitespace even though
+            // the untruncated message was not: an adversarial edge the fit
+            // above can create, with nothing legible left to publish.
+            omissions.oversized_entry += 1;
+            continue;
+        };
+        let code = diagnostic
+            .code
+            .and_then(|value| match value {
+                serde_json::Value::String(text) => Some(text),
+                serde_json::Value::Number(number) => Some(number.to_string()),
+                _ => None,
             })
-            .take(32)
-            .collect();
-        out.push(domain::AnalyzerDiagnostic::new(
-            file.clone(),
-            range,
-            severity,
-            code,
-            message,
-            related,
-        )?);
+            .map(|value| fit_peer_text(value, domain::MAX_DIAGNOSTIC_CODE_CHARS).0);
+        let mut related = Vec::new();
+        for info in diagnostic.related_information.unwrap_or_default() {
+            let Ok(related_file) = lsp_uri_to_file(&info.location.uri) else {
+                continue;
+            };
+            if related_file != *file {
+                continue;
+            }
+            let Ok(related_range) = lsp_range_to_text_range(&info.location.range, index, encoding)
+            else {
+                continue;
+            };
+            let Ok(related_message) = domain::NonEmptyText::try_from(info.message) else {
+                continue;
+            };
+            if related.len() >= domain::MAX_RELATED_INFORMATION {
+                omissions.oversized_entry += 1;
+                continue;
+            }
+            related.push(domain::RelatedInformation {
+                file: related_file,
+                range: related_range,
+                message: related_message,
+            });
+        }
+        let mut entry =
+            domain::AnalyzerDiagnostic::new(file.clone(), range, severity, code, message, related)?;
+        if message_was_truncated {
+            entry = entry.mark_message_truncated();
+        }
+        out.push(entry);
     }
-    Ok((out, truncated))
+    Ok((out, omissions))
 }
 
 /// Converts `textDocument/references` locations, which may span multiple
@@ -2296,19 +2352,168 @@ mod tests {
                 },
             ]),
         };
-        let (converted, truncated) = diagnostics_to_domain(
+        let (converted, omissions) = diagnostics_to_domain(
             &file,
             vec![diagnostic],
             &index,
             domain::PositionEncoding::Utf8,
         )?;
-        assert_eq!(truncated, 0);
+        assert_eq!(omissions, DiagnosticsOmissions::default());
         assert_eq!(converted.len(), 1);
         assert_eq!(converted[0].code(), Some("E0308"));
         assert_eq!(
             converted[0].related().len(),
             1,
             "the cross-file related entry is omitted"
+        );
+        Ok(())
+    }
+
+    fn one_diagnostic(range: LspRange, message: &str, code: &str) -> LspDiagnostic {
+        LspDiagnostic {
+            range,
+            severity: Some(1),
+            code: Some(serde_json::json!(code)),
+            message: message.to_owned(),
+            related_information: None,
+        }
+    }
+
+    #[test]
+    fn an_oversized_message_is_truncated_and_flagged_not_a_call_failure()
+    -> Result<(), Box<dyn std::error::Error>> {
+        let file = analyzer_file("a.rs")?;
+        let index = domain::LineIndex::new(b"let x = 1;\n")?;
+        let long_message = "m".repeat(5_000);
+        let diagnostic = one_diagnostic(lsp_range(0, 0, 0, 1), &long_message, "E0001");
+        let (converted, omissions) = diagnostics_to_domain(
+            &file,
+            vec![diagnostic],
+            &index,
+            domain::PositionEncoding::Utf8,
+        )?;
+        assert_eq!(omissions, DiagnosticsOmissions::default());
+        assert_eq!(converted.len(), 1);
+        assert!(converted[0].message_truncated());
+        assert_eq!(
+            converted[0].message().as_str().chars().count(),
+            domain::MAX_DIAGNOSTIC_MESSAGE_CHARS
+        );
+        Ok(())
+    }
+
+    #[test]
+    fn an_empty_message_is_omitted_and_counted_never_a_call_failure()
+    -> Result<(), Box<dyn std::error::Error>> {
+        let file = analyzer_file("a.rs")?;
+        let index = domain::LineIndex::new(b"let x = 1;\n")?;
+        let diagnostic = one_diagnostic(lsp_range(0, 0, 0, 1), "   ", "E0001");
+        let (converted, omissions) = diagnostics_to_domain(
+            &file,
+            vec![diagnostic],
+            &index,
+            domain::PositionEncoding::Utf8,
+        )?;
+        assert!(converted.is_empty());
+        assert_eq!(
+            omissions,
+            DiagnosticsOmissions {
+                oversized_entry: 1,
+                ..Default::default()
+            }
+        );
+        Ok(())
+    }
+
+    #[test]
+    fn an_oversized_code_is_truncated() -> Result<(), Box<dyn std::error::Error>> {
+        let file = analyzer_file("a.rs")?;
+        let index = domain::LineIndex::new(b"let x = 1;\n")?;
+        let long_code = "E".repeat(200);
+        let diagnostic = one_diagnostic(lsp_range(0, 0, 0, 1), "message", &long_code);
+        let (converted, omissions) = diagnostics_to_domain(
+            &file,
+            vec![diagnostic],
+            &index,
+            domain::PositionEncoding::Utf8,
+        )?;
+        assert_eq!(omissions, DiagnosticsOmissions::default());
+        assert_eq!(converted.len(), 1);
+        assert_eq!(
+            converted[0].code().map(str::len),
+            Some(domain::MAX_DIAGNOSTIC_CODE_CHARS)
+        );
+        Ok(())
+    }
+
+    #[test]
+    fn related_beyond_the_cap_is_kept_at_32_and_the_excess_counted()
+    -> Result<(), Box<dyn std::error::Error>> {
+        let file = analyzer_file("a.rs")?;
+        let index = domain::LineIndex::new(b"let x = 1;\n")?;
+        let mut diagnostic = one_diagnostic(lsp_range(0, 0, 0, 1), "message", "E0001");
+        diagnostic.related_information = Some(
+            (0..40)
+                .map(|n| DiagnosticRelatedInformation {
+                    location: Location {
+                        uri: "file:///source/a.rs".into(),
+                        range: lsp_range(0, 0, 0, 3),
+                    },
+                    message: format!("related {n}"),
+                })
+                .collect(),
+        );
+        let (converted, omissions) = diagnostics_to_domain(
+            &file,
+            vec![diagnostic],
+            &index,
+            domain::PositionEncoding::Utf8,
+        )?;
+        assert_eq!(converted.len(), 1);
+        assert_eq!(converted[0].related().len(), 32);
+        assert_eq!(
+            omissions,
+            DiagnosticsOmissions {
+                oversized_entry: 8,
+                ..Default::default()
+            }
+        );
+        Ok(())
+    }
+
+    #[test]
+    fn a_500_diagnostic_answer_stays_under_the_512_visible_cap()
+    -> Result<(), Box<dyn std::error::Error>> {
+        let file = analyzer_file("a.rs")?;
+        let index = domain::LineIndex::new(b"let x = 1;\n")?;
+        let diagnostics: Vec<_> = (0..500)
+            .map(|n| one_diagnostic(lsp_range(0, 0, 0, 1), "message", &format!("E{n:04}")))
+            .collect();
+        let (converted, omissions) =
+            diagnostics_to_domain(&file, diagnostics, &index, domain::PositionEncoding::Utf8)?;
+        assert_eq!(converted.len(), 500);
+        assert_eq!(omissions, DiagnosticsOmissions::default());
+        Ok(())
+    }
+
+    #[test]
+    fn diagnostics_beyond_the_visible_cap_are_counted_not_dropped_silently()
+    -> Result<(), Box<dyn std::error::Error>> {
+        let file = analyzer_file("a.rs")?;
+        let index = domain::LineIndex::new(b"let x = 1;\n")?;
+        let over = 20;
+        let diagnostics: Vec<_> = (0..domain::MAX_VISIBLE_RESULTS + over)
+            .map(|n| one_diagnostic(lsp_range(0, 0, 0, 1), "message", &format!("E{n:04}")))
+            .collect();
+        let (converted, omissions) =
+            diagnostics_to_domain(&file, diagnostics, &index, domain::PositionEncoding::Utf8)?;
+        assert_eq!(converted.len(), domain::MAX_VISIBLE_RESULTS);
+        assert_eq!(
+            omissions,
+            DiagnosticsOmissions {
+                limit_visible: over,
+                ..Default::default()
+            }
         );
         Ok(())
     }

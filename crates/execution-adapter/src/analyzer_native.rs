@@ -641,6 +641,21 @@ fn symbols_query(file: &str) -> Result<AnalyzerQuery, Failure> {
     })
 }
 
+fn references_query(file: &str, position: domain::Position) -> Result<AnalyzerQuery, Failure> {
+    Ok(AnalyzerQuery::References {
+        file: domain::AnalyzerFile::new(file.to_owned())
+            .map_err(|error| format!("{file}: {error:?}"))?,
+        position,
+    })
+}
+
+fn diagnostics_query(file: &str) -> Result<AnalyzerQuery, Failure> {
+    Ok(AnalyzerQuery::Diagnostics {
+        file: domain::AnalyzerFile::new(file.to_owned())
+            .map_err(|error| format!("{file}: {error:?}"))?,
+    })
+}
+
 // -- receipt -----------------------------------------------------------------
 
 fn receipt_root() -> PathBuf {
@@ -928,6 +943,36 @@ fn document_symbols(
         Some(domain::AnalyzerResult::DocumentSymbols(symbols)) => Ok(symbols),
         other => Err(format!(
             "expected document symbols; got {:?} with failure {:?}",
+            other.map(std::mem::discriminant),
+            execution.failure()
+        )
+        .into()),
+    }
+}
+
+/// The references of an answered `textDocument/references` call, or an error
+/// naming what the call actually produced.
+fn references(execution: &domain::AnalyzerExecution) -> Result<&[domain::Reference], Failure> {
+    match execution.result() {
+        Some(domain::AnalyzerResult::References(references)) => Ok(references),
+        other => Err(format!(
+            "expected references; got {:?} with failure {:?}",
+            other.map(std::mem::discriminant),
+            execution.failure()
+        )
+        .into()),
+    }
+}
+
+/// The diagnostics of an answered `textDocument/diagnostic` call, or an error
+/// naming what the call actually produced.
+fn diagnostics(
+    execution: &domain::AnalyzerExecution,
+) -> Result<&[domain::AnalyzerDiagnostic], Failure> {
+    match execution.result() {
+        Some(domain::AnalyzerResult::Diagnostics(diagnostics)) => Ok(diagnostics),
+        other => Err(format!(
+            "expected diagnostics; got {:?} with failure {:?}",
             other.map(std::mem::discriminant),
             execution.failure()
         )
@@ -1672,6 +1717,249 @@ fn m6_frame_limit_from_a_real_peer_kills_the_session() -> Result<(), Failure> {
         }),
     );
     cut.residue_after = clean(gateway, "frame after")?;
+    cut.pass()?;
+    Ok(())
+}
+
+#[test]
+#[ignore = "explicit M6 image, host Docker and one real rust-analyzer session"]
+fn m6_references_on_analyzer_references_flag_the_declaration_exactly_once() -> Result<(), Failure> {
+    let image = m6_image()?;
+    let mut cut = Cut::open("m6-09-references", &image);
+    let session = Session::open(&image)?;
+    let gateway = session.gateway()?;
+    cut.residue_before = clean(gateway, "references before")?;
+
+    let source = fixture_bundle("analyzer-references")?;
+    cut.fixtures.insert(
+        "analyzer-references".into(),
+        bundle_facts("analyzer-references", &source)?,
+    );
+    // `pub fn add(a: u32, b: u32) -> u32 { a + b }` on line 1: `add` starts at
+    // column 8. Unlike `valid-basic`'s `#[test]`-only call site, this
+    // fixture's `twice` on line 2 calls `add` outside any `#[cfg(test)]`, so
+    // rust-analyzer's minimal (`noDeps`, no test cfg) config still finds it.
+    let position = domain::Position::new(1, 8)?;
+    let started = Instant::now();
+    let execution = gateway
+        .execute_analyzer(
+            &source,
+            &references_query("src/lib.rs", position)?,
+            limits()?,
+            &Proceed,
+        )
+        .map_err(|error| format!("analyzer session: {error:?}"))?;
+    let facts = session_facts(&execution);
+    assert_eq!(
+        execution.completeness.state(),
+        domain::CompletenessState::Complete,
+        "an answered, unwarned, unlimited call is exhaustive: {facts}"
+    );
+    let found = references(&execution)?;
+    assert_eq!(
+        found.len(),
+        2,
+        "analyzer-references' `add` has exactly the declaration and the `twice` call site: {facts}"
+    );
+    assert_eq!(
+        found
+            .iter()
+            .filter(|reference| reference.is_declaration)
+            .count(),
+        1,
+        "exactly one location is the declaration, marked by the two-request set \
+         difference (ADR-084 §2 phase 6, amended): {facts}"
+    );
+
+    // The oracle: every range must slice the symbol's own name out of the
+    // captured bytes of *its own* file (V06 P3) — `analyzer-references` has
+    // just the one `.rs` file today, but the index below is built from every
+    // `reference.file` rather than assuming `src/lib.rs`, so a future
+    // multi-file fixture stays correctly checked without touching this cut.
+    let mut texts: BTreeMap<String, (String, domain::LineIndex)> = BTreeMap::new();
+    for file in source.files() {
+        if !file.path().ends_with(".rs") {
+            continue;
+        }
+        let Ok(text) = String::from_utf8(file.bytes().to_vec()) else {
+            continue;
+        };
+        let index =
+            domain::LineIndex::new(text.as_bytes()).map_err(|error| format!("{error:?}"))?;
+        texts.insert(file.path().to_owned(), (text, index));
+    }
+    let mut named = Vec::new();
+    for reference in found {
+        let (text, index) = texts
+            .get(reference.file.as_str())
+            .ok_or_else(|| format!("no captured bytes for {}", reference.file.as_str()))?;
+        let start = index
+            .byte_offset_from_position(reference.range.start())
+            .map_err(|error| format!("{error:?}"))?;
+        let end = index
+            .byte_offset_from_position(reference.range.end())
+            .map_err(|error| format!("{error:?}"))?;
+        let sliced = text
+            .get(start..end)
+            .ok_or("reference range outside the file")?;
+        assert_eq!(
+            sliced, "add",
+            "every reference range must cut the symbol's own name out of the captured bytes"
+        );
+        named.push(json!({
+            "is_declaration": reference.is_declaration,
+            "file": reference.file.as_str(),
+            "start": serde_json::to_value(reference.range.start()).unwrap_or(Value::Null),
+        }));
+    }
+    let declaration_start = domain::Position::new(1, 8)?;
+    let use_start = domain::Position::new(2, 31)?;
+    assert!(
+        named
+            .iter()
+            .any(|reference| reference["is_declaration"] == json!(true)
+                && reference["start"]
+                    == serde_json::to_value(declaration_start).unwrap_or(Value::Null)),
+        "the declaration must be the line-1 range at column 8: {named:?}"
+    );
+    assert!(
+        named
+            .iter()
+            .any(|reference| reference["is_declaration"] == json!(false)
+                && reference["start"] == serde_json::to_value(use_start).unwrap_or(Value::Null)),
+        "the use must be the line-2 range at column 31: {named:?}"
+    );
+    cut.record(
+        "references-analyzer-references",
+        started,
+        json!({
+            "references": named,
+            "reference_count": named.len(),
+            "declaration_count": named
+                .iter()
+                .filter(|reference| reference["is_declaration"] == json!(true))
+                .count(),
+            "facts": facts,
+        }),
+    );
+    cut.residue_after = clean(gateway, "references after")?;
+    cut.pass()?;
+    Ok(())
+}
+
+#[test]
+#[ignore = "explicit M6 image, host Docker and one real rust-analyzer session"]
+fn m6_no_build_script_runs_the_include_stays_unexpanded() -> Result<(), Failure> {
+    let image = m6_image()?;
+    let mut cut = Cut::open("m6-10-diagnostics-build-script-oracle", &image);
+    let session = Session::open(&image)?;
+    let gateway = session.gateway()?;
+    cut.residue_before = clean(gateway, "diagnostics before")?;
+
+    let source = fixture_bundle("build-script")?;
+    cut.fixtures.insert(
+        "build-script".into(),
+        bundle_facts("build-script", &source)?,
+    );
+
+    // Owner decision (Option A, 2026-09-12): under the M6 minimal config
+    // (`diagnostics.experimental.enable=false`), `textDocument/diagnostic`
+    // surfaces only rust-analyzer's syntax-level diagnostics — it does not
+    // flag an unresolved `env!`/`include!`. This first call establishes that
+    // the tool is answered, complete and healthy on this fixture (it may be
+    // empty; that is expected and not itself the containment proof).
+    let started = Instant::now();
+    let diagnostics_execution = gateway
+        .execute_analyzer(
+            &source,
+            &diagnostics_query("src/lib.rs")?,
+            limits()?,
+            &Proceed,
+        )
+        .map_err(|error| format!("analyzer session: {error:?}"))?;
+    let diagnostics_facts = session_facts(&diagnostics_execution);
+    let domain::AnalyzerReadiness::Quiescent { health, .. } = diagnostics_execution.readiness
+    else {
+        return Err(
+            format!("the server never reached the readiness oracle: {diagnostics_facts}").into(),
+        );
+    };
+    assert_eq!(
+        health,
+        domain::ServerHealth::Ok,
+        "quiescent healthy is required for the diagnostics answer to mean anything: \
+         {diagnostics_facts}"
+    );
+    assert_eq!(
+        diagnostics_execution.completeness.state(),
+        domain::CompletenessState::Complete,
+        "an answered, unwarned, unlimited call is exhaustive: {diagnostics_facts}"
+    );
+    let found = diagnostics(&diagnostics_execution)?;
+    cut.record(
+        "diagnostics-build-script",
+        started,
+        json!({
+            "diagnostic_count": found.len(),
+            "facts": diagnostics_facts,
+        }),
+    );
+
+    // The in-band oracle (`01.md` R1, Option A): `src/lib.rs` is exactly
+    // `include!(concat!(env!("OUT_DIR"), "/generated.rs"));` followed by a
+    // test that references `GENERATED`. With build scripts disabled
+    // (ADR-084 §6/§7) that `include!` never expands, so `rust.analyzer.symbols`
+    // (document scope) must contain the test function `generated_fact` — a
+    // top-level item that exists whether or not the include! expands — but
+    // must NOT contain `GENERATED`, the constant the generated file would
+    // define. That absence, not a diagnostic, is the deterministic proof
+    // that no build script ran, complementary to the `container top`
+    // sampling of M6-03's other cut.
+    let started = Instant::now();
+    let symbols_execution = gateway
+        .execute_analyzer(&source, &symbols_query("src/lib.rs")?, limits()?, &Proceed)
+        .map_err(|error| format!("analyzer session: {error:?}"))?;
+    let symbols_facts = session_facts(&symbols_execution);
+    let domain::AnalyzerReadiness::Quiescent { health, .. } = symbols_execution.readiness else {
+        return Err(
+            format!("the server never reached the readiness oracle: {symbols_facts}").into(),
+        );
+    };
+    assert_eq!(
+        health,
+        domain::ServerHealth::Ok,
+        "quiescent healthy is required for the absence of a symbol to mean anything: \
+         {symbols_facts}"
+    );
+    assert_eq!(
+        symbols_execution.completeness.state(),
+        domain::CompletenessState::Complete,
+        "an answered, unwarned, unlimited call is exhaustive: {symbols_facts}"
+    );
+    let symbols = document_symbols(&symbols_execution)?;
+    let names = symbols
+        .iter()
+        .map(|symbol| symbol.name().as_str())
+        .collect::<Vec<_>>();
+    assert!(
+        names.contains(&"generated_fact"),
+        "the test function must be visible whether or not the include! expands: {symbols_facts}, \
+         symbols={names:?}"
+    );
+    assert!(
+        !names.contains(&"GENERATED"),
+        "GENERATED is only defined by the generated file; its presence would mean a build \
+         script ran: {symbols_facts}, symbols={names:?}"
+    );
+    cut.record(
+        "symbols-build-script",
+        started,
+        json!({
+            "symbols": names,
+            "facts": symbols_facts,
+        }),
+    );
+    cut.residue_after = clean(gateway, "diagnostics after")?;
     cut.pass()?;
     Ok(())
 }

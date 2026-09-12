@@ -6,13 +6,13 @@
 //! lifecycle, and the tool layer alone builds the wire envelope from
 //! [`AnalyzerReport`].
 use crate::{
-    InspectionControl, InspectionError, ProjectError, ProjectRegistry, ProjectSourceBackend,
-    ReferenceGenerator, RegistryClock,
+    InspectionControl, InspectionError, ProjectError, ProjectIdentity, ProjectRegistry,
+    ProjectSourceBackend, ReferenceGenerator, RegistryClock,
 };
 use rust_engineering_domain::{
     AnalyzerExecution, AnalyzerFile, AnalyzerQuery, ExecutionLimits, InspectionSemantics,
-    MAX_RESULT_BYTES, ProjectIdentityFingerprint, ProjectRef, SourceBundle, SourceFingerprint,
-    SymbolQuery,
+    LineIndex, MAX_RESULT_BYTES, Position, ProjectIdentityFingerprint, ProjectRef, SourceBundle,
+    SourceFingerprint, SymbolQuery,
 };
 
 /// What the port's session ran against, next to what it answered.
@@ -81,6 +81,28 @@ impl SymbolsRequest {
     }
 }
 
+/// A validated `rust.analyzer.references` request, already past wire parsing.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct ReferencesRequest {
+    pub expected_project_fingerprint: Option<ProjectIdentityFingerprint>,
+    pub file: AnalyzerFile,
+    pub position: Position,
+    pub include_declaration: bool,
+    /// The caller's total-call budget (ADR-084 §8), already bounded to
+    /// `1..=180` seconds by the tool's own wire schema.
+    pub timeout_seconds: u32,
+}
+
+/// A validated `rust.analyzer.diagnostics` request, already past wire parsing.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct DiagnosticsRequest {
+    pub expected_project_fingerprint: Option<ProjectIdentityFingerprint>,
+    pub file: AnalyzerFile,
+    /// The caller's total-call budget (ADR-084 §8), already bounded to
+    /// `1..=180` seconds by the tool's own wire schema.
+    pub timeout_seconds: u32,
+}
+
 /// Snapshot facts published next to every M6 analyzer answer (ADR-083 §3):
 /// never `latest`, always the exact non-atomic capture the session ran
 /// against.
@@ -122,6 +144,12 @@ pub enum AnalyzerRequestError {
     /// outcome the gateway's own defence in depth would reach, reached here
     /// without one.
     FileNotInSnapshot,
+    /// The queried `position` is beyond the captured file's line or column
+    /// count. Checked against the captured bytes before a session opens, for
+    /// the same reason as [`Self::FileNotInSnapshot`]; left unchecked when the
+    /// file is not valid UTF-8, which is the port's own
+    /// `AnalyzerFailure::FileNotUtf8` to report instead.
+    PositionOutOfRange,
 }
 
 impl From<InspectionError> for AnalyzerRequestError {
@@ -136,26 +164,33 @@ impl From<ProjectError> for AnalyzerRequestError {
     }
 }
 
+/// The query and its budget, bundled so [`ProjectRegistry::analyzer_finish`]
+/// takes one argument for both rather than two.
+struct AnalyzerCall {
+    query: AnalyzerQuery,
+    timeout_seconds: u32,
+}
+
 impl<B: ProjectSourceBackend, G: ReferenceGenerator, C: RegistryClock> ProjectRegistry<B, G, C> {
     /// Revalidates `reference`, captures its `SourceBundle` through the
-    /// existing lease, checks the optional live-identity guarantee, rejects a
-    /// queried file this capture does not have, calls `port` exactly once and
-    /// publishes a domain-only report.
-    pub fn analyzer_symbols(
+    /// existing lease, checks the optional live-identity guarantee, and
+    /// rejects a queried file this capture does not have. Shared by every M6
+    /// analyzer tool ahead of its own, query-specific validation.
+    fn analyzer_prelude(
         &mut self,
         reference: &ProjectRef,
-        request: SymbolsRequest,
-        port: &impl AnalyzerPort,
+        expected_project_fingerprint: Option<ProjectIdentityFingerprint>,
+        file: Option<&AnalyzerFile>,
         control: &dyn InspectionControl,
-    ) -> Result<AnalyzerReport, AnalyzerRequestError> {
+    ) -> Result<(ProjectIdentity, SourceBundle), AnalyzerRequestError> {
         let identity = self.resolve_inner(reference, control, false)?;
-        if let Some(expected) = &request.expected_project_fingerprint
-            && *expected != identity.fingerprint
+        if let Some(expected) = expected_project_fingerprint
+            && expected != identity.fingerprint
         {
             return Err(AnalyzerRequestError::Conflict);
         }
         let source = self.source_inner(reference, control, false)?;
-        if let Some(file) = request.file() {
+        if let Some(file) = file {
             let present = source
                 .files()
                 .iter()
@@ -164,13 +199,28 @@ impl<B: ProjectSourceBackend, G: ReferenceGenerator, C: RegistryClock> ProjectRe
                 return Err(AnalyzerRequestError::FileNotInSnapshot);
             }
         }
+        Ok((identity, source))
+    }
+
+    /// Calls `port` exactly once against the already-captured `source` and
+    /// publishes a domain-only report. Never called before
+    /// [`Self::analyzer_prelude`]'s checks, and any query-specific validation
+    /// of its own, have passed.
+    fn analyzer_finish(
+        &mut self,
+        reference: &ProjectRef,
+        identity: ProjectIdentity,
+        source: SourceBundle,
+        call: AnalyzerCall,
+        port: &impl AnalyzerPort,
+        control: &dyn InspectionControl,
+    ) -> Result<AnalyzerReport, AnalyzerRequestError> {
         let limits = ExecutionLimits::new_job(
-            u64::from(request.timeout_seconds).saturating_mul(1_000),
+            u64::from(call.timeout_seconds).saturating_mul(1_000),
             MAX_RESULT_BYTES,
         )
         .ok_or(AnalyzerRequestError::Inspection(InspectionError::Internal))?;
-        let query = request.into_query();
-        let observation = port.analyze(&source, &query, limits, control)?;
+        let observation = port.analyze(&source, &call.query, limits, control)?;
         // No snapshot is published or lease renewed after a cancelled or
         // stale-identity revalidation; the same discipline `inspect` follows.
         self.resolve_inner(reference, control, true)?;
@@ -186,6 +236,91 @@ impl<B: ProjectSourceBackend, G: ReferenceGenerator, C: RegistryClock> ProjectRe
             },
             execution: observation.execution,
         })
+    }
+
+    /// Revalidates `reference`, captures its `SourceBundle` through the
+    /// existing lease, checks the optional live-identity guarantee, rejects a
+    /// queried file this capture does not have, calls `port` exactly once and
+    /// publishes a domain-only report.
+    pub fn analyzer_symbols(
+        &mut self,
+        reference: &ProjectRef,
+        request: SymbolsRequest,
+        port: &impl AnalyzerPort,
+        control: &dyn InspectionControl,
+    ) -> Result<AnalyzerReport, AnalyzerRequestError> {
+        let (identity, source) = self.analyzer_prelude(
+            reference,
+            request.expected_project_fingerprint.clone(),
+            request.file(),
+            control,
+        )?;
+        let call = AnalyzerCall {
+            timeout_seconds: request.timeout_seconds,
+            query: request.into_query(),
+        };
+        self.analyzer_finish(reference, identity, source, call, port, control)
+    }
+
+    /// The M6-02 counterpart of [`Self::analyzer_symbols`]: `position` is
+    /// validated against the captured bytes before any session opens (never
+    /// checked when the file is not valid UTF-8, which the port's own
+    /// `FileNotUtf8` reports instead), and the gateway sends a second,
+    /// declaration-only request in the same session to mark `is_declaration`
+    /// (ADR-084 §2 phase 6, amended) — this method itself is unaware of that
+    /// second request.
+    pub fn analyzer_references(
+        &mut self,
+        reference: &ProjectRef,
+        request: ReferencesRequest,
+        port: &impl AnalyzerPort,
+        control: &dyn InspectionControl,
+    ) -> Result<AnalyzerReport, AnalyzerRequestError> {
+        let (identity, source) = self.analyzer_prelude(
+            reference,
+            request.expected_project_fingerprint,
+            Some(&request.file),
+            control,
+        )?;
+        let out_of_range = source
+            .files()
+            .iter()
+            .find(|candidate| candidate.path() == request.file.as_str())
+            .map(|candidate| candidate.bytes())
+            .and_then(|bytes| LineIndex::new(bytes).ok())
+            .is_some_and(|index| index.utf8_from_position(request.position).is_err());
+        if out_of_range {
+            return Err(AnalyzerRequestError::PositionOutOfRange);
+        }
+        let call = AnalyzerCall {
+            timeout_seconds: request.timeout_seconds,
+            query: AnalyzerQuery::References {
+                file: request.file,
+                position: request.position,
+            },
+        };
+        self.analyzer_finish(reference, identity, source, call, port, control)
+    }
+
+    /// The M6-03 counterpart of [`Self::analyzer_symbols`].
+    pub fn analyzer_diagnostics(
+        &mut self,
+        reference: &ProjectRef,
+        request: DiagnosticsRequest,
+        port: &impl AnalyzerPort,
+        control: &dyn InspectionControl,
+    ) -> Result<AnalyzerReport, AnalyzerRequestError> {
+        let (identity, source) = self.analyzer_prelude(
+            reference,
+            request.expected_project_fingerprint,
+            Some(&request.file),
+            control,
+        )?;
+        let call = AnalyzerCall {
+            timeout_seconds: request.timeout_seconds,
+            query: AnalyzerQuery::Diagnostics { file: request.file },
+        };
+        self.analyzer_finish(reference, identity, source, call, port, control)
     }
 }
 
@@ -271,6 +406,7 @@ mod tests {
     struct FakePort {
         calls: AtomicUsize,
         result: std::sync::Mutex<Option<Result<AnalyzerObservation, InspectionError>>>,
+        last_query: std::sync::Mutex<Option<AnalyzerQuery>>,
     }
     impl FakePort {
         fn answering(execution: AnalyzerExecution) -> Self {
@@ -280,12 +416,14 @@ mod tests {
                     source_fingerprint: fingerprint(9),
                     execution,
                 }))),
+                last_query: std::sync::Mutex::new(None),
             }
         }
         fn failing(error: InspectionError) -> Self {
             Self {
                 calls: AtomicUsize::new(0),
                 result: std::sync::Mutex::new(Some(Err(error))),
+                last_query: std::sync::Mutex::new(None),
             }
         }
     }
@@ -293,11 +431,12 @@ mod tests {
         fn analyze(
             &self,
             _source: &SourceBundle,
-            _query: &AnalyzerQuery,
+            query: &AnalyzerQuery,
             _limits: ExecutionLimits,
             _control: &dyn InspectionControl,
         ) -> Result<AnalyzerObservation, InspectionError> {
             self.calls.fetch_add(1, Ordering::SeqCst);
+            *self.last_query.lock().unwrap() = Some(query.clone());
             self.result.lock().unwrap().take().expect("called once")
         }
     }
@@ -458,6 +597,206 @@ mod tests {
             error,
             AnalyzerRequestError::Inspection(InspectionError::Project(ProjectError::Cancelled))
         );
+        assert_eq!(port.calls.load(Ordering::SeqCst), 0);
+    }
+
+    // ---- analyzer_references ----
+
+    fn references_request() -> ReferencesRequest {
+        ReferencesRequest {
+            expected_project_fingerprint: None,
+            file: AnalyzerFile::new("src/lib.rs".into()).unwrap(),
+            position: Position::new(1, 8).unwrap(),
+            include_declaration: true,
+            timeout_seconds: 60,
+        }
+    }
+
+    #[test]
+    fn references_happy_path_calls_the_port_once_and_publishes_the_snapshot() {
+        let port = FakePort::answering(answered());
+        let mut registry = registry(Backend::default(), TestClock::at(100));
+        let opened = registry
+            .open("/trusted/project", &Control::default())
+            .unwrap();
+        let report = registry
+            .analyzer_references(
+                &opened.project_ref,
+                references_request(),
+                &port,
+                &Control::default(),
+            )
+            .expect("happy path");
+        assert_eq!(report.project_ref, opened.project_ref);
+        assert_eq!(port.calls.load(Ordering::SeqCst), 1);
+    }
+
+    /// The gateway always fetches both the `includeDeclaration: true` and
+    /// `false` answers in the same session and marks `is_declaration` from
+    /// their difference (ADR-084 §2 phase 6, amended), so
+    /// `AnalyzerQuery::References` carries no `include_declaration` field
+    /// (V06 P3): the query this port receives is identical either way, and
+    /// the caller's choice is honoured later, by the tool layer removing
+    /// declarations and counting them (`omitted_declarations`), never here.
+    #[test]
+    fn references_include_declaration_no_longer_reaches_the_query_the_port_receives() {
+        for include_declaration in [true, false] {
+            let port = FakePort::answering(answered());
+            let mut registry = registry(Backend::default(), TestClock::at(100));
+            let opened = registry
+                .open("/trusted/project", &Control::default())
+                .unwrap();
+            let mut request = references_request();
+            request.include_declaration = include_declaration;
+            registry
+                .analyzer_references(&opened.project_ref, request, &port, &Control::default())
+                .expect("happy path");
+            let sent = port
+                .last_query
+                .lock()
+                .unwrap()
+                .clone()
+                .expect("port was called");
+            assert_eq!(
+                sent,
+                AnalyzerQuery::References {
+                    file: AnalyzerFile::new("src/lib.rs".into()).unwrap(),
+                    position: Position::new(1, 8).unwrap(),
+                }
+            );
+        }
+    }
+
+    #[test]
+    fn a_position_beyond_the_captured_line_never_reaches_the_port() {
+        let port = FakePort::answering(answered());
+        let mut registry = registry(Backend::default(), TestClock::at(100));
+        let opened = registry
+            .open("/trusted/project", &Control::default())
+            .unwrap();
+        let mut request = references_request();
+        request.position = Position::new(99, 1).unwrap();
+        let error = registry
+            .analyzer_references(&opened.project_ref, request, &port, &Control::default())
+            .expect_err("position out of range");
+        assert_eq!(error, AnalyzerRequestError::PositionOutOfRange);
+        assert_eq!(port.calls.load(Ordering::SeqCst), 0);
+    }
+
+    #[test]
+    fn a_column_beyond_the_captured_line_never_reaches_the_port() {
+        let port = FakePort::answering(answered());
+        let mut registry = registry(Backend::default(), TestClock::at(100));
+        let opened = registry
+            .open("/trusted/project", &Control::default())
+            .unwrap();
+        let mut request = references_request();
+        // "pub fn answer() -> u8 { 42 }" is 29 scalars long: column 31 is one
+        // past the last valid position on that line.
+        request.position = Position::new(1, 31).unwrap();
+        let error = registry
+            .analyzer_references(&opened.project_ref, request, &port, &Control::default())
+            .expect_err("position out of range");
+        assert_eq!(error, AnalyzerRequestError::PositionOutOfRange);
+        assert_eq!(port.calls.load(Ordering::SeqCst), 0);
+    }
+
+    #[test]
+    fn references_to_a_file_outside_the_capture_never_reach_the_port() {
+        let port = FakePort::answering(answered());
+        let mut registry = registry(Backend::default(), TestClock::at(100));
+        let opened = registry
+            .open("/trusted/project", &Control::default())
+            .unwrap();
+        let mut request = references_request();
+        request.file = AnalyzerFile::new("src/missing.rs".into()).unwrap();
+        let error = registry
+            .analyzer_references(&opened.project_ref, request, &port, &Control::default())
+            .expect_err("file not in snapshot");
+        assert_eq!(error, AnalyzerRequestError::FileNotInSnapshot);
+        assert_eq!(port.calls.load(Ordering::SeqCst), 0);
+    }
+
+    #[test]
+    fn a_stale_expected_fingerprint_is_a_conflict_before_any_reference_capture() {
+        let port = FakePort::answering(answered());
+        let mut registry = registry(Backend::default(), TestClock::at(100));
+        let opened = registry
+            .open("/trusted/project", &Control::default())
+            .unwrap();
+        let mut request = references_request();
+        request.expected_project_fingerprint = Some(identity_fingerprint(99));
+        let error = registry
+            .analyzer_references(&opened.project_ref, request, &port, &Control::default())
+            .expect_err("conflict");
+        assert_eq!(error, AnalyzerRequestError::Conflict);
+        assert_eq!(port.calls.load(Ordering::SeqCst), 0);
+    }
+
+    // ---- analyzer_diagnostics ----
+
+    fn diagnostics_request() -> DiagnosticsRequest {
+        DiagnosticsRequest {
+            expected_project_fingerprint: None,
+            file: AnalyzerFile::new("src/lib.rs".into()).unwrap(),
+            timeout_seconds: 60,
+        }
+    }
+
+    #[test]
+    fn diagnostics_happy_path_calls_the_port_once_and_publishes_the_snapshot() {
+        let port = FakePort::answering(answered());
+        let mut registry = registry(Backend::default(), TestClock::at(100));
+        let opened = registry
+            .open("/trusted/project", &Control::default())
+            .unwrap();
+        let report = registry
+            .analyzer_diagnostics(
+                &opened.project_ref,
+                diagnostics_request(),
+                &port,
+                &Control::default(),
+            )
+            .expect("happy path");
+        assert_eq!(report.project_ref, opened.project_ref);
+        assert_eq!(port.calls.load(Ordering::SeqCst), 1);
+        assert_eq!(
+            port.last_query.lock().unwrap().clone(),
+            Some(AnalyzerQuery::Diagnostics {
+                file: AnalyzerFile::new("src/lib.rs".into()).unwrap(),
+            })
+        );
+    }
+
+    #[test]
+    fn diagnostics_for_a_file_outside_the_capture_never_reach_the_port() {
+        let port = FakePort::answering(answered());
+        let mut registry = registry(Backend::default(), TestClock::at(100));
+        let opened = registry
+            .open("/trusted/project", &Control::default())
+            .unwrap();
+        let mut request = diagnostics_request();
+        request.file = AnalyzerFile::new("src/missing.rs".into()).unwrap();
+        let error = registry
+            .analyzer_diagnostics(&opened.project_ref, request, &port, &Control::default())
+            .expect_err("file not in snapshot");
+        assert_eq!(error, AnalyzerRequestError::FileNotInSnapshot);
+        assert_eq!(port.calls.load(Ordering::SeqCst), 0);
+    }
+
+    #[test]
+    fn a_stale_expected_fingerprint_is_a_conflict_before_any_diagnostics_capture() {
+        let port = FakePort::answering(answered());
+        let mut registry = registry(Backend::default(), TestClock::at(100));
+        let opened = registry
+            .open("/trusted/project", &Control::default())
+            .unwrap();
+        let mut request = diagnostics_request();
+        request.expected_project_fingerprint = Some(identity_fingerprint(99));
+        let error = registry
+            .analyzer_diagnostics(&opened.project_ref, request, &port, &Control::default())
+            .expect_err("conflict");
+        assert_eq!(error, AnalyzerRequestError::Conflict);
         assert_eq!(port.calls.load(Ordering::SeqCst), 0);
     }
 }

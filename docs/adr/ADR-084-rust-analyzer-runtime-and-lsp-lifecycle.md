@@ -89,10 +89,17 @@ Las siete fases, todas dentro del `WorkBudget` existente:
 5. **`textDocument/didOpen`** con los bytes exactos capturados y `version: 1`.
    No hay `didChange`: cualquier cambio de fuente es una llamada nueva con
    captura nueva.
-6. **Una** petición del tipo que la tool exige. Para `actions`, con las
-   capabilities mínimas de §4 (sin `codeAction.resolveSupport`), rust-analyzer
-   resuelve los edits dentro de la propia respuesta de `codeAction`: no hay una
-   segunda petición `codeAction/resolve` en este lifecycle.
+6. **Una** petición del tipo que la tool exige; para `references`, **dos**
+   peticiones (enmienda 2026-09-12, D25 R5/M6-02): rust-analyzer no marca en su
+   propia respuesta cuál ubicación es la declaración, así que la misma sesión
+   envía `textDocument/references` dos veces —`includeDeclaration: true` y
+   `false`— y toda ubicación presente solo en la primera se marca
+   `is_declaration: true` por diferencia de conjuntos; ambas peticiones
+   comparten el presupuesto de esta fase (§8), nunca uno cada una. Para
+   `actions`, con las capabilities mínimas de §4 (sin
+   `codeAction.resolveSupport`), rust-analyzer resuelve los edits dentro de la
+   propia respuesta de `codeAction`: no hay una segunda petición
+   `codeAction/resolve` en este lifecycle.
 7. **`shutdown` → `exit`**; si el proceso no sale en 5 s, `kill`. El cleanup
    del contenedor se une y se verifica antes de liberar `busy` (gateway G3).
 
@@ -156,6 +163,24 @@ es transitoria, no envía `didChange` y monta `/source` en solo lectura. Un
 `health: warning` sigue degradando el resultado a `incomplete` (razón
 `analyzer_warning`, sin publicar el `message`, que puede llevar texto del
 proyecto).
+
+**Enmienda 2026-09-12 (Opción A).** `diagnostics.experimental.enable` queda en
+`false`, sin cambio de valor. Calibrado contra la imagen M6 real bajo esta
+configuración mínima, `rust.analyzer.diagnostics` es una tool
+**exclusivamente sintáctica**: no reporta errores de tipos, de préstamo ni
+ítems no resueltos que dependen de `cargo check` (dominio de `rust.check`).
+Se evaluó habilitar `diagnostics.experimental.enable=true` (Opción B) para
+recuperar diagnósticos semánticos nativos, y se rechazó por ahora: bajo la
+misma configuración mínima (sin build scripts, sin proc macros), los
+diagnósticos experimentales inundan con falsos `unresolved-macro-call` sobre
+macros de la librería estándar (`vec!`, `assert_eq!`, `#[test]`), porque la
+resolución de macros std bajo esta configuración no es limpia. El oráculo en
+banda de build scripts (`01.md` R1, M6-03) se reasienta en consecuencia sobre
+`rust.analyzer.symbols`, no sobre diagnósticos: ver `docs/tools.md`
+(`rust.analyzer.diagnostics`) y `docs/security-model.md`. Una decisión futura
+podrá habilitar Opción B una vez que la resolución de macros std bajo esta
+configuración esté limpia; hasta entonces queda registrada como deuda en
+`docs/validation/M6/matrix.md` ("Deuda de M6").
 
 ### 4. Capabilities mínimas del cliente
 

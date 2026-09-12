@@ -355,9 +355,9 @@ class ReleaseSmokeTests(unittest.TestCase):
             for row in definitions
         }
         with mock.patch.dict(smoke.TOOL_SCHEMA_SHA256, synthetic_hashes, clear=True):
-            self.assertEqual(len(smoke.validate_tools(listing)), 32)
+            self.assertEqual(len(smoke.validate_tools(listing)), 34)
             listing["result"]["tools"] = definitions[:-1]
-            with self.assertRaisesRegex(ValueError, "thirty-two"):
+            with self.assertRaisesRegex(ValueError, "thirty-four"):
                 smoke.validate_tools(listing)
             listing["result"]["tools"] = copy.deepcopy(definitions)
             listing["result"]["tools"][0]["annotations"]["readOnlyHint"] = False

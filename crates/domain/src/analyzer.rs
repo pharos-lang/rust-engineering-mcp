@@ -519,9 +519,19 @@ pub struct RelatedInformation {
     pub message: NonEmptyText,
 }
 
-const MAX_DIAGNOSTIC_CODE_CHARS: usize = 128;
-const MAX_DIAGNOSTIC_MESSAGE_CHARS: usize = 4096;
-const MAX_RELATED_INFORMATION: usize = 32;
+/// The bound `lsp_codec::diagnostics_to_domain` fits a peer's `code` to
+/// before ever calling [`AnalyzerDiagnostic::new`] (V06 P1): construction
+/// itself still refuses a longer one, as defense in depth for the
+/// deserialize path.
+pub const MAX_DIAGNOSTIC_CODE_CHARS: usize = 128;
+/// The bound `lsp_codec::diagnostics_to_domain` fits a peer's `message` to
+/// before ever calling [`AnalyzerDiagnostic::new`] (V06 P1); see
+/// [`MAX_DIAGNOSTIC_CODE_CHARS`].
+pub const MAX_DIAGNOSTIC_MESSAGE_CHARS: usize = 4096;
+/// The cap `lsp_codec::diagnostics_to_domain` fits a peer's `related` to
+/// before ever calling [`AnalyzerDiagnostic::new`] (V06 P2); see
+/// [`MAX_DIAGNOSTIC_CODE_CHARS`].
+pub const MAX_RELATED_INFORMATION: usize = 32;
 
 /// A native rust-analyzer diagnostic; `cargo check` diagnostics use
 /// [`crate::Diagnostic`] instead.
@@ -533,6 +543,12 @@ pub struct AnalyzerDiagnostic {
     severity: DiagnosticSeverity,
     code: Option<String>,
     message: NonEmptyText,
+    /// `true` once the codec observed a `message` above
+    /// [`MAX_DIAGNOSTIC_MESSAGE_CHARS`] and fitted it to the bound before
+    /// [`Self::new`] ever ran (V06 P1). Never set by [`Self::new`] itself: a
+    /// freshly built entry always carries its `message` verbatim, exactly as
+    /// [`DocumentSymbol::detail_truncated`] does for `detail`.
+    message_truncated: bool,
     related: Vec<RelatedInformation>,
 }
 
@@ -563,6 +579,7 @@ impl AnalyzerDiagnostic {
             severity,
             code,
             message,
+            message_truncated: false,
             related,
         })
     }
@@ -587,6 +604,21 @@ impl AnalyzerDiagnostic {
         &self.message
     }
 
+    pub fn message_truncated(&self) -> bool {
+        self.message_truncated
+    }
+
+    /// Marks [`Self::message`] as a prefix of what the peer actually sent
+    /// (V06 P1). Unlike [`DocumentSymbol::truncate_detail`], this never
+    /// truncates on its own: the codec must already have fitted `message` to
+    /// [`MAX_DIAGNOSTIC_MESSAGE_CHARS`] before calling [`Self::new`] (a
+    /// diagnostic construction must never fail on peer content), so this only
+    /// records that the fitting happened.
+    pub fn mark_message_truncated(mut self) -> Self {
+        self.message_truncated = true;
+        self
+    }
+
     pub fn related(&self) -> &[RelatedInformation] {
         &self.related
     }
@@ -600,6 +632,8 @@ struct AnalyzerDiagnosticWire {
     severity: DiagnosticSeverity,
     code: Option<String>,
     message: NonEmptyText,
+    #[serde(default)]
+    message_truncated: bool,
     related: Vec<RelatedInformation>,
 }
 
@@ -607,14 +641,16 @@ impl TryFrom<AnalyzerDiagnosticWire> for AnalyzerDiagnostic {
     type Error = AnalyzerError;
 
     fn try_from(value: AnalyzerDiagnosticWire) -> Result<Self, Self::Error> {
-        Self::new(
+        let mut diagnostic = Self::new(
             value.file,
             value.range,
             value.severity,
             value.code,
             value.message,
             value.related,
-        )
+        )?;
+        diagnostic.message_truncated = value.message_truncated;
+        Ok(diagnostic)
     }
 }
 
@@ -1532,7 +1568,6 @@ pub enum AnalyzerQuery {
     References {
         file: AnalyzerFile,
         position: Position,
-        include_declaration: bool,
     },
     Diagnostics {
         file: AnalyzerFile,
@@ -1901,7 +1936,6 @@ mod session_tests {
         let references = AnalyzerQuery::References {
             file,
             position: pos(1, 1)?,
-            include_declaration: true,
         };
         let answer = AnalyzerResult::DocumentSymbols(Vec::new());
         assert!(answer.answers(&symbols));

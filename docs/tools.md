@@ -1641,10 +1641,11 @@ sobre bytes finales, con revisión independiente de por medio.
 
 ## Contratos M6 — analyzer
 
-El checkout añade una definición a `tools/list`, después de las 31 tools
-M1–M5 y en último lugar: `rust.analyzer.symbols` (`stdio.rs`, `list_tools`).
-Los 31 snapshots anteriores se conservan byte a byte bajo el mismo test de
-invariancia y se añade uno nuevo. El inventario público pasa a 32 tools.
+El checkout añade tres definiciones a `tools/list`, después de las 31 tools
+M1–M5 y en este orden: `rust.analyzer.symbols` (M6-01), `rust.analyzer.references`
+(M6-02) y `rust.analyzer.diagnostics` (M6-03) (`stdio.rs`, `list_tools`). Los
+31 snapshots anteriores se conservan byte a byte bajo el mismo test de
+invariancia y se añaden tres nuevos. El inventario público pasa a 34 tools.
 Véase [ADR-083](adr/ADR-083-analyzer-contract-and-actions.md) y
 [ADR-084](adr/ADR-084-rust-analyzer-runtime-and-lsp-lifecycle.md).
 
@@ -1751,3 +1752,122 @@ atómica (`atomic: false`). `rust-analyzer.toml` reactivaría build scripts,
 cliente, así que se rechaza en la captura antes de que exista ningún
 contenedor — la configuración fija por sí sola no es containment frente a un
 archivo de proyecto hostil.
+
+### `rust.analyzer.references`
+
+Busca referencias al símbolo en una posición de un archivo ya capturado, con
+el mismo rust-analyzer admitido que `rust.analyzer.symbols` y las mismas
+anotaciones (`readOnlyHint=true`, `idempotentHint=true`, `destructiveHint=false`,
+`openWorldHint=false`). Comparte el bootstrap `blocked/SANDBOX_DENIED`
+("requires completed discovery; retry with a new request ID": completar
+discovery y reintentar con un nuevo ID) frente al `unavailable/SANDBOX_DENIED`
+que se publica una vez completado el descubrimiento cuando el runtime no está
+configurado, no es la imagen M6 admitida o la política del host lo deniega —
+la misma distinción de dos estados que documenta `rust.analyzer.symbols`, y
+válida sin cambios para `rust.analyzer.diagnostics` también. Comparte también
+el rechazo de `rust-analyzer.toml`/`.rust-analyzer.toml`, y la ausencia total
+de build scripts, proc macros y `checkOnSave`.
+
+**Decisión de is_declaration (D25 R5, ADR-084 §2 fase 6, enmendada).**
+rust-analyzer no marca en su propia respuesta cuál de las ubicaciones es la
+declaración. La misma sesión envía `textDocument/references` **dos veces** —
+`includeDeclaration: true` y `includeDeclaration: false` — y toda ubicación
+presente solo en la primera se marca `is_declaration: true`. Ambas peticiones
+comparten el presupuesto de la fase `query` (ADR-084 §8), nunca uno cada una:
+por eso, al mismo `timeout_seconds`, esta tool puede disponer de menos margen
+efectivo que `rust.analyzer.symbols`, que solo envía una petición en esa
+misma fase.
+
+**Entrada**: `project_ref`, `expected_project_fingerprint` opcional (mismo
+contrato que `rust.analyzer.symbols`), `file` (ruta relativa `.rs`),
+`position {line, column}` — 1-based, Unicode-scalar, nunca byte offset ni
+unidad UTF-16 —, `include_declaration` (booleano, por defecto `true`) y
+`timeout_seconds` (1..=180, por defecto 60). Una `position` fuera de las
+líneas o columnas del archivo capturado se rechaza como
+`blocked/POSITION_OUT_OF_RANGE` antes de abrir ninguna sesión del analizador
+(validado contra los bytes capturados en la capa de aplicación, y de nuevo en
+el gateway como defensa en profundidad); un `file` fuera de la captura,
+`blocked/FILE_NOT_IN_SNAPSHOT`, igual que `rust.analyzer.symbols`.
+
+**Salida.** Mismo sobre que `rust.analyzer.symbols` (`snapshot`, `analyzer`,
+`toolchain`, `readiness`, `completeness`, `limits`, `session`, `termination`,
+`exit_code`, `oom_killed`), más `references: [{file, range, is_declaration}]`
+(ausente en toda respuesta que no respondió), `omitted` (suma de **todas**
+las omisiones — entradas estructuralmente descartadas: fuera de `/source`,
+posición irresoluble o por encima de las 512 visibles; `completeness.omissions[]`
+trae el desglose por causa) y `omitted_declarations` (declaraciones retiradas
+de `references` porque el llamador pidió `include_declaration: false`; `0`
+cuando pidió `true`, el valor por defecto, porque entonces ninguna se
+retira). Códigos de error cerrados: los mismos que `rust.analyzer.symbols`
+más `POSITION_OUT_OF_RANGE` (`blocked`,
+la misma categoría que `FILE_NOT_IN_SNAPSHOT`: una pregunta que la captura
+siempre pudo responder de otro modo).
+
+### `rust.analyzer.diagnostics`
+
+Lee los diagnósticos nativos de rust-analyzer para un archivo ya capturado —
+distintos de los de `rust.check`, que son de `cargo check`— con el mismo
+runtime admitido y las mismas anotaciones que las otras dos tools M6. Pull
+únicamente (`textDocument/diagnostic`, reporte `full`); nunca
+`publishDiagnostics`, que esta sesión no consume. Comparte el mismo bootstrap
+`blocked/SANDBOX_DENIED` frente al `unavailable/SANDBOX_DENIED` de runtime que
+documenta `rust.analyzer.symbols`.
+
+**Entrada**: `project_ref`, `expected_project_fingerprint` opcional, `file`
+(ruta relativa `.rs`) y `timeout_seconds` (1..=180, por defecto 60). Un `file`
+fuera de la captura se rechaza como `blocked/FILE_NOT_IN_SNAPSHOT` antes de
+abrir ninguna sesión. Esta tool no envía nunca una posición, así que
+`POSITION_OUT_OF_RANGE` es inalcanzable, igual que en `rust.analyzer.symbols`.
+
+**Salida.** Mismo sobre común, más `diagnostics: [{file, range, severity,
+code?, source: "rust-analyzer", message, message_truncated, related:
+[{file, range, message, message_truncated}]}]` (ausente en toda respuesta que
+no respondió) y `omitted` (suma de **todas** las omisiones —
+`completeness.omissions[]` trae el desglose por causa: recorte de las 512
+visibles, posición irresoluble o entrada descartada por sobredimensionada).
+`severity ∈ error | warning | information | hint`. **`message` y `code` son
+texto derivado del proyecto** (pueden cruzar como el nombre de un símbolo,
+D25 §1.6) pero siempre acotados y nunca causa de que la llamada entera falle
+(V06 P1): `message` ≤ 4096 caracteres Unicode, recortado con
+`message_truncated: true` en vez de rechazar la respuesta; `code` ≤ 128
+caracteres, recortado igual pero sin flag propia; `related` ≤ 32 entradas por
+diagnóstico, el exceso contado como omisión; un `message` vacío hace que ese
+diagnóstico entero se omita y se cuente, nunca que la respuesta completa
+falle. Todo carácter de control salvo `\n`/`\t`, en `message` y en `code`, se
+sustituye por U+FFFD antes de llegar al wire. **Nunca** el `message` de
+`experimental/serverStatus` ni el `stderr` del analizador — esa frontera de
+información es la misma que `rust.analyzer.symbols` ya aplica. Códigos de
+error cerrados: los mismos que `rust.analyzer.symbols` sin
+`POSITION_OUT_OF_RANGE`; en particular, ningún exceso de contenido del peer
+(mensaje, código o `related` sobredimensionados) produce `ANALYZER_CRASHED` —
+ese código queda reservado a una violación de protocolo genuina (lote,
+trama malformada).
+
+**Alcance real bajo la configuración mínima (Opción A, 2026-09-12).** Con
+`diagnostics.experimental.enable=false` (ADR-084 §3), esta tool expone
+únicamente los diagnósticos **de sintaxis** del analizador. Los errores de
+tipos, de préstamo (`borrow checker`), los lints y los ítems no resueltos que
+requieren `cargo check` son dominio de `rust.check`, no de esta tool: sobre
+un proyecto sintácticamente válido con errores reales de tipo o de
+resolución, `diagnostics` puede — y calibrado contra la imagen M6 real,
+suele — responder `[]`. Esa ausencia no es evidencia de nada por sí sola;
+ver el oráculo de build scripts más abajo para la prueba determinista que sí
+lo es. Habilitar los diagnósticos experimentales queda como deuda trazada
+(ver `docs/validation/M6/matrix.md`, "Deuda de M6"): bajo la configuración
+mínima actual inundan con falsos `unresolved-macro-call` sobre macros de la
+librería estándar (`vec!`, `assert_eq!`, `#[test]`).
+
+**Oráculo en banda de build scripts (`01.md` R1, M6-03, Opción A).** Sobre
+`fixtures/build-script` (un `build.rs` real con
+`include!(concat!(env!("OUT_DIR"), ...))`), con los build scripts
+deshabilitados el analizador nunca expande ese `include!`: los símbolos que
+`generated.rs` definiría (`GENERATED`) están ausentes de
+`rust.analyzer.symbols` en ámbito documento sobre el mismo archivo, mientras
+que los símbolos propios de la captura (p. ej. la función de test
+`generated_fact`) siguen presentes. Esa ausencia de símbolo — no un
+diagnóstico — es la prueba determinista de que ningún build script corrió,
+complementaria al muestreo de `container top` de ADR-084 §7 (`m6-03`).
+`rust.analyzer.diagnostics` sobre ese mismo archivo responde `completeness:
+complete` y sin fallo, pero la lista vacía que devuelve no es, por sí misma,
+parte de esta prueba — solo confirma que la tool está viva y exhaustiva
+sobre esa captura.

@@ -12,7 +12,10 @@ use rmcp::{
 };
 use rust_engineering_application::{
     ExecutionError, InspectionError, ProjectError,
-    analyzer::{AnalyzerReport, AnalyzerRequestError, SymbolsRequest, SymbolsScope},
+    analyzer::{
+        AnalyzerReport, AnalyzerRequestError, DiagnosticsRequest, ReferencesRequest,
+        SymbolsRequest, SymbolsScope,
+    },
 };
 use rust_engineering_domain as domain;
 use rust_engineering_domain::{
@@ -23,6 +26,7 @@ use rust_engineering_execution::RustProjectInspector;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use std::{
+    num::NonZeroU32,
     sync::{
         Arc, Mutex,
         atomic::{AtomicBool, Ordering},
@@ -623,6 +627,14 @@ fn output(
                 message,
             )
         }
+        // Unreachable for `rust.analyzer.symbols`: its request never carries a
+        // position, so `ProjectRegistry::analyzer_symbols` never returns this.
+        Err(AnalyzerRequestError::PositionOutOfRange) => {
+            return Err(ErrorData::internal_error(
+                "rust.analyzer.symbols never sends a position or range",
+                None,
+            ));
+        }
         Err(AnalyzerRequestError::Inspection(InspectionError::Project(
             ProjectError::Rejected(code),
         ))) => operational(code),
@@ -892,5 +904,1398 @@ fn encode_bounded_within(
     Ok(encoded)
 }
 
+// ---------------------------------------------------------------------
+// `rust.analyzer.references` (M6-02, ADR-083 §2, ADR-084 §2 phase 6 amended)
+// ---------------------------------------------------------------------
+
+pub(super) const REFERENCES_NAME: &str = "rust.analyzer.references";
+
+fn default_include_declaration() -> bool {
+    true
+}
+
+/// A 1-based line and Unicode-scalar column, matching
+/// `rust_engineering_domain::Position` field for field: JSON Schema `minimum:
+/// 1` rejects `0` here, so [`domain::Position`]'s own `NonZeroU32` invariant
+/// is never violated by a decoded value.
+#[derive(Deserialize, JsonSchema)]
+#[serde(deny_unknown_fields)]
+struct WirePosition {
+    line: NonZeroU32,
+    column: NonZeroU32,
+}
+impl From<WirePosition> for domain::Position {
+    fn from(value: WirePosition) -> Self {
+        Self {
+            line: value.line,
+            column: value.column,
+        }
+    }
+}
+
+#[derive(Deserialize, JsonSchema)]
+#[serde(deny_unknown_fields)]
+struct ReferencesInput {
+    #[schemars(with = "String", regex(pattern = "^prj_[0-9a-f]{32}$"))]
+    project_ref: ProjectRef,
+    #[serde(default)]
+    #[schemars(with = "Option<String>", regex(pattern = "^sha256:[0-9a-f]{64}$"))]
+    expected_project_fingerprint: Option<ProjectIdentityFingerprint>,
+    #[schemars(with = "String", regex(pattern = r"^[A-Za-z0-9_./-]{1,100}\.rs$"))]
+    file: AnalyzerFile,
+    position: WirePosition,
+    #[serde(default = "default_include_declaration")]
+    include_declaration: bool,
+    #[serde(default = "default_timeout_seconds")]
+    #[schemars(range(min = 1, max = 180))]
+    timeout_seconds: u32,
+}
+impl ReferencesInput {
+    fn request(self) -> ReferencesRequest {
+        ReferencesRequest {
+            expected_project_fingerprint: self.expected_project_fingerprint,
+            file: self.file,
+            position: self.position.into(),
+            include_declaration: self.include_declaration,
+            timeout_seconds: self.timeout_seconds.min(MAX_TIMEOUT_SECONDS),
+        }
+    }
+}
+
+#[derive(Serialize, JsonSchema)]
+#[serde(deny_unknown_fields)]
+struct ReferencesData {
+    #[schemars(regex(pattern = "^prj_[0-9a-f]{32}$"))]
+    project_ref: String,
+    #[schemars(regex(pattern = "^sha256:[0-9a-f]{64}$"))]
+    project_identity_fingerprint: String,
+    snapshot: schemas::Snapshot,
+    analyzer: schemas::Analyzer,
+    toolchain: schemas::Toolchain,
+    readiness: schemas::Readiness,
+    completeness: schemas::Completeness,
+    limits: schemas::Limits,
+    session: schemas::Session,
+    termination: schemas::Termination,
+    exit_code: Option<i32>,
+    oom_killed: Option<bool>,
+    /// `None` exactly when the session never answered.
+    #[schemars(length(max = 512))]
+    references: Option<Vec<schemas::Reference>>,
+    omitted: u32,
+    /// Declaration locations dropped from `references` because the caller
+    /// asked `include_declaration: false`; `0` whenever the caller asked
+    /// `true` (the default), since none are then dropped.
+    omitted_declarations: u32,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, JsonSchema)]
+#[serde(rename_all = "SCREAMING_SNAKE_CASE")]
+enum ReferencesCode {
+    Conflict,
+    FileNotInSnapshot,
+    PositionOutOfRange,
+    AnalyzerNotReady,
+    AnalyzerCrashed,
+    AnalyzerCapabilityMismatch,
+    FrameLimit,
+    MessageLimit,
+    ResultLimit,
+    TimeoutInitialize,
+    TimeoutQuery,
+    TimeoutTotal,
+    UnsupportedProjectConfig,
+    FileNotUtf8,
+    SandboxDenied,
+    UnsupportedPlatform,
+    ProjectNotFound,
+    InvalidProject,
+    OutputLimitExceeded,
+}
+
+#[derive(Serialize, JsonSchema)]
+#[serde(tag = "status", rename_all = "snake_case")]
+enum ReferencesOutcome {
+    Passed {
+        error_code: (),
+        error_message: (),
+        data: Box<ReferencesData>,
+    },
+    Blocked {
+        error_code: ReferencesCode,
+        error_message: &'static str,
+        data: Option<Box<ReferencesData>>,
+    },
+    Unavailable {
+        error_code: ReferencesCode,
+        error_message: &'static str,
+        data: Option<Box<ReferencesData>>,
+    },
+    Cancelled {
+        error_code: (),
+        error_message: (),
+        data: (),
+    },
+}
+impl ToolOutput for ReferencesOutput {
+    fn status(&self) -> ToolStatus {
+        match self.outcome {
+            ReferencesOutcome::Passed { .. } => ToolStatus::Passed,
+            ReferencesOutcome::Blocked { .. } => ToolStatus::Blocked,
+            ReferencesOutcome::Unavailable { .. } => ToolStatus::Unavailable,
+            ReferencesOutcome::Cancelled { .. } => ToolStatus::Cancelled,
+        }
+    }
+}
+
+#[derive(Serialize, JsonSchema)]
+#[serde(deny_unknown_fields)]
+struct ReferencesOutput {
+    #[serde(flatten)]
+    outcome: ReferencesOutcome,
+    summary: &'static str,
+    duration_ms: u64,
+}
+
+fn wire_reference(value: &domain::Reference) -> schemas::Reference {
+    schemas::Reference {
+        file: value.file.as_str().to_owned(),
+        range: wire_range(value.range),
+        is_declaration: value.is_declaration,
+    }
+}
+
+/// Every `AnalyzerFailure` this tool can observe, mapped onto the closed wire
+/// vocabulary. Unlike `rust.analyzer.symbols`, `PositionOutOfRange` is
+/// reachable here (the query itself carries a caller position) and is
+/// `blocked`: the same category as `FileNotInSnapshot`, a question this
+/// capture could always have answered differently.
+fn references_failure_code(
+    failure: domain::AnalyzerFailure,
+) -> Result<(ReferencesCode, &'static str, bool), ErrorData> {
+    use domain::AnalyzerFailure as F;
+    Ok(match failure {
+        F::FileNotInSnapshot => (
+            ReferencesCode::FileNotInSnapshot,
+            "Queried file is absent from the capture",
+            false,
+        ),
+        F::FileNotUtf8 => (
+            ReferencesCode::FileNotUtf8,
+            "Queried file's captured bytes are not valid UTF-8",
+            false,
+        ),
+        F::UnsupportedProjectConfig => (
+            ReferencesCode::UnsupportedProjectConfig,
+            "Capture carries a rust-analyzer.toml workspace override",
+            false,
+        ),
+        F::PositionOutOfRange => (
+            ReferencesCode::PositionOutOfRange,
+            "Queried position is outside the captured file",
+            false,
+        ),
+        F::CapabilityMismatch => (
+            ReferencesCode::AnalyzerCapabilityMismatch,
+            "Analyzer negotiated an unsupported position encoding",
+            true,
+        ),
+        F::NotReady => (
+            ReferencesCode::AnalyzerNotReady,
+            "Analyzer did not reach quiescent readiness in time",
+            true,
+        ),
+        F::Crashed | F::ProtocolViolation | F::ServerError => (
+            ReferencesCode::AnalyzerCrashed,
+            "Analyzer session ended without a valid answer",
+            true,
+        ),
+        F::ProtocolLimit => (
+            ReferencesCode::MessageLimit,
+            "Analyzer session exceeded its message or byte budget",
+            true,
+        ),
+        F::FrameTooLarge | F::MalformedHeader => (
+            ReferencesCode::FrameLimit,
+            "Analyzer session exceeded the LSP frame budget",
+            true,
+        ),
+        F::TimeoutInitialize => (
+            ReferencesCode::TimeoutInitialize,
+            "Analyzer did not initialize in time",
+            true,
+        ),
+        F::TimeoutQuery => (
+            ReferencesCode::TimeoutQuery,
+            "Analyzer did not answer the query in time",
+            true,
+        ),
+        F::TimeoutTotal => (
+            ReferencesCode::TimeoutTotal,
+            "Analyzer call exceeded its total budget",
+            true,
+        ),
+        F::Cancelled => {
+            return Err(ErrorData::internal_error(
+                "cancellation must be classified before failure_code is called",
+                None,
+            ));
+        }
+    })
+}
+
+fn references_common_data(
+    report: &AnalyzerReport,
+    references: Option<Vec<schemas::Reference>>,
+    omitted: u32,
+    omitted_declarations: u32,
+    total_timeout_seconds: u32,
+) -> ReferencesData {
+    ReferencesData {
+        project_ref: report.project_ref.to_string(),
+        project_identity_fingerprint: report.project_identity_fingerprint.to_string(),
+        snapshot: schemas::Snapshot {
+            source_fingerprint: report.snapshot.source_fingerprint.to_string(),
+            files: report.snapshot.files,
+            semantics: schemas::Semantics::LatestKnown,
+            atomic: report.snapshot.atomic,
+        },
+        analyzer: wire_analyzer(&report.execution),
+        toolchain: schemas::Toolchain {
+            rust_version: "1.98.1",
+            sysroot: schemas::Sysroot::Present,
+        },
+        readiness: wire_readiness(report.execution.readiness),
+        completeness: wire_completeness(&report.execution.completeness),
+        limits: wire_limits(total_timeout_seconds),
+        session: wire_session(&report.execution.session),
+        termination: report.execution.termination.into(),
+        exit_code: report.execution.session.exit_code,
+        oom_killed: report.execution.oom_killed,
+        references,
+        omitted,
+        omitted_declarations,
+    }
+}
+
+fn references_execution_outcome(
+    report: AnalyzerReport,
+    total_timeout_seconds: u32,
+    include_declaration: bool,
+) -> Result<(ReferencesOutcome, &'static str), ErrorData> {
+    match &report.execution.outcome {
+        domain::AnalyzerOutcome::Answered(result) => {
+            // V06 P3: every omission counts here, not only `LimitVisible` —
+            // for references, external/sysroot/dependency locations and
+            // oversized entries are as common as the visible cap, and the
+            // per-kind breakdown stays available in `completeness.omissions`.
+            let omitted = report
+                .execution
+                .completeness
+                .omissions()
+                .iter()
+                .map(|omission| omission.count)
+                .sum();
+            let domain::AnalyzerResult::References(items) = result else {
+                return Err(ErrorData::internal_error(
+                    "rust.analyzer.references received an answer to a different query",
+                    None,
+                ));
+            };
+            let (references, omitted_declarations) = if include_declaration {
+                (items.iter().map(wire_reference).collect(), 0)
+            } else {
+                let mut visible = Vec::with_capacity(items.len());
+                let mut removed = 0u32;
+                for item in items {
+                    if item.is_declaration {
+                        removed = removed.saturating_add(1);
+                    } else {
+                        visible.push(wire_reference(item));
+                    }
+                }
+                (visible, removed)
+            };
+            let data = references_common_data(
+                &report,
+                Some(references),
+                omitted,
+                omitted_declarations,
+                total_timeout_seconds,
+            );
+            Ok((
+                ReferencesOutcome::Passed {
+                    error_code: (),
+                    error_message: (),
+                    data: Box::new(data),
+                },
+                "rust-analyzer answered the references query",
+            ))
+        }
+        domain::AnalyzerOutcome::Failed(domain::AnalyzerFailure::Cancelled) => Ok((
+            ReferencesOutcome::Cancelled {
+                error_code: (),
+                error_message: (),
+                data: (),
+            },
+            "Analyzer session cancelled",
+        )),
+        domain::AnalyzerOutcome::Failed(failure) => {
+            let (code, message, unavailable) = references_failure_code(*failure)?;
+            let data = Some(Box::new(references_common_data(
+                &report,
+                None,
+                0,
+                0,
+                total_timeout_seconds,
+            )));
+            Ok((
+                if unavailable {
+                    ReferencesOutcome::Unavailable {
+                        error_code: code,
+                        error_message: message,
+                        data,
+                    }
+                } else {
+                    ReferencesOutcome::Blocked {
+                        error_code: code,
+                        error_message: message,
+                        data,
+                    }
+                },
+                message,
+            ))
+        }
+    }
+}
+
+fn references_operational(code: OperationalErrorCode) -> (ReferencesOutcome, &'static str) {
+    let (code, message, unavailable) = match code {
+        OperationalErrorCode::ProjectNotFound => (
+            ReferencesCode::ProjectNotFound,
+            "Project reference is missing or expired",
+            false,
+        ),
+        OperationalErrorCode::InvalidProject => (
+            ReferencesCode::InvalidProject,
+            "Captured project is invalid or unsupported",
+            false,
+        ),
+        OperationalErrorCode::ToolNotInstalled => (
+            ReferencesCode::SandboxDenied,
+            "Approved analyzer runtime is unavailable",
+            true,
+        ),
+        OperationalErrorCode::LockfileUpdateRequired => (
+            ReferencesCode::SandboxDenied,
+            "Host runtime policy denied analyzer execution",
+            true,
+        ),
+        OperationalErrorCode::CommandTimeout => (
+            ReferencesCode::TimeoutTotal,
+            "Analyzer call exceeded its total budget",
+            true,
+        ),
+        OperationalErrorCode::SandboxDenied => (
+            ReferencesCode::SandboxDenied,
+            "Host runtime policy, failed calibration or current capacity denied analysis",
+            true,
+        ),
+        OperationalErrorCode::NetworkDenied => (
+            ReferencesCode::SandboxDenied,
+            "Host runtime policy denied analyzer execution",
+            true,
+        ),
+        OperationalErrorCode::UnsupportedPlatform => (
+            ReferencesCode::UnsupportedPlatform,
+            "Secure analyzer session is unavailable on this platform",
+            true,
+        ),
+        OperationalErrorCode::OutputLimitExceeded => (
+            ReferencesCode::OutputLimitExceeded,
+            "Project metadata exceeds the response budget",
+            false,
+        ),
+    };
+    (
+        if unavailable {
+            ReferencesOutcome::Unavailable {
+                error_code: code,
+                error_message: message,
+                data: None,
+            }
+        } else {
+            ReferencesOutcome::Blocked {
+                error_code: code,
+                error_message: message,
+                data: None,
+            }
+        },
+        message,
+    )
+}
+
+fn references_output(
+    result: Result<AnalyzerReport, AnalyzerRequestError>,
+    duration_ms: u64,
+    total_timeout_seconds: u32,
+    include_declaration: bool,
+) -> Result<ReferencesOutput, ErrorData> {
+    let (outcome, summary) = match result {
+        Ok(report) => {
+            references_execution_outcome(report, total_timeout_seconds, include_declaration)?
+        }
+        Err(AnalyzerRequestError::Conflict) => {
+            let message = "expected_project_fingerprint does not match the live project identity";
+            (
+                ReferencesOutcome::Blocked {
+                    error_code: ReferencesCode::Conflict,
+                    error_message: message,
+                    data: None,
+                },
+                message,
+            )
+        }
+        Err(AnalyzerRequestError::FileNotInSnapshot) => {
+            let message = "Queried file is absent from the capture";
+            (
+                ReferencesOutcome::Blocked {
+                    error_code: ReferencesCode::FileNotInSnapshot,
+                    error_message: message,
+                    data: None,
+                },
+                message,
+            )
+        }
+        Err(AnalyzerRequestError::PositionOutOfRange) => {
+            let message = "Queried position is outside the captured file";
+            (
+                ReferencesOutcome::Blocked {
+                    error_code: ReferencesCode::PositionOutOfRange,
+                    error_message: message,
+                    data: None,
+                },
+                message,
+            )
+        }
+        Err(AnalyzerRequestError::Inspection(InspectionError::Project(
+            ProjectError::Rejected(code),
+        ))) => references_operational(code),
+        Err(AnalyzerRequestError::Inspection(
+            InspectionError::Project(ProjectError::Cancelled)
+            | InspectionError::Execution(ExecutionError::Cancelled),
+        )) => (
+            ReferencesOutcome::Cancelled {
+                error_code: (),
+                error_message: (),
+                data: (),
+            },
+            "Analyzer references cancelled after worker completion",
+        ),
+        Err(AnalyzerRequestError::Inspection(InspectionError::Execution(
+            ExecutionError::Unavailable,
+        ))) => references_operational(OperationalErrorCode::ToolNotInstalled),
+        Err(AnalyzerRequestError::Inspection(InspectionError::Execution(
+            ExecutionError::Denied | ExecutionError::Busy | ExecutionError::InvalidConfiguration,
+        ))) => references_operational(OperationalErrorCode::SandboxDenied),
+        Err(AnalyzerRequestError::Inspection(InspectionError::OutputLimit)) => {
+            references_operational(OperationalErrorCode::OutputLimitExceeded)
+        }
+        Err(AnalyzerRequestError::Inspection(InspectionError::InvalidMetadata)) => {
+            references_operational(OperationalErrorCode::InvalidProject)
+        }
+        Err(AnalyzerRequestError::Inspection(InspectionError::Execution(
+            ExecutionError::CleanupUncertain,
+        ))) => {
+            return Err(ErrorData::internal_error(
+                "Gateway cleanup could not be verified; further execution is quarantined",
+                None,
+            ));
+        }
+        Err(AnalyzerRequestError::Inspection(
+            InspectionError::Internal
+            | InspectionError::Project(ProjectError::Internal)
+            | InspectionError::Execution(ExecutionError::Infrastructure),
+        )) => {
+            return Err(ErrorData::internal_error(
+                "Analyzer references failed",
+                None,
+            ));
+        }
+    };
+    Ok(ReferencesOutput {
+        outcome,
+        summary,
+        duration_ms,
+    })
+}
+
+pub(super) struct ReferencesTool {
+    pub(super) definition: Tool,
+    contract: Contract<ReferencesInput, ReferencesOutput>,
+    registry: Arc<Mutex<Registry>>,
+    workers: Workers,
+    inspector: Arc<RustProjectInspector>,
+    ready: Arc<AtomicBool>,
+}
+impl ReferencesTool {
+    pub(super) fn new(
+        registry: Arc<Mutex<Registry>>,
+        workers: Workers,
+        inspector: Arc<RustProjectInspector>,
+        ready: Arc<AtomicBool>,
+    ) -> Result<Self, ErrorData> {
+        let contract = Contract::<ReferencesInput, ReferencesOutput>::new()?;
+        let definition = Tool::new(
+            REFERENCES_NAME,
+            "Find references to the symbol at a captured Rust file's position, using \
+             the host-approved rust-analyzer 1.98.1 (aarch64-unknown-linux-gnu) inside \
+             the M6 guest image. Snapshot semantics are latest_known and non-atomic. \
+             Build scripts, proc macros and check-on-save stay disabled; only \
+             textDocument/references runs, never cargo check. The same session sends \
+             the request twice, once including the declaration and once excluding it, \
+             so is_declaration reflects rust-analyzer's own answer rather than a guess; \
+             when include_declaration is false, declaration locations are removed from \
+             the visible list and counted in omitted_declarations instead. Results are \
+             bounded to 512 visible entries per call; an over-budget answer is reported \
+             incomplete, never silently truncated. Positions are Unicode-scalar, \
+             1-based Position values, never byte offsets or UTF-16 units. Requires the \
+             host --rust runtime configured with the approved M6 image; without it the \
+             tool is unavailable. Hover, go-to-definition and rename are not offered by \
+             this or any other tool.",
+            (*contract.input_schema).clone(),
+        )
+        .with_raw_output_schema(Arc::clone(&contract.output_schema))
+        .with_annotations(
+            ToolAnnotations::new()
+                .read_only(true)
+                .destructive(false)
+                .idempotent(true)
+                .open_world(false),
+        );
+        Ok(Self {
+            definition,
+            contract,
+            registry,
+            workers,
+            inspector,
+            ready,
+        })
+    }
+    pub(super) async fn call(
+        &self,
+        request: CallToolRequestParams,
+        context: RequestContext<RoleServer>,
+    ) -> Result<CallToolResult, ErrorData> {
+        let input = self.contract.decode(request.arguments)?;
+        let project_ref = input.project_ref.clone();
+        let include_declaration = input.include_declaration;
+        let references_request = input.request();
+        let total_timeout_seconds = references_request.timeout_seconds;
+        let started = Instant::now();
+        let bootstrap = !self.ready.load(Ordering::Acquire);
+        let result = if bootstrap {
+            Err(AnalyzerRequestError::Inspection(
+                InspectionError::Execution(ExecutionError::Denied),
+            ))
+        } else {
+            let registry = Arc::clone(&self.registry);
+            let inspector = Arc::clone(&self.inspector);
+            match self
+                .workers
+                .run_joined(context.ct, started + DEADLINE, move |control| {
+                    registry
+                        .lock()
+                        .map_err(|_| AnalyzerRequestError::Inspection(InspectionError::Internal))?
+                        .analyzer_references(
+                            &project_ref,
+                            references_request,
+                            inspector.as_ref(),
+                            control,
+                        )
+                })
+                .await
+            {
+                Ok(joined) => analyzer_joined_result(joined),
+                Err(error) => Err(worker_error(error).into()),
+            }
+        };
+        let duration = started.elapsed().as_millis().try_into().unwrap_or(u64::MAX);
+        let value = if bootstrap {
+            references_bootstrap_refusal(duration)
+        } else {
+            references_output(result, duration, total_timeout_seconds, include_declaration)?
+        };
+        encode_references_bounded(&self.contract, value)
+    }
+}
+
+fn references_bootstrap_refusal(duration_ms: u64) -> ReferencesOutput {
+    let message = "Analyzer references requires completed discovery; retry with a new request ID";
+    ReferencesOutput {
+        outcome: ReferencesOutcome::Blocked {
+            error_code: ReferencesCode::SandboxDenied,
+            error_message: message,
+            data: None,
+        },
+        summary: message,
+        duration_ms,
+    }
+}
+
+fn encode_references_bounded(
+    contract: &Contract<ReferencesInput, ReferencesOutput>,
+    value: ReferencesOutput,
+) -> Result<CallToolResult, ErrorData> {
+    encode_references_bounded_within(contract, value, MAX_RESULT)
+}
+
+fn encode_references_bounded_within(
+    contract: &Contract<ReferencesInput, ReferencesOutput>,
+    mut value: ReferencesOutput,
+    max_result: usize,
+) -> Result<CallToolResult, ErrorData> {
+    while serde_json::to_vec(&value)
+        .map_err(|_| ErrorData::internal_error("Response encoding failed", None))?
+        .len()
+        > max_result / 4
+    {
+        let ReferencesOutcome::Passed { data, .. } = &mut value.outcome else {
+            break;
+        };
+        let Some(references) = &mut data.references else {
+            break;
+        };
+        if references.pop().is_none() {
+            break;
+        }
+        data.omitted += 1;
+        data.completeness.state = schemas::CompletenessState::Incomplete;
+        if !data
+            .completeness
+            .reasons
+            .iter()
+            .any(|reason| matches!(reason, schemas::Reason::ResultLimit))
+        {
+            data.completeness.reasons.push(schemas::Reason::ResultLimit);
+        }
+    }
+    let duration = value.duration_ms;
+    let encoded = contract.encode(value)?;
+    if serde_json::to_vec(&encoded)
+        .map_err(|_| ErrorData::internal_error("Response encoding failed", None))?
+        .len()
+        > max_result
+    {
+        let message = "Analyzer result could not be retained within the output budget";
+        return contract.encode(ReferencesOutput {
+            outcome: ReferencesOutcome::Unavailable {
+                error_code: ReferencesCode::ResultLimit,
+                error_message: message,
+                data: None,
+            },
+            summary: message,
+            duration_ms: duration,
+        });
+    }
+    Ok(encoded)
+}
+
+// ---------------------------------------------------------------------
+// `rust.analyzer.diagnostics` (M6-03, ADR-083 §2)
+// ---------------------------------------------------------------------
+
+pub(super) const DIAGNOSTICS_NAME: &str = "rust.analyzer.diagnostics";
+
+#[derive(Deserialize, JsonSchema)]
+#[serde(deny_unknown_fields)]
+struct DiagnosticsInput {
+    #[schemars(with = "String", regex(pattern = "^prj_[0-9a-f]{32}$"))]
+    project_ref: ProjectRef,
+    #[serde(default)]
+    #[schemars(with = "Option<String>", regex(pattern = "^sha256:[0-9a-f]{64}$"))]
+    expected_project_fingerprint: Option<ProjectIdentityFingerprint>,
+    #[schemars(with = "String", regex(pattern = r"^[A-Za-z0-9_./-]{1,100}\.rs$"))]
+    file: AnalyzerFile,
+    #[serde(default = "default_timeout_seconds")]
+    #[schemars(range(min = 1, max = 180))]
+    timeout_seconds: u32,
+}
+impl DiagnosticsInput {
+    fn request(self) -> DiagnosticsRequest {
+        DiagnosticsRequest {
+            expected_project_fingerprint: self.expected_project_fingerprint,
+            file: self.file,
+            timeout_seconds: self.timeout_seconds.min(MAX_TIMEOUT_SECONDS),
+        }
+    }
+}
+
+#[derive(Serialize, JsonSchema)]
+#[serde(deny_unknown_fields)]
+struct DiagnosticsData {
+    #[schemars(regex(pattern = "^prj_[0-9a-f]{32}$"))]
+    project_ref: String,
+    #[schemars(regex(pattern = "^sha256:[0-9a-f]{64}$"))]
+    project_identity_fingerprint: String,
+    snapshot: schemas::Snapshot,
+    analyzer: schemas::Analyzer,
+    toolchain: schemas::Toolchain,
+    readiness: schemas::Readiness,
+    completeness: schemas::Completeness,
+    limits: schemas::Limits,
+    session: schemas::Session,
+    termination: schemas::Termination,
+    exit_code: Option<i32>,
+    oom_killed: Option<bool>,
+    /// `None` exactly when the session never answered.
+    #[schemars(length(max = 512))]
+    diagnostics: Option<Vec<schemas::AnalyzerDiagnostic>>,
+    omitted: u32,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, JsonSchema)]
+#[serde(rename_all = "SCREAMING_SNAKE_CASE")]
+enum DiagnosticsCode {
+    Conflict,
+    FileNotInSnapshot,
+    AnalyzerNotReady,
+    AnalyzerCrashed,
+    AnalyzerCapabilityMismatch,
+    FrameLimit,
+    MessageLimit,
+    ResultLimit,
+    TimeoutInitialize,
+    TimeoutQuery,
+    TimeoutTotal,
+    UnsupportedProjectConfig,
+    FileNotUtf8,
+    SandboxDenied,
+    UnsupportedPlatform,
+    ProjectNotFound,
+    InvalidProject,
+    OutputLimitExceeded,
+}
+
+#[derive(Serialize, JsonSchema)]
+#[serde(tag = "status", rename_all = "snake_case")]
+enum DiagnosticsOutcome {
+    Passed {
+        error_code: (),
+        error_message: (),
+        data: Box<DiagnosticsData>,
+    },
+    Blocked {
+        error_code: DiagnosticsCode,
+        error_message: &'static str,
+        data: Option<Box<DiagnosticsData>>,
+    },
+    Unavailable {
+        error_code: DiagnosticsCode,
+        error_message: &'static str,
+        data: Option<Box<DiagnosticsData>>,
+    },
+    Cancelled {
+        error_code: (),
+        error_message: (),
+        data: (),
+    },
+}
+impl ToolOutput for DiagnosticsOutput {
+    fn status(&self) -> ToolStatus {
+        match self.outcome {
+            DiagnosticsOutcome::Passed { .. } => ToolStatus::Passed,
+            DiagnosticsOutcome::Blocked { .. } => ToolStatus::Blocked,
+            DiagnosticsOutcome::Unavailable { .. } => ToolStatus::Unavailable,
+            DiagnosticsOutcome::Cancelled { .. } => ToolStatus::Cancelled,
+        }
+    }
+}
+
+#[derive(Serialize, JsonSchema)]
+#[serde(deny_unknown_fields)]
+struct DiagnosticsOutput {
+    #[serde(flatten)]
+    outcome: DiagnosticsOutcome,
+    summary: &'static str,
+    duration_ms: u64,
+}
+
+/// Every control character other than `\n`/`\t` is replaced, never carried
+/// onto the wire (D25 §1.6): unlike a symbol or reference name, a diagnostic
+/// `message` is free-form project text and this is its only sanitization.
+/// Bounded to [`MAX_DIAGNOSTIC_MESSAGE_SCALARS`] scalars, flagging
+/// `message_truncated` rather than silently cutting — defensive here since
+/// `domain::AnalyzerDiagnostic` already refuses a longer message at
+/// construction, but never assumed.
+const MAX_DIAGNOSTIC_MESSAGE_SCALARS: usize = 4_096;
+
+fn bounded_message(text: &str) -> (String, bool) {
+    let sanitized: String = text
+        .chars()
+        .map(|ch| {
+            if ch.is_control() && ch != '\n' && ch != '\t' {
+                '\u{fffd}'
+            } else {
+                ch
+            }
+        })
+        .collect();
+    if sanitized.chars().count() > MAX_DIAGNOSTIC_MESSAGE_SCALARS {
+        (
+            sanitized
+                .chars()
+                .take(MAX_DIAGNOSTIC_MESSAGE_SCALARS)
+                .collect(),
+            true,
+        )
+    } else {
+        (sanitized, false)
+    }
+}
+
+fn wire_related_information(value: &domain::RelatedInformation) -> schemas::RelatedInformation {
+    let (message, message_truncated) = bounded_message(value.message.as_str());
+    schemas::RelatedInformation {
+        file: value.file.as_str().to_owned(),
+        range: wire_range(value.range),
+        message,
+        message_truncated,
+    }
+}
+
+/// `code` gets the same control-character sanitization as `message` (V06
+/// P2): it too is peer-controlled free text (a numeric LSP diagnostic code is
+/// coerced to a decimal string upstream, but a `string` code is whatever the
+/// server sent), and only `message` was sanitized before this fix.
+fn wire_diagnostic(value: &domain::AnalyzerDiagnostic) -> schemas::AnalyzerDiagnostic {
+    let (message, locally_truncated) = bounded_message(value.message().as_str());
+    // `value.message_truncated()` is the signal that matters now: the codec
+    // fits `message` to the domain bound *before* constructing the
+    // diagnostic (V06 P1), so this recomputation almost never finds anything
+    // left to cut on its own — it stays only as defense in depth.
+    let message_truncated = value.message_truncated() || locally_truncated;
+    let code = value.code().map(|code| bounded_message(code).0);
+    schemas::AnalyzerDiagnostic {
+        file: value.file().as_str().to_owned(),
+        range: wire_range(value.range()),
+        severity: value.severity().into(),
+        code,
+        source: "rust-analyzer",
+        message,
+        message_truncated,
+        related: value
+            .related()
+            .iter()
+            .map(wire_related_information)
+            .collect(),
+    }
+}
+
+/// Unlike `rust.analyzer.references`, no query this tool sends carries a
+/// caller position, so `PositionOutOfRange` stays unreachable exactly as for
+/// `rust.analyzer.symbols`.
+fn diagnostics_failure_code(
+    failure: domain::AnalyzerFailure,
+) -> Result<(DiagnosticsCode, &'static str, bool), ErrorData> {
+    use domain::AnalyzerFailure as F;
+    Ok(match failure {
+        F::FileNotInSnapshot => (
+            DiagnosticsCode::FileNotInSnapshot,
+            "Queried file is absent from the capture",
+            false,
+        ),
+        F::FileNotUtf8 => (
+            DiagnosticsCode::FileNotUtf8,
+            "Queried file's captured bytes are not valid UTF-8",
+            false,
+        ),
+        F::UnsupportedProjectConfig => (
+            DiagnosticsCode::UnsupportedProjectConfig,
+            "Capture carries a rust-analyzer.toml workspace override",
+            false,
+        ),
+        F::CapabilityMismatch => (
+            DiagnosticsCode::AnalyzerCapabilityMismatch,
+            "Analyzer negotiated an unsupported position encoding",
+            true,
+        ),
+        F::NotReady => (
+            DiagnosticsCode::AnalyzerNotReady,
+            "Analyzer did not reach quiescent readiness in time",
+            true,
+        ),
+        F::Crashed | F::ProtocolViolation | F::ServerError => (
+            DiagnosticsCode::AnalyzerCrashed,
+            "Analyzer session ended without a valid answer",
+            true,
+        ),
+        F::ProtocolLimit => (
+            DiagnosticsCode::MessageLimit,
+            "Analyzer session exceeded its message or byte budget",
+            true,
+        ),
+        F::FrameTooLarge | F::MalformedHeader => (
+            DiagnosticsCode::FrameLimit,
+            "Analyzer session exceeded the LSP frame budget",
+            true,
+        ),
+        F::TimeoutInitialize => (
+            DiagnosticsCode::TimeoutInitialize,
+            "Analyzer did not initialize in time",
+            true,
+        ),
+        F::TimeoutQuery => (
+            DiagnosticsCode::TimeoutQuery,
+            "Analyzer did not answer the query in time",
+            true,
+        ),
+        F::TimeoutTotal => (
+            DiagnosticsCode::TimeoutTotal,
+            "Analyzer call exceeded its total budget",
+            true,
+        ),
+        F::PositionOutOfRange => {
+            return Err(ErrorData::internal_error(
+                "rust.analyzer.diagnostics never sends a position or range",
+                None,
+            ));
+        }
+        F::Cancelled => {
+            return Err(ErrorData::internal_error(
+                "cancellation must be classified before failure_code is called",
+                None,
+            ));
+        }
+    })
+}
+
+fn diagnostics_common_data(
+    report: &AnalyzerReport,
+    diagnostics: Option<Vec<schemas::AnalyzerDiagnostic>>,
+    omitted: u32,
+    total_timeout_seconds: u32,
+) -> DiagnosticsData {
+    DiagnosticsData {
+        project_ref: report.project_ref.to_string(),
+        project_identity_fingerprint: report.project_identity_fingerprint.to_string(),
+        snapshot: schemas::Snapshot {
+            source_fingerprint: report.snapshot.source_fingerprint.to_string(),
+            files: report.snapshot.files,
+            semantics: schemas::Semantics::LatestKnown,
+            atomic: report.snapshot.atomic,
+        },
+        analyzer: wire_analyzer(&report.execution),
+        toolchain: schemas::Toolchain {
+            rust_version: "1.98.1",
+            sysroot: schemas::Sysroot::Present,
+        },
+        readiness: wire_readiness(report.execution.readiness),
+        completeness: wire_completeness(&report.execution.completeness),
+        limits: wire_limits(total_timeout_seconds),
+        session: wire_session(&report.execution.session),
+        termination: report.execution.termination.into(),
+        exit_code: report.execution.session.exit_code,
+        oom_killed: report.execution.oom_killed,
+        diagnostics,
+        omitted,
+    }
+}
+
+fn diagnostics_execution_outcome(
+    report: AnalyzerReport,
+    total_timeout_seconds: u32,
+) -> Result<(DiagnosticsOutcome, &'static str), ErrorData> {
+    match &report.execution.outcome {
+        domain::AnalyzerOutcome::Answered(result) => {
+            // V06 P3: every omission counts here, not only `LimitVisible` —
+            // an unresolvable position or an oversized entry is as much a
+            // hole in the answer, and the per-kind breakdown stays available
+            // in `completeness.omissions`.
+            let omitted = report
+                .execution
+                .completeness
+                .omissions()
+                .iter()
+                .map(|omission| omission.count)
+                .sum();
+            let domain::AnalyzerResult::Diagnostics(items) = result else {
+                return Err(ErrorData::internal_error(
+                    "rust.analyzer.diagnostics received an answer to a different query",
+                    None,
+                ));
+            };
+            let diagnostics = items.iter().map(wire_diagnostic).collect();
+            let data =
+                diagnostics_common_data(&report, Some(diagnostics), omitted, total_timeout_seconds);
+            Ok((
+                DiagnosticsOutcome::Passed {
+                    error_code: (),
+                    error_message: (),
+                    data: Box::new(data),
+                },
+                "rust-analyzer answered the diagnostics query",
+            ))
+        }
+        domain::AnalyzerOutcome::Failed(domain::AnalyzerFailure::Cancelled) => Ok((
+            DiagnosticsOutcome::Cancelled {
+                error_code: (),
+                error_message: (),
+                data: (),
+            },
+            "Analyzer session cancelled",
+        )),
+        domain::AnalyzerOutcome::Failed(failure) => {
+            let (code, message, unavailable) = diagnostics_failure_code(*failure)?;
+            let data = Some(Box::new(diagnostics_common_data(
+                &report,
+                None,
+                0,
+                total_timeout_seconds,
+            )));
+            Ok((
+                if unavailable {
+                    DiagnosticsOutcome::Unavailable {
+                        error_code: code,
+                        error_message: message,
+                        data,
+                    }
+                } else {
+                    DiagnosticsOutcome::Blocked {
+                        error_code: code,
+                        error_message: message,
+                        data,
+                    }
+                },
+                message,
+            ))
+        }
+    }
+}
+
+fn diagnostics_operational(code: OperationalErrorCode) -> (DiagnosticsOutcome, &'static str) {
+    let (code, message, unavailable) = match code {
+        OperationalErrorCode::ProjectNotFound => (
+            DiagnosticsCode::ProjectNotFound,
+            "Project reference is missing or expired",
+            false,
+        ),
+        OperationalErrorCode::InvalidProject => (
+            DiagnosticsCode::InvalidProject,
+            "Captured project is invalid or unsupported",
+            false,
+        ),
+        OperationalErrorCode::ToolNotInstalled => (
+            DiagnosticsCode::SandboxDenied,
+            "Approved analyzer runtime is unavailable",
+            true,
+        ),
+        OperationalErrorCode::LockfileUpdateRequired => (
+            DiagnosticsCode::SandboxDenied,
+            "Host runtime policy denied analyzer execution",
+            true,
+        ),
+        OperationalErrorCode::CommandTimeout => (
+            DiagnosticsCode::TimeoutTotal,
+            "Analyzer call exceeded its total budget",
+            true,
+        ),
+        OperationalErrorCode::SandboxDenied => (
+            DiagnosticsCode::SandboxDenied,
+            "Host runtime policy, failed calibration or current capacity denied analysis",
+            true,
+        ),
+        OperationalErrorCode::NetworkDenied => (
+            DiagnosticsCode::SandboxDenied,
+            "Host runtime policy denied analyzer execution",
+            true,
+        ),
+        OperationalErrorCode::UnsupportedPlatform => (
+            DiagnosticsCode::UnsupportedPlatform,
+            "Secure analyzer session is unavailable on this platform",
+            true,
+        ),
+        OperationalErrorCode::OutputLimitExceeded => (
+            DiagnosticsCode::OutputLimitExceeded,
+            "Project metadata exceeds the response budget",
+            false,
+        ),
+    };
+    (
+        if unavailable {
+            DiagnosticsOutcome::Unavailable {
+                error_code: code,
+                error_message: message,
+                data: None,
+            }
+        } else {
+            DiagnosticsOutcome::Blocked {
+                error_code: code,
+                error_message: message,
+                data: None,
+            }
+        },
+        message,
+    )
+}
+
+fn diagnostics_output(
+    result: Result<AnalyzerReport, AnalyzerRequestError>,
+    duration_ms: u64,
+    total_timeout_seconds: u32,
+) -> Result<DiagnosticsOutput, ErrorData> {
+    let (outcome, summary) = match result {
+        Ok(report) => diagnostics_execution_outcome(report, total_timeout_seconds)?,
+        Err(AnalyzerRequestError::Conflict) => {
+            let message = "expected_project_fingerprint does not match the live project identity";
+            (
+                DiagnosticsOutcome::Blocked {
+                    error_code: DiagnosticsCode::Conflict,
+                    error_message: message,
+                    data: None,
+                },
+                message,
+            )
+        }
+        Err(AnalyzerRequestError::FileNotInSnapshot) => {
+            let message = "Queried file is absent from the capture";
+            (
+                DiagnosticsOutcome::Blocked {
+                    error_code: DiagnosticsCode::FileNotInSnapshot,
+                    error_message: message,
+                    data: None,
+                },
+                message,
+            )
+        }
+        Err(AnalyzerRequestError::PositionOutOfRange) => {
+            return Err(ErrorData::internal_error(
+                "rust.analyzer.diagnostics never queries a position",
+                None,
+            ));
+        }
+        Err(AnalyzerRequestError::Inspection(InspectionError::Project(
+            ProjectError::Rejected(code),
+        ))) => diagnostics_operational(code),
+        Err(AnalyzerRequestError::Inspection(
+            InspectionError::Project(ProjectError::Cancelled)
+            | InspectionError::Execution(ExecutionError::Cancelled),
+        )) => (
+            DiagnosticsOutcome::Cancelled {
+                error_code: (),
+                error_message: (),
+                data: (),
+            },
+            "Analyzer diagnostics cancelled after worker completion",
+        ),
+        Err(AnalyzerRequestError::Inspection(InspectionError::Execution(
+            ExecutionError::Unavailable,
+        ))) => diagnostics_operational(OperationalErrorCode::ToolNotInstalled),
+        Err(AnalyzerRequestError::Inspection(InspectionError::Execution(
+            ExecutionError::Denied | ExecutionError::Busy | ExecutionError::InvalidConfiguration,
+        ))) => diagnostics_operational(OperationalErrorCode::SandboxDenied),
+        Err(AnalyzerRequestError::Inspection(InspectionError::OutputLimit)) => {
+            diagnostics_operational(OperationalErrorCode::OutputLimitExceeded)
+        }
+        Err(AnalyzerRequestError::Inspection(InspectionError::InvalidMetadata)) => {
+            diagnostics_operational(OperationalErrorCode::InvalidProject)
+        }
+        Err(AnalyzerRequestError::Inspection(InspectionError::Execution(
+            ExecutionError::CleanupUncertain,
+        ))) => {
+            return Err(ErrorData::internal_error(
+                "Gateway cleanup could not be verified; further execution is quarantined",
+                None,
+            ));
+        }
+        Err(AnalyzerRequestError::Inspection(
+            InspectionError::Internal
+            | InspectionError::Project(ProjectError::Internal)
+            | InspectionError::Execution(ExecutionError::Infrastructure),
+        )) => {
+            return Err(ErrorData::internal_error(
+                "Analyzer diagnostics failed",
+                None,
+            ));
+        }
+    };
+    Ok(DiagnosticsOutput {
+        outcome,
+        summary,
+        duration_ms,
+    })
+}
+
+pub(super) struct DiagnosticsTool {
+    pub(super) definition: Tool,
+    contract: Contract<DiagnosticsInput, DiagnosticsOutput>,
+    registry: Arc<Mutex<Registry>>,
+    workers: Workers,
+    inspector: Arc<RustProjectInspector>,
+    ready: Arc<AtomicBool>,
+}
+impl DiagnosticsTool {
+    pub(super) fn new(
+        registry: Arc<Mutex<Registry>>,
+        workers: Workers,
+        inspector: Arc<RustProjectInspector>,
+        ready: Arc<AtomicBool>,
+    ) -> Result<Self, ErrorData> {
+        let contract = Contract::<DiagnosticsInput, DiagnosticsOutput>::new()?;
+        let definition = Tool::new(
+            DIAGNOSTICS_NAME,
+            "Read native rust-analyzer diagnostics for a captured Rust file, using the \
+             host-approved rust-analyzer 1.98.1 (aarch64-unknown-linux-gnu) inside the \
+             M6 guest image. Snapshot semantics are latest_known and non-atomic. Build \
+             scripts, proc macros and check-on-save stay disabled; only the pull \
+             textDocument/diagnostic request runs, never cargo check — these are \
+             analyzer-native diagnostics, distinct from rust.check. Results are bounded \
+             to 512 visible entries per call; an over-budget answer is reported \
+             incomplete, never silently truncated. message is project-derived text, \
+             bounded to 4,096 Unicode scalars with message_truncated flagging a cut and \
+             control characters other than newline/tab replaced; it is never the \
+             server's own status message or stderr. Requires the host --rust runtime \
+             configured with the approved M6 image; without it the tool is unavailable.",
+            (*contract.input_schema).clone(),
+        )
+        .with_raw_output_schema(Arc::clone(&contract.output_schema))
+        .with_annotations(
+            ToolAnnotations::new()
+                .read_only(true)
+                .destructive(false)
+                .idempotent(true)
+                .open_world(false),
+        );
+        Ok(Self {
+            definition,
+            contract,
+            registry,
+            workers,
+            inspector,
+            ready,
+        })
+    }
+    pub(super) async fn call(
+        &self,
+        request: CallToolRequestParams,
+        context: RequestContext<RoleServer>,
+    ) -> Result<CallToolResult, ErrorData> {
+        let input = self.contract.decode(request.arguments)?;
+        let project_ref = input.project_ref.clone();
+        let diagnostics_request = input.request();
+        let total_timeout_seconds = diagnostics_request.timeout_seconds;
+        let started = Instant::now();
+        let bootstrap = !self.ready.load(Ordering::Acquire);
+        let result = if bootstrap {
+            Err(AnalyzerRequestError::Inspection(
+                InspectionError::Execution(ExecutionError::Denied),
+            ))
+        } else {
+            let registry = Arc::clone(&self.registry);
+            let inspector = Arc::clone(&self.inspector);
+            match self
+                .workers
+                .run_joined(context.ct, started + DEADLINE, move |control| {
+                    registry
+                        .lock()
+                        .map_err(|_| AnalyzerRequestError::Inspection(InspectionError::Internal))?
+                        .analyzer_diagnostics(
+                            &project_ref,
+                            diagnostics_request,
+                            inspector.as_ref(),
+                            control,
+                        )
+                })
+                .await
+            {
+                Ok(joined) => analyzer_joined_result(joined),
+                Err(error) => Err(worker_error(error).into()),
+            }
+        };
+        let duration = started.elapsed().as_millis().try_into().unwrap_or(u64::MAX);
+        let value = if bootstrap {
+            diagnostics_bootstrap_refusal(duration)
+        } else {
+            diagnostics_output(result, duration, total_timeout_seconds)?
+        };
+        encode_diagnostics_bounded(&self.contract, value)
+    }
+}
+
+fn diagnostics_bootstrap_refusal(duration_ms: u64) -> DiagnosticsOutput {
+    let message = "Analyzer diagnostics requires completed discovery; retry with a new request ID";
+    DiagnosticsOutput {
+        outcome: DiagnosticsOutcome::Blocked {
+            error_code: DiagnosticsCode::SandboxDenied,
+            error_message: message,
+            data: None,
+        },
+        summary: message,
+        duration_ms,
+    }
+}
+
+fn encode_diagnostics_bounded(
+    contract: &Contract<DiagnosticsInput, DiagnosticsOutput>,
+    value: DiagnosticsOutput,
+) -> Result<CallToolResult, ErrorData> {
+    encode_diagnostics_bounded_within(contract, value, MAX_RESULT)
+}
+
+fn encode_diagnostics_bounded_within(
+    contract: &Contract<DiagnosticsInput, DiagnosticsOutput>,
+    mut value: DiagnosticsOutput,
+    max_result: usize,
+) -> Result<CallToolResult, ErrorData> {
+    while serde_json::to_vec(&value)
+        .map_err(|_| ErrorData::internal_error("Response encoding failed", None))?
+        .len()
+        > max_result / 4
+    {
+        let DiagnosticsOutcome::Passed { data, .. } = &mut value.outcome else {
+            break;
+        };
+        let Some(diagnostics) = &mut data.diagnostics else {
+            break;
+        };
+        if diagnostics.pop().is_none() {
+            break;
+        }
+        data.omitted += 1;
+        data.completeness.state = schemas::CompletenessState::Incomplete;
+        if !data
+            .completeness
+            .reasons
+            .iter()
+            .any(|reason| matches!(reason, schemas::Reason::ResultLimit))
+        {
+            data.completeness.reasons.push(schemas::Reason::ResultLimit);
+        }
+    }
+    let duration = value.duration_ms;
+    let encoded = contract.encode(value)?;
+    if serde_json::to_vec(&encoded)
+        .map_err(|_| ErrorData::internal_error("Response encoding failed", None))?
+        .len()
+        > max_result
+    {
+        let message = "Analyzer result could not be retained within the output budget";
+        return contract.encode(DiagnosticsOutput {
+            outcome: DiagnosticsOutcome::Unavailable {
+                error_code: DiagnosticsCode::ResultLimit,
+                error_message: message,
+                data: None,
+            },
+            summary: message,
+            duration_ms: duration,
+        });
+    }
+    Ok(encoded)
+}
+
+// The `expect`/`unwrap` allow used to blanket this whole module (V06 P3);
+// it now lives on `tests::new_tools` alone, since that is the only part that
+// needs it (fixed fixtures are malformed only by mistake, and should fail
+// immediately) — the M6-01 symbols tests above it get no such leniency.
 #[cfg(test)]
 mod tests;

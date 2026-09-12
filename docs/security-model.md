@@ -828,13 +828,15 @@ afirma que sea el artefacto distribuible del proyecto (ADR-076 §6).
 
 ## M6 — analyzer
 
-`rust.analyzer.symbols` trata rust-analyzer como un peer LSP potencialmente
-hostil (el código del proyecto que analiza puede comprometerlo) y al proyecto
-capturado como fuente activa de configuración hostil, no solo de bytes a leer.
-[ADR-084](adr/ADR-084-rust-analyzer-runtime-and-lsp-lifecycle.md) fija el
-lifecycle; el [recibo de calibración nativa M6-01](validation/M6/01.md) es el
-oráculo local de cada control de esta tabla, no una afirmación de diseño sin
-medir.
+Las tres tools M6 (`rust.analyzer.symbols`, `rust.analyzer.references`,
+`rust.analyzer.diagnostics`) tratan rust-analyzer como un peer LSP
+potencialmente hostil (el código del proyecto que analiza puede
+comprometerlo) y al proyecto capturado como fuente activa de configuración
+hostil, no solo de bytes a leer. [ADR-084](adr/ADR-084-rust-analyzer-runtime-and-lsp-lifecycle.md)
+fija el lifecycle; el [recibo de calibración nativa M6-01](validation/M6/01.md)
+es el oráculo local de cada control de esta tabla, no una afirmación de
+diseño sin medir; M6-02/M6-03 comparten exactamente el mismo lifecycle y
+gateway, calificación nativa pendiente del orquestador.
 
 | Amenaza | Control | Oráculo |
 | --- | --- | --- |
@@ -847,6 +849,8 @@ medir.
 | Texto del peer en la respuesta (stderr, `message` de `experimental/serverStatus`, de un error JSON-RPC) | El adaptador solo publica tamaño y sha256 de `stderr`, nunca los bytes; `experimental/serverStatus.message` no se captura en el dominio; solo el `health` cerrado (`ok`/`warning`) llega a la tool, degradando a `incomplete` sin exponer el motivo textual | Test de que el resultado no contiene stderr (fake peer hostil, execution-adapter); test en `mcp-server` que siembra strings hostiles en `kill_error`/`reap_error` y comprueba su ausencia en el JSON publicado |
 | Servidor que pide `workspace/applyEdit`, `client/registerCapability` u otra petición servidor→cliente | Ninguna petición servidor→cliente concede nada: se responde `-32601` y se cuenta (`server_requests_refused`); nunca hay efecto | Fake peer que las emite; corte nativo: 0 peticiones servidor→cliente observadas en las nueve sesiones reales |
 | Identidad del runtime falsificada o desactualizada tras un rollback | `analyzer.version`/`binary_sha256`/`image_id`/`config_digest` son propiedades del digest admitido, no de una sonda por llamada; solo `APPROVED_M6_IMAGE` puede abrir sesión, cualquier otro digest es `unavailable` antes de crear contenedor | Corte nativo `m6-00-admission`: la imagen M5 recibe `Unavailable` antes de crear volumen o contenedor; `m6-01-identity`: versión y sha256 coinciden guest = constante = recibo |
+| rust-analyzer no marca cuál ubicación de `textDocument/references` es la declaración (riesgo de que un cliente la infiera y se equivoque) | La misma sesión envía la petición dos veces (`includeDeclaration: true`/`false`, ADR-084 §2 fase 6 enmendada) y `is_declaration` se deriva por diferencia de conjuntos entre ambas respuestas, nunca por inferencia sobre la posición consultada | Corte nativo `m6-09-references` sobre `fixtures/valid-basic`: exactamente una ubicación marcada declaración, y todo rango consultado corta el propio nombre del símbolo en los bytes capturados |
+| `message` de un diagnóstico nativo (texto libre del proyecto) con caracteres de control o de longitud no acotada | Bounded a 4096 caracteres Unicode con `message_truncated` en vez de rechazo silencioso; todo carácter de control salvo `\n`/`\t` se sustituye antes del wire; nunca el `message` de `experimental/serverStatus` ni `stderr` | Test unitario de `bounded_message` en `mcp-server` (sustitución y truncado); mismo test de ausencia de `stderr`/`kill_error`/`reap_error` que M6-01 |
 
 **Alcance nativo positivo**: exclusivamente host macOS ARM64/APFS con imagen
 guest M6 Linux ARM64; Linux/Windows quedan fail-closed hasta una decisión de
@@ -854,5 +858,17 @@ portabilidad explícita (D13). El riesgo residual honesto: `docker container
 top` es evidencia por instantes muestreados, no por intervalo continuo —un
 proceso que viva unos pocos milisegundos entre dos muestras podría no
 observarse ([R1 del recibo M6-01](validation/M6/01.md#r1--la-ausencia-de-procesos-es-evidencia-por-instantes-no-por-intervalo)).
-El oráculo determinista y en banda para la misma propiedad queda asignado al
-corte de `diagnostics` (M6-03), que todavía no existe.
+El oráculo determinista y en banda complementario es el corte nativo
+`m6-10-diagnostics-build-script-oracle` (M6-03, Opción A 2026-09-12): sobre
+`fixtures/build-script` (un `build.rs` real con
+`include!(concat!(env!("OUT_DIR"), ...))`), con los build scripts
+deshabilitados el analizador nunca expande ese `include!`, así que
+`rust.analyzer.symbols` en ámbito documento sobre el mismo archivo no
+contiene el símbolo `GENERATED` que `generated.rs` definiría, mientras que
+`generated_fact` (propio de la captura) sí aparece — prueba determinista de
+que ningún build script corrió. `rust.analyzer.diagnostics` sobre ese mismo
+archivo se comprueba respondida y `completeness: complete`, pero no es la
+prueba: bajo la configuración mínima (`diagnostics.experimental.enable=false`)
+no emite un diagnóstico de macro/import no resuelto para esta ausencia
+(calidad de diagnósticos = deuda trazada, ver `docs/validation/M6/matrix.md`,
+"Deuda de M6"). Calificación nativa pendiente del orquestador.

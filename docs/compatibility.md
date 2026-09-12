@@ -5,7 +5,7 @@
 | Componente | Foundation implementada |
 | --- | --- |
 | Release soportada | `0.3.0` (anterior: `0.1.0`) |
-| Checkout de desarrollo | `0.3.0`; 32 tools: 18 M1/M2, cuatro M3, cinco M4, cuatro M5 calificadas localmente y `rust.analyzer.symbols` (M6, en desarrollo); Tasks anunciado con negociación mutua; sin commit de integración, PR, tag ni publicación |
+| Checkout de desarrollo | `0.3.0`; 34 tools: 18 M1/M2, cuatro M3, cinco M4, cuatro M5 calificadas localmente y `rust.analyzer.symbols`/`rust.analyzer.references`/`rust.analyzer.diagnostics` (M6, en desarrollo); Tasks anunciado con negociación mutua; sin commit de integración, PR, tag ni publicación |
 | Toolchain fijado / MSRV inicial | Rust y Cargo `1.98.1`, edition 2024 |
 | Target de validación local | `aarch64-apple-darwin` |
 | SDK | `rmcp =3.2.0`, features `server`, `transport-io`, sin defaults |
