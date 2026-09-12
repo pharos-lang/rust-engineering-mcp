@@ -36,6 +36,7 @@ pub const APPROVED_M4_IMAGE: &str =
     "sha256:25ed3626e710081a571a86a29521eaf2e890e796afd422ba5e409e0ce1891635";
 pub use unsafe_log::safe_unsafe_log;
 pub use unsafe_port::SCANNER_IMAGE as APPROVED_SCANNER_IMAGE;
+pub mod lsp_codec;
 mod semver_gateway;
 mod semver_output;
 mod semver_port;

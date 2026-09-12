@@ -268,7 +268,13 @@ y no se acepta como evidencia por sí mismo.
    `experimental.commands`, **sin** `codeAction.resolveSupport` (edits en
    línea; no hay `codeAction/resolve`); `textDocument.diagnostic` (pull).
    Cualquier petición servidor→cliente que llegue igualmente se responde con
-   error `-32601` y se cuenta; nunca concede nada.
+   error `-32601` y se cuenta; nunca concede nada. Sí se anuncia
+   `textDocument.codeAction` con literal support —`codeActionLiteralSupport`
+   listando los siete kinds que M6 resuelve, `isPreferredSupport: true`,
+   `dataSupport: false`, `disabledSupport: false`, y sin `resolveSupport`—
+   porque sin él un servidor conforme puede responder `textDocument/codeAction`
+   solo con objetos `Command`, que este cliente rechaza siempre, dejando la
+   funcionalidad vacía en silencio.
 4. **Diagnósticos**: **pull** `textDocument/diagnostic` tras quiescent; las
    notificaciones `publishDiagnostics` se descartan (deterministas por
    petición, no por debounce). Solo diagnósticos nativos; `flycheck` no

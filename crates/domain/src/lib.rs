@@ -11,11 +11,13 @@
 //! }
 //! ```
 
+mod analyzer;
 mod diagnostic;
 mod evidence;
 mod result;
 mod value;
 
+pub use analyzer::*;
 pub use diagnostic::*;
 pub use evidence::*;
 pub use result::*;

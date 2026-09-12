@@ -154,7 +154,13 @@ en línea; no existe `codeAction/resolve` en este lifecycle);
 `textDocument.diagnostic` anunciado (pull, §5). `general.positionEncodings:
 ["utf-8"]` (§5). Cualquier petición servidor→cliente que llegue de todos modos
 (`workspace/applyEdit`, `client/registerCapability`, etc.) se responde con
-error `-32601` y se cuenta; nunca concede efecto alguno.
+error `-32601` y se cuenta; nunca concede efecto alguno. Sí se anuncia
+`textDocument.codeAction` con literal support —`codeActionLiteralSupport`
+listando los siete kinds que M6 resuelve, `isPreferredSupport: true`,
+`dataSupport: false`, `disabledSupport: false`, y sin `resolveSupport`—
+porque sin él un servidor conforme puede responder `textDocument/codeAction`
+solo con objetos `Command`, que este cliente rechaza siempre, dejando la
+funcionalidad vacía en silencio.
 
 ### 5. Encoding, readiness y diagnósticos
 
