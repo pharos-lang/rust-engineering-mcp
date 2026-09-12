@@ -34,8 +34,8 @@ ni release.
 | M6-01 | symbols request → captura → RA lifecycle → document symbols → cleanup | **Done local** (Opción A): dominio+codec (`636ca32`), gateway+calibración **9/9** (`4309f33`), tool `rust.analyzer.symbols` (W05/V05/W05b–e). Evidencia de gate = 9 cortes calibrados; producto reproducido a mano de extremo a extremo. El wrapper `analyzer_runtime` queda desgateado (flake de arnés) hasta endurecerlo | [01-calibration.json](01-calibration.json), [02.md](02.md) |
 | M6-02 | references (`textDocument/references`, `is_declaration` por dos peticiones) | Entregado; calificación nativa pendiente del orquestador | W06 (`crates/{application,execution-adapter,mcp-server}`); corte nativo `m6-09-references` |
 | M6-03 | diagnostics (pull) | Entregado; diagnósticos de sintaxis (experimental off, Opción A); prueba de no-build-script por símbolos; calidad de diagnósticos = deuda | W06/W06d (`crates/{application,execution-adapter,mcp-server}`); corte nativo `m6-10-diagnostics-build-script-oracle` |
-| M6-04 | actions → WorkspaceEdit validado → MutationPlan M2 | Not started | — |
-| M6-05 | action.apply por el writer M2 | Not started | — |
+| M6-04 | actions → WorkspaceEdit validado → MutationPlan M2 con diff previo | **Done local** (W07/V07/W08b): candidato M2, cut nativo m6-11 verde | [03.md](03.md), [01-calibration.json](01-calibration.json) |
+| M6-05 | action.apply por el writer M2 | **Done local** (W08/V08/W08b): 3 e2e de apply verdes (writer cambia disco, ACTION_STALE); Opción A no-compile-verified | [03.md](03.md) |
 | M6-06 | inventario D25, fixtures hostiles, clientes, gate, handoff | Not started | — |
 
 ## Pruebas ejecutadas y no ejecutadas (§4 del encargo)
