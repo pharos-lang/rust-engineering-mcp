@@ -172,7 +172,13 @@ Fases (todas dentro del `WorkBudget` existente):
    esperar `experimental/serverStatus{quiescent:true}` `[R01]`; sin oráculo en
    el plazo → `ANALYZER_NOT_READY` (`incomplete`, no datos);
 5. `textDocument/didOpen` con los bytes exactos capturados y `version: 1`;
-6. **una** petición; para `actions` los edits llegan en línea en la respuesta de `codeAction` (sin `resolveSupport`, no hay `codeAction/resolve`; véase §4.3);
+6. **una** petición; para `references`, **dos** peticiones (enmienda
+   2026-09-12, D25 R5/M6-02): `includeDeclaration: true` y `false` en la misma
+   sesión, compartiendo el presupuesto de esta fase; `is_declaration` se marca
+   por diferencia de conjuntos entre ambas respuestas, porque rust-analyzer no
+   lo hace por sí solo. Para `actions` los edits llegan en línea en la
+   respuesta de `codeAction` (sin `resolveSupport`, no hay
+   `codeAction/resolve`; véase §4.3);
 7. `shutdown` → `exit`; si no sale en 5 s, kill; cleanup unido y verificado
    antes de liberar `busy` (G3).
 

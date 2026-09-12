@@ -32,8 +32,8 @@ ni release.
 | ID | Corte | Estado | Evidencia |
 | --- | --- | --- | --- |
 | M6-01 | symbols request → captura → RA lifecycle → document symbols → cleanup | **Done local** (Opción A): dominio+codec (`636ca32`), gateway+calibración **9/9** (`4309f33`), tool `rust.analyzer.symbols` (W05/V05/W05b–e). Evidencia de gate = 9 cortes calibrados; producto reproducido a mano de extremo a extremo. El wrapper `analyzer_runtime` queda desgateado (flake de arnés) hasta endurecerlo | [01-calibration.json](01-calibration.json), [02.md](02.md) |
-| M6-02 | workspace symbols / references | Not started | — |
-| M6-03 | diagnostics (pull) | Not started | — |
+| M6-02 | references (`textDocument/references`, `is_declaration` por dos peticiones) | Entregado; calificación nativa pendiente del orquestador | W06 (`crates/{application,execution-adapter,mcp-server}`); corte nativo `m6-09-references` |
+| M6-03 | diagnostics (pull) | Entregado; diagnósticos de sintaxis (experimental off, Opción A); prueba de no-build-script por símbolos; calidad de diagnósticos = deuda | W06/W06d (`crates/{application,execution-adapter,mcp-server}`); corte nativo `m6-10-diagnostics-build-script-oracle` |
 | M6-04 | actions → WorkspaceEdit validado → MutationPlan M2 | Not started | — |
 | M6-05 | action.apply por el writer M2 | Not started | — |
 | M6-06 | inventario D25, fixtures hostiles, clientes, gate, handoff | Not started | — |
@@ -47,6 +47,12 @@ ni release.
 | `gate.py core` / `full` | **not run** | Solo al cerrar un corte que cambie una frontera calificada y al cierre de M6 |
 | Suites nativas M2–M5 | **not run** | M6 no ha tocado todavía ninguna capability que midan; se citarán por su recibo vigente si siguen sin tocarse |
 | Suite nativa M6 (`test-m6-runtime.py`) | Ejecutada por W04b: **9/9** (2026-09-12T07:16–07:18Z) | Nueva capability; cada cambio de fuente invalida el recibo (la etapa `m6-runtime` del `full` la repetirá al cierre) |
+
+## Deuda de M6
+
+| ID | Deuda | Detalle |
+| --- | --- | --- |
+| M6-03 | Calidad de diagnósticos | Habilitar los diagnósticos semánticos nativos de rust-analyzer (`diagnostics.experimental.enable=true`, Opción B de [ADR-084 §3](../../adr/ADR-084-rust-analyzer-runtime-and-lsp-lifecycle.md)) una vez que la resolución de macros de la librería estándar bajo la configuración mínima sea limpia. Hoy, con esa opción habilitada, los diagnósticos experimentales producen falsos `unresolved-macro-call` para `vec!`/`assert_eq!`/`#[test]`. Requiere decisión del owner antes de habilitarse. |
 
 ## Revisiones
 
