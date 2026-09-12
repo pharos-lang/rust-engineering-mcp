@@ -64,3 +64,9 @@ RUST_MCP_TEST_SOCKET=… RUST_MCP_TEST_IMAGE=sha256:f39a5b33… cargo test -p ru
 ## Report (mandatory headings)
 
 Task / Result / Files changed / Tests executed (with counts) / Evidence (snapshot hash, native call output summary) / Risks / Decisions / Open issues.
+
+## Addendum (2026-09-12, after W04b — commit `4309f33`)
+
+- Domain names to use as delivered: `IncompleteReason::{AnalyzerNotReady, AnalyzerWarning, NotUtf8File, LimitVisible, Timeout, …}` (read the enum), `AnalyzerFailure::{FrameTooLarge, MalformedHeader, …}`, `SessionStop::{…, KillUncertain}`, `AnalyzerExecution.call_duration_ms` next to `session.duration_ms`, `SessionSummary::{kill_error, reap_error, declared_frame_bytes}`. Map `KillUncertain` and `MalformedHeader` to `unavailable` (`ANALYZER_CRASHED` / `FRAME_LIMIT` respectively — `MalformedHeader` is a protocol violation by the peer, report it as `FRAME_LIMIT`-class with the closed code `PROTOCOL_VIOLATION` if you prefer a distinct code; keep the enum closed and documented).
+- Extra wiring item: add `run('m6-runtime-unit-tests',[sys.executable,'-B','scripts/test-m6-runtime-unit.py'],require_test_groups=True)` to `scripts/gate.py` **core** right after `m6-provisioning-unit-tests`, and update `docs/ci.md` counts (25→26 core, 41→42 full) and its enumerated list. This is the only change you make to `gate.py`.
+- The current tool inventory pinned everywhere is 31; yours makes it 32. `docs/tools.md` line ~138 and README lines ~20/481/532, `docs/compatibility.md` line 8 say 31.

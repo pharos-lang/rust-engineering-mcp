@@ -1,6 +1,6 @@
 # M6 — matriz de implementación y calificación
 
-Estado: **In progress**, 2026-09-12. Rama `ai/m6-analyzer` desde `main`
+Estado: **In progress** (M6-01 Done local), 2026-09-12. Rama `ai/m6-analyzer` desde `main`
 `627729a48b2912c7e3b43d6fc5678a20f0a046a0`. Encargo:
 [implement-m6-fable-orchestrator](../../prompts/implement-m6-fable-orchestrator.md)
 sobre [implement-m6](../../prompts/implement-m6.md) y el
@@ -31,7 +31,7 @@ ni release.
 
 | ID | Corte | Estado | Evidencia |
 | --- | --- | --- | --- |
-| M6-01 | symbols request → captura → RA lifecycle → document symbols → cleanup | **In progress**: dominio + codec (`636ca32`, [V03](delegation/V03-review-domain-codec/disposition.md)); sesión dúplex, fase `Analyzer`, admisión (ADR-085) y calibración nativa **9/9** ([01.md](01.md); [V04](delegation/V04-review-lsp-session-gateway/disposition.md) + W04b); falta el port de aplicación y la tool MCP `rust.analyzer.symbols` (W05) | [01-calibration.json](01-calibration.json) `7b87268d…`, `config_digest` `a2592cfc…`, `health: ok`, quiescent 353–385 ms |
+| M6-01 | symbols request → captura → RA lifecycle → document symbols → cleanup | **Done local** (Opción A): dominio+codec (`636ca32`), gateway+calibración **9/9** (`4309f33`), tool `rust.analyzer.symbols` (W05/V05/W05b–e). Evidencia de gate = 9 cortes calibrados; producto reproducido a mano de extremo a extremo. El wrapper `analyzer_runtime` queda desgateado (flake de arnés) hasta endurecerlo | [01-calibration.json](01-calibration.json), [02.md](02.md) |
 | M6-02 | workspace symbols / references | Not started | — |
 | M6-03 | diagnostics (pull) | Not started | — |
 | M6-04 | actions → WorkspaceEdit validado → MutationPlan M2 | Not started | — |
@@ -55,4 +55,5 @@ ni release.
 | W01 aprovisionamiento | Claude Sonnet 5 (read-only) | Block (2 P2, 6 P3) | [V01](delegation/V01-review-provisioning/disposition.md): todo aceptado y corregido en W01b |
 | W03 dominio + codec | Claude Sonnet 5 (read-only) | Block (1 P0, 1 P1, 3 P2, 8 P3) | [V03](delegation/V03-review-domain-codec/disposition.md): todo aceptado y corregido en W03b |
 | W04 sesión/fase/admisión/calibración | Claude Opus 5 (read-only) | Block (4 P2, 8 P3; sin hallazgos de containment) | [V04](delegation/V04-review-lsp-session-gateway/disposition.md): todo aceptado y corregido en W04b; 9/9 |
+| W05 tool `rust.analyzer.symbols` | Claude Sonnet 5 (read-only) | Block (2 P1, 3 P2, 3 P3) | [V05](delegation/V05-review-symbols-tool/disposition.md): aceptado, corregido en W05b–e; producto reproducido de extremo a extremo por el orquestador |
 | R01 investigación | Gemini 3.8 Flash High | — | [disposición](delegation/R01-ra-research/disposition.md): P1 hashes fabricados; evidencia auxiliar |
