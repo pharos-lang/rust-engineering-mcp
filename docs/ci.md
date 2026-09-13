@@ -8,7 +8,8 @@ ADR-048 separa CI portable, host positivo y artifact distribuible.
 `.github/workflows/ci.yml` usa actions oficiales fijadas por commit, permisos
 `contents: read` y cancelación por concurrencia. Aprovisiona explícitamente el
 toolchain1.98.1 y dependencias locked, y ejecuta fmt/check/Clippy/tests/doctests y
-fronteras arquitectónicas en Linux x86_64, macOS 26 ARM64 y Windows x86_64. Un job
+fronteras arquitectónicas en Linux x86_64 y macOS 26 ARM64 (Windows x86_64
+retirado del CI el 2026-09-13; ver la fila de la matriz de plataformas). Un job
 Linux separado instala versiones fijadas de cargo-audit/cargo-deny y aplica
 advisories/bans/sources. Los pull requests no reciben secretos ni permisos de
 escritura. Este workflow puede descargar dependencias y advisory data durante su
@@ -115,7 +116,7 @@ sustituciones del toolchain. Cargo utiliza CARGO_INCREMENTAL=0, --locked --offli
 | macOS26.6.2/APFS ARM64, Rust1.98.1 | Host positivo core + full `local`; único artifact 0.1.0 publicado | E5/ORT/LanceDB solo en full desde fuente |
 | Docker/Linux ARM64, runc/cgroupsv2 | Guest de ejecución aprobado | No es host/artifact Linux nativo |
 | Linux x86_64 | CI portable/fail-closed | Sin capability positiva ni artifact 0.1.0 |
-| Windows x86_64 | CI portable/fail-closed | Sin adapter reparse-safe positivo ni artifact 0.1.0 |
+| Windows x86_64 | **Retirado del CI (2026-09-13, decisión del owner)** | Regresión M6: el servidor se desconecta en una llamada a tool previa a `initialize` bajo Windows; se restaura al corregirla. Sin adapter reparse-safe ni artifact |
 | Linux ARM64, macOS x86_64, Windows ARM64 | No anunciados | Fuera de artifacts 0.1.0 |
 
 `core` ejecuta fmt, check, Clippy, unit/integration/contract/protocol/security sin

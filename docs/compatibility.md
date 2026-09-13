@@ -11,10 +11,10 @@
 | SDK | `rmcp =3.2.0`, features `server`, `transport-io`, sin defaults |
 | Runtime / logging | Tokio `1.53.1`, tokio-util `0.7.19`, tracing `0.1.44`, tracing-subscriber `0.3.23` |
 | Dominio | Serde `1.0.229`; sin dependencia del SDK, ADR-022 |
-| CI portable | Linux x86_64, macOS ARM64 y Windows x86_64; fuente/protocolo/fail-closed, no capabilities positivas |
+| CI portable | Linux x86_64 y macOS ARM64; fuente/protocolo/fail-closed, no capabilities positivas. Windows x86_64 retirado del CI el 2026-09-13 (regresión de stdio pre-`initialize` en M6, deuda a restaurar) |
 | Host positivo local M1–M4 | macOS 26 ARM64/APFS; ejecución de proyecto en guest Docker Linux ARM64 aprobado |
 | Artifact 0.1.0 publicado | Un único archive core `aarch64-apple-darwin`; checksum, SBOM/notices y provenance verificados |
-| Linux / Windows / macOS x86_64 nativos | CI pública compila y prueba el código fuente; la calificación nativa del sandbox y filesystem sigue pendiente para ampliar soporte en una release futura |
+| Linux / macOS x86_64 nativos | CI pública compila y prueba el código fuente; la calificación nativa del sandbox y filesystem sigue pendiente para ampliar soporte en una release futura. Windows: compilación CI retirada el 2026-09-13 hasta corregir la regresión de stdio pre-`initialize` de M6 |
 | Licencia / redistribución | Código original `MIT OR Apache-2.0`; assets `local` no se redistribuyen en 0.1.0 |
 | Clientes de terceros | M4: Inspector 2.5.0 con Tasks y Codex 0.153.0 stock por sincronía; [recibo](validation/M4/clients.json). M5: Inspector 2.5.0 (quince filas, catorce Resources) y Claude Code 2.1.267 `claude-sonnet-5` como cliente agentic; [recibo](validation/M5/clients.json). M1/M2 conservan sus matrices anteriores. |
 | Sandbox | Probes M0 separados; ejecución M1–M4 habilitada solo en runtimes aprobados Docker/Linux ARM64 calibrados por sus ADR |
