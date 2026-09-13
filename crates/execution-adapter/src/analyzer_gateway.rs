@@ -2294,6 +2294,433 @@ mod tests {
         assert_eq!(excess, over as usize);
     }
 
+    fn lsp_range(line: u32, start: u32, end: u32) -> serde_json::Value {
+        serde_json::json!({
+            "start": {"line": line, "character": start},
+            "end": {"line": line, "character": end},
+        })
+    }
+
+    fn converted(
+        query: &AnalyzerQuery,
+        document: Option<&Document>,
+        indices: &BTreeMap<domain::AnalyzerFile, domain::LineIndex>,
+        value: serde_json::Value,
+    ) -> Result<(domain::AnalyzerResult, Vec<domain::Omission>), domain::AnalyzerFailure> {
+        convert(
+            &Question {
+                query,
+                document,
+                indices,
+                not_utf8: 0,
+            },
+            value,
+        )
+    }
+
+    #[test]
+    fn symbol_and_reference_answers_convert_and_count_what_they_drop()
+    -> Result<(), Box<dyn std::error::Error>> {
+        use domain::AnalyzerFailure as Failure;
+        use serde_json::json;
+        let source = bundle(&[("src/lib.rs", b"pub fn add() {}\n")])?;
+        let file = domain::AnalyzerFile::new("src/lib.rs".into())?;
+        let opened = document(&source, &file).map_err(|error| format!("{error:?}"))?;
+        let (indices, _) = snapshot(&source);
+
+        let symbols = AnalyzerQuery::DocumentSymbols { file: file.clone() };
+        let answer = json!([{
+            "name": "add",
+            "kind": 12,
+            "range": lsp_range(0, 0, 3),
+            "selectionRange": lsp_range(0, 0, 3),
+        }]);
+        let (result, omissions) = converted(&symbols, Some(&opened), &indices, answer)
+            .map_err(|error| format!("{error:?}"))?;
+        let domain::AnalyzerResult::DocumentSymbols(found) = result else {
+            return Err("expected document symbols".into());
+        };
+        assert_eq!(found.len(), 1);
+        assert!(omissions.is_empty());
+        assert_eq!(
+            converted(&symbols, None, &indices, json!([])).err(),
+            Some(Failure::FileNotInSnapshot)
+        );
+        assert_eq!(
+            converted(&symbols, Some(&opened), &indices, json!({})).err(),
+            Some(Failure::ProtocolViolation)
+        );
+
+        let workspace = AnalyzerQuery::WorkspaceSymbols {
+            query: domain::SymbolQuery::new("add".into())?,
+        };
+        let answer = json!([
+            {
+                "name": "add",
+                "kind": 12,
+                "location": {"uri": "file:///source/src/lib.rs", "range": lsp_range(0, 7, 10)},
+            },
+            {
+                "name": "core",
+                "kind": 12,
+                "location": {"uri": "file:///opt/rust/lib.rs", "range": lsp_range(0, 0, 1)},
+            },
+        ]);
+        let (result, omissions) =
+            converted(&workspace, None, &indices, answer).map_err(|error| format!("{error:?}"))?;
+        let domain::AnalyzerResult::WorkspaceSymbols(found) = result else {
+            return Err("expected workspace symbols".into());
+        };
+        assert_eq!(found.len(), 1, "the sysroot symbol is not published");
+        assert_eq!(
+            omissions,
+            [domain::Omission {
+                kind: domain::OmissionKind::LimitVisible,
+                count: 1,
+            }]
+        );
+        assert_eq!(
+            converted(&workspace, None, &indices, json!("nope")).err(),
+            Some(Failure::ProtocolViolation)
+        );
+
+        let references = AnalyzerQuery::References {
+            file,
+            position: domain::Position::new(1, 8)?,
+        };
+        let answer = json!([{"uri": "file:///source/src/lib.rs", "range": lsp_range(0, 7, 10)}]);
+        let (result, omissions) = converted(&references, Some(&opened), &indices, answer)
+            .map_err(|error| format!("{error:?}"))?;
+        let domain::AnalyzerResult::References(found) = result else {
+            return Err("expected references".into());
+        };
+        assert_eq!(found.len(), 1);
+        assert!(omissions.is_empty());
+        assert_eq!(
+            converted(&references, Some(&opened), &indices, json!(null)).err(),
+            Some(Failure::ProtocolViolation)
+        );
+        Ok(())
+    }
+
+    #[test]
+    fn a_diagnostics_answer_names_each_kind_of_dropped_entry()
+    -> Result<(), Box<dyn std::error::Error>> {
+        use domain::AnalyzerFailure as Failure;
+        use serde_json::json;
+        let source = bundle(&[("src/lib.rs", b"pub fn add() {}\n")])?;
+        let file = domain::AnalyzerFile::new("src/lib.rs".into())?;
+        let opened = document(&source, &file).map_err(|error| format!("{error:?}"))?;
+        let (indices, _) = snapshot(&source);
+        let query = AnalyzerQuery::Diagnostics { file };
+
+        let mut items = vec![
+            json!({"range": lsp_range(99, 0, 1), "message": "outside the file"}),
+            json!({"range": lsp_range(0, 0, 3), "message": "   "}),
+        ];
+        items.extend(
+            (0..=domain::MAX_VISIBLE_RESULTS)
+                .map(|_| json!({"range": lsp_range(0, 0, 3), "message": "unused"})),
+        );
+        let answer = json!({"kind": "full", "items": items});
+        let (result, omissions) = converted(&query, Some(&opened), &indices, answer)
+            .map_err(|error| format!("{error:?}"))?;
+        let domain::AnalyzerResult::Diagnostics(found) = result else {
+            return Err("expected diagnostics".into());
+        };
+        assert_eq!(found.len(), domain::MAX_VISIBLE_RESULTS);
+        assert_eq!(
+            omissions,
+            [
+                domain::Omission {
+                    kind: domain::OmissionKind::LimitVisible,
+                    count: 1,
+                },
+                domain::Omission {
+                    kind: domain::OmissionKind::UnresolvablePosition,
+                    count: 1,
+                },
+                domain::Omission {
+                    kind: domain::OmissionKind::OversizedEntry,
+                    count: 1,
+                },
+            ]
+        );
+
+        let (_, clean) = converted(
+            &query,
+            Some(&opened),
+            &indices,
+            json!({"kind": "full", "items": []}),
+        )
+        .map_err(|error| format!("{error:?}"))?;
+        assert!(clean.is_empty(), "nothing dropped, nothing named");
+        assert_eq!(
+            converted(
+                &query,
+                Some(&opened),
+                &indices,
+                json!({"kind": "unchanged", "resultId": "1"}),
+            )
+            .err(),
+            Some(Failure::ProtocolViolation),
+            "no previous result exists to be unchanged relative to"
+        );
+        assert_eq!(
+            converted(&query, None, &indices, json!({"kind": "full"})).err(),
+            Some(Failure::FileNotInSnapshot)
+        );
+        Ok(())
+    }
+
+    #[test]
+    fn a_code_actions_answer_is_capped_and_keeps_applicable_and_rejected_elements()
+    -> Result<(), Box<dyn std::error::Error>> {
+        use serde_json::json;
+        let source = bundle(&[("src/lib.rs", b"pub fn add() {}\n")])?;
+        let file = domain::AnalyzerFile::new("src/lib.rs".into())?;
+        let (indices, _) = snapshot(&source);
+        let query = AnalyzerQuery::CodeActions {
+            file,
+            range: domain::TextRange::new(
+                domain::Position::new(1, 8)?,
+                domain::Position::new(1, 11)?,
+            )?,
+            only: Vec::new(),
+        };
+        let edit = json!({"changes": {"file:///source/src/lib.rs": [
+            {"range": lsp_range(0, 7, 10), "newText": "sum"}
+        ]}});
+        let mut elements = vec![
+            json!({"title": "Rename to sum", "kind": "refactor.rewrite", "isPreferred": true, "edit": edit}),
+            json!({"title": "", "edit": edit}),
+        ];
+        let overflow = 2;
+        elements.extend(
+            (elements.len()..domain::MAX_ACTIONS + overflow)
+                .map(|_| json!({"title": "Run", "command": "rust-analyzer.runSingle"})),
+        );
+        let (result, omissions) = converted(&query, None, &indices, json!(elements))
+            .map_err(|error| format!("{error:?}"))?;
+        let domain::AnalyzerResult::CodeActions(candidates) = result else {
+            return Err("expected code actions".into());
+        };
+        assert_eq!(candidates.len(), domain::MAX_ACTIONS);
+        let domain::ActionCandidate::Applicable(action) = &candidates[0] else {
+            return Err("the first element carries a valid edit".into());
+        };
+        assert_eq!(action.kind, Some(domain::CodeActionKind::RefactorRewrite));
+        assert!(action.is_preferred);
+        assert_eq!(action.edits.len(), 1);
+        let domain::ActionCandidate::Rejected(blank) = &candidates[1] else {
+            return Err("a blank title never becomes an action".into());
+        };
+        assert_eq!(blank.reason, domain::ActionRejection::UnresolvedEdit);
+        assert!(blank.title.is_none());
+        let domain::ActionCandidate::Rejected(command) = &candidates[2] else {
+            return Err("a Command is never an action".into());
+        };
+        assert_eq!(command.reason, domain::ActionRejection::Command);
+        assert!(command.title.is_some(), "the peer's label is kept");
+        assert_eq!(
+            omissions,
+            [domain::Omission {
+                kind: domain::OmissionKind::LimitVisible,
+                count: overflow as u32,
+            }]
+        );
+        assert_eq!(
+            converted(&query, None, &indices, json!({})).err(),
+            Some(domain::AnalyzerFailure::ProtocolViolation)
+        );
+        Ok(())
+    }
+
+    #[test]
+    fn omission_counts_are_bounded_and_a_zero_count_names_nothing() {
+        assert!(limit_visible_omissions(0).is_empty());
+        assert_eq!(
+            limit_visible_omissions(3),
+            [domain::Omission {
+                kind: domain::OmissionKind::LimitVisible,
+                count: 3,
+            }]
+        );
+        assert_eq!(bounded_count(7), 7);
+        assert_eq!(bounded_count(usize::MAX), u32::MAX);
+
+        let mut progress = Progress::default();
+        record_omissions(&mut progress, limit_visible_omissions(2), 0);
+        assert_eq!(progress.reasons, [domain::IncompleteReason::LimitVisible]);
+        assert_eq!(progress.omissions.len(), 1);
+    }
+
+    #[test]
+    fn an_exhausted_phase_budget_is_that_phase_timeout() {
+        let started = Instant::now();
+        assert!(
+            remaining(Duration::from_secs(60), started, Stage::Query)
+                .is_ok_and(|left| !left.is_zero())
+        );
+        assert_eq!(
+            remaining(Duration::ZERO, started, Stage::Initialize),
+            Err(domain::AnalyzerFailure::TimeoutInitialize)
+        );
+        assert_eq!(
+            remaining(Duration::ZERO, started, Stage::Query),
+            Err(domain::AnalyzerFailure::TimeoutQuery)
+        );
+    }
+
+    #[test]
+    fn both_ends_of_a_code_action_range_must_resolve_before_any_container()
+    -> Result<(), Box<dyn std::error::Error>> {
+        let source = bundle(&[("src/lib.rs", b"fn f() {}\n")])?;
+        let file = domain::AnalyzerFile::new("src/lib.rs".into())?;
+        let opened = document(&source, &file).map_err(|error| format!("{error:?}"))?;
+        let actions = |start: (u32, u32),
+                       end: (u32, u32)|
+         -> Result<AnalyzerQuery, Box<dyn std::error::Error>> {
+            Ok(AnalyzerQuery::CodeActions {
+                file: file.clone(),
+                range: domain::TextRange::new(
+                    domain::Position::new(start.0, start.1)?,
+                    domain::Position::new(end.0, end.1)?,
+                )?,
+                only: Vec::new(),
+            })
+        };
+        assert!(wire_positions(&actions((1, 1), (1, 3))?, Some(&opened)).is_ok());
+        assert_eq!(
+            wire_positions(&actions((1, 1), (99, 1))?, Some(&opened)).err(),
+            Some(domain::AnalyzerFailure::PositionOutOfRange),
+            "the end is checked, not only the start"
+        );
+        assert_eq!(
+            wire_positions(&actions((98, 1), (99, 1))?, Some(&opened)).err(),
+            Some(domain::AnalyzerFailure::PositionOutOfRange)
+        );
+        let workspace = AnalyzerQuery::WorkspaceSymbols {
+            query: domain::SymbolQuery::new("f".into())?,
+        };
+        assert!(
+            wire_positions(&workspace, None).is_ok(),
+            "a query without a caller position has nothing to check"
+        );
+        Ok(())
+    }
+
+    fn session_outcome(fatal: Option<SessionError>) -> SessionOutcome {
+        SessionOutcome {
+            exit_code: Some(0),
+            stop: domain::SessionStop::Exited,
+            messages_in: 4,
+            messages_out: 5,
+            bytes_in: 100,
+            bytes_out: 200,
+            stderr_len: 0,
+            stderr_sha256: digest(&[]),
+            stderr_truncated: false,
+            server_requests: vec!["workspace/configuration".to_owned()],
+            notifications_dropped: 1,
+            late_responses: 2,
+            status_transcript: (0..domain::MAX_PUBLISHED_STATUS + 3)
+                .map(|n| crate::lsp_session::StatusRecord {
+                    quiescent: n > 0,
+                    health: Some(domain::ServerHealth::Ok),
+                    elapsed_ms: n as u64,
+                })
+                .collect(),
+            fatal,
+            declared_frame_bytes: Some(1 << 30),
+            kill_error: Some(String::new()),
+            reap_error: Some("NotFound".to_owned()),
+            duration_ms: 42,
+        }
+    }
+
+    #[test]
+    fn a_session_summary_is_bounded_and_names_its_fault_by_stage()
+    -> Result<(), Box<dyn std::error::Error>> {
+        let initialize = summary(
+            session_outcome(Some(SessionError::Timeout)),
+            Stage::Initialize,
+        )
+        .map_err(|error| format!("{error:?}"))?;
+        assert_eq!(
+            initialize.fault,
+            Some(domain::AnalyzerFailure::TimeoutInitialize)
+        );
+        assert_eq!(
+            initialize.status_transcript.len(),
+            domain::MAX_PUBLISHED_STATUS
+        );
+        assert_eq!(
+            initialize.status_notifications as usize,
+            domain::MAX_PUBLISHED_STATUS + 3,
+            "the count covers every notification, not only the published ones"
+        );
+        assert_eq!(initialize.server_requests_refused, 1);
+        assert_eq!(initialize.notifications_dropped, 1);
+        assert_eq!(initialize.late_responses, 2);
+        assert_eq!(initialize.declared_frame_bytes, Some(1 << 30));
+        assert!(
+            initialize.kill_error.is_none(),
+            "an empty io kind is nothing to report"
+        );
+        assert!(initialize.reap_error.is_some());
+        assert_eq!(initialize.duration_ms, 42);
+
+        let query = summary(session_outcome(Some(SessionError::Timeout)), Stage::Query)
+            .map_err(|error| format!("{error:?}"))?;
+        assert_eq!(query.fault, Some(domain::AnalyzerFailure::TimeoutQuery));
+        let clean =
+            summary(session_outcome(None), Stage::Query).map_err(|error| format!("{error:?}"))?;
+        assert_eq!(clean.fault, None);
+
+        let mut forged = session_outcome(None);
+        forged.stderr_sha256 = "not-a-digest".to_owned();
+        assert!(matches!(
+            summary(forged, Stage::Query),
+            Err(ExecutionError::Infrastructure)
+        ));
+        Ok(())
+    }
+
+    #[test]
+    fn a_not_ready_session_cut_by_the_output_limit_publishes_its_own_summary()
+    -> Result<(), Box<dyn std::error::Error>> {
+        let conversation = Conversation {
+            session: Some(session_outcome(None)),
+            encoding: Some(domain::PositionEncoding::Utf8),
+            readiness: domain::AnalyzerReadiness::NotReady { elapsed_ms: 60_000 },
+            outcome: Some(domain::AnalyzerOutcome::Failed(
+                domain::AnalyzerFailure::NotReady,
+            )),
+            reasons: Vec::new(),
+            omissions: Vec::new(),
+            oom_killed: None,
+            stage: Stage::Initialize,
+        };
+        let execution = assemble(
+            identity()?,
+            conversation,
+            Some(Stop::OutputLimit),
+            Instant::now(),
+        )
+        .map_err(|error| format!("{error:?}"))?;
+        assert_eq!(execution.termination, ExecutionTermination::OutputLimit);
+        assert_eq!(execution.failure(), Some(domain::AnalyzerFailure::NotReady));
+        assert_eq!(
+            execution.completeness.reasons(),
+            [domain::IncompleteReason::AnalyzerNotReady]
+        );
+        assert_eq!(execution.session.stop, domain::SessionStop::Exited);
+        assert_eq!(execution.session.messages_out, 5);
+        assert_eq!(execution.oom_killed, None);
+        Ok(())
+    }
+
     /// V06 P2: drives the real [`answer_references`] against a scripted
     /// two-response peer, so this fails if the function were deleted or the
     /// difference inverted — unlike

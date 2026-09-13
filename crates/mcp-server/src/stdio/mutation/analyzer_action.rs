@@ -1298,8 +1298,13 @@ mod tests {
     }
 
     fn validation() -> AnalyzerActionValidationView {
+        analyzer_action_validation_for(MutationKind::AnalyzerActionApply, &encoded_validation())
+            .unwrap()
+    }
+
+    fn encoded_validation() -> String {
         let hash = hash(5).to_string();
-        let encoded = rust_engineering_application::analyzer::AnalyzerActionProvenance {
+        rust_engineering_application::analyzer::AnalyzerActionProvenance {
             platform: "linux/aarch64",
             image_id: &hash,
             configuration_fingerprint: &hash,
@@ -1313,8 +1318,7 @@ mod tests {
             action_digest: &hash,
         }
         .encode()
-        .unwrap();
-        analyzer_action_validation_for(MutationKind::AnalyzerActionApply, &encoded).unwrap()
+        .unwrap()
     }
 
     fn structured(output: ApplyOutput) -> Value {
@@ -1547,6 +1551,474 @@ mod tests {
         let value = structured(output);
         assert_eq!(value["status"], "blocked");
         assert_eq!(value["error_code"], "SANDBOX_DENIED");
+    }
+
+    const EVERY_CODE: [ApplyCode; 30] = [
+        ApplyCode::InvalidOperation,
+        ApplyCode::PermissionDenied,
+        ApplyCode::SandboxDenied,
+        ApplyCode::Conflict,
+        ApplyCode::ActionStale,
+        ApplyCode::ActionRejected,
+        ApplyCode::LockBusy,
+        ApplyCode::PlanExpired,
+        ApplyCode::NotFound,
+        ApplyCode::LimitExceeded,
+        ApplyCode::ResultLimit,
+        ApplyCode::UnsupportedPlatform,
+        ApplyCode::Io,
+        ApplyCode::RecoveryRequired,
+        ApplyCode::Cancelled,
+        ApplyCode::ProjectNotFound,
+        ApplyCode::InvalidProject,
+        ApplyCode::OutputLimitExceeded,
+        ApplyCode::FileNotInSnapshot,
+        ApplyCode::FileNotUtf8,
+        ApplyCode::PositionOutOfRange,
+        ApplyCode::UnsupportedProjectConfig,
+        ApplyCode::AnalyzerNotReady,
+        ApplyCode::AnalyzerCrashed,
+        ApplyCode::AnalyzerCapabilityMismatch,
+        ApplyCode::FrameLimit,
+        ApplyCode::MessageLimit,
+        ApplyCode::TimeoutInitialize,
+        ApplyCode::TimeoutQuery,
+        ApplyCode::TimeoutTotal,
+    ];
+
+    #[test]
+    fn every_code_audits_as_its_wire_spelling_with_its_own_fixed_message() {
+        let mut messages = std::collections::BTreeSet::new();
+        for code in EVERY_CODE {
+            let wire = serde_json::to_value(code).unwrap();
+            assert_eq!(
+                wire.as_str().unwrap().to_ascii_lowercase(),
+                code.event(),
+                "{code:?}"
+            );
+            assert!(!code.message().is_empty(), "{code:?}");
+            messages.insert(code.message());
+            let failure = Failure::from(code);
+            assert_eq!(failure, Failure::with(code, code.message()));
+            let output = ApplyOutput::failure(failure, 7);
+            assert_eq!(output.event().reason, Some(code.event()));
+            assert!(
+                !matches!(
+                    ToolOutput::status(&output),
+                    ToolStatus::Passed | ToolStatus::Failed
+                ),
+                "no validation run judges the candidate: {code:?}"
+            );
+            let value = structured(output);
+            assert_eq!(value["error_code"], wire, "{code:?}");
+            assert_eq!(value["error_message"], code.message(), "{code:?}");
+        }
+        assert_eq!(
+            messages.len(),
+            EVERY_CODE.len(),
+            "no two codes share a message"
+        );
+    }
+
+    #[test]
+    fn every_status_reaches_the_tool_status_unchanged() {
+        for (status, expected) in [
+            (Status::Passed, ToolStatus::Passed),
+            (Status::Failed, ToolStatus::Failed),
+            (Status::Blocked, ToolStatus::Blocked),
+            (Status::Unavailable, ToolStatus::Unavailable),
+            (Status::Cancelled, ToolStatus::Cancelled),
+        ] {
+            let output = ApplyOutput::new(status, None, None, "summary", 0);
+            assert_eq!(ToolOutput::status(&output), expected);
+            assert!(output.error_code.is_none());
+            assert!(matches!(output.evidence, MutationEvidence::Local));
+        }
+    }
+
+    #[test]
+    fn commit_and_receipt_actions_decode_to_their_own_audit_phases() {
+        let commit = ApplyAction::Commit {
+            plan_id: "mut_0123456789abcdef0123456789abcdef".into(),
+            plan_digest: hash(1),
+            idempotency_key: "key-1".into(),
+        }
+        .request()
+        .unwrap();
+        assert!(matches!(phase(&commit), audit::Phase::Commit));
+        let ApplyRequest::Commit {
+            plan_id,
+            plan_digest,
+            idempotency_key,
+        } = commit
+        else {
+            panic!("expected a commit request");
+        };
+        assert_eq!(plan_id, "mut_0123456789abcdef0123456789abcdef");
+        assert_eq!(plan_digest, hash(1));
+        assert_eq!(idempotency_key, "key-1");
+
+        for recover in [true, false] {
+            let receipt = ApplyAction::Receipt {
+                operation_id: "mut_0123456789abcdef0123456789abcdef".into(),
+                recover,
+            }
+            .request()
+            .unwrap();
+            assert!(matches!(
+                (recover, phase(&receipt)),
+                (true, audit::Phase::Recover) | (false, audit::Phase::Receipt)
+            ));
+            assert!(matches!(
+                receipt,
+                ApplyRequest::Receipt { recover: decoded, .. } if decoded == recover
+            ));
+        }
+
+        let preview = ApplyAction::Preview {
+            expected_project_fingerprint: format!("sha256:{:064x}", 9u8).parse().unwrap(),
+            action_digest: hash(7),
+            file: AnalyzerFile::new("src/lib.rs".into()).unwrap(),
+            range: serde_json::from_value(json!({
+                "start": {"line": 1, "column": 1},
+                "end": {"line": 1, "column": 3},
+            }))
+            .unwrap(),
+            timeout_seconds: 900,
+        }
+        .request()
+        .unwrap();
+        assert!(matches!(phase(&preview), audit::Phase::Preview));
+        let ApplyRequest::Preview(request) = preview else {
+            panic!("expected a preview request");
+        };
+        assert_eq!(request.timeout_seconds, MAX_TIMEOUT_SECONDS);
+    }
+
+    fn change() -> Change {
+        Change {
+            path: "src/lib.rs".into(),
+            before_sha256: hash(2).to_string(),
+            after_sha256: hash(3).to_string(),
+            before_bytes: 29,
+            after_bytes: 29,
+        }
+    }
+
+    #[test]
+    fn the_audit_event_names_the_plan_or_operation_and_its_files() {
+        let preview = ApplyData::Preview {
+            plan_id: "mut_0123456789abcdef0123456789abcdef".into(),
+            plan_digest: hash(1).to_string(),
+            expires_in_seconds: 600,
+            files: vec![change(), change()],
+            diff: String::new(),
+            validation: validation(),
+        };
+        let output = preview_output(preview, 5);
+        let event = output.event();
+        assert_eq!(event.status, "passed");
+        assert_eq!(event.reason, None);
+        assert_eq!(
+            event.result_id,
+            Some("mut_0123456789abcdef0123456789abcdef")
+        );
+        assert_eq!(event.files_changed, 2);
+        assert_eq!(event.duration_ms, 5);
+        assert!(admitted(&output));
+
+        let receipt = ApplyData::Receipt {
+            operation_id: "mut_00000000000000000000000000000002".into(),
+            plan_digest: hash(1).to_string(),
+            state: ReceiptState::Committed,
+            validation: validation(),
+            files: Vec::new(),
+        };
+        let kept = joined_output(Ok(receipt), false, 3).response_lost();
+        assert!(
+            kept.data.is_some(),
+            "a durable receipt is never withdrawn when its response is lost"
+        );
+        let event = kept.event();
+        assert_eq!(
+            event.result_id,
+            Some("mut_00000000000000000000000000000002")
+        );
+        assert_eq!(event.files_changed, 0);
+
+        let refused = joined_output(Err(ApplyCode::PlanExpired.into()), false, 2);
+        assert!(admitted(&refused));
+        assert_eq!(refused.event().result_id, None);
+        assert_eq!(structured(refused)["error_code"], "PLAN_EXPIRED");
+        let denied = ApplyOutput::failure(ApplyCode::PermissionDenied.into(), 1);
+        assert!(!admitted(&denied), "a refused authorization never entered");
+    }
+
+    #[test]
+    fn a_store_receipt_publishes_the_analyzer_view_or_refuses_a_foreign_one() {
+        let receipt = |validation: String| MutationReceipt {
+            id: MutationId::new(format!("mut_{:032x}", 1)).unwrap(),
+            digest: hash(1),
+            state: rust_engineering_domain::MutationState::Committed,
+            files: vec![rust_engineering_domain::MutationFileReceipt {
+                path: "src/lib.rs".into(),
+                before: hash(8),
+                after: hash(9),
+                before_bytes: 29,
+                after_bytes: 30,
+                effect_after: Some(hash(9)),
+                effect_after_bytes: Some(30),
+            }],
+            validation,
+        };
+        let data = receipt_data(receipt(encoded_validation())).unwrap();
+        let ApplyData::Receipt {
+            operation_id,
+            plan_digest,
+            state,
+            files,
+            ..
+        } = &data
+        else {
+            panic!("expected a receipt");
+        };
+        assert_eq!(operation_id, &format!("mut_{:032x}", 1));
+        assert_eq!(plan_digest, &hash(1).to_string());
+        assert!(matches!(state, ReceiptState::Committed));
+        assert_eq!(files.len(), 1);
+        let value = structured(joined_output(Ok(data), false, 1));
+        assert_eq!(value["status"], "passed");
+        assert_eq!(value["data"]["kind"], "receipt");
+
+        assert!(receipt_data(receipt("not a provenance".into())).is_err());
+    }
+
+    #[test]
+    fn lock_and_worker_failures_map_to_closed_codes() {
+        assert_eq!(
+            lock_failure(TryLockError::<()>::WouldBlock).code,
+            ApplyCode::LockBusy
+        );
+        assert_eq!(
+            lock_failure(TryLockError::Poisoned(std::sync::PoisonError::new(()))).code,
+            ApplyCode::Io
+        );
+        let held = Mutex::new(());
+        let _guard = held.lock().unwrap();
+        assert_eq!(
+            lock_failure(held.try_lock().unwrap_err()).code,
+            ApplyCode::LockBusy
+        );
+
+        for phase in [
+            audit::Phase::Preview,
+            audit::Phase::Commit,
+            audit::Phase::Receipt,
+            audit::Phase::Recover,
+        ] {
+            assert_eq!(
+                worker_failure(WorkerError::Busy, phase),
+                ApplyCode::LockBusy.into()
+            );
+            assert_eq!(
+                worker_failure(WorkerError::Cancelled, phase),
+                ApplyCode::Cancelled.into()
+            );
+            assert_eq!(
+                worker_failure(WorkerError::Internal, phase),
+                ApplyCode::Io.into()
+            );
+        }
+    }
+
+    #[test]
+    fn every_mutation_error_maps_to_its_closed_code() {
+        for (error, code) in [
+            (MutationError::Invalid, ApplyCode::InvalidOperation),
+            (MutationError::PermissionDenied, ApplyCode::PermissionDenied),
+            (MutationError::Conflict, ApplyCode::Conflict),
+            (MutationError::Busy, ApplyCode::LockBusy),
+            (MutationError::Expired, ApplyCode::PlanExpired),
+            (MutationError::NotFound, ApplyCode::NotFound),
+            (MutationError::LimitExceeded, ApplyCode::LimitExceeded),
+            (
+                MutationError::UnsupportedPlatform,
+                ApplyCode::UnsupportedPlatform,
+            ),
+            (MutationError::Cancelled, ApplyCode::Cancelled),
+            (MutationError::Io, ApplyCode::Io),
+            (MutationError::RecoveryRequired, ApplyCode::RecoveryRequired),
+        ] {
+            assert_eq!(mutation_failure(error), code.into(), "{error:?}");
+        }
+    }
+
+    #[test]
+    fn every_preparation_error_is_stale_or_a_closed_code() {
+        for (error, expected) in [
+            (
+                MutationPreparationError::Project(ProjectError::Rejected(
+                    OperationalErrorCode::InvalidProject,
+                )),
+                SOURCE_CHANGED,
+            ),
+            (
+                MutationPreparationError::Mutation(MutationError::Busy),
+                ApplyCode::LockBusy.into(),
+            ),
+            (
+                MutationPreparationError::Edit(
+                    rust_engineering_domain::ManifestEditError::InvalidManifest,
+                ),
+                ApplyCode::InvalidOperation.into(),
+            ),
+            (
+                MutationPreparationError::Project(ProjectError::Cancelled),
+                ApplyCode::Cancelled.into(),
+            ),
+            (
+                MutationPreparationError::Project(ProjectError::Rejected(
+                    OperationalErrorCode::CommandTimeout,
+                )),
+                ApplyCode::TimeoutTotal.into(),
+            ),
+            (
+                MutationPreparationError::Project(ProjectError::Internal),
+                ApplyCode::Io.into(),
+            ),
+            (
+                MutationPreparationError::Inspection(InspectionError::OutputLimit),
+                ApplyCode::OutputLimitExceeded.into(),
+            ),
+        ] {
+            assert_eq!(preparation_failure(error), expected);
+        }
+    }
+
+    #[test]
+    fn every_inspection_and_request_error_maps_to_a_closed_code() {
+        for (error, code) in [
+            (
+                InspectionError::Project(ProjectError::Cancelled),
+                ApplyCode::Cancelled,
+            ),
+            (
+                InspectionError::Execution(ExecutionError::Cancelled),
+                ApplyCode::Cancelled,
+            ),
+            (
+                InspectionError::Execution(ExecutionError::Unavailable),
+                ApplyCode::SandboxDenied,
+            ),
+            (
+                InspectionError::Execution(ExecutionError::Denied),
+                ApplyCode::SandboxDenied,
+            ),
+            (
+                InspectionError::Execution(ExecutionError::Busy),
+                ApplyCode::SandboxDenied,
+            ),
+            (
+                InspectionError::Execution(ExecutionError::InvalidConfiguration),
+                ApplyCode::SandboxDenied,
+            ),
+            (InspectionError::OutputLimit, ApplyCode::OutputLimitExceeded),
+            (InspectionError::InvalidMetadata, ApplyCode::InvalidProject),
+            (
+                InspectionError::Execution(ExecutionError::CleanupUncertain),
+                ApplyCode::Io,
+            ),
+            (InspectionError::Internal, ApplyCode::Io),
+            (
+                InspectionError::Project(ProjectError::Internal),
+                ApplyCode::Io,
+            ),
+            (
+                InspectionError::Execution(ExecutionError::Infrastructure),
+                ApplyCode::Io,
+            ),
+        ] {
+            assert_eq!(inspection_failure(error).code, code);
+        }
+
+        use OperationalErrorCode as O;
+        for (operational, code) in [
+            (O::ProjectNotFound, ApplyCode::ProjectNotFound),
+            (O::InvalidProject, ApplyCode::InvalidProject),
+            (O::ToolNotInstalled, ApplyCode::SandboxDenied),
+            (O::LockfileUpdateRequired, ApplyCode::SandboxDenied),
+            (O::NetworkDenied, ApplyCode::SandboxDenied),
+            (O::CommandTimeout, ApplyCode::TimeoutTotal),
+            (O::SandboxDenied, ApplyCode::SandboxDenied),
+            (O::UnsupportedPlatform, ApplyCode::UnsupportedPlatform),
+            (O::OutputLimitExceeded, ApplyCode::OutputLimitExceeded),
+        ] {
+            let failure = inspection_failure(InspectionError::Project(ProjectError::Rejected(
+                operational,
+            )));
+            assert_eq!(failure.code, code, "{operational:?}");
+            assert_eq!(operational_failure(operational), failure);
+        }
+
+        assert_eq!(
+            request_failure(AnalyzerRequestError::FileNotInSnapshot),
+            ApplyCode::FileNotInSnapshot.into()
+        );
+        assert_eq!(
+            request_failure(AnalyzerRequestError::PositionOutOfRange),
+            ApplyCode::PositionOutOfRange.into()
+        );
+    }
+
+    #[test]
+    fn inapplicable_edits_are_rejected_with_the_matching_reason() {
+        assert_eq!(
+            edits_failure(AnalyzerError::FileNotInSnapshot),
+            rejection_failure(ActionRejection::FileNotInSnapshot)
+        );
+        assert_eq!(
+            edits_failure(AnalyzerError::NotUtf8),
+            rejection_failure(ActionRejection::NotUtf8)
+        );
+        let limit = edits_failure(AnalyzerError::LimitExceeded);
+        assert_eq!(limit.code, ApplyCode::ActionRejected);
+        assert!(limit.message.contains("limit"), "{}", limit.message);
+        assert_eq!(
+            edits_failure(AnalyzerError::Invalid),
+            rejection_failure(ActionRejection::UnresolvedEdit)
+        );
+    }
+
+    #[test]
+    fn the_tool_is_a_destructive_write_and_records_a_missing_grant() {
+        let backend = rust_engineering_project::SecureProjects::new(&[])
+            .map_err(|_| "backend")
+            .unwrap();
+        let registry = Registry::new(
+            backend,
+            OsReferences,
+            rust_engineering_project::MonotonicClock::default(),
+            10,
+            1,
+        )
+        .map_err(|_| "registry")
+        .unwrap();
+        let tool = AnalyzerActionApplyTool::new(
+            Arc::new(Mutex::new(registry)),
+            Workers::new(),
+            Arc::new(RustProjectInspector::new(None)),
+            Arc::new(AtomicBool::new(false)),
+            None,
+            Arc::new(Mutex::new(SharedPlans::default())),
+        )
+        .unwrap();
+        assert_eq!(tool.definition.name, ANALYZER_ACTION_APPLY_NAME);
+        let annotations = tool.definition.annotations.as_ref().unwrap();
+        assert_eq!(annotations.read_only_hint, Some(false));
+        assert_eq!(annotations.destructive_hint, Some(true));
+        assert!(!tool.grant_present);
+        let provider = tool.provider.lock().unwrap();
+        assert!(provider.config.is_none() && provider.store.is_none());
     }
 
     #[test]
