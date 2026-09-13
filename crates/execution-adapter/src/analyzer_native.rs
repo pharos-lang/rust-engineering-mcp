@@ -56,8 +56,9 @@ const LOG_BYTES: usize = 512 * 1024;
 /// the cut, which is the only way an allowlist can mean anything.
 ///
 /// The `rustc` and `cargo` forms are the ones §7 expects rust-analyzer to run
-/// while it loads a workspace: version and target probes, `locate-project`, and
-/// `cargo metadata` without dependencies.
+/// while it loads a workspace: version and read-only `--print` probes
+/// (`rustc_is_readonly_probe`), `locate-project`, and `cargo metadata` without
+/// dependencies.
 fn admitted_argv(argv: &str) -> bool {
     let mut words = argv.split_whitespace();
     let Some(program) = words.next() else {
@@ -67,13 +68,7 @@ fn admitted_argv(argv: &str) -> bool {
     match program {
         // The entrypoint of `Phase::Analyzer`: no arguments, ever.
         "/opt/analyzer/bin/rust-analyzer" => arguments.is_empty(),
-        "/opt/rust/bin/rustc" => matches!(
-            arguments.as_slice(),
-            ["-vV"]
-                | ["--print", "sysroot"]
-                | ["--print", "cfg", "-O"]
-                | ["-Z", "unstable-options", "--print", "target-spec-json"]
-        ),
+        "/opt/rust/bin/rustc" => rustc_is_readonly_probe(&arguments),
         "/opt/rust/bin/cargo" => match arguments.as_slice() {
             // The trailing arguments of `locate-project` are the caller's
             // formatting choices; the subcommand itself reads a manifest path
@@ -85,6 +80,100 @@ fn admitted_argv(argv: &str) -> bool {
         },
         _ => false,
     }
+}
+
+/// A `rustc` command line that only asks the toolchain a question: it prints and
+/// exits, it never compiles and never writes. Either the version probe `-vV`, or
+/// a `--print` query (amendment 2026-09-12 to ADR-084 §7).
+///
+/// The query form is parsed token by token against a closed vocabulary rather
+/// than matched as fixed shapes, because rust-analyzer 1.98.1 batches its probes
+/// into one short-lived invocation —
+/// `rustc - --crate-name ___ --print=file-names --target … --crate-type bin …
+/// --print=sysroot --print=split-debuginfo --print=crate-name --print=cfg
+/// -Wwarnings` — which the process table catches only on some samples. What
+/// keeps it read-only:
+///
+/// - the only input admitted is `-`, the synthetic source on stdin; a path, an
+///   output flag (`-o`, `--out-dir`, `--emit`), a search path (`-L`,
+///   `--extern`) or a codegen flag (`-C…`) is outside the vocabulary;
+/// - `--crate-name` and `--crate-type` take a plain word (`[A-Za-z0-9_-]`, not
+///   starting with `-`), so they cannot be a path, a flag, or the `KIND=PATH`
+///   form that makes `--print` write a file;
+/// - `--target` takes only [`GUEST_TARGET_TRIPLE`], the one triple the M6
+///   guest ever runs. A plain word here would still let rustc search
+///   `<value>.json` on `RUST_TARGET_PATH`, the CWD (`/source`), or the
+///   sysroot for a custom target spec — a disk read this probe must not have;
+/// - the print kinds are a closed list of kinds after which rustc stops.
+///   `native-static-libs` and `link-args` are deliberately absent: rustc
+///   prints those while linking, so it compiles first.
+fn rustc_is_readonly_probe(arguments: &[&str]) -> bool {
+    if arguments == ["-vV"] {
+        return true;
+    }
+    let mut prints = false;
+    let mut rest = arguments.iter().copied();
+    while let Some(argument) = rest.next() {
+        match argument {
+            "-" | "-vV" | "-O" | "-Wwarnings" => (),
+            "-Z" => {
+                if rest.next() != Some("unstable-options") {
+                    return false;
+                }
+            }
+            // Consumed with its flag so a bare value can never be read as a
+            // flag or an input this list does not know.
+            "--crate-name" | "--crate-type" => {
+                if !rest.next().is_some_and(plain_word) {
+                    return false;
+                }
+            }
+            // Pinned to the single triple the M6 guest runs, not just a
+            // plain word: any other value has rustc searching disk for
+            // `<value>.json` (`RUST_TARGET_PATH`, the `/source` CWD, or the
+            // sysroot) instead of answering from its bundled spec.
+            "--target" => {
+                if rest.next() != Some(GUEST_TARGET_TRIPLE) {
+                    return false;
+                }
+            }
+            "--print" => match rest.next() {
+                Some(kind) if STOPPING_PRINT_KINDS.contains(&kind) => prints = true,
+                _ => return false,
+            },
+            _ => match argument.strip_prefix("--print=") {
+                Some(kind) if STOPPING_PRINT_KINDS.contains(&kind) => prints = true,
+                _ => return false,
+            },
+        }
+    }
+    // Without a `--print`, `rustc -` compiles its stdin.
+    prints
+}
+
+/// The only target triple the M6 guest image ever runs, and the only value
+/// `rustc_is_readonly_probe` admits after `--target` — anything else would
+/// send rustc looking for a target spec on disk instead of answering from
+/// its bundled one.
+const GUEST_TARGET_TRIPLE: &str = "aarch64-unknown-linux-gnu";
+
+/// The `--print` kinds rust-analyzer 1.98.1 asks for; rustc exits after
+/// printing any of them.
+const STOPPING_PRINT_KINDS: [&str; 6] = [
+    "cfg",
+    "crate-name",
+    "file-names",
+    "split-debuginfo",
+    "sysroot",
+    "target-spec-json",
+];
+
+fn plain_word(value: &str) -> bool {
+    !value.is_empty()
+        && !value.starts_with('-')
+        && value
+            .bytes()
+            .all(|byte| byte.is_ascii_alphanumeric() || byte == b'-' || byte == b'_')
 }
 
 /// `cargo metadata` in the one shape ADR-084 §7 admits: the manifest's own
@@ -1349,7 +1438,12 @@ fn m6_initialize_spawns_only_the_expected_guest_programs() -> Result<(), Failure
     // instants and not an interval: a child that lives for tens of milliseconds
     // can pass between two samples. Every distinct command line observed is
     // recorded above, so the strength of the absence is visible rather than
-    // implied. The deterministic in-band oracle for the same property — with
+    // implied. The same sampling also erases argument boundaries: `container
+    // top`/`ps` reports argv joined by spaces, and `admitted_argv` re-splits it
+    // on whitespace, so a single argument containing a space (e.g. a file name)
+    // would be seen as two — this oracle cannot see the real boundaries of each
+    // argument, only the whitespace-joined line `docker top` hands back. The
+    // deterministic in-band oracle for the same property — with
     // build scripts disabled, `textDocument/diagnostic` on this fixture cannot
     // resolve its `include!(concat!(env!("OUT_DIR"), …))` — needs a diagnostics
     // cut, which does not exist yet: it is assigned to W07 (M6-03), the package
@@ -1371,6 +1465,12 @@ fn m6_initialize_spawns_only_the_expected_guest_programs() -> Result<(), Failure
     // The whole command line, against the closed list. A basename check would
     // pass a running proc-macro server, which is spawned as
     // `<the rust-analyzer binary> proc-macro`.
+    //
+    // 2026-09-12: rust-analyzer's batched `rustc - … --print=… --print=cfg`
+    // probe is admitted as a read-only query (`rustc_is_readonly_probe`). It
+    // lives briefly, so a receipt that did not sample it passed by chance and a
+    // run that did failed; the closed vocabulary makes the cut deterministic
+    // without admitting anything that compiles or writes.
     let unexpected = argv
         .iter()
         .filter(|command| !admitted_argv(command))
@@ -2212,6 +2312,15 @@ mod unit {
             "/opt/rust/bin/rustc --print sysroot",
             "/opt/rust/bin/rustc --print cfg -O",
             "/opt/rust/bin/rustc -Z unstable-options --print target-spec-json",
+            // The batched probe rust-analyzer 1.98.1 runs during `initialize`,
+            // verbatim from the guest process table, and the same query with
+            // the `=` and the space forms mixed.
+            "/opt/rust/bin/rustc - --crate-name ___ --print=file-names --target \
+             aarch64-unknown-linux-gnu --crate-type bin --crate-type rlib --crate-type dylib \
+             --crate-type cdylib --crate-type staticlib --crate-type proc-macro --print=sysroot \
+             --print=split-debuginfo --print=crate-name --print=cfg -Wwarnings",
+            "/opt/rust/bin/rustc - --crate-name ___ --print file-names --target \
+             aarch64-unknown-linux-gnu --crate-type bin --print=sysroot --print cfg -Wwarnings",
             "/opt/rust/bin/cargo --version",
             "/opt/rust/bin/cargo locate-project --workspace --message-format json",
             "/opt/rust/bin/cargo metadata --no-deps --format-version 1 --manifest-path \
@@ -2248,6 +2357,35 @@ mod unit {
             "/opt/rust/bin/cargo metadata --no-deps --format-version 1 --manifest-path",
             "/opt/rust/bin/rustc --crate-name fixture /source/src/lib.rs",
             "/opt/rust/bin/rustc",
+            // The read-only query form does not open the door to a build: each
+            // of these is the batched probe plus one thing that compiles,
+            // writes, or reads outside the guest toolchain.
+            "/opt/rust/bin/rustc - --crate-name ___ --print=sysroot --print=cfg -o /tmp/x",
+            "/opt/rust/bin/rustc - --crate-name ___ --print=sysroot --print=cfg --emit=obj",
+            "/opt/rust/bin/rustc - --crate-name ___ --print=sysroot --print=cfg --out-dir /tmp",
+            "/opt/rust/bin/rustc - --crate-name ___ --print=sysroot --print=cfg -L /source",
+            "/opt/rust/bin/rustc - --crate-name ___ --print=sysroot --print=cfg --extern foo=/x",
+            "/opt/rust/bin/rustc - --crate-name ___ --print=sysroot -C link-arg=-fuse-ld=/x",
+            "/opt/rust/bin/rustc /source/src/lib.rs --crate-name ___ --print=sysroot --print=cfg",
+            "/opt/rust/bin/rustc --print cfg /source/src/lib.rs",
+            "/opt/rust/bin/rustc --target /source/hostile.json --print cfg",
+            // `--target` is pinned to the single guest triple, not to any
+            // plain word: a non-guest triple would still have rustc search
+            // disk for `<value>.json`.
+            "/opt/rust/bin/rustc --target hostile --print cfg",
+            "/opt/rust/bin/rustc - --crate-name ___ --target evil --print=cfg",
+            "/opt/rust/bin/rustc --crate-name -o --print sysroot",
+            "/opt/rust/bin/rustc -Z unpretty=expanded --print sysroot",
+            // `--print KIND=PATH` writes the answer to a file.
+            "/opt/rust/bin/rustc --print=cfg=/tmp/x",
+            "/opt/rust/bin/rustc --print cfg=/tmp/x",
+            // rustc prints these while linking, so it compiles first.
+            "/opt/rust/bin/rustc - --crate-name ___ --print native-static-libs",
+            "/opt/rust/bin/rustc - --crate-name ___ --print=link-args --print=sysroot",
+            // Without any `--print`, `rustc -` compiles its stdin.
+            "/opt/rust/bin/rustc - --crate-name ___ --crate-type bin",
+            "/opt/rust/bin/rustc --print",
+            "/opt/rust/bin/rustc --print=",
             "",
         ] {
             assert!(!admitted_argv(refused), "{refused} must be refused");

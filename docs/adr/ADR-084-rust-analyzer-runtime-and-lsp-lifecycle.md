@@ -259,6 +259,30 @@ unstable-options --print cfg` (falla en stable; rust-analyzer cae a `rustc
 programa observado en la calibración nativa es un hallazgo P1**, no un detalle
 a documentar después.
 
+**Enmienda 2026-09-12 (calibración W12).** rust-analyzer 1.98.1 también lanza
+en `initialize` una sonda `rustc` por lotes —`rustc - --crate-name ___
+--print=file-names --target … --crate-type … --print=sysroot
+--print=split-debuginfo --print=crate-name --print=cfg -Wwarnings`— que vive
+unos milisegundos y el muestreo de `container top` solo captura a veces. Se
+admite como **consulta de solo lectura**: la única entrada es `-` (fuente
+sintética por stdin), cada token pertenece a un vocabulario cerrado (`-`,
+`-vV`, `-O`, `-Wwarnings`, `-Z unstable-options`, `--crate-name`/`--crate-type`
+con un valor que es una palabra simple, `--target` con el único triple del
+guest (`aarch64-unknown-linux-gnu`) y `--print`/`--print=`) y hace falta al
+menos un `--print` con un tipo de la lista cerrada `cfg`, `crate-name`,
+`file-names`, `split-debuginfo`, `sysroot`, `target-spec-json`. Siguen fuera
+cualquier ruta, `-o`, `--out-dir`, `--emit`, `-L`, `--extern`, `-C…`, la forma
+`--print KIND=PATH` (escribe a un archivo) y `native-static-libs`/`link-args`
+(rustc los imprime al enlazar, así que antes compila). `--target` queda
+cerrado al triple del guest y no a cualquier palabra simple porque un triple
+distinto haría que rustc buscara `<valor>.json` en disco
+(`RUST_TARGET_PATH`, el CWD `/source`, o el sysroot) en vez de responder
+desde su spec interno. Oráculo: `rustc_is_readonly_probe` en
+`crates/execution-adapter/src/analyzer_native.rs`. Límite conocido del
+oráculo de muestreo: `docker container top` une el argv con espacios, así
+que un argumento con un espacio dentro se vería como dos, y el corte no
+puede ver los límites reales de cada argumento.
+
 ### 8. Presupuestos (fijados antes del código)
 
 | Límite | Valor | Fase | Exceso |
