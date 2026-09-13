@@ -844,7 +844,7 @@ impl<'a> LspSession<'a> {
 
     /// The total stderr bytes observed, the bytes retained, and whether the
     /// retained buffer dropped any. The bytes themselves stay inside.
-    #[cfg(test)]
+    #[cfg(all(test, target_os = "macos"))]
     fn stderr_evidence(&self) -> (u64, usize, bool) {
         (
             self.stderr_len,
@@ -853,7 +853,7 @@ impl<'a> LspSession<'a> {
         )
     }
 
-    #[cfg(test)]
+    #[cfg(all(test, target_os = "macos"))]
     fn server_requests(&self) -> &[String] {
         &self.server_requests
     }
@@ -862,8 +862,10 @@ impl<'a> LspSession<'a> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[cfg(target_os = "macos")]
     use rust_engineering_application::NeverCancel;
 
+    #[cfg(target_os = "macos")]
     type Failure = Box<dyn std::error::Error>;
 
     /// Fixed, trusted host utilities standing in for the guest peer, with a
@@ -871,20 +873,24 @@ mod tests {
     /// here and no argument comes from a peer: every script below is a literal
     /// of this test module. The session itself never builds a command — the
     /// gateway hands it one built from a closed phase.
+    #[cfg(target_os = "macos")]
     fn peer(program: &str, arguments: &[&str]) -> Command {
         let mut command = Command::new(program);
         command.env_clear().current_dir("/").args(arguments);
         command
     }
 
+    #[cfg(target_os = "macos")]
     fn shell(script: &str) -> Command {
         peer("/bin/sh", &["-c", script])
     }
 
+    #[cfg(target_os = "macos")]
     fn budget(seconds: u64) -> SessionBudget {
         SessionBudget::standard(Instant::now() + Duration::from_secs(seconds))
     }
 
+    #[cfg(target_os = "macos")]
     fn notification(method: &str) -> OutgoingMessage {
         OutgoingMessage::Notification {
             method: method.to_owned(),
@@ -894,6 +900,7 @@ mod tests {
 
     /// A literal LSP frame for a `printf` script. The length is computed here,
     /// so a hand-counted header can never drift from its body.
+    #[cfg(target_os = "macos")]
     fn frame_literal(body: &str) -> String {
         format!(
             "Content-Length: {}\\r\\n\\r\\n{}",
@@ -902,6 +909,7 @@ mod tests {
         )
     }
 
+    #[cfg(target_os = "macos")]
     fn status_record(event: &Event) -> Option<&StatusRecord> {
         match event {
             Event::ServerStatus(record) => Some(record),
@@ -1153,7 +1161,9 @@ mod tests {
         Ok(())
     }
 
+    #[cfg(target_os = "macos")]
     struct CancelAfter(Instant);
+    #[cfg(target_os = "macos")]
     impl ExecutionCancellation for CancelAfter {
         fn is_cancelled(&self) -> bool {
             Instant::now() >= self.0

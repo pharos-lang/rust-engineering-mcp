@@ -1194,29 +1194,38 @@ impl AnalyzerActionApplyTool {
 #[cfg(test)]
 #[allow(clippy::expect_used, clippy::unwrap_used, clippy::panic)] // Fixed fixtures only.
 mod tests {
+    #[cfg(target_os = "macos")]
     use super::super::AnalyzerActionValidationMethod;
     use super::*;
+    use rust_engineering_application::analyzer::{AnalyzerReport, AnalyzerSnapshot};
+    #[cfg(target_os = "macos")]
     use rust_engineering_application::{
         ExecutionCancellation, OpenedProject,
         analyzer::{
             ActionApplyObservation, ActionResolution, ActionsObservation, AnalyzerActionRuntime,
-            AnalyzerObservation, AnalyzerReport, AnalyzerSnapshot,
+            AnalyzerObservation,
         },
     };
+    #[cfg(target_os = "macos")]
     use rust_engineering_domain::{
-        AnalyzerAction, AnalyzerExecution, AnalyzerOutcome, AnalyzerQuery, AnalyzerReadiness,
-        AnalyzerResult, AnalyzerRuntime, CodeActionKind, Completeness, ExecutionFingerprint,
-        ExecutionLimits, ExecutionTermination, InspectionSemantics, MutationCandidate,
-        MutationCommit, MutationFileReceipt, MutationState, NonEmptyText, Position,
-        PositionEncoding, ServerHealth, SessionStop, SessionSummary, SourceBundle, SourceFile,
-        TextEdit, TextRange,
+        AnalyzerAction, AnalyzerQuery, CodeActionKind, ExecutionFingerprint, ExecutionLimits,
+        MutationCommit, MutationFileReceipt, MutationState, Position, SourceBundle, TextEdit,
+        TextRange,
     };
+    use rust_engineering_domain::{
+        AnalyzerExecution, AnalyzerOutcome, AnalyzerReadiness, AnalyzerResult, AnalyzerRuntime,
+        Completeness, ExecutionTermination, InspectionSemantics, NonEmptyText, PositionEncoding,
+        ServerHealth, SessionStop, SessionSummary,
+    };
+    #[cfg(target_os = "macos")]
+    use rust_engineering_domain::{MutationCandidate, SourceFile};
     use serde_json::{Value, json};
 
     fn hash(value: u8) -> SourceFingerprint {
         format!("sha256:{value:064x}").parse().unwrap()
     }
 
+    #[cfg(target_os = "macos")]
     fn execution_hash(value: u8) -> ExecutionFingerprint {
         format!("sha256:{value:064x}").parse().unwrap()
     }
@@ -1641,12 +1650,15 @@ mod tests {
 
     // ---- The preview → commit → receipt lifecycle over a real registry ----
 
+    #[cfg(target_os = "macos")]
     struct Proceed;
+    #[cfg(target_os = "macos")]
     impl OperationControl for Proceed {
         fn check(&self) -> Result<(), ProjectError> {
             Ok(())
         }
     }
+    #[cfg(target_os = "macos")]
     impl ExecutionCancellation for Proceed {
         fn is_cancelled(&self) -> bool {
             false
@@ -1654,12 +1666,15 @@ mod tests {
     }
 
     /// The analyzer port: resolves whatever the test configured, once.
+    #[cfg(target_os = "macos")]
     struct Port(Mutex<Option<ActionResolution>>);
+    #[cfg(target_os = "macos")]
     impl Port {
         fn resolving(resolution: ActionResolution) -> Self {
             Self(Mutex::new(Some(resolution)))
         }
     }
+    #[cfg(target_os = "macos")]
     impl AnalyzerPort for Port {
         fn analyze(
             &self,
@@ -1715,11 +1730,13 @@ mod tests {
     }
 
     /// The writer: authorizes, records every commit and never touches disk.
+    #[cfg(target_os = "macos")]
     #[derive(Default)]
     struct Writer {
         commits: Mutex<Vec<MutationCommit>>,
         receipts: Mutex<Vec<MutationReceipt>>,
     }
+    #[cfg(target_os = "macos")]
     impl MutationPublisher<ProjectLease> for Writer {
         fn authorize(&self, _: &ProjectLease) -> Result<(), MutationError> {
             Ok(())
@@ -1781,9 +1798,12 @@ mod tests {
         }
     }
 
+    #[cfg(target_os = "macos")]
     const SOURCE: &str = "pub fn answer() -> u8 { 42 }\n";
 
+    #[cfg(target_os = "macos")]
     struct Project(std::path::PathBuf);
+    #[cfg(target_os = "macos")]
     impl Project {
         fn new(tag: &str) -> Self {
             let root = std::env::temp_dir().canonicalize().unwrap().join(format!(
@@ -1824,16 +1844,19 @@ mod tests {
             )
         }
     }
+    #[cfg(target_os = "macos")]
     impl Drop for Project {
         fn drop(&mut self) {
             let _ = std::fs::remove_dir_all(&self.0);
         }
     }
 
+    #[cfg(target_os = "macos")]
     fn range() -> TextRange {
         TextRange::new(Position::new(1, 25).unwrap(), Position::new(1, 27).unwrap()).unwrap()
     }
 
+    #[cfg(target_os = "macos")]
     fn answer_action() -> AnalyzerAction {
         AnalyzerAction {
             title: NonEmptyText::try_from("Replace the answer".to_owned()).unwrap(),
@@ -1847,6 +1870,7 @@ mod tests {
         }
     }
 
+    #[cfg(target_os = "macos")]
     fn preview_request(opened: &OpenedProject) -> ActionPreviewRequest {
         ActionPreviewRequest {
             expected_project_fingerprint: opened.identity.fingerprint.clone(),
@@ -1857,6 +1881,7 @@ mod tests {
         }
     }
 
+    #[cfg(target_os = "macos")]
     fn run_preview(
         ports: &Ports<'_, Port, Writer>,
         opened: &OpenedProject,

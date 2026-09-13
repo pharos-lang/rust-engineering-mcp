@@ -1624,6 +1624,7 @@ pub(super) fn probe(
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[cfg(target_os = "macos")]
     use rust_engineering_application::NeverCancel;
 
     fn bundle(files: &[(&str, &[u8])]) -> Result<SourceBundle, Box<dyn std::error::Error>> {
@@ -1638,6 +1639,7 @@ mod tests {
     /// Fixed, trusted host utilities standing in for the guest peer (mirrors
     /// `lsp_session`'s own test module): a cleared environment, a fixed
     /// working directory, and every script a literal of this module.
+    #[cfg(target_os = "macos")]
     fn shell(script: &str) -> std::process::Command {
         let mut command = std::process::Command::new("/bin/sh");
         command.env_clear().current_dir("/").args(["-c", script]);
@@ -1647,6 +1649,7 @@ mod tests {
     /// A literal LSP frame for a `printf` script: the length is computed
     /// here, so a hand-counted header can never drift from its body, and `%`
     /// is escaped for `printf`'s own format string.
+    #[cfg(target_os = "macos")]
     fn frame_literal(body: &str) -> String {
         format!(
             "Content-Length: {}\\r\\n\\r\\n{}",
@@ -1655,12 +1658,14 @@ mod tests {
         )
     }
 
+    #[cfg(target_os = "macos")]
     fn location_json(uri: &str, start_line: u32, start_char: u32, end_char: u32) -> String {
         format!(
             "{{\"uri\":\"{uri}\",\"range\":{{\"start\":{{\"line\":{start_line},\"character\":{start_char}}},\"end\":{{\"line\":{start_line},\"character\":{end_char}}}}}}}"
         )
     }
 
+    #[cfg(target_os = "macos")]
     fn references_response(id: i64, locations: &[String]) -> String {
         format!(
             "{{\"jsonrpc\":\"2.0\",\"id\":{id},\"result\":[{}]}}",
@@ -2295,6 +2300,7 @@ mod tests {
     /// `declarations_are_exactly_the_locations_the_second_request_drops`
     /// above, which only re-implements the filter.
     #[test]
+    #[cfg(target_os = "macos")]
     fn answer_references_marks_the_declaration_from_a_real_two_response_peer()
     -> Result<(), Box<dyn std::error::Error>> {
         let source = bundle(&[("src/lib.rs", b"fn a() {}\nfn b() {}\nfn c() {}\n")])?;
@@ -2386,6 +2392,7 @@ mod tests {
     /// second, shared-budget request — never a silent drop of the second
     /// answer.
     #[test]
+    #[cfg(target_os = "macos")]
     fn answer_references_times_out_on_a_silent_second_request()
     -> Result<(), Box<dyn std::error::Error>> {
         let source = bundle(&[("src/lib.rs", b"fn a() {}\n")])?;
