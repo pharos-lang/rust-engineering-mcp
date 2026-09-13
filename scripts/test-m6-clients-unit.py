@@ -21,6 +21,15 @@ M6 = importlib.util.module_from_spec(SPEC)
 SPEC.loader.exec_module(M6)
 
 
+def _dummy_binary(directory: str) -> pathlib.Path:
+    """A present, readable stand-in so run()'s receipt can hash SERVER/CLAUDE
+    on a CI runner that has not built the release binary or installed Claude."""
+    path = pathlib.Path(directory) / "binary"
+    if not path.exists():
+        path.write_bytes(b"candidate")
+    return path
+
+
 class InventoryTests(unittest.TestCase):
     def test_inventory_is_an_exact_extension_of_the_thirty_one(self):
         self.assertEqual(M6.EXPECTED_TOOLS[:22], M6.M3_TOOLS)
@@ -1067,8 +1076,14 @@ class RunOrchestrationTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             attempts = pathlib.Path(tmp) / "clients"
             current = pathlib.Path(tmp) / "clients.json"
+            ready = dict(M6.preflight(False, None))
+            ready["unsatisfied"] = []
             with mock.patch.object(M6, "ATTEMPTS", attempts), \
                  mock.patch.object(M6, "CURRENT", current), \
+                 mock.patch.object(M6, "preflight", return_value=ready), \
+                 mock.patch.object(M6, "PRIVATE_DIR_BASE", tmp), \
+                 mock.patch.object(M6, "SERVER", _dummy_binary(tmp)), \
+                 mock.patch.object(M6, "CLAUDE", _dummy_binary(tmp)), \
                  mock.patch.object(M6, "inspector_gate", side_effect=self.fake_inspector_gate), \
                  mock.patch.object(M6, "claude_gate", side_effect=self.fake_claude_gate):
                 code = M6.run(False, None)
@@ -1134,8 +1149,14 @@ class DockerSettleTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             attempts = pathlib.Path(tmp) / "clients"
             current = pathlib.Path(tmp) / "clients.json"
+            ready = dict(M6.preflight(False, None))
+            ready["unsatisfied"] = []
             with mock.patch.object(M6, "ATTEMPTS", attempts), \
                  mock.patch.object(M6, "CURRENT", current), \
+                 mock.patch.object(M6, "preflight", return_value=ready), \
+                 mock.patch.object(M6, "PRIVATE_DIR_BASE", tmp), \
+                 mock.patch.object(M6, "SERVER", _dummy_binary(tmp)), \
+                 mock.patch.object(M6, "CLAUDE", _dummy_binary(tmp)), \
                  mock.patch.object(M6, "inspector_gate",
                                    side_effect=RunOrchestrationTests.fake_inspector_gate), \
                  mock.patch.object(M6, "claude_gate",
@@ -1174,6 +1195,9 @@ class DockerSettleTests(unittest.TestCase):
             with mock.patch.object(M6, "ATTEMPTS", attempts), \
                  mock.patch.object(M6, "CURRENT", current), \
                  mock.patch.object(M6, "preflight", return_value=check), \
+                 mock.patch.object(M6, "PRIVATE_DIR_BASE", tmp), \
+                 mock.patch.object(M6, "SERVER", _dummy_binary(tmp)), \
+                 mock.patch.object(M6, "CLAUDE", _dummy_binary(tmp)), \
                  mock.patch.object(M6, "inspector_gate", side_effect=fake_inspector_gate), \
                  mock.patch.object(M6, "claude_gate", side_effect=fake_claude_gate), \
                  mock.patch.object(M6, "settle_docker_between_batches", side_effect=fake_settle):

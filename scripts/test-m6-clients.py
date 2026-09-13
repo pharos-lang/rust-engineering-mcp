@@ -150,6 +150,10 @@ FIXTURES = {
 WRITE_PROJECT = "write"
 
 PLACEHOLDER_DIGEST = "sha256:" + "1" * 64
+# macOS keeps the private scratch under /private/tmp (real path, not the
+# S5443-flagged /tmp); a constant so the unit tests can redirect it to a
+# portable tempdir on the Linux CI runner.
+PRIVATE_DIR_BASE = "/private/tmp"
 UNKNOWN_PROJECT_REF = "prj_" + "0" * 32
 # Matches the tool's `AnalyzerFile` pattern (`.rs`, <=100 chars) but names no
 # file the capture ever contains.
@@ -1510,7 +1514,7 @@ def claude_gate(attempt: pathlib.Path, mode: str, argv: list[str],
     proxy = [sys.executable, str(pathlib.Path(__file__).resolve()), "proxy",
              "--client", CLAUDE_CLIENT, "--observation", str(observation),
              "--server-argv-json", json.dumps(argv, separators=(",", ":"))]
-    private = pathlib.Path(tempfile.mkdtemp(prefix="rust-mcp-m6-claude-", dir="/private/tmp"))
+    private = pathlib.Path(tempfile.mkdtemp(prefix="rust-mcp-m6-claude-", dir=PRIVATE_DIR_BASE))
     os.chmod(private, 0o700)
     events_path = attempt / f"claude-{mode}-model-events.jsonl"
     stderr_path = attempt / f"claude-{mode}-model.stderr"
@@ -1608,7 +1612,7 @@ def run(with_runtime: bool, docker_socket: str | None) -> int:
     gate_spec.loader.exec_module(gate)
     candidate_sources = gate.source_inventory(ROOT, os.environ.copy())
     attempt = next_attempt()
-    private = pathlib.Path(tempfile.mkdtemp(prefix="rust-mcp-m6-clients-", dir="/private/tmp"))
+    private = pathlib.Path(tempfile.mkdtemp(prefix="rust-mcp-m6-clients-", dir=PRIVATE_DIR_BASE))
     os.chmod(private, 0o700)
     # Named, never created and never dialed: the assertion below is what proves
     # the Docker-free mode started no container.
