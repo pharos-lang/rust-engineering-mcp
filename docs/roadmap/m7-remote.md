@@ -1,8 +1,9 @@
 # M7 — Remote / 0.7.x condicional
 
-Estado: **Conditional**; ejecución y release **Deferred** hasta Go. No existe en
-la evidencia revisada un caso remoto aprobado. No-go actual por falta de evidencia;
-no implica que remoto sea imposible. Fuentes: spec §8.1, §97 M7,
+Estado: **Deferred con decisión** ([acta M7-G0](m7-g0-decision.md), 2026-09-13,
+no-go del owner por falta de expediente de caso remoto real). Ejecución y release
+siguen `Deferred` hasta un Go futuro con expediente completo. No existe en la
+evidencia revisada un caso remoto aprobado; no implica que remoto sea imposible. Fuentes: spec §8.1, §97 M7,
 [ADR-003](../adr/ADR-003-stdio-first.md), [ADR-023](../adr/ADR-023-mcp-stdio-bootstrap.md).
 Aplican íntegros [G1–G9](m2-m8.md). No se inicia diseño detallado de HTTP antes de G0;
 lo siguiente define decisiones y criterios que deberán resolverse si se aprueba.
