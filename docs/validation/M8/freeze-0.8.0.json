@@ -1,8 +1,8 @@
 {
   "canonical": "json sort_keys separators(',',':') ensure_ascii=False sha256",
   "format_version": 1,
-  "generated_utc": "2026-09-14T17:24:03.673460Z",
-  "head_commit": "dbc17f57e6f0eddc8ce25ae2c98dd79049fc307d",
+  "generated_utc": "2026-09-14T21:22:11.595446Z",
+  "head_commit": "b7f05289e924b26c473d980e5d96348ea4527779",
   "preview_count": 5,
   "stable_count": 31,
   "tool_count": 36,
@@ -475,5 +475,6 @@
       "snapshot_sha256": "1e291f9b3eb148c484e56861a5f1505e757bfd3040adb5d362481fbc12ca5acd",
       "stability": "stable"
     }
-  }
+  },
+  "tree_dirty": false
 }
