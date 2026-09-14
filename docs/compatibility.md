@@ -5,7 +5,7 @@
 | Componente | Foundation implementada |
 | --- | --- |
 | Release soportada | `0.3.0` (anterior: `0.1.0`) |
-| Checkout de desarrollo | `0.3.0`; 36 tools: 18 M1/M2, cuatro M3, cinco M4, cuatro M5 calificadas localmente y `rust.analyzer.symbols`/`rust.analyzer.references`/`rust.analyzer.diagnostics`/`rust.analyzer.actions`/`rust.analyzer.action.apply` (M6, en desarrollo); Tasks anunciado con negociación mutua; sin commit de integración, PR, tag ni publicación |
+| Checkout de desarrollo | `0.3.0`; 36 tools: 18 M1/M2, cuatro M3, cinco M4, cuatro M5 calificadas localmente y `rust.analyzer.symbols`/`rust.analyzer.references`/`rust.analyzer.diagnostics`/`rust.analyzer.actions`/`rust.analyzer.action.apply` (M6, fusionadas en `main` vía PR #20 (`e50c3fe`) y calificadas, [handoff](validation/M6/handoff.md); sin tag ni publicación todavía); Tasks anunciado con negociación mutua |
 | Toolchain fijado / MSRV inicial | Rust y Cargo `1.98.1`, edition 2024 |
 | Target de validación local | `aarch64-apple-darwin` |
 | SDK | `rmcp =3.2.0`, features `server`, `transport-io`, sin defaults |
@@ -204,6 +204,43 @@ La CLI capabilities delega probes activos al gateway Docker explícito del host.
 API contrastada con el [SDK fijado](https://docs.rs/rmcp/3.2.0/rmcp/),
 [versioning oficial](https://modelcontextprotocol.io/specification/2026-07-28/basic/versioning)
 y [stdio oficial](https://modelcontextprotocol.io/specification/2026-07-28/basic/transports/stdio).
+
+## Política de deprecación y freeze (0.8 → 1.0)
+
+Cada tool, Resource, comando CLI y formato en disco recibe una clase de
+estabilidad —`stable`, `preview`, `experimental` o `internal`— asignada con
+evidencia (consumidor real, test y documentación); sin esa evidencia no
+puede ser `stable`. `experimental` (spec §57, opt-in por namespace/metadata)
+está hoy sin uso; `internal` son elementos no anunciados (CLI/formatos
+privados), y ninguna de las dos se anuncia en `tools/list`. Consumidor real
+es una invocación de un cliente stock (Inspector, Codex, Claude Code, Gemini
+CLI) o un test e2e nativo por el wire MCP; un test unitario no cuenta, y
+toda tool `stable` debe ejercitarse por un cliente stock en M8-04 antes de
+RC1 o se degrada a `preview`. Mientras no exista freeze, toda ruptura
+requiere minor release, changelog y migration notes
+([ADR-012](adr/ADR-012-semver-compatibility.md)).
+
+`0.8.0` es el freeze: se anuncian ahí todas las deprecaciones con su reemplazo
+y una migración probada por test; lo deprecado sigue funcionando durante toda
+la serie 0.8/0.9, y en `1.0` se retira únicamente lo anunciado desde `0.8.0`.
+Tras el freeze no se renombra ni se amplía un contrato `stable`; una ruptura
+necesaria reinicia el freeze y los dos release candidates de M8-09. Desde
+`1.0`, una deprecación ocurre en una minor 1.x, permanece funcional durante
+toda esa serie y su eliminación solo puede ocurrir en `2.0`.
+
+No se introduce un parámetro `version` por tool. Una deprecación se expresa en
+la `description` de la tool con el prefijo «Deprecated since 0.8.0 — use …»,
+en esta matriz y en el changelog; el schema y los errores del elemento
+deprecado no cambian mientras siga anunciado.
+
+Decisión completa, alternativas consideradas y consecuencias:
+[ADR-086](adr/ADR-086-deprecation-and-freeze-policy.md).
+
+Bajo esta política, las cinco tools `rust.analyzer.*` (`symbols`,
+`references`, `diagnostics`, `actions`, `action.apply`) son clase `preview`:
+tienen deuda de contrato conocida (semántica `SANDBOX_DENIED` transitorio vs
+permanente, diagnósticos sintaxis-only, assists no deterministas —
+`docs/validation/M6/matrix.md` §Deuda); las 31 tools restantes son `stable`.
 
 ## Gateway y capabilities M0-05/06
 

@@ -113,7 +113,7 @@ Estado global: **Proposed**. Ninguna entrada es un ADR Accepted. Los IDs D01–D
 
 ## D11 — Freeze y SemVer
 
-- **Status:** Proposed.
+- **Status:** Accepted, [ADR-086](../adr/ADR-086-deprecation-and-freeze-policy.md), 2026-09-14.
 - **Context:** Freeze y SemVer amplía o concreta una frontera heredada de M1; véanse [baseline](baseline-2026-09-05.md) y [trazabilidad](traceability-m2-m8.md).
 - **Decision propuesta:** Inventariar contratos y fijar ventanas de deprecación/0.x→1.0 antes de cambios.
 - **Alternatives considered:** Compatibilidad estricta; opt-in versionado; ruptura explícita en 0.8.
