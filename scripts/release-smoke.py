@@ -2,10 +2,9 @@
 """Fail-closed offline installation and MCP smoke for the core release archive.
 
 The tool inventory, schemas and annotations are pinned to the frozen contract
-snapshots under crates/mcp-server/tests/snapshots (31 tools since 0.3.0; 32
-since M6-01 adds rust.analyzer.symbols; 34 since M6-02/M6-03 add
-rust.analyzer.references and rust.analyzer.diagnostics; 36 since M6-04/M6-05
-add rust.analyzer.actions and rust.analyzer.action.apply).
+snapshots under crates/mcp-server/tests/snapshots (36 tools in the 0.8.0
+freeze: 31 stable, 5 preview — rust.analyzer.symbols, .references,
+.diagnostics, .actions and .action.apply).
 """
 
 from __future__ import annotations
