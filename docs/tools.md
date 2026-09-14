@@ -1,8 +1,10 @@
 # Tools
 
 `rust.project.open`, `rust.project.inspect`, `rust.toolchain.inspect`, `rust.check`, `rust.fmt.check`, `rust.clippy`, `rust.test`, `rust.dependencies.audit`, `rust.diagnostics.explain`, `rust.quality.gate`, `rust.catalog.status`, `rust.crate.search` y `rust.crate.inspect` están implementadas en este checkout; los gates de [M1-11](validation/M1/11.md) y [M1-12](validation/M1/12.md) están registrados; M1-13 tiene [gate aprobado](validation/M1/13.md). rmcp 3.2.0 gestiona discovery, negociación y dispatch. La release `0.1.0`
-devuelve trece definiciones sin cursor. El checkout `0.3.0` devuelve 31:
-añade cinco tools M2, cuatro M3, cinco M4 y cuatro M5. Las cinco M4 están
+devuelve trece definiciones sin cursor. La release `0.3.0` devuelve 31: añade
+cinco tools M2, cuatro M3, cinco M4 y cuatro M5. El checkout de desarrollo
+devuelve 36: añade además cinco tools M6 (analyzer), calificadas en
+[validation/M6/handoff.md](validation/M6/handoff.md). Las cinco M4 están
 implementadas y calificadas localmente; el hito espera la confirmación final de
 evidencia. Las cuatro M5 están implementadas y **calificadas localmente**; su
 estado por corte está en los [contratos M5](#contratos-m5--medición-de-rendimiento).
@@ -135,7 +137,7 @@ por el usuario. Los resultados unavailable/blocked/degraded son parte del contra
 ## Vertical M3-01 en el checkout de desarrollo
 
 `rust.test.nextest` se incorporó como la tool número 19; el checkout integrado
-conserva las cuatro definiciones M3 dentro del inventario, hoy de 31 tools.
+conserva las cuatro definiciones M3 dentro del inventario, hoy de 36 tools.
 Selecciona
 package/features/target y un filtro cerrado, usa siempre el perfil `rust-mcp`, no
 ejecuta doctests y obtiene

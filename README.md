@@ -22,8 +22,9 @@ integrados en `main`, M5 publicado como release `0.3.0`: esa release registra
 cuatro tools de rendimiento M5). El checkout de desarrollo, aún en versión
 `0.3.0`, añade las cinco tools de análisis M6 —`rust.analyzer.symbols`,
 `rust.analyzer.references`, `rust.analyzer.diagnostics`,
-`rust.analyzer.actions` y `rust.analyzer.action.apply`— y registra 36; solo
-M6 está en desarrollo local, sin integración remota ni release.
+`rust.analyzer.actions` y `rust.analyzer.action.apply`— y registra 36; M6
+está integrado en `main` (PR #20, `e50c3fe`) y calificado (clase `preview`,
+ver docs/compatibility.md), sin tag ni release todavía.
 
 > [!IMPORTANT]
 > La versión estable actual es `0.3.0`. GitHub Releases publica un único binario core
