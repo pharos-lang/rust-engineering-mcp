@@ -1,6 +1,55 @@
 # Changelog
 
-## Sin publicar
+## 0.8.0 — freeze de contratos (sin publicar; RC en M8-09)
+
+### Migration notes 0.3.0 → 0.8.0
+
+- **Inventario: 31 → 36 tools.** Se añaden cinco `rust.analyzer.*`
+  (`.symbols`, `.references`, `.diagnostics`, `.actions`, `.action.apply`),
+  clasificadas `preview` bajo la política de estabilidad de
+  [ADR-086](docs/adr/ADR-086-deprecation-and-freeze-policy.md). Las 31 tools
+  restantes quedan `stable`, condicionadas a superar la matriz de clientes
+  stock M8-04 antes de RC1 (ADR-086 §1); una tool que no la supere se degrada
+  a `preview` en vez de retirarse.
+- **Nuevo grant de host** `--allow-analyzer-action-write WORKSPACE_ROOT`
+  (requerido por `rust.analyzer.action.apply`; sin él la tool es
+  `unavailable/SANDBOX_DENIED`). El flag `--rust-image` existe desde M1; lo
+  nuevo en 0.8.0 es la **imagen de runtime M6** que admite
+  ([ADR-085](docs/adr/ADR-085-m6-runtime-admission.md)), requerida por las
+  cinco tools `rust.analyzer.*` (sin ella son `unavailable`).
+- **30 contratos `stable` byte-idénticos a `0.3.0`.** El único cambio de
+  schema en una tool `stable` es `rust.binary.bloat`: su `inputSchema` y su
+  `outputSchema` cambian únicamente en el texto de `description` de
+  `$defs/BloatProfile` (la ruta de evidencia citada en ese texto se reescribió
+  por la hygiene del repo); no cambia validación, tipos, campos ni
+  `annotations` (`docs/validation/M8/02-schema-diff.json`,
+  `keys_changed: [inputSchema, outputSchema]`, `annotations_changed: false`).
+- **Las trece tools M1 son byte-idénticas a `0.1.0`** (verificado
+  `git diff v0.1.0 HEAD` sobre sus snapshots de contrato).
+- **Deprecaciones anunciadas en 0.8.0: ninguna.** Por ADR-086 §4, nada que no
+  se anuncie deprecado en 0.8.0 puede retirarse en 1.0.
+- **Nuevo subcomando `rust-engineering-mcp contract [--json | --human]`**
+  (spec §56), clase `stable` desde 0.8.0 junto con su documento en disco
+  (`document_kind: rust_engineering_capabilities`, `format_version: 1`); un
+  cambio de formato es minor release con migration notes. Solo `--json` (con
+  `format_version: 1`) es el contrato `stable`; `--human` es una
+  representación informativa del mismo documento y no forma parte del
+  contrato. Publica
+  `document_kind`, `format_version`, `server_version`,
+  `protocol{primary_version, negotiable_versions, sdk}`,
+  `tools{name → stability, annotations, input_schema_sha256,
+  output_schema_sha256, description_sha256, executes_project_code,
+  requires_runtime}`, `resources[]{uri_template, stability}` y `tool_count`.
+  Cadena de verificación de tres eslabones: los protocol tests exigen
+  igualdad servidor vivo ↔ snapshots; `tests/cli.rs` exige igualdad
+  `contract --json` ↔ snapshots; la etapa `contract-freeze` del gate `core`
+  exige igualdad snapshots ↔ manifiesto de freeze
+  `docs/validation/M8/freeze-0.8.0.json`.
+- **Clase `preview` visible en la `description`** de las cinco tools
+  `rust.analyzer.*` con el prefijo `Preview (ADR-086): `.
+- **Alcance de hosts para 1.0: macOS ARM64 únicamente**
+  ([ADR-087](docs/adr/ADR-087-1.0-host-scope.md)); Linux/Windows x86_64 siguen
+  siendo CI de portabilidad, sin artifact ni calificación.
 
 - **M6-04/M6-05: `rust.analyzer.actions` y `rust.analyzer.action.apply`**
   (rama `ai/m6-analyzer`). El inventario público pasa de 34 a 36 tools; los 34

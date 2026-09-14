@@ -5,16 +5,16 @@
 | Componente | Foundation implementada |
 | --- | --- |
 | Release soportada | `0.3.0` (anterior: `0.1.0`) |
-| Checkout de desarrollo | `0.3.0`; 36 tools: 18 M1/M2, cuatro M3, cinco M4, cuatro M5 calificadas localmente y `rust.analyzer.symbols`/`rust.analyzer.references`/`rust.analyzer.diagnostics`/`rust.analyzer.actions`/`rust.analyzer.action.apply` (M6, fusionadas en `main` vía PR #20 (`e50c3fe`) y calificadas, [handoff](validation/M6/handoff.md); sin tag ni publicación todavía); Tasks anunciado con negociación mutua |
+| Checkout de desarrollo | `0.8.0` (freeze de contratos, sin release); 36 tools: 31 `stable` (18 M1/M2, cuatro M3, cinco M4, cuatro M5) y 5 `preview` (`rust.analyzer.symbols`/`rust.analyzer.references`/`rust.analyzer.diagnostics`/`rust.analyzer.actions`/`rust.analyzer.action.apply`, M6, fusionadas en `main` vía PR #20 (`e50c3fe`) y calificadas, [handoff](validation/M6/handoff.md)); Tasks anunciado con negociación mutua |
 | Toolchain fijado / MSRV inicial | Rust y Cargo `1.98.1`, edition 2024 |
-| Target de validación local | `aarch64-apple-darwin` |
+| Target de validación local | `aarch64-apple-darwin`; [ADR-087](adr/ADR-087-1.0-host-scope.md) confirma este target como el único host positivo y único artifact 1.0 |
 | SDK | `rmcp =3.2.0`, features `server`, `transport-io`, sin defaults |
 | Runtime / logging | Tokio `1.53.1`, tokio-util `0.7.19`, tracing `0.1.44`, tracing-subscriber `0.3.23` |
 | Dominio | Serde `1.0.229`; sin dependencia del SDK, ADR-022 |
 | CI portable | Linux x86_64 y macOS ARM64; fuente/protocolo/fail-closed, no capabilities positivas. Windows x86_64 retirado del CI el 2026-09-13 (regresión de stdio pre-`initialize` en M6, deuda a restaurar) |
 | Host positivo local M1–M4 | macOS 26 ARM64/APFS; ejecución de proyecto en guest Docker Linux ARM64 aprobado |
 | Artifact 0.1.0 publicado | Un único archive core `aarch64-apple-darwin`; checksum, SBOM/notices y provenance verificados |
-| Linux / macOS x86_64 nativos | CI pública compila y prueba el código fuente; la calificación nativa del sandbox y filesystem sigue pendiente para ampliar soporte en una release futura. Windows: compilación CI retirada el 2026-09-13 hasta corregir la regresión de stdio pre-`initialize` de M6 |
+| Linux / macOS x86_64 nativos | CI pública compila y prueba el código fuente; [ADR-087](adr/ADR-087-1.0-host-scope.md) fija que 1.0 no califica ni publica esta familia — una calificación nativa del sandbox y filesystem requiere un subprograma D13 propio y un ADR nuevo. Windows: compilación CI retirada el 2026-09-13 hasta corregir la regresión de stdio pre-`initialize` de M6; su restauración es deuda de portabilidad, no criterio 1.0 |
 | Licencia / redistribución | Código original `MIT OR Apache-2.0`; assets `local` no se redistribuyen en 0.1.0 |
 | Clientes de terceros | M4: Inspector 2.5.0 con Tasks y Codex 0.153.0 stock por sincronía; [recibo](validation/M4/clients.json). M5: Inspector 2.5.0 (quince filas, catorce Resources) y Claude Code 2.1.267 `claude-sonnet-5` como cliente agentic; [recibo](validation/M5/clients.json). M1/M2 conservan sus matrices anteriores. |
 | Sandbox | Probes M0 separados; ejecución M1–M4 habilitada solo en runtimes aprobados Docker/Linux ARM64 calibrados por sus ADR |
@@ -236,11 +236,32 @@ deprecado no cambian mientras siga anunciado.
 Decisión completa, alternativas consideradas y consecuencias:
 [ADR-086](adr/ADR-086-deprecation-and-freeze-policy.md).
 
-Bajo esta política, las cinco tools `rust.analyzer.*` (`symbols`,
-`references`, `diagnostics`, `actions`, `action.apply`) son clase `preview`:
-tienen deuda de contrato conocida (semántica `SANDBOX_DENIED` transitorio vs
-permanente, diagnósticos sintaxis-only, assists no deterministas —
-`docs/validation/M6/matrix.md` §Deuda); las 31 tools restantes son `stable`.
+Bajo esta política, las cinco tools `rust.analyzer.*` son clase `preview` y
+las 31 tools restantes son `stable`, condicionadas a superar la matriz de
+clientes stock M8-04 antes de RC1 ([ADR-086](adr/ADR-086-deprecation-and-freeze-policy.md)
+§1); la deuda de contrato que mantiene `preview` a las cinco primeras se
+documenta en
+[client-configuration.md](client-configuration.md#configurar-las-tools-m6),
+fuente única de esa nota.
+
+Documento de contrato: el subcomando CLI `contract` y su documento en disco
+(`document_kind: rust_engineering_capabilities`, `format_version: 1`) son
+clase `stable` desde `0.8.0`; un cambio de formato es minor release con
+migration notes, igual que cualquier otro contrato `stable`. Solo `--json`
+(con `format_version: 1`) es el contrato `stable`; `--human` es una
+representación informativa del mismo documento y no forma parte del
+contrato. `rust-engineering-mcp
+contract --json` publica `document_kind`, `format_version`, `server_version`,
+`protocol{primary_version, negotiable_versions, sdk}`, `tools{name →
+stability, annotations, input_schema_sha256, output_schema_sha256,
+description_sha256, executes_project_code, requires_runtime}`,
+`resources[]{uri_template, stability}` y `tool_count`; `executes_project_code`
+declara si la tool puede ejecutar build scripts, proc macros, tests o
+binarios del proyecto en el guest. La cadena de verificación tiene tres
+eslabones: los protocol tests exigen igualdad servidor vivo ↔ snapshots;
+`tests/cli.rs` exige igualdad `contract --json` ↔ snapshots; la etapa
+`contract-freeze` del gate `core` exige igualdad snapshots ↔ manifiesto
+([`docs/validation/M8/freeze-0.8.0.json`](validation/M8/freeze-0.8.0.json)).
 
 ## Gateway y capabilities M0-05/06
 

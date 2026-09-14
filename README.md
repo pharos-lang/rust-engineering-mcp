@@ -19,8 +19,8 @@ El servidor usa transporte MCP por `stdio`. Las trece tools de la release
 `0.1.0` observan y validan sin modificar el source. M4 y M5 están cerrados e
 integrados en `main`, M5 publicado como release `0.3.0`: esa release registra
 31 tools (las 18 de M1/M2, las cuatro tools de calidad M3, cinco tools M4 y
-cuatro tools de rendimiento M5). El checkout de desarrollo, aún en versión
-`0.3.0`, añade las cinco tools de análisis M6 —`rust.analyzer.symbols`,
+cuatro tools de rendimiento M5). El checkout de desarrollo, en versión
+`0.8.0` (freeze de contratos, sin release), añade las cinco tools de análisis M6 —`rust.analyzer.symbols`,
 `rust.analyzer.references`, `rust.analyzer.diagnostics`,
 `rust.analyzer.actions` y `rust.analyzer.action.apply`— y registra 36; M6
 está integrado en `main` (PR #20, `e50c3fe`) y calificado (clase `preview`,
@@ -29,9 +29,11 @@ ver docs/compatibility.md), sin tag ni release todavía.
 > [!IMPORTANT]
 > La versión estable actual es `0.3.0`. GitHub Releases publica un único binario core
 > soportado para Apple Silicon (`aarch64-apple-darwin`); la ejecución completa se ha
-> calificado localmente en macOS 26 y APFS. La CI compila y prueba el código en Linux,
-> macOS y Windows, pero eso no amplía las garantías del sandbox o del filesystem ni
-> anuncia binarios para esas otras plataformas.
+> calificado localmente en macOS 26 y APFS. Por [ADR-087](docs/adr/ADR-087-1.0-host-scope.md),
+> 1.0 también califica y publica únicamente macOS ARM64. Linux y Windows x86_64
+> conservan CI de portabilidad/fail-closed (Windows retirado temporalmente el
+> 2026-09-13, deuda de portabilidad) sin capabilities positivas ni artifact; ver
+> [docs/compatibility.md](docs/compatibility.md).
 
 ## Funcionalidades
 

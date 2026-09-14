@@ -2009,3 +2009,71 @@ respuesta completa excedería el presupuesto; `LIMIT_EXCEEDED` sigue siendo el
 de los techos de `MutationPlans` (4 planes/64 MiB) y del journal. Cada llamada
 emite el mismo evento local `rust-mcp-mutation-event-v1` de M2 por stderr, con
 `tool: "rust.analyzer.action.apply"` y el código en snake_case.
+
+## Familias de códigos de error
+
+El producto usa **dos** familias de `error_code` cerradas por diseño
+(ADR-050 y siguientes), nunca un enum global: cada tool documenta las suyas y
+un llamador debe leerlas por tool.
+
+- **Envelope operacional** (`SCREAMING_SNAKE_CASE`): `OperationalErrorCode`
+  base más extensiones cerradas por tool (p. ej. `LOCKFILE_UPDATE_REQUIRED` en
+  `rust.check`, `POSITION_OUT_OF_RANGE` en las tools `rust.analyzer.*`).
+  Cubre **31 tools**, incluida `rust.analyzer.action.apply` (que además
+  participa del envelope de mutación M2 en su vista `MutationKind`).
+- **Envelope de mutación M2** (`snake_case`, campo `Reason`): el ciclo
+  `preview`/`commit`/`receipt` compartido por las **cinco** tools de
+  escritura (`rust.fmt.apply`, `rust.fix.apply`, `rust.manifest.patch`,
+  `rust.dependency.add`, `rust.dependency.remove`) y por la vista de mutación
+  de `rust.analyzer.action.apply`.
+
+Unificar el casing rompería 5 o 31 contratos `stable`/`preview` ya
+publicados; no está previsto antes de 2.0.
+
+## Resources dinámicas
+
+Las Resources del servidor son dinámicas por sesión: `resources/list`
+devuelve siempre `[]` **por diseño**, nunca un catálogo estático. Las URIs
+válidas siguen las plantillas `rust-artifact://prj_<32hex>/art_<32hex>` (ver
+[rust.check y Resources](#rustcheck-y-resources-m1-03)) y
+`rust-quality-artifact://…` (M4/M5); `resources/read` las resuelve solo si
+existen y el llamador es su propietario vigente. Los ejemplos estáticos de
+spec §9.2 no se implementaron ([ADR-011](adr/ADR-011-mcp-resources.md)).
+
+## Clases de estabilidad y documento de contrato
+
+Cada tool anuncia su clase de estabilidad (`stable`, `preview`,
+`experimental`, `internal`) según
+[ADR-086](adr/ADR-086-deprecation-and-freeze-policy.md); la clase `preview`
+es además visible en la `description` de la tool con el prefijo
+`Preview (ADR-086): `. El subcomando estático
+`rust-engineering-mcp contract [--json | --human]` (spec §56) y su documento
+en disco (`document_kind: rust_engineering_capabilities`, `format_version: 1`)
+son clase `stable` desde `0.8.0`: un cambio de formato es minor release con
+migration notes, como cualquier otro contrato `stable`. Solo `--json` (con
+`format_version: 1`) es el contrato `stable`; `--human` es una representación
+informativa del mismo documento y no forma parte del contrato. El documento
+publica:
+
+- `document_kind`: identificador fijo del formato (`rust_engineering_capabilities`).
+- `format_version`: entero de esquema del propio documento, hoy `1`.
+- `server_version`: versión del binario que lo emitió.
+- `protocol{primary_version, negotiable_versions, sdk}`: versión MCP primaria,
+  versiones negociables y el SDK usado para hablar el wire protocol.
+- `tools{name → stability, annotations, input_schema_sha256,
+  output_schema_sha256, description_sha256, executes_project_code,
+  requires_runtime}`: por tool, su clase de estabilidad, sus annotations
+  MCP, los hashes canónicos de `inputSchema`/`outputSchema`/`description`,
+  si puede ejecutar build scripts, proc macros, tests o binarios del
+  proyecto en el guest (`executes_project_code`) y su requisito de runtime.
+- `resources[]{uri_template, stability}`: las plantillas de Resources
+  dinámicas anunciadas y su clase de estabilidad.
+- `tool_count`: número total de tools anunciadas.
+
+Este documento sirve de oráculo de igualdad de contrato entre release
+candidates, a través de una cadena de tres eslabones: los protocol tests
+exigen igualdad exacta entre el servidor vivo y los snapshots de
+`crates/mcp-server/tests/snapshots`; `tests/cli.rs` exige igualdad entre
+`contract --json` y esos mismos snapshots; y la etapa `contract-freeze` del
+gate `core` exige igualdad entre los snapshots y el manifiesto de freeze
+[`docs/validation/M8/freeze-0.8.0.json`](validation/M8/freeze-0.8.0.json).
