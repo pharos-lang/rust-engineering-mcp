@@ -29,8 +29,8 @@ use std::{
 };
 use tokio_util::sync::CancellationToken;
 
-const PREFIX: &str = "rust-artifact://";
-const QUALITY_PREFIX: &str = "rust-quality-artifact://";
+pub(super) const PREFIX: &str = "rust-artifact://";
+pub(super) const QUALITY_PREFIX: &str = "rust-quality-artifact://";
 const MAX_CONTENT: usize = 256 * 1024;
 const MAX_RESPONSE: usize = 512 * 1024;
 #[derive(Clone)]

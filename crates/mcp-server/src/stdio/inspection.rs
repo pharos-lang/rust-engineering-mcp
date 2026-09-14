@@ -32,7 +32,7 @@ const DEADLINE: Duration = Duration::from_secs(120);
 const MAX_RESULT: usize = 512 * 1024;
 #[derive(Deserialize, JsonSchema)]
 #[serde(deny_unknown_fields)]
-struct Input {
+pub(super) struct Input {
     #[schemars(with = "String", regex(pattern = "^prj_[0-9a-f]{32}$"))]
     project_ref: ProjectRef,
 }
@@ -98,7 +98,7 @@ struct Truncation {
 }
 #[derive(Serialize, JsonSchema)]
 #[serde(deny_unknown_fields)]
-struct Output {
+pub(super) struct Output {
     #[serde(flatten)]
     outcome: Outcome,
     summary: &'static str,
@@ -258,6 +258,16 @@ pub(super) struct InspectionTool {
     inspector: Arc<RustProjectInspector>,
     ready: Arc<AtomicBool>,
 }
+/// Static contract: name, description, schema and annotations, with no host
+/// runtime wiring. Shared by `new` and the static `contract` CLI document.
+pub(super) fn definition() -> Result<(Contract<Input, Output>, Tool), ErrorData> {
+    let contract = Contract::<Input, Output>::new()?;
+    let definition=Tool::new(NAME,"Inspect captured workspace/package declarations via the host-approved offline Rust runtime. Reports explicit MSRV, targets, declared features/dependencies/profiles, runtime identity and snapshot evidence; no resolved dependency graph. Requires a live project_ref, completed discovery and explicit host runtime policy; unsupported layouts fail closed.",(*contract.input_schema).clone())
+        .with_raw_output_schema(Arc::clone(&contract.output_schema))
+        .with_annotations(ToolAnnotations::new().read_only(true).destructive(false).idempotent(true).open_world(false));
+    Ok((contract, definition))
+}
+
 impl InspectionTool {
     pub(super) fn new(
         registry: Arc<Mutex<Registry>>,
@@ -265,10 +275,7 @@ impl InspectionTool {
         inspector: Arc<RustProjectInspector>,
         ready: Arc<AtomicBool>,
     ) -> Result<Self, ErrorData> {
-        let contract = Contract::<Input, Output>::new()?;
-        let definition=Tool::new(NAME,"Inspect captured workspace/package declarations via the host-approved offline Rust runtime. Reports explicit MSRV, targets, declared features/dependencies/profiles, runtime identity and snapshot evidence; no resolved dependency graph. Requires a live project_ref, completed discovery and explicit host runtime policy; unsupported layouts fail closed.",(*contract.input_schema).clone())
-            .with_raw_output_schema(Arc::clone(&contract.output_schema))
-            .with_annotations(ToolAnnotations::new().read_only(true).destructive(false).idempotent(true).open_world(false));
+        let (contract, definition) = definition()?;
         Ok(Self {
             definition,
             contract,

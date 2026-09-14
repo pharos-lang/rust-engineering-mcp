@@ -8,6 +8,7 @@ mod benchmark;
 mod benchmark_compare;
 mod bloat;
 mod budget;
+mod capability_document;
 mod catalog;
 mod check;
 mod clock;
@@ -38,6 +39,7 @@ mod quality_artifacts;
 mod resources;
 mod security_tool;
 mod semver;
+mod stability;
 mod tasks;
 mod testing;
 mod toolchain;
@@ -867,6 +869,14 @@ impl ServerHandler for EngineeringServer {
             None,
         ))
     }
+}
+
+/// spec §56 static capabilities document (M8-02 decision 3): the same 36 tool
+/// definitions `list_tools` advertises, with per-tool stability, annotations,
+/// canonical schema/description hashes and runtime requirements. Built with no
+/// project root, Docker or network access.
+pub fn contract(json: bool) -> ExitCode {
+    capability_document::run(json)
 }
 
 pub fn run(config: HostConfig) -> ExitCode {

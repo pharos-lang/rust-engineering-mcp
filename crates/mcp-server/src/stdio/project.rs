@@ -18,7 +18,7 @@ pub(super) type Registry = ProjectRegistry<SecureProjects, OsReferences, Monoton
 
 #[derive(Deserialize, JsonSchema)]
 #[serde(deny_unknown_fields)]
-struct OpenInput {
+pub(super) struct OpenInput {
     #[schemars(length(min = 1, max = 4096))]
     path: String,
 }
@@ -101,7 +101,7 @@ enum LocalEvidence {
 
 #[derive(Serialize, JsonSchema)]
 #[serde(deny_unknown_fields)]
-struct OpenOutput {
+pub(super) struct OpenOutput {
     #[serde(flatten)]
     outcome: Outcome,
     summary: String,
@@ -230,6 +230,16 @@ pub(super) struct ProjectTool {
     workers: Workers,
 }
 
+pub(super) fn definition() -> Result<(Contract<OpenInput, OpenOutput>, Tool), ErrorData> {
+    let contract = Contract::<OpenInput, OpenOutput>::new()?;
+    let definition = Tool::new(NAME,
+        "Register an explicitly selected Rust package/workspace root authorized by the host. Reads bounded manifests and validates structural membership/path dependencies without running Cargo or project code. Returns a process-local opaque reference; no compilation or dependency resolution is certified.",
+        (*contract.input_schema).clone())
+        .with_raw_output_schema(Arc::clone(&contract.output_schema))
+        .with_annotations(ToolAnnotations::new().read_only(true).destructive(false).idempotent(false).open_world(false));
+    Ok((contract, definition))
+}
+
 impl ProjectTool {
     pub(super) fn registry(&self) -> Arc<Mutex<Registry>> {
         Arc::clone(&self.registry)
@@ -240,13 +250,7 @@ impl ProjectTool {
         ttl_seconds: u64,
         workers: Workers,
     ) -> Result<Self, ProjectError> {
-        let contract =
-            Contract::<OpenInput, OpenOutput>::new().map_err(|_| ProjectError::Internal)?;
-        let definition = Tool::new(NAME,
-            "Register an explicitly selected Rust package/workspace root authorized by the host. Reads bounded manifests and validates structural membership/path dependencies without running Cargo or project code. Returns a process-local opaque reference; no compilation or dependency resolution is certified.",
-            (*contract.input_schema).clone())
-            .with_raw_output_schema(Arc::clone(&contract.output_schema))
-            .with_annotations(ToolAnnotations::new().read_only(true).destructive(false).idempotent(false).open_world(false));
+        let (contract, definition) = definition().map_err(|_| ProjectError::Internal)?;
         Ok(Self {
             definition,
             contract,
