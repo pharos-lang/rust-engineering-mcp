@@ -70,7 +70,9 @@
         "input": 214,
         "output": 2552,
         "description_chars": 296
-      }
+      },
+      "executes_project_code": false,
+      "executes_project_code_reason": "Only registers project roots; runs no build or compiler process."
     },
     {
       "name": "rust.project.inspect",
@@ -139,7 +141,9 @@
         "input": 224,
         "output": 10834,
         "description_chars": 350
-      }
+      },
+      "executes_project_code": false,
+      "executes_project_code_reason": "Reads Cargo.toml/workspace metadata from disk; runs no build process."
     },
     {
       "name": "rust.toolchain.inspect",
@@ -206,7 +210,9 @@
         "input": 224,
         "output": 6544,
         "description_chars": 325
-      }
+      },
+      "executes_project_code": false,
+      "executes_project_code_reason": "Reads toolchain configuration and rustc/cargo version strings; runs no project build."
     },
     {
       "name": "rust.check",
@@ -279,7 +285,9 @@
         "input": 870,
         "output": 9466,
         "description_chars": 424
-      }
+      },
+      "executes_project_code": true,
+      "executes_project_code_reason": "Runs `cargo check`, which compiles build scripts and proc macros to type-check the project."
     },
     {
       "name": "rust.fmt.check",
@@ -347,7 +355,9 @@
         "input": 224,
         "output": 9288,
         "description_chars": 406
-      }
+      },
+      "executes_project_code": false,
+      "executes_project_code_reason": "Runs `rustfmt --check` only, which formats source text without compiling it."
     },
     {
       "name": "rust.clippy",
@@ -415,7 +425,9 @@
         "input": 819,
         "output": 9413,
         "description_chars": 644
-      }
+      },
+      "executes_project_code": true,
+      "executes_project_code_reason": "Runs `cargo clippy`, which compiles the project (build scripts, proc macros) to lint it."
     },
     {
       "name": "rust.test",
@@ -486,7 +498,9 @@
         "input": 929,
         "output": 9676,
         "description_chars": 852
-      }
+      },
+      "executes_project_code": true,
+      "executes_project_code_reason": "Runs `cargo test`, which builds and executes the project's test binaries."
     },
     {
       "name": "rust.dependencies.audit",
@@ -565,7 +579,9 @@
         "input": 224,
         "output": 9789,
         "description_chars": 621
-      }
+      },
+      "executes_project_code": false,
+      "executes_project_code_reason": "Runs `cargo audit`, which reads Cargo.lock against an advisory database without compiling the project."
     },
     {
       "name": "rust.diagnostics.explain",
@@ -632,7 +648,9 @@
         "input": 203,
         "output": 5616,
         "description_chars": 286
-      }
+      },
+      "executes_project_code": false,
+      "executes_project_code_reason": "Looks up a rustc/clippy error code's explanation text; runs no compiler process."
     },
     {
       "name": "rust.quality.gate",
@@ -706,7 +724,9 @@
         "input": 350,
         "output": 16764,
         "description_chars": 530
-      }
+      },
+      "executes_project_code": true,
+      "executes_project_code_reason": "Orchestrates check/clippy/test/audit, several of which compile and run project code."
     },
     {
       "name": "rust.catalog.status",
@@ -765,7 +785,9 @@
         "input": 119,
         "output": 9561,
         "description_chars": 320
-      }
+      },
+      "executes_project_code": false,
+      "executes_project_code_reason": "Reads the local capability catalog file; runs no project build."
     },
     {
       "name": "rust.crate.search",
@@ -828,7 +850,9 @@
         "input": 867,
         "output": 9899,
         "description_chars": 345
-      }
+      },
+      "executes_project_code": false,
+      "executes_project_code_reason": "Queries crates.io/index metadata; runs no project build."
     },
     {
       "name": "rust.crate.inspect",
@@ -892,7 +916,9 @@
         "input": 735,
         "output": 9138,
         "description_chars": 304
-      }
+      },
+      "executes_project_code": false,
+      "executes_project_code_reason": "Queries crate registry metadata; runs no project build."
     },
     {
       "name": "rust.manifest.patch",
@@ -977,7 +1003,9 @@
         "input": 6906,
         "output": 6006,
         "description_chars": 876
-      }
+      },
+      "executes_project_code": false,
+      "executes_project_code_reason": "Edits Cargo.toml text directly; runs no build or compiler process."
     },
     {
       "name": "rust.fmt.apply",
@@ -1057,7 +1085,9 @@
         "input": 1184,
         "output": 6006,
         "description_chars": 733
-      }
+      },
+      "executes_project_code": false,
+      "executes_project_code_reason": "Runs `rustfmt` only, which formats source text without compiling it."
     },
     {
       "name": "rust.fix.apply",
@@ -1135,7 +1165,9 @@
         "input": 1181,
         "output": 6006,
         "description_chars": 849
-      }
+      },
+      "executes_project_code": true,
+      "executes_project_code_reason": "Runs `cargo fix`/`clippy --fix`, which compiles the project to apply suggested patches."
     },
     {
       "name": "rust.dependency.add",
@@ -1213,7 +1245,9 @@
         "input": 2202,
         "output": 6006,
         "description_chars": 557
-      }
+      },
+      "executes_project_code": false,
+      "executes_project_code_reason": "Edits Cargo.toml/Cargo.lock via `cargo add` metadata resolution; runs no project build."
     },
     {
       "name": "rust.dependency.remove",
@@ -1289,7 +1323,9 @@
         "input": 1710,
         "output": 6006,
         "description_chars": 559
-      }
+      },
+      "executes_project_code": false,
+      "executes_project_code_reason": "Edits Cargo.toml/Cargo.lock via `cargo remove` metadata resolution; runs no project build."
     },
     {
       "name": "rust.test.nextest",
@@ -1359,7 +1395,9 @@
         "input": 1206,
         "output": 5431,
         "description_chars": 666
-      }
+      },
+      "executes_project_code": true,
+      "executes_project_code_reason": "Runs `cargo nextest run`, which builds and executes the project's test binaries."
     },
     {
       "name": "rust.coverage",
@@ -1426,7 +1464,9 @@
         "input": 1044,
         "output": 3537,
         "description_chars": 352
-      }
+      },
+      "executes_project_code": true,
+      "executes_project_code_reason": "Runs instrumented `cargo test`, building and executing the project's test binaries."
     },
     {
       "name": "rust.semver.check",
@@ -1495,7 +1535,9 @@
         "input": 1112,
         "output": 5660,
         "description_chars": 823
-      }
+      },
+      "executes_project_code": true,
+      "executes_project_code_reason": "Runs `cargo semver-checks`, which compiles the project to compare its public API."
     },
     {
       "name": "rust.mutation.test",
@@ -1563,7 +1605,9 @@
         "input": 1092,
         "output": 6370,
         "description_chars": 1067
-      }
+      },
+      "executes_project_code": true,
+      "executes_project_code_reason": "Runs `cargo mutants`, which recompiles and re-executes the project's tests per mutant."
     },
     {
       "name": "rust.deny",
@@ -1635,7 +1679,9 @@
         "input": 456,
         "output": 10874,
         "description_chars": 484
-      }
+      },
+      "executes_project_code": false,
+      "executes_project_code_reason": "Runs `cargo deny check`, which reads Cargo.lock/metadata against policy without compiling the project."
     },
     {
       "name": "rust.unsafe.scan",
@@ -1705,7 +1751,9 @@
         "input": 456,
         "output": 7159,
         "description_chars": 456
-      }
+      },
+      "executes_project_code": false,
+      "executes_project_code_reason": "Statically scans source text for `unsafe` blocks; runs no compiler process."
     },
     {
       "name": "rust.supply_chain.inspect",
@@ -1775,7 +1823,9 @@
         "input": 456,
         "output": 12439,
         "description_chars": 493
-      }
+      },
+      "executes_project_code": false,
+      "executes_project_code_reason": "Reads dependency graph/registry metadata; runs no project build."
     },
     {
       "name": "rust.quality.gate.v2",
@@ -1843,7 +1893,9 @@
         "input": 1283,
         "output": 15676,
         "description_chars": 644
-      }
+      },
+      "executes_project_code": true,
+      "executes_project_code_reason": "Orchestrates the quality gate pipeline, several of whose steps compile and run project code."
     },
     {
       "name": "rust.miri",
@@ -1916,7 +1968,9 @@
         "input": 457,
         "output": 5599,
         "description_chars": 536
-      }
+      },
+      "executes_project_code": true,
+      "executes_project_code_reason": "Runs `cargo miri test`, which compiles and interprets the project's test binaries."
     },
     {
       "name": "rust.benchmark.run",
@@ -1990,7 +2044,9 @@
         "input": 1087,
         "output": 16659,
         "description_chars": 1137
-      }
+      },
+      "executes_project_code": true,
+      "executes_project_code_reason": "Runs `cargo bench`, which builds and executes the project's benchmark binaries."
     },
     {
       "name": "rust.benchmark.compare",
@@ -2060,7 +2116,9 @@
         "input": 580,
         "output": 16769,
         "description_chars": 1396
-      }
+      },
+      "executes_project_code": false,
+      "executes_project_code_reason": "Compares previously recorded benchmark results; runs no process (per its own description)."
     },
     {
       "name": "rust.profile.flamegraph",
@@ -2132,7 +2190,9 @@
         "input": 852,
         "output": 7774,
         "description_chars": 811
-      }
+      },
+      "executes_project_code": true,
+      "executes_project_code_reason": "Builds and executes a project binary under a profiler to record a flamegraph."
     },
     {
       "name": "rust.binary.bloat",
@@ -2205,7 +2265,9 @@
         "input": 1311,
         "output": 14354,
         "description_chars": 1304
-      }
+      },
+      "executes_project_code": true,
+      "executes_project_code_reason": "Builds the project binary (via cargo-bloat) to analyze its size."
     },
     {
       "name": "rust.analyzer.symbols",
@@ -2284,7 +2346,9 @@
         "input": 773,
         "output": 10589,
         "description_chars": 775
-      }
+      },
+      "executes_project_code": false,
+      "executes_project_code_reason": "rust-analyzer runs with build scripts, proc macros and check-on-save disabled; only textDocument/documentSymbol executes."
     },
     {
       "name": "rust.analyzer.references",
@@ -2361,7 +2425,9 @@
         "input": 1106,
         "output": 8797,
         "description_chars": 1040
-      }
+      },
+      "executes_project_code": false,
+      "executes_project_code_reason": "rust-analyzer runs with build scripts, proc macros and check-on-save disabled; only textDocument/references executes."
     },
     {
       "name": "rust.analyzer.diagnostics",
@@ -2438,7 +2504,9 @@
         "input": 510,
         "output": 9470,
         "description_chars": 860
-      }
+      },
+      "executes_project_code": false,
+      "executes_project_code_reason": "rust-analyzer runs with build scripts, proc macros and check-on-save disabled; only diagnostics pull executes."
     },
     {
       "name": "rust.analyzer.actions",
@@ -2516,7 +2584,9 @@
         "input": 2114,
         "output": 10160,
         "description_chars": 1335
-      }
+      },
+      "executes_project_code": false,
+      "executes_project_code_reason": "rust-analyzer runs with build scripts, proc macros and check-on-save disabled; only textDocument/codeAction executes."
     },
     {
       "name": "rust.analyzer.action.apply",
@@ -2605,7 +2675,9 @@
         "input": 2830,
         "output": 7181,
         "description_chars": 1547
-      }
+      },
+      "executes_project_code": false,
+      "executes_project_code_reason": "rust-analyzer runs with build scripts, proc macros and check-on-save disabled; only the selected code action's edit is applied."
     }
   ],
   "resources": [

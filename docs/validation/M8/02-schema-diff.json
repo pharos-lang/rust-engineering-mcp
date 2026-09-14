@@ -1,0 +1,82 @@
+{
+  "since_v0.1.0_m1_only": {
+    "added": [],
+    "base": "v0.1.0",
+    "base_commit": "ce94adb93a3d5548dcdf567017866f0ddadabe2e",
+    "changed": [],
+    "head_commit": "dbc17f57e6f0eddc8ce25ae2c98dd79049fc307d",
+    "removed": [],
+    "unchanged": [
+      "rust.catalog.status",
+      "rust.check",
+      "rust.clippy",
+      "rust.crate.inspect",
+      "rust.crate.search",
+      "rust.dependencies.audit",
+      "rust.diagnostics.explain",
+      "rust.fmt.check",
+      "rust.project.inspect",
+      "rust.project.open",
+      "rust.quality.gate",
+      "rust.test",
+      "rust.toolchain.inspect"
+    ]
+  },
+  "since_v0.3.0": {
+    "added": [
+      "rust.analyzer.action.apply",
+      "rust.analyzer.actions",
+      "rust.analyzer.diagnostics",
+      "rust.analyzer.references",
+      "rust.analyzer.symbols"
+    ],
+    "base": "v0.3.0",
+    "base_commit": "2408b57dbf8eda4b7bfe45d4b505687935d06ee6",
+    "changed": [
+      {
+        "annotations_changed": false,
+        "input_schema_changed": true,
+        "keys_changed": [
+          "inputSchema",
+          "outputSchema"
+        ],
+        "name": "rust.binary.bloat",
+        "output_schema_changed": true
+      }
+    ],
+    "head_commit": "dbc17f57e6f0eddc8ce25ae2c98dd79049fc307d",
+    "removed": [],
+    "unchanged": [
+      "rust.benchmark.compare",
+      "rust.benchmark.run",
+      "rust.catalog.status",
+      "rust.check",
+      "rust.clippy",
+      "rust.coverage",
+      "rust.crate.inspect",
+      "rust.crate.search",
+      "rust.deny",
+      "rust.dependencies.audit",
+      "rust.dependency.add",
+      "rust.dependency.remove",
+      "rust.diagnostics.explain",
+      "rust.fix.apply",
+      "rust.fmt.apply",
+      "rust.fmt.check",
+      "rust.manifest.patch",
+      "rust.miri",
+      "rust.mutation.test",
+      "rust.profile.flamegraph",
+      "rust.project.inspect",
+      "rust.project.open",
+      "rust.quality.gate",
+      "rust.quality.gate.v2",
+      "rust.semver.check",
+      "rust.supply_chain.inspect",
+      "rust.test",
+      "rust.test.nextest",
+      "rust.toolchain.inspect",
+      "rust.unsafe.scan"
+    ]
+  }
+}

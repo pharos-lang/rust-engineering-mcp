@@ -1,0 +1,5 @@
+# W11 — SonarCloud: cubrir `scripts/contract-freeze.py` en el informe de cobertura Python
+
+Modelo solicitado: Claude Sonnet 5 (`claude -p --model sonnet --effort low`). Rol: worker de CI (una edición). Orquestador: Claude Fable 5.1. Sin subagentes, sin segundo plano, sin commit. **Único archivo permitido:** `.github/workflows/sonarcloud.yml`.
+
+`scripts/contract-freeze.py` es fuente Python nueva bajo `--source=scripts`; el workflow ejecuta una lista fija de `scripts/test-*.py` con `python -m coverage run --append …` (líneas ~57-64) y no incluye `scripts/test-contract-freeze.py`, así que SonarCloud mediría 0 % en el archivo nuevo (la puerta de cobertura de código nuevo es 80 %). Añade, tras la línea de `scripts/test-summarize-m4-budgets.py`, una línea idéntica en forma para `scripts/test-contract-freeze.py`. Nada más. Verifica con `python3 -c "import yaml" 2>/dev/null || true; grep -n 'test-contract-freeze' .github/workflows/sonarcloud.yml` y `python3 -B scripts/test-gate-reporting.py`. Informa: Files changed / línea añadida / Open issues.
