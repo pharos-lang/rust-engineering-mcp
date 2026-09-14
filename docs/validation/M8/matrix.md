@@ -32,7 +32,7 @@ RC ni release sin autorización separada del owner.
 
 | ID | Corte | Estado | Evidencia |
 | --- | --- | --- | --- |
-| M8-01 | Censo de invocaciones reales → contratos/errores/CLI/Resources/formatos → clasificación; gate de superficie; huérfanos = 0 | **Done local** (pendiente de commit I01): 36 tools, 0 huérfanos, 2 Resources dinámicas, 15 CLI, 10 formatos; 31 `stable` / 5 `preview`; 0 consolidaciones; 11 findings dispuestos; `--help` y docs públicas corregidos | [01.md](01.md) (decisiones), [01-census.md](01-census.md), [01-census.json](01-census.json); revisiones R01/V01/V01b |
+| M8-01 | Censo de invocaciones reales → contratos/errores/CLI/Resources/formatos → clasificación; gate de superficie; huérfanos = 0 | **Done local** (commits `9ecd945`, `2e2e75d`, `e445aa1`): 36 tools, 0 huérfanos, 2 Resources dinámicas, 15 CLI, 10 formatos; 31 `stable` / 5 `preview`; 0 consolidaciones; 11 findings dispuestos; `--help` y docs públicas corregidos | [01.md](01.md) (decisiones), [01-census.md](01-census.md), [01-census.json](01-census.json); revisiones R01/V01/V01b |
 | M8-02 | Freeze 0.8.x con migration notes; before/after schema/behavior; trece M1 sin escritura implícita | Planned | — |
 | M8-03 | Migración con preflight/dry-run/backup/rollback; floors/trust no retroceden; journal pendiente impide downgrade (D12) | Planned | — |
 | M8-04 | Matriz wire/cliente (5 revisiones + stdio; Inspector + Codex obligatorios; Claude Code/Gemini CLI calificados) | Planned | — |
