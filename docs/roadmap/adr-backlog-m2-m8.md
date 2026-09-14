@@ -133,7 +133,7 @@ Estado global: **Proposed**. Ninguna entrada es un ADR Accepted. Los IDs D01–D
 
 ## D13 — Calificación por target para 1.0
 
-- **Status:** Proposed.
+- **Status:** Accepted, [ADR-087](../adr/ADR-087-1.0-host-scope.md), 2026-09-14.
 - **Context:** Calificación por target para 1.0 amplía o concreta una frontera heredada de M1; véanse [baseline](baseline-2026-09-05.md) y [trazabilidad](traceability-m2-m8.md).
 - **Decision propuesta:** Resolver aspiración cross-platform con native positive y artifacts por familia o cambio explícito de alcance.
 - **Alternatives considered:** Linux/macOS/Windows positivos; subconjunto justificado con ADR/spec actualizada.
