@@ -1,0 +1,3183 @@
+{
+  "format_version": 1,
+  "generated_utc": "2026-09-14T13:57:48Z",
+  "head_commit": "e50c3fefaff03fc45b89ae899cf5736af1fd0a72",
+  "tools": [
+    {
+      "name": "rust.project.open",
+      "milestone_cut": "M1/0.1.0",
+      "adr": [
+        "ADR-009",
+        "ADR-024",
+        "ADR-048"
+      ],
+      "adapter_source": "crates/mcp-server/src/stdio/project.rs",
+      "application_entry": "crates/application/src/inspection.rs (registry open use case)",
+      "domain_types": [
+        "ProjectRef (crates/domain/src/inspection.rs)",
+        "SourceBundle (crates/domain/src/source.rs)"
+      ],
+      "tests": {
+        "contract_snapshot": "crates/mcp-server/tests/snapshots/project-open-tool.json",
+        "protocol_tests": [
+          "crates/mcp-server/tests/protocol.rs"
+        ],
+        "native_cuts": [
+          "crates/mcp-server/tests/inspection_runtime.rs",
+          "crates/mcp-server/tests/inspection_runtime/mutation_concurrency.rs"
+        ]
+      },
+      "writes_disk": false,
+      "requires_runtime": "none",
+      "real_consumers": [
+        "docs/validation/M1/17-matrix.md row 29 (13/13 Inspector positive) and row 61",
+        "docs/validation/M2/clients.json $.claude.stream.calls[0] (tool=rust.project.open, id=toolu_01AiZ9KTV5Zj6yPsdp19bgp1)",
+        "docs/validation/M4/clients/attempt-6/protocol.jsonl line 5 (client=inspector)"
+      ],
+      "stock_client_invoked": true,
+      "proposed_class": "stable",
+      "class_rationale": "Published in two tagged, attested releases (v0.1.0 and v0.3.0); 13/13 positive Inspector calls plus a model-directed stock Codex flow (docs/validation/M1/17-matrix.md rows 29/61-78); contract frozen individually under AGENTS.md 'Alcance vigente' and roadmap G1.",
+      "surface_gate": {
+        "why_tool_not_resource_or_prompt": "Registers host-authorized roots and validates structural membership; this is an authority-granting side effect (an opaque ProjectRef is minted), not read of already-computed data, so it must be a tool per spec §9.1/§9.2.",
+        "context_cost_note": "214B input / 2552B output schema, 296 description chars; smallest output schema in the M1 set (2552/392529 = 0.65% of tools/list).",
+        "consolidation_candidate": "none",
+        "compat_risk_of_consolidation": "n/a; every other tool depends on the project_ref this mints, so it is the least consolidatable tool in the catalog."
+      },
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": false,
+        "openWorldHint": false,
+        "readOnlyHint": true
+      },
+      "error_codes": [
+        "COMMAND_TIMEOUT",
+        "INVALID_PROJECT",
+        "LOCKFILE_UPDATE_REQUIRED",
+        "NETWORK_DENIED",
+        "OUTPUT_LIMIT_EXCEEDED",
+        "PROJECT_NOT_FOUND",
+        "SANDBOX_DENIED",
+        "TOOL_NOT_INSTALLED",
+        "UNSUPPORTED_PLATFORM"
+      ],
+      "status_values": [
+        "passed",
+        "blocked",
+        "unavailable",
+        "cancelled"
+      ],
+      "schema_bytes": {
+        "input": 214,
+        "output": 2552,
+        "description_chars": 296
+      }
+    },
+    {
+      "name": "rust.project.inspect",
+      "milestone_cut": "M1/0.1.0",
+      "adr": [
+        "ADR-009",
+        "ADR-032"
+      ],
+      "adapter_source": "crates/mcp-server/src/stdio/inspection.rs",
+      "application_entry": "crates/application/src/inspection.rs",
+      "domain_types": [
+        "ProjectInspection",
+        "ProjectStructure",
+        "CargoConfiguration (crates/domain/src/inspection.rs)"
+      ],
+      "tests": {
+        "contract_snapshot": "crates/mcp-server/tests/snapshots/project-inspect-tool.json",
+        "protocol_tests": [
+          "crates/mcp-server/tests/protocol.rs"
+        ],
+        "native_cuts": [
+          "crates/mcp-server/tests/inspection_runtime.rs",
+          "crates/mcp-server/tests/inspection_runtime/mutation_concurrency.rs",
+          "crates/mcp-server/tests/inspection_runtime/security.rs"
+        ]
+      },
+      "writes_disk": false,
+      "requires_runtime": "docker-rust",
+      "real_consumers": [
+        "docs/validation/M1/17-matrix.md row 62 (Inspector rust.project.inspect)",
+        "docs/validation/M4/clients/attempt-6/protocol.jsonl (project.open precedes every M4 call chain, same session)"
+      ],
+      "stock_client_invoked": true,
+      "proposed_class": "stable",
+      "class_rationale": "Published in two tagged, attested releases (v0.1.0 and v0.3.0); 13/13 positive Inspector calls plus a model-directed stock Codex flow (docs/validation/M1/17-matrix.md rows 29/61-78); contract frozen individually under AGENTS.md 'Alcance vigente' and roadmap G1.",
+      "surface_gate": {
+        "why_tool_not_resource_or_prompt": "Spec §9.2 lists 'rust-project://workspace/metadata' as a conceptual Resource, but ADR-011 kept it optional for M1 and it was never implemented (see resources[] section); the data also requires a live runtime call (MSRV/targets/profiles from the captured manifest), which the spec treats as tool-shaped work, not free reuse of already-computed state.",
+        "context_cost_note": "224B input / 10834B output (2.76% of tools/list) driven by nested ProjectStructure/CargoConfiguration/RuntimeIdentity/Evidence $defs.",
+        "consolidation_candidate": "none",
+        "compat_risk_of_consolidation": "n/a; frozen M1 contract, AGENTS.md forbids changing the thirteen M1 semantics."
+      },
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false,
+        "readOnlyHint": true
+      },
+      "error_codes": [
+        "PROJECT_NOT_FOUND",
+        "INVALID_PROJECT",
+        "TOOL_NOT_INSTALLED",
+        "LOCKFILE_UPDATE_REQUIRED",
+        "COMMAND_TIMEOUT",
+        "SANDBOX_DENIED",
+        "NETWORK_DENIED",
+        "UNSUPPORTED_PLATFORM",
+        "OUTPUT_LIMIT_EXCEEDED"
+      ],
+      "status_values": [
+        "passed",
+        "blocked",
+        "unavailable",
+        "cancelled"
+      ],
+      "schema_bytes": {
+        "input": 224,
+        "output": 10834,
+        "description_chars": 350
+      }
+    },
+    {
+      "name": "rust.toolchain.inspect",
+      "milestone_cut": "M1/0.1.0",
+      "adr": [
+        "ADR-009",
+        "ADR-033"
+      ],
+      "adapter_source": "crates/mcp-server/src/stdio/toolchain.rs",
+      "application_entry": "crates/application/src/toolchain.rs",
+      "domain_types": [
+        "ToolchainInspection",
+        "ToolchainInventory",
+        "InstalledComponent (crates/domain/src/toolchain.rs)"
+      ],
+      "tests": {
+        "contract_snapshot": "crates/mcp-server/tests/snapshots/toolchain-inspect-tool.json",
+        "protocol_tests": [
+          "crates/mcp-server/tests/protocol.rs"
+        ],
+        "native_cuts": [
+          "crates/mcp-server/tests/inspection_runtime.rs",
+          "crates/mcp-server/tests/inspection_runtime/mutation_concurrency.rs"
+        ]
+      },
+      "writes_disk": false,
+      "requires_runtime": "docker-rust",
+      "real_consumers": [
+        "docs/validation/M1/17-matrix.md row 62 (stock Codex preflight uses toolchain/inspect path)"
+      ],
+      "stock_client_invoked": true,
+      "proposed_class": "stable",
+      "class_rationale": "Published in two tagged, attested releases (v0.1.0 and v0.3.0); 13/13 positive Inspector calls plus a model-directed stock Codex flow (docs/validation/M1/17-matrix.md rows 29/61-78); contract frozen individually under AGENTS.md 'Alcance vigente' and roadmap G1.",
+      "surface_gate": {
+        "why_tool_not_resource_or_prompt": "Observes live guest rustc/Cargo identity via the calibrated runtime on every call (not a static value); modeled as a tool per §9.1 because it executes an observation, matching ADR-033.",
+        "context_cost_note": "224B input / 6544B output (1.67% of tools/list).",
+        "consolidation_candidate": "rust.project.inspect (both read static/runtime project facts with an identical project_ref-only input shape)",
+        "compat_risk_of_consolidation": "High: both are frozen M1 stable contracts (AGENTS.md); merging would break two independently-snapshotted output shapes and the M1 13-tool inventory guarantee. Not recommended before 1.0."
+      },
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false,
+        "readOnlyHint": true
+      },
+      "error_codes": [
+        "PROJECT_NOT_FOUND",
+        "INVALID_PROJECT",
+        "TOOL_NOT_INSTALLED",
+        "LOCKFILE_UPDATE_REQUIRED",
+        "COMMAND_TIMEOUT",
+        "SANDBOX_DENIED",
+        "NETWORK_DENIED",
+        "UNSUPPORTED_PLATFORM",
+        "OUTPUT_LIMIT_EXCEEDED"
+      ],
+      "status_values": [
+        "passed",
+        "blocked",
+        "unavailable",
+        "cancelled"
+      ],
+      "schema_bytes": {
+        "input": 224,
+        "output": 6544,
+        "description_chars": 325
+      }
+    },
+    {
+      "name": "rust.check",
+      "milestone_cut": "M1/0.1.0",
+      "adr": [
+        "ADR-009",
+        "ADR-034",
+        "ADR-083",
+        "ADR-084"
+      ],
+      "adapter_source": "crates/mcp-server/src/stdio/check.rs",
+      "application_entry": "crates/application/src/check.rs",
+      "domain_types": [
+        "ProjectCheck",
+        "CheckOptions",
+        "CheckOutcome (crates/domain/src/check.rs)"
+      ],
+      "tests": {
+        "contract_snapshot": "crates/mcp-server/tests/snapshots/check-tool.json",
+        "protocol_tests": [
+          "crates/mcp-server/tests/protocol.rs"
+        ],
+        "native_cuts": [
+          "crates/mcp-server/tests/inspection_runtime.rs",
+          "crates/mcp-server/tests/inspection_runtime/fix_hostile.rs",
+          "crates/mcp-server/tests/inspection_runtime/fix_mutation.rs",
+          "crates/mcp-server/tests/inspection_runtime/mutation_concurrency.rs"
+        ]
+      },
+      "writes_disk": false,
+      "requires_runtime": "docker-rust",
+      "real_consumers": [
+        "docs/validation/M1/17-matrix.md row 64 (Inspector positive call; stock Codex E0502 then green check)",
+        "docs/validation/M4/clients/attempt-6/protocol.jsonl (project.open->check chain precedes M4 calls)"
+      ],
+      "stock_client_invoked": true,
+      "proposed_class": "stable",
+      "class_rationale": "Published in two tagged, attested releases (v0.1.0 and v0.3.0); 13/13 positive Inspector calls plus a model-directed stock Codex flow (docs/validation/M1/17-matrix.md rows 29/61-78); contract frozen individually under AGENTS.md 'Alcance vigente' and roadmap G1.",
+      "surface_gate": {
+        "why_tool_not_resource_or_prompt": "Executes cargo check, can run build scripts/proc macros; a real, potentially expensive compute action per §9.1, never reusable static data.",
+        "context_cost_note": "870B input / 9466B output (2.41% of tools/list).",
+        "consolidation_candidate": "none (rust.quality.gate composes check but check must remain independently callable for the tight edit-check loop)",
+        "compat_risk_of_consolidation": "n/a; frozen M1 stable contract."
+      },
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": false,
+        "openWorldHint": false,
+        "readOnlyHint": true
+      },
+      "error_codes": [
+        "PROJECT_NOT_FOUND",
+        "INVALID_PROJECT",
+        "TOOL_NOT_INSTALLED",
+        "LOCKFILE_UPDATE_REQUIRED",
+        "COMMAND_TIMEOUT",
+        "SANDBOX_DENIED",
+        "NETWORK_DENIED",
+        "UNSUPPORTED_PLATFORM",
+        "OUTPUT_LIMIT_EXCEEDED"
+      ],
+      "status_values": [
+        "passed",
+        "failed",
+        "blocked",
+        "unavailable",
+        "cancelled"
+      ],
+      "schema_bytes": {
+        "input": 870,
+        "output": 9466,
+        "description_chars": 424
+      }
+    },
+    {
+      "name": "rust.fmt.check",
+      "milestone_cut": "M1/0.1.0",
+      "adr": [
+        "ADR-009",
+        "ADR-035"
+      ],
+      "adapter_source": "crates/mcp-server/src/stdio/format.rs",
+      "application_entry": "crates/application/src/format.rs",
+      "domain_types": [
+        "ProjectFormat",
+        "FormatObservation (crates/domain/src/format.rs)"
+      ],
+      "tests": {
+        "contract_snapshot": "crates/mcp-server/tests/snapshots/format-tool.json",
+        "protocol_tests": [
+          "crates/mcp-server/tests/protocol.rs"
+        ],
+        "native_cuts": [
+          "crates/mcp-server/tests/inspection_runtime.rs",
+          "crates/mcp-server/tests/inspection_runtime/format_mutation.rs",
+          "crates/mcp-server/tests/inspection_runtime/mutation_concurrency.rs"
+        ]
+      },
+      "writes_disk": false,
+      "requires_runtime": "docker-rust",
+      "real_consumers": [
+        "docs/validation/M1/17-matrix.md row 29 (13/13 Inspector positive covers all thirteen M1 tools)"
+      ],
+      "stock_client_invoked": true,
+      "proposed_class": "stable",
+      "class_rationale": "Published in two tagged, attested releases (v0.1.0 and v0.3.0); 13/13 positive Inspector calls plus a model-directed stock Codex flow (docs/validation/M1/17-matrix.md rows 29/61-78); contract frozen individually under AGENTS.md 'Alcance vigente' and roadmap G1.",
+      "surface_gate": {
+        "why_tool_not_resource_or_prompt": "Runs rustfmt and returns an untrusted diff; a compute action with an explicit non-edit warning, not passive data.",
+        "context_cost_note": "224B input / 9288B output (2.37% of tools/list).",
+        "consolidation_candidate": "rust.fmt.apply (check vs apply of the same rustfmt operation)",
+        "compat_risk_of_consolidation": "High: fmt.check is readOnlyHint and frozen M1; fmt.apply is destructiveHint/journaled M2. Merging into one tool with a mode flag would change readOnlyHint semantics for a stable contract. Not recommended; keep the check/apply split (matches the manifest.patch/fix.apply preview-commit pattern already used)."
+      },
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": false,
+        "openWorldHint": false,
+        "readOnlyHint": true
+      },
+      "error_codes": [
+        "PROJECT_NOT_FOUND",
+        "INVALID_PROJECT",
+        "TOOL_NOT_INSTALLED",
+        "LOCKFILE_UPDATE_REQUIRED",
+        "COMMAND_TIMEOUT",
+        "SANDBOX_DENIED",
+        "NETWORK_DENIED",
+        "UNSUPPORTED_PLATFORM",
+        "OUTPUT_LIMIT_EXCEEDED"
+      ],
+      "status_values": [
+        "passed",
+        "failed",
+        "blocked",
+        "unavailable",
+        "cancelled"
+      ],
+      "schema_bytes": {
+        "input": 224,
+        "output": 9288,
+        "description_chars": 406
+      }
+    },
+    {
+      "name": "rust.clippy",
+      "milestone_cut": "M1/0.1.0",
+      "adr": [
+        "ADR-009",
+        "ADR-036"
+      ],
+      "adapter_source": "crates/mcp-server/src/stdio/clippy.rs",
+      "application_entry": "crates/application/src/clippy.rs",
+      "domain_types": [
+        "ProjectClippy",
+        "ClippyOptions",
+        "LintProfile (crates/domain/src/clippy.rs)"
+      ],
+      "tests": {
+        "contract_snapshot": "crates/mcp-server/tests/snapshots/clippy-tool.json",
+        "protocol_tests": [
+          "crates/mcp-server/tests/protocol.rs"
+        ],
+        "native_cuts": [
+          "crates/mcp-server/tests/inspection_runtime.rs",
+          "crates/mcp-server/tests/inspection_runtime/mutation_concurrency.rs"
+        ]
+      },
+      "writes_disk": false,
+      "requires_runtime": "docker-rust",
+      "real_consumers": [
+        "docs/validation/M1/17-matrix.md row 67 (Inspector call; M1-05 receipt)"
+      ],
+      "stock_client_invoked": true,
+      "proposed_class": "stable",
+      "class_rationale": "Published in two tagged, attested releases (v0.1.0 and v0.3.0); 13/13 positive Inspector calls plus a model-directed stock Codex flow (docs/validation/M1/17-matrix.md rows 29/61-78); contract frozen individually under AGENTS.md 'Alcance vigente' and roadmap G1.",
+      "surface_gate": {
+        "why_tool_not_resource_or_prompt": "Executes cargo clippy with build scripts/proc macros; compute action, not cached data.",
+        "context_cost_note": "819B input / 9413B output (2.40% of tools/list).",
+        "consolidation_candidate": "none",
+        "compat_risk_of_consolidation": "n/a; frozen M1 stable contract."
+      },
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": false,
+        "openWorldHint": false,
+        "readOnlyHint": true
+      },
+      "error_codes": [
+        "PROJECT_NOT_FOUND",
+        "INVALID_PROJECT",
+        "TOOL_NOT_INSTALLED",
+        "LOCKFILE_UPDATE_REQUIRED",
+        "COMMAND_TIMEOUT",
+        "SANDBOX_DENIED",
+        "NETWORK_DENIED",
+        "UNSUPPORTED_PLATFORM",
+        "OUTPUT_LIMIT_EXCEEDED"
+      ],
+      "status_values": [
+        "passed",
+        "failed",
+        "blocked",
+        "unavailable",
+        "cancelled"
+      ],
+      "schema_bytes": {
+        "input": 819,
+        "output": 9413,
+        "description_chars": 644
+      }
+    },
+    {
+      "name": "rust.test",
+      "milestone_cut": "M1/0.1.0",
+      "adr": [
+        "ADR-009",
+        "ADR-037",
+        "ADR-062",
+        "ADR-076"
+      ],
+      "adapter_source": "crates/mcp-server/src/stdio/testing.rs",
+      "application_entry": "crates/application/src/test_run.rs",
+      "domain_types": [
+        "ProjectTest",
+        "TestOptions",
+        "TestObservation (crates/domain/src/test_run.rs)"
+      ],
+      "tests": {
+        "contract_snapshot": "crates/mcp-server/tests/snapshots/test-tool.json",
+        "protocol_tests": [
+          "crates/mcp-server/tests/protocol.rs"
+        ],
+        "native_cuts": [
+          "crates/mcp-server/tests/inspection_runtime.rs",
+          "crates/mcp-server/tests/inspection_runtime/mutation_concurrency.rs",
+          "crates/mcp-server/tests/inspection_runtime/tasks.rs"
+        ]
+      },
+      "writes_disk": false,
+      "requires_runtime": "docker-rust",
+      "real_consumers": [
+        "docs/validation/M1/17-matrix.md row 68 (Inspector call; M1-16 quality-gate stages)"
+      ],
+      "stock_client_invoked": true,
+      "proposed_class": "stable",
+      "class_rationale": "Published in two tagged, attested releases (v0.1.0 and v0.3.0); 13/13 positive Inspector calls plus a model-directed stock Codex flow (docs/validation/M1/17-matrix.md rows 29/61-78); contract frozen individually under AGENTS.md 'Alcance vigente' and roadmap G1.",
+      "surface_gate": {
+        "why_tool_not_resource_or_prompt": "Runs project test binaries/doctests; hostile project-code execution, always a tool.",
+        "context_cost_note": "929B input / 9676B output (2.46% of tools/list).",
+        "consolidation_candidate": "rust.test.nextest (superset: machine-readable counts, artifact Resources, Tasks)",
+        "compat_risk_of_consolidation": "High: rust.test is one of the frozen thirteen M1 contracts AGENTS.md explicitly forbids changing. No deletion/merge before 1.0; at most, docs can steer new integrations toward nextest."
+      },
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": false,
+        "openWorldHint": false,
+        "readOnlyHint": true
+      },
+      "error_codes": [
+        "PROJECT_NOT_FOUND",
+        "INVALID_PROJECT",
+        "TOOL_NOT_INSTALLED",
+        "LOCKFILE_UPDATE_REQUIRED",
+        "COMMAND_TIMEOUT",
+        "SANDBOX_DENIED",
+        "NETWORK_DENIED",
+        "UNSUPPORTED_PLATFORM",
+        "OUTPUT_LIMIT_EXCEEDED"
+      ],
+      "status_values": [
+        "passed",
+        "failed",
+        "blocked",
+        "unavailable",
+        "cancelled"
+      ],
+      "schema_bytes": {
+        "input": 929,
+        "output": 9676,
+        "description_chars": 852
+      }
+    },
+    {
+      "name": "rust.dependencies.audit",
+      "milestone_cut": "M1/0.1.0",
+      "adr": [
+        "ADR-009",
+        "ADR-038",
+        "ADR-062",
+        "ADR-067"
+      ],
+      "adapter_source": "crates/mcp-server/src/stdio/auditing.rs",
+      "application_entry": "crates/application/src/audit.rs",
+      "domain_types": [
+        "ProjectAudit",
+        "AuditFinding",
+        "AuditSource (crates/domain/src/audit.rs)"
+      ],
+      "tests": {
+        "contract_snapshot": "crates/mcp-server/tests/snapshots/audit-tool.json",
+        "protocol_tests": [
+          "crates/mcp-server/tests/protocol.rs"
+        ],
+        "native_cuts": [
+          "crates/mcp-server/tests/inspection_runtime/audit.rs",
+          "crates/mcp-server/tests/inspection_runtime/mutation_concurrency.rs"
+        ]
+      },
+      "writes_disk": false,
+      "requires_runtime": "catalog",
+      "real_consumers": [
+        "docs/validation/M1/17-matrix.md row 69 (Inspector call; focused audit receipt)"
+      ],
+      "stock_client_invoked": true,
+      "proposed_class": "stable",
+      "class_rationale": "Published in two tagged, attested releases (v0.1.0 and v0.3.0); 13/13 positive Inspector calls plus a model-directed stock Codex flow (docs/validation/M1/17-matrix.md rows 29/61-78); contract frozen individually under AGENTS.md 'Alcance vigente' and roadmap G1.",
+      "surface_gate": {
+        "why_tool_not_resource_or_prompt": "ADR-038 rejected installing cargo-audit into the guest (new runtime provisioning); it is an owned, native computation against the offline RustSec snapshot plus the captured Cargo.lock, still framed as a tool because it performs bounded work and returns findings, per §9.1.",
+        "context_cost_note": "224B input / 9789B output (2.49% of tools/list).",
+        "consolidation_candidate": "rust.supply_chain.inspect (ADR-071: supply_chain.inspect already composes 'una auditoría RustSec' internally, i.e. it is architecturally a superset of this tool plus rust.deny plus lock/metadata facts)",
+        "compat_risk_of_consolidation": "Medium: dependencies.audit is a frozen M1 stable tool and the cheaper of the two (9789B vs 12439B output schema) for a narrow vulnerability-only query; folding it into supply_chain.inspect would raise the average context cost of the common case. Recommend documenting the composition relationship in docs/tools.md rather than merging."
+      },
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false,
+        "readOnlyHint": true
+      },
+      "error_codes": [
+        "AUDIT_SNAPSHOT_UNAVAILABLE",
+        "AUDIT_SNAPSHOT_STALE",
+        "AUDIT_SNAPSHOT_UNKNOWN_AGE",
+        "AUDIT_SNAPSHOT_INVALID",
+        "AUDIT_INTEGRITY_FAILED",
+        "AUDIT_LOCKFILE_MISSING",
+        "AUDIT_LOCKFILE_INVALID",
+        "AUDIT_BUDGET_EXCEEDED",
+        "AUDIT_INCOMPLETE",
+        "PROJECT_NOT_FOUND",
+        "INVALID_PROJECT",
+        "TOOL_NOT_INSTALLED",
+        "LOCKFILE_UPDATE_REQUIRED",
+        "COMMAND_TIMEOUT",
+        "SANDBOX_DENIED",
+        "NETWORK_DENIED",
+        "UNSUPPORTED_PLATFORM",
+        "OUTPUT_LIMIT_EXCEEDED"
+      ],
+      "status_values": [
+        "passed",
+        "failed",
+        "blocked",
+        "unavailable",
+        "cancelled"
+      ],
+      "schema_bytes": {
+        "input": 224,
+        "output": 9789,
+        "description_chars": 621
+      }
+    },
+    {
+      "name": "rust.diagnostics.explain",
+      "milestone_cut": "M1/0.1.0",
+      "adr": [
+        "ADR-009",
+        "ADR-039"
+      ],
+      "adapter_source": "crates/mcp-server/src/stdio/explaining.rs",
+      "application_entry": "crates/application/src/explain.rs",
+      "domain_types": [
+        "DiagnosticExplanation",
+        "ExplainObservation (crates/domain/src/explain.rs)"
+      ],
+      "tests": {
+        "contract_snapshot": "crates/mcp-server/tests/snapshots/explain-tool.json",
+        "protocol_tests": [
+          "crates/mcp-server/tests/protocol.rs"
+        ],
+        "native_cuts": [
+          "crates/mcp-server/tests/inspection_runtime/explain.rs",
+          "crates/mcp-server/tests/inspection_runtime/mutation_concurrency.rs"
+        ]
+      },
+      "writes_disk": false,
+      "requires_runtime": "docker-rust",
+      "real_consumers": [
+        "docs/validation/M1/17-matrix.md row 29"
+      ],
+      "stock_client_invoked": true,
+      "proposed_class": "stable",
+      "class_rationale": "Published in two tagged, attested releases (v0.1.0 and v0.3.0); 13/13 positive Inspector calls plus a model-directed stock Codex flow (docs/validation/M1/17-matrix.md rows 29/61-78); contract frozen individually under AGENTS.md 'Alcance vigente' and roadmap G1.",
+      "surface_gate": {
+        "why_tool_not_resource_or_prompt": "Runs the installed compiler's `--explain` in the approved runtime on every call (not cached across restarts); a bounded compute action, and no project_ref is used so it cannot be scoped as project-context Resource either.",
+        "context_cost_note": "203B input / 5616B output (1.43% of tools/list); smallest input schema in the catalog tied with catalog.status.",
+        "consolidation_candidate": "none",
+        "compat_risk_of_consolidation": "n/a; frozen M1 stable contract."
+      },
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false,
+        "readOnlyHint": true
+      },
+      "error_codes": [
+        "DIAGNOSTIC_EXPLANATION_UNAVAILABLE",
+        "PROJECT_NOT_FOUND",
+        "INVALID_PROJECT",
+        "TOOL_NOT_INSTALLED",
+        "LOCKFILE_UPDATE_REQUIRED",
+        "COMMAND_TIMEOUT",
+        "SANDBOX_DENIED",
+        "NETWORK_DENIED",
+        "UNSUPPORTED_PLATFORM",
+        "OUTPUT_LIMIT_EXCEEDED"
+      ],
+      "status_values": [
+        "passed",
+        "blocked",
+        "unavailable",
+        "cancelled"
+      ],
+      "schema_bytes": {
+        "input": 203,
+        "output": 5616,
+        "description_chars": 286
+      }
+    },
+    {
+      "name": "rust.quality.gate",
+      "milestone_cut": "M1/0.1.0",
+      "adr": [
+        "ADR-009",
+        "ADR-040",
+        "ADR-062",
+        "ADR-067",
+        "ADR-076"
+      ],
+      "adapter_source": "crates/mcp-server/src/stdio/quality.rs",
+      "application_entry": "crates/application/src/quality.rs",
+      "domain_types": [
+        "ProjectQualityGate",
+        "QualityStageReport",
+        "QualityProfile (crates/domain/src/quality.rs)"
+      ],
+      "tests": {
+        "contract_snapshot": "crates/mcp-server/tests/snapshots/quality-tool.json",
+        "protocol_tests": [
+          "crates/mcp-server/tests/protocol.rs"
+        ],
+        "native_cuts": [
+          "crates/mcp-server/tests/inspection_runtime/mutation_concurrency.rs",
+          "crates/mcp-server/tests/inspection_runtime/quality.rs",
+          "crates/mcp-server/tests/inspection_runtime/security.rs"
+        ]
+      },
+      "writes_disk": false,
+      "requires_runtime": "docker-rust",
+      "real_consumers": [
+        "docs/validation/M1/17-matrix.md row 70 (Inspector call; four M1-16 arm-B repair gates)"
+      ],
+      "stock_client_invoked": true,
+      "proposed_class": "stable",
+      "class_rationale": "Published in two tagged, attested releases (v0.1.0 and v0.3.0); 13/13 positive Inspector calls plus a model-directed stock Codex flow (docs/validation/M1/17-matrix.md rows 29/61-78); contract frozen individually under AGENTS.md 'Alcance vigente' and roadmap G1.",
+      "surface_gate": {
+        "why_tool_not_resource_or_prompt": "Single-capture composition of fmt/check/clippy(/test/audit); a multi-stage compute action per ADR-040, not retrievable static data.",
+        "context_cost_note": "350B input / 16764B output (4.27% of tools/list); among the larger output schemas because it nests per-stage evidence for up to five stages.",
+        "consolidation_candidate": "rust.quality.gate.v2 (same concept: fast/standard vs strict/release profiles; v2 is a strict superset adding dependency policy, coverage and SemVer)",
+        "compat_risk_of_consolidation": "This is the single strongest consolidation candidate in the catalog: two tools implement overlapping staged quality gates with different profile vocabularies (fast/standard vs strict/release) and different sync-budget rules. Consolidating requires a compat-risk study (gate.v1 is frozen M1 stable, gate.v2 is M4/proposed-preview) before 0.8 freeze; do not delete gate.v1's contract to hit a tool-count target — D11/roadmap explicitly forbid that."
+      },
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": false,
+        "openWorldHint": false,
+        "readOnlyHint": true
+      },
+      "error_codes": [
+        "PROJECT_NOT_FOUND",
+        "INVALID_PROJECT",
+        "TOOL_NOT_INSTALLED",
+        "LOCKFILE_UPDATE_REQUIRED",
+        "COMMAND_TIMEOUT",
+        "SANDBOX_DENIED",
+        "NETWORK_DENIED",
+        "UNSUPPORTED_PLATFORM",
+        "OUTPUT_LIMIT_EXCEEDED",
+        "QUALITY_GATE_BLOCKED",
+        "QUALITY_GATE_UNAVAILABLE"
+      ],
+      "status_values": [
+        "passed",
+        "failed",
+        "blocked",
+        "unavailable",
+        "cancelled"
+      ],
+      "schema_bytes": {
+        "input": 350,
+        "output": 16764,
+        "description_chars": 530
+      }
+    },
+    {
+      "name": "rust.catalog.status",
+      "milestone_cut": "M1/0.1.0",
+      "adr": [
+        "ADR-009",
+        "ADR-042"
+      ],
+      "adapter_source": "crates/mcp-server/src/stdio/catalog.rs",
+      "application_entry": "crates/application/src/catalog_context.rs",
+      "domain_types": [
+        "CatalogContextObservation",
+        "CatalogContextStatus (crates/domain/src/catalog_context.rs)"
+      ],
+      "tests": {
+        "contract_snapshot": "crates/mcp-server/tests/snapshots/catalog-status-tool.json",
+        "protocol_tests": [
+          "crates/mcp-server/tests/protocol.rs"
+        ],
+        "native_cuts": [
+          "crates/mcp-server/tests/catalog_status.rs",
+          "crates/mcp-server/tests/inspection_runtime/mutation_concurrency.rs"
+        ]
+      },
+      "writes_disk": false,
+      "requires_runtime": "catalog",
+      "real_consumers": [
+        "docs/validation/M1/17-matrix.md row 77 (Inspector/client catalog status)"
+      ],
+      "stock_client_invoked": true,
+      "proposed_class": "stable",
+      "class_rationale": "Published in two tagged, attested releases (v0.1.0 and v0.3.0); 13/13 positive Inspector calls plus a model-directed stock Codex flow (docs/validation/M1/17-matrix.md rows 29/61-78); contract frozen individually under AGENTS.md 'Alcance vigente' and roadmap G1.",
+      "surface_gate": {
+        "why_tool_not_resource_or_prompt": "Spec §9.2 names 'rust-catalog://status' as a conceptual Resource and ADR-011 left it optional; it was implemented as a tool instead because the session-scoped generation check has observable cost (reservation/freshness) that the team chose not to expose as a bare enumerable Resource (resources/list stays empty for the whole server, see resources[]).",
+        "context_cost_note": "119B input / 9561B output (2.44% of tools/list); smallest input schema in the catalog (empty object).",
+        "consolidation_candidate": "none",
+        "compat_risk_of_consolidation": "n/a; frozen M1 stable contract."
+      },
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false,
+        "readOnlyHint": true
+      },
+      "error_codes": [
+        "SANDBOX_DENIED",
+        "COMMAND_TIMEOUT",
+        "OUTPUT_LIMIT_EXCEEDED"
+      ],
+      "status_values": [
+        "passed",
+        "blocked",
+        "cancelled"
+      ],
+      "schema_bytes": {
+        "input": 119,
+        "output": 9561,
+        "description_chars": 320
+      }
+    },
+    {
+      "name": "rust.crate.search",
+      "milestone_cut": "M1/0.1.0",
+      "adr": [
+        "ADR-009",
+        "ADR-043"
+      ],
+      "adapter_source": "crates/mcp-server/src/stdio/crate_search.rs",
+      "application_entry": "crates/application/src/crate_search.rs",
+      "domain_types": [
+        "CrateSearchResult",
+        "RankedCrate",
+        "SearchFallback (crates/domain/src/crate_search.rs)"
+      ],
+      "tests": {
+        "contract_snapshot": "crates/mcp-server/tests/snapshots/crate-search-tool.json",
+        "protocol_tests": [
+          "crates/mcp-server/tests/protocol.rs"
+        ],
+        "native_cuts": [
+          "crates/mcp-server/tests/crate_search.rs",
+          "crates/mcp-server/tests/inspection_runtime/mutation_concurrency.rs"
+        ]
+      },
+      "writes_disk": false,
+      "requires_runtime": "catalog",
+      "real_consumers": [
+        "docs/validation/M1/17-matrix.md row 75-76 (Inspector lexical and hybrid calls)"
+      ],
+      "stock_client_invoked": true,
+      "proposed_class": "stable",
+      "class_rationale": "Published in two tagged, attested releases (v0.1.0 and v0.3.0); 13/13 positive Inspector calls plus a model-directed stock Codex flow (docs/validation/M1/17-matrix.md rows 29/61-78); contract frozen individually under AGENTS.md 'Alcance vigente' and roadmap G1.",
+      "surface_gate": {
+        "why_tool_not_resource_or_prompt": "Lexical/semantic/hybrid retrieval over a query is parameterized search work, not a fixed named resource; §9.1 tool shape fits, and the URI-template example in §9.2 ('rust-catalog://crate/{name}') was never implemented (see resources[]).",
+        "context_cost_note": "867B input / 9899B output (2.52% of tools/list).",
+        "consolidation_candidate": "none",
+        "compat_risk_of_consolidation": "n/a; frozen M1 stable contract."
+      },
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false,
+        "readOnlyHint": true
+      },
+      "error_codes": [
+        "SANDBOX_DENIED",
+        "COMMAND_TIMEOUT",
+        "OUTPUT_LIMIT_EXCEEDED",
+        "CATALOG_UNAVAILABLE",
+        "CATALOG_INVALID"
+      ],
+      "status_values": [
+        "passed",
+        "blocked",
+        "unavailable",
+        "cancelled"
+      ],
+      "schema_bytes": {
+        "input": 867,
+        "output": 9899,
+        "description_chars": 345
+      }
+    },
+    {
+      "name": "rust.crate.inspect",
+      "milestone_cut": "M1/0.1.0",
+      "adr": [
+        "ADR-009",
+        "ADR-044"
+      ],
+      "adapter_source": "crates/mcp-server/src/stdio/crate_inspect.rs",
+      "application_entry": "crates/application/src/crate_inspect.rs",
+      "domain_types": [
+        "CrateInspectResult",
+        "InspectPage",
+        "InspectSection (crates/domain/src/crate_inspect.rs)"
+      ],
+      "tests": {
+        "contract_snapshot": "crates/mcp-server/tests/snapshots/crate-inspect-tool.json",
+        "protocol_tests": [
+          "crates/mcp-server/tests/protocol.rs"
+        ],
+        "native_cuts": [
+          "crates/mcp-server/tests/crate_inspect.rs",
+          "crates/mcp-server/tests/inspection_runtime/mutation_concurrency.rs"
+        ]
+      },
+      "writes_disk": false,
+      "requires_runtime": "catalog",
+      "real_consumers": [
+        "docs/validation/M1/17-matrix.md row 29"
+      ],
+      "stock_client_invoked": true,
+      "proposed_class": "stable",
+      "class_rationale": "Published in two tagged, attested releases (v0.1.0 and v0.3.0); 13/13 positive Inspector calls plus a model-directed stock Codex flow (docs/validation/M1/17-matrix.md rows 29/61-78); contract frozen individually under AGENTS.md 'Alcance vigente' and roadmap G1.",
+      "surface_gate": {
+        "why_tool_not_resource_or_prompt": "Same rationale as rust.crate.search: templated per-crate/version/section lookup with explicit pagination cursor is exactly the §78 pagination pattern for a tool, and the conceptual 'rust-catalog://crate/{name}' Resource from §9.2 was never implemented.",
+        "context_cost_note": "735B input / 9138B output (2.33% of tools/list).",
+        "consolidation_candidate": "none",
+        "compat_risk_of_consolidation": "n/a; frozen M1 stable contract."
+      },
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false,
+        "readOnlyHint": true
+      },
+      "error_codes": [
+        "SANDBOX_DENIED",
+        "COMMAND_TIMEOUT",
+        "OUTPUT_LIMIT_EXCEEDED",
+        "CATALOG_UNAVAILABLE",
+        "CATALOG_INVALID",
+        "SNAPSHOT_MISMATCH"
+      ],
+      "status_values": [
+        "passed",
+        "blocked",
+        "unavailable",
+        "cancelled"
+      ],
+      "schema_bytes": {
+        "input": 735,
+        "output": 9138,
+        "description_chars": 304
+      }
+    },
+    {
+      "name": "rust.manifest.patch",
+      "milestone_cut": "M2/0.2.x",
+      "adr": [
+        "ADR-050",
+        "ADR-051",
+        "ADR-052",
+        "ADR-053",
+        "ADR-054",
+        "ADR-057",
+        "ADR-058"
+      ],
+      "adapter_source": "crates/mcp-server/src/stdio/mutation.rs",
+      "application_entry": "crates/application/src/manifest_edit.rs, crates/application/src/mutation.rs",
+      "domain_types": [
+        "ManifestEdit",
+        "ManifestEditError (crates/domain/src/manifest_edit.rs)",
+        "MutationCandidate",
+        "MutationReceipt (crates/domain/src/mutation.rs)"
+      ],
+      "tests": {
+        "contract_snapshot": "crates/mcp-server/tests/snapshots/manifest-patch-tool.json",
+        "protocol_tests": [
+          "crates/mcp-server/tests/protocol.rs"
+        ],
+        "native_cuts": [
+          "crates/mcp-server/tests/inspection_runtime.rs",
+          "crates/mcp-server/tests/inspection_runtime/dependency_mutation.rs",
+          "crates/mcp-server/tests/inspection_runtime/format_mutation.rs",
+          "crates/mcp-server/tests/inspection_runtime/mutation.rs",
+          "crates/mcp-server/tests/inspection_runtime/mutation_concurrency.rs",
+          "crates/mcp-server/tests/inspection_runtime/terminal_plan.rs"
+        ]
+      },
+      "writes_disk": true,
+      "requires_runtime": "docker-rust",
+      "real_consumers": [
+        "docs/validation/M2/clients.json $.claude.stream.calls[7]/[8] (preview id=toolu_01CdhD9fVp7gNYoVDLRxzhBw, commit id=toolu_01CjCVZQ6zpYFSX8K3jEDomr, both results status=passed)"
+      ],
+      "stock_client_invoked": true,
+      "proposed_class": "stable",
+      "class_rationale": "Published in the tagged, attested v0.3.0 release (docs/release/0.3.0/publication-receipt.json); real preview+commit positive client evidence from Claude Code (Sonnet 5, docs/validation/M2/clients.json $.claude.stream) with mode=preview then mode=commit both status=passed; journaled M2 writer covered by ADR-050..058.",
+      "surface_gate": {
+        "why_tool_not_resource_or_prompt": "Mutates Cargo.toml through a journaled preview/commit/receipt cycle; a destructive action, never Resource-shaped.",
+        "context_cost_note": "6906B input (largest input schema in the catalog: closed feature/profile/workspace-dependency/lint typed operations) / 6006B output (1.53% of tools/list); the six mutation tools share the same 6006B output envelope shape.",
+        "consolidation_candidate": "none (distinct manifest-edit surface from fmt.apply/fix.apply, which touch source text, not TOML)",
+        "compat_risk_of_consolidation": "n/a."
+      },
+      "annotations": {
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": false,
+        "readOnlyHint": false
+      },
+      "error_codes": [
+        "invalid_operation",
+        "permission_denied",
+        "conflict",
+        "lock_busy",
+        "plan_expired",
+        "not_found",
+        "limit_exceeded",
+        "unsupported_platform",
+        "io",
+        "recovery_required",
+        "toolchain_unavailable",
+        "candidate_invalid",
+        "cancelled",
+        "command_timeout",
+        "offline_data_missing",
+        "offline_data_invalid"
+      ],
+      "status_values": [
+        "passed",
+        "failed",
+        "blocked",
+        "unavailable",
+        "cancelled"
+      ],
+      "schema_bytes": {
+        "input": 6906,
+        "output": 6006,
+        "description_chars": 876
+      }
+    },
+    {
+      "name": "rust.fmt.apply",
+      "milestone_cut": "M2/0.2.x",
+      "adr": [
+        "ADR-050",
+        "ADR-052",
+        "ADR-053",
+        "ADR-054",
+        "ADR-058",
+        "ADR-083"
+      ],
+      "adapter_source": "crates/mcp-server/src/stdio/mutation.rs",
+      "application_entry": "crates/application/src/mutation.rs, crates/application/src/format.rs",
+      "domain_types": [
+        "MutationCandidate",
+        "MutationKind::FormatApply (crates/domain/src/mutation.rs)"
+      ],
+      "tests": {
+        "contract_snapshot": "crates/mcp-server/tests/snapshots/fmt-apply-tool.json",
+        "protocol_tests": [
+          "crates/mcp-server/tests/protocol.rs"
+        ],
+        "native_cuts": [
+          "crates/mcp-server/tests/inspection_runtime.rs",
+          "crates/mcp-server/tests/inspection_runtime/fix_mutation.rs",
+          "crates/mcp-server/tests/inspection_runtime/format_mutation.rs",
+          "crates/mcp-server/tests/inspection_runtime/terminal_plan.rs"
+        ]
+      },
+      "writes_disk": true,
+      "requires_runtime": "docker-rust",
+      "real_consumers": [
+        "docs/validation/M2/clients.json $.claude.stream.calls[10]/[11] (preview id=toolu_016xqtNfCb8B1LnDqJVLCUZt, commit id=toolu_0194DbDeMc7qdfstvVvUVntW, both results status=passed)"
+      ],
+      "stock_client_invoked": true,
+      "proposed_class": "stable",
+      "class_rationale": "Published in the tagged, attested v0.3.0 release (docs/release/0.3.0/publication-receipt.json); real preview+commit positive client evidence from Claude Code (Sonnet 5, docs/validation/M2/clients.json $.claude.stream) with mode=preview then mode=commit both status=passed; journaled M2 writer covered by ADR-050..058.",
+      "surface_gate": {
+        "why_tool_not_resource_or_prompt": "Writes rustfmt output to source files via journaled preview/commit; destructive action.",
+        "context_cost_note": "1184B input / 6006B output (1.53% of tools/list).",
+        "consolidation_candidate": "rust.fmt.check (read/write pair of the same rustfmt operation)",
+        "compat_risk_of_consolidation": "High: fmt.check is frozen M1 readOnlyHint stable, fmt.apply is M2 destructiveHint. See rust.fmt.check entry; not recommended to merge."
+      },
+      "annotations": {
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": false,
+        "readOnlyHint": false
+      },
+      "error_codes": [
+        "invalid_operation",
+        "permission_denied",
+        "conflict",
+        "lock_busy",
+        "plan_expired",
+        "not_found",
+        "limit_exceeded",
+        "unsupported_platform",
+        "io",
+        "recovery_required",
+        "toolchain_unavailable",
+        "candidate_invalid",
+        "cancelled",
+        "command_timeout",
+        "offline_data_missing",
+        "offline_data_invalid"
+      ],
+      "status_values": [
+        "passed",
+        "failed",
+        "blocked",
+        "unavailable",
+        "cancelled"
+      ],
+      "schema_bytes": {
+        "input": 1184,
+        "output": 6006,
+        "description_chars": 733
+      }
+    },
+    {
+      "name": "rust.fix.apply",
+      "milestone_cut": "M2/0.2.x",
+      "adr": [
+        "ADR-050",
+        "ADR-052",
+        "ADR-053",
+        "ADR-056",
+        "ADR-058"
+      ],
+      "adapter_source": "crates/mcp-server/src/stdio/mutation.rs",
+      "application_entry": "crates/application/src/mutation.rs",
+      "domain_types": [
+        "MutationCandidate",
+        "MutationKind::FixApply (crates/domain/src/mutation.rs)"
+      ],
+      "tests": {
+        "contract_snapshot": "crates/mcp-server/tests/snapshots/fix-apply-tool.json",
+        "protocol_tests": [
+          "crates/mcp-server/tests/protocol.rs"
+        ],
+        "native_cuts": [
+          "crates/mcp-server/tests/inspection_runtime.rs",
+          "crates/mcp-server/tests/inspection_runtime/fix_hostile.rs",
+          "crates/mcp-server/tests/inspection_runtime/fix_mutation.rs"
+        ]
+      },
+      "writes_disk": true,
+      "requires_runtime": "docker-rust",
+      "real_consumers": [
+        "docs/validation/M2/clients.json $.claude.stream.calls[13]/[14]/[16] (preview id=toolu_01NbkPTD7NTDnWnZF7meT2qa, commit id=toolu_01Vf4bqkc2vUVbr8NdY3JRyi, receipt id=toolu_01NceeXwc5wxEPgcai21iAKF, all results status=passed)"
+      ],
+      "stock_client_invoked": true,
+      "proposed_class": "stable",
+      "class_rationale": "Published in the tagged, attested v0.3.0 release (docs/release/0.3.0/publication-receipt.json); real preview+commit positive client evidence from Claude Code (Sonnet 5, docs/validation/M2/clients.json $.claude.stream) with mode=preview then mode=commit both status=passed; journaled M2 writer covered by ADR-050..058.",
+      "surface_gate": {
+        "why_tool_not_resource_or_prompt": "Runs cargo fix and journals the resulting source edits; destructive action, executes project build scripts/proc macros.",
+        "context_cost_note": "1181B input / 6006B output (1.53% of tools/list).",
+        "consolidation_candidate": "none",
+        "compat_risk_of_consolidation": "n/a."
+      },
+      "annotations": {
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": false,
+        "readOnlyHint": false
+      },
+      "error_codes": [
+        "invalid_operation",
+        "permission_denied",
+        "conflict",
+        "lock_busy",
+        "plan_expired",
+        "not_found",
+        "limit_exceeded",
+        "unsupported_platform",
+        "io",
+        "recovery_required",
+        "toolchain_unavailable",
+        "candidate_invalid",
+        "cancelled",
+        "command_timeout",
+        "offline_data_missing",
+        "offline_data_invalid"
+      ],
+      "status_values": [
+        "passed",
+        "failed",
+        "blocked",
+        "unavailable",
+        "cancelled"
+      ],
+      "schema_bytes": {
+        "input": 1181,
+        "output": 6006,
+        "description_chars": 849
+      }
+    },
+    {
+      "name": "rust.dependency.add",
+      "milestone_cut": "M2/0.2.x",
+      "adr": [
+        "ADR-050",
+        "ADR-051",
+        "ADR-052",
+        "ADR-055",
+        "ADR-057",
+        "ADR-058"
+      ],
+      "adapter_source": "crates/mcp-server/src/stdio/mutation/semantic_input.rs",
+      "application_entry": "crates/application/src/manifest_edit.rs, crates/application/src/mutation.rs",
+      "domain_types": [
+        "DependencySpec",
+        "DependencyName (crates/domain/src/manifest_edit.rs)"
+      ],
+      "tests": {
+        "contract_snapshot": "crates/mcp-server/tests/snapshots/dependency-add-tool.json",
+        "protocol_tests": [
+          "crates/mcp-server/tests/protocol.rs"
+        ],
+        "native_cuts": [
+          "crates/mcp-server/tests/inspection_runtime.rs",
+          "crates/mcp-server/tests/inspection_runtime/dependency_mutation.rs"
+        ]
+      },
+      "writes_disk": true,
+      "requires_runtime": "docker-rust",
+      "real_consumers": [
+        "docs/validation/M2/clients.json $.claude.stream.calls[1]/[2] (preview id=toolu_011GgELcuXGBKz3FjuyMTbYN, commit id=toolu_01KEWEVL64siJvuEVWt54c2Z, both results status=passed)"
+      ],
+      "stock_client_invoked": true,
+      "proposed_class": "stable",
+      "class_rationale": "Published in the tagged, attested v0.3.0 release (docs/release/0.3.0/publication-receipt.json); real preview+commit positive client evidence from Claude Code (Sonnet 5, docs/validation/M2/clients.json $.claude.stream) with mode=preview then mode=commit both status=passed; journaled M2 writer covered by ADR-050..058.",
+      "surface_gate": {
+        "why_tool_not_resource_or_prompt": "Adds a dependency requiring authenticated offline vendor resolution and a journaled write; destructive action.",
+        "context_cost_note": "2202B input / 6006B output (1.53% of tools/list).",
+        "consolidation_candidate": "rust.dependency.remove (structural mirror, opposite direction)",
+        "compat_risk_of_consolidation": "Medium: a single 'rust.dependency.edit' with an add/remove mode would halve tool count for this pair, but both are already published-stable v0.3.0 contracts with distinct input shapes (add needs requirement/features/kind, remove needs only name); a merge is a minor-version breaking change requiring migration notes per D11. Worth evaluating at 0.8 freeze, not before."
+      },
+      "annotations": {
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": false,
+        "readOnlyHint": false
+      },
+      "error_codes": [
+        "invalid_operation",
+        "permission_denied",
+        "conflict",
+        "lock_busy",
+        "plan_expired",
+        "not_found",
+        "limit_exceeded",
+        "unsupported_platform",
+        "io",
+        "recovery_required",
+        "toolchain_unavailable",
+        "candidate_invalid",
+        "cancelled",
+        "command_timeout",
+        "offline_data_missing",
+        "offline_data_invalid"
+      ],
+      "status_values": [
+        "passed",
+        "failed",
+        "blocked",
+        "unavailable",
+        "cancelled"
+      ],
+      "schema_bytes": {
+        "input": 2202,
+        "output": 6006,
+        "description_chars": 557
+      }
+    },
+    {
+      "name": "rust.dependency.remove",
+      "milestone_cut": "M2/0.2.x",
+      "adr": [
+        "ADR-050",
+        "ADR-052",
+        "ADR-055",
+        "ADR-057",
+        "ADR-058"
+      ],
+      "adapter_source": "crates/mcp-server/src/stdio/mutation/semantic_input.rs",
+      "application_entry": "crates/application/src/manifest_edit.rs, crates/application/src/mutation.rs",
+      "domain_types": [
+        "DependencyName (crates/domain/src/manifest_edit.rs)"
+      ],
+      "tests": {
+        "contract_snapshot": "crates/mcp-server/tests/snapshots/dependency-remove-tool.json",
+        "protocol_tests": [
+          "crates/mcp-server/tests/protocol.rs"
+        ],
+        "native_cuts": [
+          "crates/mcp-server/tests/inspection_runtime.rs",
+          "crates/mcp-server/tests/inspection_runtime/dependency_mutation.rs"
+        ]
+      },
+      "writes_disk": true,
+      "requires_runtime": "docker-rust",
+      "real_consumers": [
+        "docs/validation/M2/clients.json $.claude.stream.calls[4]/[5] (preview id=toolu_014Zp3TEFcSqdm4NRD1QVv7d, commit id=toolu_01VAHFXKdtq8NkoiXZF671J2, both results status=passed)"
+      ],
+      "stock_client_invoked": true,
+      "proposed_class": "stable",
+      "class_rationale": "Published in the tagged, attested v0.3.0 release (docs/release/0.3.0/publication-receipt.json); real preview+commit positive client evidence from Claude Code (Sonnet 5, docs/validation/M2/clients.json $.claude.stream) with mode=preview then mode=commit both status=passed; journaled M2 writer covered by ADR-050..058.",
+      "surface_gate": {
+        "why_tool_not_resource_or_prompt": "Removes a dependency via journaled preview/commit; destructive action.",
+        "context_cost_note": "1710B input / 6006B output (1.53% of tools/list).",
+        "consolidation_candidate": "rust.dependency.add (see that entry)",
+        "compat_risk_of_consolidation": "Medium; see rust.dependency.add."
+      },
+      "annotations": {
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": false,
+        "readOnlyHint": false
+      },
+      "error_codes": [
+        "invalid_operation",
+        "permission_denied",
+        "conflict",
+        "lock_busy",
+        "plan_expired",
+        "not_found",
+        "limit_exceeded",
+        "unsupported_platform",
+        "io",
+        "recovery_required",
+        "toolchain_unavailable",
+        "candidate_invalid",
+        "cancelled",
+        "command_timeout",
+        "offline_data_missing",
+        "offline_data_invalid"
+      ],
+      "status_values": [
+        "passed",
+        "failed",
+        "blocked",
+        "unavailable",
+        "cancelled"
+      ],
+      "schema_bytes": {
+        "input": 1710,
+        "output": 6006,
+        "description_chars": 559
+      }
+    },
+    {
+      "name": "rust.test.nextest",
+      "milestone_cut": "M3/0.3.x",
+      "adr": [
+        "ADR-076"
+      ],
+      "adapter_source": "crates/mcp-server/src/stdio/nextest.rs",
+      "application_entry": "crates/application/src/nextest.rs",
+      "domain_types": [
+        "NextestSelection",
+        "NextestOutcomeCounts",
+        "NextestTestRow (crates/domain/src/nextest.rs)"
+      ],
+      "tests": {
+        "contract_snapshot": "crates/mcp-server/tests/snapshots/nextest-tool.json",
+        "protocol_tests": [
+          "crates/mcp-server/tests/protocol.rs"
+        ],
+        "native_cuts": [
+          "crates/mcp-server/tests/inspection_runtime/nextest.rs",
+          "crates/mcp-server/tests/inspection_runtime/tasks.rs",
+          "crates/execution-adapter/tests/nextest_runtime.rs",
+          "crates/execution-adapter/src/nextest_gateway.rs"
+        ]
+      },
+      "writes_disk": false,
+      "requires_runtime": "docker-rust",
+      "real_consumers": [
+        "docs/validation/M3/clients/attempt-11/protocol.jsonl lines 18/31/67/75 (client=inspector, tool=rust.test.nextest)",
+        "docs/validation/M3/clients/attempt-11/protocol.jsonl lines 90/96/100 (client=codex-app-server, tool=rust.test.nextest)"
+      ],
+      "stock_client_invoked": true,
+      "proposed_class": "stable",
+      "class_rationale": "Published in the tagged, attested v0.3.0 release (docs/release/0.3.0/publication-receipt.json); M3 matrix records G1-G9 satisfied and core 14/14 + full 25/25 on the merged main tree (docs/validation/M3/matrix.md).",
+      "surface_gate": {
+        "why_tool_not_resource_or_prompt": "Executes hostile project test code via cargo-nextest, publishing private artifact Resources as a side effect; a compute action per §9.1, with Resources used correctly for the bulky counts/logs per §9.2.",
+        "context_cost_note": "1206B input / 5431B output (1.38% of tools/list); one of the smaller output schemas because bulky results are pushed to Resources instead of inline.",
+        "consolidation_candidate": "rust.test (see rust.test entry)",
+        "compat_risk_of_consolidation": "See rust.test; rust.test is frozen M1, no merge before 1.0."
+      },
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": false,
+        "openWorldHint": false,
+        "readOnlyHint": true
+      },
+      "error_codes": [
+        "PROJECT_NOT_FOUND",
+        "INVALID_PROJECT",
+        "COMMAND_TIMEOUT",
+        "OUTPUT_LIMIT_EXCEEDED",
+        "TOOL_NOT_INSTALLED",
+        "SANDBOX_DENIED",
+        "NETWORK_DENIED",
+        "UNSUPPORTED_PLATFORM",
+        "TASKS_REQUIRED"
+      ],
+      "status_values": [
+        "passed",
+        "failed",
+        "blocked",
+        "unavailable",
+        "cancelled"
+      ],
+      "schema_bytes": {
+        "input": 1206,
+        "output": 5431,
+        "description_chars": 666
+      }
+    },
+    {
+      "name": "rust.coverage",
+      "milestone_cut": "M3/0.3.x",
+      "adr": [
+        "ADR-062",
+        "ADR-065",
+        "ADR-076"
+      ],
+      "adapter_source": "crates/mcp-server/src/stdio/coverage.rs",
+      "application_entry": "crates/application/src/coverage.rs",
+      "domain_types": [
+        "CoverageSummary",
+        "CoverageOptions",
+        "CoverageReportFormat (crates/domain/src/coverage.rs)"
+      ],
+      "tests": {
+        "contract_snapshot": "crates/mcp-server/tests/snapshots/coverage-tool.json",
+        "protocol_tests": [
+          "crates/mcp-server/tests/protocol.rs"
+        ],
+        "native_cuts": [
+          "crates/mcp-server/tests/inspection_runtime/tasks.rs",
+          "crates/execution-adapter/tests/coverage_runtime.rs"
+        ]
+      },
+      "writes_disk": false,
+      "requires_runtime": "docker-rust",
+      "real_consumers": [
+        "crates/execution-adapter/tests/coverage_runtime.rs (native #[ignore] end-to-end llvm-cov run, cited in docs/validation/M3/matrix.md M3-01 row)",
+        "docs/validation/M3/matrix.md M3-01 row (\"Docker lifecycle 4/4\", Resources respond)"
+      ],
+      "stock_client_invoked": false,
+      "proposed_class": "stable",
+      "class_rationale": "No invocation in any stock-client receipt exists yet: docs/validation/M3/clients/attempt-11/protocol.jsonl only invokes rust.project.open and rust.test.nextest (audit R01 finding F12, docs/validation/M8/delegation/R01-census-traceability/report.md §2.2/§3). Class `stable` is nonetheless proposed on the strength of publication in the tagged, attested v0.3.0 release (docs/release/0.3.0/publication-receipt.json) plus complete native e2e evidence (crates/execution-adapter/tests/coverage_runtime.rs, M3 matrix G1-G9 satisfied, core 14/14 + full 25/25 on the merged main tree, docs/validation/M3/matrix.md), on the condition that M8-04 exercises this tool with Inspector and/or Codex/Claude Code stock clients before the freeze closes (see findings[] F12).",
+      "surface_gate": {
+        "why_tool_not_resource_or_prompt": "Runs cargo-llvm-cov once and derives three report formats from the same profdata; a bounded compute action publishing large reports as ArchiveBundle Resources.",
+        "context_cost_note": "1044B input / 3537B output (0.90% of tools/list); smallest output schema of the M3-M6 Task-backed tools because report bytes live in Resources, not inline.",
+        "consolidation_candidate": "none",
+        "compat_risk_of_consolidation": "n/a."
+      },
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": false,
+        "openWorldHint": false,
+        "readOnlyHint": true
+      },
+      "error_codes": [
+        "PROJECT_NOT_FOUND",
+        "INVALID_PROJECT",
+        "COMMAND_TIMEOUT",
+        "OUTPUT_LIMIT_EXCEEDED",
+        "TOOL_NOT_INSTALLED",
+        "SANDBOX_DENIED",
+        "TASKS_REQUIRED"
+      ],
+      "status_values": [
+        "passed",
+        "blocked",
+        "unavailable",
+        "cancelled"
+      ],
+      "schema_bytes": {
+        "input": 1044,
+        "output": 3537,
+        "description_chars": 352
+      }
+    },
+    {
+      "name": "rust.semver.check",
+      "milestone_cut": "M3/0.3.x",
+      "adr": [
+        "ADR-062",
+        "ADR-076"
+      ],
+      "adapter_source": "crates/mcp-server/src/stdio/semver.rs",
+      "application_entry": "crates/application/src/semver_check.rs",
+      "domain_types": [
+        "SemverFinding",
+        "SemverFindingCounts",
+        "SemverExit (crates/domain/src/semver_check.rs)"
+      ],
+      "tests": {
+        "contract_snapshot": "crates/mcp-server/tests/snapshots/semver-tool.json",
+        "protocol_tests": [
+          "crates/mcp-server/tests/protocol.rs"
+        ],
+        "native_cuts": [
+          "crates/mcp-server/tests/inspection_runtime/semver.rs",
+          "crates/mcp-server/tests/inspection_runtime/tasks.rs",
+          "crates/execution-adapter/tests/semver_runtime.rs"
+        ]
+      },
+      "writes_disk": false,
+      "requires_runtime": "docker-rust",
+      "real_consumers": [
+        "crates/execution-adapter/tests/semver_runtime.rs (native #[ignore] end-to-end cargo-semver-checks run, per docs/validation/M3/matrix.md)",
+        "crates/mcp-server/tests/inspection_runtime/semver.rs (native #[ignore] end-to-end)"
+      ],
+      "stock_client_invoked": false,
+      "proposed_class": "stable",
+      "class_rationale": "No invocation in any stock-client receipt exists yet: docs/validation/M3/clients/attempt-11/protocol.jsonl only invokes rust.project.open and rust.test.nextest (audit R01 finding F12, docs/validation/M8/delegation/R01-census-traceability/report.md §2.2/§3). Class `stable` is nonetheless proposed on the strength of publication in the tagged, attested v0.3.0 release (docs/release/0.3.0/publication-receipt.json) plus complete native e2e evidence (crates/execution-adapter/tests/semver_runtime.rs, M3 matrix G1-G9 satisfied, core 14/14 + full 25/25 on the merged main tree, docs/validation/M3/matrix.md), on the condition that M8-04 exercises this tool with Inspector and/or Codex/Claude Code stock clients before the freeze closes (see findings[] F12).",
+      "surface_gate": {
+        "why_tool_not_resource_or_prompt": "Runs cargo-semver-checks over two captured project snapshots (baseline vs candidate); a bounded external-tool compute action with best-effort itemized findings, per §9.1/§79 (no machine-readable upstream mode).",
+        "context_cost_note": "1112B input / 5660B output (1.44% of tools/list).",
+        "consolidation_candidate": "none",
+        "compat_risk_of_consolidation": "n/a."
+      },
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": false,
+        "openWorldHint": false,
+        "readOnlyHint": true
+      },
+      "error_codes": [
+        "PROJECT_NOT_FOUND",
+        "INVALID_PROJECT",
+        "COMMAND_TIMEOUT",
+        "OUTPUT_LIMIT_EXCEEDED",
+        "TOOL_NOT_INSTALLED",
+        "SANDBOX_DENIED",
+        "TASKS_REQUIRED",
+        "INCOMPLETE_EVIDENCE"
+      ],
+      "status_values": [
+        "passed",
+        "failed",
+        "blocked",
+        "unavailable",
+        "cancelled"
+      ],
+      "schema_bytes": {
+        "input": 1112,
+        "output": 5660,
+        "description_chars": 823
+      }
+    },
+    {
+      "name": "rust.mutation.test",
+      "milestone_cut": "M3/0.3.x",
+      "adr": [
+        "ADR-076"
+      ],
+      "adapter_source": "crates/mcp-server/src/stdio/mutation_test.rs",
+      "application_entry": "crates/application/src/mutation_test.rs",
+      "domain_types": [
+        "MutationBaseline",
+        "MutationCounts",
+        "MutationMutantRow (crates/domain/src/mutation_test.rs)"
+      ],
+      "tests": {
+        "contract_snapshot": "crates/mcp-server/tests/snapshots/mutation-test-tool.json",
+        "protocol_tests": [
+          "crates/mcp-server/tests/protocol.rs"
+        ],
+        "native_cuts": [
+          "crates/mcp-server/tests/inspection_runtime/tasks.rs",
+          "crates/execution-adapter/tests/mutation_runtime.rs"
+        ]
+      },
+      "writes_disk": false,
+      "requires_runtime": "docker-rust",
+      "real_consumers": [
+        "crates/execution-adapter/tests/mutation_runtime.rs (native #[ignore] cargo-mutants end-to-end; also invoked from docs/validation/M4/runtime.json step host_source_and_canary_are_unchanged_after_every_mutation_run)"
+      ],
+      "stock_client_invoked": false,
+      "proposed_class": "stable",
+      "class_rationale": "No invocation in any stock-client receipt exists yet: docs/validation/M3/clients/attempt-11/protocol.jsonl only invokes rust.project.open and rust.test.nextest (audit R01 finding F12, docs/validation/M8/delegation/R01-census-traceability/report.md §2.2/§3). Class `stable` is nonetheless proposed on the strength of publication in the tagged, attested v0.3.0 release (docs/release/0.3.0/publication-receipt.json) plus complete native e2e evidence (crates/execution-adapter/tests/mutation_runtime.rs, M3 matrix G1-G9 satisfied, core 14/14 + full 25/25 on the merged main tree, docs/validation/M3/matrix.md), on the condition that M8-04 exercises this tool with Inspector and/or Codex/Claude Code stock clients before the freeze closes (see findings[] F12).",
+      "surface_gate": {
+        "why_tool_not_resource_or_prompt": "Runs cargo-mutants against a private writable sandbox copy and derives caught/missed/timeout verdicts from outcomes.json; a bounded, budgeted compute action, never cached data.",
+        "context_cost_note": "1092B input / 6370B output (1.62% of tools/list).",
+        "consolidation_candidate": "none",
+        "compat_risk_of_consolidation": "n/a."
+      },
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": false,
+        "openWorldHint": false,
+        "readOnlyHint": true
+      },
+      "error_codes": [
+        "PROJECT_NOT_FOUND",
+        "INVALID_PROJECT",
+        "COMMAND_TIMEOUT",
+        "OUTPUT_LIMIT_EXCEEDED",
+        "TOOL_NOT_INSTALLED",
+        "SANDBOX_DENIED",
+        "NETWORK_DENIED",
+        "UNSUPPORTED_PLATFORM",
+        "TASKS_REQUIRED",
+        "MUTANT_LIMIT_EXCEEDED"
+      ],
+      "status_values": [
+        "passed",
+        "failed",
+        "blocked",
+        "unavailable",
+        "cancelled"
+      ],
+      "schema_bytes": {
+        "input": 1092,
+        "output": 6370,
+        "description_chars": 1067
+      }
+    },
+    {
+      "name": "rust.deny",
+      "milestone_cut": "M4/0.4.x",
+      "adr": [
+        "ADR-066",
+        "ADR-067",
+        "ADR-068"
+      ],
+      "adapter_source": "crates/mcp-server/src/stdio/deny.rs",
+      "application_entry": "crates/application/src/security.rs",
+      "domain_types": [
+        "SecurityPolicy",
+        "SecurityFinding",
+        "DenyOptions (crates/domain/src/security.rs)"
+      ],
+      "tests": {
+        "contract_snapshot": "crates/mcp-server/tests/snapshots/deny-tool.json",
+        "protocol_tests": [
+          "crates/mcp-server/tests/protocol.rs"
+        ],
+        "native_cuts": [
+          "crates/mcp-server/tests/inspection_runtime/security.rs",
+          "crates/execution-adapter/src/security_native.rs (m4_deny_native_text_licenses_and_bans_are_real_and_cleanup_is_joined)"
+        ]
+      },
+      "writes_disk": false,
+      "requires_runtime": "docker-rust",
+      "real_consumers": [
+        "docs/validation/M4/clients/attempt-6/protocol.jsonl lines 7/115 (client=inspector) and 142/152 (client=codex-app-server)"
+      ],
+      "stock_client_invoked": true,
+      "proposed_class": "stable",
+      "class_rationale": "Published in the tagged, attested v0.3.0 release (docs/release/0.3.0/publication-receipt.json); real Inspector AND Codex app-server positive tools/call evidence in docs/validation/M4/clients/attempt-6/protocol.jsonl, including a passed run on the m4-scanner image (sha256:25ed3626e710...) per docs/validation/M4/runtime.json.",
+      "surface_gate": {
+        "why_tool_not_resource_or_prompt": "Evaluates the workspace against RustSec audit plus pinned cargo-deny licenses/bans/sources on every call using host-authenticated policy; a bounded compute action, never static data.",
+        "context_cost_note": "456B input / 10874B output (2.77% of tools/list).",
+        "consolidation_candidate": "rust.supply_chain.inspect (ADR-071: supply_chain.inspect already runs deny internally as one of its composed facts)",
+        "compat_risk_of_consolidation": "Medium; see rust.dependencies.audit entry for the same audit/deny/supply_chain triangle. Keep separate for narrow-query cost; document composition."
+      },
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": false,
+        "openWorldHint": false,
+        "readOnlyHint": true
+      },
+      "error_codes": [
+        "TASKS_REQUIRED",
+        "SANDBOX_DENIED",
+        "PROJECT_NOT_FOUND",
+        "INVALID_PROJECT",
+        "SECURITY_POLICY_INVALID",
+        "SECURITY_INCOMPLETE",
+        "MISSING_OFFLINE_DATA",
+        "COMMAND_TIMEOUT",
+        "OUTPUT_LIMIT_EXCEEDED",
+        "TOOL_NOT_INSTALLED",
+        "AUDIT_SNAPSHOT_INVALID",
+        "ARTIFACT_UNAVAILABLE"
+      ],
+      "status_values": [
+        "passed",
+        "failed",
+        "blocked",
+        "unavailable",
+        "cancelled"
+      ],
+      "schema_bytes": {
+        "input": 456,
+        "output": 10874,
+        "description_chars": 484
+      }
+    },
+    {
+      "name": "rust.unsafe.scan",
+      "milestone_cut": "M4/0.4.x",
+      "adr": [
+        "ADR-066",
+        "ADR-067",
+        "ADR-069"
+      ],
+      "adapter_source": "crates/mcp-server/src/stdio/unsafe_scan.rs",
+      "application_entry": "crates/application/src/unsafe_scan.rs",
+      "domain_types": [
+        "UnsafeScanReport",
+        "UnsafeFinding",
+        "UnsafeOrigin (crates/domain/src/unsafe_scan.rs)"
+      ],
+      "tests": {
+        "contract_snapshot": "crates/mcp-server/tests/snapshots/unsafe-scan-tool.json",
+        "protocol_tests": [
+          "crates/mcp-server/tests/protocol.rs"
+        ],
+        "native_cuts": [
+          "crates/mcp-server/tests/inspection_runtime/security.rs",
+          "crates/execution-adapter/src/unsafe_native.rs (m4_scanner_native_oracles_preserve_partial_results_inputs_and_cleanup)"
+        ]
+      },
+      "writes_disk": false,
+      "requires_runtime": "docker-scanner",
+      "real_consumers": [
+        "docs/validation/M4/clients/attempt-6/protocol.jsonl lines 45/117 (client=inspector) and 144/168 (client=codex-app-server)",
+        "docs/validation/M4/scanner-native.json (seven native cases per ADR-069)"
+      ],
+      "stock_client_invoked": true,
+      "proposed_class": "stable",
+      "class_rationale": "Published in the tagged, attested v0.3.0 release (docs/release/0.3.0/publication-receipt.json); real Inspector AND Codex app-server positive tools/call evidence in docs/validation/M4/clients/attempt-6/protocol.jsonl, including a passed run on the m4-scanner image (sha256:25ed3626e710...) per docs/validation/M4/runtime.json.",
+      "surface_gate": {
+        "why_tool_not_resource_or_prompt": "Runs a private per-file syn/proc-macro2 parser helper inside the isolated m4-scanner guest on every call; a bounded compute action per ADR-069, explicitly not macro-expansion or cfg-evaluation.",
+        "context_cost_note": "456B input / 7159B output (1.82% of tools/list); smallest output schema among the M4 security tools.",
+        "consolidation_candidate": "none",
+        "compat_risk_of_consolidation": "n/a."
+      },
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": false,
+        "openWorldHint": false,
+        "readOnlyHint": true
+      },
+      "error_codes": [
+        "TASKS_REQUIRED",
+        "SANDBOX_DENIED",
+        "MISSING_OFFLINE_DATA",
+        "ARTIFACT_UNAVAILABLE",
+        "TOOL_NOT_INSTALLED",
+        "INVALID_PROJECT",
+        "PROJECT_NOT_FOUND",
+        "COMMAND_TIMEOUT",
+        "OUTPUT_LIMIT_EXCEEDED",
+        "SYNTAX_INCOMPLETE"
+      ],
+      "status_values": [
+        "passed",
+        "blocked",
+        "unavailable",
+        "cancelled"
+      ],
+      "schema_bytes": {
+        "input": 456,
+        "output": 7159,
+        "description_chars": 456
+      }
+    },
+    {
+      "name": "rust.supply_chain.inspect",
+      "milestone_cut": "M4/0.4.x",
+      "adr": [
+        "ADR-066",
+        "ADR-067",
+        "ADR-071"
+      ],
+      "adapter_source": "crates/mcp-server/src/stdio/supply_chain.rs",
+      "application_entry": "crates/application/src/supply_chain.rs",
+      "domain_types": [
+        "SupplyReport",
+        "SupplyGraph",
+        "SupplyAudit",
+        "SupplyDeny (crates/domain/src/supply_chain.rs)"
+      ],
+      "tests": {
+        "contract_snapshot": "crates/mcp-server/tests/snapshots/supply-chain-tool.json",
+        "protocol_tests": [
+          "crates/mcp-server/tests/protocol.rs"
+        ],
+        "native_cuts": [
+          "crates/mcp-server/tests/inspection_runtime/security.rs",
+          "crates/execution-adapter/src/security_graph_native.rs (captures_workspace_dependency_graphs_through_the_gateway)"
+        ]
+      },
+      "writes_disk": false,
+      "requires_runtime": "docker-rust",
+      "real_consumers": [
+        "docs/validation/M4/clients/attempt-6/protocol.jsonl lines 57/119 (client=inspector) and 146/170 (client=codex-app-server)"
+      ],
+      "stock_client_invoked": true,
+      "proposed_class": "stable",
+      "class_rationale": "Published in the tagged, attested v0.3.0 release (docs/release/0.3.0/publication-receipt.json); real Inspector AND Codex app-server positive tools/call evidence in docs/validation/M4/clients/attempt-6/protocol.jsonl, including a passed run on the m4-scanner image (sha256:25ed3626e710...) per docs/validation/M4/runtime.json.",
+      "surface_gate": {
+        "why_tool_not_resource_or_prompt": "Composes a fresh ProjectRef capture, one RustSec audit and one deny execution plus lock/metadata facts from one authenticated catalog generation on every call (ADR-071); the composition itself is bounded work, never a static resource.",
+        "context_cost_note": "456B input / 12439B output (3.17% of tools/list); the largest output schema among the M4 tools because it nests audit+deny+graph facts.",
+        "consolidation_candidate": "rust.dependencies.audit and rust.deny (see those entries; supply_chain.inspect is architecturally their superset per ADR-071)",
+        "compat_risk_of_consolidation": "Medium: this tool already IS the consolidation of audit+deny for the composed case; the open question for M8-01 is whether audit/deny should remain independently callable (cheaper, narrower) or be deprecated in favor of always calling supply_chain.inspect. Recommend keeping all three: no evidence any consumer is confused by the overlap, and deleting the cheaper two would raise average context cost."
+      },
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": false,
+        "openWorldHint": false,
+        "readOnlyHint": true
+      },
+      "error_codes": [
+        "TASKS_REQUIRED",
+        "SANDBOX_DENIED",
+        "MISSING_OFFLINE_DATA",
+        "ARTIFACT_UNAVAILABLE",
+        "TOOL_NOT_INSTALLED",
+        "INVALID_PROJECT",
+        "PROJECT_NOT_FOUND",
+        "COMMAND_TIMEOUT",
+        "OUTPUT_LIMIT_EXCEEDED",
+        "EVIDENCE_INCOMPLETE"
+      ],
+      "status_values": [
+        "passed",
+        "blocked",
+        "unavailable",
+        "cancelled"
+      ],
+      "schema_bytes": {
+        "input": 456,
+        "output": 12439,
+        "description_chars": 493
+      }
+    },
+    {
+      "name": "rust.quality.gate.v2",
+      "milestone_cut": "M4/0.4.x",
+      "adr": [
+        "ADR-067",
+        "ADR-076"
+      ],
+      "adapter_source": "crates/mcp-server/src/stdio/quality_v2.rs",
+      "application_entry": "crates/application/src/quality_v2.rs",
+      "domain_types": [
+        "QualityV2Report",
+        "QualityV2Stage",
+        "QualityV2Profile (crates/domain/src/quality_v2.rs)"
+      ],
+      "tests": {
+        "contract_snapshot": "crates/mcp-server/tests/snapshots/quality-v2-tool.json",
+        "protocol_tests": [
+          "crates/mcp-server/tests/protocol.rs"
+        ],
+        "native_cuts": [
+          "crates/mcp-server/tests/inspection_runtime/security.rs"
+        ]
+      },
+      "writes_disk": false,
+      "requires_runtime": "docker-rust",
+      "real_consumers": [
+        "docs/validation/M4/clients/attempt-6/protocol.jsonl lines 71/121 (client=inspector) and 148/172 (client=codex-app-server)"
+      ],
+      "stock_client_invoked": true,
+      "proposed_class": "stable",
+      "class_rationale": "Published in the tagged, attested v0.3.0 release (docs/release/0.3.0/publication-receipt.json); real Inspector AND Codex app-server positive tools/call evidence in docs/validation/M4/clients/attempt-6/protocol.jsonl, including a passed run on the m4-scanner image (sha256:25ed3626e710...) per docs/validation/M4/runtime.json.",
+      "surface_gate": {
+        "why_tool_not_resource_or_prompt": "Composes strict/release staged quality gates (dependency policy, workspace coverage, optional SemVer/mutation) with one candidate capture and one shared audit; a multi-stage compute action, not cached data.",
+        "context_cost_note": "1283B input / 15676B output (3.99% of tools/list); second-largest output schema in the catalog.",
+        "consolidation_candidate": "rust.quality.gate (see that entry; this is the strongest consolidation candidate in the whole catalog)",
+        "compat_risk_of_consolidation": "See rust.quality.gate; do not delete gate.v1's frozen M1 contract to reach a tool-count target, but a unified successor contract is worth designing before 0.8 freeze."
+      },
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": false,
+        "openWorldHint": false,
+        "readOnlyHint": true
+      },
+      "error_codes": [
+        "TASKS_REQUIRED",
+        "SANDBOX_DENIED",
+        "MISSING_OFFLINE_DATA",
+        "ARTIFACT_UNAVAILABLE",
+        "TOOL_NOT_INSTALLED",
+        "INVALID_PROJECT",
+        "PROJECT_NOT_FOUND",
+        "COMMAND_TIMEOUT",
+        "OUTPUT_LIMIT_EXCEEDED",
+        "EVIDENCE_INCOMPLETE"
+      ],
+      "status_values": [
+        "passed",
+        "failed",
+        "blocked",
+        "unavailable",
+        "cancelled"
+      ],
+      "schema_bytes": {
+        "input": 1283,
+        "output": 15676,
+        "description_chars": 644
+      }
+    },
+    {
+      "name": "rust.miri",
+      "milestone_cut": "M4/0.4.x",
+      "adr": [
+        "ADR-066",
+        "ADR-067",
+        "ADR-068",
+        "ADR-072"
+      ],
+      "adapter_source": "crates/mcp-server/src/stdio/miri.rs",
+      "application_entry": "crates/application/src/miri.rs",
+      "domain_types": [
+        "MiriReport",
+        "MiriFinding",
+        "MiriCategory (crates/domain/src/miri.rs)"
+      ],
+      "tests": {
+        "contract_snapshot": "crates/mcp-server/tests/snapshots/miri-tool.json",
+        "protocol_tests": [
+          "crates/mcp-server/tests/protocol.rs"
+        ],
+        "native_cuts": [
+          "crates/mcp-server/tests/inspection_runtime/security.rs",
+          "crates/execution-adapter/src/miri_native.rs (m4_miri_gateway_classifies_native_oracles, m4_miri_rejects_native_producers_and_joins_timeout_and_cancel)"
+        ]
+      },
+      "writes_disk": false,
+      "requires_runtime": "docker-rust",
+      "real_consumers": [
+        "docs/validation/M4/clients/attempt-6/protocol.jsonl lines 97/123/127 (client=inspector) and 150/174 (client=codex-app-server)"
+      ],
+      "stock_client_invoked": true,
+      "proposed_class": "stable",
+      "class_rationale": "Published in the tagged, attested v0.3.0 release (docs/release/0.3.0/publication-receipt.json); real Inspector AND Codex app-server positive tools/call evidence in docs/validation/M4/clients/attempt-6/protocol.jsonl, including a passed run on the m4-scanner image (sha256:25ed3626e710...) per docs/validation/M4/runtime.json.",
+      "surface_gate": {
+        "why_tool_not_resource_or_prompt": "Runs library/binary/integration tests under the pinned nightly Miri interpreter, separating observed UB from ordinary failures; a bounded compute action per ADR-072's empirical 10/10 classification oracle.",
+        "context_cost_note": "457B input / 5599B output (1.43% of tools/list).",
+        "consolidation_candidate": "none",
+        "compat_risk_of_consolidation": "n/a."
+      },
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": false,
+        "openWorldHint": false,
+        "readOnlyHint": true
+      },
+      "error_codes": [
+        "TASKS_REQUIRED",
+        "SANDBOX_DENIED",
+        "MISSING_OFFLINE_DATA",
+        "ARTIFACT_UNAVAILABLE",
+        "TOOL_NOT_INSTALLED",
+        "INVALID_PROJECT",
+        "PROJECT_NOT_FOUND",
+        "COMMAND_TIMEOUT",
+        "OUTPUT_LIMIT_EXCEEDED",
+        "EVIDENCE_INCOMPLETE",
+        "OBSERVED_FAILURE",
+        "CLASSIFICATION_INTEGRITY_UNSUPPORTED"
+      ],
+      "status_values": [
+        "passed",
+        "failed",
+        "blocked",
+        "unavailable",
+        "cancelled"
+      ],
+      "schema_bytes": {
+        "input": 457,
+        "output": 5599,
+        "description_chars": 536
+      }
+    },
+    {
+      "name": "rust.benchmark.run",
+      "milestone_cut": "M5/0.5.x",
+      "adr": [
+        "ADR-073",
+        "ADR-076",
+        "ADR-078",
+        "ADR-080"
+      ],
+      "adapter_source": "crates/mcp-server/src/stdio/benchmark.rs",
+      "application_entry": "crates/application/src/benchmark.rs",
+      "domain_types": [
+        "BenchmarkDataset",
+        "BenchmarkMeasurement",
+        "BenchmarkProvenance (crates/domain/src/benchmark.rs)"
+      ],
+      "tests": {
+        "contract_snapshot": "crates/mcp-server/tests/snapshots/benchmark-run-tool.json",
+        "protocol_tests": [
+          "crates/mcp-server/tests/protocol.rs"
+        ],
+        "native_cuts": [
+          "crates/execution-adapter/src/performance_native.rs",
+          "crates/execution-adapter/src/performance_gateway.rs"
+        ]
+      },
+      "writes_disk": false,
+      "requires_runtime": "docker-rust",
+      "real_consumers": [
+        "docs/validation/M5/clients.json calls[0] (unavailable/docker_free), calls[8]/[9] (passed/runtime), calls[13]/[14] (failed/runtime, observed compilation failure)"
+      ],
+      "stock_client_invoked": true,
+      "proposed_class": "stable",
+      "class_rationale": "Published in the tagged, attested v0.3.0 release (PR #17 IS the v0.3.0 tag commit, docs/release/0.3.0/publication-receipt.json); real Inspector positive AND negative shapes plus runtime-mode passed executions in docs/validation/M5/clients.json calls[]; Claude Code model_flow also recorded (refusals under docker_free, real invocation under runtime).",
+      "surface_gate": {
+        "why_tool_not_resource_or_prompt": "Runs the project's own criterion benchmarks once and publishes raw samples/logs as private artifacts; a bounded, budgeted compute action with no cached alternative.",
+        "context_cost_note": "1087B input / 16659B output (4.24% of tools/list); one of the largest output schemas because provenance (toolchain/image/config/execution digests) is fully inlined for later comparison.",
+        "consolidation_candidate": "none",
+        "compat_risk_of_consolidation": "n/a."
+      },
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": false,
+        "openWorldHint": false,
+        "readOnlyHint": true
+      },
+      "error_codes": [
+        "TASKS_REQUIRED",
+        "SANDBOX_DENIED",
+        "MISSING_OFFLINE_DATA",
+        "ARTIFACT_UNAVAILABLE",
+        "TOOL_NOT_INSTALLED",
+        "INVALID_PROJECT",
+        "PROJECT_NOT_FOUND",
+        "COMMAND_TIMEOUT",
+        "OUTPUT_LIMIT_EXCEEDED",
+        "EVIDENCE_INCOMPLETE",
+        "OBSERVED_FAILURE",
+        "HARNESS_UNRECOGNIZED",
+        "HARNESS_UNAPPROVED"
+      ],
+      "status_values": [
+        "passed",
+        "failed",
+        "blocked",
+        "unavailable",
+        "cancelled"
+      ],
+      "schema_bytes": {
+        "input": 1087,
+        "output": 16659,
+        "description_chars": 1137
+      }
+    },
+    {
+      "name": "rust.benchmark.compare",
+      "milestone_cut": "M5/0.5.x",
+      "adr": [
+        "ADR-073",
+        "ADR-076",
+        "ADR-078",
+        "ADR-081"
+      ],
+      "adapter_source": "crates/mcp-server/src/stdio/benchmark_compare.rs",
+      "application_entry": "crates/application/src/benchmark_compare.rs",
+      "domain_types": [
+        "ComparisonReport",
+        "ComparisonVerdict",
+        "Incompatibility (crates/domain/src/benchmark_compare.rs)"
+      ],
+      "tests": {
+        "contract_snapshot": "crates/mcp-server/tests/snapshots/benchmark-compare-tool.json",
+        "protocol_tests": [
+          "crates/mcp-server/tests/protocol.rs"
+        ],
+        "native_cuts": []
+      },
+      "writes_disk": false,
+      "requires_runtime": "none",
+      "real_consumers": [
+        "docs/validation/M5/clients.json calls[2] (blocked/docker_free/ARTIFACT_NOT_FOUND), calls[10] (passed/runtime)"
+      ],
+      "stock_client_invoked": true,
+      "proposed_class": "stable",
+      "class_rationale": "Published in the tagged, attested v0.3.0 release (PR #17 IS the v0.3.0 tag commit, docs/release/0.3.0/publication-receipt.json); real Inspector positive AND negative shapes plus runtime-mode passed executions in docs/validation/M5/clients.json calls[]; Claude Code model_flow also recorded (refusals under docker_free, real invocation under runtime).",
+      "surface_gate": {
+        "why_tool_not_resource_or_prompt": "Statistical comparison over two already-published dataset artifacts; the tool description states explicitly it 'runs no process and reads no project source', so in principle it is closer to a pure function, but it still performs bounded, non-trivial compute (bootstrap resampling) per call rather than returning cached data, keeping it a tool under §9.1.",
+        "context_cost_note": "580B input / 16769B output (4.27% of tools/list); the single largest output schema in the entire catalog, driven by the fully-inlined frozen statistical method plus both datasets' provenance.",
+        "consolidation_candidate": "none",
+        "compat_risk_of_consolidation": "n/a. No native_cuts test file found under crates/execution-adapter for this tool specifically (it has no Docker/process dependency to test natively); coverage is protocol.rs plus the client receipt above."
+      },
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": false,
+        "openWorldHint": false,
+        "readOnlyHint": true
+      },
+      "error_codes": [
+        "SANDBOX_DENIED",
+        "ARTIFACT_UNAVAILABLE",
+        "ARTIFACT_NOT_FOUND",
+        "ARTIFACT_UNREADABLE",
+        "ARTIFACT_TOO_LARGE",
+        "NOT_A_DATASET",
+        "INVALID_DATASET",
+        "NO_COMMON_BENCHMARK",
+        "INCOMPATIBLE_DATASETS",
+        "COMMAND_TIMEOUT",
+        "OUTPUT_LIMIT_EXCEEDED",
+        "EVIDENCE_INCOMPLETE"
+      ],
+      "status_values": [
+        "passed",
+        "failed",
+        "blocked",
+        "unavailable",
+        "cancelled"
+      ],
+      "schema_bytes": {
+        "input": 580,
+        "output": 16769,
+        "description_chars": 1396
+      }
+    },
+    {
+      "name": "rust.profile.flamegraph",
+      "milestone_cut": "M5/0.5.x",
+      "adr": [
+        "ADR-074",
+        "ADR-076"
+      ],
+      "adapter_source": "crates/mcp-server/src/stdio/profile.rs",
+      "application_entry": "crates/application/src/profile.rs",
+      "domain_types": [
+        "ProfileObservation",
+        "ProfileCounters",
+        "ProfileFrameWeight (crates/domain/src/profile.rs)"
+      ],
+      "tests": {
+        "contract_snapshot": "crates/mcp-server/tests/snapshots/profile-flamegraph-tool.json",
+        "protocol_tests": [
+          "crates/mcp-server/tests/protocol.rs"
+        ],
+        "native_cuts": [
+          "crates/execution-adapter/src/performance_native.rs",
+          "crates/execution-adapter/src/performance_gateway.rs"
+        ]
+      },
+      "writes_disk": false,
+      "requires_runtime": "docker-rust",
+      "real_consumers": [
+        "docs/validation/M5/clients.json calls[4] (blocked/docker_free/PROFILING_NOT_AUTHORIZED), calls[11] (passed/runtime)"
+      ],
+      "stock_client_invoked": true,
+      "proposed_class": "stable",
+      "class_rationale": "Published in the tagged, attested v0.3.0 release (PR #17 IS the v0.3.0 tag commit, docs/release/0.3.0/publication-receipt.json); real Inspector positive AND negative shapes plus runtime-mode passed executions in docs/validation/M5/clients.json calls[]; Claude Code model_flow also recorded (refusals under docker_free, real invocation under runtime).",
+      "surface_gate": {
+        "why_tool_not_resource_or_prompt": "Samples one binary under an explicit host profiling grant and publishes sanitized flame graph/stacks as private artifacts; a bounded, gated compute action.",
+        "context_cost_note": "852B input / 7774B output (1.98% of tools/list).",
+        "consolidation_candidate": "none",
+        "compat_risk_of_consolidation": "n/a."
+      },
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": false,
+        "openWorldHint": false,
+        "readOnlyHint": true
+      },
+      "error_codes": [
+        "TASKS_REQUIRED",
+        "PROFILING_NOT_AUTHORIZED",
+        "SANDBOX_DENIED",
+        "MISSING_OFFLINE_DATA",
+        "ARTIFACT_UNAVAILABLE",
+        "TOOL_NOT_INSTALLED",
+        "INVALID_PROJECT",
+        "PROJECT_NOT_FOUND",
+        "COMMAND_TIMEOUT",
+        "OUTPUT_LIMIT_EXCEEDED",
+        "EVIDENCE_INCOMPLETE",
+        "PROFILER_UNAVAILABLE",
+        "OBSERVED_FAILURE"
+      ],
+      "status_values": [
+        "passed",
+        "failed",
+        "blocked",
+        "unavailable",
+        "cancelled"
+      ],
+      "schema_bytes": {
+        "input": 852,
+        "output": 7774,
+        "description_chars": 811
+      }
+    },
+    {
+      "name": "rust.binary.bloat",
+      "milestone_cut": "M5/0.5.x",
+      "adr": [
+        "ADR-076",
+        "ADR-079"
+      ],
+      "adapter_source": "crates/mcp-server/src/stdio/bloat.rs",
+      "application_entry": "crates/application/src/bloat.rs",
+      "domain_types": [
+        "BloatObservation",
+        "BloatAttribution",
+        "MeasuredBinary (crates/domain/src/bloat.rs)"
+      ],
+      "tests": {
+        "contract_snapshot": "crates/mcp-server/tests/snapshots/binary-bloat-tool.json",
+        "protocol_tests": [
+          "crates/mcp-server/tests/protocol.rs"
+        ],
+        "native_cuts": [
+          "crates/execution-adapter/src/performance_native.rs",
+          "crates/execution-adapter/src/performance_gateway.rs"
+        ]
+      },
+      "writes_disk": false,
+      "requires_runtime": "docker-rust",
+      "real_consumers": [
+        "docs/validation/M5/clients.json calls[6] (unavailable/docker_free/MISSING_OFFLINE_DATA), calls[12] (passed/runtime)"
+      ],
+      "stock_client_invoked": true,
+      "proposed_class": "stable",
+      "class_rationale": "Published in the tagged, attested v0.3.0 release (PR #17 IS the v0.3.0 tag commit, docs/release/0.3.0/publication-receipt.json); real Inspector positive AND negative shapes plus runtime-mode passed executions in docs/validation/M5/clients.json calls[]; Claude Code model_flow also recorded (refusals under docker_free, real invocation under runtime).",
+      "surface_gate": {
+        "why_tool_not_resource_or_prompt": "Measures one binary's exact size/sha256 then runs the pinned cargo-bloat analyzer over it, separating verified fact from estimated attribution on every call; a bounded compute action.",
+        "context_cost_note": "1311B input / 14354B output (3.66% of tools/list).",
+        "consolidation_candidate": "none",
+        "compat_risk_of_consolidation": "n/a."
+      },
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": false,
+        "openWorldHint": false,
+        "readOnlyHint": true
+      },
+      "error_codes": [
+        "TASKS_REQUIRED",
+        "SANDBOX_DENIED",
+        "MISSING_OFFLINE_DATA",
+        "ARTIFACT_UNAVAILABLE",
+        "TOOL_NOT_INSTALLED",
+        "INVALID_PROJECT",
+        "PROJECT_NOT_FOUND",
+        "COMMAND_TIMEOUT",
+        "OUTPUT_LIMIT_EXCEEDED",
+        "EVIDENCE_INCOMPLETE",
+        "OBSERVED_FAILURE",
+        "ANALYZER_UNAVAILABLE",
+        "UNSUPPORTED_FORMAT",
+        "SIZE_MISMATCH"
+      ],
+      "status_values": [
+        "passed",
+        "failed",
+        "blocked",
+        "unavailable",
+        "cancelled"
+      ],
+      "schema_bytes": {
+        "input": 1311,
+        "output": 14354,
+        "description_chars": 1304
+      }
+    },
+    {
+      "name": "rust.analyzer.symbols",
+      "milestone_cut": "M6/0.6.x",
+      "adr": [
+        "ADR-082",
+        "ADR-083",
+        "ADR-084",
+        "ADR-085"
+      ],
+      "adapter_source": "crates/mcp-server/src/stdio/analyzer.rs",
+      "application_entry": "crates/application/src/analyzer.rs",
+      "domain_types": [
+        "DocumentSymbol",
+        "WorkspaceSymbol",
+        "SymbolQuery (crates/domain/src/analyzer.rs)"
+      ],
+      "tests": {
+        "contract_snapshot": "crates/mcp-server/tests/snapshots/analyzer-symbols-tool.json",
+        "protocol_tests": [
+          "crates/mcp-server/tests/protocol.rs"
+        ],
+        "native_cuts": [
+          "crates/mcp-server/tests/analyzer_runtime.rs",
+          "crates/execution-adapter/src/analyzer_native.rs",
+          "crates/execution-adapter/src/analyzer_gateway.rs"
+        ]
+      },
+      "writes_disk": false,
+      "requires_runtime": "analyzer",
+      "real_consumers": [
+        "docs/validation/M6/clients.json calls[0] (unavailable/docker_free/SANDBOX_DENIED), calls[5]/[6] (passed/runtime), calls[14] (blocked/runtime, negative shape)"
+      ],
+      "stock_client_invoked": true,
+      "proposed_class": "preview",
+      "class_rationale": "Merged to main (PR #20) but never included in a tagged/published release (only v0.1.0 and v0.3.0 exist); real Inspector/Claude Code consumer evidence exists (docs/validation/M6/clients.json) but hover/definition/rename remain Deferred per ADR-083, and the M6 handoff itself records 'Done local' status, one release-cycle short of the M1/M2-M5 bar used for 'stable' above.",
+      "surface_gate": {
+        "why_tool_not_resource_or_prompt": "Runs a transient rust-analyzer LSP query (textDocument/documentSymbol or workspace/symbol) per call inside the M6 guest; non-atomic latest_known snapshot semantics make it unsuitable as a cached Resource.",
+        "context_cost_note": "773B input / 10589B output (2.70% of tools/list).",
+        "consolidation_candidate": "rust.analyzer.references / rust.analyzer.diagnostics (three read-only LSP-shaped queries with near-identical annotations)",
+        "compat_risk_of_consolidation": "Low priority: merging into one 'rust.analyzer.query(kind=...)' tool would need a discriminated-union input/output schema, likely larger than the sum of the three separate ones due to oneOf overhead; not recommended."
+      },
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false,
+        "readOnlyHint": true
+      },
+      "error_codes": [
+        "CONFLICT",
+        "FILE_NOT_IN_SNAPSHOT",
+        "ANALYZER_NOT_READY",
+        "ANALYZER_CRASHED",
+        "ANALYZER_CAPABILITY_MISMATCH",
+        "FRAME_LIMIT",
+        "MESSAGE_LIMIT",
+        "RESULT_LIMIT",
+        "TIMEOUT_INITIALIZE",
+        "TIMEOUT_QUERY",
+        "TIMEOUT_TOTAL",
+        "UNSUPPORTED_PROJECT_CONFIG",
+        "FILE_NOT_UTF8",
+        "SANDBOX_DENIED",
+        "UNSUPPORTED_PLATFORM",
+        "PROJECT_NOT_FOUND",
+        "INVALID_PROJECT",
+        "OUTPUT_LIMIT_EXCEEDED"
+      ],
+      "status_values": [
+        "passed",
+        "blocked",
+        "unavailable",
+        "cancelled"
+      ],
+      "schema_bytes": {
+        "input": 773,
+        "output": 10589,
+        "description_chars": 775
+      }
+    },
+    {
+      "name": "rust.analyzer.references",
+      "milestone_cut": "M6/0.6.x",
+      "adr": [
+        "ADR-082",
+        "ADR-083",
+        "ADR-085"
+      ],
+      "adapter_source": "crates/mcp-server/src/stdio/analyzer.rs",
+      "application_entry": "crates/application/src/analyzer.rs",
+      "domain_types": [
+        "Reference",
+        "AnalyzerQuery (crates/domain/src/analyzer.rs)"
+      ],
+      "tests": {
+        "contract_snapshot": "crates/mcp-server/tests/snapshots/analyzer-references-tool.json",
+        "protocol_tests": [
+          "crates/mcp-server/tests/protocol.rs"
+        ],
+        "native_cuts": [
+          "crates/mcp-server/tests/analyzer_runtime.rs",
+          "crates/execution-adapter/src/analyzer_native.rs"
+        ]
+      },
+      "writes_disk": false,
+      "requires_runtime": "analyzer",
+      "real_consumers": [
+        "docs/validation/M6/clients.json calls[1] (unavailable/docker_free/SANDBOX_DENIED), calls[7] (passed/runtime)"
+      ],
+      "stock_client_invoked": true,
+      "proposed_class": "preview",
+      "class_rationale": "Merged to main (PR #20) but never included in a tagged/published release (only v0.1.0 and v0.3.0 exist); real Inspector/Claude Code consumer evidence exists (docs/validation/M6/clients.json) but hover/definition/rename remain Deferred per ADR-083, and the M6 handoff itself records 'Done local' status, one release-cycle short of the M1/M2-M5 bar used for 'stable' above.",
+      "surface_gate": {
+        "why_tool_not_resource_or_prompt": "Runs textDocument/references per call, deliberately sending the LSP request twice (with/without declaration) so is_declaration reflects the analyzer's own answer; a live compute action.",
+        "context_cost_note": "1106B input / 8797B output (2.24% of tools/list).",
+        "consolidation_candidate": "rust.analyzer.symbols (see that entry)",
+        "compat_risk_of_consolidation": "Low priority; see rust.analyzer.symbols."
+      },
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false,
+        "readOnlyHint": true
+      },
+      "error_codes": [
+        "ANALYZER_CAPABILITY_MISMATCH",
+        "ANALYZER_CRASHED",
+        "ANALYZER_NOT_READY",
+        "CONFLICT",
+        "FILE_NOT_IN_SNAPSHOT",
+        "FILE_NOT_UTF8",
+        "FRAME_LIMIT",
+        "INVALID_PROJECT",
+        "MESSAGE_LIMIT",
+        "OUTPUT_LIMIT_EXCEEDED",
+        "POSITION_OUT_OF_RANGE",
+        "PROJECT_NOT_FOUND",
+        "RESULT_LIMIT",
+        "SANDBOX_DENIED",
+        "TIMEOUT_INITIALIZE",
+        "TIMEOUT_QUERY",
+        "TIMEOUT_TOTAL",
+        "UNSUPPORTED_PLATFORM",
+        "UNSUPPORTED_PROJECT_CONFIG"
+      ],
+      "status_values": [
+        "passed",
+        "blocked",
+        "unavailable",
+        "cancelled"
+      ],
+      "schema_bytes": {
+        "input": 1106,
+        "output": 8797,
+        "description_chars": 1040
+      }
+    },
+    {
+      "name": "rust.analyzer.diagnostics",
+      "milestone_cut": "M6/0.6.x",
+      "adr": [
+        "ADR-082",
+        "ADR-083",
+        "ADR-084",
+        "ADR-085"
+      ],
+      "adapter_source": "crates/mcp-server/src/stdio/analyzer.rs",
+      "application_entry": "crates/application/src/analyzer.rs",
+      "domain_types": [
+        "AnalyzerDiagnostic",
+        "DiagnosticSeverity (crates/domain/src/analyzer.rs)"
+      ],
+      "tests": {
+        "contract_snapshot": "crates/mcp-server/tests/snapshots/analyzer-diagnostics-tool.json",
+        "protocol_tests": [
+          "crates/mcp-server/tests/protocol.rs"
+        ],
+        "native_cuts": [
+          "crates/mcp-server/tests/analyzer_runtime.rs",
+          "crates/execution-adapter/src/analyzer_native.rs"
+        ]
+      },
+      "writes_disk": false,
+      "requires_runtime": "analyzer",
+      "real_consumers": [
+        "docs/validation/M6/clients.json calls[2] (unavailable/docker_free/SANDBOX_DENIED), calls[8] (passed/runtime)"
+      ],
+      "stock_client_invoked": true,
+      "proposed_class": "preview",
+      "class_rationale": "Merged to main (PR #20) but never included in a tagged/published release (only v0.1.0 and v0.3.0 exist); real Inspector/Claude Code consumer evidence exists (docs/validation/M6/clients.json) but hover/definition/rename remain Deferred per ADR-083, and the M6 handoff itself records 'Done local' status, one release-cycle short of the M1/M2-M5 bar used for 'stable' above.",
+      "surface_gate": {
+        "why_tool_not_resource_or_prompt": "Runs the pull textDocument/diagnostic request per call; explicitly distinct from rust.check (never runs cargo check), a live analyzer-native compute action.",
+        "context_cost_note": "510B input / 9470B output (2.41% of tools/list); smallest input schema among the analyzer tools.",
+        "consolidation_candidate": "rust.analyzer.symbols (see that entry)",
+        "compat_risk_of_consolidation": "Low priority; see rust.analyzer.symbols."
+      },
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false,
+        "readOnlyHint": true
+      },
+      "error_codes": [
+        "ANALYZER_CAPABILITY_MISMATCH",
+        "ANALYZER_CRASHED",
+        "ANALYZER_NOT_READY",
+        "CONFLICT",
+        "FILE_NOT_IN_SNAPSHOT",
+        "FILE_NOT_UTF8",
+        "FRAME_LIMIT",
+        "INVALID_PROJECT",
+        "MESSAGE_LIMIT",
+        "OUTPUT_LIMIT_EXCEEDED",
+        "PROJECT_NOT_FOUND",
+        "RESULT_LIMIT",
+        "SANDBOX_DENIED",
+        "TIMEOUT_INITIALIZE",
+        "TIMEOUT_QUERY",
+        "TIMEOUT_TOTAL",
+        "UNSUPPORTED_PLATFORM",
+        "UNSUPPORTED_PROJECT_CONFIG"
+      ],
+      "status_values": [
+        "passed",
+        "blocked",
+        "unavailable",
+        "cancelled"
+      ],
+      "schema_bytes": {
+        "input": 510,
+        "output": 9470,
+        "description_chars": 860
+      }
+    },
+    {
+      "name": "rust.analyzer.actions",
+      "milestone_cut": "M6/0.6.x",
+      "adr": [
+        "ADR-082",
+        "ADR-083",
+        "ADR-085"
+      ],
+      "adapter_source": "crates/mcp-server/src/stdio/analyzer/actions.rs",
+      "application_entry": "crates/application/src/analyzer.rs",
+      "domain_types": [
+        "ActionCandidate",
+        "RejectedAction",
+        "CodeActionKind (crates/domain/src/analyzer.rs)"
+      ],
+      "tests": {
+        "contract_snapshot": "crates/mcp-server/tests/snapshots/analyzer-actions-tool.json",
+        "protocol_tests": [
+          "crates/mcp-server/tests/protocol.rs"
+        ],
+        "native_cuts": [
+          "crates/mcp-server/tests/analyzer_runtime.rs",
+          "crates/execution-adapter/src/analyzer_native.rs"
+        ]
+      },
+      "writes_disk": false,
+      "requires_runtime": "analyzer",
+      "real_consumers": [
+        "docs/validation/M6/clients.json calls[3] (unavailable/docker_free/SANDBOX_DENIED), calls[9] (passed/runtime)"
+      ],
+      "stock_client_invoked": true,
+      "proposed_class": "preview",
+      "class_rationale": "Merged to main (PR #20) but never included in a tagged/published release (only v0.1.0 and v0.3.0 exist); real Inspector/Claude Code consumer evidence exists (docs/validation/M6/clients.json) but hover/definition/rename remain Deferred per ADR-083, and the M6 handoff itself records 'Done local' status, one release-cycle short of the M1/M2-M5 bar used for 'stable' above.",
+      "surface_gate": {
+        "why_tool_not_resource_or_prompt": "Lists and structurally validates (but never applies) rust-analyzer code actions per call, binding an action_digest to analyzer version/binary/config/capture; read-only preview of a future write, still a live compute action per call.",
+        "context_cost_note": "2114B input / 10160B output (2.59% of tools/list); largest input schema among the analyzer read tools due to the range/expected_project_fingerprint shape.",
+        "consolidation_candidate": "none (distinct read-before-write pairing with rust.analyzer.action.apply, mirroring the manifest.patch preview/commit pattern)",
+        "compat_risk_of_consolidation": "n/a."
+      },
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false,
+        "readOnlyHint": true
+      },
+      "error_codes": [
+        "ANALYZER_CAPABILITY_MISMATCH",
+        "ANALYZER_CRASHED",
+        "ANALYZER_NOT_READY",
+        "CONFLICT",
+        "FILE_NOT_IN_SNAPSHOT",
+        "FILE_NOT_UTF8",
+        "FRAME_LIMIT",
+        "INVALID_PROJECT",
+        "MESSAGE_LIMIT",
+        "OUTPUT_LIMIT_EXCEEDED",
+        "POSITION_OUT_OF_RANGE",
+        "PROJECT_NOT_FOUND",
+        "RESULT_LIMIT",
+        "SANDBOX_DENIED",
+        "TIMEOUT_INITIALIZE",
+        "TIMEOUT_QUERY",
+        "TIMEOUT_TOTAL",
+        "UNSUPPORTED_PLATFORM",
+        "UNSUPPORTED_PROJECT_CONFIG"
+      ],
+      "status_values": [
+        "passed",
+        "blocked",
+        "unavailable",
+        "cancelled"
+      ],
+      "schema_bytes": {
+        "input": 2114,
+        "output": 10160,
+        "description_chars": 1335
+      }
+    },
+    {
+      "name": "rust.analyzer.action.apply",
+      "milestone_cut": "M6/0.6.x",
+      "adr": [
+        "ADR-050",
+        "ADR-052",
+        "ADR-083"
+      ],
+      "adapter_source": "crates/mcp-server/src/stdio/mutation/analyzer_action.rs",
+      "application_entry": "crates/application/src/mutation.rs, crates/application/src/analyzer.rs",
+      "domain_types": [
+        "MutationKind::AnalyzerActionApply (crates/domain/src/mutation.rs)",
+        "TextEdit (crates/domain/src/analyzer.rs)"
+      ],
+      "tests": {
+        "contract_snapshot": "crates/mcp-server/tests/snapshots/analyzer-action-apply-tool.json",
+        "protocol_tests": [
+          "crates/mcp-server/tests/protocol.rs"
+        ],
+        "native_cuts": [
+          "crates/mcp-server/tests/analyzer_runtime.rs",
+          "crates/execution-adapter/src/analyzer_native.rs"
+        ]
+      },
+      "writes_disk": true,
+      "requires_runtime": "analyzer",
+      "real_consumers": [
+        "docs/validation/M6/clients.json calls[4] (unavailable/docker_free/SANDBOX_DENIED), calls[10]/[11]/[12] (passed/runtime), calls[13] (blocked/runtime, ACTION_STALE-class negative shape)"
+      ],
+      "stock_client_invoked": true,
+      "proposed_class": "preview",
+      "class_rationale": "Merged to main (PR #20) but never included in a tagged/published release (only v0.1.0 and v0.3.0 exist); real Inspector/Claude Code consumer evidence exists (docs/validation/M6/clients.json) but hover/definition/rename remain Deferred per ADR-083, and the M6 handoff itself records 'Done local' status, one release-cycle short of the M1/M2-M5 bar used for 'stable' above.",
+      "surface_gate": {
+        "why_tool_not_resource_or_prompt": "Applies a re-validated rust-analyzer code action through the journaled M2 writer; a destructive action requiring --allow-analyzer-action-write, never Resource-shaped.",
+        "context_cost_note": "2830B input / 7181B output (1.83% of tools/list).",
+        "consolidation_candidate": "none",
+        "compat_risk_of_consolidation": "n/a."
+      },
+      "annotations": {
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": false,
+        "readOnlyHint": false
+      },
+      "error_codes": [
+        "ACTION_REJECTED",
+        "ACTION_STALE",
+        "ANALYZER_CAPABILITY_MISMATCH",
+        "ANALYZER_CRASHED",
+        "ANALYZER_NOT_READY",
+        "CANCELLED",
+        "CONFLICT",
+        "FILE_NOT_IN_SNAPSHOT",
+        "FILE_NOT_UTF8",
+        "FRAME_LIMIT",
+        "INVALID_OPERATION",
+        "INVALID_PROJECT",
+        "IO",
+        "LIMIT_EXCEEDED",
+        "LOCK_BUSY",
+        "MESSAGE_LIMIT",
+        "NOT_FOUND",
+        "OUTPUT_LIMIT_EXCEEDED",
+        "PERMISSION_DENIED",
+        "PLAN_EXPIRED",
+        "POSITION_OUT_OF_RANGE",
+        "PROJECT_NOT_FOUND",
+        "RECOVERY_REQUIRED",
+        "RESULT_LIMIT",
+        "SANDBOX_DENIED",
+        "TIMEOUT_INITIALIZE",
+        "TIMEOUT_QUERY",
+        "TIMEOUT_TOTAL",
+        "UNSUPPORTED_PLATFORM",
+        "UNSUPPORTED_PROJECT_CONFIG"
+      ],
+      "status_values": [
+        "passed",
+        "failed",
+        "blocked",
+        "unavailable",
+        "cancelled"
+      ],
+      "schema_bytes": {
+        "input": 2830,
+        "output": 7181,
+        "description_chars": 1547
+      }
+    }
+  ],
+  "resources": [
+    {
+      "uri_template": "rust-artifact://{project_ref}/{artifact_id}",
+      "producer": "crates/mcp-server/src/stdio/resources.rs (Resources::read, PREFIX const), backed by rust_engineering_artifact::MemoryArtifactStore",
+      "used_by_tools": [
+        "rust.check",
+        "rust.fmt.check",
+        "rust.clippy",
+        "rust.test",
+        "rust.quality.gate"
+      ],
+      "tests": [
+        "crates/mcp-server/src/stdio/resources/tests.rs (canonical_uris_round_trip_and_reject_every_additional_component, binary_content_has_exact_base64_and_private_uncacheable_metadata)",
+        "crates/mcp-server/tests/protocol.rs"
+      ],
+      "real_consumers": [
+        "docs/validation/M1/17-inspector.md (UI Resource read, recorded as historically unqualified in docs/validation/M1/17-matrix.md row 29)",
+        "docs/validation/M5/clients.json calls[8]-[12] (artifacts_published=4/2/1, artifacts_read matches published, mode=runtime)"
+      ],
+      "proposed_class": "stable",
+      "notes": "Opaque per-call ephemeral log/artifact reference minted by a tool response; not advertised in resources/list (see discoverability finding). Owner-authorized, ProjectRef-scoped, revalidated on every read."
+    },
+    {
+      "uri_template": "rust-quality-artifact://{project_ref}/{quality_job_id_or_artifact_id}?offset={n}&length={n}",
+      "producer": "crates/mcp-server/src/stdio/resources.rs (QUALITY_PREFIX const, quality_index_uri/quality_chunk_uri), backed by crates/project-adapter/src/quality_artifact_store.rs",
+      "used_by_tools": [
+        "rust.test.nextest",
+        "rust.coverage",
+        "rust.mutation.test",
+        "rust.deny",
+        "rust.unsafe.scan",
+        "rust.supply_chain.inspect",
+        "rust.quality.gate.v2",
+        "rust.miri",
+        "rust.benchmark.run",
+        "rust.benchmark.compare",
+        "rust.profile.flamegraph",
+        "rust.binary.bloat"
+      ],
+      "tests": [
+        "crates/mcp-server/src/stdio/resources/tests.rs (quality_uris_have_closed_query_grammar_and_chunk_limit, a_maximal_quality_chunk_stays_below_the_complete_response_cap, a_quality_index_page_is_bounded_in_rows_and_cursor_bytes, quality_uris_are_never_served_without_an_installed_reader)",
+        "crates/mcp-server/tests/protocol.rs"
+      ],
+      "real_consumers": [
+        "docs/validation/M5/clients.json calls[8]-[12] (artifacts_published/artifacts_read > 0 under mode=runtime)",
+        "docs/validation/M6/clients.json (analyzer tools do not publish quality artifacts; evidence is for the M3-M5 Task-backed tools listed in used_by_tools)"
+      ],
+      "proposed_class": "stable",
+      "notes": "Chunked index+range-read pattern (ADR-061 owner-bound private artifact store) bounding both an index page (QUALITY_INDEX_PAGE_MEMBERS) and a byte range per chunk (QUALITY_RESOURCE_CHUNK_BYTES/QUALITY_CURSOR_MAX_BYTES). Also not advertised in resources/list."
+    }
+  ],
+  "prompts": [],
+  "prompts_note": "prompts/list returns [] on this checkout (target/m8-census/tools-list.jsonl / delegation README live verification 2026-09-14); spec section 9.3/87 gives review-rust-change/prepare-rust-release/investigate-rust-performance as future examples, none implemented through M6.",
+  "cli_commands": [
+    {
+      "command": "serve --stdio [--root PATH]...",
+      "flags_summary": "roots, project-ttl, catalog store/trust/model/index, six --allow-*-write grants, cargo-vendor dir+hash, security-policy path+hash, rustsec-snapshot path+hash, docker path/socket/state-root/rust-image",
+      "format_version": "n/a (long-running MCP server, no single JSON envelope)",
+      "exit_codes": "process runs until stdin EOF/signal; see crates/mcp-server/src/main.rs dispatch",
+      "tests": [
+        "crates/mcp-server/tests/cli.rs",
+        "crates/mcp-server/tests/protocol.rs"
+      ],
+      "docs": [
+        "docs/client-configuration.md",
+        "README.md"
+      ],
+      "proposed_class": "stable"
+    },
+    {
+      "command": "doctor [--active] [--json]",
+      "flags_summary": "same host flags as serve; --active calibrates the approved Rust runtime",
+      "format_version": 1,
+      "exit_codes": "0 passed, 1 warning/error (crates/mcp-server/tests/doctor.rs lines 250/257/284), 2 usage error",
+      "tests": [
+        "crates/mcp-server/tests/doctor.rs",
+        "crates/mcp-server/src/doctor/tests.rs"
+      ],
+      "docs": [
+        "docs/tools.md CLI y doctor M1-14 section"
+      ],
+      "proposed_class": "stable"
+    },
+    {
+      "command": "version [--json]",
+      "flags_summary": "-V/--version alias",
+      "format_version": 1,
+      "exit_codes": "0",
+      "tests": [
+        "crates/mcp-server/tests/cli.rs"
+      ],
+      "docs": [
+        "docs/tools.md"
+      ],
+      "proposed_class": "stable"
+    },
+    {
+      "command": "capabilities [--json|--human] --docker PATH --docker-socket PATH --state-root PATH --probe-image sha256:ID",
+      "flags_summary": "active local sandbox probe",
+      "format_version": 1,
+      "exit_codes": "0 passed, non-zero on probe failure",
+      "tests": [
+        "crates/mcp-server/tests/capabilities_cli.rs"
+      ],
+      "docs": [
+        "docs/security-model.md"
+      ],
+      "proposed_class": "stable"
+    },
+    {
+      "command": "catalog status --store PATH --trust PATH [--json]",
+      "flags_summary": "reads catalog/trust identities",
+      "format_version": 1,
+      "exit_codes": "0/1/2 (shared CLI dispatch)",
+      "tests": [
+        "crates/mcp-server/tests/catalog_cli.rs"
+      ],
+      "docs": [
+        "docs/tools.md"
+      ],
+      "proposed_class": "stable"
+    },
+    {
+      "command": "catalog import SNAPSHOT --store PATH --trust PATH [--json]",
+      "flags_summary": "authenticated local snapshot import",
+      "format_version": 1,
+      "exit_codes": "0/1/2",
+      "tests": [
+        "crates/mcp-server/tests/catalog_cli.rs",
+        "crates/mcp-server/tests/catalog_cli/bundle_fixture.rs"
+      ],
+      "docs": [
+        "docs/tools.md M1-10"
+      ],
+      "proposed_class": "stable"
+    },
+    {
+      "command": "catalog sync --source SNAPSHOT|--url HTTPS_URL --allow-host HOST --store PATH --trust PATH [--json]",
+      "flags_summary": "signed local mirror snapshot import; --url variant requires explicit --allow-host",
+      "format_version": 1,
+      "exit_codes": "0/1/2",
+      "tests": [
+        "crates/mcp-server/src/catalog_sync/tests.rs",
+        "crates/mcp-server/tests/catalog_cli.rs"
+      ],
+      "docs": [
+        "docs/tools.md"
+      ],
+      "proposed_class": "stable"
+    },
+    {
+      "command": "catalog rebuild-index --store PATH --trust PATH --index-store PATH --model-dir PATH [--json]",
+      "flags_summary": "rebuilds native Lance objects using the verified installed E5 model",
+      "format_version": 1,
+      "exit_codes": "0/1/2",
+      "tests": [
+        "crates/mcp-server/tests/catalog_cli.rs"
+      ],
+      "docs": [
+        "docs/tools.md, docs/spec section 34.15"
+      ],
+      "proposed_class": "stable"
+    },
+    {
+      "command": "mutation list --state-root PATH [--json]",
+      "flags_summary": "inspects the mutation journal",
+      "format_version": 1,
+      "exit_codes": "0/1/2",
+      "tests": [
+        "crates/mcp-server/src/mutation_cli.rs (inline tests)",
+        "crates/mcp-server/tests/inspection_runtime/terminal_plan.rs"
+      ],
+      "docs": [
+        "docs/tools.md rust.manifest.patch section"
+      ],
+      "proposed_class": "stable"
+    },
+    {
+      "command": "mutation prune --state-root PATH --operation-id ID --plan-digest sha256:ID [--json]",
+      "flags_summary": "removes one completed local receipt explicitly",
+      "format_version": 1,
+      "exit_codes": "0/1/2",
+      "tests": [
+        "crates/mcp-server/src/mutation_cli.rs"
+      ],
+      "docs": [
+        "docs/tools.md"
+      ],
+      "proposed_class": "stable"
+    },
+    {
+      "command": "cargo-vendor inspect --directory PATH [--json]",
+      "flags_summary": "inspects an authenticated Cargo vendor tree",
+      "format_version": 1,
+      "exit_codes": "0/1/2",
+      "tests": [
+        "crates/mcp-server/src/cargo_vendor_cli.rs (inline tests)"
+      ],
+      "docs": [
+        "docs/adr/ADR-055-offline-cargo-data-and-lock-policy.md"
+      ],
+      "proposed_class": "stable"
+    },
+    {
+      "command": "security-runtime inventory [--json]",
+      "flags_summary": "shows compiled security runtime requirements; does not inspect or install",
+      "format_version": 1,
+      "exit_codes": "0",
+      "tests": [
+        "crates/mcp-server/tests/cli.rs"
+      ],
+      "docs": [
+        "docs/adr/ADR-066-m4-runtime-provisioning.md"
+      ],
+      "proposed_class": "stable"
+    },
+    {
+      "command": "quality-artifacts recover --state-root PATH [--json]",
+      "flags_summary": "crash/quarantine recovery for the private quality artifact store",
+      "format_version": 1,
+      "exit_codes": "0/1/2",
+      "tests": [
+        "crates/mcp-server/tests/quality_artifact_cli.rs",
+        "crates/project-adapter/tests/quality_artifact_store.rs"
+      ],
+      "docs": [
+        "docs/adr/ADR-061-private-quality-artifact-store.md"
+      ],
+      "proposed_class": "stable"
+    },
+    {
+      "command": "quality-artifacts prune --state-root PATH [--json]",
+      "flags_summary": "expiry-driven prune of the quality artifact store",
+      "format_version": 1,
+      "exit_codes": "0/1/2",
+      "tests": [
+        "crates/mcp-server/tests/quality_artifact_cli.rs"
+      ],
+      "docs": [
+        "docs/adr/ADR-061-private-quality-artifact-store.md"
+      ],
+      "proposed_class": "stable"
+    },
+    {
+      "command": "help",
+      "flags_summary": "-h/--help alias, prints the same top-level usage text",
+      "format_version": "n/a",
+      "exit_codes": "0",
+      "tests": [
+        "crates/mcp-server/tests/cli.rs"
+      ],
+      "docs": [],
+      "proposed_class": "stable"
+    }
+  ],
+  "error_model": {
+    "definition_locations": [
+      "crates/domain/src/result.rs (ToolStatus, OperationalErrorCode: SCREAMING_SNAKE_CASE, 9 base codes, used by 30 of 36 tools' envelope; each adapter module's local schemars-derived `Code` enum in crates/mcp-server/src/stdio/*/schemas.rs or the tool file itself extends this base with tool-specific closed variants)",
+      "crates/domain/src/mutation.rs (MutationError: 12 variants) mirrored as a local snake_case `Reason` schemars enum in crates/mcp-server/src/stdio/mutation.rs:209-226, used by the 5 M2 mutation tools (rust.manifest.patch, rust.fmt.apply, rust.fix.apply, rust.dependency.add, rust.dependency.remove); rust.analyzer.action.apply also maps MutationError internally (crates/mcp-server/src/stdio/mutation/analyzer_action.rs:808-820) but wires it onto its own SCREAMING_SNAKE_CASE `ApplyCode` enum (crates/mcp-server/src/stdio/mutation/analyzer_action.rs:171-205, 30 variants) rather than exposing the snake_case Reason on the wire"
+    ],
+    "status_values_canonical": [
+      "passed",
+      "failed",
+      "blocked",
+      "unavailable",
+      "cancelled"
+    ],
+    "code_casing_by_family": {
+      "read_and_analysis_tools (31)": "SCREAMING_SNAKE_CASE (e.g. PROJECT_NOT_FOUND, SANDBOX_DENIED); includes rust.analyzer.action.apply, whose closed error enum is ApplyCode (crates/mcp-server/src/stdio/mutation/analyzer_action.rs:171-175, #[serde(rename_all = \"SCREAMING_SNAKE_CASE\")], 30 variants), not the snake_case M2 Reason",
+      "mutation_tools (5)": "snake_case (e.g. invalid_operation, permission_denied); rust.manifest.patch, rust.fmt.apply, rust.fix.apply, rust.dependency.add, rust.dependency.remove only (see findings[] F11)"
+    },
+    "error_codes_enum_by_tool": {
+      "rust.project.open": "BlockedCode (7 variants) + UnavailableCode (2 variants), crates/mcp-server/tests/snapshots/project-open-tool.json $defs; error_codes[] lists both enums merged and sorted",
+      "rust.analyzer.references": "ReferencesCode (19 variants), crates/mcp-server/tests/snapshots/analyzer-references-tool.json $defs",
+      "rust.analyzer.diagnostics": "DiagnosticsCode (18 variants), crates/mcp-server/tests/snapshots/analyzer-diagnostics-tool.json $defs",
+      "rust.analyzer.actions": "ActionsCode (19 variants), crates/mcp-server/tests/snapshots/analyzer-actions-tool.json $defs",
+      "rust.analyzer.action.apply": "ApplyCode (30 variants), crates/mcp-server/tests/snapshots/analyzer-action-apply-tool.json $defs; SCREAMING_SNAKE_CASE, not the M2 snake_case Reason (see findings[] F11)"
+    },
+    "tests": [
+      "crates/domain/tests/manifest_edit.rs, crates/domain/tests/mutation.rs (ManifestEditError/MutationError invariants)",
+      "crates/mcp-server/src/stdio/security_contract_tests.rs",
+      "crates/mcp-server/tests/protocol.rs (error envelope shape per tool)"
+    ],
+    "inconsistencies": [
+      "Two different closed-enum casing conventions coexist for the same conceptual field (`error_code`): SCREAMING_SNAKE_CASE for the 31 read/analysis tools' OperationalErrorCode-derived codes, snake_case for the 5 M2 mutation tools' Reason codes. An agent or generic client cannot assume one casing convention across the whole 36-tool catalog. See findings[] F5, F11.",
+      "The base OperationalErrorCode (9 variants) is extended per-tool with additional tool-specific SCREAMING_SNAKE_CASE variants inside each tool's own schemars-derived Code enum (e.g. audit adds nine AUDIT_* variants, quality.gate adds two QUALITY_GATE_* variants); there is no single shared closed enum across all 31 read/analysis tools, only a shared naming convention and a shared 9-variant floor. This is architecturally consistent with 'no ampliar enums compartidos silenciosamente' (roadmap G1) but means error_codes[] must be read per-tool, never assumed global."
+    ]
+  },
+  "disk_formats": [
+    {
+      "name": "host config (serve flags)",
+      "location_layout": "Process CLI arguments only (--root, --allow-*-write, --catalog-*, --docker*, --*-policy/-snapshot paths+hashes); no persisted config file format.",
+      "version_marker": "ninguno (no disk format; flags are re-supplied on every process start)",
+      "reader_writer": "crates/mcp-server/src/host_config.rs",
+      "adr": [
+        "ADR-021",
+        "ADR-023"
+      ],
+      "tests": [
+        "crates/mcp-server/tests/cli.rs"
+      ],
+      "migration_relevant": false,
+      "migration_relevant_why": "Stateless per-invocation flags carry no on-disk representation to migrate.",
+      "floor_or_trust_state": false
+    },
+    {
+      "name": "M2 mutation journal / receipts",
+      "location_layout": "`{state_root}/rust-mcp-mutations-v1/` (crates/mcp-server/src/host_config.rs:285); per-operation journal files under crates/project-adapter/src/filesystem/macos/mutation.rs (JournalFile/JournalBundle/JournalBody structs), global lock `mutation-store.lock`, bounded to MAX_JOURNALS=128 / MAX_STORE_BYTES=256MiB / MAX_JOURNAL_BYTES=48MiB.",
+      "version_marker": "Namespace-level only: the `-v1` suffix on the state-root subdirectory name; no in-file format_version/schema_version field was found inside JournalFile/JournalBundle/JournalBody (crates/project-adapter/src/filesystem/macos/mutation.rs, grep for format_version/schema_version/MAGIC returned no matches). A digest domain-separation string (`rust-engineering-mcp/mutation-candidate/v1\\0`, crates/project-adapter/src/mutation_store.rs:40) versions the *candidate digest*, not the on-disk journal record layout itself.",
+      "reader_writer": "crates/project-adapter/src/filesystem/macos/mutation.rs (2949 lines, macOS-only positive host), crates/project-adapter/src/mutation_store.rs, crates/project-adapter/src/mutation_state.rs, crates/mcp-server/src/mutation_cli.rs (`mutation list`/`mutation prune`)",
+      "adr": [
+        "ADR-050",
+        "ADR-052",
+        "ADR-053",
+        "ADR-054",
+        "ADR-058",
+        "ADR-059"
+      ],
+      "tests": [
+        "crates/project-adapter/tests/mutation_store.rs",
+        "crates/project-adapter/tests/support/native_mutation.rs",
+        "crates/mcp-server/tests/inspection_runtime/mutation.rs",
+        "crates/mcp-server/tests/inspection_runtime/terminal_plan.rs"
+      ],
+      "migration_relevant": true,
+      "migration_relevant_why": "M8-03 must design upgrade/rollback for pending journals; absence of a per-record format_version field means an incompatible future journal layout could only be distinguished by the directory-name suffix (bump to `-v2`), not by reading an existing file. D12 should decide whether that namespace-level scheme is sufficient or a field-level marker should be added before 0.8 freeze.",
+      "floor_or_trust_state": false
+    },
+    {
+      "name": "M3 quality/jobs artifact store",
+      "location_layout": "`--state-root PATH` tree read/written by crates/project-adapter/src/quality_artifact_store.rs; owner-bound, private (ADR-061); indexed by QualityJobId/QualityArtifactId, chunked via rust-quality-artifact:// Resources.",
+      "version_marker": "Per-artifact-kind `PayloadFormatVersion` enum (crates/domain/src/quality_artifact.rs:331): JunitXmlV1, CoverageJsonV1, LcovV1, UstarV1, MutationDiffV1, Utf8LogV1, BenchmarkDatasetV2, CollapsedStacksV1, FlamegraphSvgV1, BloatJsonV1, DeclaredV1 — an explicit, granular version marker per payload kind.",
+      "reader_writer": "crates/project-adapter/src/quality_artifact_store.rs, crates/mcp-server/src/quality_artifact_cli.rs, crates/mcp-server/src/stdio/quality_artifacts.rs",
+      "adr": [
+        "ADR-060",
+        "ADR-061",
+        "ADR-080"
+      ],
+      "tests": [
+        "crates/project-adapter/tests/quality_artifact_store.rs",
+        "crates/mcp-server/tests/quality_artifact_cli.rs",
+        "crates/mcp-server/src/stdio/resources/tests.rs"
+      ],
+      "migration_relevant": true,
+      "migration_relevant_why": "BenchmarkDatasetV2 shows the project has already bumped one payload kind's version once; M8-03 should confirm reader/writer compatibility policy across payload version bumps (old datasets readable by new server, per format-per-kind).",
+      "floor_or_trust_state": false
+    },
+    {
+      "name": "M6 analyzer state",
+      "location_layout": "No persistent on-disk state: ADR-084 fixes a transient rust-analyzer LSP instance per query inside the M6 guest image, non-atomic latest_known snapshot semantics; only a calibration receipt schema exists (`rust-engineering-mcp.m6-calibration.v1`, crates/execution-adapter/src/analyzer_native.rs:42), which is a build-time/provisioning artifact, not runtime state.",
+      "version_marker": "`rust-engineering-mcp.m6-calibration.v1` schema tag on the calibration receipt only; no runtime-state format to version because there is no persisted runtime state.",
+      "reader_writer": "crates/execution-adapter/src/analyzer_native.rs, crates/execution-adapter/src/analyzer_gateway.rs",
+      "adr": [
+        "ADR-082",
+        "ADR-083",
+        "ADR-084",
+        "ADR-085"
+      ],
+      "tests": [
+        "crates/mcp-server/tests/analyzer_runtime.rs",
+        "crates/mcp-server/src/stdio/analyzer/tests.rs"
+      ],
+      "migration_relevant": false,
+      "migration_relevant_why": "Transient per-query instance; nothing durable to migrate across upgrades.",
+      "floor_or_trust_state": false
+    },
+    {
+      "name": "catalog SQLite (authoritative)",
+      "location_layout": "`--catalog-store PATH` single SQLite file; schema in crates/catalog-adapter/src/schema.sql.",
+      "version_marker": "`PRAGMA user_version` (crates/catalog-adapter/src/lib.rs:114-151); rejects `version > 1`, treats `version == 0` as an empty/new store, sets `user_version = 1` on init. Explicit, enforced, field-level.",
+      "reader_writer": "crates/catalog-adapter/src/lib.rs, crates/project-adapter/src/catalog_store.rs, crates/mcp-server/src/catalog_cli.rs",
+      "adr": [
+        "ADR-016",
+        "ADR-020",
+        "ADR-026",
+        "ADR-041"
+      ],
+      "tests": [
+        "crates/catalog-adapter/src/bundle/tests.rs",
+        "crates/catalog-adapter/src/audit/tests.rs",
+        "crates/mcp-server/tests/catalog_cli.rs"
+      ],
+      "migration_relevant": true,
+      "migration_relevant_why": "ADR-016/041 govern authoritative facts; any schema bump above user_version=1 needs a migration path before 0.8 freeze, and D12 must confirm SQLite never loses facts across an upgrade (roadmap 'Migración, recovery y seguridad' section).",
+      "floor_or_trust_state": true
+    },
+    {
+      "name": "catalog trust / signed bundle",
+      "location_layout": "`--catalog-trust PATH`; manifest with per-bundle metadata consumed by `catalog import`/`catalog sync`.",
+      "version_marker": "`format_version: u32` field on the bundle manifest (crates/catalog-adapter/src/lib.rs:22,263); rejects any `expected.format_version != 1`. Explicit, field-level.",
+      "reader_writer": "crates/catalog-adapter/src/lib.rs, crates/mcp-server/src/catalog_sync.rs",
+      "adr": [
+        "ADR-018",
+        "ADR-020",
+        "ADR-041"
+      ],
+      "tests": [
+        "crates/mcp-server/src/catalog_sync/tests.rs",
+        "crates/mcp-server/tests/catalog_cli/bundle_fixture.rs"
+      ],
+      "migration_relevant": true,
+      "migration_relevant_why": "Antirollback/floor semantics (roadmap 'Floors, revocaciones y trust no retroceden junto con binario') make this a D12 migration-relevant format.",
+      "floor_or_trust_state": true
+    },
+    {
+      "name": "LanceDB derived semantic index",
+      "location_layout": "`--catalog-index-store PATH`; rebuilt only via `catalog rebuild-index`, never authoritative (ADR-017).",
+      "version_marker": "`IndexMetadata.schema_version: u32` (crates/domain/src/semantic.rs:70-71), plus embedding `dimension` (1..=1024) checked at query time (crates/domain/src/semantic.rs:31,49). Explicit, field-level.",
+      "reader_writer": "crates/semantic-adapter (embedding + Lance I/O), crates/mcp-server/src/catalog_semantic.rs",
+      "adr": [
+        "ADR-017",
+        "ADR-019",
+        "ADR-027"
+      ],
+      "tests": [
+        "crates/semantic-adapter/tests/local.rs"
+      ],
+      "migration_relevant": true,
+      "migration_relevant_why": "Roadmap: 'Modelo/dimensión incompatible invalida/reconstruye índice; SQLite no pierde facts' — a model/dimension mismatch must trigger a rebuild rather than silent corruption; D12 should confirm this is oracle-tested.",
+      "floor_or_trust_state": false
+    },
+    {
+      "name": "security policy (cargo-deny inputs)",
+      "location_layout": "`--security-policy PATH` (+ `--security-policy-sha256`); consumed by rust.deny/rust.supply_chain.inspect/rust.quality.gate.v2.",
+      "version_marker": "`SecurityPolicyDocument.schema_version: u32` (crates/domain/src/security.rs:152-153,221); rejects mismatched versions. Explicit, field-level; a test mutation exercises a version bump to 2 (crates/domain/src/security.rs:583).",
+      "reader_writer": "crates/domain/src/security.rs (parse/validate), crates/execution-adapter/src/security_native.rs (guest application)",
+      "adr": [
+        "ADR-066",
+        "ADR-067"
+      ],
+      "tests": [
+        "crates/domain/src/security.rs inline tests (document()/schema_version mutation cases)",
+        "crates/mcp-server/tests/inspection_runtime/security.rs"
+      ],
+      "migration_relevant": true,
+      "migration_relevant_why": "Host-authored input; a schema bump changes what --security-policy accepts across an upgrade, relevant to D12/M8-03 host-config migration guidance.",
+      "floor_or_trust_state": false
+    },
+    {
+      "name": "RustSec advisory snapshot",
+      "location_layout": "`--rustsec-snapshot PATH` (+ `--rustsec-sha256`); consumed by rust.dependencies.audit/rust.deny/rust.supply_chain.inspect/rust.quality.gate.",
+      "version_marker": "External format owned by the `rustsec`/`cargo-lock` crates (pinned `=0.32.0`/`=11.0.1` per docs/roadmap/m8-stabilization.md dependency table); no project-local version marker beyond the host-supplied SHA-256 integrity pin (ADR-038 'Integrity is relative to the host-expected checksum, not publisher authentication').",
+      "reader_writer": "crates/catalog-adapter/src/audit (rustsec crate integration)",
+      "adr": [
+        "ADR-038"
+      ],
+      "tests": [
+        "crates/catalog-adapter/src/audit/tests.rs",
+        "crates/mcp-server/tests/inspection_runtime/audit.rs"
+      ],
+      "migration_relevant": true,
+      "migration_relevant_why": "A future rustsec/cargo-lock crate upgrade changes advisory-db parsing; docs/roadmap/m8-stabilization.md already flags this as 'recalificar catálogo M1 y migraciones'.",
+      "floor_or_trust_state": true
+    },
+    {
+      "name": "Cargo vendor tree (offline dependency data)",
+      "location_layout": "`--cargo-vendor-dir PATH` (+ `--cargo-vendor-tree-sha256`); standard Cargo vendor directory format (external, upstream-owned) plus this project's own capture/verification wrapper.",
+      "version_marker": "No project-local schema version; integrity is a single whole-tree SHA-256 pin (`--cargo-vendor-tree-sha256`) verified by `cargo-vendor inspect` and `crates/domain/src/vendor_capture.rs` (VendorCaptureVerifier). The vendor *format* itself is Cargo's own, unversioned by this project.",
+      "reader_writer": "crates/project-adapter/src/cargo_vendor.rs, crates/project-adapter/src/vendor_capture.rs, crates/domain/src/vendor_capture.rs, crates/mcp-server/src/cargo_vendor_cli.rs",
+      "adr": [
+        "ADR-055",
+        "ADR-078"
+      ],
+      "tests": [
+        "crates/project-adapter tests (vendor_capture)",
+        "fixtures under scripts/ (out of this worker's scope to inspect further)"
+      ],
+      "migration_relevant": true,
+      "migration_relevant_why": "A vendor-tree replacement (e.g. new lock, new dependency set) changes the whole-tree hash; D12 should state whether that is a routine re-capture (no migration) or requires a compatibility note.",
+      "floor_or_trust_state": true
+    }
+  ],
+  "orphans": [],
+  "orphans_note": "Every tools[]/resources[]/cli_commands[]/disk_formats[] entry above carries owner (adapter_source/reader_writer), source (adr[] and/or spec section cited in class_rationale), at least one test citation, and at least one real_consumers[] or tests[] citation demonstrating real use; none were found without all four.",
+  "findings": [
+    {
+      "id": "F1",
+      "severity": "P2",
+      "where": "docs/tools.md lines 3-4",
+      "evidence": "docs/tools.md:4 states 'El checkout `0.3.0` devuelve 31: añade cinco tools M2, cuatro M3, cinco M4 y cuatro M5' (13+5+4+5+4=31), omitting the five M6 analyzer tools entirely. The live `tools/list` on this checkout (target/m8-census/tools-list.jsonl, verified below) returns exactly 36 names, and docs/compatibility.md:8 already correctly says '36 tools' for the same checkout — the two docs contradict each other.",
+      "proposed_fix": "Update docs/tools.md:3-4 to state 36 tools (31 + 5 M6 analyzer tools: rust.analyzer.symbols/references/diagnostics/actions/action.apply), matching docs/compatibility.md:8.",
+      "blocks_freeze": true
+    },
+    {
+      "id": "F2",
+      "severity": "P2",
+      "where": "crates/mcp-server/src/main.rs:59 (`--help` 'Available tools' string)",
+      "evidence": "`target/release/rust-engineering-mcp --help` prints an 'Available tools' list containing exactly 30 names (verified: `grep -c \"rust.analyzer\" target/m8-census/cli-help.txt` = 0); it omits all six M6 tools mentioned above's five plus none extra — i.e. it stops at the M5 set and never mentions any `rust.analyzer.*` tool, while the live `tools/list` returns 36.",
+      "proposed_fix": "Update the literal string at crates/mcp-server/src/main.rs:59 to include the five rust.analyzer.* tools and rust.analyzer.action.apply, or generate the list programmatically from the tool registry so it cannot drift again.",
+      "blocks_freeze": true
+    },
+    {
+      "id": "F3",
+      "severity": "P3",
+      "where": "docs/adr/README.md",
+      "evidence": "ADR-078 (offline-vendor-capture), ADR-079 (bloat-result-semantics), ADR-081 (benchmark-statistical-requalification) and ADR-085 (m6-runtime-admission) exist as accepted ADR files under docs/adr/ but have zero occurrences of their IDs in docs/adr/README.md (grep confirmed no matches for any of the four).",
+      "proposed_fix": "Add index rows/bullets for ADR-078, ADR-079, ADR-081 and ADR-085 to docs/adr/README.md, consistent with the format used for ADR-080/082/083/084/086.",
+      "blocks_freeze": false
+    },
+    {
+      "id": "F4",
+      "severity": "P3",
+      "where": "docs/roadmap/m2-m8.md line 12 (top summary line)",
+      "evidence": "Line 12 states 'Estado: **M2 Done local; M3–M8 Planned/Conditional**.' This worker's mandate was limited to editing the M3/M4/M5/M6 rows of the milestone table only ('No cambies nada más de ese archivo'); the top summary sentence was left untouched even though it is now inconsistent with the updated table (M3-M6 rows now say Done).",
+      "proposed_fix": "In a follow-up edit (M8-02 or orchestrator-authorized), update line 12 to 'M2-M6 Done; M7 Deferred; M8 Planned' or equivalent, consistent with the table this census already corrected.",
+      "blocks_freeze": true
+    },
+    {
+      "id": "F5",
+      "severity": "P2",
+      "where": "crates/domain/src/result.rs:21-33 vs crates/mcp-server/src/stdio/mutation.rs:207-226 vs crates/mcp-server/src/stdio/mutation/analyzer_action.rs:171-205",
+      "evidence": "The 31 read/analysis tools serialize `error_code` using `OperationalErrorCode`-derived enums with `#[serde(rename_all = \"SCREAMING_SNAKE_CASE\")]` (e.g. PROJECT_NOT_FOUND); this includes `rust.analyzer.action.apply`, whose closed error enum is `ApplyCode` (30 variants, SCREAMING_SNAKE_CASE), not the M2 Reason mirror. The 5 M2 mutation tools (manifest.patch, fmt.apply, fix.apply, dependency.add, dependency.remove) serialize their local `Reason` mirror of `MutationError` (crates/domain/src/mutation.rs:113-124) with `#[serde(rename_all = \"snake_case\")]` (e.g. invalid_operation). Both are closed contracts (deny_unknown_fields-equivalent enum sets) but use incompatible casing conventions for the same conceptual field. Corrected per audit R01 finding F11 (docs/validation/M8/delegation/R01-census-traceability/report.md §3): an earlier version of this finding and 01-census.md §6 incorrectly counted `rust.analyzer.action.apply` among the snake_case tools.",
+      "proposed_fix": "Before the 0.8 freeze (D11/ADR-012), decide and document explicitly whether this dual casing is intentional (mutation tools use a distinct envelope by design, per ADR-050..058) or should be unified; either way, state it in docs/compatibility.md so client authors do not assume one casing pattern catalog-wide.",
+      "blocks_freeze": true
+    },
+    {
+      "id": "F6",
+      "severity": "P3",
+      "where": "crates/mcp-server/src/stdio.rs:91 (.enable_resources()) and crates/mcp-server/src/stdio/resources.rs",
+      "evidence": "The server declares the MCP resources capability and implements `read_resource`, but never overrides `list_resources`; there is no `list_resources`/`ListResourcesResult` handler anywhere under crates/mcp-server/src (grep confirmed no matches), so `resources/list` always returns `[]` regardless of session state. The only two Resource URI families that exist (`rust-artifact://…`, `rust-quality-artifact://…`) are ephemeral references minted inline inside tool call responses; a client can only discover a Resource URI by first calling a tool that returns one. The spec's own conceptual examples in §9.2 (`rust-project://workspace/metadata`, `rust-catalog://status`, `rust-catalog://crate/{name}`) were never implemented; ADR-011 explicitly left them optional for M1 ('si aporta valor') and they stayed unimplemented through M6.",
+      "proposed_fix": "No code defect — this is a deliberate, ADR-scoped design (dynamic, non-enumerable Resources). Recommend docs/tools.md and docs/compatibility.md state explicitly that Resources are non-enumerable and must be obtained from a prior tool response, so client authors do not rely on `resources/list` returning entries.",
+      "blocks_freeze": false
+    },
+    {
+      "id": "F7",
+      "severity": "P2",
+      "where": "crates/project-adapter/src/filesystem/macos/mutation.rs",
+      "evidence": "The M2 mutation journal/receipt store has no in-file `format_version`/`schema_version` field (grep for format_version/schema_version/MAGIC across the 2949-line file returned no matches); its only version marker is the `-v1` suffix on the state-root subdirectory name (`rust-mcp-mutations-v1`, crates/mcp-server/src/host_config.rs:285). By contrast every other disk_formats[] entry in this census (catalog SQLite, catalog trust bundle, LanceDB index, security policy, quality-artifact payloads) carries an explicit field-level version marker.",
+      "proposed_fix": "For D12/M8-03, decide whether directory-name namespacing is sufficient for the mutation journal's migration story or whether an in-record format_version field should be added before 0.8 freeze; document the decision in the D12 brief.",
+      "blocks_freeze": false
+    },
+    {
+      "id": "F8",
+      "severity": "P3",
+      "where": "docs/ci.md lines 333-364 ('26 etapas core' / '42 en full' / '14 etapas nativas')",
+      "evidence": "A static count of `run(\"name\"...)` / `run('name'...)` call sites in scripts/gate.py found 39 uniquely-named stages, not matching the doc's claimed 26 (core) / 42 (full) breakdown; the `fmt`/`check`/`clippy`/`test`/`doctests` stages the doc lists appear to use a different call convention not captured by this grep. This worker is explicitly barred from editing or deeply tracing scripts/, so the discrepancy could not be reconciled with confidence within this census's scope.",
+      "proposed_fix": "Re-verify docs/ci.md's stage counts against an actual `python3 -B scripts/gate.py full` receipt (per G5) rather than static source reading, and correct if stale.",
+      "blocks_freeze": false
+    },
+    {
+      "id": "F9",
+      "severity": "P3",
+      "where": "crates/mcp-server tests/snapshots/*.json (all 36 tool schemas)",
+      "evidence": "Common envelope $defs are redefined independently inside every tool's own inputSchema/outputSchema rather than shared once across the tools/list response: e.g. `Data` appears in 31/36 schemas, `Code` in 26/36, `Freshness` in 21/36, `Truncation` in 19/36, `RuntimeIdentity` in 16/36, `Provenance` in 14/36 (measured via target/m8-census/measure_details2.py-style $defs key count over crates/mcp-server/tests/snapshots/*.json). This is inherent to per-tool JSON Schema documents in MCP's `tools/list` (no cross-tool $ref is possible), not a bug, but it is the largest structural contributor to the 392,529-byte `tools/list` response the M8-01 gate of superficie must justify per spec §78/§85.",
+      "proposed_fix": "No code change recommended (protocol-level constraint); cite this measurement explicitly in the surface-gate context-cost discussion so 'large tools/list' is attributed to duplicated envelope shapes rather than genuinely tool-specific schema growth.",
+      "blocks_freeze": false
+    },
+    {
+      "id": "F12",
+      "severity": "P2",
+      "where": "docs/validation/M8/01-census.md §2/\"Clasificación propuesta\" (~106-109); docs/validation/M8/01-census.json tools[] class_rationale for rust.coverage, rust.semver.check, rust.mutation.test",
+      "evidence": "01-census.md previously asserted that all `stable` tools have a positive real consumer (Inspector and/or Claude Code and/or Codex app-server) with at least one `status: passed` run in runtime mode. This is false for rust.coverage, rust.semver.check and rust.mutation.test: docs/validation/M3/clients/attempt-11/protocol.jsonl, the only client receipt for M3, invokes only rust.project.open and rust.test.nextest. Their sole consumers are native Rust e2e tests (crates/execution-adapter/tests/coverage_runtime.rs, semver_runtime.rs, mutation_runtime.rs), never a stock MCP client. Raised by audit R01 (docs/validation/M8/delegation/R01-census-traceability/report.md §2.2/§2.3/§3, finding F12) and accepted by the orchestrator (docs/validation/M8/delegation/R01-census-traceability/disposition.md).",
+      "proposed_fix": "Corrected `01-census.md` §2 to no longer claim universal client-stock coverage for `stable` tools, and corrected the three affected `class_rationale` entries in `01-census.json` to state plainly that these three tools retain class `stable` on the strength of publication in v0.3.0 plus native e2e evidence, not a stock-client receipt, with the explicit condition that M8-04's client matrix exercise all three with Inspector and/or Codex/Claude Code before the freeze closes.",
+      "blocks_freeze": false
+    },
+    {
+      "id": "F13",
+      "severity": "P2",
+      "where": "docs/client-configuration.md (M6/`rust.analyzer.*` section, ~406-427); docs/compatibility.md:8",
+      "evidence": "docs/client-configuration.md described `rust.analyzer.symbols` as \"the first M6 tool and still under development, not yet qualified\" with no new host flag to configure, omitting the other four `rust.analyzer.*` tools (references, diagnostics, actions, action.apply) and the `--allow-analyzer-action-write WORKSPACE_ROOT` grant. docs/compatibility.md:8 described M6 as having \"no integration commit, PR, tag, or publication\". In fact all five `rust.analyzer.*` tools have been merged to `main` via PR #20 (`e50c3fe`) and qualified per docs/validation/M6/handoff.md; only a tag/publication is still pending. Raised by audit R01 (docs/validation/M8/delegation/R01-census-traceability/report.md §3, finding F13) and accepted by the orchestrator (docs/validation/M8/delegation/R01-census-traceability/disposition.md).",
+      "proposed_fix": "Rewrote docs/client-configuration.md's M6 section to describe the current state (five integrated and qualified `rust.analyzer.*` tools, the `--allow-analyzer-action-write WORKSPACE_ROOT` grant, and the `--rust-image` M6 analyzer image flag) and corrected docs/compatibility.md:8 to state that M6 is integrated in `main` via PR #20 and qualified, with tag/publication still pending. Closed by this worker (W01b).",
+      "blocks_freeze": true
+    }
+  ],
+  "stock_client_coverage": {
+    "invoked": 33,
+    "native_e2e_only": [
+      "rust.coverage",
+      "rust.semver.check",
+      "rust.mutation.test"
+    ]
+  }
+}
