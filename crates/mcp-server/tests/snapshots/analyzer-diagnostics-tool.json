@@ -1,0 +1,742 @@
+{
+  "annotations": {
+    "destructiveHint": false,
+    "idempotentHint": true,
+    "openWorldHint": false,
+    "readOnlyHint": true
+  },
+  "description": "Read native rust-analyzer diagnostics for a captured Rust file, using the host-approved rust-analyzer 1.98.1 (aarch64-unknown-linux-gnu) inside the M6 guest image. Snapshot semantics are latest_known and non-atomic. Build scripts, proc macros and check-on-save stay disabled; only the pull textDocument/diagnostic request runs, never cargo check — these are analyzer-native diagnostics, distinct from rust.check. Results are bounded to 512 visible entries per call; an over-budget answer is reported incomplete, never silently truncated. message is project-derived text, bounded to 4,096 Unicode scalars with message_truncated flagging a cut and control characters other than newline/tab replaced; it is never the server's own status message or stderr. Requires the host --rust runtime configured with the approved M6 image; without it the tool is unavailable.",
+  "inputSchema": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "additionalProperties": false,
+    "properties": {
+      "expected_project_fingerprint": {
+        "default": null,
+        "pattern": "^sha256:[0-9a-f]{64}$",
+        "type": [
+          "string",
+          "null"
+        ]
+      },
+      "file": {
+        "pattern": "^[A-Za-z0-9_./-]{1,100}\\.rs$",
+        "type": "string"
+      },
+      "project_ref": {
+        "pattern": "^prj_[0-9a-f]{32}$",
+        "type": "string"
+      },
+      "timeout_seconds": {
+        "default": 60,
+        "format": "uint32",
+        "maximum": 180,
+        "minimum": 1,
+        "type": "integer"
+      }
+    },
+    "required": [
+      "project_ref",
+      "file"
+    ],
+    "title": "DiagnosticsInput",
+    "type": "object"
+  },
+  "name": "rust.analyzer.diagnostics",
+  "outputSchema": {
+    "$defs": {
+      "Analyzer": {
+        "additionalProperties": false,
+        "properties": {
+          "binary_sha256": {
+            "pattern": "^sha256:[0-9a-f]{64}$",
+            "type": "string"
+          },
+          "config_digest": {
+            "pattern": "^sha256:[0-9a-f]{64}$",
+            "type": "string"
+          },
+          "image_id": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "position_encoding": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/PositionEncoding"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "`None` exactly when `initialize` never answered: no negotiation\nhappened, so no encoding is published."
+          },
+          "version": {
+            "minLength": 1,
+            "type": "string"
+          }
+        },
+        "required": [
+          "version",
+          "binary_sha256",
+          "image_id",
+          "config_digest",
+          "position_encoding"
+        ],
+        "type": "object"
+      },
+      "AnalyzerDiagnostic": {
+        "additionalProperties": false,
+        "description": "A native rust-analyzer diagnostic (ADR-083 §2, M6-03). `message` is\nproject-derived text: bounded to 4,096 Unicode scalars and flagged\n`message_truncated` rather than silently cut, never the serverStatus\n`message` or stderr.",
+        "properties": {
+          "code": {
+            "maxLength": 128,
+            "minLength": 1,
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "file": {
+            "maxLength": 100,
+            "minLength": 1,
+            "type": "string"
+          },
+          "message": {
+            "maxLength": 4096,
+            "minLength": 1,
+            "type": "string"
+          },
+          "message_truncated": {
+            "type": "boolean"
+          },
+          "range": {
+            "$ref": "#/$defs/Range"
+          },
+          "related": {
+            "items": {
+              "$ref": "#/$defs/RelatedInformation"
+            },
+            "maxItems": 32,
+            "type": "array"
+          },
+          "severity": {
+            "$ref": "#/$defs/DiagnosticSeverity"
+          },
+          "source": {
+            "minLength": 1,
+            "type": "string"
+          }
+        },
+        "required": [
+          "file",
+          "range",
+          "severity",
+          "code",
+          "source",
+          "message",
+          "message_truncated",
+          "related"
+        ],
+        "type": "object"
+      },
+      "Completeness": {
+        "additionalProperties": false,
+        "properties": {
+          "omissions": {
+            "items": {
+              "$ref": "#/$defs/Omission"
+            },
+            "maxItems": 8,
+            "type": "array"
+          },
+          "reasons": {
+            "items": {
+              "$ref": "#/$defs/Reason"
+            },
+            "maxItems": 8,
+            "type": "array"
+          },
+          "state": {
+            "$ref": "#/$defs/CompletenessState"
+          }
+        },
+        "required": [
+          "state",
+          "omissions",
+          "reasons"
+        ],
+        "type": "object"
+      },
+      "CompletenessState": {
+        "enum": [
+          "complete",
+          "incomplete"
+        ],
+        "type": "string"
+      },
+      "DiagnosticSeverity": {
+        "description": "Mirrors `rust_engineering_domain::DiagnosticSeverity` 1:1.",
+        "enum": [
+          "error",
+          "warning",
+          "information",
+          "hint"
+        ],
+        "type": "string"
+      },
+      "DiagnosticsCode": {
+        "enum": [
+          "CONFLICT",
+          "FILE_NOT_IN_SNAPSHOT",
+          "ANALYZER_NOT_READY",
+          "ANALYZER_CRASHED",
+          "ANALYZER_CAPABILITY_MISMATCH",
+          "FRAME_LIMIT",
+          "MESSAGE_LIMIT",
+          "RESULT_LIMIT",
+          "TIMEOUT_INITIALIZE",
+          "TIMEOUT_QUERY",
+          "TIMEOUT_TOTAL",
+          "UNSUPPORTED_PROJECT_CONFIG",
+          "FILE_NOT_UTF8",
+          "SANDBOX_DENIED",
+          "UNSUPPORTED_PLATFORM",
+          "PROJECT_NOT_FOUND",
+          "INVALID_PROJECT",
+          "OUTPUT_LIMIT_EXCEEDED"
+        ],
+        "type": "string"
+      },
+      "DiagnosticsData": {
+        "additionalProperties": false,
+        "properties": {
+          "analyzer": {
+            "$ref": "#/$defs/Analyzer"
+          },
+          "completeness": {
+            "$ref": "#/$defs/Completeness"
+          },
+          "diagnostics": {
+            "description": "`None` exactly when the session never answered.",
+            "items": {
+              "$ref": "#/$defs/AnalyzerDiagnostic"
+            },
+            "maxItems": 512,
+            "type": [
+              "array",
+              "null"
+            ]
+          },
+          "exit_code": {
+            "format": "int32",
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "limits": {
+            "$ref": "#/$defs/Limits"
+          },
+          "omitted": {
+            "format": "uint32",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "oom_killed": {
+            "type": [
+              "boolean",
+              "null"
+            ]
+          },
+          "project_identity_fingerprint": {
+            "pattern": "^sha256:[0-9a-f]{64}$",
+            "type": "string"
+          },
+          "project_ref": {
+            "pattern": "^prj_[0-9a-f]{32}$",
+            "type": "string"
+          },
+          "readiness": {
+            "$ref": "#/$defs/Readiness"
+          },
+          "session": {
+            "$ref": "#/$defs/Session"
+          },
+          "snapshot": {
+            "$ref": "#/$defs/Snapshot"
+          },
+          "termination": {
+            "$ref": "#/$defs/Termination"
+          },
+          "toolchain": {
+            "$ref": "#/$defs/Toolchain"
+          }
+        },
+        "required": [
+          "project_ref",
+          "project_identity_fingerprint",
+          "snapshot",
+          "analyzer",
+          "toolchain",
+          "readiness",
+          "completeness",
+          "limits",
+          "session",
+          "termination",
+          "exit_code",
+          "oom_killed",
+          "diagnostics",
+          "omitted"
+        ],
+        "type": "object"
+      },
+      "Health": {
+        "enum": [
+          "ok",
+          "warning"
+        ],
+        "type": "string"
+      },
+      "Limits": {
+        "additionalProperties": false,
+        "properties": {
+          "frame_bytes": {
+            "format": "uint32",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "initialize_timeout_seconds": {
+            "format": "uint32",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "max_visible": {
+            "format": "uint32",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "messages": {
+            "format": "uint32",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "query_timeout_seconds": {
+            "format": "uint32",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "total_timeout_seconds": {
+            "format": "uint32",
+            "minimum": 0,
+            "type": "integer"
+          }
+        },
+        "required": [
+          "max_visible",
+          "initialize_timeout_seconds",
+          "query_timeout_seconds",
+          "total_timeout_seconds",
+          "frame_bytes",
+          "messages"
+        ],
+        "type": "object"
+      },
+      "Omission": {
+        "additionalProperties": false,
+        "properties": {
+          "count": {
+            "format": "uint32",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "kind": {
+            "$ref": "#/$defs/OmissionKind"
+          }
+        },
+        "required": [
+          "kind",
+          "count"
+        ],
+        "type": "object"
+      },
+      "OmissionKind": {
+        "description": "Mirrors `rust_engineering_domain::OmissionKind` 1:1; only `limit_visible`\nand `not_utf8_file` are reachable from this tool's converter today, but the\nfull closed set is modelled so a future gateway change needs no schema\nedit here. `oversized_entry` (V05 P2) is enforced by `lsp_codec` at the\npeer boundary, but the M6-01 gateway still folds that count into\n`limit_visible` pending a change to `analyzer_gateway.rs::record_omissions`\nthat reports it under this variant instead.",
+        "enum": [
+          "external_uri",
+          "sysroot_location",
+          "dependency_location",
+          "limit_visible",
+          "not_utf8_file",
+          "unresolvable_position",
+          "oversized_entry"
+        ],
+        "type": "string"
+      },
+      "Position": {
+        "additionalProperties": false,
+        "properties": {
+          "column": {
+            "format": "uint32",
+            "minimum": 1,
+            "type": "integer"
+          },
+          "line": {
+            "format": "uint32",
+            "minimum": 1,
+            "type": "integer"
+          }
+        },
+        "required": [
+          "line",
+          "column"
+        ],
+        "type": "object"
+      },
+      "PositionEncoding": {
+        "enum": [
+          "utf-8",
+          "utf-16"
+        ],
+        "type": "string"
+      },
+      "Range": {
+        "additionalProperties": false,
+        "properties": {
+          "end": {
+            "$ref": "#/$defs/Position"
+          },
+          "start": {
+            "$ref": "#/$defs/Position"
+          }
+        },
+        "required": [
+          "start",
+          "end"
+        ],
+        "type": "object"
+      },
+      "Readiness": {
+        "additionalProperties": false,
+        "properties": {
+          "elapsed_ms": {
+            "format": "uint64",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "health": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/Health"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "`Some` only for `state: quiescent`: a never-ready session observed no\nserver health at all, and inventing one would be a claim the adapter\ncannot support."
+          },
+          "state": {
+            "$ref": "#/$defs/ReadinessState"
+          }
+        },
+        "required": [
+          "state",
+          "health",
+          "elapsed_ms"
+        ],
+        "type": "object"
+      },
+      "ReadinessState": {
+        "enum": [
+          "quiescent",
+          "not_ready"
+        ],
+        "type": "string"
+      },
+      "Reason": {
+        "description": "Mirrors `rust_engineering_domain::IncompleteReason`, plus this tool's own\n`result_limit`: the 512 KiB output trim (D2) has no domain reason of its\nown because it never reaches the analyzer session at all.",
+        "enum": [
+          "analyzer_not_ready",
+          "limit_visible",
+          "analyzer_warning",
+          "not_utf8_file",
+          "timeout",
+          "result_limit"
+        ],
+        "type": "string"
+      },
+      "RelatedInformation": {
+        "additionalProperties": false,
+        "description": "A related span attached to a diagnostic (e.g. \"previous definition here\").\n`message` shares [`AnalyzerDiagnostic::message`]'s peer-text bound.",
+        "properties": {
+          "file": {
+            "maxLength": 100,
+            "minLength": 1,
+            "type": "string"
+          },
+          "message": {
+            "maxLength": 4096,
+            "minLength": 1,
+            "type": "string"
+          },
+          "message_truncated": {
+            "type": "boolean"
+          },
+          "range": {
+            "$ref": "#/$defs/Range"
+          }
+        },
+        "required": [
+          "file",
+          "range",
+          "message",
+          "message_truncated"
+        ],
+        "type": "object"
+      },
+      "Semantics": {
+        "enum": [
+          "latest_known"
+        ],
+        "type": "string"
+      },
+      "Session": {
+        "additionalProperties": false,
+        "properties": {
+          "bytes_in": {
+            "format": "uint64",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "bytes_out": {
+            "format": "uint64",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "duration_ms": {
+            "format": "uint64",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "messages_in": {
+            "format": "uint32",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "messages_out": {
+            "format": "uint32",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "server_requests": {
+            "format": "uint32",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "stderr_bytes": {
+            "format": "uint64",
+            "minimum": 0,
+            "type": "integer"
+          }
+        },
+        "required": [
+          "messages_in",
+          "messages_out",
+          "bytes_in",
+          "bytes_out",
+          "duration_ms",
+          "stderr_bytes",
+          "server_requests"
+        ],
+        "type": "object"
+      },
+      "Snapshot": {
+        "additionalProperties": false,
+        "properties": {
+          "atomic": {
+            "type": "boolean"
+          },
+          "files": {
+            "format": "uint32",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "semantics": {
+            "$ref": "#/$defs/Semantics"
+          },
+          "source_fingerprint": {
+            "pattern": "^sha256:[0-9a-f]{64}$",
+            "type": "string"
+          }
+        },
+        "required": [
+          "source_fingerprint",
+          "files",
+          "semantics",
+          "atomic"
+        ],
+        "type": "object"
+      },
+      "Sysroot": {
+        "enum": [
+          "present"
+        ],
+        "type": "string"
+      },
+      "Termination": {
+        "enum": [
+          "exited",
+          "timed_out",
+          "cancelled",
+          "output_limit"
+        ],
+        "type": "string"
+      },
+      "Toolchain": {
+        "additionalProperties": false,
+        "properties": {
+          "rust_version": {
+            "type": "string"
+          },
+          "sysroot": {
+            "$ref": "#/$defs/Sysroot"
+          }
+        },
+        "required": [
+          "rust_version",
+          "sysroot"
+        ],
+        "type": "object"
+      }
+    },
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "oneOf": [
+      {
+        "properties": {
+          "data": {
+            "$ref": "#/$defs/DiagnosticsData"
+          },
+          "error_code": {
+            "type": "null"
+          },
+          "error_message": {
+            "type": "null"
+          },
+          "status": {
+            "const": "passed",
+            "type": "string"
+          }
+        },
+        "required": [
+          "status",
+          "error_code",
+          "error_message",
+          "data"
+        ],
+        "type": "object"
+      },
+      {
+        "properties": {
+          "data": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/DiagnosticsData"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "error_code": {
+            "$ref": "#/$defs/DiagnosticsCode"
+          },
+          "error_message": {
+            "type": "string"
+          },
+          "status": {
+            "const": "blocked",
+            "type": "string"
+          }
+        },
+        "required": [
+          "status",
+          "error_code",
+          "error_message",
+          "data"
+        ],
+        "type": "object"
+      },
+      {
+        "properties": {
+          "data": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/DiagnosticsData"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "error_code": {
+            "$ref": "#/$defs/DiagnosticsCode"
+          },
+          "error_message": {
+            "type": "string"
+          },
+          "status": {
+            "const": "unavailable",
+            "type": "string"
+          }
+        },
+        "required": [
+          "status",
+          "error_code",
+          "error_message",
+          "data"
+        ],
+        "type": "object"
+      },
+      {
+        "properties": {
+          "data": {
+            "type": "null"
+          },
+          "error_code": {
+            "type": "null"
+          },
+          "error_message": {
+            "type": "null"
+          },
+          "status": {
+            "const": "cancelled",
+            "type": "string"
+          }
+        },
+        "required": [
+          "status",
+          "error_code",
+          "error_message",
+          "data"
+        ],
+        "type": "object"
+      }
+    ],
+    "properties": {
+      "duration_ms": {
+        "format": "uint64",
+        "minimum": 0,
+        "type": "integer"
+      },
+      "summary": {
+        "type": "string"
+      }
+    },
+    "required": [
+      "summary",
+      "duration_ms"
+    ],
+    "title": "DiagnosticsOutput",
+    "type": "object",
+    "unevaluatedProperties": false
+  }
+}

@@ -27,6 +27,26 @@ fn capture_error(error: ProjectError) -> ProjectError {
 fn excluded_name(name: &str) -> bool {
     name.eq_ignore_ascii_case(".git") || name.eq_ignore_ascii_case("target")
 }
+/// Any `rust-analyzer.toml` or `.rust-analyzer.toml`, at any depth and in any
+/// casing (ADR-084 §6).
+///
+/// Workspace configuration takes precedence over the client's
+/// `initializationOptions` and can re-enable `cargo.buildScripts.enable`,
+/// `check.overrideCommand`, `runnables.command`, `rustfmt.overrideCommand` or
+/// `cargo.extraEnv`, and rust-analyzer offers no option to stop loading it. The
+/// fixed configuration is therefore not containment against a hostile one, so
+/// the capture refuses the file instead — before the analyzer ever starts.
+///
+/// The name is matched, not the kind: a *directory* called `rust-analyzer.toml`
+/// is refused too, exactly like the `.cargo/config` rejection below, because the
+/// refusal is about what the workspace is asking for and a caller should not be
+/// able to change the answer by changing the object's type. A file whose name
+/// merely starts with it (`rust-analyzer.toml.bak`) is an ordinary file: it is
+/// not configuration rust-analyzer loads.
+fn analyzer_config_name(name: &str) -> bool {
+    name.eq_ignore_ascii_case("rust-analyzer.toml")
+        || name.eq_ignore_ascii_case(".rust-analyzer.toml")
+}
 fn cargo_config_path(path: &Path) -> bool {
     path.parent()
         .and_then(Path::file_name)
@@ -112,7 +132,7 @@ impl Capture<'_> {
         for (name, kind) in names {
             self.control.check()?;
             let full = path.join(&name);
-            if cargo_config_path(&full) {
+            if cargo_config_path(&full) || analyzer_config_name(&name) {
                 return Err(denied());
             }
             if kind == FileType::Directory {
@@ -159,6 +179,15 @@ impl Capture<'_> {
         self.observed_directories.insert(path.to_path_buf(), before);
         Ok(())
     }
+    /// Captures one regular file's exact bytes.
+    ///
+    /// Refused before anything is opened: a project Cargo configuration
+    /// (`.cargo/config*`), which could redirect the build, and a rust-analyzer
+    /// workspace configuration ([`analyzer_config_name`]), which could re-enable
+    /// build scripts, proc macros or an override command above the fixed
+    /// `initializationOptions`. Both are `SandboxDenied`: the capture is
+    /// refusing to carry a request it cannot contain, not reporting a malformed
+    /// project.
     fn file(&mut self, path: &Path) -> Result<(), ProjectError> {
         self.control.check()?;
         let relative = path
@@ -167,7 +196,12 @@ impl Capture<'_> {
             .to_str()
             .ok_or_else(invalid)?;
         validate_source_path(relative).map_err(source_error)?;
-        if cargo_config_path(path) {
+        if cargo_config_path(path)
+            || path
+                .file_name()
+                .and_then(|name| name.to_str())
+                .is_some_and(analyzer_config_name)
+        {
             return Err(denied());
         }
         let fd = self.backend.open_path(path, false).map_err(capture_error)?;

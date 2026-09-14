@@ -1,4 +1,5 @@
 //! New M2 contract; does not extend any M1 error enum or schema.
+mod analyzer_action;
 mod audit;
 mod semantic_input;
 use super::{
@@ -6,6 +7,7 @@ use super::{
     project::Registry,
     workers::{WorkerError, Workers},
 };
+pub(super) use analyzer_action::{ANALYZER_ACTION_APPLY_NAME, AnalyzerActionApplyTool};
 use rmcp::{
     model::{CallToolRequestParams, CallToolResult, ErrorData, Tool, ToolAnnotations},
     service::{RequestContext, RoleServer},
@@ -15,9 +17,9 @@ use rust_engineering_application::{
     MutationPreparationError, PreviewRetention, ProjectError, ReferenceGenerator,
 };
 use rust_engineering_domain::{
-    IdempotencyKey, ManifestEdit, MutationCandidate, MutationError, MutationId, MutationKind,
-    MutationReceipt, MutationState, ProjectIdentityFingerprint, ProjectRef, SourceFingerprint,
-    ToolStatus,
+    IdempotencyKey, ManifestEdit, MutationCandidate, MutationError, MutationFileReceipt,
+    MutationId, MutationKind, MutationReceipt, MutationState, ProjectIdentityFingerprint,
+    ProjectRef, SourceFingerprint, ToolStatus,
 };
 use rust_engineering_execution::RustProjectInspector;
 use rust_engineering_project::{
@@ -448,6 +450,125 @@ fn validation_view(mut encoded: &str) -> Result<ValidationView, MutationError> {
     })
 }
 
+/// The frozen M2 view of the validation of a plan or receipt of `kind`. An
+/// analyzer action's provenance never takes this view, whatever its bytes
+/// (V07 P3-4); the plan digest already binds kind and validation together.
+fn m2_validation_view(kind: MutationKind, encoded: &str) -> Result<ValidationView, MutationError> {
+    if kind == MutationKind::AnalyzerActionApply {
+        return Err(MutationError::Invalid);
+    }
+    validation_view(encoded)
+}
+
+/// The analyzer view of the validation of a plan or receipt of `kind`: only
+/// an `AnalyzerActionApply` one ever takes it (V07 P3-4).
+fn analyzer_action_validation_for(
+    kind: MutationKind,
+    encoded: &str,
+) -> Result<AnalyzerActionValidationView, MutationError> {
+    if kind != MutationKind::AnalyzerActionApply {
+        return Err(MutationError::Invalid);
+    }
+    analyzer_action_validation_view(encoded)
+}
+
+/// Decoded `m6-analyzer-action-v1` provenance (ADR-083 §6).
+///
+/// Deliberately not a [`ValidationMethod`] of [`ValidationView`]: that enum is
+/// part of the five frozen M2 tool output schemas (`fmt-apply-tool.json` and
+/// its siblings), so a new variant would change all five. [`validation_view`]
+/// therefore keeps refusing this version, and `rust.analyzer.action.apply`
+/// publishes this view from its own schema.
+#[derive(Clone, Serialize, JsonSchema)]
+#[serde(deny_unknown_fields)]
+struct AnalyzerActionValidationView {
+    method: AnalyzerActionValidationMethod,
+    semantics: SnapshotSemantics,
+    platform: String,
+    image_id: String,
+    configuration_fingerprint: String,
+    /// The rust-analyzer session request that resolved the action.
+    session_execution_fingerprint: String,
+    rust_version: String,
+    cargo_version: String,
+    /// The fresh capture the action was resolved against and applied to.
+    analyzed_source_fingerprint: String,
+    analyzer: AnalyzerProvenanceView,
+    action_digest: String,
+}
+
+#[derive(Clone, Serialize, JsonSchema)]
+#[serde(rename_all = "snake_case")]
+enum AnalyzerActionValidationMethod {
+    /// Structural `WorkspaceEdit` validation only: no `cargo check` ran, so
+    /// the applied result is not compile-verified (owner decision A,
+    /// 2026-09-12).
+    WorkspaceEditStructuralOnly,
+}
+
+#[derive(Clone, Serialize, JsonSchema)]
+#[serde(deny_unknown_fields)]
+struct AnalyzerProvenanceView {
+    version: String,
+    binary_sha256: String,
+    config_digest: String,
+}
+
+fn analyzer_action_validation_view(
+    mut encoded: &str,
+) -> Result<AnalyzerActionValidationView, MutationError> {
+    let version = read_validation_frame(&mut encoded)?;
+    let mode = read_validation_frame(&mut encoded)?;
+    let platform = read_validation_frame(&mut encoded)?;
+    let image_id = read_validation_frame(&mut encoded)?;
+    let configuration_fingerprint = read_validation_frame(&mut encoded)?;
+    let session_execution_fingerprint = read_validation_frame(&mut encoded)?;
+    let rust_version = read_validation_frame(&mut encoded)?;
+    let cargo_version = read_validation_frame(&mut encoded)?;
+    let analyzed_source_fingerprint = read_validation_frame(&mut encoded)?;
+    let analyzer_version = read_validation_frame(&mut encoded)?;
+    let binary_sha256 = read_validation_frame(&mut encoded)?;
+    let config_digest = read_validation_frame(&mut encoded)?;
+    let action_digest = read_validation_frame(&mut encoded)?;
+    if version != rust_engineering_application::analyzer::ANALYZER_ACTION_VALIDATION_VERSION
+        || mode != "local_coordinated"
+        || !encoded.is_empty()
+        || analyzer_version.trim().is_empty()
+    {
+        return Err(MutationError::Invalid);
+    }
+    for fingerprint in [
+        &image_id,
+        &configuration_fingerprint,
+        &session_execution_fingerprint,
+        &analyzed_source_fingerprint,
+        &binary_sha256,
+        &config_digest,
+        &action_digest,
+    ] {
+        fingerprint
+            .parse::<SourceFingerprint>()
+            .map_err(|_| MutationError::Invalid)?;
+    }
+    Ok(AnalyzerActionValidationView {
+        method: AnalyzerActionValidationMethod::WorkspaceEditStructuralOnly,
+        semantics: SnapshotSemantics::LatestKnown,
+        platform,
+        image_id,
+        configuration_fingerprint,
+        session_execution_fingerprint,
+        rust_version,
+        cargo_version,
+        analyzed_source_fingerprint,
+        analyzer: AnalyzerProvenanceView {
+            version: analyzer_version,
+            binary_sha256,
+            config_digest,
+        },
+        action_digest,
+    })
+}
+
 #[derive(Clone, Serialize, JsonSchema)]
 #[serde(tag = "kind", rename_all = "snake_case", deny_unknown_fields)]
 enum Data {
@@ -630,24 +751,48 @@ pub(super) struct SharedPlans {
     clock: MonotonicClock,
 }
 
+/// What the fixed audit event reads from a write tool's output, and what a
+/// preview whose response was lost is recorded as. Shared by the five M2
+/// tools and `rust.analyzer.action.apply`, whose outputs differ.
+trait AuditedOutput: Clone + Send + 'static {
+    fn event(&self) -> audit::Record<'_>;
+    /// A preview the peer never received is a cancelled call without a
+    /// produced ID; any other output is kept.
+    fn response_lost(self) -> Self;
+}
+
+impl AuditedOutput for Output {
+    fn event(&self) -> audit::Record<'_> {
+        audit::record(self)
+    }
+
+    fn response_lost(self) -> Self {
+        if matches!(self.data, Some(Data::Preview { .. })) {
+            Output::failure(Reason::Cancelled, self.duration_ms)
+        } else {
+            self
+        }
+    }
+}
+
 #[derive(Clone)]
-struct AuditRecord {
+struct AuditRecord<O> {
     admitted: bool,
     cleanup_uncertain: bool,
-    output: Output,
+    output: O,
     allocation: Option<MutationAllocationStats>,
 }
 
-struct CallAuditState {
+struct CallAuditState<O> {
     tool: &'static str,
     phase: audit::Phase,
     dispatcher: tracing::Dispatch,
     waiter_dropped: AtomicBool,
     emitted: AtomicBool,
-    worker_record: Mutex<Option<AuditRecord>>,
+    worker_record: Mutex<Option<AuditRecord<O>>>,
 }
 
-impl CallAuditState {
+impl<O: AuditedOutput> CallAuditState<O> {
     fn new(tool: &'static str, phase: audit::Phase) -> Self {
         Self {
             tool,
@@ -659,7 +804,7 @@ impl CallAuditState {
         }
     }
 
-    fn worker_completed(&self, record: AuditRecord) {
+    fn worker_completed(&self, record: AuditRecord<O>) {
         let record_for_fallback = Self::response_lost(record.clone());
         match self.worker_record.lock() {
             Ok(mut slot) => *slot = Some(record),
@@ -670,7 +815,7 @@ impl CallAuditState {
         }
     }
 
-    fn waiter_completed(&self, record: AuditRecord) {
+    fn waiter_completed(&self, record: AuditRecord<O>) {
         self.emit_once(&record);
     }
 
@@ -695,14 +840,12 @@ impl CallAuditState {
         }
     }
 
-    fn response_lost(mut record: AuditRecord) -> AuditRecord {
-        if matches!(record.output.data, Some(Data::Preview { .. })) {
-            record.output = Output::failure(Reason::Cancelled, record.output.duration_ms);
-        }
+    fn response_lost(mut record: AuditRecord<O>) -> AuditRecord<O> {
+        record.output = record.output.response_lost();
         record
     }
 
-    fn emit_once(&self, record: &AuditRecord) {
+    fn emit_once(&self, record: &AuditRecord<O>) {
         if self
             .emitted
             .compare_exchange(false, true, Ordering::AcqRel, Ordering::Acquire)
@@ -716,16 +859,16 @@ impl CallAuditState {
                 self.phase,
                 record.admitted,
                 record.cleanup_uncertain,
-                &record.output,
+                record.output.event(),
                 record.allocation,
             );
         });
     }
 }
 
-struct CallAuditWaiter(Arc<CallAuditState>);
+struct CallAuditWaiter<O: AuditedOutput>(Arc<CallAuditState<O>>);
 
-impl Drop for CallAuditWaiter {
+impl<O: AuditedOutput> Drop for CallAuditWaiter<O> {
     fn drop(&mut self) {
         self.0.waiter_dropped();
     }
@@ -797,7 +940,7 @@ impl<I: MutationInput> MutationTool<I> {
                 phase,
                 false,
                 false,
-                &output,
+                output.event(),
                 allocation_stats(&self.plans),
             );
             return self.contract.encode(output);
@@ -957,8 +1100,11 @@ impl<I: MutationInput> MutationTool<I> {
                                 expires_in_seconds: MutationPlans::TTL_SECONDS,
                                 files,
                                 diff,
-                                validation: validation_view(&candidate.validation)
-                                    .map_err(reason)?,
+                                validation: m2_validation_view(
+                                    candidate.kind,
+                                    &candidate.validation,
+                                )
+                                .map_err(reason)?,
                             };
                             // Bound the complete MCP encoding, including duplicated text and JSON,
                             // before retaining a plan whose exact diff the peer cannot receive.
@@ -1031,7 +1177,7 @@ impl<I: MutationInput> MutationTool<I> {
                                     })?,
                                 Err(error) => return Err(reason(error)),
                             };
-                            receipt_data(receipt).map_err(reason)
+                            receipt_data(receipt, I::KIND).map_err(reason)
                         }
                         Action::Receipt {
                             operation_id,
@@ -1043,7 +1189,7 @@ impl<I: MutationInput> MutationTool<I> {
                                 .map_err(lock_reason)?
                                 .mutation_receipt(&input.project_ref, &id, recover, store, control)
                                 .map_err(reason)?;
-                            receipt_data(receipt).map_err(reason)
+                            receipt_data(receipt, I::KIND).map_err(reason)
                         }
                     }
                 })();
@@ -1295,31 +1441,40 @@ fn preview_output(data: Data, duration: u64) -> Output {
     )
 }
 
-fn receipt_data(receipt: MutationReceipt) -> Result<Data, MutationError> {
+/// `kind` is the writer kind the receipt was read through: the store is
+/// opened for exactly one kind, so it is the receipt's own.
+fn receipt_data(receipt: MutationReceipt, kind: MutationKind) -> Result<Data, MutationError> {
     Ok(Data::Receipt {
         operation_id: receipt.id.as_str().into(),
-        validation: validation_view(&receipt.validation)?,
+        validation: m2_validation_view(kind, &receipt.validation)?,
         plan_digest: receipt.digest.to_string(),
-        state: match receipt.state {
-            MutationState::Committed => ReceiptState::Committed,
-            MutationState::NoChange => ReceiptState::NoChange,
-            MutationState::Aborted => ReceiptState::Aborted,
-            MutationState::RecoveryRequired => ReceiptState::RecoveryRequired,
-        },
-        files: receipt
-            .files
-            .into_iter()
-            .map(|file| ReceiptChange {
-                path: file.path,
-                before_sha256: file.before.to_string(),
-                intended_after_sha256: file.after.to_string(),
-                before_bytes: file.before_bytes,
-                intended_after_bytes: file.after_bytes,
-                effect_after_sha256: file.effect_after.map(|hash| hash.to_string()),
-                effect_after_bytes: file.effect_after_bytes,
-            })
-            .collect(),
+        state: receipt_state(receipt.state),
+        files: receipt_changes(receipt.files),
     })
+}
+
+fn receipt_state(state: MutationState) -> ReceiptState {
+    match state {
+        MutationState::Committed => ReceiptState::Committed,
+        MutationState::NoChange => ReceiptState::NoChange,
+        MutationState::Aborted => ReceiptState::Aborted,
+        MutationState::RecoveryRequired => ReceiptState::RecoveryRequired,
+    }
+}
+
+fn receipt_changes(files: Vec<MutationFileReceipt>) -> Vec<ReceiptChange> {
+    files
+        .into_iter()
+        .map(|file| ReceiptChange {
+            path: file.path,
+            before_sha256: file.before.to_string(),
+            intended_after_sha256: file.after.to_string(),
+            before_bytes: file.before_bytes,
+            intended_after_bytes: file.after_bytes,
+            effect_after_sha256: file.effect_after.map(|hash| hash.to_string()),
+            effect_after_bytes: file.effect_after_bytes,
+        })
+        .collect()
 }
 fn preview_diff(candidate: &MutationCandidate) -> Result<(Vec<Change>, String), MutationError> {
     let mut changes = Vec::new();
@@ -1336,7 +1491,9 @@ fn preview_diff(candidate: &MutationCandidate) -> Result<(Vec<Change>, String), 
         }
         if !match candidate.kind {
             MutationKind::ManifestPatch => matches!(before.path(), "Cargo.toml" | "Cargo.lock"),
-            MutationKind::FormatApply | MutationKind::FixApply => before.path().ends_with(".rs"),
+            MutationKind::FormatApply
+            | MutationKind::FixApply
+            | MutationKind::AnalyzerActionApply => before.path().ends_with(".rs"),
             MutationKind::DependencyAdd | MutationKind::DependencyRemove => {
                 matches!(before.path(), "Cargo.toml" | "Cargo.lock")
                     || before.path().ends_with("/Cargo.toml")
@@ -1694,6 +1851,224 @@ mod tests {
                 }
             }
         }
+    }
+
+    #[test]
+    fn analyzer_action_provenance_decodes_exact_frames_and_stays_out_of_the_m2_view() {
+        let fingerprint = format!("sha256:{}", "a".repeat(64));
+        let action_digest = format!("sha256:{}", "d".repeat(64));
+        let fields = [
+            "m6-analyzer-action-v1",
+            "local_coordinated",
+            "linux/aarch64",
+            fingerprint.as_str(),
+            fingerprint.as_str(),
+            fingerprint.as_str(),
+            "1.98.1",
+            "1.98.1",
+            fingerprint.as_str(),
+            "rust-analyzer 1.98.1 (48a229c 2026-09-01)",
+            fingerprint.as_str(),
+            fingerprint.as_str(),
+            action_digest.as_str(),
+        ];
+        let valid = framed(&fields);
+        let view = analyzer_action_validation_view(&valid).expect("valid analyzer provenance");
+        assert!(matches!(
+            view.method,
+            AnalyzerActionValidationMethod::WorkspaceEditStructuralOnly
+        ));
+        assert_eq!(view.action_digest, action_digest);
+        assert_eq!(
+            view.analyzer.version,
+            "rust-analyzer 1.98.1 (48a229c 2026-09-01)"
+        );
+        assert_eq!(view.analyzed_source_fingerprint, fingerprint);
+        // The frozen M2 view never names an analyzer method.
+        assert!(matches!(
+            validation_view(&valid),
+            Err(MutationError::Invalid)
+        ));
+
+        for (index, replacement) in [
+            (0, "m6-analyzer-action-v2"),
+            (0, "m2-fmt-apply-v1"),
+            (1, "exclusive"),
+            (3, "sha256:bad"),
+            (4, "sha256:bad"),
+            (5, "sha256:bad"),
+            (8, "sha256:bad"),
+            (9, " "),
+            (10, "sha256:bad"),
+            (11, "sha256:bad"),
+            (12, "sha256:bad"),
+        ] {
+            let mut invalid = fields;
+            invalid[index] = replacement;
+            assert!(
+                matches!(
+                    analyzer_action_validation_view(&framed(&invalid)),
+                    Err(MutationError::Invalid)
+                ),
+                "field {index} = {replacement:?}"
+            );
+        }
+        let fmt = format!("{}71:{fingerprint}", framed(&fields[..9]));
+        for malformed in [format!("{valid}0:"), framed(&fields[..12]), fmt] {
+            assert!(matches!(
+                analyzer_action_validation_view(&malformed),
+                Err(MutationError::Invalid)
+            ));
+        }
+    }
+
+    /// V07 P3-3: the provenance the application encodes is decoded by this
+    /// crate field for field. Every field carries a distinct value, so
+    /// reordering frames on either side of the crate boundary swaps two of
+    /// them and fails the exact comparison below.
+    #[test]
+    fn analyzer_provenance_survives_the_application_encoder_field_for_field()
+    -> Result<(), Box<dyn std::error::Error>> {
+        let hash = |value: u8| format!("sha256:{value:064x}");
+        let (image, configuration, session, analyzed, binary, config, action) = (
+            hash(1),
+            hash(2),
+            hash(3),
+            hash(4),
+            hash(5),
+            hash(6),
+            hash(7),
+        );
+        let encoded = rust_engineering_application::analyzer::AnalyzerActionProvenance {
+            platform: "linux/aarch64",
+            image_id: &image,
+            configuration_fingerprint: &configuration,
+            session_fingerprint: &session,
+            rust_version: "1.98.1",
+            cargo_version: "1.98.2",
+            analyzed_source_fingerprint: &analyzed,
+            analyzer_version: "rust-analyzer 1.98.1 (48a229c 2026-09-01)",
+            binary_sha256: &binary,
+            config_digest: &config,
+            action_digest: &action,
+        }
+        .encode()
+        .map_err(|error| format!("{error:?}"))?;
+        let view = analyzer_action_validation_for(MutationKind::AnalyzerActionApply, &encoded)
+            .map_err(|error| format!("{error:?}"))?;
+        assert_eq!(
+            serde_json::to_value(&view)?,
+            json!({
+                "method": "workspace_edit_structural_only",
+                "semantics": "latest_known",
+                "platform": "linux/aarch64",
+                "image_id": image,
+                "configuration_fingerprint": configuration,
+                "session_execution_fingerprint": session,
+                "rust_version": "1.98.1",
+                "cargo_version": "1.98.2",
+                "analyzed_source_fingerprint": analyzed,
+                "analyzer": {
+                    "version": "rust-analyzer 1.98.1 (48a229c 2026-09-01)",
+                    "binary_sha256": binary,
+                    "config_digest": config
+                },
+                "action_digest": action
+            })
+        );
+        Ok(())
+    }
+
+    /// V08 item 9(b): the fixtures elsewhere all use a synthetic `sha256:`
+    /// hash for `image_id`; none decodes the real, production
+    /// `APPROVED_M6_IMAGE` constant `gateway.image_id()` reports. Not
+    /// `#[ignore]`d, so a change to that constant's shape (away from
+    /// `sha256:<64hex>`) fails this test instead of only the ignored native
+    /// gateway test, which never runs in CI.
+    #[test]
+    fn the_production_image_id_constant_decodes_as_a_source_fingerprint()
+    -> Result<(), Box<dyn std::error::Error>> {
+        let hash = |value: u8| format!("sha256:{value:064x}");
+        let encoded = rust_engineering_application::analyzer::AnalyzerActionProvenance {
+            platform: "linux/aarch64",
+            image_id: rust_engineering_execution::APPROVED_M6_IMAGE,
+            configuration_fingerprint: &hash(1),
+            session_fingerprint: &hash(2),
+            rust_version: "1.98.1",
+            cargo_version: "1.98.1",
+            analyzed_source_fingerprint: &hash(3),
+            analyzer_version: "rust-analyzer 1.98.1 (48a229c 2026-09-01)",
+            binary_sha256: &hash(4),
+            config_digest: &hash(5),
+            action_digest: &hash(6),
+        }
+        .encode()
+        .map_err(|error| format!("{error:?}"))?;
+        let view = analyzer_action_validation_for(MutationKind::AnalyzerActionApply, &encoded)
+            .map_err(|error| format!("{error:?}"))?;
+        assert_eq!(view.image_id, rust_engineering_execution::APPROVED_M6_IMAGE);
+        Ok(())
+    }
+
+    /// V07 P3-4: a view is chosen by the plan's writer kind; an analyzer
+    /// provenance never takes the frozen M2 view, nor an M2 plan the analyzer
+    /// view, even when the bytes themselves would decode.
+    #[test]
+    fn a_validation_view_is_chosen_by_the_writer_kind_and_never_crosses_over() {
+        let fingerprint = format!("sha256:{}", "a".repeat(64));
+        let analyzer = framed(&[
+            "m6-analyzer-action-v1",
+            "local_coordinated",
+            "linux/aarch64",
+            &fingerprint,
+            &fingerprint,
+            &fingerprint,
+            "1.98.1",
+            "1.98.1",
+            &fingerprint,
+            "rust-analyzer 1.98.1 (48a229c 2026-09-01)",
+            &fingerprint,
+            &fingerprint,
+            &fingerprint,
+        ]);
+        let format = format!(
+            "{}71:{fingerprint}",
+            framed(&[
+                "m2-fmt-apply-v1",
+                "local_coordinated",
+                "linux/arm64",
+                &fingerprint,
+                &fingerprint,
+                &fingerprint,
+                "1.98.1",
+                "1.98.1",
+                &fingerprint,
+            ])
+        );
+        assert!(
+            analyzer_action_validation_for(MutationKind::AnalyzerActionApply, &analyzer).is_ok()
+        );
+        assert!(m2_validation_view(MutationKind::FormatApply, &format).is_ok());
+        for kind in [
+            MutationKind::ManifestPatch,
+            MutationKind::FormatApply,
+            MutationKind::FixApply,
+            MutationKind::DependencyAdd,
+            MutationKind::DependencyRemove,
+        ] {
+            assert!(matches!(
+                analyzer_action_validation_for(kind, &analyzer),
+                Err(MutationError::Invalid)
+            ));
+        }
+        assert!(matches!(
+            m2_validation_view(MutationKind::AnalyzerActionApply, &format),
+            Err(MutationError::Invalid)
+        ));
+        assert!(matches!(
+            analyzer_action_validation_for(MutationKind::AnalyzerActionApply, &format),
+            Err(MutationError::Invalid)
+        ));
     }
 
     #[test]

@@ -529,6 +529,16 @@ impl MutationPlans {
         }
     }
 
+    /// The kind of a still-retained plan for `id`, without validating its digest
+    /// or binding a key: a cheap check a caller runs before `resolve` to refuse a
+    /// foreign-kind commit without touching that plan's idempotency state.
+    pub fn kind_of(&self, id: &MutationId) -> Option<MutationKind> {
+        self.entries
+            .iter()
+            .find(|plan| &plan.id == id && plan.retained())
+            .map(|plan| plan.candidate.kind)
+    }
+
     pub fn resolve(
         &self,
         id: &MutationId,

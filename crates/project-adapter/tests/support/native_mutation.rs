@@ -584,6 +584,208 @@ fn terminal_replay_requires_the_exact_binding_and_never_reapplies_source() -> Re
     Ok(())
 }
 
+/// ADR-052/ADR-083 G6: a journal naming a kind this binary does not know —
+/// written by a later binary, or read after a rollback — is refused before any
+/// effect, never interpreted with a default; and a known kind is never served
+/// by a store granted a different one.
+#[test]
+fn a_journal_naming_an_unknown_or_foreign_kind_is_refused_before_any_effect() -> Result<(), String>
+{
+    let fixture = Fixture::new("unknown-kind-journal")?;
+    let (_backend, lease, request) = fixture.format_request(1_083)?;
+    let project_before = snapshot_tree(&fixture.project)?;
+    let store = NativeMutationStore::open_for_kind(
+        &fixture.state,
+        std::slice::from_ref(&fixture.project),
+        MutationKind::FormatApply,
+    )
+    .map_err(|error| format!("{error:?}"))?;
+    let interrupted = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+        let _ = store.commit_checked(&lease, &request, &Continue, |phase| {
+            if phase == CommitCheckpoint::Prepared {
+                std::panic::resume_unwind(Box::new("capture prepared journal"));
+            }
+            Ok(())
+        });
+    }));
+    assert!(interrupted.is_err());
+    drop(store);
+    assert_eq!(snapshot_tree(&fixture.project)?, project_before);
+
+    let journal = fixture.state.join(journal_name(&request.id));
+    let raw = std::fs::read(&journal).map_err(|error| error.to_string())?;
+    let mut body = decode(&raw).map_err(|error| format!("{error:?}"))?;
+
+    body.operation = "analyzer_action_apply_v2".to_owned();
+    let unknown = encode(&body).map_err(|error| format!("{error:?}"))?;
+    std::fs::write(&journal, &unknown).map_err(|error| error.to_string())?;
+    assert_eq!(decode(&unknown), Err(MutationError::RecoveryRequired));
+    for kind in [MutationKind::FormatApply, MutationKind::AnalyzerActionApply] {
+        let reader = NativeMutationStore::open_for_kind(
+            &fixture.state,
+            std::slice::from_ref(&fixture.project),
+            kind,
+        )
+        .map_err(|error| format!("{error:?}"))?;
+        assert_eq!(
+            reader.receipt(&lease, &request.id),
+            Err(MutationError::RecoveryRequired),
+            "{kind:?}"
+        );
+        assert_eq!(
+            reader.recover(&lease, &request.id),
+            Err(MutationError::RecoveryRequired),
+            "{kind:?}"
+        );
+        assert_eq!(
+            reader.replay(
+                &lease,
+                &request.id,
+                &request.digest,
+                &request.key,
+                &Continue,
+            ),
+            Err(MutationError::RecoveryRequired),
+            "{kind:?}"
+        );
+        assert_eq!(
+            std::fs::read(&journal).map_err(|error| error.to_string())?,
+            unknown
+        );
+        assert_eq!(snapshot_tree(&fixture.project)?, project_before);
+    }
+
+    // Relabelling a journal as another known kind breaks the digest, which
+    // binds the kind: refused as tampering before the kind gate is reached.
+    body.operation = "analyzer_action_apply".to_owned();
+    let relabelled = encode(&body).map_err(|error| format!("{error:?}"))?;
+    assert_eq!(decode(&relabelled), Err(MutationError::RecoveryRequired));
+
+    // A genuine analyzer-action journal is never served by a store granted a
+    // different kind.
+    let foreign = Fixture::new("foreign-kind-journal")?;
+    let (_foreign_backend, foreign_lease, format_request) = foreign.format_request(1_084)?;
+    let foreign_before = snapshot_tree(&foreign.project)?;
+    let mut candidate = format_request.candidate;
+    candidate.kind = MutationKind::AnalyzerActionApply;
+    let analyzer_request = MutationCommit {
+        digest: mutation_digest(&candidate).map_err(|error| format!("{error:?}"))?,
+        candidate,
+        ..format_request
+    };
+    let analyzer_store = NativeMutationStore::open_for_kind(
+        &foreign.state,
+        std::slice::from_ref(&foreign.project),
+        MutationKind::AnalyzerActionApply,
+    )
+    .map_err(|error| format!("{error:?}"))?;
+    let interrupted = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+        let _ =
+            analyzer_store.commit_checked(&foreign_lease, &analyzer_request, &Continue, |phase| {
+                if phase == CommitCheckpoint::Prepared {
+                    std::panic::resume_unwind(Box::new("capture prepared journal"));
+                }
+                Ok(())
+            });
+    }));
+    assert!(interrupted.is_err());
+    drop(analyzer_store);
+    let foreign_journal = foreign.state.join(journal_name(&analyzer_request.id));
+    let foreign_bytes = std::fs::read(&foreign_journal).map_err(|error| error.to_string())?;
+    assert_eq!(
+        decode(&foreign_bytes)
+            .map_err(|error| format!("{error:?}"))?
+            .operation,
+        "analyzer_action_apply"
+    );
+    let format_reader = NativeMutationStore::open_for_kind(
+        &foreign.state,
+        std::slice::from_ref(&foreign.project),
+        MutationKind::FormatApply,
+    )
+    .map_err(|error| format!("{error:?}"))?;
+    for outcome in [
+        format_reader.receipt(&foreign_lease, &analyzer_request.id),
+        format_reader.recover(&foreign_lease, &analyzer_request.id),
+        format_reader.replay(
+            &foreign_lease,
+            &analyzer_request.id,
+            &analyzer_request.digest,
+            &analyzer_request.key,
+            &Continue,
+        ),
+    ] {
+        assert_eq!(outcome, Err(MutationError::PermissionDenied));
+    }
+    assert_eq!(
+        std::fs::read(&foreign_journal).map_err(|error| error.to_string())?,
+        foreign_bytes
+    );
+    assert_eq!(snapshot_tree(&foreign.project)?, foreign_before);
+    Ok(())
+}
+
+/// V08 item 9(a) / disposition W08b: the reverse direction of the foreign-kind
+/// refusal above — a store's own `commit` refuses a candidate of another
+/// kind before any effect, the same guarantee the application layer (M2's own
+/// `plan.request.candidate.kind != I::KIND` and the analyzer tool's
+/// `MutationPlans::kind_of` pre-check) provides earlier in the call chain.
+/// This proves the store enforces it independently, not only its callers.
+#[test]
+fn commit_refuses_a_foreign_kind_candidate_before_any_effect_in_either_direction()
+-> Result<(), String> {
+    let fixture = Fixture::new("commit-foreign-kind")?;
+    let (_backend, lease, format_request) = fixture.format_request(2_001)?;
+    let project_before = snapshot_tree(&fixture.project)?;
+    let mut candidate = format_request.candidate;
+    candidate.kind = MutationKind::AnalyzerActionApply;
+    let analyzer_request = MutationCommit {
+        digest: mutation_digest(&candidate).map_err(|error| format!("{error:?}"))?,
+        candidate,
+        ..format_request
+    };
+    let format_store = NativeMutationStore::open_for_kind(
+        &fixture.state,
+        std::slice::from_ref(&fixture.project),
+        MutationKind::FormatApply,
+    )
+    .map_err(|error| format!("{error:?}"))?;
+    assert_eq!(
+        format_store.commit(&lease, &analyzer_request, &Continue),
+        Err(MutationError::PermissionDenied),
+        "an analyzer-kind candidate must never commit through a FormatApply store"
+    );
+    assert!(
+        !fixture
+            .state
+            .join(journal_name(&analyzer_request.id))
+            .exists(),
+        "no journal is created for a refused foreign-kind commit"
+    );
+    assert_eq!(snapshot_tree(&fixture.project)?, project_before);
+
+    let (_backend, lease, mismatched_request) = fixture.format_request(2_002)?;
+    let analyzer_store = NativeMutationStore::open_for_kind(
+        &fixture.state,
+        std::slice::from_ref(&fixture.project),
+        MutationKind::AnalyzerActionApply,
+    )
+    .map_err(|error| format!("{error:?}"))?;
+    assert_eq!(
+        analyzer_store.commit(&lease, &mismatched_request, &Continue),
+        Err(MutationError::PermissionDenied),
+        "a format-kind candidate must never commit through an AnalyzerActionApply store"
+    );
+    assert!(
+        !fixture
+            .state
+            .join(journal_name(&mismatched_request.id))
+            .exists()
+    );
+    assert_eq!(snapshot_tree(&fixture.project)?, project_before);
+    Ok(())
+}
+
 #[test]
 fn pending_replay_uses_existing_recovery_and_pruned_replay_is_not_found() -> Result<(), String> {
     struct Cancel;

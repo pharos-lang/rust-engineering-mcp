@@ -2,7 +2,10 @@
 """Fail-closed offline installation and MCP smoke for the core release archive.
 
 The tool inventory, schemas and annotations are pinned to the frozen contract
-snapshots under crates/mcp-server/tests/snapshots (31 tools since 0.3.0).
+snapshots under crates/mcp-server/tests/snapshots (31 tools since 0.3.0; 32
+since M6-01 adds rust.analyzer.symbols; 34 since M6-02/M6-03 add
+rust.analyzer.references and rust.analyzer.diagnostics; 36 since M6-04/M6-05
+add rust.analyzer.actions and rust.analyzer.action.apply).
 """
 
 from __future__ import annotations
@@ -62,6 +65,11 @@ TOOLS = (
     "rust.benchmark.compare",
     "rust.profile.flamegraph",
     "rust.binary.bloat",
+    "rust.analyzer.symbols",
+    "rust.analyzer.references",
+    "rust.analyzer.diagnostics",
+    "rust.analyzer.actions",
+    "rust.analyzer.action.apply",
 )
 TOOL_SCHEMA_SHA256 = {
     "rust.project.open": "e7b454f9d9f026bf9cedf3bb999ff0bd931f8b7472e913638dcd960a142bec17",
@@ -95,6 +103,11 @@ TOOL_SCHEMA_SHA256 = {
     "rust.benchmark.compare": "abaf63a23c1a13e76cb7e155343093f75cb825ec5e0bc1d534c8925ae2940024",
     "rust.profile.flamegraph": "b9348e9e714703ddf718a137673b20208d969e9ccc4c4fbc003216ea8a86d808",
     "rust.binary.bloat": "3973462accce7aa341d115544f2a4ad464d2fad1ba2c0e6cce11707e3422488b",
+    "rust.analyzer.symbols": "9aa1ae796b8cf96836e7c2fca2b285e4ca43a356d97247aff4af185c281a55a3",
+    "rust.analyzer.references": "e44acc84db266c56e86dcc7047df7b31ada99570eed992cac55b2e7bb3eb0d14",
+    "rust.analyzer.diagnostics": "f6782595fdd0b582cdf55dd9dd29411ce7a327b3f05c31438f11c91f0f70fcf9",
+    "rust.analyzer.actions": "a498d67d7189a0d44006327848e6db44896a585b134f45c28b86ad11879bb241",
+    "rust.analyzer.action.apply": "e29532894766b31b39a50e7ff84256acb19b95a3c3c5bf83a197a096c93c784e",
 }
 # The frozen per-tool annotations: the write tools of M2 are not read-only.
 TOOL_ANNOTATIONS = {
@@ -129,6 +142,11 @@ TOOL_ANNOTATIONS = {
     "rust.benchmark.compare": {"readOnlyHint": True, "destructiveHint": False, "idempotentHint": False, "openWorldHint": False},
     "rust.profile.flamegraph": {"readOnlyHint": True, "destructiveHint": False, "idempotentHint": False, "openWorldHint": False},
     "rust.binary.bloat": {"readOnlyHint": True, "destructiveHint": False, "idempotentHint": False, "openWorldHint": False},
+    "rust.analyzer.symbols": {"readOnlyHint": True, "destructiveHint": False, "idempotentHint": True, "openWorldHint": False},
+    "rust.analyzer.references": {"readOnlyHint": True, "destructiveHint": False, "idempotentHint": True, "openWorldHint": False},
+    "rust.analyzer.diagnostics": {"readOnlyHint": True, "destructiveHint": False, "idempotentHint": True, "openWorldHint": False},
+    "rust.analyzer.actions": {"readOnlyHint": True, "destructiveHint": False, "idempotentHint": True, "openWorldHint": False},
+    "rust.analyzer.action.apply": {"readOnlyHint": False, "destructiveHint": True, "idempotentHint": False, "openWorldHint": False},
 }
 PROHIBITED_PACKAGES = {"fastembed", "kanaria", "lance", "lancedb", "ort", "ort-sys"}
 PROHIBITED_ASSET_TOKENS = {
@@ -988,7 +1006,7 @@ def validate_tools(response: object) -> list[dict[str, object]]:
     if result.get("resultType") != "complete" or result.get("nextCursor") is not None:
         raise ValueError("tools/list must be complete and unpaginated")
     if not isinstance(definitions, list) or tuple(row.get("name") for row in definitions) != TOOLS:
-        raise ValueError("tools/list does not contain exactly the approved thirty-one tools")
+        raise ValueError("tools/list does not contain exactly the approved thirty-six tools")
     for row in definitions:
         if not isinstance(row.get("description"), str) or not row["description"]:
             raise ValueError(f"tool description is absent: {row.get('name')}")

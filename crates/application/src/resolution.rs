@@ -66,7 +66,9 @@ fn closed_edit(kind: MutationKind, edit: &ManifestEdit, target_manifest: &str) -
         MutationKind::ManifestPatch => root_patch,
         MutationKind::DependencyAdd => matches!(edit, ManifestEdit::DependencyAdd { .. }),
         MutationKind::DependencyRemove => matches!(edit, ManifestEdit::DependencyRemove { .. }),
-        MutationKind::FormatApply | MutationKind::FixApply => false,
+        MutationKind::FormatApply | MutationKind::FixApply | MutationKind::AnalyzerActionApply => {
+            false
+        }
     }
 }
 
@@ -214,7 +216,9 @@ impl PreparedSemanticMutation {
                 MutationKind::ManifestPatch => "m2-manifest-resolved-v1",
                 MutationKind::DependencyAdd => "m2-dependency-add-v1",
                 MutationKind::DependencyRemove => "m2-dependency-remove-v1",
-                MutationKind::FormatApply | MutationKind::FixApply => {
+                MutationKind::FormatApply
+                | MutationKind::FixApply
+                | MutationKind::AnalyzerActionApply => {
                     return Err(MutationError::Invalid.into());
                 }
             };

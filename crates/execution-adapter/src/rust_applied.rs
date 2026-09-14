@@ -490,7 +490,9 @@ fn verify_rust_generic(
     let c = &c;
     let h = &c.host_config;
     let profile_ok = applied_profile_ok(c, phase.seccomp_profile_json())?;
-    let safe = no_host_authority(c, operation_id, phase.ingesting())
+    // `Phase::Analyzer` is the second phase that keeps stdin open, and the only
+    // non-ingesting one: the duplex LSP session is the work (ADR-084 §2).
+    let safe = no_host_authority(c, operation_id, phase.interactive())
         && mounts_ok(
             c,
             phase,

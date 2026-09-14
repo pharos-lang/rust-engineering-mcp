@@ -177,6 +177,9 @@ def main():
         run('m5-helper-guest-clippy',['cargo','clippy','--manifest-path','fixtures/profile-helper/Cargo.toml','--target','aarch64-unknown-linux-gnu','--all-targets','--locked','--offline','--target-dir','target/profile-helper-guest','--','-D','warnings'])
         run('m5-helper-tests',['cargo','test','--manifest-path','fixtures/profile-helper/Cargo.toml','--locked','--offline','--target-dir','target/profile-helper'],require_test_groups=True)
         run('m5-vendor-tests',[sys.executable,'-B','-m','unittest','discover','-s','fixtures/criterion-vendor','-p','test_*.py'],require_test_groups=True)
+        run('m6-provisioning-tests',[sys.executable,'-B','-m','unittest','fixtures/rust-runtime/m6/test_provision.py'],require_test_groups=True)
+        run('m6-provisioning-unit-tests',[sys.executable,'-B','scripts/test-m6-provisioning.py'],require_test_groups=True)
+        run('m6-runtime-unit-tests',[sys.executable,'-B','scripts/test-m6-runtime-unit.py'],require_test_groups=True)
         run('vendor',[sys.executable,'scripts/verify-vendor.py'])
         run('cargo-fixtures',[sys.executable,'scripts/test-fixtures.py',str(ROOT),'--cargo',cargo])
         run('audit',['cargo','audit','--no-fetch'])
@@ -197,6 +200,7 @@ def main():
             run('crate-inspect',[sys.executable,'scripts/test-crate-inspect.py'])
             run('doctor',[sys.executable,'scripts/test-doctor.py'])
             run('m5-runtime',[sys.executable,'-B','scripts/test-m5-runtime.py'])
+            run('m6-runtime',[sys.executable,'-B','scripts/test-m6-runtime.py'])
         report['source_inputs_unchanged'] = source_inventory(ROOT, env) == report['source_inputs']
         if not report['source_inputs_unchanged']:
             raise RuntimeError('code/config/fixture inputs changed during gate; qualification rejected')

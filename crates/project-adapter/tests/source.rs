@@ -594,6 +594,67 @@ fn exclusions_and_cargo_config_denial_are_case_insensitive_including_directories
     Ok(())
 }
 
+/// ADR-084 §6: a workspace `rust-analyzer.toml` overrides the client's fixed
+/// `initializationOptions` and can re-enable build scripts, proc macros or an
+/// override command, and rust-analyzer has no option to stop loading it. The
+/// capture therefore refuses it at any depth, in any casing, dot-prefixed or
+/// not, and whatever kind of object carries the name.
+#[test]
+fn rejects_rust_analyzer_workspace_configuration_at_any_depth_casing_or_kind() -> TestResult {
+    for path in [
+        "rust-analyzer.toml",
+        ".rust-analyzer.toml",
+        "src/rust-analyzer.toml",
+        "src/deep/nested/rust-analyzer.toml",
+        "RUST-ANALYZER.TOML",
+        "src/.Rust-Analyzer.Toml",
+    ] {
+        for directory in [false, true] {
+            let f = Fixture::new()?;
+            let target = f.project.join(path);
+            ck(fs::create_dir_all(target.parent().ok_or("parent")?))?;
+            if directory {
+                ck(fs::create_dir(&target))?;
+            } else {
+                ck(fs::write(
+                    &target,
+                    "[cargo.buildScripts]\nenable = true\n[check]\noverrideCommand = ['sh']\n",
+                ))?;
+            }
+            assert_eq!(
+                f.capture()?,
+                Err(ProjectError::Rejected(OperationalErrorCode::SandboxDenied)),
+                "{path} (directory: {directory})"
+            );
+        }
+    }
+    Ok(())
+}
+
+/// The refusal is the exact name rust-analyzer loads, not a prefix: a backup
+/// copy is an ordinary file and is captured byte for byte.
+#[test]
+fn a_file_merely_named_like_the_analyzer_configuration_is_captured() -> TestResult {
+    let f = Fixture::new()?;
+    let bytes = b"[cargo.buildScripts]\nenable = true\n";
+    ck(fs::write(f.project.join("rust-analyzer.toml.bak"), bytes))?;
+    ck(fs::write(f.project.join("rust-analyzer.tom"), bytes))?;
+    let bundle = ck(f.capture()?)?;
+    let captured = bundle
+        .files()
+        .iter()
+        .find(|file| file.path() == "rust-analyzer.toml.bak")
+        .ok_or("the backup copy was not captured")?;
+    assert_eq!(captured.bytes(), bytes);
+    assert!(
+        bundle
+            .files()
+            .iter()
+            .any(|file| file.path() == "rust-analyzer.tom")
+    );
+    Ok(())
+}
+
 #[test]
 fn cargo_paths_cannot_reference_excluded_components_at_any_depth_or_casing() -> TestResult {
     for value in [

@@ -1,0 +1,831 @@
+{
+  "annotations": {
+    "destructiveHint": false,
+    "idempotentHint": true,
+    "openWorldHint": false,
+    "readOnlyHint": true
+  },
+  "description": "List the code actions the host-approved rust-analyzer 1.98.1 (aarch64-unknown-linux-gnu) offers over a range of a captured Rust file, inside the M6 guest image. Read-only: each action's WorkspaceEdit is resolved and structurally validated but never applied; applying one is rust.analyzer.action.apply. Snapshot semantics are latest_known and non-atomic. Build scripts, proc macros and check-on-save stay disabled; only textDocument/codeAction runs, never cargo check. An applicable action carries an action_digest binding its title, kind and edits to this analyzer version, binary, configuration and capture, plus an edits_summary (files, edits, bytes_delta); an action may edit several captured files. A rejected action carries its closed reason (command, snippet, resource_operation, external_uri, version_mismatch, overlapping_ranges, edit_limit, bytes_limit, not_utf8, file_not_in_snapshot, unresolved_edit) and, when the analyzer sent them, its title and kind; a Command is never executed. At most 32 actions and 128 edits per action. Titles are analyzer text, bounded to 256 Unicode scalars with control characters replaced. expected_project_fingerprint is required. Positions are Unicode-scalar, 1-based Position values. Requires the host --rust runtime configured with the approved M6 image; without it the tool is unavailable.",
+  "inputSchema": {
+    "$defs": {
+      "CodeActionKind": {
+        "description": "Mirrors `rust_engineering_domain::CodeActionKind` 1:1: both the closed\n`only` filter vocabulary of `rust.analyzer.actions` and every published\naction `kind`.",
+        "enum": [
+          "quickfix",
+          "refactor",
+          "refactor_extract",
+          "refactor_inline",
+          "refactor_rewrite",
+          "source",
+          "source_organize_imports"
+        ],
+        "type": "string"
+      },
+      "WirePosition": {
+        "additionalProperties": false,
+        "description": "A 1-based line and Unicode-scalar column, matching\n`rust_engineering_domain::Position` field for field: JSON Schema `minimum:\n1` rejects `0` here, so [`domain::Position`]'s own `NonZeroU32` invariant\nis never violated by a decoded value.",
+        "properties": {
+          "column": {
+            "format": "uint32",
+            "minimum": 1,
+            "type": "integer"
+          },
+          "line": {
+            "format": "uint32",
+            "minimum": 1,
+            "type": "integer"
+          }
+        },
+        "required": [
+          "line",
+          "column"
+        ],
+        "type": "object"
+      },
+      "WireRange": {
+        "additionalProperties": false,
+        "description": "A `{start, end}` pair of [`WirePosition`]s, shared by\n`rust.analyzer.actions` and `rust.analyzer.action.apply`. `start ≤ end` is\na Rust-level invariant ([`domain::TextRange::new`]) the schema cannot\nexpress, so a reversed range is refused as invalid arguments after\ndecoding.",
+        "properties": {
+          "end": {
+            "$ref": "#/$defs/WirePosition"
+          },
+          "start": {
+            "$ref": "#/$defs/WirePosition"
+          }
+        },
+        "required": [
+          "start",
+          "end"
+        ],
+        "type": "object"
+      }
+    },
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "additionalProperties": false,
+    "properties": {
+      "expected_project_fingerprint": {
+        "description": "Mandatory for this tool (ADR-083 §2); a mismatch is `blocked/CONFLICT`.",
+        "pattern": "^sha256:[0-9a-f]{64}$",
+        "type": "string"
+      },
+      "file": {
+        "pattern": "^[A-Za-z0-9_./-]{1,100}\\.rs$",
+        "type": "string"
+      },
+      "only": {
+        "default": [],
+        "description": "Kinds to ask for; empty or absent asks for every kind.",
+        "items": {
+          "$ref": "#/$defs/CodeActionKind"
+        },
+        "maxItems": 7,
+        "type": "array"
+      },
+      "project_ref": {
+        "pattern": "^prj_[0-9a-f]{32}$",
+        "type": "string"
+      },
+      "range": {
+        "$ref": "#/$defs/WireRange"
+      },
+      "timeout_seconds": {
+        "default": 60,
+        "format": "uint32",
+        "maximum": 180,
+        "minimum": 1,
+        "type": "integer"
+      }
+    },
+    "required": [
+      "project_ref",
+      "expected_project_fingerprint",
+      "file",
+      "range"
+    ],
+    "title": "ActionsInput",
+    "type": "object"
+  },
+  "name": "rust.analyzer.actions",
+  "outputSchema": {
+    "$defs": {
+      "ActionRejection": {
+        "description": "Mirrors `rust_engineering_domain::ActionRejection` 1:1 (ADR-083 §4, §5).",
+        "enum": [
+          "command",
+          "snippet",
+          "resource_operation",
+          "external_uri",
+          "version_mismatch",
+          "overlapping_ranges",
+          "edit_limit",
+          "bytes_limit",
+          "not_utf8",
+          "file_not_in_snapshot",
+          "unresolved_edit"
+        ],
+        "type": "string"
+      },
+      "ActionsCode": {
+        "enum": [
+          "CONFLICT",
+          "FILE_NOT_IN_SNAPSHOT",
+          "POSITION_OUT_OF_RANGE",
+          "ANALYZER_NOT_READY",
+          "ANALYZER_CRASHED",
+          "ANALYZER_CAPABILITY_MISMATCH",
+          "FRAME_LIMIT",
+          "MESSAGE_LIMIT",
+          "RESULT_LIMIT",
+          "TIMEOUT_INITIALIZE",
+          "TIMEOUT_QUERY",
+          "TIMEOUT_TOTAL",
+          "UNSUPPORTED_PROJECT_CONFIG",
+          "FILE_NOT_UTF8",
+          "SANDBOX_DENIED",
+          "UNSUPPORTED_PLATFORM",
+          "PROJECT_NOT_FOUND",
+          "INVALID_PROJECT",
+          "OUTPUT_LIMIT_EXCEEDED"
+        ],
+        "type": "string"
+      },
+      "ActionsData": {
+        "additionalProperties": false,
+        "properties": {
+          "actions": {
+            "description": "`None` exactly when the session never answered. In the order\nrust-analyzer returned them, at most 32.",
+            "items": {
+              "$ref": "#/$defs/CodeAction"
+            },
+            "maxItems": 32,
+            "type": [
+              "array",
+              "null"
+            ]
+          },
+          "analyzer": {
+            "$ref": "#/$defs/Analyzer"
+          },
+          "completeness": {
+            "$ref": "#/$defs/Completeness"
+          },
+          "exit_code": {
+            "format": "int32",
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "limits": {
+            "$ref": "#/$defs/Limits"
+          },
+          "omitted": {
+            "description": "Every omission: actions beyond the 32 visible, and any trimmed to fit\nthe result budget.",
+            "format": "uint32",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "oom_killed": {
+            "type": [
+              "boolean",
+              "null"
+            ]
+          },
+          "project_identity_fingerprint": {
+            "pattern": "^sha256:[0-9a-f]{64}$",
+            "type": "string"
+          },
+          "project_ref": {
+            "pattern": "^prj_[0-9a-f]{32}$",
+            "type": "string"
+          },
+          "readiness": {
+            "$ref": "#/$defs/Readiness"
+          },
+          "session": {
+            "$ref": "#/$defs/Session"
+          },
+          "snapshot": {
+            "$ref": "#/$defs/Snapshot"
+          },
+          "termination": {
+            "$ref": "#/$defs/Termination"
+          },
+          "toolchain": {
+            "$ref": "#/$defs/Toolchain"
+          }
+        },
+        "required": [
+          "project_ref",
+          "project_identity_fingerprint",
+          "snapshot",
+          "analyzer",
+          "toolchain",
+          "readiness",
+          "completeness",
+          "limits",
+          "session",
+          "termination",
+          "exit_code",
+          "oom_killed",
+          "actions",
+          "omitted"
+        ],
+        "type": "object"
+      },
+      "Analyzer": {
+        "additionalProperties": false,
+        "properties": {
+          "binary_sha256": {
+            "pattern": "^sha256:[0-9a-f]{64}$",
+            "type": "string"
+          },
+          "config_digest": {
+            "pattern": "^sha256:[0-9a-f]{64}$",
+            "type": "string"
+          },
+          "image_id": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "position_encoding": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/PositionEncoding"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "`None` exactly when `initialize` never answered: no negotiation\nhappened, so no encoding is published."
+          },
+          "version": {
+            "minLength": 1,
+            "type": "string"
+          }
+        },
+        "required": [
+          "version",
+          "binary_sha256",
+          "image_id",
+          "config_digest",
+          "position_encoding"
+        ],
+        "type": "object"
+      },
+      "CodeAction": {
+        "description": "One element of a `textDocument/codeAction` answer (ADR-083 §4).",
+        "oneOf": [
+          {
+            "additionalProperties": false,
+            "description": "Structurally applicable over this capture; pass `action_digest` with\nthe same `file` and `range` to `rust.analyzer.action.apply` preview.",
+            "properties": {
+              "action_digest": {
+                "pattern": "^sha256:[0-9a-f]{64}$",
+                "type": "string"
+              },
+              "applicability": {
+                "const": "applicable",
+                "type": "string"
+              },
+              "edits_summary": {
+                "$ref": "#/$defs/EditsSummary"
+              },
+              "is_preferred": {
+                "type": "boolean"
+              },
+              "kind": {
+                "anyOf": [
+                  {
+                    "$ref": "#/$defs/CodeActionKind"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "title": {
+                "maxLength": 256,
+                "minLength": 1,
+                "type": "string"
+              },
+              "title_truncated": {
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "applicability",
+              "action_digest",
+              "title",
+              "title_truncated",
+              "kind",
+              "is_preferred",
+              "edits_summary"
+            ],
+            "type": "object"
+          },
+          {
+            "additionalProperties": false,
+            "description": "Refused for a closed reason; never applicable in any form.",
+            "properties": {
+              "applicability": {
+                "const": "rejected",
+                "type": "string"
+              },
+              "kind": {
+                "anyOf": [
+                  {
+                    "$ref": "#/$defs/CodeActionKind"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "reason": {
+                "$ref": "#/$defs/ActionRejection"
+              },
+              "title": {
+                "maxLength": 256,
+                "minLength": 1,
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "title_truncated": {
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "applicability",
+              "reason",
+              "title",
+              "title_truncated",
+              "kind"
+            ],
+            "type": "object"
+          }
+        ]
+      },
+      "CodeActionKind": {
+        "description": "Mirrors `rust_engineering_domain::CodeActionKind` 1:1: both the closed\n`only` filter vocabulary of `rust.analyzer.actions` and every published\naction `kind`.",
+        "enum": [
+          "quickfix",
+          "refactor",
+          "refactor_extract",
+          "refactor_inline",
+          "refactor_rewrite",
+          "source",
+          "source_organize_imports"
+        ],
+        "type": "string"
+      },
+      "Completeness": {
+        "additionalProperties": false,
+        "properties": {
+          "omissions": {
+            "items": {
+              "$ref": "#/$defs/Omission"
+            },
+            "maxItems": 8,
+            "type": "array"
+          },
+          "reasons": {
+            "items": {
+              "$ref": "#/$defs/Reason"
+            },
+            "maxItems": 8,
+            "type": "array"
+          },
+          "state": {
+            "$ref": "#/$defs/CompletenessState"
+          }
+        },
+        "required": [
+          "state",
+          "omissions",
+          "reasons"
+        ],
+        "type": "object"
+      },
+      "CompletenessState": {
+        "enum": [
+          "complete",
+          "incomplete"
+        ],
+        "type": "string"
+      },
+      "EditsSummary": {
+        "additionalProperties": false,
+        "description": "What applying an action would change, computed without applying it.",
+        "properties": {
+          "bytes_delta": {
+            "description": "Inserted bytes minus replaced bytes, over every edit.",
+            "format": "int64",
+            "type": "integer"
+          },
+          "edits": {
+            "format": "uint32",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "files": {
+            "description": "Distinct captured files the edits touch; may exceed one.",
+            "format": "uint32",
+            "minimum": 0,
+            "type": "integer"
+          }
+        },
+        "required": [
+          "files",
+          "edits",
+          "bytes_delta"
+        ],
+        "type": "object"
+      },
+      "Health": {
+        "enum": [
+          "ok",
+          "warning"
+        ],
+        "type": "string"
+      },
+      "Limits": {
+        "additionalProperties": false,
+        "properties": {
+          "frame_bytes": {
+            "format": "uint32",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "initialize_timeout_seconds": {
+            "format": "uint32",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "max_visible": {
+            "format": "uint32",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "messages": {
+            "format": "uint32",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "query_timeout_seconds": {
+            "format": "uint32",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "total_timeout_seconds": {
+            "format": "uint32",
+            "minimum": 0,
+            "type": "integer"
+          }
+        },
+        "required": [
+          "max_visible",
+          "initialize_timeout_seconds",
+          "query_timeout_seconds",
+          "total_timeout_seconds",
+          "frame_bytes",
+          "messages"
+        ],
+        "type": "object"
+      },
+      "Omission": {
+        "additionalProperties": false,
+        "properties": {
+          "count": {
+            "format": "uint32",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "kind": {
+            "$ref": "#/$defs/OmissionKind"
+          }
+        },
+        "required": [
+          "kind",
+          "count"
+        ],
+        "type": "object"
+      },
+      "OmissionKind": {
+        "description": "Mirrors `rust_engineering_domain::OmissionKind` 1:1; only `limit_visible`\nand `not_utf8_file` are reachable from this tool's converter today, but the\nfull closed set is modelled so a future gateway change needs no schema\nedit here. `oversized_entry` (V05 P2) is enforced by `lsp_codec` at the\npeer boundary, but the M6-01 gateway still folds that count into\n`limit_visible` pending a change to `analyzer_gateway.rs::record_omissions`\nthat reports it under this variant instead.",
+        "enum": [
+          "external_uri",
+          "sysroot_location",
+          "dependency_location",
+          "limit_visible",
+          "not_utf8_file",
+          "unresolvable_position",
+          "oversized_entry"
+        ],
+        "type": "string"
+      },
+      "PositionEncoding": {
+        "enum": [
+          "utf-8",
+          "utf-16"
+        ],
+        "type": "string"
+      },
+      "Readiness": {
+        "additionalProperties": false,
+        "properties": {
+          "elapsed_ms": {
+            "format": "uint64",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "health": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/Health"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "`Some` only for `state: quiescent`: a never-ready session observed no\nserver health at all, and inventing one would be a claim the adapter\ncannot support."
+          },
+          "state": {
+            "$ref": "#/$defs/ReadinessState"
+          }
+        },
+        "required": [
+          "state",
+          "health",
+          "elapsed_ms"
+        ],
+        "type": "object"
+      },
+      "ReadinessState": {
+        "enum": [
+          "quiescent",
+          "not_ready"
+        ],
+        "type": "string"
+      },
+      "Reason": {
+        "description": "Mirrors `rust_engineering_domain::IncompleteReason`, plus this tool's own\n`result_limit`: the 512 KiB output trim (D2) has no domain reason of its\nown because it never reaches the analyzer session at all.",
+        "enum": [
+          "analyzer_not_ready",
+          "limit_visible",
+          "analyzer_warning",
+          "not_utf8_file",
+          "timeout",
+          "result_limit"
+        ],
+        "type": "string"
+      },
+      "Semantics": {
+        "enum": [
+          "latest_known"
+        ],
+        "type": "string"
+      },
+      "Session": {
+        "additionalProperties": false,
+        "properties": {
+          "bytes_in": {
+            "format": "uint64",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "bytes_out": {
+            "format": "uint64",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "duration_ms": {
+            "format": "uint64",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "messages_in": {
+            "format": "uint32",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "messages_out": {
+            "format": "uint32",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "server_requests": {
+            "format": "uint32",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "stderr_bytes": {
+            "format": "uint64",
+            "minimum": 0,
+            "type": "integer"
+          }
+        },
+        "required": [
+          "messages_in",
+          "messages_out",
+          "bytes_in",
+          "bytes_out",
+          "duration_ms",
+          "stderr_bytes",
+          "server_requests"
+        ],
+        "type": "object"
+      },
+      "Snapshot": {
+        "additionalProperties": false,
+        "properties": {
+          "atomic": {
+            "type": "boolean"
+          },
+          "files": {
+            "format": "uint32",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "semantics": {
+            "$ref": "#/$defs/Semantics"
+          },
+          "source_fingerprint": {
+            "pattern": "^sha256:[0-9a-f]{64}$",
+            "type": "string"
+          }
+        },
+        "required": [
+          "source_fingerprint",
+          "files",
+          "semantics",
+          "atomic"
+        ],
+        "type": "object"
+      },
+      "Sysroot": {
+        "enum": [
+          "present"
+        ],
+        "type": "string"
+      },
+      "Termination": {
+        "enum": [
+          "exited",
+          "timed_out",
+          "cancelled",
+          "output_limit"
+        ],
+        "type": "string"
+      },
+      "Toolchain": {
+        "additionalProperties": false,
+        "properties": {
+          "rust_version": {
+            "type": "string"
+          },
+          "sysroot": {
+            "$ref": "#/$defs/Sysroot"
+          }
+        },
+        "required": [
+          "rust_version",
+          "sysroot"
+        ],
+        "type": "object"
+      }
+    },
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "oneOf": [
+      {
+        "properties": {
+          "data": {
+            "$ref": "#/$defs/ActionsData"
+          },
+          "error_code": {
+            "type": "null"
+          },
+          "error_message": {
+            "type": "null"
+          },
+          "status": {
+            "const": "passed",
+            "type": "string"
+          }
+        },
+        "required": [
+          "status",
+          "error_code",
+          "error_message",
+          "data"
+        ],
+        "type": "object"
+      },
+      {
+        "properties": {
+          "data": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/ActionsData"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "error_code": {
+            "$ref": "#/$defs/ActionsCode"
+          },
+          "error_message": {
+            "type": "string"
+          },
+          "status": {
+            "const": "blocked",
+            "type": "string"
+          }
+        },
+        "required": [
+          "status",
+          "error_code",
+          "error_message",
+          "data"
+        ],
+        "type": "object"
+      },
+      {
+        "properties": {
+          "data": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/ActionsData"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "error_code": {
+            "$ref": "#/$defs/ActionsCode"
+          },
+          "error_message": {
+            "type": "string"
+          },
+          "status": {
+            "const": "unavailable",
+            "type": "string"
+          }
+        },
+        "required": [
+          "status",
+          "error_code",
+          "error_message",
+          "data"
+        ],
+        "type": "object"
+      },
+      {
+        "properties": {
+          "data": {
+            "type": "null"
+          },
+          "error_code": {
+            "type": "null"
+          },
+          "error_message": {
+            "type": "null"
+          },
+          "status": {
+            "const": "cancelled",
+            "type": "string"
+          }
+        },
+        "required": [
+          "status",
+          "error_code",
+          "error_message",
+          "data"
+        ],
+        "type": "object"
+      }
+    ],
+    "properties": {
+      "duration_ms": {
+        "format": "uint64",
+        "minimum": 0,
+        "type": "integer"
+      },
+      "summary": {
+        "type": "string"
+      }
+    },
+    "required": [
+      "summary",
+      "duration_ms"
+    ],
+    "title": "ActionsOutput",
+    "type": "object",
+    "unevaluatedProperties": false
+  }
+}

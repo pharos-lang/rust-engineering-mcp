@@ -9,8 +9,15 @@ use std::time::{Duration, Instant};
 
 type TestResult = Result<(), Box<dyn Error>>;
 const TIMEOUT: Duration = Duration::from_secs(10);
-// Session budget includes repeated discovery of both complete output schemas.
-const OUTPUT_LIMIT: usize = 2 * 1024 * 1024;
+// Session budget includes repeated discovery of every tool's complete
+// input/output schema; raised for M6-02/M6-03 (two more sizable analyzer
+// schemas) on top of the M6-01 (symbols) discovery this already accounted for.
+// Measured high-water mark (V06 P3): a single `tools/list` response over the
+// 34-tool inventory this ceiling covers is ~359 KiB (367,011 bytes, one
+// `serve --stdio` round trip on protocol version 2026-07-28) — about 17x
+// below this 6 MiB bound, which stays a deliberate ceiling rather than a
+// tight fit.
+const OUTPUT_LIMIT: usize = 6 * 1024 * 1024;
 const FRAME_LIMIT: usize = 1024 * 1024;
 const VERSION: &str = "2026-07-28";
 const LEGACY: [&str; 4] = ["2024-11-05", "2025-03-26", "2025-06-18", "2025-11-25"];
@@ -437,6 +444,14 @@ fn bootstrap(server: &mut Server, version: &str) -> Result<Value, Box<dyn Error>
         (28, include_str!("snapshots/benchmark-compare-tool.json")),
         (29, include_str!("snapshots/profile-flamegraph-tool.json")),
         (30, include_str!("snapshots/binary-bloat-tool.json")),
+        (31, include_str!("snapshots/analyzer-symbols-tool.json")),
+        (32, include_str!("snapshots/analyzer-references-tool.json")),
+        (33, include_str!("snapshots/analyzer-diagnostics-tool.json")),
+        (34, include_str!("snapshots/analyzer-actions-tool.json")),
+        (
+            35,
+            include_str!("snapshots/analyzer-action-apply-tool.json"),
+        ),
     ] {
         assert_eq!(
             response["result"]["tools"][index],
@@ -642,6 +657,162 @@ mod project_fixtures {
     }
 
     #[test]
+    fn analyzer_symbols_without_configured_runtime_is_unavailable() -> TestResult {
+        let fixture = Fixture::new()?;
+        fixture.package()?;
+        let mut server = Server::start_with_args(&["--root", fixture.path()?])?;
+        bootstrap(&mut server, VERSION)?;
+        server.send(project_call(3, json!({"path":fixture.path()?}), VERSION))?;
+        let opened = server.response(json!(3))?;
+        assert_eq!(opened["result"]["isError"], false);
+        let reference = opened["result"]["structuredContent"]["data"]["project_ref"].clone();
+        server.send(modern(json!(4), "tools/list"))?;
+        let tool = server.response(json!(4))?["result"]["tools"][31].clone();
+        let arguments = json!({
+            "project_ref": reference,
+            "scope": "document",
+            "file": "src/lib.rs"
+        });
+        server.send(named_inspect_call(
+            5,
+            "rust.analyzer.symbols",
+            arguments,
+            VERSION,
+        ))?;
+        let response = server.response(json!(5))?;
+        assert_output(&response, &tool, true, VERSION)?;
+        assert_eq!(
+            response["result"]["structuredContent"]["status"],
+            "unavailable"
+        );
+        assert_eq!(
+            response["result"]["structuredContent"]["error_code"],
+            "SANDBOX_DENIED"
+        );
+        assert!(!fixture.0.join("target").exists());
+        assert!(!fixture.0.join("Cargo.lock").exists());
+        server.finish(0)?;
+        Ok(())
+    }
+
+    #[test]
+    fn analyzer_references_without_configured_runtime_is_unavailable() -> TestResult {
+        let fixture = Fixture::new()?;
+        fixture.package()?;
+        let mut server = Server::start_with_args(&["--root", fixture.path()?])?;
+        bootstrap(&mut server, VERSION)?;
+        server.send(project_call(3, json!({"path":fixture.path()?}), VERSION))?;
+        let opened = server.response(json!(3))?;
+        assert_eq!(opened["result"]["isError"], false);
+        let reference = opened["result"]["structuredContent"]["data"]["project_ref"].clone();
+        server.send(modern(json!(4), "tools/list"))?;
+        let tool = server.response(json!(4))?["result"]["tools"][32].clone();
+        let arguments = json!({
+            "project_ref": reference,
+            "file": "src/lib.rs",
+            "position": {"line": 1, "column": 1}
+        });
+        server.send(named_inspect_call(
+            5,
+            "rust.analyzer.references",
+            arguments,
+            VERSION,
+        ))?;
+        let response = server.response(json!(5))?;
+        assert_output(&response, &tool, true, VERSION)?;
+        assert_eq!(
+            response["result"]["structuredContent"]["status"],
+            "unavailable"
+        );
+        assert_eq!(
+            response["result"]["structuredContent"]["error_code"],
+            "SANDBOX_DENIED"
+        );
+        assert!(!fixture.0.join("target").exists());
+        assert!(!fixture.0.join("Cargo.lock").exists());
+        server.finish(0)?;
+        Ok(())
+    }
+
+    #[test]
+    fn analyzer_diagnostics_without_configured_runtime_is_unavailable() -> TestResult {
+        let fixture = Fixture::new()?;
+        fixture.package()?;
+        let mut server = Server::start_with_args(&["--root", fixture.path()?])?;
+        bootstrap(&mut server, VERSION)?;
+        server.send(project_call(3, json!({"path":fixture.path()?}), VERSION))?;
+        let opened = server.response(json!(3))?;
+        assert_eq!(opened["result"]["isError"], false);
+        let reference = opened["result"]["structuredContent"]["data"]["project_ref"].clone();
+        server.send(modern(json!(4), "tools/list"))?;
+        let tool = server.response(json!(4))?["result"]["tools"][33].clone();
+        let arguments = json!({
+            "project_ref": reference,
+            "file": "src/lib.rs"
+        });
+        server.send(named_inspect_call(
+            5,
+            "rust.analyzer.diagnostics",
+            arguments,
+            VERSION,
+        ))?;
+        let response = server.response(json!(5))?;
+        assert_output(&response, &tool, true, VERSION)?;
+        assert_eq!(
+            response["result"]["structuredContent"]["status"],
+            "unavailable"
+        );
+        assert_eq!(
+            response["result"]["structuredContent"]["error_code"],
+            "SANDBOX_DENIED"
+        );
+        assert!(!fixture.0.join("target").exists());
+        assert!(!fixture.0.join("Cargo.lock").exists());
+        server.finish(0)?;
+        Ok(())
+    }
+
+    #[test]
+    fn analyzer_actions_without_configured_runtime_is_unavailable() -> TestResult {
+        let fixture = Fixture::new()?;
+        fixture.package()?;
+        let mut server = Server::start_with_args(&["--root", fixture.path()?])?;
+        bootstrap(&mut server, VERSION)?;
+        server.send(project_call(3, json!({"path":fixture.path()?}), VERSION))?;
+        let opened = server.response(json!(3))?;
+        assert_eq!(opened["result"]["isError"], false);
+        let data = opened["result"]["structuredContent"]["data"].clone();
+        server.send(modern(json!(4), "tools/list"))?;
+        let tool = server.response(json!(4))?["result"]["tools"][34].clone();
+        let arguments = json!({
+            "project_ref": data["project_ref"],
+            "expected_project_fingerprint": data["fingerprint"],
+            "file": "src/lib.rs",
+            "range": {"start": {"line": 1, "column": 8}, "end": {"line": 1, "column": 8}}
+        });
+        server.send(named_inspect_call(
+            5,
+            "rust.analyzer.actions",
+            arguments,
+            VERSION,
+        ))?;
+        let response = server.response(json!(5))?;
+        assert_output(&response, &tool, true, VERSION)?;
+        assert_eq!(
+            response["result"]["structuredContent"]["status"],
+            "unavailable"
+        );
+        assert_eq!(
+            response["result"]["structuredContent"]["error_code"],
+            "SANDBOX_DENIED"
+        );
+        assert!(!fixture.0.join("target").exists());
+        assert!(!fixture.0.join("Cargo.lock").exists());
+        server.finish(0)?;
+        Ok(())
+    }
+
+    #[test]
     fn deeply_nested_toml_is_rejected_without_aborting_the_server() -> TestResult {
         let fixture = Fixture::new()?;
         fixture.package()?;
@@ -717,7 +888,7 @@ mod project_fixtures {
 fn assert_project_list(response: &Value, modern: bool) {
     assert!(response.get("error").is_none(), "{response}");
     let tools = response["result"]["tools"].as_array();
-    assert_eq!(tools.map(Vec::len), Some(31));
+    assert_eq!(tools.map(Vec::len), Some(36));
     let names: Vec<_> = response["result"]["tools"]
         .as_array()
         .into_iter()
@@ -757,7 +928,12 @@ fn assert_project_list(response: &Value, modern: bool) {
             "rust.benchmark.run",
             "rust.benchmark.compare",
             "rust.profile.flamegraph",
-            "rust.binary.bloat"
+            "rust.binary.bloat",
+            "rust.analyzer.symbols",
+            "rust.analyzer.references",
+            "rust.analyzer.diagnostics",
+            "rust.analyzer.actions",
+            "rust.analyzer.action.apply"
         ]
     );
     let tool = &response["result"]["tools"][0];
@@ -1260,6 +1436,263 @@ fn named_inspect_call(id: i64, name: &str, arguments: Value, version: &str) -> V
     request
 }
 
+fn analyzer_symbols_call(id: i64, arguments: Value, version: &str) -> Value {
+    named_inspect_call(id, "rust.analyzer.symbols", arguments, version)
+}
+
+fn analyzer_references_call(id: i64, arguments: Value, version: &str) -> Value {
+    named_inspect_call(id, "rust.analyzer.references", arguments, version)
+}
+
+fn analyzer_diagnostics_call(id: i64, arguments: Value, version: &str) -> Value {
+    named_inspect_call(id, "rust.analyzer.diagnostics", arguments, version)
+}
+
+#[test]
+fn analyzer_symbols_unknown_project_ref_is_blocked_project_not_found() -> TestResult {
+    let mut server = Server::start()?;
+    bootstrap(&mut server, VERSION)?;
+    server.send(modern(json!(3), "tools/list"))?;
+    let tool = server.response(json!(3))?["result"]["tools"][31].clone();
+    let arguments = json!({
+        "project_ref": "prj_00000000000000000000000000000001",
+        "scope": "document",
+        "file": "src/lib.rs"
+    });
+    server.send(analyzer_symbols_call(4, arguments, VERSION))?;
+    let response = server.response(json!(4))?;
+    assert_output(&response, &tool, true, VERSION)?;
+    assert_eq!(response["result"]["structuredContent"]["status"], "blocked");
+    assert_eq!(
+        response["result"]["structuredContent"]["error_code"],
+        "PROJECT_NOT_FOUND"
+    );
+    server.finish(0)?;
+    Ok(())
+}
+
+#[test]
+fn analyzer_symbols_input_validation_rejects_malformed_arguments() -> TestResult {
+    let mut server = Server::start()?;
+    bootstrap(&mut server, VERSION)?;
+    server.send(modern(json!(3), "tools/list"))?;
+    let tool = server.response(json!(3))?["result"]["tools"][31].clone();
+    let validator = jsonschema::validator_for(&tool["inputSchema"])?;
+    let base = json!({
+        "project_ref": "prj_00000000000000000000000000000001",
+        "scope": "document",
+        "file": "src/lib.rs"
+    });
+    let mut unknown_field = base.clone();
+    unknown_field["extra"] = json!(true);
+    let mut bad_project_ref = base.clone();
+    bad_project_ref["project_ref"] = json!("not-a-ref");
+    let mut missing_scope = base.clone();
+    missing_scope
+        .as_object_mut()
+        .ok_or("expected object")?
+        .remove("scope");
+    // Accepted by the loose wire pattern (`.` is a legal path character); the
+    // Rust-level `AnalyzerFile` constructor is the real `..`-segment guard.
+    let mut path_traversal = base.clone();
+    path_traversal["file"] = json!("../etc/passwd.rs");
+    let mut non_rust_file = base.clone();
+    non_rust_file["file"] = json!("src/lib.txt");
+    // Accepted by the wire schema too: it bounds `query` by length only, not
+    // by character class. `SymbolQuery::new`'s control-character rejection is
+    // the real guard.
+    let control_chars = json!({
+        "project_ref": "prj_00000000000000000000000000000001",
+        "scope": "workspace",
+        "query": "a\nb"
+    });
+    let mut timeout_zero = base.clone();
+    timeout_zero["timeout_seconds"] = json!(0);
+    let mut timeout_too_high = base.clone();
+    timeout_too_high["timeout_seconds"] = json!(181);
+    // `rejected_by_schema` is false only for `path_traversal`: the wire regex
+    // accepts it (`.` is a legal path character) and the Rust-level
+    // `AnalyzerFile` constructor is the real `..`-segment guard, so only the
+    // end-to-end RPC call is expected to fail for that one case.
+    let cases = [
+        ("unknown_field", unknown_field, true),
+        ("bad_project_ref", bad_project_ref, true),
+        ("missing_scope", missing_scope, true),
+        ("path_traversal", path_traversal, false),
+        ("non_rust_file", non_rust_file, true),
+        ("control_chars", control_chars, false),
+        ("timeout_zero", timeout_zero, true),
+        ("timeout_too_high", timeout_too_high, true),
+    ];
+    for (id, (label, arguments, rejected_by_schema)) in cases.into_iter().enumerate() {
+        assert_eq!(
+            !validator.is_valid(&arguments),
+            rejected_by_schema,
+            "{label}"
+        );
+        let id = i64::try_from(id).unwrap_or(0) + 10;
+        server.send(analyzer_symbols_call(id, arguments, VERSION))?;
+        assert_eq!(
+            server.response(json!(id))?["error"]["code"],
+            -32602,
+            "{label}"
+        );
+    }
+    server.finish(0)?;
+    Ok(())
+}
+
+#[test]
+fn analyzer_references_unknown_project_ref_is_blocked_project_not_found() -> TestResult {
+    let mut server = Server::start()?;
+    bootstrap(&mut server, VERSION)?;
+    server.send(modern(json!(3), "tools/list"))?;
+    let tool = server.response(json!(3))?["result"]["tools"][32].clone();
+    let arguments = json!({
+        "project_ref": "prj_00000000000000000000000000000001",
+        "file": "src/lib.rs",
+        "position": {"line": 1, "column": 1}
+    });
+    server.send(analyzer_references_call(4, arguments, VERSION))?;
+    let response = server.response(json!(4))?;
+    assert_output(&response, &tool, true, VERSION)?;
+    assert_eq!(response["result"]["structuredContent"]["status"], "blocked");
+    assert_eq!(
+        response["result"]["structuredContent"]["error_code"],
+        "PROJECT_NOT_FOUND"
+    );
+    server.finish(0)?;
+    Ok(())
+}
+
+#[test]
+fn analyzer_diagnostics_unknown_project_ref_is_blocked_project_not_found() -> TestResult {
+    let mut server = Server::start()?;
+    bootstrap(&mut server, VERSION)?;
+    server.send(modern(json!(3), "tools/list"))?;
+    let tool = server.response(json!(3))?["result"]["tools"][33].clone();
+    let arguments = json!({
+        "project_ref": "prj_00000000000000000000000000000001",
+        "file": "src/lib.rs"
+    });
+    server.send(analyzer_diagnostics_call(4, arguments, VERSION))?;
+    let response = server.response(json!(4))?;
+    assert_output(&response, &tool, true, VERSION)?;
+    assert_eq!(response["result"]["structuredContent"]["status"], "blocked");
+    assert_eq!(
+        response["result"]["structuredContent"]["error_code"],
+        "PROJECT_NOT_FOUND"
+    );
+    server.finish(0)?;
+    Ok(())
+}
+
+#[test]
+fn analyzer_references_input_validation_rejects_malformed_arguments() -> TestResult {
+    let mut server = Server::start()?;
+    bootstrap(&mut server, VERSION)?;
+    server.send(modern(json!(3), "tools/list"))?;
+    let tool = server.response(json!(3))?["result"]["tools"][32].clone();
+    let validator = jsonschema::validator_for(&tool["inputSchema"])?;
+    let base = json!({
+        "project_ref": "prj_00000000000000000000000000000001",
+        "file": "src/lib.rs",
+        "position": {"line": 1, "column": 1}
+    });
+    let mut unknown_field = base.clone();
+    unknown_field["extra"] = json!(true);
+    let mut bad_project_ref = base.clone();
+    bad_project_ref["project_ref"] = json!("not-a-ref");
+    let mut missing_position = base.clone();
+    missing_position
+        .as_object_mut()
+        .ok_or("expected object")?
+        .remove("position");
+    let mut zero_line = base.clone();
+    zero_line["position"] = json!({"line": 0, "column": 1});
+    let mut zero_column = base.clone();
+    zero_column["position"] = json!({"line": 1, "column": 0});
+    let mut non_rust_file = base.clone();
+    non_rust_file["file"] = json!("src/lib.txt");
+    let mut timeout_zero = base.clone();
+    timeout_zero["timeout_seconds"] = json!(0);
+    let mut timeout_too_high = base.clone();
+    timeout_too_high["timeout_seconds"] = json!(181);
+    let mut include_declaration_not_bool = base.clone();
+    include_declaration_not_bool["include_declaration"] = json!("yes");
+    let cases = [
+        ("unknown_field", unknown_field),
+        ("bad_project_ref", bad_project_ref),
+        ("missing_position", missing_position),
+        ("zero_line", zero_line),
+        ("zero_column", zero_column),
+        ("non_rust_file", non_rust_file),
+        ("timeout_zero", timeout_zero),
+        ("timeout_too_high", timeout_too_high),
+        ("include_declaration_not_bool", include_declaration_not_bool),
+    ];
+    for (id, (label, arguments)) in cases.into_iter().enumerate() {
+        assert!(!validator.is_valid(&arguments), "{label}");
+        let id = i64::try_from(id).unwrap_or(0) + 10;
+        server.send(analyzer_references_call(id, arguments, VERSION))?;
+        assert_eq!(
+            server.response(json!(id))?["error"]["code"],
+            -32602,
+            "{label}"
+        );
+    }
+    server.finish(0)?;
+    Ok(())
+}
+
+#[test]
+fn analyzer_diagnostics_input_validation_rejects_malformed_arguments() -> TestResult {
+    let mut server = Server::start()?;
+    bootstrap(&mut server, VERSION)?;
+    server.send(modern(json!(3), "tools/list"))?;
+    let tool = server.response(json!(3))?["result"]["tools"][33].clone();
+    let validator = jsonschema::validator_for(&tool["inputSchema"])?;
+    let base = json!({
+        "project_ref": "prj_00000000000000000000000000000001",
+        "file": "src/lib.rs"
+    });
+    let mut unknown_field = base.clone();
+    unknown_field["extra"] = json!(true);
+    let mut bad_project_ref = base.clone();
+    bad_project_ref["project_ref"] = json!("not-a-ref");
+    let mut missing_file = base.clone();
+    missing_file
+        .as_object_mut()
+        .ok_or("expected object")?
+        .remove("file");
+    let mut non_rust_file = base.clone();
+    non_rust_file["file"] = json!("src/lib.txt");
+    let mut timeout_zero = base.clone();
+    timeout_zero["timeout_seconds"] = json!(0);
+    let mut timeout_too_high = base.clone();
+    timeout_too_high["timeout_seconds"] = json!(181);
+    let cases = [
+        ("unknown_field", unknown_field),
+        ("bad_project_ref", bad_project_ref),
+        ("missing_file", missing_file),
+        ("non_rust_file", non_rust_file),
+        ("timeout_zero", timeout_zero),
+        ("timeout_too_high", timeout_too_high),
+    ];
+    for (id, (label, arguments)) in cases.into_iter().enumerate() {
+        assert!(!validator.is_valid(&arguments), "{label}");
+        let id = i64::try_from(id).unwrap_or(0) + 10;
+        server.send(analyzer_diagnostics_call(id, arguments, VERSION))?;
+        assert_eq!(
+            server.response(json!(id))?["error"]["code"],
+            -32602,
+            "{label}"
+        );
+    }
+    server.finish(0)?;
+    Ok(())
+}
+
 #[test]
 fn m4_security_tools_have_closed_task_and_synchronous_gates_in_all_wire_versions() -> TestResult {
     const REFERENCE: &str = "prj_00000000000000000000000000000001";
@@ -1392,6 +1825,332 @@ fn m4_security_tools_have_closed_task_and_synchronous_gates_in_all_wire_versions
         }
         server.finish(0)?;
     }
+    Ok(())
+}
+
+fn tools_list(server: &mut Server, id: i64, version: &str) -> Result<Value, Box<dyn Error>> {
+    server.send(if version == VERSION {
+        modern(json!(id), "tools/list")
+    } else {
+        json!({"jsonrpc":"2.0","id":id,"method":"tools/list"})
+    })?;
+    Ok(server.response(json!(id))?["result"]["tools"].clone())
+}
+
+fn analyzer_actions_arguments() -> Value {
+    json!({
+        "project_ref": "prj_00000000000000000000000000000001",
+        "expected_project_fingerprint": format!("sha256:{}", "a".repeat(64)),
+        "file": "src/lib.rs",
+        "range": {"start": {"line": 2, "column": 9}, "end": {"line": 2, "column": 9}}
+    })
+}
+
+#[test]
+fn analyzer_actions_contract_is_read_only_and_unknown_references_are_blocked_in_all_versions()
+-> TestResult {
+    for version in std::iter::once(VERSION).chain(LEGACY) {
+        let mut server = Server::start()?;
+        bootstrap(&mut server, version)?;
+        let tool = tools_list(&mut server, 3, version)?[34].clone();
+        assert_eq!(tool["name"], "rust.analyzer.actions");
+        assert_eq!(
+            tool["annotations"],
+            json!({"readOnlyHint":true,"destructiveHint":false,"idempotentHint":true,"openWorldHint":false})
+        );
+        server.send(named_inspect_call(
+            4,
+            "rust.analyzer.actions",
+            analyzer_actions_arguments(),
+            version,
+        ))?;
+        let response = server.response(json!(4))?;
+        assert_output(&response, &tool, true, version)?;
+        assert_eq!(response["result"]["structuredContent"]["status"], "blocked");
+        assert_eq!(
+            response["result"]["structuredContent"]["error_code"],
+            "PROJECT_NOT_FOUND"
+        );
+        server.finish(0)?;
+    }
+    Ok(())
+}
+
+#[test]
+fn analyzer_actions_input_validation_rejects_malformed_arguments() -> TestResult {
+    let mut server = Server::start()?;
+    bootstrap(&mut server, VERSION)?;
+    let tool = tools_list(&mut server, 3, VERSION)?[34].clone();
+    let validator = jsonschema::validator_for(&tool["inputSchema"])?;
+    let base = analyzer_actions_arguments();
+    assert!(validator.is_valid(&base));
+    let mut filtered = base.clone();
+    filtered["only"] = json!(["quickfix", "refactor_inline", "source_organize_imports"]);
+    assert!(validator.is_valid(&filtered));
+    let mut unknown_field = base.clone();
+    unknown_field["apply"] = json!(true);
+    let mut missing_fingerprint = base.clone();
+    missing_fingerprint
+        .as_object_mut()
+        .ok_or("expected object")?
+        .remove("expected_project_fingerprint");
+    let mut dotted_kind = base.clone();
+    dotted_kind["only"] = json!(["refactor.inline"]);
+    let mut too_many_kinds = base.clone();
+    too_many_kinds["only"] = Value::from(vec!["quickfix"; 8]);
+    let mut non_rust_file = base.clone();
+    non_rust_file["file"] = json!("src/lib.txt");
+    let mut column_zero = base.clone();
+    column_zero["range"]["start"]["column"] = json!(0);
+    let mut range_extra = base.clone();
+    range_extra["range"]["bytes"] = json!(3);
+    let mut timeout_zero = base.clone();
+    timeout_zero["timeout_seconds"] = json!(0);
+    let mut timeout_too_high = base.clone();
+    timeout_too_high["timeout_seconds"] = json!(181);
+    // Accepted by the schema, which cannot order two positions; the Rust-level
+    // `TextRange` invariant refuses it as invalid arguments.
+    let mut reversed_range = base.clone();
+    reversed_range["range"] =
+        json!({"start": {"line": 2, "column": 9}, "end": {"line": 1, "column": 1}});
+    let cases = [
+        ("unknown_field", unknown_field, true),
+        ("missing_fingerprint", missing_fingerprint, true),
+        ("dotted_kind", dotted_kind, true),
+        ("too_many_kinds", too_many_kinds, true),
+        ("non_rust_file", non_rust_file, true),
+        ("column_zero", column_zero, true),
+        ("range_extra", range_extra, true),
+        ("timeout_zero", timeout_zero, true),
+        ("timeout_too_high", timeout_too_high, true),
+        ("reversed_range", reversed_range, false),
+    ];
+    for (id, (label, arguments, rejected_by_schema)) in cases.into_iter().enumerate() {
+        assert_eq!(
+            !validator.is_valid(&arguments),
+            rejected_by_schema,
+            "{label}"
+        );
+        let id = i64::try_from(id).unwrap_or(0) + 10;
+        server.send(named_inspect_call(
+            id,
+            "rust.analyzer.actions",
+            arguments,
+            VERSION,
+        ))?;
+        assert_eq!(
+            server.response(json!(id))?["error"]["code"],
+            -32602,
+            "{label}"
+        );
+    }
+    server.finish(0)?;
+    Ok(())
+}
+
+#[test]
+fn analyzer_action_apply_contract_is_closed_and_unavailable_without_the_grant_in_all_versions()
+-> TestResult {
+    let fingerprint = format!("sha256:{}", "a".repeat(64));
+    let valid_ref = "prj_00000000000000000000000000000001";
+    let plan = "mut_00000000000000000000000000000001";
+    let preview = json!({"project_ref":valid_ref,"action":{
+        "mode":"preview","expected_project_fingerprint":fingerprint,"action_digest":fingerprint,
+        "file":"src/lib.rs","range":{"start":{"line":2,"column":9},"end":{"line":2,"column":9}}
+    }});
+    for version in std::iter::once(VERSION).chain(LEGACY) {
+        let mut server = Server::start()?;
+        bootstrap(&mut server, version)?;
+        let tool = tools_list(&mut server, 3, version)?[35].clone();
+        assert_eq!(tool["name"], "rust.analyzer.action.apply");
+        assert_eq!(
+            tool["annotations"],
+            json!({"readOnlyHint":false,"destructiveHint":true,"idempotentHint":false,"openWorldHint":false})
+        );
+        let description = tool["description"].as_str().ok_or("missing description")?;
+        for promise in [
+            "NOT compile-verified",
+            "rust.check",
+            "--allow-analyzer-action-write",
+            "review every entry in files",
+            "Commit invalidates its input project_ref",
+            "ACTION_STALE",
+        ] {
+            assert!(description.contains(promise), "description omits {promise}");
+        }
+        let input = jsonschema::validator_for(&tool["inputSchema"])?;
+        let mut missing_digest = preview.clone();
+        missing_digest["action"]
+            .as_object_mut()
+            .ok_or("expected object")?
+            .remove("action_digest");
+        let mut edit_field = preview.clone();
+        edit_field["action"]["edit"] = json!({"path":"src/lib.rs","new_text":"x"});
+        let mut non_rust_file = preview.clone();
+        non_rust_file["action"]["file"] = json!("build.sh");
+        for arguments in [
+            json!({}),
+            json!({"project_ref":valid_ref}),
+            missing_digest,
+            edit_field,
+            non_rust_file,
+            json!({"project_ref":valid_ref,"action":{"mode":"apply"}}),
+            json!({"project_ref":valid_ref,"action":{"mode":"commit","plan_id":"mut_bad","plan_digest":fingerprint,"idempotency_key":"key"}}),
+            json!({"project_ref":valid_ref,"action":{"mode":"commit","plan_id":plan,"plan_digest":fingerprint,"idempotency_key":"spaces forbidden"}}),
+            json!({"project_ref":valid_ref,"action":{"mode":"receipt","operation_id":plan,"recover":false,"force":true}}),
+        ] {
+            assert!(!input.is_valid(&arguments), "schema accepted {arguments}");
+            server.send(named_inspect_call(
+                11,
+                "rust.analyzer.action.apply",
+                arguments,
+                version,
+            ))?;
+            assert_eq!(server.response(json!(11))?["error"]["code"], -32602);
+        }
+        let mut reversed = preview.clone();
+        reversed["action"]["range"] =
+            json!({"start":{"line":2,"column":9},"end":{"line":1,"column":1}});
+        assert!(input.is_valid(&reversed));
+        server.send(named_inspect_call(
+            12,
+            "rust.analyzer.action.apply",
+            reversed,
+            version,
+        ))?;
+        assert_eq!(server.response(json!(12))?["error"]["code"], -32602);
+
+        let output = jsonschema::validator_for(&tool["outputSchema"])?;
+        for (id, arguments) in [
+            (20, preview.clone()),
+            (
+                21,
+                json!({"project_ref":valid_ref,"action":{"mode":"commit","plan_id":plan,"plan_digest":fingerprint,"idempotency_key":"key"}}),
+            ),
+            (
+                22,
+                json!({"project_ref":valid_ref,"action":{"mode":"receipt","operation_id":plan,"recover":false}}),
+            ),
+            (
+                23,
+                json!({"project_ref":valid_ref,"action":{"mode":"receipt","operation_id":plan,"recover":true}}),
+            ),
+        ] {
+            assert!(input.is_valid(&arguments), "{arguments}");
+            server.send(named_inspect_call(
+                id,
+                "rust.analyzer.action.apply",
+                arguments,
+                version,
+            ))?;
+            let denied = server.response(json!(id))?;
+            assert!(denied.get("error").is_none(), "{denied}");
+            let result = &denied["result"];
+            assert_eq!(result["isError"], true);
+            if version == VERSION {
+                assert_eq!(result["resultType"], "complete");
+            } else {
+                assert!(result.get("resultType").is_none());
+            }
+            let fallback: Value = serde_json::from_str(
+                result["content"][0]["text"]
+                    .as_str()
+                    .ok_or("missing fallback")?,
+            )?;
+            assert_eq!(fallback, result["structuredContent"]);
+            output
+                .validate(&fallback)
+                .map_err(|error| error.to_string())?;
+            let mut extra = fallback;
+            extra["unrecognized"] = json!(true);
+            assert!(!output.is_valid(&extra));
+            let structured = &result["structuredContent"];
+            assert_eq!(structured["status"], "unavailable");
+            assert_eq!(structured["error_code"], "SANDBOX_DENIED");
+            assert_eq!(structured["data"], Value::Null);
+            assert!(
+                structured["guarantees_not_provided"]
+                    .as_array()
+                    .ok_or("missing guarantees")?
+                    .contains(&json!("compile_verification"))
+            );
+        }
+        let events = mutation_events(&server.finish_raw(0)?)?;
+        assert_eq!(events.len(), 4, "unexpected mutation events: {events:?}");
+        for (event, phase) in events
+            .iter()
+            .zip(["preview", "commit", "receipt", "recover"])
+        {
+            assert_mutation_event(event, "rust.analyzer.action.apply", phase)?;
+            assert_eq!(event["admitted"], false);
+            assert_eq!(event["status"], "unavailable");
+            assert_eq!(event["reason"], "sandbox_denied");
+            assert_eq!(event["result_id"], Value::Null);
+            assert_eq!(event["files_changed"], 0);
+        }
+    }
+    Ok(())
+}
+
+#[test]
+fn first_analyzer_action_calls_are_denied_until_discovery() -> TestResult {
+    let receipt = json!({"project_ref":"prj_00000000000000000000000000000001","action":{
+        "mode":"receipt","operation_id":"mut_00000000000000000000000000000001","recover":false
+    }});
+    for (name, index, arguments) in [
+        ("rust.analyzer.actions", 34, analyzer_actions_arguments()),
+        ("rust.analyzer.action.apply", 35, receipt),
+    ] {
+        let mut server = Server::start()?;
+        server.send(named_inspect_call(1, name, arguments, VERSION))?;
+        let first = server.response(json!(1))?;
+        let structured = &first["result"]["structuredContent"];
+        assert_eq!(structured["status"], "blocked", "{name}");
+        assert_eq!(structured["error_code"], "SANDBOX_DENIED", "{name}");
+        assert!(
+            structured["error_message"]
+                .as_str()
+                .ok_or("missing hint")?
+                .contains("discovery")
+        );
+        bootstrap(&mut server, VERSION)?;
+        let tool = tools_list(&mut server, 3, VERSION)?[index].clone();
+        jsonschema::validator_for(&tool["outputSchema"])?
+            .validate(structured)
+            .map_err(|error| error.to_string())?;
+        server.finish_raw(0)?;
+    }
+    Ok(())
+}
+
+#[test]
+fn a_grant_less_analyzer_action_apply_call_is_sandbox_denied_even_under_concurrent_contention()
+-> TestResult {
+    let mut server = Server::start()?;
+    bootstrap(&mut server, VERSION)?;
+    let commit = json!({"project_ref":"prj_00000000000000000000000000000001","action":{
+        "mode":"commit","plan_id":"mut_00000000000000000000000000000001",
+        "plan_digest": format!("sha256:{}", "a".repeat(64)), "idempotency_key":"key"
+    }});
+    // Fire every call before reading any response: without the grant, none may
+    // ever reach the worker pool or the provider lock, so contention among
+    // them can never surface as LOCK_BUSY, CANCELLED or TIMEOUT_TOTAL.
+    let ids: Vec<i64> = (30..38).collect();
+    for id in &ids {
+        server.send(named_inspect_call(
+            *id,
+            "rust.analyzer.action.apply",
+            commit.clone(),
+            VERSION,
+        ))?;
+    }
+    for id in &ids {
+        let response = server.response(json!(id))?;
+        let structured = &response["result"]["structuredContent"];
+        assert_eq!(structured["status"], "unavailable", "{structured}");
+        assert_eq!(structured["error_code"], "SANDBOX_DENIED", "{structured}");
+    }
+    server.finish_raw(0)?;
     Ok(())
 }
 

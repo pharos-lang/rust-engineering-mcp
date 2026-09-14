@@ -253,7 +253,7 @@ Estado global: **Proposed**. Ninguna entrada es un ADR Accepted. Los IDs D01–D
 
 ## D25 — Contrato analyzer y acciones
 
-- **Status:** Proposed.
+- **Status:** Decided → [ADR-083](../adr/ADR-083-analyzer-contract-and-actions.md).
 - **Context:** Contrato analyzer y acciones amplía o concreta una frontera heredada de M1; véanse [baseline](baseline-2026-09-05.md) y [trazabilidad](traceability-m2-m8.md).
 - **Decision propuesta:** Symbols/references/diagnostics/actions tipados; apply reutiliza MutationPlan M2.
 - **Alternatives considered:** Cinco tools propuestas; actions como Resource; aplicar mediante modo tipado.
@@ -263,7 +263,7 @@ Estado global: **Proposed**. Ninguna entrada es un ADR Accepted. Los IDs D01–D
 
 ## D26 — Runtime rust-analyzer y LSP
 
-- **Status:** Proposed.
+- **Status:** Decided → [ADR-084](../adr/ADR-084-rust-analyzer-runtime-and-lsp-lifecycle.md).
 - **Context:** Runtime rust-analyzer y LSP amplía o concreta una frontera heredada de M1; véanse [baseline](baseline-2026-09-05.md) y [trazabilidad](traceability-m2-m8.md).
 - **Decision propuesta:** Versión exacta, trust, sync/readiness/cancel y bounded subprocess a través gateway.
 - **Alternatives considered:** Instancia por snapshot; pool acotado por identidad; análisis sin build scripts/proc macros.

@@ -63,6 +63,10 @@ jobs:
           python -m coverage run --append --branch --source=scripts --omit='scripts/test-*.py' scripts/test-public-export.py
           python -m coverage run --append --branch --source=scripts --omit='scripts/test-*.py' scripts/test-summarize-m4-budgets.py
           python -m coverage run --append --branch --source=scripts --omit='scripts/test-*.py' scripts/test-docs-hygiene.py
+          python -m coverage run --append --branch --source=scripts --omit='scripts/test-*.py' fixtures/rust-runtime/m6/test_provision.py
+          python -m coverage run --append --branch --source=scripts --omit='scripts/test-*.py' scripts/test-m6-provisioning.py
+          python -m coverage run --append --branch --source=scripts --omit='scripts/test-*.py' scripts/test-m6-runtime-unit.py
+          python -m coverage run --append --branch --source=scripts --omit='scripts/test-*.py' scripts/test-m6-clients-unit.py
           python -m coverage xml -o coverage/python.xml
 
       - name: Validate coverage reports

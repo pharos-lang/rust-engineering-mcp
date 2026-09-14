@@ -1138,6 +1138,156 @@ impl rust_engineering_application::supply_chain::SupplyFactsPort for RustProject
     }
 }
 
+/// M6-01: the one door from `rust.analyzer.symbols` into the guest analyzer
+/// session. Reuses [`RustProjectInspector::with_gateway`] exactly like every
+/// other port on this type; no separate lend method is needed because this
+/// `impl` already lives beside it in the same file.
+impl rust_engineering_application::analyzer::AnalyzerPort for RustProjectInspector {
+    fn analyze(
+        &self,
+        source: &SourceBundle,
+        query: &rust_engineering_domain::AnalyzerQuery,
+        limits: ExecutionLimits,
+        control: &dyn InspectionControl,
+    ) -> Result<rust_engineering_application::analyzer::AnalyzerObservation, InspectionError> {
+        // The same bundle digest `check`/`cargo_run` already compute for a
+        // `SourceBundle`: no second hashing scheme for M6. Computed before the
+        // single-flight gateway lock is taken (V05 P3): hashing bytes already
+        // captured needs no exclusivity, and holding the lock only for
+        // `execute_analyzer` shortens every other call's wait.
+        let archive = super::source_archive::encode(source).map_err(InspectionError::Execution)?;
+        let source_fingerprint = super::digest(&archive)
+            .parse()
+            .map_err(|_| InspectionError::Internal)?;
+        let result = self.with_gateway(control, |gateway| {
+            let execution = gateway
+                .execute_analyzer(source, query, limits, control)
+                .map_err(InspectionError::Execution)?;
+            Ok(
+                rust_engineering_application::analyzer::AnalyzerObservation {
+                    source_fingerprint,
+                    execution,
+                },
+            )
+        });
+        if matches!(
+            result,
+            Err(InspectionError::Execution(ExecutionError::CleanupUncertain)
+                | InspectionError::Internal)
+        ) {
+            self.quarantined.store(true, Ordering::Release);
+        }
+        result
+    }
+
+    /// M6-04: one `CodeActions` session, with every applicable action's
+    /// digest computed against the same bundle digest `analyze` publishes.
+    fn resolve_actions(
+        &self,
+        source: &SourceBundle,
+        file: &rust_engineering_domain::AnalyzerFile,
+        range: rust_engineering_domain::TextRange,
+        only: &[rust_engineering_domain::CodeActionKind],
+        limits: ExecutionLimits,
+        control: &dyn InspectionControl,
+    ) -> Result<rust_engineering_application::analyzer::ActionsObservation, InspectionError> {
+        let query = rust_engineering_domain::AnalyzerQuery::CodeActions {
+            file: file.clone(),
+            range,
+            only: only.to_vec(),
+        };
+        // V07 P3-6: the bundle digest is computed inside the quarantine scope,
+        // so its failure quarantines exactly as a gateway failure does.
+        let result = analyzer_source_fingerprint(source).and_then(|source_fingerprint| {
+            self.with_gateway(control, |gateway| {
+                let execution = gateway
+                    .execute_analyzer(source, &query, limits, control)
+                    .map_err(InspectionError::Execution)?;
+                let action_digests =
+                    super::analyzer_gateway::action_digests(&execution, &source_fingerprint)
+                        .map_err(InspectionError::Execution)?;
+                Ok(rust_engineering_application::analyzer::ActionsObservation {
+                    observation: rust_engineering_application::analyzer::AnalyzerObservation {
+                        source_fingerprint: source_fingerprint.clone(),
+                        execution,
+                    },
+                    action_digests,
+                })
+            })
+        });
+        self.quarantine_if_uncertain(&result);
+        result
+    }
+
+    /// M6-04: the apply-preview resolution. The gateway resolves the action
+    /// by digest in a fresh session; nothing is applied here.
+    fn resolve_action_candidate(
+        &self,
+        source: &SourceBundle,
+        file: &rust_engineering_domain::AnalyzerFile,
+        range: rust_engineering_domain::TextRange,
+        action_digest: &rust_engineering_domain::SourceFingerprint,
+        limits: ExecutionLimits,
+        control: &dyn InspectionControl,
+    ) -> Result<rust_engineering_application::analyzer::ActionApplyObservation, InspectionError>
+    {
+        // V07 P3-6: inside the quarantine scope, as in `resolve_actions`.
+        let result = analyzer_source_fingerprint(source).and_then(|source_fingerprint| {
+            self.with_gateway(control, |gateway| {
+                let resolved = super::analyzer_gateway::resolve_action_candidate(
+                    gateway,
+                    source,
+                    &source_fingerprint,
+                    super::analyzer_gateway::ActionLookup {
+                        file,
+                        range,
+                        action_digest,
+                    },
+                    limits,
+                    control,
+                )
+                .map_err(InspectionError::Execution)?;
+                Ok(
+                    rust_engineering_application::analyzer::ActionApplyObservation {
+                        observation: rust_engineering_application::analyzer::AnalyzerObservation {
+                            source_fingerprint: source_fingerprint.clone(),
+                            execution: resolved.execution,
+                        },
+                        runtime: resolved.runtime,
+                        resolution: resolved.resolution,
+                    },
+                )
+            })
+        });
+        self.quarantine_if_uncertain(&result);
+        result
+    }
+}
+
+/// The bundle digest every analyzer answer publishes, computed before the
+/// single-flight gateway lock is taken (V05 P3).
+fn analyzer_source_fingerprint(
+    source: &SourceBundle,
+) -> Result<rust_engineering_domain::SourceFingerprint, InspectionError> {
+    let archive = super::source_archive::encode(source).map_err(InspectionError::Execution)?;
+    super::digest(&archive)
+        .parse()
+        .map_err(|_| InspectionError::Internal)
+}
+
+impl RustProjectInspector {
+    /// The quarantine rule every port on this type applies to its result.
+    fn quarantine_if_uncertain<T>(&self, result: &Result<T, InspectionError>) {
+        if matches!(
+            result,
+            Err(InspectionError::Execution(ExecutionError::CleanupUncertain)
+                | InspectionError::Internal)
+        ) {
+            self.quarantined.store(true, Ordering::Release);
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

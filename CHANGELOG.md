@@ -2,6 +2,70 @@
 
 ## Sin publicar
 
+- **M6-04/M6-05: `rust.analyzer.actions` y `rust.analyzer.action.apply`**
+  (rama `ai/m6-analyzer`). El inventario público pasa de 34 a 36 tools; los 34
+  snapshots existentes quedan byte a byte. `rust.analyzer.actions` (solo
+  lectura) lista las code actions de un rango con su `action_digest`,
+  aplicabilidad (`applicable` o `rejected` con razón cerrada, título y kind) y
+  `edits_summary`, aplicando las mismas reglas estructurales que el preview.
+  `rust.analyzer.action.apply` aplica una acción listada por el writer M2 único
+  (preview/commit/receipt, journal, idempotencia, invalidación del
+  `project_ref`), con el nuevo grant de host
+  `--allow-analyzer-action-write WORKSPACE_ROOT`; sin él es
+  `unavailable/SANDBOX_DENIED`. El preview re-resuelve la acción sobre una
+  captura nueva (`ACTION_STALE` si el digest ya no coincide o el source cambió
+  antes de commit). Validación solo estructural: **no verificada por
+  compilación** (decisión A del owner); `guarantees_not_provided` incluye
+  `compile_verification` y la descripción pide revisar cada archivo del diff y
+  ejecutar `rust.check` después. `MutationKind::AnalyzerActionApply` publica
+  su propia vista de validación (`workspace_edit_structural_only`); las cinco
+  tools M2 no cambian de contrato. Calificación nativa pendiente del
+  orquestador.
+
+- **M6-02/M6-03: `rust.analyzer.references` y `rust.analyzer.diagnostics`**
+  (rama `ai/m6-analyzer`). El inventario público pasa de 32 a 34 tools.
+  `rust.analyzer.references` busca referencias a un símbolo en una posición
+  (`textDocument/references`); la misma sesión envía la petición dos veces
+  — `includeDeclaration: true` y `false` — y marca `is_declaration` en toda
+  ubicación presente solo en la primera respuesta, porque rust-analyzer no lo
+  hace por sí solo (D25 R5, ADR-084 §2 fase 6 enmendada); cuando el llamador
+  pide `include_declaration: false`, las declaraciones se retiran de
+  `references` y se cuentan en `omitted_declarations`. Una `position` fuera de
+  las líneas o columnas capturadas es `blocked/POSITION_OUT_OF_RANGE` antes de
+  abrir sesión. `rust.analyzer.diagnostics` lee diagnósticos nativos de
+  rust-analyzer (`textDocument/diagnostic`, pull, reporte `full`), distintos de
+  los de `rust.check`; `message` es texto derivado del proyecto acotado a 4096
+  caracteres Unicode con `message_truncated` y sustitución de caracteres de
+  control, nunca el `message` de `serverStatus` ni `stderr`. Mismas
+  anotaciones y mismo runtime M6 admitido que `rust.analyzer.symbols`; los 32
+  snapshots existentes quedan sin cambios. Véase
+  [ADR-084](docs/adr/ADR-084-rust-analyzer-runtime-and-lsp-lifecycle.md) §2
+  (enmienda de la fase 6). M6 sigue en desarrollo local, sin integración
+  remota, PR ni release; calificación nativa pendiente del orquestador.
+
+- **M6-01: primera tool de análisis, `rust.analyzer.symbols`** (rama
+  `ai/m6-analyzer`). El inventario público pasa de 31 a 32 tools. Lee símbolos
+  de documento (`textDocument/documentSymbol`) o de workspace
+  (`workspace/symbol`) con el rust-analyzer exacto (1.98.1
+  `aarch64-unknown-linux-gnu`) admitido por digest dentro de la imagen guest
+  M6, sobre un snapshot `latest_known`/no atómico ya capturado. Solo lectura
+  (`readOnlyHint`, `idempotentHint`); nunca ejecuta build scripts, proc macros
+  ni `checkOnSave`, y una captura con `rust-analyzer.toml` o
+  `.rust-analyzer.toml` se rechaza antes de crear ningún contenedor. Requiere
+  el runtime del host `--rust` apuntando a la imagen M6; sin él la tool es
+  `unavailable`. Resultado acotado a 512 símbolos visibles y 512 KiB de
+  respuesta MCP, con el recorte siempre declarado
+  (`completeness.reasons: result_limit`), nunca un JSON truncado. Hover,
+  go-to-definition y rename quedan Deferred (no se exponen). Nuevo puerto de
+  aplicación `rust_engineering_application::analyzer` y la implementación del
+  lado `RustProjectInspector` en `execution-adapter`. Contrato fijado con
+  snapshot y wire tests en las cinco versiones MCP soportadas. Véanse
+  [ADR-082](docs/adr/ADR-082-m6-runtime-provisioning.md),
+  [ADR-083](docs/adr/ADR-083-analyzer-contract-and-actions.md),
+  [ADR-084](docs/adr/ADR-084-rust-analyzer-runtime-and-lsp-lifecycle.md) y
+  [ADR-085](docs/adr/ADR-085-m6-runtime-admission.md). M6 sigue en desarrollo
+  local, sin integración remota, PR ni release.
+
 - **Reordenación del repositorio sin cambios de producto** (rama
   `ai/repo-hygiene`, 2026-09-11). La evidencia de calificación pasa a un
   paquete por milestone (`docs/validation/M<n>/` con `history/inventory.json`),

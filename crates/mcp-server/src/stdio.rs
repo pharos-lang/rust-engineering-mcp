@@ -1,6 +1,7 @@
 //! MCP adapter: rmcp owns messages, negotiation, dispatch and transport framing.
 
 mod admission;
+mod analyzer;
 mod auditing;
 pub use auditing::provider::HostAuditConfig;
 mod benchmark;
@@ -133,6 +134,7 @@ pub struct HostConfig {
     pub fix_write_roots: Vec<PathBuf>,
     pub dependency_add_roots: Vec<PathBuf>,
     pub dependency_remove_roots: Vec<PathBuf>,
+    pub analyzer_action_write_roots: Vec<PathBuf>,
     pub cargo_vendor: Option<HostCargoVendorConfig>,
     pub vendor_capture: Option<HostVendorCaptureConfig>,
     pub profiling: Option<HostProfilingConfig>,
@@ -152,6 +154,10 @@ struct EngineeringServer {
     project: ProjectTool,
     inspect: inspection::InspectionTool,
     check: check::CheckTool,
+    analyzer_symbols: analyzer::AnalyzerTool,
+    analyzer_references: analyzer::ReferencesTool,
+    analyzer_diagnostics: analyzer::DiagnosticsTool,
+    analyzer_actions: analyzer::ActionsTool,
     clippy: clippy::ClippyTool,
     testing: testing::TestTool,
     nextest: Arc<nextest::NextestTool>,
@@ -180,6 +186,7 @@ struct EngineeringServer {
     fix_mutation: mutation::FixMutationTool,
     dependency_add: mutation::DependencyAddTool,
     dependency_remove: mutation::DependencyRemoveTool,
+    analyzer_action_apply: mutation::AnalyzerActionApplyTool,
     toolchain: toolchain::ToolchainTool,
     ready: Arc<AtomicBool>,
     resources: resources::Resources,
@@ -343,6 +350,26 @@ impl EngineeringServer {
             catalog::NAME => self.catalog.call(request, context).await.map(Into::into),
             project::NAME => self.project.call(request, context).await.map(Into::into),
             check::NAME => self.check.call(request, context).await.map(Into::into),
+            analyzer::NAME => self
+                .analyzer_symbols
+                .call(request, context)
+                .await
+                .map(Into::into),
+            analyzer::REFERENCES_NAME => self
+                .analyzer_references
+                .call(request, context)
+                .await
+                .map(Into::into),
+            analyzer::DIAGNOSTICS_NAME => self
+                .analyzer_diagnostics
+                .call(request, context)
+                .await
+                .map(Into::into),
+            analyzer::ACTIONS_NAME => self
+                .analyzer_actions
+                .call(request, context)
+                .await
+                .map(Into::into),
             clippy::NAME => self.clippy.call(request, context).await.map(Into::into),
             testing::NAME => self.testing.call(request, context).await.map(Into::into),
             nextest::NAME => self.nextest.call(request, context).await.map(Into::into),
@@ -412,6 +439,11 @@ impl EngineeringServer {
                 .map(Into::into),
             mutation::DEPENDENCY_REMOVE_NAME => self
                 .dependency_remove
+                .call(request, context)
+                .await
+                .map(Into::into),
+            mutation::ANALYZER_ACTION_APPLY_NAME => self
+                .analyzer_action_apply
                 .call(request, context)
                 .await
                 .map(Into::into),
@@ -606,6 +638,10 @@ impl ServerHandler for EngineeringServer {
             catalog::NAME => Some(self.catalog.definition.clone()),
             project::NAME => Some(self.project.definition.clone()),
             check::NAME => Some(self.check.definition.clone()),
+            analyzer::NAME => Some(self.analyzer_symbols.definition.clone()),
+            analyzer::REFERENCES_NAME => Some(self.analyzer_references.definition.clone()),
+            analyzer::DIAGNOSTICS_NAME => Some(self.analyzer_diagnostics.definition.clone()),
+            analyzer::ACTIONS_NAME => Some(self.analyzer_actions.definition.clone()),
             clippy::NAME => Some(self.clippy.definition.clone()),
             testing::NAME => Some(self.testing.definition.clone()),
             nextest::NAME => Some(self.nextest.definition.clone()),
@@ -638,6 +674,9 @@ impl ServerHandler for EngineeringServer {
             mutation::FIX_NAME => Some(self.fix_mutation.definition.clone()),
             mutation::DEPENDENCY_ADD_NAME => Some(self.dependency_add.definition.clone()),
             mutation::DEPENDENCY_REMOVE_NAME => Some(self.dependency_remove.definition.clone()),
+            mutation::ANALYZER_ACTION_APPLY_NAME => {
+                Some(self.analyzer_action_apply.definition.clone())
+            }
             inspection::NAME => Some(self.inspect.definition.clone()),
             toolchain::NAME => Some(self.toolchain.definition.clone()),
             _ => None,
@@ -702,6 +741,11 @@ impl ServerHandler for EngineeringServer {
                 if bloat::advertised() {
                     tools.push(self.bloat.definition.clone());
                 }
+                tools.push(self.analyzer_symbols.definition.clone());
+                tools.push(self.analyzer_references.definition.clone());
+                tools.push(self.analyzer_diagnostics.definition.clone());
+                tools.push(self.analyzer_actions.definition.clone());
+                tools.push(self.analyzer_action_apply.definition.clone());
                 tools
             },
             ..Default::default()
@@ -856,6 +900,7 @@ pub fn run(config: HostConfig) -> ExitCode {
         || !config.fix_write_roots.is_empty()
         || !config.dependency_add_roots.is_empty()
         || !config.dependency_remove_roots.is_empty()
+        || !config.analyzer_action_write_roots.is_empty()
     {
         let Some(runtime) = config.rust.as_ref() else {
             return ExitCode::FAILURE;
@@ -886,6 +931,7 @@ pub fn run(config: HostConfig) -> ExitCode {
     let fix_write_config = write_config(config.fix_write_roots);
     let dependency_add_config = write_config(config.dependency_add_roots);
     let dependency_remove_config = write_config(config.dependency_remove_roots);
+    let analyzer_action_write_config = write_config(config.analyzer_action_write_roots);
     let quality_state_root = config
         .rust
         .as_ref()
@@ -950,6 +996,54 @@ pub fn run(config: HostConfig) -> ExitCode {
         Ok(check) => check,
         Err(_) => {
             tracing::error!("MCP check contract initialization failed");
+            return ExitCode::FAILURE;
+        }
+    };
+    let analyzer_symbols = match analyzer::AnalyzerTool::new(
+        project.registry(),
+        workers.clone(),
+        Arc::clone(&inspector),
+        Arc::clone(&ready),
+    ) {
+        Ok(tool) => tool,
+        Err(_) => {
+            tracing::error!("MCP analyzer symbols contract initialization failed");
+            return ExitCode::FAILURE;
+        }
+    };
+    let analyzer_references = match analyzer::ReferencesTool::new(
+        project.registry(),
+        workers.clone(),
+        Arc::clone(&inspector),
+        Arc::clone(&ready),
+    ) {
+        Ok(tool) => tool,
+        Err(_) => {
+            tracing::error!("MCP analyzer references contract initialization failed");
+            return ExitCode::FAILURE;
+        }
+    };
+    let analyzer_diagnostics = match analyzer::DiagnosticsTool::new(
+        project.registry(),
+        workers.clone(),
+        Arc::clone(&inspector),
+        Arc::clone(&ready),
+    ) {
+        Ok(tool) => tool,
+        Err(_) => {
+            tracing::error!("MCP analyzer diagnostics contract initialization failed");
+            return ExitCode::FAILURE;
+        }
+    };
+    let analyzer_actions = match analyzer::ActionsTool::new(
+        project.registry(),
+        workers.clone(),
+        Arc::clone(&inspector),
+        Arc::clone(&ready),
+    ) {
+        Ok(tool) => tool,
+        Err(_) => {
+            tracing::error!("MCP analyzer actions contract initialization failed");
             return ExitCode::FAILURE;
         }
     };
@@ -1358,6 +1452,20 @@ pub fn run(config: HostConfig) -> ExitCode {
             return ExitCode::FAILURE;
         }
     };
+    let analyzer_action_apply = match mutation::AnalyzerActionApplyTool::new(
+        project.registry(),
+        workers.clone(),
+        Arc::clone(&inspector),
+        Arc::clone(&ready),
+        analyzer_action_write_config,
+        Arc::clone(&mutation_plans),
+    ) {
+        Ok(tool) => tool,
+        Err(_) => {
+            tracing::error!("MCP analyzer action apply contract initialization failed");
+            return ExitCode::FAILURE;
+        }
+    };
     let tasks = match tasks::Tasks::production(
         project.registry(),
         quality_runtime
@@ -1393,6 +1501,10 @@ pub fn run(config: HostConfig) -> ExitCode {
                 inspect,
                 toolchain,
                 check,
+                analyzer_symbols,
+                analyzer_references,
+                analyzer_diagnostics,
+                analyzer_actions,
                 clippy,
                 testing,
                 nextest: Arc::new(nextest),
@@ -1417,6 +1529,7 @@ pub fn run(config: HostConfig) -> ExitCode {
                 fix_mutation,
                 dependency_add,
                 dependency_remove,
+                analyzer_action_apply,
                 resources,
                 tasks,
                 tasks_advertised: tasks_advertisement_ready(),

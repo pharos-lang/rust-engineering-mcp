@@ -8,7 +8,8 @@ ADR-048 separa CI portable, host positivo y artifact distribuible.
 `.github/workflows/ci.yml` usa actions oficiales fijadas por commit, permisos
 `contents: read` y cancelación por concurrencia. Aprovisiona explícitamente el
 toolchain1.98.1 y dependencias locked, y ejecuta fmt/check/Clippy/tests/doctests y
-fronteras arquitectónicas en Linux x86_64, macOS 26 ARM64 y Windows x86_64. Un job
+fronteras arquitectónicas en Linux x86_64 y macOS 26 ARM64 (Windows x86_64
+retirado del CI el 2026-09-13; ver la fila de la matriz de plataformas). Un job
 Linux separado instala versiones fijadas de cargo-audit/cargo-deny y aplica
 advisories/bans/sources. Los pull requests no reciben secretos ni permisos de
 escritura. Este workflow puede descargar dependencias y advisory data durante su
@@ -115,7 +116,7 @@ sustituciones del toolchain. Cargo utiliza CARGO_INCREMENTAL=0, --locked --offli
 | macOS26.6.2/APFS ARM64, Rust1.98.1 | Host positivo core + full `local`; único artifact 0.1.0 publicado | E5/ORT/LanceDB solo en full desde fuente |
 | Docker/Linux ARM64, runc/cgroupsv2 | Guest de ejecución aprobado | No es host/artifact Linux nativo |
 | Linux x86_64 | CI portable/fail-closed | Sin capability positiva ni artifact 0.1.0 |
-| Windows x86_64 | CI portable/fail-closed | Sin adapter reparse-safe positivo ni artifact 0.1.0 |
+| Windows x86_64 | **Retirado del CI (2026-09-13, decisión del owner)** | Regresión M6: el servidor se desconecta en una llamada a tool previa a `initialize` bajo Windows; se restaura al corregirla. Sin adapter reparse-safe ni artifact |
 | Linux ARM64, macOS x86_64, Windows ARM64 | No anunciados | Fuera de artifacts 0.1.0 |
 
 `core` ejecuta fmt, check, Clippy, unit/integration/contract/protocol/security sin
@@ -344,18 +345,23 @@ M4 y antes de `vendor`:
 | `m5-vendor-tests` | core (y full) | `python3 -B -m unittest discover -s fixtures/criterion-vendor -p 'test_*.py'` |
 
 Las dos últimas se declaran con `require_test_groups=True`: una etapa que no
-ejecuta ningún test es un fallo, no un pase. Con ellas, el conteo de `run(` en
-`scripts/gate.py` pasa a **22 etapas core** (`fmt`, `check`, `clippy`, `test`,
-`doctests`, `architecture`, `gate-reporting`, `release-artifact-tests`,
+ejecuta ningún test es un fallo, no un pase. Con ellas —y con las tres etapas
+`m6-provisioning-tests`/`m6-provisioning-unit-tests`/`m6-runtime-unit-tests`
+que añade M6 (ver [Imagen guest M6](#imagen-guest-m6))—, el conteo de `run(`
+en `scripts/gate.py` pasa a **26 etapas core** (`fmt`, `check`, `clippy`,
+`test`, `doctests`, `architecture`, `gate-reporting`, `release-artifact-tests`,
 `release-smoke-tests`, `codex-qualifier-tests`, `m4-client-harness-tests`,
 `m4-safety-harness-tests`, `m4-helper-fmt`, `m4-helper-tests`,
-`m4-provisioning-tests`, `m5-helper-fmt`, `m5-helper-tests`, `m5-vendor-tests`,
-`vendor`, `cargo-fixtures`, `audit`, `deny`) y **36 en full**, que añade las 14
+`m4-provisioning-tests`, `m5-helper-fmt`, `m5-helper-guest-clippy`,
+`m5-helper-tests`, `m5-vendor-tests`,
+`m6-provisioning-tests`, `m6-provisioning-unit-tests`, `m6-runtime-unit-tests`,
+`vendor`, `cargo-fixtures`, `audit`, `deny`) y **42 en full**, que añade las 14
 etapas nativas ya documentadas (`docker-security`, `rust-security`,
-`m2-runtime`, `m3-runtime`, `m4-tampered-plugin`, `m4-inventory`, `m4-runtime`,
-`audit-data`, `semantic`, `catalog`, `catalog-status`, `crate-search`,
-`crate-inspect`, `doctor`). Ese conteo describe la configuración vigente del
-script, no una ejecución acreditada: no existe todavía un recibo de gate M5.
+`m2-runtime`, `m3-runtime`, `m4-tampered-plugin`, `m4-inventory`,
+`m4-runtime`, `audit-data`, `semantic`, `catalog`, `catalog-status`,
+`crate-search`, `crate-inspect`, `doctor`) más `m5-runtime` y `m6-runtime`. Ese
+conteo describe la configuración vigente del script, no una ejecución
+acreditada: no existe todavía un recibo de gate M5 ni de gate M6.
 
 ### Etapa full para el runtime nativo M5
 
@@ -427,3 +433,62 @@ extraer nada, aplica las mismas reglas de seguridad de archivo que
 `.cargo-checksum.json` y nunca accede a la red. `--verify-only` comprueba sin
 escribir. La etapa `m5-vendor-tests` ejercita esas comprobaciones; no sustituye a
 la materialización, que sigue siendo un paso explícito del operador.
+
+## M6 — aprovisionamiento de rust-analyzer y rust-src
+
+### Imagen guest M6
+
+`rust-engineering-runtime:1.98.1-arm64-m6` deriva por digest de la imagen M5
+admitida y añade `rust-analyzer` 1.98.1 (`/opt/analyzer/bin/rust-analyzer`,
+fuera de `PATH`) y `rust-src` 1.98.1
+(`/opt/rust/lib/rustlib/src/rust/library`), autorizados en
+[m6-provisioning-request](roadmap/m6-provisioning-request.md) y decididos en
+[ADR-082](adr/ADR-082-m6-runtime-provisioning.md). El procedimiento completo:
+
+```sh
+python3 -B scripts/build-m6-runtime.py
+```
+
+El script comprueba **antes de construir** que el tag base
+`rust-engineering-runtime:1.98.1-arm64-m5` resuelve exactamente a
+`sha256:e0a5ca1661b3e49d0a3d68ee3cc0963453078d08eb7fc43c30538c16b7998aac` y
+aborta si no; prepara el contexto con `fixtures/rust-runtime/m6/provision.py`;
+construye con `--network=none --pull=false`; y verifica sobre la imagen
+resultante que ambos componentes existen, que `rust-analyzer` **no** es
+alcanzable por `PATH`, que los binarios M3/M4/M5 siguen presentes, y que el
+contexto de construcción no dejó residuos.
+
+`provision.py` es el único paso de M6 autorizado a usar la red: descarga el
+manifest `channel-rust-1.98.1.toml` (verificado por `sha256`), cruza sus
+entradas `xz_url`/`xz_hash` contra las constantes fijadas en el dossier de
+autorización, y solo entonces descarga los dos tarballs `.tar.xz`
+—reutilizando, sin red, cualquier byte ya verificado de una ejecución
+anterior—. El `docker build` en sí corre con `--network=none`, igual que M4/M5.
+
+El recibo se escribe en `docs/validation/M6/provisioning.json`. Construir esa
+imagen no la admite en el gateway: la admisión es una decisión separada con su
+propia calificación nativa, igual que en M5.
+
+### Etapa full para el runtime nativo M6
+
+`full` incorpora `m6-runtime`, justo después de `m5-runtime`, que ejecuta
+`scripts/test-m6-runtime.py` sobre la imagen admitida por
+[ADR-085](adr/ADR-085-m6-runtime-admission.md). El script descubre las
+selecciones ignoradas de `analyzer_native.rs` y las ejecuta una por vez con
+`--exact --ignored --nocapture --test-threads=1`, sin features adicionales;
+comprueba antes de medir que el digest admitido coincide en el código, el ADR y
+el recibo de aprovisionamiento, y que la versión y el sha256 del binario fijados
+en el gateway coinciden con ese recibo; y registra sources, fixtures, logs,
+resultado, estado por corte y digest del recibo nativo
+(`target/m6-calibration/receipt.json`, esquema
+`rust-engineering-mcp.m6-calibration.v1`). No aprovisiona ni reconstruye
+imágenes. La existencia de la etapa no constituye por sí sola un gate aprobado.
+
+Para que ese recibo describa **esta** ejecución y no una anterior, la etapa
+borra `target/m6-calibration/cut-*.json` y `receipt.json` antes de empezar,
+exige que los cortes publicados sean exactamente los de las selecciones que
+ejecutó y que cada documento lleve un `run_started_at` igual o posterior al
+inicio de la etapa. Cada corte publica su documento con estado `fail` si
+termina sin alcanzar su veredicto, de modo que un corte que revienta deja
+evidencia en lugar de un hueco. Las funciones puras del script tienen sus
+propios tests portables en `scripts/test-m6-runtime-unit.py`.

@@ -42,8 +42,49 @@ pub(super) enum Phase {
     /// Fixed single-file egress of `lock.json` for the guest-identity assertion.
     /// These bytes never leave the adapter.
     ExportMutationLock,
+    /// The M6 duplex phase (ADR-084 §2): `rust-analyzer` with no subcommand,
+    /// speaking LSP over its stdio. It is the only non-ingesting phase that
+    /// keeps stdin open, because the conversation is the work.
+    Analyzer,
+    /// Adapter-internal closed `cat` of one provisioning document of the
+    /// admitted M6 image. The closed `RustCommand` grammar exposes no analyzer
+    /// identity probe, exactly as it exposes no mutant listing.
+    AnalyzerDocument(AnalyzerDocument),
+    /// Calibration-only (ADR-084 §3): dumps the real binary's own configuration
+    /// schema so a typo in the fixed `initializationOptions` fails a receipt
+    /// instead of silently leaving a default in force. No tool reaches this
+    /// phase; only the native calibration constructs it.
+    AnalyzerConfigSchema,
     Run(RustCommand),
 }
+
+/// The two build-time documents of the M6 image that carry the analyzer's
+/// identity (`fixtures/rust-runtime/m6/build.sh`).
+///
+/// Reading them is authenticated by the admitted image digest itself: they were
+/// written inside the image whose digest the gateway refuses to deviate from, so
+/// a different version line or binary digest would be a different image.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub(super) enum AnalyzerDocument {
+    /// The literal output of `rust-analyzer --version` captured at build time.
+    Version,
+    /// The `rust-engineering-mcp.m6-installed.v1` inventory, including the
+    /// binary's sha256.
+    Installed,
+}
+
+impl AnalyzerDocument {
+    /// The absolute guest path, which is fixed by the image build and is never
+    /// derived from a caller or a guest value.
+    pub(super) fn path(self) -> &'static str {
+        match self {
+            Self::Version => "/usr/share/doc/rust-runtime/m6/rust-analyzer-version.txt",
+            Self::Installed => "/usr/share/doc/rust-runtime/m6/installed.json",
+        }
+    }
+}
+
+pub(super) const ANALYZER_PROGRAM: &str = "/opt/analyzer/bin/rust-analyzer";
 impl Phase {
     /// The ADR-064 quality profile covers every phase that builds and runs test
     /// binaries. `cargo mutants` does both, for the baseline and for each
@@ -97,6 +138,16 @@ impl Phase {
     pub(super) fn ingesting(&self) -> bool {
         matches!(self, Self::Ingest | Self::IngestBaseline)
     }
+    /// Whether the container keeps stdin open.
+    ///
+    /// Ingest needs it to receive the archive; [`Self::Analyzer`] needs it
+    /// because LSP is a conversation and the session writes frames for as long
+    /// as the server is alive (ADR-084 §2). Every other phase is a one-shot
+    /// reader of nothing, and opening stdin for it would widen the applied
+    /// container shape for no reason — `rust_applied` checks this exact bit.
+    pub(super) fn interactive(&self) -> bool {
+        self.ingesting() || matches!(self, Self::Analyzer)
+    }
     /// ADR-065's executable named tmpfs is absent from every non-coverage
     /// phase. It is writable while the instrumented tests run and while the
     /// pinned plugin merges profraw data in each report invocation; the
@@ -144,6 +195,13 @@ impl Phase {
             );
             env.sort();
         }
+        // rust-analyzer's own logging is the one thing that could put project
+        // text on a stream this product publishes the length and digest of
+        // (ADR-084 §2 phase 3). `error` keeps the stream for real faults and
+        // nothing else; the session bounds it at 1 MiB regardless.
+        if matches!(self, Self::Analyzer | Self::AnalyzerConfigSchema) {
+            env.push("RA_LOG=error".to_owned());
+        }
         // The mutation phases replace, never extend, the base temporary
         // directory: leaving `TMPDIR=/tmp` would put the writable copy on the
         // small shared `noexec` tmpfs and silently fail every mutant build.
@@ -174,6 +232,8 @@ impl Phase {
             | Self::ExportMutationOutcomes
             | Self::ExportMutationBundle
             | Self::ExportMutationLock => "/usr/bin/tar",
+            Self::Analyzer | Self::AnalyzerConfigSchema => ANALYZER_PROGRAM,
+            Self::AnalyzerDocument(_) => "/usr/bin/cat",
             Self::ListMutants(_) => "/opt/rust/bin/cargo",
             Self::Run(RustCommand::CompilerVersion | RustCommand::Explain(_)) => {
                 "/opt/rust/bin/rustc"
@@ -232,6 +292,14 @@ impl Phase {
                 "--directory=/mutants/mutants.out",
                 ".",
             ],
+            // No subcommand and no flags: the server's whole contract travels
+            // over stdio (ADR-084 §2 phase 3).
+            Self::Analyzer => &[],
+            Self::AnalyzerConfigSchema => &["--print-config-schema"],
+            // `--` first, so the fixed path can never be read as an option.
+            Self::AnalyzerDocument(document) => {
+                return vec!["--".to_owned(), document.path().to_owned()];
+            }
             Self::ExportNextest => &[
                 "--create",
                 "--file=-",
@@ -725,6 +793,10 @@ fn implementation_fingerprint() -> String {
         include_bytes!("mutation_outcomes.rs"),
         include_bytes!("mutation_test_port.rs"),
         include_bytes!("../../domain/src/mutation_test.rs"),
+        include_bytes!("analyzer_gateway.rs"),
+        include_bytes!("lsp_session.rs"),
+        include_bytes!("lsp_codec.rs"),
+        include_bytes!("../../domain/src/analyzer.rs"),
         include_bytes!("semver_output.rs"),
         include_bytes!("semver_gateway.rs"),
         include_bytes!("semver_port.rs"),
@@ -908,6 +980,18 @@ impl RustGateway {
     ) -> Result<super::coverage_gateway::CoverageExecution, ExecutionError> {
         super::coverage_gateway::execute(self, source, options, limits, cancel)
     }
+    /// One bounded rust-analyzer session over `source`, answering exactly one
+    /// query (ADR-084 §2). Refuses any image but the admitted M6 digest before
+    /// creating a container.
+    pub fn execute_analyzer(
+        &self,
+        source: &SourceBundle,
+        query: &rust_engineering_domain::AnalyzerQuery,
+        limits: ExecutionLimits,
+        cancel: &dyn ExecutionCancellation,
+    ) -> Result<rust_engineering_domain::AnalyzerExecution, ExecutionError> {
+        super::analyzer_gateway::execute(self, source, query, limits, cancel)
+    }
     pub fn execute_semver(
         &self,
         baseline: &SourceBundle,
@@ -923,6 +1007,7 @@ impl RustGateway {
             && config.image_id != crate::APPROVED_SECURITY_IMAGE
             && config.image_id != crate::APPROVED_M4_IMAGE
             && config.image_id != crate::APPROVED_M5_IMAGE
+            && config.image_id != crate::APPROVED_M6_IMAGE
         {
             return Err(ExecutionError::InvalidConfiguration);
         }
@@ -1130,6 +1215,10 @@ impl RustGateway {
                     .map_err(|_| ExecutionError::Infrastructure)?,
             )),
             Phase::Run(RustCommand::SemverChecksVersion),
+            Phase::Analyzer,
+            Phase::AnalyzerDocument(AnalyzerDocument::Version),
+            Phase::AnalyzerDocument(AnalyzerDocument::Installed),
+            Phase::AnalyzerConfigSchema,
         ] {
             let mut args = self.arguments("<container>", "<nonce>", &volume, &phase)?;
             for arg in &mut args {
@@ -1278,7 +1367,7 @@ impl RustGateway {
             volume.name,
             if phase.ingesting() { "" } else { ",readonly" }
         ));
-        if phase.ingesting() {
+        if phase.interactive() {
             args.push("--interactive".into());
         }
         args.push(format!("--entrypoint={}", phase.program()));
@@ -1455,6 +1544,58 @@ impl RustGateway {
         nonce: &str,
     ) -> Result<(), ExecutionError> {
         self.cleanup_inner(&[ingest, run], &[volume], nonce)
+    }
+    /// Same contract as [`Self::cleanup`] for the analyzer lifecycle, which
+    /// uses one source volume and up to three containers (ingest, the identity
+    /// probe, and the analyzer itself). Every container is joined and verified
+    /// absent before the volume is touched, and an uncertain outcome
+    /// quarantines the gateway, exactly as the other verticals do.
+    pub(super) fn cleanup_analyzer(
+        &self,
+        containers: &[&str],
+        volume: &str,
+        nonce: &str,
+    ) -> Result<(), ExecutionError> {
+        self.cleanup_inner(containers, &[volume], nonce)
+    }
+    /// The guest process table of one container this gateway owns.
+    ///
+    /// Same mechanism as [`Self::detached_observation`] — ownership is proved
+    /// before anything is read, and a container that completed between the two
+    /// calls is `None` rather than an error, because a finished container cannot
+    /// authorize or refute a capability. Unlike that method this one draws no
+    /// conclusion: it returns the raw table for a calibration to assert on.
+    ///
+    /// Exists for the native analyzer calibration (ADR-084 §7), which is the
+    /// only caller: no product path draws a conclusion from a process table.
+    #[cfg(test)]
+    pub(super) fn container_top(
+        &self,
+        name: &str,
+        nonce: &str,
+    ) -> Result<Option<String>, ExecutionError> {
+        if self.absent("container", name)? {
+            return Ok(None);
+        }
+        if let Err(error) = self.owned_container(name, nonce) {
+            if self.absent("container", name)? {
+                return Ok(None);
+            }
+            return Err(error);
+        }
+        let top = self.inner.control(&[
+            "container".into(),
+            "top".into(),
+            name.into(),
+            "-eo".into(),
+            "pid,ppid,args".into(),
+        ])?;
+        if top.code != Some(0) {
+            return Ok(None);
+        }
+        Ok(Some(
+            String::from_utf8(top.stdout).map_err(|_| ExecutionError::Infrastructure)?,
+        ))
     }
     /// Join every nextest container before either of its two cross-mounted
     /// volumes is removed. The output guardian mounts the source read-only and
@@ -1758,7 +1899,7 @@ impl RustGateway {
         }
         self.run_started_container(
             name,
-            phase.ingesting(),
+            phase.interactive(),
             input,
             budget.limits.output_bytes(),
             budget,

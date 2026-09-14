@@ -5,16 +5,16 @@
 | Componente | Foundation implementada |
 | --- | --- |
 | Release soportada | `0.3.0` (anterior: `0.1.0`) |
-| Checkout de desarrollo | `0.3.0`; 31 tools: 18 M1/M2, cuatro M3, cinco M4 y cuatro M5 calificadas localmente; Tasks anunciado con negociación mutua; sin commit de integración, PR, tag ni publicación |
+| Checkout de desarrollo | `0.3.0`; 36 tools: 18 M1/M2, cuatro M3, cinco M4, cuatro M5 calificadas localmente y `rust.analyzer.symbols`/`rust.analyzer.references`/`rust.analyzer.diagnostics`/`rust.analyzer.actions`/`rust.analyzer.action.apply` (M6, en desarrollo); Tasks anunciado con negociación mutua; sin commit de integración, PR, tag ni publicación |
 | Toolchain fijado / MSRV inicial | Rust y Cargo `1.98.1`, edition 2024 |
 | Target de validación local | `aarch64-apple-darwin` |
 | SDK | `rmcp =3.2.0`, features `server`, `transport-io`, sin defaults |
 | Runtime / logging | Tokio `1.53.1`, tokio-util `0.7.19`, tracing `0.1.44`, tracing-subscriber `0.3.23` |
 | Dominio | Serde `1.0.229`; sin dependencia del SDK, ADR-022 |
-| CI portable | Linux x86_64, macOS ARM64 y Windows x86_64; fuente/protocolo/fail-closed, no capabilities positivas |
+| CI portable | Linux x86_64 y macOS ARM64; fuente/protocolo/fail-closed, no capabilities positivas. Windows x86_64 retirado del CI el 2026-09-13 (regresión de stdio pre-`initialize` en M6, deuda a restaurar) |
 | Host positivo local M1–M4 | macOS 26 ARM64/APFS; ejecución de proyecto en guest Docker Linux ARM64 aprobado |
 | Artifact 0.1.0 publicado | Un único archive core `aarch64-apple-darwin`; checksum, SBOM/notices y provenance verificados |
-| Linux / Windows / macOS x86_64 nativos | CI pública compila y prueba el código fuente; la calificación nativa del sandbox y filesystem sigue pendiente para ampliar soporte en una release futura |
+| Linux / macOS x86_64 nativos | CI pública compila y prueba el código fuente; la calificación nativa del sandbox y filesystem sigue pendiente para ampliar soporte en una release futura. Windows: compilación CI retirada el 2026-09-13 hasta corregir la regresión de stdio pre-`initialize` de M6 |
 | Licencia / redistribución | Código original `MIT OR Apache-2.0`; assets `local` no se redistribuyen en 0.1.0 |
 | Clientes de terceros | M4: Inspector 2.5.0 con Tasks y Codex 0.153.0 stock por sincronía; [recibo](validation/M4/clients.json). M5: Inspector 2.5.0 (quince filas, catorce Resources) y Claude Code 2.1.267 `claude-sonnet-5` como cliente agentic; [recibo](validation/M5/clients.json). M1/M2 conservan sus matrices anteriores. |
 | Sandbox | Probes M0 separados; ejecución M1–M4 habilitada solo en runtimes aprobados Docker/Linux ARM64 calibrados por sus ADR |
@@ -500,6 +500,33 @@ contra sus propios digests y un host configurado con la imagen M4 recibe
 `unavailable` en las cuatro tools nuevas. El puerto de performance exige el
 digest M5 y solo ese, porque las versiones del analizador y del helper que el
 resultado declara son propiedades de esa identidad.
+
+### Imagen guest M6
+
+| Elemento | Identidad / versión | Estado |
+| --- | --- | --- |
+| Guest Linux ARM64 M6 | `sha256:f39a5b33ee7d54243664162eb635f8ec223d512042beb7cd18ecf071046b310c` (`rust-engineering-runtime:1.98.1-arm64-m6`) | Construida y con [recibo](validation/M6/provisioning.json); admitida por digest en el gateway ([ADR-085](adr/ADR-085-m6-runtime-admission.md)); nueve cortes nativos aprobados ([recibo de calibración](validation/M6/01-calibration.json), [matriz M6-01](validation/M6/01.md)) |
+| Base | `sha256:e0a5ca1661b3e49d0a3d68ee3cc0963453078d08eb7fc43c30538c16b7998aac` | Imagen M5 aprobada, intacta y verificada por digest antes de construir |
+| `rust-analyzer` | 1.98.1 `aarch64-unknown-linux-gnu`, en `/opt/analyzer/bin` | Provisionado, fuera del `PATH` del contenedor de trabajo; versión y `binary_sha256` verificados contra el recibo de calibración nativa |
+| `rust-src` | 1.98.1, bajo `/opt/rust` | Provisionado; requerido por `cargo.sysroot="discover"` para resolver `core`/`std` |
+| Schema de `initializationOptions` | [Volcado archivado](validation/M6/01-config-schema.json) (`--print-config-schema` del binario admitido; 220 claves de objeto, 193 `rust-analyzer.*`) | Las 17 claves fijas de [ADR-084 §3](adr/ADR-084-rust-analyzer-runtime-and-lsp-lifecycle.md) verificadas presentes, sin ausencias |
+
+La imagen no cambia toolchain, plugins M3, binarios M4/M5, usuario, `WORKDIR`
+ni `PATH`; el gateway invoca `rust-analyzer` por ruta absoluta, sin subcomando.
+**M1–M5 conservan su calificación contra sus propios digests; ejecutarlas
+sobre la imagen M6 no está calificado por sus propias suites** — un host
+configurado con la imagen M6 puede invocar las tools M1–M5 sobre ella, pero
+ninguna de esas suites nativas se ha ejecutado sobre este digest
+([ADR-085](adr/ADR-085-m6-runtime-admission.md)). La fase analyzer del gateway
+exige la imagen M6 y solo esa: cualquier otro digest devuelve `unavailable`
+antes de crear contenedor alguno. Revocar M6 es volver a apuntar el gateway al
+digest M5; los planes de acción ligados a la identidad M6
+(`config_digest`/`binary_sha256`) se revocan por esa comparación, nunca se
+aplican contra una identidad de runtime distinta
+([ADR-084](adr/ADR-084-rust-analyzer-runtime-and-lsp-lifecycle.md) §10).
+Alcance nativo positivo: exclusivamente host macOS ARM64/APFS con guest Linux
+ARM64; Linux/Windows quedan fail-closed hasta una decisión de portabilidad
+explícita (D13).
 
 ### Frontera de target
 

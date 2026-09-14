@@ -8,6 +8,9 @@ pub enum MutationKind {
     FixApply,
     DependencyAdd,
     DependencyRemove,
+    /// A rust-analyzer code action's resolved `WorkspaceEdit` (ADR-083 §6).
+    /// Structurally validated only: no `cargo check` runs against the result.
+    AnalyzerActionApply,
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]

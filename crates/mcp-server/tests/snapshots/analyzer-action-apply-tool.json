@@ -1,0 +1,654 @@
+{
+  "annotations": {
+    "destructiveHint": true,
+    "idempotentHint": false,
+    "openWorldHint": false,
+    "readOnlyHint": false
+  },
+  "description": "Preview, commit or inspect one rust-analyzer code action through the journaled M2 writer. Host --allow-analyzer-action-write WORKSPACE_ROOT and the --rust runtime on the approved M6 image are required; without the grant the tool is unavailable (SANDBOX_DENIED). Preview re-runs rust-analyzer over a fresh capture of the same file and range and requires the action_digest listed by rust.analyzer.actions to match again, else ACTION_STALE; the digest binds the action's title, kind and edits to the analyzer version, binary, configuration and analyzed capture, so a changed capture or runtime makes the plan stale. Only structurally validated TextEdits are applied (existing captured .rs files, non-overlapping, bounded, matching version; never a Command, snippet, resource operation or external URI) and preview returns the exact diff without writing source. An action may rewrite several captured .rs files (up to 128), not only the requested file: review every entry in files and the complete diff before commit. The applied result is NOT compile-verified: no cargo check runs; call rust.check after commit. New effects require an unexpired approved plan and an idempotency key. Exact ID/digest/key can replay an existing journal under current authority. Commit invalidates its input project_ref: call rust.project.open and use its newly returned data.project_ref for ALL later calls, including receipt/recovery; never reuse the precommit reference. Local coordinated publication does not exclude external editors or provide multi-file atomicity.",
+  "inputSchema": {
+    "$defs": {
+      "ApplyAction": {
+        "oneOf": [
+          {
+            "additionalProperties": false,
+            "description": "Re-resolve a listed action by digest over a fresh capture and plan its\nexact diff. Never writes source.",
+            "properties": {
+              "action_digest": {
+                "description": "An `action_digest` published by `rust.analyzer.actions`.",
+                "pattern": "^sha256:[0-9a-f]{64}$",
+                "type": "string"
+              },
+              "expected_project_fingerprint": {
+                "pattern": "^sha256:[0-9a-f]{64}$",
+                "type": "string"
+              },
+              "file": {
+                "description": "The file the action was listed for.",
+                "pattern": "^[A-Za-z0-9_./-]{1,100}\\.rs$",
+                "type": "string"
+              },
+              "mode": {
+                "const": "preview",
+                "type": "string"
+              },
+              "range": {
+                "$ref": "#/$defs/WireRange",
+                "description": "The range the action was listed for."
+              },
+              "timeout_seconds": {
+                "default": 60,
+                "format": "uint32",
+                "maximum": 180,
+                "minimum": 1,
+                "type": "integer"
+              }
+            },
+            "required": [
+              "mode",
+              "expected_project_fingerprint",
+              "action_digest",
+              "file",
+              "range"
+            ],
+            "type": "object"
+          },
+          {
+            "additionalProperties": false,
+            "properties": {
+              "idempotency_key": {
+                "maxLength": 64,
+                "minLength": 1,
+                "pattern": "^[A-Za-z0-9_-]+$",
+                "type": "string"
+              },
+              "mode": {
+                "const": "commit",
+                "type": "string"
+              },
+              "plan_digest": {
+                "pattern": "^sha256:[0-9a-f]{64}$",
+                "type": "string"
+              },
+              "plan_id": {
+                "pattern": "^mut_[0-9a-f]{32}$",
+                "type": "string"
+              }
+            },
+            "required": [
+              "mode",
+              "plan_id",
+              "plan_digest",
+              "idempotency_key"
+            ],
+            "type": "object"
+          },
+          {
+            "additionalProperties": false,
+            "properties": {
+              "mode": {
+                "const": "receipt",
+                "type": "string"
+              },
+              "operation_id": {
+                "pattern": "^mut_[0-9a-f]{32}$",
+                "type": "string"
+              },
+              "recover": {
+                "description": "Classify an interrupted journal; never overwrite unknown source bytes.",
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "mode",
+              "operation_id",
+              "recover"
+            ],
+            "type": "object"
+          }
+        ]
+      },
+      "WirePosition": {
+        "additionalProperties": false,
+        "description": "A 1-based line and Unicode-scalar column, matching\n`rust_engineering_domain::Position` field for field: JSON Schema `minimum:\n1` rejects `0` here, so [`domain::Position`]'s own `NonZeroU32` invariant\nis never violated by a decoded value.",
+        "properties": {
+          "column": {
+            "format": "uint32",
+            "minimum": 1,
+            "type": "integer"
+          },
+          "line": {
+            "format": "uint32",
+            "minimum": 1,
+            "type": "integer"
+          }
+        },
+        "required": [
+          "line",
+          "column"
+        ],
+        "type": "object"
+      },
+      "WireRange": {
+        "additionalProperties": false,
+        "description": "A `{start, end}` pair of [`WirePosition`]s, shared by\n`rust.analyzer.actions` and `rust.analyzer.action.apply`. `start ≤ end` is\na Rust-level invariant ([`domain::TextRange::new`]) the schema cannot\nexpress, so a reversed range is refused as invalid arguments after\ndecoding.",
+        "properties": {
+          "end": {
+            "$ref": "#/$defs/WirePosition"
+          },
+          "start": {
+            "$ref": "#/$defs/WirePosition"
+          }
+        },
+        "required": [
+          "start",
+          "end"
+        ],
+        "type": "object"
+      }
+    },
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "additionalProperties": false,
+    "properties": {
+      "action": {
+        "$ref": "#/$defs/ApplyAction"
+      },
+      "project_ref": {
+        "pattern": "^prj_[0-9a-f]{32}$",
+        "type": "string"
+      }
+    },
+    "required": [
+      "project_ref",
+      "action"
+    ],
+    "title": "AnalyzerActionInput",
+    "type": "object"
+  },
+  "name": "rust.analyzer.action.apply",
+  "outputSchema": {
+    "$defs": {
+      "AnalyzerActionValidationMethod": {
+        "oneOf": [
+          {
+            "const": "workspace_edit_structural_only",
+            "description": "Structural `WorkspaceEdit` validation only: no `cargo check` ran, so\nthe applied result is not compile-verified (owner decision A,\n2026-09-12).",
+            "type": "string"
+          }
+        ]
+      },
+      "AnalyzerActionValidationView": {
+        "additionalProperties": false,
+        "description": "Decoded `m6-analyzer-action-v1` provenance (ADR-083 §6).\n\nDeliberately not a [`ValidationMethod`] of [`ValidationView`]: that enum is\npart of the five frozen M2 tool output schemas (`fmt-apply-tool.json` and\nits siblings), so a new variant would change all five. [`validation_view`]\ntherefore keeps refusing this version, and `rust.analyzer.action.apply`\npublishes this view from its own schema.",
+        "properties": {
+          "action_digest": {
+            "type": "string"
+          },
+          "analyzed_source_fingerprint": {
+            "description": "The fresh capture the action was resolved against and applied to.",
+            "type": "string"
+          },
+          "analyzer": {
+            "$ref": "#/$defs/AnalyzerProvenanceView"
+          },
+          "cargo_version": {
+            "type": "string"
+          },
+          "configuration_fingerprint": {
+            "type": "string"
+          },
+          "image_id": {
+            "type": "string"
+          },
+          "method": {
+            "$ref": "#/$defs/AnalyzerActionValidationMethod"
+          },
+          "platform": {
+            "type": "string"
+          },
+          "rust_version": {
+            "type": "string"
+          },
+          "semantics": {
+            "$ref": "#/$defs/SnapshotSemantics"
+          },
+          "session_execution_fingerprint": {
+            "description": "The rust-analyzer session request that resolved the action.",
+            "type": "string"
+          }
+        },
+        "required": [
+          "method",
+          "semantics",
+          "platform",
+          "image_id",
+          "configuration_fingerprint",
+          "session_execution_fingerprint",
+          "rust_version",
+          "cargo_version",
+          "analyzed_source_fingerprint",
+          "analyzer",
+          "action_digest"
+        ],
+        "type": "object"
+      },
+      "AnalyzerProvenanceView": {
+        "additionalProperties": false,
+        "properties": {
+          "binary_sha256": {
+            "type": "string"
+          },
+          "config_digest": {
+            "type": "string"
+          },
+          "version": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "version",
+          "binary_sha256",
+          "config_digest"
+        ],
+        "type": "object"
+      },
+      "ApplyCode": {
+        "description": "The closed codes of this tool (ADR-083 §3), spelled like the other M6\ntools rather than like the frozen M2 reasons.",
+        "enum": [
+          "INVALID_OPERATION",
+          "PERMISSION_DENIED",
+          "SANDBOX_DENIED",
+          "CONFLICT",
+          "ACTION_STALE",
+          "ACTION_REJECTED",
+          "LOCK_BUSY",
+          "PLAN_EXPIRED",
+          "NOT_FOUND",
+          "LIMIT_EXCEEDED",
+          "RESULT_LIMIT",
+          "UNSUPPORTED_PLATFORM",
+          "IO",
+          "RECOVERY_REQUIRED",
+          "CANCELLED",
+          "PROJECT_NOT_FOUND",
+          "INVALID_PROJECT",
+          "OUTPUT_LIMIT_EXCEEDED",
+          "FILE_NOT_IN_SNAPSHOT",
+          "FILE_NOT_UTF8",
+          "POSITION_OUT_OF_RANGE",
+          "UNSUPPORTED_PROJECT_CONFIG",
+          "ANALYZER_NOT_READY",
+          "ANALYZER_CRASHED",
+          "ANALYZER_CAPABILITY_MISMATCH",
+          "FRAME_LIMIT",
+          "MESSAGE_LIMIT",
+          "TIMEOUT_INITIALIZE",
+          "TIMEOUT_QUERY",
+          "TIMEOUT_TOTAL"
+        ],
+        "type": "string"
+      },
+      "ApplyData": {
+        "oneOf": [
+          {
+            "additionalProperties": false,
+            "properties": {
+              "diff": {
+                "description": "The exact diff of every rewritten file: the review surface of this\nplan. The result is not compile-verified.",
+                "type": "string"
+              },
+              "expires_in_seconds": {
+                "format": "uint64",
+                "minimum": 0,
+                "type": "integer"
+              },
+              "files": {
+                "description": "Every captured file this action rewrites: possibly several `.rs`\nfiles (up to 128), not only the requested `file`. Review each\nentry and the complete `diff` before commit.",
+                "items": {
+                  "$ref": "#/$defs/Change"
+                },
+                "type": "array"
+              },
+              "kind": {
+                "const": "preview",
+                "type": "string"
+              },
+              "plan_digest": {
+                "type": "string"
+              },
+              "plan_id": {
+                "type": "string"
+              },
+              "validation": {
+                "$ref": "#/$defs/AnalyzerActionValidationView"
+              }
+            },
+            "required": [
+              "kind",
+              "plan_id",
+              "plan_digest",
+              "expires_in_seconds",
+              "files",
+              "diff",
+              "validation"
+            ],
+            "type": "object"
+          },
+          {
+            "additionalProperties": false,
+            "properties": {
+              "files": {
+                "items": {
+                  "$ref": "#/$defs/ReceiptChange"
+                },
+                "type": "array"
+              },
+              "kind": {
+                "const": "receipt",
+                "type": "string"
+              },
+              "operation_id": {
+                "type": "string"
+              },
+              "plan_digest": {
+                "type": "string"
+              },
+              "state": {
+                "$ref": "#/$defs/ReceiptState"
+              },
+              "validation": {
+                "$ref": "#/$defs/AnalyzerActionValidationView"
+              }
+            },
+            "required": [
+              "kind",
+              "operation_id",
+              "plan_digest",
+              "state",
+              "validation",
+              "files"
+            ],
+            "type": "object"
+          }
+        ]
+      },
+      "ApplyExcludedGuarantee": {
+        "oneOf": [
+          {
+            "enum": [
+              "os_exclusion_of_external_writers",
+              "multi_file_atomicity",
+              "malicious_host_protection",
+              "demonstrated_power_loss_survival"
+            ],
+            "type": "string"
+          },
+          {
+            "const": "compile_verification",
+            "description": "No `cargo check` runs against the edited source (owner decision A).",
+            "type": "string"
+          }
+        ]
+      },
+      "Change": {
+        "additionalProperties": false,
+        "properties": {
+          "after_bytes": {
+            "format": "uint64",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "after_sha256": {
+            "type": "string"
+          },
+          "before_bytes": {
+            "format": "uint64",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "before_sha256": {
+            "type": "string"
+          },
+          "path": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "path",
+          "before_sha256",
+          "after_sha256",
+          "before_bytes",
+          "after_bytes"
+        ],
+        "type": "object"
+      },
+      "Concurrency": {
+        "enum": [
+          "local_coordinated"
+        ],
+        "type": "string"
+      },
+      "Freshness": {
+        "enum": [
+          "unknown"
+        ],
+        "type": "string"
+      },
+      "MutationEvidence": {
+        "oneOf": [
+          {
+            "additionalProperties": false,
+            "properties": {
+              "kind": {
+                "const": "local",
+                "type": "string"
+              }
+            },
+            "required": [
+              "kind"
+            ],
+            "type": "object"
+          },
+          {
+            "additionalProperties": false,
+            "properties": {
+              "freshness": {
+                "$ref": "#/$defs/Freshness"
+              },
+              "kind": {
+                "const": "mutation_snapshot",
+                "type": "string"
+              },
+              "plan_digest": {
+                "type": "string"
+              },
+              "semantics": {
+                "$ref": "#/$defs/SnapshotSemantics"
+              }
+            },
+            "required": [
+              "kind",
+              "plan_digest",
+              "semantics",
+              "freshness"
+            ],
+            "type": "object"
+          }
+        ]
+      },
+      "ReceiptChange": {
+        "additionalProperties": false,
+        "properties": {
+          "before_bytes": {
+            "format": "uint64",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "before_sha256": {
+            "type": "string"
+          },
+          "effect_after_bytes": {
+            "format": "uint64",
+            "minimum": 0,
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "effect_after_sha256": {
+            "description": "Effect recorded at the terminal journal phase, not current live state.",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "intended_after_bytes": {
+            "format": "uint64",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "intended_after_sha256": {
+            "type": "string"
+          },
+          "path": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "path",
+          "before_sha256",
+          "intended_after_sha256",
+          "before_bytes",
+          "intended_after_bytes",
+          "effect_after_sha256",
+          "effect_after_bytes"
+        ],
+        "type": "object"
+      },
+      "ReceiptState": {
+        "enum": [
+          "committed",
+          "no_change",
+          "aborted",
+          "recovery_required"
+        ],
+        "type": "string"
+      },
+      "SnapshotSemantics": {
+        "enum": [
+          "latest_known"
+        ],
+        "type": "string"
+      },
+      "Status": {
+        "enum": [
+          "passed",
+          "failed",
+          "blocked",
+          "unavailable",
+          "cancelled"
+        ],
+        "type": "string"
+      },
+      "Truncation": {
+        "additionalProperties": false,
+        "properties": {
+          "diagnostics_omitted": {
+            "format": "uint64",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "stderr_truncated": {
+            "type": "boolean"
+          },
+          "stdout_truncated": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "stdout_truncated",
+          "stderr_truncated",
+          "diagnostics_omitted"
+        ],
+        "type": "object"
+      }
+    },
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "additionalProperties": false,
+    "properties": {
+      "concurrency_contract": {
+        "$ref": "#/$defs/Concurrency"
+      },
+      "data": {
+        "anyOf": [
+          {
+            "$ref": "#/$defs/ApplyData"
+          },
+          {
+            "type": "null"
+          }
+        ]
+      },
+      "diagnostics": {
+        "maxItems": 0,
+        "type": "array"
+      },
+      "duration_ms": {
+        "format": "uint64",
+        "minimum": 0,
+        "type": "integer"
+      },
+      "error_code": {
+        "anyOf": [
+          {
+            "$ref": "#/$defs/ApplyCode"
+          },
+          {
+            "type": "null"
+          }
+        ]
+      },
+      "error_message": {
+        "type": [
+          "string",
+          "null"
+        ]
+      },
+      "evidence": {
+        "$ref": "#/$defs/MutationEvidence"
+      },
+      "guarantees_not_provided": {
+        "items": {
+          "$ref": "#/$defs/ApplyExcludedGuarantee"
+        },
+        "maxItems": 5,
+        "minItems": 5,
+        "type": "array"
+      },
+      "status": {
+        "$ref": "#/$defs/Status"
+      },
+      "summary": {
+        "type": "string"
+      },
+      "truncation": {
+        "$ref": "#/$defs/Truncation"
+      }
+    },
+    "required": [
+      "status",
+      "error_code",
+      "error_message",
+      "summary",
+      "duration_ms",
+      "data",
+      "diagnostics",
+      "truncation",
+      "evidence",
+      "concurrency_contract",
+      "guarantees_not_provided"
+    ],
+    "title": "ApplyOutput",
+    "type": "object"
+  }
+}
