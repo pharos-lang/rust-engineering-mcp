@@ -2,6 +2,15 @@
 
 ## 0.8.0 — freeze de contratos (sin publicar; RC en M8-09)
 
+### Seguridad de dependencias (2026-09-15)
+
+- **RUSTSEC-2026-0285 (`rustls` 0.23.43, TLS 1.3, severidad media)**: `Cargo.lock`
+  sube `rustls` a `0.23.45` (única entrada cambiada; dependencia transitiva de
+  `reqwest`/`tokio-rustls`/`lancedb`, sin pin directo). Detectado por el check
+  `supply chain` del PR #22 con la base de advisories del día; el gate local usaba
+  `cargo audit --no-fetch` con una base anterior. Recalificación: gates `core` y
+  `full` repetidos sobre el nuevo lock antes de RC1.
+
 ### Migration notes 0.3.0 → 0.8.0
 
 - **Inventario: 31 → 36 tools.** Se añaden cinco `rust.analyzer.*`
