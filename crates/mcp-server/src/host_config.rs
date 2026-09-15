@@ -196,6 +196,17 @@ pub(crate) fn parse(mut args: impl Iterator<Item = OsString>) -> Option<stdio::H
         if index_store.is_some() && model_dir.is_none() {
             return None;
         }
+        let outside_roots =
+            |path: &PathBuf| !config.roots.iter().any(|root| path.starts_with(root));
+        if !outside_roots(&store)
+            || !outside_roots(&trust)
+            || model_dir.as_ref().is_some_and(|path| !outside_roots(path))
+            || index_store
+                .as_ref()
+                .is_some_and(|path| !outside_roots(path))
+        {
+            return None;
+        }
         config.catalog = Some(stdio::HostCatalogConfig {
             store,
             trust,
@@ -214,7 +225,11 @@ pub(crate) fn parse(mut args: impl Iterator<Item = OsString>) -> Option<stdio::H
     };
     config.audit = match (audit_path, audit_fingerprint) {
         (None, None) => None,
-        (Some(path), Some(fingerprint)) => Some(stdio::HostAuditConfig { path, fingerprint }),
+        (Some(path), Some(fingerprint))
+            if !config.roots.iter().any(|root| path.starts_with(root)) =>
+        {
+            Some(stdio::HostAuditConfig { path, fingerprint })
+        }
         _ => return None,
     };
     config.cargo_vendor = match (vendor_path, vendor_fingerprint) {

@@ -47,7 +47,7 @@ const MAX_TITLE_SCALARS: usize = 256;
 
 #[derive(Deserialize, JsonSchema)]
 #[serde(deny_unknown_fields)]
-struct ActionsInput {
+pub(in crate::stdio) struct ActionsInput {
     #[schemars(with = "String", regex(pattern = "^prj_[0-9a-f]{32}$"))]
     project_ref: ProjectRef,
     /// Mandatory for this tool (ADR-083 §2); a mismatch is `blocked/CONFLICT`.
@@ -191,7 +191,7 @@ enum ActionsOutcome {
 
 #[derive(Serialize, JsonSchema)]
 #[serde(deny_unknown_fields)]
-struct ActionsOutput {
+pub(in crate::stdio) struct ActionsOutput {
     #[serde(flatten)]
     outcome: ActionsOutcome,
     summary: &'static str,
@@ -502,16 +502,14 @@ pub(in crate::stdio) struct ActionsTool {
     inspector: Arc<RustProjectInspector>,
     ready: Arc<AtomicBool>,
 }
-impl ActionsTool {
-    pub(in crate::stdio) fn new(
-        registry: Arc<Mutex<Registry>>,
-        workers: Workers,
-        inspector: Arc<RustProjectInspector>,
-        ready: Arc<AtomicBool>,
-    ) -> Result<Self, ErrorData> {
-        let contract = Contract::<ActionsInput, ActionsOutput>::new()?;
-        let definition = Tool::new(
-            ACTIONS_NAME,
+pub(in crate::stdio) fn definition()
+-> Result<(Contract<ActionsInput, ActionsOutput>, Tool), ErrorData> {
+    let contract = Contract::<ActionsInput, ActionsOutput>::new()?;
+    let definition = Tool::new(
+        ACTIONS_NAME,
+        format!(
+            "{}{}",
+            crate::stdio::stability::PREVIEW_PREFIX,
             "List the code actions the host-approved rust-analyzer 1.98.1 \
              (aarch64-unknown-linux-gnu) offers over a range of a captured Rust file, \
              inside the M6 guest image. Read-only: each action's WorkspaceEdit is \
@@ -530,17 +528,29 @@ impl ActionsTool {
              Unicode scalars with control characters replaced. expected_project_fingerprint \
              is required. Positions are Unicode-scalar, 1-based Position values. Requires \
              the host --rust runtime configured with the approved M6 image; without it \
-             the tool is unavailable.",
-            (*contract.input_schema).clone(),
-        )
-        .with_raw_output_schema(Arc::clone(&contract.output_schema))
-        .with_annotations(
-            ToolAnnotations::new()
-                .read_only(true)
-                .destructive(false)
-                .idempotent(true)
-                .open_world(false),
-        );
+             the tool is unavailable."
+        ),
+        (*contract.input_schema).clone(),
+    )
+    .with_raw_output_schema(Arc::clone(&contract.output_schema))
+    .with_annotations(
+        ToolAnnotations::new()
+            .read_only(true)
+            .destructive(false)
+            .idempotent(true)
+            .open_world(false),
+    );
+    Ok((contract, definition))
+}
+
+impl ActionsTool {
+    pub(in crate::stdio) fn new(
+        registry: Arc<Mutex<Registry>>,
+        workers: Workers,
+        inspector: Arc<RustProjectInspector>,
+        ready: Arc<AtomicBool>,
+    ) -> Result<Self, ErrorData> {
+        let (contract, definition) = definition()?;
         Ok(Self {
             definition,
             contract,

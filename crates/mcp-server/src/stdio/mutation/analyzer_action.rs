@@ -58,7 +58,7 @@ pub(in crate::stdio) const ANALYZER_ACTION_APPLY_NAME: &str = "rust.analyzer.act
 /// around it; the same outer budget as the M2 write tools.
 const DEADLINE: Duration = Duration::from_secs(240);
 const MAX_TIMEOUT_SECONDS: u32 = 180;
-const DESCRIPTION: &str = "Preview, commit or inspect one rust-analyzer code action through the journaled M2 writer. Host --allow-analyzer-action-write WORKSPACE_ROOT and the --rust runtime on the approved M6 image are required; without the grant the tool is unavailable (SANDBOX_DENIED). Preview re-runs rust-analyzer over a fresh capture of the same file and range and requires the action_digest listed by rust.analyzer.actions to match again, else ACTION_STALE; the digest binds the action's title, kind and edits to the analyzer version, binary, configuration and analyzed capture, so a changed capture or runtime makes the plan stale. Only structurally validated TextEdits are applied (existing captured .rs files, non-overlapping, bounded, matching version; never a Command, snippet, resource operation or external URI) and preview returns the exact diff without writing source. An action may rewrite several captured .rs files (up to 128), not only the requested file: review every entry in files and the complete diff before commit. The applied result is NOT compile-verified: no cargo check runs; call rust.check after commit. New effects require an unexpired approved plan and an idempotency key. Exact ID/digest/key can replay an existing journal under current authority. Commit invalidates its input project_ref: call rust.project.open and use its newly returned data.project_ref for ALL later calls, including receipt/recovery; never reuse the precommit reference. Local coordinated publication does not exclude external editors or provide multi-file atomicity.";
+const DESCRIPTION_BODY: &str = "Preview, commit or inspect one rust-analyzer code action through the journaled M2 writer. Host --allow-analyzer-action-write WORKSPACE_ROOT and the --rust runtime on the approved M6 image are required; without the grant the tool is unavailable (SANDBOX_DENIED). Preview re-runs rust-analyzer over a fresh capture of the same file and range and requires the action_digest listed by rust.analyzer.actions to match again, else ACTION_STALE; the digest binds the action's title, kind and edits to the analyzer version, binary, configuration and analyzed capture, so a changed capture or runtime makes the plan stale. Only structurally validated TextEdits are applied (existing captured .rs files, non-overlapping, bounded, matching version; never a Command, snippet, resource operation or external URI) and preview returns the exact diff without writing source. An action may rewrite several captured .rs files (up to 128), not only the requested file: review every entry in files and the complete diff before commit. The applied result is NOT compile-verified: no cargo check runs; call rust.check after commit. New effects require an unexpired approved plan and an idempotency key. Exact ID/digest/key can replay an existing journal under current authority. Commit invalidates its input project_ref: call rust.project.open and use its newly returned data.project_ref for ALL later calls, including receipt/recovery; never reuse the precommit reference. Local coordinated publication does not exclude external editors or provide multi-file atomicity.";
 
 fn default_timeout_seconds() -> u32 {
     60
@@ -66,7 +66,7 @@ fn default_timeout_seconds() -> u32 {
 
 #[derive(Deserialize, JsonSchema)]
 #[serde(deny_unknown_fields)]
-struct AnalyzerActionInput {
+pub(in crate::stdio) struct AnalyzerActionInput {
     #[schemars(with = "String", regex(pattern = "^prj_[0-9a-f]{32}$"))]
     project_ref: ProjectRef,
     action: ApplyAction,
@@ -390,7 +390,7 @@ enum ApplyExcludedGuarantee {
 
 #[derive(Clone, Serialize, JsonSchema)]
 #[serde(deny_unknown_fields)]
-struct ApplyOutput {
+pub(in crate::stdio) struct ApplyOutput {
     status: Status,
     error_code: Option<ApplyCode>,
     error_message: Option<&'static str>,
@@ -1019,6 +1019,28 @@ pub(in crate::stdio) struct AnalyzerActionApplyTool {
     grant_present: bool,
 }
 
+pub(in crate::stdio) fn definition()
+-> Result<(Contract<AnalyzerActionInput, ApplyOutput>, Tool), ErrorData> {
+    let contract = Contract::<AnalyzerActionInput, ApplyOutput>::new()?;
+    let definition = Tool::new(
+        ANALYZER_ACTION_APPLY_NAME,
+        format!(
+            "{}{DESCRIPTION_BODY}",
+            crate::stdio::stability::PREVIEW_PREFIX
+        ),
+        (*contract.input_schema).clone(),
+    )
+    .with_raw_output_schema(Arc::clone(&contract.output_schema))
+    .with_annotations(
+        ToolAnnotations::new()
+            .read_only(false)
+            .destructive(true)
+            .idempotent(false)
+            .open_world(false),
+    );
+    Ok((contract, definition))
+}
+
 impl AnalyzerActionApplyTool {
     pub(in crate::stdio) fn new(
         registry: Arc<Mutex<Registry>>,
@@ -1028,20 +1050,7 @@ impl AnalyzerActionApplyTool {
         config: Option<WriteConfig>,
         plans: Arc<Mutex<SharedPlans>>,
     ) -> Result<Self, ErrorData> {
-        let contract = Contract::<AnalyzerActionInput, ApplyOutput>::new()?;
-        let definition = Tool::new(
-            ANALYZER_ACTION_APPLY_NAME,
-            DESCRIPTION,
-            (*contract.input_schema).clone(),
-        )
-        .with_raw_output_schema(Arc::clone(&contract.output_schema))
-        .with_annotations(
-            ToolAnnotations::new()
-                .read_only(false)
-                .destructive(true)
-                .idempotent(false)
-                .open_world(false),
-        );
+        let (contract, definition) = definition()?;
         let grant_present = config.is_some();
         Ok(Self {
             definition,

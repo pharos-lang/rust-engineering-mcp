@@ -107,6 +107,7 @@ pub struct MutationRecordSummary {
     pub digest: SourceFingerprint,
     pub state: MutationState,
     pub stored_bytes: u64,
+    pub kind: MutationKind,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]

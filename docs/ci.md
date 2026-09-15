@@ -116,7 +116,7 @@ sustituciones del toolchain. Cargo utiliza CARGO_INCREMENTAL=0, --locked --offli
 | macOS26.6.2/APFS ARM64, Rust1.98.1 | Host positivo core + full `local`; único artifact 0.1.0 publicado | E5/ORT/LanceDB solo en full desde fuente |
 | Docker/Linux ARM64, runc/cgroupsv2 | Guest de ejecución aprobado | No es host/artifact Linux nativo |
 | Linux x86_64 | CI portable/fail-closed | Sin capability positiva ni artifact 0.1.0 |
-| Windows x86_64 | **Retirado del CI (2026-09-13, decisión del owner)** | Regresión M6: el servidor se desconecta en una llamada a tool previa a `initialize` bajo Windows; se restaura al corregirla. Sin adapter reparse-safe ni artifact |
+| Windows x86_64 | **Retirado del CI (2026-09-13, decisión del owner)** | Regresión M6: el servidor se desconecta en una llamada a tool previa a `initialize` bajo Windows; se restaura al corregirla. Sin adapter reparse-safe ni artifact. Por [ADR-087](adr/ADR-087-1.0-host-scope.md), su restauración es deuda de portabilidad, no criterio 1.0 |
 | Linux ARM64, macOS x86_64, Windows ARM64 | No anunciados | Fuera de artifacts 0.1.0 |
 
 `core` ejecuta fmt, check, Clippy, unit/integration/contract/protocol/security sin
@@ -347,21 +347,57 @@ M4 y antes de `vendor`:
 Las dos últimas se declaran con `require_test_groups=True`: una etapa que no
 ejecuta ningún test es un fallo, no un pase. Con ellas —y con las tres etapas
 `m6-provisioning-tests`/`m6-provisioning-unit-tests`/`m6-runtime-unit-tests`
-que añade M6 (ver [Imagen guest M6](#imagen-guest-m6))—, el conteo de `run(`
-en `scripts/gate.py` pasa a **26 etapas core** (`fmt`, `check`, `clippy`,
-`test`, `doctests`, `architecture`, `gate-reporting`, `release-artifact-tests`,
-`release-smoke-tests`, `codex-qualifier-tests`, `m4-client-harness-tests`,
-`m4-safety-harness-tests`, `m4-helper-fmt`, `m4-helper-tests`,
-`m4-provisioning-tests`, `m5-helper-fmt`, `m5-helper-guest-clippy`,
-`m5-helper-tests`, `m5-vendor-tests`,
+que añade M6 (ver [Imagen guest M6](#imagen-guest-m6)) y las dos etapas de
+freeze de contrato que añade M8 (ver
+[M8 — etapas de freeze de contrato](#m8--etapas-de-freeze-de-contrato))—, el
+conteo de `run(` en `scripts/gate.py` pasa a **28 etapas core** (`fmt`,
+`check`, `clippy`, `test`, `doctests`, `architecture`, `gate-reporting`,
+`release-artifact-tests`, `release-smoke-tests`, `codex-qualifier-tests`,
+`m4-client-harness-tests`, `m4-safety-harness-tests`, `m4-helper-fmt`,
+`m4-helper-tests`, `m4-provisioning-tests`, `m5-helper-fmt`,
+`m5-helper-guest-clippy`, `m5-helper-tests`, `m5-vendor-tests`,
 `m6-provisioning-tests`, `m6-provisioning-unit-tests`, `m6-runtime-unit-tests`,
-`vendor`, `cargo-fixtures`, `audit`, `deny`) y **42 en full**, que añade las 14
-etapas nativas ya documentadas (`docker-security`, `rust-security`,
-`m2-runtime`, `m3-runtime`, `m4-tampered-plugin`, `m4-inventory`,
-`m4-runtime`, `audit-data`, `semantic`, `catalog`, `catalog-status`,
-`crate-search`, `crate-inspect`, `doctor`) más `m5-runtime` y `m6-runtime`. Ese
-conteo describe la configuración vigente del script, no una ejecución
-acreditada: no existe todavía un recibo de gate M5 ni de gate M6.
+`contract-freeze-tests`, `contract-freeze`, `vendor`, `cargo-fixtures`,
+`audit`, `deny`) y **44 en full**, que añade las 14 etapas nativas ya
+documentadas (`docker-security`, `rust-security`, `m2-runtime`, `m3-runtime`,
+`m4-tampered-plugin`, `m4-inventory`, `m4-runtime`, `audit-data`, `semantic`,
+`catalog`, `catalog-status`, `crate-search`, `crate-inspect`, `doctor`) más
+`m5-runtime` y `m6-runtime`. Ese conteo describe la configuración vigente del
+script, no una ejecución acreditada; el recibo acreditado del gate `core` es
+[`core-gate.json`](validation/M8/core-gate.json) (28 etapas, 2026-09-14). No
+existe todavía un recibo de gate `full` M5, M6 ni M8.
+
+## M8 — etapas de freeze de contrato
+
+M8-02 añade dos etapas core nuevas, justo después de `m6-runtime-unit-tests`
+y antes de `vendor`:
+
+| Etapa | Modo | Comando exacto |
+| --- | --- | --- |
+| `contract-freeze-tests` | core (y full) | `python3 -B scripts/test-contract-freeze.py` |
+| `contract-freeze` | core (y full) | `python3 -B scripts/contract-freeze.py verify docs/validation/M8/freeze-0.8.0.json` |
+
+`contract-freeze-tests` se declara con `require_test_groups=True`, como el
+resto de etapas basadas en `unittest`. `contract-freeze` verifica el
+manifiesto congelado [`freeze-0.8.0.json`](validation/M8/freeze-0.8.0.json)
+contra las snapshots vigentes de `crates/mcp-server/tests/snapshots/*-tool.json`:
+para cada tool hashea (`sha256`, JSON canónico `sort_keys`,
+`separators(',',':')`, `ensure_ascii=False`) su `input_schema`, su
+`output_schema`, sus `annotations` y su `description`, y compara la clase de
+estabilidad registrada (`stable` o `preview`) junto con el conteo total de
+tools. Un cambio en el schema, las `annotations` o la `description` de una
+tool `stable` falla la etapa, igual que un cambio de nombre (alta o baja) o
+un conteo total distinto del manifiesto. El mismo cambio en una tool
+`preview` solo emite un aviso, salvo que se invoque con `--strict`, en cuyo
+caso también falla. El manifiesto ausente es un fallo obligatorio, no un
+salto de etapa: no hay ejecución "sin freeze".
+
+El recibo acreditado de esta etapa es
+[`core-gate.json`](validation/M8/core-gate.json) (gate `core`, 2026-09-14,
+`sha256:f2c2fe69…`), con las 28 etapas core incluidas `contract-freeze-tests`
+y `contract-freeze` en verde. El manifiesto vigente
+([`freeze-0.8.0.json`](validation/M8/freeze-0.8.0.json)) fija 36 tools totales
+(31 `stable`, 5 `preview`) sobre el commit `dbc17f5`.
 
 ### Etapa full para el runtime nativo M5
 

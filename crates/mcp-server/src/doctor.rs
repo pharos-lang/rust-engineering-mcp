@@ -6,7 +6,9 @@ use rust_engineering_application::{
 use rust_engineering_domain::*;
 use serde::Serialize;
 use std::{
+    collections::BTreeMap,
     ffi::{OsStr, OsString},
+    path::PathBuf,
     time::{SystemTime, UNIX_EPOCH},
 };
 
@@ -14,6 +16,28 @@ pub(crate) struct Invocation {
     pub host: stdio::HostConfig,
     pub active: bool,
     pub json: bool,
+    /// D-5: unlike `serve`, `doctor` only ever *reads* journal metadata under
+    /// `--state-root` (the same read `mutation list` performs), so it accepts
+    /// the flag alone when the full Docker tuple `host_config` requires is
+    /// absent. `None` when the full tuple parsed (`host.rust` covers it) or
+    /// no `--state-root` was given at all.
+    pub journal_state_root: Option<PathBuf>,
+}
+/// Exactly one `--state-root VALUE` pair among closed `flag, value` pairs; the
+/// caller only invokes this once `crate::host_config::parse` has already
+/// rejected the full arg list, so any other `--state-root` count or shape is
+/// left to fail there rather than be silently reinterpreted here.
+fn solo_state_root(host: &[OsString]) -> Option<PathBuf> {
+    let mut found = None;
+    for pair in host.as_chunks::<2>().0 {
+        if pair[0] == OsStr::new("--state-root") {
+            if found.is_some() {
+                return None;
+            }
+            found = Some(PathBuf::from(&pair[1]));
+        }
+    }
+    found.filter(|path: &PathBuf| path.is_absolute())
 }
 pub(crate) fn parse(mut args: impl Iterator<Item = OsString>) -> Option<Invocation> {
     let (mut active, mut json) = (false, false);
@@ -34,10 +58,27 @@ pub(crate) fn parse(mut args: impl Iterator<Item = OsString>) -> Option<Invocati
             host.push(args.next()?);
         }
     }
+    if let Some(config) = crate::host_config::parse(host.iter().cloned()) {
+        return Some(Invocation {
+            host: config,
+            active,
+            json,
+            journal_state_root: None,
+        });
+    }
+    let journal_state_root = solo_state_root(&host)?;
+    let filtered = host
+        .as_chunks::<2>()
+        .0
+        .iter()
+        .filter(|pair| pair[0] != OsStr::new("--state-root"))
+        .flatten()
+        .cloned();
     Some(Invocation {
-        host: crate::host_config::parse(host.into_iter())?,
+        host: crate::host_config::parse(filtered)?,
         active,
         json,
+        journal_state_root: Some(journal_state_root),
     })
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize)]
@@ -161,6 +202,145 @@ struct Check {
 }
 #[derive(Serialize)]
 #[serde(deny_unknown_fields)]
+struct KindCounts {
+    pending: u64,
+    terminal: u64,
+}
+#[derive(Serialize)]
+#[serde(deny_unknown_fields)]
+struct MutationJournalsReport {
+    pending: u64,
+    terminal: u64,
+    unknown_format: u64,
+    kinds: BTreeMap<&'static str, KindCounts>,
+    downgrade_blocked: bool,
+    downgrade_blocking_kinds: Vec<&'static str>,
+    notes: Vec<&'static str>,
+}
+impl MutationJournalsReport {
+    fn empty() -> Self {
+        Self {
+            pending: 0,
+            terminal: 0,
+            unknown_format: 0,
+            kinds: BTreeMap::new(),
+            downgrade_blocked: false,
+            downgrade_blocking_kinds: vec![],
+            notes: vec![],
+        }
+    }
+}
+/// The five M2 operation kinds a `0.3.0` binary's `operation_kind` recognizes
+/// (ADR-088 §3); any other kind makes that binary refuse the journal with
+/// `RecoveryRequired` before touching the workspace.
+const KINDS_KNOWN_TO_0_3_0: [MutationKind; 5] = [
+    MutationKind::ManifestPatch,
+    MutationKind::FormatApply,
+    MutationKind::FixApply,
+    MutationKind::DependencyAdd,
+    MutationKind::DependencyRemove,
+];
+fn kind_name(kind: MutationKind) -> &'static str {
+    match kind {
+        MutationKind::ManifestPatch => "manifest_patch",
+        MutationKind::FormatApply => "format_apply",
+        MutationKind::FixApply => "fix_apply",
+        MutationKind::DependencyAdd => "dependency_add",
+        MutationKind::DependencyRemove => "dependency_remove",
+        MutationKind::AnalyzerActionApply => "analyzer_action_apply",
+    }
+}
+const DOWNGRADE_NOTE: &str = "A binary older than 0.8.0 cannot interpret newer operation kinds such as analyzer_action_apply and returns RecoveryRequired before any effect; recover, complete or prune (`mutation prune`) with 0.8.0 before installing an older binary.";
+/// Passive M2 journal preflight (D12 §3), additive since 0.8.0; `format_version`
+/// is unchanged because no existing field changed shape. Reads only journal
+/// metadata under `--state-root`, never workspace or source content.
+fn mutation_journals(state_root: &std::path::Path) -> MutationJournalsReport {
+    let journal_dir = state_root.join("rust-mcp-mutations-v1");
+    if !journal_dir.is_dir() {
+        return MutationJournalsReport::empty();
+    }
+    match rust_engineering_project::mutation_store::NativeMutationStore::open(&journal_dir, &[])
+        .and_then(|store| store.list_records())
+    {
+        Ok(records) => {
+            let (mut pending, mut terminal) = (0u64, 0u64);
+            let mut kinds: BTreeMap<&'static str, KindCounts> = BTreeMap::new();
+            let mut blocking_kinds = std::collections::BTreeSet::new();
+            for record in &records {
+                let entry = kinds.entry(kind_name(record.kind)).or_insert(KindCounts {
+                    pending: 0,
+                    terminal: 0,
+                });
+                match record.state {
+                    MutationState::RecoveryRequired => {
+                        pending += 1;
+                        entry.pending += 1;
+                    }
+                    MutationState::Committed | MutationState::NoChange | MutationState::Aborted => {
+                        terminal += 1;
+                        entry.terminal += 1;
+                    }
+                }
+                if !KINDS_KNOWN_TO_0_3_0.contains(&record.kind) {
+                    blocking_kinds.insert(kind_name(record.kind));
+                }
+            }
+            let downgrade_blocked = pending > 0 || !blocking_kinds.is_empty();
+            MutationJournalsReport {
+                pending,
+                terminal,
+                unknown_format: 0,
+                kinds,
+                downgrade_blocked,
+                downgrade_blocking_kinds: blocking_kinds.into_iter().collect(),
+                notes: if downgrade_blocked {
+                    vec![DOWNGRADE_NOTE]
+                } else {
+                    vec![]
+                },
+            }
+        }
+        // A concurrent `serve` mutation holds the same non-blocking store
+        // lock this passive read takes; distinct from an unreadable store.
+        Err(MutationError::Busy) => MutationJournalsReport {
+            pending: 0,
+            terminal: 0,
+            unknown_format: 0,
+            kinds: BTreeMap::new(),
+            downgrade_blocked: true,
+            downgrade_blocking_kinds: vec![],
+            notes: vec!["journal busy: a mutation is in progress; rerun doctor"],
+        },
+        // The envelope/format sniff fails the whole scan closed before any
+        // per-record classification (see docs/validation/M8/03-formats-analysis.md
+        // §2); `1` is a fail-closed lower-bound sentinel, not an exact tally.
+        Err(MutationError::RecoveryRequired) => MutationJournalsReport {
+            pending: 0,
+            terminal: 0,
+            unknown_format: 1,
+            kinds: BTreeMap::new(),
+            downgrade_blocked: true,
+            downgrade_blocking_kinds: vec![],
+            notes: vec![
+                "At least one journal entry is unreadable or unknown (unrecognized envelope format, a broken checksum, a foreign file or an operation kind this binary cannot interpret); the store fails closed before any per-record detail is available.",
+                DOWNGRADE_NOTE,
+            ],
+        },
+        Err(_) => MutationJournalsReport {
+            pending: 0,
+            terminal: 0,
+            unknown_format: 0,
+            kinds: BTreeMap::new(),
+            downgrade_blocked: true,
+            downgrade_blocking_kinds: vec![],
+            notes: vec![
+                "The mutation journal store could not be read; treated as blocked until the condition is resolved.",
+            ],
+        },
+    }
+}
+#[derive(Serialize)]
+#[serde(deny_unknown_fields)]
 pub(crate) struct Report {
     format_version: u32,
     operation: &'static str,
@@ -170,6 +350,7 @@ pub(crate) struct Report {
     checks: Vec<Check>,
     catalog: Option<CatalogContextStatus>,
     runtime: Option<ToolchainObservation>,
+    mutation_journals: Option<MutationJournalsReport>,
 }
 impl Report {
     fn new(active: bool) -> Self {
@@ -182,6 +363,7 @@ impl Report {
             checks: vec![],
             catalog: None,
             runtime: None,
+            mutation_journals: None,
         }
     }
     fn add(
@@ -226,6 +408,15 @@ impl Report {
                 check.reason,
                 check.component_reason,
                 check.action.text()
+            ));
+        }
+        if let Some(journals) = &self.mutation_journals {
+            text.push_str(&format!(
+                "mutation_journals: pending={} terminal={} unknown_format={} downgrade_blocked={}\n",
+                journals.pending,
+                journals.terminal,
+                journals.unknown_format,
+                journals.downgrade_blocked
             ));
         }
         text
@@ -408,6 +599,13 @@ pub(crate) fn inspect(
         report.freshness(Id::RustsecFreshness, &value.evidence);
     }
     report.catalog = Some(context);
+    control.check()?;
+    report.mutation_journals = host
+        .rust
+        .as_ref()
+        .map(|rust| rust.state_root.clone())
+        .or_else(|| invocation.journal_state_root.clone())
+        .map(|state_root| mutation_journals(&state_root));
     control.check()?;
     if host.roots.is_empty() {
         report.add(

@@ -1,0 +1,358 @@
+{
+  "attempt": "attempt-17",
+  "candidate": {
+    "server_sha256": "c34fd7435473e094727073a3437d182791874072c5694ad9042da2b6cdedc0f6"
+  },
+  "claude_code": {
+    "client": "claude-code",
+    "effort": "medium",
+    "executable_sha256": "06a96d5423f83770f120859f1c58e60d7252cc4c122aa13043b7e7cd716bc76a",
+    "model": "claude-sonnet-5",
+    "model_events_sha256": "2b4b89e2706752e84b5cf22a8a0f674d6bae6e2bad1f543abcfcfa6a246f9d6f",
+    "session": {
+      "api_key_source": "none",
+      "assistant_messages": 7,
+      "claude_code_version": "2.1.268",
+      "duration_ms": 26906,
+      "num_turns": 4,
+      "observed_models": [
+        "claude-haiku-4-5-20251001",
+        "claude-sonnet-5"
+      ],
+      "resolved_model": "claude-sonnet-5"
+    },
+    "status": "passed",
+    "tool_calls": 3,
+    "tool_calls_observed": [
+      "rust.catalog.status",
+      "rust.project.inspect",
+      "rust.project.open"
+    ],
+    "validator_version_pin_overridden_from": "2.1.267 (Claude Code)",
+    "version": "2.1.268 (Claude Code)"
+  },
+  "codex": {
+    "classification": "passed",
+    "effort": "medium",
+    "events_sha256": "c4947cd33dea137b76deb544864190d5c8c784e61a5475214eabe05c7a6223d8",
+    "exit_code": 0,
+    "model": "gpt-5.6-sol",
+    "protocol_evidence": {
+      "project_inspect_observed": true,
+      "project_open_observed": true,
+      "unknown_project_ref_refused_on_wire": true,
+      "unknown_tool_event_refused": false,
+      "unknown_tool_refused_on_wire": false
+    },
+    "tool_calls_observed": [
+      "rust.project.inspect",
+      "rust.project.open"
+    ],
+    "version": "codex-cli 0.154.0"
+  },
+  "error": {
+    "message": "Inspector M8 runtime session failed",
+    "type": "RuntimeError"
+  },
+  "evidence_credential_scan": "clean",
+  "gemini_cli": {
+    "denied_actions": [
+      {
+        "action": "mcp",
+        "display_name": "CallMcpTool"
+      }
+    ],
+    "evidence": "{\"conversation_id\":\"14a822fd-3c71-4b2f-a61e-f30531bcfd26\",\"status\":\"SUCCESS\",\"response\":\"\",\"duration_seconds\":140.080921,\"num_turns\":1,\"usage\":{\"input_tokens\":80441,\"output_tokens\":2132,\"thinking_tokens\":1536,\"cache_read_tokens\":44679,\"total_tokens\":82573},\"denied_actions\":[{\"action\":\"mcp\",\"display_name\":\"CallMcpTool\"}]}\n",
+    "evidence_sha256": "fb414101090266b315800f1cb31f4d40019137f698f1cd452fd6e9c3e1b18ee4",
+    "isolated_home": false,
+    "mcp_enable_exit_code": 0,
+    "mcp_list_after": "NAME                        TYPE   STATUS    COMMAND/URL\nangular-cli                 stdio  disabled  npx -y @angular/cli mcp\napplication_design_center   http   disabled  https://designcenter.googleapis.com/mcp\ngemini_cloud_assist         http   disabled  https://geminicloudassist.googleapis.com/mcp\ngoogle-developer-knowledge  http   disabled  https://developerknowledge.googleapis.com/mcp\ngraphify                    stdio  disabled  uv run --with graphifyy --with mcp -m graphify.serve ${workspace.path}/graphify-out/graph.json\nplaywright                  stdio  disabled  npx -y @playwright/mcp@latest\nterraform                   stdio  disabled  docker run -i --rm hashicorp/terraform-mcp-server:1.1.0 --toolsets=registry\nyoutrack                    http   enabled   https://iumotionlabs.youtrack.cloud/mcp\n",
+    "mcp_list_before": "NAME                        TYPE   STATUS    COMMAND/URL\nangular-cli                 stdio  disabled  npx -y @angular/cli mcp\napplication_design_center   http   disabled  https://designcenter.googleapis.com/mcp\ngemini_cloud_assist         http   disabled  https://geminicloudassist.googleapis.com/mcp\ngoogle-developer-knowledge  http   disabled  https://developerknowledge.googleapis.com/mcp\ngraphify                    stdio  disabled  uv run --with graphifyy --with mcp -m graphify.serve ${workspace.path}/graphify-out/graph.json\nplaywright                  stdio  disabled  npx -y @playwright/mcp@latest\nterraform                   stdio  disabled  docker run -i --rm hashicorp/terraform-mcp-server:1.1.0 --toolsets=registry\nyoutrack                    http   enabled   https://iumotionlabs.youtrack.cloud/mcp\n",
+    "mcp_server_name": "rust_engineering_m8_attempt_17",
+    "model": "gemini-3.8-flash-high",
+    "reason": "agy -p denied the MCP tool call in headless mode with no permission rule configured (not forced with --dangerously-skip-permissions)",
+    "status": "unavailable",
+    "version": "1.2.3"
+  },
+  "head_commit": "8d77b3d82cdf7fbdfbd1b6839d8f1dccfae15eaa",
+  "inspector": {
+    "docker_free": {
+      "bridge_suffix_sha256": "9dce889b8537d6c9f369664dd2119ee4b81388c05f0ead1903e692193e3f6d94",
+      "bundle_sha256": "1fcbc2c4d4324b85f75c0b4cf9f125ee1f74df90d14eb3fea4ca96d0a1885f4e",
+      "contract_equality": true,
+      "generic_negatives": [
+        {
+          "kind": "unknown_tool",
+          "protocol_error": true,
+          "rpc_code": -32601
+        },
+        {
+          "kind": "invalid_args",
+          "protocol_error": true,
+          "rpc_code": -32602
+        },
+        {
+          "error_code": "PROJECT_NOT_FOUND",
+          "is_error": true,
+          "kind": "unknown_project_ref",
+          "status": "blocked"
+        },
+        {
+          "kind": "unknown_fields",
+          "protocol_error": true,
+          "rpc_code": -32602
+        }
+      ],
+      "generic_negatives_wire_confirmed": {
+        "invalid_args": true,
+        "unknown_fields": true,
+        "unknown_project_ref": true,
+        "unknown_tool": true
+      },
+      "mode": "docker_free",
+      "negative_rows": [
+        {
+          "error_code": "SANDBOX_DENIED",
+          "is_error": true,
+          "status": "blocked",
+          "tool": "rust.project.open"
+        },
+        {
+          "error_code": "TOOL_NOT_INSTALLED",
+          "is_error": true,
+          "status": "unavailable",
+          "tool": "rust.project.inspect"
+        },
+        {
+          "error_code": "TOOL_NOT_INSTALLED",
+          "is_error": true,
+          "status": "unavailable",
+          "tool": "rust.toolchain.inspect"
+        },
+        {
+          "error_code": "TOOL_NOT_INSTALLED",
+          "is_error": true,
+          "status": "unavailable",
+          "tool": "rust.check"
+        },
+        {
+          "error_code": "TOOL_NOT_INSTALLED",
+          "is_error": true,
+          "status": "unavailable",
+          "tool": "rust.fmt.check"
+        },
+        {
+          "error_code": "TOOL_NOT_INSTALLED",
+          "is_error": true,
+          "status": "unavailable",
+          "tool": "rust.clippy"
+        },
+        {
+          "error_code": "TOOL_NOT_INSTALLED",
+          "is_error": true,
+          "status": "unavailable",
+          "tool": "rust.test"
+        },
+        {
+          "error_code": "TOOL_NOT_INSTALLED",
+          "is_error": true,
+          "status": "unavailable",
+          "tool": "rust.test.nextest"
+        },
+        {
+          "error_code": "TOOL_NOT_INSTALLED",
+          "is_error": true,
+          "status": "unavailable",
+          "tool": "rust.dependencies.audit"
+        },
+        {
+          "error_code": "TOOL_NOT_INSTALLED",
+          "is_error": true,
+          "status": "unavailable",
+          "tool": "rust.diagnostics.explain"
+        },
+        {
+          "error_code": "QUALITY_GATE_UNAVAILABLE",
+          "is_error": true,
+          "status": "unavailable",
+          "tool": "rust.quality.gate"
+        },
+        {
+          "error_code": null,
+          "is_error": false,
+          "status": "passed",
+          "tool": "rust.catalog.status"
+        },
+        {
+          "error_code": "CATALOG_UNAVAILABLE",
+          "is_error": true,
+          "status": "unavailable",
+          "tool": "rust.crate.search"
+        },
+        {
+          "error_code": "CATALOG_UNAVAILABLE",
+          "is_error": true,
+          "status": "unavailable",
+          "tool": "rust.crate.inspect"
+        },
+        {
+          "error_code": "permission_denied",
+          "is_error": true,
+          "status": "blocked",
+          "tool": "rust.manifest.patch"
+        },
+        {
+          "error_code": "permission_denied",
+          "is_error": true,
+          "status": "blocked",
+          "tool": "rust.fmt.apply"
+        },
+        {
+          "error_code": "permission_denied",
+          "is_error": true,
+          "status": "blocked",
+          "tool": "rust.fix.apply"
+        },
+        {
+          "error_code": "permission_denied",
+          "is_error": true,
+          "status": "blocked",
+          "tool": "rust.dependency.add"
+        },
+        {
+          "error_code": "permission_denied",
+          "is_error": true,
+          "status": "blocked",
+          "tool": "rust.dependency.remove"
+        },
+        {
+          "error_code": "TOOL_NOT_INSTALLED",
+          "is_error": true,
+          "status": "unavailable",
+          "tool": "rust.coverage"
+        },
+        {
+          "error_code": "TOOL_NOT_INSTALLED",
+          "is_error": true,
+          "status": "unavailable",
+          "tool": "rust.semver.check"
+        },
+        {
+          "error_code": "TOOL_NOT_INSTALLED",
+          "is_error": true,
+          "status": "unavailable",
+          "tool": "rust.mutation.test"
+        },
+        {
+          "error_code": "SECURITY_POLICY_INVALID",
+          "is_error": true,
+          "status": "unavailable",
+          "tool": "rust.deny"
+        },
+        {
+          "error_code": "MISSING_OFFLINE_DATA",
+          "is_error": true,
+          "status": "unavailable",
+          "tool": "rust.unsafe.scan"
+        },
+        {
+          "error_code": "TOOL_NOT_INSTALLED",
+          "is_error": true,
+          "status": "unavailable",
+          "tool": "rust.supply_chain.inspect"
+        },
+        {
+          "error_code": "TOOL_NOT_INSTALLED",
+          "is_error": true,
+          "status": "unavailable",
+          "tool": "rust.quality.gate.v2"
+        },
+        {
+          "error_code": "MISSING_OFFLINE_DATA",
+          "is_error": true,
+          "status": "unavailable",
+          "tool": "rust.miri"
+        },
+        {
+          "error_code": "MISSING_OFFLINE_DATA",
+          "is_error": true,
+          "status": "unavailable",
+          "tool": "rust.benchmark.run"
+        },
+        {
+          "error_code": "ARTIFACT_NOT_FOUND",
+          "is_error": true,
+          "status": "blocked",
+          "tool": "rust.benchmark.compare"
+        },
+        {
+          "error_code": "PROFILING_NOT_AUTHORIZED",
+          "is_error": true,
+          "status": "blocked",
+          "tool": "rust.profile.flamegraph"
+        },
+        {
+          "error_code": "MISSING_OFFLINE_DATA",
+          "is_error": true,
+          "status": "unavailable",
+          "tool": "rust.binary.bloat"
+        }
+      ],
+      "preview_discrepancies": [],
+      "resources_list_empty": true,
+      "session": {
+        "argv_sha256": "0d1cae30aac61eff0812c52bf0c34ffd18622b4b1ad8889df39976d29c54d39d",
+        "duration_seconds": 4.138,
+        "exit_code": 0,
+        "overflow": false,
+        "stderr_bytes": 98565,
+        "stderr_sha256": "a09ad84ce952190bfdbc79dc38c3eb3495d11f334cd629bd23daa872a2ad55b9",
+        "stdout_bytes": 17809,
+        "stdout_sha256": "705f4d624e1389f44717e6b885ac0082653a61d8644c887a23278edf47a5b3b9"
+      },
+      "stable_discrepancies": [],
+      "version": "2.5.0",
+      "wire_confirmation": "positional",
+      "wire_confirmation_note": "the server-direction row following each call is matched by wire position, not by request id -- the proxy's safe_keys does not record `id`, so this is sound for the Inspector's sequential session but would not hold against a client that interleaves calls"
+    }
+  },
+  "observed_versions": {
+    "claude_code": {
+      "effort": "medium",
+      "expected": "2.1.268 (Claude Code)",
+      "mandatory": false,
+      "model": "claude-sonnet-5",
+      "observed": "2.1.268 (Claude Code)"
+    },
+    "codex": {
+      "effort": "medium",
+      "expected": "codex-cli 0.154.0",
+      "mandatory": true,
+      "model": "gpt-5.6-sol",
+      "observed": "codex-cli 0.154.0"
+    },
+    "gemini_cli": {
+      "expected": "1.2.2",
+      "mandatory": false,
+      "model": "gemini-3.8-flash-high",
+      "observed": "1.2.3"
+    },
+    "inspector": {
+      "expected": "2.5.0",
+      "observed": "2.5.0"
+    }
+  },
+  "rust_image": "sha256:384a1742ecc53cdd3a9c0bf36c6f8b66db73ddd118aeeae6e55654ea998ae36a",
+  "schema": "rust-mcp-m8-clients-v1",
+  "server_version": {
+    "compiled_local": false,
+    "format_version": 1,
+    "operation": "version",
+    "package": "rust-engineering-mcp",
+    "target_arch": "aarch64",
+    "target_os": "macos",
+    "version": "0.8.0"
+  },
+  "status": "failed",
+  "tree_dirty": true
+}

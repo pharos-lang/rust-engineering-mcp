@@ -7,7 +7,9 @@ use super::{
     project::Registry,
     workers::{WorkerError, Workers},
 };
-pub(super) use analyzer_action::{ANALYZER_ACTION_APPLY_NAME, AnalyzerActionApplyTool};
+pub(super) use analyzer_action::{
+    ANALYZER_ACTION_APPLY_NAME, AnalyzerActionApplyTool, definition as analyzer_action_definition,
+};
 use rmcp::{
     model::{CallToolRequestParams, CallToolResult, ErrorData, Tool, ToolAnnotations},
     service::{RequestContext, RoleServer},
@@ -599,7 +601,7 @@ enum ReceiptState {
 
 #[derive(Clone, Serialize, JsonSchema)]
 #[serde(deny_unknown_fields)]
-struct Output {
+pub(super) struct Output {
     status: Status,
     error_code: Option<Reason>,
     error_message: Option<&'static str>,
@@ -891,14 +893,7 @@ pub(super) struct MutationTool<I> {
     plans: Arc<Mutex<SharedPlans>>,
 }
 impl<I: MutationInput> MutationTool<I> {
-    pub fn new(
-        registry: Arc<Mutex<Registry>>,
-        workers: Workers,
-        inspector: Arc<RustProjectInspector>,
-        ready: Arc<AtomicBool>,
-        config: Option<WriteConfig>,
-        plans: Arc<Mutex<SharedPlans>>,
-    ) -> Result<Self, ErrorData> {
+    pub(super) fn definition() -> Result<(Contract<I, Output>, Tool), ErrorData> {
         let contract = Contract::<I, Output>::new()?;
         let definition = Tool::new(I::NAME, I::DESCRIPTION, (*contract.input_schema).clone())
             .with_raw_output_schema(Arc::clone(&contract.output_schema))
@@ -909,6 +904,18 @@ impl<I: MutationInput> MutationTool<I> {
                     .idempotent(false)
                     .open_world(false),
             );
+        Ok((contract, definition))
+    }
+
+    pub fn new(
+        registry: Arc<Mutex<Registry>>,
+        workers: Workers,
+        inspector: Arc<RustProjectInspector>,
+        ready: Arc<AtomicBool>,
+        config: Option<WriteConfig>,
+        plans: Arc<Mutex<SharedPlans>>,
+    ) -> Result<Self, ErrorData> {
+        let (contract, definition) = Self::definition()?;
         Ok(Self {
             definition,
             contract,

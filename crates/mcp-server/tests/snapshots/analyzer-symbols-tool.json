@@ -5,7 +5,7 @@
     "openWorldHint": false,
     "readOnlyHint": true
   },
-  "description": "Read symbols from a captured Rust project using the host-approved rust-analyzer 1.98.1 (aarch64-unknown-linux-gnu) inside the M6 guest image. Snapshot semantics are latest_known and non-atomic: the capture is not a live filesystem view. Build scripts, proc macros and check-on-save stay disabled; only textDocument/documentSymbol or workspace/symbol run, never cargo check. Results are bounded to 512 visible entries per call; an over-budget answer is reported incomplete, never silently truncated. Positions are Unicode-scalar, 1-based Position values, never byte offsets or UTF-16 units. Requires the host --rust runtime configured with the approved M6 image; without it the tool is unavailable. Hover, go-to-definition and rename are not offered by this or any other tool.",
+  "description": "Preview (ADR-086): Read symbols from a captured Rust project using the host-approved rust-analyzer 1.98.1 (aarch64-unknown-linux-gnu) inside the M6 guest image. Snapshot semantics are latest_known and non-atomic: the capture is not a live filesystem view. Build scripts, proc macros and check-on-save stay disabled; only textDocument/documentSymbol or workspace/symbol run, never cargo check. Results are bounded to 512 visible entries per call; an over-budget answer is reported incomplete, never silently truncated. Positions are Unicode-scalar, 1-based Position values, never byte offsets or UTF-16 units. Requires the host --rust runtime configured with the approved M6 image; without it the tool is unavailable. Hover, go-to-definition and rename are not offered by this or any other tool.",
   "inputSchema": {
     "$schema": "https://json-schema.org/draft/2020-12/schema",
     "oneOf": [

@@ -1,6 +1,103 @@
 # Changelog
 
-## Sin publicar
+## 0.8.0 — freeze de contratos (sin publicar; RC en M8-09)
+
+### Seguridad de dependencias (2026-09-15)
+
+- **RUSTSEC-2026-0285 (`rustls` 0.23.43, TLS 1.3, severidad media)**: `Cargo.lock`
+  sube `rustls` a `0.23.45` (única entrada cambiada; dependencia transitiva de
+  `reqwest`/`tokio-rustls`/`lancedb`, sin pin directo). Detectado por el check
+  `supply chain` del PR #22 con la base de advisories del día; el gate local usaba
+  `cargo audit --no-fetch` con una base anterior. Recalificación: gates `core` y
+  `full` repetidos sobre el nuevo lock antes de RC1.
+
+### Migration notes 0.3.0 → 0.8.0
+
+- **Inventario: 31 → 36 tools.** Se añaden cinco `rust.analyzer.*`
+  (`.symbols`, `.references`, `.diagnostics`, `.actions`, `.action.apply`),
+  clasificadas `preview` bajo la política de estabilidad de
+  [ADR-086](docs/adr/ADR-086-deprecation-and-freeze-policy.md). Las 31 tools
+  restantes quedan `stable`, condicionadas a superar la matriz de clientes
+  stock M8-04 antes de RC1 (ADR-086 §1); una tool que no la supere se degrada
+  a `preview` en vez de retirarse.
+- **Nuevo grant de host** `--allow-analyzer-action-write WORKSPACE_ROOT`
+  (requerido por `rust.analyzer.action.apply`; sin él la tool es
+  `unavailable/SANDBOX_DENIED`). El flag `--rust-image` existe desde M1; lo
+  nuevo en 0.8.0 es la **imagen de runtime M6** que admite
+  ([ADR-085](docs/adr/ADR-085-m6-runtime-admission.md)), requerida por las
+  cinco tools `rust.analyzer.*` (sin ella son `unavailable`).
+- **30 contratos `stable` byte-idénticos a `0.3.0`.** El único cambio de
+  schema en una tool `stable` es `rust.binary.bloat`: su `inputSchema` y su
+  `outputSchema` cambian únicamente en el texto de `description` de
+  `$defs/BloatProfile` (la ruta de evidencia citada en ese texto se reescribió
+  por la hygiene del repo); no cambia validación, tipos, campos ni
+  `annotations` (`docs/validation/M8/02-schema-diff.json`,
+  `keys_changed: [inputSchema, outputSchema]`, `annotations_changed: false`).
+- **Las trece tools M1 son byte-idénticas a `0.1.0`** (verificado
+  `git diff v0.1.0 HEAD` sobre sus snapshots de contrato).
+- **Deprecaciones anunciadas en 0.8.0: ninguna.** Por ADR-086 §4, nada que no
+  se anuncie deprecado en 0.8.0 puede retirarse en 1.0.
+- **Nuevo subcomando `rust-engineering-mcp contract [--json | --human]`**
+  (spec §56), clase `stable` desde 0.8.0 junto con su documento en disco
+  (`document_kind: rust_engineering_capabilities`, `format_version: 1`); un
+  cambio de formato es minor release con migration notes. Solo `--json` (con
+  `format_version: 1`) es el contrato `stable`; `--human` es una
+  representación informativa del mismo documento y no forma parte del
+  contrato. Publica
+  `document_kind`, `format_version`, `server_version`,
+  `protocol{primary_version, negotiable_versions, sdk}`,
+  `tools{name → stability, annotations, input_schema_sha256,
+  output_schema_sha256, description_sha256, executes_project_code,
+  requires_runtime}`, `resources[]{uri_template, stability}` y `tool_count`.
+  Cadena de verificación de tres eslabones: los protocol tests exigen
+  igualdad servidor vivo ↔ snapshots; `tests/cli.rs` exige igualdad
+  `contract --json` ↔ snapshots; la etapa `contract-freeze` del gate `core`
+  exige igualdad snapshots ↔ manifiesto de freeze
+  `docs/validation/M8/freeze-0.8.0.json`.
+- **Clase `preview` visible en la `description`** de las cinco tools
+  `rust.analyzer.*` con el prefijo `Preview (ADR-086): `.
+- **Alcance de hosts para 1.0: macOS ARM64 únicamente**
+  ([ADR-087](docs/adr/ADR-087-1.0-host-scope.md)); Linux/Windows x86_64 siguen
+  siendo CI de portabilidad, sin artifact ni calificación.
+- **Política de migración, downgrade y backup/restore**
+  ([ADR-088](docs/adr/ADR-088-migration-rollback-policy.md)): ningún formato
+  en disco requiere migración de bytes entre `0.3.0` y `0.8.0`; `doctor` gana
+  un preflight pasivo de journals de mutación pendientes antes de un
+  downgrade; backup/restore queda documentado como procedimiento operativo
+  sin CLI nueva (`docs/compatibility.md` §Upgrade, rollback y backup).
+- **`resources/templates/list` y `prompts/list` llevan `ttlMs`/`cacheScope`
+  (V03 §3, SEP-2549).** Sin override, el SDK (`rmcp` 3.2.0) devolvía estos
+  dos listados sin `ttlMs`/`cacheScope`, a diferencia de `tools/list` y
+  `resources/list`; el cambio es aditivo y los 36 snapshots `*-tool.json` no
+  se tocan. Las cuatro respuestas de listado llevan ahora `ttlMs: 0` /
+  `cacheScope: "private"` en toda versión de protocolo soportada, incluidas
+  las cuatro versiones legacy (antes solo se probaba una).
+- **`doctor.mutation_journals` corrige un falso negativo de
+  `downgrade_blocked` (V03 D-1, ADR-088 §3).** `MutationRecordSummary` gana
+  `kind` (campo aditivo). `mutation_journals` publica `kinds{kind → pending,
+  terminal}` por los seis kinds de operación, y `downgrade_blocked` pasa a
+  `pending > 0 ∨ existe un registro con un kind ajeno a los cinco que
+  `0.3.0` reconoce` (`manifest_patch`, `format_apply`, `fix_apply`,
+  `dependency_add`, `dependency_remove`), listados en
+  `downgrade_blocking_kinds`; antes, un journal `analyzer_action_apply` ya
+  **committed** reportaba `downgrade_blocked: false` porque solo se contaban
+  fases pendientes, pese a que `0.3.0` lo rechaza en cuanto lo lee. La nota
+  de downgrade pasa a «recover, complete or prune (`mutation prune`) with
+  0.8.0 before installing an older binary»; un lock ocupado por una mutación
+  concurrente de `serve` (`Busy`) tiene su propia nota («journal busy»),
+  distinta de un store realmente ilegible («unreadable or unknown»).
+  `doctor` acepta `--state-root` solo, sin el resto de la tupla Docker,
+  únicamente para esta sección (misma lectura que `mutation list
+  --state-root`); `serve` sigue exigiendo la tupla completa.
+- **La plantilla `rust-quality-artifact` pasa a RFC6570 (V03 S-1, contrato
+  antes del freeze).** `…/{quality_job_id_or_artifact_id}?offset={n}&length={n}`
+  expandía `offset` y `length` desde la misma variable `{n}`, y no
+  describía las URIs de índice (sin query); la forma correcta es
+  `…/{quality_job_id_or_artifact_id}{?offset,length}`, publicada tanto por
+  `resources/templates/list` (`stdio.rs`) como por `contract --json`
+  `resources[]` (`capability_document.rs`), ahora construidas desde una
+  única constante compartida (`resources::QUALITY_TEMPLATE_SUFFIX`) y
+  verificadas por igualdad exacta entre ambas listas.
 
 - **M6-04/M6-05: `rust.analyzer.actions` y `rust.analyzer.action.apply`**
   (rama `ai/m6-analyzer`). El inventario público pasa de 34 a 36 tools; los 34
@@ -19,8 +116,9 @@
   `compile_verification` y la descripción pide revisar cada archivo del diff y
   ejecutar `rust.check` después. `MutationKind::AnalyzerActionApply` publica
   su propia vista de validación (`workspace_edit_structural_only`); las cinco
-  tools M2 no cambian de contrato. Calificación nativa pendiente del
-  orquestador.
+  tools M2 no cambian de contrato. Calificación nativa cerrada en el gate
+  `full` de M6 (`docs/validation/M6/M6-full-gate.json`,
+  `sha256:69a0be14c1e2ae0cce07014daeba1818c49fa115aa3b67313bb0baffe07f34d0`).
 
 - **M6-02/M6-03: `rust.analyzer.references` y `rust.analyzer.diagnostics`**
   (rama `ai/m6-analyzer`). El inventario público pasa de 32 a 34 tools.
@@ -40,8 +138,9 @@
   anotaciones y mismo runtime M6 admitido que `rust.analyzer.symbols`; los 32
   snapshots existentes quedan sin cambios. Véase
   [ADR-084](docs/adr/ADR-084-rust-analyzer-runtime-and-lsp-lifecycle.md) §2
-  (enmienda de la fase 6). M6 sigue en desarrollo local, sin integración
-  remota, PR ni release; calificación nativa pendiente del orquestador.
+  (enmienda de la fase 6). Calificación nativa cerrada en el gate `full` de
+  M6 (`docs/validation/M6/M6-full-gate.json`,
+  `sha256:69a0be14c1e2ae0cce07014daeba1818c49fa115aa3b67313bb0baffe07f34d0`).
 
 - **M6-01: primera tool de análisis, `rust.analyzer.symbols`** (rama
   `ai/m6-analyzer`). El inventario público pasa de 31 a 32 tools. Lee símbolos
@@ -63,8 +162,9 @@
   [ADR-082](docs/adr/ADR-082-m6-runtime-provisioning.md),
   [ADR-083](docs/adr/ADR-083-analyzer-contract-and-actions.md),
   [ADR-084](docs/adr/ADR-084-rust-analyzer-runtime-and-lsp-lifecycle.md) y
-  [ADR-085](docs/adr/ADR-085-m6-runtime-admission.md). M6 sigue en desarrollo
-  local, sin integración remota, PR ni release.
+  [ADR-085](docs/adr/ADR-085-m6-runtime-admission.md). Calificación nativa
+  cerrada en el gate `full` de M6 (`docs/validation/M6/M6-full-gate.json`,
+  `sha256:69a0be14c1e2ae0cce07014daeba1818c49fa115aa3b67313bb0baffe07f34d0`).
 
 - **Reordenación del repositorio sin cambios de producto** (rama
   `ai/repo-hygiene`, 2026-09-11). La evidencia de calificación pasa a un

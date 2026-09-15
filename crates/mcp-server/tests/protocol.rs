@@ -2200,6 +2200,124 @@ fn opaque_resources_are_not_enumerated_and_invalid_authority_is_uniform() -> Tes
 }
 
 #[test]
+fn resources_templates_and_prompts_lists_carry_ttl_and_cache_scope() -> TestResult {
+    for version in std::iter::once(VERSION).chain(LEGACY) {
+        let modern_wire = version == VERSION;
+        let mut server = Server::start()?;
+        if modern_wire {
+            server.send(modern(json!(1), "server/discover"))?;
+            assert_eq!(
+                server.response(json!(1))?["result"]["resultType"],
+                "complete"
+            );
+        } else {
+            server.send(initialize(1, version))?;
+            assert_eq!(
+                server.response(json!(1))?["result"]["protocolVersion"],
+                version
+            );
+            server.send(json!({"jsonrpc":"2.0","method":"notifications/initialized"}))?;
+        }
+        let make = |id, method| {
+            if modern_wire {
+                modern(json!(id), method)
+            } else {
+                json!({"jsonrpc":"2.0","id":id,"method":method,"params":{}})
+            }
+        };
+
+        server.send(make(2, "resources/list"))?;
+        let resources = server.response(json!(2))?;
+        assert_eq!(resources["result"]["resources"], json!([]));
+        assert_eq!(resources["result"]["ttlMs"], 0);
+        assert_eq!(resources["result"]["cacheScope"], "private");
+        if modern_wire {
+            assert_eq!(resources["result"]["resultType"], "complete");
+        } else {
+            assert!(resources["result"].get("resultType").is_none());
+        }
+
+        server.send(make(3, "resources/templates/list"))?;
+        let templates = server.response(json!(3))?;
+        assert_eq!(
+            templates["result"]["resourceTemplates"],
+            json!([
+                {
+                    "uriTemplate": "rust-artifact://{project_ref}/{artifact_id}",
+                    "name": "rust-artifact",
+                    "description": "Ephemeral, base64-encoded artifact produced by a tool call (e.g. rust.check diagnostics); readable only by the session that produced it.",
+                    "mimeType": "application/octet-stream"
+                },
+                {
+                    "uriTemplate": "rust-quality-artifact://{project_ref}/{quality_job_id_or_artifact_id}{?offset,length}",
+                    "name": "rust-quality-artifact",
+                    "description": "Durable quality-gate artifact: a JSON index page for a job ID, or an owner-bound byte-range chunk for an artifact ID."
+                }
+            ])
+        );
+        assert_eq!(templates["result"]["ttlMs"], 0);
+        assert_eq!(templates["result"]["cacheScope"], "private");
+
+        server.send(make(4, "prompts/list"))?;
+        let prompts = server.response(json!(4))?;
+        assert_eq!(prompts["result"]["prompts"], json!([]));
+        assert_eq!(prompts["result"]["ttlMs"], 0);
+        assert_eq!(prompts["result"]["cacheScope"], "private");
+
+        server.send(make(5, "tools/list"))?;
+        let tools = server.response(json!(5))?;
+        assert_eq!(tools["result"]["tools"].as_array().map(Vec::len), Some(36));
+        assert_eq!(tools["result"]["ttlMs"], 0);
+        assert_eq!(tools["result"]["cacheScope"], "private");
+
+        server.finish(0)?;
+    }
+    Ok(())
+}
+
+/// S-2: the wire `resources/templates/list` a live session serves and the
+/// static `contract --json` `resources[]` document are built from the same
+/// `resources::PREFIX`/`QUALITY_PREFIX`/`QUALITY_TEMPLATE_SUFFIX` source of
+/// truth; this exercises both independently and requires exact equality,
+/// guarding against the two ever drifting apart in text.
+#[test]
+fn resource_templates_wire_list_matches_the_contract_document() -> TestResult {
+    // The resource template list does not vary by negotiated protocol
+    // version (see the neighboring `resources_templates_and_prompts_lists_
+    // carry_ttl_and_cache_scope` test); a legacy version keeps this test to
+    // the simpler classic `initialize` handshake.
+    let version = "2025-06-18";
+    let mut server = Server::start()?;
+    server.send(initialize(1, version))?;
+    assert_eq!(
+        server.response(json!(1))?["result"]["protocolVersion"],
+        version
+    );
+    server.send(json!({"jsonrpc":"2.0","method":"notifications/initialized"}))?;
+    server.send(json!({"jsonrpc":"2.0","id":2,"method":"resources/templates/list","params":{}}))?;
+    let templates = server.response(json!(2))?;
+    let wire = templates["result"]["resourceTemplates"]
+        .as_array()
+        .ok_or("resourceTemplates")?
+        .clone();
+    server.finish(0)?;
+
+    let contract = Command::new(env!("CARGO_BIN_EXE_rust-engineering-mcp"))
+        .args(["contract", "--json"])
+        .env_clear()
+        .output()?;
+    assert!(contract.status.success());
+    let document: Value = serde_json::from_slice(&contract.stdout)?;
+    let resources = document["resources"].as_array().ok_or("resources")?;
+
+    assert_eq!(resources.len(), wire.len());
+    for (doc_entry, wire_entry) in resources.iter().zip(&wire) {
+        assert_eq!(doc_entry["uri_template"], wire_entry["uriTemplate"]);
+    }
+    Ok(())
+}
+
+#[test]
 fn clippy_closed_profiles_and_options_are_enforced_in_all_wire_versions() -> TestResult {
     for version in std::iter::once(VERSION).chain(LEGACY) {
         let mut server = Server::start()?;

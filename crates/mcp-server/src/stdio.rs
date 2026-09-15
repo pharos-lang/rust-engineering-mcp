@@ -8,6 +8,7 @@ mod benchmark;
 mod benchmark_compare;
 mod bloat;
 mod budget;
+mod capability_document;
 mod catalog;
 mod check;
 mod clock;
@@ -38,6 +39,7 @@ mod quality_artifacts;
 mod resources;
 mod security_tool;
 mod semver;
+mod stability;
 mod tasks;
 mod testing;
 mod toolchain;
@@ -53,9 +55,9 @@ use std::time::Duration;
 use rmcp::model::{
     CacheScope, CallToolRequestParams, CallToolResponse, CallToolResult, CancelTaskParams,
     CustomRequest, CustomResult, ErrorCode, ErrorData, GetTaskParams, GetTaskResult,
-    Implementation, ListToolsResult, PaginatedRequestParams, ProtocolVersion,
-    ReadResourceRequestParams, ReadResourceResponse, ServerCapabilities, ServerInfo, Tool,
-    UpdateTaskParams,
+    Implementation, ListPromptsResult, ListResourceTemplatesResult, ListResourcesResult,
+    ListToolsResult, PaginatedRequestParams, ProtocolVersion, ReadResourceRequestParams,
+    ReadResourceResponse, ResourceTemplate, ServerCapabilities, ServerInfo, Tool, UpdateTaskParams,
 };
 use rmcp::service::{QuitReason, RequestContext, RoleServer};
 use rmcp::{ServerHandler, service::ServerInitializeError, service::serve_server_with_ct};
@@ -821,6 +823,62 @@ impl ServerHandler for EngineeringServer {
         self.resources.read(request, context).await
     }
 
+    async fn list_resources(
+        &self,
+        _request: Option<PaginatedRequestParams>,
+        _context: RequestContext<RoleServer>,
+    ) -> Result<ListResourcesResult, ErrorData> {
+        // Resources are dynamic per session (docs/tools.md "Resources dinámicas");
+        // there is no static catalog to enumerate here.
+        Ok(ListResourcesResult::default()
+            .with_ttl_ms(0)
+            .with_cache_scope(CacheScope::Private))
+    }
+
+    async fn list_resource_templates(
+        &self,
+        _request: Option<PaginatedRequestParams>,
+        _context: RequestContext<RoleServer>,
+    ) -> Result<ListResourceTemplatesResult, ErrorData> {
+        // Mirrors capability_document::RESOURCE_TEMPLATES, built from the same
+        // resources::PREFIX/QUALITY_PREFIX source of truth.
+        Ok(ListResourceTemplatesResult::with_all_items(vec![
+            ResourceTemplate::new(
+                format!("{}{{project_ref}}/{{artifact_id}}", resources::PREFIX),
+                "rust-artifact",
+            )
+            .with_description(
+                "Ephemeral, base64-encoded artifact produced by a tool call (e.g. rust.check \
+                 diagnostics); readable only by the session that produced it.",
+            )
+            .with_mime_type("application/octet-stream"),
+            ResourceTemplate::new(
+                format!(
+                    "{}{}",
+                    resources::QUALITY_PREFIX,
+                    resources::QUALITY_TEMPLATE_SUFFIX
+                ),
+                "rust-quality-artifact",
+            )
+            .with_description(
+                "Durable quality-gate artifact: a JSON index page for a job ID, or an \
+                 owner-bound byte-range chunk for an artifact ID.",
+            ),
+        ])
+        .with_ttl_ms(0)
+        .with_cache_scope(CacheScope::Private))
+    }
+
+    async fn list_prompts(
+        &self,
+        _request: Option<PaginatedRequestParams>,
+        _context: RequestContext<RoleServer>,
+    ) -> Result<ListPromptsResult, ErrorData> {
+        Ok(ListPromptsResult::default()
+            .with_ttl_ms(0)
+            .with_cache_scope(CacheScope::Private))
+    }
+
     async fn get_task(
         &self,
         request: GetTaskParams,
@@ -867,6 +925,14 @@ impl ServerHandler for EngineeringServer {
             None,
         ))
     }
+}
+
+/// spec §56 static capabilities document (M8-02 decision 3): the same 36 tool
+/// definitions `list_tools` advertises, with per-tool stability, annotations,
+/// canonical schema/description hashes and runtime requirements. Built with no
+/// project root, Docker or network access.
+pub fn contract(json: bool) -> ExitCode {
+    capability_document::run(json)
 }
 
 pub fn run(config: HostConfig) -> ExitCode {
