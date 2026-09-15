@@ -7,6 +7,8 @@ import importlib.util
 import io
 import json
 import pathlib
+import re
+import subprocess
 import tempfile
 import unittest
 from unittest import mock
@@ -1098,6 +1100,251 @@ class WithRuntimeHostSeparationTests(unittest.TestCase):
             self.assertEqual(codex_gate.call_args.args[1], pathlib.Path(docker_free_socket))
 
 
+class HarnessOrderTests(unittest.TestCase):
+    """W28c: the deterministic Inspector evidence runs first -- both
+    `docker_free` and (with `--with-runtime`) `runtime` -- before any model
+    turn, so a model turn hanging past its own bounded timeout can never
+    take that evidence down with it, and Codex's mandatory turn no longer
+    the harness's very first blocking call."""
+
+    def _versions(self):
+        return {
+            "inspector": {"observed": "2.5.0"}, "codex": {"observed": "codex-cli 0.154.0"},
+            "claude_code": {"observed": None}, "gemini_cli": {"observed": None},
+        }
+
+    def _run(self, tmp, with_runtime):
+        attempt_dir = pathlib.Path(tmp) / "attempt-1"
+        attempt_dir.mkdir()
+        m3_stub = mock.Mock()
+        m3_stub.file_digest.return_value = "deadbeef"
+        m3_stub.assert_no_credentials = mock.Mock(return_value=None)
+        order: list[str] = []
+
+        def fake_run_inspector(attempt, mode, argv, timeout, observed_version):
+            order.append(f"inspector:{mode}")
+            return {"contract_equality": True}
+
+        def fake_codex_gate(attempt, socket, observed_version, timeout=600):
+            order.append("codex")
+            return {"classification": "passed"}
+
+        def fake_claude_gate(attempt, socket, with_runtime, observed_version):
+            order.append("claude_code")
+            return {"status": "unavailable"}
+
+        def fake_gemini_gate(attempt, socket, observed_version):
+            order.append("gemini_cli")
+            return {"status": "unavailable"}
+
+        with (
+            mock.patch.object(M8, "load_m3", return_value=m3_stub),
+            mock.patch.object(M8, "client_versions", return_value=self._versions()),
+            mock.patch.object(M8, "preconditions", return_value={}),
+            mock.patch.object(M8, "mandatory_unsatisfied", return_value=[]),
+            mock.patch.object(M8, "next_attempt", return_value=attempt_dir),
+            mock.patch.object(M8, "git_head_commit", return_value="cafefeed"),
+            mock.patch.object(M8, "git_tree_dirty", return_value=False),
+            mock.patch.object(M8, "server_version", return_value={"version": "0.8.0"}),
+            mock.patch.object(M8, "run_inspector", side_effect=fake_run_inspector),
+            mock.patch.object(M8, "codex_gate", side_effect=fake_codex_gate),
+            mock.patch.object(M8, "claude_gate", side_effect=fake_claude_gate),
+            mock.patch.object(M8, "gemini_gate", side_effect=fake_gemini_gate),
+            mock.patch.object(M8, "eof_gate", return_value={"exited_on_eof": True}),
+            mock.patch.object(M8, "compose_prior_receipts", return_value={}),
+            mock.patch.object(M8, "validate_protocol_metadata", return_value={}),
+            mock.patch.object(M8, "CURRENT", pathlib.Path(tmp) / "current.json"),
+        ):
+            socket = str(pathlib.Path(tmp) / "real.sock") if with_runtime else None
+            M8.run(with_runtime, socket)
+        return order
+
+    def test_with_runtime_runs_both_inspector_sessions_before_any_model_turn(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            order = self._run(tmp, True)
+        self.assertEqual(
+            order,
+            ["inspector:docker_free", "inspector:runtime", "codex", "claude_code", "gemini_cli"],
+        )
+
+    def test_without_runtime_docker_free_inspector_still_precedes_codex(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            order = self._run(tmp, False)
+        self.assertEqual(order, ["inspector:docker_free", "codex", "claude_code", "gemini_cli"])
+
+
+class IncrementalReceiptTests(unittest.TestCase):
+    """W28c: `receipt.json` is written after every block, not only at the
+    end, so a harness killed mid-run still leaves the evidence gathered so
+    far on disk. Every write but the last reports `status: "running"`."""
+
+    def test_save_receipt_marks_every_write_but_the_last_as_running(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            attempt = pathlib.Path(tmp)
+            receipt = {"status": "failed", "codex": {"classification": "passed"}}
+            M8.save_receipt(attempt, receipt, final=False)
+            running = json.loads((attempt / "receipt.json").read_text())
+            self.assertEqual(running["status"], "running")
+            self.assertEqual(running["codex"], {"classification": "passed"})
+            M8.save_receipt(attempt, receipt, final=True)
+            final = json.loads((attempt / "receipt.json").read_text())
+            self.assertEqual(final["status"], "failed")
+
+    def test_run_writes_the_receipt_after_every_block(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            attempt_dir = pathlib.Path(tmp) / "attempt-1"
+            attempt_dir.mkdir()
+            m3_stub = mock.Mock()
+            m3_stub.file_digest.return_value = "deadbeef"
+            m3_stub.assert_no_credentials = mock.Mock(return_value=None)
+            snapshots: list[dict] = []
+
+            def fake_save_json(path, value, exclusive=False):
+                snapshots.append(json.loads(json.dumps(value)))
+
+            m3_stub.save_json = mock.Mock(side_effect=fake_save_json)
+            versions = {
+                "inspector": {"observed": "2.5.0"}, "codex": {"observed": "codex-cli 0.154.0"},
+                "claude_code": {"observed": None}, "gemini_cli": {"observed": None},
+            }
+            with (
+                mock.patch.object(M8, "load_m3", return_value=m3_stub),
+                mock.patch.object(M8, "client_versions", return_value=versions),
+                mock.patch.object(M8, "preconditions", return_value={}),
+                mock.patch.object(M8, "mandatory_unsatisfied", return_value=[]),
+                mock.patch.object(M8, "next_attempt", return_value=attempt_dir),
+                mock.patch.object(M8, "git_head_commit", return_value="cafefeed"),
+                mock.patch.object(M8, "git_tree_dirty", return_value=False),
+                mock.patch.object(M8, "server_version", return_value={"version": "0.8.0"}),
+                mock.patch.object(M8, "run_inspector", return_value={"contract_equality": True}),
+                mock.patch.object(M8, "codex_gate", return_value={"classification": "passed"}),
+                mock.patch.object(M8, "claude_gate", return_value={"status": "unavailable"}),
+                mock.patch.object(M8, "gemini_gate", return_value={"status": "unavailable"}),
+                mock.patch.object(M8, "validate_protocol_metadata", return_value={}),
+                mock.patch.object(M8, "CURRENT", pathlib.Path(tmp) / "current.json"),
+            ):
+                M8.run(False, None)
+            # One write after Inspector, one after each of the 3 model turns,
+            # one final write, and one for the passing `CURRENT` copy: 6 total.
+            self.assertEqual(len(snapshots), 6)
+            self.assertTrue(all(s["status"] == "running" for s in snapshots[:4]))
+            self.assertEqual(snapshots[4]["status"], "passed")
+            receipt_calls = m3_stub.save_json.call_args_list[:5]
+            for call in receipt_calls:
+                self.assertFalse(call.kwargs.get("exclusive"))
+
+
+class ModelTurnResilienceTests(unittest.TestCase):
+    """W28c: a model turn that expires or raises is recorded `unavailable`
+    with its own reason, and the harness runs the remaining turns instead of
+    dying -- only Inspector (both modes) and Codex's own `passed`
+    classification still gate the global `status`."""
+
+    def test_codex_turn_classifies_a_timeout(self):
+        with mock.patch.object(
+            M8, "codex_gate",
+            side_effect=subprocess.TimeoutExpired(cmd=["codex"], timeout=900),
+        ):
+            result = M8.codex_turn(pathlib.Path("/tmp/attempt"), pathlib.Path("/tmp/sock"), "v", 900)
+        self.assertEqual(result["classification"], "unavailable")
+        self.assertEqual(result["reason"], "timeout after 900 s")
+
+    def test_codex_turn_classifies_an_exception(self):
+        with mock.patch.object(M8, "codex_gate", side_effect=RuntimeError("boom")):
+            result = M8.codex_turn(pathlib.Path("/tmp/attempt"), pathlib.Path("/tmp/sock"), "v", 600)
+        self.assertEqual(result["classification"], "unavailable")
+        self.assertIn("boom", result["reason"])
+
+    def test_claude_turn_classifies_a_timeout(self):
+        with mock.patch.object(
+            M8, "claude_gate",
+            side_effect=subprocess.TimeoutExpired(cmd=["claude"], timeout=600),
+        ):
+            result = M8.claude_turn(pathlib.Path("/tmp/attempt"), pathlib.Path("/tmp/sock"), False, "v")
+        self.assertEqual(result["status"], "unavailable")
+        self.assertEqual(result["reason"], "timeout after 600 s")
+
+    def test_gemini_turn_classifies_a_timeout(self):
+        with mock.patch.object(
+            M8, "gemini_gate",
+            side_effect=subprocess.TimeoutExpired(cmd=["agy"], timeout=600),
+        ):
+            result = M8.gemini_turn(pathlib.Path("/tmp/attempt"), pathlib.Path("/tmp/sock"), "v")
+        self.assertEqual(result["status"], "unavailable")
+        self.assertEqual(result["reason"], "timeout after 600 s")
+
+    def test_run_continues_and_returns_one_when_codex_turn_times_out(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            attempt_dir = pathlib.Path(tmp) / "attempt-1"
+            attempt_dir.mkdir()
+            m3_stub = mock.Mock()
+            m3_stub.file_digest.return_value = "deadbeef"
+            m3_stub.assert_no_credentials = mock.Mock(return_value=None)
+            versions = {
+                "inspector": {"observed": "2.5.0"}, "codex": {"observed": "codex-cli 0.154.0"},
+                "claude_code": {"observed": None}, "gemini_cli": {"observed": None},
+            }
+            claude_gate = mock.Mock(return_value={"status": "unavailable"})
+            gemini_gate = mock.Mock(return_value={"status": "unavailable"})
+            with (
+                mock.patch.object(M8, "load_m3", return_value=m3_stub),
+                mock.patch.object(M8, "client_versions", return_value=versions),
+                mock.patch.object(M8, "preconditions", return_value={}),
+                mock.patch.object(M8, "mandatory_unsatisfied", return_value=[]),
+                mock.patch.object(M8, "next_attempt", return_value=attempt_dir),
+                mock.patch.object(M8, "git_head_commit", return_value="cafefeed"),
+                mock.patch.object(M8, "git_tree_dirty", return_value=False),
+                mock.patch.object(M8, "server_version", return_value={"version": "0.8.0"}),
+                mock.patch.object(M8, "run_inspector", return_value={"contract_equality": True}),
+                mock.patch.object(
+                    M8, "codex_gate",
+                    side_effect=subprocess.TimeoutExpired(cmd=["codex"], timeout=600)),
+                mock.patch.object(M8, "claude_gate", claude_gate),
+                mock.patch.object(M8, "gemini_gate", gemini_gate),
+                mock.patch.object(M8, "validate_protocol_metadata", return_value={}),
+                mock.patch.object(M8, "CURRENT", pathlib.Path(tmp) / "current.json"),
+            ):
+                exit_code = M8.run(False, None)
+            self.assertEqual(exit_code, 1)
+            claude_gate.assert_called_once()
+            gemini_gate.assert_called_once()
+
+    def test_run_passes_900s_timeout_to_codex_with_runtime_and_600s_without(self):
+        for with_runtime, expected_timeout in ((True, 900), (False, 600)):
+            with tempfile.TemporaryDirectory() as tmp:
+                attempt_dir = pathlib.Path(tmp) / "attempt-1"
+                attempt_dir.mkdir()
+                m3_stub = mock.Mock()
+                m3_stub.file_digest.return_value = "deadbeef"
+                m3_stub.assert_no_credentials = mock.Mock(return_value=None)
+                versions = {
+                    "inspector": {"observed": "2.5.0"}, "codex": {"observed": "codex-cli 0.154.0"},
+                    "claude_code": {"observed": None}, "gemini_cli": {"observed": None},
+                }
+                codex_gate = mock.Mock(return_value={"classification": "passed"})
+                socket = str(pathlib.Path(tmp) / "real.sock") if with_runtime else None
+                with (
+                    mock.patch.object(M8, "load_m3", return_value=m3_stub),
+                    mock.patch.object(M8, "client_versions", return_value=versions),
+                    mock.patch.object(M8, "preconditions", return_value={}),
+                    mock.patch.object(M8, "mandatory_unsatisfied", return_value=[]),
+                    mock.patch.object(M8, "next_attempt", return_value=attempt_dir),
+                    mock.patch.object(M8, "git_head_commit", return_value="cafefeed"),
+                    mock.patch.object(M8, "git_tree_dirty", return_value=False),
+                    mock.patch.object(M8, "server_version", return_value={"version": "0.8.0"}),
+                    mock.patch.object(M8, "run_inspector", return_value={"contract_equality": True}),
+                    mock.patch.object(M8, "codex_gate", codex_gate),
+                    mock.patch.object(M8, "claude_gate", return_value={"status": "unavailable"}),
+                    mock.patch.object(M8, "gemini_gate", return_value={"status": "unavailable"}),
+                    mock.patch.object(M8, "eof_gate", return_value={"exited_on_eof": True}),
+                    mock.patch.object(M8, "compose_prior_receipts", return_value={}),
+                    mock.patch.object(M8, "validate_protocol_metadata", return_value={}),
+                    mock.patch.object(M8, "CURRENT", pathlib.Path(tmp) / "current.json"),
+                ):
+                    M8.run(with_runtime, socket)
+                self.assertEqual(codex_gate.call_args.kwargs["timeout"], expected_timeout)
+
+
 class RunExitCodeTests(unittest.TestCase):
     """`run()` fully mocked below its own gating/receipt logic: Docker-free,
     client-free, and never spawns the real `--run` matrix -- only exercises
@@ -1155,6 +1402,25 @@ class RunExitCodeTests(unittest.TestCase):
                     M8.run(False, None)
             next_attempt.assert_not_called()
             codex_gate.assert_not_called()
+
+
+class InspectorBridgeSignatureTests(unittest.TestCase):
+    """Guards the bridge's `InspectorClient` calls against the bundle's real
+    signatures: `readResource(uri, metadata)` takes the URI as a bare string
+    (`clients/cli/build/index.js:12060`), not `{ uri }`. A regression here is
+    silent until a runtime session hits `resources/read` and the SDK sends a
+    malformed `params.uri`."""
+
+    SOURCE = (ROOT / "scripts/m8-inspector-session.mjs").read_text()
+
+    def test_read_resource_does_not_receive_an_object_literal(self):
+        self.assertIsNone(
+            re.search(r"\.readResource\(\s*\{", self.SOURCE),
+            "readResource(...) must take the URI as a bare string, not { uri: ... }",
+        )
+
+    def test_read_resource_is_called_with_the_bare_artifact_uri(self):
+        self.assertIn("client.readResource(artifactUri)", self.SOURCE)
 
 
 if __name__ == "__main__":

@@ -1330,10 +1330,14 @@ def codex_classification(returncode: int, stderr: str, open_observed: bool, insp
     return "capacity_refused" if "capacity" in stderr.lower() else "partial"
 
 
-def codex_gate(attempt: pathlib.Path, socket: pathlib.Path, observed_version: str | None) -> dict[str, object]:
+def codex_gate(attempt: pathlib.Path, socket: pathlib.Path, observed_version: str | None,
+               timeout: int = 600) -> dict[str, object]:
     """One stock `codex exec` turn: discovery (36) -> project.open -> one
     read -> one negative -> summary, over the same Docker-free host, routed
-    through the closed proxy so every wire message is recorded."""
+    through the closed proxy so every wire message is recorded. ``timeout``
+    is 600s for the Docker-free host and 900s for ``--with-runtime`` (a real
+    Docker socket makes ``rust.project.inspect`` a genuine container call,
+    not a host-level refusal, so the model's own turn runs longer)."""
     m3 = load_m3()
     observation = attempt / "protocol.jsonl"
     state = attempt / "state-codex"
@@ -1369,7 +1373,7 @@ def codex_gate(attempt: pathlib.Path, socket: pathlib.Path, observed_version: st
     ]
     try:
         result = subprocess.run(argv, cwd=ROOT, env=env, capture_output=True, text=True,
-                                timeout=600, check=False)
+                                timeout=timeout, check=False)
     finally:
         shutil.rmtree(private_home, ignore_errors=True)
     events_path = attempt / "codex-events.jsonl"
@@ -1608,6 +1612,64 @@ def gemini_gate(attempt: pathlib.Path, socket: pathlib.Path, observed_version: s
     }
 
 
+def unavailable_turn(reason: str) -> dict[str, object]:
+    return {"status": "unavailable", "classification": "unavailable", "reason": reason}
+
+
+def codex_turn(attempt: pathlib.Path, socket: pathlib.Path, observed_version: str | None,
+               timeout: int) -> dict[str, object]:
+    """A model turn that expires or raises never kills the harness: it is
+    recorded `unavailable` with its partial artifacts left on disk, and the
+    remaining turns still run. The global `status` still requires Codex's
+    own `classification` to land `passed` (W28c)."""
+    try:
+        return codex_gate(attempt, socket, observed_version, timeout=timeout)
+    except subprocess.TimeoutExpired:
+        return unavailable_turn(f"timeout after {timeout} s")
+    except Exception as error:
+        return unavailable_turn(f"{type(error).__name__}: {error}")
+
+
+def claude_turn(attempt: pathlib.Path, socket: pathlib.Path, with_runtime: bool,
+                observed_version: str | None, timeout: int = 600) -> dict[str, object]:
+    """See `codex_turn`: `claude_gate` already turns its own subprocess
+    timeout into an `unavailable` status internally, but anything raised
+    before or after that call (e.g. a private-HOME setup failure) is still
+    caught here so this optional client can never abort the run."""
+    try:
+        return claude_gate(attempt, socket, with_runtime, observed_version)
+    except subprocess.TimeoutExpired:
+        return unavailable_turn(f"timeout after {timeout} s")
+    except Exception as error:
+        return unavailable_turn(f"{type(error).__name__}: {error}")
+
+
+def gemini_turn(attempt: pathlib.Path, socket: pathlib.Path, observed_version: str | None,
+                timeout: int = 600) -> dict[str, object]:
+    """See `codex_turn`: `gemini_gate` cleans up its MCP server registration
+    in a `finally`, but a `subprocess.run` timeout still raises through it,
+    so it is caught here rather than aborting the run."""
+    try:
+        return gemini_gate(attempt, socket, observed_version)
+    except subprocess.TimeoutExpired:
+        return unavailable_turn(f"timeout after {timeout} s")
+    except Exception as error:
+        return unavailable_turn(f"{type(error).__name__}: {error}")
+
+
+def save_receipt(attempt: pathlib.Path, receipt: dict[str, object], final: bool) -> None:
+    """Write `receipt.json` after every block, not only at the end: a
+    harness death between blocks (a model turn hanging past its own bounded
+    timeout, killed from outside) still leaves the evidence gathered so far
+    on disk instead of nothing (W28c). Every write but the last reports
+    `status: "running"`."""
+    m3 = load_m3()
+    snapshot = dict(receipt)
+    if not final:
+        snapshot["status"] = "running"
+    m3.save_json(attempt / "receipt.json", snapshot, exclusive=False)
+
+
 def run(with_runtime: bool, socket: str | None) -> int:
     m3 = load_m3()
     if with_runtime and (not socket or not pathlib.Path(socket).is_absolute()):
@@ -1636,21 +1698,37 @@ def run(with_runtime: bool, socket: str | None) -> int:
         docker_free_socket = ROOT / "target" / f"m8-never-{attempt.name}.sock"
         model_turn_socket = pathlib.Path(socket) if with_runtime else docker_free_socket
         docker_free_argv = server_argv(attempt / "state-docker-free", docker_free_socket)
+        # Deterministic, authoritative evidence first (W28c): both Inspector
+        # sessions run before any model turn, so a model turn that hangs past
+        # its own bounded timeout can never take that evidence down with it.
         receipt["inspector"] = {DOCKER_FREE: run_inspector(
             attempt, DOCKER_FREE, docker_free_argv, 900, versions["inspector"]["observed"])}
-        receipt["codex"] = codex_gate(attempt, model_turn_socket, versions["codex"]["observed"])
-        receipt["claude_code"] = claude_gate(
-            attempt, model_turn_socket, with_runtime, versions["claude_code"]["observed"])
-        receipt["gemini_cli"] = gemini_gate(attempt, model_turn_socket, versions["gemini_cli"]["observed"])
+        save_receipt(attempt, receipt, final=False)
         if with_runtime:
             runtime_socket = pathlib.Path(socket)
             runtime_argv = server_argv(attempt / "state-runtime", runtime_socket)
             receipt["inspector"][RUNTIME] = run_inspector(
                 attempt, RUNTIME, runtime_argv, 900, versions["inspector"]["observed"])
+            save_receipt(attempt, receipt, final=False)
+        # Docker makes `rust.project.inspect` a genuine container call in
+        # `--with-runtime`, not a host-level refusal, so Codex's own turn is
+        # given 900s there instead of 600s (W28c).
+        codex_timeout = 900 if with_runtime else 600
+        receipt["codex"] = codex_turn(
+            attempt, model_turn_socket, versions["codex"]["observed"], codex_timeout)
+        save_receipt(attempt, receipt, final=False)
+        receipt["claude_code"] = claude_turn(
+            attempt, model_turn_socket, with_runtime, versions["claude_code"]["observed"])
+        save_receipt(attempt, receipt, final=False)
+        receipt["gemini_cli"] = gemini_turn(
+            attempt, model_turn_socket, versions["gemini_cli"]["observed"])
+        save_receipt(attempt, receipt, final=False)
+        if with_runtime:
             receipt["eof_gate"] = eof_gate(runtime_socket)
             receipt["composed_prior_positives"] = compose_prior_receipts(socket)
+            save_receipt(attempt, receipt, final=False)
         receipt["protocol"] = validate_protocol_metadata(attempt / "protocol.jsonl")
-        codex_ok = receipt["codex"]["classification"] == "passed"
+        codex_ok = receipt["codex"].get("classification") == "passed"
         claude_ok = receipt["claude_code"].get("status") == "passed"
         gemini_ok = receipt["gemini_cli"].get("status") == "passed"
         inspector_ok = (
@@ -1681,7 +1759,7 @@ def run(with_runtime: bool, socket: str | None) -> int:
             leak = scan_error
             receipt["evidence_credential_scan"] = str(scan_error)
             receipt["status"] = "failed"
-        m3.save_json(attempt / "receipt.json", receipt, exclusive=True)
+        save_receipt(attempt, receipt, final=True)
         if leak is not None:
             raise leak
         if receipt["status"] == "passed":

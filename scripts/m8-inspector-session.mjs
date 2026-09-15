@@ -192,8 +192,10 @@ try {
     };
     const artifactUri = findArtifactUri(checkStructured);
     if (!artifactUri) throw new Error("runtime rust.check published no rust-artifact:// URI");
-    const resourceRead = await client.readResource({ uri: artifactUri });
-    outcome.resource_read_ok = Array.isArray(resourceRead?.contents) && resourceRead.contents.length > 0;
+    const resourceRead = await client.readResource(artifactUri);
+    const readContents = resourceRead?.result?.contents;
+    outcome.resource_read_ok = Array.isArray(readContents) && readContents.length > 0
+      && readContents.every((item) => typeof item?.uri === "string" && (typeof item?.blob === "string" || typeof item?.text === "string"));
     if (!outcome.resource_read_ok) throw new Error("Inspector could not read the published artifact");
 
     // G4: one call cancelled mid-flight is rejected through the SDK's own
