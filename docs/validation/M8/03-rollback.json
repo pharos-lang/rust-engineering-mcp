@@ -1,25 +1,29 @@
 {
   "format_version": 1,
-  "generated_utc": "2026-09-14T23:39:11.840776Z",
-  "head_commit": "6fa1ef1f69b461b5cf2b3782c13ef81353a63e8e",
+  "generated_utc": "2026-09-15T02:57:58.081058Z",
+  "head_commit": "86a50074e80ef860d5db39ff4691304429ee6be7",
   "head_tree_dirty": true,
   "old_tag": "v0.3.0",
   "old_commit": "6ea330debc27a2cf1564fbbc258d4b358f5b0f1a",
   "binaries": {
     "old": {
       "path": "/Users/cburgosro/Projects/rust-mcp/target/m8-rollback/target-v0.3.0/release/rust-engineering-mcp",
-      "sha256": "sha256:36e4983ea62da8cf3c12756f21ea88264a59064482b7cc064b54cfcb2e058f3a"
+      "sha256": "sha256:36e4983ea62da8cf3c12756f21ea88264a59064482b7cc064b54cfcb2e058f3a",
+      "version": "0.3.0",
+      "tree_dirty": false
     },
     "head": {
       "path": "/Users/cburgosro/Projects/rust-mcp/target/m8-rollback/target-head/release/rust-engineering-mcp",
-      "sha256": "sha256:f572a7493788e887a156fec92130ca36e892ecc7b93ad787909feeef51ccf32a"
+      "sha256": "sha256:c1014b23b1ab3422909ce809bb956d19bfeaebd2c431ad1276fbf7573b58be5a",
+      "version": "0.8.0",
+      "tree_dirty": true
     }
   },
   "driver_error": null,
   "scenarios": [
     {
       "id": "a",
-      "description": "A pending analyzer_action_apply journal written by the current tree makes v0.3.0's `mutation list --json` fail closed, without touching the journal.",
+      "description": "A committed analyzer_action_apply journal \u2014 a kind unknown to v0.3.0 \u2014 written by the current tree makes v0.3.0's `mutation list --json` fail closed, without touching the journal. Positive controls prove the cause is the kind, not some unrelated incompatibility: v0.8.0's own `mutation list` passes over the same state root, a sibling manifest_patch control journal (a kind v0.3.0 does know, written by the same public-API mechanism) lists cleanly under v0.3.0 in its own state root, and v0.8.0's `doctor --json` reports mutation_journals.downgrade_blocked=true for the state root holding the unknown-kind journal.",
       "status": "passed",
       "steps": [
         {
@@ -33,11 +37,13 @@
             "--test",
             "rollback_native",
             "--",
-            "--ignored"
+            "--ignored",
+            "--exact",
+            "leaves_a_committed_journal_of_a_kind_unknown_to_v0_3_0_and_a_known_control_journal"
           ],
           "exit_code": 0,
-          "stdout_excerpt": "\nrunning 1 test\ntest leaves_a_committed_analyzer_action_apply_journal_for_an_older_binary_to_reject ... ok\n\ntest result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.13s\n\n",
-          "stderr_excerpt": "    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.21s\n     Running tests/rollback_native.rs (target/debug/deps/rollback_native-efe3206cc7649489)\n"
+          "stdout_excerpt": "\nrunning 1 test\ntest leaves_a_committed_journal_of_a_kind_unknown_to_v0_3_0_and_a_known_control_journal ... ok\n\ntest result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 1 filtered out; finished in 0.22s\n\n",
+          "stderr_excerpt": "    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.23s\n     Running tests/rollback_native.rs (target/debug/deps/rollback_native-efe3206cc7649489)\n"
         },
         {
           "command": [
@@ -45,17 +51,52 @@
             "mutation",
             "list",
             "--state-root",
-            "/Users/cburgosro/Projects/rust-mcp/target/m8-rollback/tmp/scenario-a-8q8odzgw/state",
+            "/Users/cburgosro/Projects/rust-mcp/target/m8-rollback/tmp/scenario-a-rid_qb7s/state",
             "--json"
           ],
           "exit_code": 1,
           "stdout_excerpt": "{\"format_version\":1,\"status\":\"blocked\",\"action\":\"list\",\"error_code\":\"recovery_required\",\"message\":\"Journal administration did not complete; preserve pending evidence and use authorized recovery for interrupted operations\",\"records\":[]}\n"
+        },
+        {
+          "command": [
+            "/Users/cburgosro/Projects/rust-mcp/target/m8-rollback/target-head/release/rust-engineering-mcp",
+            "mutation",
+            "list",
+            "--state-root",
+            "/Users/cburgosro/Projects/rust-mcp/target/m8-rollback/tmp/scenario-a-rid_qb7s/state",
+            "--json"
+          ],
+          "exit_code": 0,
+          "stdout_excerpt": "{\"format_version\":1,\"status\":\"passed\",\"action\":\"list\",\"error_code\":null,\"message\":\"Existing local mutation journals\",\"records\":[{\"operation_id\":\"mut_00000000000000000000000000d12a01\",\"plan_digest\":\"sha256:1887ac271fb0beb1d5acbcf8c2da22c92bd5e5d1c8526370a86b69f89d42d092\",\"state\":\"committed\",\"stored_bytes\":1325}]}\n"
+        },
+        {
+          "command": [
+            "/Users/cburgosro/Projects/rust-mcp/target/m8-rollback/target-v0.3.0/release/rust-engineering-mcp",
+            "mutation",
+            "list",
+            "--state-root",
+            "/Users/cburgosro/Projects/rust-mcp/target/m8-rollback/tmp/scenario-a-rid_qb7s/control-state",
+            "--json"
+          ],
+          "exit_code": 0,
+          "stdout_excerpt": "{\"format_version\":1,\"status\":\"passed\",\"action\":\"list\",\"error_code\":null,\"message\":\"Existing local mutation journals\",\"records\":[{\"operation_id\":\"mut_00000000000000000000000000d12b02\",\"plan_digest\":\"sha256:879ba8283dc7458d871f4083c5f8d030a304c52750756421a683a7be3c2fd762\",\"state\":\"committed\",\"stored_bytes\":1343}]}\n"
+        },
+        {
+          "command": [
+            "/Users/cburgosro/Projects/rust-mcp/target/m8-rollback/target-head/release/rust-engineering-mcp",
+            "doctor",
+            "--json",
+            "--state-root",
+            "/Users/cburgosro/Projects/rust-mcp/target/m8-rollback/tmp/scenario-a-rid_qb7s/state"
+          ],
+          "exit_code": 0,
+          "stdout_excerpt": "{\"format_version\":1,\"operation\":\"doctor\",\"mode\":\"passive\",\"status\":\"warning\",\"duration_ms\":0,\"checks\":[{\"id\":\"catalog\",\"scope\":\"catalog_snapshot\",\"status\":\"not_configured\",\"reason\":\"not_configured\",\"component_reason\":\"not_configured\",\"action\":\"configure_optional\",\"severity\":\"warning\"},{\"id\":\"model\",\"scope\":\"local_model\",\"status\":\"not_configured\",\"reason\":\"not_configured\",\"component_reason\":\"not_configured\",\"action\":\"configure_optional\",\"severity\":\"warning\"},{\"id\":\"semantic_index\",\"scope\":\"catalo...(truncated)...le\",\"reason\":\"not_configured\"}},\"runtime\":null,\"mutation_journals\":{\"pending\":0,\"terminal\":1,\"unknown_format\":0,\"kinds\":{\"analyzer_action_apply\":{\"pending\":0,\"terminal\":1}},\"downgrade_blocked\":true,\"downgrade_blocking_kinds\":[\"analyzer_action_apply\"],\"notes\":[\"A binary older than 0.8.0 cannot interpret newer operation kinds such as analyzer_action_apply and returns RecoveryRequired before any effect; recover, complete or prune (`mutation prune`) with 0.8.0 before installing an older binary.\"]}}\n"
         }
       ]
     },
     {
       "id": "b",
-      "description": "M3 quality-artifact state and the catalog SQLite store written by the current tree are read by v0.3.0 (`quality-artifacts recover --json`, `catalog status --json`).",
+      "description": "M3 quality-artifact state (a real, published artifact written through the native fixture's public-API store, not this CLI) and the catalog SQLite store, both written by the current tree, are read by v0.3.0 (`quality-artifacts recover --json`, `catalog status --json`); recover must report validated>=1 and quarantined==0 under both binaries.",
       "status": "passed",
       "steps": [
         {
@@ -65,13 +106,13 @@
             "import",
             "/Users/cburgosro/Projects/rust-mcp/fixtures/catalog/fixture-2.tar.zst",
             "--store",
-            "/Users/cburgosro/Projects/rust-mcp/target/m8-rollback/tmp/scenario-bc-hi_bglxp/store",
+            "/Users/cburgosro/Projects/rust-mcp/target/m8-rollback/tmp/scenario-bc-_hzi63qp/store",
             "--trust",
-            "/Users/cburgosro/Projects/rust-mcp/target/m8-rollback/tmp/scenario-bc-hi_bglxp/trust.json",
+            "/Users/cburgosro/Projects/rust-mcp/target/m8-rollback/tmp/scenario-bc-_hzi63qp/trust.json",
             "--json"
           ],
           "exit_code": 0,
-          "stdout_excerpt": "{\"format_version\":1,\"status\":\"passed\",\"operation\":\"import\",\"error_code\":null,\"message\":\"Authenticated local catalog generation verified\",\"network_used\":false,\"catalog\":{\"semantics\":\"latest_known\",\"publisher\":\"fixture-only\",\"channel\":\"test\",\"publisher_key_sha256\":\"b600306cfa76723fdec395e53a9b3d9fdb78b1e2d7a23c32fcbcd2dc6d0c4092\",\"sequence\":2,\"floor_sequence\":2,\"floor_bundle_sha256\":\"e1381435c81434794cb8cf7745301528123304541a280c6de4c6eeedc0c271f9\",\"reservation_pending\":false,\"bundle_sha256\":\"e138...(truncated)...256:a58dfb159b2f7c7bb721beadfe5c2c585fe09a465cd7a276b015994d0d76404b\",\"schema_version\":1,\"evidence\":{\"provenance\":{\"source_kind\":\"registry_snapshot\",\"source_id\":\"fixture-only-registry\",\"created_at\":100,\"observed_at\":100,\"integrity\":\"verified\",\"network_used\":false},\"freshness\":{\"state\":\"stale\",\"age_seconds\":1789429099,\"assessed_at\":1789429199,\"policy\":{\"id\":\"catalog-snapshot-v1\",\"fresh_for_seconds\":86400,\"stale_after_seconds\":604800}}},\"rustsec_available\":false,\"semantic_index_available\":false}}\n"
+          "stdout_excerpt": "{\"format_version\":1,\"status\":\"passed\",\"operation\":\"import\",\"error_code\":null,\"message\":\"Authenticated local catalog generation verified\",\"network_used\":false,\"catalog\":{\"semantics\":\"latest_known\",\"publisher\":\"fixture-only\",\"channel\":\"test\",\"publisher_key_sha256\":\"b600306cfa76723fdec395e53a9b3d9fdb78b1e2d7a23c32fcbcd2dc6d0c4092\",\"sequence\":2,\"floor_sequence\":2,\"floor_bundle_sha256\":\"e1381435c81434794cb8cf7745301528123304541a280c6de4c6eeedc0c271f9\",\"reservation_pending\":false,\"bundle_sha256\":\"e138...(truncated)...256:a58dfb159b2f7c7bb721beadfe5c2c585fe09a465cd7a276b015994d0d76404b\",\"schema_version\":1,\"evidence\":{\"provenance\":{\"source_kind\":\"registry_snapshot\",\"source_id\":\"fixture-only-registry\",\"created_at\":100,\"observed_at\":100,\"integrity\":\"verified\",\"network_used\":false},\"freshness\":{\"state\":\"stale\",\"age_seconds\":1789441002,\"assessed_at\":1789441102,\"policy\":{\"id\":\"catalog-snapshot-v1\",\"fresh_for_seconds\":86400,\"stale_after_seconds\":604800}}},\"rustsec_available\":false,\"semantic_index_available\":false}}\n"
         },
         {
           "command": [
@@ -79,13 +120,32 @@
             "catalog",
             "status",
             "--store",
-            "/Users/cburgosro/Projects/rust-mcp/target/m8-rollback/tmp/scenario-bc-hi_bglxp/store",
+            "/Users/cburgosro/Projects/rust-mcp/target/m8-rollback/tmp/scenario-bc-_hzi63qp/store",
             "--trust",
-            "/Users/cburgosro/Projects/rust-mcp/target/m8-rollback/tmp/scenario-bc-hi_bglxp/trust.json",
+            "/Users/cburgosro/Projects/rust-mcp/target/m8-rollback/tmp/scenario-bc-_hzi63qp/trust.json",
             "--json"
           ],
           "exit_code": 0,
-          "stdout_excerpt": "{\"format_version\":1,\"status\":\"passed\",\"operation\":\"status\",\"error_code\":null,\"message\":\"Authenticated local catalog generation verified\",\"network_used\":false,\"catalog\":{\"semantics\":\"latest_known\",\"publisher\":\"fixture-only\",\"channel\":\"test\",\"publisher_key_sha256\":\"b600306cfa76723fdec395e53a9b3d9fdb78b1e2d7a23c32fcbcd2dc6d0c4092\",\"sequence\":2,\"floor_sequence\":2,\"floor_bundle_sha256\":\"e1381435c81434794cb8cf7745301528123304541a280c6de4c6eeedc0c271f9\",\"reservation_pending\":false,\"bundle_sha256\":\"e138...(truncated)...256:a58dfb159b2f7c7bb721beadfe5c2c585fe09a465cd7a276b015994d0d76404b\",\"schema_version\":1,\"evidence\":{\"provenance\":{\"source_kind\":\"registry_snapshot\",\"source_id\":\"fixture-only-registry\",\"created_at\":100,\"observed_at\":100,\"integrity\":\"verified\",\"network_used\":false},\"freshness\":{\"state\":\"stale\",\"age_seconds\":1789429099,\"assessed_at\":1789429199,\"policy\":{\"id\":\"catalog-snapshot-v1\",\"fresh_for_seconds\":86400,\"stale_after_seconds\":604800}}},\"rustsec_available\":false,\"semantic_index_available\":false}}\n"
+          "stdout_excerpt": "{\"format_version\":1,\"status\":\"passed\",\"operation\":\"status\",\"error_code\":null,\"message\":\"Authenticated local catalog generation verified\",\"network_used\":false,\"catalog\":{\"semantics\":\"latest_known\",\"publisher\":\"fixture-only\",\"channel\":\"test\",\"publisher_key_sha256\":\"b600306cfa76723fdec395e53a9b3d9fdb78b1e2d7a23c32fcbcd2dc6d0c4092\",\"sequence\":2,\"floor_sequence\":2,\"floor_bundle_sha256\":\"e1381435c81434794cb8cf7745301528123304541a280c6de4c6eeedc0c271f9\",\"reservation_pending\":false,\"bundle_sha256\":\"e138...(truncated)...256:a58dfb159b2f7c7bb721beadfe5c2c585fe09a465cd7a276b015994d0d76404b\",\"schema_version\":1,\"evidence\":{\"provenance\":{\"source_kind\":\"registry_snapshot\",\"source_id\":\"fixture-only-registry\",\"created_at\":100,\"observed_at\":100,\"integrity\":\"verified\",\"network_used\":false},\"freshness\":{\"state\":\"stale\",\"age_seconds\":1789441002,\"assessed_at\":1789441102,\"policy\":{\"id\":\"catalog-snapshot-v1\",\"fresh_for_seconds\":86400,\"stale_after_seconds\":604800}}},\"rustsec_available\":false,\"semantic_index_available\":false}}\n"
+        },
+        {
+          "command": [
+            "cargo",
+            "test",
+            "-p",
+            "rust-engineering-project",
+            "--locked",
+            "--offline",
+            "--test",
+            "rollback_native",
+            "--",
+            "--ignored",
+            "--exact",
+            "quality_artifact_fixture::leaves_a_validated_m3_quality_artifact_for_an_older_binary_to_read"
+          ],
+          "exit_code": 0,
+          "stdout_excerpt": "\nrunning 1 test\ntest quality_artifact_fixture::leaves_a_validated_m3_quality_artifact_for_an_older_binary_to_read ... ok\n\ntest result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 1 filtered out; finished in 0.10s\n\n",
+          "stderr_excerpt": "    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.06s\n     Running tests/rollback_native.rs (target/debug/deps/rollback_native-efe3206cc7649489)\n"
         },
         {
           "command": [
@@ -93,11 +153,11 @@
             "quality-artifacts",
             "recover",
             "--state-root",
-            "/Users/cburgosro/Projects/rust-mcp/target/m8-rollback/tmp/scenario-b-quality-artifacts-aw1zkr2u/state",
+            "/Users/cburgosro/Projects/rust-mcp/target/m8-rollback/tmp/scenario-b-quality-artifacts-67_5cof6/state",
             "--json"
           ],
           "exit_code": 0,
-          "stdout_excerpt": "{\"format_version\":1,\"status\":\"passed\",\"action\":\"recover\",\"error_code\":null,\"data\":{\"clock_regression\":false,\"discarded_uncommitted\":0,\"quarantined\":0,\"released_reservations\":0,\"truncated_surplus\":0,\"validated\":0}}\n"
+          "stdout_excerpt": "{\"format_version\":1,\"status\":\"passed\",\"action\":\"recover\",\"error_code\":null,\"data\":{\"clock_regression\":false,\"discarded_uncommitted\":0,\"quarantined\":0,\"released_reservations\":0,\"truncated_surplus\":0,\"validated\":1}}\n"
         },
         {
           "command": [
@@ -105,11 +165,11 @@
             "quality-artifacts",
             "recover",
             "--state-root",
-            "/Users/cburgosro/Projects/rust-mcp/target/m8-rollback/tmp/scenario-b-quality-artifacts-aw1zkr2u/state",
+            "/Users/cburgosro/Projects/rust-mcp/target/m8-rollback/tmp/scenario-b-quality-artifacts-67_5cof6/state",
             "--json"
           ],
           "exit_code": 0,
-          "stdout_excerpt": "{\"format_version\":1,\"status\":\"passed\",\"action\":\"recover\",\"error_code\":null,\"data\":{\"clock_regression\":false,\"discarded_uncommitted\":0,\"quarantined\":0,\"released_reservations\":0,\"truncated_surplus\":0,\"validated\":0}}\n"
+          "stdout_excerpt": "{\"format_version\":1,\"status\":\"passed\",\"action\":\"recover\",\"error_code\":null,\"data\":{\"clock_regression\":false,\"discarded_uncommitted\":0,\"quarantined\":0,\"released_reservations\":0,\"truncated_surplus\":0,\"validated\":1}}\n"
         }
       ]
     },
@@ -125,9 +185,9 @@
             "import",
             "/Users/cburgosro/Projects/rust-mcp/fixtures/catalog/fixture-1.tar.zst",
             "--store",
-            "/Users/cburgosro/Projects/rust-mcp/target/m8-rollback/tmp/scenario-bc-hi_bglxp/store",
+            "/Users/cburgosro/Projects/rust-mcp/target/m8-rollback/tmp/scenario-bc-_hzi63qp/store",
             "--trust",
-            "/Users/cburgosro/Projects/rust-mcp/target/m8-rollback/tmp/scenario-bc-hi_bglxp/trust.json",
+            "/Users/cburgosro/Projects/rust-mcp/target/m8-rollback/tmp/scenario-bc-_hzi63qp/trust.json",
             "--json"
           ],
           "exit_code": 1,
@@ -139,19 +199,19 @@
             "catalog",
             "status",
             "--store",
-            "/Users/cburgosro/Projects/rust-mcp/target/m8-rollback/tmp/scenario-bc-hi_bglxp/store",
+            "/Users/cburgosro/Projects/rust-mcp/target/m8-rollback/tmp/scenario-bc-_hzi63qp/store",
             "--trust",
-            "/Users/cburgosro/Projects/rust-mcp/target/m8-rollback/tmp/scenario-bc-hi_bglxp/trust.json",
+            "/Users/cburgosro/Projects/rust-mcp/target/m8-rollback/tmp/scenario-bc-_hzi63qp/trust.json",
             "--json"
           ],
           "exit_code": 0,
-          "stdout_excerpt": "{\"format_version\":1,\"status\":\"passed\",\"operation\":\"status\",\"error_code\":null,\"message\":\"Authenticated local catalog generation verified\",\"network_used\":false,\"catalog\":{\"semantics\":\"latest_known\",\"publisher\":\"fixture-only\",\"channel\":\"test\",\"publisher_key_sha256\":\"b600306cfa76723fdec395e53a9b3d9fdb78b1e2d7a23c32fcbcd2dc6d0c4092\",\"sequence\":2,\"floor_sequence\":2,\"floor_bundle_sha256\":\"e1381435c81434794cb8cf7745301528123304541a280c6de4c6eeedc0c271f9\",\"reservation_pending\":false,\"bundle_sha256\":\"e138...(truncated)...256:a58dfb159b2f7c7bb721beadfe5c2c585fe09a465cd7a276b015994d0d76404b\",\"schema_version\":1,\"evidence\":{\"provenance\":{\"source_kind\":\"registry_snapshot\",\"source_id\":\"fixture-only-registry\",\"created_at\":100,\"observed_at\":100,\"integrity\":\"verified\",\"network_used\":false},\"freshness\":{\"state\":\"stale\",\"age_seconds\":1789429099,\"assessed_at\":1789429199,\"policy\":{\"id\":\"catalog-snapshot-v1\",\"fresh_for_seconds\":86400,\"stale_after_seconds\":604800}}},\"rustsec_available\":false,\"semantic_index_available\":false}}\n"
+          "stdout_excerpt": "{\"format_version\":1,\"status\":\"passed\",\"operation\":\"status\",\"error_code\":null,\"message\":\"Authenticated local catalog generation verified\",\"network_used\":false,\"catalog\":{\"semantics\":\"latest_known\",\"publisher\":\"fixture-only\",\"channel\":\"test\",\"publisher_key_sha256\":\"b600306cfa76723fdec395e53a9b3d9fdb78b1e2d7a23c32fcbcd2dc6d0c4092\",\"sequence\":2,\"floor_sequence\":2,\"floor_bundle_sha256\":\"e1381435c81434794cb8cf7745301528123304541a280c6de4c6eeedc0c271f9\",\"reservation_pending\":false,\"bundle_sha256\":\"e138...(truncated)...256:a58dfb159b2f7c7bb721beadfe5c2c585fe09a465cd7a276b015994d0d76404b\",\"schema_version\":1,\"evidence\":{\"provenance\":{\"source_kind\":\"registry_snapshot\",\"source_id\":\"fixture-only-registry\",\"created_at\":100,\"observed_at\":100,\"integrity\":\"verified\",\"network_used\":false},\"freshness\":{\"state\":\"stale\",\"age_seconds\":1789441003,\"assessed_at\":1789441103,\"policy\":{\"id\":\"catalog-snapshot-v1\",\"fresh_for_seconds\":86400,\"stale_after_seconds\":604800}}},\"rustsec_available\":false,\"semantic_index_available\":false}}\n"
         }
       ]
     },
     {
       "id": "d",
-      "description": "Catalog and M3 state written by v0.3.0 is read by the current tree (upgrade), and `doctor --json` validates it.",
+      "description": "Catalog state written by v0.3.0 is read by the current tree (upgrade), and `doctor --json` validates it. Neither binary can write an M2 mutation journal or an M3 quality artifact through a CLI subcommand alone (both need a live MCP session), so v0.3.0 writing either is declared as a gap in `gaps` below, not asserted.",
       "status": "passed",
       "steps": [
         {
@@ -160,7 +220,7 @@
             "quality-artifacts",
             "recover",
             "--state-root",
-            "/Users/cburgosro/Projects/rust-mcp/target/m8-rollback/tmp/scenario-d-jrdq659j/quality-state",
+            "/Users/cburgosro/Projects/rust-mcp/target/m8-rollback/tmp/scenario-d-2ldpjzx6/quality-state",
             "--json"
           ],
           "exit_code": 0,
@@ -173,13 +233,13 @@
             "import",
             "/Users/cburgosro/Projects/rust-mcp/fixtures/catalog/fixture-1.tar.zst",
             "--store",
-            "/Users/cburgosro/Projects/rust-mcp/target/m8-rollback/tmp/scenario-d-jrdq659j/store",
+            "/Users/cburgosro/Projects/rust-mcp/target/m8-rollback/tmp/scenario-d-2ldpjzx6/store",
             "--trust",
-            "/Users/cburgosro/Projects/rust-mcp/target/m8-rollback/tmp/scenario-d-jrdq659j/trust.json",
+            "/Users/cburgosro/Projects/rust-mcp/target/m8-rollback/tmp/scenario-d-2ldpjzx6/trust.json",
             "--json"
           ],
           "exit_code": 0,
-          "stdout_excerpt": "{\"format_version\":1,\"status\":\"passed\",\"operation\":\"import\",\"error_code\":null,\"message\":\"Authenticated local catalog generation verified\",\"network_used\":false,\"catalog\":{\"semantics\":\"latest_known\",\"publisher\":\"fixture-only\",\"channel\":\"test\",\"publisher_key_sha256\":\"b600306cfa76723fdec395e53a9b3d9fdb78b1e2d7a23c32fcbcd2dc6d0c4092\",\"sequence\":1,\"floor_sequence\":1,\"floor_bundle_sha256\":\"1b3aa5c89847b7db81229678e6e78766547f27d78c5c994d80ba2452cda69538\",\"reservation_pending\":false,\"bundle_sha256\":\"1b3a...(truncated)...256:8df87e8618db5a32b14c76c3fe6b3ab14eb84470ccb23119e8be3f432e6fbfb5\",\"schema_version\":1,\"evidence\":{\"provenance\":{\"source_kind\":\"registry_snapshot\",\"source_id\":\"fixture-only-registry\",\"created_at\":100,\"observed_at\":100,\"integrity\":\"verified\",\"network_used\":false},\"freshness\":{\"state\":\"stale\",\"age_seconds\":1789429100,\"assessed_at\":1789429200,\"policy\":{\"id\":\"catalog-snapshot-v1\",\"fresh_for_seconds\":86400,\"stale_after_seconds\":604800}}},\"rustsec_available\":false,\"semantic_index_available\":false}}\n"
+          "stdout_excerpt": "{\"format_version\":1,\"status\":\"passed\",\"operation\":\"import\",\"error_code\":null,\"message\":\"Authenticated local catalog generation verified\",\"network_used\":false,\"catalog\":{\"semantics\":\"latest_known\",\"publisher\":\"fixture-only\",\"channel\":\"test\",\"publisher_key_sha256\":\"b600306cfa76723fdec395e53a9b3d9fdb78b1e2d7a23c32fcbcd2dc6d0c4092\",\"sequence\":1,\"floor_sequence\":1,\"floor_bundle_sha256\":\"1b3aa5c89847b7db81229678e6e78766547f27d78c5c994d80ba2452cda69538\",\"reservation_pending\":false,\"bundle_sha256\":\"1b3a...(truncated)...256:8df87e8618db5a32b14c76c3fe6b3ab14eb84470ccb23119e8be3f432e6fbfb5\",\"schema_version\":1,\"evidence\":{\"provenance\":{\"source_kind\":\"registry_snapshot\",\"source_id\":\"fixture-only-registry\",\"created_at\":100,\"observed_at\":100,\"integrity\":\"verified\",\"network_used\":false},\"freshness\":{\"state\":\"stale\",\"age_seconds\":1789441003,\"assessed_at\":1789441103,\"policy\":{\"id\":\"catalog-snapshot-v1\",\"fresh_for_seconds\":86400,\"stale_after_seconds\":604800}}},\"rustsec_available\":false,\"semantic_index_available\":false}}\n"
         },
         {
           "command": [
@@ -187,7 +247,7 @@
             "quality-artifacts",
             "recover",
             "--state-root",
-            "/Users/cburgosro/Projects/rust-mcp/target/m8-rollback/tmp/scenario-d-jrdq659j/quality-state",
+            "/Users/cburgosro/Projects/rust-mcp/target/m8-rollback/tmp/scenario-d-2ldpjzx6/quality-state",
             "--json"
           ],
           "exit_code": 0,
@@ -199,27 +259,31 @@
             "catalog",
             "status",
             "--store",
-            "/Users/cburgosro/Projects/rust-mcp/target/m8-rollback/tmp/scenario-d-jrdq659j/store",
+            "/Users/cburgosro/Projects/rust-mcp/target/m8-rollback/tmp/scenario-d-2ldpjzx6/store",
             "--trust",
-            "/Users/cburgosro/Projects/rust-mcp/target/m8-rollback/tmp/scenario-d-jrdq659j/trust.json",
+            "/Users/cburgosro/Projects/rust-mcp/target/m8-rollback/tmp/scenario-d-2ldpjzx6/trust.json",
             "--json"
           ],
           "exit_code": 0,
-          "stdout_excerpt": "{\"format_version\":1,\"status\":\"passed\",\"operation\":\"status\",\"error_code\":null,\"message\":\"Authenticated local catalog generation verified\",\"network_used\":false,\"catalog\":{\"semantics\":\"latest_known\",\"publisher\":\"fixture-only\",\"channel\":\"test\",\"publisher_key_sha256\":\"b600306cfa76723fdec395e53a9b3d9fdb78b1e2d7a23c32fcbcd2dc6d0c4092\",\"sequence\":1,\"floor_sequence\":1,\"floor_bundle_sha256\":\"1b3aa5c89847b7db81229678e6e78766547f27d78c5c994d80ba2452cda69538\",\"reservation_pending\":false,\"bundle_sha256\":\"1b3a...(truncated)...256:8df87e8618db5a32b14c76c3fe6b3ab14eb84470ccb23119e8be3f432e6fbfb5\",\"schema_version\":1,\"evidence\":{\"provenance\":{\"source_kind\":\"registry_snapshot\",\"source_id\":\"fixture-only-registry\",\"created_at\":100,\"observed_at\":100,\"integrity\":\"verified\",\"network_used\":false},\"freshness\":{\"state\":\"stale\",\"age_seconds\":1789429100,\"assessed_at\":1789429200,\"policy\":{\"id\":\"catalog-snapshot-v1\",\"fresh_for_seconds\":86400,\"stale_after_seconds\":604800}}},\"rustsec_available\":false,\"semantic_index_available\":false}}\n"
+          "stdout_excerpt": "{\"format_version\":1,\"status\":\"passed\",\"operation\":\"status\",\"error_code\":null,\"message\":\"Authenticated local catalog generation verified\",\"network_used\":false,\"catalog\":{\"semantics\":\"latest_known\",\"publisher\":\"fixture-only\",\"channel\":\"test\",\"publisher_key_sha256\":\"b600306cfa76723fdec395e53a9b3d9fdb78b1e2d7a23c32fcbcd2dc6d0c4092\",\"sequence\":1,\"floor_sequence\":1,\"floor_bundle_sha256\":\"1b3aa5c89847b7db81229678e6e78766547f27d78c5c994d80ba2452cda69538\",\"reservation_pending\":false,\"bundle_sha256\":\"1b3a...(truncated)...256:8df87e8618db5a32b14c76c3fe6b3ab14eb84470ccb23119e8be3f432e6fbfb5\",\"schema_version\":1,\"evidence\":{\"provenance\":{\"source_kind\":\"registry_snapshot\",\"source_id\":\"fixture-only-registry\",\"created_at\":100,\"observed_at\":100,\"integrity\":\"verified\",\"network_used\":false},\"freshness\":{\"state\":\"stale\",\"age_seconds\":1789441003,\"assessed_at\":1789441103,\"policy\":{\"id\":\"catalog-snapshot-v1\",\"fresh_for_seconds\":86400,\"stale_after_seconds\":604800}}},\"rustsec_available\":false,\"semantic_index_available\":false}}\n"
         },
         {
           "command": [
             "/Users/cburgosro/Projects/rust-mcp/target/m8-rollback/target-head/release/rust-engineering-mcp",
             "doctor",
             "--catalog-store",
-            "/Users/cburgosro/Projects/rust-mcp/target/m8-rollback/tmp/scenario-d-jrdq659j/store",
+            "/Users/cburgosro/Projects/rust-mcp/target/m8-rollback/tmp/scenario-d-2ldpjzx6/store",
             "--catalog-trust",
-            "/Users/cburgosro/Projects/rust-mcp/target/m8-rollback/tmp/scenario-d-jrdq659j/trust.json",
+            "/Users/cburgosro/Projects/rust-mcp/target/m8-rollback/tmp/scenario-d-2ldpjzx6/trust.json",
             "--json"
           ],
           "exit_code": 0,
-          "stdout_excerpt": "{\"format_version\":1,\"operation\":\"doctor\",\"mode\":\"passive\",\"status\":\"warning\",\"duration_ms\":2,\"checks\":[{\"id\":\"catalog\",\"scope\":\"catalog_snapshot\",\"status\":\"available\",\"reason\":\"verified\",\"component_reason\":null,\"action\":\"none\",\"severity\":\"passed\"},{\"id\":\"model\",\"scope\":\"local_model\",\"status\":\"not_configured\",\"reason\":\"not_configured\",\"component_reason\":\"not_configured\",\"action\":\"configure_optional\",\"severity\":\"warning\"},{\"id\":\"semantic_index\",\"scope\":\"catalog_snapshot\",\"status\":\"not_configured\",...(truncated)...log-snapshot-v1\",\"fresh_for_seconds\":86400,\"stale_after_seconds\":604800}}}}},\"reservation\":{\"reservation\":{\"publisher\":\"fixture-only\",\"channel\":\"test\",\"sequence\":1,\"bundle_fingerprint\":\"sha256:1b3aa5c89847b7db81229678e6e78766547f27d78c5c994d80ba2452cda69538\"},\"pending\":false},\"model\":{\"status\":\"unavailable\",\"reason\":\"not_configured\"},\"semantic_index\":{\"status\":\"unavailable\",\"reason\":\"missing\"},\"rustsec\":{\"status\":\"unavailable\",\"reason\":\"not_configured\"}},\"runtime\":null,\"mutation_journals\":null}\n"
+          "stdout_excerpt": "{\"format_version\":1,\"operation\":\"doctor\",\"mode\":\"passive\",\"status\":\"warning\",\"duration_ms\":3,\"checks\":[{\"id\":\"catalog\",\"scope\":\"catalog_snapshot\",\"status\":\"available\",\"reason\":\"verified\",\"component_reason\":null,\"action\":\"none\",\"severity\":\"passed\"},{\"id\":\"model\",\"scope\":\"local_model\",\"status\":\"not_configured\",\"reason\":\"not_configured\",\"component_reason\":\"not_configured\",\"action\":\"configure_optional\",\"severity\":\"warning\"},{\"id\":\"semantic_index\",\"scope\":\"catalog_snapshot\",\"status\":\"not_configured\",...(truncated)...log-snapshot-v1\",\"fresh_for_seconds\":86400,\"stale_after_seconds\":604800}}}}},\"reservation\":{\"reservation\":{\"publisher\":\"fixture-only\",\"channel\":\"test\",\"sequence\":1,\"bundle_fingerprint\":\"sha256:1b3aa5c89847b7db81229678e6e78766547f27d78c5c994d80ba2452cda69538\"},\"pending\":false},\"model\":{\"status\":\"unavailable\",\"reason\":\"not_configured\"},\"semantic_index\":{\"status\":\"unavailable\",\"reason\":\"missing\"},\"rustsec\":{\"status\":\"unavailable\",\"reason\":\"not_configured\"}},\"runtime\":null,\"mutation_journals\":null}\n"
         }
+      ],
+      "gaps": [
+        "R-7: v0.3.0 cannot write an M2 mutation journal through a CLI subcommand (only a live MCP session can), so (d) does not exercise an upgrade of a v0.3.0-written journal. Format compatibility of the legacy v1 journal encoding is instead covered by the unit tests `legacy_v1_receipt_is_read_only_and_explicit_recovery_migrates_to_v2` and `terminal_legacy_v1_replay_migrates_only_after_exact_binding` in crates/project-adapter/tests/support/native_mutation.rs.",
+        "R-2: v0.3.0 cannot publish an M3 quality artifact through a CLI subcommand either, so `quality-artifacts recover` above only smoke-tests an empty store in both directions; it does not prove a v0.3.0-written artifact upgrades cleanly."
       ]
     }
   ],

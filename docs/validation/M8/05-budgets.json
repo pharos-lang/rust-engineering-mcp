@@ -9,62 +9,74 @@
     {
       "id": "startup_cold_ms",
       "description": "serve --stdio -> respuesta a tools/list (proceso nuevo, primera llamada)",
-      "budget": 500,
+      "budget": 200,
       "unit": "ms",
       "statistic": "p95",
       "n": 30,
-      "provisional": true,
-      "basis": "Sin medida previa (handshake 18-122 ms, N=1)"
+      "provisional": false,
+      "basis": "recalibrated once after the first N>=30 measurement on committed bytes (86a5007): Sin medida previa (handshake 18-122 ms, N=1)",
+      "recalibrated_from": 500,
+      "recalibrated_utc": "2026-09-15"
     },
     {
       "id": "startup_warm_ms",
       "description": "segundo tools/list en el mismo proceso",
-      "budget": 100,
+      "budget": 50,
       "unit": "ms",
       "statistic": "p95",
       "n": 30,
-      "provisional": true,
-      "basis": "Sin medida previa"
+      "provisional": false,
+      "basis": "recalibrated once after the first N>=30 measurement on committed bytes (86a5007): Sin medida previa",
+      "recalibrated_from": 100,
+      "recalibrated_utc": "2026-09-15"
     },
     {
       "id": "dispatch_project_open_ms",
       "description": "rust.project.open (fixture fijo), sin Cargo",
-      "budget": 50,
+      "budget": 20,
       "unit": "ms",
       "statistic": "p95",
       "n": 30,
-      "provisional": true,
-      "basis": "Sin medida previa"
+      "provisional": false,
+      "basis": "recalibrated once after the first N>=30 measurement on committed bytes (86a5007): Sin medida previa",
+      "recalibrated_from": 50,
+      "recalibrated_utc": "2026-09-15"
     },
     {
       "id": "dispatch_catalog_status_ms",
       "description": "rust.catalog.status (sin catalogo), sin Cargo",
-      "budget": 50,
+      "budget": 20,
       "unit": "ms",
       "statistic": "p95",
       "n": 30,
-      "provisional": true,
-      "basis": "Sin medida previa"
+      "provisional": false,
+      "basis": "recalibrated once after the first N>=30 measurement on committed bytes (86a5007): Sin medida previa",
+      "recalibrated_from": 50,
+      "recalibrated_utc": "2026-09-15"
     },
     {
       "id": "rss_idle_core_mib",
       "description": "RSS idle, perfil core (tras tools/list, 5 s en reposo)",
-      "budget": 128,
+      "budget": 64,
       "unit": "MiB",
       "statistic": "max",
       "n": 10,
-      "provisional": true,
-      "basis": "Sin medida previa (placeholder)"
+      "provisional": false,
+      "basis": "recalibrated once after the first N>=30 measurement on committed bytes (86a5007): Sin medida previa (placeholder)",
+      "recalibrated_from": 128,
+      "recalibrated_utc": "2026-09-15"
     },
     {
       "id": "rss_peak_core_mib",
       "description": "RSS pico, perfil core (durante 30 ciclos de dispatch, muestreo 100 ms)",
-      "budget": 256,
+      "budget": 128,
       "unit": "MiB",
       "statistic": "max",
       "n": 30,
-      "provisional": true,
-      "basis": "Sin medida previa (placeholder)"
+      "provisional": false,
+      "basis": "recalibrated once after the first N>=30 measurement on committed bytes (86a5007): Sin medida previa (placeholder)",
+      "recalibrated_from": 256,
+      "recalibrated_utc": "2026-09-15"
     },
     {
       "id": "rss_idle_local_mib",
@@ -89,12 +101,14 @@
     {
       "id": "binary_size_core_bytes",
       "description": "Tamano binario release (sin comprimir), target/release/rust-engineering-mcp",
-      "budget": 43000000,
+      "budget": 40000000,
       "unit": "bytes",
       "statistic": "max",
       "n": 1,
-      "provisional": true,
-      "basis": "30 616 400 B observado + 15% + crecimiento"
+      "provisional": false,
+      "basis": "recalibrated once after the first N>=30 measurement on committed bytes (86a5007): 30 616 400 B observado + 15% + crecimiento",
+      "recalibrated_from": 43000000,
+      "recalibrated_utc": "2026-09-15"
     },
     {
       "id": "archive_size_core_bytes",
@@ -126,5 +140,10 @@
       "provisional": true,
       "basis": "N=1: 346 ms"
     }
-  ]
+  ],
+  "recalibration": {
+    "utc": "2026-09-15",
+    "measurement": "docs/validation/M8/05-measurement.json (head 86a5007)",
+    "rule": "single recalibration after the first N>=30 measurement, before RC1; Docker/local magnitudes stay provisional until measured in M8-09"
+  }
 }
