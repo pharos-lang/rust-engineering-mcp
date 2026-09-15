@@ -78,6 +78,7 @@ NODE = pathlib.Path("/Users/cburgosro/.nvm/versions/node/v24.15.0/bin/node")
 CLAUDE = pathlib.Path("/Users/cburgosro/.local/share/claude/versions/2.1.268")
 CODEX = pathlib.Path(shutil.which("codex") or "/nonexistent/codex")
 AGY = pathlib.Path(shutil.which("agy") or "/nonexistent/agy")
+BRIDGE_DIR = ROOT / "target/m1-17-inspector"
 INSPECTOR = ROOT / "target/m1-17-inspector/node_modules/@modelcontextprotocol/inspector/clients/cli/build/index.js"
 INSPECTOR_PACKAGE = ROOT / "target/m1-17-inspector/node_modules/@modelcontextprotocol/inspector/package.json"
 DOCKER = pathlib.Path("/Applications/Docker.app/Contents/Resources/bin/docker")
@@ -1058,7 +1059,7 @@ def run_inspector(attempt: pathlib.Path, mode: str, argv: list[str], timeout: in
     observation = attempt / "protocol.jsonl"
     state = pathlib.Path(argv[argv.index("--state-root") + 1])
     state.mkdir(mode=0o700, parents=True, exist_ok=True)
-    bridge = ROOT / "target/m1-17-inspector" / f"m8-{attempt.name}-{mode}-bridge.mjs"
+    bridge = BRIDGE_DIR / f"m8-{attempt.name}-{mode}-bridge.mjs"
     suffix = b"\nexport { InspectorClient, createTransportNode };\n"
     with bridge.open("xb") as stream:
         stream.write(INSPECTOR.read_bytes() + suffix)

@@ -850,7 +850,28 @@ class RunInspectorModeSeparationTests(unittest.TestCase):
     """W31: `--with-runtime`'s own regression -- a `runtime` Inspector session
     must never plan or execute the Docker-free negative call plan (it only
     holds against a host with no calibrated runtime), while a `docker_free`
-    session must still carry it in full."""
+    session must still carry it in full.
+
+    Hermetic by construction: `BRIDGE_DIR`/`INSPECTOR`/`NODE` are patched to a
+    throwaway directory and fixture bytes for every test in this class, so
+    `run_inspector` never touches the real `target/m1-17-inspector/` bundle
+    or a real Node binary -- only `m3.run_bounded` (always stubbed below)
+    would have spawned either."""
+
+    def setUp(self):
+        self._bridge_tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(self._bridge_tmp.cleanup)
+        bridge_dir = pathlib.Path(self._bridge_tmp.name)
+        fake_inspector = bridge_dir / "fake-inspector-bundle.js"
+        fake_inspector.write_bytes(b"// hermetic fixture, not the real Inspector bundle\n")
+        self._bridge_patches = (
+            mock.patch.object(M8, "BRIDGE_DIR", bridge_dir),
+            mock.patch.object(M8, "INSPECTOR", fake_inspector),
+            mock.patch.object(M8, "NODE", pathlib.Path("/nonexistent/node")),
+        )
+        for patch in self._bridge_patches:
+            patch.start()
+            self.addCleanup(patch.stop)
 
     def _capture_plan(self, mode: str) -> dict[str, object]:
         class StopBeforeSpawn(Exception):
