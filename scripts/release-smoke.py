@@ -101,12 +101,12 @@ TOOL_SCHEMA_SHA256 = {
     "rust.benchmark.run": "48f9aece603cc52ff418c067c34b669b821cf527c2ad7a49bdda5a8b80495151",
     "rust.benchmark.compare": "abaf63a23c1a13e76cb7e155343093f75cb825ec5e0bc1d534c8925ae2940024",
     "rust.profile.flamegraph": "b9348e9e714703ddf718a137673b20208d969e9ccc4c4fbc003216ea8a86d808",
-    "rust.binary.bloat": "3973462accce7aa341d115544f2a4ad464d2fad1ba2c0e6cce11707e3422488b",
+    "rust.binary.bloat": "d3e51af991725ebbfcd644e0e9aa29a85b1631afe18392734c81aecda6934088",
     "rust.analyzer.symbols": "9aa1ae796b8cf96836e7c2fca2b285e4ca43a356d97247aff4af185c281a55a3",
     "rust.analyzer.references": "e44acc84db266c56e86dcc7047df7b31ada99570eed992cac55b2e7bb3eb0d14",
     "rust.analyzer.diagnostics": "f6782595fdd0b582cdf55dd9dd29411ce7a327b3f05c31438f11c91f0f70fcf9",
     "rust.analyzer.actions": "a498d67d7189a0d44006327848e6db44896a585b134f45c28b86ad11879bb241",
-    "rust.analyzer.action.apply": "e29532894766b31b39a50e7ff84256acb19b95a3c3c5bf83a197a096c93c784e",
+    "rust.analyzer.action.apply": "703ebd8b90077aaab116885df0efca10647b2e72a810ea379b121c5b5b9e37ab",
 }
 # The frozen per-tool annotations: the write tools of M2 are not read-only.
 TOOL_ANNOTATIONS = {

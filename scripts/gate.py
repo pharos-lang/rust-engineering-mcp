@@ -180,9 +180,11 @@ def main():
         run('m6-provisioning-tests',[sys.executable,'-B','-m','unittest','fixtures/rust-runtime/m6/test_provision.py'],require_test_groups=True)
         run('m6-provisioning-unit-tests',[sys.executable,'-B','scripts/test-m6-provisioning.py'],require_test_groups=True)
         run('m6-runtime-unit-tests',[sys.executable,'-B','scripts/test-m6-runtime-unit.py'],require_test_groups=True)
+        run('m8-client-harness-tests',[sys.executable,'-B','scripts/test-m8-clients-unit.py'],require_test_groups=True)
         run('contract-freeze-tests',[sys.executable,'-B','scripts/test-contract-freeze.py'],require_test_groups=True)
         freeze_manifest=ROOT/'docs/validation/M8/freeze-0.8.0.json'
         run('contract-freeze',[sys.executable,'-B','scripts/contract-freeze.py','verify',str(freeze_manifest)])
+        run('m8-performance-unit-tests',[sys.executable,'-B','scripts/test-m8-performance-unit.py'],require_test_groups=True)
         run('vendor',[sys.executable,'scripts/verify-vendor.py'])
         run('cargo-fixtures',[sys.executable,'scripts/test-fixtures.py',str(ROOT),'--cargo',cargo])
         run('audit',['cargo','audit','--no-fetch'])
