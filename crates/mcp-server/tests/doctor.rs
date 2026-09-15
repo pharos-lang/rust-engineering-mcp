@@ -1,6 +1,12 @@
 //! Actual CLI diagnostics, fixed catalog fixtures and hostile PATH sentinels.
 #![cfg(target_os = "macos")]
-use rust_engineering_application::ReferenceGenerator;
+use rust_engineering_application::{
+    OperationControl, ProjectBackend, ProjectError, ProjectSourceBackend, ReferenceGenerator,
+};
+use rust_engineering_domain::{
+    IdempotencyKey, MutationCandidate, MutationCommit, MutationId, MutationKind, SourceBundle,
+    SourceFile,
+};
 use serde_json::{Value, json};
 use std::{
     fs,
@@ -13,6 +19,94 @@ use std::{
     time::{Duration, Instant},
 };
 type TestResult = Result<(), Box<dyn std::error::Error>>;
+struct Continue;
+impl OperationControl for Continue {
+    fn check(&self) -> Result<(), ProjectError> {
+        Ok(())
+    }
+}
+/// The Docker executable tuple `host_config` requires to accept `--state-root`;
+/// `doctor` never touches it in passive mode, so it need not exist on disk.
+fn journal_args(state_root: &Path) -> Vec<String> {
+    vec![
+        "--docker".into(),
+        "/private/tmp/doctor-unused-docker".into(),
+        "--docker-socket".into(),
+        "/private/tmp/doctor-unused.sock".into(),
+        "--state-root".into(),
+        state_root.display().to_string(),
+        "--rust-image".into(),
+        rust_engineering_execution::APPROVED_RUST_IMAGE.into(),
+    ]
+}
+/// D-5: `--state-root` alone, without the rest of the Docker tuple.
+fn journal_args_state_root_only(state_root: &Path) -> Vec<String> {
+    vec!["--state-root".into(), state_root.display().to_string()]
+}
+fn write_fixture_project(project: &Path) -> Result<(), Box<dyn std::error::Error>> {
+    fs::create_dir_all(project.join("src"))?;
+    fs::write(
+        project.join("Cargo.toml"),
+        b"[package]\nname = \"fixture\"\nversion = \"0.1.0\"\nedition = \"2024\"\n",
+    )?;
+    fs::write(project.join("src/lib.rs"), b"pub fn value() {}\n")?;
+    Ok(())
+}
+/// Commits a real `manifest_patch` journal (Cargo.toml lint change) and
+/// returns its on-disk path so a test can corrupt it afterwards.
+fn commit_manifest_patch_journal(
+    project: &Path,
+    journal_dir: &Path,
+    id_seed: u128,
+    validation: &str,
+) -> Result<PathBuf, Box<dyn std::error::Error>> {
+    let project_buf = project.to_path_buf();
+    let backend = rust_engineering_project::SecureProjects::new(std::slice::from_ref(&project_buf))
+        .map_err(|error| format!("{error:?}"))?;
+    let opened = backend
+        .open(project.to_str().ok_or("utf8")?, &Continue)
+        .map_err(|error| format!("{error:?}"))?;
+    let before = backend
+        .source(&opened.lease, &Continue)
+        .map_err(|error| format!("{error:?}"))?;
+    let files = before
+        .files()
+        .iter()
+        .map(|file| {
+            let bytes = if file.path() == "Cargo.toml" {
+                b"[package]\nname = \"fixture\"\nversion = \"0.1.0\"\nedition = \"2024\"\n\n[lints.rust]\nunsafe_code = \"forbid\"\n".to_vec()
+            } else {
+                file.bytes().to_vec()
+            };
+            SourceFile::new(file.path().to_owned(), bytes)
+        })
+        .collect::<Result<Vec<_>, _>>()
+        .map_err(|error| format!("{error:?}"))?;
+    let after = SourceBundle::with_directories(files, before.directories().to_vec())
+        .map_err(|error| format!("{error:?}"))?;
+    let candidate = MutationCandidate {
+        kind: MutationKind::ManifestPatch,
+        before,
+        after,
+        validation: validation.into(),
+    };
+    let request = MutationCommit {
+        id: MutationId::new(format!("mut_{id_seed:032x}")).map_err(|error| format!("{error:?}"))?,
+        digest: rust_engineering_project::mutation_store::mutation_digest(&candidate)
+            .map_err(|error| format!("{error:?}"))?,
+        key: IdempotencyKey::new(validation.into()).map_err(|error| format!("{error:?}"))?,
+        candidate,
+    };
+    let store = rust_engineering_project::mutation_store::NativeMutationStore::open(
+        journal_dir,
+        std::slice::from_ref(&project_buf),
+    )
+    .map_err(|error| format!("{error:?}"))?;
+    store
+        .commit(&opened.lease, &request, &Continue)
+        .map_err(|error| format!("{error:?}"))?;
+    Ok(journal_dir.join(format!("journal-{}.json", request.id.as_str())))
+}
 struct Fixture(PathBuf);
 impl Fixture {
     fn new() -> Result<Self, Box<dyn std::error::Error>> {
@@ -286,5 +380,277 @@ fn doctor_rejects_closed_cli_syntax_and_reports_configured_access_failures() -> 
     assert!(!f.0.join("store.lock").exists());
     assert!(r.as_object().ok_or("report")?.contains_key("runtime"));
     assert_eq!(r["operation"], json!("doctor"));
+    Ok(())
+}
+#[test]
+fn mutation_journals_is_null_without_state_root_and_empty_with_no_journals() -> TestResult {
+    deny_control();
+    let (_, r) = doctor(vec![])?;
+    assert!(r["mutation_journals"].is_null());
+    let f = Fixture::new()?;
+    let journal_dir = f.0.join("rust-mcp-mutations-v1");
+    fs::create_dir(&journal_dir)?;
+    fs::set_permissions(&journal_dir, fs::Permissions::from_mode(0o700))?;
+    let (out, r) = doctor(journal_args(&f.0))?;
+    assert!(out.status.success());
+    assert_eq!(
+        r["mutation_journals"],
+        json!({
+            "pending": 0,
+            "terminal": 0,
+            "unknown_format": 0,
+            "kinds": {},
+            "downgrade_blocked": false,
+            "downgrade_blocking_kinds": [],
+            "notes": []
+        })
+    );
+    Ok(())
+}
+/// D-5: `doctor` reads `mutation_journals` from `--state-root` alone, exactly
+/// like `mutation list`, without the rest of the Docker tuple `serve` needs.
+#[test]
+fn mutation_journals_accepts_state_root_alone_without_the_full_docker_tuple() -> TestResult {
+    deny_control();
+    let f = Fixture::new()?;
+    let journal_dir = f.0.join("rust-mcp-mutations-v1");
+    fs::create_dir(&journal_dir)?;
+    fs::set_permissions(&journal_dir, fs::Permissions::from_mode(0o700))?;
+    let (out, r) = doctor(journal_args_state_root_only(&f.0))?;
+    assert!(out.status.success(), "{r}");
+    assert_eq!(
+        r["mutation_journals"],
+        json!({
+            "pending": 0,
+            "terminal": 0,
+            "unknown_format": 0,
+            "kinds": {},
+            "downgrade_blocked": false,
+            "downgrade_blocking_kinds": [],
+            "notes": []
+        })
+    );
+    // A relative path is rejected exactly like every other absolute-path flag.
+    let out = run(
+        &[
+            "doctor".into(),
+            "--json".into(),
+            "--state-root".into(),
+            "relative".into(),
+        ],
+        None,
+    )?;
+    assert_eq!(out.status.code(), Some(2));
+    Ok(())
+}
+/// D-1 · P1: a committed journal of a kind unrecognized by `0.3.0`
+/// (`analyzer_action_apply`) must block downgrade even though it is
+/// terminal, not pending — the older binary cannot interpret the kind at
+/// all, regardless of phase.
+#[test]
+fn mutation_journals_downgrade_blocked_for_a_committed_kind_unknown_to_0_3_0() -> TestResult {
+    deny_control();
+    let f = Fixture::new()?;
+    let project = f.0.join("project");
+    write_fixture_project(&project)?;
+    let journal_dir = f.0.join("rust-mcp-mutations-v1");
+    fs::create_dir(&journal_dir)?;
+    fs::set_permissions(&journal_dir, fs::Permissions::from_mode(0o700))?;
+    let backend = rust_engineering_project::SecureProjects::new(std::slice::from_ref(&project))
+        .map_err(|error| format!("{error:?}"))?;
+    let opened = backend
+        .open(project.to_str().ok_or("utf8")?, &Continue)
+        .map_err(|error| format!("{error:?}"))?;
+    let before = backend
+        .source(&opened.lease, &Continue)
+        .map_err(|error| format!("{error:?}"))?;
+    let files = before
+        .files()
+        .iter()
+        .map(|file| {
+            let bytes = if file.path() == "src/lib.rs" {
+                b"pub fn value() {}\npub fn value2() {}\n".to_vec()
+            } else {
+                file.bytes().to_vec()
+            };
+            SourceFile::new(file.path().to_owned(), bytes)
+        })
+        .collect::<Result<Vec<_>, _>>()
+        .map_err(|error| format!("{error:?}"))?;
+    let after = SourceBundle::with_directories(files, before.directories().to_vec())
+        .map_err(|error| format!("{error:?}"))?;
+    let candidate = MutationCandidate {
+        kind: MutationKind::AnalyzerActionApply,
+        before,
+        after,
+        validation: "doctor-analyzer-action-apply".into(),
+    };
+    let request = MutationCommit {
+        id: MutationId::new(format!("mut_{:032x}", 0xa11_u128))
+            .map_err(|error| format!("{error:?}"))?,
+        digest: rust_engineering_project::mutation_store::mutation_digest(&candidate)
+            .map_err(|error| format!("{error:?}"))?,
+        key: IdempotencyKey::new("doctor-analyzer-action-apply".into())
+            .map_err(|error| format!("{error:?}"))?,
+        candidate,
+    };
+    let store = rust_engineering_project::mutation_store::NativeMutationStore::open_for_kind(
+        &journal_dir,
+        std::slice::from_ref(&project),
+        MutationKind::AnalyzerActionApply,
+    )
+    .map_err(|error| format!("{error:?}"))?;
+    store
+        .commit(&opened.lease, &request, &Continue)
+        .map_err(|error| format!("{error:?}"))?;
+    let (out, r) = doctor(journal_args(&f.0))?;
+    assert!(out.status.success(), "{r}");
+    let journals = &r["mutation_journals"];
+    assert_eq!(journals["pending"], json!(0));
+    assert_eq!(journals["terminal"], json!(1));
+    assert_eq!(journals["unknown_format"], json!(0));
+    assert_eq!(journals["downgrade_blocked"], json!(true));
+    assert_eq!(
+        journals["downgrade_blocking_kinds"],
+        json!(["analyzer_action_apply"])
+    );
+    assert_eq!(
+        journals["kinds"]["analyzer_action_apply"],
+        json!({"pending": 0, "terminal": 1})
+    );
+    assert!(!journals["notes"].as_array().ok_or("notes")?.is_empty());
+    Ok(())
+}
+/// D-2 (renamed): mutating `operation` verbatim without recomputing the
+/// checksum reproduces a **broken checksum**, not the unrecognized-kind
+/// branch — `decode_envelope` rejects it at the checksum comparison
+/// (`mutation.rs`), before `operation_kind` is ever consulted.
+#[test]
+fn mutation_journals_reports_a_broken_checksum_as_unknown_format_without_panicking() -> TestResult {
+    deny_control();
+    let f = Fixture::new()?;
+    let project = f.0.join("project");
+    write_fixture_project(&project)?;
+    let journal_dir = f.0.join("rust-mcp-mutations-v1");
+    fs::create_dir(&journal_dir)?;
+    fs::set_permissions(&journal_dir, fs::Permissions::from_mode(0o700))?;
+    let journal_path =
+        commit_manifest_patch_journal(&project, &journal_dir, 0xf01, "doctor-unknown-format")?;
+    // The envelope checksum covers the whole body, including `operation`;
+    // mutating it verbatim (rather than reconstructing a matching checksum)
+    // reproduces exactly this fail-closed condition, mirroring the
+    // project-adapter native test `unknown_journal_format_never_cleans_or_changes_source`.
+    let raw = fs::read_to_string(&journal_path)?;
+    let mutated = raw.replacen(
+        "\"operation\":\"manifest_patch\"",
+        "\"operation\":\"analyzer_action_does_not_exist\"",
+        1,
+    );
+    assert_ne!(raw, mutated, "operation field not found verbatim");
+    fs::write(&journal_path, mutated)?;
+    let (out, r) = doctor(journal_args(&f.0))?;
+    assert!(out.status.success(), "{r}");
+    let journals = &r["mutation_journals"];
+    assert_eq!(journals["unknown_format"], json!(1));
+    assert_eq!(journals["pending"], json!(0));
+    assert_eq!(journals["terminal"], json!(0));
+    assert_eq!(journals["downgrade_blocked"], json!(true));
+    assert!(!journals["notes"].as_array().ok_or("notes")?.is_empty());
+    Ok(())
+}
+/// D-2: three distinct ways a store fails closed before per-record
+/// classification — an unrecognized format marker (reaches the `_ =>` arm of
+/// `decode_envelope`'s format match directly), unparsable garbage bytes, and
+/// a foreign file the store does not own (e.g. `.DS_Store`) — each report the
+/// same exact, fail-closed counts.
+#[test]
+fn mutation_journals_reports_unrecognized_format_marker_and_garbage_bytes_as_unknown_format()
+-> TestResult {
+    deny_control();
+    let corruptions: [fn(String) -> Vec<u8>; 2] = [
+        |raw| {
+            let mutated = raw.replacen(
+                "rust-engineering-mcp-mutation-journal-v2",
+                "rust-engineering-mcp-mutation-journal-v9",
+                1,
+            );
+            assert_ne!(raw, mutated, "format marker not found verbatim");
+            mutated.into_bytes()
+        },
+        |_raw| b"not a journal, not even json".to_vec(),
+    ];
+    for corrupt in corruptions {
+        let f = Fixture::new()?;
+        let project = f.0.join("project");
+        write_fixture_project(&project)?;
+        let journal_dir = f.0.join("rust-mcp-mutations-v1");
+        fs::create_dir(&journal_dir)?;
+        fs::set_permissions(&journal_dir, fs::Permissions::from_mode(0o700))?;
+        let journal_path =
+            commit_manifest_patch_journal(&project, &journal_dir, 0xf02, "doctor-unknown-format")?;
+        let raw = fs::read_to_string(&journal_path)?;
+        fs::write(&journal_path, corrupt(raw))?;
+        let (out, r) = doctor(journal_args(&f.0))?;
+        assert!(out.status.success(), "{r}");
+        let journals = &r["mutation_journals"];
+        assert_eq!(journals["unknown_format"], json!(1));
+        assert_eq!(journals["pending"], json!(0));
+        assert_eq!(journals["terminal"], json!(0));
+        assert_eq!(journals["downgrade_blocked"], json!(true));
+        assert!(!journals["notes"].as_array().ok_or("notes")?.is_empty());
+    }
+    Ok(())
+}
+/// D-2: a foreign file the store does not own (e.g. Finder's `.DS_Store`)
+/// fails the same branch before any read, with no committed journal needed.
+#[test]
+fn mutation_journals_reports_a_foreign_file_as_unknown_format() -> TestResult {
+    deny_control();
+    let f = Fixture::new()?;
+    let journal_dir = f.0.join("rust-mcp-mutations-v1");
+    fs::create_dir(&journal_dir)?;
+    fs::set_permissions(&journal_dir, fs::Permissions::from_mode(0o700))?;
+    fs::write(journal_dir.join(".DS_Store"), b"binary-finder-metadata")?;
+    let (out, r) = doctor(journal_args(&f.0))?;
+    assert!(out.status.success(), "{r}");
+    let journals = &r["mutation_journals"];
+    assert_eq!(journals["unknown_format"], json!(1));
+    assert_eq!(journals["pending"], json!(0));
+    assert_eq!(journals["terminal"], json!(0));
+    assert_eq!(journals["downgrade_blocked"], json!(true));
+    assert!(!journals["notes"].as_array().ok_or("notes")?.is_empty());
+    Ok(())
+}
+/// D-3: a `serve` mutation holding the store's exclusive lock is reported as
+/// `journal busy`, distinct from an unreadable store.
+#[test]
+fn mutation_journals_reports_a_busy_note_when_the_store_lock_is_held() -> TestResult {
+    deny_control();
+    let f = Fixture::new()?;
+    let journal_dir = f.0.join("rust-mcp-mutations-v1");
+    fs::create_dir(&journal_dir)?;
+    fs::set_permissions(&journal_dir, fs::Permissions::from_mode(0o700))?;
+    // Pre-create and hold the store's global lock exclusively, exactly as a
+    // concurrent `serve` mutation would, so `doctor`'s read observes `Busy`.
+    let lock_path = journal_dir.join("mutation-store.lock");
+    let lock_file = fs::File::create(&lock_path)?;
+    fs::set_permissions(&lock_path, fs::Permissions::from_mode(0o600))?;
+    rustix::fs::flock(
+        &lock_file,
+        rustix::fs::FlockOperation::NonBlockingLockExclusive,
+    )
+    .map_err(|error| format!("{error:?}"))?;
+    let (out, r) = doctor(journal_args(&f.0))?;
+    assert!(out.status.success(), "{r}");
+    let journals = &r["mutation_journals"];
+    assert_eq!(journals["pending"], json!(0));
+    assert_eq!(journals["terminal"], json!(0));
+    assert_eq!(journals["unknown_format"], json!(0));
+    assert_eq!(journals["downgrade_blocked"], json!(true));
+    assert_eq!(
+        journals["notes"],
+        json!(["journal busy: a mutation is in progress; rerun doctor"])
+    );
+    drop(lock_file);
     Ok(())
 }
