@@ -33,6 +33,7 @@
 | `2024-11-05` | `initialize` / `notifications/initialized` | Versión preservada, `rust.project.open` |
 | Moderna/desconocida vía `initialize` | Handshake legacy | Fallback explícito del SDK a `2025-11-25` |
 | Versión inline desconocida | Metadata completa | Error `-32022`; permite request válido posterior |
+| Todas (M8-04) | `resources/list` / `resources/templates/list` / `prompts/list` | `ttlMs: 0`/`cacheScope: "private"` en toda revisión (SEP-2549); `resources`/`prompts` vacíos, dos `resourceTemplates` |
 
 La matriz original acredita bootstrap y project.open. La evidencia M1-11 cubre
 las once definiciones anteriores; [M1-12](validation/M1/12.md) valida el contrato
@@ -262,6 +263,52 @@ eslabones: los protocol tests exigen igualdad servidor vivo ↔ snapshots;
 `tests/cli.rs` exige igualdad `contract --json` ↔ snapshots; la etapa
 `contract-freeze` del gate `core` exige igualdad snapshots ↔ manifiesto
 ([`docs/validation/M8/freeze-0.8.0.json`](validation/M8/freeze-0.8.0.json)).
+
+## Upgrade, rollback y backup
+
+Comparación byte a byte `v0.3.0` → `0.8.0` de los diez formatos en disco del
+censo M8-01: ninguno requiere migración
+([`03-formats-analysis.md`](validation/M8/03-formats-analysis.md) §(b)); host
+config y el journal M2 cambiaron de forma estrictamente aditiva. Decisión
+completa: [ADR-088](adr/ADR-088-migration-rollback-policy.md) (D12).
+
+| # | Formato | Marcador de versión | Fail-closed | Cambio desde 0.3.0 | Recuperación |
+| --- | --- | --- | --- | --- | --- |
+| 1 | Host config (flags `serve`) | Ninguno (stateless) | Sí, imagen/flag no aprobada | Aditivo (flag + imagen M6) | N/A (se re-suministra al arrancar) |
+| 2 | Journal/receipts M2 | Campo `format` versionado (`...-v1`/`-v2`) | Sí, por registro, antes de tocar workspace/store | Aditivo (nueva variante de operación) | `mutation list`/`prune` + `recover: bool` explícito |
+| 3 | Quality/jobs artifact store M3 | `format_version` + `PayloadFormatVersion` + watermark | Sí, en descriptor y watermark | Sin cambios | `quality-artifacts recover`/`prune` |
+| 4 | Estado del analyzer M6 | Sin estado runtime persistido | N/A (transitorio) | Código nuevo desde 0.3.0 | N/A |
+| 5 | Catálogo SQLite | `PRAGMA user_version` + `SnapshotManifest.format_version` | Sí, doble capa | Sin cambios | `catalog status`/`import`/`sync`/`rebuild-index` |
+| 6 | Catálogo — bundle de confianza + floor | `BundleManifest.*_format_version` + `SequenceFloor.format_version` | Sí, en ambos | Sin cambios | Igual que catálogo SQLite; único floor de secuencia genuino del censo |
+| 7 | Índice semántico LanceDB | `IndexMetadata.schema_version` + dimensión | Sí, en build/restore | Sin cambios | `catalog rebuild-index` (reconstrucción completa; nunca autoritativo) |
+| 8 | Política de seguridad (`cargo-deny`) | `SecurityPolicyDocument.schema_version` | Sí, antes de ejecución | Sin cambios | N/A (input de host re-suministrado) |
+| 9 | Snapshot de advisories RustSec | Ninguno propio; pin SHA-256 + política de frescura | Parcial — degrada (`AuditIssue`), no bloquea | Sin cambios | N/A (input de host re-suministrado) |
+| 10 | Cargo vendor tree offline | Ninguno propio; pin SHA-256 de árbol completo | Por cuota/alfabeto, no por versión | Sin cambios | `cargo-vendor inspect`/`capture` (recaptura completa) |
+
+Los formatos 9 y 10 no llevan un floor de secuencia persistido — solo un pin
+de integridad puntual re-suministrado en cada invocación — y el censo
+(`docs/validation/M8/01-census.json`) se corrige en consecuencia; el único
+floor de secuencia genuino que impide un retroceso real es el del bundle de
+confianza del catálogo (fila 6).
+
+**Rollback de binario (`0.8.0` → `0.3.0`).** Con el servidor parado: un
+journal de mutación pendiente se resuelve primero con el binario nuevo, o con
+`mutation prune` explícito, antes de bajar de versión — un binario anterior
+que encuentre un registro que no reconoce falla cerrado (`RecoveryRequired`)
+en vez de corromper o reinterpretar ese registro. `doctor` expone una sección
+`mutation_journals` (preflight pasivo) para revisar journals pendientes antes
+del downgrade; `serve` no bloquea su arranque por un journal ajeno a la
+operación solicitada. Los floors de catálogo (fila 6) nunca retroceden: un
+bundle de secuencia menor se rechaza aunque lo lea un binario más viejo. La
+prueba con dos binarios reales (`v0.3.0` y `0.8.0`) y su recibo
+(`docs/validation/M8/03-rollback.json`, W15) no entran en el gate `core`.
+
+**Backup y restore.** No hay CLI de backup dedicada. Con el servidor parado,
+copia `--state-root`, `--catalog-store` y `--catalog-trust` como árboles de
+archivos ordinarios; valida el estado restaurado con `doctor` antes de
+reanudar `serve`. Un backup restaurado no autoriza sobrescribir cambios
+posteriores del usuario en el workspace: el journal M2 los detecta como
+`Conflict`, igual que cualquier otra escritura externa concurrente.
 
 ## Gateway y capabilities M0-05/06
 

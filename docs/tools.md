@@ -579,9 +579,12 @@ Doctor comparte los flags cerrados de serve: --root (hasta16), --project-ttl-sec
 (1..86400), --catalog-store/--catalog-trust, --catalog-model-dir y
 --catalog-index-store (este último requiere modelo); --rustsec-snapshot junto con
 --rustsec-sha256; --docker/--docker-socket/--state-root/--rust-image juntos y con la
-imagen Rust aprobada. No descubre configuración del proyecto ni ejecutables en PATH.
-Los flags de catálogo de doctor usan el prefijo --catalog-, a diferencia de la CLI
-administrativa catalog. No se admiten flags duplicados salvo --root repetible.
+imagen Rust aprobada (D-5: excepcionalmente, doctor también acepta --state-root
+solo, sin el resto de la tupla Docker, únicamente para calcular mutation_journals
+— serve sigue exigiendo la tupla completa). No descubre configuración del proyecto
+ni ejecutables en PATH. Los flags de catálogo de doctor usan el prefijo --catalog-,
+a diferencia de la CLI administrativa catalog. No se admiten flags duplicados salvo
+--root repetible.
 
 Pasivo abre archivos configurados mediante los adapters seguros; puede cargar el
 modelo/índice nativos, pero no ejecuta subprocesses ni adquiere la lease del store.
@@ -591,11 +594,36 @@ rustc/cargo/componentes en la imagen aprobada. Usa un source en memoria del prod
 no una root del usuario. cargo-audit figura not_used: el motor es la biblioteca RustSec.
 
 El JSON format_version1 contiene operation, mode, status, duration_ms, checks,
-catalog y runtime. Cada check tiene id/scope/status/reason/component_reason/action/
-severity finitos. La salida humana deriva del mismo reporte. Passed y warning salen0;
-failed sale1, incluida una dependencia configurada inválida; errores de sintaxis salen2.
-Servicios opcionales no configurados y freshness aging/stale/unknown son warnings.
-Las acciones son recomendaciones: nunca se sincroniza, instala o repara automáticamente.
+catalog, runtime y mutation_journals. Cada check tiene id/scope/status/reason/
+component_reason/action/severity finitos. La salida humana deriva del mismo reporte.
+Passed y warning salen0; failed sale1, incluida una dependencia configurada inválida;
+errores de sintaxis salen2. Servicios opcionales no configurados y freshness
+aging/stale/unknown son warnings. Las acciones son recomendaciones: nunca se
+sincroniza, instala o repara automáticamente.
+
+mutation_journals es un preflight pasivo añadido de forma aditiva en0.8.0 (D12§3;
+format_version no cambia). Es null sin --state-root; a diferencia del resto de
+doctor, --state-root solo (sin --docker/--docker-socket/--rust-image) basta para
+esta sección, la misma lectura mínima que `mutation list --state-root` exige.
+Con --state-root, no lee el workspace ni el source; abre el store de journals
+(crea el lock del store si no existe) con la misma lectura que `mutation list`
+(solo metadatos del journal) y resume pending (fases no
+terminales), terminal (committed/no_change/aborted), kinds (recuentos pending/terminal
+por kind de operación: manifest_patch, format_apply, fix_apply, dependency_add,
+dependency_remove, analyzer_action_apply) y unknown_format (envelope, checksum,
+archivo ajeno u operation_kind que este binario no interpreta; el sniff de formato
+falla cerrado sobre todo el store antes de clasificar por registro, así que el valor
+es un mínimo garantizado, no un conteo exacto). downgrade_blocked es
+`pending>0 ∨ existe un kind ausente de los cinco M2 conocidos por0.3.0`
+(manifest_patch, format_apply, fix_apply, dependency_add, dependency_remove);
+downgrade_blocking_kinds nombra esos kinds. Un lock exclusivo tomado por una
+mutación de serve concurrente se reporta con su propia nota («journal busy»),
+distinta de un store realmente ilegible («unreadable or unknown»). notes[] explica
+que un binario anterior a0.8.0 no interpreta kinds nuevos como analyzer_action_apply
+y responde RecoveryRequired antes de cualquier efecto, y que recover, complete o
+`mutation prune` con0.8.0 lo resuelve antes de instalar un binario más antiguo.
+serve nunca bloquea por esto: la protección es fail-closed por registro;
+mutation_journals solo da visibilidad al operador antes de un downgrade.
 
 Límite128KiB incluyendo terminador; deadlines cooperativos120s pasivo/900s activo.
 SIGINT/SIGTERM/SIGHUP cancelan y esperan el worker y cleanup; la finalización puede superar
@@ -2036,9 +2064,18 @@ Las Resources del servidor son dinámicas por sesión: `resources/list`
 devuelve siempre `[]` **por diseño**, nunca un catálogo estático. Las URIs
 válidas siguen las plantillas `rust-artifact://prj_<32hex>/art_<32hex>` (ver
 [rust.check y Resources](#rustcheck-y-resources-m1-03)) y
-`rust-quality-artifact://…` (M4/M5); `resources/read` las resuelve solo si
+`rust-quality-artifact://{project_ref}/{quality_job_id_or_artifact_id}{?offset,length}`
+(M4/M5; forma RFC6570 — `offset` y `length` son dos miembros de query
+distintos, no una variable expandida dos veces); `resources/read` las resuelve solo si
 existen y el llamador es su propietario vigente. Los ejemplos estáticos de
 spec §9.2 no se implementaron ([ADR-011](adr/ADR-011-mcp-resources.md)).
+Desde `0.8.0`, `resources/templates/list` anuncia esas mismas dos plantillas
+(`rust-artifact` y `rust-quality-artifact`) para que el peer las descubra sin
+necesitar los ejemplos estáticos; `resources/list` y `prompts/list` siguen
+devolviendo `[]`. Las cuatro respuestas de listado (`tools/list`,
+`resources/list`, `resources/templates/list`, `prompts/list`) llevan
+`ttlMs: 0`/`cacheScope: "private"` (SEP-2549) en toda revisión negociada,
+como exige el SDK TS 2026-07-28 instalado por Inspector.
 
 ## Clases de estabilidad y documento de contrato
 

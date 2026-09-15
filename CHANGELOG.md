@@ -50,6 +50,45 @@
 - **Alcance de hosts para 1.0: macOS ARM64 únicamente**
   ([ADR-087](docs/adr/ADR-087-1.0-host-scope.md)); Linux/Windows x86_64 siguen
   siendo CI de portabilidad, sin artifact ni calificación.
+- **Política de migración, downgrade y backup/restore**
+  ([ADR-088](docs/adr/ADR-088-migration-rollback-policy.md)): ningún formato
+  en disco requiere migración de bytes entre `0.3.0` y `0.8.0`; `doctor` gana
+  un preflight pasivo de journals de mutación pendientes antes de un
+  downgrade; backup/restore queda documentado como procedimiento operativo
+  sin CLI nueva (`docs/compatibility.md` §Upgrade, rollback y backup).
+- **`resources/templates/list` y `prompts/list` llevan `ttlMs`/`cacheScope`
+  (V03 §3, SEP-2549).** Sin override, el SDK (`rmcp` 3.2.0) devolvía estos
+  dos listados sin `ttlMs`/`cacheScope`, a diferencia de `tools/list` y
+  `resources/list`; el cambio es aditivo y los 36 snapshots `*-tool.json` no
+  se tocan. Las cuatro respuestas de listado llevan ahora `ttlMs: 0` /
+  `cacheScope: "private"` en toda versión de protocolo soportada, incluidas
+  las cuatro versiones legacy (antes solo se probaba una).
+- **`doctor.mutation_journals` corrige un falso negativo de
+  `downgrade_blocked` (V03 D-1, ADR-088 §3).** `MutationRecordSummary` gana
+  `kind` (campo aditivo). `mutation_journals` publica `kinds{kind → pending,
+  terminal}` por los seis kinds de operación, y `downgrade_blocked` pasa a
+  `pending > 0 ∨ existe un registro con un kind ajeno a los cinco que
+  `0.3.0` reconoce` (`manifest_patch`, `format_apply`, `fix_apply`,
+  `dependency_add`, `dependency_remove`), listados en
+  `downgrade_blocking_kinds`; antes, un journal `analyzer_action_apply` ya
+  **committed** reportaba `downgrade_blocked: false` porque solo se contaban
+  fases pendientes, pese a que `0.3.0` lo rechaza en cuanto lo lee. La nota
+  de downgrade pasa a «recover, complete or prune (`mutation prune`) with
+  0.8.0 before installing an older binary»; un lock ocupado por una mutación
+  concurrente de `serve` (`Busy`) tiene su propia nota («journal busy»),
+  distinta de un store realmente ilegible («unreadable or unknown»).
+  `doctor` acepta `--state-root` solo, sin el resto de la tupla Docker,
+  únicamente para esta sección (misma lectura que `mutation list
+  --state-root`); `serve` sigue exigiendo la tupla completa.
+- **La plantilla `rust-quality-artifact` pasa a RFC6570 (V03 S-1, contrato
+  antes del freeze).** `…/{quality_job_id_or_artifact_id}?offset={n}&length={n}`
+  expandía `offset` y `length` desde la misma variable `{n}`, y no
+  describía las URIs de índice (sin query); la forma correcta es
+  `…/{quality_job_id_or_artifact_id}{?offset,length}`, publicada tanto por
+  `resources/templates/list` (`stdio.rs`) como por `contract --json`
+  `resources[]` (`capability_document.rs`), ahora construidas desde una
+  única constante compartida (`resources::QUALITY_TEMPLATE_SUFFIX`) y
+  verificadas por igualdad exacta entre ambas listas.
 
 - **M6-04/M6-05: `rust.analyzer.actions` y `rust.analyzer.action.apply`**
   (rama `ai/m6-analyzer`). El inventario público pasa de 34 a 36 tools; los 34

@@ -434,6 +434,30 @@ Ejecuta el quality gate standard y enumera las etapas fallidas o bloqueadas.
 Busca crates de serialización compatibles con Rust 1.98.1 en el catálogo local.
 ```
 
+## Operación: backup, restore y rollback
+
+Ningún formato en disco requiere migración entre `0.3.0` y `0.8.0`
+([ADR-088](docs/adr/ADR-088-migration-rollback-policy.md)); no hay CLI de
+backup dedicada.
+
+- **Backup:** para el servidor y copia `--state-root`, `--catalog-store` y
+  `--catalog-trust` como árboles de archivos ordinarios.
+- **Restore:** copia el backup de vuelta y valida con
+  `rust-engineering-mcp doctor --json` antes de reanudar `serve`. Un backup
+  restaurado no autoriza sobrescribir cambios posteriores del workspace: el
+  journal de mutaciones los detecta como `Conflict`.
+- **Rollback de binario:** con el servidor parado, resuelve cualquier journal
+  de mutación pendiente con el binario nuevo o con `mutation prune` explícito
+  antes de instalar una versión anterior; `doctor` lista los journals
+  pendientes (sección `mutation_journals`) para revisarlos antes del
+  downgrade. Los floors de secuencia del catálogo (bundle de confianza) no
+  retroceden: un binario anterior sigue rechazando un bundle de secuencia
+  menor.
+
+Detalle completo, tabla de los diez formatos y la prueba con dos binarios
+reales: [`docs/compatibility.md` §Upgrade, rollback y
+backup](docs/compatibility.md#upgrade-rollback-y-backup).
+
 ## Seguridad
 
 - Autoriza únicamente roots necesarias y usa rutas absolutas.
