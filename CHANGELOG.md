@@ -107,8 +107,9 @@
   `compile_verification` y la descripción pide revisar cada archivo del diff y
   ejecutar `rust.check` después. `MutationKind::AnalyzerActionApply` publica
   su propia vista de validación (`workspace_edit_structural_only`); las cinco
-  tools M2 no cambian de contrato. Calificación nativa pendiente del
-  orquestador.
+  tools M2 no cambian de contrato. Calificación nativa cerrada en el gate
+  `full` de M6 (`docs/validation/M6/M6-full-gate.json`,
+  `sha256:69a0be14c1e2ae0cce07014daeba1818c49fa115aa3b67313bb0baffe07f34d0`).
 
 - **M6-02/M6-03: `rust.analyzer.references` y `rust.analyzer.diagnostics`**
   (rama `ai/m6-analyzer`). El inventario público pasa de 32 a 34 tools.
@@ -128,8 +129,9 @@
   anotaciones y mismo runtime M6 admitido que `rust.analyzer.symbols`; los 32
   snapshots existentes quedan sin cambios. Véase
   [ADR-084](docs/adr/ADR-084-rust-analyzer-runtime-and-lsp-lifecycle.md) §2
-  (enmienda de la fase 6). M6 sigue en desarrollo local, sin integración
-  remota, PR ni release; calificación nativa pendiente del orquestador.
+  (enmienda de la fase 6). Calificación nativa cerrada en el gate `full` de
+  M6 (`docs/validation/M6/M6-full-gate.json`,
+  `sha256:69a0be14c1e2ae0cce07014daeba1818c49fa115aa3b67313bb0baffe07f34d0`).
 
 - **M6-01: primera tool de análisis, `rust.analyzer.symbols`** (rama
   `ai/m6-analyzer`). El inventario público pasa de 31 a 32 tools. Lee símbolos
@@ -151,8 +153,9 @@
   [ADR-082](docs/adr/ADR-082-m6-runtime-provisioning.md),
   [ADR-083](docs/adr/ADR-083-analyzer-contract-and-actions.md),
   [ADR-084](docs/adr/ADR-084-rust-analyzer-runtime-and-lsp-lifecycle.md) y
-  [ADR-085](docs/adr/ADR-085-m6-runtime-admission.md). M6 sigue en desarrollo
-  local, sin integración remota, PR ni release.
+  [ADR-085](docs/adr/ADR-085-m6-runtime-admission.md). Calificación nativa
+  cerrada en el gate `full` de M6 (`docs/validation/M6/M6-full-gate.json`,
+  `sha256:69a0be14c1e2ae0cce07014daeba1818c49fa115aa3b67313bb0baffe07f34d0`).
 
 - **Reordenación del repositorio sin cambios de producto** (rama
   `ai/repo-hygiene`, 2026-09-11). La evidencia de calificación pasa a un

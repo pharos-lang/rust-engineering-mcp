@@ -107,7 +107,7 @@ pentest (RR-01).
 | `cargo fix` con proc macro que muta el manifest o escribe fuera | Staging guest y publisher host acotado (ADR-053/054); perfil `seccomp-rust-fix.json:178-201` añade solo `socket(AF_INET, SOCK_STREAM)` para loopback con `--network=none`; `rust_applied.rs:939`; `fix_hostile.rs:121,180` | **N** `m2-runtime` (`test-m2-runtime.py:35`) | Baja: TCP loopback interno del namespace (RR-05) |
 | `.cargo/config*` que redirige sources, linker o rustflags | Predicado `crates/domain/src/security.rs:39`, aplicado antes de volumen `performance_gateway.rs:101`; Miri rechaza configuración de fuente (fixture `miri_native.rs:243`) | **N** `miri_native.rs:144`; **U** `security.rs:685-709` | Baja: predicado por nombre |
 | `rust-analyzer.toml` que reactiva build scripts u `overrideCommand` | Rechazo en captura y defensa en gateway `analyzer_gateway.rs:412-430` | **N** `analyzer_native.rs:1492` | Baja |
-| Peer LSP hostil: frame gigante, crash, nunca quiescent, cancelación | Codec acotado y deadlines ([ADR-084](../../adr/ADR-084-rust-analyzer-runtime-and-lsp-lifecycle.md)); `env_clear` `lsp_session.rs:879` | **N** `analyzer_native.rs:1752,1680,1558,1628` | Baja; ausencia de procesos por muestreo (RR-03) |
+| Peer LSP hostil: frame gigante, crash, nunca quiescent, cancelación | Codec acotado y deadlines ([ADR-084](../../adr/ADR-084-rust-analyzer-runtime-and-lsp-lifecycle.md)); `env_clear` `lib.rs:335`, invocado desde `analyzer_gateway.rs:551` | **N** `analyzer_native.rs:1752,1680,1558,1628` | Baja; ausencia de procesos por muestreo (RR-03) |
 | Flood de salida, JUnit/tar/HTML hostiles, symlink en ruta fija | `nextest_runtime.rs:400,419`; `coverage_runtime.rs:402`; `mutation_runtime.rs:547` | **N** `m3-runtime` | Baja |
 | Symlink/hardlink o sustitución del checkout durante la captura | `NOFOLLOW_ANY | RESOLVE_BENEATH` en cada open `crates/project-adapter/src/filesystem/macos.rs:27-29,63`; tests `crates/project-adapter/tests/filesystem.rs:211,226,247,398,455` | **N** suite macOS del crate | Baja: FIFO/device node y captura no atómica (RR-14) |
 | Binario perfilado que pre-crea artifacts o deja nietos | Vaciado de PID namespace, `O_EXCL`, reconciliación de manifest ([ADR-074 §5.1](../../adr/ADR-074-profiling-capability-and-containment.md)); `performance_native.rs:2015` | **N** selecciones `profile-descendant-drained` y `profile-precreated-artifact-refused` ([recibo](../M5/03-runtime.json)) | Baja |
@@ -162,11 +162,11 @@ pentest (RR-01).
 | Entrada hostil / abuso | Control existente | Oráculo | Residual |
 | --- | --- | --- | --- |
 | Release desde una rama o tag no estable | `release-candidate.yml:23-29` exige `vX.Y.Z` de tipo tag; versión = tag `:70-86` | **H** [recibo público 0.1.0](../M1/17-public-release.json) | Baja |
-| Robo de clave de firma | No existe clave privada en el repositorio: OIDC `release-candidate.yml:40-43,132-138`, verificación con signer workflow exacto `:140-157`; `permissions: contents: read` global `:10-11`; `contents: write` solo en el job draft `:171-172` ([publication](../../publication.md)) | **H** attestations verificadas en 0.1.0 | Media: la attestation acredita el workflow, no la reproducibilidad (RR-12) |
-| Acción de terceros comprometida | Acciones fijadas por SHA (`release-candidate.yml:46`); Dependabot para `github-actions` (`.github/dependabot.yml`) | **—** | Media (RR-12) |
+| Robo de clave de firma | No existe clave privada en el repositorio: OIDC `release-candidate.yml:41-44`, verificación con signer workflow exacto `:147-164`; `permissions: contents: read` global `:10-11`; `contents: write` solo en el job draft `:178-179` ([publication](../../publication.md)) | **H** attestations verificadas en 0.1.0 | Media: la attestation acredita el workflow, no la reproducibilidad (RR-12) |
+| Acción de terceros comprometida | Acciones fijadas por SHA (`release-candidate.yml:47`); Dependabot para `github-actions` (`.github/dependabot.yml`) | **—** | Media (RR-12) |
 | PR de fork que exfiltra `SONAR_TOKEN` | Evento `pull_request` (no `pull_request_target`) y guard de fork `sonarcloud.yml:20-22`; herramientas Python con hashes `:47` | **—** (revisión de configuración) | Media: token de larga vida de un tercero (RR-12) |
 | Merge sin revisión o force-push | `CODEOWNERS:2`; protección observada `strict`, `enforce_admins`, sin force-push ni borrado ([public-ci-live](../M1/public-ci-live-33928952807.json) `:43-55`) | **H** observación M1 no re-verificada | Media (RR-12) |
-| Smoke del archive con inventario erróneo | `release-smoke.py:35-110` fija 36 tools y sus SHA-256 de schema | **H** | Baja: `release-candidate.yml:219` todavía exige `tools == 31`, así que un draft 0.8.x falla cerrado (issue abierto) |
+| Smoke del archive con inventario erróneo | `release-smoke.py:35-110` fija 36 tools y sus SHA-256 de schema; `release-candidate.yml:128-136,200,228` toma `tool_count` de `docs/validation/M8/freeze-0.8.0.json` en vez de un literal, así que un draft 0.8.x no falla cerrado por conteo (issue §9.1 cerrado, resuelto en M8-07) | **H** | Baja |
 
 ## 4. Temas obligatorios del plan
 
@@ -187,13 +187,17 @@ pentest (RR-01).
   `cargo audit --no-fetch` con la base local (CI sí la actualiza);
   `paste 1.0.15` sigue en el lock (`Cargo.lock:4118-4119`) como aviso
   unmaintained visible (SECURITY.md §M0-09). Dependabot abre PRs semanales:
-  cada subida requiere revisión de CODEOWNERS y recalificación (plan §post-M8).
+  cada subida requiere revisión de CODEOWNERS y recalificación (plan §post-M8);
+  el job `build` de `release-candidate.yml:41-44` concede el token OIDC al
+  mismo job que ejecuta esos `build.rs`, mitigado con
+  `persist-credentials: false` (W33) en los checkouts.
   → **RR-10**.
 
 ### 4.2 Secretos en source y en evidencia
 
-- **Controles:** entorno reconstruido (`env_clear` en `lib.rs:335`,
-  `supervisor.rs:465`, `lsp_session.rs:879`, `analyzer_gateway.rs:1645`), sin
+- **Controles:** entorno reconstruido (`env_clear` en `lib.rs:333-346`, único
+  punto de spawn en producción; llamado desde `rust_gateway.rs:1832`,
+  `mutation_gateway.rs:369,412` y `analyzer_gateway.rs:551`), sin
   `CARGO_HOME`/credenciales del host (security-model §Escritura M2); redacción
   literal byte a byte, solapada y entre chunks
   `crates/artifact-adapter/src/lib.rs:262-271` (tests `artifact-adapter/src/tests.rs:78,503,595`);
@@ -327,15 +331,16 @@ es su resumen.
 | RR-07 | Sin detección universal de secretos | Media | Artifacts, logs, evidencia | Redacción literal, normalización, canarios, `assert_no_credentials` | Evidencia de repos de terceros, remoto o telemetría |
 | RR-08 | Mismo uid y host malicioso fuera de frontera; ACLs no inspeccionadas | Media | State root, trust, artifacts, checkout | `0700`/`0600`, uid, `nlink`, binding owner | M7 o cambio del modelo de permisos de macOS |
 | RR-09 | `local_coordinated`: sin CAS, multiarchivo no atómico, power loss no demostrado, journal corrupto bloquea | Media | 6 tools de escritura | Journal, revalidación, recovery explícito | Nuevo adapter, pérdida de datos reportada o cambio de APFS |
-| RR-10 | Dependencia comprometida sin advisory | Media | Build y runtime | audit/deny, pins `=`, lock, vendor SHA-256, digests | Tarea post-M8 de paquetería o advisory RUSTSEC nuevo |
+| RR-10 | Dependencia comprometida sin advisory; token OIDC del job `build` expuesto a `build.rs` antes de atestar (F-05) | Media | Build y runtime; publicación | audit/deny, pins `=`, lock, vendor SHA-256, digests; `persist-credentials: false` (W33) | Tarea post-M8 de paquetería, advisory RUSTSEC nuevo o split del job de attestation |
 | RR-11 | Catálogo/modelo: firma ≠ corrección; sin trust root oficial | Baja | Catálogo y semántica | Ed25519, floor, SHA-256 E5, SQLite autoritativo | Decisiones D15/D16 |
-| RR-12 | Publicación: OIDC ≠ reproducibilidad, branch protection no re-verificada, `SONAR_TOKEN`, D14 pendiente | Media | Artifacts y repo | OIDC, verify, pins por SHA, CODEOWNERS, draft | M8-07/D14, antes de RC1 |
+| RR-12 | Publicación: OIDC ≠ reproducibilidad, `SONAR_TOKEN` (F-07: branch protection, provenance 0.8.x y D14 pasan a ítems bloqueantes del checklist RC1) | Media | Artifacts y repo | OIDC, verify, pins por SHA, CODEOWNERS, draft | Cambio de workflows o de protección |
 | RR-13 | Evidencia producida por código del proyecto no autenticada | Baja | Tests, lints, benchmarks | Clasificación conservadora, forgery tests | Si un contrato afirmara autenticidad |
 | RR-14 | Límites del filesystem macOS (FIFO/device, ACL por clone, nlink, captura no atómica) | Baja | Captura y writer | No-follow en cada componente, detección de cambios | Nueva versión mayor de macOS/APFS |
 | RR-15 | Sin revocación en caliente; `kill -9` deja objetos Docker | Baja | Grants y jobs | Reinicio, cleanup unido, cuarentena | Remoto o residuos observados en soak |
 | RR-16 | Retención y borrado dependen del operador; sin borrado seguro | Baja | Journals, backups, logs | TTL/cuotas de artifacts, prune explícito | Requisito de cumplimiento o remoto |
 | RR-17 | Brechas de oráculo en gates obligatorios | Baja | Rollback, e2e analyzer, power loss | Oráculos manuales registrados | Cierre M8-09 (dos RC) |
 | RR-18 | rmcp 3.2.0 en la TCB del protocolo | Baja | stdio | Pin `=`, admisión propia, tests de protocolo | Subida de `rmcp` |
+| RR-19 | Sin firma de código ni notarización macOS (V04) | Baja | Archive de release | `SHA256SUMS` + attestation OIDC | Distribución por canal que active Gatekeeper |
 
 ## 8. Conteo
 
@@ -343,13 +348,15 @@ es su resumen.
 - Controles evaluados en §3: **53** — **31** con oráculo nativo (N), **12**
   con oráculo unit/contract/protocol (U), **4** con evidencia histórica o de
   configuración (H) y **6** sin oráculo (—).
-- Riesgos residuales: **18** (RR-01 … RR-18).
+- Riesgos residuales: **19** (RR-01 … RR-19; RR-19 añadido por la auditoría
+  independiente V04, 2026-09-15).
 
 ## 9. Issues abiertos detectados (fuera de los archivos permitidos a W22)
 
-1. `.github/workflows/release-candidate.yml:219` exige `counts.tools == 31`,
-   mientras `scripts/release-smoke.py:35-72` publica 36 tools: un draft 0.8.x
-   falla cerrado. Corresponde a M8-07.
+1. **Cerrado (V04, W32).** `release-candidate.yml:219` ya no compara contra un
+   literal `31`: toma `tool_count` de `docs/validation/M8/freeze-0.8.0.json`
+   (`:128-136,200`) y lo compara en `:228`, que coincide con los 36 tools que
+   publica `scripts/release-smoke.py:35-72`. Resuelto en M8-07.
 2. La branch protection registrada en
    [public-ci-live](../M1/public-ci-live-33928952807.json) exige el check de
    Windows retirado el 2026-09-13; re-observarla antes de RC1 (RR-12).

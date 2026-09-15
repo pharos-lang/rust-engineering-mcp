@@ -17,3 +17,9 @@ Usa solo: `README.md`, `docs/tools.md`, `docs/client-configuration.md`, `docs/se
 ## Entregable `docs/validation/M8/06-reproduction.md`
 
 Tabla por paso (documento y sección seguida, comando, exit code, resultado esperado según la guía, resultado observado, `ok|desviación`), lista de **hallazgos** `F-n` con severidad (P1 = la guía no permite completar el paso; P2 = resultado distinto al documentado; P3 = texto obsoleto/ambiguo), y un veredicto: «reproducible por tercero: sí/no, con N desviaciones». Sé honesto: no completes pasos leyendo código.
+
+
+Nota operativa: ejecuta comandos con rutas **relativas** desde la raíz del repo (p. ej. `target/release/rust-engineering-mcp version --json`); evita `cd` y `/tmp` (usa `target/m8-third-party/`).
+
+
+**Invocación del binario (obligatorio por el allowlist de tu sesión):** escribe exactamente `target/release/rust-engineering-mcp <subcomando> …` (sin `./`, sin rutas absolutas, sin encadenar con `;`/`&&` otros comandos en la misma línea; para capturar salida usa `> target/m8-third-party/<archivo>` y léelo con `cat`). Para pipelines JSON-RPC usa `printf … | target/release/rust-engineering-mcp serve --stdio --root …`.

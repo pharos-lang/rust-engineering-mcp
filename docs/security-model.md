@@ -953,12 +953,15 @@ independiente.
 - **RR-09** — La mutación `local_coordinated` no ofrece CAS ni atomicidad
   multiarchivo, no demuestra supervivencia a power loss, y un journal corrupto
   bloquea el store.
-- **RR-10** — Una dependencia comprometida sin advisory publicado no se detecta.
+- **RR-10** — Una dependencia comprometida sin advisory publicado no se
+  detecta; el job `build` del release expone el token OIDC a los `build.rs`
+  de dependencias antes de atestar, mitigado con `persist-credentials: false`.
 - **RR-11** — La firma del catálogo autentica al publisher que eligió el host,
   no la corrección de los datos. No hay trust root oficial.
-- **RR-12** — La provenance OIDC no implica reproducibilidad. La branch
-  protection no se ha vuelto a verificar, `SONAR_TOKEN` es de larga vida y la
-  verificación offline (D14) está pendiente.
+- **RR-12** — La provenance OIDC no implica reproducibilidad y `SONAR_TOKEN`
+  es de larga vida. Re-observar la branch protection, ejecutar la provenance
+  0.8.x y verificar D14 sobre assets reales son ítems bloqueantes del
+  checklist RC1, no riesgo aceptado.
 - **RR-13** — Los resultados producidos por código del proyecto no están
   autenticados.
 - **RR-14** — Límites del filesystem macOS: FIFO y device nodes, ACL, hardlinks
@@ -969,3 +972,5 @@ independiente.
 - **RR-17** — Quedan brechas de oráculo en los gates obligatorios: rollback con
   dos binarios, e2e del analyzer y power loss.
 - **RR-18** — `rmcp` forma parte de la TCB del protocolo.
+- **RR-19** — El binario publicado no tiene firma de código ni notarización
+  macOS; la integridad depende de `SHA256SUMS` y la attestation OIDC.

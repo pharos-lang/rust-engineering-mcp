@@ -20,7 +20,9 @@ el único host positivo de [ADR-087](ADR-087-1.0-host-scope.md): 8 fronteras y
 53 controles citados, de los que 31 tienen oráculo nativo, 12 unit/contract,
 4 evidencia histórica y 6 ninguno. Ninguna capability positiva del security
 model carece de oráculo; los huecos son propiedades declaradas como no
-garantizadas. Ese análisis produce 18 riesgos residuales.
+garantizadas. Ese análisis produce 18 riesgos residuales. La auditoría
+independiente V04 (2026-09-15) añade **RR-19** (ausencia de firma de código y
+notarización macOS) y motiva el desglose de RR-12 en §Registro (F-07).
 
 El owner autorizó en sesión el 2026-09-14 continuar M8 asumiendo las decisiones
 necesarias para una primera versión estable en macOS. Bajo esa autorización el
@@ -28,7 +30,7 @@ orquestador (Claude Fable 5.1) registra aquí la aceptación.
 
 ## Decision
 
-1. **Se aceptan los riesgos RR-01 … RR-18** con el alcance, la severidad y la
+1. **Se aceptan los riesgos RR-01 … RR-19** con el alcance, la severidad y la
    condición de reevaluación de la tabla siguiente, para la primera versión
    estable en macOS ARM64 con gateway Docker Linux ARM64. La aceptación no
    amplía ninguna capability ni convierte una limitación en garantía.
@@ -62,15 +64,16 @@ orquestador (Claude Fable 5.1) registra aquí la aceptación.
 | RR-07 | Sin detección universal de secretos: el source concedido y sus secretos se retienen en artifacts privados, logs y diffs; `assert_no_credentials` detecta por nombre de archivo, no por contenido; no hay secret scanning en CI | Media | Artifacts, logs, evidencia de validación | Redacción literal, normalización M4, canarios, `.gitignore`, eventos sin paths | Publicar evidencia generada sobre repositorios de terceros; habilitar remoto o telemetría |
 | RR-08 | Otros procesos del mismo uid y un host malicioso están fuera de la frontera; ACLs no inspeccionadas; el dueño que restaura o borra todo el estado reinicia el floor | Media | State root, trust, artifacts, checkout | `0700`/`0600`, uid efectivo, `nlink == 1`, binding owner, floor separado | M7 (multi-tenant/remoto) o cambio del modelo de permisos/ACL de macOS |
 | RR-09 | Mutación `local_coordinated` ([ADR-050](ADR-050-local-coordinated-mutation.md)): sin CAS ni exclusión OS de editores, sin atomicidad multiarchivo visible, power loss no demostrado (ENOSPC inyectado); un journal corrupto bloquea el store compartido | Media | 6 tools de escritura | Journal versionado, revalidación de identidad y bytes, recovery explícito, `doctor.mutation_journals` | Nuevo adapter de host, pérdida de datos reportada o cambio de semántica de APFS |
-| RR-10 | Una dependencia comprometida sin advisory publicado no se detecta; los `build.rs` de dependencias corren en CI y en el host de desarrollo; `paste 1.0.15` unmaintained | Media | Build, CI y binario | `cargo audit`/`deny` (CI con fetch), pins `=`, `--locked`, vendor por SHA-256, imágenes por digest, CODEOWNERS | Tarea post-M8 de paquetería; cualquier advisory RUSTSEC que afecte al lock; cambio de `deny.toml` |
+| RR-10 | Una dependencia comprometida sin advisory publicado no se detecta; los `build.rs` de dependencias corren en CI y en el host de desarrollo; `paste 1.0.15` unmaintained. Ampliado por V04 F-05: el job `build` de `release-candidate.yml` concede `id-token: write`/`attestations: write` (`:41-44`) al mismo job que compila `build.rs` de dependencias antes de atestar, así que una dependencia comprometida podría obtener el token OIDC y atestar otros bytes con la identidad del workflow de release | Media | Build, CI y binario; publicación | `cargo audit`/`deny` (CI con fetch), pins `=`, `--locked`, vendor por SHA-256, imágenes por digest, CODEOWNERS; `persist-credentials: false` en todos los checkouts (W33) | Tarea post-M8 de paquetería; cualquier advisory RUSTSEC que afecte al lock; cambio de `deny.toml`; separar el job de attestation de la compilación (descartado antes de RC1 por no poder ejecutarse: cambiar el workflow sin poder probarlo es más riesgo que beneficio) |
 | RR-11 | La firma Ed25519 autentica al publisher que eligió el host, no la corrección de los facts; no hay trust root ni catálogo oficial; el E5 fijado no se audita | Baja | Catálogo y búsqueda semántica | Firma antes del parsing, floor, SHA-256 E5, SQLite autoritativo, LanceDB derivado | Decisiones D15/D16 de distribución de catálogo o modelo |
-| RR-12 | Publicación: la attestation OIDC acredita el workflow, no reproducibilidad; branch protection observada en M1 y no re-verificada (incluye el check de Windows retirado); `SONAR_TOKEN` es un secreto de larga vida; verificación offline (D14) pendiente; provenance 0.8.x no ejecutada | Media | Artifacts y repositorio público | OIDC sin clave, `gh attestation verify` con signer exacto, permisos mínimos, acciones por SHA, guard de forks, CODEOWNERS, solo draft | M8-07/D14 antes de RC1; cualquier cambio de workflows o de protección |
+| RR-12 | Publicación: la attestation OIDC acredita el workflow, no reproducibilidad; `SONAR_TOKEN` es un secreto de larga vida de un servicio de terceros. (F-07, V04: re-observar branch protection, ejecutar la provenance de 0.8.x y verificar D14 sobre assets reales dejan de ser riesgo aceptado y pasan a ítems bloqueantes de RC1 en [`checklist-1.0.md`](../validation/M8/checklist-1.0.md) filas 10 y 11) | Media | Artifacts y repositorio público | OIDC sin clave, `gh attestation verify` con signer exacto, permisos mínimos, acciones por SHA, guard de forks, CODEOWNERS, solo draft | Cualquier cambio de workflows o de protección |
 | RR-13 | Resultados producidos por código del proyecto (tests, lints, benchmarks, harness) no están autenticados | Baja | Tools que ejecutan código | Clasificación conservadora, tests de forgery, tamaño solicitado vs observado | Si un contrato empezara a afirmar autenticidad de esos resultados |
 | RR-14 | Límites del filesystem macOS: abrir FIFO/device node puede tener efectos, ACL conservada por `CLONE_ACL` sin comparar, hardlinks por `nlink`, captura no atómica ([ADR-024](ADR-024-project-open.md)) | Baja | Captura y writer | `NOFOLLOW_ANY | RESOLVE_BENEATH`, rechazo de links, detección de cambios | Nueva versión mayor de macOS o de APFS |
 | RR-15 | Sin revocación en caliente de grants; un `kill -9` del servidor deja contenedores/volúmenes etiquetados | Baja | Grants y jobs | Reinicio, cleanup unido, cuarentena, etiquetas | Transporte remoto; residuos observados en el soak M8-09 |
 | RR-16 | Retención y borrado de journals, backups y logs dependen del operador; no hay borrado seguro en disco ni en RAM | Baja | State root, backups, stderr | TTL y cuotas de artifacts, `prune` explícito, permisos privados | Requisito de cumplimiento/privacidad o transporte remoto |
 | RR-17 | Brechas de oráculo en gates obligatorios: rollback con dos binarios fuera de `core`/`full`, e2e analyzer desgateado, power loss sin oráculo | Baja | Calificación | Oráculos manuales con recibo (`03-rollback.json`, cortes M6) | Cierre M8-09: dos RC consecutivos |
 | RR-18 | `rmcp` 3.2.0 forma parte de la TCB del protocolo: puede citar campos del request en errores y retiene permisos de cancelaciones suprimidas hasta reconectar | Baja | stdio | Pin `=`, admisión propia, tests en cinco revisiones MCP | Cualquier subida de `rmcp` |
+| RR-19 | Sin firma de código ni notarización macOS en el binario publicado (V04, auditoría independiente) | Baja | Archive de release | Integridad por `SHA256SUMS` y attestation OIDC (`release-candidate.yml`), no por Gatekeeper | Distribución por un canal que active Gatekeeper (p. ej. Homebrew o un instalador) fuera del archive/attestation actual |
 
 ## Alternatives considered
 
@@ -88,16 +91,17 @@ orquestador (Claude Fable 5.1) registra aquí la aceptación.
 
 ## Consequences
 
-- `docs/security-model.md` gana «Riesgos residuales 1.0» con RR-01 … RR-18.
+- `docs/security-model.md` gana «Riesgos residuales 1.0» con RR-01 … RR-19.
 - La casilla «Registro de riesgos residuales…» del checklist 1.0 queda con
   ADR de aceptación; se marca solo cuando M8-08 complete la re-review del
   punto 3 con receipt en la matriz M8.
 - La casilla «auditoría independiente sin P0/P1» se cumple, como máximo, con
   la revisión de modelo del punto 2; la documentación pública no la llamará
   auditoría humana.
-- M8-07 hereda RR-12 y el defecto de
-  `.github/workflows/release-candidate.yml:219` (exige 31 tools; el smoke
-  publica 36).
+- M8-07 hereda RR-12. El defecto original (`release-candidate.yml:219` exigía
+  31 tools; el smoke publica 36) está cerrado: la comparación toma
+  `tool_count` de `docs/validation/M8/freeze-0.8.0.json` (`:128-136,200,228`),
+  verificado en la auditoría V04 (2026-09-15).
 - Anunciar un host, un transporte remoto o un catálogo/modelo oficial requiere
   un ADR que reevalúe como mínimo RR-01, RR-02, RR-05, RR-06, RR-08 y RR-11.
 

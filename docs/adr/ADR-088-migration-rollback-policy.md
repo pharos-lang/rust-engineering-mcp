@@ -58,7 +58,11 @@ materializa aquí sin reinterpretarla.
    independientemente de su fase; `downgrade_blocking_kinds` nombra esos
    kinds. `serve` no bloquea el arranque por un journal pendiente o de kind
    desconocido: bloquear ahí sería una denegación de servicio activada por un
-   journal ajeno a la operación que el cliente intenta realizar.
+   journal ajeno a la operación que el cliente intenta realizar. Este
+   preflight no es puramente de lectura: `doctor` abre el store, crea
+   `mutation-store.lock` si no existe y toma un `flock` no bloqueante durante
+   el escaneo, así que una mutación concurrente de `serve` puede recibir
+   `Busy` en vez de bloquearse (V04 F-03; nota propia en `doctor.rs`).
 4. **Compatibilidad diferenciada por TTL.** Los formatos sin TTL (journal,
    catálogo, floor del bundle) exigen lector legado más migración explícita,
    igual que el patrón v1→v2 ya probado del journal M2. Los formatos con TTL

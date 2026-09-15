@@ -166,6 +166,10 @@ servidor en otro sistema operativo o filesystem.
 
 ## Instalar la release macOS ARM64
 
+Si no existe una release publicada para la versión de este checkout (p. ej.
+`0.8.0` hasta RC1/M8-09), usa [Compilar desde el código fuente](#compilar-desde-el-código-fuente);
+las releases publicadas hoy son `v0.1.0` y `v0.3.0`.
+
 Descarga el archive y `SHA256SUMS` desde la
 [release v0.3.0](https://github.com/pharos-lang/rust-engineering-mcp/releases/tag/v0.3.0),
 verifica los bytes y extráelos en un directorio nuevo:
@@ -205,6 +209,11 @@ Comprueba el binario y su configuración pasiva:
 `doctor` no instala, descarga ni repara componentes. Devuelve `warning` cuando una
 capacidad opcional no está configurada. Usa `--help` para consultar todos los
 comandos y opciones disponibles.
+
+La cabecera de `--help` se autodescribe como «Rust Engineering MCP —
+development server» porque el binario se ejecuta desde un checkout de
+desarrollo; la release publicada muestra el mismo texto literal, y no cambia
+el contrato del CLI ni de las tools.
 
 ## Iniciar el servidor
 

@@ -604,7 +604,9 @@ sincroniza, instala o repara automáticamente.
 mutation_journals es un preflight pasivo añadido de forma aditiva en0.8.0 (D12§3;
 format_version no cambia). Es null sin --state-root; a diferencia del resto de
 doctor, --state-root solo (sin --docker/--docker-socket/--rust-image) basta para
-esta sección, la misma lectura mínima que `mutation list --state-root` exige.
+esta sección, la misma lectura mínima que `mutation list --state-root` exige
+(salvo que doctor trata una `--state-root` inexistente como vacía, mientras
+`mutation list` la rechaza con `not_found`, ver más abajo).
 Con --state-root, no lee el workspace ni el source; abre el store de journals
 (crea el lock del store si no existe) con la misma lectura que `mutation list`
 (solo metadatos del journal) y resume pending (fases no
@@ -724,6 +726,12 @@ causar `conflict` o `recovery_required`.
 La CLI `mutation list/prune` administra journals terminales, pero el checkout no
 incluye un updater o downgrade gestionado. Los journals pendientes deben
 reconciliarse antes de ejecutar un binario anterior; `0.1.0` no conoce su formato.
+`mutation list --state-root` sobre una raíz que existe pero nunca tuvo una
+mutación (sin directorio `rust-mcp-mutations-v1`) lee vacío: `status: "passed"`,
+`records: []`, `count: 0`, `store_initialized: false`, sin crear ese
+directorio (solo abre el store, y por tanto crea su lock, cuando el directorio
+ya existe). Una `--state-root` que no existe en absoluto sigue siendo un error
+(`status: "blocked"`, `error_code: "not_found"`), distinto de un store vacío.
 
 ### `rust.manifest.patch`
 
@@ -1129,11 +1137,11 @@ El host configura cada recurso con su par cerrado:
 --rustsec-snapshot PATH --rustsec-sha256 sha256:<64-hex>
 ```
 
-Los paths son absolutos. Vendor y policy no pueden solaparse con una root de
-proyecto; el vendor también exige el grupo Docker completo. La policy es JSON
-cerrado, máximo 64 KiB, aportado por el operador: el cliente MCP no puede enviar
-TOML de cargo-deny, excepciones, paths, flags ni comandos. Archivos de excepciones
-de cargo-deny en el proyecto hacen fallar la evaluación.
+Los paths son absolutos. Vendor, policy y rustsec-snapshot no pueden solaparse
+con una root de proyecto; el vendor también exige el grupo Docker completo. La
+policy es JSON cerrado, máximo 64 KiB, aportado por el operador: el cliente MCP
+no puede enviar TOML de cargo-deny, excepciones, paths, flags ni comandos.
+Archivos de excepciones de cargo-deny en el proyecto hacen fallar la evaluación.
 
 Para completar los hechos de catálogo de supply chain, configura también la
 generación local autenticada:
@@ -1142,8 +1150,11 @@ generación local autenticada:
 --catalog-store PATH --catalog-trust PATH
 ```
 
-El catálogo es read-only durante `serve`; import, sync y rebuild pertenecen a la
-CLI explícita y nunca ocurren como efecto de una tool MCP.
+Igual que vendor y policy, ninguna de las rutas de catálogo (`--catalog-store`,
+`--catalog-trust`, `--catalog-model-dir`, `--catalog-index-store`) puede
+solaparse con una root de proyecto. El catálogo es read-only durante `serve`;
+import, sync y rebuild pertenecen a la CLI explícita y nunca ocurren como
+efecto de una tool MCP.
 
 La configuración unificada de las 27 tools M1–M4 usa la imagen M4 exacta
 `sha256:25ed3626e710081a571a86a29521eaf2e890e796afd422ba5e409e0ce1891635`.
