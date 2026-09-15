@@ -2,7 +2,9 @@
 """Benign, Docker-free, client-free unit tests for the M8 client harness."""
 from __future__ import annotations
 
+import contextlib
 import importlib.util
+import io
 import json
 import pathlib
 import tempfile
@@ -614,6 +616,60 @@ class GenericNegativeWireConfirmationTests(unittest.TestCase):
             self.assertFalse(confirmed[M8.GENERIC_NEGATIVE_ROWS[-1]["kind"]])
 
 
+class RuntimeCancellationWireConfirmationTests(unittest.TestCase):
+    def test_confirmed_when_a_client_direction_cancelled_notification_is_present(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = pathlib.Path(tmp) / "protocol.jsonl"
+            rows = [
+                {"client": "inspector", "direction": "client", "method": "tools/call", "tool": "rust.check"},
+                {"client": "inspector", "direction": "client", "method": "notifications/cancelled"},
+                {"client": "inspector", "direction": "client", "method": "tools/call", "tool": "rust.check"},
+                {"client": "inspector", "direction": "server"},
+            ]
+            path.write_text("\n".join(json.dumps(row) for row in rows) + "\n")
+            self.assertTrue(M8.runtime_cancellation_wire_confirmed(path))
+
+    def test_not_confirmed_when_the_cancel_never_left_the_process(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = pathlib.Path(tmp) / "protocol.jsonl"
+            rows = [
+                {"client": "inspector", "direction": "client", "method": "tools/call", "tool": "rust.check"},
+                {"client": "inspector", "direction": "server"},
+            ]
+            path.write_text("\n".join(json.dumps(row) for row in rows) + "\n")
+            self.assertFalse(M8.runtime_cancellation_wire_confirmed(path))
+
+    def test_not_confirmed_when_the_observation_file_is_missing(self):
+        self.assertFalse(M8.runtime_cancellation_wire_confirmed(pathlib.Path("/nonexistent/protocol.jsonl")))
+
+    def test_a_server_direction_notification_row_does_not_count(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = pathlib.Path(tmp) / "protocol.jsonl"
+            rows = [{"client": "inspector", "direction": "server", "method": "notifications/cancelled"}]
+            path.write_text("\n".join(json.dumps(row) for row in rows) + "\n")
+            self.assertFalse(M8.runtime_cancellation_wire_confirmed(path))
+
+
+class OrphanServerCheckTests(unittest.TestCase):
+    def test_no_orphan_reported_when_nothing_matches_the_state_root(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            state = pathlib.Path(tmp) / "state-root-nobody-runs-this"
+            self.assertEqual(M8.assert_no_orphan_server(state, timeout=0.0), [])
+
+    def test_a_still_running_matching_process_is_reported(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            state = pathlib.Path(tmp) / "state-root"
+            fake_pgrep = mock.Mock(return_value=mock.Mock(stdout="4242\n"))
+            with mock.patch.object(M8.subprocess, "run", fake_pgrep):
+                self.assertEqual(M8.assert_no_orphan_server(state, timeout=0.0), ["4242"])
+
+    def test_a_missing_pgrep_binary_is_treated_as_unable_to_check(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            state = pathlib.Path(tmp) / "state-root"
+            with mock.patch.object(M8.subprocess, "run", side_effect=FileNotFoundError):
+                self.assertEqual(M8.assert_no_orphan_server(state, timeout=0.0), [])
+
+
 class CodexClassificationTests(unittest.TestCase):
     def test_passed_requires_the_wire_refusal(self):
         classification = M8.codex_classification(
@@ -681,6 +737,12 @@ class PreflightTests(unittest.TestCase):
         with mock.patch("sys.argv", ["test-m8-clients.py", "--with-runtime"]):
             with self.assertRaisesRegex(RuntimeError, "requires --run"):
                 M8.main()
+
+    def test_preflight_with_runtime_is_accepted_by_main(self):
+        argv = ["test-m8-clients.py", "--preflight", "--with-runtime",
+               "--docker-socket", "/nonexistent.sock"]
+        with mock.patch("sys.argv", argv), contextlib.redirect_stdout(io.StringIO()):
+            self.assertEqual(M8.main(), 0)
 
 
 class EvidenceTests(unittest.TestCase):
@@ -780,6 +842,260 @@ class ComposePriorReceiptsTests(unittest.TestCase):
         for entry in composed.values():
             self.assertEqual(entry["status"], "passed")
             self.assertEqual(entry["exit_code"], 0)
+
+
+class RunInspectorModeSeparationTests(unittest.TestCase):
+    """W31: `--with-runtime`'s own regression -- a `runtime` Inspector session
+    must never plan or execute the Docker-free negative call plan (it only
+    holds against a host with no calibrated runtime), while a `docker_free`
+    session must still carry it in full."""
+
+    def _capture_plan(self, mode: str) -> dict[str, object]:
+        class StopBeforeSpawn(Exception):
+            pass
+
+        captured: dict[str, object] = {}
+
+        def fake_run_bounded(argv, cwd, timeout, artifact):
+            captured["plan"] = json.loads(argv[-1])
+            raise StopBeforeSpawn("plan captured before the node subprocess would spawn")
+
+        m3_stub = mock.Mock()
+        m3_stub.run_bounded = mock.Mock(side_effect=fake_run_bounded)
+        with tempfile.TemporaryDirectory(dir=str(M8.ROOT / "target")) as tmp:
+            attempt = pathlib.Path(tmp) / "attempt-plan"
+            attempt.mkdir()
+            argv = M8.server_argv(attempt / "state", pathlib.Path("/nonexistent.sock"))
+            with mock.patch.object(M8, "load_m3", return_value=m3_stub):
+                with self.assertRaises(StopBeforeSpawn):
+                    M8.run_inspector(attempt, mode, argv, 10, "2.5.0")
+        return captured["plan"]
+
+    def test_docker_free_session_plans_the_full_negative_call_plan(self):
+        plan = self._capture_plan(M8.DOCKER_FREE)
+        self.assertEqual(len(plan["negative_rows"]), len(M8.STABLE_TOOLS))
+        self.assertEqual(len(plan["generic_negatives"]), 4)
+
+    def test_runtime_session_plans_no_negative_rows_at_all(self):
+        plan = self._capture_plan(M8.RUNTIME)
+        self.assertEqual(plan["negative_rows"], [])
+        self.assertEqual(plan["generic_negatives"], [])
+
+    def _run_to_completion(self, mode: str, negative_rows: list, generic_negatives: list,
+                           runtime_overrides: dict[str, object] | None = None) -> dict[str, object]:
+        manifest = M8.load_freeze_manifest()
+        outcome = {
+            "tool_count": len(M8.EXPECTED_TOOLS), "discovery": True,
+            "resources_list": [], "contract": manifest["tools"],
+            "negative_rows": negative_rows, "generic_negatives": generic_negatives,
+            "runtime_check_status": "passed", "resource_read_ok": True, "cancel_ok": True,
+            "eof_new_session_ok": True, "eof_prior_pid": 4242,
+        }
+        outcome.update(runtime_overrides or {})
+
+        def fake_run_bounded(argv, cwd, timeout, artifact):
+            (attempt_dir / f"inspector-{mode}-session.stdout").write_text(json.dumps(outcome))
+            return {"exit_code": 0}
+
+        m3_stub = mock.Mock()
+        m3_stub.run_bounded = mock.Mock(side_effect=fake_run_bounded)
+        m3_stub.file_digest.return_value = "deadbeef"
+        m3_stub.digest.return_value = "beadfeed"
+        with tempfile.TemporaryDirectory(dir=str(M8.ROOT / "target")) as tmp:
+            attempt_dir = pathlib.Path(tmp) / f"attempt-{mode}"
+            attempt_dir.mkdir()
+            argv = M8.server_argv(attempt_dir / "state", pathlib.Path("/nonexistent.sock"))
+            with (
+                mock.patch.object(M8, "load_m3", return_value=m3_stub),
+                mock.patch.object(M8, "generic_negative_wire_confirmed", return_value={}),
+                mock.patch.object(M8, "runtime_cancellation_wire_confirmed", return_value=True),
+                mock.patch.object(M8, "assert_no_orphan_server", return_value=[]),
+            ):
+                return M8.run_inspector(attempt_dir, mode, argv, 10, "2.5.0")
+
+    def test_a_completed_runtime_session_reports_no_negative_evidence(self):
+        report = self._run_to_completion(M8.RUNTIME, [], [])
+        self.assertEqual(report["negative_rows"], [])
+        self.assertEqual(report["generic_negatives"], [])
+        self.assertEqual(report["generic_negatives_wire_confirmed"], {})
+        self.assertTrue(report["contract_equality"])
+        self.assertEqual(report["runtime_check_status"], "passed")
+        self.assertTrue(report["resource_read_ok"])
+        self.assertTrue(report["cancel_ok"])
+        self.assertTrue(report["cancellation_wire_confirmed"])
+        self.assertTrue(report["eof_new_session_ok"])
+        self.assertEqual(report["eof_prior_pid"], 4242)
+        self.assertTrue(report["eof_no_orphan_process"])
+
+    def test_a_runtime_session_that_still_ran_a_negative_row_is_refused(self):
+        stray = [{"tool": "rust.check", "status": "passed", "error_code": None, "is_error": False}]
+        with self.assertRaisesRegex(RuntimeError, "must not run the Docker-free negative plan"):
+            self._run_to_completion(M8.RUNTIME, stray, [])
+
+    def test_a_runtime_session_that_still_ran_a_generic_negative_is_refused(self):
+        stray = [{"kind": "unknown_tool", "protocol_error": True, "rpc_code": -32601}]
+        with self.assertRaisesRegex(RuntimeError, "must not run the Docker-free negative plan"):
+            self._run_to_completion(M8.RUNTIME, [], stray)
+
+    def test_a_runtime_session_whose_cancellation_never_reached_the_wire_is_refused(self):
+        with tempfile.TemporaryDirectory(dir=str(M8.ROOT / "target")) as tmp:
+            attempt_dir = pathlib.Path(tmp) / "attempt-runtime"
+            attempt_dir.mkdir()
+            manifest = M8.load_freeze_manifest()
+            outcome = {
+                "tool_count": len(M8.EXPECTED_TOOLS), "discovery": True,
+                "resources_list": [], "contract": manifest["tools"],
+                "negative_rows": [], "generic_negatives": [],
+                "runtime_check_status": "passed", "resource_read_ok": True, "cancel_ok": True,
+                "eof_new_session_ok": True, "eof_prior_pid": 4242,
+            }
+
+            def fake_run_bounded(argv, cwd, timeout, artifact):
+                (attempt_dir / "inspector-runtime-session.stdout").write_text(json.dumps(outcome))
+                return {"exit_code": 0}
+
+            m3_stub = mock.Mock()
+            m3_stub.run_bounded = mock.Mock(side_effect=fake_run_bounded)
+            m3_stub.file_digest.return_value = "deadbeef"
+            m3_stub.digest.return_value = "beadfeed"
+            argv = M8.server_argv(attempt_dir / "state", pathlib.Path("/nonexistent.sock"))
+            with (
+                mock.patch.object(M8, "load_m3", return_value=m3_stub),
+                # No `protocol.jsonl` is written, so the real (unmocked)
+                # `runtime_cancellation_wire_confirmed` sees no observation at
+                # all -- exactly a cancellation that never left the process.
+                mock.patch.object(M8, "assert_no_orphan_server", return_value=[]),
+            ):
+                with self.assertRaisesRegex(RuntimeError, "notifications/cancelled never reached the wire"):
+                    M8.run_inspector(attempt_dir, M8.RUNTIME, argv, 10, "2.5.0")
+
+    def test_a_runtime_session_with_no_fresh_session_after_eof_is_refused(self):
+        with self.assertRaisesRegex(RuntimeError, "mid-call EOF did not see the tool inventory"):
+            self._run_to_completion(M8.RUNTIME, [], [], {"eof_new_session_ok": False})
+
+    def test_a_runtime_session_that_leaves_an_orphan_process_is_refused(self):
+        with tempfile.TemporaryDirectory(dir=str(M8.ROOT / "target")) as tmp:
+            attempt_dir = pathlib.Path(tmp) / "attempt-runtime"
+            attempt_dir.mkdir()
+            manifest = M8.load_freeze_manifest()
+            outcome = {
+                "tool_count": len(M8.EXPECTED_TOOLS), "discovery": True,
+                "resources_list": [], "contract": manifest["tools"],
+                "negative_rows": [], "generic_negatives": [],
+                "runtime_check_status": "passed", "resource_read_ok": True, "cancel_ok": True,
+                "eof_new_session_ok": True, "eof_prior_pid": 4242,
+            }
+
+            def fake_run_bounded(argv, cwd, timeout, artifact):
+                (attempt_dir / "inspector-runtime-session.stdout").write_text(json.dumps(outcome))
+                return {"exit_code": 0}
+
+            m3_stub = mock.Mock()
+            m3_stub.run_bounded = mock.Mock(side_effect=fake_run_bounded)
+            m3_stub.file_digest.return_value = "deadbeef"
+            m3_stub.digest.return_value = "beadfeed"
+            argv = M8.server_argv(attempt_dir / "state", pathlib.Path("/nonexistent.sock"))
+            with (
+                mock.patch.object(M8, "load_m3", return_value=m3_stub),
+                mock.patch.object(M8, "runtime_cancellation_wire_confirmed", return_value=True),
+                mock.patch.object(M8, "assert_no_orphan_server", return_value=["9999"]),
+            ):
+                with self.assertRaisesRegex(RuntimeError, "orphaned by the client's mid-call EOF"):
+                    M8.run_inspector(attempt_dir, M8.RUNTIME, argv, 10, "2.5.0")
+
+
+class WithRuntimeHostSeparationTests(unittest.TestCase):
+    """`run(with_runtime=True, ...)` must keep the Docker-free Inspector
+    session on a socket the host never resolves, while moving the real
+    runtime socket only to the second Inspector session and the model
+    turns (Codex/Claude Code/Gemini CLI), per W31's corrected design."""
+
+    def _versions(self):
+        return {
+            "inspector": {"observed": "2.5.0"}, "codex": {"observed": "codex-cli 0.154.0"},
+            "claude_code": {"observed": None}, "gemini_cli": {"observed": None},
+        }
+
+    def test_with_runtime_never_lets_the_docker_free_session_see_the_real_socket(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            attempt_dir = pathlib.Path(tmp) / "attempt-1"
+            attempt_dir.mkdir()
+            real_socket = pathlib.Path(tmp) / "real-docker.sock"
+            m3_stub = mock.Mock()
+            m3_stub.file_digest.return_value = "deadbeef"
+            m3_stub.assert_no_credentials = mock.Mock(return_value=None)
+            inspector_calls: dict[str, list[str]] = {}
+
+            def fake_run_inspector(attempt, mode, argv, timeout, observed_version):
+                inspector_calls[mode] = argv
+                return {"contract_equality": True}
+
+            with (
+                mock.patch.object(M8, "load_m3", return_value=m3_stub),
+                mock.patch.object(M8, "client_versions", return_value=self._versions()),
+                mock.patch.object(M8, "preconditions", return_value={}),
+                mock.patch.object(M8, "mandatory_unsatisfied", return_value=[]),
+                mock.patch.object(M8, "next_attempt", return_value=attempt_dir),
+                mock.patch.object(M8, "git_head_commit", return_value="cafefeed"),
+                mock.patch.object(M8, "git_tree_dirty", return_value=False),
+                mock.patch.object(M8, "server_version", return_value={"version": "0.8.0"}),
+                mock.patch.object(M8, "run_inspector", side_effect=fake_run_inspector),
+                mock.patch.object(M8, "codex_gate", return_value={"classification": "passed"}) as codex_gate,
+                mock.patch.object(M8, "claude_gate", return_value={"status": "unavailable"}) as claude_gate,
+                mock.patch.object(M8, "gemini_gate", return_value={"status": "unavailable"}) as gemini_gate,
+                mock.patch.object(M8, "eof_gate", return_value={"exited_on_eof": True}),
+                mock.patch.object(M8, "compose_prior_receipts", return_value={}),
+                mock.patch.object(M8, "validate_protocol_metadata", return_value={}),
+                mock.patch.object(M8, "CURRENT", pathlib.Path(tmp) / "current.json"),
+            ):
+                M8.run(True, str(real_socket))
+
+            docker_free_argv = inspector_calls[M8.DOCKER_FREE]
+            runtime_argv = inspector_calls[M8.RUNTIME]
+            docker_free_socket = docker_free_argv[docker_free_argv.index("--docker-socket") + 1]
+            runtime_socket = runtime_argv[runtime_argv.index("--docker-socket") + 1]
+            self.assertNotEqual(docker_free_socket, str(real_socket))
+            self.assertEqual(runtime_socket, str(real_socket))
+            # The model turns run their positive flow over the real runtime host.
+            self.assertEqual(codex_gate.call_args.args[1], pathlib.Path(real_socket))
+            self.assertEqual(claude_gate.call_args.args[1], pathlib.Path(real_socket))
+            self.assertEqual(gemini_gate.call_args.args[1], pathlib.Path(real_socket))
+
+    def test_without_runtime_the_model_turns_keep_the_docker_free_socket(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            attempt_dir = pathlib.Path(tmp) / "attempt-1"
+            attempt_dir.mkdir()
+            m3_stub = mock.Mock()
+            m3_stub.file_digest.return_value = "deadbeef"
+            m3_stub.assert_no_credentials = mock.Mock(return_value=None)
+            inspector_calls: dict[str, list[str]] = {}
+
+            def fake_run_inspector(attempt, mode, argv, timeout, observed_version):
+                inspector_calls[mode] = argv
+                return {"contract_equality": True}
+
+            with (
+                mock.patch.object(M8, "load_m3", return_value=m3_stub),
+                mock.patch.object(M8, "client_versions", return_value=self._versions()),
+                mock.patch.object(M8, "preconditions", return_value={}),
+                mock.patch.object(M8, "mandatory_unsatisfied", return_value=[]),
+                mock.patch.object(M8, "next_attempt", return_value=attempt_dir),
+                mock.patch.object(M8, "git_head_commit", return_value="cafefeed"),
+                mock.patch.object(M8, "git_tree_dirty", return_value=False),
+                mock.patch.object(M8, "server_version", return_value={"version": "0.8.0"}),
+                mock.patch.object(M8, "run_inspector", side_effect=fake_run_inspector),
+                mock.patch.object(M8, "codex_gate", return_value={"classification": "passed"}) as codex_gate,
+                mock.patch.object(M8, "claude_gate", return_value={"status": "unavailable"}),
+                mock.patch.object(M8, "gemini_gate", return_value={"status": "unavailable"}),
+                mock.patch.object(M8, "validate_protocol_metadata", return_value={}),
+                mock.patch.object(M8, "CURRENT", pathlib.Path(tmp) / "current.json"),
+            ):
+                M8.run(False, None)
+
+            self.assertNotIn(M8.RUNTIME, inspector_calls)
+            docker_free_argv = inspector_calls[M8.DOCKER_FREE]
+            docker_free_socket = docker_free_argv[docker_free_argv.index("--docker-socket") + 1]
+            self.assertEqual(codex_gate.call_args.args[1], pathlib.Path(docker_free_socket))
 
 
 class RunExitCodeTests(unittest.TestCase):

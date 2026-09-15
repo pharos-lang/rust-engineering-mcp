@@ -20,10 +20,16 @@ const serverArgv = JSON.parse(serverArgvJson);
 if (!Array.isArray(serverArgv) || serverArgv.length === 0) throw new Error("server argv must be non-empty");
 const plan = JSON.parse(planJson);
 if (!Array.isArray(plan.expected_tools) || plan.expected_tools.length === 0) throw new Error("expected inventory missing");
-if (!Array.isArray(plan.negative_rows) || plan.negative_rows.length === 0) throw new Error("negative call plan missing");
+if (!Array.isArray(plan.negative_rows)) throw new Error("negative call plan missing");
+if (!Array.isArray(plan.generic_negatives)) throw new Error("generic negative plan missing");
 const { InspectorClient, createTransportNode } = await import(pathToFileURL(bridgePath).href);
 
 const RUNTIME = "runtime";
+// The Docker-free negative call plan only holds against a host with no
+// calibrated runtime; a `runtime` session's plan carries neither list
+// (Python never fills them for this mode), and this session never executes
+// them -- it composes its own positive oracle below instead.
+if (plan.mode !== RUNTIME && plan.negative_rows.length === 0) throw new Error("negative call plan missing");
 
 function stable(value) {
   if (Array.isArray(value)) return value.map(stable);
@@ -146,12 +152,14 @@ try {
   const ref = { projectRef: openedData.project_ref, fingerprint: openedData.fingerprint };
 
   const negativeRows = [];
-  for (const row of plan.negative_rows) {
-    negativeRows.push(await callNegative(client, tools, row, ref));
-  }
   const genericNegatives = [];
-  for (const row of plan.generic_negatives) {
-    genericNegatives.push(await callGeneric(client, tools, row, ref));
+  if (plan.mode !== RUNTIME) {
+    for (const row of plan.negative_rows) {
+      negativeRows.push(await callNegative(client, tools, row, ref));
+    }
+    for (const row of plan.generic_negatives) {
+      genericNegatives.push(await callGeneric(client, tools, row, ref));
+    }
   }
 
   const outcome = {
@@ -189,9 +197,21 @@ try {
     if (!outcome.resource_read_ok) throw new Error("Inspector could not read the published artifact");
 
     // G4: one call cancelled mid-flight is rejected through the SDK's own
-    // non-Tasks cancellation; a fresh, uncancelled retry then succeeding is
-    // the evidence that the server's cleanup joined cleanly.
+    // non-Tasks cancellation. `cancelToolCall()` aborts the call's own
+    // internal AbortController, which the SDK's `tools/call` request path
+    // carries to the server as `notifications/cancelled` on stdio (the
+    // per-request-stream abort is only a modern Streamable HTTP mechanism).
+    // The short delay before cancelling matters: called synchronously in the
+    // same tick as `callTool()`, the abort can fire before the request has
+    // even reached the transport's `send()`, so nothing goes out over the
+    // wire (no `tools/call`, no cancellation notification) and there is
+    // nothing for the proxy to observe. Waiting here makes sure the request
+    // is genuinely in flight, so both the cancellation notification and the
+    // retry's success are real network evidence, not a race against the
+    // request never having been sent. A fresh, uncancelled retry then
+    // succeeding is the evidence that the server's cleanup joined cleanly.
     const pending = client.callTool(toolByName(tools, "rust.check"), { project_ref: ref.projectRef });
+    await new Promise((resolve) => setTimeout(resolve, 300));
     const cancelled = client.cancelToolCall();
     if (!cancelled) throw new Error("Inspector had no in-flight call to cancel");
     let rejected = false;
@@ -201,10 +221,62 @@ try {
       rejected = true;
     }
     if (!rejected) throw new Error("Inspector's cancelled call resolved instead of rejecting");
-    const retried = await client.callTool(toolByName(tools, "rust.check"), { project_ref: ref.projectRef });
-    outcome.cancel_ok = retried.result?.isError !== true
-      && retried.result?.structuredContent?.status === "passed";
+    // The local rejection above only reflects the SDK's own bookkeeping --
+    // it settles as soon as the abort fires, well before the server has
+    // necessarily finished tearing down the cancelled call's container. A
+    // retry sent immediately can race that teardown and land on the
+    // gateway's single-flight `SandboxDenied`/`Busy` refusal, which is not
+    // the same thing as the server failing to clean up -- it is the server
+    // still cleaning up. Poll briefly so the oracle asks "did cleanup join
+    // within a reasonable bound", not "was cleanup already done the instant
+    // the local promise rejected".
+    let retried;
+    const retryDeadline = Date.now() + 10_000;
+    do {
+      retried = await client.callTool(toolByName(tools, "rust.check"), { project_ref: ref.projectRef });
+      outcome.cancel_ok = retried.result?.isError !== true
+        && retried.result?.structuredContent?.status === "passed";
+      if (outcome.cancel_ok) break;
+      await new Promise((resolve) => setTimeout(resolve, 500));
+    } while (Date.now() < retryDeadline);
     if (!outcome.cancel_ok) throw new Error("Inspector's post-cancel retry did not observe joined cleanup");
+
+    // G5: a client that vanishes mid-call (stdin EOF, no orderly `shutdown`
+    // and no `notifications/cancelled`) must still let the server tear its
+    // worker down. Launch one more `rust.check`, then close this session's
+    // transport without waiting on either the call or the close to settle --
+    // exactly what an abruptly-vanishing client looks like on the wire. The
+    // proof that the server actually reaped its worker is a brand-new
+    // session, against the very same server argv (state-root included),
+    // succeeding right after: `tools/list` only needs the server to be
+    // accepting a fresh connection, never the torn-down one.
+    const eofPending = client.callTool(toolByName(tools, "rust.check"), { project_ref: ref.projectRef });
+    eofPending.catch(() => {});
+    outcome.eof_prior_pid = client.baseTransport?.pid ?? null;
+    client.baseTransport?.close()?.catch(() => {});
+
+    const eofClient = new InspectorClient(serverConfig, {
+      environment: { transport: createTransportNode },
+      clientIdentity: { name: "mcp-inspector", version: "2.5.0" },
+      sample: false, elicit: false, progress: false, roots: [],
+      advertisedExtensions: {},
+      versionNegotiation: { mode: { pin: "2026-07-28" } },
+      timeout: plan.request_timeout_ms,
+      serverSettings: {
+        protocolEra: "modern", connectionTimeout: 15_000,
+        requestTimeout: plan.request_timeout_ms,
+      },
+    });
+    try {
+      await eofClient.connect();
+      const { tools: eofTools } = await eofClient.listAllTools({ cacheMode: "refresh" });
+      outcome.eof_new_session_ok = eofTools.length === plan.expected_tools.length;
+    } finally {
+      await eofClient.disconnect(5_000);
+    }
+    if (!outcome.eof_new_session_ok) {
+      throw new Error("a fresh session after the client's mid-call EOF did not see the tool inventory");
+    }
   }
 
   process.stdout.write(`${JSON.stringify(outcome)}\n`);

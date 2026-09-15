@@ -22,12 +22,23 @@ the canonical contract hashes and the Docker-free negative call plan for the
     stock-client turns over the same Docker-free host.
 
 ``--run --with-runtime``
-    Additionally composes the M2-M6 positive coverage by invoking each
-    milestone's own client/runtime harness as a subprocess and folding its
-    receipt in (never re-implemented here), then drives one real
-    ``rust.check`` call, its published ``rust-artifact://`` Resource, an
-    in-flight ``notifications/cancelled`` cancellation and a stdin-EOF
-    teardown through the qualified M2/M3 runtime image.
+    Runs two Inspector sessions instead of one: the same ``docker_free``
+    session as plain ``--run`` (an unreachable socket, so its 30-refusal
+    negative plan stays valid), plus a second ``runtime`` session against a
+    real, calibrated Docker socket that never repeats the Docker-free
+    negatives -- it drives one real ``rust.check`` call, its published
+    ``rust-artifact://`` Resource, an in-flight ``notifications/cancelled``
+    cancellation (confirmed on the wire, then a clean retry) and a second
+    ``rust.check`` abandoned by an abrupt mid-call transport close, proven
+    torn down by a fresh session succeeding right after and by no orphaned
+    ``rust-engineering-mcp serve`` process for that session's state-root.
+    The Codex/Claude Code/Gemini CLI stock-client turns move to that same
+    runtime host (open -> a real ``rust.project.inspect`` pass -> one
+    ``PROJECT_NOT_FOUND`` negative). Additionally composes the M2-M6
+    positive coverage by invoking each milestone's own client/runtime
+    harness as a subprocess and folding its receipt in (never
+    re-implemented here), and drives a stdin-EOF teardown through the
+    qualified M2/M3 runtime image.
 
 The five MCP protocol revisions are credited by the ``core`` gate's own
 protocol tests (``docs/validation/M8/core-gate.json``); this harness does not
@@ -1055,12 +1066,21 @@ def run_inspector(attempt: pathlib.Path, mode: str, argv: list[str], timeout: in
                   "--client", "inspector", "--observation", str(observation),
                   "--server-argv-json", json.dumps(argv, separators=(",", ":"))]
     manifest = load_freeze_manifest()
+    # The Docker-free negative call plan asserts every `stable` tool refuses
+    # for lack of a calibrated runtime/catalog/grant; a `runtime` session
+    # runs those same calls against a host that *has* a real runtime, so the
+    # refusals this plan expects (e.g. `rust.project.inspect`'s
+    # `TOOL_NOT_INSTALLED`) would instead land `passed`. Only the `docker_free`
+    # session plans and validates these rows; `runtime` composes its own
+    # positive oracle below (`rust.check`, its Resource, cancellation).
+    negative_rows = negative_call_plan() if mode == DOCKER_FREE else []
+    generic_negatives = generic_negative_plan() if mode == DOCKER_FREE else []
     plan = {
         "mode": mode, "expected_tools": list(EXPECTED_TOOLS),
         "preview_tools": list(PREVIEW_TOOLS), "freeze": manifest["tools"],
         "fixture": str(ROOT / FIXTURE), "unknown_project_ref": UNKNOWN_PROJECT_REF,
         "request_timeout_ms": MCP_TOOL_TIMEOUT_MS,
-        "negative_rows": negative_call_plan(), "generic_negatives": generic_negative_plan(),
+        "negative_rows": negative_rows, "generic_negatives": generic_negatives,
         "write_root": str(write_root) if write_root else None,
     }
     try:
@@ -1079,13 +1099,18 @@ def run_inspector(attempt: pathlib.Path, mode: str, argv: list[str], timeout: in
     if outcome.get("resources_list") != []:
         raise RuntimeError("resources/list is not empty")
     stable_bad, preview_bad = contract_discrepancies(outcome["contract"], manifest, frozenset(PREVIEW_TOOLS))
-    negatives = validate_negative_rows(outcome.get("negative_rows"), negative_call_plan())
-    generics = validate_generic_negative_rows(outcome.get("generic_negatives"))
-    wire_confirmed = generic_negative_wire_confirmed(observation)
-    if not all(wire_confirmed.values()):
-        raise RuntimeError(
-            "a protocol-boundary generic negative never reached the wire: "
-            + ", ".join(kind for kind, ok in wire_confirmed.items() if not ok))
+    if mode == DOCKER_FREE:
+        negatives = validate_negative_rows(outcome.get("negative_rows"), negative_rows)
+        generics = validate_generic_negative_rows(outcome.get("generic_negatives"))
+        wire_confirmed = generic_negative_wire_confirmed(observation)
+        if not all(wire_confirmed.values()):
+            raise RuntimeError(
+                "a protocol-boundary generic negative never reached the wire: "
+                + ", ".join(kind for kind, ok in wire_confirmed.items() if not ok))
+    else:
+        if outcome.get("negative_rows") or outcome.get("generic_negatives"):
+            raise RuntimeError("a runtime session must not run the Docker-free negative plan")
+        negatives, generics, wire_confirmed = [], [], {}
     report: dict[str, object] = {
         "version": observed_version, "mode": mode,
         "bundle_sha256": m3.file_digest(INSPECTOR), "bridge_suffix_sha256": m3.digest(suffix),
@@ -1110,11 +1135,59 @@ def run_inspector(attempt: pathlib.Path, mode: str, argv: list[str], timeout: in
             raise RuntimeError("Inspector did not read back the rust-artifact:// Resource")
         if outcome.get("cancel_ok") is not True:
             raise RuntimeError("Inspector did not observe the cancel-then-clean-retry oracle")
+        cancellation_wire_confirmed = runtime_cancellation_wire_confirmed(observation)
+        if not cancellation_wire_confirmed:
+            raise RuntimeError("the cancelled call's notifications/cancelled never reached the wire")
+        if outcome.get("eof_new_session_ok") is not True:
+            raise RuntimeError("a fresh session after the client's mid-call EOF did not see the tool inventory")
+        orphans = assert_no_orphan_server(state)
+        if orphans:
+            raise RuntimeError(
+                "a rust-engineering-mcp process orphaned by the client's mid-call EOF is still "
+                f"running for state-root {state}: {orphans}")
         report.update(
             runtime_check_status=outcome["runtime_check_status"],
             resource_read_ok=True, cancel_ok=True,
+            cancellation_wire_confirmed=True,
+            eof_new_session_ok=True, eof_prior_pid=outcome.get("eof_prior_pid"),
+            eof_no_orphan_process=True,
         )
     return report
+
+
+def runtime_cancellation_wire_confirmed(observation: pathlib.Path) -> bool:
+    """The `runtime` Inspector session's own G4 oracle cancels a mid-flight
+    `rust.check` via the SDK's `cancelToolCall()`, which (on stdio) carries
+    the cancellation to the server as a `notifications/cancelled` client
+    row -- this must be confirmed on the wire itself, never inferred only
+    from the local promise rejecting."""
+    if not observation.is_file():
+        return False
+    rows = [json.loads(line) for line in observation.read_text().splitlines() if line]
+    return any(row.get("client") == "inspector" and row.get("direction") == "client"
+               and row.get("method") == "notifications/cancelled" for row in rows)
+
+
+def assert_no_orphan_server(state: pathlib.Path, timeout: float = 10.0) -> list[str]:
+    """G5's own oracle: after the `runtime` Inspector session ends (its
+    mid-call stdin-EOF teardown and the fresh session that followed it), no
+    `rust-engineering-mcp serve` process scoped to this session's own
+    `--state-root` may still be running. `pgrep -f` matches full command
+    lines, so the state-root's own path -- unique per attempt -- is enough
+    of a needle without matching an unrelated session. Polls briefly: the
+    server's own teardown on EOF is asynchronous from this process's point
+    of view."""
+    deadline = time.monotonic() + timeout
+    while True:
+        try:
+            result = subprocess.run(["/usr/bin/pgrep", "-f", str(state)],
+                                    capture_output=True, text=True, timeout=5)
+        except FileNotFoundError:
+            return []
+        pids = [line for line in result.stdout.splitlines() if line.strip()]
+        if not pids or time.monotonic() >= deadline:
+            return pids
+        time.sleep(0.2)
 
 
 def eof_gate(socket: pathlib.Path, timeout: int = 30) -> dict[str, object]:
@@ -1553,14 +1626,22 @@ def run(with_runtime: bool, socket: str | None) -> int:
         "observed_versions": versions,
     }
     try:
-        docker_socket = pathlib.Path(socket) if socket else ROOT / "target" / f"m8-never-{attempt.name}.sock"
-        docker_free_argv = server_argv(attempt / "state-docker-free", docker_socket)
+        # The Docker-free Inspector session's own negative call plan (30
+        # refusals asserting the runtime is unreachable) must run against a
+        # host whose socket genuinely never resolves -- even in
+        # `--with-runtime`, where a real, absolute socket is otherwise in
+        # play for the model turns below. Sharing one socket between the two
+        # was M8-04's own `--with-runtime` regression: a real runtime made
+        # the Docker-free refusals land `passed` instead.
+        docker_free_socket = ROOT / "target" / f"m8-never-{attempt.name}.sock"
+        model_turn_socket = pathlib.Path(socket) if with_runtime else docker_free_socket
+        docker_free_argv = server_argv(attempt / "state-docker-free", docker_free_socket)
         receipt["inspector"] = {DOCKER_FREE: run_inspector(
             attempt, DOCKER_FREE, docker_free_argv, 900, versions["inspector"]["observed"])}
-        receipt["codex"] = codex_gate(attempt, docker_socket, versions["codex"]["observed"])
+        receipt["codex"] = codex_gate(attempt, model_turn_socket, versions["codex"]["observed"])
         receipt["claude_code"] = claude_gate(
-            attempt, docker_socket, with_runtime, versions["claude_code"]["observed"])
-        receipt["gemini_cli"] = gemini_gate(attempt, docker_socket, versions["gemini_cli"]["observed"])
+            attempt, model_turn_socket, with_runtime, versions["claude_code"]["observed"])
+        receipt["gemini_cli"] = gemini_gate(attempt, model_turn_socket, versions["gemini_cli"]["observed"])
         if with_runtime:
             runtime_socket = pathlib.Path(socket)
             runtime_argv = server_argv(attempt / "state-runtime", runtime_socket)
@@ -1627,8 +1708,8 @@ def main() -> int:
         if not isinstance(argv, list) or not argv or any(not isinstance(item, str) for item in argv):
             raise RuntimeError("invalid closed server argv")
         return wire_proxy(argv, pathlib.Path(options.observation), options.client)
-    if options.with_runtime and not options.run:
-        raise RuntimeError("--with-runtime requires --run")
+    if options.with_runtime and not (options.run or options.preflight):
+        raise RuntimeError("--with-runtime requires --run or --preflight")
     if options.run:
         return run(options.with_runtime, options.docker_socket)
     print(json.dumps(preflight(options.with_runtime, options.docker_socket), sort_keys=True))
