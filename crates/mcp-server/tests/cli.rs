@@ -389,6 +389,248 @@ fn non_utf8_snapshot_configuration_is_rejected_without_echo() -> io::Result<()> 
     Ok(())
 }
 
+// F-06: `--rustsec-snapshot` and the catalog paths must be rejected when they
+// land inside (or exactly on) a `--root`, matching `--security-policy`,
+// `--cargo-vendor-dir` and `--vendor-capture` already do.
+
+// A real, empty directory: `serve` initializes project authorization against
+// every `--root` even before EOF, so an outside-root acceptance case needs
+// the root to actually exist on disk, unlike the lazily-read snapshot/catalog
+// paths themselves.
+fn temp_root(name: &str) -> io::Result<String> {
+    // Canonicalize first: the host CLI opens roots with NOFOLLOW_ANY from a
+    // real `/`, so a `--root` under the macOS `/tmp` symlink alias is denied.
+    let root = std::env::temp_dir().canonicalize()?.join(name);
+    std::fs::create_dir_all(&root)?;
+    root.into_os_string()
+        .into_string()
+        .map_err(|_| io::Error::other("temporary path is not UTF-8"))
+}
+
+fn temp_path(name: &str) -> io::Result<String> {
+    std::env::temp_dir()
+        .canonicalize()?
+        .join(name)
+        .into_os_string()
+        .into_string()
+        .map_err(|_| io::Error::other("temporary path is not UTF-8"))
+}
+
+// Runs `build_args(candidate)` for every `inside` candidate (root-contained
+// or exactly the root) expecting rejection at CLI-parsing time, then once
+// more for `outside` expecting the same acceptance every other complete host
+// configuration gets: EOF success with no output.
+fn assert_root_containment_is_enforced(
+    inside: &[&str],
+    outside: &str,
+    build_args: impl Fn(&str) -> Vec<String>,
+) -> io::Result<()> {
+    let baseline = run(&["unknown"])?;
+    for candidate in inside {
+        let output = run(&build_args(candidate))?;
+        assert_eq!(output.status.code(), Some(2), "{candidate}");
+        assert!(output.stdout.is_empty(), "{candidate}");
+        assert_eq!(output.stderr, baseline.stderr, "{candidate}");
+    }
+    let output = run(&build_args(outside))?;
+    assert!(
+        output.status.success(),
+        "{}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+    assert!(output.stdout.is_empty());
+    assert!(output.stderr.is_empty());
+    Ok(())
+}
+
+#[test]
+fn rustsec_snapshot_inside_a_root_is_rejected() -> io::Result<()> {
+    let fingerprint = format!("sha256:{:064x}", 42);
+    let root = temp_root("rust-mcp-cli-rustsec-root")?;
+    let inside = temp_path("rust-mcp-cli-rustsec-root/snapshot.json")?;
+    let outside = temp_path("rust-mcp-cli-rustsec-outside.json")?;
+    let result = assert_root_containment_is_enforced(
+        &[root.as_str(), inside.as_str()],
+        outside.as_str(),
+        |snapshot| {
+            vec![
+                "serve".into(),
+                "--stdio".into(),
+                "--root".into(),
+                root.clone(),
+                "--rustsec-snapshot".into(),
+                snapshot.into(),
+                "--rustsec-sha256".into(),
+                fingerprint.clone(),
+            ]
+        },
+    );
+    std::fs::remove_dir_all(&root)?;
+    result
+}
+
+#[test]
+fn catalog_store_inside_a_root_is_rejected() -> io::Result<()> {
+    let root = temp_root("rust-mcp-cli-catalog-store-root")?;
+    let inside = temp_path("rust-mcp-cli-catalog-store-root/store")?;
+    let outside = temp_path("rust-mcp-cli-catalog-store-outside")?;
+    let trust = temp_path("rust-mcp-cli-catalog-store-trust.json")?;
+    let result = assert_root_containment_is_enforced(
+        &[root.as_str(), inside.as_str()],
+        outside.as_str(),
+        |store| {
+            vec![
+                "serve".into(),
+                "--stdio".into(),
+                "--root".into(),
+                root.clone(),
+                "--catalog-store".into(),
+                store.into(),
+                "--catalog-trust".into(),
+                trust.clone(),
+            ]
+        },
+    );
+    std::fs::remove_dir_all(&root)?;
+    result
+}
+
+#[test]
+fn catalog_trust_inside_a_root_is_rejected() -> io::Result<()> {
+    let root = temp_root("rust-mcp-cli-catalog-trust-root")?;
+    let inside = temp_path("rust-mcp-cli-catalog-trust-root/trust.json")?;
+    let outside = temp_path("rust-mcp-cli-catalog-trust-outside.json")?;
+    let store = temp_path("rust-mcp-cli-catalog-trust-store")?;
+    let result = assert_root_containment_is_enforced(
+        &[root.as_str(), inside.as_str()],
+        outside.as_str(),
+        |trust| {
+            vec![
+                "serve".into(),
+                "--stdio".into(),
+                "--root".into(),
+                root.clone(),
+                "--catalog-store".into(),
+                store.clone(),
+                "--catalog-trust".into(),
+                trust.into(),
+            ]
+        },
+    );
+    std::fs::remove_dir_all(&root)?;
+    result
+}
+
+#[test]
+fn catalog_model_dir_inside_a_root_is_rejected() -> io::Result<()> {
+    let root = temp_root("rust-mcp-cli-catalog-model-dir-root")?;
+    let inside = temp_path("rust-mcp-cli-catalog-model-dir-root/model")?;
+    let outside = temp_path("rust-mcp-cli-catalog-model-dir-outside")?;
+    let store = temp_path("rust-mcp-cli-catalog-model-dir-store")?;
+    let trust = temp_path("rust-mcp-cli-catalog-model-dir-trust.json")?;
+    let result = assert_root_containment_is_enforced(
+        &[root.as_str(), inside.as_str()],
+        outside.as_str(),
+        |model_dir| {
+            vec![
+                "serve".into(),
+                "--stdio".into(),
+                "--root".into(),
+                root.clone(),
+                "--catalog-store".into(),
+                store.clone(),
+                "--catalog-trust".into(),
+                trust.clone(),
+                "--catalog-model-dir".into(),
+                model_dir.into(),
+            ]
+        },
+    );
+    std::fs::remove_dir_all(&root)?;
+    result
+}
+
+#[test]
+fn catalog_index_store_inside_a_root_is_rejected() -> io::Result<()> {
+    let root = temp_root("rust-mcp-cli-catalog-index-store-root")?;
+    let inside = temp_path("rust-mcp-cli-catalog-index-store-root/index")?;
+    let outside = temp_path("rust-mcp-cli-catalog-index-store-outside")?;
+    let store = temp_path("rust-mcp-cli-catalog-index-store-store")?;
+    let trust = temp_path("rust-mcp-cli-catalog-index-store-trust.json")?;
+    let model_dir = temp_path("rust-mcp-cli-catalog-index-store-model")?;
+    let result = assert_root_containment_is_enforced(
+        &[root.as_str(), inside.as_str()],
+        outside.as_str(),
+        |index_store| {
+            vec![
+                "serve".into(),
+                "--stdio".into(),
+                "--root".into(),
+                root.clone(),
+                "--catalog-store".into(),
+                store.clone(),
+                "--catalog-trust".into(),
+                trust.clone(),
+                "--catalog-model-dir".into(),
+                model_dir.clone(),
+                "--catalog-index-store".into(),
+                index_store.into(),
+            ]
+        },
+    );
+    std::fs::remove_dir_all(&root)?;
+    result
+}
+
+// F-2 (docs/validation/M8/06-reproduction.md): `mutation list` must read the
+// journal store passively, the same way `doctor --state-root` does, rather
+// than treating "never had a mutation" as an interrupted-operation error.
+#[test]
+fn mutation_list_on_a_never_initialized_state_root_is_empty() -> io::Result<()> {
+    let root = temp_root("rust-mcp-cli-mutation-list-empty")?;
+    let output = run(&["mutation", "list", "--state-root", root.as_str(), "--json"])?;
+    std::fs::remove_dir_all(&root)?;
+    assert!(
+        output.status.success(),
+        "{}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+    let report: serde_json::Value = serde_json::from_slice(&output.stdout)?;
+    assert_eq!(report["status"], "passed");
+    assert_eq!(report["records"], serde_json::json!([]));
+    assert_eq!(report["count"], 0);
+    assert_eq!(report["store_initialized"], false);
+    Ok(())
+}
+
+#[test]
+fn mutation_list_on_a_nonexistent_state_root_is_an_error() -> io::Result<()> {
+    let root = temp_path("rust-mcp-cli-mutation-list-nonexistent")?;
+    let output = run(&["mutation", "list", "--state-root", root.as_str(), "--json"])?;
+    assert!(!output.status.success());
+    let report: serde_json::Value = serde_json::from_slice(&output.stdout)?;
+    assert_eq!(report["status"], "blocked");
+    assert_eq!(report["error_code"], "not_found");
+    Ok(())
+}
+
+#[test]
+#[cfg(unix)]
+fn mutation_list_on_an_unreadable_state_root_is_an_io_error() -> io::Result<()> {
+    use std::os::unix::fs::PermissionsExt;
+    let root = temp_root("rust-mcp-cli-mutation-list-unreadable")?;
+    std::fs::set_permissions(&root, std::fs::Permissions::from_mode(0o000))?;
+    let output = run(&["mutation", "list", "--state-root", root.as_str(), "--json"]);
+    std::fs::set_permissions(&root, std::fs::Permissions::from_mode(0o700))?;
+    std::fs::remove_dir_all(&root)?;
+    let output = output?;
+    assert!(!output.status.success());
+    let report: serde_json::Value = serde_json::from_slice(&output.stdout)?;
+    assert_eq!(report["status"], "blocked");
+    assert_eq!(report["error_code"], "io");
+    Ok(())
+}
+
 // spec §56 (M8-02 decision 3): the static `contract` document must describe
 // exactly the same 36 tools the live server's `tools/list` snapshots do. This
 // mirrors tests/protocol.rs's `bootstrap` snapshot set rather than spawning a

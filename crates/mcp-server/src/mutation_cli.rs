@@ -5,7 +5,7 @@ use serde::Serialize;
 use std::{
     ffi::OsString,
     io::{self, Write},
-    path::PathBuf,
+    path::{Path, PathBuf},
     process::ExitCode,
     time::Duration,
 };
@@ -73,6 +73,10 @@ struct Report {
     action: &'static str,
     error_code: Option<&'static str>,
     message: &'static str,
+    // Only meaningful for `list`: distinguishes "never had a journal
+    // directory" (empty by construction) from an opened, scanned store.
+    store_initialized: Option<bool>,
+    count: u64,
     records: Vec<Record>,
 }
 fn state(value: MutationState) -> &'static str {
@@ -83,24 +87,49 @@ fn state(value: MutationState) -> &'static str {
         MutationState::RecoveryRequired => "recovery_required",
     }
 }
-fn execute(invocation: &Invocation) -> Result<Vec<Record>, MutationError> {
+/// Whether the journal directory exists, without creating it: `list` must
+/// read passively (unlike a real mutation, which provisions state on first
+/// write via `prepare_mutation_state`). `Ok(false)` means `state_root` exists
+/// but was never used for a mutation; any other missing-path case, including
+/// a `state_root` that itself does not exist, is reported as `NotFound` so it
+/// is not silently confused with an initialized-but-empty store.
+fn journal_dir_exists(state_root: &Path, journal_dir: &Path) -> Result<bool, MutationError> {
+    match std::fs::metadata(journal_dir) {
+        Ok(metadata) if metadata.is_dir() => Ok(true),
+        Ok(_) => Err(MutationError::Io),
+        Err(error) if error.kind() != io::ErrorKind::NotFound => Err(MutationError::Io),
+        Err(_) => match std::fs::metadata(state_root) {
+            Ok(metadata) if metadata.is_dir() => Ok(false),
+            _ => Err(MutationError::NotFound),
+        },
+    }
+}
+fn execute(invocation: &Invocation) -> Result<(Vec<Record>, Option<bool>), MutationError> {
+    let journal_dir = invocation.state_root.join("rust-mcp-mutations-v1");
+    if matches!(invocation.action, Action::List)
+        && !journal_dir_exists(&invocation.state_root, &journal_dir)?
+    {
+        return Ok((vec![], Some(false)));
+    }
     // Open an existing private child; administration must not initialize state.
-    let store =
-        NativeMutationStore::open(&invocation.state_root.join("rust-mcp-mutations-v1"), &[])?;
+    let store = NativeMutationStore::open(&journal_dir, &[])?;
     match &invocation.action {
-        Action::List => Ok(store
-            .list_records()?
-            .into_iter()
-            .map(|record| Record {
-                operation_id: record.id.as_str().into(),
-                plan_digest: record.digest.to_string(),
-                state: state(record.state),
-                stored_bytes: record.stored_bytes,
-            })
-            .collect()),
+        Action::List => Ok((
+            store
+                .list_records()?
+                .into_iter()
+                .map(|record| Record {
+                    operation_id: record.id.as_str().into(),
+                    plan_digest: record.digest.to_string(),
+                    state: state(record.state),
+                    stored_bytes: record.stored_bytes,
+                })
+                .collect(),
+            Some(true),
+        )),
         Action::Prune { id, digest } => {
             store.prune_record(id, digest)?;
-            Ok(vec![])
+            Ok((vec![], None))
         }
     }
 }
@@ -125,17 +154,23 @@ pub fn run(invocation: Invocation) -> ExitCode {
         Action::Prune { .. } => "prune",
     };
     let (report, code) = match execute(&invocation) {
-        Ok(records) => (
+        Ok((records, store_initialized)) => (
             Report {
                 format_version: 1,
                 status: "passed",
                 action,
                 error_code: None,
-                message: if action == "list" {
-                    "Existing local mutation journals"
-                } else {
-                    "Terminal journal removed; its durable receipt and replay record no longer exist"
+                message: match (action, store_initialized) {
+                    ("list", Some(false)) => {
+                        "No mutation journal store exists yet at this state root"
+                    }
+                    ("list", _) => "Existing local mutation journals",
+                    _ => {
+                        "Terminal journal removed; its durable receipt and replay record no longer exist"
+                    }
                 },
+                store_initialized,
+                count: records.len() as u64,
                 records,
             },
             0,
@@ -146,7 +181,16 @@ pub fn run(invocation: Invocation) -> ExitCode {
                 status: "blocked",
                 action,
                 error_code: Some(error_code(error)),
-                message: "Journal administration did not complete; preserve pending evidence and use authorized recovery for interrupted operations",
+                message: match error {
+                    MutationError::NotFound => {
+                        "The state root does not exist or the requested record was not found"
+                    }
+                    _ => {
+                        "Journal administration did not complete; preserve pending evidence and use authorized recovery for interrupted operations"
+                    }
+                },
+                store_initialized: None,
+                count: 0,
                 records: vec![],
             },
             1,
