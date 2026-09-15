@@ -48,7 +48,9 @@ import signal
 import subprocess
 import sys
 import tempfile
+import threading
 import time
+import uuid
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 M3_PATH = ROOT / "scripts/test-m3-clients.py"
@@ -119,6 +121,7 @@ DOCKER_FREE = "docker_free"
 RUNTIME = "runtime"
 CALL_STATUSES = frozenset({"passed", "failed", "blocked", "unavailable", "cancelled"})
 REFUSAL_STATUSES = frozenset({"blocked", "unavailable"})
+MAX_OUTPUT = 8 * 1024 * 1024
 
 # Tool -> the source file(s) carrying its closed error-code vocabulary, and
 # the Serde case convention of that enum. The 5 mutation tools share one
@@ -779,9 +782,9 @@ def preflight(with_runtime: bool = False, socket: str | None = None) -> dict[str
         "unsatisfied": unsatisfied,
         "source_sha256": source_hashes(),
         "protocol_revisions_credited_by": "docs/validation/M8/core-gate.json",
-        "m3_reuse": ["proxy", "run_bounded", "digest", "file_digest", "save_json",
+        "m3_reuse": ["run_bounded", "digest", "file_digest", "save_json",
                      "protocol_summary", "assert_no_credentials", "find_values",
-                     "append_observation"],
+                     "append_observation", "tasks_declared"],
         "composed_runtime_positives_from": [
             "scripts/test-m2-clients.py", "scripts/test-m3-clients.py",
             "scripts/test-m4-clients.py", "scripts/test-m5-clients.py",
@@ -790,12 +793,117 @@ def preflight(with_runtime: bool = False, socket: str | None = None) -> dict[str
     }
 
 
+def wire_proxy(server_argv: list[str], observation: pathlib.Path, client: str) -> int:
+    """Same transparent stdio proxy as `test-m3-clients.py`'s own (bounded
+    protocol metadata only), plus two additional safe fields captured from
+    the server's own `tools/call` response -- `structuredContent.status` and
+    `structuredContent.error_code`, both closed short enums the tool's own
+    contract already publishes -- so a structured refusal (e.g. Codex's
+    mandatory `PROJECT_NOT_FOUND` negative) can be confirmed from the wire
+    itself, never from a client's own transcript."""
+    m3 = load_m3()
+    session = uuid.uuid4().hex
+    child = subprocess.Popen(
+        server_argv, stdin=subprocess.PIPE, stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE, env=os.environ.copy(),
+    )
+    lock = threading.Lock()
+    pending_tool_call = [False]
+
+    def record(direction: str, line: bytes) -> None:
+        row: dict[str, object] = {
+            "client": client, "direction": direction, "session": session,
+            "bytes": len(line), "sha256": m3.digest(line),
+        }
+        try:
+            message = json.loads(line)
+        except (UnicodeDecodeError, json.JSONDecodeError):
+            row["malformed"] = True
+        else:
+            if isinstance(message, dict):
+                method = message.get("method")
+                if isinstance(method, str):
+                    row["method"] = method
+                if direction == "client" and method == "initialize":
+                    capabilities = message.get("params", {}).get("capabilities", {})
+                    row["tasks_declared"] = m3.tasks_declared(capabilities)
+                if direction == "client" and method == "server/discover":
+                    metadata = message.get("params", {}).get("_meta", {})
+                    capabilities = metadata.get(
+                        "io.modelcontextprotocol/clientCapabilities", {})
+                    row["tasks_declared"] = m3.tasks_declared(capabilities)
+                if direction == "server" and "result" in message:
+                    capabilities = message.get("result", {}).get("capabilities", {})
+                    if isinstance(capabilities, dict) and capabilities:
+                        row["tasks_advertised"] = m3.tasks_declared(capabilities)
+                if direction == "client" and method == "tools/call":
+                    row["tool"] = message.get("params", {}).get("name")
+                if direction == "client" and method == "resources/read":
+                    uri = message.get("params", {}).get("uri")
+                    if isinstance(uri, str):
+                        row["resource_scheme"] = uri.partition(":")[0]
+                if direction == "client" and method == "tools/call":
+                    pending_tool_call[0] = True
+                elif direction == "server":
+                    if pending_tool_call[0] and "result" in message:
+                        structured = message.get("result", {}).get("structuredContent")
+                        if isinstance(structured, dict):
+                            if isinstance(structured.get("status"), str):
+                                row["structuredContent.status"] = structured["status"]
+                            error_code = structured.get("error_code")
+                            if "error_code" in structured and (
+                                    error_code is None or isinstance(error_code, str)):
+                                row["structuredContent.error_code"] = error_code
+                    pending_tool_call[0] = False
+        with lock:
+            m3.append_observation(observation, row)
+
+    def relay(source, destination, direction: str) -> None:
+        while True:
+            line = source.readline(MAX_OUTPUT + 1)
+            if not line:
+                break
+            if len(line) > MAX_OUTPUT:
+                child.kill()
+                break
+            record(direction, line.rstrip(b"\n"))
+            destination.write(line)
+            destination.flush()
+        try:
+            destination.close()
+        except BrokenPipeError:
+            pass
+
+    def relay_stderr() -> None:
+        observed = 0
+        while True:
+            block = child.stderr.read(65536)
+            if not block:
+                break
+            observed += len(block)
+            if observed <= MAX_OUTPUT:
+                sys.stderr.buffer.write(block)
+                sys.stderr.buffer.flush()
+
+    threads = [
+        threading.Thread(target=relay, args=(sys.stdin.buffer, child.stdin, "client")),
+        threading.Thread(target=relay, args=(child.stdout, sys.stdout.buffer, "server")),
+        threading.Thread(target=relay_stderr),
+    ]
+    for thread in threads:
+        thread.start()
+    for thread in threads:
+        thread.join()
+    return child.wait(timeout=15)
+
+
 def validate_protocol_metadata(path: pathlib.Path) -> dict[str, object]:
     m3 = load_m3()
     rows = [json.loads(line) for line in path.read_text().splitlines() if line]
     safe_keys = frozenset({"client", "direction", "session", "bytes", "sha256", "malformed",
                            "method", "tasks_declared", "tasks_advertised", "tool",
-                           "resource_scheme"})
+                           "resource_scheme", "structuredContent.status",
+                           "structuredContent.error_code"})
     for row in rows:
         extra = set(row) - safe_keys
         if extra:
@@ -1103,32 +1211,48 @@ def codex_mcp_config_args(server_name: str, command: str, args: list[str]) -> li
 def codex_protocol_evidence(observation: pathlib.Path) -> dict[str, object]:
     """The Codex oracle, derived only from the wire this run's own proxy
     recorded for `client == "codex"`: `rust.project.open` and
-    `rust.project.inspect` must both have been called, and the unknown-tool
-    refusal must be observed on the wire -- the fake tool's `tools/call`
-    request immediately followed by a server-direction response."""
+    `rust.project.inspect` must both have been called, and the mandatory
+    negative -- `rust.project.inspect` on the well-formed but never-opened
+    `UNKNOWN_PROJECT_REF` -- must land on a structured `PROJECT_NOT_FOUND`
+    refusal observed on the wire itself (`structuredContent.status`/
+    `.error_code` on the server-direction row immediately following the
+    call), not merely in the model's own transcript. The unknown-tool call
+    is optional and informative only: a model that discovers the real
+    36-tool inventory correctly never emits it, so its absence is by design,
+    not a failure."""
     if not observation.is_file():
-        return {"called_tools": set(), "unknown_tool_wire_refused": False}
+        return {"called_tools": set(), "unknown_tool_wire_refused": False,
+                "unknown_project_ref_wire_refused": False}
     rows = [json.loads(line) for line in observation.read_text().splitlines() if line]
     codex_rows = [row for row in rows if row.get("client") == "codex"]
     calls = [row for row in codex_rows
              if row.get("direction") == "client" and row.get("method") == "tools/call"]
     called_tools = {row.get("tool") for row in calls}
     unknown_tool_wire_refused = False
+    unknown_project_ref_wire_refused = False
     for index, row in enumerate(codex_rows):
-        if (row.get("direction") == "client" and row.get("method") == "tools/call"
-                and row.get("tool") == "rust.not.a.real.tool"):
-            following = codex_rows[index + 1] if index + 1 < len(codex_rows) else None
-            if following is not None and following.get("direction") == "server":
-                unknown_tool_wire_refused = True
-    return {"called_tools": called_tools, "unknown_tool_wire_refused": unknown_tool_wire_refused}
+        if not (row.get("direction") == "client" and row.get("method") == "tools/call"):
+            continue
+        following = codex_rows[index + 1] if index + 1 < len(codex_rows) else None
+        if following is None or following.get("direction") != "server":
+            continue
+        if row.get("tool") == "rust.not.a.real.tool":
+            unknown_tool_wire_refused = True
+        if (row.get("tool") == "rust.project.inspect"
+                and following.get("structuredContent.status") in REFUSAL_STATUSES
+                and following.get("structuredContent.error_code") == "PROJECT_NOT_FOUND"):
+            unknown_project_ref_wire_refused = True
+    return {"called_tools": called_tools, "unknown_tool_wire_refused": unknown_tool_wire_refused,
+            "unknown_project_ref_wire_refused": unknown_project_ref_wire_refused}
 
 
 def codex_classification(returncode: int, stderr: str, open_observed: bool, inspect_observed: bool,
-                          unknown_tool_wire_refused: bool) -> str:
-    """`passed` requires the unknown-tool refusal observed on the wire itself;
-    a refusal seen only in the model's own transcript does not count -- that
-    is the weak oracle C-2 asked to retire."""
-    if returncode == 0 and open_observed and inspect_observed and unknown_tool_wire_refused:
+                          unknown_project_ref_wire_refused: bool) -> str:
+    """`passed` requires the `PROJECT_NOT_FOUND` refusal observed on the wire
+    itself; a refusal seen only in the model's own transcript does not
+    count -- that is the weak oracle C-2 asked to retire. The optional
+    unknown-tool step never gates this classification."""
+    if returncode == 0 and open_observed and inspect_observed and unknown_project_ref_wire_refused:
         return "passed"
     return "capacity_refused" if "capacity" in stderr.lower() else "partial"
 
@@ -1158,8 +1282,11 @@ def codex_gate(attempt: pathlib.Path, socket: pathlib.Path, observed_version: st
     prompt = (
         f"Use only the configured rust_engineering MCP tools. List the available tools, "
         f"open {ROOT / FIXTURE}, call rust.project.inspect on the opened project, then call "
-        f"a tool named rust.not.a.real.tool and report its refusal. Finish with a one-line "
-        f"summary of what happened. Do not use any non-MCP capability."
+        f"rust.project.inspect again with project_ref \"{UNKNOWN_PROJECT_REF}\" -- a "
+        f"well-formed reference this session never opened -- and report its refusal. "
+        f"Optionally, if you want to, also call a tool named rust.not.a.real.tool and report "
+        f"its refusal. Finish with a one-line summary of what happened. Do not use any "
+        f"non-MCP capability."
     )
     argv = [
         str(CODEX), "exec", "--json", "--skip-git-repo-check", "-s", "read-only",
@@ -1184,8 +1311,10 @@ def codex_gate(attempt: pathlib.Path, socket: pathlib.Path, observed_version: st
     open_observed = "rust.project.open" in evidence["called_tools"]
     inspect_observed = "rust.project.inspect" in evidence["called_tools"]
     unknown_tool_wire_refused = evidence["unknown_tool_wire_refused"]
+    unknown_project_ref_wire_refused = evidence["unknown_project_ref_wire_refused"]
     classification = codex_classification(
-        result.returncode, result.stderr, open_observed, inspect_observed, unknown_tool_wire_refused)
+        result.returncode, result.stderr, open_observed, inspect_observed,
+        unknown_project_ref_wire_refused)
     return {
         "version": observed_version, "model": CODEX_MODEL, "effort": CODEX_EFFORT,
         "exit_code": result.returncode, "classification": classification,
@@ -1193,6 +1322,7 @@ def codex_gate(attempt: pathlib.Path, socket: pathlib.Path, observed_version: st
         "protocol_evidence": {
             "project_open_observed": open_observed,
             "project_inspect_observed": inspect_observed,
+            "unknown_project_ref_refused_on_wire": unknown_project_ref_wire_refused,
             "unknown_tool_refused_on_wire": unknown_tool_wire_refused,
             "unknown_tool_event_refused": unknown_tool_event_refused,
         },
@@ -1493,11 +1623,10 @@ def main() -> int:
     parser.add_argument("--docker-socket", default=os.environ.get("RUST_MCP_TEST_SOCKET"))
     options = parser.parse_args()
     if options.command == "proxy":
-        m3 = load_m3()
         argv = json.loads(options.server_argv_json)
         if not isinstance(argv, list) or not argv or any(not isinstance(item, str) for item in argv):
             raise RuntimeError("invalid closed server argv")
-        return m3.proxy(argv, pathlib.Path(options.observation), options.client)
+        return wire_proxy(argv, pathlib.Path(options.observation), options.client)
     if options.with_runtime and not options.run:
         raise RuntimeError("--with-runtime requires --run")
     if options.run:

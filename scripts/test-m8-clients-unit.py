@@ -514,7 +514,8 @@ class CodexProtocolEvidenceTests(unittest.TestCase):
 
     def test_missing_observation_reports_no_evidence(self):
         evidence = M8.codex_protocol_evidence(pathlib.Path("/nonexistent-observation.jsonl"))
-        self.assertEqual(evidence, {"called_tools": set(), "unknown_tool_wire_refused": False})
+        self.assertEqual(evidence, {"called_tools": set(), "unknown_tool_wire_refused": False,
+                                    "unknown_project_ref_wire_refused": False})
 
     def test_open_and_inspect_calls_are_collected_from_the_wire(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -528,6 +529,7 @@ class CodexProtocolEvidenceTests(unittest.TestCase):
             evidence = M8.codex_protocol_evidence(path)
             self.assertEqual(evidence["called_tools"], {"rust.project.open", "rust.project.inspect"})
             self.assertFalse(evidence["unknown_tool_wire_refused"])
+            self.assertFalse(evidence["unknown_project_ref_wire_refused"])
 
     def test_unknown_tool_refusal_requires_a_server_response_on_the_wire(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -547,6 +549,38 @@ class CodexProtocolEvidenceTests(unittest.TestCase):
             ])
             evidence = M8.codex_protocol_evidence(path)
             self.assertFalse(evidence["unknown_tool_wire_refused"])
+
+    def test_unknown_project_ref_refusal_requires_the_structured_wire_fields(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = self._write(tmp, [
+                {"client": "codex", "direction": "client", "method": "tools/call",
+                 "tool": "rust.project.inspect"},
+                {"client": "codex", "direction": "server", "structuredContent.status": "blocked",
+                 "structuredContent.error_code": "PROJECT_NOT_FOUND"},
+            ])
+            evidence = M8.codex_protocol_evidence(path)
+            self.assertTrue(evidence["unknown_project_ref_wire_refused"])
+
+    def test_an_ordinary_passed_inspect_is_not_counted_as_the_refusal(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = self._write(tmp, [
+                {"client": "codex", "direction": "client", "method": "tools/call",
+                 "tool": "rust.project.inspect"},
+                {"client": "codex", "direction": "server", "structuredContent.status": "passed",
+                 "structuredContent.error_code": None},
+            ])
+            evidence = M8.codex_protocol_evidence(path)
+            self.assertFalse(evidence["unknown_project_ref_wire_refused"])
+
+    def test_an_event_only_project_ref_refusal_does_not_count(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = self._write(tmp, [
+                {"client": "codex", "direction": "client", "method": "tools/call",
+                 "tool": "rust.project.inspect"},
+                {"client": "codex", "direction": "server"},
+            ])
+            evidence = M8.codex_protocol_evidence(path)
+            self.assertFalse(evidence["unknown_project_ref_wire_refused"])
 
 
 class GenericNegativeWireConfirmationTests(unittest.TestCase):
@@ -584,19 +618,19 @@ class CodexClassificationTests(unittest.TestCase):
     def test_passed_requires_the_wire_refusal(self):
         classification = M8.codex_classification(
             returncode=0, stderr="", open_observed=True, inspect_observed=True,
-            unknown_tool_wire_refused=True)
+            unknown_project_ref_wire_refused=True)
         self.assertEqual(classification, "passed")
 
     def test_an_event_only_refusal_does_not_pass(self):
         classification = M8.codex_classification(
             returncode=0, stderr="", open_observed=True, inspect_observed=True,
-            unknown_tool_wire_refused=False)
+            unknown_project_ref_wire_refused=False)
         self.assertEqual(classification, "partial")
 
     def test_capacity_refused_is_read_from_stderr(self):
         classification = M8.codex_classification(
             returncode=1, stderr="hit a capacity limit", open_observed=False,
-            inspect_observed=False, unknown_tool_wire_refused=False)
+            inspect_observed=False, unknown_project_ref_wire_refused=False)
         self.assertEqual(classification, "capacity_refused")
 
 
