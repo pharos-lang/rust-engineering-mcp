@@ -2703,7 +2703,7 @@
       "notes": "Opaque per-call ephemeral log/artifact reference minted by a tool response; not advertised in resources/list (see discoverability finding). Owner-authorized, ProjectRef-scoped, revalidated on every read."
     },
     {
-      "uri_template": "rust-quality-artifact://{project_ref}/{quality_job_id_or_artifact_id}?offset={n}&length={n}",
+      "uri_template": "rust-quality-artifact://{project_ref}/{quality_job_id_or_artifact_id}{?offset,length}",
       "producer": "crates/mcp-server/src/stdio/resources.rs (QUALITY_PREFIX const, quality_index_uri/quality_chunk_uri), backed by crates/project-adapter/src/quality_artifact_store.rs",
       "used_by_tools": [
         "rust.test.nextest",
@@ -3132,7 +3132,8 @@
       ],
       "migration_relevant": true,
       "migration_relevant_why": "A future rustsec/cargo-lock crate upgrade changes advisory-db parsing; docs/roadmap/m8-stabilization.md already flags this as 'recalificar catálogo M1 y migraciones'.",
-      "floor_or_trust_state": true
+      "floor_or_trust_state": false,
+      "floor_or_trust_state_note": "Corrected by D12 (ADR-088): the code exposes a per-invocation host-supplied SHA-256 integrity pin, not a persisted monotonic sequence floor. Distinct from the catalog trust bundle's SequenceFloor (docs/validation/M8/03-formats-analysis.md #6), the only genuine floor found in the census."
     },
     {
       "name": "Cargo vendor tree (offline dependency data)",
@@ -3149,7 +3150,8 @@
       ],
       "migration_relevant": true,
       "migration_relevant_why": "A vendor-tree replacement (e.g. new lock, new dependency set) changes the whole-tree hash; D12 should state whether that is a routine re-capture (no migration) or requires a compatibility note.",
-      "floor_or_trust_state": true
+      "floor_or_trust_state": false,
+      "floor_or_trust_state_note": "Corrected by D12 (ADR-088): a re-capture replaces the expected whole-tree hash outright, it does not compare against a prior minimum. This is a per-invocation integrity pin, not a persisted monotonic sequence floor."
     }
   ],
   "orphans": [],

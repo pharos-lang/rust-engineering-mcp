@@ -1,0 +1,160 @@
+{
+  "schema": "rust-mcp-m8-07-release-rehearsal-v1",
+  "format_version": 1,
+  "generated_utc": "2026-09-15T01:12:58.044Z",
+  "head_commit": "6fa1ef1f69b461b5cf2b3782c13ef81353a63e8e",
+  "tree_dirty": true,
+  "scope": {
+    "adr": "ADR-087 (aarch64-apple-darwin only)",
+    "simulated_tag": "v0.8.0",
+    "target": "aarch64-apple-darwin",
+    "note": "No tag was created and nothing was pushed or published; --tag v0.8.0 is a local packaging argument matching Cargo.toml's committed version."
+  },
+  "budget": {
+    "source": "docs/validation/M8/05-budgets.json#archive_size_core_bytes",
+    "budget_bytes": 12700000,
+    "archive_bytes": 10392940,
+    "pct_of_budget": 81.83,
+    "verdict": "within"
+  },
+  "artifacts": {
+    "archive": {
+      "name": "rust-engineering-mcp-v0.8.0-aarch64-apple-darwin.tar.gz",
+      "bytes": 10392940,
+      "sha256": "f2fc60bbffa91442334084aa91550c2831ddf5286209f175ca65aa4fe4d87ea2"
+    },
+    "sha256sums": {
+      "name": "SHA256SUMS",
+      "bytes": 122,
+      "sha256": "c1c0b17b86d30803d07b4ede511544429d6e9eee65b13f5ea2292f40a5cbc678"
+    },
+    "release_smoke_receipt": {
+      "name": "release-smoke-receipt.json",
+      "bytes": 4979,
+      "sha256": "57352bda245be8e04b9be196001921111c52471d4aa57afe5b66ad08143cec59"
+    },
+    "archive_members": 11,
+    "inventory_packages": 221,
+    "sbom_relationships": 563
+  },
+  "steps": [
+    {
+      "id": 1,
+      "description": "Confirm the workspace version matches the tag under rehearsal.",
+      "command": ["grep", "-m1", "^version", "Cargo.toml"],
+      "exit_code": 0,
+      "excerpt": "version = \"0.8.0\""
+    },
+    {
+      "id": 2,
+      "description": "Rebuild the release binary locked and offline against the current working tree (already up to date; no recompilation needed).",
+      "command": ["cargo", "build", "--release", "--locked", "--offline", "-p", "rust-engineering-mcp"],
+      "exit_code": 0,
+      "excerpt": "Finished `release` profile [optimized] target(s) in 0.38s"
+    },
+    {
+      "id": 3,
+      "description": "Verify the current tool snapshots against the committed 0.8.0 freeze manifest before packaging.",
+      "command": ["python3", "-B", "scripts/contract-freeze.py", "verify", "docs/validation/M8/freeze-0.8.0.json", "--strict"],
+      "exit_code": 0,
+      "excerpt": "{\"class_changed\": [], \"format_errors\": [], \"preview_changed\": [], \"stable_changed\": [], \"status\": \"passed\"}"
+    },
+    {
+      "id": 4,
+      "description": "Build the deterministic core archive, inventory, SPDX SBOM and third-party notices from the built binary.",
+      "command": ["python3", "-B", "scripts/release-artifact.py", "--binary", "target/release/rust-engineering-mcp", "--target", "aarch64-apple-darwin", "--tag", "v0.8.0", "--output-dir", "target/w24-rehearsal/dist"],
+      "exit_code": 0,
+      "excerpt": "{\"status\": \"passed\", \"archive_sha256\": \"f2fc60bb...\", \"packages\": 221, \"target\": \"aarch64-apple-darwin\", \"tag\": \"v0.8.0\"}"
+    },
+    {
+      "id": 5,
+      "description": "Compare the generated archive size against the archive_size_core_bytes budget (12.7 MB).",
+      "command": ["python3", "-c", "os.path.getsize(archive) vs 12700000"],
+      "exit_code": 0,
+      "excerpt": "10392940 bytes, 81.83% of budget, within"
+    },
+    {
+      "id": 6,
+      "description": "Copy the archive and SHA256SUMS into a fresh clean directory under target/, simulating a clean download separate from the build output directory.",
+      "command": ["cp", "target/w24-rehearsal/dist/rust-engineering-mcp-v0.8.0-aarch64-apple-darwin.tar.gz", "target/w24-rehearsal/dist/SHA256SUMS", "target/w24-rehearsal/clean-download/"],
+      "exit_code": 0,
+      "excerpt": "2 files copied"
+    },
+    {
+      "id": 7,
+      "description": "First smoke attempt from the clean-download directory failed closed: two tools' pinned combined-schema hashes in release-smoke.py's TOOL_SCHEMA_SHA256 did not match the live tools/list response, even though the same tools' per-field hashes (description/input/output schema, annotations) matched both `contract --json` and the committed freeze manifest exactly. This is a real bug in the verifier's pinned constants, not a contract regression.",
+      "command": ["python3", "-B", "scripts/release-smoke.py", "--archive", "target/w24-rehearsal/clean-download/rust-engineering-mcp-v0.8.0-aarch64-apple-darwin.tar.gz", "--sha256sums", "target/w24-rehearsal/clean-download/SHA256SUMS", "--tag", "v0.8.0", "--target", "aarch64-apple-darwin", "--output-receipt", "target/w24-rehearsal/clean-download/release-smoke-receipt.json"],
+      "exit_code": 1,
+      "excerpt": "ValueError: tool schemas differ from the frozen contract: rust.binary.bloat"
+    },
+    {
+      "id": 8,
+      "description": "Fixed the two mis-pinned TOOL_SCHEMA_SHA256 entries in scripts/release-smoke.py (rust.binary.bloat, rust.analyzer.action.apply) by recomputing sha256(canonical_json({inputSchema, outputSchema})) from a live tools/list response, cross-checked against contract --json and the freeze manifest.",
+      "command": ["edit", "scripts/release-smoke.py"],
+      "exit_code": 0,
+      "excerpt": "rust.binary.bloat: 3973462a...488b -> d3e51af9...4088; rust.analyzer.action.apply: e2953289...784e -> 703ebd8b...37ab"
+    },
+    {
+      "id": 9,
+      "description": "Re-ran the smoke test from the same clean-download directory after the fix: extracts, verifies SHA-256 against SHA256SUMS, installs into an ephemeral 0700 directory, runs --version/version --json/doctor --json, then serve --stdio with tools/list (36, exact hash match) and four representative tools/call requests, tears down and confirms no leaked process group.",
+      "command": ["python3", "-B", "scripts/release-smoke.py", "--archive", "target/w24-rehearsal/clean-download/rust-engineering-mcp-v0.8.0-aarch64-apple-darwin.tar.gz", "--sha256sums", "target/w24-rehearsal/clean-download/SHA256SUMS", "--tag", "v0.8.0", "--target", "aarch64-apple-darwin", "--output-receipt", "target/w24-rehearsal/clean-download/release-smoke-receipt.json"],
+      "exit_code": 0,
+      "excerpt": "{\"status\": \"passed\", \"members\": 11, \"packages\": 221, \"tools\": 36}"
+    },
+    {
+      "id": 10,
+      "description": "Regression guard: full release-smoke.py unit test suite after the fix.",
+      "command": ["python3", "-B", "scripts/test-release-smoke.py"],
+      "exit_code": 0,
+      "excerpt": "Ran 9 tests in 0.012s / OK"
+    },
+    {
+      "id": 11,
+      "description": "Extracted the clean-download archive to a manual install directory and ran `version --json`, `doctor --json` and `contract --json` directly against the archived binary (independent of release-smoke.py's own install/verify path).",
+      "command": ["tar", "-xzf", "rust-engineering-mcp-v0.8.0-aarch64-apple-darwin.tar.gz"],
+      "exit_code": 0,
+      "excerpt": "version.version=0.8.0; doctor.mode=passive,status=warning; contract.tool_count=36, per-tool description/input/output schema hashes and annotations match docs/validation/M8/freeze-0.8.0.json for all 36 tools"
+    },
+    {
+      "id": 12,
+      "description": "Manual MCP stdio session against the extracted binary: server/discover, tools/list, resources/templates/list.",
+      "command": ["serve", "--stdio"],
+      "exit_code": 0,
+      "excerpt": "tools/list: 36 tools (name set matches freeze manifest); resources/templates/list: 2 templates (rust-artifact://{project_ref}/{artifact_id}, rust-quality-artifact://{project_ref}/{quality_job_id_or_artifact_id}?offset={n}&length={n})"
+    },
+    {
+      "id": 13,
+      "description": "Cleanup: removed the local rehearsal scratch directory under target/ (clean-download copies, manual install, helper scripts).",
+      "command": ["rm", "-rf", "target/w24-rehearsal"],
+      "exit_code": 0,
+      "excerpt": "removed"
+    }
+  ],
+  "found_and_fixed": [
+    {
+      "file": "scripts/release-smoke.py",
+      "issue": "TOOL_SCHEMA_SHA256[\"rust.binary.bloat\"] and TOOL_SCHEMA_SHA256[\"rust.analyzer.action.apply\"] held stale combined inputSchema/outputSchema hashes that did not match the live tools/list response, even though every per-field hash (description/input/output schema) and every annotation for those same tools matched both `contract --json` and docs/validation/M8/freeze-0.8.0.json exactly.",
+      "detected_by": "step 7 (release-smoke.py failing closed during the clean-download rehearsal)",
+      "fix": "Recomputed the correct combined hashes from a live tools/list response and replaced both constants.",
+      "verified_by": "steps 9 and 10 (smoke passes; full test-release-smoke.py suite passes)"
+    }
+  ],
+  "unavailable": [
+    {
+      "item": "GitHub OIDC build-provenance attestation and gh attestation verify against a signed artifact",
+      "reason": "actions/attest-build-provenance only runs inside GitHub Actions with id-token: write against a real workflow run; no network access and no GitHub Actions runner in this local rehearsal.",
+      "deferred_to": "RC1 (M8-09), when the owner authorizes the first v0.8.0 tag and the release-candidate.yml workflow actually dispatches."
+    },
+    {
+      "item": "Independent redownload of the published archive from a GitHub Release",
+      "reason": "No tag, no release and no network access in this rehearsal; the clean-download simulation (steps 6-9) covers only the local equivalent of that check (copy to a directory the build step never touched, then verify+install+exercise).",
+      "deferred_to": "RC1 (M8-09), following the docs/validation/M1/17-public-release.json pattern used for 0.1.0."
+    },
+    {
+      "item": "Tag-to-workspace-version reconciliation performed by the workflow's own \"Verify tag matches every workspace package\" step",
+      "reason": "That step reads github.ref_name from an actual tag dispatch; this rehearsal instead confirmed Cargo.toml's committed version (0.8.0) directly (step 1) and passed --tag v0.8.0 to the packaging/smoke scripts as a local argument.",
+      "deferred_to": "RC1 (M8-09)."
+    }
+  ],
+  "status": "passed"
+}
