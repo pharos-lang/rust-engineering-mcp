@@ -34,14 +34,26 @@ const NEGOTIABLE_PROTOCOL_VERSIONS: &[&str] = &[
 /// guards against drifting from the `rmcp` version actually locked.
 const SDK: &str = "rmcp 3.2.0";
 
-/// Mirrors `resources::PREFIX`/`QUALITY_PREFIX` (spec §57): the two dynamic
-/// Resource URI templates, neither advertised in `resources/list`.
-/// [`tests::resource_templates_match_the_resources_module_prefixes`] guards
-/// against the literal drifting from the source of truth.
-const RESOURCE_TEMPLATES: &[&str] = &[
-    "rust-artifact://{project_ref}/{artifact_id}",
-    "rust-quality-artifact://{project_ref}/{quality_job_id_or_artifact_id}?offset={n}&length={n}",
-];
+/// Mirrors `resources::PREFIX`/`QUALITY_PREFIX`/`QUALITY_TEMPLATE_SUFFIX`
+/// (spec §57): the two dynamic Resource URI templates, neither advertised in
+/// `resources/list`. The quality template is built from the same
+/// `resources::QUALITY_TEMPLATE_SUFFIX` constant `stdio::list_resource_templates`
+/// uses (S-2), so the wire template and this static document cannot drift in
+/// text; [`tests::resource_templates_are_built_from_the_shared_resources_module_source_of_truth`]
+/// and `tests/protocol.rs`'s wire ↔ document comparison guard the exact value.
+fn resource_templates() -> [String; 2] {
+    [
+        format!(
+            "{}{{project_ref}}/{{artifact_id}}",
+            super::resources::PREFIX
+        ),
+        format!(
+            "{}{}",
+            super::resources::QUALITY_PREFIX,
+            super::resources::QUALITY_TEMPLATE_SUFFIX
+        ),
+    ]
+}
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize)]
 #[serde(rename_all = "kebab-case")]
@@ -463,9 +475,9 @@ pub(super) fn document() -> Result<serde_json::Value, ErrorData> {
         });
         tools.insert(name.to_owned(), entry);
     }
-    let resources: Vec<serde_json::Value> = RESOURCE_TEMPLATES
-        .iter()
-        .map(|template| serde_json::json!({"uri_template": *template, "stability": Stability::Stable}))
+    let resources: Vec<serde_json::Value> = resource_templates()
+        .into_iter()
+        .map(|template| serde_json::json!({"uri_template": template, "stability": Stability::Stable}))
         .collect();
     Ok(serde_json::json!({
         "document_kind": DOCUMENT_KIND,
@@ -718,9 +730,15 @@ mod tests {
     }
 
     #[test]
-    fn resource_templates_match_the_resources_module_prefixes() {
-        assert!(RESOURCE_TEMPLATES[0].starts_with(super::super::resources::PREFIX));
-        assert!(RESOURCE_TEMPLATES[1].starts_with(super::super::resources::QUALITY_PREFIX));
+    fn resource_templates_are_built_from_the_shared_resources_module_source_of_truth() {
+        let templates = resource_templates();
+        assert_eq!(templates[0], "rust-artifact://{project_ref}/{artifact_id}");
+        assert_eq!(
+            templates[1],
+            "rust-quality-artifact://{project_ref}/{quality_job_id_or_artifact_id}{?offset,length}"
+        );
+        assert!(templates[0].starts_with(super::super::resources::PREFIX));
+        assert!(templates[1].starts_with(super::super::resources::QUALITY_PREFIX));
     }
 
     #[test]

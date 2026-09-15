@@ -31,6 +31,13 @@ use tokio_util::sync::CancellationToken;
 
 pub(super) const PREFIX: &str = "rust-artifact://";
 pub(super) const QUALITY_PREFIX: &str = "rust-quality-artifact://";
+/// RFC 6570 `{?offset,length}` form (S-1): `offset` and `length` are two
+/// distinct query members, not one variable expanded twice like the prior
+/// literal `?offset={n}&length={n}` did. Shared by `stdio::list_resource_templates`
+/// and `capability_document::RESOURCE_TEMPLATES` (S-2) so the wire template and
+/// the static document can never drift from each other in text.
+pub(super) const QUALITY_TEMPLATE_SUFFIX: &str =
+    "{project_ref}/{quality_job_id_or_artifact_id}{?offset,length}";
 const MAX_CONTENT: usize = 256 * 1024;
 const MAX_RESPONSE: usize = 512 * 1024;
 #[derive(Clone)]
