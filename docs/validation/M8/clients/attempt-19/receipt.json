@@ -1,19 +1,19 @@
 {
-  "attempt": "attempt-22",
+  "attempt": "attempt-19",
   "candidate": {
-    "server_sha256": "aeaa334cf6e577a7c9a292f202ce9fc130d5b9b0a526e27a7e6c627cd0725e3a"
+    "server_sha256": "fa4b32ea8f52dbb160d63f8a644b7248e1b274721b78a0e5336ca763cdc9cfbf"
   },
   "claude_code": {
     "client": "claude-code",
     "effort": "medium",
     "executable_sha256": "06a96d5423f83770f120859f1c58e60d7252cc4c122aa13043b7e7cd716bc76a",
     "model": "claude-sonnet-5",
-    "model_events_sha256": "c5eececf43237f62a1058fe080eb01c627a74ab09e8289f57e58cf8fd19d705f",
+    "model_events_sha256": "10e6df6fed2b219ab647c8b3299da663f1d368e3270cb430a038331339665f09",
     "session": {
       "api_key_source": "none",
-      "assistant_messages": 7,
+      "assistant_messages": 6,
       "claude_code_version": "2.1.268",
-      "duration_ms": 25359,
+      "duration_ms": 21499,
       "num_turns": 4,
       "observed_models": [
         "claude-haiku-4-5-20251001",
@@ -34,7 +34,7 @@
   "codex": {
     "classification": "passed",
     "effort": "medium",
-    "events_sha256": "7e2d71f590a0f39e4dc18071e1d7e6631a1aa5e2e9f98bfce1f4f65fede33bb6",
+    "events_sha256": "9fa38e141b1618ff473dbaa3a22f673d2f04d916787828669bf80b19db07c935",
     "exit_code": 0,
     "model": "gpt-5.6-sol",
     "protocol_evidence": {
@@ -50,42 +50,9 @@
     ],
     "version": "codex-cli 0.154.0"
   },
-  "composed_prior_positives": {
-    "test-m2-clients.py": {
-      "exit_code": 1,
-      "status": "failed",
-      "stderr_tail": "Traceback (most recent call last):\n  File \"/Users/cburgosro/Projects/rust-mcp/scripts/test-m2-clients.py\", line 646, in <module>\n    raise SystemExit(main())\n                     ~~~~^^\n  File \"/Users/cburgosro/Projects/rust-mcp/scripts/test-m2-clients.py\", line 578, in main\n    identities = prerequisites()\n  File \"/Users/cburgosro/Projects/rust-mcp/scripts/test-m2-clients.py\", line 548, in prerequisites\n    raise RuntimeError(f\"claude_version_{claude_version}\")\nRuntimeError: claude_version_2.1.268 (Claude Code)\n",
-      "stdout_tail": ""
-    },
-    "test-m3-clients.py": {
-      "exit_code": 1,
-      "status": "failed",
-      "stderr_tail": "Traceback (most recent call last):\n  File \"/Users/cburgosro/Projects/rust-mcp/scripts/test-m3-clients.py\", line 697, in <module>\n    raise SystemExit(main())\n                     ~~~~^^\n  File \"/Users/cburgosro/Projects/rust-mcp/scripts/test-m3-clients.py\", line 693, in main\n    return run(options.docker_socket)\n  File \"/Users/cburgosro/Projects/rust-mcp/scripts/test-m3-clients.py\", line 623, in run\n    receipt[\"inspector\"] = inspector_gate(attempt, socket)\n                           ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^\n  File \"/Users/cburgosro/Projects/rust-mcp/scripts/test-m3-clients.py\", line 312, in inspector_gate\n    raise RuntimeError(\"Inspector ordered inventory mismatch\")\nRuntimeError: Inspector ordered inventory mismatch\n",
-      "stdout_tail": ""
-    },
-    "test-m4-clients.py": {
-      "exit_code": 1,
-      "status": "failed",
-      "stderr_tail": "Traceback (most recent call last):\n  File \"/Users/cburgosro/Projects/rust-mcp/scripts/test-m4-clients.py\", line 491, in <module>\n    raise SystemExit(main())\n                     ~~~~^^\n  File \"/Users/cburgosro/Projects/rust-mcp/scripts/test-m4-clients.py\", line 487, in main\n    return run(options.docker_socket)\n  File \"/Users/cburgosro/Projects/rust-mcp/scripts/test-m4-clients.py\", line 417, in run\n    raise RuntimeError(\"Codex synchronous M4 gate awaits 30 cold and 30 warm <=60s qualification\")\nRuntimeError: Codex synchronous M4 gate awaits 30 cold and 30 warm <=60s qualification\n",
-      "stdout_tail": ""
-    },
-    "test-m5-clients.py": {
-      "exit_code": 1,
-      "status": "failed",
-      "stderr_tail": "Traceback (most recent call last):\n  File \"/Users/cburgosro/Projects/rust-mcp/scripts/test-m5-clients.py\", line 2036, in <module>\n    raise SystemExit(main())\n                     ~~~~^^\n  File \"/Users/cburgosro/Projects/rust-mcp/scripts/test-m5-clients.py\", line 2032, in main\n    return run(options.with_runtime, options.docker_socket)\n  File \"/Users/cburgosro/Projects/rust-mcp/scripts/test-m5-clients.py\", line 1884, in run\n    check = preflight(with_runtime, docker_socket)\n  File \"/Users/cburgosro/Projects/rust-mcp/scripts/test-m5-clients.py\", line 865, in preflight\n    \"inventory\": inventory_check(),\n                 ~~~~~~~~~~~~~~~^^\n  File \"/Users/cburgosro/Projects/rust-mcp/scripts/test-m5-clients.py\", line 534, in inventory_check\n    raise RuntimeError(\"advertised inventory drifted from the server protocol oracle\")\nRuntimeError: advertised inventory drifted from the server protocol oracle\n",
-      "stdout_tail": ""
-    },
-    "test-m6-clients.py": {
-      "exit_code": 1,
-      "status": "failed",
-      "stderr_tail": "Traceback (most recent call last):\n  File \"/Users/cburgosro/Projects/rust-mcp/scripts/test-m6-clients.py\", line 1747, in <module>\n    raise SystemExit(main())\n                     ~~~~^^\n  File \"/Users/cburgosro/Projects/rust-mcp/scripts/test-m6-clients.py\", line 1743, in main\n    return run(options.with_runtime, options.docker_socket)\n  File \"/Users/cburgosro/Projects/rust-mcp/scripts/test-m6-clients.py\", line 1706, in run\n    raise RuntimeError(\"current M6 client receipt already exists\")\nRuntimeError: current M6 client receipt already exists\n",
-      "stdout_tail": ""
-    }
-  },
-  "eof_gate": {
-    "exit_code": 0,
-    "exited_on_eof": true,
-    "seconds": 0.02
+  "error": {
+    "message": "Inspector M8 runtime session failed",
+    "type": "RuntimeError"
   },
   "evidence_credential_scan": "clean",
   "gemini_cli": {
@@ -95,19 +62,19 @@
         "display_name": "CallMcpTool"
       }
     ],
-    "evidence": "{\"conversation_id\":\"37b32872-f5a5-4ef0-8010-226732787995\",\"status\":\"SUCCESS\",\"response\":\"\",\"duration_seconds\":141.195927,\"num_turns\":1,\"usage\":{\"input_tokens\":41756,\"output_tokens\":1230,\"thinking_tokens\":923,\"cache_read_tokens\":24385,\"total_tokens\":42986},\"denied_actions\":[{\"action\":\"mcp\",\"display_name\":\"CallMcpTool\"}]}\n",
-    "evidence_sha256": "631874fb42a85ad1cc2884ef678840a0b63c172a4dad25420cf61b7cc9eb9f51",
+    "evidence": "{\"conversation_id\":\"dd18682a-e995-4df3-849e-8d34afec5b88\",\"status\":\"SUCCESS\",\"response\":\"\",\"duration_seconds\":83.268744,\"num_turns\":1,\"usage\":{\"input_tokens\":57925,\"output_tokens\":1522,\"thinking_tokens\":1140,\"cache_read_tokens\":28450,\"total_tokens\":59447},\"denied_actions\":[{\"action\":\"mcp\",\"display_name\":\"CallMcpTool\"}]}\n",
+    "evidence_sha256": "3010c9e886f39878b12bcf954b8cd89a63306f66a5b36a19837f9d40689ebaad",
     "isolated_home": false,
     "mcp_enable_exit_code": 0,
     "mcp_list_after": "NAME                        TYPE   STATUS    COMMAND/URL\nangular-cli                 stdio  disabled  npx -y @angular/cli mcp\napplication_design_center   http   disabled  https://designcenter.googleapis.com/mcp\ngemini_cloud_assist         http   disabled  https://geminicloudassist.googleapis.com/mcp\ngoogle-developer-knowledge  http   disabled  https://developerknowledge.googleapis.com/mcp\ngraphify                    stdio  disabled  uv run --with graphifyy --with mcp -m graphify.serve ${workspace.path}/graphify-out/graph.json\nplaywright                  stdio  disabled  npx -y @playwright/mcp@latest\nterraform                   stdio  disabled  docker run -i --rm hashicorp/terraform-mcp-server:1.1.0 --toolsets=registry\nyoutrack                    http   enabled   https://iumotionlabs.youtrack.cloud/mcp\n",
     "mcp_list_before": "NAME                        TYPE   STATUS    COMMAND/URL\nangular-cli                 stdio  disabled  npx -y @angular/cli mcp\napplication_design_center   http   disabled  https://designcenter.googleapis.com/mcp\ngemini_cloud_assist         http   disabled  https://geminicloudassist.googleapis.com/mcp\ngoogle-developer-knowledge  http   disabled  https://developerknowledge.googleapis.com/mcp\ngraphify                    stdio  disabled  uv run --with graphifyy --with mcp -m graphify.serve ${workspace.path}/graphify-out/graph.json\nplaywright                  stdio  disabled  npx -y @playwright/mcp@latest\nterraform                   stdio  disabled  docker run -i --rm hashicorp/terraform-mcp-server:1.1.0 --toolsets=registry\nyoutrack                    http   enabled   https://iumotionlabs.youtrack.cloud/mcp\n",
-    "mcp_server_name": "rust_engineering_m8_attempt_22",
+    "mcp_server_name": "rust_engineering_m8_attempt_19",
     "model": "gemini-3.8-flash-high",
     "reason": "agy -p denied the MCP tool call in headless mode with no permission rule configured (not forced with --dangerously-skip-permissions)",
     "status": "unavailable",
     "version": "1.2.3"
   },
-  "head_commit": "bd9323ee9796edd33c6ff57b918acb1a84f46ca1",
+  "head_commit": "8d77b3d82cdf7fbdfbd1b6839d8f1dccfae15eaa",
   "inspector": {
     "docker_free": {
       "bridge_suffix_sha256": "9dce889b8537d6c9f369664dd2119ee4b81388c05f0ead1903e692193e3f6d94",
@@ -334,46 +301,14 @@
       "preview_discrepancies": [],
       "resources_list_empty": true,
       "session": {
-        "argv_sha256": "1b46919d0554efd67446513a734879ca38709d5c385c812def291cee3782f11d",
-        "duration_seconds": 4.035,
+        "argv_sha256": "1e6b9a4f3b2d5b7ae423a68e348683e43b5c379486210c1c9d9cf014a53bc8b6",
+        "duration_seconds": 4.076,
         "exit_code": 0,
         "overflow": false,
         "stderr_bytes": 98565,
-        "stderr_sha256": "e2d9badeb5e8276bb0a0d3a64c25bcd77d5092a5bbba1fa677681a3b9401292d",
+        "stderr_sha256": "1ba782e356c267f90073e18ef1cb947d1d31eab2c92ca10a7e619694c18242c6",
         "stdout_bytes": 17809,
         "stdout_sha256": "705f4d624e1389f44717e6b885ac0082653a61d8644c887a23278edf47a5b3b9"
-      },
-      "stable_discrepancies": [],
-      "version": "2.5.0",
-      "wire_confirmation": "positional",
-      "wire_confirmation_note": "the server-direction row following each call is matched by wire position, not by request id -- the proxy's safe_keys does not record `id`, so this is sound for the Inspector's sequential session but would not hold against a client that interleaves calls"
-    },
-    "runtime": {
-      "bridge_suffix_sha256": "9dce889b8537d6c9f369664dd2119ee4b81388c05f0ead1903e692193e3f6d94",
-      "bundle_sha256": "1fcbc2c4d4324b85f75c0b4cf9f125ee1f74df90d14eb3fea4ca96d0a1885f4e",
-      "cancel_ok": true,
-      "cancellation_wire_confirmed": true,
-      "contract_equality": true,
-      "eof_new_session_ok": true,
-      "eof_no_orphan_process": true,
-      "eof_prior_pid": 80876,
-      "generic_negatives": [],
-      "generic_negatives_wire_confirmed": {},
-      "mode": "runtime",
-      "negative_rows": [],
-      "preview_discrepancies": [],
-      "resource_read_ok": true,
-      "resources_list_empty": true,
-      "runtime_check_status": "passed",
-      "session": {
-        "argv_sha256": "f999c132a10b23fde524369bd290888a9aa9a7a27bb600fe6a6f740361c9cd9e",
-        "duration_seconds": 14.863,
-        "exit_code": 0,
-        "overflow": false,
-        "stderr_bytes": 3164,
-        "stderr_sha256": "b8141fe518f2d1b28778ae3cc6726c7d204cec40a4b14285e6337d92db43ab21",
-        "stdout_bytes": 14501,
-        "stdout_sha256": "6b380c75d3d96db66def9d1275a9dd0718373eb4cd45615b5b3b492c04a465ab"
       },
       "stable_discrepancies": [],
       "version": "2.5.0",
@@ -407,81 +342,6 @@
       "observed": "2.5.0"
     }
   },
-  "protocol": {
-    "clients": {
-      "claude-code": {
-        "methods": [
-          "initialize",
-          "notifications/initialized",
-          "resources/list",
-          "tools/call",
-          "tools/list"
-        ],
-        "sessions": 1,
-        "tasks_advertised": [
-          true
-        ],
-        "tasks_declared": [
-          false
-        ]
-      },
-      "codex": {
-        "methods": [
-          "initialize",
-          "notifications/initialized",
-          "tools/call",
-          "tools/list"
-        ],
-        "sessions": 1,
-        "tasks_advertised": [
-          true
-        ],
-        "tasks_declared": [
-          false
-        ]
-      },
-      "gemini-cli": {
-        "methods": [
-          "server/discover",
-          "tools/list"
-        ],
-        "sessions": 1,
-        "tasks_advertised": [
-          true
-        ],
-        "tasks_declared": [
-          false
-        ]
-      },
-      "inspector": {
-        "methods": [
-          "notifications/cancelled",
-          "resources/list",
-          "resources/read",
-          "server/discover",
-          "tasks/get",
-          "tools/call",
-          "tools/list"
-        ],
-        "sessions": 3,
-        "tasks_advertised": [
-          true
-        ],
-        "tasks_declared": [
-          true
-        ]
-      }
-    },
-    "metadata_only": true,
-    "row_count": 136,
-    "sha256": "da61c0a3415c3649c21c58a66c505b73701006d889f1908c47ade3436ed69401"
-  },
-  "qualified": {
-    "claude_code": "passed",
-    "codex": true,
-    "gemini_cli": "unavailable",
-    "inspector": true
-  },
   "rust_image": "sha256:384a1742ecc53cdd3a9c0bf36c6f8b66db73ddd118aeeae6e55654ea998ae36a",
   "schema": "rust-mcp-m8-clients-v1",
   "server_version": {
@@ -493,6 +353,6 @@
     "target_os": "macos",
     "version": "0.8.0"
   },
-  "status": "passed",
+  "status": "failed",
   "tree_dirty": true
 }
