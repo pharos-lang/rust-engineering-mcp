@@ -8,6 +8,7 @@
 [![Coverage](https://sonarcloud.io/api/project_badges/measure?project=pharos-lang_rust-engineering-mcp&metric=coverage)](https://sonarcloud.io/summary/new_code?id=pharos-lang_rust-engineering-mcp)
 [![Rust 1.98.1](https://img.shields.io/badge/Rust-1.98.1-000000?logo=rust)](rust-toolchain.toml)
 [![License](https://img.shields.io/badge/license-MIT%20OR%20Apache--2.0-blue.svg)](LICENSE)
+[![M8ven Score](https://m8ven.ai/badge/mcp/pharos-lang/rust-engineering-mcp)](https://m8ven.ai/mcp/pharos-lang/rust-engineering-mcp)
 
 Rust Engineering MCP conecta agentes compatibles con [Model Context Protocol
 (MCP)](https://modelcontextprotocol.io/) con proyectos Rust locales. Expone
