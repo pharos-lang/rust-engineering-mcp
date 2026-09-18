@@ -287,3 +287,85 @@ pub enum Evidence {
     Local,
     Snapshot(SnapshotEvidence),
 }
+
+#[cfg(test)]
+mod required_nullable_contract {
+    //! `Option` fields here mean "present but nullable", never "optional":
+    //! the published output schemas list them as `required` with a `null` type.
+    //! Adding `#[serde(default)]` to any of them must make these tests fail.
+    //! The wire is handled as text: the domain keeps no dynamic JSON model.
+    use super::*;
+
+    type TestResult = Result<(), Box<dyn std::error::Error>>;
+    const NULLABLE: [&str; 3] = ["created_at", "observed_at", "age_seconds"];
+
+    fn unknown_age_snapshot() -> Result<String, Box<dyn std::error::Error>> {
+        let provenance = Provenance::new(
+            SourceKind::RustsecSnapshot,
+            "required-nullable-fixture".parse()?,
+            None,
+            None,
+            IntegrityStatus::Unverified,
+            false,
+        )?;
+        let policy = FreshnessPolicy::new("policy".parse()?, 10, 20)?;
+        struct Fixed;
+        impl Clock for Fixed {
+            fn now(&self) -> UnixSeconds {
+                UnixSeconds(500)
+            }
+        }
+        Ok(serde_json::to_string(&SnapshotEvidence::assess(
+            provenance, policy, &Fixed,
+        ))?)
+    }
+
+    /// Removes exactly one `"key":null,` member; every nullable field here is
+    /// followed by another member, so the result stays well-formed JSON.
+    fn without(wire: &str, key: &str) -> Result<String, String> {
+        let member = format!("\"{key}\":null,");
+        if wire.matches(&member).count() != 1 {
+            return Err(format!("expected exactly one {member} in {wire}"));
+        }
+        Ok(wire.replacen(&member, "", 1))
+    }
+
+    #[test]
+    fn explicit_null_deserializes_to_none() -> TestResult {
+        let wire = unknown_age_snapshot()?;
+        for key in NULLABLE {
+            assert!(wire.contains(&format!("\"{key}\":null")), "{key}: {wire}");
+        }
+        let parsed: SnapshotEvidence = serde_json::from_str(&wire)?;
+        assert_eq!(parsed.provenance().created_at(), None);
+        assert_eq!(parsed.provenance().observed_at(), None);
+        assert_eq!(parsed.freshness().age_seconds(), None);
+        assert_eq!(parsed.freshness().state(), FreshnessState::Unknown);
+        Ok(())
+    }
+
+    #[test]
+    fn absent_field_is_rejected_instead_of_defaulting_to_none() -> TestResult {
+        let wire = unknown_age_snapshot()?;
+        for key in NULLABLE {
+            let candidate = without(&wire, key)?;
+            let error = serde_json::from_str::<SnapshotEvidence>(&candidate)
+                .err()
+                .ok_or(key)?;
+            assert!(
+                error
+                    .to_string()
+                    .contains(&format!("missing field `{key}`")),
+                "{key}: {error}"
+            );
+        }
+        // The same holds for a standalone provenance value.
+        let provenance =
+            serde_json::to_string(serde_json::from_str::<SnapshotEvidence>(&wire)?.provenance())?;
+        assert!(serde_json::from_str::<Provenance>(&provenance).is_ok());
+        for key in ["created_at", "observed_at"] {
+            assert!(serde_json::from_str::<Provenance>(&without(&provenance, key)?).is_err());
+        }
+        Ok(())
+    }
+}
