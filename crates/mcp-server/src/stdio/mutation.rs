@@ -1587,6 +1587,29 @@ mod tests {
             .expect("test fingerprint")
     }
 
+    fn candidate(kind: MutationKind, path: &str, before: &[u8], after: &[u8]) -> MutationCandidate {
+        let bundle = |contents: &[u8]| {
+            SourceBundle::new(vec![
+                SourceFile::new(path.into(), contents.to_vec()).expect("test source"),
+            ])
+            .expect("test bundle")
+        };
+        MutationCandidate {
+            kind,
+            before: bundle(before),
+            after: bundle(after),
+            validation: String::new(),
+        }
+    }
+
+    fn reason_name(reason: Reason) -> String {
+        serde_json::to_value(reason)
+            .expect("serializable reason")
+            .as_str()
+            .expect("string reason")
+            .to_owned()
+    }
+
     fn runtime() -> std::io::Result<tokio::runtime::Runtime> {
         tokio::runtime::Builder::new_current_thread()
             .enable_time()
@@ -2113,6 +2136,516 @@ mod tests {
             );
         }
         Ok(())
+    }
+
+    #[test]
+    fn format_and_fix_inputs_map_every_action_exactly() {
+        let project_ref = "prj_0123456789abcdef0123456789abcdef";
+        let fingerprint = format!("sha256:{}", "a".repeat(64));
+        let mapped = |fix, action| {
+            let input = json!({"project_ref":project_ref, "action":action});
+            if fix {
+                serde_json::from_value::<FixInput>(input)
+                    .expect("fix input")
+                    .into_request()
+                    .expect("fix request")
+            } else {
+                serde_json::from_value::<FormatInput>(input)
+                    .expect("format input")
+                    .into_request()
+                    .expect("format request")
+            }
+        };
+        let preview = json!({"mode":"preview", "expected_project_fingerprint":fingerprint});
+        for fix in [false, true] {
+            assert!(
+                matches!(mapped(fix, preview.clone()).action, Action::FormatPreview {
+                expected_project_fingerprint
+            } if expected_project_fingerprint.to_string() == fingerprint)
+            );
+        }
+        let commit = json!({"mode":"commit", "plan_id":"mut_0123456789abcdef0123456789abcdef",
+            "plan_digest":fingerprint, "idempotency_key":"key_1"});
+        for fix in [false, true] {
+            assert!(
+                matches!(mapped(fix, commit.clone()).action, Action::Commit {
+                plan_id, plan_digest, idempotency_key
+            } if plan_id == "mut_0123456789abcdef0123456789abcdef"
+                && plan_digest.to_string() == fingerprint && idempotency_key == "key_1")
+            );
+        }
+        let receipt = json!({"mode":"receipt",
+            "operation_id":"mut_0123456789abcdef0123456789abcdef", "recover":true});
+        for fix in [false, true] {
+            assert!(
+                matches!(mapped(fix, receipt.clone()).action, Action::Receipt {
+                operation_id, recover
+            } if operation_id == "mut_0123456789abcdef0123456789abcdef" && recover)
+            );
+        }
+    }
+
+    #[test]
+    fn every_failure_reason_has_an_exact_status_code_and_message() {
+        for (reason, status, code, message) in [
+            (
+                Reason::InvalidOperation,
+                "blocked",
+                "invalid_operation",
+                "Operation is outside this tool's supported mutation contract",
+            ),
+            (
+                Reason::PermissionDenied,
+                "blocked",
+                "permission_denied",
+                "A current project reference and exact host write grant for this operation are required",
+            ),
+            (
+                Reason::Conflict,
+                "blocked",
+                "conflict",
+                "Source or approval changed; reopen the project and request a new preview",
+            ),
+            (
+                Reason::LockBusy,
+                "blocked",
+                "lock_busy",
+                "Another operation is active; retry when it finishes",
+            ),
+            (
+                Reason::PlanExpired,
+                "blocked",
+                "plan_expired",
+                "Preview expired; request a new preview and review its diff",
+            ),
+            (
+                Reason::NotFound,
+                "blocked",
+                "not_found",
+                "Plan or journal was not found; reopen and use the exact operation ID/digest/key for durable replay, or create a new preview",
+            ),
+            (
+                Reason::LimitExceeded,
+                "blocked",
+                "limit_exceeded",
+                "Mutation exceeds a bounded plan, output or journal budget",
+            ),
+            (
+                Reason::UnsupportedPlatform,
+                "unavailable",
+                "unsupported_platform",
+                "This writer requires the qualified macOS ARM64 APFS adapter",
+            ),
+            (
+                Reason::Io,
+                "blocked",
+                "io",
+                "Mutation I/O failed; consult the original operation receipt before retrying a commit",
+            ),
+            (
+                Reason::RecoveryRequired,
+                "blocked",
+                "recovery_required",
+                "Preserve journal and mutation temporaries; reopen and request receipt with recover=true",
+            ),
+            (
+                Reason::ToolchainUnavailable,
+                "unavailable",
+                "toolchain_unavailable",
+                "Configure the approved offline Cargo runtime before preview",
+            ),
+            (
+                Reason::CandidateInvalid,
+                "failed",
+                "candidate_invalid",
+                "The isolated tool or postcondition check rejected the candidate; source was not changed",
+            ),
+            (
+                Reason::Cancelled,
+                "cancelled",
+                "cancelled",
+                "Operation cancelled before a successful receipt was returned",
+            ),
+            (
+                Reason::CommandTimeout,
+                "failed",
+                "command_timeout",
+                "The isolated operation exceeded its time budget; no candidate was approved",
+            ),
+            (
+                Reason::OfflineDataMissing,
+                "unavailable",
+                "offline_data_missing",
+                "Configure or update a host-approved Cargo vendor dataset for offline dependency resolution",
+            ),
+            (
+                Reason::OfflineDataInvalid,
+                "blocked",
+                "offline_data_invalid",
+                "The configured Cargo vendor data could not be verified against the host fingerprint",
+            ),
+        ] {
+            let output =
+                serde_json::to_value(Output::failure(reason, 17)).expect("serializable output");
+            assert_eq!(output["status"], status);
+            assert_eq!(output["error_code"], json!(code));
+            assert_eq!(output["error_message"], message);
+            assert_eq!(output["duration_ms"], 17);
+        }
+    }
+
+    #[test]
+    fn mutation_and_preparation_errors_map_to_exact_public_reasons() {
+        for (error, expected) in [
+            (MutationError::Invalid, "invalid_operation"),
+            (MutationError::PermissionDenied, "permission_denied"),
+            (MutationError::Conflict, "conflict"),
+            (MutationError::Busy, "lock_busy"),
+            (MutationError::Expired, "plan_expired"),
+            (MutationError::NotFound, "not_found"),
+            (MutationError::LimitExceeded, "limit_exceeded"),
+            (MutationError::UnsupportedPlatform, "unsupported_platform"),
+            (MutationError::Cancelled, "cancelled"),
+            (MutationError::Io, "io"),
+            (MutationError::RecoveryRequired, "recovery_required"),
+        ] {
+            assert_eq!(reason_name(reason(error)), expected);
+        }
+
+        use rust_engineering_domain::{ManifestEditError, OperationalErrorCode};
+        for (error, expected) in [
+            (
+                MutationPreparationError::Edit(ManifestEditError::InvalidManifest),
+                "invalid_operation",
+            ),
+            (
+                MutationPreparationError::Project(ProjectError::Cancelled),
+                "cancelled",
+            ),
+            (
+                MutationPreparationError::Project(ProjectError::Internal),
+                "io",
+            ),
+            (
+                MutationPreparationError::Project(ProjectError::Rejected(
+                    OperationalErrorCode::InvalidProject,
+                )),
+                "conflict",
+            ),
+            (
+                MutationPreparationError::Project(ProjectError::Rejected(
+                    OperationalErrorCode::ProjectNotFound,
+                )),
+                "permission_denied",
+            ),
+            (
+                MutationPreparationError::Inspection(InspectionError::Execution(
+                    ExecutionError::Denied,
+                )),
+                "toolchain_unavailable",
+            ),
+            (
+                MutationPreparationError::Inspection(InspectionError::Execution(
+                    ExecutionError::Unavailable,
+                )),
+                "toolchain_unavailable",
+            ),
+            (
+                MutationPreparationError::Inspection(InspectionError::Execution(
+                    ExecutionError::InvalidConfiguration,
+                )),
+                "toolchain_unavailable",
+            ),
+            (
+                MutationPreparationError::Inspection(InspectionError::Project(
+                    ProjectError::Cancelled,
+                )),
+                "cancelled",
+            ),
+            (
+                MutationPreparationError::Inspection(InspectionError::Execution(
+                    ExecutionError::Cancelled,
+                )),
+                "cancelled",
+            ),
+            (
+                MutationPreparationError::Inspection(InspectionError::Project(
+                    ProjectError::Rejected(OperationalErrorCode::InvalidProject),
+                )),
+                "candidate_invalid",
+            ),
+            (
+                MutationPreparationError::Inspection(InspectionError::Project(
+                    ProjectError::Rejected(OperationalErrorCode::CommandTimeout),
+                )),
+                "command_timeout",
+            ),
+            (
+                MutationPreparationError::Inspection(InspectionError::OutputLimit),
+                "limit_exceeded",
+            ),
+            (
+                MutationPreparationError::Inspection(InspectionError::Internal),
+                "io",
+            ),
+        ] {
+            assert_eq!(reason_name(preparation_reason(error)), expected);
+        }
+    }
+
+    #[test]
+    fn semantic_errors_map_to_exact_public_reasons() {
+        use rust_engineering_application::{ResolutionError, SemanticPreparationError as E};
+        use rust_engineering_domain::ManifestEditError;
+        for (error, expected) in [
+            (E::Mutation(MutationError::Conflict), "conflict"),
+            (E::Edit(ManifestEditError::Conflict), "conflict"),
+            (E::Edit(ManifestEditError::LimitExceeded), "limit_exceeded"),
+            (
+                E::Edit(ManifestEditError::InvalidManifest),
+                "invalid_operation",
+            ),
+            (E::Project(ProjectError::Cancelled), "cancelled"),
+            (
+                E::Inspection(InspectionError::OutputLimit),
+                "limit_exceeded",
+            ),
+            (
+                E::Resolution(ResolutionError::Inspection(InspectionError::Internal)),
+                "io",
+            ),
+            (
+                E::Resolution(ResolutionError::MissingOfflineData),
+                "offline_data_missing",
+            ),
+            (
+                E::Resolution(ResolutionError::InvalidOfflineData),
+                "offline_data_invalid",
+            ),
+            (E::Resolution(ResolutionError::Failed), "candidate_invalid"),
+        ] {
+            assert_eq!(reason_name(semantic_reason(error)), expected);
+        }
+    }
+
+    #[test]
+    fn joined_outputs_preserve_receipt_terminality_and_cancellation() {
+        let receipt = |state| Data::Receipt {
+            operation_id: "mut_0123456789abcdef0123456789abcdef".into(),
+            plan_digest: format!("sha256:{}", "a".repeat(64)),
+            state,
+            validation: validation_view(&framed(&[
+                "m2-manifest-lints-v1",
+                "local_coordinated",
+                "linux/aarch64",
+                &format!("sha256:{}", "a".repeat(64)),
+                &format!("sha256:{}", "b".repeat(64)),
+                &format!("sha256:{}", "c".repeat(64)),
+                "1.98.1",
+                "1.98.1",
+                &format!("sha256:{}", "d".repeat(64)),
+            ]))
+            .expect("validation"),
+            files: vec![],
+        };
+        for (data, interrupted, status, code) in [
+            (
+                receipt(ReceiptState::RecoveryRequired),
+                false,
+                "blocked",
+                Some("recovery_required"),
+            ),
+            (
+                receipt(ReceiptState::Aborted),
+                false,
+                "blocked",
+                Some("conflict"),
+            ),
+            (receipt(ReceiptState::Committed), true, "passed", None),
+            (receipt(ReceiptState::NoChange), false, "passed", None),
+        ] {
+            let output = serde_json::to_value(joined_output(Ok(data), interrupted, 5))
+                .expect("serializable output");
+            assert_eq!(output["status"], status);
+            assert_eq!(output["error_code"], json!(code));
+            assert_eq!(output["duration_ms"], 5);
+        }
+
+        let preview = preview_output_data();
+        assert_eq!(
+            reason_name(
+                joined_output(Ok(preview.clone()), true, 1)
+                    .error_code
+                    .expect("code")
+            ),
+            "cancelled"
+        );
+        assert!(matches!(
+            joined_output(Ok(preview), false, 1).status,
+            Status::Passed
+        ));
+        assert_eq!(
+            reason_name(
+                joined_output(Err(Reason::Io), false, 1)
+                    .error_code
+                    .expect("code")
+            ),
+            "io"
+        );
+    }
+
+    fn preview_output_data() -> Data {
+        let fingerprint = format!("sha256:{}", "a".repeat(64));
+        Data::Preview {
+            plan_id: "mut_0123456789abcdef0123456789abcdef".into(),
+            plan_digest: fingerprint.clone(),
+            expires_in_seconds: 600,
+            files: vec![],
+            diff: String::new(),
+            validation: validation_view(&framed(&[
+                "m2-manifest-lints-v1",
+                "local_coordinated",
+                "linux/aarch64",
+                &fingerprint,
+                &fingerprint,
+                &fingerprint,
+                "1.98.1",
+                "1.98.1",
+                &fingerprint,
+            ]))
+            .expect("validation"),
+        }
+    }
+
+    #[test]
+    fn receipt_states_and_file_effects_are_preserved_exactly() {
+        for (state, expected) in [
+            (MutationState::Committed, "committed"),
+            (MutationState::NoChange, "no_change"),
+            (MutationState::Aborted, "aborted"),
+            (MutationState::RecoveryRequired, "recovery_required"),
+        ] {
+            assert_eq!(
+                serde_json::to_value(receipt_state(state)).expect("state"),
+                expected
+            );
+        }
+        let files = receipt_changes(vec![MutationFileReceipt {
+            path: "src/lib.rs".into(),
+            before: test_fingerprint(1),
+            after: test_fingerprint(2),
+            before_bytes: 7,
+            after_bytes: 9,
+            effect_after: Some(test_fingerprint(3)),
+            effect_after_bytes: Some(11),
+        }]);
+        assert_eq!(
+            serde_json::to_value(files).expect("files"),
+            json!([{
+                "path":"src/lib.rs", "before_sha256":format!("sha256:{:064x}", 1),
+                "intended_after_sha256":format!("sha256:{:064x}", 2), "before_bytes":7,
+                "intended_after_bytes":9, "effect_after_sha256":format!("sha256:{:064x}", 3),
+                "effect_after_bytes":11
+            }])
+        );
+    }
+
+    #[test]
+    fn preview_diff_enforces_kind_paths_utf8_and_output_budget() {
+        let (changes, diff) = preview_diff(&candidate(
+            MutationKind::FormatApply,
+            "src/lib.rs",
+            b"fn a() {}",
+            b"fn a() {\n}\n",
+        ))
+        .expect("format diff");
+        assert_eq!(changes.len(), 1);
+        assert_eq!(changes[0].path, "src/lib.rs");
+        assert!(diff.contains("@@ -1,1 +1,2 @@"));
+        assert!(diff.contains("\\ No newline at end of file"));
+
+        assert!(
+            preview_diff(&candidate(
+                MutationKind::ManifestPatch,
+                "Cargo.toml",
+                b"[package]\n",
+                b"[workspace]\n",
+            ))
+            .is_ok()
+        );
+        assert!(
+            preview_diff(&candidate(
+                MutationKind::DependencyAdd,
+                "member/Cargo.toml",
+                b"[dependencies]\n",
+                b"a = \"1\"\n",
+            ))
+            .is_ok()
+        );
+        assert!(
+            preview_diff(&candidate(
+                MutationKind::DependencyRemove,
+                "Cargo.lock",
+                b"old\n",
+                b"new\n",
+            ))
+            .is_ok()
+        );
+        assert!(matches!(
+            preview_diff(&candidate(
+                MutationKind::ManifestPatch,
+                "src/lib.rs",
+                b"old",
+                b"new",
+            )),
+            Err(MutationError::PermissionDenied)
+        ));
+        assert!(matches!(
+            preview_diff(&candidate(
+                MutationKind::AnalyzerActionApply,
+                "src/lib.rs",
+                b"old",
+                &[0xff],
+            )),
+            Err(MutationError::Invalid)
+        ));
+        assert!(
+            preview_diff(&candidate(
+                MutationKind::FixApply,
+                "src/lib.rs",
+                b"same",
+                b"same",
+            ))
+            .expect("unchanged")
+            .0
+            .is_empty()
+        );
+        assert!(matches!(
+            preview_diff(&candidate(
+                MutationKind::FormatApply,
+                "src/lib.rs",
+                b"old\n",
+                "new\n".repeat(70_000).as_bytes(),
+            )),
+            Err(MutationError::LimitExceeded)
+        ));
+
+        let missing_after = MutationCandidate {
+            kind: MutationKind::FormatApply,
+            before: SourceBundle::new(vec![
+                SourceFile::new("src/lib.rs".into(), b"old".to_vec()).expect("source"),
+            ])
+            .expect("bundle"),
+            after: SourceBundle::new(vec![
+                SourceFile::new("src/main.rs".into(), b"new".to_vec()).expect("source"),
+            ])
+            .expect("bundle"),
+            validation: String::new(),
+        };
+        assert!(matches!(
+            preview_diff(&missing_after),
+            Err(MutationError::Invalid)
+        ));
     }
 
     #[test]

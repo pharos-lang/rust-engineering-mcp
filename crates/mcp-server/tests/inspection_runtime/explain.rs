@@ -3,7 +3,8 @@ use super::*;
 use sha2::{Digest, Sha256};
 
 fn start_without_roots(fixture: &Fixture) -> Result<Server> {
-    let mut child = Command::new(env!("CARGO_BIN_EXE_rust-engineering-mcp"))
+    let mut command = Command::new(env!("CARGO_BIN_EXE_rust-engineering-mcp"));
+    command
         .env_clear()
         .current_dir(&fixture.root)
         .args(["serve", "--stdio"])
@@ -17,8 +18,9 @@ fn start_without_roots(fixture: &Fixture) -> Result<Server> {
         .arg(APPROVED_RUST_IMAGE)
         .stdin(Stdio::piped())
         .stdout(Stdio::piped())
-        .stderr(Stdio::piped())
-        .spawn()?;
+        .stderr(Stdio::piped());
+    instrumented(&mut command);
+    let mut child = command.spawn()?;
     let (sender, stdout) = mpsc::sync_channel(32);
     let input = child.stdin.take();
     let output = child.stdout.take().ok_or("missing server stdout")?;
