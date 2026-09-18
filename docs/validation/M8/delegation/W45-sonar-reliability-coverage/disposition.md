@@ -105,7 +105,10 @@ es el esperado ante cualquier edición y no rompe el runtime.
 ## 3. Verificación §4 sobre el árbol integrado
 
 Ejecutada por el orquestador sobre `09d2c7e1` (todo lo integrado; el paquete
-documental se añade después y el gate no inventaría `docs/`):
+documental se añade después y el gate no inventaría `docs/`). El gate se repitió
+sobre el código final `a5055540` (ver la corrección de CI más abajo): **30/30
+`passed`**, `source_inputs_unchanged: true`, 19:48:40–19:52:08Z, etapa `test` 2 063 / 0,
+recibo sha256 `01e5e025541378cc74fb31229b623ab897bb73c0275a9e682a9020e7675f610a`.
 
 | Comprobación | Resultado |
 | --- | --- |
@@ -117,6 +120,13 @@ documental se añade después y el gate no inventaría `docs/`):
 | `git diff --stat main -- crates/mcp-server/tests/snapshots/` | vacío |
 
 Los 153 ignorados son los tests Docker/nativos ya existentes: no se cuentan como pass.
+
+**Corrección tras la primera CI del PR #24.**
+- **Fallo:** `portable / x86_64-unknown-linux-gnu` falló en `Lint workspace` por `clippy::items_after_test_module` en `crates/mcp-server/src/stdio/catalog/provider.rs`. En Linux, el `mod supply_tests` (solo macOS) desaparece, y el `mod portable_tests` inline de Codex quedaba seguido del `impl SupplyCatalogPort`.
+- **Por qué no se vio antes:** nadie había ejecutado clippy de `mcp-server` para Linux. Desde el host falla `ring` sin compilador C cruzado, y la medición en Docker ejecutaba tests, no clippy.
+- **Corrección:** `a5055540` mueve el bloque al final del archivo, sin tocar el código.
+- **Verificación:** el orquestador reprodujo en la imagen M6 el job `portable` completo sobre Linux: `fmt --check`, `check`, `clippy -D warnings`, `test --workspace --all-targets` (1 785 pasados, 0 fallidos, 81 ignorados) y `test --doc`. Todo verde. `scripts/test-release-inventory.py` pasa en Debian con Python 3.11.
+- **Lección:** los cambios que tocan `cfg(target_os)` necesitan clippy en Linux antes del push, no solo tests.
 
 ## 4. Integración
 
@@ -134,6 +144,8 @@ Commits del orquestador, que no reescriben ni mezclan el trabajo de los workers:
 | `739ee36a` | tests portables `mcp-server` | worker Codex |
 | `89d48f21` | merge `ai/sonar-codex` | orquestador |
 | `09d2c7e1` | P3 de la revisión: `cfg(not(feature = "local"))` en el test de `provider.rs` | orquestador |
+| `d1c1e872` | este paquete W45 | orquestador |
+| `a5055540` | mover `portable_tests` tras el último ítem de `provider.rs` (fallo de clippy solo en Linux) | orquestador |
 
 La cifra definitiva en SonarCloud se lee en el análisis del PR y, tras el merge, en `main`.
 
