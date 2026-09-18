@@ -67,6 +67,7 @@ PLATEAU_FRACTION = 0.05
 CLEAN_ENV = {"LANG": "C", "LC_ALL": "C", "TZ": "UTC"}
 DEFAULT_PROJECT_TTL_SECS = 30.0
 DEFAULT_TTL_WAIT_SECONDS = 35.0
+PROFILE_CHOICES = ("core", "local")
 PMSET_BINARY = pathlib.Path("/usr/bin/pmset")
 CATALOG_STORE_KNOWN_ENTRIES = {"active.bundle", "store.lock", "floor.record"}
 CANCEL_CYCLE_GAP_REASON = (
@@ -585,7 +586,7 @@ def run_core_soak(
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--profile", choices=["core", "local"], default="core")
+    parser.add_argument("--profile", choices=PROFILE_CHOICES, default="core")
     parser.add_argument("--cycles", default="1000")
     parser.add_argument("--hours", default="8")
     parser.add_argument("--sample-every", default="20")
@@ -602,7 +603,11 @@ def parse_args() -> argparse.Namespace:
 
 def main() -> None:
     args = parse_args()
-    if args.profile == "local":
+    # Re-derive from the constant tuple (selection by membership) instead of
+    # storing args.profile: argparse's own choices= validation does not stop
+    # the taint engine from following the argv string into the receipt.
+    profile = next(choice for choice in PROFILE_CHOICES if choice == args.profile)
+    if profile == "local":
         raise NotImplementedError(
             "soak-m8.py --profile local is Docker's soak (docs/validation/M8/05.md SS4.2); "
             "this package never touches Docker. The orchestrator runs this profile in M8-09."
@@ -626,6 +631,7 @@ def main() -> None:
         raise ValueError("--open-churn/--ttl-wait-seconds must not be negative")
     if project_ttl_secs <= 0:
         raise ValueError("--project-ttl-secs must be positive")
+    operator_attested = bool(args.operator_attested)
 
     scratch = pathlib.Path(tempfile.mkdtemp(prefix="m8-soak-", dir=str(ROOT / "target")))
     try:
@@ -638,14 +644,14 @@ def main() -> None:
             open_churn,
             ttl_wait_seconds,
             project_ttl_secs,
-            args.operator_attested,
+            operator_attested,
         )
     finally:
         shutil.rmtree(scratch, ignore_errors=True)
 
     OUT_PATH.parent.mkdir(parents=True, exist_ok=True)
     OUT_PATH.write_text(json.dumps(receipt, indent=2) + "\n")
-    print(f"{receipt['status'].upper()} m8 soak ({args.profile}) written to {OUT_PATH}")
+    print(f"{receipt['status'].upper()} m8 soak ({profile}) written to {OUT_PATH}")
 
 
 if __name__ == "__main__":

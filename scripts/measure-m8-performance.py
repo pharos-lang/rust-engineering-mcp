@@ -50,6 +50,7 @@ OUT_PATH = ROOT / "docs/validation/M8/05-measurement.json"
 RECEIPTS_DIR = ROOT / "target/m8-performance"
 COMPARE_OUT_PATH = RECEIPTS_DIR / "regression.json"
 RECEIPT_KEY_PATTERN = re.compile(r"^[a-z0-9-]+$")
+PROFILE_CHOICES = ("core", "local")
 FIXTURE = ROOT / "fixtures/valid-basic"
 CATALOG_FIXTURE_DIR = ROOT / "fixtures/catalog"
 CATALOG_BUNDLE = CATALOG_FIXTURE_DIR / "fixture-1.tar.zst"
@@ -610,7 +611,7 @@ def measure_local(
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--repeat", default="30")
-    parser.add_argument("--profile", choices=["core", "local"], default="core")
+    parser.add_argument("--profile", choices=PROFILE_CHOICES, default="core")
     parser.add_argument(
         "--operator-attested",
         action="store_true",
@@ -630,24 +631,34 @@ def parse_args() -> argparse.Namespace:
     return parser.parse_args()
 
 
-def receipt_path_for_key(key: str) -> pathlib.Path:
-    if not RECEIPT_KEY_PATTERN.match(key):
+def receipt_path_for_key(key: str) -> tuple[pathlib.Path, str]:
+    """Validate ``key`` and return ``(path, validated_key)``.
+
+    ``validated_key`` is ``match.group(0)``, re-derived from the regex
+    rather than the original argv string: the taint engine follows
+    ``args.compare`` into any receipt content it reaches, and a value
+    re-derived from a closed pattern match breaks that flow.
+    """
+    match = RECEIPT_KEY_PATTERN.match(key)
+    if not match:
         raise ValueError(f"--compare key must match {RECEIPT_KEY_PATTERN.pattern!r}: {key!r}")
-    return RECEIPTS_DIR / f"{key}.json"
+    validated_key = match.group(0)
+    return RECEIPTS_DIR / f"{validated_key}.json", validated_key
 
 
 def run_compare(receipt_keys: list[str]) -> bool:
     """CLI entry point for the 2-of-3 regression rule (P-2). Returns True if any
     magnitude regressed."""
-    receipt_paths = [receipt_path_for_key(key) for key in receipt_keys]
-    receipts = [json.loads(path.read_text()) for path in receipt_paths]
+    resolved = [receipt_path_for_key(key) for key in receipt_keys]
+    receipts = [json.loads(path.read_text()) for path, _validated_key in resolved]
+    validated_keys = [validated_key for _path, validated_key in resolved]
     verdicts = regression_verdict(receipts)
     regressed = any(row["outcome"] == "regressed" for row in verdicts.values())
     indeterminate = any(row["outcome"] == "indeterminate" for row in verdicts.values())
     payload = {
         "schema": "rust-mcp-m8-performance-regression-v1",
         "generated_utc": utc_now(),
-        "receipts": receipt_keys,
+        "receipts": validated_keys,
         "budgets_sha256": receipts[0]["budgets_sha256"],
         "profile": receipts[0]["profile"],
         "verdicts": verdicts,
@@ -671,6 +682,11 @@ def main() -> None:
     repeat = int(args.repeat)
     if repeat < 1:
         raise ValueError("--repeat must be a positive integer")
+    # Re-derive from the constant tuple (selection by membership) instead of
+    # storing args.profile: argparse's own choices= validation does not stop
+    # the taint engine from following the argv string into the receipt.
+    profile = next(choice for choice in PROFILE_CHOICES if choice == args.profile)
+    operator_attested = bool(args.operator_attested)
 
     binary = DEFAULT_BINARY
     if not binary.is_file():
@@ -693,7 +709,7 @@ def main() -> None:
     )
     measurements["cleanup_p95_ms"] = unavailable(budgets["cleanup_p95_ms"], DOCKER_UNAVAILABLE_REASON)
 
-    if args.profile == "local":
+    if profile == "local":
         scratch = pathlib.Path(tempfile.mkdtemp(prefix="m8-performance-", dir=str(ROOT / "target")))
         try:
             measurements.update(measure_local(binary, repeat, budgets, scratch))
@@ -718,7 +734,7 @@ def main() -> None:
         "binary_sha256": f"sha256:{binary_sha256}",
         "binary_sha256_end": f"sha256:{binary_sha256_end}",
         "binary_bytes": binary_bytes,
-        "profile": args.profile,
+        "profile": profile,
         "repeat": repeat,
         "budgets_sha256": f"sha256:{budgets_sha256}",
         "host": host_info(),
@@ -731,7 +747,7 @@ def main() -> None:
             "dispatch_repeat": repeat,
             "rss_idle_samples": RSS_IDLE_SAMPLES,
             "rss_peak_sample_interval_seconds": RSS_SAMPLE_INTERVAL_SECONDS,
-            "operator_attested": args.operator_attested,
+            "operator_attested": operator_attested,
             "pmset_batt": battery_status(),
             "foreground_app_quiescence": (
                 "not automatable on macOS; operator_attested records whether the "

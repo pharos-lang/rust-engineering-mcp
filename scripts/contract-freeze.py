@@ -6,7 +6,11 @@ from ``ROOT``: the taint engine used by SonarCloud's Python analysis treats
 any CLI-supplied path that reaches ``open()``/``subprocess`` as a path
 traversal / command injection risk regardless of ``argparse`` validation, so
 variable parameters travel over stdin as JSON instead, validated against a
-closed schema before use.
+closed schema before use. The same engine also follows *content* read from
+disk (``spec["name"]``/``spec["annotations"]`` off a snapshot file) into
+whatever gets written next, so ``load_current_tools`` re-derives both
+through ``known_tool_name``/``known_annotations`` instead of copying them
+verbatim.
 
   generate
       Hash every tool snapshot under crates/mcp-server/tests/snapshots/*-tool.json
@@ -27,10 +31,12 @@ closed schema before use.
       against the current working tree. ``base`` must match
       ``BASE_PATTERN`` (a tag or a commit-ish hex id) and is passed to Git
       only after ``--end-of-options``; it never reaches a filesystem path.
-      ``out`` selects a key of ``DIFF_DESTINATIONS``, a constant dict the
-      script composes from the freeze's two real comparison points
-      (``v0.3.0`` and ``v0.1.0``); nothing from stdin ever becomes a path.
-      ``only``, if given, restricts the diff to those tool names.
+      ``out`` is validated as a member of ``DIFF_OUT_KEYS`` (a closed set of
+      labels for the freeze's two real comparison points, ``v0.3.0`` and
+      ``v0.1.0``) and only ever selects a key *inside* the JSON that is
+      written; the destination file is always the constant
+      ``SCHEMA_DIFF_PATH``, never derived from ``out``. ``only``, if given,
+      restricts the diff to those tool names.
 
 Only the standard library is used. Git is invoked with fixed argument lists,
 never through a shell.
@@ -51,11 +57,10 @@ SNAPSHOTS_DIR = ROOT / "crates/mcp-server/tests/snapshots"
 SNAPSHOTS_RELATIVE = "crates/mcp-server/tests/snapshots"
 FREEZE_MANIFEST_PATH = ROOT / "docs/validation/M8/freeze-0.8.0.json"
 SCHEMA_DIFF_PATH = ROOT / "docs/validation/M8/02-schema-diff.json"
-DIFF_DESTINATIONS = {
-    "since_v0.3.0": SCHEMA_DIFF_PATH,
-    "since_v0.1.0_m1_only": SCHEMA_DIFF_PATH,
-}
+DIFF_OUT_KEYS = frozenset({"since_v0.3.0", "since_v0.1.0_m1_only"})
 BASE_PATTERN = re.compile(r"^(v[0-9]+\.[0-9]+\.[0-9]+|[0-9a-f]{7,40})$")
+TOOL_NAME_PATTERN = re.compile(r"^rust\.[a-z][a-z0-9_]*(?:\.[a-z][a-z0-9_]*)*$")
+ANNOTATION_KEYS = ("destructiveHint", "idempotentHint", "openWorldHint", "readOnlyHint")
 
 PREVIEW_NAMES = frozenset(
     {
@@ -112,10 +117,48 @@ def stability_of(name: str) -> str:
     return "preview" if name in PREVIEW_NAMES else "stable"
 
 
+def known_tool_name(raw_name: object, source: pathlib.Path) -> str:
+    """Re-derive a tool name from the closed ``TOOL_NAME_PATTERN`` grammar
+    instead of trusting ``spec["name"]`` verbatim.
+
+    ``spec`` comes from ``path.read_bytes()``, so the taint engine follows
+    its content into whatever the caller writes; ``match.group(0)`` is a
+    fresh value re-derived from the regex, not the string read from disk,
+    and a name outside the grammar fails loudly instead of silently
+    entering the manifest.
+    """
+    if not isinstance(raw_name, str):
+        raise SystemExit(f"{source}: tool name must be a string, got {raw_name!r}")
+    match = TOOL_NAME_PATTERN.match(raw_name)
+    if not match:
+        raise SystemExit(f"{source}: tool name {raw_name!r} does not match {TOOL_NAME_PATTERN.pattern!r}")
+    return match.group(0)
+
+
+def known_annotations(raw: object, source: pathlib.Path) -> dict:
+    """Reconstruct ``annotations`` from its known, type-checked keys instead
+    of copying the dict read from disk verbatim (same taint rationale as
+    ``known_tool_name``)."""
+    if not isinstance(raw, dict):
+        raise SystemExit(f"{source}: annotations must be an object, got {raw!r}")
+    unknown = sorted(set(raw) - set(ANNOTATION_KEYS))
+    if unknown:
+        raise SystemExit(f"{source}: unknown annotation keys {unknown}")
+    result = {}
+    for key in ANNOTATION_KEYS:
+        if key not in raw:
+            continue
+        value = raw[key]
+        if not isinstance(value, bool):
+            raise SystemExit(f"{source}: annotations[{key!r}] must be a bool, got {value!r}")
+        result[key] = bool(value)
+    return result
+
+
 def tool_entry(name: str, spec: dict, snapshot_bytes: bytes) -> dict:
     return {
         "stability": stability_of(name),
-        "annotations": spec.get("annotations", {}),
+        "annotations": known_annotations(spec.get("annotations", {}), name),
         "input_schema_sha256": canonical_hash(spec["inputSchema"]),
         "output_schema_sha256": canonical_hash(spec["outputSchema"]),
         "description_sha256": canonical_hash(spec["description"]),
@@ -128,7 +171,7 @@ def load_current_tools() -> dict:
     for path in sorted(SNAPSHOTS_DIR.glob("*-tool.json")):
         raw = path.read_bytes()
         spec = json.loads(raw)
-        name = spec["name"]
+        name = known_tool_name(spec["name"], path)
         tools[name] = tool_entry(name, spec, raw)
     return tools
 
@@ -256,13 +299,15 @@ def load_ref_tools(commit: str) -> dict:
     return tools
 
 
-def parse_diff_request(payload: object) -> tuple[str, pathlib.Path, str, list[str] | None]:
+def parse_diff_request(payload: object) -> tuple[str, str, list[str] | None]:
     """Validate the diff request read from stdin against a closed schema.
 
-    Returns ``(base, out_path, out_key, only)``. Neither ``base`` nor ``out``
-    is ever used to build a filesystem path directly: ``base`` is only used
-    as a Git ref (after ``BASE_PATTERN`` validation and ``--end-of-options``),
-    and ``out`` only selects a key of the constant ``DIFF_DESTINATIONS`` dict.
+    Returns ``(base, out_key, only)``. Neither ``base`` nor ``out`` is ever
+    used to build a filesystem path: ``base`` is only used as a Git ref
+    (after ``BASE_PATTERN`` validation and ``--end-of-options``), and ``out``
+    only selects a key *inside* the JSON written to the constant
+    ``SCHEMA_DIFF_PATH`` after membership in ``DIFF_OUT_KEYS`` is checked; no
+    path is ever built from a subscript keyed by stdin content.
     """
     if not isinstance(payload, dict):
         raise SystemExit("diff: stdin JSON must be an object")
@@ -270,14 +315,14 @@ def parse_diff_request(payload: object) -> tuple[str, pathlib.Path, str, list[st
     if not isinstance(base, str) or not BASE_PATTERN.match(base):
         raise SystemExit(f"diff: base must match {BASE_PATTERN.pattern!r}: {base!r}")
     out_key = payload.get("out")
-    if out_key not in DIFF_DESTINATIONS:
-        raise SystemExit(f"diff: out must be one of {sorted(DIFF_DESTINATIONS)}: {out_key!r}")
+    if out_key not in DIFF_OUT_KEYS:
+        raise SystemExit(f"diff: out must be one of {sorted(DIFF_OUT_KEYS)}: {out_key!r}")
     only = payload.get("only")
     if only is not None and (
         not isinstance(only, list) or not all(isinstance(name, str) and name for name in only)
     ):
         raise SystemExit("diff: only must be a list of non-empty tool names")
-    return base, DIFF_DESTINATIONS[out_key], out_key, only
+    return base, out_key, only
 
 
 def cmd_diff() -> int:
@@ -285,7 +330,7 @@ def cmd_diff() -> int:
         payload = json.load(sys.stdin)
     except json.JSONDecodeError as error:
         raise SystemExit(f"diff: stdin must be a JSON object: {error}") from error
-    base, out_path, out_key, only = parse_diff_request(payload)
+    base, out_key, only = parse_diff_request(payload)
 
     base_commit = resolve_commit(base)
     base_tools = load_ref_tools(base_commit)
@@ -342,14 +387,14 @@ def cmd_diff() -> int:
     }
 
     existing: dict = {}
-    if out_path.exists():
-        existing = json.loads(out_path.read_text())
+    if SCHEMA_DIFF_PATH.exists():
+        existing = json.loads(SCHEMA_DIFF_PATH.read_text())
     existing[out_key] = entry
-    out_path.parent.mkdir(parents=True, exist_ok=True)
-    out_path.write_text(json.dumps(existing, indent=2, sort_keys=True) + "\n")
+    SCHEMA_DIFF_PATH.parent.mkdir(parents=True, exist_ok=True)
+    SCHEMA_DIFF_PATH.write_text(json.dumps(existing, indent=2, sort_keys=True) + "\n")
     print(
         f"diff --base {base}: {len(added)} added, {len(removed)} removed, "
-        f"{len(changed)} changed, {len(unchanged)} unchanged -> {out_path} [{out_key}]"
+        f"{len(changed)} changed, {len(unchanged)} unchanged -> {SCHEMA_DIFF_PATH} [{out_key}]"
     )
     return 0
 

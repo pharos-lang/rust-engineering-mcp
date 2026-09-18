@@ -309,7 +309,8 @@ class DiffTests(unittest.TestCase):
 
         patches = [
             mock.patch.object(CF, "SNAPSHOTS_DIR", self.fixture_dir),
-            mock.patch.object(CF, "DIFF_DESTINATIONS", {self.OUT_KEY: self.out_path}),
+            mock.patch.object(CF, "SCHEMA_DIFF_PATH", self.out_path),
+            mock.patch.object(CF, "DIFF_OUT_KEYS", frozenset({self.OUT_KEY})),
             mock.patch.object(CF, "resolve_commit", lambda ref: "deadbeef"),
             mock.patch.object(CF, "snapshot_names_at_commit", fake_snapshot_names_at_commit),
             mock.patch.object(CF, "git_bytes", fake_git_bytes),
@@ -359,7 +360,7 @@ class DiffTests(unittest.TestCase):
 
     def test_a_second_out_key_merges_into_the_shared_destination(self) -> None:
         other_key = "since_other"
-        with mock.patch.object(CF, "DIFF_DESTINATIONS", {self.OUT_KEY: self.out_path, other_key: self.out_path}):
+        with mock.patch.object(CF, "DIFF_OUT_KEYS", frozenset({self.OUT_KEY, other_key})):
             code, _ = self.run_diff({"base": "deadbeef", "out": self.OUT_KEY})
             self.assertEqual(code, 0)
             code, _ = self.run_diff({"base": "deadbeef", "out": other_key})

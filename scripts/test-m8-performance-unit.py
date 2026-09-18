@@ -270,8 +270,9 @@ class RunCompareTests(unittest.TestCase):
             PERF.receipt_path_for_key("../etc/passwd")
 
     def test_valid_key_resolves_under_receipts_dir(self) -> None:
-        path = PERF.receipt_path_for_key("smoke-run-1")
+        path, validated_key = PERF.receipt_path_for_key("smoke-run-1")
         self.assertEqual(path, PERF.RECEIPTS_DIR / "smoke-run-1.json")
+        self.assertEqual(validated_key, "smoke-run-1")
 
 
 class ValidateToolResultPerfTests(unittest.TestCase):
