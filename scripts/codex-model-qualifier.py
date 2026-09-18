@@ -350,10 +350,7 @@ def process_executable(pid):
   return str(Path(os.fsdecode(buf.value)))
  if sys.platform.startswith("linux"):return os.readlink(f"/proc/{pid}/exe")
  raise RuntimeError("process executable identity unsupported")
-def process_is_live(pid):
- try:os.kill(pid,0);return True
- except ProcessLookupError:return False
- except PermissionError:return True
+SZOMB=5
 class DarwinBsdInfo(ctypes.Structure):
  _fields_=[("flags",ctypes.c_uint32),("status",ctypes.c_uint32),("xstatus",ctypes.c_uint32),("pid",ctypes.c_uint32),("ppid",ctypes.c_uint32),("uid",ctypes.c_uint32),("gid",ctypes.c_uint32),("ruid",ctypes.c_uint32),("rgid",ctypes.c_uint32),("svuid",ctypes.c_uint32),("svgid",ctypes.c_uint32),("reserved",ctypes.c_uint32),("comm",ctypes.c_char*16),("name",ctypes.c_char*32),("nfiles",ctypes.c_uint32),("pgid",ctypes.c_uint32),("pjobc",ctypes.c_uint32),("tdev",ctypes.c_uint32),("tpgid",ctypes.c_uint32),("nice",ctypes.c_int32),("start_seconds",ctypes.c_uint64),("start_microseconds",ctypes.c_uint64)]
 def darwin_process_rows():
@@ -367,8 +364,19 @@ def darwin_process_rows():
   if size!=ctypes.sizeof(info):continue
   try:command=process_executable(pid)
   except (OSError,ProcessLookupError):command=os.fsdecode(bytes(info.comm).split(b"\0",1)[0])
-  out.append((int(info.pid),int(info.ppid),int(info.pgid),command))
+  out.append((int(info.pid),int(info.ppid),int(info.pgid),info.status==SZOMB,command))
  return out
+def running_pids(rows):
+ return {pid for pid,_,_,zombie,_ in rows if not zombie}
+def process_is_confirmed_running(pid):
+ if sys.platform=="darwin":
+  libproc=ctypes.CDLL("/usr/lib/libproc.dylib",use_errno=True);info=DarwinBsdInfo();size=libproc.proc_pidinfo(pid,3,0,ctypes.byref(info),ctypes.sizeof(info))
+  return size==ctypes.sizeof(info) and info.status!=SZOMB
+ if sys.platform.startswith("linux"):
+  try:text=Path(f"/proc/{pid}/stat").read_text()
+  except OSError:return False
+  return text[text.rfind(")")+2:].split(" ",1)[0]!="Z"
+ return False
 class Transport:
  def __init__(self,phase,cmd,cwd,home,temp,log,deadline,rpc_timeout=30,allowed_executables=None,required_role=None):
   self.phase=phase;self.log=log;self.deadline=deadline;self.rpc_timeout=rpc_timeout;self.q=queue.Queue();self.events=queue.Queue();self.n=0;self.requests={};self.failure=None;self.stderr=bytearray();self.observed=set();self.process_identities={};self.allowed_executables={str(Path(k)):v for k,v in (allowed_executables or {}).items()};self.required_role=required_role;self.stop=threading.Event();self.closed=False;self.close_result=None;self.close_lock=threading.Lock()
@@ -414,31 +422,31 @@ class Transport:
   except Exception as e:self.failure=self.failure or f"stderr:{e}"
  @staticmethod
  def _rows():
-  try:r=subprocess.run(["/bin/ps","-ww","-axo","pid=,ppid=,pgid=,args="],capture_output=True,text=True,check=True,timeout=5)
+  try:r=subprocess.run(["/bin/ps","-ww","-axo","pid=,ppid=,pgid=,stat=,args="],capture_output=True,text=True,check=True,timeout=5)
   except PermissionError:
    if sys.platform=="darwin":return darwin_process_rows()
    raise
   out=[]
   for line in r.stdout.splitlines():
-   parts=line.strip().split(None,3)
-   if len(parts)==4:out.append((int(parts[0]),int(parts[1]),int(parts[2]),parts[3]))
+   parts=line.strip().split(None,4)
+   if len(parts)==5:out.append((int(parts[0]),int(parts[1]),int(parts[2]),parts[3].startswith("Z"),parts[4]))
   return out
  def _monitor(self):
   try:
    while not self.stop.wait(.2):
-    rows=self._rows();owned={pid for pid,_,pgid,_ in rows if pgid==self.pgid};owned.add(self.p.pid);changed=True
+    rows=self._rows();owned={pid for pid,_,pgid,_,_ in rows if pgid==self.pgid};owned.add(self.p.pid);changed=True
     while changed:
      changed=False
-     for pid,ppid,_,_ in rows:
+     for pid,ppid,_,_,_ in rows:
       if ppid in owned and pid not in owned:owned.add(pid);changed=True
     if self.allowed_executables:
-     commands={pid:command for pid,_,_,command in rows}
+     commands={pid:command for pid,_,_,_,command in rows}
      for pid in owned-{self.p.pid}:
       command=commands.get(pid)
       if not command:continue
       try:executable=process_executable(pid)
       except OSError as e:
-       if process_is_live(pid):raise RuntimeError(f"live descendant executable unresolved:{pid}:{type(e).__name__}") from e
+       if process_is_confirmed_running(pid):raise RuntimeError(f"live descendant executable unresolved:{pid}:{type(e).__name__}") from e
        continue
       approval=self.allowed_executables.get(executable)
       if approval is None:raise RuntimeError(f"unexpected descendant executable:{Path(executable).name}:{digest(executable.encode())}")
@@ -480,14 +488,16 @@ class Transport:
      self.p.wait(timeout=5)
    self.stop.set()
    for x in self.threads:x.join(3)
-   live={x for x,_,_,_ in self._rows()};before_kill=sorted((self.observed-{self.p.pid})&live)
+   target=self.observed-{self.p.pid};running=running_pids(self._rows());before_kill=sorted(target&running)
    for pid in before_kill:
     try:
      if os.getpgid(pid)!=self.pgid:self.failure=self.failure or f"foreign or reused pid:{pid}";continue
      os.kill(pid,signal.SIGKILL)
     except ProcessLookupError:pass
     except PermissionError:self.failure=self.failure or f"foreign or reused pid:{pid}"
-   time.sleep(.05);live={x for x,_,_,_ in self._rows()};remaining=sorted((self.observed-{self.p.pid})&live)
+   reap_deadline=time.monotonic()+2.0;running=running_pids(self._rows())
+   while target&running and time.monotonic()<reap_deadline:time.sleep(.02);running=running_pids(self._rows())
+   remaining=sorted(target&running)
    roles=sorted(x["role"] for x in self.process_identities.values())
    if self.required_role and self.required_role not in roles:self.failure=self.failure or f"required descendant not observed:{self.required_role}"
    for s in (self.p.stdout,self.p.stderr):

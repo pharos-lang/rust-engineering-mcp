@@ -177,6 +177,144 @@ fn optional_embedded_index_without_model_or_feature_warns_but_explicit_configura
     assert!(index_source_observed(&corrupt));
 }
 
+fn record(kind: MutationKind, state: MutationState) -> Result<MutationRecordSummary, &'static str> {
+    Ok(MutationRecordSummary {
+        id: MutationId::new("mut_00000000000000000000000000000000".into()).map_err(|_| "id")?,
+        digest: format!("sha256:{}", "a".repeat(64))
+            .parse()
+            .map_err(|_| "digest")?,
+        state,
+        stored_bytes: 0,
+        kind,
+    })
+}
+#[test]
+fn classify_mutation_records_reports_empty_as_unblocked_with_no_notes() {
+    let report = classify_mutation_records(Ok(vec![]));
+    assert_eq!(report.pending, 0);
+    assert_eq!(report.terminal, 0);
+    assert_eq!(report.unknown_format, 0);
+    assert!(report.kinds.is_empty());
+    assert!(!report.downgrade_blocked);
+    assert!(report.downgrade_blocking_kinds.is_empty());
+    assert!(report.notes.is_empty());
+}
+#[test]
+fn classify_mutation_records_counts_pending_and_terminal_per_known_kind() -> Result<(), &'static str>
+{
+    let report = classify_mutation_records(Ok(vec![
+        record(MutationKind::ManifestPatch, MutationState::RecoveryRequired)?,
+        record(MutationKind::ManifestPatch, MutationState::Committed)?,
+        record(MutationKind::FormatApply, MutationState::NoChange)?,
+        record(MutationKind::FixApply, MutationState::Aborted)?,
+    ]));
+    assert_eq!(report.pending, 1);
+    assert_eq!(report.terminal, 3);
+    assert_eq!(report.unknown_format, 0);
+    assert_eq!(report.kinds["manifest_patch"].pending, 1);
+    assert_eq!(report.kinds["manifest_patch"].terminal, 1);
+    assert_eq!(report.kinds["format_apply"].terminal, 1);
+    assert_eq!(report.kinds["fix_apply"].terminal, 1);
+    // Pending on a kind known to the oldest supported binary still blocks a downgrade.
+    assert!(report.downgrade_blocked);
+    assert!(report.downgrade_blocking_kinds.is_empty());
+    assert_eq!(report.notes, vec![DOWNGRADE_NOTE]);
+    Ok(())
+}
+#[test]
+fn classify_mutation_records_flags_kinds_unknown_to_0_3_0_even_when_terminal()
+-> Result<(), &'static str> {
+    let report = classify_mutation_records(Ok(vec![
+        record(MutationKind::AnalyzerActionApply, MutationState::Committed)?,
+        record(MutationKind::DependencyAdd, MutationState::Committed)?,
+        record(MutationKind::DependencyRemove, MutationState::NoChange)?,
+    ]));
+    assert_eq!(report.pending, 0);
+    assert_eq!(report.terminal, 3);
+    assert!(report.downgrade_blocked);
+    assert_eq!(
+        report.downgrade_blocking_kinds,
+        vec!["analyzer_action_apply"]
+    );
+    assert_eq!(report.notes, vec![DOWNGRADE_NOTE]);
+    Ok(())
+}
+#[test]
+fn classify_mutation_records_reports_busy_without_touching_counts() {
+    let report = classify_mutation_records(Err(MutationError::Busy));
+    assert_eq!(report.pending, 0);
+    assert_eq!(report.terminal, 0);
+    assert_eq!(report.unknown_format, 0);
+    assert!(report.kinds.is_empty());
+    assert!(report.downgrade_blocked);
+    assert!(report.downgrade_blocking_kinds.is_empty());
+    assert_eq!(
+        report.notes,
+        vec!["journal busy: a mutation is in progress; rerun doctor"]
+    );
+}
+#[test]
+fn classify_mutation_records_reports_recovery_required_as_unknown_format_with_two_notes() {
+    let report = classify_mutation_records(Err(MutationError::RecoveryRequired));
+    assert_eq!(report.pending, 0);
+    assert_eq!(report.terminal, 0);
+    assert_eq!(report.unknown_format, 1);
+    assert!(report.downgrade_blocked);
+    assert_eq!(report.notes.len(), 2);
+    assert_eq!(report.notes[1], DOWNGRADE_NOTE);
+}
+#[test]
+fn classify_mutation_records_falls_back_to_a_generic_blocked_note_for_other_errors() {
+    for error in [
+        MutationError::Io,
+        MutationError::UnsupportedPlatform,
+        MutationError::PermissionDenied,
+    ] {
+        let report = classify_mutation_records(Err(error));
+        assert_eq!(report.pending, 0);
+        assert_eq!(report.terminal, 0);
+        assert_eq!(report.unknown_format, 0);
+        assert!(report.downgrade_blocked);
+        assert_eq!(
+            report.notes,
+            vec![
+                "The mutation journal store could not be read; treated as blocked until the condition is resolved."
+            ]
+        );
+    }
+}
+#[test]
+fn mutation_journals_is_empty_when_the_journal_directory_does_not_exist()
+-> Result<(), Box<dyn std::error::Error>> {
+    let state_root = std::env::temp_dir().join(format!(
+        "rust-mcp-doctor-unit-{}-{:?}",
+        std::process::id(),
+        std::time::SystemTime::now()
+    ));
+    std::fs::create_dir_all(&state_root)?;
+    let report = mutation_journals(&state_root);
+    std::fs::remove_dir_all(&state_root)?;
+    assert_eq!(report.pending, 0);
+    assert_eq!(report.terminal, 0);
+    assert!(!report.downgrade_blocked);
+    Ok(())
+}
+#[test]
+fn human_report_renders_the_mutation_journals_summary_line_and_null_is_omitted()
+-> Result<(), &'static str> {
+    let mut report = Report::new(false);
+    assert!(report.mutation_journals.is_none());
+    assert!(!report.human().contains("mutation_journals"));
+    report.mutation_journals = Some(classify_mutation_records(Ok(vec![record(
+        MutationKind::ManifestPatch,
+        MutationState::RecoveryRequired,
+    )?])));
+    let human = report.human();
+    assert!(human.contains(
+        "mutation_journals: pending=1 terminal=0 unknown_format=0 downgrade_blocked=true"
+    ));
+    Ok(())
+}
 #[test]
 fn failed_worker_never_attests_active_cleanup() {
     for active in [false, true] {

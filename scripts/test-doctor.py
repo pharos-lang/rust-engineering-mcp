@@ -131,7 +131,8 @@ def report_from(capture):
     report = json.loads(capture.data['stdout'])
     require(isinstance(report, dict) and set(report) == {
         'format_version', 'operation', 'mode', 'status', 'duration_ms',
-        'checks', 'catalog', 'runtime'}, 'Unexpected doctor report fields')
+        'checks', 'catalog', 'runtime', 'mutation_journals'},
+        'Unexpected doctor report fields')
     require(type(report['format_version']) is int and report['format_version'] == 1
             and report['operation'] == 'doctor'
             and report['mode'] == 'active', 'Wrong doctor format, operation or mode')
@@ -159,6 +160,22 @@ def report_from(capture):
                                     'run_active', 'review_runtime', 'refresh_snapshot_explicitly',
                                     'use_supported_platform', 'review_diagnostic'),
                 'Unknown diagnostic action')
+    journals = report['mutation_journals']
+    if journals is not None:
+        require(isinstance(journals, dict) and set(journals) == {
+            'pending', 'terminal', 'unknown_format', 'kinds',
+            'downgrade_blocked', 'downgrade_blocking_kinds', 'notes'},
+            'Unexpected mutation_journals fields')
+        require(type(journals['pending']) is int and journals['pending'] >= 0
+                and type(journals['terminal']) is int and journals['terminal'] >= 0
+                and type(journals['unknown_format']) is int and journals['unknown_format'] >= 0,
+                'Invalid mutation_journals counters')
+        require(isinstance(journals['kinds'], dict), 'Invalid mutation_journals kinds')
+        require(type(journals['downgrade_blocked']) is bool,
+                'Invalid mutation_journals downgrade_blocked')
+        require(isinstance(journals['downgrade_blocking_kinds'], list)
+                and isinstance(journals['notes'], list),
+                'Invalid mutation_journals lists')
     return report
 
 
@@ -202,6 +219,12 @@ def validate_success(report):
     fingerprints = [entry['execution_fingerprint'] for entry in executions]
     require(all(FINGERPRINT.fullmatch(value) for value in fingerprints)
             and len(set(fingerprints)) == 3, 'Invalid or reused execution fingerprints')
+    journals = report['mutation_journals']
+    require(journals is not None,
+            'Active doctor run with --state-root must report mutation_journals')
+    require(journals['pending'] == 0 and journals['terminal'] == 0
+            and journals['unknown_format'] == 0 and journals['downgrade_blocked'] is False,
+            'Empty state root must report a clean mutation_journals summary')
 
 
 def stalled_stdout(binary, root, output, label, interrupt):
@@ -364,6 +387,14 @@ def main():
                        output, 'ordinary', group=True)
         require(re.search(rb'test result: ok\. [1-9][0-9]* passed; 0 failed;', ordinary),
                 'Ordinary doctor tests did not execute successfully')
+
+        print('DOCTOR passive report omits mutation_journals without --state-root', flush=True)
+        passive = json.loads(run([binary, 'doctor', '--json'], {}, root, 30,
+                                 output=output, label='passive-no-state-root'))
+        require(isinstance(passive, dict) and 'mutation_journals' in passive
+                and passive['mutation_journals'] is None,
+                'Passive doctor without --state-root must report mutation_journals as null')
+        (output / 'passive-no-state-root.json').write_text(json.dumps(passive, indent=2) + '\n')
 
         def start(label):
             state = root / label

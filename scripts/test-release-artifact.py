@@ -69,8 +69,17 @@ class ReleaseArtifactTests(unittest.TestCase):
         root = release.root_package_id(metadata)
         with self.assertRaisesRegex(ValueError, "does not match"):
             release.validate_tag(metadata, "v0.1.0", root)
-        with self.assertRaisesRegex(ValueError, "stable semantic"):
-            release.validate_tag(metadata, "v0.1.1-rc.1", root)
+        for tag in ("v0.1.1-rc", "v0.1.1-rc.01", "v0.1.1-beta.1", "v0.1.1-rc.1+build"):
+            with self.subTest(tag=tag):
+                with self.assertRaisesRegex(ValueError, "stable semantic"):
+                    release.validate_tag(metadata, tag, root)
+
+    def test_tag_admits_release_candidate_suffix(self) -> None:
+        metadata = graph_metadata("0.9.0-rc.1")
+        root = release.root_package_id(metadata)
+        self.assertEqual(release.validate_tag(metadata, "v0.9.0-rc.1", root), "0.9.0-rc.1")
+        with self.assertRaisesRegex(ValueError, "does not match"):
+            release.validate_tag(metadata, "v0.9.0", root)
 
     def test_read_regular_rejects_symlink(self) -> None:
         with tempfile.TemporaryDirectory() as directory:

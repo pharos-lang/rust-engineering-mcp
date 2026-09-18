@@ -440,7 +440,7 @@ fn emit_quality_contract_snapshot() -> TestResult {
     let contract = Contract::<Input, Output>::new()?;
     println!(
         "M1_QUALITY_SCHEMA_SNAPSHOT {}",
-        serde_json::to_string(&definition(&contract))?
+        serde_json::to_string(&build_tool(&contract))?
     );
     Ok(())
 }

@@ -29,6 +29,17 @@ const PIPE_LIMIT: usize = 2 * 1024 * 1024;
 static SERIAL: Mutex<()> = Mutex::new(());
 static NEXT: AtomicUsize = AtomicUsize::new(0);
 
+// cargo-llvm-cov assigns a unique raw-profile pattern per test binary via
+// LLVM_PROFILE_FILE. Preserve only that instrumentation channel across
+// env_clear() on the product binary; the process still receives no host
+// PATH, credentials or ambient configuration.
+fn instrumented(command: &mut Command) -> &mut Command {
+    if let Some(profile) = std::env::var_os("LLVM_PROFILE_FILE") {
+        command.env("LLVM_PROFILE_FILE", profile);
+    }
+    command
+}
+
 struct Fixture {
     root: PathBuf,
     project: PathBuf,
@@ -379,6 +390,7 @@ impl Server {
             .arg(DOCKER)
             .arg("--docker-socket")
             .arg(&fixture.socket);
+        instrumented(&mut command);
         if delay_phase.is_some() || force_uncertain {
             command.env("RUST_MCP_TEST_TASKS_READY", "1");
         }

@@ -2,7 +2,14 @@
 
 ## Estado actual
 
-El binario acepta ayuda, versión y `serve --stdio` con roots/TTL fijados por el
+El checkout `0.8.0` expone 36 tools (31 `stable`, 5 `preview`), que incluyen
+ejecución de código del proyecto en el gateway Docker, escritura local concedida
+por el host y catálogo local. Las secciones siguientes documentan cada hito desde
+M0. La referencia vigente es el [modelo de seguridad](docs/security-model.md),
+con su lista de [riesgos residuales 1.0](docs/security-model.md#riesgos-residuales-10),
+junto con el [threat model M8-08](docs/validation/M8/08-threat-model.md).
+
+En el corte M0, el binario aceptaba ayuda, versión y `serve --stdio` con roots/TTL fijados por el
 host. `rust.project.open` lee manifests dentro de capacidades de directorio y
 registra referencias de proceso; no ejecuta Cargo/procesos ni consulta catálogos
 o sockets. El acceso inicial exige macOS 26+ / APFS y flags de kernel verificados;
@@ -46,8 +53,9 @@ Reportar vulnerabilidades mediante
 [GitHub private vulnerability reporting](https://github.com/pharos-lang/rust-engineering-mcp/security/advisories/new),
 con versión o commit, plataforma, pasos de reproducción e impacto. No abrir una
 incidencia pública antes de coordinar la corrección y no incluir secretos reales en
-fixtures o logs. No existe todavía una versión binaria soportada; el código público
-permanece en desarrollo.
+fixtures o logs. Las releases binarias publicadas contienen solo el core macOS
+ARM64 ([publicación](docs/publication.md)); [ADR-087](docs/adr/ADR-087-1.0-host-scope.md)
+limita 1.0 a ese host.
 
 ## Gateway M0-05
 

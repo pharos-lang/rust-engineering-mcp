@@ -22,12 +22,17 @@ useful cross-platform evidence but do not advertise sandbox/filesystem capabilit
 that still fail closed outside qualified adapters.
 
 The manual `.github/workflows/release-candidate.yml` workflow must be dispatched from
-an existing version tag. ADR-048 restricts 0.1.0 to one macOS ARM64 core archive
+an existing version tag, either a stable `vX.Y.Z` tag or a release-candidate
+`vX.Y.Z-rc.N` tag (`validate-ref` accepts both; the archive/checksum naming and the
+tag-equals-workspace-version check are identical either way, with no suffix
+trimming). ADR-048 restricts 0.1.0 to one macOS ARM64 core archive
 with a target-specific inventory, SPDX SBOM, third-party notices, manifest and
 checksums. The workflow must install and exercise those same bytes before creating
-GitHub OIDC provenance and a draft prerelease. A draft is not a supported release.
-The archive contains no model, ORT, LanceDB, catalog, trust, fixtures, Docker image
-or toolchain; the complete `local` profile remains qualified from source.
+GitHub OIDC provenance and a draft prerelease. A draft is not a supported release,
+and a release-candidate tag never is either — RC tags exist to qualify a workspace
+version before it ships as a stable tag. The archive contains no model, ORT,
+LanceDB, catalog, trust, fixtures, Docker image or toolchain; the complete `local`
+profile remains qualified from source.
 
 GitHub OIDC signs the build-provenance statement without a repository-held private
 key. Signed catalog snapshots use a separate Ed25519 protocol defined by ADR-041.
@@ -53,3 +58,62 @@ contain the single macOS ARM64 core archive, checksums and smoke receipt. The
 `33948778666`, SonarCloud run `33948778651`, tag-bound workflow `33948798048`,
 asset hashes, independent download/smoke and attestations verified against the
 exact signer workflow and source commit.
+
+The 0.8.0/1.0 artifact boundary is unchanged from 0.1.0: one macOS ARM64 core
+archive ([ADR-048](adr/ADR-048-0.1.0-qualification-and-artifact-boundary.md),
+reconfirmed for 1.0 by [ADR-087](adr/ADR-087-1.0-host-scope.md)). D14
+([`docs/roadmap/adr-backlog-m2-m8.md`](roadmap/adr-backlog-m2-m8.md) §D14,
+[ADR-090](adr/ADR-090-offline-verification-and-incident-response.md)) keeps
+GitHub OIDC provenance and adds the two sections below.
+
+## Offline verification
+
+Every release publishes, next to the core archive: `SHA256SUMS`, the SPDX SBOM
+(`sbom.spdx.json`), third-party notices (`THIRD_PARTY_NOTICES.txt`), and the
+Sigstore attestation bundle that `actions/attest-build-provenance` attaches to
+the workflow run. Two verification paths exist, neither of which claims
+byte-for-byte binary reproducibility:
+
+- **With the `gh` CLI installed:**
+
+  ```sh
+  gh attestation verify --bundle <downloaded-bundle> --owner pharos-lang \
+    rust-engineering-mcp-vX.Y.Z-aarch64-apple-darwin.tar.gz
+  ```
+
+  This reconstructs the Sigstore trust chain to the exact signer workflow
+  (`pharos-lang/rust-engineering-mcp/.github/workflows/release-candidate.yml`)
+  without network access beyond the initial, `gh`-cached fetch of Sigstore's
+  public root keys. Repeat for `SHA256SUMS` and `release-smoke-receipt.json`
+  if those bytes were downloaded independently of the archive.
+- **Without `gh` (minimal, integrity-only):**
+
+  ```sh
+  shasum -a 256 -c SHA256SUMS
+  ```
+
+  followed by inspecting `inventory.json` inside the extracted archive for the
+  expected target and version. This path confirms the installed bytes match
+  the published bytes at download time; it does not authenticate the
+  publisher the way `gh attestation verify` does.
+
+## Incident response
+
+1. **Publication credential.** The only publication credential is the
+   short-lived OIDC token issued to the `release-candidate.yml` workflow,
+   scoped by its minimal `permissions:` (`id-token: write` and
+   `attestations: write` only in the `build` job; `contents: write` only in
+   `draft`) and gated by branch/tag protection plus CODEOWNERS review of the
+   workflow itself. There is no long-lived publication secret to rotate.
+2. **If a published asset is compromised:** the asset is removed from the
+   GitHub Release, a security advisory is published per
+   [`SECURITY.md`](../SECURITY.md), and a new tag is cut from a verified clean
+   source. Prior attestations are bound by `subject-path` to the exact digest
+   of the compromised archive, so no new digest can reuse an old attestation
+   and no old attestation validates a new digest; there is no separate
+   "revocation" step beyond ceasing distribution and publishing the advisory.
+3. **Separation from catalog signing.** The Ed25519 catalog-bundle signature
+   ([ADR-041](adr/ADR-041-authenticated-catalog-bundles.md)) is an unrelated
+   protocol: it signs catalog bundles, not release assets, and has its own
+   trust file with rotation and revocation by public-key replacement,
+   independent of GitHub OIDC and Sigstore.

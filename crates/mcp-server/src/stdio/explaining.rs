@@ -33,7 +33,7 @@ const MAX_RESULT: usize = 512 * 1024;
 const MAX_EXPLANATION: usize = 64 * 1024;
 #[derive(Deserialize, JsonSchema)]
 #[serde(deny_unknown_fields)]
-struct Input {
+pub(super) struct Input {
     #[schemars(with = "String", regex(pattern = "^E[0-9]{4}$"))]
     code: DiagnosticCode,
 }
@@ -96,7 +96,7 @@ struct Truncation {
 }
 #[derive(Serialize, JsonSchema)]
 #[serde(deny_unknown_fields)]
-struct Output {
+pub(super) struct Output {
     #[serde(flatten)]
     outcome: Outcome,
     summary: &'static str,
@@ -333,16 +333,21 @@ pub(super) struct ExplainTool {
     inspector: Arc<RustProjectInspector>,
     ready: Arc<AtomicBool>,
 }
+pub(super) fn definition() -> Result<(Contract<Input, Output>, Tool), ErrorData> {
+    let contract = Contract::<Input, Output>::new()?;
+    let definition=Tool::new(NAME,"Explain one validated Rust compiler error code using the host-approved offline compiler. Returns bounded installed-compiler text with runtime identity and latest_known evidence. Requires completed discovery and explicit host runtime policy; no project reference or project code is used.",(*contract.input_schema).clone())
+        .with_raw_output_schema(Arc::clone(&contract.output_schema))
+        .with_annotations(ToolAnnotations::new().read_only(true).destructive(false).idempotent(true).open_world(false));
+    Ok((contract, definition))
+}
+
 impl ExplainTool {
     pub(super) fn new(
         workers: Workers,
         inspector: Arc<RustProjectInspector>,
         ready: Arc<AtomicBool>,
     ) -> Result<Self, ErrorData> {
-        let contract = Contract::<Input, Output>::new()?;
-        let definition=Tool::new(NAME,"Explain one validated Rust compiler error code using the host-approved offline compiler. Returns bounded installed-compiler text with runtime identity and latest_known evidence. Requires completed discovery and explicit host runtime policy; no project reference or project code is used.",(*contract.input_schema).clone())
-            .with_raw_output_schema(Arc::clone(&contract.output_schema))
-            .with_annotations(ToolAnnotations::new().read_only(true).destructive(false).idempotent(true).open_world(false));
+        let (contract, definition) = definition()?;
         Ok(Self {
             definition,
             contract,

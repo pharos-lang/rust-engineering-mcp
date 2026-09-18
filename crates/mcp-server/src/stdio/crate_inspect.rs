@@ -34,7 +34,7 @@ fn limit() -> u32 {
 }
 #[derive(Deserialize, JsonSchema)]
 #[serde(deny_unknown_fields)]
-struct Input {
+pub(super) struct Input {
     #[schemars(length(min = 1, max = 64), regex(pattern = "^[A-Za-z0-9_-]+$"))]
     name: String,
     #[serde(default = "section")]
@@ -142,7 +142,7 @@ enum LocalEvidence {
 }
 #[derive(Clone, Serialize, JsonSchema)]
 #[serde(deny_unknown_fields)]
-struct Output {
+pub(super) struct Output {
     #[serde(flatten)]
     outcome: Outcome,
     summary: &'static str,
@@ -295,16 +295,22 @@ pub(super) struct CrateInspectTool {
     provider: Arc<CatalogProvider>,
     ready: Arc<AtomicBool>,
 }
+pub(super) fn definition() -> Result<(Contract<Input, Output>, Tool), ErrorData> {
+    let contract = Contract::<Input, Output>::new()?;
+    let definition=Tool::new(NAME,"Inspect authoritative SQLite crate facts by section and exact version. Continue pages with the returned snapshot fingerprint and next offset. Missing documentation or package source stays unknown; listed advisory IDs do not establish safety. No downloads, refresh, model requirement or project authority.",(*contract.input_schema).clone())
+        .with_raw_output_schema(Arc::clone(&contract.output_schema))
+        .with_annotations(ToolAnnotations::new().read_only(true).destructive(false).idempotent(true).open_world(false));
+    Ok((contract, definition))
+}
+
 impl CrateInspectTool {
     pub(super) fn new(
         workers: Workers,
         ready: Arc<AtomicBool>,
         provider: Arc<CatalogProvider>,
     ) -> Result<Self, ErrorData> {
-        let contract = Arc::new(Contract::<Input, Output>::new()?);
-        let definition=Tool::new(NAME,"Inspect authoritative SQLite crate facts by section and exact version. Continue pages with the returned snapshot fingerprint and next offset. Missing documentation or package source stays unknown; listed advisory IDs do not establish safety. No downloads, refresh, model requirement or project authority.",(*contract.input_schema).clone())
-            .with_raw_output_schema(Arc::clone(&contract.output_schema))
-            .with_annotations(ToolAnnotations::new().read_only(true).destructive(false).idempotent(true).open_world(false));
+        let (contract, definition) = definition()?;
+        let contract = Arc::new(contract);
         Ok(Self {
             definition,
             contract,

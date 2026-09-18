@@ -3335,6 +3335,11 @@ Para 0.1.0, ADR-048 califica y publica únicamente macOS ARM64. Linux y Windows
 conservan CI de portabilidad/fail-closed, pero no se presentan como hosts de
 capabilities positivas ni reciben artifacts 0.1.0.
 
+Aclaración de alcance 1.0 (ADR-087, 2026-09-14): la matriz anterior sigue
+siendo aspiracional; 1.0 califica y publica únicamente macOS ARM64;
+Linux/Windows conservan CI de portabilidad sin capabilities positivas ni
+artifacts.
+
 Artefactos:
 
 ```text
@@ -4558,6 +4563,12 @@ Criterios:
 - protocol compatibility matrix;
 - upgrade process;
 - release signing.
+
+`cross-platform` se resuelve por cambio de alcance aprobado por el owner, no
+por la matriz aspiracional de §61: 1.0 califica y publica únicamente macOS
+ARM64 con gateway Docker Linux ARM64; Linux/Windows x86_64 conservan CI de
+portabilidad/fail-closed sin capabilities positivas ni artifact
+([ADR-087](../adr/ADR-087-1.0-host-scope.md)).
 
 ---
 

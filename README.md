@@ -8,6 +8,7 @@
 [![Coverage](https://sonarcloud.io/api/project_badges/measure?project=pharos-lang_rust-engineering-mcp&metric=coverage)](https://sonarcloud.io/summary/new_code?id=pharos-lang_rust-engineering-mcp)
 [![Rust 1.98.1](https://img.shields.io/badge/Rust-1.98.1-000000?logo=rust)](rust-toolchain.toml)
 [![License](https://img.shields.io/badge/license-MIT%20OR%20Apache--2.0-blue.svg)](LICENSE)
+[![M8ven Score](https://m8ven.ai/badge/mcp/pharos-lang/rust-engineering-mcp)](https://m8ven.ai/mcp/pharos-lang/rust-engineering-mcp)
 
 Rust Engineering MCP conecta agentes compatibles con [Model Context Protocol
 (MCP)](https://modelcontextprotocol.io/) con proyectos Rust locales. Expone
@@ -19,18 +20,22 @@ El servidor usa transporte MCP por `stdio`. Las trece tools de la release
 `0.1.0` observan y validan sin modificar el source. M4 y M5 están cerrados e
 integrados en `main`, M5 publicado como release `0.3.0`: esa release registra
 31 tools (las 18 de M1/M2, las cuatro tools de calidad M3, cinco tools M4 y
-cuatro tools de rendimiento M5). El checkout de desarrollo, aún en versión
-`0.3.0`, añade las cinco tools de análisis M6 —`rust.analyzer.symbols`,
+cuatro tools de rendimiento M5). El checkout de desarrollo, en versión
+`0.9.0-rc.1` (primer release candidate M8-09; el freeze de contratos `0.8.0`
+sigue vigente, sin cambios de contrato), añade las cinco tools de análisis M6 —`rust.analyzer.symbols`,
 `rust.analyzer.references`, `rust.analyzer.diagnostics`,
-`rust.analyzer.actions` y `rust.analyzer.action.apply`— y registra 36; solo
-M6 está en desarrollo local, sin integración remota ni release.
+`rust.analyzer.actions` y `rust.analyzer.action.apply`— y registra 36; M6
+está integrado en `main` (PR #20, `e50c3fe`) y calificado (clase `preview`,
+ver docs/compatibility.md), sin tag ni release todavía.
 
 > [!IMPORTANT]
 > La versión estable actual es `0.3.0`. GitHub Releases publica un único binario core
 > soportado para Apple Silicon (`aarch64-apple-darwin`); la ejecución completa se ha
-> calificado localmente en macOS 26 y APFS. La CI compila y prueba el código en Linux,
-> macOS y Windows, pero eso no amplía las garantías del sandbox o del filesystem ni
-> anuncia binarios para esas otras plataformas.
+> calificado localmente en macOS 26 y APFS. Por [ADR-087](docs/adr/ADR-087-1.0-host-scope.md),
+> 1.0 también califica y publica únicamente macOS ARM64. Linux y Windows x86_64
+> conservan CI de portabilidad/fail-closed (Windows retirado temporalmente el
+> 2026-09-13, deuda de portabilidad) sin capabilities positivas ni artifact; ver
+> [docs/compatibility.md](docs/compatibility.md).
 
 ## Funcionalidades
 
@@ -163,6 +168,12 @@ servidor en otro sistema operativo o filesystem.
 
 ## Instalar la release macOS ARM64
 
+Si no existe una release **soportada** publicada para la versión de este
+checkout (`0.9.0-rc.1`, primer release candidate M8-09; el tag
+`v0.9.0-rc.1` publica un draft prerelease, no una release soportada), usa
+[Compilar desde el código fuente](#compilar-desde-el-código-fuente); las
+releases soportadas publicadas hoy son `v0.1.0` y `v0.3.0`.
+
 Descarga el archive y `SHA256SUMS` desde la
 [release v0.3.0](https://github.com/pharos-lang/rust-engineering-mcp/releases/tag/v0.3.0),
 verifica los bytes y extráelos en un directorio nuevo:
@@ -202,6 +213,11 @@ Comprueba el binario y su configuración pasiva:
 `doctor` no instala, descarga ni repara componentes. Devuelve `warning` cuando una
 capacidad opcional no está configurada. Usa `--help` para consultar todos los
 comandos y opciones disponibles.
+
+La cabecera de `--help` se autodescribe como «Rust Engineering MCP —
+development server» porque el binario se ejecuta desde un checkout de
+desarrollo; la release publicada muestra el mismo texto literal, y no cambia
+el contrato del CLI ni de las tools.
 
 ## Iniciar el servidor
 
@@ -430,6 +446,30 @@ Ejecuta el quality gate standard y enumera las etapas fallidas o bloqueadas.
 
 Busca crates de serialización compatibles con Rust 1.98.1 en el catálogo local.
 ```
+
+## Operación: backup, restore y rollback
+
+Ningún formato en disco requiere migración entre `0.3.0` y `0.8.0`
+([ADR-088](docs/adr/ADR-088-migration-rollback-policy.md)); no hay CLI de
+backup dedicada.
+
+- **Backup:** para el servidor y copia `--state-root`, `--catalog-store` y
+  `--catalog-trust` como árboles de archivos ordinarios.
+- **Restore:** copia el backup de vuelta y valida con
+  `rust-engineering-mcp doctor --json` antes de reanudar `serve`. Un backup
+  restaurado no autoriza sobrescribir cambios posteriores del workspace: el
+  journal de mutaciones los detecta como `Conflict`.
+- **Rollback de binario:** con el servidor parado, resuelve cualquier journal
+  de mutación pendiente con el binario nuevo o con `mutation prune` explícito
+  antes de instalar una versión anterior; `doctor` lista los journals
+  pendientes (sección `mutation_journals`) para revisarlos antes del
+  downgrade. Los floors de secuencia del catálogo (bundle de confianza) no
+  retroceden: un binario anterior sigue rechazando un bundle de secuencia
+  menor.
+
+Detalle completo, tabla de los diez formatos y la prueba con dos binarios
+reales: [`docs/compatibility.md` §Upgrade, rollback y
+backup](docs/compatibility.md#upgrade-rollback-y-backup).
 
 ## Seguridad
 

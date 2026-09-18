@@ -196,6 +196,17 @@ pub(crate) fn parse(mut args: impl Iterator<Item = OsString>) -> Option<stdio::H
         if index_store.is_some() && model_dir.is_none() {
             return None;
         }
+        let outside_roots =
+            |path: &PathBuf| !config.roots.iter().any(|root| path.starts_with(root));
+        if !outside_roots(&store)
+            || !outside_roots(&trust)
+            || model_dir.as_ref().is_some_and(|path| !outside_roots(path))
+            || index_store
+                .as_ref()
+                .is_some_and(|path| !outside_roots(path))
+        {
+            return None;
+        }
         config.catalog = Some(stdio::HostCatalogConfig {
             store,
             trust,
@@ -214,7 +225,11 @@ pub(crate) fn parse(mut args: impl Iterator<Item = OsString>) -> Option<stdio::H
     };
     config.audit = match (audit_path, audit_fingerprint) {
         (None, None) => None,
-        (Some(path), Some(fingerprint)) => Some(stdio::HostAuditConfig { path, fingerprint }),
+        (Some(path), Some(fingerprint))
+            if !config.roots.iter().any(|root| path.starts_with(root)) =>
+        {
+            Some(stdio::HostAuditConfig { path, fingerprint })
+        }
         _ => return None,
     };
     config.cargo_vendor = match (vendor_path, vendor_fingerprint) {
@@ -571,6 +586,187 @@ mod tests {
     }
 }
 
+#[cfg(test)]
+mod audit_tests {
+    use super::*;
+    #[cfg(unix)]
+    const PROJECT_ROOT: &str = "/workspace";
+    #[cfg(unix)]
+    const SNAPSHOT: &str = "/trusted/snapshot.json";
+    #[cfg(unix)]
+    const PROJECT_SNAPSHOT: &str = "/workspace/snapshot.json";
+    #[cfg(unix)]
+    const OTHER_SNAPSHOT: &str = "/other-snapshot.json";
+    #[cfg(windows)]
+    const PROJECT_ROOT: &str = r"C:\workspace";
+    #[cfg(windows)]
+    const SNAPSHOT: &str = r"C:\trusted\snapshot.json";
+    #[cfg(windows)]
+    const PROJECT_SNAPSHOT: &str = r"C:\workspace\snapshot.json";
+    #[cfg(windows)]
+    const OTHER_SNAPSHOT: &str = r"C:\other-snapshot.json";
+    /// F-06: `--rustsec-snapshot`/`--rustsec-sha256` are closed, paired,
+    /// absolute and must land outside every `--root`, mirroring
+    /// `--security-policy` — a doctor.mutation_journals-adjacent flag pair
+    /// that never needs the file to actually exist on disk to be validated.
+    #[test]
+    fn rustsec_snapshot_flags_are_paired_closed_absolute_and_outside_project_roots() {
+        let digest = format!("sha256:{:064x}", 7);
+        let make = |args: Vec<&str>| parse(args.into_iter().map(OsString::from));
+        let accepted = make(vec![
+            "--root",
+            PROJECT_ROOT,
+            "--rustsec-snapshot",
+            SNAPSHOT,
+            "--rustsec-sha256",
+            &digest,
+        ])
+        .and_then(|config| config.audit);
+        assert!(
+            matches!(&accepted, Some(audit)
+                if audit.path.as_os_str() == OsStr::new(SNAPSHOT)
+                    && audit.fingerprint.as_str() == digest),
+            "a complete pair outside every root is accepted verbatim"
+        );
+        for flags in [
+            vec!["--rustsec-snapshot", SNAPSHOT],
+            vec!["--rustsec-sha256", &digest],
+            vec![
+                "--rustsec-snapshot",
+                "relative.json",
+                "--rustsec-sha256",
+                &digest,
+            ],
+            vec![
+                "--root",
+                PROJECT_ROOT,
+                "--rustsec-snapshot",
+                PROJECT_SNAPSHOT,
+                "--rustsec-sha256",
+                &digest,
+            ],
+            vec![
+                "--rustsec-snapshot",
+                SNAPSHOT,
+                "--rustsec-sha256",
+                "sha256:bad",
+            ],
+            vec![
+                "--rustsec-snapshot",
+                SNAPSHOT,
+                "--rustsec-sha256",
+                &digest,
+                "--rustsec-snapshot",
+                OTHER_SNAPSHOT,
+            ],
+        ] {
+            assert!(make(flags).is_none());
+        }
+    }
+}
+#[cfg(test)]
+mod catalog_tests {
+    use super::*;
+    #[cfg(unix)]
+    const PROJECT_ROOT: &str = "/workspace";
+    #[cfg(unix)]
+    const STORE: &str = "/trusted/store";
+    #[cfg(unix)]
+    const TRUST: &str = "/trusted/trust.json";
+    #[cfg(unix)]
+    const MODEL_DIR: &str = "/trusted/model";
+    #[cfg(unix)]
+    const INDEX_STORE: &str = "/trusted/index";
+    #[cfg(unix)]
+    const PROJECT_STORE: &str = "/workspace/store";
+    #[cfg(unix)]
+    const PROJECT_TRUST: &str = "/workspace/trust.json";
+    #[cfg(unix)]
+    const PROJECT_MODEL_DIR: &str = "/workspace/model";
+    #[cfg(unix)]
+    const PROJECT_INDEX_STORE: &str = "/workspace/index";
+    #[cfg(windows)]
+    const PROJECT_ROOT: &str = r"C:\workspace";
+    #[cfg(windows)]
+    const STORE: &str = r"C:\trusted\store";
+    #[cfg(windows)]
+    const TRUST: &str = r"C:\trusted\trust.json";
+    #[cfg(windows)]
+    const MODEL_DIR: &str = r"C:\trusted\model";
+    #[cfg(windows)]
+    const INDEX_STORE: &str = r"C:\trusted\index";
+    #[cfg(windows)]
+    const PROJECT_STORE: &str = r"C:\workspace\store";
+    #[cfg(windows)]
+    const PROJECT_TRUST: &str = r"C:\workspace\trust.json";
+    #[cfg(windows)]
+    const PROJECT_MODEL_DIR: &str = r"C:\workspace\model";
+    #[cfg(windows)]
+    const PROJECT_INDEX_STORE: &str = r"C:\workspace\index";
+    /// F-06: every `--catalog-*` path (store, trust, and the optional
+    /// model-dir/index-store pair) must land outside every `--root`,
+    /// exactly on the same `outside_roots` closure; none require the path to
+    /// exist, since `host_config::parse` only compares prefixes.
+    #[test]
+    fn catalog_paths_must_each_land_outside_every_project_root() {
+        let make = |args: Vec<&str>| parse(args.into_iter().map(OsString::from));
+        let complete = |store: &str, trust: &str, model_dir: &str, index_store: &str| {
+            make(vec![
+                "--root",
+                PROJECT_ROOT,
+                "--catalog-store",
+                store,
+                "--catalog-trust",
+                trust,
+                "--catalog-model-dir",
+                model_dir,
+                "--catalog-index-store",
+                index_store,
+            ])
+        };
+        let accepted = complete(STORE, TRUST, MODEL_DIR, INDEX_STORE).and_then(|c| c.catalog);
+        assert!(
+            matches!(&accepted, Some(catalog)
+                if catalog.store.as_os_str() == OsStr::new(STORE)
+                    && catalog.trust.as_os_str() == OsStr::new(TRUST)
+                    && catalog.model_dir.as_deref() == Some(std::path::Path::new(MODEL_DIR))
+                    && catalog.index_store.as_deref() == Some(std::path::Path::new(INDEX_STORE))),
+            "every catalog path outside the root is accepted verbatim"
+        );
+        assert!(complete(PROJECT_STORE, TRUST, MODEL_DIR, INDEX_STORE).is_none());
+        assert!(complete(STORE, PROJECT_TRUST, MODEL_DIR, INDEX_STORE).is_none());
+        assert!(complete(STORE, TRUST, PROJECT_MODEL_DIR, INDEX_STORE).is_none());
+        assert!(complete(STORE, TRUST, MODEL_DIR, PROJECT_INDEX_STORE).is_none());
+        // An index store without a model dir is refused before the root check.
+        assert!(
+            make(vec![
+                "--root",
+                PROJECT_ROOT,
+                "--catalog-store",
+                STORE,
+                "--catalog-trust",
+                TRUST,
+                "--catalog-index-store",
+                INDEX_STORE,
+            ])
+            .is_none()
+        );
+        // Store and trust alone (no model dir or index store) are still
+        // validated against every root.
+        let minimal = make(vec![
+            "--root",
+            PROJECT_ROOT,
+            "--catalog-store",
+            STORE,
+            "--catalog-trust",
+            TRUST,
+        ])
+        .and_then(|c| c.catalog);
+        assert!(
+            matches!(&minimal, Some(catalog) if catalog.model_dir.is_none() && catalog.index_store.is_none())
+        );
+    }
+}
 #[cfg(test)]
 mod security_tests {
     use super::*;

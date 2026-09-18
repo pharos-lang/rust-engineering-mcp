@@ -1,0 +1,143 @@
+{
+  "schema": "rust-mcp-m8-07-release-rehearsal-v1",
+  "format_version": 1,
+  "generated_utc": "2026-09-15T03:00:14.000Z",
+  "head_commit": "86a50074e80ef860d5db39ff4691304429ee6be7",
+  "tree_dirty": true,
+  "tree_dirty_detail": "This rehearsal (W24b) was commissioned as 'over committed bytes at HEAD 86a5007, clean tree', but git status --short was not actually empty when the rehearsal ran: docs/validation/M8/05-budgets.json, docs/validation/M8/05-measurement.json and docs/validation/M8/05.md carry uncommitted M8-05 perf-budget recalibration edits (dated 2026-09-15, unrelated to this task), plus an untracked docs/validation/M8/clients/attempt-14/ directory. Confirmed archive_size_core_bytes stayed unchanged at 12700000 in the dirty 05-budgets.json (only latency/RSS/binary-size magnitudes were recalibrated), so the budget comparison below is unaffected. All packaging/build inputs (Cargo.toml, Cargo.lock, src/, scripts/release-artifact.py, scripts/release-smoke.py, scripts/contract-freeze.py, docs/validation/M8/freeze-0.8.0.json) were unmodified and matched HEAD exactly; only the two unrelated docs files above and the untracked client-matrix directory were dirty.",
+  "scope": {
+    "adr": "ADR-087 (aarch64-apple-darwin only)",
+    "simulated_tag": "v0.8.0",
+    "target": "aarch64-apple-darwin",
+    "note": "No tag was created and nothing was pushed or published; --tag v0.8.0 is a local packaging argument matching Cargo.toml's committed version."
+  },
+  "budget": {
+    "source": "docs/validation/M8/05-budgets.json#archive_size_core_bytes",
+    "budget_bytes": 12700000,
+    "archive_bytes": 10423020,
+    "pct_of_budget": 82.07,
+    "verdict": "within"
+  },
+  "artifacts": {
+    "archive": {
+      "name": "rust-engineering-mcp-v0.8.0-aarch64-apple-darwin.tar.gz",
+      "bytes": 10423020,
+      "sha256": "1624d6d832965b89d7d239e0ed63cb8dc516988eaa6a4b764a27ba432163bb1a"
+    },
+    "sha256sums": {
+      "name": "SHA256SUMS",
+      "bytes": 122,
+      "sha256": "43dbb5d964743e644e9eed66f97f72b3eeb602a68442c150a9c75762670446fa"
+    },
+    "release_smoke_receipt": {
+      "name": "release-smoke-receipt.json",
+      "bytes": 4980,
+      "sha256": "9463f2064cb4d0815a28391d58d6225f183947f689f5d8d38e19c5a87b106b4c"
+    },
+    "archive_members": 11,
+    "inventory_packages": 221,
+    "sbom_relationships": 563
+  },
+  "steps": [
+    {
+      "id": 1,
+      "description": "Confirm the workspace version matches the tag under rehearsal.",
+      "command": ["grep", "-m1", "^version", "Cargo.toml"],
+      "exit_code": 0,
+      "excerpt": "version = \"0.8.0\""
+    },
+    {
+      "id": 2,
+      "description": "Rebuild the release binary locked and offline against the current working tree (already up to date at HEAD 86a5007; no recompilation needed).",
+      "command": ["cargo", "build", "--release", "--locked", "--offline", "-p", "rust-engineering-mcp"],
+      "exit_code": 0,
+      "excerpt": "Finished `release` profile [optimized] target(s) in 0.22s"
+    },
+    {
+      "id": 3,
+      "description": "Verify the current tool snapshots against the committed 0.8.0 freeze manifest before packaging.",
+      "command": ["python3", "-B", "scripts/contract-freeze.py", "verify", "docs/validation/M8/freeze-0.8.0.json", "--strict"],
+      "exit_code": 0,
+      "excerpt": "{\"class_changed\": [], \"format_errors\": [], \"preview_changed\": [], \"stable_changed\": [], \"status\": \"passed\"}"
+    },
+    {
+      "id": 4,
+      "description": "Build the deterministic core archive, inventory, SPDX SBOM and third-party notices from the built binary.",
+      "command": ["python3", "-B", "scripts/release-artifact.py", "--binary", "target/release/rust-engineering-mcp", "--target", "aarch64-apple-darwin", "--tag", "v0.8.0", "--output-dir", "target/m8-release-regen/dist"],
+      "exit_code": 0,
+      "excerpt": "{\"status\": \"passed\", \"archive_sha256\": \"1624d6d8...\", \"packages\": 221, \"target\": \"aarch64-apple-darwin\", \"tag\": \"v0.8.0\"}"
+    },
+    {
+      "id": 5,
+      "description": "Compare the generated archive size against the archive_size_core_bytes budget (12.7 MB; confirmed unchanged in the dirty 05-budgets.json).",
+      "command": ["python3", "-c", "os.path.getsize(archive) vs 12700000"],
+      "exit_code": 0,
+      "excerpt": "10423020 bytes, 82.07% of budget, within"
+    },
+    {
+      "id": 6,
+      "description": "Copy the archive and SHA256SUMS into a fresh clean directory under target/, simulating a clean download separate from the build output directory.",
+      "command": ["cp", "target/m8-release-regen/dist/rust-engineering-mcp-v0.8.0-aarch64-apple-darwin.tar.gz", "target/m8-release-regen/dist/SHA256SUMS", "target/m8-release-regen/clean-download/"],
+      "exit_code": 0,
+      "excerpt": "2 files copied"
+    },
+    {
+      "id": 7,
+      "description": "release-smoke.py from the clean-download directory: extracts, verifies SHA-256 against SHA256SUMS, installs into an ephemeral 0700 directory, runs --version/version --json/doctor --json, then serve --stdio with tools/list (36, exact hash match against the committed contract) and four representative tools/call requests, tears down and confirms no leaked process group. Passed on the first attempt: the two TOOL_SCHEMA_SHA256 pins fixed during W24 (rust.binary.bloat, rust.analyzer.action.apply) are already correct on the committed tree.",
+      "command": ["python3", "-B", "scripts/release-smoke.py", "--archive", "target/m8-release-regen/clean-download/rust-engineering-mcp-v0.8.0-aarch64-apple-darwin.tar.gz", "--sha256sums", "target/m8-release-regen/clean-download/SHA256SUMS", "--tag", "v0.8.0", "--target", "aarch64-apple-darwin", "--output-receipt", "target/m8-release-regen/clean-download/release-smoke-receipt.json"],
+      "exit_code": 0,
+      "excerpt": "{\"status\": \"passed\", \"members\": 11, \"packages\": 221, \"tools\": 36}"
+    },
+    {
+      "id": 8,
+      "description": "Regression guard: full release-smoke.py unit test suite.",
+      "command": ["python3", "-B", "scripts/test-release-smoke.py"],
+      "exit_code": 0,
+      "excerpt": "Ran 9 tests in 0.010s / OK"
+    },
+    {
+      "id": 9,
+      "description": "Extracted the clean-download archive to a manual install directory and ran version --json, doctor --json and contract --json directly against the archived binary (independent of release-smoke.py's own install/verify path); confirmed by field-level comparison that description_sha256/input_schema_sha256/output_schema_sha256/stability/annotations match docs/validation/M8/freeze-0.8.0.json exactly for all 36 tools (the freeze manifest also carries snapshot_sha256 and the live contract carries executes_project_code/requires_runtime, which are additive fields outside the compared set, not mismatches).",
+      "command": ["tar", "-xzf", "rust-engineering-mcp-v0.8.0-aarch64-apple-darwin.tar.gz"],
+      "exit_code": 0,
+      "excerpt": "version.version=0.8.0; doctor.mode=passive,status=warning; contract.tool_count=36, per-tool description/input/output schema hashes and annotations match freeze-0.8.0.json for all 36 tools, 0 mismatches"
+    },
+    {
+      "id": 10,
+      "description": "Manual MCP stdio session against the extracted binary: initialize, tools/list, resources/templates/list.",
+      "command": ["serve", "--stdio"],
+      "exit_code": 0,
+      "excerpt": "tools/list: 36 tools; resources/templates/list: 2 templates — rust-artifact://{project_ref}/{artifact_id} and rust-quality-artifact://{project_ref}/{quality_job_id_or_artifact_id}{?offset,length} (RFC 6570 form, confirmed — this corrects the stale ?offset={n}&length={n} form cited in prior evidence per V03b P2-3)"
+    },
+    {
+      "id": 11,
+      "description": "Cleanup: removed the local rehearsal scratch directory under target/ (clean-download copies, manual install, dist output).",
+      "command": ["rm", "-rf", "target/m8-release-regen"],
+      "exit_code": 0,
+      "excerpt": "removed"
+    }
+  ],
+  "found_and_fixed": [],
+  "notes": [
+    "The tree was not clean when this rehearsal ran (see tree_dirty_detail), unlike the premise this task was commissioned under. All packaging/build inputs matched HEAD 86a5007 exactly; the two dirty docs files (05-budgets.json, 05-measurement.json, 05.md) hold an unrelated M8-05 perf-budget recalibration that left archive_size_core_bytes unchanged, and the untracked docs/validation/M8/clients/attempt-14/ directory is unrelated client-matrix evidence. Neither was read from, written to, or otherwise used by this rehearsal.",
+    "V03b P2-3 (stale resources/templates/list evidence citing the pre-RFC-6570 ?offset={n}&length={n} form) is resolved by step 10: the live server returns the RFC 6570 form {?offset,length}."
+  ],
+  "unavailable": [
+    {
+      "item": "GitHub OIDC build-provenance attestation and gh attestation verify against a signed artifact",
+      "reason": "actions/attest-build-provenance only runs inside GitHub Actions with id-token: write against a real workflow run; no network access and no GitHub Actions runner in this local rehearsal.",
+      "deferred_to": "RC1 (M8-09), when the owner authorizes the first v0.8.0 tag and the release-candidate.yml workflow actually dispatches."
+    },
+    {
+      "item": "Independent redownload of the published archive from a GitHub Release",
+      "reason": "No tag, no release and no network access in this rehearsal; the clean-download simulation (steps 6-9) covers only the local equivalent of that check (copy to a directory the build step never touched, then verify+install+exercise).",
+      "deferred_to": "RC1 (M8-09), following the docs/validation/M1/17-public-release.json pattern used for 0.1.0."
+    },
+    {
+      "item": "Tag-to-workspace-version reconciliation performed by the workflow's own \"Verify tag matches every workspace package\" step",
+      "reason": "That step reads github.ref_name from an actual tag dispatch; this rehearsal instead confirmed Cargo.toml's committed version (0.8.0) directly (step 1) and passed --tag v0.8.0 to the packaging/smoke scripts as a local argument.",
+      "deferred_to": "RC1 (M8-09)."
+    }
+  ],
+  "status": "passed"
+}

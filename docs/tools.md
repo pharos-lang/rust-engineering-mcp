@@ -1,8 +1,10 @@
 # Tools
 
 `rust.project.open`, `rust.project.inspect`, `rust.toolchain.inspect`, `rust.check`, `rust.fmt.check`, `rust.clippy`, `rust.test`, `rust.dependencies.audit`, `rust.diagnostics.explain`, `rust.quality.gate`, `rust.catalog.status`, `rust.crate.search` y `rust.crate.inspect` están implementadas en este checkout; los gates de [M1-11](validation/M1/11.md) y [M1-12](validation/M1/12.md) están registrados; M1-13 tiene [gate aprobado](validation/M1/13.md). rmcp 3.2.0 gestiona discovery, negociación y dispatch. La release `0.1.0`
-devuelve trece definiciones sin cursor. El checkout `0.3.0` devuelve 31:
-añade cinco tools M2, cuatro M3, cinco M4 y cuatro M5. Las cinco M4 están
+devuelve trece definiciones sin cursor. La release `0.3.0` devuelve 31: añade
+cinco tools M2, cuatro M3, cinco M4 y cuatro M5. El checkout de desarrollo
+devuelve 36: añade además cinco tools M6 (analyzer), calificadas en
+[validation/M6/handoff.md](validation/M6/handoff.md). Las cinco M4 están
 implementadas y calificadas localmente; el hito espera la confirmación final de
 evidencia. Las cuatro M5 están implementadas y **calificadas localmente**; su
 estado por corte está en los [contratos M5](#contratos-m5--medición-de-rendimiento).
@@ -135,7 +137,7 @@ por el usuario. Los resultados unavailable/blocked/degraded son parte del contra
 ## Vertical M3-01 en el checkout de desarrollo
 
 `rust.test.nextest` se incorporó como la tool número 19; el checkout integrado
-conserva las cuatro definiciones M3 dentro del inventario, hoy de 31 tools.
+conserva las cuatro definiciones M3 dentro del inventario, hoy de 36 tools.
 Selecciona
 package/features/target y un filtro cerrado, usa siempre el perfil `rust-mcp`, no
 ejecuta doctests y obtiene
@@ -577,9 +579,12 @@ Doctor comparte los flags cerrados de serve: --root (hasta16), --project-ttl-sec
 (1..86400), --catalog-store/--catalog-trust, --catalog-model-dir y
 --catalog-index-store (este último requiere modelo); --rustsec-snapshot junto con
 --rustsec-sha256; --docker/--docker-socket/--state-root/--rust-image juntos y con la
-imagen Rust aprobada. No descubre configuración del proyecto ni ejecutables en PATH.
-Los flags de catálogo de doctor usan el prefijo --catalog-, a diferencia de la CLI
-administrativa catalog. No se admiten flags duplicados salvo --root repetible.
+imagen Rust aprobada (D-5: excepcionalmente, doctor también acepta --state-root
+solo, sin el resto de la tupla Docker, únicamente para calcular mutation_journals
+— serve sigue exigiendo la tupla completa). No descubre configuración del proyecto
+ni ejecutables en PATH. Los flags de catálogo de doctor usan el prefijo --catalog-,
+a diferencia de la CLI administrativa catalog. No se admiten flags duplicados salvo
+--root repetible.
 
 Pasivo abre archivos configurados mediante los adapters seguros; puede cargar el
 modelo/índice nativos, pero no ejecuta subprocesses ni adquiere la lease del store.
@@ -589,11 +594,38 @@ rustc/cargo/componentes en la imagen aprobada. Usa un source en memoria del prod
 no una root del usuario. cargo-audit figura not_used: el motor es la biblioteca RustSec.
 
 El JSON format_version1 contiene operation, mode, status, duration_ms, checks,
-catalog y runtime. Cada check tiene id/scope/status/reason/component_reason/action/
-severity finitos. La salida humana deriva del mismo reporte. Passed y warning salen0;
-failed sale1, incluida una dependencia configurada inválida; errores de sintaxis salen2.
-Servicios opcionales no configurados y freshness aging/stale/unknown son warnings.
-Las acciones son recomendaciones: nunca se sincroniza, instala o repara automáticamente.
+catalog, runtime y mutation_journals. Cada check tiene id/scope/status/reason/
+component_reason/action/severity finitos. La salida humana deriva del mismo reporte.
+Passed y warning salen0; failed sale1, incluida una dependencia configurada inválida;
+errores de sintaxis salen2. Servicios opcionales no configurados y freshness
+aging/stale/unknown son warnings. Las acciones son recomendaciones: nunca se
+sincroniza, instala o repara automáticamente.
+
+mutation_journals es un preflight pasivo añadido de forma aditiva en0.8.0 (D12§3;
+format_version no cambia). Es null sin --state-root; a diferencia del resto de
+doctor, --state-root solo (sin --docker/--docker-socket/--rust-image) basta para
+esta sección, la misma lectura mínima que `mutation list --state-root` exige
+(salvo que doctor trata una `--state-root` inexistente como vacía, mientras
+`mutation list` la rechaza con `not_found`, ver más abajo).
+Con --state-root, no lee el workspace ni el source; abre el store de journals
+(crea el lock del store si no existe) con la misma lectura que `mutation list`
+(solo metadatos del journal) y resume pending (fases no
+terminales), terminal (committed/no_change/aborted), kinds (recuentos pending/terminal
+por kind de operación: manifest_patch, format_apply, fix_apply, dependency_add,
+dependency_remove, analyzer_action_apply) y unknown_format (envelope, checksum,
+archivo ajeno u operation_kind que este binario no interpreta; el sniff de formato
+falla cerrado sobre todo el store antes de clasificar por registro, así que el valor
+es un mínimo garantizado, no un conteo exacto). downgrade_blocked es
+`pending>0 ∨ existe un kind ausente de los cinco M2 conocidos por0.3.0`
+(manifest_patch, format_apply, fix_apply, dependency_add, dependency_remove);
+downgrade_blocking_kinds nombra esos kinds. Un lock exclusivo tomado por una
+mutación de serve concurrente se reporta con su propia nota («journal busy»),
+distinta de un store realmente ilegible («unreadable or unknown»). notes[] explica
+que un binario anterior a0.8.0 no interpreta kinds nuevos como analyzer_action_apply
+y responde RecoveryRequired antes de cualquier efecto, y que recover, complete o
+`mutation prune` con0.8.0 lo resuelve antes de instalar un binario más antiguo.
+serve nunca bloquea por esto: la protección es fail-closed por registro;
+mutation_journals solo da visibilidad al operador antes de un downgrade.
 
 Límite128KiB incluyendo terminador; deadlines cooperativos120s pasivo/900s activo.
 SIGINT/SIGTERM/SIGHUP cancelan y esperan el worker y cleanup; la finalización puede superar
@@ -694,6 +726,12 @@ causar `conflict` o `recovery_required`.
 La CLI `mutation list/prune` administra journals terminales, pero el checkout no
 incluye un updater o downgrade gestionado. Los journals pendientes deben
 reconciliarse antes de ejecutar un binario anterior; `0.1.0` no conoce su formato.
+`mutation list --state-root` sobre una raíz que existe pero nunca tuvo una
+mutación (sin directorio `rust-mcp-mutations-v1`) lee vacío: `status: "passed"`,
+`records: []`, `count: 0`, `store_initialized: false`, sin crear ese
+directorio (solo abre el store, y por tanto crea su lock, cuando el directorio
+ya existe). Una `--state-root` que no existe en absoluto sigue siendo un error
+(`status: "blocked"`, `error_code: "not_found"`), distinto de un store vacío.
 
 ### `rust.manifest.patch`
 
@@ -1099,11 +1137,11 @@ El host configura cada recurso con su par cerrado:
 --rustsec-snapshot PATH --rustsec-sha256 sha256:<64-hex>
 ```
 
-Los paths son absolutos. Vendor y policy no pueden solaparse con una root de
-proyecto; el vendor también exige el grupo Docker completo. La policy es JSON
-cerrado, máximo 64 KiB, aportado por el operador: el cliente MCP no puede enviar
-TOML de cargo-deny, excepciones, paths, flags ni comandos. Archivos de excepciones
-de cargo-deny en el proyecto hacen fallar la evaluación.
+Los paths son absolutos. Vendor, policy y rustsec-snapshot no pueden solaparse
+con una root de proyecto; el vendor también exige el grupo Docker completo. La
+policy es JSON cerrado, máximo 64 KiB, aportado por el operador: el cliente MCP
+no puede enviar TOML de cargo-deny, excepciones, paths, flags ni comandos.
+Archivos de excepciones de cargo-deny en el proyecto hacen fallar la evaluación.
 
 Para completar los hechos de catálogo de supply chain, configura también la
 generación local autenticada:
@@ -1112,8 +1150,11 @@ generación local autenticada:
 --catalog-store PATH --catalog-trust PATH
 ```
 
-El catálogo es read-only durante `serve`; import, sync y rebuild pertenecen a la
-CLI explícita y nunca ocurren como efecto de una tool MCP.
+Igual que vendor y policy, ninguna de las rutas de catálogo (`--catalog-store`,
+`--catalog-trust`, `--catalog-model-dir`, `--catalog-index-store`) puede
+solaparse con una root de proyecto. El catálogo es read-only durante `serve`;
+import, sync y rebuild pertenecen a la CLI explícita y nunca ocurren como
+efecto de una tool MCP.
 
 La configuración unificada de las 27 tools M1–M4 usa la imagen M4 exacta
 `sha256:25ed3626e710081a571a86a29521eaf2e890e796afd422ba5e409e0ce1891635`.
@@ -2007,3 +2048,80 @@ respuesta completa excedería el presupuesto; `LIMIT_EXCEEDED` sigue siendo el
 de los techos de `MutationPlans` (4 planes/64 MiB) y del journal. Cada llamada
 emite el mismo evento local `rust-mcp-mutation-event-v1` de M2 por stderr, con
 `tool: "rust.analyzer.action.apply"` y el código en snake_case.
+
+## Familias de códigos de error
+
+El producto usa **dos** familias de `error_code` cerradas por diseño
+(ADR-050 y siguientes), nunca un enum global: cada tool documenta las suyas y
+un llamador debe leerlas por tool.
+
+- **Envelope operacional** (`SCREAMING_SNAKE_CASE`): `OperationalErrorCode`
+  base más extensiones cerradas por tool (p. ej. `LOCKFILE_UPDATE_REQUIRED` en
+  `rust.check`, `POSITION_OUT_OF_RANGE` en las tools `rust.analyzer.*`).
+  Cubre **31 tools**, incluida `rust.analyzer.action.apply` (que además
+  participa del envelope de mutación M2 en su vista `MutationKind`).
+- **Envelope de mutación M2** (`snake_case`, campo `Reason`): el ciclo
+  `preview`/`commit`/`receipt` compartido por las **cinco** tools de
+  escritura (`rust.fmt.apply`, `rust.fix.apply`, `rust.manifest.patch`,
+  `rust.dependency.add`, `rust.dependency.remove`) y por la vista de mutación
+  de `rust.analyzer.action.apply`.
+
+Unificar el casing rompería 5 o 31 contratos `stable`/`preview` ya
+publicados; no está previsto antes de 2.0.
+
+## Resources dinámicas
+
+Las Resources del servidor son dinámicas por sesión: `resources/list`
+devuelve siempre `[]` **por diseño**, nunca un catálogo estático. Las URIs
+válidas siguen las plantillas `rust-artifact://prj_<32hex>/art_<32hex>` (ver
+[rust.check y Resources](#rustcheck-y-resources-m1-03)) y
+`rust-quality-artifact://{project_ref}/{quality_job_id_or_artifact_id}{?offset,length}`
+(M4/M5; forma RFC6570 — `offset` y `length` son dos miembros de query
+distintos, no una variable expandida dos veces); `resources/read` las resuelve solo si
+existen y el llamador es su propietario vigente. Los ejemplos estáticos de
+spec §9.2 no se implementaron ([ADR-011](adr/ADR-011-mcp-resources.md)).
+Desde `0.8.0`, `resources/templates/list` anuncia esas mismas dos plantillas
+(`rust-artifact` y `rust-quality-artifact`) para que el peer las descubra sin
+necesitar los ejemplos estáticos; `resources/list` y `prompts/list` siguen
+devolviendo `[]`. Las cuatro respuestas de listado (`tools/list`,
+`resources/list`, `resources/templates/list`, `prompts/list`) llevan
+`ttlMs: 0`/`cacheScope: "private"` (SEP-2549) en toda revisión negociada,
+como exige el SDK TS 2026-07-28 instalado por Inspector.
+
+## Clases de estabilidad y documento de contrato
+
+Cada tool anuncia su clase de estabilidad (`stable`, `preview`,
+`experimental`, `internal`) según
+[ADR-086](adr/ADR-086-deprecation-and-freeze-policy.md); la clase `preview`
+es además visible en la `description` de la tool con el prefijo
+`Preview (ADR-086): `. El subcomando estático
+`rust-engineering-mcp contract [--json | --human]` (spec §56) y su documento
+en disco (`document_kind: rust_engineering_capabilities`, `format_version: 1`)
+son clase `stable` desde `0.8.0`: un cambio de formato es minor release con
+migration notes, como cualquier otro contrato `stable`. Solo `--json` (con
+`format_version: 1`) es el contrato `stable`; `--human` es una representación
+informativa del mismo documento y no forma parte del contrato. El documento
+publica:
+
+- `document_kind`: identificador fijo del formato (`rust_engineering_capabilities`).
+- `format_version`: entero de esquema del propio documento, hoy `1`.
+- `server_version`: versión del binario que lo emitió.
+- `protocol{primary_version, negotiable_versions, sdk}`: versión MCP primaria,
+  versiones negociables y el SDK usado para hablar el wire protocol.
+- `tools{name → stability, annotations, input_schema_sha256,
+  output_schema_sha256, description_sha256, executes_project_code,
+  requires_runtime}`: por tool, su clase de estabilidad, sus annotations
+  MCP, los hashes canónicos de `inputSchema`/`outputSchema`/`description`,
+  si puede ejecutar build scripts, proc macros, tests o binarios del
+  proyecto en el guest (`executes_project_code`) y su requisito de runtime.
+- `resources[]{uri_template, stability}`: las plantillas de Resources
+  dinámicas anunciadas y su clase de estabilidad.
+- `tool_count`: número total de tools anunciadas.
+
+Este documento sirve de oráculo de igualdad de contrato entre release
+candidates, a través de una cadena de tres eslabones: los protocol tests
+exigen igualdad exacta entre el servidor vivo y los snapshots de
+`crates/mcp-server/tests/snapshots`; `tests/cli.rs` exige igualdad entre
+`contract --json` y esos mismos snapshots; y la etapa `contract-freeze` del
+gate `core` exige igualdad entre los snapshots y el manifiesto de freeze
+[`docs/validation/M8/freeze-0.8.0.json`](validation/M8/freeze-0.8.0.json).

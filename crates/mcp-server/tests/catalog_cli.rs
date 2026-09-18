@@ -42,6 +42,17 @@ fn fixtures() -> PathBuf {
 fn run(root: &Path, args: &[&str]) -> io::Result<Output> {
     run_mode(root, args, true)
 }
+// cargo-llvm-cov assigns a unique raw-profile pattern per test binary via
+// LLVM_PROFILE_FILE. Preserve only that instrumentation channel across
+// env_clear(); the product process still receives no host PATH, credentials
+// or ambient configuration.
+fn instrumented(command: &mut Command) -> &mut Command {
+    if let Some(profile) = std::env::var_os("LLVM_PROFILE_FILE") {
+        command.env("LLVM_PROFILE_FILE", profile);
+    }
+    command
+}
+
 fn run_mode(root: &Path, args: &[&str], json: bool) -> io::Result<Output> {
     let mut command = Command::new(env!("CARGO_BIN_EXE_rust-engineering-mcp"));
     command
@@ -52,6 +63,7 @@ fn run_mode(root: &Path, args: &[&str], json: bool) -> io::Result<Output> {
         .arg(root)
         .arg("--trust")
         .arg(root.join("trust.json"));
+    instrumented(&mut command);
     if json {
         command.arg("--json");
     }

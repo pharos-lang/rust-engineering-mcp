@@ -36,7 +36,7 @@ const DEADLINE: Duration = Duration::from_secs(240);
 const MAX_RESULT: usize = 512 * 1024;
 #[derive(Deserialize, JsonSchema)]
 #[serde(deny_unknown_fields)]
-struct Input {
+pub(super) struct Input {
     #[schemars(with = "String", regex(pattern = "^prj_[0-9a-f]{32}$"))]
     project_ref: ProjectRef,
     #[schemars(with = "schemas::QualityProfile")]
@@ -429,7 +429,7 @@ struct Truncation {
 }
 #[derive(Serialize, JsonSchema)]
 #[serde(deny_unknown_fields)]
-struct Output {
+pub(super) struct Output {
     #[serde(flatten)]
     outcome: Outcome,
     summary: &'static str,
@@ -738,8 +738,13 @@ pub(super) struct QualityTool {
     store: Arc<Mutex<Store>>,
     clock: ArtifactClock,
 }
-fn definition(contract: &Contract<Input, Output>) -> Tool {
+fn build_tool(contract: &Contract<Input, Output>) -> Tool {
     Tool::new(NAME,"Run one captured-source quality gate: fast runs fmt --all, Cargo-default check and strict Clippy; standard adds Cargo-default tests (30 seconds) and offline RustSec audit. No all-target/all-feature coverage is implied. Can execute project build scripts, proc macros and test code inside the calibrated sandbox. Preserves each stage, normalized repair evidence and owner-authorized ephemeral log Resources. Only all complete required stages pass. Requires completed discovery and a live project_ref; downloads and installs nothing.",(*contract.input_schema).clone()).with_raw_output_schema(Arc::clone(&contract.output_schema)).with_annotations(ToolAnnotations::new().read_only(true).destructive(false).idempotent(false).open_world(false))
+}
+pub(super) fn definition() -> Result<(Contract<Input, Output>, Tool), ErrorData> {
+    let contract = Contract::<Input, Output>::new()?;
+    let definition = build_tool(&contract);
+    Ok((contract, definition))
 }
 impl QualityTool {
     pub(super) fn new(
@@ -750,8 +755,7 @@ impl QualityTool {
         resources: &resources::Resources,
         config: Option<HostAuditConfig>,
     ) -> Result<Self, ErrorData> {
-        let contract = Contract::<Input, Output>::new()?;
-        let definition = definition(&contract);
+        let (contract, definition) = definition()?;
         Ok(Self {
             definition,
             contract,

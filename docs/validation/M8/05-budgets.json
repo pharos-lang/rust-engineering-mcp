@@ -1,0 +1,149 @@
+{
+  "schema": "rust-mcp-m8-performance-budgets-v1",
+  "format_version": 1,
+  "fixed_utc": "2026-09-14",
+  "source": "docs/validation/M8/05.md",
+  "recalibration_rule": "Cada fila con provisional=true se recalibra exactamente una vez, inmediatamente despues de la primera medicion con N >= 30, y esa recalibracion ocurre antes de abrir el primer RC. Tras esa recalibracion, cualquier ajuste posterior exige un cambio material documentado y reinicia el contador de RC. Nunca se ajusta un presupuesto tras ver un fallo.",
+  "regression_rule": "2 of 3",
+  "magnitudes": [
+    {
+      "id": "startup_cold_ms",
+      "description": "serve --stdio -> respuesta a tools/list (proceso nuevo, primera llamada)",
+      "budget": 200,
+      "unit": "ms",
+      "statistic": "p95",
+      "n": 30,
+      "provisional": false,
+      "basis": "recalibrated once after the first N>=30 measurement on committed bytes (86a5007): Sin medida previa (handshake 18-122 ms, N=1)",
+      "recalibrated_from": 500,
+      "recalibrated_utc": "2026-09-15"
+    },
+    {
+      "id": "startup_warm_ms",
+      "description": "segundo tools/list en el mismo proceso",
+      "budget": 50,
+      "unit": "ms",
+      "statistic": "p95",
+      "n": 30,
+      "provisional": false,
+      "basis": "recalibrated once after the first N>=30 measurement on committed bytes (86a5007): Sin medida previa",
+      "recalibrated_from": 100,
+      "recalibrated_utc": "2026-09-15"
+    },
+    {
+      "id": "dispatch_project_open_ms",
+      "description": "rust.project.open (fixture fijo), sin Cargo",
+      "budget": 20,
+      "unit": "ms",
+      "statistic": "p95",
+      "n": 30,
+      "provisional": false,
+      "basis": "recalibrated once after the first N>=30 measurement on committed bytes (86a5007): Sin medida previa",
+      "recalibrated_from": 50,
+      "recalibrated_utc": "2026-09-15"
+    },
+    {
+      "id": "dispatch_catalog_status_ms",
+      "description": "rust.catalog.status (sin catalogo), sin Cargo",
+      "budget": 20,
+      "unit": "ms",
+      "statistic": "p95",
+      "n": 30,
+      "provisional": false,
+      "basis": "recalibrated once after the first N>=30 measurement on committed bytes (86a5007): Sin medida previa",
+      "recalibrated_from": 50,
+      "recalibrated_utc": "2026-09-15"
+    },
+    {
+      "id": "rss_idle_core_mib",
+      "description": "RSS idle, perfil core (tras tools/list, 5 s en reposo)",
+      "budget": 64,
+      "unit": "MiB",
+      "statistic": "max",
+      "n": 10,
+      "provisional": false,
+      "basis": "recalibrated once after the first N>=30 measurement on committed bytes (86a5007): Sin medida previa (placeholder)",
+      "recalibrated_from": 128,
+      "recalibrated_utc": "2026-09-15"
+    },
+    {
+      "id": "rss_peak_core_mib",
+      "description": "RSS pico, perfil core (durante 30 ciclos de dispatch, muestreo 100 ms)",
+      "budget": 128,
+      "unit": "MiB",
+      "statistic": "max",
+      "n": 30,
+      "provisional": false,
+      "basis": "recalibrated once after the first N>=30 measurement on committed bytes (86a5007): Sin medida previa (placeholder)",
+      "recalibrated_from": 256,
+      "recalibrated_utc": "2026-09-15"
+    },
+    {
+      "id": "rss_idle_local_mib",
+      "description": "RSS idle, perfil local (E5/ORT/LanceDB cargados)",
+      "budget": 768,
+      "unit": "MiB",
+      "statistic": "max",
+      "n": 10,
+      "provisional": true,
+      "basis": "Sin medida previa (placeholder; E5 + ORT estatico)"
+    },
+    {
+      "id": "rss_peak_local_mib",
+      "description": "RSS pico, perfil local (E5/ORT/LanceDB cargados)",
+      "budget": 1536,
+      "unit": "MiB",
+      "statistic": "max",
+      "n": 30,
+      "provisional": true,
+      "basis": "Sin medida previa (placeholder; E5 + ORT estatico)"
+    },
+    {
+      "id": "binary_size_core_bytes",
+      "description": "Tamano binario release (sin comprimir), target/release/rust-engineering-mcp",
+      "budget": 40000000,
+      "unit": "bytes",
+      "statistic": "max",
+      "n": 1,
+      "provisional": false,
+      "basis": "recalibrated once after the first N>=30 measurement on committed bytes (86a5007): 30 616 400 B observado + 15% + crecimiento",
+      "recalibrated_from": 43000000,
+      "recalibrated_utc": "2026-09-15"
+    },
+    {
+      "id": "archive_size_core_bytes",
+      "description": "Tamano archive core publicado (recibo de release-artifact.py)",
+      "budget": 12700000,
+      "unit": "bytes",
+      "statistic": "max",
+      "n": 1,
+      "provisional": true,
+      "basis": "9 792 174 B (0.3.0) x 1.3"
+    },
+    {
+      "id": "cancel_observed_p95_ms",
+      "description": "p95 cancel-observed (Docker, rust.check cancelado)",
+      "budget": 3000,
+      "unit": "ms",
+      "statistic": "p95",
+      "n": 30,
+      "provisional": true,
+      "basis": "N=1: 1088 ms"
+    },
+    {
+      "id": "cleanup_p95_ms",
+      "description": "Tiempo de cleanup (EOF -> join del arbol)",
+      "budget": 1000,
+      "unit": "ms",
+      "statistic": "p95",
+      "n": 30,
+      "provisional": true,
+      "basis": "N=1: 346 ms"
+    }
+  ],
+  "recalibration": {
+    "utc": "2026-09-15",
+    "measurement": "docs/validation/M8/05-measurement.json (head 86a5007)",
+    "rule": "single recalibration after the first N>=30 measurement, before RC1; Docker/local magnitudes stay provisional until measured in M8-09"
+  }
+}
