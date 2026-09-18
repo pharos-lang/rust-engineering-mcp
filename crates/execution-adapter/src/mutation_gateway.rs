@@ -2,8 +2,7 @@
 use super::*;
 use crate::rust_gateway::RustGateway;
 use rust_engineering_domain::{
-    ExecutionLimits, ExecutionResult, ExecutionTermination, RustMutationCommand,
-    RustMutationExecution, SourceBundle,
+    ExecutionLimits, ExecutionResult, RustMutationCommand, RustMutationExecution, SourceBundle,
 };
 use serde::Deserialize;
 use std::collections::BTreeMap;
@@ -160,6 +159,21 @@ pub(super) fn create_tmpfs_volume(
     nonce: &str,
     options: &str,
 ) -> Result<MutationVolume, ExecutionError> {
+    let args = tmpfs_volume_arguments(name, nonce, options);
+    if gateway.inner.control(&args)?.code != Some(0) {
+        return Err(ExecutionError::Infrastructure);
+    }
+    let inspect = gateway
+        .inner
+        .control(&["volume".into(), "inspect".into(), name.into()])?;
+    if inspect.code != Some(0) {
+        return Err(ExecutionError::Infrastructure);
+    }
+    parse_volume_with_options(&inspect.stdout, name, nonce, options)
+}
+
+/// The closed `volume create` argv for one labelled local tmpfs volume.
+pub(super) fn tmpfs_volume_arguments(name: &str, nonce: &str, options: &str) -> Vec<String> {
     let mut args = vec![
         "volume".into(),
         "create".into(),
@@ -172,16 +186,7 @@ pub(super) fn create_tmpfs_volume(
         args.push(format!("--label={key}={value}"));
     }
     args.push(name.into());
-    if gateway.inner.control(&args)?.code != Some(0) {
-        return Err(ExecutionError::Infrastructure);
-    }
-    let inspect = gateway
-        .inner
-        .control(&["volume".into(), "inspect".into(), name.into()])?;
-    if inspect.code != Some(0) {
-        return Err(ExecutionError::Infrastructure);
-    }
-    parse_volume_with_options(&inspect.stdout, name, nonce, options)
+    args
 }
 
 pub(super) fn parse_volume(
@@ -225,7 +230,7 @@ pub(super) fn parse_volume_with_options(
 }
 
 fn create_arguments(
-    gateway: &RustGateway,
+    shape: crate::rust_gateway::ContainerShape<'_>,
     name: &str,
     nonce: &str,
     volume: &MutationVolume,
@@ -268,15 +273,11 @@ fn create_arguments(
     if phase == MutationPhase::Fix {
         args.push(format!("--tmpfs=/target:{FIX_TARGET_TMPFS}"));
     }
-    let profile = gateway
-        .inner
-        .state
-        .path()
-        .join(if phase == MutationPhase::Fix {
-            "seccomp-rust-fix.json"
-        } else {
-            "seccomp-rust.json"
-        });
+    let profile = shape.state.join(if phase == MutationPhase::Fix {
+        "seccomp-rust-fix.json"
+    } else {
+        "seccomp-rust.json"
+    });
     args.push(format!(
         "--security-opt=seccomp={}",
         profile
@@ -292,19 +293,15 @@ fn create_arguments(
         args.push("--interactive".into());
     }
     args.push(format!("--entrypoint={}", phase.program()));
-    args.push(gateway.image_id().into());
+    args.push(shape.image_id.into());
     args.extend(phase.arguments().iter().map(|arg| (*arg).to_owned()));
     Ok(args)
 }
 
-pub(super) fn absent(
-    gateway: &RustGateway,
-    kind: &str,
-    name: &str,
-    deadline: Instant,
-    cancel: &dyn ExecutionCancellation,
-) -> Result<bool, ExecutionError> {
-    let args = if kind == "volume" {
+/// The exact-name listing whose empty output proves `name` is absent. Anything
+/// but `"volume"` is queried as a container, including stopped ones.
+fn absence_query(kind: &str, name: &str) -> Vec<String> {
+    if kind == "volume" {
         vec![
             "volume".into(),
             "ls".into(),
@@ -319,8 +316,17 @@ pub(super) fn absent(
             format!("--filter=name=^/{name}$"),
             "--format={{.ID}}".into(),
         ]
-    };
-    let result = query_control(gateway, &args, deadline, cancel)?;
+    }
+}
+
+pub(super) fn absent(
+    gateway: &RustGateway,
+    kind: &str,
+    name: &str,
+    deadline: Instant,
+    cancel: &dyn ExecutionCancellation,
+) -> Result<bool, ExecutionError> {
+    let result = query_control(gateway, &absence_query(kind, name), deadline, cancel)?;
     if result.code != Some(0) {
         return Err(ExecutionError::CleanupUncertain);
     }
@@ -341,7 +347,7 @@ fn create_phase(
     }
     mutation_control(
         gateway,
-        &create_arguments(gateway, name, nonce, volume, phase)?,
+        &create_arguments(gateway.shape(), name, nonce, volume, phase)?,
         deadline,
         cancel,
     )?;
@@ -670,49 +676,68 @@ fn make_result(
     capture: Capture,
     oom: Option<bool>,
 ) -> Result<ExecutionResult, ExecutionError> {
-    let (stdout, expanded_out) = bounded_text(&capture.stdout, limits.output_bytes());
-    let (stderr, expanded_err) = bounded_text(&capture.stderr, limits.output_bytes());
-    let termination = if expanded_out || expanded_err {
-        ExecutionTermination::OutputLimit
-    } else {
-        match capture.stop {
-            Stop::Exited => ExecutionTermination::Exited,
-            Stop::TimedOut => ExecutionTermination::TimedOut,
-            Stop::Cancelled => ExecutionTermination::Cancelled,
-            Stop::OutputLimit => ExecutionTermination::OutputLimit,
-        }
-    };
+    staged_result(
+        StagedIdentity {
+            configuration: mutation_configuration_fingerprint(gateway)?,
+            image_id: gateway.image_id(),
+        },
+        source_archive,
+        command,
+        limits,
+        started,
+        capture,
+        oom,
+    )
+}
+
+/// The gateway facts a staged mutation result is bound to.
+struct StagedIdentity<'a> {
+    configuration: rust_engineering_domain::ExecutionFingerprint,
+    image_id: &'a str,
+}
+
+/// Bounds and classifies one staged capture and binds it to the exact
+/// configuration, command, limits and source archive that produced it.
+fn staged_result(
+    bound: StagedIdentity<'_>,
+    source_archive: &[u8],
+    command: RustMutationCommand,
+    limits: ExecutionLimits,
+    started: Instant,
+    capture: Capture,
+    oom: Option<bool>,
+) -> Result<ExecutionResult, ExecutionError> {
     let identity = serde_json::to_vec(&(
-        mutation_configuration_fingerprint(gateway)?,
+        bound.configuration,
         command,
         limits,
         digest(source_archive),
         "rust-mutation-staging-v1",
     ))
     .map_err(|_| ExecutionError::Infrastructure)?;
-    Ok(ExecutionResult {
-        termination,
-        exit_code: (capture.stop == Stop::Exited)
-            .then_some(capture.code)
-            .flatten(),
-        oom_killed: oom,
-        stdout,
-        stderr,
-        stdout_truncated: capture.stdout_truncated || expanded_out,
-        stderr_truncated: capture.stderr_truncated || expanded_err,
-        duration_ms: capture.duration_ms,
-        total_duration_ms: started.elapsed().as_millis().try_into().unwrap_or(u64::MAX),
-        execution_fingerprint: digest(&identity)
-            .parse()
-            .map_err(|_| ExecutionError::Infrastructure)?,
-        platform: "linux/aarch64",
-        image_id: gateway.image_id().into(),
-    })
+    super::rust_gateway::bounded_execution_result(
+        capture,
+        oom,
+        limits,
+        started,
+        &identity,
+        bound.image_id,
+    )
 }
 
 fn mutation_configuration_fingerprint(
     gateway: &RustGateway,
 ) -> Result<rust_engineering_domain::ExecutionFingerprint, ExecutionError> {
+    // Argv shapes first, exactly as before the extraction, so a failing shape
+    // is reported ahead of any base-fingerprint failure.
+    let commands = mutation_configuration_commands(gateway.shape())?;
+    mutation_configuration_digest(gateway.configuration_fingerprint()?, commands)
+}
+
+/// The five staging argv shapes, with job-specific names as placeholders.
+fn mutation_configuration_commands(
+    shape: crate::rust_gateway::ContainerShape<'_>,
+) -> Result<Vec<Vec<String>>, ExecutionError> {
     let volume = MutationVolume {
         name: "<volume>".into(),
         driver: "local".into(),
@@ -727,7 +752,7 @@ fn mutation_configuration_fingerprint(
         cluster_volume: None,
         status: None,
     };
-    let commands = [
+    [
         MutationPhase::Guardian,
         MutationPhase::Ingest,
         MutationPhase::Format,
@@ -735,8 +760,14 @@ fn mutation_configuration_fingerprint(
         MutationPhase::Export,
     ]
     .into_iter()
-    .map(|phase| create_arguments(gateway, "<container>", "<nonce>", &volume, phase))
-    .collect::<Result<Vec<_>, _>>()?;
+    .map(|phase| create_arguments(shape, "<container>", "<nonce>", &volume, phase))
+    .collect()
+}
+
+fn mutation_configuration_digest(
+    base: rust_engineering_domain::ExecutionFingerprint,
+    commands: Vec<Vec<String>>,
+) -> Result<rust_engineering_domain::ExecutionFingerprint, ExecutionError> {
     let implementation: &[&[u8]] = &[
         include_bytes!("mutation_gateway.rs"),
         include_bytes!("mutation_archive.rs"),
@@ -745,7 +776,7 @@ fn mutation_configuration_fingerprint(
         include_bytes!("../../domain/src/rust_mutation.rs"),
     ];
     let bytes = serde_json::to_vec(&(
-        gateway.configuration_fingerprint()?,
+        base,
         commands,
         ["--opt=type=tmpfs", "--opt=device=tmpfs", VOLUME_OPTIONS],
         implementation
@@ -812,18 +843,7 @@ pub(super) fn execute(
         return Err(ExecutionError::CleanupUncertain);
     }
     let work = (|| {
-        let mut args = vec![
-            "volume".into(),
-            "create".into(),
-            "--driver=local".into(),
-            "--opt=type=tmpfs".into(),
-            "--opt=device=tmpfs".into(),
-            format!("--opt=o={VOLUME_OPTIONS}"),
-        ];
-        for (key, value) in labels(&nonce) {
-            args.push(format!("--label={key}={value}"));
-        }
-        args.push(volume_name.clone());
+        let args = tmpfs_volume_arguments(&volume_name, &nonce, VOLUME_OPTIONS);
         mutation_control(gateway, &args, deadline, cancel)?;
         let inspected = query_control(
             gateway,
@@ -1416,6 +1436,316 @@ mod tests {
         assert!(!gateway.is_quarantined());
         drop(gateway);
         std::fs::remove_dir_all(state_root)?;
+        Ok(())
+    }
+}
+
+#[cfg(test)]
+mod staging_shape_tests {
+    //! Daemon-free evidence for the staging argv, the staging configuration
+    //! digest and the result classification extracted from the Docker path.
+    use super::*;
+    use crate::rust_gateway::ContainerShape;
+    use std::path::Path;
+
+    type TestResult = Result<(), String>;
+    trait Checked<T> {
+        fn c(self) -> Result<T, String>;
+    }
+    impl<T, E: std::fmt::Debug> Checked<T> for Result<T, E> {
+        fn c(self) -> Result<T, String> {
+            self.map_err(|error| format!("{error:?}"))
+        }
+    }
+    const IMAGE: &str = "sha256:3333333333333333333333333333333333333333333333333333333333333333";
+
+    fn shape(state: &Path) -> ContainerShape<'_> {
+        ContainerShape {
+            state,
+            image_id: IMAGE,
+        }
+    }
+    fn volume() -> MutationVolume {
+        MutationVolume {
+            name: "stage".into(),
+            driver: "local".into(),
+            scope: "local".into(),
+            options: BTreeMap::new(),
+            labels: labels("n"),
+            mountpoint: "/var/lib/docker/volumes/stage/_data".into(),
+            cluster_volume: None,
+            status: None,
+        }
+    }
+    fn fingerprint(fill: char) -> Result<rust_engineering_domain::ExecutionFingerprint, String> {
+        format!("sha256:{}", fill.to_string().repeat(64))
+            .parse()
+            .c()
+    }
+    fn tail(args: &[String]) -> Result<&[String], String> {
+        let entry = args
+            .iter()
+            .position(|arg| arg.starts_with("--entrypoint="))
+            .ok_or("entrypoint")?;
+        Ok(&args[entry..])
+    }
+
+    #[test]
+    fn staging_argv_is_closed_per_phase() -> TestResult {
+        let state = Path::new("/state/control");
+        let fix = create_arguments(shape(state), "c", "n", &volume(), MutationPhase::Fix).c()?;
+        assert_eq!(fix[..3], ["container", "create", "--pull=never"]);
+        assert!(fix.contains(&"--user=65534:65534".to_owned()));
+        assert!(fix.contains(&"--name=c".to_owned()));
+        assert!(fix.contains(&"--label=org.rust-mcp.rust-job=n".to_owned()));
+        assert!(fix.contains(&format!("--tmpfs=/target:{FIX_TARGET_TMPFS}")));
+        assert!(
+            fix.contains(&"--security-opt=seccomp=/state/control/seccomp-rust-fix.json".to_owned())
+        );
+        assert!(fix.contains(&"--mount=type=volume,source=stage,target=/source,volume-nocopy,volume-driver=local".to_owned()));
+        assert!(!fix.contains(&"--interactive".to_owned()));
+        assert_eq!(
+            tail(&fix)?[..3],
+            ["--entrypoint=/opt/rust/bin/cargo", IMAGE, "fix"]
+        );
+        for value in crate::rust_gateway::environment() {
+            assert!(fix.contains(&format!("--env={value}")), "{value}");
+        }
+
+        let ingest =
+            create_arguments(shape(state), "c", "n", &volume(), MutationPhase::Ingest).c()?;
+        assert!(ingest.contains(&"--interactive".to_owned()));
+        assert!(
+            ingest.contains(&"--security-opt=seccomp=/state/control/seccomp-rust.json".to_owned())
+        );
+        assert!(!ingest.iter().any(|arg| arg.starts_with("--tmpfs=/target:")));
+        assert_eq!(
+            tail(&ingest)?,
+            [
+                "--entrypoint=/usr/bin/tar",
+                IMAGE,
+                "--extract",
+                "--file=-",
+                "--directory=/source",
+                "--no-same-owner",
+                "--no-same-permissions",
+                "--keep-old-files"
+            ]
+        );
+        for (phase, program) in [
+            (MutationPhase::Export, "/usr/bin/tar"),
+            (MutationPhase::Guardian, "/usr/bin/sleep"),
+        ] {
+            let args = create_arguments(shape(state), "c", "n", &volume(), phase).c()?;
+            assert!(args.contains(&"--mount=type=volume,source=stage,target=/source,volume-nocopy,volume-driver=local,readonly".to_owned()));
+            assert_eq!(tail(&args)?[0], format!("--entrypoint={program}"));
+            assert_eq!(tail(&args)?[2..], *phase.arguments());
+        }
+        let format =
+            create_arguments(shape(state), "c", "n", &volume(), MutationPhase::Format).c()?;
+        assert!(format.contains(&"--mount=type=volume,source=stage,target=/source,volume-nocopy,volume-driver=local".to_owned()));
+        Ok(())
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn a_non_utf8_state_directory_is_an_invalid_configuration() {
+        use std::os::unix::ffi::OsStrExt;
+        let state = Path::new(std::ffi::OsStr::from_bytes(b"/state/\xfe"));
+        assert_eq!(
+            create_arguments(shape(state), "c", "n", &volume(), MutationPhase::Format).err(),
+            Some(ExecutionError::InvalidConfiguration)
+        );
+    }
+
+    #[test]
+    fn volume_and_absence_queries_are_exact() {
+        assert_eq!(
+            tmpfs_volume_arguments("vol", "n", VOLUME_OPTIONS),
+            [
+                "volume",
+                "create",
+                "--driver=local",
+                "--opt=type=tmpfs",
+                "--opt=device=tmpfs",
+                &format!("--opt=o={VOLUME_OPTIONS}"),
+                "--label=org.rust-mcp.execution=true",
+                "--label=org.rust-mcp.rust-job=n",
+                "vol",
+            ]
+        );
+        assert_eq!(
+            absence_query("volume", "vol"),
+            ["volume", "ls", "--filter=name=^vol$", "--format={{.Name}}"]
+        );
+        for kind in ["container", "anything-else"] {
+            assert_eq!(
+                absence_query(kind, "box"),
+                [
+                    "container",
+                    "ls",
+                    "--all",
+                    "--filter=name=^/box$",
+                    "--format={{.ID}}"
+                ]
+            );
+        }
+    }
+
+    #[test]
+    fn staging_configuration_digest_binds_base_and_every_argv() -> TestResult {
+        let commands = mutation_configuration_commands(shape(Path::new("/state"))).c()?;
+        assert_eq!(commands.len(), 5);
+        for (command, phase) in commands.iter().zip([
+            MutationPhase::Guardian,
+            MutationPhase::Ingest,
+            MutationPhase::Format,
+            MutationPhase::Fix,
+            MutationPhase::Export,
+        ]) {
+            assert!(command.contains(&"--name=<container>".to_owned()));
+            assert!(command.contains(&"--label=org.rust-mcp.rust-job=<nonce>".to_owned()));
+            assert!(
+                command
+                    .iter()
+                    .any(|arg| arg.starts_with("--mount=type=volume,source=<volume>,"))
+            );
+            assert_eq!(
+                tail(command)?[0],
+                format!("--entrypoint={}", phase.program())
+            );
+        }
+        let base = mutation_configuration_digest(fingerprint('a')?, commands.clone()).c()?;
+        assert_eq!(
+            base,
+            mutation_configuration_digest(fingerprint('a')?, commands.clone()).c()?
+        );
+        assert_ne!(
+            base,
+            mutation_configuration_digest(fingerprint('b')?, commands.clone()).c()?
+        );
+        let mut fewer = commands;
+        fewer.pop();
+        assert_ne!(
+            base,
+            mutation_configuration_digest(fingerprint('a')?, fewer).c()?
+        );
+        Ok(())
+    }
+
+    fn capture(stop: Stop, stdout: &[u8], stdout_truncated: bool) -> Capture {
+        Capture {
+            code: Some(3),
+            stdout: stdout.to_vec(),
+            stderr: b"warning".to_vec(),
+            stdout_truncated,
+            stderr_truncated: false,
+            stop,
+            duration_ms: 7,
+        }
+    }
+
+    #[test]
+    fn staged_result_classifies_bounds_and_binds_identity() -> TestResult {
+        let limits = ExecutionLimits::new(1_000, 1024).ok_or("limits")?;
+        let bound = || -> Result<StagedIdentity<'static>, String> {
+            Ok(StagedIdentity {
+                configuration: fingerprint('c')?,
+                image_id: IMAGE,
+            })
+        };
+        let run = |stop, stdout: &[u8], truncated, command, archive: &[u8]| {
+            staged_result(
+                bound()?,
+                archive,
+                command,
+                limits,
+                Instant::now(),
+                capture(stop, stdout, truncated),
+                Some(false),
+            )
+            .c()
+        };
+        let exited = run(
+            Stop::Exited,
+            b"ok",
+            false,
+            RustMutationCommand::Format,
+            b"archive",
+        )?;
+        assert_eq!(exited.termination, ExecutionTermination::Exited);
+        assert_eq!(exited.exit_code, Some(3));
+        assert_eq!(exited.oom_killed, Some(false));
+        assert_eq!(
+            (exited.stdout.as_str(), exited.stderr.as_str()),
+            ("ok", "warning")
+        );
+        assert!(!exited.stdout_truncated && !exited.stderr_truncated);
+        assert_eq!(exited.duration_ms, 7);
+        assert_eq!(exited.platform, "linux/aarch64");
+        assert_eq!(exited.image_id, IMAGE);
+        for (stop, termination) in [
+            (Stop::TimedOut, ExecutionTermination::TimedOut),
+            (Stop::Cancelled, ExecutionTermination::Cancelled),
+            (Stop::OutputLimit, ExecutionTermination::OutputLimit),
+        ] {
+            let result = run(stop, b"ok", false, RustMutationCommand::Format, b"archive")?;
+            assert_eq!(result.termination, termination);
+            assert_eq!(result.exit_code, None, "only an exited process has a code");
+        }
+        let expanded = run(
+            Stop::Exited,
+            &[b'x'; 1025],
+            false,
+            RustMutationCommand::Format,
+            b"archive",
+        )?;
+        assert_eq!(expanded.termination, ExecutionTermination::OutputLimit);
+        assert!(expanded.stdout_truncated);
+        assert_eq!(expanded.stdout.len(), 1024);
+        let truncated = run(
+            Stop::Exited,
+            b"ok",
+            true,
+            RustMutationCommand::Format,
+            b"archive",
+        )?;
+        assert!(truncated.stdout_truncated);
+        assert_eq!(truncated.termination, ExecutionTermination::Exited);
+        // The execution fingerprint is a function of command and source archive.
+        assert_eq!(
+            exited.execution_fingerprint,
+            run(
+                Stop::TimedOut,
+                b"other",
+                false,
+                RustMutationCommand::Format,
+                b"archive"
+            )?
+            .execution_fingerprint
+        );
+        assert_ne!(
+            exited.execution_fingerprint,
+            run(
+                Stop::Exited,
+                b"ok",
+                false,
+                RustMutationCommand::Fix,
+                b"archive"
+            )?
+            .execution_fingerprint
+        );
+        assert_ne!(
+            exited.execution_fingerprint,
+            run(
+                Stop::Exited,
+                b"ok",
+                false,
+                RustMutationCommand::Format,
+                b"other"
+            )?
+            .execution_fingerprint
+        );
         Ok(())
     }
 }

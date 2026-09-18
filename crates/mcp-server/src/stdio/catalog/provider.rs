@@ -609,3 +609,191 @@ impl rust_engineering_application::supply_chain::SupplyCatalogPort for CatalogPr
 #[cfg(all(test, target_os = "macos"))]
 #[path = "supply_tests.rs"]
 mod supply_tests;
+
+#[cfg(test)]
+mod portable_tests {
+    use super::*;
+    use rust_engineering_application::{
+        ExecutionCancellation, OperationControl, supply_chain::SupplyCatalogPort,
+    };
+    use rust_engineering_domain::supply_chain::{
+        SupplyAvailability, SupplyPackage, SupplySource, YankedFact,
+    };
+
+    struct Continue;
+    impl OperationControl for Continue {
+        fn check(&self) -> Result<(), ProjectError> {
+            Ok(())
+        }
+    }
+    impl ExecutionCancellation for Continue {
+        fn is_cancelled(&self) -> bool {
+            false
+        }
+    }
+    struct Time;
+    impl Clock for Time {
+        fn now(&self) -> UnixSeconds {
+            UnixSeconds(1)
+        }
+    }
+
+    fn package(source: SupplySource) -> SupplyPackage {
+        SupplyPackage {
+            name: "fixture".into(),
+            version: "1.0.0".into(),
+            source,
+            source_fingerprint: None,
+            declared_checksum: None,
+            checksum_verified: false,
+            duplicate_name: false,
+            declared_features: None,
+            active_features: None,
+            yanked: YankedFact::NotConsulted,
+        }
+    }
+
+    #[test]
+    fn unconfigured_provider_is_consistently_unavailable_without_io() -> Result<(), String> {
+        let provider = CatalogProvider::new(None, None);
+        let observed = provider
+            .observe(&Continue)
+            .map_err(|error| format!("{error:?}"))?;
+        assert_eq!(
+            observed.catalog,
+            unavailable(CatalogComponentUnavailable::NotConfigured)
+        );
+        assert_eq!(
+            observed.model,
+            unavailable(CatalogComponentUnavailable::NotConfigured)
+        );
+        assert_eq!(
+            observed.semantic_index,
+            unavailable(CatalogComponentUnavailable::NotConfigured)
+        );
+        assert_eq!(
+            observed.rustsec,
+            unavailable(CatalogComponentUnavailable::NotConfigured)
+        );
+
+        let search = CrateSearchRequest {
+            query: CatalogQuery::new("serde".into(), 10).map_err(|error| format!("{error:?}"))?,
+            mode: CrateSearchMode::Hybrid,
+            filters: CrateSearchFilters::default(),
+        };
+        assert!(matches!(
+            provider.search(&search, &Time, &Continue),
+            Err(
+                rust_engineering_application::CatalogSearchError::Unavailable(
+                    CatalogComponentUnavailable::NotConfigured
+                )
+            )
+        ));
+        let inspect = CrateInspectRequest {
+            name: "serde".into(),
+            section: InspectSection::Overview,
+            version: None,
+            limit: 1,
+            offset: 0,
+            snapshot_fingerprint: None,
+        };
+        assert!(matches!(
+            provider.inspect(&inspect, &Time, &Continue),
+            Err(
+                rust_engineering_application::CatalogInspectError::Unavailable(
+                    CatalogComponentUnavailable::NotConfigured
+                )
+            )
+        ));
+        Ok(())
+    }
+
+    #[test]
+    fn unavailable_supply_catalog_marks_only_registry_packages() {
+        let provider = CatalogProvider::new(None, None);
+        let mut packages = [
+            package(SupplySource::CratesIo),
+            package(SupplySource::Workspace),
+        ];
+        let report = provider
+            .supply_catalog(&mut packages, &Time, &Continue)
+            .map_err(|error| format!("{error:?}"));
+        assert!(matches!(
+            report,
+            Ok(ref value) if value.availability == SupplyAvailability::Unavailable
+                && value.lookups == 0
+        ));
+        assert_eq!(packages[0].yanked, YankedFact::CatalogUnavailable);
+        assert_eq!(packages[1].yanked, YankedFact::NotConsulted);
+
+        let mut excessive = vec![package(SupplySource::CratesIo); 129];
+        assert!(matches!(
+            provider.supply_catalog(&mut excessive, &Time, &Continue),
+            Err(rust_engineering_application::security::SecurityError::OutputLimit)
+        ));
+    }
+
+    #[test]
+    fn store_failures_have_closed_component_reasons() {
+        for (error, reason) in [
+            (
+                StoreError::UnsupportedPlatform,
+                CatalogComponentUnavailable::UnsupportedPlatform,
+            ),
+            (StoreError::Denied, CatalogComponentUnavailable::Denied),
+            (StoreError::InvalidPath, CatalogComponentUnavailable::Denied),
+            (
+                StoreError::LimitExceeded,
+                CatalogComponentUnavailable::Budget,
+            ),
+            (StoreError::Busy, CatalogComponentUnavailable::IoUnavailable),
+            (
+                StoreError::Changed,
+                CatalogComponentUnavailable::IoUnavailable,
+            ),
+            (StoreError::Io, CatalogComponentUnavailable::IoUnavailable),
+            (
+                StoreError::DurabilityUncertain,
+                CatalogComponentUnavailable::IoUnavailable,
+            ),
+        ] {
+            assert_eq!(store_error(error), reason);
+        }
+    }
+
+    // With `local`, load_semantics reports the model as DependencyUnavailable
+    // instead of FeatureDisabled, so this expectation holds only without it.
+    #[cfg(all(not(target_os = "macos"), not(feature = "local")))]
+    #[test]
+    fn configured_provider_fails_closed_on_an_unsupported_host() -> Result<(), String> {
+        let provider = CatalogProvider::new(
+            Some(HostCatalogConfig {
+                store: "/catalog".into(),
+                trust: "/catalog/trust.json".into(),
+                model_dir: Some("/model".into()),
+                index_store: Some("/index".into()),
+            }),
+            None,
+        );
+        let observed = provider
+            .observe(&Continue)
+            .map_err(|error| format!("{error:?}"))?;
+        assert_eq!(
+            observed.catalog,
+            unavailable(CatalogComponentUnavailable::UnsupportedPlatform)
+        );
+        assert_eq!(
+            observed.model,
+            unavailable(CatalogComponentUnavailable::FeatureDisabled)
+        );
+        assert_eq!(
+            observed.semantic_index,
+            unavailable(CatalogComponentUnavailable::FeatureDisabled)
+        );
+        assert_eq!(
+            observed.rustsec,
+            unavailable(CatalogComponentUnavailable::NotConfigured)
+        );
+        Ok(())
+    }
+}

@@ -119,7 +119,7 @@ fn output_limit() -> ResolutionError {
 }
 
 fn create_arguments(
-    gateway: &RustGateway,
+    shape: crate::rust_gateway::ContainerShape<'_>,
     name: &str,
     nonce: &str,
     source: &MutationVolume,
@@ -160,7 +160,7 @@ fn create_arguments(
     for value in crate::rust_gateway::environment() {
         args.push(format!("--env={value}"));
     }
-    let profile = gateway.inner.state.path().join("seccomp-rust.json");
+    let profile = shape.state.join("seccomp-rust.json");
     args.push(format!(
         "--security-opt=seccomp={}",
         profile
@@ -188,7 +188,7 @@ fn create_arguments(
         args.push("--interactive".into());
     }
     args.push(format!("--entrypoint={}", phase.program()));
-    args.push(gateway.image_id().into());
+    args.push(shape.image_id.into());
     args.extend(phase.arguments().iter().map(|value| (*value).to_owned()));
     Ok(args)
 }
@@ -203,18 +203,7 @@ fn create_volume(
     if !absent(gateway, "volume", name, deadline, cancel)? {
         return Err(ExecutionError::CleanupUncertain);
     }
-    let mut args = vec![
-        "volume".into(),
-        "create".into(),
-        "--driver=local".into(),
-        "--opt=type=tmpfs".into(),
-        "--opt=device=tmpfs".into(),
-        format!("--opt=o={VOLUME_OPTIONS}"),
-    ];
-    for (key, value) in labels(nonce) {
-        args.push(format!("--label={key}={value}"));
-    }
-    args.push(name.into());
+    let args = crate::mutation_gateway::tmpfs_volume_arguments(name, nonce, VOLUME_OPTIONS);
     mutation_control(gateway, &args, deadline, cancel)?;
     let inspected = query_control(
         gateway,
@@ -242,7 +231,14 @@ fn create_phase(
     }
     mutation_control(
         gateway,
-        &create_arguments(gateway, name, nonce, volumes.source, volumes.vendor, phase)?,
+        &create_arguments(
+            gateway.shape(),
+            name,
+            nonce,
+            volumes.source,
+            volumes.vendor,
+            phase,
+        )?,
         deadline,
         cancel,
     )?;
@@ -608,6 +604,37 @@ fn fingerprint(
     resolved_stdout: &[u8],
     checked_stdout: &[u8],
 ) -> Result<ExecutionFingerprint, ResolutionError> {
+    let commands = resolution_commands(gateway.shape()).map_err(invalid_execution)?;
+    let base = gateway
+        .configuration_fingerprint()
+        .map_err(invalid_execution)?;
+    resolution_digest(
+        base,
+        phase,
+        commands,
+        ResolutionInputs {
+            source_archive,
+            vendor_archive,
+            resolved_lock,
+            resolved_stdout,
+            checked_stdout,
+        },
+    )
+}
+
+/// The observed bytes one resolution fingerprint is bound to.
+struct ResolutionInputs<'a> {
+    source_archive: &'a [u8],
+    vendor_archive: &'a [u8],
+    resolved_lock: Option<&'a [u8]>,
+    resolved_stdout: &'a [u8],
+    checked_stdout: &'a [u8],
+}
+
+/// The seven resolution argv shapes, with job-specific names as placeholders.
+fn resolution_commands(
+    shape: crate::rust_gateway::ContainerShape<'_>,
+) -> Result<Vec<Vec<String>>, ExecutionError> {
     let volume = |name: &str, mountpoint: &str| MutationVolume {
         name: name.into(),
         driver: "local".into(),
@@ -624,7 +651,7 @@ fn fingerprint(
     };
     let source = volume("<source-volume>", "<source-mountpoint>");
     let vendor = volume("<vendor-volume>", "<vendor-mountpoint>");
-    let commands = [
+    [
         ResolutionPhase::SourceGuardian,
         ResolutionPhase::VendorGuardian,
         ResolutionPhase::SourceIngest,
@@ -634,22 +661,27 @@ fn fingerprint(
         ResolutionPhase::Export,
     ]
     .into_iter()
-    .map(|value| create_arguments(gateway, "<container>", "<nonce>", &source, &vendor, value))
-    .collect::<Result<Vec<_>, _>>()
-    .map_err(invalid_execution)?;
+    .map(|value| create_arguments(shape, "<container>", "<nonce>", &source, &vendor, value))
+    .collect()
+}
+
+fn resolution_digest(
+    base: ExecutionFingerprint,
+    phase: ResolutionPhase,
+    commands: Vec<Vec<String>>,
+    inputs: ResolutionInputs<'_>,
+) -> Result<ExecutionFingerprint, ResolutionError> {
     let bytes = serde_json::to_vec(&(
-        gateway
-            .configuration_fingerprint()
-            .map_err(invalid_execution)?,
+        base,
         phase,
         phase.arguments(),
         commands,
         ["--opt=type=tmpfs", "--opt=device=tmpfs", VOLUME_OPTIONS],
-        digest(source_archive),
-        digest(vendor_archive),
-        resolved_lock.map(digest),
-        digest(resolved_stdout),
-        digest(checked_stdout),
+        digest(inputs.source_archive),
+        digest(inputs.vendor_archive),
+        inputs.resolved_lock.map(digest),
+        digest(inputs.resolved_stdout),
+        digest(inputs.checked_stdout),
         OUTPUT,
         WALL.as_millis(),
         CLEANUP.as_millis(),
@@ -1409,6 +1441,209 @@ mod tests {
         }
         drop(gateway);
         std::fs::remove_dir_all(state_root)?;
+        Ok(())
+    }
+}
+
+#[cfg(test)]
+mod shape_tests {
+    //! Daemon-free evidence for the resolution argv mount matrix and digest.
+    use super::*;
+    use crate::rust_gateway::ContainerShape;
+    use std::path::Path;
+
+    type TestResult = Result<(), String>;
+    trait Checked<T> {
+        fn c(self) -> Result<T, String>;
+    }
+    impl<T, E: std::fmt::Debug> Checked<T> for Result<T, E> {
+        fn c(self) -> Result<T, String> {
+            self.map_err(|error| format!("{error:?}"))
+        }
+    }
+    const IMAGE: &str = "sha256:4444444444444444444444444444444444444444444444444444444444444444";
+    const PHASES: [ResolutionPhase; 7] = [
+        ResolutionPhase::SourceGuardian,
+        ResolutionPhase::VendorGuardian,
+        ResolutionPhase::SourceIngest,
+        ResolutionPhase::VendorIngest,
+        ResolutionPhase::Resolve,
+        ResolutionPhase::Frozen,
+        ResolutionPhase::Export,
+    ];
+
+    fn shape(state: &Path) -> ContainerShape<'_> {
+        ContainerShape {
+            state,
+            image_id: IMAGE,
+        }
+    }
+    fn volume(name: &str) -> MutationVolume {
+        MutationVolume {
+            name: name.into(),
+            driver: "local".into(),
+            scope: "local".into(),
+            options: std::collections::BTreeMap::new(),
+            labels: labels("n"),
+            mountpoint: format!("/var/lib/docker/volumes/{name}/_data"),
+            cluster_volume: None,
+            status: None,
+        }
+    }
+    fn mounts(args: &[String]) -> Vec<&str> {
+        args.iter()
+            .filter(|arg| arg.starts_with("--mount="))
+            .map(String::as_str)
+            .collect()
+    }
+
+    #[test]
+    fn every_phase_mounts_exactly_its_volumes_with_its_write_bits() -> TestResult {
+        const SOURCE_RW: &str =
+            "--mount=type=volume,source=src,target=/source,volume-nocopy,volume-driver=local";
+        const SOURCE_RO: &str = "--mount=type=volume,source=src,target=/source,volume-nocopy,volume-driver=local,readonly";
+        const VENDOR_RW: &str = "--mount=type=volume,source=ven,target=/rust-mcp-vendor,volume-nocopy,volume-driver=local";
+        const VENDOR_RO: &str = "--mount=type=volume,source=ven,target=/rust-mcp-vendor,volume-nocopy,volume-driver=local,readonly";
+        let expected: [(ResolutionPhase, &[&str], bool); 7] = [
+            (ResolutionPhase::SourceGuardian, &[SOURCE_RO], false),
+            (ResolutionPhase::VendorGuardian, &[VENDOR_RO], false),
+            (ResolutionPhase::SourceIngest, &[SOURCE_RW], true),
+            (ResolutionPhase::VendorIngest, &[VENDOR_RW], true),
+            (ResolutionPhase::Resolve, &[SOURCE_RW, VENDOR_RO], false),
+            (ResolutionPhase::Frozen, &[SOURCE_RO, VENDOR_RO], false),
+            (ResolutionPhase::Export, &[SOURCE_RO, VENDOR_RO], false),
+        ];
+        for (phase, phase_mounts, interactive) in expected {
+            let args = create_arguments(
+                shape(Path::new("/state/control")),
+                "c",
+                "n",
+                &volume("src"),
+                &volume("ven"),
+                phase,
+            )
+            .c()?;
+            assert_eq!(mounts(&args), phase_mounts, "{phase:?}");
+            assert_eq!(
+                args.contains(&"--interactive".to_owned()),
+                interactive,
+                "{phase:?}"
+            );
+            assert!(args.contains(&"--user=65534:65534".to_owned()));
+            assert!(
+                args.contains(
+                    &"--security-opt=seccomp=/state/control/seccomp-rust.json".to_owned()
+                )
+            );
+            assert!(args.contains(&"--network=none".to_owned()));
+            let entry = args
+                .iter()
+                .position(|arg| arg.starts_with("--entrypoint="))
+                .ok_or("entrypoint")?;
+            assert_eq!(args[entry], format!("--entrypoint={}", phase.program()));
+            assert_eq!(args[entry + 1], IMAGE);
+            assert_eq!(args[entry + 2..], *phase.arguments());
+        }
+        Ok(())
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn a_non_utf8_state_directory_is_an_invalid_configuration() {
+        use std::os::unix::ffi::OsStrExt;
+        let state = Path::new(std::ffi::OsStr::from_bytes(b"/state/\xfd"));
+        assert_eq!(
+            create_arguments(
+                shape(state),
+                "c",
+                "n",
+                &volume("src"),
+                &volume("ven"),
+                ResolutionPhase::Resolve
+            )
+            .err(),
+            Some(ExecutionError::InvalidConfiguration)
+        );
+    }
+
+    #[test]
+    fn resolution_digest_binds_every_observed_input() -> TestResult {
+        let commands = resolution_commands(shape(Path::new("/state"))).c()?;
+        assert_eq!(commands.len(), PHASES.len());
+        for (command, phase) in commands.iter().zip(PHASES) {
+            assert!(command.contains(&"--name=<container>".to_owned()));
+            assert!(command.contains(&format!("--entrypoint={}", phase.program())));
+        }
+        let base: ExecutionFingerprint = format!("sha256:{}", "a".repeat(64)).parse().c()?;
+        let other: ExecutionFingerprint = format!("sha256:{}", "b".repeat(64)).parse().c()?;
+        let inputs = |lock: Option<&'static [u8]>, source: &'static [u8]| ResolutionInputs {
+            source_archive: source,
+            vendor_archive: b"vendor",
+            resolved_lock: lock,
+            resolved_stdout: b"resolved",
+            checked_stdout: b"checked",
+        };
+        let digest_of =
+            |base: &ExecutionFingerprint, phase, commands: &Vec<Vec<String>>, inputs| {
+                resolution_digest(base.clone(), phase, commands.clone(), inputs).c()
+            };
+        let reference = digest_of(
+            &base,
+            ResolutionPhase::Resolve,
+            &commands,
+            inputs(Some(b"lock"), b"source"),
+        )?;
+        assert_eq!(
+            reference,
+            digest_of(
+                &base,
+                ResolutionPhase::Resolve,
+                &commands,
+                inputs(Some(b"lock"), b"source")
+            )?
+        );
+        let mut fewer = commands.clone();
+        fewer.pop();
+        for changed in [
+            digest_of(
+                &other,
+                ResolutionPhase::Resolve,
+                &commands,
+                inputs(Some(b"lock"), b"source"),
+            )?,
+            digest_of(
+                &base,
+                ResolutionPhase::Frozen,
+                &commands,
+                inputs(Some(b"lock"), b"source"),
+            )?,
+            digest_of(
+                &base,
+                ResolutionPhase::Resolve,
+                &fewer,
+                inputs(Some(b"lock"), b"source"),
+            )?,
+            digest_of(
+                &base,
+                ResolutionPhase::Resolve,
+                &commands,
+                inputs(None, b"source"),
+            )?,
+            digest_of(
+                &base,
+                ResolutionPhase::Resolve,
+                &commands,
+                inputs(Some(b"other"), b"source"),
+            )?,
+            digest_of(
+                &base,
+                ResolutionPhase::Resolve,
+                &commands,
+                inputs(Some(b"lock"), b"other"),
+            )?,
+        ] {
+            assert_ne!(changed, reference);
+        }
         Ok(())
     }
 }

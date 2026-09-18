@@ -164,6 +164,7 @@ fn manifest_preview_commit_conflict_reopen_and_restart_receipt() -> Result {
             .args(["mutation", action, "--state-root"])
             .arg(&fixture.state)
             .arg("--json");
+        instrumented(&mut command);
         command
     };
     let listed: Value = serde_json::from_slice(&bounded_command(admin("list"))?)?;

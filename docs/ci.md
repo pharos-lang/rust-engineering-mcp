@@ -21,8 +21,9 @@ las dependencias fijadas por `Cargo.lock`; el resultado se entrega como LCOV.
 Python usa Coverage.py 7.16.0 desde una wheel fijada por URL y SHA-256 y entrega
 Cobertura XML. `scripts/test-*.py` se clasifica como código de prueba; los demás
 scripts son fuentes medibles. El job ejecuta arquitectura, validación de reportes,
-gate reporting, artifact/smoke, calificador Codex, exportación pública y el
-resumen reproducible de presupuestos M4: 80 tests Python en total. Los entrypoints que requieren un host release real permanecen
+gate reporting, artifact/smoke, inventario de release hermético con Cargo metadata
+simulado, calificador Codex, exportación pública y el resumen reproducible de
+presupuestos M4. Los entrypoints que requieren un host release real permanecen
 analizados por Sonar y probados por sus suites, pero se excluyen solo del porcentaje
 de cobertura; su evidencia end-to-end es separada y candidate-bound.
 
