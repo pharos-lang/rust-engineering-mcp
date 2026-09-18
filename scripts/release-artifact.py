@@ -43,7 +43,9 @@ TEXT_NAME = re.compile(
     rf"|THIRD[-_]?PARTY[-_]?NOTICES?(?:\.(?:txt|md|html))?",
     re.IGNORECASE,
 )
-TAG = re.compile(r"^v(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$")
+TAG = re.compile(
+    r"^v(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)(-rc\.(0|[1-9][0-9]*))?$"
+)
 PROHIBITED_PACKAGES = {
     "fastembed",
     "kanaria",
@@ -252,7 +254,10 @@ def dependency_closure(
 
 def validate_tag(metadata: dict[str, object], tag: str, root_id: str) -> str:
     if not TAG.fullmatch(tag):
-        raise ValueError("tag must be a stable semantic version of the form vX.Y.Z")
+        raise ValueError(
+            "tag must be a stable semantic version vX.Y.Z or "
+            "release-candidate vX.Y.Z-rc.N"
+        )
     package = next((item for item in metadata["packages"] if item.get("id") == root_id), None)
     if package is None:
         raise ValueError("root package metadata is absent")

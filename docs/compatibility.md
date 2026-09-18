@@ -5,7 +5,7 @@
 | Componente | Foundation implementada |
 | --- | --- |
 | Release soportada | `0.3.0` (anterior: `0.1.0`) |
-| Checkout de desarrollo | `0.8.0` (freeze de contratos, sin release); 36 tools: 31 `stable` (18 M1/M2, cuatro M3, cinco M4, cuatro M5) y 5 `preview` (`rust.analyzer.symbols`/`rust.analyzer.references`/`rust.analyzer.diagnostics`/`rust.analyzer.actions`/`rust.analyzer.action.apply`, M6, fusionadas en `main` vía PR #20 (`e50c3fe`) y calificadas, [handoff](validation/M6/handoff.md)); Tasks anunciado con negociación mutua |
+| Checkout de desarrollo | `0.9.0-rc.1` (primer release candidate M8-09; freeze de contratos `0.8.0` sigue vigente, sin cambios); 36 tools: 31 `stable` (18 M1/M2, cuatro M3, cinco M4, cuatro M5) y 5 `preview` (`rust.analyzer.symbols`/`rust.analyzer.references`/`rust.analyzer.diagnostics`/`rust.analyzer.actions`/`rust.analyzer.action.apply`, M6, fusionadas en `main` vía PR #20 (`e50c3fe`) y calificadas, [handoff](validation/M6/handoff.md)); Tasks anunciado con negociación mutua |
 | Toolchain fijado / MSRV inicial | Rust y Cargo `1.98.1`, edition 2024 |
 | Target de validación local | `aarch64-apple-darwin`; [ADR-087](adr/ADR-087-1.0-host-scope.md) confirma este target como el único host positivo y único artifact 1.0 |
 | SDK | `rmcp =3.2.0`, features `server`, `transport-io`, sin defaults |

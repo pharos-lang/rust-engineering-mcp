@@ -78,7 +78,8 @@ explícitamente si añadirlos.
      efímera emitido al workflow `release-candidate.yml`, acotado por sus
      `permissions:` mínimos (`id-token: write`, `attestations: write` solo en
      el job `build`; `contents: write` solo en el job `draft`) y por el hecho
-     de que el dispatch exige un tag `vX.Y.Z` preexistente (`validate-ref`).
+     de que el dispatch exige un tag `vX.Y.Z` o `vX.Y.Z-rc.N` preexistente
+     (`validate-ref`); un RC nunca es una release soportada.
      No hay secreto de larga duración de publicación que rotar; la protección
      de rama/tag y la revisión de CODEOWNERS sobre el propio workflow son el
      control de acceso.
@@ -157,8 +158,8 @@ explícitamente si añadirlos.
   no la cierra, solo fija la política que RC1 ejecuta.
 - Ningún ADR nuevo autoriza publicación; `gh release create --draft
   --prerelease` sigue siendo el único paso que produce un artifact visible, y
-  sigue exigiendo un tag `vX.Y.Z` preexistente más la autorización separada
-  del owner para crearlo.
+  sigue exigiendo un tag `vX.Y.Z` o `vX.Y.Z-rc.N` preexistente más la
+  autorización separada del owner para crearlo.
 
 ## Status
 

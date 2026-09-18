@@ -20,7 +20,8 @@ El servidor usa transporte MCP por `stdio`. Las trece tools de la release
 integrados en `main`, M5 publicado como release `0.3.0`: esa release registra
 31 tools (las 18 de M1/M2, las cuatro tools de calidad M3, cinco tools M4 y
 cuatro tools de rendimiento M5). El checkout de desarrollo, en versión
-`0.8.0` (freeze de contratos, sin release), añade las cinco tools de análisis M6 —`rust.analyzer.symbols`,
+`0.9.0-rc.1` (primer release candidate M8-09; el freeze de contratos `0.8.0`
+sigue vigente, sin cambios de contrato), añade las cinco tools de análisis M6 —`rust.analyzer.symbols`,
 `rust.analyzer.references`, `rust.analyzer.diagnostics`,
 `rust.analyzer.actions` y `rust.analyzer.action.apply`— y registra 36; M6
 está integrado en `main` (PR #20, `e50c3fe`) y calificado (clase `preview`,
@@ -166,9 +167,11 @@ servidor en otro sistema operativo o filesystem.
 
 ## Instalar la release macOS ARM64
 
-Si no existe una release publicada para la versión de este checkout (p. ej.
-`0.8.0` hasta RC1/M8-09), usa [Compilar desde el código fuente](#compilar-desde-el-código-fuente);
-las releases publicadas hoy son `v0.1.0` y `v0.3.0`.
+Si no existe una release **soportada** publicada para la versión de este
+checkout (`0.9.0-rc.1`, primer release candidate M8-09; el tag
+`v0.9.0-rc.1` publica un draft prerelease, no una release soportada), usa
+[Compilar desde el código fuente](#compilar-desde-el-código-fuente); las
+releases soportadas publicadas hoy son `v0.1.0` y `v0.3.0`.
 
 Descarga el archive y `SHA256SUMS` desde la
 [release v0.3.0](https://github.com/pharos-lang/rust-engineering-mcp/releases/tag/v0.3.0),

@@ -30,7 +30,9 @@ import time
 
 SUPPORTED_TARGET = "aarch64-apple-darwin"
 PROTOCOL_VERSION = "2026-07-28"
-TAG = re.compile(r"^v(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$")
+TAG = re.compile(
+    r"^v(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)(-rc\.(0|[1-9][0-9]*))?$"
+)
 HEX_SHA256 = re.compile(r"^[0-9a-f]{64}$")
 TOOLS = (
     "rust.project.open",
@@ -625,7 +627,10 @@ def validate_archive(
     if target != SUPPORTED_TARGET:
         raise ValueError(f"unsupported release target: {target}")
     if TAG.fullmatch(tag) is None:
-        raise ValueError("tag must be a stable semantic version of the form vX.Y.Z")
+        raise ValueError(
+            "tag must be a stable semantic version vX.Y.Z or "
+            "release-candidate vX.Y.Z-rc.N"
+        )
     expected_name = f"rust-engineering-mcp-{tag}-{target}.tar.gz"
     if archive.name != expected_name:
         raise ValueError(f"archive name must be exactly {expected_name}")

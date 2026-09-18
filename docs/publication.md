@@ -22,12 +22,17 @@ useful cross-platform evidence but do not advertise sandbox/filesystem capabilit
 that still fail closed outside qualified adapters.
 
 The manual `.github/workflows/release-candidate.yml` workflow must be dispatched from
-an existing version tag. ADR-048 restricts 0.1.0 to one macOS ARM64 core archive
+an existing version tag, either a stable `vX.Y.Z` tag or a release-candidate
+`vX.Y.Z-rc.N` tag (`validate-ref` accepts both; the archive/checksum naming and the
+tag-equals-workspace-version check are identical either way, with no suffix
+trimming). ADR-048 restricts 0.1.0 to one macOS ARM64 core archive
 with a target-specific inventory, SPDX SBOM, third-party notices, manifest and
 checksums. The workflow must install and exercise those same bytes before creating
-GitHub OIDC provenance and a draft prerelease. A draft is not a supported release.
-The archive contains no model, ORT, LanceDB, catalog, trust, fixtures, Docker image
-or toolchain; the complete `local` profile remains qualified from source.
+GitHub OIDC provenance and a draft prerelease. A draft is not a supported release,
+and a release-candidate tag never is either — RC tags exist to qualify a workspace
+version before it ships as a stable tag. The archive contains no model, ORT,
+LanceDB, catalog, trust, fixtures, Docker image or toolchain; the complete `local`
+profile remains qualified from source.
 
 GitHub OIDC signs the build-provenance statement without a repository-held private
 key. Signed catalog snapshots use a separate Ed25519 protocol defined by ADR-041.

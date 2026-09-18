@@ -1,5 +1,29 @@
 # Changelog
 
+## 0.9.0-rc.1 — primer candidato (M8-09; draft prerelease, no soportada)
+
+Primer release candidate de la serie 0.9, cortado desde el freeze de
+contratos `0.8.0` (W40). Sin cambios de contrato: `docs/validation/M8/freeze-0.8.0.json`
+sigue siendo el oráculo y las migration notes aplicables son las mismas
+`0.3.0 → 0.8.0` documentadas debajo, en la sección `## 0.8.0`.
+
+- **Solo versión de workspace y cadena de release.** `Cargo.toml`
+  `[workspace.package] version` pasa de `0.8.0` a `0.9.0-rc.1`; los ocho
+  crates del workspace en `Cargo.lock` se actualizan a la par
+  (`cargo update --workspace --offline`). Ningún crate, snapshot de
+  contrato ni el freeze `0.8.0` cambian.
+- **Esquema de tags RC.** `v0.9.0-rc.1`, `v0.9.0-rc.2`, … — un pre-release
+  SemVer 2.0 `-rc.N` por bump de versión de workspace, nunca otro sufijo de
+  pre-release ni build metadata. `.github/workflows/release-candidate.yml`
+  (`validate-ref`) y `scripts/release-artifact.py`/`scripts/release-smoke.py`
+  (`TAG`) admiten `^v(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)(-rc\.(0|[1-9][0-9]*))?$`;
+  el paso que compara el tag contra la versión del workspace sigue siendo
+  una igualdad estricta de cadena completa (`0.9.0-rc.1` == `0.9.0-rc.1`),
+  sin recortar el sufijo `-rc.N`. Cada tag RC sigue produciendo un draft
+  prerelease (`gh release create --draft --prerelease`); un RC nunca es una
+  release soportada. `1.0.0` solo se corta por decisión de readiness del
+  owner, no por agotar los RC.
+
 ## 0.8.0 — freeze de contratos (sin publicar; RC en M8-09)
 
 ### Seguridad de dependencias (2026-09-15)

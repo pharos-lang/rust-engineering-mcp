@@ -23,8 +23,8 @@ jobs:
       - name: Require a stable version tag
         shell: bash
         run: |
-          if [[ "${GITHUB_REF_TYPE}" != "tag" || ! "${GITHUB_REF_NAME}" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-            echo "Dispatch this workflow from an existing stable vX.Y.Z tag." >&2
+          if [[ "${GITHUB_REF_TYPE}" != "tag" || ! "${GITHUB_REF_NAME}" =~ ^v[0-9]+\.[0-9]+\.[0-9]+(-rc\.[0-9]+)?$ ]]; then
+            echo "Dispatch this workflow from an existing stable vX.Y.Z or release-candidate vX.Y.Z-rc.N tag." >&2
             exit 1
           fi
 
