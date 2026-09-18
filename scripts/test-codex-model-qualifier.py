@@ -300,6 +300,49 @@ code_host.terminate();code_host.wait(timeout=5)
    try:result=q.execute(plan,out/"receipt.json",out/"transcript.jsonl")
    finally:q.validate_numbers=original
    stored=json.loads((out/"receipt.json").read_text());records=list(map(json.loads,(out/"transcript.jsonl").read_text().splitlines()));process=next(x["data"] for x in records if x["kind"]=="process");cleanup=next(x["data"] for x in records if x["kind"]=="cleanup");self.assertEqual(result["status"],"failed");self.assertEqual(stored["status"],"failed");self.assertTrue(cleanup["forced"]);self.assertEqual(cleanup["pgid"],process["pid"]);self.assertEqual(cleanup["remaining_pids"],[])
+ def test_running_pids_excludes_zombie_rows(self):
+  rows=[(1,0,1,False,"a"),(2,1,1,True,"z"),(3,1,1,False,"b")]
+  self.assertEqual(q.running_pids(rows),{1,3})
+ def test_close_excludes_zombie_pid_from_remaining_pids(self):
+  with tempfile.TemporaryDirectory() as td:
+   root=Path(td);log=q.Transcript(root/"t.jsonl");transport=q.Transport("pid",[sys.executable,"-c","pass"],root,root,root,log,time.monotonic()+5)
+   fake_pid=os.getpid();transport.observed.add(fake_pid);original_rows=q.Transport._rows
+   def fake_rows():return [r for r in original_rows() if r[0]!=fake_pid]+[(fake_pid,1,transport.pgid,True,"zombie-cmd")]
+   q.Transport._rows=staticmethod(fake_rows)
+   try:result=transport.close()
+   finally:q.Transport._rows=staticmethod(original_rows)
+   log.close();self.assertNotIn(fake_pid,result["remaining_pids"]);self.assertIsNone(result["failure"])
+ def test_monitor_zombie_descendant_executable_unresolved_is_benign(self):
+  with tempfile.TemporaryDirectory() as td:
+   root=Path(td);log=q.Transcript(root/"t.jsonl");transport=q.Transport("pid",[sys.executable,"-c","import time;time.sleep(1)"],root,root,root,log,time.monotonic()+5,allowed_executables={str(root/"approved"):("role",q.digest(b"x"))})
+   fake_pid=os.getpid();original_rows=q.Transport._rows;original_executable=q.process_executable;original_running=q.process_is_confirmed_running
+   def fake_rows():return [r for r in original_rows() if r[0]!=fake_pid]+[(fake_pid,transport.p.pid,transport.pgid,True,"zombie-cmd")]
+   def fake_executable(pid):
+    if pid==fake_pid:raise ProcessLookupError(pid)
+    return original_executable(pid)
+   def fake_running(pid):
+    if pid==fake_pid:return False
+    return original_running(pid)
+   q.Transport._rows=staticmethod(fake_rows);q.process_executable=fake_executable;q.process_is_confirmed_running=fake_running
+   try:
+    time.sleep(.5);self.assertIsNone(transport.failure);result=transport.close()
+   finally:
+    q.Transport._rows=staticmethod(original_rows);q.process_executable=original_executable;q.process_is_confirmed_running=original_running
+   log.close();self.assertIsNone(result["failure"]);self.assertNotIn(fake_pid,result["remaining_pids"])
+ def test_monitor_live_descendant_executable_unresolved_still_fails(self):
+  with tempfile.TemporaryDirectory() as td:
+   root=Path(td);log=q.Transcript(root/"t.jsonl");transport=q.Transport("pid",[sys.executable,"-c","import time;time.sleep(1)"],root,root,root,log,time.monotonic()+5,allowed_executables={str(root/"approved"):("role",q.digest(b"x"))})
+   fake_pid=os.getpid();original_rows=q.Transport._rows;original_executable=q.process_executable
+   def fake_rows():return [r for r in original_rows() if r[0]!=fake_pid]+[(fake_pid,transport.p.pid,transport.pgid,False,"unresolved-cmd")]
+   def fake_executable(pid):
+    if pid==fake_pid:raise ProcessLookupError(pid)
+    return original_executable(pid)
+   q.Transport._rows=staticmethod(fake_rows);q.process_executable=fake_executable
+   try:
+    time.sleep(.5);result=transport.close()
+   finally:
+    q.Transport._rows=staticmethod(original_rows);q.process_executable=original_executable
+   log.close();self.assertIn("live descendant executable unresolved",result["failure"])
  def test_transport_rejects_foreign_pid_without_killing_it(self):
   with tempfile.TemporaryDirectory() as td:
    root=Path(td);log=q.Transcript(root/"t.jsonl");transport=q.Transport("pid",[sys.executable,"-c","import time; time.sleep(.3)"],root,root,root,log,time.monotonic()+5);transport.observed.add(os.getpid());result=transport.close();log.close()
