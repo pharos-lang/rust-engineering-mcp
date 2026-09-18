@@ -259,9 +259,18 @@ fn mutation_journals(state_root: &std::path::Path) -> MutationJournalsReport {
     if !journal_dir.is_dir() {
         return MutationJournalsReport::empty();
     }
-    match rust_engineering_project::mutation_store::NativeMutationStore::open(&journal_dir, &[])
-        .and_then(|store| store.list_records())
-    {
+    classify_mutation_records(
+        rust_engineering_project::mutation_store::NativeMutationStore::open(&journal_dir, &[])
+            .and_then(|store| store.list_records()),
+    )
+}
+/// Pure classification of an already-read record list (or the store error in
+/// its place) into the report doctor renders; no filesystem or store access,
+/// so it is unit-testable with synthetic records on every platform.
+fn classify_mutation_records(
+    records: Result<Vec<MutationRecordSummary>, MutationError>,
+) -> MutationJournalsReport {
+    match records {
         Ok(records) => {
             let (mut pending, mut terminal) = (0u64, 0u64);
             let mut kinds: BTreeMap<&'static str, KindCounts> = BTreeMap::new();
