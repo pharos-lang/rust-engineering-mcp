@@ -30,6 +30,12 @@ the plateau + margin as a real pass/fail criterion, replacing any unevidenced
 ``--profile local`` is Docker's soak (the plan's SS4.2): this package never
 touches Docker, so it is left as an honest ``NotImplementedError`` for the
 orchestrator to run in M8-09, never simulated here.
+
+The binary and the receipt destination (``docs/validation/M8/05-soak-core.json``)
+are constants derived from ``ROOT``, not CLI flags: the taint engine used by
+SonarCloud's Python analysis treats any CLI-supplied path that reaches
+``open()``/``subprocess`` as a path traversal / command injection risk
+regardless of ``argparse`` validation.
 """
 from __future__ import annotations
 
@@ -47,6 +53,7 @@ import time
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 DEFAULT_BINARY = ROOT / "target/release/rust-engineering-mcp"
+OUT_PATH = ROOT / "docs/validation/M8/05-soak-core.json"
 FIXTURE = ROOT / "fixtures/valid-basic"
 CATALOG_FIXTURE_DIR = ROOT / "fixtures/catalog"
 CATALOG_BUNDLE = CATALOG_FIXTURE_DIR / "fixture-1.tar.zst"
@@ -578,7 +585,6 @@ def run_core_soak(
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--binary", default=str(DEFAULT_BINARY))
     parser.add_argument("--profile", choices=["core", "local"], default="core")
     parser.add_argument("--cycles", default="1000")
     parser.add_argument("--hours", default="8")
@@ -591,7 +597,6 @@ def parse_args() -> argparse.Namespace:
         action="store_true",
         help="Operator attests foreground-app quiescence was verified before this run (P-7); defaults to false.",
     )
-    parser.add_argument("--out", required=True)
     return parser.parse_args()
 
 
@@ -603,9 +608,7 @@ def main() -> None:
             "this package never touches Docker. The orchestrator runs this profile in M8-09."
         )
 
-    binary = pathlib.Path(args.binary)
-    if not binary.is_absolute():
-        binary = (ROOT / binary).resolve()
+    binary = DEFAULT_BINARY
     if not binary.is_file():
         raise FileNotFoundError(f"binary not found: {binary}")
     if not CATALOG_BUNDLE.is_file() or not CATALOG_TRUST_SOURCE.is_file():
@@ -624,10 +627,6 @@ def main() -> None:
     if project_ttl_secs <= 0:
         raise ValueError("--project-ttl-secs must be positive")
 
-    out_path = pathlib.Path(args.out)
-    if not out_path.is_absolute():
-        out_path = ROOT / out_path
-
     scratch = pathlib.Path(tempfile.mkdtemp(prefix="m8-soak-", dir=str(ROOT / "target")))
     try:
         receipt = run_core_soak(
@@ -644,9 +643,9 @@ def main() -> None:
     finally:
         shutil.rmtree(scratch, ignore_errors=True)
 
-    out_path.parent.mkdir(parents=True, exist_ok=True)
-    out_path.write_text(json.dumps(receipt, indent=2) + "\n")
-    print(f"{receipt['status'].upper()} m8 soak ({args.profile}) written to {out_path}")
+    OUT_PATH.parent.mkdir(parents=True, exist_ok=True)
+    OUT_PATH.write_text(json.dumps(receipt, indent=2) + "\n")
+    print(f"{receipt['status'].upper()} m8 soak ({args.profile}) written to {OUT_PATH}")
 
 
 if __name__ == "__main__":

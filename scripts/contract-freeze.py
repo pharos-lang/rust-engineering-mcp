@@ -1,21 +1,36 @@
 #!/usr/bin/env python3
 """Contract freeze manifest and before/after diff for the MCP tool surface.
 
-Three subcommands:
+Three subcommands. Every path this script writes to is a constant derived
+from ``ROOT``: the taint engine used by SonarCloud's Python analysis treats
+any CLI-supplied path that reaches ``open()``/``subprocess`` as a path
+traversal / command injection risk regardless of ``argparse`` validation, so
+variable parameters travel over stdin as JSON instead, validated against a
+closed schema before use.
 
-  generate --out PATH
+  generate
       Hash every tool snapshot under crates/mcp-server/tests/snapshots/*-tool.json
       (schemas, annotations, description) into a manifest with per-tool stability
-      class (``stable`` or ``preview``).
+      class (``stable`` or ``preview``), written to the constant
+      ``docs/validation/M8/freeze-0.8.0.json``.
 
-  verify MANIFEST [--strict]
-      Recompute the same hashes from the current snapshots and compare against a
-      manifest. Any difference in a ``stable`` tool (name added/removed, schema,
-      annotations, description) fails. A difference in a ``preview`` tool is a
-      warning unless ``--strict`` is given. A tool_count mismatch always fails.
+  verify [--strict]
+      Recompute the same hashes from the current snapshots and compare against
+      the manifest at that same constant path. Any difference in a ``stable``
+      tool (name added/removed, schema, annotations, description) fails. A
+      difference in a ``preview`` tool is a warning unless ``--strict`` is
+      given. A tool_count mismatch always fails.
 
-  diff --base REF --out PATH [--only NAME,NAME,...]
-      Compare the tool snapshots at a Git ref against the current working tree.
+  diff
+      Reads a JSON object from stdin: ``{"base": REF, "out": KEY, "only":
+      [NAME, ...]}``. Compares the tool snapshots at the Git ref ``base``
+      against the current working tree. ``base`` must match
+      ``BASE_PATTERN`` (a tag or a commit-ish hex id) and is passed to Git
+      only after ``--end-of-options``; it never reaches a filesystem path.
+      ``out`` selects a key of ``DIFF_DESTINATIONS``, a constant dict the
+      script composes from the freeze's two real comparison points
+      (``v0.3.0`` and ``v0.1.0``); nothing from stdin ever becomes a path.
+      ``only``, if given, restricts the diff to those tool names.
 
 Only the standard library is used. Git is invoked with fixed argument lists,
 never through a shell.
@@ -27,12 +42,20 @@ import datetime
 import hashlib
 import json
 import pathlib
+import re
 import subprocess
 import sys
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 SNAPSHOTS_DIR = ROOT / "crates/mcp-server/tests/snapshots"
 SNAPSHOTS_RELATIVE = "crates/mcp-server/tests/snapshots"
+FREEZE_MANIFEST_PATH = ROOT / "docs/validation/M8/freeze-0.8.0.json"
+SCHEMA_DIFF_PATH = ROOT / "docs/validation/M8/02-schema-diff.json"
+DIFF_DESTINATIONS = {
+    "since_v0.3.0": SCHEMA_DIFF_PATH,
+    "since_v0.1.0_m1_only": SCHEMA_DIFF_PATH,
+}
+BASE_PATTERN = re.compile(r"^(v[0-9]+\.[0-9]+\.[0-9]+|[0-9a-f]{7,40})$")
 
 PREVIEW_NAMES = frozenset(
     {
@@ -116,14 +139,7 @@ def counts(tools: dict) -> tuple[int, int, int]:
     return len(tools), stable, preview
 
 
-def require_nonempty_path(value: str, label: str) -> pathlib.Path:
-    if not value or not value.strip():
-        raise SystemExit(f"{label} must not be empty")
-    return pathlib.Path(value)
-
-
-def cmd_generate(out: str) -> int:
-    out_path = require_nonempty_path(out, "--out")
+def cmd_generate() -> int:
     tools = load_current_tools()
     tool_count, stable_count, preview_count = counts(tools)
     manifest = {
@@ -137,21 +153,23 @@ def cmd_generate(out: str) -> int:
         "stable_count": stable_count,
         "preview_count": preview_count,
     }
-    out_path.parent.mkdir(parents=True, exist_ok=True)
-    out_path.write_text(json.dumps(manifest, indent=2, sort_keys=True) + "\n")
-    print(f"generate: wrote {tool_count} tools ({stable_count} stable, {preview_count} preview) to {out_path}")
+    FREEZE_MANIFEST_PATH.parent.mkdir(parents=True, exist_ok=True)
+    FREEZE_MANIFEST_PATH.write_text(json.dumps(manifest, indent=2, sort_keys=True) + "\n")
+    print(
+        f"generate: wrote {tool_count} tools ({stable_count} stable, {preview_count} preview) "
+        f"to {FREEZE_MANIFEST_PATH}"
+    )
     return 0
 
 
 FIELDS_COMPARED = ("annotations", "input_schema_sha256", "output_schema_sha256", "description_sha256")
 
 
-def cmd_verify(manifest_path_arg: str, strict: bool) -> int:
-    manifest_path = require_nonempty_path(manifest_path_arg, "MANIFEST")
-    if not manifest_path.exists():
-        print(f"verify: manifest not found: {manifest_path}", file=sys.stderr)
+def cmd_verify(strict: bool) -> int:
+    if not FREEZE_MANIFEST_PATH.exists():
+        print(f"verify: manifest not found: {FREEZE_MANIFEST_PATH}", file=sys.stderr)
         return 1
-    manifest = json.loads(manifest_path.read_text())
+    manifest = json.loads(FREEZE_MANIFEST_PATH.read_text())
 
     format_errors: list[str] = []
     if manifest.get("format_version") != 1:
@@ -238,14 +256,43 @@ def load_ref_tools(commit: str) -> dict:
     return tools
 
 
-def cmd_diff(base: str, out: str, only: str | None) -> int:
-    out_path = require_nonempty_path(out, "--out")
+def parse_diff_request(payload: object) -> tuple[str, pathlib.Path, str, list[str] | None]:
+    """Validate the diff request read from stdin against a closed schema.
+
+    Returns ``(base, out_path, out_key, only)``. Neither ``base`` nor ``out``
+    is ever used to build a filesystem path directly: ``base`` is only used
+    as a Git ref (after ``BASE_PATTERN`` validation and ``--end-of-options``),
+    and ``out`` only selects a key of the constant ``DIFF_DESTINATIONS`` dict.
+    """
+    if not isinstance(payload, dict):
+        raise SystemExit("diff: stdin JSON must be an object")
+    base = payload.get("base")
+    if not isinstance(base, str) or not BASE_PATTERN.match(base):
+        raise SystemExit(f"diff: base must match {BASE_PATTERN.pattern!r}: {base!r}")
+    out_key = payload.get("out")
+    if out_key not in DIFF_DESTINATIONS:
+        raise SystemExit(f"diff: out must be one of {sorted(DIFF_DESTINATIONS)}: {out_key!r}")
+    only = payload.get("only")
+    if only is not None and (
+        not isinstance(only, list) or not all(isinstance(name, str) and name for name in only)
+    ):
+        raise SystemExit("diff: only must be a list of non-empty tool names")
+    return base, DIFF_DESTINATIONS[out_key], out_key, only
+
+
+def cmd_diff() -> int:
+    try:
+        payload = json.load(sys.stdin)
+    except json.JSONDecodeError as error:
+        raise SystemExit(f"diff: stdin must be a JSON object: {error}") from error
+    base, out_path, out_key, only = parse_diff_request(payload)
+
     base_commit = resolve_commit(base)
     base_tools = load_ref_tools(base_commit)
     current_tools = load_current_tools()
 
     if only:
-        allowed = {name.strip() for name in only.split(",") if name.strip()}
+        allowed = set(only)
         base_tools = {name: entry for name, entry in base_tools.items() if name in allowed}
         current_tools = {name: entry for name, entry in current_tools.items() if name in allowed}
 
@@ -283,7 +330,7 @@ def cmd_diff(base: str, out: str, only: str | None) -> int:
         else:
             unchanged.append({"name": name, "bytes_identical": bytes_identical})
 
-    result = {
+    entry = {
         "base": base,
         "base_commit": base_commit,
         "head_commit": head_commit(),
@@ -293,11 +340,16 @@ def cmd_diff(base: str, out: str, only: str | None) -> int:
         "changed": changed,
         "unchanged": unchanged,
     }
+
+    existing: dict = {}
+    if out_path.exists():
+        existing = json.loads(out_path.read_text())
+    existing[out_key] = entry
     out_path.parent.mkdir(parents=True, exist_ok=True)
-    out_path.write_text(json.dumps(result, indent=2, sort_keys=True) + "\n")
+    out_path.write_text(json.dumps(existing, indent=2, sort_keys=True) + "\n")
     print(
         f"diff --base {base}: {len(added)} added, {len(removed)} removed, "
-        f"{len(changed)} changed, {len(unchanged)} unchanged -> {out_path}"
+        f"{len(changed)} changed, {len(unchanged)} unchanged -> {out_path} [{out_key}]"
     )
     return 0
 
@@ -306,24 +358,19 @@ def main(argv: list[str]) -> int:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     sub = parser.add_subparsers(dest="command", required=True)
 
-    generate = sub.add_parser("generate")
-    generate.add_argument("--out", required=True)
+    sub.add_parser("generate")
 
     verify = sub.add_parser("verify")
-    verify.add_argument("manifest")
     verify.add_argument("--strict", action="store_true")
 
-    diff = sub.add_parser("diff")
-    diff.add_argument("--base", required=True)
-    diff.add_argument("--out", required=True)
-    diff.add_argument("--only", default=None, help="comma-separated tool names to restrict the diff to")
+    sub.add_parser("diff", help="reads {\"base\": REF, \"out\": KEY, \"only\": [NAME, ...]} from stdin")
 
     args = parser.parse_args(argv)
     if args.command == "generate":
-        return cmd_generate(args.out)
+        return cmd_generate()
     if args.command == "verify":
-        return cmd_verify(args.manifest, args.strict)
-    return cmd_diff(args.base, args.out, args.only)
+        return cmd_verify(args.strict)
+    return cmd_diff()
 
 
 if __name__ == "__main__":

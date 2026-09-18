@@ -56,6 +56,14 @@ prueba como producto sin excluirlo del análisis.
    [`M3-runtime.json`](validation/M3/runtime.json),
    [`M3-full-gate.json`](validation/M3/full-gate.json) y
    [`M4-clients.json`](validation/M4/clients.json).
+4. Arneses M8 host-only: `scripts/measure-m8-performance.py` y `scripts/soak-m8.py`
+   spawnean el binario `release` real y muestrean RSS/FDs/procesos hijos vía
+   `ps`/`lsof`/`pgrep`, ausentes o con salida distinta en el runner de análisis;
+   `scripts/test-m8-rollback.py` y `scripts/test-m8-clients.py` ejercitan el
+   mismo binario y clientes stock reales; `scripts/m8-inspector-session.mjs`
+   conduce una sesión MCP Inspector contra un bridge Node real. Su evidencia
+   está en [`05-measurement.json`](validation/M8/05-measurement.json) y
+   [`clients.json`](validation/M8/clients.json).
 
 Ningún archivo Rust de producto está excluido del porcentaje de cobertura.
 Los caminos que solo ejecutan los gates nativos pueden reducir la cifra portable;
@@ -375,7 +383,7 @@ y antes de `vendor`:
 | Etapa | Modo | Comando exacto |
 | --- | --- | --- |
 | `contract-freeze-tests` | core (y full) | `python3 -B scripts/test-contract-freeze.py` |
-| `contract-freeze` | core (y full) | `python3 -B scripts/contract-freeze.py verify docs/validation/M8/freeze-0.8.0.json` |
+| `contract-freeze` | core (y full) | `python3 -B scripts/contract-freeze.py verify` (manifiesto constante `docs/validation/M8/freeze-0.8.0.json`) |
 
 `contract-freeze-tests` se declara con `require_test_groups=True`, como el
 resto de etapas basadas en `unittest`. `contract-freeze` verifica el

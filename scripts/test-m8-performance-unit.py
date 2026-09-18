@@ -227,6 +227,14 @@ class RegressionVerdictTests(unittest.TestCase):
 
 
 class RunCompareTests(unittest.TestCase):
+    def write_receipts(self, tmp_path: pathlib.Path, receipts: list[dict]) -> list[str]:
+        keys = []
+        for index, receipt in enumerate(receipts):
+            key = f"r{index}"
+            (tmp_path / f"{key}.json").write_text(json.dumps(receipt))
+            keys.append(key)
+        return keys
+
     def test_compare_writes_regressed_verdict_and_returns_true(self) -> None:
         receipts = [
             make_receipt({"startup_cold_ms": "over"}),
@@ -235,15 +243,14 @@ class RunCompareTests(unittest.TestCase):
         ]
         with tempfile.TemporaryDirectory() as tmp:
             tmp_path = pathlib.Path(tmp)
-            paths = []
-            for index, receipt in enumerate(receipts):
-                path = tmp_path / f"r{index}.json"
-                path.write_text(json.dumps(receipt))
-                paths.append(str(path))
-            out_path = tmp_path / "compare.json"
-            regressed = PERF.run_compare(paths, out_path)
+            keys = self.write_receipts(tmp_path, receipts)
+            compare_out = tmp_path / "compare.json"
+            with mock.patch.object(PERF, "RECEIPTS_DIR", tmp_path), mock.patch.object(
+                PERF, "COMPARE_OUT_PATH", compare_out
+            ):
+                regressed = PERF.run_compare(keys)
             self.assertTrue(regressed)
-            payload = json.loads(out_path.read_text())
+            payload = json.loads(compare_out.read_text())
             self.assertTrue(payload["regressed"])
             self.assertEqual(payload["verdicts"]["startup_cold_ms"]["outcome"], "regressed")
 
@@ -251,13 +258,20 @@ class RunCompareTests(unittest.TestCase):
         receipts = [make_receipt({"startup_cold_ms": "within"}) for _ in range(3)]
         with tempfile.TemporaryDirectory() as tmp:
             tmp_path = pathlib.Path(tmp)
-            paths = []
-            for index, receipt in enumerate(receipts):
-                path = tmp_path / f"r{index}.json"
-                path.write_text(json.dumps(receipt))
-                paths.append(str(path))
-            regressed = PERF.run_compare(paths, None)
+            keys = self.write_receipts(tmp_path, receipts)
+            with mock.patch.object(PERF, "RECEIPTS_DIR", tmp_path), mock.patch.object(
+                PERF, "COMPARE_OUT_PATH", tmp_path / "compare.json"
+            ):
+                regressed = PERF.run_compare(keys)
             self.assertFalse(regressed)
+
+    def test_invalid_key_is_rejected(self) -> None:
+        with self.assertRaises(ValueError):
+            PERF.receipt_path_for_key("../etc/passwd")
+
+    def test_valid_key_resolves_under_receipts_dir(self) -> None:
+        path = PERF.receipt_path_for_key("smoke-run-1")
+        self.assertEqual(path, PERF.RECEIPTS_DIR / "smoke-run-1.json")
 
 
 class ValidateToolResultPerfTests(unittest.TestCase):

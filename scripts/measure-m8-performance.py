@@ -1,8 +1,16 @@
 #!/usr/bin/env python3
-"""M8-05: measure startup, dispatch and RSS budgets for the ``core`` (and,
-when Docker-free ``local`` catalog flags are supplied, ``local``) profile of
-``rust-engineering-mcp serve --stdio``, and compare them against
-``docs/validation/M8/05-budgets.json``.
+"""M8-05: measure startup, dispatch and RSS budgets for the ``core`` (and
+self-provisioned ``local``) profile of ``rust-engineering-mcp serve
+--stdio``, and compare them against ``docs/validation/M8/05-budgets.json``.
+
+Every path this script touches is a constant derived from ``ROOT``: the
+taint engine used by SonarCloud's Python analysis treats any CLI-supplied
+path that reaches ``open()``/``subprocess`` as a path traversal / command
+injection risk regardless of ``argparse`` validation, so there is no
+``--binary``/``--out``/``--budgets``/``--catalog-*`` override. ``--compare``
+takes short keys (validated against a closed ``^[a-z0-9-]+$`` allowlist)
+naming pre-existing receipts under the constant ``target/m8-performance/``
+directory, never arbitrary paths.
 
 Scope (docs/validation/M8/05.md, docs/validation/M8/05-budgets-analysis.md
 SS2/SS4): startup cold/warm (Popen -> tools/list), dispatch of
@@ -26,8 +34,11 @@ import math
 import os
 import pathlib
 import platform
+import re
+import shutil
 import statistics
 import subprocess
+import tempfile
 import threading
 import time
 from collections.abc import Callable
@@ -35,7 +46,14 @@ from collections.abc import Callable
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 DEFAULT_BINARY = ROOT / "target/release/rust-engineering-mcp"
 DEFAULT_BUDGETS = ROOT / "docs/validation/M8/05-budgets.json"
+OUT_PATH = ROOT / "docs/validation/M8/05-measurement.json"
+RECEIPTS_DIR = ROOT / "target/m8-performance"
+COMPARE_OUT_PATH = RECEIPTS_DIR / "regression.json"
+RECEIPT_KEY_PATTERN = re.compile(r"^[a-z0-9-]+$")
 FIXTURE = ROOT / "fixtures/valid-basic"
+CATALOG_FIXTURE_DIR = ROOT / "fixtures/catalog"
+CATALOG_BUNDLE = CATALOG_FIXTURE_DIR / "fixture-1.tar.zst"
+CATALOG_TRUST_SOURCE = CATALOG_FIXTURE_DIR / "fixture-trust.json"
 PROTOCOL_VERSION = "2025-06-18"
 RSS_IDLE_SAMPLES = 10
 IDLE_SETTLE_SECONDS = 5.0
@@ -124,6 +142,25 @@ def validate_tool_result(response: dict, tool_name: str) -> None:
     structured = result.get("structuredContent")
     if not isinstance(structured, dict) or structured.get("status") != "passed":
         raise RuntimeError(f"{tool_name} call did not report structuredContent.status=passed: {structured}")
+
+
+def prepare_catalog(scratch: pathlib.Path, binary: pathlib.Path) -> tuple[pathlib.Path, pathlib.Path]:
+    """Stage the constant fixture catalog bundle under ``scratch`` (a
+    ``target/``-scoped directory this script creates itself, never a
+    CLI-supplied path; mirrors ``soak-m8.py::prepare_catalog``)."""
+    store = scratch / "catalog-store"
+    store.mkdir(parents=True)
+    os.chmod(store, 0o700)
+    trust = scratch / "catalog-trust.json"
+    shutil.copyfile(CATALOG_TRUST_SOURCE, trust)
+    os.chmod(trust, 0o600)
+    subprocess.run(
+        [str(binary), "catalog", "import", str(CATALOG_BUNDLE), "--store", str(store), "--trust", str(trust), "--json"],
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+    return store, trust
 
 
 def read_rss_mib(pid: int) -> float | None:
@@ -537,19 +574,10 @@ def measure_local(
     binary: pathlib.Path,
     repeat: int,
     budgets: dict[str, dict],
-    catalog_store: str,
-    catalog_trust: str,
-    catalog_model_dir: str | None,
-    catalog_index_store: str | None,
+    scratch: pathlib.Path,
 ) -> dict[str, dict]:
-    extra_args = [
-        "--catalog-store", str(pathlib.Path(catalog_store).resolve()),
-        "--catalog-trust", str(pathlib.Path(catalog_trust).resolve()),
-    ]
-    if catalog_model_dir:
-        extra_args += ["--catalog-model-dir", str(pathlib.Path(catalog_model_dir).resolve())]
-    if catalog_index_store:
-        extra_args += ["--catalog-index-store", str(pathlib.Path(catalog_index_store).resolve())]
+    store, trust = prepare_catalog(scratch, binary)
+    extra_args = ["--catalog-store", str(store), "--catalog-trust", str(trust)]
 
     idle_samples = measure_rss_idle(binary, RSS_IDLE_SAMPLES, extra_args)
     measurements = {
@@ -581,15 +609,8 @@ def measure_local(
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--binary", default=str(DEFAULT_BINARY))
-    parser.add_argument("--out", default=None)
     parser.add_argument("--repeat", default="30")
     parser.add_argument("--profile", choices=["core", "local"], default="core")
-    parser.add_argument("--budgets", default=str(DEFAULT_BUDGETS))
-    parser.add_argument("--catalog-store", default=None)
-    parser.add_argument("--catalog-trust", default=None)
-    parser.add_argument("--catalog-model-dir", default=None)
-    parser.add_argument("--catalog-index-store", default=None)
     parser.add_argument(
         "--operator-attested",
         action="store_true",
@@ -598,73 +619,65 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--compare",
         nargs=3,
-        metavar=("RECEIPT1", "RECEIPT2", "RECEIPT3"),
+        metavar=("KEY1", "KEY2", "KEY3"),
         default=None,
-        help="Apply the 2-of-3 regression rule to exactly 3 consecutive measurement receipts instead of measuring (P-2).",
+        help=(
+            "Apply the 2-of-3 regression rule to exactly 3 consecutive measurement receipts "
+            f"instead of measuring (P-2). Each KEY must match {RECEIPT_KEY_PATTERN.pattern!r} "
+            f"and name an existing {RECEIPTS_DIR}/KEY.json receipt."
+        ),
     )
     return parser.parse_args()
 
 
-def run_compare(receipt_paths: list[str], out_path: pathlib.Path | None) -> bool:
+def receipt_path_for_key(key: str) -> pathlib.Path:
+    if not RECEIPT_KEY_PATTERN.match(key):
+        raise ValueError(f"--compare key must match {RECEIPT_KEY_PATTERN.pattern!r}: {key!r}")
+    return RECEIPTS_DIR / f"{key}.json"
+
+
+def run_compare(receipt_keys: list[str]) -> bool:
     """CLI entry point for the 2-of-3 regression rule (P-2). Returns True if any
     magnitude regressed."""
-    receipts = [json.loads(pathlib.Path(path).read_text()) for path in receipt_paths]
+    receipt_paths = [receipt_path_for_key(key) for key in receipt_keys]
+    receipts = [json.loads(path.read_text()) for path in receipt_paths]
     verdicts = regression_verdict(receipts)
     regressed = any(row["outcome"] == "regressed" for row in verdicts.values())
     indeterminate = any(row["outcome"] == "indeterminate" for row in verdicts.values())
     payload = {
         "schema": "rust-mcp-m8-performance-regression-v1",
         "generated_utc": utc_now(),
-        "receipts": [str(pathlib.Path(path)) for path in receipt_paths],
+        "receipts": receipt_keys,
         "budgets_sha256": receipts[0]["budgets_sha256"],
         "profile": receipts[0]["profile"],
         "verdicts": verdicts,
         "regressed": regressed,
         "indeterminate": indeterminate,
     }
-    text = json.dumps(payload, indent=2) + "\n"
-    if out_path is not None:
-        out_path.parent.mkdir(parents=True, exist_ok=True)
-        out_path.write_text(text)
+    COMPARE_OUT_PATH.parent.mkdir(parents=True, exist_ok=True)
+    COMPARE_OUT_PATH.write_text(json.dumps(payload, indent=2) + "\n")
     status = "REGRESSED" if regressed else ("INDETERMINATE" if indeterminate else "PASS")
-    print(f"{status} m8 performance regression comparison" + (f" written to {out_path}" if out_path else f"\n{text}"))
+    print(f"{status} m8 performance regression comparison written to {COMPARE_OUT_PATH}")
     return regressed
 
 
 def main() -> None:
     args = parse_args()
     if args.compare:
-        out_path = None
-        if args.out:
-            out_path = pathlib.Path(args.out)
-            if not out_path.is_absolute():
-                out_path = ROOT / out_path
-        if run_compare(args.compare, out_path):
+        if run_compare(args.compare):
             raise SystemExit(1)
         return
-
-    if not args.out:
-        raise ValueError("--out is required unless --compare is used")
 
     repeat = int(args.repeat)
     if repeat < 1:
         raise ValueError("--repeat must be a positive integer")
 
-    binary = pathlib.Path(args.binary)
-    if not binary.is_absolute():
-        binary = (ROOT / binary).resolve()
+    binary = DEFAULT_BINARY
     if not binary.is_file():
         raise FileNotFoundError(f"binary not found: {binary}")
 
-    out_path = pathlib.Path(args.out)
-    if not out_path.is_absolute():
-        out_path = ROOT / out_path
-
-    budgets_path = pathlib.Path(args.budgets)
-    if not budgets_path.is_absolute():
-        budgets_path = ROOT / budgets_path
-    budgets = load_budgets(budgets_path)
-    budgets_sha256 = file_sha256(budgets_path)
+    budgets = load_budgets(DEFAULT_BUDGETS)
+    budgets_sha256 = file_sha256(DEFAULT_BUDGETS)
     binary_bytes, binary_sha256 = binary_stat(binary)
 
     measurements, provenance = measure_core(binary, repeat, budgets)
@@ -680,27 +693,17 @@ def main() -> None:
     )
     measurements["cleanup_p95_ms"] = unavailable(budgets["cleanup_p95_ms"], DOCKER_UNAVAILABLE_REASON)
 
-    if args.profile == "local" and args.catalog_store and args.catalog_trust:
-        measurements.update(
-            measure_local(
-                binary,
-                repeat,
-                budgets,
-                args.catalog_store,
-                args.catalog_trust,
-                args.catalog_model_dir,
-                args.catalog_index_store,
-            )
-        )
+    if args.profile == "local":
+        scratch = pathlib.Path(tempfile.mkdtemp(prefix="m8-performance-", dir=str(ROOT / "target")))
+        try:
+            measurements.update(measure_local(binary, repeat, budgets, scratch))
+        finally:
+            shutil.rmtree(scratch, ignore_errors=True)
     else:
-        reason = "profile_core_requested" if args.profile == "core" else "catalog_flags_not_supplied"
-        measurements["rss_idle_local_mib"] = unavailable(budgets["rss_idle_local_mib"], reason)
-        measurements["rss_peak_local_mib"] = unavailable(budgets["rss_peak_local_mib"], reason)
+        measurements["rss_idle_local_mib"] = unavailable(budgets["rss_idle_local_mib"], "profile_core_requested")
+        measurements["rss_peak_local_mib"] = unavailable(budgets["rss_peak_local_mib"], "profile_core_requested")
 
-    try:
-        binary_relative = str(binary.relative_to(ROOT))
-    except ValueError:
-        binary_relative = str(binary)
+    binary_relative = str(binary.relative_to(ROOT))
 
     # P-7: re-hash at the end instead of only declaring the noise control as a constant.
     _end_bytes, binary_sha256_end = binary_stat(binary)
@@ -745,9 +748,9 @@ def main() -> None:
         "verdict": global_verdict(measurements),
     }
 
-    out_path.parent.mkdir(parents=True, exist_ok=True)
-    out_path.write_text(json.dumps(receipt, indent=2) + "\n")
-    print(f"PASS m8 performance measurement written to {out_path} (verdict={receipt['verdict']})")
+    OUT_PATH.parent.mkdir(parents=True, exist_ok=True)
+    OUT_PATH.write_text(json.dumps(receipt, indent=2) + "\n")
+    print(f"PASS m8 performance measurement written to {OUT_PATH} (verdict={receipt['verdict']})")
 
 
 if __name__ == "__main__":
