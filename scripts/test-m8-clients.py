@@ -61,6 +61,7 @@ import sys
 import tempfile
 import threading
 import time
+import tomllib
 import uuid
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
@@ -85,11 +86,22 @@ DOCKER = pathlib.Path("/Applications/Docker.app/Contents/Resources/bin/docker")
 STDIO = ROOT / "crates/mcp-server/src/stdio.rs"
 PROTOCOL_TEST = ROOT / "crates/mcp-server/tests/protocol.rs"
 
+def workspace_version() -> str:
+    with open(ROOT / "Cargo.toml", "rb") as handle:
+        manifest = tomllib.load(handle)
+    try:
+        return manifest["workspace"]["package"]["version"]
+    except KeyError as exc:
+        raise RuntimeError(
+            f"Cargo.toml is missing [workspace.package].version: {exc}"
+        ) from exc
+
+
 INSPECTOR_VERSION = "2.5.0"
 CODEX_VERSION = "codex-cli 0.154.0"
 CLAUDE_VERSION = "2.1.268 (Claude Code)"
 AGY_VERSION = "1.2.2"
-SERVER_VERSION = "0.8.0"
+SERVER_VERSION = workspace_version()
 CLAUDE_MODEL = "claude-sonnet-5"
 CLAUDE_EFFORT = "medium"
 CLAUDE_CLIENT = "claude-code"
@@ -723,7 +735,7 @@ def preconditions(versions: dict[str, object], with_runtime: bool,
                                     "the built candidate must carry all 36 tool names"),
         "candidate_version_0_8_0": (
             (server_version() or {}).get("version") == SERVER_VERSION,
-            "the candidate must self-report version 0.8.0",
+            f"the candidate must self-report version {SERVER_VERSION}",
         ),
         "freeze_manifest": (FREEZE_MANIFEST.is_file(), "the 0.8.0 freeze manifest must exist"),
         "node": (NODE.is_file(), "the pinned Node runtime must exist"),

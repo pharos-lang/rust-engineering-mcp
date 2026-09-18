@@ -52,6 +52,7 @@ import shutil
 import subprocess
 import sys
 import tempfile
+import tomllib
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -65,6 +66,17 @@ NATIVE_QUALITY_STATE_ENV = "RUST_MCP_ROLLBACK_QUALITY_STATE_ROOT"
 BUILD_TIMEOUT_SECONDS = 2400
 RUN_TIMEOUT_SECONDS = 120
 EXCERPT_BYTES = 1000
+
+
+def workspace_version() -> str:
+    with open(ROOT / "Cargo.toml", "rb") as handle:
+        manifest = tomllib.load(handle)
+    try:
+        return manifest["workspace"]["package"]["version"]
+    except KeyError as exc:
+        raise RuntimeError(
+            f"Cargo.toml is missing [workspace.package].version: {exc}"
+        ) from exc
 
 SCENARIO_DESCRIPTIONS = {
     "a": (
@@ -705,9 +717,11 @@ def main(argv: list[str]) -> int:
                 f"old binary reports version {old_version.get('version')!r}, "
                 f"expected {args.old_tag.lstrip('v')!r}"
             )
-        if head_version.get("version") != "0.8.0":
+        expected_head_version = workspace_version()
+        if head_version.get("version") != expected_head_version:
             raise DriverError(
-                f"current-tree binary reports version {head_version.get('version')!r}, expected '0.8.0'"
+                f"current-tree binary reports version {head_version.get('version')!r}, "
+                f"expected {expected_head_version!r}"
             )
 
         scenarios.append(scenario_a(old_binary, head_binary))

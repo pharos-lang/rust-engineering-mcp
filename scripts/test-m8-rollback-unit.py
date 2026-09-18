@@ -527,6 +527,7 @@ class MainAggregationTests(unittest.TestCase):
             M, "read_version",
             side_effect=[{"version": "0.3.0"}, {"version": "0.8.0"}],
         ))
+        stack.enter_context(mock.patch.object(M, "workspace_version", return_value="0.8.0"))
         stack.enter_context(mock.patch.object(M, "sha256_file", return_value="sha256:stub"))
 
     def test_overall_status_passed_only_when_all_four_scenarios_pass(self):
@@ -625,6 +626,7 @@ class MainAggregationTests(unittest.TestCase):
                 M, "read_version",
                 side_effect=[{"version": "9.9.9"}, {"version": "0.8.0"}],
             ))
+            stack.enter_context(mock.patch.object(M, "workspace_version", return_value="0.8.0"))
             stack.enter_context(mock.patch.object(M, "sha256_file", return_value="sha256:stub"))
             out_path = pathlib.Path(raw) / "receipt.json"
             code = main_silently(["--out", str(out_path)])
@@ -632,6 +634,41 @@ class MainAggregationTests(unittest.TestCase):
             receipt = json.loads(out_path.read_text())
         self.assertIn("9.9.9", receipt["driver_error"])
         self.assertTrue(all(s["status"] == "unavailable" for s in receipt["scenarios"]))
+
+    def test_rejects_a_head_binary_not_matching_the_workspace_version(self):
+        with contextlib.ExitStack() as stack, tempfile.TemporaryDirectory(dir=str(ROOT / "target")) as raw:
+            stack.enter_context(mock.patch.object(M, "head_commit", return_value="deadbeef"))
+            stack.enter_context(mock.patch.object(M, "tree_is_dirty", return_value=False))
+            stack.enter_context(mock.patch.object(M, "resolve_tag_commit", return_value="cafef00d"))
+            stack.enter_context(mock.patch.object(
+                M, "ensure_worktree", return_value=(pathlib.Path("/wt"), True)
+            ))
+            stack.enter_context(mock.patch.object(
+                M, "build_binary",
+                side_effect=[pathlib.Path("/bin/old"), pathlib.Path("/bin/head")],
+            ))
+            stack.enter_context(mock.patch.object(
+                M, "read_version",
+                side_effect=[{"version": "0.3.0"}, {"version": "0.8.0"}],
+            ))
+            stack.enter_context(mock.patch.object(M, "workspace_version", return_value="9.9.9-rc.7"))
+            stack.enter_context(mock.patch.object(M, "sha256_file", return_value="sha256:stub"))
+            out_path = pathlib.Path(raw) / "receipt.json"
+            code = main_silently(["--out", str(out_path)])
+            self.assertEqual(code, 1)
+            receipt = json.loads(out_path.read_text())
+        self.assertIn("9.9.9-rc.7", receipt["driver_error"])
+        self.assertIn("0.8.0", receipt["driver_error"])
+        self.assertTrue(all(s["status"] == "unavailable" for s in receipt["scenarios"]))
+
+    def test_workspace_version_reads_the_synthetic_cargo_toml(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = pathlib.Path(tmp)
+            (root / "Cargo.toml").write_text(
+                '[workspace.package]\nversion = "9.9.9-rc.7"\nedition = "2024"\n'
+            )
+            with mock.patch.object(M, "ROOT", root):
+                self.assertEqual(M.workspace_version(), "9.9.9-rc.7")
 
 
 if __name__ == "__main__":

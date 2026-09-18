@@ -492,6 +492,26 @@ class PreconditionGatingTests(unittest.TestCase):
         self.assertEqual(M8.mandatory_unsatisfied(checks), [])
 
 
+class WorkspaceVersionTests(unittest.TestCase):
+    def test_expected_server_version_is_derived_from_cargo_toml(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = pathlib.Path(tmp)
+            (root / "Cargo.toml").write_text(
+                '[workspace.package]\nversion = "9.9.9-rc.7"\nedition = "2024"\n'
+            )
+            with mock.patch.object(M8, "ROOT", root):
+                self.assertEqual(M8.workspace_version(), "9.9.9-rc.7")
+
+    def test_candidate_version_precondition_requires_the_derived_version(self):
+        versions = {
+            "inspector": {"observed": None}, "codex": {"observed": None},
+            "claude_code": {"observed": None}, "gemini_cli": {"observed": None},
+        }
+        with mock.patch.object(M8, "SERVER_VERSION", "9.9.9-rc.7"):
+            checks = M8.preconditions(versions, False, None)
+            self.assertIn("9.9.9-rc.7", checks["candidate_version_0_8_0"]["requirement"])
+
+
 class GitReceiptMetadataTests(unittest.TestCase):
     def test_head_commit_reads_git_rev_parse(self):
         fake = mock.Mock(returncode=0, stdout="cafefeed\n")
