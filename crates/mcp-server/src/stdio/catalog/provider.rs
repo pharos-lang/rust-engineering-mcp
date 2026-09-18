@@ -643,7 +643,9 @@ mod portable_tests {
         }
     }
 
-    #[cfg(not(target_os = "macos"))]
+    // With `local`, load_semantics reports the model as DependencyUnavailable
+    // instead of FeatureDisabled, so this expectation holds only without it.
+    #[cfg(all(not(target_os = "macos"), not(feature = "local")))]
     #[test]
     fn configured_provider_fails_closed_on_an_unsupported_host() -> Result<(), String> {
         let provider = CatalogProvider::new(
