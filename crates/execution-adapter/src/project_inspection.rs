@@ -109,37 +109,11 @@ impl RustProjectInspector {
                     control,
                 )
                 .map_err(InspectionError::Execution)?;
-            match result.termination {
-                ExecutionTermination::TimedOut => {
-                    return Err(InspectionError::Project(ProjectError::Rejected(
-                        OperationalErrorCode::CommandTimeout,
-                    )));
-                }
-                ExecutionTermination::Cancelled => {
-                    return Err(InspectionError::Project(ProjectError::Cancelled));
-                }
-                ExecutionTermination::OutputLimit => return Err(InspectionError::OutputLimit),
-                ExecutionTermination::Exited => (),
-            }
-            if result.exit_code != Some(0) {
-                return Err(InspectionError::Project(ProjectError::Rejected(
-                    OperationalErrorCode::InvalidProject,
-                )));
-            }
-            let runtime = RuntimeIdentity {
-                platform: result.platform.into(),
-                image_id: result.image_id,
-                configuration_fingerprint: gateway
+            metadata_structure(source, result, || {
+                gateway
                     .configuration_fingerprint()
-                    .map_err(InspectionError::Execution)?,
-                execution_fingerprint: result.execution_fingerprint,
-                // Both approved images preserve this stable toolchain, verified during
-                // explicit provisioning. These are facts of that immutable identity.
-                rust_version: super::rust_gateway::APPROVED_RUST_VERSION.into(),
-                cargo_version: super::rust_gateway::APPROVED_CARGO_VERSION.into(),
-                declared_toolchain: None,
-            };
-            super::project_metadata::parse(result.stdout.as_bytes(), source, runtime)
+                    .map_err(InspectionError::Execution)
+            })
         })
     }
 }
@@ -196,6 +170,257 @@ impl DiagnosticExplainPort for RustProjectInspector {
         }
         result
     }
+}
+
+/// Classifies one `cargo metadata` execution and converts its output into the
+/// project structure, bound to the runtime that produced it. `configuration`
+/// is only consulted once the execution is known to be a clean exit.
+fn metadata_structure(
+    source: &SourceBundle,
+    result: ExecutionResult,
+    configuration: impl FnOnce() -> Result<ExecutionFingerprint, InspectionError>,
+) -> Result<ProjectStructure, InspectionError> {
+    match result.termination {
+        ExecutionTermination::TimedOut => {
+            return Err(InspectionError::Project(ProjectError::Rejected(
+                OperationalErrorCode::CommandTimeout,
+            )));
+        }
+        ExecutionTermination::Cancelled => {
+            return Err(InspectionError::Project(ProjectError::Cancelled));
+        }
+        ExecutionTermination::OutputLimit => return Err(InspectionError::OutputLimit),
+        ExecutionTermination::Exited => (),
+    }
+    if result.exit_code != Some(0) {
+        return Err(InspectionError::Project(ProjectError::Rejected(
+            OperationalErrorCode::InvalidProject,
+        )));
+    }
+    let runtime = RuntimeIdentity {
+        platform: result.platform.into(),
+        image_id: result.image_id,
+        configuration_fingerprint: configuration()?,
+        execution_fingerprint: result.execution_fingerprint,
+        // Both approved images preserve this stable toolchain, verified during
+        // explicit provisioning. These are facts of that immutable identity.
+        rust_version: super::rust_gateway::APPROVED_RUST_VERSION.into(),
+        cargo_version: super::rust_gateway::APPROVED_CARGO_VERSION.into(),
+        declared_toolchain: None,
+    };
+    super::project_metadata::parse(result.stdout.as_bytes(), source, runtime)
+}
+
+/// Bounds, classifies and parses one Cargo validation execution. Test runs
+/// additionally accept a finished build with failing tests as complete.
+fn cargo_observation(
+    source: &SourceBundle,
+    mut result: ExecutionResult,
+    test_output: bool,
+    configuration: impl FnOnce() -> Result<ExecutionFingerprint, InspectionError>,
+) -> Result<(rust_engineering_domain::CheckObservation, Option<bool>), InspectionError> {
+    use rust_engineering_domain::{CheckObservation, CheckOutcome};
+    // Gateway byte caps precede UTF8-lossy conversion, which can expand
+    // hostile bytes. Keep a bounded partial report instead of discarding it.
+    bound_check_text(&mut result.stdout, &mut result.stdout_truncated);
+    bound_check_text(&mut result.stderr, &mut result.stderr_truncated);
+    if result.termination == ExecutionTermination::Cancelled {
+        return Err(InspectionError::Project(ProjectError::Cancelled));
+    }
+    let parser = if test_output {
+        super::cargo_diagnostics::parse_test
+    } else {
+        super::cargo_diagnostics::parse
+    };
+    let parsed = parser(
+        &result.stdout,
+        source,
+        result.termination == ExecutionTermination::Exited && !result.stdout_truncated,
+    )?;
+    let validation_complete = parsed.complete
+        && !result.stderr_truncated
+        && result.termination == ExecutionTermination::Exited
+        && (matches!(
+            (result.exit_code, parsed.build_finished),
+            (Some(0), Some(true)) | (Some(1..), Some(false))
+        ) || (test_output
+            && matches!(
+                (result.exit_code, parsed.build_finished),
+                (Some(1..), Some(true))
+            )));
+    let frozen_lock_error = frozen_lock_error(
+        result.termination,
+        result.exit_code,
+        &result.stdout,
+        &result.stderr,
+        result.stderr_truncated,
+    );
+    let outcome = if frozen_lock_error {
+        CheckOutcome::LockfileUpdateRequired
+    } else if !validation_complete {
+        CheckOutcome::Incomplete
+    } else if result.exit_code == Some(0) {
+        CheckOutcome::Passed
+    } else {
+        CheckOutcome::Failed
+    };
+    let archive = super::source_archive::encode(source).map_err(InspectionError::Execution)?;
+    Ok((
+        CheckObservation {
+            outcome,
+            termination: result.termination,
+            exit_code: result.exit_code,
+            validation_complete,
+            diagnostics: parsed.diagnostics,
+            diagnostics_omitted: parsed.diagnostics_omitted,
+            stdout: result.stdout,
+            stderr: result.stderr,
+            stdout_truncated: result.stdout_truncated,
+            stderr_truncated: result.stderr_truncated,
+            source_fingerprint: super::digest(&archive)
+                .parse()
+                .map_err(|_| InspectionError::Internal)?,
+            runtime: RuntimeIdentity {
+                platform: result.platform.into(),
+                image_id: result.image_id,
+                configuration_fingerprint: configuration()?,
+                execution_fingerprint: result.execution_fingerprint,
+                rust_version: super::rust_gateway::APPROVED_RUST_VERSION.into(),
+                cargo_version: super::rust_gateway::APPROVED_CARGO_VERSION.into(),
+                declared_toolchain: super::project_metadata::declared_toolchain(source)?,
+            },
+        },
+        parsed.build_finished,
+    ))
+}
+
+/// Bounds and classifies one `cargo fmt --check` execution. Only an empty
+/// clean exit or a parsed non-empty diff with exit 1 is complete.
+fn format_observation(
+    source: &SourceBundle,
+    mut result: ExecutionResult,
+    configuration: impl FnOnce() -> Result<ExecutionFingerprint, InspectionError>,
+) -> Result<rust_engineering_domain::FormatObservation, InspectionError> {
+    use rust_engineering_domain::{CheckObservation, CheckOutcome, FormatObservation};
+    bound_check_text(&mut result.stdout, &mut result.stdout_truncated);
+    bound_check_text(&mut result.stderr, &mut result.stderr_truncated);
+    if result.termination == ExecutionTermination::Cancelled {
+        return Err(InspectionError::Project(ProjectError::Cancelled));
+    }
+    let parsed = super::format_output::parse(
+        &result.stdout,
+        source,
+        result.termination == ExecutionTermination::Exited && !result.stdout_truncated,
+    );
+    let validation_complete = parsed.complete
+        && !result.stderr_truncated
+        && result.stderr.is_empty()
+        && result.termination == ExecutionTermination::Exited
+        && ((result.exit_code == Some(0) && result.stdout.is_empty())
+            || (result.exit_code == Some(1) && !parsed.affected_files.is_empty()));
+    let outcome = if !validation_complete {
+        CheckOutcome::Incomplete
+    } else if result.exit_code == Some(0) {
+        CheckOutcome::Passed
+    } else {
+        CheckOutcome::Failed
+    };
+    let archive = super::source_archive::encode(source).map_err(InspectionError::Execution)?;
+    Ok(FormatObservation {
+        execution: CheckObservation {
+            outcome,
+            termination: result.termination,
+            exit_code: result.exit_code,
+            validation_complete,
+            diagnostics: Vec::new(),
+            diagnostics_omitted: 0,
+            stdout: result.stdout,
+            stderr: result.stderr,
+            stdout_truncated: result.stdout_truncated,
+            stderr_truncated: result.stderr_truncated,
+            source_fingerprint: super::digest(&archive)
+                .parse()
+                .map_err(|_| InspectionError::Internal)?,
+            runtime: RuntimeIdentity {
+                platform: result.platform.into(),
+                image_id: result.image_id,
+                configuration_fingerprint: configuration()?,
+                execution_fingerprint: result.execution_fingerprint,
+                rust_version: super::rust_gateway::APPROVED_RUST_VERSION.into(),
+                cargo_version: super::rust_gateway::APPROVED_CARGO_VERSION.into(),
+                declared_toolchain: super::project_metadata::declared_toolchain(source)?,
+            },
+        },
+        affected_files: parsed.affected_files,
+        affected_files_omitted: parsed.affected_files_omitted,
+        diff: parsed.diff,
+        diff_omitted: parsed.diff_omitted,
+    })
+}
+
+/// Parses the three accepted probe outputs (rustc, cargo, components, in that
+/// order) into the toolchain inventory bound to the runtime that produced it.
+fn toolchain_observation(
+    source: &SourceBundle,
+    outputs: Vec<String>,
+    executions: Vec<ToolchainExecution>,
+    image_id: &str,
+    configuration: impl FnOnce() -> Result<ExecutionFingerprint, InspectionError>,
+) -> Result<ToolchainObservation, InspectionError> {
+    let [rustc, cargo, components]: [String; 3] =
+        outputs.try_into().map_err(|_| InspectionError::Internal)?;
+    let inventory = super::toolchain_metadata::parse(
+        rustc.as_bytes(),
+        cargo.as_bytes(),
+        components.as_bytes(),
+    )?;
+    let archive = super::source_archive::encode(source).map_err(InspectionError::Execution)?;
+    Ok(ToolchainObservation {
+        inventory,
+        declared_toolchain: super::project_metadata::declared_toolchain(source)?,
+        source_fingerprint: super::digest(&archive)
+            .parse()
+            .map_err(|_| InspectionError::Internal)?,
+        runtime: ToolchainRuntime {
+            platform: "linux/aarch64".into(),
+            image_id: image_id.into(),
+            configuration_fingerprint: configuration()?,
+            executions,
+        },
+    })
+}
+
+/// Accepts one toolchain probe only as a clean, complete exit and pairs its
+/// output with the execution that produced it.
+fn toolchain_step(
+    execution: ExecutionResult,
+    command: ToolchainObservationCommand,
+) -> Result<(ToolchainExecution, String), InspectionError> {
+    match execution.termination {
+        ExecutionTermination::Cancelled => {
+            return Err(InspectionError::Project(ProjectError::Cancelled));
+        }
+        ExecutionTermination::TimedOut => {
+            return Err(InspectionError::Project(ProjectError::Rejected(
+                OperationalErrorCode::CommandTimeout,
+            )));
+        }
+        ExecutionTermination::OutputLimit => return Err(InspectionError::OutputLimit),
+        ExecutionTermination::Exited => (),
+    }
+    if execution.exit_code != Some(0) {
+        return Err(InspectionError::Execution(ExecutionError::Unavailable));
+    }
+    if execution.stdout_truncated || execution.stderr_truncated {
+        return Err(InspectionError::OutputLimit);
+    }
+    Ok((
+        ToolchainExecution {
+            command,
+            execution_fingerprint: execution.execution_fingerprint,
+        },
+        execution.stdout,
+    ))
 }
 
 fn explain_observation(
@@ -295,54 +520,15 @@ impl ToolchainInspectionPort for RustProjectInspector {
                         control,
                     )
                     .map_err(InspectionError::Execution)?;
-                match execution.termination {
-                    ExecutionTermination::Cancelled => {
-                        return Err(InspectionError::Project(ProjectError::Cancelled));
-                    }
-                    ExecutionTermination::TimedOut => {
-                        return Err(InspectionError::Project(ProjectError::Rejected(
-                            OperationalErrorCode::CommandTimeout,
-                        )));
-                    }
-                    ExecutionTermination::OutputLimit => return Err(InspectionError::OutputLimit),
-                    ExecutionTermination::Exited => (),
-                }
-                if execution.exit_code != Some(0) {
-                    return Err(InspectionError::Execution(ExecutionError::Unavailable));
-                }
-                if execution.stdout_truncated || execution.stderr_truncated {
-                    return Err(InspectionError::OutputLimit);
-                }
-                executions.push(ToolchainExecution {
-                    command: observation_command,
-                    execution_fingerprint: execution.execution_fingerprint,
-                });
-                outputs.push(execution.stdout);
+                let (execution, output) = toolchain_step(execution, observation_command)?;
+                executions.push(execution);
+                outputs.push(output);
             }
             control.check().map_err(InspectionError::Project)?;
-            let [rustc, cargo, components]: [String; 3] =
-                outputs.try_into().map_err(|_| InspectionError::Internal)?;
-            let inventory = super::toolchain_metadata::parse(
-                rustc.as_bytes(),
-                cargo.as_bytes(),
-                components.as_bytes(),
-            )?;
-            let archive =
-                super::source_archive::encode(source).map_err(InspectionError::Execution)?;
-            Ok(ToolchainObservation {
-                inventory,
-                declared_toolchain: super::project_metadata::declared_toolchain(source)?,
-                source_fingerprint: super::digest(&archive)
-                    .parse()
-                    .map_err(|_| InspectionError::Internal)?,
-                runtime: ToolchainRuntime {
-                    platform: "linux/aarch64".into(),
-                    image_id: gateway.image_id().into(),
-                    configuration_fingerprint: gateway
-                        .configuration_fingerprint()
-                        .map_err(InspectionError::Execution)?,
-                    executions,
-                },
+            toolchain_observation(source, outputs, executions, gateway.image_id(), || {
+                gateway
+                    .configuration_fingerprint()
+                    .map_err(InspectionError::Execution)
             })
         });
         if matches!(
@@ -374,9 +560,8 @@ impl RustProjectInspector {
         test_output: bool,
         control: &dyn InspectionControl,
     ) -> Result<(rust_engineering_domain::CheckObservation, Option<bool>), InspectionError> {
-        use rust_engineering_domain::{CheckObservation, CheckOutcome};
         let result = self.with_gateway(control, |gateway| {
-            let mut result = gateway
+            let result = gateway
                 .execute(
                     source,
                     command,
@@ -384,81 +569,11 @@ impl RustProjectInspector {
                     control,
                 )
                 .map_err(InspectionError::Execution)?;
-            // Gateway byte caps precede UTF8-lossy conversion, which can expand
-            // hostile bytes. Keep a bounded partial report instead of discarding it.
-            bound_check_text(&mut result.stdout, &mut result.stdout_truncated);
-            bound_check_text(&mut result.stderr, &mut result.stderr_truncated);
-            if result.termination == ExecutionTermination::Cancelled {
-                return Err(InspectionError::Project(ProjectError::Cancelled));
-            }
-            let parser = if test_output {
-                super::cargo_diagnostics::parse_test
-            } else {
-                super::cargo_diagnostics::parse
-            };
-            let parsed = parser(
-                &result.stdout,
-                source,
-                result.termination == ExecutionTermination::Exited && !result.stdout_truncated,
-            )?;
-            let validation_complete = parsed.complete
-                && !result.stderr_truncated
-                && result.termination == ExecutionTermination::Exited
-                && (matches!(
-                    (result.exit_code, parsed.build_finished),
-                    (Some(0), Some(true)) | (Some(1..), Some(false))
-                ) || (test_output
-                    && matches!(
-                        (result.exit_code, parsed.build_finished),
-                        (Some(1..), Some(true))
-                    )));
-            let frozen_lock_error = frozen_lock_error(
-                result.termination,
-                result.exit_code,
-                &result.stdout,
-                &result.stderr,
-                result.stderr_truncated,
-            );
-            let outcome = if frozen_lock_error {
-                CheckOutcome::LockfileUpdateRequired
-            } else if !validation_complete {
-                CheckOutcome::Incomplete
-            } else if result.exit_code == Some(0) {
-                CheckOutcome::Passed
-            } else {
-                CheckOutcome::Failed
-            };
-            let archive =
-                super::source_archive::encode(source).map_err(InspectionError::Execution)?;
-            Ok((
-                CheckObservation {
-                    outcome,
-                    termination: result.termination,
-                    exit_code: result.exit_code,
-                    validation_complete,
-                    diagnostics: parsed.diagnostics,
-                    diagnostics_omitted: parsed.diagnostics_omitted,
-                    stdout: result.stdout,
-                    stderr: result.stderr,
-                    stdout_truncated: result.stdout_truncated,
-                    stderr_truncated: result.stderr_truncated,
-                    source_fingerprint: super::digest(&archive)
-                        .parse()
-                        .map_err(|_| InspectionError::Internal)?,
-                    runtime: RuntimeIdentity {
-                        platform: result.platform.into(),
-                        image_id: result.image_id,
-                        configuration_fingerprint: gateway
-                            .configuration_fingerprint()
-                            .map_err(InspectionError::Execution)?,
-                        execution_fingerprint: result.execution_fingerprint,
-                        rust_version: super::rust_gateway::APPROVED_RUST_VERSION.into(),
-                        cargo_version: super::rust_gateway::APPROVED_CARGO_VERSION.into(),
-                        declared_toolchain: super::project_metadata::declared_toolchain(source)?,
-                    },
-                },
-                parsed.build_finished,
-            ))
+            cargo_observation(source, result, test_output, || {
+                gateway
+                    .configuration_fingerprint()
+                    .map_err(InspectionError::Execution)
+            })
         });
         if matches!(
             result,
@@ -807,9 +922,8 @@ impl rust_engineering_application::ProjectFormatPort for RustProjectInspector {
         source: &SourceBundle,
         control: &dyn InspectionControl,
     ) -> Result<rust_engineering_domain::FormatObservation, InspectionError> {
-        use rust_engineering_domain::{CheckObservation, CheckOutcome, FormatObservation};
         let result = self.with_gateway(control, |gateway| {
-            let mut result = gateway
+            let result = gateway
                 .execute(
                     source,
                     RustCommand::FormatCheck,
@@ -817,62 +931,10 @@ impl rust_engineering_application::ProjectFormatPort for RustProjectInspector {
                     control,
                 )
                 .map_err(InspectionError::Execution)?;
-            bound_check_text(&mut result.stdout, &mut result.stdout_truncated);
-            bound_check_text(&mut result.stderr, &mut result.stderr_truncated);
-            if result.termination == ExecutionTermination::Cancelled {
-                return Err(InspectionError::Project(ProjectError::Cancelled));
-            }
-            let parsed = super::format_output::parse(
-                &result.stdout,
-                source,
-                result.termination == ExecutionTermination::Exited && !result.stdout_truncated,
-            );
-            let validation_complete = parsed.complete
-                && !result.stderr_truncated
-                && result.stderr.is_empty()
-                && result.termination == ExecutionTermination::Exited
-                && ((result.exit_code == Some(0) && result.stdout.is_empty())
-                    || (result.exit_code == Some(1) && !parsed.affected_files.is_empty()));
-            let outcome = if !validation_complete {
-                CheckOutcome::Incomplete
-            } else if result.exit_code == Some(0) {
-                CheckOutcome::Passed
-            } else {
-                CheckOutcome::Failed
-            };
-            let archive =
-                super::source_archive::encode(source).map_err(InspectionError::Execution)?;
-            Ok(FormatObservation {
-                execution: CheckObservation {
-                    outcome,
-                    termination: result.termination,
-                    exit_code: result.exit_code,
-                    validation_complete,
-                    diagnostics: Vec::new(),
-                    diagnostics_omitted: 0,
-                    stdout: result.stdout,
-                    stderr: result.stderr,
-                    stdout_truncated: result.stdout_truncated,
-                    stderr_truncated: result.stderr_truncated,
-                    source_fingerprint: super::digest(&archive)
-                        .parse()
-                        .map_err(|_| InspectionError::Internal)?,
-                    runtime: RuntimeIdentity {
-                        platform: result.platform.into(),
-                        image_id: result.image_id,
-                        configuration_fingerprint: gateway
-                            .configuration_fingerprint()
-                            .map_err(InspectionError::Execution)?,
-                        execution_fingerprint: result.execution_fingerprint,
-                        rust_version: super::rust_gateway::APPROVED_RUST_VERSION.into(),
-                        cargo_version: super::rust_gateway::APPROVED_CARGO_VERSION.into(),
-                        declared_toolchain: super::project_metadata::declared_toolchain(source)?,
-                    },
-                },
-                affected_files: parsed.affected_files,
-                affected_files_omitted: parsed.affected_files_omitted,
-                diff: parsed.diff,
-                diff_omitted: parsed.diff_omitted,
+            format_observation(source, result, || {
+                gateway
+                    .configuration_fingerprint()
+                    .map_err(InspectionError::Execution)
             })
         });
         if matches!(
@@ -965,6 +1027,34 @@ fn mutation_execution_error(error: ExecutionError) -> InspectionError {
     }
 }
 
+/// Binds an accepted mutation candidate to the post-check runtime that
+/// verified it and to the mutation execution that produced it.
+fn mutation_observation(
+    candidate: SourceBundle,
+    postcheck: ExecutionResult,
+    mutation_execution_fingerprint: ExecutionFingerprint,
+    configuration: impl FnOnce() -> Result<ExecutionFingerprint, InspectionError>,
+) -> Result<RustMutationObservation, InspectionError> {
+    let archive = super::source_archive::encode(&candidate).map_err(InspectionError::Execution)?;
+    let declared_toolchain = super::project_metadata::declared_toolchain(&candidate)?;
+    Ok(RustMutationObservation {
+        candidate,
+        runtime: RuntimeIdentity {
+            platform: postcheck.platform.into(),
+            image_id: postcheck.image_id,
+            configuration_fingerprint: configuration()?,
+            execution_fingerprint: postcheck.execution_fingerprint,
+            rust_version: super::rust_gateway::APPROVED_RUST_VERSION.into(),
+            cargo_version: super::rust_gateway::APPROVED_CARGO_VERSION.into(),
+            declared_toolchain,
+        },
+        mutation_execution_fingerprint,
+        candidate_source_fingerprint: super::digest(&archive)
+            .parse()
+            .map_err(|_| InspectionError::Internal)?,
+    })
+}
+
 impl ProjectMutationPort for RustProjectInspector {
     fn mutate(
         &self,
@@ -1019,27 +1109,16 @@ impl ProjectMutationPort for RustProjectInspector {
                 }
             }
             control.check().map_err(InspectionError::Project)?;
-            let archive =
-                super::source_archive::encode(&candidate).map_err(InspectionError::Execution)?;
-            let declared_toolchain = super::project_metadata::declared_toolchain(&candidate)?;
-            Ok(RustMutationObservation {
+            mutation_observation(
                 candidate,
-                runtime: RuntimeIdentity {
-                    platform: postcheck.platform.into(),
-                    image_id: postcheck.image_id,
-                    configuration_fingerprint: gateway
+                postcheck,
+                mutation.result.execution_fingerprint,
+                || {
+                    gateway
                         .configuration_fingerprint()
-                        .map_err(InspectionError::Execution)?,
-                    execution_fingerprint: postcheck.execution_fingerprint,
-                    rust_version: super::rust_gateway::APPROVED_RUST_VERSION.into(),
-                    cargo_version: super::rust_gateway::APPROVED_CARGO_VERSION.into(),
-                    declared_toolchain,
+                        .map_err(InspectionError::Execution)
                 },
-                mutation_execution_fingerprint: mutation.result.execution_fingerprint,
-                candidate_source_fingerprint: super::digest(&archive)
-                    .parse()
-                    .map_err(|_| InspectionError::Internal)?,
-            })
+            )
         });
         if matches!(
             result,
@@ -1874,5 +1953,572 @@ mod tests {
             inspector.ensure_calibrated(|| Err(ExecutionError::Denied)),
             Ok(())
         );
+    }
+}
+
+#[cfg(test)]
+mod observation_tests {
+    //! Daemon-free evidence for the observation builders extracted from the
+    //! gateway closures: classification, bounds, error order and runtime
+    //! binding, plus the fail-closed prologue shared by every port.
+    use super::*;
+    use rust_engineering_application::{ExecutionCancellation, OperationControl};
+    use rust_engineering_domain::{CheckOutcome, SourceFile};
+    use std::cell::Cell;
+
+    type TestResult = Result<(), String>;
+    trait Checked<T> {
+        fn c(self) -> Result<T, String>;
+    }
+    impl<T, E: std::fmt::Debug> Checked<T> for Result<T, E> {
+        fn c(self) -> Result<T, String> {
+            self.map_err(|error| format!("{error:?}"))
+        }
+    }
+    const MANIFEST: &[u8] = b"[package]\nname='root'\nversion='1.2.3'\nedition='2024'\n";
+
+    fn fingerprint(fill: char) -> Result<ExecutionFingerprint, String> {
+        format!("sha256:{}", fill.to_string().repeat(64))
+            .parse()
+            .c()
+    }
+    fn source() -> Result<SourceBundle, String> {
+        SourceBundle::new(vec![
+            SourceFile::new("Cargo.toml".into(), MANIFEST.to_vec()).c()?,
+            SourceFile::new("src/lib.rs".into(), b"pub fn f() {}\n".to_vec()).c()?,
+        ])
+        .c()
+    }
+    fn execution(stdout: &str) -> Result<ExecutionResult, String> {
+        Ok(ExecutionResult {
+            termination: ExecutionTermination::Exited,
+            exit_code: Some(0),
+            oom_killed: Some(false),
+            stdout: stdout.into(),
+            stderr: String::new(),
+            stdout_truncated: false,
+            stderr_truncated: false,
+            duration_ms: 1,
+            total_duration_ms: 2,
+            execution_fingerprint: fingerprint('e')?,
+            platform: "linux/aarch64",
+            image_id: crate::APPROVED_RUST_IMAGE.into(),
+        })
+    }
+    fn source_digest(source: &SourceBundle) -> Result<String, String> {
+        Ok(super::super::digest(
+            &super::super::source_archive::encode(source).c()?,
+        ))
+    }
+    /// A configuration closure that records whether it was consulted.
+    fn configuration(
+        called: &Cell<bool>,
+    ) -> impl FnOnce() -> Result<ExecutionFingerprint, InspectionError> + '_ {
+        move || {
+            called.set(true);
+            format!("sha256:{}", "c".repeat(64))
+                .parse()
+                .map_err(|_| InspectionError::Internal)
+        }
+    }
+    fn failing_configuration() -> Result<ExecutionFingerprint, InspectionError> {
+        Err(InspectionError::Execution(ExecutionError::Unavailable))
+    }
+    fn terminations() -> [(ExecutionTermination, InspectionError); 3] {
+        [
+            (
+                ExecutionTermination::TimedOut,
+                InspectionError::Project(ProjectError::Rejected(
+                    OperationalErrorCode::CommandTimeout,
+                )),
+            ),
+            (
+                ExecutionTermination::Cancelled,
+                InspectionError::Project(ProjectError::Cancelled),
+            ),
+            (
+                ExecutionTermination::OutputLimit,
+                InspectionError::OutputLimit,
+            ),
+        ]
+    }
+
+    const METADATA: &str = r#"{"version":1,"resolve":null,"workspace_root":"/source","packages":[{"id":"opaque","name":"root","version":"1.2.3","source":null,"manifest_path":"/source/Cargo.toml","edition":"2024","rust_version":null,"dependencies":[],"features":{},"targets":[{"name":"root","kind":["lib"],"crate_types":["lib"],"src_path":"/source/src/lib.rs","edition":"2024","test":true,"doctest":true}]}],"workspace_members":["opaque"],"workspace_default_members":["opaque"]}"#;
+
+    #[test]
+    fn metadata_structure_binds_runtime_only_after_a_clean_exit() -> TestResult {
+        let source = source()?;
+        let called = Cell::new(false);
+        let structure =
+            metadata_structure(&source, execution(METADATA)?, configuration(&called)).c()?;
+        assert!(called.get());
+        assert_eq!(structure.packages.len(), 1);
+        assert_eq!(structure.packages[0].manifest_path, "Cargo.toml");
+        assert_eq!(
+            structure.runtime.configuration_fingerprint,
+            fingerprint('c')?
+        );
+        assert_eq!(structure.runtime.execution_fingerprint, fingerprint('e')?);
+        assert_eq!(structure.runtime.rust_version, "1.98.1");
+        assert_eq!(structure.runtime.cargo_version, "1.98.1");
+        assert_eq!(structure.runtime.declared_toolchain, None);
+        for (termination, error) in terminations() {
+            let called = Cell::new(false);
+            let mut result = execution(METADATA)?;
+            result.termination = termination;
+            assert_eq!(
+                metadata_structure(&source, result, configuration(&called)).err(),
+                Some(error)
+            );
+            assert!(!called.get(), "{termination:?}");
+        }
+        let called = Cell::new(false);
+        let mut failed = execution(METADATA)?;
+        failed.exit_code = Some(101);
+        assert_eq!(
+            metadata_structure(&source, failed, configuration(&called)).err(),
+            Some(InspectionError::Project(ProjectError::Rejected(
+                OperationalErrorCode::InvalidProject
+            )))
+        );
+        assert!(!called.get());
+        assert_eq!(
+            metadata_structure(&source, execution(METADATA)?, failing_configuration).err(),
+            Some(InspectionError::Execution(ExecutionError::Unavailable))
+        );
+        assert_eq!(
+            metadata_structure(&source, execution("{}")?, configuration(&Cell::new(false))).err(),
+            Some(InspectionError::InvalidMetadata)
+        );
+        Ok(())
+    }
+
+    const FINISHED: &str = "{\"reason\":\"build-finished\",\"success\":true}\n";
+    const FAILED_BUILD: &str = "{\"reason\":\"build-finished\",\"success\":false}\n";
+
+    #[test]
+    fn cargo_observation_classifies_every_outcome() -> TestResult {
+        let source = source()?;
+        let observe = |stdout: &str, exit: Option<i32>, test_output: bool| -> Result<_, String> {
+            let mut result = execution(stdout)?;
+            result.exit_code = exit;
+            cargo_observation(
+                &source,
+                result,
+                test_output,
+                configuration(&Cell::new(false)),
+            )
+            .c()
+        };
+        let (passed, finished) = observe(FINISHED, Some(0), false)?;
+        assert_eq!(passed.outcome, CheckOutcome::Passed);
+        assert!(passed.validation_complete);
+        assert_eq!(finished, Some(true));
+        assert_eq!(
+            passed.source_fingerprint.to_string(),
+            source_digest(&source)?
+        );
+        assert_eq!(passed.runtime.configuration_fingerprint, fingerprint('c')?);
+        assert_eq!(passed.runtime.image_id, crate::APPROVED_RUST_IMAGE);
+        assert_eq!(passed.runtime.declared_toolchain, None);
+        let (failed, finished) = observe(FAILED_BUILD, Some(101), false)?;
+        assert_eq!(failed.outcome, CheckOutcome::Failed);
+        assert_eq!(finished, Some(false));
+        // A finished build with a failing exit is only complete for test runs.
+        assert_eq!(
+            observe(FINISHED, Some(101), false)?.0.outcome,
+            CheckOutcome::Incomplete
+        );
+        assert_eq!(
+            observe(FINISHED, Some(101), true)?.0.outcome,
+            CheckOutcome::Failed
+        );
+        assert_eq!(
+            observe("", Some(0), false)?.0.outcome,
+            CheckOutcome::Incomplete
+        );
+        let mut frozen = execution("")?;
+        frozen.exit_code = Some(101);
+        frozen.stderr = "error: cannot update the lock file /source/Cargo.lock because --frozen was passed to prevent this\n".into();
+        let (lock, _) =
+            cargo_observation(&source, frozen, false, configuration(&Cell::new(false))).c()?;
+        assert_eq!(lock.outcome, CheckOutcome::LockfileUpdateRequired);
+        let mut truncated = execution(FINISHED)?;
+        truncated.stderr_truncated = true;
+        let (incomplete, _) =
+            cargo_observation(&source, truncated, false, configuration(&Cell::new(false))).c()?;
+        assert_eq!(incomplete.outcome, CheckOutcome::Incomplete);
+        let mut oversized = execution(FINISHED)?;
+        oversized.stderr = "é".repeat(200 * 1024);
+        let (bounded, _) =
+            cargo_observation(&source, oversized, false, configuration(&Cell::new(false))).c()?;
+        assert!(bounded.stderr_truncated);
+        assert!(bounded.stderr.len() <= 256 * 1024);
+        assert_eq!(bounded.outcome, CheckOutcome::Incomplete);
+        let called = Cell::new(false);
+        let mut cancelled = execution(FINISHED)?;
+        cancelled.termination = ExecutionTermination::Cancelled;
+        assert_eq!(
+            cargo_observation(&source, cancelled, false, configuration(&called)).err(),
+            Some(InspectionError::Project(ProjectError::Cancelled))
+        );
+        assert!(!called.get());
+        let mut timed_out = execution(FINISHED)?;
+        timed_out.termination = ExecutionTermination::TimedOut;
+        let (partial, _) =
+            cargo_observation(&source, timed_out, false, configuration(&Cell::new(false))).c()?;
+        assert_eq!(partial.outcome, CheckOutcome::Incomplete);
+        assert_eq!(partial.termination, ExecutionTermination::TimedOut);
+        assert_eq!(
+            cargo_observation(&source, execution(FINISHED)?, false, failing_configuration).err(),
+            Some(InspectionError::Execution(ExecutionError::Unavailable))
+        );
+        Ok(())
+    }
+
+    #[test]
+    fn format_observation_accepts_only_clean_or_parsed_diff_exits() -> TestResult {
+        let source = source()?;
+        let observe = |stdout: &str, stderr: &str, exit: Option<i32>| -> Result<_, String> {
+            let mut result = execution(stdout)?;
+            result.stderr = stderr.into();
+            result.exit_code = exit;
+            format_observation(&source, result, configuration(&Cell::new(false))).c()
+        };
+        let clean = observe("", "", Some(0))?;
+        assert_eq!(clean.execution.outcome, CheckOutcome::Passed);
+        assert!(clean.affected_files.is_empty() && clean.diff.is_none());
+        assert_eq!(
+            clean.execution.runtime.configuration_fingerprint,
+            fingerprint('c')?
+        );
+        assert_eq!(
+            clean.execution.source_fingerprint.to_string(),
+            source_digest(&source)?
+        );
+        let diff = observe(
+            "Diff in /source/src/lib.rs:1:\n-pub fn f() {}\n+pub fn f() {}\n",
+            "",
+            Some(1),
+        )?;
+        assert_eq!(diff.execution.outcome, CheckOutcome::Failed);
+        assert_eq!(diff.affected_files, ["src/lib.rs"]);
+        assert!(diff.diff.is_some());
+        for (stdout, stderr, exit) in [
+            ("", "", Some(1)),
+            ("", "warning", Some(0)),
+            ("Diff in /source/src/lib.rs:1:\n-a\n+b\n", "", Some(0)),
+            ("", "", Some(2)),
+        ] {
+            assert_eq!(
+                observe(stdout, stderr, exit)?.execution.outcome,
+                CheckOutcome::Incomplete,
+                "{stdout:?} {stderr:?} {exit:?}"
+            );
+        }
+        let called = Cell::new(false);
+        let mut cancelled = execution("")?;
+        cancelled.termination = ExecutionTermination::Cancelled;
+        assert_eq!(
+            format_observation(&source, cancelled, configuration(&called)).err(),
+            Some(InspectionError::Project(ProjectError::Cancelled))
+        );
+        assert!(!called.get());
+        Ok(())
+    }
+
+    #[test]
+    fn toolchain_steps_accept_only_clean_complete_exits() -> TestResult {
+        let (step, output) = toolchain_step(
+            execution("rustc 1.98.1")?,
+            ToolchainObservationCommand::CompilerVersion,
+        )
+        .c()?;
+        assert_eq!(output, "rustc 1.98.1");
+        assert_eq!(step.command, ToolchainObservationCommand::CompilerVersion);
+        assert_eq!(step.execution_fingerprint, fingerprint('e')?);
+        for (termination, error) in terminations() {
+            let mut result = execution("x")?;
+            result.termination = termination;
+            assert_eq!(
+                toolchain_step(result, ToolchainObservationCommand::CargoVersion).err(),
+                Some(error)
+            );
+        }
+        let mut failed = execution("x")?;
+        failed.exit_code = Some(1);
+        assert_eq!(
+            toolchain_step(failed, ToolchainObservationCommand::InstalledComponents).err(),
+            Some(InspectionError::Execution(ExecutionError::Unavailable))
+        );
+        for stdout_truncated in [true, false] {
+            let mut truncated = execution("x")?;
+            truncated.stdout_truncated = stdout_truncated;
+            truncated.stderr_truncated = !stdout_truncated;
+            assert_eq!(
+                toolchain_step(truncated, ToolchainObservationCommand::CargoVersion).err(),
+                Some(InspectionError::OutputLimit)
+            );
+        }
+        Ok(())
+    }
+
+    const RUSTC: &str = "rustc 1.98.1 (48a229cea 2026-09-01)\nbinary: rustc\ncommit-hash: 48a229ceaefd4985c50990b14116b6d856af0985\ncommit-date: 2026-09-01\nhost: aarch64-unknown-linux-gnu\nrelease: 1.98.1\nLLVM version: 22.1.8\n";
+    const CARGO: &str = "cargo 1.98.1 (797e8a9bc 2026-08-05)\nrelease: 1.98.1\ncommit-hash: 797e8a9bca276c1c9f9f738d2a20f484fa4eea9d\ncommit-date: 2026-08-05\nhost: aarch64-unknown-linux-gnu\nlibgit2: 1.9.4 (sys:0.21.0 vendored)\nlibcurl: 8.21.0-DEV (sys:0.4.90+curl-8.21.0 vendored ssl:OpenSSL/3.6.3)\nssl: OpenSSL 3.6.3 9 Jun 2026\nos: Debian 12.0.0 (bookworm) [64-bit]\n";
+    const COMPONENTS: &str = "rustfmt-preview\nrustc\nrust-std-aarch64-unknown-linux-gnu\nclippy-preview\ncargo\nllvm-tools-preview\n";
+
+    #[test]
+    fn toolchain_observation_parses_three_outputs_in_order() -> TestResult {
+        let source = source()?;
+        let executions = vec![ToolchainExecution {
+            command: ToolchainObservationCommand::CompilerVersion,
+            execution_fingerprint: fingerprint('e')?,
+        }];
+        let outputs = || vec![RUSTC.to_owned(), CARGO.to_owned(), COMPONENTS.to_owned()];
+        let observation = toolchain_observation(
+            &source,
+            outputs(),
+            executions.clone(),
+            "sha256:image",
+            configuration(&Cell::new(false)),
+        )
+        .c()?;
+        assert_eq!(observation.runtime.image_id, "sha256:image");
+        assert_eq!(observation.runtime.platform, "linux/aarch64");
+        assert_eq!(
+            observation.runtime.configuration_fingerprint,
+            fingerprint('c')?
+        );
+        assert_eq!(observation.runtime.executions.len(), 1);
+        assert_eq!(
+            observation.runtime.executions[0].command,
+            ToolchainObservationCommand::CompilerVersion
+        );
+        assert_eq!(
+            observation.runtime.executions[0].execution_fingerprint,
+            fingerprint('e')?
+        );
+        assert_eq!(observation.declared_toolchain, None);
+        assert_eq!(
+            observation.source_fingerprint.to_string(),
+            source_digest(&source)?
+        );
+        // Fewer than three outputs is an internal fault; swapped outputs are
+        // rejected by the parser; neither consults the configuration.
+        let called = Cell::new(false);
+        assert_eq!(
+            toolchain_observation(
+                &source,
+                vec![RUSTC.to_owned()],
+                executions.clone(),
+                "i",
+                configuration(&called)
+            )
+            .err(),
+            Some(InspectionError::Internal)
+        );
+        assert!(
+            toolchain_observation(
+                &source,
+                vec![CARGO.to_owned(), RUSTC.to_owned(), COMPONENTS.to_owned()],
+                executions.clone(),
+                "i",
+                configuration(&called)
+            )
+            .is_err()
+        );
+        assert!(!called.get());
+        Ok(())
+    }
+
+    #[test]
+    fn mutation_observation_binds_candidate_postcheck_and_mutation() -> TestResult {
+        let candidate = source()?;
+        let expected_digest = source_digest(&candidate)?;
+        let observation = mutation_observation(
+            candidate.clone(),
+            execution("")?,
+            fingerprint('d')?,
+            configuration(&Cell::new(false)),
+        )
+        .c()?;
+        assert_eq!(observation.candidate, candidate);
+        assert_eq!(
+            observation.mutation_execution_fingerprint,
+            fingerprint('d')?
+        );
+        assert_eq!(observation.runtime.execution_fingerprint, fingerprint('e')?);
+        assert_eq!(
+            observation.runtime.configuration_fingerprint,
+            fingerprint('c')?
+        );
+        assert_eq!(
+            observation.candidate_source_fingerprint.to_string(),
+            expected_digest
+        );
+        assert_eq!(
+            mutation_observation(
+                candidate,
+                execution("")?,
+                fingerprint('d')?,
+                failing_configuration
+            )
+            .err(),
+            Some(InspectionError::Execution(ExecutionError::Unavailable))
+        );
+        Ok(())
+    }
+
+    struct Control(bool);
+    impl ExecutionCancellation for Control {
+        fn is_cancelled(&self) -> bool {
+            self.0
+        }
+    }
+    impl OperationControl for Control {
+        fn check(&self) -> Result<(), ProjectError> {
+            if self.0 {
+                Err(ProjectError::Cancelled)
+            } else {
+                Ok(())
+            }
+        }
+    }
+
+    #[test]
+    fn ports_fail_closed_without_host_configuration_and_never_quarantine() -> TestResult {
+        use rust_engineering_application::{
+            ProjectCheckPort, ProjectClippyPort, ProjectFormatPort,
+        };
+        let source = source()?;
+        let inspector = RustProjectInspector::new(None);
+        let denied = Some(InspectionError::Execution(ExecutionError::Denied));
+        let control = Control(false);
+        assert_eq!(inspector.inspect(&source, &control).err(), denied);
+        assert_eq!(
+            inspector.explain(&"E0502".parse().c()?, &control).err(),
+            denied
+        );
+        assert_eq!(inspector.inspect_toolchain(&source, &control).err(), denied);
+        assert_eq!(
+            inspector
+                .check(
+                    &source,
+                    &rust_engineering_domain::CheckSelection::default()
+                        .try_into()
+                        .c()?,
+                    &control
+                )
+                .err(),
+            denied
+        );
+        assert_eq!(
+            inspector
+                .clippy(
+                    &source,
+                    &rust_engineering_domain::ClippySelection::default()
+                        .try_into()
+                        .c()?,
+                    &control
+                )
+                .err(),
+            denied
+        );
+        assert_eq!(inspector.format(&source, &control).err(), denied);
+        assert_eq!(
+            inspector
+                .mutate(&source, RustMutationCommand::Format, &control)
+                .err(),
+            denied
+        );
+        assert!(!inspector.is_quarantined());
+        // A cancelled control is observed before any configuration is read.
+        assert_eq!(
+            inspector.inspect(&source, &Control(true)).err(),
+            Some(InspectionError::Project(ProjectError::Cancelled))
+        );
+        // An earlier quarantine is sticky and reported before the missing config.
+        inspector.quarantined.store(true, Ordering::Release);
+        assert_eq!(
+            inspector.format(&source, &control).err(),
+            Some(InspectionError::Execution(ExecutionError::CleanupUncertain))
+        );
+        assert!(inspector.is_quarantined());
+        Ok(())
+    }
+
+    #[test]
+    fn quality_and_security_ports_fail_closed_without_host_configuration() -> TestResult {
+        use rust_engineering_application::security::SecurityError;
+        use rust_engineering_application::{
+            ProjectTestPort, coverage::ProjectCoveragePort, miri::ProjectMiriPort,
+            mutation_test::ProjectMutationTestPort, nextest::ProjectNextestPort,
+            unsafe_scan::ProjectUnsafeScanPort,
+        };
+        let source = source()?;
+        let inspector = RustProjectInspector::new(None);
+        let control = Control(false);
+        let denied = InspectionError::Execution(ExecutionError::Denied);
+        assert_eq!(
+            inspector
+                .test(
+                    &source,
+                    &rust_engineering_domain::TestSelection::default()
+                        .try_into()
+                        .c()?,
+                    &control
+                )
+                .err(),
+            Some(denied)
+        );
+        let nextest: rust_engineering_application::nextest::NextestOptions =
+            rust_engineering_application::nextest::NextestSelection::default()
+                .try_into()
+                .c()?;
+        assert_eq!(
+            ProjectNextestPort::run(&inspector, &source, &nextest, &control).err(),
+            Some(denied)
+        );
+        let mutation: rust_engineering_domain::mutation_test::MutationTestCommandOptions =
+            rust_engineering_domain::mutation_test::MutationTestSelection::default()
+                .try_into()
+                .c()?;
+        assert_eq!(
+            ProjectMutationTestPort::run(&inspector, &source, &mutation, &control).err(),
+            Some(denied)
+        );
+        let coverage: rust_engineering_domain::coverage::CoverageOptions =
+            rust_engineering_domain::coverage::CoverageSelection::default()
+                .try_into()
+                .c()?;
+        assert_eq!(
+            ProjectCoveragePort::run(&inspector, &source, &coverage, &control).err(),
+            Some(denied)
+        );
+        let vendor = CargoVendorSnapshot {
+            source: SourceBundle::new(Vec::new()).c()?,
+            tree_fingerprint: format!("sha256:{}", "f".repeat(64)).parse().c()?,
+            packages: Vec::new(),
+        };
+        let scan = rust_engineering_domain::unsafe_scan::UnsafeScanOptions::new(60).c()?;
+        assert_eq!(
+            inspector
+                .unsafe_scan(&source, &vendor, &scan, &control)
+                .err(),
+            Some(SecurityError::Inspection(denied))
+        );
+        let miri = rust_engineering_domain::miri::MiriOptions::new(60).c()?;
+        assert_eq!(
+            inspector.miri(&source, &vendor, &miri, &control).err(),
+            Some(SecurityError::Inspection(denied))
+        );
+        assert!(matches!(
+            inspector.resolve(&source, &vendor, &control),
+            Err(ResolutionError::Inspection(InspectionError::Execution(
+                ExecutionError::Denied
+            )))
+        ));
+        assert!(!inspector.is_quarantined());
+        Ok(())
     }
 }
