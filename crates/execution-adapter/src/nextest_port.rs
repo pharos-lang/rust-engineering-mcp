@@ -198,8 +198,32 @@ mod tests {
         let id = test_id(&long, "case");
         assert!(id.len() <= MAX_TEST_ID_LEN);
         assert!(id.is_char_boundary(id.len()));
+        assert_eq!(test_id(&format!("{}é", "a".repeat(255)), "case").len(), 255);
         assert_eq!(test_id("", "solo"), "solo");
         assert_eq!(test_id("pkg::suite", "case"), "pkg::suite::case");
+    }
+
+    #[test]
+    fn application_options_map_field_for_field_to_the_closed_command() -> Result<(), String> {
+        let options =
+            NextestOptions::try_from(rust_engineering_application::nextest::NextestSelection {
+                package: Some("fixture".into()),
+                features: vec!["serde".into()],
+                target: Some("aarch64-unknown-linux-gnu".into()),
+                test_filter: Some("suite::case".into()),
+                timeout_seconds: 45,
+                retries: 2,
+                ..Default::default()
+            })
+            .map_err(|error| format!("{error:?}"))?;
+        let mapped = to_domain_options(&options).map_err(|error| format!("{error:?}"))?;
+        assert_eq!(mapped.package(), Some("fixture"));
+        assert_eq!(mapped.features(), ["serde"]);
+        assert_eq!(mapped.target(), Some("aarch64-unknown-linux-gnu"));
+        assert_eq!(mapped.test_filter(), Some("suite::case"));
+        assert_eq!(mapped.timeout(), 45);
+        assert_eq!(mapped.retries(), 2);
+        Ok(())
     }
 
     #[test]

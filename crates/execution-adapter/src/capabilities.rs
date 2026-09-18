@@ -238,6 +238,109 @@ fn memory_enforced(memory: &ExecutionResult, ram: &[Record], cgroups_ok: bool) -
             .any(|r| matches!(r.event,Event::MemoryAllocated{bytes} if bytes>0 && bytes<67108864))
 }
 
+struct ProbeExecutions<'a> {
+    environment: &'a ExecutionResult,
+    net: &'a ExecutionResult,
+    net_control: &'a ExecutionResult,
+    filesystem: &'a ExecutionResult,
+    fs_control: &'a ExecutionResult,
+    descendants: &'a ExecutionResult,
+    output: &'a ExecutionResult,
+    cgroups: &'a ExecutionResult,
+    pids: &'a ExecutionResult,
+    memory: &'a ExecutionResult,
+    disk: &'a ExecutionResult,
+    cpu: &'a ExecutionResult,
+}
+
+fn assess_capabilities(
+    probes: ProbeExecutions<'_>,
+    observations: Vec<Observation>,
+    configuration_fingerprint: ExecutionFingerprint,
+    engine: EngineIdentity,
+    image_id: String,
+    observed_at_unix_ms: u64,
+) -> CapabilityReport {
+    let env = probe_records(probes.environment);
+    let fs = probe_records(probes.filesystem);
+    let fs_ctrl = probe_records(probes.fs_control);
+    let children = probe_records(probes.descendants);
+    let groups = probe_records(probes.cgroups);
+    let pid_records = probe_records(probes.pids);
+    let ram = probe_records(probes.memory);
+    let disks = probe_records(probes.disk);
+    let cpus = probe_records(probes.cpu);
+    let env_ok=normal(probes.environment) && env.len()==1 && env.iter().any(|r|matches!(&r.event,Event::Environment{entries} if entries==&["GOMAXPROCS=2","HOME=/work","HOSTNAME=sandbox","PATH=/nonexistent","TMPDIR=/tmp"]));
+    let fs_ok=normal(probes.filesystem) && fs.iter().any(|r|matches!(r.event,Event::FilesystemAssertions{passed:true,rootfs_unchanged:true,unexpected_root_writes:0}))
+        && fs.iter().any(|r|matches!(r.event,Event::SymlinkSwap{swaps:256,attempts:512,positive_writes,readonly_denials,unexpected_root_writes:0,other_errors:0} if positive_writes>0 && readonly_denials>0))
+        && !probes.fs_control.stdout_truncated && !probes.fs_control.stderr_truncated
+        && probes.fs_control.termination==ExecutionTermination::Exited && probes.fs_control.exit_code==Some(1)
+        && fs_ctrl.iter().any(|r|matches!(&r.event,Event::Write{path,result} if path=="/rootfs-canary" && result.allowed && result.errno==0));
+    let child_ok=probes.descendants.termination==ExecutionTermination::TimedOut && children.iter().any(|r| {
+        if let Event::DescendantStarted{child_pid,parent_process_group,setsid:true,double_fork:true}=r.event {
+            children.iter().any(|h| h.pid==child_pid && matches!(h.event,Event::Heartbeat{parent_pid:1,process_group} if process_group==child_pid && process_group!=parent_process_group))
+        }else{false}
+    });
+    let cgroups_ok=normal(probes.cgroups) && groups.iter().any(|r|matches!(&r.event,Event::Cgroups(g) if reading(g,"memory.max")==Some("67108864") && reading(g,"pids.max")==Some("64") && reading(g,"cpu.max")==Some("50000 100000")));
+    let caps=SandboxCapabilities {
+        filesystem_isolated:fs_ok,
+        network_isolated:network(probes.net,false) && network(probes.net_control,true),
+        environment_isolated:env_ok,
+        children_contained:child_ok,
+        wall_time_limited:child_ok && probes.descendants.duration_ms>=1500 && probes.descendants.duration_ms<15000,
+        output_limited:probes.output.termination==ExecutionTermination::OutputLimit && (probes.output.stdout_truncated || probes.output.stderr_truncated) && probes.output.stdout.len()<=4096 && probes.output.stderr.len()<=4096,
+        cpu_quota:cgroups_ok && normal(probes.cpu) && cpus.iter().any(|r|matches!(&r.event,Event::Cpu{before,after,maximum} if maximum.result.allowed && maximum.value=="50000 100000" && increased(before,after,"nr_throttled") && increased(before,after,"throttled_usec"))),
+        memory_limited: memory_enforced(probes.memory, &ram, cgroups_ok),
+        pids_limited:cgroups_ok && normal(probes.pids) && pid_records.iter().any(|r|matches!(&r.event,Event::Pids{started,cgroups} if *started>0 && *started<80 && reading(cgroups,"pids.max")==Some("64") && reading(cgroups,"pids.events").and_then(|s|counter(s,"max")).is_some_and(|n|n>0))),
+        disk_limited:normal(probes.disk) && disks.iter().any(|r|matches!(&r.event,Event::Disk{bytes_written,enospc:true,result} if *bytes_written>0 && *bytes_written<=8388608 && !result.allowed && result.errno==28)),
+    };
+    let invalid_evidence = observations
+        .iter()
+        .filter(|observation| {
+            observation.scenario != S::Output && records(&observation.execution).is_err()
+        })
+        .map(|observation| observation.scenario)
+        .collect();
+    let evidence = SandboxEvidence {
+        configuration_fingerprint: configuration_fingerprint.clone(),
+        capabilities: caps,
+    };
+    let strict = admit_execution(
+        SandboxTier::Strict,
+        false,
+        false,
+        &evidence,
+        &configuration_fingerprint,
+    )
+    .is_ok();
+    let restricted = admit_execution(
+        SandboxTier::Restricted,
+        false,
+        false,
+        &evidence,
+        &configuration_fingerprint,
+    )
+    .is_ok();
+    CapabilityReport {
+        status: if strict {
+            CapabilityStatus::Verified
+        } else {
+            CapabilityStatus::Degraded
+        },
+        scope: "trusted_probe_image_only",
+        observed_at_unix_ms,
+        engine,
+        image_id,
+        capabilities: caps,
+        configuration_fingerprint,
+        strict_available: strict,
+        restricted_available: restricted,
+        project_code_available: false,
+        observations,
+        invalid_evidence,
+    }
+}
+
 impl DockerGateway {
     /// Explicit host operation: active adversarial fixtures, bounded and local.
     pub fn probe_capabilities(&self) -> Result<CapabilityReport, ExecutionError> {
@@ -283,89 +386,34 @@ impl DockerGateway {
         let memory = run(S::Memory, Profile::Enforced, 10000, 65536)?;
         let disk = run(S::Disk, Profile::Enforced, 10000, 65536)?;
         let cpu = run(S::Cpu, Profile::Enforced, 10000, 65536)?;
-        let env = probe_records(&environment);
-        let fs = probe_records(&filesystem);
-        let fs_ctrl = probe_records(&fs_control);
-        let children = probe_records(&descendants);
-        let groups = probe_records(&cgroups);
-        let pid_records = probe_records(&pids);
-        let ram = probe_records(&memory);
-        let disks = probe_records(&disk);
-        let cpus = probe_records(&cpu);
-        let env_ok=normal(&environment) && env.len()==1 && env.iter().any(|r|matches!(&r.event,Event::Environment{entries} if entries==&["GOMAXPROCS=2","HOME=/work","HOSTNAME=sandbox","PATH=/nonexistent","TMPDIR=/tmp"]));
-        let fs_ok=normal(&filesystem) && fs.iter().any(|r|matches!(r.event,Event::FilesystemAssertions{passed:true,rootfs_unchanged:true,unexpected_root_writes:0}))
-            && fs.iter().any(|r|matches!(r.event,Event::SymlinkSwap{swaps:256,attempts:512,positive_writes,readonly_denials,unexpected_root_writes:0,other_errors:0} if positive_writes>0 && readonly_denials>0))
-            && !fs_control.stdout_truncated && !fs_control.stderr_truncated
-            && fs_control.termination==ExecutionTermination::Exited && fs_control.exit_code==Some(1)
-            && fs_ctrl.iter().any(|r|matches!(&r.event,Event::Write{path,result} if path=="/rootfs-canary" && result.allowed && result.errno==0));
-        let child_ok=descendants.termination==ExecutionTermination::TimedOut && children.iter().any(|r| {
-            if let Event::DescendantStarted{child_pid,parent_process_group,setsid:true,double_fork:true}=r.event {
-                children.iter().any(|h| h.pid==child_pid && matches!(h.event,Event::Heartbeat{parent_pid:1,process_group} if process_group==child_pid && process_group!=parent_process_group))
-            }else{false}
-        });
-        let cgroups_ok=normal(&cgroups) && groups.iter().any(|r|matches!(&r.event,Event::Cgroups(g) if reading(g,"memory.max")==Some("67108864") && reading(g,"pids.max")==Some("64") && reading(g,"cpu.max")==Some("50000 100000")));
-        let caps=SandboxCapabilities {
-            filesystem_isolated:fs_ok,
-            network_isolated:network(&net,false) && network(&net_control,true),
-            environment_isolated:env_ok,
-            children_contained:child_ok,
-            wall_time_limited:child_ok && descendants.duration_ms>=1500 && descendants.duration_ms<15000,
-            output_limited:output.termination==ExecutionTermination::OutputLimit && (output.stdout_truncated || output.stderr_truncated) && output.stdout.len()<=4096 && output.stderr.len()<=4096,
-            cpu_quota:cgroups_ok && normal(&cpu) && cpus.iter().any(|r|matches!(&r.event,Event::Cpu{before,after,maximum} if maximum.result.allowed && maximum.value=="50000 100000" && increased(before,after,"nr_throttled") && increased(before,after,"throttled_usec"))),
-            memory_limited: memory_enforced(&memory, &ram, cgroups_ok),
-            pids_limited:cgroups_ok && normal(&pids) && pid_records.iter().any(|r|matches!(&r.event,Event::Pids{started,cgroups} if *started>0 && *started<80 && reading(cgroups,"pids.max")==Some("64") && reading(cgroups,"pids.events").and_then(|s|counter(s,"max")).is_some_and(|n|n>0))),
-            disk_limited:normal(&disk) && disks.iter().any(|r|matches!(&r.event,Event::Disk{bytes_written,enospc:true,result} if *bytes_written>0 && *bytes_written<=8388608 && !result.allowed && result.errno==28)),
-        };
-        let invalid_evidence = observations
-            .iter()
-            .filter(|o| o.scenario != S::Output && records(&o.execution).is_err())
-            .map(|o| o.scenario)
-            .collect();
         let configuration_fingerprint = self.configuration_fingerprint()?;
-        let evidence = SandboxEvidence {
-            configuration_fingerprint: configuration_fingerprint.clone(),
-            capabilities: caps,
-        };
-        let strict = admit_execution(
-            SandboxTier::Strict,
-            false,
-            false,
-            &evidence,
-            &configuration_fingerprint,
-        )
-        .is_ok();
-        let restricted = admit_execution(
-            SandboxTier::Restricted,
-            false,
-            false,
-            &evidence,
-            &configuration_fingerprint,
-        )
-        .is_ok();
         let now = SystemTime::now()
             .duration_since(UNIX_EPOCH)
             .map_err(|_| ExecutionError::Infrastructure)?
             .as_millis()
             .try_into()
             .map_err(|_| ExecutionError::Infrastructure)?;
-        Ok(CapabilityReport {
-            status: if strict {
-                CapabilityStatus::Verified
-            } else {
-                CapabilityStatus::Degraded
+        Ok(assess_capabilities(
+            ProbeExecutions {
+                environment: &environment,
+                net: &net,
+                net_control: &net_control,
+                filesystem: &filesystem,
+                fs_control: &fs_control,
+                descendants: &descendants,
+                output: &output,
+                cgroups: &cgroups,
+                pids: &pids,
+                memory: &memory,
+                disk: &disk,
+                cpu: &cpu,
             },
-            scope: "trusted_probe_image_only",
-            observed_at_unix_ms: now,
-            engine: self.engine().clone(),
-            image_id: self.image_id().to_owned(),
-            capabilities: caps,
-            configuration_fingerprint,
-            strict_available: strict,
-            restricted_available: restricted,
-            project_code_available: false,
             observations,
-            invalid_evidence,
-        })
+            configuration_fingerprint,
+            self.engine().clone(),
+            self.image_id().to_owned(),
+            now,
+        ))
     }
 }
 
@@ -483,5 +531,78 @@ mod tests {
             &reading("nr_throttled 1"),
             "nr_throttled"
         ));
+    }
+
+    #[test]
+    fn portable_assessment_projects_evidence_without_running_a_gateway() -> TestResult {
+        let environment = result(
+            serde_json::json!({
+                "pid": 1,
+                "event": "environment",
+                "details": {"entries": [
+                    "GOMAXPROCS=2", "HOME=/work", "HOSTNAME=sandbox",
+                    "PATH=/nonexistent", "TMPDIR=/tmp"
+                ]}
+            })
+            .to_string(),
+        )?;
+        let denied = result(sockets(false))?;
+        let allowed = result(sockets(true))?;
+        let malformed = result("not-json".into())?;
+        let mut output = result(String::new())?;
+        output.termination = ExecutionTermination::OutputLimit;
+        output.stdout_truncated = true;
+        let observations = S::ALL
+            .iter()
+            .map(|scenario| Observation {
+                scenario: *scenario,
+                control: false,
+                limits: ExecutionLimits::default(),
+                memory_bytes: 67_108_864,
+                execution: malformed.clone(),
+            })
+            .collect();
+        let engine: EngineIdentity = serde_json::from_value(serde_json::json!({
+            "ID": "fixture",
+            "ServerVersion": "29.7.2",
+            "DefaultRuntime": "runc",
+            "OSType": "linux",
+            "Architecture": "aarch64",
+            "CgroupVersion": "2",
+            "SecurityOptions": ["name=seccomp"],
+            "MemoryLimit": true,
+            "SwapLimit": true,
+            "CpuCfsQuota": true,
+            "PidsLimit": true
+        }))?;
+        let report = assess_capabilities(
+            ProbeExecutions {
+                environment: &environment,
+                net: &denied,
+                net_control: &allowed,
+                filesystem: &malformed,
+                fs_control: &malformed,
+                descendants: &malformed,
+                output: &output,
+                cgroups: &malformed,
+                pids: &malformed,
+                memory: &malformed,
+                disk: &malformed,
+                cpu: &malformed,
+            },
+            observations,
+            format!("sha256:{}", "a".repeat(64)).parse()?,
+            engine,
+            "sha256:fixture".into(),
+            37,
+        );
+        assert!(report.capabilities.environment_isolated);
+        assert!(report.capabilities.network_isolated);
+        assert!(report.capabilities.output_limited);
+        assert!(!report.capabilities.filesystem_isolated);
+        assert!(matches!(report.status, CapabilityStatus::Degraded));
+        assert_eq!(report.observed_at_unix_ms, 37);
+        assert_eq!(report.invalid_evidence.len(), S::ALL.len() - 1);
+        Ok(())
     }
 }

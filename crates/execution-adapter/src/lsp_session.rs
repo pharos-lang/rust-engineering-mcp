@@ -208,6 +208,44 @@ fn elapsed_ms(started: Instant) -> u64 {
     started.elapsed().as_millis().try_into().unwrap_or(u64::MAX)
 }
 
+fn parse_status(
+    params: Option<serde_json::Value>,
+    observed_at_ms: u64,
+) -> Result<StatusRecord, CodecError> {
+    let parsed = params
+        .ok_or(CodecError::MalformedMessage)
+        .and_then(|value| {
+            serde_json::from_value::<lsp_codec::ServerStatusParams>(value)
+                .map_err(|_| CodecError::MalformedMessage)
+        })?;
+    Ok(StatusRecord {
+        quiescent: parsed.quiescent,
+        health: domain::ServerHealth::from_wire(&parsed.health),
+        elapsed_ms: observed_at_ms,
+    })
+}
+
+fn classify_stop(
+    fatal: Option<SessionError>,
+    exit_code: Option<i32>,
+    reaped: bool,
+    stdout_closed: bool,
+    handshake: bool,
+) -> domain::SessionStop {
+    match (fatal, exit_code) {
+        _ if !reaped => domain::SessionStop::KillUncertain,
+        (Some(SessionError::Cancelled), _) => domain::SessionStop::Cancelled,
+        (Some(SessionError::Timeout), _) => domain::SessionStop::Timeout,
+        (Some(SessionError::Eof), _) => domain::SessionStop::Eof,
+        (Some(_), _) => domain::SessionStop::Killed,
+        // A peer that closed stdout on its own ended the session that way even
+        // if it then exited cleanly: no handshake took place.
+        (None, _) if stdout_closed && !handshake => domain::SessionStop::Eof,
+        (None, Some(_)) => domain::SessionStop::Exited,
+        (None, None) => domain::SessionStop::Killed,
+    }
+}
+
 /// A bounded, cancellable duplex LSP session over one child process.
 pub(crate) struct LspSession<'a> {
     child: ChildGuard,
@@ -455,21 +493,16 @@ impl<'a> LspSession<'a> {
         // and this is the last moment anything is written.
         self.stdin.take();
         let exit_code = self.wait_for_exit(grace);
-        let stop = match (self.fatal, exit_code) {
-            // Nothing below is claimed for a child whose departure was never
-            // confirmed: the guarantee that nothing survives the call is the
-            // container's verified absence (gateway G3), not this side's kill.
-            _ if !self.reaped => domain::SessionStop::KillUncertain,
-            (Some(SessionError::Cancelled), _) => domain::SessionStop::Cancelled,
-            (Some(SessionError::Timeout), _) => domain::SessionStop::Timeout,
-            (Some(SessionError::Eof), _) => domain::SessionStop::Eof,
-            (Some(_), _) => domain::SessionStop::Killed,
-            // A peer that closed stdout on its own ended the session that way
-            // even if it then exited cleanly: no handshake took place.
-            (None, _) if self.stdout_closed && !handshake => domain::SessionStop::Eof,
-            (None, Some(_)) => domain::SessionStop::Exited,
-            (None, None) => domain::SessionStop::Killed,
-        };
+        // Nothing below is claimed for a child whose departure was never
+        // confirmed: the guarantee that nothing survives the call is the
+        // container's verified absence (gateway G3), not this side's kill.
+        let stop = classify_stop(
+            self.fatal,
+            exit_code,
+            self.reaped,
+            self.stdout_closed,
+            handshake,
+        );
         SessionOutcome {
             exit_code,
             stop,
@@ -562,17 +595,8 @@ impl<'a> LspSession<'a> {
     /// only readiness oracle (ADR-084 §5), and a shape this adapter cannot read
     /// is not something to guess at.
     fn status(&mut self, params: Option<serde_json::Value>) -> Result<StatusRecord, SessionError> {
-        let parsed = params
-            .ok_or(())
-            .and_then(|value| {
-                serde_json::from_value::<lsp_codec::ServerStatusParams>(value).map_err(|_| ())
-            })
-            .map_err(|()| self.fail(SessionError::Codec(CodecError::MalformedMessage)))?;
-        let record = StatusRecord {
-            quiescent: parsed.quiescent,
-            health: domain::ServerHealth::from_wire(&parsed.health),
-            elapsed_ms: elapsed_ms(self.started),
-        };
+        let record = parse_status(params, elapsed_ms(self.started))
+            .map_err(|error| self.fail(SessionError::Codec(error)))?;
         self.status_transcript.push(record.clone());
         Ok(record)
     }
@@ -915,6 +939,92 @@ mod tests {
             Event::ServerStatus(record) => Some(record),
             _ => None,
         }
+    }
+
+    #[test]
+    fn standard_budget_uses_the_normative_lsp_limits() {
+        let deadline = Instant::now() + Duration::from_secs(1);
+        let budget = SessionBudget::standard(deadline);
+        assert_eq!(budget.deadline, deadline);
+        assert_eq!(budget.max_messages, domain::MAX_MESSAGES_PER_JOB);
+        assert_eq!(budget.max_frame_bytes, domain::MAX_FRAME_BYTES);
+        assert_eq!(budget.max_stdout_bytes, domain::MAX_STDOUT_BYTES);
+        assert_eq!(budget.max_stderr_bytes, domain::MAX_STDERR_BYTES);
+    }
+
+    #[test]
+    fn status_parser_is_closed_and_preserves_observation_time() -> Result<(), &'static str> {
+        for (health, expected) in [
+            ("ok", Some(domain::ServerHealth::Ok)),
+            ("warning", Some(domain::ServerHealth::Warning)),
+            ("error", Some(domain::ServerHealth::Error)),
+            ("future", None),
+        ] {
+            let record = parse_status(
+                Some(serde_json::json!({
+                    "health": health,
+                    "quiescent": true,
+                    "message": "project text is deliberately ignored"
+                })),
+                37,
+            )
+            .map_err(|_| "status")?;
+            assert!(record.quiescent);
+            assert_eq!(record.health, expected);
+            assert_eq!(record.elapsed_ms, 37);
+        }
+        for params in [
+            None,
+            Some(serde_json::json!({"health":"ok"})),
+            Some(serde_json::json!({"health":7,"quiescent":true})),
+        ] {
+            assert_eq!(parse_status(params, 0), Err(CodecError::MalformedMessage));
+        }
+        Ok(())
+    }
+
+    #[test]
+    fn stop_classification_never_claims_an_unreaped_or_faulted_exit() {
+        assert_eq!(
+            classify_stop(None, Some(0), false, false, true),
+            domain::SessionStop::KillUncertain
+        );
+        assert_eq!(
+            classify_stop(Some(SessionError::Cancelled), None, true, false, false),
+            domain::SessionStop::Cancelled
+        );
+        assert_eq!(
+            classify_stop(Some(SessionError::Timeout), None, true, false, false),
+            domain::SessionStop::Timeout
+        );
+        assert_eq!(
+            classify_stop(Some(SessionError::Eof), Some(0), true, true, false),
+            domain::SessionStop::Eof
+        );
+        assert_eq!(
+            classify_stop(Some(SessionError::Io), Some(1), true, false, false),
+            domain::SessionStop::Killed
+        );
+        assert_eq!(
+            classify_stop(None, Some(0), true, true, false),
+            domain::SessionStop::Eof
+        );
+        assert_eq!(
+            classify_stop(None, Some(0), true, false, true),
+            domain::SessionStop::Exited
+        );
+        assert_eq!(
+            classify_stop(None, None, true, false, false),
+            domain::SessionStop::Killed
+        );
+    }
+
+    #[test]
+    fn stderr_digest_is_canonical_sha256_text() {
+        assert_eq!(
+            sha256_text(b"abc"),
+            "sha256:ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad"
+        );
     }
 
     #[test]

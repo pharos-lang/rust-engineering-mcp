@@ -72,6 +72,136 @@ impl RustGateway {
         self.execute_calibration(&source(scenario)?, RustCommand::Check, limits, cancel)
     }
 }
+#[cfg(test)]
+mod portable_tests {
+    use super::*;
+    use rust_engineering_application::NeverCancel;
+
+    #[test]
+    fn fixed_sources_match_each_calibration_scenario() -> Result<(), String> {
+        for scenario in [
+            RustCalibrationScenario::BuildScript,
+            RustCalibrationScenario::Timeout,
+            RustCalibrationScenario::Overflow,
+            RustCalibrationScenario::Resources,
+        ] {
+            let bundle = source(scenario).map_err(|error| format!("{error:?}"))?;
+            let paths = bundle
+                .files()
+                .iter()
+                .map(SourceFile::path)
+                .collect::<Vec<_>>();
+            assert_eq!(
+                paths,
+                if matches!(scenario, RustCalibrationScenario::BuildScript) {
+                    vec![
+                        "Cargo.lock",
+                        "Cargo.toml",
+                        "build.rs",
+                        "checks.rs",
+                        "src/lib.rs",
+                    ]
+                } else {
+                    vec![
+                        "Cargo.lock",
+                        "Cargo.toml",
+                        "build.rs",
+                        "checks.rs",
+                        "descendants.rs",
+                        "src/lib.rs",
+                    ]
+                }
+            );
+            assert!(bundle.directories().iter().any(|path| path == "src"));
+            let build = bundle
+                .files()
+                .iter()
+                .find(|file| file.path() == "build.rs")
+                .ok_or("build.rs")?;
+            assert!(!build.bytes().is_empty());
+        }
+        Ok(())
+    }
+
+    #[test]
+    fn proc_macro_source_is_a_closed_offline_workspace() -> Result<(), String> {
+        let bundle =
+            source(RustCalibrationScenario::ProcMacro).map_err(|error| format!("{error:?}"))?;
+        let paths = bundle
+            .files()
+            .iter()
+            .map(SourceFile::path)
+            .collect::<Vec<_>>();
+        assert_eq!(
+            paths,
+            vec![
+                "Cargo.lock",
+                "Cargo.toml",
+                "macros/Cargo.toml",
+                "macros/src/checks.rs",
+                "macros/src/lib.rs",
+                "src/lib.rs",
+            ]
+        );
+        assert!(bundle.directories().iter().any(|path| path == "macros/src"));
+        let manifest = bundle
+            .files()
+            .iter()
+            .find(|file| file.path() == "Cargo.toml")
+            .ok_or("manifest")?;
+        assert!(
+            std::str::from_utf8(manifest.bytes())
+                .map_err(|error| error.to_string())?
+                .contains("calibration_macro={path='macros'}")
+        );
+        Ok(())
+    }
+
+    #[test]
+    fn scenario_names_are_stable_snake_case() -> Result<(), String> {
+        let encoded = [
+            RustCalibrationScenario::BuildScript,
+            RustCalibrationScenario::ProcMacro,
+            RustCalibrationScenario::Timeout,
+            RustCalibrationScenario::Overflow,
+            RustCalibrationScenario::Resources,
+        ]
+        .into_iter()
+        .map(|scenario| serde_json::to_string(&scenario))
+        .collect::<Result<Vec<_>, _>>()
+        .map_err(|error| error.to_string())?;
+        assert_eq!(
+            encoded,
+            [
+                "\"build_script\"",
+                "\"proc_macro\"",
+                "\"timeout\"",
+                "\"overflow\"",
+                "\"resources\"",
+            ]
+        );
+        Ok(())
+    }
+
+    #[test]
+    fn cancellation_latch_observes_local_and_parent_signals() {
+        use std::sync::atomic::Ordering;
+        let latch = Latch(std::sync::atomic::AtomicBool::new(false), &NeverCancel);
+        assert!(!latch.is_cancelled());
+        latch.0.store(true, Ordering::Release);
+        assert!(latch.is_cancelled());
+
+        struct Cancelled;
+        impl ExecutionCancellation for Cancelled {
+            fn is_cancelled(&self) -> bool {
+                true
+            }
+        }
+        let parent = Cancelled;
+        let latch = Latch(std::sync::atomic::AtomicBool::new(false), &parent);
+        assert!(latch.is_cancelled());
+    }
+}
 #[cfg(all(test, target_os = "macos"))]
 mod tests {
     use super::*;
