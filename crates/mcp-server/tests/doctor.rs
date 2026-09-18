@@ -143,6 +143,17 @@ impl Drop for Fixture {
 fn fixtures() -> PathBuf {
     Path::new(env!("CARGO_MANIFEST_DIR")).join("../../fixtures/catalog")
 }
+// cargo-llvm-cov assigns a unique raw-profile pattern per test binary via
+// LLVM_PROFILE_FILE. Preserve only that instrumentation channel across
+// env_clear(); the product process still receives no host PATH, credentials
+// or ambient configuration.
+fn instrumented(command: &mut Command) -> &mut Command {
+    if let Some(profile) = std::env::var_os("LLVM_PROFILE_FILE") {
+        command.env("LLVM_PROFILE_FILE", profile);
+    }
+    command
+}
+
 fn run(args: &[String], path: Option<&Path>) -> Result<Output, Box<dyn std::error::Error>> {
     let mut cmd = Command::new(env!("CARGO_BIN_EXE_rust-engineering-mcp"));
     cmd.args(args)
@@ -150,6 +161,7 @@ fn run(args: &[String], path: Option<&Path>) -> Result<Output, Box<dyn std::erro
         .stdin(Stdio::null())
         .stdout(Stdio::piped())
         .stderr(Stdio::piped());
+    instrumented(&mut cmd);
     if let Some(path) = path {
         cmd.env("PATH", path);
     }

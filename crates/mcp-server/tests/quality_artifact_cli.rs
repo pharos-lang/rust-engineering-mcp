@@ -27,12 +27,22 @@ use std::time::{SystemTime, UNIX_EPOCH};
 
 type Check = Result<(), Box<dyn std::error::Error>>;
 
+// cargo-llvm-cov assigns a unique raw-profile pattern per test binary via
+// LLVM_PROFILE_FILE. Preserve only that instrumentation channel across
+// env_clear(); the product process still receives no host PATH, credentials
+// or ambient configuration.
+fn instrumented(command: &mut Command) -> &mut Command {
+    if let Some(profile) = std::env::var_os("LLVM_PROFILE_FILE") {
+        command.env("LLVM_PROFILE_FILE", profile);
+    }
+    command
+}
+
 // Harness only: run the Cargo-built bootstrap, never project-supplied commands.
 fn run(args: &[&OsStr]) -> Result<Output, Box<dyn std::error::Error>> {
-    Ok(Command::new(env!("CARGO_BIN_EXE_rust-engineering-mcp"))
-        .env_clear()
-        .args(args)
-        .output()?)
+    let mut command = Command::new(env!("CARGO_BIN_EXE_rust-engineering-mcp"));
+    command.env_clear().args(args);
+    Ok(instrumented(&mut command).output()?)
 }
 
 fn report(output: &Output) -> Result<Value, Box<dyn std::error::Error>> {

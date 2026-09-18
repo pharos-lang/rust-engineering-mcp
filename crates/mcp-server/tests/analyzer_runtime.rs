@@ -19,6 +19,17 @@ const DISCOVERY_TIMEOUT: Duration = Duration::from_secs(5);
 const CALL_TIMEOUT: Duration = Duration::from_secs(220);
 const PIPE_LIMIT: usize = 2 * 1024 * 1024;
 
+// cargo-llvm-cov assigns a unique raw-profile pattern per test binary via
+// LLVM_PROFILE_FILE. Preserve only that instrumentation channel across
+// env_clear(); the product process still receives no host PATH, credentials
+// or ambient configuration.
+fn instrumented(command: &mut Command) -> &mut Command {
+    if let Some(profile) = std::env::var_os("LLVM_PROFILE_FILE") {
+        command.env("LLVM_PROFILE_FILE", profile);
+    }
+    command
+}
+
 fn fixture_root() -> Result<PathBuf> {
     fixture_root_named("valid-basic")
 }
@@ -119,7 +130,7 @@ impl Server {
             .stdin(Stdio::piped())
             .stdout(Stdio::piped())
             .stderr(Stdio::piped());
-        let mut child = command.spawn()?;
+        let mut child = instrumented(&mut command).spawn()?;
         let stdin = child.stdin.take();
         let stdout_pipe = child.stdout.take().ok_or("missing server stdout")?;
         let stderr_pipe = child.stderr.take().ok_or("missing server stderr")?;

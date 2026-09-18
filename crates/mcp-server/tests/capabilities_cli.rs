@@ -25,17 +25,27 @@ impl Drop for ChildGuard {
     }
 }
 
+// cargo-llvm-cov assigns a unique raw-profile pattern per test binary via
+// LLVM_PROFILE_FILE. Preserve only that instrumentation channel across
+// env_clear(); the product process still receives no host PATH, credentials
+// or ambient configuration.
+fn instrumented(command: &mut Command) -> &mut Command {
+    if let Some(profile) = std::env::var_os("LLVM_PROFILE_FILE") {
+        command.env("LLVM_PROFILE_FILE", profile);
+    }
+    command
+}
+
 fn run(arguments: &[OsString]) -> TestResult<Output> {
     const LIMIT: u64 = 8192;
-    let mut child = ChildGuard(checked(
-        Command::new(env!("CARGO_BIN_EXE_rust-engineering-mcp"))
-            .env_clear()
-            .args(arguments)
-            .stdin(Stdio::null())
-            .stdout(Stdio::piped())
-            .stderr(Stdio::piped())
-            .spawn(),
-    )?);
+    let mut command = Command::new(env!("CARGO_BIN_EXE_rust-engineering-mcp"));
+    command
+        .env_clear()
+        .args(arguments)
+        .stdin(Stdio::null())
+        .stdout(Stdio::piped())
+        .stderr(Stdio::piped());
+    let mut child = ChildGuard(checked(instrumented(&mut command).spawn())?);
     let stdout = child
         .0
         .stdout

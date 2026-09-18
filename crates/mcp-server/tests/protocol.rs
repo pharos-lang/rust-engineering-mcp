@@ -2302,10 +2302,12 @@ fn resource_templates_wire_list_matches_the_contract_document() -> TestResult {
         .clone();
     server.finish(0)?;
 
-    let contract = Command::new(env!("CARGO_BIN_EXE_rust-engineering-mcp"))
-        .args(["contract", "--json"])
-        .env_clear()
-        .output()?;
+    let mut contract_command = Command::new(env!("CARGO_BIN_EXE_rust-engineering-mcp"));
+    contract_command.args(["contract", "--json"]).env_clear();
+    if let Some(profile) = std::env::var_os("LLVM_PROFILE_FILE") {
+        contract_command.env("LLVM_PROFILE_FILE", profile);
+    }
+    let contract = contract_command.output()?;
     assert!(contract.status.success());
     let document: Value = serde_json::from_slice(&contract.stdout)?;
     let resources = document["resources"].as_array().ok_or("resources")?;

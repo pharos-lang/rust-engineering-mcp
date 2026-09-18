@@ -2,12 +2,22 @@ use std::ffi::OsStr;
 use std::io;
 use std::process::{Command, Output};
 
+// cargo-llvm-cov assigns a unique raw-profile pattern per test binary via
+// LLVM_PROFILE_FILE. Preserve only that instrumentation channel across
+// env_clear(); the product process still receives no host PATH, credentials
+// or ambient configuration.
+fn instrumented(command: &mut Command) -> &mut Command {
+    if let Some(profile) = std::env::var_os("LLVM_PROFILE_FILE") {
+        command.env("LLVM_PROFILE_FILE", profile);
+    }
+    command
+}
+
 // Harness only: run the Cargo-built bootstrap, never project-supplied commands.
 fn run(args: &[impl AsRef<OsStr>]) -> io::Result<Output> {
-    Command::new(env!("CARGO_BIN_EXE_rust-engineering-mcp"))
-        .env_clear()
-        .args(args)
-        .output()
+    let mut command = Command::new(env!("CARGO_BIN_EXE_rust-engineering-mcp"));
+    command.env_clear().args(args);
+    instrumented(&mut command).output()
 }
 
 #[test]
@@ -126,6 +136,7 @@ fn closed_output_stream_returns_one_without_panicking() -> io::Result<()> {
         assert!(sink.wait()?.success());
         let mut command = Command::new(env!("CARGO_BIN_EXE_rust-engineering-mcp"));
         command.env_clear().arg(argument);
+        instrumented(&mut command);
         if argument == "unknown" {
             command.stderr(closed_stream);
         } else {
