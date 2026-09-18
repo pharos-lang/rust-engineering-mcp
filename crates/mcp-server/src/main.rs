@@ -8,6 +8,7 @@ mod cargo_vendor_cli;
 mod catalog_cli;
 mod catalog_semantic;
 mod catalog_sync;
+mod contract_cli;
 mod doctor;
 mod doctor_run;
 mod host_config;
@@ -42,6 +43,9 @@ Commands:
                  Diagnose configured local state; --active calibrates approved Rust runtime
   capabilities [--json | --human] --docker PATH --docker-socket PATH --state-root PATH --probe-image sha256:ID
                  Actively probe the approved local sandbox; JSON output
+  contract [--json | --human]
+                 Static spec §56 capabilities document: all 36 tool definitions, stability,
+                 canonical schema/description hashes and runtime requirements; no host access
   serve --stdio [--root PATH]... [--project-ttl-secs N]
         [--catalog-store PATH --catalog-trust PATH [--catalog-model-dir PATH] [--catalog-index-store PATH]]
         [--allow-manifest-write WORKSPACE_ROOT]...
@@ -56,7 +60,7 @@ Commands:
         [--docker PATH --docker-socket PATH --state-root PATH --rust-image sha256:ID]
                  Serve MCP with host-authorized physical roots (default: none)
 
-Available tools: rust.project.open; rust.project.inspect; rust.toolchain.inspect; rust.check; rust.fmt.check; rust.clippy; rust.test; rust.dependencies.audit; rust.diagnostics.explain; rust.quality.gate; rust.catalog.status; rust.crate.search; rust.crate.inspect; rust.manifest.patch; rust.fmt.apply; rust.fix.apply; rust.dependency.add; rust.dependency.remove; rust.test.nextest; rust.coverage; rust.semver.check; rust.mutation.test; rust.deny; rust.unsafe.scan; rust.supply_chain.inspect; rust.quality.gate.v2; rust.miri; rust.benchmark.run; rust.benchmark.compare; rust.profile.flamegraph; rust.binary.bloat (explicit approved Rust runtime required except project.open, catalog.status, crate.search and crate.inspect).
+Available tools: rust.project.open; rust.project.inspect; rust.toolchain.inspect; rust.check; rust.fmt.check; rust.clippy; rust.test; rust.dependencies.audit; rust.diagnostics.explain; rust.quality.gate; rust.catalog.status; rust.crate.search; rust.crate.inspect; rust.manifest.patch; rust.fmt.apply; rust.fix.apply; rust.dependency.add; rust.dependency.remove; rust.test.nextest; rust.coverage; rust.semver.check; rust.mutation.test; rust.deny; rust.unsafe.scan; rust.supply_chain.inspect; rust.quality.gate.v2; rust.miri; rust.benchmark.run; rust.benchmark.compare; rust.profile.flamegraph; rust.binary.bloat; rust.analyzer.symbols; rust.analyzer.references; rust.analyzer.diagnostics; rust.analyzer.actions; rust.analyzer.action.apply (explicit approved Rust runtime required except project.open, catalog.status, crate.search and crate.inspect; rust.analyzer.* additionally require the M6 analyzer runtime supplied via --rust-image, and rust.analyzer.action.apply additionally requires the --allow-analyzer-action-write grant).
 ";
 
 const USAGE_ERROR: &str = "Unsupported invocation. Use 'rust-engineering-mcp --help'.\n";
@@ -72,6 +76,7 @@ enum Invocation {
     Doctor(doctor::Invocation),
     ServeStdio(stdio::HostConfig),
     Capabilities(capabilities::Invocation),
+    Contract(contract_cli::Invocation),
     Unsupported,
 }
 
@@ -136,6 +141,11 @@ fn invocation() -> Invocation {
             .map(Invocation::Capabilities)
             .unwrap_or(Invocation::Unsupported);
     }
+    if command == OsStr::new("contract") {
+        return contract_cli::parse(args)
+            .map(Invocation::Contract)
+            .unwrap_or(Invocation::Unsupported);
+    }
     if command == OsStr::new("serve") {
         if args.next().as_deref() != Some(OsStr::new("--stdio")) {
             return Invocation::Unsupported;
@@ -181,6 +191,7 @@ fn main() -> ExitCode {
         Invocation::Unsupported => (io::stderr().lock().write_all(USAGE_ERROR.as_bytes()), 2),
         Invocation::ServeStdio(config) => return stdio::run(config),
         Invocation::Capabilities(config) => return capabilities::run(config),
+        Invocation::Contract(config) => return contract_cli::run(config),
     };
 
     if result.is_err() {

@@ -24,16 +24,17 @@ sys.modules[SPEC.name] = smoke
 SPEC.loader.exec_module(smoke)
 
 
-def inventory(binary: bytes) -> dict[str, object]:
+def inventory(binary: bytes, tag: str = "v0.1.0") -> dict[str, object]:
+    version = tag.removeprefix("v")
     license_hash = smoke.sha256(b"product license\n")
     third_party_hash = smoke.sha256(b"third party license\n")
-    root_id = "path+file://$WORKSPACE/crates/mcp-server#rust-engineering-mcp@0.1.0"
+    root_id = f"path+file://$WORKSPACE/crates/mcp-server#rust-engineering-mcp@{version}"
     dep_id = "registry+https://example.invalid/index#dependency@1.0.0"
     return {
         "schema": "rust-engineering-mcp-core-inventory-v1",
         "artifact": {
-            "tag": "v0.1.0",
-            "version": "0.1.0",
+            "tag": tag,
+            "version": version,
             "target": smoke.SUPPORTED_TARGET,
             "profile": "core-default",
             "binary": {
@@ -82,7 +83,7 @@ def inventory(binary: bytes) -> dict[str, object]:
             {
                 "id": root_id,
                 "name": "rust-engineering-mcp",
-                "version": "0.1.0",
+                "version": version,
                 "source": None,
                 "lock_checksum": None,
                 "declared_license": "MIT OR Apache-2.0",
@@ -147,7 +148,7 @@ def spdx(value: dict[str, object]) -> dict[str, object]:
     }
 
 
-def base_members() -> dict[str, bytes]:
+def base_members(tag: str = "v0.1.0") -> dict[str, bytes]:
     binary = (
         b"\xcf\xfa\xed\xfe"
         + smoke.MACHO_ARM64_CPU.to_bytes(4, "little")
@@ -155,7 +156,7 @@ def base_members() -> dict[str, bytes]:
         + smoke.MACHO_EXECUTE.to_bytes(4, "little")
         + b"synthetic executable bytes"
     )
-    value = inventory(binary)
+    value = inventory(binary, tag)
     return {
         "rust-engineering-mcp": binary,
         "README.md": b"readme\n",
@@ -199,9 +200,10 @@ def write_candidate(
     members: dict[str, bytes],
     *,
     raw_names: dict[str, str] | None = None,
+    tag: str = "v0.1.0",
 ) -> tuple[Path, Path]:
     archive = directory / (
-        f"rust-engineering-mcp-v0.1.0-{smoke.SUPPORTED_TARGET}.tar.gz"
+        f"rust-engineering-mcp-{tag}-{smoke.SUPPORTED_TARGET}.tar.gz"
     )
     prefix = archive.name.removesuffix(".tar.gz")
     with archive.open("xb") as raw:
@@ -241,6 +243,30 @@ class ReleaseSmokeTests(unittest.TestCase):
             contents, evidence = self.validate(archive, sums)
             self.assertEqual(evidence["packages"], 2)
             self.assertEqual(evidence["members"], len(contents))
+
+    def test_valid_release_candidate_tag_archive(self) -> None:
+        tag = "v0.9.0-rc.1"
+        with tempfile.TemporaryDirectory() as directory:
+            archive, sums = write_candidate(
+                Path(directory), manifest_members(base_members(tag)), tag=tag
+            )
+            contents, evidence = smoke.validate_archive(
+                archive, sums, tag, smoke.SUPPORTED_TARGET
+            )
+            self.assertEqual(evidence["packages"], 2)
+            self.assertEqual(evidence["members"], len(contents))
+
+    def test_tag_format_positive_and_negative_cases(self) -> None:
+        self.assertIsNotNone(smoke.TAG.fullmatch("v0.9.0-rc.1"))
+        for tag in ("v0.9.0-rc", "v0.9.0-rc.01", "v0.9.0-beta.1", "v0.9.0-rc.1+build"):
+            with self.subTest(tag=tag):
+                self.assertIsNone(smoke.TAG.fullmatch(tag))
+                with tempfile.TemporaryDirectory() as directory:
+                    archive, sums = write_candidate(
+                        Path(directory), manifest_members(base_members(tag)), tag=tag
+                    )
+                    with self.assertRaisesRegex(ValueError, "stable semantic"):
+                        smoke.validate_archive(archive, sums, tag, smoke.SUPPORTED_TARGET)
 
     def test_checksum_tampering_is_rejected(self) -> None:
         with tempfile.TemporaryDirectory() as directory:

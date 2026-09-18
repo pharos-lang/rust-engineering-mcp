@@ -33,7 +33,7 @@ const DEADLINE: Duration = Duration::from_secs(120);
 const MAX_RESULT: usize = 512 * 1024;
 #[derive(Deserialize, JsonSchema)]
 #[serde(deny_unknown_fields)]
-struct Input {
+pub(super) struct Input {
     #[schemars(with = "String", regex(pattern = "^prj_[0-9a-f]{32}$"))]
     project_ref: ProjectRef,
     #[serde(default)]
@@ -174,7 +174,7 @@ struct Truncation {
 }
 #[derive(Serialize, JsonSchema)]
 #[serde(deny_unknown_fields)]
-struct Output {
+pub(super) struct Output {
     #[serde(flatten)]
     outcome: Outcome,
     summary: &'static str,
@@ -441,6 +441,13 @@ pub(super) struct TestTool {
     store: Arc<Mutex<Store>>,
     clock: ArtifactClock,
 }
+pub(super) fn definition() -> Result<(Contract<Input, Output>, Tool), ErrorData> {
+    let contract = Contract::<Input, Output>::new()?;
+    let definition=Tool::new(NAME,"Run bounded Cargo tests on captured Rust source using host-approved offline Cargo. Executes test binaries, doctests, build scripts and proc macros inside the calibrated sandbox. Accepts closed package, test_filter, features, all_features, target and timeout selections; timeout defaults to 30 seconds and is limited to 1..60 seconds. Passed means the selected Cargo command passed, not proof that tests exist or all project tests ran. Returns reported compilation evidence, normalized diagnostics and an ephemeral owner-authorized log Resource retaining harness output; no test counts are inferred. Custom harnesses that reject the fixed test-threads/color arguments can fail. Project code can write the streams; their producer and human log section headings are not authenticated. Requires a live project_ref and completed discovery; installs nothing.",(*contract.input_schema).clone())
+        .with_raw_output_schema(Arc::clone(&contract.output_schema)).with_annotations(ToolAnnotations::new().read_only(true).destructive(false).idempotent(false).open_world(false));
+    Ok((contract, definition))
+}
+
 impl TestTool {
     pub(super) fn new(
         registry: Arc<Mutex<Registry>>,
@@ -449,9 +456,7 @@ impl TestTool {
         ready: Arc<AtomicBool>,
         resources: &resources::Resources,
     ) -> Result<Self, ErrorData> {
-        let contract = Contract::<Input, Output>::new()?;
-        let definition=Tool::new(NAME,"Run bounded Cargo tests on captured Rust source using host-approved offline Cargo. Executes test binaries, doctests, build scripts and proc macros inside the calibrated sandbox. Accepts closed package, test_filter, features, all_features, target and timeout selections; timeout defaults to 30 seconds and is limited to 1..60 seconds. Passed means the selected Cargo command passed, not proof that tests exist or all project tests ran. Returns reported compilation evidence, normalized diagnostics and an ephemeral owner-authorized log Resource retaining harness output; no test counts are inferred. Custom harnesses that reject the fixed test-threads/color arguments can fail. Project code can write the streams; their producer and human log section headings are not authenticated. Requires a live project_ref and completed discovery; installs nothing.",(*contract.input_schema).clone())
-            .with_raw_output_schema(Arc::clone(&contract.output_schema)).with_annotations(ToolAnnotations::new().read_only(true).destructive(false).idempotent(false).open_world(false));
+        let (contract, definition) = definition()?;
         Ok(Self {
             definition,
             contract,

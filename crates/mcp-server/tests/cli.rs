@@ -2,12 +2,22 @@ use std::ffi::OsStr;
 use std::io;
 use std::process::{Command, Output};
 
+// cargo-llvm-cov assigns a unique raw-profile pattern per test binary via
+// LLVM_PROFILE_FILE. Preserve only that instrumentation channel across
+// env_clear(); the product process still receives no host PATH, credentials
+// or ambient configuration.
+fn instrumented(command: &mut Command) -> &mut Command {
+    if let Some(profile) = std::env::var_os("LLVM_PROFILE_FILE") {
+        command.env("LLVM_PROFILE_FILE", profile);
+    }
+    command
+}
+
 // Harness only: run the Cargo-built bootstrap, never project-supplied commands.
 fn run(args: &[impl AsRef<OsStr>]) -> io::Result<Output> {
-    Command::new(env!("CARGO_BIN_EXE_rust-engineering-mcp"))
-        .env_clear()
-        .args(args)
-        .output()
+    let mut command = Command::new(env!("CARGO_BIN_EXE_rust-engineering-mcp"));
+    command.env_clear().args(args);
+    instrumented(&mut command).output()
 }
 
 #[test]
@@ -36,6 +46,7 @@ fn help_describes_only_implemented_commands() -> io::Result<()> {
         assert!(help.contains("rust.project.inspect"));
         assert!(help.contains("rust.toolchain.inspect"));
         assert!(help.contains("catalog sync"));
+        assert!(help.contains("contract [--json | --human]"));
         assert!(output.stderr.is_empty());
     }
     Ok(())
@@ -60,6 +71,9 @@ fn unsupported_modes_fail_without_claiming_mcp_support() -> io::Result<()> {
         vec!["doctor", "--unknown"],
         vec!["capabilities"],
         vec!["catalog", "sync"],
+        vec!["contract", "--unknown"],
+        vec!["contract", "--json", "--human"],
+        vec!["contract", "--json", "extra"],
     ] {
         let output = run(&args)?;
         assert_eq!(output.status.code(), Some(2), "{args:?}");
@@ -122,6 +136,7 @@ fn closed_output_stream_returns_one_without_panicking() -> io::Result<()> {
         assert!(sink.wait()?.success());
         let mut command = Command::new(env!("CARGO_BIN_EXE_rust-engineering-mcp"));
         command.env_clear().arg(argument);
+        instrumented(&mut command);
         if argument == "unknown" {
             command.stderr(closed_stream);
         } else {
@@ -381,6 +396,425 @@ fn non_utf8_snapshot_configuration_is_rejected_without_echo() -> io::Result<()> 
         assert_eq!(output.status.code(), Some(2));
         assert!(output.stdout.is_empty());
         assert_eq!(output.stderr, run(&["unknown"])?.stderr);
+    }
+    Ok(())
+}
+
+// F-06: `--rustsec-snapshot` and the catalog paths must be rejected when they
+// land inside (or exactly on) a `--root`, matching `--security-policy`,
+// `--cargo-vendor-dir` and `--vendor-capture` already do.
+
+// A real, empty directory: `serve` initializes project authorization against
+// every `--root` even before EOF, so an outside-root acceptance case needs
+// the root to actually exist on disk, unlike the lazily-read snapshot/catalog
+// paths themselves.
+fn temp_root(name: &str) -> io::Result<String> {
+    // Canonicalize first: the host CLI opens roots with NOFOLLOW_ANY from a
+    // real `/`, so a `--root` under the macOS `/tmp` symlink alias is denied.
+    let root = std::env::temp_dir().canonicalize()?.join(name);
+    std::fs::create_dir_all(&root)?;
+    root.into_os_string()
+        .into_string()
+        .map_err(|_| io::Error::other("temporary path is not UTF-8"))
+}
+
+fn temp_path(name: &str) -> io::Result<String> {
+    std::env::temp_dir()
+        .canonicalize()?
+        .join(name)
+        .into_os_string()
+        .into_string()
+        .map_err(|_| io::Error::other("temporary path is not UTF-8"))
+}
+
+// Runs `build_args(candidate)` for every `inside` candidate (root-contained
+// or exactly the root) expecting rejection at CLI-parsing time, then once
+// more for `outside` expecting the same acceptance every other complete host
+// configuration gets: EOF success with no output.
+fn assert_root_containment_is_enforced(
+    inside: &[&str],
+    outside: &str,
+    build_args: impl Fn(&str) -> Vec<String>,
+) -> io::Result<()> {
+    let baseline = run(&["unknown"])?;
+    for candidate in inside {
+        let output = run(&build_args(candidate))?;
+        assert_eq!(output.status.code(), Some(2), "{candidate}");
+        assert!(output.stdout.is_empty(), "{candidate}");
+        assert_eq!(output.stderr, baseline.stderr, "{candidate}");
+    }
+    let output = run(&build_args(outside))?;
+    assert!(
+        output.status.success(),
+        "{}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+    assert!(output.stdout.is_empty());
+    assert!(output.stderr.is_empty());
+    Ok(())
+}
+
+#[test]
+fn rustsec_snapshot_inside_a_root_is_rejected() -> io::Result<()> {
+    let fingerprint = format!("sha256:{:064x}", 42);
+    let root = temp_root("rust-mcp-cli-rustsec-root")?;
+    let inside = temp_path("rust-mcp-cli-rustsec-root/snapshot.json")?;
+    let outside = temp_path("rust-mcp-cli-rustsec-outside.json")?;
+    let result = assert_root_containment_is_enforced(
+        &[root.as_str(), inside.as_str()],
+        outside.as_str(),
+        |snapshot| {
+            vec![
+                "serve".into(),
+                "--stdio".into(),
+                "--root".into(),
+                root.clone(),
+                "--rustsec-snapshot".into(),
+                snapshot.into(),
+                "--rustsec-sha256".into(),
+                fingerprint.clone(),
+            ]
+        },
+    );
+    std::fs::remove_dir_all(&root)?;
+    result
+}
+
+#[test]
+fn catalog_store_inside_a_root_is_rejected() -> io::Result<()> {
+    let root = temp_root("rust-mcp-cli-catalog-store-root")?;
+    let inside = temp_path("rust-mcp-cli-catalog-store-root/store")?;
+    let outside = temp_path("rust-mcp-cli-catalog-store-outside")?;
+    let trust = temp_path("rust-mcp-cli-catalog-store-trust.json")?;
+    let result = assert_root_containment_is_enforced(
+        &[root.as_str(), inside.as_str()],
+        outside.as_str(),
+        |store| {
+            vec![
+                "serve".into(),
+                "--stdio".into(),
+                "--root".into(),
+                root.clone(),
+                "--catalog-store".into(),
+                store.into(),
+                "--catalog-trust".into(),
+                trust.clone(),
+            ]
+        },
+    );
+    std::fs::remove_dir_all(&root)?;
+    result
+}
+
+#[test]
+fn catalog_trust_inside_a_root_is_rejected() -> io::Result<()> {
+    let root = temp_root("rust-mcp-cli-catalog-trust-root")?;
+    let inside = temp_path("rust-mcp-cli-catalog-trust-root/trust.json")?;
+    let outside = temp_path("rust-mcp-cli-catalog-trust-outside.json")?;
+    let store = temp_path("rust-mcp-cli-catalog-trust-store")?;
+    let result = assert_root_containment_is_enforced(
+        &[root.as_str(), inside.as_str()],
+        outside.as_str(),
+        |trust| {
+            vec![
+                "serve".into(),
+                "--stdio".into(),
+                "--root".into(),
+                root.clone(),
+                "--catalog-store".into(),
+                store.clone(),
+                "--catalog-trust".into(),
+                trust.into(),
+            ]
+        },
+    );
+    std::fs::remove_dir_all(&root)?;
+    result
+}
+
+#[test]
+fn catalog_model_dir_inside_a_root_is_rejected() -> io::Result<()> {
+    let root = temp_root("rust-mcp-cli-catalog-model-dir-root")?;
+    let inside = temp_path("rust-mcp-cli-catalog-model-dir-root/model")?;
+    let outside = temp_path("rust-mcp-cli-catalog-model-dir-outside")?;
+    let store = temp_path("rust-mcp-cli-catalog-model-dir-store")?;
+    let trust = temp_path("rust-mcp-cli-catalog-model-dir-trust.json")?;
+    let result = assert_root_containment_is_enforced(
+        &[root.as_str(), inside.as_str()],
+        outside.as_str(),
+        |model_dir| {
+            vec![
+                "serve".into(),
+                "--stdio".into(),
+                "--root".into(),
+                root.clone(),
+                "--catalog-store".into(),
+                store.clone(),
+                "--catalog-trust".into(),
+                trust.clone(),
+                "--catalog-model-dir".into(),
+                model_dir.into(),
+            ]
+        },
+    );
+    std::fs::remove_dir_all(&root)?;
+    result
+}
+
+#[test]
+fn catalog_index_store_inside_a_root_is_rejected() -> io::Result<()> {
+    let root = temp_root("rust-mcp-cli-catalog-index-store-root")?;
+    let inside = temp_path("rust-mcp-cli-catalog-index-store-root/index")?;
+    let outside = temp_path("rust-mcp-cli-catalog-index-store-outside")?;
+    let store = temp_path("rust-mcp-cli-catalog-index-store-store")?;
+    let trust = temp_path("rust-mcp-cli-catalog-index-store-trust.json")?;
+    let model_dir = temp_path("rust-mcp-cli-catalog-index-store-model")?;
+    let result = assert_root_containment_is_enforced(
+        &[root.as_str(), inside.as_str()],
+        outside.as_str(),
+        |index_store| {
+            vec![
+                "serve".into(),
+                "--stdio".into(),
+                "--root".into(),
+                root.clone(),
+                "--catalog-store".into(),
+                store.clone(),
+                "--catalog-trust".into(),
+                trust.clone(),
+                "--catalog-model-dir".into(),
+                model_dir.clone(),
+                "--catalog-index-store".into(),
+                index_store.into(),
+            ]
+        },
+    );
+    std::fs::remove_dir_all(&root)?;
+    result
+}
+
+// F-2 (docs/validation/M8/06-reproduction.md): `mutation list` must read the
+// journal store passively, the same way `doctor --state-root` does, rather
+// than treating "never had a mutation" as an interrupted-operation error.
+#[test]
+fn mutation_list_on_a_never_initialized_state_root_is_empty() -> io::Result<()> {
+    let root = temp_root("rust-mcp-cli-mutation-list-empty")?;
+    let output = run(&["mutation", "list", "--state-root", root.as_str(), "--json"])?;
+    std::fs::remove_dir_all(&root)?;
+    assert!(
+        output.status.success(),
+        "{}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+    let report: serde_json::Value = serde_json::from_slice(&output.stdout)?;
+    assert_eq!(report["status"], "passed");
+    assert_eq!(report["records"], serde_json::json!([]));
+    assert_eq!(report["count"], 0);
+    assert_eq!(report["store_initialized"], false);
+    Ok(())
+}
+
+#[test]
+fn mutation_list_on_a_nonexistent_state_root_is_an_error() -> io::Result<()> {
+    let root = temp_path("rust-mcp-cli-mutation-list-nonexistent")?;
+    let output = run(&["mutation", "list", "--state-root", root.as_str(), "--json"])?;
+    assert!(!output.status.success());
+    let report: serde_json::Value = serde_json::from_slice(&output.stdout)?;
+    assert_eq!(report["status"], "blocked");
+    assert_eq!(report["error_code"], "not_found");
+    Ok(())
+}
+
+#[test]
+#[cfg(unix)]
+fn mutation_list_on_an_unreadable_state_root_is_an_io_error() -> io::Result<()> {
+    use std::os::unix::fs::PermissionsExt;
+    let root = temp_root("rust-mcp-cli-mutation-list-unreadable")?;
+    std::fs::set_permissions(&root, std::fs::Permissions::from_mode(0o000))?;
+    let output = run(&["mutation", "list", "--state-root", root.as_str(), "--json"]);
+    std::fs::set_permissions(&root, std::fs::Permissions::from_mode(0o700))?;
+    std::fs::remove_dir_all(&root)?;
+    let output = output?;
+    assert!(!output.status.success());
+    let report: serde_json::Value = serde_json::from_slice(&output.stdout)?;
+    assert_eq!(report["status"], "blocked");
+    assert_eq!(report["error_code"], "io");
+    Ok(())
+}
+
+// spec §56 (M8-02 decision 3): the static `contract` document must describe
+// exactly the same 36 tools the live server's `tools/list` snapshots do. This
+// mirrors tests/protocol.rs's `bootstrap` snapshot set rather than spawning a
+// second server, so it stays portable and Docker-free.
+fn contract_snapshots() -> Result<Vec<serde_json::Value>, Box<dyn std::error::Error>> {
+    [
+        include_str!("snapshots/project-open-tool.json"),
+        include_str!("snapshots/project-inspect-tool.json"),
+        include_str!("snapshots/toolchain-inspect-tool.json"),
+        include_str!("snapshots/check-tool.json"),
+        include_str!("snapshots/format-tool.json"),
+        include_str!("snapshots/clippy-tool.json"),
+        include_str!("snapshots/test-tool.json"),
+        include_str!("snapshots/nextest-tool.json"),
+        include_str!("snapshots/audit-tool.json"),
+        include_str!("snapshots/explain-tool.json"),
+        include_str!("snapshots/quality-tool.json"),
+        include_str!("snapshots/catalog-status-tool.json"),
+        include_str!("snapshots/crate-search-tool.json"),
+        include_str!("snapshots/crate-inspect-tool.json"),
+        include_str!("snapshots/manifest-patch-tool.json"),
+        include_str!("snapshots/fmt-apply-tool.json"),
+        include_str!("snapshots/fix-apply-tool.json"),
+        include_str!("snapshots/dependency-add-tool.json"),
+        include_str!("snapshots/dependency-remove-tool.json"),
+        include_str!("snapshots/coverage-tool.json"),
+        include_str!("snapshots/semver-tool.json"),
+        include_str!("snapshots/mutation-test-tool.json"),
+        include_str!("snapshots/deny-tool.json"),
+        include_str!("snapshots/unsafe-scan-tool.json"),
+        include_str!("snapshots/supply-chain-tool.json"),
+        include_str!("snapshots/quality-v2-tool.json"),
+        include_str!("snapshots/miri-tool.json"),
+        include_str!("snapshots/benchmark-run-tool.json"),
+        include_str!("snapshots/benchmark-compare-tool.json"),
+        include_str!("snapshots/profile-flamegraph-tool.json"),
+        include_str!("snapshots/binary-bloat-tool.json"),
+        include_str!("snapshots/analyzer-symbols-tool.json"),
+        include_str!("snapshots/analyzer-references-tool.json"),
+        include_str!("snapshots/analyzer-diagnostics-tool.json"),
+        include_str!("snapshots/analyzer-actions-tool.json"),
+        include_str!("snapshots/analyzer-action-apply-tool.json"),
+    ]
+    .into_iter()
+    .map(|snapshot| serde_json::from_str::<serde_json::Value>(snapshot).map_err(Into::into))
+    .collect()
+}
+
+const PREVIEW_TOOL_NAMES: [&str; 5] = [
+    "rust.analyzer.symbols",
+    "rust.analyzer.references",
+    "rust.analyzer.diagnostics",
+    "rust.analyzer.actions",
+    "rust.analyzer.action.apply",
+];
+
+/// `sha256(json.dumps(value, sort_keys=True, separators=(",", ":"), ensure_ascii=False))`:
+/// an independent implementation of the contract document's canonicalization,
+/// so this test is an oracle rather than a restatement of the source.
+fn canonicalize(value: &serde_json::Value) -> serde_json::Value {
+    match value {
+        serde_json::Value::Object(map) => {
+            let mut entries: Vec<(&String, &serde_json::Value)> = map.iter().collect();
+            entries.sort_by(|a, b| a.0.cmp(b.0));
+            let mut object = serde_json::Map::new();
+            for (key, value) in entries {
+                object.insert(key.clone(), canonicalize(value));
+            }
+            serde_json::Value::Object(object)
+        }
+        serde_json::Value::Array(items) => {
+            serde_json::Value::Array(items.iter().map(canonicalize).collect())
+        }
+        other => other.clone(),
+    }
+}
+
+fn canonical_hash(value: &serde_json::Value) -> Result<String, Box<dyn std::error::Error>> {
+    use sha2::{Digest, Sha256};
+    let bytes = serde_json::to_vec(&canonicalize(value))?;
+    Ok(Sha256::digest(bytes)
+        .iter()
+        .map(|byte| format!("{byte:02x}"))
+        .collect())
+}
+
+#[test]
+fn contract_json_describes_exactly_the_36_snapshot_tools() -> Result<(), Box<dyn std::error::Error>>
+{
+    let output = run(&["contract", "--json"])?;
+    assert!(output.status.success());
+    assert!(output.stderr.is_empty());
+    let document: serde_json::Value = serde_json::from_slice(&output.stdout)?;
+    assert_eq!(document["document_kind"], "rust_engineering_capabilities");
+    assert_eq!(document["tool_count"], 36);
+    let tools = document["tools"].as_object().ok_or("tools object")?;
+    assert_eq!(tools.len(), 36);
+
+    let snapshots = contract_snapshots()?;
+    let mut snapshot_names: Vec<&str> = snapshots
+        .iter()
+        .map(|snapshot| snapshot["name"].as_str().ok_or("name field"))
+        .collect::<Result<_, _>>()?;
+    snapshot_names.sort_unstable();
+    let mut document_names: Vec<&str> = tools.keys().map(String::as_str).collect();
+    document_names.sort_unstable();
+    assert_eq!(snapshot_names, document_names);
+
+    let mut preview_count = 0;
+    let mut stable_count = 0;
+    for snapshot in &snapshots {
+        let name = snapshot["name"].as_str().ok_or("name field")?;
+        let tool = tools
+            .get(name)
+            .ok_or_else(|| format!("{name} missing from contract"))?;
+        let is_preview = PREVIEW_TOOL_NAMES.contains(&name);
+        assert_eq!(
+            tool["stability"],
+            if is_preview { "preview" } else { "stable" },
+            "{name}"
+        );
+        if is_preview {
+            preview_count += 1;
+        } else {
+            stable_count += 1;
+        }
+        assert_eq!(
+            tool["input_schema_sha256"],
+            canonical_hash(&snapshot["inputSchema"])?,
+            "{name} input_schema_sha256"
+        );
+        assert_eq!(
+            tool["output_schema_sha256"],
+            canonical_hash(&snapshot["outputSchema"])?,
+            "{name} output_schema_sha256"
+        );
+        assert_eq!(
+            tool["description_sha256"],
+            canonical_hash(&snapshot["description"])?,
+            "{name} description_sha256"
+        );
+        assert_eq!(
+            tool["annotations"], snapshot["annotations"],
+            "{name} annotations"
+        );
+        let description = snapshot["description"]
+            .as_str()
+            .ok_or("description field")?;
+        assert_eq!(
+            description.starts_with("Preview (ADR-086): "),
+            is_preview,
+            "{name} description prefix"
+        );
+    }
+    assert_eq!(preview_count, 5);
+    assert_eq!(stable_count, 31);
+    Ok(())
+}
+
+#[test]
+fn contract_defaults_to_json_and_accepts_human() -> Result<(), Box<dyn std::error::Error>> {
+    let default_output = run(&["contract"])?;
+    let json_output = run(&["contract", "--json"])?;
+    assert_eq!(default_output.stdout, json_output.stdout);
+
+    let human_output = run(&["contract", "--human"])?;
+    assert!(human_output.status.success());
+    assert!(human_output.stderr.is_empty());
+    let human = String::from_utf8_lossy(&human_output.stdout);
+    assert!(human.starts_with("rust-engineering-mcp contract: 36 tools (5 preview)"));
+    for snapshot in contract_snapshots()? {
+        let name = snapshot["name"].as_str().ok_or("name field")?;
+        assert!(human.contains(name), "{name} missing from human report");
     }
     Ok(())
 }

@@ -174,8 +174,8 @@ y [validación/reviews](roadmap/planning-validation.md).
 | M4 / 0.4.x | Done local; integración mediante PR #15; sin release nueva | [Security](roadmap/m4-security.md) · [handoff M4](validation/M4/handoff.md) · [confirmación final](reviews/M4/m4-final-evidence/review.md) |
 | M5 / 0.5.x | Done local; sin integración remota, PR, tag ni release | [Performance](roadmap/m5-performance.md) · [matriz M5](validation/M5/matrix.md) · [handoff M5](validation/M5/handoff.md) |
 | M6 / 0.6.x | In progress; M6-01..M6-05 (cinco tools analyzer, 36 en total) en desarrollo local, sin integración remota, PR, tag ni release | [Analyzer](roadmap/m6-analyzer.md) · [matriz M6](validation/M6/matrix.md) · [calibración nativa M6-01](validation/M6/01.md) |
-| M7 / 0.7.x | Conditional; ejecución Deferred sin Go | [Remote](roadmap/m7-remote.md) · [prompt M7](prompts/implement-m7.md) |
-| M8 / 0.8–0.9 / readiness 1.0 | Planned | [Stabilization](roadmap/m8-stabilization.md) · [prompt M8](prompts/implement-m8.md) |
+| M7 / 0.7.x | Deferred con decisión ([acta](roadmap/m7-g0-decision.md), 2026-09-13) | [Remote](roadmap/m7-remote.md) · [prompt M7](prompts/implement-m7.md) |
+| M8 / 0.8–0.9 / readiness 1.0 | En curso (M8-01 Done local; M8-02 freeze) | [Stabilization](roadmap/m8-stabilization.md) · [prompt M8](prompts/implement-m8.md) |
 
 El owner autorizó M3-01..05 mediante sus paquetes de integración después del
 cierre M2. I06 autorizó M3-02 y W4 completó su G4 antes de habilitar Tasks. W5
@@ -368,6 +368,15 @@ Los recibos anteriores conservan los bytes y contratos que midieron; no acredita
 el código nuevo. La integración remota y su smoke siguen pendientes y requieren
 una autorización separada. Sin tag, release, PR ni push; M6 no está iniciado.
 [Matriz](validation/M5/matrix.md) · [Handoff](validation/M5/handoff.md).
+
+## M8 — Stabilization 0.8–0.9
+
+| Corte | Estado | Evidencia |
+| --- | --- | --- |
+| M8-01 — censo de superficie, clases de estabilidad, gate de consolidaciones | Done local | [`validation/M8/01.md`](validation/M8/01.md) |
+| M8-02 — freeze 0.8.0: versión, CHANGELOG, migration notes, `contract --json`, manifiesto de freeze y docs | En curso | [`validation/M8/02.md`](validation/M8/02.md), [`validation/M8/02-schema-diff.json`](validation/M8/02-schema-diff.json), [`validation/M8/freeze-0.8.0.json`](validation/M8/freeze-0.8.0.json) |
+| D11 — política de deprecación y freeze | Accepted | [ADR-086](adr/ADR-086-deprecation-and-freeze-policy.md) |
+| D13 — alcance de hosts para 1.0 (macOS ARM64 único host positivo) | Accepted | [ADR-087](adr/ADR-087-1.0-host-scope.md) |
 
 ## Technical Debt
 

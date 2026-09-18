@@ -65,3 +65,12 @@ separate agreement are expected under the same dual license. Source publication 
 not mark M1 complete, qualify native security claims or authorize model/catalog
 redistribution. A future binary release must still close its target-specific notice,
 runtime, model and native-platform evidence.
+
+## Amendment (2026-09-17)
+
+CD dispatch also accepts a release-candidate tag of the form `vX.Y.Z-rc.N`, in
+addition to the stable `vX.Y.Z` tag described above (W40, M8-09). An RC tag runs the
+same build/package/smoke/attest steps and still only opens a draft prerelease; it is
+never a supported release, and the workspace version it is cut from remains
+pre-1.0. This amendment does not change the dual-license grant, the CI scope or the
+OIDC-only signing model above.

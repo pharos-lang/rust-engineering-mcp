@@ -7,7 +7,7 @@ use super::{
     contract::{Contract, ToolOutput},
     project::Registry,
 };
-pub(super) use actions::{ACTIONS_NAME, ActionsTool};
+pub(super) use actions::{ACTIONS_NAME, ActionsTool, definition as actions_definition};
 use rmcp::{
     model::{CallToolRequestParams, CallToolResult, ErrorData, Tool, ToolAnnotations},
     service::{RequestContext, RoleServer},
@@ -73,7 +73,7 @@ fn default_timeout_seconds() -> u32 {
 // Schema layer closes the object the same way either way.
 #[derive(JsonSchema)]
 #[serde(deny_unknown_fields)]
-struct Input {
+pub(super) struct Input {
     #[schemars(with = "String", regex(pattern = "^prj_[0-9a-f]{32}$"))]
     project_ref: ProjectRef,
     #[serde(default)]
@@ -210,7 +210,7 @@ impl ToolOutput for Output {
 
 #[derive(Serialize, JsonSchema)]
 #[serde(deny_unknown_fields)]
-struct Output {
+pub(super) struct Output {
     #[serde(flatten)]
     outcome: Outcome,
     summary: &'static str,
@@ -712,16 +712,13 @@ pub(super) struct AnalyzerTool {
     inspector: Arc<RustProjectInspector>,
     ready: Arc<AtomicBool>,
 }
-impl AnalyzerTool {
-    pub(super) fn new(
-        registry: Arc<Mutex<Registry>>,
-        workers: Workers,
-        inspector: Arc<RustProjectInspector>,
-        ready: Arc<AtomicBool>,
-    ) -> Result<Self, ErrorData> {
-        let contract = Contract::<Input, Output>::new()?;
-        let definition = Tool::new(
-            NAME,
+pub(super) fn symbols_definition() -> Result<(Contract<Input, Output>, Tool), ErrorData> {
+    let contract = Contract::<Input, Output>::new()?;
+    let definition = Tool::new(
+        NAME,
+        format!(
+            "{}{}",
+            super::stability::PREVIEW_PREFIX,
             "Read symbols from a captured Rust project using the host-approved \
              rust-analyzer 1.98.1 (aarch64-unknown-linux-gnu) inside the M6 guest \
              image. Snapshot semantics are latest_known and non-atomic: the capture \
@@ -733,17 +730,29 @@ impl AnalyzerTool {
              1-based Position values, never byte offsets or UTF-16 units. \
              Requires the host --rust runtime configured with the approved M6 \
              image; without it the tool is unavailable. Hover, go-to-definition \
-             and rename are not offered by this or any other tool.",
-            (*contract.input_schema).clone(),
-        )
-        .with_raw_output_schema(Arc::clone(&contract.output_schema))
-        .with_annotations(
-            ToolAnnotations::new()
-                .read_only(true)
-                .destructive(false)
-                .idempotent(true)
-                .open_world(false),
-        );
+             and rename are not offered by this or any other tool."
+        ),
+        (*contract.input_schema).clone(),
+    )
+    .with_raw_output_schema(Arc::clone(&contract.output_schema))
+    .with_annotations(
+        ToolAnnotations::new()
+            .read_only(true)
+            .destructive(false)
+            .idempotent(true)
+            .open_world(false),
+    );
+    Ok((contract, definition))
+}
+
+impl AnalyzerTool {
+    pub(super) fn new(
+        registry: Arc<Mutex<Registry>>,
+        workers: Workers,
+        inspector: Arc<RustProjectInspector>,
+        ready: Arc<AtomicBool>,
+    ) -> Result<Self, ErrorData> {
+        let (contract, definition) = symbols_definition()?;
         Ok(Self {
             definition,
             contract,
@@ -954,7 +963,7 @@ impl WireRange {
 
 #[derive(Deserialize, JsonSchema)]
 #[serde(deny_unknown_fields)]
-struct ReferencesInput {
+pub(super) struct ReferencesInput {
     #[schemars(with = "String", regex(pattern = "^prj_[0-9a-f]{32}$"))]
     project_ref: ProjectRef,
     #[serde(default)]
@@ -1069,7 +1078,7 @@ impl ToolOutput for ReferencesOutput {
 
 #[derive(Serialize, JsonSchema)]
 #[serde(deny_unknown_fields)]
-struct ReferencesOutput {
+pub(super) struct ReferencesOutput {
     #[serde(flatten)]
     outcome: ReferencesOutcome,
     summary: &'static str,
@@ -1457,16 +1466,14 @@ pub(super) struct ReferencesTool {
     inspector: Arc<RustProjectInspector>,
     ready: Arc<AtomicBool>,
 }
-impl ReferencesTool {
-    pub(super) fn new(
-        registry: Arc<Mutex<Registry>>,
-        workers: Workers,
-        inspector: Arc<RustProjectInspector>,
-        ready: Arc<AtomicBool>,
-    ) -> Result<Self, ErrorData> {
-        let contract = Contract::<ReferencesInput, ReferencesOutput>::new()?;
-        let definition = Tool::new(
-            REFERENCES_NAME,
+pub(super) fn references_definition()
+-> Result<(Contract<ReferencesInput, ReferencesOutput>, Tool), ErrorData> {
+    let contract = Contract::<ReferencesInput, ReferencesOutput>::new()?;
+    let definition = Tool::new(
+        REFERENCES_NAME,
+        format!(
+            "{}{}",
+            super::stability::PREVIEW_PREFIX,
             "Find references to the symbol at a captured Rust file's position, using \
              the host-approved rust-analyzer 1.98.1 (aarch64-unknown-linux-gnu) inside \
              the M6 guest image. Snapshot semantics are latest_known and non-atomic. \
@@ -1481,17 +1488,29 @@ impl ReferencesTool {
              1-based Position values, never byte offsets or UTF-16 units. Requires the \
              host --rust runtime configured with the approved M6 image; without it the \
              tool is unavailable. Hover, go-to-definition and rename are not offered by \
-             this or any other tool.",
-            (*contract.input_schema).clone(),
-        )
-        .with_raw_output_schema(Arc::clone(&contract.output_schema))
-        .with_annotations(
-            ToolAnnotations::new()
-                .read_only(true)
-                .destructive(false)
-                .idempotent(true)
-                .open_world(false),
-        );
+             this or any other tool."
+        ),
+        (*contract.input_schema).clone(),
+    )
+    .with_raw_output_schema(Arc::clone(&contract.output_schema))
+    .with_annotations(
+        ToolAnnotations::new()
+            .read_only(true)
+            .destructive(false)
+            .idempotent(true)
+            .open_world(false),
+    );
+    Ok((contract, definition))
+}
+
+impl ReferencesTool {
+    pub(super) fn new(
+        registry: Arc<Mutex<Registry>>,
+        workers: Workers,
+        inspector: Arc<RustProjectInspector>,
+        ready: Arc<AtomicBool>,
+    ) -> Result<Self, ErrorData> {
+        let (contract, definition) = references_definition()?;
         Ok(Self {
             definition,
             contract,
@@ -1628,7 +1647,7 @@ pub(super) const DIAGNOSTICS_NAME: &str = "rust.analyzer.diagnostics";
 
 #[derive(Deserialize, JsonSchema)]
 #[serde(deny_unknown_fields)]
-struct DiagnosticsInput {
+pub(super) struct DiagnosticsInput {
     #[schemars(with = "String", regex(pattern = "^prj_[0-9a-f]{32}$"))]
     project_ref: ProjectRef,
     #[serde(default)]
@@ -1733,7 +1752,7 @@ impl ToolOutput for DiagnosticsOutput {
 
 #[derive(Serialize, JsonSchema)]
 #[serde(deny_unknown_fields)]
-struct DiagnosticsOutput {
+pub(super) struct DiagnosticsOutput {
     #[serde(flatten)]
     outcome: DiagnosticsOutcome,
     summary: &'static str,
@@ -2171,16 +2190,14 @@ pub(super) struct DiagnosticsTool {
     inspector: Arc<RustProjectInspector>,
     ready: Arc<AtomicBool>,
 }
-impl DiagnosticsTool {
-    pub(super) fn new(
-        registry: Arc<Mutex<Registry>>,
-        workers: Workers,
-        inspector: Arc<RustProjectInspector>,
-        ready: Arc<AtomicBool>,
-    ) -> Result<Self, ErrorData> {
-        let contract = Contract::<DiagnosticsInput, DiagnosticsOutput>::new()?;
-        let definition = Tool::new(
-            DIAGNOSTICS_NAME,
+pub(super) fn diagnostics_definition()
+-> Result<(Contract<DiagnosticsInput, DiagnosticsOutput>, Tool), ErrorData> {
+    let contract = Contract::<DiagnosticsInput, DiagnosticsOutput>::new()?;
+    let definition = Tool::new(
+        DIAGNOSTICS_NAME,
+        format!(
+            "{}{}",
+            super::stability::PREVIEW_PREFIX,
             "Read native rust-analyzer diagnostics for a captured Rust file, using the \
              host-approved rust-analyzer 1.98.1 (aarch64-unknown-linux-gnu) inside the \
              M6 guest image. Snapshot semantics are latest_known and non-atomic. Build \
@@ -2192,17 +2209,29 @@ impl DiagnosticsTool {
              bounded to 4,096 Unicode scalars with message_truncated flagging a cut and \
              control characters other than newline/tab replaced; it is never the \
              server's own status message or stderr. Requires the host --rust runtime \
-             configured with the approved M6 image; without it the tool is unavailable.",
-            (*contract.input_schema).clone(),
-        )
-        .with_raw_output_schema(Arc::clone(&contract.output_schema))
-        .with_annotations(
-            ToolAnnotations::new()
-                .read_only(true)
-                .destructive(false)
-                .idempotent(true)
-                .open_world(false),
-        );
+             configured with the approved M6 image; without it the tool is unavailable."
+        ),
+        (*contract.input_schema).clone(),
+    )
+    .with_raw_output_schema(Arc::clone(&contract.output_schema))
+    .with_annotations(
+        ToolAnnotations::new()
+            .read_only(true)
+            .destructive(false)
+            .idempotent(true)
+            .open_world(false),
+    );
+    Ok((contract, definition))
+}
+
+impl DiagnosticsTool {
+    pub(super) fn new(
+        registry: Arc<Mutex<Registry>>,
+        workers: Workers,
+        inspector: Arc<RustProjectInspector>,
+        ready: Arc<AtomicBool>,
+    ) -> Result<Self, ErrorData> {
+        let (contract, definition) = diagnostics_definition()?;
         Ok(Self {
             definition,
             contract,

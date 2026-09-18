@@ -3266,3 +3266,76 @@ fn measure_real_format_commit_replay_recovery_and_index_ceiling() -> Result<(), 
     );
     Ok(())
 }
+
+/// D12 §8: permissions on the destination are revoked once the swap already
+/// durably applied the new bytes (`Published`), so the store cannot silently
+/// self-heal (files are already live) and refuses to guess; it fails closed
+/// with the journal parked at a non-terminal, individually recoverable phase
+/// instead of a terminal one, exactly the case a downgraded binary's
+/// `mutation list` must see (`doctor`'s `mutation_journals` reads this same
+/// state). No bytes are ever torn: the workspace file holds either the full
+/// "before" or the full "after" content, never a partial write.
+#[test]
+fn revoked_destination_permissions_leave_a_recoverable_non_terminal_journal() -> Result<(), String>
+{
+    let fixture = Fixture::new("revoked-mid-commit")?;
+    let (_backend, lease, request) = fixture.request(280)?;
+    let store = NativeMutationStore::open(&fixture.state, std::slice::from_ref(&fixture.project))
+        .map_err(|error| format!("{error:?}"))?;
+    let after_bytes = source_file(&request.candidate.after, "Cargo.toml")
+        .ok_or("after")?
+        .bytes()
+        .to_vec();
+    let temp = fixture.project.join(temp_name(&request.id, 0));
+    // Revoked only once the swap is durable (post-`Published`): the store
+    // must not be able to unlink the now-orphaned temp clone or persist the
+    // final `Committed` transition, both of which need workspace write access.
+    assert_eq!(
+        store.commit_checked(&lease, &request, &Continue, |phase| {
+            if phase == CommitCheckpoint::Published {
+                std::fs::set_permissions(&fixture.project, std::fs::Permissions::from_mode(0o500))
+                    .map_err(|_| MutationError::Io)?;
+            }
+            Ok(())
+        }),
+        Err(MutationError::RecoveryRequired)
+    );
+    assert_eq!(
+        std::fs::read(fixture.project.join("Cargo.toml")).map_err(|error| error.to_string())?,
+        after_bytes
+    );
+    assert!(temp.exists());
+    let operator =
+        NativeMutationStore::open(&fixture.state, &[]).map_err(|error| format!("{error:?}"))?;
+    let records = operator
+        .list_records()
+        .map_err(|error| format!("{error:?}"))?;
+    assert_eq!(records.len(), 1);
+    assert_eq!(records[0].state, MutationState::RecoveryRequired);
+    // Explicit recovery while still revoked observes the classified cause
+    // directly, and leaves the workspace exactly as it found it.
+    assert_eq!(
+        store.recover(&lease, &request.id),
+        Err(MutationError::PermissionDenied)
+    );
+    assert_eq!(
+        std::fs::read(fixture.project.join("Cargo.toml")).map_err(|error| error.to_string())?,
+        after_bytes
+    );
+    assert!(temp.exists());
+    std::fs::set_permissions(&fixture.project, std::fs::Permissions::from_mode(0o700))
+        .map_err(|error| error.to_string())?;
+    let receipt = store
+        .recover(&lease, &request.id)
+        .map_err(|error| format!("{error:?}"))?;
+    assert_eq!(receipt.state, MutationState::Committed);
+    assert!(!temp.exists());
+    assert_eq!(
+        operator
+            .list_records()
+            .map_err(|error| format!("{error:?}"))?[0]
+            .state,
+        MutationState::Committed
+    );
+    Ok(())
+}

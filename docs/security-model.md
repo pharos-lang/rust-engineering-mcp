@@ -403,6 +403,13 @@ termina 101 antes de producir JUnit. Ampliar esa regla es una decisión de
 containment y requiere autorización, prueba negativa de sockets y recalificación;
 M3-01 permanece bloqueada hasta entonces.
 
+**Estado actual (corrección M8-08):** ese bloqueo es histórico. ADR-064 añadió
+exactamente la regla `socketpair(AF_UNIX, SOCK_STREAM)` al perfil quality
+(`seccomp-rust-quality.json`), con la prueba nativa
+`quality_profile_allows_only_the_required_anonymous_unix_stream_pair`
+(`crates/execution-adapter/tests/nextest_runtime.rs`), y la
+[matriz M3](validation/M3/matrix.md) registra M3-01 como Done (qualified).
+
 ## M3 — lifecycle de jobs
 
 Un worker permit es un job permit: el executor registra el job, permite poll y
@@ -479,8 +486,9 @@ El exportador lee bytes desde un path fijo; el parser JUnit limita tamaño,
 profundidad, atributos, miembros y entidades, y rechaza links, extras y tipos no
 regulares. La imagen es el digest inmutable M3 y la provenance de plugins incluye
 nextest 0.9.143, llvm-cov 0.9.0, llvm-tools 1.98.1, semver-checks 0.50.0 y
-mutants 27.1.0 source-built. Provisioning pasó 47/47, pero nextest sigue sin
-calificación runtime por la denegación de `socketpair(AF_UNIX, SOCK_STREAM)`.
+mutants 27.1.0 source-built. Provisioning pasó 47/47. La denegación inicial de
+`socketpair(AF_UNIX, SOCK_STREAM)` quedó resuelta por ADR-064 y nextest está
+calificado en runtime ([matriz M3](validation/M3/matrix.md); corrección M8-08).
 
 ## M4: dependency policy, syntax and interpreter evidence
 
@@ -559,8 +567,9 @@ fail closed before project execution.
 Estado: las cuatro definiciones M5 están implementadas en dominio, aplicación y
 execution adapter y **calificadas localmente** (suite nativa, clientes,
 `core` y `full`); la [matriz M5](validation/M5/matrix.md) registra recibos y
-límites. `tools/list` devuelve 31 definiciones, con las 27 anteriores
-sin cambio. Lo que sigue
+límites. En ese corte `tools/list` devolvía 31 definiciones, con las 27 anteriores
+sin cambio; tras M6 y el freeze 0.8.0 son 36 (31 `stable`, 5 `preview`,
+[ADR-086](adr/ADR-086-deprecation-and-freeze-policy.md); corrección M8-08). Lo que sigue
 describe contratos y controles implementados; solo se presenta como calificado
 aquello que enlaza un recibo.
 
@@ -802,7 +811,7 @@ de ADR-061.
 | --- | --- | --- |
 | Artifact spoofing | Identificadores opacos `qart_` emitidos por el store, no componibles por el peer; autorización por proyecto propietario; descriptor con kind/format/mime validados; `same_artifact` rechazado por `execution_fingerprint` idéntico (ADR-076 §4) | El store acredita custodia y autoría de la publicación, no la verdad de la medida. Un dataset auténtico puede describir una ejecución poco informativa |
 | Secretos en nombres de símbolos | Alfabeto cerrado, sin path ni módulo, `[unknown]` contado; artifact privado owner-bound | Un nombre de símbolo sigue siendo metadata potencialmente sensible del proyecto. Esto no es detección universal de secretos, igual que en M4 |
-| Profiler que escapa del sandbox | Helper propio sin scripting, sin pid ajeno y sin red; una syscall añadida en una sola fase; perfil verificado por fase; `--cap-drop=ALL` y `no-new-privileges` intactos | El daemon Docker, el host, el kernel y el subsistema perf quedan fuera del claim de containment sin privilegios. El alcance positivo se limita a Linux ARM64 guest; M5-03 está en recalificación según la matriz M5 |
+| Profiler que escapa del sandbox | Helper propio sin scripting, sin pid ajeno y sin red; una syscall añadida en una sola fase; perfil verificado por fase; `--cap-drop=ALL` y `no-new-privileges` intactos | El daemon Docker, el host, el kernel y el subsistema perf quedan fuera del claim de containment sin privilegios. El alcance positivo se limita a Linux ARM64 guest; M5-03 figura como Done local en la [matriz M5](validation/M5/matrix.md) (corrección M8-08) |
 | Exhaustión de recursos | Presupuestos 900 s (`run`), 300 s (`profile`, con 60 s de muestreo máximo), 30 s (`compare`) y 300 s (`bloat`); techos de CPU/RAM/PID; artifacts SVG ≤ 8 MiB, bloat ≤ 4 MiB, muestras ≤ 32 MiB y resultado ≤ 512 KiB. La cuota se comprueba al publicar después de ejecutar (ADR-080), sin promesa de reserva previa | Los deadlines siguen siendo cooperativos y unidos, no preempción nativa dura, con la misma limitación ya declarada para M1–M4 |
 | Un benchmark que falsifica su propia salida | Warmup, tiempo de medición y tamaño muestral los fija el servidor en argv cerrado; el dataset declara el tamaño **solicitado** frente al **observado** y trata la diferencia como incompatibilidad de método; compatibilidad antes que estadística; MDR frente al umbral (ADR-073 §2/§4/§5) | **Ninguno de esos controles impide que un benchmark mienta.** Las muestras las produce el harness del **proyecto** y se describen como observaciones de origen no autenticado; el producto no afirma que un benchmark no pueda falsificar sus propios números (ADR-073 §6) |
 
@@ -837,7 +846,8 @@ hostil, no solo de bytes a leer. [ADR-084](adr/ADR-084-rust-analyzer-runtime-and
 fija el lifecycle; el [recibo de calibración nativa M6-01](validation/M6/01.md)
 es el oráculo local de cada control de esta tabla, no una afirmación de
 diseño sin medir; M6-02/M6-03 comparten exactamente el mismo lifecycle y
-gateway, calificación nativa pendiente del orquestador.
+gateway, y los doce cortes nativos M6 quedaron verdes en el gate `full` de
+cierre M6 ([matriz M6](validation/M6/matrix.md); corrección M8-08).
 
 | Amenaza | Control | Oráculo |
 | --- | --- | --- |
@@ -875,7 +885,8 @@ archivo se comprueba respondida y `completeness: complete`, pero no es la
 prueba: bajo la configuración mínima (`diagnostics.experimental.enable=false`)
 no emite un diagnóstico de macro/import no resuelto para esta ausencia
 (calidad de diagnósticos = deuda trazada, ver `docs/validation/M6/matrix.md`,
-"Deuda de M6"). Calificación nativa pendiente del orquestador.
+"Deuda de M6"). El corte `m6-10` está verde en el gate `full` de cierre M6
+([matriz M6](validation/M6/matrix.md); corrección M8-08).
 
 ### Escritura por code actions (M6-04/M6-05)
 
@@ -909,3 +920,57 @@ exclusión OS de editores externos ni atomicidad multiarchivo.
 - **Vista de provenance por kind.** Un plan o receipt `AnalyzerActionApply`
   solo toma la vista `workspace_edit_structural_only`, y ningún plan M2 la
   toma; un journal de otro kind se rechaza antes de cualquier efecto (G6).
+
+## Riesgos residuales 1.0
+
+Estos son los riesgos que 1.0 acepta para su único host positivo, macOS ARM64
+con gateway Docker Linux ARM64. La aceptación, el alcance, la severidad y la
+condición de reevaluación de cada uno están en
+[ADR-089](adr/ADR-089-residual-risk-register.md). Las fronteras, los controles
+citados y sus oráculos están en el
+[threat model M8-08](validation/M8/08-threat-model.md). Ningún riesgo de esta
+lista es una garantía, y M8-08 los vuelve a revisar después de la auditoría
+independiente.
+
+- **RR-01** — La auditoría independiente de 1.0 es una revisión de modelo
+  (Opus 5 High, solo lectura). No es una auditoría humana ni un pentest.
+- **RR-02** — Linux y Windows no están calificados; fallan cerrados
+  ([ADR-087](adr/ADR-087-1.0-host-scope.md)).
+- **RR-03** — Deuda de las cinco tools analyzer `preview`: `SANDBOX_DENIED`
+  transitorio, diagnósticos solo de sintaxis, assists no deterministas,
+  precisión de `admitted` y apply no verificado por compilación.
+- **RR-04** — `rust.dependencies.audit` degrada, sin bloquear, ante un snapshot
+  RustSec stale o de edad desconocida
+  ([ADR-088](adr/ADR-088-migration-rollback-policy.md) §5).
+- **RR-05** — El kernel del guest, runc, Docker Desktop y el daemon forman parte
+  de la TCB. Se aceptan los deltas de seccomp de quality, fix y profiling.
+- **RR-06** — Los presupuestos del proceso host son cooperativos, sin límite
+  duro de RSS ni de CPU.
+- **RR-07** — No hay detección universal de secretos en artifacts, logs ni
+  evidencia.
+- **RR-08** — Otros procesos del mismo uid y un host malicioso quedan fuera de
+  la frontera, y las ACLs no se inspeccionan.
+- **RR-09** — La mutación `local_coordinated` no ofrece CAS ni atomicidad
+  multiarchivo, no demuestra supervivencia a power loss, y un journal corrupto
+  bloquea el store.
+- **RR-10** — Una dependencia comprometida sin advisory publicado no se
+  detecta; el job `build` del release expone el token OIDC a los `build.rs`
+  de dependencias antes de atestar, mitigado con `persist-credentials: false`.
+- **RR-11** — La firma del catálogo autentica al publisher que eligió el host,
+  no la corrección de los datos. No hay trust root oficial.
+- **RR-12** — La provenance OIDC no implica reproducibilidad y `SONAR_TOKEN`
+  es de larga vida. Re-observar la branch protection, ejecutar la provenance
+  0.8.x y verificar D14 sobre assets reales son ítems bloqueantes del
+  checklist RC1, no riesgo aceptado.
+- **RR-13** — Los resultados producidos por código del proyecto no están
+  autenticados.
+- **RR-14** — Límites del filesystem macOS: FIFO y device nodes, ACL, hardlinks
+  y captura no atómica.
+- **RR-15** — No hay revocación en caliente, y un `kill -9` deja objetos Docker.
+- **RR-16** — La retención y el borrado dependen del operador, y no hay borrado
+  seguro.
+- **RR-17** — Quedan brechas de oráculo en los gates obligatorios: rollback con
+  dos binarios, e2e del analyzer y power loss.
+- **RR-18** — `rmcp` forma parte de la TCB del protocolo.
+- **RR-19** — El binario publicado no tiene firma de código ni notarización
+  macOS; la integridad depende de `SHA256SUMS` y la attestation OIDC.

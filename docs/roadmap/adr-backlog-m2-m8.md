@@ -113,7 +113,7 @@ Estado global: **Proposed**. Ninguna entrada es un ADR Accepted. Los IDs D01–D
 
 ## D11 — Freeze y SemVer
 
-- **Status:** Proposed.
+- **Status:** Accepted, [ADR-086](../adr/ADR-086-deprecation-and-freeze-policy.md), 2026-09-14.
 - **Context:** Freeze y SemVer amplía o concreta una frontera heredada de M1; véanse [baseline](baseline-2026-09-05.md) y [trazabilidad](traceability-m2-m8.md).
 - **Decision propuesta:** Inventariar contratos y fijar ventanas de deprecación/0.x→1.0 antes de cambios.
 - **Alternatives considered:** Compatibilidad estricta; opt-in versionado; ruptura explícita en 0.8.
@@ -123,7 +123,13 @@ Estado global: **Proposed**. Ninguna entrada es un ADR Accepted. Los IDs D01–D
 
 ## D12 — Migraciones y rollback
 
-- **Status:** Proposed.
+- **Status:** Accepted — [ADR-088](../adr/ADR-088-migration-rollback-policy.md)
+  (2026-09-14). Ningún formato en disco requiere migración de bytes entre
+  `0.3.0` y `0.8.0`; `doctor` gana un preflight pasivo de journals
+  pendientes; backup/restore es un procedimiento operativo documentado, sin
+  CLI nueva. Evidencia:
+  [`docs/validation/M8/03.md`](../validation/M8/03.md) §D12,
+  [`03-formats-analysis.md`](../validation/M8/03-formats-analysis.md).
 - **Context:** Migraciones y rollback amplía o concreta una frontera heredada de M1; véanse [baseline](baseline-2026-09-05.md) y [trazabilidad](traceability-m2-m8.md).
 - **Decision propuesta:** Formatos versionados, preflight/backup y upgrade/rollback explícitos.
 - **Alternatives considered:** Migración side-by-side; reconstrucción de derivados; export/import.
@@ -133,7 +139,7 @@ Estado global: **Proposed**. Ninguna entrada es un ADR Accepted. Los IDs D01–D
 
 ## D13 — Calificación por target para 1.0
 
-- **Status:** Proposed.
+- **Status:** Accepted, [ADR-087](../adr/ADR-087-1.0-host-scope.md), 2026-09-14.
 - **Context:** Calificación por target para 1.0 amplía o concreta una frontera heredada de M1; véanse [baseline](baseline-2026-09-05.md) y [trazabilidad](traceability-m2-m8.md).
 - **Decision propuesta:** Resolver aspiración cross-platform con native positive y artifacts por familia o cambio explícito de alcance.
 - **Alternatives considered:** Linux/macOS/Windows positivos; subconjunto justificado con ADR/spec actualizada.
@@ -143,7 +149,17 @@ Estado global: **Proposed**. Ninguna entrada es un ADR Accepted. Los IDs D01–D
 
 ## D14 — Distribución y provenance
 
-- **Status:** Proposed.
+- **Status:** Accepted — [ADR-090](../adr/ADR-090-offline-verification-and-incident-response.md)
+  (2026-09-14, orquestador bajo autorización del owner). Se conserva OIDC
+  source/tag/workflow/run/digest sin clave organizacional adicional ni "dos
+  operadores"; verificación offline documentada con y sin `gh attestation
+  verify --bundle … --owner pharos-lang`; respuesta a compromiso sin secreto
+  de larga duración que rotar; drills mapeados a evidencia existente o al
+  ensayo M8-07. El ensayo local corrigió el defecto RR-12 de
+  `release-candidate.yml:219` (literal `31`, ahora derivado del manifiesto de
+  freeze) y dos hashes de esquema mal fijados en `scripts/release-smoke.py`.
+  Evidencia: [`docs/validation/M8/07.md`](../validation/M8/07.md),
+  [`07-release-rehearsal.json`](../validation/M8/07-release-rehearsal.json).
 - **Context:** Distribución y provenance amplía o concreta una frontera heredada de M1; véanse [baseline](baseline-2026-09-05.md) y [trazabilidad](traceability-m2-m8.md).
 - **Decision propuesta:** Conservar OIDC source/tag/workflow/run/digest y añadir incident/rotation/offline policy verificables.
 - **Alternatives considered:** OIDC+bundles verificables; keys offline si necesidad; no publicación adicional.

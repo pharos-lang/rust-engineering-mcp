@@ -95,15 +95,25 @@ fn wait(child: &mut Child) -> Result<bool, Box<dyn std::error::Error>> {
         thread::sleep(Duration::from_millis(10));
     }
 }
+// cargo-llvm-cov assigns a unique raw-profile pattern per test binary via
+// LLVM_PROFILE_FILE. Preserve only that instrumentation channel across
+// env_clear(); the product process still receives no host PATH, credentials
+// or ambient configuration.
+fn instrumented(command: &mut Command) -> &mut Command {
+    if let Some(profile) = std::env::var_os("LLVM_PROFILE_FILE") {
+        command.env("LLVM_PROFILE_FILE", profile);
+    }
+    command
+}
 type CommandResult = Result<(bool, Vec<u8>, Vec<u8>), Box<dyn std::error::Error>>;
 fn command(args: &[String]) -> CommandResult {
-    let mut child = Command::new(env!("CARGO_BIN_EXE_rust-engineering-mcp"))
-        .args(args)
+    let mut cmd = Command::new(env!("CARGO_BIN_EXE_rust-engineering-mcp"));
+    cmd.args(args)
         .env_clear()
         .stdin(Stdio::null())
         .stdout(Stdio::piped())
-        .stderr(Stdio::piped())
-        .spawn()?;
+        .stderr(Stdio::piped());
+    let mut child = instrumented(&mut cmd).spawn()?;
     let out = child.stdout.take().ok_or("stdout")?;
     let err = child.stderr.take().ok_or("stderr")?;
     let (tx, rx) = mpsc::channel();
@@ -129,14 +139,14 @@ struct Server {
 }
 impl Server {
     fn start(args: &[String]) -> Result<Self, Box<dyn std::error::Error>> {
-        let mut child = Command::new(env!("CARGO_BIN_EXE_rust-engineering-mcp"))
-            .args(["serve", "--stdio"])
+        let mut cmd = Command::new(env!("CARGO_BIN_EXE_rust-engineering-mcp"));
+        cmd.args(["serve", "--stdio"])
             .args(args)
             .env_clear()
             .stdin(Stdio::piped())
             .stdout(Stdio::piped())
-            .stderr(Stdio::piped())
-            .spawn()?;
+            .stderr(Stdio::piped());
+        let mut child = instrumented(&mut cmd).spawn()?;
         let out = child.stdout.take().ok_or("stdout")?;
         let err = child.stderr.take().ok_or("stderr")?;
         let (tx, output) = mpsc::channel();

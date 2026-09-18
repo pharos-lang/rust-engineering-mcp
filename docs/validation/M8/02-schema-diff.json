@@ -1,0 +1,214 @@
+{
+  "since_v0.3.0": {
+    "added": [
+      "rust.analyzer.action.apply",
+      "rust.analyzer.actions",
+      "rust.analyzer.diagnostics",
+      "rust.analyzer.references",
+      "rust.analyzer.symbols"
+    ],
+    "base": "v0.3.0",
+    "base_commit": "6ea330debc27a2cf1564fbbc258d4b358f5b0f1a",
+    "changed": [
+      {
+        "annotations_changed": false,
+        "bytes_identical": false,
+        "input_schema_changed": true,
+        "keys_changed": [
+          "inputSchema",
+          "outputSchema"
+        ],
+        "name": "rust.binary.bloat",
+        "output_schema_changed": true
+      }
+    ],
+    "head_commit": "b7f05289e924b26c473d980e5d96348ea4527779",
+    "removed": [],
+    "tree_dirty": false,
+    "unchanged": [
+      {
+        "bytes_identical": true,
+        "name": "rust.benchmark.compare"
+      },
+      {
+        "bytes_identical": true,
+        "name": "rust.benchmark.run"
+      },
+      {
+        "bytes_identical": true,
+        "name": "rust.catalog.status"
+      },
+      {
+        "bytes_identical": true,
+        "name": "rust.check"
+      },
+      {
+        "bytes_identical": true,
+        "name": "rust.clippy"
+      },
+      {
+        "bytes_identical": true,
+        "name": "rust.coverage"
+      },
+      {
+        "bytes_identical": true,
+        "name": "rust.crate.inspect"
+      },
+      {
+        "bytes_identical": true,
+        "name": "rust.crate.search"
+      },
+      {
+        "bytes_identical": true,
+        "name": "rust.deny"
+      },
+      {
+        "bytes_identical": true,
+        "name": "rust.dependencies.audit"
+      },
+      {
+        "bytes_identical": true,
+        "name": "rust.dependency.add"
+      },
+      {
+        "bytes_identical": true,
+        "name": "rust.dependency.remove"
+      },
+      {
+        "bytes_identical": true,
+        "name": "rust.diagnostics.explain"
+      },
+      {
+        "bytes_identical": true,
+        "name": "rust.fix.apply"
+      },
+      {
+        "bytes_identical": true,
+        "name": "rust.fmt.apply"
+      },
+      {
+        "bytes_identical": true,
+        "name": "rust.fmt.check"
+      },
+      {
+        "bytes_identical": true,
+        "name": "rust.manifest.patch"
+      },
+      {
+        "bytes_identical": true,
+        "name": "rust.miri"
+      },
+      {
+        "bytes_identical": true,
+        "name": "rust.mutation.test"
+      },
+      {
+        "bytes_identical": true,
+        "name": "rust.profile.flamegraph"
+      },
+      {
+        "bytes_identical": true,
+        "name": "rust.project.inspect"
+      },
+      {
+        "bytes_identical": true,
+        "name": "rust.project.open"
+      },
+      {
+        "bytes_identical": true,
+        "name": "rust.quality.gate"
+      },
+      {
+        "bytes_identical": true,
+        "name": "rust.quality.gate.v2"
+      },
+      {
+        "bytes_identical": true,
+        "name": "rust.semver.check"
+      },
+      {
+        "bytes_identical": true,
+        "name": "rust.supply_chain.inspect"
+      },
+      {
+        "bytes_identical": true,
+        "name": "rust.test"
+      },
+      {
+        "bytes_identical": true,
+        "name": "rust.test.nextest"
+      },
+      {
+        "bytes_identical": true,
+        "name": "rust.toolchain.inspect"
+      },
+      {
+        "bytes_identical": true,
+        "name": "rust.unsafe.scan"
+      }
+    ]
+  },
+  "since_v0.1.0_m1_only": {
+    "added": [],
+    "base": "v0.1.0",
+    "base_commit": "452acdbf3a634d2cc0b9d153db09718237625b9d",
+    "changed": [],
+    "head_commit": "b7f05289e924b26c473d980e5d96348ea4527779",
+    "removed": [],
+    "tree_dirty": false,
+    "unchanged": [
+      {
+        "bytes_identical": true,
+        "name": "rust.catalog.status"
+      },
+      {
+        "bytes_identical": true,
+        "name": "rust.check"
+      },
+      {
+        "bytes_identical": true,
+        "name": "rust.clippy"
+      },
+      {
+        "bytes_identical": true,
+        "name": "rust.crate.inspect"
+      },
+      {
+        "bytes_identical": true,
+        "name": "rust.crate.search"
+      },
+      {
+        "bytes_identical": true,
+        "name": "rust.dependencies.audit"
+      },
+      {
+        "bytes_identical": true,
+        "name": "rust.diagnostics.explain"
+      },
+      {
+        "bytes_identical": true,
+        "name": "rust.fmt.check"
+      },
+      {
+        "bytes_identical": true,
+        "name": "rust.project.inspect"
+      },
+      {
+        "bytes_identical": true,
+        "name": "rust.project.open"
+      },
+      {
+        "bytes_identical": true,
+        "name": "rust.quality.gate"
+      },
+      {
+        "bytes_identical": true,
+        "name": "rust.test"
+      },
+      {
+        "bytes_identical": true,
+        "name": "rust.toolchain.inspect"
+      }
+    ]
+  }
+}

@@ -1789,6 +1789,10 @@ impl NativeMutationStore {
                     mutation_state(summary_body.phase)
                 },
                 stored_bytes,
+                // `decode_envelope` already rejected an unrecognized operation
+                // for both bodies above; this cannot fail.
+                kind: operation_kind(&summary_body.operation)
+                    .map_err(|_| MutationError::RecoveryRequired)?,
             });
             bodies.extend(final_body.map(|body| (body, false)));
             bodies.extend(staging_body.map(|body| (body, true)));
