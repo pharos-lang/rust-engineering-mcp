@@ -50,6 +50,9 @@ OUT_PATH = ROOT / "docs/validation/M8/05-measurement.json"
 RECEIPTS_DIR = ROOT / "target/m8-performance"
 COMPARE_OUT_PATH = RECEIPTS_DIR / "regression.json"
 RECEIPT_KEY_PATTERN = re.compile(r"^[a-z0-9-]+$")
+BUDGETS_SHA_PATTERN = re.compile(r"^sha256:[0-9a-f]{64}$")
+MAGNITUDE_ID_PATTERN = re.compile(r"^[a-z][a-z0-9_]*$")
+VERDICT_CHOICES = ("within", "over", "insufficient_samples", "unavailable")
 PROFILE_CHOICES = ("core", "local")
 FIXTURE = ROOT / "fixtures/valid-basic"
 CATALOG_FIXTURE_DIR = ROOT / "fixtures/catalog"
@@ -480,6 +483,57 @@ def global_verdict(measurements: dict[str, dict]) -> str:
     return "within"
 
 
+def known_magnitude_id(raw: object, source: str) -> str:
+    """Re-derive a magnitude id from the closed ``MAGNITUDE_ID_PATTERN``
+    grammar instead of trusting a receipt's ``measurements`` key verbatim.
+
+    A receipt comes from ``path.read_text()``, so the taint engine follows
+    its content (including dict keys) into whatever the caller writes next;
+    ``match.group(0)`` is a fresh value re-derived from the regex, not the
+    string read from disk, and an id outside the grammar fails loudly
+    instead of silently entering the comparison receipt."""
+    if not isinstance(raw, str):
+        raise ValueError(f"{source}: magnitude id must be a string, got {raw!r}")
+    match = MAGNITUDE_ID_PATTERN.match(raw)
+    if not match:
+        raise ValueError(f"{source}: magnitude id {raw!r} does not match {MAGNITUDE_ID_PATTERN.pattern!r}")
+    return match.group(0)
+
+
+def known_verdict(raw: object, source: str) -> str:
+    """Reconstruct a per-magnitude verdict by membership in the closed
+    ``VERDICT_CHOICES`` set (same taint rationale as ``known_magnitude_id``)."""
+    if not isinstance(raw, str):
+        raise ValueError(f"{source}: verdict must be a string, got {raw!r}")
+    for choice in VERDICT_CHOICES:
+        if choice == raw:
+            return choice
+    raise ValueError(f"{source}: verdict {raw!r} is not one of {VERDICT_CHOICES}")
+
+
+def known_budgets_sha256(raw: object, source: pathlib.Path) -> str:
+    """Re-derive ``budgets_sha256`` from the closed ``BUDGETS_SHA_PATTERN``
+    grammar instead of trusting a receipt's field verbatim (same taint
+    rationale as ``known_magnitude_id``)."""
+    if not isinstance(raw, str):
+        raise ValueError(f"{source}: budgets_sha256 must be a string, got {raw!r}")
+    match = BUDGETS_SHA_PATTERN.match(raw)
+    if not match:
+        raise ValueError(f"{source}: budgets_sha256 {raw!r} does not match {BUDGETS_SHA_PATTERN.pattern!r}")
+    return match.group(0)
+
+
+def known_receipt_profile(raw: object, source: pathlib.Path) -> str:
+    """Reconstruct a receipt's ``profile`` by membership in the closed
+    ``PROFILE_CHOICES`` tuple (same taint rationale as ``known_magnitude_id``)."""
+    if not isinstance(raw, str):
+        raise ValueError(f"{source}: profile must be a string, got {raw!r}")
+    for choice in PROFILE_CHOICES:
+        if choice == raw:
+            return choice
+    raise ValueError(f"{source}: profile {raw!r} is not one of {PROFILE_CHOICES}")
+
+
 def regression_verdict(receipts: list[dict]) -> dict[str, dict]:
     """2-of-3 regression rule (docs/validation/M8/05.md): exactly 3 consecutive
     receipts sharing the same budgets and profile; a magnitude is only decided
@@ -495,11 +549,18 @@ def regression_verdict(receipts: list[dict]) -> dict[str, dict]:
         raise ValueError("regression_verdict requires the same profile across all 3 receipts")
     magnitude_ids: set[str] = set()
     for receipt in receipts:
-        magnitude_ids.update(receipt["measurements"])
+        measurements = receipt.get("measurements")
+        if not isinstance(measurements, dict):
+            raise ValueError("regression_verdict requires each receipt's measurements to be an object")
+        magnitude_ids.update(measurements)
     result: dict[str, dict] = {}
-    for magnitude_id in sorted(magnitude_ids):
+    for raw_magnitude_id in sorted(magnitude_ids):
+        magnitude_id = known_magnitude_id(raw_magnitude_id, "regression_verdict")
         verdicts = [
-            receipt["measurements"].get(magnitude_id, {}).get("verdict", "unavailable")
+            known_verdict(
+                receipt["measurements"].get(magnitude_id, {}).get("verdict", "unavailable"),
+                "regression_verdict",
+            )
             for receipt in receipts
         ]
         over_count = sum(1 for verdict in verdicts if verdict == "over")
@@ -659,8 +720,8 @@ def run_compare(receipt_keys: list[str]) -> bool:
         "schema": "rust-mcp-m8-performance-regression-v1",
         "generated_utc": utc_now(),
         "receipts": validated_keys,
-        "budgets_sha256": receipts[0]["budgets_sha256"],
-        "profile": receipts[0]["profile"],
+        "budgets_sha256": known_budgets_sha256(receipts[0]["budgets_sha256"], resolved[0][0]),
+        "profile": known_receipt_profile(receipts[0]["profile"], resolved[0][0]),
         "verdicts": verdicts,
         "regressed": regressed,
         "indeterminate": indeterminate,

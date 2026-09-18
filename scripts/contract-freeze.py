@@ -60,7 +60,28 @@ SCHEMA_DIFF_PATH = ROOT / "docs/validation/M8/02-schema-diff.json"
 DIFF_OUT_KEYS = frozenset({"since_v0.3.0", "since_v0.1.0_m1_only"})
 BASE_PATTERN = re.compile(r"^(v[0-9]+\.[0-9]+\.[0-9]+|[0-9a-f]{7,40})$")
 TOOL_NAME_PATTERN = re.compile(r"^rust\.[a-z][a-z0-9_]*(?:\.[a-z][a-z0-9_]*)*$")
+COMMIT_SHA_PATTERN = re.compile(r"^[0-9a-f]{7,40}$")
 ANNOTATION_KEYS = ("destructiveHint", "idempotentHint", "openWorldHint", "readOnlyHint")
+DIFF_ENTRY_KEYS = (
+    "base",
+    "base_commit",
+    "head_commit",
+    "tree_dirty",
+    "added",
+    "removed",
+    "changed",
+    "unchanged",
+)
+CHANGED_ROW_KEYS = (
+    "name",
+    "keys_changed",
+    "input_schema_changed",
+    "output_schema_changed",
+    "annotations_changed",
+    "bytes_identical",
+)
+UNCHANGED_ROW_KEYS = ("name", "bytes_identical")
+CHANGED_KEY_CHOICES = ("annotations", "description", "inputSchema", "outputSchema")
 
 PREVIEW_NAMES = frozenset(
     {
@@ -153,6 +174,126 @@ def known_annotations(raw: object, source: pathlib.Path) -> dict:
             raise SystemExit(f"{source}: annotations[{key!r}] must be a bool, got {value!r}")
         result[key] = bool(value)
     return result
+
+
+def known_string_list(raw: object, source: pathlib.Path, field: str) -> list[str]:
+    if not isinstance(raw, list) or not all(isinstance(item, str) for item in raw):
+        raise SystemExit(f"{source}: {field} must be a list of strings, got {raw!r}")
+    return list(raw)
+
+
+def known_tool_name_list(raw: object, source: pathlib.Path, field: str) -> list[str]:
+    return [known_tool_name(item, source) for item in known_string_list(raw, source, field)]
+
+
+def known_bool(raw: object, source: pathlib.Path, field: str) -> bool:
+    if not isinstance(raw, bool):
+        raise SystemExit(f"{source}: {field} must be a bool, got {raw!r}")
+    return bool(raw)
+
+
+def known_commit_sha(raw: object, source: pathlib.Path, field: str) -> str:
+    if not isinstance(raw, str):
+        raise SystemExit(f"{source}: {field} must be a string, got {raw!r}")
+    match = COMMIT_SHA_PATTERN.match(raw)
+    if not match:
+        raise SystemExit(f"{source}: {field} {raw!r} does not match {COMMIT_SHA_PATTERN.pattern!r}")
+    return match.group(0)
+
+
+def known_base(raw: object, source: pathlib.Path) -> str:
+    if not isinstance(raw, str):
+        raise SystemExit(f"{source}: base must be a string, got {raw!r}")
+    match = BASE_PATTERN.match(raw)
+    if not match:
+        raise SystemExit(f"{source}: base {raw!r} does not match {BASE_PATTERN.pattern!r}")
+    return match.group(0)
+
+
+def known_keys_changed(raw: object, source: pathlib.Path) -> list[str]:
+    if not isinstance(raw, list):
+        raise SystemExit(f"{source}: keys_changed must be a list, got {raw!r}")
+    result = []
+    for item in raw:
+        match = next((choice for choice in CHANGED_KEY_CHOICES if choice == item), None)
+        if match is None:
+            raise SystemExit(f"{source}: keys_changed entry {item!r} is not one of {CHANGED_KEY_CHOICES}")
+        result.append(match)
+    return result
+
+
+def known_object(raw: object, source: pathlib.Path, allowed_keys: tuple[str, ...], label: str) -> dict:
+    if not isinstance(raw, dict):
+        raise SystemExit(f"{source}: {label} must be an object, got {raw!r}")
+    unknown = sorted(set(raw) - set(allowed_keys))
+    if unknown:
+        raise SystemExit(f"{source}: unknown {label} keys {unknown}")
+    missing = sorted(set(allowed_keys) - set(raw))
+    if missing:
+        raise SystemExit(f"{source}: {label} missing keys {missing}")
+    return raw
+
+
+def known_changed_row(raw: object, source: pathlib.Path) -> dict:
+    """Reconstruct one ``changed`` row from the closed schema this script
+    itself writes, instead of copying the dict read from disk verbatim
+    (same taint rationale as ``known_tool_name``)."""
+    obj = known_object(raw, source, CHANGED_ROW_KEYS, "changed row")
+    return {
+        "name": known_tool_name(obj["name"], source),
+        "keys_changed": known_keys_changed(obj["keys_changed"], source),
+        "input_schema_changed": known_bool(obj["input_schema_changed"], source, "changed row input_schema_changed"),
+        "output_schema_changed": known_bool(obj["output_schema_changed"], source, "changed row output_schema_changed"),
+        "annotations_changed": known_bool(obj["annotations_changed"], source, "changed row annotations_changed"),
+        "bytes_identical": known_bool(obj["bytes_identical"], source, "changed row bytes_identical"),
+    }
+
+
+def known_unchanged_row(raw: object, source: pathlib.Path) -> dict:
+    obj = known_object(raw, source, UNCHANGED_ROW_KEYS, "unchanged row")
+    return {
+        "name": known_tool_name(obj["name"], source),
+        "bytes_identical": known_bool(obj["bytes_identical"], source, "unchanged row bytes_identical"),
+    }
+
+
+def known_diff_entry(raw: object, source: pathlib.Path) -> dict:
+    """Reconstruct one ``out`` entry of ``SCHEMA_DIFF_PATH`` from the closed
+    schema this script itself writes (``DIFF_ENTRY_KEYS``), instead of
+    merging the dict read back from disk verbatim. The taint engine follows
+    ``SCHEMA_DIFF_PATH.read_text()`` content into whatever gets written back
+    to that same file; every field below is re-derived (regex
+    ``match.group(0)``, explicit ``bool()``, or a rebuilt list/row) rather
+    than copied, which breaks that flow."""
+    obj = known_object(raw, source, DIFF_ENTRY_KEYS, "diff entry")
+    changed_raw = obj["changed"]
+    if not isinstance(changed_raw, list):
+        raise SystemExit(f"{source}: diff entry changed must be a list, got {changed_raw!r}")
+    unchanged_raw = obj["unchanged"]
+    if not isinstance(unchanged_raw, list):
+        raise SystemExit(f"{source}: diff entry unchanged must be a list, got {unchanged_raw!r}")
+    return {
+        "base": known_base(obj["base"], source),
+        "base_commit": known_commit_sha(obj["base_commit"], source, "diff entry base_commit"),
+        "head_commit": known_commit_sha(obj["head_commit"], source, "diff entry head_commit"),
+        "tree_dirty": known_bool(obj["tree_dirty"], source, "diff entry tree_dirty"),
+        "added": known_tool_name_list(obj["added"], source, "diff entry added"),
+        "removed": known_tool_name_list(obj["removed"], source, "diff entry removed"),
+        "changed": [known_changed_row(row, source) for row in changed_raw],
+        "unchanged": [known_unchanged_row(row, source) for row in unchanged_raw],
+    }
+
+
+def known_diff_file(raw: object, source: pathlib.Path) -> dict:
+    """Reconstruct the whole ``SCHEMA_DIFF_PATH`` document key-by-key against
+    the closed ``DIFF_OUT_KEYS`` set before merging in a new entry and
+    writing it back."""
+    if not isinstance(raw, dict):
+        raise SystemExit(f"{source}: diff file must be an object, got {raw!r}")
+    unknown = sorted(set(raw) - DIFF_OUT_KEYS)
+    if unknown:
+        raise SystemExit(f"{source}: unknown diff file keys {unknown}")
+    return {key: known_diff_entry(value, source) for key, value in raw.items()}
 
 
 def tool_entry(name: str, spec: dict, snapshot_bytes: bytes) -> dict:
@@ -388,7 +529,7 @@ def cmd_diff() -> int:
 
     existing: dict = {}
     if SCHEMA_DIFF_PATH.exists():
-        existing = json.loads(SCHEMA_DIFF_PATH.read_text())
+        existing = known_diff_file(json.loads(SCHEMA_DIFF_PATH.read_text()), SCHEMA_DIFF_PATH)
     existing[out_key] = entry
     SCHEMA_DIFF_PATH.parent.mkdir(parents=True, exist_ok=True)
     SCHEMA_DIFF_PATH.write_text(json.dumps(existing, indent=2, sort_keys=True) + "\n")

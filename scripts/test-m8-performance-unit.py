@@ -123,8 +123,11 @@ class BudgetComparisonTests(unittest.TestCase):
         self.assertEqual(PERF.global_verdict(measurements), "within")
 
 
+VALID_BUDGETS_SHA256 = "sha256:" + "ab" * 32
+
+
 def make_receipt(
-    verdicts: dict[str, str], budgets_sha256: str = "sha256:abc", profile: str = "core"
+    verdicts: dict[str, str], budgets_sha256: str = VALID_BUDGETS_SHA256, profile: str = "core"
 ) -> dict:
     return {
         "measurements": {name: {"verdict": verdict} for name, verdict in verdicts.items()},
@@ -225,6 +228,24 @@ class RegressionVerdictTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             PERF.regression_verdict(receipts)
 
+    def test_rejects_a_magnitude_id_outside_the_closed_grammar(self) -> None:
+        receipts = [
+            make_receipt({"not an id!": "within"}),
+            make_receipt({"not an id!": "within"}),
+            make_receipt({"not an id!": "within"}),
+        ]
+        with self.assertRaises(ValueError):
+            PERF.regression_verdict(receipts)
+
+    def test_rejects_a_verdict_outside_the_closed_set(self) -> None:
+        receipts = [
+            make_receipt({"startup_cold_ms": "totally-fine"}),
+            make_receipt({"startup_cold_ms": "within"}),
+            make_receipt({"startup_cold_ms": "within"}),
+        ]
+        with self.assertRaises(ValueError):
+            PERF.regression_verdict(receipts)
+
 
 class RunCompareTests(unittest.TestCase):
     def write_receipts(self, tmp_path: pathlib.Path, receipts: list[dict]) -> list[str]:
@@ -264,6 +285,28 @@ class RunCompareTests(unittest.TestCase):
             ):
                 regressed = PERF.run_compare(keys)
             self.assertFalse(regressed)
+
+    def test_compare_rejects_a_malformed_budgets_sha256_on_disk(self) -> None:
+        receipts = [make_receipt({"startup_cold_ms": "within"}, budgets_sha256="sha256:abc") for _ in range(3)]
+        with tempfile.TemporaryDirectory() as tmp:
+            tmp_path = pathlib.Path(tmp)
+            keys = self.write_receipts(tmp_path, receipts)
+            with mock.patch.object(PERF, "RECEIPTS_DIR", tmp_path), mock.patch.object(
+                PERF, "COMPARE_OUT_PATH", tmp_path / "compare.json"
+            ):
+                with self.assertRaises(ValueError):
+                    PERF.run_compare(keys)
+
+    def test_compare_rejects_a_profile_outside_the_closed_choices_on_disk(self) -> None:
+        receipts = [make_receipt({"startup_cold_ms": "within"}, profile="staging") for _ in range(3)]
+        with tempfile.TemporaryDirectory() as tmp:
+            tmp_path = pathlib.Path(tmp)
+            keys = self.write_receipts(tmp_path, receipts)
+            with mock.patch.object(PERF, "RECEIPTS_DIR", tmp_path), mock.patch.object(
+                PERF, "COMPARE_OUT_PATH", tmp_path / "compare.json"
+            ):
+                with self.assertRaises(ValueError):
+                    PERF.run_compare(keys)
 
     def test_invalid_key_is_rejected(self) -> None:
         with self.assertRaises(ValueError):

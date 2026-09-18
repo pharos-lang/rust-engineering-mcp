@@ -387,6 +387,78 @@ class DiffTests(unittest.TestCase):
             with self.assertRaises(SystemExit):
                 CF.cmd_diff()
 
+    def test_existing_diff_file_with_an_unknown_top_level_key_is_rejected(self) -> None:
+        self.out_path.write_text(json.dumps({"not-a-real-destination": {}}))
+        with self.assertRaises(SystemExit):
+            self.run_diff({"base": "deadbeef", "out": self.OUT_KEY})
+
+    def test_existing_diff_file_with_an_unknown_entry_field_is_rejected(self) -> None:
+        corrupt_entry = {
+            "base": "deadbeef",
+            "base_commit": "deadbeef",
+            "head_commit": "cafefeed",
+            "tree_dirty": False,
+            "added": [],
+            "removed": [],
+            "changed": [],
+            "unchanged": [],
+            "unexpected_field": "surprise",
+        }
+        self.out_path.write_text(json.dumps({self.OUT_KEY: corrupt_entry}))
+        with self.assertRaises(SystemExit):
+            self.run_diff({"base": "deadbeef", "out": self.OUT_KEY})
+
+    def test_existing_diff_file_with_a_wrong_typed_field_is_rejected(self) -> None:
+        corrupt_entry = {
+            "base": "deadbeef",
+            "base_commit": "deadbeef",
+            "head_commit": "cafefeed",
+            "tree_dirty": "not-a-bool",
+            "added": [],
+            "removed": [],
+            "changed": [],
+            "unchanged": [],
+        }
+        self.out_path.write_text(json.dumps({self.OUT_KEY: corrupt_entry}))
+        with self.assertRaises(SystemExit):
+            self.run_diff({"base": "deadbeef", "out": self.OUT_KEY})
+
+    def test_existing_diff_file_with_an_unknown_changed_row_key_is_rejected(self) -> None:
+        corrupt_entry = {
+            "base": "deadbeef",
+            "base_commit": "deadbeef",
+            "head_commit": "cafefeed",
+            "tree_dirty": False,
+            "added": [],
+            "removed": [],
+            "changed": [
+                {
+                    "name": CHANGE_NAME,
+                    "keys_changed": ["inputSchema"],
+                    "input_schema_changed": True,
+                    "output_schema_changed": False,
+                    "annotations_changed": False,
+                    "bytes_identical": False,
+                    "unexpected_field": "surprise",
+                }
+            ],
+            "unchanged": [],
+        }
+        self.out_path.write_text(json.dumps({self.OUT_KEY: corrupt_entry}))
+        with self.assertRaises(SystemExit):
+            self.run_diff({"base": "deadbeef", "out": self.OUT_KEY})
+
+    def test_existing_diff_file_preserves_a_valid_entry_when_merging_another_key(self) -> None:
+        other_key = "since_other"
+        with mock.patch.object(CF, "DIFF_OUT_KEYS", frozenset({self.OUT_KEY, other_key})):
+            code, _ = self.run_diff({"base": "deadbeef", "out": self.OUT_KEY})
+            self.assertEqual(code, 0)
+            before = json.loads(self.out_path.read_text())[self.OUT_KEY]
+            code, _ = self.run_diff({"base": "deadbeef", "out": other_key})
+            self.assertEqual(code, 0)
+        after = json.loads(self.out_path.read_text())[self.OUT_KEY]
+        self.assertEqual(before, after)
+
 
 class RealRepositoryClassificationTests(unittest.TestCase):
     def test_classes_cover_exactly_the_36_real_tool_names(self) -> None:
