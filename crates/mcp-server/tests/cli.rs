@@ -47,7 +47,145 @@ fn help_describes_only_implemented_commands() -> io::Result<()> {
         assert!(help.contains("rust.toolchain.inspect"));
         assert!(help.contains("catalog sync"));
         assert!(help.contains("contract [--json | --human]"));
+        // Implemented but previously undocumented: cargo-vendor capture and
+        // three serve flags accepted by host_config.rs but absent from the
+        // old embedded help text.
+        assert!(help.contains("cargo-vendor capture"));
+        assert!(help.contains("--allow-profiling"));
+        assert!(help.contains("--vendor-capture "));
+        assert!(help.contains("--vendor-capture-tree-sha256"));
         assert!(output.stderr.is_empty());
+    }
+    Ok(())
+}
+
+// Every top-level command (and, where a command has subcommands, the
+// subcommand path too) resolves `--help`/`-h` to a real help section on
+// stdout with exit 0 — instead of the fixed `Unsupported invocation` error a
+// second-level `--help` used to return.
+const PER_COMMAND_HELP: &[(&[&str], &[&str])] = &[
+    (&["quality-artifacts", "--help"], &["--state-root"]),
+    (&["quality-artifacts", "recover", "-h"], &["--state-root"]),
+    (&["quality-artifacts", "prune", "--help"], &["--state-root"]),
+    (
+        &["mutation", "--help"],
+        &["--operation-id", "--plan-digest"],
+    ),
+    (&["mutation", "list", "-h"], &["--state-root"]),
+    (&["mutation", "prune", "--help"], &["--operation-id"]),
+    (&["cargo-vendor", "--help"], &["--directory", "--into"]),
+    (&["cargo-vendor", "inspect", "-h"], &["--directory"]),
+    (&["cargo-vendor", "capture", "--help"], &["--into"]),
+    (
+        &["catalog", "--help"],
+        &["--store", "--trust", "--allow-host"],
+    ),
+    (&["catalog", "status", "-h"], &["--store"]),
+    (&["catalog", "import", "--help"], &["--store"]),
+    (&["catalog", "sync", "-h"], &["--allow-host"]),
+    (&["catalog", "rebuild-index", "--help"], &["--index-store"]),
+    (&["version", "--help"], &["--json"]),
+    (&["--version", "-h"], &["--json"]),
+    (&["-V", "--help"], &["--json"]),
+    (&["security-runtime", "--help"], &["inventory"]),
+    (&["security-runtime", "inventory", "-h"], &["--json"]),
+    (&["doctor", "--help"], &["--active", "--state-root"]),
+    (&["capabilities", "--help"], &["--docker", "--probe-image"]),
+    (&["contract", "-h"], &["--human"]),
+    (&["serve", "--help"], &["--stdio", "--root", "--docker"]),
+];
+
+#[test]
+fn per_command_help_prints_that_commands_section_on_stdout() -> io::Result<()> {
+    for (args, must_contain) in PER_COMMAND_HELP {
+        let output = run(args)?;
+        assert!(output.status.success(), "{args:?}");
+        let help = String::from_utf8_lossy(&output.stdout);
+        for needle in *must_contain {
+            assert!(help.contains(needle), "{args:?} missing {needle:?}");
+        }
+        assert!(output.stderr.is_empty(), "{args:?}");
+    }
+    Ok(())
+}
+
+// A nested `<command> <subcommand> --help` prints exactly the same section as
+// `<command> --help` — one section per command, not one per subcommand — so
+// there is a single place that can drift out of date per command.
+#[test]
+fn nested_subcommand_help_matches_its_parent_command_section() -> io::Result<()> {
+    for (command, subcommands) in [
+        ("quality-artifacts", ["recover", "prune"].as_slice()),
+        ("mutation", ["list", "prune"].as_slice()),
+        ("cargo-vendor", ["inspect", "capture"].as_slice()),
+        (
+            "catalog",
+            ["status", "import", "sync", "rebuild-index"].as_slice(),
+        ),
+        ("security-runtime", ["inventory"].as_slice()),
+    ] {
+        let parent = run(&[command, "--help"])?;
+        assert!(parent.status.success(), "{command}");
+        for sub in subcommands {
+            let nested = run(&[command, sub, "--help"])?;
+            assert!(nested.status.success(), "{command} {sub}");
+            assert_eq!(nested.stdout, parent.stdout, "{command} {sub}");
+        }
+    }
+    Ok(())
+}
+
+// `serve --help` must resolve before `host_config::parse` ever runs: no
+// `--stdio`, no host flags, and it must not read a byte of stdin or hang
+// waiting for one (a real `serve --stdio` run reads until EOF).
+#[test]
+fn serve_help_never_reaches_stdio_or_host_config_parsing() -> io::Result<()> {
+    let output = run(&["serve", "--help"])?;
+    assert!(output.status.success());
+    assert!(output.stderr.is_empty());
+    let help = String::from_utf8_lossy(&output.stdout);
+    assert!(help.contains("serve --stdio"));
+    assert!(help.contains("--rust-image"));
+    Ok(())
+}
+
+fn quoted_dash_flags(source: &str) -> std::collections::BTreeSet<&str> {
+    let mut flags = std::collections::BTreeSet::new();
+    let mut rest = source;
+    while let Some(start) = rest.find('"') {
+        rest = &rest[start + 1..];
+        let Some(end) = rest.find('"') else { break };
+        let literal = &rest[..end];
+        if literal.len() > 2
+            && literal.starts_with("--")
+            && literal[2..]
+                .bytes()
+                .all(|b| b.is_ascii_lowercase() || b == b'-' || b.is_ascii_digit())
+        {
+            flags.insert(literal);
+        }
+        rest = &rest[end + 1..];
+    }
+    flags
+}
+
+// Drift guard (spec §change-workflow "single source of truth"): every
+// `--flag` literal `host_config.rs` actually compares against must appear in
+// `serve --help`, derived from the real parser source rather than hand-copied
+// into the test.
+#[test]
+fn serve_help_documents_every_flag_literal_host_config_accepts() -> io::Result<()> {
+    let source = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/src/host_config.rs"));
+    let flags = quoted_dash_flags(source);
+    assert!(
+        flags.len() > 15,
+        "sanity: expected many distinct flags, found {flags:?}"
+    );
+    let output = run(&["serve", "--help"])?;
+    assert!(output.status.success());
+    let help = String::from_utf8_lossy(&output.stdout);
+    for flag in &flags {
+        assert!(help.contains(flag), "serve --help is missing {flag}");
     }
     Ok(())
 }
@@ -74,6 +212,14 @@ fn unsupported_modes_fail_without_claiming_mcp_support() -> io::Result<()> {
         vec!["contract", "--unknown"],
         vec!["contract", "--json", "--human"],
         vec!["contract", "--json", "extra"],
+        // `--help`/`-h` only resolves right after the command path (and, for
+        // commands with subcommands, right after the subcommand); every
+        // other placement or trailing argument is unaffected and still fails.
+        vec!["serve", "--stdio", "--help"],
+        vec!["catalog", "status", "--help", "extra"],
+        vec!["mutation", "--help", "extra"],
+        vec!["catalog", "unknown-subcommand", "--help"],
+        vec!["unknown-command", "--help"],
     ] {
         let output = run(&args)?;
         assert_eq!(output.status.code(), Some(2), "{args:?}");
@@ -593,7 +739,8 @@ fn catalog_index_store_inside_a_root_is_rejected() -> io::Result<()> {
     result
 }
 
-// F-2 (docs/validation/M8/06-reproduction.md): `mutation list` must read the
+// F-2 (docs/operations/release-verification.md; historical receipt:
+// docs/validation/M8/06-reproduction.md at 51fa602e): `mutation list` must read the
 // journal store passively, the same way `doctor --state-root` does, rather
 // than treating "never had a mutation" as an interrupted-operation error.
 #[test]
