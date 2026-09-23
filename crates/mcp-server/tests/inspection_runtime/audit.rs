@@ -29,6 +29,7 @@ pub(super) fn start(fixture: &Fixture, snapshot: Option<(&Path, &str)>) -> Resul
             .arg("--rustsec-sha256")
             .arg(hash);
     }
+    instrumented(&mut command);
     let mut child = command
         .stdin(Stdio::piped())
         .stdout(Stdio::piped())

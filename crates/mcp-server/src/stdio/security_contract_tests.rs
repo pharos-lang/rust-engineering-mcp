@@ -1,6 +1,8 @@
 use super::{
-    QualityInvocation, deny::DenyTool, miri::MiriTool, quality_v2::QualityV2Tool,
-    supply_chain::SupplyTool, task_materialization_requested, unsafe_scan::UnsafeTool,
+    QualityInvocation, coverage::CoverageTool, deny::DenyTool, miri::MiriTool,
+    mutation_test::MutationTestTool, nextest::NextestTool, quality_v2::QualityV2Tool,
+    semver::SemverTool, supply_chain::SupplyTool, task_materialization_requested,
+    unsafe_scan::UnsafeTool,
 };
 use rmcp::model::{CallToolRequestParams, CallToolResult, ErrorData, Tool};
 use rust_engineering_domain::{
@@ -79,6 +81,51 @@ fn m4_task_routing_preserves_kind_authority_and_budget() -> TestResult {
             timeout_seconds.max(300) * 1_000,
         );
     }
+    Ok(())
+}
+
+#[test]
+fn test_coverage_semver_and_mutation_task_routing_is_closed() -> TestResult {
+    use rust_engineering_domain::job::JobKind;
+
+    for (invocation, kind) in [
+        (
+            QualityInvocation::Nextest(Arc::new(NextestTool::new()?)),
+            JobKind::TestNextest,
+        ),
+        (
+            QualityInvocation::Coverage(Arc::new(CoverageTool::new()?)),
+            JobKind::Coverage,
+        ),
+        (
+            QualityInvocation::Semver(Arc::new(SemverTool::new()?)),
+            JobKind::SemverCheck,
+        ),
+    ] {
+        let arguments = json!({
+            "project_ref": PROJECT_REF,
+            "candidate_project_ref": PROJECT_REF,
+            "timeout_seconds": 75,
+        })
+        .as_object()
+        .cloned()
+        .ok_or("arguments")?;
+        let request = CallToolRequestParams::new("fixture").with_arguments(arguments);
+        assert_eq!(invocation.kind(), kind);
+        assert_eq!(invocation.project_ref(&request)?.to_string(), PROJECT_REF);
+        assert_eq!(invocation.budget(&request)?.work().0, 300_000);
+    }
+
+    let mutation = QualityInvocation::Mutation(Arc::new(MutationTestTool::new()?));
+    let request = CallToolRequestParams::new("fixture").with_arguments(
+        json!({"project_ref":PROJECT_REF, "max_mutants":2, "mutant_timeout_seconds":10})
+            .as_object()
+            .cloned()
+            .ok_or("arguments")?,
+    );
+    assert_eq!(mutation.kind(), JobKind::MutationTest);
+    assert_eq!(mutation.project_ref(&request)?.to_string(), PROJECT_REF);
+    assert_eq!(mutation.budget(&request)?.work().0, 300_000);
     Ok(())
 }
 

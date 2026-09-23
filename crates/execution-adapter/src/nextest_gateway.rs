@@ -355,18 +355,6 @@ pub(super) fn execute(
         &nonce,
     )?;
     let (outcome, oom_killed) = finish_work(work, terminal_signal)?;
-    let (stdout, expanded_out) = bounded_text(&outcome.stdout, limits.output_bytes());
-    let (stderr, expanded_err) = bounded_text(&outcome.stderr, limits.output_bytes());
-    let termination = if expanded_out || expanded_err {
-        ExecutionTermination::OutputLimit
-    } else {
-        match outcome.stop {
-            Stop::Exited => ExecutionTermination::Exited,
-            Stop::Cancelled => ExecutionTermination::Cancelled,
-            Stop::TimedOut => ExecutionTermination::TimedOut,
-            Stop::OutputLimit => ExecutionTermination::OutputLimit,
-        }
-    };
     let identity = serde_json::to_vec(&(
         gateway.configuration_fingerprint()?,
         &command,
@@ -376,26 +364,14 @@ pub(super) fn execute(
         "rust-nextest-profile-v1",
     ))
     .map_err(|_| ExecutionError::Infrastructure)?;
-    let result = rust_engineering_domain::ExecutionResult {
-        termination,
-        exit_code: if outcome.stop == Stop::Exited {
-            outcome.code
-        } else {
-            None
-        },
+    let result = super::rust_gateway::bounded_execution_result(
+        outcome,
         oom_killed,
-        stdout,
-        stderr,
-        stdout_truncated: outcome.stdout_truncated || expanded_out,
-        stderr_truncated: outcome.stderr_truncated || expanded_err,
-        duration_ms: outcome.duration_ms,
-        total_duration_ms: started.elapsed().as_millis().try_into().unwrap_or(u64::MAX),
-        execution_fingerprint: digest(&identity)
-            .parse()
-            .map_err(|_| ExecutionError::Infrastructure)?,
-        platform: "linux/aarch64",
-        image_id: gateway.image_id().into(),
-    };
+        limits,
+        started,
+        &identity,
+        gateway.image_id(),
+    )?;
     let junit_bytes = junit_slot
         .into_inner()
         .map_err(|_| ExecutionError::Infrastructure)?;

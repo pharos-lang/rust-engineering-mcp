@@ -342,4 +342,51 @@ mod tests {
             assert!(parse(args.into_iter().map(OsString::from)).is_none());
         }
     }
+
+    #[test]
+    fn reports_exact_closed_error_codes_and_deadlines() {
+        for (error, expected) in [
+            (ProjectError::Cancelled, "cancelled"),
+            (
+                ProjectError::Rejected(OperationalErrorCode::UnsupportedPlatform),
+                "unsupported_platform",
+            ),
+            (
+                ProjectError::Rejected(OperationalErrorCode::OutputLimitExceeded),
+                "limit_exceeded",
+            ),
+            (
+                ProjectError::Rejected(OperationalErrorCode::CommandTimeout),
+                "command_timeout",
+            ),
+            (
+                ProjectError::Rejected(OperationalErrorCode::SandboxDenied),
+                "permission_denied",
+            ),
+            (
+                ProjectError::Rejected(OperationalErrorCode::InvalidProject),
+                "invalid_cargo_data",
+            ),
+            (ProjectError::Internal, "io"),
+        ] {
+            let value = report(Err(error));
+            assert_eq!(value.status, "blocked");
+            assert_eq!(value.error_code, Some(expected));
+            assert!(value.tree_fingerprint.is_none());
+            assert!(value.packages.is_empty());
+        }
+        assert!(
+            Deadline(Instant::now() + Duration::from_secs(1))
+                .check()
+                .is_ok()
+        );
+        assert_eq!(
+            Deadline(Instant::now()).check(),
+            Err(ProjectError::Rejected(OperationalErrorCode::CommandTimeout))
+        );
+        assert_eq!(
+            capture_report(Err(ProjectError::Cancelled)).error_code,
+            Some("cancelled")
+        );
+    }
 }

@@ -1148,18 +1148,7 @@ fn create_volume(
     )? {
         return Err(ExecutionError::CleanupUncertain.into());
     }
-    let mut arguments = vec![
-        "volume".into(),
-        "create".into(),
-        "--driver=local".into(),
-        "--opt=type=tmpfs".into(),
-        "--opt=device=tmpfs".into(),
-        format!("--opt=o={options}"),
-    ];
-    for (key, value) in labels(operation_id) {
-        arguments.push(format!("--label={key}={value}"));
-    }
-    arguments.push(name.into());
+    let arguments = crate::mutation_gateway::tmpfs_volume_arguments(name, operation_id, options);
     phase_result(
         mutation_control(gateway, &arguments, deadline, cancel),
         deadline,
