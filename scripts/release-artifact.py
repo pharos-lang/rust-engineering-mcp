@@ -65,6 +65,11 @@ PROHIBITED_PATH_PARTS = {
 MAX_BINARY_BYTES = 512 * 1024 * 1024
 MAX_TEXT_BYTES = 16 * 1024 * 1024
 MAX_TOTAL_NOTICE_BYTES = 128 * 1024 * 1024
+# The frozen, byte-identical `licenses/upstream/receipt.json` still spells
+# every text path under this old prefix (it moved from `docs/release/
+# upstream-licenses/` at 51fa602e and is never rewritten). `supplements()`
+# strips it and re-resolves under `licenses/upstream/`.
+OLD_LICENSES_PREFIX = "docs/release/upstream-licenses/"
 MACHO_ARM64_CPU = 0x0100000C
 MACHO_EXECUTE = 2
 
@@ -317,7 +322,13 @@ def package_texts(
 
 
 def supplements(root: Path) -> dict[tuple[str, str], list[tuple[str, bytes, str]]]:
-    receipt_path = root / "docs/release/upstream-licenses/receipt.json"
+    # `receipt.json` is a byte-identical, hash-verified move of the file that
+    # used to live at `docs/release/upstream-licenses/receipt.json` (historical
+    # receipt: docs/release/upstream-licenses/receipt.json at 51fa602e); it is
+    # never rewritten, so every `groups[].texts[].file` entry it carries still
+    # spells the OLD path. `OLD_LICENSES_PREFIX` is the explicit, tested
+    # mapping from that frozen string to the real current location.
+    receipt_path = root / "licenses/upstream/receipt.json"
     receipt = json.loads(read_regular(receipt_path, MAX_TEXT_BYTES))
     result: dict[tuple[str, str], list[tuple[str, bytes, str]]] = {}
     for group in receipt.get("groups", []):
@@ -327,7 +338,9 @@ def supplements(root: Path) -> dict[tuple[str, str], list[tuple[str, bytes, str]
             expected = row.get("sha256")
             if not isinstance(relative, str) or not isinstance(expected, str):
                 raise ValueError("invalid upstream license receipt text")
-            path = root / relative
+            if not relative.startswith(OLD_LICENSES_PREFIX):
+                raise ValueError(f"unexpected upstream license receipt path: {relative}")
+            path = root / "licenses/upstream" / relative[len(OLD_LICENSES_PREFIX):]
             data = read_regular(path, MAX_TEXT_BYTES)
             if digest(data) != expected:
                 raise ValueError(f"upstream license receipt hash mismatch: {relative}")

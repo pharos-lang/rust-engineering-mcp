@@ -471,4 +471,22 @@ mod tests {
             None
         );
     }
+
+    #[test]
+    fn tar_reader_rejects_a_literal_dotdot_member_name() -> Result<(), ExecutionError> {
+        // The reader never interprets a member name as a path to join or
+        // traverse -- it only ever compares it byte-for-byte against the one
+        // fixed `expected_name`. A literal `..` therefore falls into the same
+        // "name != expected_name" refusal as any other wrong name, and this
+        // test pins that down explicitly instead of leaving it as an inferred
+        // property of the allowlist design.
+        let mut archive = Vec::new();
+        tar_entry(&mut archive, "..", b"traversal", false)?;
+        archive.resize(archive.len() + 1024, 0);
+        assert_eq!(
+            decode_single_file_tar(&archive, MAX_JUNIT_EXPORT, JUNIT_ARCHIVE_MEMBER),
+            None
+        );
+        Ok(())
+    }
 }

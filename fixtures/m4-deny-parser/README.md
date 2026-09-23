@@ -69,5 +69,6 @@ multi-engine goldens are still pending, so these fixtures do not qualify the
 whole parser as native-calibrated.
 
 The accepted event shapes come from the cargo-deny sources inventoried in
-`docs/validation/M4/deny-research/sources.json`, pinned to commit
+`docs/architecture/execution-and-security.md` (historical receipt:
+docs/validation/M4/deny-research/sources.json at 51fa602e), pinned to commit
 `759a4946dcfe93a56fb42d464e193c4c448af4e3`.

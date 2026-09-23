@@ -2,11 +2,7 @@
 """Portable tests for scripts/docs-hygiene.py on a temporary Git repository."""
 from __future__ import annotations
 
-import hashlib
 import importlib.util
-import io
-import json
-import os
 import pathlib
 import subprocess
 import tempfile
@@ -19,10 +15,6 @@ if SPEC is None or SPEC.loader is None:
     raise RuntimeError("docs-hygiene unavailable")
 DH = importlib.util.module_from_spec(SPEC)
 SPEC.loader.exec_module(DH)
-
-
-def sha256(data: bytes) -> str:
-    return hashlib.sha256(data).hexdigest()
 
 
 class Repo:
@@ -56,31 +48,48 @@ class Repo:
         self.temp.cleanup()
 
 
-class Classification(unittest.TestCase):
-    def test_living_frozen_and_path_string_sets(self) -> None:
-        self.assertTrue(DH.is_living("README.md"))
-        self.assertTrue(DH.is_living("docs/tools.md"))
-        self.assertTrue(DH.is_living("docs/validation/M5/matrix.md"))
-        self.assertTrue(DH.is_living("docs/reviews/M4/pkg/review.md"))
-        self.assertFalse(DH.is_living("docs/reviews/M4/pkg/inputs/README.md"))
-        self.assertFalse(DH.is_living("docs/reviews/pkg/prompt.md"))
-        self.assertFalse(DH.is_living("docs/validation/M3/delegation/A01/prompt.md"))
-        self.assertFalse(DH.is_living("docs/research/m1-16/measurement/results/analysis/sources.md"))
-        self.assertFalse(DH.is_living("docs/prompts/cleanup-repository.md"))
-        self.assertFalse(DH.is_living("crates/domain/README.md"))
-        self.assertFalse(DH.is_living("docs/validation/M5/core-gate.json"))
-        self.assertFalse(DH.is_living("NOTICE"))
-        self.assertTrue(DH.carries_path_strings("scripts/gate.py"))
-        self.assertTrue(DH.carries_path_strings(".gitignore"))
-        self.assertTrue(DH.carries_path_strings("crates/domain/src/lib.rs"))
-        self.assertTrue(DH.carries_path_strings("docs/adr/ADR-001.md"))
-        self.assertFalse(DH.carries_path_strings("scripts/data.bin"))
-        self.assertFalse(DH.carries_path_strings("vendor/x/Cargo.toml"))
+class ScopeClassification(unittest.TestCase):
+    def test_is_doc_scope(self) -> None:
+        self.assertTrue(DH.is_doc_scope("README.md"))
+        self.assertTrue(DH.is_doc_scope("CHANGELOG.md"))
+        self.assertTrue(DH.is_doc_scope("docs/reference/tools.md"))
+        self.assertTrue(DH.is_doc_scope(".planning/deferred-commitments.md"))
+        self.assertTrue(DH.is_doc_scope(".planning/nested/plan.md"))
+        self.assertFalse(DH.is_doc_scope("crates/domain/README.md"))
+        self.assertFalse(DH.is_doc_scope("NOTICE"))
+        self.assertTrue(DH.is_doc_scope("AGENTS.md"))  # now checked, see docs-hygiene.py
 
-    def test_link_target_parsing_and_resolution(self) -> None:
+    def test_is_planning_scope(self) -> None:
+        self.assertTrue(DH.is_planning_scope(".planning/x.md"))
+        self.assertTrue(DH.is_planning_scope(".planning/nested/x.md"))
+        self.assertFalse(DH.is_planning_scope("docs/x.md"))
+
+    def test_in_retired_scan_scope(self) -> None:
+        self.assertTrue(DH.in_retired_scan_scope("README.md"))
+        self.assertTrue(DH.in_retired_scan_scope("NOTICE"))
+        self.assertTrue(DH.in_retired_scan_scope("docs/reference/tools.md"))
+        self.assertTrue(DH.in_retired_scan_scope(".planning/deferred-commitments.md"))
+        self.assertTrue(DH.in_retired_scan_scope("crates/domain/src/lib.rs"))
+        self.assertTrue(DH.in_retired_scan_scope("scripts/gate.py"))
+        self.assertTrue(DH.in_retired_scan_scope("fixtures/benchmark/README.md"))
+        self.assertTrue(DH.in_retired_scan_scope(".github/workflows/ci.yml"))
+        self.assertTrue(DH.in_retired_scan_scope("sonar-project.properties"))
+        self.assertTrue(DH.in_retired_scan_scope(".gitignore"))
+        self.assertTrue(DH.in_retired_scan_scope("AGENTS.md"))  # now scanned, see docs-hygiene.py
+        self.assertFalse(DH.in_retired_scan_scope("scripts/docs-hygiene.py"))
+        self.assertFalse(DH.in_retired_scan_scope("scripts/test-docs-hygiene.py"))
+        self.assertTrue(DH.in_retired_scan_scope(".planning/anything.md"))
+        self.assertFalse(DH.in_retired_scan_scope("fixtures/other/notes.md"))
+        self.assertFalse(DH.in_retired_scan_scope("crates/domain/src/lib.rs.orig"))
+
+
+class LinkParsing(unittest.TestCase):
+    def test_split_target(self) -> None:
         self.assertEqual(DH.split_target("<a b.md#x>"), ("<", "a b.md", "#x>"))
         self.assertEqual(DH.split_target("a.md#frag"), ("", "a.md", "#frag"))
         self.assertEqual(DH.split_target("a.md"), ("", "a.md", ""))
+
+    def test_resolve(self) -> None:
         self.assertIsNone(DH.resolve("docs/a.md", "https://example.invalid/x"))
         self.assertIsNone(DH.resolve("docs/a.md", "mailto:x@y"))
         self.assertIsNone(DH.resolve("docs/a.md", ""))
@@ -88,39 +97,48 @@ class Classification(unittest.TestCase):
         self.assertEqual(DH.resolve("docs/a.md", "../README.md"), "README.md")
         self.assertEqual(DH.resolve("README.md", "docs/x.md"), "docs/x.md")
         self.assertEqual(DH.resolve("docs/a.md", "/docs/x.md"), "docs/x.md")
-        self.assertEqual(DH.relative_link("docs/validation/M5/matrix.md", "docs/validation/M5/core.json"), "core.json")
-        self.assertEqual(DH.relative_link("README.md", "docs/x.md"), "docs/x.md")
-        links = [raw for _, raw in DH.iter_links("[a](x.md) ![i](img.png)\n[ref]: y.md\n[^note]: Qualified text\n")]
+
+    def test_iter_links(self) -> None:
+        text = "[a](x.md) ![i](img.png)\n[ref]: y.md\n[^note]: Qualified text\n"
+        links = [raw for _, raw in DH.iter_links(text)]
         self.assertEqual(links, ["x.md", "img.png", "y.md"])
 
-    def test_tree_and_path_mapping(self) -> None:
+
+class Tree(unittest.TestCase):
+    def test_exists(self) -> None:
         tree = DH.Tree(["docs/a/b.md", "docs/c.md"])
         self.assertTrue(tree.exists("docs/a"))
         self.assertTrue(tree.exists("docs/a/b.md"))
         self.assertTrue(tree.exists("."))
         self.assertFalse(tree.exists("docs/zz"))
-        file_moves = {"docs/old.md": "docs/new.md"}
-        dir_moves = {"docs/pkg": "docs/M1/pkg", "docs/pkg/inner": "docs/other"}
-        self.assertEqual(DH.map_path("docs/old.md", file_moves, dir_moves), "docs/new.md")
-        self.assertEqual(DH.map_path("docs/pkg/x.txt", file_moves, dir_moves), "docs/M1/pkg/x.txt")
-        self.assertEqual(DH.map_path("docs/pkg/inner/y", file_moves, dir_moves), "docs/other/y")
-        self.assertEqual(DH.map_path("docs/pkg", file_moves, dir_moves), "docs/M1/pkg")
-        self.assertEqual(DH.map_path("docs/untouched.md", file_moves, dir_moves), "docs/untouched.md")
-
-    def test_path_string_rewrite_respects_boundaries(self) -> None:
-        rewrites: list[dict] = []
-        text = ('a docs/validation/M5-runtime.json. b docs/validation/M5-runtime-superseded.json '
-                'c docs/validation/m5-clients/attempt-1/x d docs/validation/M5-runtime.json.bak')
-        out = DH.rewrite_path_strings("scripts/x.py", text, {"docs/validation/M5-runtime.json": "docs/validation/M5/runtime.json"},
-                                      {"docs/validation/m5-clients": "docs/validation/M5/clients"}, rewrites)
-        self.assertIn("a docs/validation/M5/runtime.json. b docs/validation/M5-runtime-superseded.json", out)
-        self.assertIn("docs/validation/M5/clients/attempt-1/x", out)
-        self.assertIn("docs/validation/M5-runtime.json.bak", out)
-        self.assertEqual(len(rewrites), 2)
-        self.assertEqual(DH.rewrite_path_strings("x", "nothing", {"crates/a": "crates/b"}, {}, rewrites), "nothing")
 
 
-class RepoBacked(unittest.TestCase):
+class Slugs(unittest.TestCase):
+    def test_github_slug_basic(self) -> None:
+        seen: dict[str, int] = {}
+        self.assertEqual(DH.github_slug("Overview", seen), "overview")
+        self.assertEqual(DH.github_slug("ADR-050: `local_coordinated`", seen), "adr-050-local_coordinated")
+
+    def test_github_slug_does_not_collapse_double_hyphen(self) -> None:
+        seen: dict[str, int] = {}
+        slug = DH.github_slug("`rust.benchmark.run` / `rust.benchmark.compare`", seen)
+        self.assertEqual(slug, "rustbenchmarkrun--rustbenchmarkcompare")
+
+    def test_github_slug_dedupes_repeated_headings(self) -> None:
+        seen: dict[str, int] = {}
+        first = DH.github_slug("Estado actual", seen)
+        second = DH.github_slug("Estado actual", seen)
+        self.assertEqual(first, "estado-actual")
+        self.assertEqual(second, "estado-actual-1")
+
+    def test_heading_slugs_skips_fenced_code(self) -> None:
+        text = "# Title\n\n```\n# not a heading\n```\n\n## Real heading\n"
+        self.assertEqual(DH.heading_slugs(text), {"title", "real-heading"})
+
+
+class LinksAndAnchorsRule(unittest.TestCase):
+    """Rule (a): every relative link and every #anchor must resolve."""
+
     def setUp(self) -> None:
         self.repo = Repo()
         self.addCleanup(self.repo.close)
@@ -128,154 +146,246 @@ class RepoBacked(unittest.TestCase):
         patcher.start()
         self.addCleanup(patcher.stop)
 
-    def seed(self) -> None:
-        r = self.repo
-        r.write(".gitignore", "*.log\n")
-        r.write("README.md", "[status](docs/implementation-status.md) and [receipt](docs/validation/M5-core-gate.json)\n")
-        r.write("docs/implementation-status.md",
-                "[core](validation/M5-core-gate.json) [dir](validation/m5-clients/) "
-                "[attempt](validation/m5-clients/attempt-1/receipt.json) [log](validation/run.log) "
-                "[missing](validation/nope.json) [ext](https://example.invalid) `docs/validation/M5-core-gate.json`\n")
-        r.write("docs/validation/M5-core-gate.json", '{"status": "passed"}\n')
-        r.write("docs/validation/M5-matrix.md", "[core](M5-core-gate.json) [self](../tools.md)\n")
-        r.write("docs/validation/m5-clients/attempt-1/receipt.json", "{}\n")
-        r.write("docs/validation/m5-clients/attempts.md", "[r](attempt-1/receipt.json) [core](../M5-core-gate.json)\n")
-        r.write("docs/tools.md", "plain\n")
-        r.write("docs/reviews/pkg/inputs/copy.md", "[broken](../../../nowhere.md)\n")
-        r.write("scripts/tool.py", 'RECEIPT = ROOT / "docs/validation/M5-core-gate.json"\nATTEMPTS = "docs/validation/m5-clients"\n')
-        r.write("crates/x/src/lib.rs", "//! see docs/validation/M5-core-gate.json\n")
-        r.write("docs/validation/run.log", "ignored evidence\n")
-        r.commit()
+    def test_positive_all_links_and_anchors_resolve(self) -> None:
+        self.repo.write("README.md", "[docs](docs/README.md)\n")
+        self.repo.write("docs/README.md", "# Index\n\n[guide](guides/x.md#a-heading)\n")
+        self.repo.write("docs/guides/x.md", "# A heading\n")
+        self.repo.commit()
+        tree = DH.Tree(self.repo.tracked())
+        doc_files = [p for p in self.repo.tracked() if DH.is_doc_scope(p)]
+        broken, checked = DH.check_links_and_anchors(tree, doc_files)
+        self.assertEqual(broken, [])
+        self.assertGreaterEqual(checked, 2)
 
-    def test_check_links_reports_living_frozen_and_excluded(self) -> None:
-        self.seed()
+    def test_negative_broken_path_and_broken_anchor(self) -> None:
+        self.repo.write("docs/README.md", "# Index\n\n[missing](guides/nope.md) [bad-anchor](guides/x.md#nope)\n")
+        self.repo.write("docs/guides/x.md", "# Real heading\n")
+        self.repo.commit()
+        tree = DH.Tree(self.repo.tracked())
+        doc_files = [p for p in self.repo.tracked() if DH.is_doc_scope(p)]
+        broken, _ = DH.check_links_and_anchors(tree, doc_files)
+        reasons = {row["reason"] for row in broken}
+        self.assertIn("target does not exist", reasons)
+        self.assertTrue(any("anchor" in r for r in reasons))
+
+    def test_negative_same_file_anchor_must_exist(self) -> None:
+        self.repo.write("docs/README.md", "# Index\n\n[self](#not-a-real-heading)\n")
+        self.repo.commit()
+        tree = DH.Tree(self.repo.tracked())
+        doc_files = [p for p in self.repo.tracked() if DH.is_doc_scope(p)]
+        broken, _ = DH.check_links_and_anchors(tree, doc_files)
+        self.assertEqual(len(broken), 1)
+        self.assertIn("not-a-real-heading", broken[0]["reason"])
+
+
+class DocsLayoutRule(unittest.TestCase):
+    """Rule (b): docs/ holds only README.md + the five canonical subdirs."""
+
+    def test_positive_canonical_layout_passes(self) -> None:
+        files = ["docs/README.md", "docs/guides/a.md", "docs/reference/b.md",
+                 "docs/architecture/c.md", "docs/operations/d.md", "docs/development/e.md"]
+        self.assertEqual(DH.check_docs_layout(files), [])
+
+    def test_negative_new_top_level_folder_fails(self) -> None:
+        files = ["docs/README.md", "docs/notes/new.md"]
+        violations = DH.check_docs_layout(files)
+        self.assertEqual(len(violations), 1)
+        self.assertIn("docs/notes", violations[0])
+
+    def test_negative_milestone_shaped_folder_fails(self) -> None:
+        files = ["docs/README.md", "docs/M9/x.md"]
+        violations = DH.check_docs_layout(files)
+        self.assertEqual(len(violations), 1)
+        self.assertIn("docs/M9", violations[0])
+
+
+class RetiredReferencesRule(unittest.TestCase):
+    """Rule (c): no live reference to a retired path outside a permalink/citation."""
+
+    def setUp(self) -> None:
+        self.repo = Repo()
+        self.addCleanup(self.repo.close)
+        patcher = mock.patch.object(DH, "ROOT", self.repo.root)
+        patcher.start()
+        self.addCleanup(patcher.stop)
+
+    def test_positive_permalink_and_dated_citation_are_clean(self) -> None:
+        self.repo.write("docs/architecture/overview.md", (
+            "See [ADR-001](https://github.com/pharos-lang/rust-engineering-mcp/blob/51fa602e/docs/adr/ADR-001.md) "
+            "and the historical receipt docs/validation/M1/x.json at 51fa602e.\n"
+        ))
+        self.repo.commit()
+        self.assertEqual(DH.check_retired_references(self.repo.tracked()), [])
+
+    def test_negative_bare_reference_without_commit_mark_fails(self) -> None:
+        self.repo.write("docs/architecture/overview.md", "See docs/validation/M1/x.json for detail.\n")
+        self.repo.commit()
+        violations = DH.check_retired_references(self.repo.tracked())
+        self.assertEqual(len(violations), 1)
+        self.assertEqual(violations[0]["file"], "docs/architecture/overview.md")
+
+    def test_negative_flat_retired_file_without_commit_mark_fails(self) -> None:
+        self.repo.write("SECURITY.md", "See docs/security-model.md for the threat model.\n")
+        self.repo.commit()
+        violations = DH.check_retired_references(self.repo.tracked())
+        self.assertEqual(len(violations), 1)
+
+    def test_positive_json_provenance_value_is_exempt(self) -> None:
+        self.repo.write("scripts/build-x.py", '    receipt["decision"] = "docs/adr/ADR-075-x.md"\n')
+        self.repo.commit()
+        self.assertEqual(DH.check_retired_references(self.repo.tracked()), [])
+
+    def test_positive_template_placeholder_is_exempt(self) -> None:
+        self.repo.write("CHANGELOG.md", "Historically organized under `docs/validation/M<n>/`.\n")
+        self.repo.commit()
+        self.assertEqual(DH.check_retired_references(self.repo.tracked()), [])
+
+    def test_positive_own_source_is_exempt(self) -> None:
+        self.repo.write("scripts/docs-hygiene.py", "RETIRED_EXAMPLE = 'docs/validation/M1/x.json'\n")
+        self.repo.commit()
+        self.assertEqual(DH.check_retired_references(self.repo.tracked()), [])
+
+    def test_negative_agents_md_is_no_longer_exempt(self) -> None:
+        self.repo.write("AGENTS.md", "See docs/validation/M1/x.json.\n")
+        self.repo.commit()
+        violations = DH.check_retired_references(self.repo.tracked())
+        self.assertEqual(len(violations), 1)
+
+    def test_negative_out_of_scope_file_type_is_not_scanned(self) -> None:
+        self.repo.write("crates/domain/tests/data.txt", "docs/validation/M1/x.json\n")
+        self.repo.commit()
+        self.assertEqual(DH.check_retired_references(self.repo.tracked()), [])
+
+
+class PlanningTrackedRule(unittest.TestCase):
+    """Rule (d): every .planning/*.md, at any nesting depth, is tracked."""
+
+    def setUp(self) -> None:
+        self.repo = Repo()
+        self.addCleanup(self.repo.close)
+        patcher = mock.patch.object(DH, "ROOT", self.repo.root)
+        patcher.start()
+        self.addCleanup(patcher.stop)
+
+    def test_positive_tracked_plan_passes(self) -> None:
+        self.repo.write(".planning/plan.md", "pending\n")
+        self.repo.commit()
+        self.assertEqual(DH.check_planning_tracked(self.repo.tracked()), [])
+
+    def test_negative_untracked_plan_fails(self) -> None:
+        self.repo.write(".planning/other.md", "seed\n")
+        self.repo.commit()
+        self.repo.write(".planning/untracked-plan.md", "pending, never git add-ed\n")
+        self.assertEqual(DH.check_planning_tracked(self.repo.tracked()), [".planning/untracked-plan.md"])
+
+    def test_negative_untracked_file_in_nested_planning_dir_fails(self) -> None:
+        self.repo.write(".planning/other.md", "seed\n")
+        self.repo.commit()
+        self.repo.write(".planning/scratch/notes.md", "not committed\n")
+        self.assertEqual(DH.check_planning_tracked(self.repo.tracked()),
+                          [".planning/scratch/notes.md"])
+
+
+class ReadmeNavigationRule(unittest.TestCase):
+    """Rule (e): every docs/**/*.md is linked from docs/README.md."""
+
+    def test_positive_every_doc_linked(self) -> None:
+        files = ["docs/README.md", "docs/guides/a.md", "docs/reference/b.md"]
+        with mock.patch.object(DH.pathlib.Path, "read_text",
+                                return_value="[a](guides/a.md) [b](reference/b.md)\n"), \
+             mock.patch.object(DH, "ROOT", pathlib.Path("/fake")):
+            self.assertEqual(DH.check_readme_navigation(files), [])
+
+    def test_negative_missing_link_reported(self) -> None:
+        files = ["docs/README.md", "docs/guides/a.md", "docs/reference/orphan.md"]
+        with mock.patch.object(DH.pathlib.Path, "read_text", return_value="[a](guides/a.md)\n"), \
+             mock.patch.object(DH, "ROOT", pathlib.Path("/fake")):
+            self.assertEqual(DH.check_readme_navigation(files), ["docs/reference/orphan.md"])
+
+    def test_negative_missing_readme_reported(self) -> None:
+        self.assertEqual(DH.check_readme_navigation(["docs/guides/a.md"]),
+                          ["docs/README.md is missing"])
+
+
+class DocsPathStringRule(unittest.TestCase):
+    """Rule (f): a bare docs/ path string in code resolves to a tracked path."""
+
+    def setUp(self) -> None:
+        self.repo = Repo()
+        self.addCleanup(self.repo.close)
+        patcher = mock.patch.object(DH, "ROOT", self.repo.root)
+        patcher.start()
+        self.addCleanup(patcher.stop)
+
+    def test_positive_existing_path_passes(self) -> None:
+        self.repo.write("docs/reference/tools.md", "content\n")
+        self.repo.write("scripts/tool.py", 'PATH = ROOT / "docs/reference/tools.md"\n')
+        self.repo.commit()
+        tree = DH.Tree(self.repo.tracked())
+        self.assertEqual(DH.check_docs_path_strings(self.repo.tracked(), tree), [])
+
+    def test_negative_stale_rename_reported(self) -> None:
+        self.repo.write("scripts/tool.py", 'PATH = ROOT / "docs/reference/renamed-away.md"\n')
+        self.repo.commit()
+        tree = DH.Tree(self.repo.tracked())
+        violations = DH.check_docs_path_strings(self.repo.tracked(), tree)
+        self.assertEqual(len(violations), 1)
+        self.assertEqual(violations[0]["path"], "docs/reference/renamed-away.md")
+
+    def test_positive_retired_prefix_not_double_reported(self) -> None:
+        self.repo.write("scripts/tool.py", 'PATH = ROOT / "docs/validation/M1/x.json"\n')
+        self.repo.commit()
+        tree = DH.Tree(self.repo.tracked())
+        # rule (c) reports this path; rule (f) must not duplicate it.
+        self.assertEqual(DH.check_docs_path_strings(self.repo.tracked(), tree), [])
+
+    def test_positive_synthetic_cargo_config_fixture_is_exempt(self) -> None:
+        self.repo.write("crates/domain/src/security.rs", '"docs/.cargo-config.toml",\n')
+        self.repo.commit()
+        tree = DH.Tree(self.repo.tracked())
+        self.assertEqual(DH.check_docs_path_strings(self.repo.tracked(), tree), [])
+
+
+class EndToEndCheck(unittest.TestCase):
+    def setUp(self) -> None:
+        self.repo = Repo()
+        self.addCleanup(self.repo.close)
+        patcher = mock.patch.object(DH, "ROOT", self.repo.root)
+        patcher.start()
+        self.addCleanup(patcher.stop)
+
+    def test_clean_tree_passes_and_writes_report(self) -> None:
+        r = self.repo
+        r.write("README.md", "# Product\n")
+        r.write("docs/README.md", "# Index\n\n[tools](reference/tools.md)\n")
+        r.write("docs/reference/tools.md", "# Tools\n")
+        r.commit()
         with mock.patch("builtins.print"):
-            code = DH.check_links(True)
-        summary = json.loads((self.repo.root / "target/docs-hygiene/links-check.json").read_text())
+            code = DH.run_check(True)
+        self.assertEqual(code, 0)
+        report = (self.repo.root / "target/docs-hygiene/check.json")
+        self.assertTrue(report.is_file())
+
+    def test_dirty_tree_fails_with_every_kind_of_violation(self) -> None:
+        r = self.repo
+        r.write("README.md", "# Product\n")
+        r.write("docs/README.md", "# Index\n")  # missing link to tools.md -> rule (e)
+        r.write("docs/reference/tools.md", "# Tools\n\n[gone](../nope.md)\n")  # rule (a)
+        r.write("docs/legacy/old.md", "docs/validation/M1/x.json\n")  # rule (b) + rule (c)
+        r.write(".planning/tracked.md", "seed\n")
+        r.commit()
+        r.write(".planning/orphan.md", "never committed\n")  # rule (d)
+        with mock.patch("builtins.print"):
+            code = DH.run_check(False)
         self.assertEqual(code, 1)
-        self.assertEqual([r["resolved"] for r in summary["broken_living"]], ["docs/validation/nope.json"])
-        self.assertEqual([r["resolved"] for r in summary["excluded_evidence"]], ["docs/validation/run.log"])
-        self.assertEqual([r["file"] for r in summary["broken_frozen"]], ["docs/reviews/pkg/inputs/copy.md"])
-        self.assertGreaterEqual(summary["checked"], 8)
-        # An unstaged new document takes part in resolution and can fix the broken link.
-        self.repo.write("docs/validation/nope.json", "{}\n")
-        with mock.patch("builtins.print"):
-            self.assertEqual(DH.check_links(False), 0)
 
-    def test_apply_moves_relinks_rewrites_and_verifies_bytes(self) -> None:
-        self.seed()
-        plan = [
-            {"from": "docs/validation/M5-core-gate.json", "to": "docs/validation/M5/core-gate.json"},
-            {"from": "docs/validation/M5-matrix.md", "to": "docs/validation/M5/matrix.md"},
-            {"from": "docs/validation/m5-clients", "to": "docs/validation/M5/clients"},
-        ]
-        with mock.patch("builtins.print"):
-            self.assertEqual(DH.apply_moves(plan, True, False), 0)
-        self.assertIn("docs/validation/M5-core-gate.json", self.repo.tracked())
-        with mock.patch("builtins.print"):
-            self.assertEqual(DH.apply_moves(plan, False, True), 0)
-        summary = json.loads((self.repo.root / "target/docs-hygiene/apply-moves.json").read_text())
-        self.assertEqual(summary["moved"], 4)
-        self.assertEqual(summary["hash_mismatches"], [])
-        self.assertEqual(summary["moved_living_documents"], ["docs/validation/M5/clients/attempts.md",
-                                                             "docs/validation/M5/matrix.md"])
-        self.assertEqual(summary["hashes_verified"], 2)
-        tracked = self.repo.tracked()
-        self.assertIn("docs/validation/M5/core-gate.json", tracked)
-        self.assertIn("docs/validation/M5/clients/attempt-1/receipt.json", tracked)
-        self.assertNotIn("docs/validation/M5-core-gate.json", tracked)
-        read = lambda p: (self.repo.root / p).read_text()  # noqa: E731
-        self.assertIn("[receipt](docs/validation/M5/core-gate.json)", read("README.md"))
-        status = read("docs/implementation-status.md")
-        self.assertIn("[core](validation/M5/core-gate.json)", status)
-        self.assertIn("[dir](validation/M5/clients/)", status)
-        self.assertIn("[attempt](validation/M5/clients/attempt-1/receipt.json)", status)
-        self.assertIn("[missing](validation/nope.json)", status)
-        self.assertIn("[ext](https://example.invalid)", status)
-        self.assertIn("`docs/validation/M5/core-gate.json`", status)
-        self.assertEqual(read("docs/validation/M5/matrix.md"), "[core](core-gate.json) [self](../../tools.md)\n")
-        self.assertEqual(read("docs/validation/M5/clients/attempts.md"),
-                         "[r](attempt-1/receipt.json) [core](../core-gate.json)\n")
-        self.assertIn('"docs/validation/M5/core-gate.json"', read("scripts/tool.py"))
-        self.assertIn('"docs/validation/M5/clients"', read("scripts/tool.py"))
-        self.assertIn("docs/validation/M5/core-gate.json", read("crates/x/src/lib.rs"))
-        self.assertEqual(read("docs/reviews/pkg/inputs/copy.md"), "[broken](../../../nowhere.md)\n")
-        self.assertEqual(read("docs/validation/M5/core-gate.json"), '{"status": "passed"}\n')
-        with mock.patch("builtins.print"):
-            self.assertEqual(DH.check_links(False), 1)  # only the pre-existing broken link remains
-
-    def test_expand_plan_rejects_untracked_sources_and_collisions(self) -> None:
-        self.seed()
-        files = self.repo.tracked()
-        with self.assertRaises(SystemExit):
-            DH.expand_plan([{"from": "docs/validation/absent.json", "to": "x"}], files)
-        with self.assertRaises(SystemExit):
-            DH.expand_plan([{"from": "docs/validation/M5-core-gate.json", "to": "docs/z.json"},
-                            {"from": "docs/validation/M5-matrix.md", "to": "docs/z.json"}], files)
-        with self.assertRaises(SystemExit):
-            DH.expand_plan([{"from": "docs/validation/M5-core-gate.json", "to": "docs/tools.md"}], files)
-        file_moves, dir_moves = DH.expand_plan([{"from": "docs/validation/m5-clients/", "to": "docs/validation/M5/clients"}], files)
-        self.assertEqual(dir_moves, {"docs/validation/m5-clients": "docs/validation/M5/clients"})
-        self.assertEqual(set(file_moves), {"docs/validation/m5-clients/attempt-1/receipt.json",
-                                           "docs/validation/m5-clients/attempts.md"})
-
-    def test_verify_inventories_checks_hashes_presence_and_absence(self) -> None:
+    def test_main_check_subcommand(self) -> None:
         r = self.repo
-        good = r.write("docs/validation/M5/history/kept.json", "kept\n")
-        living = r.write("docs/validation/M5/history/README.md", "prose\n")
-        r.write("docs/validation/M5/history/present.json", "should be gone\n")
-        r.write("docs/validation/M5/history/inventory.json", json.dumps({
-            "retained": [
-                {"path": "kept.json", "sha256": sha256(good.read_bytes()), "bytes": good.stat().st_size},
-                {"path": "README.md", "sha256": "stale", "bytes": 0, "living": True},
-                {"path": "missing.json", "sha256": "x", "bytes": 1},
-                {"path": "kept.json", "sha256": "wrong", "bytes": good.stat().st_size},
-            ],
-            "retired": [
-                {"original_path": "docs/validation/M5/history/present.json", "sha256": "x", "bytes": 1},
-                {"original_path": "docs/validation/M5/history/gone.json", "sha256": "x", "bytes": 1},
-            ]}))
-        r.write("docs/research/m1-16/inventory.json", json.dumps({"retained": [], "retired": []}))
-        r.write("docs/reviews/inventory.json", json.dumps({"retained": [], "retired": []}))
+        r.write("README.md", "# Product\n")
+        r.write("docs/README.md", "# Index\n")
         r.commit()
-        with mock.patch("builtins.print") as printed:
-            self.assertEqual(DH.verify_inventories(), 1)
-        messages = " ".join(str(call.args[0]) for call in printed.call_args_list)
-        self.assertIn("MISSING", messages)
-        self.assertIn("MISMATCH", messages)
-        self.assertIn("PRESENT", messages)
-        self.assertIn("3 inventories, 3 failures", messages)
-        self.assertEqual(living.read_text(), "prose\n")
-
-    def test_main_dispatches_subcommands(self) -> None:
-        self.seed()
         with mock.patch("builtins.print"):
-            self.assertEqual(DH.main(["links-check"]), 1)
-            self.assertEqual(DH.main(["verify-inventories"]), 0)
-            plan = json.dumps([{"from": "docs/tools.md", "to": "docs/guide/tools.md"}])
-            with mock.patch("sys.stdin", io.StringIO(plan)):
-                self.assertEqual(DH.main(["apply-moves", "--dry-run"]), 0)
-            with mock.patch("sys.stdin", io.StringIO(plan)):
-                self.assertEqual(DH.main(["apply-moves", "--report"]), 0)
-            with mock.patch("sys.stdin", io.StringIO('{"not": "a list"}')), self.assertRaises(SystemExit):
-                DH.main(["apply-moves"])
-            self.assertEqual(DH.main(["links-check", "--report"]), 1)
-        self.assertIn("docs/guide/tools.md", self.repo.tracked())
-        self.assertTrue((self.repo.root / "target/docs-hygiene/apply-moves.json").is_file())
-        self.assertTrue((self.repo.root / "target/docs-hygiene/links-check.json").is_file())
-        self.assertEqual((self.repo.root / "docs/validation/M5-matrix.md").read_text(),
-                         "[core](M5-core-gate.json) [self](../guide/tools.md)\n")
-        self.assertEqual(os.getcwd(), str(self.repo.root))
-
-    def test_sha256_and_ignored_paths(self) -> None:
-        self.seed()
-        self.assertEqual(DH.sha256_of(self.repo.root / "docs/tools.md"), sha256(b"plain\n"))
-        self.assertEqual(DH.ignored_paths(["docs/validation/run.log", "docs/tools.md"]), {"docs/validation/run.log"})
-        self.assertEqual(DH.ignored_paths([]), set())
-        self.assertIn("docs/tools.md", DH.tracked_files())
-        self.repo.write("docs/new.md", "new\n")
-        self.assertNotIn("docs/new.md", DH.tracked_files())
-        self.assertIn("docs/new.md", DH.tracked_files(include_untracked=True))
+            self.assertEqual(DH.main(["check"]), 0)
 
 
 if __name__ == "__main__":

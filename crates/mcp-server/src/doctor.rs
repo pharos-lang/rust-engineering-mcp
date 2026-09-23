@@ -321,7 +321,8 @@ fn classify_mutation_records(
             notes: vec!["journal busy: a mutation is in progress; rerun doctor"],
         },
         // The envelope/format sniff fails the whole scan closed before any
-        // per-record classification (see docs/validation/M8/03-formats-analysis.md
+        // per-record classification (see docs/reference/data-formats.md; historical
+        // receipt: docs/validation/M8/03-formats-analysis.md at 51fa602e
         // §2); `1` is a fail-closed lower-bound sentinel, not an exact tally.
         Err(MutationError::RecoveryRequired) => MutationJournalsReport {
             pending: 0,

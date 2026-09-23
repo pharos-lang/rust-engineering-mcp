@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """M8-05 SS4 soak calibration for the ``core`` profile of ``rust-engineering-mcp
-serve --stdio`` (docs/validation/M8/05.md, "Soak" section).
+serve --stdio`` (docs/architecture/performance.md, "Soak" section; historical
+receipt: docs/validation/M8/05.md at 51fa602e).
 
 One long-lived server process, started with ``--project-ttl-secs`` (default
 30s), opens the fixed fixture project at startup and reopens it whenever that
@@ -31,7 +32,7 @@ the plateau + margin as a real pass/fail criterion, replacing any unevidenced
 touches Docker, so it is left as an honest ``NotImplementedError`` for the
 orchestrator to run in M8-09, never simulated here.
 
-The binary and the receipt destination (``docs/validation/M8/05-soak-core.json``)
+The binary and the receipt destination (``target/qualification/m8-soak-core.json``)
 are constants derived from ``ROOT``, not CLI flags: the taint engine used by
 SonarCloud's Python analysis treats any CLI-supplied path that reaches
 ``open()``/``subprocess`` as a path traversal / command injection risk
@@ -53,13 +54,13 @@ import time
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 DEFAULT_BINARY = ROOT / "target/release/rust-engineering-mcp"
-OUT_PATH = ROOT / "docs/validation/M8/05-soak-core.json"
+OUT_PATH = ROOT / "target/qualification/m8-soak-core.json"
 FIXTURE = ROOT / "fixtures/valid-basic"
 CATALOG_FIXTURE_DIR = ROOT / "fixtures/catalog"
 CATALOG_BUNDLE = CATALOG_FIXTURE_DIR / "fixture-1.tar.zst"
 CATALOG_TRUST_SOURCE = CATALOG_FIXTURE_DIR / "fixture-trust.json"
 PROTOCOL_VERSION = "2025-06-18"
-DISPATCH_BUDGET_MS = 50  # docs/validation/M8/05-budgets.json: dispatch_*_ms
+DISPATCH_BUDGET_MS = 50  # tests/baselines/performance-budgets.json: dispatch_*_ms
 CYCLE_OVERRUN_MULTIPLIER = 3
 RSS_GROWTH_MULTIPLIER = 1.2
 FD_GROWTH_MARGIN = 10
@@ -72,7 +73,8 @@ PMSET_BINARY = pathlib.Path("/usr/bin/pmset")
 CATALOG_STORE_KNOWN_ENTRIES = {"active.bundle", "store.lock", "floor.record"}
 CANCEL_CYCLE_GAP_REASON = (
     "core profile has no cancelable long-running operation without Docker "
-    "(docs/validation/M8/05.md SS Soak); the cancel leg is a documented gap, not faked"
+    "(docs/architecture/performance.md SS Soak; historical receipt: "
+    "docs/validation/M8/05.md at 51fa602e); the cancel leg is a documented gap, not faked"
 )
 
 
@@ -184,7 +186,8 @@ def evaluate_fd_after_ttl(
     """P-5: a real pass/fail criterion for FDs observed after the open-churn TTL
     wait plus one reclaiming ``rust.project.open`` call.
 
-    Project expiry is lazy (docs/validation/M8/05.md "Hallazgo del soak"): the
+    Project expiry is lazy (docs/architecture/performance.md "Hallazgo del soak";
+    historical receipt: docs/validation/M8/05.md at 51fa602e): the
     project registry reaps expired entries on the *next* open, not on a timer
     or on unrelated calls. So the pass/fail gate is evaluated against
     ``fd_count_after_reclaim_open``, not against the pre-reclaim wait sample;
@@ -350,11 +353,11 @@ def run_open_churn(
 ) -> dict:
     """Open the same project ``count`` times to show the expected FD growth
     from unexpired live references, then sample fds again after
-    ``ttl_wait_seconds`` (docs/tools.md "rust.project.open"), and once more
+    ``ttl_wait_seconds`` (docs/reference/tools.md "rust.project.open"), and once more
     after one additional open of the same path.
 
     Project expiry is lazy: expired projects are reaped on the *next* open,
-    not by a timer or by unrelated calls (docs/validation/M8/05.md "Hallazgo
+    not by a timer or by unrelated calls (docs/architecture/performance.md "Hallazgo
     del soak"). So the wait-only sample (``fd_count_after_ttl_wait``) is
     informational evidence of bounded retention, while the post-reclaim
     sample (``fd_count_after_reclaim_open``) is what actually demonstrates
@@ -384,7 +387,8 @@ def run_open_churn(
 
 
 def evaluate_criteria(samples: list[dict], overruns: list[dict], state_root_applicable: bool) -> dict:
-    """Apply docs/validation/M8/05.md's core soak failure criteria to a finished run.
+    """Apply docs/architecture/performance.md's core soak failure criteria to a finished
+    run (historical receipt: docs/validation/M8/05.md at 51fa602e).
 
     Exposed standalone (samples/overruns as plain data) so unit tests can feed
     synthetic series without spawning a server.
@@ -539,14 +543,14 @@ def run_core_soak(
         "project_ref is opened at the start of the main phase and reopened whenever "
         f"--project-ttl-secs ({project_ttl_secs}s) elapses since the last open, since "
         "rust.catalog.status and rust.crate.search never consume a project_ref "
-        f"(docs/tools.md) and cannot themselves signal expiry; {reopens} reopens occurred "
+        f"(docs/reference/tools.md) and cannot themselves signal expiry; {reopens} reopens occurred "
         "over this run on that assumed-expiry basis.",
         "fd_growth is evaluated only over the main phase samples above. The optional "
         "--open-churn phase (see open_churn below) intentionally repeats rust.project.open "
         "to show the FD growth from live references; " + fd_after_ttl_note,
         "Project expiry is lazy by design: expired projects are reaped on the next "
         "rust.project.open, not by a timer or by unrelated calls, and are bounded by "
-        "--project-ttl-secs plus the session's open-project limit (docs/tools.md "
+        "--project-ttl-secs plus the session's open-project limit (docs/reference/tools.md "
         "rust.project.open; ADR-030). This soak measures that bound for the fixed "
         "fixture path reopened repeatedly; it does not measure or claim anything about "
         "workloads that open many distinct paths and never reopen them.",
@@ -609,7 +613,8 @@ def main() -> None:
     profile = next(choice for choice in PROFILE_CHOICES if choice == args.profile)
     if profile == "local":
         raise NotImplementedError(
-            "soak-m8.py --profile local is Docker's soak (docs/validation/M8/05.md SS4.2); "
+            "soak-m8.py --profile local is Docker's soak (docs/architecture/performance.md "
+            "SS4.2; historical receipt: docs/validation/M8/05.md at 51fa602e); "
             "this package never touches Docker. The orchestrator runs this profile in M8-09."
         )
 

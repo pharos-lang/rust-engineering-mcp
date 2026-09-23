@@ -750,7 +750,8 @@ fn client_capabilities() -> serde_json::Value {
 /// receipt, is the oracle; this comment is not.
 ///
 /// Two keys the brief listed are deliberately absent, both on the evidence of
-/// that calibration (W04, [F1/F2](../../../docs/validation/M6/01.md)):
+/// that calibration (W04, F1/F2; see docs/architecture/analyzer.md; historical
+/// receipt: docs/validation/M6/01.md at 51fa602e):
 /// `cargo.sysrootQueryMetadata` does not exist in the real binary's schema, so
 /// setting it configured nothing while still entering the `config_digest`; and
 /// `cargo.autoreload=false` made the server publish `health: warning` for the

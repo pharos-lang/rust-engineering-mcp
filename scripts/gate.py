@@ -155,6 +155,8 @@ def main():
         run('doctests',['cargo','test','--workspace','--doc','--locked','--offline'],
             require_test_groups=True)
         run('architecture',[sys.executable,'scripts/check-architecture.py'])
+        run('docs-hygiene-tests',[sys.executable,'-B','scripts/test-docs-hygiene.py'],require_test_groups=True)
+        run('docs-hygiene',[sys.executable,'-B','scripts/docs-hygiene.py','check'])
         run('gate-reporting',[sys.executable,'scripts/test-gate-reporting.py'],
             require_test_groups=True)
         run('release-artifact-tests',[sys.executable,'-B','scripts/test-release-artifact.py'],
@@ -168,6 +170,7 @@ def main():
         run('m4-helper-fmt',['cargo','fmt','--manifest-path','fixtures/unsafe-scanner-helper/Cargo.toml','--check'])
         run('m4-helper-tests',['cargo','test','--manifest-path','fixtures/unsafe-scanner-helper/Cargo.toml','--locked','--offline','--target-dir','target/unsafe-scanner-helper'],require_test_groups=True)
         run('m4-provisioning-tests',[sys.executable,'-B','-m','unittest','fixtures/rust-runtime/m4-scanner/test_provision.py'],require_test_groups=True)
+        run('m4-runtime-provisioning-tests',[sys.executable,'-B','-m','unittest','fixtures/rust-runtime/m4/test_provision.py'],require_test_groups=True)
         run('m5-helper-fmt',['cargo','fmt','--manifest-path','fixtures/profile-helper/Cargo.toml','--check'])
         # The helper's whole syscall path is `#[cfg(target_os = "linux")]`, so on this
         # macOS host neither the fmt step nor the test step below compiles a line of it:
@@ -184,6 +187,7 @@ def main():
         run('contract-freeze-tests',[sys.executable,'-B','scripts/test-contract-freeze.py'],require_test_groups=True)
         run('contract-freeze',[sys.executable,'-B','scripts/contract-freeze.py','verify'])
         run('m8-performance-unit-tests',[sys.executable,'-B','scripts/test-m8-performance-unit.py'],require_test_groups=True)
+        run('m8-rollback-unit-tests',[sys.executable,'-B','scripts/test-m8-rollback-unit.py'],require_test_groups=True)
         run('vendor',[sys.executable,'scripts/verify-vendor.py'])
         run('cargo-fixtures',[sys.executable,'scripts/test-fixtures.py',str(ROOT),'--cargo',cargo])
         run('audit',['cargo','audit','--no-fetch'])

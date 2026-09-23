@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """M8-05: measure startup, dispatch and RSS budgets for the ``core`` (and
 self-provisioned ``local``) profile of ``rust-engineering-mcp serve
---stdio``, and compare them against ``docs/validation/M8/05-budgets.json``.
+--stdio``, and compare them against ``tests/baselines/performance-budgets.json``.
 
 Every path this script touches is a constant derived from ``ROOT``: the
 taint engine used by SonarCloud's Python analysis treats any CLI-supplied
@@ -12,7 +12,8 @@ takes short keys (validated against a closed ``^[a-z0-9-]+$`` allowlist)
 naming pre-existing receipts under the constant ``target/m8-performance/``
 directory, never arbitrary paths.
 
-Scope (docs/validation/M8/05.md, docs/validation/M8/05-budgets-analysis.md
+Scope (docs/architecture/performance.md; historical receipts: docs/validation/M8/05.md,
+docs/validation/M8/05-budgets-analysis.md at 51fa602e;
 SS2/SS4): startup cold/warm (Popen -> tools/list), dispatch of
 ``rust.project.open``/``rust.catalog.status`` without Cargo, RSS idle and RSS
 peak during dispatch, and the release binary's size. This harness never
@@ -45,8 +46,8 @@ from collections.abc import Callable
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 DEFAULT_BINARY = ROOT / "target/release/rust-engineering-mcp"
-DEFAULT_BUDGETS = ROOT / "docs/validation/M8/05-budgets.json"
-OUT_PATH = ROOT / "docs/validation/M8/05-measurement.json"
+DEFAULT_BUDGETS = ROOT / "tests/baselines/performance-budgets.json"
+OUT_PATH = ROOT / "target/qualification/m8-performance-measurement.json"
 RECEIPTS_DIR = ROOT / "target/m8-performance"
 COMPARE_OUT_PATH = RECEIPTS_DIR / "regression.json"
 RECEIPT_KEY_PATTERN = re.compile(r"^[a-z0-9-]+$")
@@ -535,7 +536,8 @@ def known_receipt_profile(raw: object, source: pathlib.Path) -> str:
 
 
 def regression_verdict(receipts: list[dict]) -> dict[str, dict]:
-    """2-of-3 regression rule (docs/validation/M8/05.md): exactly 3 consecutive
+    """2-of-3 regression rule (docs/architecture/performance.md; historical
+    receipt: docs/validation/M8/05.md at 51fa602e): exactly 3 consecutive
     receipts sharing the same budgets and profile; a magnitude is only decided
     as regressed/not-regressed when the ``unavailable`` and ``insufficient_samples``
     receipts (if any) cannot change the outcome, and ``indeterminate`` otherwise (P-2)."""

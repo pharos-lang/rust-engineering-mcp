@@ -1,5 +1,5 @@
 use std::env;
-use std::ffi::OsStr;
+use std::ffi::{OsStr, OsString};
 use std::io::{self, Write};
 use std::process::ExitCode;
 
@@ -11,57 +11,12 @@ mod catalog_sync;
 mod contract_cli;
 mod doctor;
 mod doctor_run;
+mod help;
 mod host_config;
 mod mutation_cli;
 mod quality_artifact_cli;
 mod stdio;
 mod version;
-
-const HELP: &str = "Rust Engineering MCP — development server
-
-Usage: rust-engineering-mcp <COMMAND>
-
-Commands:
-  quality-artifacts recover --state-root PATH [--json]
-  quality-artifacts prune --state-root PATH [--json]
-  mutation list --state-root PATH [--json]
-  cargo-vendor inspect --directory PATH [--json]
-  mutation prune --state-root PATH --operation-id ID --plan-digest sha256:ID [--json]
-                 Inspect journals or remove one completed local receipt explicitly
-  catalog status --store PATH --trust PATH [--json]
-  catalog import SNAPSHOT --store PATH --trust PATH [--json]
-  catalog sync --source SNAPSHOT --store PATH --trust PATH [--json]
-  catalog sync --url HTTPS_URL --allow-host HOST --store PATH --trust PATH [--json]
-                 Import explicitly supplied signed local mirror snapshots
-  catalog rebuild-index --store PATH --trust PATH --index-store PATH --model-dir PATH [--json]
-                 Rebuild native Lance objects using the verified installed E5 model
-  help           Show this help (-h, --help)
-  version [--json] Show package version/build facts (-V, --version)
-  security-runtime inventory [--json]
-                 Show compiled security runtime requirements; does not inspect or install
-  doctor [--active] [--json] [same host flags as serve]
-                 Diagnose configured local state; --active calibrates approved Rust runtime
-  capabilities [--json | --human] --docker PATH --docker-socket PATH --state-root PATH --probe-image sha256:ID
-                 Actively probe the approved local sandbox; JSON output
-  contract [--json | --human]
-                 Static spec §56 capabilities document: all 36 tool definitions, stability,
-                 canonical schema/description hashes and runtime requirements; no host access
-  serve --stdio [--root PATH]... [--project-ttl-secs N]
-        [--catalog-store PATH --catalog-trust PATH [--catalog-model-dir PATH] [--catalog-index-store PATH]]
-        [--allow-manifest-write WORKSPACE_ROOT]...
-        [--allow-fmt-write WORKSPACE_ROOT]...
-        [--allow-fix-write WORKSPACE_ROOT]...
-        [--allow-analyzer-action-write WORKSPACE_ROOT]...
-        [--allow-dependency-add WORKSPACE_ROOT]...
-        [--allow-dependency-remove WORKSPACE_ROOT]...
-        [--cargo-vendor-dir PATH --cargo-vendor-tree-sha256 sha256:ID]
-        [--security-policy PATH --security-policy-sha256 sha256:ID]
-        [--rustsec-snapshot PATH --rustsec-sha256 sha256:ID]
-        [--docker PATH --docker-socket PATH --state-root PATH --rust-image sha256:ID]
-                 Serve MCP with host-authorized physical roots (default: none)
-
-Available tools: rust.project.open; rust.project.inspect; rust.toolchain.inspect; rust.check; rust.fmt.check; rust.clippy; rust.test; rust.dependencies.audit; rust.diagnostics.explain; rust.quality.gate; rust.catalog.status; rust.crate.search; rust.crate.inspect; rust.manifest.patch; rust.fmt.apply; rust.fix.apply; rust.dependency.add; rust.dependency.remove; rust.test.nextest; rust.coverage; rust.semver.check; rust.mutation.test; rust.deny; rust.unsafe.scan; rust.supply_chain.inspect; rust.quality.gate.v2; rust.miri; rust.benchmark.run; rust.benchmark.compare; rust.profile.flamegraph; rust.binary.bloat; rust.analyzer.symbols; rust.analyzer.references; rust.analyzer.diagnostics; rust.analyzer.actions; rust.analyzer.action.apply (explicit approved Rust runtime required except project.open, catalog.status, crate.search and crate.inspect; rust.analyzer.* additionally require the M6 analyzer runtime supplied via --rust-image, and rust.analyzer.action.apply additionally requires the --allow-analyzer-action-write grant).
-";
 
 const USAGE_ERROR: &str = "Unsupported invocation. Use 'rust-engineering-mcp --help'.\n";
 
@@ -70,7 +25,7 @@ enum Invocation {
     Mutation(mutation_cli::Invocation),
     QualityArtifacts(quality_artifact_cli::Invocation),
     CargoVendor(cargo_vendor_cli::Invocation),
-    Help,
+    Help(String),
     SecurityInventory,
     Version { json: bool },
     Doctor(doctor::Invocation),
@@ -81,7 +36,15 @@ enum Invocation {
 }
 
 fn invocation() -> Invocation {
-    let mut args = env::args_os().skip(1);
+    let raw_args: Vec<OsString> = env::args_os().skip(1).collect();
+    // `<command> --help`/`-h`, and for commands with subcommands
+    // `<command> <subcommand> --help`/`-h`, resolve to that command's help
+    // section before any parser below runs; `serve --help` in particular
+    // must never reach `host_config::parse` or start the server.
+    if let Some(text) = help::lookup(&raw_args) {
+        return Invocation::Help(text.to_string());
+    }
+    let mut args = raw_args.into_iter();
     let Some(command) = args.next() else {
         return Invocation::Unsupported;
     };
@@ -162,7 +125,7 @@ fn invocation() -> Invocation {
         .iter()
         .any(|value| command == OsStr::new(value))
     {
-        Invocation::Help
+        Invocation::Help(help::full_help())
     } else {
         Invocation::Unsupported
     }
@@ -185,7 +148,7 @@ fn main() -> ExitCode {
                 ExitCode::FAILURE
             };
         }
-        Invocation::Help => (io::stdout().lock().write_all(HELP.as_bytes()), 0),
+        Invocation::Help(text) => (io::stdout().lock().write_all(text.as_bytes()), 0),
         Invocation::Version { json } => return version::run(json),
         Invocation::Doctor(config) => return doctor_run::run(config),
         Invocation::Unsupported => (io::stderr().lock().write_all(USAGE_ERROR.as_bytes()), 2),

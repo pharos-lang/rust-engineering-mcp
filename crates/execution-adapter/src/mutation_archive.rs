@@ -489,7 +489,7 @@ mod tests {
     #[test]
     fn rejects_qualified_receipt_export_with_extra_wrong_mode_file() -> Result<(), String> {
         let receipt: serde_json::Value = serde_json::from_str(include_str!(
-            "../../../docs/validation/M2-D04-native-qualification.json"
+            "../../../tests/data/m2-d04-native-qualification.json"
         ))
         .map_err(|error| error.to_string())?;
         let text = receipt["observations"]

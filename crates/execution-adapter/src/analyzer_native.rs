@@ -1163,7 +1163,7 @@ fn m6_analyzer_version_and_config_schema_match_the_receipt() -> Result<(), Failu
 
     // 3. Both must equal the provisioning receipt that built the image.
     let provisioning: Value = serde_json::from_slice(&std::fs::read(
-        Path::new(env!("CARGO_MANIFEST_DIR")).join("../../docs/validation/M6/provisioning.json"),
+        Path::new(env!("CARGO_MANIFEST_DIR")).join("../../tests/data/m6-runtime-provisioning.json"),
     )?)?;
     assert_eq!(
         provisioning["rust_analyzer_version"],

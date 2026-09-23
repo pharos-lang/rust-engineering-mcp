@@ -1,8 +1,14 @@
 # AGENTS.md — Rust Engineering MCP
 
-Estas instrucciones aplican a todo el repositorio. La especificación principal es
-`docs/spec/rust-engineering-mcp-propuesta-v0.3.md`; el código y las pruebas son la
-evidencia del estado real.
+Estas instrucciones aplican a todo el repositorio. El código y las pruebas son la
+evidencia del estado real. La documentación canónica del producto implementado
+está en `docs/` (índice: [docs/README.md](docs/README.md)); las decisiones de
+arquitectura vigentes viven en los capítulos de `docs/architecture/` y su mapa de
+IDs históricos en [docs/architecture/decisions.md](docs/architecture/decisions.md).
+La especificación original (propuesta v0.3), los ADR individuales, roadmaps,
+recibos y revisiones de M0–M8 están en el historial de Git (último commit que los
+contiene: `51fa602e`); sus cláusulas y decisiones vigentes se consolidaron en los
+documentos canónicos.
 
 ## Ownership y precedencia
 
@@ -11,7 +17,7 @@ final. Ante conflictos, decide en este orden:
 
 1. seguridad;
 2. correctness;
-3. requisitos explícitos de la especificación;
+3. requisitos y garantías documentados en `docs/architecture/` y `docs/reference/`;
 4. compatibilidad MCP;
 5. contratos públicos existentes;
 6. testabilidad;
@@ -22,19 +28,20 @@ final. Ante conflictos, decide en este orden:
 11. extensibilidad futura.
 
 No se cambia silenciosamente una decisión arquitectónica. Si la evidencia obliga a
-divergir de la especificación, se actualizan primero el ADR pertinente, la
-documentación afectada y `docs/implementation-status.md`.
+divergir de una decisión vigente, se registra primero la nueva decisión en su
+capítulo (ver "Decisiones y documentación viva") y se actualiza la documentación
+afectada en el mismo cambio.
 
 ## Inicio obligatorio de cada sesión
 
 Antes de modificar código:
 
-1. leer este archivo;
-2. leer completamente la especificación cuando no esté ya en el contexto fiable de
-   la sesión;
-3. revisar `docs/implementation-status.md` y todos los ADRs relevantes;
+1. leer este archivo y [docs/README.md](docs/README.md);
+2. leer los capítulos de `docs/architecture/` y las referencias de `docs/reference/`
+   que afecten al cambio, incluidas sus limitaciones documentadas;
+3. si el encargo continúa un plan pendiente, leerlo completo en `.planning/`;
 4. inspeccionar `git status`, el árbol real, los manifests, tests y CI;
-5. continuar desde la primera vertical pendiente, sin rediseñar desde cero;
+5. continuar desde el punto de reanudación del plan vigente, sin rediseñar desde cero;
 6. comprobar documentación oficial actual cuando una decisión dependa de MCP,
    `rmcp`, Cargo, SQLite, LanceDB, RustSec o una API/version cambiante.
 
@@ -44,42 +51,33 @@ versión fijada en `Cargo.lock`.
 
 ## Alcance vigente
 
-M0 y M1/0.1.0 están cerrados. El owner autorizó el 2026-09-05 integrar primero la
-planificación M2–M8 y después implementar únicamente M2. La planificación quedó
-integrada localmente en `2f54b360e1e81f21e7efeff7c451cdd6f663a04f`.
-Ese alcance histórico fue ampliado por autorizaciones posteriores: M2, M3 y M4
-están integrados. El owner autorizó ejecutar `docs/prompts/history/complete-m5.md` para
-completar y calificar M5 en `ai/m5-performance`, con commits locales. No avanzar
-a M6, hacer push/PR/merge ni publicar otra release/tag en este encargo.
-M2 sigue su [plan](docs/roadmap/m2-safe-mutation.md), incluida la puerta D02 antes
-de un writer. El owner delegó resolver D02 sin cargar instalación/uso;
-[ADR-050](docs/adr/ADR-050-local-coordinated-mutation.md) adopta local_coordinated,
-sin exclusión OS de editores externos ni broker privilegiado. La calificación
-positiva del writer sigue siendo obligatoria. El contrato público implementado conserva estas trece tools M1:
+M0–M6 están integrados en `main` y la estabilización M8 (freeze de contratos,
+migraciones/rollback, budgets, threat model, matriz de clientes) también; M7
+(transporte remoto) quedó diferido y la preparación 1.0 (M8-09) sigue pendiente,
+con sus compromisos en [.planning/deferred-commitments.md](.planning/deferred-commitments.md).
+El checkout está en `0.9.0-rc.1` sin tag ni release; la release publicada es `0.3.0`.
+El contrato público está congelado en el freeze `0.8.0`
+([tests/baselines/contract-freeze-0.8.0.json](tests/baselines/contract-freeze-0.8.0.json),
+verificado por `scripts/contract-freeze.py verify`): 36 tools registradas, con su
+clase de estabilidad descrita en [docs/reference/tools.md](docs/reference/tools.md).
+Todo cambio de schema, descripción, nombre o semántica sigue la política de
+evolución de contratos de
+[docs/architecture/mcp-and-contracts.md#política-de-evolución-de-contratos-adr-086](docs/architecture/mcp-and-contracts.md#política-de-evolución-de-contratos-adr-086)
+(aditivo medido contra consumidores exhaustivos, no automático; cambios
+incompatibles en 0.x solo con release minor, changelog, snapshots y notas de
+migración; freeze 0.8.0 con deprecaciones anunciadas y funcionales hasta 1.0,
+retiro solo de lo anunciado desde 0.8.0; desde 1.0, deprecación en minor y
+retiro solo en 2.0; retirar una revisión MCP exige decisión registrada; las
+tools `preview` pueden cambiar; excepción fail-closed de seguridad que nunca
+reinterpreta en silencio un resultado existente) y exige regenerar y revisar
+el manifest del freeze en el mismo cambio.
 
-- `rust.project.open`
-- `rust.project.inspect`
-- `rust.toolchain.inspect`
-- `rust.check`
-- `rust.fmt.check`
-- `rust.clippy`
-- `rust.test`
-- `rust.dependencies.audit`
-- `rust.diagnostics.explain`
-- `rust.quality.gate`
-- `rust.catalog.status`
-- `rust.crate.search`
-- `rust.crate.inspect`
-
-M2 autoriza implementar `rust.fmt.apply`, `rust.fix.apply`, `rust.dependency.add`,
-`rust.dependency.remove` y `rust.manifest.patch` por verticales calificadas. No
-anunciar tools vacías ni considerar dieciocho tools implementadas antes de su
-evidencia. Las trece anteriores conservan contratos y semántica.
-
-`rust.dependencies.inspect` aparece en una sección descriptiva de la propuesta,
-pero no pertenece al alcance inmediato que la propia propuesta y la instrucción del
-owner enumeran al final. Puede existir como caso de uso interno, nunca como tool M1
-sin un cambio explícito de alcance y ADR si afecta el contrato.
+Los encargos pendientes autorizados viven versionados en `.planning/` y solo se
+ejecutan cuando el owner lo solicita expresamente; hoy:
+[.planning/implement-1.0-runtime-portability-astra.md](.planning/implement-1.0-runtime-portability-astra.md)
+y el plan diferido [.planning/implement-m7.md](.planning/implement-m7.md).
+No anunciar como disponible una feature, plataforma o runtime que solo figure en
+un plan.
 
 ## Reglas arquitectónicas
 
@@ -133,7 +131,7 @@ Para cada corte vertical:
 3. implementar el camino completo adapter → aplicación → dominio/ports → adapter;
 4. ejecutar validaciones focalizadas;
 5. revisar el diff como Principal Engineer;
-6. actualizar documentación, ADR y estado;
+6. actualizar documentación canónica y, si aplica, registrar la decisión;
 7. ejecutar el gate proporcional antes de marcarlo Done.
 
 No declarar una feature terminada por compilar. Debe existir evidencia reproducible
@@ -159,36 +157,63 @@ instalación silenciosa.
 Evitar `unwrap`, `expect` y `panic!` en rutas normales. Toda excepción en código de
 producción requiere una invariante demostrable y comentario local.
 
-## ADRs y documentación viva
+## Decisiones y documentación viva
 
-Un ADR es obligatorio para decisiones que cambien contratos públicos, arquitectura,
-seguridad, persistencia, compatibilidad MCP, distribución, soporte cross-platform o
-dependencias estratégicas. Debe contener como mínimo `Context`, `Decision`,
-`Alternatives considered`, `Consequences` y `Status`.
+Una decisión registrada es obligatoria cuando cambie contratos públicos,
+arquitectura, seguridad, persistencia, compatibilidad MCP, distribución, soporte
+cross-platform o dependencias estratégicas. No se crean archivos ADR sueltos: la
+decisión se añade al capítulo de `docs/architecture/` (u `operations/`) que posee
+el área, como subsección con ID `D-AAAA-MM-DD-<slug>`, fecha y los campos
+`Context`, `Decision`, `Alternatives considered`, `Consequences` y `Status`; y se
+añade una fila a [docs/architecture/decisions.md](docs/architecture/decisions.md).
+Si sustituye una decisión anterior, se indica cuál y se actualiza el texto del
+capítulo para que describa solo el comportamiento vigente.
 
-Mantener sincronizados:
+Política documental:
+
+- `docs/` describe únicamente el producto implementado: instalación, uso,
+  operación, arquitectura, contratos, garantías y limitaciones actuales. No
+  contiene planes, diarios de trabajo, recibos de calificación ni transcripts.
+- Estructura: `docs/guides/` (usuario), `docs/reference/` (tools, CLI,
+  compatibilidad, límites, formatos), `docs/architecture/` (diseño y decisiones),
+  `docs/operations/` (runtime, catálogo, recuperación, verificación de release),
+  `docs/development/` (pruebas y CI). Un documento por tema, no por milestone,
+  tool o decisión.
+- Una limitación conocida (garantía requerida sin enforcement) se documenta como
+  limitación en su referencia y conserva su test; nunca se presenta como hecho.
+- Los planes y encargos pendientes viven en `.planning/`, versionados y con
+  enlaces verificados; al terminarse se retiran y quedan en Git.
+- Inputs técnicos no viven en `docs/`: licencias en `licenses/`, baselines de
+  contratos y budgets en `tests/baselines/`, datos compartidos de pruebas en
+  `tests/data/`, recibos vigentes que un gate lee en `qualification/`, soporte de
+  scripts en `scripts/lib/`. Los recibos nuevos de calificación son artifacts
+  (`target/qualification/` como destino local por defecto, o CI), no archivos
+  versionados. Un recibo que cierra una gate del checklist 1.0 o mitiga un
+  riesgo residual (`RR-n`) debe además quedar adjunto al PR o conservado como
+  artifact de CI retenido — `target/qualification/` local no basta como único
+  lugar de conservación.
+- `scripts/docs-hygiene.py` verifica enlaces, anchors y esta estructura.
+- No se marca cerrado un compromiso de `.planning/deferred-commitments.md`
+  sin evidencia citada (recibo, test o permalink) que lo respalde.
+
+Mantener sincronizados con cada cambio que los afecte:
 
 - `README.md`
 - `CHANGELOG.md`
 - `SECURITY.md`
-- `docs/architecture.md`
-- `docs/tools.md`
-- `docs/security-model.md`
-- `docs/compatibility.md`
-- `docs/client-configuration.md`
-- `docs/adr/`
-- `docs/implementation-status.md`
+- `docs/README.md` y los documentos de `docs/guides/`, `docs/reference/`,
+  `docs/architecture/`, `docs/operations/` y `docs/development/` afectados.
 
 `README.md` es la guía pública de instalación, configuración, operación y uso del
 MCP; no es un registro de planificación ni un diario de implementación. Debe
 actualizarse en el mismo cambio siempre que se libere, elimine o modifique una
 feature, una tool, un comando, un requisito de instalación, una configuración de
 cliente/host, una plataforma soportada o una limitación operativa o de seguridad
-que afecte a usuarios. Los detalles de arquitectura, hitos y evidencia permanecen
-en los documentos especializados enlazados desde el README.
+que afecte a usuarios. Conserva todos sus badges. Los detalles permanecen en los
+documentos especializados enlazados desde el README.
 
-`docs/implementation-status.md` es el tablero repo-visible. Solo mover un elemento a
-Done cuando la columna de evidencia apunte a pruebas, comandos o artifacts reales.
+`CHANGELOG.md` registra cambios útiles al usuario por versión, no el diario de
+trabajo.
 
 ## Política de subagentes
 
@@ -230,7 +255,7 @@ Antes de delegar, definir:
 Proporcionar solo el contexto necesario. Preferir tareas read-only cuando existe
 riesgo de solapamiento. Los workers que editen deben poseer archivos disjuntos. Un
 subagente no puede cambiar arquitectura global, contratos públicos, dependencias
-estratégicas ni ADRs fundacionales sin revisión del agente principal.
+estratégicas ni decisiones fundacionales sin revisión del agente principal.
 
 Cada resultado de subagente debe resumir:
 
@@ -253,5 +278,6 @@ real; no mantener agentes ociosos ni reutilizar contexto obsoleto.
 
 Si se realizan commits, deben ser pequeños y coherentes; no mezclar refactors
 masivos con features. No reescribir ni descartar cambios del usuario. Antes de
-declarar M0 o M1 cerrado, ejecutar una revisión independiente acotada de seguridad,
-contratos y evidencia, y registrar el resultado y el gate final en el tablero.
+declarar cerrado un encargo que cambie seguridad, contratos o distribución,
+ejecutar una revisión independiente acotada de seguridad, contratos y evidencia,
+y registrar el resultado y el gate final en el PR.

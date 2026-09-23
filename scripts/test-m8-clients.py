@@ -14,7 +14,7 @@ the canonical contract hashes and the Docker-free negative call plan for the
 ``--run``
     The Docker-free matrix: aborts first if a mandatory precondition is
     unsatisfied. Then: Inspector discovery, contract equality against
-    ``docs/validation/M8/freeze-0.8.0.json``, ``resources/list`` emptiness, one
+    ``tests/baselines/contract-freeze-0.8.0.json``, ``resources/list`` emptiness, one
     structured Docker-free negative row per ``stable`` tool (30 refusals plus
     the single ``rust.catalog.status`` passed-observation row), four
     cross-cutting negatives (unknown tool, invalid args, invalid
@@ -41,7 +41,7 @@ the canonical contract hashes and the Docker-free negative call plan for the
     qualified M2/M3 runtime image.
 
 The five MCP protocol revisions are credited by the ``core`` gate's own
-protocol tests (``docs/validation/M8/core-gate.json``); this harness does not
+protocol tests (historical receipt: ``docs/validation/M8/core-gate.json`` at 51fa602e); this harness does not
 repeat them. A client that does not run is recorded ``unavailable`` and is
 never announced as qualified: nothing that did not run is a pass.
 """
@@ -71,9 +71,9 @@ M6_PATH = ROOT / "scripts/test-m6-clients.py"
 CONTRACT_FREEZE_PATH = ROOT / "scripts/contract-freeze.py"
 SESSION = ROOT / "scripts/m8-inspector-session.mjs"
 UNIT = ROOT / "scripts/test-m8-clients-unit.py"
-ATTEMPTS = ROOT / "docs/validation/M8/clients"
-CURRENT = ROOT / "docs/validation/M8/clients.json"
-FREEZE_MANIFEST = ROOT / "docs/validation/M8/freeze-0.8.0.json"
+ATTEMPTS = ROOT / "target/qualification/test-m8-clients/clients"
+CURRENT = ROOT / "target/qualification/test-m8-clients/clients.json"
+FREEZE_MANIFEST = ROOT / "tests/baselines/contract-freeze-0.8.0.json"
 SERVER = ROOT / "target/release/rust-engineering-mcp"
 NODE = pathlib.Path("/Users/cburgosro/.nvm/versions/node/v24.15.0/bin/node")
 CLAUDE = pathlib.Path("/Users/cburgosro/.local/share/claude/versions/2.1.268")

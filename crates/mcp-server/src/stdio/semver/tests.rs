@@ -1,6 +1,7 @@
 //! ADR-062 `rust.semver.check` contract closure, projections and operational
 //! mapping. Everything here is portable: the gateway itself is qualified by
-//! `docs/validation/M3/runtime.json`, not by this module.
+//! evidence tracked in `docs/development/testing.md` (historical receipt:
+//! docs/validation/M3/runtime.json at 51fa602e), not by this module.
 use super::*;
 use crate::stdio::workers::{Joined, WorkerError};
 use rust_engineering_application::semver_check::SemverObservation;

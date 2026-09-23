@@ -1,9 +1,53 @@
 # Changelog
 
-## 0.9.0-rc.1 — primer candidato (M8-09; draft prerelease, no soportada)
+## Sin publicar
 
-Primer release candidate de la serie 0.9, cortado desde el freeze de
-contratos `0.8.0` (W40). Sin cambios de contrato: `docs/validation/M8/freeze-0.8.0.json`
+Sin cambios de contrato: las 36 tools, sus schemas y el freeze
+[`tests/baselines/contract-freeze-0.8.0.json`](tests/baselines/contract-freeze-0.8.0.json)
+no cambian.
+
+- **CLI: ayuda completa y por comando.** `rust-engineering-mcp --help` lista
+  todos los comandos y flags que el binario acepta, incluidos los que faltaban
+  (`cargo-vendor capture`, `--allow-profiling`, `--vendor-capture` y
+  `--vendor-capture-tree-sha256`). `<comando> --help` / `-h` (y
+  `<comando> <subcomando> --help` en `catalog`, `mutation`,
+  `quality-artifacts`, `cargo-vendor` y `security-runtime`) imprime la ayuda de
+  ese comando con código de salida 0, en lugar de `Unsupported invocation` y
+  código 2. `serve --help` nunca arranca el servidor. Cualquier otra
+  invocación no reconocida sigue fallando igual (código 2).
+- **Documentación reorganizada.** `docs/` describe solo el producto
+  implementado: guías, referencia, arquitectura, operación y desarrollo
+  ([índice](docs/README.md)). La especificación original, los ADR, los roadmaps y
+  los recibos de validación M0–M8 se retiran del árbol y quedan en el historial
+  de Git (`51fa602e`); sus decisiones vigentes están consolidadas en
+  `docs/architecture/` con el mapa de IDs en
+  [`docs/architecture/decisions.md`](docs/architecture/decisions.md). README
+  nuevo, centrado en instalación y primer uso.
+- **Inputs técnicos fuera de `docs/`.** Licencias en `licenses/upstream/`,
+  baselines de contrato y budgets en `tests/baselines/`, datos de pruebas en
+  `tests/data/`, recibo de calificación que lee un gate en `qualification/`
+  (todos movidos byte a byte).
+- **Scripts y fixtures retirados** sin función vigente: sondas `probe-m2-*`,
+  herramientas de calibración M5 de un solo uso, scripts de reproducción de
+  los candidatos locales de `0.1.0`, `release-inventory.py`,
+  `test-m3-budgets.py` y los fixtures `cargo-local-registry`,
+  `hostile-reports` y `profile-probe`. Los casos adversos de
+  `hostile-reports` que siguen aplicando están cubiertos por tests inline, más
+  dos nuevos (miembro tar `..`, JSON de cobertura con anidamiento profundo).
+- **Gate `core`:** añade la verificación de enlaces y estructura documental
+  (`docs-hygiene`) y los tests de provisioning M4 y de rollback M8, antes sin
+  wiring.
+- **Fix:** `scripts/build-m5-runtime.py` usaba `output_path`/`context_root`
+  antes de asignarlos y fallaba en cualquier invocación.
+
+## 0.9.0-rc.1 — primer candidato (M8-09; tag no publicado en `origin`)
+
+Primer release candidate de la serie 0.9, preparado desde el freeze de
+contratos `0.8.0` (W40); no hay tag `v0.9.0-rc.1` ni release en `origin`
+(verificado 2026-09-23 con `git ls-remote --tags origin` y
+`gh release list`). El workflow de release es `workflow_dispatch`-only y
+produce como máximo un draft prerelease, nunca publicado automáticamente.
+Sin cambios de contrato: [`docs/validation/M8/freeze-0.8.0.json`](https://github.com/pharos-lang/rust-engineering-mcp/blob/51fa602e/docs/validation/M8/freeze-0.8.0.json)
 sigue siendo el oráculo y las migration notes aplicables son las mismas
 `0.3.0 → 0.8.0` documentadas debajo, en la sección `## 0.8.0`.
 
@@ -40,7 +84,7 @@ sigue siendo el oráculo y las migration notes aplicables son las mismas
 - **Inventario: 31 → 36 tools.** Se añaden cinco `rust.analyzer.*`
   (`.symbols`, `.references`, `.diagnostics`, `.actions`, `.action.apply`),
   clasificadas `preview` bajo la política de estabilidad de
-  [ADR-086](docs/adr/ADR-086-deprecation-and-freeze-policy.md). Las 31 tools
+  [ADR-086](https://github.com/pharos-lang/rust-engineering-mcp/blob/51fa602e/docs/adr/ADR-086-deprecation-and-freeze-policy.md). Las 31 tools
   restantes quedan `stable`, condicionadas a superar la matriz de clientes
   stock M8-04 antes de RC1 (ADR-086 §1); una tool que no la supere se degrada
   a `preview` en vez de retirarse.
@@ -48,14 +92,14 @@ sigue siendo el oráculo y las migration notes aplicables son las mismas
   (requerido por `rust.analyzer.action.apply`; sin él la tool es
   `unavailable/SANDBOX_DENIED`). El flag `--rust-image` existe desde M1; lo
   nuevo en 0.8.0 es la **imagen de runtime M6** que admite
-  ([ADR-085](docs/adr/ADR-085-m6-runtime-admission.md)), requerida por las
+  ([ADR-085](https://github.com/pharos-lang/rust-engineering-mcp/blob/51fa602e/docs/adr/ADR-085-m6-runtime-admission.md)), requerida por las
   cinco tools `rust.analyzer.*` (sin ella son `unavailable`).
 - **30 contratos `stable` byte-idénticos a `0.3.0`.** El único cambio de
   schema en una tool `stable` es `rust.binary.bloat`: su `inputSchema` y su
   `outputSchema` cambian únicamente en el texto de `description` de
   `$defs/BloatProfile` (la ruta de evidencia citada en ese texto se reescribió
   por la hygiene del repo); no cambia validación, tipos, campos ni
-  `annotations` (`docs/validation/M8/02-schema-diff.json`,
+  `annotations` ([`docs/validation/M8/02-schema-diff.json`](https://github.com/pharos-lang/rust-engineering-mcp/blob/51fa602e/docs/validation/M8/02-schema-diff.json),
   `keys_changed: [inputSchema, outputSchema]`, `annotations_changed: false`).
 - **Las trece tools M1 son byte-idénticas a `0.1.0`** (verificado
   `git diff v0.1.0 HEAD` sobre sus snapshots de contrato).
@@ -77,18 +121,18 @@ sigue siendo el oráculo y las migration notes aplicables son las mismas
   igualdad servidor vivo ↔ snapshots; `tests/cli.rs` exige igualdad
   `contract --json` ↔ snapshots; la etapa `contract-freeze` del gate `core`
   exige igualdad snapshots ↔ manifiesto de freeze
-  `docs/validation/M8/freeze-0.8.0.json`.
+  [`docs/validation/M8/freeze-0.8.0.json`](https://github.com/pharos-lang/rust-engineering-mcp/blob/51fa602e/docs/validation/M8/freeze-0.8.0.json).
 - **Clase `preview` visible en la `description`** de las cinco tools
   `rust.analyzer.*` con el prefijo `Preview (ADR-086): `.
 - **Alcance de hosts para 1.0: macOS ARM64 únicamente**
-  ([ADR-087](docs/adr/ADR-087-1.0-host-scope.md)); Linux/Windows x86_64 siguen
+  ([ADR-087](https://github.com/pharos-lang/rust-engineering-mcp/blob/51fa602e/docs/adr/ADR-087-1.0-host-scope.md)); Linux/Windows x86_64 siguen
   siendo CI de portabilidad, sin artifact ni calificación.
 - **Política de migración, downgrade y backup/restore**
-  ([ADR-088](docs/adr/ADR-088-migration-rollback-policy.md)): ningún formato
+  ([ADR-088](https://github.com/pharos-lang/rust-engineering-mcp/blob/51fa602e/docs/adr/ADR-088-migration-rollback-policy.md)): ningún formato
   en disco requiere migración de bytes entre `0.3.0` y `0.8.0`; `doctor` gana
   un preflight pasivo de journals de mutación pendientes antes de un
   downgrade; backup/restore queda documentado como procedimiento operativo
-  sin CLI nueva (`docs/compatibility.md` §Upgrade, rollback y backup).
+  sin CLI nueva ([`docs/compatibility.md`](https://github.com/pharos-lang/rust-engineering-mcp/blob/51fa602e/docs/compatibility.md) §Upgrade, rollback y backup).
 - **`resources/templates/list` y `prompts/list` llevan `ttlMs`/`cacheScope`
   (V03 §3, SEP-2549).** Sin override, el SDK (`rmcp` 3.2.0) devolvía estos
   dos listados sin `ttlMs`/`cacheScope`, a diferencia de `tools/list` y
@@ -141,7 +185,7 @@ sigue siendo el oráculo y las migration notes aplicables son las mismas
   ejecutar `rust.check` después. `MutationKind::AnalyzerActionApply` publica
   su propia vista de validación (`workspace_edit_structural_only`); las cinco
   tools M2 no cambian de contrato. Calificación nativa cerrada en el gate
-  `full` de M6 (`docs/validation/M6/M6-full-gate.json`,
+  `full` de M6 ([`docs/validation/M6/M6-full-gate.json`](https://github.com/pharos-lang/rust-engineering-mcp/blob/51fa602e/docs/validation/M6/M6-full-gate.json),
   `sha256:69a0be14c1e2ae0cce07014daeba1818c49fa115aa3b67313bb0baffe07f34d0`).
 
 - **M6-02/M6-03: `rust.analyzer.references` y `rust.analyzer.diagnostics`**
@@ -161,9 +205,9 @@ sigue siendo el oráculo y las migration notes aplicables son las mismas
   control, nunca el `message` de `serverStatus` ni `stderr`. Mismas
   anotaciones y mismo runtime M6 admitido que `rust.analyzer.symbols`; los 32
   snapshots existentes quedan sin cambios. Véase
-  [ADR-084](docs/adr/ADR-084-rust-analyzer-runtime-and-lsp-lifecycle.md) §2
+  [ADR-084](https://github.com/pharos-lang/rust-engineering-mcp/blob/51fa602e/docs/adr/ADR-084-rust-analyzer-runtime-and-lsp-lifecycle.md) §2
   (enmienda de la fase 6). Calificación nativa cerrada en el gate `full` de
-  M6 (`docs/validation/M6/M6-full-gate.json`,
+  M6 ([`docs/validation/M6/M6-full-gate.json`](https://github.com/pharos-lang/rust-engineering-mcp/blob/51fa602e/docs/validation/M6/M6-full-gate.json),
   `sha256:69a0be14c1e2ae0cce07014daeba1818c49fa115aa3b67313bb0baffe07f34d0`).
 
 - **M6-01: primera tool de análisis, `rust.analyzer.symbols`** (rama
@@ -183,24 +227,24 @@ sigue siendo el oráculo y las migration notes aplicables son las mismas
   aplicación `rust_engineering_application::analyzer` y la implementación del
   lado `RustProjectInspector` en `execution-adapter`. Contrato fijado con
   snapshot y wire tests en las cinco versiones MCP soportadas. Véanse
-  [ADR-082](docs/adr/ADR-082-m6-runtime-provisioning.md),
-  [ADR-083](docs/adr/ADR-083-analyzer-contract-and-actions.md),
-  [ADR-084](docs/adr/ADR-084-rust-analyzer-runtime-and-lsp-lifecycle.md) y
-  [ADR-085](docs/adr/ADR-085-m6-runtime-admission.md). Calificación nativa
-  cerrada en el gate `full` de M6 (`docs/validation/M6/M6-full-gate.json`,
+  [ADR-082](https://github.com/pharos-lang/rust-engineering-mcp/blob/51fa602e/docs/adr/ADR-082-m6-runtime-provisioning.md),
+  [ADR-083](https://github.com/pharos-lang/rust-engineering-mcp/blob/51fa602e/docs/adr/ADR-083-analyzer-contract-and-actions.md),
+  [ADR-084](https://github.com/pharos-lang/rust-engineering-mcp/blob/51fa602e/docs/adr/ADR-084-rust-analyzer-runtime-and-lsp-lifecycle.md) y
+  [ADR-085](https://github.com/pharos-lang/rust-engineering-mcp/blob/51fa602e/docs/adr/ADR-085-m6-runtime-admission.md). Calificación nativa
+  cerrada en el gate `full` de M6 ([`docs/validation/M6/M6-full-gate.json`](https://github.com/pharos-lang/rust-engineering-mcp/blob/51fa602e/docs/validation/M6/M6-full-gate.json),
   `sha256:69a0be14c1e2ae0cce07014daeba1818c49fa115aa3b67313bb0baffe07f34d0`).
 
 - **Reordenación del repositorio sin cambios de producto** (rama
   `ai/repo-hygiene`, 2026-09-11). La evidencia de calificación pasa a un
   paquete por milestone (`docs/validation/M<n>/` con `history/inventory.json`),
   las revisiones a `docs/reviews/M<n>/`, los prompts ejecutados a
-  `docs/prompts/history/` y la evidencia de 0.1.0 a `docs/release/0.1.0/`
+  [`docs/prompts/history/`](https://github.com/pharos-lang/rust-engineering-mcp/tree/51fa602e/docs/prompts/history) y la evidencia de 0.1.0 a [`docs/release/0.1.0/`](https://github.com/pharos-lang/rust-engineering-mcp/tree/51fa602e/docs/release/0.1.0)
   (incluido `PUBLICATION-SNAPSHOT.json`, antes en la raíz). Todo se movió con
   `git mv` y se verificó byte a byte; los enlaces de los documentos vivos se
-  reescribieron y [`docs/validation/path-map.json`](docs/validation/path-map.json)
+  reescribieron y [`docs/validation/path-map.json`](https://github.com/pharos-lang/rust-engineering-mcp/blob/51fa602e/docs/validation/path-map.json)
   resuelve las rutas anteriores que citan los recibos. Se retiraron del árbol
   el estado privado del store de los intentos de clientes (`state-*/`, 645
-  archivos) y las capturas crudas de `docs/research/m1-16/measurement`
+  archivos) y las capturas crudas de [`docs/research/m1-16/measurement`](https://github.com/pharos-lang/rust-engineering-mcp/blob/51fa602e/docs/research/m1-16/measurement)
   (408 archivos) y, con el mismo patrón de inventario, los recibos superados e
   intentos fallidos, los transcripts crudos de clientes y de delegación, las
   salidas crudas detrás de recibos y las copias de entradas de revisión
@@ -226,7 +270,7 @@ publicaron por separado y forman parte de esta versión.
 ### M5 — cuatro tools de rendimiento implementadas y calificadas localmente
 
 - **Captura de vendor offline, un contrato separado de `SourceBundle`**
-  ([ADR-078](docs/adr/ADR-078-offline-vendor-capture.md)). El cierre de
+  ([ADR-078](https://github.com/pharos-lang/rust-engineering-mcp/blob/51fa602e/docs/adr/ADR-078-offline-vendor-capture.md)). El cierre de
   `criterion 0.8.2` rompe cuatro límites de `SourceBundle` a la vez y trece de
   sus rutas no rompen ninguno: rompen la gramática, porque llevan paréntesis.
   Ninguna cuota mueve esas trece, así que el contrato nuevo decide también sobre
@@ -254,20 +298,20 @@ publicaron por separado y forman parte de esta versión.
   snapshots anteriores se conservan byte a byte bajo un test de invariancia y se
   añaden cuatro nuevos. Las cuatro son `read_only`, no escriben el checkout y no
   admiten MCP Tasks: `task` devuelve `TASKS_REQUIRED` como resultado declarado.
-  Contratos en [ADR-076](docs/adr/ADR-076-m5-performance-contracts.md).
+  Contratos en [ADR-076](https://github.com/pharos-lang/rust-engineering-mcp/blob/51fa602e/docs/adr/ADR-076-m5-performance-contracts.md).
 - `rust.benchmark.run` mide benchmarks Criterion 0.8.2 que el proyecto ya tiene y
   no genera ninguno. Warmup 3 s, tiempo de medición 5 s y `--sample-size 30` los
   fija el servidor como argv cerrado y viajan en la provenance; el proyecto no
   los alcanza. Un harness distinto o una versión no aprobada son resultados
   observados sin dataset. Las muestras crudas no viajan en la respuesta.
 - **Los logs del harness se publican como artifacts, uno por repetición y por
-  stream.** El schema congelado, `docs/tools.md` y ADR-076 decían que los logs
+  stream.** El schema congelado, [`docs/tools.md`](https://github.com/pharos-lang/rust-engineering-mcp/blob/51fa602e/docs/tools.md) y ADR-076 decían que los logs
   «quedan en el artifact de criterion»; no quedaban en ninguna parte —ese payload
   es un export USTAR de `CRITERION_HOME` sin log alguno— y el adapter capturaba
   `stdout`/`stderr` y los descartaba. Un `OBSERVED_FAILURE` dirigía al llamador a
   un archivo que no puede contener el error del compilador, y
   `harness_unrecognized` no publicaba artifact alguno.
-  [ADR-080](docs/adr/ADR-080-harness-logs-as-artifacts.md) implementa la
+  [ADR-080](https://github.com/pharos-lang/rust-engineering-mcp/blob/51fa602e/docs/adr/ADR-080-harness-logs-as-artifacts.md) implementa la
   capacidad en vez de borrar la promesa: `harness_stdout` y `harness_stderr`
   privados, owner-bound, con TTL y sensibilidad `source_derived`, acotados en
   256 KiB por stream y por repetición, con el recorte declarado
@@ -298,7 +342,7 @@ publicaron por separado y forman parte de esta versión.
   incompatible es `status = failed` con `INCOMPATIBLE_DATASETS` y la lista
   completa de razones, con las dos provenances comparadas para que el llamador
   vea *qué* difería; no es un error de infraestructura. El resultado describe una
-  medición y nunca una causa ([ADR-073](docs/adr/ADR-073-benchmark-method-and-dataset.md)).
+  medición y nunca una causa ([ADR-073](https://github.com/pharos-lang/rust-engineering-mcp/blob/51fa602e/docs/adr/ADR-073-benchmark-method-and-dataset.md)).
 - **La unidad de remuestreo es la ejecución, no la muestra.** Una revisión
   independiente demostró, sobre las capturas reales del propio proyecto, que un
   bootstrap dentro de una sola ejecución produce `improvement` para código que no
@@ -340,7 +384,7 @@ publicaron por separado y forman parte de esta versión.
   que es el de calidad más una sola syscall (`perf_event_open`), sin
   `--cap-add`, sin contenedor privilegiado, sin `sudo` y sin tocar
   `perf_event_paranoid`. Cero muestras es un resultado válido y declarado
-  ([ADR-074](docs/adr/ADR-074-profiling-capability-and-containment.md)).
+  ([ADR-074](https://github.com/pharos-lang/rust-engineering-mcp/blob/51fa602e/docs/adr/ADR-074-profiling-capability-and-containment.md)).
 - `rust.binary.bloat` separa el tamaño exacto que mide el producto (bytes y
   `sha256`) de la atribución estimada de `cargo-bloat`, marcada como estimación en
   el propio DTO. El archivo medido es un build de análisis: el analizador fuerza
@@ -364,8 +408,8 @@ publicaron por separado y forman parte de esta versión.
   verificados contra el lockfile publicado) y `rust-mcp-profile-helper`,
   construido desde `fixtures/profile-helper/`. Ninguno es alcanzable por `PATH`;
   el gateway los invoca por ruta absoluta y la construcción corre con
-  `--network=none` ([ADR-075](docs/adr/ADR-075-m5-runtime-provisioning.md)).
-  [ADR-077](docs/adr/ADR-077-m5-runtime-admission.md) añade exactamente el digest
+  `--network=none` ([ADR-075](https://github.com/pharos-lang/rust-engineering-mcp/blob/51fa602e/docs/adr/ADR-075-m5-runtime-provisioning.md)).
+  [ADR-077](https://github.com/pharos-lang/rust-engineering-mcp/blob/51fa602e/docs/adr/ADR-077-m5-runtime-admission.md) añade exactamente el digest
   `sha256:e0a5ca1661b3e49d0a3d68ee3cc0963453078d08eb7fc43c30538c16b7998aac` a la
   lista cerrada de admisión, y el puerto de performance exige esa imagen y solo
   esa. Las tres imágenes anteriores conservan su admisión y su alcance.
@@ -377,7 +421,7 @@ publicaron por separado y forman parte de esta versión.
   16 MiB en total y 1 MiB por archivo. **Los límites no se subieron**: pertenecen
   al contrato de datos offline calificado en M2/M4 y ampliarlos habría debilitado
   una frontera de seguridad sin decisión ni recalificación. Detalle y opciones
-  para el owner en [M5-01-blocker.json](docs/validation/M5/01-blocker.json).
+  para el owner en [M5-01-blocker.json](https://github.com/pharos-lang/rust-engineering-mcp/blob/51fa602e/docs/validation/M5/01-blocker.json).
   ADR-078 no amplía esos límites: introduce una captura separada cuya ruta
   completa está en recalificación.
 - La matriz de clientes M5 usa Inspector 2.5.0 como cliente determinista y
@@ -388,21 +432,21 @@ publicaron por separado y forman parte de esta versión.
   con su propio `criterion_archive` y lee esa Resource, cuyo contenido debe
   hashear al artifact publicado. El harness fue revisado por Gemini 3.8 y
   Claude Sonnet 5; el driver Inspector aplica ahora su timeout por llamada.
-  [Recibo](docs/validation/M5/clients.json).
+  [Recibo](https://github.com/pharos-lang/rust-engineering-mcp/blob/51fa602e/docs/validation/M5/clients.json).
 - **`lancedb` vuelve a `=0.31.0` / Lance 8** (opción 2a, decisión del owner del
-  2026-09-10) conforme a [ADR-027](docs/adr/ADR-027-semantic-offline-foundation.md):
+  2026-09-10) conforme a [ADR-027](https://github.com/pharos-lang/rust-engineering-mcp/blob/51fa602e/docs/adr/ADR-027-semantic-offline-foundation.md):
   la 0.38.0 no compilaba con `default-features = false` y Lance 11 exigía un
   spill store en disco incompatible con `memory://` y con el gate semántico. Se
   conservan `fastembed 6.0.3`, `jsonschema 0.55.1` y `tokio-rustls 0.26.5`; el
   lock se regeneró offline desde el lock anterior a la subida. La actualización
   general de paquetería queda como
-  [tarea post-M8](docs/roadmap/m8-stabilization.md#tarea-post-m8--actualización-de-paquetería-decisión-del-owner-2026-09-10).
+  [tarea post-M8](https://github.com/pharos-lang/rust-engineering-mcp/blob/51fa602e/docs/roadmap/m8-stabilization.md#tarea-post-m8--actualización-de-paquetería-decisión-del-owner-2026-09-10).
   Todos los recibos M5 se recapturan sobre el nuevo lock.
 - Estado: M5 **Done local**. Suite nativa 6/6
-  ([gate nativo](docs/validation/M5/native-gate.json)), matriz de clientes
-  ([recibo](docs/validation/M5/clients.json)), `core` 23/23
-  ([recibo](docs/validation/M5/core-gate.json)) y `full` 38/38
-  ([recibo](docs/validation/M5/full-gate.json)) sobre el lock con `lancedb
+  ([gate nativo](https://github.com/pharos-lang/rust-engineering-mcp/blob/51fa602e/docs/validation/M5/native-gate.json)), matriz de clientes
+  ([recibo](https://github.com/pharos-lang/rust-engineering-mcp/blob/51fa602e/docs/validation/M5/clients.json)), `core` 23/23
+  ([recibo](https://github.com/pharos-lang/rust-engineering-mcp/blob/51fa602e/docs/validation/M5/core-gate.json)) y `full` 38/38
+  ([recibo](https://github.com/pharos-lang/rust-engineering-mcp/blob/51fa602e/docs/validation/M5/full-gate.json)) sobre el lock con `lancedb
   0.31.0`. `BenchmarkExit` y `BloatExit` conservan `CALIBRATED = false`; la
   guarda direccional sigue en `false`. Sin integración remota, PR, tag, release
   ni cambio de versión.
@@ -412,10 +456,10 @@ publicaron por separado y forman parte de esta versión.
 - Implementados `rust.deny`, `rust.unsafe.scan`, `rust.supply_chain.inspect`,
   `rust.quality.gate.v2` y `rust.miri`, en ese orden después de las 22
   definiciones existentes. Los 23 snapshots anteriores permanecen preservados y
-  se añadieron cinco nuevos. El [core](docs/validation/M4/core-gate.json), el
-  [full](docs/validation/M4/full-gate.json), el [runtime](docs/validation/M4/runtime.json)
-  y los [clientes](docs/validation/M4/clients.json) pasaron localmente. La
-  [confirmación final](docs/reviews/M4/m4-final-evidence/review.md) acepta el cierre
+  se añadieron cinco nuevos. El [core](https://github.com/pharos-lang/rust-engineering-mcp/blob/51fa602e/docs/validation/M4/core-gate.json), el
+  [full](https://github.com/pharos-lang/rust-engineering-mcp/blob/51fa602e/docs/validation/M4/full-gate.json), el [runtime](https://github.com/pharos-lang/rust-engineering-mcp/blob/51fa602e/docs/validation/M4/runtime.json)
+  y los [clientes](https://github.com/pharos-lang/rust-engineering-mcp/blob/51fa602e/docs/validation/M4/clients.json) pasaron localmente. La
+  [confirmación final](https://github.com/pharos-lang/rust-engineering-mcp/blob/51fa602e/docs/reviews/M4/m4-final-evidence/review.md) acepta el cierre
   local de M4. La implementación `07814664379628f00857feca13148b507de687b9`
   está en el [PR #15](https://github.com/pharos-lang/rust-engineering-mcp/pull/15);
   no hay nueva release ni tag.
@@ -423,10 +467,10 @@ publicaron por separado y forman parte de esta versión.
   full pasó 33 con inventario fuente idéntico. Tras encontrar un directorio E5
   temporal vacío, la reanudación conservó 27 etapas aprobadas y ejecutó seis
   frescas usando assets existentes reverificados, sin descarga ni cambios de
-  código. El [fallo original](docs/validation/M4/history/inventory.json)
+  código. El [fallo original](https://github.com/pharos-lang/rust-engineering-mcp/blob/51fa602e/docs/validation/M4/history/inventory.json)
   permanece preservado. El runtime final pasó 19/19 sobre `25ed…`, con scanner
   7/7 y Miri 13 clasificaciones más 7 admisiones.
-- La [revisión final de código Opus](docs/reviews/M4/m4-final-closure/review.md) no
+- La [revisión final de código Opus](https://github.com/pharos-lang/rust-engineering-mcp/blob/51fa602e/docs/reviews/M4/m4-final-closure/review.md) no
   encontró P0, P1 ni un P2 nuevo. El P2 anterior de freshness nativa ya tiene
   los casos renovados y quedó cerrado en la confirmación final. M4 está Done local.
 - Admitido por identidad el runtime Linux ARM64
@@ -466,13 +510,13 @@ publicaron por separado y forman parte de esta versión.
 - Provisionada una nueva imagen guest inmutable con plugins versionados y hashes
   fijados; el runtime no instala ni descarga plugins.
 - Adoptado el perfil seccomp quality con la delta mínima de `socketpair` requerida
-  por Tokio ([ADR-064](docs/adr/ADR-064-quality-job-seccomp-profile.md)) y un
+  por Tokio ([ADR-064](https://github.com/pharos-lang/rust-engineering-mcp/blob/51fa602e/docs/adr/ADR-064-quality-job-seccomp-profile.md)) y un
   volumen ejecutable dedicado solo para las fases run/report de coverage
-  ([ADR-065](docs/adr/ADR-065-coverage-target-volume.md)).
-- Decisiones: lifecycle y Tasks negociadas en el job executor ([ADR-060](docs/adr/ADR-060-bounded-job-execution-and-mcp-tasks.md)); store privado y
-  límites de retención ([ADR-061](docs/adr/ADR-061-private-quality-artifact-store.md));
-  contabilidad de coverage y baselines SemVer ([ADR-062](docs/adr/ADR-062-coverage-accounting-and-semver-baselines.md)); provisioning autorizado
-  ([ADR-063](docs/adr/ADR-063-m3-guest-plugin-provisioning.md)). Tasks está
+  ([ADR-065](https://github.com/pharos-lang/rust-engineering-mcp/blob/51fa602e/docs/adr/ADR-065-coverage-target-volume.md)).
+- Decisiones: lifecycle y Tasks negociadas en el job executor ([ADR-060](https://github.com/pharos-lang/rust-engineering-mcp/blob/51fa602e/docs/adr/ADR-060-bounded-job-execution-and-mcp-tasks.md)); store privado y
+  límites de retención ([ADR-061](https://github.com/pharos-lang/rust-engineering-mcp/blob/51fa602e/docs/adr/ADR-061-private-quality-artifact-store.md));
+  contabilidad de coverage y baselines SemVer ([ADR-062](https://github.com/pharos-lang/rust-engineering-mcp/blob/51fa602e/docs/adr/ADR-062-coverage-accounting-and-semver-baselines.md)); provisioning autorizado
+  ([ADR-063](https://github.com/pharos-lang/rust-engineering-mcp/blob/51fa602e/docs/adr/ADR-063-m3-guest-plugin-provisioning.md)). Tasks está
   implementado, calificado y anunciado tras G4, aunque su uso exige declaración
   mutua de la extensión. El gate full local pasa 25/25 y M3-06 queda calificado;
   el cierre del milestone sigue pendiente de la aceptación formal de ADR-064/065
@@ -505,7 +549,7 @@ publicaron por separado y forman parte de esta versión.
   dedicado con `network=none` y TCP loopback interno para la coordinación de Cargo;
   el candidato se comprueba después de aplicar fixes.
 
-La calificación conjunta M2 está completada: [full y clientes](docs/validation/M2/07.md).
+La calificación conjunta M2 está completada: [full y clientes](https://github.com/pharos-lang/rust-engineering-mcp/blob/51fa602e/docs/validation/M2/07.md).
 No se ha publicado otra release.
 
 ## 0.1.0 — 2026-09-05
@@ -713,9 +757,9 @@ focused follow-up. Local-only integration; remaining M1/release work stays pendi
   and independently reserved durable sequence floor with exact-container recovery.
 - Full15/15 on immutable pre-observability source; final core540, all-features
   Clippy and native CLI5+1 after reviewed floor/status/key-rotation refinements.
-  [Separate source/gate receipts and review disposition](docs/validation/M1/10.md).
+  [Separate source/gate receipts and review disposition](https://github.com/pharos-lang/rust-engineering-mcp/blob/51fa602e/docs/validation/M1/10.md).
 
-See [format and limits](docs/catalog-bundle-format.md). Publisher, license and
+See [format and limits](https://github.com/pharos-lang/rust-engineering-mcp/blob/51fa602e/docs/catalog-bundle-format.md). Publisher, license and
 release remain unapproved; the fixture signing seed is public test data only.
 
 ## M1-11 — Read-only catalog status
@@ -726,8 +770,8 @@ release remain unapproved; the fixture signing seed is public test data only.
   retained SQLite/E5/Lance handles, and independent per-call RustSec observation.
 - Shared joined admission; 120s cooperative deadline and 128KiB complete result.
   Runtime acquisition remains disabled; no whole-server OS network claim.
-- Gate/review recorded in [M1-11](docs/validation/M1/11.md); no M1 closure.
-  [ADR-042](docs/adr/ADR-042-catalog-runtime-status.md).
+- Gate/review recorded in [M1-11](https://github.com/pharos-lang/rust-engineering-mcp/blob/51fa602e/docs/validation/M1/11.md); no M1 closure.
+  [ADR-042](https://github.com/pharos-lang/rust-engineering-mcp/blob/51fa602e/docs/adr/ADR-042-catalog-runtime-status.md).
 
 ## M1-12 — Bounded crate search
 
@@ -741,8 +785,8 @@ release remain unapproved; the fixture signing seed is public test data only.
 - Shared retained catalog/provider and joined worker include JSON validation,
   encoding and suffix trimming under the 512KiB complete-result budget.
 - No acquisition authority, platform expansion, ranking-quality claim or M1 closure.
-  [ADR-043](docs/adr/ADR-043-catalog-search-modes.md);
-  [M1-12 validation](docs/validation/M1/12.md).
+  [ADR-043](https://github.com/pharos-lang/rust-engineering-mcp/blob/51fa602e/docs/adr/ADR-043-catalog-search-modes.md);
+  [M1-12 validation](https://github.com/pharos-lang/rust-engineering-mcp/blob/51fa602e/docs/validation/M1/12.md).
 
 ## M1-13 — Paged crate inspection
 
@@ -755,8 +799,8 @@ release remain unapproved; the fixture signing seed is public test data only.
 - Gate passed: core629 tests/10 stages, protocol37, all-features/all-targets
   Clippy, and two local-feature tests under OS network deny, without embedding
   inference. Sonnet5 Medium review: no confirmed actionable finding.
-  [ADR-044](docs/adr/ADR-044-paged-crate-inspection.md);
-  [validation](docs/validation/M1/13.md). No M1 or release closure.
+  [ADR-044](https://github.com/pharos-lang/rust-engineering-mcp/blob/51fa602e/docs/adr/ADR-044-paged-crate-inspection.md);
+  [validation](https://github.com/pharos-lang/rust-engineering-mcp/blob/51fa602e/docs/validation/M1/13.md). No M1 or release closure.
 
 ## M1-14 — CLI y doctor
 

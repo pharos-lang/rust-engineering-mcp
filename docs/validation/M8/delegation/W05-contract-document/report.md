@@ -1,5 +1,0 @@
-# W05 — informe (Claude Sonnet 5, High; claude 2.1.268)
-
-Invocación: `claude -p --model sonnet --effort high --permission-mode acceptEdits --disallowedTools Agent Task --allowedTools <lista> --no-session-persistence --output-format json < prompt-header.md`. Inicio 2026-09-14T16:01:27Z, fin 2026-09-14T17:23:29Z, exit 0, permission_denials: 0.
-
-**Incidencia de sesión:** pese a la regla «nunca en segundo plano», el worker lanzó `cargo test -p rust-engineering-mcp` como tarea en segundo plano y quedó bloqueado ~9 min en un `tail -f` sobre la salida ya terminada. El orquestador leyó esa salida (todas las suites `test result: ok`, entre ellas 454 unit + 59 protocolo; exit 0) y terminó el `tail` para que el turno continuara. Por eso el `result` final del transcript solo contiene el cierre («Work complete — final report delivered above. All verification gates (fmt, clippy, test, snapshot diff) pass in green.»); el informe detallado del worker quedó en un turno anterior no exportado. La verificación completa la hizo el orquestador (ver disposición).

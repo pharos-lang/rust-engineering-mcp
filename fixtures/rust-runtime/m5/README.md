@@ -21,7 +21,9 @@ python3 -B scripts/build-m5-runtime.py
 ```
 
 Ese script es el procedimiento completo y deja el recibo en
-`docs/validation/M5/provisioning.json`. Hace, en orden: comprobar que
+`tests/data/m5-runtime-provisioning.json` (movido byte-a-byte desde
+`docs/validation/M5/provisioning.json` en 51fa602e; `scripts/test-m5-runtime.py`
+lo lee como fixture de prueba). Hace, en orden: comprobar que
 `rust-engineering-runtime:1.98.1-arm64-m4-scanner` resuelve exactamente a
 `sha256:25ed3626e710…` y abortar si no; preparar el contexto con `provision.py`;
 construir con `--network=none --pull=false`; y verificar sobre la imagen

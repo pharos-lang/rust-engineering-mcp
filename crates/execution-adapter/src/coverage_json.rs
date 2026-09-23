@@ -418,6 +418,31 @@ mod tests {
         Ok(())
     }
     #[test]
+    fn rejects_deeply_nested_json_without_stack_overflow() {
+        // This module never builds a `serde_json::Value` DOM, but every
+        // unknown key at every level (`Document`, `CargoMeta`, `FileSummary`,
+        // `RawFile`, `Counts`) is still skipped through `de::IgnoredAny`,
+        // which recursively walks whatever shape the skipped value has.
+        // serde_json's own default recursion limit (128, `unbounded_depth` is
+        // not enabled in this workspace) is what bounds that walk. This test
+        // pins the resulting behaviour down as an explicit, deterministic
+        // fixture: a bounded error, never a stack exhaustion, for a value
+        // nested far past any real report.
+        const DEPTH: usize = 5_000;
+        let mut nested = String::with_capacity(DEPTH * 2);
+        nested.extend(std::iter::repeat_n('[', DEPTH));
+        nested.extend(std::iter::repeat_n(']', DEPTH));
+        let input = format!(r#"{{"__adversarial_unknown_key":{nested}}}"#);
+        // The skip completes (serde_json bounds or tolerates this depth without
+        // overflowing the stack); the document is then rejected for the
+        // ordinary reason that no real report omits `cargo_llvm_cov`. Either
+        // outcome for *why* it fails is acceptable here -- what this test pins
+        // down is that parsing 5 000 levels of nesting returns an error like
+        // any other malformed input, instead of aborting the process.
+        assert!(parse(input.as_bytes()).is_err());
+    }
+
+    #[test]
     fn rejects_missing_metadata_and_large_input() {
         assert_eq!(parse(br#"{}"#), Err(CoverageJsonError::MissingField));
         assert_eq!(

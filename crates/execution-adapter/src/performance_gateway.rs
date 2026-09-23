@@ -145,7 +145,8 @@ const HELPER_EXIT_PROFILER_UNAVAILABLE: i32 = 3;
 // caller, option, project or fixture can reach it, because the whole point of
 // the containment is that the guest cannot influence its own policy. Without
 // this switch the oracle can only be produced by running docker by hand beside
-// the product, which is what `docs/validation/M5/03-profiling-native.json`
+// the product, which is what `docs/architecture/performance.md` (historical
+// receipt: docs/validation/M5/03-profiling-native.json at 51fa602e)
 // records and which is not a receipt of the product path. With it, the native
 // qualification drives the denial through `performance_port::profile`
 // unchanged — same phases, same argv, same `verify_applied` comparison — and
@@ -312,7 +313,8 @@ impl PerformanceOperation<'_> {
 /// `release-lto`, because `cargo-bloat` 0.12.1 derives `CARGO_PROFILE_<NAME>_*`
 /// from the profile name and `CARGO_PROFILE_RELEASE_LTO` would then be read by
 /// Cargo as `profile.release.lto` and rejected (calibrated in
-/// `docs/validation/M5/04-bloat-calibration.json`).
+/// `docs/architecture/performance.md`; historical receipt:
+/// docs/validation/M5/04-bloat-calibration.json at 51fa602e).
 fn binary_path(target: &str) -> String {
     format!("{TARGET_ROOT}/release/{target}")
 }

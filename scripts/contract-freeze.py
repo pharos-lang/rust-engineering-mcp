@@ -16,7 +16,7 @@ verbatim.
       Hash every tool snapshot under crates/mcp-server/tests/snapshots/*-tool.json
       (schemas, annotations, description) into a manifest with per-tool stability
       class (``stable`` or ``preview``), written to the constant
-      ``docs/validation/M8/freeze-0.8.0.json``.
+      ``tests/baselines/contract-freeze-0.8.0.json``.
 
   verify [--strict]
       Recompute the same hashes from the current snapshots and compare against
@@ -55,8 +55,8 @@ import sys
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 SNAPSHOTS_DIR = ROOT / "crates/mcp-server/tests/snapshots"
 SNAPSHOTS_RELATIVE = "crates/mcp-server/tests/snapshots"
-FREEZE_MANIFEST_PATH = ROOT / "docs/validation/M8/freeze-0.8.0.json"
-SCHEMA_DIFF_PATH = ROOT / "docs/validation/M8/02-schema-diff.json"
+FREEZE_MANIFEST_PATH = ROOT / "tests/baselines/contract-freeze-0.8.0.json"
+SCHEMA_DIFF_PATH = ROOT / "tests/baselines/contract-schema-diff.json"
 DIFF_OUT_KEYS = frozenset({"since_v0.3.0", "since_v0.1.0_m1_only"})
 BASE_PATTERN = re.compile(r"^(v[0-9]+\.[0-9]+\.[0-9]+|[0-9a-f]{7,40})$")
 TOOL_NAME_PATTERN = re.compile(r"^rust\.[a-z][a-z0-9_]*(?:\.[a-z][a-z0-9_]*)*$")

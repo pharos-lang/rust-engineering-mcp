@@ -20,5 +20,5 @@ Never modify fixtures during normal test runs. The ignored
 `emit_development_fixtures` test is an explicit maintainer-only emitter, not a
 publisher CLI, and remains excluded from the ordinary gate.
 
-See [bundle format and CLI](../../docs/catalog-bundle-format.md) and ADR-041.
+See [bundle format and CLI](../../docs/reference/data-formats.md) and ADR-041.
 The final floor/recovery/full gate remains separate from historical fixture passes.
