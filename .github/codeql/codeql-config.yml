@@ -14,4 +14,3 @@ paths-ignore:
   - "crates/**/tests/**"
   - "crates/**/tests.rs"
   - "scripts/test-*.py"
-  - "scripts/release-reproduction/**/test*.py"

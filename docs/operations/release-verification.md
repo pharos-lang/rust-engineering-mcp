@@ -125,13 +125,22 @@ workflow.
 
 ## Reproducción local del build de release
 
-`scripts/release-reproduction/` (movido desde
-[`docs/release/reproduction/`](https://github.com/pharos-lang/rust-engineering-mcp/tree/51fa602e/docs/release/reproduction)
-por la decisión D2 de esta limpieza) contiene los scripts para reproducir
-localmente los pasos que corre el workflow, sin depender de GitHub Actions:
-`build-candidates.py`, `package-candidates.py`, `verify-active.py`,
-`verify-installation.py`, con su propio `README.md`. Úsalos para verificar el
-mecanismo de build/empaquetado antes de cortar un tag real.
+El mismo camino que ejecuta el workflow se reproduce en local con los dos
+scripts de release, sobre un binario `aarch64-apple-darwin` compilado desde el
+commit del tag:
+
+```bash
+python3 scripts/release-artifact.py --binary target/release/rust-engineering-mcp \
+  --target aarch64-apple-darwin --tag vX.Y.Z --output-dir dist
+python3 scripts/release-smoke.py --archive dist/rust-engineering-mcp-vX.Y.Z-aarch64-apple-darwin.tar.gz \
+  --sha256sums dist/SHA256SUMS --tag vX.Y.Z --target aarch64-apple-darwin \
+  --output-receipt dist/release-smoke-receipt.json
+```
+
+`--tag` es `vX.Y.Z` con `X.Y.Z` igual a la versión del workspace. Los scripts
+de reproducción de los candidatos locales de `0.1.0` se retiraron por no aplicar
+a la cadena de release actual; siguen en el historial de Git en
+[`docs/release/reproduction/`](https://github.com/pharos-lang/rust-engineering-mcp/tree/51fa602e/docs/release/reproduction).
 
 ## Licencias de dependencias upstream
 

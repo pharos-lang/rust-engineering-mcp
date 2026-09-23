@@ -28,7 +28,8 @@ no cambian.
   `tests/data/`, recibo de calificación que lee un gate en `qualification/`
   (todos movidos byte a byte).
 - **Scripts y fixtures retirados** sin función vigente: sondas `probe-m2-*`,
-  herramientas de calibración M5 de un solo uso, `release-inventory.py`,
+  herramientas de calibración M5 de un solo uso, scripts de reproducción de
+  los candidatos locales de `0.1.0`, `release-inventory.py`,
   `test-m3-budgets.py` y los fixtures `cargo-local-registry`,
   `hostile-reports` y `profile-probe`. Los casos adversos de
   `hostile-reports` que siguen aplicando están cubiertos por tests inline, más
