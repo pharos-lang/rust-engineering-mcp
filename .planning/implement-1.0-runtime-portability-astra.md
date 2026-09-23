@@ -49,8 +49,9 @@ materiales de alcance. Astra conserva la responsabilidad de coordinación,
 priorización y aceptación de entregables, **pero no implementa el producto**.
 
 Al ejecutar este encargo, documentar en la instrucción de sesión y después en
-`AGENTS.md` las excepciones de rol aquí solicitadas: Astra como orquestador y
-Sol/Terra/Luna como workers según tarea. La regla previa «Main Sol High» no se
+`AGENTS.md` las excepciones de rol aquí solicitadas: Astra como orquestador;
+Sol/Terra/Luna y, por autorización del owner (2026-09-23), Claude Opus 5.5 y
+Claude Sonnet 5 como workers según tarea. La regla previa «Main Sol High» no se
 reescribe silenciosamente. El host selecciona realmente el modelo principal;
 el agente no puede afirmar que cambió su propio modelo. Si la sesión no está
 configurada con Astra, informar y no sustituirlo por iniciativa propia.
@@ -193,15 +194,20 @@ No es obligatorio consumir los tres proveedores en todas las tareas.
 | Implementador | GPT-5.6 Terra | Cortes delimitados con contrato aprobado; medium; high si la dificultad lo justifica |
 | Worker acotado | GPT-5.6 Luna | Inventarios, fixtures simples, documentación y verificaciones deterministas; esfuerzo admitido proporcional |
 | Integrador/QA | Sol o Terra, separado del autor al revisar | Integración privada, reconstrucción y gates; medium/high según riesgo |
-| Revisión habitual | Claude Sonnet | Review read-only de diff, tests y evidencia; esfuerzo equivalente admitido |
-| Revisión de seguridad/arquitectura | Claude Opus | Review read-only de fronteras y ADRs; esfuerzo alto admitido, sin `ultracode` |
+| Worker de fronteras y seguridad | Claude Opus 5.5 | Prototipos y diseño de primitivas de seguridad por plataforma (no-follow/beneath, reparse-safe, identidad de roots, locks, durabilidad), tests adversariales, debugging complejo cross-platform, soundness de `unsafe`/FFI y borradores de decisión junto a Sol; high |
+| Worker implementador Claude | Claude Sonnet 5 | Cortes Rust delimitados con contrato aprobado, tests unitarios/integración/adversariales, harnesses Python, inventarios y documentación técnica verificada contra el código; medium, high si la dificultad lo justifica |
+| Revisión habitual | Claude Sonnet 5 | Review read-only de diff, tests y evidencia; esfuerzo equivalente admitido |
+| Revisión de seguridad/arquitectura | Claude Opus 5.5 | Review read-only de fronteras y ADRs; esfuerzo alto admitido, sin `ultracode` |
 | Revisión mecánica | Claude Haiku | Cotejo read-only de referencias, tablas y consistencia; esfuerzo bajo admitido |
 | Worker Gemini | Gemini 3.8 Flash / 3.7 Flash / 3.6 Flash | Investigación, pruebas, harnesses y documentación en archivos asignados; escoger modelo y esfuerzo según capacidad real y complejidad |
 
 Los nombres son la selección solicitada, **no prueba de disponibilidad ni de
 identificador CLI**. En preflight registrar versión de `claude`/`agy`, ayuda,
-modelos habilitados, IDs exactos y esfuerzos aceptados. Resolver Sonnet/Opus
-contra la exigencia vigente de `AGENTS.md` (actualmente Sonnet 5/Opus 5).
+modelos habilitados, IDs exactos y esfuerzos aceptados. Para Claude, el owner
+selecciona Opus 5.5 y Sonnet 5 (IDs esperados `claude-opus-5-5` y
+`claude-sonnet-5`, por `claude --model <id>` con `--effort`); confirmarlos en
+preflight y registrar en `AGENTS.md` la excepción frente al revisor Opus 5 que
+fija hoy.
 No inventar flags ni asumir que `agy` expone los comandos de Gemini CLI.
 Modelo requerido ausente: informar y pedir elección, sin sustitución silenciosa.
 Para Gemini no deducir capacidad ni cuota del número del modelo: asignar tras
@@ -219,10 +225,21 @@ una tarea piloto pequeña y comprobable.
 - Sol propone decisiones; un reviewer independiente las examina; Astra verifica
   su encaje y el owner decide cuando cambia el alcance o la autoridad concedida.
 
-Claude conserva el rol externo **read-only** de `AGENTS.md`: sin implementación,
-commits ni merges. Si el owner quisiera un Claude implementador, debe autorizar
-ese rol por separado; una sesión que implementó un corte no puede ser su
-revisor independiente. Gemini puede editar solo el paquete disjunto asignado.
+El owner autoriza (2026-09-23) a Claude Opus 5.5 y Claude Sonnet 5 como
+workers implementadores, además de su rol de revisión. Astra sigue siendo el
+único orquestador: asigna los paquetes de Claude igual que los de Codex y
+Gemini, y Claude no coordina, no asigna trabajo ni acepta entregables. Un worker
+Claude edita solo el paquete disjunto asignado en su rama/worktree, sin push,
+merge, tags ni integración en la rama del integrador; entrega el informe
+obligatorio y el integrador (Sol o Terra) integra. Asignarlo donde aporta más
+capacidad: Opus 5.5 para fronteras de seguridad, prototipos de plataforma,
+adversarial testing y debugging difícil; Sonnet 5 para cortes delimitados, tests,
+harnesses y documentación. Una sesión que implementó un corte no puede ser su
+revisor independiente: si Claude es autor, la revisión la hace otra sesión y,
+para cortes de seguridad o arquitectura, además un revisor de otro proveedor
+(Sol). La cuota de Claude Max 5x es compartida: reservar capacidad para las
+revisiones Opus obligatorias antes de asignar implementación a Opus. Gemini
+puede editar solo el paquete disjunto asignado.
 
 ### Paquete obligatorio por tarea
 
@@ -474,7 +491,7 @@ caben en un corte verificable. No dar fechas basadas en el número de agentes.
 
 | ID | Dependencias | Responsable delegado | Entregable y aceptación |
 | --- | --- | --- | --- |
-| P-01 | Inicio autorizado | Sol + inventario Luna | Baseline posterior a Sonar confirmada, hash, censo de tools/estabilidad, contratos y deuda; diferencias de docs resueltas o registradas |
+| P-01 | Inicio autorizado | Sol + inventario Luna o Sonnet 5 | Baseline posterior a Sonar confirmada, hash, censo de tools/estabilidad, contratos y deuda; diferencias de docs resueltas o registradas |
 | P-02 | P-01 | Worker de seguimiento + Astra | Paquete persistente, validación del control, inventario CLI/modelos/cuotas; simulación de checkpoint y reanudación sin pérdida |
 | P-03 | P-01 | Sol, review Opus | ADR propuesto de runtime/distribución y sucesor de ADR-087 con fases, invariantes, alternativas y rollback; decisiones aceptadas antes de código afectado |
 | P-04 | P-01, P-02 | Terra o Gemini | Runner local de jobs/recibos y diseño de transporte SSH; prueba local de interrupción/reconexión, sin necesitar aún hosts externos |
@@ -490,10 +507,10 @@ afirmar que ya funcionan.
 | ID | Depende de | Worker sugerido | Trabajo y criterio de aceptación |
 | --- | --- | --- | --- |
 | MAC-01 | P-05 | Sol/Terra | Censar identidades y perfiles por familia, CLI/metadata y harnesses. Cada dependencia del runtime tiene dueño y prueba de migración |
-| MAC-02 | MAC-01 | Terra, investigación Gemini | Construir o seleccionar imagen unificada ARM64 con inputs fijados, inventario, hashes, licencias/notices/SBOM y receta verificable. No asumir que M6 ya está calificada |
+| MAC-02 | MAC-01 | Terra, investigación Gemini; Sonnet 5 para inventario/licencias/SBOM | Construir o seleccionar imagen unificada ARM64 con inputs fijados, inventario, hashes, licencias/notices/SBOM y receta verificable. No asumir que M6 ya está calificada |
 | MAC-03 | MAC-02 | Sol/Terra | Integrar descriptor/admisión y provenance por tool. Rechazar descriptor, imagen, arquitectura o plugin alterados; conservar grants/perfiles independientes |
-| MAC-04 | MAC-03 | Terra; docs Gemini/Luna | Preparación explícita, configuración de cliente y doctor. Instalación limpia sin compilar imagen ni binario para el usuario; idempotencia, paths con espacios, reintento de descarga y rollback probados |
-| MAC-05 | MAC-03 | QA independiente | Ejecutar suites M1–M6 y seguridad sobre la misma identidad unificada, más features/gates exigidos por la baseline. Recibos identifican cada tool/capacidad y limitaciones |
+| MAC-04 | MAC-03 | Terra o Sonnet 5; docs Gemini/Luna/Sonnet 5 | Preparación explícita, configuración de cliente y doctor. Instalación limpia sin compilar imagen ni binario para el usuario; idempotencia, paths con espacios, reintento de descarga y rollback probados |
+| MAC-05 | MAC-03 | QA independiente (Sonnet 5 si no fue autor del corte) | Ejecutar suites M1–M6 y seguridad sobre la misma identidad unificada, más features/gates exigidos por la baseline. Recibos identifican cada tool/capacidad y limitaciones |
 | MAC-06 | MAC-04, MAC-05 | Integrador/QA + Sonnet/Opus read-only | Cerrar findings, reconstruir binario final, core/full, clientes, recuperación y soak aplicable; contrato sin cambios no autorizados; cero P0/P1 abiertos |
 | MAC-07 | MAC-06 | Integrador + documentación | Candidato rc.1, paquete de instalación verificable, migración/rollback y README; registrar `qualified_local`, informe final y puerta de acceso Linux |
 
@@ -526,9 +543,9 @@ de implementación. Entregar el checkpoint y finalizar la sesión si corresponde
 | ID | Depende de | Worker sugerido | Trabajo y criterio de aceptación |
 | --- | --- | --- | --- |
 | LINUX-01 | MAC-07 + acceso del owner | Terra/QA | Preflight SSH read-only; OS/kernel/CPU/FS/engine/cgroup/seccomp, disco disponible y permisos; inventario y configuración concreta aceptados |
-| LINUX-02 | LINUX-01 | Sol, review Opus | ADR/plataforma y prototipos de I/O relativo a handles, no-follow/beneath, identidad de roots, locks y durabilidad; oráculos positivos/adversos en el host |
-| LINUX-03 | LINUX-02 | Sol/Terra | Portar lectura/captura/vendor, catálogo/SQLite, estado privado, artifacts, journal y writer. Completar preview/commit/replay/recovery, sin reducir garantías silenciosamente |
-| LINUX-04 | LINUX-01 + descriptor MAC | Terra/Gemini | Variante Linux AMD64 con inventario y perfiles correctos; toolchain, rutas LLVM, helpers, scanner, analyzer, coverage y profiling recalibrados, sin emulación como evidencia nativa |
+| LINUX-02 | LINUX-01 | Sol u Opus 5.5 como autor; review independiente del otro proveedor + Opus 5.5 read-only si el autor fue Sol | ADR/plataforma y prototipos de I/O relativo a handles, no-follow/beneath, identidad de roots, locks y durabilidad; oráculos positivos/adversos en el host |
+| LINUX-03 | LINUX-02 | Sol/Terra; Sonnet 5 para cortes delimitados y Opus 5.5 para writer/journal/recovery | Portar lectura/captura/vendor, catálogo/SQLite, estado privado, artifacts, journal y writer. Completar preview/commit/replay/recovery, sin reducir garantías silenciosamente |
+| LINUX-04 | LINUX-01 + descriptor MAC | Terra/Gemini/Sonnet 5 | Variante Linux AMD64 con inventario y perfiles correctos; toolchain, rutas LLVM, helpers, scanner, analyzer, coverage y profiling recalibrados, sin emulación como evidencia nativa |
 | LINUX-05 | LINUX-03, LINUX-04 | Terra/QA | Integrar gateway/state root, supervisor y sesión LSP no bloqueante, engine endpoint, cuotas/procesos y CLI/instalación. Calificar prohibición de red y cleanup bajo timeout/cancelación |
 | LINUX-06 | LINUX-05 | QA + review independiente | Full nativo, contratos/clientes, instalación/upgrade/rollback; regresión macOS en el mismo tip de integración; todas las capacidades prometidas tienen evidencia |
 | LINUX-07 | LINUX-06 | Integrador + documentación | Empaquetado Linux, CI y docs; candidato acumulativo rc.2; `qualified_local`, handoff y puerta Windows |
@@ -556,10 +573,10 @@ filesystems o modos rootless no heredan automáticamente la calificación.
 | ID | Depende de | Worker sugerido | Trabajo y criterio de aceptación |
 | --- | --- | --- | --- |
 | WINDOWS-01 | LINUX-07 + acceso del owner | Terra/QA | Preflight SSH read-only: edición/build soportada, x86_64/NTFS, ACL, MSVC/SDK, virtualización y engine local; comprobar acceso al backend desde la sesión SSH real |
-| WINDOWS-02 | WINDOWS-01 | Sol/Terra | Reproducir/corregir regresión stdio pre-initialize; EOF, cierre de stdout, buffering, framing, cancelación y procesos. Restituir CI portable Windows sin declararla soporte positivo |
-| WINDOWS-03 | WINDOWS-01 | Sol, review Opus | ADR/prototipos reparse-safe, handles, identidad, ACL, locks y publicación/durabilidad; adversarial qualification sobre NTFS nativo |
-| WINDOWS-04 | WINDOWS-03 | Sol/Terra | Portar filesystem, todos los stores y writer, catálogo/artifacts, journals/recovery; nombres reservados, device/UNC paths, ADS, junctions, symlinks/hardlinks, case folding, rutas largas/Unicode/CRLF y file sharing probados |
-| WINDOWS-05 | WINDOWS-02, WINDOWS-04 | Sol/Terra; tests Gemini | Endpoint Docker y frontera Windows/guest, state root, snapshots, sesión LSP, supervisión/cancelación y permisos; variante AMD64 verificada y suites de tools en este host |
+| WINDOWS-02 | WINDOWS-01 | Sol/Terra; Opus 5.5 para debugging de stdio/procesos | Reproducir/corregir regresión stdio pre-initialize; EOF, cierre de stdout, buffering, framing, cancelación y procesos. Restituir CI portable Windows sin declararla soporte positivo |
+| WINDOWS-03 | WINDOWS-01 | Sol u Opus 5.5 como autor; review independiente del otro proveedor + Opus 5.5 read-only si el autor fue Sol | ADR/prototipos reparse-safe, handles, identidad, ACL, locks y publicación/durabilidad; adversarial qualification sobre NTFS nativo |
+| WINDOWS-04 | WINDOWS-03 | Sol/Terra; Sonnet 5 para tests adversariales de paths/NTFS | Portar filesystem, todos los stores y writer, catálogo/artifacts, journals/recovery; nombres reservados, device/UNC paths, ADS, junctions, symlinks/hardlinks, case folding, rutas largas/Unicode/CRLF y file sharing probados |
+| WINDOWS-05 | WINDOWS-02, WINDOWS-04 | Sol/Terra; tests Gemini/Sonnet 5 | Endpoint Docker y frontera Windows/guest, state root, snapshots, sesión LSP, supervisión/cancelación y permisos; variante AMD64 verificada y suites de tools en este host |
 | WINDOWS-06 | WINDOWS-05 | QA + reviews independientes | Full nativo Windows, instalación por usuario y rollback, clientes; regresión macOS y Linux sobre el tip final; cero P0/P1 y cero capacidades obligatorias sin evidencia |
 | WINDOWS-07 | WINDOWS-06 | Integrador + documentación | Archivo/binario Windows y candidato acumulativo rc.3, hashes/notices/provenance, matriz final de soporte y handoff al owner |
 
