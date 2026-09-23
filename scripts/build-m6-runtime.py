@@ -6,9 +6,10 @@ as a remote reference and Docker 29 removed the legacy builder. The digest
 guarantee is preserved here instead: the tag must resolve to the approved image
 id before anything is built, and the resolved id is recorded in the receipt.
 
-`provision.py` is the only step of M6 authorized to use the network
-(docs/roadmap/m6-provisioning-request.md); the Docker build below runs with
---network=none.
+`provision.py` is the only step of M6 authorized to use the network (decision
+recorded in docs/architecture/decisions.md; historical receipt:
+docs/roadmap/m6-provisioning-request.md at 51fa602e); the Docker build below
+runs with --network=none.
 """
 from __future__ import annotations
 
@@ -39,7 +40,7 @@ CARRIED_BINARIES = (
 DOCKER = os.environ.get("RUST_MCP_DOCKER", "docker")
 BUILD_TIMEOUT_S = int(os.environ.get("RUST_MCP_M6_BUILD_TIMEOUT_S", "3600"))
 
-OUTPUT_DEFAULT = ROOT / "docs/validation/M6/provisioning.json"
+OUTPUT_DEFAULT = ROOT / "tests/data/m6-runtime-provisioning.json"
 CONTEXT_DEFAULT = ROOT / "target/m6-provisioning"
 
 
@@ -121,6 +122,7 @@ def main() -> int:
     arguments = parser.parse_args()
     output_path = beside_default(OUTPUT_DEFAULT, arguments.output)
     context_root = beside_default(CONTEXT_DEFAULT, arguments.context)
+    output_path.parent.mkdir(parents=True, exist_ok=True)
 
     if sys.platform != "darwin" or platform.machine() != "arm64":
         raise RuntimeError("the M6 image is provisioned only on macOS ARM64")

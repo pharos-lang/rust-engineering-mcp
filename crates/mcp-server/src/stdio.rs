@@ -828,7 +828,7 @@ impl ServerHandler for EngineeringServer {
         _request: Option<PaginatedRequestParams>,
         _context: RequestContext<RoleServer>,
     ) -> Result<ListResourcesResult, ErrorData> {
-        // Resources are dynamic per session (docs/tools.md "Resources dinámicas");
+        // Resources are dynamic per session (docs/reference/tools.md "Resources dinámicas");
         // there is no static catalog to enumerate here.
         Ok(ListResourcesResult::default()
             .with_ttl_ms(0)

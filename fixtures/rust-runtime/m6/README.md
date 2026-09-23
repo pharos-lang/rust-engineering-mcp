@@ -22,7 +22,9 @@ python3 -B scripts/build-m6-runtime.py
 ```
 
 Ese script es el procedimiento completo y deja el recibo en
-`docs/validation/M6/provisioning.json`. Hace, en orden: comprobar que
+`tests/data/m6-runtime-provisioning.json` (movido byte-a-byte desde
+`docs/validation/M6/provisioning.json` en 51fa602e; `analyzer_native.rs` lo lee
+como fixture de prueba). Hace, en orden: comprobar que
 `rust-engineering-runtime:1.98.1-arm64-m5` resuelve exactamente a
 `sha256:e0a5ca1661b3e49d0a3d68ee3cc0963453078d08eb7fc43c30538c16b7998aac` y
 abortar si no; preparar el contexto con `provision.py`; construir con
@@ -31,8 +33,9 @@ ambos componentes existen, que `rust-analyzer` **no** es alcanzable por
 `PATH`, que los binarios M3/M4/M5 siguen presentes, y que el contexto de
 construcción no dejó residuos.
 
-`provision.py` es el único paso de M6 autorizado a usar la red
-(`docs/roadmap/m6-provisioning-request.md`), y solo para descargar exactamente
+`provision.py` es el único paso de M6 autorizado a usar la red (decisión
+registrada en `docs/architecture/decisions.md`; recibo histórico:
+`docs/roadmap/m6-provisioning-request.md` en 51fa602e), y solo para descargar exactamente
 tres URLs: el manifest `channel-rust-1.98.1.toml` (verificado por `sha256`
 contra `fixtures/rust-runtime/sources.json`) y, tras cruzar sus entradas
 `xz_url`/`xz_hash` contra las constantes fijadas en este dossier, los dos

@@ -1,7 +1,7 @@
 //! ADR-081 requalification instrument: a seeded simulation of the comparison
-//! method against the criteria frozen in
-//! `docs/adr/ADR-081-benchmark-statistical-requalification.md` §1, at the drift
-//! points frozen in §2.
+//! method against the criteria frozen in `docs/architecture/decisions.md`
+//! (historical receipt: docs/adr/ADR-081-benchmark-statistical-requalification.md
+//! at 51fa602e) §1, at the drift points frozen in §2.
 //!
 //! This module is `#[cfg(test)]` and changes NOTHING about the shipped method.
 //! It is a child of [`super`] on purpose: a child module can see its parent's
@@ -23,8 +23,9 @@
 //! Nothing here writes a file: `scripts/check-architecture.py` forbids
 //! filesystem access anywhere under `crates/domain/src`, and the domain crate
 //! has no business acquiring any. The harness prints one JSON document to
-//! stdout between two markers and `scripts/simulate-m5-comparison-method.py`
-//! reads it from there.
+//! stdout between two markers; the retired driver that read it from there is
+//! [`scripts/simulate-m5-comparison-method.py` at 51fa602e](https://github.com/pharos-lang/rust-engineering-mcp/blob/51fa602e/scripts/simulate-m5-comparison-method.py),
+//! whose result is frozen in `qualification/benchmark-method-simulation.json`.
 //!
 //! Entry points, all driven by environment variables so the default `cargo test`
 //! run stays a fast smoke test of the harness itself:
@@ -378,7 +379,7 @@ impl Estimator {
     }
 
     /// Short name used to build a candidate id. Separate from [`Self::wire`] so
-    /// the ids already published in `docs/validation/M5/02-method-simulation.json`
+    /// the ids already published in `qualification/benchmark-method-simulation.json`
     /// keep their exact spelling while the estimator keeps its descriptive one.
     fn family(self) -> &'static str {
         match self {
@@ -1793,7 +1794,8 @@ fn every_candidate_decides_at_every_drift_point() {
 ///
 /// With no environment it is a smoke test of two replicates so the ordinary
 /// gate keeps this file compiling and correct without paying for the full
-/// simulation. `scripts/simulate-m5-comparison-method.py` sets the variables.
+/// simulation. The retired historical driver that set these variables is
+/// `scripts/simulate-m5-comparison-method.py` at 51fa602e.
 #[test]
 fn m5_02_requalification() {
     let mode = environment("M5_SIM_MODE").unwrap_or_else(|| "smoke".to_owned());

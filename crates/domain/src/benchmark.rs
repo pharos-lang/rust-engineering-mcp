@@ -1,7 +1,8 @@
 //! Frozen, versioned benchmark dataset: raw samples plus the provenance a
 //! reader needs before two datasets may be compared at all.
 //!
-//! The roadmap (docs/roadmap/m5-performance.md, "Método congelado antes de
+//! The roadmap (docs/architecture/performance.md; historical receipt:
+//! docs/roadmap/m5-performance.md at 51fa602e, "Método congelado antes de
 //! medir") requires the dataset format to be independent of the server's own
 //! SemVer and requires an unknown reader to fail closed: a payload whose
 //! [`BenchmarkDataset::format`] is not exactly [`BENCHMARK_DATASET_FORMAT`], or

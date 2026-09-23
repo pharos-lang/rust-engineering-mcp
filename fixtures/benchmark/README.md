@@ -126,7 +126,9 @@ vendor autenticado por el host.
 
 Se diseñó como control de auto-comparación, pero la medición real en el guest lo
 desmiente: `control` resultó un 2,9 % **más rápido** que `reference`
-([recibo](../../docs/validation/M5-01-benchmark-calibration.json)). Recorrer el
+(recibo histórico:
+[`docs/validation/M5/01-benchmark-calibration.json`](https://github.com/pharos-lang/rust-engineering-mcp/blob/51fa602e/docs/validation/M5/01-benchmark-calibration.json)
+en 51fa602e). Recorrer el
 mismo conjunto de índices en orden descendente no cuesta lo mismo que en orden
 ascendente en este hardware, aunque el número de operaciones sea idéntico.
 

@@ -4,7 +4,8 @@
 //! entropy from the operating system. The same two datasets always produce the
 //! same report, on any host, in any order.
 //!
-//! The method is frozen before anything is measured (docs/roadmap/m5-performance.md,
+//! The method is frozen before anything is measured (docs/architecture/performance.md;
+//! historical receipt: docs/roadmap/m5-performance.md at 51fa602e,
 //! "Método congelado antes de medir"): statistic, resample count, seed,
 //! confidence level, material threshold, multiplicity correction and outlier
 //! policy are constants of this module and are reported alongside every result,
@@ -22,7 +23,8 @@
 //! else — how much the statistic would move if the same execution were read
 //! again — and that number is far smaller, which is what turns host drift into
 //! a confident direction. See the "Corrección" note in
-//! docs/adr/ADR-073-benchmark-method-and-dataset.md §4.
+//! docs/architecture/decisions.md (historical receipt:
+//! docs/adr/ADR-073-benchmark-method-and-dataset.md §4 at 51fa602e).
 
 use crate::benchmark::{
     BENCHMARK_DATASET_FORMAT, BENCHMARK_DATASET_FORMAT_VERSION, BenchmarkDataset, BenchmarkError,
@@ -169,7 +171,7 @@ pub const MIN_EXECUTIONS_FOR_DIRECTION: usize = 3;
 ///
 /// 1. an estimator meets **every** criterion of ADR-081 §1 — coverage, false
 ///    positives, power, incorrect `no_material_change` and budget — at **every**
-///    drift point of §2, recorded in `docs/validation/M5/02-method-simulation.json`;
+///    drift point of §2, recorded in `qualification/benchmark-method-simulation.json`;
 /// 2. the real controls of ADR-081 §3 reproduce on captures from the admitted
 ///    image: positives with a known effect, and negatives for noise,
 ///    incompatibility and insufficient data;
@@ -2416,7 +2418,7 @@ mod tests {
         assert!(
             !METHOD_QUALIFIED_FOR_DIRECTION,
             "the requalification has not passed; see ADR-081 §1 and the receipt at \
-             docs/validation/M5/02-method-simulation.json"
+             qualification/benchmark-method-simulation.json"
         );
         let baseline = jitter(1, 60, 1_000.0, 0.02);
         let candidate = jitter(2, 60, 1_200.0, 0.02);

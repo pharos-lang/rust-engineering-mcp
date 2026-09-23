@@ -1,1 +1,0 @@
-{"conversation_id":"e6a565bf-88d8-4083-8cff-c963cef5c164","status":"SUCCESS","response":"","duration_seconds":43.226948,"num_turns":1,"usage":{"input_tokens":59841,"output_tokens":2807,"thinking_tokens":2063,"cache_read_tokens":130105,"total_tokens":62648},"denied_actions":[{"action":"mcp","display_name":"CallMcpTool"}]}

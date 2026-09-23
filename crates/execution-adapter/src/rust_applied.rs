@@ -1004,7 +1004,7 @@ mod tests {
         // exec tmpfs, ownership labels and fixed M1-04 formatter applied.
         // Historical receipt stays unchanged; live gateway tests cover creation.
         let receipt: Value = serde_json::from_str(include_str!(
-            "../../../docs/validation/artifacts/M1-01-runtime-volume-feasibility.json"
+            "../../../tests/data/m1-01-runtime-volume-feasibility.json"
         ))?;
         let event = receipt["events"]
             .as_array()

@@ -51,8 +51,10 @@ pub const APPROVED_M6_IMAGE: &str =
 /// which reads `/usr/share/doc/rust-runtime/m6/rust-analyzer-version.txt` and
 /// `installed.json` out of the live guest through the closed
 /// `Phase::AnalyzerDocument` phase and fails unless this constant and
-/// [`ANALYZER_BINARY_SHA256`] match both the guest and
-/// `docs/validation/M6/provisioning.json`.
+/// [`ANALYZER_BINARY_SHA256`] match both the guest and the provisioning
+/// receipt at `tests/data/m6-runtime-provisioning.json` (moved byte-identical
+/// from `docs/validation/M6/provisioning.json` at 51fa602e; that is also the
+/// path `scripts/build-m6-runtime.py` writes on a fresh provisioning run).
 pub(super) const ANALYZER_VERSION: &str = "rust-analyzer 1.98.1 (48a229c 2026-09-01)";
 
 /// The sha256 of `/opt/analyzer/bin/rust-analyzer` inside

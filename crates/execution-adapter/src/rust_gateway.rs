@@ -472,8 +472,10 @@ impl Phase {
                 "never",
                 "--no-times",
             ],
-            // Closed argv per the pinned cargo-mutants 27.1.0 help
-            // (`docs/validation/M3/provisioning/help/cargo-mutants-help.stdout`).
+            // Closed argv per the pinned cargo-mutants 27.1.0 help, tracked in
+            // `docs/operations/runtime-provisioning.md` (historical receipt:
+            // docs/validation/M3/provisioning/help/cargo-mutants-help.stdout at
+            // 51fa602e).
             // The mandatory baseline is `--baseline run`: that binary's
             // `--baseline` accepts only `run`/`skip`, so the M3-05 "baseline
             // auto" intent is expressed as the explicit, non-skippable run.
@@ -648,8 +650,10 @@ fn append_coverage_selection(
 /// (ADR-062 §8): `cargo-semver-checks` itself only accepts one shared
 /// `--features`/`--all-features`/etc. set, applied to both the baseline and
 /// current crate, never `--baseline-features`/`--current-features`. The
-/// pinned `check-release --help` (see
-/// `docs/validation/M3/provisioning/help/cargo-semver-checks-check-release-help.stdout`)
+/// pinned `check-release --help` (tracked in
+/// `docs/operations/runtime-provisioning.md`; historical receipt:
+/// docs/validation/M3/provisioning/help/cargo-semver-checks-check-release-help.stdout
+/// at 51fa602e)
 /// exposes no `--no-default-features` flag; `--only-explicit-features` is the
 /// closest documented equivalent ("Use no features except ones explicitly
 /// added by other flags") and is used here as a provisional mapping pending

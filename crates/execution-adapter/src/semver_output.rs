@@ -2,8 +2,10 @@
 //! binary's non-colored `check-release` output (ADR-062 §11).
 //!
 //! No machine-readable findings flag exists for the pinned 0.50.0 binary
-//! (confirmed against the pinned `--help` output at
-//! `docs/validation/M3/provisioning/help/cargo-semver-checks-check-release-help.stdout`),
+//! (confirmed against the pinned `--help` output tracked in
+//! `docs/operations/runtime-provisioning.md`; historical receipt:
+//! docs/validation/M3/provisioning/help/cargo-semver-checks-check-release-help.stdout
+//! at 51fa602e),
 //! so this parser scrapes the tool's own human-oriented `handlebars` report
 //! text. The shapes below were calibrated against 0.50.0 in the approved M3
 //! guest image. It never fabricates a finding it cannot support and never

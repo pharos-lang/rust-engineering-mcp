@@ -130,7 +130,7 @@ jobs:
           # The expected tool count comes from the repo's own contract-freeze
           # manifest (already checked out in this job), not a workflow literal.
           freeze = json.loads(
-              pathlib.Path("docs/validation/M8/freeze-0.8.0.json").read_text(encoding="utf-8")
+              pathlib.Path("tests/baselines/contract-freeze-0.8.0.json").read_text(encoding="utf-8")
           )
           with pathlib.Path(os.environ["GITHUB_OUTPUT"]).open("a", encoding="utf-8") as output:
               for name, path in paths.items():

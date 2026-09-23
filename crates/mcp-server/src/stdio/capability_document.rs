@@ -72,7 +72,8 @@ struct ToolClass {
 }
 
 /// Closed table (M8-02 decision 3; semantics fixed in V02-review-freeze
-/// disposition P2-1), sourced from `docs/validation/M8/01-census.json`
+/// disposition P2-1), sourced from `docs/architecture/decisions.md` (historical
+/// receipt: docs/validation/M8/01-census.json at 51fa602e)
 /// `tools[].requires_runtime`.
 ///
 /// `executes_project_code` is `true` iff the tool can execute build scripts,

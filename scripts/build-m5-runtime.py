@@ -28,7 +28,7 @@ DOCKER = os.environ.get("RUST_MCP_DOCKER", "docker")
 BUILD_TIMEOUT_S = int(os.environ.get("RUST_MCP_M5_BUILD_TIMEOUT_S", "3600"))
 
 
-OUTPUT_DEFAULT = ROOT / "docs/validation/M5/provisioning.json"
+OUTPUT_DEFAULT = ROOT / "tests/data/m5-runtime-provisioning.json"
 CONTEXT_DEFAULT = ROOT / "target/m5-provisioning"
 
 
@@ -65,12 +65,13 @@ def guest_capture(image: str, command: str) -> str:
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--output", type=pathlib.Path,
-                        default=ROOT / "docs/validation/M5/provisioning.json")
+                        default=OUTPUT_DEFAULT)
     parser.add_argument("--context", type=pathlib.Path,
                         default=ROOT / "target/m5-provisioning")
     arguments = parser.parse_args()
-    output_path = beside_default(OUTPUT_DEFAULT, output_path)
-    context_root = beside_default(CONTEXT_DEFAULT, context_root)
+    output_path = beside_default(OUTPUT_DEFAULT, arguments.output)
+    context_root = beside_default(CONTEXT_DEFAULT, arguments.context)
+    output_path.parent.mkdir(parents=True, exist_ok=True)
 
     if sys.platform != "darwin" or platform.machine() != "arm64":
         raise RuntimeError("the M5 image is provisioned only on macOS ARM64")

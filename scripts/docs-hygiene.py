@@ -1,38 +1,55 @@
 #!/usr/bin/env python3
-"""Repository documentation hygiene.
+"""Documentation hygiene for the canonical layout (post documentation-cleanup).
 
-Three read-mostly operations used by the evidence layout convention described in
-docs/validation/README.md:
+A single ``check`` command runs every rule below against the tracked Git tree
+and prints one line per violation. Exit status is non-zero on any failure.
+``--report`` additionally writes a JSON summary to
+``target/docs-hygiene/check.json``. Only the standard library is used.
 
-  links-check [--report]
-      Resolve every Markdown link and every ``docs/...`` path string in the
-      living documentation set. Broken links in living documents fail the
-      command; broken links in frozen records (agent transcripts, review input
-      snapshots) are only reported, because those bytes are never edited.
+Rules:
 
-  apply-moves [--dry-run] [--report] < PLAN.json
-      Move files with ``git mv`` following a JSON plan read from stdin (a
-      list of ``{"from": ..., "to": ...}`` entries; ``from`` may be a tracked
-      file or a tracked directory), then rewrite the affected Markdown links and
-      root-relative path strings in the living set, scripts and Git metadata.
-      Receipts and other moved bytes are never edited.
+  (a) Links and anchors -- every relative Markdown link and every same-file or
+      cross-file ``#anchor`` fragment in root ``*.md``, ``docs/**/*.md`` and
+      ``.planning/*.md``/``.planning/**/*.md`` must resolve. Anchors are
+      matched against GitHub's heading-slug algorithm.
+  (b) Canonical docs/ layout -- ``docs/`` may contain only ``README.md`` and
+      the five canonical subdirectories (``guides``, ``reference``,
+      ``architecture``, ``operations``, ``development``). Any other
+      top-level entry, including a new folder or a milestone-shaped
+      directory (``M0``..``M8``, a version number, ...), fails the check.
+      There is no allowlist to grow: a new top-level docs/ entry is always a
+      finding, never silently accepted.
+  (c) No live references to retired paths -- no in-tree file other than this
+      tool's own source may reference a path retired by the documentation
+      cleanup (the milestone trees ``docs/{validation,reviews,research,
+      roadmap,release,spec,adr,prompts}/`` or the superseded flat docs)
+      except as a GitHub permalink pinned to the retirement commit, a frozen
+      contract/schema string, or a citation that names the retirement commit
+      inline (``at``/``en 51fa602e``).
+  (d) Pending plans are tracked -- every ``.planning/*.md`` and
+      ``.planning/**/*.md`` file on disk must be committed to Git, so it
+      survives a clean export.
+  (e) README navigation -- every ``docs/**/*.md`` other than ``docs/README.md``
+      itself must be reachable from a relative link somewhere in
+      ``docs/README.md``.
+  (f) docs/ path strings resolve -- a bare ``docs/...`` path string inside
+      ``scripts/**.py``, ``crates/**.rs`` or ``.github/**.yml`` that is not
+      already a rule-(c) retired-path finding must resolve to a tracked file
+      or directory, catching a stale reference to a *renamed* canonical doc.
+      Scoped to ``docs/`` only (not ``crates/``/``scripts/``/``fixtures/``/
+      ``tests/``): those other prefixes are also used for synthetic example
+      paths in test fixtures and doc comments, which would make a broader
+      version of this rule too noisy to keep passing honestly.
 
-  verify-inventories
-      Verify every ``inventory.json`` under ``docs/validation/M*/history`` and
-      ``docs/research/**``: retained entries must exist with the recorded
-      SHA-256 and byte count; retired entries must be absent from the tree.
-
-``--report`` writes a JSON report to ``target/docs-hygiene/<subcommand>.json``;
-no path is taken from the command line. Only the standard library is used.
-Exit status is non-zero on any failure.
+No subcommand moves or rewrites files: the historical ``apply-moves`` and
+``verify-inventories`` operations existed only to execute the documentation
+cleanup itself and have no function once the canonical layout is in place.
 """
 
 from __future__ import annotations
 
 import argparse
-import hashlib
 import json
-import os
 import pathlib
 import posixpath
 import re
@@ -41,53 +58,82 @@ import sys
 from collections.abc import Iterable
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
+SELF = pathlib.Path(__file__).name
 
-# Living documents: navigable prose whose links must resolve and may be
-# rewritten when evidence moves. Everything else that is Markdown is frozen:
-# reviewer/agent output and review input snapshots keep their bytes.
-LIVING_ROOT_FILES = {"README.md", "CHANGELOG.md", "SECURITY.md", "AGENTS.md", "CONTRIBUTING.md"}
-LIVING_PREFIXES = (
-    "docs/adr/",
-    "docs/roadmap/",
-    "docs/prompts/",
-    "docs/spec/",
-    "docs/release/",
-    "docs/research/",
-    "docs/validation/",
-    "docs/reviews/",
+# ---------------------------------------------------------------------------
+# Canonical docs/ layout (rule b)
+# ---------------------------------------------------------------------------
+
+CANONICAL_DOCS_FILES = {"README.md"}
+CANONICAL_DOCS_DIRS = {"guides", "reference", "architecture", "operations", "development"}
+
+# ---------------------------------------------------------------------------
+# Retired paths (rule c) -- the documentation-cleanup's own retire-default
+# trees, plus the flat living docs it superseded.
+# ---------------------------------------------------------------------------
+
+RETIRED_PREFIXES = (
+    "docs/validation/", "docs/reviews/", "docs/research/", "docs/roadmap/",
+    "docs/release/", "docs/spec/", "docs/adr/", "docs/prompts/",
 )
-FROZEN_PATTERNS = (
-    re.compile(r"^docs/reviews/(M\d/)?[^/]+/inputs/"),
-    re.compile(r"^docs/reviews/(M\d/)?[^/]+/prompt\.md$"),
-    re.compile(r"^docs/validation/(M3/delegation|m3-delegation)/"),
-    re.compile(r"^docs/research/m1-16/corpus/selection/sources/"),
-    re.compile(r"^docs/research/m1-16/measurement/results/"),
-    # Describes the pre-hygiene tree on purpose; its paths are a measurement, not links.
-    re.compile(r"^docs/prompts/(history/)?cleanup-repository\.md$"),
+RETIRED_FLAT_FILES = (
+    "docs/architecture.md", "docs/catalog-bundle-format.md", "docs/ci.md",
+    "docs/client-configuration.md", "docs/compatibility.md",
+    "docs/domain-contracts.md", "docs/implementation-status.md",
+    "docs/m1-prerequisites.md", "docs/publication.md",
+    "docs/security-model.md", "docs/tools.md",
 )
-# Files that carry root-relative path strings outside Markdown links: scripts,
-# CI, and code/fixture comments, doc strings and contract snapshots. Owner rule:
-# no stale documentation path anywhere, comments included.
-PATH_STRING_EXTRA = ("scripts/", "docs/release/reproduction/", ".github/", "crates/", "fixtures/")
-PATH_STRING_ROOT_FILES = {".gitattributes", ".gitignore"}
-PATH_STRING_PREFIXES = (
-    "docs/validation/",
-    "docs/reviews/",
-    "docs/prompts/",
-    "docs/release/",
-    "docs/research/",
+RETIRED_TOKEN = re.compile(
+    "(?:" + "|".join(re.escape(p) for p in RETIRED_PREFIXES) + r")(?!\w*<)"
+    "|" + "|".join(re.escape(f) for f in RETIRED_FLAT_FILES)
 )
+COMMIT_MARK = "51fa602e"
+
+# Files whose own source must name these strings to detect them, or whose
+# retirement notice legitimately explains what moved from where.
+RETIRED_TOKEN_SELF_EXEMPT_FILES = {
+    f"scripts/{SELF}",
+    "scripts/test-docs-hygiene.py",
+    # Pure-function unit tests for build-m6-runtime.py's `beside_default`;
+    # every occurrence is a synthetic example path argument, not a read of a
+    # real file (verified manually during the documentation cleanup).
+    "scripts/test-m6-provisioning.py",
+}
+# Exact (file, line-substring) pairs that are frozen contract text: a `///`
+# doc comment on a JsonSchema-derived type, mirrored verbatim in a contract
+# snapshot. Never edited by documentation hygiene.
+RETIRED_TOKEN_FROZEN_SCHEMA_EXEMPT = (
+    ("crates/mcp-server/src/stdio/bloat/schemas.rs", "docs/validation/M5/04-bloat-calibration.json"),
+    ("crates/mcp-server/tests/snapshots/binary-bloat-tool.json", "docs/validation/M5/04-bloat-calibration.json"),
+)
+# A line is also exempt when it is itself the data value of a frozen
+# provenance receipt field a script produces (D3: never rewritten to fake
+# evidence over current bytes) -- these are constants, not stale citations.
+RETIRED_TOKEN_JSON_KEY_EXEMPT = re.compile(
+    r'"(decision|authority|source|image_admitted_by|authorization|'
+    r'method_under_test|version_claim_source|protocol_revisions_credited_by)"\s*[:\]]'
+)
+
+RETIRED_TOKEN_SCAN_GLOBS = (
+    "*.md",  # root-level, handled by extension + no "/" check below
+    "docs/",
+    ".planning/",
+    "crates/",
+    "scripts/",
+    ".github/",
+)
+
+# ---------------------------------------------------------------------------
+# Link/anchor scope (rule a) and doc-tree scope (rule e)
+# ---------------------------------------------------------------------------
+
+ROOT_MD_FILES = {"README.md", "CHANGELOG.md", "SECURITY.md", "CONTRIBUTING.md", "AGENTS.md"}
 
 INLINE_LINK = re.compile(r"(!?\[[^\]]*\]\()(<[^>]*>|[^)\s]+)((?:\s+\"[^\"]*\")?\))")
 REFERENCE_DEF = re.compile(r"^(\s{0,3}\[(?!\^)[^\]]+\]:\s*)(\S+)", re.MULTILINE)
 SCHEME = re.compile(r"^[a-zA-Z][a-zA-Z0-9+.-]*:")
-
-
-def report_path(subcommand: str) -> pathlib.Path:
-    """Fixed report location under the build directory; never a caller-supplied path."""
-    directory = ROOT / "target" / "docs-hygiene"
-    directory.mkdir(parents=True, exist_ok=True)
-    return directory / f"{subcommand}.json"
+HEADING = re.compile(r"^(#{1,6})\s+(.*?)\s*#*$")
+FENCE = re.compile(r"^(```|~~~)")
 
 
 def git(*args: str) -> str:
@@ -101,40 +147,35 @@ def tracked_files(include_untracked: bool = False) -> list[str]:
     return [p for p in git(*args).split("\0") if p]
 
 
-def is_markdown(path: str) -> bool:
-    return path.endswith(".md")
+def is_planning_scope(path: str) -> bool:
+    return path.startswith(".planning/")
 
 
-def is_frozen(path: str) -> bool:
-    return any(p.search(path) for p in FROZEN_PATTERNS)
-
-
-def is_living(path: str) -> bool:
-    if not is_markdown(path) or is_frozen(path):
+def is_doc_scope(path: str) -> bool:
+    """Files rule (a)'s link/anchor checker covers."""
+    if not path.endswith(".md"):
         return False
     if "/" not in path:
-        return path in LIVING_ROOT_FILES
-    if not path.startswith("docs/"):
-        return False
-    return path.count("/") == 1 or path.startswith(LIVING_PREFIXES)
-
-
-def carries_path_strings(path: str) -> bool:
-    if is_living(path):
+        return path in ROOT_MD_FILES
+    if path.startswith("docs/"):
         return True
-    if path in PATH_STRING_ROOT_FILES:
-        return True
-    return path.startswith(PATH_STRING_EXTRA) and path.endswith(
-        (".py", ".yml", ".yaml", ".sh", ".mjs", ".rs", ".md", ".json", ".toml"))
+    return is_planning_scope(path)
 
 
-def sha256_of(path: pathlib.Path) -> str:
-    with path.open("rb") as stream:
-        return hashlib.file_digest(stream, "sha256").hexdigest()
+class Tree:
+    def __init__(self, files: Iterable[str]):
+        self.files = set(files)
+        self.dirs: set[str] = set()
+        for path in self.files:
+            parts = path.split("/")
+            for depth in range(1, len(parts)):
+                self.dirs.add("/".join(parts[:depth]))
+
+    def exists(self, path: str) -> bool:
+        return path in self.files or path in self.dirs or path == "."
 
 
 def split_target(raw: str) -> tuple[str, str, str]:
-    """Return (prefix, path, suffix) where prefix/suffix hold ``<``/``>`` and ``#fragment``."""
     prefix = suffix = ""
     target = raw
     if target.startswith("<") and target.endswith(">"):
@@ -146,7 +187,6 @@ def split_target(raw: str) -> tuple[str, str, str]:
 
 
 def resolve(source: str, target: str) -> str | None:
-    """Resolve a link target against the directory of ``source`` (repo-relative)."""
     if not target or SCHEME.match(target) or target.startswith("//") or "%" in target:
         return None
     if target.startswith("/"):
@@ -162,281 +202,300 @@ def iter_links(text: str) -> Iterable[tuple[re.Match, str]]:
         yield match, match.group(2)
 
 
-class Tree:
-    """Snapshot of the tracked tree plus on-disk directories for resolution."""
-
-    def __init__(self, files: Iterable[str]):
-        self.files = set(files)
-        self.dirs: set[str] = set()
-        for path in self.files:
-            parts = path.split("/")
-            for depth in range(1, len(parts)):
-                self.dirs.add("/".join(parts[:depth]))
-
-    def exists(self, path: str) -> bool:
-        return path in self.files or path in self.dirs or path == "."
+def github_slug(heading: str, seen: dict[str, int]) -> str:
+    # GitHub's slugger strips anything but word chars/hyphen/space, then
+    # replaces each remaining space with a hyphen individually -- it does
+    # NOT collapse consecutive spaces, so e.g. "`a` / `b`" (a space, the
+    # slash removed, a space) slugs to "a--b", not "a-b".
+    text = re.sub(r"[^\w\- ]+", "", heading.strip().lower(), flags=re.UNICODE)
+    text = text.replace(" ", "-")
+    count = seen.get(text, 0)
+    seen[text] = count + 1
+    return text if count == 0 else f"{text}-{count}"
 
 
-def ignored_paths(paths: Iterable[str]) -> set[str]:
-    """Return the subset of ``paths`` that .gitignore excludes on purpose."""
-    candidates = sorted(set(paths))
-    if not candidates:
-        return set()
-    result = subprocess.run(["git", "check-ignore", "--stdin", "-z"], cwd=ROOT, input="\0".join(candidates),
-                            capture_output=True, text=True)
-    return {p for p in result.stdout.split("\0") if p}
+def heading_slugs(text: str) -> set[str]:
+    slugs: set[str] = set()
+    seen: dict[str, int] = {}
+    in_fence = False
+    for line in text.splitlines():
+        if FENCE.match(line.strip()):
+            in_fence = not in_fence
+            continue
+        if in_fence:
+            continue
+        match = HEADING.match(line)
+        if match:
+            slugs.add(github_slug(match.group(2), seen))
+    return slugs
 
 
-def check_links(write_report: bool) -> int:
-    files = tracked_files(include_untracked=True)
-    tree = Tree(files)
-    broken_living: list[dict] = []
-    broken_frozen: list[dict] = []
+def line_of(text: str, offset: int) -> int:
+    return text.count("\n", 0, offset) + 1
+
+
+# ---------------------------------------------------------------------------
+# Rule (a): links and anchors
+# ---------------------------------------------------------------------------
+
+
+def check_links_and_anchors(tree: Tree, doc_files: list[str]) -> tuple[list[dict], int]:
+    slug_cache: dict[str, set[str]] = {}
+
+    def slugs_of(path: str) -> set[str] | None:
+        if path not in slug_cache:
+            full = ROOT / path
+            if not full.is_file():
+                return None
+            slug_cache[path] = heading_slugs(full.read_text(encoding="utf-8", errors="surrogateescape"))
+        return slug_cache[path]
+
+    broken: list[dict] = []
     checked = 0
-    for path in files:
-        if not is_markdown(path):
-            continue
-        living = is_living(path)
-        if not living and not (path.startswith("docs/") or "/" not in path):
-            continue
+    for path in doc_files:
         text = (ROOT / path).read_text(encoding="utf-8", errors="surrogateescape")
         for match, raw in iter_links(text):
-            _, target, _ = split_target(raw)
-            resolved = resolve(path, target)
-            if resolved is None:
+            _, target, fragment = split_target(raw)
+            if not target and not fragment:
                 continue
             checked += 1
-            if resolved.startswith("../") or not tree.exists(resolved):
-                row = {"file": path, "link": raw, "resolved": resolved,
-                       "line": text.count("\n", 0, match.start()) + 1}
-                (broken_living if living else broken_frozen).append(row)
-    excluded = ignored_paths(r["resolved"] for r in broken_living + broken_frozen)
-    excluded_rows = [r for r in broken_living if r["resolved"] in excluded]
-    broken_living = [r for r in broken_living if r["resolved"] not in excluded]
-    broken_frozen = [r for r in broken_frozen if r["resolved"] not in excluded]
-    summary = {"checked": checked, "broken_living": broken_living, "broken_frozen": broken_frozen,
-               "excluded_evidence": excluded_rows}
+            line = line_of(text, match.start())
+            if not target:
+                resolved_path = path
+            else:
+                resolved = resolve(path, target)
+                if resolved is None:
+                    continue
+                if not tree.exists(resolved):
+                    broken.append({"file": path, "line": line, "link": raw, "reason": "target does not exist"})
+                    continue
+                resolved_path = resolved
+            if fragment:
+                anchor = fragment[1:]
+                slugs = slugs_of(resolved_path)
+                if slugs is not None and anchor not in slugs:
+                    broken.append({"file": path, "line": line, "link": raw,
+                                   "reason": f"anchor #{anchor} not found in {resolved_path}"})
+    return broken, checked
+
+
+# ---------------------------------------------------------------------------
+# Rule (b): canonical docs/ layout
+# ---------------------------------------------------------------------------
+
+
+def check_docs_layout(files: list[str]) -> list[str]:
+    top_level: set[str] = set()
+    for path in files:
+        if not path.startswith("docs/"):
+            continue
+        rest = path[len("docs/"):]
+        top_level.add(rest.split("/", 1)[0])
+    violations = []
+    for entry in sorted(top_level):
+        if entry in CANONICAL_DOCS_FILES:
+            continue
+        if entry in CANONICAL_DOCS_DIRS:
+            continue
+        violations.append(f"docs/{entry} is not part of the canonical layout "
+                           f"(README.md + {sorted(CANONICAL_DOCS_DIRS)})")
+    return violations
+
+
+# ---------------------------------------------------------------------------
+# Rule (c): no live references to retired paths
+# ---------------------------------------------------------------------------
+
+
+def in_retired_scan_scope(path: str) -> bool:
+    if path in RETIRED_TOKEN_SELF_EXEMPT_FILES:
+        return False
+    if path == "NOTICE" or ("/" not in path and path.endswith(".md")):
+        return True
+    if path.startswith("docs/"):
+        return True
+    if is_planning_scope(path):
+        return True
+    if path.startswith("crates/") and path.endswith((".rs", ".md")):
+        return True
+    if path.startswith("scripts/") and path.endswith((".py", ".mjs", ".sh")):
+        return True
+    if path.startswith("fixtures/") and path.endswith("README.md"):
+        return True
+    if path.startswith(".github/"):
+        return True
+    if path in {"sonar-project.properties", ".gitignore"}:
+        return True
+    return False
+
+
+def check_retired_references(files: list[str]) -> list[dict]:
+    violations = []
+    for path in files:
+        if not in_retired_scan_scope(path):
+            continue
+        full = ROOT / path
+        if not full.is_file():
+            continue
+        text = full.read_text(encoding="utf-8", errors="surrogateescape")
+        lines = text.splitlines()
+        for match in RETIRED_TOKEN.finditer(text):
+            line_no = line_of(text, match.start())
+            window_start = max(0, line_no - 5)
+            window = "\n".join(lines[window_start:line_no + 2])
+            if COMMIT_MARK in window:
+                continue
+            line_text = lines[line_no - 1] if line_no - 1 < len(lines) else ""
+            if RETIRED_TOKEN_JSON_KEY_EXEMPT.search(line_text):
+                continue
+            if any(path == f and s in line_text for f, s in RETIRED_TOKEN_FROZEN_SCHEMA_EXEMPT):
+                continue
+            if "OLD_LICENSES_PREFIX" in line_text:
+                continue
+            violations.append({"file": path, "line": line_no, "text": line_text.strip()[:160]})
+    return violations
+
+
+# ---------------------------------------------------------------------------
+# Rule (d): pending plans are tracked
+# ---------------------------------------------------------------------------
+
+
+def check_planning_tracked(tracked: list[str]) -> list[str]:
+    tracked_set = set(tracked)
+    violations = []
+    base = ROOT / ".planning"
+    if not base.is_dir():
+        return violations
+    for candidate in sorted(base.rglob("*.md")):
+        rel = candidate.relative_to(ROOT).as_posix()
+        if not is_planning_scope(rel):
+            continue
+        if rel not in tracked_set:
+            violations.append(rel)
+    return violations
+
+
+# ---------------------------------------------------------------------------
+# Rule (e): README navigation
+# ---------------------------------------------------------------------------
+
+
+def check_readme_navigation(files: list[str]) -> list[str]:
+    readme = "docs/README.md"
+    if readme not in files:
+        return ["docs/README.md is missing"]
+    text = (ROOT / readme).read_text(encoding="utf-8", errors="surrogateescape")
+    linked: set[str] = set()
+    for _, raw in iter_links(text):
+        _, target, _ = split_target(raw)
+        resolved = resolve(readme, target)
+        if resolved:
+            linked.add(resolved)
+    missing = []
+    for path in files:
+        if path.startswith("docs/") and path.endswith(".md") and path != readme:
+            if path not in linked:
+                missing.append(path)
+    return sorted(missing)
+
+
+# ---------------------------------------------------------------------------
+# Rule (f): bare docs/ path strings resolve
+# ---------------------------------------------------------------------------
+
+DOCS_PATH_STRING = re.compile(r'(?<![A-Za-z0-9_./-])docs/[A-Za-z0-9_./-]+')
+
+
+def check_docs_path_strings(files: list[str], tree: Tree) -> list[dict]:
+    violations = []
+    for path in files:
+        if not ((path.startswith("scripts/") and path.endswith(".py"))
+                or (path.startswith("crates/") and path.endswith(".rs"))
+                or (path.startswith(".github/") and path.endswith((".yml", ".yaml")))):
+            continue
+        if path in RETIRED_TOKEN_SELF_EXEMPT_FILES or path == f"scripts/{SELF}":
+            continue
+        full = ROOT / path
+        if not full.is_file():
+            continue
+        text = full.read_text(encoding="utf-8", errors="surrogateescape")
+        for match in DOCS_PATH_STRING.finditer(text):
+            candidate = match.group(0).rstrip(".,;:)\"'")
+            if candidate.startswith(RETIRED_PREFIXES) or candidate in RETIRED_FLAT_FILES:
+                continue  # rule (c) already reports this
+            if candidate == "docs/.cargo-config.toml":
+                continue  # synthetic negative-fixture filename in a unit test, never a real path
+            if tree.exists(candidate):
+                continue
+            line_no = line_of(text, match.start())
+            violations.append({"file": path, "line": line_no, "path": candidate})
+    return violations
+
+
+# ---------------------------------------------------------------------------
+# Orchestration
+# ---------------------------------------------------------------------------
+
+
+def report_path() -> pathlib.Path:
+    directory = ROOT / "target" / "docs-hygiene"
+    directory.mkdir(parents=True, exist_ok=True)
+    return directory / "check.json"
+
+
+def run_check(write_report: bool) -> int:
+    tracked = tracked_files()
+    tree = Tree(tracked)
+    doc_files = [p for p in tracked if is_doc_scope(p)]
+
+    broken_links, links_checked = check_links_and_anchors(tree, doc_files)
+    layout_violations = check_docs_layout(tracked)
+    retired_violations = check_retired_references(tracked)
+    untracked_plans = check_planning_tracked(tracked)
+    unreachable_docs = check_readme_navigation(tracked)
+    docs_path_strings = check_docs_path_strings(tracked, tree)
+
+    summary = {
+        "links_checked": links_checked,
+        "broken_links": broken_links,
+        "docs_layout_violations": layout_violations,
+        "retired_references": retired_violations,
+        "untracked_planning_files": untracked_plans,
+        "docs_not_linked_from_readme": unreachable_docs,
+        "docs_path_string_violations": docs_path_strings,
+    }
+    total = (len(broken_links) + len(layout_violations) + len(retired_violations)
+             + len(untracked_plans) + len(unreachable_docs) + len(docs_path_strings))
+
+    print(f"docs-hygiene: {links_checked} links/anchors checked, {total} violations")
+    for row in broken_links:
+        print(f"  BROKEN LINK {row['file']}:{row['line']} -> {row['link']} ({row['reason']})")
+    for row in layout_violations:
+        print(f"  LAYOUT {row}")
+    for row in retired_violations:
+        print(f"  RETIRED REFERENCE {row['file']}:{row['line']}: {row['text']}")
+    for row in untracked_plans:
+        print(f"  UNTRACKED PLAN {row}")
+    for row in unreachable_docs:
+        print(f"  UNREACHABLE FROM docs/README.md: {row}")
+    for row in docs_path_strings:
+        print(f"  STALE docs/ PATH STRING {row['file']}:{row['line']}: {row['path']}")
+
     if write_report:
-        report_path("links-check").write_text(json.dumps(summary, indent=2) + "\n")
-    print(f"links-check: {checked} links resolved; "
-          f"{len(broken_living)} broken in living documents; "
-          f"{len(excluded_rows)} point at evidence excluded by .gitignore; "
-          f"{len(broken_frozen)} broken in frozen records")
-    for row in broken_living:
-        print(f"  BROKEN {row['file']}:{row['line']} -> {row['link']}")
-    return 1 if broken_living else 0
-
-
-def expand_plan(plan: list[dict], files: list[str]) -> tuple[dict[str, str], dict[str, str]]:
-    """Return (file moves old->new, directory moves old->new)."""
-    tracked = set(files)
-    file_moves: dict[str, str] = {}
-    dir_moves: dict[str, str] = {}
-    for entry in plan:
-        src, dst = entry["from"].rstrip("/"), entry["to"].rstrip("/")
-        if src in tracked:
-            file_moves[src] = dst
-            continue
-        members = [f for f in files if f.startswith(src + "/")]
-        if not members:
-            raise SystemExit(f"plan entry not tracked: {src}")
-        dir_moves[src] = dst
-        for member in members:
-            file_moves[member] = dst + member[len(src):]
-    destinations = list(file_moves.values())
-    if len(set(destinations)) != len(destinations):
-        dupes = sorted({d for d in destinations if destinations.count(d) > 1})
-        raise SystemExit(f"plan destinations collide: {dupes[:5]}")
-    clashes = sorted(d for d in destinations if d in tracked and d not in file_moves)
-    if clashes:
-        raise SystemExit(f"plan destinations already tracked: {clashes[:5]}")
-    return file_moves, dir_moves
-
-
-def perform_moves(file_moves: dict[str, str], dir_moves: dict[str, str], dry_run: bool) -> None:
-    moved: set[str] = set()
-    for src, dst in dir_moves.items():
-        members = [f for f in file_moves if f.startswith(src + "/")]
-        whole = all(file_moves[f] == dst + f[len(src):] for f in members)
-        if whole and not (ROOT / dst).exists():
-            if not dry_run:
-                (ROOT / dst).parent.mkdir(parents=True, exist_ok=True)
-                subprocess.run(["git", "mv", "-k", src, dst], cwd=ROOT, check=True)
-            moved.update(members)
-    for src, dst in file_moves.items():
-        if src in moved:
-            continue
-        if not dry_run:
-            (ROOT / dst).parent.mkdir(parents=True, exist_ok=True)
-            subprocess.run(["git", "mv", "-k", src, dst], cwd=ROOT, check=True)
-
-
-def map_path(path: str, file_moves: dict[str, str], dir_moves: dict[str, str]) -> str:
-    if path in file_moves:
-        return file_moves[path]
-    best = None
-    for src in dir_moves:
-        if path == src or path.startswith(src + "/"):
-            if best is None or len(src) > len(best):
-                best = src
-    if best is not None:
-        return dir_moves[best] + path[len(best):]
-    return path
-
-
-def relative_link(source_new: str, target_new: str) -> str:
-    base = posixpath.dirname(source_new)
-    rel = posixpath.relpath(target_new, base) if base else target_new
-    return rel
-
-
-def rewrite_links(path_new: str, path_old: str, text: str, old_tree: Tree,
-                  file_moves: dict[str, str], dir_moves: dict[str, str],
-                  rewrites: list[dict]) -> str:
-    def replace_inline(match: re.Match) -> str:
-        raw = match.group(2)
-        new_raw = rewrite_target(raw)
-        return match.group(1) + new_raw + match.group(3)
-
-    def replace_reference(match: re.Match) -> str:
-        return match.group(1) + rewrite_target(match.group(2))
-
-    def rewrite_target(raw: str) -> str:
-        prefix, target, suffix = split_target(raw)
-        resolved = resolve(path_old, target)
-        if resolved is None or not old_tree.exists(resolved):
-            return raw
-        mapped = map_path(resolved, file_moves, dir_moves)
-        if mapped == resolved and path_new == path_old:
-            return raw
-        new_target = relative_link(path_new, mapped)
-        if target.endswith("/") and not new_target.endswith("/"):
-            new_target += "/"
-        if new_target == target:
-            return raw
-        rewrites.append({"file": path_new, "old": raw, "new": prefix + new_target + suffix})
-        return prefix + new_target + suffix
-
-    text = INLINE_LINK.sub(replace_inline, text)
-    text = REFERENCE_DEF.sub(replace_reference, text)
-    return text
-
-
-def rewrite_path_strings(path: str, text: str, file_moves: dict[str, str],
-                         dir_moves: dict[str, str], rewrites: list[dict]) -> str:
-    candidates = {k: v for k, v in file_moves.items() if k.startswith(PATH_STRING_PREFIXES)}
-    candidates.update({k: v for k, v in dir_moves.items() if k.startswith(PATH_STRING_PREFIXES)})
-    if not candidates:
-        return text
-    pattern = re.compile(
-        "(?<![A-Za-z0-9_./-])("
-        + "|".join(re.escape(k) for k in sorted(candidates, key=len, reverse=True))
-        + r")(?![A-Za-z0-9_-]|\.[A-Za-z0-9])"
-    )
-
-    def replace(match: re.Match) -> str:
-        old = match.group(1)
-        new = candidates[old]
-        rewrites.append({"file": path, "old": old, "new": new})
-        return new
-
-    return pattern.sub(replace, text)
-
-
-def apply_moves(plan: list[dict], dry_run: bool, write_report: bool) -> int:
-    files_before = tracked_files()
-    old_tree = Tree(files_before)
-    file_moves, dir_moves = expand_plan(plan, files_before)
-    hashes_before = {src: sha256_of(ROOT / src) for src in file_moves}
-    perform_moves(file_moves, dir_moves, dry_run)
-    if dry_run:
-        print(f"apply-moves (dry run): {len(file_moves)} files would move")
-        return 0
-    reverse = {v: k for k, v in file_moves.items()}
-    rewrites: list[dict] = []
-    for path_new in tracked_files():
-        if not carries_path_strings(path_new):
-            continue
-        path_old = reverse.get(path_new, path_new)
-        source = ROOT / path_new
-        text = source.read_text(encoding="utf-8", errors="surrogateescape")
-        updated = text
-        if is_living(path_new):
-            updated = rewrite_links(path_new, path_old, updated, old_tree, file_moves, dir_moves, rewrites)
-        updated = rewrite_path_strings(path_new, updated, file_moves, dir_moves, rewrites)
-        if updated != text:
-            source.write_text(updated, encoding="utf-8", errors="surrogateescape")
-    # Living documents are rewritten on purpose; every other moved byte must be identical.
-    rewritten_docs = sorted(dst for dst in file_moves.values() if is_living(dst))
-    mismatched = [src for src, dst in file_moves.items()
-                  if not is_living(dst) and sha256_of(ROOT / dst) != hashes_before[src]]
-    summary = {"moved": len(file_moves),
-               "moved_bytes": sum((ROOT / dst).stat().st_size for dst in file_moves.values()),
-               "hashes_verified": len(file_moves) - len(rewritten_docs), "hash_mismatches": mismatched,
-               "moved_living_documents": rewritten_docs, "rewrites": rewrites,
-               "file_moves": file_moves, "dir_moves": dir_moves}
-    if write_report:
-        report_path("apply-moves").write_text(json.dumps(summary, indent=2) + "\n")
-    print(f"apply-moves: {len(file_moves)} files moved ({len(file_moves) - len(rewritten_docs)} byte-identical, "
-          f"{len(rewritten_docs)} living documents relinked), {len(rewrites)} references rewritten in "
-          f"{len({r['file'] for r in rewrites})} files, {len(mismatched)} hash mismatches")
-    return 1 if mismatched else 0
-
-
-def verify_inventories() -> int:
-    failures = 0
-    inventories = sorted(
-        p for p in ROOT.glob("docs/validation/M*/history/inventory.json")
-    ) + sorted(ROOT.glob("docs/research/**/inventory.json")) + sorted(ROOT.glob("docs/reviews/inventory.json"))
-    for inventory in inventories:
-        data = json.loads(inventory.read_text())
-        base = inventory.parent
-        retained = retired = 0
-        for row in data.get("retained", []):
-            target = base / row["path"]
-            if not target.is_file():
-                print(f"MISSING {inventory.relative_to(ROOT)}: {row['path']}")
-                failures += 1
-                continue
-            if row.get("living"):
-                # Prose kept next to receipts; its links may be rewritten, so only presence is required.
-                retained += 1
-                continue
-            if sha256_of(target) != row["sha256"] or target.stat().st_size != row["bytes"]:
-                print(f"MISMATCH {inventory.relative_to(ROOT)}: {row['path']}")
-                failures += 1
-                continue
-            retained += 1
-        for row in data.get("retired", []):
-            if (ROOT / row["original_path"]).exists():
-                print(f"PRESENT {inventory.relative_to(ROOT)}: retired {row['original_path']} still in tree")
-                failures += 1
-                continue
-            retired += 1
-        print(f"{inventory.relative_to(ROOT)}: {retained} retained verified, {retired} retired absent")
-    print(f"verify-inventories: {len(inventories)} inventories, {failures} failures")
-    return 1 if failures else 0
+        report_path().write_text(json.dumps(summary, indent=2) + "\n")
+    return 1 if total else 0
 
 
 def main(argv: list[str]) -> int:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     sub = parser.add_subparsers(dest="command", required=True)
-    check = sub.add_parser("links-check")
-    check.add_argument("--report", action="store_true", help="write target/docs-hygiene/links-check.json")
-    apply = sub.add_parser("apply-moves", help="plan JSON is read from stdin")
-    apply.add_argument("--dry-run", action="store_true")
-    apply.add_argument("--report", action="store_true", help="write target/docs-hygiene/apply-moves.json")
-    sub.add_parser("verify-inventories")
+    check = sub.add_parser("check", help="run every hygiene rule against the tracked tree")
+    check.add_argument("--report", action="store_true", help="write target/docs-hygiene/check.json")
     args = parser.parse_args(argv)
-    os.chdir(ROOT)
-    if args.command == "links-check":
-        return check_links(args.report)
-    if args.command == "apply-moves":
-        plan = json.load(sys.stdin)
-        if not isinstance(plan, list):
-            raise SystemExit("apply-moves expects a JSON list of {from, to} entries on stdin")
-        return apply_moves(plan, args.dry_run, args.report)
-    return verify_inventories()
+    if args.command == "check":
+        return run_check(args.report)
+    return 1
 
 
 if __name__ == "__main__":

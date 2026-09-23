@@ -1,3 +1,0 @@
-# W31b — disposición del orquestador (2026-09-15)
-
-Veredicto: **aceptado**. El worker refutó la premisa del encargo (`cancelToolCall()` sí existe en el bundle del Inspector y aborta el `AbortController` interno → `notifications/cancelled`) y localizó la causa real: **binario `release` obsoleto** (mtime anterior al commit `be0ed21` de las listas wire) → `resources/read` → MethodNotFound. El orquestador lo confirmó (mtime 21:02 < 21:55), recompiló y verificó `resources/read` (-32602 estructurado). Gotcha registrado: los arneses no reconstruyen `target/release`. Cambios de W31b en el puente (trazas, EOF) aceptados; unit tests verdes.

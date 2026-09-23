@@ -12,7 +12,8 @@
 //! analyzer forces symbol stripping off on every build it performs because it
 //! needs the symbol table, so the file this tool measures is not
 //! byte-identical to what a project asking for stripping would ship
-//! (`docs/validation/M5/04-bloat-calibration.json`). `measured.
+//! (`docs/architecture/performance.md`; historical receipt:
+//! docs/validation/M5/04-bloat-calibration.json at 51fa602e). `measured.
 //! analysis_build_symbols_forced` is always `true` and says so.
 //!
 //! If the analyzer's own reported file size disagrees with the size this

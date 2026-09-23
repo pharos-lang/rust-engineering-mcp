@@ -26,13 +26,13 @@ NATIVE_OUTPUT = ROOT / "target/m6-calibration"
 # is the source of truth and the other two are cross-checks, because the product
 # admits an image by comparing against the `APPROVED_M6_IMAGE` constant compiled
 # into the gateway: the ADR is the decision that authorised the digest and
-# `M6/provisioning.json` is the receipt of the build that produced it, but
+# `tests/data/m6-runtime-provisioning.json` is the receipt of the build that produced it, but
 # neither is consulted at runtime. Calibrating an image the code does not admit
 # is precisely the defect this stage exists to prevent, so a disagreement between
 # the three is a loud refusal, never a preference for one of them.
 PORT_SOURCE = ROOT / "crates/execution-adapter/src/analyzer_gateway.rs"
-ADMISSION_DECISION = ROOT / "docs/adr/ADR-085-m6-runtime-admission.md"
-PROVISIONING_RECEIPT = ROOT / "docs/validation/M6/provisioning.json"
+ADMISSION_DECISION = ROOT / "tests/data/adr-admission/ADR-085-m6-runtime-admission.md"
+PROVISIONING_RECEIPT = ROOT / "tests/data/m6-runtime-provisioning.json"
 NATIVE_SOURCE = ROOT / "crates/execution-adapter/src/analyzer_native.rs"
 PACKAGE = "rust-engineering-execution"
 # `analyzer_native` is a `#[cfg(test)] mod` of the execution adapter's lib, so the
@@ -397,7 +397,7 @@ def main():
         ROOT / "Cargo.toml", ROOT / "Cargo.lock", ROOT / "rust-toolchain.toml",
         ROOT / "scripts/test-m6-runtime.py",
         ADMISSION_DECISION, PROVISIONING_RECEIPT,
-        ROOT / "docs/adr/ADR-084-rust-analyzer-runtime-and-lsp-lifecycle.md",
+        ROOT / "tests/data/adr-admission/ADR-084-rust-analyzer-runtime-and-lsp-lifecycle.md",
         *sorted((ROOT / "crates/execution-adapter/src").glob("seccomp*.json")),
         *sorted(path for directory in ["valid-basic", "build-script", "workspace",
                                        "rust-runtime/m6"]

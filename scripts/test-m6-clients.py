@@ -67,9 +67,9 @@ ROOT = pathlib.Path(__file__).resolve().parents[1]
 M3_PATH = ROOT / "scripts/test-m3-clients.py"
 SESSION = ROOT / "scripts/m6-inspector-session.mjs"
 UNIT = ROOT / "scripts/test-m6-clients-unit.py"
-ATTEMPTS = ROOT / "docs/validation/M6/clients"
-CURRENT = ROOT / "docs/validation/M6/clients.json"
-PREFLIGHT = ROOT / "docs/validation/M6-clients-preflight.json"
+ATTEMPTS = ROOT / "target/qualification/test-m6-clients/clients"
+CURRENT = ROOT / "target/qualification/test-m6-clients/clients.json"
+PREFLIGHT = ROOT / "target/qualification/test-m6-clients/clients-preflight.json"
 SERVER = ROOT / "target/release/rust-engineering-mcp"
 NODE = pathlib.Path("/Users/cburgosro/.nvm/versions/node/v24.15.0/bin/node")
 # The versioned executable, not the `~/.local/bin/claude` symlink (see
@@ -161,11 +161,11 @@ BAD_FILE = "missing-from-snapshot.rs"
 IDEMPOTENCY_KEY = "m6-w09-clients-harness"
 # `add` at (1, 8) is analyzer-references' declaration; the native W06c cut
 # fixed this fixture's coordinates: declaration line 1 col 8, use line 2 col
-# 31 (docs/validation/M6/delegation/W06c-references-fixture/report.md).
+# 31 (historical receipt: docs/validation/M6/delegation/W06c-references-fixture/report.md at 51fa602e).
 REFERENCES_POSITION = {"line": 1, "column": 8}
 # An empty selection on `sum` in `analyzer-actions`' `let sum = …`: the exact
 # cursor the native m6-11-code-actions cut used, calibrated to list exactly
-# two applicable, source-changing actions (docs/validation/M6/01-calibration.json).
+# two applicable, source-changing actions (historical receipt: docs/validation/M6/01-calibration.json at 51fa602e).
 ACTIONS_RANGE = {"start": {"line": 2, "column": 9}, "end": {"line": 2, "column": 9}}
 ANALYZER_FILE = "src/lib.rs"
 

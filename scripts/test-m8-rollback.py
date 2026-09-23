@@ -35,7 +35,7 @@ It then runs the D12 §6 scenarios over temporary state under
       artifact written by v0.3.0 is out of reach of any CLI subcommand, so
       that direction is a declared gap, not an assertion.
 
-A receipt is always written to ``docs/validation/M8/03-rollback.json``
+A receipt is always written to ``target/qualification/test-m8-rollback/03-rollback.json``
 (``--out`` overrides the path). A scenario that could not run at all is
 marked ``unavailable`` with a reason, never ``passed``. Only the standard
 library is used; Git and Cargo are invoked with fixed argument lists, never
@@ -58,7 +58,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 WORK_ROOT = ROOT / "target" / "m8-rollback"
 FIXTURES_DIR = ROOT / "fixtures" / "catalog"
-DEFAULT_RECEIPT_PATH = ROOT / "docs" / "validation" / "M8" / "03-rollback.json"
+DEFAULT_RECEIPT_PATH = ROOT / "target" / "qualification" / "test-m8-rollback" / "03-rollback.json"
 NATIVE_STATE_ENV = "RUST_MCP_ROLLBACK_STATE_ROOT"
 NATIVE_CONTROL_STATE_ENV = "RUST_MCP_ROLLBACK_CONTROL_STATE_ROOT"
 NATIVE_PROJECT_ENV = "RUST_MCP_ROLLBACK_PROJECT_ROOT"

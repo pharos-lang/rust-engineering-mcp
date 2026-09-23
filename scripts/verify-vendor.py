@@ -19,7 +19,7 @@ license_name='LICENSE'
 assert actual.keys()==original.keys()|{license_name}, 'Vendor files added or removed'
 # Exact upstream bytes for Cargo.lock's lancedb 0.31.0 VCS revision. The request,
 # redirect, Git blob and SHA-256 receipt is retained in
-# docs/release/upstream-licenses/receipt.json; this file was not in the .crate.
+# licenses/upstream/receipt.json; this file was not in the .crate.
 assert hashlib.sha256(actual[license_name]).hexdigest()=='58d1e17ffe5109a7ae296caafcadfdbe6a7d176f0bc4ab01e12a689b0499d8bd', 'Reviewed upstream license differs'
 changed={name for name in original if original[name]!=actual[name]}
 assert changed=={'Cargo.toml','Cargo.toml.orig'}, changed

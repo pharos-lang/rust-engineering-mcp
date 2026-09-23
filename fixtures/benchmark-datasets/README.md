@@ -22,24 +22,28 @@ nada sobre el runtime del producto.
 | `criterion-candidate.tar` | `sha256:e9ecc40d…` (**no admitida**) | 2026-09-08 | fixture de parser |
 
 El digest admitido lo declara `M5_IMAGE` en
-`crates/execution-adapter/src/performance_port.rs`; la admisión está en
-[ADR-077](../../docs/adr/ADR-077-m5-runtime-admission.md) y el recibo de estas
-seis capturas en
-[`docs/validation/M5/01-benchmark-calibration.json`](../../docs/validation/M5/01-benchmark-calibration.json).
+`crates/execution-adapter/src/performance_port.rs`; la admisión está registrada
+en [`docs/architecture/decisions.md`](../../docs/architecture/decisions.md)
+(recibo histórico: `docs/adr/ADR-077-m5-runtime-admission.md` en 51fa602e) y
+el recibo de estas seis capturas en
+[`docs/architecture/performance.md`](../../docs/architecture/performance.md)
+(recibo histórico: `docs/validation/M5/01-benchmark-calibration.json` en
+51fa602e; las nuevas capturas se escriben en
+`target/qualification/m5-benchmark-calibration.json`).
 
 ## Las seis capturas de la imagen admitida
 
-Las produce, y las vuelve a producir, un script:
+Las produjo una herramienta histórica de calibración, ya retirada porque su
+resultado quedó congelado en estas seis capturas y en el recibo citado arriba:
+[`scripts/capture-m5-benchmark-datasets.py` en 51fa602e](https://github.com/pharos-lang/rust-engineering-mcp/blob/51fa602e/scripts/capture-m5-benchmark-datasets.py).
+Para reproducir la calibración habría que recuperar ese script del historial;
+no hace falta para consumir los datasets, que son bytes reales congelados.
 
-```text
-python3 -B scripts/capture-m5-benchmark-datasets.py
-```
-
-El script se niega a medir sobre cualquier imagen que no sea la que `M5_IMAGE`
-nombra, no descarga nada (`--pull=never`), ningún contenedor tiene red y limpia
-todos los contenedores y volúmenes que crea en cualquier salida, incluido el
-fallo. Escribe además el recibo, de modo que los números publicados y los bytes
-publicados salen del mismo acto.
+El script se negaba a medir sobre cualquier imagen que no fuera la que
+`M5_IMAGE` nombra, no descargaba nada (`--pull=never`), ningún contenedor
+tenía red y limpiaba todos los contenedores y volúmenes que creaba en
+cualquier salida, incluido el fallo. Escribía además el recibo, de modo que
+los números publicados y los bytes publicados salían del mismo acto.
 
 - **baseline**: `fixtures/benchmark` sin modificar.
 - **candidate**: la misma fixture con `work_unit` haciendo `n + n / 4`
@@ -56,8 +60,9 @@ operación del producto, así que el binario se compila una vez y se mide tres
 veces. Los dos lados se alternan (baseline, candidate, baseline, …), que es un
 protocolo del operador y no un control que el producto implemente.
 
-Parámetros congelados de [ADR-073](../../docs/adr/ADR-073-benchmark-method-and-dataset.md)
-§2: warmup 3 s, medición 5 s, `--sample-size 30`, `--noplot`, `--color never`,
+Parámetros congelados de [ADR-073](../../docs/architecture/decisions.md)
+(recibo histórico: `docs/adr/ADR-073-benchmark-method-and-dataset.md` en
+51fa602e) §2: warmup 3 s, medición 5 s, `--sample-size 30`, `--noplot`, `--color never`,
 bajo `--frozen --offline`. Contención: uid 65534:65534, `--network=none`,
 `--cap-drop=ALL`, `--security-opt no-new-privileges`, perfil seccomp de calidad,
 raíz y fuentes montadas de solo lectura, `--pids-limit=128`, `--cpus=1`,

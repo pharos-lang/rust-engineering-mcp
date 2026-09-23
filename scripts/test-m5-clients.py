@@ -54,9 +54,9 @@ ROOT = pathlib.Path(__file__).resolve().parents[1]
 M3_PATH = ROOT / "scripts/test-m3-clients.py"
 SESSION = ROOT / "scripts/m5-inspector-session.mjs"
 UNIT = ROOT / "scripts/test-m5-clients-unit.py"
-ATTEMPTS = ROOT / "docs/validation/M5/clients"
-CURRENT = ROOT / "docs/validation/M5/clients.json"
-PREFLIGHT = ROOT / "docs/validation/M5-clients-preflight.json"
+ATTEMPTS = ROOT / "target/qualification/test-m5-clients/clients"
+CURRENT = ROOT / "target/qualification/test-m5-clients/clients.json"
+PREFLIGHT = ROOT / "target/qualification/test-m5-clients/clients-preflight.json"
 SERVER = ROOT / "target/release/rust-engineering-mcp"
 NODE = pathlib.Path("/Users/cburgosro/.nvm/versions/node/v24.15.0/bin/node")
 # The versioned executable, not the `~/.local/bin/claude` symlink: Claude Code
@@ -224,7 +224,7 @@ CALL_PLAN = (
 #
 # `rust.binary.bloat` reaches `passed` under ADR-079, and used to be unable to.
 # The parser caps functions at `BLOAT_MAX_ROWS = 256` and the native receipt for
-# this exact image and fixture (docs/validation/M5/04-runtime.json) recorded 378
+# this exact image and fixture (historical receipt: docs/validation/M5/04-runtime.json at 51fa602e) recorded 378
 # omitted rows for `release` and 234 for `release-lto`; that cap used to become
 # `Truncated`, then `observation.complete = false`, then
 # `blocked`/`EVIDENCE_INCOMPLETE`, so the success path was unreachable for any

@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 """Prepare the closed build context for the ADR-082 M6 runtime image.
 
-This is the only step of M6 authorized to use the network
-(docs/roadmap/m6-provisioning-request.md), and only to fetch exactly the three
+This is the only step of M6 authorized to use the network (decision recorded
+in docs/architecture/decisions.md; historical receipt:
+docs/roadmap/m6-provisioning-request.md at 51fa602e), and only to fetch exactly the three
 URLs pinned below: the 1.98.1 channel manifest and the two component tarballs
 it must describe. Every byte is verified against a checksum fixed in this file
 before it enters the build context; nothing is trusted from the network alone.
