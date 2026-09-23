@@ -46,6 +46,7 @@ fn start_with_binary(
         .arg("--rust-image")
         .arg(image)
         .args(flags);
+    instrumented(&mut command);
     let mut child = command
         .stdin(Stdio::piped())
         .stdout(Stdio::piped())

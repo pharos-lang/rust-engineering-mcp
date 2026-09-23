@@ -317,6 +317,186 @@ pub fn capture_artifact_name(digest: &SourceFingerprint) -> Option<String> {
         .map(str::to_owned)
 }
 
+#[cfg(test)]
+mod portable_tests {
+    use super::*;
+    use std::io::Write as _;
+    use std::path::PathBuf;
+    use std::sync::atomic::{AtomicUsize, Ordering};
+
+    static NEXT: AtomicUsize = AtomicUsize::new(0);
+
+    struct Cleanup(PathBuf);
+    impl Drop for Cleanup {
+        fn drop(&mut self) {
+            let _ = std::fs::remove_dir_all(&self.0);
+        }
+    }
+
+    fn replay_fixture(bytes: &[u8]) -> Result<(CaptureReplay, SourceFingerprint, Cleanup), String> {
+        let root = std::env::temp_dir().join(format!(
+            "rust-mcp-vendor-replay-{}-{}",
+            std::process::id(),
+            NEXT.fetch_add(1, Ordering::Relaxed)
+        ));
+        std::fs::create_dir(&root).map_err(|error| error.to_string())?;
+        let cleanup = Cleanup(root.clone());
+        let path = root.join("capture.tar");
+        std::fs::write(&path, bytes).map_err(|error| error.to_string())?;
+        let file = std::fs::File::open(&path).map_err(|error| error.to_string())?;
+        let stamp = CaptureFileStamp::of(&file).map_err(|error| error.to_string())?;
+        let mut hasher = Sha256Hasher::default();
+        hasher.update(bytes);
+        let digest = hasher.finish().map_err(|error| error.to_string())?;
+        Ok((
+            CaptureReplay {
+                file,
+                stamp,
+                hasher: Sha256Hasher::default(),
+                bytes_read: 0,
+                status: ReplayStatus::Streaming,
+            },
+            digest,
+            cleanup,
+        ))
+    }
+
+    #[test]
+    fn sha256_adapter_and_artifact_name_are_canonical() -> Result<(), String> {
+        let mut hasher = Sha256Hasher::default();
+        hasher.update(b"abc");
+        let digest = hasher.finish().map_err(|error| error.to_string())?;
+        assert_eq!(
+            digest.as_str(),
+            "sha256:ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad"
+        );
+        assert_eq!(
+            capture_artifact_name(&digest).as_deref(),
+            Some("ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad")
+        );
+        Ok(())
+    }
+
+    #[test]
+    fn domain_refusals_map_to_stable_project_errors() {
+        assert_eq!(
+            capture_error(VendorCaptureError::Limits),
+            ProjectError::Rejected(OperationalErrorCode::OutputLimitExceeded)
+        );
+        for error in [
+            VendorCaptureError::Invalid,
+            VendorCaptureError::Link,
+            VendorCaptureError::Mutated,
+            VendorCaptureError::Digest,
+        ] {
+            assert_eq!(
+                capture_error(error),
+                ProjectError::Rejected(OperationalErrorCode::InvalidProject)
+            );
+        }
+    }
+
+    #[test]
+    fn replay_streams_exact_bytes_and_rewinds() -> Result<(), String> {
+        let bytes = b"portable vendor capture bytes";
+        let (mut replay, digest, _cleanup) = replay_fixture(bytes)?;
+        assert_eq!(
+            replay.read(&mut [], bytes.len() as u64, &digest),
+            Err(VendorCaptureAccess::Io)
+        );
+        let mut received = Vec::new();
+        let mut buffer = [0_u8; 7];
+        loop {
+            let read = replay
+                .read(&mut buffer, bytes.len() as u64, &digest)
+                .map_err(|error| error.to_string())?;
+            if read == 0 {
+                break;
+            }
+            received.extend_from_slice(&buffer[..read]);
+        }
+        assert_eq!(received, bytes);
+        assert_eq!(replay.status, ReplayStatus::Complete);
+        replay
+            .rewind(bytes.len() as u64)
+            .map_err(|error| error.to_string())?;
+        assert_eq!(replay.status, ReplayStatus::Streaming);
+        let read = replay
+            .read(&mut buffer, bytes.len() as u64, &digest)
+            .map_err(|error| error.to_string())?;
+        assert_eq!(&buffer[..read], &bytes[..read]);
+        Ok(())
+    }
+
+    #[test]
+    fn replay_refuses_wrong_digest_before_returning_final_chunk() -> Result<(), String> {
+        let bytes = b"authenticated";
+        let (mut replay, _digest, _cleanup) = replay_fixture(bytes)?;
+        let wrong: SourceFingerprint =
+            "sha256:0000000000000000000000000000000000000000000000000000000000000000"
+                .parse()
+                .map_err(|error| format!("{error:?}"))?;
+        let mut buffer = [0_u8; 64];
+        assert_eq!(
+            replay.read(&mut buffer, bytes.len() as u64, &wrong),
+            Err(VendorCaptureAccess::Mutated)
+        );
+        assert_eq!(replay.status, ReplayStatus::Mutated);
+        assert_eq!(
+            replay.rewind(bytes.len() as u64),
+            Err(VendorCaptureAccess::Mutated)
+        );
+        Ok(())
+    }
+
+    #[test]
+    fn replay_refuses_length_change_after_stamp() -> Result<(), String> {
+        let bytes = b"stable";
+        let (mut replay, digest, cleanup) = replay_fixture(bytes)?;
+        let mut writer = std::fs::OpenOptions::new()
+            .append(true)
+            .open(cleanup.0.join("capture.tar"))
+            .map_err(|error| error.to_string())?;
+        writer.write_all(b"!").map_err(|error| error.to_string())?;
+        writer.sync_all().map_err(|error| error.to_string())?;
+        let mut buffer = [0_u8; 8];
+        assert_eq!(
+            replay.read(&mut buffer, bytes.len() as u64, &digest),
+            Err(VendorCaptureAccess::Mutated)
+        );
+        assert_eq!(
+            replay.read(&mut buffer, bytes.len() as u64, &digest),
+            Err(VendorCaptureAccess::Mutated)
+        );
+        Ok(())
+    }
+
+    #[cfg(not(target_os = "macos"))]
+    #[test]
+    fn provisioning_and_open_fail_closed_off_macos() -> Result<(), String> {
+        struct Never;
+        impl OperationControl for Never {
+            fn check(&self) -> Result<(), ProjectError> {
+                Ok(())
+            }
+        }
+        let digest: SourceFingerprint =
+            "sha256:0000000000000000000000000000000000000000000000000000000000000000"
+                .parse()
+                .map_err(|error| format!("{error:?}"))?;
+        let expected = ProjectError::Rejected(OperationalErrorCode::UnsupportedPlatform);
+        assert_eq!(
+            capture_vendor_tree(Path::new("/tmp/vendor"), Path::new("/tmp/store"), &Never),
+            Err(expected)
+        );
+        assert!(matches!(
+            open_verified_capture(Path::new("/tmp/capture"), &digest, &Never),
+            Err(error) if error == expected
+        ));
+        Ok(())
+    }
+}
+
 #[cfg(all(test, target_os = "macos"))]
 mod tests {
     use super::*;

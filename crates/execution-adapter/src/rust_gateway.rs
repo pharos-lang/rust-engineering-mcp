@@ -847,6 +847,53 @@ pub(super) fn finish_work(
     Ok((outcome, oom_killed))
 }
 
+/// Bounds one finished capture to the caller's output limit and binds it to
+/// the identity bytes (configuration, command, limits, inputs and profile
+/// label) of the run that produced it. Output that expands past the limit
+/// during lossy UTF-8 conversion is an output-limit termination, and only an
+/// exited process reports an exit code.
+pub(super) fn bounded_execution_result(
+    outcome: Capture,
+    oom_killed: Option<bool>,
+    limits: ExecutionLimits,
+    started: Instant,
+    identity: &[u8],
+    image_id: &str,
+) -> Result<ExecutionResult, ExecutionError> {
+    let (stdout, expanded_out) = bounded_text(&outcome.stdout, limits.output_bytes());
+    let (stderr, expanded_err) = bounded_text(&outcome.stderr, limits.output_bytes());
+    let termination = if expanded_out || expanded_err {
+        ExecutionTermination::OutputLimit
+    } else {
+        match outcome.stop {
+            Stop::Exited => ExecutionTermination::Exited,
+            Stop::Cancelled => ExecutionTermination::Cancelled,
+            Stop::TimedOut => ExecutionTermination::TimedOut,
+            Stop::OutputLimit => ExecutionTermination::OutputLimit,
+        }
+    };
+    Ok(ExecutionResult {
+        termination,
+        exit_code: if outcome.stop == Stop::Exited {
+            outcome.code
+        } else {
+            None
+        },
+        oom_killed,
+        stdout,
+        stderr,
+        stdout_truncated: outcome.stdout_truncated || expanded_out,
+        stderr_truncated: outcome.stderr_truncated || expanded_err,
+        duration_ms: outcome.duration_ms,
+        total_duration_ms: started.elapsed().as_millis().try_into().unwrap_or(u64::MAX),
+        execution_fingerprint: digest(identity)
+            .parse()
+            .map_err(|_| ExecutionError::Infrastructure)?,
+        platform: "linux/aarch64",
+        image_id: image_id.into(),
+    })
+}
+
 pub(super) enum Admission<'a> {
     Project,
     Calibration(Option<&'a Mutex<Option<String>>>),
@@ -936,6 +983,420 @@ impl RustGateway {
         }
         Ok(())
     }
+}
+
+/// Whether a `container top -eo pid,ppid,pgid,sid,args` table shows build
+/// scripts running in at least two distinct sessions. The header line is
+/// skipped; a build-script row with an unparsable or zero pid/sid is a
+/// malformed table, never a capability.
+fn concurrent_build_script_sessions(top: &str) -> Result<bool, ExecutionError> {
+    let mut sessions = std::collections::BTreeSet::new();
+    for line in top.lines().skip(1) {
+        let fields = line.split_whitespace().collect::<Vec<_>>();
+        if fields.len() >= 5 && fields[4].ends_with("/build-script-build") {
+            let pid = fields[0]
+                .parse::<u64>()
+                .map_err(|_| ExecutionError::Infrastructure)?;
+            let sid = fields[3]
+                .parse::<u64>()
+                .map_err(|_| ExecutionError::Infrastructure)?;
+            if pid == 0 || sid == 0 {
+                return Err(ExecutionError::Infrastructure);
+            }
+            sessions.insert(sid);
+        }
+    }
+    Ok(sessions.len() >= 2)
+}
+
+/// The only gateway facts a container argv reads: the private state directory
+/// holding the seccomp profiles, and the admitted image digest. Every argv
+/// shape is therefore a pure function of this value and validated inputs.
+#[derive(Clone, Copy)]
+pub(super) struct ContainerShape<'a> {
+    pub(super) state: &'a std::path::Path,
+    pub(super) image_id: &'a str,
+}
+impl ContainerShape<'_> {
+    pub(super) fn arguments(
+        self,
+        name: &str,
+        nonce: &str,
+        volume: &Volume,
+        phase: &Phase,
+    ) -> Result<Vec<String>, ExecutionError> {
+        let mut args = [
+            "container",
+            "create",
+            "--pull=never",
+            "--runtime=runc",
+            "--init=false",
+            "--network=none",
+            "--read-only",
+            "--cap-drop=ALL",
+            "--security-opt=no-new-privileges=true",
+            "--ipc=private",
+            "--cgroupns=private",
+            "--pids-limit=128",
+            "--cpus=1",
+            "--memory=1g",
+            "--memory-swap=1g",
+            "--shm-size=1m",
+            "--log-driver=none",
+            "--no-healthcheck",
+            "--tmpfs=/work:rw,exec,nosuid,nodev,size=512m,mode=1777",
+            "--tmpfs=/tmp:rw,nosuid,nodev,noexec,size=64m,mode=1777",
+            "--workdir=/source",
+            "--hostname=sandbox",
+        ]
+        .map(str::to_owned)
+        .to_vec();
+        args.push(format!("--name={name}"));
+        args.push(format!("--user={}", phase.user()));
+        if let Some((path, options)) = phase.extra_tmpfs() {
+            args.push(format!("--tmpfs={path}:{options}"));
+        }
+        for (k, v) in labels(nonce) {
+            args.push(format!("--label={k}={v}"));
+        }
+        for env in phase.environment() {
+            args.push(format!("--env={env}"));
+        }
+        let profile = self.state.join(phase.seccomp_profile_name());
+        args.push(format!(
+            "--security-opt=seccomp={}",
+            profile
+                .to_str()
+                .ok_or(ExecutionError::InvalidConfiguration)?
+        ));
+        let source_target = if matches!(phase, Phase::IngestBaseline) {
+            "/baseline"
+        } else {
+            "/source"
+        };
+        args.push(format!(
+            "--mount=type=volume,source={},target={source_target},volume-nocopy,volume-driver=local{}",
+            volume.name,
+            if phase.ingesting() { "" } else { ",readonly" }
+        ));
+        if phase.interactive() {
+            args.push("--interactive".into());
+        }
+        args.push(format!("--entrypoint={}", phase.program()));
+        args.push(self.image_id.to_owned());
+        args.extend(phase.arguments());
+        Ok(args)
+    }
+    /// Adds the second, always read-only `/baseline` mount required by
+    /// `RustCommand::SemverCheck` (ADR-062 §8). `volume` keeps its ordinary
+    /// `/source` semantics (read-only for `Run`, unchanged from every other
+    /// command); `baseline_volume` is never writable, in any phase.
+    pub(super) fn arguments_with_baseline(
+        self,
+        name: &str,
+        nonce: &str,
+        volume: &Volume,
+        baseline_volume: &Volume,
+        phase: &Phase,
+    ) -> Result<Vec<String>, ExecutionError> {
+        let mut args = self.arguments(name, nonce, volume, phase)?;
+        let position = args
+            .iter()
+            .position(|arg| arg.starts_with("--entrypoint="))
+            .ok_or(ExecutionError::Infrastructure)?;
+        args.insert(
+            position,
+            format!(
+                "--mount=type=volume,source={},target=/baseline,volume-nocopy,volume-driver=local,readonly",
+                baseline_volume.name
+            ),
+        );
+        Ok(args)
+    }
+    #[allow(clippy::too_many_arguments)] // The closed mount shape stays explicit and auditable.
+    fn arguments_with_output(
+        self,
+        name: &str,
+        nonce: &str,
+        volume: &Volume,
+        phase: &Phase,
+        output: &super::mutation_gateway::MutationVolume,
+        writable: bool,
+        target: &str,
+    ) -> Result<Vec<String>, ExecutionError> {
+        let mut args = self.arguments(name, nonce, volume, phase)?;
+        let position = args
+            .iter()
+            .position(|arg| arg.starts_with("--entrypoint="))
+            .ok_or(ExecutionError::Infrastructure)?;
+        args.insert(
+            position,
+            format!(
+                "--mount=type=volume,source={},target={target},volume-nocopy,volume-driver=local{}",
+                output.name,
+                if writable { "" } else { ",readonly" }
+            ),
+        );
+        Ok(args)
+    }
+    fn arguments_with_coverage(
+        self,
+        name: &str,
+        nonce: &str,
+        volume: &Volume,
+        phase: &Phase,
+        output: &super::mutation_gateway::MutationVolume,
+        target: &super::mutation_gateway::MutationVolume,
+    ) -> Result<Vec<String>, ExecutionError> {
+        let output_writable = !matches!(
+            phase,
+            Phase::ExportCoverageJson | Phase::ExportCoverageLcov | Phase::ExportCoverageHtml
+        );
+        let mut args = self.arguments_with_output(
+            name,
+            nonce,
+            volume,
+            phase,
+            output,
+            output_writable,
+            "/work/coverage",
+        )?;
+        if let Some(writable) = phase.coverage_target_writable() {
+            let position = args
+                .iter()
+                .position(|arg| arg.starts_with("--entrypoint="))
+                .ok_or(ExecutionError::Infrastructure)?;
+            args.insert(
+                position,
+                format!(
+                    "--mount=type=volume,source={},target={},volume-nocopy,volume-driver=local{}",
+                    target.name,
+                    super::coverage_gateway::COVERAGE_TARGET_PATH,
+                    if writable { "" } else { ",readonly" }
+                ),
+            );
+        }
+        Ok(args)
+    }
+}
+/// Every container argv shape this gateway can create, with the job-specific
+/// names, nonce and seccomp path replaced by fixed placeholders. The list, its
+/// order and each argv are part of the configuration fingerprint.
+fn configuration_commands(shape: ContainerShape<'_>) -> Result<Vec<Vec<String>>, ExecutionError> {
+    let volume = Volume {
+        name: "<volume>".into(),
+        mountpoint: "<mountpoint>".into(),
+        driver: "local".into(),
+        scope: "local".into(),
+        options: None,
+        labels: labels("<nonce>"),
+        cluster_volume: None,
+        status: None,
+    };
+    let baseline_volume = Volume {
+        name: "<baseline-volume>".into(),
+        mountpoint: "<baseline-mountpoint>".into(),
+        driver: "local".into(),
+        scope: "local".into(),
+        options: None,
+        labels: labels("<nonce>"),
+        cluster_volume: None,
+        status: None,
+    };
+    let coverage_output_volume = super::mutation_gateway::MutationVolume {
+        name: "<coverage-output-volume>".into(),
+        mountpoint: "<coverage-output-mountpoint>".into(),
+        driver: "local".into(),
+        scope: "local".into(),
+        options: BTreeMap::from([
+            ("device".into(), "tmpfs".into()),
+            ("o".into(), super::mutation_gateway::VOLUME_OPTIONS.into()),
+            ("type".into(), "tmpfs".into()),
+        ]),
+        labels: labels("<nonce>"),
+        cluster_volume: None,
+        status: None,
+    };
+    let coverage_target_volume = super::mutation_gateway::MutationVolume {
+        name: "<coverage-target-volume>".into(),
+        mountpoint: "<coverage-target-mountpoint>".into(),
+        options: BTreeMap::from([
+            ("device".into(), "tmpfs".into()),
+            (
+                "o".into(),
+                super::coverage_gateway::COVERAGE_TARGET_VOLUME_OPTIONS.into(),
+            ),
+            ("type".into(), "tmpfs".into()),
+        ]),
+        ..coverage_output_volume.clone()
+    };
+    let mut commands = Vec::new();
+    for phase in [
+        Phase::Ingest,
+        Phase::IngestBaseline,
+        Phase::GuardNextestOutput,
+        Phase::ExportNextest,
+        Phase::ExportCoverageJson,
+        Phase::ExportCoverageLcov,
+        Phase::ExportCoverageHtml,
+        Phase::GuardMutationOutput,
+        Phase::ExportMutationOutcomes,
+        Phase::ExportMutationBundle,
+        Phase::ExportMutationLock,
+        Phase::ListMutants(
+            rust_engineering_domain::mutation_test::MutationTestSelection::default()
+                .try_into()
+                .map_err(|_| ExecutionError::Infrastructure)?,
+        ),
+        Phase::Run(RustCommand::MutationTest(
+            rust_engineering_domain::mutation_test::MutationTestSelection::default()
+                .try_into()
+                .map_err(|_| ExecutionError::Infrastructure)?,
+        )),
+        Phase::Run(RustCommand::MutantsVersion),
+        Phase::Run(RustCommand::Metadata),
+        Phase::Run(RustCommand::FormatCheck),
+        Phase::Run(RustCommand::TestProject(
+            rust_engineering_domain::TestSelection::default()
+                .try_into()
+                .map_err(|_| ExecutionError::Infrastructure)?,
+        )),
+        Phase::Run(RustCommand::TestNextest(
+            rust_engineering_domain::nextest::NextestSelection::default()
+                .try_into()
+                .map_err(|_| ExecutionError::Infrastructure)?,
+        )),
+        Phase::Run(RustCommand::CoverageRun(
+            rust_engineering_domain::coverage::CoverageSelection::default()
+                .try_into()
+                .map_err(|_| ExecutionError::Infrastructure)?,
+        )),
+        Phase::Run(RustCommand::CoverageReport(
+            rust_engineering_domain::coverage::CoverageReportFormat::Json,
+        )),
+        Phase::Run(RustCommand::CoverageReport(
+            rust_engineering_domain::coverage::CoverageReportFormat::Lcov,
+        )),
+        Phase::Run(RustCommand::CoverageReport(
+            rust_engineering_domain::coverage::CoverageReportFormat::Html,
+        )),
+        Phase::Run(RustCommand::ClippyProject(
+            rust_engineering_domain::ClippySelection::default()
+                .try_into()
+                .map_err(|_| ExecutionError::Infrastructure)?,
+        )),
+        Phase::Run(RustCommand::Check),
+        Phase::Run(RustCommand::CompilerVersion),
+        Phase::Run(RustCommand::Explain(
+            "E0502"
+                .parse()
+                .map_err(|_| ExecutionError::Infrastructure)?,
+        )),
+        Phase::Run(RustCommand::CargoVersion),
+        Phase::Run(RustCommand::LlvmCovVersion),
+        Phase::Run(RustCommand::InstalledComponents),
+        Phase::Run(RustCommand::CheckProject(
+            rust_engineering_domain::CheckSelection::default()
+                .try_into()
+                .map_err(|_| ExecutionError::Infrastructure)?,
+        )),
+        Phase::Run(RustCommand::SemverChecksVersion),
+        Phase::Analyzer,
+        Phase::AnalyzerDocument(AnalyzerDocument::Version),
+        Phase::AnalyzerDocument(AnalyzerDocument::Installed),
+        Phase::AnalyzerConfigSchema,
+    ] {
+        let mut args = shape.arguments("<container>", "<nonce>", &volume, &phase)?;
+        for arg in &mut args {
+            if arg.starts_with("--security-opt=seccomp=") {
+                *arg = "--security-opt=seccomp=<profile>".into();
+            }
+        }
+        commands.push(args);
+    }
+    {
+        let mut args = shape.arguments_with_baseline(
+            "<container>",
+            "<nonce>",
+            &volume,
+            &baseline_volume,
+            &Phase::Run(RustCommand::SemverCheck(
+                rust_engineering_domain::semver_check::SemverProjectSelection::default()
+                    .try_into()
+                    .map_err(|_| ExecutionError::Infrastructure)?,
+            )),
+        )?;
+        for arg in &mut args {
+            if arg.starts_with("--security-opt=seccomp=") {
+                *arg = "--security-opt=seccomp=<profile>".into();
+            }
+        }
+        commands.push(args);
+    }
+    for phase in [
+        Phase::GuardCoverageVolumes,
+        Phase::Run(RustCommand::CoverageRun(
+            rust_engineering_domain::coverage::CoverageSelection::default()
+                .try_into()
+                .map_err(|_| ExecutionError::Infrastructure)?,
+        )),
+        Phase::Run(RustCommand::CoverageReport(
+            rust_engineering_domain::coverage::CoverageReportFormat::Json,
+        )),
+        Phase::Run(RustCommand::CoverageReport(
+            rust_engineering_domain::coverage::CoverageReportFormat::Lcov,
+        )),
+        Phase::Run(RustCommand::CoverageReport(
+            rust_engineering_domain::coverage::CoverageReportFormat::Html,
+        )),
+        Phase::ExportCoverageJson,
+        Phase::ExportCoverageLcov,
+        Phase::ExportCoverageHtml,
+    ] {
+        let mut args = shape.arguments_with_coverage(
+            "<container>",
+            "<nonce>",
+            &volume,
+            &phase,
+            &coverage_output_volume,
+            &coverage_target_volume,
+        )?;
+        for arg in &mut args {
+            if arg.starts_with("--security-opt=seccomp=") {
+                *arg = "--security-opt=seccomp=<profile>".into();
+            }
+        }
+        commands.push(args);
+    }
+    Ok(commands)
+}
+
+/// Binds the admitted image, the calibrated engine, the Docker executable, every
+/// argv shape, both seccomp profiles and the implementation sources into one
+/// digest, so a receipt can be tied to the exact configuration that produced it.
+fn configuration_digest(
+    image_id: &str,
+    engine: &EngineIdentity,
+    executable_digest: &str,
+    commands: Vec<Vec<String>>,
+) -> Result<ExecutionFingerprint, ExecutionError> {
+    let bytes = serde_json::to_vec(&(
+        image_id,
+        engine,
+        executable_digest,
+        commands,
+        include_str!("seccomp-rust.json"),
+        include_str!("seccomp-rust-quality.json"),
+        super::coverage_gateway::COVERAGE_TARGET_VOLUME_OPTIONS,
+        // Receipts identify the actual verifier, archive/source limits and
+        // supervisor implementation, not only a manually maintained label.
+        implementation_fingerprint(),
+        "rust-source-profile-v1",
+    ))
+    .map_err(|_| ExecutionError::Infrastructure)?;
+    digest(&bytes)
+        .parse()
+        .map_err(|_| ExecutionError::Infrastructure)
 }
 
 pub struct RustGateway {
@@ -1078,233 +1539,28 @@ impl RustGateway {
             return Ok(None);
         }
         let top = String::from_utf8(top.stdout).map_err(|_| ExecutionError::Infrastructure)?;
-        let mut sessions = std::collections::BTreeSet::new();
-        for line in top.lines().skip(1) {
-            let fields = line.split_whitespace().collect::<Vec<_>>();
-            if fields.len() >= 5 && fields[4].ends_with("/build-script-build") {
-                let pid = fields[0]
-                    .parse::<u64>()
-                    .map_err(|_| ExecutionError::Infrastructure)?;
-                let sid = fields[3]
-                    .parse::<u64>()
-                    .map_err(|_| ExecutionError::Infrastructure)?;
-                if pid == 0 || sid == 0 {
-                    return Err(ExecutionError::Infrastructure);
-                }
-                sessions.insert(sid);
-            }
-        }
-        Ok((sessions.len() >= 2).then_some(top))
+        Ok(concurrent_build_script_sessions(&top)?.then_some(top))
     }
     pub fn configuration_fingerprint(&self) -> Result<ExecutionFingerprint, ExecutionError> {
-        let volume = Volume {
-            name: "<volume>".into(),
-            mountpoint: "<mountpoint>".into(),
-            driver: "local".into(),
-            scope: "local".into(),
-            options: None,
-            labels: labels("<nonce>"),
-            cluster_volume: None,
-            status: None,
-        };
-        let baseline_volume = Volume {
-            name: "<baseline-volume>".into(),
-            mountpoint: "<baseline-mountpoint>".into(),
-            driver: "local".into(),
-            scope: "local".into(),
-            options: None,
-            labels: labels("<nonce>"),
-            cluster_volume: None,
-            status: None,
-        };
-        let coverage_output_volume = super::mutation_gateway::MutationVolume {
-            name: "<coverage-output-volume>".into(),
-            mountpoint: "<coverage-output-mountpoint>".into(),
-            driver: "local".into(),
-            scope: "local".into(),
-            options: BTreeMap::from([
-                ("device".into(), "tmpfs".into()),
-                ("o".into(), super::mutation_gateway::VOLUME_OPTIONS.into()),
-                ("type".into(), "tmpfs".into()),
-            ]),
-            labels: labels("<nonce>"),
-            cluster_volume: None,
-            status: None,
-        };
-        let coverage_target_volume = super::mutation_gateway::MutationVolume {
-            name: "<coverage-target-volume>".into(),
-            mountpoint: "<coverage-target-mountpoint>".into(),
-            options: BTreeMap::from([
-                ("device".into(), "tmpfs".into()),
-                (
-                    "o".into(),
-                    super::coverage_gateway::COVERAGE_TARGET_VOLUME_OPTIONS.into(),
-                ),
-                ("type".into(), "tmpfs".into()),
-            ]),
-            ..coverage_output_volume.clone()
-        };
-        let mut commands = Vec::new();
-        for phase in [
-            Phase::Ingest,
-            Phase::IngestBaseline,
-            Phase::GuardNextestOutput,
-            Phase::ExportNextest,
-            Phase::ExportCoverageJson,
-            Phase::ExportCoverageLcov,
-            Phase::ExportCoverageHtml,
-            Phase::GuardMutationOutput,
-            Phase::ExportMutationOutcomes,
-            Phase::ExportMutationBundle,
-            Phase::ExportMutationLock,
-            Phase::ListMutants(
-                rust_engineering_domain::mutation_test::MutationTestSelection::default()
-                    .try_into()
-                    .map_err(|_| ExecutionError::Infrastructure)?,
-            ),
-            Phase::Run(RustCommand::MutationTest(
-                rust_engineering_domain::mutation_test::MutationTestSelection::default()
-                    .try_into()
-                    .map_err(|_| ExecutionError::Infrastructure)?,
-            )),
-            Phase::Run(RustCommand::MutantsVersion),
-            Phase::Run(RustCommand::Metadata),
-            Phase::Run(RustCommand::FormatCheck),
-            Phase::Run(RustCommand::TestProject(
-                rust_engineering_domain::TestSelection::default()
-                    .try_into()
-                    .map_err(|_| ExecutionError::Infrastructure)?,
-            )),
-            Phase::Run(RustCommand::TestNextest(
-                rust_engineering_domain::nextest::NextestSelection::default()
-                    .try_into()
-                    .map_err(|_| ExecutionError::Infrastructure)?,
-            )),
-            Phase::Run(RustCommand::CoverageRun(
-                rust_engineering_domain::coverage::CoverageSelection::default()
-                    .try_into()
-                    .map_err(|_| ExecutionError::Infrastructure)?,
-            )),
-            Phase::Run(RustCommand::CoverageReport(
-                rust_engineering_domain::coverage::CoverageReportFormat::Json,
-            )),
-            Phase::Run(RustCommand::CoverageReport(
-                rust_engineering_domain::coverage::CoverageReportFormat::Lcov,
-            )),
-            Phase::Run(RustCommand::CoverageReport(
-                rust_engineering_domain::coverage::CoverageReportFormat::Html,
-            )),
-            Phase::Run(RustCommand::ClippyProject(
-                rust_engineering_domain::ClippySelection::default()
-                    .try_into()
-                    .map_err(|_| ExecutionError::Infrastructure)?,
-            )),
-            Phase::Run(RustCommand::Check),
-            Phase::Run(RustCommand::CompilerVersion),
-            Phase::Run(RustCommand::Explain(
-                "E0502"
-                    .parse()
-                    .map_err(|_| ExecutionError::Infrastructure)?,
-            )),
-            Phase::Run(RustCommand::CargoVersion),
-            Phase::Run(RustCommand::LlvmCovVersion),
-            Phase::Run(RustCommand::InstalledComponents),
-            Phase::Run(RustCommand::CheckProject(
-                rust_engineering_domain::CheckSelection::default()
-                    .try_into()
-                    .map_err(|_| ExecutionError::Infrastructure)?,
-            )),
-            Phase::Run(RustCommand::SemverChecksVersion),
-            Phase::Analyzer,
-            Phase::AnalyzerDocument(AnalyzerDocument::Version),
-            Phase::AnalyzerDocument(AnalyzerDocument::Installed),
-            Phase::AnalyzerConfigSchema,
-        ] {
-            let mut args = self.arguments("<container>", "<nonce>", &volume, &phase)?;
-            for arg in &mut args {
-                if arg.starts_with("--security-opt=seccomp=") {
-                    *arg = "--security-opt=seccomp=<profile>".into();
-                }
-            }
-            commands.push(args);
-        }
-        {
-            let mut args = self.arguments_with_baseline(
-                "<container>",
-                "<nonce>",
-                &volume,
-                &baseline_volume,
-                &Phase::Run(RustCommand::SemverCheck(
-                    rust_engineering_domain::semver_check::SemverProjectSelection::default()
-                        .try_into()
-                        .map_err(|_| ExecutionError::Infrastructure)?,
-                )),
-            )?;
-            for arg in &mut args {
-                if arg.starts_with("--security-opt=seccomp=") {
-                    *arg = "--security-opt=seccomp=<profile>".into();
-                }
-            }
-            commands.push(args);
-        }
-        for phase in [
-            Phase::GuardCoverageVolumes,
-            Phase::Run(RustCommand::CoverageRun(
-                rust_engineering_domain::coverage::CoverageSelection::default()
-                    .try_into()
-                    .map_err(|_| ExecutionError::Infrastructure)?,
-            )),
-            Phase::Run(RustCommand::CoverageReport(
-                rust_engineering_domain::coverage::CoverageReportFormat::Json,
-            )),
-            Phase::Run(RustCommand::CoverageReport(
-                rust_engineering_domain::coverage::CoverageReportFormat::Lcov,
-            )),
-            Phase::Run(RustCommand::CoverageReport(
-                rust_engineering_domain::coverage::CoverageReportFormat::Html,
-            )),
-            Phase::ExportCoverageJson,
-            Phase::ExportCoverageLcov,
-            Phase::ExportCoverageHtml,
-        ] {
-            let mut args = self.arguments_with_coverage(
-                "<container>",
-                "<nonce>",
-                &volume,
-                &phase,
-                &coverage_output_volume,
-                &coverage_target_volume,
-            )?;
-            for arg in &mut args {
-                if arg.starts_with("--security-opt=seccomp=") {
-                    *arg = "--security-opt=seccomp=<profile>".into();
-                }
-            }
-            commands.push(args);
-        }
-        let bytes = serde_json::to_vec(&(
+        configuration_digest(
             self.image_id(),
             &self.inner.engine,
             &self.inner.executable_digest,
-            commands,
-            include_str!("seccomp-rust.json"),
-            include_str!("seccomp-rust-quality.json"),
-            super::coverage_gateway::COVERAGE_TARGET_VOLUME_OPTIONS,
-            // Receipts identify the actual verifier, archive/source limits and
-            // supervisor implementation, not only a manually maintained label.
-            implementation_fingerprint(),
-            "rust-source-profile-v1",
-        ))
-        .map_err(|_| ExecutionError::Infrastructure)?;
-        digest(&bytes)
-            .parse()
-            .map_err(|_| ExecutionError::Infrastructure)
+            configuration_commands(self.shape())?,
+        )
     }
     pub fn image_id(&self) -> &str {
         self.inner.image_id()
     }
     pub fn is_quarantined(&self) -> bool {
         self.inner.is_quarantined()
+    }
+    /// The gateway facts every container argv reads; see [`ContainerShape`].
+    pub(super) fn shape(&self) -> ContainerShape<'_> {
+        ContainerShape {
+            state: self.inner.state.path(),
+            image_id: self.image_id(),
+        }
     }
     pub(super) fn arguments(
         &self,
@@ -1313,72 +1569,8 @@ impl RustGateway {
         volume: &Volume,
         phase: &Phase,
     ) -> Result<Vec<String>, ExecutionError> {
-        let mut args = [
-            "container",
-            "create",
-            "--pull=never",
-            "--runtime=runc",
-            "--init=false",
-            "--network=none",
-            "--read-only",
-            "--cap-drop=ALL",
-            "--security-opt=no-new-privileges=true",
-            "--ipc=private",
-            "--cgroupns=private",
-            "--pids-limit=128",
-            "--cpus=1",
-            "--memory=1g",
-            "--memory-swap=1g",
-            "--shm-size=1m",
-            "--log-driver=none",
-            "--no-healthcheck",
-            "--tmpfs=/work:rw,exec,nosuid,nodev,size=512m,mode=1777",
-            "--tmpfs=/tmp:rw,nosuid,nodev,noexec,size=64m,mode=1777",
-            "--workdir=/source",
-            "--hostname=sandbox",
-        ]
-        .map(str::to_owned)
-        .to_vec();
-        args.push(format!("--name={name}"));
-        args.push(format!("--user={}", phase.user()));
-        if let Some((path, options)) = phase.extra_tmpfs() {
-            args.push(format!("--tmpfs={path}:{options}"));
-        }
-        for (k, v) in labels(nonce) {
-            args.push(format!("--label={k}={v}"));
-        }
-        for env in phase.environment() {
-            args.push(format!("--env={env}"));
-        }
-        let profile = self.inner.state.path().join(phase.seccomp_profile_name());
-        args.push(format!(
-            "--security-opt=seccomp={}",
-            profile
-                .to_str()
-                .ok_or(ExecutionError::InvalidConfiguration)?
-        ));
-        let source_target = if matches!(phase, Phase::IngestBaseline) {
-            "/baseline"
-        } else {
-            "/source"
-        };
-        args.push(format!(
-            "--mount=type=volume,source={},target={source_target},volume-nocopy,volume-driver=local{}",
-            volume.name,
-            if phase.ingesting() { "" } else { ",readonly" }
-        ));
-        if phase.interactive() {
-            args.push("--interactive".into());
-        }
-        args.push(format!("--entrypoint={}", phase.program()));
-        args.push(self.inner.config.image_id.clone());
-        args.extend(phase.arguments());
-        Ok(args)
+        self.shape().arguments(name, nonce, volume, phase)
     }
-    /// Adds the second, always read-only `/baseline` mount required by
-    /// `RustCommand::SemverCheck` (ADR-062 §8). `volume` keeps its ordinary
-    /// `/source` semantics (read-only for `Run`, unchanged from every other
-    /// command); `baseline_volume` is never writable, in any phase.
     pub(super) fn arguments_with_baseline(
         &self,
         name: &str,
@@ -1387,19 +1579,8 @@ impl RustGateway {
         baseline_volume: &Volume,
         phase: &Phase,
     ) -> Result<Vec<String>, ExecutionError> {
-        let mut args = self.arguments(name, nonce, volume, phase)?;
-        let position = args
-            .iter()
-            .position(|arg| arg.starts_with("--entrypoint="))
-            .ok_or(ExecutionError::Infrastructure)?;
-        args.insert(
-            position,
-            format!(
-                "--mount=type=volume,source={},target=/baseline,volume-nocopy,volume-driver=local,readonly",
-                baseline_volume.name
-            ),
-        );
-        Ok(args)
+        self.shape()
+            .arguments_with_baseline(name, nonce, volume, baseline_volume, phase)
     }
     fn arguments_with_junit(
         &self,
@@ -1410,33 +1591,15 @@ impl RustGateway {
         junit: &super::mutation_gateway::MutationVolume,
         junit_writable: bool,
     ) -> Result<Vec<String>, ExecutionError> {
-        self.arguments_with_output(name, nonce, volume, phase, junit, junit_writable, "/junit")
-    }
-    #[allow(clippy::too_many_arguments)] // The closed mount shape stays explicit and auditable.
-    fn arguments_with_output(
-        &self,
-        name: &str,
-        nonce: &str,
-        volume: &Volume,
-        phase: &Phase,
-        output: &super::mutation_gateway::MutationVolume,
-        writable: bool,
-        target: &str,
-    ) -> Result<Vec<String>, ExecutionError> {
-        let mut args = self.arguments(name, nonce, volume, phase)?;
-        let position = args
-            .iter()
-            .position(|arg| arg.starts_with("--entrypoint="))
-            .ok_or(ExecutionError::Infrastructure)?;
-        args.insert(
-            position,
-            format!(
-                "--mount=type=volume,source={},target={target},volume-nocopy,volume-driver=local{}",
-                output.name,
-                if writable { "" } else { ",readonly" }
-            ),
-        );
-        Ok(args)
+        self.shape().arguments_with_output(
+            name,
+            nonce,
+            volume,
+            phase,
+            junit,
+            junit_writable,
+            "/junit",
+        )
     }
     fn arguments_with_coverage(
         &self,
@@ -1447,35 +1610,8 @@ impl RustGateway {
         output: &super::mutation_gateway::MutationVolume,
         target: &super::mutation_gateway::MutationVolume,
     ) -> Result<Vec<String>, ExecutionError> {
-        let output_writable = !matches!(
-            phase,
-            Phase::ExportCoverageJson | Phase::ExportCoverageLcov | Phase::ExportCoverageHtml
-        );
-        let mut args = self.arguments_with_output(
-            name,
-            nonce,
-            volume,
-            phase,
-            output,
-            output_writable,
-            "/work/coverage",
-        )?;
-        if let Some(writable) = phase.coverage_target_writable() {
-            let position = args
-                .iter()
-                .position(|arg| arg.starts_with("--entrypoint="))
-                .ok_or(ExecutionError::Infrastructure)?;
-            args.insert(
-                position,
-                format!(
-                    "--mount=type=volume,source={},target={},volume-nocopy,volume-driver=local{}",
-                    target.name,
-                    super::coverage_gateway::COVERAGE_TARGET_PATH,
-                    if writable { "" } else { ",readonly" }
-                ),
-            );
-        }
-        Ok(args)
+        self.shape()
+            .arguments_with_coverage(name, nonce, volume, phase, output, target)
     }
     pub(super) fn absent(&self, kind: &str, name: &str) -> Result<bool, ExecutionError> {
         let args = if kind == "volume" {
@@ -2085,7 +2221,7 @@ impl RustGateway {
         if !self.absent("container", name)? {
             return Err(ExecutionError::CleanupUncertain);
         }
-        let arguments = self.arguments_with_output(
+        let arguments = self.shape().arguments_with_output(
             name,
             nonce,
             volume,
@@ -2145,7 +2281,7 @@ impl RustGateway {
         if !self.absent("container", name)? {
             return Err(ExecutionError::CleanupUncertain);
         }
-        let arguments = self.arguments_with_output(
+        let arguments = self.shape().arguments_with_output(
             name,
             nonce,
             volume,
@@ -2426,18 +2562,6 @@ impl RustGateway {
         let terminal_signal = budget.stop();
         self.cleanup(&ingest, &run, &volume, &nonce)?;
         let (outcome, oom_killed) = finish_work(work, terminal_signal)?;
-        let (stdout, expanded_out) = bounded_text(&outcome.stdout, limits.output_bytes());
-        let (stderr, expanded_err) = bounded_text(&outcome.stderr, limits.output_bytes());
-        let termination = if expanded_out || expanded_err {
-            ExecutionTermination::OutputLimit
-        } else {
-            match outcome.stop {
-                Stop::Exited => ExecutionTermination::Exited,
-                Stop::Cancelled => ExecutionTermination::Cancelled,
-                Stop::TimedOut => ExecutionTermination::TimedOut,
-                Stop::OutputLimit => ExecutionTermination::OutputLimit,
-            }
-        };
         let identity = serde_json::to_vec(&(
             self.configuration_fingerprint()?,
             command,
@@ -2447,33 +2571,22 @@ impl RustGateway {
             "rust-source-profile-v1",
         ))
         .map_err(|_| ExecutionError::Infrastructure)?;
-        Ok(ExecutionResult {
-            termination,
-            exit_code: if outcome.stop == Stop::Exited {
-                outcome.code
-            } else {
-                None
-            },
+        bounded_execution_result(
+            outcome,
             oom_killed,
-            stdout,
-            stderr,
-            stdout_truncated: outcome.stdout_truncated || expanded_out,
-            stderr_truncated: outcome.stderr_truncated || expanded_err,
-            duration_ms: outcome.duration_ms,
-            total_duration_ms: started.elapsed().as_millis().try_into().unwrap_or(u64::MAX),
-            execution_fingerprint: digest(&identity)
-                .parse()
-                .map_err(|_| ExecutionError::Infrastructure)?,
-            platform: "linux/aarch64",
-            image_id: self.image_id().into(),
-        })
+            limits,
+            started,
+            &identity,
+            self.image_id(),
+        )
     }
 }
 
-#[cfg(all(test, target_os = "macos"))]
+// Only the Docker-backed transfer test needs the macOS host; every argv and
+// completion test is portable and must also run on the Linux analysis runner.
+#[cfg(test)]
 mod tests {
     use super::*;
-    use rust_engineering_domain::SourceFile;
     #[test]
     fn explain_command_accepts_only_validated_code_as_one_separate_argument()
     -> Result<(), Box<dyn std::error::Error>> {
@@ -2898,9 +3011,11 @@ mod tests {
         assert_eq!(oom, Some(true));
         Ok(())
     }
+    #[cfg(target_os = "macos")]
     #[test]
     #[ignore = "Requires explicit local Docker socket and approved Rust image"]
     fn benign_source_transfer_compiles_with_empty_directory() -> Result<(), String> {
+        use rust_engineering_domain::SourceFile;
         let socket = std::env::var_os("RUST_MCP_TEST_SOCKET").ok_or("explicit socket required")?;
         let root = PathBuf::from("/private/tmp").join(format!(
             "rust-mcp-rust-test-{}",
@@ -2963,6 +3078,588 @@ mod tests {
             "{}",
             serde_json::to_string(&result).map_err(|e| e.to_string())?
         );
+        Ok(())
+    }
+}
+
+#[cfg(test)]
+mod shape_tests {
+    //! Daemon-free evidence for the argv shapes and the configuration digest.
+    //! Every assertion pins a concrete value, so an argv drift fails here
+    //! before it reaches a calibration receipt.
+    use super::*;
+    use std::path::Path;
+
+    type TestResult = Result<(), String>;
+    /// `ExecutionError` is not `std::error::Error`; keep the failing value visible.
+    trait Checked<T> {
+        fn c(self) -> Result<T, String>;
+    }
+    impl<T, E: std::fmt::Debug> Checked<T> for Result<T, E> {
+        fn c(self) -> Result<T, String> {
+            self.map_err(|error| format!("{error:?}"))
+        }
+    }
+    const IMAGE: &str = "sha256:1111111111111111111111111111111111111111111111111111111111111111";
+
+    fn shape(state: &Path) -> ContainerShape<'_> {
+        ContainerShape {
+            state,
+            image_id: IMAGE,
+        }
+    }
+    fn volume(name: &str) -> Volume {
+        Volume {
+            name: name.into(),
+            mountpoint: "/var/lib/docker/volumes/v/_data".into(),
+            driver: "local".into(),
+            scope: "local".into(),
+            options: None,
+            labels: labels("n"),
+            cluster_volume: None,
+            status: None,
+        }
+    }
+    fn tmpfs_volume(name: &str) -> super::super::mutation_gateway::MutationVolume {
+        super::super::mutation_gateway::MutationVolume {
+            name: name.into(),
+            driver: "local".into(),
+            scope: "local".into(),
+            options: BTreeMap::new(),
+            labels: labels("n"),
+            mountpoint: "/var/lib/docker/volumes/o/_data".into(),
+            cluster_volume: None,
+            status: None,
+        }
+    }
+    fn engine(id: &str) -> Result<EngineIdentity, serde_json::Error> {
+        serde_json::from_value(serde_json::json!({
+            "ID": id, "ServerVersion": "29.0.0", "DefaultRuntime": "runc",
+            "OSType": "linux", "Architecture": "aarch64", "CgroupVersion": "2",
+            "SecurityOptions": ["name=seccomp,profile=builtin"],
+            "MemoryLimit": true, "SwapLimit": true, "CpuCfsQuota": true, "PidsLimit": true
+        }))
+    }
+    fn mounts(args: &[String]) -> Vec<&str> {
+        args.iter()
+            .filter(|arg| arg.starts_with("--mount="))
+            .map(String::as_str)
+            .collect()
+    }
+    fn position(args: &[String], prefix: &str) -> Option<usize> {
+        args.iter().position(|arg| arg.starts_with(prefix))
+    }
+
+    #[test]
+    fn ingest_argv_is_the_exact_hardened_container_shape() -> TestResult {
+        let args = shape(Path::new("/state/control"))
+            .arguments("rust-mcp-cargo-ingest", "n", &volume("src"), &Phase::Ingest)
+            .c()?;
+        assert_eq!(
+            args,
+            [
+                "container",
+                "create",
+                "--pull=never",
+                "--runtime=runc",
+                "--init=false",
+                "--network=none",
+                "--read-only",
+                "--cap-drop=ALL",
+                "--security-opt=no-new-privileges=true",
+                "--ipc=private",
+                "--cgroupns=private",
+                "--pids-limit=128",
+                "--cpus=1",
+                "--memory=1g",
+                "--memory-swap=1g",
+                "--shm-size=1m",
+                "--log-driver=none",
+                "--no-healthcheck",
+                "--tmpfs=/work:rw,exec,nosuid,nodev,size=512m,mode=1777",
+                "--tmpfs=/tmp:rw,nosuid,nodev,noexec,size=64m,mode=1777",
+                "--workdir=/source",
+                "--hostname=sandbox",
+                "--name=rust-mcp-cargo-ingest",
+                "--user=0:0",
+                "--label=org.rust-mcp.execution=true",
+                "--label=org.rust-mcp.rust-job=n",
+                "--env=CARGO_HOME=/opt/rust",
+                "--env=CARGO_INCREMENTAL=0",
+                "--env=CARGO_NET_OFFLINE=true",
+                "--env=CARGO_TARGET_DIR=/work/target",
+                "--env=HOME=/work",
+                "--env=PATH=/opt/rust/bin:/usr/bin:/bin",
+                "--env=RUSTC=/opt/rust/bin/rustc",
+                "--env=RUSTDOC=/opt/rust/bin/rustdoc",
+                "--env=RUSTFMT=/opt/rust/bin/rustfmt",
+                "--env=TMPDIR=/tmp",
+                "--security-opt=seccomp=/state/control/seccomp-rust.json",
+                "--mount=type=volume,source=src,target=/source,volume-nocopy,volume-driver=local",
+                "--interactive",
+                "--entrypoint=/usr/bin/tar",
+                IMAGE,
+                "--extract",
+                "--file=-",
+                "--directory=/source",
+                "--no-same-owner",
+                "--no-same-permissions",
+                "--keep-old-files",
+            ]
+        );
+        Ok(())
+    }
+
+    #[test]
+    fn run_phases_mount_source_read_only_and_select_their_seccomp_profile() -> TestResult {
+        let state = Path::new("/state/control");
+        let check = shape(state)
+            .arguments("c", "n", &volume("src"), &Phase::Run(RustCommand::Check))
+            .c()?;
+        assert_eq!(
+            mounts(&check),
+            [
+                "--mount=type=volume,source=src,target=/source,volume-nocopy,volume-driver=local,readonly"
+            ]
+        );
+        assert!(check.contains(&"--user=65534:65534".to_owned()));
+        assert!(!check.contains(&"--interactive".to_owned()));
+        assert!(
+            check.contains(&"--security-opt=seccomp=/state/control/seccomp-rust.json".to_owned())
+        );
+        assert_eq!(
+            check[position(&check, "--entrypoint=").ok_or("entrypoint").c()?..],
+            [
+                "--entrypoint=/opt/rust/bin/cargo",
+                IMAGE,
+                "check",
+                "--frozen",
+                "--message-format=json",
+                "--jobs=1"
+            ]
+        );
+        let nextest = Phase::Run(RustCommand::TestNextest(
+            rust_engineering_domain::nextest::NextestSelection::default()
+                .try_into()
+                .c()?,
+        ));
+        let quality = shape(state)
+            .arguments("c", "n", &volume("src"), &nextest)
+            .c()?;
+        assert!(quality.contains(
+            &"--security-opt=seccomp=/state/control/seccomp-rust-quality.json".to_owned()
+        ));
+        let baseline = shape(state)
+            .arguments("c", "n", &volume("base"), &Phase::IngestBaseline)
+            .c()?;
+        assert_eq!(
+            mounts(&baseline),
+            ["--mount=type=volume,source=base,target=/baseline,volume-nocopy,volume-driver=local"]
+        );
+        assert!(baseline.contains(&"--interactive".to_owned()));
+        let mutation = Phase::ListMutants(
+            rust_engineering_domain::mutation_test::MutationTestSelection::default()
+                .try_into()
+                .c()?,
+        );
+        let list = shape(state)
+            .arguments("c", "n", &volume("src"), &mutation)
+            .c()?;
+        let tmpfs = position(&list, "--tmpfs=/mutants-scratch:")
+            .ok_or("scratch tmpfs")
+            .c()?;
+        assert_eq!(
+            list[tmpfs],
+            format!("--tmpfs={MUTATION_SCRATCH_PATH}:{MUTATION_SCRATCH_TMPFS}")
+        );
+        assert!(list.contains(&"--env=TMPDIR=/mutants-scratch".to_owned()));
+        assert!(!list.contains(&"--env=TMPDIR=/tmp".to_owned()));
+        let analyzer = shape(state)
+            .arguments("c", "n", &volume("src"), &Phase::Analyzer)
+            .c()?;
+        assert!(
+            analyzer.contains(&"--interactive".to_owned())
+                && analyzer.contains(&"--env=RA_LOG=error".to_owned())
+        );
+        assert_eq!(analyzer.last().map(String::as_str), Some(IMAGE));
+        Ok(())
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn a_non_utf8_state_directory_is_an_invalid_configuration() {
+        use std::os::unix::ffi::OsStrExt;
+        let state = Path::new(std::ffi::OsStr::from_bytes(b"/state/\xff"));
+        assert_eq!(
+            shape(state)
+                .arguments("c", "n", &volume("src"), &Phase::Ingest)
+                .err(),
+            Some(ExecutionError::InvalidConfiguration)
+        );
+    }
+
+    #[test]
+    fn extra_mounts_are_inserted_immediately_before_the_entrypoint() -> TestResult {
+        let shape = shape(Path::new("/state"));
+        let semver = Phase::Run(RustCommand::SemverCheck(
+            rust_engineering_domain::semver_check::SemverProjectSelection::default()
+                .try_into()
+                .c()?,
+        ));
+        let args = shape
+            .arguments_with_baseline("c", "n", &volume("cand"), &volume("base"), &semver)
+            .c()?;
+        let entry = position(&args, "--entrypoint=").ok_or("entrypoint").c()?;
+        assert_eq!(
+            args[entry - 1],
+            "--mount=type=volume,source=base,target=/baseline,volume-nocopy,volume-driver=local,readonly"
+        );
+        assert_eq!(mounts(&args).len(), 2);
+        let junit = shape
+            .arguments_with_output(
+                "c",
+                "n",
+                &volume("src"),
+                &Phase::ExportNextest,
+                &tmpfs_volume("junit"),
+                false,
+                "/junit",
+            )
+            .c()?;
+        let entry = position(&junit, "--entrypoint=").ok_or("entrypoint").c()?;
+        assert_eq!(
+            junit[entry - 1],
+            "--mount=type=volume,source=junit,target=/junit,volume-nocopy,volume-driver=local,readonly"
+        );
+        let writable = shape
+            .arguments_with_output(
+                "c",
+                "n",
+                &volume("src"),
+                &Phase::GuardNextestOutput,
+                &tmpfs_volume("junit"),
+                true,
+                "/junit",
+            )
+            .c()?;
+        assert!(
+            writable.contains(
+                &"--mount=type=volume,source=junit,target=/junit,volume-nocopy,volume-driver=local"
+                    .to_owned()
+            )
+        );
+        Ok(())
+    }
+
+    #[test]
+    fn coverage_mounts_follow_the_phase_write_matrix() -> TestResult {
+        let shape = shape(Path::new("/state"));
+        let run = Phase::Run(RustCommand::CoverageRun(
+            rust_engineering_domain::coverage::CoverageSelection::default()
+                .try_into()
+                .c()?,
+        ));
+        let output = tmpfs_volume("out");
+        let target = tmpfs_volume("tgt");
+        let expect = |phase: &Phase, report: &str, target_mount: Option<&str>| -> TestResult {
+            let args = shape
+                .arguments_with_coverage("c", "n", &volume("src"), phase, &output, &target)
+                .c()?;
+            let mut expected = vec![
+                "--mount=type=volume,source=src,target=/source,volume-nocopy,volume-driver=local,readonly".to_owned(),
+                format!("--mount=type=volume,source=out,target=/work/coverage,volume-nocopy,volume-driver=local{report}"),
+            ];
+            if let Some(suffix) = target_mount {
+                expected.push(format!(
+                    "--mount=type=volume,source=tgt,target=/work/coverage-target,volume-nocopy,volume-driver=local{suffix}"
+                ));
+            }
+            assert_eq!(mounts(&args), expected, "{phase:?}");
+            let entry = position(&args, "--entrypoint=").ok_or("entrypoint").c()?;
+            assert!(args[entry - 1].starts_with("--mount="));
+            Ok(())
+        };
+        expect(&run, "", Some("")).c()?;
+        expect(
+            &Phase::Run(RustCommand::CoverageReport(
+                rust_engineering_domain::coverage::CoverageReportFormat::Lcov,
+            )),
+            "",
+            Some(""),
+        )
+        .c()?;
+        expect(&Phase::GuardCoverageVolumes, "", Some(",readonly")).c()?;
+        for export in [
+            Phase::ExportCoverageJson,
+            Phase::ExportCoverageLcov,
+            Phase::ExportCoverageHtml,
+        ] {
+            expect(&export, ",readonly", None).c()?;
+        }
+        Ok(())
+    }
+
+    #[test]
+    fn configuration_commands_are_placeholdered_and_independent_of_the_state_path() -> TestResult {
+        let first = configuration_commands(shape(Path::new("/state/one"))).c()?;
+        let second = configuration_commands(shape(Path::new("/other/two"))).c()?;
+        assert_eq!(first, second);
+        // 35 single-mount phases, the semver baseline shape and 8 coverage shapes.
+        assert_eq!(first.len(), 44);
+        for command in &first {
+            assert_eq!(command[..2], ["container", "create"]);
+            assert!(command.contains(&"--name=<container>".to_owned()));
+            assert!(command.contains(&"--label=org.rust-mcp.rust-job=<nonce>".to_owned()));
+            assert_eq!(
+                command
+                    .iter()
+                    .filter(|arg| arg.starts_with("--security-opt=seccomp="))
+                    .collect::<Vec<_>>(),
+                ["--security-opt=seccomp=<profile>"]
+            );
+            assert!(command.contains(&IMAGE.to_owned()));
+        }
+        assert_eq!(mounts(&first[35]).len(), 2);
+        assert!(first[35].contains(&"--mount=type=volume,source=<baseline-volume>,target=/baseline,volume-nocopy,volume-driver=local,readonly".to_owned()));
+        assert!(first[36..].iter().all(|command| mounts(command).len() >= 2));
+        Ok(())
+    }
+
+    #[test]
+    fn configuration_digest_binds_every_identity_input() -> TestResult {
+        let commands = configuration_commands(shape(Path::new("/state"))).c()?;
+        let engine = engine("engine-a").c()?;
+        let base = configuration_digest(IMAGE, &engine, "sha256:docker", commands.clone()).c()?;
+        assert_eq!(
+            base,
+            configuration_digest(IMAGE, &engine, "sha256:docker", commands.clone()).c()?
+        );
+        assert!(base.to_string().starts_with("sha256:"));
+        assert_eq!(base.to_string().len(), 71);
+        let other_image = "sha256:2222222222222222222222222222222222222222222222222222222222222222";
+        let mut fewer = commands.clone();
+        fewer.pop();
+        for changed in [
+            configuration_digest(other_image, &engine, "sha256:docker", commands.clone()).c()?,
+            configuration_digest(
+                IMAGE,
+                &self::engine("engine-b").c()?,
+                "sha256:docker",
+                commands.clone(),
+            )
+            .c()?,
+            configuration_digest(IMAGE, &engine, "sha256:other", commands.clone()).c()?,
+            configuration_digest(IMAGE, &engine, "sha256:docker", fewer).c()?,
+        ] {
+            assert_ne!(changed, base);
+        }
+        assert!(implementation_fingerprint().starts_with("sha256:"));
+        assert_eq!(implementation_fingerprint(), implementation_fingerprint());
+        Ok(())
+    }
+
+    #[test]
+    fn build_script_sessions_need_two_distinct_sessions_and_valid_ids() {
+        let header = "PID PPID PGID SID COMMAND\n";
+        let one = format!(
+            "{header}10 1 10 7 /work/target/debug/build/a/build-script-build\n11 1 11 7 /work/target/debug/build/b/build-script-build\n"
+        );
+        assert_eq!(concurrent_build_script_sessions(&one), Ok(false));
+        let two = format!(
+            "{header}10 1 10 7 /work/target/debug/build/a/build-script-build\n12 1 12 8 /work/target/debug/build/b/build-script-build\n13 1 13 9 /usr/bin/cargo build\n"
+        );
+        assert_eq!(concurrent_build_script_sessions(&two), Ok(true));
+        // The header is never a row, and non-build-script rows are ignored.
+        assert_eq!(
+            concurrent_build_script_sessions(
+                "1 1 1 1 /x/build-script-build\n2 1 2 2 /usr/bin/cargo\n"
+            ),
+            Ok(false)
+        );
+        for malformed in [
+            format!("{header}x 1 10 7 /b/build-script-build\n"),
+            format!("{header}10 1 10 y /b/build-script-build\n"),
+            format!("{header}0 1 10 7 /b/build-script-build\n"),
+            format!("{header}10 1 10 0 /b/build-script-build\n"),
+        ] {
+            assert_eq!(
+                concurrent_build_script_sessions(&malformed),
+                Err(ExecutionError::Infrastructure),
+                "{malformed:?}"
+            );
+        }
+        assert_eq!(concurrent_build_script_sessions(""), Ok(false));
+    }
+
+    #[test]
+    fn volume_parse_accepts_only_the_exact_owned_local_volume() -> TestResult {
+        let good = serde_json::json!([{
+            "Name": "vol", "Driver": "local", "Scope": "local", "Options": null,
+            "Labels": {"org.rust-mcp.execution": "true", "org.rust-mcp.rust-job": "n"},
+            "Mountpoint": "/var/lib/docker/volumes/vol/_data"
+        }]);
+        let parsed = Volume::parse(&serde_json::to_vec(&good).c()?, "vol", "n").c()?;
+        assert_eq!(
+            (parsed.name.as_str(), parsed.mountpoint.as_str()),
+            ("vol", "/var/lib/docker/volumes/vol/_data")
+        );
+        let mut empty_options = good.clone();
+        empty_options[0]["Options"] = serde_json::json!({});
+        Volume::parse(&serde_json::to_vec(&empty_options).c()?, "vol", "n").c()?;
+        assert_eq!(
+            Volume::parse(b"not json", "vol", "n").err(),
+            Some(ExecutionError::Infrastructure)
+        );
+        assert_eq!(
+            Volume::parse(b"[]", "vol", "n").err(),
+            Some(ExecutionError::InvalidConfiguration)
+        );
+        let two = serde_json::json!([good[0].clone(), good[0].clone()]);
+        assert_eq!(
+            Volume::parse(&serde_json::to_vec(&two).c()?, "vol", "n").err(),
+            Some(ExecutionError::InvalidConfiguration)
+        );
+        assert_eq!(
+            Volume::parse(&serde_json::to_vec(&good).c()?, "other", "n").err(),
+            Some(ExecutionError::InvalidConfiguration)
+        );
+        assert_eq!(
+            Volume::parse(&serde_json::to_vec(&good).c()?, "vol", "other").err(),
+            Some(ExecutionError::InvalidConfiguration)
+        );
+        for (field, value) in [
+            ("Driver", serde_json::json!("nfs")),
+            ("Scope", serde_json::json!("global")),
+            ("Options", serde_json::json!({"o": "bind"})),
+            ("Mountpoint", serde_json::json!("/tmp/vol/_data")),
+            (
+                "Mountpoint",
+                serde_json::json!("/var/lib/docker/volumes/vol"),
+            ),
+            ("ClusterVolume", serde_json::json!({})),
+            ("Status", serde_json::json!({})),
+        ] {
+            let mut candidate = good.clone();
+            candidate[0][field] = value;
+            assert_eq!(
+                Volume::parse(&serde_json::to_vec(&candidate).c()?, "vol", "n").err(),
+                Some(ExecutionError::InvalidConfiguration),
+                "{field}"
+            );
+        }
+        Ok(())
+    }
+
+    #[test]
+    fn bounded_execution_result_limits_output_and_binds_identity() -> TestResult {
+        let limits = ExecutionLimits::new(1_000, 1024).ok_or("limits")?;
+        let capture = |stop, stdout: Vec<u8>| Capture {
+            code: Some(0),
+            stdout,
+            stderr: vec![0xff],
+            stdout_truncated: false,
+            stderr_truncated: true,
+            stop,
+            duration_ms: 9,
+        };
+        let result = bounded_execution_result(
+            capture(Stop::Exited, b"out".to_vec()),
+            Some(true),
+            limits,
+            Instant::now(),
+            b"identity",
+            IMAGE,
+        )
+        .c()?;
+        assert_eq!(result.termination, ExecutionTermination::Exited);
+        assert_eq!(result.exit_code, Some(0));
+        assert_eq!(result.oom_killed, Some(true));
+        assert_eq!(result.stdout, "out");
+        assert_eq!(result.stderr, "\u{fffd}");
+        assert!(!result.stdout_truncated && result.stderr_truncated);
+        assert_eq!(result.duration_ms, 9);
+        assert_eq!(
+            result.execution_fingerprint.to_string(),
+            digest(b"identity")
+        );
+        assert_eq!(
+            (result.platform, result.image_id.as_str()),
+            ("linux/aarch64", IMAGE)
+        );
+        for (stop, termination) in [
+            (Stop::Cancelled, ExecutionTermination::Cancelled),
+            (Stop::TimedOut, ExecutionTermination::TimedOut),
+            (Stop::OutputLimit, ExecutionTermination::OutputLimit),
+        ] {
+            let result = bounded_execution_result(
+                capture(stop, Vec::new()),
+                None,
+                limits,
+                Instant::now(),
+                b"identity",
+                IMAGE,
+            )
+            .c()?;
+            assert_eq!(result.termination, termination);
+            assert_eq!(result.exit_code, None);
+        }
+        // Lossy conversion can expand bytes past the limit: 400 invalid bytes
+        // become 1 200 bytes of replacement characters.
+        let expanded = bounded_execution_result(
+            capture(Stop::Exited, vec![0xff; 400]),
+            None,
+            limits,
+            Instant::now(),
+            b"identity",
+            IMAGE,
+        )
+        .c()?;
+        assert_eq!(expanded.termination, ExecutionTermination::OutputLimit);
+        assert!(expanded.stdout_truncated);
+        assert!(expanded.stdout.len() <= 1024);
+        assert_eq!(expanded.exit_code, Some(0));
+        Ok(())
+    }
+
+    #[test]
+    fn work_budget_reports_cancellation_before_deadline_and_stops_empty() -> TestResult {
+        struct Flag(bool);
+        impl ExecutionCancellation for Flag {
+            fn is_cancelled(&self) -> bool {
+                self.0
+            }
+        }
+        let limits = ExecutionLimits::new(1_000, 1024).ok_or("valid limits")?;
+        let now = Instant::now();
+        let later = now + Duration::from_secs(3600);
+        let running = WorkBudget {
+            started: now,
+            deadline: later,
+            limits,
+            cancel: &Flag(false),
+        };
+        assert_eq!(running.stop(), None);
+        assert!(!running.is_cancelled());
+        let cancelled = WorkBudget {
+            started: now,
+            deadline: now,
+            limits,
+            cancel: &Flag(true),
+        };
+        assert_eq!(cancelled.stop(), Some(Stop::Cancelled));
+        let expired = WorkBudget {
+            started: now,
+            deadline: now,
+            limits,
+            cancel: &Flag(false),
+        };
+        assert_eq!(expired.stop(), Some(Stop::TimedOut));
+        assert!(expired.is_cancelled());
+        let capture = expired.stopped_capture(Stop::TimedOut);
+        assert_eq!(capture.stop, Stop::TimedOut);
+        assert_eq!(capture.code, None);
+        assert!(capture.stdout.is_empty() && capture.stderr.is_empty());
+        assert!(!capture.stdout_truncated && !capture.stderr_truncated);
         Ok(())
     }
 }

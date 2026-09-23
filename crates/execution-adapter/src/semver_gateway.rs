@@ -9,6 +9,26 @@ use rust_engineering_domain::{
     ExecutionLimits, ExecutionResult, ExecutionTermination, RustCommand, SourceBundle,
 };
 
+fn admitted_version(outcome: &Capture) -> bool {
+    outcome.stop == Stop::Exited
+        && outcome.code == Some(0)
+        && outcome.stdout
+            == format!("cargo-semver-checks {APPROVED_SEMVER_CHECKS_VERSION}\n").as_bytes()
+}
+
+fn classify_termination(stop: Stop, output_expanded: bool) -> ExecutionTermination {
+    if output_expanded {
+        ExecutionTermination::OutputLimit
+    } else {
+        match stop {
+            Stop::Exited => ExecutionTermination::Exited,
+            Stop::Cancelled => ExecutionTermination::Cancelled,
+            Stop::TimedOut => ExecutionTermination::TimedOut,
+            Stop::OutputLimit => ExecutionTermination::OutputLimit,
+        }
+    }
+}
+
 fn create_volume(gateway: &RustGateway, name: &str, nonce: &str) -> Result<Volume, ExecutionError> {
     let mut args = vec!["volume".into(), "create".into(), "--driver=local".into()];
     for (key, value) in labels(nonce) {
@@ -118,10 +138,7 @@ pub(super) fn execute(
         if observed_version.stop != Stop::Exited {
             return Ok((observed_version, version_oom));
         }
-        let expected_version = format!("cargo-semver-checks {APPROVED_SEMVER_CHECKS_VERSION}\n");
-        if observed_version.code != Some(0)
-            || observed_version.stdout != expected_version.as_bytes()
-        {
+        if !admitted_version(&observed_version) {
             return Err(ExecutionError::Unavailable);
         }
         gateway.inner.remove(&version)?;
@@ -150,16 +167,7 @@ pub(super) fn execute(
     let (outcome, oom_killed) = finish_work(work, terminal)?;
     let (stdout, expanded_out) = bounded_text(&outcome.stdout, limits.output_bytes());
     let (stderr, expanded_err) = bounded_text(&outcome.stderr, limits.output_bytes());
-    let termination = if expanded_out || expanded_err {
-        ExecutionTermination::OutputLimit
-    } else {
-        match outcome.stop {
-            Stop::Exited => ExecutionTermination::Exited,
-            Stop::Cancelled => ExecutionTermination::Cancelled,
-            Stop::TimedOut => ExecutionTermination::TimedOut,
-            Stop::OutputLimit => ExecutionTermination::OutputLimit,
-        }
-    };
+    let termination = classify_termination(outcome.stop, expanded_out || expanded_err);
     let identity = serde_json::to_vec(&(
         gateway.configuration_fingerprint()?,
         RustCommand::SemverCheck(options.clone()),
@@ -189,4 +197,55 @@ pub(super) fn execute(
         platform: "linux/aarch64",
         image_id: gateway.image_id().into(),
     })
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn capture(stdout: &[u8]) -> Capture {
+        Capture {
+            code: Some(0),
+            stdout: stdout.to_vec(),
+            stderr: Vec::new(),
+            stdout_truncated: false,
+            stderr_truncated: false,
+            stop: Stop::Exited,
+            duration_ms: 1,
+        }
+    }
+
+    #[test]
+    fn version_probe_accepts_only_the_exact_admitted_binary_line() {
+        assert!(admitted_version(&capture(b"cargo-semver-checks 0.50.0\n")));
+        for output in [
+            b"cargo-semver-checks 0.50.0".as_slice(),
+            b"cargo-semver-checks 0.50.0 extra\n".as_slice(),
+            b"cargo-semver-checks 0.49.0\n".as_slice(),
+        ] {
+            assert!(!admitted_version(&capture(output)));
+        }
+        let mut failed = capture(b"cargo-semver-checks 0.50.0\n");
+        failed.code = Some(1);
+        assert!(!admitted_version(&failed));
+        failed.code = Some(0);
+        failed.stop = Stop::TimedOut;
+        assert!(!admitted_version(&failed));
+    }
+
+    #[test]
+    fn termination_mapping_is_closed_and_output_expansion_wins() {
+        for (stop, expected) in [
+            (Stop::Exited, ExecutionTermination::Exited),
+            (Stop::Cancelled, ExecutionTermination::Cancelled),
+            (Stop::TimedOut, ExecutionTermination::TimedOut),
+            (Stop::OutputLimit, ExecutionTermination::OutputLimit),
+        ] {
+            assert_eq!(classify_termination(stop, false), expected);
+            assert_eq!(
+                classify_termination(stop, true),
+                ExecutionTermination::OutputLimit
+            );
+        }
+    }
 }

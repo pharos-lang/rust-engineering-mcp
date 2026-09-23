@@ -17,6 +17,24 @@ fn unavailable() -> InspectionError {
     ))
 }
 
+fn version_available(result: &rust_engineering_domain::ExecutionResult) -> bool {
+    result.termination == ExecutionTermination::Exited
+        && result.exit_code == Some(0)
+        && result
+            .stdout
+            .trim()
+            .starts_with(&format!("cargo-llvm-cov {APPROVED_LLVM_COV_VERSION}"))
+}
+
+fn components_available(result: &rust_engineering_domain::ExecutionResult) -> bool {
+    result.termination == ExecutionTermination::Exited
+        && result.exit_code == Some(0)
+        && result
+            .stdout
+            .lines()
+            .any(|line| line.trim() == "llvm-tools-preview")
+}
+
 pub(super) fn run(
     gateway: &RustGateway,
     source: &SourceBundle,
@@ -28,13 +46,7 @@ pub(super) fn run(
     let version = gateway
         .execute(source, RustCommand::LlvmCovVersion, probe_limits, control)
         .map_err(InspectionError::Execution)?;
-    if version.termination != ExecutionTermination::Exited
-        || version.exit_code != Some(0)
-        || !version
-            .stdout
-            .trim()
-            .starts_with(&format!("cargo-llvm-cov {APPROVED_LLVM_COV_VERSION}"))
-    {
+    if !version_available(&version) {
         return Err(unavailable());
     }
     let components = gateway
@@ -45,13 +57,7 @@ pub(super) fn run(
             control,
         )
         .map_err(InspectionError::Execution)?;
-    if components.termination != ExecutionTermination::Exited
-        || components.exit_code != Some(0)
-        || !components
-            .stdout
-            .lines()
-            .any(|line| line.trim() == "llvm-tools-preview")
-    {
+    if !components_available(&components) {
         return Err(unavailable());
     }
     let wall_ms = options
@@ -120,4 +126,69 @@ pub(super) fn run(
             stderr_truncated: result.stderr_truncated,
         },
     })
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use rust_engineering_domain::{ExecutionFingerprint, ExecutionResult};
+
+    fn result(stdout: &str) -> Result<ExecutionResult, String> {
+        Ok(ExecutionResult {
+            termination: ExecutionTermination::Exited,
+            exit_code: Some(0),
+            oom_killed: Some(false),
+            stdout: stdout.into(),
+            stderr: String::new(),
+            stdout_truncated: false,
+            stderr_truncated: false,
+            duration_ms: 1,
+            total_duration_ms: 1,
+            execution_fingerprint: format!("sha256:{}", "0".repeat(64))
+                .parse::<ExecutionFingerprint>()
+                .map_err(|error| format!("{error:?}"))?,
+            platform: "linux/aarch64",
+            image_id: format!("sha256:{}", "1".repeat(64)),
+        })
+    }
+
+    #[test]
+    fn coverage_version_probe_requires_the_pinned_prefix_and_clean_exit() -> Result<(), String> {
+        assert!(version_available(&result("cargo-llvm-cov 0.9.0\n")?));
+        assert!(version_available(&result(
+            "  cargo-llvm-cov 0.9.0 (llvm-cov)  "
+        )?));
+        assert!(!version_available(&result("cargo-llvm-cov 0.8.2\n")?));
+        let mut failed = result("cargo-llvm-cov 0.9.0\n")?;
+        failed.exit_code = Some(1);
+        assert!(!version_available(&failed));
+        failed.exit_code = Some(0);
+        failed.termination = ExecutionTermination::TimedOut;
+        assert!(!version_available(&failed));
+        Ok(())
+    }
+
+    #[test]
+    fn component_probe_matches_one_exact_trimmed_line() -> Result<(), String> {
+        assert!(components_available(&result(
+            "rust-src\n  llvm-tools-preview  \nrustfmt\n"
+        )?));
+        assert!(!components_available(&result(
+            "llvm-tools-preview-extra\n"
+        )?));
+        let mut failed = result("llvm-tools-preview\n")?;
+        failed.termination = ExecutionTermination::OutputLimit;
+        assert!(!components_available(&failed));
+        Ok(())
+    }
+
+    #[test]
+    fn missing_coverage_tool_is_a_closed_operational_error() {
+        assert_eq!(
+            unavailable(),
+            InspectionError::Project(ProjectError::Rejected(
+                OperationalErrorCode::ToolNotInstalled
+            ))
+        );
+    }
 }

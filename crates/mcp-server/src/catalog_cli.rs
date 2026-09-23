@@ -462,3 +462,284 @@ pub fn run(invocation: Invocation) -> ExitCode {
         ExitCode::from(code)
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn parsed(args: &[&str]) -> Option<Invocation> {
+        parse(args.iter().map(OsString::from))
+    }
+
+    #[test]
+    fn parses_each_closed_administration_action() -> Result<(), &'static str> {
+        let status = parsed(&[
+            "status",
+            "--store",
+            "/tmp/catalog",
+            "--trust",
+            "/tmp/trust.json",
+            "--json",
+            "--model-dir",
+            "/tmp/model",
+            "--index-store",
+            "/tmp/index",
+        ])
+        .ok_or("status")?;
+        assert!(matches!(status.action, Action::Status));
+        assert!(status.json);
+        assert_eq!(status.store, PathBuf::from("/tmp/catalog"));
+        assert_eq!(status.trust, PathBuf::from("/tmp/trust.json"));
+        assert_eq!(status.model_dir, Some(PathBuf::from("/tmp/model")));
+        assert_eq!(status.index_store, Some(PathBuf::from("/tmp/index")));
+
+        let import = parsed(&[
+            "import",
+            "/tmp/snapshot.bundle",
+            "--store",
+            "/tmp/catalog",
+            "--trust",
+            "/tmp/trust.json",
+        ])
+        .ok_or("import")?;
+        assert!(
+            matches!(import.action, Action::Import(ref path) if path == &PathBuf::from("/tmp/snapshot.bundle"))
+        );
+
+        let local_sync = parsed(&[
+            "sync",
+            "--source",
+            "/tmp/snapshot.bundle",
+            "--store",
+            "/tmp/catalog",
+            "--trust",
+            "/tmp/trust.json",
+        ])
+        .ok_or("local sync")?;
+        assert!(
+            matches!(local_sync.action, Action::Sync(ref path) if path == &PathBuf::from("/tmp/snapshot.bundle"))
+        );
+
+        let remote_sync = parsed(&[
+            "sync",
+            "--url",
+            "https://catalog.example/snapshot",
+            "--allow-host",
+            "catalog.example",
+            "--store",
+            "/tmp/catalog",
+            "--trust",
+            "/tmp/trust.json",
+        ])
+        .ok_or("remote sync")?;
+        assert!(matches!(remote_sync.action, Action::SyncRemote(_)));
+
+        let rebuild = parsed(&[
+            "rebuild-index",
+            "--store",
+            "/tmp/catalog",
+            "--trust",
+            "/tmp/trust.json",
+            "--model-dir",
+            "/tmp/model",
+            "--index-store",
+            "/tmp/index",
+        ])
+        .ok_or("rebuild")?;
+        assert!(matches!(rebuild.action, Action::RebuildIndex));
+        Ok(())
+    }
+
+    #[test]
+    fn rejects_ambiguous_incomplete_and_relative_invocations() {
+        for args in [
+            vec!["unknown"],
+            vec!["status", "--store", "/tmp/catalog"],
+            vec![
+                "status",
+                "--store",
+                "relative",
+                "--trust",
+                "/tmp/trust.json",
+            ],
+            vec![
+                "import",
+                "relative.bundle",
+                "--store",
+                "/tmp/catalog",
+                "--trust",
+                "/tmp/trust.json",
+            ],
+            vec![
+                "sync",
+                "--source",
+                "/tmp/a",
+                "--url",
+                "https://catalog.example/a",
+                "--allow-host",
+                "catalog.example",
+                "--store",
+                "/tmp/catalog",
+                "--trust",
+                "/tmp/trust.json",
+            ],
+            vec![
+                "sync",
+                "--url",
+                "https://catalog.example/a",
+                "--store",
+                "/tmp/catalog",
+                "--trust",
+                "/tmp/trust.json",
+            ],
+            vec![
+                "status",
+                "--source",
+                "/tmp/a",
+                "--store",
+                "/tmp/catalog",
+                "--trust",
+                "/tmp/trust.json",
+            ],
+            vec![
+                "status",
+                "--store",
+                "/tmp/catalog",
+                "--store",
+                "/tmp/other",
+                "--trust",
+                "/tmp/trust.json",
+            ],
+            vec![
+                "status",
+                "--store",
+                "/tmp/catalog",
+                "--trust",
+                "/tmp/trust.json",
+                "--index-store",
+                "/tmp/index",
+            ],
+            vec![
+                "import",
+                "/tmp/a",
+                "--store",
+                "/tmp/catalog",
+                "--trust",
+                "/tmp/trust.json",
+                "--index-store",
+                "/tmp/index",
+            ],
+            vec![
+                "rebuild-index",
+                "--store",
+                "/tmp/catalog",
+                "--trust",
+                "/tmp/trust.json",
+                "--model-dir",
+                "/tmp/model",
+            ],
+        ] {
+            assert!(parsed(&args).is_none(), "accepted {args:?}");
+        }
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn rejects_non_utf8_flags() {
+        use std::os::unix::ffi::OsStringExt;
+        assert!(
+            parse(
+                [
+                    OsString::from("status"),
+                    OsString::from_vec(vec![0xff]),
+                    OsString::from("/tmp/catalog"),
+                ]
+                .into_iter()
+            )
+            .is_none()
+        );
+    }
+
+    #[test]
+    fn operational_errors_have_exact_stable_codes_and_guidance() {
+        let cases = [
+            (Error::State, "CATALOG_STATE_INVALID"),
+            (Error::ActiveUnverified, "CATALOG_ACTIVE_UNVERIFIED"),
+            (Error::TrustMismatch, "CATALOG_TRUST_MISMATCH"),
+            (Error::Missing, "CATALOG_UNAVAILABLE"),
+            (Error::RebuildUnavailable, "SEMANTIC_REBUILD_UNAVAILABLE"),
+            (
+                Error::Store(StoreError::UnsupportedPlatform),
+                "UNSUPPORTED_PLATFORM",
+            ),
+            (Error::Store(StoreError::InvalidPath), "SANDBOX_DENIED"),
+            (Error::Store(StoreError::Denied), "SANDBOX_DENIED"),
+            (Error::Store(StoreError::Busy), "CATALOG_BUSY"),
+            (
+                Error::Store(StoreError::LimitExceeded),
+                "OUTPUT_LIMIT_EXCEEDED",
+            ),
+            (Error::Store(StoreError::Changed), "CATALOG_STATE_CHANGED"),
+            (Error::Store(StoreError::Io), "CATALOG_IO_ERROR"),
+            (
+                Error::Store(StoreError::DurabilityUncertain),
+                "CATALOG_DURABILITY_UNCERTAIN",
+            ),
+            (
+                Error::Bundle(BundleError::InvalidTrust),
+                "CATALOG_UNTRUSTED_PUBLISHER",
+            ),
+            (
+                Error::Bundle(BundleError::UntrustedPublisher),
+                "CATALOG_UNTRUSTED_PUBLISHER",
+            ),
+            (
+                Error::Bundle(BundleError::InvalidSignature),
+                "CATALOG_INVALID_SIGNATURE",
+            ),
+            (
+                Error::Bundle(BundleError::InvalidArchive),
+                "CATALOG_INVALID_BUNDLE",
+            ),
+            (
+                Error::Bundle(BundleError::NoncanonicalManifest),
+                "CATALOG_INVALID_BUNDLE",
+            ),
+            (
+                Error::Bundle(BundleError::UnsupportedFormat),
+                "CATALOG_UNSUPPORTED_SCHEMA",
+            ),
+            (
+                Error::Bundle(BundleError::Integrity),
+                "CATALOG_INVALID_BUNDLE",
+            ),
+            (Error::Bundle(BundleError::Budget), "OUTPUT_LIMIT_EXCEEDED"),
+            (Error::Bundle(BundleError::Rollback), "CATALOG_ROLLBACK"),
+            (
+                Error::Bundle(BundleError::InvalidCatalog),
+                "CATALOG_INVALID_BUNDLE",
+            ),
+            (
+                Error::Sync(crate::catalog_sync::SyncError::Denied),
+                "NETWORK_DENIED",
+            ),
+            (
+                Error::Sync(crate::catalog_sync::SyncError::Unavailable),
+                "CATALOG_SYNC_UNAVAILABLE",
+            ),
+            (
+                Error::Sync(crate::catalog_sync::SyncError::RejectedResponse),
+                "CATALOG_SYNC_UNAVAILABLE",
+            ),
+            (
+                Error::Sync(crate::catalog_sync::SyncError::Budget),
+                "OUTPUT_LIMIT_EXCEEDED",
+            ),
+        ];
+        for (value, expected) in cases {
+            let (code, guidance) = error(value);
+            assert_eq!(code, expected);
+            assert!(!guidance.is_empty());
+        }
+    }
+}

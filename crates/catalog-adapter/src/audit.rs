@@ -405,3 +405,74 @@ impl RustSecSnapshot {
         Ok(output)
     }
 }
+#[cfg(test)]
+mod required_nullable_contract {
+    // `created_at`/`observed_at` are required-nullable: the host must state an
+    // unknown timestamp as `null`; omission is a malformed transport. Adding
+    // `#[serde(default)]` to either field must make this test fail.
+    use super::*;
+    use rust_engineering_application::{ExecutionCancellation, OperationControl};
+    use serde_json::Value;
+    struct Control;
+    impl ExecutionCancellation for Control {
+        fn is_cancelled(&self) -> bool {
+            false
+        }
+    }
+    impl OperationControl for Control {
+        fn check(&self) -> Result<(), ProjectError> {
+            Ok(())
+        }
+    }
+    fn wire() -> Result<Value, serde_json::Error> {
+        serde_json::to_value(RustSecSnapshotDocument {
+            format_version: 1,
+            sequence: 1,
+            source_id: "required-nullable-fixture".into(),
+            created_at: None,
+            observed_at: None,
+            records: vec![RustSecSnapshotRecord {
+                path: "crates/rsa/RUSTSEC-2023-0071.md".into(),
+                markdown: include_str!("../tests/fixtures/rustsec/RUSTSEC-2023-0071.md").into(),
+            }],
+        })
+    }
+    fn load(value: &Value) -> Result<Result<RustSecSnapshot, AuditDataError>, String> {
+        let bytes = serde_json::to_vec(value).map_err(|e| e.to_string())?;
+        let expected = super::super::fingerprint(&bytes).map_err(|e| format!("{e:?}"))?;
+        Ok(RustSecSnapshot::from_bytes(&bytes, &expected, &Control))
+    }
+    #[test]
+    fn explicit_null_is_none_but_absence_is_an_invalid_snapshot() -> Result<(), String> {
+        let wire = wire().map_err(|e| e.to_string())?;
+        assert_eq!(wire["created_at"], Value::Null);
+        assert_eq!(wire["observed_at"], Value::Null);
+        let parsed: RustSecSnapshotDocument =
+            serde_json::from_value(wire.clone()).map_err(|e| e.to_string())?;
+        assert_eq!((parsed.created_at, parsed.observed_at), (None, None));
+        let snapshot = load(&wire)?.map_err(|e| format!("{e:?}"))?;
+        assert_eq!(snapshot.provenance.created_at(), None);
+        assert_eq!(snapshot.provenance.observed_at(), None);
+        for key in ["created_at", "observed_at"] {
+            let mut candidate = wire.clone();
+            candidate
+                .as_object_mut()
+                .and_then(|object| object.remove(key))
+                .ok_or("field expected")?;
+            let error = serde_json::from_value::<RustSecSnapshotDocument>(candidate.clone())
+                .err()
+                .ok_or(key)?;
+            assert!(
+                error
+                    .to_string()
+                    .contains(&format!("missing field `{key}`")),
+                "{error}"
+            );
+            assert!(
+                matches!(load(&candidate)?, Err(AuditDataError::InvalidSnapshot)),
+                "{key}"
+            );
+        }
+        Ok(())
+    }
+}

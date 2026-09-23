@@ -969,6 +969,56 @@ fn digest_text(value: &str) -> Result<[u8; 32], InspectionError> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use rust_engineering_application::coverage::{CoverageArtifactStreams, CoverageIdentity};
+    use rust_engineering_application::nextest::{
+        ArtifactStreams, NextestCounts, NextestOptions, NextestSelection,
+    };
+    use rust_engineering_application::semver_check::{
+        SEMVER_DEFAULT_TIMEOUT_SECONDS, SemverOptions,
+    };
+    use rust_engineering_domain::coverage::{
+        CoverageMetrics, CoverageOptions, CoverageSelection, CoverageSummary,
+    };
+    use rust_engineering_domain::semver_check::{
+        SemverCommandOptions, SemverExit, SemverFindingCompleteness, SemverFindingCounts,
+        SemverProjectSelection,
+    };
+    use rust_engineering_domain::{
+        ExecutionFingerprint, ExecutionTermination, RuntimeIdentity, SourceFile,
+    };
+
+    fn fingerprint(hex: char) -> Result<ExecutionFingerprint, String> {
+        format!("sha256:{}", hex.to_string().repeat(64))
+            .parse()
+            .map_err(|error| format!("{error:?}"))
+    }
+
+    fn source(path: &str, bytes: &[u8]) -> Result<SourceBundle, String> {
+        let file = SourceFile::new(path.to_owned(), bytes.to_vec())
+            .map_err(|error| format!("{error:?}"))?;
+        SourceBundle::new(vec![file]).map_err(|error| format!("{error:?}"))
+    }
+
+    fn archive(payload: &[u8]) -> Vec<u8> {
+        let padded = payload.len().div_ceil(512) * 512;
+        let mut bytes = vec![0_u8; 512 + padded + 1024];
+        let size = format!("{:011o}\0", payload.len());
+        bytes[124..136].copy_from_slice(size.as_bytes());
+        bytes[512..512 + payload.len()].copy_from_slice(payload);
+        bytes
+    }
+
+    fn runtime() -> Result<RuntimeIdentity, String> {
+        Ok(RuntimeIdentity {
+            platform: "linux/aarch64".into(),
+            image_id: format!("sha256:{}", "1".repeat(64)),
+            configuration_fingerprint: fingerprint('2')?,
+            execution_fingerprint: fingerprint('3')?,
+            rust_version: "rustc 1.98.1".into(),
+            cargo_version: "cargo 1.98.1".into(),
+            declared_toolchain: None,
+        })
+    }
 
     #[test]
     fn a_realistic_html_bundle_exceeds_the_old_cap_but_fits_the_durable_member_cap() {
@@ -993,5 +1043,294 @@ mod tests {
         keep_or_omit(2, Ok("stderr"), &mut published, &mut omitted);
         assert_eq!(published, ["junit", "stderr"]);
         assert_eq!(omitted, [1]);
+    }
+
+    #[test]
+    fn byte_input_is_incremental_and_handles_empty_buffers() {
+        let mut input = Bytes(b"abcdef");
+        let mut first = [0_u8; 2];
+        assert_eq!(input.read(&mut first), Ok(2));
+        assert_eq!(&first, b"ab");
+        assert_eq!(input.read(&mut []), Ok(0));
+        let mut rest = [0_u8; 8];
+        assert_eq!(input.read(&mut rest), Ok(4));
+        assert_eq!(&rest[..4], b"cdef");
+        assert_eq!(input.read(&mut rest), Ok(0));
+    }
+
+    #[test]
+    fn callback_authority_masks_callback_failures() -> Result<(), String> {
+        let project: ProjectRef = "prj_00000000000000000000000000000000"
+            .parse()
+            .map_err(|error| format!("{error:?}"))?;
+        let facts = QualityOwnerFacts {
+            granted_root_device: 7,
+            granted_root_inode: 11,
+            workspace_root: "/workspace".into(),
+        };
+        let mut success = || Ok(facts.clone());
+        let mut authority = CallbackAuthority {
+            revalidate: &mut success,
+        };
+        assert_eq!(authority.revalidate_owner(&project), Ok(facts));
+
+        let mut failure = || Err(InspectionError::Internal);
+        let mut authority = CallbackAuthority {
+            revalidate: &mut failure,
+        };
+        assert_eq!(
+            authority.revalidate_owner(&project),
+            Err(QualityArtifactError::Unauthorized)
+        );
+        Ok(())
+    }
+
+    #[test]
+    fn artifact_errors_map_to_closed_inspection_categories() {
+        for error in [
+            QualityArtifactError::QuotaExceeded,
+            QualityArtifactError::InvalidLimit,
+        ] {
+            assert_eq!(quality_error(error), InspectionError::OutputLimit);
+        }
+        for error in [
+            QualityArtifactError::Unauthorized,
+            QualityArtifactError::Expired,
+            QualityArtifactError::NotFound,
+        ] {
+            assert_eq!(
+                quality_error(error),
+                InspectionError::Project(ProjectError::Rejected(
+                    rust_engineering_domain::OperationalErrorCode::ProjectNotFound
+                ))
+            );
+        }
+        for error in [
+            QualityArtifactError::InvalidId,
+            QualityArtifactError::InvalidDescriptor,
+            QualityArtifactError::InvalidTimestamp,
+            QualityArtifactError::InvalidKindVersion,
+            QualityArtifactError::Busy,
+            QualityArtifactError::UnsupportedPlatform,
+            QualityArtifactError::UnsupportedStateRoot,
+            QualityArtifactError::Io,
+            QualityArtifactError::RecoveryRequired,
+            QualityArtifactError::RetentionDenied,
+        ] {
+            assert_eq!(quality_error(error), InspectionError::Internal);
+        }
+    }
+
+    #[test]
+    fn source_digests_are_deterministic_ordered_and_domain_separated() -> Result<(), String> {
+        let baseline = source("src/lib.rs", b"pub fn old() {}\n")?;
+        let same = source("src/lib.rs", b"pub fn old() {}\n")?;
+        let candidate = source("src/lib.rs", b"pub fn new() {}\n")?;
+        assert_eq!(source_digest(&baseline), source_digest(&same));
+        assert_ne!(source_digest(&baseline), source_digest(&candidate));
+        assert_ne!(
+            semver_source_digest(&baseline, &candidate),
+            semver_source_digest(&candidate, &baseline)
+        );
+        assert_ne!(
+            semver_source_digest(&baseline, &candidate),
+            source_digest(&baseline)
+        );
+        Ok(())
+    }
+
+    #[test]
+    fn runtime_toolchain_digest_uses_both_versions() -> Result<(), String> {
+        let runtime = runtime()?;
+        let digest = toolchain_identity(&runtime);
+        let mut changed = runtime.clone();
+        changed.cargo_version.push_str(" changed");
+        assert_ne!(digest, toolchain_identity(&changed));
+        changed = runtime.clone();
+        changed.rust_version.push_str(" changed");
+        assert_ne!(digest, toolchain_identity(&changed));
+        Ok(())
+    }
+
+    #[test]
+    fn nextest_runtime_descriptor_binds_fixed_plugin_and_execution() -> Result<(), String> {
+        let observation = NextestObservation {
+            options: NextestOptions::try_from(NextestSelection::default())
+                .map_err(|error| error.to_string())?,
+            validation_complete: true,
+            completeness: NextestCompleteness::Complete,
+            counts: NextestCounts::default(),
+            tests: Vec::new(),
+            tests_omitted: 0,
+            doctests_run: false,
+            termination: ExecutionTermination::Exited,
+            exit_code: Some(0),
+            runtime: runtime()?,
+            execution_fingerprint: fingerprint('3')?,
+            artifacts: ArtifactStreams::default(),
+        };
+        let descriptor = artifact_runtime(&observation).map_err(|error| format!("{error:?}"))?;
+        assert_eq!(descriptor.image_digest, [0x11; 32]);
+        assert_eq!(descriptor.plugin.identity, PluginIdentity::Nextest);
+        assert_eq!(descriptor.plugin.version, 1);
+        assert_eq!(descriptor.plugin.digest, NEXTEST_BINARY_SHA256);
+        assert_eq!(descriptor.implementation_digest, [0x33; 32]);
+        Ok(())
+    }
+
+    #[test]
+    fn coverage_runtime_descriptor_hashes_the_observed_plugin_version() -> Result<(), String> {
+        let metrics =
+            CoverageMetrics::new((1, 1), (1, 1), (1, 1)).map_err(|error| error.to_string())?;
+        let observation = CoverageObservation {
+            options: CoverageOptions::try_from(CoverageSelection::default())
+                .map_err(|error| error.to_string())?,
+            summary: CoverageSummary {
+                aggregate: metrics,
+                packages: Vec::new(),
+                files: Vec::new(),
+                files_omitted: 0,
+            },
+            identity: CoverageIdentity {
+                cargo_llvm_cov_version: "0.9.0".into(),
+                manifest_path: "/source/Cargo.toml".into(),
+                llvm_tools_version: "1.98.1".into(),
+            },
+            doctests_run: false,
+            cfg_coverage_enabled: true,
+            target: "aarch64-unknown-linux-gnu",
+            termination: ExecutionTermination::Exited,
+            exit_code: Some(0),
+            parse_complete: true,
+            runtime: runtime()?,
+            execution_fingerprint: fingerprint('3')?,
+            artifacts: CoverageArtifactStreams::default(),
+        };
+        let descriptor =
+            coverage_artifact_runtime(&observation).map_err(|error| format!("{error:?}"))?;
+        let mut expected = Sha256::new();
+        expected.update(b"cargo-llvm-cov\0");
+        expected.update(b"0.9.0");
+        let expected: [u8; 32] = expected.finalize().into();
+        assert_eq!(descriptor.plugin.identity, PluginIdentity::Coverage);
+        assert_eq!(descriptor.plugin.digest, expected);
+        assert_eq!(descriptor.image_digest, [0x11; 32]);
+        Ok(())
+    }
+
+    #[test]
+    fn semver_runtime_descriptor_uses_the_admitted_binary_identity() -> Result<(), String> {
+        let selection = SemverCommandOptions::try_from(SemverProjectSelection::default())
+            .map_err(|error| error.to_string())?;
+        let observation = SemverObservation {
+            options: SemverOptions::new(
+                selection.clone(),
+                selection,
+                SEMVER_DEFAULT_TIMEOUT_SECONDS,
+            )
+            .map_err(|error| error.to_string())?,
+            exit: SemverExit::NoBreak,
+            counts: SemverFindingCounts::default(),
+            findings: Vec::new(),
+            findings_omitted: 0,
+            completeness: SemverFindingCompleteness::Incomplete,
+            termination: ExecutionTermination::Exited,
+            exit_code: Some(0),
+            runtime: runtime()?,
+            execution_fingerprint: fingerprint('3')?,
+            stdout: Vec::new(),
+            stderr: Vec::new(),
+            stdout_truncated: false,
+            stderr_truncated: false,
+        };
+        let descriptor =
+            semver_artifact_runtime(&observation).map_err(|error| format!("{error:?}"))?;
+        assert_eq!(descriptor.plugin.identity, PluginIdentity::Semver);
+        assert_eq!(descriptor.plugin.version, 1);
+        assert_eq!(
+            descriptor.plugin.digest,
+            [
+                0xf8, 0x78, 0x89, 0xa5, 0xe2, 0x6b, 0x6e, 0xe6, 0xf7, 0x65, 0x6e, 0x84, 0x94, 0xc3,
+                0x78, 0x42, 0xab, 0x04, 0x13, 0x49, 0xb0, 0x4e, 0x50, 0x84, 0xa6, 0x6c, 0x14, 0x4d,
+                0xf2, 0xcc, 0xc0, 0x2b,
+            ]
+        );
+        assert_eq!(descriptor.implementation_digest, [0x33; 32]);
+        Ok(())
+    }
+
+    #[test]
+    fn runtime_descriptor_rejects_non_digest_image_identity() -> Result<(), String> {
+        let mut observation = NextestObservation {
+            options: NextestOptions::try_from(NextestSelection::default())
+                .map_err(|error| error.to_string())?,
+            validation_complete: true,
+            completeness: NextestCompleteness::Complete,
+            counts: NextestCounts::default(),
+            tests: Vec::new(),
+            tests_omitted: 0,
+            doctests_run: false,
+            termination: ExecutionTermination::Exited,
+            exit_code: Some(0),
+            runtime: runtime()?,
+            execution_fingerprint: fingerprint('3')?,
+            artifacts: ArtifactStreams::default(),
+        };
+        observation.runtime.image_id = "mutable-tag".into();
+        assert!(matches!(
+            artifact_runtime(&observation),
+            Err(InspectionError::Internal)
+        ));
+        Ok(())
+    }
+
+    #[test]
+    fn digest_text_accepts_only_prefixed_exact_hex() {
+        let valid = format!("sha256:{}", "ab".repeat(32));
+        assert_eq!(digest_text(&valid), Ok([0xab; 32]));
+        for invalid in [
+            "ab",
+            "sha256:ab",
+            "sha256:zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz",
+        ] {
+            assert_eq!(digest_text(invalid), Err(InspectionError::Internal));
+        }
+    }
+
+    #[test]
+    fn coverage_archive_counts_entries_and_rejects_bad_framing() {
+        assert_eq!(coverage_archive_entries(&archive(b"abc")), Ok(1));
+
+        let mut two = archive(b"first");
+        let second = archive(b"second");
+        two.truncate(two.len() - 1024);
+        two.extend_from_slice(&second);
+        assert_eq!(coverage_archive_entries(&two), Ok(2));
+
+        assert_eq!(
+            coverage_archive_entries(&[0_u8; 512]),
+            Err(InspectionError::InvalidMetadata)
+        );
+        assert_eq!(
+            coverage_archive_entries(&[0_u8; 1025]),
+            Err(InspectionError::InvalidMetadata)
+        );
+        assert_eq!(
+            coverage_archive_entries(&[0_u8; 1024]),
+            Err(InspectionError::InvalidMetadata)
+        );
+        let mut invalid_size = archive(b"x");
+        invalid_size[124..136].fill(b'x');
+        assert_eq!(
+            coverage_archive_entries(&invalid_size),
+            Err(InspectionError::InvalidMetadata)
+        );
+        let mut trailing = archive(b"x");
+        let final_byte = trailing.len() - 1;
+        trailing[final_byte] = 1;
+        assert_eq!(
+            coverage_archive_entries(&trailing),
+            Err(InspectionError::InvalidMetadata)
+        );
     }
 }

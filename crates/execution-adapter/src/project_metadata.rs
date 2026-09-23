@@ -1290,4 +1290,68 @@ mod tests {
         ));
         Ok(())
     }
+    // The pinned Cargo always serializes these dependency facts, as `null` when
+    // unset; only `path` is skipped when absent. Omission of a required-nullable
+    // fact is malformed metadata, so `#[serde(default)]` there must fail this test.
+    #[test]
+    fn dependency_nullable_facts_accept_null_but_reject_omission() -> Result<(), InspectionError> {
+        let source = source(
+            "",
+            &[
+                ("dep/Cargo.toml", "[package]\nname='dep'"),
+                ("dep/src/lib.rs", ""),
+            ],
+        )?;
+        let mut registry = dependency_json(
+            Value::Null,
+            json!("registry+https://github.com/rust-lang/crates.io-index"),
+            None,
+        );
+        registry["name"] = json!("registered");
+        // A path dependency is the only valid shape with `source: null`, so it is
+        // the baseline where a defaulted-away `source` would wrongly parse.
+        let path = dependency_json(Value::Null, Value::Null, Some("/source/dep"));
+        let mut value = metadata();
+        value["packages"][0]["dependencies"] = json!([registry.clone(), path.clone()]);
+        let parsed = parse_value(&value, &source)?;
+        let declared = &parsed.packages[0].direct_dependencies;
+        assert_eq!(declared.len(), 2);
+        for dependency in declared {
+            assert_eq!(dependency.rename, None);
+            assert_eq!(dependency.kind, DeclaredDependencyKind::Normal);
+            assert_eq!(dependency.target_condition, None);
+        }
+        assert!(
+            declared
+                .iter()
+                .any(|d| d.origin.kind == DependencySourceKind::Path
+                    && d.origin.relative_path.as_deref() == Some("dep"))
+        );
+        for (baseline, key) in [
+            (&registry, "rename"),
+            (&registry, "kind"),
+            (&registry, "target"),
+            (&registry, "registry"),
+            (&path, "source"),
+        ] {
+            let mut dependency = baseline.clone();
+            dependency
+                .as_object_mut()
+                .ok_or_else(invalid)?
+                .remove(key)
+                .ok_or_else(invalid)?;
+            let mut value = metadata();
+            value["packages"][0]["dependencies"] = json!([dependency]);
+            is_invalid(parse_value(&value, &source));
+        }
+        let mut value = metadata();
+        value["packages"][0]["rust_version"] = Value::Null;
+        assert_eq!(parse_value(&value, &source)?.packages[0].rust_version, None);
+        value["packages"][0]
+            .as_object_mut()
+            .ok_or_else(invalid)?
+            .remove("rust_version");
+        is_invalid(parse_value(&value, &source));
+        Ok(())
+    }
 }

@@ -164,6 +164,71 @@ impl Profile {
     }
 }
 
+fn create_arguments(
+    image_id: &str,
+    name: &str,
+    spec: &ExecutionSpec,
+    profile: &str,
+    mode: Profile,
+) -> Result<Vec<String>, ExecutionError> {
+    if !mode.permits(spec.scenario) {
+        return Err(ExecutionError::Denied);
+    }
+    let memory = if spec.scenario == ProbeScenario::Pids {
+        "256m"
+    } else {
+        "64m"
+    };
+    let mut args = [
+        "container",
+        "create",
+        "--pull=never",
+        "--runtime=runc",
+        "--init=false",
+        "--name",
+        name,
+        "--label",
+        "org.rust-mcp.execution=true",
+        "--network=none",
+        "--read-only",
+        "--user=65532:65532",
+        "--cap-drop=ALL",
+        "--security-opt=no-new-privileges=true",
+        "--ipc=private",
+        "--cgroupns=private",
+        "--pids-limit=64",
+        "--cpus=0.5",
+        "--memory",
+        memory,
+        "--memory-swap",
+        memory,
+        "--shm-size=1m",
+        "--log-driver=none",
+        "--no-healthcheck",
+        "--tmpfs",
+        "/work:rw,nosuid,nodev,size=8m,mode=1777",
+        "--tmpfs",
+        "/tmp:rw,nosuid,nodev,noexec,size=8m,mode=1777",
+        "--workdir=/work",
+        "--hostname=sandbox",
+        "--env=PATH=/nonexistent",
+        "--env=HOME=/work",
+        "--env=TMPDIR=/tmp",
+        "--env=GOMAXPROCS=2",
+        "--entrypoint=/mcp-probe",
+    ]
+    .into_iter()
+    .map(str::to_owned)
+    .collect::<Vec<_>>();
+    args.push(format!("--security-opt=seccomp={profile}"));
+    if mode == Profile::WritableControl {
+        args.retain(|arg| arg != "--read-only");
+    }
+    args.push(image_id.to_owned());
+    args.push(spec.scenario.argument().to_owned());
+    Ok(args)
+}
+
 pub struct DockerGateway {
     config: HostDockerConfig,
     state: State,
@@ -425,62 +490,7 @@ impl DockerGateway {
         profile: &str,
         mode: Profile,
     ) -> Result<Vec<String>, ExecutionError> {
-        if !mode.permits(spec.scenario) {
-            return Err(ExecutionError::Denied);
-        }
-        let memory = if spec.scenario == rust_engineering_domain::ProbeScenario::Pids {
-            "256m"
-        } else {
-            "64m"
-        };
-        let mut args = [
-            "container",
-            "create",
-            "--pull=never",
-            "--runtime=runc",
-            "--init=false",
-            "--name",
-            name,
-            "--label",
-            "org.rust-mcp.execution=true",
-            "--network=none",
-            "--read-only",
-            "--user=65532:65532",
-            "--cap-drop=ALL",
-            "--security-opt=no-new-privileges=true",
-            "--ipc=private",
-            "--cgroupns=private",
-            "--pids-limit=64",
-            "--cpus=0.5",
-            "--memory",
-            memory,
-            "--memory-swap",
-            memory,
-            "--shm-size=1m",
-            "--log-driver=none",
-            "--no-healthcheck",
-            "--tmpfs",
-            "/work:rw,nosuid,nodev,size=8m,mode=1777",
-            "--tmpfs",
-            "/tmp:rw,nosuid,nodev,noexec,size=8m,mode=1777",
-            "--workdir=/work",
-            "--hostname=sandbox",
-            "--env=PATH=/nonexistent",
-            "--env=HOME=/work",
-            "--env=TMPDIR=/tmp",
-            "--env=GOMAXPROCS=2",
-            "--entrypoint=/mcp-probe",
-        ]
-        .into_iter()
-        .map(str::to_owned)
-        .collect::<Vec<_>>();
-        args.push(format!("--security-opt=seccomp={profile}"));
-        if mode == Profile::WritableControl {
-            args.retain(|arg| arg != "--read-only");
-        }
-        args.push(self.config.image_id.clone());
-        args.push(spec.scenario.argument().to_owned());
-        Ok(args)
+        create_arguments(&self.config.image_id, name, spec, profile, mode)
     }
 }
 
@@ -693,6 +703,60 @@ mod tests {
         assert!(truncated);
         assert_eq!(text.len(), 1023);
         assert_eq!(bounded_text(b"ok", 1024), ("ok".to_owned(), false));
+    }
+    #[test]
+    fn generated_probe_arguments_keep_closed_profiles_and_limits() -> Result<(), ExecutionError> {
+        let spec = |scenario| ExecutionSpec {
+            scenario,
+            limits: ExecutionLimits::default(),
+        };
+        for scenario in ProbeScenario::ALL {
+            let arguments = create_arguments(
+                "sha256:fixture",
+                "fixture",
+                &spec(scenario),
+                "/control/seccomp.json",
+                Profile::Enforced,
+            )?;
+            assert!(arguments.iter().any(|value| value == "--network=none"));
+            assert!(arguments.iter().any(|value| value == "--read-only"));
+            assert_eq!(arguments[arguments.len() - 2], "sha256:fixture");
+            assert_eq!(
+                arguments.last().map(String::as_str),
+                Some(scenario.argument())
+            );
+            let memory = if scenario == ProbeScenario::Pids {
+                "256m"
+            } else {
+                "64m"
+            };
+            assert_eq!(
+                arguments
+                    .windows(2)
+                    .filter(|pair| pair[0] == "--memory" && pair[1] == memory)
+                    .count(),
+                1
+            );
+        }
+        assert_eq!(
+            create_arguments(
+                "sha256:fixture",
+                "fixture",
+                &spec(ProbeScenario::Environment),
+                "/control/seccomp.json",
+                Profile::SocketControl,
+            ),
+            Err(ExecutionError::Denied)
+        );
+        let writable = create_arguments(
+            "sha256:fixture",
+            "fixture",
+            &spec(ProbeScenario::Filesystem),
+            "/control/seccomp.json",
+            Profile::WritableControl,
+        )?;
+        assert!(!writable.iter().any(|value| value == "--read-only"));
+        Ok(())
     }
     #[test]
     fn configuration_identity_covers_every_generated_argument()
