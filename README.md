@@ -9,6 +9,7 @@
 [![Rust 1.98.1](https://img.shields.io/badge/Rust-1.98.1-000000?logo=rust)](rust-toolchain.toml)
 [![License](https://img.shields.io/badge/license-MIT%20OR%20Apache--2.0-blue.svg)](LICENSE)
 [![M8ven Score](https://m8ven.ai/badge/mcp/pharos-lang/rust-engineering-mcp)](https://m8ven.ai/mcp/pharos-lang/rust-engineering-mcp)
+[![M8ven Score](https://m8ven.ai/badge/mcp/pharos-lang-rust-engineering-mcp-0rlils)](https://m8ven.ai/mcp/pharos-lang-rust-engineering-mcp-0rlils)
 
 Rust Engineering MCP conecta agentes compatibles con [Model Context Protocol
 (MCP)](https://modelcontextprotocol.io/) con proyectos Rust locales. Expone
